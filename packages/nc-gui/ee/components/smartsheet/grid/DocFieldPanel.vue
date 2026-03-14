@@ -11,9 +11,11 @@ const {
   activeColumn,
   docColumns,
   activeColumnId,
+  hasPrev,
+  hasNext,
 } = docFieldStore
 
-const { closeDoc, switchField, setFullscreen } = docFieldStore
+const { closeDoc, switchField, setFullscreen, navigatePrev, navigateNext, createDocForCurrentRow } = docFieldStore
 
 const { t } = useI18n()
 
@@ -165,6 +167,34 @@ const panelClasses = computed(() => {
 
         <div class="flex-1" />
 
+        <!-- Row navigation -->
+        <div class="flex items-center gap-0.5">
+          <NcTooltip :title="$t('general.previous')">
+            <NcButton
+              size="xs"
+              type="text"
+              :disabled="!hasPrev"
+              :aria-label="$t('general.previous')"
+              data-testid="nc-doc-field-panel-prev"
+              @click="navigatePrev"
+            >
+              <GeneralIcon icon="arrowUp" class="w-4 h-4" />
+            </NcButton>
+          </NcTooltip>
+          <NcTooltip :title="$t('general.next')">
+            <NcButton
+              size="xs"
+              type="text"
+              :disabled="!hasNext"
+              :aria-label="$t('general.next')"
+              data-testid="nc-doc-field-panel-next"
+              @click="navigateNext"
+            >
+              <GeneralIcon icon="arrowDown" class="w-4 h-4" />
+            </NcButton>
+          </NcTooltip>
+        </div>
+
         <!-- Toolbar buttons -->
         <NcTooltip :title="isFullscreen ? $t('labels.exitFullscreen') : $t('labels.enterFullscreen')">
           <NcButton
@@ -199,8 +229,14 @@ const panelClasses = computed(() => {
         <div v-else-if="docId" class="h-full overflow-auto">
           <LazyDocEditor :key="docId" :doc-id="docId" embedded />
         </div>
-        <div v-else class="flex items-center justify-center h-full text-nc-content-gray-subtle2">
-          {{ t('msg.docFieldEmpty') }}
+        <div v-else class="flex flex-col items-center justify-center h-full gap-3">
+          <span class="text-bodySm text-nc-content-gray-subtle2">{{ t('msg.docFieldEmpty') }}</span>
+          <NcButton size="small" type="secondary" data-testid="nc-doc-field-panel-create" @click="createDocForCurrentRow">
+            <div class="flex items-center gap-1">
+              <GeneralIcon icon="plus" class="w-4 h-4" />
+              {{ t('activity.createDocument') }}
+            </div>
+          </NcButton>
         </div>
       </div>
     </div>

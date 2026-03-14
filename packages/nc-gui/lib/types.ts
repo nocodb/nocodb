@@ -580,7 +580,7 @@ interface CellRenderer {
     isPublic?: boolean
     openDetachedExpandedForm: (props: UseExpandedFormDetachedProps) => void
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
-    openDocField?: (rowId: string, columnId: string, rowData?: Record<string, any>) => Promise<void>
+    openDocField?: (rowId: string, columnId: string, rowData?: Record<string, any>, rowIndex?: number) => Promise<void>
     deleteDocField?: (columnId: string, rowId: string, rowData?: Record<string, any>) => Promise<void>
     formula?: boolean
     allowLocalUrl?: boolean
@@ -608,7 +608,7 @@ interface CellRenderer {
     makeCellEditable: MakeCellEditableFn
     cellRenderStore: CellRenderStore
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
-    openDocField?: (rowId: string, columnId: string, rowData?: Record<string, any>) => Promise<void>
+    openDocField?: (rowId: string, columnId: string, rowData?: Record<string, any>, rowIndex?: number) => Promise<void>
     deleteDocField?: (columnId: string, rowId: string, rowData?: Record<string, any>) => Promise<void>
     allowLocalUrl?: boolean
     t: Composer['t']

@@ -165,7 +165,7 @@ export const DocCellRenderer: CellRenderer = {
       if (!isPillHovered) return false
 
       if (openDocField && column.columnObj?.id && pk) {
-        await openDocField(String(pk), column.columnObj.id, row.row)
+        await openDocField(String(pk), column.columnObj.id, row.row, row.rowMeta.rowIndex)
       }
       return true
     }
@@ -186,7 +186,7 @@ export const DocCellRenderer: CellRenderer = {
     if (!isPillHovered) return false
 
     if (openDocField && column.columnObj?.id && pk) {
-      await openDocField(String(pk), column.columnObj.id, row.row)
+      await openDocField(String(pk), column.columnObj.id, row.row, row.rowMeta.rowIndex)
     }
     return true
   },
@@ -194,7 +194,7 @@ export const DocCellRenderer: CellRenderer = {
   async handleKeyDown(ctx) {
     if (ctx.e.key === 'Enter') {
       if (ctx.openDocField && ctx.column?.columnObj?.id && ctx.pk) {
-        await ctx.openDocField(String(ctx.pk), ctx.column.columnObj.id, ctx.row?.row)
+        await ctx.openDocField(String(ctx.pk), ctx.column.columnObj.id, ctx.row?.row, ctx.row?.rowMeta.rowIndex)
       }
       return true
     }

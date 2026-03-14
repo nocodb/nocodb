@@ -42,7 +42,7 @@ useProvideViewAggregate(view, meta, xWhere, reloadVisibleDataHook)
 
 const docFieldStore = useProvideDocField()
 
-const { isOpen: isDocFieldPanelOpen, isPinned: isDocFieldPinned } = docFieldStore
+const { isOpen: isDocFieldPanelOpen, isPinned: isDocFieldPinned, rowNavigator: docRowNavigator } = docFieldStore
 
 const {
   loadData,
@@ -86,6 +86,18 @@ const {
   toggleExpandAll,
   groupDataCache,
 } = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
+
+// Wire up doc field panel row navigation
+docRowNavigator.value = {
+  getRow: (index: number) => {
+    const row = cachedRows.value.get(index)
+    if (!row) return null
+    const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+    if (!rowId) return null
+    return { rowId, rowData: row.row }
+  },
+  totalRows: () => totalRows.value,
+}
 
 const rowHeight = computed(() => {
   const gridView = view.value?.view as GridType

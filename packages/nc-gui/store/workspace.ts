@@ -46,12 +46,16 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isFeedPageOpened = computed(() => route.value.name === 'index-typeOrId-feed')
 
+  const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
+
   const isWorkspaceLoading = ref(true)
   const isWorkspacesLoading = ref(false)
   const isCollaboratorsLoading = ref(true)
   const isInvitingCollaborators = ref(false)
   const workspaceUserCount = ref<number | undefined>(undefined)
   const workspaceOwnerCount = ref<number | undefined>(undefined)
+
+  const ssoLoginRequiredDlg = ref(false)
 
   const upgradeWsDlg = ref(false)
   const upgradeWsJobId = ref<string | null>(null)
@@ -333,6 +337,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     return Infinity
   }
 
+  const toggleSsoLoginRequiredDlg = (_show = !ssoLoginRequiredDlg.value) => {
+    ssoLoginRequiredDlg.value = _show
+  }
+
   /**
    * Teams section start here
    */
@@ -358,6 +366,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const loadTeams = async (..._args: any[]) => {}
 
   const getTeamById = async (..._args: any[]) => {}
+
+  const getTeamBreadcrumb = (_teamId: string) => {
+    return [] as any[]
+  }
 
   const addTeamMembers = async (..._args: any[]) => {}
 
@@ -421,6 +433,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     setLoadingState,
     navigateToWorkspaceSettings,
     lastPopulatedWorkspaceId,
+    isSharedBase,
     isWorkspaceSettingsPageOpened,
     workspaceUserCount,
     workspaceOwnerCount,
@@ -433,6 +446,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isFeedPageOpened,
     deletingWorkspace,
     isWorkspacesLoading,
+    ssoLoginRequiredDlg,
+    toggleSsoLoginRequiredDlg,
     upgradeWsDlg,
     upgradeWsJobId,
     removingCollaboratorMap,
@@ -448,6 +463,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     updateTeam,
     loadTeams,
     getTeamById,
+    getTeamBreadcrumb,
     addTeamMembers,
     removeTeamMembers,
     updateTeamMembers,

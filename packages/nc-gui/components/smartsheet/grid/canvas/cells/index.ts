@@ -100,6 +100,7 @@ export function useGridCellHandler(params: {
 
   const docFieldStore = useDocField()
   const openDocField = docFieldStore?.openDoc
+  const deleteDocField = docFieldStore?.deleteDoc
 
   const baseUsers = computed<(Partial<UserType> | Partial<User>)[]>(() =>
     params.meta?.value?.base_id ? basesUser.value.get(params.meta?.value.base_id) || [] : [],
@@ -489,6 +490,7 @@ export function useGridCellHandler(params: {
         openDetachedExpandedForm,
         openDetachedLongText,
         openDocField,
+        deleteDocField,
         path: ctx.path ?? [],
         allowLocalUrl: appInfo.value?.allowLocalUrl,
         baseRoles: baseRoles.value,
@@ -527,6 +529,7 @@ export function useGridCellHandler(params: {
         makeCellEditable,
         openDetachedLongText,
         openDocField,
+        deleteDocField,
         allowLocalUrl: appInfo.value?.allowLocalUrl,
         path: ctx.path ?? [],
         t,

@@ -72,4 +72,10 @@ export default class Document implements DocumentType {
   public static async createForField(..._args) {
     return null;
   }
+
+  public static async listExistenceByColumnsAndRows(
+    ..._args
+  ): Promise<Map<string, Map<string, string>>> {
+    return new Map();
+  }
 }

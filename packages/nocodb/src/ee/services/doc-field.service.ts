@@ -103,4 +103,20 @@ export class DocFieldService extends DocFieldServiceCE {
 
     return Document.update(context, docId, updatePayload);
   }
+
+  /**
+   * Soft-delete the document for a specific field + row.
+   * Called when the user presses Delete on a Doc cell.
+   */
+  async deleteByFieldAndRow(
+    context: NcContext,
+    columnId: string,
+    rowId: string,
+  ): Promise<boolean> {
+    const doc = await Document.getByFieldAndRow(context, columnId, rowId);
+    if (!doc) return true;
+
+    await Document.softDelete(context, doc.id);
+    return true;
+  }
 }

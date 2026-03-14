@@ -2361,7 +2361,7 @@ onBeforeUnmount(() => {
                 </svg>
                 {{ $t('labels.taskProgress', { completed: taskCompleted, total: taskTotal }) }}
               </span>
-              <span v-e="['c:doc:comments:subtitle-toggle']" class="nc-doc-subtitle-comments" @click="toggleCommentsPanel()">
+              <span v-if="!embedded" v-e="['c:doc:comments:subtitle-toggle']" class="nc-doc-subtitle-comments" @click="toggleCommentsPanel()">
                 <GeneralIcon icon="ncMessageCircle" class="!w-3.5 !h-3.5" />
                 <template v-if="commentCount">
                   {{ commentCount }} {{ commentCount === 1 ? $t('general.comment') : $t('general.comments') }}

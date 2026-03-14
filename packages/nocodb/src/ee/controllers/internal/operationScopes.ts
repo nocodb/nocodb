@@ -144,6 +144,7 @@ export const OPERATION_SCOPES = {
   docFieldGet: 'base',
   docFieldGetOrCreate: 'base',
   docFieldUpdate: 'base',
+  docFieldDelete: 'base',
 
   // Document Comments (EE-only)
   documentCommentList: 'base',

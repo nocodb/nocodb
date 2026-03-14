@@ -22,8 +22,9 @@ const [useProvideDocField, useDocField] = useInjectionState(() => {
   const activeColumn = computed(() => undefined)
   const docColumns = computed(() => [])
 
-  const openDoc = async (_rowId: string, _columnId: string) => {}
+  const openDoc = async (_rowId: string, _columnId: string, _rowData?: Record<string, any>) => {}
   const closeDoc = () => {}
+  const deleteDoc = async (_columnId: string, _rowId: string, _rowData?: Record<string, any>) => {}
   const switchField = (_columnId: string) => {}
   const togglePin = () => {}
   const setFullscreen = (_val: boolean) => {}
@@ -43,6 +44,7 @@ const [useProvideDocField, useDocField] = useInjectionState(() => {
     docColumns,
     openDoc,
     closeDoc,
+    deleteDoc,
     switchField,
     togglePin,
     setFullscreen,

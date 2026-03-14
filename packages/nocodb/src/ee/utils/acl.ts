@@ -459,6 +459,7 @@ const permissionScopes = {
     'docFieldGet',
     'docFieldGetOrCreate',
     'docFieldUpdate',
+    'docFieldDelete',
 
     // Document Comments
     'documentCommentList',
@@ -996,6 +997,7 @@ const rolePermissions:
       // Doc Field — editors can create (lazy) and update field docs
       docFieldGetOrCreate: true,
       docFieldUpdate: true,
+      docFieldDelete: true,
 
       // Extensions
       extensionUpdate: true,
@@ -1646,6 +1648,7 @@ const permissionDescriptions: Record<string, string> = {
   docFieldGet: 'view a doc field document',
   docFieldGetOrCreate: 'open or create a doc field document',
   docFieldUpdate: 'update a doc field document',
+  docFieldDelete: 'delete a doc field document',
 
   documentCommentList: 'view document comments',
   documentCommentCount: 'view document comment count',

@@ -796,6 +796,39 @@ export default class Document extends DocumentCE implements DocumentType {
   }
 
   /**
+   * Batch-check which (columnId, rowId) pairs have a document.
+   * Returns a nested map: columnId → rowId → docId.
+   */
+  public static async listExistenceByColumnsAndRows(
+    context: NcContext,
+    columnIds: string[],
+    rowIds: string[],
+    ncMeta = Noco.ncMeta,
+  ): Promise<Map<string, Map<string, string>>> {
+    const result = new Map<string, Map<string, string>>();
+    if (!columnIds.length || !rowIds.length) return result;
+
+    const rows = await ncMeta
+      .knexConnection(MetaTable.DOCS)
+      .where('fk_workspace_id', context.workspace_id)
+      .where('base_id', context.base_id)
+      .where('doc_source', 'field')
+      .where('deleted', false)
+      .whereIn('fk_column_id', columnIds)
+      .whereIn('fk_row_id', rowIds)
+      .select('id', 'fk_column_id', 'fk_row_id');
+
+    for (const row of rows) {
+      if (!result.has(row.fk_column_id)) {
+        result.set(row.fk_column_id, new Map());
+      }
+      result.get(row.fk_column_id)!.set(row.fk_row_id, row.id);
+    }
+
+    return result;
+  }
+
+  /**
    * Soft-delete all field-linked documents for a given column.
    * Called when a Doc column is deleted.
    */

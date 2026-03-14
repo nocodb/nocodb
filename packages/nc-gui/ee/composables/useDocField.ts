@@ -38,7 +38,7 @@ const [useProvideDocField, useDocField] = useInjectionState(() => {
     return meta.value.columns.filter((c) => c.uidt === UITypes.Doc)
   })
 
-  const openDoc = async (rowId: string, columnId: string) => {
+  const openDoc = async (rowId: string, columnId: string, rowData?: Record<string, any>) => {
     if (!activeWorkspaceId.value || !activeProjectId.value) return
 
     activeRowId.value = rowId
@@ -55,6 +55,11 @@ const [useProvideDocField, useDocField] = useInjectionState(() => {
       })) as DocumentType
 
       docId.value = doc.id ?? null
+
+      // Optimistically update row data so grid cell reflects doc existence
+      if (doc.id && rowData && activeColumn.value?.title) {
+        rowData[activeColumn.value.title] = doc.id
+      }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
       closeDoc()
@@ -72,6 +77,33 @@ const [useProvideDocField, useDocField] = useInjectionState(() => {
 
     if (mode.value === 'fullscreen') {
       mode.value = 'floating'
+    }
+  }
+
+  const deleteDoc = async (columnId: string, rowId: string, rowData?: Record<string, any>) => {
+    if (!activeWorkspaceId.value || !activeProjectId.value) return
+
+    try {
+      await $api.internal.postOperation(activeWorkspaceId.value, activeProjectId.value, {
+        operation: 'docFieldDelete',
+        columnId,
+        rowId,
+      })
+
+      // Optimistically clear row data
+      if (rowData) {
+        const col = meta.value?.columns?.find((c) => c.id === columnId)
+        if (col?.title) {
+          rowData[col.title] = null
+        }
+      }
+
+      // Close panel if this doc was open
+      if (activeColumnId.value === columnId && activeRowId.value === rowId) {
+        closeDoc()
+      }
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
     }
   }
 
@@ -104,6 +136,7 @@ const [useProvideDocField, useDocField] = useInjectionState(() => {
     docColumns,
     openDoc,
     closeDoc,
+    deleteDoc,
     switchField,
     togglePin,
     setFullscreen,

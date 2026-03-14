@@ -20,6 +20,7 @@ export class DocFieldPostOperations
   operations = [
     'docFieldGetOrCreate' as const,
     'docFieldUpdate' as const,
+    'docFieldDelete' as const,
   ];
   httpMethod = 'POST' as const;
 
@@ -63,6 +64,20 @@ export class DocFieldPostOperations
           docId,
           payload,
           req,
+        );
+      }
+      case 'docFieldDelete': {
+        const columnId = req.query.columnId as string;
+        const rowId = req.query.rowId as string;
+        if (!columnId || !rowId) {
+          NcError.badRequest(
+            'Missing required parameters: columnId and rowId',
+          );
+        }
+        return await this.docFieldService.deleteByFieldAndRow(
+          context,
+          columnId,
+          rowId,
         );
       }
     }

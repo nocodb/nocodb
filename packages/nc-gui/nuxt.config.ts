@@ -8,8 +8,6 @@ import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfil
 import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 
 import PurgeIcons from 'vite-plugin-purge-icons'
-import { pwaConfig } from './pwa.config'
-
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   future: {
@@ -18,10 +16,8 @@ export default defineNuxtConfig({
 
   ignore: [...(process.env.NODE_ENV === 'production' ? ['pages/playground/**/*'] : [])],
 
-  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot', '@vite-pwa/nuxt'],
+  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot'],
   ssr: false,
-
-  pwa: pwaConfig,
 
   router: {
     options: {
@@ -64,10 +60,6 @@ export default defineNuxtConfig({
           rel: 'icon',
           type: 'image/x-icon',
           href: '/favicon.ico',
-        },
-        {
-          rel: 'manifest',
-          href: '/manifest.webmanifest',
         },
         {
           rel: 'apple-touch-icon',

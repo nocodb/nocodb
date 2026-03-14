@@ -83,3 +83,5 @@ nix
 lerna.json
 packages/nc-mail-template/emails/*-ee.tsx
 packages/nc-gui/tele
+packages/nc-gui/pwa.config.ts
+

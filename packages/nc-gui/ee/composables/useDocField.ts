@@ -41,6 +41,11 @@ const [useProvideDocField, useDocField] = useInjectionState(() => {
   const openDoc = async (rowId: string, columnId: string, rowData?: Record<string, any>) => {
     if (!activeWorkspaceId.value || !activeProjectId.value) return
 
+    // Already showing this exact doc — just focus the panel
+    if (isOpen.value && activeRowId.value === rowId && activeColumnId.value === columnId && docId.value) {
+      return
+    }
+
     activeRowId.value = rowId
     activeColumnId.value = columnId
     isOpen.value = true

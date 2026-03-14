@@ -25,9 +25,10 @@ const resizeStartWidth = ref(0)
 
 const MIN_WIDTH = 320
 
-const panelTitle = computed(() => {
-  return activeColumn.value?.title || t('general.untitled')
-})
+const getMaxWidth = () => {
+  const containerWidth = panelRef.value?.parentElement?.clientWidth ?? 0
+  return Math.max(MIN_WIDTH, Math.floor(containerWidth * 0.75))
+}
 
 const onResizeStart = (e: MouseEvent) => {
   isResizing.value = true
@@ -37,11 +38,6 @@ const onResizeStart = (e: MouseEvent) => {
 
   window.addEventListener('mousemove', onResizeMove)
   window.addEventListener('mouseup', onResizeEnd)
-}
-
-const getMaxWidth = () => {
-  const containerWidth = panelRef.value?.parentElement?.clientWidth ?? 0
-  return Math.max(MIN_WIDTH, Math.floor(containerWidth * 0.75))
 }
 
 const onResizeMove = (e: MouseEvent) => {
@@ -63,6 +59,10 @@ onBeforeUnmount(() => {
   window.removeEventListener('mouseup', onResizeEnd)
 })
 
+const panelTitle = computed(() => {
+  return activeColumn.value?.title || t('general.untitled')
+})
+
 const onFieldSwitch = (columnId: string) => {
   if (columnId !== activeColumnId.value) {
     switchField(columnId)
@@ -77,7 +77,6 @@ const onKeydown = (e: KeyboardEvent) => {
       closeDoc()
     }
   }
-
 }
 
 watch(isOpen, (val) => {
@@ -213,34 +212,24 @@ const panelClasses = computed(() => {
 <style lang="scss" scoped>
 .nc-doc-field-panel {
   outline: none;
-
-  &:not(.fixed):not(.is-resizing) {
-    transition: width 0.15s ease;
-  }
+  position: relative;
 
   &.is-resizing {
-    cursor: col-resize;
     user-select: none;
   }
 }
 
 .nc-doc-field-panel-resize-handle {
-  @apply absolute top-0 h-full z-10 cursor-col-resize;
-  left: -4px;
-  width: 8px;
+  @apply absolute left-0 top-0 h-full transition-colors;
+  width: 4px;
+  z-index: 50;
 
-  &:before {
-    @apply bg-transparent absolute left-0 top-[12px] h-[calc(100%_-_24px)] rounded-full z-40 transition-colors;
-    content: '';
-    width: 3px;
-  }
-
-  &:hover:before {
+  &:hover {
     @apply bg-nc-border-gray-medium;
   }
 }
 
-.nc-doc-field-panel.is-resizing .nc-doc-field-panel-resize-handle:before {
+.nc-doc-field-panel.is-resizing .nc-doc-field-panel-resize-handle {
   @apply bg-nc-border-gray-medium;
 }
 </style>

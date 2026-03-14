@@ -4,7 +4,6 @@ import type {
   DocumentCreatePayload,
   DocumentDeletePayload,
   DocumentType,
-  DocumentUpdatePayload,
 } from 'nocodb-sdk';
 import { AuditV1OperationTypes } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -99,6 +98,13 @@ export class DocFieldService extends DocFieldServiceCE {
   /**
    * Update a field-linked document's content.
    * Delegates to the Document model's update method.
+   *
+   * Note: Title-rename audits are NOT emitted here. The frontend saves
+   * doc-field titles via `documentUpdate` (DocumentsService.update()),
+   * which emits DOCUMENT_UPDATE through app-hooks. The app-hooks listener
+   * detects doc-field documents via fk_column_id/fk_row_id and enriches
+   * the audit with row context. This method exists as a secondary update
+   * path for programmatic use only.
    */
   async update(
     context: NcContext,
@@ -129,38 +135,16 @@ export class DocFieldService extends DocFieldServiceCE {
       updatePayload.version = payload.version;
     }
 
-    if (payload.title !== undefined && payload.title !== doc.title) {
-      const column = await Column.get(context, { colId: doc.fk_column_id });
-
-      Audit.insert(
-        await generateAuditV1Payload<DocumentUpdatePayload>(
-          AuditV1OperationTypes.DOCUMENT_UPDATE,
-          {
-            context: {
-              ...context,
-              source_id: column.source_id,
-              fk_model_id: column.fk_model_id,
-              row_id: doc.fk_row_id,
-            },
-            details: {
-              document_title: payload.title,
-              document_id: docId,
-              old_title: doc.title,
-              doc_field_title: column.title,
-              doc_field_id: doc.fk_column_id,
-            },
-            req,
-          },
-        ),
-      );
-    }
-
     return Document.update(context, docId, updatePayload);
   }
 
   /**
    * Soft-delete the document for a specific field + row.
    * Called when the user presses Delete on a Doc cell.
+   *
+   * @param req — pass to emit a DOCUMENT_DELETE audit. Omitted by
+   *   duplicate() which calls this internally to clear the target cell
+   *   before cloning; that cleanup should not produce an audit entry.
    */
   async deleteByFieldAndRow(
     context: NcContext,
@@ -174,26 +158,29 @@ export class DocFieldService extends DocFieldServiceCE {
     if (req) {
       const column = await Column.get(context, { colId: columnId });
 
-      Audit.insert(
-        await generateAuditV1Payload<DocumentDeletePayload>(
-          AuditV1OperationTypes.DOCUMENT_DELETE,
-          {
-            context: {
-              ...context,
-              source_id: column.source_id,
-              fk_model_id: column.fk_model_id,
-              row_id: rowId,
+      // Column may have been deleted in a race; skip audit if missing
+      if (column) {
+        Audit.insert(
+          await generateAuditV1Payload<DocumentDeletePayload>(
+            AuditV1OperationTypes.DOCUMENT_DELETE,
+            {
+              context: {
+                ...context,
+                source_id: column.source_id,
+                fk_model_id: column.fk_model_id,
+                row_id: rowId,
+              },
+              details: {
+                document_title: doc.title,
+                document_id: doc.id,
+                doc_field_title: column.title,
+                doc_field_id: columnId,
+              },
+              req,
             },
-            details: {
-              document_title: doc.title,
-              document_id: doc.id,
-              doc_field_title: column.title,
-              doc_field_id: columnId,
-            },
-            req,
-          },
-        ),
-      );
+          ),
+        );
+      }
     }
 
     await Document.softDelete(context, doc.id);

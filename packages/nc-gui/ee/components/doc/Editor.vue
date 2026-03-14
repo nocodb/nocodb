@@ -1679,6 +1679,10 @@ const onTitleBlur = () => {
   if (activeDocument.value?.id === doc.value.id && effectiveTitle !== activeDocument.value?.title) {
     activeDocument.value!.title = effectiveTitle
   }
+  // Sync title to grid cell on blur (covers cases where blur fires before debounce)
+  if (props.embedded && docFieldStore) {
+    docFieldStore.updateDocTitle(effectiveTitle)
+  }
 
   // Compare against last-saved title to decide whether to persist.
   // We must compare against lastSavedTitle (not doc.value.title) because

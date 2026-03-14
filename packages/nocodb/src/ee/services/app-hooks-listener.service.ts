@@ -4824,7 +4824,10 @@ export class AppHooksListenerService
       case AppEvents.DOCUMENT_UPDATE: {
         const param = data as DocumentUpdateEvent;
 
-        // For doc-field documents, include column/row context so audit appears in expanded form
+        // For doc-field documents with a title change, include column/row
+        // context so the audit appears in the expanded-form record timeline.
+        // Content-only saves (oldTitle is undefined) skip enrichment to avoid
+        // noisy audits on every autosave.
         let docFieldContext:
           | {
               source_id?: string;
@@ -4836,7 +4839,11 @@ export class AppHooksListenerService
           | { doc_field_title?: string; doc_field_id?: string; old_title?: string }
           | undefined;
 
-        if (param.doc.fk_column_id && param.doc.fk_row_id) {
+        if (
+          param.oldTitle !== undefined &&
+          param.doc.fk_column_id &&
+          param.doc.fk_row_id
+        ) {
           const column = await Column.get(param.context, {
             colId: param.doc.fk_column_id,
           });

@@ -33,6 +33,14 @@ on:
           - "false"
           - "true"
         default: "false"
+      skipLatestTag:
+        description: "Skip tagging Docker image as 'latest' (for testing)"
+        required: false
+        type: choice
+        options:
+          - "false"
+          - "true"
+        default: "false"
 
 permissions:
   contents: write
@@ -173,6 +181,18 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Compute Docker tags
+        id: docker-tags
+        run: |
+          TAGS="nocodb/nocodb:${{ needs.process-input.outputs.ceTag }}"
+          if [[ "${{ github.event.inputs.skipLatestTag }}" != "true" ]]; then
+            TAGS="${TAGS}
+          nocodb/nocodb:latest"
+          fi
+          echo "tags<<EOF" >> $GITHUB_OUTPUT
+          echo "${TAGS}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Build and push
         uses: docker/build-push-action@v3.2.0
         with:
@@ -182,9 +202,7 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
           push: true
-          tags: |
-            nocodb/nocodb:${{ needs.process-input.outputs.ceTag }}
-            nocodb/nocodb:latest
+          tags: ${{ steps.docker-tags.outputs.tags }}
 
       # Temp fix for buildx cache
       # https://github.com/docker/build-push-action/issues/252

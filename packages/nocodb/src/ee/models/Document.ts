@@ -13,6 +13,7 @@ import {
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
+import FileReference from '~/models/FileReference';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -876,6 +877,8 @@ export default class Document extends DocumentCE implements DocumentType {
       },
     );
 
+    const docIds = docs.map((d) => d.id);
+
     for (const doc of docs) {
       await ncMeta.metaUpdate(
         context.workspace_id,
@@ -887,6 +890,11 @@ export default class Document extends DocumentCE implements DocumentType {
 
       const key = `${CacheScope.DOCUMENT}:${doc.id}`;
       await NocoCache.deepDel(context, key, CacheDelDirection.CHILD_TO_PARENT);
+    }
+
+    // Cascade: soft-delete file references and decrement workspace storage
+    if (docIds.length) {
+      await FileReference.bulkDeleteForDocs(context, docIds, ncMeta);
     }
   }
 

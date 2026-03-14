@@ -3,7 +3,7 @@ import { DocFieldService as DocFieldServiceCE } from 'src/services/doc-field.ser
 import type { DocumentType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
-import { Document } from '~/models';
+import { Document, FileReference } from '~/models';
 import Column from '~/models/Column';
 
 /**
@@ -161,6 +161,9 @@ export class DocFieldService extends DocFieldServiceCE {
     // Delete existing target doc if present
     await this.deleteByFieldAndRow(context, targetColumnId, targetRowId);
 
+    // Deep-clone content so we can mutate node attrs for new FileReference IDs
+    const clonedContent = JSON.parse(JSON.stringify(sourceDoc.content));
+
     // Create new doc with cloned content
     const newDoc = await Document.createForField(context, {
       base_id: context.base_id,
@@ -168,11 +171,80 @@ export class DocFieldService extends DocFieldServiceCE {
       fk_column_id: targetColumnId,
       fk_row_id: targetRowId,
       title: sourceDoc.title || 'Untitled',
-      content: sourceDoc.content,
+      content: clonedContent,
       created_by: req.user?.id,
       updated_by: req.user?.id,
     });
 
+    if (!newDoc) return null;
+
+    // Clone FileReferences so the new doc owns its own copies
+    try {
+      const contentUpdated = await this.cloneFileReferences(
+        context,
+        newDoc.id!,
+        clonedContent,
+        req,
+      );
+      if (contentUpdated) {
+        await Document.update(context, newDoc.id!, {
+          content: clonedContent,
+          version: newDoc.version,
+        });
+      }
+    } catch (e) {
+      this.logger.error(
+        `Failed to clone file references for duplicated doc field ${newDoc.id}: ${e.message}`,
+        e.stack,
+      );
+    }
+
     return newDoc;
+  }
+
+  /**
+   * Walk ProseMirror content tree and create new FileReferences for the new doc.
+   * Mutates node.attrs.id in-place with the new FileReference ID.
+   * Returns true if any references were cloned (caller must persist content).
+   */
+  protected async cloneFileReferences(
+    context: NcContext,
+    newDocId: string,
+    content: Record<string, any>,
+    req: NcRequest,
+  ): Promise<boolean> {
+    const nodesToClone: { node: Record<string, any>; oldId: string }[] = [];
+
+    const walk = (node: Record<string, any>) => {
+      if (
+        (node.type === 'image' || node.type === 'fileAttachment') &&
+        node.attrs?.id
+      ) {
+        nodesToClone.push({ node, oldId: node.attrs.id });
+      }
+      if (Array.isArray(node.content)) {
+        for (const child of node.content) walk(child);
+      }
+    };
+    walk(content);
+
+    if (!nodesToClone.length) return false;
+
+    for (const { node, oldId } of nodesToClone) {
+      const original = await FileReference.get(context, oldId);
+      if (!original || original.deleted) continue;
+
+      const newId = await FileReference.insert(context, {
+        storage: original.storage,
+        file_url: original.file_url,
+        file_size: original.file_size,
+        fk_user_id: req.user?.id ?? 'anonymous',
+        fk_doc_id: newDocId,
+        is_external: original.is_external,
+      });
+      node.attrs.id = newId;
+    }
+
+    return true;
   }
 }

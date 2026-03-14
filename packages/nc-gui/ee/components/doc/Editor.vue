@@ -1511,6 +1511,9 @@ function countTasks() {
 watch(editor, (ed) => {
   if (ed?.storage?.image) {
     ed.storage.image.openUpload = async () => {
+      // Save cursor position before the file dialog steals focus
+      const savedPos = ed.state.selection.from
+
       const files = await openFilePicker({ multiple: true })
       if (!files.length) return
 
@@ -1525,7 +1528,9 @@ watch(editor, (ed) => {
         attrs: { src: blobUrl, alt: file.name },
       }))
 
-      ed.chain().focus().insertContent(nodes).run()
+      // Restore cursor and focus after file dialog — the native dialog can
+      // leave ProseMirror's DOM selection in an inconsistent state
+      ed.chain().focus().setTextSelection(savedPos).insertContent(nodes).run()
 
       for (const { file, blobUrl } of blobEntries) {
         uploadAndInsert(ed, file, blobUrl)
@@ -1535,6 +1540,9 @@ watch(editor, (ed) => {
   }
   if (ed?.storage?.fileAttachment) {
     ed.storage.fileAttachment.openUpload = async () => {
+      // Save cursor position before the file dialog steals focus
+      const savedPos = ed.state.selection.from
+
       const files = await openFileAttachmentPicker({ multiple: true })
       if (!files.length) return
 
@@ -1549,7 +1557,8 @@ watch(editor, (ed) => {
         attrs: { src: blobUrl, fileName: file.name, fileSize: file.size, fileType: file.type },
       }))
 
-      ed.chain().focus().insertContent(nodes).run()
+      // Restore cursor and focus after file dialog
+      ed.chain().focus().setTextSelection(savedPos).insertContent(nodes).run()
 
       // Upload each file and swap blob → permanent path
       for (const { file, blobUrl } of blobEntries) {

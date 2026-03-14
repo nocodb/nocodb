@@ -141,7 +141,7 @@ const panelClasses = computed(() => {
           <NcButton size="xs" type="text" class="!px-1">
             <div class="flex items-center gap-1 text-nc-content-gray">
               <GeneralIcon icon="ncFileText" class="w-4 h-4" />
-              <span class="text-bodySm font-medium truncate max-w-32">{{ panelTitle }}</span>
+              <span class="text-bodySm font-medium truncate max-w-48 leading-normal">{{ panelTitle }}</span>
               <GeneralIcon icon="arrowDown" class="w-3 h-3" />
             </div>
           </NcButton>
@@ -163,7 +163,7 @@ const panelClasses = computed(() => {
         </NcDropdown>
         <div v-else class="flex items-center gap-1 text-nc-content-gray-subtle px-1">
           <GeneralIcon icon="ncFileText" class="w-4 h-4" />
-          <span class="text-bodySm font-medium truncate max-w-32">{{ panelTitle }}</span>
+          <span class="text-bodySm font-medium truncate max-w-48 leading-normal">{{ panelTitle }}</span>
         </div>
 
         <!-- Display value badge -->

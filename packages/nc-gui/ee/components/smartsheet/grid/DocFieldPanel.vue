@@ -231,7 +231,7 @@ const panelClasses = computed(() => {
         </div>
         <div v-else class="flex flex-col items-center justify-center h-full gap-3">
           <span class="text-bodySm text-nc-content-gray-subtle2">{{ t('labels.docFieldEmpty') }}</span>
-          <NcButton size="small" type="secondary" data-testid="nc-doc-field-panel-create" @click="createDocForCurrentRow">
+          <NcButton size="small" type="primary" data-testid="nc-doc-field-panel-create" @click="createDocForCurrentRow">
             <div class="flex items-center gap-1">
               <GeneralIcon icon="plus" class="w-4 h-4" />
               {{ t('activity.createDocument') }}

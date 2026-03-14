@@ -57,8 +57,6 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { DEFAULT_SECTION_ID } = useViewSectionsStore()
-
 const { viewsByTable, activeView, allRecentViews, isShowEveryonePersonalViewsEnabled } = storeToRefs(useViewsStore())
 
 const views = computed(() => {

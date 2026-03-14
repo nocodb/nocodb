@@ -18,8 +18,6 @@ const { loadViews } = useViewsStore()
 
 const viewSectionsStore = useViewSectionsStore()
 
-const { DEFAULT_SECTION_ID } = viewSectionsStore
-
 const { pendingExpandSectionId } = storeToRefs(viewSectionsStore)
 
 const sections = computed(() => {

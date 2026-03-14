@@ -73,6 +73,10 @@ export default class Document implements DocumentType {
     return null;
   }
 
+  public static async softDeleteByColumn(..._args) {
+    return;
+  }
+
   public static async listExistenceByColumnsAndRows(
     ..._args
   ): Promise<Map<string, Map<string, { id: string; title: string }>>> {

@@ -707,7 +707,9 @@ const onAddColumnDropdownVisibilityChange = () => {
           v-if="!isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
           class="flex items-center gap-2 p-2 sm:w-80 border-b-1 border-nc-border-gray-light"
         >
-          <div class="pl-2 flex text-sm select-none text-nc-content-gray-subtle2 xs:flex-1">{{ $t('labels.coverImageField') }}</div>
+          <div class="pl-2 flex text-sm select-none text-nc-content-gray-subtle2 xs:flex-1">
+            {{ $t('labels.coverImageField') }}
+          </div>
 
           <div
             class="flex-1 nc-dropdown-cover-image-wrapper flex items-stretch border-1 border-nc-border-gray-medium rounded-lg transition-all duration-0.3s max-w-[206px] mr-2"
@@ -925,8 +927,8 @@ const onAddColumnDropdownVisibilityChange = () => {
                   @click.stop
                 >
                   <component
-                    v-if="!isMobileMode"
                     :is="iconMap.drag"
+                    v-if="!isMobileMode"
                     class="!h-3.75 text-nc-content-gray-subtle2 mr-1"
                     :class="{
                       'cursor-not-allowed': isFieldsMenuReadOnly,

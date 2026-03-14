@@ -246,8 +246,10 @@ const onClick = (e: Event) => {
       'flex-col !items-start justify-center pt-0.5': isExpandedForm && !isMobileMenuHidden && !isExpandedBulkUpdateForm,
       'nc-cell-expanded-form-header cursor-pointer hover:bg-nc-bg-gray-light':
         isExpandedForm && !isMobileMenuHidden && !isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm,
-      'cursor-pointer': isExpandedForm && !isMobileMenuHidden && isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm,
-      'bg-nc-bg-gray-light': isExpandedForm && !isMobileMode && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false,
+      'cursor-pointer':
+        isExpandedForm && !isMobileMenuHidden && isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm,
+      'bg-nc-bg-gray-light':
+        isExpandedForm && !isMobileMode && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false,
     }"
     @dblclick="openHeaderMenu"
     @click.right="openDropDown"

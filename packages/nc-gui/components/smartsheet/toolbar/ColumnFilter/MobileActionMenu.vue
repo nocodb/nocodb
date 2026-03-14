@@ -25,7 +25,7 @@ const isOpen = ref(false)
       </template>
     </NcButton>
     <template #overlay>
-      <NcMenu @click="isOpen = false" variant="small">
+      <NcMenu variant="small" @click="isOpen = false">
         <template v-for="(item, idx) of items" :key="idx">
           <NcDivider v-if="item.danger" />
 

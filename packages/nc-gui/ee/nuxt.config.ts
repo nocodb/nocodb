@@ -21,7 +21,15 @@ export default defineNuxtConfig({
     componentIslands: false,
     inlineRouteRules: true,
   },
-  modules: ['nuxt-echarts', '@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot', '@vite-pwa/nuxt'],
+  modules: [
+    'nuxt-echarts',
+    '@vueuse/nuxt',
+    'nuxt-windicss',
+    '@nuxt/image',
+    '@pinia/nuxt',
+    '@productdevbook/chatwoot',
+    '@vite-pwa/nuxt',
+  ],
   echarts: {
     renderer: ['canvas'],
     charts: ['BarChart', 'LineChart', 'PieChart'],

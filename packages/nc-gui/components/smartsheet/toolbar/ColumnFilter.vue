@@ -1657,7 +1657,7 @@ defineExpose({
                     {{ getPinTooltip(filter) }}
                   </template>
                   <NcButton
-                  v-if="showEEFeatures"
+                    v-if="showEEFeatures"
                     v-e="['c:filter:pin']"
                     type="text"
                     size="small"

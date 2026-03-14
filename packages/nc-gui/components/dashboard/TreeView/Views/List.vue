@@ -57,6 +57,8 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
+const { DEFAULT_SECTION_ID } = useViewSectionsStore()
+
 const { viewsByTable, activeView, allRecentViews, isShowEveryonePersonalViewsEnabled } = storeToRefs(useViewsStore())
 
 const views = computed(() => {
@@ -117,9 +119,6 @@ function validate(view: ViewType) {
   return true
 }
 
-/** The virtual section ID for unsectioned views (must match viewSectionsStore) */
-const DEFAULT_SECTION_ID = '__default__'
-
 let sortable: Sortable
 
 /** Compute new order for an item dropped at newIndex in the target container */
@@ -150,7 +149,7 @@ const initSortable = (el: Element) => {
   if (isMobileMode.value) return
   if (sortable) sortable.destroy()
 
-  const hasSectionId = props.sectionId != null
+  const hasSectionId = !!props.sectionId
 
   sortable = Sortable.create(el as HTMLElement, {
     // When sectionId is set, enable cross-section drag via shared group.
@@ -482,15 +481,15 @@ const filteredViews = computed(() => {
 <template>
   <div>
     <div
-      v-if="filteredViews.length || sectionId != null"
+      v-if="filteredViews.length || !!sectionId"
       ref="menuRef"
       :data-section-id="sectionId"
       :data-table-id="table?.id"
-      :class="{ dragging, 'min-h-6': sectionId != null && !filteredViews.length }"
+      :class="{ dragging, 'min-h-6': !!sectionId && !filteredViews.length }"
       class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"
     >
       <div
-        v-if="sectionId != null && !filteredViews.length && !dragging"
+        v-if="!!sectionId && !filteredViews.length && !dragging"
         class="flex items-center py-1 text-nc-content-gray-muted text-body sm:text-bodyDefaultSm"
         :class="{
           'pl-14.5 xs:(pl-16)': isDefaultSource,

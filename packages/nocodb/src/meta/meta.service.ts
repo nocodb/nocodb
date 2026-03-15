@@ -6,6 +6,7 @@ import CryptoJS from 'crypto-js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import { DBQueryClient } from 'src/dbQueryClient';
 import type * as knex from 'knex';
 import type { Knex } from 'knex';
 import type { Condition } from '~/db/CustomKnex';
@@ -422,6 +423,66 @@ export class MetaService {
     this.contextCondition(query, workspace_id, base_id, target);
 
     return query;
+  }
+
+  async massMetaUpdate(
+    workspace_id: string,
+    base_id: string,
+    {
+      tableName,
+      data,
+      updatingColumns,
+      primaryKeyColumns,
+    }: {
+      tableName: string | Knex.Raw<any>;
+      data: Record<string, any>[];
+      updatingColumns: string[];
+      primaryKeyColumns: string[];
+    },
+  ) {
+    if (workspace_id === base_id) {
+      if (!Object.values(RootScopes).includes(workspace_id as RootScopes)) {
+        NcError.metaError({
+          message: 'Invalid scope',
+          sql: '',
+        });
+      }
+
+      if (!RootScopeTables[workspace_id].includes(tableName)) {
+        NcError.metaError({
+          message: 'Table not accessible from this scope',
+          sql: '',
+        });
+      }
+    } else {
+      if (!workspace_id) {
+        NcError.metaError({
+          message: 'Workspace ID is required',
+          sql: '',
+        });
+      }
+
+      if (!base_id) {
+        NcError.metaError({
+          message: 'Base ID is required',
+          sql: '',
+        });
+      }
+    }
+
+    return await DBQueryClient.get(
+      this.knexConnection.client.config.client,
+    ).massUpdate({
+      knex: this.knexConnection,
+      tableName,
+      data: data.map((d) => ({
+        ...d,
+        base_id: base_id,
+        fk_workspace_id: workspace_id,
+      })),
+      updatingColumns,
+      primaryKeyColumns: [...primaryKeyColumns, 'base_id', 'fk_workspace_id'],
+    });
   }
 
   /***

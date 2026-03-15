@@ -69,6 +69,7 @@ import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { isEE } from '~/utils';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 import NocoSocket from '~/socket/NocoSocket';
+import { Profiler } from '~/helpers/profiler';
 
 const { v4: uuidv4 } = require('uuid');
 
@@ -2209,7 +2210,10 @@ export default class View implements ViewType {
     viewId,
     ncMeta = Noco.ncMeta,
   ) {
-    // get a list of view columns sorted by order
+    const profiler = Profiler.start('model/View/fixPVColumnForView');
+
+    // Fetch view and view columns
+    const view = await View.get(context, viewId, ncMeta);
     const view_columns = await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
@@ -2223,97 +2227,94 @@ export default class View implements ViewType {
         },
       },
     );
-    const view_columns_meta = [];
-
-    // get column meta for each view column
-    for (const col of view_columns) {
-      const col_meta = await ncMeta.metaGet2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.COLUMNS,
-        col.fk_column_id,
-      );
-      if (col_meta) view_columns_meta.push(col_meta);
-    }
-
-    const primary_value_column_meta = view_columns_meta.find((col) => col.pv);
-
-    if (primary_value_column_meta) {
-      const primary_value_column = view_columns.find(
-        (col) => col.fk_column_id === primary_value_column_meta.id,
-      );
-      const primary_value_column_index = view_columns.findIndex(
-        (col) => col.fk_column_id === primary_value_column_meta.id,
-      );
-      const view_orders = view_columns.map((col) => col.order);
-      const view_min_order = Math.min(...view_orders);
-
-      // if primary_value_column is not visible, make it visible
-      if (!primary_value_column.show) {
-        await ncMeta.metaUpdate(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.GRID_VIEW_COLUMNS,
-          { show: true },
-          primary_value_column.id,
-        );
-        await NocoCache.set(
-          context,
-          `${CacheScope.GRID_VIEW_COLUMN}:${primary_value_column.id}`,
-          primary_value_column,
-        );
-      }
-
-      if (
-        primary_value_column.order === view_min_order &&
-        view_orders.filter((o) => o === view_min_order).length === 1
-      ) {
-        // if primary_value_column is in first order do nothing
-        return;
-      } else {
-        // if primary_value_column not in first order, move it to the start of array
-        if (primary_value_column_index !== 0) {
-          const temp_pv = view_columns.splice(primary_value_column_index, 1);
-          view_columns.unshift(...temp_pv);
-        }
-
-        // update order of all columns in view to match the order in array
-        for (let i = 0; i < view_columns.length; i++) {
-          await ncMeta.metaUpdate(
-            context.workspace_id,
-            context.base_id,
-            MetaTable.GRID_VIEW_COLUMNS,
-            { order: i + 1 },
-            view_columns[i].id,
-          );
-          await NocoCache.set(
-            context,
-            `${CacheScope.GRID_VIEW_COLUMN}:${view_columns[i].id}`,
-            view_columns[i],
-          );
-        }
-      }
-    }
-
-    const views = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.GRID_VIEW_COLUMNS,
-      {
-        condition: {
-          fk_view_id: viewId,
-        },
-        orderBy: {
-          order: 'asc',
-        },
-      },
+    profiler.log('ncMeta.metaList2 done');
+    // Batch fetch all model columns using Column.list (leverages cache)
+    const allModelColumns = await Column.list(
+      context,
+      { fk_model_id: view.fk_model_id },
+      ncMeta,
     );
+    profiler.log('Column.list done');
+
+    // Find primary value column from model columns
+    const primary_value_column_meta = allModelColumns.find((col) => col.pv);
+    // early return when no primary column found
+    // TODO: set primary column when not found
+    if (!primary_value_column_meta) {
+      profiler.end();
+      return;
+    }
+
+    const primary_value_column = view_columns.find(
+      (col) => col.fk_column_id === primary_value_column_meta.id,
+    );
+
+    // early return when no primary view column found
+    // TODO: insert view column when not found
+    if (!primary_value_column) {
+      profiler.end();
+      return;
+    }
+
+    const view_orders = view_columns.map((col) => col.order);
+    const view_min_order = Math.min(...view_orders);
+
+    // Early exit if already in correct position and visible
+    if (
+      primary_value_column.show &&
+      primary_value_column.order === view_min_order &&
+      view_orders.filter((o) => o === view_min_order).length === 1
+    ) {
+      profiler.end();
+      return;
+    }
+
+    // Collect all database and cache operations to execute in parallel
+    const dbOperations = [];
+
+    const primary_value_column_index = view_columns.findIndex(
+      (col) => col.fk_column_id === primary_value_column_meta.id,
+    );
+    // Reorder columns if needed
+    if (primary_value_column_index !== 0) {
+      const temp_pv = view_columns.splice(primary_value_column_index, 1);
+      view_columns.unshift(...temp_pv);
+    }
+
+    // Prepare parallel order updates
+    const rowsToUpdate: any[] = [];
+    view_columns.forEach((col, index) => {
+      // Update order values in memory
+      col.order = index + 1;
+      if (col.order === 1) {
+        col.show = true;
+      }
+      const updateObj = {
+        id: col.id,
+        order: col.order,
+        ...(col.order === 1 ? { show: col.show } : {}),
+      };
+      rowsToUpdate.push(updateObj);
+    });
+    await ncMeta.massMetaUpdate(context.workspace_id, context.base_id, {
+      primaryKeyColumns: ['id'],
+      data: rowsToUpdate,
+      tableName: MetaTable.GRID_VIEW_COLUMNS,
+      updatingColumns: ['order', 'show'],
+    });
+
+    // Execute all database operations in parallel
+    await Promise.all(dbOperations);
+    profiler.log('dbOperations done');
+
+    // Update cache with final state (single operation)
     await NocoCache.setList(
       context,
       CacheScope.GRID_VIEW_COLUMN,
       [viewId],
-      views,
+      view_columns,
     );
+    profiler.end();
   }
 
   public static async clearSingleQueryCache(

@@ -8087,7 +8087,7 @@
                   },
                   "row_coloring": {
                     "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "description": "Row colour configuration for the view."
                   }
                 }
               },
@@ -8119,7 +8119,7 @@
                   },
                   "row_coloring": {
                     "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "description": "Row colour configuration for the view."
                   }
                 }
               },
@@ -8151,7 +8151,7 @@
                   },
                   "row_coloring": {
                     "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "description": "Row colour configuration for the view."
                   }
                 },
                 "required": [
@@ -8186,7 +8186,7 @@
                   },
                   "row_coloring": {
                     "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "description": "Row colour configuration for the view."
                   }
                 },
                 "required": [
@@ -8262,7 +8262,7 @@
                   },
                   "row_coloring": {
                     "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "description": "Row colour configuration for the view."
                   }
                 }
               },
@@ -8288,7 +8288,7 @@
                   },
                   "row_coloring": {
                     "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "description": "Row colour configuration for the view."
                   }
                 }
               },
@@ -8314,7 +8314,7 @@
                   },
                   "row_coloring": {
                     "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "description": "Row colour configuration for the view."
                   }
                 }
               },
@@ -8340,7 +8340,7 @@
                   },
                   "row_coloring": {
                     "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "description": "Row colour configuration for the view."
                   }
                 }
               },
@@ -8450,7 +8450,7 @@
                   },
                   "row_coloring": {
                     "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "description": "Row colour configuration for the view."
                   }
                 }
               },
@@ -8482,7 +8482,7 @@
                   },
                   "row_coloring": {
                     "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "description": "Row colour configuration for the view."
                   }
                 }
               },
@@ -8514,7 +8514,7 @@
                   },
                   "row_coloring": {
                     "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "description": "Row colour configuration for the view."
                   }
                 },
                 "required": [
@@ -8549,7 +8549,7 @@
                   },
                   "row_coloring": {
                     "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "description": "Row colour configuration for the view."
                   }
                 },
                 "required": [

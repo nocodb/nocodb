@@ -46,21 +46,11 @@ jobs:
       - name: Install dependencies
         run: pnpm bootstrap
 
-      - name: Build nc-gui (EE) and copy to nocodb
-        env:
-          NC_ON_PREM: true
-          NUXT_CHATWOOT_WEBSITE_TOKEN: ${{ secrets.NUXT_CHATWOOT_WEBSITE_TOKEN_ONPREM }}
-        run: |
-          export NODE_OPTIONS="--max-old-space-size=8192"
-          cd packages/nc-gui &&
-          pnpm run generate:ee &&
-
-          # delete sourcemaps
-          find ./ee/dist/ -type f -name '*.js.map' -delete &&
-          find ./ee/dist/ -type f -name '*.css.map' -delete &&
-
-          # copy build to nocodb
-          rsync -rvzh ./ee/dist/ ../nocodb/docker/nc-gui/
+      - name: Download GUI artifacts from build-common
+        uses: actions/download-artifact@v4
+        with:
+          name: build-common-artifacts
+          path: packages/nocodb/
 
       - name: Build nocodb for executables
         run: |

@@ -239,9 +239,7 @@ jobs:
         id: docker-tags
         run: |
           TAGS="nocodb/nocodb:${{ needs.process-input.outputs.ceTag }}"
-          if [[ "${{ github.event.inputs.skipLatestTag }}" != "true" ]]; then
-            TAGS+=$'\nnocodb/nocodb:latest'
-          fi
+          # Latest tag disabled for testing
           echo "tags<<EOF" >> $GITHUB_OUTPUT
           echo "${TAGS}" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT

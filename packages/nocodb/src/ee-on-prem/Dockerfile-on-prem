@@ -1,13 +1,19 @@
 ###########
 # Builder — runs on the build host (no QEMU), installs all JS deps
+# and downloads prebuilt native binaries for the target platform
 ###########
 FROM --platform=$BUILDPLATFORM node:22.12.0-alpine AS builder
+ARG TARGETPLATFORM
+
 WORKDIR /usr/src/app
+
+# install build tools for native modules
+RUN apk add --no-cache python3 make g++ py3-setuptools
 
 # install pnpm
 RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
-# Copy package.json and install production deps (pure-JS only, no native builds)
+# Copy package.json and install production deps
 COPY ./package.json ./package.json
 
 # for pnpm to generate a flat node_modules without symlinks
@@ -28,6 +34,17 @@ RUN node -e "\
 RUN pnpm install --prod --shamefully-hoist --ignore-scripts \
     && pnpm dlx modclean --patterns="default:*" --ignore="libxmljs/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**,@react-email/**,@linear/**,jsdom/**,formdata-polyfill/**,**/lru-cache/**,**/@asamuzakjp/**,**/cssstyle/**" --run
 
+# Download prebuilt sqlite3 binary for the TARGET platform (no QEMU needed).
+# Derive target arch from TARGETPLATFORM (e.g. linux/arm64 -> arm64, linux/amd64 -> x64).
+RUN TARGET_ARCH=$(echo $TARGETPLATFORM | cut -d'/' -f2 | sed 's/amd64/x64/' | sed 's/arm64/arm64/') \
+    && cd node_modules/sqlite3 \
+    && ./node_modules/.bin/node-pre-gyp install --target_platform=linux --target_arch=${TARGET_ARCH} --target_libc=musl \
+    && rm -rf deps
+
+# Install sharp for the target platform (sharp uses npm optional deps for prebuilds)
+RUN TARGET_ARCH=$(echo $TARGETPLATFORM | cut -d'/' -f2 | sed 's/amd64/x64/' | sed 's/arm64/arm64/') \
+    && npm install --no-save --os=linux --cpu=${TARGET_ARCH} sharp 2>/dev/null; true
+
 # Copy application files
 COPY ./docker/nc-gui/ ./docker/nc-gui/
 COPY ./docker/main.js ./docker/index.js
@@ -38,26 +55,10 @@ COPY ./src/public/ ./docker/public/
 RUN chmod +x /usr/src/appEntry/start.sh
 
 
-###########
-# Bin builder — runs on the TARGET platform (QEMU for arm64), builds only
-# the native modules that need platform-specific binaries
-###########
-FROM --platform=$TARGETPLATFORM node:22.12.0-alpine AS bin-builder
-WORKDIR /usr/src/app
-
-RUN apk add --no-cache python3 make g++ py3-setuptools
-
-# Extract sqlite3 and sharp versions from the builder's package.json
-COPY ./package.json /tmp/pkg.json
-RUN SQLITE3_VERSION=$(node -e "console.log(require('/tmp/pkg.json').dependencies['sqlite3'] || '5.1.7')") \
-    && SHARP_VERSION=$(node -e "console.log(require('/tmp/pkg.json').dependencies['sharp'] || '0.34.5')") \
-    && npm install "sqlite3@${SQLITE3_VERSION}" "sharp@${SHARP_VERSION}" --production
-
-
 ##########
 # Runner
 ##########
-FROM --platform=$TARGETPLATFORM node:22.12.0-alpine
+FROM node:22.12.0-alpine
 WORKDIR /usr/src/app
 
 ENV NC_DOCKER=0.6
@@ -70,17 +71,9 @@ RUN apk --update --no-cache add \
     curl \
     jq
 
-# Copy JS deps and app files from builder (platform-independent)
+# Copy packaged production code & main entry file
 COPY --from=builder /usr/src/app/ /usr/src/app/
 COPY --from=builder /usr/src/appEntry/ /usr/src/appEntry/
-
-# Overlay target-platform native modules from bin-builder
-COPY --from=bin-builder /usr/src/app/node_modules/sqlite3/ /usr/src/app/node_modules/sqlite3/
-COPY --from=bin-builder /usr/src/app/node_modules/sharp/ /usr/src/app/node_modules/sharp/
-COPY --from=bin-builder /usr/src/app/node_modules/@img/ /usr/src/app/node_modules/@img/
-
-# Clean up sqlite3 build artifacts
-RUN rm -rf ./node_modules/sqlite3/deps
 
 EXPOSE 8080
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]

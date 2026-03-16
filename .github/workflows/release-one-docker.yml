@@ -40,7 +40,7 @@ on:
         options:
           - "false"
           - "true"
-        default: "true"
+        default: "false"
 
 permissions:
   contents: write
@@ -239,7 +239,9 @@ jobs:
         id: docker-tags
         run: |
           TAGS="nocodb/nocodb:${{ needs.process-input.outputs.ceTag }}"
-          # Latest tag disabled for testing
+          if [[ "${{ github.event.inputs.skipLatestTag }}" != "true" ]]; then
+            TAGS+=$'\nnocodb/nocodb:latest'
+          fi
           echo "tags<<EOF" >> $GITHUB_OUTPUT
           echo "${TAGS}" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT

@@ -307,5 +307,30 @@ jobs:
             ./scripts/pkg-executable/mac-dist/Noco-macos-arm64
             ./scripts/pkg-executable/mac-dist/nocodb.tar.gz
 
-      # Homebrew deployment skipped for testing
-      # - name: Generate Homebrew formula and push
+      - name: Generate Homebrew formula and push
+        run: |
+          FORMULA_CLASS_STR=$(cat << EOF
+          class Nocodb < Formula
+            desc "NocoDB : Opensource smart spreadsheet"
+            homepage "https://github.com/nocodb/nocodb"
+            url "https://github.com/nocodb/nocodb/releases/download/${{ github.event.inputs.tag || inputs.tag }}/nocodb.tar.gz"
+            sha256 "${{ steps.compress.outputs.CHECKSUM }}"
+            license "MIT"
+            version "${{ github.event.inputs.tag || inputs.tag }}"
+
+            def install
+              bin.install "nocodb"
+            end
+          end
+          EOF
+          )
+
+          cd ./homebrew-nocodb
+
+          printf "$FORMULA_CLASS_STR" > ./Formula/nocodb.rb
+
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+          git commit ./Formula/nocodb.rb -m "Automatic publish"
+          git push

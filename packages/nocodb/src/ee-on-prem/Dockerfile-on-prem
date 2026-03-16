@@ -34,11 +34,11 @@ RUN node -e "\
 RUN pnpm install --prod --shamefully-hoist --ignore-scripts \
     && pnpm dlx modclean --patterns="default:*" --ignore="libxmljs/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**,@react-email/**,@linear/**,jsdom/**,formdata-polyfill/**,**/lru-cache/**,**/@asamuzakjp/**,**/cssstyle/**" --run
 
-# Download prebuilt sqlite3 binary for the TARGET platform (no QEMU needed).
-# Derive target arch from TARGETPLATFORM (e.g. linux/arm64 -> arm64, linux/amd64 -> x64).
+# Download prebuilt sqlite3 NAPI binary for the TARGET platform (no QEMU needed).
+# sqlite3 v5.x uses prebuild-install with NAPI prebuilds hosted on GitHub releases.
 RUN TARGET_ARCH=$(echo $TARGETPLATFORM | cut -d'/' -f2 | sed 's/amd64/x64/' | sed 's/arm64/arm64/') \
     && cd node_modules/sqlite3 \
-    && npx --yes @mapbox/node-pre-gyp install --target_platform=linux --target_arch=${TARGET_ARCH} --target_libc=musl \
+    && npx --yes prebuild-install -r napi --platform linux --arch ${TARGET_ARCH} --libc musl \
     && rm -rf deps
 
 # Install sharp for the target platform (sharp uses npm optional deps for prebuilds)

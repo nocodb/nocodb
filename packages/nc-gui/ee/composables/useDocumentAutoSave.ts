@@ -124,14 +124,20 @@ export function useDocumentAutoSave({
         return
       }
 
-      const updated = await updateDocument(activeProjectId.value, doc.value.id!, {
+      // Capture doc ID before the async call — if the user navigates during
+      // updateDocument, doc.value will point to the NEW document. Writing
+      // the old save's response version onto it would corrupt the new doc's
+      // version and cause 422 failures on subsequent saves.
+      const savingDocId = doc.value.id!
+
+      const updated = await updateDocument(activeProjectId.value, savingDocId, {
         title: effectiveTitle,
         content,
         version: doc.value.version,
       })
 
-      // Advance local doc fields to match server response
-      if (updated) {
+      // Only write back if we're still on the same document
+      if (updated && doc.value?.id === savingDocId) {
         doc.value.version = updated.version
         doc.value.updated_at = updated.updated_at
         doc.value.updated_by = updated.updated_by

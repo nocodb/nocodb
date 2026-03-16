@@ -36,10 +36,12 @@ RUN pnpm install --prod --shamefully-hoist --ignore-scripts \
 
 # Download prebuilt sqlite3 NAPI binary for the TARGET platform (no QEMU needed).
 # sqlite3 v5.x uses prebuild-install with NAPI prebuilds hosted on GitHub releases.
+# Prebuilds may not exist for all arch/libc combos (e.g. arm/musl) — allow failure
+# since sqlite3 is optional (production uses PostgreSQL).
 RUN TARGET_ARCH=$(echo $TARGETPLATFORM | cut -d'/' -f2 | sed 's/amd64/x64/' | sed 's/arm64/arm64/') \
     && cd node_modules/sqlite3 \
-    && npx --yes prebuild-install -r napi --platform linux --arch ${TARGET_ARCH} --libc musl \
-    && rm -rf deps
+    && npx --yes prebuild-install -r napi --platform linux --arch ${TARGET_ARCH} --libc musl 2>/dev/null; \
+    rm -rf node_modules/sqlite3/deps 2>/dev/null; true
 
 # Install sharp for the target platform (sharp uses npm optional deps for prebuilds)
 RUN TARGET_ARCH=$(echo $TARGETPLATFORM | cut -d'/' -f2 | sed 's/amd64/x64/' | sed 's/arm64/arm64/') \

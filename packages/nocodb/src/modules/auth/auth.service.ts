@@ -1,5 +1,4 @@
 import { promisify } from 'util';
-import { OrgUserRoles } from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import Noco from '~/Noco';
@@ -46,42 +45,5 @@ export class AuthService {
     return {
       token: genJwt(payload, Noco.getConfig()),
     };
-  }
-
-  async registerNewUserIfAllowed(
-    {
-      firstname,
-      lastname,
-      email,
-      salt,
-      password,
-      email_verification_token,
-    }: {
-      firstname;
-      lastname;
-      email: string;
-      salt: any;
-      password;
-      email_verification_token;
-    },
-    ncMeta = Noco.ncMeta,
-  ) {
-    const roles: string = OrgUserRoles.CREATOR;
-
-    const token_version = ''; // randomTokenString();
-
-    return await this.usersService.insert(
-      {
-        firstname,
-        lastname,
-        email,
-        salt,
-        password,
-        email_verification_token,
-        roles,
-        token_version,
-      },
-      ncMeta,
-    );
   }
 }

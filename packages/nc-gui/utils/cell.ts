@@ -133,6 +133,10 @@ export const getSelectTypeFieldOptionBgColor = ({
   return !isDark ? color : getAdaptiveTint(color || '#e7e7e9', { isDarkMode: isDark, shade: shade ?? -10 })
 }
 
+export const getDarkModeCompatibleBgColor = ({ color, isDark, shade }: { color?: string; isDark: boolean; shade?: number }) => {
+  return !isDark ? color : getAdaptiveTint(color || '#e7e7e9', { isDarkMode: isDark, shade: shade ?? -10 })
+}
+
 export const getSelectTypeFieldOptionTextColor = ({
   color,
   isDark,
@@ -142,9 +146,7 @@ export const getSelectTypeFieldOptionTextColor = ({
   isDark: boolean
   getColor: GetColorType
 }) => {
-  return !isDark
-    ? getSelectTypeOptionTextColor(color, getColor, true)
-    : getOppositeColorOfBackground(getSelectTypeFieldOptionBgColor({ color, isDark }), color)
+  return getOppositeColorOfBackground(getSelectTypeFieldOptionBgColor({ color, isDark }), color)
 }
 
 export const getInputModeFromUITypes = (uidt: UITypes): HTMLAttributes['inputmode'] => {

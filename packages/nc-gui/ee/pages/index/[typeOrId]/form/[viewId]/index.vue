@@ -39,7 +39,7 @@ router.afterEach((to) => shouldRedirect(to.name as string))
     }"
     :style="{
       background: parseProp(sharedFormView?.meta)?.background_color
-        ? getSelectTypeFieldOptionBgColor({ color: parseProp(sharedFormView?.meta)?.background_color, isDark, shade: 0 })
+        ? getDarkModeCompatibleBgColor({ color: parseProp(sharedFormView?.meta)?.background_color, isDark, shade: 0 })
         : 'var(--nc-bg-gray-extralight)',
     }"
   >

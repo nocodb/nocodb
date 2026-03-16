@@ -25,7 +25,9 @@ export const SingleSelectCellRenderer: CellRenderer = {
 
     const opColor = (column.extra as ReturnType<typeof getSingleMultiselectColOptions>)?.optionsMap?.[text]?.color ?? '#e7e7e9'
 
-    const opBgColor = !isDark ? opColor : getAdaptiveTint(opColor, { isDarkMode: isDark, shade: -10 })
+    const opBgColor = !isDark
+      ? getAdaptiveTint(opColor, { saturationMod: 5, isDarkMode: isDark, shade: 20 })
+      : getAdaptiveTint(opColor, { isDarkMode: isDark, shade: -10 })
 
     renderTag(ctx, {
       x: x + padding,

@@ -99,7 +99,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     }
 
     if (parseProp(sharedFormView.value?.meta).background_color) {
-      result.bgColor = getSelectTypeFieldOptionBgColor({
+      result.bgColor = getDarkModeCompatibleBgColor({
         color: parseProp(sharedFormView.value?.meta).background_color,
         isDark: isDark.value,
         shade: 0,

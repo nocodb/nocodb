@@ -22,6 +22,8 @@ const { isUIAllowed } = useRoles()
 
 const { activeWorkspaceId, workspaces } = storeToRefs(useWorkspace())
 
+const { showEEFeatures } = useEeConfig()
+
 const { baseCreateMode } = storeToRefs(useBases())
 
 const baseStore = useBase()
@@ -39,10 +41,18 @@ const hasAccess = computed(() => {
 
   return isUIAllowed('baseCreate', { roles: workspaces.value.get(workspaceId.value)?.roles })
 })
+
+const handleClick = () => {
+  if (showEEFeatures.value) return
+
+  baseCreateMode.value = NcBaseCreateMode.FROM_SCRATCH
+
+  baseCreateDlg.value = true
+}
 </script>
 
 <template>
-  <NcDropdown v-if="hasAccess" v-model:visible="isVisibleCreateBase">
+  <NcDropdown v-if="hasAccess" v-model:visible="isVisibleCreateBase" :disabled="!showEEFeatures">
     <NcButton
       v-e="['c:base:create']"
       :type="type"
@@ -51,6 +61,7 @@ const hasAccess = computed(() => {
       :centered="centered"
       :inner-class="innerClass"
       full-width
+      @click="handleClick"
     >
       <slot>
         <div class="flex items-center gap-2 w-full">

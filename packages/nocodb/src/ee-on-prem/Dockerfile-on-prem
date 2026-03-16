@@ -23,8 +23,18 @@ COPY ./src/public/ ./docker/public/
 # so that modclean could work as expected
 RUN echo "node-linker=hoisted" > .npmrc
 
-# Remove workspace SDK reference (already bundled into main.js by rspack)
-RUN node -e "const p=require('./package.json'); delete p.dependencies['nocodb-sdk']; require('fs').writeFileSync('./package.json', JSON.stringify(p, null, 2))"
+# Remove workspace/link deps and already-bundled packages (avoids native
+# builds for transitive deps like lz4 that crash under QEMU arm64 emulation)
+RUN node -e "\
+  const p=require('./package.json'); \
+  for (const [k,v] of Object.entries(p.dependencies||{})) { \
+    if (String(v).startsWith('link:') || String(v).startsWith('workspace:')) delete p.dependencies[k]; \
+  } \
+  delete p.dependencies['nocodb-sdk']; \
+  delete p.dependencies['knex-snowflake']; \
+  delete p.dependencies['knex-databricks']; \
+  require('fs').writeFileSync('./package.json', JSON.stringify(p, null, 2)); \
+"
 
 # install production dependencies,
 # reduce node_module size with modclean & removing sqlite deps,

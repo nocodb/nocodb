@@ -89,7 +89,7 @@ const handlePermissionSave = () => {
     class="nc-field-permissions-table flex-1 w-full"
   >
     <template #tableToolbar>
-      <div class="flex flex-col gap-1 sm:(items-center justify-between gap-0) min-h-8">
+      <div class="flex flex-col gap-1 sm:(flex-row items-center justify-between gap-0) min-h-8">
         <div class="flex-1 flex items-center">
           <h3 class="text-nc-content-gray-emphasis text-bodyBold mb-0 capitalize flex-1">
             {{ $t('title.fieldPermissions') }}

@@ -1,22 +1,19 @@
 ###########
-# Builder
+# Builder — runs on the build host (no QEMU), installs all JS deps
 ###########
-FROM node:22.12.0-alpine AS builder
+FROM --platform=$BUILDPLATFORM node:22.12.0-alpine AS builder
 WORKDIR /usr/src/app
 
-# install node-gyp dependencies
-RUN apk add --no-cache python3 make g++ py3-setuptools
+# install pnpm
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
-# Copy application dependency manifests to the container image.
+# Copy package.json and install production deps (pure-JS only, no native builds)
 COPY ./package.json ./package.json
-COPY ./docker/nc-gui/ ./docker/nc-gui/
-COPY ./docker/main.js ./docker/index.js
-COPY ./docker/configure.sh /usr/src/appEntry/configure.sh
-COPY ./docker/start-cloud.sh /usr/src/appEntry/start.sh
-COPY ./src/public/ ./docker/public/
 
-# Remove workspace/link deps and already-bundled packages that pull in
-# native modules (lz4 etc.) which crash under QEMU arm64 emulation
+# for pnpm to generate a flat node_modules without symlinks
+RUN echo "node-linker=hoisted" > .npmrc
+
+# Remove workspace/link deps and already-bundled packages
 RUN node -e "\
   const p=require('./package.json'); \
   for (const [k,v] of Object.entries(p.dependencies||{})) { \
@@ -28,27 +25,39 @@ RUN node -e "\
   require('fs').writeFileSync('./package.json', JSON.stringify(p, null, 2)); \
 "
 
-# Install production dependencies using npm (not pnpm — pnpm crashes under
-# QEMU arm64 emulation). --ignore-scripts skips native compilation, then we
-# selectively rebuild only sqlite3 using its bundled node-pre-gyp.
-RUN npm install --production --ignore-scripts
+RUN pnpm install --prod --shamefully-hoist --ignore-scripts \
+    && pnpm dlx modclean --patterns="default:*" --ignore="libxmljs/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**,@react-email/**,@linear/**,jsdom/**,formdata-polyfill/**,**/lru-cache/**,**/@asamuzakjp/**,**/cssstyle/**" --run
 
-# Rebuild sqlite3 native binary for the target platform using its own
-# bundled @mapbox/node-pre-gyp (not the deprecated unscoped node-pre-gyp)
-RUN cd node_modules/sqlite3 \
-    && ./node_modules/.bin/node-pre-gyp install --fallback-to-build
-
-# Clean up node_modules
-RUN npx modclean --patterns="default:*" --ignore="libxmljs/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**,@react-email/**,@linear/**,jsdom/**,formdata-polyfill/**,**/lru-cache/**,**/@asamuzakjp/**,**/cssstyle/**" --run \
-    && rm -rf ./node_modules/sqlite3/deps
+# Copy application files
+COPY ./docker/nc-gui/ ./docker/nc-gui/
+COPY ./docker/main.js ./docker/index.js
+COPY ./docker/configure.sh /usr/src/appEntry/configure.sh
+COPY ./docker/start-cloud.sh /usr/src/appEntry/start.sh
+COPY ./src/public/ ./docker/public/
 
 RUN chmod +x /usr/src/appEntry/start.sh
+
+
+###########
+# Bin builder — runs on the TARGET platform (QEMU for arm64), builds only
+# the native modules that need platform-specific binaries
+###########
+FROM --platform=$TARGETPLATFORM node:22.12.0-alpine AS bin-builder
+WORKDIR /usr/src/app
+
+RUN apk add --no-cache python3 make g++ py3-setuptools
+
+# Extract sqlite3 and sharp versions from the builder's package.json
+COPY ./package.json /tmp/pkg.json
+RUN SQLITE3_VERSION=$(node -e "console.log(require('/tmp/pkg.json').dependencies['sqlite3'] || '5.1.7')") \
+    && SHARP_VERSION=$(node -e "console.log(require('/tmp/pkg.json').dependencies['sharp'] || '0.34.5')") \
+    && npm install "sqlite3@${SQLITE3_VERSION}" "sharp@${SHARP_VERSION}" --production
 
 
 ##########
 # Runner
 ##########
-FROM node:22.12.0-alpine
+FROM --platform=$TARGETPLATFORM node:22.12.0-alpine
 WORKDIR /usr/src/app
 
 ENV NC_DOCKER=0.6
@@ -61,9 +70,17 @@ RUN apk --update --no-cache add \
     curl \
     jq
 
-# Copy packaged production code & main entry file
+# Copy JS deps and app files from builder (platform-independent)
 COPY --from=builder /usr/src/app/ /usr/src/app/
 COPY --from=builder /usr/src/appEntry/ /usr/src/appEntry/
+
+# Overlay target-platform native modules from bin-builder
+COPY --from=bin-builder /usr/src/app/node_modules/sqlite3/ /usr/src/app/node_modules/sqlite3/
+COPY --from=bin-builder /usr/src/app/node_modules/sharp/ /usr/src/app/node_modules/sharp/
+COPY --from=bin-builder /usr/src/app/node_modules/@img/ /usr/src/app/node_modules/@img/
+
+# Clean up sqlite3 build artifacts
+RUN rm -rf ./node_modules/sqlite3/deps
 
 EXPOSE 8080
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]

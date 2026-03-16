@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ColumnHelper, UITypes } from 'nocodb-sdk'
+import { ColumnHelper, UITypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -36,6 +36,10 @@ const onPrecisionChange = (value: number) => {
 }
 
 const { isMetaReadOnly } = useRoles()
+
+const { formState } = useColumnCreateStoreOrThrow()
+
+const disableConfiguration = computed(() => Boolean(isMetaReadOnly.value) && !readonlyMetaAllowedTypes.includes(formState.value.uidt))
 </script>
 
 <template>
@@ -43,7 +47,7 @@ const { isMetaReadOnly } = useRoles()
     <a-select
       v-if="vModel.meta?.precision || vModel.meta?.precision === 0"
       v-model:value="vModel.meta.precision"
-      :disabled="Boolean(isMetaReadOnly)"
+      :disabled="disableConfiguration"
       dropdown-class-name="nc-dropdown-percent-precision-format"
       @change="onPrecisionChange"
     >

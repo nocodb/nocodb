@@ -38,7 +38,7 @@ RUN pnpm install --prod --shamefully-hoist --ignore-scripts \
 # Derive target arch from TARGETPLATFORM (e.g. linux/arm64 -> arm64, linux/amd64 -> x64).
 RUN TARGET_ARCH=$(echo $TARGETPLATFORM | cut -d'/' -f2 | sed 's/amd64/x64/' | sed 's/arm64/arm64/') \
     && cd node_modules/sqlite3 \
-    && ./node_modules/.bin/node-pre-gyp install --target_platform=linux --target_arch=${TARGET_ARCH} --target_libc=musl \
+    && npx --yes @mapbox/node-pre-gyp install --target_platform=linux --target_arch=${TARGET_ARCH} --target_libc=musl \
     && rm -rf deps
 
 # Install sharp for the target platform (sharp uses npm optional deps for prebuilds)

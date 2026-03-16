@@ -7,13 +7,11 @@ import type { ThumbnailGeneratorJobData } from '~/interface/Jobs';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { getPathFromUrl } from '~/helpers/attachmentHelpers';
 import { ImageThumbnailGenerator } from '~/modules/jobs/jobs/thumbnail-generator/generators/image-thumbnail-generator';
-// import { PdfThumbnailGenerator } from '~/modules/jobs/jobs/thumbnail-generator/generators/pdf-thumbnail-generator';
 import Noco from '~/Noco';
 
 export class ThumbnailGeneratorProcessor {
   private logger = new Logger(ThumbnailGeneratorProcessor.name);
   private imageGenerator = new ImageThumbnailGenerator();
-  // private pdfGenerator = new PdfThumbnailGenerator();
 
   async job(job: Job<ThumbnailGeneratorJobData>) {
     const { attachments, scope } = job.data;
@@ -67,16 +65,6 @@ export class ThumbnailGeneratorProcessor {
       const fileExtension = attachment.title?.toLowerCase() || '';
 
       switch (true) {
-        case mimeType === 'application/pdf' || fileExtension.endsWith('.pdf'): {
-          // if (Noco.isPdfjsInitialized && Noco.canvas)
-          //   return await this.pdfGenerator.generateThumbnails(
-          //     file,
-          //     relativePath,
-          //     storageAdapter,
-          //   );
-          return null;
-        }
-
         case mimeType.startsWith('image/'):
           return await this.imageGenerator.generateThumbnails(
             file,

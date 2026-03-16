@@ -8,7 +8,6 @@ import dotenv from 'dotenv';
 import requestIp from 'request-ip';
 import cookieParser from 'cookie-parser';
 import { NcDebug } from 'nc-gui/utils/debug';
-// import { definePDFJSModule } from 'unpdf';
 import type { INestApplication } from '@nestjs/common';
 import type { MetaService } from '~/meta/meta.service';
 import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
@@ -68,8 +67,6 @@ export default class Noco {
   public static ncDefaultWorkspaceId: string;
 
   public static sharp: typeof Sharp;
-  public static canvas: any;
-  public static isPdfjsInitialized: boolean;
 
   public static firstEeLoad: boolean;
 
@@ -177,17 +174,6 @@ export default class Noco {
       );
     }
 
-    try {
-      // TODO: enable later cc @DarkPhoenix2704
-      // this.canvas = await import('@napi-rs/canvas');
-      // await definePDFJSModule(() => import('pdfjs-dist/legacy/build/pdf.mjs'));
-      // this.isPdfjsInitialized = true;
-    } catch (e) {
-      console.error(e);
-      console.error(
-        'Canvas is not available for your platform, thumbnail generation will be skipped',
-      );
-    }
 
     if (process.env.NC_WORKER_CONTAINER === 'true') {
       if (!getRedisURL()) {

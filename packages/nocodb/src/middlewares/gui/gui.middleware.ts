@@ -5,17 +5,6 @@ import express from 'express';
 import type { NestMiddleware } from '@nestjs/common';
 import type { Request, Response } from 'express';
 
-// TODO: remove once nc-lib-gui is removed
-// Use the real Node.js require, not rspack's transformed version.
-// rspack replaces require.resolve() with a module ID string at compile
-// time, which breaks path resolution for nc-lib-gui.
-
-declare const __non_webpack_require__: typeof require;
-const _require =
-  typeof __non_webpack_require__ !== 'undefined'
-    ? __non_webpack_require__
-    : require;
-
 @Injectable()
 export class GuiMiddleware implements NestMiddleware {
   private staticRouter: express.Router | null = null;
@@ -28,43 +17,24 @@ export class GuiMiddleware implements NestMiddleware {
     const dashboardUrl = process.env.NC_DASHBOARD_URL || '/';
     if (dashboardUrl.startsWith('http')) return;
 
-    // Collect candidate paths for the frontend dist directory
-    const candidates: string[] = [];
+    // NC_GUI_DIST_PATH is set by entry points (Docker, cloud, executables)
+    // to point to the built frontend dist directory.
+    const distPath = process.env.NC_GUI_DIST_PATH;
+    if (!distPath) return;
 
-    // 1. Entry-point provided path (Docker/cloud builds bundle frontend here)
-    if (process.env.NC_GUI_DIST_PATH) {
-      candidates.push(process.env.NC_GUI_DIST_PATH);
-    }
-
-    // 2. nc-lib-gui npm package (standard npm install)
     try {
-      candidates.push(
-        path.join(
-          path.dirname(_require.resolve('nc-lib-gui/package.json')),
-          'lib',
-          'dist',
-        ),
+      if (!fs.existsSync(path.join(distPath, 'index.html'))) return;
+
+      this.indexHtml = fs.readFileSync(
+        path.join(distPath, 'index.html'),
+        'utf-8',
       );
+
+      const router = express.Router();
+      router.use('/', express.static(distPath));
+      this.staticRouter = router;
     } catch {
-      // nc-lib-gui not installed
-    }
-
-    for (const distPath of candidates) {
-      try {
-        if (!fs.existsSync(path.join(distPath, 'index.html'))) continue;
-
-        this.indexHtml = fs.readFileSync(
-          path.join(distPath, 'index.html'),
-          'utf-8',
-        );
-
-        const router = express.Router();
-        router.use('/', express.static(distPath));
-        this.staticRouter = router;
-        return;
-      } catch {
-        // skip invalid candidate
-      }
+      // dist path not available
     }
   }
 
@@ -89,7 +59,7 @@ export class GuiMiddleware implements NestMiddleware {
 
   /**
    * Returns the index.html content for SPA fallback,
-   * or null if nc-lib-gui is not available.
+   * or null if the GUI dist is not available.
    */
   getIndexHtml(): string | null {
     return this.indexHtml;

@@ -1,15 +1,8 @@
+const path = require('path');
+
 process.env.NC_BINARY_BUILD = 'true';
-(async () => {
-  try {
-    const app = require('express')();
-    const { Noco } = require("nocodb");
-    const cors = require('cors')
-    const port = process.env.PORT || 8080;
-    const httpServer = app.listen(port);
-    app.use(cors())
-    app.use(await Noco.init({}, httpServer, app));
-    console.log(`Visit : localhost:${port}/dashboard`)
-  } catch(e) {
-    console.log(e)
-  }
-})()
+process.env.NODE_ENV = process.env.NODE_ENV || 'production';
+process.env.NC_GUI_DIST_PATH =
+  process.env.NC_GUI_DIST_PATH ||
+  path.join(path.dirname(require.resolve('nocodb/package.json')), 'docker', 'nc-gui');
+require("nocodb/dist/bundle.js");

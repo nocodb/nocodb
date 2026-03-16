@@ -136,6 +136,13 @@ export default class FileReference {
         fileReferences[0],
       );
 
+      if (!fileReferenceObj) {
+        logger.warn(
+          `FileReference not found for id ${fileReferences[0]}, skipping delete`,
+        );
+        return;
+      }
+
       await ncMeta.metaUpdate(
         context.workspace_id,
         context.base_id,

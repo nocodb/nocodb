@@ -39,11 +39,17 @@ RUN node -e "\
 # Install production dependencies.
 # Use --ignore-scripts to prevent native module compilation that crashes
 # under QEMU arm64 emulation, then selectively rebuild only what we need.
-RUN pnpm install --prod --shamefully-hoist --ignore-scripts \
-    && cd node_modules/sqlite3 && npx --yes node-pre-gyp install --fallback-to-build 2>/dev/null; cd /usr/src/app \
-    && pnpm dlx modclean --patterns="default:*" --ignore="libxmljs/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**,@react-email/**,@linear/**,jsdom/**,formdata-polyfill/**,**/lru-cache/**,**/@asamuzakjp/**,**/cssstyle/**" --run  \
-    && rm -rf ./node_modules/sqlite3/deps \
-    && chmod +x /usr/src/appEntry/start.sh
+RUN pnpm install --prod --shamefully-hoist --ignore-scripts
+
+# Rebuild sqlite3 native binary for the target platform
+RUN cd node_modules/sqlite3 \
+    && npx --yes node-pre-gyp install --fallback-to-build
+
+# Clean up node_modules
+RUN pnpm dlx modclean --patterns="default:*" --ignore="libxmljs/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**,@react-email/**,@linear/**,jsdom/**,formdata-polyfill/**,**/lru-cache/**,**/@asamuzakjp/**,**/cssstyle/**" --run \
+    && rm -rf ./node_modules/sqlite3/deps
+
+RUN chmod +x /usr/src/appEntry/start.sh
 
 
 ##########

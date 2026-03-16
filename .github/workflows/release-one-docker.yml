@@ -200,7 +200,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-common-artifacts
-          path: packages/
+          path: .
 
       - name: Build nocodb
         run: |

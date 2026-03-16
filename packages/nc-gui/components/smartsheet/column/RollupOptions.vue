@@ -250,8 +250,6 @@ vModel.value.meta = {
   ...(vModel.value.meta || {}),
 }
 
-const { isMetaReadOnly } = useRoles()
-
 const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
 
 const enableFormattingOptions = computed(() => {
@@ -404,7 +402,6 @@ const handleScrollIntoView = () => {
       <a-select
         v-if="vModel.meta?.precision || vModel.meta?.precision === 0"
         v-model:value="vModel.meta.precision"
-        :disabled="isMetaReadOnly"
         dropdown-class-name="nc-dropdown-rollup-precision-format"
         @change="onPrecisionChange"
       >

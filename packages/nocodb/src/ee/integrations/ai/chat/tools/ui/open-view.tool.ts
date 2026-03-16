@@ -1,33 +1,35 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { resolveTableByName, resolveViewByName } from '../helpers';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
+import {
+  resolveTableByName,
+  resolveViewByName,
+} from '~/integrations/ai/chat/tools/helpers';
 
-export const openViewTool: ChatToolDefinition = {
-  name: 'open_view',
+export const openViewTool = defineChatTool({
+  name: ChatToolName.OPEN_VIEW,
   description:
-    'Open a specific view of a table in the UI. ' +
-    'Use list_views to find available views first.',
-  parameters: {
+    'Navigate the user to a specific view of a table. ' +
+    'Use this after creating a view or applying filters/sorts to show the result. ' +
+    'Call list_views first to discover available views and their names.',
+  schema: z.object({
     table_name: z
       .string()
       .describe('The title of the table (case-insensitive).'),
     view_name: z
       .string()
       .describe('The title of the view to open (case-insensitive).'),
-  },
+  }),
   permission: 'viewList',
   scope: 'base',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
   readonly: true,
-  async execute(
-    context: NcContext,
-    args: { table_name: string; view_name: string },
-    _req: NcRequest,
-  ) {
+  uiOnly: true,
+  visibility: 'ui',
+  category: 'ui',
+  async execute(context, args, _req) {
     const model = await resolveTableByName(context, args.table_name);
     const view = await resolveViewByName(context, model, args.view_name);
 
@@ -39,4 +41,4 @@ export const openViewTool: ChatToolDefinition = {
       message: `Opening view "${view.title}" on table "${model.title}".`,
     };
   },
-};
+});

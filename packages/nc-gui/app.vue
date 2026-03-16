@@ -158,4 +158,5 @@ const _ = (window as any).ResizeObserver
   </ErrorBoundary>
 
   <LazyChatPanel />
+  <LazyChatFab />
 </template>

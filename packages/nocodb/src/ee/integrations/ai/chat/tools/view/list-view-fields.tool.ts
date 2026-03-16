@@ -1,19 +1,22 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { resolveTableByName, resolveViewByName } from '../helpers';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
+import {
+  resolveTableByName,
+  resolveViewByName,
+} from '~/integrations/ai/chat/tools/helpers';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import Noco from '~/Noco';
 
-export const listViewFieldsTool: ChatToolDefinition = {
-  name: 'list_view_fields',
+export const listViewFieldsTool = defineChatTool({
+  name: ChatToolName.LIST_VIEW_FIELDS,
   description:
-    'List all fields in a view with their visibility status (shown/hidden) and display order. ' +
-    'Use this before update_view_fields to see which fields are currently visible. ' +
-    'Hidden fields still store data — they are just not shown in that view.',
-  parameters: {
+    'List all fields in a view with their visibility (shown/hidden) and display order. ' +
+    'Returns field_name, visible (boolean), and order for each field. ' +
+    'Use this before update_view_fields to see current visibility. ' +
+    'Hidden fields still store data — hiding only affects the view display.',
+  schema: z.object({
     table_name: z
       .string()
       .describe(
@@ -25,17 +28,15 @@ export const listViewFieldsTool: ChatToolDefinition = {
       .describe(
         'The title of the view to inspect. If omitted, uses the first (default) view of the table.',
       ),
-  },
+  }),
   permission: 'viewColumnList',
   scope: 'base',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
   readonly: true,
-  async execute(
-    context: NcContext,
-    args: { table_name: string; view_name?: string },
-    _req: NcRequest,
-  ) {
+  visibility: 'hidden',
+  category: 'view',
+  async execute(context, args, _req) {
     const viewColumnsService: ViewColumnsService =
       Noco.nestApp.get(ViewColumnsService);
     const model = await resolveTableByName(context, args.table_name);
@@ -46,7 +47,6 @@ export const listViewFieldsTool: ChatToolDefinition = {
       viewId: view.id,
     });
 
-    // Build a map of column ID to title for readable output
     const colMap = new Map(columns.map((c) => [c.id, c.title]));
 
     return (viewColumns as any[]).map((vc) => ({
@@ -55,4 +55,4 @@ export const listViewFieldsTool: ChatToolDefinition = {
       order: vc.order,
     }));
   },
-};
+});

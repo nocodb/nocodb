@@ -10,63 +10,69 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { NcContext, NcRequest } from 'nocodb-sdk';
-import { ChatService } from '../services/chat.service';
+import { NC_NEW_SESSION, NcContext, NcRequest } from 'nocodb-sdk';
+import type {
+  ChatAttachmentType,
+  ChatSendMessageResponseType,
+} from 'nocodb-sdk';
+import { ChatService } from '~/integrations/ai/chat/services/chat.service';
+import { ChatSessionService } from '~/integrations/ai/chat/services/chat-session.service';
+import { ChatSuggestionsService } from '~/integrations/ai/chat/services/chat-suggestions.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { License } from '~/decorators/license.decorator';
 
-const PREFIX = '/api/v2/internal/:workspaceId';
+const PREFIX = '/api/v2/internal/:workspaceId/:baseId';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @License('Chat')
 export class ChatController {
-  constructor(private readonly chatService: ChatService) {}
+  constructor(
+    private readonly chatService: ChatService,
+    private readonly chatSessionService: ChatSessionService,
+    private readonly suggestionsService: ChatSuggestionsService,
+  ) {}
+
+  @Get(`${PREFIX}/chat/suggestions`)
+  @Acl('chatSuggestionsGet', { scope: 'base' })
+  async suggestions(
+    @TenantContext() context: NcContext,
+    @Query('type') type: string,
+    @Query('fileNames') fileNames: string,
+    @Request() req: NcRequest,
+  ) {
+    return await this.suggestionsService.getSuggestions(context, {
+      type,
+      fileNames: fileNames
+        ? fileNames.split(',').map((n) => n.trim()).filter(Boolean)
+        : undefined,
+      req,
+    });
+  }
 
   @Get(`${PREFIX}/chat/sessions`)
-  @Acl('chatSessionList', { scope: 'workspace' })
+  @Acl('chatSessionList', { scope: 'base' })
   async sessionList(
     @TenantContext() context: NcContext,
     @Request() req: NcRequest,
   ) {
-    return await this.chatService.sessionList(context, { req });
-  }
-
-  @Get(`${PREFIX}/chat/sessions/:sessionId`)
-  @Acl('chatSessionGet', { scope: 'workspace' })
-  async sessionGet(
-    @TenantContext() context: NcContext,
-    @Param('sessionId') sessionId: string,
-    @Request() req: NcRequest,
-  ) {
-    return await this.chatService.sessionGet(context, { sessionId, req });
-  }
-
-  @Post(`${PREFIX}/chat/sessions`)
-  @Acl('chatSessionCreate', { scope: 'workspace' })
-  async sessionCreate(
-    @TenantContext() context: NcContext,
-    @Body() body: { title?: string },
-    @Request() req: NcRequest,
-  ) {
-    return await this.chatService.sessionCreate(context, {
-      title: body.title,
+    return await this.chatSessionService.sessionList(context, {
       req,
     });
   }
 
   @Patch(`${PREFIX}/chat/sessions/:sessionId`)
-  @Acl('chatSessionUpdate', { scope: 'workspace' })
+  @Acl('chatSessionUpdate', { scope: 'base' })
   async sessionUpdate(
     @TenantContext() context: NcContext,
     @Param('sessionId') sessionId: string,
     @Body() body: { title: string },
     @Request() req: NcRequest,
   ) {
-    return await this.chatService.sessionUpdate(context, {
+    return await this.chatSessionService.sessionUpdate(context, {
       sessionId,
       title: body.title,
       req,
@@ -74,17 +80,20 @@ export class ChatController {
   }
 
   @Delete(`${PREFIX}/chat/sessions/:sessionId`)
-  @Acl('chatSessionDelete', { scope: 'workspace' })
+  @Acl('chatSessionDelete', { scope: 'base' })
   async sessionDelete(
     @TenantContext() context: NcContext,
     @Param('sessionId') sessionId: string,
     @Request() req: NcRequest,
   ) {
-    return await this.chatService.sessionDelete(context, { sessionId, req });
+    return await this.chatSessionService.sessionDelete(context, {
+      sessionId,
+      req,
+    });
   }
 
   @Get(`${PREFIX}/chat/sessions/:sessionId/messages`)
-  @Acl('chatMessageList', { scope: 'workspace' })
+  @Acl('chatMessageList', { scope: 'base' })
   async messageList(
     @TenantContext() context: NcContext,
     @Param('sessionId') sessionId: string,
@@ -92,7 +101,7 @@ export class ChatController {
     @Query('offset') offset: string,
     @Request() req: NcRequest,
   ) {
-    return await this.chatService.messageList(context, {
+    return await this.chatSessionService.messageList(context, {
       sessionId,
       limit: limit
         ? Math.min(Math.max(parseInt(limit, 10) || 50, 1), 200)
@@ -102,8 +111,21 @@ export class ChatController {
     });
   }
 
+  @Get(`${PREFIX}/chat/sessions/:sessionId/follow-ups`)
+  @Acl('chatSuggestionsGet', { scope: 'base' })
+  async followUps(
+    @TenantContext() context: NcContext,
+    @Param('sessionId') sessionId: string,
+    @Request() req: NcRequest,
+  ) {
+    return await this.suggestionsService.getFollowUps(context, {
+      sessionId,
+      req,
+    });
+  }
+
   @Post(`${PREFIX}/chat/sessions/:sessionId/abort`)
-  @Acl('chatMessageSend', { scope: 'workspace' })
+  @Acl('chatMessageSend', { scope: 'base' })
   async abortSession(
     @TenantContext() context: NcContext,
     @Param('sessionId') sessionId: string,
@@ -114,34 +136,66 @@ export class ChatController {
   }
 
   @Post(`${PREFIX}/chat/sessions/:sessionId/messages`)
-  @Acl('chatMessageSend', { scope: 'workspace' })
+  @Acl('chatMessageSend', { scope: 'base' })
   async messageSend(
     @TenantContext() context: NcContext,
     @Param('sessionId') sessionId: string,
     @Body()
     body: {
       content: string;
+      files?: ChatAttachmentType[];
       approvals?: Record<string, 'approved' | 'denied'>;
-      base_id?: string;
+      title?: string;
     },
     @Request() req: NcRequest,
-  ) {
-    // Enqueues a Bull job — response delivered via Socket.IO CHAT_EVENT
+  ): Promise<ChatSendMessageResponseType> {
+    const isNewSession = sessionId === NC_NEW_SESSION;
+
+    let resolvedSessionId = sessionId;
+    let createdSession: ChatSendMessageResponseType['session'];
+
+    if (isNewSession) {
+      const session = await this.chatSessionService.sessionCreate(context, {
+        title: body.title,
+        req,
+      });
+      resolvedSessionId = session.id;
+      createdSession = session;
+    }
+
     await this.chatService.sendMessage(context, {
-      sessionId,
+      sessionId: resolvedSessionId,
       body: {
         content: body.content,
+        files: body.files,
         approvals: body.approvals,
-        base_id: body.base_id,
       },
       req,
     });
 
-    return {};
+    return { session: createdSession };
+  }
+
+  @Post(`${PREFIX}/chat/sessions/:sessionId/messages/:messageId/feedback`)
+  @Acl('chatMessageSend', { scope: 'base' })
+  async messageFeedback(
+    @TenantContext() context: NcContext,
+    @Param('sessionId') sessionId: string,
+    @Param('messageId') messageId: string,
+    @Body() body: { score: number; comment?: string },
+    @Request() req: NcRequest,
+  ) {
+    return await this.chatSessionService.messageFeedback(context, {
+      sessionId,
+      messageId,
+      score: body.score,
+      comment: body.comment,
+      req,
+    });
   }
 
   @Post(`${PREFIX}/chat/sessions/:sessionId/messages/:messageId/approve`)
-  @Acl('chatMessageSend', { scope: 'workspace' })
+  @Acl('chatMessageSend', { scope: 'base' })
   async approveToolCalls(
     @TenantContext() context: NcContext,
     @Param('sessionId') sessionId: string,
@@ -149,16 +203,13 @@ export class ChatController {
     @Body()
     body: {
       decisions: Record<string, 'approved' | 'denied'>;
-      base_id?: string;
     },
     @Request() req: NcRequest,
   ) {
-    // Enqueues a Bull job — continuation delivered via Socket.IO CHAT_EVENT
     await this.chatService.approveToolCalls(context, {
       sessionId,
       messageId,
       decisions: body.decisions || {},
-      baseId: body.base_id,
       req,
     });
 

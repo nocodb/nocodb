@@ -1,32 +1,30 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import { FiltersService } from '~/services/filters.service';
 import Noco from '~/Noco';
 
-export const removeWidgetFilterTool: ChatToolDefinition = {
-  name: 'remove_widget_filter',
+export const removeWidgetFilterTool = defineChatTool({
+  name: ChatToolName.REMOVE_WIDGET_FILTER,
   description:
-    'Remove a specific filter condition from a widget by its ID. ' +
-    'Call list_widget_filters first to get the filter ID of the filter you want to remove.',
-  parameters: {
+    'Remove a filter from a widget by its ID. ' +
+    'Call list_widget_filters first to get the filter ID you want to remove. ' +
+    'This only affects the widget display — underlying data is untouched.',
+  schema: z.object({
     filter_id: z
       .string()
       .describe(
         'The ID of the filter to remove. Get this from list_widget_filters — it is the "id" field in the response.',
       ),
-  },
+  }),
   permission: 'filterDelete',
   scope: 'base',
   requiredRole: ProjectRoles.CREATOR,
   isDangerous: true,
-  async execute(
-    context: NcContext,
-    args: { filter_id: string },
-    req: NcRequest,
-  ) {
+  visibility: 'action',
+  category: 'dashboard',
+  async execute(context, args, req) {
     const filtersService: FiltersService = Noco.nestApp.get(FiltersService);
 
     await filtersService.filterDelete(context, {
@@ -38,4 +36,4 @@ export const removeWidgetFilterTool: ChatToolDefinition = {
       message: `Widget filter ${args.filter_id} removed.`,
     };
   },
-};
+});

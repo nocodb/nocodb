@@ -1,30 +1,29 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { resolveDashboardByName } from '../helpers';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
+import { resolveDashboardByName } from '~/integrations/ai/chat/tools/helpers';
 
-export const openDashboardTool: ChatToolDefinition = {
-  name: 'open_dashboard',
+export const openDashboardTool = defineChatTool({
+  name: ChatToolName.OPEN_DASHBOARD,
   description:
-    'Open a dashboard in the UI. Navigates the user to the specified dashboard in the current base.',
-  parameters: {
+    'Navigate the user to a dashboard in the current base. ' +
+    'The dashboard will be displayed in the main content area. ' +
+    'Use list_dashboards to discover available dashboards first.',
+  schema: z.object({
     dashboard_name: z
       .string()
       .describe('The title of the dashboard to open (case-insensitive).'),
-  },
+  }),
   permission: 'dashboardList',
   scope: 'base',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
   readonly: true,
   uiOnly: true,
-  async execute(
-    context: NcContext,
-    args: { dashboard_name: string },
-    _req: NcRequest,
-  ) {
+  visibility: 'ui',
+  category: 'ui',
+  async execute(context, args, _req) {
     const dashboard = await resolveDashboardByName(
       context,
       args.dashboard_name,
@@ -37,4 +36,4 @@ export const openDashboardTool: ChatToolDefinition = {
       message: `Opening dashboard "${dashboard.title}".`,
     };
   },
-};
+});

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ChatContentBlock } from 'nocodb-sdk'
 import { ChatToolCallStatus } from 'nocodb-sdk'
+import { extractKeyArg } from '~/ee/utils/chatUtils'
 
 type ToolUseBlock = Extract<ChatContentBlock, { type: 'tool_use' }>
 
@@ -17,13 +18,41 @@ const { block } = toRefs(props)
 
 const { t } = useI18n()
 
-const basesStore = useBases()
+const { bases } = storeToRefs(useBases())
 
-const { bases } = storeToRefs(basesStore)
+const { $e } = useNuxtApp()
 
 const isExpanded = ref(false)
+const showFullResult = ref(false)
 
-// Unwrap base_proxy — show the inner tool name/args instead of the wrapper.
+const MAX_RESULT_LINES = 8
+
+const SCHEMA_TOOLS = new Set([
+  'list_tables',
+  'create_table',
+  'rename_table',
+  'delete_table',
+  'add_field',
+  'modify_field',
+  'delete_field',
+  'create_view',
+  'list_views',
+  'rename_view',
+  'delete_view',
+])
+
+const DATA_PREFIXES = [
+  'query_',
+  'get_',
+  'create_record',
+  'update_record',
+  'delete_record',
+  'count_',
+  'link_',
+  'unlink_',
+  'list_linked_',
+]
+
 const isProxy = computed(() => block.value.name === 'base_proxy')
 
 const proxyBaseName = computed(() => {
@@ -48,89 +77,26 @@ const effectiveInput = computed(() => {
 })
 
 const isError = computed(() => block.value.status === ChatToolCallStatus.ERROR || block.value.is_error)
-const isRunning = computed(() => block.value.status === ChatToolCallStatus.RUNNING)
-const isPending = computed(() => block.value.status === ChatToolCallStatus.PENDING)
+const isInProgress = computed(
+  () => block.value.status === ChatToolCallStatus.RUNNING || block.value.status === ChatToolCallStatus.PENDING,
+)
 const isAwaitingApproval = computed(() => block.value.status === ChatToolCallStatus.AWAITING_APPROVAL)
 const isDenied = computed(() => block.value.status === ChatToolCallStatus.DENIED)
 
-const toolCategory = computed(() => {
-  const name = effectiveName.value
-  if (
-    name === 'list_tables' ||
-    name.startsWith('describe_') ||
-    name === 'create_table' ||
-    name === 'rename_table' ||
-    name === 'delete_table' ||
-    name === 'add_field' ||
-    name === 'modify_field' ||
-    name === 'delete_field' ||
-    name === 'create_view' ||
-    name === 'list_views' ||
-    name === 'rename_view' ||
-    name === 'delete_view'
-  ) {
-    return 'schema'
-  }
-  if (
-    name.startsWith('query_') ||
-    name.startsWith('get_') ||
-    name.startsWith('create_record') ||
-    name.startsWith('update_record') ||
-    name.startsWith('delete_record') ||
-    name.startsWith('count_') ||
-    name.startsWith('link_') ||
-    name.startsWith('unlink_') ||
-    name.startsWith('list_linked_')
-  ) {
-    return 'data'
-  }
-  if (name === 'ask_user') {
-    return 'view'
-  }
-  return 'view'
-})
-
-const categoryIcon = computed(() => {
-  switch (toolCategory.value) {
-    case 'schema':
-      return 'table'
-    case 'data':
-      return 'database'
-    default:
-      return 'filter'
-  }
-})
-
-const categoryTextColor = computed(() => {
-  switch (toolCategory.value) {
-    case 'schema':
-      return 'text-nc-content-blue'
-    case 'data':
-      return 'text-nc-content-green'
-    default:
-      return 'text-nc-content-purple'
-  }
-})
-
-// Extract the most useful inline argument to show next to the tool name
-const keyArg = computed(() => {
-  const args = effectiveInput.value
-  if (!args || typeof args !== 'object') return null
-  // Priority: table_name > title > first string value
-  if (args.table_name) return args.table_name
-  if (args.title) return args.title
-  const firstStr = Object.values(args).find((v) => typeof v === 'string' && v.length < 40)
-  return firstStr || null
-})
-
-const { $e } = useNuxtApp()
-
-function toggleExpanded() {
-  isExpanded.value = !isExpanded.value
-  if (isExpanded.value) $e('c:chat:tool-call:expand', { tool: effectiveName.value })
-}
-
 const displayName = computed(() => effectiveName.value.replace(/_/g, ' '))
+
+const keyArg = computed(() => extractKeyArg(effectiveInput.value as Record<string, unknown>))
+
+const category = computed(() => {
+  const name = effectiveName.value
+  if (SCHEMA_TOOLS.has(name) || name.startsWith('describe_')) {
+    return { icon: 'table', color: 'text-nc-content-blue' }
+  }
+  if (DATA_PREFIXES.some((p) => name.startsWith(p))) {
+    return { icon: 'database', color: 'text-nc-content-green' }
+  }
+  return { icon: 'filter', color: 'text-nc-content-purple' }
+})
 
 const formattedArgs = computed(() => {
   try {
@@ -140,24 +106,6 @@ const formattedArgs = computed(() => {
   } catch {
     return String(effectiveInput.value)
   }
-})
-
-// Detect if output contains records (v3 format from query_records, get_record, etc.)
-const hasRecordOutput = computed(() => {
-  let data = block.value.output
-  if (typeof data === 'string') {
-    try {
-      data = JSON.parse(data)
-    } catch {
-      return false
-    }
-  }
-  return data?.records && Array.isArray(data.records) && data.records.length > 0
-})
-
-const recordTableName = computed(() => {
-  const input = effectiveInput.value as Record<string, unknown> | undefined
-  return (input?.table_name as string) ?? undefined
 })
 
 const formattedOutput = computed(() => {
@@ -170,25 +118,17 @@ const formattedOutput = computed(() => {
   }
 })
 
-// Auto-expand when record output arrives
-watch(
-  () => block.value.output,
-  () => {
-    if (hasRecordOutput.value && !isExpanded.value) {
-      isExpanded.value = true
-    }
-  },
-)
-
-// Truncate long results
-const MAX_RESULT_LINES = 8
 const outputLines = computed(() => formattedOutput.value.split('\n'))
-const isResultLong = computed(() => outputLines.value.length > MAX_RESULT_LINES)
-const showFullResult = ref(false)
+
 const visibleOutput = computed(() => {
-  if (!isResultLong.value || showFullResult.value) return formattedOutput.value
+  if (outputLines.value.length <= MAX_RESULT_LINES || showFullResult.value) return formattedOutput.value
   return `${outputLines.value.slice(0, MAX_RESULT_LINES).join('\n')}\n…`
 })
+
+const toggleExpanded = () => {
+  isExpanded.value = !isExpanded.value
+  if (isExpanded.value) $e('c:chat:tool-call:expand', { tool: effectiveName.value })
+}
 </script>
 
 <template>
@@ -203,36 +143,38 @@ const visibleOutput = computed(() => {
     }"
     :style="{ '--i': index }"
   >
-    <!-- Compact header row -->
     <div class="flex items-center gap-1.5 px-2 py-1.5 select-none cursor-pointer" @click="toggleExpanded">
-      <!-- Status / Category icon -->
-      <GeneralLoader v-if="isRunning || isPending" :size="14" class="flex-none" />
+      <GeneralLoader v-if="isInProgress" :size="14" class="flex-none" />
       <GeneralIcon
         v-else-if="isAwaitingApproval"
         icon="ncAlertCircle"
         class="flex-none w-3.5 h-3.5 text-nc-content-yellow-dark"
       />
-      <GeneralIcon v-else :icon="categoryIcon" class="flex-none w-3.5 h-3.5" :class="categoryTextColor" />
+      <GeneralIcon v-else :icon="category.icon" class="flex-none w-3.5 h-3.5" :class="category.color" />
 
-      <!-- Tool name -->
-      <span class="text-[12px] font-medium leading-none capitalize truncate" :class="categoryTextColor">
+      <span class="text-captionSm leading-none capitalize truncate" :class="category.color">
         {{ displayName }}
       </span>
 
-      <!-- Target base name for proxied tools -->
       <span
         v-if="proxyBaseName"
-        class="text-[10px] text-nc-content-purple bg-nc-bg-purple-light rounded px-1 py-0.5 max-w-[120px] truncate leading-none flex-shrink-0"
+        class="text-captionXs text-nc-content-purple bg-nc-bg-purple-light rounded px-1 py-0.5 max-w-[120px] truncate leading-none flex-shrink-0"
       >
         {{ proxyBaseName }}
       </span>
 
-      <!-- Key arg pill -->
       <span
         v-if="keyArg"
-        class="text-[11px] text-nc-content-gray-subtle bg-nc-bg-gray-light rounded px-1 py-0.5 max-w-[120px] truncate leading-none flex-shrink-0"
+        class="text-captionSm text-nc-content-gray-subtle bg-nc-bg-gray-light rounded px-1 py-0.5 max-w-[120px] truncate leading-none flex-shrink-0"
       >
         {{ keyArg }}
+      </span>
+
+      <span
+        v-if="block.agent"
+        class="text-captionXs text-nc-content-gray-muted bg-nc-bg-gray-light rounded px-1 py-0.5 leading-none flex-shrink-0"
+      >
+        {{ block.agent }}
       </span>
 
       <div class="flex-1 min-w-0" />
@@ -244,39 +186,32 @@ const visibleOutput = computed(() => {
       />
     </div>
 
-    <!-- Expanded content -->
     <Transition name="nc-tool-expand">
       <div v-if="isExpanded" class="border-t-1 border-nc-border-gray-light px-2 py-2 space-y-2">
-        <!-- Arguments -->
         <div v-if="formattedArgs" class="space-y-1">
-          <div class="text-[10px] uppercase tracking-wide font-semibold text-nc-content-gray-muted">
+          <div class="text-captionXsBold uppercase tracking-wide text-nc-content-gray-muted">
             {{ t('msg.chat.toolInput') }}
           </div>
           <pre
-            class="text-[11px] leading-relaxed text-nc-content-gray-emphasis bg-nc-bg-default rounded-md p-2 overflow-x-auto nc-scrollbar-thin max-h-32"
+            class="text-captionSm leading-relaxed text-nc-content-gray-emphasis bg-nc-bg-default rounded-md p-2 overflow-x-auto nc-scrollbar-thin max-h-32"
             >{{ formattedArgs }}</pre
           >
         </div>
 
-        <!-- Result: record table or raw output -->
         <div v-if="block.output !== undefined" class="space-y-1">
-          <div class="text-[10px] uppercase tracking-wide font-semibold text-nc-content-gray-muted">
+          <div class="text-captionXsBold uppercase tracking-wide text-nc-content-gray-muted">
             {{ isError ? t('msg.chat.toolError') : t('msg.chat.toolOutput') }}
           </div>
 
-          <!-- Record table for query results -->
-          <ChatRecordTable v-if="hasRecordOutput && !isError" :output="block.output" :table-name="recordTableName" />
-
-          <!-- Raw output fallback -->
-          <div v-else class="relative">
+          <div class="relative">
             <pre
-              class="text-[11px] leading-relaxed rounded-md p-2 overflow-x-auto nc-scrollbar-thin"
+              class="text-captionSm leading-relaxed rounded-md p-2 overflow-x-auto nc-scrollbar-thin"
               :class="isError ? 'bg-nc-bg-red-light text-nc-content-red' : 'bg-nc-bg-default text-nc-content-gray-emphasis'"
               >{{ visibleOutput }}</pre
             >
             <button
-              v-if="isResultLong"
-              class="mt-1 text-[11px] text-nc-content-brand hover:underline"
+              v-if="outputLines.length > MAX_RESULT_LINES"
+              class="mt-1 text-captionSm text-nc-content-brand hover:underline"
               @click.stop="showFullResult = !showFullResult"
             >
               {{

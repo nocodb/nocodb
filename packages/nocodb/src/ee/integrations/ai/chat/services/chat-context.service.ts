@@ -1,277 +1,209 @@
 import { Injectable } from '@nestjs/common';
 import { ChatMessageRole } from 'nocodb-sdk';
-import {
-  buildDynamicSystemPromptText,
-  buildStaticSystemPromptText,
-  getCategoryPrompt,
-} from '../prompts';
 import type { ChatMessageType } from 'nocodb-sdk';
-import type { ModelMessage, SystemModelMessage } from 'ai';
+import type { ModelMessage } from 'ai';
 import type { NcContext } from '~/interface/config';
-import { AiSchemaService } from '~/integrations/ai/module/services/ai-schema.service';
-import Base from '~/models/Base';
+import { AGENTS, type SchemaDepth } from '~/integrations/ai/chat/agents';
+import { estimateTokens } from '~/integrations/ai/chat/helpers/tokenlens';
+import { getBaseSchema } from '~/helpers/scriptHelper';
 
-// Static content is identical for every request — build once and reuse.
-const STATIC_SYSTEM_PROMPT = buildStaticSystemPromptText();
+interface SchemaField {
+  id?: string;
+  name: string;
+  type: string;
+  primary_value?: boolean;
+  options?: {
+    choices?: { title: string }[];
+    relation_type?: string;
+    related_table_id?: string;
+  };
+}
+
+interface SchemaTable {
+  id: string;
+  name: string;
+  fields: SchemaField[];
+}
 
 @Injectable()
 export class ChatContextService {
-  constructor(private readonly aiSchemaService: AiSchemaService) {}
-
-  /**
-   * Returns the system prompt as SystemModelMessage blocks:
-   * 1. Static block (Identity + Rules + Field Types + Filter Operators + Query Syntax)
-   *    tagged with cache_control so Anthropic caches it at the API-key level.
-   * 2. Dynamic block (user role + base schema + current context) — never cached.
-   * 3. (optional) Compaction summary of older conversation history.
-   */
-  async buildSystemPrompt(
+  async buildSchemaForAgent(
+    agentName: string,
     context: NcContext,
-    params: {
-      baseId?: string;
-      tableId?: string;
-      viewId?: string;
-      userRoles: { workspaceRole: string; baseRole: string | null };
-      summary?: string;
-      loadedCategories?: Set<string>;
-      req: any;
-    },
-  ): Promise<SystemModelMessage[]> {
-    const { baseId, tableId, userRoles, req } = params;
+    _baseId: string,
+    activeTableId: string | undefined,
+    _req: any,
+  ): Promise<string> {
+    const depth: SchemaDepth = AGENTS[agentName]?.schemaDepth || 'full';
+    const baseSchema = await getBaseSchema(context);
+    const lines: string[] = [];
 
-    let schemaContext = '';
-    let currentBaseName: string | undefined;
-    let currentTableContext: string | undefined;
+    for (const table of baseSchema.tables) {
+      const isActive = activeTableId && table.id === activeTableId;
+      const showFullFields =
+        depth === 'full' || (depth === 'focused' && isActive);
 
-    if (baseId) {
-      const [base, serializedSchema] = await Promise.all([
-        Base.get(context, baseId),
-        this.aiSchemaService.serializeSchema(context, {
-          baseId,
-          tableIds: tableId ? [tableId] : undefined,
-          req,
-        }),
-      ]);
-
-      currentBaseName = base?.title;
-
-      const schemaLines: string[] = [];
-
-      for (const table of serializedSchema.tables) {
-        const cols = table.columns
-          .map((c) => {
-            let desc = `${c.title} (${c.type})`;
-            if (c.options?.length) {
-              desc += ` [${c.options.join(', ')}]`;
-            }
-            return desc;
-          })
-          .join(', ');
-        schemaLines.push(`Table "${table.title}": ${cols}`);
-      }
-
-      if (serializedSchema.relationships?.length) {
-        const rels = serializedSchema.relationships
-          .map((r) => `${r.from} ${r.type} ${r.to}`)
-          .join('; ');
-        schemaLines.push(`Relationships: ${rels}`);
-      }
-
-      schemaContext = schemaLines.join('\n');
-
-      if (tableId && serializedSchema.tables?.length) {
-        const table = serializedSchema.tables[0];
-        if (table?.title) {
-          currentTableContext = `User is viewing table "${table.title}".`;
-        }
+      if (showFullFields) {
+        const label = isActive
+          ? `Table "${table.name}" [id=${table.id}] (active)`
+          : `Table "${table.name}" [id=${table.id}]`;
+        lines.push(`${label}: ${this.formatFields(table.fields)}`);
+      } else {
+        lines.push(this.formatTableSummary(table));
       }
     }
 
-    const blocks: SystemModelMessage[] = [
-      {
-        role: 'system',
-        content: STATIC_SYSTEM_PROMPT,
-        providerOptions: {
-          anthropic: { cacheControl: { type: 'ephemeral' } },
-        },
-      },
-      {
-        role: 'system',
-        content: buildDynamicSystemPromptText({
-          schemaContext,
-          currentBaseName,
-          currentTableContext,
-          userRoles,
-        }),
-      },
-    ];
+    const rels = this.formatRelationships(baseSchema.tables);
+    if (rels) lines.push(rels);
 
-    // Inject reference prompts for any previously loaded tool categories
-    // so the LLM has full context on resumed conversations.
-    if (params.loadedCategories?.size) {
-      for (const cat of params.loadedCategories) {
-        const prompt = getCategoryPrompt(cat);
-        if (prompt) {
-          blocks.push({ role: 'system', content: prompt });
-        }
-      }
-    }
-
-    // Inject compaction summary as a dedicated system block so it's always
-    // visible to the LLM as first-class context — not a user message that
-    // providers may handle inconsistently.
-    if (params.summary) {
-      blocks.push({
-        role: 'system',
-        content: `## Conversation History (compacted)\n\n${params.summary}`,
-      });
-    }
-
-    return blocks;
+    return lines.join('\n');
   }
 
-  buildMessages(params: {
+  buildHistoryMessages(params: {
     messages: ChatMessageType[];
-    newUserMessage: string;
   }): ModelMessage[] {
-    const { messages, newUserMessage } = params;
+    return this.toModelMessages(params.messages);
+  }
 
-    const coreMessages: ModelMessage[] = [];
+  async estimateMessageTokens(
+    msg: ChatMessageType,
+    modelId?: string,
+  ): Promise<number> {
+    if (msg.parts?.length) {
+      let sum = 0;
+      for (const p of msg.parts) {
+        const text = p.type === 'text' ? p.text : JSON.stringify(p);
+        sum += await estimateTokens(text, modelId);
+      }
+      return sum;
+    }
+    return estimateTokens(msg.content || '', modelId);
+  }
 
-    // Compaction already guarantees the messages fit within the token budget.
-    // Include all messages in chronological order — no secondary trimming.
-    for (let i = 0; i < messages.length; i++) {
-      const msg = messages[i];
+  private formatFields(fields: SchemaField[]): string {
+    return fields
+      .map((f) => {
+        let desc = f.id ? `${f.name} (${f.type}, id=${f.id})` : `${f.name} (${f.type})`;
+        if (f.options?.choices?.length) {
+          desc += ` [${f.options.choices.map((c) => c.title).join(', ')}]`;
+        }
+        return desc;
+      })
+      .join(', ');
+  }
 
+  private formatTableSummary(table: SchemaTable): string {
+    const primary = table.fields.find((f) => f.primary_value);
+    const label = primary ? ` (primary: ${primary.name})` : '';
+    return `Table "${table.name}" [id=${table.id}]${label} — ${table.fields.length} fields`;
+  }
+
+  private formatRelationships(tables: SchemaTable[]): string | null {
+    const tableNames = new Map(tables.map((t) => [t.id, t.name]));
+    const rels: string[] = [];
+
+    for (const table of tables) {
+      for (const field of table.fields) {
+        if (field.options?.relation_type && field.options?.related_table_id) {
+          const related = tableNames.get(field.options.related_table_id) || '?';
+          rels.push(
+            `${table.name}.${field.name} ${field.options.relation_type} ${related}`,
+          );
+        }
+      }
+    }
+
+    return rels.length ? 'Relationships: ' + rels.join('; ') : null;
+  }
+
+  private toModelMessages(messages: ChatMessageType[]): ModelMessage[] {
+    const result: ModelMessage[] = [];
+
+    for (const msg of messages) {
       if (msg.role === ChatMessageRole.USER) {
-        coreMessages.push({
-          role: 'user',
-          content: msg.content || '',
-        });
-      } else if (msg.role === ChatMessageRole.ASSISTANT) {
-        if (msg.parts?.length) {
-          const toolBlocks = msg.parts.filter(
-            (p): p is Extract<typeof p, { type: 'tool_use' }> =>
-              p.type === 'tool_use',
-          );
+        let content = msg.content || '';
 
-          // Build a single assistant message with text and tool-call
-          // parts interleaved in their original order. This prevents
-          // stale text (e.g. "please approve…") from appearing as a
-          // separate assistant turn after tool results, which would
-          // confuse the LLM into re-calling already-executed tools.
-          const contentParts: Array<
-            | { type: 'text'; text: string }
-            | {
-                type: 'tool-call';
-                toolCallId: string;
-                toolName: string;
-                input: unknown;
-              }
-          > = [];
+        // Append file attachment info so the AI knows what files the user uploaded
+        if (msg.files?.length) {
+          const fileList = msg.files
+            .map((f: any) => f.title || 'file')
+            .join(', ');
+          const fileNote = `\n\n[Attached files: ${fileList}]`;
+          content = content ? content + fileNote : fileNote.trim();
+        }
 
-          // Only include tool calls that have a corresponding output.
-          // Incomplete tool calls (awaiting approval, denied, etc.) must be
-          // excluded — providers reject tool-call blocks without matching
-          // tool-result blocks in the conversation history.
-          const completedToolIds = new Set(
-            toolBlocks.filter((p) => p.output !== undefined).map((p) => p.id),
-          );
+        if (content) {
+          result.push({ role: 'user', content });
+        }
+        continue;
+      }
 
-          for (const part of msg.parts) {
-            if (part.type === 'text' && part.text) {
-              contentParts.push({ type: 'text', text: part.text });
-            } else if (
-              part.type === 'tool_use' &&
-              completedToolIds.has(part.id)
-            ) {
-              contentParts.push({
-                type: 'tool-call' as const,
-                toolCallId: part.id,
-                toolName: part.name,
-                input: part.input || {},
-              });
-            }
+      if (msg.role !== ChatMessageRole.ASSISTANT) continue;
+
+      if (!msg.parts?.length) {
+        result.push({ role: 'assistant', content: msg.content || '' });
+        continue;
+      }
+
+      const toolBlocks = msg.parts.filter(
+        (p): p is Extract<typeof p, { type: 'tool_use' }> =>
+          p.type === 'tool_use',
+      );
+
+      const completedToolIds = new Set(
+        toolBlocks.filter((p) => p.output !== undefined).map((p) => p.id),
+      );
+
+      const contentParts: Array<
+        | { type: 'text'; text: string }
+        | {
+            type: 'tool-call';
+            toolCallId: string;
+            toolName: string;
+            input: unknown;
           }
+      > = [];
 
-          if (contentParts.length) {
-            coreMessages.push({
-              role: 'assistant',
-              content: contentParts,
-            });
-          }
+      for (const part of msg.parts) {
+        if (part.type === 'text' && part.text) {
+          contentParts.push({ type: 'text', text: part.text });
+        } else if (part.type === 'tool_use' && completedToolIds.has(part.id)) {
+          contentParts.push({
+            type: 'tool-call' as const,
+            toolCallId: part.id,
+            toolName: part.name,
+            input: part.input || {},
+          });
+        }
+      }
 
-          // Emit tool results for completed tool blocks
-          for (const p of toolBlocks) {
-            if (p.output !== undefined) {
-              coreMessages.push({
-                role: 'tool',
-                content: [
-                  {
-                    type: 'tool-result' as const,
-                    toolCallId: p.id,
-                    toolName: p.name,
-                    output: {
-                      type: 'text' as const,
-                      value:
-                        typeof p.output === 'string'
-                          ? p.output
-                          : JSON.stringify(p.output),
-                    },
-                  },
-                ],
-              });
-            }
-          }
-        } else {
-          // Fallback: content-only (user messages in old format)
-          coreMessages.push({
-            role: 'assistant',
-            content: msg.content || '',
+      if (contentParts.length) {
+        result.push({ role: 'assistant', content: contentParts });
+      }
+
+      for (const p of toolBlocks) {
+        if (p.output !== undefined) {
+          result.push({
+            role: 'tool',
+            content: [
+              {
+                type: 'tool-result' as const,
+                toolCallId: p.id,
+                toolName: p.name,
+                output: {
+                  type: 'text' as const,
+                  value:
+                    typeof p.output === 'string'
+                      ? p.output
+                      : JSON.stringify(p.output),
+                },
+              },
+            ],
           });
         }
       }
     }
 
-    // Add the new user message
-    coreMessages.push({
-      role: 'user',
-      content: newUserMessage,
-    });
-
-    return coreMessages;
-  }
-
-  /**
-   * Builds the message history without appending a new user message.
-   * Used for LLM continuation after tool approvals — the last messages in
-   * the history are tool results, so the LLM responds to them directly.
-   */
-  buildHistoryMessages(params: {
-    messages: ChatMessageType[];
-  }): ModelMessage[] {
-    const { messages } = params;
-
-    // Reuse buildMessages but pass an empty continuation marker so the LLM
-    // responds to the tool results rather than a new user message.
-    return this.buildMessages({
-      messages,
-      newUserMessage: '',
-    }).filter((m) => !(m.role === 'user' && (m.content as string) === ''));
-  }
-
-  estimateTokens(text: string): number {
-    // Rough approximation: ~4 characters per token
-    return Math.ceil((text || '').length / 4);
-  }
-
-  estimateMessageTokens(msg: ChatMessageType): number {
-    if (msg.parts?.length) {
-      return msg.parts.reduce((sum, p) => {
-        if (p.type === 'text') return sum + this.estimateTokens(p.text);
-        return sum + this.estimateTokens(JSON.stringify(p));
-      }, 0);
-    }
-    return this.estimateTokens(msg.content || '');
+    return result;
   }
 }

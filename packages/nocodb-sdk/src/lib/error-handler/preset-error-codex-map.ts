@@ -108,6 +108,14 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Dashboard '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_CHAT_SESSION_NOT_FOUND]: {
+    message: (id: string) => `Chat session '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_CHAT_MESSAGE_NOT_FOUND]: {
+    message: (id: string) => `Chat message '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_WORKFLOW_NOT_FOUND]: {
     message: (id: string) => `Workflow '${id}' not found`,
     code: 404,

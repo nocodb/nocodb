@@ -574,8 +574,6 @@ export const RootScopeTables = {
 
     MetaTable.PRINCIPAL_ASSIGNMENTS,
     MetaTable.SCIM_CONFIG,
-    MetaTable.CHAT_SESSIONS,
-    MetaTable.CHAT_MESSAGES,
   ],
   [RootScopes.BASE]: [MetaTable.PROJECT],
 };

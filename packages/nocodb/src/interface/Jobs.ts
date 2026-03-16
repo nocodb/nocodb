@@ -319,12 +319,10 @@ export interface ChatMessageJobData extends JobData {
   sessionId: string;
   firstUserMessage?: string;
   approvals?: Record<string, 'approved' | 'denied'>;
-  baseId?: string;
 }
 
 export interface ChatApprovalJobData extends JobData {
   sessionId: string;
   messageId: string;
   decisions: Record<string, 'approved' | 'denied'>;
-  baseId?: string;
 }

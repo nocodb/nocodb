@@ -205,15 +205,6 @@ const permissionScopes = {
     'scimConfigCreate',
     'scimConfigUpdate',
     'scimConfigDelete',
-
-    // Chat
-    'chatSessionCreate',
-    'chatSessionList',
-    'chatSessionGet',
-    'chatSessionDelete',
-    'chatSessionUpdate',
-    'chatMessageList',
-    'chatMessageSend',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
@@ -260,6 +251,9 @@ const permissionScopes = {
     'baseCost',
     'tableList',
     'viewList',
+    'viewCreate',
+    'viewUpdate',
+    'viewDelete',
     'functionList',
     'sequenceList',
     'procedureList',
@@ -311,6 +305,17 @@ const permissionScopes = {
     'relationDataRemove',
     'relationDataAdd',
     'baseUserList',
+    'columnSetAsPrimary',
+
+    'nestedDataList',
+    'nestedDataLink',
+    'nestedDataUnlink',
+    'columnAdd',
+    'columnUpdate',
+    'columnDelete',
+    'tableCreate',
+    'tableUpdate',
+    'tableDelete',
 
     // Base API Tokens
     'baseApiTokenList',
@@ -419,6 +424,16 @@ const permissionScopes = {
     'widgetUpdate',
     'widgetDelete',
     'widgetDataGet',
+    'widgetFilterList',
+    'widgetFilterCreate',
+
+    // Chat
+    'chatSessionList',
+    'chatSessionDelete',
+    'chatSessionUpdate',
+    'chatMessageList',
+    'chatMessageSend',
+    'chatSuggestionsGet',
 
     // Base Teams
     'baseTeamList',
@@ -482,7 +497,11 @@ const permissionScopes = {
     'rlsPolicyFilterList',
     'rlsPolicyFilterCreate',
   ],
-};
+} as const;
+
+export const basePermissions = permissionScopes.base;
+
+export type BasePermission = (typeof basePermissions)[number];
 
 const rolePermissions:
   | Record<
@@ -613,15 +632,6 @@ const rolePermissions:
       workspaceTeamGet: true,
       workspaceTeamUpdate: true,
       workspaceTeamRemove: true,
-
-      // Chat
-      chatSessionCreate: true,
-      chatSessionList: true,
-      chatSessionGet: true,
-      chatSessionDelete: true,
-      chatSessionUpdate: true,
-      chatMessageList: true,
-      chatMessageSend: true,
     },
   },
   [WorkspaceUserRoles.COMMENTER]: {
@@ -749,6 +759,14 @@ const rolePermissions:
       // Base Teams
       baseTeamList: true,
       baseTeamGet: true,
+
+      // Chat
+      chatSessionList: true,
+      chatSessionDelete: true,
+      chatSessionUpdate: true,
+      chatMessageList: true,
+      chatMessageSend: true,
+      chatSuggestionsGet: true,
 
       // Send record email
       sendRecordEmail: true,
@@ -1242,6 +1260,9 @@ const permissionDescriptions: Record<string, string> = {
   baseCost: 'view base cost',
   tableList: 'view list of tables',
   viewList: 'view list of views',
+  viewCreate: 'create a view',
+  viewUpdate: 'update a view',
+  viewDelete: 'delete a view',
   viewSectionList: 'view list of view sections',
   viewSectionCreate: 'create a view section',
   viewSectionUpdate: 'update a view section',
@@ -1250,6 +1271,12 @@ const permissionDescriptions: Record<string, string> = {
   sequenceList: 'view list of sequences',
   procedureList: 'view list of procedures',
   columnList: 'view list of columns',
+  columnAdd: 'add a new column',
+  columnUpdate: 'update a column',
+  columnDelete: 'delete a column',
+  columnSetAsPrimary: 'set a column as primary',
+  tableCreate: 'create a new table',
+  tableUpdate: 'update a table',
   viewColumnList: 'view list of view columns',
   triggerList: 'view list of triggers',
   relationList: 'view list of relations',
@@ -1347,6 +1374,8 @@ const permissionDescriptions: Record<string, string> = {
   widgetUpdate: 'update widget details',
   widgetDelete: 'delete a widget',
   widgetDataGet: 'view widget data',
+  widgetFilterList: 'view list of widget filters',
+  widgetFilterCreate: 'create a widget filter',
 
   // Base Teams permissions
   baseTeamList: 'view list of teams in the base',
@@ -1393,13 +1422,12 @@ const permissionDescriptions: Record<string, string> = {
   baseAuditList: 'view audit log for a base',
 
   // Chat
-  chatSessionCreate: 'create a chat session',
   chatSessionList: 'list chat sessions',
-  chatSessionGet: 'view a chat session',
   chatSessionDelete: 'delete a chat session',
   chatSessionUpdate: 'update a chat session',
   chatMessageList: 'list chat messages',
   chatMessageSend: 'send a chat message',
+  chatSuggestionsGet: 'get chat suggestions',
 };
 
 // Human-readable descriptions for roles

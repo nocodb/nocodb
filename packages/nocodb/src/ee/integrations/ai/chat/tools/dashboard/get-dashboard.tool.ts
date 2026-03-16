@@ -1,34 +1,31 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { resolveDashboardByName } from '../helpers';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
+import { resolveDashboardByName } from '~/integrations/ai/chat/tools/helpers';
 
-export const getDashboardTool: ChatToolDefinition = {
-  name: 'get_dashboard',
+export const getDashboardTool = defineChatTool({
+  name: ChatToolName.GET_DASHBOARD,
   description:
-    'Get detailed information about a specific dashboard including all its widgets. ' +
-    'Returns the dashboard metadata and a list of widgets with their types, titles, positions, and configurations. ' +
-    'Use this to understand the current layout before adding or updating widgets.',
-  parameters: {
+    'Get a dashboard with all its widgets. Returns dashboard metadata plus widget list with types, ' +
+    'titles, grid positions, and configurations. ' +
+    'Call this before adding or updating widgets to understand the current layout and avoid position conflicts.',
+  schema: z.object({
     dashboard_name: z
       .string()
       .describe(
         'The title of the dashboard to retrieve (case-insensitive). ' +
           'Use list_dashboards to find available dashboard names.',
       ),
-  },
+  }),
   permission: 'dashboardGet',
   scope: 'base',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
   readonly: true,
-  async execute(
-    context: NcContext,
-    args: { dashboard_name: string },
-    _req: NcRequest,
-  ) {
+  visibility: 'hidden',
+  category: 'dashboard',
+  async execute(context, args, _req) {
     const dashboard = await resolveDashboardByName(
       context,
       args.dashboard_name,
@@ -51,4 +48,4 @@ export const getDashboardTool: ChatToolDefinition = {
       })),
     };
   },
-};
+});

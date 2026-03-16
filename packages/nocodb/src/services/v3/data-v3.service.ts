@@ -1,11 +1,14 @@
 import {
   isLinksOrLTAR,
   NcApiVersion,
+  recordsV2ToV3,
+  recordV2ToV3,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
 import { Injectable, Logger } from '@nestjs/common';
 import { LTARColsUpdater } from 'src/db/BaseModelSqlv2/ltar-cols-updater';
+import type { ModelMeta } from 'nocodb-sdk';
 import type {
   DataDeleteParams,
   DataInsertParams,
@@ -20,7 +23,7 @@ import type {
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { ReusableParams } from '~/utils';
-import { dataWrapper, getCompositePkValue } from '~/helpers/dbHelpers';
+import { dataWrapper } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
 import { Column, Model, Source } from '~/models';
 import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
@@ -33,7 +36,7 @@ import {
   QUERY_STRING_LINKS_AS_LTAR,
   V3_DATA_PAYLOAD_LIMIT,
 } from '~/constants';
-import { processConcurrently, reuseOrSave } from '~/utils';
+import { reuseOrSave } from '~/utils';
 import { Profiler } from '~/helpers/profiler';
 
 interface ModelInfo {
@@ -117,6 +120,83 @@ export class DataV3Service {
   }
 
   /**
+   * Pre-resolve related model info for LTAR/Links/Lookup/Rollup columns
+   * into a modelMap (modelId → ModelMeta) and columnModelMap (columnId → modelId).
+   * Recurses up to MAX_NESTING_DEPTH for nested LTAR columns.
+   */
+  private async buildModelMaps(
+    context: NcContext,
+    columns: Column[],
+    depth: number,
+    reuse: ReusableParams,
+    linksAsLtar: boolean,
+  ): Promise<{
+    modelMap: Record<string, ModelMeta>;
+    columnModelMap: Record<string, string>;
+  }> {
+    const modelMap: Record<string, ModelMeta> = {};
+    const columnModelMap: Record<string, string> = {};
+
+    if (depth >= MAX_NESTING_DEPTH) return { modelMap, columnModelMap };
+
+    // Pass 1: LTAR/Links columns — resolve related models
+    for (const column of columns) {
+      if (
+        column.uidt !== UITypes.LinkToAnotherRecord &&
+        !(column.uidt === UITypes.Links && linksAsLtar)
+      ) {
+        continue;
+      }
+
+      const info = await reuseOrSave(
+        `relatedModelInfo_${column.id}`,
+        reuse,
+        async () => this.getRelatedModelInfo(context, column),
+      );
+
+      const modelId = info.model.id;
+      columnModelMap[column.id] = modelId;
+
+      // Skip if model already resolved (handles circular refs)
+      if (!modelMap[modelId]) {
+        modelMap[modelId] = {
+          id: modelId,
+          title: info.model.title,
+          primaryKeys: info.primaryKeys,
+          columns: info.model.columns,
+        };
+
+        // Recurse into the related model's columns
+        const nested = await this.buildModelMaps(
+          context,
+          info.model.columns,
+          depth + 1,
+          reuse,
+          linksAsLtar,
+        );
+        Object.assign(modelMap, nested.modelMap);
+        Object.assign(columnModelMap, nested.columnModelMap);
+      }
+    }
+
+    // Pass 2: Lookup/Rollup columns — map to their LTAR's related model
+    for (const column of columns) {
+      if (column.uidt !== UITypes.Lookup && column.uidt !== UITypes.Rollup) {
+        continue;
+      }
+
+      const colOptions = column.colOptions as any;
+      const relationColumnId = colOptions?.fk_relation_column_id;
+
+      if (relationColumnId && columnModelMap[relationColumnId]) {
+        columnModelMap[column.id] = columnModelMap[relationColumnId];
+      }
+    }
+
+    return { modelMap, columnModelMap };
+  }
+
+  /**
    * Transform a record to the v3 format {id, fields}
    */
   private async transformRecordToV3Format(param: {
@@ -133,167 +213,31 @@ export class DataV3Service {
     linksAsLtar?: boolean;
   }): Promise<DataRecord> {
     const {
-      context,
-      record,
-      primaryKey,
-      primaryKeys,
-      requestedFields,
       columns,
-      nestedLimit,
-      skipSubstitutingColumnIds,
+      context,
       reuse = {},
-      depth = 0,
       linksAsLtar = false,
+      depth = 0,
     } = param;
 
-    const getPrimaryKey = (column: Column) => {
-      return skipSubstitutingColumnIds ? column.id : column.title;
-    };
+    const { modelMap, columnModelMap } = columns
+      ? await this.buildModelMaps(context, columns, depth, reuse, linksAsLtar)
+      : { modelMap: undefined, columnModelMap: undefined };
 
-    // If specific fields were requested, only include those in the fields object
-    // Otherwise, include all non-primary-key fields
-    const primaryKeyTitles = primaryKeys
-      ? primaryKeys.map((pk) => getPrimaryKey(pk))
-      : [getPrimaryKey(primaryKey)];
+    const pks = param.primaryKeys ?? [param.primaryKey];
 
-    const shouldIncludeField = (key: string) => {
-      // For APIv3, primary keys should NEVER be in the fields object
-      // They are always returned as the 'id' property at the root level
-      if (primaryKeyTitles.includes(key)) {
-        return false;
-      }
-
-      // For non-primary-key fields, include them if:
-      // 1. No field selection was made, OR
-      // 2. Field selection was made and this field is in the selection
-      if (!requestedFields) {
-        return true; // No field selection, include all non-PK fields
-      }
-      if (requestedFields.includes(key)) {
-        return true;
-      }
-      const foundColumn = columns.find((c) => c.title === key || c.id === key);
-      if (foundColumn) {
-        return (
-          requestedFields.includes(foundColumn.id) ||
-          requestedFields.includes(foundColumn.title)
-        );
-      }
-    };
-
-    const fields = { ...record };
-    const transformedFields: Record<string, any> = {};
-
-    // Process each field
-    for (const [key, value] of Object.entries(fields)) {
-      if (!shouldIncludeField(key)) continue;
-
-      // Handle LTAR fields if columns are provided
-      if (columns) {
-        const column = columns.find((col) => col.title === key);
-        if (
-          column?.uidt === UITypes.LinkToAnotherRecord ||
-          (column?.uidt === UITypes.Links && linksAsLtar)
-        ) {
-          if (Array.isArray(value)) {
-            // Check depth limit to prevent unbounded recursion
-            if (depth >= MAX_NESTING_DEPTH) {
-              // At max depth, return simplified representation based on relation type
-              transformedFields[key] = value.map((nestedRecord) => {
-                if (typeof nestedRecord === 'object' && nestedRecord !== null) {
-                  // Try to extract ID from the nested record with fallbacks
-                  const id =
-                    nestedRecord.id ||
-                    nestedRecord.Id ||
-                    nestedRecord.ID ||
-                    Object.values(nestedRecord)[0];
-
-                  // For read operations, handle missing IDs gracefully
-                  return { id: id ? String(id) : null };
-                }
-
-                // Handle primitive values - for read operations, convert to string
-                return { id: nestedRecord ? String(nestedRecord) : null };
-              });
-              continue;
-            }
-
-            // Cache the related model info per column to avoid N+1 queries
-            const relatedModelInfo = await reuseOrSave(
-              `relatedModelInfo_${column.id}`,
-              reuse,
-              async () => this.getRelatedModelInfo(context, column),
-            );
-
-            const {
-              primaryKey: relatedPrimaryKey,
-              primaryKeys: relatedPrimaryKeys,
-            } = relatedModelInfo;
-
-            // Handle array of linked records with concurrency control
-            const recordsToProcess =
-              nestedLimit && value.length > nestedLimit
-                ? value.slice(0, nestedLimit)
-                : value;
-
-            // Transform all nested records using v3 format
-            transformedFields[key] = await processConcurrently(
-              recordsToProcess,
-              async (nestedRecord) => {
-                return this.transformRecordToV3Format({
-                  context: context,
-                  record: nestedRecord,
-                  primaryKey: relatedPrimaryKey,
-                  primaryKeys: relatedPrimaryKeys,
-                  columns: relatedModelInfo.model.columns,
-                  reuse,
-                  depth: depth + 1,
-                });
-              },
-            );
-            continue;
-          } else if (value && typeof value === 'object') {
-            // Handle single nested record (typically BELONGS_TO or ONE_TO_ONE)
-            const relatedModelInfo = await reuseOrSave(
-              `relatedModelInfo_${column.id}`,
-              reuse,
-              async () => this.getRelatedModelInfo(context, column),
-            );
-
-            const {
-              primaryKey: relatedPrimaryKey,
-              primaryKeys: relatedPrimaryKeys,
-            } = relatedModelInfo;
-
-            // Transform single record using v3 format
-            transformedFields[key] = await this.transformRecordToV3Format({
-              context: context,
-              record: value,
-              primaryKey: relatedPrimaryKey,
-              primaryKeys: relatedPrimaryKeys,
-              columns: relatedModelInfo.model.columns,
-              reuse,
-              depth: depth + 1,
-            });
-            continue;
-          }
-        }
-      }
-
-      // For non-LTAR fields, just copy the value
-      transformedFields[key] = value;
-    }
-
-    const recordPrimaryKeyValue = primaryKeys
-      ? getCompositePkValue(primaryKeys, record, { skipSubstitutingColumnIds })
-      : record[getPrimaryKey(primaryKey)];
-
-    const result: DataRecord = {
-      // Always include the 'id' property for APIv3
-      id: recordPrimaryKeyValue,
-      fields: transformedFields,
-    };
-    return result;
+    return recordV2ToV3(param.record, {
+      primaryKeys: pks,
+      columns,
+      requestedFields: param.requestedFields,
+      useColumnId: param.skipSubstitutingColumnIds,
+      linksAsLtar,
+      modelMap,
+      columnModelMap,
+      nestedLimit: param.nestedLimit,
+      maxDepth: MAX_NESTING_DEPTH,
+      depth,
+    });
   }
 
   /**
@@ -312,15 +256,34 @@ export class DataV3Service {
     depth?: number;
     linksAsLtar?: boolean;
   }): Promise<DataRecord[]> {
-    const { records } = param;
+    const {
+      records,
+      columns,
+      context,
+      reuse = {},
+      linksAsLtar = false,
+      depth = 0,
+    } = param;
 
-    // Use concurrency control to prevent overwhelming the system
-    return processConcurrently(records, async (record) =>
-      this.transformRecordToV3Format({
-        ...param,
-        record,
-      }),
-    );
+    // Pre-resolve all related model info once for the batch
+    const { modelMap, columnModelMap } = columns
+      ? await this.buildModelMaps(context, columns, depth, reuse, linksAsLtar)
+      : { modelMap: undefined, columnModelMap: undefined };
+
+    const pks = param.primaryKeys ?? [param.primaryKey];
+
+    return recordsV2ToV3(records, {
+      primaryKeys: pks,
+      columns,
+      requestedFields: param.requestedFields,
+      useColumnId: param.skipSubstitutingColumnIds,
+      linksAsLtar,
+      modelMap,
+      columnModelMap,
+      nestedLimit: param.nestedLimit,
+      maxDepth: MAX_NESTING_DEPTH,
+      depth,
+    });
   }
 
   async validateDataListQueryParams(

@@ -1,19 +1,22 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { resolveTableByName, resolveViewByName } from '../helpers';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
-import { FiltersService } from '~/services/filters.service';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
+import {
+  resolveTableByName,
+  resolveViewByName,
+} from '~/integrations/ai/chat/tools/helpers';
+import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 import Noco from '~/Noco';
 
-export const listFiltersTool: ChatToolDefinition = {
-  name: 'list_filters',
+export const listFiltersTool = defineChatTool({
+  name: ChatToolName.LIST_FILTERS,
   description:
-    "List all active filter conditions on a view. Returns each filter's id (needed for remove_filter), " +
-    'field name, operator, value, and logical_op (and/or). ' +
-    'Use this before remove_filter to find the filter ID to remove.',
-  parameters: {
+    'List all active filter conditions on a view in V3 format. ' +
+    "Returns each filter's id (needed for remove_filter), field_id, operator, sub_operator, and value. " +
+    'Filters are returned as a nested tree — groups contain children filters with logical operators. ' +
+    'Use this before remove_filter to find the filter ID to remove, or before add_filter to see existing conditions.',
+  schema: z.object({
     table_name: z
       .string()
       .describe(
@@ -25,35 +28,22 @@ export const listFiltersTool: ChatToolDefinition = {
       .describe(
         'The title of the view to list filters for. If omitted, uses the first (default) view.',
       ),
-  },
+  }),
   permission: 'filterList',
   scope: 'base',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
   readonly: true,
-  async execute(
-    context: NcContext,
-    args: { table_name: string; view_name?: string },
-    _req: NcRequest,
-  ) {
-    const filtersService: FiltersService = Noco.nestApp.get(FiltersService);
+  visibility: 'hidden',
+  category: 'view',
+  async execute(context, args, _req) {
+    const filtersV3Service: FiltersV3Service =
+      Noco.nestApp.get(FiltersV3Service);
     const model = await resolveTableByName(context, args.table_name);
     const view = await resolveViewByName(context, model, args.view_name);
-    const columns = await model.getColumns(context);
 
-    const filters = await filtersService.filterList(context, {
+    return await filtersV3Service.filterList(context, {
       viewId: view.id,
     });
-
-    const colMap = new Map(columns.map((c) => [c.id, c.title]));
-
-    return (filters as any[]).map((f) => ({
-      id: f.id,
-      field_name: colMap.get(f.fk_column_id) || f.fk_column_id,
-      operator: f.comparison_op,
-      ...(f.comparison_sub_op && { sub_operator: f.comparison_sub_op }),
-      value: f.value,
-      logical_op: f.logical_op || 'and',
-    }));
   },
-};
+});

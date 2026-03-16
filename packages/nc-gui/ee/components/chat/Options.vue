@@ -17,15 +17,11 @@ const emits = defineEmits<{
 
 const { t } = useI18n()
 
-const isSingleQuestion = computed(() => props.questions.length === 1)
-
-// Current step index (0-based)
 const currentStep = ref(0)
-
-// Track selected answer per question (index -> choice string)
 const answers = ref<Record<number, string>>({})
-
 const customInput = ref('')
+
+const isSingleQuestion = computed(() => props.questions.length === 1)
 
 const currentQuestion = computed(() => props.questions[currentStep.value])
 
@@ -34,7 +30,6 @@ const currentAnswer = computed(() => answers.value[currentStep.value])
 const isLastStep = computed(() => currentStep.value === props.questions.length - 1)
 
 const selectOption = (option: string) => {
-  // Single question: emit immediately (same UX as before)
   if (isSingleQuestion.value) {
     emits('select', option)
     return
@@ -76,7 +71,6 @@ const handleCustomSubmit = () => {
   nextTick(() => goNext())
 }
 
-// Reset step when questions change
 watch(
   () => props.questions,
   () => {
@@ -89,7 +83,6 @@ watch(
 
 <template>
   <div class="nc-chat-options bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-xl overflow-hidden">
-    <!-- Step indicator (multi-question only) -->
     <div v-if="!isSingleQuestion" class="flex items-center gap-1.5 px-3 pt-2.5 pb-1">
       <div
         v-for="(_, si) in questions"
@@ -98,10 +91,8 @@ watch(
         :class="[si <= currentStep ? 'bg-nc-fill-primary' : 'bg-nc-bg-gray-medium', si === currentStep ? 'flex-[2]' : 'flex-1']"
       />
     </div>
-
-    <!-- Question header -->
     <div class="flex items-center justify-between px-3 py-2.5">
-      <span class="text-sm font-medium text-nc-content-gray-emphasis leading-snug flex-1 mr-2">
+      <span class="text-body text-nc-content-gray-emphasis leading-snug flex-1 mr-2">
         {{ currentQuestion?.question }}
       </span>
       <NcButton size="xxsmall" type="text" class="!text-nc-content-gray-muted flex-none" @click="emits('skip')">
@@ -110,8 +101,6 @@ watch(
     </div>
 
     <div class="border-t-1 border-nc-border-gray-light" />
-
-    <!-- Options for current step -->
     <div>
       <div
         v-for="(option, i) in currentQuestion?.options"
@@ -121,7 +110,7 @@ watch(
         @click="selectOption(option)"
       >
         <span
-          class="flex-none w-7 h-7 flex items-center justify-center rounded-lg text-xs font-semibold border-1"
+          class="flex-none w-7 h-7 flex items-center justify-center rounded-lg text-captionSmBold border-1"
           :class="
             currentAnswer === option
               ? 'bg-nc-fill-primary text-white border-transparent'
@@ -130,18 +119,17 @@ watch(
         >
           {{ currentAnswer === option ? '&#10003;' : i + 1 }}
         </span>
-        <span class="text-sm text-nc-content-gray-emphasis">{{ option }}</span>
+        <span class="text-body text-nc-content-gray-emphasis">{{ option }}</span>
       </div>
     </div>
 
     <div class="border-t-1 border-nc-border-gray-light" />
 
-    <!-- Custom input -->
     <div class="flex items-center gap-2 px-3 py-2.5">
       <GeneralIcon icon="ncEdit" class="flex-none w-4 h-4 text-nc-content-gray-muted" />
       <input
         v-model="customInput"
-        class="flex-1 text-sm text-nc-content-gray-emphasis bg-transparent outline-none placeholder:text-nc-content-gray-muted min-w-0"
+        class="flex-1 text-body text-nc-content-gray-emphasis bg-transparent outline-none placeholder:text-nc-content-gray-muted min-w-0"
         :placeholder="t('placeholder.somethingElse')"
         @keydown.stop
         @keydown.enter.prevent="handleCustomSubmit"
@@ -159,20 +147,15 @@ watch(
         {{ t('general.skip') }}
       </NcButton>
     </div>
-
-    <!-- Navigation footer (multi-question only) -->
     <template v-if="!isSingleQuestion">
       <div class="border-t-1 border-nc-border-gray-medium" />
       <div class="flex items-center justify-between px-3 py-2">
-        <!-- Back button or step counter -->
         <div class="flex items-center gap-2">
           <NcButton v-if="currentStep > 0" size="small" type="secondary" @click="goBack">
             {{ t('general.back') }}
           </NcButton>
-          <span class="text-[12px] text-nc-content-gray-muted"> {{ currentStep + 1 }}/{{ questions.length }} </span>
+          <span class="text-captionSm text-nc-content-gray-muted"> {{ currentStep + 1 }}/{{ questions.length }} </span>
         </div>
-
-        <!-- Next / Submit -->
         <div class="flex items-center gap-2">
           <NcButton size="small" type="secondary" @click="emits('skip')">
             {{ t('general.skip') }}

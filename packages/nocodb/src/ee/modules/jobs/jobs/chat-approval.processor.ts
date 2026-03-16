@@ -1,30 +1,29 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { EventType } from 'nocodb-sdk';
+import { ChatEventAction, EventType } from 'nocodb-sdk';
 import type { Job } from 'bull';
 import type { ChatApprovalJobData } from '~/interface/Jobs';
 import type { NcRequest } from '~/interface/config';
-import { ChatService } from '~/integrations/ai/chat/services/chat.service';
+import { ChatAgentService } from '~/integrations/ai/chat/services/chat-agent.service';
 import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class ChatApprovalProcessor {
   private readonly logger = new Logger(ChatApprovalProcessor.name);
 
-  constructor(private readonly chatService: ChatService) {}
+  constructor(private readonly agentService: ChatAgentService) {}
 
   async job(job: Job<ChatApprovalJobData>): Promise<void> {
-    const { context, user, sessionId, messageId, decisions, baseId } = job.data;
+    const { context, user, sessionId, messageId, decisions } = job.data;
 
     const req = { user } as NcRequest;
 
     // 1. Execute approved tools and persist results
     let updatedParts;
     try {
-      updatedParts = await this.chatService.executeApprovals(context, {
+      updatedParts = await this.agentService.executeApprovals(context, {
         sessionId,
         messageId,
         decisions,
-        baseId,
         req,
       });
     } catch (e) {
@@ -35,7 +34,7 @@ export class ChatApprovalProcessor {
       NocoSocket.broadcastEventToUser(user.id as string, {
         event: EventType.CHAT_EVENT,
         payload: {
-          action: 'error',
+          action: ChatEventAction.ERROR,
           sessionId,
           error: 'Failed to execute tool approvals',
         },
@@ -43,13 +42,12 @@ export class ChatApprovalProcessor {
       return;
     }
 
-    // 2. Push the updated tool results to the frontend so the original message
-    //    reflects SUCCESS/DENIED with output (like Claude Code)
+    // 2. Push the updated tool results to the frontend
     if (updatedParts) {
       NocoSocket.broadcastEventToUser(user.id as string, {
         event: EventType.CHAT_EVENT,
         payload: {
-          action: 'message-update',
+          action: ChatEventAction.MESSAGE_UPDATE,
           sessionId,
           messageId,
           parts: updatedParts,
@@ -57,8 +55,8 @@ export class ChatApprovalProcessor {
       });
     }
 
-    // 3. Continue the LLM conversation now that tool results are in the history
-    const callbacks = this.chatService.buildSocketCallbacks(
+    // 3. Continue the LLM conversation
+    const callbacks = this.agentService.buildSocketCallbacks(
       user.id as string,
       sessionId,
       context.workspace_id,
@@ -66,9 +64,9 @@ export class ChatApprovalProcessor {
     );
 
     try {
-      await this.chatService.processAgentTurn(
+      await this.agentService.executeTurn(
         context,
-        { sessionId, req, approvals: {}, baseId },
+        { sessionId, req, approvals: {} },
         callbacks,
       );
     } catch (e) {
@@ -79,7 +77,7 @@ export class ChatApprovalProcessor {
       NocoSocket.broadcastEventToUser(user.id as string, {
         event: EventType.CHAT_EVENT,
         payload: {
-          action: 'error',
+          action: ChatEventAction.ERROR,
           sessionId,
           error: 'Failed to continue conversation after approval',
         },

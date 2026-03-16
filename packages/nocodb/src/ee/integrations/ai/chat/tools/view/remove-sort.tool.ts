@@ -1,31 +1,51 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
-import { SortsService } from '~/services/sorts.service';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
+import {
+  resolveTableByName,
+  resolveViewByName,
+} from '~/integrations/ai/chat/tools/helpers';
+import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import Noco from '~/Noco';
 
-export const removeSortTool: ChatToolDefinition = {
-  name: 'remove_sort',
+export const removeSortTool = defineChatTool({
+  name: ChatToolName.REMOVE_SORT,
   description:
-    'Remove a specific sort rule from a view by its ID. ' +
-    'Call list_sorts first to get the sort ID of the sort you want to remove.',
-  parameters: {
+    'Remove a sort rule from a view by its ID. ' +
+    'Call list_sorts first to get the sort ID you want to remove. ' +
+    'After removal, remaining sorts shift in priority order.',
+  schema: z.object({
+    table_name: z
+      .string()
+      .describe(
+        'The title of the table containing the view (case-insensitive).',
+      ),
+    view_name: z
+      .string()
+      .optional()
+      .describe(
+        'The title of the view to remove the sort from. If omitted, uses the first (default) view.',
+      ),
     sort_id: z
       .string()
       .describe(
         'The ID of the sort to remove. Get this from list_sorts — it is the "id" field in the response.',
       ),
-  },
+  }),
   permission: 'sortDelete',
   scope: 'base',
   requiredRole: ProjectRoles.EDITOR,
   isDangerous: true,
-  async execute(context: NcContext, args: { sort_id: string }, req: NcRequest) {
-    const sortsService: SortsService = Noco.nestApp.get(SortsService);
+  visibility: 'action',
+  category: 'view',
+  async execute(context, args, req) {
+    const sortsV3Service: SortsV3Service = Noco.nestApp.get(SortsV3Service);
+    const model = await resolveTableByName(context, args.table_name);
+    const view = await resolveViewByName(context, model, args.view_name);
 
-    await sortsService.sortDelete(context, {
+    await sortsV3Service.sortDelete(context, {
+      viewId: view.id,
       sortId: args.sort_id,
       req,
     });
@@ -34,4 +54,4 @@ export const removeSortTool: ChatToolDefinition = {
       message: `Sort ${args.sort_id} removed.`,
     };
   },
-};
+});

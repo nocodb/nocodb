@@ -1,48 +1,59 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { resolveTableByName } from '../helpers';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
+import { resolveTableByName } from '~/integrations/ai/chat/tools/helpers';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import Noco from '~/Noco';
 
-export const renameTableTool: ChatToolDefinition = {
-  name: 'rename_table',
+export const renameTableTool = defineChatTool({
+  name: ChatToolName.RENAME_TABLE,
   description:
-    'Rename a table. Only changes the display name — all data, fields, and views are preserved. ' +
-    'The new name must be unique within the base.',
-  parameters: {
+    'Update a table title or description. All data, fields, views, and links are preserved. ' +
+    'The new name must be unique within the base. ' +
+    'Link/LTAR fields in other tables that reference this table are NOT affected.',
+  schema: z.object({
     table_name: z
       .string()
-      .describe('The current title of the table to rename (case-insensitive).'),
+      .describe('The current title of the table to update (case-insensitive).'),
     new_name: z
       .string()
+      .optional()
       .describe(
-        'The new display name for the table. Must be unique within the base.',
+        'New display name for the table. Must be unique within the base. Omit if only updating description.',
       ),
-  },
+    description: z
+      .string()
+      .nullable()
+      .optional()
+      .describe('New description for the table. Pass null to clear.'),
+  }),
   permission: 'tableUpdate',
   scope: 'base',
   requiredRole: ProjectRoles.CREATOR,
   isDangerous: false,
-  async execute(
-    context: NcContext,
-    args: { table_name: string; new_name: string },
-    req: NcRequest,
-  ) {
+  visibility: 'action',
+  category: 'schema',
+  async execute(context, args, req) {
     const tablesV3Service: TablesV3Service = Noco.nestApp.get(TablesV3Service);
     const model = await resolveTableByName(context, args.table_name);
 
+    const updatePayload: Record<string, any> = {};
+    if (args.new_name) updatePayload.title = args.new_name;
+    if (args.description !== undefined)
+      updatePayload.description = args.description;
+
     await tablesV3Service.tableUpdate(context, {
       tableId: model.id,
-      table: { title: args.new_name },
+      table: updatePayload,
       user: req.user,
       req,
     });
 
     return {
-      message: `Table "${args.table_name}" has been renamed to "${args.new_name}".`,
+      message: args.new_name
+        ? `Table "${args.table_name}" has been renamed to "${args.new_name}".`
+        : `Table "${args.table_name}" has been updated.`,
     };
   },
-};
+});

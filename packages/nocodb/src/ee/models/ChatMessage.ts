@@ -1,12 +1,13 @@
 import ChatMessageCE from 'src/models/ChatMessage';
-import type { ChatMessageType } from 'nocodb-sdk';
+import type { ChatAttachmentType, ChatMessageType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
+import { PresignedUrl } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
-import { MetaTable, RootScopes } from '~/utils/globals';
+import { MetaTable } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
-const JSON_FIELDS = ['parts'];
+const JSON_FIELDS = ['parts', 'files'];
 
 export default class ChatMessage
   extends ChatMessageCE
@@ -15,17 +16,35 @@ export default class ChatMessage
   id?: string;
   fk_session_id: string;
   fk_workspace_id?: string;
+  base_id?: string;
   role: ChatMessageType['role'];
   content?: string | null;
   parts?: ChatMessageType['parts'];
+  files?: ChatAttachmentType[];
   model?: string;
   input_tokens?: number;
   output_tokens?: number;
+  bt_span_id?: string | null;
   created_at?: string;
 
   constructor(data: ChatMessage) {
     super(data);
     Object.assign(this, data);
+  }
+
+  protected static async presignFiles(
+    message: ChatMessage,
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (message.files?.length) {
+      await Promise.all(
+        message.files.map((file) =>
+          PresignedUrl.signAttachment({ attachment: file }, ncMeta).catch(
+            () => {},
+          ),
+        ),
+      );
+    }
   }
 
   public static async get(
@@ -45,7 +64,7 @@ export default class ChatMessage
 
     let message = await ncMeta.metaGet2(
       context.workspace_id,
-      RootScopes.WORKSPACE,
+      context.base_id,
       MetaTable.CHAT_MESSAGES,
       condition,
     );
@@ -54,7 +73,11 @@ export default class ChatMessage
       message = prepareForResponse(message, JSON_FIELDS);
     }
 
-    return message && new ChatMessage(message);
+    const msg = message && new ChatMessage(message);
+    if (msg) {
+      await this.presignFiles(msg, ncMeta);
+    }
+    return msg;
   }
 
   public static async list(
@@ -72,7 +95,7 @@ export default class ChatMessage
   ) {
     const messagesList = await ncMeta.metaList2(
       context.workspace_id,
-      RootScopes.WORKSPACE,
+      context.base_id,
       MetaTable.CHAT_MESSAGES,
       {
         condition: {
@@ -90,7 +113,11 @@ export default class ChatMessage
       prepareForResponse(msg, JSON_FIELDS);
     }
 
-    return messagesList.map((m) => new ChatMessage(m));
+    const messages = messagesList.map((m) => new ChatMessage(m));
+
+    await Promise.all(messages.map((m) => this.presignFiles(m)));
+
+    return messages;
   }
 
   static async insert(
@@ -102,20 +129,21 @@ export default class ChatMessage
       extractProps(message, [
         'id',
         'fk_session_id',
-        'fk_workspace_id',
         'role',
         'content',
         'parts',
+        'files',
         'model',
         'input_tokens',
         'output_tokens',
+        'bt_span_id',
       ]),
       JSON_FIELDS,
     );
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
-      RootScopes.WORKSPACE,
+      context.base_id,
       MetaTable.CHAT_MESSAGES,
       insertObj,
     );
@@ -136,7 +164,7 @@ export default class ChatMessage
 
     await ncMeta.metaUpdate(
       context.workspace_id,
-      RootScopes.WORKSPACE,
+      context.base_id,
       MetaTable.CHAT_MESSAGES,
       updateObj,
       { id: messageId },
@@ -152,7 +180,7 @@ export default class ChatMessage
   ) {
     await ncMeta.metaDelete(
       context.workspace_id,
-      RootScopes.WORKSPACE,
+      context.base_id,
       MetaTable.CHAT_MESSAGES,
       {
         id: messageId,
@@ -167,7 +195,7 @@ export default class ChatMessage
   ) {
     await ncMeta.metaDelete(
       context.workspace_id,
-      RootScopes.WORKSPACE,
+      context.base_id,
       MetaTable.CHAT_MESSAGES,
       { fk_session_id: sessionId },
     );

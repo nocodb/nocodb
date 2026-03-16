@@ -1,20 +1,21 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { resolveDashboardByName, resolveWidgetByName } from '../helpers';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
+import {
+  resolveDashboardByName,
+  resolveWidgetByName,
+} from '~/integrations/ai/chat/tools/helpers';
 import { DashboardsService } from '~/services/dashboards.service';
 import Noco from '~/Noco';
 
-export const duplicateWidgetTool: ChatToolDefinition = {
-  name: 'duplicate_widget',
+export const duplicateWidgetTool = defineChatTool({
+  name: ChatToolName.DUPLICATE_WIDGET,
   description:
-    'Create a copy of an existing widget on the same dashboard. ' +
-    'The duplicate keeps the same type, configuration, and data source but gets a unique name ' +
-    'and is placed at the next available position on the grid. ' +
-    'Useful for creating similar widgets with minor variations.',
-  parameters: {
+    'Duplicate an existing widget on the same dashboard. ' +
+    'The copy keeps the same type, config, and data source but gets a unique name and auto-placed position. ' +
+    'Useful for creating variations — duplicate then update_widget to change the copy.',
+  schema: z.object({
     dashboard_name: z
       .string()
       .describe(
@@ -23,16 +24,14 @@ export const duplicateWidgetTool: ChatToolDefinition = {
     widget_name: z
       .string()
       .describe('The title of the widget to duplicate (case-insensitive).'),
-  },
+  }),
   permission: 'widgetDuplicate',
   scope: 'base',
   requiredRole: ProjectRoles.CREATOR,
   isDangerous: false,
-  async execute(
-    context: NcContext,
-    args: { dashboard_name: string; widget_name: string },
-    req: NcRequest,
-  ) {
+  visibility: 'action',
+  category: 'dashboard',
+  async execute(context, args, req) {
     const service: DashboardsService = Noco.nestApp.get(DashboardsService);
     const dashboard = await resolveDashboardByName(
       context,
@@ -54,4 +53,4 @@ export const duplicateWidgetTool: ChatToolDefinition = {
       message: `Widget "${args.widget_name}" duplicated as "${newWidget.title}".`,
     };
   },
-};
+});

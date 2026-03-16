@@ -1,29 +1,29 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { resolveTableByName } from '../helpers';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
+import { resolveTableByName } from '~/integrations/ai/chat/tools/helpers';
 
-export const openTableTool: ChatToolDefinition = {
-  name: 'open_table',
+export const openTableTool = defineChatTool({
+  name: ChatToolName.OPEN_TABLE,
   description:
-    'Open a table in the UI. Navigates the user to the specified table in the current base.',
-  parameters: {
+    'Navigate the user to a table in the current base. ' +
+    'Opens the default (first) view of the table. ' +
+    'Use open_view instead if you need to open a specific view.',
+  schema: z.object({
     table_name: z
       .string()
       .describe('The title of the table to open (case-insensitive).'),
-  },
+  }),
   permission: 'tableList',
   scope: 'base',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
   readonly: true,
-  async execute(
-    context: NcContext,
-    args: { table_name: string },
-    _req: NcRequest,
-  ) {
+  uiOnly: true,
+  visibility: 'ui',
+  category: 'ui',
+  async execute(context, args, _req) {
     const model = await resolveTableByName(context, args.table_name);
 
     return {
@@ -33,4 +33,4 @@ export const openTableTool: ChatToolDefinition = {
       message: `Opening table "${model.title}".`,
     };
   },
-};
+});

@@ -1,26 +1,27 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { resolveDashboardByName, resolveWidgetByName } from '../helpers';
 import type { FilterType } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
+import {
+  resolveDashboardByName,
+  resolveWidgetByName,
+} from '~/integrations/ai/chat/tools/helpers';
 import { FiltersService } from '~/services/filters.service';
 import Noco from '~/Noco';
 import Model from '~/models/Model';
 import { NcError } from '~/helpers/ncError';
 
-export const addWidgetFilterTool: ChatToolDefinition = {
-  name: 'add_widget_filter',
+export const addWidgetFilterTool = defineChatTool({
+  name: ChatToolName.ADD_WIDGET_FILTER,
   description:
-    'Add a filter condition to a widget to scope the data it displays. ' +
-    'Only applies when the widget\'s config.dataSource is "filter". ' +
-    'Set config.dataSource to "filter" first (via create_widget or update_widget), ' +
-    'then use this tool to add filter conditions. ' +
-    'Multiple filters are combined using logical_op (and/or). ' +
+    'Add a filter to a widget to scope its displayed data. ' +
+    'Widget config.dataSource must be "filter" — set it via create_widget or update_widget first. ' +
+    'Multiple filters combine using logical_op (and/or). ' +
+    'The widget must have a data source table (fk_model_id). ' +
     'The widget must have a data source table (fk_model_id). ' +
     'Use describe_table to find field names, then use the field name to filter.',
-  parameters: {
+  schema: z.object({
     dashboard_name: z
       .string()
       .describe(
@@ -74,24 +75,14 @@ export const addWidgetFilterTool: ChatToolDefinition = {
         'How this filter combines with existing filters on the widget. ' +
           '"and" means all filters must match; "or" means any filter can match. Default: "and".',
       ),
-  },
+  }),
   permission: 'widgetFilterCreate',
   scope: 'base',
   requiredRole: ProjectRoles.CREATOR,
   isDangerous: false,
-  async execute(
-    context: NcContext,
-    args: {
-      dashboard_name: string;
-      widget_name: string;
-      field_name: string;
-      operator: string;
-      value?: string;
-      sub_operator?: string;
-      logical_op?: string;
-    },
-    req: NcRequest,
-  ) {
+  visibility: 'action',
+  category: 'dashboard',
+  async execute(context, args, req) {
     const filtersService: FiltersService = Noco.nestApp.get(FiltersService);
     const dashboard = await resolveDashboardByName(
       context,
@@ -148,4 +139,4 @@ export const addWidgetFilterTool: ChatToolDefinition = {
       filter_id: filter.id,
     };
   },
-};
+});

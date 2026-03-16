@@ -1,19 +1,21 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { resolveDashboardByName, resolveWidgetByName } from '../helpers';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
+import {
+  resolveDashboardByName,
+  resolveWidgetByName,
+} from '~/integrations/ai/chat/tools/helpers';
 import { DashboardsService } from '~/services/dashboards.service';
 import Noco from '~/Noco';
 
-export const deleteWidgetTool: ChatToolDefinition = {
-  name: 'delete_widget',
+export const deleteWidgetTool = defineChatTool({
+  name: ChatToolName.DELETE_WIDGET,
   description:
     'Permanently remove a widget from a dashboard. This CANNOT be undone. ' +
-    "The widget's configuration and any associated filters will be lost. " +
-    'Use list_widgets to confirm the widget name before deleting.',
-  parameters: {
+    'The widget configuration and any associated filters are lost. ' +
+    'Call list_widgets first to verify the widget name.',
+  schema: z.object({
     dashboard_name: z
       .string()
       .describe(
@@ -25,16 +27,14 @@ export const deleteWidgetTool: ChatToolDefinition = {
         'The exact title of the widget to delete (case-insensitive). ' +
           'Use list_widgets to confirm the widget exists before deleting.',
       ),
-  },
+  }),
   permission: 'widgetDelete',
   scope: 'base',
   requiredRole: ProjectRoles.CREATOR,
   isDangerous: true,
-  async execute(
-    context: NcContext,
-    args: { dashboard_name: string; widget_name: string },
-    req: NcRequest,
-  ) {
+  visibility: 'action',
+  category: 'dashboard',
+  async execute(context, args, req) {
     const service: DashboardsService = Noco.nestApp.get(DashboardsService);
     const dashboard = await resolveDashboardByName(
       context,
@@ -52,4 +52,4 @@ export const deleteWidgetTool: ChatToolDefinition = {
       message: `Widget "${args.widget_name}" has been permanently removed from dashboard "${args.dashboard_name}".`,
     };
   },
-};
+});

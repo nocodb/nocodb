@@ -1,18 +1,20 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { resolveDashboardByName, resolveWidgetByName } from '../helpers';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
+import {
+  resolveDashboardByName,
+  resolveWidgetByName,
+} from '~/integrations/ai/chat/tools/helpers';
 
-export const getWidgetTool: ChatToolDefinition = {
-  name: 'get_widget',
+export const getWidgetTool = defineChatTool({
+  name: ChatToolName.GET_WIDGET,
   description:
-    'Get detailed information about a specific widget including its full configuration. ' +
-    'Returns the widget type, data source, position, and type-specific config ' +
-    '(chart axes, metric aggregation, text content, iframe URL, etc.). ' +
-    'Use this before update_widget to see the current configuration.',
-  parameters: {
+    'Get a widget with its full configuration. Returns type, data source, grid position, and ' +
+    'type-specific config (chart axes, metric aggregation, text content, iframe URL, etc.). ' +
+    'Call this before update_widget — the config object is replaced entirely (not merged), ' +
+    'so you need the current config to include unchanged fields.',
+  schema: z.object({
     dashboard_name: z
       .string()
       .describe(
@@ -21,17 +23,15 @@ export const getWidgetTool: ChatToolDefinition = {
     widget_name: z
       .string()
       .describe('The title of the widget to retrieve (case-insensitive).'),
-  },
+  }),
   permission: 'widgetGet',
   scope: 'base',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
   readonly: true,
-  async execute(
-    context: NcContext,
-    args: { dashboard_name: string; widget_name: string },
-    _req: NcRequest,
-  ) {
+  visibility: 'hidden',
+  category: 'dashboard',
+  async execute(context, args, _req) {
     const dashboard = await resolveDashboardByName(
       context,
       args.dashboard_name,
@@ -54,4 +54,4 @@ export const getWidgetTool: ChatToolDefinition = {
       error: widget.error || false,
     };
   },
-};
+});

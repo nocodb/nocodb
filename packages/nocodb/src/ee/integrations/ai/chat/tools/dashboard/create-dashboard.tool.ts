@@ -1,17 +1,18 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import { DashboardsService } from '~/services/dashboards.service';
 import Noco from '~/Noco';
 
-export const createDashboardTool: ChatToolDefinition = {
-  name: 'create_dashboard',
+export const createDashboardTool = defineChatTool({
+  name: ChatToolName.CREATE_DASHBOARD,
   description:
-    'Create a new dashboard in the current base. ' +
-    'A dashboard is a visual canvas where widgets (charts, metrics, text, iframes) can be placed to build data-driven views. ' +
-    'After creating a dashboard, use create_widget to add widgets to it.',
-  parameters: {
+    'Create a new empty dashboard in the current base. ' +
+    'Dashboards are visual canvases for widgets: charts (bar/line/pie/donut), metrics (KPIs), ' +
+    'text (markdown), and iframes (embedded URLs). ' +
+    'After creation, use create_widget to add widgets and open_dashboard to navigate to it.',
+  schema: z.object({
     title: z.string().describe('The display name for the new dashboard.'),
     description: z
       .string()
@@ -19,16 +20,14 @@ export const createDashboardTool: ChatToolDefinition = {
       .describe(
         'An optional description explaining the purpose of the dashboard.',
       ),
-  },
+  }),
   permission: 'dashboardCreate',
   scope: 'base',
   requiredRole: ProjectRoles.CREATOR,
   isDangerous: false,
-  async execute(
-    context: NcContext,
-    args: { title: string; description?: string },
-    req: NcRequest,
-  ) {
+  visibility: 'action',
+  category: 'dashboard',
+  async execute(context, args, req) {
     const service: DashboardsService = Noco.nestApp.get(DashboardsService);
 
     const dashboard = await service.dashboardCreate(
@@ -48,4 +47,4 @@ export const createDashboardTool: ChatToolDefinition = {
       message: `Dashboard "${dashboard.title}" created successfully.`,
     };
   },
-};
+});

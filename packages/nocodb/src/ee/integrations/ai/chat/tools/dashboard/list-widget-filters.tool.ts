@@ -1,20 +1,22 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { resolveDashboardByName, resolveWidgetByName } from '../helpers';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
+import {
+  resolveDashboardByName,
+  resolveWidgetByName,
+} from '~/integrations/ai/chat/tools/helpers';
 import { FiltersService } from '~/services/filters.service';
 import Noco from '~/Noco';
 import Model from '~/models/Model';
 
-export const listWidgetFiltersTool: ChatToolDefinition = {
-  name: 'list_widget_filters',
+export const listWidgetFiltersTool = defineChatTool({
+  name: ChatToolName.LIST_WIDGET_FILTERS,
   description:
-    "List all filter conditions on a widget. Returns each filter's id (needed for remove_widget_filter), " +
-    'field name, operator, value, and logical_op (and/or). ' +
-    'Use this before remove_widget_filter to find the filter ID to remove.',
-  parameters: {
+    "List all filters on a widget. Returns each filter's id (needed for remove_widget_filter), " +
+    'field name, operator, value, and logical_op. ' +
+    'Call this before remove_widget_filter to find the filter ID, or before add_widget_filter to see existing conditions.',
+  schema: z.object({
     dashboard_name: z
       .string()
       .describe(
@@ -25,17 +27,15 @@ export const listWidgetFiltersTool: ChatToolDefinition = {
       .describe(
         'The title of the widget to list filters for (case-insensitive).',
       ),
-  },
+  }),
   permission: 'widgetFilterList',
   scope: 'base',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
   readonly: true,
-  async execute(
-    context: NcContext,
-    args: { dashboard_name: string; widget_name: string },
-    _req: NcRequest,
-  ) {
+  visibility: 'hidden',
+  category: 'dashboard',
+  async execute(context, args, _req) {
     const filtersService: FiltersService = Noco.nestApp.get(FiltersService);
     const dashboard = await resolveDashboardByName(
       context,
@@ -68,4 +68,4 @@ export const listWidgetFiltersTool: ChatToolDefinition = {
       logical_op: f.logical_op || 'and',
     }));
   },
-};
+});

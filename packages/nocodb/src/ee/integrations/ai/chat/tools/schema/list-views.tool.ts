@@ -1,46 +1,46 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { resolveTableByName } from '../helpers';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
-import { ViewsService } from '~/services/views.service';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
+import { resolveTableByName } from '~/integrations/ai/chat/tools/helpers';
+import { ViewsV3Service } from '~/services/v3/views-v3.service';
 import Noco from '~/Noco';
 
-export const listViewsTool: ChatToolDefinition = {
-  name: 'list_views',
+export const listViewsTool = defineChatTool({
+  name: ChatToolName.LIST_VIEWS,
   description:
-    'List all views of a table with their id, title, type (grid/gallery/kanban/form/calendar), and whether they are the default view. ' +
-    'Use this before add_filter, add_sort, set_group_by, or delete_view to see which views exist ' +
-    'and to find the correct view name. The default view (is_default: true) cannot be deleted.',
-  parameters: {
+    'List all views of a table. Returns id, title, type (grid/gallery/kanban/form/calendar), ' +
+    'lock_type, and description for each view in V3 format. ' +
+    'Use this to discover available views before add_filter, add_sort, set_group_by, ' +
+    'update_view_fields, open_view, or delete_view.',
+  schema: z.object({
     table_name: z
       .string()
       .describe('The title of the table to list views for (case-insensitive).'),
-  },
+  }),
   permission: 'viewList',
   scope: 'base',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
   readonly: true,
-  async execute(
-    context: NcContext,
-    args: { table_name: string },
-    req: NcRequest,
-  ) {
-    const viewsService: ViewsService = Noco.nestApp.get(ViewsService);
+  visibility: 'hidden',
+  category: 'schema',
+  async execute(context, args, req) {
+    const viewsV3Service: ViewsV3Service = Noco.nestApp.get(ViewsV3Service);
     const model = await resolveTableByName(context, args.table_name);
 
-    const views = await viewsService.viewList(context, {
+    const views = await viewsV3Service.getViews(context, {
       tableId: model.id,
-      user: req.user,
+      req,
     });
 
     return views.map((v: any) => ({
       id: v.id,
+      table_id: model.id,
       title: v.title,
       type: v.type,
-      is_default: v.is_default || false,
+      lock_type: v.lock_type || 'collaborative',
+      description: v.description || null,
     }));
   },
-};
+});

@@ -1,20 +1,24 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { resolveColumnByName, resolveTableByName } from '../helpers';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
+import {
+  resolveColumnByName,
+  resolveTableByName,
+} from '~/integrations/ai/chat/tools/helpers';
 import { ColumnsService } from '~/services/columns.service';
 import Noco from '~/Noco';
 
-export const setDisplayFieldTool: ChatToolDefinition = {
-  name: 'set_display_field',
+export const setDisplayFieldTool = defineChatTool({
+  name: ChatToolName.SET_DISPLAY_FIELD,
   description:
-    'Set the primary display field (title field) for a table. The display field is the main ' +
-    'identifier shown in linked record pickers and relationship columns when records from this table ' +
-    'are referenced elsewhere. Only SingleLineText, Number, Email, URL, Date, DateTime, and similar ' +
-    'simple text-compatible fields can be set as display fields.',
-  parameters: {
+    'Set the primary display field (title field) for a table. ' +
+    'The display field is the main identifier shown in linked record pickers, expanded row headers, ' +
+    'and relationship columns when records from this table are referenced elsewhere. ' +
+    'Only text-compatible fields can be display fields: SingleLineText, Number, Email, URL, ' +
+    'PhoneNumber, Date, DateTime, AutoNumber. ' +
+    'This is a table-level setting — it affects all views of the table.',
+  schema: z.object({
     table_name: z
       .string()
       .describe(
@@ -26,16 +30,14 @@ export const setDisplayFieldTool: ChatToolDefinition = {
         'The title of the field to make the primary display field (case-insensitive). ' +
           'Must be a text-compatible field (SingleLineText, Email, URL, Number, etc.).',
       ),
-  },
-  permission: 'columnUpdate',
+  }),
+  permission: 'columnSetAsPrimary',
   scope: 'base',
   requiredRole: ProjectRoles.CREATOR,
   isDangerous: false,
-  async execute(
-    context: NcContext,
-    args: { table_name: string; field_name: string },
-    req: NcRequest,
-  ) {
+  visibility: 'action',
+  category: 'view',
+  async execute(context, args, req) {
     const columnsService: ColumnsService = Noco.nestApp.get(ColumnsService);
     const model = await resolveTableByName(context, args.table_name);
     const column = await resolveColumnByName(context, model, args.field_name);
@@ -49,4 +51,4 @@ export const setDisplayFieldTool: ChatToolDefinition = {
       message: `"${args.field_name}" is now the display field for table "${args.table_name}".`,
     };
   },
-};
+});

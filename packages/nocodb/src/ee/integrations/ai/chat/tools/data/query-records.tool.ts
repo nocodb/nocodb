@@ -1,34 +1,30 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { resolveTableByName } from '../helpers';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
+import {
+  buildModelMeta,
+  buildRelatedModelsMeta,
+  resolveTableByName,
+} from '~/integrations/ai/chat/tools/helpers';
+import { whereDescription } from '~/mcp/descriptions';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import Noco from '~/Noco';
 
-export const queryRecordsTool: ChatToolDefinition = {
-  name: 'query_records',
+export const queryRecordsTool = defineChatTool({
+  name: ChatToolName.QUERY_RECORDS,
   description:
-    'Query records from a table with optional filtering, sorting, and pagination. ' +
-    'Returns records in v3 format: each record has an "id" (the primary key value) and a "fields" object. ' +
-    'Use the "id" value directly in get_record, update_records (rows[].id), and delete_records (row_ids) — ' +
-    'never guess or construct row IDs yourself.',
-  parameters: {
+    'Query records from a table with filtering, sorting, field selection, and pagination. ' +
+    'Returns { records: [{ id, fields }, ...] }. ' +
+    'Link/LTAR fields return actual linked records inline (not counts), each as { id, fields }. ' +
+    'The "id" at root level is the primary key — use it directly in update_records, delete_records, ' +
+    'link_records, and unlink_records. Never guess or construct row IDs. ' +
+    'Call describe_table first to learn field names and types for filtering.',
+  schema: z.object({
     table_name: z
       .string()
       .describe('The title of the table to query (case-insensitive).'),
-    where: z
-      .string()
-      .optional()
-      .describe(
-        'Where clause: (FieldTitle,op,value) chained with ~and / ~or. ' +
-          'Operators: eq, neq, gt, lt, gte, lte, like ("%search%"), nlike, ' +
-          'blank, notblank, null, notnull, empty, notempty, ' +
-          'in ("A,B"), allof, anyof, nallof, nanyof, btw ("10,20"), nbtw, ' +
-          'checked, notchecked, is, isnot, isWithin. ' +
-          'Example: (Status,eq,Active)~and(Priority,gt,2)',
-      ),
+    where: z.string().optional().describe(whereDescription),
     sort: z
       .string()
       .optional()
@@ -56,39 +52,44 @@ export const queryRecordsTool: ChatToolDefinition = {
       .describe(
         'Number of records to skip for pagination. Use with limit to page through large datasets.',
       ),
-  },
+  }),
+  visibility: 'data',
+  category: 'data',
   permission: 'dataList',
   scope: 'base',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
   readonly: true,
-  async execute(
-    context: NcContext,
-    args: {
-      table_name: string;
-      where?: string;
-      sort?: string;
-      fields?: string;
-      limit?: number;
-      offset?: number;
-    },
-    req: NcRequest,
-  ) {
+  async execute(context, args, req) {
     const dataV3Service: DataV3Service = Noco.nestApp.get(DataV3Service);
     const model = await resolveTableByName(context, args.table_name);
 
-    const result = await dataV3Service.dataList(context, {
-      modelId: model.id,
-      query: {
-        where: args.where,
-        sort: args.sort,
-        fields: args.fields,
-        limit: String(Math.min(args.limit || 25, 100)),
-        offset: String(args.offset || 0),
+    return await dataV3Service.dataList(
+      context,
+      {
+        modelId: model.id,
+        query: {
+          where: args.where,
+          sort: args.sort,
+          fields: args.fields,
+          limit: String(Math.min(args.limit || 25, 100)),
+          offset: String(args.offset || 0),
+          linksAsLtar: 'true',
+        },
+        req,
       },
-      req,
-    });
-
-    return result;
+      false,
+    );
   },
-};
+  async buildMeta(context, args) {
+    const model = await resolveTableByName(context, args.table_name);
+    const modelMeta = await buildModelMeta(context, model);
+    const columns = await model.getColumns(context);
+    const { modelMap, columnModelMap } = await buildRelatedModelsMeta(
+      context,
+      columns,
+    );
+
+    return { model: modelMeta, modelMap, columnModelMap };
+  },
+});

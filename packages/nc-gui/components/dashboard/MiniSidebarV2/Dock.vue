@@ -37,9 +37,15 @@ const { unreadCount } = toRefs(notificationStore)
 
 const isNotificationOpen = ref(false)
 
-const { isPanelExpanded: isChatPanelExpanded, hasWorkspaceContext: hasChatWorkspaceContext, toggleChatPanel } = useChatPanel()
+const {
+  isPanelExpanded: isChatPanelExpanded,
+  isFullScreen: isChatFullScreen,
+  hasWorkspaceContext: hasChatWorkspaceContext,
+  hasBaseContext: hasChatBaseContext,
+  toggleChatPanel,
+} = useChatPanel()
 
-const { blockAiChat, showEEFeatures } = useEeConfig()
+const { blockAiChat, isEEFeatureBlocked, showEEFeatures } = useEeConfig()
 
 const handleChatToggle = () => {
   toggleChatPanel()
@@ -64,6 +70,8 @@ const getBasePath = () => {
 }
 
 const onTabClick = async (tabKey: string) => {
+  if (isChatFullScreen.value) isChatFullScreen.value = false
+
   if (tabKey === 'settings') {
     activeSidebarTab.value = 'settings'
     if (isBaseOpen.value) {
@@ -246,7 +254,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 // Cmd/Ctrl + Shift + A — toggle AI chat
 useEventListener(document, 'keydown', (e: KeyboardEvent) => {
-  if (!isEeUI || blockAiChat.value) return
+  if (!isEeUI || isEEFeatureBlocked.value || !hasChatBaseContext.value) return
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (
     cmdOrCtrl &&
@@ -297,7 +305,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       :icon="item.icon"
       :label="item.label"
       :panel-key="item.key"
-      :active="activeSidebarTab === item.key"
+      :active="activeSidebarTab === item.key && !isChatFullScreen"
       :disabled="item.disabled"
       :scale="getScale(item.key)"
       @click="item.onClick?.()"
@@ -305,7 +313,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
 
     <!-- AI Chat -->
     <DashboardMiniSidebarV2DockItem
-      v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext && !isMobileMode"
+      v-if="isEeUI && !isEEFeatureBlocked && hasChatWorkspaceContext && hasChatBaseContext && !isMobileMode"
       :ref="(el: any) => setItemRef('chat', el)"
       v-e="['c:chat:toggle']"
       label="Chat"
@@ -325,7 +333,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       icon="ncSettings"
       label="Settings"
       panel-key="settings"
-      :active="activeSidebarTab === 'settings'"
+      :active="activeSidebarTab === 'settings' && !isChatFullScreen"
       :scale="getScale('settings')"
       @click="onTabClick('settings')"
     />

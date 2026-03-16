@@ -1,8 +1,26 @@
+import type { ModelMeta } from '~/lib/v3/record-transform';
+
 export enum ChatMessageRole {
   USER = 'user',
   ASSISTANT = 'assistant',
   SYSTEM = 'system',
   TOOL = 'tool',
+}
+
+export enum ChatEventAction {
+  TOKEN = 'token',
+  TOOL_START = 'tool-start',
+  TOOL_CALL = 'tool-call',
+  TOOL_RESULT = 'tool-result',
+  MESSAGE_DONE = 'message-done',
+  MESSAGE_UPDATE = 'message-update',
+  ERROR = 'error',
+  SESSION_CREATE = 'session-create',
+  SESSION_UPDATE = 'session-update',
+  SESSION_DELETE = 'session-delete',
+  USER_MESSAGE = 'user-message',
+  AGENT_SWITCH = 'agent-switch',
+  FOLLOW_UPS = 'follow-ups',
 }
 
 export enum ChatToolCallStatus {
@@ -15,24 +33,20 @@ export enum ChatToolCallStatus {
   DENIED = 'denied',
 }
 
-export enum ChatStreamEventType {
-  TEXT_DELTA = 'text-delta',
-  TOOL_CALL_START = 'tool-call-start',
-  TOOL_CALL_DONE = 'tool-call-done',
-  TOOL_RESULT = 'tool-result',
-  MESSAGE_DONE = 'message-done',
-  ERROR = 'error',
-}
-
 export interface ChatSessionMetaType {
-  /** Tool categories loaded via load_tools during this session */
-  loadedCategories?: string[];
+  turnSummaries?: Array<{
+    agent: string;
+    summary: string;
+    completed: string[];
+    remaining: string[];
+  }>;
 }
 
 export interface ChatSessionType {
   id?: string;
   title?: string;
   fk_workspace_id: string;
+  base_id: string;
   fk_user_id?: string;
   summary?: string;
   total_input_tokens?: number;
@@ -43,10 +57,30 @@ export interface ChatSessionType {
   updated_at?: string;
 }
 
+export type ChatToolVisibility = 'hidden' | 'action' | 'data' | 'ui';
+
 /**
- * Self-contained content block — single source of truth for assistant messages.
- * Mirrors Anthropic's content block format.
+ * Typed metadata attached to tool_use blocks for frontend rendering.
+ * Each tool populates only the fields it needs via its `buildMeta` function.
  */
+export interface WebSearchResultMeta {
+  title: string;
+  url: string;
+  publishedDate?: string | null;
+  favicon?: string | null;
+}
+
+export interface ChatToolMetadata {
+  /** Primary model this tool operated on */
+  model?: ModelMeta;
+  /** modelId → ModelMeta for related models (LTAR, Links, Lookup, Rollup) */
+  modelMap?: Record<string, ModelMeta>;
+  /** columnId → modelId index for quick column → related model lookup */
+  columnModelMap?: Record<string, string>;
+  /** Web search/scrape results for ThinkingSection rendering */
+  webResults?: WebSearchResultMeta[];
+}
+
 export type ChatContentBlock =
   | { type: 'text'; text: string }
   | {
@@ -57,31 +91,46 @@ export type ChatContentBlock =
       status: ChatToolCallStatus;
       output?: any;
       is_error?: boolean;
+      agent?: string;
+      visibility?: ChatToolVisibility;
+      user_visible_plan?: string;
+      metadata?: ChatToolMetadata;
     };
+
+export interface ChatAttachmentType {
+  title: string;
+  mimetype: string;
+  size: number;
+  path?: string;
+  url?: string;
+  signedPath?: string;
+  signedUrl?: string;
+  icon?: string;
+}
 
 export interface ChatMessageType {
   id?: string;
   fk_session_id: string;
   role: ChatMessageRole;
-  /** Text content — used for user messages. Assistant messages use `parts`. */
   content?: string | null;
-  /** Ordered content blocks — single source of truth for assistant messages. */
   parts?: ChatContentBlock[];
+  files?: ChatAttachmentType[];
   model?: string;
   input_tokens?: number;
   output_tokens?: number;
+  bt_span_id?: string | null;
   created_at?: string;
 }
 
+export const NC_NEW_SESSION = 'NC_SESSION';
+
 export interface ChatSendMessageType {
   content: string;
+  files?: ChatAttachmentType[];
   approvals?: Record<string, 'approved' | 'denied'>;
-  base_id?: string;
+  title?: string;
 }
 
-export interface ChatToolDefinitionType {
-  name: string;
-  description: string;
-  parameters: Record<string, any>;
-  is_dangerous: boolean;
+export interface ChatSendMessageResponseType {
+  session?: ChatSessionType;
 }

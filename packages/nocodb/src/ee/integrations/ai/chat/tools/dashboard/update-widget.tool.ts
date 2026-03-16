@@ -1,25 +1,27 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { resolveDashboardByName, resolveWidgetByName } from '../helpers';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import {
   validateWidgetConfig,
   WIDGET_CONFIG_DESCRIPTIONS,
-} from './widget-schemas';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+} from '~/integrations/ai/chat/tools/dashboard/widget-schemas';
+import {
+  resolveDashboardByName,
+  resolveWidgetByName,
+} from '~/integrations/ai/chat/tools/helpers';
 import { DashboardsService } from '~/services/dashboards.service';
 import Noco from '~/Noco';
 
-export const updateWidgetTool: ChatToolDefinition = {
-  name: 'update_widget',
+export const updateWidgetTool = defineChatTool({
+  name: ChatToolName.UPDATE_WIDGET,
   description:
-    "Update an existing widget's title, configuration, data source, or position. " +
-    'Use get_widget first to see the current config, then pass the updated fields. ' +
-    'Only the fields you provide will be changed — unspecified fields remain unchanged. ' +
-    'The config object is replaced entirely (not merged), so include all config fields when updating config.\n\n' +
+    'Update a widget — title, config, data source, or position. ' +
+    'IMPORTANT: Call get_widget first — the config object is replaced entirely (not merged), ' +
+    'so you must include ALL config fields when updating config. ' +
+    'Only fields you provide are changed — omitted top-level fields stay the same.\n\n' +
     WIDGET_CONFIG_DESCRIPTIONS,
-  parameters: {
+  schema: z.object({
     dashboard_name: z
       .string()
       .describe(
@@ -57,24 +59,14 @@ export const updateWidgetTool: ChatToolDefinition = {
       })
       .optional()
       .describe('Updated grid position on the dashboard.'),
-  },
+  }),
   permission: 'widgetUpdate',
   scope: 'base',
   requiredRole: ProjectRoles.CREATOR,
   isDangerous: false,
-  async execute(
-    context: NcContext,
-    args: {
-      dashboard_name: string;
-      widget_name: string;
-      title?: string;
-      config?: Record<string, any>;
-      fk_model_id?: string;
-      fk_view_id?: string;
-      position?: { x: number; y: number; w: number; h: number };
-    },
-    req: NcRequest,
-  ) {
+  visibility: 'action',
+  category: 'dashboard',
+  async execute(context, args, req) {
     const service: DashboardsService = Noco.nestApp.get(DashboardsService);
     const dashboard = await resolveDashboardByName(
       context,
@@ -112,4 +104,4 @@ export const updateWidgetTool: ChatToolDefinition = {
       message: `Widget "${updated.title}" updated successfully.`,
     };
   },
-};
+});

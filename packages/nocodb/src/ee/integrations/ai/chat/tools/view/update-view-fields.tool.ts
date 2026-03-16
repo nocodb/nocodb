@@ -1,24 +1,25 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import {
   resolveColumnByName,
   resolveTableByName,
   resolveViewByName,
-} from '../helpers';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+} from '~/integrations/ai/chat/tools/helpers';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import View from '~/models/View';
 import Noco from '~/Noco';
 
-export const updateViewFieldsTool: ChatToolDefinition = {
-  name: 'update_view_fields',
+export const updateViewFieldsTool = defineChatTool({
+  name: ChatToolName.UPDATE_VIEW_FIELDS,
   description:
-    'Show or hide fields in a view. Does not delete data — only controls visibility in this view. ' +
-    'Use list_view_fields first to see current field visibility before making changes. ' +
-    'Fields not included in this call are left unchanged.',
-  parameters: {
+    'Show or hide fields in a view. This only controls visibility — data is NOT deleted. ' +
+    'Each view has independent field visibility settings. ' +
+    'Call list_view_fields first to see current visibility before making changes. ' +
+    'Fields not included in this call remain unchanged. ' +
+    'The display field (primary field) is always visible and cannot be hidden.',
+  schema: z.object({
     table_name: z
       .string()
       .describe(
@@ -47,20 +48,14 @@ export const updateViewFieldsTool: ChatToolDefinition = {
         'List of fields to update with their desired visibility. ' +
           'Example: [{ "field_name": "Internal Notes", "visible": false }, { "field_name": "Status", "visible": true }]',
       ),
-  },
+  }),
   permission: 'viewColumnUpdate',
   scope: 'base',
   requiredRole: ProjectRoles.EDITOR,
   isDangerous: false,
-  async execute(
-    context: NcContext,
-    args: {
-      table_name: string;
-      view_name?: string;
-      fields: { field_name: string; visible: boolean }[];
-    },
-    req: NcRequest,
-  ) {
+  visibility: 'action',
+  category: 'view',
+  async execute(context, args, req) {
     const viewColumnsService: ViewColumnsService =
       Noco.nestApp.get(ViewColumnsService);
     const model = await resolveTableByName(context, args.table_name);
@@ -98,4 +93,4 @@ export const updateViewFieldsTool: ChatToolDefinition = {
       changes: updated,
     };
   },
-};
+});

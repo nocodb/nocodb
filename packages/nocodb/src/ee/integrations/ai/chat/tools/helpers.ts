@@ -1,5 +1,8 @@
+import { UITypes } from 'nocodb-sdk';
+import type { ModelMeta } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { Column } from '~/models';
+import type { LinkToAnotherRecordColumn } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import Model from '~/models/Model';
 import View from '~/models/View';
@@ -26,6 +29,115 @@ export async function resolveTableByName(
   }
 
   return model;
+}
+
+function toColumnMeta(columns: Column[]) {
+  return columns.map((c) => ({
+    id: c.id,
+    title: c.title,
+    column_name: c.column_name,
+    uidt: c.uidt,
+    pk: c.pk,
+    pv: c.pv,
+    system: c.system,
+    order: c.order,
+    meta: c.meta,
+  }));
+}
+
+/**
+ * Build model metadata: id, title, primaryKeys, columns.
+ */
+export async function buildModelMeta(
+  context: NcContext,
+  model: Model,
+): Promise<ModelMeta> {
+  const columns = await model.getColumns(context);
+  const pks = columns.filter((c) => c.pk);
+
+  return {
+    id: model.id,
+    title: model.title,
+    primaryKeys: toColumnMeta(pks),
+    columns: toColumnMeta(columns),
+  };
+}
+
+/**
+ * Build `modelMap` + `columnModelMap` for LTAR/Links/Lookup/Rollup columns.
+ * Only resolves one level deep (sufficient for UI rendering context).
+ */
+export async function buildRelatedModelsMeta(
+  context: NcContext,
+  columns: Column[],
+): Promise<{
+  modelMap: Record<string, ModelMeta>;
+  columnModelMap: Record<string, string>;
+}> {
+  const modelMap: Record<string, ModelMeta> = {};
+  const columnModelMap: Record<string, string> = {};
+
+  // Pass 1: LTAR/Links — resolve related models
+  for (const column of columns) {
+    if (
+      column.uidt !== UITypes.LinkToAnotherRecord &&
+      column.uidt !== UITypes.Links
+    ) {
+      continue;
+    }
+
+    try {
+      const colOptions =
+        column.colOptions ||
+        (await column.getColOptions<LinkToAnotherRecordColumn>(context));
+      if (!colOptions) continue;
+
+      const { refContext } = (
+        colOptions as LinkToAnotherRecordColumn
+      ).getRelContext(context);
+      const relatedModel = await (
+        colOptions as LinkToAnotherRecordColumn
+      ).getRelatedTable(refContext);
+
+      const modelId = relatedModel.id;
+      columnModelMap[column.id] = modelId;
+
+      if (!modelMap[modelId]) {
+        const relCols = await relatedModel.getColumns(refContext);
+        const relPks = relCols.filter((c) => c.pk);
+
+        modelMap[modelId] = {
+          id: modelId,
+          title: relatedModel.title,
+          primaryKeys: toColumnMeta(relPks),
+          columns: toColumnMeta(relCols),
+        };
+      }
+    } catch {
+      // Skip columns whose related model can't be resolved
+    }
+  }
+
+  // Pass 2: Lookup/Rollup — map to their LTAR's related model
+  for (const column of columns) {
+    if (column.uidt !== UITypes.Lookup && column.uidt !== UITypes.Rollup) {
+      continue;
+    }
+
+    try {
+      const colOptions =
+        column.colOptions || (await column.getColOptions(context));
+      const relationColumnId = (colOptions as any)?.fk_relation_column_id;
+
+      if (relationColumnId && columnModelMap[relationColumnId]) {
+        columnModelMap[column.id] = columnModelMap[relationColumnId];
+      }
+    } catch {
+      // Skip if colOptions can't be loaded
+    }
+  }
+
+  return { modelMap, columnModelMap };
 }
 
 /**

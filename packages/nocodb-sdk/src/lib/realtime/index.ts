@@ -1,4 +1,5 @@
 import { NotificationType, UserType } from '~/lib/Api';
+import { ChatEventAction } from '~/lib/chat';
 import type { ChatContentBlock, ChatMessageType, ChatSessionType } from '~/lib/chat';
 
 export enum EventType {
@@ -200,18 +201,7 @@ export type PresencePayload =
   | PresenceBatchPayload;
 
 export interface ChatEventPayload extends BaseSocketPayload {
-  action:
-    | 'token'
-    | 'tool-start'
-    | 'tool-call'
-    | 'tool-result'
-    | 'message-done'
-    | 'message-update'
-    | 'error'
-    | 'session-create'
-    | 'session-update'
-    | 'session-delete'
-    | 'user-message';
+  action: ChatEventAction;
   sessionId: string;
   // action: 'token'
   content?: string;
@@ -227,12 +217,23 @@ export interface ChatEventPayload extends BaseSocketPayload {
   messageId?: string;
   /** Final ordered content blocks — single source of truth for the persisted message. */
   parts?: ChatContentBlock[];
+  /** Braintrust span ID — used for thumbs up/down feedback submission. */
+  btSpanId?: string | null;
+  /** Follow-up suggestions generated after the assistant response */
+  followUps?: string[];
   // action: 'error'
   error?: string;
   // action: 'session-create' | 'session-update' | 'session-delete'
   session?: ChatSessionType;
   // action: 'user-message'
   message?: ChatMessageType;
+  // action: 'agent-switch' — multi-agent system
+  /** Current active agent name */
+  agent?: string;
+  /** Human-readable status label (e.g. "Building table structure...") */
+  agentLabel?: string;
+  /** Tool visibility level for filtering in the UI */
+  visibility?: 'hidden' | 'action' | 'data' | 'ui';
 }
 
 export type SocketEventPayload =

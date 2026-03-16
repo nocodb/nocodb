@@ -1,19 +1,22 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { resolveColumnByName, resolveTableByName } from '../helpers';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
+import {
+  resolveColumnByName,
+  resolveTableByName,
+} from '~/integrations/ai/chat/tools/helpers';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import Noco from '~/Noco';
 
-export const unlinkRecordsTool: ChatToolDefinition = {
-  name: 'unlink_records',
+export const unlinkRecordsTool = defineChatTool({
+  name: ChatToolName.UNLINK_RECORDS,
   description:
-    'Unlink (disassociate) one or more records from a source row through a LinkToAnotherRecord field. ' +
-    'This removes the relationship only — it does NOT delete the records themselves. ' +
-    'Use list_linked_records first to see which records are currently linked and get their IDs.',
-  parameters: {
+    'Unlink (disassociate) 1–10 records from a source row through a Link/LTAR field. ' +
+    'This removes the relationship only — records themselves are NOT deleted. ' +
+    'Use query_records or list_linked_records first to see currently linked records and get their IDs. ' +
+    'This is the correct way to remove relationships — never set Link/LTAR fields directly.',
+  schema: z.object({
     table_name: z
       .string()
       .describe(
@@ -28,7 +31,7 @@ export const unlinkRecordsTool: ChatToolDefinition = {
       .union([z.string(), z.number()])
       .describe(
         'The primary key value of the source record to unlink from. ' +
-          'Get this from query_records or get_record.',
+          'Get this from query_records.',
       ),
     linked_row_ids: z
       .array(z.union([z.string(), z.number()]))
@@ -38,21 +41,14 @@ export const unlinkRecordsTool: ChatToolDefinition = {
         'Array of primary key values from the related table to unlink (1–10). ' +
           'Get these from list_linked_records.',
       ),
-  },
+  }),
+  visibility: 'action',
+  category: 'data',
   permission: 'nestedDataUnlink',
   scope: 'base',
   requiredRole: ProjectRoles.EDITOR,
   isDangerous: true,
-  async execute(
-    context: NcContext,
-    args: {
-      table_name: string;
-      link_field_name: string;
-      row_id: string | number;
-      linked_row_ids: (string | number)[];
-    },
-    req: NcRequest,
-  ) {
+  async execute(context, args, req) {
     const dataV3Service: DataV3Service = Noco.nestApp.get(DataV3Service);
     const model = await resolveTableByName(context, args.table_name);
     const column = await resolveColumnByName(
@@ -61,14 +57,12 @@ export const unlinkRecordsTool: ChatToolDefinition = {
       args.link_field_name,
     );
 
-    const result = await dataV3Service.nestedUnlink(context, {
+    return await dataV3Service.nestedUnlink(context, {
       modelId: model.id,
       columnId: column.id,
       rowId: String(args.row_id),
       refRowIds: args.linked_row_ids.map(String),
       cookie: req,
     });
-
-    return result;
   },
-};
+});

@@ -11,7 +11,6 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
-  RootScopes,
 } from '~/utils/globals';
 
 export default class ChatSession
@@ -21,6 +20,7 @@ export default class ChatSession
   id?: string;
   title?: string;
   fk_workspace_id: string;
+  base_id: string;
   fk_user_id?: string;
   summary?: string;
   total_input_tokens?: number;
@@ -55,7 +55,7 @@ export default class ChatSession
     if (!session) {
       session = await ncMeta.metaGet2(
         context.workspace_id,
-        RootScopes.WORKSPACE,
+        context.base_id,
         MetaTable.CHAT_SESSIONS,
         {
           id: sessionId,
@@ -77,10 +77,8 @@ export default class ChatSession
   public static async list(
     context: NcContext,
     {
-      workspaceId,
       userId,
     }: {
-      workspaceId: string;
       userId?: string;
     },
     ncMeta = Noco.ncMeta,
@@ -90,27 +88,22 @@ export default class ChatSession
     const cachedList = await NocoCache.getList(
       context,
       CacheScope.CHAT_SESSION,
-      [workspaceId, userId],
+      [userId],
     );
     const { list: sessionsList, isNoneList } = cachedList;
 
     if (!isNoneList && !sessionsList.length) {
       const rows = await ncMeta.metaList2(
         context.workspace_id,
-        RootScopes.WORKSPACE,
+        context.base_id,
         MetaTable.CHAT_SESSIONS,
         {
-          condition: { fk_user_id: userId },
+          condition: { base_id: context.base_id, fk_user_id: userId },
           orderBy: { updated_at: 'desc' },
         },
       );
 
-      await NocoCache.setList(
-        context,
-        CacheScope.CHAT_SESSION,
-        [workspaceId, userId],
-        rows,
-      );
+      await NocoCache.setList(context, CacheScope.CHAT_SESSION, [userId], rows);
 
       return rows.map((s) => new ChatSession(prepareForResponse(s)));
     }
@@ -126,7 +119,6 @@ export default class ChatSession
     let insertObj = extractProps(session, [
       'id',
       'title',
-      'fk_workspace_id',
       'fk_user_id',
       'meta',
     ]);
@@ -139,17 +131,17 @@ export default class ChatSession
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
-      RootScopes.WORKSPACE,
+      context.base_id,
       MetaTable.CHAT_SESSIONS,
       insertObj,
     );
 
     return ChatSession.get(context, id, ncMeta).then(async (chatSession) => {
-      if (chatSession?.fk_user_id) {
+      if (chatSession?.fk_user_id && chatSession?.base_id) {
         await NocoCache.appendToList(
           context,
           CacheScope.CHAT_SESSION,
-          [chatSession.fk_workspace_id, chatSession.fk_user_id],
+          [chatSession.fk_user_id],
           `${CacheScope.CHAT_SESSION}:${id}`,
         );
       }
@@ -174,7 +166,7 @@ export default class ChatSession
 
     await ncMeta.metaUpdate(
       context.workspace_id,
-      RootScopes.WORKSPACE,
+      context.base_id,
       MetaTable.CHAT_SESSIONS,
       prepareForDb(updateObj),
       {
@@ -197,11 +189,9 @@ export default class ChatSession
     {
       inputTokens,
       outputTokens,
-      title,
     }: {
       inputTokens: number;
       outputTokens: number;
-      title?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -209,24 +199,22 @@ export default class ChatSession
       return null;
     }
 
-    await ncMeta
-      .knex(MetaTable.CHAT_SESSIONS)
-      .where({ id: sessionId, fk_workspace_id: context.workspace_id })
-      .increment({
-        total_input_tokens: inputTokens,
-        total_output_tokens: outputTokens,
-        message_count: 1,
-      });
+    const knex = ncMeta.knex;
 
-    if (title) {
-      await ncMeta.metaUpdate(
-        context.workspace_id,
-        RootScopes.WORKSPACE,
-        MetaTable.CHAT_SESSIONS,
-        { title },
-        { id: sessionId },
-      );
-    }
+    await knex(MetaTable.CHAT_SESSIONS)
+      .where({ id: sessionId, fk_workspace_id: context.workspace_id })
+      .update({
+        total_input_tokens: knex.raw('?? + ?', [
+          'total_input_tokens',
+          inputTokens,
+        ]),
+        total_output_tokens: knex.raw('?? + ?', [
+          'total_output_tokens',
+          outputTokens,
+        ]),
+        message_count: knex.raw('?? + 1', ['message_count']),
+        updated_at: knex.fn.now(),
+      });
 
     // Invalidate cache so next get() fetches fresh data
     await NocoCache.deepDel(
@@ -247,7 +235,7 @@ export default class ChatSession
 
     await ncMeta.metaDelete(
       context.workspace_id,
-      RootScopes.WORKSPACE,
+      context.base_id,
       MetaTable.CHAT_SESSIONS,
       {
         id: sessionId,

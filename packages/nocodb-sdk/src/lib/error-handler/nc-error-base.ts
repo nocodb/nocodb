@@ -84,6 +84,26 @@ export class NcErrorBase {
     });
   }
 
+  chatSessionNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_CHAT_SESSION_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      },
+    );
+  }
+
+  chatMessageNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_CHAT_MESSAGE_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      },
+    );
+  }
+
   workflowNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_WORKFLOW_NOT_FOUND, {
       params: id,

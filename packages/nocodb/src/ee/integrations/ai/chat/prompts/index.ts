@@ -1,6 +1,1 @@
-export {
-  buildStaticSystemPromptText,
-  buildDynamicSystemPromptText,
-  getCategoryPrompt,
-} from './system';
-export { COMPACTION_SYSTEM_PROMPT } from './compaction';
+export { COMPACTION_SYSTEM_PROMPT } from '~/integrations/ai/chat/prompts/compaction';

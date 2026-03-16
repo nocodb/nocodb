@@ -1,25 +1,24 @@
 import { z } from 'zod';
 import { ProjectRoles, ViewTypes } from 'nocodb-sdk';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import {
   resolveColumnByName,
   resolveGridViewColumnId,
   resolveTableByName,
   resolveViewByName,
-} from '../helpers';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+} from '~/integrations/ai/chat/tools/helpers';
 import { GridColumnsService } from '~/services/grid-columns.service';
 import Noco from '~/Noco';
 
-export const setGroupByTool: ChatToolDefinition = {
-  name: 'set_group_by',
+export const setGroupByTool = defineChatTool({
+  name: ChatToolName.SET_GROUP_BY,
   description:
-    'Set group-by fields on a grid view, which visually groups records by one, two, or three field values. ' +
-    'Only works on grid-type views — use list_views to confirm view type. ' +
-    'This REPLACES any existing group-by settings (it calls clear_group_by internally first). ' +
-    'To remove all grouping, use clear_group_by instead.',
-  parameters: {
+    'Set group-by fields on a grid view (1–3 levels). Records are visually grouped by field values ' +
+    'into collapsible sections. Only works on grid views — use list_views to confirm view type. ' +
+    'This REPLACES all existing group-by settings. To remove grouping, use clear_group_by. ' +
+    'Best with low-cardinality fields: SingleSelect, MultiSelect, Checkbox, Rating.',
+  schema: z.object({
     table_name: z
       .string()
       .describe(
@@ -53,20 +52,14 @@ export const setGroupByTool: ChatToolDefinition = {
         'List of 1-3 fields to group by, applied in order (primary group, secondary group, tertiary group). ' +
           'Example: [{ "field_name": "Status", "sort": "asc" }, { "field_name": "Priority", "sort": "desc" }]',
       ),
-  },
+  }),
   permission: 'gridColumnUpdate',
   scope: 'base',
   requiredRole: ProjectRoles.EDITOR,
   isDangerous: false,
-  async execute(
-    context: NcContext,
-    args: {
-      table_name: string;
-      view_name?: string;
-      groups: { field_name: string; sort?: string }[];
-    },
-    req: NcRequest,
-  ) {
+  visibility: 'action',
+  category: 'view',
+  async execute(context, args, req) {
     const gridColumnsService: GridColumnsService =
       Noco.nestApp.get(GridColumnsService);
     const model = await resolveTableByName(context, args.table_name);
@@ -115,4 +108,4 @@ export const setGroupByTool: ChatToolDefinition = {
       message: `Grouped by: ${groupNames.join(' > ')} in view "${view.title}".`,
     };
   },
-};
+});

@@ -1,21 +1,25 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { resolveColumnByName, resolveTableByName } from '../helpers';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
+import {
+  buildModelMeta,
+  resolveColumnByName,
+  resolveTableByName,
+} from '~/integrations/ai/chat/tools/helpers';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import Noco from '~/Noco';
 
-export const listLinkedRecordsTool: ChatToolDefinition = {
-  name: 'list_linked_records',
+export const listLinkedRecordsTool = defineChatTool({
+  name: ChatToolName.LIST_LINKED_RECORDS,
   description:
-    'List records linked to a specific row through a LinkToAnotherRecord field. ' +
-    'Returns the linked records with their fields. ' +
-    'Use query_records first to get the row_id of the source record. ' +
-    'For one-to-many (om) and many-to-many (mm) fields, returns an array of linked records. ' +
-    'For one-to-one (oo) or many-to-one (mo), returns a single record or null.',
-  parameters: {
+    'List records linked to a specific row through a Link/LTAR field, with pagination. ' +
+    'Note: query_records already returns linked records inline (up to the default limit) — ' +
+    'use this tool only when you need to paginate through many linked records beyond that limit. ' +
+    'Returns linked records as { id, fields } objects. ' +
+    'For hm (has-many) and mm (many-to-many): returns an array. ' +
+    'For oo (one-to-one) and bt (belongs-to): returns a single record or null.',
+  schema: z.object({
     table_name: z
       .string()
       .describe(
@@ -30,7 +34,7 @@ export const listLinkedRecordsTool: ChatToolDefinition = {
       .union([z.string(), z.number()])
       .describe(
         'The primary key value of the source record. ' +
-          'Get this from query_records or get_record.',
+          'Get this from query_records.',
       ),
     limit: z
       .number()
@@ -40,23 +44,15 @@ export const listLinkedRecordsTool: ChatToolDefinition = {
       .number()
       .optional()
       .describe('Number of linked records to skip for pagination.'),
-  },
+  }),
+  visibility: 'data',
+  category: 'data',
   permission: 'nestedDataList',
   scope: 'base',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
   readonly: true,
-  async execute(
-    context: NcContext,
-    args: {
-      table_name: string;
-      link_field_name: string;
-      row_id: string | number;
-      limit?: number;
-      offset?: number;
-    },
-    req: NcRequest,
-  ) {
+  async execute(context, args, req) {
     const dataV3Service: DataV3Service = Noco.nestApp.get(DataV3Service);
     const model = await resolveTableByName(context, args.table_name);
     const column = await resolveColumnByName(
@@ -66,7 +62,7 @@ export const listLinkedRecordsTool: ChatToolDefinition = {
     );
     const defaultView = await model.getViews(context).then((v) => v[0]);
 
-    const result = await dataV3Service.nestedDataList(context, {
+    return await dataV3Service.nestedDataList(context, {
       modelId: model.id,
       rowId: String(args.row_id),
       columnId: column.id,
@@ -74,10 +70,13 @@ export const listLinkedRecordsTool: ChatToolDefinition = {
       query: {
         limit: String(Math.min(args.limit || 25, 100)),
         offset: String(args.offset || 0),
+        linksAsLtar: 'true',
       },
       req,
     });
-
-    return result;
   },
-};
+  async buildMeta(context, args) {
+    const model = await resolveTableByName(context, args.table_name);
+    return { model: await buildModelMeta(context, model) };
+  },
+});

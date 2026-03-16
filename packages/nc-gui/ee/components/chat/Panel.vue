@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import type { ChatContentBlock } from 'nocodb-sdk'
+import type { ChatAttachmentType, ChatContentBlock, TableType, ViewType } from 'nocodb-sdk'
 import { ChatMessageRole, ChatToolCallStatus } from 'nocodb-sdk'
 
-const { isPanelExpanded, chatPanelWidth, isResizing, startResize } = useChatPanel()
+const { isPanelExpanded, chatPanelWidth, isResizing, isFullScreen, isSidebarOpen, startResize, toggleFullScreen, toggleSidebar } =
+  useChatPanel()
 
-const { blockAiChat } = useEeConfig()
+const { blockAiChat, isEEFeatureBlocked } = useEeConfig()
 
 const chatStore = useChatStore()
 
@@ -16,6 +17,8 @@ const {
   sessionList,
   isLoadingSessions,
   activeStreamingParts,
+  visibleStreamingParts,
+  followUps,
 } = storeToRefs(chatStore)
 
 const workspaceStore = useWorkspace()
@@ -23,17 +26,25 @@ const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const { base } = storeToRefs(useBase())
 
-const { t } = useI18n()
-
 const { $e } = useNuxtApp()
 
 const messageListRef = ref<HTMLDivElement>()
 
-onUnmounted(() => chatStore.destroyChatSocket())
+const chatInputRef = ref<{ uploadFiles: (files: FileList | File[]) => Promise<void> }>()
 
-const hasInitialized = ref(false)
+const emptyStateInputRef = ref<{ uploadFiles: (files: FileList | File[]) => Promise<void> }>()
 
-const showSessionList = ref(false)
+const isDragOverPanel = ref(false)
+
+const dragLeaveTimeout = ref<ReturnType<typeof setTimeout>>()
+
+const hasLoadedSessions = ref(false)
+
+const dismissedQuestionIds = ref(new Set<string>())
+
+const isNearBottom = ref(true)
+
+const isEmptyState = computed(() => !activeMessages.value.length && !isSendingMessage.value)
 
 const sessionTitle = computed(() => {
   const title = activeSession.value?.title
@@ -41,65 +52,11 @@ const sessionTitle = computed(() => {
   return title
 })
 
-// Inline rename state
-const renamingSessionId = ref<string | null>(null)
-const renameValue = ref('')
-const isRenaming = ref(false)
-
-const renameInputRef = ref<HTMLInputElement>()
-
-const startRename = (sessionId: string | undefined, currentTitle: string) => {
-  if (!sessionId) return
-  renamingSessionId.value = sessionId
-  renameValue.value = currentTitle || ''
-  nextTick(() => {
-    renameInputRef.value?.focus()
-    renameInputRef.value?.select()
-  })
-}
-
-const confirmRename = async (sessionId: string | null) => {
-  if (!sessionId || isRenaming.value) return
-  isRenaming.value = true
-
-  const trimmed = renameValue.value.trim()
-  if (trimmed && activeWorkspaceId.value) {
-    $e('a:chat:session:rename')
-    await chatStore.renameSession(activeWorkspaceId.value, sessionId, trimmed)
-  }
-  renamingSessionId.value = null
-  isRenaming.value = false
-}
-
-const cancelRename = () => {
-  const wasRenaming = !!renamingSessionId.value
-  renamingSessionId.value = null
-  // Suppress the @blur → confirmRename that fires after escape
-  if (wasRenaming) {
-    isRenaming.value = true
-    nextTick(() => {
-      isRenaming.value = false
-    })
-  }
-}
-
-// Track dismissed ask_user cards (local — resets when session changes)
-const dismissedInputIds = ref(new Set<string>())
-
-watch(
-  () => chatStore.activeSessionId,
-  () => {
-    dismissedInputIds.value = new Set()
-  },
-)
-
-// Detect the last unanswered ask_user tool call
-const pendingUserInput = computed(() => {
+const pendingQuestion = computed(() => {
   const msgs = activeMessages.value
   for (let i = msgs.length - 1; i >= 0; i--) {
     const m = msgs[i]
     if (!m) continue
-    // If the user has already replied, stop searching
     if (m.role === ChatMessageRole.USER) return null
     if (m.role === ChatMessageRole.ASSISTANT) {
       const block = m.parts?.find(
@@ -115,7 +72,6 @@ const pendingUserInput = computed(() => {
           return null
         }
       }
-      // Support both new multi-question format and legacy single-question format
       let questions: { question: string; options: string[] }[]
       if (output?.questions && Array.isArray(output.questions)) {
         questions = output.questions
@@ -130,7 +86,43 @@ const pendingUserInput = computed(() => {
   return null
 })
 
-const isNearBottom = ref(true)
+const showScrollButton = computed(() => !isNearBottom.value && activeMessages.value.length > 0)
+
+// Show AgentStatus only during the initial phase before any tool steps appear
+const hasVisibleStreamingTools = computed(() => visibleStreamingParts.value?.some((p) => p.type === 'tool_use') ?? false)
+
+const latestAssistantMessage = computed(() => {
+  const msgs = activeMessages.value
+  for (let i = msgs.length - 1; i >= 0; i--) {
+    if (msgs[i]?.role === ChatMessageRole.ASSISTANT) return msgs[i]
+  }
+  return undefined
+})
+
+const latestFollowUps = computed<string[] | undefined>(() => {
+  const msg = latestAssistantMessage.value
+  return msg?.id ? followUps.value.get(msg.id) : undefined
+})
+
+const panelWidthStyle = computed(() => {
+  if (isFullScreen.value) {
+    return { width: 'calc(100vw - var(--mini-sidebar-width))' }
+  }
+  return { width: `${chatPanelWidth.value}px` }
+})
+
+const scrollToBottom = (force = false) => {
+  nextTick(() => {
+    requestAnimationFrame(() => {
+      if (messageListRef.value && (force || isNearBottom.value)) {
+        messageListRef.value.scrollTop = messageListRef.value.scrollHeight
+        isNearBottom.value = true
+      }
+    })
+  })
+}
+
+const debouncedScrollToBottom = useDebounceFn(() => scrollToBottom(), 100)
 
 const checkIfNearBottom = useThrottleFn(() => {
   const el = messageListRef.value
@@ -138,44 +130,98 @@ const checkIfNearBottom = useThrottleFn(() => {
   isNearBottom.value = el.scrollHeight - el.scrollTop - el.clientHeight < 80
 }, 100)
 
-const scrollToBottom = (force = false) => {
-  nextTick(() => {
-    if (messageListRef.value && (force || isNearBottom.value)) {
-      messageListRef.value.scrollTop = messageListRef.value.scrollHeight
-      isNearBottom.value = true
-    }
-  })
+const handleSend = async (content: string, files?: ChatAttachmentType[]) => {
+  $e('a:chat:message:send', { hasFiles: !!files?.length })
+
+  const trimmed = content.trim()
+  const title = !chatStore.activeSessionId ? (trimmed.length > 50 ? `${trimmed.slice(0, 47)}...` : trimmed) : undefined
+
+  await chatStore.sendMessage(content, title, files)
 }
 
-const debouncedScrollToBottom = useDebounceFn(() => scrollToBottom(), 100)
+const handleNewSession = () => {
+  $e('c:chat:session:new')
+  chatStore.activeSessionId = null
+}
 
-const showScrollButton = computed(() => !isNearBottom.value && activeMessages.value.length > 0)
+const handleDeleteSession = async (sessionId: string) => {
+  $e('a:chat:session:delete')
+  await chatStore.deleteSession(sessionId)
+}
 
-// Auto-scroll when a new message is appended or streaming content updates
+const handleSelectSession = (sessionId: string) => {
+  $e('c:chat:session:select')
+  chatStore.activeSessionId = sessionId
+}
+
+const handleRenameSession = async (sessionId: string, title: string) => {
+  $e('a:chat:session:rename')
+  await chatStore.renameSession(sessionId, title)
+}
+
+const handleOptionSelect = (choice: string) => {
+  $e('c:chat:option:select')
+  handleSend(choice)
+}
+
+const handleOptionSkip = () => {
+  if (pendingQuestion.value) {
+    $e('c:chat:option:skip')
+    dismissedQuestionIds.value = new Set([...dismissedQuestionIds.value, pendingQuestion.value.toolCallId])
+  }
+}
+
+const handleApproveAll = async (messageId: string, toolCallIds: string[]) => {
+  if (!chatStore.activeSessionId) return
+  $e('a:chat:tool:approve', { count: toolCallIds.length })
+  const decisions: Record<string, 'approved' | 'denied'> = {}
+  for (const id of toolCallIds) decisions[id] = 'approved'
+  await chatStore.approveToolCalls(chatStore.activeSessionId, messageId, decisions)
+}
+
+const handleDenyAll = async (messageId: string, toolCallIds: string[]) => {
+  if (!chatStore.activeSessionId) return
+  $e('a:chat:tool:deny', { count: toolCallIds.length })
+  const decisions: Record<string, 'approved' | 'denied'> = {}
+  for (const id of toolCallIds) decisions[id] = 'denied'
+  await chatStore.approveToolCalls(chatStore.activeSessionId, messageId, decisions)
+}
+
+watch(
+  () => chatStore.activeSessionId,
+  async (sessionId) => {
+    dismissedQuestionIds.value = new Set()
+
+    if (sessionId) {
+      await chatStore.loadMessages(sessionId)
+      scrollToBottom(true)
+    }
+  },
+)
+
 watch(
   () => activeMessages.value.length,
   () => scrollToBottom(),
 )
+
 watch(activeStreamingParts, () => debouncedScrollToBottom(), { deep: true })
 
-// Initialize: ensure socket listener and load sessions when panel opens and workspace is ready.
-// Also watch blockAiChat — on cloud, blockAiChat starts false (data not loaded) so isPanelExpanded
-// may briefly be true from localStorage. We skip initialization while blockAiChat hasn't resolved.
+// Initialize socket + load sessions when panel opens and base is ready.
+// blockAiChat starts false on cloud (data not loaded) — skip init until resolved.
 watch(
-  [isPanelExpanded, activeWorkspaceId, blockAiChat],
-  async ([expanded, wsId, blocked], [, oldWsId]) => {
-    if (wsId && wsId !== oldWsId) {
-      // Workspace changed — reset and re-init
-      hasInitialized.value = false
+  [isPanelExpanded, activeWorkspaceId, () => base.value?.id, blockAiChat],
+  async ([expanded, wsId, baseId, blocked], [, oldWsId, oldBaseId]) => {
+    if ((wsId && wsId !== oldWsId) || (baseId && baseId !== oldBaseId)) {
+      hasLoadedSessions.value = false
       chatStore.reset()
     }
 
-    if (expanded && wsId && !blocked) {
+    if (expanded && wsId && baseId && !blocked) {
       chatStore.initChatSocket()
 
-      if (!hasInitialized.value) {
-        hasInitialized.value = true
-        await chatStore.loadSessions(wsId)
+      if (!hasLoadedSessions.value) {
+        hasLoadedSessions.value = true
+        await chatStore.loadSessions(wsId, baseId)
       }
 
       scrollToBottom(true)
@@ -184,275 +230,232 @@ watch(
   { immediate: true },
 )
 
-// Load messages when active session changes, then scroll to bottom
-watch(
-  () => chatStore.activeSessionId,
-  async (sessionId) => {
-    if (sessionId && activeWorkspaceId.value) {
-      await chatStore.loadMessages(activeWorkspaceId.value, sessionId)
-      scrollToBottom(true)
-    }
-  },
+watch(latestFollowUps, (val) => {
+  if (val?.length) scrollToBottom()
+})
+
+onUnmounted(() => chatStore.destroyChatSocket())
+
+const { getMeta } = useMetas()
+
+const { activeProjectId } = storeToRefs(useBases())
+
+const citationMeta = ref<TableType>()
+
+const citationActiveSource = computed(() => {
+  return citationMeta.value?.source_id && base.value?.sources?.find((s) => s.id === citationMeta.value?.source_id)
+})
+
+provide(
+  MetaInj,
+  computed(() => citationMeta.value),
+)
+provide(ActiveSourceInj, citationActiveSource)
+provide(IsGridInj, ref(true))
+provide(IsFormInj, ref(false))
+provide(IsGalleryInj, ref(false))
+provide(IsCalendarInj, ref(false))
+provide(IsPublicInj, ref(false))
+provide(IsExpandedFormOpenInj, ref(false))
+provide(RowHeightInj, ref(1 as const))
+
+const citationReloadHook = createEventHook()
+provide(ReloadViewDataHookInj, citationReloadHook)
+provide(ReloadRowDataHookInj, citationReloadHook)
+
+const undefinedView = ref(undefined as unknown as ViewType)
+useProvideSmartsheetLtarHelpers(computed(() => citationMeta.value))
+useProvideSmartsheetStore(
+  undefinedView,
+  computed(() => citationMeta.value),
+)
+useProvideKanbanViewStore(
+  computed(() => citationMeta.value),
+  undefinedView,
+)
+useProvideViewColumns(
+  undefinedView,
+  computed(() => citationMeta.value),
 )
 
-const handleSend = async (content: string) => {
-  if (!activeWorkspaceId.value) return
+const { open: openCitationExpandedForm } = useExpandedFormDetached()
 
-  $e('a:chat:message:send')
+const handleOpenCitationRecord = async (tableId: string, recordId: string, recordData?: Record<string, any>) => {
+  if (!activeProjectId.value) return
 
-  // Create session if none exists
-  if (!chatStore.activeSessionId) {
-    const trimmed = content.trim()
-    const optimisticTitle = trimmed.length > 50 ? `${trimmed.slice(0, 47)}...` : trimmed
-    const session = await chatStore.createSession(activeWorkspaceId.value, optimisticTitle)
-    if (!session?.id) return
-  }
+  try {
+    const meta = (await getMeta(activeProjectId.value, tableId)) as TableType
+    if (!meta) return
 
-  await chatStore.sendMessage(activeWorkspaceId.value, chatStore.activeSessionId!, content, base.value?.id)
-}
+    citationMeta.value = meta
 
-const handleNewSession = () => {
-  $e('c:chat:session:new')
-  showSessionList.value = false
-  chatStore.activeSessionId = null
-}
+    await nextTick()
 
-const handleDeleteSession = async (sessionId: string) => {
-  if (!activeWorkspaceId.value) return
-  $e('a:chat:session:delete')
-  await chatStore.deleteSession(activeWorkspaceId.value, sessionId)
-}
-
-const handleSelectSession = (sessionId: string) => {
-  $e('c:chat:session:select')
-  chatStore.activeSessionId = sessionId
-  showSessionList.value = false
-}
-
-const handleStarterPrompt = (prompt: string) => {
-  handleSend(prompt)
-}
-
-const handleUserInput = (choice: string) => {
-  $e('c:chat:option:select')
-  handleSend(choice)
-}
-
-const handleSkipInput = () => {
-  if (pendingUserInput.value) {
-    $e('c:chat:option:skip')
-    dismissedInputIds.value = new Set([...dismissedInputIds.value, pendingUserInput.value.toolCallId])
+    openCitationExpandedForm({
+      isOpen: true,
+      row: { row: recordData ? { ...recordData } : {}, oldRow: recordData ? { ...recordData } : {}, rowMeta: {} },
+      meta,
+      loadRow: true,
+      rowId: recordId,
+      useMetaFields: true,
+    })
+  } catch (e: any) {
+    console.warn('Failed to open citation record:', e)
   }
 }
 
-const handleApproveAll = async (messageId: string, toolCallIds: string[]) => {
-  if (!activeWorkspaceId.value || !chatStore.activeSessionId) return
-  $e('a:chat:tool:approve', { count: toolCallIds.length })
-  const decisions: Record<string, 'approved' | 'denied'> = {}
-  for (const id of toolCallIds) decisions[id] = 'approved'
-  await chatStore.approveToolCalls(activeWorkspaceId.value, chatStore.activeSessionId, messageId, decisions, base.value?.id)
+provide('OpenCitationRecord', handleOpenCitationRecord)
+
+const handlePanelDragOver = (e: DragEvent) => {
+  if (isSendingMessage.value) return
+  e.preventDefault()
+
+  if (dragLeaveTimeout.value) {
+    clearTimeout(dragLeaveTimeout.value)
+    dragLeaveTimeout.value = undefined
+  }
+
+  isDragOverPanel.value = true
 }
 
-const handleDenyAll = async (messageId: string, toolCallIds: string[]) => {
-  if (!activeWorkspaceId.value || !chatStore.activeSessionId) return
-  $e('a:chat:tool:deny', { count: toolCallIds.length })
-  const decisions: Record<string, 'approved' | 'denied'> = {}
-  for (const id of toolCallIds) decisions[id] = 'denied'
-  await chatStore.approveToolCalls(activeWorkspaceId.value, chatStore.activeSessionId, messageId, decisions, base.value?.id)
+const handlePanelDragLeave = () => {
+  // Debounce drag leave to avoid flicker when moving between child elements
+  dragLeaveTimeout.value = setTimeout(() => {
+    isDragOverPanel.value = false
+  }, 50)
+}
+
+const handlePanelDrop = async (e: DragEvent) => {
+  if (isSendingMessage.value) return
+  e.preventDefault()
+  isDragOverPanel.value = false
+
+  if (!e.dataTransfer?.files?.length) return
+
+  $e('c:chat:file-drop', { count: e.dataTransfer.files.length })
+
+  const target = chatInputRef.value || emptyStateInputRef.value
+  if (target) {
+    await target.uploadFiles(e.dataTransfer.files)
+  }
 }
 </script>
 
 <template>
+  <LazySmartsheetExpandedFormDetached />
   <Transition name="nc-chat-slide">
     <div
       v-show="isPanelExpanded"
       class="nc-chat-panel"
-      :class="{ 'nc-chat-panel-resizing': isResizing }"
-      :style="{ width: `${chatPanelWidth}px` }"
+      :class="{ 'nc-chat-panel-resizing': isResizing, 'nc-chat-panel-fullscreen': isFullScreen }"
+      :style="panelWidthStyle"
       @keydown.stop
+      @dragover="handlePanelDragOver"
+      @dragleave="handlePanelDragLeave"
+      @drop="handlePanelDrop"
     >
-      <!-- Resize handle -->
-      <div class="nc-chat-resize-handle" @mousedown="startResize" />
+      <!-- Drop overlay -->
+      <Transition name="nc-fade">
+        <div v-if="isDragOverPanel" class="nc-chat-drop-overlay">
+          <div class="nc-chat-drop-overlay-content">
+            <GeneralIcon icon="ncUpload" class="w-8 h-8 text-nc-content-brand" />
+            <span class="text-body text-nc-content-gray-emphasis mt-2">Drop files here</span>
+            <span class="text-bodySm text-nc-content-gray-subtle">CSV, PDF, JSON, Excel, TXT, MD</span>
+          </div>
+        </div>
+      </Transition>
+      <div v-if="!isFullScreen" class="nc-chat-resize-handle" @mousedown="startResize" />
+      <div class="flex h-full min-w-0">
+        <div v-if="isFullScreen" class="nc-chat-sidebar-wrapper" :class="{ 'nc-chat-sidebar-open': isSidebarOpen }">
+          <ChatSessionSidebar
+            :sessions="sessionList"
+            :active-session-id="activeSession?.id"
+            :is-loading="isLoadingSessions"
+            @select="handleSelectSession"
+            @delete="handleDeleteSession"
+            @rename="handleRenameSession"
+            @new-chat="handleNewSession"
+            @close="toggleSidebar"
+          />
+        </div>
 
-      <div class="flex flex-col h-full min-w-0">
-        <!-- Header -->
-        <div
-          class="h-[var(--topbar-height)] flex items-center justify-between gap-2 px-3 border-b-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight flex-none"
-        >
-          <!-- Left: icon + title -->
-          <div class="flex items-center gap-1.5 min-w-0 flex-1">
-            <GeneralIcon icon="ncAutoAwesome" class="flex-none w-4 h-4 text-nc-content-brand" />
+        <div class="flex flex-col h-full min-w-0 flex-1">
+          <ChatHeader
+            :session-title="sessionTitle"
+            :active-session="activeSession"
+            :session-list="sessionList"
+            :is-full-screen="isFullScreen"
+            :is-sidebar-open="isSidebarOpen"
+            @new-chat="handleNewSession"
+            @close="isPanelExpanded = false"
+            @toggle-full-screen="toggleFullScreen"
+            @toggle-sidebar="toggleSidebar"
+            @select-session="handleSelectSession"
+            @delete-session="handleDeleteSession"
+            @rename-session="handleRenameSession"
+          />
 
-            <!-- Inline rename input (shown on double-click) -->
-            <input
-              v-if="renamingSessionId"
-              ref="renameInputRef"
-              v-model="renameValue"
-              data-testid="nc-chat-rename-input"
-              class="flex-1 min-w-0 text-sm font-semibold text-nc-content-gray bg-nc-bg-default border-1 border-nc-fill-primary rounded px-1.5 py-0.5 outline-none"
-              @keydown.enter.prevent.stop="confirmRename(renamingSessionId)"
-              @keydown.escape.prevent.stop="cancelRename"
-              @keydown.stop
-              @blur="confirmRename(renamingSessionId)"
-            />
-
-            <!-- Title with dropdown (when not renaming) -->
-            <template v-else>
-              <NcDropdown
-                v-if="sessionList.length > 1 && sessionTitle"
-                v-model:visible="showSessionList"
-                placement="bottomLeft"
-                :trigger="['click']"
-                class="min-w-0 flex-1"
+          <div class="flex-1 overflow-hidden relative">
+            <div ref="messageListRef" class="h-full overflow-y-auto nc-scrollbar-thin" @scroll="checkIfNearBottom">
+              <div
+                :class="[
+                  { 'max-w-800px mx-auto w-full': isFullScreen },
+                  { 'min-h-full flex flex-col justify-center': isEmptyState },
+                ]"
               >
-                <button
-                  class="flex items-center gap-1 min-w-0 max-w-full px-1.5 py-0.5 rounded transition-colors hover:bg-nc-bg-gray-light cursor-pointer"
-                  @dblclick.stop="startRename(activeSession?.id, activeSession?.title || '')"
-                >
-                  <span class="text-sm font-semibold text-nc-content-gray truncate">
-                    {{ sessionTitle }}
-                  </span>
-                  <GeneralIcon
-                    icon="chevronDown"
-                    class="flex-none w-3.5 h-3.5 text-nc-content-gray-subtle transition-transform duration-200"
-                    :class="{ 'rotate-180': showSessionList }"
-                  />
-                </button>
-
-                <template #overlay>
-                  <div class="nc-chat-session-menu">
-                    <template v-if="sessionList.length > 0">
-                      <div class="px-3 py-1">
-                        <span class="text-[11px] font-semibold text-nc-content-gray-muted uppercase tracking-wider">
-                          {{ t('labels.recentChats') }}
-                        </span>
-                      </div>
-
-                      <div class="flex flex-col gap-y-0.5 max-h-[280px] overflow-y-auto nc-scrollbar-thin">
-                        <div
-                          v-for="session in sessionList"
-                          :key="session.id"
-                          class="group flex items-center gap-2 px-3 py-1.5 mx-1 rounded-md cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
-                          :class="{ 'bg-nc-bg-brand-soft': session.id === activeSession?.id }"
-                          @click="handleSelectSession(session.id!)"
-                        >
-                          <GeneralIcon icon="ncMessageSquare" class="flex-none w-3.5 h-3.5 text-nc-content-gray-muted" />
-
-                          <NcTooltip class="flex-1 min-w-0 truncate text-[13px]" show-on-truncate-only>
-                            <template #title>{{ session.title }}</template>
-                            <span
-                              :class="
-                                session.id === activeSession?.id
-                                  ? 'text-nc-content-brand font-medium'
-                                  : 'text-nc-content-gray-subtle'
-                              "
-                            >
-                              {{ session.title }}
-                            </span>
-                          </NcTooltip>
-
-                          <!-- Delete — reveals on hover -->
-                          <NcButton
-                            size="xxsmall"
-                            type="text"
-                            class="flex-none !bg-transparent hover:!bg-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-                            @click.stop="handleDeleteSession(session.id!)"
-                          >
-                            <GeneralIcon icon="delete" class="w-3.5 h-3.5 text-nc-content-gray-muted hover:text-nc-content-red" />
-                          </NcButton>
-                        </div>
-                      </div>
-                    </template>
+                <div v-if="isLoadingSessions || isLoadingMessages" class="flex items-center justify-center h-full">
+                  <GeneralLoader size="large" />
+                </div>
+                <template v-else>
+                  <ChatEmptyState v-if="isEmptyState" ref="emptyStateInputRef" @prompt="handleSend" />
+                  <div v-else class="space-y-4" :class="isFullScreen ? 'p-4' : 'px-6 py-4'">
+                    <ChatMessage
+                      v-for="msg in activeMessages"
+                      :key="msg.id"
+                      :message="msg"
+                      :streaming-parts="msg.id.startsWith('streaming-') ? visibleStreamingParts : undefined"
+                      @approve-all="handleApproveAll"
+                      @deny-all="handleDenyAll"
+                    />
+                    <ChatAgentStatus v-if="!hasVisibleStreamingTools" />
+                    <ChatFollowUps
+                      v-if="latestFollowUps?.length && !isSendingMessage"
+                      :suggestions="latestFollowUps"
+                      @select="handleSend"
+                    />
                   </div>
                 </template>
-              </NcDropdown>
-
-              <span
-                v-else
-                class="text-sm font-semibold text-nc-content-gray truncate cursor-default"
-                @dblclick="sessionTitle && activeSession?.id && startRename(activeSession.id, activeSession.title || '')"
-              >
-                {{ sessionTitle || 'NocoAI' }}
-              </span>
-            </template>
-          </div>
-
-          <!-- Right: new chat + close -->
-          <div class="flex items-center gap-1">
-            <NcButton size="small" type="secondary" class="nc-chat-new-btn" @click="handleNewSession">
-              <div class="flex items-center gap-1">
-                <span class="text-[13px]">{{ t('labels.newChat') }}</span>
-                <GeneralIcon icon="plus" class="w-3.5 h-3.5 -mr-0.5" />
               </div>
-            </NcButton>
-
-            <NcTooltip :title="t('general.close')" placement="bottom" :arrow="false">
-              <NcButton
-                size="small"
-                type="text"
-                class="nc-chat-header-btn"
-                data-testid="nc-chat-close-btn"
-                @click="isPanelExpanded = false"
-              >
-                <GeneralIcon icon="close" class="w-4 h-4" />
-              </NcButton>
-            </NcTooltip>
-          </div>
-        </div>
-
-        <!-- Messages -->
-        <div class="flex-1 overflow-hidden relative">
-          <div ref="messageListRef" class="h-full overflow-y-auto nc-scrollbar-thin" @scroll="checkIfNearBottom">
-            <div v-if="isLoadingSessions || isLoadingMessages" class="flex items-center justify-center h-full">
-              <GeneralLoader size="large" />
             </div>
-            <template v-else>
-              <!-- Empty state -->
-              <ChatEmptyState v-if="!activeMessages.length && !isSendingMessage" @prompt="handleStarterPrompt" />
-
-              <!-- Message list -->
-              <div v-else class="p-4 space-y-4">
-                <ChatMessage
-                  v-for="msg in activeMessages"
-                  :key="msg.id"
-                  :message="msg"
-                  :streaming-parts="msg.id.startsWith('streaming-') ? activeStreamingParts : undefined"
-                  :is-streaming="msg.id.startsWith('streaming-') && isSendingMessage"
-                  @approve-all="handleApproveAll"
-                  @deny-all="handleDenyAll"
-                />
-
-                <!-- Loading indicator: shown only before first streaming part arrives -->
-                <ChatMessage v-if="isSendingMessage && !activeStreamingParts?.length" :is-streaming="true" role="assistant" />
+            <Transition name="nc-fade">
+              <div v-if="showScrollButton" class="nc-chat-scroll-btn-wrapper" data-testid="nc-chat-scroll-to-bottom">
+                <NcTooltip :title="$t('general.scrollToBottom')" placement="top" :arrow="false">
+                  <NcButton size="small" type="secondary" class="nc-chat-scroll-btn" @click="scrollToBottom(true)">
+                    <GeneralIcon icon="arrowDown" class="w-4 h-4" />
+                  </NcButton>
+                </NcTooltip>
               </div>
-            </template>
+            </Transition>
           </div>
-
-          <!-- Scroll to bottom button -->
-          <Transition name="nc-fade">
-            <div v-if="showScrollButton" class="nc-chat-scroll-btn-wrapper" data-testid="nc-chat-scroll-to-bottom">
-              <NcTooltip :title="$t('general.scrollToBottom')" placement="top" :arrow="false">
-                <NcButton size="small" type="secondary" class="nc-chat-scroll-btn" @click="scrollToBottom(true)">
-                  <GeneralIcon icon="arrowDown" class="w-4 h-4" />
-                </NcButton>
-              </NcTooltip>
-            </div>
+          <Transition name="nc-slide-up">
+            <ChatOptions
+              v-if="pendingQuestion && !dismissedQuestionIds.has(pendingQuestion.toolCallId) && !isSendingMessage"
+              :questions="pendingQuestion.questions"
+              class="mx-3 mb-2"
+              :class="{ 'max-w-800px mx-auto w-full': isFullScreen }"
+              @select="handleOptionSelect"
+              @skip="handleOptionSkip"
+            />
           </Transition>
-        </div>
-
-        <!-- Option picker card (shown when AI asks a question) -->
-        <Transition name="nc-slide-up">
-          <ChatOptions
-            v-if="pendingUserInput && !dismissedInputIds.has(pendingUserInput.toolCallId) && !isSendingMessage"
-            :questions="pendingUserInput.questions"
-            class="mx-3 mb-2"
-            @select="handleUserInput"
-            @skip="handleSkipInput"
+          <ChatInput
+            v-if="!isEmptyState"
+            ref="chatInputRef"
+            :disabled="isSendingMessage"
+            :class="{ 'max-w-800px mx-auto w-full': isFullScreen }"
+            @send="handleSend"
+            @cancel="chatStore.cancelSending"
           />
-        </Transition>
-
-        <!-- Input -->
-        <ChatInput :disabled="isSendingMessage" @send="handleSend" @cancel="chatStore.cancelSending" />
+        </div>
       </div>
     </div>
   </Transition>
@@ -460,10 +463,34 @@ const handleDenyAll = async (messageId: string, toolCallIds: string[]) => {
 
 <style lang="scss" scoped>
 .nc-chat-panel {
-  @apply fixed top-0 right-0 h-full flex flex-col bg-nc-bg-gray-extralight border-l-1 border-nc-border-gray-medium;
+  @apply fixed top-0 right-0 h-full flex flex-col bg-nc-bg-default;
 
   z-index: 100;
+  border-left: 1px solid var(--nc-border-gray-medium);
   box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.16), 0px 8px 8px -4px rgba(0, 0, 0, 0.04);
+  transition: width 250ms ease, box-shadow 250ms ease, border-left-color 250ms ease;
+}
+
+.nc-chat-panel-resizing {
+  transition: none;
+}
+
+.nc-chat-panel-fullscreen {
+  box-shadow: none;
+  border-left-color: transparent;
+}
+
+.nc-chat-sidebar-wrapper {
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  transition: width 250ms ease, min-width 250ms ease;
+}
+
+.nc-chat-sidebar-open {
+  width: 260px;
+  min-width: 260px;
+  overflow: visible;
 }
 
 .nc-chat-slide-enter-active,
@@ -501,39 +528,6 @@ const handleDenyAll = async (messageId: string, toolCallIds: string[]) => {
   width: 3px;
 }
 
-.nc-chat-session-menu {
-  @apply py-1.5 min-w-[280px] max-w-[360px];
-}
-
-.nc-chat-new-btn {
-  @apply !h-7 !px-2.5 !gap-0.5 !rounded-lg;
-}
-
-.nc-chat-header-btn {
-  @apply !bg-transparent hover:!bg-transparent;
-
-  :deep(svg) {
-    @apply w-4 h-4;
-    color: var(--nc-content-gray-muted);
-    transition: color 150ms ease;
-  }
-
-  &:hover :deep(svg) {
-    color: var(--nc-content-gray);
-  }
-}
-
-.nc-chat-delete-btn {
-  :deep(svg) {
-    color: var(--nc-content-red);
-    transition: color 150ms ease;
-  }
-
-  &:hover :deep(svg) {
-    color: var(--nc-content-red-dark);
-  }
-}
-
 .nc-chat-scroll-btn-wrapper {
   @apply absolute left-0 right-0 flex justify-center;
   bottom: 8px;
@@ -565,5 +559,16 @@ const handleDenyAll = async (messageId: string, toolCallIds: string[]) => {
 .nc-slide-up-leave-to {
   opacity: 0;
   transform: translateY(8px);
+}
+
+.nc-chat-drop-overlay {
+  @apply absolute inset-0 z-50 flex items-center justify-center;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+}
+
+.nc-chat-drop-overlay-content {
+  @apply flex flex-col items-center p-6 rounded-xl border-2 border-dashed border-nc-border-brand;
 }
 </style>

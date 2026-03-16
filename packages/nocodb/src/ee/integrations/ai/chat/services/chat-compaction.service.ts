@@ -1,15 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { IntegrationCategoryType } from 'nocodb-sdk';
-import { COMPACTION_SYSTEM_PROMPT } from '../prompts';
-import {
-  COMPACTION_THRESHOLD,
-  KEEP_RECENT_MESSAGES,
-  MAX_HISTORY_TOKENS,
-} from '../constants';
-import { ChatContextService } from './chat-context.service';
 import type { ChatMessageType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { AiIntegration } from '@noco-local-integrations/core';
+import { COMPACTION_SYSTEM_PROMPT } from '~/integrations/ai/chat/prompts';
+import {
+  COMPACTION_THRESHOLD,
+  KEEP_RECENT_MESSAGES,
+} from '~/integrations/ai/chat/constants';
+import { ChatContextService } from '~/integrations/ai/chat/services/chat-context.service';
+import { getHistoryBudget } from '~/integrations/ai/chat/helpers/tokenlens';
 import Integration from '~/models/Integration';
 import { NcError } from '~/helpers/catchError';
 
@@ -25,27 +25,25 @@ export class ChatCompactionService {
       messages: ChatMessageType[];
       existingSummary?: string;
       maxHistoryTokens?: number;
+      modelId?: string;
     },
   ): Promise<{
     summary?: string;
     activeMessages: ChatMessageType[];
   }> {
-    const {
-      messages,
-      existingSummary,
-      maxHistoryTokens = MAX_HISTORY_TOKENS,
-    } = params;
+    const { messages, existingSummary, modelId } = params;
 
-    // Single budget: MAX_HISTORY_TOKENS is the one source of truth.
-    // Compaction triggers when messages exceed COMPACTION_THRESHOLD of this
-    // budget, and the output (summary + recent messages) is guaranteed to
-    // fit within it — no secondary trimming needed downstream.
+    const maxHistoryTokens =
+      params.maxHistoryTokens ?? (await getHistoryBudget(modelId));
+
     let totalTokens = 0;
     for (const msg of messages) {
-      totalTokens += this.contextService.estimateMessageTokens(msg);
+      totalTokens += await this.contextService.estimateMessageTokens(
+        msg,
+        modelId,
+      );
     }
 
-    // If under threshold, return all messages unchanged
     if (totalTokens < maxHistoryTokens * COMPACTION_THRESHOLD) {
       return {
         summary: existingSummary,
@@ -53,22 +51,21 @@ export class ChatCompactionService {
       };
     }
 
-    // Over threshold — keep as many recent messages as fit in the budget
-    // (after reserving space for the summary), and summarize the rest.
-    const summaryBudget = Math.floor(maxHistoryTokens * 0.15); // ~15% for summary
+    const summaryBudget = Math.floor(maxHistoryTokens * 0.15);
     const messageBudget = maxHistoryTokens - summaryBudget;
 
-    // Walk backwards from the newest message to find how many fit
     let keepCount = 0;
     let recentTokens = 0;
     for (let i = messages.length - 1; i >= 0; i--) {
-      const msgTokens = this.contextService.estimateMessageTokens(messages[i]);
+      const msgTokens = await this.contextService.estimateMessageTokens(
+        messages[i],
+        modelId,
+      );
       if (recentTokens + msgTokens > messageBudget) break;
       recentTokens += msgTokens;
       keepCount++;
     }
 
-    // Always keep at least KEEP_RECENT_MESSAGES (unless there aren't that many)
     keepCount = Math.max(
       keepCount,
       Math.min(KEEP_RECENT_MESSAGES, messages.length),
@@ -96,7 +93,6 @@ export class ChatCompactionService {
       };
     } catch (e) {
       this.logger.error('Failed to compact messages', e.stack);
-      // Fallback: keep recent messages without summary
       return {
         summary: existingSummary,
         activeMessages: recentMessages,

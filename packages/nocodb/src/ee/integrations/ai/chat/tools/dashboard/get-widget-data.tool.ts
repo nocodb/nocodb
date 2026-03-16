@@ -1,19 +1,21 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { resolveDashboardByName, resolveWidgetByName } from '../helpers';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
+import {
+  resolveDashboardByName,
+  resolveWidgetByName,
+} from '~/integrations/ai/chat/tools/helpers';
 import { DashboardsService } from '~/services/dashboards.service';
 import Noco from '~/Noco';
 
-export const getWidgetDataTool: ChatToolDefinition = {
-  name: 'get_widget_data',
+export const getWidgetDataTool = defineChatTool({
+  name: ChatToolName.GET_WIDGET_DATA,
   description:
-    'Fetch the computed data for a widget. Returns the aggregated or queried data that the widget displays. ' +
-    'For metric widgets this is the computed value, for chart widgets it is the chart data series, etc. ' +
-    'Use this to verify a widget is correctly configured and showing expected data.',
-  parameters: {
+    'Fetch the computed data a widget displays. ' +
+    'Metric widgets return the aggregated value. Chart widgets return the data series. ' +
+    'Use this to verify a widget is correctly configured and showing expected results after creation or update.',
+  schema: z.object({
     dashboard_name: z
       .string()
       .describe(
@@ -24,17 +26,15 @@ export const getWidgetDataTool: ChatToolDefinition = {
       .describe(
         'The title of the widget to fetch data for (case-insensitive).',
       ),
-  },
+  }),
   permission: 'widgetDataGet',
   scope: 'base',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
   readonly: true,
-  async execute(
-    context: NcContext,
-    args: { dashboard_name: string; widget_name: string },
-    req: NcRequest,
-  ) {
+  visibility: 'hidden',
+  category: 'dashboard',
+  async execute(context, args, req) {
     const service: DashboardsService = Noco.nestApp.get(DashboardsService);
     const dashboard = await resolveDashboardByName(
       context,
@@ -48,4 +48,4 @@ export const getWidgetDataTool: ChatToolDefinition = {
 
     return await service.widgetDataGet(context, widget.id, req);
   },
-};
+});

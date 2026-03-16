@@ -37,9 +37,15 @@ const { unreadCount } = toRefs(notificationStore)
 
 const isNotificationOpen = ref(false)
 
-const { isPanelExpanded: isChatPanelExpanded, hasWorkspaceContext: hasChatWorkspaceContext, toggleChatPanel } = useChatPanel()
+const {
+  isPanelExpanded: isChatPanelExpanded,
+  isFullScreen: isChatFullScreen,
+  hasWorkspaceContext: hasChatWorkspaceContext,
+  hasBaseContext: hasChatBaseContext,
+  toggleChatPanel,
+} = useChatPanel()
 
-const { blockAiChat, showEEFeatures } = useEeConfig()
+const { blockAiChat, isEEFeatureBlocked, showEEFeatures } = useEeConfig()
 
 const handleChatToggle = () => {
   toggleChatPanel()
@@ -76,6 +82,8 @@ const getBasePath = () => {
 }
 
 const onTabClick = async (tabKey: string) => {
+  if (isChatFullScreen.value) isChatFullScreen.value = false
+
   if (tabKey === 'settings') {
     activeSidebarTab.value = 'settings'
     // If a base is open, navigate to base settings; otherwise ws-level settings
@@ -132,7 +140,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 // Cmd/Ctrl + Shift + A — toggle AI chat
 useEventListener(document, 'keydown', (e: KeyboardEvent) => {
-  if (!isEeUI || blockAiChat.value) return
+  if (!isEeUI || isEEFeatureBlocked.value) return
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (
     cmdOrCtrl &&
@@ -220,7 +228,7 @@ const mainItems = computed<NavItem[]>(() => [
       :icon="item.icon"
       :label="item.label"
       :panel-key="item.key"
-      :active="activeSidebarTab === item.key"
+      :active="activeSidebarTab === item.key && !isChatFullScreen"
       :disabled="item.disabled"
       :disable-tooltip="true"
       @click="item.onClick?.()"
@@ -228,14 +236,14 @@ const mainItems = computed<NavItem[]>(() => [
 
     <!-- AI Chat -->
     <DashboardMiniSidebarV2RailItem
-      v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext && !isMobileMode"
+      v-if="isEeUI && !isEEFeatureBlocked && hasChatWorkspaceContext && hasChatBaseContext && !isMobileMode"
       v-e="['c:chat:toggle']"
       label="Chat"
       panel-key="chat"
       data-testid="nc-sidebar-chat-btn"
       :active="isChatPanelExpanded"
       :disable-tooltip="true"
-      plain-active
+      :plain-active="!isChatFullScreen"
       @click="handleChatToggle"
     >
       <template #icon>
@@ -248,7 +256,7 @@ const mainItems = computed<NavItem[]>(() => [
       icon="ncSettings"
       label="Settings"
       panel-key="settings"
-      :active="activeSidebarTab === 'settings'"
+      :active="activeSidebarTab === 'settings' && !isChatFullScreen"
       :disable-tooltip="true"
       @click="onTabClick('settings')"
     />

@@ -1,15 +1,11 @@
 import { z } from 'zod';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from './chat-tool-registry';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 
-export const askUserTool: ChatToolDefinition = {
-  name: 'ask_user',
-  description:
-    'Ask the user one or more questions with predefined options. Use when the request is ' +
-    'ambiguous or when the user needs to choose between approaches. You can ask up to 4 ' +
-    'questions at once — each with its own options. The user can also type a custom answer or skip.',
-  parameters: {
+export const askUserTool = defineChatTool({
+  name: ChatToolName.ASK_USER,
+  description: `Ask the user one or more questions with predefined options. Use when the request is  ambiguous or when the user needs to choose between approaches. You can ask up to 4 questions at once — each with its own options. The user can also type a custom answer or skip.`,
+  schema: z.object({
     questions: z
       .array(
         z.object({
@@ -24,22 +20,20 @@ export const askUserTool: ChatToolDefinition = {
       .min(1)
       .max(4)
       .describe(
-        'Array of 1–4 questions, each with its own options. ' +
-          'Use multiple questions to gather several decisions at once.',
+        'Array of 1–4 questions, each with its own options. Use multiple questions to gather several decisions at once.',
       ),
-  },
+  }),
   scope: 'common',
   requiredRole: null,
   isDangerous: false,
   readonly: true,
-  async execute(
-    _context: NcContext,
-    args: { questions: { question: string; options: string[] }[] },
-    _req: NcRequest,
-  ) {
+  uiOnly: true,
+  visibility: 'ui',
+  category: 'interaction',
+  async execute(_context, args, _req) {
     return {
       __requires_user_input: true,
       questions: args.questions,
     };
   },
-};
+});

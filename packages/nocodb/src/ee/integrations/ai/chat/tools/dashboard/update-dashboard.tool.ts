@@ -1,18 +1,17 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { resolveDashboardByName } from '../helpers';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
+import { resolveDashboardByName } from '~/integrations/ai/chat/tools/helpers';
 import { DashboardsService } from '~/services/dashboards.service';
 import Noco from '~/Noco';
 
-export const updateDashboardTool: ChatToolDefinition = {
-  name: 'update_dashboard',
+export const updateDashboardTool = defineChatTool({
+  name: ChatToolName.UPDATE_DASHBOARD,
   description:
-    "Update a dashboard's title or description. " +
-    'Use this to rename a dashboard or change its description.',
-  parameters: {
+    'Update a dashboard title or description. Only provided fields are changed — omitted fields stay the same. ' +
+    'This does not affect widgets — use update_widget for widget changes.',
+  schema: z.object({
     dashboard_name: z
       .string()
       .describe(
@@ -24,16 +23,14 @@ export const updateDashboardTool: ChatToolDefinition = {
       .string()
       .optional()
       .describe('The new description for the dashboard.'),
-  },
+  }),
   permission: 'dashboardUpdate',
   scope: 'base',
   requiredRole: ProjectRoles.CREATOR,
   isDangerous: false,
-  async execute(
-    context: NcContext,
-    args: { dashboard_name: string; title?: string; description?: string },
-    req: NcRequest,
-  ) {
+  visibility: 'action',
+  category: 'dashboard',
+  async execute(context, args, req) {
     const service: DashboardsService = Noco.nestApp.get(DashboardsService);
     const dashboard = await resolveDashboardByName(
       context,
@@ -58,4 +55,4 @@ export const updateDashboardTool: ChatToolDefinition = {
       message: `Dashboard updated successfully.`,
     };
   },
-};
+});

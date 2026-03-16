@@ -1,24 +1,23 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import {
   resolveColumnByName,
   resolveTableByName,
   resolveViewByName,
-} from '../helpers';
-import type { FilterType } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
-import { FiltersService } from '~/services/filters.service';
+} from '~/integrations/ai/chat/tools/helpers';
+import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 import Noco from '~/Noco';
 
-export const addFilterTool: ChatToolDefinition = {
-  name: 'add_filter',
+export const addFilterTool = defineChatTool({
+  name: ChatToolName.ADD_FILTER,
   description:
-    'Add a filter condition to a view. Filters limit which records are shown in the view without deleting data. ' +
-    'Multiple filters are combined using logical_op (and/or). ' +
-    'Returns the filter_id which you can use later with remove_filter.',
-  parameters: {
+    'Add a filter condition to a view. Filters limit which records are shown without deleting data. ' +
+    'Multiple filters combine using logical_op (and/or). ' +
+    'Returns the filter_id for use with remove_filter. ' +
+    'Call list_filters first to see existing filters before adding new ones.',
+  schema: z.object({
     table_name: z
       .string()
       .describe(
@@ -37,14 +36,13 @@ export const addFilterTool: ChatToolDefinition = {
       .string()
       .describe(
         'Comparison operator. ' +
-          'Equality: eq, neq. ' +
-          'Comparison: gt, lt, gte, lte, btw ("10,20"), nbtw. ' +
-          'Text: like ("%search%"), nlike. ' +
-          'Presence: null, notnull, blank (null OR empty), notblank, empty, notempty. ' +
-          'Checkbox: checked, notchecked. ' +
-          'Select: in ("A,B"), allof, anyof, nallof, nanyof. ' +
-          'Date: is, isnot, isWithin — values: "today", "thisWeek", "thisMonth", "pastWeek", "nextMonth". ' +
-          'Value-less operators (blank, notblank, null, notnull, checked, notchecked): omit the value parameter.',
+          'Text/General: eq, neq, like ("%search%"), nlike, in ("A,B"). ' +
+          'Numeric: gt, lt, gte, lte, btw ("10,20"), nbtw. ' +
+          'Null/Empty (no value needed): blank, notblank, null, notnull, empty, notempty. ' +
+          'Checkbox (no value needed): checked, notchecked. ' +
+          'Multi-Select: allof, anyof, nallof, nanyof. ' +
+          'Date (requires sub_operator): eq, neq, gt, lt, gte, lte, isWithin. ' +
+          'For value-less operators (blank, notblank, null, notnull, checked, notchecked): omit the value parameter.',
       ),
     value: z
       .string()
@@ -59,12 +57,12 @@ export const addFilterTool: ChatToolDefinition = {
       .string()
       .optional()
       .describe(
-        'Sub-operator for date fields. Required when operator is "is", "isnot", or "isWithin". ' +
-          'Values: "today", "tomorrow", "yesterday", "oneWeekAgo", "oneWeekFromNow", ' +
-          '"oneMonthAgo", "oneMonthFromNow", "daysAgo", "daysFromNow", ' +
-          '"exactDate", "pastWeek", "pastMonth", "pastYear", "nextWeek", "nextMonth", "nextYear", ' +
-          '"pastNumberOfDays", "nextNumberOfDays". ' +
-          'For "daysAgo", "daysFromNow", "pastNumberOfDays", "nextNumberOfDays" and "exactDate": provide the number or date in the value parameter.',
+        'Sub-operator for date fields. Required when filtering Date, DateTime, CreatedTime, LastModifiedTime fields. ' +
+          'Relative (no value): today, tomorrow, yesterday, oneWeekAgo, oneWeekFromNow, oneMonthAgo, oneMonthFromNow. ' +
+          'Ranges (no value): pastWeek, pastMonth, pastYear, nextWeek, nextMonth, nextYear. ' +
+          'Dynamic (value = number of days): daysAgo, daysFromNow, pastNumberOfDays, nextNumberOfDays. ' +
+          'Exact (value = YYYY-MM-DD): exactDate. ' +
+          'isWithin operator sub-operators: pastWeek, pastMonth, pastYear, nextWeek, nextMonth, nextYear, pastNumberOfDays, nextNumberOfDays.',
       ),
     logical_op: z
       .enum(['and', 'or'])
@@ -73,45 +71,30 @@ export const addFilterTool: ChatToolDefinition = {
         'How this filter combines with existing filters on the view. ' +
           '"and" means all filters must match; "or" means any filter can match. Default: "and".',
       ),
-  },
+  }),
   permission: 'filterCreate',
   scope: 'base',
   requiredRole: ProjectRoles.EDITOR,
   isDangerous: false,
-  async execute(
-    context: NcContext,
-    args: {
-      table_name: string;
-      view_name?: string;
-      field_name: string;
-      operator: string;
-      value?: string;
-      sub_operator?: string;
-      logical_op?: string;
-    },
-    req: NcRequest,
-  ) {
-    const filtersService: FiltersService = Noco.nestApp.get(FiltersService);
+  visibility: 'action',
+  category: 'view',
+  async execute(context, args, req) {
+    const filtersV3Service: FiltersV3Service =
+      Noco.nestApp.get(FiltersV3Service);
     const model = await resolveTableByName(context, args.table_name);
     const view = await resolveViewByName(context, model, args.view_name);
     const column = await resolveColumnByName(context, model, args.field_name);
 
-    // Normalize empty strings to null — LLMs often pass "" for optional fields,
-    // but the swagger schema only accepts valid enum values or null.
     const value = args.value || null;
     const subOp = args.sub_operator || null;
-    const logicalOp = args.logical_op || null;
 
-    const filter = await filtersService.filterCreate(context, {
+    await filtersV3Service.filterCreate(context, {
       viewId: view.id,
       filter: {
-        fk_column_id: column.id,
-        comparison_op: args.operator as FilterType['comparison_op'],
-        ...(subOp && {
-          comparison_sub_op: subOp as FilterType['comparison_sub_op'],
-        }),
+        field_id: column.id,
+        operator: args.operator,
+        ...(subOp && { sub_operator: subOp }),
         value,
-        ...(logicalOp && { logical_op: logicalOp as FilterType['logical_op'] }),
       },
       user: req.user,
       req,
@@ -121,7 +104,6 @@ export const addFilterTool: ChatToolDefinition = {
       message: `Filter added: "${args.field_name}" ${args.operator} ${
         args.value ?? ''
       }`.trim(),
-      filter_id: filter.id,
     };
   },
-};
+});

@@ -1,13 +1,21 @@
-/** Maximum number of agentic tool-use steps per LLM turn. */
-export const MAX_STEPS = +(process.env.NC_AI_MAX_STEPS || 40);
-
-/** Single token budget for conversation history passed to the LLM.
- * Compaction and message building both use this as the source of truth. */
+/** Fallback history budget when tokenlens can't resolve the model */
 export const MAX_HISTORY_TOKENS = +(
   process.env.NC_AI_MAX_HISTORY_TOKENS || 8000
 );
 
-/** When estimated token usage exceeds this fraction of MAX_HISTORY_TOKENS, trigger compaction. */
+/** Fraction of the model's context window used for history */
+export const HISTORY_FRACTION = +(process.env.NC_AI_HISTORY_FRACTION || 0.6);
+
+/** Floor for dynamic history budget */
+export const MIN_HISTORY_TOKENS = +(
+  process.env.NC_AI_MIN_HISTORY_TOKENS || 8_000
+);
+
+/** Ceiling for dynamic history budget */
+export const MAX_DYNAMIC_HISTORY_TOKENS = +(
+  process.env.NC_AI_MAX_DYNAMIC_HISTORY_TOKENS || 128_000
+);
+
 export const COMPACTION_THRESHOLD = +(
   process.env.NC_AI_COMPACTION_THRESHOLD || 0.8
 );
@@ -33,3 +41,18 @@ export const ERROR_HINT_MAX_LENGTH = +(
 export const MESSAGE_MAX_LENGTH = +(
   process.env.NC_AI_MESSAGE_MAX_LENGTH || 10_000
 );
+
+export const MAX_ROUNDS = +(process.env.NC_AI_MAX_ROUNDS || 12);
+
+export const ROUTER_MAX_TURNS = 1;
+
+// ─── External service keys ──────────────────────────────────────────────────
+
+/** Exa API key for web search/scrape tools */
+export const EXA_API_KEY = process.env.EXA_API_KEY || '';
+
+/** E2B sandbox API key for code execution */
+export const E2B_API_KEY = process.env.E2B_API_KEY || '';
+
+/** E2B sandbox template ID */
+export const E2B_TEMPLATE_ID = process.env.E2B_TEMPLATE_ID || 'e2b/code-interpreter-v1';

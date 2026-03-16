@@ -1,26 +1,26 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { resolveDashboardByName } from '../helpers';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import {
   validateWidgetConfig,
   WIDGET_CONFIG_DESCRIPTIONS,
-} from './widget-schemas';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+} from '~/integrations/ai/chat/tools/dashboard/widget-schemas';
+import { resolveDashboardByName } from '~/integrations/ai/chat/tools/helpers';
 import { DashboardsService } from '~/services/dashboards.service';
 import Noco from '~/Noco';
 
-export const createWidgetTool: ChatToolDefinition = {
-  name: 'create_widget',
+export const createWidgetTool = defineChatTool({
+  name: ChatToolName.CREATE_WIDGET,
   description:
-    'Add a new widget to a dashboard. Supported types: ' +
-    '"chart" (bar, line, pie, donut), "metric" (single KPI number), ' +
-    '"text" (markdown or plain text), "iframe" (embedded URL). ' +
-    'Each widget needs a data source table (fk_model_id) except text and iframe widgets. ' +
-    'Always provide position to place the widget on the grid. Use list_tables to find table IDs.\n\n' +
+    'Add a widget to a dashboard. Types: chart (bar/line/pie/donut), metric (single KPI), ' +
+    'text (markdown/plain), iframe (embedded URL). ' +
+    'Chart and metric widgets require a data source table (fk_model_id from list_tables). ' +
+    'Text and iframe widgets do not need a data source. ' +
+    'Always provide grid position to avoid overlapping. ' +
+    'Call get_dashboard or list_widgets first to see occupied positions.\n\n' +
     WIDGET_CONFIG_DESCRIPTIONS,
-  parameters: {
+  schema: z.object({
     dashboard_name: z
       .string()
       .describe(
@@ -61,24 +61,14 @@ export const createWidgetTool: ChatToolDefinition = {
           'Check existing widget positions (via list_widgets or get_dashboard) to avoid overlaps. ' +
           'Each widget type has size limits — see SIZE CONSTRAINTS in the tool description.',
       ),
-  },
+  }),
   permission: 'widgetCreate',
   scope: 'base',
   requiredRole: ProjectRoles.CREATOR,
   isDangerous: false,
-  async execute(
-    context: NcContext,
-    args: {
-      dashboard_name: string;
-      title: string;
-      type: string;
-      config: Record<string, any>;
-      fk_model_id?: string;
-      fk_view_id?: string;
-      position?: { x: number; y: number; w: number; h: number };
-    },
-    req: NcRequest,
-  ) {
+  visibility: 'action',
+  category: 'dashboard',
+  async execute(context, args, req) {
     const service: DashboardsService = Noco.nestApp.get(DashboardsService);
     const dashboard = await resolveDashboardByName(
       context,
@@ -100,7 +90,14 @@ export const createWidgetTool: ChatToolDefinition = {
         config: validatedConfig,
         ...(args.fk_model_id && { fk_model_id: args.fk_model_id }),
         ...(args.fk_view_id && { fk_view_id: args.fk_view_id }),
-        ...(args.position && { position: args.position }),
+        ...(args.position && {
+        position: {
+          x: args.position.x,
+          y: args.position.y,
+          w: args.position.w,
+          h: args.position.h,
+        },
+      }),
       },
       req,
     );
@@ -114,4 +111,4 @@ export const createWidgetTool: ChatToolDefinition = {
       message: `Widget "${widget.title}" created successfully on dashboard "${dashboard.title}".`,
     };
   },
-};
+});

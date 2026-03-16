@@ -1,80 +1,116 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
 import type { TableFieldBaseCreateV3Type } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import Noco from '~/Noco';
 
-export const createTableTool: ChatToolDefinition = {
-  name: 'create_table',
+// Types allowed during table creation (subset — no Lookup, Rollup, Barcode, QrCode)
+const TABLE_CREATABLE_FIELD_TYPES = [
+  'SingleLineText',
+  'LongText',
+  'PhoneNumber',
+  'URL',
+  'Email',
+  'Number',
+  'Decimal',
+  'Currency',
+  'Percent',
+  'Duration',
+  'Date',
+  'DateTime',
+  'Time',
+  'Year',
+  'SingleSelect',
+  'MultiSelect',
+  'Rating',
+  'Checkbox',
+  'Attachment',
+  'JSON',
+  'User',
+] as const;
+
+export const createTableTool = defineChatTool({
+  name: ChatToolName.CREATE_TABLE,
   description:
-    'Create a new table in the base, optionally with initial fields. ' +
-    'An ID column (auto-incrementing primary key) is always added automatically — do not include it. ' +
-    'Valid types for fields: SingleLineText, LongText, Email, URL, PhoneNumber, Number, Decimal, ' +
-    'Currency, Percent, Duration, Rating, Date, DateTime, Time, Year, SingleSelect, MultiSelect, ' +
-    'Checkbox, Attachment, JSON. ' +
-    'For SingleSelect and MultiSelect, pass choices as an array of objects: ' +
-    '[{ "title": "Option A" }, { "title": "Option B" }]. ' +
-    'If fields are omitted, only the ID column is created and fields can be added later with add_field.',
-  parameters: {
+    'Create a new table in the base with optional initial fields. ' +
+    'An auto-increment ID primary key is always added automatically — do NOT include it. ' +
+    'Only basic field types are supported during creation (text, number, date, select, etc.). ' +
+    'Links, Lookup, Rollup, Formula, Barcode, QrCode, and Button fields must be added after via add_field. ' +
+    'If fields are omitted, only the ID column is created — use add_field to add more later.',
+  schema: z.object({
     title: z
       .string()
       .describe(
-        'The display name of the new table. Must be unique within the base.',
+        'Display name of the new table. Must be unique within the base.',
       ),
+    description: z
+      .string()
+      .optional()
+      .describe('Optional description of the table.'),
     fields: z
       .array(
         z.object({
-          title: z.string().describe('The display name of the field.'),
+          title: z.string().describe('Display name of the field.'),
           type: z
+            .enum(TABLE_CREATABLE_FIELD_TYPES)
+            .describe('Field data type.'),
+          description: z
             .string()
-            .describe(
-              'The field type. Must be one of the creatable types listed in the description. ' +
-                'Example: "SingleLineText", "Number", "SingleSelect", "Date".',
-            ),
-          choices: z
-            .array(z.object({ title: z.string() }))
+            .optional()
+            .describe('Optional field description.'),
+          options: z
+            .record(z.any())
             .optional()
             .describe(
-              'Required for SingleSelect and MultiSelect fields. ' +
-                'Array of choice objects. Example: [{ "title": "Active" }, { "title": "Inactive" }]',
+              'Type-specific options. Same structure as add_field options:\n' +
+                '• SingleSelect / MultiSelect: { "choices": [{ "title": "Active" }, { "title": "Done" }] }\n' +
+                '• Currency: { "code": "USD" }. Decimal: { "precision": 2 }. Rating: { "max_value": 5 }\n' +
+                '• Date/DateTime/Duration/Checkbox/LongText/User: see add_field for full options reference.',
             ),
+          default_value: z
+            .union([z.string(), z.boolean(), z.number()])
+            .optional()
+            .describe('Default value for the field.'),
         }),
       )
       .optional()
       .describe(
-        'Optional list of fields to create with the table. Do not include an ID field — it is added automatically.',
+        'Optional list of fields to create with the table. Do NOT include an ID field. ' +
+          'Link fields are not supported here — use add_field after table creation.',
       ),
-  },
+  }),
   permission: 'tableCreate',
   scope: 'base',
   requiredRole: ProjectRoles.CREATOR,
   isDangerous: false,
-  async execute(
-    context: NcContext,
-    args: {
-      title: string;
-      fields?: Array<{
-        title: string;
-        type: string;
-        choices?: { title: string }[];
-      }>;
-    },
-    req: NcRequest,
-  ) {
+  visibility: 'action',
+  category: 'schema',
+  async execute(context, args, req) {
     const tablesV3Service: TablesV3Service = Noco.nestApp.get(TablesV3Service);
+
+    const fields = (args.fields || [])
+      .map((f) => {
+        if (!f.title) return;
+        const field: Record<string, any> = {
+          title: f.title,
+          type: f.type as TableFieldBaseCreateV3Type['type'],
+        };
+        if (f.description) field.description = f.description;
+        if (f.options) field.options = f.options;
+        if (f.default_value !== undefined)
+          field.default_value = f.default_value;
+        return field;
+      })
+      .filter(Boolean);
 
     const table = await tablesV3Service.tableCreate(context, {
       baseId: context.base_id,
       table: {
         title: args.title,
-        fields: (args.fields || []).map((f) => ({
-          title: f.title,
-          type: f.type as TableFieldBaseCreateV3Type['type'],
-          ...(f.choices ? { choices: f.choices } : {}),
-        })),
+        ...(args.description ? { description: args.description } : {}),
+        fields: fields as any,
       },
       user: req.user,
       req,
@@ -86,4 +122,4 @@ export const createTableTool: ChatToolDefinition = {
       message: `Table "${table.title}" created successfully.`,
     };
   },
-};
+});

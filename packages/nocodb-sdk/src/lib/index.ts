@@ -98,5 +98,6 @@ export * from '~/lib/uniqueConstraintHelpers';
 export * from '~/lib/recordTemplate';
 export * from '~/lib/viewSection';
 export * from '~/lib/chat';
+export * from '~/lib/v3';
 export * from '~/lib/Document';
 export * from '~/lib/DocumentComment';

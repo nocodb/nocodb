@@ -1370,7 +1370,7 @@ export class AiSchemaService {
           case ViewTypes.CALENDAR:
             serializedView.calendar_range = (
               view.view as CalendarView
-            ).calendar_range.map((range) => ({
+            )?.calendar_range?.map((range) => ({
               from_column: getColumnTitle(range.fk_from_column_id),
             }));
             break;

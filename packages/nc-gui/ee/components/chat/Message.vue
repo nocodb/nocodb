@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import type { ChatContentBlock, ChatMessageType } from 'nocodb-sdk'
 import { ChatMessageRole, ChatToolCallStatus } from 'nocodb-sdk'
-import { NcMarkdownParser } from '~/helpers/tiptap/functionality/markdown'
+import { type NcChatRendererOptions, parseChatMarkdown } from '~/ee/utils/chatMarkdown'
 
 interface Props {
   message?: ChatMessageType
   content?: string
   role?: string
-  isStreaming?: boolean
   streamingParts?: ChatContentBlock[]
 }
 
@@ -15,7 +14,6 @@ const props = withDefaults(defineProps<Props>(), {
   message: undefined,
   content: '',
   role: undefined,
-  isStreaming: false,
   streamingParts: undefined,
 })
 
@@ -24,16 +22,16 @@ const emits = defineEmits<{
   denyAll: [messageId: string, toolCallIds: string[]]
 }>()
 
-const { message, content, role, isStreaming, streamingParts } = toRefs(props)
+const { message, content, role, streamingParts } = toRefs(props)
 
 const { t } = useI18n()
 
 const messageRole = computed(() => message.value?.role || role.value || ChatMessageRole.USER)
 const messageContent = computed(() => message.value?.content || content.value || '')
+const messageFiles = computed(() => message.value?.files || [])
 const isUser = computed(() => messageRole.value === ChatMessageRole.USER)
 const isAssistant = computed(() => messageRole.value === ChatMessageRole.ASSISTANT)
 
-// Unified parts: active streaming wins; fall back to persisted parts
 const displayParts = computed<ChatContentBlock[]>(() => {
   if (streamingParts.value?.length) return streamingParts.value
   return message.value?.parts || []
@@ -41,10 +39,32 @@ const displayParts = computed<ChatContentBlock[]>(() => {
 
 const hasParts = computed(() => displayParts.value.length > 0)
 
-// Group consecutive tool_use blocks so they collapse as "First Tool +N"
-type DisplaySegment =
-  | { kind: 'text'; text: string }
-  | { kind: 'tools'; blocks: Extract<ChatContentBlock, { type: 'tool_use' }>[] }
+type ToolUseBlock = Extract<ChatContentBlock, { type: 'tool_use' }>
+type DisplaySegment = { kind: 'text'; text: string } | { kind: 'tools'; blocks: ToolUseBlock[] }
+
+// Extract artifact schema from hidden generate_artifact_schema tool blocks
+const artifactSchema = computed(() => {
+  for (const part of displayParts.value) {
+    if (part.type !== 'tool_use') continue
+    const block = part as ToolUseBlock
+    const name = block.name === 'base_proxy' ? (block.input?.tool_name as string) : block.name
+    if (name !== 'generate_artifact_schema' || !block.output) continue
+    try {
+      const output = typeof block.output === 'string' ? JSON.parse(block.output) : block.output
+      if (output?.type === 'artifact_schema' && Array.isArray(output?.columns)) {
+        return { title: output.title, description: output.description, columns: output.columns }
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return undefined
+})
+
+// All tool blocks for ThinkingSection — includes hidden tools, but excludes announce (internal only)
+const thinkingBlocks = computed<ToolUseBlock[]>(() => {
+  return displayParts.value.filter((p): p is ToolUseBlock => p.type === 'tool_use' && (p as ToolUseBlock).name !== 'announce')
+})
 
 const displaySegments = computed<DisplaySegment[]>(() => {
   const parts = displayParts.value
@@ -53,16 +73,18 @@ const displaySegments = computed<DisplaySegment[]>(() => {
     if (part.type === 'text') {
       segments.push({ kind: 'text', text: part.text || '' })
     } else if (part.type === 'tool_use') {
+      // Only include visible tool blocks (e.g. awaiting_approval) in display segments
+      if (part.visibility === 'hidden') continue
+
       const last = segments[segments.length - 1]
       if (last?.kind === 'tools') {
-        last.blocks.push(part as Extract<ChatContentBlock, { type: 'tool_use' }>)
+        last.blocks.push(part as ToolUseBlock)
       } else {
-        segments.push({ kind: 'tools', blocks: [part as Extract<ChatContentBlock, { type: 'tool_use' }>] })
+        segments.push({ kind: 'tools', blocks: [part as ToolUseBlock] })
       }
     }
   }
 
-  // Hide text that immediately precedes an ask_user tool — the Options card renders it
   const filtered: DisplaySegment[] = []
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i]
@@ -75,235 +97,220 @@ const displaySegments = computed<DisplaySegment[]>(() => {
   return filtered
 })
 
-// Collect all AWAITING_APPROVAL tool IDs from this message
+const textSegments = computed(() => displaySegments.value.filter((s) => s.kind === 'text') as { kind: 'text'; text: string }[])
+
+// During streaming: thinking first (natural order), then text.
+// After streaming: text first, then thinking section at the bottom.
+const showThinkingFirst = computed(() => !!streamingParts.value?.length)
+
 const pendingApprovalIds = computed(() => {
   return displayParts.value
-    .filter(
-      (p): p is Extract<ChatContentBlock, { type: 'tool_use' }> =>
-        p.type === 'tool_use' && p.status === ChatToolCallStatus.AWAITING_APPROVAL,
-    )
+    .filter((p): p is ToolUseBlock => p.type === 'tool_use' && p.status === ChatToolCallStatus.AWAITING_APPROVAL)
     .map((p) => p.id)
 })
 
 const hasPendingApprovals = computed(() => pendingApprovalIds.value.length > 0)
 
-// Track which tool groups are expanded (keyed by first tool's id)
-const expandedGroups = ref(new Set<string>())
+const ncTableComp = resolveComponent('ChatMarkdownTableMention')
+const ncFieldComp = resolveComponent('ChatMarkdownFieldMention')
+const ncRecordsComp = resolveComponent('ChatMarkdownEmbeddedGrid')
+const ncDataComp = resolveComponent('ChatMarkdownVirtualTable')
+const ncRecordSourceComp = resolveComponent('ChatMarkdownRecordCitation')
+const ncViewComp = resolveComponent('ChatMarkdownViewMention')
+const ncDashboardComp = resolveComponent('ChatMarkdownDashboardMention')
 
-const toggleGroup = (groupKey: string) => {
-  if (expandedGroups.value.has(groupKey)) {
-    expandedGroups.value.delete(groupKey)
-  } else {
-    expandedGroups.value.add(groupKey)
-  }
-}
+const xmlComponents = computed<NcChatRendererOptions['xmlComponents']>(() => ({
+  'nc-table': { component: ncTableComp },
+  'nc-field': { component: ncFieldComp },
+  'nc-records': { component: ncRecordsComp },
+  'nc-data': {
+    component: ncDataComp,
+    ...(artifactSchema.value ? { props: { schema: artifactSchema.value } } : {}),
+  },
+  'nc-record-source': { component: ncRecordSourceComp },
+  'nc-view': { component: ncViewComp },
+  'nc-dashboard': { component: ncDashboardComp },
+}))
 
-// Check if a tool group has any tools awaiting approval
-const groupHasPendingApproval = (blocks: Extract<ChatContentBlock, { type: 'tool_use' }>[]) => {
-  return blocks.some((b) => b.status === ChatToolCallStatus.AWAITING_APPROVAL)
-}
+const isStreaming = computed(() => !!streamingParts.value?.length)
 
-// A group is considered expanded if manually expanded OR forced by pending approvals
-const isGroupExpanded = (blocks: Extract<ChatContentBlock, { type: 'tool_use' }>[]) => {
-  return expandedGroups.value.has(blocks[0].id) || groupHasPendingApproval(blocks)
-}
-
-// Check if a tool group has any tools still in progress
-const isGroupRunning = (blocks: Extract<ChatContentBlock, { type: 'tool_use' }>[]) => {
-  return blocks.some((b) => b.status === ChatToolCallStatus.RUNNING || b.status === ChatToolCallStatus.PENDING)
-}
-
-// Count completed tools in a group
-const completedCount = (blocks: Extract<ChatContentBlock, { type: 'tool_use' }>[]) => {
-  return blocks.filter((b) => b.status !== ChatToolCallStatus.RUNNING && b.status !== ChatToolCallStatus.PENDING).length
-}
-
-// Render text as markdown
-const renderMarkdown = (text: string) => {
-  if (!text) return ''
-  return NcMarkdownParser.parse(text, { linkify: true, breaks: true })
-}
-
-// Fallback for content-only assistant messages (no parts)
 const renderedContent = computed(() => {
-  if (!messageContent.value || !isAssistant.value) return ''
-  return NcMarkdownParser.parse(messageContent.value, { linkify: true, breaks: true })
+  if (!messageContent.value || !isAssistant.value) return []
+  return parseChatMarkdown(messageContent.value, { xmlComponents: xmlComponents.value, streaming: isStreaming.value })
 })
+
+const citationMap = computed(() => {
+  const map = new Map<string, number>()
+  let counter = 0
+
+  const scanText = (text: string) => {
+    for (const match of text.matchAll(/<nc-record-source\s+[^>]*\/?>/g)) {
+      const rId = match[0].match(/recordId="([^"]*)"/)
+      const tId = match[0].match(/tableId="([^"]*)"/)
+      if (rId && tId) {
+        const key = `${tId[1]}:${rId[1]}`
+        if (!map.has(key)) {
+          map.set(key, ++counter)
+        }
+      }
+    }
+  }
+
+  if (hasParts.value) {
+    for (const part of displayParts.value) {
+      if (part.type === 'text') {
+        scanText((part as any).text || '')
+      }
+    }
+  } else if (messageContent.value) {
+    scanText(messageContent.value)
+  }
+
+  return map
+})
+
+// URL citation map: maps each <nc-url-source url="..."> URL to a sequential number
+const urlCitationMap = computed(() => {
+  const map = new Map<string, number>()
+  let counter = 0
+  const scanText = (text: string) => {
+    for (const match of text.matchAll(/<nc-url-source\s+url="([^"]*)"\s*\/>/g)) {
+      const url = match[1]
+      if (url && !map.has(url)) map.set(url, ++counter)
+    }
+  }
+  if (hasParts.value) {
+    for (const part of displayParts.value) {
+      if (part.type === 'text') scanText((part as any).text || '')
+    }
+  } else if (messageContent.value) {
+    scanText(messageContent.value)
+  }
+  return map
+})
+
+// Web source metadata map: maps URL to { title, favicon } from web_search/web_scrape results
+const webSourceMetaMap = computed(() => {
+  const map = new Map<string, { title?: string; favicon?: string }>()
+  for (const block of thinkingBlocks.value) {
+    const webResults = (block.metadata as any)?.webResults
+    if (Array.isArray(webResults)) {
+      for (const r of webResults) {
+        if (r.url && !map.has(r.url)) map.set(r.url, { title: r.title, favicon: r.favicon })
+      }
+    }
+  }
+  return map
+})
+
+provide('ChatCitationMap', citationMap)
+provide('ChatUrlCitationMap', urlCitationMap)
+provide('ChatWebSourceMetaMap', webSourceMetaMap)
+const renderMarkdown = (text: string) => {
+  if (!text) return []
+  return parseChatMarkdown(text, { xmlComponents: xmlComponents.value, streaming: isStreaming.value })
+}
 </script>
 
 <template>
   <div class="nc-chat-message" :class="{ 'nc-chat-message-user': isUser, 'nc-chat-message-assistant': isAssistant }">
-    <!-- User message: right-aligned bubble -->
     <template v-if="isUser">
-      <div class="flex justify-end">
-        <div class="max-w-[80%] rounded-xl px-3 py-2.5 bg-nc-brand-50">
-          <div class="whitespace-pre-wrap break-words leading-relaxed text-nc-content-gray" style="font-size: 13px">
+      <div class="flex flex-col items-end gap-1.5">
+        <div v-if="messageFiles.length" class="flex items-center gap-1.5 flex-wrap justify-end max-w-[80%]">
+          <div
+            v-for="(file, fi) in messageFiles"
+            :key="fi"
+            class="nc-chat-message-file flex items-center gap-2 px-2 py-1.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default max-w-52"
+          >
+            <GeneralIcon :icon="getAttachmentIcon(file.title, file.mimetype)" class="w-9 h-9 flex-none" />
+            <div class="flex flex-col min-w-0 flex-1">
+              <NcTooltip :title="file.title" show-on-truncate-only class="truncate leading-tight">
+                <span class="text-small text-nc-content-gray-emphasis">{{ file.title }}</span>
+              </NcTooltip>
+              <span class="text-captionSm text-nc-content-gray-subtle leading-tight">{{
+                getFileTypeLabel(file.title, file.mimetype)
+              }}</span>
+            </div>
+          </div>
+        </div>
+        <div v-if="messageContent" class="max-w-[80%] rounded-xl px-3 py-2.5 bg-nc-brand-50">
+          <div class="whitespace-pre-wrap break-words text-bodyLg text-nc-content-gray">
             {{ messageContent }}
           </div>
         </div>
       </div>
     </template>
 
-    <!-- Assistant message: full-width content block with AI icon -->
     <template v-else-if="isAssistant">
-      <div class="flex gap-2">
-        <!-- AI icon -->
-        <div class="flex-none w-6 h-6 rounded-md bg-nc-bg-brand-soft flex items-center justify-center mt-0.5">
-          <GeneralIcon icon="ncAutoAwesome" class="w-3.5 h-3.5 text-nc-content-brand" />
-        </div>
-
-        <!-- Content -->
-        <div class="flex-1 min-w-0">
-          <!-- Parts-based rendering with tool grouping -->
-          <template v-if="hasParts">
-            <div class="space-y-2">
-              <template v-for="(seg, si) in displaySegments" :key="si">
-                <!-- Text segment -->
-                <div
-                  v-if="seg.kind === 'text' && seg.text"
-                  v-dompurify-html="renderMarkdown(seg.text)"
-                  class="nc-chat-markdown nc-rich-text-content text-nc-content-gray break-words"
-                />
-
-                <!-- Tool group: single tool → show directly; multiple → collapsible group -->
-                <template v-else-if="seg.kind === 'tools'">
-                  <!-- Single tool — no grouping needed -->
-                  <ChatToolCall v-if="seg.blocks.length === 1" :block="seg.blocks[0]" :index="0" />
-
-                  <!-- Multiple consecutive tools — collapsed group -->
-                  <div v-else class="nc-chat-tool-group">
-                    <!-- Always show first tool -->
-                    <ChatToolCall :block="seg.blocks[0]" :index="0" />
-
-                    <!-- "+N more" toggle — hidden when group has pending approvals (forced open) -->
-                    <button
-                      v-if="!groupHasPendingApproval(seg.blocks)"
-                      class="nc-chat-tool-group-toggle flex items-center gap-1 px-2.5 py-1 text-[11px] text-nc-content-gray-subtle hover:text-nc-content-gray transition-colors"
-                      @click="toggleGroup(seg.blocks[0].id)"
-                    >
-                      <GeneralLoader v-if="isGroupRunning(seg.blocks)" :size="12" class="flex-none" />
-                      <GeneralIcon
-                        v-else
-                        icon="chevronDown"
-                        class="flex-none w-3 h-3 transition-transform duration-200"
-                        :class="{ 'rotate-180': isGroupExpanded(seg.blocks) }"
-                      />
-                      <span v-if="isGroupRunning(seg.blocks)">
-                        {{ `${completedCount(seg.blocks)}/${seg.blocks.length}` }}
-                      </span>
-                      <span v-else-if="!isGroupExpanded(seg.blocks)">
-                        {{ `+${seg.blocks.length - 1} more` }}
-                      </span>
-                      <span v-else>{{ t('msg.chat.showLess') }}</span>
-                    </button>
-
-                    <!-- Expanded: remaining tools -->
-                    <template v-if="isGroupExpanded(seg.blocks)">
-                      <ChatToolCall v-for="(b, bi) in seg.blocks.slice(1)" :key="b.id" :block="b" :index="bi + 1" />
-                    </template>
-                  </div>
-                </template>
-              </template>
-            </div>
-
-            <!-- Batch approval bar -->
-            <div
-              v-if="hasPendingApprovals"
-              class="nc-chat-approval-bar flex items-center justify-between gap-2 mt-2 pt-2 border-t-1 border-nc-border-yellow"
-            >
-              <span class="text-[12px] font-medium text-nc-content-yellow-dark">
-                {{ t('msg.chat.pendingApprovalCount', { count: pendingApprovalIds.length }, pendingApprovalIds.length) }}
-              </span>
-              <div class="flex items-center gap-1.5">
-                <NcButton
-                  size="xxsmall"
-                  type="text"
-                  class="!text-nc-content-red-dark !h-5.5 !px-2 text-[11px] font-medium"
-                  @click="emits('denyAll', message?.id!, pendingApprovalIds)"
-                >
-                  {{ t('msg.chat.denyAllTools') }}
-                </NcButton>
-                <NcButton
-                  size="xxsmall"
-                  type="primary"
-                  class="!h-5.5 !px-2.5 text-[11px] font-medium"
-                  @click="emits('approveAll', message?.id!, pendingApprovalIds)"
-                >
-                  {{ t('msg.chat.approveAllTools') }}
-                </NcButton>
+      <div class="min-w-0">
+        <template v-if="hasParts">
+          <div class="space-y-3">
+            <template v-if="showThinkingFirst">
+              <ChatThinkingSection v-if="thinkingBlocks.length" :blocks="thinkingBlocks" :is-streaming="true" />
+              <div v-for="(seg, si) in textSegments" :key="si" class="nc-chat-markdown text-nc-content-gray break-words">
+                <component :is="() => renderMarkdown(seg.text)" />
               </div>
-            </div>
+            </template>
+            <template v-else>
+              <div v-for="(seg, si) in textSegments" :key="si" class="nc-chat-markdown text-nc-content-gray break-words">
+                <component :is="() => renderMarkdown(seg.text)" />
+              </div>
+              <ChatThinkingSection v-if="thinkingBlocks.length" :blocks="thinkingBlocks" :is-streaming="false" />
+            </template>
+            <template v-for="(seg, si) in displaySegments" :key="`approval-${si}`">
+              <template v-if="seg.kind === 'tools' && seg.blocks.some((b) => b.status === 'awaiting_approval')">
+                <div class="space-y-1">
+                  <ChatToolsCall
+                    v-for="(b, bi) in seg.blocks.filter((bl) => bl.status === 'awaiting_approval')"
+                    :key="b.id"
+                    :block="b"
+                    :index="bi"
+                  />
+                </div>
+              </template>
+            </template>
+          </div>
 
-            <!-- Streaming indicator -->
-            <div v-if="isStreaming" class="flex items-center gap-1 mt-2 pt-1.5">
-              <span class="nc-chat-dot" />
-              <span class="nc-chat-dot" style="animation-delay: 160ms" />
-              <span class="nc-chat-dot" style="animation-delay: 320ms" />
-              <span class="text-[11px] text-nc-content-gray-muted ml-1">{{ t('msg.chat.working') }}</span>
+          <div
+            v-if="hasPendingApprovals"
+            class="nc-chat-approval-bar flex items-center justify-between gap-2 mt-2 pt-2 border-t-1 border-nc-orange-200"
+          >
+            <span class="text-captionSm text-orange-700">
+              {{ t('msg.chat.pendingApprovalCount', { count: pendingApprovalIds.length }, pendingApprovalIds.length) }}
+            </span>
+            <div class="flex items-center gap-1.5">
+              <NcButton
+                size="small"
+                type="text"
+                class="!text-nc-content-red-dark"
+                @click="emits('denyAll', message?.id!, pendingApprovalIds)"
+              >
+                {{ t('msg.chat.denyAllTools') }}
+              </NcButton>
+              <NcButton size="small" type="primary" @click="emits('approveAll', message?.id!, pendingApprovalIds)">
+                {{ t('msg.chat.approveAllTools') }}
+              </NcButton>
             </div>
-          </template>
-
-          <!-- Fallback: text-only assistant message without parts -->
-          <template v-else>
-            <div
-              v-if="renderedContent"
-              v-dompurify-html="renderedContent"
-              class="nc-chat-markdown nc-rich-text-content text-nc-content-gray break-words"
-            />
-          </template>
-
-          <!-- Pre-first-event spinner (standalone loading message) -->
-          <template v-if="isStreaming && !hasParts">
-            <div v-if="!messageContent" class="flex items-center gap-1 h-6">
-              <span class="nc-chat-dot" />
-              <span class="nc-chat-dot" style="animation-delay: 160ms" />
-              <span class="nc-chat-dot" style="animation-delay: 320ms" />
-            </div>
-            <span v-else class="nc-chat-cursor block w-1.5 h-3 mt-0.5 bg-nc-content-gray-muted rounded-sm" />
-          </template>
-        </div>
+          </div>
+        </template>
+        <template v-else>
+          <div v-if="renderedContent.length" class="nc-chat-markdown text-nc-content-gray break-words">
+            <component :is="() => renderedContent" />
+          </div>
+        </template>
+        <ChatFeedbackButtons
+          v-if="!isStreaming && message?.id && message?.fk_session_id"
+          :session-id="message.fk_session_id"
+          :message-id="message.id"
+        />
       </div>
     </template>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.nc-chat-cursor {
-  animation: blink 1s step-end infinite;
-  vertical-align: middle;
-}
-
-.nc-chat-dot {
-  @apply inline-block w-1.5 h-1.5 rounded-full bg-nc-content-gray-muted;
-  animation: nc-dot-bounce 1.2s ease-in-out infinite both;
-}
-
-@keyframes nc-dot-bounce {
-  0%,
-  80%,
-  100% {
-    transform: scale(0.6);
-    opacity: 0.4;
-  }
-  40% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes blink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
-}
-
-// Chat markdown — 13px compact
 .nc-chat-markdown {
-  font-size: 13px;
+  @apply text-bodyLg;
   line-height: 1.6;
 
   :deep(p) {
@@ -343,14 +350,13 @@ const renderedContent = computed(() => {
     @apply mb-1.5 last:mb-0 pl-1;
   }
 
-  // Nested lists — tighter spacing, more indentation
   :deep(li > ul),
   :deep(li > ol) {
     @apply mt-1.5 mb-0 pl-5;
   }
 
   :deep(code) {
-    @apply font-mono text-[12px] bg-nc-bg-gray-light rounded px-1 py-0.5;
+    @apply font-mono text-bodySm bg-nc-bg-gray-light rounded px-1 py-0.5;
   }
 
   :deep(pre) {
@@ -369,29 +375,29 @@ const renderedContent = computed(() => {
     @apply border-l-2 border-nc-border-gray-medium pl-3 my-3 text-nc-content-gray-subtle;
   }
 
-  :deep(table) {
-    @apply w-full my-3 text-[13px] border-1 border-nc-border-gray-medium rounded-lg overflow-hidden;
+  :deep(.nc-md-table) {
+    @apply w-full my-3 text-bodyDefaultSm border-1 border-nc-border-gray-medium rounded-lg overflow-hidden;
     border-collapse: separate;
     border-spacing: 0;
   }
 
-  :deep(th) {
+  :deep(.nc-md-table th) {
     @apply text-left font-semibold text-nc-content-gray-subtle bg-nc-bg-gray-light px-2.5 py-1.5 border-b-1 border-nc-border-gray-medium;
   }
 
-  :deep(th:not(:last-child)) {
+  :deep(.nc-md-table th:not(:last-child)) {
     @apply border-r-1 border-nc-border-gray-light;
   }
 
-  :deep(td) {
+  :deep(.nc-md-table td) {
     @apply text-left text-nc-content-gray px-2.5 py-1.5 border-b-1 border-nc-border-gray-light;
   }
 
-  :deep(td:not(:last-child)) {
+  :deep(.nc-md-table td:not(:last-child)) {
     @apply border-r-1 border-nc-border-gray-light;
   }
 
-  :deep(tr:last-child td) {
+  :deep(.nc-md-table tr:last-child td) {
     @apply border-b-0;
   }
 }
@@ -406,16 +412,5 @@ const renderedContent = computed(() => {
   &:hover {
     @apply bg-nc-bg-gray-light;
   }
-}
-
-// Simple fade for show-more button
-.nc-fade-enter-active,
-.nc-fade-leave-active {
-  transition: opacity 150ms ease;
-}
-
-.nc-fade-enter-from,
-.nc-fade-leave-to {
-  opacity: 0;
 }
 </style>

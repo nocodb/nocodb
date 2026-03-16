@@ -1,24 +1,23 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import {
   resolveColumnByName,
   resolveTableByName,
   resolveViewByName,
-} from '../helpers';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+} from '~/integrations/ai/chat/tools/helpers';
 import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import Noco from '~/Noco';
 
-export const addSortTool: ChatToolDefinition = {
-  name: 'add_sort',
+export const addSortTool = defineChatTool({
+  name: ChatToolName.ADD_SORT,
   description:
     'Add a sort rule to a view, controlling the order records are displayed. ' +
     'Multiple sort rules are applied in the order they were added (first sort has highest priority). ' +
     'Only one sort per field is allowed — use remove_sort then add_sort to change direction. ' +
     'Returns a sort_id that can be used with remove_sort to delete this sort later.',
-  parameters: {
+  schema: z.object({
     table_name: z
       .string()
       .describe(
@@ -39,21 +38,14 @@ export const addSortTool: ChatToolDefinition = {
         '"asc" for ascending order (A→Z, 0→9, oldest→newest), ' +
           '"desc" for descending (Z→A, 9→0, newest→oldest).',
       ),
-  },
+  }),
   permission: 'sortCreate',
   scope: 'base',
   requiredRole: ProjectRoles.EDITOR,
   isDangerous: false,
-  async execute(
-    context: NcContext,
-    args: {
-      table_name: string;
-      view_name?: string;
-      field_name: string;
-      direction: string;
-    },
-    req: NcRequest,
-  ) {
+  visibility: 'action',
+  category: 'view',
+  async execute(context, args, req) {
     const sortsV3Service: SortsV3Service = Noco.nestApp.get(SortsV3Service);
     const model = await resolveTableByName(context, args.table_name);
     const view = await resolveViewByName(context, model, args.view_name);
@@ -75,4 +67,4 @@ export const addSortTool: ChatToolDefinition = {
       sort_id: sort.id,
     };
   },
-};
+});

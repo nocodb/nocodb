@@ -303,6 +303,43 @@ const onColumnAlign = (colIndex: number, align: 'left' | 'center' | 'right') => 
   nextTick(() => recalcPositions())
 }
 
+// --- Row vertical alignment ---
+// Updates verticalAlign for every cell in the row using a single transaction.
+const onRowVerticalAlign = (rowIndex: number, align: 'top' | 'middle' | 'bottom') => {
+  const table = tableEl.value
+  if (!table || !table.isConnected || !editor.value) return
+
+  const { state, dispatch } = editor.value.view
+  const tr = state.tr
+
+  const rows = table.querySelectorAll('tr')
+  const row = rows[rowIndex]
+  if (!row) return
+
+  const cells = row.querySelectorAll('td, th')
+  const cellPositions: number[] = []
+  cells.forEach((cell) => {
+    cellPositions.push(editor.value!.view.posAtDOM(cell, 0))
+  })
+
+  for (const pos of cellPositions) {
+    const resolved = tr.doc.resolve(pos)
+    for (let d = resolved.depth; d > 0; d--) {
+      const node = resolved.node(d)
+      if (node.type.name === 'tableCell' || node.type.name === 'tableHeader') {
+        tr.setNodeMarkup(resolved.before(d), undefined, { ...node.attrs, verticalAlign: align })
+        break
+      }
+    }
+  }
+
+  dispatch(tr)
+
+  menuOpen.value = null
+  focusCell(rowIndex, 0)
+  nextTick(() => recalcPositions())
+}
+
 // --- Delete table ---
 const onDeleteTable = () => {
   menuOpen.value = null
@@ -654,6 +691,25 @@ onBeforeUnmount(() => {
                   </NcButton>
                 </NcTooltip>
               </template>
+
+              <div class="nc-table-row-toolbar-divider" />
+
+              <!-- Vertical Align -->
+              <NcTooltip :title="$t('labels.alignTop')" placement="right">
+                <NcButton icon-only size="xsmall" type="text" @click="onRowVerticalAlign(rIdx, 'top')">
+                  <template #icon><GeneralIcon icon="ncVerticalAlignTop" /></template>
+                </NcButton>
+              </NcTooltip>
+              <NcTooltip :title="$t('labels.alignMiddle')" placement="right">
+                <NcButton icon-only size="xsmall" type="text" @click="onRowVerticalAlign(rIdx, 'middle')">
+                  <template #icon><GeneralIcon icon="ncVerticalAlignCenter" /></template>
+                </NcButton>
+              </NcTooltip>
+              <NcTooltip :title="$t('labels.alignBottom')" placement="right">
+                <NcButton icon-only size="xsmall" type="text" @click="onRowVerticalAlign(rIdx, 'bottom')">
+                  <template #icon><GeneralIcon icon="ncVerticalAlignBottom" /></template>
+                </NcButton>
+              </NcTooltip>
 
               <div class="nc-table-row-toolbar-divider" />
 

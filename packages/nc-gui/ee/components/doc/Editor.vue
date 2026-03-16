@@ -8,10 +8,11 @@ import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import TaskList from '@tiptap/extension-task-list'
 import TableRow from '@tiptap/extension-table-row'
-import { TextSelection } from '@tiptap/pm/state'
+import { Selection, TextSelection } from '@tiptap/pm/state'
 import { marked } from 'marked'
 import DOMPurify from 'isomorphic-dompurify'
 import { DocHighlightExtension } from './DocHighlightExtension'
+import { DocTextColorExtension } from './DocTextColorExtension'
 import { DocCommentMarkExtension } from './DocCommentMarkExtension'
 import { DocImageExtension } from './DocImageExtension'
 import { DocFileAttachmentExtension } from './DocFileAttachmentExtension'
@@ -317,6 +318,7 @@ const _tiptapEditor = useEditor({
     DocCodeBlockExtension,
     Underline,
     DocHighlightExtension,
+    DocTextColorExtension,
     DocCommentMarkExtension,
     Link.configure({ openOnClick: false }),
     Placeholder.configure({
@@ -492,6 +494,17 @@ const _tiptapEditor = useEditor({
             }
             break
           }
+        }
+
+        // First empty block in document: delete it when there are siblings below.
+        // ProseMirror's default joinBackward can't remove the very first block.
+        if ($from.index(0) === 0 && $from.parent.content.size === 0 && state.doc.childCount > 1) {
+          const topPos = $from.before(1)
+          const topNode = state.doc.child(0)
+          const tr = state.tr.delete(topPos, topPos + topNode.nodeSize)
+          tr.setSelection(Selection.near(tr.doc.resolve(0), 1))
+          view.dispatch(tr)
+          return true
         }
       }
 
@@ -2545,10 +2558,36 @@ onBeforeUnmount(() => {
         align-items: center;
 
         input[type='checkbox'] {
+          appearance: none;
+          -webkit-appearance: none;
           cursor: pointer;
           margin: 0;
           position: relative;
           top: 0.1em;
+          width: 16px;
+          height: 16px;
+          border: 2px solid var(--nc-content-gray-muted);
+          border-radius: 4px;
+          background: transparent;
+          transition: background 0.15s, border-color 0.15s;
+
+          &:checked {
+            background: var(--nc-content-brand);
+            border-color: var(--nc-content-brand);
+
+            &::after {
+              content: '';
+              position: absolute;
+              top: 1px;
+              left: 4px;
+              width: 5px;
+              height: 8px;
+              border: solid white;
+              border-width: 0 2px 2px 0;
+              border-radius: 0 0 1px 0;
+              transform: rotate(45deg);
+            }
+          }
         }
       }
 
@@ -2566,7 +2605,7 @@ onBeforeUnmount(() => {
     // Checked (completed) task items — strikethrough + muted text
     li[data-checked='true'] > div {
       text-decoration: line-through;
-      color: var(--nc-content-gray-disabled);
+      color: var(--nc-content-gray-muted);
       text-decoration-color: var(--nc-content-gray-disabled);
     }
 
@@ -2703,7 +2742,7 @@ onBeforeUnmount(() => {
   table {
     border-collapse: separate;
     border-spacing: 0;
-    margin: 0;
+    margin: 20px 0 0 0;
     overflow: hidden;
     table-layout: fixed;
     width: 100%;
@@ -2718,6 +2757,7 @@ onBeforeUnmount(() => {
       min-width: 1em;
       padding: 6px 8px;
       position: relative;
+      // Default vertical-align; overridden by inline style from verticalAlign attribute
       vertical-align: top;
 
       > * {

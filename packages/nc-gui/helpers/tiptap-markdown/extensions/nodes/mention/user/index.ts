@@ -45,12 +45,52 @@ export const UserMention = TipTapMention.extend<MentionOptions<any, MentionNodeA
       currentUser: {},
     }
   },
+  // Override default addAttributes to fix copy-paste corruption.
+  // The default `renderHTML` sets `data-id` to the raw JS object, which the browser
+  // stringifies as "[object Object]". On paste, parseHTML reads that back as a string,
+  // permanently corrupting the mention. Explicitly JSON.stringify on render and
+  // parseProp on parse to preserve the object through the HTML round-trip.
+  addAttributes() {
+    return {
+      id: {
+        default: null,
+        parseHTML: (element: HTMLElement) => {
+          return parseProp(element.getAttribute('data-id'))
+        },
+        renderHTML: (attributes: Record<string, any>) => {
+          if (!attributes.id) return {}
+
+          return {
+            'data-id': ncIsObject(attributes.id) ? JSON.stringify(attributes.id) : attributes.id,
+          }
+        },
+      },
+      label: {
+        default: null,
+        parseHTML: (element: HTMLElement) => element.getAttribute('data-label'),
+        renderHTML: (attributes: Record<string, any>) => {
+          if (!attributes.label) return {}
+
+          return { 'data-label': attributes.label }
+        },
+      },
+    }
+  },
   renderHTML({ HTMLAttributes }) {
     const attributes = parseProp(HTMLAttributes['data-id'])
 
-    const innerText = attributes.name && attributes.name.length > 0 ? attributes.name : attributes.email
+    // Guard against corrupted mention data (e.g. id stored as "[object Object]" string).
+    // parseProp returns the raw string if it can't parse JSON, so attributes may not be
+    // an object. Fallback to empty string to avoid passing undefined to ProseMirror's
+    // renderSpec, which would crash with "Cannot read properties of undefined (reading 'nodeType')".
+    const innerText = ncIsObject(attributes)
+      ? (attributes.name && attributes.name.length > 0 ? attributes.name : attributes.email) || ''
+      : ''
 
-    const styles = attributes.isSameUser === true || attributes.isSameUser === 'true' ? 'nc-current-user' : ''
+    const styles =
+      ncIsObject(attributes) && (attributes.isSameUser === true || attributes.isSameUser === 'true')
+        ? 'nc-current-user'
+        : ''
 
     return [
       'span',

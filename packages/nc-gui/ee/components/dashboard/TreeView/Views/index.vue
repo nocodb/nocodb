@@ -18,8 +18,6 @@ const { loadViews } = useViewsStore()
 
 const viewSectionsStore = useViewSectionsStore()
 
-const { DEFAULT_SECTION_ID } = viewSectionsStore
-
 const { pendingExpandSectionId } = storeToRefs(viewSectionsStore)
 
 const sections = computed(() => {
@@ -146,6 +144,35 @@ const sortedSections = computed(() => {
 
 /** Whether a section is currently being dragged */
 const sectionsDragging = ref(false)
+
+/** Whether a view is currently being dragged (for cross-section drop targets) */
+const viewDragging = ref(false)
+
+/** Section ID currently being hovered during a view drag */
+const dragOverSectionId = ref<string | null>(null)
+
+const onViewDragStart = () => {
+  viewDragging.value = true
+}
+
+const onViewDragEnd = () => {
+  viewDragging.value = false
+  dragOverSectionId.value = null
+}
+
+const onSectionDragOver = (sectionId: string) => {
+  if (viewDragging.value && dragOverSectionId.value !== sectionId) {
+    dragOverSectionId.value = sectionId
+  }
+}
+
+/** Auto-expand the target section after a cross-section drop */
+const onViewDroppedInSection = (sectionId: string) => {
+  if (!expandedSections.value[sectionId]) {
+    expandedSections.value[sectionId] = true
+    saveExpandedSections()
+  }
+}
 
 // Sections sortable — separate container that only holds real sections
 let sectionsSortable: Sortable
@@ -302,7 +329,13 @@ watch(
     <template v-if="showDefaultFolder">
       <!-- Real sections sortable container (only real sections, not default) -->
       <div ref="sectionsRef" class="nc-views-sections flex flex-col w-full">
-        <div v-for="section of sortedSections" :key="section.id" :data-id="section.id" class="w-full">
+        <div
+          v-for="section of sortedSections"
+          :key="section.id"
+          :data-id="section.id"
+          class="w-full"
+          @dragover.prevent="onSectionDragOver(section.id!)"
+        >
           <DashboardTreeViewViewsSectionNode
             :section="section"
             :is-expanded="!!expandedSections[section.id!]"
@@ -320,15 +353,23 @@ watch(
             @change-color="onChangeSectionColor(section, $event)"
           />
           <DashboardTreeViewViewsList
-            v-if="expandedSections[section.id!] || getActiveViewForSection(section.id).length"
-            :section-views="expandedSections[section.id!] ? getViewsInSection(section.id) : getActiveViewForSection(section.id)"
+            v-if="expandedSections[section.id!] || getActiveViewForSection(section.id).length || dragOverSectionId === section.id"
+            :section-views="
+              expandedSections[section.id!] || dragOverSectionId === section.id
+                ? getViewsInSection(section.id)
+                : getActiveViewForSection(section.id)
+            "
             :is-in-section="true"
+            :section-id="section.id"
+            @view-drag-start="onViewDragStart"
+            @view-drag-end="onViewDragEnd"
+            @view-dropped-in-section="onViewDroppedInSection"
           />
         </div>
       </div>
 
       <!-- Default section — always last, not sortable -->
-      <div>
+      <div @dragover.prevent="onSectionDragOver(DEFAULT_SECTION_ID)">
         <DashboardTreeViewViewsSectionNode
           :section="defaultSection"
           :is-expanded="!!expandedSections[DEFAULT_SECTION_ID]"
@@ -342,14 +383,22 @@ watch(
           @collapse-all="collapseAllSections"
         />
         <DashboardTreeViewViewsList
-          v-if="expandedSections[DEFAULT_SECTION_ID] || getActiveViewForSection(DEFAULT_SECTION_ID).length"
+          v-if="
+            expandedSections[DEFAULT_SECTION_ID] ||
+            getActiveViewForSection(DEFAULT_SECTION_ID).length ||
+            dragOverSectionId === DEFAULT_SECTION_ID
+          "
           :section-views="
-            expandedSections[DEFAULT_SECTION_ID]
+            expandedSections[DEFAULT_SECTION_ID] || dragOverSectionId === DEFAULT_SECTION_ID
               ? getViewsInSection(DEFAULT_SECTION_ID)
               : getActiveViewForSection(DEFAULT_SECTION_ID)
           "
           :hide-create-view-btn="true"
           :is-in-section="true"
+          :section-id="DEFAULT_SECTION_ID"
+          @view-drag-start="onViewDragStart"
+          @view-drag-end="onViewDragEnd"
+          @view-dropped-in-section="onViewDroppedInSection"
         />
       </div>
     </template>

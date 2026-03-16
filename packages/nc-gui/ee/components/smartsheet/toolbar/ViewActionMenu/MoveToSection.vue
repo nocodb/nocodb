@@ -24,8 +24,6 @@ const { updateView } = viewsStore
 
 const viewSectionsStore = useViewSectionsStore()
 
-const { DEFAULT_SECTION_ID } = viewSectionsStore
-
 const sections = computed(() => {
   if (!table.value.base_id || !table.value.id) return []
   return viewSectionsStore.getSections(table.value.base_id, table.value.id)

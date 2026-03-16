@@ -2,9 +2,6 @@ import { type ViewSectionType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
 export const useViewSectionsStore = defineStore('viewSections', () => {
-  /** Virtual section ID for views not assigned to any real section */
-  const DEFAULT_SECTION_ID = '__default__'
-
   const { $api } = useNuxtApp()
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
@@ -270,8 +267,6 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
   }
 
   return {
-    DEFAULT_SECTION_ID,
-
     // State
     sectionsByTable,
     pendingExpandSectionId,

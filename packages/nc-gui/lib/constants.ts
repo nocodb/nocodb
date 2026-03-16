@@ -93,3 +93,6 @@ export const CHART_COLORS = [
   '#6f5553',
   '#c14089',
 ]
+
+/** Virtual section ID for views not assigned to any real section */
+export const DEFAULT_SECTION_ID = '__default__'

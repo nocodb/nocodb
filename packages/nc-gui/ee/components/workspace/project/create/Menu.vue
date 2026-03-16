@@ -91,7 +91,7 @@ onMounted(() => {
     />
 
     <WorkspaceProjectCreateMenuItem
-      v-if="isAiFeaturesEnabled"
+      v-if="isAiFeaturesEnabled && showEEFeatures"
       v-e="['c:base:ai:create']"
       :variant="variant"
       icon="ncAutoAwesome"

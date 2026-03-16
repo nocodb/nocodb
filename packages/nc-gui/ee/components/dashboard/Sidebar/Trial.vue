@@ -45,7 +45,7 @@ const precentageColor = computed(() => {
         <span v-if="numberOfDaysLeft >= 0">Expires in: {{ numberOfDaysLeft }} day{{ numberOfDaysLeft > 1 ? 's' : '' }}</span
         ><span v-else>License expired</span>
       </div>
-      <a no-prefetch no-rel href="https://calendly.com/nocodb-meeting" target="_blank">
+      <a no-prefetch no-rel href="https://cal.com/nocodb/sales" target="_blank">
         <nc-button size="small" class="text-center w-full text-white">
           <div class="flex gap-2 items-center justify-center">
             <GeneralIcon icon="phoneCall" />
@@ -59,6 +59,6 @@ const precentageColor = computed(() => {
 
 <style scoped>
 .nc-trial-card {
-  @apply !rounded-xl border-nc-orange-200 !bg-nc-orange-100 !p-1 text-nc-content-gray;
+  @apply !rounded-xl border-nc-orange-200 !bg-nc-orange-100 dark:(!border-nc-orange-100 !bg-nc-orange-20 )  !p-1 text-nc-content-gray;
 }
 </style>

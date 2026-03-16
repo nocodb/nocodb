@@ -221,7 +221,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: nocodb/nocodb
-          token: ${{ secrets.NC_GITHUB_TOKEN }}
+          token: ${{ secrets.NC_GITHUB_TOKEN1 }}
           fetch-depth: 0
 
       - name: Get HEAD SHA

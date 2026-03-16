@@ -3,7 +3,7 @@ import { packageInfo, T } from '~/utils';
 
 @Injectable()
 export class TelemetryService {
-  private defaultPayload: any;
+  protected defaultPayload: any;
 
   constructor() {
     this.defaultPayload = {

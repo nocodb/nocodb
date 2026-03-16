@@ -3,6 +3,7 @@ import { useDebounceFn } from '@vueuse/core'
 // import posthog from 'posthog-js'
 // @ts-expect-error - nc-analytics is not typed
 import { init } from 'nc-analytics'
+import { SocketTele } from '~/utils/teleUtils'
 import type { NuxtApp } from '#app'
 
 // todo: generate client id and keep it in cookie(share across sub-domains)
@@ -138,7 +139,9 @@ class EventBatcher {
   )
 
   private batchProcessor = async (events: any[]) => {
-    if (process.env.NC_ON_PREM === 'true') {
+    // Licensed on-prem enterprise users — skip telemetry
+    const appInfo = this.nuxtApp.$state?.appInfo?.value
+    if (appInfo?.ee && !appInfo?.isCloud) {
       return
     }
 
@@ -158,28 +161,43 @@ class EventBatcher {
 // todo: ignore init if tele disabled
 export default defineNuxtPlugin(async (nuxtApp) => {
   const eventBatcher = new EventBatcher(nuxtApp)
+  const socketTele = new SocketTele()
 
   const router = useRouter()
 
   let workspaceStore: ReturnType<useWorkspace>
 
   const route = router.currentRoute
+
+  // Tracks whether we're using socket.io (free user) or HTTP batch (cloud) telemetry
+  let useSocketTele = false
+
   const tele = {
     emit(evt: string, data: Record<string, any>) {
       try {
-        workspaceStore = workspaceStore ?? useWorkspace()
+        if (useSocketTele) {
+          // Free user path: socket.io → SocketGateway → Tele → telemetry.nocodb.com
+          socketTele.emit(evt, {
+            ...(data || {}),
+            path: route.value?.matched?.[0]?.path,
+            pid: route.value?.params?.baseId as string,
+          })
+        } else {
+          // Cloud path: EventBatcher → POST /api/v1/tele → PostHog
+          workspaceStore = workspaceStore ?? useWorkspace()
 
-        eventBatcher.enqueueEvent({
-          event: evt,
-          ...(data || {}),
-          $current_url: route.value?.path,
-          path: sanitisePath(route.value?.matched?.[route.value?.matched?.length - 1]?.path),
-          base_id: route.value?.params?.baseId,
-          workspace_id: route.value?.params?.typeOrId ?? undefined,
-          table_id: route.value?.params?.viewId ?? undefined,
-          view_id: route.value?.params?.viewTitle ?? undefined,
-          plan: workspaceStore?.activeWorkspace?.payment?.plan?.title,
-        })
+          eventBatcher.enqueueEvent({
+            event: evt,
+            ...(data || {}),
+            $current_url: route.value?.path,
+            path: sanitisePath(route.value?.matched?.[route.value?.matched?.length - 1]?.path),
+            base_id: route.value?.params?.baseId,
+            workspace_id: route.value?.params?.typeOrId ?? undefined,
+            table_id: route.value?.params?.viewId ?? undefined,
+            view_id: route.value?.params?.viewTitle ?? undefined,
+            plan: workspaceStore?.activeWorkspace?.payment?.plan?.title,
+          })
+        }
       } catch {}
     },
   }
@@ -231,24 +249,58 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
   // put inside app:created hook to ensure global state is available
   nuxtApp.hooks.hook('app:created', () => {
-    eventBatcher.restore()
-
-    window.addEventListener('beforeunload', () => {
-      eventBatcher.flush()
-    })
-
     const globalState = useGlobal()
 
-    // if tele enabled at some point, init Posthog
-    until(() => globalState?.appInfo?.value?.teleEnabled)
-      .toBeTruthy({ timeout: 300000 })
-      .then(() => {
-        isTeleEnabled = globalState?.appInfo?.value?.teleEnabled
-        if (clientId) initPostHog(clientId)
+    const appInfo = globalState?.appInfo?.value
+    const isFreeUser = !appInfo?.ee && !appInfo?.isCloud
+
+    if (isFreeUser) {
+      // Free/unlicensed user: use socket.io telemetry (CE path)
+      useSocketTele = true
+
+      const ncSiteUrl = appInfo?.ncSiteUrl
+
+      if (globalState.signedIn.value) {
+        socketTele.init(globalState.token.value, ncSiteUrl)
+      }
+
+      // Watch for token changes to reconnect/disconnect socket
+      watch(globalState.token, (newToken, oldToken) => {
+        try {
+          if (newToken && newToken !== oldToken) socketTele.init(newToken, ncSiteUrl)
+          else if (!newToken) socketTele.disconnect()
+        } catch {}
       })
-      .catch(() => {
-        isTeleEnabled = false
+
+      // Page navigation tracking via socket.io
+      router.afterEach((to, from) => {
+        if (!socketTele.connected || (to.path === from.path && (to.query && to.query.type) === (from.query && from.query.type)))
+          return
+
+        socketTele.emitPage(
+          to.matched[to.matched.length - 1]?.path + (to.query && to.query.type ? `?type=${to.query.type}` : ''),
+          route.value?.params?.baseId as string,
+        )
       })
+    } else {
+      // Cloud / licensed: use EventBatcher (existing EE path)
+      eventBatcher.restore()
+
+      window.addEventListener('beforeunload', () => {
+        eventBatcher.flush()
+      })
+
+      // if tele enabled at some point, init Posthog
+      until(() => globalState?.appInfo?.value?.teleEnabled)
+        .toBeTruthy({ timeout: 300000 })
+        .then(() => {
+          isTeleEnabled = globalState?.appInfo?.value?.teleEnabled
+          if (clientId) initPostHog(clientId)
+        })
+        .catch(() => {
+          isTeleEnabled = false
+        })
+    }
   })
 })
 

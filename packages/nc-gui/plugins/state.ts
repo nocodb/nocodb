@@ -29,8 +29,11 @@ const statePlugin = async (_nuxtApp) => {
   await setI18nLanguage(currentLang)
 
   try {
+    state.appInfoStatus.value = 'loading'
     state.appInfo.value = await api.utils.appInfo()
+    state.appInfoStatus.value = 'loaded'
   } catch (e) {
+    state.appInfoStatus.value = 'error'
     console.error(e)
   }
 }

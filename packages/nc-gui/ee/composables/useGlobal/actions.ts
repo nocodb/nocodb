@@ -211,9 +211,12 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
 
   const loadAppInfo = async () => {
     try {
+      state.appInfoStatus.value = 'loading'
       const nuxtApp = useNuxtApp()
       state.appInfo.value = (await nuxtApp.$api.utils.appInfo()) as AppInfo
+      state.appInfoStatus.value = 'loaded'
     } catch (e) {
+      state.appInfoStatus.value = 'error'
       console.error(e)
     }
   }

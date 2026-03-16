@@ -12,7 +12,7 @@ on:
         type: string
         required: true
     secrets:
-      NC_GITHUB_TOKEN:
+      NC_GITHUB_TOKEN1:
         required: true
       NUXT_CHATWOOT_WEBSITE_TOKEN_ONPREM:
         required: false
@@ -231,7 +231,7 @@ jobs:
       - name: Upload Linux and Windows executables to draft release
         uses: softprops/action-gh-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN1 }}
         with:
           draft: true
           tag_name: ${{ github.event.inputs.tag || inputs.tag }}
@@ -291,7 +291,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: 'homebrew-nocodb'
-          token: ${{ secrets.NC_GITHUB_TOKEN }}
+          token: ${{ secrets.NC_GITHUB_TOKEN1 }}
           repository: 'nocodb/homebrew-nocodb'
           fetch-depth: 0
 
@@ -307,7 +307,7 @@ jobs:
       - name: Upload macOS executables and tarball to draft release
         uses: softprops/action-gh-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN1 }}
         with:
           draft: true
           tag_name: ${{ github.event.inputs.tag || inputs.tag }}

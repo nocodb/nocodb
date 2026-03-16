@@ -46,9 +46,13 @@ export function useDocumentAutoSave({
 
   // When the store version advances due to current user's action (e.g. sidebar rename),
   // sync local doc fields so the stale banner doesn't appear for your own changes.
+  // Watches both version AND isSaving so that version bumps that arrive during an
+  // in-flight save are re-evaluated once the save settles (Vue watchers only fire on
+  // value change — without isSaving in the source, a version bump skipped during save
+  // would never be re-processed).
   watch(
-    () => activeDocument.value?.version,
-    (storeVersion) => {
+    () => [activeDocument.value?.version, isSaving.value] as const,
+    ([storeVersion]) => {
       if (!doc.value || !activeDocument.value || !isLoaded.value || isSaving.value) return
       // Guard: only sync if activeDocument matches the editor's local doc
       if (activeDocument.value.id !== doc.value.id) return
@@ -73,6 +77,12 @@ export function useDocumentAutoSave({
   const isStale = computed(() => {
     if (!doc.value || !activeDocument.value) return false
     if (!isLoaded.value || isSaving.value) return false
+
+    // During navigation, activeDocument switches to the new page before
+    // loadAndSetDoc flushes the old page's pending save. Without this guard,
+    // comparing versions across different documents would false-positive as
+    // stale, causing the flush save to be skipped and edits to be lost.
+    if (activeDocument.value.id !== doc.value.id) return false
 
     // Only stale if store version is ahead (another user saved)
     return (activeDocument.value.version ?? 0) > (doc.value.version ?? 0)
@@ -246,6 +256,15 @@ export function useDocumentAutoSave({
     if (!doc.value?.id) return
     // Cancel any pending save — stale content shouldn't overwrite newer version
     if (saveTimeout.value) clearTimeout(saveTimeout.value)
+    pendingSaveAfterCurrent = false
+
+    // Wait for any in-flight save to settle before loading. Without this,
+    // the save's success handler could write a stale version onto the freshly
+    // loaded doc.value, causing the next save to fail with a 422.
+    if (isSaving.value) {
+      await until(isSaving).toBe(false, { timeout: 10000 })
+    }
+
     hasUserEdited.value = false
     await loadAndSetDoc(doc.value.id)
   }
@@ -258,8 +277,9 @@ export function useDocumentAutoSave({
   const flushOnUnmount = () => {
     if (saveTimeout.value) {
       clearTimeout(saveTimeout.value)
-      // Skip if a save is already in-flight — it will persist the current content
-      if (!isSaving.value && isEditable.value && doc.value && activeProjectId.value && editor.value) {
+      // Skip if stale (another user saved a newer version — our version will be
+      // rejected by the backend anyway), or if a save is already in-flight.
+      if (!isSaving.value && !isStale.value && isEditable.value && doc.value && activeProjectId.value && editor.value) {
         const content = editor.value.getJSON()
         const docId = doc.value.id!
         const version = doc.value.version

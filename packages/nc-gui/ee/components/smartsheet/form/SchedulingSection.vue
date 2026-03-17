@@ -54,42 +54,38 @@ const endDateValidationError = computed(() => {
 </script>
 
 <template>
-  <div class="p-4 flex flex-col space-y-4">
+  <div class="p-4 flex flex-col space-y-4 border-b border-nc-border-gray-medium">
     <!-- Form Scheduling -->
-    <div class="text-sm font-bold text-nc-content-gray">
-      {{ $t('labels.formScheduling') }}
-    </div>
-    <div class="flex flex-col gap-3">
-      <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_FORM_SCHEDULING">
-        <template #default="{ click }">
-          <div class="flex items-center justify-between gap-3">
-            <span class="flex items-center gap-3">
-              {{ $t('labels.formScheduling') }}
+    <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_FORM_SCHEDULING">
+      <template #default="{ click }">
+        <div class="flex items-center justify-between gap-3">
+          <span class="flex items-center gap-3 text-sm font-bold text-nc-content-gray">
+            {{ $t('labels.formScheduling') }}
 
-              <LazyPaymentUpgradeBadge
-                v-if="!isFormSchedulingEnabled && !appInfo.isOnPrem"
-                :feature="PlanFeatureTypes.FEATURE_FORM_SCHEDULING"
-              />
-            </span>
-            <a-switch
-              v-e="[`a:form-view:scheduling`]"
-              :checked="isFormSchedulingEnabled"
-              size="small"
-              class="nc-form-checkbox-scheduling"
-              data-testid="nc-form-checkbox-scheduling"
-              :disabled="isLocked || !isEditable"
-              @change="
-                (value: boolean) => {
-                  if (value && !appInfo.isOnPrem && click(PlanFeatureTypes.FEATURE_FORM_SCHEDULING)) return
-
-                  isFormSchedulingEnabled = !!value
-                }
-              "
+            <LazyPaymentUpgradeBadge
+              v-if="!isFormSchedulingEnabled && !appInfo.isOnPrem"
+              :feature="PlanFeatureTypes.FEATURE_FORM_SCHEDULING"
             />
-          </div>
-        </template>
-      </PaymentUpgradeBadgeProvider>
+          </span>
+          <a-switch
+            v-e="[`a:form-view:scheduling`]"
+            :checked="isFormSchedulingEnabled"
+            size="small"
+            class="nc-form-checkbox-scheduling"
+            data-testid="nc-form-checkbox-scheduling"
+            :disabled="isLocked || !isEditable"
+            @change="
+              (value: boolean) => {
+                if (value && !appInfo.isOnPrem && click(PlanFeatureTypes.FEATURE_FORM_SCHEDULING)) return
 
+                isFormSchedulingEnabled = !!value
+              }
+            "
+          />
+        </div>
+      </template>
+    </PaymentUpgradeBadgeProvider>
+    <div class="flex flex-col gap-3 empty:hidden">
       <template v-if="isFormSchedulingEnabled">
         <!-- Start date -->
         <div class="flex flex-col gap-1.5">

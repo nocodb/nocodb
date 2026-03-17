@@ -285,24 +285,42 @@ const { message: templatedMessage } = useTemplatedMessage(
   <div class="h-full">
     <div class="survey md:p-0 w-full h-full flex flex-col max-w-[max(33%,688px)] mx-auto mb-4rem lg:mb-10rem">
       <div v-if="sharedFormView" class="my-auto z-2">
-        <template v-if="isFormNotStarted">
+        <template v-if="isFormNotStarted || isFormExpired">
           <GeneralFormBanner
             v-if="sharedFormView && !parseProp(sharedFormView?.meta).hide_banner"
             :banner-image-url="sharedFormView.banner_image_url"
             class="flex-none mb-4"
           />
           <div class="rounded-3xl border-1 border-nc-border-gray-medium p-6 lg:p-12 bg-nc-bg-default">
-            <SmartsheetFormClosedState mode="not-started" :starts-at="formStartsAt" />
-          </div>
-        </template>
-        <template v-else-if="isFormExpired">
-          <GeneralFormBanner
-            v-if="sharedFormView && !parseProp(sharedFormView?.meta).hide_banner"
-            :banner-image-url="sharedFormView.banner_image_url"
-            class="flex-none mb-4"
-          />
-          <div class="rounded-3xl border-1 border-nc-border-gray-medium p-6 lg:p-12 bg-nc-bg-default">
-            <SmartsheetFormClosedState mode="expired" />
+            <div
+              v-if="sharedFormView.logo_url"
+              class="mb-4 nc-shared-form-logo-wrapper inline-block h-56px max-w-189px overflow-hidden flex items-center"
+            >
+              <LazyCellAttachmentPreviewImage
+                :srcs="getPossibleAttachmentSrc(parseProp(sharedFormView.logo_url))"
+                class="flex-none nc-shared-form-logo !object-contain object-left max-h-full max-w-full !m-0"
+                :is-cell-preview="false"
+              />
+            </div>
+
+            <h1 class="text-2xl font-bold text-nc-content-gray-emphasis mb-4" data-testid="nc-survey-form__heading">
+              {{ sharedFormView.heading }}
+            </h1>
+
+            <div v-if="sharedFormView.subheading" class="mb-4">
+              <LazyCellRichText
+                :value="sharedFormView.subheading"
+                class="font-medium text-base text-nc-content-gray-muted !h-auto -ml-1"
+                is-form-field
+                read-only
+                sync-value-change
+              />
+            </div>
+
+            <SmartsheetFormClosedState
+              :mode="isFormNotStarted ? 'not-started' : 'expired'"
+              :starts-at="formStartsAt"
+            />
           </div>
         </template>
         <template v-else-if="!isStarted || submitted">

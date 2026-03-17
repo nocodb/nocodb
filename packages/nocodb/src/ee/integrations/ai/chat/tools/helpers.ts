@@ -4,6 +4,7 @@ import type { NcContext } from '~/interface/config';
 import type { Column } from '~/models';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
 import Model from '~/models/Model';
 import View from '~/models/View';
 import { Dashboard, Widget } from '~/models';
@@ -11,6 +12,7 @@ import Noco from '~/Noco';
 
 /**
  * Resolve a table by its title (case-insensitive) within the current base.
+ * Enforces TABLE_VISIBILITY permission when context.user is available.
  */
 export async function resolveTableByName(
   context: NcContext,
@@ -26,6 +28,18 @@ export async function resolveTableByName(
 
   if (!model) {
     NcError.get(context).genericNotFound('Table', tableName);
+  }
+
+  // Enforce table visibility — returns same "not found" to avoid leaking existence
+  if (context.user) {
+    const hasAccess = await hasTableVisibilityAccess(
+      context,
+      model.id,
+      context.user,
+    );
+    if (!hasAccess) {
+      NcError.get(context).genericNotFound('Table', tableName);
+    }
   }
 
   return model;

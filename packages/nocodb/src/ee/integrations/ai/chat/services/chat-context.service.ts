@@ -5,6 +5,7 @@ import type { ModelMessage } from 'ai';
 import type { NcContext } from '~/interface/config';
 import { AGENTS, type SchemaDepth } from '~/integrations/ai/chat/agents';
 import { estimateTokens } from '~/integrations/ai/chat/helpers/tokenlens';
+import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
 import { getBaseSchema } from '~/helpers/scriptHelper';
 
 interface SchemaField {
@@ -40,9 +41,27 @@ export class ChatContextService {
     if (depth === 'none') return '';
 
     const baseSchema = await getBaseSchema(context);
+
+    // Filter out tables the user cannot see based on TABLE_VISIBILITY permissions
+    let tables = baseSchema.tables;
+    if (context.user) {
+      const visibleTables: typeof tables = [];
+      for (const table of tables) {
+        const hasAccess = await hasTableVisibilityAccess(
+          context,
+          table.id,
+          context.user,
+        );
+        if (hasAccess) {
+          visibleTables.push(table);
+        }
+      }
+      tables = visibleTables;
+    }
+
     const lines: string[] = [];
 
-    for (const table of baseSchema.tables) {
+    for (const table of tables) {
       const isActive = activeTableId && table.id === activeTableId;
       const showFullFields =
         depth === 'full' || (depth === 'focused' && isActive);
@@ -57,7 +76,7 @@ export class ChatContextService {
       }
     }
 
-    const rels = this.formatRelationships(baseSchema.tables);
+    const rels = this.formatRelationships(tables);
     if (rels) lines.push(rels);
 
     return lines.join('\n');

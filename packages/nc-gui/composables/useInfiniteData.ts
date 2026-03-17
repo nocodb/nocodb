@@ -1864,8 +1864,8 @@ export function useInfiniteData(args: {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
     )
-    const newRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
-    if (newRow) newRow.rowMeta.isValidationFailed = isValidationFailed
+    const cachedRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
+    if (cachedRow) cachedRow.rowMeta.isValidationFailed = isValidationFailed
 
     // check if the column is part of group by and value changed
     if (row.rowMeta?.path?.length && groupByColumns?.value) {
@@ -1903,7 +1903,7 @@ export function useInfiniteData(args: {
         .map((c) => c.title!) || []),
     )
 
-    if (isSortRelevantChange(changedFields, sorts.value, columnsById.value) || newRow) {
+    if (isSortRelevantChange(changedFields, sorts.value, columnsById.value) || row.rowMeta.new) {
       const needsResorting = willSortOrderChange({
         row,
         newData: data,
@@ -1911,7 +1911,7 @@ export function useInfiniteData(args: {
         path,
       })
 
-      if (newRow) newRow.rowMeta.isRowOrderUpdated = needsResorting
+      if (cachedRow) cachedRow.rowMeta.isRowOrderUpdated = needsResorting
     }
     callbacks?.syncVisibleData?.()
   }

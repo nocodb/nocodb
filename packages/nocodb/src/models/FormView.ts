@@ -9,6 +9,8 @@ import { PresignedUrl } from '~/models';
 import FormViewColumn from '~/models/FormViewColumn';
 import View from '~/models/View';
 import { extractProps } from '~/helpers/extractProps';
+import { NcError } from '~/helpers/catchError';
+import { isEE } from '~/utils';
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
 import { deserializeJSON, serializeJSON } from '~/utils/serialize';
@@ -260,5 +262,32 @@ export default class FormView implements FormViewType {
       }
     } catch {}
     return formAttachments;
+  }
+
+  static async validateFormScheduling(
+    context: NcContext,
+    viewId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!isEE) return;
+
+    const formView = await this.get(context, viewId, ncMeta);
+    if (!formView) return;
+
+    if (formView.starts_at) {
+      if (new Date(formView.starts_at).getTime() > Date.now()) {
+        NcError.get(context).badRequest(
+          'This form is not yet accepting responses',
+        );
+      }
+    }
+
+    if (formView.expires_at) {
+      if (new Date(formView.expires_at).getTime() < Date.now()) {
+        NcError.get(context).badRequest(
+          'This form is no longer accepting responses',
+        );
+      }
+    }
   }
 }

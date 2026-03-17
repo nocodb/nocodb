@@ -174,7 +174,7 @@ onMounted(async () => {
 
         <template #overlay>
           <div
-            class="nc-datasource-conditions-dropdown-container"
+            class="nc-datasource-conditions-dropdown-container px-3"
             :class="{
               'py-2': !filters.length,
             }"

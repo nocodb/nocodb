@@ -76,7 +76,7 @@ provide(ReloadRowDataHookInj, reloadRowDataHook)
 
 reloadViewDataHook.on(fetchData)
 reloadRowDataHook.on(fetchData)
-provide(RowHeightInj, ref(1 as const))
+provide(RowHeightInj, ref(2 as const))
 
 const undefinedView = ref(undefined as unknown as ViewType)
 useProvideSmartsheetLtarHelpers(metaRef)

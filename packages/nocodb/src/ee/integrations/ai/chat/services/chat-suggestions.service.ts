@@ -73,13 +73,17 @@ export class ChatSuggestionsService {
     try {
       const baseSchema = await getBaseSchema(context);
 
+      // Cap tables to avoid oversized prompts
+      const MAX_TABLES = 10;
+      const cappedTables = (baseSchema.tables || []).slice(0, MAX_TABLES);
+
       // Enrich with sample records (don't mutate cached schema)
       const tables = await Promise.all(
-        (baseSchema.tables || []).map(async (table: any) => {
+        cappedTables.map(async (table: any) => {
           try {
             const result = await this.dataV3Service.dataList(context, {
               modelId: table.id,
-              query: { limit: '5', offset: '0', shuffle: '1' },
+              query: { limit: '2', offset: '0', shuffle: '1' },
               req,
             });
             return {
@@ -93,6 +97,16 @@ export class ChatSuggestionsService {
       );
 
       schema = JSON.stringify({ ...baseSchema, tables });
+
+      // Guard against oversized schemas — keep start and end, truncate the middle
+      const MAX_SCHEMA_SIZE = 100_000; // ~100KB
+      if (schema.length > MAX_SCHEMA_SIZE) {
+        const half = Math.floor(MAX_SCHEMA_SIZE / 2);
+        schema =
+          schema.slice(0, half) +
+          '\n...(schema truncated)...\n' +
+          schema.slice(-half);
+      }
     } catch (e) {
       this.logger.warn(
         `Failed to build schema for suggestions: ${e.message}`,
@@ -228,15 +242,16 @@ export class ChatSuggestionsService {
 
     const baseSchema = await getBaseSchema(context);
 
-    // Enrich follow-ups with shuffled sample records for richer context
-    let tables = baseSchema.tables || [];
+    // Cap tables and enrich with sample records for richer context
+    const MAX_TABLES = 10;
+    let tables = (baseSchema.tables || []).slice(0, MAX_TABLES);
     if (req) {
       tables = await Promise.all(
         tables.map(async (table: any) => {
           try {
             const result = await this.dataV3Service.dataList(context, {
               modelId: table.id,
-              query: { limit: '5', offset: '0', shuffle: '1' },
+              query: { limit: '2', offset: '0', shuffle: '1' },
               req,
             });
             return { ...table, sampleRecords: (result as any)?.records || [] };
@@ -247,7 +262,12 @@ export class ChatSuggestionsService {
       );
     }
 
-    const schema = JSON.stringify({ ...baseSchema, tables });
+    let schema = JSON.stringify({ ...baseSchema, tables });
+
+    const MAX_SCHEMA_SIZE = 100_000;
+    if (schema.length > MAX_SCHEMA_SIZE) {
+      schema = schema.slice(0, MAX_SCHEMA_SIZE) + '...(truncated)';
+    }
 
     const messages = buildFollowUpMessages({
       schema,

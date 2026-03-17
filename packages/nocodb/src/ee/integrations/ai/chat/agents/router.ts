@@ -20,7 +20,7 @@ export const routerAgent: AgentDefinition = {
   tools: [], // Router uses its own tool set (route_to_agent, respond_directly, mark_complete)
   maxTurns: 1,
   schemaDepth: 'high-level',
-  useRouterModel: true,
+  modelTier: 'low',
 
   buildPrompt(params): string {
     const p = params as RouterPromptParams;
@@ -42,7 +42,8 @@ You do NOT execute tasks yourself — you route.`);
 | **record** | Creates, updates, deletes records and manages links between tables |
 | **dashboard** | Creates/manages dashboards and widgets — charts, metrics, text, iframes |
 | **ui** | Navigates the app — opens bases, tables, views, dashboards |
-| **file_analyst** | Analyzes, parses, transforms, and extracts data from uploaded files (CSV, JSON, PDF, Excel, etc.) using sandboxed code execution |`);
+| **file_analyst** | Analyzes, parses, transforms, and extracts data from uploaded files (CSV, JSON, PDF, Excel, etc.) using sandboxed code execution |
+| **support** | Answers NocoDB how-to questions, troubleshooting, and feature guidance by searching docs. For billing, account, bug reports, or feature requests — directs users to customer support |`);
 
     // ─── Tools ─────────────────────────────────────────────────────────────
     parts.push(`
@@ -61,7 +62,9 @@ You do NOT execute tasks yourself — you route.`);
 2. **Multi-step requests:** Break into sequential steps. Route to the first agent needed. \
 After it returns, re-evaluate and route to the next.
 3. **Never re-route to the agent that just returned** unless its summary explicitly says it needs to run again with different input.
-4. **Use respond_directly** for: greetings, "what can you do?", schema questions answerable from context, clarifying questions.
+4. **Use respond_directly** for: greetings, "what can you do?", schema questions answerable from context, clarifying questions. \
+**Never** use respond_directly for NocoDB product how-to questions ("How do I delete a base?", "How do I create a view?", \
+"How do I set up SSO?") — always route these to **support** so it can search official docs.
 5. **Use mark_complete** when all turn summaries together cover the full user request.
 6. **Ambiguous requests:** If the request could mean very different things, use \`ask_user\` to present options. \
 If there's a clear "most likely" interpretation, route to that specialist instead of asking.
@@ -78,8 +81,18 @@ The specialist sees its own schema context but benefits from a focused instructi
 - **Never** re-delegate to the same agent with the same intent, even if phrased differently. \
 "What is X?" and "Tell me about X" are semantically the same.
 - If a specialist already completed a request (check turn summaries), do not delegate to another agent to "verify" or "confirm" the result.
-- After delegating to **builder**, always check whether the user's original request also asked for \
+- After delegating to **builder**, check whether the user's original request also asked for \
 adding/updating records. If yes, delegate to **record** before marking complete.
+- **After QA returns, mark_complete** unless the user explicitly asked for a follow-up action (e.g. "find X and then update Y"). \
+QA handles read-only queries — never re-delegate a QA result to **record** or another agent just to "continue" the query. \
+If QA answered the question, the task is done.
+- **Never delegate to record for read-only queries.** Record is for creating, updating, and deleting data — \
+not for querying or listing. If the user asks "find", "show", "list", "count", or "what are" → QA only.
+
+### Support, billing & account queries
+- If the user asks about NocoDB features, how-to, troubleshooting, or general product help → route to **support**.
+- If the user asks about billing, payments, pricing, subscriptions, account issues, bug reports, feature requests, \
+or complaints → route to **support** (it will direct them to customer support).
 
 ### Bias towards action
 - If the user asks "Can you...?" or "Could you...?", treat it as a request for action, not a question.
@@ -107,6 +120,9 @@ Route directly to the specialist and let the tool approval handle confirmation.
 - "Open the Projects table" → **ui** → done
 - "Analyze this CSV" → **file_analyst** → done
 - "What's in this PDF?" → **file_analyst** → done
+- "How do I set up webhooks?" → **support** → done
+- "How do I change my plan?" → **support** → done (directs to customer support)
+- "I found a bug" → **support** → done (directs to customer support)
 - "What can you do?" → **respond_directly**
 - "Hello!" → **respond_directly**
 

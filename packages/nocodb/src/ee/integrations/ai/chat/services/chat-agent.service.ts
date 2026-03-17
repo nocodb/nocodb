@@ -35,8 +35,8 @@ import { AGENTS, SPECIALIST_NAMES } from '~/integrations/ai/chat/agents';
 import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
 import { MAX_ROUNDS, ROUTER_MAX_TURNS } from '~/integrations/ai/chat/constants';
 import {
-  TITLE_GENERATION_SYSTEM_PROMPT,
   buildTitleGenerationMessages,
+  TITLE_GENERATION_SYSTEM_PROMPT,
 } from '~/integrations/ai/chat/prompts/suggestions';
 import {
   buildSummarizePrompt,
@@ -155,15 +155,24 @@ export class ChatAgentService {
       return;
     }
 
-    let model: ReturnType<AiIntegration['getModel']>;
+    let aiWrapper: AiIntegration;
     try {
-      const wrapper = integration.getIntegrationWrapper<AiIntegration>();
-      model = wrapper.getModel();
+      aiWrapper = integration.getIntegrationWrapper<AiIntegration>();
     } catch (e) {
       this.logger.error('Failed to initialise AI provider', e.stack);
       callbacks?.onError?.('Failed to initialise AI provider');
       return;
     }
+
+    const supportsModelTiers = (integration.sub_type as string) === 'nocodb';
+
+    const getModelForTier = (tier: string) =>
+      aiWrapper.getModel(
+        supportsModelTiers ? { customModel: tier } : undefined,
+      );
+
+    // Default model — used for compaction, title generation, and as fallback
+    const model = getModelForTier('high');
 
     // Fire-and-forget title generation for first message
     const isFirstMessage =
@@ -272,7 +281,7 @@ export class ChatAgentService {
               });
 
               const decision = await this.runRouter({
-                model,
+                model: getModelForTier(AGENTS.router.modelTier),
                 context: toolContext,
                 baseId,
                 baseName,
@@ -351,7 +360,7 @@ export class ChatAgentService {
               const result = await this.runSpecialist({
                 agentName: currentAgent,
                 agentDef,
-                model,
+                model: getModelForTier(agentDef.modelTier),
                 context: toolContext,
                 baseId,
                 baseName,
@@ -395,7 +404,7 @@ export class ChatAgentService {
           ) {
             const { inputTokens: sIn, outputTokens: sOut } =
               await this.runSummarize({
-                model,
+                model: getModelForTier('high'),
                 context: toolContext,
                 baseId,
                 baseName,
@@ -469,7 +478,7 @@ export class ChatAgentService {
             try {
               const followUps = await this.suggestionsService.generateFollowUps(
                 toolContext,
-                model,
+                getModelForTier('low'),
                 contentBlocks,
                 firstUserMessage,
                 req,

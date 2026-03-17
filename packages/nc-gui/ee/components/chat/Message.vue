@@ -61,9 +61,12 @@ const artifactSchema = computed(() => {
   return undefined
 })
 
-// All tool blocks for ThinkingSection — includes hidden tools, but excludes announce (internal only)
+// Tool blocks for ThinkingSection — excludes announce and internal-only tools
+const THINKING_EXCLUDE = new Set(['announce', 'return_to_router', 'route_to_agent', 'mark_complete', 'respond_directly'])
 const thinkingBlocks = computed<ToolUseBlock[]>(() => {
-  return displayParts.value.filter((p): p is ToolUseBlock => p.type === 'tool_use' && (p as ToolUseBlock).name !== 'announce')
+  return displayParts.value.filter(
+    (p): p is ToolUseBlock => p.type === 'tool_use' && !THINKING_EXCLUDE.has((p as ToolUseBlock).name),
+  )
 })
 
 const displaySegments = computed<DisplaySegment[]>(() => {
@@ -118,6 +121,7 @@ const ncDataComp = resolveComponent('ChatMarkdownVirtualTable')
 const ncRecordSourceComp = resolveComponent('ChatMarkdownRecordCitation')
 const ncViewComp = resolveComponent('ChatMarkdownViewMention')
 const ncDashboardComp = resolveComponent('ChatMarkdownDashboardMention')
+const ncContactSupportComp = resolveComponent('ChatMarkdownContactSupport')
 
 const xmlComponents = computed<NcChatRendererOptions['xmlComponents']>(() => ({
   'nc-table': { component: ncTableComp },
@@ -130,6 +134,7 @@ const xmlComponents = computed<NcChatRendererOptions['xmlComponents']>(() => ({
   'nc-record-source': { component: ncRecordSourceComp },
   'nc-view': { component: ncViewComp },
   'nc-dashboard': { component: ncDashboardComp },
+  'nc-contact-support': { component: ncContactSupportComp },
 }))
 
 const isStreaming = computed(() => !!streamingParts.value?.length)

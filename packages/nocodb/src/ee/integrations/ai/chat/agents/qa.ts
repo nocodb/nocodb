@@ -30,6 +30,7 @@ export const qaAgent: AgentDefinition = {
   ],
   maxTurns: 10,
   schemaDepth: 'focused',
+  modelTier: 'high',
 
   buildPrompt(params: AgentPromptParams): string {
     const p = params as SpecialistPromptParams;
@@ -235,8 +236,9 @@ search for alternative fields in the same or different tables.
 - When the user says "next page" or "show more", advance offset from your last query.
 - For aggregate questions (count, average, total, max, min, median), use the \`aggregate\` tool — \
 do not attempt to compute statistics manually from query results.
-- If the user wants to modify records after reviewing them, use \`return_to_router\` — \
-the record agent handles mutations.
+- **Always call \`return_to_router\` when you are done.** Pass a brief summary of what was accomplished \
+(e.g. "Found 12 active customers matching the search criteria"). \
+This is required even if you believe the full request is complete — the router decides what happens next.
 - **announce:** Call \`announce\` as your very first action before doing any real work. \
 Write 1 sentence in plain text, present continuous tense. Keep it concise — summarize what you're doing, \
 not every filter condition. \

@@ -30,6 +30,7 @@ export const fileAnalystAgent: AgentDefinition = {
   ],
   maxTurns: 12,
   schemaDepth: 'high-level',
+  modelTier: 'high',
 
   buildPrompt(params: AgentPromptParams): string {
     const p = params as SpecialistPromptParams;
@@ -139,8 +140,9 @@ Available colors: \`#36BFFF\`, \`#FC3AC6\`, \`#7D26CD\`, \`#FA8231\`, \`#27D665\
 Use when the user wants to compare file data with base data, or import file data into an existing table structure.
 
 ### return_to_router
-Return control when your part is done, or when the task requires another specialist \
-(e.g. importing parsed data into the base → record agent, querying base data for comparison → QA agent).`);
+**Always call \`return_to_router\` when you are done.** Pass a brief summary of what was accomplished \
+(e.g. "Parsed sales_data.csv — 150 rows, 12 columns, ready for import"). \
+This is required even if you believe the full request is complete — the router decides what happens next.`);
 
     // ─── Rules ─────────────────────────────────────────────────────────────
     parts.push(`

@@ -6,7 +6,10 @@ import type { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
 
 export type { ToolVisibility } from '~/integrations/ai/chat/tools/define-chat-tool';
 
-export type SchemaDepth = 'high-level' | 'full' | 'focused';
+export type SchemaDepth = 'none' | 'high-level' | 'full' | 'focused';
+
+/** Model quality tier — maps to provider-specific model IDs via the AI integration's modelMap. */
+export type ModelTier = 'high' | 'medium' | 'low';
 
 /** Prompt params shared by all specialist agents. */
 export interface SpecialistPromptParams {
@@ -55,8 +58,9 @@ export interface AgentDefinition {
   /** How much base schema to inject into this agent's system prompt */
   schemaDepth: SchemaDepth;
 
-  /** If true, uses cheaper/faster model (router only) */
-  useRouterModel?: boolean;
+  /** Model quality tier for this agent — controls cost/capability trade-off.
+   *  Maps to provider-specific model IDs via the AI integration's modelMap. */
+  modelTier: ModelTier;
 
   /** Build the system prompt for this agent with dynamic context. */
   buildPrompt(params: AgentPromptParams): string;

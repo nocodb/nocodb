@@ -144,7 +144,7 @@ const handleSuggestionClick = (suggestion: string) => {
 }
 
 .nc-chat-suggestion-row {
-  @apply h-11 flex items-center px-1 border-b-1 border-nc-border-gray-light text-body;
+  @apply min-h-11 flex items-center px-1 py-2.5 border-b-1 border-nc-border-gray-light text-body;
 }
 
 .nc-chat-suggestion-skeleton {

@@ -135,6 +135,11 @@ export const useChatStore = defineStore('chatStore', () => {
   }
 
   const loadSessions = async (wsId: string, baseId: string) => {
+    // Clear cached suggestions when switching base/workspace so they refresh with new context
+    if (wsId !== loadedWorkspaceId.value || baseId !== loadedBaseId.value) {
+      emptySuggestions.value.clear()
+    }
+
     loadedWorkspaceId.value = wsId
     loadedBaseId.value = baseId
 
@@ -337,6 +342,10 @@ export const useChatStore = defineStore('chatStore', () => {
 
   const fetchSuggestions = async (type: string, fileNames?: string[]) => {
     if (!loadedWorkspaceId.value || !loadedBaseId.value) return
+
+    // Skip if suggestions for this tab are already cached
+    if (emptySuggestions.value.has(type) && emptySuggestions.value.get(type)!.length > 0) return
+
     isLoadingSuggestions.value = true
     try {
       const params: Record<string, string> = { type }

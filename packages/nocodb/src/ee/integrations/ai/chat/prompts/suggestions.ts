@@ -239,7 +239,8 @@ You must take the context of the user's base schema into account to create speci
 
 Rules:
 - Use real record names, field values, and dates from sampleRecords — never write generic suggestions.
-- Do not reveal internal IDs. Do not wrap in JSON.${NOCODB_AI_CONTEXT}`;
+- Do not reveal internal IDs. Do not wrap in JSON.
+- If the base schema is empty (no tables), suggest building common starter projects — e.g. "Build a CRM to track leads and customers", "Create an inventory management system", "Set up a project tracker with tasks and milestones", "Build an event planning database". Make these actionable and varied.${NOCODB_AI_CONTEXT}`;
 
   const fileContext =
     fileNames?.length

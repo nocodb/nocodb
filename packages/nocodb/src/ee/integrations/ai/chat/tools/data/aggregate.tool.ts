@@ -7,6 +7,7 @@ import {
   resolveTableByName,
 } from '~/integrations/ai/chat/tools/helpers';
 import { aggregationDescription, whereDescription } from '~/mcp/descriptions';
+import { NcError } from '~/helpers/catchError';
 import { DataTableService } from '~/services/data-table.service';
 import Noco from '~/Noco';
 
@@ -87,6 +88,16 @@ export const aggregateTool = defineChatTool({
       Noco.nestApp.get(DataTableService);
     const model = await resolveTableByName(context, args.table_name);
 
+    const columns = await model.getColumns(context);
+    const resolvedAggregations = args.aggregations.map((agg) => {
+      const lowerField = agg.field.toLowerCase();
+      const col = columns.find((c) => c.title?.toLowerCase() === lowerField);
+      if (!col) {
+        NcError.get(context).fieldNotFound(agg.field);
+      }
+      return { field: col.id, type: agg.type };
+    });
+
     const bulkFilterList = args.filter_groups.map((group) => ({
       alias: group.alias,
       where: group.where ? `@${group.where}` : undefined,
@@ -95,7 +106,7 @@ export const aggregateTool = defineChatTool({
     return await dataTableService.bulkAggregate(context, {
       modelId: model.id,
       query: {
-        aggregation: JSON.stringify(args.aggregations),
+        aggregation: JSON.stringify(resolvedAggregations),
       },
       body: JSON.stringify(bulkFilterList),
     });

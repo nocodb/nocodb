@@ -35,6 +35,10 @@ export class ChatContextService {
     _req: any,
   ): Promise<string> {
     const depth: SchemaDepth = AGENTS[agentName]?.schemaDepth || 'full';
+
+    // Support agent and others with 'none' depth don't need schema context
+    if (depth === 'none') return '';
+
     const baseSchema = await getBaseSchema(context);
     const lines: string[] = [];
 

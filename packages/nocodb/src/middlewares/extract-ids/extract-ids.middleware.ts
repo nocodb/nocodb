@@ -18,6 +18,7 @@ import {
   markPersonalViewIfNeeded,
   personalViewOwnerAllowedPermissions,
   personalViewOwnerOnlyOps,
+  publicBaseBlockedOps,
   VIEW_KEY,
 } from './extract-ids.helpers';
 import type { Observable } from 'rxjs';
@@ -1097,6 +1098,13 @@ export class AclMiddleware implements NestInterceptor {
 
     if (req?.user?.is_oauth_token && blockOAuthTokenAccess) {
       NcError.forbidden('Not allowed for OAuth token');
+    }
+
+    if (
+      req?.user?.isPublicBase &&
+      publicBaseBlockedOps.includes(permissionName)
+    ) {
+      NcError.forbidden('Not allowed for shared base');
     }
 
     if (

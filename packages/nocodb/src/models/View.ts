@@ -1752,6 +1752,14 @@ export default class View implements ViewType {
       prepareForResponse(updateObj),
     );
 
+    // Also invalidate bypass-context cache to prevent stale reads
+    // (e.g. internal API ACL checks that may use bypass context)
+    const bypassContext = {
+      workspace_id: RootScopes.BYPASS,
+      base_id: RootScopes.BYPASS,
+    };
+    await NocoCache.del(bypassContext, `${CacheScope.VIEW}:${viewId}`);
+
     // Get the first collaborative grid view to update default view cache
     const defaultView = getFirstNonPersonalView(
       await this.list(context, oldView.fk_model_id, ncMeta),

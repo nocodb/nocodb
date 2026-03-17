@@ -35,6 +35,7 @@ import {
 } from '~/models';
 import { RootScopes } from '~/utils/globals';
 
+
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class InternalController {
@@ -98,7 +99,8 @@ export class InternalController {
     ];
 
     if (filterSortOperations.includes(operation as string)) {
-      const bypassContext = {
+      // Prefer request context over bypass to avoid stale cache reads
+      const context = req.context ?? {
         workspace_id: RootScopes.BYPASS,
         base_id: RootScopes.BYPASS,
       };
@@ -107,38 +109,38 @@ export class InternalController {
 
       // Extract view based on the operation parameters
       if (req.query.viewId) {
-        view = await View.get(bypassContext, req.query.viewId as string);
+        view = await View.get(context, req.query.viewId as string);
       } else if (req.body?.fk_view_id) {
         // For create operations (filterCreate, sortCreate, etc.) where viewId is in body
-        view = await View.get(bypassContext, req.body.fk_view_id);
+        view = await View.get(context, req.body.fk_view_id);
       } else if (req.query.filterId) {
         const filter = await Filter.get(
-          bypassContext,
+          context,
           req.query.filterId as string,
         );
         if (filter?.fk_view_id) {
-          view = await View.get(bypassContext, filter.fk_view_id);
+          view = await View.get(context, filter.fk_view_id);
         }
       } else if (req.query.sortId) {
-        const sort = await Sort.get(bypassContext, req.query.sortId as string);
+        const sort = await Sort.get(context, req.query.sortId as string);
         if (sort?.fk_view_id) {
-          view = await View.get(bypassContext, sort.fk_view_id);
+          view = await View.get(context, sort.fk_view_id);
         }
       } else if (req.query.gridViewColumnId) {
         const gridCol = await GridViewColumn.get(
-          bypassContext,
+          context,
           req.query.gridViewColumnId as string,
         );
         if (gridCol?.fk_view_id) {
-          view = await View.get(bypassContext, gridCol.fk_view_id);
+          view = await View.get(context, gridCol.fk_view_id);
         }
       } else if (req.query.timelineViewColumnId) {
         const timelineCol = await TimelineViewColumn.get(
-          bypassContext,
+          context,
           req.query.timelineViewColumnId as string,
         );
         if (timelineCol?.fk_view_id) {
-          view = await View.get(bypassContext, timelineCol.fk_view_id);
+          view = await View.get(context, timelineCol.fk_view_id);
         }
       }
 

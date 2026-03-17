@@ -8,6 +8,8 @@ import type { NcContext } from '~/interface/config';
 import { PresignedUrl } from '~/models';
 import FormViewColumn from '~/models/FormViewColumn';
 import View from '~/models/View';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
 import { isEE } from '~/utils';
@@ -16,6 +18,8 @@ import Noco from '~/Noco';
 import { deserializeJSON, serializeJSON } from '~/utils/serialize';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
+
+dayjs.extend(utc);
 
 type FormViewType = Omit<FormType, 'banner_image_url' | 'logo_url'> & {
   banner_image_url?: AttachmentResType | string;
@@ -121,6 +125,11 @@ export default class FormView implements FormViewType {
       insertObj.meta = serializeJSON(insertObj.meta);
     }
 
+    if (isEE) {
+      insertObj.starts_at = this.formatUtcDateTime(insertObj.starts_at);
+      insertObj.expires_at = this.formatUtcDateTime(insertObj.expires_at);
+    }
+
     if (insertObj?.logo_url) {
       insertObj.logo_url = this.serializeAttachmentJSON(insertObj.logo_url);
     }
@@ -169,6 +178,11 @@ export default class FormView implements FormViewType {
       'meta',
     ]);
 
+    if (isEE) {
+      updateObj.starts_at = this.formatUtcDateTime(updateObj.starts_at);
+      updateObj.expires_at = this.formatUtcDateTime(updateObj.expires_at);
+    }
+
     if (updateObj?.logo_url) {
       updateObj.logo_url = this.serializeAttachmentJSON(updateObj.logo_url);
     }
@@ -215,6 +229,14 @@ export default class FormView implements FormViewType {
     const form = await this.get(context, formViewId, ncMeta);
     await form.getColumns(context, ncMeta);
     return form;
+  }
+
+  private static formatUtcDateTime(
+    value: string | null | undefined,
+  ): string | null {
+    if (!value) return null;
+    const d = dayjs.utc(value);
+    return d.isValid() ? d.format('YYYY-MM-DD HH:mm:ss') : null;
   }
 
   static serializeAttachmentJSON(attachment): string | null {
@@ -274,8 +296,10 @@ export default class FormView implements FormViewType {
     const formView = await this.get(context, viewId, ncMeta);
     if (!formView) return;
 
+    const now = dayjs.utc();
+
     if (formView.starts_at) {
-      if (new Date(formView.starts_at).getTime() > Date.now()) {
+      if (dayjs.utc(formView.starts_at).isAfter(now)) {
         NcError.get(context).badRequest(
           'This form is not yet accepting responses',
         );
@@ -283,7 +307,7 @@ export default class FormView implements FormViewType {
     }
 
     if (formView.expires_at) {
-      if (new Date(formView.expires_at).getTime() < Date.now()) {
+      if (dayjs.utc(formView.expires_at).isBefore(now)) {
         NcError.get(context).badRequest(
           'This form is no longer accepting responses',
         );

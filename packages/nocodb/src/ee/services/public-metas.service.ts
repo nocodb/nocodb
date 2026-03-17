@@ -1,5 +1,9 @@
 import { PublicMetasService as PublicMetasServiceCE } from 'src/services/public-metas.service';
 import { Injectable } from '@nestjs/common';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
 import {
   AttachmentValidationType,
   DateValidationType,
@@ -259,8 +263,7 @@ export class PublicMetasService extends PublicMetasServiceCE {
 
     // Check if form hasn't started yet
     if (isFormSchedulingEnabled && formView.starts_at) {
-      const startsAt = new Date(formView.starts_at);
-      if (startsAt.getTime() > Date.now()) {
+      if (dayjs.utc(formView.starts_at).isAfter(dayjs.utc())) {
         Object.assign(view, {
           ...view,
           is_form_not_started: true,
@@ -272,8 +275,7 @@ export class PublicMetasService extends PublicMetasServiceCE {
 
     // Check if form has expired
     if (isFormSchedulingEnabled && formView.expires_at) {
-      const expiresAt = new Date(formView.expires_at);
-      if (expiresAt.getTime() < Date.now()) {
+      if (dayjs.utc(formView.expires_at).isBefore(dayjs.utc())) {
         Object.assign(view, {
           ...view,
           is_form_expired: true,

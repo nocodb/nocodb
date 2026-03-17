@@ -12,7 +12,7 @@ on:
         type: string
         required: true
     secrets:
-      NC_GITHUB_TOKEN:
+      NC_GITHUB_TOKEN1:
         required: true
       NUXT_CHATWOOT_WEBSITE_TOKEN_ONPREM:
         required: false
@@ -46,21 +46,11 @@ jobs:
       - name: Install dependencies
         run: pnpm bootstrap
 
-      - name: Build nc-gui (EE) and copy to nocodb
-        env:
-          NC_ON_PREM: true
-          NUXT_CHATWOOT_WEBSITE_TOKEN: ${{ secrets.NUXT_CHATWOOT_WEBSITE_TOKEN_ONPREM }}
-        run: |
-          export NODE_OPTIONS="--max-old-space-size=8192"
-          cd packages/nc-gui &&
-          pnpm run generate:ee &&
-
-          # delete sourcemaps
-          find ./ee/dist/ -type f -name '*.js.map' -delete &&
-          find ./ee/dist/ -type f -name '*.css.map' -delete &&
-
-          # copy build to nocodb
-          rsync -rvzh ./ee/dist/ ../nocodb/docker/nc-gui/
+      - name: Download GUI artifacts from build-common
+        uses: actions/download-artifact@v4
+        with:
+          name: build-common-artifacts
+          path: packages/nocodb/
 
       - name: Build nocodb for executables
         run: |
@@ -231,7 +221,7 @@ jobs:
       - name: Upload Linux and Windows executables to draft release
         uses: softprops/action-gh-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN1 }}
         with:
           draft: true
           tag_name: ${{ github.event.inputs.tag || inputs.tag }}
@@ -291,7 +281,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: 'homebrew-nocodb'
-          token: ${{ secrets.NC_GITHUB_TOKEN }}
+          token: ${{ secrets.NC_GITHUB_TOKEN1 }}
           repository: 'nocodb/homebrew-nocodb'
           fetch-depth: 0
 
@@ -307,7 +297,7 @@ jobs:
       - name: Upload macOS executables and tarball to draft release
         uses: softprops/action-gh-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN1 }}
         with:
           draft: true
           tag_name: ${{ github.event.inputs.tag || inputs.tag }}

@@ -72,14 +72,12 @@ jobs:
           echo "Previous Tag: ${PREV_TAG}"
 
   # ---------------------------------------------------------------------------
-  # Job 2: Build & push Docker image
+  # Job 2: Bootstrap + build frontend (shared by Docker & executables)
   # ---------------------------------------------------------------------------
-  build-docker:
+  build-common:
     needs: process-input
-    if: ${{ github.event.inputs.skipDocker != 'true' }}
+    if: ${{ github.event.inputs.skipDocker != 'true' || github.event.inputs.skipExecutables != 'true' }}
     runs-on: ubicloud-standard-8
-    env:
-      working-directory: ./packages/nocodb
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -148,6 +146,62 @@ jobs:
           # copy build to nocodb
           rsync -rvzh ./ee/dist/ ../nocodb/docker/nc-gui/
 
+      - name: Upload GUI and source artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-common-artifacts
+          path: |
+            packages/nocodb/docker/nc-gui/
+            packages/nocodb/src/public/
+          retention-days: 1
+
+  # ---------------------------------------------------------------------------
+  # Job 3: Build & push Docker image (parallel with executables after common)
+  # ---------------------------------------------------------------------------
+  build-docker:
+    needs: [process-input, build-common]
+    if: ${{ github.event.inputs.skipDocker != 'true' }}
+    runs-on: ubicloud-standard-8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: 'pnpm'
+
+      - name: Remove use-node-version from .npmrc
+        run: sed -i '/^use-node-version/d' .npmrc
+
+      - name: Cache integration dists
+        uses: actions/cache@v4
+        with:
+          path: |
+            packages/noco-integrations/packages/*/dist
+            packages/noco-integrations/core/dist
+            packages/noco-integrations/.build-checksums.json
+          key: integrations-dist-${{ hashFiles('packages/noco-integrations/packages/*/src/**', 'packages/noco-integrations/core/src/**', 'packages/noco-integrations/packages/*/package.json') }}
+          restore-keys: |
+            integrations-dist-
+
+      - name: Install dependencies
+        run: pnpm bootstrap
+
+      - name: Download GUI artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-common-artifacts
+          path: packages/nocodb/
+
       - name: Build nocodb
         run: |
           cd packages/nocodb &&
@@ -197,7 +251,7 @@ jobs:
         with:
           file: "./packages/nocodb/src/ee-on-prem/Dockerfile-on-prem"
           context: "./packages/nocodb"
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
           push: true
@@ -212,18 +266,18 @@ jobs:
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
   # ---------------------------------------------------------------------------
-  # Job 3: Draft release notes on CE repo
+  # Job 4: Draft release notes on CE repo (parallel with common build)
   # ---------------------------------------------------------------------------
   release-notes:
-    needs: [process-input, build-docker]
-    if: ${{ github.event.inputs.skipReleaseNotes != 'true' && !cancelled() && (needs.build-docker.result == 'success' || needs.build-docker.result == 'skipped') }}
+    needs: process-input
+    if: ${{ github.event.inputs.skipReleaseNotes != 'true' }}
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout CE repo
         uses: actions/checkout@v4
         with:
           repository: nocodb/nocodb
-          token: ${{ secrets.NC_GITHUB_TOKEN }}
+          token: ${{ secrets.NC_GITHUB_TOKEN1 }}
           fetch-depth: 0
 
       - name: Get HEAD SHA
@@ -236,7 +290,7 @@ jobs:
       - name: Create tag on CE repo
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.NC_GITHUB_TOKEN }}
+          github-token: ${{ secrets.NC_GITHUB_TOKEN1 }}
           script: |
             try {
               await github.rest.git.createRef({
@@ -261,7 +315,7 @@ jobs:
 
       - name: Generate draft release notes
         env:
-          GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN1 }}
         run: |
           npx github-release-notes@0.17.2 release \
             --token "${GITHUB_TOKEN}" \
@@ -269,98 +323,14 @@ jobs:
             --tags ${{ needs.process-input.outputs.ceTag }}..${{ needs.process-input.outputs.prevTag }}
 
   # ---------------------------------------------------------------------------
-  # Job 4: Build executables (calls reusable workflow)
+  # Job 5: Build executables (parallel with Docker after common build)
   # ---------------------------------------------------------------------------
   build-executables:
-    needs: [process-input, build-docker]
-    if: ${{ github.event.inputs.skipExecutables != 'true' && !cancelled() && (needs.build-docker.result == 'success' || needs.build-docker.result == 'skipped') }}
+    needs: [process-input, build-common]
+    if: ${{ github.event.inputs.skipExecutables != 'true' && !cancelled() && needs.build-common.result == 'success' }}
     uses: ./.github/workflows/release-one-executables.yml
     with:
       tag: ${{ needs.process-input.outputs.ceTag }}
     secrets:
-      NC_GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
+      NC_GITHUB_TOKEN1: ${{ secrets.NC_GITHUB_TOKEN1 }}
       NUXT_CHATWOOT_WEBSITE_TOKEN_ONPREM: ${{ secrets.NUXT_CHATWOOT_WEBSITE_TOKEN_ONPREM }}
-
-  # ---------------------------------------------------------------------------
-  # Job 5: PR develop → master on CE repo (COMMENTED OUT)
-  # ---------------------------------------------------------------------------
-  # pr-to-master:
-  #   needs: [process-input, build-docker]
-  #   if: ${{ !cancelled() && (needs.build-docker.result == 'success' || needs.build-docker.result == 'skipped') }}
-  #   runs-on: ubuntu-22.04
-  #   steps:
-  #     - name: Checkout CE repo
-  #       uses: actions/checkout@v4
-  #       with:
-  #         repository: nocodb/nocodb
-  #         token: ${{ secrets.NC_GITHUB_TOKEN }}
-  #         ref: develop
-  #
-  #     - name: Create Pull Request
-  #       id: cpr
-  #       uses: repo-sync/pull-request@v2
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
-  #       with:
-  #         source_branch: "develop"
-  #         destination_branch: "master"
-  #         pr_title: '${{ needs.process-input.outputs.ceTag }} Pre-release'
-  #         pr_label: 'Bot: Automerge'
-  #
-  #     - name: Automerge
-  #       uses: "pascalgn/automerge-action@v0.15.5"
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
-  #         PULL_REQUEST: ${{ steps.cpr.outputs.pr_number }}
-  #         MERGE_LABELS: "Bot: Automerge"
-
-  # ---------------------------------------------------------------------------
-  # Job 6: Sync master → develop on CE repo (COMMENTED OUT)
-  # ---------------------------------------------------------------------------
-  # sync-to-develop:
-  #   needs: [process-input, pr-to-master]
-  #   runs-on: ubuntu-22.04
-  #   steps:
-  #     - name: Setup Node
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: 22.12.0
-  #
-  #     - name: Setup pnpm
-  #       uses: pnpm/action-setup@v4
-  #       with:
-  #         version: 9
-  #
-  #     - name: Checkout CE repo
-  #       uses: actions/checkout@v4
-  #       with:
-  #         repository: nocodb/nocodb
-  #         token: ${{ secrets.NC_GITHUB_TOKEN }}
-  #         path: nocodb
-  #
-  #     - name: Prepare GH CLI
-  #       id: gh
-  #       run: |
-  #         wget https://github.com/cli/cli/releases/download/v2.33.0/gh_2.33.0_linux_amd64.tar.gz
-  #         tar -xvf gh_2.33.0_linux_amd64.tar.gz
-  #         GH=gh_2.33.0_linux_amd64/bin/gh
-  #         echo "GH=${GH}" >> $GITHUB_OUTPUT
-  #
-  #     - name: Sync master to develop
-  #       env:
-  #         GH_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
-  #       run: |
-  #         cd nocodb
-  #         git fetch --quiet --unshallow origin
-  #         git checkout master
-  #         git reset --hard origin/master
-  #         BRANCH_NAME=nc/$(git rev-list -n 1 HEAD | cut -c1-8)
-  #         git checkout -b $BRANCH_NAME
-  #         git config user.name 'github-actions[bot]'
-  #         git config user.email 'github-actions[bot]@users.noreply.github.com'
-  #         revertSDK=true node scripts/upgradeNocodbSdk.js
-  #         pnpm --filter=nocodb-sdk install --no-frozen-lockfile && pnpm --filter=nocodb-sdk run build && pnpm --filter=nocodb --filter=nc-gui --filter=playwright install --no-frozen-lockfile
-  #         git add .
-  #         git diff-index --quiet HEAD || git commit -m "chore: update sdk path"
-  #         git push origin $BRANCH_NAME
-  #         ../${{ steps.gh.outputs.GH }} pr create --title "chore: post-release sync" --body "$(echo -e "This is an automated pull request to sync the master branch to develop.\nPlease review and merge this pull request if it looks good.")" --base develop --head $BRANCH_NAME

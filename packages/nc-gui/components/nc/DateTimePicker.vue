@@ -104,7 +104,11 @@ function handleTimeInputBlur(e: Event) {
   if (!value) return
 
   const fmt = props.is12hrFormat
-    ? value.trim().toUpperCase().replace(/(AM|PM)$/, ' $1').replace(/\s+/g, ' ')
+    ? value
+        .trim()
+        .toUpperCase()
+        .replace(/(AM|PM)$/, ' $1')
+        .replace(/\s+/g, ' ')
     : value.trim()
 
   const parsed = dayjs(fmt, timeFormat.value)
@@ -130,6 +134,10 @@ function handleSelectDate(value?: dayjs.Dayjs) {
   if (isDateOnly.value) {
     isOpen.value = false
   }
+}
+
+function handleCurrentDate() {
+  emitValue(dayjs())
 }
 
 function handleSelectHour(h: number) {
@@ -216,7 +224,12 @@ watch(isOpen, (next) => {
         :readonly="disabled"
         class="nc-dtp-date-input flex-1 min-w-0 text-sm bg-transparent border-none outline-none text-nc-content-gray placeholder:text-nc-content-gray-subtle2"
         @blur="handleDateInputBlur"
-        @keydown.enter="handleDateInputBlur($event); isOpen = false"
+        @keydown.enter="
+          (event) => {
+            handleDateInputBlur(event)
+            isOpen = false
+          }
+        "
       />
 
       <!-- Time input -->
@@ -232,7 +245,12 @@ watch(isOpen, (next) => {
           class="nc-dtp-time-input flex-none text-sm bg-transparent border-none outline-none text-nc-content-gray placeholder:text-nc-content-gray-subtle2"
           :class="is12hrFormat ? 'w-[72px]' : 'w-[48px]'"
           @blur="handleTimeInputBlur"
-          @keydown.enter="handleTimeInputBlur($event); isOpen = false"
+          @keydown.enter="
+            (event) => {
+              handleTimeInputBlur(event)
+              isOpen = false
+            }
+          "
         />
       </template>
 
@@ -256,7 +274,9 @@ watch(isOpen, (next) => {
             type="date"
             size="medium"
             is-cell-input-field
+            show-current-date-option
             @update:selected-date="handleSelectDate"
+            @current-date="handleCurrentDate"
           />
         </div>
 
@@ -264,13 +284,9 @@ watch(isOpen, (next) => {
         <div v-if="!isDateOnly" class="nc-dtp-time-panel flex flex-col border-l-1 border-nc-border-gray-medium">
           <!-- Column headers -->
           <div class="flex flex-none border-b-1 border-nc-border-gray-medium h-10 items-center">
-            <div class="nc-dtp-col-header w-[46px] text-center text-xs font-weight-500 text-nc-content-gray-muted">
-              Hr
-            </div>
+            <div class="nc-dtp-col-header w-[46px] text-center text-xs font-weight-500 text-nc-content-gray-muted">Hr</div>
             <div class="w-px h-full bg-nc-border-gray-light" />
-            <div class="nc-dtp-col-header w-[46px] text-center text-xs font-weight-500 text-nc-content-gray-muted">
-              Min
-            </div>
+            <div class="nc-dtp-col-header w-[46px] text-center text-xs font-weight-500 text-nc-content-gray-muted">Min</div>
             <template v-if="is12hrFormat">
               <div class="w-px h-full bg-nc-border-gray-light" />
               <div class="nc-dtp-col-header w-[46px] text-center text-xs font-semibold text-nc-content-gray-subtle2" />

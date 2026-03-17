@@ -272,7 +272,11 @@ const isFormSchedulingOption = ref(false)
 
 const isFormSchedulingEnabled = computed({
   get: () => {
-    return isFormSchedulingOption.value || typeof formViewData.value?.starts_at === 'string' || typeof formViewData.value?.expires_at === 'string'
+    return (
+      isFormSchedulingOption.value ||
+      typeof formViewData.value?.starts_at === 'string' ||
+      typeof formViewData.value?.expires_at === 'string'
+    )
   },
   set: (value: boolean) => {
     isFormSchedulingOption.value = value
@@ -2219,10 +2223,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   }
                                 "
                               />
-                              <div
-                                v-if="startDateValidationError"
-                                class="text-nc-content-orange-dark text-small leading-[18px]"
-                              >
+                              <div v-if="startDateValidationError" class="text-nc-content-orange-dark text-small leading-[18px]">
                                 {{ startDateValidationError }}
                               </div>
                             </div>
@@ -2242,12 +2243,10 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   }
                                 "
                               />
-                              <div
-                                v-if="endDateValidationError"
-                                class="text-nc-content-red-dark text-small leading-[18px]"
-                              >
+                              <div v-if="endDateValidationError" class="text-nc-content-red-dark text-small leading-[18px]">
                                 {{ endDateValidationError }}
                               </div>
+                            </div>
                           </template>
                         </div>
                       </div>

@@ -173,3 +173,4 @@ These are frontend-specific — see root CLAUDE.md for universal anti-patterns.
 | Expose EE-only data to non-owner UI | Audit what's visible in UI, not just API responses |
 | Use `activeBaseId.value` in realtime event callbacks to identify which base the event belongs to | Extract `base_id` from `event.payload` — user may have navigated away before the callback fires |
 | Use `v-if="!isEEFeatureBlocked"` to hide EE features | Use `v-if="isEeUI"` to hide in CE; show with upgrade badge in EE unlicensed |
+| Use `@click="handler($event); doMore()"` with semicolons in template event handlers | Use arrow callback: `@click="(event) => { handler(event); doMore() }"` — the linter splits semicolons onto separate lines which breaks execution. Also `$event` is not available inside arrow functions, use the callback parameter instead |

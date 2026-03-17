@@ -1,4 +1,4 @@
-name: Playwright test reusable workflow (ee)
+name: Playwright test reusable workflow
 
 on:
   workflow_call:
@@ -10,6 +10,11 @@ on:
       db:
         required: true
         type: string
+      ee:
+        description: 'Run in EE mode (default: true)'
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   playwright:
@@ -78,8 +83,22 @@ jobs:
       - name: install dependencies
         run: pnpm bootstrap
 
+      - name: Setup mysql
+        if: ${{ inputs.db == 'mysql' }}
+        working-directory: ./packages/nocodb/tests/mysql-sakila-db
+        run: |
+          # Get a list of non-system databases and drop them
+          MYSQL_PWD=password mysql -h 127.0.0.1 -u'root' -e "SHOW DATABASES" --skip-column-names | grep -Ev "(information_schema|mysql|performance_schema|sys)" | while read db; do
+            MYSQL_PWD=password mysql -h 127.0.0.1 -u'root' -e "DROP DATABASE IF EXISTS \`$db\`";
+          done
+          # keep sql_mode default except remove "STRICT_TRANS_TABLES"
+          MYSQL_PWD=password mysql -h 127.0.0.1 -u'root' -e "SET GLOBAL sql_mode = 'ONLY_FULL_GROUP_BY,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';"
+          # this is only needed for connecting to sakila db as its referred in multiple places in test code
+          MYSQL_PWD=password mysql -h 127.0.0.1 -u'root' < 01-mysql-sakila-schema.sql
+          MYSQL_PWD=password mysql -h 127.0.0.1 -u'root' < 02-mysql-sakila-insert-data.sql
+
       - name: Setup pg for quick tests
-        if: ${{ inputs.db == 'sqlite' && inputs.shard == '1' }}
+        if: ${{ inputs.ee && inputs.db == 'sqlite' && inputs.shard == '1' }}
         working-directory: ./packages/nocodb/tests/pg-cy-quick/
         run: |
           PGPASSWORD=password psql -h localhost -U postgres -f 01-cy-quick.sql
@@ -90,6 +109,7 @@ jobs:
           pnpm run dev &
 
       - name: Install dependencies of sso idp
+        if: ${{ inputs.ee }}
         working-directory: ./scripts/ee/playwright
         run: |
           cd ./openid-provider
@@ -104,7 +124,8 @@ jobs:
           aws-secret-access-key: ${{ secrets.ARTIFACTS_S3_SECRET_KEY }}
           aws-region: us-east-2
 
-      - name: Download pre-built UI from S3
+      - name: Download pre-built EE UI from S3
+        if: ${{ inputs.ee }}
         working-directory: ./packages/nc-gui/
         run: |
           rm -rf ee/.output.zip ee/.output
@@ -113,9 +134,25 @@ jobs:
           aws s3 cp s3://nocohub-ci-artifacts/ui-builds/${FILE} ./output.zip
           unzip -oq output.zip
 
-      - name: Start frontend
+      - name: Download pre-built CE UI from S3
+        if: ${{ !inputs.ee }}
+        working-directory: ./packages/nc-gui/
+        run: |
+          rm -rf .output.zip .output
+          mkdir -p .output
+          FILE="$(echo ${GITHUB_REPOSITORY} | sed "s,/,-,g")-${GITHUB_RUN_ID}-ce.zip"
+          aws s3 cp s3://nocohub-ci-artifacts/ui-builds/${FILE} ./output.zip
+          unzip -oq output.zip
+
+      - name: Start frontend (EE)
+        if: ${{ inputs.ee }}
         working-directory: ./packages/nc-gui/
         run: pnpm run ci:start:ee &
+
+      - name: Start frontend (CE)
+        if: ${{ !inputs.ee }}
+        working-directory: ./packages/nc-gui/
+        run: pnpm run ci:start &
 
       - name: Run backend
         if: ${{ inputs.db == 'sqlite' }}
@@ -155,9 +192,16 @@ jobs:
           done
         timeout-minutes: 2
 
-      - name: Run Playwright Tests
+      - name: Run Playwright Tests (EE)
+        if: ${{ inputs.ee }}
         working-directory: ./tests/playwright
         run: E2E_DB_TYPE=${{ inputs.db }} pnpm run ci:test:shard:${{ inputs.shard }} --forbid-only
+        timeout-minutes: 60
+
+      - name: Run Playwright Tests (CE)
+        if: ${{ !inputs.ee }}
+        working-directory: ./tests/playwright
+        run: E2E_DB_TYPE=${{ inputs.db }} pnpm run ci:test:ce:shard:${{ inputs.shard }}
         timeout-minutes: 60
 
       - name: Fetch develop branch
@@ -169,22 +213,23 @@ jobs:
         run: E2E_DB_TYPE=${{ inputs.db }} node ./scripts/stressTestNewlyAddedTest.js
 
       - name: Run quick server and tests (pg)
-        if: ${{ inputs.db == 'sqlite' && inputs.shard == '1' }}
+        if: ${{ inputs.ee && inputs.db == 'sqlite' && inputs.shard == '1' }}
         working-directory: ./packages/nocodb
         run: |
           kill -9 $(lsof -t -i:8080) || true
           pnpm run watch:run:playwright:pg:cyquick &
 
       - name: Run quick server and tests (sqlite)
-        if: ${{ inputs.db == 'sqlite' && inputs.shard == '2' }}
+        if: ${{ inputs.ee && inputs.db == 'sqlite' && inputs.shard == '2' }}
         working-directory: ./packages/nocodb
         run: |
           kill -9 $(lsof -t -i:8080) || true
           pnpm run watch:run:playwright:quick > quick_${{ inputs.shard }}_test_backend.log &
 
       - name: Wait for backend & run quick tests
-        if: ${{ inputs.db == 'sqlite' }}
+        if: ${{ inputs.ee && inputs.db == 'sqlite' }}
         working-directory: ./tests/playwright
+        timeout-minutes: 5
         run: |
           while ! curl --output /dev/null --silent --head --fail http://localhost:8080; do
             printf '.'

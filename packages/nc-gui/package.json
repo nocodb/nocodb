@@ -40,6 +40,7 @@
     "ci:run": "export NODE_OPTIONS=\"--max_old_space_size=8192\"; pnpm install; pnpm run build; NUXT_PAGE_TRANSITION_DISABLE=true NUXT_PUBLIC_ENV=CI NUXT_PUBLIC_NC_BACKEND_URL=http://localhost:8080 pnpm run start &",
     "preinstall": "npx only-allow pnpm",
     "postinstall": "nuxt prepare",
+    "ci:start": "NUXT_PAGE_TRANSITION_DISABLE=true NUXT_PUBLIC_ENV=CI NUXT_PUBLIC_NC_BACKEND_URL=http://localhost:8080 pnpm run start",
     "ci:start:ee": "NUXT_PAGE_TRANSITION_DISABLE=true NUXT_PUBLIC_ENV=CI NUXT_PUBLIC_NC_BACKEND_URL=http://localhost:8080 pnpm run start:ee",
     "ci:run:ee": "export NODE_OPTIONS=\"--max_old_space_size=8192\"; pnpm install; NUXT_PUBLIC_ENV=CI NUXT_PAGE_TRANSITION_DISABLE=true pnpm run build:ee; NUXT_PUBLIC_ENV=CI NUXT_PUBLIC_NC_BACKEND_URL=http://localhost:8080 pnpm run start:ee &"
   },

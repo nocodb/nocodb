@@ -84,3 +84,6 @@ lerna.json
 packages/nc-mail-template/emails/*-ee.tsx
 packages/nc-gui/tele
 packages/nc-gui/pwa.config.ts
+packages/nocodb/tests/unit
+tests/playwright
+scripts/pkg-executable

@@ -22,6 +22,7 @@ if (process.env.CI) {
 
 export default defineConfig({
   testDir: process.env.PW_QUICK_TEST ? './quickTests' : './tests',
+  testIgnore: process.env.EE === 'true' ? [] : ['**/ee/**'],
   /* Maximum time one test can run for. */
   timeout: process.env.CI ? 140 * 1000 : 100 * 1000,
   expect: {

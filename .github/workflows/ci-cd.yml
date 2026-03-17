@@ -28,6 +28,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # ── Unit Tests ──────────────────────────────────────────────
+
+  unit-tests-sqlite:
+    if: ${{ github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true }}
+    uses: ./.github/workflows/unit-test-sqlite.yml
+    secrets: inherit
+
   unit-tests-pg:
     if: ${{ github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true }}
     uses: ./.github/workflows/unit-test-pg.yml
@@ -58,11 +65,19 @@ jobs:
       reflection: true
       test_set: 2
 
+  # ── Playwright E2E ──────────────────────────────────────────
+
   pre-build-for-playwright:
     if: ${{ github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true }}
     uses: ./.github/workflows/pre-build-for-playwright.yml
     secrets: inherit
 
+  pre-build-for-playwright-ce:
+    if: ${{ github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true }}
+    uses: ./.github/workflows/pre-build-for-playwright-ce.yml
+    secrets: inherit
+
+  # PostgreSQL (EE)
   playwright-pg-shard-1:
     needs: pre-build-for-playwright
     if: ${{ github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true }}
@@ -89,3 +104,85 @@ jobs:
     with:
       db: pg
       shard: 3
+
+  # SQLite (CE — 4 shards)
+  playwright-sqlite-1:
+    needs: pre-build-for-playwright-ce
+    if: ${{ github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    secrets: inherit
+    with:
+      db: sqlite
+      shard: 1
+      ee: false
+
+  playwright-sqlite-2:
+    needs: pre-build-for-playwright-ce
+    if: ${{ github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    secrets: inherit
+    with:
+      db: sqlite
+      shard: 2
+      ee: false
+
+  playwright-sqlite-3:
+    needs: pre-build-for-playwright-ce
+    if: ${{ github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    secrets: inherit
+    with:
+      db: sqlite
+      shard: 3
+      ee: false
+
+  playwright-sqlite-4:
+    needs: pre-build-for-playwright-ce
+    if: ${{ github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    secrets: inherit
+    with:
+      db: sqlite
+      shard: 4
+      ee: false
+
+  # MySQL (CE — 4 shards)
+  playwright-mysql-1:
+    needs: pre-build-for-playwright-ce
+    if: ${{ github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    secrets: inherit
+    with:
+      db: mysql
+      shard: 1
+      ee: false
+
+  playwright-mysql-2:
+    needs: pre-build-for-playwright-ce
+    if: ${{ github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    secrets: inherit
+    with:
+      db: mysql
+      shard: 2
+      ee: false
+
+  playwright-mysql-3:
+    needs: pre-build-for-playwright-ce
+    if: ${{ github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    secrets: inherit
+    with:
+      db: mysql
+      shard: 3
+      ee: false
+
+  playwright-mysql-4:
+    needs: pre-build-for-playwright-ce
+    if: ${{ github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    secrets: inherit
+    with:
+      db: mysql
+      shard: 4
+      ee: false

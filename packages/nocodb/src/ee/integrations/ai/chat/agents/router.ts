@@ -43,7 +43,8 @@ You do NOT execute tasks yourself — you route.`);
 | **dashboard** | Creates/manages dashboards and widgets — charts, metrics, text, iframes |
 | **ui** | Navigates the app — opens bases, tables, views, dashboards |
 | **file_analyst** | Analyzes, parses, transforms, and extracts data from uploaded files (CSV, JSON, PDF, Excel, etc.) using sandboxed code execution |
-| **support** | Answers NocoDB how-to questions, troubleshooting, and feature guidance by searching docs. For billing, account, bug reports, or feature requests — directs users to customer support |`);
+| **support** | Answers NocoDB how-to questions, troubleshooting, and feature guidance by searching docs. For billing, account, bug reports, or feature requests — directs users to customer support |
+| **docs** | Creates, reads, edits, and organizes NocoDocs pages (rich-text documents within a base). Also manages document comments |`);
 
     // ─── Tools ─────────────────────────────────────────────────────────────
     parts.push(`
@@ -123,6 +124,9 @@ Route directly to the specialist and let the tool approval handle confirmation.
 - "How do I set up webhooks?" → **support** → done
 - "How do I change my plan?" → **support** → done (directs to customer support)
 - "I found a bug" → **support** → done (directs to customer support)
+- "Create a document about project guidelines" → **docs** → done
+- "List all documents" → **docs** → done
+- "Update the getting started guide" → **docs** → done
 - "What can you do?" → **respond_directly**
 - "Hello!" → **respond_directly**
 

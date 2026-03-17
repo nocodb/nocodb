@@ -1,9 +1,10 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
 import { resolveTableByName } from '../helpers';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
 import type { NcContext } from '~/interface/config';
 import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import type { ChatToolDefinition } from '~/integrations/ai/chat/tools/define-chat-tool';
 import Comment from '~/models/Comment';
 import User from '~/models/User';
 import Noco from '~/Noco';
@@ -55,7 +56,7 @@ async function resolveMentions(text: string): Promise<string> {
 }
 
 export const manageCommentsTool: ChatToolDefinition = {
-  name: 'manage_comments',
+  name: ChatToolName.MANAGE_COMMENTS,
   description:
     'Manage comments on table records. Supports adding comments, resolving comments, ' +
     'replying to comments, and bulk-resolving all comments on a record.\n\n' +
@@ -66,7 +67,7 @@ export const manageCommentsTool: ChatToolDefinition = {
     '• "bulk_resolve" — resolve all unresolved comments on a record (requires row_id)\n' +
     '• "list_comments" — list comments on a specific record (requires row_id)\n\n' +
     'Use query_records_by_comments to find records first, then use the row_id from those results here.',
-  parameters: {
+  schema: z.object({
     table_name: z
       .string()
       .describe('The title of the table (case-insensitive).'),
@@ -99,7 +100,9 @@ export const manageCommentsTool: ChatToolDefinition = {
           'To @mention a user, include their email as @user@example.com — ' +
           'it will be automatically resolved to a proper mention.',
       ),
-  },
+  }),
+  visibility: 'action',
+  category: 'data',
   // #5 — Use commentList (viewer-level) as base permission;
   // write actions check commentRow permission internally.
   permission: 'commentList',

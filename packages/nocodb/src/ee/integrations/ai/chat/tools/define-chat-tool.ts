@@ -12,6 +12,7 @@ export type ToolCategory =
   | 'view'
   | 'ui'
   | 'dashboard'
+  | 'docs'
   | 'web'
   | 'sandbox'
   | 'interaction';

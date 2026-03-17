@@ -1,9 +1,10 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
 import { resolveTableByName } from '../helpers';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
 import type { NcContext } from '~/interface/config';
 import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import type { ChatToolDefinition } from '~/integrations/ai/chat/tools/define-chat-tool';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
@@ -72,7 +73,7 @@ async function fetchRecordsByRowIds(
 }
 
 export const queryRecordsByCommentsTool: ChatToolDefinition = {
-  name: 'query_records_by_comments',
+  name: ChatToolName.QUERY_RECORDS_BY_COMMENTS,
   description:
     'Find records in a table based on their comment activity. ' +
     'Supports filtering by: records that have comments, unresolved comments, ' +
@@ -89,7 +90,7 @@ export const queryRecordsByCommentsTool: ChatToolDefinition = {
     '• "most_commented" — records sorted by comment count (descending)\n' +
     '• "recent_activity" — records with comments in the last N days (requires days, default 7)\n\n' +
     'Returns record IDs, display fields, and comment summaries.',
-  parameters: {
+  schema: z.object({
     table_name: z
       .string()
       .describe('The title of the table to query (case-insensitive).'),
@@ -122,7 +123,9 @@ export const queryRecordsByCommentsTool: ChatToolDefinition = {
       .number()
       .optional()
       .describe('Maximum number of records to return. Default: 25, max: 100.'),
-  },
+  }),
+  visibility: 'data',
+  category: 'data',
   permission: 'dataList',
   scope: 'base',
   requiredRole: ProjectRoles.VIEWER,

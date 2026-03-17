@@ -1,19 +1,19 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import { resolveDocumentByName } from '../helpers';
 import { markdownToProseMirror } from './prosemirror-utils';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
 import { DocumentsService } from '~/services/documents.service';
 import Noco from '~/Noco';
 
-export const createDocumentTool: ChatToolDefinition = {
-  name: 'create_document',
+export const createDocumentTool = defineChatTool({
+  name: ChatToolName.CREATE_DOCUMENT,
   description:
     'Create a new document (NocoDocs page) in the current base. ' +
     'Provide content as Markdown — it will be converted to the rich-text format automatically. ' +
     'Optionally nest under a parent document to create a sub-page.',
-  parameters: {
+  schema: z.object({
     title: z.string().describe('The title for the new document.'),
     content: z
       .string()
@@ -32,16 +32,14 @@ export const createDocumentTool: ChatToolDefinition = {
         'Title of the parent document to nest this under (case-insensitive). ' +
           'Omit to create a root-level document.',
       ),
-  },
+  }),
+  visibility: 'action',
+  category: 'docs',
   permission: 'documentCreate',
   scope: 'base',
   requiredRole: ProjectRoles.CREATOR,
   isDangerous: false,
-  async execute(
-    context: NcContext,
-    args: { title: string; content?: string; parent_document_name?: string },
-    req: NcRequest,
-  ) {
+  async execute(context, args, req) {
     const service: DocumentsService = Noco.nestApp.get(DocumentsService);
 
     let parentId: string | null = null;
@@ -73,4 +71,4 @@ export const createDocumentTool: ChatToolDefinition = {
       message: `Document "${doc.title}" created successfully.`,
     };
   },
-};
+});

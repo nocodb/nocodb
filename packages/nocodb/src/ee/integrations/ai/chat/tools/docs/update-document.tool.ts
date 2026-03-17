@@ -1,21 +1,21 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import { resolveDocumentByName } from '../helpers';
 import { markdownToProseMirror } from './prosemirror-utils';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
 import { DocumentsService } from '~/services/documents.service';
 import Noco from '~/Noco';
 
-export const updateDocumentTool: ChatToolDefinition = {
-  name: 'update_document',
+export const updateDocumentTool = defineChatTool({
+  name: ChatToolName.UPDATE_DOCUMENT,
   description:
     'FULL REPLACE of a document (NocoDocs page) — overwrites ALL existing content. ' +
     'Only use this for complete rewrites or title-only changes. ' +
     'For partial edits (add a section, update a paragraph, etc.), use patch_document instead — ' +
     'it preserves content you are not changing. ' +
     'The current document version is fetched automatically to prevent conflicts.',
-  parameters: {
+  schema: z.object({
     document_name: z
       .string()
       .describe(
@@ -37,16 +37,14 @@ export const updateDocumentTool: ChatToolDefinition = {
           '- Callout boxes: ::: callout note|warning|tip|important\\nContent\\n:::\n' +
           'The ratio is the left column width as a percentage (15-85, default 50).',
       ),
-  },
+  }),
+  visibility: 'action',
+  category: 'docs',
   permission: 'documentUpdate',
   scope: 'base',
   requiredRole: ProjectRoles.EDITOR,
   isDangerous: false,
-  async execute(
-    context: NcContext,
-    args: { document_name: string; title?: string; content?: string },
-    req: NcRequest,
-  ) {
+  async execute(context, args, req) {
     const service: DocumentsService = Noco.nestApp.get(DocumentsService);
     const docRef = await resolveDocumentByName(context, args.document_name);
 
@@ -72,4 +70,4 @@ export const updateDocumentTool: ChatToolDefinition = {
       message: `Document "${doc.title}" updated successfully.`,
     };
   },
-};
+});

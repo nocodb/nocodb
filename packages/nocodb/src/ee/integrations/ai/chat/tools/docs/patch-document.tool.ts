@@ -1,12 +1,9 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import { resolveDocumentByName } from '../helpers';
-import {
-  prosemirrorToMarkdown,
-  markdownToProseMirror,
-} from './prosemirror-utils';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import { markdownToProseMirror } from './prosemirror-utils';
 import { DocumentsService } from '~/services/documents.service';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
@@ -204,7 +201,7 @@ function extractNodeText(node: Record<string, any>): string {
 function applyOperation(
   doc: Record<string, any>,
   op: {
-    action: string;
+    action?: string;
     content?: string;
     heading?: string;
     search?: string;
@@ -256,14 +253,14 @@ function applyOperation(
 // Tool definition
 // ---------------------------------------------------------------------------
 
-export const patchDocumentTool: ChatToolDefinition = {
-  name: 'patch_document',
+export const patchDocumentTool = defineChatTool({
+  name: ChatToolName.PATCH_DOCUMENT,
   description:
     'Make targeted edits to a document WITHOUT replacing the entire content. ' +
     'Reads the current document, applies one or more operations, and saves. ' +
     'User edits outside the targeted areas are preserved. ' +
     'Preferred over update_document for partial changes like adding a section, updating a paragraph, or inserting content.',
-  parameters: {
+  schema: z.object({
     document_name: z
       .string()
       .describe(
@@ -318,25 +315,14 @@ export const patchDocumentTool: ChatToolDefinition = {
         }),
       )
       .describe('One or more edit operations to apply in order.'),
-  },
+  }),
+  visibility: 'action',
+  category: 'docs',
   permission: 'documentUpdate',
   scope: 'base',
   requiredRole: ProjectRoles.EDITOR,
   isDangerous: false,
-  async execute(
-    context: NcContext,
-    args: {
-      document_name: string;
-      operations: Array<{
-        action: string;
-        content?: string;
-        heading?: string;
-        search?: string;
-        replace?: string;
-      }>;
-    },
-    req: NcRequest,
-  ) {
+  async execute(context, args, req) {
     const service: DocumentsService = Noco.nestApp.get(DocumentsService);
     const docRef = await resolveDocumentByName(context, args.document_name);
 
@@ -390,4 +376,4 @@ export const patchDocumentTool: ChatToolDefinition = {
     // All retries exhausted
     throw lastError || new Error('Failed to patch document after retries.');
   },
-};
+});

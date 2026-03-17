@@ -1,35 +1,33 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import { resolveDocumentByName } from '../helpers';
 import { prosemirrorToMarkdown } from './prosemirror-utils';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
 import { DocumentsService } from '~/services/documents.service';
 import Noco from '~/Noco';
 
-export const getDocumentTool: ChatToolDefinition = {
-  name: 'get_document',
+export const getDocumentTool = defineChatTool({
+  name: ChatToolName.GET_DOCUMENT,
   description:
     'Get a document (NocoDocs page) with its full content converted to Markdown. ' +
     'Returns the document metadata and content. Use list_documents first to find document names.',
-  parameters: {
+  schema: z.object({
     document_name: z
       .string()
       .describe(
         'The title of the document to retrieve (case-insensitive). ' +
           'Use list_documents to find available document names.',
       ),
-  },
+  }),
+  visibility: 'data',
+  category: 'docs',
   permission: 'documentGet',
   scope: 'base',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
   readonly: true,
-  async execute(
-    context: NcContext,
-    args: { document_name: string },
-    _req: NcRequest,
-  ) {
+  async execute(context, args, _req) {
     const service: DocumentsService = Noco.nestApp.get(DocumentsService);
     const docRef = await resolveDocumentByName(context, args.document_name);
     const doc = await service.get(context, docRef.id!);
@@ -48,4 +46,4 @@ export const getDocumentTool: ChatToolDefinition = {
       comment_count: doc.comment_count || 0,
     };
   },
-};
+});

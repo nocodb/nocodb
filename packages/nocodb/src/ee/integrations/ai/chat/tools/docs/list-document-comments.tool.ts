@@ -1,34 +1,32 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import { resolveDocumentByName } from '../helpers';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
 import { DocumentCommentsService } from '~/services/document-comments.service';
 import Noco from '~/Noco';
 
-export const listDocumentCommentsTool: ChatToolDefinition = {
-  name: 'list_document_comments',
+export const listDocumentCommentsTool = defineChatTool({
+  name: ChatToolName.LIST_DOCUMENT_COMMENTS,
   description:
     'List all comments on a document (NocoDocs page). ' +
-    'Returns each comment\'s id, text, author, creation time, and resolution status.',
-  parameters: {
+    "Returns each comment's id, text, author, creation time, and resolution status.",
+  schema: z.object({
     document_name: z
       .string()
       .describe(
         'The title of the document to list comments for (case-insensitive). ' +
           'Use list_documents to find available document names.',
       ),
-  },
+  }),
+  visibility: 'hidden',
+  category: 'docs',
   permission: 'documentCommentList',
   scope: 'base',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
   readonly: true,
-  async execute(
-    context: NcContext,
-    args: { document_name: string },
-    _req: NcRequest,
-  ) {
+  async execute(context, args, _req) {
     const service: DocumentCommentsService = Noco.nestApp.get(
       DocumentCommentsService,
     );
@@ -47,4 +45,4 @@ export const listDocumentCommentsTool: ChatToolDefinition = {
       is_resolved: !!c.resolved_by,
     }));
   },
-};
+});

@@ -1,18 +1,18 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import { resolveDocumentByName } from '../helpers';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
 import { DocumentsService } from '~/services/documents.service';
 import Noco from '~/Noco';
 
-export const reorderDocumentTool: ChatToolDefinition = {
-  name: 'reorder_document',
+export const reorderDocumentTool = defineChatTool({
+  name: ChatToolName.REORDER_DOCUMENT,
   description:
     'Move a document to a different position or parent in the document tree. ' +
     'Use this to reorganize the document hierarchy — move a page under a different parent, ' +
     'or reposition it among siblings.',
-  parameters: {
+  schema: z.object({
     document_name: z
       .string()
       .describe(
@@ -32,20 +32,14 @@ export const reorderDocumentTool: ChatToolDefinition = {
       .describe(
         'Where to place the document among its siblings. Defaults to "last".',
       ),
-  },
+  }),
+  visibility: 'action',
+  category: 'docs',
   permission: 'documentReorder',
   scope: 'base',
   requiredRole: ProjectRoles.EDITOR,
   isDangerous: false,
-  async execute(
-    context: NcContext,
-    args: {
-      document_name: string;
-      parent_document_name?: string;
-      position?: 'first' | 'last';
-    },
-    req: NcRequest,
-  ) {
+  async execute(context, args, req) {
     const service: DocumentsService = Noco.nestApp.get(DocumentsService);
     const docRef = await resolveDocumentByName(context, args.document_name);
 
@@ -101,4 +95,4 @@ export const reorderDocumentTool: ChatToolDefinition = {
       message: `Document "${args.document_name}" moved successfully.`,
     };
   },
-};
+});

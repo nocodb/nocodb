@@ -6,9 +6,10 @@ import {
   ratingIconList,
 } from 'nocodb-sdk';
 import { resolveColumnByName, resolveTableByName } from '../helpers';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
 import type { NcContext } from '~/interface/config';
 import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import type { ChatToolDefinition } from '~/integrations/ai/chat/tools/define-chat-tool';
 import { ColumnsService } from '~/services/columns.service';
 import { ColumnsV3Service } from '~/services/v3/columns-v3.service';
 import Noco from '~/Noco';
@@ -232,7 +233,7 @@ function buildMeta(
 }
 
 export const updateFieldDisplayTool: ChatToolDefinition = {
-  name: 'update_field_display',
+  name: ChatToolName.UPDATE_FIELD_DISPLAY,
   description:
     'Update the display formatting of a field without changing its type or data. ' +
     'This is safe — it only changes how values are rendered in the UI.\n\n' +
@@ -249,7 +250,7 @@ export const updateFieldDisplayTool: ChatToolDefinition = {
     '• Colour — default_color (hex), display_format (swatch_hex/swatch_only/hex_only), swatch_style (circle/square), swatch_size (small/medium/large)\n' +
     '• SingleSelect / MultiSelect — option_colors to set colors per option\n\n' +
     'IMPORTANT: Only provide the parameters relevant to the field type — do NOT send empty strings, zeros, or defaults for unrelated options.',
-  parameters: {
+  schema: z.object({
     table_name: z
       .string()
       .describe('Title of the table (case-insensitive).'),
@@ -358,7 +359,9 @@ export const updateFieldDisplayTool: ChatToolDefinition = {
           'Only options listed here will have their color changed — others keep their current color. ' +
           'Example: [{"title": "Todo", "color": "#cfdffe"}, {"title": "Done", "color": "#c2f5e8"}]',
       ),
-  },
+  }),
+  visibility: 'action',
+  category: 'schema',
   permission: 'columnUpdate',
   scope: 'base',
   requiredRole: ProjectRoles.EDITOR,

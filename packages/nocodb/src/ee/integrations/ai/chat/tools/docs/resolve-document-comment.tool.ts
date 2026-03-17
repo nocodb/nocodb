@@ -1,33 +1,31 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '../chat-tool-registry';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import { DocumentCommentsService } from '~/services/document-comments.service';
 import Noco from '~/Noco';
 
-export const resolveDocumentCommentTool: ChatToolDefinition = {
-  name: 'resolve_document_comment',
+export const resolveDocumentCommentTool = defineChatTool({
+  name: ChatToolName.RESOLVE_DOCUMENT_COMMENT,
   description:
     'Toggle the resolved status of a document comment. ' +
     'If the comment is unresolved, it becomes resolved. If already resolved, it becomes unresolved. ' +
     'Use list_document_comments to find comment IDs.',
-  parameters: {
+  schema: z.object({
     comment_id: z
       .string()
       .describe(
         'The ID of the comment to resolve/unresolve. ' +
           'Use list_document_comments to find comment IDs.',
       ),
-  },
+  }),
+  visibility: 'action',
+  category: 'docs',
   permission: 'documentCommentResolve',
   scope: 'base',
   requiredRole: ProjectRoles.COMMENTER,
   isDangerous: false,
-  async execute(
-    context: NcContext,
-    args: { comment_id: string },
-    req: NcRequest,
-  ) {
+  async execute(context, args, req) {
     const service: DocumentCommentsService = Noco.nestApp.get(
       DocumentCommentsService,
     );
@@ -45,4 +43,4 @@ export const resolveDocumentCommentTool: ChatToolDefinition = {
       message: `Comment ${isResolved ? 'resolved' : 'unresolved'} successfully.`,
     };
   },
-};
+});

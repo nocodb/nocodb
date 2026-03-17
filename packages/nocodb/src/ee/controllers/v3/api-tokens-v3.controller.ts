@@ -26,6 +26,7 @@ export class ApiTokensV3Controller {
   @Get('/api/v3/meta/tokens')
   @Acl('apiTokenList', {
     scope: 'org',
+    blockOAuthTokenAccess: true,
   })
   async apiTokenList(@Req() req: NcRequest) {
     return await this.apiTokensV3Service.list({ cookie: req });
@@ -35,6 +36,7 @@ export class ApiTokensV3Controller {
   @HttpCode(200)
   @Acl('apiTokenCreate', {
     scope: 'org',
+    blockOAuthTokenAccess: true,
   })
   async apiTokenCreate(
     @Req() req: NcRequest,
@@ -46,6 +48,7 @@ export class ApiTokensV3Controller {
   @Delete('/api/v3/meta/tokens/:tokenId')
   @Acl('apiTokenDelete', {
     scope: 'org',
+    blockOAuthTokenAccess: true,
   })
   async apiTokenDelete(
     @Req() req: NcRequest,

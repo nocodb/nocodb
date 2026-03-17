@@ -1282,11 +1282,13 @@ export class AclMiddleware implements NestInterceptor {
       scope = 'base',
       allowedRoles,
       blockApiTokenAccess,
+      blockOAuthTokenAccess,
       extendedScope,
     }: {
       scope?: string;
       allowedRoles?: (OrgUserRoles | string)[];
       blockApiTokenAccess?: boolean;
+      blockOAuthTokenAccess?: boolean;
       extendedScope?: string;
     } = {},
     context: ExecutionContext,
@@ -1438,6 +1440,10 @@ export class AclMiddleware implements NestInterceptor {
 
     if (req?.user?.is_api_token && blockApiTokenAccess) {
       NcError.apiTokenNotAllowed();
+    }
+
+    if (req?.user?.is_oauth_token && blockOAuthTokenAccess) {
+      NcError.forbidden('Not allowed for OAuth token');
     }
 
     if (
@@ -1630,6 +1636,10 @@ export class AclMiddleware implements NestInterceptor {
       'blockApiTokenAccess',
       context.getHandler(),
     );
+    const blockOAuthTokenAccess = this.reflector.get<boolean>(
+      'blockOAuthTokenAccess',
+      context.getHandler(),
+    );
     const scope = this.reflector.get<string>('scope', context.getHandler());
     const extendedScope = this.reflector.get<string>(
       'extendedScope',
@@ -1644,6 +1654,7 @@ export class AclMiddleware implements NestInterceptor {
         scope,
         allowedRoles,
         blockApiTokenAccess,
+        blockOAuthTokenAccess,
         extendedScope,
       },
       context,
@@ -1665,11 +1676,13 @@ export const Acl =
       scope = 'base',
       allowedRoles,
       blockApiTokenAccess,
+      blockOAuthTokenAccess,
       extendedScope,
     }: {
       scope?: string;
       allowedRoles?: (OrgUserRoles | string)[];
       blockApiTokenAccess?: boolean;
+      blockOAuthTokenAccess?: boolean;
       extendedScope?: string;
     } = {},
   ) =>
@@ -1680,6 +1693,11 @@ export const Acl =
     SetMetadata('extendedScope', extendedScope)(target, key, descriptor);
     SetMetadata('allowedRoles', allowedRoles)(target, key, descriptor);
     SetMetadata('blockApiTokenAccess', blockApiTokenAccess)(
+      target,
+      key,
+      descriptor,
+    );
+    SetMetadata('blockOAuthTokenAccess', blockOAuthTokenAccess)(
       target,
       key,
       descriptor,

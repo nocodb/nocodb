@@ -2226,6 +2226,31 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 {{ endDateValidationError }}
                               </div>
                             </div>
+
+                            <!-- Show expiry timer toggle -->
+                            <div v-if="formViewData?.expires_at" class="flex items-center justify-between gap-3">
+                              <span class="flex items-center gap-1 text-small text-nc-content-gray-subtle2">
+                                {{ $t('labels.formShowExpiryTimer') }}
+                                <NcTooltip>
+                                  <template #title>
+                                    {{ $t('labels.formShowExpiryTimerTooltip') }}
+                                  </template>
+                                  <GeneralIcon icon="info" class="w-3.5 h-3.5 text-nc-content-gray-muted cursor-help" />
+                                </NcTooltip>
+                              </span>
+                              <a-switch
+                                v-e="[`a:form-view:show-expiry-timer`]"
+                                :checked="!!parseProp(formViewData?.meta)?.show_expiry_timer"
+                                size="small"
+                                :disabled="isLocked || !isEditable"
+                                @change="
+                                  (value: boolean) => {
+                                    ;(formViewData!.meta as Record<string, any>).show_expiry_timer = value
+                                    updateView()
+                                  }
+                                "
+                              />
+                            </div>
                           </template>
                         </div>
                       </div>

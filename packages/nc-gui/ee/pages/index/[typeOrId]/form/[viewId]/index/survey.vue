@@ -429,8 +429,14 @@ const { message: templatedMessage } = useTemplatedMessage(
                 :key="field?.title"
                 class="flex flex-col gap-4 w-full m-auto rounded-xl border-1 border-nc-border-gray-medium bg-nc-bg-default p-6 lg:p-12"
               >
-                <div class="select-none text-nc-content-gray-muted mb-4 md:mb-2" data-testid="nc-survey-form__footer">
-                  {{ index + 1 }} / {{ formColumns?.length }}
+                <div class="flex items-center justify-between mb-4 md:mb-2">
+                  <div class="select-none text-nc-content-gray-muted" data-testid="nc-survey-form__footer">
+                    {{ index + 1 }} / {{ formColumns?.length }}
+                  </div>
+                  <SmartsheetFormExpiryIndicator
+                    :expires-at="sharedFormView?.expires_at"
+                    :show-always="!!parseProp(sharedFormView?.meta)?.show_expiry_timer"
+                  />
                 </div>
 
                 <div v-if="field" class="flex flex-col gap-2">

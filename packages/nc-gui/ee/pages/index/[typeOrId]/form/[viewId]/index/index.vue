@@ -306,7 +306,9 @@ const { message: templatedMessage } = useTemplatedMessage(
                 </div>
 
                 <div class="flex justify-between items-center mt-6">
-                  <div></div>
+                  <div class="flex">
+                    <SmartsheetFormExpiryIndicator :expires-at="sharedFormView?.expires_at" :show-always="!!parseProp(sharedFormView?.meta)?.show_expiry_timer" />
+                  </div>
 
                   <NcButton
                     :disabled="progress || blockAddNewRecord || !isAddingEmptyRowPermitted"

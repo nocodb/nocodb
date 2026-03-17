@@ -2060,6 +2060,8 @@
     "formNotStartedSubtext": "The form will start accepting responses at the scheduled time.",
     "formOpensIn": "Opens in",
     "formEndDateBeforeStart": "Expiration date must be after the start date",
+    "formShowExpiryTimer": "Show expiry countdown",
+    "formShowExpiryTimerTooltip": "Even if disabled, the countdown will automatically appear when less than 10 minutes remain",
     "formExpired": "This form is no longer accepting responses",
     "formExpiredSubtext": "The form has passed its expiration date and is now closed.",
     "days": "days",

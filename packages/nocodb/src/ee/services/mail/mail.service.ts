@@ -3,6 +3,7 @@ import { MailService as MailServiceCE } from 'src/services/mail/mail.service';
 import { RoleLabels } from 'nocodb-sdk';
 import type {
   HookErrorDigestPayload,
+  WorkflowDraftReminderPayload,
   WorkflowErrorDigestPayload,
 } from '~/interface/Mail';
 import { EEOnly } from '~/decorators/ee-only.decorator';
@@ -431,6 +432,35 @@ export class MailService extends MailServiceCE {
               failureCount,
               firstFailureTime,
               lastFailureTime,
+              link,
+            }),
+          });
+          break;
+        }
+        case MailEvent.WORKFLOW_DRAFT_REMINDER: {
+          const {
+            user,
+            workflow,
+            workspace,
+            draftAgeDays,
+            baseId,
+            workspaceId,
+            req,
+          } = params.payload as WorkflowDraftReminderPayload;
+
+          const link = this.buildUrl(req, {
+            workspaceId,
+            baseId,
+            automationId: workflow.id,
+          });
+
+          await mailerAdapter.mailSend({
+            to: user.email,
+            subject: `Reminder: "${workflow.title}" has unpublished changes`,
+            html: await this.renderMail('WorkflowDraftReminder', {
+              workflowTitle: workflow.title,
+              baseTitle: workspace?.title || 'Base',
+              draftAgeDays,
               link,
             }),
           });

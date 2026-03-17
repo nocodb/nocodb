@@ -30,6 +30,7 @@ import { WorkflowScheduleProcessor } from '~/modules/jobs/jobs/workflow/workflow
 import { WorkflowResumeProcessor } from '~/modules/jobs/jobs/workflow/workflow-resume.processor';
 import { WorkflowTestProcessor } from '~/modules/jobs/jobs/workflow/workflow-test.processor';
 import { WorkflowErrorNotificationProcessor } from '~/modules/jobs/jobs/workflow/workflow-error-notification.processor';
+import { WorkflowDraftReminderProcessor } from '~/modules/jobs/jobs/workflow/workflow-draft-reminder.processor';
 import { HookErrorNotificationProcessor } from '~/modules/jobs/jobs/hook-error-notification.processor';
 import { ChatMessageProcessor } from '~/modules/jobs/jobs/chat-message.processor';
 import { ChatApprovalProcessor } from '~/modules/jobs/jobs/chat-approval.processor';
@@ -67,6 +68,7 @@ export class JobsMap extends JobsMapCE {
     protected readonly workflowResumeProcessor: WorkflowResumeProcessor,
     protected readonly workflowTestProcessor: WorkflowTestProcessor,
     protected readonly workflowErrorNotificationProcessor: WorkflowErrorNotificationProcessor,
+    protected readonly workflowDraftReminderProcessor: WorkflowDraftReminderProcessor,
     protected readonly hookErrorNotificationProcessor: HookErrorNotificationProcessor,
     protected readonly chatMessageProcessor: ChatMessageProcessor,
     protected readonly chatApprovalProcessor: ChatApprovalProcessor,
@@ -173,6 +175,9 @@ export class JobsMap extends JobsMapCE {
       },
       [JobTypes.WorkflowErrorNotification]: {
         this: this.workflowErrorNotificationProcessor,
+      },
+      [JobTypes.WorkflowDraftReminder]: {
+        this: this.workflowDraftReminderProcessor,
       },
       [JobTypes.HookErrorNotification]: {
         this: this.hookErrorNotificationProcessor,

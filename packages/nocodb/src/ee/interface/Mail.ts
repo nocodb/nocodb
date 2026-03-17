@@ -63,6 +63,22 @@ interface WorkflowErrorDigestPayload {
   workspaceId: string;
 }
 
+interface WorkflowDraftReminderPayload {
+  req?: NcRequest;
+  user: UserType;
+  workflow: {
+    id: string;
+    title: string;
+  };
+  workspace: {
+    id: string;
+    title: string;
+  };
+  draftAgeDays: number;
+  baseId: string;
+  workspaceId: string;
+}
+
 interface HookErrorDigestPayload {
   req?: NcRequest;
   user: UserType;
@@ -201,6 +217,10 @@ type MailParams =
       payload: WorkflowErrorDigestPayload;
     }
   | {
+      mailEvent: MailEvent.WORKFLOW_DRAFT_REMINDER;
+      payload: WorkflowDraftReminderPayload;
+    }
+  | {
       mailEvent: MailEvent.HOOK_ERROR_DIGEST;
       payload: HookErrorDigestPayload;
     };
@@ -210,5 +230,6 @@ export {
   MailParams,
   RawMailParams,
   WorkflowErrorDigestPayload,
+  WorkflowDraftReminderPayload,
   HookErrorDigestPayload,
 };

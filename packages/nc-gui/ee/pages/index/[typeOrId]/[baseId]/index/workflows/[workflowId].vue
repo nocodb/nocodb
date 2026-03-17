@@ -4,6 +4,8 @@ import { useProvideWorkflow } from '~/composables/useWorkflow'
 
 const { t } = useI18n()
 
+const { $e } = useNuxtApp()
+
 const workflowStore = useWorkflowStore()
 
 const { activeWorkflow, activeWorkflowHasDraftChanges } = storeToRefs(workflowStore)
@@ -29,11 +31,13 @@ const confirmUnpublishedChangesBeforeLeaving = (
     'okText': t('labels.keepEditing'),
     'cancelText': t('labels.leave'),
     'onCancel': () => {
+      $e('c:workflow:unpublished-draft:leave')
       isOpen.value = false
       close(1000)
       next()
     },
     'onOk': () => {
+      $e('c:workflow:unpublished-draft:keep-editing')
       isOpen.value = false
       close(1000)
       next(false)

@@ -82,6 +82,15 @@ export class WorkflowsService implements OnModuleInit {
         repeat: { cron: '* * * * *' },
       },
     );
+    this.nocoJobsService.jobsQueue.add(
+      {
+        jobName: JobTypes.WorkflowDraftReminder,
+      },
+      {
+        jobId: JobTypes.WorkflowDraftReminder,
+        repeat: { cron: '* * * * *' },
+      },
+    );
   }
 
   /**

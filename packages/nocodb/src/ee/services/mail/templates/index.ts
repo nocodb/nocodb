@@ -13,6 +13,7 @@ import WorkspaceTeamRoleUpdate from '~/services/mail/templates/workspace-team-ro
 import BaseTeamRemoved from '~/services/mail/templates/base-team-removed';
 import BaseTeamRoleUpdate from '~/services/mail/templates/base-team-role-update';
 import WorkflowErrorDigest from '~/services/mail/templates/workflow-error-digest';
+import WorkflowDraftReminder from '~/services/mail/templates/workflow-draft-reminder';
 import HookErrorDigest from '~/services/mail/templates/hook-error-digest';
 import SendRecord from '~/services/mail/templates/send-record';
 
@@ -34,6 +35,7 @@ export {
   BaseTeamRemoved,
   BaseTeamRoleUpdate,
   WorkflowErrorDigest,
+  WorkflowDraftReminder,
   HookErrorDigest,
   SendRecord,
 };

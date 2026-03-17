@@ -193,3 +193,11 @@ export const validateV1V2DataPayloadLimit = (
     NcError.get(context).maxPayloadLimitExceeded(V1_V2_DATA_PAYLOAD_LIMIT);
   }
 };
+
+export const isReturnFieldsByFieldId = (query: any) => {
+  return (
+    query?.returnFieldsByFieldId === 'true' ||
+    // fieldIdOnResult for backward compatibility
+    query?.fieldIdOnResult === 'true'
+  );
+};

@@ -7,13 +7,15 @@ import type { NcContext } from '~/interface/config';
 import type { Filter } from '~/models';
 import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
 import { NcBaseError, NcError } from '~/helpers/catchError';
-import { getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
+import {
+  getViewAndModelByAliasOrId,
+  isReturnFieldsByFieldId,
+} from '~/helpers/dataHelpers';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Base, Column, Model, Source, View } from '~/models';
 import { nocoExecute } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 
 @Injectable()
 export class DatasService {
@@ -268,8 +270,7 @@ export class DatasService {
       includeSortAndFilterColumns: includeSortAndFilterColumns,
       includeRowColorColumns: param.includeRowColorColumns,
       includeButtonFilterColumns: param.includeButtonFilterColumns,
-      skipSubstitutingColumnIds:
-        query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+      skipSubstitutingColumnIds: isReturnFieldsByFieldId(query),
     });
 
     const listArgs: any = dependencyFields;
@@ -298,7 +299,7 @@ export class DatasService {
                 limitOverride: param.limitOverride,
                 skipSubstitutingColumnIds:
                   context.api_version === NcApiVersion.V3 &&
-                  query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+                  isReturnFieldsByFieldId(query),
                 skipSortBasedOnOrderCol,
               },
             ),

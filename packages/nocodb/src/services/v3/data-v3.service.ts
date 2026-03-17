@@ -25,6 +25,7 @@ import type { LinkToAnotherRecordColumn } from '~/models';
 import type { ReusableParams } from '~/utils';
 import { dataWrapper } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
+import { isReturnFieldsByFieldId } from '~/helpers/dataHelpers';
 import { Column, Model, Source } from '~/models';
 import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
 import { DataTableService } from '~/services/data-table.service';
@@ -32,7 +33,6 @@ import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   MAX_NESTING_DEPTH,
-  QUERY_STRING_FIELD_ID_ON_RESULT,
   QUERY_STRING_LINKS_AS_LTAR,
   V3_DATA_PAYLOAD_LIMIT,
 } from '~/constants';
@@ -427,8 +427,7 @@ export class DataV3Service {
       requestedFields: requestedFields,
       columns: columns,
       nestedLimit: nestedLimit,
-      skipSubstitutingColumnIds:
-        param.query[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+      skipSubstitutingColumnIds: isReturnFieldsByFieldId(param.query),
       reuse: {}, // Create reuse cache for this data list operation
       depth: 0, // Start at depth 0 for main records
       linksAsLtar,
@@ -697,8 +696,7 @@ export class DataV3Service {
         requestedFields: undefined,
         columns: columns,
         nestedLimit: undefined,
-        skipSubstitutingColumnIds:
-          param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+        skipSubstitutingColumnIds: isReturnFieldsByFieldId(param.cookie.query),
         reuse: {}, // Create reuse cache for this data insert operation
         depth: 0, // Start at depth 0 for main records
         linksAsLtar,
@@ -866,8 +864,7 @@ export class DataV3Service {
       requestedFields: undefined,
       columns: columns,
       nestedLimit: undefined,
-      skipSubstitutingColumnIds:
-        param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT],
+      skipSubstitutingColumnIds: isReturnFieldsByFieldId(param.cookie.query),
       reuse: {}, // Create reuse cache for this data update operation
       depth: 0, // Start at depth 0 for main records
       linksAsLtar,
@@ -964,8 +961,7 @@ export class DataV3Service {
         requestedFields: requestedFields,
         columns: relatedColumns,
         nestedLimit: undefined,
-        skipSubstitutingColumnIds:
-          param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+        skipSubstitutingColumnIds: isReturnFieldsByFieldId(param.query),
         reuse: {}, // Create reuse cache for this nested data list operation
         depth: 0, // Start at depth 0 for main records
         linksAsLtar,
@@ -1037,8 +1033,7 @@ export class DataV3Service {
       requestedFields: requestedFields,
       columns: relatedColumns,
       nestedLimit: nestedLimit,
-      skipSubstitutingColumnIds:
-        param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+      skipSubstitutingColumnIds: isReturnFieldsByFieldId(param.query),
       reuse: {}, // Create reuse cache for this nested data list operation
       depth: 0, // Start at depth 0 for main records
       linksAsLtar,
@@ -1114,8 +1109,7 @@ export class DataV3Service {
           requestedFields: requestedFields,
           columns: columns,
           nestedLimit: undefined,
-          skipSubstitutingColumnIds:
-            param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+          skipSubstitutingColumnIds: isReturnFieldsByFieldId(param.query),
           reuse: {}, // Create reuse cache for this data read operation
           depth: 0, // Start at depth 0 for main records
           linksAsLtar,

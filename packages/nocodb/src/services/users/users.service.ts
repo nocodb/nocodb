@@ -473,7 +473,7 @@ export class UsersService {
         NcError.internalServerError('Failed to update refresh token');
       }
 
-      setTokenCookie(param.res, refreshToken);
+      setTokenCookie(param.res, refreshToken, param.req);
 
       return {
         token: genJwt(
@@ -695,6 +695,6 @@ export class UsersService {
       meta: req.user?.extra,
     });
 
-    setTokenCookie(res, refreshToken);
+    setTokenCookie(res, refreshToken, req);
   }
 }

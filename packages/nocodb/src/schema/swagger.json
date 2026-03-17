@@ -3343,8 +3343,7 @@
               "examples": {
                 "Example 1": {
                   "value": {
-                    "roles": "editor",
-                    "password": "password123"
+                    "roles": "viewer"
                   }
                 }
               }
@@ -3417,8 +3416,7 @@
               "examples": {
                 "Example 1": {
                   "value": {
-                    "password": "password123",
-                    "roles": "editor"
+                    "roles": "viewer"
                   }
                 }
               }
@@ -27655,19 +27653,12 @@
         "description": "Model for Shared Base Request",
         "examples": [
           {
-            "password": "password123",
-            "roles": "editor"
+            "roles": "viewer"
           }
         ],
         "title": "Shared Base Request Model",
         "type": "object",
         "properties": {
-          "password": {
-            "minLength": 8,
-            "type": "string",
-            "description": "Password to protect the base",
-            "example": "password123"
-          },
           "roles": {
             "enum": [
               "commenter",
@@ -27676,7 +27667,7 @@
             ],
             "type": "string",
             "description": "The role given the target user",
-            "example": "editor"
+            "example": "viewer"
           }
         },
         "x-stoplight": {

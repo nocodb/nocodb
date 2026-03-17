@@ -411,7 +411,7 @@ export class UsersService extends UsersServiceCE {
       fk_user_id: user.id,
     });
 
-    setTokenCookie(param.res, refreshToken);
+    setTokenCookie(param.res, refreshToken, param.req);
 
     return { ...(await this.login(user, param.req)), createdWorkspace };
   }

@@ -42,10 +42,14 @@ export function randomTokenString(): string {
   return crypto.randomBytes(40).toString('hex');
 }
 
-export function setTokenCookie(res: Response, token): void {
+export function setTokenCookie(res: Response, token, req?: any): void {
   // create http only cookie with refresh token that expires in 7 days
   const cookieOptions = {
     httpOnly: true,
+    sameSite: 'lax' as const,
+    secure: req?.ncSiteUrl
+      ? req.ncSiteUrl.startsWith('https')
+      : !!process.env.NC_PUBLIC_URL?.startsWith('https'),
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     domain: process.env.NC_BASE_HOST_NAME
       ? // add a dot in front of the domain to make it work for subdomains

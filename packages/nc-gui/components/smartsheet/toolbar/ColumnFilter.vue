@@ -1448,7 +1448,7 @@ defineExpose({
                   </template>
                 </NcSelect>
                 <div
-                  class="not:empty:flex items-center flex-grow min-w-0 empty:!hidden"
+                  class="flex items-center flex-grow min-w-0 empty:!hidden"
                   :class="{
                     'xs:(col-span-6)':
                       isTimezoneAbbreviationAvailable(filter, getColumn(filter)) &&

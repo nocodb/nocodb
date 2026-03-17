@@ -42,9 +42,6 @@ export function useDocumentAutoSave({
   // Flag to re-queue save when a save is already in-flight
   let pendingSaveAfterCurrent = false
 
-  // Guard against concurrent reloads (e.g. watcher fires multiple times)
-  let isReloading = false
-
   const { user } = useGlobal()
 
   // When the store version advances due to current user's action (e.g. sidebar rename),

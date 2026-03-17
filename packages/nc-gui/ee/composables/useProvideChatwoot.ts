@@ -40,7 +40,10 @@ export const useProvideChatwoot = createSharedComposable(() => {
     sdkLoaded.value = true
 
     function reinitWithToken() {
-      // Remove the broken widget created by the module's empty-token run()
+      // The SDK's run() guards with `if (window.$chatwoot) return` —
+      // we must clear the previous instance before reinitializing.
+      delete (window as any).$chatwoot
+      document.getElementById('chatwoot_live_chat_widget')?.remove()
       document.querySelector('.woot-widget-holder')?.remove()
       document.querySelector('.woot--bubble-holder')?.remove()
 

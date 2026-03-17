@@ -146,16 +146,18 @@ const deleteToken = async (token: string): Promise<void> => {
     const id = allTokens.value.find((t) => t.token === token)?.id
     await api.orgTokens.delete(id)
     // message.success(t('msg.success.tokenDeleted'))
-    await loadTokens()
 
     updateAllTokens('delete', {
       token,
     } as IApiTokenInfo)
 
-    if (!tokens.value.length && currentPage.value !== 1) {
+    // If the current page would be empty after deletion, go back to previous page
+    const newTotal = pagination.total - 1
+    if (currentPage.value > 1 && (currentPage.value - 1) * currentLimit.value >= newTotal) {
       currentPage.value--
-      loadTokens(currentPage.value)
     }
+
+    await loadTokens(currentPage.value)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -262,7 +264,14 @@ const handleCancel = () => {
           </NcButton>
         </div>
         <span data-rec="true">{{ $t('msg.apiTokenCreate') }}</span>
-        <div v-if="!isLoadingAllTokens && (tokens.length || showNewTokenModal)" class="mt-6 h-full max-h-[calc(100%-80px)]">
+        <div
+          v-if="!isLoadingAllTokens && (tokens.length || showNewTokenModal)"
+          class="mt-6 h-full max-h-[calc(100%-80px)]"
+          :class="{
+            'max-h-[calc(100%-120px)]': pagination.total > 10,
+            'max-h-[calc(100%-80px)]': pagination.total <= 10,
+          }"
+        >
           <div class="h-full w-full overflow-y-auto rounded-md">
             <div class="flex w-full pl-5 bg-nc-bg-gray-extralight border-1 rounded-t-md">
               <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-2/9" data-rec="true">{{

@@ -51,8 +51,8 @@ importers:
         specifier: ^11.1.0
         version: 11.1.0
       validator:
-        specifier: ^13.15.22
-        version: 13.15.26
+        specifier: ^13.15.23
+        version: 13.15.23
     devDependencies:
       '@types/jest':
         specifier: ^29.5.14

@@ -92,7 +92,7 @@ export class SharedBasesService {
       NcError.baseNotFound(param.baseId);
     }
 
-    if (roles === 'editor' && process.env.NC_CLOUD === 'true') {
+    if (roles === 'editor') {
       NcError.badRequest('Only viewer role is supported');
     }
 

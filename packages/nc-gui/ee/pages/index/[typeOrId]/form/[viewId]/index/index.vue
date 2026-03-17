@@ -18,6 +18,9 @@ const {
   validate,
   fieldMappings,
   isAddingEmptyRowPermitted,
+  isFormExpired,
+  isFormNotStarted,
+  formStartsAt,
 } = useSharedFormStoreOrThrow()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
@@ -146,6 +149,14 @@ const { message: templatedMessage } = useTemplatedMessage(
         </div>
 
         <a-alert v-if="notFound" type="warning" class="!mt-2 !mb-4 text-center" message="Not found" />
+
+        <template v-else-if="isFormNotStarted">
+          <SmartsheetFormClosedState mode="not-started" :starts-at="formStartsAt" />
+        </template>
+
+        <template v-else-if="isFormExpired">
+          <SmartsheetFormClosedState mode="expired" />
+        </template>
 
         <template v-else-if="submitted">
           <div class="flex justify-center">

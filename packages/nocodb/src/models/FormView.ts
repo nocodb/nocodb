@@ -125,11 +125,6 @@ export default class FormView implements FormViewType {
       insertObj.meta = serializeJSON(insertObj.meta);
     }
 
-    if (isEE) {
-      insertObj.starts_at = this.formatUtcDateTime(insertObj.starts_at);
-      insertObj.expires_at = this.formatUtcDateTime(insertObj.expires_at);
-    }
-
     if (insertObj?.logo_url) {
       insertObj.logo_url = this.serializeAttachmentJSON(insertObj.logo_url);
     }
@@ -178,11 +173,6 @@ export default class FormView implements FormViewType {
       'meta',
     ]);
 
-    if (isEE) {
-      updateObj.starts_at = this.formatUtcDateTime(updateObj.starts_at);
-      updateObj.expires_at = this.formatUtcDateTime(updateObj.expires_at);
-    }
-
     if (updateObj?.logo_url) {
       updateObj.logo_url = this.serializeAttachmentJSON(updateObj.logo_url);
     }
@@ -229,14 +219,6 @@ export default class FormView implements FormViewType {
     const form = await this.get(context, formViewId, ncMeta);
     await form.getColumns(context, ncMeta);
     return form;
-  }
-
-  private static formatUtcDateTime(
-    value: string | null | undefined,
-  ): string | null {
-    if (!value) return null;
-    const d = dayjs.utc(value);
-    return d.isValid() ? d.format('YYYY-MM-DD HH:mm:ss') : null;
   }
 
   static serializeAttachmentJSON(attachment): string | null {

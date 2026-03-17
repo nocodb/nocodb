@@ -32,9 +32,6 @@ const {
   handleAddMissingRequiredFieldDefaultState,
   fieldMappings,
   backgroundAndTextColor,
-  isFormExpired,
-  isFormNotStarted,
-  formStartsAt,
 } = useSharedFormStoreOrThrow()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
@@ -280,27 +277,7 @@ const { message: templatedMessage } = useTemplatedMessage(
   <div class="h-full">
     <div class="survey md:p-0 w-full h-full flex flex-col max-w-[max(33%,688px)] mx-auto mb-4rem lg:mb-10rem">
       <div v-if="sharedFormView" class="my-auto z-2">
-        <template v-if="isFormNotStarted">
-          <GeneralFormBanner
-            v-if="sharedFormView && !parseProp(sharedFormView?.meta).hide_banner"
-            :banner-image-url="sharedFormView.banner_image_url"
-            class="flex-none mb-4"
-          />
-          <div class="rounded-3xl border-1 border-nc-border-gray-medium p-6 lg:p-12 bg-nc-bg-default">
-            <SmartsheetFormFormClosedState mode="not-started" :starts-at="formStartsAt" />
-          </div>
-        </template>
-        <template v-else-if="isFormExpired">
-          <GeneralFormBanner
-            v-if="sharedFormView && !parseProp(sharedFormView?.meta).hide_banner"
-            :banner-image-url="sharedFormView.banner_image_url"
-            class="flex-none mb-4"
-          />
-          <div class="rounded-3xl border-1 border-nc-border-gray-medium p-6 lg:p-12 bg-nc-bg-default">
-            <SmartsheetFormFormClosedState mode="expired" />
-          </div>
-        </template>
-        <template v-else-if="!isStarted || submitted">
+        <template v-if="!isStarted || submitted">
           <GeneralFormBanner
             v-if="sharedFormView && !parseProp(sharedFormView?.meta).hide_banner"
             :banner-image-url="sharedFormView.banner_image_url"

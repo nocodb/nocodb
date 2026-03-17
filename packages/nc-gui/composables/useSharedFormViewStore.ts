@@ -1,4 +1,5 @@
 import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
 import type {
   BoolType,
   ColumnType,
@@ -16,15 +17,27 @@ import { useTitle } from '@vueuse/core'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import { filterNullOrUndefinedObjectProperties } from '~/helpers/parsers/parserHelpers'
 
+dayjs.extend(utc)
+
 const useForm = Form.useForm
 
 const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((sharedViewId: string) => {
   const progress = ref(false)
   const notFound = ref(false)
   const submitted = ref(false)
-  const isFormExpired = ref(false)
-  const isFormNotStarted = ref(false)
-  const formStartsAt = ref<string | null>(null)
+  const isFormExpired = computed(() => {
+    const expiresAt = (sharedFormView.value as any)?.expires_at
+    if (!expiresAt) return false
+    return dayjs.utc(expiresAt).isBefore(dayjs.utc())
+  })
+
+  const isFormNotStarted = computed(() => {
+    const startsAt = (sharedFormView.value as any)?.starts_at
+    if (!startsAt) return false
+    return dayjs.utc(startsAt).isAfter(dayjs.utc())
+  })
+
+  const formStartsAt = computed(() => (sharedFormView.value as any)?.starts_at || null)
   const passwordDlg = ref(false)
   const password = ref<string | null>(null)
   const passwordError = ref<string | null>(null)
@@ -187,11 +200,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       sharedView.value = viewMeta
       sharedFormView.value = viewMeta.view
       meta.value = viewMeta.model
-
-      // Check if form is expired or not started
-      isFormExpired.value = !!(viewMeta as any).is_form_expired
-      isFormNotStarted.value = !!(viewMeta as any).is_form_not_started
-      formStartsAt.value = (viewMeta as any).form_starts_at || null
 
       loadAllviewFilters(Array.isArray(viewMeta?.filter?.children) ? viewMeta?.filter?.children : [])
 

@@ -93,7 +93,7 @@ const countdownSegments = computed(() => [
         {{ $t('labels.formOpensIn') }}
       </div>
 
-      <div class="nc-countdown-grid flex items-center gap-3">
+      <div class="nc-countdown-grid flex items-center gap-2 sm:gap-3">
         <template v-for="(seg, i) in countdownSegments" :key="seg.label">
           <div class="nc-countdown-segment flex flex-col items-center">
             <div class="nc-countdown-value">
@@ -142,19 +142,19 @@ const countdownSegments = computed(() => [
 }
 
 .nc-countdown-value {
-  @apply w-16 h-16 flex items-center justify-center;
-  @apply text-2xl font-bold text-nc-content-gray-emphasis;
-  @apply bg-nc-bg-gray-light rounded-xl;
+  @apply w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center;
+  @apply text-lg sm:text-2xl font-bold text-nc-content-gray-emphasis;
+  @apply bg-nc-bg-gray-light rounded-lg sm:rounded-xl;
   @apply border-1 border-nc-border-gray-medium;
   font-variant-numeric: tabular-nums;
   transition: all 0.3s ease;
 }
 
 .nc-countdown-label {
-  @apply text-[11px] font-medium text-nc-content-gray-muted uppercase tracking-wider;
+  @apply text-[10px] sm:text-[11px] font-medium text-nc-content-gray-muted uppercase tracking-wider;
 }
 
 .nc-countdown-separator {
-  @apply text-xl font-bold text-nc-content-gray-muted mb-5;
+  @apply text-base sm:text-xl font-bold text-nc-content-gray-muted mb-5;
 }
 </style>

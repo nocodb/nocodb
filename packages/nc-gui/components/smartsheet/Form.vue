@@ -1212,6 +1212,11 @@ const { message: templatedMessage } = useTemplatedMessage(
                       </div>
                     </div>
                   </div>
+                  <SmartsheetFormSchedulingAlert
+                    :starts-at="formViewData?.starts_at"
+                    :expires-at="formViewData?.expires_at"
+                    class="mt-6 max-w-[max(33%,688px)] mx-auto"
+                  />
                   <NcAlert
                     v-if="blockAddNewRecord"
                     type="warning"

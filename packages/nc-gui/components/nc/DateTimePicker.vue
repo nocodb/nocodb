@@ -138,6 +138,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
 
 function handleCurrentDate() {
   emitValue(dayjs())
+  nextTick(() => scrollAllToSelected())
 }
 
 function handleSelectHour(h: number) {
@@ -192,7 +193,10 @@ function scrollAllToSelected() {
 }
 
 watch(isOpen, (next) => {
-  if (next) scrollAllToSelected()
+  if (next) {
+    // Delay to ensure dropdown overlay DOM is rendered
+    setTimeout(() => scrollAllToSelected(), 100)
+  }
 })
 </script>
 
@@ -284,9 +288,9 @@ watch(isOpen, (next) => {
         <div v-if="!isDateOnly" class="nc-dtp-time-panel flex flex-col border-l-1 border-nc-border-gray-medium">
           <!-- Column headers -->
           <div class="flex flex-none border-b-1 border-nc-border-gray-medium h-10 items-center">
-            <div class="nc-dtp-col-header w-[46px] text-center text-xs font-weight-500 text-nc-content-gray-muted">Hr</div>
+            <div class="nc-dtp-col-header w-[46px] text-center text-nc-content-gray-subtle text-sm font-semibold">Hr</div>
             <div class="w-px h-full bg-nc-border-gray-light" />
-            <div class="nc-dtp-col-header w-[46px] text-center text-xs font-weight-500 text-nc-content-gray-muted">Min</div>
+            <div class="nc-dtp-col-header w-[46px] text-center text-nc-content-gray-subtle text-sm font-semibold">Min</div>
             <template v-if="is12hrFormat">
               <div class="w-px h-full bg-nc-border-gray-light" />
               <div class="nc-dtp-col-header w-[46px] text-center text-xs font-semibold text-nc-content-gray-subtle2" />

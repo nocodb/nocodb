@@ -97,6 +97,59 @@ export default function () {
       await featureMock?.restore?.();
     });
 
+    describe('view list', () => {
+      it(`will handle invalid table id`, async () => {
+        const response = await request(context.app)
+          .get(`${API_PREFIX}/tables/NOTEXISTSTABLE/views`)
+          .set('xc-token', context.xc_token);
+        expect(response.status).to.eq(422);
+        expect(response.body.error).to.eq('ERR_TABLE_NOT_FOUND');
+      });
+      it(`will handle feature not supported`, async () => {
+        featureMock = await overrideFeature({
+          workspace_id: context.fk_workspace_id!,
+          feature: `${PlanFeatureTypes.FEATURE_API_VIEW_V3}`,
+          allowed: false,
+        });
+        const response = await request(context.app)
+          .get(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token);
+        expect(response.status).to.eq(403);
+        expect(response.body.error).to.eq('ERR_FEATURE_NOT_SUPPORTED');
+      });
+    });
+
+    describe('view get', () => {
+      it(`will handle view not found`, async () => {
+        const response = await request(context.app)
+          .get(`${API_PREFIX}/views/NOTFOUNDID`)
+          .set('xc-token', context.xc_token);
+        expect(response.status).to.eq(422);
+        expect(response.body.error).to.eq('ERR_VIEW_NOT_FOUND');
+      });
+      it(`will handle feature not supported`, async () => {
+        // create the view while the feature is still enabled
+        const createResponse = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({ title: 'TempView', type: 'grid' })
+          .expect(200);
+
+        // now disable the feature
+        featureMock = await overrideFeature({
+          workspace_id: context.fk_workspace_id!,
+          feature: `${PlanFeatureTypes.FEATURE_API_VIEW_V3}`,
+          allowed: false,
+        });
+
+        const response = await request(context.app)
+          .get(`${API_PREFIX}/views/${createResponse.body.id}`)
+          .set('xc-token', context.xc_token);
+        expect(response.status).to.eq(403);
+        expect(response.body.error).to.eq('ERR_FEATURE_NOT_SUPPORTED');
+      });
+    });
+
     describe('view create + update', () => {
       it(`will handle missing name`, async () => {
         const response = await request(context.app)

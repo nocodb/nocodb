@@ -11,6 +11,7 @@ import scriptsTestV3 from './scripts.test';
 import dashboardTestV3 from './dashboard.test';
 import tableVisibilityPermissionsTestV3 from './table-visibility-permissions.test';
 import timelineTestV3 from './timeline.test';
+import triggerActionTestV3 from './triggerAction.test';
 import { isEE } from '../../../utils/helpers';
 // import teamsTestV3 from './teams.test';
 // import workspaceTeamsV3 from './workspace-teams.test';
@@ -32,12 +33,13 @@ export default runOnSet(2, function () {
     }
   }
   errorHandlingMetaTestsV3();
-  workspaceUsersTest();
   scriptsTestV3();
   dashboardTestV3();
   tableVisibilityPermissionsTestV3();
   timelineTestV3();
   if (isEE()) {
+    workspaceUsersTest();
+    triggerActionTestV3();
     try {
       require('./filters.test').default();
       require('./sorts.test').default();

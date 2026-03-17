@@ -291,33 +291,10 @@ const isFormSchedulingEnabled = computed({
   },
 })
 
-const isStartDateExpired = computed(() => {
-  if (!formViewData.value?.starts_at) return false
-  return dayjs(formViewData.value.starts_at).isBefore(dayjs())
-})
-
-const isFormExpiredInBuilder = computed(() => {
-  if (!formViewData.value?.expires_at) return false
-  return dayjs(formViewData.value.expires_at).isBefore(dayjs())
-})
-
-const startDateValidationError = computed(() => {
-  if (!formViewData.value?.starts_at) return ''
-  if (dayjs(formViewData.value.starts_at).isBefore(dayjs())) {
-    return t('labels.formStartDatePast')
-  }
-  return ''
-})
-
 const endDateValidationError = computed(() => {
-  if (!formViewData.value?.expires_at) return ''
-  const expiresAt = dayjs(formViewData.value.expires_at)
+  if (!formViewData.value?.expires_at || !formViewData.value?.starts_at) return ''
 
-  if (expiresAt.isBefore(dayjs())) {
-    return t('labels.formEndDatePast')
-  }
-
-  if (formViewData.value?.starts_at && expiresAt.isBefore(dayjs(formViewData.value.starts_at))) {
+  if (dayjs(formViewData.value.expires_at).isSameOrBefore(dayjs(formViewData.value.starts_at))) {
     return t('labels.formEndDateBeforeStart')
   }
 
@@ -2223,9 +2200,6 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   }
                                 "
                               />
-                              <div v-if="startDateValidationError" class="text-nc-content-orange-dark text-small leading-[18px]">
-                                {{ startDateValidationError }}
-                              </div>
                             </div>
 
                             <!-- Expiration date -->
@@ -2569,11 +2543,11 @@ const { message: templatedMessage } = useTemplatedMessage(
   @apply !border-t-1 !border-nc-border-gray-medium relative w-auto;
 
   &::before {
-    @apply content-[':::'] block h-4 leading-12px px-2 font-bold text-nc-content-gray border-1 border-nc-border-gray-medium rounded bg-nc-bg-default absolute -top-2.5 z-49 left-[calc(50%_-_16px)] w-auto;
+    @apply content-[':::'] block h-4 leading-12px px-2 font-bold text-nc-content-gray border-1 border-nc-border-gray-medium rounded bg-nc-bg-default absolute -top-2.5 z-49 !left-[calc(50%_-_16px)] !w-auto;
   }
 
   &:hover::before {
-    @apply !w-auto;
+    @apply !w-auto !left-[calc(50%_-_16px)];
   }
 }
 

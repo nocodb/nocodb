@@ -114,6 +114,8 @@ export enum AppEvents {
   USER_PASSWORD_FORGOT = 'user.password.forgot',
   USER_DELETE = 'user.delete',
   USER_EMAIL_VERIFICATION = 'user.email.verification',
+  USER_MFA_ENABLED = 'user.mfa.enabled',
+  USER_MFA_DISABLED = 'user.mfa.disabled',
 
   TEAM_CREATE = 'team.create',
   TEAM_UPDATE = 'team.update',

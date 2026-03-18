@@ -23,6 +23,12 @@ const form = reactive({
   password: '',
 })
 
+const twoFactorRequired = ref(false)
+const twoFactorToken = ref('')
+const twoFactorCode = ref('')
+const twoFactorError = ref('')
+const useBackupCode = ref(false)
+
 const formRules: Record<string, RuleObject[]> = {
   email: [
     // E-mail is required
@@ -50,14 +56,48 @@ async function signIn() {
 
   resetError()
 
-  api.auth.signin(form).then(async ({ token }) => {
-    _signIn(token!)
+  api.auth.signin(form).then(async (response: any) => {
+    if (response.twoFactorRequired) {
+      twoFactorRequired.value = true
+      twoFactorToken.value = response.twoFactorToken
+      return
+    }
+
+    _signIn(response.token!)
 
     await navigateTo({
       path: '/',
       query: route.query,
     })
   })
+}
+
+async function verifyTwoFactor() {
+  twoFactorError.value = ''
+
+  try {
+    const response = await api.instance.post('/api/v2/auth/mfa/verify', {
+      token: twoFactorToken.value,
+      code: twoFactorCode.value,
+    })
+
+    _signIn(response.data.token)
+
+    await navigateTo({
+      path: '/',
+      query: route.query,
+    })
+  } catch (e: any) {
+    twoFactorError.value = await extractSdkResponseErrorMsg(e)
+  }
+}
+
+function cancelTwoFactor() {
+  twoFactorRequired.value = false
+  twoFactorToken.value = ''
+  twoFactorCode.value = ''
+  twoFactorError.value = ''
+  useBackupCode.value = false
 }
 
 function resetError() {
@@ -91,6 +131,54 @@ function navigateForgotPassword() {
         >
           <GeneralNocoIcon class="color-transition hover:(ring ring-accent ring-opacity-100)" :animate="isLoading" />
 
+          <template v-if="twoFactorRequired">
+            <h1 class="prose-2xl font-bold self-center my-4">{{ $t('labels.twoFactorAuth') }}</h1>
+            <p class="text-sm text-nc-content-gray-subtle text-center mb-4">
+              {{ useBackupCode ? $t('labels.enterBackupCode') : $t('labels.enterAuthenticatorCode') }}
+            </p>
+
+            <Transition name="layout">
+              <div v-if="twoFactorError" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
+                <div class="flex items-center gap-2 justify-center">
+                  <MaterialSymbolsWarning />
+                  <div class="break-words">{{ twoFactorError }}</div>
+                </div>
+              </div>
+            </Transition>
+
+            <a-form layout="vertical" no-style @finish="verifyTwoFactor">
+              <a-form-item :label="useBackupCode ? $t('labels.backupCode') : $t('labels.verificationCode')">
+                <a-input
+                  v-model:value="twoFactorCode"
+                  data-testid="nc-form-signin__2fa-code"
+                  size="large"
+                  :placeholder="useBackupCode ? $t('placeholder.enterBackupCode') : $t('placeholder.enterVerificationCode')"
+                  autocomplete="one-time-code"
+                  @focus="twoFactorError = ''"
+                />
+              </a-form-item>
+
+              <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
+                <button data-testid="nc-form-signin__2fa-submit" class="scaling-btn bg-opacity-100" type="submit">
+                  <span class="flex items-center gap-2">{{ $t('general.verify') }}</span>
+                </button>
+
+                <div class="text-sm">
+                  <a class="prose-sm cursor-pointer" @click="useBackupCode = !useBackupCode">
+                    {{ useBackupCode ? $t('labels.useAuthenticatorCode') : $t('labels.useBackupCode') }}
+                  </a>
+                </div>
+
+                <div class="text-sm">
+                  <a class="prose-sm cursor-pointer" @click="cancelTwoFactor">
+                    {{ $t('general.cancel') }}
+                  </a>
+                </div>
+              </div>
+            </a-form>
+          </template>
+
+          <template v-else>
           <h1 class="prose-2xl font-bold self-center my-4">{{ $t('general.signIn') }}</h1>
 
           <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signIn">
@@ -189,6 +277,7 @@ function navigateForgotPassword() {
               </template>
             </div>
           </a-form>
+          </template>
         </div>
       </div>
     </NuxtLayout>

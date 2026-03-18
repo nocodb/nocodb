@@ -22,11 +22,13 @@ import { CacheGetType, MetaTable } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
 import { UsersService } from '~/services/users/users.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { MfaService } from '~/services/mfa.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcRequest } from '~/interface/config';
 import SSOClient from '~/models/SSOClient';
+import { User } from '~/models';
 import { CHATWOOT_IDENTITY_KEY } from '~/utils/nc-config';
 import Noco from '~/Noco';
 const IS_UPGRADE_ALLOWED_CACHE_KEY = 'nc_upgrade_allowed';
@@ -37,8 +39,100 @@ export class AuthController extends AuthControllerCE {
     protected readonly usersService: UsersService,
     protected readonly appHooksService: AppHooksService,
     protected readonly config: ConfigService<AppConfig>,
+    protected readonly mfaService: MfaService,
   ) {
     super(usersService, appHooksService, config);
+  }
+
+  @Post([
+    '/auth/user/signin',
+    '/api/v1/db/auth/user/signin',
+    '/api/v1/auth/user/signin',
+    '/api/v2/auth/user/signin',
+  ])
+  @UseGuards(PublicApiLimiterGuard, AuthGuard('local'))
+  @HttpCode(200)
+  async signin(@Req() req: NcRequest, @Res() res: Response) {
+    if (this.config.get('auth', { infer: true }).disableEmailAuth) {
+      NcError.forbidden('Email authentication is disabled');
+    }
+
+    // Check if user has 2FA enabled
+    const user = await User.get(req.user.id);
+    if (user?.totp_enabled) {
+      const twoFactorToken = this.mfaService.generateTwoFactorToken({
+        id: user.id,
+        email: user.email,
+      });
+      return res.json({
+        twoFactorRequired: true,
+        twoFactorToken,
+      });
+    }
+
+    // No 2FA — proceed normally
+    await this.setRefreshToken({ req, res });
+    const result = await this.usersService.login(req.user, req);
+    setAuthCookie(res, result.token);
+    res.json(result);
+  }
+
+  // MFA Endpoints
+
+  @Post(['/api/v2/auth/mfa/setup'])
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @HttpCode(200)
+  async mfaSetup(@Req() req: NcRequest) {
+    return this.mfaService.setup(req.user.id);
+  }
+
+  @Post(['/api/v2/auth/mfa/verify-setup'])
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @HttpCode(200)
+  async mfaVerifySetup(
+    @Req() req: NcRequest,
+    @Body() body: { code: string },
+  ) {
+    return this.mfaService.verifySetup(req.user.id, body.code, req);
+  }
+
+  @Post(['/api/v2/auth/mfa/verify'])
+  @UseGuards(PublicApiLimiterGuard)
+  @HttpCode(200)
+  async mfaVerify(
+    @Req() req: NcRequest,
+    @Res() res: Response,
+    @Body() body: { token: string; code: string },
+  ) {
+    const result = await this.mfaService.verifySignin(body.token, body.code);
+    setAuthCookie(res, result.token);
+    res.json(result);
+  }
+
+  @Post(['/api/v2/auth/mfa/disable'])
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @HttpCode(200)
+  async mfaDisable(
+    @Req() req: NcRequest,
+    @Body() body: { code: string },
+  ) {
+    return this.mfaService.disable(req.user.id, body.code, req);
+  }
+
+  @Get(['/api/v2/auth/mfa/status'])
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  async mfaStatus(@Req() req: NcRequest) {
+    return this.mfaService.status(req.user.id);
+  }
+
+  @Post(['/api/v2/auth/mfa/regenerate-backup-codes'])
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @HttpCode(200)
+  async mfaRegenerateBackupCodes(
+    @Req() req: NcRequest,
+    @Body() body: { code: string },
+  ) {
+    return this.mfaService.regenerateBackupCodes(req.user.id, body.code, req);
   }
 
   @Get(['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'])

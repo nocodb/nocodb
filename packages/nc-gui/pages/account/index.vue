@@ -110,6 +110,20 @@ const logout = async () => {
                   <div class="select-none">{{ $t('title.resetPasswordMenu') }}</div>
                 </div>
               </NcMenuItem>
+              <NcMenuItem
+                v-if="isEeUI"
+                key="security"
+                class="item"
+                :class="{
+                  active: $route.params.page === 'security',
+                }"
+                @click="navigateTo('/account/security')"
+              >
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon icon="ncShield" class="!h-4 !w-4" />
+                  <div class="select-none">{{ $t('labels.security') }}</div>
+                </div>
+              </NcMenuItem>
             </NcMenu>
           </div>
 

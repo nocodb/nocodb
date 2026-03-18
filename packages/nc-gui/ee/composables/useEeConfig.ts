@@ -369,6 +369,10 @@ export const useEeConfig = createSharedComposable(() => {
     return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_DATE_DEPENDENCY)
   })
 
+  const blockMfa = computed(() => {
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_MFA)
+  })
+
   /** EE-only feature blocks — gated by license on self-hosted, plan-gated for licensed on-prem */
   const blockSSO = computed(() => isOnPrem.value && !getFeature(PlanFeatureTypes.FEATURE_SSO))
   const blockScim = computed(() => {
@@ -1980,6 +1984,11 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseMfa = () => {
+    if (!blockMfa.value) return
+    handleUpgradePlan({ limitOrFeature: PlanFeatureTypes.FEATURE_MFA })
+  }
+
   const showUpgradeToUseSnapshots = () => {
     if (!blockSnapshots.value) return
     return showUpgradeForEEFeature(t('upgrade.features.snapshots'), PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE)
@@ -2180,5 +2189,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToCreateWorkspace,
     showUpgradeToManageWorkspaceMembers,
     showUpgradeForEEFeature,
+    blockMfa,
+    showUpgradeToUseMfa,
   }
 })

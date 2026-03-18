@@ -51,6 +51,8 @@ import type {
   TeamMemberUpdateEvent,
   TeamMoveEvent,
   TeamUpdateEvent,
+  UserMfaDisabledEvent,
+  UserMfaEnabledEvent,
   UserSigninEvent,
   UserSigninFailedEvent,
   UserSignupEvent,
@@ -588,6 +590,15 @@ export class AppHooksService extends ApppHookServiceCE {
     event: AppEvents.RECORDS_PERMANENT_DELETE,
     listener: (data: RecordsPermanentDeleteEvent) => void,
   ): () => void;
+  // MFA Events
+  on(
+    event: AppEvents.USER_MFA_ENABLED,
+    listener: (data: UserMfaEnabledEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.USER_MFA_DISABLED,
+    listener: (data: UserMfaDisabledEvent) => void,
+  ): () => void;
 
   on(event, listener): () => void {
     return super.on(event, listener);
@@ -1047,6 +1058,9 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.SCIM_CONFIG_TOKEN_REGENERATE,
     data: ScimConfigEvent,
   ): void;
+  // MFA Events
+  emit(event: AppEvents.USER_MFA_ENABLED, data: UserMfaEnabledEvent): void;
+  emit(event: AppEvents.USER_MFA_DISABLED, data: UserMfaDisabledEvent): void;
 
   // Record Trash Events
   emit(

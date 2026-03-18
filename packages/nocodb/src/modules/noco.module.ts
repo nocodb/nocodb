@@ -23,6 +23,7 @@ import { JwtStrategy } from '~/strategies/jwt.strategy';
 /* User */
 import { UsersController } from '~/controllers/users/users.controller';
 import { UsersService } from '~/services/users/users.service';
+import { MfaService } from '~/services/mfa.service';
 
 /* Metas */
 import {
@@ -277,6 +278,7 @@ export const nocoModuleMetadata = {
 
     /* Users */
     UsersService,
+    MfaService,
 
     /* Metas */
     ApiDocsService,
@@ -383,6 +385,7 @@ export const nocoModuleMetadata = {
 
     /* Users */
     UsersService,
+    MfaService,
 
     /* Metas */
     MetaService,

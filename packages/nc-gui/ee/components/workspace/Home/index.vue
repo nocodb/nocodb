@@ -437,18 +437,24 @@ const chatSuggestions = [
 </template>
 
 <style lang="scss" scoped>
-// Force dark theme on workspace home regardless of system theme
 .nc-ws-dark-theme {
-  background: #1C1C1E;
-  color: #E5E5E5;
+  @apply bg-nc-bg-gray-extralight;
 
-  h1, h2, span, p, div {
-    --nc-content-gray: #E5E5E5;
+  .nc-base-card {
+    @apply bg-white border-1 border-nc-border-gray-medium;
+
+    &:hover {
+      @apply border-nc-border-gray-dark shadow-sm;
+    }
   }
+}
+
+:global(.dark) .nc-ws-dark-theme {
+  background: #1C1C1E;
 
   .nc-base-card {
     background: #2C2C2E;
-    border: 1px solid #3A3A3C;
+    border-color: #3A3A3C;
 
     &:hover {
       border-color: #4A4A4C;

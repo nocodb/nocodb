@@ -179,6 +179,7 @@ export type InternalPOSTResponseType = Promise<
   | { success: boolean }
   | (RlsPolicy & { filters: Filter[] })
   | { added: boolean; reaction: any }
+  | { [key: string]: string }[]
 >;
 
 export interface InternalApiModule<

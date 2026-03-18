@@ -21,8 +21,10 @@ export default plugin(({ addUtilities }) => {
   for (let i = 0; i <= 100; i++) {
     addScreenUtil('h-screen', 'height', 'vh', 'dvh', 'svh', i)
     addScreenUtil('min-h-screen', 'min-height', 'vh', 'dvh', 'svh', i)
+    addScreenUtil('max-h-screen', 'max-height', 'vh', 'dvh', 'svh', i)
     addScreenUtil('w-screen', 'width', 'vw', 'dvw', 'svw', i)
     addScreenUtil('min-w-screen', 'min-width', 'vw', 'dvw', 'svw', i)
+    addScreenUtil('max-w-screen', 'max-width', 'vw', 'dvw', 'svw', i)
   }
 
   // Scroll fade masks — apply on scrollable containers

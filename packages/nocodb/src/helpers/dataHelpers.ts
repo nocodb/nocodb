@@ -1,4 +1,9 @@
-import { convertMS2Duration, UITypes } from 'nocodb-sdk';
+import {
+  convertMS2Duration,
+  parseHelper,
+  LongTextAiMetaProp,
+  UITypes,
+} from 'nocodb-sdk';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
 import type { NcContext } from '~/interface/config';
@@ -155,6 +160,17 @@ export async function serializeCellValue(
         return value;
       }
       return convertMS2Duration(value, column.meta.duration);
+    }
+    case UITypes.LongText: {
+      // If it is AI text field then just return value instead of whole json
+      if (column.meta?.[LongTextAiMetaProp] && value) {
+        const parsedValue = parseHelper(value);
+
+        if (parsedValue && typeof parsedValue === 'object') {
+          return parsedValue?.value?.toString() ?? '';
+        }
+      }
+      return value;
     }
     default:
       if (value && typeof value === 'object') {

@@ -222,12 +222,12 @@ const chatSuggestions = [
     <div class="flex items-center px-5 py-2.5 flex-none gap-4">
       <!-- Left: workspace name + plan -->
       <div class="flex items-center gap-2 flex-none">
-        <h1 class="text-[15px] font-bold text-nc-content-gray capitalize">
+        <h1 class="text-[18px] font-bold text-nc-content-gray capitalize">
           {{ activeWorkspace?.title }}
         </h1>
         <div
           v-if="isEeUI"
-          class="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-nc-bg-gray-light text-nc-content-gray-subtle"
+          class="flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium leading-none bg-nc-bg-gray-light text-nc-content-gray-subtle"
         >
           <span class="uppercase">{{ activePlanTitle }} {{ $t('general.plan') }}</span>
           <template v-if="isFreePlan && isPaymentEnabled">

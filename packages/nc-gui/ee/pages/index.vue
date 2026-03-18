@@ -37,6 +37,7 @@ const wsHomeRouteNames = new Set([
   'index-typeOrId-audits',
   'index-typeOrId-sso',
   'index-typeOrId-ws-settings',
+  'index-typeOrId-general',
   'index-typeOrId-integrations',
 ])
 

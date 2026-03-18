@@ -218,10 +218,10 @@ const chatSuggestions = [
 
 <template>
   <div class="h-full flex flex-col nc-workspace-home bg-nc-bg-default dark:bg-[#1C1C1E]">
-    <!-- Top bar: workspace name + plan | search -->
-    <div class="flex items-center px-5 py-2.5 flex-none gap-4">
+    <!-- Top bar: workspace name + plan | search (absolutely centered) -->
+    <div class="relative flex items-center px-5 py-2.5 flex-none">
       <!-- Left: workspace name + plan -->
-      <div class="flex items-center gap-2 flex-none">
+      <div class="flex items-center gap-2 flex-none z-1">
         <h1 class="text-[18px] font-bold text-nc-content-gray capitalize">
           {{ activeWorkspace?.title }}
         </h1>
@@ -237,10 +237,10 @@ const chatSuggestions = [
         </div>
       </div>
 
-      <!-- Center: search -->
-      <div class="flex-1 flex justify-center">
+      <!-- Center: search (absolutely positioned to center in row) -->
+      <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div
-          class="flex items-center gap-2 px-3 py-1.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-light cursor-pointer hover:border-nc-border-gray-dark transition-colors w-full max-w-[400px]"
+          class="flex items-center gap-2 px-3 py-1.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-light cursor-pointer hover:border-nc-border-gray-dark transition-colors w-full max-w-[400px] pointer-events-auto"
           data-testid="nc-ws-home-search"
           @click="openSearch"
         >
@@ -252,9 +252,6 @@ const chatSuggestions = [
           </div>
         </div>
       </div>
-
-      <!-- Right spacer to balance centering -->
-      <div class="flex-none w-0" />
     </div>
 
     <!-- Workspace tabs -->

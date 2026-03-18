@@ -1,3 +1,16 @@
+<script setup lang="ts">
+definePageMeta({
+  hideHeader: true,
+  hasSidebar: true,
+})
+
+const workspaceStore = useWorkspace()
+
+const { activeWorkspace } = storeToRefs(workspaceStore)
+</script>
+
 <template>
-  <WorkspaceIntegrationsView />
+  <div v-if="activeWorkspace?.id" class="h-full">
+    <WorkspaceHome ws-tab="ws-integrations" />
+  </div>
 </template>

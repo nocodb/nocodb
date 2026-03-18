@@ -200,7 +200,9 @@ const openSearch = () => {
               <span class="text-primary capitalize">{{ activeWorkspace?.title }}</span>
               <span class="text-nc-content-gray-muted">({{ basesList.length }})</span>
             </h2>
+          </div>
 
+          <div class="flex items-center gap-2">
             <!-- Filter dropdown -->
             <NcDropdown>
               <NcButton type="secondary" size="small">
@@ -227,9 +229,7 @@ const openSearch = () => {
                 </NcMenu>
               </template>
             </NcDropdown>
-          </div>
 
-          <div class="flex items-center gap-2">
             <!-- Grid/List toggle -->
             <div class="flex items-center border-1 border-nc-border-gray-medium rounded-lg overflow-hidden">
               <NcButton

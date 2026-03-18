@@ -54,7 +54,7 @@ const accountUrl = computed(() => '/account/profile')
     <!-- Brand -->
     <div class="flex items-center gap-2 px-4 h-[var(--topbar-height)] flex-none">
       <GeneralIcon icon="nocodb1" class="h-6 w-6 flex-none" />
-      <span class="text-sm font-bold text-nc-content-gray">NocoDB</span>
+      <span class="text-[13px] font-bold text-nc-content-gray">NocoDB</span>
     </div>
 
     <!-- Home nav item -->
@@ -69,7 +69,7 @@ const accountUrl = computed(() => '/account/profile')
         @click="navigateToHome"
       >
         <GeneralIcon icon="ncHome" class="h-4 w-4 flex-none" />
-        <span class="text-sm font-medium">{{ $t('general.home') }}</span>
+        <span class="text-[13px] font-medium">{{ $t('general.home') }}</span>
       </div>
     </div>
 
@@ -97,7 +97,7 @@ const accountUrl = computed(() => '/account/profile')
           @click="navigateToWorkspace(ws.id!)"
         >
           <GeneralWorkspaceIcon :workspace="ws" size="small" />
-          <NcTooltip show-on-truncate-only class="flex-1 truncate text-sm text-nc-content-gray">
+          <NcTooltip show-on-truncate-only class="flex-1 truncate text-[13px] text-nc-content-gray">
             <template #title>{{ ws.title }}</template>
             {{ ws.title }}
           </NcTooltip>
@@ -107,7 +107,7 @@ const accountUrl = computed(() => '/account/profile')
               class="h-4 w-4 flex-none text-nc-content-gray-muted opacity-0 group-hover:opacity-100 transition-opacity"
             />
             <template #overlay>
-              <NcMenu>
+              <NcMenu class="nc-ws-ctx-menu">
                 <NcMenuItem @click.stop="navigateTo(`/${ws.id}`)">
                   <GeneralIcon icon="ncDatabase" class="h-4 w-4" />
                   {{ $t('objects.projects') }}
@@ -145,13 +145,13 @@ const accountUrl = computed(() => '/account/profile')
         class="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-md cursor-pointer text-nc-content-gray-subtle hover:bg-nc-bg-gray-light transition-colors"
       >
         <GeneralIcon icon="ncLayout" class="h-4 w-4 flex-none" />
-        <span class="text-sm">{{ $t('general.templates') }}</span>
+        <span class="text-[13px]">{{ $t('general.templates') }}</span>
       </div>
       <div
         class="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-md cursor-pointer text-nc-content-gray-subtle hover:bg-nc-bg-gray-light transition-colors"
       >
         <GeneralIcon icon="ncDownload" class="h-4 w-4 flex-none" />
-        <span class="text-sm">{{ $t('general.import') }}</span>
+        <span class="text-[13px]">{{ $t('general.import') }}</span>
       </div>
     </div>
 
@@ -169,7 +169,7 @@ const accountUrl = computed(() => '/account/profile')
           >
             <GeneralUserIcon :user="user" size="medium" class="flex-none" />
             <div class="flex-1 min-w-0">
-              <NcTooltip show-on-truncate-only class="truncate text-sm text-nc-content-gray block">
+              <NcTooltip show-on-truncate-only class="truncate text-[13px] text-nc-content-gray block">
                 <template #title>{{ name || user?.email }}</template>
                 {{ name || user?.email }}
               </NcTooltip>
@@ -228,5 +228,9 @@ const accountUrl = computed(() => '/account/profile')
 }
 .menu-icon {
   @apply w-4 h-4;
+}
+
+.nc-ws-ctx-menu {
+  font-size: 13px;
 }
 </style>

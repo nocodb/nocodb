@@ -88,7 +88,7 @@ const accountUrl = computed(() => '/account/profile')
         <div
           v-for="ws in workspacesList"
           :key="ws.id"
-          class="flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-colors mb-0.5"
+          class="group flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-colors mb-0.5"
           :class="{
             'bg-nc-bg-gray-medium': activeWorkspaceId === ws.id && !isHomeActive,
             'hover:bg-nc-bg-gray-light': activeWorkspaceId !== ws.id || isHomeActive,
@@ -101,6 +101,40 @@ const accountUrl = computed(() => '/account/profile')
             <template #title>{{ ws.title }}</template>
             {{ ws.title }}
           </NcTooltip>
+          <NcDropdown :trigger="['click']" @click.stop>
+            <GeneralIcon
+              icon="threeDotVertical"
+              class="h-4 w-4 flex-none text-nc-content-gray-muted opacity-0 group-hover:opacity-100 transition-opacity"
+            />
+            <template #overlay>
+              <NcMenu>
+                <NcMenuItem @click.stop="navigateTo(`/${ws.id}`)">
+                  <GeneralIcon icon="ncDatabase" class="h-4 w-4" />
+                  {{ $t('objects.projects') }}
+                </NcMenuItem>
+                <NcMenuItem @click.stop="navigateTo(`/${ws.id}/members`)">
+                  <GeneralIcon icon="users" class="h-4 w-4" />
+                  {{ $t('labels.members') }}
+                </NcMenuItem>
+                <NcMenuItem @click.stop="navigateTo(`/${ws.id}/teams`)">
+                  <GeneralIcon icon="ncBuilding" class="h-4 w-4" />
+                  {{ $t('general.teams') }}
+                </NcMenuItem>
+                <NcMenuItem @click.stop="navigateTo(`/${ws.id}/integrations`)">
+                  <GeneralIcon icon="integration" class="h-4 w-4" />
+                  {{ $t('general.integrations') }}
+                </NcMenuItem>
+                <NcMenuItem @click.stop="navigateTo(`/${ws.id}/audits`)">
+                  <GeneralIcon icon="audit" class="h-4 w-4" />
+                  {{ $t('title.audits') }}
+                </NcMenuItem>
+                <NcMenuItem @click.stop="navigateTo(`/${ws.id}/more`)">
+                  <GeneralIcon icon="ncMoreHorizontal" class="h-4 w-4" />
+                  {{ $t('general.more') }}
+                </NcMenuItem>
+              </NcMenu>
+            </template>
+          </NcDropdown>
         </div>
       </div>
     </div>

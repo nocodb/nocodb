@@ -12,6 +12,7 @@ import {
   ButtonActionsType,
   UITypes,
   UITypesName,
+  isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isSelfReferencingTableColumn,
   isSystemColumn,
@@ -502,7 +503,11 @@ onMounted(() => {
     if (formState.value.pk) {
       message.info(t('msg.info.editingPKnotSupported'))
       emit('cancel')
-    } else if (isSystemColumn(formState.value) && !isSelfReferencingTableColumn(formState.value)) {
+    } else if (
+      isSystemColumn(formState.value) &&
+      !isSelfReferencingTableColumn(formState.value) &&
+      !isCreatedOrLastModifiedTimeCol(formState.value)
+    ) {
       message.info(t('msg.info.editingSystemKeyNotSupported'))
       emit('cancel')
     }
@@ -1189,7 +1194,7 @@ const unique = computed({
               'nc-ai-input': isAiMode,
             }"
             :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
-            :disabled="isKanban || readOnly || !isFullUpdateAllowed || isSyncedField"
+            :disabled="isKanban || readOnly || !isFullUpdateAllowed || isSystem || isSyncedField"
             @change="debouncedOnPredictFieldType"
             @input="onAlter(8)"
           />

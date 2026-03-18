@@ -1,4 +1,9 @@
 <script setup lang="ts">
+const props = withDefaults(defineProps<Props>(), {
+  content: undefined,
+  schema: undefined,
+})
+
 const { $e } = useNuxtApp()
 
 interface ArtifactColumn {
@@ -25,11 +30,6 @@ interface Props {
   content?: string
   schema?: ArtifactSchema
 }
-
-const props = withDefaults(defineProps<Props>(), {
-  content: undefined,
-  schema: undefined,
-})
 
 const { $api } = useNuxtApp()
 

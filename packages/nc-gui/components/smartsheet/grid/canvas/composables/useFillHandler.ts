@@ -52,8 +52,6 @@ export function useFillHandler({
 }) {
   const { isMysql, isPg } = useBase()
 
-  const { $api } = useNuxtApp()
-
   const { fillRows } = useNocoAi()
 
   const { base } = storeToRefs(useBase())

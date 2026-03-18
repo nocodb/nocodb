@@ -126,7 +126,7 @@ export type { ReusableParams } from '~/services/columns.service.type';
 
 const deepClone = rfdc();
 
-const META_ONLY_COLUMN_PROPS = new Set(['description']);
+const META_ONLY_COLUMN_PROPS = new Set(['description', 'meta']);
 
 // todo: move
 export enum Altered {
@@ -457,6 +457,10 @@ export class ColumnsService implements IColumnsService {
 
     const isSyncedColumn = table.synced && column.readonly;
 
+    const payloadHasNonMetaProps = Object.keys(param.column).some(
+      (k) => !META_ONLY_COLUMN_PROPS.has(k),
+    );
+
     const allowUpdateSystemField =
       process.env.NC_SYSTEM_FIELD_API_UPDATE === 'true' ||
       param.forceUpdateSystem;
@@ -473,7 +477,12 @@ export class ColumnsService implements IColumnsService {
           UITypes.Order,
         ].includes(column.uidt)) ||
         // somehow current external meta sync do not mark pk as system
-        column.pk)
+        column.pk) &&
+      // Allow meta-only updates (description, display format) for CreatedTime/LastModifiedTime
+      !(
+        !payloadHasNonMetaProps &&
+        isCreatedOrLastModifiedTimeCol(column)
+      )
     ) {
       NcError.get(context).systemFieldNonModifiable();
     }
@@ -503,11 +512,33 @@ export class ColumnsService implements IColumnsService {
         description: param.column.description,
       });
     }
-    const payloadHasNonMetaProps = Object.keys(param.column).some(
-      (k) => !META_ONLY_COLUMN_PROPS.has(k),
-    );
     if (!payloadHasNonMetaProps) {
+      if ((param.column as any).meta) {
+        const existingMeta = parseProp(column.meta);
+        await Column.update(context, param.columnId, {
+          meta: {
+            ...existingMeta,
+            ...parseProp((param.column as any).meta),
+          },
+        });
+      }
+
       await table.getColumns(context);
+
+      const updatedColumn = await Column.get(context, {
+        colId: param.columnId,
+      });
+
+      this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
+        table,
+        oldColumn,
+        column: updatedColumn,
+        columnId: column.id,
+        req: param.req,
+        context,
+        columns: table.columns,
+      });
+
       return table;
     }
 

@@ -60,10 +60,7 @@ const MAX_RECENT = 5
 const addRecent = (type: 'text' | 'bg', color: string) => {
   if (!color) return
   const entry = { type, color }
-  recentColors.value = [entry, ...recentColors.value.filter((r) => !(r.type === type && r.color === color))].slice(
-    0,
-    MAX_RECENT,
-  )
+  recentColors.value = [entry, ...recentColors.value.filter((r) => !(r.type === type && r.color === color))].slice(0, MAX_RECENT)
 }
 
 // Active state
@@ -336,7 +333,8 @@ const closeTextArea = () => {
             backgroundColor: activeHighlightColor || 'transparent',
             borderColor: activeHighlightColor || 'var(--nc-border-gray-medium)',
           }"
-        >A</span>
+          >A</span
+        >
       </NcButton>
     </NcTooltip>
     <!-- Color picker dropdown -->
@@ -352,17 +350,15 @@ const closeTextArea = () => {
             :class="{
               'is-active': r.type === 'text' ? activeTextColor === r.color : activeHighlightColor === r.color,
             }"
-            :style="r.type === 'text'
-              ? { borderColor: `color-mix(in srgb, ${r.color} 30%, transparent)` }
-              : { backgroundColor: r.color, borderColor: r.color }"
+            :style="
+              r.type === 'text'
+                ? { borderColor: `color-mix(in srgb, ${r.color} 30%, transparent)` }
+                : { backgroundColor: r.color, borderColor: r.color }
+            "
             :title="r.type === 'text' ? $t('labels.textColor') : $t('labels.backgroundColor')"
             @click="applyRecent(r)"
           >
-            <span
-              v-if="r.type === 'text'"
-              class="nc-color-swatch-letter"
-              :style="{ color: r.color }"
-            >A</span>
+            <span v-if="r.type === 'text'" class="nc-color-swatch-letter" :style="{ color: r.color }">A</span>
           </button>
         </div>
       </template>
@@ -776,5 +772,4 @@ const closeTextArea = () => {
   font-weight: 700;
   line-height: 1;
 }
-
 </style>

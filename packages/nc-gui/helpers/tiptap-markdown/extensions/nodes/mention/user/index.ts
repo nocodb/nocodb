@@ -88,9 +88,7 @@ export const UserMention = TipTapMention.extend<MentionOptions<any, MentionNodeA
       : ''
 
     const styles =
-      ncIsObject(attributes) && (attributes.isSameUser === true || attributes.isSameUser === 'true')
-        ? 'nc-current-user'
-        : ''
+      ncIsObject(attributes) && (attributes.isSameUser === true || attributes.isSameUser === 'true') ? 'nc-current-user' : ''
 
     return [
       'span',

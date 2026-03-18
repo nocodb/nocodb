@@ -105,6 +105,22 @@ const accountUrl = computed(() => '/account/profile')
       </div>
     </div>
 
+    <!-- Templates & Import -->
+    <div class="flex-none px-2 pb-1">
+      <div
+        class="flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer text-nc-content-gray-subtle hover:bg-nc-bg-gray-light transition-colors"
+      >
+        <GeneralIcon icon="ncLayout" class="h-4 w-4 flex-none" />
+        <span class="text-sm">{{ $t('general.templates') }}</span>
+      </div>
+      <div
+        class="flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer text-nc-content-gray-subtle hover:bg-nc-bg-gray-light transition-colors"
+      >
+        <GeneralIcon icon="ncDownload" class="h-4 w-4 flex-none" />
+        <span class="text-sm">{{ $t('general.import') }}</span>
+      </div>
+    </div>
+
     <!-- Bottom section: User info with dropdown + notification bell -->
     <div class="flex-none border-t-1 border-nc-border-gray-light p-2">
       <div class="flex items-center gap-1">

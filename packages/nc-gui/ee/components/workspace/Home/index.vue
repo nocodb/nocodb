@@ -231,8 +231,13 @@ const chatSuggestions = [
 
     <!-- Scrollable content -->
     <div class="flex-1 overflow-auto nc-scrollbar-thin">
-      <!-- Settings tab content (Members, Teams, etc.) -->
-      <div v-if="!isBasesTab && wsTab" class="h-full">
+      <!-- Integrations tab — standalone component -->
+      <div v-if="wsTab === 'ws-integrations'" class="h-full">
+        <WorkspaceIntegrationsView />
+      </div>
+
+      <!-- Other settings tab content (Members, Teams, etc.) -->
+      <div v-else-if="!isBasesTab && wsTab" class="h-full">
         <WorkspaceViewInline :tab="wsTab" hide-topbar />
       </div>
 

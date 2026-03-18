@@ -175,6 +175,21 @@ const onTabClick = (tab: any) => {
   navigateTo(tab.route)
 }
 
+// Load collaborators when on members/teams tab
+const { loadCollaborators } = workspaceStore
+
+watch(
+  () => props.wsTab,
+  (newTab) => {
+    if (!newTab || !activeWorkspaceId.value) return
+
+    if (['ws-collaborators', 'ws-teams'].includes(newTab) && isUIAllowed('workspaceCollaborators')) {
+      loadCollaborators({}, activeWorkspaceId.value)
+    }
+  },
+  { immediate: true },
+)
+
 // Command palette search
 const { setActiveCmdView } = useCommand()
 
@@ -231,14 +246,33 @@ const chatSuggestions = [
 
     <!-- Scrollable content -->
     <div class="flex-1 overflow-auto nc-scrollbar-thin">
-      <!-- Integrations tab — standalone component -->
+      <!-- Tab content: rendered directly to avoid ViewInline overhead -->
       <div v-if="wsTab === 'ws-integrations'" class="h-full">
         <WorkspaceIntegrationsView />
       </div>
 
-      <!-- Other settings tab content (Members, Teams, etc.) -->
-      <div v-else-if="!isBasesTab && wsTab" class="h-full">
-        <WorkspaceViewInline :tab="wsTab" hide-topbar />
+      <div v-else-if="wsTab === 'ws-collaborators'" class="h-full">
+        <WorkspaceCollaboratorsList :workspace-id="activeWorkspaceId!" :is-active="true" />
+      </div>
+
+      <div v-else-if="wsTab === 'ws-teams'" class="h-full">
+        <WorkspaceTeams :workspace-id="activeWorkspaceId!" :is-active="true" />
+      </div>
+
+      <div v-else-if="wsTab === 'ws-audits'" class="h-full">
+        <WorkspaceAudits />
+      </div>
+
+      <div v-else-if="wsTab === 'ws-billing'" class="h-full">
+        <PaymentBillingPage />
+      </div>
+
+      <div v-else-if="wsTab === 'ws-sso'" class="h-full">
+        <WorkspaceSso />
+      </div>
+
+      <div v-else-if="wsTab === 'ws-settings'" class="h-full">
+        <WorkspaceSettings :workspace-id="activeWorkspaceId!" />
       </div>
 
       <!-- Bases tab content -->

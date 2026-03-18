@@ -167,8 +167,8 @@ const chatSuggestions = [
       </div>
     </div>
 
-    <!-- Workspace tabs — no top border, only active underline -->
-    <div class="flex items-center flex-none px-2">
+    <!-- Workspace tabs -->
+    <div class="flex items-center flex-none px-2 border-y-1 border-nc-border-gray-medium">
       <div class="flex items-center gap-1 flex-1 overflow-x-auto">
         <div
           v-for="tab in wsTabItems"

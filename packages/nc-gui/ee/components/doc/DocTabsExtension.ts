@@ -38,7 +38,7 @@ declare module '@tiptap/core' {
 export const DocTabsExtension = Node.create({
   name: 'docTabs',
   group: 'block',
-  content: 'docTab docTab docTab',
+  content: 'docTab+',
   isolating: true,
 
   parseHTML() {

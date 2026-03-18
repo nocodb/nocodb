@@ -13,7 +13,6 @@ interface Props {
 const props = defineProps<Props>()
 
 // Local UI state — not persisted in the document model.
-// Avoids undo/redo pollution and collaboration conflicts.
 const activeTab = ref(0)
 
 const tabs = computed(() => {
@@ -37,9 +36,19 @@ function selectBlock() {
 
 /** Click on non-editable chrome (header empty space, padding) → select whole block. */
 function onChromeClick(event: MouseEvent) {
-  // Only act on clicks directly on the header div, not on tab buttons
-  if ((event.target as HTMLElement).closest('.nc-doc-tab-btn')) return
+  if ((event.target as HTMLElement).closest('.nc-doc-tab-btn, .nc-doc-tab-rename-input')) return
   selectBlock()
+}
+
+function onTabClick(index: number) {
+  if (index !== activeTab.value) {
+    // Inactive tab → activate it, no dropdown
+    switchTab(index)
+    return
+  }
+  // Already active → show dropdown
+  menuTabIndex.value = index
+  isMenuOpen.value = true
 }
 
 function switchTab(index: number) {
@@ -47,18 +56,14 @@ function switchTab(index: number) {
 
   activeTab.value = index
 
-  // Move cursor to the start of the newly active tab's content
-  // so it doesn't get stranded in hidden tab content.
   nextTick(() => {
     const pos = props.getPos()
     if (typeof pos !== 'number') return
 
-    // Walk into the docTabs node to find the nth docTab child
-    let offset = pos + 1 // skip the docTabs opening
+    let offset = pos + 1
     for (let i = 0; i < index; i++) {
       offset += props.node.child(i).nodeSize
     }
-    // +1 to enter the docTab, +1 to enter its first child block
     const targetPos = offset + 2
 
     const { state } = props.editor
@@ -69,6 +74,100 @@ function switchTab(index: number) {
       props.editor.view.focus()
     }
   })
+}
+
+// --- Dropdown menu ---
+
+const isMenuOpen = ref(false)
+const menuTabIndex = ref(0)
+
+function onMenuRename() {
+  isMenuOpen.value = false
+  startRename(menuTabIndex.value)
+}
+
+function onMenuDelete() {
+  isMenuOpen.value = false
+
+  const index = menuTabIndex.value
+  const tabCount = props.node.childCount
+
+  // Last tab → delete entire tabs block
+  if (tabCount <= 1) {
+    selectBlock()
+    nextTick(() => {
+      props.editor.commands.deleteSelection()
+    })
+    return
+  }
+
+  const pos = props.getPos()
+  if (typeof pos !== 'number') return
+
+  // Find position of the target docTab
+  let tabPos = pos + 1
+  for (let i = 0; i < index; i++) {
+    tabPos += props.node.child(i).nodeSize
+  }
+  const tabEnd = tabPos + props.node.child(index).nodeSize
+
+  const { tr } = props.editor.state
+  tr.delete(tabPos, tabEnd)
+  props.editor.view.dispatch(tr)
+
+  // Adjust activeTab index
+  if (activeTab.value >= tabCount - 1) {
+    activeTab.value = tabCount - 2
+  } else if (activeTab.value > index) {
+    activeTab.value = activeTab.value - 1
+  }
+}
+
+// --- Tab rename ---
+
+const editingTabIndex = ref<number | null>(null)
+const editingTitle = ref('')
+
+function startRename(index: number) {
+  editingTabIndex.value = index
+  editingTitle.value = tabs.value[index]?.title || ''
+}
+
+function commitRename() {
+  const index = editingTabIndex.value
+  if (index === null) return
+
+  const title = editingTitle.value.trim() || `Tab ${index + 1}`
+  editingTabIndex.value = null
+
+  const pos = props.getPos()
+  if (typeof pos !== 'number') return
+
+  let tabPos = pos + 1
+  for (let i = 0; i < index; i++) {
+    tabPos += props.node.child(i).nodeSize
+  }
+
+  const tabNode = props.node.child(index)
+  if (tabNode.attrs.title === title) return
+
+  const { tr } = props.editor.state
+  tr.setNodeMarkup(tabPos, undefined, { ...tabNode.attrs, title })
+  props.editor.view.dispatch(tr)
+}
+
+function cancelRename() {
+  editingTabIndex.value = null
+}
+
+function onRenameKeydown(event: KeyboardEvent) {
+  if (event.key === 'Enter') {
+    event.preventDefault()
+    commitRename()
+  } else if (event.key === 'Escape') {
+    event.preventDefault()
+    cancelRename()
+  }
 }
 </script>
 
@@ -82,22 +181,66 @@ function switchTab(index: number) {
       data-testid="nc-doc-tabs-header"
       @click="onChromeClick"
     >
-      <button
-        v-for="(tab, index) in tabs"
-        :key="index"
-        class="nc-doc-tab-btn"
-        :class="{ active: index === activeTab }"
-        role="tab"
-        :aria-selected="index === activeTab"
-        :data-testid="`nc-doc-tab-btn-${index}`"
-        @click="switchTab(index)"
-      >
-        {{ tab.title }}
-      </button>
+      <template v-for="(tab, index) in tabs" :key="index">
+        <!-- Rename input -->
+        <input
+          v-if="editingTabIndex === index"
+          v-model="editingTitle"
+          class="nc-doc-tab-rename-input"
+          :data-testid="`nc-doc-tab-rename-${index}`"
+          maxlength="50"
+          @blur="commitRename"
+          @keydown="onRenameKeydown"
+          @vue:mounted="({ el }: any) => el.focus()"
+        />
+
+        <!-- Tab button with dropdown for active tab -->
+        <NcDropdown
+          v-else
+          :visible="isMenuOpen && menuTabIndex === index"
+          placement="bottomLeft"
+          @update:visible="(v: boolean) => { if (!v) isMenuOpen = false }"
+        >
+          <button
+            class="nc-doc-tab-btn"
+            :class="{ active: index === activeTab }"
+            role="tab"
+            :aria-selected="index === activeTab"
+            :data-testid="`nc-doc-tab-btn-${index}`"
+            @click.stop="onTabClick(index)"
+          >
+            {{ tab.title }}
+          </button>
+
+          <template #overlay>
+            <div class="nc-slash-menu" style="min-width: 140px" data-testid="nc-doc-tab-menu">
+              <div
+                class="nc-slash-menu-item"
+                data-testid="nc-doc-tab-menu-rename"
+                @click="onMenuRename"
+              >
+                <span class="nc-slash-menu-icon">
+                  <GeneralIcon icon="rename" />
+                </span>
+                <span class="nc-slash-menu-label">{{ $t('general.rename') }}</span>
+              </div>
+              <div
+                class="nc-slash-menu-item"
+                data-testid="nc-doc-tab-menu-delete"
+                @click="onMenuDelete"
+              >
+                <span class="nc-slash-menu-icon nc-doc-tab-menu-delete-icon">
+                  <GeneralIcon icon="delete" />
+                </span>
+                <span class="nc-slash-menu-label nc-doc-tab-menu-delete-label">{{ $t('general.delete') }}</span>
+              </div>
+            </div>
+          </template>
+        </NcDropdown>
+      </template>
     </div>
 
-    <!-- Tab content panes — ProseMirror renders docTab children here.
-         data-active-tab drives pure CSS visibility — no JS DOM manipulation needed. -->
+    <!-- Tab content panes -->
     <NodeViewContent
       class="nc-doc-tabs-content"
       :data-active-tab="activeTab"
@@ -110,7 +253,6 @@ function switchTab(index: number) {
 <style lang="scss" scoped>
 .nc-doc-tabs {
   @apply border-1 border-nc-border-gray-medium rounded-lg my-3;
-
 }
 
 .nc-doc-tabs-header {
@@ -130,9 +272,18 @@ function switchTab(index: number) {
   }
 }
 
-// Inactive tabs: collapsed but still in DOM for ProseMirror position mapping.
-// Using display:none breaks ProseMirror entirely.
-// Pure CSS driven by data-active-tab attribute — no JS DOM manipulation.
+.nc-doc-tab-rename-input {
+  @apply px-3 py-1 mb-1.5 text-bodySm rounded-md;
+  @apply text-nc-content-gray bg-white border-1 border-nc-border-brand;
+  @apply outline-none;
+  width: 120px;
+}
+
+.nc-doc-tab-menu-delete-icon,
+.nc-doc-tab-menu-delete-label {
+  @apply !text-nc-content-red-dark;
+}
+
 .nc-doc-tabs-content {
   @apply relative py-3 px-3 min-h-16;
 
@@ -165,7 +316,6 @@ function switchTab(index: number) {
   background-color: var(--nc-bg-brand);
   outline: none;
 
-  // Suppress native text selection highlight inside the block
   ::selection {
     background: transparent;
   }

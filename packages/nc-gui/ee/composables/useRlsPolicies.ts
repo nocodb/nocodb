@@ -1,4 +1,5 @@
 import type { BaseType, RlsDefaultBehavior, RlsPolicySubjectType, RlsPolicyType } from 'nocodb-sdk'
+import { useMetas } from '~/composables/useMetas'
 
 export interface RlsPolicyState {
   policies: RlsPolicyType[]
@@ -32,10 +33,10 @@ export const useRlsPolicies = (base: Ref<BaseType | null>, tableId: Ref<string>)
     })
   }
 
-  const loadPolicies = async () => {
+  const loadPolicies = async ({ silent = false } = {}) => {
     if (!base.value?.fk_workspace_id || !base.value?.id || !tableId.value) return
 
-    isLoading.value = true
+    if (!silent) isLoading.value = true
     try {
       const result = await $api.internal.getOperation(base.value.fk_workspace_id, base.value.id, {
         operation: 'rlsPolicyList',
@@ -45,7 +46,7 @@ export const useRlsPolicies = (base: Ref<BaseType | null>, tableId: Ref<string>)
     } catch (e: any) {
       policies.value = []
     } finally {
-      isLoading.value = false
+      if (!silent) isLoading.value = false
     }
   }
 
@@ -74,16 +75,19 @@ export const useRlsPolicies = (base: Ref<BaseType | null>, tableId: Ref<string>)
     }
   }
 
-  const updatePolicy = async (body: {
-    id: string
-    title?: string
-    enabled?: boolean
-    default_behavior?: RlsDefaultBehavior
-    order?: number
-  }) => {
+  const updatePolicy = async (
+    body: {
+      id: string
+      title?: string
+      enabled?: boolean
+      default_behavior?: RlsDefaultBehavior
+      order?: number
+    },
+    { silent = false } = {},
+  ) => {
     if (!base.value?.fk_workspace_id || !base.value?.id) return null
 
-    isSaving.value = true
+    if (!silent) isSaving.value = true
     try {
       const result = await $api.internal.postOperation(
         base.value.fk_workspace_id,
@@ -91,11 +95,11 @@ export const useRlsPolicies = (base: Ref<BaseType | null>, tableId: Ref<string>)
         { operation: 'rlsPolicyUpdate' },
         body,
       )
-      await loadPolicies()
+      await loadPolicies({ silent })
       refreshTableMeta()
       return result
     } finally {
-      isSaving.value = false
+      if (!silent) isSaving.value = false
     }
   }
 
@@ -132,10 +136,21 @@ export const useRlsPolicies = (base: Ref<BaseType | null>, tableId: Ref<string>)
 
   const togglePolicy = async (policy: RlsPolicyType) => {
     if (!policy.id) return
-    await updatePolicy({
-      id: policy.id,
-      enabled: !policy.enabled,
-    })
+
+    // Optimistically update local state
+    const idx = policies.value.findIndex((p) => p.id === policy.id)
+    if (idx !== -1) {
+      policies.value[idx] = { ...policies.value[idx], enabled: !policy.enabled }
+    }
+
+    try {
+      await updatePolicy({ id: policy.id, enabled: !policy.enabled }, { silent: true })
+    } catch {
+      // Revert on failure
+      if (idx !== -1) {
+        policies.value[idx] = { ...policies.value[idx], enabled: policy.enabled }
+      }
+    }
   }
 
   return {

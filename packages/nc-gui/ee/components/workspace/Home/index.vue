@@ -217,7 +217,7 @@ const chatSuggestions = [
 </script>
 
 <template>
-  <div class="h-full flex flex-col nc-workspace-home bg-nc-bg-gray-extralight dark:bg-[#222222]">
+  <div class="h-full flex flex-col nc-workspace-home bg-nc-bg-gray-extralight dark:bg-[#2D2D2F]">
     <!-- Top bar: workspace name + plan | search (absolutely centered) -->
     <div class="relative flex items-center px-5 py-2.5 flex-none">
       <!-- Left: workspace name + plan -->
@@ -397,7 +397,7 @@ const chatSuggestions = [
                 <div
                   v-for="base in group.bases"
                   :key="base.id"
-                  class="nc-base-card group relative flex items-center gap-4 px-5 h-[84px] rounded-2xl bg-white dark:bg-[#2D2D2F] border-1 border-nc-border-gray-medium dark:border-transparent hover:border-nc-border-gray-dark dark:hover:bg-[#343436] cursor-pointer transition-all"
+                  class="nc-base-card group relative flex items-center gap-4 px-5 h-[84px] rounded-2xl bg-white dark:bg-[#383838] border-1 border-nc-border-gray-medium dark:border-transparent hover:border-nc-border-gray-dark dark:hover:bg-[#404040] cursor-pointer transition-all"
                   :data-testid="`nc-base-card-${base.id}`"
                   @click="openBase(base)"
                 >

@@ -22,6 +22,7 @@ import { DocTable, DocTableCell, DocTableHeader } from './DocTableExtensions'
 import { SlashCommandExtension, embedPlatformIcons } from './SlashCommand'
 import { CalloutExtension } from './CalloutExtension'
 import { DocColumnExtension, DocColumnsExtension } from './DocColumnsExtension'
+import { DocTabExtension, DocTabsExtension } from './DocTabsExtension'
 import { DocColumnsToolbarExtension } from './DocColumnsToolbarPlugin'
 import { DocMathExtension } from './DocMathExtension'
 import { DocActiveBlockExtension } from './DocActiveBlockPlugin'
@@ -355,6 +356,8 @@ const _tiptapEditor = useEditor({
     CalloutExtension,
     DocColumnsExtension,
     DocColumnExtension,
+    DocTabsExtension,
+    DocTabExtension,
     DocColumnsToolbarExtension,
     DocMathExtension,
     DocFileAttachmentExtension,

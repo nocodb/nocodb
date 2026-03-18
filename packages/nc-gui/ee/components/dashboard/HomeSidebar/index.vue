@@ -46,9 +46,11 @@ const logout = async () => {
 
 const accountUrl = computed(() => '/account/profile')
 
-const { navigateToFeed } = workspaceStore
+const notificationStore = useNotification()
 
-const { isNewFeedAvailable } = useProductFeed()
+const { unreadCount } = toRefs(notificationStore)
+
+const isNotificationOpen = ref(false)
 
 const { toggleMode } = useMiniSidebarMode()
 
@@ -340,20 +342,27 @@ const openKeyboardShortcutDialog = () => {
         </NcDropdown>
 
         <!-- Notification bell -->
-        <NcTooltip placement="top" :arrow="false">
-          <template #title>{{ $t('labels.whatsNew') }}</template>
-          <NcButton
-            v-e="['c:nocodb:feed']"
-            type="text"
-            size="xxsmall"
-            class="!rounded-md relative"
-            data-testid="nc-home-sidebar-feed"
-            @click="navigateToFeed()"
-          >
-            <div v-if="isNewFeedAvailable" class="absolute top-0 right-0 w-2.5 h-2.5 pulsing-dot bg-nc-fill-red-medium border-2 border-white rounded-full" />
-            <GeneralIcon icon="ncBell" class="h-4 w-4" />
-          </NcButton>
-        </NcTooltip>
+        <NcDropdown v-model:visible="isNotificationOpen" :trigger="['click']" placement="topRight" overlay-class-name="!min-w-80">
+          <NcTooltip placement="top" :arrow="false" :disabled="isNotificationOpen">
+            <template #title>{{ $t('general.notification') }}</template>
+            <NcButton
+              type="text"
+              size="xxsmall"
+              class="!rounded-md relative"
+              data-testid="nc-home-sidebar-notification"
+            >
+              <span
+                v-if="unreadCount"
+                class="absolute top-0 right-0 w-1.5 h-1.5 rounded-full border border-white dark:border-[#1a1a1a]"
+                style="background: #e75a8d"
+              />
+              <GeneralIcon icon="ncBell" class="h-4 w-4" />
+            </NcButton>
+          </NcTooltip>
+          <template #overlay>
+            <NotificationCard @close="isNotificationOpen = false" />
+          </template>
+        </NcDropdown>
       </div>
     </div>
 
@@ -372,16 +381,6 @@ const openKeyboardShortcutDialog = () => {
 
 .menu-btn {
   line-height: 1.5;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.1); opacity: 0.7; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-.pulsing-dot {
-  animation: pulse 1.5s infinite ease-in-out;
 }
 
 .nc-home-user-kbd {

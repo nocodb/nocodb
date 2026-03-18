@@ -7,6 +7,19 @@ import conditionV2 from '~/db/conditionV2';
 import sortV2 from '~/db/sortV2';
 
 /**
+ * Quotes a schema-qualified table path for use as a regclass text argument
+ * (e.g. pg_get_serial_sequence). Knex identifier bindings (`:name:`) handle
+ * quoting automatically, but value bindings (`:name`) pass the string as-is,
+ * causing PostgreSQL to fold unquoted mixed-case names to lowercase.
+ */
+function quoteRegclass(tnPath: string): string {
+  return tnPath
+    .split('.')
+    .map((part) => `"${part}"`)
+    .join('.');
+}
+
+/**
  * Resets a PostgreSQL BIGSERIAL sequence to MAX(column) after a backfill.
  */
 async function resetPgSequence(
@@ -19,7 +32,12 @@ async function resetPgSequence(
       pg_get_serial_sequence(:tnVal, :colVal),
       COALESCE((SELECT MAX(:colId:) FROM :tnId:), 0)
     )`,
-    { tnVal: tnPath, colVal: colName, colId: colName, tnId: tnPath },
+    {
+      tnVal: quoteRegclass(tnPath),
+      colVal: colName,
+      colId: colName,
+      tnId: tnPath,
+    },
   );
 }
 

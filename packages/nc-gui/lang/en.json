@@ -2295,6 +2295,7 @@
     "noBasesFound": "No bases found",
     "ownedByMe": "Owned by me",
     "allBases": "All Bases",
+    "searchWorkspaceBases": "Search",
     "addDomain": "Add Domain",
     "addMembers": "Add Members",
     "enterEmail": "Enter email addresses",

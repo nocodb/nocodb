@@ -140,10 +140,33 @@ const activeTab = computed(() => {
 const onTabClick = (tab: any) => {
   navigateTo(tab.route)
 }
+
+// Command palette search
+const { setActiveCmdView } = useCommand()
+
+const openSearch = () => {
+  setActiveCmdView('cmd-k')
+}
 </script>
 
 <template>
   <div class="h-full flex flex-col nc-workspace-home bg-nc-bg-default">
+    <!-- Top bar: search -->
+    <div class="flex items-center justify-center px-6 py-3 h-[var(--topbar-height)] flex-none">
+      <div
+        class="flex items-center gap-2 px-3 py-1.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-light cursor-pointer hover:border-nc-border-gray-dark transition-colors w-full max-w-[500px]"
+        data-testid="nc-ws-home-search"
+        @click="openSearch"
+      >
+        <GeneralIcon icon="search" class="h-4 w-4 text-nc-content-gray-muted flex-none" />
+        <span class="text-sm text-nc-content-gray-muted flex-1">{{ $t('activity.searchWorkspaceBases') }}...</span>
+        <div class="flex items-center gap-0.5">
+          <kbd class="nc-ws-home-kbd">{{ renderCmdOrCtrlKey() }}</kbd>
+          <kbd class="nc-ws-home-kbd">K</kbd>
+        </div>
+      </div>
+    </div>
+
     <!-- Workspace tabs -->
     <div class="flex items-center border-b-1 border-nc-border-gray-medium flex-none px-1">
       <div class="flex items-center gap-0.5 flex-1 overflow-x-auto">
@@ -328,5 +351,15 @@ const onTabClick = (tab: any) => {
   &:hover {
     @apply border-nc-border-gray-dark;
   }
+}
+
+.nc-ws-home-kbd {
+  @apply inline-flex items-center justify-center
+    min-w-5 h-5 px-1
+    text-[11px] font-medium leading-none
+    text-nc-content-gray-muted
+    bg-nc-bg-default
+    border-1 border-nc-border-gray-medium
+    rounded;
 }
 </style>

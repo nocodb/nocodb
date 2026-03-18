@@ -197,6 +197,15 @@ const openSearch = () => {
   setActiveCmdView('cmd-k')
 }
 
+// Plan info
+const { activePlanTitle, handleUpgradePlan } = useEeConfig()
+
+const isFreePlan = computed(() => activePlanTitle.value === 'Free')
+
+const showUpgrade = () => {
+  handleUpgradePlan({})
+}
+
 // AI chat mock suggestions
 const chatSuggestions = [
   'Lead qualification agent',
@@ -209,6 +218,26 @@ const chatSuggestions = [
 
 <template>
   <div class="h-full flex flex-col nc-workspace-home bg-nc-bg-default dark:bg-[#1C1C1E]">
+    <!-- Workspace name + plan badge -->
+    <div class="flex items-center gap-3 px-5 pt-3 pb-1 flex-none">
+      <h1 class="text-lg font-bold text-nc-content-gray capitalize">
+        {{ activeWorkspace?.title }}
+      </h1>
+      <div
+        v-if="isPaymentEnabled"
+        class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium"
+        :class="{
+          'bg-nc-bg-gray-light text-nc-content-gray-subtle': true,
+        }"
+      >
+        <span class="uppercase">{{ activePlanTitle }} {{ $t('general.plan') }}</span>
+        <template v-if="isFreePlan">
+          <span class="text-nc-content-gray-muted">&middot;</span>
+          <span class="text-primary cursor-pointer hover:underline" @click="showUpgrade">{{ $t('general.upgrade') }}</span>
+        </template>
+      </div>
+    </div>
+
     <!-- Search bar — fixed top, centered -->
     <div class="flex items-center justify-center px-6 py-2.5 flex-none">
       <div

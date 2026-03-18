@@ -36,7 +36,7 @@ function selectBlock() {
 
 /** Click on non-editable chrome (header empty space, padding) → select whole block. */
 function onChromeClick(event: MouseEvent) {
-  if ((event.target as HTMLElement).closest('.nc-doc-tab-btn, .nc-doc-tab-rename-input')) return
+  if ((event.target as HTMLElement).closest('.nc-doc-tab-btn, .nc-doc-tab-rename-input, .nc-doc-tab-add-btn')) return
   selectBlock()
 }
 
@@ -169,6 +169,32 @@ function onRenameKeydown(event: KeyboardEvent) {
     cancelRename()
   }
 }
+
+// --- Add tab ---
+
+function addTab() {
+  const pos = props.getPos()
+  if (typeof pos !== 'number') return
+
+  const newIndex = props.node.childCount
+  const title = `Tab ${newIndex + 1}`
+
+  // Insert at the end of the docTabs node (before its closing)
+  const insertPos = pos + props.node.nodeSize - 1
+
+  const tabNodeType = props.editor.schema.nodes.docTab
+  const paraNodeType = props.editor.schema.nodes.paragraph
+  const newTab = tabNodeType.create({ title }, paraNodeType.create())
+
+  const { tr } = props.editor.state
+  tr.insert(insertPos, newTab)
+  props.editor.view.dispatch(tr)
+
+  // Switch to the new tab
+  nextTick(() => {
+    activeTab.value = newIndex
+  })
+}
 </script>
 
 <template>
@@ -238,6 +264,15 @@ function onRenameKeydown(event: KeyboardEvent) {
           </template>
         </NcDropdown>
       </template>
+
+      <!-- Add tab button -->
+      <button
+        class="nc-doc-tab-add-btn"
+        data-testid="nc-doc-tab-add"
+        @click.stop="addTab"
+      >
+        <GeneralIcon icon="plus" />
+      </button>
     </div>
 
     <!-- Tab content panes -->
@@ -256,12 +291,18 @@ function onRenameKeydown(event: KeyboardEvent) {
 }
 
 .nc-doc-tabs-header {
-  @apply flex gap-1 px-3 pt-2 pb-0;
+  @apply flex gap-1 px-3 pt-2 pb-0 overflow-x-auto;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .nc-doc-tab-btn {
-  @apply px-3 py-1 mb-1.5 text-bodySm cursor-pointer rounded-md transition-colors;
-  @apply text-nc-content-gray-muted bg-transparent border-0;
+  @apply px-3 py-1 mb-1.5 text-bodySm cursor-pointer rounded-md transition-colors whitespace-nowrap;
+  @apply text-nc-content-gray-muted bg-transparent border-0 flex-shrink-0;
 
   &.active {
     @apply text-nc-content-gray bg-nc-bg-gray-light font-semibold;
@@ -269,6 +310,19 @@ function onRenameKeydown(event: KeyboardEvent) {
 
   &:hover:not(.active) {
     @apply bg-nc-bg-gray-light bg-opacity-50;
+  }
+}
+
+.nc-doc-tab-add-btn {
+  @apply flex items-center justify-center w-6 h-6 mb-1.5 cursor-pointer rounded-md transition-colors;
+  @apply text-nc-content-gray-muted bg-transparent border-0 opacity-0;
+
+  .nc-doc-tabs-header:hover & {
+    @apply opacity-100;
+  }
+
+  &:hover {
+    @apply bg-nc-bg-gray-light text-nc-content-gray;
   }
 }
 
@@ -299,7 +353,14 @@ function onRenameKeydown(event: KeyboardEvent) {
 
   &[data-active-tab='0'] :deep([data-doc-tab]:nth-child(1)),
   &[data-active-tab='1'] :deep([data-doc-tab]:nth-child(2)),
-  &[data-active-tab='2'] :deep([data-doc-tab]:nth-child(3)) {
+  &[data-active-tab='2'] :deep([data-doc-tab]:nth-child(3)),
+  &[data-active-tab='3'] :deep([data-doc-tab]:nth-child(4)),
+  &[data-active-tab='4'] :deep([data-doc-tab]:nth-child(5)),
+  &[data-active-tab='5'] :deep([data-doc-tab]:nth-child(6)),
+  &[data-active-tab='6'] :deep([data-doc-tab]:nth-child(7)),
+  &[data-active-tab='7'] :deep([data-doc-tab]:nth-child(8)),
+  &[data-active-tab='8'] :deep([data-doc-tab]:nth-child(9)),
+  &[data-active-tab='9'] :deep([data-doc-tab]:nth-child(10)) {
     position: relative;
     opacity: 1;
     height: auto;

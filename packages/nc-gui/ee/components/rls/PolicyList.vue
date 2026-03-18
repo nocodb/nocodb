@@ -9,13 +9,14 @@ const props = defineProps<{
 
 const { $e } = useNuxtApp()
 const { t } = useI18n()
+const { showInfoModal } = useNcConfirmModal()
 
 const base = computed(() => props.base)
 const tableId = computed(() => props.tableId)
 
 const { showUpgradeToUseRls } = useEeConfig()
 
-const { policies, isLoading, isSaving, loadPolicies, createPolicy, deletePolicy, togglePolicy } = useRlsPolicies(
+const { policies, isLoading, loadPolicies, createPolicy, deletePolicy, togglePolicy } = useRlsPolicies(
   base as Ref<BaseType>,
   tableId,
 )
@@ -70,7 +71,7 @@ const handleCreateDefaultPolicy = async () => {
   }
 }
 
-const handleDeletePolicy = async (policyId: string) => {
+const performDeletePolicy = async (policyId: string) => {
   try {
     await deletePolicy(policyId)
     if (editingPolicyId.value === policyId) {
@@ -81,6 +82,20 @@ const handleDeletePolicy = async (policyId: string) => {
   } catch (e: any) {
     message.error(t('msg.error.rlsPolicyDeleteFailed'))
   }
+}
+
+const handleDeletePolicy = (policyId: string) => {
+  showInfoModal({
+    title: t('objects.permissions.rlsPolicy.confirmDeleteTitle'),
+    content: t('objects.permissions.rlsPolicy.confirmDeleteContent'),
+    showCancelBtn: true,
+    showIcon: false,
+    okProps: {
+      type: 'danger',
+    },
+    okText: t('general.delete'),
+    okCallback: () => performDeletePolicy(policyId),
+  })
 }
 
 const handleTogglePolicy = async (policy: RlsPolicyType) => {

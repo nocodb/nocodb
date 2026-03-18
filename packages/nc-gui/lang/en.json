@@ -843,7 +843,9 @@
         "filterConditions": "Filter Conditions",
         "showAll": "Show All",
         "denyAll": "Deny All",
-        "filterCount": "{count} filter | {count} filters"
+        "filterCount": "{count} filter | {count} filters",
+        "confirmDeleteTitle": "Are you sure you want to delete this policy?",
+        "confirmDeleteContent": "This action cannot be undone."
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",

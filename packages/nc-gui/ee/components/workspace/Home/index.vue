@@ -148,7 +148,7 @@ const chatSuggestions = [
 </script>
 
 <template>
-  <div class="h-full flex flex-col nc-workspace-home bg-nc-bg-default">
+  <div class="h-full flex flex-col nc-workspace-home bg-nc-bg-default dark:bg-[#1C1C1E]">
     <!-- Search bar — fixed top, centered -->
     <div class="flex items-center justify-center px-6 py-2.5 flex-none">
       <div
@@ -174,7 +174,7 @@ const chatSuggestions = [
           class="flex items-center gap-1.5 px-3 py-2 cursor-pointer text-sm transition-colors whitespace-nowrap border-b-2"
           :class="{
             'border-primary text-nc-content-brand font-semibold': activeTab === tab.key,
-            'border-transparent text-nc-content-gray-subtle hover:text-nc-content-gray': activeTab !== tab.key,
+            'border-transparent text-nc-content-gray-muted hover:text-nc-content-gray-subtle': activeTab !== tab.key,
           }"
           @click="onTabClick(tab)"
         >

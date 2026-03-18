@@ -56,6 +56,7 @@ const DRAGGABLE_TYPES = new Set([
   'table',
   'horizontalRule',
   'columns',
+  'docTabs',
 ])
 
 /** How far into the content area (from the left edge) the gutter zone extends */

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Node as PmNode } from '@tiptap/pm/model'
 import type { Editor } from '@tiptap/core'
-import { TextSelection } from '@tiptap/pm/state'
+import { NodeSelection, TextSelection } from '@tiptap/pm/state'
 import { NodeViewContent, NodeViewWrapper } from '@tiptap/vue-3'
 
 interface Props {
@@ -23,6 +23,24 @@ const tabs = computed(() => {
   })
   return result
 })
+
+/** Select the entire docTabs node so Backspace/Delete removes it. */
+function selectBlock() {
+  const pos = props.getPos()
+  if (typeof pos !== 'number') return
+
+  const { state } = props.editor
+  const nodeSelection = NodeSelection.create(state.doc, pos)
+  props.editor.view.dispatch(state.tr.setSelection(nodeSelection))
+  props.editor.view.focus()
+}
+
+/** Click on non-editable chrome (header empty space, padding) → select whole block. */
+function onChromeClick(event: MouseEvent) {
+  // Only act on clicks directly on the header div, not on tab buttons
+  if ((event.target as HTMLElement).closest('.nc-doc-tab-btn')) return
+  selectBlock()
+}
 
 function switchTab(index: number) {
   if (index === activeTab.value) return
@@ -62,6 +80,7 @@ function switchTab(index: number) {
       role="tablist"
       contenteditable="false"
       data-testid="nc-doc-tabs-header"
+      @click="onChromeClick"
     >
       <button
         v-for="(tab, index) in tabs"
@@ -91,6 +110,7 @@ function switchTab(index: number) {
 <style lang="scss" scoped>
 .nc-doc-tabs {
   @apply border-1 border-nc-border-gray-medium rounded-lg my-3;
+
 }
 
 .nc-doc-tabs-header {
@@ -134,6 +154,20 @@ function switchTab(index: number) {
     height: auto;
     overflow: visible;
     pointer-events: auto;
+  }
+}
+</style>
+
+<!-- Unscoped: ProseMirror adds .ProseMirror-selectednode directly on the DOM -->
+<style lang="scss">
+.nc-doc-tabs.ProseMirror-selectednode {
+  border-color: var(--nc-border-brand) !important;
+  background-color: var(--nc-bg-brand);
+  outline: none;
+
+  // Suppress native text selection highlight inside the block
+  ::selection {
+    background: transparent;
   }
 }
 </style>

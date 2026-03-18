@@ -30,7 +30,7 @@ export const wsSettingsTabToSlug: Record<string, string> = {
   'ws-billing': 'billing',
   'ws-audits': 'audits',
   'ws-sso': 'sso',
-  'ws-settings': 'ws-settings',
+  'ws-settings': 'general',
 }
 
 // Combined: all settings tabs → URL slugs

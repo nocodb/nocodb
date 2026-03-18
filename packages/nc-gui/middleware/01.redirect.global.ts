@@ -30,7 +30,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     const wsId = to.params.typeOrId as string
     const tab = (to.query.tab as string) || 'settings'
     const slugMap: Record<string, string> = {
-      settings: 'ws-settings',
+      settings: 'general',
       collaborator: 'members',
       collaborators: 'members',
       teams: 'teams',
@@ -39,7 +39,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
       audits: 'audits',
       sso: 'sso',
     }
-    return navigateTo(`/${wsId}/${slugMap[tab] || 'ws-settings'}`, { replace: true })
+    return navigateTo(`/${wsId}/${slugMap[tab] || 'general'}`, { replace: true })
   }
 
   if (to.name === 'index-typeOrId-integrations') {

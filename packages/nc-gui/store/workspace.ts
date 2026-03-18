@@ -40,6 +40,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     'index-typeOrId-audits',
     'index-typeOrId-sso',
     'index-typeOrId-ws-settings',
+    'index-typeOrId-general',
   ]
 
   const isWorkspaceSettingsPageOpened = computed(() => wsSettingsRouteNames.includes(route.value.name as string))
@@ -300,7 +301,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const navigateToWorkspaceSettings = async (_?: string, cmdOrCtrl?: boolean) => {
     const workspaceId = activeWorkspaceId.value
-    const path = `/${workspaceId}/ws-settings`
+    const path = `/${workspaceId}/general`
     if (cmdOrCtrl) {
       await navigateTo(path, {
         open: navigateToBlankTargetOpenOption,

@@ -152,7 +152,7 @@ const wsTabItems = computed(() => {
   }
 
   if (!isEEFeatureBlocked.value) {
-    items.push({ key: 'general', label: t('general.general'), icon: 'ncMoreHorizontal', route: `/${wsId}/ws-settings` })
+    items.push({ key: 'general', label: t('general.general'), icon: 'ncMoreHorizontal', route: `/${wsId}/general` })
   }
 
   return items
@@ -165,7 +165,7 @@ const activeTab = computed(() => {
   if (routeName === 'index-typeOrId-teams') return 'teams'
   if (routeName === 'index-typeOrId-integrations') return 'integrations'
   if (routeName === 'index-typeOrId-audits') return 'audits'
-  if (routeName === 'index-typeOrId-ws-settings') return 'general'
+  if (routeName === 'index-typeOrId-general' || routeName === 'index-typeOrId-ws-settings') return 'general'
   if (routeName === 'index-typeOrId-billing') return 'billing'
   if (routeName === 'index-typeOrId-sso') return 'sso'
   return 'bases'

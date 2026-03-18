@@ -221,13 +221,13 @@ const chatSuggestions = [
     <!-- Top bar: workspace name + plan | search (absolutely centered) -->
     <div class="relative flex items-center px-5 py-2.5 flex-none">
       <!-- Left: workspace name + plan -->
-      <div class="flex items-center gap-2 flex-none z-1">
-        <h1 class="text-[18px] font-bold text-nc-content-gray capitalize">
+      <div class="flex items-baseline gap-2.5 flex-none z-1">
+        <h1 class="text-[18px] font-bold text-nc-content-gray capitalize leading-none">
           {{ activeWorkspace?.title }}
         </h1>
         <div
           v-if="isEeUI"
-          class="flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium leading-none bg-nc-bg-gray-light text-nc-content-gray-subtle"
+          class="flex items-center justify-center gap-1.5 px-2.5 py-0.75 rounded-full text-[11px] font-medium leading-none bg-nc-bg-gray-light text-nc-content-gray-subtle relative top-[-1px]"
         >
           <span class="uppercase">{{ activePlanTitle }} {{ $t('general.plan') }}</span>
           <template v-if="isFreePlan && isPaymentEnabled">

@@ -457,46 +457,9 @@ export class ColumnsService implements IColumnsService {
 
     const isSyncedColumn = table.synced && column.readonly;
 
-    // Handle meta-only updates (description, meta/display format) early
-    // These are safe for system fields like CreatedTime/LastModifiedTime
     const payloadHasNonMetaProps = Object.keys(param.column).some(
       (k) => !META_ONLY_COLUMN_PROPS.has(k),
     );
-
-    if (!payloadHasNonMetaProps) {
-      if (param.column.description !== column.description) {
-        await Column.update(context, param.columnId, {
-          description: param.column.description,
-        });
-      }
-      if ((param.column as any).meta) {
-        const existingMeta = parseProp(column.meta);
-        await Column.update(context, param.columnId, {
-          meta: {
-            ...existingMeta,
-            ...parseProp((param.column as any).meta),
-          },
-        });
-      }
-
-      await table.getColumns(context);
-
-      const updatedColumn = await Column.get(context, {
-        colId: param.columnId,
-      });
-
-      this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
-        table,
-        oldColumn: column,
-        column: updatedColumn,
-        columnId: column.id,
-        req: param.req,
-        context,
-        columns: table.columns,
-      });
-
-      return table;
-    }
 
     const allowUpdateSystemField =
       process.env.NC_SYSTEM_FIELD_API_UPDATE === 'true' ||
@@ -514,7 +477,12 @@ export class ColumnsService implements IColumnsService {
           UITypes.Order,
         ].includes(column.uidt)) ||
         // somehow current external meta sync do not mark pk as system
-        column.pk)
+        column.pk) &&
+      // Allow meta-only updates (description, display format) for CreatedTime/LastModifiedTime
+      !(
+        !payloadHasNonMetaProps &&
+        [UITypes.CreatedTime, UITypes.LastModifiedTime].includes(column.uidt)
+      )
     ) {
       NcError.get(context).systemFieldNonModifiable();
     }
@@ -543,6 +511,35 @@ export class ColumnsService implements IColumnsService {
       await Column.update(context, param.columnId, {
         description: param.column.description,
       });
+    }
+    if (!payloadHasNonMetaProps) {
+      if ((param.column as any).meta) {
+        const existingMeta = parseProp(column.meta);
+        await Column.update(context, param.columnId, {
+          meta: {
+            ...existingMeta,
+            ...parseProp((param.column as any).meta),
+          },
+        });
+      }
+
+      await table.getColumns(context);
+
+      const updatedColumn = await Column.get(context, {
+        colId: param.columnId,
+      });
+
+      this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
+        table,
+        oldColumn,
+        column: updatedColumn,
+        columnId: column.id,
+        req: param.req,
+        context,
+        columns: table.columns,
+      });
+
+      return table;
     }
 
     // These are the column types whose meta is allowed to be updated

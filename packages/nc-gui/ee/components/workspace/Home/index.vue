@@ -260,7 +260,7 @@ const chatSuggestions = [
         <div
           v-for="tab in wsTabItems"
           :key="tab.key"
-          class="flex items-center gap-1.5 px-3 py-2 cursor-pointer text-[13px] transition-colors whitespace-nowrap border-b-2"
+          class="flex items-center gap-1.5 px-3 py-2.5 cursor-pointer text-[13px] transition-colors whitespace-nowrap border-b-2"
           :class="{
             'border-primary text-nc-content-brand font-semibold': activeTab === tab.key,
             'border-transparent text-nc-content-gray-muted hover:text-nc-content-gray-subtle': activeTab !== tab.key,

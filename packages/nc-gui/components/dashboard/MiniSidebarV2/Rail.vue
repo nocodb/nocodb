@@ -206,12 +206,12 @@ const mainItems = computed<NavItem[]>(() => [
       <NcTooltip placement="right" :arrow="false">
         <template #title>{{ $t('labels.backToWorkspace') }}: {{ activeWorkspace?.title }}</template>
         <div
-          class="nc-rail-logo group"
+          class="nc-rail-logo nc-rail-logo-hover"
           data-testid="nc-mini-sidebar-v2-logo"
           @click="navigateTo(`/${activeWorkspaceId}`)"
         >
           <GeneralProjectIcon
-            class="!h-7 !w-7 group-hover:hidden"
+            class="!h-7 !w-7 nc-logo-icon"
             :color="parseProp(resolvedProject?.meta).iconColor"
             :type="resolvedProject?.type"
             :managed-app="
@@ -223,7 +223,7 @@ const mainItems = computed<NavItem[]>(() => [
                 : undefined
             "
           />
-          <GeneralIcon icon="ncArrowLeft" class="!h-5 !w-5 hidden group-hover:block text-nc-content-gray" />
+          <GeneralIcon icon="ncArrowLeft" class="!h-5 !w-5 nc-back-icon text-nc-content-gray" />
         </div>
       </NcTooltip>
       <NcDivider class="!w-8 !min-w-8 !my-0 !border-nc-border-gray-medium absolute bottom-0" />
@@ -355,6 +355,21 @@ const mainItems = computed<NavItem[]>(() => [
 
     :root[theme='dark'] & {
       border-color: #161616;
+    }
+  }
+}
+
+.nc-rail-logo-hover {
+  .nc-back-icon {
+    display: none;
+  }
+
+  &:hover {
+    .nc-logo-icon {
+      display: none;
+    }
+    .nc-back-icon {
+      display: block;
     }
   }
 }

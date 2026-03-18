@@ -49,15 +49,18 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
     const endCol = range.fk_to_col
     if (fromCol && endCol) {
       const filteredData = formattedData.value.filter((record) => {
-        const startDate = dayjs(record.row[fromCol.title!])
-        const endDate = dayjs(record.row[endCol.title!])
-
+        const startDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
+        const endDate = record.row[endCol.title!] ? dayjs(record.row[endCol.title!]) : null
+        // If either date is missing, treat as single-day event using the available date
+        if (!startDate && !endDate) return false
+        if (!startDate || !endDate) return true
         return startDate.isSameOrBefore(endDate, 'day')
       })
 
       for (const record of filteredData) {
-        const startDate = dayjs(record.row[fromCol.title!])
-        const endDate = dayjs(record.row[endCol.title!])
+        // Use whichever date is available; fall back to the other if one is missing
+        const startDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : dayjs(record.row[endCol.title!])
+        const endDate = record.row[endCol.title!] ? dayjs(record.row[endCol.title!]) : startDate
 
         const id = record.rowMeta.id ?? generateRandomNumber()
 

@@ -335,8 +335,15 @@ const recordsAcrossAllRange = computed<{
     const sortedFormattedData = [...formattedData.value]
       .filter((record) => {
         if (fromCol && toCol) {
-          const fromDate = timezoneDayjs.timezonize(record.row[fromCol.title!])
-          const toDate = record.row[toCol.title!] ? timezoneDayjs.timezonize(record.row[toCol.title!]) : fromDate.add(1, 'hour')
+          const hasFrom = !!record.row[fromCol.title!]
+          const hasTo = !!record.row[toCol.title!]
+          // If both dates missing, skip
+          if (!hasFrom && !hasTo) return false
+          // Use whichever date is available; fall back to the other if one is missing
+          const fromDate = hasFrom
+            ? timezoneDayjs.timezonize(record.row[fromCol.title!])
+            : timezoneDayjs.timezonize(record.row[toCol.title!])
+          const toDate = hasTo ? timezoneDayjs.timezonize(record.row[toCol.title!]) : fromDate.add(1, 'hour')
 
           if (fromDate.isValid() && toDate.isValid()) {
             const isMultiDay = !fromDate.isSame(toDate, 'day')
@@ -349,19 +356,29 @@ const recordsAcrossAllRange = computed<{
         }
         return fromCol && !!record.row[fromCol.title!]
       })
-      .sort((a, b) =>
-        timezoneDayjs.timezonize(a.row[fromCol!.title!]).isBefore(timezoneDayjs.timezonize(b.row[fromCol!.title!])) ? 1 : -1,
-      )
+      .sort((a, b) => {
+        const aDate = a.row[fromCol!.title!] || (toCol && a.row[toCol.title!])
+        const bDate = b.row[fromCol!.title!] || (toCol && b.row[toCol.title!])
+        return timezoneDayjs.timezonize(aDate).isBefore(timezoneDayjs.timezonize(bDate)) ? 1 : -1
+      })
 
     for (const record of sortedFormattedData) {
       const id = record.rowMeta.id ?? generateRandomNumber()
 
       if (fromCol && toCol) {
+        // Use whichever date is available; fall back to the other if one is missing
+        const rawStart = record.row[fromCol.title!]
+          ? timezoneDayjs.timezonize(record.row[fromCol.title!])
+          : record.row[toCol.title!]
+            ? timezoneDayjs.timezonize(record.row[toCol.title!])
+            : null
+        if (!rawStart) continue
+
         const { startDate, endDate } = calculateNewDates({
-          startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
+          startDate: rawStart,
           endDate: record.row[toCol.title!]
             ? timezoneDayjs.timezonize(record.row[toCol.title!])
-            : timezoneDayjs.timezonize(record.row[fromCol.title!]).add(1, 'hour'),
+            : rawStart.add(1, 'hour'),
           scheduleStart,
           scheduleEnd,
         })

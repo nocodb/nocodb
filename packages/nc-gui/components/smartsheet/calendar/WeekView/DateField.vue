@@ -121,9 +121,14 @@ const calendarData = computed(() => {
 
     const processRecord = (record: Row) => {
       const id = record.rowMeta.id ?? generateRandomNumber()
-      let startDate = dayjs(record.row[fk_from_col.title!])
+      // Use whichever date is available; fall back to the other if one is missing
+      let startDate = record.row[fk_from_col.title!]
+        ? dayjs(record.row[fk_from_col.title!])
+        : fk_to_col && record.row[fk_to_col.title!]
+          ? dayjs(record.row[fk_to_col.title!])
+          : dayjs(record.row[fk_from_col.title!])
       const ogStartDate = startDate.clone()
-      const endDate = fk_to_col ? dayjs(record.row[fk_to_col.title!]) : startDate
+      const endDate = fk_to_col && record.row[fk_to_col.title!] ? dayjs(record.row[fk_to_col.title!]) : startDate
 
       if (startDate.isBefore(selectedDateRange.value.start)) {
         startDate = dayjs(selectedDateRange.value.start)
@@ -170,14 +175,13 @@ const calendarData = computed(() => {
     if (fk_to_col) {
       formattedData.value
         .filter((r) => {
-          const startDate = dayjs(r.row[fk_from_col.title!])
-          const endDate = dayjs(r.row[fk_to_col.title!])
-          return (
-            startDate.isValid() &&
-            endDate.isValid() &&
-            !endDate.isBefore(startDate) &&
-            !endDate.isBefore(selectedDateRange.value.start, 'day')
-          )
+          const startDate = r.row[fk_from_col.title!] ? dayjs(r.row[fk_from_col.title!]) : null
+          const endDate = r.row[fk_to_col.title!] ? dayjs(r.row[fk_to_col.title!]) : null
+          // If both dates missing, skip
+          if (!startDate && !endDate) return false
+          // If either date is missing, treat as single-day event
+          if (!startDate || !endDate) return true
+          return startDate.isValid() && endDate.isValid() && !endDate.isBefore(startDate) && !endDate.isBefore(selectedDateRange.value.start, 'day')
         })
         .forEach(processRecord)
     } else {

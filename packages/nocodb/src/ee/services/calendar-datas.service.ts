@@ -199,6 +199,54 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
               },
             ],
           },
+          // Include records where start date is in range but end date is missing
+          // (treat as single-day events)
+          {
+            is_group: true,
+            logical_op: 'or',
+            children: [
+              {
+                fk_column_id: fromColumn,
+                comparison_op: 'lt',
+                comparison_sub_op: 'exactDate',
+                value: next_date as string,
+              },
+              {
+                fk_column_id: fromColumn,
+                comparison_op: 'gte',
+                comparison_sub_op: 'exactDate',
+                value: prev_date as string,
+              },
+              {
+                fk_column_id: toColumn,
+                comparison_op: 'blank',
+              },
+            ],
+          },
+          // Include records where end date is in range but start date is missing
+          // (treat as single-day milestone events)
+          {
+            is_group: true,
+            logical_op: 'or',
+            children: [
+              {
+                fk_column_id: toColumn,
+                comparison_op: 'lt',
+                comparison_sub_op: 'exactDate',
+                value: next_date as string,
+              },
+              {
+                fk_column_id: toColumn,
+                comparison_op: 'gte',
+                comparison_sub_op: 'exactDate',
+                value: prev_date as string,
+              },
+              {
+                fk_column_id: fromColumn,
+                comparison_op: 'blank',
+              },
+            ],
+          },
         ];
         filterArr.push({
           is_group: true,

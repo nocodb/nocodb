@@ -307,19 +307,29 @@ const recordsAcrossAllRange = computed<{
 
         return fromCol ? !!fromDate : false
       })
-      .sort((a, b) =>
-        timezoneDayjs.timezonize(a.row[fromCol!.title!]).isBefore(timezoneDayjs.timezonize(b.row[fromCol!.title!])) ? 1 : -1,
-      )
+      .sort((a, b) => {
+        const aDate = a.row[fromCol!.title!] || (endCol && a.row[endCol.title!])
+        const bDate = b.row[fromCol!.title!] || (endCol && b.row[endCol.title!])
+        return timezoneDayjs.timezonize(aDate).isBefore(timezoneDayjs.timezonize(bDate)) ? 1 : -1
+      })
 
     for (const record of sortedFormattedData) {
       const id = record.rowMeta.id ?? generateRandomNumber()
 
       if (fromCol && endCol) {
+        // Use whichever date is available; fall back to the other if one is missing
+        const rawStart = record.row[fromCol.title!]
+          ? timezoneDayjs.timezonize(record.row[fromCol.title!])
+          : record.row[endCol.title!]
+            ? timezoneDayjs.timezonize(record.row[endCol.title!])
+            : null
+        if (!rawStart) continue
+
         const { endDate, startDate } = calculateNewDates({
           endDate: dayjs(record.row[endCol.title!])?.isValid()
             ? timezoneDayjs.timezonize(record.row[endCol.title!])
             : dayjs(record.row[endCol.title!]),
-          startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
+          startDate: rawStart,
           scheduleStart,
           scheduleEnd,
         })

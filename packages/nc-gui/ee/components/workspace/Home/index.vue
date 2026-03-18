@@ -223,7 +223,7 @@ const chatSuggestions = [
           }"
           @click="onTabClick(tab)"
         >
-          <GeneralIcon :icon="tab.icon" class="h-4 w-4 flex-none" />
+          <GeneralIcon :icon="tab.icon" class="h-3.5 w-3.5 flex-none" />
           <span>{{ tab.label }}</span>
         </div>
       </div>

@@ -379,7 +379,12 @@ export const useNocoAi = createSharedComposable(() => {
       aiLoading.value = true
       aiError.value = ''
 
-      const res = await $api.internal.postOperation(workspaceId, baseId, { operation: 'aiDataGenerateRows' }, { modelId, rowIds, column, preview })
+      const res = await $api.internal.postOperation(
+        workspaceId,
+        baseId,
+        { operation: 'aiDataGenerateRows' },
+        { modelId, rowIds, column, preview },
+      )
 
       return res
     } catch (e) {
@@ -416,12 +421,7 @@ export const useNocoAi = createSharedComposable(() => {
 
     if (!workspaceId || !baseId) return
 
-    const res = await $api.internal.postOperation(
-      workspaceId,
-      baseId,
-      { operation: 'aiDataFillRows' },
-      { modelId, ...body },
-    )
+    const res = await $api.internal.postOperation(workspaceId, baseId, { operation: 'aiDataFillRows' }, { modelId, ...body })
 
     return res as Record<string, any>[]
   }

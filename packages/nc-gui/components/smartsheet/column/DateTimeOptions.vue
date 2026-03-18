@@ -84,11 +84,7 @@ const useSameTimezoneForAll = computed({
         </a-select>
       </a-form-item>
       <a-form-item>
-        <a-select
-          v-model:value="vModel.meta.time_format"
-          class="nc-time-select"
-          dropdown-class-name="nc-dropdown-time-format"
-        >
+        <a-select v-model:value="vModel.meta.time_format" class="nc-time-select" dropdown-class-name="nc-dropdown-time-format">
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>

@@ -39,7 +39,9 @@ const { isMetaReadOnly } = useRoles()
 
 const { formState } = useColumnCreateStoreOrThrow()
 
-const disableConfiguration = computed(() => Boolean(isMetaReadOnly.value) && !readonlyMetaAllowedTypes.includes(formState.value.uidt))
+const disableConfiguration = computed(
+  () => Boolean(isMetaReadOnly.value) && !readonlyMetaAllowedTypes.includes(formState.value.uidt),
+)
 </script>
 
 <template>

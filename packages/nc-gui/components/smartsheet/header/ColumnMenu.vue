@@ -9,13 +9,13 @@ import {
   ViewTypes,
   columnTypeName,
   getFirstNonPersonalView,
+  isCreatedOrLastModifiedTimeCol,
   isCrossBaseLink,
   isLinksOrLTAR,
   isSupportedDisplayValueColumn,
   isSystemColumn,
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
-  isCreatedOrLastModifiedTimeCol,
 } from 'nocodb-sdk'
 import { SmartsheetStoreEvents } from '#imports'
 

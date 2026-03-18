@@ -715,36 +715,35 @@ export function useMultiSelect(
                 workspaceId: (meta.value as any)?.fk_workspace_id ?? base.value!.fk_workspace_id!,
                 baseId: meta.value!.base_id!,
               },
-            )
-              .then((r?: Record<string, any>[]) => {
-                if (!r) return
-                if (fillRange._start === null || fillRange._end === null) return
-                // update cells with the generated data
+            ).then((r?: Record<string, any>[]) => {
+              if (!r) return
+              if (fillRange._start === null || fillRange._end === null) return
+              // update cells with the generated data
 
-                for (const row of rowsToPaste.concat(rowsToFill)) {
-                  const generatedRow = r.find(
-                    (genRow) =>
-                      extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) ===
-                      extractPkFromRow(genRow, meta.value?.columns as ColumnType[]),
-                  )
+              for (const row of rowsToPaste.concat(rowsToFill)) {
+                const generatedRow = r.find(
+                  (genRow) =>
+                    extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) ===
+                    extractPkFromRow(genRow, meta.value?.columns as ColumnType[]),
+                )
 
-                  if (!generatedRow) {
-                    continue
-                  }
-
-                  for (const prop of propsToPaste.concat(propsToFill)) {
-                    row.row[prop] = generatedRow[prop]
-                  }
+                if (!generatedRow) {
+                  continue
                 }
 
-                bulkUpdateRows?.(rowsToPaste.concat(rowsToFill), propsToPaste.concat(propsToFill)).then(() => {
-                  if (fillRange._start === null || fillRange._end === null) return
-                  selectedRange.startRange(tempActiveCell)
-                  selectedRange.endRange(fillRange._end)
-                  makeActive(tempActiveCell.row, tempActiveCell.col)
-                  fillRange.clear()
-                })
+                for (const prop of propsToPaste.concat(propsToFill)) {
+                  row.row[prop] = generatedRow[prop]
+                }
+              }
+
+              bulkUpdateRows?.(rowsToPaste.concat(rowsToFill), propsToPaste.concat(propsToFill)).then(() => {
+                if (fillRange._start === null || fillRange._end === null) return
+                selectedRange.startRange(tempActiveCell)
+                selectedRange.endRange(fillRange._end)
+                makeActive(tempActiveCell.row, tempActiveCell.col)
+                fillRange.clear()
               })
+            })
             return
           }
 

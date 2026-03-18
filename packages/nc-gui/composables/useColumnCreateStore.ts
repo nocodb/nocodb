@@ -420,10 +420,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
           // For system datetime fields, only send meta and description
           // to avoid triggering the system field non-modifiable check
-          if (
-            isSystem.value &&
-            isCreatedOrLastModifiedTimeCol(column.value)
-          ) {
+          if (isSystem.value && isCreatedOrLastModifiedTimeCol(column.value)) {
             updateData = {
               meta: updateData.meta,
               description: updateData.description,

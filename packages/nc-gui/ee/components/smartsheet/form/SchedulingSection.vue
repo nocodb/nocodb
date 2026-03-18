@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import type { FormType } from 'nocodb-sdk'
-import { PlanFeatureTypes } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
 interface Props {
   formViewData: FormType
@@ -21,6 +21,8 @@ const { formViewData, isLocked, isEditable } = toRefs(props)
 const { appInfo } = useGlobal()
 
 const { t } = useI18n()
+
+const { showEEFeatures } = useEeConfig()
 
 const isFormSchedulingOption = ref(false)
 
@@ -54,7 +56,7 @@ const endDateValidationError = computed(() => {
 </script>
 
 <template>
-  <div class="p-4 flex flex-col space-y-4 border-b border-nc-border-gray-medium">
+  <div v-if="showEEFeatures" class="p-4 flex flex-col space-y-4 border-b border-nc-border-gray-medium">
     <!-- Form Scheduling -->
     <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_FORM_SCHEDULING">
       <template #default="{ click }">
@@ -63,8 +65,12 @@ const endDateValidationError = computed(() => {
             {{ $t('labels.formScheduling') }}
 
             <LazyPaymentUpgradeBadge
-              v-if="!isFormSchedulingEnabled && !appInfo.isOnPrem"
               :feature="PlanFeatureTypes.FEATURE_FORM_SCHEDULING"
+              :content="
+                $t('upgrade.upgradeToUseFormSchedulingSubtitle', {
+                  plan: PlanTitles.PLUS,
+                })
+              "
             />
           </span>
           <a-switch
@@ -76,7 +82,7 @@ const endDateValidationError = computed(() => {
             :disabled="isLocked || !isEditable"
             @change="
               (value: boolean) => {
-                if (value && !appInfo.isOnPrem && click(PlanFeatureTypes.FEATURE_FORM_SCHEDULING)) return
+                if (value && click(PlanFeatureTypes.FEATURE_FORM_SCHEDULING)) return
 
                 isFormSchedulingEnabled = !!value
               }

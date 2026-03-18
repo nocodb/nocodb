@@ -15,7 +15,11 @@ const { startsAt, expiresAt } = toRefs(props)
 
 const { t } = useI18n()
 
+const { showEEFeatures, blockFormScheduling } = useEeConfig()
+
 const status = computed(() => {
+  if (!showEEFeatures.value || blockFormScheduling.value) return null
+
   const now = dayjs.utc()
 
   if (startsAt.value && dayjs.utc(startsAt.value).isAfter(now)) {

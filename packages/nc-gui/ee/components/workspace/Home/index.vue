@@ -218,40 +218,43 @@ const chatSuggestions = [
 
 <template>
   <div class="h-full flex flex-col nc-workspace-home bg-nc-bg-default dark:bg-[#1C1C1E]">
-    <!-- Workspace name + plan badge -->
-    <div class="flex items-center gap-3 px-5 pt-3 pb-1 flex-none">
-      <h1 class="text-lg font-bold text-nc-content-gray capitalize">
-        {{ activeWorkspace?.title }}
-      </h1>
-      <div
-        v-if="isPaymentEnabled"
-        class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium"
-        :class="{
-          'bg-nc-bg-gray-light text-nc-content-gray-subtle': true,
-        }"
-      >
-        <span class="uppercase">{{ activePlanTitle }} {{ $t('general.plan') }}</span>
-        <template v-if="isFreePlan">
-          <span class="text-nc-content-gray-muted">&middot;</span>
-          <span class="text-primary cursor-pointer hover:underline" @click="showUpgrade">{{ $t('general.upgrade') }}</span>
-        </template>
-      </div>
-    </div>
-
-    <!-- Search bar — fixed top, centered -->
-    <div class="flex items-center justify-center px-6 py-2.5 flex-none">
-      <div
-        class="flex items-center gap-2 px-3 py-1.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-light cursor-pointer hover:border-nc-border-gray-dark transition-colors w-full max-w-[400px]"
-        data-testid="nc-ws-home-search"
-        @click="openSearch"
-      >
-        <GeneralIcon icon="search" class="h-4 w-4 text-nc-content-gray-muted flex-none" />
-        <span class="text-[13px] text-nc-content-gray-muted flex-1">{{ $t('activity.searchWorkspaceBases') }}...</span>
-        <div class="flex items-center gap-0.5">
-          <kbd class="nc-ws-home-kbd">{{ renderCmdOrCtrlKey() }}</kbd>
-          <kbd class="nc-ws-home-kbd">K</kbd>
+    <!-- Top bar: workspace name + plan | search -->
+    <div class="flex items-center px-5 py-2.5 flex-none gap-4">
+      <!-- Left: workspace name + plan -->
+      <div class="flex items-center gap-2 flex-none">
+        <h1 class="text-[15px] font-bold text-nc-content-gray capitalize">
+          {{ activeWorkspace?.title }}
+        </h1>
+        <div
+          v-if="isEeUI"
+          class="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-nc-bg-gray-light text-nc-content-gray-subtle"
+        >
+          <span class="uppercase">{{ activePlanTitle }} {{ $t('general.plan') }}</span>
+          <template v-if="isFreePlan && isPaymentEnabled">
+            <span class="text-nc-content-gray-muted">&middot;</span>
+            <span class="text-primary cursor-pointer hover:underline" @click="showUpgrade">{{ $t('general.upgrade') }}</span>
+          </template>
         </div>
       </div>
+
+      <!-- Center: search -->
+      <div class="flex-1 flex justify-center">
+        <div
+          class="flex items-center gap-2 px-3 py-1.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-light cursor-pointer hover:border-nc-border-gray-dark transition-colors w-full max-w-[400px]"
+          data-testid="nc-ws-home-search"
+          @click="openSearch"
+        >
+          <GeneralIcon icon="search" class="h-4 w-4 text-nc-content-gray-muted flex-none" />
+          <span class="text-[13px] text-nc-content-gray-muted flex-1">{{ $t('activity.searchWorkspaceBases') }}...</span>
+          <div class="flex items-center gap-0.5">
+            <kbd class="nc-ws-home-kbd">{{ renderCmdOrCtrlKey() }}</kbd>
+            <kbd class="nc-ws-home-kbd">K</kbd>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right spacer to balance centering -->
+      <div class="flex-none w-0" />
     </div>
 
     <!-- Workspace tabs -->

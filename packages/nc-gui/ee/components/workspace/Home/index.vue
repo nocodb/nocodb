@@ -14,8 +14,6 @@ const basesStore = useBases()
 
 const { basesList } = storeToRefs(basesStore)
 
-const viewMode = useStorage<'grid' | 'list'>('nc-ws-home-view-mode', 'grid')
-
 const filterMode = ref<'all' | 'starred'>('all')
 
 // localStorage-based "last opened" tracking
@@ -184,9 +182,6 @@ const chatSuggestions = [
           <span>{{ tab.label }}</span>
         </div>
       </div>
-      <div class="flex-none pr-2">
-        <span class="text-sm text-nc-content-gray-muted capitalize">{{ activeWorkspace?.title }}</span>
-      </div>
     </div>
 
     <!-- Scrollable content -->
@@ -276,28 +271,6 @@ const chatSuggestions = [
                 </template>
               </NcDropdown>
 
-              <!-- Grid/List toggle -->
-              <div class="flex items-center border-1 border-nc-border-gray-medium rounded-lg overflow-hidden">
-                <NcButton
-                  type="text"
-                  size="xxsmall"
-                  class="!rounded-none !px-1.5"
-                  :class="{ '!bg-nc-bg-gray-medium': viewMode === 'grid' }"
-                  @click="viewMode = 'grid'"
-                >
-                  <GeneralIcon icon="grid" class="h-4 w-4" />
-                </NcButton>
-                <NcButton
-                  type="text"
-                  size="xxsmall"
-                  class="!rounded-none !px-1.5"
-                  :class="{ '!bg-nc-bg-gray-medium': viewMode === 'list' }"
-                  @click="viewMode = 'list'"
-                >
-                  <GeneralIcon icon="list" class="h-4 w-4" />
-                </NcButton>
-              </div>
-
               <!-- + New Base button -->
               <WorkspaceCreateProjectBtn type="primary" size="small" :workspace-id="activeWorkspaceId" :centered="false">
                 <div class="flex items-center gap-1.5">
@@ -320,11 +293,7 @@ const chatSuggestions = [
                 {{ group.label }}
               </div>
 
-              <!-- Grid view -->
-              <div
-                v-if="viewMode === 'grid'"
-                class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"
-              >
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 <div
                   v-for="base in group.bases"
                   :key="base.id"
@@ -354,35 +323,6 @@ const chatSuggestions = [
                 </div>
               </div>
 
-              <!-- List view -->
-              <div v-else class="flex flex-col gap-0.5">
-                <div
-                  v-for="base in group.bases"
-                  :key="base.id"
-                  class="nc-base-list-row group flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-nc-bg-gray-light cursor-pointer transition-colors"
-                  :data-testid="`nc-base-list-${base.id}`"
-                  @click="openBase(base)"
-                >
-                  <GeneralProjectIcon :color="base.meta?.iconColor" class="flex-none" />
-                  <div class="flex-1 min-w-0">
-                    <span class="text-sm font-medium text-nc-content-gray truncate">
-                      {{ base.title }}
-                    </span>
-                  </div>
-                  <span class="text-xs text-nc-content-gray-muted flex-none">
-                    {{ getBaseOpenedTimeAgo(base) }}
-                  </span>
-                  <GeneralIcon
-                    :icon="base.starred ? 'star' : 'ncStar'"
-                    class="flex-none h-4 w-4 transition-opacity"
-                    :class="{
-                      'text-yellow-500': base.starred,
-                      'text-nc-content-gray-muted opacity-0 group-hover:opacity-100': !base.starred,
-                    }"
-                    @click="onToggleStar(base, $event)"
-                  />
-                </div>
-              </div>
             </div>
           </template>
         </div>

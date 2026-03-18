@@ -60,7 +60,7 @@ const accountUrl = computed(() => '/account/profile')
     <!-- Home nav item -->
     <div class="px-2 mb-1">
       <div
-        class="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-md cursor-pointer transition-colors"
+        class="flex items-center gap-2 pl-2 pr-3 h-7 rounded-md cursor-pointer transition-colors"
         :class="{
           'bg-nc-bg-gray-medium text-nc-content-gray': isHomeActive,
           'text-nc-content-gray-subtle hover:bg-nc-bg-gray-light': !isHomeActive,
@@ -88,7 +88,7 @@ const accountUrl = computed(() => '/account/profile')
         <div
           v-for="ws in workspacesList"
           :key="ws.id"
-          class="group flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-colors mb-0.5"
+          class="group flex items-center gap-2 px-2 h-7 rounded-md cursor-pointer transition-colors mb-0.5"
           :class="{
             'bg-nc-bg-gray-medium': activeWorkspaceId === ws.id && !isHomeActive,
             'hover:bg-nc-bg-gray-light': activeWorkspaceId !== ws.id || isHomeActive,
@@ -142,13 +142,13 @@ const accountUrl = computed(() => '/account/profile')
     <!-- Templates & Import -->
     <div class="flex-none px-2 pb-1">
       <div
-        class="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-md cursor-pointer text-nc-content-gray-subtle hover:bg-nc-bg-gray-light transition-colors"
+        class="flex items-center gap-2 pl-2 pr-3 h-7 rounded-md cursor-pointer text-nc-content-gray-subtle hover:bg-nc-bg-gray-light transition-colors"
       >
         <GeneralIcon icon="ncLayout" class="h-4 w-4 flex-none" />
         <span class="text-[13px]">{{ $t('general.templates') }}</span>
       </div>
       <div
-        class="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-md cursor-pointer text-nc-content-gray-subtle hover:bg-nc-bg-gray-light transition-colors"
+        class="flex items-center gap-2 pl-2 pr-3 h-7 rounded-md cursor-pointer text-nc-content-gray-subtle hover:bg-nc-bg-gray-light transition-colors"
       >
         <GeneralIcon icon="ncDownload" class="h-4 w-4 flex-none" />
         <span class="text-[13px]">{{ $t('general.import') }}</span>

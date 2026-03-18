@@ -14,6 +14,7 @@ import {
   UITypesName,
   isLinksOrLTAR,
   isSelfReferencingTableColumn,
+  isCreatedOrLastModifiedTimeCol,
   isSystemColumn,
   isVirtualCol,
   readonlyMetaAllowedTypes,

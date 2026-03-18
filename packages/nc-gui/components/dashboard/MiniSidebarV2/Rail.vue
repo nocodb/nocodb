@@ -19,7 +19,7 @@ const { $e: _$e } = useNuxtApp()
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspaceId } = storeToRefs(workspaceStore)
+const { activeWorkspaceId, activeWorkspace } = storeToRefs(workspaceStore)
 
 const basesStore = useBases()
 
@@ -202,22 +202,30 @@ const mainItems = computed<NavItem[]>(() => [
 <template>
   <nav class="nc-rail" data-testid="nc-mini-sidebar-v2-rail">
     <div class="flex-none h-[var(--topbar-height)] relative flex items-center">
-      <!-- Logo -->
-      <div class="nc-rail-logo" title="Home" data-testid="nc-mini-sidebar-v2-logo" @click="isBaseListModalOpen = true">
-        <GeneralProjectIcon
-          class="!h-7 !w-7"
-          :color="parseProp(resolvedProject?.meta).iconColor"
-          :type="resolvedProject?.type"
-          :managed-app="
-            resolvedProject
-              ? {
-                  managed_app_master: resolvedProject?.managed_app_master,
-                  managed_app_id: resolvedProject?.managed_app_id,
-                }
-              : undefined
-          "
-        />
-      </div>
+      <!-- Logo — hover shows back arrow, click navigates to workspace -->
+      <NcTooltip placement="right" :arrow="false">
+        <template #title>{{ $t('labels.backToWorkspace') }}: {{ activeWorkspace?.title }}</template>
+        <div
+          class="nc-rail-logo group"
+          data-testid="nc-mini-sidebar-v2-logo"
+          @click="navigateTo(`/${activeWorkspaceId}`)"
+        >
+          <GeneralProjectIcon
+            class="!h-7 !w-7 group-hover:hidden"
+            :color="parseProp(resolvedProject?.meta).iconColor"
+            :type="resolvedProject?.type"
+            :managed-app="
+              resolvedProject
+                ? {
+                    managed_app_master: resolvedProject?.managed_app_master,
+                    managed_app_id: resolvedProject?.managed_app_id,
+                  }
+                : undefined
+            "
+          />
+          <GeneralIcon icon="ncArrowLeft" class="!h-5 !w-5 hidden group-hover:block text-nc-content-gray" />
+        </div>
+      </NcTooltip>
       <NcDivider class="!w-8 !min-w-8 !my-0 !border-nc-border-gray-medium absolute bottom-0" />
     </div>
 

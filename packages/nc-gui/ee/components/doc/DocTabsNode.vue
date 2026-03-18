@@ -316,8 +316,15 @@ function onRenameKeydown(event: KeyboardEvent) {
   background-color: var(--nc-bg-brand);
   outline: none;
 
-  ::selection {
-    background: transparent;
+  // Suppress all text selection highlights inside the block
+  *::selection {
+    background: transparent !important;
+  }
+
+  // Also suppress any ProseMirror selection-related styling
+  .ProseMirror-gapcursor,
+  .ProseMirror-selectednode {
+    display: none;
   }
 }
 </style>

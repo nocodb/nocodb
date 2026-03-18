@@ -249,8 +249,9 @@ const chatSuggestions = [
 
           <!-- Chat input mock -->
           <div class="max-w-[600px] mx-auto mb-4">
+            <div class="nc-chat-input-glow rounded-xl p-[2px]">
             <div
-              class="nc-chat-input-mock relative rounded-xl border-2 border-primary/50 px-4 pt-3 pb-10 text-left"
+              class="nc-chat-input-mock relative rounded-[10px] px-4 pt-3 pb-10 text-left bg-nc-bg-default dark:bg-[#1C1C1E]"
             >
               <span class="text-[13px] text-nc-content-gray-muted">Create a workflow to</span>
               <div class="absolute bottom-3 left-4 flex items-center gap-1.5 text-nc-content-gray-muted">
@@ -262,6 +263,7 @@ const chatSuggestions = [
                   <GeneralIcon icon="ncArrowUp" class="h-4 w-4 text-white" />
                 </div>
               </div>
+            </div>
             </div>
           </div>
 
@@ -389,8 +391,13 @@ const chatSuggestions = [
   }
 }
 
+.nc-chat-input-glow {
+  background: linear-gradient(135deg, #3366FF 0%, #1348D4 40%, #3B82F6 70%, #2563EB 100%);
+  box-shadow: 0 0 20px rgba(51, 102, 255, 0.25), 0 0 40px rgba(51, 102, 255, 0.1);
+}
+
 .nc-chat-input-mock {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.06) 0%, rgba(99, 102, 241, 0.08) 50%, rgba(139, 92, 246, 0.06) 100%);
+  background: linear-gradient(135deg, rgba(51, 102, 255, 0.04) 0%, rgba(37, 99, 235, 0.06) 50%, rgba(59, 130, 246, 0.04) 100%);
 }
 
 .nc-ws-home-kbd {

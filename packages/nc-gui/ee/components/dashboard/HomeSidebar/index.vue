@@ -46,6 +46,10 @@ const logout = async () => {
 
 const accountUrl = computed(() => '/account/profile')
 
+const { navigateToFeed } = workspaceStore
+
+const { isNewFeedAvailable } = useProductFeed()
+
 const { toggleMode } = useMiniSidebarMode()
 
 const { toggleTheme, isThemeEnabled, selectedTheme } = useTheme()
@@ -337,8 +341,16 @@ const openKeyboardShortcutDialog = () => {
 
         <!-- Notification bell -->
         <NcTooltip placement="top" :arrow="false">
-          <template #title>{{ $t('general.notification') }}</template>
-          <NcButton type="text" size="xxsmall" class="!rounded-md" @click="navigateTo(`/${activeWorkspaceId}/feed`)">
+          <template #title>{{ $t('labels.whatsNew') }}</template>
+          <NcButton
+            v-e="['c:nocodb:feed']"
+            type="text"
+            size="xxsmall"
+            class="!rounded-md relative"
+            data-testid="nc-home-sidebar-feed"
+            @click="navigateToFeed()"
+          >
+            <div v-if="isNewFeedAvailable" class="absolute top-0 right-0 w-2.5 h-2.5 pulsing-dot bg-nc-fill-red-medium border-2 border-white rounded-full" />
             <GeneralIcon icon="ncBell" class="h-4 w-4" />
           </NcButton>
         </NcTooltip>
@@ -360,6 +372,16 @@ const openKeyboardShortcutDialog = () => {
 
 .menu-btn {
   line-height: 1.5;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.pulsing-dot {
+  animation: pulse 1.5s infinite ease-in-out;
 }
 
 .nc-home-user-kbd {

@@ -363,7 +363,7 @@ onMounted(loadAllDocs)
         <!-- Context Actions Column -->
         <template v-if="column.key === 'context_actions'">
           <div v-if="record.doc?.id && record.doc?.has_permissions" class="w-full flex justify-end gap-2">
-            <NcDropdown>
+            <NcDropdown placement="bottomRight">
               <NcButton size="small" type="secondary" @click.stop>
                 <div class="flex items-center gap-2">
                   <GeneralIcon icon="threeDotVertical" class="flex-none h-4 w-4" />

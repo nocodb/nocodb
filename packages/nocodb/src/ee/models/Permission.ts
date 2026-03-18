@@ -668,8 +668,10 @@ export default class Permission {
     }
 
     // Walk up parent chain — lazy-import Document to break circular dependency
+    // Use getMeta (no content fetch) to avoid hitting the satellite DB,
+    // which would deadlock when called inside a meta-DB transaction on SQLite.
     const Document = await this.getDocumentModel();
-    const doc = await Document.get(context, docId, ncMeta);
+    const doc = await Document.getMeta(context, docId, ncMeta);
 
     if (doc?.parent_id) {
       return this.getEffectiveDocPermission(
@@ -712,7 +714,7 @@ export default class Permission {
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
     const Document = await this.getDocumentModel();
-    const doc = await Document.get(context, docId, ncMeta);
+    const doc = await Document.getMeta(context, docId, ncMeta);
 
     if (!doc?.parent_id) {
       // Root document — no parent to restrict against

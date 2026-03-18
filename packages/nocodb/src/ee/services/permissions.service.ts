@@ -171,7 +171,7 @@ export class PermissionsService {
           created_by: req.user.id,
         });
       } else if (entity === PermissionEntity.DOCUMENT) {
-        const doc = await Document.get(context, entity_id, ncMeta);
+        const doc = await Document.getMeta(context, entity_id, ncMeta);
 
         if (!doc) {
           NcError.get(context).genericNotFound('Document', entity_id);

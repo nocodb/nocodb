@@ -29,7 +29,11 @@ export default class Document extends DocumentCE implements DocumentType {
     Object.assign(this, doc);
   }
 
-  public static async get(
+  /**
+   * Get document metadata only (no content). Safe to use inside transactions
+   * because it does not query the satellite docs-content DB.
+   */
+  public static async getMeta(
     context: NcContext,
     docId: string,
     ncMeta = Noco.ncMeta,
@@ -50,6 +54,20 @@ export default class Document extends DocumentCE implements DocumentType {
       }
     }
 
+    if (doc) {
+      doc = this.parseDocument(doc);
+    }
+
+    return doc && new Document(doc);
+  }
+
+  public static async get(
+    context: NcContext,
+    docId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const doc = await this.getMeta(context, docId, ncMeta);
+
     // Fetch content separately from content service
     if (doc) {
       const contentRow = await Noco.ncDocsContent.metaGet2(
@@ -60,10 +78,9 @@ export default class Document extends DocumentCE implements DocumentType {
         ['content'],
       );
       doc.content = contentRow?.content;
-      doc = this.parseDocument(doc);
     }
 
-    return doc && new Document(doc);
+    return doc;
   }
 
   /**

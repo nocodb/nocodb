@@ -13,6 +13,8 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const { $e } = useNuxtApp()
+
 // Local UI state — not persisted in the document model.
 const activeTab = ref(0)
 
@@ -55,6 +57,7 @@ function onTabClick(index: number) {
 function switchTab(index: number) {
   if (index === activeTab.value) return
 
+  $e('c:doc:tab:switch')
   activeTab.value = index
 
   nextTick(() => {
@@ -88,6 +91,7 @@ function onMenuRename() {
 }
 
 function onMenuDelete() {
+  $e('c:doc:tab:delete')
   isMenuOpen.value = false
 
   const index = menuTabIndex.value
@@ -155,6 +159,8 @@ function commitRename() {
   const { tr } = props.editor.state
   tr.setNodeMarkup(tabPos, undefined, { ...tabNode.attrs, title })
   props.editor.view.dispatch(tr)
+
+  $e('c:doc:tab:rename')
 }
 
 function cancelRename() {
@@ -220,6 +226,7 @@ function onTabMousedown(event: MouseEvent, index: number) {
     if (!wasDragging || sourceIdx === null) return
     if (targetIdx === null || sourceIdx === targetIdx) return
     reorderTab(sourceIdx, targetIdx)
+    $e('c:doc:tab:reorder')
   }
 
   const cleanup = () => {
@@ -280,6 +287,8 @@ function addTab() {
   const { tr } = props.editor.state
   tr.insert(insertPos, newTab)
   props.editor.view.dispatch(tr)
+
+  $e('c:doc:tab:add')
 
   // Switch to the new tab
   nextTick(() => {

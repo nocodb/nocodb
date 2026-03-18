@@ -2,7 +2,7 @@
 const router = useRouter()
 const route = router.currentRoute
 
-const { user } = useGlobal()
+const { user, signOut } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
@@ -23,6 +23,28 @@ const navigateToWorkspace = (wsId: string) => {
 }
 
 const name = computed(() => user.value?.display_name?.trim())
+
+// User menu
+const isUserMenuOpen = ref(false)
+
+const isLoggingOut = ref(false)
+
+const logout = async () => {
+  isLoggingOut.value = true
+  try {
+    const isSsoUser = !!(user?.value as any)?.sso_client_id
+    await signOut({
+      redirectToSignin: true,
+      signinUrl: isSsoUser ? '/sso' : '/signin',
+    })
+  } catch (e) {
+    console.error(e)
+  } finally {
+    isLoggingOut.value = false
+  }
+}
+
+const accountUrl = computed(() => '/account/profile')
 </script>
 
 <template>
@@ -83,25 +105,65 @@ const name = computed(() => user.value?.display_name?.trim())
       </div>
     </div>
 
-    <!-- Bottom section -->
+    <!-- Bottom section: User info with dropdown + notification bell -->
     <div class="flex-none border-t-1 border-nc-border-gray-light p-2">
-      <!-- User info -->
-      <div class="flex items-center gap-2 px-2 py-1.5">
-        <GeneralUserIcon :user="user" size="medium" class="flex-none" />
-        <div class="flex-1 min-w-0">
-          <NcTooltip show-on-truncate-only class="truncate text-sm text-nc-content-gray block">
-            <template #title>{{ name || user?.email }}</template>
-            {{ name || user?.email }}
-          </NcTooltip>
-          <NcTooltip
-            v-if="name"
-            show-on-truncate-only
-            class="truncate text-xs text-nc-content-gray-muted block"
+      <div class="flex items-center gap-1">
+        <NcDropdown v-model:visible="isUserMenuOpen" placement="topLeft" overlay-class-name="!min-w-56">
+          <div
+            class="flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer flex-1 min-w-0 transition-colors"
+            :class="{
+              'bg-nc-bg-gray-medium': isUserMenuOpen,
+              'hover:bg-nc-bg-gray-light': !isUserMenuOpen,
+            }"
+            data-testid="nc-home-sidebar-userinfo"
           >
-            <template #title>{{ user?.email }}</template>
-            {{ user?.email }}
-          </NcTooltip>
-        </div>
+            <GeneralUserIcon :user="user" size="medium" class="flex-none" />
+            <div class="flex-1 min-w-0">
+              <NcTooltip show-on-truncate-only class="truncate text-sm text-nc-content-gray block">
+                <template #title>{{ name || user?.email }}</template>
+                {{ name || user?.email }}
+              </NcTooltip>
+              <NcTooltip
+                v-if="name"
+                show-on-truncate-only
+                class="truncate text-xs text-nc-content-gray-muted block"
+              >
+                <template #title>{{ user?.email }}</template>
+                {{ user?.email }}
+              </NcTooltip>
+            </div>
+          </div>
+          <template #overlay>
+            <NcMenu variant="medium">
+              <!-- Account Settings -->
+              <nuxt-link v-e="['c:user:settings']" class="!no-underline" :to="accountUrl">
+                <NcMenuItem>
+                  <GeneralIcon icon="ncSettings" class="menu-icon" />
+                  <span>{{ $t('title.accountSettings') }}</span>
+                </NcMenuItem>
+              </nuxt-link>
+
+              <NcDivider />
+
+              <!-- Logout -->
+              <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
+                <div v-e="['c:user:logout']" class="flex gap-2 items-center">
+                  <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
+                  <GeneralIcon v-else icon="signout" class="menu-icon" />
+                  <span>{{ $t('general.logout') }}</span>
+                </div>
+              </NcMenuItem>
+            </NcMenu>
+          </template>
+        </NcDropdown>
+
+        <!-- Notification bell -->
+        <NcTooltip placement="top" :arrow="false">
+          <template #title>{{ $t('general.notification') }}</template>
+          <NcButton type="text" size="xxsmall" class="!rounded-md" @click="navigateTo(`/${activeWorkspaceId}/feed`)">
+            <GeneralIcon icon="ncBell" class="h-4 w-4" />
+          </NcButton>
+        </NcTooltip>
       </div>
     </div>
 
@@ -113,5 +175,8 @@ const name = computed(() => user.value?.display_name?.trim())
 <style lang="scss" scoped>
 .nc-home-sidebar {
   width: 100%;
+}
+.menu-icon {
+  @apply w-4 h-4;
 }
 </style>

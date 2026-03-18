@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { useStorage } from '@vueuse/core'
 
+const router = useRouter()
+const route = router.currentRoute
+
 const { t } = useI18n()
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspace } = storeToRefs(workspaceStore)
+const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const basesStore = useBases()
 
@@ -92,7 +95,7 @@ const openBase = (base: any) => {
   })
 }
 
-const onToggleStar = async (base: NcProject, e: Event) => {
+const onToggleStar = async (base: any, e: Event) => {
   e.stopPropagation()
   await basesStore.toggleStarred(base.id!)
 }
@@ -107,28 +110,72 @@ const getBaseOpenedTimeAgo = (base: any): string => {
   }
   return ''
 }
+
+// Workspace tabs
+const wsTabItems = computed(() => {
+  const wsId = activeWorkspaceId.value
+  return [
+    { key: 'bases', label: t('objects.projects'), icon: 'ncDatabase', route: `/${wsId}` },
+    { key: 'members', label: t('labels.members'), icon: 'users', route: `/${wsId}/members` },
+    { key: 'teams', label: t('general.teams'), icon: 'ncBuilding', route: `/${wsId}/teams` },
+    { key: 'integrations', label: t('general.integrations'), icon: 'integration', route: `/${wsId}/integrations` },
+    { key: 'audits', label: t('title.audits'), icon: 'audit', route: `/${wsId}/audits` },
+    { key: 'general', label: t('general.general'), icon: 'ncSettings', route: `/${wsId}/ws-settings` },
+  ]
+})
+
+const activeTab = computed(() => {
+  const routeName = route.value.name as string
+  if (routeName === 'index-typeOrId' || routeName === 'index-typeOrId-index') return 'bases'
+  if (routeName === 'index-typeOrId-members') return 'members'
+  if (routeName === 'index-typeOrId-teams') return 'teams'
+  if (routeName === 'index-typeOrId-integrations') return 'integrations'
+  if (routeName === 'index-typeOrId-audits') return 'audits'
+  if (routeName === 'index-typeOrId-ws-settings') return 'general'
+  if (routeName === 'index-typeOrId-billing') return 'billing'
+  if (routeName === 'index-typeOrId-sso') return 'sso'
+  return 'bases'
+})
+
+const onTabClick = (tab: any) => {
+  navigateTo(tab.route)
+}
 </script>
 
 <template>
-  <div class="h-full flex flex-col overflow-auto nc-workspace-home bg-nc-bg-default">
-    <!-- Top bar with search -->
-    <div class="flex items-center justify-between px-6 py-3 h-[var(--topbar-height)] border-b-1 border-nc-border-gray-medium flex-none">
-      <div class="flex items-center gap-2">
-        <GeneralOpenLeftSidebarBtn />
-        <span class="text-sm font-semibold text-nc-content-gray capitalize truncate">
-          {{ activeWorkspace?.title }}
-        </span>
+  <div class="h-full flex flex-col nc-workspace-home bg-nc-bg-default">
+    <!-- Workspace tabs -->
+    <div class="flex items-center border-b-1 border-nc-border-gray-medium flex-none px-1">
+      <div class="flex items-center gap-0.5 flex-1 overflow-x-auto">
+        <div
+          v-for="tab in wsTabItems"
+          :key="tab.key"
+          class="flex items-center gap-1.5 px-3 py-2.5 cursor-pointer text-sm transition-colors whitespace-nowrap border-b-2"
+          :class="{
+            'border-primary text-nc-content-brand font-semibold': activeTab === tab.key,
+            'border-transparent text-nc-content-gray-subtle hover:text-nc-content-gray': activeTab !== tab.key,
+          }"
+          @click="onTabClick(tab)"
+        >
+          <GeneralIcon :icon="tab.icon" class="h-4 w-4 flex-none" />
+          <span>{{ tab.label }}</span>
+        </div>
+      </div>
+      <div class="flex-none pr-3">
+        <span class="text-sm text-nc-content-gray-muted capitalize">{{ activeWorkspace?.title }}</span>
       </div>
     </div>
 
     <!-- Content -->
     <div class="flex-1 overflow-auto nc-scrollbar-thin">
       <div class="max-w-[1200px] mx-auto w-full px-8 py-6">
-        <!-- "Your bases" header -->
+        <!-- "Bases in Workspace" header -->
         <div class="flex items-center justify-between mb-5">
           <div class="flex items-center gap-3">
             <h2 class="text-lg font-semibold text-nc-content-gray">
-              {{ t('labels.yourBases') }}
+              {{ t('labels.basesIn') }}
+              <span class="text-primary capitalize">{{ activeWorkspace?.title }}</span>
+              <span class="text-nc-content-gray-muted">({{ basesList.length }})</span>
             </h2>
 
             <!-- Filter dropdown -->
@@ -160,18 +207,6 @@ const getBaseOpenedTimeAgo = (base: any): string => {
           </div>
 
           <div class="flex items-center gap-2">
-            <!-- Search -->
-            <a-input
-              v-model:value="searchQuery"
-              :placeholder="$t('placeholder.searchProjectTree')"
-              class="!rounded-lg !h-8 !w-56 !text-xs"
-              allow-clear
-            >
-              <template #prefix>
-                <GeneralIcon icon="search" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
-              </template>
-            </a-input>
-
             <!-- Grid/List toggle -->
             <div class="flex items-center border-1 border-nc-border-gray-medium rounded-lg overflow-hidden">
               <NcButton
@@ -193,6 +228,14 @@ const getBaseOpenedTimeAgo = (base: any): string => {
                 <GeneralIcon icon="list" class="h-4 w-4" />
               </NcButton>
             </div>
+
+            <!-- + New Base button -->
+            <WorkspaceCreateProjectBtn type="primary" size="small" :workspace-id="activeWorkspaceId" :centered="false">
+              <div class="flex items-center gap-1.5">
+                <GeneralIcon icon="plus" class="h-3.5 w-3.5" />
+                <span>{{ $t('title.newProj') }}</span>
+              </div>
+            </WorkspaceCreateProjectBtn>
           </div>
         </div>
 

@@ -217,7 +217,7 @@ const chatSuggestions = [
 </script>
 
 <template>
-  <div class="h-full flex flex-col nc-workspace-home bg-nc-bg-default dark:bg-[#1C1C1E]">
+  <div class="h-full flex flex-col nc-workspace-home nc-ws-dark-theme">
     <!-- Top bar: workspace name + plan | search (absolutely centered) -->
     <div class="relative flex items-center px-5 py-2.5 flex-none">
       <!-- Left: workspace name + plan -->
@@ -397,7 +397,7 @@ const chatSuggestions = [
                 <div
                   v-for="base in group.bases"
                   :key="base.id"
-                  class="nc-base-card group relative flex items-center gap-4 px-5 h-[84px] rounded-2xl border-1 border-nc-border-gray-medium bg-nc-bg-default hover:shadow-sm cursor-pointer transition-all"
+                  class="nc-base-card group relative flex items-center gap-4 px-5 h-[84px] rounded-2xl cursor-pointer transition-all"
                   :data-testid="`nc-base-card-${base.id}`"
                   @click="openBase(base)"
                 >
@@ -437,9 +437,23 @@ const chatSuggestions = [
 </template>
 
 <style lang="scss" scoped>
-.nc-base-card {
-  &:hover {
-    @apply border-nc-border-gray-dark;
+// Force dark theme on workspace home regardless of system theme
+.nc-ws-dark-theme {
+  background: #1C1C1E;
+  color: #E5E5E5;
+
+  h1, h2, span, p, div {
+    --nc-content-gray: #E5E5E5;
+  }
+
+  .nc-base-card {
+    background: #2C2C2E;
+    border: 1px solid #3A3A3C;
+
+    &:hover {
+      border-color: #4A4A4C;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
   }
 }
 

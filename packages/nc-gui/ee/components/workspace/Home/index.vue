@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { useStorage } from '@vueuse/core'
 
+interface Props {
+  wsTab?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  wsTab: '',
+})
+
 const router = useRouter()
 const route = router.currentRoute
 
@@ -9,6 +17,10 @@ const { t } = useI18n()
 const workspaceStore = useWorkspace()
 
 const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspaceStore)
+
+const isBasesTab = computed(() => {
+  return !props.wsTab || activeTab.value === 'bases'
+})
 
 const basesStore = useBases()
 
@@ -109,6 +121,7 @@ const wsTabItems = computed(() => {
     { key: 'teams', label: t('general.teams'), icon: 'ncBuilding', route: `/${wsId}/teams` },
     { key: 'integrations', label: t('general.integrations'), icon: 'integration', route: `/${wsId}/integrations` },
     { key: 'audits', label: t('title.audits'), icon: 'audit', route: `/${wsId}/audits` },
+    { key: 'billing', label: t('general.billing'), icon: 'ncDollarSign', route: `/${wsId}/billing` },
     { key: 'general', label: t('general.general'), icon: 'ncSettings', route: `/${wsId}/ws-settings` },
   ]
 })
@@ -186,7 +199,13 @@ const chatSuggestions = [
 
     <!-- Scrollable content -->
     <div class="flex-1 overflow-auto nc-scrollbar-thin">
-      <div class="max-w-[1200px] mx-auto w-full">
+      <!-- Settings tab content (Members, Teams, etc.) -->
+      <div v-if="!isBasesTab && wsTab" class="h-full">
+        <WorkspaceViewInline :tab="wsTab" />
+      </div>
+
+      <!-- Bases tab content -->
+      <div v-else class="max-w-[1200px] mx-auto w-full">
         <!-- AI Chat mock section -->
         <div class="px-8 pt-10 pb-6 text-center">
           <h1 class="text-2xl font-bold text-nc-content-gray mb-1.5">
@@ -199,7 +218,7 @@ const chatSuggestions = [
           <!-- Chat input mock -->
           <div class="max-w-[600px] mx-auto mb-4">
             <div
-              class="relative rounded-xl border-2 border-green-500/50 bg-nc-bg-default px-4 pt-3 pb-10 text-left"
+              class="nc-chat-input-mock relative rounded-xl border-2 border-primary/50 px-4 pt-3 pb-10 text-left"
             >
               <span class="text-sm text-nc-content-gray-muted">Create a workflow to</span>
               <div class="absolute bottom-3 left-4 flex items-center gap-1.5 text-nc-content-gray-muted">
@@ -207,7 +226,7 @@ const chatSuggestions = [
                 <span class="text-xs">AI-powered</span>
               </div>
               <div class="absolute bottom-3 right-4">
-                <div class="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center">
+                <div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
                   <GeneralIcon icon="ncArrowUp" class="h-4 w-4 text-white" />
                 </div>
               </div>
@@ -327,6 +346,7 @@ const chatSuggestions = [
           </template>
         </div>
       </div>
+      </div>
     </div>
   </div>
 </template>
@@ -336,6 +356,10 @@ const chatSuggestions = [
   &:hover {
     @apply border-nc-border-gray-dark;
   }
+}
+
+.nc-chat-input-mock {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.06) 0%, rgba(99, 102, 241, 0.08) 50%, rgba(139, 92, 246, 0.06) 100%);
 }
 
 .nc-ws-home-kbd {

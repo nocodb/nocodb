@@ -11,6 +11,6 @@ const { activeWorkspace } = storeToRefs(workspaceStore)
 
 <template>
   <div v-if="activeWorkspace?.id" class="h-full">
-    <WorkspaceViewInline :tab="'ws-billing'" />
+    <WorkspaceHome ws-tab="ws-billing" />
   </div>
 </template>

@@ -124,6 +124,18 @@ const columns = computed(() => {
     },
   ]
 
+  if (isCreatorOrAbove.value) {
+    cols.push({
+      key: 'context_actions',
+      title: '',
+      name: '',
+      justify: 'justify-end',
+      padding: '0px 12px',
+      minWidth: 60,
+      width: 60,
+    })
+  }
+
   return cols
 })
 
@@ -208,6 +220,44 @@ const resetAllDocPermissions = () => {
   })
 }
 
+const resetDocPermissions = (docId: string, docTitle: string) => {
+  const permIds = (base.value?.permissions ?? [])
+    .filter((p) => p.entity === PermissionEntity.DOCUMENT && p.entity_id === docId)
+    .map((p) => p.id)
+    .filter(Boolean) as string[]
+
+  if (!permIds.length) return
+
+  showWarningModal({
+    title: t('title.resetDocPermissions', { title: docTitle }),
+    content: t('msg.info.resetDocPermissionsConfirm'),
+    okCallback: async () => {
+      if (!base.value?.fk_workspace_id || !base.value?.id) return
+
+      try {
+        await $api.internal.postOperation(
+          base.value.fk_workspace_id,
+          base.value.id,
+          { operation: 'bulkDropPermissions' },
+          { permissionIds: permIds },
+        )
+
+        await basesStore.loadProject(base.value.id, true)
+
+        // Clear has_permissions on this doc if no more permissions remain
+        const doc = activeDocuments.value.find((d) => d.id === docId)
+        if (doc) {
+          ;(doc as DocumentType).has_permissions = false
+        }
+
+        $e('a:doc:permissions:reset', { docId })
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
+    },
+  })
+}
+
 onMounted(loadAllDocs)
 </script>
 
@@ -254,7 +304,7 @@ onMounted(loadAllDocs)
         <template v-if="column.key === 'name'">
           <div
             class="w-full flex items-center gap-2 max-w-full text-nc-content-gray-subtle"
-            :style="{ paddingLeft: `${record.depth * 20}px` }"
+            :style="{ paddingLeft: `${record.depth * 8}px` }"
             data-testid="permissions-doc-name"
           >
             <GeneralIcon icon="ncFileText" class="flex-none h-4 w-4 !text-nc-content-gray-subtle" />
@@ -308,6 +358,27 @@ onMounted(loadAllDocs)
             :readonly="!isCreatorOrAbove"
             inline-style
           />
+        </template>
+
+        <!-- Context Actions Column -->
+        <template v-if="column.key === 'context_actions'">
+          <div v-if="record.doc?.id && record.doc?.has_permissions" class="w-full flex justify-end gap-2">
+            <NcDropdown>
+              <NcButton size="small" type="secondary" @click.stop>
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="threeDotVertical" class="flex-none h-4 w-4" />
+                </div>
+              </NcButton>
+              <template #overlay>
+                <NcMenu variant="small">
+                  <NcMenuItem @click="resetDocPermissions(record.doc.id, record.doc.title)">
+                    <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
+                    {{ $t('activity.resetPermissions') }}
+                  </NcMenuItem>
+                </NcMenu>
+              </template>
+            </NcDropdown>
+          </div>
         </template>
       </template>
     </NcTable>

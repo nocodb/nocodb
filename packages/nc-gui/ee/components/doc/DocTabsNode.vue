@@ -338,7 +338,7 @@ function addTab() {
           maxlength="50"
           @blur="commitRename"
           @keydown="onRenameKeydown"
-          @vue:mounted="({ el }: any) => el.focus()"
+          @vue:mounted="({ el }: { el: HTMLInputElement }) => el.focus()"
         />
 
         <!-- Tab button with dropdown for active tab -->

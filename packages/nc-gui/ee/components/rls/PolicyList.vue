@@ -127,9 +127,7 @@ const scopedPolicies = computed(() => policies.value.filter((p) => !p.is_default
 const getSubjectLabel = (policy: RlsPolicyType) => {
   if (!policy.subjects?.length) return t('objects.permissions.rlsPolicy.noSubjects')
 
-  const roles = policy.subjects
-    .filter((s) => s.type === 'role')
-    .map((s) => t(`objects.roleType.${s.id}`, s.id))
+  const roles = policy.subjects.filter((s) => s.type === 'role').map((s) => t(`objects.roleType.${s.id}`, s.id))
   const users = policy.subjects
     .filter((s) => s.type === 'user')
     .map((s) => {
@@ -212,7 +210,7 @@ const getSubjectLabel = (policy: RlsPolicyType) => {
     <!-- Policy list -->
     <div v-else class="flex-1 overflow-auto">
       <!-- Default Policy -->
-      <div v-if="defaultPolicy" class="px-4 py-3 border-b border-nc-border-gray-medium bg-nc-bg-gray-light">
+      <div v-if="defaultPolicy" class="px-4 py-3 border-b border-nc-border-gray-medium bg-nc-bg-gray-extralight">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
             <NcSwitch :checked="!!defaultPolicy.enabled" size="small" @update:checked="handleTogglePolicy(defaultPolicy)" />
@@ -228,11 +226,21 @@ const getSubjectLabel = (policy: RlsPolicyType) => {
             </div>
           </div>
           <div class="flex items-center gap-1">
-            <NcButton type="text" size="xs" @click="handleEditPolicy(defaultPolicy)">
-              <GeneralIcon icon="edit" class="w-4 h-4" />
+            <NcButton type="text" size="xs" class="!px-0" icon-only @click="handleEditPolicy(defaultPolicy)">
+              <template #icon>
+                <GeneralIcon icon="edit" class="w-4 h-4" />
+              </template>
             </NcButton>
-            <NcButton type="text" size="xs" class="!text-nc-content-red-dark" @click="handleDeletePolicy(defaultPolicy.id!)">
-              <GeneralIcon icon="delete" class="w-4 h-4" />
+            <NcButton
+              type="text"
+              size="xs"
+              class="!text-nc-content-red-dark !px-0"
+              icon-only
+              @click="handleDeletePolicy(defaultPolicy.id!)"
+            >
+              <template #icon>
+                <GeneralIcon icon="delete" class="w-4 h-4" />
+              </template>
             </NcButton>
           </div>
         </div>
@@ -241,7 +249,9 @@ const getSubjectLabel = (policy: RlsPolicyType) => {
 
       <!-- Scoped Policies -->
       <div class="px-4 py-2">
-        <div class="text-xs font-semibold text-nc-content-gray-subtle uppercase mb-2">{{ $t('objects.permissions.rlsPolicy.scopedPolicies') }}</div>
+        <div class="text-xs font-semibold text-nc-content-gray-subtle uppercase mb-2">
+          {{ $t('objects.permissions.rlsPolicy.scopedPolicies') }}
+        </div>
         <div v-if="!scopedPolicies.length" class="text-xs text-nc-content-gray-muted py-2">
           {{ $t('objects.permissions.rlsPolicy.noScopedPolicies') }}
         </div>
@@ -263,11 +273,21 @@ const getSubjectLabel = (policy: RlsPolicyType) => {
             <div v-if="policy.filters?.length" class="text-xs text-nc-content-gray-subtle mr-2">
               {{ $t('objects.permissions.rlsPolicy.filterCount', { count: policy.filters.length }, policy.filters.length) }}
             </div>
-            <NcButton type="text" size="xs" @click="handleEditPolicy(policy)">
-              <GeneralIcon icon="edit" class="w-4 h-4" />
+            <NcButton type="text" size="xs" class="!px-0" icon-only @click="handleEditPolicy(policy)">
+              <template #icon>
+                <GeneralIcon icon="edit" class="w-4 h-4" />
+              </template>
             </NcButton>
-            <NcButton type="text" size="xs" class="!text-nc-content-red-dark" @click="handleDeletePolicy(policy.id!)">
-              <GeneralIcon icon="delete" class="w-4 h-4" />
+            <NcButton
+              type="text"
+              size="xs"
+              class="!text-nc-content-red-dark !px-0"
+              icon-only
+              @click="handleDeletePolicy(policy.id!)"
+            >
+              <template #icon>
+                <GeneralIcon icon="delete" class="w-4 h-4" />
+              </template>
             </NcButton>
           </div>
         </div>

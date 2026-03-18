@@ -260,12 +260,14 @@ const showFilterSection = computed(() => {
     <!-- Header -->
     <div class="flex items-center justify-between px-4 py-3 border-b border-nc-border-gray-medium">
       <div class="flex items-center gap-2">
-        <NcButton type="text" size="xs" @click="emit('close')">
+        <NcButton type="text" size="xs" class="!px-0" @click="emit('close')">
           <GeneralIcon icon="arrowLeft" class="w-4 h-4" />
         </NcButton>
         <div class="text-subHeading2 text-nc-content-gray-emphasis">
           {{
-            policy?.is_default ? $t('objects.permissions.rlsPolicy.editDefaultPolicy') : $t('objects.permissions.rlsPolicy.editPolicy')
+            policy?.is_default
+              ? $t('objects.permissions.rlsPolicy.editDefaultPolicy')
+              : $t('objects.permissions.rlsPolicy.editPolicy')
           }}
         </div>
       </div>
@@ -278,8 +280,10 @@ const showFilterSection = computed(() => {
     <!-- Form -->
     <div class="flex-1 overflow-auto p-4 flex flex-col gap-5">
       <!-- Policy Name -->
-      <div class="flex flex-col gap-1">
-        <label class="text-xs font-semibold text-nc-content-gray-subtle">{{ $t('objects.permissions.rlsPolicy.policyName') }}</label>
+      <div class="flex flex-col gap-2">
+        <label class="text-bodyDefaultSm font-semibold text-nc-content-gray-subtle">{{
+          $t('objects.permissions.rlsPolicy.policyName')
+        }}</label>
         <a-input
           v-model:value="policyTitle"
           :placeholder="$t('objects.permissions.rlsPolicy.enterPolicyName')"
@@ -288,16 +292,17 @@ const showFilterSection = computed(() => {
       </div>
 
       <!-- Enabled -->
-      <div class="flex items-center gap-2">
-        <NcSwitch v-model:checked="policyEnabled" size="small" />
-        <span class="text-sm">{{
-          policyEnabled ? $t('objects.permissions.rlsPolicy.enabled') : $t('objects.permissions.rlsPolicy.disabled')
-        }}</span>
+      <div class="flex items-center">
+        <NcSwitch v-model:checked="policyEnabled" size="small">
+          <span class="text-sm select-none">{{
+            policyEnabled ? $t('objects.permissions.rlsPolicy.enabled') : $t('objects.permissions.rlsPolicy.disabled')
+          }}</span>
+        </NcSwitch>
       </div>
 
       <!-- Default Behavior (only for default policy) -->
       <div v-if="policy?.is_default" class="flex flex-col gap-2">
-        <label class="text-xs font-semibold text-nc-content-gray-subtle">{{
+        <label class="text-bodyDefaultSm font-semibold text-nc-content-gray-subtle">{{
           $t('objects.permissions.rlsPolicy.defaultBehavior')
         }}</label>
         <p class="text-xs text-nc-content-gray-muted">{{ $t('objects.permissions.rlsPolicy.defaultBehaviorDescription') }}</p>
@@ -313,8 +318,10 @@ const showFilterSection = computed(() => {
 
       <!-- Subjects (for scoped policies) -->
       <div v-if="!policy?.is_default" class="flex flex-col gap-2">
-        <label class="text-xs font-semibold text-nc-content-gray-subtle">{{ $t('objects.permissions.rlsPolicy.applyTo') }}</label>
-        <p class="text-xs text-nc-content-gray-muted">{{ $t('objects.permissions.rlsPolicy.applyToDescription') }}</p>
+        <label class="text-bodyDefaultSm font-semibold text-nc-content-gray-subtle">{{
+          $t('objects.permissions.rlsPolicy.applyTo')
+        }}</label>
+        <p class="text-xs text-nc-content-gray-muted mb-0">{{ $t('objects.permissions.rlsPolicy.applyToDescription') }}</p>
 
         <NcListDropdown v-model:isOpen="isSubjectDropdownOpen" default-slot-wrapper-class="w-full !min-h-8 !h-auto">
           <!-- Trigger: show selected subjects as colored chips -->
@@ -345,7 +352,9 @@ const showFilterSection = computed(() => {
                 </NcButton>
               </div>
             </template>
-            <span v-else class="text-nc-content-gray-muted text-sm">{{ $t('objects.permissions.rlsPolicy.selectSubjects') }}</span>
+            <span v-else class="text-nc-content-gray-muted text-sm">{{
+              $t('objects.permissions.rlsPolicy.selectSubjects')
+            }}</span>
           </div>
           <GeneralIcon
             icon="chevronDown"
@@ -413,7 +422,9 @@ const showFilterSection = computed(() => {
       <!-- Filter Conditions -->
       <div v-if="showFilterSection && policy?.id" class="flex flex-col gap-2">
         <div class="w-full flex items-center justify-between">
-          <label class="text-xs font-semibold text-nc-content-gray-subtle">{{ $t('objects.permissions.rlsPolicy.filterConditions') }}</label>
+          <label class="text-bodyDefaultSm font-semibold text-nc-content-gray-subtle">{{
+            $t('objects.permissions.rlsPolicy.filterConditions')
+          }}</label>
           <NcButton size="xs" type="secondary" @click.stop="filterRef?.addFilter()">
             <div class="flex items-center gap-1">
               <component :is="iconMap.plus" />
@@ -426,7 +437,7 @@ const showFilterSection = computed(() => {
           v-if="tableMeta"
           ref="filterRef"
           :hidden-add-new-filter="true"
-          class="w-full !py-0"
+          class="w-full !py-0 !pl-0"
           :auto-save="false"
           :show-loading="false"
           :rls-policy-id="policy.id"

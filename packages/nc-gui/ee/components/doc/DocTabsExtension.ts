@@ -5,7 +5,7 @@
  * Each tab holds arbitrary block content (paragraphs, headings, lists, etc.).
  *
  * Two ProseMirror node types:
- *   docTabs — top-level wrapper (exactly 3 children in phase 1)
+ *   docTabs — top-level wrapper (1–10 children, starts with 3)
  *   docTab  — individual tab pane (content: block+)
  *
  * Uses a Vue NodeView for the container (docTabs) to handle interactive
@@ -14,13 +14,6 @@
  * Active tab is local UI state (ref in NodeView), NOT a document attribute —
  * avoids undo/redo pollution and collaboration conflicts. Resets to Tab 1
  * on page reload (same behavior as Notion).
- *
- * Stored in ProseMirror doc as:
- *   { type: 'docTabs', content: [
- *     { type: 'docTab', attrs: { title: 'Tab 1' }, content: [...] },
- *     { type: 'docTab', attrs: { title: 'Tab 2' }, content: [...] },
- *     { type: 'docTab', attrs: { title: 'Tab 3' }, content: [...] },
- *   ]}
  */
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'

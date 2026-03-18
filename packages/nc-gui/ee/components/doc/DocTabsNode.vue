@@ -5,6 +5,8 @@ import { Node as ProseMirrorNode } from '@tiptap/pm/model'
 import { NodeSelection, TextSelection } from '@tiptap/pm/state'
 import { NodeViewContent, NodeViewWrapper } from '@tiptap/vue-3'
 
+const MAX_TABS = 10
+
 interface Props {
   node: PmNode
   editor: Editor
@@ -15,8 +17,20 @@ const props = defineProps<Props>()
 
 const { $e } = useNuxtApp()
 
+const isEditable = computed(() => props.editor.isEditable)
+
 // Local UI state — not persisted in the document model.
 const activeTab = ref(0)
+
+// Clamp activeTab when tab count changes (e.g. after delete or collab sync)
+watch(
+  () => props.node.childCount,
+  (count) => {
+    if (activeTab.value >= count) {
+      activeTab.value = Math.max(0, count - 1)
+    }
+  },
+)
 
 const tabs = computed(() => {
   const result: { title: string }[] = []
@@ -25,6 +39,18 @@ const tabs = computed(() => {
   })
   return result
 })
+
+/** Get the document position of the nth docTab child node. */
+function getTabPos(index: number): number | null {
+  const pos = props.getPos()
+  if (typeof pos !== 'number') return null
+
+  let offset = pos + 1 // skip docTabs opening
+  for (let i = 0; i < index; i++) {
+    offset += props.node.child(i).nodeSize
+  }
+  return offset
+}
 
 /** Select the entire docTabs node so Backspace/Delete removes it. */
 function selectBlock() {
@@ -40,16 +66,16 @@ function selectBlock() {
 /** Click on non-editable chrome (header empty space, padding) → select whole block. */
 function onChromeClick(event: MouseEvent) {
   if ((event.target as HTMLElement).closest('.nc-doc-tab-btn, .nc-doc-tab-rename-input, .nc-doc-tab-add-btn')) return
-  selectBlock()
+  if (isEditable.value) selectBlock()
 }
 
 function onTabClick(index: number) {
   if (index !== activeTab.value) {
-    // Inactive tab → activate it, no dropdown
     switchTab(index)
     return
   }
-  // Already active → show dropdown
+  // Already active → show dropdown (only in edit mode)
+  if (!isEditable.value) return
   menuTabIndex.value = index
   isMenuOpen.value = true
 }
@@ -60,15 +86,14 @@ function switchTab(index: number) {
   $e('c:doc:tab:switch')
   activeTab.value = index
 
-  nextTick(() => {
-    const pos = props.getPos()
-    if (typeof pos !== 'number') return
+  if (!isEditable.value) return
 
-    let offset = pos + 1
-    for (let i = 0; i < index; i++) {
-      offset += props.node.child(i).nodeSize
-    }
-    const targetPos = offset + 2
+  nextTick(() => {
+    const tabPos = getTabPos(index)
+    if (tabPos === null) return
+
+    // +1 to enter the docTab, +1 to enter its first child block
+    const targetPos = tabPos + 2
 
     const { state } = props.editor
     if (targetPos > 0 && targetPos < state.doc.content.size) {
@@ -99,21 +124,18 @@ function onMenuDelete() {
 
   // Last tab → delete entire tabs block
   if (tabCount <= 1) {
-    selectBlock()
-    nextTick(() => {
-      props.editor.commands.deleteSelection()
-    })
+    const pos = props.getPos()
+    if (typeof pos !== 'number') return
+
+    const { tr } = props.editor.state
+    tr.delete(pos, pos + props.node.nodeSize)
+    props.editor.view.dispatch(tr)
     return
   }
 
-  const pos = props.getPos()
-  if (typeof pos !== 'number') return
+  const tabPos = getTabPos(index)
+  if (tabPos === null) return
 
-  // Find position of the target docTab
-  let tabPos = pos + 1
-  for (let i = 0; i < index; i++) {
-    tabPos += props.node.child(i).nodeSize
-  }
   const tabEnd = tabPos + props.node.child(index).nodeSize
 
   const { tr } = props.editor.state
@@ -145,13 +167,8 @@ function commitRename() {
   const title = editingTitle.value.trim() || `Tab ${index + 1}`
   editingTabIndex.value = null
 
-  const pos = props.getPos()
-  if (typeof pos !== 'number') return
-
-  let tabPos = pos + 1
-  for (let i = 0; i < index; i++) {
-    tabPos += props.node.child(i).nodeSize
-  }
+  const tabPos = getTabPos(index)
+  if (tabPos === null) return
 
   const tabNode = props.node.child(index)
   if (tabNode.attrs.title === title) return
@@ -195,7 +212,7 @@ function getTabIndexAtX(clientX: number): number | null {
 }
 
 function onTabMousedown(event: MouseEvent, index: number) {
-  // Only left button, ignore if rename input is active
+  if (!isEditable.value) return
   if (event.button !== 0 || editingTabIndex.value !== null) return
 
   const startX = event.clientX
@@ -245,6 +262,16 @@ function reorderTab(sourceIndex: number, targetIndex: number) {
   const pos = props.getPos()
   if (typeof pos !== 'number') return
 
+  // Compute the new activeTab index before the transaction
+  let newActiveTab = activeTab.value
+  if (newActiveTab === sourceIndex) {
+    newActiveTab = targetIndex
+  } else if (sourceIndex < targetIndex) {
+    if (newActiveTab > sourceIndex && newActiveTab <= targetIndex) newActiveTab--
+  } else {
+    if (newActiveTab >= targetIndex && newActiveTab < sourceIndex) newActiveTab++
+  }
+
   const json = props.node.toJSON()
   const [moved] = json.content.splice(sourceIndex, 1)
   json.content.splice(targetIndex, 0, moved)
@@ -254,23 +281,16 @@ function reorderTab(sourceIndex: number, targetIndex: number) {
   tr.replaceWith(pos, pos + props.node.nodeSize, newNode)
   props.editor.view.dispatch(tr)
 
-  // Update activeTab to follow the moved tab
-  if (activeTab.value === sourceIndex) {
-    activeTab.value = targetIndex
-  } else if (sourceIndex < targetIndex) {
-    if (activeTab.value > sourceIndex && activeTab.value <= targetIndex) {
-      activeTab.value = activeTab.value - 1
-    }
-  } else {
-    if (activeTab.value >= targetIndex && activeTab.value < sourceIndex) {
-      activeTab.value = activeTab.value + 1
-    }
-  }
+  // Set activeTab after dispatch — NodeView may be recreated by replaceWith,
+  // but if it survives, this keeps it in sync
+  activeTab.value = newActiveTab
 }
 
 // --- Add tab ---
 
 function addTab() {
+  if (props.node.childCount >= MAX_TABS) return
+
   const pos = props.getPos()
   if (typeof pos !== 'number') return
 
@@ -308,10 +328,10 @@ function addTab() {
       data-testid="nc-doc-tabs-header"
       @click="onChromeClick"
     >
-      <template v-for="(tab, index) in tabs" :key="index">
+      <template v-for="(tab, index) in tabs" :key="tab.title + index">
         <!-- Rename input -->
         <input
-          v-if="editingTabIndex === index"
+          v-if="isEditable && editingTabIndex === index"
           v-model="editingTitle"
           class="nc-doc-tab-rename-input"
           :data-testid="`nc-doc-tab-rename-${index}`"
@@ -324,7 +344,7 @@ function addTab() {
         <!-- Tab button with dropdown for active tab -->
         <NcDropdown
           v-else
-          :visible="isMenuOpen && menuTabIndex === index"
+          :visible="isEditable && isMenuOpen && menuTabIndex === index"
           placement="bottomLeft"
           @update:visible="(v: boolean) => { if (!v) isMenuOpen = false }"
         >
@@ -371,8 +391,9 @@ function addTab() {
         </NcDropdown>
       </template>
 
-      <!-- Add tab button -->
+      <!-- Add tab button (edit mode only, up to MAX_TABS) -->
       <button
+        v-if="isEditable && tabs.length < MAX_TABS"
         class="nc-doc-tab-add-btn"
         data-testid="nc-doc-tab-add"
         @click.stop="addTab"

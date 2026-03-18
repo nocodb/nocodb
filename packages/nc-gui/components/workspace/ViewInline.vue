@@ -240,7 +240,7 @@ onBeforeUnmount(() => {
 
     <!-- Original breadcrumb mode -->
     <div
-      v-else-if="!props.workspaceId"
+      v-else-if="!props.workspaceId && !props.hideTopbar"
       class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-nc-border-gray-medium flex items-center gap-2"
     >
       <GeneralOpenLeftSidebarBtn v-if="isMobileMode && !isLeftSidebarOpen" />

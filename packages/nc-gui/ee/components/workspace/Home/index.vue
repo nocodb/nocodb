@@ -212,7 +212,7 @@ const chatSuggestions = [
     <!-- Search bar — fixed top, centered -->
     <div class="flex items-center justify-center px-6 py-2.5 flex-none">
       <div
-        class="flex items-center gap-2 px-3 py-1.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-light cursor-pointer hover:border-nc-border-gray-dark transition-colors w-full max-w-[500px]"
+        class="flex items-center gap-2 px-3 py-1.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-light cursor-pointer hover:border-nc-border-gray-dark transition-colors w-full max-w-[400px]"
         data-testid="nc-ws-home-search"
         @click="openSearch"
       >

@@ -30,6 +30,8 @@ export interface SlashCommandItem {
   inputPlaceholder?: string
   /** Keyboard shortcut keys — platform-agnostic tokens: 'Mod' = ⌘/Ctrl, 'Alt', 'Shift', plus literal keys */
   shortcut?: string[]
+  /** Return false to hide this item based on current editor state */
+  shouldShow?: (editor: Editor) => boolean
 }
 
 /**
@@ -284,6 +286,14 @@ export const slashCommandItems: SlashCommandItem[] = [
     description: 'Tabbed content panels',
     icon: icons.tabs,
     group: 'Blocks',
+    shouldShow: (editor) => {
+      const { $from } = editor.state.selection
+      for (let d = $from.depth; d > 0; d--) {
+        const name = $from.node(d).type.name
+        if (name === 'docTab' || name === 'docTabs') return false
+      }
+      return true
+    },
     command: (editor, range) => {
       editor.chain().focus().deleteRange(range).setTabs().run()
     },
@@ -477,9 +487,13 @@ export const SlashCommandExtension = Extension.create({
         char: '/',
         allowSpaces: false,
         startOfLine: false,
-        items: ({ query }: { query: string }) => {
+        items: ({ query, editor }: { query: string; editor: Editor }) => {
           const q = query.toLowerCase()
-          return slashCommandItems.filter((item) => item.title.toLowerCase().includes(q) || item.group.toLowerCase().includes(q))
+          return slashCommandItems.filter(
+            (item) =>
+              (item.title.toLowerCase().includes(q) || item.group.toLowerCase().includes(q)) &&
+              (item.shouldShow ? item.shouldShow(editor) : true),
+          )
         },
         render: () => {
           let popup: TippyInstance | undefined

@@ -397,14 +397,12 @@ const chatSuggestions = [
                 <div
                   v-for="base in group.bases"
                   :key="base.id"
-                  class="nc-base-card group relative flex items-center gap-4 px-5 h-[92px] rounded-2xl border-1 border-nc-border-gray-medium bg-nc-bg-default hover:shadow-sm cursor-pointer transition-all"
+                  class="nc-base-card group relative flex items-center gap-4 px-5 h-[84px] rounded-2xl border-1 border-nc-border-gray-medium bg-nc-bg-default hover:shadow-sm cursor-pointer transition-all"
                   :data-testid="`nc-base-card-${base.id}`"
                   @click="openBase(base)"
                 >
-                  <!-- Icon container -->
-                  <div class="nc-base-icon-box flex-none w-12 h-12 rounded-xl flex items-center justify-center">
-                    <GeneralProjectIcon :color="base.meta?.iconColor" class="flex-none !text-2xl" />
-                  </div>
+                  <!-- Icon -->
+                  <GeneralProjectIcon :color="base.meta?.iconColor" class="flex-none !w-9 !h-9 !text-3xl" />
 
                   <!-- Text -->
                   <div class="flex-1 min-w-0">
@@ -443,10 +441,6 @@ const chatSuggestions = [
   &:hover {
     @apply border-nc-border-gray-dark;
   }
-}
-
-.nc-base-icon-box {
-  @apply bg-nc-bg-gray-light dark:bg-white/5;
 }
 
 .nc-chat-input-border {

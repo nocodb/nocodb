@@ -408,7 +408,19 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           }
 
           // ignore filters from payload since it's not required
-          const { filters: _, ...updateData } = formState.value
+          let { filters: _, ...updateData } = formState.value
+
+          // For system datetime fields, only send meta and description
+          // to avoid triggering the system field non-modifiable check
+          if (
+            isSystem.value &&
+            [UITypes.CreatedTime, UITypes.LastModifiedTime].includes(column.value.uidt)
+          ) {
+            updateData = {
+              meta: updateData.meta,
+              description: updateData.description,
+            } as typeof updateData
+          }
 
           try {
             oldCol = column.value

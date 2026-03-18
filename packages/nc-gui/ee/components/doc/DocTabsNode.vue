@@ -5,6 +5,8 @@ import { Node as ProseMirrorNode } from '@tiptap/pm/model'
 import { NodeSelection, TextSelection } from '@tiptap/pm/state'
 import { NodeViewContent, NodeViewWrapper } from '@tiptap/vue-3'
 
+const props = defineProps<Props>()
+
 const MAX_TABS = 10
 
 interface Props {
@@ -12,8 +14,6 @@ interface Props {
   editor: Editor
   getPos: () => number
 }
-
-const props = defineProps<Props>()
 
 const { $e } = useNuxtApp()
 
@@ -69,6 +69,9 @@ function onChromeClick(event: MouseEvent) {
   if (isEditable.value) selectBlock()
 }
 
+const isMenuOpen = ref(false)
+const menuTabIndex = ref(0)
+
 function onTabClick(index: number) {
   if (index !== activeTab.value) {
     switchTab(index)
@@ -106,10 +109,6 @@ function switchTab(index: number) {
 }
 
 // --- Dropdown menu ---
-
-const isMenuOpen = ref(false)
-const menuTabIndex = ref(0)
-
 function onMenuRename() {
   isMenuOpen.value = false
   startRename(menuTabIndex.value)
@@ -225,7 +224,10 @@ function onTabMousedown(event: MouseEvent, index: number) {
       const dx = Math.abs(e.clientX - startX)
       const dy = Math.abs(e.clientY - startY)
       if (dx < 4 && dy < 4) return
-      if (dy > dx) { cleanup(); return } // more vertical than horizontal — cancel
+      if (dy > dx) {
+        cleanup()
+        return
+      } // more vertical than horizontal — cancel
       isDragging = true
       dragSourceIndex.value = index
     }
@@ -246,7 +248,7 @@ function onTabMousedown(event: MouseEvent, index: number) {
     $e('c:doc:tab:reorder')
   }
 
-  const cleanup = () => {
+  function cleanup() {
     document.removeEventListener('mousemove', onMousemove)
     document.removeEventListener('mouseup', onMouseup)
     if (!isDragging) return
@@ -351,7 +353,7 @@ function addTab() {
           <button
             class="nc-doc-tab-btn"
             :class="{
-              active: index === activeTab,
+              'active': index === activeTab,
               'nc-drag-source': dragSourceIndex === index,
               'nc-drag-over': dragOverIndex === index && dragSourceIndex !== index,
             }"
@@ -366,21 +368,13 @@ function addTab() {
 
           <template #overlay>
             <div class="nc-slash-menu" style="min-width: 140px" data-testid="nc-doc-tab-menu">
-              <div
-                class="nc-slash-menu-item"
-                data-testid="nc-doc-tab-menu-rename"
-                @click="onMenuRename"
-              >
+              <div class="nc-slash-menu-item" data-testid="nc-doc-tab-menu-rename" @click="onMenuRename">
                 <span class="nc-slash-menu-icon">
                   <GeneralIcon icon="rename" />
                 </span>
                 <span class="nc-slash-menu-label">{{ $t('general.rename') }}</span>
               </div>
-              <div
-                class="nc-slash-menu-item"
-                data-testid="nc-doc-tab-menu-delete"
-                @click="onMenuDelete"
-              >
+              <div class="nc-slash-menu-item" data-testid="nc-doc-tab-menu-delete" @click="onMenuDelete">
                 <span class="nc-slash-menu-icon nc-doc-tab-menu-delete-icon">
                   <GeneralIcon icon="delete" />
                 </span>
@@ -403,12 +397,7 @@ function addTab() {
     </div>
 
     <!-- Tab content panes -->
-    <NodeViewContent
-      class="nc-doc-tabs-content"
-      :data-active-tab="activeTab"
-      role="tabpanel"
-      data-testid="nc-doc-tabs-content"
-    />
+    <NodeViewContent class="nc-doc-tabs-content" :data-active-tab="activeTab" role="tabpanel" data-testid="nc-doc-tabs-content" />
   </NodeViewWrapper>
 </template>
 

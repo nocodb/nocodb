@@ -8,7 +8,7 @@ export const useChatPanel = createSharedComposable(() => {
   const basesStore = useBases()
   const { activeProjectId: activeBaseId } = storeToRefs(basesStore)
 
-  const { blockAiChat, isEEFeatureBlocked } = useEeConfig()
+  const { isEEFeatureBlocked } = useEeConfig()
 
   const { $e } = useNuxtApp()
 

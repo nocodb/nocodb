@@ -310,12 +310,6 @@ onMounted(loadAllDocs)
           />
         </template>
       </template>
-
-      <template #emptyText>
-        <div class="flex items-center justify-center h-40 text-nc-content-gray-muted">
-          {{ searchQuery ? $t('title.noResults') : $t('msg.info.noDocs') }}
-        </div>
-      </template>
     </NcTable>
   </div>
 </template>

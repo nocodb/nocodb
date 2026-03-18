@@ -347,7 +347,7 @@ const handleClickDropdown = (e: MouseEvent) => {
               @escape="onEsc"
             >
               <template #listItem="{ option }">
-                <NcTooltip :disabled="!isOptionDisabled(option.value)" placement="right">
+                <NcTooltip :disabled="!isOptionDisabled(option.value)" placement="right" class="w-full">
                   <template #title>
                     {{
                       isOptionDisabledByVisibility(option.value)

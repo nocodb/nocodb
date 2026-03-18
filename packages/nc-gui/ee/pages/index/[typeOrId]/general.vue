@@ -4,13 +4,12 @@ definePageMeta({
   hasSidebar: true,
 })
 
-const workspaceStore = useWorkspace()
+const route = useRoute()
 
-const { activeWorkspace } = storeToRefs(workspaceStore)
+// Redirect old /general to /more
+navigateTo(`/${route.params.typeOrId}/more`, { replace: true })
 </script>
 
 <template>
-  <div v-if="activeWorkspace?.id" class="h-full">
-    <WorkspaceHome ws-tab="ws-settings" />
-  </div>
+  <div />
 </template>

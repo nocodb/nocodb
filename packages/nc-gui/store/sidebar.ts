@@ -120,7 +120,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
     // Workspace-level settings (old and new flat routes)
     if (name === 'index-typeOrId-settings-page') return 'settings'
-    if (['index-typeOrId-members', 'index-typeOrId-teams', 'index-typeOrId-billing', 'index-typeOrId-audits', 'index-typeOrId-sso', 'index-typeOrId-ws-settings', 'index-typeOrId-general'].includes(name)) return 'settings'
+    if (['index-typeOrId-members', 'index-typeOrId-teams', 'index-typeOrId-billing', 'index-typeOrId-audits', 'index-typeOrId-sso', 'index-typeOrId-ws-settings', 'index-typeOrId-general', 'index-typeOrId-more'].includes(name)) return 'settings'
 
     // Base routes — only derive tab when a baseId is present
     if (name.startsWith('index-typeOrId-baseId-')) {

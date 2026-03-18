@@ -5,6 +5,7 @@ import { Reflector } from '@nestjs/core';
 import { MetaApiLimiterGuard as MetaApiLimiterGuardCE } from 'src/guards/meta-api-limiter.guard';
 import type { ExecutionContext } from '@nestjs/common';
 import { throttlerEnabled } from '~/helpers/redisHelpers';
+import Noco from '~/Noco';
 
 /**
  * Separate rate limiter for SCIM endpoints.
@@ -29,6 +30,9 @@ class ScimApiLimiterGuardEE extends ThrottlerGuard {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    // Bypass rate limiting for unlicensed on-prem (CE-equivalent)
+    if (!Noco.isEE()) return true;
+
     const req = context.switchToHttp().getRequest();
     const authHeader = req.headers['authorization'];
     // Only throttle if there's a bearer token (SCIM always has one)

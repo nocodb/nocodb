@@ -6,6 +6,7 @@ import { PublicApiLimiterGuard as PublicApiLimiterGuardCE } from 'src/guards/pub
 import requestIp from 'request-ip';
 import type { ExecutionContext } from '@nestjs/common';
 import { throttlerEnabled } from '~/helpers/redisHelpers';
+import Noco from '~/Noco';
 
 @Injectable()
 class PublicApiLimiterGuardEE extends ThrottlerGuard {
@@ -25,7 +26,9 @@ class PublicApiLimiterGuardEE extends ThrottlerGuard {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // const req = context.switchToHttp().getRequest();
+    // Bypass rate limiting for unlicensed on-prem (CE-equivalent)
+    if (!Noco.isEE()) return true;
+
     return super.canActivate(context);
   }
 

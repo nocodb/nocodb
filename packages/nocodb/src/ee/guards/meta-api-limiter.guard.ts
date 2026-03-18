@@ -7,6 +7,7 @@ import type { NcRequest } from 'nocodb-sdk';
 import type { ExecutionContext } from '@nestjs/common';
 import { throttlerEnabled } from '~/helpers/redisHelpers';
 import { getApiTokenFromHeader } from '~/helpers';
+import Noco from '~/Noco';
 
 const HEADER_NAME_GUI = 'xc-auth';
 
@@ -30,6 +31,9 @@ export class MetaApiLimiterGuardEE extends ThrottlerGuard {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    // Bypass rate limiting for unlicensed on-prem (CE-equivalent)
+    if (!Noco.isEE()) return true;
+
     const req = context.switchToHttp().getRequest();
     return req.headers[HEADER_NAME_GUI] ||
       getApiTokenFromHeader(req as NcRequest)

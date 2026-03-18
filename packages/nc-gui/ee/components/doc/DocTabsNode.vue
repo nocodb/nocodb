@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Node as PmNode } from '@tiptap/pm/model'
 import type { Editor } from '@tiptap/core'
+import { Node as ProseMirrorNode } from '@tiptap/pm/model'
 import { NodeSelection, TextSelection } from '@tiptap/pm/state'
 import { NodeViewContent, NodeViewWrapper } from '@tiptap/vue-3'
 
@@ -170,6 +171,96 @@ function onRenameKeydown(event: KeyboardEvent) {
   }
 }
 
+// --- Drag reorder (manual mouse tracking — no HTML5 drag ghost) ---
+
+const dragSourceIndex = ref<number | null>(null)
+const dragOverIndex = ref<number | null>(null)
+const headerRef = ref<HTMLElement | null>(null)
+
+/** Resolve which tab button the X coordinate falls on */
+function getTabIndexAtX(clientX: number): number | null {
+  if (!headerRef.value) return null
+  const buttons = headerRef.value.querySelectorAll('.nc-doc-tab-btn')
+  for (let i = 0; i < buttons.length; i++) {
+    const rect = buttons[i].getBoundingClientRect()
+    if (clientX >= rect.left && clientX <= rect.right) return i
+  }
+  return null
+}
+
+function onTabMousedown(event: MouseEvent, index: number) {
+  // Only left button, ignore if rename input is active
+  if (event.button !== 0 || editingTabIndex.value !== null) return
+
+  const startX = event.clientX
+  const startY = event.clientY
+  let isDragging = false
+
+  const onMousemove = (e: MouseEvent) => {
+    if (!isDragging) {
+      // Start drag only after 4px horizontal movement
+      const dx = Math.abs(e.clientX - startX)
+      const dy = Math.abs(e.clientY - startY)
+      if (dx < 4 && dy < 4) return
+      if (dy > dx) { cleanup(); return } // more vertical than horizontal — cancel
+      isDragging = true
+      dragSourceIndex.value = index
+    }
+    const target = getTabIndexAtX(e.clientX)
+    dragOverIndex.value = target !== null && target !== dragSourceIndex.value ? target : null
+  }
+
+  const onMouseup = (e: MouseEvent) => {
+    const wasDragging = isDragging
+    const sourceIdx = dragSourceIndex.value
+    const targetIdx = getTabIndexAtX(e.clientX)
+
+    cleanup()
+
+    if (!wasDragging || sourceIdx === null) return
+    if (targetIdx === null || sourceIdx === targetIdx) return
+    reorderTab(sourceIdx, targetIdx)
+  }
+
+  const cleanup = () => {
+    document.removeEventListener('mousemove', onMousemove)
+    document.removeEventListener('mouseup', onMouseup)
+    if (!isDragging) return
+    dragSourceIndex.value = null
+    dragOverIndex.value = null
+  }
+
+  document.addEventListener('mousemove', onMousemove)
+  document.addEventListener('mouseup', onMouseup)
+}
+
+function reorderTab(sourceIndex: number, targetIndex: number) {
+  const pos = props.getPos()
+  if (typeof pos !== 'number') return
+
+  const json = props.node.toJSON()
+  const [moved] = json.content.splice(sourceIndex, 1)
+  json.content.splice(targetIndex, 0, moved)
+
+  const newNode = ProseMirrorNode.fromJSON(props.editor.schema, json)
+  const { tr } = props.editor.state
+  tr.replaceWith(pos, pos + props.node.nodeSize, newNode)
+  props.editor.view.dispatch(tr)
+
+  // Update activeTab to follow the moved tab
+  if (activeTab.value === sourceIndex) {
+    activeTab.value = targetIndex
+  } else if (sourceIndex < targetIndex) {
+    if (activeTab.value > sourceIndex && activeTab.value <= targetIndex) {
+      activeTab.value = activeTab.value - 1
+    }
+  } else {
+    if (activeTab.value >= targetIndex && activeTab.value < sourceIndex) {
+      activeTab.value = activeTab.value + 1
+    }
+  }
+}
+
 // --- Add tab ---
 
 function addTab() {
@@ -201,6 +292,7 @@ function addTab() {
   <NodeViewWrapper class="nc-doc-tabs" data-doc-tabs data-testid="nc-doc-tabs">
     <!-- Tab header bar -->
     <div
+      ref="headerRef"
       class="nc-doc-tabs-header"
       role="tablist"
       contenteditable="false"
@@ -229,11 +321,16 @@ function addTab() {
         >
           <button
             class="nc-doc-tab-btn"
-            :class="{ active: index === activeTab }"
+            :class="{
+              active: index === activeTab,
+              'nc-drag-source': dragSourceIndex === index,
+              'nc-drag-over': dragOverIndex === index && dragSourceIndex !== index,
+            }"
             role="tab"
             :aria-selected="index === activeTab"
             :data-testid="`nc-doc-tab-btn-${index}`"
             @click.stop="onTabClick(index)"
+            @mousedown="onTabMousedown($event, index)"
           >
             {{ tab.title }}
           </button>
@@ -310,6 +407,14 @@ function addTab() {
 
   &:hover:not(.active) {
     @apply bg-nc-bg-gray-light bg-opacity-50;
+  }
+
+  &.nc-drag-source {
+    @apply opacity-40;
+  }
+
+  &.nc-drag-over {
+    box-shadow: -2px 0 0 0 var(--nc-border-brand);
   }
 }
 

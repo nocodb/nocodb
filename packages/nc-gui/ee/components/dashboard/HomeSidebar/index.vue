@@ -97,7 +97,7 @@ const accountUrl = computed(() => '/account/profile')
           @click="navigateToWorkspace(ws.id!)"
         >
           <GeneralWorkspaceIcon :workspace="ws" size="small" />
-          <NcTooltip show-on-truncate-only class="flex-1 truncate text-[13px] text-nc-content-gray">
+          <NcTooltip show-on-truncate-only class="flex-1 truncate text-[13px] leading-5 text-nc-content-gray">
             <template #title>{{ ws.title }}</template>
             {{ ws.title }}
           </NcTooltip>

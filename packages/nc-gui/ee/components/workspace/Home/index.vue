@@ -345,42 +345,40 @@ const chatSuggestions = [
           <!-- Header row -->
           <div class="flex items-center justify-between mb-4">
 
-            <div class="flex items-center gap-2">
-              <!-- Filter dropdown -->
-              <NcDropdown>
-                <NcButton type="secondary" size="small">
-                  <div class="flex items-center gap-1.5">
-                    <GeneralIcon icon="list" class="h-3.5 w-3.5" />
-                    <span class="text-xs">{{ filterMode === 'starred' ? $t('general.starred') : $t('activity.allBases') }}</span>
-                    <GeneralIcon icon="chevronDown" class="h-3 w-3" />
-                  </div>
-                </NcButton>
-                <template #overlay>
-                  <NcMenu>
-                    <NcMenuItem @click="filterMode = 'all'">
-                      <div class="flex items-center gap-2">
-                        <GeneralIcon v-if="filterMode === 'all'" icon="check" class="h-4 w-4 text-primary" />
-                        <span :class="{ 'pl-6': filterMode !== 'all' }">{{ $t('activity.allBases') }}</span>
-                      </div>
-                    </NcMenuItem>
-                    <NcMenuItem @click="filterMode = 'starred'">
-                      <div class="flex items-center gap-2">
-                        <GeneralIcon v-if="filterMode === 'starred'" icon="check" class="h-4 w-4 text-primary" />
-                        <span :class="{ 'pl-6': filterMode !== 'starred' }">{{ $t('general.starred') }}</span>
-                      </div>
-                    </NcMenuItem>
-                  </NcMenu>
-                </template>
-              </NcDropdown>
-
-              <!-- + New Base button -->
-              <WorkspaceCreateProjectBtn type="primary" size="small" :workspace-id="activeWorkspaceId" :centered="false">
+            <!-- Filter dropdown -->
+            <NcDropdown>
+              <NcButton type="secondary" size="small">
                 <div class="flex items-center gap-1.5">
-                  <GeneralIcon icon="plus" class="h-3.5 w-3.5" />
-                  <span>{{ $t('title.newProj') }}</span>
+                  <GeneralIcon icon="list" class="h-3.5 w-3.5" />
+                  <span class="text-xs">{{ filterMode === 'starred' ? $t('general.starred') : $t('activity.allBases') }}</span>
+                  <GeneralIcon icon="chevronDown" class="h-3 w-3" />
                 </div>
-              </WorkspaceCreateProjectBtn>
-            </div>
+              </NcButton>
+              <template #overlay>
+                <NcMenu>
+                  <NcMenuItem @click="filterMode = 'all'">
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon v-if="filterMode === 'all'" icon="check" class="h-4 w-4 text-primary" />
+                      <span :class="{ 'pl-6': filterMode !== 'all' }">{{ $t('activity.allBases') }}</span>
+                    </div>
+                  </NcMenuItem>
+                  <NcMenuItem @click="filterMode = 'starred'">
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon v-if="filterMode === 'starred'" icon="check" class="h-4 w-4 text-primary" />
+                      <span :class="{ 'pl-6': filterMode !== 'starred' }">{{ $t('general.starred') }}</span>
+                    </div>
+                  </NcMenuItem>
+                </NcMenu>
+              </template>
+            </NcDropdown>
+
+            <!-- + New Base button -->
+            <WorkspaceCreateProjectBtn type="primary" size="small" :workspace-id="activeWorkspaceId" :centered="false">
+              <div class="flex items-center gap-1.5">
+                <GeneralIcon icon="plus" class="h-3.5 w-3.5" />
+                <span>{{ $t('title.newProj') }}</span>
+              </div>
+            </WorkspaceCreateProjectBtn>
           </div>
 
           <!-- Empty state -->

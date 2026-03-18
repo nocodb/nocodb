@@ -136,9 +136,28 @@ export class DocumentsService extends DocumentsServiceCE {
       // Correct has_children: a doc reporting has_children=true from the DB
       // may have ALL its children hidden from this user. Exposing the flag
       // would leak the existence of hidden child pages.
-      for (const doc of visibleDocs) {
-        if (doc.has_children) {
-          const children = await Document.listLite(context, baseId, doc.id!);
+      //
+      // Batch: collect all parent IDs that claim has_children, fetch all their
+      // children in a single query, then check visibility.
+      const parentsWithChildren = visibleDocs.filter((d) => d.has_children);
+      if (parentsWithChildren.length) {
+        const parentIds = parentsWithChildren.map((d) => d.id!);
+        const allChildren = await Document.listLiteByParentIds(
+          context,
+          baseId,
+          parentIds,
+        );
+
+        // Group children by parent_id
+        const childrenByParent = new Map<string, typeof allChildren>();
+        for (const child of allChildren) {
+          const group = childrenByParent.get(child.parent_id!) || [];
+          group.push(child);
+          childrenByParent.set(child.parent_id!, group);
+        }
+
+        for (const doc of parentsWithChildren) {
+          const children = childrenByParent.get(doc.id!) || [];
           let anyVisible = false;
           for (const child of children) {
             if (

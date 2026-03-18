@@ -194,6 +194,62 @@ export default class Document extends DocumentCE implements DocumentType {
     return docList.map((doc) => new Document(this.parseDocument(doc)));
   }
 
+  /**
+   * Batch-fetch lightweight docs for multiple parent IDs in a single query.
+   * Used to check has_children visibility without N+1 listLite calls.
+   */
+  public static async listLiteByParentIds(
+    context: NcContext,
+    baseId: string,
+    parentIds: string[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!parentIds.length) return [];
+
+    const liteFields = [
+      'id',
+      'base_id',
+      'fk_workspace_id',
+      'title',
+      'meta',
+      'order',
+      'parent_id',
+      'has_children',
+      'version',
+      'created_by',
+      'updated_by',
+      'created_at',
+      'updated_at',
+    ];
+
+    const docList = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DOCS,
+      {
+        condition: {
+          base_id: baseId,
+          deleted: false,
+        },
+        xcCondition: {
+          _and: [
+            {
+              parent_id: {
+                in: parentIds,
+              },
+            },
+          ],
+        },
+        orderBy: {
+          order: 'asc',
+        },
+        fields: liteFields,
+      },
+    );
+
+    return docList.map((doc) => new Document(this.parseDocument(doc)));
+  }
+
   public static async insert(
     context: NcContext,
     doc: Partial<DocumentType>,

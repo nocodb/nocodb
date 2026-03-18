@@ -64,29 +64,20 @@ const base = inject(ProjectInj, ref())
 
 /**
  * Check document-level DOCUMENT_EDIT permission by walking up the parent chain.
- * Returns true if no doc-level restriction blocks the user, false if blocked.
+ * Uses useDocPermissionResolver to find the nearest ancestor with explicit permission,
+ * then delegates to isPermissionAllowed for user-level evaluation.
  */
-const docsById = computed(() => new Map(activeDocuments.value.map((d) => [d.id, d])))
+const basePermissions = computed(() => base.value?.permissions)
+
+const { findDocWithExplicitPermission } = useDocPermissionResolver(basePermissions, activeDocuments)
 
 const isDocEditAllowed = computed(() => {
-  const permissions = base.value?.permissions
-  if (!permissions) return true // No permissions configured → allowed
+  if (!basePermissions.value) return true
 
-  let currentDoc = docsById.value.get(docId.value)
+  const effectiveDocId = findDocWithExplicitPermission(docId.value, PermissionKey.DOCUMENT_EDIT)
+  if (!effectiveDocId) return true // No doc-level edit restriction → default allows editors+
 
-  while (currentDoc) {
-    const hasPerm = permissions.some(
-      (p) => p.entity === PermissionEntity.DOCUMENT && p.entity_id === currentDoc!.id && p.permission === PermissionKey.DOCUMENT_EDIT,
-    )
-
-    if (hasPerm) {
-      return isPermissionAllowed(PermissionEntity.DOCUMENT, currentDoc.id!, PermissionKey.DOCUMENT_EDIT)
-    }
-
-    currentDoc = currentDoc.parent_id ? docsById.value.get(currentDoc.parent_id) : undefined
-  }
-
-  return true // No doc-level edit restriction → default allows editors+
+  return isPermissionAllowed(PermissionEntity.DOCUMENT, effectiveDocId, PermissionKey.DOCUMENT_EDIT)
 })
 
 /** Whether the current user can edit document content (base role + doc-level permission). */

@@ -54,6 +54,10 @@ export function useFillHandler({
 
   const { $api } = useNuxtApp()
 
+  const { fillRows } = useNocoAi()
+
+  const { base } = storeToRefs(useBase())
+
   const { appInfo } = useGlobal()
 
   const { maxAttachmentsAllowedInCell, showUpgradeToAddMoreAttachmentsInCell } = useEeConfig()
@@ -544,13 +548,20 @@ export function useFillHandler({
             const generateIds = rowsToPaste.map((row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]))
 
             // Call the AI data fill API
-            $api.ai
-              .dataFill(meta.value?.id, {
+            fillRows(
+              meta.value?.id as string,
+              {
                 rows: sampleRows,
                 generateIds,
                 numRows: generateIds.length,
-              })
-              .then((r: Record<string, any>[]) => {
+              },
+              {
+                workspaceId: (meta.value as any)?.fk_workspace_id ?? base.value!.fk_workspace_id!,
+                baseId: meta.value!.base_id!,
+              },
+            )
+              .then((r?: Record<string, any>[]) => {
+                if (!r) return
                 // If selection start or end is null, exit
                 if (selection.value._start === null || selection.value._end === null) return
 

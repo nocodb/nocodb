@@ -20,6 +20,7 @@ import { DocumentsGetOperations } from '~/controllers/internal/modules/Documents
 import { DocumentsPostOperations } from '~/controllers/internal/modules/DocumentsPost.operations';
 import { DocumentCommentsGetOperations } from '~/controllers/internal/modules/DocumentCommentsGet.operations';
 import { DocumentCommentsPostOperations } from '~/controllers/internal/modules/DocumentCommentsPost.operations';
+import { AiDataPostOperations } from '~/controllers/internal/modules/AiDataPost.operations';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 
 export const InternalApiModules = [
@@ -44,6 +45,7 @@ export const InternalApiModules = [
   DocumentsPostOperations,
   DocumentCommentsGetOperations,
   DocumentCommentsPostOperations,
+  AiDataPostOperations,
 ];
 
 export const InternalApiModuleProvider = {

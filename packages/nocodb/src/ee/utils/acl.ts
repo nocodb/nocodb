@@ -344,6 +344,9 @@ const permissionScopes = {
     'aiUtils',
     'aiData',
     'aiBaseSchema',
+    'aiDataGenerateRows',
+    'aiDataFillRows',
+    'aiDataExtractRows',
 
     // Snapshots
 
@@ -818,6 +821,9 @@ const rolePermissions:
       // AI
       aiUtils: true,
       aiData: true,
+      aiDataGenerateRows: true,
+      aiDataFillRows: true,
+      aiDataExtractRows: true,
 
       // Scripts
       listScripts: true,
@@ -1428,6 +1434,11 @@ const permissionDescriptions: Record<string, string> = {
   chatMessageList: 'list chat messages',
   chatMessageSend: 'send a chat message',
   chatSuggestionsGet: 'get chat suggestions',
+
+  // AI Data
+  aiDataGenerateRows: 'generate rows using AI',
+  aiDataFillRows: 'fill rows using AI',
+  aiDataExtractRows: 'extract rows from input using AI',
 };
 
 // Human-readable descriptions for roles

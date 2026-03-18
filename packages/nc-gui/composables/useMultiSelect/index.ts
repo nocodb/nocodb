@@ -92,6 +92,8 @@ export function useMultiSelect(
 
   const { $api } = useNuxtApp()
 
+  const { fillRows } = useNocoAi()
+
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 
   const { isDataReadOnly } = useRoles()
@@ -702,13 +704,20 @@ export function useMultiSelect(
             // string[] of Ids of rows to paste
             const generateIds = rowsToPaste.map((row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]))
 
-            $api.ai
-              .dataFill(meta.value?.id, {
+            fillRows(
+              meta.value?.id as string,
+              {
                 rows: sampleRows,
                 generateIds,
                 numRows: generateIds.length,
-              })
-              .then((r: Record<string, any>[]) => {
+              },
+              {
+                workspaceId: (meta.value as any)?.fk_workspace_id ?? base.value!.fk_workspace_id!,
+                baseId: meta.value!.base_id!,
+              },
+            )
+              .then((r?: Record<string, any>[]) => {
+                if (!r) return
                 if (fillRange._start === null || fillRange._end === null) return
                 // update cells with the generated data
 

@@ -230,6 +230,9 @@ const permissionScopes = {
     'aiUtils',
     'aiData',
     'aiBaseSchema',
+    'aiDataGenerateRows',
+    'aiDataFillRows',
+    'aiDataExtractRows',
 
     // MCP
     'mcpList',
@@ -443,6 +446,9 @@ const rolePermissions:
       // AI
       aiUtils: true,
       aiData: true,
+      aiDataGenerateRows: true,
+      aiDataFillRows: true,
+      aiDataExtractRows: true,
 
       // Extensions
       extensionUpdate: true,

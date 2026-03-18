@@ -146,4 +146,9 @@ export const OPERATION_SCOPES = {
   viewSectionCreate: 'base',
   viewSectionUpdate: 'base',
   viewSectionDelete: 'base',
+
+  // AI Data operations
+  aiDataGenerateRows: 'base',
+  aiDataFillRows: 'base',
+  aiDataExtractRows: 'base',
 } as const;

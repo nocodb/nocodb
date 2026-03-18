@@ -393,29 +393,36 @@ const chatSuggestions = [
                 {{ group.label }}
               </div>
 
-              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 <div
                   v-for="base in group.bases"
                   :key="base.id"
-                  class="nc-base-card group flex items-center gap-3 px-4 py-3.5 rounded-xl border-1 border-nc-border-gray-medium bg-nc-bg-default hover:shadow-sm cursor-pointer transition-all"
+                  class="nc-base-card group relative flex items-center gap-4 px-5 h-[92px] rounded-2xl border-1 border-nc-border-gray-medium bg-nc-bg-default hover:shadow-sm cursor-pointer transition-all"
                   :data-testid="`nc-base-card-${base.id}`"
                   @click="openBase(base)"
                 >
-                  <GeneralProjectIcon :color="base.meta?.iconColor" class="flex-none" />
+                  <!-- Icon container -->
+                  <div class="nc-base-icon-box flex-none w-12 h-12 rounded-xl flex items-center justify-center">
+                    <GeneralProjectIcon :color="base.meta?.iconColor" class="flex-none !text-2xl" />
+                  </div>
+
+                  <!-- Text -->
                   <div class="flex-1 min-w-0">
-                    <NcTooltip show-on-truncate-only class="text-[13px] font-medium text-nc-content-gray truncate block">
+                    <NcTooltip show-on-truncate-only class="text-[14px] font-semibold text-nc-content-gray truncate block leading-5">
                       <template #title>{{ base.title }}</template>
                       {{ base.title }}
                     </NcTooltip>
-                    <div class="text-xs text-nc-content-gray-muted mt-0.5">
+                    <div class="text-xs text-nc-content-gray-muted mt-1">
                       {{ getBaseOpenedTimeAgo(base) }}
                     </div>
                   </div>
+
+                  <!-- Star -->
                   <GeneralIcon
                     :icon="base.starred ? 'star' : 'ncStar'"
-                    class="flex-none h-4 w-4 transition-opacity"
+                    class="absolute top-3 right-3 h-4 w-4 transition-opacity"
                     :class="{
-                      'text-yellow-500': base.starred,
+                      'text-yellow-500 opacity-100': base.starred,
                       'text-nc-content-gray-muted opacity-0 group-hover:opacity-100': !base.starred,
                     }"
                     @click="onToggleStar(base, $event)"
@@ -436,6 +443,10 @@ const chatSuggestions = [
   &:hover {
     @apply border-nc-border-gray-dark;
   }
+}
+
+.nc-base-icon-box {
+  @apply bg-nc-bg-gray-light dark:bg-white/5;
 }
 
 .nc-chat-input-border {

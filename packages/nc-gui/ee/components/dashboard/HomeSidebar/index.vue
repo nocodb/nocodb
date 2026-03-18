@@ -88,7 +88,7 @@ const accountUrl = computed(() => '/account/profile')
         <div
           v-for="ws in workspacesList"
           :key="ws.id"
-          class="group flex items-center gap-2 px-2 h-7 rounded-md cursor-pointer transition-colors mb-0.5"
+          class="group flex items-center gap-2 px-2 h-8 rounded-md cursor-pointer transition-colors mb-0.5"
           :class="{
             'bg-nc-bg-gray-medium': activeWorkspaceId === ws.id && !isHomeActive,
             'hover:bg-nc-bg-gray-light': activeWorkspaceId !== ws.id || isHomeActive,

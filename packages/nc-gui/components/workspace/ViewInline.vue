@@ -5,6 +5,7 @@ import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 const props = defineProps<{
   workspaceId?: string
   tab?: string
+  hideTopbar?: boolean
 }>()
 
 const router = useRouter()
@@ -224,7 +225,7 @@ onBeforeUnmount(() => {
   >
     <!-- Settings sidebar mode: simple topbar with page title -->
     <div
-      v-if="isSettingsSidebar"
+      v-if="isSettingsSidebar && !props.hideTopbar"
       class="flex flex-row px-2 py-2 gap-3 justify-between w-full border-b-1 border-nc-border-gray-medium h-[var(--topbar-height)]"
     >
       <div class="flex-1 flex flex-row items-center gap-x-3">

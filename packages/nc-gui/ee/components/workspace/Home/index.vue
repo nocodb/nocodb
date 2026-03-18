@@ -233,7 +233,7 @@ const chatSuggestions = [
     <div class="flex-1 overflow-auto nc-scrollbar-thin">
       <!-- Settings tab content (Members, Teams, etc.) -->
       <div v-if="!isBasesTab && wsTab" class="h-full">
-        <WorkspaceViewInline :tab="wsTab" />
+        <WorkspaceViewInline :tab="wsTab" hide-topbar />
       </div>
 
       <!-- Bases tab content -->

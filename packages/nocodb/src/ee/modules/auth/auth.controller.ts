@@ -61,10 +61,11 @@ export class AuthController extends AuthControllerCE {
     const twoFactorToken =
       await this.mfaService.getTwoFactorTokenIfEnabled(req.user.id);
     if (twoFactorToken) {
-      return res.json({
+      res.json({
         twoFactorRequired: true,
         twoFactorToken,
       });
+      return;
     }
 
     // No 2FA — proceed normally

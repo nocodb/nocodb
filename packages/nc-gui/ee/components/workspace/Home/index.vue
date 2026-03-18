@@ -306,7 +306,8 @@ const chatSuggestions = [
 
       <!-- Bases tab content -->
       <div v-else class="max-w-[1200px] mx-auto w-full">
-        <!-- AI Chat mock section -->
+        <!-- AI Chat mock section (hidden for now) -->
+        <!--
         <div class="px-8 pt-10 pb-6 text-center">
           <h1 class="text-2xl font-bold text-nc-content-gray mb-1.5">
             What will you build next?
@@ -314,13 +315,9 @@ const chatSuggestions = [
           <p class="text-[13px] text-nc-content-gray-subtle mb-6">
             Describe your agent or pick an idea below
           </p>
-
-          <!-- Chat input mock -->
           <div class="max-w-[600px] mx-auto mb-4">
             <div class="nc-chat-input-border rounded-2xl p-[2px]">
-              <div
-                class="relative rounded-[14px] px-5 pt-4 pb-11 text-left bg-nc-bg-default dark:bg-[#1C1C1E]"
-              >
+              <div class="relative rounded-[14px] px-5 pt-4 pb-11 text-left bg-nc-bg-default dark:bg-[#1C1C1E]">
                 <span class="text-[13px] text-nc-content-gray-muted">Create a workflow to</span>
                 <div class="absolute bottom-3.5 left-5 flex items-center gap-1.5 text-nc-content-gray-muted">
                   <GeneralIcon icon="magic" class="h-3.5 w-3.5" />
@@ -334,35 +331,19 @@ const chatSuggestions = [
               </div>
             </div>
           </div>
-
-          <!-- Suggestion chips -->
           <div class="flex items-center justify-center gap-2 flex-wrap">
-            <div
-              v-for="chip in chatSuggestions"
-              :key="chip"
-              class="px-3 py-1.5 rounded-full border-1 border-nc-border-gray-medium text-xs text-nc-content-gray-subtle cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
-            >
+            <div v-for="chip in chatSuggestions" :key="chip" class="px-3 py-1.5 rounded-full border-1 border-nc-border-gray-medium text-xs text-nc-content-gray-subtle cursor-pointer hover:bg-nc-bg-gray-light transition-colors">
               {{ chip }}
             </div>
           </div>
         </div>
-
-        <!-- Divider -->
-        <div class="mx-8">
-          <div class="border-t-1 border-nc-border-gray-medium" />
-        </div>
+        <div class="mx-8"><div class="border-t-1 border-nc-border-gray-medium" /></div>
+        -->
 
         <!-- Bases section -->
         <div class="px-8 py-5">
           <!-- Header row -->
           <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-2">
-              <h2 class="text-base font-semibold text-nc-content-gray">
-                {{ t('labels.basesIn') }}
-                <span class="text-primary capitalize">{{ activeWorkspace?.title }}</span>
-                <span class="text-nc-content-gray-muted font-normal">({{ basesList.length }})</span>
-              </h2>
-            </div>
 
             <div class="flex items-center gap-2">
               <!-- Filter dropdown -->

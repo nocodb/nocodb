@@ -45,7 +45,7 @@ const {
   toggleChatPanel,
 } = useChatPanel()
 
-const { blockAiChat, isEEFeatureBlocked, showEEFeatures } = useEeConfig()
+const { isEEFeatureBlocked, showEEFeatures } = useEeConfig()
 
 const handleChatToggle = () => {
   toggleChatPanel()

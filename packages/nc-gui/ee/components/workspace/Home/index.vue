@@ -249,21 +249,21 @@ const chatSuggestions = [
 
           <!-- Chat input mock -->
           <div class="max-w-[600px] mx-auto mb-4">
-            <div class="nc-chat-input-glow rounded-xl p-[2px]">
-            <div
-              class="nc-chat-input-mock relative rounded-[10px] px-4 pt-3 pb-10 text-left bg-nc-bg-default dark:bg-[#1C1C1E]"
-            >
-              <span class="text-[13px] text-nc-content-gray-muted">Create a workflow to</span>
-              <div class="absolute bottom-3 left-4 flex items-center gap-1.5 text-nc-content-gray-muted">
-                <GeneralIcon icon="magic" class="h-3.5 w-3.5" />
-                <span class="text-xs">AI-powered</span>
-              </div>
-              <div class="absolute bottom-3 right-4">
-                <div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
-                  <GeneralIcon icon="ncArrowUp" class="h-4 w-4 text-white" />
+            <div class="nc-chat-input-border rounded-2xl p-[2px]">
+              <div
+                class="relative rounded-[14px] px-5 pt-4 pb-11 text-left bg-nc-bg-default dark:bg-[#1C1C1E]"
+              >
+                <span class="text-[13px] text-nc-content-gray-muted">Create a workflow to</span>
+                <div class="absolute bottom-3.5 left-5 flex items-center gap-1.5 text-nc-content-gray-muted">
+                  <GeneralIcon icon="magic" class="h-3.5 w-3.5" />
+                  <span class="text-xs">AI-powered</span>
+                </div>
+                <div class="absolute bottom-3.5 right-5">
+                  <div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
+                    <GeneralIcon icon="ncArrowUp" class="h-4 w-4 text-white" />
+                  </div>
                 </div>
               </div>
-            </div>
             </div>
           </div>
 
@@ -391,13 +391,9 @@ const chatSuggestions = [
   }
 }
 
-.nc-chat-input-glow {
-  background: linear-gradient(135deg, #3366FF 0%, #1348D4 40%, #3B82F6 70%, #2563EB 100%);
-  box-shadow: 0 0 20px rgba(51, 102, 255, 0.25), 0 0 40px rgba(51, 102, 255, 0.1);
-}
-
-.nc-chat-input-mock {
-  background: linear-gradient(135deg, rgba(51, 102, 255, 0.04) 0%, rgba(37, 99, 235, 0.06) 50%, rgba(59, 130, 246, 0.04) 100%);
+.nc-chat-input-border {
+  background: linear-gradient(135deg, #3366FF, #3B82F6, #2563EB);
+  box-shadow: 0 0 16px rgba(51, 102, 255, 0.3);
 }
 
 .nc-ws-home-kbd {

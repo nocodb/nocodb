@@ -53,7 +53,6 @@ export function fromEntries<T = any>(
  * @param obj The object to process.
  * @param _excludedProps An array of property names to exclude.
  * @param includeNull Whether to include properties with null values.
- * @param ignoreAiIsStaleProp Whether to ignore the isStale property from AI Text field as this property is used to detect whether source data is changed or not.
  * @returns The object with blank and excluded properties removed.
  */
 export const removeBlankPropsAndMask = (
@@ -61,7 +60,6 @@ export const removeBlankPropsAndMask = (
   _excludedProps: string[] = [],
   includeNull = false,
   includeBlanks = false,
-  ignoreAiIsStaleProp = true,
 ) => {
   const excludedProps = [
     ..._excludedProps,
@@ -77,7 +75,6 @@ export const removeBlankPropsAndMask = (
   return fromEntries(
     Object.entries(obj).filter(([key, value]) => {
       if (
-        ignoreAiIsStaleProp &&
         ncIsObject(value) &&
         Object.keys(value).length === 1 &&
         ncHasProperties(value, 'isStale')
@@ -712,7 +709,6 @@ export const populateUpdatePayloadDiff = ({
   aliasMap,
   keepUnderModified = false,
   keepNested = false,
-  ignoreAiIsStaleProp = true,
 }: {
   prev: any;
   next: any;
@@ -726,7 +722,6 @@ export const populateUpdatePayloadDiff = ({
   aliasMap?: Record<string, string>;
   keepUnderModified?: boolean;
   keepNested?: boolean;
-  ignoreAiIsStaleProp?: boolean;
 }): UpdatePayload | UpdateDestructedPayload | false => {
   if (parseMeta)
     parseMetaIfFound({ payloads: [next, prev], metaProps: metaProps });

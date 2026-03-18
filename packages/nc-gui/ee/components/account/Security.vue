@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { PlanFeatureTypes } from 'nocodb-sdk'
-
 const { api } = useApi()
 
 const { t } = useI18n()
@@ -15,7 +13,8 @@ const showSetupModal = ref(false)
 const setupData = ref<{ secret: string; qrUrl: string; backupCodes: string[] } | null>(null)
 const setupCode = ref('')
 const setupError = ref('')
-const setupStep = ref<'qr' | 'verify' | 'backup'>('qr')
+const setupPassword = ref('')
+const setupStep = ref<'password' | 'qr' | 'verify' | 'backup'>('password')
 
 // Disable state
 const showDisableModal = ref(false)
@@ -37,22 +36,30 @@ async function fetchStatus() {
   }
 }
 
-async function startSetup() {
+function startSetup() {
   if (blockMfa.value) {
     showUpgradeToUseMfa()
     return
   }
 
+  setupStep.value = 'password'
+  setupPassword.value = ''
+  setupError.value = ''
+  showSetupModal.value = true
+}
+
+async function confirmPassword() {
   isLoading.value = true
   setupError.value = ''
 
   try {
-    const response = await api.instance.post('/api/v2/auth/mfa/setup')
+    const response = await api.instance.post('/api/v2/auth/mfa/setup', {
+      password: setupPassword.value,
+    })
     setupData.value = response.data
     setupStep.value = 'qr'
-    showSetupModal.value = true
   } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
+    setupError.value = await extractSdkResponseErrorMsg(e)
   } finally {
     isLoading.value = false
   }
@@ -77,8 +84,9 @@ function closeSetupModal() {
   showSetupModal.value = false
   setupData.value = null
   setupCode.value = ''
+  setupPassword.value = ''
   setupError.value = ''
-  setupStep.value = 'qr'
+  setupStep.value = 'password'
 }
 
 async function confirmDisable() {
@@ -180,6 +188,29 @@ onMounted(() => {
       </template>
 
       <div class="flex flex-col gap-4 p-4">
+        <!-- Step 0: Password confirmation -->
+        <template v-if="setupStep === 'password'">
+          <p class="text-sm text-nc-content-gray-subtle">
+            {{ $t('labels.confirmPasswordToSetup') }}
+          </p>
+          <div class="flex flex-col gap-3">
+            <div>
+              <div class="text-sm font-medium mb-1">{{ $t('labels.password') }}</div>
+              <a-input-password
+                v-model:value="setupPassword"
+                data-testid="nc-2fa-setup-password"
+                size="large"
+                :placeholder="$t('msg.info.signUp.enterPassword')"
+                @pressEnter="confirmPassword"
+              />
+            </div>
+            <div v-if="setupError" class="text-red-500 text-sm">{{ setupError }}</div>
+            <NcButton type="primary" class="w-full" :loading="isLoading" @click="confirmPassword">
+              {{ $t('general.next') }}
+            </NcButton>
+          </div>
+        </template>
+
         <!-- Step 1: QR Code -->
         <template v-if="setupStep === 'qr' && setupData">
           <p class="text-sm text-nc-content-gray-subtle">

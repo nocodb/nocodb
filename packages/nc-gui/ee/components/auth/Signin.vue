@@ -3,11 +3,21 @@ import type { RuleObject } from 'ant-design-vue/es/form'
 
 const route = useRoute()
 
-const { signIn: _signIn, appInfo } = useGlobal()
+const { appInfo } = useGlobal()
 
 const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
+
+const {
+  twoFactorRequired,
+  twoFactorCode,
+  twoFactorError,
+  useBackupCode,
+  handleSigninResponse,
+  verifyTwoFactor: _verifyTwoFactor,
+  cancelTwoFactor,
+} = useTwoFactorSignin()
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
@@ -17,12 +27,6 @@ const form = reactive({
   email: '',
   password: '',
 })
-
-const twoFactorRequired = ref(false)
-const twoFactorToken = ref('')
-const twoFactorCode = ref('')
-const twoFactorError = ref('')
-const useBackupCode = ref(false)
 
 const formRules: Record<string, RuleObject[]> = {
   email: [
@@ -54,13 +58,7 @@ async function signIn() {
   const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
 
   api.auth.signin(form).then(async (response: any) => {
-    if (response.twoFactorRequired) {
-      twoFactorRequired.value = true
-      twoFactorToken.value = response.twoFactorToken
-      return
-    }
-
-    _signIn(response.token!)
+    if (handleSigninResponse(response)) return
 
     if (continueAfterSignIn) {
       return
@@ -75,16 +73,8 @@ async function signIn() {
 }
 
 async function verifyTwoFactor() {
-  twoFactorError.value = ''
-
-  try {
-    const response = await api.instance.post('/api/v2/auth/mfa/verify', {
-      token: twoFactorToken.value,
-      code: twoFactorCode.value,
-    })
-
-    _signIn(response.data.token)
-
+  const success = await _verifyTwoFactor()
+  if (success) {
     const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
     if (continueAfterSignIn) {
       return
@@ -94,17 +84,7 @@ async function verifyTwoFactor() {
       path: '/',
       query: route.query,
     })
-  } catch (e: any) {
-    twoFactorError.value = await extractSdkResponseErrorMsg(e)
   }
-}
-
-function cancelTwoFactor() {
-  twoFactorRequired.value = false
-  twoFactorToken.value = ''
-  twoFactorCode.value = ''
-  twoFactorError.value = ''
-  useBackupCode.value = false
 }
 
 function resetError() {

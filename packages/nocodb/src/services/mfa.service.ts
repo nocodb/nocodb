@@ -10,6 +10,7 @@ import { User } from '~/models';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
+import { normalizeEmail } from '~/utils/emailUtils';
 import { genJwt } from '~/services/users/helpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
@@ -50,15 +51,34 @@ export class MfaService {
     if (user) {
       await NocoCache.del('root', `${CacheScope.USER}:${userId}`);
       await NocoCache.del('root', `${CacheScope.USER}:${user.email}`);
+      if (user.email) {
+        await NocoCache.del(
+          'root',
+          `${CacheScope.USER}:canonical:${normalizeEmail(user.email)}`,
+        );
+      }
     }
   }
 
-  async setup(userId: string) {
+  async setup(userId: string, password: string) {
     const user = await User.get(userId);
     if (!user) NcError.userNotFound(userId);
 
     if (user.totp_enabled) {
       NcError.badRequest('Two-factor authentication is already enabled');
+    }
+
+    // Require password re-confirmation for security
+    if (!user.password) {
+      NcError.badRequest(
+        'Password verification is not available for this account',
+      );
+    }
+
+    const bcrypt = await import('bcryptjs');
+    const valid = await bcrypt.default.compare(password, user.password);
+    if (!valid) {
+      NcError.badRequest('Incorrect password');
     }
 
     const otplib = await getOtplib();
@@ -158,7 +178,7 @@ export class MfaService {
     try {
       payload = jwt.verify(twoFactorToken, config.auth.jwt.secret) as any;
     } catch {
-      NcError.badRequest('Invalid or expired two-factor token');
+      return NcError.badRequest('Invalid or expired two-factor token');
     }
 
     if (payload.purpose !== 'mfa') {
@@ -183,7 +203,20 @@ export class MfaService {
     };
   }
 
-  generateTwoFactorToken(user: { id: string; email: string }) {
+  /**
+   * Check if user has 2FA enabled. If so, return a short-lived token
+   * for the 2FA verification step. Returns null if 2FA is not enabled.
+   */
+  async getTwoFactorTokenIfEnabled(
+    userId: string,
+  ): Promise<string | null> {
+    const user = await User.get(userId);
+    if (!user?.totp_enabled) return null;
+
+    return this.generateTwoFactorToken({ id: user.id, email: user.email });
+  }
+
+  private generateTwoFactorToken(user: { id: string; email: string }) {
     const config = Noco.getConfig();
     return jwt.sign(
       { id: user.id, email: user.email, purpose: 'mfa' },

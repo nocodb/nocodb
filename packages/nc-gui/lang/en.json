@@ -2032,6 +2032,7 @@
     "backupCodesWarning": "Store these codes securely. If you lose your authenticator device and your backup codes, you will be locked out of your account.",
     "regenerateBackupCodes": "Regenerate Backup Codes",
     "enterCodeToDisable": "Enter a verification code from your authenticator app to disable two-factor authentication.",
+    "confirmPasswordToSetup": "Enter your current password to continue with two-factor authentication setup.",
     "enterCodeToRegenerate": "Enter a verification code from your authenticator app to regenerate backup codes. Your old codes will no longer work.",
     "useBackupCode": "Use a backup code instead",
     "useAuthenticatorCode": "Use authenticator code instead",

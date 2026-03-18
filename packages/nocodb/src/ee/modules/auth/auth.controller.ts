@@ -23,12 +23,12 @@ import { NcError } from '~/helpers/catchError';
 import { UsersService } from '~/services/users/users.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { MfaService } from '~/services/mfa.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcRequest } from '~/interface/config';
 import SSOClient from '~/models/SSOClient';
-import { User } from '~/models';
 import { CHATWOOT_IDENTITY_KEY } from '~/utils/nc-config';
 import Noco from '~/Noco';
 const IS_UPGRADE_ALLOWED_CACHE_KEY = 'nc_upgrade_allowed';
@@ -58,12 +58,9 @@ export class AuthController extends AuthControllerCE {
     }
 
     // Check if user has 2FA enabled
-    const user = await User.get(req.user.id);
-    if (user?.totp_enabled) {
-      const twoFactorToken = this.mfaService.generateTwoFactorToken({
-        id: user.id,
-        email: user.email,
-      });
+    const twoFactorToken =
+      await this.mfaService.getTwoFactorTokenIfEnabled(req.user.id);
+    if (twoFactorToken) {
       return res.json({
         twoFactorRequired: true,
         twoFactorToken,
@@ -81,13 +78,18 @@ export class AuthController extends AuthControllerCE {
 
   @Post(['/api/v2/auth/mfa/setup'])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @Acl('mfaSetup', { scope: 'org' })
   @HttpCode(200)
-  async mfaSetup(@Req() req: NcRequest) {
-    return this.mfaService.setup(req.user.id);
+  async mfaSetup(
+    @Req() req: NcRequest,
+    @Body() body: { password: string },
+  ) {
+    return this.mfaService.setup(req.user.id, body.password);
   }
 
   @Post(['/api/v2/auth/mfa/verify-setup'])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @Acl('mfaVerifySetup', { scope: 'org' })
   @HttpCode(200)
   async mfaVerifySetup(
     @Req() req: NcRequest,
@@ -105,12 +107,14 @@ export class AuthController extends AuthControllerCE {
     @Body() body: { token: string; code: string },
   ) {
     const result = await this.mfaService.verifySignin(body.token, body.code);
+    await this.setRefreshToken({ req, res });
     setAuthCookie(res, result.token);
     res.json(result);
   }
 
   @Post(['/api/v2/auth/mfa/disable'])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @Acl('mfaDisable', { scope: 'org' })
   @HttpCode(200)
   async mfaDisable(
     @Req() req: NcRequest,
@@ -121,12 +125,14 @@ export class AuthController extends AuthControllerCE {
 
   @Get(['/api/v2/auth/mfa/status'])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @Acl('mfaStatus', { scope: 'org' })
   async mfaStatus(@Req() req: NcRequest) {
     return this.mfaService.status(req.user.id);
   }
 
   @Post(['/api/v2/auth/mfa/regenerate-backup-codes'])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @Acl('mfaRegenerateBackupCodes', { scope: 'org' })
   @HttpCode(200)
   async mfaRegenerateBackupCodes(
     @Req() req: NcRequest,

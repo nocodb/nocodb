@@ -8,11 +8,21 @@ definePageMeta({
 
 const route = useRoute()
 
-const { signIn: _signIn, appInfo } = useGlobal()
+const { appInfo } = useGlobal()
 
 const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
+
+const {
+  twoFactorRequired,
+  twoFactorCode,
+  twoFactorError,
+  useBackupCode,
+  handleSigninResponse,
+  verifyTwoFactor: _verifyTwoFactor,
+  cancelTwoFactor,
+} = useTwoFactorSignin()
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
@@ -22,12 +32,6 @@ const form = reactive({
   email: '',
   password: '',
 })
-
-const twoFactorRequired = ref(false)
-const twoFactorToken = ref('')
-const twoFactorCode = ref('')
-const twoFactorError = ref('')
-const useBackupCode = ref(false)
 
 const formRules: Record<string, RuleObject[]> = {
   email: [
@@ -57,13 +61,7 @@ async function signIn() {
   resetError()
 
   api.auth.signin(form).then(async (response: any) => {
-    if (response.twoFactorRequired) {
-      twoFactorRequired.value = true
-      twoFactorToken.value = response.twoFactorToken
-      return
-    }
-
-    _signIn(response.token!)
+    if (handleSigninResponse(response)) return
 
     await navigateTo({
       path: '/',
@@ -73,31 +71,13 @@ async function signIn() {
 }
 
 async function verifyTwoFactor() {
-  twoFactorError.value = ''
-
-  try {
-    const response = await api.instance.post('/api/v2/auth/mfa/verify', {
-      token: twoFactorToken.value,
-      code: twoFactorCode.value,
-    })
-
-    _signIn(response.data.token)
-
+  const success = await _verifyTwoFactor()
+  if (success) {
     await navigateTo({
       path: '/',
       query: route.query,
     })
-  } catch (e: any) {
-    twoFactorError.value = await extractSdkResponseErrorMsg(e)
   }
-}
-
-function cancelTwoFactor() {
-  twoFactorRequired.value = false
-  twoFactorToken.value = ''
-  twoFactorCode.value = ''
-  twoFactorError.value = ''
-  useBackupCode.value = false
 }
 
 function resetError() {
@@ -146,8 +126,9 @@ function navigateForgotPassword() {
               </div>
             </Transition>
 
-            <a-form layout="vertical" no-style @finish="verifyTwoFactor">
-              <a-form-item :label="useBackupCode ? $t('labels.backupCode') : $t('labels.verificationCode')">
+            <div class="flex flex-col gap-3">
+              <div>
+                <div class="text-sm font-medium mb-1">{{ useBackupCode ? $t('labels.backupCode') : $t('labels.verificationCode') }}</div>
                 <a-input
                   v-model:value="twoFactorCode"
                   data-testid="nc-form-signin__2fa-code"
@@ -155,11 +136,12 @@ function navigateForgotPassword() {
                   :placeholder="useBackupCode ? $t('placeholder.enterBackupCode') : $t('placeholder.enterVerificationCode')"
                   autocomplete="one-time-code"
                   @focus="twoFactorError = ''"
+                  @pressEnter="verifyTwoFactor"
                 />
-              </a-form-item>
+              </div>
 
               <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
-                <button data-testid="nc-form-signin__2fa-submit" class="scaling-btn bg-opacity-100" type="submit">
+                <button data-testid="nc-form-signin__2fa-submit" class="scaling-btn bg-opacity-100" @click="verifyTwoFactor">
                   <span class="flex items-center gap-2">{{ $t('general.verify') }}</span>
                 </button>
 
@@ -175,7 +157,7 @@ function navigateForgotPassword() {
                   </a>
                 </div>
               </div>
-            </a-form>
+            </div>
           </template>
 
           <template v-else>

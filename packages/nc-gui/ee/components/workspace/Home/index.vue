@@ -26,7 +26,14 @@ const basesStore = useBases()
 
 const { basesList } = storeToRefs(basesStore)
 
-const filterMode = ref<'all' | 'starred'>('all')
+const filterMode = ref<'all' | 'starred' | 'private' | 'managed'>('all')
+
+const filterLabels: Record<string, () => string> = {
+  all: () => t('activity.allBases'),
+  starred: () => t('general.starred'),
+  private: () => t('general.private'),
+  managed: () => t('labels.managed'),
+}
 
 // localStorage-based "last opened" tracking
 const lastOpenedMap = useStorage<Record<string, number>>('nc-base-last-opened', {})
@@ -44,6 +51,10 @@ const filteredBases = computed(() => {
 
   if (filterMode.value === 'starred') {
     result = result.filter((b: any) => b.starred)
+  } else if (filterMode.value === 'private') {
+    result = result.filter((b: any) => b.default_role === 'no-access')
+  } else if (filterMode.value === 'managed') {
+    result = result.filter((b: any) => !!b.managed_app_id)
   }
 
   return [...result].sort((a, b) => {
@@ -350,23 +361,31 @@ const chatSuggestions = [
               <NcButton type="secondary" size="small">
                 <div class="flex items-center gap-1.5">
                   <GeneralIcon icon="list" class="h-3.5 w-3.5" />
-                  <span class="text-xs">{{ filterMode === 'starred' ? $t('general.starred') : $t('activity.allBases') }}</span>
+                  <span class="text-xs">{{ filterLabels[filterMode]() }}</span>
                   <GeneralIcon icon="chevronDown" class="h-3 w-3" />
                 </div>
               </NcButton>
               <template #overlay>
                 <NcMenu>
                   <NcMenuItem @click="filterMode = 'all'">
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon v-if="filterMode === 'all'" icon="check" class="h-4 w-4 text-primary" />
-                      <span :class="{ 'pl-6': filterMode !== 'all' }">{{ $t('activity.allBases') }}</span>
-                    </div>
+                    <GeneralIcon icon="list" class="h-4 w-4" />
+                    {{ $t('activity.allBases') }}
+                    <GeneralIcon v-if="filterMode === 'all'" icon="check" class="h-4 w-4 text-primary ml-auto" />
                   </NcMenuItem>
                   <NcMenuItem @click="filterMode = 'starred'">
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon v-if="filterMode === 'starred'" icon="check" class="h-4 w-4 text-primary" />
-                      <span :class="{ 'pl-6': filterMode !== 'starred' }">{{ $t('general.starred') }}</span>
-                    </div>
+                    <GeneralIcon icon="ncStar" class="h-4 w-4" />
+                    {{ $t('general.starred') }}
+                    <GeneralIcon v-if="filterMode === 'starred'" icon="check" class="h-4 w-4 text-primary ml-auto" />
+                  </NcMenuItem>
+                  <NcMenuItem @click="filterMode = 'private'">
+                    <GeneralIcon icon="ncLock" class="h-4 w-4" />
+                    {{ $t('general.private') }}
+                    <GeneralIcon v-if="filterMode === 'private'" icon="check" class="h-4 w-4 text-primary ml-auto" />
+                  </NcMenuItem>
+                  <NcMenuItem @click="filterMode = 'managed'">
+                    <GeneralIcon icon="ncBox" class="h-4 w-4" />
+                    {{ $t('labels.managed') }}
+                    <GeneralIcon v-if="filterMode === 'managed'" icon="check" class="h-4 w-4 text-primary ml-auto" />
                   </NcMenuItem>
                 </NcMenu>
               </template>

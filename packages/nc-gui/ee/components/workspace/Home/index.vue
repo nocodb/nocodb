@@ -152,7 +152,7 @@ const wsTabItems = computed(() => {
   }
 
   if (!isEEFeatureBlocked.value) {
-    items.push({ key: 'general', label: t('general.general'), icon: 'ncSettings', route: `/${wsId}/ws-settings` })
+    items.push({ key: 'general', label: t('general.general'), icon: 'ncMoreHorizontal', route: `/${wsId}/ws-settings` })
   }
 
   return items

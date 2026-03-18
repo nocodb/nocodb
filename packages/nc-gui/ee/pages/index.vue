@@ -27,10 +27,38 @@ const tableStore = useTablesStore()
 
 const navigating = ref(false)
 
+const wsHomeRouteNames = new Set([
+  'index-home',
+  'index-typeOrId',
+  'index-typeOrId-index',
+  'index-typeOrId-members',
+  'index-typeOrId-teams',
+  'index-typeOrId-billing',
+  'index-typeOrId-audits',
+  'index-typeOrId-sso',
+  'index-typeOrId-ws-settings',
+  'index-typeOrId-integrations',
+])
+
+const isHomeSidebarRoute = computed(() => {
+  return wsHomeRouteNames.has(route.value.name as string)
+})
+
+const { hideMiniSidebar } = storeToRefs(useSidebarStore())
+
+watch(isHomeSidebarRoute, (val) => {
+  hideMiniSidebar.value = val
+}, { immediate: true })
+
 const autoNavigateToProject = async ({ initial = false }: { initial: boolean }) => {
   const routeName = route.value.name as string
 
-  if (routeName !== 'index-typeOrId' && routeName !== 'index') {
+  // Don't auto-navigate when on workspace home (/{ws_id}) or /home
+  if (routeName === 'index-typeOrId' || routeName === 'index-typeOrId-index' || routeName === 'index-home') {
+    return
+  }
+
+  if (routeName !== 'index') {
     return
   }
 
@@ -190,7 +218,8 @@ watch(
 
     <NuxtLayout v-else name="dashboard">
       <template #sidebar>
-        <DashboardSidebar />
+        <DashboardHomeSidebar v-if="isHomeSidebarRoute" />
+        <DashboardSidebar v-else />
       </template>
       <template #content>
         <NuxtPage :transition="false" />

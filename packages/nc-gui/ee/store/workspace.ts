@@ -588,7 +588,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       throw new Error('Workspace not selected')
     }
 
-    const path = `/${workspaceId}/settings/ws-settings`
+    const path = `/${workspaceId}/ws-settings`
     if (cmdOrCtrl) {
       await navigateTo(path, { open: navigateToBlankTargetOpenOption })
     } else {

@@ -78,7 +78,7 @@ const onTabClick = async (tabKey: string) => {
       navigateTo(`${getBasePath()}/settings`)
     } else {
       const wsId = route.value.params.typeOrId || activeWorkspaceId.value
-      navigateTo(`/${wsId}/settings/ws-members`)
+      navigateTo(`/${wsId}/members`)
     }
     return
   }

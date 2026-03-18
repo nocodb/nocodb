@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+<script setup lang="ts">
 definePageMeta({
   hideHeader: true,
   hasSidebar: true,
@@ -11,6 +11,6 @@ const { activeWorkspace } = storeToRefs(workspaceStore)
 
 <template>
   <div v-if="activeWorkspace?.id" class="h-full">
-    <WorkspaceHome />
+    <WorkspaceViewInline :tab="'ws-billing'" />
   </div>
 </template>

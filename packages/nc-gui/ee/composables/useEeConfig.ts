@@ -568,7 +568,7 @@ export const useEeConfig = createSharedComposable(() => {
     const planCtaBtnQuery = limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE ? `&activeBtn=${PlanTitles.BUSINESS}` : ''
 
     if (redirectToWorkspace) {
-      navigateTo(`/${workspaceId ?? activeWorkspaceId.value}/settings/ws-billing?autoScroll=plan${planCtaBtnQuery}`)
+      navigateTo(`/${workspaceId ?? activeWorkspaceId.value}/billing?autoScroll=plan${planCtaBtnQuery}`)
     } else {
       navigateTo(`/account/workspace/${workspaceId ?? activeWorkspaceId.value}/settings?autoScroll=plan${planCtaBtnQuery}`)
     }

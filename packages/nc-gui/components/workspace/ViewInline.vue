@@ -101,12 +101,12 @@ const tab = computed({
       loadCollaborators({}, props.workspaceId)
     }
 
-    // Navigate via route path
+    // Navigate via route path — use flat URL structure (/{wsId}/{tabSlug})
     const wsTab = ncTabKeyToWsTab[newTab]
     if (wsTab) {
       const wsId = route.value.params.typeOrId
       const slug = wsSettingsTabToSlug[wsTab] || wsTab
-      navigateTo(`/${wsId}/settings/${slug}`)
+      navigateTo(`/${wsId}/${slug}`)
     }
   },
 })

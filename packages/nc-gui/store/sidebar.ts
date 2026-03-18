@@ -118,8 +118,9 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const routeDerivedTab = computed<SidebarTab | null>(() => {
     const name = route.value.name?.toString() ?? ''
 
-    // Workspace-level settings
+    // Workspace-level settings (old and new flat routes)
     if (name === 'index-typeOrId-settings-page') return 'settings'
+    if (['index-typeOrId-members', 'index-typeOrId-teams', 'index-typeOrId-billing', 'index-typeOrId-audits', 'index-typeOrId-sso', 'index-typeOrId-ws-settings'].includes(name)) return 'settings'
 
     // Base routes — only derive tab when a baseId is present
     if (name.startsWith('index-typeOrId-baseId-')) {

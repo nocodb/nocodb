@@ -6,8 +6,8 @@ definePageMeta({
 
 const route = useRoute()
 
-// Redirect bare /{wsId}/settings/ to /{wsId}/settings/ws-members
-navigateTo(`/${route.params.typeOrId}/settings/ws-members`, { replace: true })
+// Redirect old settings URL to new flat URL
+navigateTo(`/${route.params.typeOrId}/members`, { replace: true })
 </script>
 
 <template>

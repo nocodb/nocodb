@@ -94,12 +94,12 @@ function switchTab(index: number) {
 }
 
 .nc-doc-tabs-header {
-  @apply flex gap-1 px-3 pt-2 pb-0 border-b-1 border-nc-border-gray-medium;
+  @apply flex gap-1 px-3 pt-2 pb-0;
 }
 
 .nc-doc-tab-btn {
-  @apply px-3 py-1.5 text-bodySm cursor-pointer rounded-t-md transition-colors;
-  @apply text-nc-content-gray-subtle bg-transparent border-0;
+  @apply px-3 py-1 mb-1.5 text-bodySm cursor-pointer rounded-md transition-colors;
+  @apply text-nc-content-gray-muted bg-transparent border-0;
 
   &.active {
     @apply text-nc-content-gray bg-nc-bg-gray-light font-semibold;

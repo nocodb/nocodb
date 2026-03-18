@@ -112,18 +112,50 @@ const getBaseOpenedTimeAgo = (base: any): string => {
   return ''
 }
 
-// Workspace tabs
+// Workspace tabs — conditional visibility like WorkspaceViewInline
+const { isUIAllowed } = useRoles()
+
+const { isMobileMode, appInfo } = useGlobal()
+
+const {
+  isWsAuditEnabled,
+  isPaymentEnabled,
+  getFeature,
+  isEEFeatureBlocked,
+  showEEFeatures,
+} = useEeConfig()
+
 const wsTabItems = computed(() => {
   const wsId = activeWorkspaceId.value
-  return [
+  const items: { key: string; label: string; icon: string; route: string }[] = [
     { key: 'bases', label: t('objects.projects'), icon: 'ncDatabase', route: `/${wsId}` },
-    { key: 'members', label: t('labels.members'), icon: 'users', route: `/${wsId}/members` },
-    { key: 'teams', label: t('general.teams'), icon: 'ncBuilding', route: `/${wsId}/teams` },
-    { key: 'integrations', label: t('general.integrations'), icon: 'integration', route: `/${wsId}/integrations` },
-    { key: 'audits', label: t('title.audits'), icon: 'audit', route: `/${wsId}/audits` },
-    { key: 'billing', label: t('general.billing'), icon: 'ncDollarSign', route: `/${wsId}/billing` },
-    { key: 'general', label: t('general.general'), icon: 'ncSettings', route: `/${wsId}/ws-settings` },
   ]
+
+  if (isUIAllowed('workspaceCollaborators')) {
+    items.push({ key: 'members', label: t('labels.members'), icon: 'users', route: `/${wsId}/members` })
+  }
+
+  if (isEeUI && showEEFeatures.value) {
+    items.push({ key: 'teams', label: t('general.teams'), icon: 'ncBuilding', route: `/${wsId}/teams` })
+  }
+
+  if (isUIAllowed('workspaceIntegrations') && !isMobileMode.value) {
+    items.push({ key: 'integrations', label: t('general.integrations'), icon: 'integration', route: `/${wsId}/integrations` })
+  }
+
+  if (isEeUI && isUIAllowed('workspaceAuditList') && showEEFeatures.value) {
+    items.push({ key: 'audits', label: t('title.audits'), icon: 'audit', route: `/${wsId}/audits` })
+  }
+
+  if (isEeUI && isPaymentEnabled.value && isUIAllowed('workspaceBilling') && showEEFeatures.value) {
+    items.push({ key: 'billing', label: t('general.billing'), icon: 'ncDollarSign', route: `/${wsId}/billing` })
+  }
+
+  if (!isEEFeatureBlocked.value) {
+    items.push({ key: 'general', label: t('general.general'), icon: 'ncSettings', route: `/${wsId}/ws-settings` })
+  }
+
+  return items
 })
 
 const activeTab = computed(() => {
@@ -170,7 +202,7 @@ const chatSuggestions = [
         @click="openSearch"
       >
         <GeneralIcon icon="search" class="h-4 w-4 text-nc-content-gray-muted flex-none" />
-        <span class="text-sm text-nc-content-gray-muted flex-1">{{ $t('activity.searchWorkspaceBases') }}...</span>
+        <span class="text-[13px] text-nc-content-gray-muted flex-1">{{ $t('activity.searchWorkspaceBases') }}...</span>
         <div class="flex items-center gap-0.5">
           <kbd class="nc-ws-home-kbd">{{ renderCmdOrCtrlKey() }}</kbd>
           <kbd class="nc-ws-home-kbd">K</kbd>
@@ -184,7 +216,7 @@ const chatSuggestions = [
         <div
           v-for="tab in wsTabItems"
           :key="tab.key"
-          class="flex items-center gap-1.5 px-3 py-2 cursor-pointer text-sm transition-colors whitespace-nowrap border-b-2"
+          class="flex items-center gap-1.5 px-3 py-2 cursor-pointer text-[13px] transition-colors whitespace-nowrap border-b-2"
           :class="{
             'border-primary text-nc-content-brand font-semibold': activeTab === tab.key,
             'border-transparent text-nc-content-gray-muted hover:text-nc-content-gray-subtle': activeTab !== tab.key,
@@ -211,7 +243,7 @@ const chatSuggestions = [
           <h1 class="text-2xl font-bold text-nc-content-gray mb-1.5">
             What will you build next?
           </h1>
-          <p class="text-sm text-nc-content-gray-subtle mb-6">
+          <p class="text-[13px] text-nc-content-gray-subtle mb-6">
             Describe your agent or pick an idea below
           </p>
 
@@ -220,7 +252,7 @@ const chatSuggestions = [
             <div
               class="nc-chat-input-mock relative rounded-xl border-2 border-primary/50 px-4 pt-3 pb-10 text-left"
             >
-              <span class="text-sm text-nc-content-gray-muted">Create a workflow to</span>
+              <span class="text-[13px] text-nc-content-gray-muted">Create a workflow to</span>
               <div class="absolute bottom-3 left-4 flex items-center gap-1.5 text-nc-content-gray-muted">
                 <GeneralIcon icon="magic" class="h-3.5 w-3.5" />
                 <span class="text-xs">AI-powered</span>
@@ -302,7 +334,7 @@ const chatSuggestions = [
 
           <!-- Empty state -->
           <div v-if="!filteredBases.length" class="flex flex-col items-center justify-center py-16 text-nc-content-gray-subtle">
-            <span class="text-sm">{{ $t('labels.noData') }}</span>
+            <span class="text-[13px]">{{ $t('labels.noData') }}</span>
           </div>
 
           <!-- Grouped base cards -->
@@ -322,7 +354,7 @@ const chatSuggestions = [
                 >
                   <GeneralProjectIcon :color="base.meta?.iconColor" class="flex-none" />
                   <div class="flex-1 min-w-0">
-                    <NcTooltip show-on-truncate-only class="text-sm font-medium text-nc-content-gray truncate block">
+                    <NcTooltip show-on-truncate-only class="text-[13px] font-medium text-nc-content-gray truncate block">
                       <template #title>{{ base.title }}</template>
                       {{ base.title }}
                     </NcTooltip>
@@ -345,7 +377,6 @@ const chatSuggestions = [
             </div>
           </template>
         </div>
-      </div>
       </div>
     </div>
   </div>

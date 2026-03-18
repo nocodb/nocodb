@@ -25,7 +25,7 @@ import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { extractPropsAndSanitize } from '~/helpers/extractProps';
 import syncMigration from '~/helpers/syncMigration';
-import { Base, BaseUser, Integration } from '~/models';
+import { Base, BaseUser, Integration, IntegrationLink } from '~/models';
 import Noco from '~/Noco';
 import { getToolDir } from '~/utils/nc-config';
 import { MetaService } from '~/meta/meta.service';
@@ -196,6 +196,7 @@ export class BasesService {
     const transaction = await ncMeta.startTransaction();
 
     try {
+      await IntegrationLink.deleteByBase(context, param.baseId, transaction);
       await Base.softDelete(context, param.baseId, transaction);
 
       await transaction.commit();

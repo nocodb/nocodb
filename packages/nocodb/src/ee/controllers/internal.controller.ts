@@ -425,6 +425,7 @@ export class InternalController extends InternalControllerCE {
           },
         )) as any;
       case 'authIntegrationTestConnection':
+      case 'baseAuthIntegrationTestConnection':
         return await this.integrationsService.authIntegrationTestConnection(
           payload,
         );

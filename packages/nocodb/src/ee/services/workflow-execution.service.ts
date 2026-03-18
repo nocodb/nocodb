@@ -37,7 +37,14 @@ import {
   getRequiredPlanForNode,
   isNodeAvailableForPlan,
 } from '~/helpers/workflowNodeHelpers';
-import { BaseUser, Column, Integration, User, Workflow } from '~/models';
+import {
+  BaseUser,
+  Column,
+  Integration,
+  IntegrationLink,
+  User,
+  Workflow,
+} from '~/models';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import { TablesService } from '~/services/tables.service';
 import { NcError } from '~/helpers/ncError';
@@ -370,6 +377,20 @@ export class WorkflowExecutionService {
       const integration = await Integration.get(context, integrationId);
       if (!integration) {
         NcError.get(context).integrationNotFound(integrationId);
+      }
+
+      // Skip link check for global (env var) integrations
+      if (!integration.is_global && integration.is_restricted) {
+        const isLinked = await IntegrationLink.isAvailable(context, {
+          fk_integration_id: integrationId,
+          base_id: context.base_id,
+          is_restricted: true,
+        });
+        if (!isLinked) {
+          NcError.get(context).badRequest(
+            'Integration is not connected to this base.',
+          );
+        }
       }
 
       const authWrapper = await integration.getIntegrationWrapper();

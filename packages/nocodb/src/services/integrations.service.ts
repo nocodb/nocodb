@@ -5,7 +5,7 @@ import type { IntegrationReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
-import { Base, Integration } from '~/models';
+import { Base, Integration, IntegrationLink } from '~/models';
 import { NcBaseError, NcError } from '~/helpers/catchError';
 import { Source } from '~/models';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
@@ -156,6 +156,13 @@ export class IntegrationsService {
         NcError.get(context).integrationLinkedWithMultiple(bases, sources);
       }
 
+      // Delete integration links
+      await IntegrationLink.deleteByIntegration(
+        { ...context, base_id: null },
+        param.integrationId,
+        ncMeta,
+      );
+
       await integration.delete(ncMeta);
       this.appHooksService.emit(AppEvents.INTEGRATION_DELETE, {
         integration,
@@ -219,6 +226,13 @@ export class IntegrationsService {
             ncMeta,
           );
         }
+
+        // Delete integration links
+        await IntegrationLink.deleteByIntegration(
+          { ...context, base_id: null },
+          param.integrationId,
+          ncMeta,
+        );
 
         await integration.softDelete(ncMeta);
         this.appHooksService.emit(AppEvents.INTEGRATION_DELETE, {

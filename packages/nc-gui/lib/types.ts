@@ -292,6 +292,7 @@ type ProjectPageType =
   | 'data-source'
   | 'base-settings'
   | 'syncs'
+  | 'integrations'
   | 'permissions'
   | 'audits'
   | 'workflows'

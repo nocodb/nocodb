@@ -327,11 +327,7 @@ const mainItems = computed<NavItem[]>(() => [
 }
 
 .nc-rail-logo {
-  @apply flex items-center justify-center cursor-pointer opacity-90 hover:opacity-100 transform transition-all duration-150;
-
-  &:hover {
-    scale: 1.1;
-  }
+  @apply flex items-center justify-center cursor-pointer opacity-90 hover:opacity-100 transition-all duration-150 p-1.5 rounded-lg;
 }
 
 .nc-rail-bottom-group {

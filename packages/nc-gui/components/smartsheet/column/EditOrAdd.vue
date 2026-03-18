@@ -505,7 +505,7 @@ onMounted(() => {
     } else if (
       isSystemColumn(formState.value) &&
       !isSelfReferencingTableColumn(formState.value) &&
-      ![UITypes.CreatedTime, UITypes.LastModifiedTime].includes(formState.value.uidt)
+      !isCreatedOrLastModifiedTimeCol(formState.value)
     ) {
       message.info(t('msg.info.editingSystemKeyNotSupported'))
       emit('cancel')

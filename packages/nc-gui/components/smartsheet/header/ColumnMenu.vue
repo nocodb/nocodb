@@ -666,7 +666,7 @@ const onDeleteColumn = () => {
 
       <NcMenuItem
         v-if="!isMobileMode"
-        :disabled="column?.pk || (isSystemColumn(column) && ![UITypes.CreatedTime, UITypes.LastModifiedTime].includes(column?.uidt)) || !isColumnEditAllowed || linksAssociated?.length"
+        :disabled="column?.pk || (isSystemColumn(column) && !isCreatedOrLastModifiedTimeCol(column)) || !isColumnEditAllowed || linksAssociated?.length"
         :title="linksAssociated?.length ? 'Field is associated with a link column' : undefined"
         @click="onEditPress($event, false)"
       >

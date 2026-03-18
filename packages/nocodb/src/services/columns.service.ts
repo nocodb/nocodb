@@ -481,7 +481,7 @@ export class ColumnsService implements IColumnsService {
       // Allow meta-only updates (description, display format) for CreatedTime/LastModifiedTime
       !(
         !payloadHasNonMetaProps &&
-        [UITypes.CreatedTime, UITypes.LastModifiedTime].includes(column.uidt)
+        isCreatedOrLastModifiedTimeCol(column)
       )
     ) {
       NcError.get(context).systemFieldNonModifiable();

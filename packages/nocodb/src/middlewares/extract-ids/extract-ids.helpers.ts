@@ -72,14 +72,6 @@ export const editorPersonalViewOnlyPermissions = [
   ...PERSONAL_VIEW_MANAGEMENT_PERMISSIONS,
 ];
 
-// Operations blocked for shared-base (public link) sessions.
-// Shared-base visitors get viewer role but should not be able to
-// manage members or perform other privileged operations.
-export const publicBaseBlockedOps = [
-  'baseUserList',
-  'userInvite',
-];
-
 // All permissions granted to personal view owners regardless of role.
 export const personalViewOwnerAllowedPermissions = [
   'filterList',

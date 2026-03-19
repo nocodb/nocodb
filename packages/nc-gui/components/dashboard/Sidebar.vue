@@ -35,7 +35,7 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="nc-sidebar flex flex-col !bg-white dark:!bg-nc-bg-gray-sidebar outline-r-1 outline-nc-border-gray-light select-none w-full h-full font-medium z-2"
+    class="nc-sidebar flex flex-col outline-r-1 outline-nc-border-gray-light select-none w-full h-full font-medium z-2"
     :style="{
       outlineWidth: '1px',
     }"
@@ -62,6 +62,14 @@ onUnmounted(() => {
 </template>
 
 <style lang="scss" scoped>
+.nc-sidebar {
+  background: #ffffff;
+
+  :root[theme='dark'] & {
+    background: var(--nc-bg-gray-sidebar);
+  }
+}
+
 .nc-sidebar-top-button {
   @apply flex flex-row mx-1 px-3.5 rounded-md items-center py-0.75 my-0.5 gap-x-2 hover:bg-nc-bg-gray-medium cursor-pointer;
 }

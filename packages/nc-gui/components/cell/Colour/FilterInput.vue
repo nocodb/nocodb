@@ -68,8 +68,8 @@ const onTextInput = (e: Event) => {
       <div
         v-if="isValidHex"
         :class="shapeClass"
-        :style="{ backgroundColor: vModel, border: '1px solid #d0d5dd' }"
-        class="w-4 h-4"
+        :style="{ backgroundColor: vModel }"
+        class="w-4 h-4 border-1 border-gray-300"
       />
       <component :is="iconMap.palette" v-else class="w-4 h-4 text-nc-content-gray-muted" />
     </div>

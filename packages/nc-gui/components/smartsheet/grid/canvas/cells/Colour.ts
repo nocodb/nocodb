@@ -51,13 +51,17 @@ export const ColourCellRenderer: CellRenderer = {
 
     // Parse and validate the color value
     const colorValue = value ? String(value).trim() : null
-    const isValidColor = isValidHexColour(colorValue)
-    const displayColor = isValidColor ? colorValue : columnMeta.defaultColor || '#FFFFFF'
 
     // Don't render anything if no value
     if (!colorValue) {
       return
     }
+
+    const isValidColor = isValidHexColour(colorValue)
+    const hexDisplayText = colorValue.toUpperCase()
+
+    const showSwatch = columnMeta.displayFormat !== 'hex_only' && isValidColor
+    const showHex = columnMeta.displayFormat !== 'swatch_only'
 
     // Swatch size: fixed 16px in regular cells (matches HTML Editor), configurable in tags
     const tagSwatchSize = TAG_SWATCH_SIZE[columnMeta.swatchSize] || TAG_SWATCH_SIZE.medium!
@@ -82,18 +86,20 @@ export const ColourCellRenderer: CellRenderer = {
 
     if (renderAsTag) {
       const tagBorderRadius = columnMeta.swatchStyle === 'circle' ? tagSwatchSize / 2 : SQUARE_BORDER_RADIUS
+      const showTagSwatch = columnMeta.displayFormat !== 'hex_only' && isValidColor
 
-      let tagWidth = tagSwatchSize + tagPaddingX * 2
+      // Calculate tag width based on display format
+      ctx.font = '12px Inter'
+      let tagWidth: number
 
-      // Add space for hex code if display format includes it
-      if (colorValue && (columnMeta.displayFormat === 'swatch_hex' || columnMeta.displayFormat === 'hex_only')) {
-        const hexText = colorValue.toUpperCase()
-        ctx.font = '12px Inter'
-        const hexTextWidth = ctx.measureText(hexText).width
-        tagWidth =
-          columnMeta.displayFormat === 'hex_only'
-            ? hexTextWidth + tagPaddingX * 2
-            : tagSwatchSize + 8 + hexTextWidth + tagPaddingX * 2
+      if (showTagSwatch && showHex) {
+        const hexTextWidth = ctx.measureText(hexDisplayText).width
+        tagWidth = tagSwatchSize + 8 + hexTextWidth + tagPaddingX * 2
+      } else if (showHex) {
+        const hexTextWidth = ctx.measureText(hexDisplayText).width
+        tagWidth = hexTextWidth + tagPaddingX * 2
+      } else {
+        tagWidth = tagSwatchSize + tagPaddingX * 2
       }
 
       const initialY = y + height / 2 - tagHeight / 2
@@ -113,9 +119,8 @@ export const ColourCellRenderer: CellRenderer = {
       if (colorValue || isUnderLookup) {
         let contentX = x + tagSpacing + tagPaddingX
 
-        if (columnMeta.displayFormat !== 'hex_only') {
-          // Render color swatch
-          ctx.fillStyle = displayColor
+        if (showTagSwatch) {
+          ctx.fillStyle = colorValue
           ctx.beginPath()
           if (columnMeta.swatchStyle === 'circle') {
             ctx.arc(contentX + tagSwatchSize / 2, initialY + tagHeight / 2, tagSwatchSize / 2, 0, 2 * Math.PI)
@@ -131,14 +136,14 @@ export const ColourCellRenderer: CellRenderer = {
           contentX += tagSwatchSize + 8
         }
 
-        if (columnMeta.displayFormat !== 'swatch_only' && colorValue) {
+        if (showHex) {
           ctx.font = '12px Inter'
           ctx.fillStyle = getColor(themeV4Colors.gray['600'])
           ctx.textBaseline = 'middle'
           ctx.textAlign = 'left'
 
           const maxTagTextWidth = x + tagSpacing + tagWidth - contentX - tagPaddingX
-          const truncatedTagText = truncateText(ctx, colorValue.toUpperCase(), maxTagTextWidth)
+          const truncatedTagText = truncateText(ctx, hexDisplayText, maxTagTextWidth)
           ctx.fillText(truncatedTagText, contentX, initialY + tagHeight / 2)
         }
       }
@@ -149,36 +154,34 @@ export const ColourCellRenderer: CellRenderer = {
       }
     } else {
       // Regular cell rendering
-      if (colorValue) {
-        let contentX = swatchX
+      let contentX = swatchX
 
-        if (columnMeta.displayFormat !== 'hex_only') {
-          ctx.fillStyle = displayColor
-          ctx.beginPath()
-          if (columnMeta.swatchStyle === 'circle') {
-            ctx.arc(contentX + swatchSize / 2, swatchY + swatchSize / 2, swatchSize / 2, 0, 2 * Math.PI)
-          } else {
-            ctx.roundRect(contentX, swatchY, swatchSize, swatchSize, borderRadius)
-          }
-          ctx.fill()
-
-          ctx.strokeStyle = getColor('#d0d5dd', themeV4Colors.gray['300'])
-          ctx.lineWidth = 1
-          ctx.stroke()
-
-          contentX = hexTextX
+      if (showSwatch) {
+        ctx.fillStyle = colorValue
+        ctx.beginPath()
+        if (columnMeta.swatchStyle === 'circle') {
+          ctx.arc(contentX + swatchSize / 2, swatchY + swatchSize / 2, swatchSize / 2, 0, 2 * Math.PI)
+        } else {
+          ctx.roundRect(contentX, swatchY, swatchSize, swatchSize, borderRadius)
         }
+        ctx.fill()
 
-        if (columnMeta.displayFormat !== 'swatch_only' && colorValue) {
-          ctx.font = '12px Inter'
-          ctx.fillStyle = getColor(themeV4Colors.gray['600'])
-          ctx.textBaseline = 'middle'
-          ctx.textAlign = 'left'
+        ctx.strokeStyle = getColor('#d0d5dd', themeV4Colors.gray['300'])
+        ctx.lineWidth = 1
+        ctx.stroke()
 
-          const maxTextWidth = x + width - contentX - padding
-          const truncatedText = truncateText(ctx, colorValue.toUpperCase(), maxTextWidth)
-          ctx.fillText(truncatedText, contentX, hexTextY)
-        }
+        contentX = hexTextX
+      }
+
+      if (showHex) {
+        ctx.font = '12px Inter'
+        ctx.fillStyle = getColor(themeV4Colors.gray['600'])
+        ctx.textBaseline = 'middle'
+        ctx.textAlign = 'left'
+
+        const maxTextWidth = x + width - contentX - padding
+        const truncatedText = truncateText(ctx, hexDisplayText, maxTextWidth)
+        ctx.fillText(truncatedText, contentX, hexTextY)
       }
     }
   },

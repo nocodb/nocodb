@@ -51,6 +51,14 @@ const shapeClass = computed(() => {
 
 const isValidHex = computed(() => isValidHexColour(props.modelValue))
 
+const showSwatch = computed(() => {
+  return colourMeta.value.displayFormat !== 'hex_only'
+})
+
+const showHex = computed(() => {
+  return colourMeta.value.displayFormat !== 'swatch_only'
+})
+
 // --- Colour picker (shared composable) ---
 const { isOpen, tempColor, pickerKey, openColorPicker, onColorChange, save, close } = useColourPicker({
   onSave: (colour) => {
@@ -99,6 +107,7 @@ watch(isOpen, (open) => {
   <div class="nc-cell-field flex items-center gap-1 w-full h-full relative">
     <!-- Colour swatch button to open picker -->
     <div
+      v-if="showSwatch"
       class="flex-shrink-0 w-5 h-5 cursor-pointer flex items-center justify-center"
       :class="{ 'pointer-events-none opacity-50': readOnly }"
       @click.stop="openColorPicker(vModel)"
@@ -106,14 +115,15 @@ watch(isOpen, (open) => {
       <div
         v-if="isValidHex"
         :class="shapeClass"
-        :style="{ backgroundColor: vModel, border: '1px solid #d0d5dd' }"
-        class="w-4 h-4"
+        :style="{ backgroundColor: vModel }"
+        class="w-4 h-4 border-1 border-gray-300"
       />
       <component :is="iconMap.palette" v-else class="w-4 h-4 text-nc-content-gray-muted" />
     </div>
 
     <!-- Editable text input for manual hex entry -->
     <input
+      v-if="showHex"
       :value="props.modelValue || ''"
       :disabled="readOnly"
       type="text"

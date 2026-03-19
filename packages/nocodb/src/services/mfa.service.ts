@@ -226,9 +226,14 @@ export class MfaService {
   }
 
   private async verifyTotp(secret: string, token: string): Promise<boolean> {
-    const otplib = await getOtplib();
-    const result = otplib.verifySync({ token, secret });
-    return result.valid;
+    try {
+      const otplib = await getOtplib();
+      const result = otplib.verifySync({ token, secret });
+      return result.valid;
+    } catch {
+      // verifySync throws on non-6-digit tokens — treat as invalid
+      return false;
+    }
   }
 
   private async verifyCode(

@@ -398,6 +398,54 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                   },
                 ],
               },
+              // Include records where start date is in range but end date is missing
+              // (treat as single-day events)
+              {
+                is_group: true,
+                logical_op: 'or',
+                children: [
+                  {
+                    fk_column_id: fromCol.id,
+                    comparison_op: 'lt',
+                    comparison_sub_op: 'exactDate',
+                    value: nextDate,
+                  },
+                  {
+                    fk_column_id: fromCol.id,
+                    comparison_op: 'gt',
+                    comparison_sub_op: 'exactDate',
+                    value: prevDate,
+                  },
+                  {
+                    fk_column_id: toCol.id,
+                    comparison_op: 'blank',
+                  },
+                ],
+              },
+              // Include records where end date is in range but start date is missing
+              // (treat as single-day milestone events)
+              {
+                is_group: true,
+                logical_op: 'or',
+                children: [
+                  {
+                    fk_column_id: toCol.id,
+                    comparison_op: 'lt',
+                    comparison_sub_op: 'exactDate',
+                    value: nextDate,
+                  },
+                  {
+                    fk_column_id: toCol.id,
+                    comparison_op: 'gt',
+                    comparison_sub_op: 'exactDate',
+                    value: prevDate,
+                  },
+                  {
+                    fk_column_id: fromCol.id,
+                    comparison_op: 'blank',
+                  },
+                ],
+              },
             ]
             combinedFilters.push({
               is_group: true,

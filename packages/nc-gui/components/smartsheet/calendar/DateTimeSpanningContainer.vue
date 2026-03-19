@@ -120,7 +120,14 @@ const calendarData = computed(() => {
     for (const record of records.value) {
       const id = record.rowMeta.id ?? generateRandomNumber()
 
-      const startDate = timezoneDayjs.timezonize(record.row[fk_from_col.title!])
+      // Use whichever date is available; fall back to the other if one is missing
+      const startDate = record.row[fk_from_col.title!]
+        ? timezoneDayjs.timezonize(record.row[fk_from_col.title!])
+        : record.row[fk_to_col.title!]
+          ? timezoneDayjs.timezonize(record.row[fk_to_col.title!])
+          : null
+      if (!startDate) continue
+
       const endDate = record.row[fk_to_col.title!]
         ? timezoneDayjs.timezonize(record.row[fk_to_col.title!])
         : startDate.endOf('day')

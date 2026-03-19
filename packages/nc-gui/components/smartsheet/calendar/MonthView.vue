@@ -200,6 +200,9 @@ const recordsToDisplay = computed<{
         if (startCol && endCol) {
           const fromDate = record.row[startCol.title!] ? timezoneDayjs.timezonize(record.row[startCol.title!]) : null
           const toDate = record.row[endCol.title!] ? timezoneDayjs.timezonize(record.row[endCol.title!]) : null
+          // If either date is missing, treat as single-day event using the available date
+          if (fromDate && !toDate) return true
+          if (!fromDate && toDate) return true
           return fromDate && toDate && !toDate.isBefore(fromDate)
         } else if (startCol && !endCol) {
           const fromDate = record.row[startCol!.title!] ? timezoneDayjs.timezonize(record.row[startCol!.title!]) : null
@@ -208,12 +211,14 @@ const recordsToDisplay = computed<{
         return false
       })
       .sort((a, b) => {
-        const aStart = timezoneDayjs.timezonize(a.row[startCol.title!])
-        const aEnd = endCol ? timezoneDayjs.timezonize(a.row[endCol.title!]) : aStart
-        const bStart = timezoneDayjs.timezonize(b.row[startCol.title!])
-        const bEnd = endCol ? timezoneDayjs.timezonize(b.row[endCol.title!]) : bStart
+        const aStart = a.row[startCol.title!] ? timezoneDayjs.timezonize(a.row[startCol.title!]) : null
+        const aEnd = endCol && a.row[endCol.title!] ? timezoneDayjs.timezonize(a.row[endCol.title!]) : null
+        const bStart = b.row[startCol.title!] ? timezoneDayjs.timezonize(b.row[startCol.title!]) : null
+        const bEnd = endCol && b.row[endCol.title!] ? timezoneDayjs.timezonize(b.row[endCol.title!]) : null
 
-        return bEnd.diff(bStart) - aEnd.diff(aStart)
+        const aSpan = aStart && aEnd ? aEnd.diff(aStart) : 0
+        const bSpan = bStart && bEnd ? bEnd.diff(bStart) : 0
+        return bSpan - aSpan
       })
 
     sortedFormattedData.forEach((record: Row) => {
@@ -271,8 +276,17 @@ const recordsToDisplay = computed<{
         })
       } else if (startCol && endCol) {
         // Multi-day event logic
-        let startDate = timezoneDayjs.timezonize(record.row[startCol.title!])
-        const endDate = timezoneDayjs.timezonize(record.row[endCol.title!])
+        // If either date is missing, treat as single-day event using the available date
+        let startDate = record.row[startCol.title!]
+          ? timezoneDayjs.timezonize(record.row[startCol.title!])
+          : record.row[endCol.title!]
+            ? timezoneDayjs.timezonize(record.row[endCol.title!])
+            : null
+        if (!startDate) return
+
+        const endDate = record.row[endCol.title!]
+          ? timezoneDayjs.timezonize(record.row[endCol.title!])
+          : startDate
 
         let currentWeekStart = startDate.startOf('week')
 

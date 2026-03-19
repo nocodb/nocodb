@@ -265,8 +265,7 @@ function baseTest() {
       .patch(`/api/v1/db/meta/projects/${base.id}/shared`)
       .set('xc-auth', context.token)
       .send({
-        roles: 'editor',
-        password: 'password123',
+        roles: 'viewer',
       })
       .expect(200);
     const updatedProject = await Base.getByTitleOrId(
@@ -277,9 +276,21 @@ function baseTest() {
       base.id,
     );
 
-    if (updatedProject.roles !== 'editor') {
+    if (updatedProject.roles !== 'viewer') {
       throw new Exception('Shared base not updated properly');
     }
+  });
+
+  it('Updated base shared base should reject editor role', async () => {
+    await createSharedBase(context.app, context.token, base);
+
+    await request(context.app)
+      .patch(`/api/v1/db/meta/projects/${base.id}/shared`)
+      .set('xc-auth', context.token)
+      .send({
+        roles: 'editor',
+      })
+      .expect(400);
   });
 
   it('Get base shared base', async () => {

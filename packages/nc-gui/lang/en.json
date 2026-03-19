@@ -2300,9 +2300,11 @@
     "availableToLink": "Available to link",
     "baseIntegrations": "Base Integrations",
     "newConnection": "New Connection",
-    "manageBaseAccess": "Manage base access",
+    "manageBaseAccess": "Manage integration access",
     "baseAccess": "Base access",
-    "restricted": "Restricted"
+    "restricted": "Restricted",
+    "grantAccessToAllBases": "Grant access to all current and future bases",
+    "selectBases": "Select bases"
   },
   "activity": {
     "useTemplate": "Use template",

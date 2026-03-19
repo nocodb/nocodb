@@ -164,15 +164,26 @@ function closeRegenerateModal() {
   isLoading.value = false
 }
 
+const recentlyCopied = ref(false)
+let copiedTimeout: ReturnType<typeof setTimeout>
+
+function showCopiedFeedback() {
+  recentlyCopied.value = true
+  clearTimeout(copiedTimeout)
+  copiedTimeout = setTimeout(() => {
+    recentlyCopied.value = false
+  }, 2000)
+}
+
 function copyBackupCodes(codes: string[]) {
   copy(codes.join('\n'))
-  message.success(t('msg.success.copiedToClipboard'))
+  showCopiedFeedback()
 }
 
 function copySecret() {
   if (setupData.value?.secret) {
     copy(setupData.value.secret)
-    message.success(t('msg.success.copiedToClipboard'))
+    showCopiedFeedback()
   }
 }
 
@@ -297,14 +308,9 @@ onMounted(() => {
     </div>
 
     <!-- Setup Modal -->
-    <GeneralModal v-model:visible="showSetupModal" size="small" centered :closable="setupStep !== 'verify' && setupStep !== 'backup'">
+    <GeneralModal v-model:visible="showSetupModal" size="medium" centered :closable="setupStep !== 'verify' && setupStep !== 'backup'">
       <div class="flex flex-col gap-2 p-4 md:!p-6">
-        <div class="flex items-center justify-between mb-3">
-          <div class="text-lg font-semibold">{{ $t('labels.setupTwoFactor') }}</div>
-          <div class="text-xs text-nc-content-gray-subtle">
-            {{ $t('labels.stepOf', { current: setupStepNumber, total: 4 }) }}
-          </div>
-        </div>
+        <div class="text-lg font-semibold mb-3">{{ $t('labels.setupTwoFactor') }}</div>
 
         <!-- Step 0: Password confirmation -->
         <template v-if="setupStep === 'password'">
@@ -339,20 +345,24 @@ onMounted(() => {
         <!-- Step 1: QR Code -->
         <template v-if="setupStep === 'qr' && setupData">
           <span class="text-sm text-nc-content-gray-subtle">
-            {{ $t('labels.scanQrCode') }}
+            {{ $t('labels.scanQrCodeDescription') }}
           </span>
-          <div class="flex justify-center my-2">
-            <img :src="setupData.qrUrl" alt="QR Code" class="w-44 h-44" />
-          </div>
-          <div class="flex items-center justify-center gap-2 text-xs text-nc-content-gray-subtle">
-            <span>{{ $t('labels.manualEntryCode') }}:</span>
-            <code class="bg-nc-bg-gray-light px-2 py-0.5 rounded text-xs">{{ setupData.secret }}</code>
-            <NcButton type="text" size="xxs" @click="copySecret">
-              <GeneralIcon icon="copy" class="h-3.5 w-3.5" />
-            </NcButton>
+
+          <div class="flex flex-col items-center gap-3 py-3">
+            <img :src="setupData.qrUrl" alt="QR Code" class="w-60 h-60" />
+            <div class="bg-nc-bg-gray-light rounded-lg px-3 py-2 flex items-center justify-center gap-2">
+              <code class="text-xs break-all text-nc-content-gray select-all">{{ setupData.secret }}</code>
+              <NcTooltip :visible="recentlyCopied ? true : undefined">
+                <template #title>{{ recentlyCopied ? $t('general.copied') : $t('general.copy') }}</template>
+                <NcButton type="text" size="xxs" class="flex-shrink-0" @click="copySecret">
+                  <GeneralIcon :icon="recentlyCopied ? 'check' : 'copy'" class="h-3.5 w-3.5" />
+                </NcButton>
+              </NcTooltip>
+            </div>
+            <span class="text-xs text-nc-content-gray-muted text-center">{{ $t('labels.manualEntryHint') }}</span>
           </div>
 
-          <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
+          <div class="flex flex-row gap-x-2 pt-2 justify-end">
             <NcButton type="primary" size="small" @click="goToVerifyStep">
               {{ $t('general.next') }}
             </NcButton>
@@ -410,8 +420,8 @@ onMounted(() => {
               @click="copyBackupCodes(setupData.backupCodes)"
             >
               <div class="flex items-center gap-1.5">
-                <GeneralIcon icon="copy" class="h-3.5 w-3.5" />
-                {{ $t('labels.copyAll') }}
+                <GeneralIcon :icon="recentlyCopied ? 'check' : 'copy'" class="h-3.5 w-3.5" />
+                {{ recentlyCopied ? $t('general.copied') : $t('labels.copyAll') }}
               </div>
             </NcButton>
             <NcButton type="primary" size="small" @click="closeSetupModal">
@@ -521,8 +531,8 @@ onMounted(() => {
               @click="copyBackupCodes(newBackupCodes)"
             >
               <div class="flex items-center gap-1.5">
-                <GeneralIcon icon="copy" class="h-3.5 w-3.5" />
-                {{ $t('labels.copyAll') }}
+                <GeneralIcon :icon="recentlyCopied ? 'check' : 'copy'" class="h-3.5 w-3.5" />
+                {{ recentlyCopied ? $t('general.copied') : $t('labels.copyAll') }}
               </div>
             </NcButton>
             <NcButton type="primary" size="small" @click="closeRegenerateModal">

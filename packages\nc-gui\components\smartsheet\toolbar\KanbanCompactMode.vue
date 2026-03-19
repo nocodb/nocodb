@@ -1,18 +1,13 @@
 <script lang="ts" setup>
-import { useKanbanViewStoreOrThrow } from '#imports'
-
 const { kanbanMetaData, updateKanbanMeta } = useKanbanViewStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
 const isCompactMode = computed(() => !!(kanbanMetaData.value as any)?.compact_mode)
 
-const canEdit = computed(() => isUIAllowed('dataEdit'))
-
 async function toggleCompactMode() {
-  if (!canEdit.value) return
+  if (!isUIAllowed('dataEdit')) return
   await updateKanbanMeta({
-    ...(kanbanMetaData.value ?? {}),
     compact_mode: !isCompactMode.value,
   })
 }
@@ -24,19 +19,18 @@ async function toggleCompactMode() {
       {{ isCompactMode ? $t('tooltip.expandCardView') : $t('tooltip.compactCardView') }}
     </template>
     <NcButton
-      v-e="['c:kanban:compact-mode']"
+      v-e="['c:kanban:toggle-compact']"
       size="small"
       type="text"
-      :disabled="!canEdit"
-      :class="{
-        'nc-active-btn': isCompactMode,
-      }"
-      class="nc-kanban-compact-mode-toggle"
+      :class="{ 'text-brand-500 !bg-brand-50': isCompactMode }"
+      class="nc-toolbar-btn"
       @click="toggleCompactMode"
     >
       <div class="flex items-center gap-2">
-        <GeneralIcon icon="list" class="h-4 w-4" />
-        <span class="text-sm">{{ $t('title.compact') }}</span>
+        <component :is="iconMap.compact" class="h-4 w-4" />
+        <span v-if="!isMobileMode" class="text-sm font-medium">
+          {{ $t('title.compact') }}
+        </span>
       </div>
     </NcButton>
   </NcTooltip>

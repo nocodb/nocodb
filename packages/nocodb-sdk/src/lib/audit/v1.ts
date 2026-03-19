@@ -41,6 +41,12 @@ enum AuditV1OperationTypes {
   USER_PASSWORD_FORGOT = 'USER_PASSWORD_FORGOT',
   USER_EMAIL_VERIFY = 'USER_EMAIL_VERIFY',
 
+  USER_MFA_SETUP = 'USER_MFA_SETUP',
+  USER_MFA_ENABLED = 'USER_MFA_ENABLED',
+  USER_MFA_DISABLED = 'USER_MFA_DISABLED',
+  USER_MFA_VERIFY = 'USER_MFA_VERIFY',
+  USER_MFA_BACKUP_CODE_USED = 'USER_MFA_BACKUP_CODE_USED',
+
   BASE_USER_INVITE = 'BASE_USER_INVITE',
   BASE_USER_UPDATE = 'BASE_USER_UPDATE',
   BASE_USER_INVITE_RESEND = 'BASE_USER_INVITE_RESEND',
@@ -446,6 +452,18 @@ export interface UserInvitePayload {
 export interface UserPasswordChangePayload {}
 
 export interface UserPasswordResetPayload {}
+
+export interface UserMfaSetupPayload {}
+
+export interface UserMfaEnabledPayload {}
+
+export interface UserMfaDisabledPayload {}
+
+export interface UserMfaVerifyPayload {
+  method?: 'totp' | 'backup_code';
+}
+
+export interface UserMfaBackupCodeUsedPayload {}
 
 export interface UserPasswordForgotPayload {}
 
@@ -1511,6 +1529,21 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.USER_EMAIL_VERIFY]: (
     audit: AuditV1<UserEmailVerifyPayload>
   ) => `User '${audit.user}' verified email`,
+  [AuditV1OperationTypes.USER_MFA_SETUP]: (
+    audit: AuditV1<UserMfaSetupPayload>
+  ) => `User '${audit.user}' initiated 2FA setup`,
+  [AuditV1OperationTypes.USER_MFA_ENABLED]: (
+    audit: AuditV1<UserMfaEnabledPayload>
+  ) => `User '${audit.user}' enabled two-factor authentication`,
+  [AuditV1OperationTypes.USER_MFA_DISABLED]: (
+    audit: AuditV1<UserMfaDisabledPayload>
+  ) => `User '${audit.user}' disabled two-factor authentication`,
+  [AuditV1OperationTypes.USER_MFA_VERIFY]: (
+    audit: AuditV1<UserMfaVerifyPayload>
+  ) => `User '${audit.user}' verified 2FA${audit.details?.method === 'backup_code' ? ' using backup code' : ''}`,
+  [AuditV1OperationTypes.USER_MFA_BACKUP_CODE_USED]: (
+    audit: AuditV1<UserMfaBackupCodeUsedPayload>
+  ) => `User '${audit.user}' used a backup code to sign in`,
   [AuditV1OperationTypes.BASE_USER_INVITE]: (
     audit: AuditV1<BaseUserInvitePayload>
   ) => `User '${audit.user}' invited '${audit.details.user_email}' to base`,

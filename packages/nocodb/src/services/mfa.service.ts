@@ -60,7 +60,7 @@ export class MfaService {
     }
   }
 
-  async setup(userId: string, password: string) {
+  async setup(userId: string, password: string, req: NcRequest) {
     const user = await User.get(userId);
     if (!user) NcError.userNotFound(userId);
 
@@ -96,6 +96,11 @@ export class MfaService {
     await this.updateMfaFields(userId, {
       totp_secret: secret,
       totp_backup_codes: JSON.stringify(backupCodes),
+    });
+
+    this.appHooksService.emit(AppEvents.USER_MFA_SETUP, {
+      user: user as any as UserType,
+      req,
     });
 
     return {
@@ -144,8 +149,8 @@ export class MfaService {
       NcError.badRequest('Two-factor authentication is not enabled');
     }
 
-    const isValid = await this.verifyCode(user.totp_secret, code, user);
-    if (!isValid) {
+    const method = await this.verifyCode(user.totp_secret, code, user);
+    if (!method) {
       NcError.badRequest('Invalid verification code');
     }
 
@@ -171,7 +176,7 @@ export class MfaService {
     return { enabled: !!user.totp_enabled };
   }
 
-  async verifySignin(twoFactorToken: string, code: string) {
+  async verifySignin(twoFactorToken: string, code: string, req: NcRequest) {
     const config = Noco.getConfig();
 
     let payload: { id: string; email: string; purpose: string };
@@ -192,9 +197,22 @@ export class MfaService {
       NcError.badRequest('Two-factor authentication is not configured');
     }
 
-    const isValid = await this.verifyCode(user.totp_secret, code, user);
-    if (!isValid) {
+    const method = await this.verifyCode(user.totp_secret, code, user);
+    if (!method) {
       NcError.badRequest('Invalid verification code');
+    }
+
+    this.appHooksService.emit(AppEvents.USER_MFA_VERIFY, {
+      user: user as any as UserType,
+      method,
+      req,
+    });
+
+    if (method === 'backup_code') {
+      this.appHooksService.emit(AppEvents.USER_MFA_BACKUP_CODE_USED, {
+        user: user as any as UserType,
+        req,
+      });
     }
 
     // Generate full JWT
@@ -240,14 +258,16 @@ export class MfaService {
     secret: string,
     code: string,
     user: User,
-  ): Promise<boolean> {
+  ): Promise<'totp' | 'backup_code' | null> {
     // First try TOTP verification
     const isValidTotp = await this.verifyTotp(secret, code);
 
-    if (isValidTotp) return true;
+    if (isValidTotp) return 'totp';
 
     // Try backup code
-    return this.consumeBackupCode(user, code);
+    if (this.consumeBackupCode(user, code)) return 'backup_code';
+
+    return null;
   }
 
   private consumeBackupCode(user: User, code: string): boolean {

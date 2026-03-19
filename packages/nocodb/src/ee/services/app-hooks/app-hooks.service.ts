@@ -51,8 +51,13 @@ import type {
   TeamMemberUpdateEvent,
   TeamMoveEvent,
   TeamUpdateEvent,
+  UserMfaBackupCodeUsedEvent,
+  UserMfaDisabledEvent,
   UserMfaDisabledEvent,
   UserMfaEnabledEvent,
+  UserMfaEnabledEvent,
+  UserMfaSetupEvent,
+  UserMfaVerifyEvent,
   UserSigninEvent,
   UserSigninFailedEvent,
   UserSignupEvent,
@@ -592,12 +597,24 @@ export class AppHooksService extends ApppHookServiceCE {
   ): () => void;
   // MFA Events
   on(
+    event: AppEvents.USER_MFA_SETUP,
+    listener: (data: UserMfaSetupEvent) => void,
+  ): () => void;
+  on(
     event: AppEvents.USER_MFA_ENABLED,
     listener: (data: UserMfaEnabledEvent) => void,
   ): () => void;
   on(
     event: AppEvents.USER_MFA_DISABLED,
     listener: (data: UserMfaDisabledEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.USER_MFA_VERIFY,
+    listener: (data: UserMfaVerifyEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.USER_MFA_BACKUP_CODE_USED,
+    listener: (data: UserMfaBackupCodeUsedEvent) => void,
   ): () => void;
 
   on(event, listener): () => void {
@@ -1059,8 +1076,14 @@ export class AppHooksService extends ApppHookServiceCE {
     data: ScimConfigEvent,
   ): void;
   // MFA Events
+  emit(event: AppEvents.USER_MFA_SETUP, data: UserMfaSetupEvent): void;
   emit(event: AppEvents.USER_MFA_ENABLED, data: UserMfaEnabledEvent): void;
   emit(event: AppEvents.USER_MFA_DISABLED, data: UserMfaDisabledEvent): void;
+  emit(event: AppEvents.USER_MFA_VERIFY, data: UserMfaVerifyEvent): void;
+  emit(
+    event: AppEvents.USER_MFA_BACKUP_CODE_USED,
+    data: UserMfaBackupCodeUsedEvent,
+  ): void;
 
   // Record Trash Events
   emit(

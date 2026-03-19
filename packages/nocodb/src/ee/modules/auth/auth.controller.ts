@@ -85,7 +85,7 @@ export class AuthController extends AuthControllerCE {
     @Req() req: NcRequest,
     @Body() body: { password: string },
   ) {
-    return this.mfaService.setup(req.user.id, body.password);
+    return this.mfaService.setup(req.user.id, body.password, req);
   }
 
   @Post(['/api/v2/auth/mfa/verify-setup'])
@@ -107,7 +107,7 @@ export class AuthController extends AuthControllerCE {
     @Res() res: Response,
     @Body() body: { token: string; code: string },
   ) {
-    const result = await this.mfaService.verifySignin(body.token, body.code);
+    const result = await this.mfaService.verifySignin(body.token, body.code, req);
     await this.setRefreshToken({ req, res });
     setAuthCookie(res, result.token);
     res.json(result);

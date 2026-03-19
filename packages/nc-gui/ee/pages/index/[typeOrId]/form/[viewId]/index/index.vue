@@ -307,7 +307,10 @@ const { message: templatedMessage } = useTemplatedMessage(
 
                 <div class="flex justify-between items-center mt-6">
                   <div class="flex">
-                    <SmartsheetFormExpiryIndicator :expires-at="sharedFormView?.expires_at" :show-always="!!parseProp(sharedFormView?.meta)?.show_expiry_timer" />
+                    <SmartsheetFormExpiryIndicator
+                      :expires-at="sharedFormView?.expires_at"
+                      :show-always="!!parseProp(sharedFormView?.meta)?.show_expiry_timer"
+                    />
                   </div>
 
                   <NcButton

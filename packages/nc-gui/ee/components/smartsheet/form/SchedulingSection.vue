@@ -18,8 +18,6 @@ const emit = defineEmits(['updateView'])
 
 const { formViewData, isLocked, isEditable } = toRefs(props)
 
-const { appInfo } = useGlobal()
-
 const { t } = useI18n()
 
 const { showEEFeatures } = useEeConfig()

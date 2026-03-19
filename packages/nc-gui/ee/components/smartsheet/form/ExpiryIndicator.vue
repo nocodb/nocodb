@@ -74,7 +74,11 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <span v-if="isActive && remaining.totalSeconds > 0 && (showAlways || isUrgent)" class="nc-expiry-inline" :class="{ 'nc-urgent': isUrgent, 'nc-critical': isCritical }">
+  <span
+    v-if="isActive && remaining.totalSeconds > 0 && (showAlways || isUrgent)"
+    class="nc-expiry-inline"
+    :class="{ 'nc-urgent': isUrgent, 'nc-critical': isCritical }"
+  >
     <GeneralIcon icon="ncClock" class="nc-expiry-inline-icon" />
     <span class="nc-expiry-inline-time">{{ countdownText }}</span>
   </span>
@@ -107,7 +111,8 @@ onUnmounted(() => {
 }
 
 @keyframes nc-blink {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {

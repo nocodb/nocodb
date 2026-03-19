@@ -25,19 +25,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const progress = ref(false)
   const notFound = ref(false)
   const submitted = ref(false)
-  const isFormExpired = computed(() => {
-    const expiresAt = (sharedFormView.value as any)?.expires_at
-    if (!expiresAt) return false
-    return dayjs.utc(expiresAt).isBefore(dayjs.utc())
-  })
 
-  const isFormNotStarted = computed(() => {
-    const startsAt = (sharedFormView.value as any)?.starts_at
-    if (!startsAt) return false
-    return dayjs.utc(startsAt).isAfter(dayjs.utc())
-  })
-
-  const formStartsAt = computed(() => (sharedFormView.value as any)?.starts_at || null)
   const passwordDlg = ref(false)
   const password = ref<string | null>(null)
   const passwordError = ref<string | null>(null)
@@ -61,6 +49,21 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     })[]
   >()
   const sharedViewMeta = ref<SharedViewMeta>({})
+
+  const isFormExpired = computed(() => {
+    const expiresAt = (sharedFormView.value as any)?.expires_at
+    if (!expiresAt) return false
+    return dayjs.utc(expiresAt).isBefore(dayjs.utc())
+  })
+
+  const isFormNotStarted = computed(() => {
+    const startsAt = (sharedFormView.value as any)?.starts_at
+    if (!startsAt) return false
+    return dayjs.utc(startsAt).isAfter(dayjs.utc())
+  })
+
+  const formStartsAt = computed(() => (sharedFormView.value as any)?.starts_at || null)
+
   const formResetHook = createEventHook<void>()
 
   const { isMobileMode } = useGlobal()

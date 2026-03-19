@@ -317,10 +317,7 @@ const { message: templatedMessage } = useTemplatedMessage(
               />
             </div>
 
-            <SmartsheetFormClosedState
-              :mode="isFormNotStarted ? 'not-started' : 'expired'"
-              :starts-at="formStartsAt"
-            />
+            <SmartsheetFormClosedState :mode="isFormNotStarted ? 'not-started' : 'expired'" :starts-at="formStartsAt" />
           </div>
         </template>
         <template v-else-if="!isStarted || submitted">

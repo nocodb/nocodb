@@ -70,10 +70,7 @@ const countdownSegments = computed(() => [
   <div class="nc-form-closed-state flex flex-col items-center justify-center py-8 px-4 gap-6">
     <!-- Icon -->
     <div class="nc-form-closed-icon">
-      <GeneralIcon
-        :icon="mode === 'expired' ? 'ncLock' : 'ncClock'"
-        class="w-12 h-12 text-nc-content-gray-muted"
-      />
+      <GeneralIcon :icon="mode === 'expired' ? 'ncLock' : 'ncClock'" class="w-12 h-12 text-nc-content-gray-muted" />
     </div>
 
     <!-- Title -->
@@ -102,9 +99,7 @@ const countdownSegments = computed(() => [
               {{ seg.label }}
             </div>
           </div>
-          <div v-if="i < countdownSegments.length - 1" class="nc-countdown-separator">
-            :
-          </div>
+          <div v-if="i < countdownSegments.length - 1" class="nc-countdown-separator">:</div>
         </template>
       </div>
     </template>

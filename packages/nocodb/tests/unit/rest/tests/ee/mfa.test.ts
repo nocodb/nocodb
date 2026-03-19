@@ -8,7 +8,7 @@ function mfaTests() {
   let context;
 
   beforeEach(async function () {
-    context = await init();
+    context = await init(false, 'editor', { skipSakila: true });
   });
 
   // Helper: generate a valid TOTP code from a secret

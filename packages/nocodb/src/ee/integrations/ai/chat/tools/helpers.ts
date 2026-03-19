@@ -5,10 +5,10 @@ import type { Column } from '~/models';
 import type { DocumentType } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import { MetaTable } from '~/utils/globals';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
 import Model from '~/models/Model';
 import View from '~/models/View';
+import Document from '~/models/Document';
 import { Dashboard, Widget } from '~/models';
 import Noco from '~/Noco';
 
@@ -330,14 +330,7 @@ export async function resolveDocumentByName(
     );
   }
 
-  const allDocs: DocumentType[] = await Noco.ncMeta
-    .knexConnection(MetaTable.DOCS)
-    .where({
-      base_id: context.base_id,
-      fk_workspace_id: context.workspace_id,
-    })
-    .where('deleted', false)
-    .select('id', 'title', 'parent_id', 'version', 'has_children', 'order');
+  const allDocs = await Document.listLite(context, context.base_id, undefined);
 
   const lowerName = documentName.toLowerCase();
   const doc =

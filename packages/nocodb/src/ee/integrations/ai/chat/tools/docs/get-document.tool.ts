@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
-import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import { resolveDocumentByName } from '../helpers';
 import { prosemirrorToMarkdown } from './prosemirror-utils';
+import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import { DocumentsService } from '~/services/documents.service';
 import Noco from '~/Noco';
 

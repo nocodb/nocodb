@@ -40,7 +40,9 @@ export const resolveDocumentCommentTool = defineChatTool({
     return {
       id: result.id,
       is_resolved: isResolved,
-      message: `Comment ${isResolved ? 'resolved' : 'unresolved'} successfully.`,
+      message: `Comment ${
+        isResolved ? 'resolved' : 'unresolved'
+      } successfully.`,
     };
   },
 });

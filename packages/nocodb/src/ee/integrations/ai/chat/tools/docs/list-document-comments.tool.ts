@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
+import { resolveDocumentByName } from '../helpers';
 import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
 import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
-import { resolveDocumentByName } from '../helpers';
 import { DocumentCommentsService } from '~/services/document-comments.service';
 import Noco from '~/Noco';
 

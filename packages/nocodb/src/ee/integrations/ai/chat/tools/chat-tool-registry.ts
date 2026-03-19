@@ -24,7 +24,6 @@ import { createViewTool } from '~/integrations/ai/chat/tools/schema/create-view.
 import { deleteViewTool } from '~/integrations/ai/chat/tools/schema/delete-view.tool';
 import { renameViewTool } from '~/integrations/ai/chat/tools/schema/rename-view.tool';
 import { listViewsTool } from '~/integrations/ai/chat/tools/schema/list-views.tool';
-import { updateFieldDisplayTool } from '~/integrations/ai/chat/tools/schema/update-field-display.tool';
 import { queryRecordsTool } from '~/integrations/ai/chat/tools/data/query-records.tool';
 import { createRecordsTool } from '~/integrations/ai/chat/tools/data/create-records.tool';
 import { updateRecordsTool } from '~/integrations/ai/chat/tools/data/update-records.tool';
@@ -72,7 +71,6 @@ import { getDocumentTool } from '~/integrations/ai/chat/tools/docs/get-document.
 import { createDocumentTool } from '~/integrations/ai/chat/tools/docs/create-document.tool';
 import { updateDocumentTool } from '~/integrations/ai/chat/tools/docs/update-document.tool';
 import { deleteDocumentTool } from '~/integrations/ai/chat/tools/docs/delete-document.tool';
-import { reorderDocumentTool } from '~/integrations/ai/chat/tools/docs/reorder-document.tool';
 import { listDocumentCommentsTool } from '~/integrations/ai/chat/tools/docs/list-document-comments.tool';
 import { addDocumentCommentTool } from '~/integrations/ai/chat/tools/docs/add-document-comment.tool';
 import { resolveDocumentCommentTool } from '~/integrations/ai/chat/tools/docs/resolve-document-comment.tool';
@@ -100,7 +98,6 @@ const ALL_TOOLS: ChatToolDefinition[] = [
   renameTableTool,
   addFieldTool,
   modifyFieldTool,
-  updateFieldDisplayTool,
   deleteFieldTool,
   createViewTool,
   deleteViewTool,
@@ -151,7 +148,6 @@ const ALL_TOOLS: ChatToolDefinition[] = [
   updateDocumentTool,
   deleteDocumentTool,
   patchDocumentTool,
-  reorderDocumentTool,
   listDocumentCommentsTool,
   addDocumentCommentTool,
   resolveDocumentCommentTool,

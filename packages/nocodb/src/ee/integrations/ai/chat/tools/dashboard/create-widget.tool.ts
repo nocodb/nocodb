@@ -5,6 +5,7 @@ import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import {
   validateWidgetConfig,
   WIDGET_CONFIG_DESCRIPTIONS,
+  widgetConfigSchema,
 } from '~/integrations/ai/chat/tools/dashboard/widget-schemas';
 import { resolveDashboardByName } from '~/integrations/ai/chat/tools/helpers';
 import { DashboardsService } from '~/services/dashboards.service';
@@ -30,11 +31,9 @@ export const createWidgetTool = defineChatTool({
     type: z
       .enum(['chart', 'metric', 'text', 'iframe'])
       .describe('The widget type. Determines what config fields are required.'),
-    config: z
-      .record(z.any())
-      .describe(
-        'Type-specific configuration object. See the tool description for the exact schema per widget type.',
-      ),
+    config: widgetConfigSchema.describe(
+      'Type-specific configuration object. See the tool description for the exact schema per widget type.',
+    ),
     fk_model_id: z
       .string()
       .optional()
@@ -91,13 +90,13 @@ export const createWidgetTool = defineChatTool({
         ...(args.fk_model_id && { fk_model_id: args.fk_model_id }),
         ...(args.fk_view_id && { fk_view_id: args.fk_view_id }),
         ...(args.position && {
-        position: {
-          x: args.position.x,
-          y: args.position.y,
-          w: args.position.w,
-          h: args.position.h,
-        },
-      }),
+          position: {
+            x: args.position.x,
+            y: args.position.y,
+            w: args.position.w,
+            h: args.position.h,
+          },
+        }),
       },
       req,
     );

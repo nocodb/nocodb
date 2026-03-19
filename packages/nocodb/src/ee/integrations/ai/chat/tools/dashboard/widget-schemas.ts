@@ -220,6 +220,17 @@ export const iframeConfigSchema = z
   })
   .describe('Iframe widget configuration — embeds an external URL.');
 
+/**
+ * Union of all widget config schemas — used as the typed `config` parameter
+ * in create_widget / update_widget tool schemas.
+ */
+export const widgetConfigSchema = z.union([
+  chartConfigSchema,
+  metricConfigSchema,
+  textConfigSchema,
+  iframeConfigSchema,
+]);
+
 export const WIDGET_CONFIG_DESCRIPTIONS = `
 Widget config varies by type:
 

@@ -5,6 +5,7 @@ import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import {
   validateWidgetConfig,
   WIDGET_CONFIG_DESCRIPTIONS,
+  widgetConfigSchema,
 } from '~/integrations/ai/chat/tools/dashboard/widget-schemas';
 import {
   resolveDashboardByName,
@@ -33,8 +34,7 @@ export const updateWidgetTool = defineChatTool({
         'The current title of the widget to update (case-insensitive).',
       ),
     title: z.string().optional().describe('New display name for the widget.'),
-    config: z
-      .record(z.any())
+    config: widgetConfigSchema
       .optional()
       .describe(
         'Updated type-specific configuration. Replaces the entire config — ' +

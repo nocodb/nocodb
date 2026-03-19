@@ -34,17 +34,12 @@ import { marked } from 'marked';
 /**
  * Convert a ProseMirror JSON document to a Markdown string.
  */
-export function prosemirrorToMarkdown(
-  doc: Record<string, any>,
-): string {
+export function prosemirrorToMarkdown(doc: Record<string, any>): string {
   if (!doc || !doc.content) return '';
   return renderNodes(doc.content, '').trimEnd();
 }
 
-function renderNodes(
-  nodes: Record<string, any>[],
-  indent: string,
-): string {
+function renderNodes(nodes: Record<string, any>[], indent: string): string {
   let out = '';
   for (const node of nodes) {
     out += renderNode(node, indent);
@@ -52,10 +47,7 @@ function renderNodes(
   return out;
 }
 
-function renderNode(
-  node: Record<string, any>,
-  indent: string,
-): string {
+function renderNode(node: Record<string, any>, indent: string): string {
   switch (node.type) {
     case 'heading': {
       const hashes = '#'.repeat(node.attrs?.level || 1);
@@ -173,7 +165,10 @@ function renderList(
         if (child.type === 'paragraph') {
           out += `${indent}${prefix}${renderInline(child.content)}\n`;
         } else {
-          out += `${indent}${prefix}${renderNode(child, indent + '  ').trimEnd()}\n`;
+          out += `${indent}${prefix}${renderNode(
+            child,
+            indent + '  ',
+          ).trimEnd()}\n`;
         }
       } else if (
         child.type === 'bulletList' ||
@@ -190,10 +185,7 @@ function renderList(
   return out + '\n';
 }
 
-function renderTaskList(
-  items: Record<string, any>[],
-  indent: string,
-): string {
+function renderTaskList(items: Record<string, any>[], indent: string): string {
   let out = '';
   for (const item of items || []) {
     const checked = item.attrs?.checked ? 'x' : ' ';
@@ -202,7 +194,10 @@ function renderTaskList(
     if (firstPara?.type === 'paragraph') {
       out += `${indent}- [${checked}] ${renderInline(firstPara.content)}\n`;
     } else {
-      out += `${indent}- [${checked}] ${renderNodes(children, indent + '  ').trimEnd()}\n`;
+      out += `${indent}- [${checked}] ${renderNodes(
+        children,
+        indent + '  ',
+      ).trimEnd()}\n`;
     }
     // Render remaining children (nested lists, etc.)
     for (let j = 1; j < children.length; j++) {
@@ -216,14 +211,12 @@ function renderTable(rows: Record<string, any>[]): string {
   if (!rows?.length) return '';
 
   const allRows: string[][] = [];
-  let hasHeader = false;
 
   for (const row of rows) {
     const cells: string[] = [];
     for (const cell of row.content || []) {
       const text = renderNodes(cell.content || [], '').trim();
       cells.push(text);
-      if (cell.type === 'tableHeader') hasHeader = true;
     }
     allRows.push(cells);
   }
@@ -232,18 +225,10 @@ function renderTable(rows: Record<string, any>[]): string {
 
   const lines: string[] = [];
   lines.push(`| ${allRows[0].join(' | ')} |`);
-
-  if (hasHeader) {
-    lines.push(`| ${allRows[0].map(() => '---').join(' | ')} |`);
-    for (let i = 1; i < allRows.length; i++) {
-      lines.push(`| ${allRows[i].join(' | ')} |`);
-    }
-  } else {
-    // No header — add separator after first row anyway
-    lines.push(`| ${allRows[0].map(() => '---').join(' | ')} |`);
-    for (let i = 1; i < allRows.length; i++) {
-      lines.push(`| ${allRows[i].join(' | ')} |`);
-    }
+  // Markdown tables always need a separator row after the first row
+  lines.push(`| ${allRows[0].map(() => '---').join(' | ')} |`);
+  for (let i = 1; i < allRows.length; i++) {
+    lines.push(`| ${allRows[i].join(' | ')} |`);
   }
 
   return lines.join('\n') + '\n';
@@ -291,7 +276,10 @@ function applyMarks(text: string, marks?: Record<string, any>[]): string {
       case 'link':
         result = `[${result}](${mark.attrs?.href || ''})`;
         break;
-      // underline, highlight, commentMark — no markdown equivalent, strip
+      case 'underline':
+        result = `<u>${result}</u>`;
+        break;
+      // highlight, commentMark — no markdown equivalent, strip
     }
   }
   return result;
@@ -320,9 +308,7 @@ interface DirectiveBlock {
  * Find a ::: directive match that is NOT inside a fenced code block.
  * Returns a RegExpMatchArray-like object with `index` or null.
  */
-function findDirectiveOutsideCodeFence(
-  text: string,
-): RegExpExecArray | null {
+function findDirectiveOutsideCodeFence(text: string): RegExpExecArray | null {
   // Build a set of ranges covered by fenced code blocks
   const codeFenceRanges: Array<[number, number]> = [];
   const fenceRe = /^(`{3,}|~{3,})[^\n]*\n[\s\S]*?\n\1\s*$/gm;
@@ -363,9 +349,10 @@ function findDirectiveOutsideCodeFence(
  *   ...
  *   :::
  */
-function extractDirectives(
-  markdown: string,
-): { cleaned: string; directives: Map<string, DirectiveBlock> } {
+function extractDirectives(markdown: string): {
+  cleaned: string;
+  directives: Map<string, DirectiveBlock>;
+} {
   const directives = new Map<string, DirectiveBlock>();
   let counter = 0;
 
@@ -392,7 +379,11 @@ function extractDirectives(
 
     for (const line of lines) {
       const trimmed = line.trim();
-      if (trimmed.startsWith('::: ') || trimmed === ':::columns' || trimmed === ':::column') {
+      if (
+        trimmed.startsWith('::: ') ||
+        trimmed === ':::columns' ||
+        trimmed === ':::column'
+      ) {
         // Opening a nested directive (e.g. ::: column inside ::: columns)
         if (/^:::\s+(columns|column|callout)\b/.test(trimmed)) {
           depth++;
@@ -445,10 +436,7 @@ function extractDirectives(
     // Replace the entire directive block with a placeholder
     const placeholder = `${DIRECTIVE_PLACEHOLDER}${id}-->`;
     cleaned =
-      cleaned.slice(0, startIdx) +
-      placeholder +
-      '\n' +
-      cleaned.slice(pos + 1); // +1 to skip the \n after :::
+      cleaned.slice(0, startIdx) + placeholder + '\n' + cleaned.slice(pos + 1); // +1 to skip the \n after :::
   }
 
   return { cleaned, directives };
@@ -517,9 +505,7 @@ function splitColumnBodies(inner: string): string[] {
  *   ::: columns {ratio=50}   — 2-column layout (ratio = left column %)
  *   ::: callout note|warning|tip|important — callout box
  */
-export function markdownToProseMirror(
-  markdown: string,
-): Record<string, any> {
+export function markdownToProseMirror(markdown: string): Record<string, any> {
   if (!markdown?.trim()) {
     return { type: 'doc', content: [{ type: 'paragraph' }] };
   }
@@ -570,16 +556,12 @@ function resolveDirectivePlaceholders(
 }
 
 /** Check if a node contains a directive placeholder and return its ID. */
-function extractPlaceholderId(
-  node: Record<string, any>,
-): string | null {
+function extractPlaceholderId(node: Record<string, any>): string | null {
   // Placeholder might appear as an HTML token or as text in a paragraph
   const text = getNodeTextContent(node);
   if (!text) return null;
 
-  const match = text.match(
-    /<!--__ncdirective_(d\d+)-->/,
-  );
+  const match = text.match(/<!--__ncdirective_(d\d+)-->/);
   return match ? match[1] : null;
 }
 
@@ -593,7 +575,7 @@ function getNodeTextContent(node: Record<string, any>): string {
 /** Convert a DirectiveBlock into a ProseMirror node. */
 function directiveToNode(
   directive: DirectiveBlock,
-  allDirectives: Map<string, DirectiveBlock>,
+  _allDirectives: Map<string, DirectiveBlock>,
 ): Record<string, any> {
   if (directive.type === 'callout') {
     const body = directive.body as string;
@@ -662,9 +644,7 @@ function tokenToNode(
 
     case 'list': {
       const listType = token.ordered ? 'orderedList' : 'bulletList';
-      const isTask = token.items?.some(
-        (item: any) => item.task,
-      );
+      const isTask = token.items?.some((item: any) => item.task);
 
       if (isTask) {
         return {
@@ -696,9 +676,7 @@ function tokenToNode(
       return {
         type: 'codeBlock',
         attrs: { language: token.lang || null },
-        content: token.text
-          ? [{ type: 'text', text: token.text }]
-          : [],
+        content: token.text ? [{ type: 'text', text: token.text }] : [],
       };
 
     case 'hr':
@@ -811,9 +789,7 @@ function listItemContent(item: any): Record<string, any>[] {
   return nodes;
 }
 
-function inlineTokensToNodes(
-  tokens: marked.Token[],
-): Record<string, any>[] {
+function inlineTokensToNodes(tokens: marked.Token[]): Record<string, any>[] {
   const nodes: Record<string, any>[] = [];
 
   for (const token of tokens) {
@@ -821,7 +797,22 @@ function inlineTokensToNodes(
       case 'text': {
         const text = (token as any).text || (token as any).raw || '';
         if (text) {
-          nodes.push({ type: 'text', text });
+          // Split inline math $...$ into inlineMath nodes
+          const mathParts = text.split(/\$([^$]+)\$/);
+          for (let mi = 0; mi < mathParts.length; mi++) {
+            if (mi % 2 === 0) {
+              // Plain text segment
+              if (mathParts[mi]) {
+                nodes.push({ type: 'text', text: mathParts[mi] });
+              }
+            } else {
+              // Math segment (odd indices from split capture group)
+              nodes.push({
+                type: 'inlineMath',
+                attrs: { latex: mathParts[mi] },
+              });
+            }
+          }
         }
         break;
       }
@@ -891,6 +882,22 @@ function inlineTokensToNodes(
       case 'escape':
         nodes.push({ type: 'text', text: (token as any).text || '' });
         break;
+
+      case 'html': {
+        // Handle <u>...</u> for underline roundtrip
+        const htmlRaw = (token as any).raw || (token as any).text || '';
+        const underlineMatch = htmlRaw.match(/^<u>([\s\S]*?)<\/u>$/);
+        if (underlineMatch) {
+          nodes.push({
+            type: 'text',
+            text: underlineMatch[1],
+            marks: [{ type: 'underline' }],
+          });
+        } else if (htmlRaw.trim()) {
+          nodes.push({ type: 'text', text: htmlRaw });
+        }
+        break;
+      }
 
       default: {
         // Fallback: use raw text

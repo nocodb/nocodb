@@ -23,6 +23,7 @@ const {
   handleSigninResponse,
   verifyTwoFactor: _verifyTwoFactor,
   cancelTwoFactor,
+  toggleBackupCode,
 } = useTwoFactorSignin()
 
 const twoFactorCodeInput = ref<HTMLInputElement>()
@@ -162,7 +163,7 @@ function navigateForgotPassword() {
                 </button>
 
                 <div class="text-sm">
-                  <a class="prose-sm cursor-pointer" @click="useBackupCode = !useBackupCode">
+                  <a class="prose-sm cursor-pointer" @click="toggleBackupCode">
                     {{ useBackupCode ? $t('labels.useAuthenticatorCode') : $t('labels.useBackupCode') }}
                   </a>
                 </div>

@@ -3,6 +3,8 @@ export function useTwoFactorSignin() {
 
   const { api } = useApi({ useGlobalInstance: true })
 
+  const { $e } = useNuxtApp()
+
   const twoFactorRequired = ref(false)
   const twoFactorToken = ref('')
   const twoFactorCode = ref('')
@@ -18,6 +20,7 @@ export function useTwoFactorSignin() {
     if (response.twoFactorRequired) {
       twoFactorRequired.value = true
       twoFactorToken.value = response.twoFactorToken
+      $e('c:signin:2fa-prompted')
       return true
     }
 
@@ -38,9 +41,11 @@ export function useTwoFactorSignin() {
       })
 
       _signIn(response.data.token)
+      $e('a:signin:2fa-verified', { method: useBackupCode.value ? 'backup_code' : 'totp' })
       return true
     } catch (e: any) {
       twoFactorError.value = await extractSdkResponseErrorMsg(e)
+      $e('a:signin:2fa-failed', { method: useBackupCode.value ? 'backup_code' : 'totp' })
       return false
     } finally {
       twoFactorLoading.value = false
@@ -48,12 +53,18 @@ export function useTwoFactorSignin() {
   }
 
   function cancelTwoFactor() {
+    $e('c:signin:2fa-cancelled')
     twoFactorRequired.value = false
     twoFactorToken.value = ''
     twoFactorCode.value = ''
     twoFactorError.value = ''
     twoFactorLoading.value = false
     useBackupCode.value = false
+  }
+
+  function toggleBackupCode() {
+    useBackupCode.value = !useBackupCode.value
+    $e('c:signin:2fa-toggle-backup', { useBackupCode: useBackupCode.value })
   }
 
   return {
@@ -66,5 +77,6 @@ export function useTwoFactorSignin() {
     handleSigninResponse,
     verifyTwoFactor,
     cancelTwoFactor,
+    toggleBackupCode,
   }
 }

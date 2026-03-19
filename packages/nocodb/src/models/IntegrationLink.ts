@@ -1,13 +1,7 @@
 import { nanoid } from 'nanoid';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
-import {
-  CacheDelDirection,
-  CacheGetType,
-  CacheScope,
-  MetaTable,
-} from '~/utils/globals';
-import NocoCache from '~/cache/NocoCache';
+import { MetaTable } from '~/utils/globals';
 
 export interface IntegrationLinkType {
   id?: string;
@@ -32,10 +26,8 @@ export default class IntegrationLink implements IntegrationLinkType {
     Object.assign(this, body);
   }
 
-  // Use raw knex — base_id is a data column, not a scope column,
-  // so metaInsert2/metaList2 would corrupt it with scope values.
-  private static get knex() {
-    return Noco.ncMeta.knex;
+  private static getKnex(ncMeta = Noco.ncMeta) {
+    return ncMeta.knex ?? Noco.ncMeta.knex;
   }
 
   /**
@@ -56,27 +48,9 @@ export default class IntegrationLink implements IntegrationLinkType {
       created_by: body.created_by,
     };
 
-    await this.knex(MetaTable.INTEGRATION_LINKS).insert(insertObj);
+    await this.getKnex(_ncMeta)(MetaTable.INTEGRATION_LINKS).insert(insertObj);
 
-    const link = new IntegrationLink(insertObj);
-
-    // Set in cache
-    const key = `${CacheScope.INTEGRATION_LINK}:${id}`;
-    await NocoCache.set(_context, key, insertObj);
-    await NocoCache.appendToList(
-      _context,
-      CacheScope.INTEGRATION_LINK,
-      [insertObj.fk_integration_id],
-      key,
-    );
-    await NocoCache.appendToList(
-      _context,
-      CacheScope.INTEGRATION_LINK,
-      [insertObj.base_id],
-      key,
-    );
-
-    return link;
+    return new IntegrationLink(insertObj);
   }
 
   /**
@@ -87,25 +61,9 @@ export default class IntegrationLink implements IntegrationLinkType {
     id: string,
     _ncMeta = Noco.ncMeta,
   ): Promise<IntegrationLink | null> {
-    let data = await NocoCache.get(
-      context,
-      `${CacheScope.INTEGRATION_LINK}:${id}`,
-      CacheGetType.TYPE_OBJECT,
-    );
-
-    if (!data) {
-      data = await this.knex(MetaTable.INTEGRATION_LINKS)
-        .where('id', id)
-        .first();
-
-      if (data) {
-        await NocoCache.set(
-          context,
-          `${CacheScope.INTEGRATION_LINK}:${data.id}`,
-          data,
-        );
-      }
-    }
+    const data = await this.getKnex(_ncMeta)(MetaTable.INTEGRATION_LINKS)
+      .where('id', id)
+      .first();
 
     return data ? new IntegrationLink(data) : null;
   }
@@ -118,25 +76,10 @@ export default class IntegrationLink implements IntegrationLinkType {
     integrationId: string,
     _ncMeta = Noco.ncMeta,
   ): Promise<IntegrationLink[]> {
-    const cachedList = await NocoCache.getList(
-      context,
-      CacheScope.INTEGRATION_LINK,
-      [integrationId],
+    const data = await this.getKnex(_ncMeta)(MetaTable.INTEGRATION_LINKS).where(
+      'fk_integration_id',
+      integrationId,
     );
-    let { list: data } = cachedList;
-    const { isNoneList } = cachedList;
-
-    if (!isNoneList && !data.length) {
-      data = await this.knex(MetaTable.INTEGRATION_LINKS)
-        .where('fk_integration_id', integrationId);
-
-      await NocoCache.setList(
-        context,
-        CacheScope.INTEGRATION_LINK,
-        [integrationId],
-        data,
-      );
-    }
 
     return data.map((d) => new IntegrationLink(d));
   }
@@ -149,25 +92,10 @@ export default class IntegrationLink implements IntegrationLinkType {
     baseId: string,
     _ncMeta = Noco.ncMeta,
   ): Promise<IntegrationLink[]> {
-    const cachedList = await NocoCache.getList(
-      context,
-      CacheScope.INTEGRATION_LINK,
-      [baseId],
+    const data = await this.getKnex(_ncMeta)(MetaTable.INTEGRATION_LINKS).where(
+      'base_id',
+      baseId,
     );
-    let { list: data } = cachedList;
-    const { isNoneList } = cachedList;
-
-    if (!isNoneList && !data.length) {
-      data = await this.knex(MetaTable.INTEGRATION_LINKS)
-        .where('base_id', baseId);
-
-      await NocoCache.setList(
-        context,
-        CacheScope.INTEGRATION_LINK,
-        [baseId],
-        data,
-      );
-    }
 
     return data.map((d) => new IntegrationLink(d));
   }
@@ -213,7 +141,8 @@ export default class IntegrationLink implements IntegrationLinkType {
     baseId: string,
     _ncMeta = Noco.ncMeta,
   ): Promise<boolean> {
-    const link = await this.knex(MetaTable.INTEGRATION_LINKS)
+    const knex = this.getKnex(_ncMeta);
+    const link = await knex(MetaTable.INTEGRATION_LINKS)
       .where({
         fk_integration_id: integrationId,
         base_id: baseId,
@@ -222,15 +151,7 @@ export default class IntegrationLink implements IntegrationLinkType {
 
     if (!link) return false;
 
-    await this.knex(MetaTable.INTEGRATION_LINKS)
-      .where('id', link.id)
-      .del();
-
-    await NocoCache.deepDel(
-      context,
-      `${CacheScope.INTEGRATION_LINK}:${link.id}`,
-      CacheDelDirection.CHILD_TO_PARENT,
-    );
+    await knex(MetaTable.INTEGRATION_LINKS).where('id', link.id).del();
 
     return true;
   }
@@ -243,21 +164,7 @@ export default class IntegrationLink implements IntegrationLinkType {
     integrationId: string,
     _ncMeta = Noco.ncMeta,
   ): Promise<void> {
-    const links = await this.listByIntegration(
-      context,
-      integrationId,
-      _ncMeta,
-    );
-
-    for (const link of links) {
-      await NocoCache.deepDel(
-        context,
-        `${CacheScope.INTEGRATION_LINK}:${link.id}`,
-        CacheDelDirection.CHILD_TO_PARENT,
-      );
-    }
-
-    await this.knex(MetaTable.INTEGRATION_LINKS)
+    await this.getKnex(_ncMeta)(MetaTable.INTEGRATION_LINKS)
       .where('fk_integration_id', integrationId)
       .del();
   }
@@ -270,17 +177,7 @@ export default class IntegrationLink implements IntegrationLinkType {
     baseId: string,
     _ncMeta = Noco.ncMeta,
   ): Promise<void> {
-    const links = await this.listByBase(context, baseId, _ncMeta);
-
-    for (const link of links) {
-      await NocoCache.deepDel(
-        context,
-        `${CacheScope.INTEGRATION_LINK}:${link.id}`,
-        CacheDelDirection.CHILD_TO_PARENT,
-      );
-    }
-
-    await this.knex(MetaTable.INTEGRATION_LINKS)
+    await this.getKnex(_ncMeta)(MetaTable.INTEGRATION_LINKS)
       .where('base_id', baseId)
       .del();
   }

@@ -1,48 +1,61 @@
 <script lang="ts" setup>
 import type { Row as RowType } from '#imports'
 
-interface Props {
+const props = defineProps<{
   row: RowType
-  fields: any[]
+  fields: ColumnType[]
   compactMode?: boolean
-}
+}>()
 
-const props = withDefaults(defineProps<Props>(), {
-  compactMode: false,
-})
+const emit = defineEmits(['expandRecord', 'deleteRecord'])
 
-const { row, fields, compactMode } = toRefs(props)
+const { row, fields } = toRefs(props)
 
 const { isUIAllowed } = useRoles()
-const expandedFormDlg = ref(false)
-const expandedFormRowState = ref<Record<string, any>>()
+
+const { isCompactMode: kanbanCompactMode } = useKanbanViewStore()!
+
+const isCompact = computed(() => props.compactMode ?? kanbanCompactMode.value)
+
+const rowId = computed(() => extractPkFromRow(row.value.row, fields.value))
+
+function openExpandedForm() {
+  emit('expandRecord', row.value)
+}
 </script>
 
 <template>
   <div
-    class="nc-kanban-card"
+    class="nc-kanban-card group relative"
     :class="{
-      'nc-kanban-card-compact': compactMode,
+      'nc-kanban-card-compact': isCompact,
+      'nc-kanban-card-normal': !isCompact,
     }"
+    @dblclick="openExpandedForm"
   >
-    <!-- compact mode: single line -->
-    <template v-if="compactMode">
-      <div class="flex items-center gap-1 px-2 py-1 min-h-[28px]">
-        <span class="text-sm truncate flex-1">
-          {{ row.row[fields[0]?.title] }}
+    <template v-if="isCompact">
+      <!-- Compact mode: minimal single-line display -->
+      <div class="flex items-center gap-1 px-2 py-1">
+        <span class="text-[13px] text-gray-800 truncate flex-1 leading-5">
+          {{ row.row[fields[0]?.title] || '&nbsp;' }}
         </span>
+        <div
+          class="nc-kanban-card-actions opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity"
+        >
+          <NcButton
+            type="text"
+            size="xsmall"
+            class="h-5 w-5 !p-0"
+            @click.stop="openExpandedForm"
+          >
+            <GeneralIcon icon="expand" class="h-3 w-3" />
+          </NcButton>
+        </div>
       </div>
     </template>
-    <!-- normal mode -->
     <template v-else>
-      <div class="flex flex-col gap-2 p-2">
-        <template v-for="field in fields" :key="field.id">
-          <div class="flex flex-col">
-            <span class="text-xs text-gray-500">{{ field.title }}</span>
-            <span class="text-sm">{{ row.row[field.title] }}</span>
-          </div>
-        </template>
-      </div>
+      <!-- Normal mode: full card display -->
+      <slot />
     </template>
   </div>
 </template>

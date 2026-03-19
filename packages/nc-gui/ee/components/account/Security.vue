@@ -204,71 +204,96 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col p-6 max-w-[800px]">
-    <div class="text-xl font-semibold mb-6">
-      {{ $t('labels.security') }}
-    </div>
+  <div class="flex flex-col">
+    <NcPageHeader>
+      <template #icon>
+        <GeneralIcon class="flex-none !h-5 !w-5" icon="ncShield" />
+      </template>
+      <template #title>
+        {{ $t('labels.security') }}
+      </template>
+    </NcPageHeader>
+    <div class="h-[calc(100vh_-_100px)] overflow-auto nc-scrollbar-thin">
+      <div class="h-full nc-content-max-w p-6">
+        <div class="flex flex-col w-150 mx-auto">
+          <!-- 2FA Section -->
+          <div class="nc-settings-item-card-wrapper mt-5">
+            <div class="nc-settings-item-heading text-nc-content-gray-emphasis">
+              {{ $t('labels.twoFactorAuth') }}
+            </div>
 
-    <!-- 2FA Status Section -->
-    <div class="flex flex-col gap-4 p-6 border-1 border-nc-border-gray-medium rounded-lg">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="flex flex-col gap-1 min-w-0 flex-1">
-          <div class="text-base font-semibold">{{ $t('labels.twoFactorAuth') }}</div>
-          <div class="text-sm text-nc-content-gray-subtle">
-            {{ $t('labels.twoFactorAuthDescription') }}
-          </div>
-        </div>
+            <div class="nc-settings-item-card p-6">
+              <div class="flex flex-wrap items-start justify-between gap-4">
+                <div class="flex flex-col gap-1.5 min-w-0 flex-1">
+                  <div class="flex items-center gap-2">
+                    <div class="text-sm font-semibold text-nc-content-gray">{{ $t('labels.twoFactorAuth') }}</div>
+                    <div
+                      v-if="mfaEnabled"
+                      class="flex items-center gap-1 text-nc-content-green text-xs font-medium"
+                    >
+                      <GeneralIcon icon="circleCheck" class="h-3.5 w-3.5" />
+                      {{ $t('general.enabled') }}
+                    </div>
+                    <div
+                      v-else
+                      class="text-nc-content-gray-muted text-xs font-medium"
+                    >
+                      {{ $t('general.disabled') }}
+                    </div>
+                  </div>
+                  <div class="text-small text-nc-content-gray-subtle leading-5">
+                    {{ $t('labels.twoFactorAuthDescription') }}
+                  </div>
+                </div>
 
-        <div class="flex items-center gap-3 flex-shrink-0">
-          <NcBadge v-if="mfaEnabled" class="!bg-nc-bg-green !text-nc-content-green">
-            {{ $t('general.enabled') }}
-          </NcBadge>
-          <NcBadge v-else class="!bg-nc-bg-gray-light !text-nc-content-gray-subtle">
-            {{ $t('general.disabled') }}
-          </NcBadge>
+                <div class="flex-shrink-0">
+                  <NcButton
+                    v-if="!mfaEnabled"
+                    v-e="['c:account:security:enable-2fa']"
+                    type="primary"
+                    size="small"
+                    :loading="isLoading"
+                    @click="startSetup"
+                  >
+                    {{ $t('labels.enableTwoFactor') }}
+                  </NcButton>
+                  <NcButton
+                    v-else
+                    v-e="['c:account:security:disable-2fa']"
+                    type="text"
+                    size="small"
+                    class="!text-nc-content-red-dark !hover:bg-nc-bg-red-light"
+                    @click="showDisableModal = true"
+                  >
+                    {{ $t('labels.disableTwoFactor') }}
+                  </NcButton>
+                </div>
+              </div>
 
-          <NcButton
-            v-if="!mfaEnabled"
-            v-e="['c:account:security:enable-2fa']"
-            type="primary"
-            size="small"
-            :loading="isLoading"
-            @click="startSetup"
-          >
-            {{ $t('labels.enableTwoFactor') }}
-          </NcButton>
-          <NcButton
-            v-else
-            v-e="['c:account:security:disable-2fa']"
-            type="secondary"
-            size="small"
-            @click="showDisableModal = true"
-          >
-            {{ $t('labels.disableTwoFactor') }}
-          </NcButton>
-        </div>
-      </div>
-
-      <template v-if="mfaEnabled">
-        <NcDivider />
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <div class="flex flex-col gap-1 min-w-0 flex-1">
-            <div class="text-sm font-medium">{{ $t('labels.backupCodes') }}</div>
-            <div class="text-xs text-nc-content-gray-subtle">
-              {{ $t('labels.backupCodesDescription') }}
+              <template v-if="mfaEnabled">
+                <NcDivider class="!my-4" />
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <div class="flex flex-col gap-1 min-w-0 flex-1">
+                    <div class="text-sm font-medium text-nc-content-gray">{{ $t('labels.backupCodes') }}</div>
+                    <div class="text-small text-nc-content-gray-subtle">
+                      {{ $t('labels.backupCodesDescription') }}
+                    </div>
+                  </div>
+                  <NcButton
+                    v-e="['c:account:security:regenerate-backup-codes']"
+                    type="text"
+                    size="small"
+                    class="flex-shrink-0"
+                    @click="showRegenerateModal = true"
+                  >
+                    {{ $t('labels.regenerateBackupCodes') }}
+                  </NcButton>
+                </div>
+              </template>
             </div>
           </div>
-          <NcButton
-            v-e="['c:account:security:regenerate-backup-codes']"
-            type="text"
-            size="small"
-            class="flex-shrink-0"
-            @click="showRegenerateModal = true"
-          >
-            {{ $t('labels.regenerateBackupCodes') }}
-          </NcButton>
         </div>
-      </template>
+      </div>
     </div>
 
     <!-- Setup Modal -->

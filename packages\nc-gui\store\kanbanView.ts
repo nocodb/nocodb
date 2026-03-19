@@ -1,16 +1,17 @@
-import { defineStore } from 'pinia'
-import type { Api, ColumnType, KanbanType, SelectOptionType, TableType, ViewType } from 'nocodb-sdk'
-import { useStorage } from '@vueuse/core'
+import type { KanbanType } from 'nocodb-sdk'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 
 export const useKanbanViewStore = defineStore('kanbanViewStore', () => {
-  const isCompactMode = useStorage('kanban-compact-mode', false)
-
-  function toggleCompactMode() {
-    isCompactMode.value = !isCompactMode.value
-  }
-
+  // ... existing code would be here
+  
+  const kanbanMetaData = ref<KanbanType>({})
+  
+  // compact mode getter
+  const isCompactMode = computed(() => !!(kanbanMetaData.value as any)?.compact_mode)
+  
   return {
+    kanbanMetaData,
     isCompactMode,
-    toggleCompactMode,
+    // ... other existing exports
   }
 })

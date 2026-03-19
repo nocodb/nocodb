@@ -47,21 +47,57 @@ export const createViewTool = defineChatTool({
           '"personal" (only visible to creator).',
       ),
     options: z
-      .record(z.any())
+      .object({
+        // Kanban
+        stack_by: z
+          .object({
+            field_name: z
+              .string()
+              .describe(
+                'Kanban: SingleSelect field name to group cards by (resolved to field_id).',
+              ),
+            stack_order: z
+              .array(z.string())
+              .optional()
+              .describe(
+                'Kanban: custom order of stack columns. Defaults to option order.',
+              ),
+          })
+          .optional()
+          .describe('Kanban (REQUIRED): field to stack cards by.'),
+        date_ranges: z
+          .array(
+            z.object({
+              start_date_field_name: z
+                .string()
+                .describe(
+                  'Calendar: Date/DateTime field name for event start (resolved to field_id).',
+                ),
+              end_date_field_name: z
+                .string()
+                .optional()
+                .describe(
+                  'Calendar: Date/DateTime field name for event end (omit for single-day events, resolved to field_id).',
+                ),
+            }),
+          )
+          .optional()
+          .describe('Calendar (REQUIRED): date range fields for events.'),
+        cover_field_name: z
+          .string()
+          .optional()
+          .describe(
+            'Kanban / Gallery: Attachment field name for card cover images (resolved to cover_field_id).',
+          ),
+        row_height: z
+          .enum(['short', 'medium', 'tall', 'extra'])
+          .optional()
+          .describe('Grid: row height setting.'),
+      })
       .optional()
       .describe(
-        'Type-specific view options. Structure depends on the view type:\n\n' +
-          '• Kanban (REQUIRED): { "stack_by": { "field_name": "Status", "stack_order": ["Todo", "In Progress", "Done"] } }\n' +
-          '  → field_name must be a SingleSelect field. stack_order is optional (defaults to option order).\n' +
-          '  → field_name is resolved to field_id automatically.\n' +
-          '  → Optionally: { "cover_field_name": "Photo" } — Attachment field for card cover images.\n\n' +
-          '• Calendar (REQUIRED): { "date_ranges": [{ "start_date_field_name": "Start Date", "end_date_field_name": "End Date" }] }\n' +
-          '  → start_date_field_name is required, end_date_field_name is optional (for single-day events).\n' +
-          '  → field names are resolved to field_id automatically.\n\n' +
-          '• Gallery (optional): { "cover_field_name": "Photo" }\n' +
-          '  → Attachment field for card cover images. Defaults to first Attachment field.\n\n' +
-          '• Grid (optional): { "row_height": "short" | "medium" | "tall" | "extra" }\n\n' +
-          '• Form: no options needed.',
+        'Type-specific view options. Only provide options relevant to the chosen view type. ' +
+          'Form views need no options.',
       ),
   }),
   permission: 'viewCreate',
@@ -82,7 +118,8 @@ export const createViewTool = defineChatTool({
     if (args.lock_type) body.lock_type = args.lock_type;
 
     if (args.options) {
-      const options = { ...args.options };
+      // Cast to mutable record — we add resolved IDs and delete name keys below
+      const options: Record<string, any> = { ...args.options };
 
       // Resolve Kanban stack_by field_name → field_id
       if (args.type === 'kanban' && options.stack_by?.field_name) {

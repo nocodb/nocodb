@@ -337,6 +337,77 @@ export const STEP_CONFIG: Record<string, StepConfig> = {
     },
   },
 
+  // ─── Docs ──────────────────────────────────────────────────────────────────
+  list_documents: { category: 'search', icon: 'ncSearch', labelFn: () => 'Browsing pages' },
+  get_document: {
+    category: 'search',
+    icon: 'ncSearch',
+    labelFn: () => 'Opening page',
+    descriptionFn: (b) => {
+      const n = inp(b).document_name
+      return n ? bold(n) : ''
+    },
+  },
+  create_document: {
+    category: 'create',
+    icon: 'ncPlus',
+    labelFn: () => 'Drafting new page',
+    descriptionFn: (b) => {
+      const n = inp(b).title
+      return n ? bold(n) : ''
+    },
+  },
+  update_document: {
+    category: 'update',
+    icon: 'ncEdit',
+    labelFn: () => 'Rewriting page',
+    descriptionFn: (b) => {
+      const n = inp(b).document_name
+      return n ? bold(n) : ''
+    },
+  },
+  patch_document: {
+    category: 'update',
+    icon: 'ncEdit',
+    labelFn: () => 'Refining content',
+    descriptionFn: (b) => {
+      const n = inp(b).document_name
+      return n ? bold(n) : ''
+    },
+  },
+  delete_document: {
+    category: 'delete',
+    icon: 'ncTrash2',
+    labelFn: () => 'Removing page',
+    descriptionFn: (b) => {
+      const n = inp(b).document_name
+      return n ? bold(n) : ''
+    },
+  },
+  list_document_comments: {
+    category: 'search',
+    icon: 'ncSearch',
+    labelFn: () => 'Checking discussion',
+    descriptionFn: (b) => {
+      const n = inp(b).document_name
+      return n ? bold(n) : ''
+    },
+  },
+  add_document_comment: {
+    category: 'create',
+    icon: 'ncPlus',
+    labelFn: () => 'Leaving a note',
+    descriptionFn: (b) => {
+      const n = inp(b).document_name
+      return n ? bold(n) : ''
+    },
+  },
+  resolve_document_comment: {
+    category: 'update',
+    icon: 'ncEdit',
+    labelFn: () => 'Closing discussion',
+  },
+
   // ─── Sandbox ────────────────────────────────────────────────────────────────
   execute_code: {
     category: 'search',

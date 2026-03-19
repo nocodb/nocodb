@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { WidgetTypes } from 'nocodb-sdk';
 
 const aggregationEnum = z.enum(['sum', 'avg', 'count', 'min', 'max']);
 
@@ -220,6 +221,18 @@ export const iframeConfigSchema = z
   })
   .describe('Iframe widget configuration — embeds an external URL.');
 
+/**
+ * Union of all widget config schemas.
+ * Used as the typed `config` parameter in create_widget / update_widget.
+ * The widget `type` field (sibling to config) tells the LLM which variant to use.
+ */
+export const widgetConfigSchema = z.union([
+  chartConfigSchema,
+  metricConfigSchema,
+  textConfigSchema,
+  iframeConfigSchema,
+]);
+
 export const WIDGET_CONFIG_DESCRIPTIONS = `
 Widget config varies by type:
 
@@ -272,14 +285,25 @@ SIZE CONSTRAINTS (4-column grid):
   Always provide position. Check existing widgets to avoid overlaps.
 `.trim();
 
+export type ChartConfig = z.infer<typeof chartConfigSchema>;
+export type MetricConfig = z.infer<typeof metricConfigSchema>;
+export type TextConfig = z.infer<typeof textConfigSchema>;
+export type IframeConfig = z.infer<typeof iframeConfigSchema>;
+
+export type WidgetConfig =
+  | ChartConfig
+  | MetricConfig
+  | TextConfig
+  | IframeConfig;
+
 /**
  * Validate widget config against the appropriate schema for the widget type.
  * Returns the parsed config or throws a ZodError.
  */
 export function validateWidgetConfig(
-  widgetType: string,
+  widgetType: WidgetTypes | string,
   config: unknown,
-): unknown {
+): WidgetConfig {
   switch (widgetType) {
     case 'chart':
       return chartConfigSchema.parse(config);
@@ -290,6 +314,6 @@ export function validateWidgetConfig(
     case 'iframe':
       return iframeConfigSchema.parse(config);
     default:
-      return config;
+      return config as WidgetConfig;
   }
 }

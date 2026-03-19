@@ -58,6 +58,18 @@ export const ChatToolName = {
   LIST_WIDGET_FILTERS: 'list_widget_filters',
   REMOVE_WIDGET_FILTER: 'remove_widget_filter',
 
+
+  // Docs
+  LIST_DOCUMENTS: 'list_documents',
+  GET_DOCUMENT: 'get_document',
+  CREATE_DOCUMENT: 'create_document',
+  UPDATE_DOCUMENT: 'update_document',
+  DELETE_DOCUMENT: 'delete_document',
+  PATCH_DOCUMENT: 'patch_document',
+  LIST_DOCUMENT_COMMENTS: 'list_document_comments',
+  ADD_DOCUMENT_COMMENT: 'add_document_comment',
+  RESOLVE_DOCUMENT_COMMENT: 'resolve_document_comment',
+
   // Sandbox
   EXECUTE_CODE: 'execute_code',
 

@@ -59,6 +59,15 @@ export function useDocumentAutoSave({
       if (!storeVersion || storeVersion <= (doc.value.version ?? 0)) return
       if (activeDocument.value.updated_by !== user.value?.id) return
 
+      // If the user hasn't made unsaved edits and the version jumped by more than
+      // what a sidebar-only change would produce, auto-reload content. This handles
+      // cases where the current user's own external action (e.g. chat tool) modified
+      // content — the editor's save() wasn't involved, so content is stale.
+      if (!hasUserEdited.value && !saveTimeout.value) {
+        reloadDocument()
+        return
+      }
+
       doc.value.version = storeVersion
       doc.value.updated_at = activeDocument.value.updated_at
       doc.value.updated_by = activeDocument.value.updated_by

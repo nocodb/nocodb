@@ -6,6 +6,7 @@ import {
   resolveColumnByName,
   resolveTableByName,
 } from '~/integrations/ai/chat/tools/helpers';
+import { fieldOptionsSchema } from '~/integrations/ai/chat/tools/schema/field-options.schema';
 import { ColumnsV3Service } from '~/services/v3/columns-v3.service';
 import Model from '~/models/Model';
 import Noco from '~/Noco';
@@ -60,10 +61,16 @@ const CREATABLE_FIELD_TYPES = [
 export const addFieldTool = defineChatTool({
   name: ChatToolName.ADD_FIELD,
   description:
-    'Add a new field (column) to an existing table. Returns the created field in V3 format. ' +
-    'The `options` object holds type-specific configuration (choices, link target, formula, etc.). ' +
-    'Call describe_table first to see existing fields and avoid duplicate names. ' +
-    'For Lookup/Rollup/Barcode/QrCode, use field_name helpers (related_field_name, etc.) — they will be resolved to IDs.',
+    'Add a new field (column) to an existing table. Returns the created field in V3 format.\n\n' +
+    'The `options` object holds type-specific configuration — see its property descriptions for which field types each option applies to. ' +
+    'Call describe_table first to see existing fields and avoid duplicate names.\n\n' +
+    'Name resolution helpers (use names, not IDs):\n' +
+    '• Links/LTAR: set related_table_name (resolved to related_table_id)\n' +
+    '• Lookup: set related_field_name + lookup_field_name (resolved to IDs)\n' +
+    '• Rollup: set related_field_name + rollup_field_name + rollup_function\n' +
+    '• Barcode: set barcode_value_field_name (resolved to barcode_value_field_id)\n' +
+    '• QrCode: set qrcode_value_field_name (resolved to qrcode_value_field_id)\n\n' +
+    'No options needed for: SingleLineText, Attachment, JSON, Year, Geometry, CreatedBy, LastModifiedBy.',
   schema: z.object({
     table_name: z
       .string()
@@ -80,54 +87,10 @@ export const addFieldTool = defineChatTool({
       .string()
       .optional()
       .describe('Optional description of the field.'),
-    options: z
-      .record(z.any())
+    options: fieldOptionsSchema
       .optional()
       .describe(
-        'Type-specific options object. Structure depends on the field type:\n\n' +
-          '── Selection ──\n' +
-          '• SingleSelect / MultiSelect: { "choices": [{ "title": "Option A" }, { "title": "Option B" }] }\n\n' +
-          '── Relationships ──\n' +
-          '• Links / LinkToAnotherRecord: { "relation_type": "hm" | "mm" | "oo", "related_table_name": "TableName" }\n' +
-          '  → use related_table_name (case-insensitive), resolved to related_table_id automatically.\n\n' +
-          '── Derived / Computed ──\n' +
-          '• Lookup: { "related_field_name": "LinkFieldName", "lookup_field_name": "FieldInLinkedTable" }\n' +
-          '  → Both names are resolved to IDs. related_field_name must be a Links/LTAR field in this table.\n' +
-          '  → lookup_field_name is the field in the linked table whose values to pull.\n' +
-          '• Rollup: { "related_field_name": "LinkFieldName", "rollup_field_name": "FieldInLinkedTable", ' +
-          '"rollup_function": "count" | "min" | "max" | "avg" | "sum" | "countDistinct" | "sumDistinct" | "avgDistinct" }\n' +
-          '  → related_field_name and rollup_field_name are resolved to IDs.\n' +
-          '• Formula: { "formula": "CONCAT({FirstName}, \' \', {LastName})" }\n' +
-          '  → Use {FieldName} to reference other fields. Supports: CONCAT, IF, AND, OR, LEN, TRIM, UPPER, LOWER, ' +
-          'ROUND, CEILING, FLOOR, ABS, MOD, POWER, SQRT, LOG, NOW, TODAY, DATEADD, DATEDIFF, etc.\n\n' +
-          '── Visual ──\n' +
-          '• Barcode: { "barcode_value_field_name": "FieldName", "format": "CODE128" }\n' +
-          '  → barcode_value_field_name is resolved to barcode_value_field_id.\n' +
-          '• QrCode: { "qrcode_value_field_name": "FieldName" }\n' +
-          '  → qrcode_value_field_name is resolved to qrcode_value_field_id.\n' +
-          '• Button: { "type": "formula", "formula": "CONCAT(...)", "label": "Click Me", ' +
-          '"color": "brand", "theme": "solid" }\n' +
-          '  → type can be "formula" (requires formula) or "webhook" (requires button_hook_id).\n\n' +
-          '── Numeric ──\n' +
-          '• Currency: { "code": "USD", "locale": "en-US" }\n' +
-          '• Decimal: { "precision": 2 } (0–8)\n' +
-          '• Duration: { "duration_format": "h:mm:ss" }\n' +
-          '• Number: { "locale_string": true } (show thousand separator)\n' +
-          '• Percent: { "show_as_progress": true }\n' +
-          '• Rating: { "max_value": 5, "icon": "star" | "heart" | "circle-filled" | "thumbs-up" | "flag" }\n\n' +
-          '── Date & Time ──\n' +
-          '• Date: { "date_format": "YYYY-MM-DD" }\n' +
-          '• DateTime / CreatedTime / LastModifiedTime: { "date_format": "YYYY-MM-DD", "time_format": "HH:mm", "12hr_format": false }\n' +
-          '• Time: { "time_format": "HH:mm:ss" }\n\n' +
-          '── Text & Contact ──\n' +
-          '• LongText: { "rich_text": true }\n' +
-          '• PhoneNumber / URL / Email: { "validation": true }\n\n' +
-          '── Users ──\n' +
-          '• User: { "allow_multiple_users": true }\n\n' +
-          '── Checkbox ──\n' +
-          '• Checkbox: { "icon": "square" | "circle-check" | "star" | "heart" | "thumbs-up" | "flag" }\n\n' +
-          '── No options needed ──\n' +
-          '• SingleLineText, Attachment, JSON, Year, Geometry, CreatedBy, LastModifiedBy: no options required.',
+        'Type-specific options. Only provide options relevant to the chosen field type.',
       ),
     default_value: z
       .union([z.string(), z.boolean(), z.number()])
@@ -172,7 +135,8 @@ export const addFieldTool = defineChatTool({
     }
 
     if (args.options) {
-      const options = { ...args.options };
+      // Cast to mutable record — we add resolved IDs and delete name keys below
+      const options: Record<string, any> = { ...args.options };
 
       // Resolve related_table_name → related_table_id for link fields
       if (

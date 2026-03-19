@@ -7,6 +7,7 @@ import { dashboardAgent } from '~/integrations/ai/chat/agents/dashboard';
 import { uiAgent } from '~/integrations/ai/chat/agents/ui';
 import { fileAnalystAgent } from '~/integrations/ai/chat/agents/file-analyst';
 import { supportAgent } from '~/integrations/ai/chat/agents/support';
+import { docsAgent } from '~/integrations/ai/chat/agents/docs';
 
 export type {
   AgentDefinition,
@@ -27,6 +28,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
   ui: uiAgent,
   file_analyst: fileAnalystAgent,
   support: supportAgent,
+  docs: docsAgent,
 };
 
 export const SPECIALIST_NAMES = Object.keys(AGENTS).filter(

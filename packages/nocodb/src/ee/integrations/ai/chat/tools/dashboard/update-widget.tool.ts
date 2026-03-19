@@ -1,10 +1,12 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
+import type { Widget } from '~/models';
 import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
 import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import {
   validateWidgetConfig,
   WIDGET_CONFIG_DESCRIPTIONS,
+  widgetConfigSchema,
 } from '~/integrations/ai/chat/tools/dashboard/widget-schemas';
 import {
   resolveDashboardByName,
@@ -33,8 +35,7 @@ export const updateWidgetTool = defineChatTool({
         'The current title of the widget to update (case-insensitive).',
       ),
     title: z.string().optional().describe('New display name for the widget.'),
-    config: z
-      .record(z.any())
+    config: widgetConfigSchema
       .optional()
       .describe(
         'Updated type-specific configuration. Replaces the entire config — ' +
@@ -78,7 +79,7 @@ export const updateWidgetTool = defineChatTool({
       args.widget_name,
     );
 
-    const updateObj: Record<string, any> = {};
+    const updateObj: Partial<Widget> = {};
     if (args.title !== undefined) updateObj.title = args.title;
     if (args.config !== undefined) {
       updateObj.config = validateWidgetConfig(widget.type, args.config);
@@ -86,7 +87,9 @@ export const updateWidgetTool = defineChatTool({
     if (args.fk_model_id !== undefined)
       updateObj.fk_model_id = args.fk_model_id;
     if (args.fk_view_id !== undefined) updateObj.fk_view_id = args.fk_view_id;
-    if (args.position !== undefined) updateObj.position = args.position;
+    if (args.position !== undefined) {
+      updateObj.position = args.position as Widget['position'];
+    }
 
     const updated = await service.widgetUpdate(
       context,

@@ -125,10 +125,14 @@ export default class Document extends DocumentCE implements DocumentType {
    *
    * @param parentId — `null` (default) for root documents, doc ID for children.
    */
+  /**
+   * @param parentId — `null` for root documents, doc ID for children,
+   *   `undefined` to list all documents across all hierarchy levels.
+   */
   public static async listLite(
     context: NcContext,
     baseId: string,
-    parentId: string | null = null,
+    parentId: string | null | undefined = null,
     ncMeta = Noco.ncMeta,
   ) {
     const liteFields = [
@@ -147,16 +151,22 @@ export default class Document extends DocumentCE implements DocumentType {
       'updated_at',
     ];
 
+    const condition: Record<string, any> = {
+      base_id: baseId,
+      deleted: false,
+    };
+
+    // undefined = all levels, null = root, string = children of that doc
+    if (parentId !== undefined) {
+      condition.parent_id = parentId;
+    }
+
     const docList = await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
       MetaTable.DOCS,
       {
-        condition: {
-          base_id: baseId,
-          deleted: false,
-          parent_id: parentId,
-        },
+        condition,
         orderBy: {
           order: 'asc',
         },

@@ -1,10 +1,13 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
+import type { WidgetTypes } from 'nocodb-sdk';
+import type { Widget } from '~/models';
 import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
 import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import {
   validateWidgetConfig,
   WIDGET_CONFIG_DESCRIPTIONS,
+  widgetConfigSchema,
 } from '~/integrations/ai/chat/tools/dashboard/widget-schemas';
 import { resolveDashboardByName } from '~/integrations/ai/chat/tools/helpers';
 import { DashboardsService } from '~/services/dashboards.service';
@@ -30,11 +33,11 @@ export const createWidgetTool = defineChatTool({
     type: z
       .enum(['chart', 'metric', 'text', 'iframe'])
       .describe('The widget type. Determines what config fields are required.'),
-    config: z
-      .record(z.any())
-      .describe(
-        'Type-specific configuration object. See the tool description for the exact schema per widget type.',
-      ),
+    config: widgetConfigSchema.describe(
+      'Type-specific configuration. Use the variant matching the widget type — ' +
+        'chart: requires chartType + data; metric: requires metric object; ' +
+        'text: requires type + content; iframe: requires url.',
+    ),
     fk_model_id: z
       .string()
       .optional()
@@ -79,18 +82,16 @@ export const createWidgetTool = defineChatTool({
     // (e.g. "missing chartType") instead of failing deep in the service layer.
     const validatedConfig = validateWidgetConfig(args.type, args.config);
 
-    const widget = await service.widgetCreate(
-      context,
-      {
-        title: args.title,
-        type: args.type as any,
-        fk_dashboard_id: dashboard.id,
-        base_id: context.base_id,
-        fk_workspace_id: context.workspace_id,
-        config: validatedConfig,
-        ...(args.fk_model_id && { fk_model_id: args.fk_model_id }),
-        ...(args.fk_view_id && { fk_view_id: args.fk_view_id }),
-        ...(args.position && {
+    const insertObj: Partial<Widget> = {
+      title: args.title,
+      type: args.type as WidgetTypes,
+      fk_dashboard_id: dashboard.id,
+      base_id: context.base_id,
+      fk_workspace_id: context.workspace_id,
+      config: validatedConfig,
+      ...(args.fk_model_id && { fk_model_id: args.fk_model_id }),
+      ...(args.fk_view_id && { fk_view_id: args.fk_view_id }),
+      ...(args.position && {
         position: {
           x: args.position.x,
           y: args.position.y,
@@ -98,9 +99,9 @@ export const createWidgetTool = defineChatTool({
           h: args.position.h,
         },
       }),
-      },
-      req,
-    );
+    };
+
+    const widget = await service.widgetCreate(context, insertObj, req);
 
     return {
       id: widget.id,

@@ -7,6 +7,7 @@ export function useTwoFactorSignin() {
   const twoFactorToken = ref('')
   const twoFactorCode = ref('')
   const twoFactorError = ref('')
+  const twoFactorLoading = ref(false)
   const useBackupCode = ref(false)
 
   /**
@@ -25,7 +26,10 @@ export function useTwoFactorSignin() {
   }
 
   async function verifyTwoFactor(): Promise<boolean> {
+    if (!twoFactorCode.value) return false
+
     twoFactorError.value = ''
+    twoFactorLoading.value = true
 
     try {
       const response = await api.instance.post('/api/v2/auth/mfa/verify', {
@@ -38,6 +42,8 @@ export function useTwoFactorSignin() {
     } catch (e: any) {
       twoFactorError.value = await extractSdkResponseErrorMsg(e)
       return false
+    } finally {
+      twoFactorLoading.value = false
     }
   }
 
@@ -46,6 +52,7 @@ export function useTwoFactorSignin() {
     twoFactorToken.value = ''
     twoFactorCode.value = ''
     twoFactorError.value = ''
+    twoFactorLoading.value = false
     useBackupCode.value = false
   }
 
@@ -54,6 +61,7 @@ export function useTwoFactorSignin() {
     twoFactorToken,
     twoFactorCode,
     twoFactorError,
+    twoFactorLoading,
     useBackupCode,
     handleSigninResponse,
     verifyTwoFactor,

@@ -18,11 +18,14 @@ const {
   twoFactorRequired,
   twoFactorCode,
   twoFactorError,
+  twoFactorLoading,
   useBackupCode,
   handleSigninResponse,
   verifyTwoFactor: _verifyTwoFactor,
   cancelTwoFactor,
 } = useTwoFactorSignin()
+
+const twoFactorCodeInput = ref<HTMLInputElement>()
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
@@ -61,7 +64,10 @@ async function signIn() {
   resetError()
 
   api.auth.signin(form).then(async (response: any) => {
-    if (handleSigninResponse(response)) return
+    if (handleSigninResponse(response)) {
+      nextTick(() => twoFactorCodeInput.value?.focus())
+      return
+    }
 
     await navigateTo({
       path: '/',
@@ -130,19 +136,29 @@ function navigateForgotPassword() {
               <div>
                 <div class="text-sm font-medium mb-1">{{ useBackupCode ? $t('labels.backupCode') : $t('labels.verificationCode') }}</div>
                 <a-input
+                  ref="twoFactorCodeInput"
                   v-model:value="twoFactorCode"
                   data-testid="nc-form-signin__2fa-code"
                   size="large"
                   :placeholder="useBackupCode ? $t('placeholder.enterBackupCode') : $t('placeholder.enterVerificationCode')"
                   autocomplete="one-time-code"
+                  :disabled="twoFactorLoading"
                   @focus="twoFactorError = ''"
                   @pressEnter="verifyTwoFactor"
                 />
               </div>
 
               <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
-                <button data-testid="nc-form-signin__2fa-submit" class="scaling-btn bg-opacity-100" @click="verifyTwoFactor">
-                  <span class="flex items-center gap-2">{{ $t('general.verify') }}</span>
+                <button
+                  data-testid="nc-form-signin__2fa-submit"
+                  class="scaling-btn bg-opacity-100"
+                  :disabled="!twoFactorCode || twoFactorLoading"
+                  @click="verifyTwoFactor"
+                >
+                  <span class="flex items-center gap-2">
+                    <GeneralLoader v-if="twoFactorLoading" size="small" />
+                    {{ $t('general.verify') }}
+                  </span>
                 </button>
 
                 <div class="text-sm">

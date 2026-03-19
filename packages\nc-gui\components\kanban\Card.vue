@@ -1,34 +1,36 @@
 <script lang="ts" setup>
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
-import type { ColumnType } from 'nocodb-sdk'
 
 const props = defineProps<{
   row: RowType
   rowIndex: number
 }>()
 
-const { row, rowIndex } = toRefs(props)
+const emit = defineEmits(['expand-row', 'update-row-property'])
 
-const fields = inject(FieldsInj, ref([]))
+const { row, rowIndex } = toRefs(props)
 
 const isPublic = inject(IsPublicInj, ref(false))
 
 const { isUIAllowed } = useRoles()
 
-const { isMobileMode } = useGlobal()
+const fields = inject(FieldsInj, ref([]))
 
 const expandRow = inject(ExpandRowInj, (_row: RowType) => {})
 
 const meta = inject(MetaInj, ref())
 
-const reloadViewDataHook = inject(ReloadViewDataHookInj)
-
 const { kanbanMetaData, kanbanViewCoverImageColumnId, updateOrSaveRow } = useKanbanViewStoreOrThrow()
+
+const { isMobileMode } = useGlobal()
+
+const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
 const isCompactMode = computed(() => !!(kanbanMetaData.value as any)?.compact_mode)
 
-const coverImageColumn = computed(() =>
-  meta.value?.columns?.find((col: ColumnType) => col.id === kanbanViewCoverImageColumnId.value),
+const coverImageColumn = computed(
+  () => meta.value?.columns?.find((col: ColumnType) => col.id === kanbanViewCoverImageColumnId.value),
 )
 
 const coverImage = computed(() => {
@@ -37,44 +39,77 @@ const coverImage = computed(() => {
   if (!attachments || !Array.isArray(attachments) || attachments.length === 0) return null
   return attachments[0]?.signedPath || attachments[0]?.path || null
 })
+
+const fieldsWithoutCover = computed(() =>
+  fields.value.filter((f) => f.id !== kanbanViewCoverImageColumnId.value),
+)
 </script>
 
 <template>
   <div
-    class="nc-kanban-card group relative flex flex-col w-full cursor-pointer border-1 border-gray-200 rounded-xl overflow-hidden bg-white hover:border-brand-500 transition-all"
+    data-testid="nc-kanban-card"
+    class="nc-kanban-card nc-row-expand relative flex flex-col w-full cursor-pointer select-none overflow-hidden rounded-xl border-1 border-gray-200 bg-white shadow-sm hover:border-brand-500 hover:shadow-md transition-all"
     :class="{
       'nc-kanban-card-compact': isCompactMode,
     }"
     @click="expandRow(row)"
   >
-    <!-- Cover Image (hidden in compact mode) -->
-    <template v-if="!isCompactMode">
-      <LazySmartsheetRowExpanderKanbanCoverImage
-        v-if="coverImage"
-        :cover-image="coverImage"
+    <!-- Cover Image: only shown when NOT in compact mode -->
+    <div v-if="!isCompactMode && coverImage" class="nc-kanban-cover h-32 w-full overflow-hidden">
+      <img
+        class="w-full h-full object-cover"
+        :src="coverImage"
+        alt="cover"
       />
-    </template>
+    </div>
 
+    <!-- Card body -->
     <div
-      class="flex flex-col gap-1 w-full"
+      class="flex flex-col"
       :class="{
-        'p-3': !isCompactMode,
-        'p-1.5': isCompactMode,
+        'gap-2 p-3': !isCompactMode,
+        'gap-0.5 p-1.5': isCompactMode,
       }"
     >
-      <slot />
+      <template v-for="(field, i) in fieldsWithoutCover" :key="field.id">
+        <div
+          v-if="field.show"
+          class="nc-cell-field-wrapper"
+          :class="{
+            'flex items-start gap-2': !isCompactMode,
+            'flex items-center gap-1 min-h-5 max-h-5 overflow-hidden': isCompactMode,
+          }"
+        >
+          <LazySmartsheetCell
+            :model-value="row.row[field.title!]"
+            :column="field"
+            :read-only="true"
+            :row-index="rowIndex"
+            :active="false"
+          />
+        </div>
+      </template>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .nc-kanban-card-compact {
-  .nc-cell {
-    @apply text-xs py-0;
+  :deep(.cell) {
+    padding: 0 !important;
+    min-height: unset !important;
+    font-size: 0.75rem;
+    line-height: 1rem;
   }
-  
-  .nc-cell-field {
-    @apply py-0 min-h-0;
+
+  :deep(.nc-cell-field) {
+    padding: 0 !important;
+    min-height: unset !important;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 </style>

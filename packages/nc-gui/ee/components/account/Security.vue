@@ -297,48 +297,40 @@ onMounted(() => {
     </div>
 
     <!-- Setup Modal -->
-    <NcModal
-      v-model:visible="showSetupModal"
-      size="sm"
-      :closable="setupStep !== 'verify' && setupStep !== 'backup'"
-      :mask-closable="setupStep !== 'verify' && setupStep !== 'backup'"
-      @close="closeSetupModal"
-    >
-      <template #header>
-        <div class="flex items-center justify-between w-full">
-          <div class="text-base font-semibold">{{ $t('labels.setupTwoFactor') }}</div>
-          <div class="text-xs text-nc-content-gray-subtle mr-2">
+    <GeneralModal v-model:visible="showSetupModal" size="small" centered :closable="setupStep !== 'verify' && setupStep !== 'backup'">
+      <div class="flex flex-col gap-2 p-4 md:!p-6">
+        <div class="flex items-center justify-between mb-3">
+          <div class="text-lg font-semibold">{{ $t('labels.setupTwoFactor') }}</div>
+          <div class="text-xs text-nc-content-gray-subtle">
             {{ $t('labels.stepOf', { current: setupStepNumber, total: 4 }) }}
           </div>
         </div>
-      </template>
 
-      <div class="flex flex-col gap-4 p-4">
         <!-- Step 0: Password confirmation -->
         <template v-if="setupStep === 'password'">
-          <p class="text-sm text-nc-content-gray-subtle">
+          <span class="text-sm text-nc-content-gray-subtle">
             {{ $t('labels.confirmPasswordToSetup') }}
-          </p>
-          <div class="flex flex-col gap-3">
-            <div>
-              <div class="text-sm font-medium mb-1">{{ $t('labels.password') }}</div>
-              <a-input-password
-                ref="setupPasswordInput"
-                v-model:value="setupPassword"
-                data-testid="nc-2fa-setup-password"
-                size="large"
-                :placeholder="$t('msg.info.signUp.enterPassword')"
-                @pressEnter="confirmPassword"
-              />
-            </div>
-            <div v-if="setupError" class="text-red-500 text-sm">{{ setupError }}</div>
-            <NcButton
-              type="primary"
-              class="w-full"
-              :loading="isLoading"
-              :disabled="!setupPassword"
-              @click="confirmPassword"
-            >
+          </span>
+
+          <div class="flex flex-col gap-2 mt-2">
+            <span class="text-sm">{{ $t('labels.password') }}</span>
+            <a-input-password
+              ref="setupPasswordInput"
+              v-model:value="setupPassword"
+              data-testid="nc-2fa-setup-password"
+              class="w-full nc-input-sm nc-input-shadow"
+              :placeholder="$t('msg.info.signUp.enterPassword')"
+              @pressEnter="confirmPassword"
+            />
+          </div>
+
+          <div v-if="setupError" class="text-red-500 text-sm">{{ setupError }}</div>
+
+          <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
+            <NcButton type="secondary" size="small" @click="closeSetupModal">
+              {{ $t('general.cancel') }}
+            </NcButton>
+            <NcButton type="primary" size="small" :loading="isLoading" :disabled="!setupPassword" @click="confirmPassword">
               {{ $t('general.next') }}
             </NcButton>
           </div>
@@ -346,50 +338,50 @@ onMounted(() => {
 
         <!-- Step 1: QR Code -->
         <template v-if="setupStep === 'qr' && setupData">
-          <p class="text-sm text-nc-content-gray-subtle">
+          <span class="text-sm text-nc-content-gray-subtle">
             {{ $t('labels.scanQrCode') }}
-          </p>
-          <div class="flex justify-center">
-            <img :src="setupData.qrUrl" alt="QR Code" class="w-48 h-48" />
+          </span>
+          <div class="flex justify-center my-2">
+            <img :src="setupData.qrUrl" alt="QR Code" class="w-44 h-44" />
           </div>
           <div class="flex items-center justify-center gap-2 text-xs text-nc-content-gray-subtle">
             <span>{{ $t('labels.manualEntryCode') }}:</span>
-            <code class="bg-nc-bg-gray-light px-2 py-1 rounded text-xs">{{ setupData.secret }}</code>
+            <code class="bg-nc-bg-gray-light px-2 py-0.5 rounded text-xs">{{ setupData.secret }}</code>
             <NcButton type="text" size="xxs" @click="copySecret">
               <GeneralIcon icon="copy" class="h-3.5 w-3.5" />
             </NcButton>
           </div>
-          <NcButton type="primary" class="w-full" @click="goToVerifyStep">
-            {{ $t('general.next') }}
-          </NcButton>
+
+          <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
+            <NcButton type="primary" size="small" @click="goToVerifyStep">
+              {{ $t('general.next') }}
+            </NcButton>
+          </div>
         </template>
 
         <!-- Step 2: Verify -->
         <template v-if="setupStep === 'verify'">
-          <p class="text-sm text-nc-content-gray-subtle">
+          <span class="text-sm text-nc-content-gray-subtle">
             {{ $t('labels.enterCodeFromApp') }}
-          </p>
-          <div class="flex flex-col gap-3">
-            <div>
-              <div class="text-sm font-medium mb-1">{{ $t('labels.verificationCode') }}</div>
-              <a-input
-                ref="setupCodeInput"
-                v-model:value="setupCode"
-                data-testid="nc-2fa-setup-code"
-                size="large"
-                :placeholder="$t('placeholder.enterVerificationCode')"
-                autocomplete="one-time-code"
-                @pressEnter="confirmSetup"
-              />
-            </div>
-            <div v-if="setupError" class="text-red-500 text-sm">{{ setupError }}</div>
-            <NcButton
-              type="primary"
-              class="w-full"
-              :loading="isLoading"
-              :disabled="!setupCode"
-              @click="confirmSetup"
-            >
+          </span>
+
+          <div class="flex flex-col gap-2 mt-2">
+            <span class="text-sm">{{ $t('labels.verificationCode') }}</span>
+            <a-input
+              ref="setupCodeInput"
+              v-model:value="setupCode"
+              data-testid="nc-2fa-setup-code"
+              class="w-full nc-input-sm nc-input-shadow"
+              :placeholder="$t('placeholder.enterVerificationCode')"
+              autocomplete="one-time-code"
+              @pressEnter="confirmSetup"
+            />
+          </div>
+
+          <div v-if="setupError" class="text-red-500 text-sm">{{ setupError }}</div>
+
+          <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
+            <NcButton type="primary" size="small" :loading="isLoading" :disabled="!setupCode" @click="confirmSetup">
               {{ $t('general.verify') }}
             </NcButton>
           </div>
@@ -397,144 +389,148 @@ onMounted(() => {
 
         <!-- Step 3: Backup Codes -->
         <template v-if="setupStep === 'backup' && setupData">
-          <p class="text-sm text-nc-content-gray-subtle">
+          <span class="text-sm text-nc-content-gray-subtle">
             {{ $t('labels.saveBackupCodes') }}
-          </p>
-          <div class="bg-nc-bg-gray-light rounded-lg p-4">
-            <div class="grid grid-cols-2 gap-2">
-              <code v-for="code in setupData.backupCodes" :key="code" class="text-sm text-center py-1">
+          </span>
+          <div class="bg-nc-bg-gray-light rounded-lg p-3 mt-1">
+            <div class="grid grid-cols-2 gap-1.5">
+              <code v-for="code in setupData.backupCodes" :key="code" class="text-sm text-center py-0.5">
                 {{ code }}
               </code>
             </div>
           </div>
-          <div class="flex gap-2">
-            <NcButton
-              v-e="['c:account:security:copy-backup-codes']"
-              type="secondary"
-              class="flex-1"
-              @click="copyBackupCodes(setupData.backupCodes)"
-            >
-              <div class="flex items-center gap-1.5">
-                <GeneralIcon icon="copy" class="h-4 w-4" />
-                {{ $t('labels.copyAll') }}
-              </div>
-            </NcButton>
-            <NcButton type="primary" class="flex-1" @click="closeSetupModal">
-              {{ $t('labels.iHaveSavedTheseCodes') }}
-            </NcButton>
-          </div>
           <p class="text-xs text-nc-content-gray-subtle">
             {{ $t('labels.backupCodesWarning') }}
           </p>
+          <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
+            <NcButton
+              v-e="['c:account:security:copy-backup-codes']"
+              type="secondary"
+              size="small"
+              @click="copyBackupCodes(setupData.backupCodes)"
+            >
+              <div class="flex items-center gap-1.5">
+                <GeneralIcon icon="copy" class="h-3.5 w-3.5" />
+                {{ $t('labels.copyAll') }}
+              </div>
+            </NcButton>
+            <NcButton type="primary" size="small" @click="closeSetupModal">
+              {{ $t('labels.iHaveSavedTheseCodes') }}
+            </NcButton>
+          </div>
         </template>
       </div>
-    </NcModal>
+    </GeneralModal>
 
     <!-- Disable Modal -->
-    <NcModal v-model:visible="showDisableModal" size="xs">
-      <template #header>
-        <div class="text-base font-semibold">{{ $t('labels.disableTwoFactor') }}</div>
-      </template>
+    <GeneralModal v-model:visible="showDisableModal" size="small" centered>
+      <div class="flex flex-col gap-2 p-4 md:!p-6">
+        <div class="text-lg font-semibold mb-3">{{ $t('labels.disableTwoFactor') }}</div>
 
-      <div class="flex flex-col gap-4 p-4">
-        <p class="text-sm text-nc-content-gray-subtle">
+        <NcAlert type="warning" background>
+          <template #description>
+            {{ $t('labels.disableTwoFactorWarningPrefix') }}
+            <span class="font-semibold">{{ $t('labels.disableTwoFactorWarningBold') }}</span>{{ $t('labels.disableTwoFactorWarningSuffix') }}
+          </template>
+        </NcAlert>
+
+        <span class="text-sm text-nc-content-gray-subtle mt-1">
           {{ $t('labels.enterCodeToDisable') }}
-        </p>
-        <div class="flex flex-col gap-3">
-          <div>
-            <div class="text-sm font-medium mb-1">{{ $t('labels.verificationCode') }}</div>
-            <a-input
-              ref="disableCodeInput"
-              v-model:value="disableCode"
-              data-testid="nc-2fa-disable-code"
-              size="large"
-              :placeholder="$t('placeholder.enterVerificationCode')"
-              autocomplete="one-time-code"
-              @pressEnter="confirmDisable"
-            />
-          </div>
-          <div v-if="disableError" class="text-red-500 text-sm">{{ disableError }}</div>
-          <div class="flex gap-2">
-            <NcButton type="secondary" class="flex-1" @click="showDisableModal = false">
-              {{ $t('general.cancel') }}
-            </NcButton>
-            <NcButton type="danger" class="flex-1" :loading="isLoading" :disabled="!disableCode" @click="confirmDisable">
-              {{ $t('labels.disableTwoFactor') }}
-            </NcButton>
-          </div>
+        </span>
+
+        <div class="flex flex-col gap-2 mt-2">
+          <span class="text-sm">{{ $t('labels.verificationCode') }}</span>
+          <a-input
+            ref="disableCodeInput"
+            v-model:value="disableCode"
+            data-testid="nc-2fa-disable-code"
+            class="w-full nc-input-sm nc-input-shadow"
+            :placeholder="$t('placeholder.enterVerificationCode')"
+            autocomplete="one-time-code"
+            @pressEnter="confirmDisable"
+          />
+        </div>
+
+        <div v-if="disableError" class="text-red-500 text-sm">{{ disableError }}</div>
+
+        <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
+          <NcButton type="secondary" size="small" @click="showDisableModal = false">
+            {{ $t('general.cancel') }}
+          </NcButton>
+          <NcButton type="danger" size="small" :loading="isLoading" :disabled="!disableCode" @click="confirmDisable">
+            {{ $t('labels.disableTwoFactor') }}
+          </NcButton>
         </div>
       </div>
-    </NcModal>
+    </GeneralModal>
 
     <!-- Regenerate Backup Codes Modal -->
-    <NcModal v-model:visible="showRegenerateModal" size="sm" @close="closeRegenerateModal">
-      <template #header>
-        <div class="text-base font-semibold">{{ $t('labels.regenerateBackupCodes') }}</div>
-      </template>
+    <GeneralModal v-model:visible="showRegenerateModal" size="small" centered>
+      <div class="flex flex-col gap-2 p-4 md:!p-6">
+        <div class="text-lg font-semibold mb-3">{{ $t('labels.regenerateBackupCodes') }}</div>
 
-      <div class="flex flex-col gap-4 p-4">
         <template v-if="newBackupCodes.length === 0">
-          <p class="text-sm text-nc-content-gray-subtle">
+          <span class="text-sm text-nc-content-gray-subtle">
             {{ $t('labels.enterCodeToRegenerate') }}
-          </p>
-          <div class="flex flex-col gap-3">
-            <div>
-              <div class="text-sm font-medium mb-1">{{ $t('labels.verificationCode') }}</div>
-              <a-input
-                ref="regenerateCodeInput"
-                v-model:value="regenerateCode"
-                data-testid="nc-2fa-regenerate-code"
-                size="large"
-                :placeholder="$t('placeholder.enterVerificationCode')"
-                autocomplete="one-time-code"
-                @pressEnter="confirmRegenerate"
-              />
-            </div>
-            <div v-if="regenerateError" class="text-red-500 text-sm">{{ regenerateError }}</div>
-            <NcButton
-              type="primary"
-              class="w-full"
-              :loading="isLoading"
-              :disabled="!regenerateCode"
-              @click="confirmRegenerate"
-            >
+          </span>
+
+          <div class="flex flex-col gap-2 mt-2">
+            <span class="text-sm">{{ $t('labels.verificationCode') }}</span>
+            <a-input
+              ref="regenerateCodeInput"
+              v-model:value="regenerateCode"
+              data-testid="nc-2fa-regenerate-code"
+              class="w-full nc-input-sm nc-input-shadow"
+              :placeholder="$t('placeholder.enterVerificationCode')"
+              autocomplete="one-time-code"
+              @pressEnter="confirmRegenerate"
+            />
+          </div>
+
+          <div v-if="regenerateError" class="text-red-500 text-sm">{{ regenerateError }}</div>
+
+          <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
+            <NcButton type="secondary" size="small" @click="closeRegenerateModal">
+              {{ $t('general.cancel') }}
+            </NcButton>
+            <NcButton type="primary" size="small" :loading="isLoading" :disabled="!regenerateCode" @click="confirmRegenerate">
               {{ $t('labels.regenerateBackupCodes') }}
             </NcButton>
           </div>
         </template>
 
         <template v-else>
-          <p class="text-sm text-nc-content-gray-subtle">
+          <span class="text-sm text-nc-content-gray-subtle">
             {{ $t('labels.saveBackupCodes') }}
-          </p>
-          <div class="bg-nc-bg-gray-light rounded-lg p-4">
-            <div class="grid grid-cols-2 gap-2">
-              <code v-for="code in newBackupCodes" :key="code" class="text-sm text-center py-1">
+          </span>
+          <div class="bg-nc-bg-gray-light rounded-lg p-3 mt-1">
+            <div class="grid grid-cols-2 gap-1.5">
+              <code v-for="code in newBackupCodes" :key="code" class="text-sm text-center py-0.5">
                 {{ code }}
               </code>
             </div>
           </div>
-          <div class="flex gap-2">
-            <NcButton
-              v-e="['c:account:security:copy-backup-codes']"
-              type="secondary"
-              class="flex-1"
-              @click="copyBackupCodes(newBackupCodes)"
-            >
-              <div class="flex items-center gap-1.5">
-                <GeneralIcon icon="copy" class="h-4 w-4" />
-                {{ $t('labels.copyAll') }}
-              </div>
-            </NcButton>
-            <NcButton type="primary" class="flex-1" @click="closeRegenerateModal">
-              {{ $t('labels.iHaveSavedTheseCodes') }}
-            </NcButton>
-          </div>
           <p class="text-xs text-nc-content-gray-subtle">
             {{ $t('labels.backupCodesWarning') }}
           </p>
+          <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
+            <NcButton
+              v-e="['c:account:security:copy-backup-codes']"
+              type="secondary"
+              size="small"
+              @click="copyBackupCodes(newBackupCodes)"
+            >
+              <div class="flex items-center gap-1.5">
+                <GeneralIcon icon="copy" class="h-3.5 w-3.5" />
+                {{ $t('labels.copyAll') }}
+              </div>
+            </NcButton>
+            <NcButton type="primary" size="small" @click="closeRegenerateModal">
+              {{ $t('labels.iHaveSavedTheseCodes') }}
+            </NcButton>
+          </div>
         </template>
       </div>
-    </NcModal>
+    </GeneralModal>
   </div>
 </template>

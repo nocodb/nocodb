@@ -228,7 +228,7 @@ const chatSuggestions = [
 </script>
 
 <template>
-  <div class="h-full flex flex-col nc-workspace-home bg-nc-bg-gray-extralight dark:bg-nc-bg-default">
+  <div class="h-full flex flex-col nc-workspace-home bg-white dark:bg-nc-bg-default">
     <!-- Top bar: workspace name + plan | search (absolutely centered) -->
     <div class="relative flex items-center px-5 py-2.5 flex-none">
       <!-- Left: workspace name + plan -->

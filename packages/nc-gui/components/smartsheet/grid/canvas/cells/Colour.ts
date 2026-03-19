@@ -68,11 +68,12 @@ export const ColourCellRenderer: CellRenderer = {
     const swatchSize = CELL_SWATCH_SIZE
     const borderRadius = columnMeta.swatchStyle === 'circle' ? swatchSize / 2 : SQUARE_BORDER_RADIUS
 
-    // Calculate positions
+    // Calculate positions — vertically center in default row, top-align in expanded rows
+    const isDefaultRowHeight = rowHeightInPx['1'] === height
     const swatchX = x + padding
-    const swatchY = y + (height - swatchSize) / 2
+    const swatchY = isDefaultRowHeight ? y + (height - swatchSize) / 2 : y + padding
     const hexTextX = swatchX + swatchSize + 8
-    const hexTextY = y + height / 2
+    const hexTextY = isDefaultRowHeight ? y + height / 2 : y + padding + swatchSize / 2
 
     // Set cursor to pointer when hovering over the cell
     if (mousePosition && !readonly) {
@@ -102,7 +103,7 @@ export const ColourCellRenderer: CellRenderer = {
         tagWidth = tagSwatchSize + tagPaddingX * 2
       }
 
-      const initialY = y + height / 2 - tagHeight / 2
+      const initialY = isDefaultRowHeight ? y + height / 2 - tagHeight / 2 : y + padding - 4
 
       renderTag(ctx, {
         x: x + tagSpacing,

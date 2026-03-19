@@ -54,7 +54,7 @@ const showHex = computed(() => {
 
 <template>
   <div
-    class="nc-cell-field flex items-center gap-2 py-1"
+    class="nc-cell-field flex items-center gap-2 w-full h-full"
     :style="{
       'max-width': '100%',
       'overflow': 'hidden',

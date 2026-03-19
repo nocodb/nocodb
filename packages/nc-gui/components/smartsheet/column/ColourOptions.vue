@@ -26,11 +26,6 @@ const swatchStyleOptions = [
   { value: 'square', label: 'Square' },
 ]
 
-const swatchSizeOptions = [
-  { value: 'small', label: 'Small' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'large', label: 'Large' },
-]
 </script>
 
 <template>
@@ -55,46 +50,24 @@ const swatchSizeOptions = [
       </a-select>
     </a-form-item>
 
-    <div class="flex items-center gap-2 children:flex-1">
-      <a-form-item :label="$t('labels.swatchStyle')">
-        <a-select v-model:value="vModel.meta.swatchStyle" class="w-full" dropdown-class-name="nc-dropdown-colour-swatch-style">
-          <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
-          </template>
+    <a-form-item :label="$t('labels.swatchStyle')">
+      <a-select v-model:value="vModel.meta.swatchStyle" class="w-full" dropdown-class-name="nc-dropdown-colour-swatch-style">
+        <template #suffixIcon>
+          <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+        </template>
 
-          <a-select-option v-for="option of swatchStyleOptions" :key="option.value" :value="option.value">
-            <div class="flex gap-2 w-full justify-between items-center">
-              {{ option.label }}
-              <component
-                :is="iconMap.check"
-                v-if="vModel.meta.swatchStyle === option.value"
-                id="nc-selected-item-icon"
-                class="text-nc-content-brand w-4 h-4"
-              />
-            </div>
-          </a-select-option>
-        </a-select>
-      </a-form-item>
-
-      <a-form-item :label="$t('labels.swatchSize')">
-        <a-select v-model:value="vModel.meta.swatchSize" class="w-full" dropdown-class-name="nc-dropdown-colour-swatch-size">
-          <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
-          </template>
-
-          <a-select-option v-for="option of swatchSizeOptions" :key="option.value" :value="option.value">
-            <div class="flex gap-2 w-full justify-between items-center">
-              {{ option.label }}
-              <component
-                :is="iconMap.check"
-                v-if="vModel.meta.swatchSize === option.value"
-                id="nc-selected-item-icon"
-                class="text-nc-content-brand w-4 h-4"
-              />
-            </div>
-          </a-select-option>
-        </a-select>
-      </a-form-item>
-    </div>
+        <a-select-option v-for="option of swatchStyleOptions" :key="option.value" :value="option.value">
+          <div class="flex gap-2 w-full justify-between items-center">
+            {{ option.label }}
+            <component
+              :is="iconMap.check"
+              v-if="vModel.meta.swatchStyle === option.value"
+              id="nc-selected-item-icon"
+              class="text-nc-content-brand w-4 h-4"
+            />
+          </div>
+        </a-select-option>
+      </a-select>
+    </a-form-item>
   </div>
 </template>

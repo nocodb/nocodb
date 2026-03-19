@@ -103,7 +103,7 @@ const openKeyboardShortcutDialog = () => {
 
 <template>
   <div
-    class="nc-home-sidebar flex flex-col h-full bg-nc-bg-gray-sidebar border-r-1 border-nc-border-gray-light select-none"
+    class="nc-home-sidebar flex flex-col h-full bg-white dark:bg-nc-bg-gray-sidebar border-r-1 border-nc-border-gray-light select-none"
   >
     <!-- Brand -->
     <div class="flex items-center gap-2 px-4 h-[var(--topbar-height)] flex-none">

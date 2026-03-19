@@ -283,7 +283,7 @@ onMounted(() => {
                     v-e="['c:account:security:regenerate-backup-codes']"
                     type="secondary"
                     size="small"
-                    class="flex-shrink-0"
+                    class="flex-shrink-0 !h-auto !py-1.5"
                     @click="showRegenerateModal = true"
                   >
                     <div class="flex flex-col items-center leading-4">

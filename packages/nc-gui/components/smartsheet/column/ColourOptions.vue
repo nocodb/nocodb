@@ -17,7 +17,7 @@ vModel.value.meta = {
 </script>
 
 <template>
-  <div class="w-full">
+  <div class="w-full empty:hidden">
     <!-- Configuration options (default color, display format, swatch style/size) -->
     <!-- are currently using defaults from ColumnHelper. -->
     <!-- Uncomment and wire up UI here when customization is needed. -->

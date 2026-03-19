@@ -91,20 +91,31 @@ const onTextInput = (e: Event) => {
       :visible="isOpen"
       :closable="false"
       :keyboard="false"
-      :width="400"
+      :width="338"
       wrap-class-name="nc-colour-picker-modal !z-1060"
+      destroy-on-close
       @cancel="close"
     >
-      <div v-if="isOpen" class="px-2 pt-2 pb-0" @click.stop @mousedown.stop>
+      <div class="py-1" @click.stop @mousedown.stop>
         <GeneralAdvanceColorPicker :key="pickerKey" :model-value="tempColor" :is-open="isOpen" @input="onColorChange" />
       </div>
       <template #footer>
-        <div class="flex items-center gap-2 pt-3" @click.stop @mousedown.stop>
+        <div class="flex items-center justify-end" @click.stop @mousedown.stop>
           <NcButton type="secondary" size="small" @click="close"> {{ $t('general.cancel') }} </NcButton>
-          <div class="flex-1" />
           <NcButton type="primary" size="small" @click="save"> {{ $t('general.save') }} </NcButton>
         </div>
       </template>
     </a-modal>
   </div>
 </template>
+
+<style lang="scss">
+.nc-colour-picker-modal {
+  .ant-modal-content {
+    @apply !p-0;
+  }
+  .ant-modal-footer {
+    @apply px-2;
+  }
+}
+</style>

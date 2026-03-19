@@ -3608,12 +3608,21 @@ export function useCanvasRender({
     const targetWidth = width.value * dpr
     const targetHeight = height.value * dpr
 
-    // Only resize canvas when dimensions actually change — resizing forces
+    // Always sync CSS display size so the canvas matches the viewport.
+    // This must happen outside the buffer-resize guard because Vue's template
+    // binding (:width/:height) can reset canvas.width between renders, causing
+    // the guard to skip while style.width is stale.
+    const cssWidth = `${width.value}px`
+    const cssHeight = `${height.value}px`
+    if (canvas.style.width !== cssWidth) canvas.style.width = cssWidth
+    if (canvas.style.height !== cssHeight) canvas.style.height = cssHeight
+
+    // Only resize canvas buffer when dimensions actually change — resizing forces
     // GPU buffer reallocation which is extremely expensive (causes 100ms+ frames)
     if (canvas.width !== targetWidth || canvas.height !== targetHeight || dpr !== lastDpr) {
       canvas.width = targetWidth
       canvas.height = targetHeight
-      canvas.style.width = `${width.value}px`
+
       lastDpr = dpr
       ctx.scale(dpr, dpr)
     }

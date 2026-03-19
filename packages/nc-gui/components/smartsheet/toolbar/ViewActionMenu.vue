@@ -207,6 +207,10 @@ const isFieldHeaderVisible = computed(() => {
   return parseProp((view.value?.view as GalleryType | KanbanType)?.meta)?.is_field_header_visible ?? true
 })
 
+const isCompactMode = computed(() => {
+  return parseProp((view.value?.view as GalleryType | KanbanType)?.meta)?.is_compact_mode ?? false
+})
+
 const onToggleFieldHeaderVisibility = async () => {
   if (!view.value) {
     emits('closeModal')
@@ -236,6 +240,38 @@ const onToggleFieldHeaderVisibility = async () => {
 
     const errorInfo = await extractSdkResponseErrorMsgv2(e)
     message.error('Error occurred while updating field header visibility', undefined, {
+      copyText: errorInfo.message,
+    })
+  }
+}
+
+const onToggleCompactMode = async () => {
+  if (!view.value) {
+    emits('closeModal')
+    return
+  }
+
+  const payload = {
+    ...parseProp((view.value?.view as GalleryType | KanbanType)?.meta),
+    is_compact_mode: !isCompactMode.value,
+  }
+
+  view.value.meta = payload
+
+  emits('closeModal')
+
+  try {
+    await updateViewMeta(view.value.id!, view.value.type, {
+      meta: payload,
+    })
+  } catch (e: any) {
+    view.value.meta = {
+      ...payload,
+      is_compact_mode: !payload.is_compact_mode,
+    }
+
+    const errorInfo = await extractSdkResponseErrorMsgv2(e)
+    message.error('Error occurred while updating compact mode', undefined, {
       copyText: errorInfo.message,
     })
   }
@@ -678,6 +714,15 @@ defineOptions({
             </NcMenuItem>
           </template>
         </PaymentUpgradeBadgeProvider>
+        <NcMenuItem
+          v-show="!inSidebar && isUIAllowed('viewCreateOrEdit') && [ViewTypes.KANBAN].includes(view?.type)"
+          inner-class="w-full"
+          @click="onToggleCompactMode()"
+        >
+          <GeneralIcon :icon="isCompactMode ? 'expand' : 'minimize'" class="!w-4 !h-4 opacity-80" />
+
+          {{ isCompactMode ? $t('labels.disableCompactMode') : $t('labels.enableCompactMode') }}
+        </NcMenuItem>
       </template>
 
       <template v-if="isUIAllowed('viewCreateOrEdit')">

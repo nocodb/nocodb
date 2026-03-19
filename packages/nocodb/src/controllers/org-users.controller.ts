@@ -32,6 +32,7 @@ export class OrgUsersController {
     scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async userList(@Req() req: NcRequest) {
     return new PagedResponseImpl(
@@ -51,6 +52,7 @@ export class OrgUsersController {
     scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async userUpdate(
     @Body() body,
@@ -69,6 +71,7 @@ export class OrgUsersController {
     scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async userDelete(@Param('userId') userId: string) {
     await this.orgUsersService.userDelete({
@@ -83,6 +86,7 @@ export class OrgUsersController {
     scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async userAdd(@Body() body, @Req() req: NcRequest) {
     const result = await this.orgUsersService.userAdd({
@@ -99,6 +103,7 @@ export class OrgUsersController {
     scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async userSettings(@Body() body): Promise<any> {
     await this.orgUsersService.userSettings(body);
@@ -111,6 +116,7 @@ export class OrgUsersController {
     scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async userInviteResend(
     @Req() req: NcRequest,
@@ -130,6 +136,7 @@ export class OrgUsersController {
     scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async generateResetUrl(
     @Req() req: NcRequest,
@@ -148,6 +155,7 @@ export class OrgUsersController {
     scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async appSettingsGet() {
     const settings = await this.orgUsersService.appSettingsGet();
@@ -160,6 +168,7 @@ export class OrgUsersController {
     scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async appSettingsSet(@Body() body) {
     await this.orgUsersService.appSettingsSet({

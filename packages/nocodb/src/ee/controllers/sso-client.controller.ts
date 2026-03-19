@@ -38,6 +38,7 @@ export class SsoClientController {
     scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async clientList(@Req() req) {
     const clients = await this.ssoClientService.clientList({ req });
@@ -49,6 +50,7 @@ export class SsoClientController {
     scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   @HttpCode(200)
   async clientAdd(@Body() client: SSOClientType, @Req() req) {
@@ -60,6 +62,7 @@ export class SsoClientController {
     scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async clientUpdate(
     @Param('clientId') clientId: string,
@@ -74,6 +77,7 @@ export class SsoClientController {
     scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async clientDelete(@Param('clientId') clientId: string, @Req() req) {
     return this.ssoClientService.clientDelete({ clientId, req });
@@ -87,6 +91,7 @@ export class SsoClientController {
     scope: 'cloud-org',
     allowedRoles: [CloudOrgUserRoles.OWNER],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async orgClientList(@Req() req, @Param('orgId') orgId: string) {
     const clients = await this.ssoClientService.clientList({ req, orgId });
@@ -98,6 +103,7 @@ export class SsoClientController {
     scope: 'cloud-org',
     allowedRoles: [CloudOrgUserRoles.OWNER],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   @HttpCode(200)
   async orgClientAdd(
@@ -113,6 +119,7 @@ export class SsoClientController {
     scope: 'cloud-org',
     allowedRoles: [CloudOrgUserRoles.OWNER],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async orgClientUpdate(
     @Param('clientId') clientId: string,
@@ -128,6 +135,7 @@ export class SsoClientController {
     scope: 'cloud-org',
     allowedRoles: [CloudOrgUserRoles.OWNER],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async orgClientDelete(
     @Param('clientId') clientId: string,
@@ -145,6 +153,7 @@ export class SsoClientController {
     scope: 'workspace',
     allowedRoles: [WorkspaceUserRoles.OWNER],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async workspaceClientList(
     @Req() req,
@@ -166,6 +175,7 @@ export class SsoClientController {
     scope: 'workspace',
     allowedRoles: [WorkspaceUserRoles.OWNER],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   @HttpCode(200)
   async workspaceClientAdd(
@@ -185,6 +195,7 @@ export class SsoClientController {
     scope: 'workspace',
     allowedRoles: [WorkspaceUserRoles.OWNER],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async workspaceClientUpdate(
     @Param('clientId') clientId: string,
@@ -209,6 +220,7 @@ export class SsoClientController {
     scope: 'workspace',
     allowedRoles: [WorkspaceUserRoles.OWNER],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async workspaceClientDelete(
     @Param('clientId') clientId: string,

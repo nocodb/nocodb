@@ -84,6 +84,7 @@ export class WorkspacesController {
   @Acl('workspaceCreate', {
     scope: 'org',
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async create(@Body() body: any, @Req() req: NcRequest) {
     return await this.workspacesService.create({
@@ -102,6 +103,7 @@ export class WorkspacesController {
   @Acl('workspaceUpdate', {
     scope: 'workspace',
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async update(
     @Param('workspaceId') workspaceId: string,
@@ -123,6 +125,7 @@ export class WorkspacesController {
   @Acl('workspaceUpgrade', {
     scope: 'workspace',
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async upgrade(@Param('workspaceId') workspaceId: string, @Req() req: NcRequest) {
     return await this.workspacesService.upgrade({
@@ -141,6 +144,7 @@ export class WorkspacesController {
   @Acl('workspaceDelete', {
     scope: 'workspace',
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async delete(
     @Param('workspaceId') workspaceId: string,
@@ -162,6 +166,7 @@ export class WorkspacesController {
   @Acl('moveProjectToWorkspace', {
     scope: 'workspace',
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async moveProjectToWorkspace(
     @Param('workspaceId') workspaceId: string,

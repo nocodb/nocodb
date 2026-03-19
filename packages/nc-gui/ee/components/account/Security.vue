@@ -227,13 +227,13 @@ onMounted(() => {
                 <div class="flex flex-col gap-1.5 min-w-0 flex-1">
                   <div class="flex items-center gap-2">
                     <div class="text-sm font-semibold text-nc-content-gray">{{ $t('labels.twoFactorAuth') }}</div>
-                    <div
+                    <NcBadge
                       v-if="mfaEnabled"
-                      class="flex items-center gap-1 bg-nc-bg-green text-nc-content-green text-xs font-medium px-2 py-0.5 rounded-full"
+                      class="!bg-green-100 !text-green-600 !border-green-200 flex items-center gap-1"
                     >
-                      <GeneralIcon icon="circleCheck" class="h-3 w-3" />
+                      <GeneralIcon icon="circleCheck" class="h-4 w-4" />
                       {{ $t('general.enabled') }}
-                    </div>
+                    </NcBadge>
                     <div
                       v-else
                       class="text-nc-content-gray-muted text-xs font-medium bg-nc-bg-gray-light px-2 py-0.5 rounded-full"
@@ -262,7 +262,7 @@ onMounted(() => {
                     v-e="['c:account:security:disable-2fa']"
                     type="secondary"
                     size="small"
-                    class="!text-nc-content-red-dark !border-nc-border-red !hover:(bg-nc-bg-red-light text-nc-content-red-dark)"
+                    class="!text-nc-content-red-dark"
                     @click="showDisableModal = true"
                   >
                     {{ $t('labels.disableTwoFactor') }}
@@ -283,13 +283,10 @@ onMounted(() => {
                     v-e="['c:account:security:regenerate-backup-codes']"
                     type="secondary"
                     size="small"
-                    class="flex-shrink-0 !h-auto !py-1.5"
+                    class="flex-shrink-0"
                     @click="showRegenerateModal = true"
                   >
-                    <div class="flex flex-col items-center leading-4">
-                      <span>{{ $t('labels.regenerate') }}</span>
-                      <span>{{ $t('labels.backupCodes') }}</span>
-                    </div>
+                    {{ $t('labels.regenerateBackupCodes') }}
                   </NcButton>
                 </div>
               </template>

@@ -87,7 +87,9 @@ export const updateWidgetTool = defineChatTool({
     if (args.fk_model_id !== undefined)
       updateObj.fk_model_id = args.fk_model_id;
     if (args.fk_view_id !== undefined) updateObj.fk_view_id = args.fk_view_id;
-    if (args.position !== undefined) updateObj.position = args.position;
+    if (args.position !== undefined) {
+      updateObj.position = args.position as Widget['position'];
+    }
 
     const updated = await service.widgetUpdate(
       context,

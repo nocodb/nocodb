@@ -135,7 +135,8 @@ export const addFieldTool = defineChatTool({
     }
 
     if (args.options) {
-      const options = { ...args.options };
+      // Cast to mutable record — we add resolved IDs and delete name keys below
+      const options: Record<string, any> = { ...args.options };
 
       // Resolve related_table_name → related_table_id for link fields
       if (

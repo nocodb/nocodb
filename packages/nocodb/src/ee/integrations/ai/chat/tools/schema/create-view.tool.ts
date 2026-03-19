@@ -118,7 +118,8 @@ export const createViewTool = defineChatTool({
     if (args.lock_type) body.lock_type = args.lock_type;
 
     if (args.options) {
-      const options = { ...args.options };
+      // Cast to mutable record — we add resolved IDs and delete name keys below
+      const options: Record<string, any> = { ...args.options };
 
       // Resolve Kanban stack_by field_name → field_id
       if (args.type === 'kanban' && options.stack_by?.field_name) {

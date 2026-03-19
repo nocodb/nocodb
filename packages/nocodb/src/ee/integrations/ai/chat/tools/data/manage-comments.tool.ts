@@ -2,9 +2,7 @@ import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
 import { resolveTableByName } from '../helpers';
 import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '~/integrations/ai/chat/tools/define-chat-tool';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import Comment from '~/models/Comment';
 import User from '~/models/User';
 import Noco from '~/Noco';
@@ -55,7 +53,7 @@ async function resolveMentions(text: string): Promise<string> {
   });
 }
 
-export const manageCommentsTool: ChatToolDefinition = {
+export const manageCommentsTool = defineChatTool({
   name: ChatToolName.MANAGE_COMMENTS,
   description:
     'Manage comments on table records. Supports adding comments, resolving comments, ' +
@@ -110,17 +108,7 @@ export const manageCommentsTool: ChatToolDefinition = {
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
   readonly: false,
-  async execute(
-    context: NcContext,
-    args: {
-      table_name: string;
-      action: string;
-      row_id?: string;
-      comment_id?: string;
-      comment_text?: string;
-    },
-    req: NcRequest,
-  ) {
+  async execute(context, args, req) {
     const model = await resolveTableByName(context, args.table_name);
     const userId = req.user?.id;
     const userEmail = req.user?.email;
@@ -317,7 +305,7 @@ export const manageCommentsTool: ChatToolDefinition = {
         return { error: `Unknown action: ${args.action}` };
     }
   },
-};
+});
 
 /**
  * Extract plain text from a comment body.

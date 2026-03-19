@@ -2,9 +2,8 @@ import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
 import { resolveTableByName } from '../helpers';
 import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '~/integrations/ai/chat/tools/define-chat-tool';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
@@ -72,7 +71,7 @@ async function fetchRecordsByRowIds(
   return allRecords.filter((r: any) => idsToFetch.has(String(r.id)));
 }
 
-export const queryRecordsByCommentsTool: ChatToolDefinition = {
+export const queryRecordsByCommentsTool = defineChatTool({
   name: ChatToolName.QUERY_RECORDS_BY_COMMENTS,
   description:
     'Find records in a table based on their comment activity. ' +
@@ -131,17 +130,7 @@ export const queryRecordsByCommentsTool: ChatToolDefinition = {
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
   readonly: true,
-  async execute(
-    context: NcContext,
-    args: {
-      table_name: string;
-      filter: string;
-      user_email?: string;
-      days?: number;
-      limit?: number;
-    },
-    req: NcRequest,
-  ) {
+  async execute(context, args, req) {
     const model = await resolveTableByName(context, args.table_name);
     const limit = Math.min(args.limit || 25, 100);
     const currentUserId = req.user?.id;
@@ -375,4 +364,4 @@ export const queryRecordsByCommentsTool: ChatToolDefinition = {
       records,
     };
   },
-};
+});

@@ -7,9 +7,7 @@ import {
 } from 'nocodb-sdk';
 import { resolveColumnByName, resolveTableByName } from '../helpers';
 import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
-import type { NcContext } from '~/interface/config';
-import type { NcRequest } from '~/interface/config';
-import type { ChatToolDefinition } from '~/integrations/ai/chat/tools/define-chat-tool';
+import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import { ColumnsService } from '~/services/columns.service';
 import { ColumnsV3Service } from '~/services/v3/columns-v3.service';
 import Noco from '~/Noco';
@@ -232,7 +230,7 @@ function buildMeta(
   return hasKey ? meta : null;
 }
 
-export const updateFieldDisplayTool: ChatToolDefinition = {
+export const updateFieldDisplayTool = defineChatTool({
   name: ChatToolName.UPDATE_FIELD_DISPLAY,
   description:
     'Update the display formatting of a field without changing its type or data. ' +
@@ -367,11 +365,7 @@ export const updateFieldDisplayTool: ChatToolDefinition = {
   requiredRole: ProjectRoles.EDITOR,
   isDangerous: false,
   readonly: false,
-  async execute(
-    context: NcContext,
-    args: Record<string, any>,
-    req: NcRequest,
-  ) {
+  async execute(context, args, req) {
     const model = await resolveTableByName(context, args.table_name);
     const column = await resolveColumnByName(context, model, args.field_name);
 
@@ -448,4 +442,4 @@ export const updateFieldDisplayTool: ChatToolDefinition = {
       applied: meta,
     };
   },
-};
+});

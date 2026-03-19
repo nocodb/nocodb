@@ -308,7 +308,13 @@ onMounted(() => {
     </div>
 
     <!-- Setup Modal -->
-    <GeneralModal v-model:visible="showSetupModal" size="medium" centered :closable="setupStep !== 'verify' && setupStep !== 'backup'">
+    <GeneralModal
+      v-model:visible="showSetupModal"
+      size="small"
+      centered
+      :closable="setupStep !== 'verify' && setupStep !== 'backup'"
+      :mask-closable="setupStep !== 'verify' && setupStep !== 'backup'"
+    >
       <div class="flex flex-col gap-2 p-4 md:!p-6">
         <div class="text-lg font-semibold mb-3">{{ $t('labels.setupTwoFactor') }}</div>
 
@@ -402,8 +408,14 @@ onMounted(() => {
           <span class="text-sm text-nc-content-gray-subtle">
             {{ $t('labels.saveBackupCodes') }}
           </span>
-          <div class="bg-nc-bg-gray-light rounded-lg p-3 mt-1">
-            <div class="grid grid-cols-2 gap-1.5">
+          <div class="bg-nc-bg-gray-light rounded-lg p-3 mt-1 relative">
+            <NcTooltip class="absolute top-2 right-2" :visible="recentlyCopied ? true : undefined">
+              <template #title>{{ recentlyCopied ? $t('general.copied') : $t('general.copy') }}</template>
+              <NcButton type="text" size="xxs" @click="copyBackupCodes(setupData.backupCodes)">
+                <GeneralIcon :icon="recentlyCopied ? 'check' : 'copy'" class="h-3.5 w-3.5" />
+              </NcButton>
+            </NcTooltip>
+            <div class="grid grid-cols-2 gap-x-2 gap-y-1.5 max-w-[220px] mx-auto">
               <code v-for="code in setupData.backupCodes" :key="code" class="text-sm text-center py-0.5">
                 {{ code }}
               </code>
@@ -513,8 +525,14 @@ onMounted(() => {
           <span class="text-sm text-nc-content-gray-subtle">
             {{ $t('labels.saveBackupCodes') }}
           </span>
-          <div class="bg-nc-bg-gray-light rounded-lg p-3 mt-1">
-            <div class="grid grid-cols-2 gap-1.5">
+          <div class="bg-nc-bg-gray-light rounded-lg p-3 mt-1 relative">
+            <NcTooltip class="absolute top-2 right-2" :visible="recentlyCopied ? true : undefined">
+              <template #title>{{ recentlyCopied ? $t('general.copied') : $t('general.copy') }}</template>
+              <NcButton type="text" size="xxs" @click="copyBackupCodes(newBackupCodes)">
+                <GeneralIcon :icon="recentlyCopied ? 'check' : 'copy'" class="h-3.5 w-3.5" />
+              </NcButton>
+            </NcTooltip>
+            <div class="grid grid-cols-2 gap-x-2 gap-y-1.5 max-w-[220px] mx-auto">
               <code v-for="code in newBackupCodes" :key="code" class="text-sm text-center py-0.5">
                 {{ code }}
               </code>

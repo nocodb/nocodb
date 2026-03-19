@@ -34,11 +34,11 @@ import {
   ncIsNullOrUndefined,
   ncIsObject,
   ncIsUndefined,
+  parseHelper,
   PermissionEntity,
   PermissionKey,
   RelationTypes,
   UITypes,
-  parseHelper,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import debug from 'debug';
@@ -2407,6 +2407,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const colOptions = (await column.getColOptions(
         this.context,
       )) as LinkToAnotherRecordColumn;
+      const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
+      const { refContext } = colOptions.getRelContext(this.context);
+
+      // Many-to-many links are cleaned up via junction-row deletes in delByPk,
+      // so they should not block row deletion in the external DB pre-check.
+      if (relationType === 'mm') {
+        continue;
+      }
+
+      if (relationType === RelationTypes.HAS_MANY) {
+        const relatedTable = await colOptions.getRelatedTable(refContext);
+        if (relatedTable?.mm) {
+          continue;
+        }
+      }
+
       const childColumn = await colOptions.getChildColumn(this.context);
       const parentColumn = await colOptions.getParentColumn(this.context);
       const childModel = await childColumn.getModel(this.context);
@@ -2414,7 +2430,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const parentModel = await parentColumn.getModel(this.context);
       await parentModel.getColumns(this.context);
       let cnt = 0;
-      if (colOptions.type === RelationTypes.HAS_MANY) {
+      if (relationType === RelationTypes.HAS_MANY) {
         cnt = +(
           await this.execAndParse(
             this.dbDriver(this.getTnPath(childModel.table_name))

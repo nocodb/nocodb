@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import type { ColumnType, KanbanType, SelectOptionType, TableType, ViewType } from 'nocodb-sdk'
+import type { Api, ColumnType, KanbanType, SelectOptionType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
 
 const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
@@ -13,18 +13,30 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     }
 
     const { t } = useI18n()
+
     const { api } = useApi()
+
     const { $e } = useNuxtApp()
+
     const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
+
     const { isUIAllowed } = useRoles()
+
     const globalGroupByGroupLimit = ref(1000)
+
     const { getMeta } = useMetas()
+
     const { isMobileMode } = useGlobal()
+
     const router = useRouter()
+
     const route = router.currentRoute
 
     const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
+
     const { base: activeBase } = storeToRefs(useBase())
+
+    const { basesUser } = storeToRefs(useUsers())
 
     // kanban stack meta data
     const kanbanMetaData = ref<KanbanType>({})
@@ -38,7 +50,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     // grouping field column
     const groupingFieldColumn = ref<ColumnType | undefined>()
 
-    // stack options with collapsed status
+    // stack options
     const groupingFieldColumnOptions = ref<Array<SelectOptionType & { collapsed: boolean }>>([])
 
     // map of grouping field options to stacks
@@ -47,13 +59,16 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     // map of grouping field options to row count
     const countByStack = ref<Map<string, number>>(new Map<string, number>())
 
-    const isLoading = ref(false)
-    const editEnabled = ref<boolean[]>([])
+    // collapsed stacks
+    const collapsedStack = ref<boolean[]>([])
 
-    // compact mode for kanban cards
+    const { search } = useFieldQuery()
+
+    // compact mode state for kanban cards
     const isCompactMode = ref(false)
 
     const fields = inject(FieldsInj, ref([]))
+
     const fieldsById = computed<Record<string, ColumnType>>(() => {
       return fields.value.reduce((acc, field) => {
         acc[field.id!] = field
@@ -61,13 +76,18 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       }, {} as Record<string, ColumnType>)
     })
 
+    const isLoading = ref(false)
+
     const $api = api
+
+    const editEnabled = ref<boolean[]>([])
 
     async function loadKanbanMeta() {
       if (!viewMeta?.value?.id || !meta?.value?.id) return
       kanbanMetaData.value = isPublic.value
         ? (viewMeta.value as KanbanType)
         : await $api.dbView.kanbanRead(viewMeta.value.id)
+      // set grouping field
       groupingFieldColId.value = kanbanMetaData.value.fk_grp_col_id || undefined
     }
 
@@ -97,9 +117,10 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       return {}
     }
 
+    // Toggle compact mode for kanban cards
     function toggleCompactMode() {
       isCompactMode.value = !isCompactMode.value
-      $e('a:kanban:compact-mode', { isCompactMode: isCompactMode.value })
+      $e('a:kanban:compact-mode', { enabled: isCompactMode.value })
     }
 
     return {
@@ -114,6 +135,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       groupingFieldColumnOptions,
       formattedData,
       countByStack,
+      collapsedStack,
       kanbanMetaData,
       addEmptyRow,
       isLoading,

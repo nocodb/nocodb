@@ -29,180 +29,207 @@ const NC_ERROR_HINTS: Partial<Record<NcErrorType, ErrorHint>> = {
   [NcErrorType.ERR_TABLE_NOT_FOUND]: {
     retriable: true,
     llmHint:
-      'Check table name spelling. Use list_tables to see available tables.',
+      'The table name may be misspelled or does not exist. Call list_tables to get all available table names, then retry with the correct name. If no match exists, inform the user the table was not found.',
   },
   [NcErrorType.ERR_FIELD_NOT_FOUND]: {
     retriable: true,
     llmHint:
-      'Check field name spelling. Use describe_table to see available fields.',
+      'The field name may be misspelled or does not exist in this table. Call describe_table to get the exact field names and types, then retry with the correct field name. Field names are case-sensitive.',
   },
   [NcErrorType.ERR_VIEW_NOT_FOUND]: {
     retriable: true,
-    llmHint: 'Check view name. Use list_views to see available views.',
+    llmHint:
+      'The view name may be misspelled or does not exist. Call list_views to get available views for this table, then retry with the correct name. If no match exists, inform the user.',
   },
   [NcErrorType.ERR_VIEW_COLUMN_NOT_FOUND]: {
     retriable: true,
     llmHint:
-      'View column not found. Use list_view_fields to see available fields.',
+      'The field is not visible in this view. Call list_view_fields to see which fields are available in this specific view. The field may exist in the table but be hidden in this view.',
   },
   [NcErrorType.ERR_RECORD_NOT_FOUND]: {
     retriable: true,
     llmHint:
-      'Record ID may be wrong. Use query_records to find the correct ID.',
+      'The record ID does not exist. Call query_records with appropriate filters to find the correct record ID, then retry. The record may have been deleted or the ID may be from a different table.',
   },
   [NcErrorType.ERR_DASHBOARD_NOT_FOUND]: {
     retriable: true,
     llmHint:
-      'Check dashboard name. Use list_dashboards to see available dashboards.',
+      'The dashboard name or ID is incorrect. Call list_dashboards to get available dashboards, then retry with the correct identifier.',
   },
   [NcErrorType.ERR_WIDGET_NOT_FOUND]: {
     retriable: true,
-    llmHint: 'Check widget name. Use list_widgets to see available widgets.',
+    llmHint:
+      'The widget name or ID is incorrect. Call list_widgets to see available widgets in the dashboard, then retry with the correct identifier.',
   },
   [NcErrorType.ERR_GENERIC_NOT_FOUND]: {
     retriable: true,
-    llmHint: 'Resource not found. Verify the name or ID.',
+    llmHint:
+      'The referenced resource does not exist. Double-check the name or ID for typos. Use the appropriate list tool to verify available resources before retrying.',
   },
   [NcErrorType.ERR_RELATION_FIELD_NOT_FOUND]: {
     retriable: true,
     llmHint:
-      'Relation field not found. Use describe_table to check link fields.',
+      'No link/relation field found with that name. Call describe_table to see all fields and their types — look for Link or LinkToAnotherRecord fields specifically. The relation may use a different field name than expected.',
   },
   [NcErrorType.ERR_BASE_NOT_FOUND]: {
     retriable: false,
-    llmHint: 'Base not found. The current base context may be invalid.',
+    llmHint:
+      'The base could not be found. Do not retry — inform the user that the base could not be found.',
   },
   [NcErrorType.ERR_SOURCE_NOT_FOUND]: {
     retriable: false,
-    llmHint: 'Data source not found.',
+    llmHint:
+      'The data source could not be found. Do not retry — inform the user.',
   },
   [NcErrorType.ERR_INVALID_FILTER]: {
     retriable: true,
     llmHint:
-      'Check filter syntax: (FieldTitle,operator,value). Verify field name and operator.',
+      'The filter syntax is wrong. Correct format: (FieldTitle,operator,value). Common issues: wrong field name (call describe_table to verify), invalid operator for the field type, or missing parentheses. Rebuild the filter and retry.',
   },
   [NcErrorType.ERR_UNSUPPORTED_FILTER_OPERATION]: {
     retriable: true,
     llmHint:
-      'This filter operator is not supported for this field type. Try a different operator.',
+      'This operator does not work with this field type. For example: "like" only works on text fields, "gt"/"lt" only on numeric/date fields. Call describe_table to check the field type, choose a compatible operator, and retry.',
   },
   [NcErrorType.ERR_REQUIRED_FIELD_MISSING]: {
     retriable: true,
     llmHint:
-      'A required field is missing. Use describe_table to check required fields.',
+      'One or more required fields are missing from the request. Call describe_table to identify which fields have required/not-null constraints, include values for all required fields, and retry.',
   },
   [NcErrorType.ERR_INVALID_VALUE_FOR_FIELD]: {
     retriable: true,
     llmHint:
-      'Value type mismatch. Check field type with describe_table and adjust the value.',
+      'The value does not match the expected field type. Call describe_table to check the field type, then fix the value. Common issues: sending text to a number field, wrong date format, invalid select option, or wrong link record format.',
   },
   [NcErrorType.ERR_INVALID_REQUEST_BODY]: {
     retriable: true,
-    llmHint: 'Invalid request body. Check the input format.',
+    llmHint:
+      'The request body structure is malformed. Review the expected input format for this tool, fix the structure, and retry. Ensure all required properties are present and correctly typed.',
   },
   [NcErrorType.ERR_INVALID_PK_VALUE]: {
     retriable: true,
-    llmHint: 'Invalid primary key value. Use query_records to find valid IDs.',
+    llmHint:
+      'The primary key value is invalid or in the wrong format. Call query_records to find records with valid primary key values, then retry with a correct ID.',
   },
   [NcErrorType.ERR_INVALID_JSON]: {
     retriable: true,
-    llmHint: 'Malformed JSON in input. Fix the JSON syntax.',
+    llmHint:
+      'The JSON input is malformed. Check for: unescaped quotes, trailing commas, missing brackets, or invalid escape sequences. Fix the JSON syntax and retry.',
   },
   [NcErrorType.ERR_DUPLICATE_IN_ALIAS]: {
     retriable: true,
     llmHint:
-      'A table/column/view with this name already exists. Use a different name.',
+      'A table, column, or view with this exact name already exists. Choose a different, unique name and retry. You can call the appropriate list tool to see existing names.',
   },
   [NcErrorType.ERR_DUPLICATE_RECORD]: {
     retriable: false,
-    llmHint: 'A record with this data already exists.',
+    llmHint:
+      'A record with this data already exists. Do not retry — inform the user about the duplicate.',
   },
   [NcErrorType.FIELD_UNIQUE_CONSTRAINT_VIOLATION]: {
     retriable: false,
     llmHint:
-      'Unique constraint violation — a record with this value already exists.',
+      'This value already exists in a field that requires unique values. Do not retry with the same value — inform the user.',
   },
   [NcErrorType.ERR_COLUMN_ASSOCIATED_WITH_LINK]: {
     retriable: false,
-    llmHint: 'Cannot delete — column is part of a table relationship.',
+    llmHint:
+      'This field cannot be deleted because it is being used by other fields. Do not retry — inform the user that dependent fields must be removed first.',
   },
   [NcErrorType.ERR_TABLE_ASSOCIATED_WITH_LINK]: {
     retriable: false,
     llmHint:
-      'Cannot delete — table has active relationships. Remove links first.',
+      'This table cannot be deleted because other tables depend on it. Do not retry — inform the user that dependent references must be removed first.',
   },
   [NcErrorType.ERR_UNSUPPORTED_RELATION]: {
     retriable: false,
-    llmHint: 'This relation type is not supported for this operation.',
+    llmHint:
+      'This operation is not supported for this type of field. Do not retry — inform the user.',
   },
   [NcErrorType.ERR_SYSTEM_FIELD_NON_MODIFIABLE]: {
     retriable: false,
-    llmHint: 'System fields cannot be modified.',
+    llmHint:
+      'This field is managed automatically and cannot be modified. Do not retry — inform the user.',
   },
   [NcErrorType.ERR_FORBIDDEN]: {
     retriable: false,
-    llmHint: 'User lacks permission for this operation.',
+    llmHint:
+      'The user does not have permission for this action. Do not retry — inform the user they need additional permissions.',
   },
   [NcErrorType.ERR_PERMISSION_DENIED]: {
     retriable: false,
-    llmHint: 'User lacks permission for this operation.',
+    llmHint:
+      'The user does not have permission for this action. Do not retry — inform the user they need additional permissions.',
   },
   [NcErrorType.ERR_INSUFFICIENT_PRIVILEGE]: {
     retriable: false,
-    llmHint: 'User lacks sufficient privileges for this operation.',
+    llmHint:
+      'The user does not have sufficient permissions. Do not retry — inform the user they need additional permissions.',
   },
   [NcErrorType.ERR_AUTHENTICATION_REQUIRED]: {
     retriable: false,
-    llmHint: 'Authentication required.',
+    llmHint:
+      'Authentication is required. Do not retry — inform the user they need to sign in.',
   },
   [NcErrorType.ERR_DATABASE_OP_FAILED]: {
     retriable: false,
-    llmHint: 'Database operation failed. The data may not be compatible.',
+    llmHint:
+      'The operation could not be completed. Do not retry — inform the user that the operation failed.',
   },
   [NcErrorType.ERR_TABLE_OP_FAILED]: {
     retriable: false,
-    llmHint: 'Table operation failed.',
+    llmHint:
+      'The table operation could not be completed. Do not retry — inform the user.',
   },
   [NcErrorType.ERR_COLUMN_OP_FAILED]: {
     retriable: false,
-    llmHint: 'Column operation failed.',
+    llmHint:
+      'The field operation could not be completed. Do not retry — inform the user.',
   },
   [NcErrorType.ERR_BASE_OP_FAILED]: {
     retriable: false,
-    llmHint: 'Base operation failed.',
+    llmHint:
+      'The operation could not be completed. Do not retry — inform the user.',
   },
   [NcErrorType.ERR_IN_EXTERNAL_DATA_SOURCE]: {
     retriable: false,
-    llmHint: 'External data source error.',
+    llmHint:
+      'An error occurred with the connected data source. Do not retry — inform the user.',
   },
   [NcErrorType.ERR_EXTERNAL_DATA_SOURCE_TIMEOUT]: {
     retriable: true,
-    llmHint: 'External data source timed out. Try again.',
+    llmHint:
+      'The external data source took too long to respond. This is usually transient. Wait a moment and retry the same operation once. If it fails again, inform the user the external source is slow or unavailable.',
   },
   [NcErrorType.ERR_INTERNAL_SERVER]: {
     retriable: false,
-    llmHint: 'Internal server error.',
+    llmHint:
+      'Something went wrong. Do not retry — inform the user that something went wrong and suggest trying again later.',
   },
   [NcErrorType.ERR_FORMULA]: {
     retriable: true,
-    llmHint: 'Formula syntax error. Check the formula expression.',
+    llmHint:
+      'The formula expression has a syntax error. Check for: misspelled function names, wrong argument count, unmatched parentheses, or incorrect field references. Fix the formula and retry.',
   },
   [NcErrorType.ERR_CIRCULAR_REF_IN_FORMULA]: {
     retriable: false,
-    llmHint: 'Circular reference in formula. Restructure the formula.',
+    llmHint:
+      'The formula has a circular reference. Do not retry — inform the user the formula needs to be restructured to avoid the circular dependency.',
   },
   [NcErrorType.ERR_FEATURE_NOT_SUPPORTED]: {
     retriable: false,
-    llmHint: 'This feature requires a higher plan.',
+    llmHint:
+      'This feature is not available on the current plan. Do not retry — inform the user that upgrading their plan is required to use this feature.',
   },
   [NcErrorType.ERR_PLAN_LIMIT_EXCEEDED]: {
     retriable: false,
-    llmHint: 'Plan limit exceeded.',
+    llmHint:
+      'A usage limit for the current plan has been reached (e.g., max records, max tables, max API calls). Do not retry — inform the user they have hit a plan limit and may need to upgrade.',
   },
   [NcErrorType.ERR_SYNC_TABLE_OPERATION_PROHIBITED]: {
     retriable: false,
     llmHint:
-      'This table is synced from an external source — data modifications are not allowed.',
+      'This table is synced from an external source and its data is read-only. Inserts, updates, and deletes are not allowed. Do not retry — inform the user that modifications must be made in the original external source.',
   },
 };
 
@@ -228,7 +255,7 @@ export function buildToolErrorHint(toolName: string, e: unknown): string {
   if (e instanceof AjvError) {
     return `Tool "${toolName}" failed: Validation error — ${truncateMessage(
       e.message,
-    )}`;
+    )}. (Retriable: Check that all required properties are present and values match the expected types.)`;
   }
 
   if (e instanceof OptionsNotExistsError) {
@@ -236,43 +263,41 @@ export function buildToolErrorHint(toolName: string, e: unknown): string {
       ', ',
     )}" for column "${
       e.columnTitle
-    }". (Retriable: Use describe_table to see valid options.)`;
+    }". (Retriable: Call describe_table to see the valid options for this select/multi-select field, then retry with a valid option.)`;
   }
 
   if (e instanceof UniqueConstraintViolationError) {
-    return `Tool "${toolName}" failed: Unique constraint violation on field "${e.fieldName}" with value "${e.value}".`;
+    return `Tool "${toolName}" failed: The value for field "${e.fieldName}" must be unique — "${e.value}" already exists.`;
   }
 
   if (e instanceof Forbidden || e instanceof Unauthorized) {
-    return `Tool "${toolName}" failed: Permission denied — ${truncateMessage(
-      (e as Error).message,
-    )}`;
+    return `Tool "${toolName}" failed: Permission denied. Do not retry — the user needs additional permissions.`;
   }
 
   if (e instanceof NotFound) {
     return `Tool "${toolName}" failed: Not found — ${truncateMessage(
       (e as Error).message,
-    )}`;
+    )}. (Retriable: Verify the resource name or ID. Use the appropriate list tool to find valid identifiers.)`;
   }
 
   if (e instanceof BadRequest) {
     return `Tool "${toolName}" failed: Bad request — ${truncateMessage(
       (e as Error).message,
-    )}`;
+    )}. (Retriable: Review the input parameters, fix the issue described above, and retry.)`;
   }
 
   if (e instanceof UnprocessableEntity || e instanceof NcSDKError) {
     return `Tool "${toolName}" failed: ${truncateMessage(
       (e as Error).message,
-    )}`;
+    )}. Review the input and correct the issue before retrying.`;
   }
 
   if (e instanceof ExternalTimeout) {
-    return `Tool "${toolName}" failed: External data source timed out. (Retriable: Try again.)`;
+    return `Tool "${toolName}" failed: External data source timed out. (Retriable: The external source is slow — wait briefly and retry once. If it fails again, inform the user.)`;
   }
 
   if (e instanceof ExternalError) {
-    return `Tool "${toolName}" failed: External data source error.`;
+    return `Tool "${toolName}" failed: An error occurred with the connected data source. Do not retry — inform the user.`;
   }
 
   if (e instanceof NcBaseError) {
@@ -284,9 +309,7 @@ export function buildToolErrorHint(toolName: string, e: unknown): string {
   if (e instanceof Error) {
     const dbError = extractDBError(e);
     if (dbError) {
-      return `Tool "${toolName}" failed: Database error — ${truncateMessage(
-        dbError.message,
-      )}`;
+      return `Tool "${toolName}" failed: The operation could not be completed. Do not retry with the same parameters.`;
     }
   }
 

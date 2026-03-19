@@ -24,7 +24,7 @@ export function sanitizeUrlPath(paths) {
 }
 
 // Keys that must never be controllable by public/shared-view callers
-const PUBLIC_QUERY_BLOCKED_KEYS = ['getHiddenColumn'];
+const PUBLIC_QUERY_BLOCKED_KEYS = ['getHiddenColumn', 'nested'];
 
 function sanitizePublicQuery<T extends Record<string, any>>(query: T): T {
   if (!query) return query;

@@ -58,9 +58,6 @@ export const ChatToolName = {
   LIST_WIDGET_FILTERS: 'list_widget_filters',
   REMOVE_WIDGET_FILTER: 'remove_widget_filter',
 
-  // Data (extended)
-  QUERY_RECORDS_BY_COMMENTS: 'query_records_by_comments',
-  MANAGE_COMMENTS: 'manage_comments',
 
   // Docs
   LIST_DOCUMENTS: 'list_documents',

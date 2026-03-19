@@ -32,8 +32,6 @@ import { aggregateTool } from '~/integrations/ai/chat/tools/data/aggregate.tool'
 import { listLinkedRecordsTool } from '~/integrations/ai/chat/tools/data/list-linked-records.tool';
 import { linkRecordsTool } from '~/integrations/ai/chat/tools/data/link-records.tool';
 import { unlinkRecordsTool } from '~/integrations/ai/chat/tools/data/unlink-records.tool';
-import { queryRecordsByCommentsTool } from '~/integrations/ai/chat/tools/data/query-records-by-comments.tool';
-import { manageCommentsTool } from '~/integrations/ai/chat/tools/data/manage-comments.tool';
 import { askUserTool } from '~/integrations/ai/chat/tools/ask-user.tool';
 import { generateArtifactSchemaTool } from '~/integrations/ai/chat/tools/interaction/generate-artifact-schema.tool';
 import { announceTool } from '~/integrations/ai/chat/tools/interaction/announce.tool';
@@ -111,8 +109,6 @@ const ALL_TOOLS: ChatToolDefinition[] = [
   listLinkedRecordsTool,
   linkRecordsTool,
   unlinkRecordsTool,
-  queryRecordsByCommentsTool,
-  manageCommentsTool,
   listViewFieldsTool,
   updateViewFieldsTool,
   setDisplayFieldTool,

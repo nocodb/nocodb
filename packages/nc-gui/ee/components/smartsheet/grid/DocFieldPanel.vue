@@ -128,9 +128,12 @@ const panelClasses = computed(() => {
       />
 
       <!-- Header -->
-      <div class="flex items-center gap-2 px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0">
+      <div class="flex items-center h-[var(--topbar-height)] gap-2 px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0">
         <!-- Table name prefix (fullscreen only) -->
-        <div v-if="isFullscreen && meta?.title" class="flex items-center gap-1 text-bodySm text-nc-content-gray-subtle2 truncate max-w-40">
+        <div
+          v-if="isFullscreen && meta?.title"
+          class="flex items-center gap-1 text-bodySm text-nc-content-gray-subtle2 truncate max-w-40"
+        >
           <GeneralIcon icon="table" class="w-4 h-4 flex-shrink-0" />
           <span class="truncate">{{ meta.title }}</span>
           <span>·</span>
@@ -213,7 +216,11 @@ const panelClasses = computed(() => {
             data-testid="nc-doc-field-panel-fullscreen"
             @click="setFullscreen(!isFullscreen)"
           >
-            <GeneralIcon :icon="isFullscreen ? 'ncMinimize' : 'ncMaximize'" class="w-4 h-4" :class="{ 'text-nc-content-brand': isFullscreen }" />
+            <GeneralIcon
+              :icon="isFullscreen ? 'ncMinimize' : 'ncMaximize'"
+              class="w-4 h-4"
+              :class="{ 'text-nc-content-brand': isFullscreen }"
+            />
           </NcButton>
         </NcTooltip>
 

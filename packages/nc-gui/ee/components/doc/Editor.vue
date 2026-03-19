@@ -210,7 +210,9 @@ const { downloadMarkdown, downloadHTML, downloadPDF } = useDocumentExport({
   },
 })
 
-const { scrollToHeading } = useDocHeadingAnchors(editor, scrollContainerRef, isLoaded)
+const { scrollToHeading } = props.embedded
+  ? { scrollToHeading: (_id: string) => false }
+  : useDocHeadingAnchors(editor, scrollContainerRef, isLoaded)
 
 const { copy } = useCopy()
 
@@ -1106,7 +1108,7 @@ const _tiptapEditor = useEditor({
     DocActiveBlockExtension,
     DocBlockDirExtension,
     DocHeadingCollapseExtension,
-    DocHeadingAnchorExtension,
+    ...(props.embedded ? [] : [DocHeadingAnchorExtension]),
     DocDragHandleExtension,
     DocSearchExtension,
     DocAiExtension,

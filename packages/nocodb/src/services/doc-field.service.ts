@@ -32,4 +32,33 @@ export class DocFieldService {
   ): Promise<DocumentType> {
     return null;
   }
+
+  async deleteByFieldAndRow(
+    _context: NcContext,
+    _columnId: string,
+    _rowId: string,
+    _req?: NcRequest,
+  ): Promise<boolean> {
+    return true;
+  }
+
+  async restore(
+    _context: NcContext,
+    _docId: string,
+  ): Promise<boolean> {
+    return true;
+  }
+
+  async duplicate(
+    _context: NcContext,
+    _params: {
+      sourceColumnId: string;
+      sourceRowId: string;
+      targetColumnId: string;
+      targetRowId: string;
+    },
+    _req: NcRequest,
+  ): Promise<DocumentType | null> {
+    return null;
+  }
 }

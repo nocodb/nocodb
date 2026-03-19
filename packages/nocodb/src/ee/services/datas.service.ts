@@ -186,11 +186,26 @@ export class DatasService extends DatasServiceCE {
     const docColumns = columns.filter((c) => c.uidt === UITypes.Doc);
     if (!docColumns.length) return;
 
-    // Extract PKs from rows
+    // Extract PKs from rows — must match the escaping used by the frontend
+    // when it builds fk_row_id for docFieldGetOrCreate.
+    // Single PK: raw value. Composite PK: escape underscores, join with '___'.
     const pkColumns = columns.filter((c) => c.pk);
+    const buildPk = (row: Record<string, any>) => {
+      if (pkColumns.length > 1) {
+        return pkColumns
+          .map(
+            (c) =>
+              String(row[c.title] ?? '').replaceAll('_', '\\_'),
+          )
+          .join('___');
+      }
+      const id = row[pkColumns[0].title];
+      return id == null ? '' : `${id}`;
+    };
+
     const rowIds: string[] = [];
     for (const row of rows) {
-      const pk = pkColumns.map((c) => row[c.title]).join('___');
+      const pk = buildPk(row);
       if (pk) rowIds.push(pk);
     }
     if (!rowIds.length) return;
@@ -203,7 +218,7 @@ export class DatasService extends DatasServiceCE {
     );
 
     for (const row of rows) {
-      const pk = pkColumns.map((c) => row[c.title]).join('___');
+      const pk = buildPk(row);
       for (const col of docColumns) {
         const docInfo = existenceMap.get(col.id)?.get(pk);
         row[col.title] = docInfo || null;

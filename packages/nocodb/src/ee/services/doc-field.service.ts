@@ -5,7 +5,7 @@ import type {
   DocumentDeletePayload,
   DocumentType,
 } from 'nocodb-sdk';
-import { AuditV1OperationTypes } from 'nocodb-sdk';
+import { AuditV1OperationTypes, UITypes } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { Audit, Document, FileReference } from '~/models';
@@ -44,7 +44,7 @@ export class DocFieldService extends DocFieldServiceCE {
     rowId: string,
     req: NcRequest,
   ): Promise<DocumentType> {
-    // Check if doc already exists
+    // Check if doc already exists (first check — fast path)
     const existing = await Document.getByFieldAndRow(context, columnId, rowId);
     if (existing) return existing;
 
@@ -54,7 +54,21 @@ export class DocFieldService extends DocFieldServiceCE {
       NcError.get(context).fieldNotFound(columnId);
     }
 
+    if (column.uidt !== UITypes.Doc) {
+      NcError.get(context).badRequest(
+        `Column ${columnId} is not a Doc field`,
+      );
+    }
+
     const userId = req.user?.id;
+
+    // Re-check after validation to handle concurrent requests
+    const existingAfterValidation = await Document.getByFieldAndRow(
+      context,
+      columnId,
+      rowId,
+    );
+    if (existingAfterValidation) return existingAfterValidation;
 
     const doc = await Document.createForField(context, {
       base_id: context.base_id,
@@ -259,7 +273,7 @@ export class DocFieldService extends DocFieldServiceCE {
           version: newDoc.version,
         });
       }
-    } catch (e) {
+    } catch (e: any) {
       this.logger.error(
         `Failed to clone file references for duplicated doc field ${newDoc.id}: ${e.message}`,
         e.stack,

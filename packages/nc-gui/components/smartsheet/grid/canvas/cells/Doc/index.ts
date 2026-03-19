@@ -1,13 +1,5 @@
 import { defaultOffscreen2DContext, isBoxHovered, truncateText } from '../../utils/canvas'
 
-/** Extract doc ID from a Doc cell value (object {id,title} or legacy string) */
-function getDocId(value: any): string | null {
-  if (!value) return null
-  if (typeof value === 'object' && value.id) return value.id
-  if (typeof value === 'string') return value
-  return null
-}
-
 /** Build a Doc cell value object */
 export function docCellValue(id: string, title?: string): { id: string; title: string } {
   return { id, title: title || 'Untitled' }
@@ -94,7 +86,7 @@ export const DocCellRenderer: CellRenderer = {
     const brandColor = getColor(themeV4Colors.brand['500'])
     const bgHover = selected ? getColor(themeV4Colors.brand['50']) : getColor(themeV4Colors.gray['100'])
 
-    const docTitle = (value as any)?.title || t('general.untitled')
+    const docTitle = (value as { id: string; title: string })?.title || t('general.untitled')
     const label = docTitle
     const icon = 'ncFileText'
     const color = selected ? brandColor : defaultColor
@@ -171,7 +163,7 @@ export const DocCellRenderer: CellRenderer = {
     }
 
     // Has doc — only respond to pill click
-    const docTitle = (value as any)?.title || t('general.untitled')
+    const docTitle = (value as { id: string; title: string })?.title || t('general.untitled')
     const label = docTitle
 
     const ctx = defaultOffscreen2DContext

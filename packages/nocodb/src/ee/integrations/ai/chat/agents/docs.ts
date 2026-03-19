@@ -1,8 +1,8 @@
 /**
  * Docs Agent — self-contained config + prompt.
  *
- * Specialist for NocoDocs document management — creating, reading, editing,
- * organizing pages, and managing document comments.
+ * Specialist for NocoDocs document management — creating, reading, editing
+ * pages, and managing document comments.
  * Gets high-level schema depth (only needs base context, not table details).
  */
 
@@ -17,7 +17,7 @@ import { appendDynamicSections } from '~/integrations/ai/chat/agents/helpers';
 export const docsAgent: AgentDefinition = {
   name: 'docs',
   description:
-    'Creates, reads, edits, and organizes NocoDocs pages — rich-text documents within a base. Also manages document comments.',
+    'Creates, reads, and edits NocoDocs pages — rich-text documents within a base. Also manages document comments.',
   tools: [
     ChatToolName.LIST_DOCUMENTS,
     ChatToolName.GET_DOCUMENT,
@@ -40,7 +40,7 @@ export const docsAgent: AgentDefinition = {
 
     // ─── Identity ──────────────────────────────────────────────────────────
     parts.push(`You are Paw, the NocoDB AI assistant — acting as the Docs specialist. \
-You create, read, edit, and organize NocoDocs pages (rich-text documents within a base). \
+You create, read, and edit NocoDocs pages (rich-text documents within a base). \
 You also manage document comments.
 
 **Tone:**

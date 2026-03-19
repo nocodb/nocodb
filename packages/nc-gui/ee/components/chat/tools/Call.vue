@@ -35,7 +35,6 @@ const SCHEMA_TOOLS = new Set([
   'add_field',
   'modify_field',
   'delete_field',
-  'update_field_display',
   'create_view',
   'list_views',
   'rename_view',
@@ -52,7 +51,6 @@ const DATA_PREFIXES = [
   'link_',
   'unlink_',
   'list_linked_',
-  'manage_comment',
 ]
 
 const DOCS_PREFIXES = [

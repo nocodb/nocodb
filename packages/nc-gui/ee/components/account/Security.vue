@@ -487,7 +487,13 @@ onMounted(() => {
     </GeneralModal>
 
     <!-- Regenerate Backup Codes Modal -->
-    <GeneralModal v-model:visible="showRegenerateModal" size="small" centered>
+    <GeneralModal
+      v-model:visible="showRegenerateModal"
+      size="small"
+      centered
+      :mask-closable="newBackupCodes.length === 0"
+      :closable="newBackupCodes.length === 0"
+    >
       <div class="flex flex-col gap-2 p-4 md:!p-6">
         <div class="text-lg font-semibold mb-3">{{ $t('labels.regenerateBackupCodes') }}</div>
 

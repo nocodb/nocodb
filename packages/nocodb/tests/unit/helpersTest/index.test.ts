@@ -5,6 +5,7 @@ import { stringHelperTest } from './stringHelpers.test';
 import { planResolutionTests } from './planResolution.test';
 import { attachmentHelpersTest } from './attachmentHelpers.test';
 import { apiTokenPermissionTest } from './apiTokenPermission.test';
+import { mfaHelperTests } from './mfa.test';
 
 let dashboardV3ConfigTransformTest = () => {};
 let dateDependencyHelperTests = () => {};
@@ -25,6 +26,7 @@ function _helperTests() {
   dashboardV3ConfigTransformTest();
   dateDependencyHelperTests();
   planResolutionTests();
+  mfaHelperTests();
   describe('PublicDatasService - shared view column sanitization', publicDatasSanitizeTest);
   apiTokenPermissionTest();
   verifyDefaultOrgTests();

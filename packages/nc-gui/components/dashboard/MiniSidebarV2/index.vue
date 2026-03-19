@@ -22,7 +22,7 @@ const { isMobileMode } = useGlobal()
 
 <style lang="scss">
 .nc-mini-sidebar-v2 {
-  @apply w-[var(--mini-sidebar-width)] min-w-[var(--mini-sidebar-width)] flex-none flex flex-col justify-between items-center z-502 relative bg-nc-bg-gray-minisidebar border-r-1 border-nc-border-gray-medium nc-h-screen nc-scrollbar-thin overflow-x-hidden;
+  @apply w-[var(--mini-sidebar-width)] min-w-[var(--mini-sidebar-width)] flex-none flex flex-col justify-between items-center z-502 relative bg-white dark:bg-nc-bg-gray-minisidebar border-r-1 border-nc-border-gray-medium nc-h-screen nc-scrollbar-thin overflow-x-hidden;
   transition: width 0.2s ease;
   flex-shrink: 0;
 

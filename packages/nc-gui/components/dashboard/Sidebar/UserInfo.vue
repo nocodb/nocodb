@@ -117,7 +117,7 @@ const openKeyboardShortcutDialog = () => {
   <div
     class="flex w-full flex-col border-nc-border-gray-medium gap-y-1"
     :class="{
-      'sticky bottom-0 bg-nc-bg-gray-minisidebar': isMiniSidebar,
+      'sticky bottom-0 bg-white dark:bg-nc-bg-gray-minisidebar': isMiniSidebar,
     }"
   >
     <div class="flex items-center justify-center h-13">

@@ -15,6 +15,8 @@ const { isUIAllowed } = useRoles()
 
 const { t } = useI18n()
 
+const { user } = useGlobal()
+
 const basesStore = useBases()
 const { basesUser } = storeToRefs(basesStore)
 
@@ -23,7 +25,11 @@ const { linkedIntegrations, isLoading, loadLinkedIntegrations, linkIntegration, 
 const canManage = computed(() => isUIAllowed('sourceCreate'))
 
 // Integration store (provided by View.vue)
-const { addIntegration, eventBus, isFromIntegrationPage, loadDynamicIntegrations } = useIntegrationStore()
+const { addIntegration, editIntegration, eventBus, isFromIntegrationPage, loadDynamicIntegrations } = useIntegrationStore()
+
+const canEditIntegration = (integration: any) => {
+  return canManage.value && integration.created_by === user.value?.id
+}
 
 const activeTab = ref<'integrations' | 'connections'>('integrations')
 
@@ -311,16 +317,34 @@ watch(baseId, reload)
               </div>
 
               <div v-if="column.key === 'action'" @click.stop>
-                <NcButton
-                  v-if="integration.is_restricted && !integration.is_global"
-                  size="small"
-                  type="text"
-                  class="!text-nc-content-gray-subtle2 hover:!text-nc-content-red-dark"
-                  data-testid="nc-base-integration-unlink-btn"
-                  @click="handleUnlink(integration.id)"
-                >
-                  {{ $t('general.unlink') }}
-                </NcButton>
+                <NcDropdown placement="bottomRight">
+                  <NcButton size="small" type="secondary" data-testid="nc-base-integration-action-btn">
+                    <GeneralIcon icon="threeDotVertical" />
+                  </NcButton>
+                  <template #overlay>
+                    <NcMenu variant="small">
+                      <NcMenuItem
+                        v-if="canEditIntegration(integration)"
+                        data-testid="nc-base-integration-edit-btn"
+                        @click="editIntegration(integration)"
+                      >
+                        <GeneralIcon class="text-current opacity-80" icon="edit" />
+                        <span>{{ $t('general.edit') }}</span>
+                      </NcMenuItem>
+                      <template v-if="integration.is_restricted && !integration.is_global">
+                        <NcDivider v-if="canEditIntegration(integration)" />
+                        <NcMenuItem
+                          class="!text-nc-content-red-dark"
+                          data-testid="nc-base-integration-unlink-btn"
+                          @click="handleUnlink(integration.id)"
+                        >
+                          <GeneralIcon class="text-current" icon="linkRemove" />
+                          <span>{{ $t('general.unlink') }}</span>
+                        </NcMenuItem>
+                      </template>
+                    </NcMenu>
+                  </template>
+                </NcDropdown>
               </div>
             </template>
 

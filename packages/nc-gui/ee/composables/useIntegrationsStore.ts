@@ -286,7 +286,18 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     $e('a:integration:update')
 
     try {
-      await api.integration.update(integration.id, integration)
+      const effectiveBaseId = activeProjectId.value
+
+      if (effectiveBaseId && activeWorkspaceId.value) {
+        await $api.internal.postOperation(
+          activeWorkspaceId.value,
+          effectiveBaseId,
+          { operation: 'baseIntegrationUpdate', integrationId: integration.id },
+          integration,
+        )
+      } else {
+        await api.integration.update(integration.id, integration)
+      }
 
       if (integration.type === IntegrationsType.Ai) {
         aiIntegrations.value = aiIntegrations.value.map((i) => {

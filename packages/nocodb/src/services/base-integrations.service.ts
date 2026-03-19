@@ -5,10 +5,13 @@ import { Base, Integration, IntegrationLink } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
+import { IntegrationsService } from '~/services/integrations.service';
 
 @Injectable()
 export class BaseIntegrationsService {
   protected logger = new Logger(BaseIntegrationsService.name);
+
+  constructor(protected integrationsService: IntegrationsService) {}
 
   /**
    * List integrations available to a base.
@@ -108,6 +111,51 @@ export class BaseIntegrationsService {
     });
 
     return integration;
+  }
+
+  /**
+   * Update an integration from a base context.
+   * Only the creator of the integration can update it.
+   */
+  async updateFromBase(
+    context: NcContext,
+    param: {
+      baseId: string;
+      integrationId: string;
+      integration: IntegrationReqType;
+      req: NcRequest;
+    },
+  ) {
+    const integration = await Integration.get(context, param.integrationId);
+    if (!integration) {
+      NcError.get(context).integrationNotFound(param.integrationId);
+    }
+
+    // Only the creator can update from base context
+    if (integration.created_by !== param.req.user?.id) {
+      NcError.get(context).unauthorized(
+        'Only the creator can update this integration.',
+      );
+    }
+
+    // Verify integration is available to this base
+    const isAvailable = await IntegrationLink.isAvailable(context, {
+      fk_integration_id: param.integrationId,
+      base_id: param.baseId,
+      is_restricted: !!integration.is_restricted,
+    });
+
+    if (!isAvailable) {
+      NcError.get(context).badRequest(
+        'Integration is not available to this base.',
+      );
+    }
+
+    return this.integrationsService.integrationUpdate(context, {
+      integrationId: param.integrationId,
+      integration: param.integration,
+      req: param.req,
+    });
   }
 
   /**

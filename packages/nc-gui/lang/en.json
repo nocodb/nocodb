@@ -2033,6 +2033,7 @@
     "copyAll": "Copy All",
     "iHaveSavedTheseCodes": "I've saved these codes",
     "stepOf": "Step {current} of {total}",
+    "regenerate": "Regenerate",
     "regenerateBackupCodes": "Regenerate Backup Codes",
     "enterCodeToDisable": "Enter a verification code from your authenticator app to disable two-factor authentication.",
     "confirmPasswordToSetup": "Enter your current password to continue with two-factor authentication setup.",

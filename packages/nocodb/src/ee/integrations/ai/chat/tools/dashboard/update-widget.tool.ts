@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
+import type { Widget } from '~/models';
 import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
 import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import {
@@ -78,7 +79,7 @@ export const updateWidgetTool = defineChatTool({
       args.widget_name,
     );
 
-    const updateObj: Record<string, any> = {};
+    const updateObj: Partial<Widget> = {};
     if (args.title !== undefined) updateObj.title = args.title;
     if (args.config !== undefined) {
       updateObj.config = validateWidgetConfig(widget.type, args.config);

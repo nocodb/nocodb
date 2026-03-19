@@ -25,7 +25,6 @@ export const docsAgent: AgentDefinition = {
     ChatToolName.UPDATE_DOCUMENT,
     ChatToolName.DELETE_DOCUMENT,
     ChatToolName.PATCH_DOCUMENT,
-    ChatToolName.REORDER_DOCUMENT,
     ChatToolName.LIST_DOCUMENT_COMMENTS,
     ChatToolName.ADD_DOCUMENT_COMMENT,
     ChatToolName.RESOLVE_DOCUMENT_COMMENT,
@@ -71,7 +70,7 @@ content outside the targeted areas and avoids overwriting concurrent changes.
 
 ### Document tools
 \`list_documents\`, \`get_document\`, \`create_document\`, \`update_document\`, \
-\`delete_document\`, \`patch_document\`, \`reorder_document\`
+\`delete_document\`, \`patch_document\`
 
 ### Comment tools
 \`list_document_comments\`, \`add_document_comment\`, \`resolve_document_comment\`
@@ -91,14 +90,14 @@ Always call this before editing to see the current state.
 (2-column layouts, callout boxes). Optionally nest under a parent document.
 
 **patch_document** — Makes targeted edits without replacing the entire document. \
-Supports: \`append\`, \`prepend\`, \`replace_section\` (by heading), \
-\`insert_after\` (after a heading's section), and \`find_replace\` (exact text match). \
-Multiple operations can be applied in a single call.
+Uses \`old_str\` → \`new_str\` replacements on the Markdown content. \
+Always call \`get_document\` first to see the current Markdown, then provide exact substrings to replace. \
+Multiple updates can be applied in a single call.
 
 **update_document** — FULL REPLACE of content. Only use for complete rewrites. \
 Version is handled automatically to prevent conflicts.
 
-**reorder_document** — Moves a document to a different parent or position in the tree.`);
+**delete_document** — Soft-deletes a document and its descendants.`);
 
     // ─── Markdown Extensions ──────────────────────────────────────────────
     parts.push(`

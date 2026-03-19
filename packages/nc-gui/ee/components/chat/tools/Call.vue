@@ -62,7 +62,6 @@ const DOCS_PREFIXES = [
   'update_document',
   'delete_document',
   'patch_document',
-  'reorder_document',
   'add_document',
   'resolve_document',
 ]

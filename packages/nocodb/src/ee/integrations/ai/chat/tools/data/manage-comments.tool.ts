@@ -26,9 +26,7 @@ async function resolveMentions(text: string): Promise<string> {
   if (matches.length === 0) return text;
 
   // Deduplicate emails and resolve users
-  const uniqueEmails = [
-    ...new Set(matches.map((m) => m[1].toLowerCase())),
-  ];
+  const uniqueEmails = [...new Set(matches.map((m) => m[1].toLowerCase()))];
   const userMap = new Map<
     string,
     { id: string; email: string; display_name?: string }
@@ -115,8 +113,7 @@ export const manageCommentsTool = defineChatTool({
 
     // #4 — Delegate mutations to CommentsService for proper
     // AppEvents, mail notifications, and socket broadcasts.
-    const commentsService: CommentsService =
-      Noco.nestApp.get(CommentsService);
+    const commentsService: CommentsService = Noco.nestApp.get(CommentsService);
 
     switch (args.action) {
       case 'add_comment': {

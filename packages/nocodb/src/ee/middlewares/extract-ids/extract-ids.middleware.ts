@@ -1283,12 +1283,14 @@ export class AclMiddleware implements NestInterceptor {
       allowedRoles,
       blockApiTokenAccess,
       blockOAuthTokenAccess,
+      blockPublicBaseAccess,
       extendedScope,
     }: {
       scope?: string;
       allowedRoles?: (OrgUserRoles | string)[];
       blockApiTokenAccess?: boolean;
       blockOAuthTokenAccess?: boolean;
+      blockPublicBaseAccess?: boolean;
       extendedScope?: string;
     } = {},
     context: ExecutionContext,
@@ -1444,6 +1446,10 @@ export class AclMiddleware implements NestInterceptor {
 
     if (req?.user?.is_oauth_token && blockOAuthTokenAccess) {
       NcError.forbidden('Not allowed for OAuth token');
+    }
+
+    if (req?.user?.isPublicBase && blockPublicBaseAccess) {
+      NcError.forbidden('Not allowed for shared base');
     }
 
     if (
@@ -1640,6 +1646,10 @@ export class AclMiddleware implements NestInterceptor {
       'blockOAuthTokenAccess',
       context.getHandler(),
     );
+    const blockPublicBaseAccess = this.reflector.get<boolean>(
+      'blockPublicBaseAccess',
+      context.getHandler(),
+    );
     const scope = this.reflector.get<string>('scope', context.getHandler());
     const extendedScope = this.reflector.get<string>(
       'extendedScope',
@@ -1655,6 +1665,7 @@ export class AclMiddleware implements NestInterceptor {
         allowedRoles,
         blockApiTokenAccess,
         blockOAuthTokenAccess,
+        blockPublicBaseAccess,
         extendedScope,
       },
       context,
@@ -1677,12 +1688,14 @@ export const Acl =
       allowedRoles,
       blockApiTokenAccess,
       blockOAuthTokenAccess,
+      blockPublicBaseAccess,
       extendedScope,
     }: {
       scope?: string;
       allowedRoles?: (OrgUserRoles | string)[];
       blockApiTokenAccess?: boolean;
       blockOAuthTokenAccess?: boolean;
+      blockPublicBaseAccess?: boolean;
       extendedScope?: string;
     } = {},
   ) =>
@@ -1698,6 +1711,11 @@ export const Acl =
       descriptor,
     );
     SetMetadata('blockOAuthTokenAccess', blockOAuthTokenAccess)(
+      target,
+      key,
+      descriptor,
+    );
+    SetMetadata('blockPublicBaseAccess', blockPublicBaseAccess)(
       target,
       key,
       descriptor,

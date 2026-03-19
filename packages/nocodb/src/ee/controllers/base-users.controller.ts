@@ -27,7 +27,9 @@ export class BaseUsersController extends BaseUsersControllerCE {
     '/api/v2/meta/bases/:baseId/users',
   ])
   @HttpCode(200)
-  @Acl('userInvite')
+  @Acl('userInvite', {
+    blockPublicBaseAccess: true,
+  })
   async userInvite(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,

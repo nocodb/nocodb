@@ -40,7 +40,9 @@ export class BaseMembersV3Controller {
 
   @Post(['/api/v3/meta/bases/:baseId/members'])
   @HttpCode(200)
-  @Acl('userInvite')
+  @Acl('userInvite', {
+    blockPublicBaseAccess: true,
+  })
   async userInvite(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
@@ -59,7 +61,9 @@ export class BaseMembersV3Controller {
   }
 
   @Patch(['/api/v3/meta/bases/:baseId/members'])
-  @Acl('baseUserUpdate')
+  @Acl('baseUserUpdate', {
+    blockPublicBaseAccess: true,
+  })
   async baseUserUpdate(
     @TenantContext()
     context: NcContext,
@@ -81,7 +85,9 @@ export class BaseMembersV3Controller {
   }
 
   @Delete(['/api/v3/meta/bases/:baseId/members'])
-  @Acl('baseUserDelete')
+  @Acl('baseUserDelete', {
+    blockPublicBaseAccess: true,
+  })
   async baseUserDelete(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,

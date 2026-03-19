@@ -23,6 +23,18 @@ export function sanitizeUrlPath(paths) {
   return paths.map((url) => url.replace(/[/.?#]+/g, '_'));
 }
 
+// Keys that must never be controllable by public/shared-view callers
+const PUBLIC_QUERY_BLOCKED_KEYS = ['getHiddenColumn'];
+
+function sanitizePublicQuery<T extends Record<string, any>>(query: T): T {
+  if (!query) return query;
+  const sanitized = { ...query };
+  for (const key of PUBLIC_QUERY_BLOCKED_KEYS) {
+    delete sanitized[key];
+  }
+  return sanitized;
+}
+
 @Injectable()
 export class PublicDatasService {
   constructor(
@@ -286,7 +298,7 @@ export class PublicDatasService {
 
     const { ast } = await getAst(context, {
       model,
-      query: param.query,
+      query: sanitizePublicQuery(param.query),
       view,
       includeRowColorColumns: query.include_row_color === 'true',
     });
@@ -654,7 +666,7 @@ export class PublicDatasService {
     });
 
     const { ast, dependencyFields } = await getAst(context, {
-      query: param.query,
+      query: sanitizePublicQuery(param.query),
       model,
       extractOnlyPrimaries: true,
     });
@@ -972,9 +984,10 @@ export class PublicDatasService {
     const dataListResults = await bulkFilterList.reduce(
       async (accPromise, dF: any) => {
         const acc = await accPromise;
+
         const result = await this.datasService.dataList(context, {
           query: {
-            ...dF,
+            ...sanitizePublicQuery(dF),
           },
           model,
           view,

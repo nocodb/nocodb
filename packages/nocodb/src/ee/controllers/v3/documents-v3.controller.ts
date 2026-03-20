@@ -19,15 +19,18 @@ import type {
   DocumentV3ListResponseType,
   DocumentV3Type,
 } from '~/services/v3/documents-v3.types';
+import { checkForFeature, PlanFeatureTypes } from '~/helpers/paymentHelpers';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { DocumentsV3Service } from '~/services/v3/documents-v3.service';
 import { PREFIX_APIV3_DOCS } from '~/constants/controllers';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { License } from '~/decorators/license.decorator';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+@License('documents')
 export class DocumentsV3Controller {
   constructor(private readonly documentsV3Service: DocumentsV3Service) {}
 
@@ -38,6 +41,8 @@ export class DocumentsV3Controller {
     @Param('baseId') baseId: string,
     @Query('parent_id') parentId?: string,
   ): Promise<DocumentV3ListResponseType> {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_DOCS_APIS);
+
     // parent_id query: 'null' or omitted → root docs, otherwise children of that doc
     const resolvedParentId =
       parentId === undefined || parentId === 'null' ? null : parentId;
@@ -55,6 +60,8 @@ export class DocumentsV3Controller {
     @Body() body: DocumentCreateV3Type,
     @Request() req: NcRequest,
   ): Promise<DocumentV3Type> {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_DOCS_APIS);
+
     return await this.documentsV3Service.docCreate(context, body, req);
   }
 
@@ -64,6 +71,8 @@ export class DocumentsV3Controller {
     @TenantContext() context: NcContext,
     @Param('docId') docId: string,
   ): Promise<DocumentV3Type> {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_DOCS_APIS);
+
     return await this.documentsV3Service.docGet(context, { docId });
   }
 
@@ -75,6 +84,8 @@ export class DocumentsV3Controller {
     @Body() body: DocumentUpdateV3Type,
     @Request() req: NcRequest,
   ): Promise<DocumentV3Type> {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_DOCS_APIS);
+
     return await this.documentsV3Service.docUpdate(
       context,
       { docId },
@@ -90,6 +101,8 @@ export class DocumentsV3Controller {
     @Param('docId') docId: string,
     @Request() req: NcRequest,
   ): Promise<boolean> {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_DOCS_APIS);
+
     return await this.documentsV3Service.docDelete(context, { docId }, req);
   }
 
@@ -101,6 +114,8 @@ export class DocumentsV3Controller {
     @Body() body: DocumentReorderV3Type,
     @Request() req: NcRequest,
   ): Promise<DocumentV3Type> {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_DOCS_APIS);
+
     return await this.documentsV3Service.docReorder(
       context,
       { docId },

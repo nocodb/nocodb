@@ -90,6 +90,7 @@ export enum PlanFeatureTypes {
   FEATURE_MAP_VIEW = 'feature_map_view',
   FEATURE_TIMELINE_VIEW = 'feature_timeline_view',
   FEATURE_AI_CHAT = 'feature_ai_chat',
+  FEATURE_DOCS_APIS = 'feature_docs_apis',
   FEATURE_DOCS_INLINE_COMMENTS = 'feature_docs_inline_comments',
   FEATURE_DOCS_EXPORT_PDF = 'feature_docs_export_pdf',
 }
@@ -335,6 +336,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_MAP_VIEW]: 'to use map view.',
   [PlanFeatureTypes.FEATURE_TIMELINE_VIEW]: 'to use timeline view.',
   [PlanFeatureTypes.FEATURE_AI_CHAT]: 'to use AI chat.',
+  [PlanFeatureTypes.FEATURE_DOCS_APIS]: 'to access Documents API.',
   [PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS]:
     'to use inline comments in documents.',
   [PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF]:

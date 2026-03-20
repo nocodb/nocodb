@@ -204,11 +204,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
 
       return doc
     } catch (_e) {
-      // Navigate to the base so the user doesn't get stuck on a blank page
-      ncNavigateTo({
-        workspaceId: activeWorkspaceId.value,
-        baseId: activeProjectId.value,
-      })
+      // Return null — Editor.vue renders the "Document Not Found" error page
       return null
     } finally {
       if (showLoader) {

@@ -118,7 +118,7 @@ jobs:
     uses: ./.github/workflows/pre-build-for-ci.yml
     secrets: inherit
     with:
-      build_ce: ${{ github.event_name == 'push' || inputs.force == true }}
+      build_ce: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'pw-all') || inputs.force == true }}
 
   # ── Playwright E2E: PostgreSQL EE (always on PR + push, 3 shards) ──
 

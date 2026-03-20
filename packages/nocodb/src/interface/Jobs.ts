@@ -123,7 +123,6 @@ export const InstanceTypes = {
 export enum InstanceCommands {
   RESUME_LOCAL = 'resumeLocal',
   PAUSE_LOCAL = 'pauseLocal',
-  RELEASE = 'release',
   ASSIGN_WORKER_GROUP = 'assignWorkerGroup',
   STOP_OTHER_WORKER_GROUPS = 'stopOtherWorkerGroups',
   ABORT_CHAT_STREAM = 'abortChatStream',

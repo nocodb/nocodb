@@ -70,6 +70,21 @@ const dynamicPoolPercent = process.env.DYNAMIC_POOL_PERCENT
   ? parseInt(process.env.DYNAMIC_POOL_PERCENT, 10)
   : 50;
 
+// How long a pool can sit idle before the sweep destroys it (default 60 min)
+const IDLE_POOL_TTL_MS = process.env.IDLE_POOL_TTL_MIN
+  ? parseInt(process.env.IDLE_POOL_TTL_MIN, 10) * 60_000
+  : 60 * 60_000;
+
+// How often the idle-pool sweep runs (default 10 min)
+const SWEEP_INTERVAL_MS = process.env.SWEEP_INTERVAL_MIN
+  ? parseInt(process.env.SWEEP_INTERVAL_MIN, 10) * 60_000
+  : 10 * 60_000;
+
+// Per-query timeout in ms (default 45s)
+const QUERY_TIMEOUT_MS = process.env.QUERY_TIMEOUT_MS
+  ? parseInt(process.env.QUERY_TIMEOUT_MS, 10)
+  : 45_000;
+
 const connectionPools: Record<string, Knex> = {};
 const connectionStats: Record<
   string,
@@ -81,12 +96,23 @@ const connectionStats: Record<
   }
 > = {};
 
+// sourceId → connectionKey so we can detect config changes and destroy stale pools
+const sourceHashMap = new Map<string, string>();
+
+// connectionKey → last time a query used this pool
+const poolLastAccess = new Map<string, number>();
+
 // Cache max connection results per unique config signature to avoid re-querying.
 const maxConnectionsCache = new Map<string, number>();
 
 const isMysql = (client: string) => {
   return client === 'mysql' || client === 'mysql2';
-}
+};
+
+const isPg = (client: string) => client === 'pg';
+
+const queryTimeoutOpts = (client: string) =>
+  isPg(client) || isMysql(client) ? { cancel: true } : undefined;
 
 function getKnexClient(client: string) {
   if (client === 'snowflake') return SnowflakeClient;
@@ -114,9 +140,7 @@ const BodyJsonSchema = {
 
 function serializeError(err: any) {
   return {
-    ...err,
     message: err.message,
-    stack: err.stack,
     _errorType: err.constructor?.name,
   };
 }
@@ -127,16 +151,24 @@ async function execAndGetRows(kn: Knex, config: any, query: string) {
   const isInsert = /^(\(|)insert/i.test(query);
 
   if (client === 'pg' || client === 'snowflake') {
-    return (await kn.raw(query))?.rows;
+    return (
+      await kn.raw(query).timeout(QUERY_TIMEOUT_MS, queryTimeoutOpts(client))
+    )?.rows;
   } else if (isSelect) {
     // Wrap select queries (some dialects require this)
-    return await kn.from(kn.raw(query).wrap('(', ') __nc_alias'));
+    return await kn
+      .from(kn.raw(query).wrap('(', ') __nc_alias'))
+      .timeout(QUERY_TIMEOUT_MS, queryTimeoutOpts(client));
   } else if (isInsert && isMysql(client)) {
-    const res = await kn.raw(query);
+    const res = await kn
+      .raw(query)
+      .timeout(QUERY_TIMEOUT_MS, queryTimeoutOpts(client));
     if (res && res[0] && res[0].insertId) return res[0].insertId;
     return res;
   } else {
-    return await kn.raw(query);
+    return await kn
+      .raw(query)
+      .timeout(QUERY_TIMEOUT_MS, queryTimeoutOpts(client));
   }
 }
 
@@ -189,9 +221,40 @@ async function getDynamicPoolSize(
   return Math.floor((parsedMax * dynamicPoolPercent) / 100);
 }
 
+/**
+ * Check if any sourceId still points to the given connectionKey.
+ */
+function isPoolReferenced(connectionKey: string): boolean {
+  for (const key of sourceHashMap.values()) {
+    if (key === connectionKey) return true;
+  }
+  return false;
+}
+
 async function getConnectionPool(config: any, sourceId: string | null) {
   const { pool, ...configWithoutPool } = config;
-  const connectionKey = hash(configWithoutPool);
+  const connectionKey = hash(configWithoutPool, { unorderedArrays: true });
+
+  // If this sourceId previously used a different config, destroy the old pool
+  if (sourceId) {
+    const prevKey = sourceHashMap.get(sourceId);
+    if (prevKey && prevKey !== connectionKey) {
+      sourceHashMap.delete(sourceId);
+      delete connectionStats[sourceId];
+
+      // Destroy old pool only if no other sourceId still references it
+      if (!isPoolReferenced(prevKey) && connectionPools[prevKey]) {
+        await connectionPools[prevKey].destroy().catch((e) => {
+          console.error('Error destroying stale pool:', e);
+        });
+        delete connectionPools[prevKey];
+        poolLastAccess.delete(prevKey);
+        maxConnectionsCache.delete(prevKey);
+      }
+    }
+
+    sourceHashMap.set(sourceId, connectionKey);
+  }
 
   if (!connectionPools[connectionKey]) {
     let poolSizeConfig = {};
@@ -225,6 +288,8 @@ async function getConnectionPool(config: any, sourceId: string | null) {
     }
   }
 
+  poolLastAccess.set(connectionKey, Date.now());
+
   return connectionPools[connectionKey];
 }
 
@@ -242,10 +307,14 @@ async function handleQuery(
     try {
       for (const q of query) {
         if (raw) {
-          responses.push(await trx.raw(q));
+          responses.push(
+            await trx
+              .raw(q)
+              .timeout(QUERY_TIMEOUT_MS, queryTimeoutOpts(config.client)),
+          );
         } else {
           const execRowsResult = await execAndGetRows(trx, config, q);
-          if(isMysql(client) && !Array.isArray(execRowsResult)) {
+          if (isMysql(client) && !Array.isArray(execRowsResult)) {
             // this is the case of returnedId from mySql, which is number
             responses.push(execRowsResult);
           } else {
@@ -260,7 +329,9 @@ async function handleQuery(
       throw e;
     }
   } else {
-    return raw ? kn.raw(query) : execAndGetRows(kn, config, query);
+    return raw
+      ? kn.raw(query).timeout(QUERY_TIMEOUT_MS, queryTimeoutOpts(config.client))
+      : execAndGetRows(kn, config, query);
   }
 }
 
@@ -330,6 +401,60 @@ fastify.get('/api/v1/health', async (req, res) => {
 fastify.get('/metrics', async (req, res) => {
   res.status(200).send(connectionStats);
 });
+
+/**
+ * Periodically destroy connection pools that have been idle longer than
+ * IDLE_POOL_TTL_MS. Cleans up all related maps so nothing grows unbounded.
+ */
+async function sweepIdlePools() {
+  const now = Date.now();
+
+  for (const [connectionKey, lastAccess] of poolLastAccess) {
+    if (now - lastAccess < IDLE_POOL_TTL_MS) continue;
+
+    // Destroy the pool
+    if (connectionPools[connectionKey]) {
+      await connectionPools[connectionKey].destroy().catch((e) => {
+        console.error('Error destroying idle pool:', e);
+      });
+      delete connectionPools[connectionKey];
+    }
+
+    poolLastAccess.delete(connectionKey);
+    maxConnectionsCache.delete(connectionKey);
+
+    // Remove all sourceIds that pointed to this pool
+    for (const [sourceId, key] of sourceHashMap) {
+      if (key === connectionKey) {
+        sourceHashMap.delete(sourceId);
+        delete connectionStats[sourceId];
+      }
+    }
+  }
+}
+
+setInterval(() => {
+  sweepIdlePools().catch((e) => console.error('Idle pool sweep error:', e));
+}, SWEEP_INTERVAL_MS);
+
+async function gracefulShutdown(signal: string) {
+  console.log(`${signal} received, shutting down...`);
+
+  // Stop accepting new requests
+  await fastify.close().catch(() => {});
+
+  // Destroy all connection pools
+  const destroyPromises = Object.entries(connectionPools).map(([key, pool]) => {
+    delete connectionPools[key];
+    return pool.destroy().catch(() => {});
+  });
+  await Promise.all(destroyPromises);
+
+  process.exit(0);
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 fastify.listen(
   { port: +process.env.PORT || 9000, host: process.env.HOST || 'localhost' },

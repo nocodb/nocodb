@@ -7,9 +7,14 @@ import {
 import SqlClientFactory from '~/db/sql-client/lib/SqlClientFactory';
 import { XKnex } from '~/db/CustomKnex';
 import Noco from '~/Noco';
+import { RedisVersionTracker } from '~/utils/RedisVersionTracker';
 
 export default class NcConnectionMgrv2 {
   protected static logger = new Logger('NcConnectionMgrv2');
+
+  protected static sourceVersionTracker = new RedisVersionTracker(
+    'SOURCE_CONN_VER',
+  );
 
   protected static connectionRefs: {
     [baseId: string]: {
@@ -30,9 +35,9 @@ export default class NcConnectionMgrv2 {
     // todo: ignore meta bases
     if (this.connectionRefs?.[source.base_id]?.[source.id]) {
       try {
-        const conn = this.connectionRefs?.[source.base_id]?.[source.id];
+        const conn = this.connectionRefs[source.base_id][source.id];
+        delete this.connectionRefs[source.base_id][source.id];
         await conn.destroy();
-        delete this.connectionRefs?.[source.base_id][source.id];
       } catch (e) {
         this.logger.error({
           error: e,
@@ -46,10 +51,13 @@ export default class NcConnectionMgrv2 {
     let deleted = false;
     for (const baseId in this.connectionRefs) {
       try {
-        if (this.connectionRefs[baseId][sourceId]) {
-          await this.connectionRefs[baseId][sourceId].destroy();
+        const knex = this.connectionRefs[baseId][sourceId];
+        if (knex) {
+          // Remove reference first so concurrent get() creates a fresh
+          // connection instead of receiving a pool that is being destroyed.
           delete this.connectionRefs[baseId][sourceId];
           deleted = true;
+          await knex.destroy();
         }
       } catch (e) {
         this.logger.error({
@@ -61,8 +69,40 @@ export default class NcConnectionMgrv2 {
     return deleted;
   }
 
+  /**
+   * Bump the Redis version for a source so all servers invalidate
+   * their cached connection on the next get(). Also sync the local
+   * version so the originating server doesn't re-trigger staleness.
+   */
+  public static async bumpSourceVersion(sourceId: string): Promise<void> {
+    await this.sourceVersionTracker.bumpAndSync(sourceId);
+  }
+
+  /**
+   * Destroy local connection + bump version for cross-server invalidation.
+   * Delete ref first, then bump-and-sync so that concurrent get() calls on
+   * this server create a fresh connection without re-triggering staleness.
+   */
+  public static async resetSource(sourceId: string): Promise<void> {
+    await this.deleteConnectionRef(sourceId);
+    await this.sourceVersionTracker.bumpAndSync(sourceId);
+  }
+
+  /**
+   * Check if a source's connection is stale (another server bumped the
+   * version via resetSource). If stale, destroy the local connection.
+   */
+  protected static async checkSourceStaleness(sourceId: string): Promise<void> {
+    await this.sourceVersionTracker.checkStaleness(sourceId, async () => {
+      await this.deleteConnectionRef(sourceId);
+    });
+  }
+
   public static async get(source: Source): Promise<XKnex> {
     if (source.isMeta()) return Noco.ncMeta.knex;
+
+    // Cross-server staleness check via Redis version key
+    await this.checkSourceStaleness(source.id);
 
     if (this.connectionRefs?.[source.base_id]?.[source.id]) {
       return this.connectionRefs?.[source.base_id]?.[source.id];

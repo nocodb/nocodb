@@ -8,7 +8,6 @@ import type { OnModuleInit } from '@nestjs/common';
 import { InstanceCommands, JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { TelemetryService } from '~/services/telemetry.service';
 import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
 export class JobsService extends JobsServiceCE implements OnModuleInit {
@@ -75,14 +74,6 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
       );
     }
 
-    // common cmds
-    const sourceReleaseCmd = async (commaSeperatedSourceIds: string) => {
-      const sourceIds = commaSeperatedSourceIds.split(',');
-      for (const sourceId of sourceIds) {
-        await NcConnectionMgrv2.deleteConnectionRef(sourceId);
-      }
-    };
-
     if (process.env.NC_WORKER_CONTAINER === 'true') {
       const assignWorkerGroup = async (workerGroupId: string) => {
         if (this.workerGroupId) {
@@ -115,10 +106,6 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
         assignWorkerGroup;
       JobsRedis.workerCallbacks[InstanceCommands.STOP_OTHER_WORKER_GROUPS] =
         stopOtherWorkerGroups;
-
-      JobsRedis.workerCallbacks[InstanceCommands.RELEASE] = sourceReleaseCmd;
-    } else {
-      JobsRedis.primaryCallbacks[InstanceCommands.RELEASE] = sourceReleaseCmd;
     }
 
     await super.onModuleInit();

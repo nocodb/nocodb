@@ -75,6 +75,9 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
       return this.dataKnex;
     }
 
+    // Cross-server staleness check via Redis version key
+    await this.checkSourceStaleness(source.id);
+
     if (this.connectionRefs?.[source.base_id]?.[source.id]) {
       return this.connectionRefs?.[source.base_id]?.[source.id];
     }

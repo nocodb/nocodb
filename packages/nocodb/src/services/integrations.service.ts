@@ -12,8 +12,6 @@ import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
-import { InstanceCommands } from '~/interface/Jobs';
 import { SourcesService } from '~/services/sources.service';
 import { generateUniqueName } from '~/helpers/exportImportHelpers';
 
@@ -429,14 +427,8 @@ export class IntegrationsService {
         },
       );
 
-      // delete the connection ref
-      await NcConnectionMgrv2.deleteAwait(source);
-
-      // release the connections from the worker
-      if (JobsRedis.available) {
-        await JobsRedis.emitWorkerCommand(InstanceCommands.RELEASE, source.id);
-        await JobsRedis.emitPrimaryCommand(InstanceCommands.RELEASE, source.id);
-      }
+      // Destroy local connection + bump Redis version for cross-server invalidation
+      await NcConnectionMgrv2.resetSource(source.id);
     }
   }
 

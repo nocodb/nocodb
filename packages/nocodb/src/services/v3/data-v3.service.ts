@@ -166,9 +166,16 @@ export class DataV3Service {
           columns: info.model.columns,
         };
 
-        // Recurse into the related model's columns
+        // Recurse into the related model's columns using the related model's
+        // base context. Without this, same-base links within a cross-base
+        // related model would be looked up in the original request's base
+        // instead of the related model's base.
+        const relatedModelContext = info.model.base_id
+          ? { ...context, base_id: info.model.base_id }
+          : context;
+
         const nested = await this.buildModelMaps(
-          context,
+          relatedModelContext,
           info.model.columns,
           depth + 1,
           reuse,

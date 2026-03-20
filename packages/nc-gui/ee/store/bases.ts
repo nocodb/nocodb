@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { BaseType, OracleUi, ProjectUserReqType, RequestParams, SourceType } from 'nocodb-sdk'
+import type { BaseType, ProjectUserReqType, RequestParams, SourceType } from 'nocodb-sdk'
 import { BaseVersion, ProjectRoles, SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import type Record from '~icons/*'
@@ -362,7 +362,7 @@ export const useBases = defineStore('basesStore', () => {
         break
       }
     }
-    return sqlUi as Exclude<ReturnType<(typeof SqlUiFactory)['create']>, typeof OracleUi>
+    return sqlUi
   }
 
   const updateProject = async (baseId: string, baseUpdatePayload: BaseType) => {

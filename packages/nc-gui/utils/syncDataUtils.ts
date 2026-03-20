@@ -155,12 +155,6 @@ export const allIntegrations: IntegrationItemType[] = [
     icon: iconMap.dataBricks,
     type: IntegrationCategoryType.DATABASE,
   },
-  {
-    title: 'objects.syncData.oracle',
-    sub_type: SyncDataType.ORACLE,
-    icon: iconMap.oracle,
-    type: IntegrationCategoryType.DATABASE,
-  },
 
   // Communication
   {

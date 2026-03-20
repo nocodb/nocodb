@@ -713,7 +713,6 @@
       "postgreSQL": "PostgreSQL",
       "sqlite": "SQLite",
       "dataBricks": "DataBricks",
-      "oracle": "Oracle",
       "telegram": "Telegram",
       "whatsapp": "Whatsapp",
       "gmail": "Gmail",

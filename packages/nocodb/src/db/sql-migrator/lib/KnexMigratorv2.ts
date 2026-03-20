@@ -333,10 +333,6 @@ export default class KnexMigratorv2 {
   //             break;
   //
   //
-  //           case 'oracle':
-  //             freshProject = require('./templates/oracle.template.js');
-  //             break;
-  //
   //           case 'sqlite':
   //             freshProject = require('./templates/sqlite.template.js');
   //             break;
@@ -402,14 +398,7 @@ export default class KnexMigratorv2 {
       }
     } catch (e) {}
 
-    if (connectionConfig.client === 'oracledb') {
-      this.emit(
-        `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.user}`,
-      );
-      await sqlClient.createDatabaseIfNotExists({
-        database: connectionConfig.connection.user,
-      });
-    } else if (source.isMeta(true, 1) && source.type === 'pg') {
+    if (source.isMeta(true, 1) && source.type === 'pg') {
       this.emit(
         `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.database}`,
       );
@@ -468,12 +457,7 @@ export default class KnexMigratorv2 {
 
   async _cleanDbWithSql(connectionConfig) {
     const sqlClient = await SqlClientFactory.create(connectionConfig);
-    if (connectionConfig.client === 'oracledb') {
-      this.emit(`Dropping DB : ${connectionConfig.connection.user}`);
-      await sqlClient.dropDatabase({
-        database: connectionConfig.connection.user,
-      });
-    } else if (connectionConfig.client === 'sqlite3') {
+    if (connectionConfig.client === 'sqlite3') {
       this.emit(
         `Dropping DB : ${connectionConfig.connection.connection.filename}`,
       );
@@ -995,7 +979,7 @@ export default class KnexMigratorv2 {
    * Creates xmigrator folder in pwd, within which migrations for all dbs will be sored
    *
    * @param {object} args
-   * @param {String} args.type - type of database (mysql | pg | oracle | sqlite)
+   * @param {String} args.type - type of database (mysql | pg | sqlite)
    * @param {String} args.title - Name of Base
    * @param {String} args.folder - Base Dir
    * @memberof KnexMigrator

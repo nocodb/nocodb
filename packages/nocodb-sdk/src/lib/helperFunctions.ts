@@ -255,7 +255,6 @@ const testDataBaseNames = {
   [ClientType.MYSQL]: null,
   mysql: null,
   [ClientType.PG]: 'postgres',
-  oracledb: 'xe',
   [ClientType.SQLITE]: 'a.sqlite',
 };
 

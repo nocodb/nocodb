@@ -80,7 +80,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         | 'pg'
         | 'sqlite3'
         | 'mysql2'
-        | 'oracledb'
         | 'mariadb'
         | 'sqlite'
         | 'snowflake',

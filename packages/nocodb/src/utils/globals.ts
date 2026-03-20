@@ -517,7 +517,6 @@ export const DB_TYPES = <const>[
   'sqlite3',
   'mysql',
   'snowflake',
-  'oracledb',
   'pg',
   'databricks',
 ];

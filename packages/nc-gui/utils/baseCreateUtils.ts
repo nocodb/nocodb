@@ -100,7 +100,6 @@ type ConnectionClientType =
   | 'yugabyte'
   | 'citusdb'
   | 'cockroachdb'
-  | 'oracledb'
   | 'greenplum'
 
 const sampleConnectionData: { [key in ConnectionClientType]: DefaultConnection } & { [ClientType.SQLITE]: SQLiteConnection } & {
@@ -183,13 +182,6 @@ const sampleConnectionData: { [key in ConnectionClientType]: DefaultConnection }
     port: '5432',
     user: 'postgres',
     password: '',
-    database: '_test',
-  },
-  oracledb: {
-    host: defaultHost,
-    port: '1521',
-    user: 'system',
-    password: 'Oracle18',
     database: '_test',
   },
 }

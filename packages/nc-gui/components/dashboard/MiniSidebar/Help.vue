@@ -21,7 +21,7 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { isMobileMode } = useGlobal()
+const { appInfo, isMobileMode } = useGlobal()
 
 const { isChatWootEnabled } = useProvideChatwoot()
 
@@ -124,7 +124,7 @@ const helpItems = computed<CategoryItemType[]>(() => {
           tooltip: t('labels.clickToCopy'),
         },
       ],
-      hidden: !isEeUI,
+      hidden: !appInfo.value.ee,
     },
     {
       category: t('title.whatsNew'),

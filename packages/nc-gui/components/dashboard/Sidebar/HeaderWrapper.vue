@@ -19,7 +19,7 @@ const { activeViewTitleOrId } = storeToRefs(useViewsStore())
 
 const { activeTableId } = storeToRefs(useTablesStore())
 
-const { isMobileMode } = useGlobal()
+const { appInfo, isMobileMode } = useGlobal()
 
 const { setActiveCmdView } = useCommand()
 
@@ -40,7 +40,9 @@ const showSidebarBtn = computed(() => {
       </div>
 
       <div class="flex items-center gap-0.5">
-        <DashboardSidebarViewOptions v-if="isEeUI && !isMobileMode && !isSharedBase && activeSidebarTab === 'data'" />
+        <DashboardSidebarViewOptions
+          v-if="isEeUI && appInfo.ee && !isMobileMode && !isSharedBase && activeSidebarTab === 'data'"
+        />
         <NcTooltip v-if="!isMobileMode && !isSharedBase" class="flex" placement="bottom" hide-on-click>
           <template #title>
             <div class="flex items-center gap-1">{{ $t('labels.quickSearch') }} {{ renderCmdOrCtrlKey(true) }} K</div>

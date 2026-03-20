@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PermissionEntity, PermissionKey, PlanFeatureTypes } from 'nocodb-sdk'
+import { extractBaseRoleFromWorkspaceRole, PermissionEntity, PermissionKey, PlanFeatureTypes, ProjectRoles } from 'nocodb-sdk'
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu, EditorContent, useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
@@ -61,6 +61,11 @@ const { openFilePicker: openFileAttachmentPicker, uploadAndInsert: uploadAndInse
 const { activeDocuments } = storeToRefs(documentsStore)
 
 const base = inject(ProjectInj, ref())
+
+const isCreatorOrAbove = computed(() => {
+  const role = base.value?.project_role || extractBaseRoleFromWorkspaceRole(base.value?.workspace_role)
+  return role === ProjectRoles.OWNER || role === ProjectRoles.CREATOR
+})
 
 /**
  * Check document-level DOCUMENT_EDIT permission by walking up the parent chain.
@@ -1387,7 +1392,7 @@ onBeforeUnmount(() => {
                 {{ isFullWidth ? $t('labels.exitFullWidth') : $t('labels.fullWidth') }}
               </NcMenuItem>
               <NcMenuItem
-                v-if="isUIAllowed('documentUpdate')"
+                v-if="isCreatorOrAbove"
                 v-e="['c:doc:permissions']"
                 data-testid="nc-doc-page-permissions"
                 @click="onPagePermissions"

@@ -677,6 +677,13 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
   }
 
   /**
+   * All documents for a base (flat list). Separate from the sidebar's lazy-loaded
+   * `documents` map to avoid clobbering tree state (expandedDocIds, loadedParentIds).
+   * Used by the permissions settings page.
+   */
+  const allDocuments = ref<DocumentType[]>([])
+
+  /**
    * Load ALL documents for a base in a single API call (flat list, no content).
    * Used by the permissions settings page to avoid recursive tree expansion.
    */
@@ -686,7 +693,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     })) as DocumentType[]
 
     if (ncIsArray(response)) {
-      documents.value.set(baseId, response)
+      allDocuments.value = response
     }
 
     return response || []
@@ -709,6 +716,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     setActiveDocumentId,
     loadDocuments,
     loadChildren,
+    allDocuments,
     loadDocument,
     loadAllDocuments,
     createDocument,

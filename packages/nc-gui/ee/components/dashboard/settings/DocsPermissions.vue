@@ -27,7 +27,7 @@ const baseStore = useBase()
 const { base } = storeToRefs(baseStore)
 
 const documentsStore = useDocumentsStore()
-const { activeDocuments } = storeToRefs(documentsStore)
+const { allDocuments } = storeToRefs(documentsStore)
 
 const isLoadingAllDocs = ref(false)
 
@@ -42,7 +42,7 @@ const basePermissions = computed(() => base.value?.permissions)
 
 const { resolveDocPermission, getEffectiveValue, getParentEffectiveValue } = useDocPermissionResolver(
   basePermissions,
-  activeDocuments,
+  allDocuments,
 )
 
 /**
@@ -60,7 +60,7 @@ interface DocRow {
 }
 
 const flatDocList = computed<DocRow[]>(() => {
-  const docs = activeDocuments.value
+  const docs = allDocuments.value
   if (!docs.length) return []
 
   // Group by parent_id
@@ -184,7 +184,7 @@ const resetAllDocPermissions = () => {
         await basesStore.loadProject(base.value.id, true)
 
         // Clear has_permissions on all docs in the store
-        for (const doc of activeDocuments.value) {
+        for (const doc of allDocuments.value) {
           ;(doc as DocumentType).has_permissions = false
         }
 
@@ -223,7 +223,7 @@ const resetDocPermissions = (docId: string, docTitle: string) => {
         await basesStore.loadProject(base.value.id, true)
 
         // Clear has_permissions on this doc if no more permissions remain
-        const doc = activeDocuments.value.find((d) => d.id === docId)
+        const doc = allDocuments.value.find((d) => d.id === docId)
         if (doc) {
           ;(doc as DocumentType).has_permissions = false
         }

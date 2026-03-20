@@ -231,7 +231,7 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockTimelineView = computed(() => {
-    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TIMELINE_VIEW)
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_TIMELINE_VIEW)
   })
 
   const blockTableAndFieldPermissions = computed(() => {

@@ -43,6 +43,7 @@ export default runOnSet(2, function () {
       require('./sorts.test').default();
       require('./apiTokens.test').default();
       require('./workspace.test').default();
+      require('./documents.test').default();
     } catch (e) {
       // EE test files not available in CE
     }

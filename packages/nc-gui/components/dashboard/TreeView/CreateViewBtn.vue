@@ -207,7 +207,7 @@ async function onOpenModal({
           </NcTooltip>
         </template>
         <NcMenuItem
-          v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.MAP_VIEW) && showEEFeatures"
+          v-if="isEeUI && showEEFeatures"
           data-testid="sidebar-view-create-map"
           @click="
             () => {
@@ -224,6 +224,7 @@ async function onOpenModal({
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
               <div>{{ $t('objects.viewType.map') }}</div>
+              <NcBadgeBeta />
             </div>
 
             <template v-if="isEeUI && blockMapView">

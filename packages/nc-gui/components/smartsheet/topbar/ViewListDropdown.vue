@@ -257,13 +257,14 @@ async function onOpenModal({
                   </NcTooltip>
                 </template>
                 <a-menu-item
-                  v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.MAP_VIEW) && showEEFeatures"
+                  v-if="isEeUI && showEEFeatures"
                   data-testid="topbar-view-create-map"
                   @click="showUpgradeToUseMapView({ successCallback: () => onOpenModal({ type: ViewTypes.MAP }) })"
                 >
                   <div class="nc-viewlist-submenu-popup-item">
                     <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
                     {{ $t('objects.viewType.map') }}
+                    <NcBadgeBeta />
                   </div>
                 </a-menu-item>
 

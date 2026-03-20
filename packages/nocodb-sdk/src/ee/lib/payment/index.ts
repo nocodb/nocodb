@@ -62,7 +62,7 @@ export const PlanFeatureTypesToPlanTitles: Record<
   [PlanFeatureTypes.FEATURE_UNIQUE]: PlanTitles.BUSINESS,
   [PlanFeatureTypes.FEATURE_RLS]: PlanTitles.BUSINESS,
   [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: PlanTitles.BUSINESS,
-  [PlanFeatureTypes.FEATURE_MAP_VIEW]: PlanTitles.BUSINESS,
+  [PlanFeatureTypes.FEATURE_MAP_VIEW]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_TIMELINE_VIEW]: PlanTitles.BUSINESS,
 
   // Enterprise features

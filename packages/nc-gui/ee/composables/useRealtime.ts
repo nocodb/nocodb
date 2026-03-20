@@ -137,6 +137,14 @@ export const useRealtime = createSharedComposable(() => {
     } else if (event.action === 'table_permission_update') {
       loadProjectTables(activeBaseId.value, true)
       refreshCommandPalette()
+    } else if (event.action === 'document_permission_update') {
+      // Refresh base permissions and reload documents to pick up has_permissions changes
+      if (base.value?.id) {
+        basesStore.loadProject(base.value.id, true)
+      }
+      if (activeBaseId.value) {
+        documentStore.refreshDocPermissions(activeBaseId.value)
+      }
     } else if (event.action === 'table_update') {
       const updatedTable = event.payload
       const eventBaseId = updatedTable.base_id

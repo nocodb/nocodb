@@ -200,6 +200,7 @@ const settingsPageTitle = computed(() => {
   const tabTitles: Record<string, string> = {
     'collaborator': t('labels.addUserToBase'),
     'permissions': t('labels.dataPermissions'),
+    'docs-permissions': t('labels.docsPermissions'),
     'mcp': t('title.mcpServer'),
     'syncs': t('labels.manageSyncs'),
     'snapshots': t('labels.manageSnapshots'),
@@ -461,6 +462,23 @@ watch(
             </div>
           </template>
           <DashboardSettingsPermissions v-model:state="baseSettingsState" :base-id="base.id" />
+        </a-tab-pane>
+        <a-tab-pane
+          v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode && showEEFeatures"
+          key="docs-permissions"
+        >
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__docs-permissions">
+              <GeneralIcon icon="ncFileText" />
+              <div>{{ $t('labels.docsPermissions') }}</div>
+              <LazyPaymentUpgradeBadge
+                :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS"
+                :feature-enabled-callback="() => !isEEFeatureBlocked"
+                remove-click
+              />
+            </div>
+          </template>
+          <DashboardSettingsDocsPermissions v-model:state="baseSettingsState" :base-id="base.id" />
         </a-tab-pane>
         <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && !isMobileMode" key="data-source">
           <template #tab>

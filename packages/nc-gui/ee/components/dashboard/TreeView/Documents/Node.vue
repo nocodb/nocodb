@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { extractBaseRoleFromWorkspaceRole, PlanFeatureTypes, PlanTitles, ProjectRoles } from 'nocodb-sdk'
 import type { DocumentType } from 'nocodb-sdk'
 
 interface Props {
@@ -37,6 +38,11 @@ const { activeDocumentId, expandedDocIds } = storeToRefs(documentsStore)
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const base = inject(ProjectInj, ref())
+
+const isCreatorOrAbove = computed(() => {
+  const role = base.value?.project_role || extractBaseRoleFromWorkspaceRole(base.value?.workspace_role)
+  return role === ProjectRoles.OWNER || role === ProjectRoles.CREATOR
+})
 
 const input = ref<HTMLInputElement>()
 
@@ -144,7 +150,7 @@ const focusInput = () => {
 /** Enable editing document name on dbl click */
 const onDblClick = () => {
   if (isMobileMode.value) return
-  if (!isUIAllowed('documentUpdate')) return
+  if (!isCreatorOrAbove.value) return
 
   if (!isEditing.value) {
     isEditing.value = true
@@ -183,6 +189,12 @@ const onRename = async () => {
 }
 
 const isDeleteModalVisible = ref(false)
+const isPermissionsDialogVisible = ref(false)
+
+const onPermissions = () => {
+  isDropdownOpen.value = false
+  isPermissionsDialogVisible.value = true
+}
 
 const onDelete = () => {
   isDropdownOpen.value = false
@@ -251,7 +263,7 @@ onKeyStroke('Enter', (event) => {
 })
 
 const onRenameMenuClick = () => {
-  if (isMobileMode.value || !isUIAllowed('documentUpdate')) return
+  if (isMobileMode.value || !isCreatorOrAbove.value) return
 
   isDropdownOpen.value = false
 
@@ -366,7 +378,7 @@ function onStopEdit() {
             :key="doc?.meta?.icon"
             :clearable="true"
             :emoji="doc?.meta?.icon"
-            :readonly="isMobileMode || !isUIAllowed('documentUpdate')"
+            :readonly="isMobileMode || !isCreatorOrAbove"
             class="nc-document-icon"
             size="small"
             @emoji-selected="updateDocumentIcon($event)"
@@ -404,13 +416,26 @@ function onStopEdit() {
       >
         <template #title> {{ doc.title || $t('general.untitled') }}</template>
         <div
+          class="flex items-center gap-1"
           :class="{
             'font-medium text-nc-content-brand-disabled': activeDocumentId === doc.id,
           }"
-          :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-          data-testid="sidebar-doc-title"
         >
-          {{ doc.title || $t('general.untitled') }}
+          <span
+            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
+            data-testid="sidebar-doc-title"
+            class="truncate"
+          >
+            {{ doc.title || $t('general.untitled') }}
+          </span>
+          <NcTooltip v-if="doc.has_permissions">
+            <template #title>{{ $t('tooltip.restrictedPermissions') }}</template>
+            <GeneralIcon
+              icon="ncLock"
+              class="flex-none text-nc-content-gray-muted !w-3 !h-3 -mt-0.5"
+              data-testid="sidebar-doc-lock-icon"
+            />
+          </NcTooltip>
         </div>
       </NcTooltip>
 
@@ -443,7 +468,7 @@ function onStopEdit() {
                 :label="`DOCUMENT ID: ${doc.id}`"
                 :data-testid="`sidebar-doc-copy-id-${doc.title}`"
               />
-              <template v-if="isUIAllowed('documentUpdate')">
+              <template v-if="isCreatorOrAbove">
                 <NcDivider />
                 <NcMenuItem
                   v-e="['c:document:rename']"
@@ -489,6 +514,40 @@ function onStopEdit() {
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="arrowUp" />
                 {{ $t('labels.moveToRoot') }}
               </NcMenuItem>
+              <template v-if="isEeUI && isCreatorOrAbove">
+                <NcDivider />
+                <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS">
+                  <template #default="{ click }">
+                    <NcMenuItem
+                      v-e="['c:document:permissions']"
+                      :data-testid="`sidebar-doc-permissions-${doc.title}`"
+                      class="nc-document-permissions"
+                      @click="
+                        click(PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS, () => {
+                          onPermissions()
+                        })
+                      "
+                    >
+                      <div class="flex gap-2 items-center w-full">
+                        <GeneralIcon icon="ncLock" class="opacity-80" />
+                        <div class="flex-1">
+                          {{ $t('title.pagePermissions') }}
+                        </div>
+
+                        <LazyPaymentUpgradeBadge
+                          :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS"
+                          :title="$t('upgrade.upgradeToUseDocumentPermissions')"
+                          :content="
+                            $t('upgrade.upgradeToUseDocumentPermissionsSubtitle', {
+                              plan: PlanTitles.BUSINESS,
+                            })
+                          "
+                        />
+                      </div>
+                    </NcMenuItem>
+                  </template>
+                </PaymentUpgradeBadgeProvider>
+              </template>
               <template v-if="isUIAllowed('documentDelete')">
                 <NcDivider />
                 <NcMenuItem v-e="['c:document:delete']" :data-testid="`sidebar-doc-delete-${doc.title}`" danger @click="onDelete">
@@ -531,5 +590,13 @@ function onStopEdit() {
         </div>
       </template>
     </GeneralDeleteModal>
+
+    <DlgDocPermissions
+      v-if="doc.id && isEeUI"
+      v-model:visible="isPermissionsDialogVisible"
+      :doc-id="doc.id"
+      :title="doc.title"
+      :parent-id="doc.parent_id"
+    />
   </div>
 </template>

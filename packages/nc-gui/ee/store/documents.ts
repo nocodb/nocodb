@@ -203,12 +203,8 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
       }
 
       return doc
-    } catch (e) {
-      ncMessage.error(await extractSdkResponseErrorMsgv2(e as any))
-      ncNavigateTo({
-        workspaceId: activeWorkspaceId.value,
-        baseId: activeProjectId.value,
-      })
+    } catch (_e) {
+      // Return null — Editor.vue renders the "Document Not Found" error page
       return null
     } finally {
       if (showLoader) {
@@ -641,6 +637,68 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     return ancestors
   }
 
+  /**
+   * Refresh has_permissions flags on all loaded documents without disrupting the tree.
+   * Called when a realtime document_permission_update event is received.
+   */
+  const refreshDocPermissions = async (baseId: string) => {
+    const baseDocs = documents.value.get(baseId)
+    if (!baseDocs?.length) return
+
+    // Collect all loaded parent IDs (root + expanded children)
+    const parentIds = new Set<string | null>()
+    const rootKey = `root:${baseId}`
+    if (loadedParentIds.value.has(rootKey)) parentIds.add(null)
+    for (const doc of baseDocs) {
+      if (doc.id && loadedParentIds.value.has(doc.id)) parentIds.add(doc.id)
+    }
+
+    // Re-fetch each loaded level and update has_permissions in place
+    for (const parentId of parentIds) {
+      try {
+        const freshDocs = (await $api.internal.getOperation(activeWorkspaceId.value, baseId, {
+          operation: 'documentList',
+          parent_id: parentId === null ? 'null' : parentId,
+        })) as DocumentType[]
+
+        if (ncIsArray(freshDocs)) {
+          const freshById = new Map(freshDocs.map((d) => [d.id, d]))
+          for (const doc of baseDocs) {
+            const fresh = freshById.get(doc.id)
+            if (fresh) {
+              doc.has_permissions = fresh.has_permissions
+            }
+          }
+        }
+      } catch {
+        // Silently ignore — non-critical refresh
+      }
+    }
+  }
+
+  /**
+   * All documents for a base (flat list). Separate from the sidebar's lazy-loaded
+   * `documents` map to avoid clobbering tree state (expandedDocIds, loadedParentIds).
+   * Used by the permissions settings page.
+   */
+  const allDocuments = ref<DocumentType[]>([])
+
+  /**
+   * Load ALL documents for a base in a single API call (flat list, no content).
+   * Used by the permissions settings page to avoid recursive tree expansion.
+   */
+  const loadAllDocuments = async (baseId: string) => {
+    const response = (await $api.internal.getOperation(activeWorkspaceId.value, baseId, {
+      operation: 'documentListAll',
+    })) as DocumentType[]
+
+    if (ncIsArray(response)) {
+      allDocuments.value = response
+    }
+
+    return response || []
+  }
+
   return {
     documents,
     activeDocumentId,
@@ -658,13 +716,16 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     setActiveDocumentId,
     loadDocuments,
     loadChildren,
+    allDocuments,
     loadDocument,
+    loadAllDocuments,
     createDocument,
     updateDocument,
     deleteDocument,
     reorderDocument,
     moveDocument,
     getDocumentAncestors,
+    refreshDocPermissions,
   }
 })
 

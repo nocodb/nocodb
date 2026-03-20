@@ -29,7 +29,11 @@ export default class Document extends DocumentCE implements DocumentType {
     Object.assign(this, doc);
   }
 
-  public static async get(
+  /**
+   * Get document metadata only (no content). Safe to use inside transactions
+   * because it does not query the satellite docs-content DB.
+   */
+  public static async getMeta(
     context: NcContext,
     docId: string,
     ncMeta = Noco.ncMeta,
@@ -50,6 +54,20 @@ export default class Document extends DocumentCE implements DocumentType {
       }
     }
 
+    if (doc) {
+      doc = this.parseDocument(doc);
+    }
+
+    return doc && new Document(doc);
+  }
+
+  public static async get(
+    context: NcContext,
+    docId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const doc = await this.getMeta(context, docId, ncMeta);
+
     // Fetch content separately from content service
     if (doc) {
       const contentRow = await Noco.ncDocsContent.metaGet2(
@@ -60,10 +78,9 @@ export default class Document extends DocumentCE implements DocumentType {
         ['content'],
       );
       doc.content = contentRow?.content;
-      doc = this.parseDocument(doc);
     }
 
-    return doc && new Document(doc);
+    return doc;
   }
 
   /**
@@ -167,6 +184,107 @@ export default class Document extends DocumentCE implements DocumentType {
       MetaTable.DOCS,
       {
         condition,
+        orderBy: {
+          order: 'asc',
+        },
+        fields: liteFields,
+      },
+    );
+
+    return docList.map((doc) => new Document(this.parseDocument(doc)));
+  }
+
+  /**
+   * Batch-fetch lightweight docs for multiple parent IDs in a single query.
+   * Used to check has_children visibility without N+1 listLite calls.
+   */
+  public static async listLiteByParentIds(
+    context: NcContext,
+    baseId: string,
+    parentIds: string[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!parentIds.length) return [];
+
+    const liteFields = [
+      'id',
+      'base_id',
+      'fk_workspace_id',
+      'title',
+      'meta',
+      'order',
+      'parent_id',
+      'has_children',
+      'version',
+      'created_by',
+      'updated_by',
+      'created_at',
+      'updated_at',
+    ];
+
+    const docList = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DOCS,
+      {
+        condition: {
+          base_id: baseId,
+          deleted: false,
+        },
+        xcCondition: {
+          _and: [
+            {
+              parent_id: {
+                in: parentIds,
+              },
+            },
+          ],
+        },
+        orderBy: {
+          order: 'asc',
+        },
+        fields: liteFields,
+      },
+    );
+
+    return docList.map((doc) => new Document(this.parseDocument(doc)));
+  }
+
+  /**
+   * List ALL documents for a base (lightweight — no content, no parent_id filter).
+   * Returns a flat list of every non-deleted doc. Used by the permissions
+   * settings page to render the full doc tree in a single request.
+   */
+  public static async listAllLite(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const liteFields = [
+      'id',
+      'base_id',
+      'fk_workspace_id',
+      'title',
+      'meta',
+      'order',
+      'parent_id',
+      'has_children',
+      'version',
+      'created_by',
+      'updated_by',
+      'created_at',
+      'updated_at',
+    ];
+
+    const docList = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DOCS,
+      {
+        condition: {
+          base_id: baseId,
+          deleted: false,
+        },
         orderBy: {
           order: 'asc',
         },

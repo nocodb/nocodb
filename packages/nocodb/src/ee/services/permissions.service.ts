@@ -1,19 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
+  DOCUMENT_PERMISSION_KEYS,
   EventType,
   extractRolesObj,
+  getPermissionOptionValue,
   NcBaseError,
   PermissionEntity,
   PermissionGrantedType,
   PermissionKey,
+  PlanFeatureTypes,
   ProjectRoles,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { Column, Model, Permission, WorkspaceUser } from '~/models';
 import { Team } from '~/models';
+import Document from '~/ee/models/Document';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/ncError';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 import { CacheDelDirection, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import NocoSocket from '~/socket/NocoSocket';
@@ -23,6 +28,48 @@ export class PermissionsService {
   protected logger: Logger = new Logger(PermissionsService.name);
 
   constructor() {}
+
+  /**
+   * Assert the requesting user has the required role for the given permission key.
+   * Document permissions require creator+; table visibility requires owner.
+   */
+  protected assertRoleForPermissionKey(
+    context: NcContext,
+    permissionKey: PermissionKey,
+    req: NcRequest,
+  ) {
+    if (DOCUMENT_PERMISSION_KEYS.includes(permissionKey)) {
+      const baseRoles = extractRolesObj(req.user?.base_roles);
+      const isCreatorOrAbove =
+        baseRoles?.[ProjectRoles.OWNER] || baseRoles?.[ProjectRoles.CREATOR];
+
+      if (!isCreatorOrAbove) {
+        const roles = extractRolesObj(req.user?.roles);
+        if (
+          !roles?.[ProjectRoles.OWNER] &&
+          !roles?.[ProjectRoles.CREATOR]
+        ) {
+          NcError.get(context).forbidden(
+            'Only base owners and creators can configure document permissions',
+          );
+        }
+      }
+    }
+
+    if (permissionKey === PermissionKey.TABLE_VISIBILITY) {
+      const baseRoles = extractRolesObj(req.user?.base_roles);
+      const isOwner = baseRoles?.[ProjectRoles.OWNER];
+
+      if (!isOwner) {
+        const roles = extractRolesObj(req.user?.roles);
+        if (!roles?.[ProjectRoles.OWNER]) {
+          NcError.get(context).forbidden(
+            'Only base owners can configure table visibility permissions',
+          );
+        }
+      }
+    }
+  }
 
   async setPermission(
     context: NcContext,
@@ -49,21 +96,14 @@ export class PermissionsService {
       enforce_for_form = true,
     } = permissionObj;
 
-    // Check if user is owner for TABLE_VISIBILITY permission
-    if (permission_key === PermissionKey.TABLE_VISIBILITY) {
-      // Check base_roles (can be string or object)
-      const baseRoles = extractRolesObj(req.user?.base_roles);
-      const isOwner = baseRoles?.[ProjectRoles.OWNER];
+    this.assertRoleForPermissionKey(context, permission_key, req);
 
-      // Also check roles object for backward compatibility
-      if (!isOwner) {
-        const roles = extractRolesObj(req.user?.roles);
-        if (!roles?.[ProjectRoles.OWNER]) {
-          NcError.forbidden(
-            'Only base owners can configure table visibility permissions',
-          );
-        }
-      }
+    // Enforce plan gating for document permissions
+    if (DOCUMENT_PERMISSION_KEYS.includes(permission_key)) {
+      await checkForFeature(
+        context,
+        PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS,
+      );
     }
 
     let permission: Permission;
@@ -128,6 +168,40 @@ export class PermissionsService {
           granted_role,
           enforce_for_automation,
           enforce_for_form,
+          created_by: req.user.id,
+        });
+      } else if (entity === PermissionEntity.DOCUMENT) {
+        const doc = await Document.getMeta(context, entity_id, ncMeta);
+
+        if (!doc) {
+          NcError.get(context).genericNotFound('Document', entity_id);
+        }
+
+        // Validate restrict-only inheritance: new permission must be
+        // at least as restrictive as parent's effective permission
+        const newOptionValue = getPermissionOptionValue(
+          granted_type,
+          granted_role,
+        );
+
+        await Permission.validateDocPermissionRestriction(
+          context,
+          entity_id,
+          permission_key,
+          newOptionValue,
+          ncMeta,
+        );
+
+        Object.assign(newPermissionObj, {
+          fk_workspace_id: context.workspace_id,
+          base_id: context.base_id,
+          entity,
+          entity_id,
+          permission: permission_key,
+          granted_type,
+          granted_role,
+          enforce_for_automation: false,
+          enforce_for_form: false,
           created_by: req.user.id,
         });
       }
@@ -210,8 +284,46 @@ export class PermissionsService {
         );
       }
       if (error instanceof NcError || error instanceof NcBaseError) throw error;
-      this.logger.error('Failed to set permission', error);
+      this.logger.error((error as Error)?.message ?? 'Failed to set permission', (error as Error)?.stack);
       NcError.get(context).internalServerError('Failed to set permission');
+    }
+
+    // Cascade tighten children when a document permission is set.
+    // This runs outside the main transaction — if it fails mid-way,
+    // some children may retain stale explicit permissions. We catch and
+    // log rather than reverting the parent change, because the parent
+    // permission itself is already committed and correct.
+    if (entity === PermissionEntity.DOCUMENT) {
+      const newOptionValue = getPermissionOptionValue(
+        granted_type,
+        granted_role,
+      );
+
+      try {
+        await Permission.cascadeTightenDocPermissions(
+          context,
+          entity_id,
+          permission_key,
+          newOptionValue,
+        );
+      } catch (cascadeError) {
+        this.logger.error(
+          'Failed to cascade-tighten child document permissions',
+          (cascadeError as Error)?.stack,
+        );
+      }
+
+      // Clear base permission list cache — cascade may have deleted child permissions
+      await Permission.clearBaseCache(context);
+
+      NocoSocket.broadcastEvent(context, {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'document_permission_update',
+          baseId: context.base_id,
+          payload: {},
+        },
+      });
     }
 
     await this.broadcastPermissionUpdate(context);
@@ -254,21 +366,14 @@ export class PermissionsService {
   ) {
     const { entity, entity_id, permission: permission_key } = permissionObj;
 
-    // Check if user is owner for TABLE_VISIBILITY permission
-    if (permission_key === PermissionKey.TABLE_VISIBILITY) {
-      // Check base_roles (can be string or object)
-      const baseRoles = extractRolesObj(req.user?.base_roles);
-      const isOwner = baseRoles?.[ProjectRoles.OWNER];
+    this.assertRoleForPermissionKey(context, permission_key, req);
 
-      // Also check roles object for backward compatibility
-      if (!isOwner) {
-        const roles = extractRolesObj(req.user?.roles);
-        if (!roles?.[ProjectRoles.OWNER]) {
-          NcError.forbidden(
-            'Only base owners can configure table visibility permissions',
-          );
-        }
-      }
+    // Enforce plan gating for document permissions
+    if (DOCUMENT_PERMISSION_KEYS.includes(permission_key)) {
+      await checkForFeature(
+        context,
+        PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS,
+      );
     }
 
     const permission = await Permission.getByEntity(
@@ -278,8 +383,9 @@ export class PermissionsService {
       permission_key,
     );
 
+    // No explicit permission row exists — already at default; nothing to drop
     if (!permission) {
-      NcError.genericNotFound('Permission', permission_key);
+      return;
     }
 
     const ncMeta = await Noco.ncMeta.startTransaction();
@@ -307,11 +413,22 @@ export class PermissionsService {
         CacheDelDirection.PARENT_TO_CHILD,
       );
       if (error instanceof NcError || error instanceof NcBaseError) throw error;
-      this.logger.error('Failed to delete permission', error);
+      this.logger.error((error as Error)?.message ?? 'Failed to delete permission', (error as Error)?.stack);
       NcError.get(context).internalServerError('Failed to delete permission');
     }
 
     await this.broadcastPermissionUpdate(context);
+
+    if (DOCUMENT_PERMISSION_KEYS.includes(permission_key)) {
+      NocoSocket.broadcastEvent(context, {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'document_permission_update',
+          baseId: context.base_id,
+          payload: {},
+        },
+      });
+    }
 
     if (permission_key === PermissionKey.TABLE_VISIBILITY) {
       NocoSocket.broadcastEvent(context, {
@@ -340,6 +457,42 @@ export class PermissionsService {
 
     const oldPermissions = await Permission.list(context, context.base_id);
 
+    // Check role and plan gating for document permissions
+    const hasDocPermissions = oldPermissions.some(
+      (p) =>
+        p.id &&
+        permissionIds.includes(p.id) &&
+        DOCUMENT_PERMISSION_KEYS.includes(p.permission as PermissionKey),
+    );
+
+    if (hasDocPermissions) {
+      this.assertRoleForPermissionKey(
+        context,
+        PermissionKey.DOCUMENT_EDIT,
+        req,
+      );
+      await checkForFeature(
+        context,
+        PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS,
+      );
+    }
+
+    // Check role for table visibility permissions
+    const hasTableVisibility = oldPermissions.some(
+      (p) =>
+        p.id &&
+        permissionIds.includes(p.id) &&
+        p.permission === PermissionKey.TABLE_VISIBILITY,
+    );
+
+    if (hasTableVisibility) {
+      this.assertRoleForPermissionKey(
+        context,
+        PermissionKey.TABLE_VISIBILITY,
+        req,
+      );
+    }
+
     const ncMeta = await Noco.ncMeta.startTransaction();
 
     try {
@@ -357,12 +510,12 @@ export class PermissionsService {
         CacheDelDirection.PARENT_TO_CHILD,
       );
       if (error instanceof NcError || error instanceof NcBaseError) throw error;
-      this.logger.error('Failed to delete permissions', error);
+      this.logger.error((error as Error)?.message ?? 'Failed to delete permissions', (error as Error)?.stack);
       NcError.get(context).internalServerError('Failed to delete permissions');
     }
 
     const deletedPermissions = oldPermissions.filter(
-      (perm) => !perm.id || !permissionIds.includes(perm.id),
+      (perm) => perm.id && permissionIds.includes(perm.id),
     );
 
     for (const permission of deletedPermissions) {
@@ -376,11 +529,21 @@ export class PermissionsService {
 
     await this.broadcastPermissionUpdate(context);
 
-    if (
-      oldPermissions.some(
-        (p) => p.permission === PermissionKey.TABLE_VISIBILITY,
-      )
-    ) {
+    if (hasDocPermissions) {
+      // Clear base permission list cache — bulk drop may have removed child permissions
+      await Permission.clearBaseCache(context);
+
+      NocoSocket.broadcastEvent(context, {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'document_permission_update',
+          baseId: context.base_id,
+          payload: {},
+        },
+      });
+    }
+
+    if (hasTableVisibility) {
       NocoSocket.broadcastEvent(context, {
         event: EventType.META_EVENT,
         payload: {

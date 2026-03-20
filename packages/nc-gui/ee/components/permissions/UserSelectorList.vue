@@ -13,6 +13,8 @@ interface Props extends Partial<NcListProps> {
   listClassName?: string
   showListFooter?: boolean
   disabledUsers?: string[]
+  /** Override minimum role — uses the more restrictive of this and PermissionMeta.minimumRole */
+  minimumRoleOverride?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {})
@@ -25,6 +27,7 @@ const vOpen = useVModel(props, 'open', emits)
 
 const { t } = useI18n()
 
+// Destructure known props so restProps only contains NcList pass-through props
 const {
   open: _open,
   selectedUsers: _selectedUsers,
@@ -35,6 +38,8 @@ const {
   readonly: _readonly,
   listClassName,
   showListFooter,
+  disabledUsers: _disabledUsers,
+  minimumRoleOverride: _minimumRoleOverride,
   ...restProps
 } = props
 
@@ -119,6 +124,37 @@ const roleFilteredUsers = computed<NcListItemType[]>(() => {
   })
 })
 
+// Users whose role is below the parent's effective permission — shown but disabled
+const parentRestrictedUserIds = computed<string[]>(() => {
+  if (!props.minimumRoleOverride) return []
+
+  const overridePower = PermissionRolePower[props.minimumRoleOverride as keyof typeof PermissionRolePower]
+  if (!overridePower) return []
+
+  return roleFilteredUsers.value
+    .filter((user) => {
+      if (typeof user.roles === 'string') {
+        const userRoles = (user.roles as string).split(',').map((r) => r.trim())
+        return !userRoles.some((role) => {
+          const mappedRole = PermissionRoleMap[role as keyof typeof PermissionRoleMap]
+          const rolePower = PermissionRolePower[mappedRole]
+          return rolePower && rolePower >= overridePower
+        })
+      }
+      return !Object.keys(user.roles ?? {}).some((role) => {
+        const mappedRole = PermissionRoleMap[role as keyof typeof PermissionRoleMap]
+        const rolePower = PermissionRolePower[mappedRole]
+        return rolePower && rolePower >= overridePower
+      })
+    })
+    .map((user) => user.id)
+})
+
+// Merge externally disabled users with parent-restricted users
+const allDisabledUsers = computed<string[]>(() => {
+  return [...(props.disabledUsers || []), ...parentRestrictedUserIds.value]
+})
+
 const computedNcList = computed(() => {
   return listRef.value?.list ?? roleFilteredUsers.value
 })
@@ -154,7 +190,9 @@ const selectAll = (filteredList: NcListItemType[] = listRef?.value?.list ?? role
   if (props.readonly) return
 
   filteredList.forEach((user) => {
-    selectedUsers.value.add(user.id)
+    if (!allDisabledUsers.value.includes(user.id)) {
+      selectedUsers.value.add(user.id)
+    }
   })
 
   emits('change', selectedUsers.value)
@@ -175,6 +213,7 @@ const selectedUserIds = computed(() => {
 })
 
 const handleUpdateValue = (option: NcListItemType) => {
+  if (allDisabledUsers.value.includes(option.id)) return
   toggleUser(option.id)
 }
 
@@ -200,7 +239,7 @@ defineExpose({
     option-label-key="email"
     option-value-key="id"
     :item-height="52"
-    search-input-placeholder="Search user"
+    :search-input-placeholder="$t('placeholder.searchMember')"
     is-multi-select
     :class="listClassName"
     :filter-option="filterOption"
@@ -208,27 +247,34 @@ defineExpose({
     @change="handleUpdateValue($event)"
     @escape="emits('escape', $event)"
   >
-    <template #listItemExtraLeft="{ isSelected }">
-      <NcCheckbox :checked="isSelected" />
+    <template #listItemExtraLeft="{ isSelected, option }">
+      <NcCheckbox :checked="isSelected" :class="{ 'opacity-40': parentRestrictedUserIds.includes(option.id) }" />
     </template>
 
     <template #listItemContent="{ option }">
-      <GeneralTeamInfo
-        v-if="option?.isTeam"
-        :team="transformToTeamObject(option)"
-        :disabled="disabledUsers?.includes(option.id)"
-        class="max-w-[calc(100%_-_24px)]"
-      />
-      <NcUserInfo
-        v-else-if="option?.email"
-        :user="option"
-        :disabled="disabledUsers?.includes(option.id)"
-        class="w-full max-w-[calc(100%_-_24px)]"
-      />
-      <template v-else>{{ option.email ?? option.id }} </template>
+      <NcTooltip class="flex-1" :disabled="!parentRestrictedUserIds.includes(option.id)" placement="right">
+        <template #title>
+          {{ $t('msg.info.cannotBeMorePermissiveThanParent') }}
+        </template>
+        <div :class="{ 'opacity-40 cursor-not-allowed': parentRestrictedUserIds.includes(option.id) }">
+          <GeneralTeamInfo
+            v-if="option?.isTeam"
+            :team="transformToTeamObject(option)"
+            :disabled="allDisabledUsers.includes(option.id)"
+            class="max-w-[calc(100%_-_24px)]"
+          />
+          <NcUserInfo
+            v-else-if="option?.email"
+            :user="option"
+            :disabled="allDisabledUsers.includes(option.id)"
+            class="w-full max-w-[calc(100%_-_24px)]"
+          />
+          <template v-else>{{ option.email ?? option.id }} </template>
+        </div>
+      </NcTooltip>
     </template>
     <template #listItemExtraRight="{ option }">
-      <div class="flex items-center gap-1">
+      <div class="flex items-center gap-1" :class="{ 'opacity-40': parentRestrictedUserIds.includes(option.id) }">
         <RolesBadge :border="false" :role="option.roles" icon-only nc-badge-class="!px-1" show-tooltip>
           <template #tooltip="{ label }">
             {{ $t('tooltip.basePermissionRole', { role: $t(`objects.roleType.${label}`) }) }}

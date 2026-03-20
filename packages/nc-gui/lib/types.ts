@@ -736,6 +736,12 @@ interface PermissionConfig {
   permission: PermissionKey
   disabled?: boolean
   tooltip?: string
+  /** Pre-resolved effective value for inherited permissions (e.g. from parent doc). */
+  effectiveValue?: string
+  /** Parent's effective permission value — child options more permissive than this are disabled. */
+  parentEffectiveValue?: string
+  /** Current visibility value — editing options more permissive than this are disabled. */
+  visibilityValue?: string
 }
 
 interface PermissionSelectorUser {

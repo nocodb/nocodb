@@ -10,6 +10,7 @@ const props = defineProps<{
   readonly?: boolean
   hint?: string
   teamHierarchyScopes?: Record<string, 'self_only' | 'self_and_descendants'>
+  minimumRoleOverride?: string
 }>()
 
 const emits = defineEmits(['update:selectedUsers', 'save'])
@@ -308,6 +309,7 @@ watch(selectedUsersList, () => {
           :readonly="readonly"
           :close-on-select="false"
           :disabled-users="selectedBelowMinimumRoleUsers"
+          :minimum-role-override="minimumRoleOverride"
           @escape="onEsc"
           @change="handleSave"
         >

@@ -380,11 +380,17 @@ const permissionScopes = {
 
     // Documents
     'documentList',
+    'documentListAll',
     'documentGet',
     'documentCreate',
     'documentUpdate',
     'documentDelete',
     'documentReorder',
+
+    // Permissions (table/field/document permissions)
+    'setPermission',
+    'dropPermission',
+    'bulkDropPermissions',
 
     // Document Comments
     'documentCommentList',
@@ -741,6 +747,7 @@ const rolePermissions:
 
       // Documents — read-only for viewers
       documentList: true,
+      documentListAll: true,
       documentGet: true,
 
       // Document Comments — read-only for viewers
@@ -1351,6 +1358,7 @@ const permissionDescriptions: Record<string, string> = {
   mcpDelete: 'delete an MCP token',
 
   documentList: 'view list of documents',
+  documentListAll: 'view all documents in a base',
   documentGet: 'view document details',
   documentCreate: 'create a new document',
   documentUpdate: 'update a document',
@@ -1365,6 +1373,11 @@ const permissionDescriptions: Record<string, string> = {
   documentCommentResolve: 'resolve document comments',
   documentCommentReactionToggle: 'react to document comments',
   documentCommentReactionList: 'view document comment reactions',
+
+  // Permissions
+  setPermission: 'set a permission on a table, field, or document',
+  dropPermission: 'remove a permission from a table, field, or document',
+  bulkDropPermissions: 'remove multiple permissions at once',
 
   dashboardList: 'view list of dashboards',
   dashboardGet: 'view dashboard details',

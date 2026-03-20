@@ -23,6 +23,7 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 const {
   isWsAuditEnabled,
   showUpgradeToUseTableAndFieldPermissions,
+  showUpgradeToUseDocumentPermissions,
   showUpgradeToUseSync,
   showUpgradeToUseSnapshots,
   isEEFeatureBlocked,
@@ -31,6 +32,7 @@ const {
 
 const navigateToBaseSettings = (page: string) => {
   if (page === 'permissions' && showUpgradeToUseTableAndFieldPermissions()) return
+  if (page === 'docs-permissions' && showUpgradeToUseDocumentPermissions()) return
   if (page === 'syncs' && showUpgradeToUseSync()) return
   if (page === 'snapshots' && isEEFeatureBlocked.value) {
     showUpgradeToUseSnapshots()
@@ -94,6 +96,19 @@ onMounted(() => {
       {{ $t('labels.dataPermissions') }}
       <template #extraRight>
         <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS" remove-click />
+      </template>
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode && showEEFeatures"
+      v-e="['c:settings:base:docs-permissions']"
+      icon="ncFileText"
+      data-testid="base-docs-permissions"
+      :active="activeBaseSettingsTab === 'docs-permissions'"
+      @click="navigateToBaseSettings('docs-permissions')"
+    >
+      {{ $t('labels.docsPermissions') }}
+      <template #extraRight>
+        <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS" remove-click />
       </template>
     </NcSidebarMenuItem>
     <NcSidebarMenuItem

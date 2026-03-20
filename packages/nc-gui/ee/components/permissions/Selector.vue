@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { BaseType } from 'nocodb-sdk'
-import { PermissionKey, PermissionMeta, PermissionOptionValue, PermissionRolePower } from 'nocodb-sdk'
+import { getPermissionOption, PermissionKey, PermissionMeta, PermissionOptionRestrictiveness, PermissionOptionValue, PermissionRolePower } from 'nocodb-sdk'
 import PermissionsInlineUserSelector from './InlineUserSelector.vue'
 import type { NcDropdownPlacement } from '#imports'
 
@@ -39,20 +39,37 @@ const permissionSelectorConfig = computed<PermissionSelectorConfig>(() => ({
   permission: props.config.permission,
   label: permissionLabel.value,
   description: permissionDescription.value,
+  effectiveValue: props.config.effectiveValue,
 }))
 
 // Create a dummy currentValue ref since Selector doesn't use display values
 const currentValue = ref('')
 
 const isTableVisibility = computed(() => props.config?.permission === PermissionKey.TABLE_VISIBILITY)
+const isDocVisibility = computed(() => props.config?.permission === PermissionKey.DOCUMENT_VISIBILITY)
+
+// Determine if an option is the default for the current permission context
+const isDefaultOption = (option: { value: string; isDefault?: boolean }) => {
+  // Doc visibility: default is Viewers & up
+  if (isDocVisibility.value) {
+    return option.value === PermissionOptionValue.VIEWERS_AND_UP
+  }
+  // Table visibility: default is Everyone
+  if (isTableVisibility.value) {
+    return option.value === PermissionOptionValue.EVERYONE
+  }
+  // All others: use the SDK's isDefault flag
+  return option.isDefault && option.value === PermissionOptionValue.EDITORS_AND_UP
+}
 
 // Use the permission selector composable
 const {
   currentOption,
   permissionOptions: allPermissionOptions,
   isLoading,
+  isInherited,
   userSelectorSelectedUsers,
-  selectedUsers: _selectedUsers,
+  selectedUsers,
   onPermissionChange: handlePermissionChange,
   handleUserSelectorSave: handleUserSave,
   showUserSelector,
@@ -61,7 +78,7 @@ const {
 // Build hierarchy scope map for team subjects
 const teamHierarchyScopes = computed(() => {
   const scopes: Record<string, 'self_only' | 'self_and_descendants'> = {}
-  for (const user of _selectedUsers.value) {
+  for (const user of selectedUsers.value) {
     if (user.type === 'team' && user.hierarchy_scope) {
       scopes[user.id] = user.hierarchy_scope
     }
@@ -141,12 +158,73 @@ const permissionOptions = computed(() => {
   })
 })
 
+// Determine which options are disabled because they are more permissive than the parent's effective permission
+const isOptionDisabledByParent = (optionValue: string): boolean => {
+  const parentValue = props.config.parentEffectiveValue
+  if (!parentValue) return false
+
+  const parentLevel = PermissionOptionRestrictiveness[parentValue]
+  const optionLevel = PermissionOptionRestrictiveness[optionValue]
+
+  // If we can't determine levels (e.g. unknown values), don't disable
+  if (parentLevel === undefined || optionLevel === undefined) return false
+
+  // Disable if option is less restrictive than parent
+  return optionLevel < parentLevel
+}
+
+// Determine which options are disabled because they are more permissive than the doc's visibility
+const isOptionDisabledByVisibility = (optionValue: string): boolean => {
+  const visibilityValue = props.config.visibilityValue
+  if (!visibilityValue) return false
+
+  const visibilityLevel = PermissionOptionRestrictiveness[visibilityValue]
+  const optionLevel = PermissionOptionRestrictiveness[optionValue]
+
+  if (visibilityLevel === undefined || optionLevel === undefined) return false
+
+  return optionLevel < visibilityLevel
+}
+
+const isOptionDisabled = (optionValue: string): boolean => {
+  return isOptionDisabledByParent(optionValue) || isOptionDisabledByVisibility(optionValue)
+}
+
+// When visibility is Nobody, editing is meaningless — fully disabled
+const isDisabledByVisibility = computed(() => {
+  return props.config.visibilityValue === PermissionOptionValue.NOBODY
+})
+
+// Override displayed option to "Nobody" when visibility disables editing
+const displayedOption = computed(() => {
+  if (isDisabledByVisibility.value) {
+    return getPermissionOption(PermissionOptionValue.NOBODY)
+  }
+  return currentOption.value
+})
+
+// Map PermissionOptionValue → role string for user selector filtering
+const optionToRole: Record<string, string> = {
+  [PermissionOptionValue.VIEWERS_AND_UP]: 'viewer',
+  [PermissionOptionValue.COMMENTERS_AND_UP]: 'commenter',
+  [PermissionOptionValue.EDITORS_AND_UP]: 'editor',
+  [PermissionOptionValue.CREATORS_AND_UP]: 'creator',
+}
+
+const minimumRoleFromParent = computed<string | undefined>(() => {
+  const parentValue = props.config.parentEffectiveValue
+  if (!parentValue) return undefined
+
+  return optionToRole[parentValue]
+})
+
 const { getPermissionTextColor } = usePermissions()
 
 const isOpenPermissionDropdown = ref(false)
 
 const onPermissionChange = (value: any) => {
   if (props.readonly) return
+  if (isOptionDisabled(value)) return
 
   handlePermissionChange(value, props.mode === 'inline')
   emits('save')
@@ -189,48 +267,67 @@ const handleClickDropdown = (e: MouseEvent) => {
         'flex-col': horizontal,
       }"
     >
-      <div class="flex items-center gap-3">
-        <div v-if="mode === 'full' && horizontal" class="flex-1">
-          {{ permissionLabel }}
-        </div>
+      <div class="flex flex-col" :class="{ 'w-full': !horizontal }">
+        <div class="flex items-center gap-3">
+          <div v-if="mode === 'full' && horizontal" class="flex-1">
+            {{ permissionLabel }}
+          </div>
 
-        <NcListDropdown
-          v-model:is-open="isOpenPermissionDropdown"
-          :default-slot-wrapper-class="
-            inlineStyle
-              ? '!px-0 !py-0 !border-0 !rounded-none !h-auto !shadow-none'
-              : !readonly
-              ? 'w-[145px] sm:w-[165px]'
-              : removeReadonlyPadding
-              ? '!px-0 !border-0'
-              : '!border-0'
-          "
-          :placement="placement"
-          :disabled="readonly || config.disabled"
-          :show-as-disabled="false"
-          :border-on-hover="borderOnHover && !inlineStyle"
-          @click="handleClickDropdown"
-        >
-          <NcTooltip :disabled="!config.disabled || !config.tooltip">
+          <NcListDropdown
+            v-model:is-open="isOpenPermissionDropdown"
+            :default-slot-wrapper-class="
+              inlineStyle
+                ? '!px-0 !py-0 !border-0 !rounded-none !h-auto !shadow-none'
+                : !readonly
+                ? horizontal ? 'w-[200px]' : 'min-w-[165px]'
+                : removeReadonlyPadding
+                ? '!px-0 !border-0'
+                : '!border-0'
+            "
+            :placement="placement"
+            :disabled="readonly || config.disabled || isDisabledByVisibility"
+            :show-as-disabled="false"
+            :border-on-hover="borderOnHover && !inlineStyle"
+            @click="handleClickDropdown"
+          >
+          <NcTooltip :disabled="(!config.disabled || !config.tooltip) && !isDisabledByVisibility">
             <template #title>
-              {{ config.tooltip }}
+              {{ isDisabledByVisibility ? $t('msg.info.editingDisabledWhenHidden') : config.tooltip }}
             </template>
             <div
               class="flex-1 flex items-center gap-1.5"
               :class="{
-                [getPermissionTextColor(currentOption?.value || PermissionOptionValue.EDITORS_AND_UP)]:
-                  !config.disabled || readonly,
-                'text-nc-content-gray-disabled': config.disabled,
+                [getPermissionTextColor(displayedOption?.value || PermissionOptionValue.EDITORS_AND_UP)]:
+                  !isInherited && (!config.disabled || readonly) && !isDisabledByVisibility,
+                'text-nc-content-gray-muted': isInherited && !config.disabled,
+                'text-nc-content-gray-disabled': config.disabled || isDisabledByVisibility,
               }"
             >
-              <GeneralIcon :icon="(currentOption?.icon || 'role_editor') as any" class="flex-none h-4 w-4" />
-              <span class="font-medium flex-1 whitespace-nowrap">{{ currentOption?.label || 'Editors & up' }}</span>
+              <GeneralIcon :icon="(displayedOption?.icon || 'role_editor') as any" class="flex-none h-4 w-4" />
+              <span class="font-medium flex-1 whitespace-nowrap">{{ displayedOption?.label || 'Editors & up' }}</span>
               <GeneralIcon
-                v-if="!readonly"
+                v-if="!readonly && !isDisabledByVisibility"
                 icon="chevronDown"
                 class="flex-none h-4 w-4 transition-transform"
                 :class="{ 'transform rotate-180': isOpenPermissionDropdown }"
               />
+              <NcTooltip
+                v-if="mode !== 'full' && currentOption?.value === PermissionOptionValue.SPECIFIC_USERS && !readonly && !isInherited"
+                @click.stop="showUserSelector = true"
+              >
+                <template #title>
+                  <template v-if="selectedUsers.length">
+                    {{ selectedUsers.length }} {{ selectedUsers.length === 1 ? $t('objects.member') : $t('labels.members') }}
+                  </template>
+                  <template v-else>
+                    {{ $t('objects.permissions.inlineUserSelector.selectUsersOrTeams') }}
+                  </template>
+                </template>
+                <GeneralIcon
+                  icon="ncEdit"
+                  class="h-3.5 w-3.5 flex-none cursor-pointer text-nc-content-gray-muted hover:text-nc-content-brand transition-colors ml-1"
+                />
+              </NcTooltip>
             </div>
           </NcTooltip>
 
@@ -243,50 +340,64 @@ const handleClickDropdown = (e: MouseEvent) => {
               option-value-key="value"
               :close-on-select="false"
               :item-height="48"
-              class="!w-auto"
+              class="!w-[340px] nc-permission-selector-dropdown"
               variant="medium"
               wrapper-class-name="!h-auto"
               @update:value="onPermissionChange"
               @escape="onEsc"
             >
               <template #listItem="{ option }">
-                <div class="w-full flex flex-col">
-                  <div class="w-full flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon
-                        :icon="(option.icon as any)"
-                        class="flex-none h-4 w-4"
-                        :class="getPermissionTextColor(option.value)"
+                <NcTooltip :disabled="!isOptionDisabled(option.value)" placement="right" class="w-full">
+                  <template #title>
+                    {{
+                      isOptionDisabledByVisibility(option.value)
+                        ? $t('msg.info.cannotBeMorePermissiveThanVisibility')
+                        : $t('msg.info.cannotBeMorePermissiveThanParent')
+                    }}
+                  </template>
+                  <div
+                    class="w-full flex flex-col"
+                    :class="{ 'opacity-40 cursor-not-allowed': isOptionDisabled(option.value) }"
+                  >
+                    <div class="w-full flex items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <GeneralIcon
+                          :icon="(option.icon as any)"
+                          class="flex-none h-4 w-4"
+                          :class="getPermissionTextColor(option.value)"
+                        />
+                        <span class="text-captionDropdownDefault" :class="getPermissionTextColor(option.value)">{{
+                          option.label
+                        }}</span>
+                        <span
+                          v-if="isDefaultOption(option)"
+                          class="text-captionXsBold text-nc-content-gray-muted"
+                        >
+                          ({{ $t('general.default').toUpperCase() }})
+                        </span>
+                      </div>
+                      <GeneralLoader
+                        v-if="isLoading && option.value === (currentOption?.value || PermissionOptionValue.EDITORS_AND_UP)"
+                        size="medium"
                       />
-                      <span class="text-captionDropdownDefault" :class="getPermissionTextColor(option.value)">{{
-                        option.label
-                      }}</span>
-                      <span
-                        v-if="
-                          option.isDefault &&
-                          !(
-                            config.permission === PermissionKey.TABLE_VISIBILITY &&
-                            (option.value === PermissionOptionValue.EDITORS_AND_UP ||
-                              option.value === PermissionOptionValue.COMMENTERS_AND_UP)
-                          )
-                        "
-                        class="text-captionXsBold text-nc-content-gray-muted"
-                      >
-                        (DEFAULT)
-                      </span>
+                      <GeneralIcon v-else-if="option.value === currentOption?.value" icon="check" class="text-primary h-4 w-4" />
                     </div>
-                    <GeneralLoader
-                      v-if="isLoading && option.value === (currentOption?.value || PermissionOptionValue.EDITORS_AND_UP)"
-                      size="medium"
-                    />
-                    <GeneralIcon v-else-if="option.value === currentOption?.value" icon="check" class="text-primary h-4 w-4" />
+                    <div class="text-bodySm text-nc-content-gray-muted ml-6">{{ option.description }}</div>
                   </div>
-                  <div class="text-bodySm text-nc-content-gray-muted ml-6">{{ option.description }}</div>
-                </div>
+                </NcTooltip>
               </template>
             </NcList>
           </template>
-        </NcListDropdown>
+          </NcListDropdown>
+        </div>
+        <div
+          v-if="isInherited"
+          class="flex items-center gap-1 text-xs text-nc-content-gray-muted"
+          :class="{ 'justify-end mt-1': horizontal }"
+        >
+          <GeneralIcon icon="role_inherit" class="h-3 w-3" />
+          <span>{{ $t('labels.inheritedFromParent') }}</span>
+        </div>
       </div>
 
       <template v-if="mode === 'full'">
@@ -304,11 +415,12 @@ const handleClickDropdown = (e: MouseEvent) => {
           :readonly="props.readonly"
           :hint="isTableVisibility ? null : $t('msg.permissionHintMsg')"
           :team-hierarchy-scopes="teamHierarchyScopes"
+          :minimum-role-override="minimumRoleFromParent"
           @save="handleUserSelectorSave"
         />
       </template>
       <template v-else-if="base.id">
-        <!-- User Selector Modal (shared by both modes) -->
+        <!-- User Selector Modal -->
         <PermissionsUserSelector
           v-model:visible="showUserSelector"
           :selected-users="userSelectorSelectedUsers"
@@ -318,6 +430,7 @@ const handleClickDropdown = (e: MouseEvent) => {
           :permission="config.permission"
           :entity-title="config.entityTitle"
           :hint="isTableVisibility ? null : $t('msg.permissionHintMsg')"
+          :minimum-role-override="minimumRoleFromParent"
           @save="handleUserSelectorSave"
         />
       </template>

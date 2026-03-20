@@ -1,11 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents, EventType, PlanLimitTypes } from 'nocodb-sdk';
+import {
+  AppEvents,
+  EventType,
+  getProjectRole,
+  PermissionEntity,
+  PermissionKey,
+  PermissionRole,
+  PermissionRoleMap,
+  PermissionRolePower,
+  PlanLimitTypes,
+  ProjectRoles,
+} from 'nocodb-sdk';
 import { DocumentsService as DocumentsServiceCE } from 'src/services/documents.service';
 import type { DocumentType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { checkLimit, getLimit } from '~/helpers/paymentHelpers';
-import { Document, FileReference } from '~/models';
+import { Document, FileReference, Permission } from '~/models';
 import Comment from '~/models/Comment';
 import NocoSocket from '~/socket/NocoSocket';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -36,33 +47,310 @@ export class DocumentsService extends DocumentsServiceCE {
   }
 
   /**
+   * Check if a user is allowed to perform an action on a document
+   * based on document-level permissions (visibility or edit).
+   *
+   * Resolution order:
+   * 1. Base owners always bypass (return true)
+   * 2. Walk up the doc tree for the nearest explicit permission
+   * 3. If none found, apply defaults: visibility=allow-all, edit=editor+
+   * 4. Otherwise delegate to Permission.isAllowed (handles role & user/team subjects)
+   */
+  protected async checkDocPermission(
+    context: NcContext,
+    docId: string,
+    permissionKey: PermissionKey,
+    user: { id: string; [key: string]: any },
+  ): Promise<boolean> {
+    // Resolve the user's most powerful base role
+    const role = getProjectRole(user);
+
+    // Base owners always bypass document permissions
+    if (role === ProjectRoles.OWNER) {
+      return true;
+    }
+
+    const { permission } = await Permission.getEffectiveDocPermission(
+      context,
+      docId,
+      permissionKey,
+    );
+
+    if (!permission) {
+      // No explicit permission set — apply sensible defaults:
+      // - Visibility: allow all roles (the base ACL already gates base-level access)
+      // - Edit: require editor+ (viewers/commenters cannot edit by default)
+      if (permissionKey === PermissionKey.DOCUMENT_EDIT) {
+        const rolePower =
+          PermissionRolePower[
+            PermissionRoleMap[
+              role as keyof typeof PermissionRoleMap
+            ] as keyof typeof PermissionRolePower
+          ];
+        const editorPower = PermissionRolePower[PermissionRole.EDITOR];
+        return rolePower !== undefined && rolePower >= editorPower;
+      }
+      return true;
+    }
+
+    return Permission.isAllowed(context, permission, {
+      id: user.id,
+      role,
+    });
+  }
+
+  /**
    * List documents in a base (lightweight — excludes content).
+   * Filters out documents the user cannot see based on visibility permissions.
+   *
+   * SECURITY: `req` must be passed by all EE controller call-sites to enforce
+   * document-level permissions. It is optional only for CE backward compatibility.
    *
    * @param parentId — `null` for root documents, doc ID for children of that doc.
    */
-  async list(context: NcContext, baseId: string, parentId: string | null) {
+  async list(
+    context: NcContext,
+    baseId: string,
+    parentId: string | null,
+    req?: NcRequest,
+  ) {
     const docs = await Document.listLite(context, baseId, parentId);
 
+    // Load all permissions for the base once (cached, single query).
+    // Shared across visibility filtering, has_children correction, and
+    // has_permissions enrichment — avoids per-doc DB queries.
+    const allPermissions = await Permission.list(context, baseId);
+
+    // Build map: docId → explicit visibility permission
+    const visibilityMap = new Map<string, Permission>();
+    for (const p of allPermissions) {
+      if (
+        p.entity === PermissionEntity.DOCUMENT &&
+        p.permission === PermissionKey.DOCUMENT_VISIBILITY
+      ) {
+        visibilityMap.set(p.entity_id, p);
+      }
+    }
+
+    // Filter by visibility permissions if user info is available
+    let visibleDocs = docs;
+    if (req?.user) {
+      const role = getProjectRole(req.user);
+
+      // Base owners bypass all document permissions
+      if (role !== ProjectRoles.OWNER) {
+        const user = { id: req.user.id, role };
+
+        // Resolve parent's effective visibility once (all docs share the same parent)
+        let parentEffective: Permission | null = null;
+        if (parentId) {
+          const result = await Permission.getEffectiveDocPermission(
+            context,
+            parentId,
+            PermissionKey.DOCUMENT_VISIBILITY,
+          );
+          parentEffective = result.permission;
+        }
+
+        // Filter docs: each doc uses its explicit permission or inherits from parent
+        const filtered: typeof docs = [];
+        for (const doc of docs) {
+          const effective = visibilityMap.get(doc.id!) || parentEffective;
+          const allowed = effective
+            ? await Permission.isAllowed(context, effective, user)
+            : true; // No permission = default = allow all
+          if (allowed) {
+            filtered.push(doc);
+          }
+        }
+        visibleDocs = filtered;
+
+        // Correct has_children: a doc reporting has_children=true from the DB
+        // may have ALL its children hidden from this user. Exposing the flag
+        // would leak the existence of hidden child pages.
+        //
+        // Batch: fetch all children for parents with has_children in a single query.
+        const parentsWithChildren = visibleDocs.filter(
+          (d) => d.has_children,
+        );
+        if (parentsWithChildren.length) {
+          const parentIds = parentsWithChildren.map((d) => d.id!);
+          const allChildren = await Document.listLiteByParentIds(
+            context,
+            baseId,
+            parentIds,
+          );
+
+          // Group children by parent_id
+          const childrenByParent = new Map<string, typeof allChildren>();
+          for (const child of allChildren) {
+            const group = childrenByParent.get(child.parent_id!) || [];
+            group.push(child);
+            childrenByParent.set(child.parent_id!, group);
+          }
+
+          for (const doc of parentsWithChildren) {
+            const children = childrenByParent.get(doc.id!) || [];
+            // Doc's effective visibility becomes the parent for its children
+            const docEffective =
+              visibilityMap.get(doc.id!) || parentEffective;
+
+            let anyVisible = false;
+            for (const child of children) {
+              const childEffective =
+                visibilityMap.get(child.id!) || docEffective;
+              if (
+                !childEffective ||
+                (await Permission.isAllowed(context, childEffective, user))
+              ) {
+                anyVisible = true;
+                break; // one visible child is enough
+              }
+            }
+            if (!anyVisible) {
+              doc.has_children = false;
+            }
+          }
+        }
+      }
+    }
+
     // Enrich with comment counts
-    if (docs.length) {
-      const docIds = docs.map((d) => d.id).filter(Boolean) as string[];
+    if (visibleDocs.length) {
+      const docIds = visibleDocs.map((d) => d.id).filter(Boolean) as string[];
       const counts = await Comment.docCommentsCount(context, docIds);
       const countMap = new Map<string, number>(
         counts.map((c: any) => [c.fk_doc_id, +(c.count || 0)]),
       );
-      for (const doc of docs) {
+      for (const doc of visibleDocs) {
         doc.comment_count = countMap.get(doc.id!) || 0;
       }
     }
 
-    return docs;
+    // Enrich with has_permissions flag (reuse pre-loaded permissions)
+    if (visibleDocs.length) {
+      const docIdsWithPermissions = new Set(
+        allPermissions
+          .filter((p) => p.entity === PermissionEntity.DOCUMENT)
+          .map((p) => p.entity_id),
+      );
+      for (const doc of visibleDocs) {
+        (doc as DocumentType).has_permissions = docIdsWithPermissions.has(
+          doc.id!,
+        );
+      }
+    }
+
+    return visibleDocs;
   }
 
-  /** Fetch a single document with full content (ProseMirror JSON). */
-  async get(context: NcContext, docId: string) {
+  /**
+   * List ALL documents in a base (lightweight — excludes content).
+   * Returns a flat list of every doc regardless of parent, with visibility
+   * filtering and permission enrichment. Used by the permissions settings page.
+   */
+  async listAll(context: NcContext, baseId: string, req?: NcRequest) {
+    const docs = await Document.listAllLite(context, baseId);
+
+    // Load all permissions for the base once (cached, single query)
+    const allPermissions = await Permission.list(context, baseId);
+
+    // Build map: docId → explicit visibility permission
+    const visibilityMap = new Map<string, Permission>();
+    for (const p of allPermissions) {
+      if (
+        p.entity === PermissionEntity.DOCUMENT &&
+        p.permission === PermissionKey.DOCUMENT_VISIBILITY
+      ) {
+        visibilityMap.set(p.entity_id, p);
+      }
+    }
+
+    // Build parent chain map for effective permission resolution
+    const parentMap = new Map<string, string | null>();
+    for (const doc of docs) {
+      parentMap.set(doc.id!, doc.parent_id ?? null);
+    }
+
+    // Resolve effective visibility for a doc by walking up the parent chain in memory
+    const resolveEffective = (docId: string): Permission | null => {
+      let currentId: string | null = docId;
+      const visited = new Set<string>();
+
+      while (currentId) {
+        if (visited.has(currentId)) break; // cycle guard
+        visited.add(currentId);
+
+        const explicit = visibilityMap.get(currentId);
+        if (explicit) return explicit;
+        currentId = parentMap.get(currentId) ?? null;
+      }
+
+      return null; // default = allow all
+    };
+
+    let visibleDocs = docs;
+    if (req?.user) {
+      const role = getProjectRole(req.user);
+
+      if (role !== ProjectRoles.OWNER) {
+        const user = { id: req.user.id, role };
+        const filtered: typeof docs = [];
+
+        for (const doc of docs) {
+          const effective = resolveEffective(doc.id!);
+          const allowed = effective
+            ? await Permission.isAllowed(context, effective, user)
+            : true;
+          if (allowed) {
+            filtered.push(doc);
+          }
+        }
+
+        visibleDocs = filtered;
+      }
+    }
+
+    // Enrich with has_permissions flag
+    if (visibleDocs.length) {
+      const docIdsWithPermissions = new Set(
+        allPermissions
+          .filter((p) => p.entity === PermissionEntity.DOCUMENT)
+          .map((p) => p.entity_id),
+      );
+      for (const doc of visibleDocs) {
+        (doc as DocumentType).has_permissions = docIdsWithPermissions.has(
+          doc.id!,
+        );
+      }
+    }
+
+    return visibleDocs;
+  }
+
+  /**
+   * Fetch a single document with full content (ProseMirror JSON).
+   *
+   * SECURITY: `req` must be passed by all EE controller call-sites to enforce
+   * document-level permissions. It is optional only for CE backward compatibility.
+   */
+  async get(context: NcContext, docId: string, req?: NcRequest) {
     const doc = await Document.get(context, docId);
     if (!doc) {
       NcError.get(context).genericNotFound('Document', docId);
+    }
+
+    // Check visibility permission
+    if (req?.user) {
+      const allowed = await this.checkDocPermission(
+        context,
+        docId,
+        PermissionKey.DOCUMENT_VISIBILITY,
+        req.user,
+      );
+      if (!allowed) {
+        NcError.get(context).genericNotFound('Document', docId);
+      }
     }
 
     // Enrich with comment count
@@ -87,6 +375,22 @@ export class DocumentsService extends DocumentsServiceCE {
       message: ({ limit }) =>
         `You have reached the limit of ${limit} document pages per base for your plan.`,
     });
+
+    // Check edit permission on parent document (prevents bypassing
+    // edit restrictions by creating child docs under locked pages)
+    if (payload.parent_id && req?.user) {
+      const allowed = await this.checkDocPermission(
+        context,
+        payload.parent_id,
+        PermissionKey.DOCUMENT_EDIT,
+        req.user,
+      );
+      if (!allowed) {
+        NcError.get(context).forbidden(
+          'You do not have permission to create a sub-page under this document',
+        );
+      }
+    }
 
     payload.fk_workspace_id = context.workspace_id;
     payload.base_id = context.base_id;
@@ -193,6 +497,21 @@ export class DocumentsService extends DocumentsServiceCE {
     const existing = await Document.get(context, docId);
     if (!existing) {
       NcError.get(context).genericNotFound('Document', docId);
+    }
+
+    // Check edit permission
+    if (req?.user) {
+      const allowed = await this.checkDocPermission(
+        context,
+        docId,
+        PermissionKey.DOCUMENT_EDIT,
+        req.user,
+      );
+      if (!allowed) {
+        NcError.get(context).forbidden(
+          'You do not have permission to edit this document',
+        );
+      }
     }
 
     // Optimistic concurrency: reject stale writes.
@@ -314,6 +633,21 @@ export class DocumentsService extends DocumentsServiceCE {
       NcError.get(context).genericNotFound('Document', docId);
     }
 
+    // Check edit permission (delete requires edit access)
+    if (req?.user) {
+      const allowed = await this.checkDocPermission(
+        context,
+        docId,
+        PermissionKey.DOCUMENT_EDIT,
+        req.user,
+      );
+      if (!allowed) {
+        NcError.get(context).forbidden(
+          'You do not have permission to delete this document',
+        );
+      }
+    }
+
     await Document.softDelete(context, docId);
 
     // Cascade: soft-delete all file references for this document and its descendants
@@ -365,6 +699,21 @@ export class DocumentsService extends DocumentsServiceCE {
     const doc = await Document.get(context, docId);
     if (!doc) {
       NcError.get(context).genericNotFound('Document', docId);
+    }
+
+    // Check edit permission (reorder requires edit access)
+    if (req?.user) {
+      const allowed = await this.checkDocPermission(
+        context,
+        docId,
+        PermissionKey.DOCUMENT_EDIT,
+        req.user,
+      );
+      if (!allowed) {
+        NcError.get(context).forbidden(
+          'You do not have permission to reorder this document',
+        );
+      }
     }
 
     const updateFields: Partial<DocumentType> = { order: payload.order };

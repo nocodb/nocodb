@@ -125,6 +125,7 @@ export const OPERATION_SCOPES = {
 
   // Documents (EE-only)
   documentList: 'base',
+  documentListAll: 'base',
   documentGet: 'base',
   documentCreate: 'base',
   documentUpdate: 'base',

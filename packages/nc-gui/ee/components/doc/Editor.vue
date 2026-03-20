@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PlanFeatureTypes } from 'nocodb-sdk'
+import { extractBaseRoleFromWorkspaceRole, PermissionEntity, PermissionKey, PlanFeatureTypes, ProjectRoles } from 'nocodb-sdk'
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu, EditorContent, useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
@@ -53,14 +53,40 @@ const { $e } = useNuxtApp()
 const { user, appInfo, isMobileMode, isLeftSidebarOpen } = useGlobal()
 const { t } = useI18n()
 const { isUIAllowed } = useRoles()
+const { isAllowed: isPermissionAllowed } = usePermissions()
 const { openFilePicker, uploadAndInsert } = useDocumentImageUpload()
 const { batchUploadFiles } = useAttachment()
 const { openFilePicker: openFileAttachmentPicker, uploadAndInsert: uploadAndInsertFile } = useDocumentFileUpload()
 
+const { activeDocuments } = storeToRefs(documentsStore)
+
 const base = inject(ProjectInj, ref())
 
-/** Whether the current user can edit document content (Editor+ role). */
-const isEditable = computed(() => isUIAllowed('documentUpdate'))
+const isCreatorOrAbove = computed(() => {
+  const role = base.value?.project_role || extractBaseRoleFromWorkspaceRole(base.value?.workspace_role)
+  return role === ProjectRoles.OWNER || role === ProjectRoles.CREATOR
+})
+
+/**
+ * Check document-level DOCUMENT_EDIT permission by walking up the parent chain.
+ * Uses useDocPermissionResolver to find the nearest ancestor with explicit permission,
+ * then delegates to isPermissionAllowed for user-level evaluation.
+ */
+const basePermissions = computed(() => base.value?.permissions)
+
+const { findDocWithExplicitPermission } = useDocPermissionResolver(basePermissions, activeDocuments)
+
+const isDocEditAllowed = computed(() => {
+  if (!basePermissions.value) return true
+
+  const effectiveDocId = findDocWithExplicitPermission(docId.value, PermissionKey.DOCUMENT_EDIT)
+  if (!effectiveDocId) return true // No doc-level edit restriction → default allows editors+
+
+  return isPermissionAllowed(PermissionEntity.DOCUMENT, effectiveDocId, PermissionKey.DOCUMENT_EDIT)
+})
+
+/** Whether the current user can edit document content (base role + doc-level permission). */
+const isEditable = computed(() => isUIAllowed('documentUpdate') && isDocEditAllowed.value)
 
 // Resolve created_by user ID to display name
 const idUserMap = computed<Record<string, any>>(() => {
@@ -242,15 +268,17 @@ const onEditorClick = (e: MouseEvent) => {
 // Resolve pending anchor once comments are loaded
 const {
   comments: docComments,
+  activeDocId: commentsDocId,
   scrollToComment: scrollToDocComment,
   isCommentsLoading: isDocCommentsLoading,
 } = useDocumentComments()
 
 // Comment count: prefer live list length once comments have been loaded (panel opened),
-// otherwise fall back to the count from the local doc ref (not the store's activeDocument,
-// which re-evaluates on every autosave field patch and causes subtitle flicker).
+// but only when the comments belong to the current doc. The comments composable is a
+// singleton — after navigating away with the panel closed, it still holds the old doc's
+// comments, which would show a stale count.
 const commentCount = computed(() => {
-  if (docComments.value.length) return docComments.value.length
+  if (commentsDocId.value === docId.value && docComments.value.length) return docComments.value.length
   return doc.value?.comment_count ?? 0
 })
 
@@ -969,6 +997,14 @@ const onDeletePage = () => {
   isDeleteModalOpen.value = true
 }
 
+const onPagePermissions = () => {
+  isPageMenuOpen.value = false
+  if (!base.value?.id) return
+
+  const wsId = route.params.typeOrId
+  navigateTo(`/${wsId}/${base.value.id}/settings/docs-permissions`)
+}
+
 const confirmDeletePage = async () => {
   if (!base.value?.id || !doc.value?.id) return
   await deleteDocument(base.value.id, doc.value.id)
@@ -1265,6 +1301,20 @@ onBeforeUnmount(() => {
   <!-- Show skeleton only on initial load (no doc fetched yet) -->
   <DocEditorSkeleton v-if="!isLoaded && !doc" />
 
+  <!-- Document not found or not accessible -->
+  <div v-else-if="isLoaded && !doc" class="flex flex-col items-center justify-center h-full gap-4 text-nc-content-gray-subtle">
+    <GeneralIcon icon="ncFileText" class="w-16 h-16 text-nc-content-gray-muted" />
+    <div class="text-lg font-semibold text-nc-content-gray-emphasis">
+      {{ $t('msg.info.pageNotFound') }}
+    </div>
+    <div class="text-sm">
+      {{ $t('msg.info.pageNotFoundDescription') }}
+    </div>
+    <div class="text-sm text-nc-content-gray-muted">
+      {{ $t('msg.info.pageNotFoundHint') }}
+    </div>
+  </div>
+
   <!--
     Keep the editor mounted across page switches to avoid detaching
     ProseMirror's view from the DOM. Content is swapped via setContent.
@@ -1341,6 +1391,15 @@ onBeforeUnmount(() => {
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="ncMoveHorizontal" />
                 {{ isFullWidth ? $t('labels.exitFullWidth') : $t('labels.fullWidth') }}
               </NcMenuItem>
+              <NcMenuItem
+                v-if="isCreatorOrAbove"
+                v-e="['c:doc:permissions']"
+                data-testid="nc-doc-page-permissions"
+                @click="onPagePermissions"
+              >
+                <GeneralIcon class="text-nc-content-gray-subtle" icon="ncLock" />
+                {{ $t('title.pagePermissions') }}
+              </NcMenuItem>
               <NcDivider />
               <NcSubMenu key="download" variant="small">
                 <template #title>
@@ -1416,7 +1475,7 @@ onBeforeUnmount(() => {
         <!-- Cover image banner -->
         <div v-if="coverImageSrc" class="nc-doc-cover group relative w-full" data-testid="nc-doc-cover">
           <img :src="coverImageSrc" class="nc-doc-cover-image" />
-          <div v-if="isUIAllowed('documentUpdate')" class="nc-doc-cover-controls">
+          <div v-if="isEditable" class="nc-doc-cover-controls">
             <NcButton size="xsmall" type="secondary" data-testid="nc-doc-cover-change" @click="onAddOrChangeCover">
               {{ $t('labels.changeCover') }}
             </NcButton>
@@ -1429,31 +1488,37 @@ onBeforeUnmount(() => {
         <div class="nc-doc-editor-inner w-full mx-auto px-6 sm:px-10 lg:px-16" :class="{ 'max-w-[900px]': !isFullWidth }">
           <!-- Title -->
           <div class="nc-doc-editor-header pt-12 pb-4">
-            <div
-              v-if="!coverImageSrc && isUIAllowed('documentUpdate')"
-              class="nc-doc-add-cover"
-              data-testid="nc-doc-add-cover"
-              @click="onAddOrChangeCover"
-            >
-              <GeneralIcon icon="ncImage" class="!w-3.5 !h-3.5" />
-              {{ $t('labels.addCover') }}
-            </div>
-            <div class="nc-doc-title-row flex items-center">
-              <div class="nc-doc-editor-icon-wrapper flex-shrink-0" data-testid="nc-doc-opened-page-icon-picker">
-                <LazyGeneralEmojiPicker
-                  :key="docMeta?.icon"
-                  :clearable="true"
-                  :emoji="docMeta?.icon"
-                  :readonly="!isUIAllowed('documentUpdate')"
-                  class="nc-doc-editor-icon"
-                  size="large"
-                  @emoji-selected="updateDocumentIcon($event)"
-                >
-                  <template #default>
-                    <GeneralIcon class="nc-doc-editor-icon-default text-nc-content-gray-muted !w-7 !h-7" icon="ncFileText" />
-                  </template>
-                </LazyGeneralEmojiPicker>
+            <NcTooltip v-if="!coverImageSrc && isUIAllowed('documentUpdate')" :disabled="isEditable">
+              <template #title>{{ $t('msg.info.editingRestrictedForThisPage') }}</template>
+              <div
+                class="nc-doc-add-cover"
+                :class="{ 'opacity-40 pointer-events-none': !isEditable }"
+                data-testid="nc-doc-add-cover"
+                @click="isEditable && onAddOrChangeCover()"
+              >
+                <GeneralIcon icon="ncImage" class="!w-3.5 !h-3.5" />
+                {{ $t('labels.addCover') }}
               </div>
+            </NcTooltip>
+            <div class="nc-doc-title-row flex items-center">
+              <NcTooltip :disabled="isEditable" class="flex-shrink-0">
+                <template #title>{{ $t('msg.info.editingRestrictedForThisPage') }}</template>
+                <div class="nc-doc-editor-icon-wrapper" data-testid="nc-doc-opened-page-icon-picker">
+                  <LazyGeneralEmojiPicker
+                    :key="docMeta?.icon"
+                    :clearable="true"
+                    :emoji="docMeta?.icon"
+                    :readonly="!isEditable"
+                    class="nc-doc-editor-icon"
+                    size="large"
+                    @emoji-selected="updateDocumentIcon($event)"
+                  >
+                    <template #default>
+                      <GeneralIcon class="nc-doc-editor-icon-default text-nc-content-gray-muted !w-7 !h-7" icon="ncFileText" />
+                    </template>
+                  </LazyGeneralEmojiPicker>
+                </div>
+              </NcTooltip>
               <input
                 ref="titleInput"
                 v-model="title"

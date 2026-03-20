@@ -7,6 +7,8 @@ export enum PermissionKey {
   TABLE_RECORD_ADD = 'TABLE_RECORD_ADD',
   TABLE_RECORD_DELETE = 'TABLE_RECORD_DELETE',
   RECORD_FIELD_EDIT = 'RECORD_FIELD_EDIT',
+  DOCUMENT_VISIBILITY = 'DOCUMENT_VISIBILITY',
+  DOCUMENT_EDIT = 'DOCUMENT_EDIT',
 }
 
 export enum PermissionGrantedType {
@@ -18,6 +20,7 @@ export enum PermissionGrantedType {
 export enum PermissionEntity {
   TABLE = 'table',
   FIELD = 'field',
+  DOCUMENT = 'document',
 }
 
 export enum PermissionRole {
@@ -84,7 +87,7 @@ export const PermissionOptions: PermissionOption[] = [
   {
     value: PermissionOptionValue.NOBODY,
     label: 'Nobody',
-    description: 'No one can add records',
+    description: 'No access for anyone',
     icon: 'role_no_access',
   },
 ];
@@ -139,7 +142,63 @@ export const PermissionMeta = {
     userSelectorDescription:
       'Only members selected here will be able to edit values in the {{field}} field.',
   },
+  [PermissionKey.DOCUMENT_VISIBILITY]: {
+    minimumRole: PermissionRole.VIEWER,
+    label: 'Who can view this page',
+    description: 'can view page',
+    userSelectorDescription:
+      'Only members selected here will be able to view this page and its children.',
+  },
+  [PermissionKey.DOCUMENT_EDIT]: {
+    minimumRole: PermissionRole.EDITOR,
+    label: 'Who can edit this page',
+    description: 'can edit page',
+    userSelectorDescription:
+      'Only members selected here will be able to edit this page.',
+  },
 };
+
+// Restrictiveness order for document permission inheritance (lower = more permissive).
+// SPECIFIC_USERS is ranked high (5) by convention: it is treated as more restrictive
+// than role-based options because access is explicitly gated to a named set of users.
+// Note: the actual restrictiveness of SPECIFIC_USERS depends on which users are
+// selected, but for inheritance validation we use this fixed ranking.
+export const PermissionOptionRestrictiveness: Record<string, number> = {
+  [PermissionOptionValue.EVERYONE]: 0,
+  [PermissionOptionValue.VIEWERS_AND_UP]: 1,
+  [PermissionOptionValue.COMMENTERS_AND_UP]: 2,
+  [PermissionOptionValue.EDITORS_AND_UP]: 3,
+  [PermissionOptionValue.CREATORS_AND_UP]: 4,
+  [PermissionOptionValue.SPECIFIC_USERS]: 5,
+  [PermissionOptionValue.NOBODY]: 6,
+};
+
+/**
+ * Returns true if `child` is at least as restrictive as `parent`.
+ * Uses >= because equal restrictiveness is valid (child may match parent).
+ *
+ * Unknown values are treated as invalid and return false (fail-closed)
+ * to prevent accidentally allowing a more-permissive child.
+ */
+export const isMoreRestrictive = (
+  child: PermissionOptionValue,
+  parent: PermissionOptionValue
+): boolean => {
+  const childLevel = PermissionOptionRestrictiveness[child];
+  const parentLevel = PermissionOptionRestrictiveness[parent];
+
+  // Fail-closed: unknown values are never considered "more restrictive"
+  if (childLevel === undefined || parentLevel === undefined) {
+    return false;
+  }
+
+  return childLevel >= parentLevel;
+};
+
+export const DOCUMENT_PERMISSION_KEYS = [
+  PermissionKey.DOCUMENT_VISIBILITY,
+  PermissionKey.DOCUMENT_EDIT,
+];
 
 // Utility functions for permission management
 export const getPermissionOption = (

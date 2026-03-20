@@ -20,7 +20,10 @@ function documentsServiceTests() {
 
   const mockReq = (user?: any) =>
     ({
-      user: user ?? { id: 'test-user', email: 'test@example.com' },
+      user: {
+        ...(user ?? { id: 'test-user', email: 'test@example.com' }),
+        base_roles: { owner: true },
+      },
       clientIp: '::1',
     }) as any;
 

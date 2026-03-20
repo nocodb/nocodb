@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
+import { extractBaseRoleFromWorkspaceRole, PlanFeatureTypes, PlanTitles, ProjectRoles } from 'nocodb-sdk'
 import type { DocumentType } from 'nocodb-sdk'
 
 interface Props {
@@ -38,6 +38,11 @@ const { activeDocumentId, expandedDocIds } = storeToRefs(documentsStore)
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const base = inject(ProjectInj, ref())
+
+const isCreatorOrAbove = computed(() => {
+  const role = base.value?.project_role || extractBaseRoleFromWorkspaceRole(base.value?.workspace_role)
+  return role === ProjectRoles.OWNER || role === ProjectRoles.CREATOR
+})
 
 const input = ref<HTMLInputElement>()
 
@@ -513,33 +518,40 @@ function onStopEdit() {
                 <NcDivider />
                 <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS">
                   <template #default="{ click }">
-                    <NcMenuItem
-                      v-e="['c:document:permissions']"
-                      :data-testid="`sidebar-doc-permissions-${doc.title}`"
-                      class="nc-document-permissions"
-                      @click="
-                        click(PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS, () => {
-                          onPermissions()
-                        })
-                      "
-                    >
-                      <div class="flex gap-2 items-center w-full">
-                        <GeneralIcon icon="ncLock" class="opacity-80" />
-                        <div class="flex-1">
-                          {{ $t('title.pagePermissions') }}
-                        </div>
-
-                        <LazyPaymentUpgradeBadge
-                          :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS"
-                          :title="$t('upgrade.upgradeToUseDocumentPermissions')"
-                          :content="
-                            $t('upgrade.upgradeToUseDocumentPermissionsSubtitle', {
-                              plan: PlanTitles.BUSINESS,
+                    <NcTooltip :disabled="isCreatorOrAbove" placement="left">
+                      <template #title>
+                        {{ $t('msg.info.onlyCreatorsCanConfigureDocPermissions') }}
+                      </template>
+                      <NcMenuItem
+                        v-e="['c:document:permissions']"
+                        :data-testid="`sidebar-doc-permissions-${doc.title}`"
+                        class="nc-document-permissions"
+                        :disabled="!isCreatorOrAbove"
+                        @click="
+                          isCreatorOrAbove &&
+                            click(PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS, () => {
+                              onPermissions()
                             })
-                          "
-                        />
-                      </div>
-                    </NcMenuItem>
+                        "
+                      >
+                        <div class="flex gap-2 items-center w-full">
+                          <GeneralIcon icon="ncLock" class="opacity-80" />
+                          <div class="flex-1">
+                            {{ $t('title.pagePermissions') }}
+                          </div>
+
+                          <LazyPaymentUpgradeBadge
+                            :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS"
+                            :title="$t('upgrade.upgradeToUseDocumentPermissions')"
+                            :content="
+                              $t('upgrade.upgradeToUseDocumentPermissionsSubtitle', {
+                                plan: PlanTitles.BUSINESS,
+                              })
+                            "
+                          />
+                        </div>
+                      </NcMenuItem>
+                    </NcTooltip>
                   </template>
                 </PaymentUpgradeBadgeProvider>
               </template>

@@ -231,7 +231,7 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockTimelineView = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_TIMELINE_VIEW)
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TIMELINE_VIEW)
   })
 
   const blockTableAndFieldPermissions = computed(() => {
@@ -241,9 +241,7 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockDocumentPermissions = computed(() => {
-    return (
-      isEEFeatureBlocked.value || (isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS))
-    )
+    return isEEFeatureBlocked.value || (isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS))
   })
 
   const blockPrivateBases = computed(() => {
@@ -347,7 +345,7 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockMapView = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_MAP_VIEW)
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_MAP_VIEW)
   })
 
   /** EE-only feature blocks — gated by license on self-hosted */

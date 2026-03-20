@@ -255,9 +255,11 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
 
   const { appInfo } = useGlobal()
 
+  const { showEEFeatures } = useEeConfig()
+
   const featureStates = computed(() => {
     return features.value.reduce((acc, feature) => {
-      const isEeFeatureEnabled = feature.isEE && !isEeUI ? false : feature.enabled
+      const isEeFeatureEnabled = feature.isEE && !(isEeUI && showEEFeatures.value) ? false : feature.enabled
       const isOnPremFeatureEnabled = !appInfo.value.isOnPrem || feature.isOnPrem !== false
       const isCloudFeatureEnabled = !appInfo.value.isCloud || feature.isCloud !== false
 

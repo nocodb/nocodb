@@ -833,7 +833,8 @@
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",
         "moreUsers": "+ {count} more",
-        "selectUsers": "Select users"
+        "selectUsers": "Select users",
+        "selectUsersOrTeams": "Select users or teams"
       }
     },
     "deleteAllRecordDlg": {
@@ -1209,7 +1210,7 @@
     "manyToOne": "Many to One"
   },
   "labels": {
-    "inheritedFromParent": "Permission inherited from parent",
+    "inheritedFromParent": "Inherited from parent",
     "pageOrUrl": "Page or URL",
     "linkTitle": "Link title",
     "removeLink": "Remove link",
@@ -2602,6 +2603,7 @@
     "docEditor": "Start writing or type / for commands...",
     "docEditorLine": "Type / for commands...",
     "searchDocs": "Search documents",
+    "searchMember": "Search member",
     "searchLanguages": "Search languages...",
     "enterUrl": "Enter URL...",
     "enterALink": "Enter a link",

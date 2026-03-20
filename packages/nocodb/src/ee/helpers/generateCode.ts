@@ -2189,8 +2189,8 @@ function generateMessageHandler(userCode: string): string {
 function generateBaseObject(baseSchema: any): string {
   return `
   var base = new Base({
-    id: '${baseSchema!.id}',
-    name: '${baseSchema!.name ?? ''}',
+    id: ${JSON.stringify(baseSchema!.id ?? '')},
+    name: ${JSON.stringify(baseSchema!.name ?? '')},
     collaborators: ${JSON.stringify(baseSchema.collaborators)},
     tables: ${JSON.stringify(baseSchema.tables)},
   })
@@ -2201,9 +2201,9 @@ function generateSessionApi(user: any): string {
   return `
   const session = {
     currentUser: new Collaborator({
-      id: '${user?.id}',
-      email: '${user?.email}',
-      name: '${user?.display_name ?? ''}'
+      id: ${JSON.stringify(user?.id ?? '')},
+      email: ${JSON.stringify(user?.email ?? '')},
+      name: ${JSON.stringify(user?.display_name ?? '')}
     })
   }
   `;
@@ -2229,15 +2229,15 @@ function generateCustomCode(
   return `
 
    const cursor = {
-    activeBaseId: '${baseSchema!.id}',
-    activeViewId: ${viewId ? `'${viewId}'` : 'null'},
-    activeTableId: ${tableId ? `'${tableId}'` : 'null'},
+    activeBaseId: ${JSON.stringify(baseSchema!.id ?? '')},
+    activeViewId: ${viewId ? JSON.stringify(viewId) : 'null'},
+    activeTableId: ${tableId ? JSON.stringify(tableId) : 'null'},
   }
 
 
   if (${record ? 'true' : 'false'}) {
     const ____row = ${record ? JSON.stringify(record) : 'null'}
-    const ____table = base.getTable('${tableId}')
+    const ____table = base.getTable(${JSON.stringify(tableId ?? '')})
     cursor.row = new NocoDBRecord(____row, ____table)
   }
   `;

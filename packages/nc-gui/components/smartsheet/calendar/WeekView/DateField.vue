@@ -125,8 +125,8 @@ const calendarData = computed(() => {
       let startDate = record.row[fk_from_col.title!]
         ? dayjs(record.row[fk_from_col.title!])
         : fk_to_col && record.row[fk_to_col.title!]
-          ? dayjs(record.row[fk_to_col.title!])
-          : dayjs(record.row[fk_from_col.title!])
+        ? dayjs(record.row[fk_to_col.title!])
+        : dayjs(record.row[fk_from_col.title!])
       const ogStartDate = startDate.clone()
       const endDate = fk_to_col && record.row[fk_to_col.title!] ? dayjs(record.row[fk_to_col.title!]) : startDate
 
@@ -181,7 +181,12 @@ const calendarData = computed(() => {
           if (!startDate && !endDate) return false
           // If either date is missing, treat as single-day event
           if (!startDate || !endDate) return true
-          return startDate.isValid() && endDate.isValid() && !endDate.isBefore(startDate) && !endDate.isBefore(selectedDateRange.value.start, 'day')
+          return (
+            startDate.isValid() &&
+            endDate.isValid() &&
+            !endDate.isBefore(startDate) &&
+            !endDate.isBefore(selectedDateRange.value.start, 'day')
+          )
         })
         .forEach(processRecord)
     } else {

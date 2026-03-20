@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PlanFeatureTypes, PlanTitles, type TableType, type ViewType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
+import { type TableType, type ViewType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 
 const { $e } = useNuxtApp()
 

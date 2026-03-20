@@ -280,13 +280,11 @@ const recordsToDisplay = computed<{
         let startDate = record.row[startCol.title!]
           ? timezoneDayjs.timezonize(record.row[startCol.title!])
           : record.row[endCol.title!]
-            ? timezoneDayjs.timezonize(record.row[endCol.title!])
-            : null
+          ? timezoneDayjs.timezonize(record.row[endCol.title!])
+          : null
         if (!startDate) return
 
-        const endDate = record.row[endCol.title!]
-          ? timezoneDayjs.timezonize(record.row[endCol.title!])
-          : startDate
+        const endDate = record.row[endCol.title!] ? timezoneDayjs.timezonize(record.row[endCol.title!]) : startDate
 
         let currentWeekStart = startDate.startOf('week')
 

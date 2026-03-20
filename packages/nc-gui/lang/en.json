@@ -1589,6 +1589,7 @@
     "manageSnapshots": "Manage Snapshots",
     "dataPermissions": "Data Permissions",
     "docsPermissions": "Docs Permissions",
+    "managePermissions": "Manage permissions",
     "numberOfMembers": "No. Members",
     "numberOfBases": "No. Bases",
     "numberOfRecords": "No. Records",

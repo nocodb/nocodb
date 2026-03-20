@@ -173,14 +173,26 @@ export const PermissionOptionRestrictiveness: Record<string, number> = {
   [PermissionOptionValue.NOBODY]: 6,
 };
 
+/**
+ * Returns true if `child` is at least as restrictive as `parent`.
+ * Uses >= because equal restrictiveness is valid (child may match parent).
+ *
+ * Unknown values are treated as invalid and return false (fail-closed)
+ * to prevent accidentally allowing a more-permissive child.
+ */
 export const isMoreRestrictive = (
   child: PermissionOptionValue,
   parent: PermissionOptionValue
 ): boolean => {
-  return (
-    (PermissionOptionRestrictiveness[child] ?? 0) >=
-    (PermissionOptionRestrictiveness[parent] ?? 0)
-  );
+  const childLevel = PermissionOptionRestrictiveness[child];
+  const parentLevel = PermissionOptionRestrictiveness[parent];
+
+  // Fail-closed: unknown values are never considered "more restrictive"
+  if (childLevel === undefined || parentLevel === undefined) {
+    return false;
+  }
+
+  return childLevel >= parentLevel;
 };
 
 export const DOCUMENT_PERMISSION_KEYS = [

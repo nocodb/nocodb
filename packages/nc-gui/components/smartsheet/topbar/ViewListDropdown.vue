@@ -19,7 +19,7 @@ const { isAiFeaturesEnabled } = useNocoAi()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { blockMapView, showEEFeatures, showUpgradeToUseMapView, showUpgradeToUseTimelineView } = useEeConfig()
+const { showEEFeatures, showUpgradeToUseMapView, showUpgradeToUseTimelineView } = useEeConfig()
 
 const isOpen = ref<boolean>(false)
 
@@ -265,13 +265,6 @@ async function onOpenModal({
                     <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
                     {{ $t('objects.viewType.map') }}
                     <NcBadgeBeta />
-                    <PaymentUpgradeBadge
-                      v-if="blockMapView"
-                      :feature="PlanFeatureTypes.FEATURE_MAP_VIEW"
-                      :plan-title="PlanTitles.BUSINESS"
-                      remove-click
-                      show-as-lock
-                    />
                   </div>
                 </a-menu-item>
 

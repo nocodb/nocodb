@@ -31,7 +31,7 @@ async function onCreateSection() {
 </script>
 
 <template>
-  <NcTooltip :title="$t('tooltip.organizeViewsIntoSections')" placement="right">
+  <NcTooltip :title="$t('tooltip.organizeViewsIntoSections')" placement="right" class="w-full">
     <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_VIEW_SECTIONS">
       <template #default="{ click }">
         <NcMenuItem

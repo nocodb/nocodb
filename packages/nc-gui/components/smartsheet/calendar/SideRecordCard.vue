@@ -135,8 +135,26 @@ const errorInfo = computed(() => {
           show-on-truncate-only
           class="text-xs font-medium truncate max-w-58 leading-4 text-nc-content-gray-subtle2"
         >
-          {{ fromDate && toDate ? `${fromDate} - ${toDate}` : fromDate && toCol ? `${fromDate} -` : toDate && fromCol ? `- ${toDate}` : fromDate || toDate || '' }}
-          <template #title> {{ fromDate && toDate ? `${fromDate} - ${toDate}` : fromDate && toCol ? `${fromDate} -` : toDate && fromCol ? `- ${toDate}` : fromDate || toDate || '' }} </template>
+          {{
+            fromDate && toDate
+              ? `${fromDate} - ${toDate}`
+              : fromDate && toCol
+              ? `${fromDate} -`
+              : toDate && fromCol
+              ? `- ${toDate}`
+              : fromDate || toDate || ''
+          }}
+          <template #title>
+            {{
+              fromDate && toDate
+                ? `${fromDate} - ${toDate}`
+                : fromDate && toCol
+                ? `${fromDate} -`
+                : toDate && fromCol
+                ? `- ${toDate}`
+                : fromDate || toDate || ''
+            }}
+          </template>
         </NcTooltip>
       </div>
     </div>

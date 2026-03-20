@@ -324,12 +324,13 @@ const hasDocumentCreateAccess = computed(() => {
                 </NcMenuItem>
               </template>
               <NcMenuItem
-                v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.MAP_VIEW) && showEEFeatures"
+                v-if="isEeUI && showEEFeatures"
                 data-testid="mini-sidebar-view-create-map"
                 @click="showUpgradeToUseMapView({ successCallback: () => onOpenModal({ type: ViewTypes.MAP }) })"
               >
                 <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.map') }}</div>
+                <NcBadgeBeta />
               </NcMenuItem>
               <NcMenuItem
                 v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.TIMELINE) && showEEFeatures"

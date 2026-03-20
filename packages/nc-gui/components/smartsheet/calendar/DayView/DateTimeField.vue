@@ -321,8 +321,8 @@ const recordsAcrossAllRange = computed<{
         const rawStart = record.row[fromCol.title!]
           ? timezoneDayjs.timezonize(record.row[fromCol.title!])
           : record.row[endCol.title!]
-            ? timezoneDayjs.timezonize(record.row[endCol.title!])
-            : null
+          ? timezoneDayjs.timezonize(record.row[endCol.title!])
+          : null
         if (!rawStart) continue
 
         const { endDate, startDate } = calculateNewDates({

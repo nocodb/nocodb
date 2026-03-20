@@ -370,15 +370,13 @@ const recordsAcrossAllRange = computed<{
         const rawStart = record.row[fromCol.title!]
           ? timezoneDayjs.timezonize(record.row[fromCol.title!])
           : record.row[toCol.title!]
-            ? timezoneDayjs.timezonize(record.row[toCol.title!])
-            : null
+          ? timezoneDayjs.timezonize(record.row[toCol.title!])
+          : null
         if (!rawStart) continue
 
         const { startDate, endDate } = calculateNewDates({
           startDate: rawStart,
-          endDate: record.row[toCol.title!]
-            ? timezoneDayjs.timezonize(record.row[toCol.title!])
-            : rawStart.add(1, 'hour'),
+          endDate: record.row[toCol.title!] ? timezoneDayjs.timezonize(record.row[toCol.title!]) : rawStart.add(1, 'hour'),
           scheduleStart,
           scheduleEnd,
         })

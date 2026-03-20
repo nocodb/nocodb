@@ -92,14 +92,6 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'geodata_column',
-    title: 'Geodata column',
-    description: 'Enable the geodata column.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
-  },
-  {
     id: 'form_support_column_scanning',
     title: 'Scanner for filling data in forms',
     description: 'Enable scanner to fill data in forms.',
@@ -226,14 +218,6 @@ const FEATURES = [
     enabled: false,
     version: 1,
     isEngineering: true,
-    isEE: true,
-  },
-  {
-    id: 'map_view',
-    title: 'Map View',
-    description: 'Enable map view to visualize geo data fields on an interactive map.',
-    enabled: false,
-    version: 2,
     isEE: true,
   },
   {

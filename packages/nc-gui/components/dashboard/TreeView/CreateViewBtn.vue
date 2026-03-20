@@ -123,8 +123,8 @@ async function onOpenModal({
   >
     <slot />
     <template #overlay>
-      <NcMenu class="max-w-48" variant="small">
-        <NcMenuItem @click.stop="onOpenModal({ type: ViewTypes.GRID })">
+      <NcMenu class="max-w-fit" variant="small">
+        <NcMenuItem inner-class="w-full" @click.stop="onOpenModal({ type: ViewTypes.GRID })">
           <div class="item" data-testid="sidebar-view-create-grid">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.GRID }" />
@@ -138,9 +138,11 @@ async function onOpenModal({
         <NcTooltip
           :title="isSyncedTable ? $t('tooltip.formViewCreationNotSupportedForSyncedTable') : $t('tooltip.sourceDataIsReadonly')"
           :disabled="!source.is_data_readonly && !isSqlView && !isSyncedTable"
+          class="w-full"
         >
           <NcMenuItem
             :disabled="!!source.is_data_readonly || isSqlView || isSyncedTable"
+            inner-class="w-full"
             @click="onOpenModal({ type: ViewTypes.FORM })"
           >
             <div class="item" data-testid="sidebar-view-create-form">
@@ -158,7 +160,7 @@ async function onOpenModal({
             </div>
           </NcMenuItem>
         </NcTooltip>
-        <NcMenuItem @click="onOpenModal({ type: ViewTypes.GALLERY })">
+        <NcMenuItem inner-class="w-full" @click="onOpenModal({ type: ViewTypes.GALLERY })">
           <div class="item" data-testid="sidebar-view-create-gallery">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.GALLERY }" />
@@ -168,7 +170,11 @@ async function onOpenModal({
             <GeneralLoader v-if="toBeCreateType === ViewTypes.GALLERY && isViewListLoading" />
           </div>
         </NcMenuItem>
-        <NcMenuItem data-testid="sidebar-view-create-kanban" @click="onOpenModal({ type: ViewTypes.KANBAN })">
+        <NcMenuItem
+          inner-class="w-full"
+          data-testid="sidebar-view-create-kanban"
+          @click="onOpenModal({ type: ViewTypes.KANBAN })"
+        >
           <div class="item">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.KANBAN }" />
@@ -178,7 +184,11 @@ async function onOpenModal({
             <GeneralLoader v-if="toBeCreateType === ViewTypes.KANBAN && isViewListLoading" />
           </div>
         </NcMenuItem>
-        <NcMenuItem data-testid="sidebar-view-create-calendar" @click="onOpenModal({ type: ViewTypes.CALENDAR })">
+        <NcMenuItem
+          inner-class="w-full"
+          data-testid="sidebar-view-create-calendar"
+          @click="onOpenModal({ type: ViewTypes.CALENDAR })"
+        >
           <div class="item">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" class="!w-4 !h-4" />
@@ -189,9 +199,10 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
         <template v-if="isListViewEnabled">
-          <NcTooltip :title="$t('tooltip.listViewOnlyPg')" :disabled="isPgSource" placement="right">
+          <NcTooltip :title="$t('tooltip.listViewOnlyPg')" :disabled="isPgSource" placement="right" class="w-full">
             <NcMenuItem
               :disabled="!isPgSource"
+              inner-class="w-full"
               data-testid="sidebar-view-create-list"
               @click="isPgSource && onOpenModal({ type: ViewTypes.LIST })"
             >
@@ -207,7 +218,8 @@ async function onOpenModal({
           </NcTooltip>
         </template>
         <NcMenuItem
-          v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.MAP_VIEW) && showEEFeatures"
+          v-if="isEeUI && showEEFeatures"
+          inner-class="w-full"
           data-testid="sidebar-view-create-map"
           @click="
             () => {
@@ -224,6 +236,7 @@ async function onOpenModal({
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
               <div>{{ $t('objects.viewType.map') }}</div>
+              <NcBadgeBeta />
             </div>
 
             <template v-if="isEeUI && blockMapView">
@@ -241,6 +254,7 @@ async function onOpenModal({
         </NcMenuItem>
         <NcMenuItem
           v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.TIMELINE) && showEEFeatures"
+          inner-class="w-full"
           data-testid="sidebar-view-create-timeline"
           @click="
             () => {
@@ -282,7 +296,7 @@ async function onOpenModal({
 
         <template v-if="isAiFeaturesEnabled">
           <NcDivider />
-          <NcTooltip :title="`Auto suggest views for ${table?.title || 'the current table'}`" placement="right">
+          <NcTooltip :title="`Auto suggest views for ${table?.title || 'the current table'}`" placement="right" class="w-full">
             <NcMenuItem data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
               <div class="item">
                 <div class="item-inner">
@@ -300,10 +314,9 @@ async function onOpenModal({
 
 <style lang="scss">
 .nc-view-create-dropdown {
-  @apply !max-w-43 !min-w-43;
-
+  @apply !min-w-43;
   .item {
-    @apply flex flex-row items-center w-36 justify-between;
+    @apply flex flex-row items-center w-full justify-between gap-x-1.75;
   }
 
   .item-inner {

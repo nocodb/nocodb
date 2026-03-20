@@ -215,14 +215,6 @@ const onlyNameUpdateOnEditColumns = [
 // close modal only when the type popup is close
 const isColumnTypeOpen = ref(false)
 
-const geoDataToggleCondition = (t: { name: UITypes }) => {
-  if (!appInfo.value.ee) return true
-
-  const isColEnabled = isFeatureEnabled(FEATURE_FLAG.GEODATA_COLUMN)
-
-  return isColEnabled || !t.name.includes(UITypes.GeoData)
-}
-
 const showDeprecated = ref(false)
 
 const isSystemField = (t: { name: UITypes }) =>
@@ -234,7 +226,7 @@ const uiFilters = (t: UiTypesType) => {
     return true
   }
   const systemFiledNotEdited = !isSystemField(t) || formState.value.uidt === t.name || !isEdit.value
-  const geoDataToggle = geoDataToggleCondition(t) && (!isEdit.value || !t.virtual || t.name === formState.value.uidt)
+  const isVirtualEditAllowed = !isEdit.value || !t.virtual || t.name === formState.value.uidt
   const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)
   const showDeprecatedField = !t.deprecated || showDeprecated.value
 
@@ -260,7 +252,7 @@ const uiFilters = (t: UiTypesType) => {
 
   return (
     systemFiledNotEdited &&
-    geoDataToggle &&
+    isVirtualEditAllowed &&
     !specificDBType &&
     showDeprecatedField &&
     isAllowToAddInFormView &&

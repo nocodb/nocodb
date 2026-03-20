@@ -10,6 +10,6 @@ function _processorTests() {
   duplicateBaseTest();
 }
 
-export const processorTests = runOnSet(2, function () {
+export const processorTests = runOnSet(3, function () {
   describe('ProcessorTests', _processorTests);
 });

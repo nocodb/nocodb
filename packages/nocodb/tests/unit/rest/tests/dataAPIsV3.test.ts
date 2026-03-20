@@ -114,7 +114,7 @@ import type { ColumnType } from 'nocodb-sdk';
 import type { Base, Model } from '../../../../src/models';
 
 export default function (API_VERSION: 'v2' | 'v3') {
-  runOnSet(1, () => {
+  runOnSet(2, () => {
     const debugMode = false;
 
     let context: Awaited<ReturnType<typeof init>>;

@@ -22,6 +22,6 @@ function _formulaTests() {
   formulaSwitchIfTest();
 }
 
-export const formulaTests = runOnSet(2, function () {
+export const formulaTests = runOnSet(3, function () {
   describe('Formula', _formulaTests);
 });

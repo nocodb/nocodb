@@ -38,6 +38,22 @@ export async function initializeSakilaPg(database: string) {
 
 export async function resetSakilaPg(database: string) {
   try {
+    const kn = knex(getKnexConfig({ dbName: 'postgres', dbType: 'pg' }));
+
+    await kn.raw(`DROP DATABASE IF EXISTS ?? WITH (FORCE)`, [database]);
+
+    // Fast path: use pre-built template (created by CI workflow step)
+    const templateExists = await kn.raw(`SELECT 1 FROM pg_database WHERE datname = 'sakila_template'`);
+
+    if (templateExists.rows.length > 0) {
+      await kn.raw(`CREATE DATABASE ?? TEMPLATE sakila_template`, [database]);
+      await kn.destroy();
+      return;
+    }
+
+    await kn.destroy();
+
+    // Slow path (local dev): full schema + data import
     await initializeSakilaPg(database);
   } catch (e) {
     console.error(`Error resetting pg sakila db: Worker ${database}`, e);

@@ -10,7 +10,7 @@ import { runOnSet } from '../../../utils/runOnSet';
 import type { Base } from '../../../../../src/models';
 
 export default function (API_VERSION: 'v1' | 'v2' | 'v3') {
-  runOnSet(1, function () {
+  runOnSet(2, function () {
     const isV1 = API_VERSION === 'v1';
     const isV2 = API_VERSION === 'v2';
     const isV3 = API_VERSION === 'v3';

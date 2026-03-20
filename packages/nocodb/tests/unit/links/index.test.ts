@@ -7,7 +7,7 @@ function _linksTests() {
   linksGenerateLinkRequestTest();
 }
 
-export const linksTests = runOnSet(2, function () {
+export const linksTests = runOnSet(3, function () {
   if (isEE()) {
     describe('Links', _linksTests);
   }

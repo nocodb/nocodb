@@ -2,8 +2,18 @@ name: "Unit Test SQLite (CE)"
 
 on:
   workflow_call:
+    inputs:
+      test_set:
+        description: 'Test set number'
+        required: false
+        type: string
   # Triggered manually
   workflow_dispatch:
+    inputs:
+      test_set:
+        description: 'Test set number'
+        required: false
+        type: string
 
 jobs:
   unit-tests-sqlite:
@@ -27,19 +37,21 @@ jobs:
         run: export CI=true
       - name: remove use-node-version line from .npmrc
         run: sed -i '/^use-node-version/d' .npmrc
-      - name: Cache integration dists
+      - name: Cache integrations (node_modules + dists)
         uses: actions/cache@v4
         with:
           path: |
+            packages/noco-integrations/node_modules
+            packages/noco-integrations/packages/*/node_modules
             packages/noco-integrations/packages/*/dist
             packages/noco-integrations/core/dist
             packages/noco-integrations/.build-checksums.json
-          key: integrations-dist-${{ hashFiles('packages/noco-integrations/packages/*/src/**', 'packages/noco-integrations/core/src/**', 'packages/noco-integrations/packages/*/package.json') }}
+          key: integrations-${{ hashFiles('packages/noco-integrations/pnpm-lock.yaml', 'packages/noco-integrations/packages/*/src/**', 'packages/noco-integrations/core/src/**', 'packages/noco-integrations/packages/*/package.json') }}
           restore-keys: |
-            integrations-dist-
+            integrations-
       - name: install dependencies
         run: pnpm bootstrap
       - name: run unit tests
         working-directory: ./packages/nocodb
         run: |
-          pnpm run test:unit --forbid-only
+          pnpm run test:unit --forbid-only ${{ inputs.test_set && '--test-set-' || '' }}${{ inputs.test_set }}

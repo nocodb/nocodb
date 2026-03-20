@@ -6,6 +6,6 @@ function _pgDBQueryClientTests() {
   pgTemporaryTableTests();
 }
 
-export const pgDBQueryClientTests = runOnSet(2, function () {
+export const pgDBQueryClientTests = runOnSet(3, function () {
   describe('PGDBQueryClientTests', _pgDBQueryClientTests);
 });

@@ -20,35 +20,40 @@ jobs:
   playwright:
     runs-on: ubicloud-standard-4
     timeout-minutes: 100
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_PASSWORD: password
-          POSTGRES_USER: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      mysql:
-        image: mysql:8
-        env:
-          MYSQL_ROOT_PASSWORD: password
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd "mysqladmin ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
+      # ── Start only the required database container ─────────────
+      - name: Start PostgreSQL
+        if: ${{ inputs.db == 'pg' }}
+        run: |
+          docker run -d --name postgres \
+            -e POSTGRES_PASSWORD=password \
+            -e POSTGRES_USER=postgres \
+            -p 5432:5432 \
+            postgres:17
+          until docker exec postgres pg_isready -U postgres 2>/dev/null; do sleep 2; done
+
+      - name: Create PG Sakila template database
+        if: ${{ inputs.db == 'pg' }}
+        run: |
+          docker cp packages/nocodb/tests/pg-sakila-db/01-postgres-sakila-schema.sql postgres:/tmp/
+          docker cp packages/nocodb/tests/pg-sakila-db/02-postgres-sakila-insert-data.sql postgres:/tmp/
+          docker exec postgres psql -U postgres -c "CREATE DATABASE sakila_template;"
+          docker exec postgres psql -U postgres -d sakila_template --single-transaction -f /tmp/01-postgres-sakila-schema.sql
+          docker exec postgres psql -U postgres -d sakila_template --single-transaction -f /tmp/02-postgres-sakila-insert-data.sql
+
+      - name: Start MySQL
+        if: ${{ inputs.db == 'mysql' }}
+        run: |
+          docker run -d --name mysql \
+            -e MYSQL_ROOT_PASSWORD=password \
+            -p 3306:3306 \
+            mysql:8
+          until docker exec mysql mysqladmin ping -h localhost --silent 2>/dev/null; do sleep 3; done
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -70,16 +75,18 @@ jobs:
       - name: remove use-node-version line from .npmrc
         run: sed -i '/^use-node-version/d' .npmrc
 
-      - name: Cache integration dists
+      - name: Cache integrations (node_modules + dists)
         uses: actions/cache@v4
         with:
           path: |
+            packages/noco-integrations/node_modules
+            packages/noco-integrations/packages/*/node_modules
             packages/noco-integrations/packages/*/dist
             packages/noco-integrations/core/dist
             packages/noco-integrations/.build-checksums.json
-          key: integrations-dist-${{ hashFiles('packages/noco-integrations/packages/*/src/**', 'packages/noco-integrations/core/src/**', 'packages/noco-integrations/packages/*/package.json') }}
+          key: integrations-${{ hashFiles('packages/noco-integrations/pnpm-lock.yaml', 'packages/noco-integrations/packages/*/src/**', 'packages/noco-integrations/core/src/**', 'packages/noco-integrations/packages/*/package.json') }}
           restore-keys: |
-            integrations-dist-
+            integrations-
       - name: install dependencies
         run: pnpm bootstrap
 
@@ -206,7 +213,7 @@ jobs:
 
       - name: Fetch develop branch
         working-directory: ./tests/playwright
-        run: git fetch origin develop
+        run: git fetch origin develop --depth=1
 
       - name: Stress test
         working-directory: ./tests/playwright

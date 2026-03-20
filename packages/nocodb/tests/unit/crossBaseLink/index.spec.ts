@@ -11,7 +11,7 @@ function _crossBaseLinkTests() {
   crossBaseFormulaTest();
 }
 
-export const crossBaseLinkTests = runOnSet(2, function () {
+export const crossBaseLinkTests = runOnSet(3, function () {
   if (isEE()) {
     describe('Cross Base Links', _crossBaseLinkTests);
   }

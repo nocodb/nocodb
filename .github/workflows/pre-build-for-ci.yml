@@ -1,0 +1,144 @@
+name: Pre-build for CI
+
+on:
+  workflow_call:
+    inputs:
+      build_ce:
+        description: 'Also build CE UI (for develop push)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build-ui:
+    runs-on: ubicloud-standard-2
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: 'pnpm'
+
+      - name: Set CI env
+        run: export CI=true
+
+      - name: Set NC Edition
+        run: export EE=true
+
+      - name: remove use-node-version line from .npmrc
+        run: sed -i '/^use-node-version/d' .npmrc
+
+      # ── UI build caching (hash nc-gui + SDK source + lockfile) ──
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.ARTIFACTS_S3_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.ARTIFACTS_S3_SECRET_KEY }}
+          aws-region: us-east-2
+
+      - name: Check S3 cache for EE UI build
+        id: ui-cache
+        working-directory: ./packages/nc-gui
+        run: |
+          UI_HASH="${{ hashFiles('packages/nc-gui/**', 'packages/nocodb-sdk/src/**', 'pnpm-lock.yaml') }}"
+          echo "hash=${UI_HASH}" >> $GITHUB_OUTPUT
+          CACHE_KEY="s3://nocohub-ci-artifacts/ui-builds/cached-ee-${UI_HASH}.zip"
+          if aws s3 cp "${CACHE_KEY}" cached-build.zip 2>/dev/null && unzip -tq cached-build.zip 2>/dev/null; then
+            unzip -q cached-build.zip
+            rm -f cached-build.zip
+            echo "hit=true" >> $GITHUB_OUTPUT
+            echo "::notice::UI cache HIT — skipping build (hash: ${UI_HASH:0:12}…)"
+          else
+            rm -f cached-build.zip
+            echo "hit=false" >> $GITHUB_OUTPUT
+            echo "::notice::UI cache MISS — will build (hash: ${UI_HASH:0:12}…)"
+          fi
+
+      # ── Full build (cache miss or CE build needed) ──────────────
+      - name: Cache integrations (node_modules + dists)
+        if: steps.ui-cache.outputs.hit != 'true' || inputs.build_ce
+        uses: actions/cache@v4
+        with:
+          path: |
+            packages/noco-integrations/node_modules
+            packages/noco-integrations/packages/*/node_modules
+            packages/noco-integrations/packages/*/dist
+            packages/noco-integrations/core/dist
+            packages/noco-integrations/.build-checksums.json
+          key: integrations-${{ hashFiles('packages/noco-integrations/pnpm-lock.yaml', 'packages/noco-integrations/packages/*/src/**', 'packages/noco-integrations/core/src/**', 'packages/noco-integrations/packages/*/package.json') }}
+          restore-keys: |
+            integrations-
+
+      - name: install dependencies
+        if: steps.ui-cache.outputs.hit != 'true' || inputs.build_ce
+        run: pnpm bootstrap
+
+      # ── EE Build (cache miss only) ───────────────────────────────
+      - name: Build EE UI
+        if: steps.ui-cache.outputs.hit != 'true'
+        working-directory: ./packages/nc-gui
+        run: |
+          export NODE_OPTIONS="--max-old-space-size=8192"
+          export NUXT_PUBLIC_ENV=CI
+          pnpm run build:ee
+
+      # ── EE Archive + Upload (always) ─────────────────────────────
+      - name: Create EE build archive
+        working-directory: ./packages/nc-gui
+        run: |
+          FILE="$(echo ${GITHUB_REPOSITORY} | sed "s,/,-,g")-${GITHUB_RUN_ID}.zip"
+          zip -r ${FILE} ee/.output || echo "UI build directory does not exists" >&2
+          echo "EE_ARCHIVE_NAME=${FILE}" >> $GITHUB_ENV
+
+      - name: Upload EE UI build to S3
+        working-directory: ./packages/nc-gui
+        run: |
+          aws s3 cp ${EE_ARCHIVE_NAME} s3://nocohub-ci-artifacts/ui-builds/${EE_ARCHIVE_NAME}
+          echo "s3://nocohub-ci-artifacts/ui-builds/${EE_ARCHIVE_NAME}"
+
+      - name: Save EE UI build to S3 cache
+        if: steps.ui-cache.outputs.hit != 'true'
+        working-directory: ./packages/nc-gui
+        run: |
+          aws s3 cp ${EE_ARCHIVE_NAME} "s3://nocohub-ci-artifacts/ui-builds/cached-ee-${{ steps.ui-cache.outputs.hash }}.zip"
+
+      # ── CE Build (develop push only) ───────────────────────────
+      - name: Point tsconfig to CE Nuxt types
+        if: ${{ inputs.build_ce }}
+        working-directory: ./packages/nc-gui
+        run: |
+          sed -i 's|"extends": "./ee/.nuxt/tsconfig.json"|"extends": "./.nuxt/tsconfig.json"|' tsconfig.json
+
+      - name: Build CE UI
+        if: ${{ inputs.build_ce }}
+        working-directory: ./packages/nc-gui
+        run: |
+          export NODE_OPTIONS="--max-old-space-size=8192"
+          export NUXT_PUBLIC_ENV=CI
+          pnpm run build
+
+      - name: Create CE build archive
+        if: ${{ inputs.build_ce }}
+        working-directory: ./packages/nc-gui
+        run: |
+          FILE="$(echo ${GITHUB_REPOSITORY} | sed "s,/,-,g")-${GITHUB_RUN_ID}-ce.zip"
+          zip -r ${FILE} .output || echo "UI build directory does not exists" >&2
+          echo "CE_ARCHIVE_NAME=${FILE}" >> $GITHUB_ENV
+
+      - name: Upload CE UI build to S3
+        if: ${{ inputs.build_ce }}
+        working-directory: ./packages/nc-gui
+        run: |
+          aws s3 cp ${CE_ARCHIVE_NAME} s3://nocohub-ci-artifacts/ui-builds/${CE_ARCHIVE_NAME}
+          echo "s3://nocohub-ci-artifacts/ui-builds/${CE_ARCHIVE_NAME}"

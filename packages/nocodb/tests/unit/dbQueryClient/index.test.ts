@@ -6,6 +6,6 @@ function _dbQueryClientTests() {
   pgDBQueryClientTests();
 }
 
-export const dbQueryClientTests = runOnSet(2, function () {
+export const dbQueryClientTests = runOnSet(3, function () {
   describe('DBQueryClientTests', _dbQueryClientTests);
 });

@@ -1,6 +1,6 @@
 import { runOnSet } from '../../../utils/runOnSet';
 
-export const dataApiV3Test = runOnSet(2, async () => {
+export const dataApiV3Test = runOnSet(3, async () => {
   await import('./error-handling.test');
   await import('./get-list.test');
   await import('./get-record.test');

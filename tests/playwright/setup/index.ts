@@ -8,6 +8,9 @@ import { isEE } from './db';
 import { resetSakilaPg } from './knexHelper';
 import path from 'path';
 
+// License reset only needs to happen once per worker
+let licenseResetDone = false;
+
 // MySQL Configuration
 const mysqlConfig = {
   client: 'mysql2',
@@ -260,7 +263,6 @@ async function localInit({
       // Hence, workspace delete is based on workerId prefix instead of just workerId
       const ws = await api['workspace'].list();
       for (const w of ws.list) {
-        // check if w.title starts with workspaceTitle
         if (w.title.startsWith(`ws_pgExtREST${process.env.TEST_PARALLEL_INDEX}`)) {
           try {
             const bases = await api.workspaceBase.list(w.id);
@@ -289,7 +291,6 @@ async function localInit({
 
       if (bases) {
         for (const p of bases.list) {
-          // check if p.title starts with baseTitle
           if (
             p.title.startsWith(`pgExtREST${process.env.TEST_PARALLEL_INDEX}`) ||
             p.title.startsWith(`xcdb_p${process.env.TEST_PARALLEL_INDEX}`)
@@ -304,57 +305,63 @@ async function localInit({
       }
     }
 
-    // DB reset
-    if (dbType === 'pg' && !isEmptyProject) {
-      await resetSakilaPg(`sakila${workerId}`);
-    } else if (dbType === 'sqlite') {
-      if (await fs.stat(sqliteFilePath(parallelId)).catch(() => null)) {
-        await fs.unlink(sqliteFilePath(parallelId));
-      }
-      if (!isEmptyProject) {
-        const testsDir = path.join(__dirname, '../../../packages/nocodb/tests');
-        await fs.copyFile(`${testsDir}/sqlite-sakila-db/sakila.db`, sqliteFilePath(parallelId));
-      }
-    } else if (dbType === 'mysql') {
-      const nc_knex = knex(mysqlConfig);
+    // DB reset function (runs in parallel with workspace creation)
+    const dbResetFn = async () => {
+      if (dbType === 'pg' && !isEmptyProject) {
+        await resetSakilaPg(`sakila${workerId}`);
+      } else if (dbType === 'sqlite') {
+        if (await fs.stat(sqliteFilePath(parallelId)).catch(() => null)) {
+          await fs.unlink(sqliteFilePath(parallelId));
+        }
+        if (!isEmptyProject) {
+          const testsDir = path.join(__dirname, '../../../packages/nocodb/tests');
+          await fs.copyFile(`${testsDir}/sqlite-sakila-db/sakila.db`, sqliteFilePath(parallelId));
+        }
+      } else if (dbType === 'mysql') {
+        const nc_knex = knex(mysqlConfig);
 
-      try {
-        await nc_knex.raw(`USE test_sakila_${parallelId}`);
-      } catch (e) {
-        await nc_knex.raw(`CREATE DATABASE test_sakila_${parallelId}`);
-        await nc_knex.raw(`USE test_sakila_${parallelId}`);
+        try {
+          await nc_knex.raw(`USE test_sakila_${parallelId}`);
+        } catch (e) {
+          await nc_knex.raw(`CREATE DATABASE test_sakila_${parallelId}`);
+          await nc_knex.raw(`USE test_sakila_${parallelId}`);
+        }
+        if (!isEmptyProject) {
+          await resetSakilaMysql(nc_knex, parallelId, isEmptyProject);
+        }
       }
-      if (!isEmptyProject) {
-        await resetSakilaMysql(nc_knex, parallelId, isEmptyProject);
+    };
+
+    // Create workspace (can run in parallel with DB reset)
+    const wsCreateFn = async () => {
+      if (isEE() && api['workspace']) {
+        return api['workspace'].create({ title: workspaceTitle });
       }
-    }
+      return undefined;
+    };
 
-    let workspace;
-    if (isEE() && api['workspace']) {
-      // create a new workspace
-      workspace = await api['workspace'].create({
-        title: workspaceTitle,
-      });
-    }
+    // DB reset must complete before workspace creation to avoid stale backend state
+    // (DROP DATABASE WITH FORCE can kill backend connections during concurrent operations)
+    await dbResetFn();
+    const workspace = await wsCreateFn();
 
+    // Create base (depends on both DB reset and workspace)
     let base;
     if (isEE()) {
       if (isEmptyProject) {
-        // create a new base under the workspace we just created
         base = await api.base.create({
           title: baseTitle,
           fk_workspace_id: workspace.id,
           type: baseType,
         });
       } else {
-        if ('id' in workspace) {
+        if (workspace && 'id' in workspace) {
           // @ts-ignore
           base = await api.base.create(extPgProject(workspace.id, baseTitle, workerId, baseType));
         }
       }
     } else {
       if (isEmptyProject) {
-        // create a new base
         base = await api.base.create({
           title: baseTitle,
         });
@@ -434,20 +441,22 @@ const setup = async ({
   }
   const token = response.data.token;
 
-  try {
-    const admin = await axios.post('http://localhost:8080/api/v1/auth/user/signin', {
-      email: `user@nocodb.com`,
-      password: getDefaultPwd(),
-    });
-    if (!isEE())
-      await axios.post(
-        `http://localhost:8080/api/v1/license`,
-        { key: '' },
-        { headers: { 'xc-auth': admin.data.token } }
-      );
-  } catch (e) {
-    // ignore error: some roles will not have permission for license reset
-    // console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
+  if (!licenseResetDone) {
+    try {
+      const admin = await axios.post('http://localhost:8080/api/v1/auth/user/signin', {
+        email: `user@nocodb.com`,
+        password: getDefaultPwd(),
+      });
+      if (!isEE())
+        await axios.post(
+          `http://localhost:8080/api/v1/license`,
+          { key: '' },
+          { headers: { 'xc-auth': admin.data.token } }
+        );
+      licenseResetDone = true;
+    } catch (e) {
+      // ignore error: some roles will not have permission for license reset
+    }
   }
   await page.addInitScript(
     async ({ token }) => {
@@ -508,8 +517,8 @@ const setup = async ({
     waitUntil: 'networkidle',
   });
 
-  // Wait for the sidebar slide transition to complete to avoid flaky tests
-  await page.waitForTimeout(500);
+  // Wait for the sidebar to render before handing off to the test
+  await page.locator('.nc-sidebar').waitFor({ state: 'visible', timeout: 10000 });
 
   console.timeEnd('Setup');
 

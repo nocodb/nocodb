@@ -8,6 +8,6 @@ function _errorTests() {
   pgErrorExtractorTest();
 }
 
-export const errorTests = runOnSet(2, function () {
+export const errorTests = runOnSet(3, function () {
   describe('Error', _errorTests);
 });

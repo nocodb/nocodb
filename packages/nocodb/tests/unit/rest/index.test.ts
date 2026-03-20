@@ -59,12 +59,14 @@ function restTests() {
     columnTypeSpecificTests();
     autoNumberTests();
     attachmentTests();
-    filterTest();
-    groupByTest();
     workspaceTest();
     formulaTests();
     ssoTest();
     scimTest();
+  }
+  if (willRunOnSet(2)) {
+    filterTest();
+    groupByTest();
     scimComplianceTest();
     cloudOrgTest();
     typeCastsTest();
@@ -78,7 +80,7 @@ function restTests() {
     bulkV1Test();
     oauthDCRTest();
   }
-  if (willRunOnSet(2)) {
+  if (willRunOnSet(3)) {
     viewRowTests();
   }
   if (testVersion.includes('v1')) tableTests('v1');

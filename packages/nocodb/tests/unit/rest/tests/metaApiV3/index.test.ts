@@ -16,7 +16,7 @@ import { isEE } from '../../../utils/helpers';
 // import workspaceTeamsV3 from './workspace-teams.test';
 // import baseTeamsV3 from './base-teams.test';
 
-export default runOnSet(2, function () {
+export default runOnSet(3, function () {
   baseTestV3();
   baseUsersTestV3();
   tableTestV3();

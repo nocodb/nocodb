@@ -33,6 +33,8 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
 
   const loadDocument = async (..._params: any) => null
 
+  const loadAllDocuments = async (..._params: any) => []
+
   const createDocument = async (..._params: any) => null
 
   const updateDocument = async (..._params: any) => null
@@ -63,6 +65,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     loadDocuments,
     loadChildren,
     loadDocument,
+    loadAllDocuments,
     createDocument,
     updateDocument,
     deleteDocument,

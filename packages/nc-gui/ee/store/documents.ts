@@ -204,6 +204,11 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
 
       return doc
     } catch (_e) {
+      // Navigate to the base so the user doesn't get stuck on a blank page
+      ncNavigateTo({
+        workspaceId: activeWorkspaceId.value,
+        baseId: activeProjectId.value,
+      })
       return null
     } finally {
       if (showLoader) {
@@ -675,6 +680,22 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     }
   }
 
+  /**
+   * Load ALL documents for a base in a single API call (flat list, no content).
+   * Used by the permissions settings page to avoid recursive tree expansion.
+   */
+  const loadAllDocuments = async (baseId: string) => {
+    const response = (await $api.internal.getOperation(activeWorkspaceId.value, baseId, {
+      operation: 'documentListAll',
+    })) as DocumentType[]
+
+    if (ncIsArray(response)) {
+      documents.value.set(baseId, response)
+    }
+
+    return response || []
+  }
+
   return {
     documents,
     activeDocumentId,
@@ -693,6 +714,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     loadDocuments,
     loadChildren,
     loadDocument,
+    loadAllDocuments,
     createDocument,
     updateDocument,
     deleteDocument,

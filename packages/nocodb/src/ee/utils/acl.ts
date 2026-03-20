@@ -380,6 +380,7 @@ const permissionScopes = {
 
     // Documents
     'documentList',
+    'documentListAll',
     'documentGet',
     'documentCreate',
     'documentUpdate',
@@ -746,6 +747,7 @@ const rolePermissions:
 
       // Documents — read-only for viewers
       documentList: true,
+      documentListAll: true,
       documentGet: true,
 
       // Document Comments — read-only for viewers
@@ -1356,6 +1358,7 @@ const permissionDescriptions: Record<string, string> = {
   mcpDelete: 'delete an MCP token',
 
   documentList: 'view list of documents',
+  documentListAll: 'view all documents in a base',
   documentGet: 'view document details',
   documentCreate: 'create a new document',
   documentUpdate: 'update a document',

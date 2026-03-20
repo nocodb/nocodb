@@ -116,64 +116,100 @@ export class DocumentsService extends DocumentsServiceCE {
   ) {
     const docs = await Document.listLite(context, baseId, parentId);
 
+    // Load all permissions for the base once (cached, single query).
+    // Shared across visibility filtering, has_children correction, and
+    // has_permissions enrichment — avoids per-doc DB queries.
+    const allPermissions = await Permission.list(context, baseId);
+
+    // Build map: docId → explicit visibility permission
+    const visibilityMap = new Map<string, Permission>();
+    for (const p of allPermissions) {
+      if (
+        p.entity === PermissionEntity.DOCUMENT &&
+        p.permission === PermissionKey.DOCUMENT_VISIBILITY
+      ) {
+        visibilityMap.set(p.entity_id, p);
+      }
+    }
+
     // Filter by visibility permissions if user info is available
     let visibleDocs = docs;
     if (req?.user) {
-      const filtered: typeof docs = [];
-      for (const doc of docs) {
-        const allowed = await this.checkDocPermission(
-          context,
-          doc.id!,
-          PermissionKey.DOCUMENT_VISIBILITY,
-          req.user,
-        );
-        if (allowed) {
-          filtered.push(doc);
-        }
-      }
-      visibleDocs = filtered;
+      const role = getProjectRole(req.user);
 
-      // Correct has_children: a doc reporting has_children=true from the DB
-      // may have ALL its children hidden from this user. Exposing the flag
-      // would leak the existence of hidden child pages.
-      //
-      // Batch: collect all parent IDs that claim has_children, fetch all their
-      // children in a single query, then check visibility.
-      const parentsWithChildren = visibleDocs.filter((d) => d.has_children);
-      if (parentsWithChildren.length) {
-        const parentIds = parentsWithChildren.map((d) => d.id!);
-        const allChildren = await Document.listLiteByParentIds(
-          context,
-          baseId,
-          parentIds,
-        );
+      // Base owners bypass all document permissions
+      if (role !== ProjectRoles.OWNER) {
+        const user = { id: req.user.id, role };
 
-        // Group children by parent_id
-        const childrenByParent = new Map<string, typeof allChildren>();
-        for (const child of allChildren) {
-          const group = childrenByParent.get(child.parent_id!) || [];
-          group.push(child);
-          childrenByParent.set(child.parent_id!, group);
+        // Resolve parent's effective visibility once (all docs share the same parent)
+        let parentEffective: Permission | null = null;
+        if (parentId) {
+          const result = await Permission.getEffectiveDocPermission(
+            context,
+            parentId,
+            PermissionKey.DOCUMENT_VISIBILITY,
+          );
+          parentEffective = result.permission;
         }
 
-        for (const doc of parentsWithChildren) {
-          const children = childrenByParent.get(doc.id!) || [];
-          let anyVisible = false;
-          for (const child of children) {
-            if (
-              await this.checkDocPermission(
-                context,
-                child.id!,
-                PermissionKey.DOCUMENT_VISIBILITY,
-                req.user,
-              )
-            ) {
-              anyVisible = true;
-              break; // one visible child is enough
-            }
+        // Filter docs: each doc uses its explicit permission or inherits from parent
+        const filtered: typeof docs = [];
+        for (const doc of docs) {
+          const effective = visibilityMap.get(doc.id!) || parentEffective;
+          const allowed = effective
+            ? await Permission.isAllowed(context, effective, user)
+            : true; // No permission = default = allow all
+          if (allowed) {
+            filtered.push(doc);
           }
-          if (!anyVisible) {
-            doc.has_children = false;
+        }
+        visibleDocs = filtered;
+
+        // Correct has_children: a doc reporting has_children=true from the DB
+        // may have ALL its children hidden from this user. Exposing the flag
+        // would leak the existence of hidden child pages.
+        //
+        // Batch: fetch all children for parents with has_children in a single query.
+        const parentsWithChildren = visibleDocs.filter(
+          (d) => d.has_children,
+        );
+        if (parentsWithChildren.length) {
+          const parentIds = parentsWithChildren.map((d) => d.id!);
+          const allChildren = await Document.listLiteByParentIds(
+            context,
+            baseId,
+            parentIds,
+          );
+
+          // Group children by parent_id
+          const childrenByParent = new Map<string, typeof allChildren>();
+          for (const child of allChildren) {
+            const group = childrenByParent.get(child.parent_id!) || [];
+            group.push(child);
+            childrenByParent.set(child.parent_id!, group);
+          }
+
+          for (const doc of parentsWithChildren) {
+            const children = childrenByParent.get(doc.id!) || [];
+            // Doc's effective visibility becomes the parent for its children
+            const docEffective =
+              visibilityMap.get(doc.id!) || parentEffective;
+
+            let anyVisible = false;
+            for (const child of children) {
+              const childEffective =
+                visibilityMap.get(child.id!) || docEffective;
+              if (
+                !childEffective ||
+                (await Permission.isAllowed(context, childEffective, user))
+              ) {
+                anyVisible = true;
+                break; // one visible child is enough
+              }
+            }
+            if (!anyVisible) {
+              doc.has_children = false;
+            }
           }
         }
       }
@@ -191,16 +227,101 @@ export class DocumentsService extends DocumentsServiceCE {
       }
     }
 
-    // Enrich with has_permissions flag (uses cached Permission.list)
+    // Enrich with has_permissions flag (reuse pre-loaded permissions)
     if (visibleDocs.length) {
-      const allPermissions = await Permission.list(context, baseId);
       const docIdsWithPermissions = new Set(
         allPermissions
           .filter((p) => p.entity === PermissionEntity.DOCUMENT)
           .map((p) => p.entity_id),
       );
       for (const doc of visibleDocs) {
-        (doc as DocumentType).has_permissions = docIdsWithPermissions.has(doc.id!);
+        (doc as DocumentType).has_permissions = docIdsWithPermissions.has(
+          doc.id!,
+        );
+      }
+    }
+
+    return visibleDocs;
+  }
+
+  /**
+   * List ALL documents in a base (lightweight — excludes content).
+   * Returns a flat list of every doc regardless of parent, with visibility
+   * filtering and permission enrichment. Used by the permissions settings page.
+   */
+  async listAll(context: NcContext, baseId: string, req?: NcRequest) {
+    const docs = await Document.listAllLite(context, baseId);
+
+    // Load all permissions for the base once (cached, single query)
+    const allPermissions = await Permission.list(context, baseId);
+
+    // Build map: docId → explicit visibility permission
+    const visibilityMap = new Map<string, Permission>();
+    for (const p of allPermissions) {
+      if (
+        p.entity === PermissionEntity.DOCUMENT &&
+        p.permission === PermissionKey.DOCUMENT_VISIBILITY
+      ) {
+        visibilityMap.set(p.entity_id, p);
+      }
+    }
+
+    // Build parent chain map for effective permission resolution
+    const parentMap = new Map<string, string | null>();
+    for (const doc of docs) {
+      parentMap.set(doc.id!, doc.parent_id ?? null);
+    }
+
+    // Resolve effective visibility for a doc by walking up the parent chain in memory
+    const resolveEffective = (docId: string): Permission | null => {
+      let currentId: string | null = docId;
+      const visited = new Set<string>();
+
+      while (currentId) {
+        if (visited.has(currentId)) break; // cycle guard
+        visited.add(currentId);
+
+        const explicit = visibilityMap.get(currentId);
+        if (explicit) return explicit;
+        currentId = parentMap.get(currentId) ?? null;
+      }
+
+      return null; // default = allow all
+    };
+
+    let visibleDocs = docs;
+    if (req?.user) {
+      const role = getProjectRole(req.user);
+
+      if (role !== ProjectRoles.OWNER) {
+        const user = { id: req.user.id, role };
+        const filtered: typeof docs = [];
+
+        for (const doc of docs) {
+          const effective = resolveEffective(doc.id!);
+          const allowed = effective
+            ? await Permission.isAllowed(context, effective, user)
+            : true;
+          if (allowed) {
+            filtered.push(doc);
+          }
+        }
+
+        visibleDocs = filtered;
+      }
+    }
+
+    // Enrich with has_permissions flag
+    if (visibleDocs.length) {
+      const docIdsWithPermissions = new Set(
+        allPermissions
+          .filter((p) => p.entity === PermissionEntity.DOCUMENT)
+          .map((p) => p.entity_id),
+      );
+      for (const doc of visibleDocs) {
+        (doc as DocumentType).has_permissions = docIdsWithPermissions.has(
+          doc.id!,
+        );
       }
     }
 

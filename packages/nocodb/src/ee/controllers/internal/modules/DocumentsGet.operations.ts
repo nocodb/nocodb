@@ -1,6 +1,6 @@
 /**
  * Internal API GET operations for Documents.
- * Handles documentList and documentGet.
+ * Handles documentList, documentListAll, and documentGet.
  */
 import { Injectable } from '@nestjs/common';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
@@ -17,7 +17,11 @@ export class DocumentsGetOperations
   implements InternalApiModule<InternalGETResponseType>
 {
   constructor(protected readonly documentsService: DocumentsService) {}
-  operations = ['documentList' as const, 'documentGet' as const];
+  operations = [
+    'documentList' as const,
+    'documentListAll' as const,
+    'documentGet' as const,
+  ];
   httpMethod = 'GET' as const;
 
   async handle(
@@ -45,6 +49,13 @@ export class DocumentsGetOperations
           context,
           context.base_id,
           parentId,
+          req,
+        );
+      }
+      case 'documentListAll': {
+        return await this.documentsService.listAll(
+          context,
+          context.base_id,
           req,
         );
       }

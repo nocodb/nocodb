@@ -250,6 +250,51 @@ export default class Document extends DocumentCE implements DocumentType {
     return docList.map((doc) => new Document(this.parseDocument(doc)));
   }
 
+  /**
+   * List ALL documents for a base (lightweight — no content, no parent_id filter).
+   * Returns a flat list of every non-deleted doc. Used by the permissions
+   * settings page to render the full doc tree in a single request.
+   */
+  public static async listAllLite(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const liteFields = [
+      'id',
+      'base_id',
+      'fk_workspace_id',
+      'title',
+      'meta',
+      'order',
+      'parent_id',
+      'has_children',
+      'version',
+      'created_by',
+      'updated_by',
+      'created_at',
+      'updated_at',
+    ];
+
+    const docList = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DOCS,
+      {
+        condition: {
+          base_id: baseId,
+          deleted: false,
+        },
+        orderBy: {
+          order: 'asc',
+        },
+        fields: liteFields,
+      },
+    );
+
+    return docList.map((doc) => new Document(this.parseDocument(doc)));
+  }
+
   public static async insert(
     context: NcContext,
     doc: Partial<DocumentType>,

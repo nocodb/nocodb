@@ -139,36 +139,14 @@ const columns = computed(() => {
   return cols
 })
 
-// Load all documents (root + all children) for the permissions view
+// Load all documents in a single API call for the permissions view
 const loadAllDocs = async () => {
   if (!props.baseId) return
 
   isLoadingAllDocs.value = true
 
   try {
-    // Load root docs first
-    const rootDocs = await documentsStore.loadDocuments({ baseId: props.baseId })
-
-    // Recursively load children for all docs that may have children
-    const loadChildrenRecursively = async (docs: DocumentType[]) => {
-      const docsWithPotentialChildren = docs.filter((d) => d.id)
-      await Promise.all(
-        docsWithPotentialChildren.map(async (doc) => {
-          await documentsStore.expandDocument(props.baseId, doc.id!)
-
-          // After expanding, check for newly loaded children
-          const allDocs = activeDocuments.value
-          const children = allDocs.filter((d) => d.parent_id === doc.id)
-          if (children.length) {
-            await loadChildrenRecursively(children)
-          }
-        }),
-      )
-    }
-
-    if (ncIsArray(rootDocs) && rootDocs.length) {
-      await loadChildrenRecursively(rootDocs)
-    }
+    await documentsStore.loadAllDocuments(props.baseId)
   } finally {
     isLoadingAllDocs.value = false
   }

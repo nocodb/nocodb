@@ -26,6 +26,7 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/ncError';
 import { isUserInTeamOrDescendants } from '~/ee/utils/team-subject-matcher';
+import Document from '~/ee/models/Document';
 
 export default class Permission {
   id: string;
@@ -667,10 +668,8 @@ export default class Permission {
       return { permission: explicit, inherited: false };
     }
 
-    // Walk up parent chain — lazy-import Document to break circular dependency
-    // Use getMeta (no content fetch) to avoid hitting the satellite DB,
-    // which would deadlock when called inside a meta-DB transaction on SQLite.
-    const Document = await this.getDocumentModel();
+    // Walk up parent chain — use getMeta (no content fetch) to avoid
+    // hitting the satellite DB, which would deadlock inside a meta-DB transaction.
     const doc = await Document.getMeta(context, docId, ncMeta);
 
     if (doc?.parent_id) {
@@ -688,19 +687,6 @@ export default class Permission {
   }
 
   /**
-   * Lazy-load and cache the Document model to avoid re-evaluating the
-   * dynamic import on every call (circular dependency workaround).
-   */
-  private static _DocumentModel: typeof import('~/ee/models/Document').default;
-
-  private static async getDocumentModel() {
-    if (!this._DocumentModel) {
-      this._DocumentModel = (await import('~/ee/models/Document')).default;
-    }
-    return this._DocumentModel;
-  }
-
-  /**
    * Validate that a new document permission is not more permissive than
    * the parent's effective permission (restrict-only inheritance).
    *
@@ -713,7 +699,6 @@ export default class Permission {
     newOptionValue: PermissionOptionValue,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
-    const Document = await this.getDocumentModel();
     const doc = await Document.getMeta(context, docId, ncMeta);
 
     if (!doc?.parent_id) {
@@ -752,8 +737,9 @@ export default class Permission {
    * that have explicit permissions which are now more permissive than the parent.
    * Auto-tighten them by removing their explicit permission (reverting to inherited).
    *
-   * Collects all IDs to delete first, then batch-deletes in a single call
-   * to avoid partial-cleanup on crash.
+   * Uses a batch approach: loads all base permissions (cached) and all
+   * descendant IDs in one pass, then filters in memory to avoid recursive
+   * per-child DB queries.
    */
   static async cascadeTightenDocPermissions(
     context: NcContext,
@@ -762,75 +748,42 @@ export default class Permission {
     newParentOptionValue: PermissionOptionValue,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
-    const idsToDelete: string[] = [];
-
-    await this._collectTightenIds(
+    // 1. Get all descendant doc IDs in one pass
+    const descendantIds = await Document.getDescendantIds(
       context,
       docId,
-      permissionKey,
-      newParentOptionValue,
-      idsToDelete,
       ncMeta,
     );
 
-    if (idsToDelete.length) {
-      await this.bulkDelete(context, idsToDelete, ncMeta);
-    }
-  }
+    if (!descendantIds.length) return;
 
-  /**
-   * Recursively collect permission IDs that need to be deleted
-   * because they are more permissive than the new parent value.
-   */
-  private static async _collectTightenIds(
-    context: NcContext,
-    docId: string,
-    permissionKey: PermissionKey,
-    newParentOptionValue: PermissionOptionValue,
-    idsToDelete: string[],
-    ncMeta = Noco.ncMeta,
-    _depth = 0,
-  ): Promise<void> {
-    if (_depth > this.MAX_DOC_DEPTH) return;
+    // 2. Load all permissions for the base (cached, single query)
+    const allPermissions = await this.list(context, context.base_id, ncMeta);
 
-    const Document = await this.getDocumentModel();
+    // 3. Filter to descendant document permissions for this key
+    const descendantSet = new Set(descendantIds);
+    const idsToDelete: string[] = [];
 
-    // Get direct children
-    const children = await Document.listLite(context, context.base_id, docId, ncMeta);
-
-    for (const child of children) {
-      const childExplicit = await this.getByEntity(
-        context,
-        'document' as PermissionEntity,
-        child.id!,
-        permissionKey,
-        ncMeta,
-      );
-
-      if (childExplicit) {
+    for (const perm of allPermissions) {
+      if (
+        perm.entity === ('document' as PermissionEntity) &&
+        perm.permission === permissionKey &&
+        descendantSet.has(perm.entity_id)
+      ) {
         const childOptionValue = getPermissionOptionValue(
-          childExplicit.granted_type,
-          childExplicit.granted_role,
+          perm.granted_type,
+          perm.granted_role,
         );
 
         // If child is now more permissive than parent, mark for deletion
         if (!isMoreRestrictive(childOptionValue, newParentOptionValue)) {
-          idsToDelete.push(childExplicit.id);
+          idsToDelete.push(perm.id);
         }
       }
+    }
 
-      // Recurse into children (they may have explicit permissions too)
-      if (child.has_children) {
-        await this._collectTightenIds(
-          context,
-          child.id!,
-          permissionKey,
-          newParentOptionValue,
-          idsToDelete,
-          ncMeta,
-          _depth + 1,
-        );
-      }
+    if (idsToDelete.length) {
+      await this.bulkDelete(context, idsToDelete, ncMeta);
     }
   }
 

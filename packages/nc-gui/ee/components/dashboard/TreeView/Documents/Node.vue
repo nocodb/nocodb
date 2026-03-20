@@ -150,7 +150,7 @@ const focusInput = () => {
 /** Enable editing document name on dbl click */
 const onDblClick = () => {
   if (isMobileMode.value) return
-  if (!isUIAllowed('documentUpdate')) return
+  if (!isCreatorOrAbove.value) return
 
   if (!isEditing.value) {
     isEditing.value = true
@@ -263,7 +263,7 @@ onKeyStroke('Enter', (event) => {
 })
 
 const onRenameMenuClick = () => {
-  if (isMobileMode.value || !isUIAllowed('documentUpdate')) return
+  if (isMobileMode.value || !isCreatorOrAbove.value) return
 
   isDropdownOpen.value = false
 
@@ -378,7 +378,7 @@ function onStopEdit() {
             :key="doc?.meta?.icon"
             :clearable="true"
             :emoji="doc?.meta?.icon"
-            :readonly="isMobileMode || !isUIAllowed('documentUpdate')"
+            :readonly="isMobileMode || !isCreatorOrAbove"
             class="nc-document-icon"
             size="small"
             @emoji-selected="updateDocumentIcon($event)"
@@ -468,7 +468,7 @@ function onStopEdit() {
                 :label="`DOCUMENT ID: ${doc.id}`"
                 :data-testid="`sidebar-doc-copy-id-${doc.title}`"
               />
-              <template v-if="isUIAllowed('documentUpdate')">
+              <template v-if="isCreatorOrAbove">
                 <NcDivider />
                 <NcMenuItem
                   v-e="['c:document:rename']"
@@ -514,44 +514,37 @@ function onStopEdit() {
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="arrowUp" />
                 {{ $t('labels.moveToRoot') }}
               </NcMenuItem>
-              <template v-if="isEeUI && isUIAllowed('documentUpdate')">
+              <template v-if="isEeUI && isCreatorOrAbove">
                 <NcDivider />
                 <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS">
                   <template #default="{ click }">
-                    <NcTooltip :disabled="isCreatorOrAbove" placement="left">
-                      <template #title>
-                        {{ $t('msg.info.onlyCreatorsCanConfigureDocPermissions') }}
-                      </template>
-                      <NcMenuItem
-                        v-e="['c:document:permissions']"
-                        :data-testid="`sidebar-doc-permissions-${doc.title}`"
-                        class="nc-document-permissions"
-                        :disabled="!isCreatorOrAbove"
-                        @click="
-                          isCreatorOrAbove &&
-                            click(PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS, () => {
-                              onPermissions()
-                            })
-                        "
-                      >
-                        <div class="flex gap-2 items-center w-full">
-                          <GeneralIcon icon="ncLock" class="opacity-80" />
-                          <div class="flex-1">
-                            {{ $t('title.pagePermissions') }}
-                          </div>
-
-                          <LazyPaymentUpgradeBadge
-                            :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS"
-                            :title="$t('upgrade.upgradeToUseDocumentPermissions')"
-                            :content="
-                              $t('upgrade.upgradeToUseDocumentPermissionsSubtitle', {
-                                plan: PlanTitles.BUSINESS,
-                              })
-                            "
-                          />
+                    <NcMenuItem
+                      v-e="['c:document:permissions']"
+                      :data-testid="`sidebar-doc-permissions-${doc.title}`"
+                      class="nc-document-permissions"
+                      @click="
+                        click(PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS, () => {
+                          onPermissions()
+                        })
+                      "
+                    >
+                      <div class="flex gap-2 items-center w-full">
+                        <GeneralIcon icon="ncLock" class="opacity-80" />
+                        <div class="flex-1">
+                          {{ $t('title.pagePermissions') }}
                         </div>
-                      </NcMenuItem>
-                    </NcTooltip>
+
+                        <LazyPaymentUpgradeBadge
+                          :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS"
+                          :title="$t('upgrade.upgradeToUseDocumentPermissions')"
+                          :content="
+                            $t('upgrade.upgradeToUseDocumentPermissionsSubtitle', {
+                              plan: PlanTitles.BUSINESS,
+                            })
+                          "
+                        />
+                      </div>
+                    </NcMenuItem>
                   </template>
                 </PaymentUpgradeBadgeProvider>
               </template>

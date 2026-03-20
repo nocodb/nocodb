@@ -15,7 +15,7 @@ interface Props {
 
 const { isXcdbBase } = useBase()
 
-const { showNull, isMobileMode } = useGlobal()
+const { appInfo, showNull, isMobileMode } = useGlobal()
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
@@ -127,7 +127,7 @@ const localState = computed({
 })
 
 const timeZoneDisplay = computed(() => {
-  if (!isEeUI) {
+  if (!appInfo.value?.ee) {
     return undefined
   }
   if (!localState.value) {

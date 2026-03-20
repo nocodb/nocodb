@@ -17,6 +17,9 @@ export default defineNuxtPlugin(() => {
   const hashContent = hash.slice(1) // remove leading #
   const [hashPath, hashQuery] = hashContent.split('?')
 
+  // Prevent open redirect via protocol-relative URLs (//attacker.com, /\attacker.com)
+  if (/^\/[/\\]/.test(hashPath)) return
+
   let cleanUrl = hashPath.startsWith('/') ? hashPath : `/${hashPath}`
 
   if (hashQuery) {

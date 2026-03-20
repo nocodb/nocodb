@@ -7,9 +7,6 @@ import importFresh from 'import-fresh';
 import inflection from 'inflection';
 import slash from 'slash';
 import { customAlphabet } from 'nanoid';
-import type MysqlClient from '~/db/sql-client/lib/mysql/MysqlClient';
-import type PGClient from '~/db/sql-client/lib/pg/PgClient';
-import type SqliteClient from '~/db/sql-client/lib/sqlite/SqliteClient';
 import { T } from '~/utils';
 import Result from '~/db/util/Result';
 import Debug from '~/db/util/Debug';
@@ -342,7 +339,7 @@ export default class SqlMgr {
    */
   public async baseGetSqlClient(
     args,
-  ): Promise<MysqlClient | SqliteClient | PGClient> {
+  ) {
     const func = this.baseGetSqlClient.name;
     log.api(`${func}:args:`, args);
 

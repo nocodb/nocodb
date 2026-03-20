@@ -9,7 +9,7 @@ import TidbClient from '~/db/sql-client/lib/mysql/TidbClient';
 import VitessClient from '~/db/sql-client/lib/mysql/VitessClient';
 
 export class SqlClientFactory {
-  static create(connectionConfig) {
+  static create(connectionConfig): any {
     connectionConfig.meta = connectionConfig.meta || {};
     connectionConfig.pool = connectionConfig.pool || { min: 0, max: 5 };
     connectionConfig.meta.dbtype = connectionConfig.meta.dbtype || '';

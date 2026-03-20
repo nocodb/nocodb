@@ -76,14 +76,14 @@ watch(picked, (n, _o) => {
           class="color-selector"
           :class="{ 'selected': compare(picked, color), 'new-design': isNewDesign }"
           :style="{
-            backgroundColor: `${getSelectTypeFieldOptionBgColor({
+            backgroundColor: `${getDarkModeCompatibleBgColor({
               color: color || '#ccc',
               isDark: invertInDarkMode && isDark,
               shade: 0,
             })}`,
             border: colorBoxBorder
               ? `1px solid ${tinycolor(
-                  getSelectTypeFieldOptionBgColor({ color: color || '#ccc', isDark: invertInDarkMode && isDark, shade: 0 }),
+                  getDarkModeCompatibleBgColor({ color: color || '#ccc', isDark: invertInDarkMode && isDark, shade: 0 }),
                 )
                   .darken(invertInDarkMode && isDark ? -30 : 30)
                   .toString()}`

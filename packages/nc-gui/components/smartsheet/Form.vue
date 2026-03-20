@@ -968,7 +968,7 @@ const { message: templatedMessage } = useTemplatedMessage(
         class="h-full p-6 overflow-auto nc-scrollbar-thin"
         :style="{
           background: parseProp(formViewData?.meta)?.background_color
-            ? getSelectTypeFieldOptionBgColor({ color: parseProp(formViewData?.meta)?.background_color, isDark, shade: 0 })
+            ? getDarkModeCompatibleBgColor({ color: parseProp(formViewData?.meta)?.background_color, isDark, shade: 0 })
             : 'var(--nc-bg-gray-extralight)',
         }"
         data-testid="nc-form-wrapper-submit"
@@ -1062,7 +1062,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                 class="w-full h-full overflow-auto nc-scrollbar-thin p-6"
                 :style="{
                   background: parseProp(formViewData?.meta)?.background_color
-                    ? getSelectTypeFieldOptionBgColor({
+                    ? getDarkModeCompatibleBgColor({
                         color: parseProp(formViewData?.meta)?.background_color,
                         isDark,
                         shade: 0,

@@ -3434,13 +3434,13 @@ export function useCanvasRender({
         const tag = tags[i] || ''
         const color = colors[i] || '#ccc'
 
-        const opBgColor = !isDark.value ? color : getAdaptiveTint(color, { isDarkMode: isDark.value, shade: -10 })
+        const opBgColor = !isDark.value
+          ? getAdaptiveTint(color, { saturationMod: 5, isDarkMode: isDark.value, shade: 20 })
+          : getAdaptiveTint(color, { isDarkMode: isDark.value, shade: -10 })
 
         const displayText = tag in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[tag] : tag
 
-        const textColor = !isDark.value
-          ? getSelectTypeOptionTextColor(color, getColor, true)
-          : getOppositeColorOfBackground(opBgColor, color)
+        const textColor = getOppositeColorOfBackground(opBgColor, color)
 
         ctx.save()
         ctx.font = '700 13px Inter'

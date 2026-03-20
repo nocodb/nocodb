@@ -6,7 +6,7 @@ const tagHeight = 22
 const topPadding = 4
 
 export const SingleSelectCellRenderer: CellRenderer = {
-  render: (ctx, { column, value, x, y, width, pv, padding, getColor, isDark }) => {
+  render: (ctx, { column, value, x, y, width, pv, padding, isDark }) => {
     const text = value?.toString()?.trim() ?? ''
 
     // If it is empty text then no need to render
@@ -25,7 +25,9 @@ export const SingleSelectCellRenderer: CellRenderer = {
 
     const opColor = (column.extra as ReturnType<typeof getSingleMultiselectColOptions>)?.optionsMap?.[text]?.color ?? '#e7e7e9'
 
-    const opBgColor = !isDark ? opColor : getAdaptiveTint(opColor, { isDarkMode: isDark, shade: -10 })
+    const opBgColor = !isDark
+      ? getAdaptiveTint(opColor, { saturationMod: 5, isDarkMode: isDark, shade: 20 })
+      : getAdaptiveTint(opColor, { isDarkMode: isDark, shade: -10 })
 
     renderTag(ctx, {
       x: x + padding,
@@ -44,9 +46,7 @@ export const SingleSelectCellRenderer: CellRenderer = {
       textAlign: 'left',
       verticalAlign: 'middle',
       fontFamily: `${pv ? 600 : 500} 13px Inter`,
-      fillStyle: !isDark
-        ? getSelectTypeOptionTextColor(opColor, getColor, true)
-        : getOppositeColorOfBackground(opBgColor, opColor),
+      fillStyle: getOppositeColorOfBackground(opBgColor, opColor),
     })
 
     return {

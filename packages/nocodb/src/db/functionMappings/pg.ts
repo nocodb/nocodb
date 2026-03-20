@@ -505,20 +505,31 @@ END`,
   },
   ARRAYSORT: async (args: MapFnArgs) => {
     const { fn, knex, pt } = args;
+
+    // Validate direction to prevent SQL injection — only 'asc' or 'desc' allowed
+    const getSafeDirection = async () => {
+      if (!pt.arguments[1]) return knex.raw('asc');
+
+      // String literal path (e.g. "desc")
+      if ('value' in pt.arguments[1] && pt.arguments[1].value != null) {
+        const normalized = String(pt.arguments[1].value).trim().toLowerCase();
+        if (normalized === 'asc' || normalized === 'desc') {
+          return knex.raw(normalized);
+        }
+        return knex.raw('asc');
+      }
+
+      // Formula expression path (e.g. IF(..., "asc", "desc"))
+      return sanitize(knex.raw((await fn(pt.arguments[1])).builder));
+    };
+
     if ((<CallExpressionNode>pt).referencedColumn?.uidt === UITypes.User) {
       const source = (await getArraySourceUserUnnested(pt.arguments[0], args))
         .builder;
-      const direction = pt.arguments[1]
-        ? sanitize(
-            knex.raw(
-              pt.arguments[1]?.value ?? (await fn(pt.arguments[1])).builder,
-            ),
-          )
-        : knex.raw('asc');
       return {
         builder: knex.raw(
           `ARRAY(SELECT userid FROM ( ?? ORDER BY email ?? ) as _tbl1)`,
-          [source, direction],
+          [source, await getSafeDirection()],
         ),
       };
     } else if (
@@ -527,33 +538,18 @@ END`,
       const source = (
         await getArraySourceAttachmentUnnested(pt.arguments[0], args)
       ).builder;
-
-      const direction = pt.arguments[1]
-        ? sanitize(
-            knex.raw(
-              pt.arguments[1]?.value ?? (await fn(pt.arguments[1])).builder,
-            ),
-          )
-        : knex.raw('asc');
       return {
         builder: knex.raw(
           `ARRAY(SELECT __val::jsonb FROM ( ?? ORDER BY title ?? ) as _tbl1)`,
-          [source, direction],
+          [source, await getSafeDirection()],
         ),
       };
     }
     const source = (await getArraySource(pt.arguments[0], args)).builder;
-    const direction = pt.arguments[1]
-      ? sanitize(
-          knex.raw(
-            pt.arguments[1]?.value ?? (await fn(pt.arguments[1])).builder,
-          ),
-        )
-      : knex.raw('asc');
     return {
       builder: knex.raw(`ARRAY(SELECT UNNEST(??) ORDER BY 1 ??)`, [
         source,
-        direction,
+        getSafeDirection(),
       ]),
     };
   },

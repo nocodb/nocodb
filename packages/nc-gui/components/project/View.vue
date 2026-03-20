@@ -463,7 +463,10 @@ watch(
           </template>
           <DashboardSettingsPermissions v-model:state="baseSettingsState" :base-id="base.id" />
         </a-tab-pane>
-        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode" key="docs-permissions">
+        <a-tab-pane
+          v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode && showEEFeatures"
+          key="docs-permissions"
+        >
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__docs-permissions">
               <GeneralIcon icon="ncFileText" />

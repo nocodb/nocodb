@@ -740,6 +740,8 @@ interface PermissionConfig {
   effectiveValue?: string
   /** Parent's effective permission value — child options more permissive than this are disabled. */
   parentEffectiveValue?: string
+  /** Current visibility value — editing options more permissive than this are disabled. */
+  visibilityValue?: string
 }
 
 interface PermissionSelectorUser {

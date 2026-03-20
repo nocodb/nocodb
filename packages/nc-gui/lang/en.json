@@ -2964,6 +2964,8 @@
       "onlyCreatorsCanConfigureDocPermissions": "Only base owners and creators can configure document permissions",
       "resetAllDocPermissionsConfirm": "This will remove all custom document permissions and revert every page to default access. This action cannot be undone.",
       "cannotBeMorePermissiveThanParent": "Cannot be less restrictive than the parent document",
+      "cannotBeMorePermissiveThanVisibility": "Cannot be less restrictive than page visibility",
+      "editingDisabledWhenHidden": "Editing is not applicable when page is hidden",
       "pageNotFoundDescription": "This document doesn't exist or you don't have permission to view it.",
       "pageNotFoundHint": "If you believe this document exists, contact the base owner to request access.",
       "noDocs": "No documents in this base yet.",

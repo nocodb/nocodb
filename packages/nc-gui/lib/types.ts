@@ -738,6 +738,8 @@ interface PermissionConfig {
   tooltip?: string
   /** Pre-resolved effective value for inherited permissions (e.g. from parent doc). */
   effectiveValue?: string
+  /** Parent's effective permission value — child options more permissive than this are disabled. */
+  parentEffectiveValue?: string
 }
 
 interface PermissionSelectorUser {

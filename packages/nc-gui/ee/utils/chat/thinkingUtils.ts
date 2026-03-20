@@ -8,6 +8,7 @@ function buildColMap(where: string): Record<string, { id: string; title: string;
   const map: Record<string, { id: string; title: string; uidt: string }> = {}
   const regex = /\(([^,(]+),/g
   let m
+  // eslint-disable-next-line no-cond-assign
   while ((m = regex.exec(where)) !== null) {
     const alias = m[1]
     if (alias && !map[alias]) {

@@ -30,6 +30,8 @@ export interface SlashCommandItem {
   inputPlaceholder?: string
   /** Keyboard shortcut keys — platform-agnostic tokens: 'Mod' = ⌘/Ctrl, 'Alt', 'Shift', plus literal keys */
   shortcut?: string[]
+  /** Return false to hide this item based on current editor state */
+  shouldShow?: (editor: Editor) => boolean
 }
 
 /**
@@ -69,6 +71,9 @@ const icons = {
   ),
   divider: svg('<line x1="3.33" y1="8" x2="12.67" y2="8"/>'),
   columns: svg('<rect x="2" y="2" width="4.67" height="12" rx=".67"/><rect x="9.33" y="2" width="4.67" height="12" rx=".67"/>'),
+  tabs: svg(
+    '<rect x="2" y="4" width="12" height="10" rx="1"/><path d="M2 5.33c0-.73.6-1.33 1.33-1.33h3.34c.73 0 1.33-.6 1.33-1.33V2.33"/><line x1="6.67" y1="4" x2="6.67" y2="2"/>',
+  ),
   file: svg(
     '<path d="M9.33 1.33H4a1.33 1.33 0 0 0-1.33 1.33v10.67A1.33 1.33 0 0 0 4 14.67h8A1.33 1.33 0 0 0 13.33 13.33V5.33z"/><polyline points="9.33 1.33 9.33 5.33 13.33 5.33"/><line x1="8" y1="12" x2="8" y2="8"/><line x1="6" y1="10" x2="10" y2="10"/>',
   ),
@@ -278,6 +283,23 @@ export const slashCommandItems: SlashCommandItem[] = [
       editor.chain().focus().deleteRange(range).setColumns().run()
     },
   },
+  {
+    title: 'Tabs',
+    description: 'Tabbed content panels',
+    icon: icons.tabs,
+    group: 'Blocks',
+    shouldShow: (editor) => {
+      const { $from } = editor.state.selection
+      for (let d = $from.depth; d > 0; d--) {
+        const name = $from.node(d).type.name
+        if (name === 'docTab' || name === 'docTabs') return false
+      }
+      return true
+    },
+    command: (editor, range) => {
+      editor.chain().focus().deleteRange(range).setTabs().run()
+    },
+  },
   // — Math —
   {
     title: 'Equation',
@@ -467,9 +489,13 @@ export const SlashCommandExtension = Extension.create({
         char: '/',
         allowSpaces: false,
         startOfLine: false,
-        items: ({ query }: { query: string }) => {
+        items: ({ query, editor }: { query: string; editor: Editor }) => {
           const q = query.toLowerCase()
-          return slashCommandItems.filter((item) => item.title.toLowerCase().includes(q) || item.group.toLowerCase().includes(q))
+          return slashCommandItems.filter(
+            (item) =>
+              (item.title.toLowerCase().includes(q) || item.group.toLowerCase().includes(q)) &&
+              (item.shouldShow ? item.shouldShow(editor) : true),
+          )
         },
         render: () => {
           let popup: TippyInstance | undefined

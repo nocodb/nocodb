@@ -5,7 +5,7 @@ import { ChatMessageRole, ChatToolCallStatus } from 'nocodb-sdk'
 const { isPanelExpanded, chatPanelWidth, isResizing, isFullScreen, isSidebarOpen, startResize, toggleFullScreen, toggleSidebar } =
   useChatPanel()
 
-const { blockAiChat, isEEFeatureBlocked } = useEeConfig()
+const { blockAiChat } = useEeConfig()
 
 const chatStore = useChatStore()
 

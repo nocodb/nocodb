@@ -121,7 +121,7 @@ const steps = computed<ThinkingStep[]>(() => {
                 </div>
               </div>
               <div v-if="step.sources?.length" class="nc-thinking-step-sources">
-                <ChatWebSourceChip v-for="(source, si) in step.sources" :key="source.url" :source="source" :index="si" />
+                <ChatWebSourceChip v-for="(source, idx) in step.sources" :key="source.url" :source="source" :index="idx" />
               </div>
             </div>
           </div>

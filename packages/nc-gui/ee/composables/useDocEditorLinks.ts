@@ -552,7 +552,8 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
       selection.node?.type.name === 'fileAttachment' ||
       selection.node?.type.name === 'embed' ||
       selection.node?.type.name === 'horizontalRule' ||
-      selection.node?.type.name === 'inlineMath'
+      selection.node?.type.name === 'inlineMath' ||
+      selection.node?.type.name === 'docTabs'
     )
       return false
     // Hide inside code blocks — formatting doesn't apply to code

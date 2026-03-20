@@ -379,67 +379,65 @@ onMounted(fetchData)
         </thead>
         <tbody>
           <LazySmartsheetRow v-for="(row, ri) in rowObjects" :key="ri" :row="row">
-            <template #default="{ state }">
-              <tr
-                class="cursor-pointer transition-colors"
+            <tr
+              class="cursor-pointer transition-colors"
+              :class="ri % 2 === 0 ? 'bg-white dark:bg-nc-bg-default' : 'bg-nc-bg-gray-extralight'"
+              @mouseenter="hoveredRowIndex = ri"
+              @mouseleave="hoveredRowIndex = null"
+              @click="handleRowClick(row)"
+            >
+              <td
+                class="nc-grid-td sticky left-0 z-1 w-9 min-w-9"
                 :class="ri % 2 === 0 ? 'bg-white dark:bg-nc-bg-default' : 'bg-nc-bg-gray-extralight'"
-                @mouseenter="hoveredRowIndex = ri"
-                @mouseleave="hoveredRowIndex = null"
-                @click="handleRowClick(row)"
               >
-                <td
-                  class="nc-grid-td sticky left-0 z-1 w-9 min-w-9"
-                  :class="ri % 2 === 0 ? 'bg-white dark:bg-nc-bg-default' : 'bg-nc-bg-gray-extralight'"
-                >
-                  <div class="flex items-center justify-center">
-                    <GeneralIcon v-if="hoveredRowIndex === ri" icon="ncMaximize" class="w-3.5 h-3.5 text-nc-content-brand" />
-                    <span v-else class="text-nc-content-gray-muted">{{ ri + 1 }}</span>
-                  </div>
-                </td>
-                <td
-                  v-if="displayColumn"
-                  class="nc-grid-td nc-grid-pv-col sticky z-1 border-l-1 border-nc-border-gray-light font-medium"
-                  :class="ri % 2 === 0 ? 'bg-white dark:bg-nc-bg-default' : 'bg-nc-bg-gray-extralight'"
-                >
-                  <LazySmartsheetVirtualCell
-                    v-if="isVirtualCol(displayColumn)"
-                    v-model="row.row[displayColumn.title!]"
-                    :column="displayColumn"
-                    :row="row"
-                    read-only
-                  />
-                  <LazySmartsheetCell
-                    v-else
-                    v-model="row.row[displayColumn.title!]"
-                    :edit-enabled="false"
-                    :column="displayColumn"
-                    :row-index="ri"
-                    read-only
-                  />
-                </td>
-                <td
-                  v-for="(col, ci) in dataColumns"
-                  :key="col.id"
-                  class="nc-grid-td nc-grid-data-col border-l-1 border-nc-border-gray-light"
-                >
-                  <LazySmartsheetVirtualCell
-                    v-if="colMeta[ci + 1]?.isVirtualCol"
-                    v-model="row.row[col.title!]"
-                    :column="col"
-                    :row="row"
-                    read-only
-                  />
-                  <LazySmartsheetCell
-                    v-else
-                    v-model="row.row[col.title!]"
-                    :edit-enabled="false"
-                    :column="col"
-                    :row-index="ri"
-                    read-only
-                  />
-                </td>
-              </tr>
-            </template>
+                <div class="flex items-center justify-center">
+                  <GeneralIcon v-if="hoveredRowIndex === ri" icon="ncMaximize" class="w-3.5 h-3.5 text-nc-content-brand" />
+                  <span v-else class="text-nc-content-gray-muted">{{ ri + 1 }}</span>
+                </div>
+              </td>
+              <td
+                v-if="displayColumn"
+                class="nc-grid-td nc-grid-pv-col sticky z-1 border-l-1 border-nc-border-gray-light font-medium"
+                :class="ri % 2 === 0 ? 'bg-white dark:bg-nc-bg-default' : 'bg-nc-bg-gray-extralight'"
+              >
+                <LazySmartsheetVirtualCell
+                  v-if="isVirtualCol(displayColumn)"
+                  v-model="row.row[displayColumn.title!]"
+                  :column="displayColumn"
+                  :row="row"
+                  read-only
+                />
+                <LazySmartsheetCell
+                  v-else
+                  v-model="row.row[displayColumn.title!]"
+                  :edit-enabled="false"
+                  :column="displayColumn"
+                  :row-index="ri"
+                  read-only
+                />
+              </td>
+              <td
+                v-for="(col, ci) in dataColumns"
+                :key="col.id"
+                class="nc-grid-td nc-grid-data-col border-l-1 border-nc-border-gray-light"
+              >
+                <LazySmartsheetVirtualCell
+                  v-if="colMeta[ci + 1]?.isVirtualCol"
+                  v-model="row.row[col.title!]"
+                  :column="col"
+                  :row="row"
+                  read-only
+                />
+                <LazySmartsheetCell
+                  v-else
+                  v-model="row.row[col.title!]"
+                  :edit-enabled="false"
+                  :column="col"
+                  :row-index="ri"
+                  read-only
+                />
+              </td>
+            </tr>
           </LazySmartsheetRow>
           <!-- Spacer rows -->
           <tr v-for="i in 3" :key="`spacer-${i}`" class="nc-grid-spacer-row">

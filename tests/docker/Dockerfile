@@ -5,7 +5,7 @@ FROM ubuntu:22.04
 ARG RUNNER_VERSION="2.306.0"
 
 # Get the base image of Node version 18
-FROM node:18
+FROM node:24
 
 # Get the latest version of Playwright
 FROM mcr.microsoft.com/playwright:v1.32.2-focal

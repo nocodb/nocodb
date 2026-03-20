@@ -33,7 +33,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 22.12.0
+          node-version: 24.14.0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4

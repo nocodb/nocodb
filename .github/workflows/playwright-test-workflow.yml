@@ -63,7 +63,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22.12.0
+          node-version: 24.14.0
           cache: 'pnpm'
 
       - name: Set CI env

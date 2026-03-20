@@ -29,22 +29,22 @@ jobs:
       !github.event.pull_request.draft
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
         with:
           version: 9
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 24.14.0
           cache: 'pnpm'
       - name: remove use-node-version line from .npmrc
         run: sed -i '/^use-node-version/d' .npmrc
       - name: Cache integration dists
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             packages/noco-integrations/packages/*/dist

@@ -22,7 +22,7 @@ jobs:
     timeout-minutes: 100
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
 
@@ -56,12 +56,12 @@ jobs:
           until docker exec mysql mysqladmin ping -h localhost --silent 2>/dev/null; do sleep 3; done
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
         with:
           version: 9
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 24.14.0
           cache: 'pnpm'
@@ -76,7 +76,7 @@ jobs:
         run: sed -i '/^use-node-version/d' .npmrc
 
       - name: Cache integrations (node_modules + dists)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             packages/noco-integrations/node_modules
@@ -125,7 +125,7 @@ jobs:
           npm install
 
       - name: Configure AWS credentials for UI download
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           aws-access-key-id: ${{ secrets.ARTIFACTS_S3_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.ARTIFACTS_S3_SECRET_KEY }}
@@ -180,7 +180,7 @@ jobs:
           pnpm run watch:run:playwright:pg:ee &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('tests/playwright/package.json') }}
@@ -246,7 +246,7 @@ jobs:
 
       - name: Configure AWS credentials for artifact upload
         if: always()
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           aws-access-key-id: ${{ secrets.ARTIFACTS_S3_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.ARTIFACTS_S3_SECRET_KEY }}

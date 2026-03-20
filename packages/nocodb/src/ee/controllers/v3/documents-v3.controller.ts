@@ -52,11 +52,10 @@ export class DocumentsV3Controller {
   @Acl('documentCreate', { scope: 'base' })
   async docCreate(
     @TenantContext() context: NcContext,
-    @Param('baseId') baseId: string,
     @Body() body: DocumentCreateV3Type,
     @Request() req: NcRequest,
   ): Promise<DocumentV3Type> {
-    return await this.documentsV3Service.docCreate(context, baseId, body, req);
+    return await this.documentsV3Service.docCreate(context, body, req);
   }
 
   @Get(`${PREFIX_APIV3_METABASE}/docs/:docId`)

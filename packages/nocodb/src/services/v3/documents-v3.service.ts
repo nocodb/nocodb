@@ -49,7 +49,6 @@ export class DocumentsV3Service {
 
   async docCreate(
     context: NcContext,
-    _baseId: string,
     body: DocumentCreateV3Type,
     req: NcRequest,
   ): Promise<DocumentV3Type> {

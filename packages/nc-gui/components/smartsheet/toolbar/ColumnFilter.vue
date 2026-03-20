@@ -120,7 +120,7 @@ const nested = computed(() => nestedLevel.value > 0)
 
 const { t } = useI18n()
 
-const { isMobileMode } = useGlobal()
+const { appInfo, isMobileMode } = useGlobal()
 
 const { clone } = useUndoRedo()
 
@@ -277,7 +277,7 @@ const isFilterUpdated = computed(() => {
 })
 
 const isReorderEnabled = computed(() => {
-  return isEeUI && isViewFilter.value && !isMobileMode.value
+  return appInfo.value.ee && isViewFilter.value && !isMobileMode.value
 })
 
 const getColumn = (filter: Filter) => {
@@ -1005,7 +1005,7 @@ const mobileActionMenuItems = (filter: FilterType) => {
   if (filter.value?.readOnly || props.readOnly) return []
 
   return [
-    isEeUI && {
+    appInfo.value.ee && {
       title: t('general.copy'),
       onClick: () => {
         $e('c:filter:copy', {
@@ -1191,7 +1191,7 @@ defineExpose({
                 >
                   <template #start>
                     <NcCheckbox
-                      v-if="isEeUI && !hideCheckbox"
+                      v-if="appInfo.ee && !hideCheckbox"
                       :checked="filter.enabled !== false"
                       size="default"
                       :disabled="isLockedView || readOnly"
@@ -1254,7 +1254,7 @@ defineExpose({
                         <GeneralIcon icon="deleteListItem" />
                       </NcButton>
                       <NcButton
-                        v-if="!filter.readOnly && !readOnly && isEeUI"
+                        v-if="!filter.readOnly && !readOnly && appInfo.ee"
                         v-e="['c:filter:copy', { link: !!link, webHook: !!webHook }]"
                         type="text"
                         size="small"
@@ -1284,7 +1284,7 @@ defineExpose({
 
           <div v-else class="flex xs:(items-start) items-center gap-2 w-full">
             <NcCheckbox
-              v-if="isEeUI && !hideCheckbox"
+              v-if="appInfo.ee && !hideCheckbox"
               :checked="filter.enabled !== false"
               size="default"
               :disabled="isLockedView || readOnly"
@@ -1632,7 +1632,7 @@ defineExpose({
                   <GeneralIcon icon="deleteListItem" />
                 </NcButton>
                 <NcButton
-                  v-if="!filter.readOnly && !readOnly && isEeUI"
+                  v-if="!filter.readOnly && !readOnly && appInfo.ee"
                   v-e="['c:filter:copy', { link: !!link, webHook: !!webHook }]"
                   type="text"
                   size="small"
@@ -1647,7 +1647,7 @@ defineExpose({
                   v-if="
                     !filter.readOnly &&
                     !readOnly &&
-                    isEeUI &&
+                    appInfo.ee &&
                     isViewFilter &&
                     !filter.is_group &&
                     !webHook &&
@@ -1707,7 +1707,7 @@ defineExpose({
 
     <template v-if="!nested">
       <div class="flex">
-        <template v-if="isEeUI && !isPublic">
+        <template v-if="appInfo.ee && !isPublic">
           <div
             v-if="!readOnly && filtersCount < getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW) && !hiddenAddNewFilter"
             class="flex gap-2 xs:(justify-between items-start) w-full pr-4"

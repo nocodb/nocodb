@@ -992,7 +992,7 @@ const webhookV2AndV3Diff = computed(() => {
         </div>
 
         <div
-          v-if="hook && isEeUI && !showUpgradeModal"
+          v-if="hook && appInfo.ee && !showUpgradeModal"
           class="flex flex-row p-1 bg-nc-bg-gray-medium rounded-lg gap-x-0.5 nc-view-sidebar-tab"
         >
           <div
@@ -1016,7 +1016,6 @@ const webhookV2AndV3Diff = computed(() => {
             <div class="tab-title nc-tab">{{ $t('general.logs') }}</div>
           </div>
           <div
-            v-if="isEeUI"
             v-e="['c:webhook:settings']"
             class="tab"
             :class="{
@@ -1320,7 +1319,7 @@ const webhookV2AndV3Diff = computed(() => {
                     />
                   </div>
 
-                  <div v-if="isEeUI && hookRef.event === 'after' && hookRef.operation?.includes('update')" class="mb-4">
+                  <div v-if="appInfo.ee && hookRef.event === 'after' && hookRef.operation?.includes('update')" class="mb-4">
                     <WebhookTriggerByField
                       v-model:trigger-fields="hookRef.trigger_fields"
                       v-model:trigger-field="hookRef.trigger_field"
@@ -1329,7 +1328,7 @@ const webhookV2AndV3Diff = computed(() => {
                   </div>
 
                   <div
-                    v-if="isEeUI && meta?.id && hookRef.event === 'after' && hookRef.operation?.includes('insert')"
+                    v-if="appInfo.ee && meta?.id && hookRef.event === 'after' && hookRef.operation?.includes('insert')"
                     v-bind="validateInfos['notification.trigger_form_id']"
                     class="w-full mb-4"
                   >
@@ -1352,7 +1351,7 @@ const webhookV2AndV3Diff = computed(() => {
                     'rounded-2xl': hookRef.notification.type === 'Script',
                   }"
                 >
-                  <div v-if="isEeUI" class="flex w-full my-3">
+                  <div v-if="appInfo.ee" class="flex w-full my-3">
                     <a-form-item v-bind="validateInfos['notification.type']" class="w-full">
                       <NcSelect
                         v-model:value="hookRef.notification.type"
@@ -1370,7 +1369,7 @@ const webhookV2AndV3Diff = computed(() => {
                     </a-form-item>
                   </div>
 
-                  <template v-if="isEeUI && hookRef.notification.type === 'Script'">
+                  <template v-if="appInfo.ee && hookRef.notification.type === 'Script'">
                     <a-form-item class="flex w-full my-3" v-bind="validateInfos['notification.payload.scriptId']">
                       <NcListScriptSelector
                         v-model:value="hookRef.notification.payload.scriptId"
@@ -1553,7 +1552,7 @@ const webhookV2AndV3Diff = computed(() => {
                 </div>
               </div>
 
-              <div v-if="isEeUI && hookRef.notification.type !== 'Script'">
+              <div v-if="appInfo.ee && hookRef.notification.type !== 'Script'">
                 <div>
                   <div class="w-full cursor-pointer flex items-center" @click.prevent="toggleIncludeUser">
                     <NcSwitch :checked="Boolean(hookRef.notification.include_user)" class="nc-check-box-include-user">
@@ -1668,7 +1667,7 @@ const webhookV2AndV3Diff = computed(() => {
     <div v-else-if="activeTab === HookTab.Log" class="h-[calc(100%_-_57px)]">
       <WebhookCallLog :hook="hook" />
     </div>
-    <div v-else-if="isEeUI && activeTab === HookTab.Settings" class="h-[calc(100%_-_57px)]">
+    <div v-else-if="appInfo.ee && activeTab === HookTab.Settings" class="h-[calc(100%_-_57px)]">
       <WebhookErrorNotifications v-if="hook?.id" :hook-id="hook.id" />
     </div>
   </NcModal>

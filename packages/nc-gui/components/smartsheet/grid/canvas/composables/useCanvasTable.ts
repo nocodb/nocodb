@@ -213,7 +213,7 @@ export function useCanvasTable({
     isHoveredUpgrade: false,
   })
 
-  const { isMobileMode } = useGlobal()
+  const { appInfo, isMobileMode } = useGlobal()
   const { $api } = useNuxtApp()
   const { t } = useI18n()
   const { currentUser } = useUserSync()
@@ -402,8 +402,8 @@ export function useCanvasTable({
 
         if ([UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.DateTime].includes(f.uidt)) {
           const meta = parseProp(f.meta)
-          f.extra.timezone = isEeUI ? getTimeZoneFromName(meta?.timezone) : undefined
-          f.extra.isDisplayTimezone = isEeUI ? meta?.isDisplayTimezone : undefined
+          f.extra.timezone = appInfo.value.ee ? getTimeZoneFromName(meta?.timezone) : undefined
+          f.extra.isDisplayTimezone = appInfo.value.ee ? meta?.isDisplayTimezone : undefined
         }
         if ([UITypes.Formula].includes(f.uidt)) {
           const referencedColumn = (f.colOptions as FormulaType)?.parsed_tree?.referencedColumn
@@ -420,10 +420,10 @@ export function useCanvasTable({
 
               const extra = {
                 timezone:
-                  isEeUI && displayColumnConfigMeta.isDisplayTimezone
+                  appInfo.value.ee && displayColumnConfigMeta.isDisplayTimezone
                     ? getTimeZoneFromName(displayColumnConfigMeta.timezone)
                     : undefined,
-                isDisplayTimezone: isEeUI ? displayColumnConfigMeta.isDisplayTimezone : undefined,
+                isDisplayTimezone: appInfo.value.ee ? displayColumnConfigMeta.isDisplayTimezone : undefined,
               }
               displayColumnConfig.extra = extra
             }

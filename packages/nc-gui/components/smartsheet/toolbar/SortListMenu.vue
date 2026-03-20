@@ -33,7 +33,7 @@ const { appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFiltered
 
 const showCreateSort = ref(false)
 
-const { isMobileMode } = useGlobal()
+const { appInfo, isMobileMode } = useGlobal()
 
 const { getPlanLimit } = useWorkspace()
 
@@ -434,7 +434,7 @@ watch(
               :disabled="false"
               overlay-class-name="nc-toolbar-dropdown"
             >
-              <template v-if="isEeUI && !isPublic">
+              <template v-if="appInfo.ee && !isPublic">
                 <NcButton
                   v-if="
                     (isRestrictedEditor ? displayedLocalSorts.length : displayedSorts.length) <

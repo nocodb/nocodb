@@ -14,6 +14,8 @@ const { activeBaseScripts } = storeToRefs(useScriptStore())
 const { documents } = storeToRefs(useDocumentsStore())
 const { baseId } = storeToRefs(useBase())
 
+const { appInfo } = useGlobal()
+
 const MAX_VISIBLE = 3
 const MAX_TOOLTIP_NAMES = 10
 
@@ -66,7 +68,7 @@ const getLocationLabel = (collab: (typeof activeCollaborators.value)[number]) =>
 
 <template>
   <div
-    v-if="isEeUI && (activeCollaborators.length || canTogglePresence)"
+    v-if="appInfo.ee && (activeCollaborators.length || canTogglePresence)"
     role="group"
     class="nc-doc-presence flex items-center gap-1"
   >

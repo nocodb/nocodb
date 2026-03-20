@@ -22,7 +22,7 @@ const { selectedWorkspaceId } = toRefs(props)
 
 const { t } = useI18n()
 
-const { isMobileMode, activeBreakpoint } = useGlobal()
+const { appInfo, isMobileMode, activeBreakpoint } = useGlobal()
 
 const { orgRoles } = useRoles()
 
@@ -36,7 +36,7 @@ const isSuperAdmin = computed(() => !!orgRoles.value?.[OrgUserRoles.SUPER_ADMIN]
 // Filter options in priority order: Starred → Private → Managed → Owned
 const filterOptions = computed<NcListItemType[]>(() => [
   { value: 'all', label: t('activity.allBases'), icon: 'ncList' },
-  ...(isEeUI
+  ...(appInfo.ee
     ? [
         { value: 'starred', label: t('general.starred'), icon: 'star' },
         ...(showEEFeatures.value

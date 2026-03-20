@@ -63,6 +63,8 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const { t } = useI18n()
 
+const { appInfo } = useGlobal()
+
 const { blockToggleFilter, showUpgradeToUseToggleFilter } = useEeConfig()
 
 const logicalOps = [
@@ -225,7 +227,7 @@ const onToggleFilterChange = (val: boolean | Event) => {
       >
         <template #nestedRowStart>
           <NcCheckbox
-            v-if="isEeUI && isAllowFilterEnableToggle"
+            v-if="appInfo.ee && isAllowFilterEnableToggle"
             :checked="isFilterEnabled"
             size="default"
             :disabled="isDisabled || parentEnabled === false"
@@ -279,7 +281,11 @@ const onToggleFilterChange = (val: boolean | Event) => {
               <component :is="iconMap.deleteListItem" />
             </NcButton>
           </div>
-          <div v-if="!vModel.readOnly && !disabled && isEeUI" class="inline-block" :class="{ 'cursor-wait': isLoadingFilter }">
+          <div
+            v-if="!vModel.readOnly && !disabled && appInfo.ee"
+            class="inline-block"
+            :class="{ 'cursor-wait': isLoadingFilter }"
+          >
             <NcButton
               :key="index"
               v-e="['c:filter:copy', { link: !!link, webHook: !!webHook, widget: !!widget }]"

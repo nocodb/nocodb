@@ -10,6 +10,8 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
+const { appInfo } = useGlobal()
+
 const timezones = getTimeZones({ includeUtc: true }).sort((a, b) => a.name.localeCompare(b.name))
 const browserTzName = Intl.DateTimeFormat().resolvedOptions().timeZone
 const browserTz = timezones.find((tz) => isSameTimezone(tz.name, browserTzName))
@@ -110,7 +112,7 @@ const useSameTimezoneForAll = computed({
       </a-radio-group>
     </a-form-item>
 
-    <template v-if="isEeUI">
+    <template v-if="appInfo.ee">
       <a-form-item>
         <NcTooltip :disabled="true">
           <div class="flex items-center gap-1">

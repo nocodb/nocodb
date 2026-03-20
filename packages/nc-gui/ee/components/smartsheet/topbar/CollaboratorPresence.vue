@@ -13,7 +13,7 @@ const { activeBaseScripts } = storeToRefs(useScriptStore())
 const { documents } = storeToRefs(useDocumentsStore())
 const { baseId } = storeToRefs(useBase())
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
-const { ncNavigateTo } = useGlobal()
+const { appInfo, ncNavigateTo } = useGlobal()
 
 const MAX_VISIBLE = 3
 const MAX_TOOLTIP_NAMES = 10
@@ -145,7 +145,7 @@ watch(followedCollab, (collab) => {
 
 <template>
   <div
-    v-if="isEeUI && (activeCollaborators.length || canTogglePresence)"
+    v-if="appInfo.ee && (activeCollaborators.length || canTogglePresence)"
     role="group"
     class="nc-presence-group flex items-center gap-1 pl-1 mr-0.5 border-r-1 border-nc-border-gray-medium pr-2.5"
   >

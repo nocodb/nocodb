@@ -22,9 +22,7 @@ const disableTopbar = computed(() => route.value.query?.disableTopbar === 'true'
 const ncNotFound = computed(() => route.value.query?.ncNotFound === 'true')
 
 const showSignUpButton = computed(() => {
-  if (appInfo.value.isOnPrem) return false
-
-  if (!isEeUI) return true
+  if (appInfo.value.ee) return false
 
   return !activePlanTitle.value || activePlanTitle.value === PlanTitles.FREE
 })

@@ -7,6 +7,8 @@ export enum PermissionKey {
   TABLE_RECORD_ADD = 'TABLE_RECORD_ADD',
   TABLE_RECORD_DELETE = 'TABLE_RECORD_DELETE',
   RECORD_FIELD_EDIT = 'RECORD_FIELD_EDIT',
+  DOCUMENT_VISIBILITY = 'DOCUMENT_VISIBILITY',
+  DOCUMENT_EDIT = 'DOCUMENT_EDIT',
 }
 
 export enum PermissionGrantedType {
@@ -18,6 +20,7 @@ export enum PermissionGrantedType {
 export enum PermissionEntity {
   TABLE = 'table',
   FIELD = 'field',
+  DOCUMENT = 'document',
 }
 
 export enum PermissionRole {
@@ -139,7 +142,47 @@ export const PermissionMeta = {
     userSelectorDescription:
       'Only members selected here will be able to edit values in the {{field}} field.',
   },
+  [PermissionKey.DOCUMENT_VISIBILITY]: {
+    minimumRole: PermissionRole.VIEWER,
+    label: 'Who can view this page',
+    description: 'can view page',
+    userSelectorDescription:
+      'Only members selected here will be able to view this page and its children.',
+  },
+  [PermissionKey.DOCUMENT_EDIT]: {
+    minimumRole: PermissionRole.EDITOR,
+    label: 'Who can edit this page',
+    description: 'can edit page',
+    userSelectorDescription:
+      'Only members selected here will be able to edit this page.',
+  },
 };
+
+// Restrictiveness order for document permission inheritance (lower = more permissive)
+export const PermissionOptionRestrictiveness: Record<string, number> = {
+  [PermissionOptionValue.EVERYONE]: 0,
+  [PermissionOptionValue.VIEWERS_AND_UP]: 1,
+  [PermissionOptionValue.COMMENTERS_AND_UP]: 2,
+  [PermissionOptionValue.EDITORS_AND_UP]: 3,
+  [PermissionOptionValue.CREATORS_AND_UP]: 4,
+  [PermissionOptionValue.SPECIFIC_USERS]: 5,
+  [PermissionOptionValue.NOBODY]: 6,
+};
+
+export const isMoreRestrictive = (
+  child: PermissionOptionValue,
+  parent: PermissionOptionValue
+): boolean => {
+  return (
+    (PermissionOptionRestrictiveness[child] ?? 0) >=
+    (PermissionOptionRestrictiveness[parent] ?? 0)
+  );
+};
+
+export const DOCUMENT_PERMISSION_KEYS = [
+  PermissionKey.DOCUMENT_VISIBILITY,
+  PermissionKey.DOCUMENT_EDIT,
+];
 
 // Utility functions for permission management
 export const getPermissionOption = (

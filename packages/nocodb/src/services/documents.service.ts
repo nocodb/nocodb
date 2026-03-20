@@ -11,11 +11,16 @@ export class DocumentsService {
     _context: NcContext,
     _baseId: string,
     _parentId: string | null,
+    _req?: NcRequest,
   ): Promise<DocumentType[]> {
     return [];
   }
 
-  async get(_context: NcContext, _docId: string): Promise<DocumentType> {
+  async get(
+    _context: NcContext,
+    _docId: string,
+    _req?: NcRequest,
+  ): Promise<DocumentType> {
     return null;
   }
 

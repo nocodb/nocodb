@@ -24,7 +24,7 @@ export default function () {
 
     async function _createDoc(args: CreateDocArgs = {}, token?: string) {
       const response = await request(context.app)
-        .post(`${API_PREFIX}/docs`)
+        .post(`${API_PREFIX}`)
         .set('xc-auth', token ?? context.token)
         .send(args)
         .expect(200);
@@ -34,7 +34,7 @@ export default function () {
 
     async function _getDoc(docId: string, token?: string) {
       const response = await request(context.app)
-        .get(`${API_PREFIX}/docs/${docId}`)
+        .get(`${API_PREFIX}/${docId}`)
         .set('xc-auth', token ?? context.token)
         .expect(200);
 
@@ -45,7 +45,7 @@ export default function () {
       const qs =
         parentId === undefined ? '' : `?parent_id=${parentId ?? 'null'}`;
       const response = await request(context.app)
-        .get(`${API_PREFIX}/docs${qs}`)
+        .get(`${API_PREFIX}${qs}`)
         .set('xc-auth', token ?? context.token)
         .expect(200);
 
@@ -90,7 +90,7 @@ export default function () {
         .expect(200);
 
       initBase = baseResult.body;
-      API_PREFIX = `/api/v3/meta/bases/${initBase.id}`;
+      API_PREFIX = `/api/v3/docs/${initBase.id}`;
     });
 
     // --- Create ---
@@ -560,7 +560,7 @@ export default function () {
 
     it('Get non-existent document returns error', async () => {
       await request(context.app)
-        .get(`${API_PREFIX}/docs/nonexistent_id`)
+        .get(`${API_PREFIX}/nonexistent_id`)
         .set('xc-auth', context.token)
         .expect(422);
     });
@@ -605,7 +605,7 @@ export default function () {
       const doc = await _createDoc({ title: 'Original' });
 
       const updateResponse = await request(context.app)
-        .patch(`${API_PREFIX}/docs/${doc.id}`)
+        .patch(`${API_PREFIX}/${doc.id}`)
         .set('xc-auth', context.token)
         .send({ title: 'Updated Title', version: doc.version })
         .expect(200);
@@ -630,7 +630,7 @@ export default function () {
       };
 
       const updateResponse = await request(context.app)
-        .patch(`${API_PREFIX}/docs/${doc.id}`)
+        .patch(`${API_PREFIX}/${doc.id}`)
         .set('xc-auth', context.token)
         .send({ content: newContent, version: doc.version })
         .expect(200);
@@ -645,7 +645,7 @@ export default function () {
       const doc = await _createDoc({ title: 'Version Test' });
 
       await request(context.app)
-        .patch(`${API_PREFIX}/docs/${doc.id}`)
+        .patch(`${API_PREFIX}/${doc.id}`)
         .set('xc-auth', context.token)
         .send({ title: 'No Version' })
         .expect(422);
@@ -656,14 +656,14 @@ export default function () {
 
       // First update succeeds
       await request(context.app)
-        .patch(`${API_PREFIX}/docs/${doc.id}`)
+        .patch(`${API_PREFIX}/${doc.id}`)
         .set('xc-auth', context.token)
         .send({ title: 'V2', version: doc.version })
         .expect(200);
 
       // Second update with old version fails
       await request(context.app)
-        .patch(`${API_PREFIX}/docs/${doc.id}`)
+        .patch(`${API_PREFIX}/${doc.id}`)
         .set('xc-auth', context.token)
         .send({ title: 'V2 again', version: doc.version })
         .expect(422);
@@ -671,7 +671,7 @@ export default function () {
 
     it('Update non-existent document returns error', async () => {
       await request(context.app)
-        .patch(`${API_PREFIX}/docs/nonexistent_id`)
+        .patch(`${API_PREFIX}/nonexistent_id`)
         .set('xc-auth', context.token)
         .send({ title: 'Ghost', version: 1 })
         .expect(422);
@@ -683,13 +683,13 @@ export default function () {
       const doc = await _createDoc({ title: 'Delete Me' });
 
       await request(context.app)
-        .delete(`${API_PREFIX}/docs/${doc.id}`)
+        .delete(`${API_PREFIX}/${doc.id}`)
         .set('xc-auth', context.token)
         .expect(200);
 
       // Verify it's gone
       await request(context.app)
-        .get(`${API_PREFIX}/docs/${doc.id}`)
+        .get(`${API_PREFIX}/${doc.id}`)
         .set('xc-auth', context.token)
         .expect(422);
     });
@@ -702,20 +702,20 @@ export default function () {
       });
 
       await request(context.app)
-        .delete(`${API_PREFIX}/docs/${parent.id}`)
+        .delete(`${API_PREFIX}/${parent.id}`)
         .set('xc-auth', context.token)
         .expect(200);
 
       // Child should also be gone
       await request(context.app)
-        .get(`${API_PREFIX}/docs/${child.id}`)
+        .get(`${API_PREFIX}/${child.id}`)
         .set('xc-auth', context.token)
         .expect(422);
     });
 
     it('Delete non-existent document returns error', async () => {
       await request(context.app)
-        .delete(`${API_PREFIX}/docs/nonexistent_id`)
+        .delete(`${API_PREFIX}/nonexistent_id`)
         .set('xc-auth', context.token)
         .expect(422);
     });
@@ -726,7 +726,7 @@ export default function () {
       const doc = await _createDoc({ title: 'Reorder Me' });
 
       const reorderResponse = await request(context.app)
-        .patch(`${API_PREFIX}/docs/${doc.id}/reorder`)
+        .patch(`${API_PREFIX}/${doc.id}/reorder`)
         .set('xc-auth', context.token)
         .send({ order: 5.5 })
         .expect(200);
@@ -745,7 +745,7 @@ export default function () {
       });
 
       const moveResponse = await request(context.app)
-        .patch(`${API_PREFIX}/docs/${child.id}/reorder`)
+        .patch(`${API_PREFIX}/${child.id}/reorder`)
         .set('xc-auth', context.token)
         .send({ order: 1, parent_id: parent2.id })
         .expect(200);
@@ -766,7 +766,7 @@ export default function () {
       });
 
       const moveResponse = await request(context.app)
-        .patch(`${API_PREFIX}/docs/${child.id}/reorder`)
+        .patch(`${API_PREFIX}/${child.id}/reorder`)
         .set('xc-auth', context.token)
         .send({ order: 1, parent_id: null })
         .expect(200);
@@ -779,7 +779,7 @@ export default function () {
       const doc = await _createDoc({ title: 'Self Move' });
 
       await request(context.app)
-        .patch(`${API_PREFIX}/docs/${doc.id}/reorder`)
+        .patch(`${API_PREFIX}/${doc.id}/reorder`)
         .set('xc-auth', context.token)
         .send({ order: 1, parent_id: doc.id })
         .expect(422);
@@ -798,7 +798,7 @@ export default function () {
 
       // Try to move grandparent under grandchild — circular
       await request(context.app)
-        .patch(`${API_PREFIX}/docs/${parent.id}/reorder`)
+        .patch(`${API_PREFIX}/${parent.id}/reorder`)
         .set('xc-auth', context.token)
         .send({ order: 1, parent_id: grandchild.id })
         .expect(422);
@@ -823,7 +823,7 @@ export default function () {
 
       // Update
       const updateResponse = await request(context.app)
-        .patch(`${API_PREFIX}/docs/${doc.id}`)
+        .patch(`${API_PREFIX}/${doc.id}`)
         .set('xc-auth', context.token)
         .send({ title: 'Updated Lifecycle', version: doc.version })
         .expect(200);
@@ -836,7 +836,7 @@ export default function () {
 
       // Delete
       await request(context.app)
-        .delete(`${API_PREFIX}/docs/${doc.id}`)
+        .delete(`${API_PREFIX}/${doc.id}`)
         .set('xc-auth', context.token)
         .expect(200);
 
@@ -879,13 +879,13 @@ export default function () {
     describe('Authentication', () => {
       it('Unauthenticated list returns 401', async () => {
         const res = await request(context.app)
-          .get(`${API_PREFIX}/docs?parent_id=null`);
+          .get(`${API_PREFIX}?parent_id=null`);
         expect(res.status).to.be.oneOf([401, 403]);
       });
 
       it('Unauthenticated create returns 401', async () => {
         const res = await request(context.app)
-          .post(`${API_PREFIX}/docs`)
+          .post(`${API_PREFIX}`)
           .send({ title: 'No Auth' });
         expect(res.status).to.be.oneOf([401, 403]);
       });
@@ -893,14 +893,14 @@ export default function () {
       it('Unauthenticated get returns 401', async () => {
         const doc = await _createDoc({ title: 'Auth Test' });
         const res = await request(context.app)
-          .get(`${API_PREFIX}/docs/${doc.id}`);
+          .get(`${API_PREFIX}/${doc.id}`);
         expect(res.status).to.be.oneOf([401, 403]);
       });
 
       it('Unauthenticated update returns 401', async () => {
         const doc = await _createDoc({ title: 'Auth Test' });
         const res = await request(context.app)
-          .patch(`${API_PREFIX}/docs/${doc.id}`)
+          .patch(`${API_PREFIX}/${doc.id}`)
           .send({ title: 'Hacked', version: 1 });
         expect(res.status).to.be.oneOf([401, 403]);
       });
@@ -908,21 +908,21 @@ export default function () {
       it('Unauthenticated delete returns 401', async () => {
         const doc = await _createDoc({ title: 'Auth Test' });
         const res = await request(context.app)
-          .delete(`${API_PREFIX}/docs/${doc.id}`);
+          .delete(`${API_PREFIX}/${doc.id}`);
         expect(res.status).to.be.oneOf([401, 403]);
       });
 
       it('Unauthenticated reorder returns 401', async () => {
         const doc = await _createDoc({ title: 'Auth Test' });
         const res = await request(context.app)
-          .patch(`${API_PREFIX}/docs/${doc.id}/reorder`)
+          .patch(`${API_PREFIX}/${doc.id}/reorder`)
           .send({ order: 10 });
         expect(res.status).to.be.oneOf([401, 403]);
       });
 
       it('Invalid token returns 401', async () => {
         const res = await request(context.app)
-          .get(`${API_PREFIX}/docs?parent_id=null`)
+          .get(`${API_PREFIX}?parent_id=null`)
           .set('xc-auth', 'invalid-token-xyz');
         expect(res.status).to.be.oneOf([401, 403]);
       });
@@ -984,7 +984,7 @@ export default function () {
 
       it('Viewer cannot create document', async () => {
         const res = await request(context.app)
-          .post(`${API_PREFIX}/docs`)
+          .post(`${API_PREFIX}`)
           .set('xc-auth', viewerToken)
           .send({ title: 'Viewer Create' });
         expect(res.status).to.be.oneOf([401, 403]);
@@ -992,7 +992,7 @@ export default function () {
 
       it('Viewer cannot update document', async () => {
         const res = await request(context.app)
-          .patch(`${API_PREFIX}/docs/${seedDocId}`)
+          .patch(`${API_PREFIX}/${seedDocId}`)
           .set('xc-auth', viewerToken)
           .send({ title: 'Viewer Update', version: 1 });
         expect(res.status).to.be.oneOf([401, 403]);
@@ -1000,14 +1000,14 @@ export default function () {
 
       it('Viewer cannot delete document', async () => {
         const res = await request(context.app)
-          .delete(`${API_PREFIX}/docs/${seedDocId}`)
+          .delete(`${API_PREFIX}/${seedDocId}`)
           .set('xc-auth', viewerToken);
         expect(res.status).to.be.oneOf([401, 403]);
       });
 
       it('Viewer cannot reorder document', async () => {
         const res = await request(context.app)
-          .patch(`${API_PREFIX}/docs/${seedDocId}/reorder`)
+          .patch(`${API_PREFIX}/${seedDocId}/reorder`)
           .set('xc-auth', viewerToken)
           .send({ order: 99 });
         expect(res.status).to.be.oneOf([401, 403]);
@@ -1024,7 +1024,7 @@ export default function () {
 
       it('Editor cannot create document', async () => {
         const res = await request(context.app)
-          .post(`${API_PREFIX}/docs`)
+          .post(`${API_PREFIX}`)
           .set('xc-auth', editorToken)
           .send({ title: 'Editor Create' });
         expect(res.status).to.be.oneOf([401, 403]);
@@ -1032,7 +1032,7 @@ export default function () {
 
       it('Editor can update document', async () => {
         await request(context.app)
-          .patch(`${API_PREFIX}/docs/${seedDocId}`)
+          .patch(`${API_PREFIX}/${seedDocId}`)
           .set('xc-auth', editorToken)
           .send({ title: 'Editor Updated', version: 1 })
           .expect(200);
@@ -1040,14 +1040,14 @@ export default function () {
 
       it('Editor cannot delete document', async () => {
         const res = await request(context.app)
-          .delete(`${API_PREFIX}/docs/${seedDocId}`)
+          .delete(`${API_PREFIX}/${seedDocId}`)
           .set('xc-auth', editorToken);
         expect(res.status).to.be.oneOf([401, 403]);
       });
 
       it('Editor can reorder document', async () => {
         await request(context.app)
-          .patch(`${API_PREFIX}/docs/${seedDocId}/reorder`)
+          .patch(`${API_PREFIX}/${seedDocId}/reorder`)
           .set('xc-auth', editorToken)
           .send({ order: 50 })
           .expect(200);
@@ -1075,7 +1075,7 @@ export default function () {
       it('Update with whitespace-only title becomes Untitled', async () => {
         const doc = await _createDoc({ title: 'Has Title' });
         const res = await request(context.app)
-          .patch(`${API_PREFIX}/docs/${doc.id}`)
+          .patch(`${API_PREFIX}/${doc.id}`)
           .set('xc-auth', context.token)
           .send({ title: '   ', version: doc.version })
           .expect(200);
@@ -1119,7 +1119,7 @@ export default function () {
       it('Update with version=0 fails (stale)', async () => {
         const doc = await _createDoc({ title: 'V0 Test' });
         await request(context.app)
-          .patch(`${API_PREFIX}/docs/${doc.id}`)
+          .patch(`${API_PREFIX}/${doc.id}`)
           .set('xc-auth', context.token)
           .send({ title: 'V0 Update', version: 0 })
           .expect(422);
@@ -1131,7 +1131,7 @@ export default function () {
 
         for (let i = 2; i <= 5; i++) {
           const res = await request(context.app)
-            .patch(`${API_PREFIX}/docs/${doc.id}`)
+            .patch(`${API_PREFIX}/${doc.id}`)
             .set('xc-auth', context.token)
             .send({ title: `Chain V${i}`, version: currentVersion })
             .expect(200);
@@ -1152,13 +1152,13 @@ export default function () {
         const doc = await _createDoc({ title: 'Double Delete' });
 
         await request(context.app)
-          .delete(`${API_PREFIX}/docs/${doc.id}`)
+          .delete(`${API_PREFIX}/${doc.id}`)
           .set('xc-auth', context.token)
           .expect(200);
 
         // Second delete should fail — doc already gone
         await request(context.app)
-          .delete(`${API_PREFIX}/docs/${doc.id}`)
+          .delete(`${API_PREFIX}/${doc.id}`)
           .set('xc-auth', context.token)
           .expect(422);
       });
@@ -1167,12 +1167,12 @@ export default function () {
         const doc = await _createDoc({ title: 'Update After Delete' });
 
         await request(context.app)
-          .delete(`${API_PREFIX}/docs/${doc.id}`)
+          .delete(`${API_PREFIX}/${doc.id}`)
           .set('xc-auth', context.token)
           .expect(200);
 
         await request(context.app)
-          .patch(`${API_PREFIX}/docs/${doc.id}`)
+          .patch(`${API_PREFIX}/${doc.id}`)
           .set('xc-auth', context.token)
           .send({ title: 'Ghost Update', version: doc.version })
           .expect(422);
@@ -1182,12 +1182,12 @@ export default function () {
         const doc = await _createDoc({ title: 'Reorder After Delete' });
 
         await request(context.app)
-          .delete(`${API_PREFIX}/docs/${doc.id}`)
+          .delete(`${API_PREFIX}/${doc.id}`)
           .set('xc-auth', context.token)
           .expect(200);
 
         await request(context.app)
-          .patch(`${API_PREFIX}/docs/${doc.id}/reorder`)
+          .patch(`${API_PREFIX}/${doc.id}/reorder`)
           .set('xc-auth', context.token)
           .send({ order: 10 })
           .expect(422);
@@ -1198,7 +1198,7 @@ export default function () {
         const doc2 = await _createDoc({ title: 'Delete Me' });
 
         await request(context.app)
-          .delete(`${API_PREFIX}/docs/${doc2.id}`)
+          .delete(`${API_PREFIX}/${doc2.id}`)
           .set('xc-auth', context.token)
           .expect(200);
 
@@ -1227,7 +1227,7 @@ export default function () {
         await new Promise((resolve) => setTimeout(resolve, 50));
 
         const res = await request(context.app)
-          .patch(`${API_PREFIX}/docs/${doc.id}`)
+          .patch(`${API_PREFIX}/${doc.id}`)
           .set('xc-auth', context.token)
           .send({ title: 'Timestamp Updated', version: doc.version })
           .expect(200);
@@ -1261,7 +1261,7 @@ export default function () {
 
         // Move child to root
         await request(context.app)
-          .patch(`${API_PREFIX}/docs/${child.id}/reorder`)
+          .patch(`${API_PREFIX}/${child.id}/reorder`)
           .set('xc-auth', context.token)
           .send({ order: 1, parent_id: null })
           .expect(200);
@@ -1279,7 +1279,7 @@ export default function () {
         });
 
         await request(context.app)
-          .delete(`${API_PREFIX}/docs/${child.id}`)
+          .delete(`${API_PREFIX}/${child.id}`)
           .set('xc-auth', context.token)
           .expect(200);
 
@@ -1328,14 +1328,14 @@ export default function () {
 
         // Delete root of subtree
         await request(context.app)
-          .delete(`${API_PREFIX}/docs/${l1.id}`)
+          .delete(`${API_PREFIX}/${l1.id}`)
           .set('xc-auth', context.token)
           .expect(200);
 
         // All descendants should be gone
         for (const id of [l1.id, l2.id, l3.id, l4.id]) {
           await request(context.app)
-            .get(`${API_PREFIX}/docs/${id}`)
+            .get(`${API_PREFIX}/${id}`)
             .set('xc-auth', context.token)
             .expect(422);
         }
@@ -1349,7 +1349,7 @@ export default function () {
         const doc = await _createDoc({ title: 'Bad Parent' });
 
         await request(context.app)
-          .patch(`${API_PREFIX}/docs/${doc.id}/reorder`)
+          .patch(`${API_PREFIX}/${doc.id}/reorder`)
           .set('xc-auth', context.token)
           .send({ order: 1, parent_id: 'nonexistent_parent_id' })
           .expect(422);
@@ -1359,7 +1359,7 @@ export default function () {
         const doc = await _createDoc({ title: 'Fraction Order' });
 
         const res = await request(context.app)
-          .patch(`${API_PREFIX}/docs/${doc.id}/reorder`)
+          .patch(`${API_PREFIX}/${doc.id}/reorder`)
           .set('xc-auth', context.token)
           .send({ order: 2.718281828 })
           .expect(200);
@@ -1370,7 +1370,7 @@ export default function () {
 
       it('Reorder non-existent document returns error', async () => {
         await request(context.app)
-          .patch(`${API_PREFIX}/docs/nonexistent_id/reorder`)
+          .patch(`${API_PREFIX}/nonexistent_id/reorder`)
           .set('xc-auth', context.token)
           .send({ order: 1 })
           .expect(422);
@@ -1460,7 +1460,7 @@ export default function () {
       it('Delete returns boolean true', async () => {
         const doc = await _createDoc({ title: 'Delete Shape' });
         const res = await request(context.app)
-          .delete(`${API_PREFIX}/docs/${doc.id}`)
+          .delete(`${API_PREFIX}/${doc.id}`)
           .set('xc-auth', context.token)
           .expect(200);
         expect(res.body).to.equal(true);
@@ -1490,7 +1490,7 @@ export default function () {
         // Move doc2 before doc1 by setting a lower order
         const order1 = doc1.order;
         await request(context.app)
-          .patch(`${API_PREFIX}/docs/${doc2.id}/reorder`)
+          .patch(`${API_PREFIX}/${doc2.id}/reorder`)
           .set('xc-auth', context.token)
           .send({ order: order1 - 1 })
           .expect(200);

@@ -6279,7 +6279,7 @@
         }
       }
     },
-    "/api/v3/meta/bases/{baseId}/docs": {
+    "/api/v3/docs/{baseId}": {
       "get": {
         "summary": "List documents",
         "operationId": "document-list",
@@ -6514,7 +6514,7 @@
         }
       }
     },
-    "/api/v3/meta/bases/{baseId}/docs/{docId}": {
+    "/api/v3/docs/{baseId}/{docId}": {
       "get": {
         "summary": "Get document",
         "operationId": "document-read",
@@ -6795,7 +6795,7 @@
         }
       }
     },
-    "/api/v3/meta/bases/{baseId}/docs/{docId}/reorder": {
+    "/api/v3/docs/{baseId}/{docId}/reorder": {
       "patch": {
         "summary": "Reorder or move document",
         "operationId": "document-reorder",

@@ -22,7 +22,7 @@ import type {
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { DocumentsV3Service } from '~/services/v3/documents-v3.service';
-import { PREFIX_APIV3_METABASE } from '~/constants/controllers';
+import { PREFIX_APIV3_DOCS } from '~/constants/controllers';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 
@@ -31,7 +31,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 export class DocumentsV3Controller {
   constructor(private readonly documentsV3Service: DocumentsV3Service) {}
 
-  @Get(`${PREFIX_APIV3_METABASE}/docs`)
+  @Get(`${PREFIX_APIV3_DOCS}`)
   @Acl('documentList', { scope: 'base' })
   async docList(
     @TenantContext() context: NcContext,
@@ -47,7 +47,7 @@ export class DocumentsV3Controller {
     });
   }
 
-  @Post(`${PREFIX_APIV3_METABASE}/docs`)
+  @Post(`${PREFIX_APIV3_DOCS}`)
   @HttpCode(200)
   @Acl('documentCreate', { scope: 'base' })
   async docCreate(
@@ -58,7 +58,7 @@ export class DocumentsV3Controller {
     return await this.documentsV3Service.docCreate(context, body, req);
   }
 
-  @Get(`${PREFIX_APIV3_METABASE}/docs/:docId`)
+  @Get(`${PREFIX_APIV3_DOCS}/:docId`)
   @Acl('documentGet', { scope: 'base' })
   async docGet(
     @TenantContext() context: NcContext,
@@ -67,7 +67,7 @@ export class DocumentsV3Controller {
     return await this.documentsV3Service.docGet(context, { docId });
   }
 
-  @Patch(`${PREFIX_APIV3_METABASE}/docs/:docId`)
+  @Patch(`${PREFIX_APIV3_DOCS}/:docId`)
   @Acl('documentUpdate', { scope: 'base' })
   async docUpdate(
     @TenantContext() context: NcContext,
@@ -83,7 +83,7 @@ export class DocumentsV3Controller {
     );
   }
 
-  @Delete(`${PREFIX_APIV3_METABASE}/docs/:docId`)
+  @Delete(`${PREFIX_APIV3_DOCS}/:docId`)
   @Acl('documentDelete', { scope: 'base' })
   async docDelete(
     @TenantContext() context: NcContext,
@@ -93,7 +93,7 @@ export class DocumentsV3Controller {
     return await this.documentsV3Service.docDelete(context, { docId }, req);
   }
 
-  @Patch(`${PREFIX_APIV3_METABASE}/docs/:docId/reorder`)
+  @Patch(`${PREFIX_APIV3_DOCS}/:docId/reorder`)
   @Acl('documentReorder', { scope: 'base' })
   async docReorder(
     @TenantContext() context: NcContext,

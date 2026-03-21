@@ -49,6 +49,7 @@ export const PlanFeatureTypesToPlanTitles: Record<
   [PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF]: PlanTitles.PLUS,
 
   // Business features
+  [PlanFeatureTypes.FEATURE_DOCS_APIS]: PlanTitles.BUSINESS,
   [PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY]: PlanTitles.BUSINESS,
   [PlanFeatureTypes.FEATURE_CURRENT_USER_FILTER]: PlanTitles.BUSINESS,
   [PlanFeatureTypes.FEATURE_CELL_COLOUR]: PlanTitles.BUSINESS,

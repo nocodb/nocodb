@@ -6283,7 +6283,7 @@
       "get": {
         "summary": "List documents",
         "operationId": "document-list",
-        "description": "Retrieve a list of documents in a base. Documents are returned without content (lightweight) for sidebar/tree rendering.\n\nUse the `parent_id` query parameter to navigate the document tree:\n- `parent_id=null` or omitted — returns root-level documents\n- `parent_id={docId}` — returns children of the specified document\n\nDocuments API is available on **all plans**, including free.",
+        "description": "Retrieve a list of documents in a base. Documents are returned without content for lightweight listing.\n\nUse the `parent_id` query parameter to navigate the document hierarchy:\n- `parent_id=null` or omitted — returns root-level documents\n- `parent_id={docId}` — returns children of the specified document\n\nDocuments API is available on **Business** plan and above (Cloud) or with an **Enterprise** license (self-hosted).",
         "tags": [
           "Documents"
         ],
@@ -6389,17 +6389,27 @@
               }
             }
           },
-          "400": { "$ref": "#/components/responses/BadRequestV3" },
-          "401": { "$ref": "#/components/responses/UnauthorizedV3" },
-          "403": { "$ref": "#/components/responses/ForbiddenV3" },
-          "404": { "$ref": "#/components/responses/NotFoundV3" },
-          "500": { "$ref": "#/components/responses/InternalServerErrorV3" }
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
         }
       },
       "post": {
         "summary": "Create document",
         "operationId": "document-create",
-        "description": "Create a new document in a base. If no `title` is provided, defaults to \"Untitled\". If no `content` is provided, defaults to an empty ProseMirror document.\n\nTo create a child document, pass the `parent_id` of the parent document.\n\nDocuments API is available on **all plans**, including free.",
+        "description": "Create a new document in a base. If no `title` is provided, defaults to \"Untitled\". If no `content` is provided, defaults to an empty document.\n\nTo create a child document, pass the `parent_id` of the parent document.\n\nDocuments API is available on **Business** plan and above (Cloud) or with an **Enterprise** license (self-hosted).",
         "tags": [
           "Documents"
         ],
@@ -6439,21 +6449,45 @@
                       "content": [
                         {
                           "type": "heading",
-                          "attrs": { "level": 1 },
-                          "content": [{ "type": "text", "text": "ADR-001: Use ProseMirror for Documents" }]
+                          "attrs": {
+                            "level": 1
+                          },
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "ADR-001: Document Storage Format"
+                            }
+                          ]
                         },
                         {
                           "type": "paragraph",
-                          "content": [{ "type": "text", "text": "We decided to use ProseMirror JSON as the canonical storage format for document content." }]
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "We decided to use rich-text JSON as the canonical storage format for document content."
+                            }
+                          ]
                         },
                         {
                           "type": "heading",
-                          "attrs": { "level": 2 },
-                          "content": [{ "type": "text", "text": "Context" }]
+                          "attrs": {
+                            "level": 2
+                          },
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "Context"
+                            }
+                          ]
                         },
                         {
                           "type": "paragraph",
-                          "content": [{ "type": "text", "text": "The editor is built on Tiptap (ProseMirror wrapper). Storing native ProseMirror JSON avoids lossy conversions." }]
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "Content is stored as rich-text JSON, a structured document format that preserves rich-text formatting without lossy conversions."
+                            }
+                          ]
                         }
                       ]
                     },
@@ -6488,7 +6522,11 @@
                       "title": "Weekly Standup Notes",
                       "content": {
                         "type": "doc",
-                        "content": [{ "type": "paragraph" }]
+                        "content": [
+                          {
+                            "type": "paragraph"
+                          }
+                        ]
                       },
                       "meta": {},
                       "order": 3,
@@ -6506,11 +6544,21 @@
               }
             }
           },
-          "400": { "$ref": "#/components/responses/BadRequestV3" },
-          "401": { "$ref": "#/components/responses/UnauthorizedV3" },
-          "403": { "$ref": "#/components/responses/ForbiddenV3" },
-          "404": { "$ref": "#/components/responses/NotFoundV3" },
-          "500": { "$ref": "#/components/responses/InternalServerErrorV3" }
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
         }
       }
     },
@@ -6518,7 +6566,7 @@
       "get": {
         "summary": "Get document",
         "operationId": "document-read",
-        "description": "Retrieve a single document with its full content (ProseMirror JSON).\n\nDocuments API is available on **all plans**, including free.",
+        "description": "Retrieve a single document with its full content (rich-text JSON).\n\nDocuments API is available on **Business** plan and above (Cloud) or with an **Enterprise** license (self-hosted).",
         "tags": [
           "Documents"
         ],
@@ -6563,15 +6611,36 @@
                         "content": [
                           {
                             "type": "heading",
-                            "attrs": { "level": 1 },
-                            "content": [{ "type": "text", "text": "Project Overview" }]
+                            "attrs": {
+                              "level": 1
+                            },
+                            "content": [
+                              {
+                                "type": "text",
+                                "text": "Project Overview"
+                              }
+                            ]
                           },
                           {
                             "type": "paragraph",
                             "content": [
-                              { "type": "text", "text": "This document describes the " },
-                              { "type": "text", "marks": [{ "type": "bold" }], "text": "project goals" },
-                              { "type": "text", "text": " and timeline." }
+                              {
+                                "type": "text",
+                                "text": "This document describes the "
+                              },
+                              {
+                                "type": "text",
+                                "marks": [
+                                  {
+                                    "type": "bold"
+                                  }
+                                ],
+                                "text": "project goals"
+                              },
+                              {
+                                "type": "text",
+                                "text": " and timeline."
+                              }
                             ]
                           },
                           {
@@ -6582,7 +6651,12 @@
                                 "content": [
                                   {
                                     "type": "paragraph",
-                                    "content": [{ "type": "text", "text": "Phase 1: Research" }]
+                                    "content": [
+                                      {
+                                        "type": "text",
+                                        "text": "Phase 1: Research"
+                                      }
+                                    ]
                                   }
                                 ]
                               },
@@ -6591,7 +6665,12 @@
                                 "content": [
                                   {
                                     "type": "paragraph",
-                                    "content": [{ "type": "text", "text": "Phase 2: Implementation" }]
+                                    "content": [
+                                      {
+                                        "type": "text",
+                                        "text": "Phase 2: Implementation"
+                                      }
+                                    ]
                                   }
                                 ]
                               }
@@ -6618,16 +6697,24 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/UnauthorizedV3" },
-          "403": { "$ref": "#/components/responses/ForbiddenV3" },
-          "404": { "$ref": "#/components/responses/NotFoundV3" },
-          "500": { "$ref": "#/components/responses/InternalServerErrorV3" }
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
         }
       },
       "patch": {
         "summary": "Update document",
         "operationId": "document-update",
-        "description": "Update a document's title, content, or metadata.\n\n**Optimistic concurrency control**: You must include the current `version` of the document. If the version does not match the server's version (i.e., someone else edited it), the request will be rejected with a 422 error. This prevents silent overwrites.\n\nAfter a successful update, the returned document will have `version` incremented by 1.\n\nDocuments API is available on **all plans**, including free.",
+        "description": "Update a document's title, content, or metadata.\n\n**Optimistic concurrency control**: You must include the current `version` of the document. If the version does not match the server's version (i.e., someone else edited it), the request will be rejected with a 422 error. This prevents silent overwrites.\n\nAfter a successful update, the returned document will have `version` incremented by 1.\n\nDocuments API is available on **Business** plan and above (Cloud) or with an **Enterprise** license (self-hosted).",
         "tags": [
           "Documents"
         ],
@@ -6674,12 +6761,24 @@
                       "content": [
                         {
                           "type": "heading",
-                          "attrs": { "level": 1 },
-                          "content": [{ "type": "text", "text": "Updated Heading" }]
+                          "attrs": {
+                            "level": 1
+                          },
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "Updated Heading"
+                            }
+                          ]
                         },
                         {
                           "type": "paragraph",
-                          "content": [{ "type": "text", "text": "New paragraph content added via API." }]
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "New paragraph content added via API."
+                            }
+                          ]
                         }
                       ]
                     },
@@ -6715,7 +6814,11 @@
                       "title": "Updated Project Overview",
                       "content": {
                         "type": "doc",
-                        "content": [{ "type": "paragraph" }]
+                        "content": [
+                          {
+                            "type": "paragraph"
+                          }
+                        ]
                       },
                       "meta": {
                         "icon": "📋"
@@ -6735,18 +6838,30 @@
               }
             }
           },
-          "400": { "$ref": "#/components/responses/BadRequestV3" },
-          "401": { "$ref": "#/components/responses/UnauthorizedV3" },
-          "403": { "$ref": "#/components/responses/ForbiddenV3" },
-          "404": { "$ref": "#/components/responses/NotFoundV3" },
-          "422": { "description": "Version conflict — the document has been modified by another user. Reload the document and retry." },
-          "500": { "$ref": "#/components/responses/InternalServerErrorV3" }
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundV3"
+          },
+          "422": {
+            "description": "Version conflict — the document has been modified since it was last fetched. Fetch the latest version and retry."
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
         }
       },
       "delete": {
         "summary": "Delete document",
         "operationId": "document-delete",
-        "description": "Soft-delete a document. All child documents are also deleted (cascade).\n\nAttachments (images, files) referenced by the document are also cleaned up.\n\nDocuments API is available on **all plans**, including free.",
+        "description": "Soft-delete a document. All child documents are also deleted (cascade).\n\nAttachments (images, files) referenced by the document are also cleaned up.\n\nDocuments API is available on **Business** plan and above (Cloud) or with an **Enterprise** license (self-hosted).",
         "tags": [
           "Documents"
         ],
@@ -6788,10 +6903,18 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/UnauthorizedV3" },
-          "403": { "$ref": "#/components/responses/ForbiddenV3" },
-          "404": { "$ref": "#/components/responses/NotFoundV3" },
-          "500": { "$ref": "#/components/responses/InternalServerErrorV3" }
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
         }
       }
     },
@@ -6799,7 +6922,7 @@
       "patch": {
         "summary": "Reorder or move document",
         "operationId": "document-reorder",
-        "description": "Update a document's sort order among its siblings, and optionally move it to a different parent.\n\n**Order**: Pass a float value. To insert between two siblings with orders 2.0 and 3.0, use 2.5. The frontend typically computes the midpoint.\n\n**Move**: Include `parent_id` to re-parent the document. Pass `null` to move to root level. Circular moves (moving a document under itself or its descendants) are rejected.\n\nDocuments API is available on **all plans**, including free.",
+        "description": "Update a document's sort order among its siblings, and optionally move it to a different parent.\n\n**Order**: Pass a float value. To insert between two siblings with orders 2.0 and 3.0, use 2.5 (midpoint).\n\n**Move**: Include `parent_id` to re-parent the document. Pass `null` to move to root level. Circular moves (moving a document under itself or its descendants) are rejected.\n\nDocuments API is available on **Business** plan and above (Cloud) or with an **Enterprise** license (self-hosted).",
         "tags": [
           "Documents"
         ],
@@ -6879,7 +7002,11 @@
                       "title": "Project Overview",
                       "content": {
                         "type": "doc",
-                        "content": [{ "type": "paragraph" }]
+                        "content": [
+                          {
+                            "type": "paragraph"
+                          }
+                        ]
                       },
                       "meta": {
                         "icon": "📋"
@@ -6899,12 +7026,24 @@
               }
             }
           },
-          "400": { "$ref": "#/components/responses/BadRequestV3" },
-          "401": { "$ref": "#/components/responses/UnauthorizedV3" },
-          "403": { "$ref": "#/components/responses/ForbiddenV3" },
-          "404": { "$ref": "#/components/responses/NotFoundV3" },
-          "422": { "description": "Invalid move — cannot move document under itself or its own descendant." },
-          "500": { "$ref": "#/components/responses/InternalServerErrorV3" }
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundV3"
+          },
+          "422": {
+            "description": "Invalid move — cannot move document under itself or its own descendant."
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
         }
       }
     }
@@ -13006,7 +13145,7 @@
           },
           "content": {
             "type": "object",
-            "description": "ProseMirror JSON document content."
+            "description": "rich-text JSON document content."
           },
           "meta": {
             "type": "object",
@@ -13022,7 +13161,9 @@
       "DocumentUpdate": {
         "type": "object",
         "description": "Request body for updating a document.",
-        "required": ["version"],
+        "required": [
+          "version"
+        ],
         "properties": {
           "title": {
             "type": "string",
@@ -13030,7 +13171,7 @@
           },
           "content": {
             "type": "object",
-            "description": "Updated ProseMirror JSON document content."
+            "description": "Updated rich-text JSON document content."
           },
           "meta": {
             "type": "object",
@@ -13060,7 +13201,18 @@
       "Document": {
         "type": "object",
         "description": "Full document response (includes content).",
-        "required": ["id", "base_id", "title", "content", "order", "parent_id", "has_children", "version", "created_at", "updated_at"],
+        "required": [
+          "id",
+          "base_id",
+          "title",
+          "content",
+          "order",
+          "parent_id",
+          "has_children",
+          "version",
+          "created_at",
+          "updated_at"
+        ],
         "properties": {
           "id": {
             "type": "string",
@@ -13076,7 +13228,7 @@
           },
           "content": {
             "type": "object",
-            "description": "ProseMirror JSON document content."
+            "description": "rich-text JSON document content."
           },
           "meta": {
             "type": "object",
@@ -13125,8 +13277,18 @@
       },
       "DocumentListItem": {
         "type": "object",
-        "description": "Lightweight document (list response — excludes content).",
-        "required": ["id", "base_id", "title", "order", "parent_id", "has_children", "version", "created_at", "updated_at"],
+        "description": "Document summary returned in list responses. Excludes the `content` field.",
+        "required": [
+          "id",
+          "base_id",
+          "title",
+          "order",
+          "parent_id",
+          "has_children",
+          "version",
+          "created_at",
+          "updated_at"
+        ],
         "properties": {
           "id": {
             "type": "string"
@@ -13183,7 +13345,9 @@
             }
           }
         },
-        "required": ["list"]
+        "required": [
+          "list"
+        ]
       }
     },
     "responses": {

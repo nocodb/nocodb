@@ -384,7 +384,7 @@ export class WebhookInvoker {
           for (let i = 0; i < newData.length; i++) {
             const data = newData[i];
 
-            const pData = prevData[i] ? prevData[i] : null;
+            const pData = prevData?.[i] ? prevData[i] : null;
 
             // if condition is satisfied for prevData then return
             // if filters are not defined then skip the check

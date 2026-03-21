@@ -50,15 +50,25 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   >()
   const sharedViewMeta = ref<SharedViewMeta>({})
 
+  const { isFeatureEnabled } = useBetaFeatureToggle()
+
   const isFormExpired = computed(() => {
+    if (!isFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING)) return false
+
     const expiresAt = (sharedFormView.value as any)?.expires_at
+
     if (!expiresAt) return false
+
     return dayjs.utc(expiresAt).isBefore(dayjs.utc())
   })
 
   const isFormNotStarted = computed(() => {
+    if (!isFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING)) return false
+
     const startsAt = (sharedFormView.value as any)?.starts_at
+
     if (!startsAt) return false
+
     return dayjs.utc(startsAt).isAfter(dayjs.utc())
   })
 

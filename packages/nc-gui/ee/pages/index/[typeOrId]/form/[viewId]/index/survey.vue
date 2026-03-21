@@ -44,6 +44,8 @@ const { getPossibleAttachmentSrc } = useAttachment()
 
 const { blockAddNewRecord } = useEeConfig()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const isTransitioning = ref(false)
 
 const transitionName = ref<TransitionDirection>(TransitionDirection.Left)
@@ -285,7 +287,7 @@ const { message: templatedMessage } = useTemplatedMessage(
   <div class="h-full">
     <div class="survey md:p-0 w-full h-full flex flex-col max-w-[max(33%,688px)] mx-auto mb-4rem lg:mb-10rem">
       <div v-if="sharedFormView" class="my-auto z-2">
-        <template v-if="isFormNotStarted || isFormExpired">
+        <template v-if="isFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING) && (isFormNotStarted || isFormExpired)">
           <GeneralFormBanner
             v-if="sharedFormView && !parseProp(sharedFormView?.meta).hide_banner"
             :banner-image-url="sharedFormView.banner_image_url"
@@ -449,6 +451,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                     {{ index + 1 }} / {{ formColumns?.length }}
                   </div>
                   <SmartsheetFormExpiryIndicator
+                    v-if="isFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING)"
                     :expires-at="sharedFormView?.expires_at"
                     :show-always="!!parseProp(sharedFormView?.meta)?.show_expiry_timer"
                   />

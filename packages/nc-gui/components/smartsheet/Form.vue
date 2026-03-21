@@ -46,6 +46,8 @@ const enum NcForm {
 
 const { isMobileMode, user, appInfo } = useGlobal()
 
+const { isFeatureEnabled: isBetaFeatureEnabled } = useBetaFeatureToggle()
+
 const { $api, $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
@@ -1179,7 +1181,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                     </div>
                   </div>
                   <SmartsheetFormSchedulingAlert
-                    v-if="isEeUI"
+                    v-if="isEeUI && isBetaFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING)"
                     :starts-at="formViewData?.starts_at"
                     :expires-at="formViewData?.expires_at"
                     class="mt-6 max-w-[max(33%,688px)] mx-auto"
@@ -2120,7 +2122,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                       </div>
 
                       <SmartsheetFormSchedulingSection
-                        v-if="isEeUI"
+                        v-if="isEeUI && isBetaFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING)"
                         :form-view-data="formViewData"
                         :is-locked="isLocked"
                         :is-editable="isEditable"

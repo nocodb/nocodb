@@ -29,6 +29,8 @@ const { getPossibleAttachmentSrc } = useAttachment()
 
 const { blockAddNewRecord } = useEeConfig()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 function isRequired(_columnObj: Record<string, any>, required = false) {
   let columnObj = _columnObj
   if (
@@ -150,11 +152,11 @@ const { message: templatedMessage } = useTemplatedMessage(
 
         <a-alert v-if="notFound" type="warning" class="!mt-2 !mb-4 text-center" message="Not found" />
 
-        <template v-else-if="isFormNotStarted">
+        <template v-else-if="isFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING) && isFormNotStarted">
           <SmartsheetFormClosedState mode="not-started" :starts-at="formStartsAt" />
         </template>
 
-        <template v-else-if="isFormExpired">
+        <template v-else-if="isFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING) && isFormExpired">
           <SmartsheetFormClosedState mode="expired" />
         </template>
 
@@ -308,6 +310,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                 <div class="flex justify-between items-center mt-6">
                   <div class="flex">
                     <SmartsheetFormExpiryIndicator
+                      v-if="isFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING)"
                       :expires-at="sharedFormView?.expires_at"
                       :show-always="!!parseProp(sharedFormView?.meta)?.show_expiry_timer"
                     />

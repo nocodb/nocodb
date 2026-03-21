@@ -1,7 +1,5 @@
 <script lang="ts" setup>
-import { computed, ref } from '#imports'
-import { useSmartsheetStoreOrThrow, useToolbarStore, useViewsStore } from '#imports'
-import { UITypes, ViewTypes } from 'nocodb-sdk'
+import { useToolbarStore } from '#imports'
 
-// ... existing implementation with added kanban compact support
+const { isCompact, setCompact, rowHeight, setRowHeight } = useToolbarStore()
 </script>

@@ -80,10 +80,15 @@ export const startOpenIDIdp = async (env = {}) => {
         const log = data.toString();
         console.log(log);
 
-        // skip warning logs
+        // skip warning logs (npm warn, debugger, deprecation warnings, etc.)
         const lowerCaseLog = log.toLowerCase();
-        if (lowerCaseLog.includes('npm') || lowerCaseLog.includes('debugger') || lowerCaseLog.includes('warning:'))
-          return resolve(null);
+        if (
+          lowerCaseLog.includes('npm') ||
+          lowerCaseLog.includes('debugger') ||
+          lowerCaseLog.includes('warn') ||
+          lowerCaseLog.includes('deprecat')
+        )
+          return;
 
         reject(log);
       });
@@ -134,9 +139,14 @@ export const startSAMLIdp = async (env = {}) => {
         const log = data.toString();
         console.log(log);
 
-        // skip warning logs
+        // skip warning logs (npm warn, debugger, deprecation warnings, etc.)
         const lowerCaseLog = log.toLowerCase();
-        if (lowerCaseLog.includes('npm') || lowerCaseLog.includes('debugger') || lowerCaseLog.includes('warning:'))
+        if (
+          lowerCaseLog.includes('npm') ||
+          lowerCaseLog.includes('debugger') ||
+          lowerCaseLog.includes('warn') ||
+          lowerCaseLog.includes('deprecat')
+        )
           return;
 
         reject(log);

@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PostHog } from 'posthog-node';
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import { ConfigService } from '@nestjs/config';
-import type { AppConfig, NcRequest } from '~/interface/config';
 import { TelemetryService as TelemetryServiceCE } from 'src/services/telemetry.service';
+import type { AppConfig, NcRequest } from '~/interface/config';
 import Noco from '~/Noco';
 
 @Injectable()

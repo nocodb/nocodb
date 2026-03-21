@@ -192,6 +192,8 @@ enum AuditV1OperationTypes {
   RLS_POLICY_UPDATE = 'RLS_POLICY_UPDATE',
   RLS_POLICY_DELETE = 'RLS_POLICY_DELETE',
 
+  DOC_AI_COMPLETION = 'DOC_AI_COMPLETION',
+
   DOCUMENT_CREATE = 'DOCUMENT_CREATE',
   DOCUMENT_UPDATE = 'DOCUMENT_UPDATE',
   DOCUMENT_DELETE = 'DOCUMENT_DELETE',
@@ -1219,6 +1221,10 @@ export interface RlsPolicyDeletePayload {
   table_id: string;
 }
 
+export interface DocAiCompletionPayload {
+  operation: 'write' | 'continue' | 'improve' | 'summarize' | 'translate';
+}
+
 export interface DocumentCreatePayload {
   document_title: string;
   document_id: string;
@@ -1628,6 +1634,9 @@ const descriptionTemplates = {
     `User '${audit.user}' exported ${audit.details.export_type} from table '${audit.details.table_title}'`,
   [AuditV1OperationTypes.DATA_IMPORT]: (audit: AuditV1<DataImportPayload>) =>
     `User '${audit.user}' imported ${audit.details.import_type} into table '${audit.details.table_title}'`,
+  [AuditV1OperationTypes.DOC_AI_COMPLETION]: (
+    audit: AuditV1<DocAiCompletionPayload>
+  ) => `AI '${audit.details.operation}' operation completed on document`,
   [AuditV1OperationTypes.DOCUMENT_CREATE]: (
     audit: AuditV1<DocumentCreatePayload>
   ) => `Document '${audit.details.document_title}' has been created`,

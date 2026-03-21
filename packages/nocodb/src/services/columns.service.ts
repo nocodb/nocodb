@@ -479,10 +479,7 @@ export class ColumnsService implements IColumnsService {
         // somehow current external meta sync do not mark pk as system
         column.pk) &&
       // Allow meta-only updates (description, display format) for CreatedTime/LastModifiedTime
-      !(
-        !payloadHasNonMetaProps &&
-        isCreatedOrLastModifiedTimeCol(column)
-      )
+      !(!payloadHasNonMetaProps && isCreatedOrLastModifiedTimeCol(column))
     ) {
       NcError.get(context).systemFieldNonModifiable();
     }

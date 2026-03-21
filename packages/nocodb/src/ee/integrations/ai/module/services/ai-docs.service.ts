@@ -1,24 +1,28 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, IntegrationCategoryType, PlanFeatureTypes } from 'nocodb-sdk';
+import {
+  AppEvents,
+  IntegrationCategoryType,
+  PlanFeatureTypes,
+} from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { AiIntegration } from '@noco-local-integrations/core';
+import type { ImproveMode } from '~/integrations/ai/module/prompts';
 import { NcError } from '~/helpers/ncError';
 import { Integration } from '~/models';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import {
-  docAiWriteSystemMessage,
-  docAiWritePrompt,
-  docAiContinueSystemMessage,
   docAiContinuePrompt,
-  docAiImproveSystemMessage,
+  docAiContinueSystemMessage,
   docAiImprovePrompt,
-  docAiSummarizeSystemMessage,
+  docAiImproveSystemMessage,
   docAiSummarizePrompt,
-  docAiTranslateSystemMessage,
+  docAiSummarizeSystemMessage,
   docAiTranslatePrompt,
+  docAiTranslateSystemMessage,
+  docAiWritePrompt,
+  docAiWriteSystemMessage,
 } from '~/integrations/ai/module/prompts';
-import type { ImproveMode } from '~/integrations/ai/module/prompts';
 
 @Injectable()
 export class AiDocsService {
@@ -34,7 +38,10 @@ export class AiDocsService {
       NcError.get(context).integrationNotFound('AI');
     }
 
-    return { integration, wrapper: await integration.getIntegrationWrapper<AiIntegration>() };
+    return {
+      integration,
+      wrapper: await integration.getIntegrationWrapper<AiIntegration>(),
+    };
   }
 
   async aiWrite(
@@ -61,7 +68,10 @@ export class AiDocsService {
     const { data, usage } = await wrapper.generateText({
       system: docAiWriteSystemMessage(),
       messages: [
-        { role: 'user', content: docAiWritePrompt(instruction, docContext, title) },
+        {
+          role: 'user',
+          content: docAiWritePrompt(instruction, docContext, title),
+        },
       ],
     });
 
@@ -177,9 +187,7 @@ export class AiDocsService {
 
     const { data, usage } = await wrapper.generateText({
       system: docAiSummarizeSystemMessage(),
-      messages: [
-        { role: 'user', content: docAiSummarizePrompt(inputText) },
-      ],
+      messages: [{ role: 'user', content: docAiSummarizePrompt(inputText) }],
     });
 
     await integration.storeInsert(context, params.req?.user?.id, usage);
@@ -220,7 +228,10 @@ export class AiDocsService {
     const { data, usage } = await wrapper.generateText({
       system: docAiTranslateSystemMessage(),
       messages: [
-        { role: 'user', content: docAiTranslatePrompt(inputText, targetLanguage) },
+        {
+          role: 'user',
+          content: docAiTranslatePrompt(inputText, targetLanguage),
+        },
       ],
     });
 

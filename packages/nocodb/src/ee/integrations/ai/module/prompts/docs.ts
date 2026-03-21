@@ -63,7 +63,9 @@ export const docAiContinuePrompt = (
     parts.push(
       `The following is the plain-text content extracted from the document (not a format to replicate):\n\n${precedingContent}`,
     );
-    parts.push('Continue writing from where the content ends. Use Markdown formatting only.');
+    parts.push(
+      'Continue writing from where the content ends. Use Markdown formatting only.',
+    );
   } else {
     parts.push(
       'The document is empty. Write an opening section based on the document title. Use Markdown formatting only.',
@@ -80,14 +82,21 @@ import type { DocAiImproveMode } from 'nocodb-sdk';
 export type ImproveMode = DocAiImproveMode;
 
 const improveModeInstructions: Record<ImproveMode, string> = {
-  grammar: 'Fix all grammar, spelling, and punctuation errors. Preserve the original meaning and tone.',
-  writing: 'Improve the overall writing quality — fix grammar, improve word choice, enhance flow, and make the text clearer and more polished.',
-  shorter: 'Make the text shorter and more concise. Remove redundancy and filler words while preserving meaning.',
-  longer: 'Expand the text with more detail, examples, or explanation while preserving the original meaning and tone.',
-  professional: 'Rewrite in a professional, polished tone suitable for business communication.',
+  grammar:
+    'Fix all grammar, spelling, and punctuation errors. Preserve the original meaning and tone.',
+  writing:
+    'Improve the overall writing quality — fix grammar, improve word choice, enhance flow, and make the text clearer and more polished.',
+  shorter:
+    'Make the text shorter and more concise. Remove redundancy and filler words while preserving meaning.',
+  longer:
+    'Expand the text with more detail, examples, or explanation while preserving the original meaning and tone.',
+  professional:
+    'Rewrite in a professional, polished tone suitable for business communication.',
   casual: 'Rewrite in a friendly, conversational tone.',
-  straightforward: 'Rewrite in a direct, no-nonsense tone. Be clear and to the point.',
-  confident: 'Rewrite in a confident, assertive tone. Use strong language and decisive phrasing.',
+  straightforward:
+    'Rewrite in a direct, no-nonsense tone. Be clear and to the point.',
+  confident:
+    'Rewrite in a confident, assertive tone. Use strong language and decisive phrasing.',
   friendly: 'Rewrite in a warm, approachable, and friendly tone.',
 };
 
@@ -103,7 +112,8 @@ You are a professional editor improving existing text.
 `.trim();
 
 export const docAiImprovePrompt = (text: string, mode: ImproveMode) => {
-  const instruction = improveModeInstructions[mode] || improveModeInstructions.writing;
+  const instruction =
+    improveModeInstructions[mode] || improveModeInstructions.writing;
   return `${instruction}\n\nText to improve:\n${text}`;
 };
 

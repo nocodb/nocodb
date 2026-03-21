@@ -103,7 +103,7 @@ const submitInput = () => {
     ...original,
     command: (editor, range) => {
       // Store input where the original command can read it
-      if (original.group === 'AI') {
+      if (original.group === 'NocoAI') {
         if (editor.storage.docAi) {
           editor.storage.docAi._pendingInstruction = url
         }

@@ -191,7 +191,9 @@ Examples:
 
 Return only the title text, nothing else.`;
 
-export function buildTitleGenerationMessages(userMessage: string): ModelMessage[] {
+export function buildTitleGenerationMessages(
+  userMessage: string,
+): ModelMessage[] {
   return [{ role: 'user', content: `"${userMessage}"` }];
 }
 
@@ -242,13 +244,12 @@ Rules:
 - Do not reveal internal IDs. Do not wrap in JSON.
 - If the base schema is empty (no tables), suggest building common starter projects — e.g. "Build a CRM to track leads and customers", "Create an inventory management system", "Set up a project tracker with tasks and milestones", "Build an event planning database". Make these actionable and varied.${NOCODB_AI_CONTEXT}`;
 
-  const fileContext =
-    fileNames?.length
-      ? `\n\nThe user has uploaded the following files: ${fileNames.join(', ')}. \
+  const fileContext = fileNames?.length
+    ? `\n\nThe user has uploaded the following files: ${fileNames.join(', ')}. \
 Incorporate these files into your suggestions — suggest things like analyzing, summarizing, \
 extracting data from, or comparing the uploaded files with base data. \
 Reference the actual file names in your suggestions.`
-      : '';
+    : '';
 
   return [
     { role: 'system', content: systemPrompt },

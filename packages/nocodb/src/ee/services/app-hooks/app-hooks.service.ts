@@ -7,8 +7,8 @@ import type {
   ChatSessionCreateEvent,
   ChatSessionDeleteEvent,
   ChatSessionUpdateEvent,
-  DocAiCompletionEvent,
   ColumnEvent,
+  DocAiCompletionEvent,
   DocumentCommentCreateEvent,
   DocumentCommentDeleteEvent,
   DocumentCommentUpdateEvent,
@@ -905,10 +905,7 @@ export class AppHooksService extends ApppHookServiceCE {
   ): void;
 
   // Doc AI Events
-  emit(
-    event: AppEvents.DOC_AI_COMPLETION,
-    data: DocAiCompletionEvent,
-  ): void;
+  emit(event: AppEvents.DOC_AI_COMPLETION, data: DocAiCompletionEvent): void;
 
   // Chat Events
   emit(

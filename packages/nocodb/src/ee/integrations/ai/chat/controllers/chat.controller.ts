@@ -47,7 +47,10 @@ export class ChatController {
     return await this.suggestionsService.getSuggestions(context, {
       type,
       fileNames: fileNames
-        ? fileNames.split(',').map((n) => n.trim()).filter(Boolean)
+        ? fileNames
+            .split(',')
+            .map((n) => n.trim())
+            .filter(Boolean)
         : undefined,
       req,
     });

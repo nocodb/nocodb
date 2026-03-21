@@ -58,7 +58,6 @@ export const ChatToolName = {
   LIST_WIDGET_FILTERS: 'list_widget_filters',
   REMOVE_WIDGET_FILTER: 'remove_widget_filter',
 
-
   // Docs
   LIST_DOCUMENTS: 'list_documents',
   GET_DOCUMENT: 'get_document',

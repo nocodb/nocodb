@@ -17,11 +17,23 @@ import { AiDocsService } from '~/integrations/ai/module/services/ai-docs.service
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 type DocAiRequestBody =
-  | { operation: 'docAiWrite'; input: { instruction: string; context?: string; title?: string } }
-  | { operation: 'docAiContinue'; input: { precedingContent: string; title?: string } }
-  | { operation: 'docAiImprove'; input: { text: string; mode: DocAiImproveMode } }
+  | {
+      operation: 'docAiWrite';
+      input: { instruction: string; context?: string; title?: string };
+    }
+  | {
+      operation: 'docAiContinue';
+      input: { precedingContent: string; title?: string };
+    }
+  | {
+      operation: 'docAiImprove';
+      input: { text: string; mode: DocAiImproveMode };
+    }
   | { operation: 'docAiSummarize'; input: { text: string } }
-  | { operation: 'docAiTranslate'; input: { text: string; targetLanguage: string } };
+  | {
+      operation: 'docAiTranslate';
+      input: { text: string; targetLanguage: string };
+    };
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)

@@ -239,9 +239,7 @@ const sanitizeAiResponse = (text: string): string => {
   // Detect JSON array or object with ProseMirror-like node structures
   if (
     (trimmed.startsWith('[') || trimmed.startsWith('{')) &&
-    /"type"\s*:\s*"(heading|paragraph|text|taskList|taskItem|callout|bulletList|orderedList|codeBlock|blockquote)"/.test(
-      trimmed,
-    )
+    /"type"\s*:\s*"(heading|paragraph|text|taskList|taskItem|callout|bulletList|orderedList|codeBlock|blockquote)"/.test(trimmed)
   ) {
     try {
       const parsed = JSON.parse(trimmed.startsWith('[') ? trimmed : `[${trimmed}]`)
@@ -353,9 +351,7 @@ const addAiHighlight = (from: number, to: number) => {
     state: {
       init(_, state) {
         const clampedTo = Math.min(to, state.doc.content.size)
-        return DecorationSet.create(state.doc, [
-          Decoration.inline(from, clampedTo, { class: 'nc-doc-ai-generated' }),
-        ])
+        return DecorationSet.create(state.doc, [Decoration.inline(from, clampedTo, { class: 'nc-doc-ai-generated' })])
       },
       apply(tr, set) {
         // Keep decorations alive — removal is handled by markAiHighlightForRemoval
@@ -392,7 +388,9 @@ const markAiHighlightForRemoval = () => {
       })
       // Unregister plugin after animation completes
       setTimeout(() => {
-        try { editor.value?.unregisterPlugin(aiHighlightPluginKey) } catch {}
+        try {
+          editor.value?.unregisterPlugin(aiHighlightPluginKey)
+        } catch {}
       }, 600)
     }
     editor.value?.on('transaction', handler)
@@ -450,7 +448,10 @@ const showAiSuggestion = async (
   operationLabel: string,
   aiFn: () => Promise<string | undefined>,
 ) => {
-  if (blockDocAi.value) { showUpgradeToUseDocAi(); return }
+  if (blockDocAi.value) {
+    showUpgradeToUseDocAi()
+    return
+  }
   if (!editor.value) return
 
   // Save selection range before the async call
@@ -510,7 +511,10 @@ const showAiSuggestionAtCursor = async (
   operationLabel: string,
   aiFn: () => Promise<string | undefined>,
 ) => {
-  if (blockDocAi.value) { showUpgradeToUseDocAi(); return }
+  if (blockDocAi.value) {
+    showUpgradeToUseDocAi()
+    return
+  }
   if (!editor.value || !editorContentRef.value) return
 
   const pos = editor.value.state.selection.from
@@ -700,7 +704,7 @@ const positionSubMenu = (e: MouseEvent) => {
 
   // Vertical: align top with trigger item, clamp to viewport
   const absoluteTop = parentRect.top
-  const overflow = (absoluteTop + panelHeight) - window.innerHeight + 8
+  const overflow = absoluteTop + panelHeight - window.innerHeight + 8
   if (overflow > 0) {
     subEl.style.top = `${-overflow}px`
   } else if (absoluteTop < 8) {
@@ -746,7 +750,10 @@ const wireDocAiStorage = () => {
 
   editor.value.storage.docAi = {
     write: async (instruction: string) => {
-      if (blockDocAi.value) { showUpgradeToUseDocAi(); return }
+      if (blockDocAi.value) {
+        showUpgradeToUseDocAi()
+        return
+      }
       $e('a:doc:ai:write')
       const context = getDocPlainText(2000, false)
       const result = await aiWrite(instruction, context, title.value)
@@ -755,50 +762,59 @@ const wireDocAiStorage = () => {
       }
     },
     continueWriting: async () => {
-      if (blockDocAi.value) { showUpgradeToUseDocAi(); return }
+      if (blockDocAi.value) {
+        showUpgradeToUseDocAi()
+        return
+      }
       $e('a:doc:ai:continue')
       // Send document content up to the cursor position, not the entire document
       const pos = editor.value!.state.selection.from
       const fullText = editor.value!.state.doc.textBetween(0, pos, '\n')
       const precedingContent = fullText.length > 2000 ? fullText.slice(-2000) : fullText
       if (!precedingContent.trim() && !title.value?.trim()) return
-      showAiSuggestionAtCursor(
-        'continue',
-        {},
-        t('labels.docAiContinueWriting'),
-        () => aiContinue(precedingContent || '', title.value),
+      showAiSuggestionAtCursor('continue', {}, t('labels.docAiContinueWriting'), () =>
+        aiContinue(precedingContent || '', title.value),
       )
     },
     summarize: async () => {
-      if (blockDocAi.value) { showUpgradeToUseDocAi(); return }
+      if (blockDocAi.value) {
+        showUpgradeToUseDocAi()
+        return
+      }
       $e('a:doc:ai:summarize')
       const text = (editor.value?.state.doc.textContent || '').slice(0, 10000)
       if (!text.trim()) return
-      showAiSuggestionAtCursor(
-        'summarize',
-        {},
-        t('labels.docAiSummarize'),
-        () => aiSummarize(text),
-      )
+      showAiSuggestionAtCursor('summarize', {}, t('labels.docAiSummarize'), () => aiSummarize(text))
     },
     improve: (mode: string) => {
-      if (blockDocAi.value) { showUpgradeToUseDocAi(); return }
+      if (blockDocAi.value) {
+        showUpgradeToUseDocAi()
+        return
+      }
       $e('a:doc:ai:improve', { mode })
       runAiSuggestionOperation('improve', { mode })
     },
     translate: (targetLanguage: string) => {
-      if (blockDocAi.value) { showUpgradeToUseDocAi(); return }
+      if (blockDocAi.value) {
+        showUpgradeToUseDocAi()
+        return
+      }
       $e('a:doc:ai:translate', { targetLanguage })
       runAiSuggestionOperation('translate', { targetLanguage })
     },
     _pendingInstruction: null,
-    get isLoading() { return docAiLoading.value },
+    get isLoading() {
+      return docAiLoading.value
+    },
   }
 }
 
 /** Summarize just the selected text (bubble menu action) — routes through popup. */
 const onAiSummarizeSelection = () => {
-  if (blockDocAi.value) { showUpgradeToUseDocAi(); return }
+  if (blockDocAi.value) {
+    showUpgradeToUseDocAi()
+    return
+  }
   $e('a:doc:ai:summarize:selection')
   runAiSuggestionOperation('summarize', {})
 }
@@ -2236,7 +2252,12 @@ onBeforeUnmount(() => {
                   <!-- AI Actions -->
                   <template v-if="isEeUI && isEditable">
                     <div class="nc-doc-bubble-ai-divider" />
-                    <NcDropdown :disabled="!isDocAiConfigured" trigger="click" placement="bottomLeft" @update:visible="resetAiSubMenus">
+                    <NcDropdown
+                      :disabled="!isDocAiConfigured"
+                      trigger="click"
+                      placement="bottomLeft"
+                      @update:visible="resetAiSubMenus"
+                    >
                       <NcTooltip placement="top">
                         <template #title>
                           {{ isDocAiConfigured ? 'NocoAI' : $t('title.noAiIntegrationAvailable') }}
@@ -2506,8 +2527,8 @@ onBeforeUnmount(() => {
 
                 <!-- AI Suggestion Popup — floats below selection after bubble menu AI action -->
                 <DocAiSuggestionPopup
-                  ref="aiSuggestionPopupRef"
                   v-if="aiSuggestion.visible"
+                  ref="aiSuggestionPopupRef"
                   :style="aiSuggestionStyle"
                   :loading="aiSuggestion.loading"
                   :result="aiSuggestion.result"
@@ -4279,6 +4300,4 @@ body.nc-doc-dragging .nc-doc-editor-inner * {
   border-bottom-color: transparent !important;
   transition: background-color 0.5s ease, border-bottom-color 0.5s ease;
 }
-
-
 </style>

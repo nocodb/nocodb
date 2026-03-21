@@ -16,8 +16,6 @@ const props = withDefaults(defineProps<Props>(), {
   inlineMode: false,
 })
 
-const { loading, result, error, inlineMode } = toRefs(props)
-
 const emit = defineEmits<{
   (e: 'accept'): void
   (e: 'discard'): void
@@ -25,6 +23,8 @@ const emit = defineEmits<{
   (e: 'insertBelow'): void
   (e: 'stop'): void
 }>()
+
+const { loading, result, error, inlineMode } = toRefs(props)
 
 const { t } = useI18n()
 
@@ -39,30 +39,30 @@ const loadingStepIndex = ref(0)
 
 let loadingStepTimer: ReturnType<typeof setInterval> | null = null
 
-const loadingSteps = computed(() => [
-  t('labels.docAiReadingDocument'),
-  t('labels.docAiThinking'),
-  t('labels.docAiWriting'),
-])
+const loadingSteps = computed(() => [t('labels.docAiReadingDocument'), t('labels.docAiThinking'), t('labels.docAiWriting')])
 
 const currentLoadingStep = computed(() => loadingSteps.value[loadingStepIndex.value] || loadingSteps.value[0])
 
-watch(loading, (isLoading) => {
-  if (isLoading) {
-    loadingStepIndex.value = 0
-    loadingStepTimer = setInterval(() => {
-      if (loadingStepIndex.value < loadingSteps.value.length - 1) {
-        loadingStepIndex.value++
+watch(
+  loading,
+  (isLoading) => {
+    if (isLoading) {
+      loadingStepIndex.value = 0
+      loadingStepTimer = setInterval(() => {
+        if (loadingStepIndex.value < loadingSteps.value.length - 1) {
+          loadingStepIndex.value++
+        }
+      }, 2000)
+    } else {
+      if (loadingStepTimer) {
+        clearInterval(loadingStepTimer)
+        loadingStepTimer = null
       }
-    }, 2000)
-  } else {
-    if (loadingStepTimer) {
-      clearInterval(loadingStepTimer)
-      loadingStepTimer = null
+      loadingStepIndex.value = 0
     }
-    loadingStepIndex.value = 0
-  }
-}, { immediate: true })
+  },
+  { immediate: true },
+)
 
 onBeforeUnmount(() => {
   if (loadingStepTimer) {
@@ -100,7 +100,12 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 </script>
 
 <template>
-  <div ref="popupRef" class="nc-doc-ai-suggestion" :class="{ 'nc-doc-ai-suggestion-inline': inlineMode && hasResult }" data-testid="nc-doc-ai-suggestion">
+  <div
+    ref="popupRef"
+    class="nc-doc-ai-suggestion"
+    :class="{ 'nc-doc-ai-suggestion-inline': inlineMode && hasResult }"
+    data-testid="nc-doc-ai-suggestion"
+  >
     <!-- Loading state -->
     <div v-if="loading" class="nc-doc-ai-suggestion-loading">
       <div class="nc-doc-ai-suggestion-icon">
@@ -258,12 +263,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
         <span class="nc-doc-ai-suggestion-error-text text-nc-content-red-dark">{{ error }}</span>
       </div>
       <div class="nc-doc-ai-suggestion-actions">
-        <NcButton
-          size="xs"
-          type="text"
-          data-testid="nc-doc-ai-suggestion-retry"
-          @click="emit('tryAgain')"
-        >
+        <NcButton size="xs" type="text" data-testid="nc-doc-ai-suggestion-retry" @click="emit('tryAgain')">
           <div class="flex items-center gap-1">
             <GeneralIcon icon="refresh" class="!h-3 !w-3" />
             <span>{{ t('labels.docAiTryAgain') }}</span>
@@ -350,7 +350,9 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 }
 
 @keyframes dotPulse {
-  0%, 80%, 100% {
+  0%,
+  80%,
+  100% {
     opacity: 0.3;
     transform: scale(0.8);
   }

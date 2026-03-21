@@ -1,18 +1,16 @@
 <script setup lang="ts">
 const { isCompact, updateCompact } = useKanbanViewStore()
-const { t } = useI18n()
 </script>
 
 <template>
   <NcTooltip placement="bottom">
     <template #title>
-      {{ isCompact ? t('tooltip.kanbanExpandCards') : t('tooltip.kanbanCompactCards') }}
+      {{ isCompact ? $t('tooltip.kanbanExpandCards') : $t('tooltip.kanbanCompactCards') }}
     </template>
     <NcButton
       v-e="['c:toolbar:kanban-compact']"
       size="small"
       type="text"
-      class="nc-kanban-compact-btn"
       :class="{ 'nc-active-btn': isCompact }"
       @click="updateCompact(!isCompact)"
     >

@@ -1,6 +1,7 @@
 import type { AttachmentType, ColumnType, KanbanType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isSystemColumn } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
+import type { Row } from '../lib/types'
 
 const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
   (
@@ -53,8 +54,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { isPaginationLoading } = useViewData(meta, view, where)
 
-    // Compact mode for kanban cards
-    const isCompact = ref<boolean>(false)
+    /** Toggle between compact and default card layout */
+    const isCompact = ref(false)
 
     const fields = inject(FieldsInj, ref([]))
 
@@ -75,9 +76,13 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       return fields.value.find((f) => f.pv)
     })
 
+    /**
+     * Toggle compact card mode on the kanban board.
+     * In compact mode, cards take minimal vertical space.
+     */
     function toggleCompact() {
       isCompact.value = !isCompact.value
-      $e('c:kanban:compact-mode-toggle', { compact: isCompact.value })
+      $e('c:kanban:compact-mode', { compact: isCompact.value })
     }
 
     async function loadKanbanMeta() {
@@ -101,25 +106,23 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     async function loadMoreKanbanData(stackTitle: string, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
       if ((!isPublic.value && !meta?.value?.id) || !view.value?.id) return
 
-      const res = isPublic.value
+      const _where = `(${groupingFieldValue.value},${stackTitle === 'uncategorized' ? 'is,null' : `eq,${stackTitle}`})`
+
+      const response = isPublic.value
         ? await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
         : await api.dbViewRow.list('noco', meta.value!.base_id!, meta.value!.id!, view.value!.id!, {
             ...params,
-            where: where?.value,
+            where: params?.where ? `${_where}~and${params.where}` : _where,
           })
 
-      const data = (res as any).list ?? []
+      const data = (response as any).list ?? []
       const existingData = formattedData.value.get(stackTitle) ?? []
-
       formattedData.value.set(stackTitle, [...existingData, ...data])
-      countByStack.value.set(stackTitle, (res as any).pageInfo?.totalRows ?? 0)
+      countByStack.value.set(stackTitle, (response as any).pageInfo?.totalRows ?? 0)
     }
 
     async function updateKanbanStackMeta(updateObj: Record<string, any>) {
-      const newStackMeta = {
-        ...stackMetaObj.value,
-        ...updateObj,
-      }
+      const newStackMeta = { ...stackMetaObj.value, ...updateObj }
       stackMetaObj.value = newStackMeta
       if (isUIAllowed('dataEdit') && !isPublic.value) {
         await updateKanbanMeta({ meta: newStackMeta })
@@ -133,7 +136,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     async function addEmptyRow(stackTitle: string, stackIdx: number) {
       const existingData = formattedData.value.get(stackTitle) ?? []
-      const newRow = {
+      const newRow: Row = {
         row: { [groupingFieldValue.value!]: stackTitle === 'uncategorized' ? null : stackTitle },
         oldRow: {},
         rowMeta: { new: true },

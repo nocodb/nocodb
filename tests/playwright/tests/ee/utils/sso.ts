@@ -12,8 +12,10 @@ let samlChildProcess: ChildProcess;
  */
 function killProcessOnPort(port: number) {
   try {
-    // -t returns only PIDs; -i :port matches listeners on that port
-    const pids = execSync(`lsof -t -i :${port}`, { encoding: 'utf-8' }).trim();
+    // -t returns only PIDs; -i :port matches on that port; -sTCP:LISTEN limits to listeners only
+    // Without -sTCP:LISTEN, lsof also returns client connections (e.g. the backend connecting
+    // TO the IdP), which would kill the backend process.
+    const pids = execSync(`lsof -t -i :${port} -sTCP:LISTEN`, { encoding: 'utf-8' }).trim();
     if (pids) {
       for (const pid of pids.split('\n')) {
         try {

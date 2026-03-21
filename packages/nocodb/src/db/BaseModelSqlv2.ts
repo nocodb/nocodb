@@ -1699,6 +1699,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     onlySort = false,
     skipViewFilter = false,
     skipSort = false,
+    prioritizePvSort = false,
   }: {
     table: Model;
     view?: View;
@@ -1709,6 +1710,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     onlySort?: boolean;
     skipViewFilter?: boolean;
     skipSort?: boolean;
+    prioritizePvSort?: boolean;
   }) {
     const childAliasColMap = await table.getAliasColObjMap(this.context);
 
@@ -1737,6 +1739,52 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ],
         qb,
       );
+    }
+
+    // Highest priority: when searching in LTAR dropdowns, sort PV (display value) matches first
+    if (where && !skipSort && prioritizePvSort) {
+      if (!table.columns?.length) {
+        await table.getColumns(this.context);
+      }
+      const pvColumn = table.columns?.find((col) => col.pv);
+      if (pvColumn?.column_name) {
+        // Use the structured filter array from extractFilterFromXwhere
+        // instead of re-parsing the raw where string
+        const { filters: parsedFilters } = extractFilterFromXwhere(
+          this.context,
+          where,
+          childAliasColMap,
+        );
+
+        // Find the PV column's filter — may be a top-level filter or inside an OR group
+        const pvFilter = (parsedFilters || [])
+          .flatMap((f) => (f.is_group ? f.children || [] : [f]))
+          .find((f) => f.fk_column_id === pvColumn.id);
+
+        if (pvFilter?.value != null) {
+          const op = pvFilter.comparison_op;
+          // Currently handles 'like' (text PV) and 'eq' (numeric/date PV)
+          // — the only operators the LTAR dropdown search sends
+          if (op === 'like') {
+            qb.orderByRaw(
+              this.dbDriver.raw(
+                `CASE WHEN LOWER(??) LIKE ? THEN 0 ELSE 1 END`,
+                [
+                  pvColumn.column_name,
+                  String(pvFilter.value).toLowerCase(),
+                ],
+              ),
+            );
+          } else if (op === 'eq') {
+            qb.orderByRaw(
+              this.dbDriver.raw(`CASE WHEN ?? = ? THEN 0 ELSE 1 END`, [
+                pvColumn.column_name,
+                pvFilter.value,
+              ]),
+            );
+          }
+        }
+      }
     }
 
     // First priority on v3 api is sort object if exists

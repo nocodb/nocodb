@@ -1353,7 +1353,7 @@ export default function () {
           .patch(`${API_PREFIX}/${doc.id}/reorder`)
           .set('xc-auth', context.token)
           .send({ order: 1, parent_id: 'nonexistent_parent_id' })
-          .expect(404);
+          .expect(422);
       });
 
       it('Fractional order values are preserved', async () => {

@@ -418,8 +418,8 @@ const recordCountLabel = computed(() => {
         <!-- #8: Sort -->
         <LazySmartsheetToolbarSortListMenu v-if="!isPublic" />
 
-        <!-- Group By -->
-        <SmartsheetToolbarGroupByMenu v-if="!isPublic" />
+        <!-- TODO: Enable group-by for timeline view after further verification -->
+        <!-- <SmartsheetToolbarGroupByMenu v-if="!isPublic" /> -->
 
         <!-- Colour -->
         <SmartsheetToolbarRowColorFilterDropdown v-if="!isPublic" />

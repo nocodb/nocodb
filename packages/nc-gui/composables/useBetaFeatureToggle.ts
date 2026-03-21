@@ -221,14 +221,6 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'timeline',
-    title: 'Timeline View',
-    description: 'Enable timeline view to visualize date-based data on a timeline.',
-    enabled: false,
-    version: 1,
-    isEE: true,
-  },
-  {
     id: 'team_hierarchy',
     title: 'Team Hierarchy',
     description: 'Organize the teams in nested hierarchy',

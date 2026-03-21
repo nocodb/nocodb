@@ -19,8 +19,6 @@ const { isListViewEnabled } = storeToRefs(viewsStore)
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const { blockMapView, blockTimelineView, showEEFeatures, showUpgradeToUseMapView, showUpgradeToUseTimelineView } = useEeConfig()
 
 const table = inject(SidebarTableInj)!
@@ -253,7 +251,7 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
         <NcMenuItem
-          v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.TIMELINE) && showEEFeatures"
+          v-if="isEeUI && showEEFeatures"
           inner-class="w-full"
           data-testid="sidebar-view-create-timeline"
           @click="
@@ -271,6 +269,7 @@ async function onOpenModal({
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
               <div>{{ $t('objects.viewType.timeline') }}</div>
+              <NcBadgeBeta />
             </div>
 
             <template v-if="blockTimelineView">

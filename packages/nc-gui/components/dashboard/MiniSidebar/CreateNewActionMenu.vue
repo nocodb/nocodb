@@ -27,8 +27,6 @@ const { activeView, isListViewEnabled } = storeToRefs(viewsStore)
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const { isEEFeatureBlocked, showEEFeatures, showUpgradeToUseTimelineView, showUpgradeToUseMapView } = useEeConfig()
 
 const { activeSidebarTab } = storeToRefs(useSidebarStore())
@@ -333,12 +331,13 @@ const hasDocumentCreateAccess = computed(() => {
                 <NcBadgeBeta />
               </NcMenuItem>
               <NcMenuItem
-                v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.TIMELINE) && showEEFeatures"
+                v-if="isEeUI && showEEFeatures"
                 data-testid="mini-sidebar-view-create-timeline"
                 @click="showUpgradeToUseTimelineView({ successCallback: () => onOpenModal({ type: ViewTypes.TIMELINE }) })"
               >
                 <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.timeline') }}</div>
+                <NcBadgeBeta />
               </NcMenuItem>
               <template v-if="isAiFeaturesEnabled">
                 <NcDivider />

@@ -11,13 +11,15 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import type { NcContext, NcRequest } from '~/interface/config';
 import type {
+  DocumentV3ListResponseType,
+  DocumentV3Type,
+} from '~/services/v3/documents-v3.types';
+import { NcContext, NcRequest } from '~/interface/config';
+import {
   DocumentCreateV3Type,
   DocumentReorderV3Type,
   DocumentUpdateV3Type,
-  DocumentV3ListResponseType,
-  DocumentV3Type,
 } from '~/services/v3/documents-v3.types';
 import { checkForFeature, PlanFeatureTypes } from '~/helpers/paymentHelpers';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';

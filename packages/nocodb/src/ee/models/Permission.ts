@@ -1,18 +1,20 @@
 import {
   DOCUMENT_PERMISSION_KEYS,
+  getPermissionOptionValue,
   isMoreRestrictive,
   parseProp,
   PermissionGrantedType,
-  PermissionKey,
   type PermissionRole,
   PermissionRoleMap,
   PermissionRolePower,
   type ProjectRoles,
   type WorkspaceUserRoles,
-  getPermissionOptionValue,
+} from 'nocodb-sdk';
+import type {
+  PermissionEntity,
+  PermissionKey,
   PermissionOptionValue,
 } from 'nocodb-sdk';
-import type { PermissionEntity } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { Knex } from 'knex';
 import { extractProps } from '~/helpers/extractProps';

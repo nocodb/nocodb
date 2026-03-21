@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PermissionEntity, PermissionKey, PlanFeatureTypes } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, PlanFeatureTypes, ProjectRoles, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu, EditorContent, useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'

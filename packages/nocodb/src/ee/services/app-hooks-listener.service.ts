@@ -4462,6 +4462,12 @@ export class AppHooksListenerService
             },
           ),
         );
+
+        this.telemetryService.sendEvent({
+          evt_type: `a:doc:ai:${param.operation}`,
+          req,
+          clientId,
+        });
         break;
       }
 

@@ -1,5 +1,12 @@
 <script lang="ts" setup>
-import { type DocumentType, PermissionEntity, PermissionKey, PermissionOptionValue } from 'nocodb-sdk'
+import {
+  type DocumentType,
+  PermissionEntity,
+  PermissionKey,
+  PermissionOptionValue,
+  ProjectRoles,
+  extractBaseRoleFromWorkspaceRole,
+} from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -67,9 +74,7 @@ const editConfig = computed<PermissionConfig>(() => ({
 const hasExplicitPermissions = computed(() => {
   const permissions = base.value?.permissions
   if (!permissions) return false
-  return permissions.some(
-    (p) => p.entity === PermissionEntity.DOCUMENT && p.entity_id === props.docId,
-  )
+  return permissions.some((p) => p.entity === PermissionEntity.DOCUMENT && p.entity_id === props.docId)
 })
 
 const isResetting = ref(false)
@@ -126,13 +131,7 @@ const navigateToDocsPermissions = () => {
 </script>
 
 <template>
-  <NcModal
-    v-model:visible="visible"
-    size="xs"
-    height="auto"
-    :show-separator="false"
-    wrap-class-name="nc-modal-doc-permissions"
-  >
+  <NcModal v-model:visible="visible" size="xs" height="auto" :show-separator="false" wrap-class-name="nc-modal-doc-permissions">
     <div class="flex flex-col gap-4">
       <div class="flex-1 flex items-center gap-2 text-nc-content-gray-emphasis">
         <GeneralIcon icon="ncLock" class="w-5 h-5 flex-none" />
@@ -153,12 +152,7 @@ const navigateToDocsPermissions = () => {
         <div class="text-nc-content-gray-emphasis text-bodyBold min-h-7 flex items-center">
           {{ $t('title.pageVisibility') }}
         </div>
-        <PermissionsSelector
-          :base="base"
-          :config="visibilityConfig"
-          horizontal
-          @save="handlePermissionSave"
-        />
+        <PermissionsSelector :base="base" :config="visibilityConfig" horizontal @save="handlePermissionSave" />
       </div>
 
       <!-- Edit Section -->
@@ -166,12 +160,7 @@ const navigateToDocsPermissions = () => {
         <div class="text-nc-content-gray-emphasis text-bodyBold min-h-7 flex items-center">
           {{ $t('title.pageEditing') }}
         </div>
-        <PermissionsSelector
-          :base="base"
-          :config="editConfig"
-          horizontal
-          @save="handlePermissionSave"
-        />
+        <PermissionsSelector :base="base" :config="editConfig" horizontal @save="handlePermissionSave" />
       </div>
 
       <!-- Footer -->

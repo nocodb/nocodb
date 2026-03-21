@@ -129,8 +129,7 @@ export class DocumentsV3Service {
     };
 
     if (body.order == null && body.parent_id !== undefined) {
-      const targetParentId =
-        body.parent_id === null ? null : body.parent_id;
+      const targetParentId = body.parent_id === null ? null : body.parent_id;
       const siblings = await this.documentsService.list(
         context,
         context.base_id,

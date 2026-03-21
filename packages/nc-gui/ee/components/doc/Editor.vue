@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PermissionEntity, PermissionKey, PlanFeatureTypes } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, PlanFeatureTypes, ProjectRoles, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu, EditorContent, useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
@@ -64,7 +64,10 @@ const { activeDocuments } = storeToRefs(documentsStore)
 
 const base = inject(ProjectInj, ref())
 
-const isCreatorOrAbove = computed(() => isUIAllowed('documentCreate'))
+const isCreatorOrAbove = computed(() => {
+  const role = base.value?.project_role || extractBaseRoleFromWorkspaceRole(base.value?.workspace_role)
+  return role === ProjectRoles.OWNER || role === ProjectRoles.CREATOR
+})
 
 /**
  * Check document-level DOCUMENT_EDIT permission by walking up the parent chain.

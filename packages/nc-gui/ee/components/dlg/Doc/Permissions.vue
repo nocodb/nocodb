@@ -1,5 +1,12 @@
 <script lang="ts" setup>
-import { type DocumentType, PermissionEntity, PermissionKey, PermissionOptionValue } from 'nocodb-sdk'
+import {
+  type DocumentType,
+  PermissionEntity,
+  PermissionKey,
+  PermissionOptionValue,
+  ProjectRoles,
+  extractBaseRoleFromWorkspaceRole,
+} from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -32,9 +39,10 @@ const { resolveDocPermission, getEffectiveValue, getParentEffectiveValue } = use
   activeDocuments,
 )
 
-const { isUIAllowed } = useRoles()
-
-const isCreatorOrAbove = computed(() => isUIAllowed('documentCreate'))
+const isCreatorOrAbove = computed(() => {
+  const role = base.value?.project_role || extractBaseRoleFromWorkspaceRole(base.value?.workspace_role)
+  return role === ProjectRoles.OWNER || role === ProjectRoles.CREATOR
+})
 
 const visibilityConfig = computed<PermissionConfig>(() => ({
   entity: PermissionEntity.DOCUMENT,

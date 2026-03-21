@@ -124,7 +124,6 @@ export class WorkflowDraftReminderProcessor {
               title: base?.title || 'Base',
             },
             draftAgeDays: draftAge,
-            workspaceId: staleWorkflow.fk_workspace_id,
           },
         });
 

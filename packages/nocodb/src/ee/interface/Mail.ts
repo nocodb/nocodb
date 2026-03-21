@@ -63,7 +63,6 @@ interface WorkflowErrorDigestPayload {
   firstFailureTime: string;
   lastFailureTime: string;
   lastFailureId: string;
-  workspaceId: string;
 }
 
 interface WorkflowDraftReminderPayload {
@@ -82,7 +81,6 @@ interface WorkflowDraftReminderPayload {
     title: string;
   };
   draftAgeDays: number;
-  workspaceId: string;
 }
 
 interface HookErrorDigestPayload {
@@ -107,7 +105,6 @@ interface HookErrorDigestPayload {
   failureCount: number;
   firstFailureTime: string;
   lastFailureTime: string;
-  workspaceId: string;
 }
 
 type MailParams =

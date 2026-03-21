@@ -406,17 +406,17 @@ export class MailService extends MailServiceCE {
           const {
             user,
             workflow,
+            workspace,
             base,
             failureCount,
             firstFailureTime,
             lastFailureTime,
             lastFailureId,
-            workspaceId,
             req,
           } = params.payload as WorkflowErrorDigestPayload;
 
           const link = this.buildUrl(req, {
-            workspaceId,
+            workspaceId: workspace.id,
             baseId: base.id,
             automationId: workflow.id,
             executionId: lastFailureId,
@@ -440,14 +440,14 @@ export class MailService extends MailServiceCE {
           const {
             user,
             workflow,
+            workspace,
             base,
             draftAgeDays,
-            workspaceId,
             req,
           } = params.payload as WorkflowDraftReminderPayload;
 
           const link = this.buildUrl(req, {
-            workspaceId,
+            workspaceId: workspace.id,
             baseId: base.id,
             automationId: workflow.id,
           });
@@ -469,16 +469,16 @@ export class MailService extends MailServiceCE {
             user,
             hook,
             table,
+            workspace,
             base,
             failureCount,
             firstFailureTime,
             lastFailureTime,
-            workspaceId,
             req,
           } = params.payload as HookErrorDigestPayload;
 
           const link = this.buildUrl(req, {
-            workspaceId,
+            workspaceId: workspace.id,
             baseId: base.id,
             tableId: table.id,
             hookId: hook.id,

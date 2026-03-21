@@ -59,7 +59,8 @@ export class WorkflowErrorNotificationProcessor {
       .whereNull('error_notified_at')
       .where('finished_at', '<', cutoffTime)
       .whereIn('fk_workflow_id', workflowIds)
-      .orderBy('finished_at', 'desc');
+      .orderBy('finished_at', 'desc')
+      .limit(100);
 
     // Create a map for quick lookup (first occurrence per workflow is the latest due to ORDER BY)
     const lastFailureMap = new Map<string, string>();
@@ -158,7 +159,6 @@ export class WorkflowErrorNotificationProcessor {
                   'MM/DD/YYYY [at] h:mm A [UTC]',
                 ),
                 lastFailureId: group.last_failure_id,
-                workspaceId: group.fk_workspace_id,
               },
             });
 
@@ -167,8 +167,8 @@ export class WorkflowErrorNotificationProcessor {
             );
           } catch (error) {
             this.logger.error(
-              `Failed to send error digest email to ${user.email}:`,
-              error,
+              `Failed to send error digest email to ${user.email}: ${error?.message}`,
+              error?.stack,
             );
           }
         }
@@ -176,8 +176,8 @@ export class WorkflowErrorNotificationProcessor {
         await this.markAsNotified(group, cutoffTime);
       } catch (error) {
         this.logger.error(
-          `Failed to process error notifications for workflow ${group.fk_workflow_id}:`,
-          error,
+          `Failed to process error notifications for workflow ${group.fk_workflow_id}: ${error?.message}`,
+          error?.stack,
         );
       }
     }

@@ -35,9 +35,7 @@ export async function getModelContextLimits(
     logger.warn(`No context limits found for model "${modelId}"`);
     return null;
   } catch (e) {
-    logger.warn(
-      `Failed to get context limits for "${modelId}": ${e.message}`,
-    );
+    logger.warn(`Failed to get context limits for "${modelId}": ${e.message}`);
     return null;
   }
 }

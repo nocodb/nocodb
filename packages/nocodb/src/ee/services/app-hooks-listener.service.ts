@@ -32,6 +32,7 @@ import type {
   DashboardUpdatePayload,
   DataExportPayload,
   DataImportPayload,
+  DocAiCompletionPayload,
   DocumentCommentCreatePayload,
   DocumentCommentDeletePayload,
   DocumentCommentUpdatePayload,
@@ -146,6 +147,7 @@ import type {
   DashboardUpdateEvent,
   DataExportEvent,
   DataImportEvent,
+  DocAiCompletionEvent,
   DocumentCommentCreateEvent,
   DocumentCommentDeleteEvent,
   DocumentCommentUpdateEvent,
@@ -4438,6 +4440,24 @@ export class AppHooksListenerService
               details: {
                 document_title: param.doc.title ?? 'Untitled',
                 document_id: param.doc.id!,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
+      // Doc AI Events
+      case AppEvents.DOC_AI_COMPLETION: {
+        const param = data as DocAiCompletionEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<DocAiCompletionPayload>(
+            AuditV1OperationTypes.DOC_AI_COMPLETION,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                operation: param.operation,
               },
             },
           ),

@@ -174,7 +174,6 @@ export default class Noco {
       );
     }
 
-
     if (process.env.NC_WORKER_CONTAINER === 'true') {
       if (!getRedisURL()) {
         throw new Error('NC_REDIS_URL is required');

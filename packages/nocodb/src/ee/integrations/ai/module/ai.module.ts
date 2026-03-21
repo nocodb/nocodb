@@ -8,6 +8,8 @@ import { AiDataService } from '~/integrations/ai/module/services/ai-data.service
 import { NocoModule } from '~/modules/noco.module';
 import { AiCompletionService } from '~/integrations/ai/module/services/ai-completion.service';
 import { AiSchemaController } from '~/integrations/ai/module/controllers/ai-schema.controller';
+import { AiDocsController } from '~/integrations/ai/module/controllers/ai-docs.controller';
+import { AiDocsService } from '~/integrations/ai/module/services/ai-docs.service';
 
 @Module({
   imports: [forwardRef(() => NocoModule)],
@@ -16,13 +18,15 @@ import { AiSchemaController } from '~/integrations/ai/module/controllers/ai-sche
     AiUtilsController,
     AiDataController,
     AiCompletionController,
+    AiDocsController,
   ],
   providers: [
     AiSchemaService,
     AiUtilsService,
     AiDataService,
     AiCompletionService,
+    AiDocsService,
   ],
-  exports: [AiSchemaService, AiUtilsService, AiDataService],
+  exports: [AiSchemaService, AiUtilsService, AiDataService, AiDocsService],
 })
 export class NocoAiModule {}

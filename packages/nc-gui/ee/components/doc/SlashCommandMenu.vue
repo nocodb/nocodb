@@ -102,8 +102,12 @@ const submitInput = () => {
   const syntheticItem: SlashCommandItem = {
     ...original,
     command: (editor, range) => {
-      // Store URL where the original command can read it
-      if (editor.storage.embed) {
+      // Store input where the original command can read it
+      if (original.group === 'NocoAI') {
+        if (editor.storage.docAi) {
+          editor.storage.docAi._pendingInstruction = url
+        }
+      } else if (editor.storage.embed) {
         editor.storage.embed._pendingUrl = url
       }
       original.command(editor, range)
@@ -301,7 +305,7 @@ defineExpose({ onKeyDown })
 /* Input mode styles */
 .nc-slash-input-mode {
   padding: 6px 8px;
-  min-width: 280px;
+  width: 560px;
   max-height: none;
   overflow: visible;
 }

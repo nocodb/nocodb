@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import { isLinksOrLTAR, ProjectRoles, UITypes } from 'nocodb-sdk';
+import type Column from '~/models/Column';
 import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
 import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import { resolveTableByName } from '~/integrations/ai/chat/tools/helpers';
 import Model from '~/models/Model';
-import Column from '~/models/Column';
 
 export const describeTableTool = defineChatTool({
   name: ChatToolName.DESCRIBE_TABLE,
@@ -70,10 +70,7 @@ export const describeTableTool = defineChatTool({
 
               if (relatedModelId) {
                 try {
-                  const relatedModel = await Model.get(
-                    context,
-                    relatedModelId,
-                  );
+                  const relatedModel = await Model.get(context, relatedModelId);
                   if (relatedModel) {
                     col.related_table = relatedModel.title;
                   }
@@ -197,9 +194,9 @@ async function enrichWithFieldNameFromRelated(
   if (!targetColumnId || !relationColumnId) return;
   try {
     const columns = await model.getColumns(context);
-    const linkCol = columns.find(
-      (c) => c.id === relationColumnId,
-    ) as Column | undefined;
+    const linkCol = columns.find((c) => c.id === relationColumnId) as
+      | Column
+      | undefined;
     if (!linkCol?.colOptions?.fk_related_model_id) return;
 
     const relatedModel = await Model.get(

@@ -8,7 +8,8 @@ import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import TaskList from '@tiptap/extension-task-list'
 import TableRow from '@tiptap/extension-table-row'
-import { Selection, TextSelection } from '@tiptap/pm/state'
+import { Plugin, PluginKey, Selection, TextSelection } from '@tiptap/pm/state'
+import { Decoration, DecorationSet } from '@tiptap/pm/view'
 import { marked } from 'marked'
 import DOMPurify from 'isomorphic-dompurify'
 import { DocHighlightExtension } from './DocHighlightExtension'
@@ -30,6 +31,7 @@ import { DocHeadingCollapseExtension } from './DocHeadingCollapseExtension'
 import { DocHeadingAnchorExtension } from './DocHeadingAnchorExtension'
 import { DocDragHandleExtension } from './DocDragHandlePlugin'
 import { DocSearchExtension } from './DocSearchExtension'
+import { DocAiExtension, insertMarkdownContent } from './DocAiExtension'
 import { getEmbedURL } from '~/extensions/url-preview-ee/utils'
 import { TaskItem } from '~/helpers/tiptap-markdown/extensions/nodes/task-item'
 import { UserMention, UserMentionList } from '~/helpers/tiptap-markdown/extensions/nodes/mention'
@@ -183,6 +185,636 @@ const { scrollToHeading } = useDocHeadingAnchors(editor, scrollContainerRef, isL
 const { copy } = useCopy()
 
 const { isCopied: isLinkCopied, performCopy: performCopyLink } = useIsCopied(2000)
+
+// --- Document AI ---
+const { aiWrite, aiContinue, aiImprove, aiSummarize, aiTranslate, docAiLoading, abortCurrentRequest } = useDocumentAi()
+const { isAiFeaturesEnabled, aiIntegrationAvailable } = useNocoAi()
+const { blockDocAi, showUpgradeToUseDocAi } = useEeConfig()
+
+const isDocAiConfigured = computed(() => isAiFeaturesEnabled.value && aiIntegrationAvailable.value)
+
+const docAiTranslateLanguages = [
+  'English',
+  'Spanish',
+  'French',
+  'German',
+  'Portuguese',
+  'Italian',
+  'Dutch',
+  'Russian',
+  'Chinese, Simplified',
+  'Chinese, Traditional',
+  'Japanese',
+  'Korean',
+  'Arabic',
+  'Hebrew',
+  'Indonesian',
+  'Vietnamese',
+  'Filipino',
+]
+
+const docAiTones = ['Professional', 'Casual', 'Straightforward', 'Confident', 'Friendly']
+
+/**
+ * Extract plain text from the current ProseMirror doc (for AI context).
+ * For "continue writing", takes from the end. For general context, takes
+ * a mix of the beginning and the end to give the AI better orientation.
+ */
+const getDocPlainText = (maxChars = 2000, fromEnd = true) => {
+  if (!editor.value) return ''
+  const text = editor.value.state.doc.textContent
+  if (text.length <= maxChars) return text
+  if (fromEnd) return text.slice(-maxChars)
+  const headLen = Math.min(500, Math.floor(maxChars / 4))
+  return `${text.slice(0, headLen)}\n...\n${text.slice(-(maxChars - headLen))}`
+}
+
+/** If the AI returns ProseMirror JSON instead of Markdown, extract the text content.
+ *  This is a safety net — the prompt should prevent it, but edge cases exist. */
+const sanitizeAiResponse = (text: string): string => {
+  const trimmed = text.trim()
+  // Detect JSON array or object with ProseMirror-like node structures
+  if (
+    (trimmed.startsWith('[') || trimmed.startsWith('{')) &&
+    /"type"\s*:\s*"(heading|paragraph|text|taskList|taskItem|callout|bulletList|orderedList|codeBlock|blockquote)"/.test(trimmed)
+  ) {
+    try {
+      const parsed = JSON.parse(trimmed.startsWith('[') ? trimmed : `[${trimmed}]`)
+      const extractText = (nodes: any[]): string => {
+        const lines: string[] = []
+        for (const node of nodes) {
+          if (node.type === 'text') {
+            lines.push(node.text || '')
+          } else if (node.type === 'heading') {
+            const level = node.attrs?.level || 1
+            const prefix = '#'.repeat(level)
+            lines.push(`${prefix} ${extractText(node.content || [])}`)
+          } else if (node.type === 'paragraph') {
+            lines.push(extractText(node.content || []))
+          } else if (node.type === 'bulletList' || node.type === 'taskList') {
+            for (const item of node.content || []) {
+              const itemText = extractText(item.content || [])
+              if (node.type === 'taskList') {
+                const checked = item.attrs?.checked ? '[x]' : '[ ]'
+                lines.push(`- ${checked} ${itemText}`)
+              } else {
+                lines.push(`- ${itemText}`)
+              }
+            }
+          } else if (node.type === 'orderedList') {
+            let idx = 1
+            for (const item of node.content || []) {
+              lines.push(`${idx++}. ${extractText(item.content || [])}`)
+            }
+          } else if (node.type === 'callout') {
+            const icon = node.attrs?.icon || '💡'
+            lines.push(`> ${icon} ${extractText(node.content || [])}`)
+          } else if (node.type === 'blockquote') {
+            lines.push(`> ${extractText(node.content || [])}`)
+          } else if (node.type === 'codeBlock') {
+            lines.push(`\`\`\`\n${extractText(node.content || [])}\n\`\`\``)
+          } else if (node.content) {
+            lines.push(extractText(node.content))
+          }
+        }
+        return lines.join('\n\n')
+      }
+      return extractText(parsed)
+    } catch {
+      // Not valid JSON — return as-is
+    }
+  }
+  return text
+}
+
+/** Extract plain text of the selected content. */
+const getSelectedText = () => {
+  if (!editor.value) return ''
+  const { from, to } = editor.value.state.selection
+  return editor.value.state.doc.textBetween(from, to, '\n')
+}
+
+// --- AI Suggestion Popup State ---
+
+interface AiSuggestionState {
+  visible: boolean
+  loading: boolean
+  result: string
+  error: string
+  operationLabel: string
+  /** Saved selection range for accept/insert-below actions */
+  selectionRange: { from: number; to: number }
+  /** Operation name + params for "Try again" */
+  operation: string
+  operationParams: Record<string, any>
+  /** When true, result is inserted inline in the editor — popup only shows action bar */
+  inlineMode: boolean
+}
+
+const aiSuggestion = reactive<AiSuggestionState>({
+  visible: false,
+  loading: false,
+  result: '',
+  error: '',
+  operationLabel: '',
+  selectionRange: { from: 0, to: 0 },
+  operation: '',
+  operationParams: {},
+  inlineMode: false,
+})
+
+const aiSuggestionStyle = ref<Record<string, string>>({ display: 'none' })
+
+const aiSuggestionPopupRef = ref<InstanceType<typeof DocAiSuggestionPopup> | null>(null)
+
+/** Scroll the AI suggestion popup into view within the scroll container. */
+const scrollAiSuggestionIntoView = () => {
+  nextTick(() => {
+    const el = (aiSuggestionPopupRef.value as any)?.$el as HTMLElement | undefined
+    el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  })
+}
+
+const aiHighlightPluginKey = new PluginKey('aiHighlight')
+/** Add a highlight decoration over the given range to mark AI-generated content.
+ *  The highlight persists until dismissed, then clears on the next user interaction. */
+const addAiHighlight = (from: number, to: number) => {
+  if (!editor.value) return
+  // Remove any existing highlight first
+  removeAiHighlight()
+
+  const plugin = new Plugin({
+    key: aiHighlightPluginKey,
+    state: {
+      init(_, state) {
+        const clampedTo = Math.min(to, state.doc.content.size)
+        return DecorationSet.create(state.doc, [Decoration.inline(from, clampedTo, { class: 'nc-doc-ai-generated' })])
+      },
+      apply(tr, set) {
+        // Keep decorations alive — removal is handled by markAiHighlightForRemoval
+        // via DOM class swap + plugin unregister after fade animation.
+        return set.map(tr.mapping, tr.doc)
+      },
+    },
+    props: {
+      decorations(state) {
+        return this.getState(state)
+      },
+    },
+  })
+  editor.value.registerPlugin(plugin)
+  // Force ProseMirror to re-render with the new decorations
+  editor.value.view.dispatch(editor.value.state.tr)
+}
+
+/** Mark the AI highlight for removal on the next user interaction.
+ *  Deferred so synchronous transactions from dismiss/focus don't clear it immediately.
+ *  On the triggering transaction, swaps the class to a fade-out animation before removal. */
+const markAiHighlightForRemoval = () => {
+  setTimeout(() => {
+    // Listen for the next transaction to trigger the fade-out
+    const handler = () => {
+      if (!editor.value) return
+      editor.value.off('transaction', handler)
+      // Swap class on DOM spans to trigger CSS fade-out animation
+      const editorEl = editor.value.view.dom
+      const spans = editorEl.querySelectorAll('.nc-doc-ai-generated')
+      spans.forEach((span) => {
+        span.classList.remove('nc-doc-ai-generated')
+        span.classList.add('nc-doc-ai-fadeout')
+      })
+      // Unregister plugin after animation completes
+      setTimeout(() => {
+        try {
+          editor.value?.unregisterPlugin(aiHighlightPluginKey)
+        } catch {}
+      }, 600)
+    }
+    editor.value?.on('transaction', handler)
+  }, 100)
+}
+
+/** Remove the AI highlight decoration. */
+const removeAiHighlight = () => {
+  if (!editor.value) return
+  editor.value.unregisterPlugin(aiHighlightPluginKey)
+}
+
+/** Position the suggestion popup below the text selection using ProseMirror coordinates.
+ *  Uses editor.view.coordsAtPos() which is stable regardless of mouse position. */
+const positionAiSuggestion = () => {
+  if (!editor.value || !editorContentRef.value) {
+    aiSuggestionStyle.value = { display: 'none' }
+    return
+  }
+
+  const { from, to } = editor.value.state.selection
+  if (from === to) {
+    aiSuggestionStyle.value = { display: 'none' }
+    return
+  }
+
+  const view = editor.value.view
+  const startCoords = view.coordsAtPos(from)
+  const endCoords = view.coordsAtPos(to)
+  const containerRect = editorContentRef.value.getBoundingClientRect()
+
+  // Bottom of selection = the lowest line's bottom edge
+  const selectionBottom = Math.max(startCoords.bottom, endCoords.bottom)
+  // Left-align with the start of the selection
+  const selectionLeft = startCoords.left
+
+  // Clamp left so popup (max 560px wide) doesn't overflow the container
+  const popupMaxWidth = 560
+  const rawLeft = selectionLeft - containerRect.left
+  const maxLeft = Math.max(0, containerRect.width - popupMaxWidth)
+  const left = Math.max(0, Math.min(rawLeft, maxLeft))
+
+  aiSuggestionStyle.value = {
+    position: 'absolute',
+    top: `${selectionBottom - containerRect.top + 12}px`,
+    left: `${left}px`,
+    zIndex: '50',
+  }
+}
+
+/** Show the AI suggestion popup with a loading state, then run the AI operation. */
+const showAiSuggestion = async (
+  operation: string,
+  operationParams: Record<string, any>,
+  operationLabel: string,
+  aiFn: () => Promise<string | undefined>,
+) => {
+  if (blockDocAi.value) {
+    showUpgradeToUseDocAi()
+    return
+  }
+  if (!editor.value) return
+
+  // Save selection range before the async call
+  const { from, to } = editor.value.state.selection
+  if (from === to) return
+
+  aiSuggestion.visible = true
+  aiSuggestion.loading = true
+  aiSuggestion.result = ''
+  aiSuggestion.error = ''
+  aiSuggestion.operationLabel = operationLabel
+  aiSuggestion.selectionRange = { from, to }
+  aiSuggestion.operation = operation
+  aiSuggestion.operationParams = operationParams
+
+  positionAiSuggestion()
+  scrollAiSuggestionIntoView()
+
+  try {
+    const rawResult = await aiFn()
+    aiSuggestion.loading = false
+    if (rawResult) {
+      aiSuggestion.result = sanitizeAiResponse(rawResult)
+      scrollAiSuggestionIntoView()
+    } else {
+      aiSuggestion.error = 'No result returned'
+    }
+  } catch {
+    aiSuggestion.loading = false
+    aiSuggestion.error = 'Something went wrong. Please try again.'
+  }
+}
+
+/** Insert AI result inline at the given position, highlight it, and switch to sticky action bar. */
+const insertInlineAiResult = (sanitized: string, pos: number) => {
+  if (!editor.value) return
+  editor.value.chain().focus().setTextSelection(pos).run()
+  const beforeSize = editor.value.state.doc.content.size
+  insertMarkdownContent(editor.value, sanitized)
+  const afterSize = editor.value.state.doc.content.size
+  const insertedLength = afterSize - beforeSize
+  addAiHighlight(pos, pos + insertedLength)
+  aiSuggestionStyle.value = {
+    position: 'sticky',
+    bottom: '24px',
+    zIndex: '50',
+  }
+  scrollAiSuggestionIntoView()
+}
+
+/** Show the AI suggestion popup at the cursor position (no selection needed).
+ *  Inserts the result inline into the editor and shows an action bar below.
+ *  Used for operations like "Continue writing" triggered from the slash menu. */
+const showAiSuggestionAtCursor = async (
+  operation: string,
+  operationParams: Record<string, any>,
+  operationLabel: string,
+  aiFn: () => Promise<string | undefined>,
+) => {
+  if (blockDocAi.value) {
+    showUpgradeToUseDocAi()
+    return
+  }
+  if (!editor.value || !editorContentRef.value) return
+
+  const pos = editor.value.state.selection.from
+
+  aiSuggestion.visible = true
+  aiSuggestion.loading = true
+  aiSuggestion.result = ''
+  aiSuggestion.error = ''
+  aiSuggestion.operationLabel = operationLabel
+  aiSuggestion.selectionRange = { from: pos, to: pos }
+  aiSuggestion.operation = operation
+  aiSuggestion.operationParams = operationParams
+  aiSuggestion.inlineMode = true
+
+  // Position loader at cursor
+  const view = editor.value.view
+  const coords = view.coordsAtPos(pos)
+  const containerRect = editorContentRef.value.getBoundingClientRect()
+
+  const popupMaxWidth = 560
+  const rawLeft = coords.left - containerRect.left
+  const maxLeft = Math.max(0, containerRect.width - popupMaxWidth)
+  const left = Math.max(0, Math.min(rawLeft, maxLeft))
+
+  aiSuggestionStyle.value = {
+    position: 'absolute',
+    top: `${coords.bottom - containerRect.top + 12}px`,
+    left: `${left}px`,
+    zIndex: '50',
+  }
+  scrollAiSuggestionIntoView()
+
+  try {
+    const rawResult = await aiFn()
+    aiSuggestion.loading = false
+    if (rawResult) {
+      const sanitized = sanitizeAiResponse(rawResult)
+      aiSuggestion.result = sanitized
+      insertInlineAiResult(sanitized, pos)
+    } else {
+      aiSuggestion.error = 'No result returned'
+    }
+  } catch {
+    aiSuggestion.loading = false
+    aiSuggestion.error = 'Something went wrong. Please try again.'
+  }
+}
+
+const dismissAiSuggestion = () => {
+  // Abort any in-flight AI request
+  abortCurrentRequest()
+  // In inline mode with result already inserted, undo the insertion on discard
+  if (aiSuggestion.inlineMode && aiSuggestion.result && editor.value) {
+    removeAiHighlight()
+    editor.value.commands.undo()
+  }
+  aiSuggestion.visible = false
+  aiSuggestion.loading = false
+  aiSuggestion.result = ''
+  aiSuggestion.error = ''
+  aiSuggestion.inlineMode = false
+  // Refocus editor so the bubble menu can reappear on next selection
+  editor.value?.commands.focus()
+}
+
+const onAiSuggestionDiscard = () => {
+  $e('a:doc:ai:suggestion:discard', { operation: aiSuggestion.operation })
+  dismissAiSuggestion()
+}
+
+const onAiSuggestionStop = () => {
+  $e('a:doc:ai:suggestion:stop', { operation: aiSuggestion.operation })
+  dismissAiSuggestion()
+}
+
+const onAiSuggestionAccept = () => {
+  if (!editor.value || !aiSuggestion.result) return
+  $e('a:doc:ai:suggestion:accept', { operation: aiSuggestion.operation })
+
+  if (aiSuggestion.inlineMode) {
+    // Inline mode — content already in editor.
+    // Mark highlight for removal on next user interaction (click/type).
+    markAiHighlightForRemoval()
+    // Reset inlineMode before dismiss so it doesn't undo the insertion
+    aiSuggestion.inlineMode = false
+    dismissAiSuggestion()
+    return
+  }
+
+  const { from, to } = aiSuggestion.selectionRange
+  // Selection-mode — replace selected text
+  editor.value.chain().focus().setTextSelection({ from, to }).deleteSelection().run()
+  const beforeSize = editor.value.state.doc.content.size
+  insertMarkdownContent(editor.value, aiSuggestion.result)
+  const afterSize = editor.value.state.doc.content.size
+  addAiHighlight(from, from + (afterSize - beforeSize))
+  markAiHighlightForRemoval()
+  dismissAiSuggestion()
+}
+
+const onAiSuggestionInsertBelow = () => {
+  if (!editor.value || !aiSuggestion.result) return
+  $e('a:doc:ai:suggestion:insertBelow', { operation: aiSuggestion.operation })
+
+  const { to } = aiSuggestion.selectionRange
+  editor.value.chain().focus().setTextSelection(to).run()
+  const beforeSize = editor.value.state.doc.content.size
+  insertMarkdownContent(editor.value, `\n${aiSuggestion.result}`)
+  const afterSize = editor.value.state.doc.content.size
+  addAiHighlight(to, to + (afterSize - beforeSize))
+  markAiHighlightForRemoval()
+  dismissAiSuggestion()
+}
+
+const onAiSuggestionTryAgain = () => {
+  $e('a:doc:ai:suggestion:tryAgain', { operation: aiSuggestion.operation })
+  if (aiSuggestion.operation === 'continue') {
+    // Undo previous inline insertion, then re-run
+    if (aiSuggestion.inlineMode && aiSuggestion.result && editor.value) {
+      removeAiHighlight()
+      editor.value.commands.undo()
+    }
+    // Re-read position from editor state after undo (stored pos may be invalid)
+    const pos = editor.value?.state.selection.from ?? aiSuggestion.selectionRange.from
+    aiSuggestion.selectionRange = { from: pos, to: pos }
+    const fullText = editor.value!.state.doc.textBetween(0, pos, '\n')
+    const precedingContent = fullText.length > 2000 ? fullText.slice(-2000) : fullText
+    if (!precedingContent.trim() && !title.value?.trim()) return
+    aiSuggestion.loading = true
+    aiSuggestion.result = ''
+    aiSuggestion.error = ''
+    aiContinue(precedingContent, title.value)
+      .then((rawResult) => {
+        aiSuggestion.loading = false
+        if (rawResult && editor.value) {
+          const sanitized = sanitizeAiResponse(rawResult)
+          aiSuggestion.result = sanitized
+          insertInlineAiResult(sanitized, pos)
+        } else {
+          aiSuggestion.error = 'No result returned'
+        }
+      })
+      .catch(() => {
+        aiSuggestion.loading = false
+        aiSuggestion.error = 'Something went wrong. Please try again.'
+      })
+  } else {
+    runAiSuggestionOperation(aiSuggestion.operation, aiSuggestion.operationParams)
+  }
+}
+
+/** Reset all AI submenu panels to hidden when the dropdown opens/closes. */
+const resetAiSubMenus = () => {
+  document.querySelectorAll('.nc-doc-ai-menu .nc-doc-ai-menu-sub-panel').forEach((el) => {
+    ;(el as HTMLElement).style.display = 'none'
+  })
+}
+
+/** Position a submenu panel based on available viewport space.
+ *  Also hides any other open sub-panels to prevent overlap. */
+const positionSubMenu = (e: MouseEvent) => {
+  const currentSub = e.currentTarget as HTMLElement
+  const subEl = currentSub?.querySelector('.nc-doc-ai-menu-sub-panel') as HTMLElement
+  if (!subEl) return
+
+  // Hide all other sub-panels first
+  const menu = currentSub.closest('.nc-doc-ai-menu')
+  menu?.querySelectorAll('.nc-doc-ai-menu-sub-panel').forEach((el) => {
+    if (el !== subEl) (el as HTMLElement).style.display = 'none'
+  })
+
+  // Show this one to measure
+  subEl.style.display = 'block'
+  const parentRect = currentSub.getBoundingClientRect()
+  const panelWidth = subEl.offsetWidth || 200
+  const panelHeight = subEl.offsetHeight || 300
+
+  // Horizontal: prefer right, flip to left if no space
+  const spaceRight = window.innerWidth - parentRect.right
+  if (spaceRight < panelWidth + 8) {
+    subEl.style.left = 'auto'
+    subEl.style.right = '100%'
+  } else {
+    subEl.style.left = '100%'
+    subEl.style.right = 'auto'
+  }
+
+  // Vertical: align top with trigger item, clamp to viewport
+  const absoluteTop = parentRect.top
+  const overflow = absoluteTop + panelHeight - window.innerHeight + 8
+  if (overflow > 0) {
+    subEl.style.top = `${-overflow}px`
+  } else if (absoluteTop < 8) {
+    subEl.style.top = `${8 - parentRect.top}px`
+  } else {
+    subEl.style.top = '0px'
+  }
+}
+
+/** Dispatch an AI operation into the suggestion popup. */
+const runAiSuggestionOperation = (operation: string, params: Record<string, any>) => {
+  const selected = getSelectedText()
+  if (!selected.trim()) return
+
+  // Immediately hide bubble menu before async work begins
+  aiSuggestion.visible = true
+
+  if (operation === 'improve') {
+    const mode = params.mode as string
+    const labelKey: Record<string, string> = {
+      writing: 'labels.docAiImproveWriting',
+      grammar: 'labels.docAiFixGrammar',
+      shorter: 'labels.docAiMakeShorter',
+      longer: 'labels.docAiMakeLonger',
+    }
+    // For tone modes, capitalize the mode name as the label
+    const label = labelKey[mode] ? t(labelKey[mode]) : mode.charAt(0).toUpperCase() + mode.slice(1)
+    showAiSuggestion('improve', params, label, () => aiImprove(selected, mode))
+  } else if (operation === 'translate') {
+    const lang = params.targetLanguage as string
+    showAiSuggestion('translate', params, t('labels.docAiTranslateTo', { language: lang }), () => aiTranslate(selected, lang))
+  } else if (operation === 'summarize') {
+    showAiSuggestion('summarize', params, t('labels.docAiSummarize'), () => aiSummarize(selected))
+  }
+}
+
+/**
+ * Wire AI handlers into editor.storage.docAi so slash commands + bubble menu
+ * can invoke them without needing direct access to the composable.
+ */
+const wireDocAiStorage = () => {
+  if (!editor.value) return
+
+  editor.value.storage.docAi = {
+    write: async (instruction: string) => {
+      if (blockDocAi.value) {
+        showUpgradeToUseDocAi()
+        return
+      }
+      $e('a:doc:ai:write')
+      const context = getDocPlainText(2000, false)
+      const result = await aiWrite(instruction, context, title.value)
+      if (result && editor.value) {
+        insertMarkdownContent(editor.value, result)
+      }
+    },
+    continueWriting: async () => {
+      if (blockDocAi.value) {
+        showUpgradeToUseDocAi()
+        return
+      }
+      $e('a:doc:ai:continue')
+      // Send document content up to the cursor position, not the entire document
+      const pos = editor.value!.state.selection.from
+      const fullText = editor.value!.state.doc.textBetween(0, pos, '\n')
+      const precedingContent = fullText.length > 2000 ? fullText.slice(-2000) : fullText
+      if (!precedingContent.trim() && !title.value?.trim()) return
+      showAiSuggestionAtCursor('continue', {}, t('labels.docAiContinueWriting'), () =>
+        aiContinue(precedingContent || '', title.value),
+      )
+    },
+    summarize: async () => {
+      if (blockDocAi.value) {
+        showUpgradeToUseDocAi()
+        return
+      }
+      $e('a:doc:ai:summarize')
+      const text = (editor.value?.state.doc.textContent || '').slice(0, 10000)
+      if (!text.trim()) return
+      showAiSuggestionAtCursor('summarize', {}, t('labels.docAiSummarize'), () => aiSummarize(text))
+    },
+    improve: (mode: string) => {
+      if (blockDocAi.value) {
+        showUpgradeToUseDocAi()
+        return
+      }
+      $e('a:doc:ai:improve', { mode })
+      runAiSuggestionOperation('improve', { mode })
+    },
+    translate: (targetLanguage: string) => {
+      if (blockDocAi.value) {
+        showUpgradeToUseDocAi()
+        return
+      }
+      $e('a:doc:ai:translate', { targetLanguage })
+      runAiSuggestionOperation('translate', { targetLanguage })
+    },
+    _pendingInstruction: null,
+    get isLoading() {
+      return docAiLoading.value
+    },
+  }
+}
+
+/** Summarize just the selected text (bubble menu action) — routes through popup. */
+const onAiSummarizeSelection = () => {
+  if (blockDocAi.value) {
+    showUpgradeToUseDocAi()
+    return
+  }
+  $e('a:doc:ai:summarize:selection')
+  runAiSuggestionOperation('summarize', {})
+}
 
 // --- Search & Replace bar state (Cmd/Ctrl+F) ---
 // The bar is rendered inside the editor's relative wrapper and uses
@@ -392,6 +1024,7 @@ const _tiptapEditor = useEditor({
     DocHeadingAnchorExtension,
     DocDragHandleExtension,
     DocSearchExtension,
+    DocAiExtension,
   ],
   editorProps: {
     attributes: {
@@ -720,6 +1353,7 @@ watch(
   _tiptapEditor,
   (e) => {
     editor.value = e
+    wireDocAiStorage()
   },
   { immediate: true },
 )
@@ -1222,7 +1856,7 @@ const onCopyLinkUrl = async () => {
   isLinkCopiedTooltip.value = true
   setTimeout(() => {
     isLinkCopiedTooltip.value = false
-  }, 1500)
+  }, 3000)
 }
 
 let cleanupHoverListeners: (() => void) | undefined
@@ -1567,6 +2201,7 @@ onBeforeUnmount(() => {
             <template v-if="editor">
               <!-- Bubble menu: appears on text selection (including inside table cells) -->
               <BubbleMenu
+                v-if="!aiSuggestion.visible"
                 :editor="editor"
                 :update-delay="250"
                 :tippy-options="{ duration: 100, maxWidth: 'none' }"
@@ -1610,6 +2245,147 @@ onBeforeUnmount(() => {
                       <GeneralIcon icon="comment" />
                     </NcButton>
                   </NcTooltip>
+
+                  <!-- AI Actions -->
+                  <template v-if="isEeUI && isEditable">
+                    <div class="nc-doc-bubble-ai-divider" />
+                    <NcDropdown
+                      :disabled="!isDocAiConfigured"
+                      trigger="click"
+                      placement="bottomLeft"
+                      @update:visible="resetAiSubMenus"
+                    >
+                      <NcTooltip placement="top">
+                        <template #title>
+                          {{ isDocAiConfigured ? 'NocoAI' : $t('title.noAiIntegrationAvailable') }}
+                        </template>
+                        <NcButton
+                          size="small"
+                          type="text"
+                          :disabled="!isDocAiConfigured"
+                          class="nc-doc-ai-btn"
+                          data-testid="nc-doc-ai-menu-btn"
+                          @mousedown.prevent
+                        >
+                          <GeneralIcon icon="ncAutoAwesome" />
+                        </NcButton>
+                      </NcTooltip>
+                      <template #overlay>
+                        <div class="nc-doc-ai-menu" data-testid="nc-doc-ai-menu">
+                          <!-- Improve & Fix -->
+                          <div
+                            v-e="['c:doc:ai:improve:writing']"
+                            class="nc-doc-ai-menu-item"
+                            data-testid="nc-doc-ai-improve-writing"
+                            @click="editor?.storage.docAi?.improve?.('writing')"
+                          >
+                            <div class="nc-doc-ai-menu-icon">
+                              <GeneralIcon icon="ncWandSparkles" />
+                            </div>
+                            <span class="nc-doc-ai-menu-label">{{ $t('labels.docAiImproveWriting') }}</span>
+                          </div>
+                          <div
+                            v-e="['c:doc:ai:improve:grammar']"
+                            class="nc-doc-ai-menu-item"
+                            data-testid="nc-doc-ai-improve-grammar"
+                            @click="editor?.storage.docAi?.improve?.('grammar')"
+                          >
+                            <div class="nc-doc-ai-menu-icon">
+                              <GeneralIcon icon="ncCheck" />
+                            </div>
+                            <span class="nc-doc-ai-menu-label">{{ $t('labels.docAiFixGrammar') }}</span>
+                          </div>
+
+                          <div class="nc-doc-ai-menu-divider" />
+
+                          <!-- Summarize -->
+                          <div
+                            v-e="['c:doc:ai:summarize:selection']"
+                            class="nc-doc-ai-menu-item"
+                            data-testid="nc-doc-ai-summarize"
+                            @click="onAiSummarizeSelection"
+                          >
+                            <div class="nc-doc-ai-menu-icon">
+                              <GeneralIcon icon="ncAlignLeft" />
+                            </div>
+                            <span class="nc-doc-ai-menu-label">{{ $t('labels.docAiSummarize') }}</span>
+                          </div>
+
+                          <!-- Translate submenu -->
+                          <div class="nc-doc-ai-menu-sub" data-testid="nc-doc-ai-translate-submenu" @mouseenter="positionSubMenu">
+                            <div class="nc-doc-ai-menu-item">
+                              <div class="nc-doc-ai-menu-icon">
+                                <GeneralIcon icon="ncGlobe" />
+                              </div>
+                              <span class="nc-doc-ai-menu-label">{{ $t('labels.docAiTranslate') }}</span>
+                              <GeneralIcon icon="chevronRight" class="nc-doc-ai-menu-arrow" />
+                            </div>
+                            <div class="nc-doc-ai-menu-sub-panel">
+                              <div
+                                v-for="lang in docAiTranslateLanguages"
+                                :key="lang"
+                                v-e="[`c:doc:ai:translate:${lang.toLowerCase()}`]"
+                                class="nc-doc-ai-menu-item"
+                                :data-testid="`nc-doc-ai-translate-${lang.toLowerCase()}`"
+                                @click="editor?.storage.docAi?.translate?.(lang)"
+                              >
+                                <span class="nc-doc-ai-menu-label">{{ lang }}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- Change tone submenu -->
+                          <div class="nc-doc-ai-menu-sub" data-testid="nc-doc-ai-tone-submenu" @mouseenter="positionSubMenu">
+                            <div class="nc-doc-ai-menu-item">
+                              <div class="nc-doc-ai-menu-icon">
+                                <GeneralIcon icon="ncMessageCircle" />
+                              </div>
+                              <span class="nc-doc-ai-menu-label">{{ $t('labels.docAiChangeTone') }}</span>
+                              <GeneralIcon icon="chevronRight" class="nc-doc-ai-menu-arrow" />
+                            </div>
+                            <div class="nc-doc-ai-menu-sub-panel">
+                              <div
+                                v-for="tone in docAiTones"
+                                :key="tone"
+                                v-e="[`c:doc:ai:improve:${tone.toLowerCase()}`]"
+                                class="nc-doc-ai-menu-item"
+                                :data-testid="`nc-doc-ai-tone-${tone.toLowerCase()}`"
+                                @click="editor?.storage.docAi?.improve?.(tone.toLowerCase())"
+                              >
+                                <span class="nc-doc-ai-menu-label">{{ tone }}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="nc-doc-ai-menu-divider" />
+
+                          <!-- Make shorter / longer -->
+                          <div
+                            v-e="['c:doc:ai:improve:shorter']"
+                            class="nc-doc-ai-menu-item"
+                            data-testid="nc-doc-ai-make-shorter"
+                            @click="editor?.storage.docAi?.improve?.('shorter')"
+                          >
+                            <div class="nc-doc-ai-menu-icon">
+                              <GeneralIcon icon="ncMinimize" />
+                            </div>
+                            <span class="nc-doc-ai-menu-label">{{ $t('labels.docAiMakeShorter') }}</span>
+                          </div>
+                          <div
+                            v-e="['c:doc:ai:improve:longer']"
+                            class="nc-doc-ai-menu-item"
+                            data-testid="nc-doc-ai-make-longer"
+                            @click="editor?.storage.docAi?.improve?.('longer')"
+                          >
+                            <div class="nc-doc-ai-menu-icon">
+                              <GeneralIcon icon="ncMaximize" />
+                            </div>
+                            <span class="nc-doc-ai-menu-label">{{ $t('labels.docAiMakeLonger') }}</span>
+                          </div>
+                        </div>
+                      </template>
+                    </NcDropdown>
+                  </template>
                 </div>
               </BubbleMenu>
 
@@ -1745,6 +2521,23 @@ onBeforeUnmount(() => {
                     <span>{{ $t('labels.removeLink') }}</span>
                   </div>
                 </div>
+
+                <!-- AI Suggestion Popup — floats below selection after bubble menu AI action -->
+                <DocAiSuggestionPopup
+                  v-if="aiSuggestion.visible"
+                  ref="aiSuggestionPopupRef"
+                  :style="aiSuggestionStyle"
+                  :loading="aiSuggestion.loading"
+                  :result="aiSuggestion.result"
+                  :error="aiSuggestion.error"
+                  :operation-label="aiSuggestion.operationLabel"
+                  :inline-mode="aiSuggestion.inlineMode"
+                  @accept="onAiSuggestionAccept"
+                  @discard="onAiSuggestionDiscard"
+                  @try-again="onAiSuggestionTryAgain"
+                  @insert-below="onAiSuggestionInsertBelow"
+                  @stop="onAiSuggestionStop"
+                />
               </div>
 
               <!-- Table context menus: column/row handles + dropdown menus (hidden for read-only users) -->
@@ -1907,6 +2700,100 @@ onBeforeUnmount(() => {
     @apply !rounded-lg !rounded-r-none;
     border: none !important;
     box-shadow: none !important;
+  }
+
+  .nc-doc-bubble-ai-divider {
+    @apply w-px h-4 mx-0.5 bg-nc-border-gray-medium;
+  }
+
+  .nc-doc-ai-btn:hover {
+    @apply !text-nc-content-brand;
+  }
+}
+
+// AI dropdown menu — matches slash command menu styling
+// Ensure the Ant dropdown overlay doesn't clip sub-menus
+:global(.ant-dropdown:has(.nc-doc-ai-menu)) {
+  overflow: visible !important;
+}
+
+.nc-doc-ai-menu {
+  background: var(--nc-bg-default);
+  border-radius: 8px;
+  padding: 4px 0;
+  min-width: 220px;
+  border: 1px solid var(--nc-border-gray-medium);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  overflow: visible;
+}
+
+.nc-doc-ai-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+
+  &:hover {
+    background-color: var(--nc-bg-gray-light);
+  }
+}
+
+.nc-doc-ai-menu-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  flex-shrink: 0;
+  color: var(--nc-content-gray-subtle);
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.nc-doc-ai-menu-label {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--nc-content-gray);
+  line-height: 1;
+}
+
+.nc-doc-ai-menu-divider {
+  height: 1px;
+  background: var(--nc-border-gray-medium);
+  margin: 4px 12px;
+}
+
+.nc-doc-ai-menu-arrow {
+  margin-left: auto;
+  width: 14px;
+  height: 14px;
+  color: var(--nc-content-gray-muted);
+  flex-shrink: 0;
+}
+
+.nc-doc-ai-menu-sub {
+  position: relative;
+
+  > .nc-doc-ai-menu-sub-panel {
+    display: none;
+    position: absolute;
+    left: 100%;
+    top: 0;
+    background: var(--nc-bg-default);
+    border-radius: 8px;
+    padding: 4px 0;
+    min-width: 180px;
+    border: 1px solid var(--nc-border-gray-medium);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    z-index: 60;
+  }
+
+  &:hover > .nc-doc-ai-menu-item {
+    background-color: var(--nc-bg-gray-light);
   }
 }
 
@@ -3391,5 +4278,23 @@ body.nc-doc-dragging,
 body.nc-doc-dragging .nc-doc-editor-inner,
 body.nc-doc-dragging .nc-doc-editor-inner * {
   cursor: grabbing !important;
+}
+
+/* AI-generated content highlight — applied via ProseMirror decoration */
+.nc-doc-ai-generated {
+  background-color: rgba(245, 158, 11, 0.1);
+  border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.dark .nc-doc-ai-generated {
+  background-color: rgba(251, 191, 36, 0.1);
+  border-bottom-color: rgba(251, 191, 36, 0.25);
+}
+
+.nc-doc-ai-fadeout {
+  background-color: transparent !important;
+  border-bottom-color: transparent !important;
+  transition: background-color 0.5s ease, border-bottom-color 0.5s ease;
 }
 </style>

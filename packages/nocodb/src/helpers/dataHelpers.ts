@@ -1,7 +1,7 @@
 import {
   convertMS2Duration,
-  parseHelper,
   LongTextAiMetaProp,
+  parseHelper,
   UITypes,
 } from 'nocodb-sdk';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';

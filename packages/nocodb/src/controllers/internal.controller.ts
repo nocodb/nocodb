@@ -35,7 +35,6 @@ import {
 } from '~/models';
 import { RootScopes } from '~/utils/globals';
 
-
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class InternalController {
@@ -114,10 +113,7 @@ export class InternalController {
         // For create operations (filterCreate, sortCreate, etc.) where viewId is in body
         view = await View.get(context, req.body.fk_view_id);
       } else if (req.query.filterId) {
-        const filter = await Filter.get(
-          context,
-          req.query.filterId as string,
-        );
+        const filter = await Filter.get(context, req.query.filterId as string);
         if (filter?.fk_view_id) {
           view = await View.get(context, filter.fk_view_id);
         }

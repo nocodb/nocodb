@@ -106,7 +106,9 @@ export class ChatContextService {
   private formatFields(fields: SchemaField[]): string {
     return fields
       .map((f) => {
-        let desc = f.id ? `${f.name} (${f.type}, id=${f.id})` : `${f.name} (${f.type})`;
+        let desc = f.id
+          ? `${f.name} (${f.type}, id=${f.id})`
+          : `${f.name} (${f.type})`;
         if (f.options?.choices?.length) {
           desc += ` [${f.options.choices.map((c) => c.title).join(', ')}]`;
         }

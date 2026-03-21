@@ -405,6 +405,11 @@ export interface ChatSessionDeleteEvent extends NcBaseEvent {
   sessionId: string;
 }
 
+// Doc AI Events
+export interface DocAiCompletionEvent extends NcBaseEvent {
+  operation: 'write' | 'continue' | 'improve' | 'summarize' | 'translate';
+}
+
 export interface DocumentCreateEvent extends NcBaseEvent {
   doc: DocumentType;
   user: UserType;

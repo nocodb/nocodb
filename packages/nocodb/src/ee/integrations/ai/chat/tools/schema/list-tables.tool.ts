@@ -20,8 +20,7 @@ export const listTablesTool = defineChatTool({
   visibility: 'hidden',
   category: 'schema',
   async execute(context, _args, req) {
-    const tablesV3Service: TablesV3Service =
-      Noco.nestApp.get(TablesV3Service);
+    const tablesV3Service: TablesV3Service = Noco.nestApp.get(TablesV3Service);
 
     const tables = await tablesV3Service.getAccessibleTables(context, {
       baseId: context.base_id,

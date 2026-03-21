@@ -55,4 +55,5 @@ export const EXA_API_KEY = process.env.EXA_API_KEY || '';
 export const E2B_API_KEY = process.env.E2B_API_KEY || '';
 
 /** E2B sandbox template ID */
-export const E2B_TEMPLATE_ID = process.env.E2B_TEMPLATE_ID || 'e2b/code-interpreter-v1';
+export const E2B_TEMPLATE_ID =
+  process.env.E2B_TEMPLATE_ID || 'e2b/code-interpreter-v1';

@@ -191,9 +191,7 @@ and can be saved to the base directly.`,
       .string()
       .optional()
       .describe('Brief description of what data will be shown'),
-    columns: z
-      .array(artifactColumnSchema)
-      .describe('Column definitions'),
+    columns: z.array(artifactColumnSchema).describe('Column definitions'),
   }),
   scope: 'common',
   requiredRole: null,

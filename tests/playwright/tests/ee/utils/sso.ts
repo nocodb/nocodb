@@ -130,9 +130,16 @@ export const startSAMLIdp = async (env = {}) => {
         if (log.includes('IdP server ready at')) resolve(null);
       });
 
-      samlChildProcess.stdout.on('error', function (data) {
-        console.log('error: ' + data.toString());
-        reject(data.toString());
+      samlChildProcess.stderr.on('data', function (data) {
+        const log = data.toString();
+        console.log(log);
+
+        // skip warning logs
+        const lowerCaseLog = log.toLowerCase();
+        if (lowerCaseLog.includes('npm') || lowerCaseLog.includes('debugger') || lowerCaseLog.includes('warning:'))
+          return;
+
+        reject(log);
       });
 
       // set a timeout to reject promise if not resolved

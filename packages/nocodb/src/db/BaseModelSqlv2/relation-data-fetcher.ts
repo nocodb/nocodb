@@ -266,6 +266,7 @@ export const relationDataFetcher = (param: {
         relColumn.colOptions?.fk_target_view_id ?? refTable.views?.[0]?.id;
       let view: View | null = null;
       if (viewId) view = await View.get(refContext, viewId);
+
       await refBaseModel.applySortAndFilter({
         table: refTable,
         where,
@@ -273,6 +274,7 @@ export const relationDataFetcher = (param: {
         qb,
         sort,
         skipViewFilter: true,
+        prioritizePvSort: true,
       });
 
       if (!sort || sort === '') {
@@ -756,6 +758,7 @@ export const relationDataFetcher = (param: {
         sort,
         view,
         skipViewFilter: true,
+        prioritizePvSort: true,
       });
 
       const finalQb = refBaseModel.dbDriver.unionAll(
@@ -1197,6 +1200,7 @@ export const relationDataFetcher = (param: {
         where,
         // condition is applied in getCustomConditionsAndApply and we don't want to apply it again
         onlySort: true,
+        prioritizePvSort: true,
       });
 
       applyPaginate(qb, rest);
@@ -1293,6 +1297,7 @@ export const relationDataFetcher = (param: {
         qb,
         rowId: pid,
       });
+
       await refBaseModel.applySortAndFilter({
         table: refTable,
         view: childView,
@@ -1301,6 +1306,7 @@ export const relationDataFetcher = (param: {
         where,
         // condition is applied in getCustomConditionsAndApply and we don't want to apply it again
         onlySort: true,
+        prioritizePvSort: true,
       });
 
       applyPaginate(qb, rest);
@@ -1514,6 +1520,7 @@ export const relationDataFetcher = (param: {
         where,
         // condition is applied in getCustomConditionsAndApply and we don't want to apply it again
         onlySort: true,
+        prioritizePvSort: true,
       });
 
       applyPaginate(qb, rest);
@@ -1796,6 +1803,7 @@ export const relationDataFetcher = (param: {
         where,
         // condition is applied in getCustomConditionsAndApply and we don't want to apply it again
         onlySort: true,
+        prioritizePvSort: true,
       });
 
       applyPaginate(qb, rest);

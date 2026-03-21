@@ -1,18 +1,21 @@
-<script lang="ts" setup>
-const { isCompact, toggleCompact } = useKanbanViewStore()
+<script setup lang="ts">
+const { isCompact, updateCompact } = useKanbanViewStore()
 </script>
 
 <template>
   <NcTooltip>
-    <template #title>{{ isCompact ? $t('tooltip.kanbanExpandCards') : $t('tooltip.kanbanCompactCards') }}</template>
+    <template #title>
+      {{ isCompact ? $t('tooltip.kanbanNormalView') : $t('tooltip.kanbanCompactView') }}
+    </template>
     <NcButton
-      v-e="['c:toolbar:kanban-compact']"
+      v-e="['c:toolbar:kanban-compact-mode']"
       size="small"
       type="text"
-      :class="{ 'text-brand-500 bg-brand-50': isCompact }"
-      @click="toggleCompact"
+      class="nc-kanban-compact-btn"
+      :class="{ 'nc-active-btn': isCompact }"
+      @click="updateCompact(!isCompact)"
     >
-      <GeneralIcon icon="minimize2" class="h-4 w-4" />
+      <component :is="iconMap.minimize2" class="h-4 w-4" />
     </NcButton>
   </NcTooltip>
 </template>

@@ -2145,6 +2145,8 @@
     "chooseWorkspaceToApplyTemplate": "Choose a workspace to apply this template",
     "hideFieldHeader": "Hide field header",
     "showFieldHeader": "Show field header",
+    "enableCompactMode": "Enable compact mode",
+    "disableCompactMode": "Disable compact mode",
     "cellsSelected": "cells selected",
     "recordSelected": "record selected",
     "recordsSelected": "records selected",

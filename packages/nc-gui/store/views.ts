@@ -213,6 +213,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
     return parseProp((activeView.value?.view as GalleryType | KanbanType)?.meta)?.is_field_header_visible ?? true
   })
 
+  const isActiveViewCompactMode = computed(() => {
+    return parseProp((activeView.value?.view as GalleryType | KanbanType)?.meta)?.is_compact_mode ?? false
+  })
+
   const isListViewEnabled = computed(() => isEeUI && isFeatureEnabled(FEATURE_FLAG.LIST_VIEW))
 
   const isShowEveryonePersonalViewsEnabled = computed({
@@ -1422,6 +1426,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     activeViewRowColorInfo,
     sharedView,
     isActiveViewFieldHeaderVisible,
+    isActiveViewCompactMode,
 
     // Methods
     createView,

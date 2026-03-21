@@ -1,71 +1,74 @@
 <script lang="ts" setup>
+import { UITypes, ViewTypes } from 'nocodb-sdk'
 import type { ColumnType, KanbanType } from 'nocodb-sdk'
-import type { Row as RowType } from '#imports'
 import {
   ActiveViewInj,
-  ChangePageInj,
-  ExpandRowInj,
   FieldsInj,
-  IsFormInj,
-  IsGalleryInj,
-  IsKanbanInj,
   IsPublicInj,
   MetaInj,
   ReloadViewDataHookInj,
-  ReloadViewMetaHookInj,
   computed,
   inject,
   provide,
   ref,
-  useApi,
-  useGlobal,
   useI18n,
-  useKanbanViewStoreOrThrow,
-  useMetas,
-  useNuxtApp,
-  useProvideSmartsheetRowStore,
+  useKanbanViewStore,
+  useProvideKanbanViewStore,
   useRoles,
-  useSmartsheetStoreOrThrow,
-  useUIPermission,
-  useViewColumns,
-  watch,
 } from '#imports'
-
-const { t } = useI18n()
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
-
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
-
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { isMobileMode } = useGlobal()
-
-provide(IsKanbanInj, ref(true))
-provide(IsGalleryInj, ref(false))
-provide(IsFormInj, ref(false))
+const { t } = useI18n()
 
 const {
+  loadKanbanData,
+  loadKanbanMeta,
+  kanbanMetaData,
   formattedData,
   countByStack,
   groupingField,
   groupingFieldColumn,
-  groupingFieldColOptions,
-  kanbanMetaData,
-  kanbanViewCoverImageColumnId,
-  isCompactMode,
-  nGroupingFieldsNull,
-  loadKanbanMeta,
-  loadKanbanData,
-  updateKanbanMeta,
+  groupingFieldValue,
+  updateKanbanStackMeta,
+  stackMetaObj,
+  fields,
+  coverImageField,
+  hiddenFields,
   addEmptyRow,
-  updateOrSaveRow,
-} = useKanbanViewStoreOrThrow()
+  deleteStack,
+  isPaginationLoading,
+  isCompact,
+  toggleCompact,
+} = useKanbanViewStore()
 
-// ... rest of component
+const { isUIAllowed } = useRoles()
+
+const { isMobileMode } = useGlobal()
+
+onMounted(async () => {
+  await loadKanbanMeta()
+  await loadKanbanData()
+})
 </script>
 
 <template>
-  <!-- Kanban board content -->
+  <div class="nc-kanban-wrapper h-full overflow-x-auto">
+    <!-- Kanban content -->
+    <div class="flex h-full gap-4 p-4">
+      <!-- Stacks -->
+      <template v-if="groupingFieldColumn">
+        <LazySmartsheetKanbanStack
+          v-for="(stack, stackIdx) in formattedData"
+          :key="stackIdx"
+          :stack="stack"
+          :stack-idx="stackIdx"
+          :is-compact="isCompact"
+        />
+      </template>
+    </div>
+  </div>
 </template>

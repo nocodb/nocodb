@@ -25,6 +25,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     const user = await User.getByEmail(jwtPayload?.email);
 
+    if (!user) {
+      NcError.unauthorized('Token Expired. Please login again.');
+    }
+
     if (
       !user.token_version ||
       !jwtPayload.token_version ||

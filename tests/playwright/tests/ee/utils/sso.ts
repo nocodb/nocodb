@@ -105,8 +105,8 @@ export const startOpenIDIdp = async (env = {}) => {
 
 export const stopOpenIDIdp = async () => {
   try {
-    if (openIDChildProcess?.pid) {
-      process.kill(-openIDChildProcess.pid);
+    if (openIDChildProcess?.pid && !openIDChildProcess.killed) {
+      openIDChildProcess.kill('SIGTERM');
     }
   } catch (e) {
     console.log('Error killing openIDChildProcess', e);
@@ -164,8 +164,8 @@ export const startSAMLIdp = async (env = {}) => {
 
 export const stopSAMLIpd = async () => {
   try {
-    if (samlChildProcess?.pid) {
-      process.kill(-samlChildProcess.pid);
+    if (samlChildProcess?.pid && !samlChildProcess.killed) {
+      samlChildProcess.kill('SIGTERM');
     }
   } catch (e) {
     console.log('Error killing samlChildProcess', e);

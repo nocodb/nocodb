@@ -1,39 +1,49 @@
 <script lang="ts" setup>
-import type { ColumnType, KanbanType } from 'nocodb-sdk'
-import { computed, inject, provide, ref, useGlobal, useKanbanViewStore, useViewColumnsOrThrow } from '#imports'
+import type { AttachmentType, ColumnType } from 'nocodb-sdk'
 
 const props = defineProps<{
-  rowIndex: number
-  stackIndex: number
-  isAdding?: boolean
+  row: Row
+  fields: ColumnType[]
+  coverImageField?: string
+  groupingField?: ColumnType
+  isPublic?: boolean
+  readOnly?: boolean
+  compact?: boolean
 }>()
 
-const emit = defineEmits(['expand', 'editMode', 'addRecord', 'newRecord'])
-
-const {
-  isPublic,
-  kanbanMetaData: meta,
-  kanbanViewRows: viewRows,
-  updateOrSaveRow,
-  deleteRow,
-} = useKanbanViewStore()
+const emit = defineEmits<{
+  expand: []
+  editRecord: []
+  deleteRecord: []
+}>()
 
 const { isMobileMode } = useGlobal()
 
-const { fields, coverImageField, hiddenFields } = useViewColumnsOrThrow()
+const { t } = useI18n()
 
-const row = computed(() => viewRows.value?.[props.stackIndex]?.[props.rowIndex])
+const { isUIAllowed } = useRoles()
 
-const isCompact = computed(() => !!(meta.value as KanbanType)?.meta?.compact)
+const { getMeta } = useMetas()
 
-const coverImage = computed(() => {
-  if (!coverImageField.value || !row.value?.row) return null
-  return row.value.row[coverImageField.value]
+const isCompact = computed(() => props.compact)
+
+const getCoverImage = computed(() => {
+  if (!props.coverImageField) return null
+  const attachments = props.row?.row?.[props.coverImageField]
+  if (!attachments?.length) return null
+  try {
+    const parsed = typeof attachments === 'string' ? JSON.parse(attachments) : attachments
+    return parsed?.[0]
+  } catch {
+    return null
+  }
 })
 
-const displayField = computed(() => fields.value?.find((f) => f.pv))
-const displayValue = computed(() => {
-  if (!displayField.value || !row.value?.row) return ''
-  return row.value.row[displayField.value.title]
+const displayFields = computed(() => {
+  return props.fields?.filter((f) => !f.pv) ?? []
+})
+
+const titleField = computed(() => {
+  return props.fields?.find((f) => f.pv)
 })
 </script>

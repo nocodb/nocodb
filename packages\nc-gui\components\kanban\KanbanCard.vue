@@ -1,6 +1,15 @@
 <script lang="ts" setup>
-import type { ColumnType } from 'nocodb-sdk'
-import type { Row } from '#imports'
+import type { AttachmentType, ColumnType } from 'nocodb-sdk'
+
+interface Row {
+  row: Record<string, any>
+  oldRow: Record<string, any>
+  rowMeta: {
+    isNew?: boolean
+    selected?: boolean
+    [key: string]: any
+  }
+}
 
 const props = defineProps<{
   row: Row
@@ -24,13 +33,16 @@ const { getPossibleAttachmentSrc } = useAttachment()
 
 const coverImageSrc = computed<string | null>(() => {
   if (!props.coverImageField || !props.row?.row) return null
+  
   const attachments = props.row.row[props.coverImageField]
   if (!attachments?.length) return null
+  
   try {
     const parsed = typeof attachments === 'string' ? JSON.parse(attachments) : attachments
-    const first = parsed?.[0]
-    if (!first) return null
-    return getPossibleAttachmentSrc(first)
+    const firstAttachment: AttachmentType = parsed?.[0]
+    if (!firstAttachment) return null
+    
+    return getPossibleAttachmentSrc(firstAttachment)
   } catch {
     return null
   }
@@ -50,11 +62,11 @@ const nonPrimaryFields = computed(() =>
     class="group relative nc-kanban-item rounded-xl bg-white border-1 border-gray-200 hover:border-brand-500 transition-all cursor-pointer overflow-hidden"
     :class="{
       'p-3': !compact,
-      'px-3 py-2': compact,
+      'px-3 py-1.5': compact,
     }"
     @click="emit('expand')"
   >
-    <!-- Cover Image: only in normal mode -->
+    <!-- Cover Image: only shown in normal (non-compact) mode -->
     <div
       v-if="!compact && coverImageSrc"
       class="nc-kanban-cover mb-3 -mx-3 -mt-3 h-48 overflow-hidden"
@@ -66,7 +78,7 @@ const nonPrimaryFields = computed(() =>
       />
     </div>
 
-    <div class="flex items-start gap-1">
+    <div class="flex items-center gap-1">
       <!-- Primary/Title Field -->
       <div class="flex-1 min-w-0">
         <LazySmartsheetVirtualCell
@@ -75,8 +87,7 @@ const nonPrimaryFields = computed(() =>
           :row="row"
           :column="displayField"
           :read-only="true"
-          class="nc-kanban-title text-sm font-medium text-gray-800"
-          :class="{ 'line-clamp-1': compact }"
+          class="nc-kanban-title text-sm font-medium text-gray-800 line-clamp-1"
         />
         <LazySmartsheetCell
           v-else-if="displayField"
@@ -122,7 +133,7 @@ const nonPrimaryFields = computed(() =>
       </div>
     </div>
 
-    <!-- Additional Fields: only in normal mode -->
+    <!-- Additional Fields: only in normal (non-compact) mode -->
     <template v-if="!compact && nonPrimaryFields.length">
       <div class="nc-kanban-fields mt-2 flex flex-col gap-1">
         <div

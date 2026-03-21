@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { extractBaseRoleFromWorkspaceRole, PlanFeatureTypes, PlanTitles, ProjectRoles } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 import type { DocumentType } from 'nocodb-sdk'
 
 interface Props {
@@ -39,10 +39,7 @@ const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const base = inject(ProjectInj, ref())
 
-const isCreatorOrAbove = computed(() => {
-  const role = base.value?.project_role || extractBaseRoleFromWorkspaceRole(base.value?.workspace_role)
-  return role === ProjectRoles.OWNER || role === ProjectRoles.CREATOR
-})
+const isCreatorOrAbove = computed(() => isUIAllowed('documentCreate'))
 
 const input = ref<HTMLInputElement>()
 

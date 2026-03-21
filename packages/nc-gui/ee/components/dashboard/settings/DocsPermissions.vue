@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import type { DocumentType } from 'nocodb-sdk'
 import {
-  extractBaseRoleFromWorkspaceRole,
   PermissionEntity,
   PermissionKey,
   PermissionOptionValue,
-  ProjectRoles,
 } from 'nocodb-sdk'
 
 interface Props {
@@ -31,10 +29,9 @@ const { allDocuments } = storeToRefs(documentsStore)
 
 const isLoadingAllDocs = ref(false)
 
-const isCreatorOrAbove = computed(() => {
-  const role = base.value?.project_role || extractBaseRoleFromWorkspaceRole(base.value?.workspace_role)
-  return role === ProjectRoles.OWNER || role === ProjectRoles.CREATOR
-})
+const { isUIAllowed } = useRoles()
+
+const isCreatorOrAbove = computed(() => isUIAllowed('documentCreate'))
 
 const searchQuery = ref('')
 

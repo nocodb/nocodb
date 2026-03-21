@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import { hasWorkflowDraftChanges } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import { User, Workflow, Workspace } from '~/models';
+import { Base, User, Workflow, Workspace } from '~/models';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
 
@@ -103,6 +103,7 @@ export class WorkflowDraftReminderProcessor {
         }
 
         const workspace = await Workspace.get(staleWorkflow.fk_workspace_id);
+        const base = await Base.get(context, staleWorkflow.base_id);
 
         const draftAge = dayjs().diff(dayjs(staleWorkflow.updated_at), 'day');
 
@@ -116,10 +117,13 @@ export class WorkflowDraftReminderProcessor {
             },
             workspace: {
               id: staleWorkflow.fk_workspace_id,
-              title: workspace?.title,
+              title: workspace?.title || 'Workspace',
+            },
+            base: {
+              id: staleWorkflow.base_id,
+              title: base?.title || 'Base',
             },
             draftAgeDays: draftAge,
-            baseId: staleWorkflow.base_id,
             workspaceId: staleWorkflow.fk_workspace_id,
           },
         });

@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import { User, Workflow, WorkflowSubscriber, Workspace } from '~/models';
+import { Base, User, Workflow, WorkflowSubscriber, Workspace } from '~/models';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
 import { processConcurrently } from '~/utils';
@@ -110,6 +110,7 @@ export class WorkflowErrorNotificationProcessor {
         }
 
         const workspace = await Workspace.get(group.fk_workspace_id);
+        const base = await Base.get(context, group.base_id);
 
         // Get user emails for subscribers
         const userIds = subscribers.map((s) => s.fk_user_id);
@@ -143,7 +144,11 @@ export class WorkflowErrorNotificationProcessor {
                 },
                 workspace: {
                   id: group.fk_workspace_id,
-                  title: workspace.title,
+                  title: workspace?.title || 'Workspace',
+                },
+                base: {
+                  id: group.base_id,
+                  title: base?.title || 'Base',
                 },
                 failureCount: Number(group.failure_count),
                 firstFailureTime: firstFailure.format(
@@ -153,7 +158,6 @@ export class WorkflowErrorNotificationProcessor {
                   'MM/DD/YYYY [at] h:mm A [UTC]',
                 ),
                 lastFailureId: group.last_failure_id,
-                baseId: group.base_id,
                 workspaceId: group.fk_workspace_id,
               },
             });

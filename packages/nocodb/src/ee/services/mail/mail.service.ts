@@ -406,19 +406,18 @@ export class MailService extends MailServiceCE {
           const {
             user,
             workflow,
-            workspace,
+            base,
             failureCount,
             firstFailureTime,
             lastFailureTime,
             lastFailureId,
-            baseId,
             workspaceId,
             req,
           } = params.payload as WorkflowErrorDigestPayload;
 
           const link = this.buildUrl(req, {
             workspaceId,
-            baseId,
+            baseId: base.id,
             automationId: workflow.id,
             executionId: lastFailureId,
           });
@@ -428,7 +427,7 @@ export class MailService extends MailServiceCE {
             subject: `Something went wrong with an automation: ${workflow.title}`,
             html: await this.renderMail('WorkflowErrorDigest', {
               workflowTitle: workflow.title,
-              baseTitle: workspace?.title || 'Base',
+              baseTitle: base.title,
               failureCount,
               firstFailureTime,
               lastFailureTime,
@@ -441,16 +440,15 @@ export class MailService extends MailServiceCE {
           const {
             user,
             workflow,
-            workspace,
+            base,
             draftAgeDays,
-            baseId,
             workspaceId,
             req,
           } = params.payload as WorkflowDraftReminderPayload;
 
           const link = this.buildUrl(req, {
             workspaceId,
-            baseId,
+            baseId: base.id,
             automationId: workflow.id,
           });
 
@@ -459,7 +457,7 @@ export class MailService extends MailServiceCE {
             subject: `Reminder: "${workflow.title}" has unpublished changes`,
             html: await this.renderMail('WorkflowDraftReminder', {
               workflowTitle: workflow.title,
-              baseTitle: workspace?.title || 'Base',
+              baseTitle: base.title,
               draftAgeDays,
               link,
             }),
@@ -471,18 +469,17 @@ export class MailService extends MailServiceCE {
             user,
             hook,
             table,
-            workspace,
+            base,
             failureCount,
             firstFailureTime,
             lastFailureTime,
-            baseId,
             workspaceId,
             req,
           } = params.payload as HookErrorDigestPayload;
 
           const link = this.buildUrl(req, {
             workspaceId,
-            baseId,
+            baseId: base.id,
             tableId: table.id,
             hookId: hook.id,
             hookTab: 'log',
@@ -494,7 +491,7 @@ export class MailService extends MailServiceCE {
             html: await this.renderMail('HookErrorDigest', {
               hookTitle: hook.title,
               tableName: table.title,
-              baseTitle: workspace?.title || 'Base',
+              baseTitle: base.title,
               failureCount,
               firstFailureTime,
               lastFailureTime,

@@ -55,11 +55,14 @@ interface WorkflowErrorDigestPayload {
     id: string;
     title: string;
   };
+  base: {
+    id: string;
+    title: string;
+  };
   failureCount: number;
   firstFailureTime: string;
   lastFailureTime: string;
   lastFailureId: string;
-  baseId: string;
   workspaceId: string;
 }
 
@@ -74,8 +77,11 @@ interface WorkflowDraftReminderPayload {
     id: string;
     title: string;
   };
+  base: {
+    id: string;
+    title: string;
+  };
   draftAgeDays: number;
-  baseId: string;
   workspaceId: string;
 }
 
@@ -94,10 +100,13 @@ interface HookErrorDigestPayload {
     id: string;
     title: string;
   };
+  base: {
+    id: string;
+    title: string;
+  };
   failureCount: number;
   firstFailureTime: string;
   lastFailureTime: string;
-  baseId: string;
   workspaceId: string;
 }
 

@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import { Hook, Model, User, WorkflowSubscriber, Workspace } from '~/models';
+import { Base, Hook, Model, User, WorkflowSubscriber, Workspace } from '~/models';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
 import { processConcurrently } from '~/utils';
@@ -80,6 +80,7 @@ export class HookErrorNotificationProcessor {
         }
 
         const workspace = await Workspace.get(group.fk_workspace_id);
+        const base = await Base.get(context, group.base_id);
 
         // Get table info for the hook
         const table = hook.fk_model_id
@@ -125,6 +126,10 @@ export class HookErrorNotificationProcessor {
                   id: group.fk_workspace_id,
                   title: workspace?.title || 'Workspace',
                 },
+                base: {
+                  id: group.base_id,
+                  title: base?.title || 'Base',
+                },
                 failureCount: Number(group.failure_count),
                 firstFailureTime: firstFailure.format(
                   'MM/DD/YYYY [at] h:mm A [UTC]',
@@ -132,7 +137,6 @@ export class HookErrorNotificationProcessor {
                 lastFailureTime: lastFailure.format(
                   'MM/DD/YYYY [at] h:mm A [UTC]',
                 ),
-                baseId: group.base_id,
                 workspaceId: group.fk_workspace_id,
               },
             });

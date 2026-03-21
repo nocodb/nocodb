@@ -89,6 +89,7 @@ watch(
           v-model:visible="isOpenColorPicker"
           placement="bottomRight"
           :auto-close="false"
+          use-backdrop
           class="nc-color-picker-dropdown-trigger"
         >
           <div

@@ -65,12 +65,7 @@ const onTextInput = (e: Event) => {
       :class="{ 'pointer-events-none opacity-50': disabled }"
       @click.stop="openColorPicker(isValidHex ? vModel : '#FFFFFF')"
     >
-      <div
-        v-if="isValidHex"
-        :class="shapeClass"
-        :style="{ backgroundColor: vModel }"
-        class="w-4 h-4 border-1 border-gray-300"
-      />
+      <div v-if="isValidHex" :class="shapeClass" :style="{ backgroundColor: vModel }" class="w-4 h-4 border-1 border-gray-300" />
       <component :is="iconMap.palette" v-else class="w-4 h-4 text-nc-content-gray-muted" />
     </div>
 
@@ -80,42 +75,33 @@ const onTextInput = (e: Event) => {
       :disabled="disabled"
       type="text"
       placeholder="#FFFFFF"
-      class="flex-1 h-full border-none outline-none bg-transparent text-sm font-mono nc-cell-field"
+      class="flex-1 h-full !border-none !outline-none !shadow-none focus:!outline-none focus:!ring-0 focus:!border-none focus:!shadow-none bg-transparent text-sm font-mono nc-cell-field !pl-0"
       @input="onTextInput"
       @keydown.stop
       @mousedown.stop
     />
 
-    <!-- Color Picker Modal -->
-    <a-modal
-      :visible="isOpen"
-      :closable="false"
-      :keyboard="false"
-      :width="338"
-      wrap-class-name="nc-colour-picker-modal !z-1060"
-      destroy-on-close
-      @cancel="close"
+    <!-- Color Picker Dropdown -->
+    <NcDropdown
+      v-model:visible="isOpen"
+      :auto-close="false"
+      use-backdrop
+      overlay-class-name="nc-colour-picker-dropdown !rounded-xl"
     >
-      <div class="py-1" @click.stop @mousedown.stop>
-        <GeneralAdvanceColorPicker :key="pickerKey" :model-value="tempColor" :is-open="isOpen" @input="onColorChange" />
-      </div>
-      <template #footer>
-        <div class="flex items-center justify-end" @click.stop @mousedown.stop>
-          <NcButton type="secondary" size="small" @click="close"> {{ $t('general.cancel') }} </NcButton>
-          <NcButton type="primary" size="small" @click="save"> {{ $t('general.save') }} </NcButton>
+      <div class="sr-only w-5 h-5"></div>
+      <template #overlay>
+        <div>
+          <GeneralAdvanceColorPicker :key="pickerKey" :model-value="tempColor" :is-open="isOpen" @input="onColorChange" />
+          <div
+            class="flex items-center justify-end gap-2 mt-3 p-2 border-t border-nc-border-gray-medium"
+            @click.stop
+            @mousedown.stop
+          >
+            <NcButton type="secondary" size="small" @click="close"> {{ $t('general.cancel') }} </NcButton>
+            <NcButton type="primary" size="small" @click="save"> {{ $t('general.save') }} </NcButton>
+          </div>
         </div>
       </template>
-    </a-modal>
+    </NcDropdown>
   </div>
 </template>
-
-<style lang="scss">
-.nc-colour-picker-modal {
-  .ant-modal-content {
-    @apply !p-0;
-  }
-  .ant-modal-footer {
-    @apply px-2;
-  }
-}
-</style>

@@ -362,6 +362,114 @@ ant-form-item-explain-error {
   }
 }
 
+// Persistent view scrollbars — always visible when content overflows.
+// Uses padded thumb (background-clip + transparent border) to force macOS classic (non-overlay) mode.
+// $gutter: total scrollbar track size, $border: transparent padding around thumb
+// (default): 14px gutter, 3px border → ~8px visible thumb
+// sm: 12px gutter, 3px border → ~6px visible thumb (matches Airtable)
+// md: 16px gutter, 3px border → ~10px visible thumb
+@mixin nc-view-scrollbar-base($gutter, $border) {
+  &::-webkit-scrollbar {
+    width: $gutter;
+    height: $gutter;
+  }
+  &::-webkit-scrollbar-button {
+    display: none;
+    height: 0;
+    width: 0;
+  }
+  &::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.35);
+    background-clip: padding-box;
+    border: $border solid transparent;
+    border-radius: $gutter;
+    min-height: 36px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  &::-webkit-scrollbar-corner {
+    background-color: transparent;
+  }
+
+  .dark & {
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba(255, 255, 255, 0.45);
+    }
+    &::-webkit-scrollbar-thumb:hover {
+      background-color: rgba(255, 255, 255, 0.6);
+    }
+  }
+}
+
+// default — ~8px visible thumb
+.nc-view-scrollbar {
+  overflow: auto !important;
+  @include nc-view-scrollbar-base(14px, 3px);
+}
+.nc-view-scrollbar-x {
+  overflow-x: auto !important;
+  overflow-y: hidden;
+  @include nc-view-scrollbar-base(14px, 3px);
+}
+.nc-view-scrollbar-y {
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  @include nc-view-scrollbar-base(14px, 3px);
+}
+
+// sm — ~6px visible thumb (matches Airtable)
+.nc-view-scrollbar-sm {
+  overflow: auto !important;
+  @include nc-view-scrollbar-base(12px, 3px);
+}
+.nc-view-scrollbar-x-sm {
+  overflow-x: auto !important;
+  overflow-y: hidden;
+  @include nc-view-scrollbar-base(12px, 3px);
+}
+.nc-view-scrollbar-y-sm {
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  @include nc-view-scrollbar-base(12px, 3px);
+}
+
+// md — ~10px visible thumb
+.nc-view-scrollbar-md {
+  overflow: auto !important;
+  @include nc-view-scrollbar-base(16px, 3px);
+}
+.nc-view-scrollbar-x-md {
+  overflow-x: auto !important;
+  overflow-y: hidden;
+  @include nc-view-scrollbar-base(16px, 3px);
+}
+.nc-view-scrollbar-y-md {
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  @include nc-view-scrollbar-base(16px, 3px);
+}
+
+.mobile {
+  .nc-view-scrollbar,
+  .nc-view-scrollbar-x,
+  .nc-view-scrollbar-y,
+  .nc-view-scrollbar-sm,
+  .nc-view-scrollbar-x-sm,
+  .nc-view-scrollbar-y-sm,
+  .nc-view-scrollbar-md,
+  .nc-view-scrollbar-x-md,
+  .nc-view-scrollbar-y-md {
+    &::-webkit-scrollbar {
+      width: 0px;
+      height: 0px;
+    }
+  }
+}
+
 main {
   @apply flex-0 w-full relative scrollbar-thin-dull;
   overflow-x: hidden;

@@ -675,7 +675,7 @@ const enabledOptions = computed(() => {
                   >
                     <div v-e="['c:table:rls']" class="flex gap-2 items-center w-full">
                       <GeneralIcon icon="ncShield" class="opacity-80" />
-                      <div class="flex-1">Row-level security</div>
+                      <div class="flex-1">{{ $t('objects.permissions.rlsPolicy.rowLevelSecurity') }}</div>
                     </div>
                   </NcMenuItem>
                 </template>

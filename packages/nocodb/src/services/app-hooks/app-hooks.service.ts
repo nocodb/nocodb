@@ -452,9 +452,7 @@ export class AppHooksService {
     data: any,
   ): void;
   emit(
-    event:
-      | AppEvents.DATE_DEPENDENCY_UPDATE
-      | AppEvents.DATE_DEPENDENCY_DELETE,
+    event: AppEvents.DATE_DEPENDENCY_UPDATE | AppEvents.DATE_DEPENDENCY_DELETE,
     data: any,
   ): void;
 

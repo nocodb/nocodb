@@ -40,7 +40,7 @@ export default class DateDependency
   is_active?: boolean;
 
   constructor(data: Partial<DateDependency>) {
-    super(data)
+    super(data);
     Object.assign(this, data);
   }
 

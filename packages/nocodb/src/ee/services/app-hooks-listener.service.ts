@@ -30,10 +30,10 @@ import type {
   DashboardDeletePayload,
   DashboardDuplicatePayload,
   DashboardUpdatePayload,
-  DateDependencyDeletePayload,
-  DateDependencyUpdatePayload,
   DataExportPayload,
   DataImportPayload,
+  DateDependencyDeletePayload,
+  DateDependencyUpdatePayload,
   DocAiCompletionPayload,
   DocumentCommentCreatePayload,
   DocumentCommentDeletePayload,
@@ -143,14 +143,14 @@ import type {
   ColumnDuplicateEvent,
   ColumnEvent,
   ColumnUpdateEvent,
-  DateDependencyDeleteEvent,
-  DateDependencyUpdateEvent,
   DashboardCreateEvent,
   DashboardDeleteEvent,
   DashboardDuplicateEvent,
   DashboardUpdateEvent,
   DataExportEvent,
   DataImportEvent,
+  DateDependencyDeleteEvent,
+  DateDependencyUpdateEvent,
   DocAiCompletionEvent,
   DocumentCommentCreateEvent,
   DocumentCommentDeleteEvent,
@@ -3974,13 +3974,17 @@ export class AppHooksListenerService
           return col ? { id: col.id, title: col.title } : undefined;
         };
 
-        const [startDateField, endDateField, durationField, dependencyLinkField] =
-          await Promise.all([
-            resolveCol(param.dateDependency?.fk_start_date_field_id),
-            resolveCol(param.dateDependency?.fk_end_date_field_id),
-            resolveCol(param.dateDependency?.fk_duration_field_id),
-            resolveCol(param.dateDependency?.fk_dependency_linkrow_field_id),
-          ]);
+        const [
+          startDateField,
+          endDateField,
+          durationField,
+          dependencyLinkField,
+        ] = await Promise.all([
+          resolveCol(param.dateDependency?.fk_start_date_field_id),
+          resolveCol(param.dateDependency?.fk_end_date_field_id),
+          resolveCol(param.dateDependency?.fk_duration_field_id),
+          resolveCol(param.dateDependency?.fk_dependency_linkrow_field_id),
+        ]);
 
         await this.auditInsert(
           await generateAuditV1Payload<DateDependencyUpdatePayload>(
@@ -3997,10 +4001,14 @@ export class AppHooksListenerService
                 end_date_field: endDateField,
                 duration_field: durationField,
                 dependency_link_field: dependencyLinkField,
-                dependency_linkrow_role: param.dateDependency?.dependency_linkrow_role,
-                dependency_connection_type: param.dateDependency?.dependency_connection_type,
-                dependency_buffer_type: param.dateDependency?.dependency_buffer_type,
-                dependency_buffer_days: param.dateDependency?.dependency_buffer_days,
+                dependency_linkrow_role:
+                  param.dateDependency?.dependency_linkrow_role,
+                dependency_connection_type:
+                  param.dateDependency?.dependency_connection_type,
+                dependency_buffer_type:
+                  param.dateDependency?.dependency_buffer_type,
+                dependency_buffer_days:
+                  param.dateDependency?.dependency_buffer_days,
                 include_weekends: param.dateDependency?.include_weekends,
                 is_active: param.dateDependency?.is_active,
               },

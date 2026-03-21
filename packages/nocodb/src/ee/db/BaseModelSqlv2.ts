@@ -3830,9 +3830,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                         d,
                         prevData?.[i],
                       ),
-                      ...(isCascade
-                        ? { source: 'date_dependency' }
-                        : {}),
+                      ...(isCascade ? { source: 'date_dependency' } : {}),
                     },
                     req,
                   },

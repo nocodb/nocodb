@@ -121,9 +121,8 @@ watch(isOpen, (open) => {
       v-if="showHex"
       :value="props.modelValue || ''"
       :disabled="readOnly"
-      type="text"
       placeholder="#FFFFFF"
-      class="flex-1 h-full !border-none !outline-none !shadow-none focus:!outline-none focus:!ring-0 focus:!border-none focus:!shadow-none bg-transparent text-sm font-mono nc-cell-field !pl-0"
+      class="flex-1 h-full bg-transparent border-none !focus:(border-none outline-none ring-transparent) text-sm font-mono nc-cell-field !pl-0"
       @input="onTextInput"
       @keydown.stop
       @mousedown.stop

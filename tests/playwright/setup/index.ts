@@ -321,13 +321,17 @@ async function localInit({
         const nc_knex = knex(mysqlConfig);
 
         try {
-          await nc_knex.raw(`USE test_sakila_${parallelId}`);
-        } catch (e) {
-          await nc_knex.raw(`CREATE DATABASE test_sakila_${parallelId}`);
-          await nc_knex.raw(`USE test_sakila_${parallelId}`);
-        }
-        if (!isEmptyProject) {
-          await resetSakilaMysql(nc_knex, parallelId, isEmptyProject);
+          try {
+            await nc_knex.raw(`USE test_sakila_${parallelId}`);
+          } catch (e) {
+            await nc_knex.raw(`CREATE DATABASE test_sakila_${parallelId}`);
+            await nc_knex.raw(`USE test_sakila_${parallelId}`);
+          }
+          if (!isEmptyProject) {
+            await resetSakilaMysql(nc_knex, parallelId, isEmptyProject);
+          }
+        } finally {
+          await nc_knex.destroy();
         }
       }
     };
@@ -420,19 +424,33 @@ const setup = async ({
 
   // console.log(process.env.TEST_PARALLEL_INDEX, '#Setup', workerId);
 
-  try {
-    // Localised reset logic
-    response = await localInit({
-      workerId: parallelIndex,
-      isEmptyProject,
-      baseType,
-      isSuperUser,
-      dbType,
-      resetSsoClients,
-      resetPlugins,
-    });
-  } catch (e) {
-    console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
+  const maxRetries = 3;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      // Localised reset logic
+      response = await localInit({
+        workerId: parallelIndex,
+        isEmptyProject,
+        baseType,
+        isSuperUser,
+        dbType,
+        resetSsoClients,
+        resetPlugins,
+      });
+    } catch (e) {
+      console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
+    }
+
+    if (response.status === 200 && response.data?.token && response.data?.base) {
+      break;
+    }
+
+    if (attempt < maxRetries - 1) {
+      console.warn(
+        `Setup attempt ${attempt + 1} failed (status=${response.status}), retrying in ${(attempt + 1) * 2}s...`
+      );
+      await new Promise(resolve => setTimeout(resolve, (attempt + 1) * 2000));
+    }
   }
 
   if (response.status !== 200 || !response.data?.token || !response.data?.base) {

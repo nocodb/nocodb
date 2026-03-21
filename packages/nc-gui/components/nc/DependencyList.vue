@@ -32,9 +32,7 @@ const dashboards = computed(() => {
 })
 
 const dateDependencyTables = computed(() => {
-  return (
-    props.entities?.filter((e) => e.type === DependencyTableType.DateDependency).map((e) => e.entity as TableType) || []
-  )
+  return props.entities?.filter((e) => e.type === DependencyTableType.DateDependency).map((e) => e.entity as TableType) || []
 })
 
 const totalCount = computed(() => {

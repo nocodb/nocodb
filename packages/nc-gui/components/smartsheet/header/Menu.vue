@@ -39,18 +39,7 @@ const columnInvalid = computed<{ isInvalid: boolean; tooltip: string }>(() => {
   })
 })
 
-const isDateDependencyField = computed(() => {
-  if (!column?.value?.id) return false
-  const rule = (meta.value as any)?.date_dependency
-  if (!rule?.is_active || !column.value?.id) return false
-
-  return [
-    rule.fk_start_date_field_id,
-    rule.fk_end_date_field_id,
-    rule.fk_duration_field_id,
-    rule.fk_dependency_linkrow_field_id,
-  ].includes(column.value.id)
-})
+const isDateDependencyField = computed(() => isColumnDateDependencyField(meta.value, column?.value?.id))
 
 const openDropdown = () => {
   if (isLocked.value) return

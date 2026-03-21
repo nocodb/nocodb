@@ -1,4 +1,4 @@
-import type { ColumnType } from 'nocodb-sdk'
+import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, ncIsNaN, roundUpToPrecision } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import type { HTMLAttributes } from 'vue'
@@ -171,6 +171,22 @@ export const getInputModeFromUITypes = (uidt: UITypes): HTMLAttributes['inputmod
   if (uidt === UITypes.URL) {
     return 'url'
   }
+}
+
+/**
+ * Check if a column is part of an active date dependency rule on the table.
+ */
+export const isColumnDateDependencyField = (meta: TableType | undefined, columnId?: string): boolean => {
+  if (!columnId) return false
+  const rule = meta?.date_dependency
+  if (!rule?.is_active) return false
+
+  return [
+    rule.fk_start_date_field_id,
+    rule.fk_end_date_field_id,
+    rule.fk_duration_field_id,
+    rule.fk_dependency_linkrow_field_id,
+  ].includes(columnId)
 }
 
 export const formatPercentage = (n: number, precision = 2) => {

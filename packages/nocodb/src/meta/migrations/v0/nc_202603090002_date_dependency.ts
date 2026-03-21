@@ -28,6 +28,9 @@ const up = async (knex: Knex) => {
     table.timestamps(true, true);
 
     table.primary(['base_id', 'id']);
+
+    table.index(['base_id', 'fk_workspace_id'], 'nc_date_dep_context_idx');
+    table.index(['fk_model_id'], 'nc_date_dep_model_idx');
   });
 };
 

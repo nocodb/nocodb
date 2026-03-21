@@ -1342,7 +1342,8 @@
         "fixed": "Fixed"
       },
       "cascadeNotSupported": "Cascade propagation is only supported on PostgreSQL and MySQL sources.",
-      "enabled": "Date dependencies enabled"
+      "enabled": "Date dependencies enabled",
+      "cascadeUpdateDescription": "Record was rescheduled to avoid overlap with a conflicting record"
     },
     "pinToToolbar": "Pin to toolbar",
     "unpinFromToolbar": "Unpin from toolbar",

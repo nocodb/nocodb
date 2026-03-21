@@ -78,7 +78,7 @@ const createdBy = computed(() => {
           v-else-if="props.auditGroup.audit?.op_type === 'DATA_CASCADE_UPDATE'"
           class="font-weight-500 text-nc-content-gray-subtle2"
         >
-          Record was rescheduled to avoid overlap with a conflicting record
+          {{ $t('labels.dateDependency.cascadeUpdateDescription') }}
         </span>
         <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_LINK'" class="font-weight-500 text-nc-content-gray-subtle2">
           updated 1 field

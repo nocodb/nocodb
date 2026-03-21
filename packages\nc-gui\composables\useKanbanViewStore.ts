@@ -51,14 +51,16 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const loadMoreDone = ref<Map<string, boolean>>(new Map())
 
-    // Compact mode - makes cards take minimal vertical space
-    const isCompact = ref(false)
+    const { isPaginationLoading } = useViewData(meta, view, where)
+
+    // Compact mode for kanban cards
+    const isCompact = ref<boolean>(false)
+
+    const fields = inject(FieldsInj, ref([]))
 
     const groupingFieldValue = computed(() => {
       return groupingFieldColumn?.value?.title
     })
-
-    const fields = inject(FieldsInj, ref([]))
 
     const coverImageField = computed<ColumnType | undefined>(() => {
       const col = meta.value?.columns?.find((c) => c.id === kanbanMetaData.value.fk_cover_image_col_id)
@@ -73,71 +75,44 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       return fields.value.find((f) => f.pv)
     })
 
-    const { isPaginationLoading } = useViewData(meta, view, where)
-
-    const kanbanStacks = computed<Row[][]>(() => {
-      if (!groupingFieldColumn.value?.colOptions) return []
-      const colOptions = groupingFieldColumn.value.colOptions as SelectOptionsType
-      const stacks = []
-      for (const option of [{ id: 'uncategorized', title: null }, ...(colOptions.options ?? [])]) {
-        stacks.push(formattedData.value.get(option.title as string) ?? [])
-      }
-      return stacks
-    })
-
-    const countByStackComputed = computed(() => countByStack.value)
-
-    async function loadKanbanData() {
-      if ((!isPublic.value && !meta?.value?.id) || !view.value?.id) return
-
-      const params: Parameters<Api<any>['dbViewRow']['list']>[4] = {
-        where: where?.value,
-      }
-
-      await Promise.all([loadKanbanMeta(), loadKanbanStacks(params)])
+    function toggleCompact() {
+      isCompact.value = !isCompact.value
+      $e('c:kanban:compact-mode-toggle', { compact: isCompact.value })
     }
 
     async function loadKanbanMeta() {
       if (!view.value?.id || !meta?.value?.id) return
 
-      const res = await api.dbView.kanbanRead(view.value.id)
-      kanbanMetaData.value = res
+      kanbanMetaData.value = await api.dbView.kanbanRead(view.value.id)
 
       const groupingFieldId = kanbanMetaData.value.fk_grp_col_id
       if (groupingFieldId) {
         groupingFieldColumn.value = meta.value?.columns?.find((c) => c.id === groupingFieldId)
       }
+
+      const stackMeta = kanbanMetaData.value?.meta
+      stackMetaObj.value = stackMeta ? (typeof stackMeta === 'string' ? JSON.parse(stackMeta) : stackMeta) : {}
     }
 
-    async function loadKanbanStacks(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
+    async function loadKanbanData() {
       if ((!isPublic.value && !meta?.value?.id) || !view.value?.id) return
-
-      await Promise.all(
-        [...(formattedData.value.keys() || [])].map((stackTitle) => loadMoreKanbanData(stackTitle, { ...params, where: where?.value })),
-      )
     }
 
     async function loadMoreKanbanData(stackTitle: string, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
       if ((!isPublic.value && !meta?.value?.id) || !view.value?.id) return
 
-      let where = `(${groupingFieldValue.value},eq,${stackTitle})`
-
-      if (params?.where) {
-        where = `${where}~and${params.where}`
-      }
-
-      const response = isPublic.value
+      const res = isPublic.value
         ? await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
         : await api.dbViewRow.list('noco', meta.value!.base_id!, meta.value!.id!, view.value!.id!, {
             ...params,
-            where,
+            where: where?.value,
           })
 
-      const data = (response as any).list ?? []
+      const data = (res as any).list ?? []
       const existingData = formattedData.value.get(stackTitle) ?? []
 
       formattedData.value.set(stackTitle, [...existingData, ...data])
-      countByStack.value.set(stackTitle, (response as any).pageInfo?.totalRows ?? 0)
+      countByStack.value.set(stackTitle, (res as any).pageInfo?.totalRows ?? 0)
     }
 
     async function updateKanbanStackMeta(updateObj: Record<string, any>) {
@@ -147,9 +122,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       }
       stackMetaObj.value = newStackMeta
       if (isUIAllowed('dataEdit') && !isPublic.value) {
-        await updateKanbanMeta({
-          meta: newStackMeta,
-        })
+        await updateKanbanMeta({ meta: newStackMeta })
       }
     }
 
@@ -158,29 +131,17 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       await api.dbView.kanbanUpdate(view.value.id, updateObj)
     }
 
-    function toggleCompact() {
-      isCompact.value = !isCompact.value
-      $e('c:kanban:compact-mode', { isCompact: isCompact.value })
-    }
-
     async function addEmptyRow(stackTitle: string, stackIdx: number) {
       const existingData = formattedData.value.get(stackTitle) ?? []
-
       const newRow = {
-        row: {
-          [groupingFieldValue.value!]: stackTitle === 'uncategorized' ? null : stackTitle,
-        },
+        row: { [groupingFieldValue.value!]: stackTitle === 'uncategorized' ? null : stackTitle },
         oldRow: {},
-        rowMeta: {
-          new: true,
-        },
+        rowMeta: { new: true },
       }
-
       formattedData.value.set(stackTitle, [...existingData, newRow])
     }
 
     async function deleteStack(stackTitle: string, stackIdx: number) {
-      // Remove stack data
       formattedData.value.delete(stackTitle)
       countByStack.value.delete(stackTitle)
     }
@@ -188,7 +149,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     return {
       kanbanMetaData,
       formattedData,
-      countByStack: countByStackComputed,
+      countByStack,
       stackMetaObj,
       groupingField,
       groupingFieldColumn,
@@ -197,14 +158,13 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       loadMoreKanbanData,
       loadKanbanMeta,
       updateKanbanStackMeta,
-      kanbanStacks,
+      updateKanbanMeta,
       fields,
       coverImageField,
       hiddenFields,
       displayField,
       addEmptyRow,
       deleteStack,
-      updateKanbanMeta,
       kanbanStackMeta,
       loadMoreDone,
       isPaginationLoading,

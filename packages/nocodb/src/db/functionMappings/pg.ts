@@ -506,22 +506,22 @@ END`,
   ARRAYSORT: async (args: MapFnArgs) => {
     const { fn, knex, pt } = args;
 
-    // Validate direction to prevent SQL injection — only 'asc' or 'desc' allowed
-    const getSafeDirection = async () => {
-      if (!pt.arguments[1]) return knex.raw('asc');
-
-      // String literal path (e.g. "desc")
-      if ('value' in pt.arguments[1] && pt.arguments[1].value != null) {
-        const normalized = String(pt.arguments[1].value).trim().toLowerCase();
-        if (normalized === 'asc' || normalized === 'desc') {
-          return knex.raw(normalized);
-        }
-        return knex.raw('asc');
-      }
-
+    // Resolve direction eagerly (before getArraySource) to avoid async
+    // microtask boundaries that can catch unrelated promise rejections
+    // from the source subquery builder.
+    let direction: ReturnType<typeof knex.raw>;
+    if (!pt.arguments[1]) {
+      direction = knex.raw('asc');
+    } else if ('value' in pt.arguments[1] && pt.arguments[1].value != null) {
+      const normalized = String(pt.arguments[1].value).trim().toLowerCase();
+      direction =
+        normalized === 'asc' || normalized === 'desc'
+          ? knex.raw(normalized)
+          : knex.raw('asc');
+    } else {
       // Formula expression path (e.g. IF(..., "asc", "desc"))
-      return sanitize(knex.raw((await fn(pt.arguments[1])).builder));
-    };
+      direction = sanitize(knex.raw((await fn(pt.arguments[1])).builder));
+    }
 
     if ((<CallExpressionNode>pt).referencedColumn?.uidt === UITypes.User) {
       const source = (await getArraySourceUserUnnested(pt.arguments[0], args))
@@ -529,7 +529,7 @@ END`,
       return {
         builder: knex.raw(
           `ARRAY(SELECT userid FROM ( ?? ORDER BY email ?? ) as _tbl1)`,
-          [source, await getSafeDirection()],
+          [source, direction],
         ),
       };
     } else if (
@@ -541,7 +541,7 @@ END`,
       return {
         builder: knex.raw(
           `ARRAY(SELECT __val::jsonb FROM ( ?? ORDER BY title ?? ) as _tbl1)`,
-          [source, await getSafeDirection()],
+          [source, direction],
         ),
       };
     }
@@ -549,7 +549,7 @@ END`,
     return {
       builder: knex.raw(`ARRAY(SELECT UNNEST(??) ORDER BY 1 ??)`, [
         source,
-        getSafeDirection(),
+        direction,
       ]),
     };
   },

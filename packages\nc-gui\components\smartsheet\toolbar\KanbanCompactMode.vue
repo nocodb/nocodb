@@ -3,7 +3,7 @@ const { isCompact, toggleCompact } = useKanbanViewStore()
 </script>
 
 <template>
-  <a-tooltip placement="bottom">
+  <NcTooltip placement="bottom">
     <template #title>
       {{ isCompact ? $t('tooltip.kanbanExpandCards') : $t('tooltip.kanbanCompactCards') }}
     </template>
@@ -12,17 +12,14 @@ const { isCompact, toggleCompact } = useKanbanViewStore()
       v-e="['c:kanban:compact-mode']"
       type="text"
       size="small"
-      class="nc-toolbar-btn !h-7 !px-1.5 nc-kanban-compact-mode-btn"
-      :class="{ '!bg-brand-50 !text-brand-500': isCompact }"
+      class="nc-toolbar-btn nc-kanban-compact-mode-btn !h-7 !px-2"
+      :class="{ 'nc-active-btn': isCompact }"
       @click="toggleCompact"
     >
-      <div class="flex items-center gap-1">
-        <MdiViewAgendaOutline v-if="isCompact" class="h-4 w-4" />
-        <MdiViewDashboardOutline v-else class="h-4 w-4" />
-        <span class="text-xs font-medium capitalize">
-          {{ isCompact ? $t('activity.compactMode') : $t('activity.compactMode') }}
-        </span>
+      <div class="flex items-center gap-1.5">
+        <GeneralIcon icon="rowHeight" class="h-4 w-4" />
+        <span class="text-xs font-medium">{{ $t('title.compactMode') }}</span>
       </div>
     </NcButton>
-  </a-tooltip>
+  </NcTooltip>
 </template>

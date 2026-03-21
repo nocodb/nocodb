@@ -121,6 +121,7 @@ export const relationDataFetcher = (param: {
           sort,
           view,
           skipViewFilter: true,
+          prioritizePvSort: true,
         });
         const childQb = baseModel.dbDriver.queryBuilder().from(
           baseModel.dbDriver
@@ -563,6 +564,7 @@ export const relationDataFetcher = (param: {
           sort,
           view,
           skipViewFilter: true,
+          prioritizePvSort: true,
         });
 
         const children = await childBaseModel.execAndParse(

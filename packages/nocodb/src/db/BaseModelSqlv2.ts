@@ -1743,48 +1743,45 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     // Highest priority: when searching in LTAR dropdowns, sort PV (display value) matches first
     if (where && !skipSort && prioritizePvSort) {
-      await table.getColumns(this.context);
+      if (!table.columns?.length) {
+        await table.getColumns(this.context);
+      }
       const pvColumn = table.columns?.find((col) => col.pv);
-      if (pvColumn?.column_name && pvColumn?.title) {
-        const escapedPvTitle = pvColumn.title.replace(
-          /[.*+?^${}()|[\]\\]/g,
-          '\\$&',
+      if (pvColumn?.column_name) {
+        // Use the structured filter array from extractFilterFromXwhere
+        // instead of re-parsing the raw where string
+        const { filters: parsedFilters } = extractFilterFromXwhere(
+          this.context,
+          where,
+          childAliasColMap,
         );
-        // Extract PV field's filter from where clause
-        // Format: (pvTitle,operator,value) or (pvTitle,op,subOp,value)
-        const pvFilterMatch = where.match(
-          new RegExp(
-            `\\(${escapedPvTitle},(.+?)\\)`,
-            'i',
-          ),
-        );
-        if (pvFilterMatch?.[1]) {
-          const parts = pvFilterMatch[1];
-          // Split into segments: first is always the operator (or op,subOp), last is value
-          const firstComma = parts.indexOf(',');
-          if (firstComma !== -1) {
-            const operator = parts.substring(0, firstComma);
-            const rest = parts.substring(firstComma + 1);
 
-            if (operator === 'like') {
-              // Text search: value already has % wrapping from frontend
-              qb.orderByRaw(
-                this.dbDriver.raw(
-                  `CASE WHEN LOWER(??) LIKE ? THEN 0 ELSE 1 END`,
-                  [pvColumn.column_name, rest.toLowerCase()],
-                ),
-              );
-            } else if (operator === 'eq') {
-              // Exact match (numeric/date): rest may be "value" or "exactDate,value"
-              const lastComma = rest.lastIndexOf(',');
-              const value = lastComma !== -1 ? rest.substring(lastComma + 1) : rest;
-              qb.orderByRaw(
-                this.dbDriver.raw(
-                  `CASE WHEN ?? = ? THEN 0 ELSE 1 END`,
-                  [pvColumn.column_name, value],
-                ),
-              );
-            }
+        // Find the PV column's filter — may be a top-level filter or inside an OR group
+        const pvFilter = (parsedFilters || [])
+          .flatMap((f) => (f.is_group ? f.children || [] : [f]))
+          .find((f) => f.fk_column_id === pvColumn.id);
+
+        if (pvFilter?.value != null) {
+          const op = pvFilter.comparison_op;
+          // Currently handles 'like' (text PV) and 'eq' (numeric/date PV)
+          // — the only operators the LTAR dropdown search sends
+          if (op === 'like') {
+            qb.orderByRaw(
+              this.dbDriver.raw(
+                `CASE WHEN LOWER(??) LIKE ? THEN 0 ELSE 1 END`,
+                [
+                  pvColumn.column_name,
+                  String(pvFilter.value).toLowerCase(),
+                ],
+              ),
+            );
+          } else if (op === 'eq') {
+            qb.orderByRaw(
+              this.dbDriver.raw(`CASE WHEN ?? = ? THEN 0 ELSE 1 END`, [
+                pvColumn.column_name,
+                pvFilter.value,
+              ]),
+            );
           }
         }
       }

@@ -1,22 +1,19 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
+import type { Row } from '~/lib/types'
 
 const props = defineProps<{
   row: Row
   fields: ColumnType[]
-  coverImageField?: ColumnType
+  coverImageField?: ColumnType | null
   isCompact?: boolean
   readOnly?: boolean
 }>()
 
 const emits = defineEmits<{
   (event: 'expand', row: Row): void
-  (event: 'edit', row: Row): void
 }>()
-
-const meta = inject(MetaInj, ref())
-const view = inject(ActiveViewInj, ref())
 
 const { row, fields, coverImageField, isCompact, readOnly } = toRefs(props)
 
@@ -24,80 +21,87 @@ const { isMobileMode } = useGlobal()
 
 const rowData = computed(() => row.value?.row ?? {})
 
-const coverImage = computed(() => {
-  if (!coverImageField?.value) return undefined
-  const val = rowData.value?.[coverImageField.value.title!]
-  if (!val) return undefined
-  try {
-    const attachments = typeof val === 'string' ? JSON.parse(val) : val
-    if (Array.isArray(attachments) && attachments.length > 0) {
-      return attachments[0]?.signedPath || attachments[0]?.url
-    }
-  } catch {}
-  return undefined
+const visibleFields = computed(() => {
+  return (fields.value ?? []).filter((f) => !f.hidden)
 })
 
-const visibleFields = computed(() => fields.value?.filter((f) => !f.hidden) ?? [])
+const coverImageAttachments = computed(() => {
+  if (!coverImageField?.value?.title) return []
+  const val = rowData.value?.[coverImageField.value.title]
+  if (!val) return []
+  try {
+    const attachments = typeof val === 'string' ? JSON.parse(val) : val
+    return Array.isArray(attachments) ? attachments : []
+  } catch {
+    return []
+  }
+})
+
+const coverImageUrl = computed(() => {
+  if (!coverImageAttachments.value.length) return null
+  const att = coverImageAttachments.value[0]
+  return att?.signedPath || att?.url || null
+})
 
 function onExpand() {
-  emits('expand', row.value)
+  if (!readOnly?.value) {
+    emits('expand', row.value)
+  }
 }
 </script>
 
 <template>
   <div
-    class="nc-kanban-card group relative cursor-pointer border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-dark-bg shadow-sm hover:shadow-md transition-shadow duration-200"
+    class="nc-kanban-card group relative cursor-pointer border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 shadow-sm transition-all duration-150"
     :class="{
-      'nc-kanban-card-compact': isCompact,
-      'nc-kanban-card-default': !isCompact,
+      'nc-kanban-card-compact hover:border-gray-400': isCompact,
+      'nc-kanban-card-default hover:shadow-md': !isCompact,
     }"
     @click="onExpand"
   >
-    <!-- Default (expanded) card view -->
+    <!-- Default view: stacked fields with cover image -->
     <template v-if="!isCompact">
-      <!-- Cover Image -->
-      <div v-if="coverImage" class="nc-kanban-card-cover overflow-hidden rounded-t-lg">
+      <!-- Cover image -->
+      <div v-if="coverImageUrl" class="nc-kanban-card-cover overflow-hidden rounded-t-lg">
         <img
-          :src="coverImage"
-          class="w-full object-cover"
+          :src="coverImageUrl"
+          class="w-full object-cover rounded-t-lg"
           style="max-height: 180px"
-          alt="cover"
+          alt=""
           @error="($event.target as HTMLImageElement).style.display = 'none'"
         />
       </div>
 
-      <!-- Card Fields -->
+      <!-- Fields -->
       <div class="p-3 flex flex-col gap-2">
         <template v-for="field in visibleFields" :key="field.id">
-          <div class="nc-kanban-cell flex flex-col gap-0.5">
-            <span
-              v-if="!field.pv && visibleFields.length > 1"
-              class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide"
-            >
-              {{ field.title }}
-            </span>
-            <div class="nc-cell-wrapper">
-              <LazySmartsheetCell
-                :model-value="rowData[field.title!]"
-                :column="field"
-                :edit-enabled="false"
-                :read-only="true"
-                class="pointer-events-none"
-              />
-            </div>
+          <div class="nc-kanban-field">
+            <LazySmartsheetCell
+              :model-value="rowData[field.title!]"
+              :column="field"
+              :edit-enabled="false"
+              :read-only="true"
+              class="pointer-events-none"
+            />
           </div>
         </template>
       </div>
     </template>
 
-    <!-- Compact card view -->
+    <!-- Compact view: all fields in a single row -->
     <template v-else>
-      <div class="px-2 py-1 flex items-center gap-2 overflow-hidden min-h-[32px] max-h-[40px]">
-        <template v-for="(field, idx) in visibleFields" :key="field.id">
+      <div class="px-2 py-1.5 flex items-center gap-2 overflow-hidden" style="min-height: 36px">
+        <template v-for="(field, fieldIdx) in visibleFields" :key="field.id">
+          <!-- Divider between fields -->
           <div
-            class="nc-cell-wrapper flex-shrink-0 overflow-hidden"
+            v-if="fieldIdx > 0"
+            class="flex-shrink-0 self-stretch w-px bg-gray-200 dark:bg-gray-700 my-0.5"
+          />
+          <!-- Field cell -->
+          <div
+            class="nc-kanban-field flex-shrink-0 overflow-hidden text-sm leading-tight"
             :class="{
-              'flex-grow': field.pv,
+              'flex-grow min-w-0': field.pv,
               'max-w-[120px]': !field.pv,
             }"
           >
@@ -106,13 +110,9 @@ function onExpand() {
               :column="field"
               :edit-enabled="false"
               :read-only="true"
-              class="pointer-events-none !text-sm leading-tight truncate"
+              class="pointer-events-none !text-sm"
             />
           </div>
-          <div
-            v-if="idx < visibleFields.length - 1"
-            class="flex-shrink-0 h-4 w-px bg-gray-200 dark:bg-gray-700"
-          />
         </template>
       </div>
     </template>
@@ -120,15 +120,16 @@ function onExpand() {
 </template>
 
 <style scoped>
-.nc-kanban-card-compact {
-  @apply min-h-0;
+.nc-kanban-card-compact .nc-kanban-field :deep(*) {
+  line-height: 1.25 !important;
+  font-size: 0.875rem !important;
 }
 
-.nc-kanban-card-default {
-  @apply min-h-[60px];
+.nc-kanban-field :deep(.cell) {
+  @apply !px-0 !py-0;
 }
 
-.nc-kanban-cell :deep(.cell) {
-  @apply !px-0;
+.nc-kanban-field :deep(.cell-field) {
+  @apply !py-0;
 }
 </style>

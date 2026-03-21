@@ -1,48 +1,39 @@
 <script lang="ts" setup>
-import type { Row as RowType } from '#imports'
+import type { ColumnType, KanbanType } from 'nocodb-sdk'
+import { computed, inject, provide, ref, useGlobal, useKanbanViewStore, useViewColumnsOrThrow } from '#imports'
 
 const props = defineProps<{
-  row: RowType
   rowIndex: number
+  stackIndex: number
+  isAdding?: boolean
 }>()
 
-const { row, rowIndex } = toRefs(props)
+const emit = defineEmits(['expand', 'editMode', 'addRecord', 'newRecord'])
 
-const fields = inject(FieldsInj, ref([]))
-
-const isPublic = inject(IsPublicInj, ref(false))
-
-const { isUIAllowed } = useRoles()
+const {
+  isPublic,
+  kanbanMetaData: meta,
+  kanbanViewRows: viewRows,
+  updateOrSaveRow,
+  deleteRow,
+} = useKanbanViewStore()
 
 const { isMobileMode } = useGlobal()
 
-const expandRow = inject(ExpandRowInj, (_row: RowType) => {})
+const { fields, coverImageField, hiddenFields } = useViewColumnsOrThrow()
 
-const meta = inject(MetaInj, ref())
+const row = computed(() => viewRows.value?.[props.stackIndex]?.[props.rowIndex])
 
-const { kanbanMetaData, kanbanViewCoverImageColumnId, updateOrSaveRow } = useKanbanViewStoreOrThrow()
-
-const { isNew, syncCount } = useSmartsheetRowStoreOrThrow()
-
-const reloadViewDataHook = inject(ReloadViewDataHookInj)
-
-const isCompactMode = computed(() => !!(kanbanMetaData.value as any)?.compact_mode)
-
-const coverImageColumn = computed(() =>
-  meta.value?.columns?.find((col: ColumnType) => col.id === kanbanViewCoverImageColumnId.value),
-)
+const isCompact = computed(() => !!(meta.value as KanbanType)?.meta?.compact)
 
 const coverImage = computed(() => {
-  if (!coverImageColumn.value?.title) return null
-  const attachments = row.value.row[coverImageColumn.value.title]
-  if (!attachments || !Array.isArray(attachments) || attachments.length === 0) return null
-  return attachments[0]?.signedPath || attachments[0]?.path || null
+  if (!coverImageField.value || !row.value?.row) return null
+  return row.value.row[coverImageField.value]
 })
 
-const rowFields = computed(() => {
-  if (!fields.value) return []
-  return fields.value.filter(
-    (f) => f.show && f.id !== kanbanViewCoverImageColumnId.value,
-  )
+const displayField = computed(() => fields.value?.find((f) => f.pv))
+const displayValue = computed(() => {
+  if (!displayField.value || !row.value?.row) return ''
+  return row.value.row[displayField.value.title]
 })
 </script>

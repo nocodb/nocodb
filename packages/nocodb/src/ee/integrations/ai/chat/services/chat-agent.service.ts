@@ -1057,7 +1057,7 @@ export class ChatAgentService {
                 }
               }
             },
-            onStepFinish: ({ toolCalls, toolResults }) => {
+            onStepFinish: ({ toolCalls, toolResults, content }) => {
               if (abortSignal?.aborted) return;
 
               for (const tc of toolCalls || []) {
@@ -1140,6 +1140,39 @@ export class ChatAgentService {
                   });
                 }
               }
+
+              const toolErrors = (content || []).filter(
+                (p) => p.type === 'tool-error',
+              );
+              for (const te of toolErrors) {
+                const errorMsg =
+                  te.error instanceof Error
+                    ? te.error.message
+                    : String(te.error);
+
+                const block = contentBlocks.find(
+                  (b): b is Extract<ChatContentBlock, { type: 'tool_use' }> =>
+                    b.type === 'tool_use' && b.id === te.toolCallId,
+                );
+                if (block) {
+                  block.output = errorMsg;
+                  block.is_error = true;
+                }
+
+                const visibility = this.getToolVisibility(te.toolName);
+                if (
+                  visibility !== 'hidden' &&
+                  te.toolName !== 'return_to_router'
+                ) {
+                  callbacks?.onToolResult?.({
+                    toolCallId: te.toolCallId,
+                    toolName: te.toolName,
+                    result: errorMsg,
+                    agent: agentName,
+                    visibility,
+                  });
+                }
+              }
             },
           });
 
@@ -1197,6 +1230,18 @@ export class ChatAgentService {
               );
               if (block && block.status === ChatToolCallStatus.RUNNING) {
                 block.status = ChatToolCallStatus.SUCCESS;
+              }
+            }
+            const stepToolErrors = (step.content || []).filter(
+              (p) => p.type === 'tool-error',
+            );
+            for (const te of stepToolErrors) {
+              const block = contentBlocks.find(
+                (b): b is Extract<ChatContentBlock, { type: 'tool_use' }> =>
+                  b.type === 'tool_use' && b.id === te.toolCallId,
+              );
+              if (block) {
+                block.status = ChatToolCallStatus.ERROR;
               }
             }
           }

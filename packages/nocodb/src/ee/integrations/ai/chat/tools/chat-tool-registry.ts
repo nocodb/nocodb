@@ -218,25 +218,25 @@ export class ChatToolRegistry {
         description: t.description,
         inputSchema: t.schema,
         execute: async (args: any, { toolCallId }: { toolCallId: string }) => {
-          try {
-            const cleanArgs = args;
+          const cleanArgs = args;
 
-            if (t.isDangerous) {
-              const decision = approvals[toolCallId];
-              if (!decision) {
-                return JSON.stringify({
-                  __requires_approval: true,
-                  toolCallId,
-                });
-              }
-              if (decision === 'denied') {
-                return JSON.stringify({
-                  status: 'denied',
-                  message: 'Operation denied by user.',
-                });
-              }
+          if (t.isDangerous) {
+            const decision = approvals[toolCallId];
+            if (!decision) {
+              return JSON.stringify({
+                __requires_approval: true,
+                toolCallId,
+              });
             }
+            if (decision === 'denied') {
+              return JSON.stringify({
+                status: 'denied',
+                message: 'Operation denied by user.',
+              });
+            }
+          }
 
+          try {
             const { result, isError } = await this.executeTool(
               context,
               t.name,
@@ -244,17 +244,17 @@ export class ChatToolRegistry {
               req,
             );
             if (isError) {
-              return result;
+              throw new Error(
+                typeof result === 'string' ? result : JSON.stringify(result),
+              );
             }
             return typeof result === 'string'
               ? result
               : JSON.stringify(result, null, 2);
           } catch (e) {
-            this.logger.error(
-              `Tool ${t.name} unhandled error: ${(e as Error).message}`,
-              (e as Error).stack,
-            );
-            return buildToolErrorHint(t.name, e);
+            if (e instanceof Error) throw e;
+            this.logger.error(`Tool ${t.name} unexpected error`, (e as any)?.stack);
+            throw new Error(buildToolErrorHint(t.name, e));
           }
         },
       });

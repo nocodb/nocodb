@@ -1,38 +1,29 @@
 <script lang="ts" setup>
-import type { ColumnType, KanbanType } from 'nocodb-sdk'
-import { computed, inject, ref, useKanbanViewStore, useViewsStore } from '#imports'
+import type { ColumnType } from 'nocodb-sdk'
+import { IsPublicInj, MetaInj, ReloadViewDataHookInj, computed, inject, ref, useKanbanViewStore, useRoles } from '#imports'
+
+interface Row {
+  row: Record<string, any>
+  oldRow: Record<string, any>
+  rowMeta: Record<string, any>
+}
 
 const props = defineProps<{
   row: Row
-  rowIndex: number
-  stack?: Record<string, any>
-  stackIndex?: number
+  fields: ColumnType[]
+  coverImageField?: ColumnType
+  isCompact?: boolean
 }>()
 
-const { isUIAllowed } = useRoles()
+const emits = defineEmits(['expand'])
 
-const { row, rowIndex, stack, stackIndex } = toRefs(props)
+const { row, fields, coverImageField, isCompact } = toRefs(props)
 
-const meta = inject(MetaInj, ref())
-const view = inject(ActiveViewInj, ref())
-const reloadViewDataHook = inject(ReloadViewDataHookInj)
-const isPublic = inject(IsPublicInj, ref(false))
-
-const { fields, coverImageField, hiddenFields, kanbanMetaData, updateKanbanStackMeta } = useKanbanViewStore()
-const { isCompact } = useKanbanViewStore()
-
-const { openExpandedForm } = useExpandedFormStoreOrThrow()
-
-const { isMobileMode } = useGlobal()
-
-const isCompactMode = computed(() => isCompact?.value ?? false)
-
-const rowData = computed(() => row.value?.row)
+const rowData = computed(() => row.value?.row ?? {})
 
 const coverImage = computed(() => {
   if (!coverImageField?.value) return undefined
-  const field = coverImageField.value
-  const val = rowData.value?.[field.title!]
+  const val = rowData.value?.[coverImageField.value.title!]
   if (!val) return undefined
   try {
     const attachments = typeof val === 'string' ? JSON.parse(val) : val
@@ -44,24 +35,24 @@ const coverImage = computed(() => {
 })
 
 function onExpand() {
-  openExpandedForm(row.value)
+  emits('expand')
 }
 </script>
 
 <template>
   <div
-    class="nc-kanban-card group"
-    :class="[isCompactMode ? 'nc-kanban-card-compact' : 'nc-kanban-card-default']"
+    class="nc-kanban-card group cursor-pointer"
+    :class="[isCompact ? 'nc-kanban-card-compact' : 'nc-kanban-card-default']"
     @click="onExpand"
   >
-    <template v-if="!isCompactMode">
-      <!-- Default card view -->
-      <div v-if="coverImage" class="nc-kanban-card-cover">
-        <img :src="coverImage" class="w-full object-cover" style="max-height: 180px" />
+    <!-- Default card layout -->
+    <template v-if="!isCompact">
+      <div v-if="coverImage" class="nc-kanban-card-cover overflow-hidden rounded-t-lg">
+        <img :src="coverImage" class="w-full object-cover" style="max-height: 180px" alt="cover" />
       </div>
       <div class="p-3 flex flex-col gap-2">
         <template v-for="field in fields" :key="field.id">
-          <div v-if="!field.hidden" class="nc-cell-field-wrapper">
+          <div class="nc-cell-field-wrapper">
             <SmartsheetCell
               :model-value="rowData[field.title!]"
               :column="field"
@@ -73,17 +64,21 @@ function onExpand() {
         </template>
       </div>
     </template>
+
+    <!-- Compact card layout -->
     <template v-else>
-      <!-- Compact card view -->
-      <div class="px-2 py-1 flex items-center gap-1 overflow-hidden">
-        <template v-for="field in fields" :key="field.id">
-          <div v-if="!field.hidden" class="nc-cell-field-wrapper flex-shrink-0 max-w-full">
+      <div class="px-2 py-1 flex items-center gap-2 overflow-hidden min-h-[32px]">
+        <template v-for="(field, idx) in fields" :key="field.id">
+          <div
+            class="nc-cell-field-wrapper flex-shrink-0"
+            :class="{ 'border-l pl-2': idx > 0, 'border-gray-200': idx > 0 }"
+          >
             <SmartsheetCell
               :model-value="rowData[field.title!]"
               :column="field"
               :edit-enabled="false"
               :read-only="true"
-              class="pointer-events-none text-sm"
+              class="pointer-events-none !text-sm"
             />
           </div>
         </template>

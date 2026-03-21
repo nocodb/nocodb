@@ -1,31 +1,28 @@
 <script lang="ts" setup>
 const { isCompact, toggleCompact } = useKanbanViewStore()
-
-const { isMobileMode } = useGlobal()
 </script>
 
 <template>
-  <NcTooltip placement="bottom">
+  <a-tooltip placement="bottom">
     <template #title>
-      <span>{{ isCompact ? $t('activity.kanban.expandCards') : $t('activity.kanban.compactCards') }}</span>
+      {{ isCompact ? $t('tooltip.kanbanExpandCards') : $t('tooltip.kanbanCompactCards') }}
     </template>
+
     <NcButton
-      v-e="['c:kanban:compact-mode-toggle']"
-      size="small"
+      v-e="['c:kanban:compact-mode']"
       type="text"
-      class="nc-toolbar-btn nc-kanban-compact-mode-btn !h-7 !px-1.5 !rounded"
-      :class="{ '!bg-gray-100 dark:!bg-gray-800 !text-primary': isCompact }"
+      size="small"
+      class="nc-toolbar-btn !h-7 !px-1.5 nc-kanban-compact-mode-btn"
+      :class="{ '!bg-brand-50 !text-brand-500': isCompact }"
       @click="toggleCompact"
     >
-      <div class="flex items-center gap-1.5">
-        <GeneralIcon
-          :icon="isCompact ? 'kanbanCollapse' : 'kanbanExpand'"
-          class="h-4 w-4"
-        />
-        <span v-if="!isMobileMode" class="text-xs font-medium">
-          {{ $t('activity.kanban.compactMode') }}
+      <div class="flex items-center gap-1">
+        <MdiViewAgendaOutline v-if="isCompact" class="h-4 w-4" />
+        <MdiViewDashboardOutline v-else class="h-4 w-4" />
+        <span class="text-xs font-medium capitalize">
+          {{ isCompact ? $t('activity.compactMode') : $t('activity.compactMode') }}
         </span>
       </div>
     </NcButton>
-  </NcTooltip>
+  </a-tooltip>
 </template>

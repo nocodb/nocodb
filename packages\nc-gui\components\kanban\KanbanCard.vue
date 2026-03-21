@@ -1,6 +1,16 @@
 <script lang="ts" setup>
 import type { AttachmentType, ColumnType } from 'nocodb-sdk'
 
+interface Row {
+  row: Record<string, any>
+  oldRow: Record<string, any>
+  rowMeta: {
+    isNew?: boolean
+    selected?: boolean
+    [key: string]: any
+  }
+}
+
 const props = defineProps<{
   row: Row
   fields: ColumnType[]
@@ -12,38 +22,19 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  expand: []
-  editRecord: []
-  deleteRecord: []
+  (e: 'expand'): void
+  (e: 'deleteRecord'): void
 }>()
 
-const { isMobileMode } = useGlobal()
-
-const { t } = useI18n()
-
-const { isUIAllowed } = useRoles()
-
-const { getMeta } = useMetas()
-
-const isCompact = computed(() => props.compact)
-
-const getCoverImage = computed(() => {
-  if (!props.coverImageField) return null
-  const attachments = props.row?.row?.[props.coverImageField]
-  if (!attachments?.length) return null
-  try {
-    const parsed = typeof attachments === 'string' ? JSON.parse(attachments) : attachments
-    return parsed?.[0]
-  } catch {
-    return null
-  }
-})
-
-const displayFields = computed(() => {
-  return props.fields?.filter((f) => !f.pv) ?? []
-})
-
-const titleField = computed(() => {
-  return props.fields?.find((f) => f.pv)
-})
+const expandRecord = () => emit('expand')
+const deleteRecord = () => emit('deleteRecord')
 </script>
+
+<template>
+  <div
+    class="kanban-card"
+    :class="{ 'kanban-card-compact': compact }"
+  >
+    <!-- card content -->
+  </div>
+</template>

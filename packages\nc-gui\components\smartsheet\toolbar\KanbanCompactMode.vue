@@ -1,38 +1,33 @@
 <script lang="ts" setup>
-const { kanbanMetaData, updateKanbanMeta } = useKanbanViewStoreOrThrow()
-
-const { isUIAllowed } = useRoles()
-
-const { isMobileMode } = useGlobal()
-
-const isCompactMode = computed(() => !!(kanbanMetaData.value as any)?.compact_mode)
-
-async function toggleCompactMode() {
-  await updateKanbanMeta({
-    compact_mode: !isCompactMode.value,
-  } as any)
-}
+const { isCompact, toggleCompact } = useKanbanViewStore()
 </script>
 
 <template>
-  <NcTooltip placement="bottom">
+  <NcTooltip>
     <template #title>
-      <span>{{ isCompactMode ? $t('tooltip.expandCardView') : $t('tooltip.compactCardView') }}</span>
+      {{ isCompact ? $t('activity.expandCards') : $t('activity.compactCards') }}
     </template>
     <NcButton
-      v-e="['c:kanban:compact-mode']"
-      :class="{
-        '!text-brand-500 !bg-brand-50': isCompactMode,
-      }"
-      class="nc-kanban-compact-mode nc-toolbar-btn"
+      v-e="['c:kanban:toggle-compact']"
       size="small"
       type="text"
-      @click="toggleCompactMode"
+      class="nc-kanban-compact-mode-btn !h-7 !px-2 !rounded-md"
+      :class="{ 'bg-gray-100 dark:bg-gray-800': isCompact }"
+      @click="toggleCompact"
     >
-      <div class="flex items-center gap-2">
-        <GeneralIcon icon="ncList" class="h-4 w-4" />
-        <span v-if="!isMobileMode" class="text-[13px] font-medium">
-          {{ $t('title.compact') }}
+      <div class="flex items-center gap-1">
+        <component
+          :is="iconMap.list"
+          v-if="isCompact"
+          class="h-4 w-4"
+        />
+        <component
+          :is="iconMap.expand"
+          v-else
+          class="h-4 w-4"
+        />
+        <span class="text-xs hidden md:inline">
+          {{ isCompact ? $t('activity.defaultView') : $t('activity.compactView') }}
         </span>
       </div>
     </NcButton>

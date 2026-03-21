@@ -14,19 +14,22 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     }
 
     const { t } = useI18n()
+
     const { api } = useApi()
+
     const { $e } = useNuxtApp()
 
+    const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
+
     const isPublic = ref(shared)
+
     const { sharedView } = useSharedView()
+
     const { isUIAllowed } = useRoles()
-    const { isPaginationLoading } = useViewData(meta, view, where)
 
     const { getMeta } = useMetas()
 
     const { addUndo, defineViewScope } = useUndoRedo()
-
-    const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
     const { fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
 
@@ -48,7 +51,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const loadMoreDone = ref<Map<string, boolean>>(new Map())
 
-    // Compact mode state - persisted per view
+    // Compact mode - makes cards take minimal vertical space
     const isCompact = ref(false)
 
     const groupingFieldValue = computed(() => {
@@ -70,6 +73,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       return fields.value.find((f) => f.pv)
     })
 
+    const { isPaginationLoading } = useViewData(meta, view, where)
+
     const kanbanStacks = computed<Row[][]>(() => {
       if (!groupingFieldColumn.value?.colOptions) return []
       const colOptions = groupingFieldColumn.value.colOptions as SelectOptionsType
@@ -84,20 +89,73 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     async function loadKanbanData() {
       if ((!isPublic.value && !meta?.value?.id) || !view.value?.id) return
-      // Implementation for loading kanban data
-    }
 
-    async function loadMoreKanbanData(stackTitle: string, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
-      // Implementation for loading more kanban data
+      const params: Parameters<Api<any>['dbViewRow']['list']>[4] = {
+        where: where?.value,
+      }
+
+      await Promise.all([loadKanbanMeta(), loadKanbanStacks(params)])
     }
 
     async function loadKanbanMeta() {
       if (!view.value?.id || !meta?.value?.id) return
-      // Implementation for loading kanban meta
+
+      const res = await api.dbView.kanbanRead(view.value.id)
+      kanbanMetaData.value = res
+
+      const groupingFieldId = kanbanMetaData.value.fk_grp_col_id
+      if (groupingFieldId) {
+        groupingFieldColumn.value = meta.value?.columns?.find((c) => c.id === groupingFieldId)
+      }
+    }
+
+    async function loadKanbanStacks(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
+      if ((!isPublic.value && !meta?.value?.id) || !view.value?.id) return
+
+      await Promise.all(
+        [...(formattedData.value.keys() || [])].map((stackTitle) => loadMoreKanbanData(stackTitle, { ...params, where: where?.value })),
+      )
+    }
+
+    async function loadMoreKanbanData(stackTitle: string, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
+      if ((!isPublic.value && !meta?.value?.id) || !view.value?.id) return
+
+      let where = `(${groupingFieldValue.value},eq,${stackTitle})`
+
+      if (params?.where) {
+        where = `${where}~and${params.where}`
+      }
+
+      const response = isPublic.value
+        ? await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
+        : await api.dbViewRow.list('noco', meta.value!.base_id!, meta.value!.id!, view.value!.id!, {
+            ...params,
+            where,
+          })
+
+      const data = (response as any).list ?? []
+      const existingData = formattedData.value.get(stackTitle) ?? []
+
+      formattedData.value.set(stackTitle, [...existingData, ...data])
+      countByStack.value.set(stackTitle, (response as any).pageInfo?.totalRows ?? 0)
     }
 
     async function updateKanbanStackMeta(updateObj: Record<string, any>) {
-      // Implementation for updating kanban stack meta
+      const newStackMeta = {
+        ...stackMetaObj.value,
+        ...updateObj,
+      }
+      stackMetaObj.value = newStackMeta
+      if (isUIAllowed('dataEdit') && !isPublic.value) {
+        await updateKanbanMeta({
+          meta: newStackMeta,
+        })
+      }
+    }
+
+    async function updateKanbanMeta(updateObj: Partial<KanbanType>) {
+      if (!view.value?.id || isPublic.value) return
+      await api.dbView.kanbanUpdate(view.value.id, updateObj)
     }
 
     function toggleCompact() {
@@ -105,16 +163,26 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       $e('c:kanban:compact-mode', { isCompact: isCompact.value })
     }
 
-    async function deleteStack(stackTitle: string, stackIdx: number) {
-      // Implementation for deleting stack
-    }
-
     async function addEmptyRow(stackTitle: string, stackIdx: number) {
-      // Implementation for adding empty row
+      const existingData = formattedData.value.get(stackTitle) ?? []
+
+      const newRow = {
+        row: {
+          [groupingFieldValue.value!]: stackTitle === 'uncategorized' ? null : stackTitle,
+        },
+        oldRow: {},
+        rowMeta: {
+          new: true,
+        },
+      }
+
+      formattedData.value.set(stackTitle, [...existingData, newRow])
     }
 
-    async function updateKanbanMeta(updateObj: Partial<KanbanType>) {
-      // Implementation for updating kanban meta
+    async function deleteStack(stackTitle: string, stackIdx: number) {
+      // Remove stack data
+      formattedData.value.delete(stackTitle)
+      countByStack.value.delete(stackTitle)
     }
 
     return {
@@ -146,3 +214,6 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     }
   },
 )
+
+export { useProvideKanbanViewStore }
+export { useKanbanViewStore }

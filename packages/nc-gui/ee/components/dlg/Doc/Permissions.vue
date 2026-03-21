@@ -1,12 +1,5 @@
 <script lang="ts" setup>
-import {
-  type DocumentType,
-  PermissionEntity,
-  PermissionKey,
-  PermissionOptionValue,
-  ProjectRoles,
-  extractBaseRoleFromWorkspaceRole,
-} from 'nocodb-sdk'
+import { type DocumentType, PermissionEntity, PermissionKey, PermissionOptionValue } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean

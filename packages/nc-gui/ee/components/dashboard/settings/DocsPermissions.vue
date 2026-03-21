@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import type { DocumentType } from 'nocodb-sdk'
-import {
-  PermissionEntity,
-  PermissionKey,
-  PermissionOptionValue,
-  ProjectRoles,
-  extractBaseRoleFromWorkspaceRole,
-} from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, PermissionOptionValue } from 'nocodb-sdk'
 
 interface Props {
   state: string

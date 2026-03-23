@@ -37,12 +37,12 @@ import * as nc_202603060621_form_page_breaks from './v0/nc_202603060621_form_pag
 import * as nc_202603050000_docs from './v0/nc_202603050000_docs';
 import * as nc_202603050001_file_ref_doc_idx from './v0/nc_202603050001_file_ref_doc_idx';
 import * as nc_202603090001_chat_session_meta from './v0/nc_202603090001_chat_session_meta';
-import * as nc_202603100000_fine_grained_api_tokens from './v0/nc_202603100000_fine_grained_api_tokens';
 import * as nc_202603110001_chat_session_base_id from './v0/nc_202603110001_chat_session_base_id';
 import * as nc_202603170000_form_view_expires_at from './v0/nc_202603170000_form_view_expires_at';
 import * as nc_202603170001_workflow_draft_reminder from './v0/nc_202603170001_workflow_draft_reminder';
 import * as nc_202603090002_date_dependency from './v0/nc_202603090002_date_dependency';
 import * as nc_202603230000_subscription_last_paid_seat_count from './v0/nc_202603230000_subscription_last_paid_seat_count';
+import * as nc_202603301109_fine_grained_api_tokens from './v0/nc_202603301109_fine_grained_api_tokens';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -91,12 +91,12 @@ export default class XcMigrationSourcev0 {
       'nc_202603050000_docs',
       'nc_202603050001_file_ref_doc_idx',
       'nc_202603090001_chat_session_meta',
-      'nc_202603100000_fine_grained_api_tokens',
       'nc_202603110001_chat_session_base_id',
       'nc_202603170000_form_view_expires_at',
       'nc_202603170001_workflow_draft_reminder',
       'nc_202603090002_date_dependency',
       'nc_202603230000_subscription_last_paid_seat_count',
+      'nc_202603301109_fine_grained_api_tokens',
     ]);
   }
 
@@ -184,8 +184,6 @@ export default class XcMigrationSourcev0 {
         return nc_202603050001_file_ref_doc_idx;
       case 'nc_202603090001_chat_session_meta':
         return nc_202603090001_chat_session_meta;
-      case 'nc_202603100000_fine_grained_api_tokens':
-        return nc_202603100000_fine_grained_api_tokens;
       case 'nc_202603110001_chat_session_base_id':
         return nc_202603110001_chat_session_base_id;
       case 'nc_202603170000_form_view_expires_at':
@@ -196,6 +194,8 @@ export default class XcMigrationSourcev0 {
         return nc_202603090002_date_dependency;
       case 'nc_202603230000_subscription_last_paid_seat_count':
         return nc_202603230000_subscription_last_paid_seat_count;
+      case 'nc_202603301109_fine_grained_api_tokens':
+        return nc_202603301109_fine_grained_api_tokens;
     }
   }
 }

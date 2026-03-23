@@ -131,8 +131,6 @@ const { $e } = useNuxtApp()
 
 const { appInfo } = useGlobal()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const workspaceStore = useWorkspace()
 
 const { openedViewsTab } = storeToRefs(useViewsStore())

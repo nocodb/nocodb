@@ -2436,7 +2436,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             }
 
             await this.runOps(
-              postInsertOpsMap[i].map((f) => f(rowId)),
+              (postInsertOpsMap[i] ?? []).map((f) => f(rowId)),
               trx,
             );
           }

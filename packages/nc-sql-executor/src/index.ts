@@ -163,7 +163,7 @@ async function execAndGetRows(kn: Knex, config: any, query: string) {
     const res = await kn
       .raw(query)
       .timeout(QUERY_TIMEOUT_MS, queryTimeoutOpts(client));
-    if (res && res[0] && res[0].insertId) return res[0].insertId;
+    if (res?.[0] && res[0].insertId !== undefined) return res[0].insertId;
     return res;
   } else {
     return await kn

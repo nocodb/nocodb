@@ -448,6 +448,7 @@ export class DataImportProcessor {
               batch,
               req,
               rowCount,
+              typecast,
               counters,
               errors,
               maxErrors,

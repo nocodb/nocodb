@@ -2,8 +2,8 @@ import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
 import { UITypes } from 'nocodb-sdk';
-import init from '../../../init';
-import { isEE } from '../../../utils/helpers';
+import init from '../../../../init';
+import { isEE } from '../../../../utils/helpers';
 import { Base, Model } from '~/models';
 import { RootScopes } from '~/utils/globals';
 

@@ -70,7 +70,7 @@ export function useCanvasListView({
   const setCursor: SetCursorType = (cursor) => {
     canvasCursorRef.value = cursor
   }
-  const { isRowColouringEnabled, getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
+  const { isRowColouringEnabled, getEvaluatedRowMetaRowColorInfo, rowColorInfo: activeViewRowColorInfo } = useViewRowColorRender()
 
   const headerRowHeight = computed(() => LIST_HEADER_HEIGHT)
 
@@ -613,6 +613,18 @@ export function useCanvasListView({
 
   watch(rowSlice, (slice) => updateVisibleRows(slice))
   watch(collapsedJson, () => resetAndReload())
+
+  // Re-evaluate row colors when coloring config changes
+  watch(
+    () => activeViewRowColorInfo.value,
+    () => {
+      for (const [_, row] of cachedRows.value) {
+        row.__nc_color = isRowColouringEnabled.value ? getEvaluatedRowMetaRowColorInfo(row) : undefined
+      }
+      triggerRefreshCanvas()
+    },
+    { deep: true },
+  )
 
   function findElementAt(x: number, y: number, type?: ListCanvasElement['type']): ListCanvasElement | null {
     for (let i = elementMap.value.length - 1; i >= 0; i--) {

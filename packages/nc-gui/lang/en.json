@@ -237,6 +237,8 @@
     "upgradeToUseRecordTemplatesSubtitle": "Upgrade to the {plan} plan to create and use record templates.",
     "upgradeToUseRls": "Upgrade to use Row-Level Security",
     "upgradeToUseRlsSubtitle": "Upgrade to the {plan} plan to define row-level security policies that control which rows users can access.",
+    "upgradeToUseListView": "Upgrade to use List View",
+    "upgradeToUseListViewSubtitle": "Upgrade to the {plan} plan to display hierarchical data with parent-child grouping.",
     "upgradeToUseMapView": "Upgrade to use Map View",
     "upgradeToUseMapViewSubtitle": "Upgrade to the {plan} plan to visualize your geo data on an interactive map.",
     "enterpriseFeatureTitle": "Enterprise Feature",

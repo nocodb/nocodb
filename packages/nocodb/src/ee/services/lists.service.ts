@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, EventType, ViewTypes } from 'nocodb-sdk';
+import { AppEvents, EventType, PlanFeatureTypes, ViewTypes } from 'nocodb-sdk';
 import type {
   ListUpdateReqType,
   UserType,
@@ -8,6 +8,7 @@ import type {
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { ListView, Model, Source, User, View } from '~/models';
@@ -36,6 +37,8 @@ export class ListsService {
     },
     ncMeta?: MetaService,
   ) {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_LIST_VIEW);
+
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
       param.list,

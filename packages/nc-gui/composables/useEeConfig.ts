@@ -109,6 +109,8 @@ export const useEeConfig = createSharedComposable(() => {
   // UUID field is EE-only — always blocked in CE
   const blockUuidField = computed(() => true)
 
+  const blockListView = computed(() => true)
+
   const blockMapView = computed(() => true)
 
   // AutoNumber field is EE-only — always blocked in CE
@@ -233,6 +235,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseViewSections = (..._args: any[]) => {}
 
   const showSandboxPlanLimitExceededModal = (..._args: any[]) => {}
+  const showUpgradeToUseListView = (..._args: any[]) => {}
+
   const showUpgradeToUseMapView = (..._args: any[]) => {}
 
   const isEEFeatureBlocked = computed(() => true)
@@ -354,6 +358,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseRecordTemplates,
     blockViewSections,
     showUpgradeToUseViewSections,
+    blockListView,
+    showUpgradeToUseListView,
     blockMapView,
     showUpgradeToUseMapView,
     isEEFeatureBlocked,

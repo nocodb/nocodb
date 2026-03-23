@@ -24,6 +24,7 @@ const { createDocument } = useDocumentsStore()
 const viewsStore = useViewsStore()
 const { loadViews, onOpenViewCreateModal } = viewsStore
 const { activeView, isListViewEnabled } = storeToRefs(viewsStore)
+const { showUpgradeToUseListView } = viewsStore
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
@@ -315,12 +316,15 @@ const hasDocumentCreateAccess = computed(() => {
                 <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.calendar') }}</div>
               </NcMenuItem>
-              <template v-if="isListViewEnabled">
-                <NcMenuItem data-testid="mini-sidebar-view-create-list" @click="onOpenModal({ type: ViewTypes.LIST })">
-                  <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
-                  <div>{{ $t('objects.viewType.list') }}</div>
-                </NcMenuItem>
-              </template>
+              <NcMenuItem
+                v-if="isListViewEnabled"
+                data-testid="mini-sidebar-view-create-list"
+                @click="showUpgradeToUseListView({ successCallback: () => onOpenModal({ type: ViewTypes.LIST }) })"
+              >
+                <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
+                <div>{{ $t('objects.viewType.list') }}</div>
+                <NcBadgeBeta />
+              </NcMenuItem>
               <NcMenuItem
                 v-if="isEeUI && showEEFeatures"
                 data-testid="mini-sidebar-view-create-map"

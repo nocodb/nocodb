@@ -13,7 +13,7 @@ const viewsStore = useViewsStore()
 
 const { activeView, views, isListViewEnabled } = storeToRefs(viewsStore)
 
-const { navigateToView, onOpenViewCreateModal } = viewsStore
+const { navigateToView, onOpenViewCreateModal, showUpgradeToUseListView } = viewsStore
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
@@ -240,20 +240,29 @@ async function onOpenModal({
                     {{ $t('objects.viewType.calendar') }}
                   </div>
                 </a-menu-item>
-                <template v-if="isListViewEnabled">
-                  <NcTooltip :title="$t('tooltip.listViewOnlyPg')" :disabled="isPgSource" placement="right">
-                    <a-menu-item
-                      :disabled="!isPgSource"
-                      data-testid="topbar-view-create-list"
-                      @click="isPgSource && onOpenModal({ type: ViewTypes.LIST })"
-                    >
-                      <div class="nc-viewlist-submenu-popup-item" :class="{ 'opacity-50': !isPgSource }">
-                        <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
-                        {{ $t('objects.viewType.list') }}
-                      </div>
-                    </a-menu-item>
-                  </NcTooltip>
-                </template>
+                <NcTooltip
+                  v-if="isListViewEnabled"
+                  :title="$t('tooltip.listViewOnlyPg')"
+                  :disabled="isPgSource"
+                  placement="right"
+                >
+                  <a-menu-item
+                    :disabled="!isPgSource"
+                    data-testid="topbar-view-create-list"
+                    @click="
+                      isPgSource &&
+                        showUpgradeToUseListView({
+                          successCallback: () => onOpenModal({ type: ViewTypes.LIST }),
+                        })
+                    "
+                  >
+                    <div class="nc-viewlist-submenu-popup-item" :class="{ 'opacity-50': !isPgSource }">
+                      <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
+                      {{ $t('objects.viewType.list') }}
+                      <NcBadgeBeta />
+                    </div>
+                  </a-menu-item>
+                </NcTooltip>
                 <a-menu-item
                   v-if="isEeUI && showEEFeatures"
                   data-testid="topbar-view-create-map"

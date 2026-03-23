@@ -212,15 +212,6 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'list_view',
-    title: 'List View',
-    description: 'Enable the List view type for hierarchical data display with parent-child grouping.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
-    isEE: true,
-  },
-  {
     id: 'team_hierarchy',
     title: 'Team Hierarchy',
     description: 'Organize the teams in nested hierarchy',

@@ -350,6 +350,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_VIEW_SECTIONS)
   })
 
+  const blockListView = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_LIST_VIEW)
+  })
+
   const blockMapView = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_MAP_VIEW)
   })
@@ -1721,6 +1725,29 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseListView = ({
+    callback,
+    successCallback,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    if (!blockListView.value) {
+      successCallback?.()
+
+      return
+    }
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseListView'),
+      content: t('upgrade.upgradeToUseListViewSubtitle', {
+        plan: PlanTitles.BUSINESS,
+      }),
+      callback,
+      requiredPlan: PlanTitles.BUSINESS,
+      limitOrFeature: PlanFeatureTypes.FEATURE_LIST_VIEW,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseMapView = ({
     callback,
     successCallback,
@@ -1906,6 +1933,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseRecordTemplates,
     blockViewSections,
     showUpgradeToUseViewSections,
+    blockListView,
+    showUpgradeToUseListView,
     blockMapView,
     showUpgradeToUseMapView,
     isEEFeatureBlocked,

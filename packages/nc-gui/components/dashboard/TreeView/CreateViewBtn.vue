@@ -16,6 +16,7 @@ const alignLeftLevel = toRef(props, 'alignLeftLevel')
 const viewsStore = useViewsStore()
 const { loadViews, onOpenViewCreateModal } = viewsStore
 const { isListViewEnabled } = storeToRefs(viewsStore)
+const { showUpgradeToUseListView } = viewsStore
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
@@ -196,25 +197,37 @@ async function onOpenModal({
             <GeneralLoader v-if="toBeCreateType === ViewTypes.CALENDAR && isViewListLoading" />
           </div>
         </NcMenuItem>
-        <template v-if="isListViewEnabled">
-          <NcTooltip :title="$t('tooltip.listViewOnlyPg')" :disabled="isPgSource" placement="right" class="w-full">
-            <NcMenuItem
-              :disabled="!isPgSource"
-              inner-class="w-full"
-              data-testid="sidebar-view-create-list"
-              @click="isPgSource && onOpenModal({ type: ViewTypes.LIST })"
-            >
-              <div class="item">
-                <div class="item-inner">
-                  <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" :class="{ '!opacity-50': !isPgSource }" />
-                  <div>{{ $t('objects.viewType.list') }}</div>
-                </div>
-
-                <GeneralLoader v-if="toBeCreateType === ViewTypes.LIST && isViewListLoading" />
+        <NcTooltip
+          v-if="isListViewEnabled"
+          :title="$t('tooltip.listViewOnlyPg')"
+          :disabled="isPgSource"
+          placement="right"
+          class="w-full"
+        >
+          <NcMenuItem
+            :disabled="!isPgSource"
+            inner-class="w-full"
+            data-testid="sidebar-view-create-list"
+            @click="
+              isPgSource &&
+                showUpgradeToUseListView({
+                  successCallback: () => {
+                    onOpenModal({ type: ViewTypes.LIST })
+                  },
+                })
+            "
+          >
+            <div class="item">
+              <div class="item-inner">
+                <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" :class="{ '!opacity-50': !isPgSource }" />
+                <div>{{ $t('objects.viewType.list') }}</div>
+                <NcBadgeBeta />
               </div>
-            </NcMenuItem>
-          </NcTooltip>
-        </template>
+
+              <GeneralLoader v-if="toBeCreateType === ViewTypes.LIST && isViewListLoading" />
+            </div>
+          </NcMenuItem>
+        </NcTooltip>
         <NcMenuItem
           v-if="isEeUI && showEEFeatures"
           inner-class="w-full"

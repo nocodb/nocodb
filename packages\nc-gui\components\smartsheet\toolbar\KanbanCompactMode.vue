@@ -1,21 +1,33 @@
-<script setup lang="ts">
-const { isCompact, updateCompact } = useKanbanViewStore()
+<script lang="ts" setup>
+const { isCompactMode, toggleCompactMode } = useKanbanViewStoreOrThrow()
+
+const { $e } = useNuxtApp()
+
+async function onClick() {
+  await toggleCompactMode()
+  $e('a:kanban:compact-mode', { compact: isCompactMode.value })
+}
 </script>
 
 <template>
-  <NcTooltip>
+  <NcTooltip placement="bottom">
     <template #title>
-      {{ isCompact ? $t('tooltip.kanbanNormalView') : $t('tooltip.kanbanCompactView') }}
+      <span>{{ isCompactMode ? $t('activity.kanban.disableCompactMode') : $t('activity.kanban.enableCompactMode') }}</span>
     </template>
+
     <NcButton
-      v-e="['c:toolbar:kanban-compact-mode']"
+      v-e="['c:kanban:toggle-compact-mode']"
+      :type="isCompactMode ? 'secondary' : 'text'"
       size="small"
-      type="text"
-      class="nc-kanban-compact-btn"
-      :class="{ 'nc-active-btn': isCompact }"
-      @click="updateCompact(!isCompact)"
+      :class="{
+        'text-brand-500 bg-brand-50 !border-brand-200': isCompactMode,
+      }"
+      @click="onClick"
     >
-      <component :is="iconMap.minimize2" class="h-4 w-4" />
+      <div class="flex items-center gap-1.5">
+        <GeneralIcon icon="compact" class="h-4 w-4" />
+        <span class="text-xs font-medium">{{ $t('activity.kanban.compactMode') }}</span>
+      </div>
     </NcButton>
   </NcTooltip>
 </template>

@@ -31,6 +31,7 @@ import { NcError } from '~/helpers/catchError';
 import { JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { ExtensionsService } from '~/services/extensions.service';
+import { DataImportService } from '~/services/data-import.service';
 
 @Injectable()
 export class UiPostOperations
@@ -59,6 +60,7 @@ export class UiPostOperations
     protected syncService: SyncService,
     protected readonly nocoJobsService: NocoJobsService,
     protected extensionsService: ExtensionsService,
+    protected dataImportService: DataImportService,
   ) {}
   operations = [
     'tableUpdate' as const,
@@ -143,6 +145,8 @@ export class UiPostOperations
     'listViewCreate' as const,
     'listViewUpdate' as const,
     'convertLinkToV2' as const,
+    'dataImportPreview' as const,
+    'dataImportFile' as const,
   ];
   httpMethod = 'POST' as const;
 
@@ -707,6 +711,24 @@ export class UiPostOperations
       case 'extensionDelete':
         return await this.extensionsService.extensionDelete(context, {
           extensionId: req.query.extensionId,
+          req,
+        });
+      case 'dataImportPreview': {
+        const result = await this.dataImportService.csvPreview(context, {
+          attachment: payload.attachment,
+          parserConfig: payload.parserConfig,
+        });
+        return {
+          columns: result.columns as any[],
+          previewData: result.previewData,
+          totalSampleRows: result.totalSampleRows,
+          detectedDelimiter: result.detectedDelimiter,
+        };
+      }
+      case 'dataImportFile':
+        return await this.dataImportService.csvImportFile(context, {
+          baseId: req.query.baseId as string,
+          body: payload,
           req,
         });
     }

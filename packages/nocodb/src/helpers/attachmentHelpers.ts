@@ -170,6 +170,23 @@ export function getPathFromUrl(url: string, removePrefix = false) {
   return decodeURI(`${pathName}${newUrl.search}${newUrl.hash}`);
 }
 
+export function resolveAttachmentFilePath(attachment: {
+  path?: string;
+  url?: string;
+}): string {
+  if (attachment.path) {
+    return path.join(
+      'nc',
+      'uploads',
+      attachment.path.replace(/^download[/\\]/i, ''),
+    );
+  } else if (attachment.url) {
+    return getPathFromUrl(attachment.url).replace(/^\/+/, '');
+  }
+
+  throw new Error('Attachment must have either path or url');
+}
+
 export const localFileExists = (path: string) => {
   return fs.promises
     .access(path)

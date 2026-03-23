@@ -371,6 +371,10 @@ const permissionScopes = {
     'tableUpdate',
     'tableDelete',
 
+    // CSV Import
+    'dataImportPreview',
+    'dataImportFile',
+
     // Base API Tokens
     'baseApiTokenList',
     'baseApiTokenCreate',
@@ -1520,6 +1524,8 @@ const permissionDescriptions: Record<string, string> = {
   columnDelete: 'delete a column',
   columnSetAsPrimary: 'set a column as primary',
   tableCreate: 'create a new table',
+  dataImportPreview: 'preview file for import',
+  dataImportFile: 'import file into a table',
   tableUpdate: 'update a table',
   viewColumnList: 'view list of view columns',
   triggerList: 'view list of triggers',

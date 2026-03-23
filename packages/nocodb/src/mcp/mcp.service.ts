@@ -11,7 +11,7 @@ import type {
   DataInsertRequest,
   DataUpdateRequest,
 } from '~/services/v3/data-v3.types';
-import { getPathFromUrl } from '~/helpers/attachmentHelpers';
+import { resolveAttachmentFilePath } from '~/helpers/attachmentHelpers';
 import { BasesV3Service } from '~/services/v3/bases-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { DataV3Service } from '~/services/v3/data-v3.service';
@@ -407,14 +407,8 @@ export class McpService {
                 let relativePath;
 
                 // Determine the relative path from attachment
-                if (file.path) {
-                  relativePath = path.join(
-                    'nc',
-                    'uploads',
-                    file.path.replace(/^download[/\\]/i, ''),
-                  );
-                } else if (file.url) {
-                  relativePath = getPathFromUrl(file.url).replace(/^\/+/, '');
+                if (file.path || file.url) {
+                  relativePath = resolveAttachmentFilePath(file);
                 } else {
                   return {
                     title: file.title || 'Unknown file',

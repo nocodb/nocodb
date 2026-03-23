@@ -33,6 +33,7 @@ import { SyncService } from '~/services/sync.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { ExtensionsService } from '~/services/extensions.service';
 import { DateDependencyService } from '~/services/date-dependency.service';
+import { DataImportService } from '~/services/data-import.service';
 
 @Injectable()
 export class UiPostOperations
@@ -67,6 +68,7 @@ export class UiPostOperations
     protected nocoJobsService: NocoJobsService,
     protected extensionsService: ExtensionsService,
     protected dateDependencyService: DateDependencyService,
+    protected dataImportService: DataImportService,
   ) {
     super(
       dataTableService,
@@ -91,6 +93,7 @@ export class UiPostOperations
       syncService,
       nocoJobsService,
       extensionsService,
+      dataImportService,
     );
 
     (this.operations as string[]) = [

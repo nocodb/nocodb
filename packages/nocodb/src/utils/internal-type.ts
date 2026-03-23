@@ -96,6 +96,8 @@ export type InternalPOSTResponseType = Promise<
     }[]
   | { message: string }
   | { deleted: number; failed: { id: string; error: string }[] }
+  | { columns: any[]; previewData: any[]; totalSampleRows: number; detectedDelimiter: string }
+  | { id: string; name?: string }
 >;
 
 export const INTERNAL_API_MODULE_PROVIDER_KEY = 'INTERNAL_API_MODULE';

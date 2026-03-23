@@ -79,6 +79,7 @@ export * from '~/lib/ai';
 export * from '~/lib/audit';
 export * from '~/lib/ncTypes';
 export * from '~/lib/import-export-data';
+export * from '~/lib/data-import';
 export * from '~/lib/is';
 export * from '~/lib/durationUtils';
 export * from '~/lib/sync';

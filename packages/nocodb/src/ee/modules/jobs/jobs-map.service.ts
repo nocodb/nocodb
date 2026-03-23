@@ -2,6 +2,7 @@ import { JobsMap as JobsMapCE } from 'src/modules/jobs/jobs-map.service';
 import { Injectable } from '@nestjs/common';
 import { AttachmentUrlUploadProcessor } from 'src/modules/jobs/jobs/attachment-url-upload/attachment-url-upload.processor';
 import { BaseTrashCleanUpProcessor } from '~/modules/jobs/jobs/base-trash-clean-up/base-trash-clean-up.processor';
+import { DataImportProcessor } from '~/modules/jobs/jobs/data-import/data-import.processor';
 import { DuplicateProcessor } from '~/modules/jobs/jobs/export-import/duplicate.processor';
 import { AtImportProcessor } from '~/modules/jobs/jobs/at-import/at-import.processor';
 import { MetaSyncProcessor } from '~/modules/jobs/jobs/meta-sync/meta-sync.processor';
@@ -73,6 +74,7 @@ export class JobsMap extends JobsMapCE {
     protected readonly hookErrorNotificationProcessor: HookErrorNotificationProcessor,
     protected readonly chatMessageProcessor: ChatMessageProcessor,
     protected readonly chatApprovalProcessor: ChatApprovalProcessor,
+    protected readonly dataImportProcessor: DataImportProcessor,
   ) {
     super(
       duplicateProcessor,
@@ -87,6 +89,7 @@ export class JobsMap extends JobsMapCE {
       initMigrationJobs,
       dataExportCleanUpProcessor,
       attachmentUrlUploadProcessor,
+      dataImportProcessor,
     );
   }
 

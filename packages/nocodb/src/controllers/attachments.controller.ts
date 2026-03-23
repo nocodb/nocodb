@@ -35,6 +35,7 @@ import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { Column } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { NC_CSV_IMPORT_FILE_SIZE } from '~/constants';
 
 @Controller()
 export class AttachmentsController {
@@ -77,6 +78,30 @@ export class AttachmentsController {
       path,
       req,
       scope,
+    });
+
+    return attachments;
+  }
+
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @Post(['/api/v1/db/data-import/upload'])
+  @HttpCode(200)
+  @UseInterceptors(
+    UploadAllowedInterceptor,
+    AnyFilesInterceptor({
+      limits: {
+        fileSize: NC_CSV_IMPORT_FILE_SIZE,
+      },
+    }),
+  )
+  async dataImportUpload(
+    @UploadedFiles() files: Array<FileType>,
+    @Req() req: NcRequest,
+  ) {
+    const attachments = await this.attachmentsService.upload({
+      files,
+      path: req.query?.path?.toString(),
+      req,
     });
 
     return attachments;

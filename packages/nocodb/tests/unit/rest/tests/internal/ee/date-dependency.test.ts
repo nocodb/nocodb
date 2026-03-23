@@ -315,7 +315,7 @@ export const dateDependencyTests = function () {
       let isPg = false;
 
       beforeEach(async function () {
-        const TestDbMngr = (await import('../../../TestDbMngr')).default;
+        const TestDbMngr = (await import('../../../../TestDbMngr')).default;
         isPg = TestDbMngr.connection.client === 'pg';
         if (!isPg) return this.skip();
       });

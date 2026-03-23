@@ -33,7 +33,7 @@ export const MIN_COLUMN_WIDTH = 80
 export const DEFAULT_COLUMN_WIDTH = 180
 
 // Default width for the first (display) field
-export const DEFAULT_FIRST_COLUMN_WIDTH = 240
+export const DEFAULT_FIRST_COLUMN_WIDTH = 300
 
 // Bottom padding after the last row
 export const BOTTOM_PADDING = 120

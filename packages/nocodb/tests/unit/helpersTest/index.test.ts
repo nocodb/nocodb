@@ -1,12 +1,14 @@
 import { runOnSet } from '../utils/runOnSet';
 import { NcConcurrentTest } from './NcConcurrent.test';
 import { stringHelperTest } from './stringHelpers.test';
-import { dateDependencyHelperTests } from './dateDependencyHelper.test';
 
 let dashboardV3ConfigTransformTest = () => {};
+let dateDependencyHelperTests = () => {};
 if (process.env.EE === 'true') {
   dashboardV3ConfigTransformTest =
     require('./ee/dashboardV3ConfigTransform.test').dashboardV3ConfigTransformTest;
+  dateDependencyHelperTests =
+    require('./ee/dateDependencyHelper.test').dateDependencyHelperTests;
 }
 
 function _helperTests() {

@@ -1,8 +1,9 @@
-import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 import { Injectable, Logger } from '@nestjs/common';
 import * as QRCode from 'qrcode';
 import * as jwt from 'jsonwebtoken';
+import { generateSecret, generateURI, verifySync } from 'otplib';
 import { AppEvents } from 'nocodb-sdk';
 import type { UserType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
@@ -14,15 +15,6 @@ import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import { normalizeEmail } from '~/utils/emailUtils';
 import { genJwt } from '~/services/users/helpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-
-// otplib v13 is ESM-only — use dynamic import
-let _otplib: typeof import('otplib') | null = null;
-async function getOtplib() {
-  if (!_otplib) {
-    _otplib = await import('otplib');
-  }
-  return _otplib;
-}
 
 @Injectable()
 export class MfaService {
@@ -81,9 +73,8 @@ export class MfaService {
       NcError.badRequest('Incorrect password');
     }
 
-    const otplib = await getOtplib();
-    const secret = otplib.generateSecret();
-    const otpauthUrl = otplib.generateURI({
+    const secret = generateSecret();
+    const otpauthUrl = generateURI({
       issuer: 'NocoDB',
       label: user.email,
       secret,
@@ -243,8 +234,7 @@ export class MfaService {
 
   private async verifyTotp(secret: string, token: string): Promise<boolean> {
     try {
-      const otplib = await getOtplib();
-      const result = otplib.verifySync({ token, secret });
+      const result = verifySync({ token, secret });
       return result.valid;
     } catch {
       // verifySync throws on non-6-digit tokens — treat as invalid

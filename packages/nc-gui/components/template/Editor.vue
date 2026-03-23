@@ -606,7 +606,13 @@ async function importTemplate() {
                         input = null
                       }
                     } else if (v.uidt === UITypes.Date) {
-                      if (input) {
+                      if (input === '' || input === null || input === undefined) {
+                        input = null
+                      } else if (input instanceof Date) {
+                        // Handle JS Date objects from Excel parser
+                        const d = dayjs(input)
+                        input = d.isValid() ? d.format('YYYY-MM-DD') : null
+                      } else {
                         const originalInput = String(input)
 
                         if (validateDateWithUnknownFormat(originalInput)) {

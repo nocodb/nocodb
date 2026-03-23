@@ -4,11 +4,14 @@ const { levels, selectedLevelId, setSelectedLevel } = useListViewStoreOrThrow()
 const meta = inject(MetaInj, ref())
 const { getMetaByKey } = useMetas()
 
-function getTableTitle(tableId?: string) {
-  if (!tableId) return 'Unknown'
+function getTableMeta(tableId?: string) {
+  if (!tableId) return undefined
   const baseId = meta.value?.base_id
-  const tableMeta = getMetaByKey(baseId, tableId)
-  return tableMeta?.title || 'Unknown'
+  return getMetaByKey(baseId, tableId)
+}
+
+function getTableTitle(tableId?: string) {
+  return getTableMeta(tableId)?.title || 'Unknown'
 }
 </script>
 
@@ -17,7 +20,7 @@ function getTableTitle(tableId?: string) {
     <div
       v-for="(level, index) in levels"
       :key="level.id || index"
-      class="flex items-center gap-1 px-2 selector-level py-1 overflow-hidden rounded-md text-xs font-medium cursor-pointer transition-colors"
+      class="flex-1 flex items-center justify-center gap-1 px-2 selector-level py-1 overflow-hidden rounded-md text-xs font-medium cursor-pointer transition-colors"
       :class="{
         'bg-nc-bg-brand text-nc-content-brand': selectedLevelId === level.id,
         'bg-nc-bg-gray-light text-nc-content-gray-muted hover:bg-nc-bg-gray-medium': selectedLevelId !== level.id,
@@ -26,9 +29,15 @@ function getTableTitle(tableId?: string) {
       }"
       @click="setSelectedLevel(level.id ?? null)"
     >
-      <NcTooltip show-on-truncate-only class="truncate">
-        Level {{ index + 1 }} - {{ getTableTitle(level.fk_model_id) }}
-        <template #title> Level {{ index + 1 }} - {{ getTableTitle(level.fk_model_id) }} </template>
+      <NcIconTable
+        :table="getTableMeta(level.fk_model_id) || { title: '', table_name: '' }"
+        class="flex-none h-3.5 w-3.5"
+      />
+      <NcTooltip class="truncate">
+        {{ getTableTitle(level.fk_model_id) }}
+        <template #title>
+          {{ $t('general.levelN', { n: index + 1 }) }} - {{ getTableTitle(level.fk_model_id) }}
+        </template>
       </NcTooltip>
     </div>
   </div>

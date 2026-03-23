@@ -234,8 +234,8 @@ export function useCanvasTable({
   } = useSmartsheetStoreOrThrow()
 
   // Initialize loaders that need meta.base_id after meta is available
-  const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas, (meta.value as TableType)?.base_id)
-  const baseRoleLoader = new BaseRoleLoader(getBaseRoles, () => triggerRefreshCanvas)
+  const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas(), (meta.value as TableType)?.base_id)
+  const baseRoleLoader = new BaseRoleLoader(getBaseRoles, () => triggerRefreshCanvas())
   const { addUndo, defineViewScope } = useUndoRedo()
   const { activeView } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()

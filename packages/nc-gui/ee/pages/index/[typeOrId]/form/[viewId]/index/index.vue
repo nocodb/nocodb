@@ -18,6 +18,9 @@ const {
   validate,
   fieldMappings,
   isAddingEmptyRowPermitted,
+  isFormExpired,
+  isFormNotStarted,
+  formStartsAt,
 } = useSharedFormStoreOrThrow()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
@@ -25,6 +28,8 @@ const { isMobileMode } = storeToRefs(useConfigStore())
 const { getPossibleAttachmentSrc } = useAttachment()
 
 const { blockAddNewRecord } = useEeConfig()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 function isRequired(_columnObj: Record<string, any>, required = false) {
   let columnObj = _columnObj
@@ -146,6 +151,14 @@ const { message: templatedMessage } = useTemplatedMessage(
         </div>
 
         <a-alert v-if="notFound" type="warning" class="!mt-2 !mb-4 text-center" message="Not found" />
+
+        <template v-else-if="isFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING) && isFormNotStarted">
+          <SmartsheetFormClosedState mode="not-started" :starts-at="formStartsAt" />
+        </template>
+
+        <template v-else-if="isFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING) && isFormExpired">
+          <SmartsheetFormClosedState mode="expired" />
+        </template>
 
         <template v-else-if="submitted">
           <div class="flex justify-center">
@@ -295,7 +308,13 @@ const { message: templatedMessage } = useTemplatedMessage(
                 </div>
 
                 <div class="flex justify-between items-center mt-6">
-                  <div></div>
+                  <div class="flex">
+                    <SmartsheetFormExpiryIndicator
+                      v-if="isFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING)"
+                      :expires-at="sharedFormView?.expires_at"
+                      :show-always="!!parseProp(sharedFormView?.meta)?.show_expiry_timer"
+                    />
+                  </div>
 
                   <NcButton
                     :disabled="progress || blockAddNewRecord || !isAddingEmptyRowPermitted"

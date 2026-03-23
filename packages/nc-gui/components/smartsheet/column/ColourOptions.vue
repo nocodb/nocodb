@@ -25,7 +25,6 @@ const swatchStyleOptions = [
   { value: 'circle', label: 'Circle' },
   { value: 'square', label: 'Square' },
 ]
-
 </script>
 
 <template>

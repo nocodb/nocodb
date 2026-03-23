@@ -23607,6 +23607,14 @@
             "type": "string",
             "description": "Form View Title",
             "example": "Form View 1"
+          },
+          "starts_at": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Form start date. Before this date, the form shows a countdown and does not accept submissions."
+          },
+          "expires_at": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Form expiration date. After this date, the form will no longer accept submissions."
           }
         },
         "x-stoplight": {
@@ -23698,6 +23706,14 @@
           "success_msg": {
             "$ref": "#/components/schemas/TextOrNull",
             "description": "Custom message after the form is successfully submitted"
+          },
+          "starts_at": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Form start date. Before this date, the form shows a countdown and does not accept submissions."
+          },
+          "expires_at": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Form expiration date. After this date, the form will no longer accept submissions."
           }
         },
         "x-stoplight": {

@@ -8,12 +8,18 @@ import type { NcContext } from '~/interface/config';
 import { PresignedUrl } from '~/models';
 import FormViewColumn from '~/models/FormViewColumn';
 import View from '~/models/View';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import { extractProps } from '~/helpers/extractProps';
+import { NcError } from '~/helpers/catchError';
+import { isEE } from '~/utils';
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
 import { deserializeJSON, serializeJSON } from '~/utils/serialize';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
+
+dayjs.extend(utc);
 
 type FormViewType = Omit<FormType, 'banner_image_url' | 'logo_url'> & {
   banner_image_url?: AttachmentResType | string;
@@ -34,6 +40,8 @@ export default class FormView implements FormViewType {
   logo_url?: AttachmentResType | string;
   submit_another_form?: BoolType;
   show_blank_form?: BoolType;
+  starts_at?: string;
+  expires_at?: string;
 
   fk_view_id: string;
   columns?: FormViewColumn[];
@@ -109,6 +117,8 @@ export default class FormView implements FormViewType {
       'logo_url',
       'submit_another_form',
       'show_blank_form',
+      'starts_at',
+      'expires_at',
       'meta',
     ]);
     if (insertObj.meta) {
@@ -158,6 +168,8 @@ export default class FormView implements FormViewType {
       'logo_url',
       'submit_another_form',
       'show_blank_form',
+      'starts_at',
+      'expires_at',
       'meta',
     ]);
 
@@ -254,5 +266,34 @@ export default class FormView implements FormViewType {
       }
     } catch {}
     return formAttachments;
+  }
+
+  static async validateFormScheduling(
+    context: NcContext,
+    viewId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!isEE) return;
+
+    const formView = await this.get(context, viewId, ncMeta);
+    if (!formView) return;
+
+    const now = dayjs.utc();
+
+    if (formView.starts_at) {
+      if (dayjs.utc(formView.starts_at).isAfter(now)) {
+        NcError.get(context).badRequest(
+          'This form is not yet accepting responses',
+        );
+      }
+    }
+
+    if (formView.expires_at) {
+      if (dayjs.utc(formView.expires_at).isBefore(now)) {
+        NcError.get(context).badRequest(
+          'This form is no longer accepting responses',
+        );
+      }
+    }
   }
 }

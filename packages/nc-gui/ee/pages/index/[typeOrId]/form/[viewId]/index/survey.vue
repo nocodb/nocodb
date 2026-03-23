@@ -33,6 +33,9 @@ const {
   fieldMappings,
   isAddingEmptyRowPermitted,
   backgroundAndTextColor,
+  isFormExpired,
+  isFormNotStarted,
+  formStartsAt,
 } = useSharedFormStoreOrThrow()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
@@ -40,6 +43,8 @@ const { isMobileMode } = storeToRefs(useConfigStore())
 const { getPossibleAttachmentSrc } = useAttachment()
 
 const { blockAddNewRecord } = useEeConfig()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const isTransitioning = ref(false)
 
@@ -282,7 +287,42 @@ const { message: templatedMessage } = useTemplatedMessage(
   <div class="h-full">
     <div class="survey md:p-0 w-full h-full flex flex-col max-w-[max(33%,688px)] mx-auto mb-4rem lg:mb-10rem">
       <div v-if="sharedFormView" class="my-auto z-2">
-        <template v-if="!isStarted || submitted">
+        <template v-if="isFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING) && (isFormNotStarted || isFormExpired)">
+          <GeneralFormBanner
+            v-if="sharedFormView && !parseProp(sharedFormView?.meta).hide_banner"
+            :banner-image-url="sharedFormView.banner_image_url"
+            class="flex-none mb-4"
+          />
+          <div class="rounded-3xl border-1 border-nc-border-gray-medium p-6 lg:p-12 bg-nc-bg-default">
+            <div
+              v-if="sharedFormView.logo_url"
+              class="mb-4 nc-shared-form-logo-wrapper inline-block h-56px max-w-189px overflow-hidden flex items-center"
+            >
+              <LazyCellAttachmentPreviewImage
+                :srcs="getPossibleAttachmentSrc(parseProp(sharedFormView.logo_url))"
+                class="flex-none nc-shared-form-logo !object-contain object-left max-h-full max-w-full !m-0"
+                :is-cell-preview="false"
+              />
+            </div>
+
+            <h1 class="text-2xl font-bold text-nc-content-gray-emphasis mb-4" data-testid="nc-survey-form__heading">
+              {{ sharedFormView.heading }}
+            </h1>
+
+            <div v-if="sharedFormView.subheading" class="mb-4">
+              <LazyCellRichText
+                :value="sharedFormView.subheading"
+                class="font-medium text-base text-nc-content-gray-muted !h-auto -ml-1"
+                is-form-field
+                read-only
+                sync-value-change
+              />
+            </div>
+
+            <SmartsheetFormClosedState :mode="isFormNotStarted ? 'not-started' : 'expired'" :starts-at="formStartsAt" />
+          </div>
+        </template>
+        <template v-else-if="!isStarted || submitted">
           <GeneralFormBanner
             v-if="sharedFormView && !parseProp(sharedFormView?.meta).hide_banner"
             :banner-image-url="sharedFormView.banner_image_url"
@@ -406,8 +446,15 @@ const { message: templatedMessage } = useTemplatedMessage(
                 :key="field?.title"
                 class="flex flex-col gap-4 w-full m-auto rounded-xl border-1 border-nc-border-gray-medium bg-nc-bg-default p-6 lg:p-12"
               >
-                <div class="select-none text-nc-content-gray-muted mb-4 md:mb-2" data-testid="nc-survey-form__footer">
-                  {{ index + 1 }} / {{ formColumns?.length }}
+                <div class="flex items-center justify-between mb-4 md:mb-2">
+                  <div class="select-none text-nc-content-gray-muted" data-testid="nc-survey-form__footer">
+                    {{ index + 1 }} / {{ formColumns?.length }}
+                  </div>
+                  <SmartsheetFormExpiryIndicator
+                    v-if="isFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING)"
+                    :expires-at="sharedFormView?.expires_at"
+                    :show-always="!!parseProp(sharedFormView?.meta)?.show_expiry_timer"
+                  />
                 </div>
 
                 <div v-if="field" class="flex flex-col gap-2">

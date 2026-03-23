@@ -23,6 +23,7 @@ export const PlanFeatureTypesToPlanTitles: Record<
   [PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION]: PlanTitles.PLUS,
+  [PlanFeatureTypes.FEATURE_FORM_SCHEDULING]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_HIDE_BRANDING]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER]: PlanTitles.PLUS,

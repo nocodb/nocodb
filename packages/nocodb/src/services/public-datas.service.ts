@@ -5,7 +5,7 @@ import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { DependantFields } from '~/helpers/getAst';
 import { nocoExecute } from '~/utils';
-import { Base, Column, Model, Source, View } from '~/models';
+import { Base, Column, FormView, Model, Source, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -521,6 +521,9 @@ export class PublicDatasService {
     if (!(await View.verifyPassword(view, param.password))) {
       return NcError.invalidSharedViewPassword();
     }
+
+    // Check if form has started / expired
+    await FormView.validateFormScheduling(context, view.id);
 
     const model = await Model.getByIdOrName(context, {
       id: view?.fk_model_id,

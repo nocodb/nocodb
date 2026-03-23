@@ -46,6 +46,8 @@ const enum NcForm {
 
 const { isMobileMode, user, appInfo } = useGlobal()
 
+const { isFeatureEnabled: isBetaFeatureEnabled } = useBetaFeatureToggle()
+
 const { $api, $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
@@ -1178,6 +1180,12 @@ const { message: templatedMessage } = useTemplatedMessage(
                       </div>
                     </div>
                   </div>
+                  <SmartsheetFormSchedulingAlert
+                    v-if="isEeUI && isBetaFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING)"
+                    :starts-at="formViewData?.starts_at"
+                    :expires-at="formViewData?.expires_at"
+                    class="mt-6 max-w-[max(33%,688px)] mx-auto"
+                  />
                   <NcAlert
                     v-if="blockAddNewRecord"
                     type="warning"
@@ -2113,6 +2121,14 @@ const { message: templatedMessage } = useTemplatedMessage(
                         </div>
                       </div>
 
+                      <SmartsheetFormSchedulingSection
+                        v-if="isEeUI && isBetaFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING)"
+                        :form-view-data="formViewData"
+                        :is-locked="isLocked"
+                        :is-editable="isEditable"
+                        @update-view="updateView"
+                      />
+
                       <div class="p-4 flex flex-col space-y-4">
                         <!-- Post Form Submission Settings -->
                         <div class="text-sm font-bold text-nc-content-gray">
@@ -2431,11 +2447,11 @@ const { message: templatedMessage } = useTemplatedMessage(
   @apply !border-t-1 !border-nc-border-gray-medium relative w-auto;
 
   &::before {
-    @apply content-[':::'] block h-4 leading-12px px-2 font-bold text-nc-content-gray border-1 border-nc-border-gray-medium rounded bg-nc-bg-default absolute -top-2.5 z-49 left-[calc(50%_-_16px)] w-auto;
+    @apply content-[':::'] block h-4 leading-12px px-2 font-bold text-nc-content-gray border-1 border-nc-border-gray-medium rounded bg-nc-bg-default absolute -top-2.5 z-49 !left-[calc(50%_-_16px)] !w-auto;
   }
 
   &:hover::before {
-    @apply !w-auto;
+    @apply !w-auto !left-[calc(50%_-_16px)];
   }
 }
 

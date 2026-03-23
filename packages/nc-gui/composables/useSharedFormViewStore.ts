@@ -1,4 +1,5 @@
 import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
 import type {
   BoolType,
   ColumnType,
@@ -16,12 +17,15 @@ import { useTitle } from '@vueuse/core'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import { filterNullOrUndefinedObjectProperties } from '~/helpers/parsers/parserHelpers'
 
+dayjs.extend(utc)
+
 const useForm = Form.useForm
 
 const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((sharedViewId: string) => {
   const progress = ref(false)
   const notFound = ref(false)
   const submitted = ref(false)
+
   const passwordDlg = ref(false)
   const password = ref<string | null>(null)
   const passwordError = ref<string | null>(null)
@@ -45,6 +49,31 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     })[]
   >()
   const sharedViewMeta = ref<SharedViewMeta>({})
+
+  const { isFeatureEnabled } = useBetaFeatureToggle()
+
+  const isFormExpired = computed(() => {
+    if (!isFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING)) return false
+
+    const expiresAt = (sharedFormView.value as any)?.expires_at
+
+    if (!expiresAt) return false
+
+    return dayjs.utc(expiresAt).isBefore(dayjs.utc())
+  })
+
+  const isFormNotStarted = computed(() => {
+    if (!isFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING)) return false
+
+    const startsAt = (sharedFormView.value as any)?.starts_at
+
+    if (!startsAt) return false
+
+    return dayjs.utc(startsAt).isAfter(dayjs.utc())
+  })
+
+  const formStartsAt = computed(() => (sharedFormView.value as any)?.starts_at || null)
+
   const formResetHook = createEventHook<void>()
 
   const { isMobileMode } = useGlobal()
@@ -914,6 +943,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     loadAllviewFilters,
     checkFieldVisibility,
     isAddingEmptyRowPermitted,
+    isFormExpired,
+    isFormNotStarted,
+    formStartsAt,
     backgroundAndTextColor,
   }
 }, 'shared-form-view-store')

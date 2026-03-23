@@ -38,6 +38,7 @@ import * as nc_202603050000_docs from './v0/nc_202603050000_docs';
 import * as nc_202603050001_file_ref_doc_idx from './v0/nc_202603050001_file_ref_doc_idx';
 import * as nc_202603090001_chat_session_meta from './v0/nc_202603090001_chat_session_meta';
 import * as nc_202603110001_chat_session_base_id from './v0/nc_202603110001_chat_session_base_id';
+import * as nc_202603170000_form_view_expires_at from './v0/nc_202603170000_form_view_expires_at';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -87,6 +88,7 @@ export default class XcMigrationSourcev0 {
       'nc_202603050001_file_ref_doc_idx',
       'nc_202603090001_chat_session_meta',
       'nc_202603110001_chat_session_base_id',
+      'nc_202603170000_form_view_expires_at',
     ]);
   }
 
@@ -176,6 +178,8 @@ export default class XcMigrationSourcev0 {
         return nc_202603090001_chat_session_meta;
       case 'nc_202603110001_chat_session_base_id':
         return nc_202603110001_chat_session_base_id;
+      case 'nc_202603170000_form_view_expires_at':
+        return nc_202603170000_form_view_expires_at;
     }
   }
 }

@@ -346,6 +346,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isEEFeatureBlocked.value || (isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_RECORD_TEMPLATES))
   })
 
+  const blockFormScheduling = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_FORM_SCHEDULING)
+  })
+
   const blockViewSections = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_VIEW_SECTIONS)
   })
@@ -1698,6 +1702,29 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseFormScheduling = ({
+    callback,
+    successCallback,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    if (!blockFormScheduling.value) {
+      successCallback?.()
+
+      return
+    }
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseFormScheduling'),
+      content: t('upgrade.upgradeToUseFormSchedulingSubtitle', {
+        plan: PlanTitles.PLUS,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_FORM_SCHEDULING,
+      requiredPlan: PlanTitles.PLUS,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseViewSections = ({
     callback,
     successCallback,
@@ -1904,6 +1931,8 @@ export const useEeConfig = createSharedComposable(() => {
     showSandboxPlanLimitExceededModal,
     blockRecordTemplates,
     showUpgradeToUseRecordTemplates,
+    blockFormScheduling,
+    showUpgradeToUseFormScheduling,
     blockViewSections,
     showUpgradeToUseViewSections,
     blockMapView,

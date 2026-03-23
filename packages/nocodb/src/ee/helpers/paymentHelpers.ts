@@ -3,6 +3,7 @@ import {
   NON_SEAT_ROLES,
   PlanFeatureTypes,
   PlanLimitTypes,
+  resolvePlanMeta,
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
 import type {
@@ -347,7 +348,22 @@ async function getActivePlanAndSubscription(
 
   const plan = await Plan.get(subscription.fk_plan_id, ncMeta);
 
-  // if subscription has plan_meta, then merge it with plan for addons
+  // Resolve features/limits from code-bundled definitions (not DB)
+  const codeMeta = resolvePlanMeta(plan.title);
+
+  // Preserve non-gating metadata from DB (description_*, etc.)
+  const descriptionMeta: Record<string, string> = {};
+  if (plan.meta) {
+    for (const [key, value] of Object.entries(plan.meta)) {
+      if (!key.startsWith('limit_') && !key.startsWith('feature_')) {
+        descriptionMeta[key] = value as string;
+      }
+    }
+  }
+
+  plan.meta = { ...codeMeta, ...descriptionMeta };
+
+  // Per-subscription overrides (enterprise custom deals, addons, etc.)
   if (subscription.meta?.plan_meta) {
     Object.assign(plan.meta, subscription.meta.plan_meta);
   }

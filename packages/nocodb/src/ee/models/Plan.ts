@@ -1,5 +1,11 @@
-import { ncIsBoolean, PlanLimitTypes, PlanOrder, PlanTitles } from 'nocodb-sdk';
-import { PlanFeatureTypes } from 'nocodb-sdk';
+import {
+  ncIsBoolean,
+  PlanFeatureTypes,
+  PlanLimitTypes,
+  PlanOrder,
+  PlanTitles,
+  resolvePlanMeta,
+} from 'nocodb-sdk';
 import type { OnPremPlanTitles } from 'nocodb-sdk';
 import type Stripe from 'stripe';
 import {
@@ -248,9 +254,6 @@ export const GraceLimits = {
 export const FreePlan = Plan.prepare({
   title: PlanTitles.FREE,
   description: 'Free plan',
-  meta: {
-    ...Plan.limitPairs(-1),
-    ...Plan.featurePairs(true),
-  },
+  meta: resolvePlanMeta(PlanTitles.FREE),
   free: false,
 });

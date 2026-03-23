@@ -98,6 +98,7 @@ export enum PlanFeatureTypes {
   FEATURE_DOCS_EXPORT_PDF = 'feature_docs_export_pdf',
   FEATURE_DOCUMENT_PERMISSIONS = 'feature_document_permissions',
   FEATURE_DOC_AI = 'feature_doc_ai',
+  FEATURE_DATE_DEPENDENCY = 'feature_date_dependency',
 }
 
 export enum PlanTitles {
@@ -280,8 +281,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO]: 'to add a custom logo to forms.',
   [PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL]:
     'to customize the submit button label.',
-  [PlanFeatureTypes.FEATURE_FORM_SCHEDULING]:
-    'to schedule form availability.',
+  [PlanFeatureTypes.FEATURE_FORM_SCHEDULING]: 'to schedule form availability.',
   [PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION]:
     'to access conditional form fields feature',
   [PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION]:
@@ -348,11 +348,11 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_DOCS_APIS]: 'to access Documents API.',
   [PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS]:
     'to use inline comments in documents.',
-  [PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF]:
-    'to export documents as PDF.',
+  [PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF]: 'to export documents as PDF.',
   [PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS]:
     'to use document permissions.',
   [PlanFeatureTypes.FEATURE_DOC_AI]: 'to use AI features in documents.',
+  [PlanFeatureTypes.FEATURE_DATE_DEPENDENCY]: 'to use date dependencies.',
 };
 
 export const getUpgradeMessage = (
@@ -382,7 +382,6 @@ export const PlanFeatureTypesToPlanTitles = {} as Record<
   PlanTitles
 >;
 
-export const PlanFeatureTypesToPlanTitlesEeCloud = {} as Record<
-  Partial<PlanFeatureTypes>,
-  PlanTitles
+export type PlanMetaType = Partial<
+  Record<PlanFeatureTypes, boolean> & Record<PlanLimitTypes, number>
 >;

@@ -23,6 +23,7 @@ export const FreePlan = Plan.prepare({
     [PlanLimitTypes.LIMIT_API_PER_SECOND]: 5,
     [PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE]: 50,
     [PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE]: 1,
+    [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]: 10,
     [PlanLimitTypes.LIMIT_AI_TOKEN]: 0,
     [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 0,
     [PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE]: 1,

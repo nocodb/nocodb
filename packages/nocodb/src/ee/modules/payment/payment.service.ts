@@ -58,6 +58,38 @@ export class PaymentService {
     protected readonly telemetryService: TelemetryService,
   ) {}
 
+  private async fetchStripeProductDetails(stripeProductId: string) {
+    const product = await stripe.products.retrieve(stripeProductId);
+
+    if (!product) {
+      NcError.genericNotFound('Product', stripeProductId);
+    }
+
+    const { name: title, description, metadata } = product;
+
+    const prices = await stripe.prices.list({
+      product: stripeProductId,
+      active: true,
+      expand: ['data.tiers'],
+    });
+
+    // Only store display metadata (description_*) from Stripe.
+    // Features/limits are resolved from code via PlanDefinitions.
+    const descriptionMeta: Record<string, string> = {};
+    for (const [key, value] of Object.entries(metadata)) {
+      if (key.startsWith('description_')) {
+        descriptionMeta[key] = value;
+      }
+    }
+
+    return {
+      title,
+      description,
+      prices: prices.data.map((price) => price),
+      meta: descriptionMeta,
+    };
+  }
+
   private clearBaseListCacheForEntity(
     workspaceOrOrg: NonNullable<Awaited<ReturnType<typeof getWorkspaceOrOrg>>>,
   ) {
@@ -93,32 +125,16 @@ export class PaymentService {
       NcError._.planAlreadyExists(existingPlan.id);
     }
 
-    const product = await stripe.products.retrieve(payload.stripe_product_id);
-
-    if (!product) {
-      NcError.genericNotFound('Product', payload.stripe_product_id);
-    }
-
-    const { name: title, description, metadata } = product;
-
-    // get the prices for the product
-    const prices = await stripe.prices.list({
-      product: payload.stripe_product_id,
-      active: true,
-      expand: ['data.tiers'],
-    });
+    const { title, description, prices, meta } =
+      await this.fetchStripeProductDetails(payload.stripe_product_id);
 
     const plan = {
       title: title as PlanTitles,
       description,
       stripe_product_id: payload.stripe_product_id,
       is_active: payload.is_active ?? true,
-      prices: prices.data.map((price) => price),
-      meta: {
-        ...Plan.limitPairs(-1),
-        ...Plan.featurePairs(true),
-        ...metadata,
-      },
+      prices,
+      meta,
     };
 
     return await Plan.insert(plan);
@@ -132,30 +148,12 @@ export class PaymentService {
       NcError.genericNotFound('Plan', planId);
     }
 
-    const product = await stripe.products.retrieve(plan.stripe_product_id);
-
-    if (!product) {
-      NcError.genericNotFound('Product', plan.stripe_product_id);
-    }
-
-    const { name: title, description, metadata } = product;
-
-    // get the prices for the product
-    const prices = await stripe.prices.list({
-      product: plan.stripe_product_id,
-      active: true,
-      expand: ['data.tiers'],
-    });
+    const productDetails = await this.fetchStripeProductDetails(
+      plan.stripe_product_id,
+    );
 
     Object.assign(plan, {
-      title,
-      description,
-      prices: prices.data.map((price) => price),
-      meta: {
-        ...Plan.limitPairs(-1),
-        ...Plan.featurePairs(true),
-        ...metadata,
-      },
+      ...productDetails,
       is_active: payload?.is_active,
     });
 

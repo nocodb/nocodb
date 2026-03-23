@@ -2066,7 +2066,7 @@ export default class View implements ViewType {
     const table = this.extractViewColumnsTableName(view);
     const scope = this.extractViewColumnsTableNameScope(view);
 
-    if (view.type === ViewTypes.GRID) {
+    if (view.type === ViewTypes.GRID || view.type === ViewTypes.LIST) {
       const primary_value_column = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,

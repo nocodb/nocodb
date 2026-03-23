@@ -1,23 +1,31 @@
 <script lang="ts" setup>
+const DEFAULT_TRIAL_PERIOD_DAYS = 14
+
 const { appInfo } = useGlobal()
 
 const numberOfDaysLeft = computed(() => {
+  const expiryTime = appInfo.value.licenseExpiryTime
+  if (!expiryTime) return 0
+
   const today = new Date()
-  const trialEndDate = new Date(appInfo.value.licenseExpiryTime * 1000)
+  const trialEndDate = new Date(expiryTime * 1000)
 
   const timeDiff = trialEndDate.getTime() - today.getTime()
   return Math.ceil(timeDiff / (1000 * 3600 * 24))
 })
 
-// calculate the percentage of the trial period
+// calculate the percentage of the trial period remaining
 const trialPercentage = computed(() => {
-  const today = new Date()
-  const trialStartDate = new Date(appInfo.value.licenseIssuedTime * 1000)
-  const trialEndDate = new Date(appInfo.value.licenseExpiryTime * 1000)
+  const expiryTime = appInfo.value.licenseExpiryTime
+  if (!expiryTime) return 0
 
-  const timeDiff = trialEndDate - today.getTime()
-  const timeDiffTotal = trialEndDate.getTime() - trialStartDate.getTime()
-  return Math.max(0, Math.min(100, Math.ceil((timeDiff / timeDiffTotal) * 100)))
+  const today = new Date()
+  const trialEndDate = new Date(expiryTime * 1000)
+
+  const totalMs = DEFAULT_TRIAL_PERIOD_DAYS * 24 * 3600 * 1000
+  const remainingMs = trialEndDate.getTime() - today.getTime()
+
+  return Math.max(0, Math.min(100, Math.ceil((remainingMs / totalMs) * 100)))
 })
 
 // color of the progress bar based on the percentage

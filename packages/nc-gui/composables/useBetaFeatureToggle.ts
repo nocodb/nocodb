@@ -132,14 +132,6 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'ltar_v2',
-    title: 'Links V2',
-    description: 'Use junction table based relations for all link types (beta).',
-    enabled: true,
-    version: 2,
-    isEngineering: true,
-  },
-  {
     id: 'view_actions',
     title: 'View Actions',
     description: 'Execute scripts and webhooks to all records in a view.',

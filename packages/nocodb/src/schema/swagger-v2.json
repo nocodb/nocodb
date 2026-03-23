@@ -10700,7 +10700,6 @@
                     "enum": [
                       "mysql",
                       "mysql2",
-                      "oracledb",
                       "pg",
                       "snowflake",
                       "sqlite3",
@@ -13140,7 +13139,6 @@
             "enum": [
               "mysql",
               "mysql2",
-              "oracledb",
               "pg",
               "snowflake",
               "sqlite3",
@@ -13314,7 +13312,6 @@
             "enum": [
               "mysql",
               "mysql2",
-              "oracledb",
               "pg",
               "snowflake",
               "sqlite3",

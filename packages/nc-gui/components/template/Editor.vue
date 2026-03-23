@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import type { ColumnType, OracleUi, TableType } from 'nocodb-sdk'
+import type { ColumnType, TableType } from 'nocodb-sdk'
 import {
   PermissionEntity,
   PermissionKey,
@@ -112,10 +112,7 @@ const sqlUis = computed(() => {
 
   for (const source of base.value.sources ?? []) {
     if (source.id) {
-      temp[source.id] = SqlUiFactory.create({ client: source.type }) as Exclude<
-        ReturnType<(typeof SqlUiFactory)['create']>,
-        typeof OracleUi
-      >
+      temp[source.id] = SqlUiFactory.create({ client: source.type })
     }
   }
 

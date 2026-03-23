@@ -148,7 +148,6 @@ class Tele {
               mysql: data.dbType === 'mysql2' ? 1 : 0,
               pg: data.dbType === 'pg' ? 1 : 0,
               sqlite3: data.dbType === 'sqlite3' ? 1 : 0,
-              oracledb: data.dbType === 'oracledb' ? 1 : 0,
               rest: data.type === 'rest' ? 1 : 0,
               graphql: data.type === 'graphql' ? 1 : 0,
               grpc: data.type === 'grpc' ? 1 : 0,

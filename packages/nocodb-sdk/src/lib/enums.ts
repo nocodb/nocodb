@@ -507,7 +507,6 @@ export enum SyncDataType {
   NOCODB = 'nocodb',
   MICROSOFT_ACCESS = 'microsoft-access',
   TABLEAU = 'tableau',
-  ORACLE = 'oracle',
   // AI
   OPENAI = 'openai',
   CLAUDE = 'claude',

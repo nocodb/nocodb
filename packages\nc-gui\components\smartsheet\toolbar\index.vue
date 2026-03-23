@@ -1,43 +1,45 @@
 <script lang="ts" setup>
-import type { ViewType } from 'nocodb-sdk'
+import { storeToRefs } from 'pinia'
 
-const { isKanban, isSqlView, isGallery } = useViewStates()
-
-const { activeView } = storeToRefs(useViewsStore())
+const { isKanban, isGallery, isCalendar, isMap, isGrid } = useViewStates()
 
 const { isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useRoles()
+
+const { activeView } = storeToRefs(useViewsStore())
+
+const isSqlView = computed(() => activeView.value?.type === 'table' && (activeView.value as any)?.isSqlView)
 </script>
 
 <template>
   <div
-    class="nc-toolbar-container flex items-center gap-2 px-3 py-1.5 border-b border-gray-200 dark:border-gray-700 overflow-x-auto nc-scrollbar-thin"
+    class="nc-toolbar-container flex items-center gap-x-2 px-3 py-2 border-b-1 border-gray-200 dark:border-gray-700 overflow-x-auto nc-scrollbar-x-md"
   >
-    <!-- Left side toolbar items -->
-    <div class="flex items-center gap-1.5 flex-1 overflow-hidden">
-      <LazySmartsheetToolbarSearchData />
+    <div class="flex-1 flex items-center gap-x-1.5 overflow-hidden">
+      <LazySmartsheetToolbarFieldsMenu
+        v-if="isUIAllowed('viewFieldEdit')"
+        :show-icon="true"
+      />
 
-      <template v-if="!isMobileMode">
-        <LazySmartsheetToolbarFieldsMenu v-if="isUIAllowed('viewFieldEdit')" />
-        <LazySmartsheetToolbarColumnFilter v-if="isUIAllowed('viewFilterEdit')" />
-        <LazySmartsheetToolbarGroupBy v-if="!isKanban" />
-        <LazySmartsheetToolbarSortListMenu v-if="isUIAllowed('viewSortEdit')" />
-      </template>
+      <LazySmartsheetToolbarColumnFilter v-if="isUIAllowed('viewFilterEdit')" />
+
+      <LazySmartsheetToolbarGroupBy v-if="!isKanban && !isGallery" />
+
+      <LazySmartsheetToolbarSortListMenu v-if="isUIAllowed('viewSortEdit')" />
+
+      <LazySmartsheetToolbarSearchData v-if="isGrid" />
     </div>
 
-    <!-- Right side toolbar items -->
-    <div class="flex items-center gap-1.5 flex-shrink-0">
-      <!-- Kanban-specific toolbar items -->
-      <template v-if="isKanban">
-        <LazySmartsheetToolbarKanbanCompactMode />
-      </template>
+    <div class="flex items-center gap-x-1.5 flex-shrink-0">
+      <!-- Kanban compact mode toggle -->
+      <LazySmartsheetToolbarKanbanCompactMode v-if="isKanban" />
 
-      <LazySmartsheetToolbarReload v-if="isUIAllowed('dataInsert')" />
+      <LazySmartsheetToolbarReload />
 
-      <template v-if="!isMobileMode && !isSqlView">
-        <LazySmartsheetToolbarAddRow v-if="isUIAllowed('dataInsert')" />
-      </template>
+      <LazySmartsheetToolbarAddRow
+        v-if="isUIAllowed('dataInsert') && !isSqlView && !isCalendar && !isMap"
+      />
     </div>
   </div>
 </template>

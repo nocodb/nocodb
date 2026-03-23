@@ -152,4 +152,9 @@ export const OPERATION_SCOPES = {
   aiDataGenerateRows: 'base',
   aiDataFillRows: 'base',
   aiDataExtractRows: 'base',
+
+  // Date Dependency
+  getDateDependency: 'base',
+  updateDateDependency: 'base',
+  deleteTableDateDependency: 'base',
 } as const;

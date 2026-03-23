@@ -4,11 +4,13 @@ import {
   DependencyTableType,
   EventType,
   isLinksOrLTAR,
+  PlanFeatureTypes,
   UITypes,
 } from 'nocodb-sdk';
 import type { DateDependencyReqType, NcRequest } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 import { validatePayload } from '~/helpers/apiHelpers';
 import { Column, DateDependency, DependencyTracker, Model } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -35,6 +37,11 @@ export class DateDependencyService {
       req: NcRequest;
     },
   ): Promise<DateDependency> {
+    await checkForFeature(
+      context,
+      PlanFeatureTypes.FEATURE_DATE_DEPENDENCY,
+    );
+
     validatePayload(
       'swagger.json#/components/schemas/DateDependencyReq',
       param.body,
@@ -92,6 +99,11 @@ export class DateDependencyService {
     context: NcContext,
     param: { modelId: string; req: NcRequest },
   ): Promise<void> {
+    await checkForFeature(
+      context,
+      PlanFeatureTypes.FEATURE_DATE_DEPENDENCY,
+    );
+
     const model = param.modelId && (await Model.get(context, param.modelId));
 
     const existing = await DateDependency.getByModelId(context, param.modelId);

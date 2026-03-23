@@ -1,4 +1,3 @@
-import DateDependencyCE from 'src/models/DateDependency';
 import { DependencyTableType } from 'nocodb-sdk';
 import type { DateDependencyType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
@@ -13,10 +12,7 @@ import {
   MetaTable,
 } from '~/utils/globals';
 
-export default class DateDependency
-  extends DateDependencyCE
-  implements DateDependencyType
-{
+export default class DateDependency implements DateDependencyType {
   id?: string;
   fk_workspace_id?: string;
   base_id?: string;
@@ -40,7 +36,6 @@ export default class DateDependency
   is_active?: boolean;
 
   constructor(data: Partial<DateDependency>) {
-    super(data);
     Object.assign(this, data);
   }
 

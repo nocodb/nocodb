@@ -141,8 +141,6 @@ export class UiPostOperations
     'listViewCreate' as const,
     'listViewUpdate' as const,
     'convertLinkToV2' as const,
-    'updateDateDependency' as const,
-    'deleteTableDateDependency' as const,
   ];
   httpMethod = 'POST' as const;
 

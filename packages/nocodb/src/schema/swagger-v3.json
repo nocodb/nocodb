@@ -8788,7 +8788,7 @@
           },
           "event": {
             "type": "string",
-            "enum": ["record", "before", "manual"],
+            "enum": ["record", "manual"],
             "description": "Event trigger type. 'record' triggers after the operation completes."
           },
           "operation": {

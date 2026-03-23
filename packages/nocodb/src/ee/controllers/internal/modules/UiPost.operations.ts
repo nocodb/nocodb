@@ -24,6 +24,7 @@ import { KanbansService } from '~/services/kanbans.service';
 import { MapsService } from '~/services/maps.service';
 import { CalendarsService } from '~/services/calendars.service';
 import { TimelineColumnsService } from '~/services/timeline-columns.service';
+import { ListColumnsService } from '~/ee/services/list-columns.service';
 import { TimelinesService } from '~/services/timelines.service';
 import { CommentsService } from '~/services/comments.service';
 import { ListsService } from '~/ee/services/lists.service';
@@ -57,6 +58,7 @@ export class UiPostOperations
     protected calendarsService: CalendarsService,
     protected listsService: ListsService,
     protected timelineColumnsService: TimelineColumnsService,
+    protected listColumnsService: ListColumnsService,
     protected timelinesService: TimelinesService,
     protected commentsService: CommentsService,
     protected bulkDataAliasService: BulkDataAliasService,
@@ -149,6 +151,12 @@ export class UiPostOperations
       case 'listViewUpdate':
         return await this.listsService.listViewUpdate(context, {
           listViewId: req.query.viewId,
+          list: payload,
+          req,
+        });
+      case 'listColumnUpdate':
+        return await this.listColumnsService.listColumnUpdate(context, {
+          listViewColumnId: req.query.listViewColumnId,
           list: payload,
           req,
         });

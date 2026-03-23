@@ -13,6 +13,8 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
+const { $e } = useNuxtApp()
+
 const { eventBus } = useSmartsheetStoreOrThrow()
 
 const { levels, saveLevelConfiguration, showEmptyParents, updateViewMeta } = useListViewStoreOrThrow()
@@ -85,6 +87,7 @@ function onTableSelect(arrayIndex: number, tableId: string | null | undefined) {
 function addLevel() {
   if (!canAddLevel.value) return
   localLevels.value.push({ level: localLevels.value.length })
+  $e('c:list:set-levels:add-level')
 }
 
 function removeLevel(arrayIndex: number) {
@@ -93,6 +96,7 @@ function removeLevel(arrayIndex: number) {
   localLevels.value.forEach((l, i) => {
     l.level = i
   })
+  $e('c:list:set-levels:remove-level')
 }
 
 async function save() {
@@ -126,6 +130,8 @@ async function save() {
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
     eventBus.emit(SmartsheetStoreEvents.FILTER_RELOAD)
+
+    $e('a:list:set-levels:save', { levelCount: cleanedLevels.length })
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -136,6 +142,7 @@ async function save() {
 async function toggleHideEmptySections(val: boolean) {
   if (isLocked.value) return
   await updateViewMeta({ show_empty_parents: !val })
+  $e('c:list:toggle-hide-empty-sections', { enabled: val })
 }
 
 const _hideEmptySections = computed({

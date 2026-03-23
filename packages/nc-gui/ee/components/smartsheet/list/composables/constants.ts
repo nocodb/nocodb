@@ -36,4 +36,7 @@ export const DEFAULT_COLUMN_WIDTH = 180
 export const DEFAULT_FIRST_COLUMN_WIDTH = 300
 
 // Bottom padding after the last row
-export const BOTTOM_PADDING = 120
+export const BOTTOM_PADDING = 240
+
+// Right padding after the last column
+export const RIGHT_PADDING = 120

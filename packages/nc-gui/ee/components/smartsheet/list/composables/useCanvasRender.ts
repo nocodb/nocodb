@@ -231,7 +231,10 @@ export function useCanvasRender({
     const lastRow = rows.get(end - 1)
     if (lastRow && end >= totalRows.value && isAddingEmptyRowAllowed.value) {
       const lastDepth = lastRow.__nc_depth ?? 0
-      for (let d = lastDepth; d >= 1; d--) {
+      // For single-level (N=1), include add-row at depth 0 (the leaf level).
+      // For multi-level, only close down to depth 1 (root doesn't get an add-row).
+      const minAddRowDepth = displayLevels.value.length === 1 ? 0 : 1
+      for (let d = lastDepth; d >= minAddRowDepth; d--) {
         const addRowScreenY = y - scrollTop.value
         if (addRowScreenY + ADD_ROW_HEIGHT > hh && addRowScreenY < height.value) {
           renderAddRow(ctx, d, addRowScreenY, colors, lastPkAtDepth[d - 1])

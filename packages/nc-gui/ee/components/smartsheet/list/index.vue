@@ -14,7 +14,7 @@ import Tooltip from '~/components/smartsheet/grid/canvas/components/Tooltip.vue'
 
 const { meta, view } = useSmartsheetStoreOrThrow()
 const { metas, getMeta } = useMetas()
-const { $api } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const route = useRoute()
 const router = useRouter()
@@ -158,6 +158,8 @@ function expandForm(row: Row, state?: Record<string, any>) {
 }
 
 onExpandRow(async ({ row, depth }) => {
+  $e('a:list:expand-record')
+
   let depthMeta = getMetaForDepth(depth)
   if (!depthMeta) {
     const level = displayLevels.value[depth]
@@ -177,6 +179,8 @@ onExpandRow(async ({ row, depth }) => {
 })
 
 onAddRow(async ({ depth, parentPk }) => {
+  $e('c:list:add-record')
+
   let depthMeta = getMetaForDepth(depth)
   if (!depthMeta) {
     const level = displayLevels.value[depth]

@@ -20,6 +20,7 @@ function getTableTitle(tableId?: string) {
     <div
       v-for="(level, index) in levels"
       :key="level.id || index"
+      v-e="['c:list:level:select']"
       class="flex-1 flex items-center justify-center gap-1 px-2 selector-level py-1 overflow-hidden rounded-md text-xs font-medium cursor-pointer transition-colors"
       :class="{
         'bg-nc-bg-brand text-nc-content-brand': selectedLevelId === level.id,
@@ -29,15 +30,10 @@ function getTableTitle(tableId?: string) {
       }"
       @click="setSelectedLevel(level.id ?? null)"
     >
-      <NcIconTable
-        :table="getTableMeta(level.fk_model_id) || { title: '', table_name: '' }"
-        class="flex-none h-3.5 w-3.5"
-      />
-      <NcTooltip class="truncate">
+      <NcIconTable :table="getTableMeta(level.fk_model_id) || { title: '', table_name: '' }" class="flex-none h-3.5 w-3.5" />
+      <NcTooltip show-on-truncate-only class="truncate">
         {{ getTableTitle(level.fk_model_id) }}
-        <template #title>
-          {{ $t('general.levelN', { n: index + 1 }) }} - {{ getTableTitle(level.fk_model_id) }}
-        </template>
+        <template #title> {{ $t('general.levelN', { n: index + 1 }) }} - {{ getTableTitle(level.fk_model_id) }} </template>
       </NcTooltip>
     </div>
   </div>

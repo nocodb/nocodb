@@ -354,6 +354,8 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockListView = computed(() => {
+    if (isEEFeatureBlocked.value) return true
+
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_LIST_VIEW)
   })
 

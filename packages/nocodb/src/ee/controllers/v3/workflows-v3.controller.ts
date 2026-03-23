@@ -57,61 +57,62 @@ export class WorkflowsV3Controller {
     return await this.workflowsV3Service.workflowGet(context, workflowId);
   }
 
-  @Post(`${PREFIX_APIV3_METABASE}/workflows`)
-  @HttpCode(200)
-  @Acl('workflowCreate', { scope: 'base' })
-  async workflowCreate(
-    @TenantContext() context: NcContext,
-    @Body() body: WorkflowV3CreateReqType,
-    @Request() req: NcRequest,
-  ): Promise<WorkflowV3GetResponseType> {
-    return await this.workflowsV3Service.workflowCreate(context, body, req);
-  }
+  // TODO: to enable after having better flow
+  // @Post(`${PREFIX_APIV3_METABASE}/workflows`)
+  // @HttpCode(200)
+  // @Acl('workflowCreate', { scope: 'base' })
+  // async workflowCreate(
+  //   @TenantContext() context: NcContext,
+  //   @Body() body: WorkflowV3CreateReqType,
+  //   @Request() req: NcRequest,
+  // ): Promise<WorkflowV3GetResponseType> {
+  //   return await this.workflowsV3Service.workflowCreate(context, body, req);
+  // }
 
-  @Patch(`${PREFIX_APIV3_METABASE}/workflows/:workflowId`)
-  @Acl('workflowUpdate', { scope: 'base' })
-  async workflowUpdate(
-    @TenantContext() context: NcContext,
-    @Param('workflowId') workflowId: string,
-    @Body() body: WorkflowV3UpdateReqType,
-    @Request() req: NcRequest,
-  ): Promise<WorkflowV3GetResponseType> {
-    return await this.workflowsV3Service.workflowUpdate(
-      context,
-      workflowId,
-      body,
-      req,
-    );
-  }
+  // @Patch(`${PREFIX_APIV3_METABASE}/workflows/:workflowId`)
+  // @Acl('workflowUpdate', { scope: 'base' })
+  // async workflowUpdate(
+  //   @TenantContext() context: NcContext,
+  //   @Param('workflowId') workflowId: string,
+  //   @Body() body: WorkflowV3UpdateReqType,
+  //   @Request() req: NcRequest,
+  // ): Promise<WorkflowV3GetResponseType> {
+  //   return await this.workflowsV3Service.workflowUpdate(
+  //     context,
+  //     workflowId,
+  //     body,
+  //     req,
+  //   );
+  // }
 
-  @Delete(`${PREFIX_APIV3_METABASE}/workflows/:workflowId`)
-  @Acl('workflowDelete', { scope: 'base' })
-  async workflowDelete(
-    @TenantContext() context: NcContext,
-    @Param('workflowId') workflowId: string,
-    @Request() req: NcRequest,
-  ): Promise<boolean> {
-    return await this.workflowsV3Service.workflowDelete(
-      context,
-      workflowId,
-      req,
-    );
-  }
+  // @Delete(`${PREFIX_APIV3_METABASE}/workflows/:workflowId`)
+  // @Acl('workflowDelete', { scope: 'base' })
+  // async workflowDelete(
+  //   @TenantContext() context: NcContext,
+  //   @Param('workflowId') workflowId: string,
+  //   @Request() req: NcRequest,
+  // ): Promise<boolean> {
+  //   return await this.workflowsV3Service.workflowDelete(
+  //     context,
+  //     workflowId,
+  //     req,
+  //   );
+  // }
 
-  @Post(`${PREFIX_APIV3_METABASE}/workflows/:workflowId/publish`)
-  @HttpCode(200)
-  @Acl('workflowPublish', { scope: 'base' })
-  async workflowPublish(
-    @TenantContext() context: NcContext,
-    @Param('workflowId') workflowId: string,
-    @Request() req: NcRequest,
-  ): Promise<WorkflowV3GetResponseType> {
-    return await this.workflowsV3Service.workflowPublish(
-      context,
-      workflowId,
-      req,
-    );
-  }
+  // @Post(`${PREFIX_APIV3_METABASE}/workflows/:workflowId/publish`)
+  // @HttpCode(200)
+  // @Acl('workflowPublish', { scope: 'base' })
+  // async workflowPublish(
+  //   @TenantContext() context: NcContext,
+  //   @Param('workflowId') workflowId: string,
+  //   @Request() req: NcRequest,
+  // ): Promise<WorkflowV3GetResponseType> {
+  //   return await this.workflowsV3Service.workflowPublish(
+  //     context,
+  //     workflowId,
+  //     req,
+  //   );
+  // }
 
   @Post(`${PREFIX_APIV3_METABASE}/workflows/:workflowId/execute`)
   @HttpCode(200)

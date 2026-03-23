@@ -4676,43 +4676,6 @@
             }
           }
         }
-      },
-      "post": {
-        "summary": "Create Workflow",
-        "description": "Create a new workflow within the specified base.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
-        "operationId": "workflow-create",
-        "tags": ["Workflows"],
-        "parameters": [
-          {
-            "schema": { "type": "string" },
-            "name": "base_id",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier for the base."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/WorkflowCreateReq"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Workflow created.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WorkflowGetResponse"
-                }
-              }
-            }
-          }
-        }
       }
     },
     "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}": {
@@ -4740,113 +4703,6 @@
         "responses": {
           "200": {
             "description": "Workflow retrieved.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WorkflowGetResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "patch": {
-        "summary": "Update Workflow",
-        "description": "Update the workflow.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
-        "operationId": "workflow-update",
-        "tags": ["Workflows"],
-        "parameters": [
-          {
-            "schema": { "type": "string" },
-            "name": "base_id",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier for the base."
-          },
-          {
-            "schema": { "type": "string" },
-            "name": "workflow_id",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier for the workflow."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/WorkflowUpdateReq"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Workflow updated.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WorkflowGetResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete Workflow",
-        "description": "Delete the workflow.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
-        "operationId": "workflow-delete",
-        "tags": ["Workflows"],
-        "parameters": [
-          {
-            "schema": { "type": "string" },
-            "name": "base_id",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier for the base."
-          },
-          {
-            "schema": { "type": "string" },
-            "name": "workflow_id",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier for the workflow."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Workflow deleted."
-          }
-        }
-      }
-    },
-    "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/publish": {
-      "post": {
-        "summary": "Publish Workflow",
-        "description": "Publish draft changes of the workflow.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
-        "operationId": "workflow-publish",
-        "tags": ["Workflows"],
-        "parameters": [
-          {
-            "schema": { "type": "string" },
-            "name": "base_id",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier for the base."
-          },
-          {
-            "schema": { "type": "string" },
-            "name": "workflow_id",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier for the workflow."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Workflow published.",
             "content": {
               "application/json": {
                 "schema": {
@@ -15892,51 +15748,6 @@
           }
         },
         "required": ["id", "title", "base_id", "workspace_id", "created_at", "updated_at"]
-      },
-      "WorkflowCreateReq": {
-        "description": "Workflow create request body",
-        "type": "object",
-        "required": ["title"],
-        "properties": {
-          "title": {
-            "type": "string",
-            "description": "Title of the workflow."
-          },
-          "description": {
-            "type": ["string", "null"],
-            "description": "Description of the workflow."
-          },
-          "options": {
-            "$ref": "#/components/schemas/WorkflowOptions",
-            "description": "Workflow options including execution configuration and display settings."
-          }
-        }
-      },
-      "WorkflowUpdateReq": {
-        "description": "Workflow update request body",
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string",
-            "description": "Title of the workflow."
-          },
-          "description": {
-            "type": ["string", "null"],
-            "description": "Description of the workflow."
-          },
-          "enabled": {
-            "type": "boolean",
-            "description": "Whether the workflow is enabled."
-          },
-          "options": {
-            "$ref": "#/components/schemas/WorkflowOptions",
-            "description": "Workflow options including execution configuration and display settings."
-          },
-          "order": {
-            "type": "number",
-            "description": "Display order of the workflow."
-          }
-        }
       },
       "WorkflowExecuteReq": {
         "description": "Workflow execute request body",

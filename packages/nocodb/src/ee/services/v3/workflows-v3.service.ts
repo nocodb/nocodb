@@ -151,83 +151,84 @@ export class WorkflowsV3Service {
     return workflowBuilder().build(workflow);
   }
 
-  async workflowCreate(
-    context: NcContext,
-    body: WorkflowV3CreateReqType,
-    req: NcRequest,
-  ): Promise<WorkflowV3GetResponseType> {
-    await this.validateFeatureAccess(context);
+  // TODO: reenable when better flow has been found
+  // async workflowCreate(
+  //   context: NcContext,
+  //   body: WorkflowV3CreateReqType,
+  //   req: NcRequest,
+  // ): Promise<WorkflowV3GetResponseType> {
+  //   await this.validateFeatureAccess(context);
 
-    validatePayload(
-      'swagger-v3.json#/components/schemas/WorkflowCreateReq',
-      body,
-      true,
-      context,
-    );
+  //   validatePayload(
+  //     'swagger-v3.json#/components/schemas/WorkflowCreateReq',
+  //     body,
+  //     true,
+  //     context,
+  //   );
 
-    const { options, ...rest } = body;
+  //   const { options, ...rest } = body;
 
-    const workflow = await this.workflowsService.createWorkflow(
-      context,
-      { ...rest, ...(options !== undefined ? { meta: options } : {}) },
-      req,
-    );
+  //   const workflow = await this.workflowsService.createWorkflow(
+  //     context,
+  //     { ...rest, ...(options !== undefined ? { meta: options } : {}) },
+  //     req,
+  //   );
 
-    return workflowBuilder().build(workflow);
-  }
+  //   return workflowBuilder().build(workflow);
+  // }
 
-  async workflowUpdate(
-    context: NcContext,
-    id: string,
-    body: WorkflowV3UpdateReqType,
-    req: NcRequest,
-  ): Promise<WorkflowV3GetResponseType> {
-    await this.validateFeatureAccess(context);
+  // async workflowUpdate(
+  //   context: NcContext,
+  //   id: string,
+  //   body: WorkflowV3UpdateReqType,
+  //   req: NcRequest,
+  // ): Promise<WorkflowV3GetResponseType> {
+  //   await this.validateFeatureAccess(context);
 
-    validatePayload(
-      'swagger-v3.json#/components/schemas/WorkflowUpdateReq',
-      body,
-      true,
-      context,
-    );
+  //   validatePayload(
+  //     'swagger-v3.json#/components/schemas/WorkflowUpdateReq',
+  //     body,
+  //     true,
+  //     context,
+  //   );
 
-    const { options, ...rest } = body;
+  //   const { options, ...rest } = body;
 
-    const workflow = await this.workflowsService.updateWorkflow(
-      context,
-      id,
-      { ...rest, ...(options !== undefined ? { meta: options } : {}) },
-      req,
-    );
+  //   const workflow = await this.workflowsService.updateWorkflow(
+  //     context,
+  //     id,
+  //     { ...rest, ...(options !== undefined ? { meta: options } : {}) },
+  //     req,
+  //   );
 
-    return workflowBuilder().build(workflow);
-  }
+  //   return workflowBuilder().build(workflow);
+  // }
 
-  async workflowDelete(
-    context: NcContext,
-    id: string,
-    req: NcRequest,
-  ): Promise<boolean> {
-    await this.validateFeatureAccess(context);
+  // async workflowDelete(
+  //   context: NcContext,
+  //   id: string,
+  //   req: NcRequest,
+  // ): Promise<boolean> {
+  //   await this.validateFeatureAccess(context);
 
-    return await this.workflowsService.deleteWorkflow(context, id, req);
-  }
+  //   return await this.workflowsService.deleteWorkflow(context, id, req);
+  // }
 
-  async workflowPublish(
-    context: NcContext,
-    id: string,
-    req: NcRequest,
-  ): Promise<WorkflowV3GetResponseType> {
-    await this.validateFeatureAccess(context);
+  // async workflowPublish(
+  //   context: NcContext,
+  //   id: string,
+  //   req: NcRequest,
+  // ): Promise<WorkflowV3GetResponseType> {
+  //   await this.validateFeatureAccess(context);
 
-    const workflow = await this.workflowsService.publishWorkflow(
-      context,
-      id,
-      req,
-    );
+  //   const workflow = await this.workflowsService.publishWorkflow(
+  //     context,
+  //     id,
+  //     req,
+  //   );
 
-    return workflowBuilder().build(workflow);
-  }
+  //   return workflowBuilder().build(workflow);
+  // }
 
   async workflowExecute(
     context: NcContext,
@@ -249,34 +250,35 @@ export class WorkflowsV3Service {
     return { id: String(result.id) };
   }
 
-  async workflowTestNode(
-    context: NcContext,
-    id: string,
-    body: WorkflowV3TestNodeReqType,
-    req: NcRequest,
-  ): Promise<{ id: string }> {
-    await this.validateFeatureAccess(context);
+  // TODO: reenable when better flow has been found
+  // async workflowTestNode(
+  //   context: NcContext,
+  //   id: string,
+  //   body: WorkflowV3TestNodeReqType,
+  //   req: NcRequest,
+  // ): Promise<{ id: string }> {
+  //   await this.validateFeatureAccess(context);
 
-    validatePayload(
-      'swagger-v3.json#/components/schemas/WorkflowTestNodeReq',
-      body,
-      true,
-      context,
-    );
+  //   validatePayload(
+  //     'swagger-v3.json#/components/schemas/WorkflowTestNodeReq',
+  //     body,
+  //     true,
+  //     context,
+  //   );
 
-    const result = await this.workflowsService.testExecuteNode(
-      context,
-      id,
-      {
-        nodeId: body.node_id,
-        testTriggerData: body.test_trigger_data,
-        testMode: body.test_mode,
-      },
-      req,
-    );
+  //   const result = await this.workflowsService.testExecuteNode(
+  //     context,
+  //     id,
+  //     {
+  //       nodeId: body.node_id,
+  //       testTriggerData: body.test_trigger_data,
+  //       testMode: body.test_mode,
+  //     },
+  //     req,
+  //   );
 
-    return { id: String(result.id) };
-  }
+  //   return { id: String(result.id) };
+  // }
 
   async workflowExecutionList(
     context: NcContext,

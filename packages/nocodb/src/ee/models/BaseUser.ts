@@ -318,11 +318,19 @@ export default class BaseUser extends BaseUserCE {
             `${MetaTable.WORKSPACE_USER}.fk_user_id`,
             '=',
             `${MetaTable.USERS}.id`,
-          ).andOn(
-            `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
-            '=',
-            ncMeta.knex.raw('?', [context.workspace_id]),
-          );
+          )
+            .andOn(
+              `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+              '=',
+              ncMeta.knex.raw('?', [context.workspace_id]),
+            )
+            .andOn(
+              ncMeta.knex.raw(
+                `COALESCE(${MetaTable.WORKSPACE_USER}.deleted, FALSE)`,
+              ),
+              '=',
+              ncMeta.knex.raw('?', [false]),
+            );
         })
         .leftJoin(MetaTable.PROJECT_USERS, function () {
           this.on(
@@ -611,11 +619,19 @@ export default class BaseUser extends BaseUserCE {
             `${MetaTable.WORKSPACE_USER}.fk_user_id`,
             '=',
             `${MetaTable.USERS}.id`,
-          ).andOn(
-            `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
-            '=',
-            ncMeta.knex.raw('?', [context.workspace_id]),
-          );
+          )
+            .andOn(
+              `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+              '=',
+              ncMeta.knex.raw('?', [context.workspace_id]),
+            )
+            .andOn(
+              ncMeta.knex.raw(
+                `COALESCE(${MetaTable.WORKSPACE_USER}.deleted, FALSE)`,
+              ),
+              '=',
+              ncMeta.knex.raw('?', [false]),
+            );
         })
         [joinClause](MetaTable.PROJECT_USERS, function () {
           this.on(
@@ -633,11 +649,12 @@ export default class BaseUser extends BaseUserCE {
           'wtr.user_id',
           `${MetaTable.USERS}.id`,
         )
-        .leftJoin(
-          baseTeamRolesSubquery,
-          'btr.user_id',
-          `${MetaTable.USERS}.id`,
-        );
+        .leftJoin(baseTeamRolesSubquery, 'btr.user_id', `${MetaTable.USERS}.id`)
+        .where(function () {
+          this.where(`${MetaTable.USERS}.is_deleted`, false).orWhereNull(
+            `${MetaTable.USERS}.is_deleted`,
+          );
+        });
 
       baseUsers = await queryBuilder;
 

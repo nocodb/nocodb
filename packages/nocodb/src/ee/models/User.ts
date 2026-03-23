@@ -228,7 +228,12 @@ export default class User extends UserCE implements UserType {
             `${MetaTable.USERS}.id = ${MetaTable.PROJECT_USERS}.fk_user_id`,
           )
           .as('projectsCount'),
-      );
+      )
+      .where(function () {
+        this.where(`${MetaTable.USERS}.is_deleted`, false).orWhereNull(
+          `${MetaTable.USERS}.is_deleted`,
+        );
+      });
     if (query) {
       queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
     }
@@ -737,26 +742,5 @@ export default class User extends UserCE implements UserType {
         `${CacheScope.USER}:canonical:${normalizeEmail(user.email)}`,
       );
     }
-  }
-
-  public static async softDelete(userId: string, ncMeta = Noco.ncMeta) {
-    const user = await this.get(userId, ncMeta);
-
-    if (!user) NcError.userNotFound(userId);
-
-    await ncMeta.metaUpdate(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.USERS,
-      {
-        email: `deleted_${user.id}@user.invalid`,
-        display_name: `Anonymous`,
-        deleted_at: ncMeta.knex.fn.now(),
-        is_deleted: true,
-      },
-      userId,
-    );
-
-    await this.clearCache(userId, ncMeta);
   }
 }

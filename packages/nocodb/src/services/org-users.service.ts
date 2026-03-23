@@ -159,8 +159,8 @@ export class OrgUsersService {
       // delete api tokens (with cache invalidation)
       await ApiToken.deleteByUser(param.userId, ncMeta);
 
-      // delete user
-      await User.delete(param.userId, ncMeta);
+      // soft-delete user (preserves record for audit/cell data)
+      await User.softDelete(param.userId, ncMeta);
       await ncMeta.commit();
     } catch (e) {
       await ncMeta.rollback(e);

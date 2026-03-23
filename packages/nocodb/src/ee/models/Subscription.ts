@@ -356,6 +356,13 @@ export default class Subscription {
       )
       // Left join with base team roles subquery
       .leftJoin(baseTeamRolesSubquery, 'btr.user_id', `${MetaTable.USERS}.id`)
+      // Exclude soft-deleted users
+      .where(function () {
+        this.where(
+          `${MetaTable.USERS}.is_deleted`,
+          ncMeta.knex.raw('?', [false]),
+        ).orWhereNull(`${MetaTable.USERS}.is_deleted`);
+      })
       // Filter: only users who have at least one role assignment
       .where(function () {
         this.whereNotNull('wu.fk_user_id')
@@ -500,11 +507,20 @@ export default class Subscription {
     ncMeta = Noco.ncMeta,
   ): Promise<number> {
     // Get all workspace users across all workspaces in the organization
+    // Excludes soft-deleted users and soft-deleted workspace memberships
     const workspaceUsers = await ncMeta.knexConnection
-      .select('fk_user_id', 'roles')
+      .select(
+        `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+        `${MetaTable.WORKSPACE_USER}.roles`,
+      )
       .from(MetaTable.WORKSPACE_USER)
+      .innerJoin(
+        MetaTable.USERS,
+        `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+        `${MetaTable.USERS}.id`,
+      )
       .whereIn(
-        'fk_workspace_id',
+        `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
         ncMeta
           .knex(MetaTable.WORKSPACE)
           .select('id')
@@ -516,12 +532,20 @@ export default class Subscription {
           }),
       )
       .where((kn) => {
-        kn.where('deleted', ncMeta.knex.raw('?', [false])).orWhereNull(
-          'deleted',
-        );
+        kn.where(
+          `${MetaTable.WORKSPACE_USER}.deleted`,
+          ncMeta.knex.raw('?', [false]),
+        ).orWhereNull(`${MetaTable.WORKSPACE_USER}.deleted`);
+      })
+      .where((kn) => {
+        kn.where(
+          `${MetaTable.USERS}.is_deleted`,
+          ncMeta.knex.raw('?', [false]),
+        ).orWhereNull(`${MetaTable.USERS}.is_deleted`);
       });
 
     // Get all base users across all bases in all workspaces in the organization
+    // Excludes soft-deleted users
     const baseUsers = await ncMeta.knexConnection
       .select(
         `${MetaTable.PROJECT_USERS}.fk_user_id`,
@@ -538,6 +562,11 @@ export default class Subscription {
         `${MetaTable.PROJECT}.fk_workspace_id`,
         `${MetaTable.WORKSPACE}.id`,
       )
+      .innerJoin(
+        MetaTable.USERS,
+        `${MetaTable.PROJECT_USERS}.fk_user_id`,
+        `${MetaTable.USERS}.id`,
+      )
       .where(`${MetaTable.WORKSPACE}.fk_org_id`, orgId)
       .where((kn) => {
         kn.where(
@@ -550,6 +579,12 @@ export default class Subscription {
           `${MetaTable.WORKSPACE}.deleted`,
           ncMeta.knex.raw('?', [false]),
         ).orWhereNull(`${MetaTable.WORKSPACE}.deleted`);
+      })
+      .where((kn) => {
+        kn.where(
+          `${MetaTable.USERS}.is_deleted`,
+          ncMeta.knex.raw('?', [false]),
+        ).orWhereNull(`${MetaTable.USERS}.is_deleted`);
       });
 
     /*

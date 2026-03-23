@@ -279,6 +279,10 @@ export default class User implements UserType {
       qb.where('email', 'like', `%${query.toLowerCase?.()}%`);
     }
 
+    qb.where(function () {
+      this.where('is_deleted', false).orWhereNull('is_deleted');
+    });
+
     return (await qb.count('id', { as: 'count' }).first()).count;
   }
 
@@ -435,7 +439,12 @@ export default class User implements UserType {
             `${MetaTable.USERS}.id = ${MetaTable.PROJECT_USERS}.fk_user_id`,
           )
           .as('projectsCount'),
-      );
+      )
+      .where(function () {
+        this.where(`${MetaTable.USERS}.is_deleted`, false).orWhereNull(
+          `${MetaTable.USERS}.is_deleted`,
+        );
+      });
     if (query) {
       queryBuilder.where(function () {
         this.where(function () {
@@ -467,6 +476,27 @@ export default class User implements UserType {
       MetaTable.USERS,
       userId,
     );
+  }
+
+  public static async softDelete(userId: string, ncMeta = Noco.ncMeta) {
+    const user = await this.get(userId, ncMeta);
+
+    if (!user) NcError.userNotFound(userId);
+
+    await ncMeta.metaUpdate(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.USERS,
+      {
+        email: `deleted_${user.id}@user.invalid`,
+        display_name: `Anonymous`,
+        deleted_at: ncMeta.knex.fn.now(),
+        is_deleted: true,
+      },
+      userId,
+    );
+
+    await this.clearCache(userId, ncMeta);
   }
 
   static async getWithRoles(

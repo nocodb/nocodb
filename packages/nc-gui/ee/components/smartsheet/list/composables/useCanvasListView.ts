@@ -253,9 +253,11 @@ export function useCanvasListView({
     const rows = response.list || response?.data?.list || []
 
     if (isRowColouringEnabled.value) {
+      const leafDepth = displayLevels.value.length - 1
       for (const row of rows) {
-        const colorInfo = getEvaluatedRowMetaRowColorInfo(row)
-        row.__nc_color = colorInfo
+        if (row.__nc_depth === leafDepth) {
+          row.__nc_color = getEvaluatedRowMetaRowColorInfo(row)
+        }
       }
     }
 
@@ -618,8 +620,13 @@ export function useCanvasListView({
   watch(
     () => activeViewRowColorInfo.value,
     () => {
+      const leafDepth = displayLevels.value.length - 1
       for (const [_, row] of cachedRows.value) {
-        row.__nc_color = isRowColouringEnabled.value ? getEvaluatedRowMetaRowColorInfo(row) : undefined
+        if (row.__nc_depth === leafDepth) {
+          row.__nc_color = isRowColouringEnabled.value ? getEvaluatedRowMetaRowColorInfo(row) : undefined
+        } else {
+          row.__nc_color = undefined
+        }
       }
       triggerRefreshCanvas()
     },

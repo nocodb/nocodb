@@ -207,15 +207,31 @@ onAddRow(async ({ depth, parentPk }) => {
       if (hmCol) {
         const hmColOpt = hmCol.colOptions as LinkToAnotherRecordType
 
+        // Find the reverse link column on the child table (BT for hm, MO for om)
         const btCol = depthMeta.columns?.find((c: ColumnType) => {
           if (!isLinksOrLTAR(c)) return false
           const colOpt = c.colOptions as LinkToAnotherRecordType
           if (!colOpt) return false
-          return (
-            colOpt.fk_related_model_id === parentDepthMeta!.id &&
+          if (colOpt.fk_related_model_id !== parentDepthMeta!.id) return false
+
+          // hm/bt pair: both share the same fk_child_column_id (the FK column)
+          if (
             (colOpt.type === RelationTypes.BELONGS_TO || colOpt.type === 'bt') &&
             colOpt.fk_child_column_id === hmColOpt.fk_child_column_id
-          )
+          ) {
+            return true
+          }
+
+          // om/mo pair: both share the same junction table (fk_mm_model_id)
+          if (
+            (colOpt.type === RelationTypes.MANY_TO_ONE || colOpt.type === 'mo') &&
+            hmColOpt.fk_mm_model_id &&
+            colOpt.fk_mm_model_id === hmColOpt.fk_mm_model_id
+          ) {
+            return true
+          }
+
+          return false
         })
 
         if (btCol?.title) {

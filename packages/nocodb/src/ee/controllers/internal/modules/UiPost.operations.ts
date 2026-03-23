@@ -92,6 +92,12 @@ export class UiPostOperations
       nocoJobsService,
       extensionsService,
     );
+
+    (this.operations as string[]) = [
+      ...this.operations,
+      'updateDateDependency',
+      'deleteTableDateDependency',
+    ];
   }
 
   async handle(

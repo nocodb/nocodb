@@ -63,6 +63,11 @@ export class UiGetOperations
       syncService,
       extensionsService,
     );
+
+    (this.operations as string[]) = [
+      ...this.operations,
+      'getDateDependency',
+    ];
   }
 
   async handle(

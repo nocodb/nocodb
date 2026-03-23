@@ -5,7 +5,7 @@ import type {
   AffectedDependencyResult,
   MetaDependencyEventRequest,
   MetaEventHandler,
-} from '../../types';
+} from '~/services/meta-dependency/types';
 import { DateDependency } from '~/models';
 import Noco from '~/Noco';
 

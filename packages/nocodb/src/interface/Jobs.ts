@@ -63,6 +63,7 @@ export enum JobTypes {
   PollWorkflow = 'poll-workflow',
   WorkflowErrorNotification = 'workflow-error-notification',
   HookErrorNotification = 'hook-error-notification',
+  WorkflowDraftReminder = 'workflow-draft-reminder',
   ChatMessage = 'chat-message',
   ChatApproval = 'chat-approval',
 }
@@ -85,6 +86,7 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.PollWorkflow,
   JobTypes.WorkflowErrorNotification,
   JobTypes.HookErrorNotification,
+  JobTypes.WorkflowDraftReminder,
   JobTypes.ChatMessage,
   JobTypes.ChatApproval,
 ];

@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import { User, Workflow, WorkflowSubscriber, Workspace } from '~/models';
+import { Base, User, Workflow, WorkflowSubscriber, Workspace } from '~/models';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
 import { processConcurrently } from '~/utils';
@@ -59,7 +59,8 @@ export class WorkflowErrorNotificationProcessor {
       .whereNull('error_notified_at')
       .where('finished_at', '<', cutoffTime)
       .whereIn('fk_workflow_id', workflowIds)
-      .orderBy('finished_at', 'desc');
+      .orderBy('finished_at', 'desc')
+      .limit(100);
 
     // Create a map for quick lookup (first occurrence per workflow is the latest due to ORDER BY)
     const lastFailureMap = new Map<string, string>();
@@ -110,6 +111,7 @@ export class WorkflowErrorNotificationProcessor {
         }
 
         const workspace = await Workspace.get(group.fk_workspace_id);
+        const base = await Base.get(context, group.base_id);
 
         // Get user emails for subscribers
         const userIds = subscribers.map((s) => s.fk_user_id);
@@ -143,7 +145,11 @@ export class WorkflowErrorNotificationProcessor {
                 },
                 workspace: {
                   id: group.fk_workspace_id,
-                  title: workspace.title,
+                  title: workspace?.title || 'Workspace',
+                },
+                base: {
+                  id: group.base_id,
+                  title: base?.title || 'Base',
                 },
                 failureCount: Number(group.failure_count),
                 firstFailureTime: firstFailure.format(
@@ -153,8 +159,6 @@ export class WorkflowErrorNotificationProcessor {
                   'MM/DD/YYYY [at] h:mm A [UTC]',
                 ),
                 lastFailureId: group.last_failure_id,
-                baseId: group.base_id,
-                workspaceId: group.fk_workspace_id,
               },
             });
 
@@ -163,8 +167,8 @@ export class WorkflowErrorNotificationProcessor {
             );
           } catch (error) {
             this.logger.error(
-              `Failed to send error digest email to ${user.email}:`,
-              error,
+              `Failed to send error digest email to ${user.email}: ${error?.message}`,
+              error?.stack,
             );
           }
         }
@@ -172,8 +176,8 @@ export class WorkflowErrorNotificationProcessor {
         await this.markAsNotified(group, cutoffTime);
       } catch (error) {
         this.logger.error(
-          `Failed to process error notifications for workflow ${group.fk_workflow_id}:`,
-          error,
+          `Failed to process error notifications for workflow ${group.fk_workflow_id}: ${error?.message}`,
+          error?.stack,
         );
       }
     }

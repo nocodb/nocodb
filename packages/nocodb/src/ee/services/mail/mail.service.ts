@@ -3,6 +3,7 @@ import { MailService as MailServiceCE } from 'src/services/mail/mail.service';
 import { RoleLabels } from 'nocodb-sdk';
 import type {
   HookErrorDigestPayload,
+  WorkflowDraftReminderPayload,
   WorkflowErrorDigestPayload,
 } from '~/interface/Mail';
 import { EEOnly } from '~/decorators/ee-only.decorator';
@@ -406,18 +407,17 @@ export class MailService extends MailServiceCE {
             user,
             workflow,
             workspace,
+            base,
             failureCount,
             firstFailureTime,
             lastFailureTime,
             lastFailureId,
-            baseId,
-            workspaceId,
             req,
           } = params.payload as WorkflowErrorDigestPayload;
 
           const link = this.buildUrl(req, {
-            workspaceId,
-            baseId,
+            workspaceId: workspace.id,
+            baseId: base.id,
             automationId: workflow.id,
             executionId: lastFailureId,
           });
@@ -427,10 +427,38 @@ export class MailService extends MailServiceCE {
             subject: `Something went wrong with an automation: ${workflow.title}`,
             html: await this.renderMail('WorkflowErrorDigest', {
               workflowTitle: workflow.title,
-              baseTitle: workspace?.title || 'Base',
+              baseTitle: base.title,
               failureCount,
               firstFailureTime,
               lastFailureTime,
+              link,
+            }),
+          });
+          break;
+        }
+        case MailEvent.WORKFLOW_DRAFT_REMINDER: {
+          const {
+            user,
+            workflow,
+            workspace,
+            base,
+            draftAgeDays,
+            req,
+          } = params.payload as WorkflowDraftReminderPayload;
+
+          const link = this.buildUrl(req, {
+            workspaceId: workspace.id,
+            baseId: base.id,
+            automationId: workflow.id,
+          });
+
+          await mailerAdapter.mailSend({
+            to: user.email,
+            subject: `Reminder: "${workflow.title}" has unpublished changes`,
+            html: await this.renderMail('WorkflowDraftReminder', {
+              workflowTitle: workflow.title,
+              baseTitle: base.title,
+              draftAgeDays,
               link,
             }),
           });
@@ -442,17 +470,16 @@ export class MailService extends MailServiceCE {
             hook,
             table,
             workspace,
+            base,
             failureCount,
             firstFailureTime,
             lastFailureTime,
-            baseId,
-            workspaceId,
             req,
           } = params.payload as HookErrorDigestPayload;
 
           const link = this.buildUrl(req, {
-            workspaceId,
-            baseId,
+            workspaceId: workspace.id,
+            baseId: base.id,
             tableId: table.id,
             hookId: hook.id,
             hookTab: 'log',
@@ -464,7 +491,7 @@ export class MailService extends MailServiceCE {
             html: await this.renderMail('HookErrorDigest', {
               hookTitle: hook.title,
               tableName: table.title,
-              baseTitle: workspace?.title || 'Base',
+              baseTitle: base.title,
               failureCount,
               firstFailureTime,
               lastFailureTime,

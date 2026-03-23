@@ -55,12 +55,32 @@ interface WorkflowErrorDigestPayload {
     id: string;
     title: string;
   };
+  base: {
+    id: string;
+    title: string;
+  };
   failureCount: number;
   firstFailureTime: string;
   lastFailureTime: string;
   lastFailureId: string;
-  baseId: string;
-  workspaceId: string;
+}
+
+interface WorkflowDraftReminderPayload {
+  req?: NcRequest;
+  user: UserType;
+  workflow: {
+    id: string;
+    title: string;
+  };
+  workspace: {
+    id: string;
+    title: string;
+  };
+  base: {
+    id: string;
+    title: string;
+  };
+  draftAgeDays: number;
 }
 
 interface HookErrorDigestPayload {
@@ -78,11 +98,13 @@ interface HookErrorDigestPayload {
     id: string;
     title: string;
   };
+  base: {
+    id: string;
+    title: string;
+  };
   failureCount: number;
   firstFailureTime: string;
   lastFailureTime: string;
-  baseId: string;
-  workspaceId: string;
 }
 
 type MailParams =
@@ -201,6 +223,10 @@ type MailParams =
       payload: WorkflowErrorDigestPayload;
     }
   | {
+      mailEvent: MailEvent.WORKFLOW_DRAFT_REMINDER;
+      payload: WorkflowDraftReminderPayload;
+    }
+  | {
       mailEvent: MailEvent.HOOK_ERROR_DIGEST;
       payload: HookErrorDigestPayload;
     };
@@ -210,5 +236,6 @@ export {
   MailParams,
   RawMailParams,
   WorkflowErrorDigestPayload,
+  WorkflowDraftReminderPayload,
   HookErrorDigestPayload,
 };

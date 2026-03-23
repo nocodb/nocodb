@@ -38,6 +38,10 @@ body {
   @apply !bg-nc-bg-default;
 }
 
+.ant-modal-footer {
+  @apply border-t-nc-border-gray-medium;
+}
+
 .ant-drawer,
 .ant-modal,
 .ant-card {

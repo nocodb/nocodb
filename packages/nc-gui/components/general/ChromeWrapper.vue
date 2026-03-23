@@ -28,7 +28,7 @@ const picked = computed({
 
 <style lang="scss">
 .vc-chrome-body {
-  @apply bg-nc-bg-default;
+  @apply !bg-nc-bg-default;
 
   .vc-input__input {
     @apply rounded-lg border-1 !border-nc-border-gray-extralight shadow-none;

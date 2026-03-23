@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { normalizeHexColour } from 'nocodb-sdk'
+import { isValidHexColour, normalizeHexColour } from 'nocodb-sdk'
 
 interface Props {
   modelValue: string | null | undefined
@@ -21,9 +21,11 @@ const colourMeta = computed(() => {
   }
 })
 
+const isValidHex = computed(() => isValidHexColour(props.modelValue))
+
 const displayValue = computed(() => {
-  const value = props.modelValue || colourMeta.value.defaultColor
-  return normalizeHexColour(value) || '#FFFFFF'
+  if (!props.modelValue) return null
+  return normalizeHexColour(props.modelValue) || null
 })
 
 const sizeClass = computed(() => {
@@ -42,17 +44,17 @@ const shapeClass = computed(() => {
 })
 
 const showSwatch = computed(() => {
-  return colourMeta.value.displayFormat === 'swatch_hex' || colourMeta.value.displayFormat === 'swatch_only'
+  return colourMeta.value.displayFormat !== 'hex_only' && isValidHex.value
 })
 
 const showHex = computed(() => {
-  return colourMeta.value.displayFormat === 'swatch_hex' || colourMeta.value.displayFormat === 'hex_only'
+  return colourMeta.value.displayFormat !== 'swatch_only'
 })
 </script>
 
 <template>
   <div
-    class="nc-cell-field flex items-center gap-2 py-1"
+    class="nc-cell-field flex items-center gap-2 w-full h-full"
     :style="{
       'max-width': '100%',
       'overflow': 'hidden',
@@ -61,12 +63,12 @@ const showHex = computed(() => {
     <div
       v-if="showSwatch && displayValue"
       :class="[sizeClass, shapeClass]"
-      :style="{ backgroundColor: displayValue, border: '1px solid #d0d5dd' }"
-      class="flex-shrink-0"
+      :style="{ backgroundColor: displayValue }"
+      class="flex-shrink-0 border-1 border-gray-300"
     />
 
     <span
-      v-if="showHex && displayValue"
+      v-if="showHex && props.modelValue"
       class="text-sm font-mono truncate"
       :style="{
         'display': '-webkit-box',
@@ -76,7 +78,7 @@ const showHex = computed(() => {
         'overflow': 'hidden',
       }"
     >
-      {{ displayValue }}
+      {{ props.modelValue }}
     </span>
   </div>
 </template>

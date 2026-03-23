@@ -58,10 +58,10 @@ function expandCard() {
     ]"
     @click="expandCard"
   >
-    <!-- Compact mode -->
+    <!-- Compact mode: minimal single-line card -->
     <template v-if="isCompact">
       <div class="flex items-center gap-1 min-h-[22px]">
-        <div class="flex-1 min-w-0 truncate text-xs text-gray-800">
+        <div class="flex-1 min-w-0 truncate text-xs leading-snug text-gray-800">
           <template v-if="primaryField">
             <LazySmartsheetVirtualCell
               v-if="isVirtualCol(primaryField)"
@@ -69,7 +69,7 @@ function expandCard() {
               :column="primaryField"
               :row="row"
               :read-only="true"
-              class="!text-xs truncate"
+              class="!text-xs"
             />
             <LazySmartsheetCell
               v-else
@@ -77,10 +77,10 @@ function expandCard() {
               :column="primaryField"
               :row="row"
               :read-only="true"
-              class="!text-xs truncate"
+              class="!text-xs"
             />
           </template>
-          <span v-else class="text-gray-400 italic text-xs">—</span>
+          <span v-else class="text-gray-400 italic">—</span>
         </div>
         <NcButton
           v-if="!readOnly"

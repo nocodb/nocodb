@@ -193,7 +193,7 @@ const onChangeColor = (color: string) => {
 
 <template>
   <div
-    class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-muted text-bodyDefaultSm !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer rounded-md pr-[3px]"
+    class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle text-bodyDefaultSm !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer rounded-md pr-[3px]"
     :class="{
       '!pl-7.5': !!isDefaultSource,
       '!pl-14': !isDefaultSource,

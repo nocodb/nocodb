@@ -1,12 +1,6 @@
 <script lang="ts" setup>
 import type { NcDropdownPlacement } from '#imports'
 
-defineOptions({ inheritAttrs: false })
-
-// Global z-index counter for backdrop dropdowns — each nested level gets a higher z-index
-const backdropBaseZIndex = 1050
-const activeBackdropCount = ref(0)
-
 const props = withDefaults(
   defineProps<{
     trigger?: Array<'click' | 'hover' | 'contextmenu'>
@@ -43,6 +37,12 @@ const props = withDefaults(
 )
 
 const emits = defineEmits(['update:visible'])
+
+defineOptions({ inheritAttrs: false })
+
+// Global z-index counter for backdrop dropdowns — each nested level gets a higher z-index
+const backdropBaseZIndex = 1050
+const activeBackdropCount = ref(0)
 
 const trigger = toRef(props, 'trigger')
 

@@ -1,87 +1,188 @@
 <script lang="ts" setup>
-import type { ColumnType } from 'nocodb-sdk'
-import { IsPublicInj, MetaInj, ReloadViewDataHookInj, computed, inject, ref, useKanbanViewStore, useRoles } from '#imports'
-
-interface Row {
-  row: Record<string, any>
-  oldRow: Record<string, any>
-  rowMeta: Record<string, any>
-}
+import type { ColumnType, KanbanType } from 'nocodb-sdk'
+import { type Row, isDrawerOrModalExist } from '#imports'
 
 const props = defineProps<{
   row: Row
   fields: ColumnType[]
-  coverImageField?: ColumnType
-  isCompact?: boolean
+  kanbanMetaData?: KanbanType
+  readOnly?: boolean
+  isSortable?: boolean
+  compactMode?: boolean
 }>()
 
-const emits = defineEmits(['expand'])
+const emits = defineEmits(['expand', 'deleteRow', 'unGroupRow', 'reorder'])
 
-const { row, fields, coverImageField, isCompact } = toRefs(props)
+const { row, fields, kanbanMetaData, readOnly, compactMode } = toRefs(props)
 
-const rowData = computed(() => row.value?.row ?? {})
+const { isMobileMode } = useGlobal()
 
-const coverImage = computed(() => {
-  if (!coverImageField?.value) return undefined
-  const val = rowData.value?.[coverImageField.value.title!]
-  if (!val) return undefined
-  try {
-    const attachments = typeof val === 'string' ? JSON.parse(val) : val
-    if (Array.isArray(attachments) && attachments.length > 0) {
-      return attachments[0]?.signedPath || attachments[0]?.url
-    }
-  } catch {}
-  return undefined
+const meta = inject(MetaInj, ref())
+
+const view = inject(ActiveViewInj, ref())
+
+const reloadViewDataHook = inject(ReloadViewDataHookInj)
+
+const { isUIAllowed } = useRoles()
+
+const { getPossibleAttachmentSrc, isImage } = useAttachment()
+
+const { isSynced } = useNocoEe()
+
+// Gather attachment fields
+const attachmentField = computed(() =>
+  fields.value?.find((f) => f.uidt === UITypes.Attachment && (!isSynced.value || f.meta?.ag !== 'count')),
+)
+
+const attachments = computed(() => {
+  if (!attachmentField.value) return []
+  const value = row.value?.row?.[attachmentField.value?.title as string]
+  if (Array.isArray(value)) {
+    return value.filter((attachment) => isImage(attachment.title, attachment.mimetype))
+  }
+  return []
 })
 
-function onExpand() {
-  emits('expand')
+const primaryField = computed(() => fields.value?.find((f) => f.pv))
+
+const fieldsWithoutPrimary = computed(() => {
+  if (compactMode.value) return []
+  return fields.value?.filter((f) => !f.pv && f.uidt !== UITypes.Attachment)
+})
+
+const isCompact = computed(() => compactMode.value || isMobileMode.value)
+
+function expandCard() {
+  if (!isDrawerOrModalExist()) {
+    emits('expand')
+  }
 }
 </script>
 
 <template>
   <div
-    class="nc-kanban-card group cursor-pointer"
-    :class="[isCompact ? 'nc-kanban-card-compact' : 'nc-kanban-card-default']"
-    @click="onExpand"
+    :class="[
+      'nc-kanban-item group relative flex flex-col rounded-md border border-gray-200 bg-white shadow-sm',
+      isCompact ? 'py-1.5 px-2 gap-0.5' : 'py-3 px-3 gap-2',
+      { 'cursor-pointer': !readOnly },
+    ]"
+    @click="expandCard"
   >
-    <!-- Default card layout -->
-    <template v-if="!isCompact">
-      <div v-if="coverImage" class="nc-kanban-card-cover overflow-hidden rounded-t-lg">
-        <img :src="coverImage" class="w-full object-cover" style="max-height: 180px" alt="cover" />
-      </div>
-      <div class="p-3 flex flex-col gap-2">
-        <template v-for="field in fields" :key="field.id">
-          <div class="nc-cell-field-wrapper">
-            <SmartsheetCell
-              :model-value="rowData[field.title!]"
-              :column="field"
-              :edit-enabled="false"
-              :read-only="true"
-              class="pointer-events-none"
-            />
-          </div>
-        </template>
+    <!-- Compact Mode Row -->
+    <template v-if="isCompact">
+      <div class="flex items-center gap-1 w-full">
+        <div class="flex-1 min-w-0 text-xs text-gray-800 font-medium truncate">
+          <LazySmartsheetVirtualCell
+            v-if="primaryField && row.row[primaryField.title!] !== undefined"
+            :model-value="row.row[primaryField.title!]"
+            :column="primaryField"
+            :row="row"
+            read-only
+            class="!text-xs !font-medium truncate"
+          />
+          <LazySmartsheetCell
+            v-else-if="primaryField"
+            :model-value="row.row[primaryField.title!]"
+            :column="primaryField"
+            :row="row"
+            read-only
+            class="!text-xs !font-medium truncate"
+          />
+          <span v-else class="text-gray-400 italic">{{ $t('msg.noData') }}</span>
+        </div>
+        <!-- Actions -->
+        <div
+          v-if="!readOnly"
+          class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+          @click.stop
+        >
+          <NcTooltip placement="bottom">
+            <template #title>{{ $t('activity.expandRow') }}</template>
+            <NcButton
+              size="xsmall"
+              type="text"
+              class="!h-5 !w-5 !min-w-5"
+              @click.stop="emits('expand')"
+            >
+              <component :is="iconMap.expand" class="h-3 w-3" />
+            </NcButton>
+          </NcTooltip>
+        </div>
       </div>
     </template>
 
-    <!-- Compact card layout -->
+    <!-- Normal Mode -->
     <template v-else>
-      <div class="px-2 py-1 flex items-center gap-2 overflow-hidden min-h-[32px]">
-        <template v-for="(field, idx) in fields" :key="field.id">
-          <div
-            class="nc-cell-field-wrapper flex-shrink-0"
-            :class="{ 'border-l pl-2': idx > 0, 'border-gray-200': idx > 0 }"
-          >
-            <SmartsheetCell
-              :model-value="rowData[field.title!]"
-              :column="field"
-              :edit-enabled="false"
-              :read-only="true"
-              class="pointer-events-none !text-sm"
-            />
-          </div>
-        </template>
+      <!-- Attachment preview -->
+      <div v-if="attachments.length" class="overflow-hidden rounded-t-md -mt-3 -mx-3 mb-1">
+        <img
+          :src="getPossibleAttachmentSrc(attachments[0])"
+          class="w-full object-cover max-h-40"
+          alt="attachment"
+        />
+      </div>
+
+      <!-- Primary field -->
+      <div class="flex items-start gap-1">
+        <div class="flex-1 min-w-0 font-medium text-sm text-gray-800">
+          <LazySmartsheetVirtualCell
+            v-if="primaryField && isVirtualCol(primaryField)"
+            :model-value="row.row[primaryField.title!]"
+            :column="primaryField"
+            :row="row"
+            read-only
+          />
+          <LazySmartsheetCell
+            v-else-if="primaryField"
+            :model-value="row.row[primaryField.title!]"
+            :column="primaryField"
+            :row="row"
+            read-only
+          />
+        </div>
+        <!-- Expand button -->
+        <div
+          v-if="!readOnly"
+          class="flex items-center opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+          @click.stop
+        >
+          <NcTooltip placement="bottom">
+            <template #title>{{ $t('activity.expandRow') }}</template>
+            <NcButton
+              size="xsmall"
+              type="text"
+              class="!h-6 !w-6 !min-w-6"
+              @click.stop="emits('expand')"
+            >
+              <component :is="iconMap.expand" class="h-3.5 w-3.5" />
+            </NcButton>
+          </NcTooltip>
+        </div>
+      </div>
+
+      <!-- Other fields -->
+      <div
+        v-for="field in fieldsWithoutPrimary"
+        :key="field.id"
+        class="flex items-start gap-1 text-xs"
+      >
+        <div class="text-gray-500 min-w-[80px] truncate flex-shrink-0">{{ field.title }}</div>
+        <div class="flex-1 min-w-0 text-gray-700">
+          <LazySmartsheetVirtualCell
+            v-if="isVirtualCol(field)"
+            :model-value="row.row[field.title!]"
+            :column="field"
+            :row="row"
+            read-only
+          />
+          <LazySmartsheetCell
+            v-else
+            :model-value="row.row[field.title!]"
+            :column="field"
+            :row="row"
+            read-only
+          />
+        </div>
       </div>
     </template>
   </div>

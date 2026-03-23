@@ -157,6 +157,22 @@ const isConfigValid = computed(() => {
 const isDirty = computed(() => {
   return JSON.stringify(localLevels.value) !== JSON.stringify(levels.value.map((l) => ({ ...l })))
 })
+
+// Auto-save when config is valid and dirty
+const debouncedSave = useDebounceFn(() => {
+  if (isDirty.value && isConfigValid.value && !isLoading.value) {
+    save()
+  }
+}, 500)
+
+watch(
+  () => JSON.stringify(localLevels.value),
+  () => {
+    if (isDirty.value && isConfigValid.value) {
+      debouncedSave()
+    }
+  },
+)
 </script>
 
 <template>
@@ -201,7 +217,7 @@ const isDirty = computed(() => {
     <template #overlay>
       <div
         v-if="open"
-        class="p-4 w-[min(98dvw,384px)] bg-nc-bg-default nc-table-toolbar-menu rounded-lg flex flex-col gap-4"
+        class="p-4 w-[min(98dvw,480px)] bg-nc-bg-default nc-table-toolbar-menu rounded-lg flex flex-col gap-3"
         @click.stop
       >
         <div class="flex items-center justify-between">
@@ -229,13 +245,53 @@ const isDirty = computed(() => {
         </div>
 
         <div class="border-t border-nc-border-gray-medium" />
-        <div class="flex flex-col">
-          <template v-for="(arrIdx, displayIdx) in displayOrder" :key="arrIdx">
-            <div class="flex flex-col gap-2 p-3 rounded-lg border border-nc-border-gray-medium">
-              <div class="flex items-center justify-between">
-                <span class="text-[11px] font-semibold text-nc-content-gray-muted uppercase tracking-wide">
-                  {{ $t('general.levelN', { n: arrIdx + 1 }) }}
-                </span>
+
+        <!-- Compact level rows -->
+        <div class="flex flex-col gap-1.5">
+          <template v-for="(arrIdx, _displayIdx) in displayOrder" :key="arrIdx">
+            <div
+              class="nc-level-row flex items-center gap-2 rounded-lg px-2 py-1.5"
+              :class="arrIdx === 0 ? 'bg-nc-bg-gray-light' : 'hover:bg-nc-bg-gray-light'"
+            >
+              <!-- Level label -->
+              <span class="text-[11px] font-semibold text-nc-content-gray-muted uppercase tracking-wide flex-none w-7">
+                L{{ arrIdx + 1 }}
+              </span>
+
+              <!-- Table selector -->
+              <div class="flex-1 min-w-0">
+                <NcListTableSelector
+                  disable-label
+                  :value="localLevels[arrIdx].fk_model_id"
+                  :disabled="isLocked || arrIdx === 0"
+                  :filter-table="filterTableForLevel(arrIdx)"
+                  dropdown-class="!rounded-md"
+                  default-slot-wrapper-class="!py-1 !px-2 !min-h-7"
+                  @update:value="(val) => onTableSelect(arrIdx, val)"
+                />
+              </div>
+
+              <!-- Link field selector (only for non-leaf levels) -->
+              <template v-if="arrIdx > 0">
+                <GeneralIcon icon="ncArrowRight" class="flex-none h-3.5 w-3.5 text-nc-content-gray-muted" />
+                <div class="flex-1 min-w-0">
+                  <NcListColumnSelector
+                    disable-label
+                    :table-id="localLevels[arrIdx]?.fk_model_id"
+                    :value="localLevels[arrIdx].fk_link_column_id"
+                    :disabled="isLocked || !localLevels[arrIdx]?.fk_model_id || !localLevels[arrIdx - 1]?.fk_model_id"
+                    :filter-column="filterLinkColumnForLevel(localLevels[arrIdx - 1]?.fk_model_id)"
+                    @update:value="
+                      (val) => {
+                        localLevels[arrIdx].fk_link_column_id = val
+                      }
+                    "
+                  />
+                </div>
+              </template>
+
+              <!-- Remove button / info icon -->
+              <div class="flex-none w-5 flex items-center justify-center">
                 <NcTooltip v-if="arrIdx === 0">
                   <template #title>
                     {{ $t('tooltip.levelOneTable') }}
@@ -246,92 +302,16 @@ const isDirty = computed(() => {
                   v-else
                   type="text"
                   size="xxs"
-                  class="!text-nc-content-gray-muted hover:!text-nc-content-red-dark"
+                  class="!text-nc-content-gray-muted hover:!text-nc-content-red-dark !w-5 !h-5 !min-w-0"
                   :disabled="isLocked"
                   @click="removeLevel(arrIdx)"
                 >
                   <GeneralIcon icon="close" class="w-3.5 h-3.5" />
                 </NcButton>
               </div>
-
-              <!-- Table selection -->
-              <NcListTableSelector
-                disable-label
-                :value="localLevels[arrIdx].fk_model_id"
-                :disabled="isLocked || arrIdx === 0"
-                :filter-table="filterTableForLevel(arrIdx)"
-                @update:value="(val) => onTableSelect(arrIdx, val)"
-              />
-            </div>
-
-            <!-- Link connector between levels (dashed line + link field selector) -->
-            <div v-if="displayIdx < displayOrder.length - 1" class="nc-level-connector flex items-stretch ml-7">
-              <div class="w-0 border-l-2 border-dashed border-nc-border-gray-medium" />
-              <div class="py-2 pl-4 flex-1">
-                <NcListColumnSelector
-                  disable-label
-                  :table-id="localLevels[arrIdx]?.fk_model_id"
-                  :value="localLevels[arrIdx].fk_link_column_id"
-                  :disabled="isLocked || !localLevels[arrIdx]?.fk_model_id || !localLevels[arrIdx - 1]?.fk_model_id"
-                  :filter-column="filterLinkColumnForLevel(localLevels[arrIdx - 1]?.fk_model_id)"
-                  @update:value="
-                    (val) => {
-                      localLevels[arrIdx].fk_link_column_id = val
-                    }
-                  "
-                />
-              </div>
             </div>
           </template>
         </div>
-
-        <!-- Enable nested records (for root level) -->
-        <!--
-        <template v-if="localLevels.length > 0">
-          <div class="flex items-center gap-1">
-            <NcSwitch v-model:checked="enableNestedRecords" size="small" class="nc-switch" :disabled="isLocked">
-              <div class="text-sm text-nc-content-gray">
-                {{ $t('labels.enableNestedRecords') || 'Enable nested records' }}
-              </div>
-            </NcSwitch>
-          </div>
-
-          <div v-if="enableNestedRecords" class="nc-level-connector flex items-stretch ml-7">
-            <div class="w-0 border-l-2 border-dashed border-nc-border-gray-medium" />
-            <div class="py-2 pl-4 flex-1">
-              <NcListColumnSelector
-                disable-label
-                :table-id="localLevels[0]?.fk_model_id"
-                :value="localLevels[0]?.fk_self_link_column_id"
-                :disabled="isLocked"
-                :filter-column="filterSelfLinkColumn"
-                @update:value="(val) => { if (localLevels[0]) localLevels[0].fk_self_link_column_id = val }"
-              />
-            </div>
-          </div>
-        </template>
-        -->
-
-        <!-- Save button (visible when dirty) -->
-        <NcButton
-          v-if="isDirty"
-          type="primary"
-          size="small"
-          class="w-full"
-          :loading="isLoading"
-          :disabled="isLocked || !isConfigValid"
-          @click="save"
-        >
-          {{ $t('general.save') || 'Save' }}
-        </NcButton>
-
-        <!--        <div class="flex items-center gap-1 pt-1">
-          <NcSwitch v-model:checked="_hideEmptySections" size="small" class="nc-switch" :disabled="isLocked">
-            <div class="text-sm text-nc-content-gray">
-              {{ $t('labels.hideEmptySections') || 'Hide empty sections' }}
-            </div>
-          </NcSwitch>
-        </div> -->
 
         <GeneralLockedViewFooter v-if="isLocked" class="-mb-4 -mx-4" @on-open="open = false" />
       </div>

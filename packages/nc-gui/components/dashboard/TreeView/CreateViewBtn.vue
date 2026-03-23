@@ -20,7 +20,8 @@ const { showUpgradeToUseListView } = viewsStore
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
-const { blockMapView, blockTimelineView, showEEFeatures, showUpgradeToUseMapView, showUpgradeToUseTimelineView } = useEeConfig()
+const { blockListView, blockMapView, blockTimelineView, showEEFeatures, showUpgradeToUseMapView, showUpgradeToUseTimelineView } =
+  useEeConfig()
 
 const table = inject(SidebarTableInj)!
 const base = inject(ProjectInj)!
@@ -224,7 +225,17 @@ async function onOpenModal({
                 <NcBadgeBeta />
               </div>
 
-              <GeneralLoader v-if="toBeCreateType === ViewTypes.LIST && isViewListLoading" />
+              <template v-if="blockListView">
+                <PaymentUpgradeBadge
+                  :feature="PlanFeatureTypes.FEATURE_LIST_VIEW"
+                  :plan-title="PlanTitles.BUSINESS"
+                  remove-click
+                  show-as-lock
+                />
+              </template>
+              <template v-else>
+                <GeneralLoader v-if="toBeCreateType === ViewTypes.LIST && isViewListLoading" />
+              </template>
             </div>
           </NcMenuItem>
         </NcTooltip>

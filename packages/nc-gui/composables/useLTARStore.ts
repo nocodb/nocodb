@@ -275,7 +275,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       FieldsInj,
       (_fields) => {
         return (relatedTableMeta.value.columns ?? [])
-          .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
+          .filter((col) => {
+            // Hiding lookup field from dropdown as we don't send lookup field info in list response due to performance reasons
+            return !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col) && !isLookup(col)
+          })
           .sort((a, b) => {
             if (isPublic.value) {
               return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)

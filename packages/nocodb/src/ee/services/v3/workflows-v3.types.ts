@@ -15,7 +15,6 @@ export type WorkflowV3ListItemType = {
   base_id: string;
   workspace_id: string;
   enabled: boolean;
-  order: number;
   created_at: string;
   updated_at: string;
   created_by: string;
@@ -37,7 +36,6 @@ export type WorkflowV3GetResponseType = {
   edges: WorkflowGeneralEdge[];
   draft: Record<string, unknown>;
   options: WorkflowV3OptionsType;
-  order: number;
   created_at: string;
   updated_at: string;
   created_by: string;
@@ -55,7 +53,6 @@ export type WorkflowV3UpdateReqType = {
   description?: string;
   enabled?: boolean;
   options?: WorkflowV3OptionsType;
-  order?: number;
 };
 
 export type WorkflowV3ExecuteReqType = {

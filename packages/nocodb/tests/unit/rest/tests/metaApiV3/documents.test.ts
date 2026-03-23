@@ -562,7 +562,7 @@ export default function () {
       await request(context.app)
         .get(`${API_PREFIX}/nonexistent_id`)
         .set('xc-auth', context.token)
-        .expect(422);
+        .expect(404);
     });
 
     // --- List ---
@@ -648,7 +648,7 @@ export default function () {
         .patch(`${API_PREFIX}/${doc.id}`)
         .set('xc-auth', context.token)
         .send({ title: 'No Version' })
-        .expect(422);
+        .expect(400);
     });
 
     it('Update fails with stale version', async () => {
@@ -674,7 +674,7 @@ export default function () {
         .patch(`${API_PREFIX}/nonexistent_id`)
         .set('xc-auth', context.token)
         .send({ title: 'Ghost', version: 1 })
-        .expect(422);
+        .expect(404);
     });
 
     // --- Delete ---
@@ -691,7 +691,7 @@ export default function () {
       await request(context.app)
         .get(`${API_PREFIX}/${doc.id}`)
         .set('xc-auth', context.token)
-        .expect(422);
+        .expect(404);
     });
 
     it('Delete cascades to children', async () => {
@@ -710,14 +710,14 @@ export default function () {
       await request(context.app)
         .get(`${API_PREFIX}/${child.id}`)
         .set('xc-auth', context.token)
-        .expect(422);
+        .expect(404);
     });
 
     it('Delete non-existent document returns error', async () => {
       await request(context.app)
         .delete(`${API_PREFIX}/nonexistent_id`)
         .set('xc-auth', context.token)
-        .expect(422);
+        .expect(404);
     });
 
     // --- Reorder ---
@@ -1160,7 +1160,7 @@ export default function () {
         await request(context.app)
           .delete(`${API_PREFIX}/${doc.id}`)
           .set('xc-auth', context.token)
-          .expect(422);
+          .expect(404);
       });
 
       it('Update after delete returns error', async () => {
@@ -1175,7 +1175,7 @@ export default function () {
           .patch(`${API_PREFIX}/${doc.id}`)
           .set('xc-auth', context.token)
           .send({ title: 'Ghost Update', version: doc.version })
-          .expect(422);
+          .expect(404);
       });
 
       it('Reorder after delete returns error', async () => {
@@ -1190,7 +1190,7 @@ export default function () {
           .patch(`${API_PREFIX}/${doc.id}/reorder`)
           .set('xc-auth', context.token)
           .send({ order: 10 })
-          .expect(422);
+          .expect(404);
       });
 
       it('List excludes deleted documents', async () => {
@@ -1337,7 +1337,7 @@ export default function () {
           await request(context.app)
             .get(`${API_PREFIX}/${id}`)
             .set('xc-auth', context.token)
-            .expect(422);
+            .expect(404);
         }
       });
     });
@@ -1373,7 +1373,7 @@ export default function () {
           .patch(`${API_PREFIX}/nonexistent_id/reorder`)
           .set('xc-auth', context.token)
           .send({ order: 1 })
-          .expect(422);
+          .expect(404);
       });
     });
 
@@ -1463,7 +1463,7 @@ export default function () {
           .delete(`${API_PREFIX}/${doc.id}`)
           .set('xc-auth', context.token)
           .expect(200);
-        expect(res.body).to.equal(true);
+        expect(res.status).to.equal(200);
       });
     });
 

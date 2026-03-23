@@ -70,7 +70,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  const { blockCardFieldHeaderVisibility, showEEFeatures } = useEeConfig()
+  const { blockCardFieldHeaderVisibility, blockListView, showUpgradeToUseListView, showEEFeatures } = useEeConfig()
 
   const route = router.currentRoute
 
@@ -213,7 +213,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     return parseProp((activeView.value?.view as GalleryType | KanbanType)?.meta)?.is_field_header_visible ?? true
   })
 
-  const isListViewEnabled = computed(() => isEeUI && isFeatureEnabled(FEATURE_FLAG.LIST_VIEW))
+  const isListViewEnabled = computed(() => isEeUI && showEEFeatures.value)
 
   const isShowEveryonePersonalViewsEnabled = computed({
     get: () => {
@@ -1447,6 +1447,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
     getCopyViewConfigBtnAccessStatus,
     isShowEveryonePersonalViewsEnabled,
     isListViewEnabled,
+    blockListView,
+    showUpgradeToUseListView,
   }
 })
 

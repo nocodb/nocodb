@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { IconType } from 'nocodb-sdk'
+import { IconType, PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -18,7 +18,9 @@ const workspaceStore = useWorkspace()
 
 const { createTeam: _createTeam } = workspaceStore
 
-const { teams, activeWorkspaceId, isTeamsHierarchyEnabled } = storeToRefs(workspaceStore)
+const { teams, activeWorkspaceId } = storeToRefs(workspaceStore)
+
+const { blockTeamHierarchy } = useEeConfig()
 
 const inputEl = ref<HTMLInputElement>()
 
@@ -235,39 +237,52 @@ watch(vVisible, (newValue) => {
             </div>
           </a-form-item>
 
-          <a-form-item v-if="isTeamsHierarchyEnabled" class="!mb-0">
-            <div class="flex gap-3 text-nc-content-gray h-7 mb-1 items-center">
-              <span class="text-bodyDefaultSm">
-                {{ $t('labels.parentTeam') }}
-              </span>
-            </div>
-            <NcSelect
-              v-model:value="formState.parent_team_id"
-              :placeholder="$t('general.none')"
-              allow-clear
-              show-search
-              :filter-option="(input: string, option: any) => option['data-label']?.toLowerCase().includes(input.toLowerCase())"
-              class="w-full nc-select-shadow"
-              data-testid="create-team-parent-select"
-              dropdown-class-name="nc-dropdown-create-team-parent"
-            >
-              <a-select-option v-for="team in parentTeamOptions" :key="team.id" :value="team.id" :data-label="team.title">
-                <div class="flex items-center gap-2" :style="{ paddingLeft: `${(team.depth ?? 0) * 16}px` }">
-                  <GeneralTeamIcon :team="team" class="!w-5 !h-5 !min-w-5 flex-none !rounded-md" />
-                  <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                    <template #title>{{ team.title }}</template>
-                    {{ team.title }}
-                  </NcTooltip>
-                  <component
-                    :is="iconMap.check"
-                    v-if="formState.parent_team_id === team.id"
-                    id="nc-selected-item-icon"
-                    class="text-primary w-4 h-4 flex-none"
+          <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TEAM_HIERARCHY">
+            <template #default="{ click }">
+              <a-form-item class="!mb-0">
+                <div class="flex gap-3 text-nc-content-gray h-7 mb-1 items-center">
+                  <span class="text-bodyDefaultSm">
+                    {{ $t('labels.parentTeam') }}
+                  </span>
+                  <PaymentUpgradeBadge
+                    :feature="PlanFeatureTypes.FEATURE_TEAM_HIERARCHY"
+                    :title="$t('upgrade.upgradeToUseTeamHierarchy')"
+                    :content="$t('upgrade.upgradeToUseTeamHierarchySubtitle', { plan: PlanTitles.ENTERPRISE })"
                   />
                 </div>
-              </a-select-option>
-            </NcSelect>
-          </a-form-item>
+                <NcSelect
+                  v-model:value="formState.parent_team_id"
+                  :placeholder="$t('general.none')"
+                  allow-clear
+                  show-search
+                  :disabled="blockTeamHierarchy"
+                  :filter-option="
+                    (input: string, option: any) => option['data-label']?.toLowerCase().includes(input.toLowerCase())
+                  "
+                  class="w-full nc-select-shadow"
+                  data-testid="create-team-parent-select"
+                  dropdown-class-name="nc-dropdown-create-team-parent"
+                  @click="click(PlanFeatureTypes.FEATURE_TEAM_HIERARCHY, () => {})"
+                >
+                  <a-select-option v-for="team in parentTeamOptions" :key="team.id" :value="team.id" :data-label="team.title">
+                    <div class="flex items-center gap-2" :style="{ paddingLeft: `${(team.depth ?? 0) * 16}px` }">
+                      <GeneralTeamIcon :team="team" class="!w-5 !h-5 !min-w-5 flex-none !rounded-md" />
+                      <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                        <template #title>{{ team.title }}</template>
+                        {{ team.title }}
+                      </NcTooltip>
+                      <component
+                        :is="iconMap.check"
+                        v-if="formState.parent_team_id === team.id"
+                        id="nc-selected-item-icon"
+                        class="text-primary w-4 h-4 flex-none"
+                      />
+                    </div>
+                  </a-select-option>
+                </NcSelect>
+              </a-form-item>
+            </template>
+          </PaymentUpgradeBadgeProvider>
 
           <a-form-item v-if="enableDescription" v-bind="validateInfos.description" class="!mb-0">
             <div class="flex gap-3 text-nc-content-gray h-7 mb-1 items-center justify-between">

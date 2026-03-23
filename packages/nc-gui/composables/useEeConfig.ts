@@ -94,6 +94,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockColourField = computed(() => true)
 
+  const blockTeamHierarchy = computed(() => true)
+
   const blockTeamsManagement = computed(() => true)
 
   const blockAddNewTeamToWs = computed(() => true)
@@ -108,6 +110,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   // UUID field is EE-only — always blocked in CE
   const blockUuidField = computed(() => true)
+
+  const blockListView = computed(() => true)
 
   const blockMapView = computed(() => true)
 
@@ -212,6 +216,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseColourField = (..._args: any[]) => {}
 
+  const showUpgradeToUseTeamHierarchy = (..._args: any[]) => {}
+
   const showUpgradeToUseTeams = (..._args: any[]) => {}
 
   const showUpgradeToAddMoreTeams = (..._args: any[]) => {}
@@ -237,6 +243,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseViewSections = (..._args: any[]) => {}
 
   const showSandboxPlanLimitExceededModal = (..._args: any[]) => {}
+  const showUpgradeToUseListView = (..._args: any[]) => {}
+
   const showUpgradeToUseMapView = (..._args: any[]) => {}
 
   const isEEFeatureBlocked = computed(() => true)
@@ -338,6 +346,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseButtonVisibility,
     blockColourField,
     showUpgradeToUseColourField,
+    blockTeamHierarchy,
+    showUpgradeToUseTeamHierarchy,
     blockTeamsManagement,
     showUpgradeToUseTeams,
     blockAddNewTeamToWs,
@@ -360,6 +370,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseFormScheduling,
     blockViewSections,
     showUpgradeToUseViewSections,
+    blockListView,
+    showUpgradeToUseListView,
     blockMapView,
     showUpgradeToUseMapView,
     isEEFeatureBlocked,

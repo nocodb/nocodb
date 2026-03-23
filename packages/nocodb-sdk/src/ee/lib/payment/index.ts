@@ -65,11 +65,13 @@ export const PlanFeatureTypesToPlanTitles: Record<
   [PlanFeatureTypes.FEATURE_UNIQUE]: PlanTitles.BUSINESS,
   [PlanFeatureTypes.FEATURE_RLS]: PlanTitles.BUSINESS,
   [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: PlanTitles.BUSINESS,
+  [PlanFeatureTypes.FEATURE_LIST_VIEW]: PlanTitles.BUSINESS,
   [PlanFeatureTypes.FEATURE_MAP_VIEW]: PlanTitles.BUSINESS,
   [PlanFeatureTypes.FEATURE_TIMELINE_VIEW]: PlanTitles.BUSINESS,
   [PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS]: PlanTitles.BUSINESS,
 
   // Enterprise features
+  [PlanFeatureTypes.FEATURE_TEAM_HIERARCHY]: PlanTitles.ENTERPRISE,
   [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: PlanTitles.ENTERPRISE,
   [PlanFeatureTypes.FEATURE_SSO]: PlanTitles.ENTERPRISE,
   [PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WS]: PlanTitles.ENTERPRISE,

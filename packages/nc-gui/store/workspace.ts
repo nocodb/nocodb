@@ -347,7 +347,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isTeamsEnabled = computed(() => false)
 
-  const isTeamsHierarchyEnabled = computed(() => false)
 
   const teams = ref([])
 
@@ -467,7 +466,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     addTeamMembers,
     removeTeamMembers,
     updateTeamMembers,
-    isTeamsHierarchyEnabled,
 
     // Workspace Teams
     isLoadingWorkspaceTeams,

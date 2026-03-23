@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 import type { TeamV3V3Type } from 'nocodb-sdk'
 import type { NcConfirmModalProps } from '~/components/nc/ModalConfirm.vue'
 
@@ -38,8 +39,9 @@ const hasEditPermission = computed(() => {
 
 const workspaceStore = useWorkspace()
 
-const { teams, isTeamsLoading, collaboratorsMap, activeWorkspace, isTeamsEnabled, isTeamsHierarchyEnabled } =
-  storeToRefs(workspaceStore)
+const { teams, isTeamsLoading, collaboratorsMap, activeWorkspace, isTeamsEnabled } = storeToRefs(workspaceStore)
+
+const { blockTeamHierarchy, showUpgradeToUseTeamHierarchy } = useEeConfig()
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateUserSort } = useUserSorts('Teams')
 
@@ -517,12 +519,24 @@ onMounted(async () => {
                     {{ $t('general.edit') }}
                   </NcMenuItem>
                   <NcMenuItem
-                    v-if="(record.is_owner || isWsOwner) && (record.depth ?? 0) < 3 && isTeamsHierarchyEnabled"
+                    v-if="(record.is_owner || isWsOwner) && (record.depth ?? 0) < 3"
                     v-e="['c:team:add-sub-team', { teamId: record.id }]"
-                    @click="handleCreateSubTeam(record as TeamV3V3Type)"
+                    @click="
+                      showUpgradeToUseTeamHierarchy({
+                        successCallback: () => handleCreateSubTeam(record as TeamV3V3Type),
+                      })
+                    "
                   >
-                    <GeneralIcon icon="plus" class="h-4 w-4" />
-                    {{ $t('labels.addSubTeam') }}
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon icon="plus" class="h-4 w-4" />
+                      {{ $t('labels.addSubTeam') }}
+                      <PaymentUpgradeBadge
+                        v-if="blockTeamHierarchy"
+                        :feature="PlanFeatureTypes.FEATURE_TEAM_HIERARCHY"
+                        :title="$t('upgrade.upgradeToUseTeamHierarchy')"
+                        :content="$t('upgrade.upgradeToUseTeamHierarchySubtitle', { plan: PlanTitles.ENTERPRISE })"
+                      />
+                    </div>
                   </NcMenuItem>
                   <NcTooltip
                     v-if="record.is_member"

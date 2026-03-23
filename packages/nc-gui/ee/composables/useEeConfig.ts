@@ -298,11 +298,14 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_COLOUR_FIELD)
   })
 
-  const blockTeamsManagement = computed(() => {
+  const blockTeamHierarchy = computed(() => {
     if (isEEFeatureBlocked.value) return true
 
-    // Teams api allow only in paid plan, so better to mark it as block so that we don't call the api
-    if (!isPaymentEnabled.value && !isOnPrem.value) return true
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TEAM_HIERARCHY)
+  })
+
+  const blockTeamsManagement = computed(() => {
+    if (isEEFeatureBlocked.value) return true
 
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT)
   })
@@ -352,6 +355,12 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockViewSections = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_VIEW_SECTIONS)
+  })
+
+  const blockListView = computed(() => {
+    if (isEEFeatureBlocked.value) return true
+
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_LIST_VIEW)
   })
 
   const blockMapView = computed(() => {
@@ -1514,6 +1523,29 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseTeamHierarchy = ({
+    callback,
+    successCallback,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    if (!blockTeamHierarchy.value) {
+      successCallback?.()
+
+      return
+    }
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseTeamHierarchy'),
+      content: t('upgrade.upgradeToUseTeamHierarchySubtitle', {
+        plan: PlanTitles.ENTERPRISE,
+      }),
+      callback,
+      requiredPlan: PlanTitles.ENTERPRISE,
+      limitOrFeature: PlanFeatureTypes.FEATURE_TEAM_HIERARCHY,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseTeams = ({
     callback,
     successCallback,
@@ -1748,6 +1780,29 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseListView = ({
+    callback,
+    successCallback,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    if (!blockListView.value) {
+      successCallback?.()
+
+      return
+    }
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseListView'),
+      content: t('upgrade.upgradeToUseListViewSubtitle', {
+        plan: PlanTitles.BUSINESS,
+      }),
+      callback,
+      requiredPlan: PlanTitles.BUSINESS,
+      limitOrFeature: PlanFeatureTypes.FEATURE_LIST_VIEW,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseMapView = ({
     callback,
     successCallback,
@@ -1911,6 +1966,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseButtonVisibility,
     blockColourField,
     showUpgradeToUseColourField,
+    blockTeamHierarchy,
+    showUpgradeToUseTeamHierarchy,
     blockTeamsManagement,
     showUpgradeToUseTeams,
     blockAddNewTeamToWs,
@@ -1935,6 +1992,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseFormScheduling,
     blockViewSections,
     showUpgradeToUseViewSections,
+    blockListView,
+    showUpgradeToUseListView,
     blockMapView,
     showUpgradeToUseMapView,
     isEEFeatureBlocked,

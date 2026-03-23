@@ -183,28 +183,29 @@ export class WorkflowsV3Controller {
 
   // --- Node CRUD routes ---
 
-  @Get(`${PREFIX_APIV3_METABASE}/workflows/:workflowId/nodes`)
-  @Acl('workflowGet', { scope: 'base' })
-  async workflowNodeList(
-    @TenantContext() context: NcContext,
-    @Param('workflowId') workflowId: string,
-  ): Promise<WorkflowNodeV3ListResponseType> {
-    return await this.workflowsV3Service.workflowNodeList(context, workflowId);
-  }
+  // TODO: need to improve validation & flow first
+  // @Get(`${PREFIX_APIV3_METABASE}/workflows/:workflowId/nodes`)
+  // @Acl('workflowGet', { scope: 'base' })
+  // async workflowNodeList(
+  //   @TenantContext() context: NcContext,
+  //   @Param('workflowId') workflowId: string,
+  // ): Promise<WorkflowNodeV3ListResponseType> {
+  //   return await this.workflowsV3Service.workflowNodeList(context, workflowId);
+  // }
 
-  @Get(`${PREFIX_APIV3_METABASE}/workflows/:workflowId/nodes/:nodeId`)
-  @Acl('workflowGet', { scope: 'base' })
-  async workflowNodeGet(
-    @TenantContext() context: NcContext,
-    @Param('workflowId') workflowId: string,
-    @Param('nodeId') nodeId: string,
-  ): Promise<WorkflowNodeV3ResponseType> {
-    return await this.workflowsV3Service.workflowNodeGet(
-      context,
-      workflowId,
-      nodeId,
-    );
-  }
+  // @Get(`${PREFIX_APIV3_METABASE}/workflows/:workflowId/nodes/:nodeId`)
+  // @Acl('workflowGet', { scope: 'base' })
+  // async workflowNodeGet(
+  //   @TenantContext() context: NcContext,
+  //   @Param('workflowId') workflowId: string,
+  //   @Param('nodeId') nodeId: string,
+  // ): Promise<WorkflowNodeV3ResponseType> {
+  //   return await this.workflowsV3Service.workflowNodeGet(
+  //     context,
+  //     workflowId,
+  //     nodeId,
+  //   );
+  // }
 
   // TODO: need to improve validation & flow first
   // @Post(`${PREFIX_APIV3_METABASE}/workflows/:workflowId/nodes`)

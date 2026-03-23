@@ -208,6 +208,7 @@ watch(visible, async (val) => {
     await loadTableMeta(props.tableId)
     const initial = rule.value ? { ...defaultForm, ...rule.value } : { ...defaultForm }
     initial.dependency_buffer_days = Number(initial.dependency_buffer_days) || 0
+
     Object.assign(form, initial)
     savedForm.value = { ...initial }
     saveError.value = ''
@@ -218,29 +219,15 @@ watch(visible, async (val) => {
 <template>
   <NcModal v-model:visible="visible" size="sm" height="auto" wrap-class-name="nc-modal-date-dependency">
     <template #header>
-      <div class="flex items-center justify-between w-full">
-        <span class="text-heading3">
-          {{ $t('labels.dateDependency.title') }}
-        </span>
-
-        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY">
-          <template #default="{ click }">
-            <NcSwitch
-              v-model:checked="form.is_active"
-              v-e="['c:date-dependency:toggle']"
-              size="small"
-              @click="click(PlanFeatureTypes.FEATURE_DATE_DEPENDENCY, () => {})"
-            />
-            <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY" />
-          </template>
-        </PaymentUpgradeBadgeProvider>
-      </div>
+      <span class="text-heading3">
+        {{ $t('labels.dateDependency.title') }}
+      </span>
     </template>
 
     <div class="flex flex-col" style="min-height: 200px; max-height: 70vh">
       <div class="flex-1 overflow-y-auto px-1 pb-2">
         <!-- Description -->
-        <p class="text-body text-nc-content-gray-subtle mb-5">
+        <p class="text-bodySm text-nc-content-gray-subtle mb-4">
           {{ $t('labels.dateDependency.description') }}
           <a
             href="https://docs.nocodb.com/features/date-dependencies"
@@ -251,6 +238,25 @@ watch(visible, async (val) => {
             {{ $t('labels.dateDependency.learnMore') }}
           </a>
         </p>
+
+        <!-- Enable toggle -->
+        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY">
+          <template #default="{ click }">
+            <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-nc-bg-gray-light mb-5">
+              <span class="text-bodySm font-semibold text-nc-content-gray-subtle">
+                {{ $t('labels.dateDependency.isActive') }}
+              </span>
+              <div class="flex items-center gap-2">
+                <NcSwitch
+                  v-model:checked="form.is_active"
+                  v-e="['c:date-dependency:toggle']"
+                  @click="click(PlanFeatureTypes.FEATURE_DATE_DEPENDENCY, () => {})"
+                />
+                <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY" />
+              </div>
+            </div>
+          </template>
+        </PaymentUpgradeBadgeProvider>
 
         <template v-if="form.is_active">
           <!-- Field Mapping -->
@@ -405,7 +411,7 @@ watch(visible, async (val) => {
           <!-- Include Weekends -->
           <div class="flex items-center gap-2 mb-4">
             <NcSwitch v-model:checked="form.include_weekends" size="small" />
-            <span class="text-bodySm text-nc-content-gray">{{ $t('labels.dateDependency.includeWeekends') }}</span>
+            <span class="text-bodySm text-nc-content-gray-subtle">{{ $t('labels.dateDependency.includeWeekends') }}</span>
             <NcTooltip>
               <template #title>{{ $t('labels.dateDependency.includeWeekendsHint') }}</template>
               <GeneralIcon icon="info" class="text-nc-content-gray-subtle w-3.5 h-3.5 cursor-help" />
@@ -506,10 +512,6 @@ watch(visible, async (val) => {
           </template>
         </template>
 
-        <!-- Disabled state message -->
-        <div v-if="!form.is_active" class="flex items-center justify-center py-8 text-bodySm text-nc-content-gray-subtle">
-          {{ $t('labels.dateDependency.disabledMessage') }}
-        </div>
       </div>
 
       <!-- Save status bar -->
@@ -534,7 +536,7 @@ watch(visible, async (val) => {
 // ── Consistent typography tokens for the modal ──
 // Label: 13px/semibold — field labels, section field labels
 .nc-date-dep-label {
-  @apply text-bodySm font-semibold text-nc-content-gray mb-1;
+  @apply text-bodySm font-semibold text-nc-content-gray-subtle mb-1;
 }
 
 // Hint: 12px/normal — helper text below inputs

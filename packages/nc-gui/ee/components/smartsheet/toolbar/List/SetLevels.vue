@@ -277,6 +277,7 @@ watch(
                 <div class="flex-1 min-w-0">
                   <NcListColumnSelector
                     disable-label
+                    auto-select
                     :table-id="localLevels[arrIdx]?.fk_model_id"
                     :value="localLevels[arrIdx].fk_link_column_id"
                     :disabled="isLocked || !localLevels[arrIdx]?.fk_model_id || !localLevels[arrIdx - 1]?.fk_model_id"

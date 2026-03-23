@@ -271,7 +271,7 @@ export function useCanvasRender({
     let x = indent - scrollLeft.value
     const isHeaderHovered = mousePosition.y >= 0 && mousePosition.y < hh
 
-    ctx.font = '700 11px Inter'
+    ctx.font = '700 10px Inter'
     ctx.textBaseline = 'middle'
 
     for (let ci = 0; ci < cols.length; ci++) {
@@ -290,6 +290,14 @@ export function useCanvasRender({
 
       x += w
     }
+
+    // Bottom border — matches sub-header separator line
+    ctx.strokeStyle = colors.borderLight
+    ctx.lineWidth = 0.5
+    ctx.beginPath()
+    ctx.moveTo(indent - scrollLeft.value, hh - 0.5)
+    ctx.lineTo(width.value, hh - 0.5)
+    ctx.stroke()
   }
 
   function renderSubHeader(ctx: CanvasRenderingContext2D, depth: number, screenY: number, colors: ReturnType<typeof getColors>) {

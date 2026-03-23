@@ -1,6 +1,6 @@
 // Row dimensions
 export const LIST_ROW_HEIGHT = 40
-export const LIST_HEADER_HEIGHT = 32
+export const LIST_HEADER_HEIGHT = 28
 
 // Sub-header row (column headers shown when expanding into a child level)
 export const SUB_HEADER_HEIGHT = 28

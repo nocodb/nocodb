@@ -213,22 +213,6 @@ export class WorkflowsV3Service {
     return await this.workflowsService.deleteWorkflow(context, id, req);
   }
 
-  async workflowDuplicate(
-    context: NcContext,
-    id: string,
-    req: NcRequest,
-  ): Promise<WorkflowV3GetResponseType> {
-    await this.validateFeatureAccess(context);
-
-    const workflow = await this.workflowsService.duplicateWorkflow(
-      context,
-      id,
-      req,
-    );
-
-    return workflowBuilder().build(workflow);
-  }
-
   async workflowPublish(
     context: NcContext,
     id: string,

@@ -18,11 +18,13 @@ import type {
   // WorkflowNodeV3CreateReqType,
   WorkflowNodeV3ListResponseType,
   WorkflowNodeV3ResponseType,
+  WorkflowV3GetResponseType,
+  WorkflowV3ListResponseType,
+} from '~/services/v3/workflows-v3.types';
+import {
   // WorkflowNodeV3UpdateReqType,
   WorkflowV3CreateReqType,
   WorkflowV3ExecuteReqType,
-  WorkflowV3GetResponseType,
-  WorkflowV3ListResponseType,
   // WorkflowV3TestNodeReqType,
   WorkflowV3UpdateReqType,
 } from '~/services/v3/workflows-v3.types';
@@ -90,21 +92,6 @@ export class WorkflowsV3Controller {
     @Request() req: NcRequest,
   ): Promise<boolean> {
     return await this.workflowsV3Service.workflowDelete(
-      context,
-      workflowId,
-      req,
-    );
-  }
-
-  @Post(`${PREFIX_APIV3_METABASE}/workflows/:workflowId/duplicate`)
-  @HttpCode(200)
-  @Acl('workflowDuplicate', { scope: 'base' })
-  async workflowDuplicate(
-    @TenantContext() context: NcContext,
-    @Param('workflowId') workflowId: string,
-    @Request() req: NcRequest,
-  ): Promise<WorkflowV3GetResponseType> {
-    return await this.workflowsV3Service.workflowDuplicate(
       context,
       workflowId,
       req,
@@ -179,9 +166,7 @@ export class WorkflowsV3Controller {
     );
   }
 
-  @Get(
-    `${PREFIX_APIV3_METABASE}/workflows/:workflowId/executions/:executionId`,
-  )
+  @Get(`${PREFIX_APIV3_METABASE}/workflows/:workflowId/executions/:executionId`)
   @Acl('workflowExecutionGet', { scope: 'base' })
   async workflowExecutionGet(
     @TenantContext() context: NcContext,

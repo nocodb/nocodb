@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { IconType, PlanFeatureTypes } from 'nocodb-sdk'
+import { IconType, PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -244,7 +244,11 @@ watch(vVisible, (newValue) => {
                   <span class="text-bodyDefaultSm">
                     {{ $t('labels.parentTeam') }}
                   </span>
-                  <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_TEAM_HIERARCHY" />
+                  <PaymentUpgradeBadge
+                    :feature="PlanFeatureTypes.FEATURE_TEAM_HIERARCHY"
+                    :title="$t('upgrade.upgradeToUseTeamHierarchy')"
+                    :content="$t('upgrade.upgradeToUseTeamHierarchySubtitle', { plan: PlanTitles.ENTERPRISE })"
+                  />
                 </div>
                 <NcSelect
                   v-model:value="formState.parent_team_id"

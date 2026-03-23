@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PlanFeatureTypes } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 import type { TeamV3V3Type } from 'nocodb-sdk'
 import type { NcConfirmModalProps } from '~/components/nc/ModalConfirm.vue'
 
@@ -530,7 +530,12 @@ onMounted(async () => {
                     <div class="flex items-center gap-2">
                       <GeneralIcon icon="plus" class="h-4 w-4" />
                       {{ $t('labels.addSubTeam') }}
-                      <PaymentUpgradeBadge v-if="blockTeamHierarchy" :feature="PlanFeatureTypes.FEATURE_TEAM_HIERARCHY" />
+                      <PaymentUpgradeBadge
+                        v-if="blockTeamHierarchy"
+                        :feature="PlanFeatureTypes.FEATURE_TEAM_HIERARCHY"
+                        :title="$t('upgrade.upgradeToUseTeamHierarchy')"
+                        :content="$t('upgrade.upgradeToUseTeamHierarchySubtitle', { plan: PlanTitles.ENTERPRISE })"
+                      />
                     </div>
                   </NcMenuItem>
                   <NcTooltip

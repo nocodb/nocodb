@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { IconType, PlanFeatureTypes } from 'nocodb-sdk'
+import { IconType, PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
 interface Props {
   team: TeamType
@@ -284,7 +284,11 @@ watch(
         <div class="mt-4">
           <div class="text-bodyDefaultSm text-nc-content-gray mb-2 flex items-center gap-2">
             {{ $t('labels.parentTeam') }}
-            <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_TEAM_HIERARCHY" />
+            <PaymentUpgradeBadge
+              :feature="PlanFeatureTypes.FEATURE_TEAM_HIERARCHY"
+              :title="$t('upgrade.upgradeToUseTeamHierarchy')"
+              :content="$t('upgrade.upgradeToUseTeamHierarchySubtitle', { plan: PlanTitles.ENTERPRISE })"
+            />
           </div>
           <div class="flex items-center gap-2">
             <NcSelect

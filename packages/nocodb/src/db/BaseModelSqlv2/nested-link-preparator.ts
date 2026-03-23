@@ -316,6 +316,129 @@ export class NestedLinkPreparator {
               }
             }
             break;
+          case RelationTypes.ONE_TO_MANY: {
+            // V2 OM uses junction table like MM — expects array input
+            if (!Array.isArray(nestedData)) continue;
+            postInsertOps.push(async (rowId) => {
+              const parentModel = await colOptions
+                .getParentColumn(baseModel.context)
+                .then((c) => c.getModel(baseModel.context));
+              await parentModel.getColumns(baseModel.context);
+              const parentMMCol = await colOptions.getMMParentColumn(
+                baseModel.context,
+              );
+              const childMMCol = await colOptions.getMMChildColumn(
+                baseModel.context,
+              );
+              const mmModel = await colOptions.getMMModel(baseModel.context);
+
+              const rows = nestedData.map((r) => ({
+                [parentMMCol.column_name]: extractIdPropIfObjectOrReturn(
+                  r,
+                  parentModel.primaryKey.title,
+                ),
+                [childMMCol.column_name]: rowId,
+              }));
+              return baseModel
+                .dbDriver(baseModel.getTnPath(mmModel.table_name))
+                .insert(rows)
+                .toQuery();
+            });
+
+            for (const nestedDataObj of nestedData) {
+              if (nestedDataObj === undefined) continue;
+
+              postInsertAuditEntries.push({
+                columnTitle: col.title,
+                columnId: col.id,
+                refColumnTitle: refChildCol.title,
+                rowId: null,
+                refRowId: nestedDataObj[refModelPkCol?.title],
+                rowIdIsInsertedRow: true,
+                refRowIdIsInsertedRow: false,
+                model: baseModel.model,
+                refModel,
+                type: RelationTypes.ONE_TO_MANY,
+                req,
+              });
+
+              postInsertAuditEntries.push({
+                columnTitle: refChildCol.title,
+                columnId: refChildCol.id,
+                refColumnTitle: col.title,
+                rowId: nestedDataObj[refModelPkCol?.title],
+                refRowId: null,
+                rowIdIsInsertedRow: false,
+                refRowIdIsInsertedRow: true,
+                model: refModel,
+                refModel: baseModel.model,
+                type: RelationTypes.MANY_TO_ONE,
+                req,
+              });
+            }
+            break;
+          }
+          case RelationTypes.MANY_TO_ONE: {
+            // V2 MO uses junction table like MM — expects single object
+            if (Array.isArray(nestedData)) {
+              nestedData = nestedData[0];
+            }
+
+            postInsertOps.push(async (rowId) => {
+              const parentModel = await colOptions
+                .getParentColumn(baseModel.context)
+                .then((c) => c.getModel(baseModel.context));
+              await parentModel.getColumns(baseModel.context);
+              const parentMMCol = await colOptions.getMMParentColumn(
+                baseModel.context,
+              );
+              const childMMCol = await colOptions.getMMChildColumn(
+                baseModel.context,
+              );
+              const mmModel = await colOptions.getMMModel(baseModel.context);
+
+              const row = {
+                [parentMMCol.column_name]: extractIdPropIfObjectOrReturn(
+                  nestedData,
+                  parentModel.primaryKey.title,
+                ),
+                [childMMCol.column_name]: rowId,
+              };
+              return baseModel
+                .dbDriver(baseModel.getTnPath(mmModel.table_name))
+                .insert(row)
+                .toQuery();
+            });
+
+            postInsertAuditEntries.push({
+              columnTitle: col.title,
+              columnId: col.id,
+              refColumnTitle: refChildCol.title,
+              rowId: null,
+              refRowId: nestedData?.[refModelPkCol?.title],
+              rowIdIsInsertedRow: true,
+              refRowIdIsInsertedRow: false,
+              model: baseModel.model,
+              refModel,
+              type: RelationTypes.MANY_TO_ONE,
+              req,
+            });
+
+            postInsertAuditEntries.push({
+              columnTitle: refChildCol.title,
+              columnId: refChildCol.id,
+              refColumnTitle: col.title,
+              rowId: nestedData?.[refModelPkCol?.title],
+              refRowId: null,
+              rowIdIsInsertedRow: false,
+              refRowIdIsInsertedRow: true,
+              model: refModel,
+              refModel: baseModel.model,
+              type: RelationTypes.ONE_TO_MANY,
+              req,
+            });
+            break;
+          }
           case RelationTypes.MANY_TO_MANY: {
             if (!Array.isArray(nestedData)) continue;
             postInsertOps.push(async (rowId) => {

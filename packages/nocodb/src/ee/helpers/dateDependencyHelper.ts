@@ -517,7 +517,6 @@ WITH RECURSIVE propagated(${cteColumns}) AS (
   FROM ${quotedTn} t
   ${useJunction ? `JOIN ${quotedJtn} j ON ${junctionJoinOnT}\n  ` : ''}JOIN propagated p ON ${recursiveJoin}
   WHERE ${cycleCheck}
-    AND p.level < 100
     AND t.${sc} IS NOT NULL
     AND t.${ec} IS NOT NULL
     AND p.start_date IS NOT NULL

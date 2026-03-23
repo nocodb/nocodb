@@ -4822,42 +4822,6 @@
         }
       }
     },
-    "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/duplicate": {
-      "post": {
-        "summary": "Duplicate Workflow",
-        "description": "Create a copy of the workflow.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
-        "operationId": "workflow-duplicate",
-        "tags": ["Workflows"],
-        "parameters": [
-          {
-            "schema": { "type": "string" },
-            "name": "base_id",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier for the base."
-          },
-          {
-            "schema": { "type": "string" },
-            "name": "workflow_id",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier for the workflow."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Workflow duplicated.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WorkflowGetResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/publish": {
       "post": {
         "summary": "Publish Workflow",
@@ -4935,7 +4899,7 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "Job identifier for the execution"
+                      "description": "Execution identifier. Use this ID with the `GET /api/v3/meta/bases/{base_id}/workflows/{workflow_id}/executions/{execution_id}` endpoint to poll the execution status and retrieve results."
                     }
                   }
                 }

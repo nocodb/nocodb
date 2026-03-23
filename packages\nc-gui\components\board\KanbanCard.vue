@@ -59,8 +59,8 @@ function expandCard() {
     @click="expandCard"
   >
     <template v-if="isCompact">
-      <div class="flex items-center gap-1">
-        <div class="flex-1 min-w-0 truncate text-xs text-gray-800">
+      <div class="flex items-center gap-1 min-h-[22px]">
+        <div class="flex-1 min-w-0 truncate text-xs text-gray-800 leading-snug">
           <template v-if="primaryField">
             <LazySmartsheetVirtualCell
               v-if="isVirtualCol(primaryField)"

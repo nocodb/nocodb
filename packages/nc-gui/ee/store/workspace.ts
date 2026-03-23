@@ -103,7 +103,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isTemplatesPageOpened = computed(() => (route.value.name as string)?.startsWith('index-typeOrId-templates'))
 
-  const isTemplatesFeatureEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.TEMPLATES))
+  const isTemplatesFeatureEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.TEMPLATES) && appInfo.value.isCloud)
 
   const isFeedPageOpened = computed(() => route.value.name === 'index-typeOrId-feed')
 

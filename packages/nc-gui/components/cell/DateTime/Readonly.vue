@@ -14,6 +14,8 @@ const column = inject(ColumnInj)!
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
+const { appInfo } = useGlobal()
+
 const { isXcdbBase } = useBase()
 
 const dateFormat = computed(() => parseProp(column?.value?.meta)?.date_format ?? dateFormats[0])
@@ -53,7 +55,7 @@ const localState = computed(() => {
 })
 
 const timeZoneDisplay = computed(() => {
-  if (!isEeUI) {
+  if (!appInfo.value?.ee) {
     return undefined
   }
   if (!localState.value) {

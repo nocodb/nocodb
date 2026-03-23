@@ -11,6 +11,8 @@ const value = useVModel(props, 'value')
 
 const { appInfo, isMobileMode } = useGlobal()
 
+const { showEEFeatures } = useEeConfig()
+
 const selectedFeatures = ref<Record<string, boolean>>({})
 
 // Add search functionality
@@ -24,7 +26,7 @@ const isEnabledOnPremFeature = (feature: BetaFeatureType) => {
 
 const isFeatureVisible = (feature: BetaFeatureType) => {
   return (
-    (!feature?.isEE || isEeUI) &&
+    (!feature?.isEE || (isEeUI && showEEFeatures.value)) &&
     (!feature?.isEngineering || isEngineeringModeOn.value) &&
     (!feature?.isAdvanced || isAdvancedModeOn.value) &&
     isEnabledOnPremFeature(feature)

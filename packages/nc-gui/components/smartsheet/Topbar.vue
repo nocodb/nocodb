@@ -88,7 +88,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
 
         <NcButton
           v-if="
-            ((isEeUI && !isEEFeatureBlocked) || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
+            ((isEeUI && showEEFeatures) || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
             !isSharedBase &&
             !activeScriptId &&
             !activeDashboardId &&

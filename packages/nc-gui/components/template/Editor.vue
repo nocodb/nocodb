@@ -48,6 +48,8 @@ const { getMeta } = useMetas()
 
 const { isAllowed } = usePermissions()
 
+const { appInfo } = useGlobal()
+
 const meta = inject(MetaInj, ref())
 
 const filterForDestinationColumn = (col: ColumnType): boolean => {
@@ -1142,7 +1144,7 @@ function getErrorByTableName(tableName: string) {
         </a-collapse-panel>
       </a-collapse>
 
-      <div v-if="isEeUI" class="pt-4 pr-2">
+      <div v-if="appInfo.ee" class="pt-4 pr-2">
         <label class="flex">
           <NcCheckbox v-model:checked="autoInsertOption" :disabled="isImporting" />
           <span class="ml-2">{{ $t('labels.autoCreateMissingSelectionOptions') }}</span>

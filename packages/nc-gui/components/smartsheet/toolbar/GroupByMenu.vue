@@ -72,7 +72,7 @@ const totalGroupByCount = computed(() => _groupBy.value.length)
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
-const { isMobileMode } = useGlobal()
+const { appInfo, isMobileMode } = useGlobal()
 
 const showCreateGroupBy = ref(false)
 
@@ -324,13 +324,13 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
               :model-value="_groupBy"
               item-key="fk_column_id"
               ghost-class="bg-nc-bg-gray-extralight"
-              :disabled="isLocked || !isEeUI"
+              :disabled="isLocked || !appInfo.ee"
               @change="onMove($event)"
             >
               <template #item="{ element: group }">
                 <div :key="group.fk_column_id" class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center">
                   <NcButton
-                    v-if="isEeUI"
+                    v-if="appInfo.ee"
                     type="secondary"
                     size="small"
                     class="!border-r-transparent !rounded-r-none"
@@ -342,7 +342,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                   <LazySmartsheetToolbarFieldListAutoCompleteDropdown
                     v-model="group.fk_column_id"
                     class="caption nc-group-field-select !w-36"
-                    :class="!isEeUI ? 'nc-disable-reorder' : ''"
+                    :class="!appInfo.ee ? 'nc-disable-reorder' : ''"
                     :columns="getFieldsToGroupBy(group)"
                     :allow-empty="true"
                     :meta="meta"

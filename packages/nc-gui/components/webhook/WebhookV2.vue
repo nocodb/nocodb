@@ -595,7 +595,7 @@ const toggleIncludeUser = async () => {
           </span>
         </div>
 
-        <div v-if="hook && isEeUI" class="flex flex-row p-1 bg-nc-bg-gray-medium rounded-lg gap-x-0.5 nc-view-sidebar-tab">
+        <div v-if="hook && appInfo.ee" class="flex flex-row p-1 bg-nc-bg-gray-medium rounded-lg gap-x-0.5 nc-view-sidebar-tab">
           <div
             v-e="['c:webhook:edit']"
             class="tab"
@@ -921,7 +921,7 @@ const toggleIncludeUser = async () => {
               />
             </div>
 
-            <div v-if="isEeUI">
+            <div v-if="appInfo.ee">
               <div>
                 <div class="w-full cursor-pointer flex items-center" @click.prevent="toggleIncludeUser">
                   <NcSwitch :checked="Boolean(hookRef.notification.include_user)" class="nc-check-box-include-user">

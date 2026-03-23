@@ -19,6 +19,8 @@ const { activeView } = storeToRefs(useViewsStore())
 
 const { t } = useI18n()
 
+const { appInfo } = useGlobal()
+
 const { updateStatLimit, showWebhookPlanLimitExceededModal } = useEeConfig()
 
 const isWebhookModalOpen = ref(false)
@@ -191,7 +193,7 @@ const eventList = ref<Record<string, any>[]>([
   { text: [t('general.record'), t('general.update').toLowerCase()], value: ['after', 'update'] },
   { text: [t('general.record'), t('general.delete').toLowerCase()], value: ['after', 'delete'] },
 
-  ...((isEeUI && [
+  ...((appInfo.value.ee && [
     { text: [t('objects.view'), t('general.create').toLowerCase()], value: ['view', 'insert'] },
     { text: [t('objects.view'), t('general.update').toLowerCase()], value: ['view', 'update'] },
     { text: [t('objects.view'), t('general.delete').toLowerCase()], value: ['view', 'delete'] },

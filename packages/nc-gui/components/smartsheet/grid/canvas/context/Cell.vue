@@ -89,7 +89,7 @@ const isDeleteAllRecordsModalOpen = ref(false)
 // Composables
 const { isDataReadOnly, isUIAllowed } = useRoles()
 const { aiIntegrations } = useNocoAi()
-const { isMobileMode } = useGlobal()
+const { appInfo, isMobileMode } = useGlobal()
 const { paste } = usePaste()
 const { meta } = useSmartsheetStoreOrThrow()
 const metaInj = inject(MetaInj, ref())
@@ -255,7 +255,12 @@ const execBulkAction = async (path: Array<number>) => {
     <template v-if="!vSelectedAllRecords">
       <NcTooltip
         v-if="
-          isEeUI && contextMenuCol == null && contextMenuPath !== null && !isDataReadOnly && selectedRows.length && isSyncedTable
+          appInfo.ee &&
+          contextMenuCol == null &&
+          contextMenuPath !== null &&
+          !isDataReadOnly &&
+          selectedRows.length &&
+          isSyncedTable
         "
         placement="left"
       >
@@ -270,7 +275,7 @@ const execBulkAction = async (path: Array<number>) => {
         </NcMenuItem>
       </NcTooltip>
       <NcMenuItem
-        v-else-if="isEeUI && contextMenuCol == null && contextMenuPath !== null && !isDataReadOnly && selectedRows.length"
+        v-else-if="appInfo.ee && contextMenuCol == null && contextMenuPath !== null && !isDataReadOnly && selectedRows.length"
         key="update-selected-rows"
         @click="emits('bulkUpdateDlg', contextMenuPath)"
       >
@@ -653,7 +658,7 @@ const execBulkAction = async (path: Array<number>) => {
         </div>
       </NcMenuItem>
       <NcMenuItem
-        v-if="isEeUI && contextMenuRowId && !isPublic"
+        v-if="appInfo.ee && contextMenuRowId && !isPublic"
         key="send-record"
         class="nc-base-menu-item"
         @click="emits('sendRecord', contextMenuRowId)"

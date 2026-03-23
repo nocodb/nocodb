@@ -178,7 +178,7 @@ export function useFileDropToCreateRecords(options: UseFileDropToCreateRecordsOp
    * Routes to either auto-select (single attachment field) or shows a picker dialog.
    */
   const handleFileDrop = (files: File[]) => {
-    if (!files.length || !meta.value) return
+    if (!files.length || !meta.value || !appInfo.value.ee) return
 
     const fields = attachmentFields.value
 

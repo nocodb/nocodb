@@ -673,7 +673,7 @@ const handleChangeBackground = (color: string) => {
 }
 
 const openUploadImage = (isUploadBanner: boolean) => {
-  if (!isEditable || !isEeUI) return
+  if (!isEditable || !appInfo.value.ee) return
 
   imageCropperData.value.uploadConfig = {
     path: [NOCO, base.value.id, meta.value?.id, formViewData.value?.id].join('/'),

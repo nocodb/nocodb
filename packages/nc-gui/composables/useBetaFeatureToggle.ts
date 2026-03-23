@@ -261,6 +261,13 @@ const STORAGE_KEY = 'featureToggleStates'
 export const useBetaFeatureToggle = createSharedComposable(() => {
   const features = ref<BetaFeatureType[]>(deepClone(FEATURES))
 
+  const featureMap = computed(() =>
+    features.value.reduce((acc, f) => {
+      acc[f.id] = f
+      return acc
+    }, {} as Record<BetaFeatureId, BetaFeatureType>),
+  )
+
   const { appInfo } = useGlobal()
 
   const featureStates = computed(() => {
@@ -313,7 +320,18 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
     }
   }
 
-  const isFeatureEnabled = (id: BetaFeatureId) => featureStates.value[id] ?? false
+  const isFeatureEnabled = (id: BetaFeatureId) => {
+    // useEeConfig is called inside this function (not at the top level of the composable), to avoid a recursive call
+    const { showEEFeatures } = useEeConfig()
+
+    const feature = featureMap.value[id]
+
+    if (feature && 'isEE' in feature && feature.isEE && !(isEeUI && showEEFeatures.value)) {
+      return false
+    }
+
+    return featureStates.value[id] ?? false
+  }
 
   const initializeFeatures = () => {
     try {

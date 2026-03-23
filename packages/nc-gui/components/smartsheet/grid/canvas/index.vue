@@ -3239,7 +3239,7 @@ watch(
       </PermissionsTooltip>
     </div>
     <SmartsheetGridCanvasComponentsFileDropZone
-      v-if="isEeUI"
+      v-if="appInfo.ee"
       :visible="showFileDropZone && canDropFilesToCreateRecords && !isFileDropProcessing"
       :file-count="dragFileCount"
     />
@@ -3247,7 +3247,7 @@ watch(
 
   <DlgSendRecordEmail v-model="showSendRecordModal" :meta="meta" :view="view" :row-id="sendRecordRowId" />
   <DlgAttachmentFieldSelect
-    v-if="isEeUI"
+    v-if="appInfo.ee"
     v-model="showFieldSelectDlg"
     :table-id="meta?.id"
     :file-count="pendingDropFiles.length"

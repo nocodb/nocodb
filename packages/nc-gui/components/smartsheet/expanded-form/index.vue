@@ -58,7 +58,7 @@ const { dashboardUrl } = useDashboard()
 
 const { copy } = useCopy()
 
-const { isMobileMode } = useGlobal()
+const { appInfo, isMobileMode } = useGlobal()
 
 const { t } = useI18n()
 
@@ -210,7 +210,7 @@ const onTemplateTableChange = async (tableId: string) => {
 }
 
 const activeViewMode = ref(
-  !isPublic.value && isEeUI && !isNew.value && !isMobileMode.value
+  !isPublic.value && appInfo.value.ee && !isNew.value && !isMobileMode.value
     ? props.view?.expanded_record_mode ?? ExpandedFormMode.FIELD
     : ExpandedFormMode.FIELD,
 )
@@ -893,7 +893,7 @@ const visibleMoreOptions = computed(() => {
   const result = {
     reloadRecord: !isEeUI,
     copyRecordUrl: !isNew.value && !!rowId.value,
-    sendRecord: isEeUI && !isNew.value && !!rowId.value && !isPublic.value,
+    sendRecord: appInfo.value.ee && !isNew.value && !!rowId.value && !isPublic.value,
     duplicateRecord: isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value && !isMobileMode.value,
     deleteRecord: !isNew.value && isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value,
   }

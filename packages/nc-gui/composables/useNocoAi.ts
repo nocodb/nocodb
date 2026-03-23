@@ -15,7 +15,7 @@ export const useNocoAi = createSharedComposable(() => {
 
   const { appInfo } = useGlobal()
 
-  const isAiFeaturesEnabled = computed(() => isEeUI && appInfo.value?.ee)
+  const isAiFeaturesEnabled = computed(() => appInfo.value?.ee)
 
   const isAiBetaFeaturesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.AI_BETA_FEATURES) && appInfo.value?.ee)
 

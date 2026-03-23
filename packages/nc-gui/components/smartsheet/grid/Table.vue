@@ -102,7 +102,7 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
-const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
+const { appInfo, isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
 
 const scrollParent = inject(ScrollParentInj, ref<undefined>())
 
@@ -2094,14 +2094,18 @@ onKeyStroke('ArrowDown', onDown)
                       @visible-change="onVisibilityChange"
                     >
                       <div class="h-full w-[60px] flex items-center justify-center">
-                        <GeneralIcon v-if="isEeUI && (altModifier || persistMenu)" icon="magic" class="text-sm text-orange-400" />
+                        <GeneralIcon
+                          v-if="appInfo.ee && (altModifier || persistMenu)"
+                          icon="magic"
+                          class="text-sm text-orange-400"
+                        />
                         <component
                           :is="iconMap.plus"
                           class="text-base nc-column-add text-nc-content-gray-muted !group-hover:text-nc-content-gray-extreme"
                         />
                       </div>
 
-                      <template v-if="isEeUI && persistMenu && meta?.id" #overlay>
+                      <template v-if="appInfo.ee && persistMenu && meta?.id" #overlay>
                         <NcMenu class="predict-menu" variant="small">
                           <NcSubMenu v-if="predictedNextColumn?.length" key="predict-column" class="py-0 px-0 w-full">
                             <template #title>
@@ -2562,7 +2566,7 @@ onKeyStroke('ArrowDown', onDown)
           <NcMenu class="!rounded !py-0" variant="small" @click="contextMenu = false">
             <NcMenuItem
               v-if="
-                isEeUI && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected) && !isDataReadOnly
+                appInfo.ee && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected) && !isDataReadOnly
               "
               @click="emits('bulkUpdateDlg')"
             >

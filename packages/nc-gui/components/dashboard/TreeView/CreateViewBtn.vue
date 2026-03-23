@@ -237,7 +237,7 @@ async function onOpenModal({
               <NcBadgeBeta />
             </div>
 
-            <template v-if="isEeUI && blockMapView">
+            <template v-if="blockMapView">
               <PaymentUpgradeBadge
                 :feature="PlanFeatureTypes.FEATURE_MAP_VIEW"
                 :plan-title="PlanTitles.BUSINESS"

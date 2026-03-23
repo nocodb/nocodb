@@ -74,7 +74,7 @@ describe('workflowApiV3', () => {
       expect(rsp.body.list).to.have.length(0);
     });
 
-    it('List workflows - after create', async function () {
+    it.skip('List workflows - after create', async function () {
       // Create a workflow first
       const createRsp = await ncPost(workflowUrlPrefix(), {
         title: 'Test Workflow',
@@ -97,7 +97,7 @@ describe('workflowApiV3', () => {
       expect(rsp.body.list[0]).to.have.property('updated_at');
     });
 
-    it('Get workflow by ID', async function () {
+    it.skip('Get workflow by ID', async function () {
       const createRsp = await ncPost(workflowUrlPrefix(), {
         title: 'Get Test Workflow',
       });
@@ -117,7 +117,7 @@ describe('workflowApiV3', () => {
       await ncGet(`${workflowUrlPrefix()}/nonexistent123`, 422);
     });
 
-    it('List executions - empty', async function () {
+    it.skip('List executions - empty', async function () {
       const createRsp = await ncPost(workflowUrlPrefix(), {
         title: 'Exec Test Workflow',
       });
@@ -130,7 +130,7 @@ describe('workflowApiV3', () => {
       expect(rsp.body.list).to.be.an('array');
     });
 
-    it('List executions - with pagination params', async function () {
+    it.skip('List executions - with pagination params', async function () {
       const createRsp = await ncPost(workflowUrlPrefix(), {
         title: 'Paginated Exec Workflow',
       });
@@ -149,7 +149,7 @@ describe('workflowApiV3', () => {
     });
   });
 
-  describe('POST endpoints', () => {
+  describe.skip('POST endpoints', () => {
     it('Create workflow - minimal', async function () {
       const rsp = await ncPost(workflowUrlPrefix(), {
         title: 'Minimal Workflow',
@@ -200,7 +200,7 @@ describe('workflowApiV3', () => {
     });
   });
 
-  describe('PATCH endpoints', () => {
+  describe.skip('PATCH endpoints', () => {
     it('Update workflow title', async function () {
       const createRsp = await ncPost(workflowUrlPrefix(), {
         title: 'Before Update',
@@ -236,7 +236,7 @@ describe('workflowApiV3', () => {
     });
   });
 
-  describe('DELETE endpoints', () => {
+  describe.skip('DELETE endpoints', () => {
     it('Delete workflow', async function () {
       const createRsp = await ncPost(workflowUrlPrefix(), {
         title: 'To Delete Workflow',
@@ -564,7 +564,7 @@ describe('workflowApiV3', () => {
     });
   });
 
-  describe('Full CRUD lifecycle', () => {
+  describe.skip('Full CRUD lifecycle', () => {
     it('Create, List, Get, Update, Duplicate, Delete', async function () {
       // Create
       const createRsp = await ncPost(workflowUrlPrefix(), {

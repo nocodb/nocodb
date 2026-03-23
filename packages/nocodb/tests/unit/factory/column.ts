@@ -922,7 +922,7 @@ const createColumn = async (
     .set('xc-auth', context.token)
     .send({
       ...columnAttr,
-      ...(columnAttr.uidt === UITypes.LinkToAnotherRecord
+      ...(columnAttr.uidt === UITypes.LinkToAnotherRecord && columnAttr.version == null
         ? {
             version: 1,
           }
@@ -961,7 +961,7 @@ const createColumn2 = async ({
     .set('xc-auth', context.token)
     .send({
       ...columnAttr,
-      ...(columnAttr.uidt === UITypes.LinkToAnotherRecord
+      ...(columnAttr.uidt === UITypes.LinkToAnotherRecord && columnAttr.version == null
         ? {
             version: 1,
           }
@@ -1218,6 +1218,7 @@ const createLtarColumn2 = async (
     parentId: parentTable.id,
     childId: childTable.id,
     type: type,
+    version: 2,
   });
 
   return ltarColumn;

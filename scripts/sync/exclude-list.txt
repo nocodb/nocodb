@@ -13,8 +13,6 @@ packages/noco-integrations/packages/*
 packages/noco-integrations/wip/*
 packages/noco-integrations/templates/*
 packages/noco-integrations/.cursor/*
-scripts/sync
-scripts/ee
 */node_modules
 node_modules
 */.nuxt
@@ -23,7 +21,6 @@ node_modules
 .github/workflows
 cloud
 charts
-scripts/release
 packages/nocodb-ingest-service
 .git
 packages/nocodb/help
@@ -86,4 +83,8 @@ packages/nc-gui/tele
 packages/nc-gui/pwa.config.ts
 packages/nocodb/tests/unit
 tests/playwright
-scripts/pkg-executable
+scripts/*
+worktrees/*
+tests/*
+Dockerfile*
+packages/nocodb/rspack*

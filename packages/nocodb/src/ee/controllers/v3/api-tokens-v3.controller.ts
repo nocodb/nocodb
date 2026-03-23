@@ -30,6 +30,7 @@ export class ApiTokensV3Controller {
   @Get('/api/v3/meta/tokens')
   @Acl('apiTokenList', {
     scope: 'org',
+    blockApiTokenAccess: true,
     blockOAuthTokenAccess: true,
   })
   async apiTokenList(@Req() req: NcRequest) {
@@ -40,6 +41,7 @@ export class ApiTokensV3Controller {
   @HttpCode(201)
   @Acl('apiTokenCreate', {
     scope: 'org',
+    blockApiTokenAccess: true,
     blockOAuthTokenAccess: true,
   })
   async apiTokenCreate(
@@ -52,6 +54,8 @@ export class ApiTokensV3Controller {
   @Patch('/api/v3/meta/tokens/:tokenId')
   @Acl('apiTokenUpdate', {
     scope: 'org',
+    blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async apiTokenUpdate(
     @Req() req: NcRequest,
@@ -68,6 +72,7 @@ export class ApiTokensV3Controller {
   @Delete('/api/v3/meta/tokens/:tokenId')
   @Acl('apiTokenDelete', {
     scope: 'org',
+    blockApiTokenAccess: true,
     blockOAuthTokenAccess: true,
   })
   async apiTokenDelete(

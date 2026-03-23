@@ -1,39 +1,30 @@
 <script lang="ts" setup>
-import type { Row as RowType } from '#imports'
-import {
-  IsKanbanInj,
-  MetaInj,
-  computed,
-  inject,
-  isPrimary,
-  ref,
-  useAttachment,
-  useKanbanViewStoreOrThrow,
-  useLTARStoreOrThrow,
-  useSmartsheetRowStoreOrThrow,
-} from '#imports'
+import type { ColumnType } from 'nocodb-sdk'
+import type { Row as RowType } from '~/lib/types'
 
 const props = defineProps<{
   row: RowType
-  fields: any[]
-  groupField?: any
+  fields: ColumnType[]
+  groupField?: ColumnType
   readOnly?: boolean
 }>()
 
 const emit = defineEmits(['expandRecord', 'deleteRecord'])
 
-const meta = inject(MetaInj, ref())
-
-const isKanban = inject(IsKanbanInj, ref(false))
-
 const { isCompactMode } = useKanbanViewStoreOrThrow()
+
+const { isUIAllowed } = useRoles()
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
-const displayField = computed(() => props.fields?.find((f: any) => f.pv))
+const attachmentField = computed(() =>
+  props.fields.find((f) => f.uidt === UITypes.Attachment),
+)
 
-const remainingFields = computed(() =>
-  props.fields?.filter((f: any) => !f.pv && f.visible)
+const displayField = computed(() => props.fields.find((f) => (f as any).pv))
+
+const hiddenFields = computed(() =>
+  props.fields.filter((f) => !(f as any).pv && (f as any).visible),
 )
 
 function onExpandRecord() {
@@ -47,106 +38,92 @@ function onDeleteRecord() {
 
 <template>
   <div
-    class="nc-kanban-card group relative cursor-pointer rounded-md border-1 border-gray-200 bg-white px-3 hover:border-brand-400 dark:border-gray-600 dark:bg-gray-900"
-    :class="[
-      isCompactMode
-        ? 'py-1.5 min-h-[32px]'
-        : 'py-3 min-h-[52px]'
-    ]"
+    class="nc-kanban-card group relative cursor-pointer rounded-md border-1 border-gray-200 bg-white hover:border-brand-500 dark:border-gray-700 dark:bg-gray-900"
+    :class="[isCompactMode ? 'px-2 py-1' : 'px-3 py-3']"
     @click="onExpandRecord"
   >
-    <!-- Compact mode: single line with display field -->
-    <template v-if="isCompactMode">
-      <div class="flex items-center gap-2 w-full overflow-hidden">
-        <div class="flex-1 overflow-hidden">
-          <SmartsheetRow :row="row">
-            <div class="flex items-center overflow-hidden">
-              <template v-if="displayField">
-                <SmartsheetCell
-                  :column="displayField"
-                  :model-value="row.row[displayField.title]"
-                  :row-index="0"
-                  :read-only="true"
-                  class="!text-sm font-medium text-gray-800 dark:text-gray-100 truncate pointer-events-none"
-                />
-              </template>
-              <span v-else class="text-gray-400 text-xs italic">
-                {{ $t('msg.noData') }}
-              </span>
-            </div>
-          </SmartsheetRow>
-        </div>
-
-        <!-- Row actions in compact mode -->
-        <div
-          class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-          @click.stop
-        >
-          <NcTooltip v-if="!readOnly">
-            <template #title>{{ $t('activity.deleteRow') }}</template>
-            <NcButton
-              size="xsmall"
-              type="text"
-              class="!text-gray-500 hover:!text-red-500"
-              @click.stop="onDeleteRecord"
-            >
-              <GeneralIcon icon="delete" class="h-3 w-3" />
-            </NcButton>
-          </NcTooltip>
-        </div>
+    <!-- Compact mode layout -->
+    <div v-if="isCompactMode" class="flex items-center gap-2 min-h-[24px] overflow-hidden">
+      <div class="flex-1 overflow-hidden">
+        <SmartsheetRow :row="row">
+          <LazySmartsheetCell
+            v-if="displayField"
+            :column="displayField"
+            :model-value="row.row[displayField.title!]"
+            :row-index="0"
+            :read-only="true"
+            class="!text-sm !font-medium truncate pointer-events-none"
+          />
+          <span v-else class="text-gray-400 text-xs">-</span>
+        </SmartsheetRow>
       </div>
-    </template>
 
-    <!-- Normal mode: full card with all fields -->
+      <div
+        class="flex-shrink-0 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+        @click.stop
+      >
+        <NcTooltip v-if="!readOnly && isUIAllowed('dataEdit')" placement="bottom">
+          <template #title>{{ $t('activity.deleteRow') }}</template>
+          <NcButton
+            size="xsmall"
+            type="text"
+            class="!h-5 !w-5 !text-gray-500 hover:!text-red-500 hover:!bg-red-50"
+            @click.stop="onDeleteRecord"
+          >
+            <GeneralIcon icon="delete" class="h-3 w-3" />
+          </NcButton>
+        </NcTooltip>
+      </div>
+    </div>
+
+    <!-- Normal mode layout -->
     <template v-else>
       <SmartsheetRow :row="row">
-        <div class="flex flex-col gap-2 w-full">
-          <!-- Display field (primary value) -->
-          <template v-if="displayField">
-            <div class="font-medium text-gray-800 dark:text-gray-100 text-sm">
-              <SmartsheetCell
-                :column="displayField"
-                :model-value="row.row[displayField.title]"
+        <div class="flex flex-col gap-2">
+          <!-- Primary / display field -->
+          <div v-if="displayField" class="text-sm font-medium text-gray-800 dark:text-gray-100">
+            <LazySmartsheetCell
+              :column="displayField"
+              :model-value="row.row[displayField.title!]"
+              :row-index="0"
+              :read-only="true"
+              class="pointer-events-none"
+            />
+          </div>
+
+          <!-- Remaining visible fields -->
+          <div
+            v-for="field in hiddenFields"
+            :key="field.id"
+            class="flex items-start gap-2 text-xs"
+          >
+            <div class="text-gray-500 font-medium min-w-[48px] max-w-[80px] truncate pt-0.5 flex-shrink-0">
+              {{ field.title }}
+            </div>
+            <div class="flex-1 overflow-hidden">
+              <LazySmartsheetCell
+                :column="field"
+                :model-value="row.row[field.title!]"
                 :row-index="0"
                 :read-only="true"
                 class="pointer-events-none"
               />
             </div>
-          </template>
-
-          <!-- Remaining visible fields -->
-          <template v-if="remainingFields && remainingFields.length > 0">
-            <div
-              v-for="field in remainingFields"
-              :key="field.id"
-              class="flex items-start gap-1 text-xs"
-            >
-              <span class="text-gray-500 font-medium min-w-[60px] pt-0.5 truncate">
-                {{ field.title }}
-              </span>
-              <SmartsheetCell
-                :column="field"
-                :model-value="row.row[field.title]"
-                :row-index="0"
-                :read-only="true"
-                class="flex-1 pointer-events-none"
-              />
-            </div>
-          </template>
+          </div>
         </div>
       </SmartsheetRow>
 
-      <!-- Row actions overlay -->
+      <!-- Actions overlay (visible on hover) -->
       <div
-        class="absolute top-1.5 right-1.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+        class="absolute right-1.5 top-1.5 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
         @click.stop
       >
-        <NcTooltip v-if="!readOnly">
+        <NcTooltip v-if="!readOnly && isUIAllowed('dataEdit')" placement="bottom">
           <template #title>{{ $t('activity.deleteRow') }}</template>
           <NcButton
             size="xsmall"
             type="text"
-            class="!text-gray-500 hover:!text-red-500"
+            class="!h-5 !w-5 !text-gray-500 hover:!text-red-500 hover:!bg-red-50"
             @click.stop="onDeleteRecord"
           >
             <GeneralIcon icon="delete" class="h-3 w-3" />

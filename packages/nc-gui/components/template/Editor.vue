@@ -578,7 +578,7 @@ async function importViaJob() {
     for (const table of data.tables) {
       const jobPayload: Record<string, any> = {
         sourceId: sourceId || base.value?.sources?.[0]?.id,
-        attachment: serverAttachment,
+        attachment: table._serverAttachment || serverAttachment,
         columns: (table.columns as any[])
           ?.filter((c) => !('selected' in c) || c.selected)
           .map((c) => ({

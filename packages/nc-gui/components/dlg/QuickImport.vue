@@ -303,21 +303,64 @@ async function handlePreImport() {
 async function handleServerPreImport(isFileMode: boolean) {
   let attachment: { path?: string; url?: string; title?: string; mimetype?: string; size?: number }
 
+  const draftTableNames: string[] = []
+  const tables: any[] = []
+  const allImportData: Record<string, any[]> = {}
+  const allImportColumns: any[] = []
+  const serverAttachments: typeof serverAttachment.value[] = []
+
   if (isFileMode) {
     const fileList = importState.fileList as streamImportFileList
     if (!fileList.length) return
 
-    const file = fileList[0]
-    if (!file?.originFileObj) return
+    for (const file of fileList) {
+      if (!file?.originFileObj) continue
 
-    const formData = new FormData()
-    formData.append('files', file.originFileObj)
+      const formData = new FormData()
+      formData.append('files', file.originFileObj)
 
-    const uploadResult = await $api.instance.post('/api/v1/db/data-import/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
+      const uploadResult = await $api.instance.post('/api/v1/db/data-import/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
 
-    attachment = uploadResult.data[0]
+      const attachment = uploadResult.data[0]
+      serverAttachments.push(attachment)
+
+      const responseData = await $api.internal.postOperation(
+        activeWorkspace.value?.id,
+        baseId,
+        { operation: 'dataImportPreview' },
+        {
+          attachment,
+          parserConfig: {
+            firstRowAsHeaders: importState.parserConfig.firstRowAsHeaders,
+            delimiter: undefined,
+            encoding: file.encoding || 'utf-8',
+            maxRowsToParse: importState.parserConfig.maxRowsToParse,
+            autoSelectFieldTypes: importState.parserConfig.autoSelectFieldTypes,
+          },
+        },
+      )
+
+      const { columns, previewData } = responseData as any
+
+      const rawName = (file.name || 'file_import')
+        .replace(/\.[^/.]+$/, '')
+        .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
+        .trim()
+      const uniqueName = populateUniqueTableName(rawName, draftTableNames)
+      draftTableNames.push(uniqueName)
+
+      tables.push({
+        table_name: uniqueName,
+        ref_table_name: uniqueName,
+        columns: columns.map((col: any) => ({ ...col, selected: true })),
+        _serverAttachment: attachment,
+      })
+
+      allImportData[uniqueName] = previewData
+      allImportColumns.push(columns)
+    }
   } else if (isPreImportUrlFilled.value) {
     await validate()
 
@@ -328,64 +371,54 @@ async function handleServerPreImport(isFileMode: boolean) {
       },
     ])
 
-    attachment = uploadResult[0]
+    const attachment = uploadResult[0]
+    serverAttachments.push(attachment)
+
+    const responseData = await $api.internal.postOperation(
+      activeWorkspace.value?.id,
+      baseId,
+      { operation: 'dataImportPreview' },
+      {
+        attachment,
+        parserConfig: {
+          firstRowAsHeaders: importState.parserConfig.firstRowAsHeaders,
+          delimiter: undefined,
+          maxRowsToParse: importState.parserConfig.maxRowsToParse,
+          autoSelectFieldTypes: importState.parserConfig.autoSelectFieldTypes,
+        },
+      },
+    )
+
+    const { columns, previewData } = responseData as any
+
+    const rawName = (importState.url?.split('/').pop() || 'file_import')
+      .replace(/\.[^/.]+$/, '')
+      .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
+      .trim()
+    const uniqueName = populateUniqueTableName(rawName, draftTableNames)
+    draftTableNames.push(uniqueName)
+
+    tables.push({
+      table_name: uniqueName,
+      ref_table_name: uniqueName,
+      columns: columns.map((col: any) => ({ ...col, selected: true })),
+      _serverAttachment: attachment,
+    })
+
+    allImportData[uniqueName] = previewData
+    allImportColumns.push(columns)
   } else {
     return
   }
 
-  serverAttachment.value = attachment
+  // Store first attachment for backward compat (single file case)
+  serverAttachment.value = serverAttachments[0] ?? null
 
-  // Call server-side preview API via internal operations
-  const responseData = await $api.internal.postOperation(
-    activeWorkspace.value?.id,
-    baseId,
-    { operation: 'dataImportPreview' },
-    {
-      attachment,
-      parserConfig: {
-        firstRowAsHeaders: importState.parserConfig.firstRowAsHeaders,
-        delimiter: undefined,
-        encoding: (importState.fileList as streamImportFileList)?.[0]?.encoding || 'utf-8',
-        maxRowsToParse: importState.parserConfig.maxRowsToParse,
-        autoSelectFieldTypes: importState.parserConfig.autoSelectFieldTypes,
-      },
-    },
-  )
-
-  // CSV: single table
-  const { columns, previewData } = responseData
-
-  const tableName = isFileMode
-    ? ((importState.fileList as streamImportFileList)[0]?.name || 'file_import')
-        .replace(/\.[^/.]+$/, '')
-        .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
-        .trim()
-    : (importState.url?.split('/').pop() || 'file_import')
-        .replace(/\.[^/.]+$/, '')
-        .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
-        .trim()
-
-  const uniqueTableName = populateUniqueTableName(tableName)
-
-  templateData.value = {
-    tables: [
-      {
-        table_name: uniqueTableName,
-        ref_table_name: uniqueTableName,
-        columns: columns.map((col: any) => ({
-          ...col,
-          selected: true,
-        })),
-      },
-    ],
-  }
+  templateData.value = { tables }
+  importData.value = allImportData
 
   if (importDataOnly) {
-    importColumns.value = [columns] as any
-  }
-
-  importData.value = {
-    [uniqueTableName]: previewData,
+    importColumns.value = allImportColumns as any
   }
 
   templateEditorModal.value = true

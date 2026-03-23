@@ -23,6 +23,12 @@ const emits = defineEmits(['close'])
 
 const { editor, embedMode, isFormField, hiddenOptions, enableCloseButton } = toRefs(props)
 
+const { appInfo } = useGlobal()
+
+const { t } = useI18n()
+
+const isEditColumn = inject(EditColumnInj, ref(false))
+
 // ── Color picker (text color + background color) — doc editor / embedMode only ──
 
 const showColorPicker = ref(false)
@@ -53,7 +59,6 @@ const bgColors = [
   { name: 'Red', color: '#fecaca' },
 ] as const
 
-// Recently used — kept for current session
 const recentColors = ref<Array<{ type: 'text' | 'bg'; color: string }>>([])
 const MAX_RECENT = 5
 
@@ -63,11 +68,10 @@ const addRecent = (type: 'text' | 'bg', color: string) => {
   recentColors.value = [entry, ...recentColors.value.filter((r) => !(r.type === type && r.color === color))].slice(0, MAX_RECENT)
 }
 
-// Active state
 const activeTextColor = computed(() => {
-  for (const t of textColors) {
-    if (t.color === '#1f2937') continue // skip default
-    if (editor.value?.isActive('textColor', { color: t.color })) return t.color
+  for (const tc of textColors) {
+    if (tc.color === '#1f2937') continue
+    if (editor.value?.isActive('textColor', { color: tc.color })) return tc.color
   }
   return null
 })
@@ -107,7 +111,6 @@ const applyRecent = (entry: { type: 'text' | 'bg'; color: string }) => {
   else applyBgColor(entry.color)
 }
 
-// Dismiss dropdown on any click outside the button / dropdown
 const onDocClick = (e: MouseEvent) => {
   if (!showColorPicker.value) return
   const hit = (e.target as HTMLElement)?.closest?.('.nc-color-picker-dropdown, .nc-highlight-btn')
@@ -116,29 +119,44 @@ const onDocClick = (e: MouseEvent) => {
 onMounted(() => document.addEventListener('mousedown', onDocClick))
 onBeforeUnmount(() => document.removeEventListener('mousedown', onDocClick))
 
-const { appInfo } = useGlobal()
+// ── Helpers ──
 
-const isEditColumn = inject(EditColumnInj, ref(false))
+const cmdOrCtrlKey = computed(() => (isMac() ? '⌘' : 'CTRL'))
 
-const cmdOrCtrlKey = computed(() => {
-  return isMac() ? '⌘' : 'CTRL'
-})
+const shiftKey = computed(() => (isMac() ? '⇧' : 'Shift'))
 
-const shiftKey = computed(() => {
-  return isMac() ? '⇧' : 'Shift'
-})
-
-const altKey = computed(() => {
-  return isMac() ? '⌥' : 'Alt'
-})
+const altKey = computed(() => (isMac() ? '⌥' : 'Alt'))
 
 const tooltipPlacement = computed(() => {
   if (isFormField.value) return 'bottom'
 })
 
-const tabIndex = computed(() => {
-  return isFormField.value ? -1 : 0
-})
+const tabIndex = computed(() => (isFormField.value ? -1 : 0))
+
+const hasExtension = (name: string) => {
+  return editor.value?.extensionManager.extensions.some((ext: any) => ext.name === name) ?? false
+}
+
+const isOptionVisible = (option: RichTextBubbleMenuOptions) => {
+  if (option === RichTextBubbleMenuOptions.image && editor.value?.storage?.markdown?.options?.renderImagesAsLinks) {
+    return false
+  }
+
+  if (hiddenOptions.value.includes(option)) return false
+
+  const optionToExtName: Partial<Record<RichTextBubbleMenuOptions, string>> = {
+    [RichTextBubbleMenuOptions.quote]: 'code',
+    [RichTextBubbleMenuOptions.code]: 'codeBlock',
+    [RichTextBubbleMenuOptions.numberedList]: 'orderedList',
+    [RichTextBubbleMenuOptions.blockQuote]: 'blockquote',
+  }
+  const extName = optionToExtName[option] ?? option
+  if (!hasExtension(extName)) return false
+
+  return true
+}
+
+// ── Link toggle ──
 
 const onToggleLink = () => {
   const activeNode = editor.value?.state?.selection?.$from?.nodeBefore || editor.value?.state?.selection?.$from?.nodeAfter
@@ -182,19 +200,7 @@ const onToggleLink = () => {
   }
 }
 
-const isOptionVisible = (option: RichTextBubbleMenuOptions) => {
-  if (option === RichTextBubbleMenuOptions.image && editor.value?.storage?.markdown?.options?.renderImagesAsLinks) {
-    return false
-  }
-
-  if (hiddenOptions.value.includes(option)) return false
-
-  return true
-}
-
-const showDivider = (options: RichTextBubbleMenuOptions[]) => {
-  return !isFormField.value || options.some((o) => !hiddenOptions.value.includes(o))
-}
+// ── Mention ──
 
 const newMentionNode = () => {
   if (!editor.value) return
@@ -218,9 +224,210 @@ const newMentionNode = () => {
   }
 }
 
-const closeTextArea = () => {
-  emits('close')
+// ── Menu entries factory ──
+
+interface BubbleMenuButton {
+  type: 'button'
+  key: string
+  icon: IconMapKey
+  tooltip: string
+  shortcut?: string
+  isActive: () => boolean
+  disabled: () => boolean
+  action: () => void
 }
+
+interface BubbleMenuDivider {
+  type: 'divider'
+  key: string
+}
+
+interface BubbleMenuCustom {
+  type: 'colorPicker' | 'link' | 'image' | 'mention' | 'close'
+  key: string
+}
+
+type MenuEntry = BubbleMenuButton | BubbleMenuDivider | BubbleMenuCustom
+
+const menuEntries = computed<MenuEntry[]>(() => {
+  const e = editor.value
+  if (!e) return []
+
+  const entries: MenuEntry[] = []
+  const codeBlockActive = () => e.isActive('codeBlock')
+  const neverDisabled = () => false
+
+  const btn = (
+    key: string,
+    icon: IconMapKey,
+    tooltip: string,
+    activeName: string,
+    action: () => void,
+    opts?: { shortcut?: string; activeParams?: any; disableOnCodeBlock?: boolean },
+  ): BubbleMenuButton => ({
+    type: 'button',
+    key,
+    icon,
+    tooltip,
+    shortcut: opts?.shortcut,
+    isActive: () => e.isActive(activeName, opts?.activeParams),
+    disabled: opts?.disableOnCodeBlock === false ? neverDisabled : codeBlockActive,
+    action,
+  })
+
+  // ── Format marks ──
+  entries.push(
+    btn('bold', 'bold', t('labels.bold'), 'bold', () => e.chain().focus().toggleBold().run(), {
+      shortcut: `${cmdOrCtrlKey.value} B`,
+    }),
+    btn('italic', 'italic', t('labels.italic'), 'italic', () => (e.chain().focus() as any).toggleItalic().run(), {
+      shortcut: `${cmdOrCtrlKey.value} I`,
+    }),
+    btn('underline', 'underline', t('labels.underline'), 'underline', () => e.chain().focus().toggleUnderline().run(), {
+      shortcut: `${cmdOrCtrlKey.value} U`,
+    }),
+  )
+
+  if (embedMode.value && !isEditColumn.value && hasExtension('strike')) {
+    entries.push(
+      btn('strike', 'strike', t('labels.strike'), 'strike', () => e.chain().focus().toggleStrike().run(), {
+        shortcut: `${shiftKey.value} ${cmdOrCtrlKey.value} S`,
+      }),
+    )
+  }
+
+  // ── Color picker ──
+  if (embedMode.value && !isEditColumn.value && hasExtension('textColor') && hasExtension('highlight')) {
+    entries.push({ type: 'colorPicker', key: 'colorPicker' })
+  }
+
+  // ── Code ──
+  if (
+    hasExtension('code') &&
+    (isFormField.value ? !hiddenOptions.value.includes(RichTextBubbleMenuOptions.quote) : !embedMode.value)
+  ) {
+    entries.push(btn('inlineCode', 'code', t('general.code'), 'code', () => e.chain().focus().toggleCode().run()))
+  }
+
+  if (embedMode.value && isOptionVisible(RichTextBubbleMenuOptions.code)) {
+    entries.push(
+      btn('codeBlock', 'ncCodeBlock', t('general.codeBlock'), 'codeBlock', () => e.chain().focus().toggleCodeBlock().run(), {
+        disableOnCodeBlock: false,
+      }),
+    )
+  }
+
+  entries.push({ type: 'divider', key: 'div1' })
+
+  // ── Headings ──
+  if (embedMode.value && !isFormField.value && hasExtension('heading')) {
+    entries.push(
+      btn('h1', 'ncHeading1', t('labels.heading1'), 'heading', () => e.chain().focus().toggleHeading({ level: 1 }).run(), {
+        shortcut: `${cmdOrCtrlKey.value} ${altKey.value} 1`,
+        activeParams: { level: 1 },
+        disableOnCodeBlock: false,
+      }),
+      btn('h2', 'ncHeading2', t('labels.heading2'), 'heading', () => e.chain().focus().toggleHeading({ level: 2 }).run(), {
+        shortcut: `${cmdOrCtrlKey.value} ${altKey.value} 2`,
+        activeParams: { level: 2 },
+        disableOnCodeBlock: false,
+      }),
+      btn('h3', 'ncHeading3', t('labels.heading3'), 'heading', () => e.chain().focus().toggleHeading({ level: 3 }).run(), {
+        shortcut: `${cmdOrCtrlKey.value} ${altKey.value} 3`,
+        activeParams: { level: 3 },
+        disableOnCodeBlock: false,
+      }),
+      { type: 'divider' as const, key: 'div2' },
+    )
+  }
+
+  // ── Block elements ──
+  if (embedMode.value && !isEditColumn.value && isOptionVisible(RichTextBubbleMenuOptions.blockQuote)) {
+    entries.push(
+      btn('blockquote', 'ncQuote', t('labels.blockQuote'), 'blockquote', () => e.chain().focus().toggleBlockquote().run(), {
+        disableOnCodeBlock: false,
+      }),
+    )
+  }
+
+  if (isOptionVisible(RichTextBubbleMenuOptions.bulletList)) {
+    entries.push(
+      btn('bulletList', 'ncList', t('labels.bulletList'), 'bulletList', () => e.chain().focus().toggleBulletList().run(), {
+        disableOnCodeBlock: false,
+      }),
+    )
+  }
+
+  if (isOptionVisible(RichTextBubbleMenuOptions.numberedList)) {
+    entries.push(
+      btn(
+        'numberedList',
+        'ncNumberList',
+        t('labels.numberedList'),
+        'orderedList',
+        () => e.chain().focus().toggleOrderedList().run(),
+        {
+          disableOnCodeBlock: false,
+        },
+      ),
+    )
+  }
+
+  if (isOptionVisible(RichTextBubbleMenuOptions.taskList)) {
+    entries.push(
+      btn('taskList', 'ncCheckList', t('labels.taskList'), 'taskList', () => e.chain().focus().toggleTaskList().run(), {
+        disableOnCodeBlock: false,
+      }),
+    )
+  }
+
+  // ── Mention ──
+  if (appInfo.value.ee && !props.hideMention) {
+    entries.push({ type: 'mention', key: 'mention' })
+  }
+
+  // ── Divider before insert group ──
+  const blockOptions = [
+    RichTextBubbleMenuOptions.blockQuote,
+    RichTextBubbleMenuOptions.bulletList,
+    RichTextBubbleMenuOptions.numberedList,
+    RichTextBubbleMenuOptions.taskList,
+  ]
+  if (!isFormField.value || blockOptions.some((o) => !hiddenOptions.value.includes(o))) {
+    entries.push({ type: 'divider', key: 'div3' })
+  }
+
+  // ── Insert: Link, Image, Table ──
+  if (isOptionVisible(RichTextBubbleMenuOptions.link)) {
+    entries.push({ type: 'link', key: 'link' })
+  }
+
+  if (isOptionVisible(RichTextBubbleMenuOptions.image)) {
+    entries.push({ type: 'image', key: 'image' })
+  }
+
+  if (isOptionVisible(RichTextBubbleMenuOptions.table)) {
+    entries.push(
+      btn(
+        'table',
+        'table',
+        t('objects.table'),
+        'table',
+        () => e.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
+        {
+          disableOnCodeBlock: false,
+        },
+      ),
+    )
+  }
+
+  // ── Close ──
+  if (enableCloseButton.value) {
+    entries.push({ type: 'close', key: 'close' })
+  }
+
+  return entries
+})
 </script>
 
 <template>
@@ -234,390 +441,158 @@ const closeTextArea = () => {
       'edit-column-mode': isEditColumn,
     }"
   >
-    <NcTooltip :placement="tooltipPlacement" :disabled="editor.isActive('codeBlock')">
-      <template #title>
-        <div class="flex flex-col items-center">
-          <div>
-            {{ $t('labels.bold') }}
+    <template v-for="entry in menuEntries" :key="entry.key">
+      <!-- Standard button -->
+      <NcTooltip v-if="entry.type === 'button'" :placement="tooltipPlacement" :disabled="entry.disabled()">
+        <template #title>
+          <div class="flex flex-col items-center">
+            <div>{{ entry.tooltip }}</div>
+            <div v-if="entry.shortcut">{{ entry.shortcut }}</div>
           </div>
-          <div class="text-xs">{{ cmdOrCtrlKey }} B</div>
-        </div>
-      </template>
-      <NcButton
-        size="small"
-        type="text"
-        :class="{ 'is-active': editor.isActive('bold') }"
-        :disabled="editor.isActive('codeBlock')"
-        :tabindex="tabIndex"
-        @click="editor!.chain().focus().toggleBold().run()"
-      >
-        <GeneralIcon icon="bold" />
-      </NcButton>
-    </NcTooltip>
-    <NcTooltip :placement="tooltipPlacement" :disabled="editor.isActive('codeBlock')">
-      <template #title>
-        <div class="flex flex-col items-center">
-          <div>
-            {{ $t('labels.italic') }}
-          </div>
-          <div>{{ cmdOrCtrlKey }} I</div>
-        </div>
-      </template>
-      <NcButton
-        size="small"
-        type="text"
-        :disabled="editor.isActive('codeBlock')"
-        :class="{ 'is-active': editor.isActive('italic') }"
-        :tabindex="tabIndex"
-        @click=";(editor!.chain().focus() as any).toggleItalic().run()"
-      >
-        <GeneralIcon icon="italic" />
-      </NcButton>
-    </NcTooltip>
-    <NcTooltip :placement="tooltipPlacement" :disabled="editor.isActive('codeBlock')">
-      <template #title>
-        <div class="flex flex-col items-center">
-          <div>
-            {{ $t('labels.underline') }}
-          </div>
-          <div>{{ cmdOrCtrlKey }} U</div>
-        </div>
-      </template>
-
-      <NcButton
-        size="small"
-        type="text"
-        :class="{ 'is-active': editor.isActive('underline') }"
-        :disabled="editor.isActive('codeBlock')"
-        :tabindex="tabIndex"
-        @click="editor!.chain().focus().toggleUnderline().run()"
-      >
-        <GeneralIcon icon="underline" />
-      </NcButton>
-    </NcTooltip>
-    <NcTooltip v-if="embedMode && !isEditColumn" :placement="tooltipPlacement" :disabled="editor.isActive('codeBlock')">
-      <template #title>
-        <div class="flex flex-col items-center">
-          <div>
-            {{ $t('labels.strike') }}
-          </div>
-          <div>{{ shiftKey }} {{ cmdOrCtrlKey }} S</div>
-        </div>
-      </template>
-      <NcButton
-        size="small"
-        type="text"
-        :class="{ 'is-active': editor.isActive('strike') }"
-        :disabled="editor.isActive('codeBlock')"
-        :tabindex="tabIndex"
-        @click="editor!.chain().focus().toggleStrike().run()"
-      >
-        <GeneralIcon icon="strike" />
-      </NcButton>
-    </NcTooltip>
-    <!-- Color picker button — doc editor (embedMode) only -->
-    <NcTooltip v-if="embedMode && !isEditColumn" :disabled="editor.isActive('codeBlock') || showColorPicker">
-      <template #title> {{ $t('general.color') }} </template>
-      <NcButton
-        size="small"
-        type="text"
-        class="nc-highlight-btn"
-        :class="{ 'is-active': activeHighlightColor || activeTextColor }"
-        :disabled="editor.isActive('codeBlock')"
-        @click="showColorPicker = !showColorPicker"
-      >
-        <span
-          class="nc-color-btn-preview"
-          :style="{
-            color: activeTextColor || 'var(--nc-content-gray)',
-            backgroundColor: activeHighlightColor || 'transparent',
-            borderColor: activeHighlightColor || 'var(--nc-border-gray-medium)',
-          }"
-          >A</span
+        </template>
+        <NcButton
+          size="small"
+          type="text"
+          :class="{ 'is-active': entry.isActive() }"
+          :disabled="entry.disabled()"
+          :tabindex="tabIndex"
+          @click="entry.action"
         >
-      </NcButton>
-    </NcTooltip>
-    <!-- Color picker dropdown -->
-    <div v-if="embedMode && showColorPicker" class="nc-color-picker-dropdown" @mousedown.prevent>
-      <!-- Recently used -->
-      <template v-if="recentColors.length">
-        <div class="nc-color-picker-label">{{ $t('labels.recentlyUsed') }}</div>
-        <div class="nc-color-picker-grid">
-          <button
-            v-for="(r, idx) in recentColors"
-            :key="idx"
-            class="nc-color-swatch"
-            :class="{
-              'is-active': r.type === 'text' ? activeTextColor === r.color : activeHighlightColor === r.color,
-            }"
-            :style="
-              r.type === 'text'
-                ? { borderColor: `color-mix(in srgb, ${r.color} 30%, transparent)` }
-                : { backgroundColor: r.color, borderColor: r.color }
-            "
-            :title="r.type === 'text' ? $t('labels.textColor') : $t('labels.backgroundColor')"
-            @click="applyRecent(r)"
+          <GeneralIcon :icon="entry.icon" />
+        </NcButton>
+      </NcTooltip>
+
+      <!-- Divider -->
+      <div v-else-if="entry.type === 'divider'" class="divider" />
+
+      <!-- Color picker -->
+      <template v-else-if="entry.type === 'colorPicker'">
+        <NcTooltip :disabled="editor.isActive('codeBlock') || showColorPicker">
+          <template #title> {{ $t('general.color') }} </template>
+          <NcButton
+            size="small"
+            type="text"
+            class="nc-highlight-btn"
+            :class="{ 'is-active': activeHighlightColor || activeTextColor }"
+            :disabled="editor.isActive('codeBlock')"
+            @click="showColorPicker = !showColorPicker"
           >
-            <span v-if="r.type === 'text'" class="nc-color-swatch-letter" :style="{ color: r.color }">A</span>
-          </button>
+            <span
+              class="nc-color-btn-preview"
+              :style="{
+                color: activeTextColor || 'var(--nc-content-gray)',
+                backgroundColor: activeHighlightColor || 'transparent',
+                borderColor: activeHighlightColor || 'var(--nc-border-gray-medium)',
+              }"
+              >A</span
+            >
+          </NcButton>
+        </NcTooltip>
+        <div v-if="showColorPicker" class="nc-color-picker-dropdown" @mousedown.prevent>
+          <template v-if="recentColors.length">
+            <div class="nc-color-picker-label">{{ $t('labels.recentlyUsed') }}</div>
+            <div class="nc-color-picker-grid">
+              <button
+                v-for="(r, idx) in recentColors"
+                :key="idx"
+                class="nc-color-swatch"
+                :class="{
+                  'is-active': r.type === 'text' ? activeTextColor === r.color : activeHighlightColor === r.color,
+                }"
+                :style="
+                  r.type === 'text'
+                    ? { borderColor: `color-mix(in srgb, ${r.color} 30%, transparent)` }
+                    : { backgroundColor: r.color, borderColor: r.color }
+                "
+                :title="r.type === 'text' ? $t('labels.textColor') : $t('labels.backgroundColor')"
+                @click="applyRecent(r)"
+              >
+                <span v-if="r.type === 'text'" class="nc-color-swatch-letter" :style="{ color: r.color }">A</span>
+              </button>
+            </div>
+          </template>
+          <div class="nc-color-picker-label">{{ $t('labels.textColor') }}</div>
+          <div class="nc-color-picker-grid">
+            <button
+              v-for="tc in textColors"
+              :key="tc.color"
+              class="nc-color-swatch"
+              :class="{ 'is-active': tc.color !== '#1f2937' && activeTextColor === tc.color }"
+              :style="{ borderColor: `color-mix(in srgb, ${tc.color} 30%, transparent)` }"
+              :title="tc.name"
+              @click="applyTextColor(tc.color)"
+            >
+              <span class="nc-color-swatch-letter" :style="{ color: tc.color }">A</span>
+            </button>
+          </div>
+          <div class="nc-color-picker-label">{{ $t('labels.backgroundColor') }}</div>
+          <div class="nc-color-picker-grid">
+            <button
+              v-for="b in bgColors"
+              :key="b.color || 'none'"
+              class="nc-color-swatch"
+              :class="{ 'is-active': b.color && activeHighlightColor === b.color }"
+              :style="b.color ? { backgroundColor: b.color, borderColor: b.color } : {}"
+              :title="b.name"
+              @click="applyBgColor(b.color)"
+            />
+          </div>
         </div>
       </template>
 
-      <!-- Text color -->
-      <div class="nc-color-picker-label">{{ $t('labels.textColor') }}</div>
-      <div class="nc-color-picker-grid">
-        <button
-          v-for="t in textColors"
-          :key="t.color"
-          class="nc-color-swatch"
-          :class="{ 'is-active': t.color !== '#1f2937' && activeTextColor === t.color }"
-          :style="{ borderColor: `color-mix(in srgb, ${t.color} 30%, transparent)` }"
-          :title="t.name"
-          @click="applyTextColor(t.color)"
+      <!-- Link -->
+      <NcTooltip v-else-if="entry.type === 'link'" :placement="tooltipPlacement" :disabled="editor.isActive('codeBlock')">
+        <template #title> {{ $t('general.link') }}</template>
+        <NcButton
+          size="small"
+          type="text"
+          :class="{ 'is-active': editor.isActive('link') }"
+          :disabled="editor.isActive('codeBlock')"
+          :tabindex="tabIndex"
+          @click="onToggleLink"
         >
-          <span class="nc-color-swatch-letter" :style="{ color: t.color }">A</span>
-        </button>
+          <GeneralIcon v-if="isFormField" icon="link2" />
+          <div v-else class="flex flex-row items-center px-0.5">
+            <GeneralIcon icon="link2" />
+            <div class="!text-xs !ml-1">{{ $t('general.link') }}</div>
+          </div>
+        </NcButton>
+      </NcTooltip>
+
+      <!-- Image -->
+      <CellRichTextImageMenu
+        v-else-if="entry.type === 'image'"
+        :placement="tooltipPlacement"
+        :editor="editor"
+        :tab-index="tabIndex"
+      />
+
+      <!-- Mention -->
+      <NcTooltip v-else-if="entry.type === 'mention'">
+        <template #title>
+          <div class="flex flex-col items-center">
+            <div>{{ $t('labels.mention') }}</div>
+            <div>@</div>
+          </div>
+        </template>
+        <NcButton
+          size="small"
+          type="text"
+          :class="{ 'is-active': editor?.isActive('suggestions') }"
+          :tabindex="tabIndex"
+          @click="newMentionNode"
+        >
+          <GeneralIcon icon="atSign" />
+        </NcButton>
+      </NcTooltip>
+
+      <!-- Close -->
+      <div v-else-if="entry.type === 'close'" class="!sticky right-0 pr-0.5 bg-nc-bg-default">
+        <NcButton type="text" size="small" @click="emits('close')">
+          <GeneralIcon icon="close" />
+        </NcButton>
       </div>
-
-      <!-- Background color -->
-      <div class="nc-color-picker-label">{{ $t('labels.backgroundColor') }}</div>
-      <div class="nc-color-picker-grid">
-        <button
-          v-for="b in bgColors"
-          :key="b.color || 'none'"
-          class="nc-color-swatch"
-          :class="{ 'is-active': b.color && activeHighlightColor === b.color }"
-          :style="b.color ? { backgroundColor: b.color, borderColor: b.color } : {}"
-          :title="b.name"
-          @click="applyBgColor(b.color)"
-        />
-      </div>
-    </div>
-
-    <NcTooltip
-      v-if="isFormField ? isOptionVisible(RichTextBubbleMenuOptions.quote) : !embedMode"
-      :placement="tooltipPlacement"
-      :disabled="editor.isActive('codeBlock')"
-    >
-      <template #title> {{ $t('general.code') }}</template>
-      <NcButton
-        size="small"
-        type="text"
-        :tabindex="tabIndex"
-        :class="{ 'is-active': editor.isActive('code') }"
-        :disabled="editor.isActive('codeBlock')"
-        @click="editor!.chain().focus().toggleCode().run()"
-      >
-        <GeneralIcon icon="code" />
-      </NcButton>
-    </NcTooltip>
-    <NcTooltip v-if="embedMode && isOptionVisible(RichTextBubbleMenuOptions.code)" :placement="tooltipPlacement">
-      <template #title> {{ $t('general.codeBlock') }}</template>
-      <NcButton
-        size="small"
-        type="text"
-        :tabindex="tabIndex"
-        :class="{ 'is-active': editor.isActive('codeBlock') }"
-        @click="editor!.chain().focus().toggleCodeBlock().run()"
-      >
-        <GeneralIcon icon="ncCodeBlock" />
-      </NcButton>
-    </NcTooltip>
-
-    <div class="divider"></div>
-
-    <template v-if="embedMode && !isFormField">
-      <NcTooltip>
-        <template #title>
-          <div class="flex flex-col items-center">
-            <div>
-              {{ $t('labels.heading1') }}
-            </div>
-            <div>{{ cmdOrCtrlKey }} {{ altKey }} 1</div>
-          </div>
-        </template>
-        <NcButton
-          size="small"
-          type="text"
-          :class="{ 'is-active': editor.isActive('heading', { level: 1 }) }"
-          @click="editor!.chain().focus().toggleHeading({ level: 1 }).run()"
-        >
-          <GeneralIcon icon="ncHeading1" />
-        </NcButton>
-      </NcTooltip>
-      <NcTooltip>
-        <template #title>
-          <div class="flex flex-col items-center">
-            <div>
-              {{ $t('labels.heading2') }}
-            </div>
-            <div>{{ cmdOrCtrlKey }} {{ altKey }} 2</div>
-          </div>
-        </template>
-        <NcButton
-          size="small"
-          type="text"
-          :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }"
-          @click="editor!.chain().focus().toggleHeading({ level: 2 }).run()"
-        >
-          <GeneralIcon icon="ncHeading2" />
-        </NcButton>
-      </NcTooltip>
-      <NcTooltip>
-        <template #title>
-          <div class="flex flex-col items-center">
-            <div>
-              {{ $t('labels.heading3') }}
-            </div>
-            <div>{{ cmdOrCtrlKey }} {{ altKey }} 3</div>
-          </div>
-        </template>
-        <NcButton
-          size="small"
-          type="text"
-          :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }"
-          @click="editor!.chain().focus().toggleHeading({ level: 3 }).run()"
-        >
-          <GeneralIcon icon="ncHeading3" />
-        </NcButton>
-      </NcTooltip>
-
-      <div class="divider"></div>
     </template>
-
-    <NcTooltip
-      v-if="embedMode && !isEditColumn && isOptionVisible(RichTextBubbleMenuOptions.blockQuote)"
-      :placement="tooltipPlacement"
-    >
-      <template #title> {{ $t('labels.blockQuote') }}</template>
-      <NcButton
-        size="small"
-        type="text"
-        :tabindex="tabIndex"
-        :class="{ 'is-active': editor.isActive('blockquote') }"
-        @click="editor!.chain().focus().toggleBlockquote().run()"
-      >
-        <GeneralIcon icon="ncQuote" />
-      </NcButton>
-    </NcTooltip>
-
-    <NcTooltip v-if="isOptionVisible(RichTextBubbleMenuOptions.bulletList)" :placement="tooltipPlacement">
-      <template #title> {{ $t('labels.bulletList') }}</template>
-      <NcButton
-        size="small"
-        type="text"
-        :tabindex="tabIndex"
-        :class="{ 'is-active': editor.isActive('bulletList') }"
-        @click="editor!.chain().focus().toggleBulletList().run()"
-      >
-        <GeneralIcon icon="ncList" />
-      </NcButton>
-    </NcTooltip>
-
-    <NcTooltip v-if="isOptionVisible(RichTextBubbleMenuOptions.numberedList)" :placement="tooltipPlacement">
-      <template #title> {{ $t('labels.numberedList') }}</template>
-      <NcButton
-        size="small"
-        type="text"
-        :tabindex="tabIndex"
-        :class="{ 'is-active': editor.isActive('orderedList') }"
-        @click="editor!.chain().focus().toggleOrderedList().run()"
-      >
-        <GeneralIcon icon="ncNumberList" />
-      </NcButton>
-    </NcTooltip>
-
-    <NcTooltip v-if="isOptionVisible(RichTextBubbleMenuOptions.taskList)" :placement="tooltipPlacement">
-      <template #title> {{ $t('labels.taskList') }}</template>
-      <NcButton
-        size="small"
-        type="text"
-        :tabindex="tabIndex"
-        :class="{ 'is-active': editor.isActive('taskList') }"
-        @click="editor!.chain().focus().toggleTaskList().run()"
-      >
-        <GeneralIcon icon="ncCheckList" />
-      </NcButton>
-    </NcTooltip>
-
-    <NcTooltip v-if="appInfo.ee && !props.hideMention">
-      <template #title>
-        <div class="flex flex-col items-center">
-          <div>
-            {{ $t('labels.mention') }}
-          </div>
-          <div>@</div>
-        </div>
-      </template>
-      <NcButton
-        size="small"
-        :class="{ 'is-active': editor?.isActive('suggestions') }"
-        :tabindex="tabIndex"
-        type="text"
-        @click="newMentionNode"
-      >
-        <GeneralIcon icon="atSign" />
-      </NcButton>
-    </NcTooltip>
-
-    <div
-      v-if="
-        showDivider([
-          RichTextBubbleMenuOptions.blockQuote,
-          RichTextBubbleMenuOptions.bulletList,
-          RichTextBubbleMenuOptions.numberedList,
-          RichTextBubbleMenuOptions.taskList,
-        ])
-      "
-      class="divider"
-    ></div>
-
-    <NcTooltip
-      v-if="isOptionVisible(RichTextBubbleMenuOptions.link)"
-      :placement="tooltipPlacement"
-      :disabled="editor.isActive('codeBlock')"
-    >
-      <template #title> {{ $t('general.link') }}</template>
-      <NcButton
-        size="small"
-        type="text"
-        :class="{ 'is-active': editor.isActive('link') }"
-        :disabled="editor.isActive('codeBlock')"
-        :tabindex="tabIndex"
-        @click="onToggleLink"
-      >
-        <GeneralIcon v-if="isFormField" icon="link2"></GeneralIcon>
-        <div v-else class="flex flex-row items-center px-0.5">
-          <GeneralIcon icon="link2"></GeneralIcon>
-          <div class="!text-xs !ml-1">{{ $t('general.link') }}</div>
-        </div>
-      </NcButton>
-    </NcTooltip>
-    <CellRichTextImageMenu
-      v-if="isOptionVisible(RichTextBubbleMenuOptions.image)"
-      :placement="tooltipPlacement"
-      :editor="editor"
-      :tab-index="tabIndex"
-    />
-
-    <NcTooltip v-if="isOptionVisible(RichTextBubbleMenuOptions.table)" :placement="tooltipPlacement">
-      <template #title> {{ $t('objects.table') }} </template>
-      <NcButton
-        size="small"
-        type="text"
-        :tabindex="tabIndex"
-        :class="{ 'is-active': editor.isActive('table') }"
-        @click="editor!.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()"
-      >
-        <GeneralIcon icon="table" />
-      </NcButton>
-    </NcTooltip>
-
-    <div v-if="enableCloseButton" class="!sticky right-0 pr-0.5 bg-nc-bg-default">
-      <NcButton type="text" size="small" @click="closeTextArea">
-        <GeneralIcon icon="close" />
-      </NcButton>
-    </div>
   </div>
 </template>
 

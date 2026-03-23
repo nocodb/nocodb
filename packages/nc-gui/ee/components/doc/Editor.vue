@@ -2677,7 +2677,7 @@ onBeforeUnmount(() => {
 
   // Reduce divider height to match smaller buttons
   .divider {
-    @apply !h-6;
+    @apply !h-7;
   }
 }
 

@@ -31,7 +31,7 @@ const isCeMode = computed(() => appInfo.value?.isOnPrem && !appInfo.value?.ee)
 
 const planLabel = computed(() => {
   if (isCeMode.value) return t('title.communityEdition')
-  return `${props.workspace.payment?.plan?.title || 'Free'} Plan`
+  return `${props.workspace.payment?.plan?.title || props.planTitle || 'Free'} Plan`
 })
 
 const wsNodeRef = ref<HTMLDivElement>()

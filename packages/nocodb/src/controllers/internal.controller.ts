@@ -29,6 +29,7 @@ import {
 import {
   Filter,
   GridViewColumn,
+  ListViewColumn,
   Sort,
   TimelineViewColumn,
   View,
@@ -89,6 +90,7 @@ export class InternalController {
       'calendarViewUpdate',
       'timelineViewUpdate',
       'timelineColumnUpdate',
+      'listColumnUpdate',
       'viewRowColorConditionAdd',
       'viewRowColorConditionUpdate',
       'viewRowColorConditionDelete',
@@ -137,6 +139,14 @@ export class InternalController {
         );
         if (timelineCol?.fk_view_id) {
           view = await View.get(context, timelineCol.fk_view_id);
+        }
+      } else if (req.query.listViewColumnId) {
+        const listCol = await ListViewColumn.get(
+          context,
+          req.query.listViewColumnId as string,
+        );
+        if (listCol?.fk_view_id) {
+          view = await View.get(context, listCol.fk_view_id);
         }
       }
 

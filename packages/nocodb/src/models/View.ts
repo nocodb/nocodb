@@ -413,6 +413,7 @@ export default class View implements ViewType {
               copyFromView.id,
               ncMeta,
             );
+
             for (const level of sourceLevels) {
               const newLevel = await ListViewLevel.insert(
                 context,
@@ -430,6 +431,7 @@ export default class View implements ViewType {
                 },
                 ncMeta,
               );
+
               if (level.id && newLevel?.id) {
                 levelIdMap.set(level.id, newLevel.id);
               }
@@ -735,6 +737,11 @@ export default class View implements ViewType {
             : vCol;
 
           if (isSystemColumn(col)) show = false;
+
+          const resolvedLevelId = vCol.fk_level_id && levelIdMap.has(vCol.fk_level_id)
+            ? levelIdMap.get(vCol.fk_level_id)
+            : defaultLevelId || undefined;
+
           await View.insertColumn(
             context,
             {
@@ -748,7 +755,7 @@ export default class View implements ViewType {
               bold,
               italic,
               id: null,
-              ...(defaultLevelId ? { fk_level_id: defaultLevelId } : {}),
+              ...(resolvedLevelId ? { fk_level_id: resolvedLevelId } : {}),
             },
             ncMeta,
           );
@@ -2066,7 +2073,7 @@ export default class View implements ViewType {
     const table = this.extractViewColumnsTableName(view);
     const scope = this.extractViewColumnsTableNameScope(view);
 
-    if (view.type === ViewTypes.GRID) {
+    if (view.type === ViewTypes.GRID || view.type === ViewTypes.LIST) {
       const primary_value_column = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,
@@ -2429,35 +2436,38 @@ export default class View implements ViewType {
             ? prepareForDb(viewColumns[i])
             : viewColumns[i];
 
+        const props = extractProps(column, [
+          'fk_view_id',
+          'fk_column_id',
+          'fk_level_id',
+          'show',
+          'base_id',
+          'source_id',
+          'order',
+          ...(view.type === ViewTypes.CALENDAR ||
+          view.type === ViewTypes.TIMELINE
+            ? ['bold', 'italic', 'underline']
+            : []),
+          ...(view.type === ViewTypes.FORM
+            ? [
+                'label',
+                'help',
+                'description',
+                'required',
+                'enable_scanner',
+                'meta',
+              ]
+            : [
+                'width',
+                'group_by',
+                'group_by_order',
+                'group_by_sort',
+                'aggregation',
+              ]),
+        ]);
+
         insertObjs.push({
-          ...extractProps(column, [
-            'fk_view_id',
-            'fk_column_id',
-            'show',
-            'base_id',
-            'source_id',
-            'order',
-            ...(view.type === ViewTypes.CALENDAR ||
-            view.type === ViewTypes.TIMELINE
-              ? ['bold', 'italic', 'underline']
-              : []),
-            ...(view.type === ViewTypes.FORM
-              ? [
-                  'label',
-                  'help',
-                  'description',
-                  'required',
-                  'enable_scanner',
-                  'meta',
-                ]
-              : [
-                  'width',
-                  'group_by',
-                  'group_by_order',
-                  'group_by_sort',
-                  'aggregation',
-                ]),
-          ]),
+          ...props,
           fk_view_id: view.id,
           base_id: view.base_id,
           source_id: view.source_id,
@@ -3085,15 +3095,39 @@ export default class View implements ViewType {
         );
       }
 
-      // Associate bulk-inserted list view columns with the default level
-      if (view.type === ViewTypes.LIST && defaultLevelId) {
-        await ncMeta.metaUpdate(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.LIST_VIEW_COLUMNS,
-          { fk_level_id: defaultLevelId },
-          { fk_view_id: view_id },
-        );
+      // Associate bulk-inserted list view columns with the correct level
+      if (view.type === ViewTypes.LIST) {
+        if (copyFromView && levelIdMap.size > 0) {
+          // Remap fk_level_id from source to new level IDs
+          for (const [oldLevelId, newLevelId] of levelIdMap) {
+            await ncMeta.metaUpdate(
+              context.workspace_id,
+              context.base_id,
+              MetaTable.LIST_VIEW_COLUMNS,
+              { fk_level_id: newLevelId },
+              { fk_view_id: view_id, fk_level_id: oldLevelId },
+            );
+          }
+          // Columns without fk_level_id (shouldn't happen, but safety net)
+          if (defaultLevelId) {
+            await ncMeta.metaUpdate(
+              context.workspace_id,
+              context.base_id,
+              MetaTable.LIST_VIEW_COLUMNS,
+              { fk_level_id: defaultLevelId },
+              { fk_view_id: view_id, fk_level_id: null },
+            );
+          }
+        } else if (defaultLevelId) {
+          // New view (not a copy): assign all columns to the default level
+          await ncMeta.metaUpdate(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.LIST_VIEW_COLUMNS,
+            { fk_level_id: defaultLevelId },
+            { fk_view_id: view_id },
+          );
+        }
       }
 
       if (copyFromView) {

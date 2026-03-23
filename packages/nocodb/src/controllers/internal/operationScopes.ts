@@ -63,6 +63,7 @@ export const OPERATION_SCOPES = {
   viewColumnUpdate: 'base',
   gridColumnUpdate: 'base',
   timelineColumnUpdate: 'base',
+  listColumnUpdate: 'base',
   viewColumnCreate: 'base',
   viewRowColorConditionAdd: 'base',
   viewRowColorConditionUpdate: 'base',

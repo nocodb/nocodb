@@ -231,7 +231,10 @@ export function useCanvasRender({
     const lastRow = rows.get(end - 1)
     if (lastRow && end >= totalRows.value && isAddingEmptyRowAllowed.value) {
       const lastDepth = lastRow.__nc_depth ?? 0
-      for (let d = lastDepth; d >= 1; d--) {
+      // For single-level (N=1), include add-row at depth 0 (the leaf level).
+      // For multi-level, only close down to depth 1 (root doesn't get an add-row).
+      const minAddRowDepth = displayLevels.value.length === 1 ? 0 : 1
+      for (let d = lastDepth; d >= minAddRowDepth; d--) {
         const addRowScreenY = y - scrollTop.value
         if (addRowScreenY + ADD_ROW_HEIGHT > hh && addRowScreenY < height.value) {
           renderAddRow(ctx, d, addRowScreenY, colors, lastPkAtDepth[d - 1])
@@ -271,7 +274,7 @@ export function useCanvasRender({
     let x = indent - scrollLeft.value
     const isHeaderHovered = mousePosition.y >= 0 && mousePosition.y < hh
 
-    ctx.font = '700 11px Inter'
+    ctx.font = '700 10px Inter'
     ctx.textBaseline = 'middle'
 
     for (let ci = 0; ci < cols.length; ci++) {
@@ -290,6 +293,14 @@ export function useCanvasRender({
 
       x += w
     }
+
+    // Bottom border — matches sub-header separator line
+    ctx.strokeStyle = colors.borderLight
+    ctx.lineWidth = 0.5
+    ctx.beginPath()
+    ctx.moveTo(indent - scrollLeft.value, hh - 0.5)
+    ctx.lineTo(width.value, hh - 0.5)
+    ctx.stroke()
   }
 
   function renderSubHeader(ctx: CanvasRenderingContext2D, depth: number, screenY: number, colors: ReturnType<typeof getColors>) {

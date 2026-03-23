@@ -119,6 +119,9 @@ import { ViewSectionsService } from '~/ee/services/view-sections.service';
 import { TimelinesService } from '~/services/timelines.service';
 import { TimelineColumnsService } from '~/services/timeline-columns.service';
 
+/* Lists */
+import { ListColumnsService } from '~/ee/services/list-columns.service';
+
 import { ActionsService } from '~/services/actions.service';
 
 /* SCIM */
@@ -234,6 +237,9 @@ export const nocoModuleEeMetadata = {
     TimelinesService,
     TimelineColumnsService,
 
+    /* Lists */
+    ListColumnsService,
+
     ActionsService,
 
     /* SCIM */
@@ -323,6 +329,7 @@ export const nocoModuleEeMetadata = {
     DashboardsService,
     TimelinesService,
     TimelineColumnsService,
+    ListColumnsService,
     PermissionsService,
     RlsService,
     ActionsService,

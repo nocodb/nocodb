@@ -1,6 +1,6 @@
 // Row dimensions
 export const LIST_ROW_HEIGHT = 40
-export const LIST_HEADER_HEIGHT = 32
+export const LIST_HEADER_HEIGHT = 28
 
 // Sub-header row (column headers shown when expanding into a child level)
 export const SUB_HEADER_HEIGHT = 28
@@ -32,5 +32,11 @@ export const MIN_COLUMN_WIDTH = 80
 // Default column width
 export const DEFAULT_COLUMN_WIDTH = 180
 
+// Default width for the first (display) field
+export const DEFAULT_FIRST_COLUMN_WIDTH = 300
+
 // Bottom padding after the last row
-export const BOTTOM_PADDING = 120
+export const BOTTOM_PADDING = 240
+
+// Right padding after the last column
+export const RIGHT_PADDING = 120

@@ -5,11 +5,14 @@ import {
   ADD_ROW_HEIGHT,
   BOTTOM_PADDING,
   CHEVRON_COL_WIDTH,
+  DEFAULT_COLUMN_WIDTH,
+  DEFAULT_FIRST_COLUMN_WIDTH,
   DEPTH_DECREASE_GAP,
   DEPTH_INCREASE_GAP,
   INDENT_PER_DEPTH,
   LIST_HEADER_HEIGHT,
   LIST_ROW_HEIGHT,
+  RIGHT_PADDING,
   SUB_HEADER_HEIGHT,
 } from './constants'
 import { useCanvasRender } from './useCanvasRender'
@@ -68,7 +71,7 @@ export function useCanvasListView({
   const setCursor: SetCursorType = (cursor) => {
     canvasCursorRef.value = cursor
   }
-  const { isRowColouringEnabled, getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
+  const { isRowColouringEnabled, getEvaluatedRowMetaRowColorInfo, rowColorInfo: activeViewRowColorInfo } = useViewRowColorRender()
 
   const headerRowHeight = computed(() => LIST_HEADER_HEIGHT)
 
@@ -251,9 +254,11 @@ export function useCanvasListView({
     const rows = response.list || response?.data?.list || []
 
     if (isRowColouringEnabled.value) {
+      const leafDepth = displayLevels.value.length - 1
       for (const row of rows) {
-        const colorInfo = getEvaluatedRowMetaRowColorInfo(row)
-        row.__nc_color = colorInfo
+        if (row.__nc_depth === leafDepth) {
+          row.__nc_color = getEvaluatedRowMetaRowColorInfo(row)
+        }
       }
     }
 
@@ -368,33 +373,35 @@ export function useCanvasListView({
           }
         }
 
-        col.extra = {}
+        // Build extra without mutating the reactive col object
+        let extra: Record<string, any> = {}
 
         if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(col.uidt as UITypes)) {
-          col.extra = getSingleMultiselectColOptions(col)
+          extra = getSingleMultiselectColOptions(col)
         } else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(col.uidt as UITypes)) {
-          col.extra = getUserColOptions(col, levelBaseUsers)
+          extra = getUserColOptions(col, levelBaseUsers)
         }
 
         if ([UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.DateTime].includes(col.uidt as UITypes)) {
           const colMeta = parseProp(col.meta)
-          col.extra.timezone = isEeUI ? getTimeZoneFromName(colMeta?.timezone) : undefined
-          col.extra.isDisplayTimezone = isEeUI ? colMeta?.isDisplayTimezone : undefined
+          extra.timezone = isEeUI ? getTimeZoneFromName(colMeta?.timezone) : undefined
+          extra.isDisplayTimezone = isEeUI ? colMeta?.isDisplayTimezone : undefined
         }
 
         if ([UITypes.Formula].includes(col.uidt as UITypes)) {
           const referencedColumn = (col.colOptions as FormulaType)?.parsed_tree?.referencedColumn
           const displayType = (col.meta as any)?.display_type ?? referencedColumn?.uidt
-          const levelMeta = metas.value?.[`${baseId}:${col.fk_model_id!}`]
+          const formulaLevelMeta = metas.value?.[`${baseId}:${col.fk_model_id!}`]
           const displayColumnConfig = (col.meta as any)?.display_type
             ? ((col.meta as any)?.display_column_meta as any)
             : referencedColumn
-            ? levelMeta?.columns?.find((c: ColumnType) => c.id === referencedColumn.id)
+            ? formulaLevelMeta?.columns?.find((c: ColumnType) => c.id === referencedColumn.id)
             : undefined
 
+          let displayColumnExtra: Record<string, any> | undefined
           if ([UITypes.DateTime].includes(displayType) && displayColumnConfig?.meta) {
             const displayColumnConfigMeta = displayColumnConfig.meta
-            displayColumnConfig.extra = {
+            displayColumnExtra = {
               timezone:
                 isEeUI && displayColumnConfigMeta.isDisplayTimezone
                   ? getTimeZoneFromName(displayColumnConfigMeta.timezone)
@@ -402,8 +409,10 @@ export function useCanvasListView({
               isDisplayTimezone: isEeUI ? displayColumnConfigMeta.isDisplayTimezone : undefined,
             }
           }
-          col.extra.display_type = displayType
-          col.extra.display_column_meta = displayColumnConfig
+          extra.display_type = displayType
+          extra.display_column_meta = displayColumnExtra
+            ? { ...displayColumnConfig, extra: displayColumnExtra }
+            : displayColumnConfig
         }
 
         const sqlUi = sqlUis.value[col.source_id!] ?? Object.values(sqlUis.value)[0]
@@ -423,14 +432,14 @@ export function useCanvasListView({
           grid_column_id: viewCol?.id ?? col.id!,
           title: col.title!,
           uidt: col.uidt as any,
-          width: viewCol?.width ?? '180px',
+          width: viewCol?.width ?? (col.pv ? `${DEFAULT_FIRST_COLUMN_WIDTH}px` : `${DEFAULT_COLUMN_WIDTH}px`),
           fixed: false,
           pv: !!col.pv,
           virtual: isVirtualCol(col),
           readonly: isReadonly,
           isCellEditable,
           isSyncedColumn: isSyncedCol,
-          columnObj: col as ColumnType & { extra?: any },
+          columnObj: { ...col, extra } as ColumnType & { extra?: any },
           relatedColObj,
           relatedTableMeta,
           aggregation: '',
@@ -522,8 +531,13 @@ export function useCanvasListView({
     // Sub-headers: one per depth-increase + one per depth-decrease
     const subHeaderCount = depthIncreaseCount + depthDecreaseCount
 
-    // Add-rows: exclude root group (root never gets an add-row)
-    const addRowCount = isAddingEmptyRowAllowed.value ? groups.reduce((s: number, g: number) => s + g, 0) - 1 : 0
+    // Add-rows: for multi-level, exclude root group (root never gets an add-row).
+    // For single-level (N === 1), the root IS the leaf — include one add-row.
+    const addRowCount = isAddingEmptyRowAllowed.value
+      ? N === 1
+        ? 1
+        : groups.reduce((s: number, g: number) => s + g, 0) - 1
+      : 0
 
     // Gaps before sub-headers at depth boundaries
     const transitionGapHeight = depthIncreaseCount * DEPTH_INCREASE_GAP + depthDecreaseCount * DEPTH_DECREASE_GAP
@@ -545,7 +559,7 @@ export function useCanvasListView({
 
   const slotHeight = computed(() => {
     if (totalRows.value === 0) return rowHeight.value
-    return scrollMetrics.value.scrollableHeight / totalRows.value
+    return (scrollMetrics.value.scrollableHeight - BOTTOM_PADDING) / totalRows.value
   })
 
   const totalWidth = computed(() => {
@@ -556,6 +570,10 @@ export function useCanvasListView({
       const indent = CHEVRON_COL_WIDTH + d * INDENT_PER_DEPTH
       const colsWidth = indent + cols.reduce((sum, c) => sum + parseCellWidth(c.width), 0)
       maxWidth = Math.max(maxWidth, colsWidth)
+    }
+    // Add right padding only when content exceeds viewport (horizontal scroll active)
+    if (maxWidth > width.value) {
+      maxWidth += RIGHT_PADDING
     }
     return maxWidth
   })
@@ -611,6 +629,23 @@ export function useCanvasListView({
 
   watch(rowSlice, (slice) => updateVisibleRows(slice))
   watch(collapsedJson, () => resetAndReload())
+
+  // Re-evaluate row colors when coloring config changes
+  watch(
+    () => activeViewRowColorInfo.value,
+    () => {
+      const leafDepth = displayLevels.value.length - 1
+      for (const [_, row] of cachedRows.value) {
+        if (row.__nc_depth === leafDepth) {
+          row.__nc_color = isRowColouringEnabled.value ? getEvaluatedRowMetaRowColorInfo(row) : undefined
+        } else {
+          row.__nc_color = undefined
+        }
+      }
+      triggerRefreshCanvas()
+    },
+    { deep: true },
+  )
 
   function findElementAt(x: number, y: number, type?: ListCanvasElement['type']): ListCanvasElement | null {
     for (let i = elementMap.value.length - 1; i >= 0; i--) {

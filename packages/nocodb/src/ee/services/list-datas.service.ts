@@ -145,7 +145,11 @@ export class ListDatasService {
             childFkCol: childCol.column_name,
             parentPkCol: parentCol.column_name,
           };
-        } else if (linkColOpts.type === RelationTypes.MANY_TO_MANY) {
+        } else if (
+          linkColOpts.type === RelationTypes.MANY_TO_MANY ||
+          linkColOpts.type === RelationTypes.ONE_TO_MANY ||
+          linkColOpts.type === RelationTypes.MANY_TO_ONE
+        ) {
           const mmModel = await linkColOpts.getMMModel(context);
           const mmChildCol = await linkColOpts.getMMChildColumn(context);
           const mmParentCol = await linkColOpts.getMMParentColumn(context);
@@ -221,14 +225,16 @@ export class ListDatasService {
             )}"`,
           );
         } else {
+          // mmChildCol references the link field owner's table (prev CTE / depth-1)
+          // mmParentCol references the related table (current depth's model)
           levelQb.select(
             dbDriver.raw(
-              `__nc_j."${sanitize(link.mmParentCol)}" AS __nc_parent_fk`,
+              `__nc_j."${sanitize(link.mmChildCol)}" AS __nc_parent_fk`,
             ),
           );
           levelQb.joinRaw(
             `JOIN ?? __nc_j ON ${pkIdExpr(tAlias)} = __nc_j."${sanitize(
-              link.mmChildCol,
+              link.mmParentCol,
             )}"`,
             [link.junctionTn],
           );
@@ -236,7 +242,7 @@ export class ListDatasService {
             `JOIN "__nc_l${
               depth - 1
             }_ids" parent ON parent.id = __nc_j."${sanitize(
-              link.mmParentCol,
+              link.mmChildCol,
             )}"`,
           );
         }
@@ -261,7 +267,7 @@ export class ListDatasService {
             );
           } else {
             levelQb.whereRaw(
-              `__nc_j."${sanitize(link.mmParentCol)}" NOT IN (${placeholders})`,
+              `__nc_j."${sanitize(link.mmChildCol)}" NOT IN (${placeholders})`,
               collapsed[depth - 1],
             );
           }
@@ -479,7 +485,11 @@ export class ListDatasService {
             childFkCol: childCol.column_name,
             parentPkCol: parentCol.column_name,
           };
-        } else if (linkColOpts.type === RelationTypes.MANY_TO_MANY) {
+        } else if (
+          linkColOpts.type === RelationTypes.MANY_TO_MANY ||
+          linkColOpts.type === RelationTypes.ONE_TO_MANY ||
+          linkColOpts.type === RelationTypes.MANY_TO_ONE
+        ) {
           const mmModel = await linkColOpts.getMMModel(context);
           const mmChildCol = await linkColOpts.getMMChildColumn(context);
           const mmParentCol = await linkColOpts.getMMParentColumn(context);
@@ -606,21 +616,23 @@ export class ListDatasService {
           );
         } else {
           parentFkCol = null; // MM: parent FK comes from junction
+          // mmChildCol references the link field owner's table (prev CTE / depth-1)
+          // mmParentCol references the related table (current depth's model)
           levelQb.select(
             dbDriver.raw(
-              `__nc_j."${sanitize(link.mmParentCol)}" AS __nc_parent_fk`,
+              `__nc_j."${sanitize(link.mmChildCol)}" AS __nc_parent_fk`,
             ),
           );
           levelQb.select(
             dbDriver.raw(
               `ROW_NUMBER() OVER (PARTITION BY __nc_j."${sanitize(
-                link.mmParentCol,
+                link.mmChildCol,
               )}" ORDER BY ${sortExpr}) AS __nc_l${depth}_ord`,
             ),
           );
           levelQb.joinRaw(
             `JOIN ?? __nc_j ON ${pkIdExpr(tAlias)} = __nc_j."${sanitize(
-              link.mmChildCol,
+              link.mmParentCol,
             )}"`,
             [link.junctionTn],
           );
@@ -628,7 +640,7 @@ export class ListDatasService {
             `JOIN "__nc_l${
               depth - 1
             }_ids" parent ON parent.id = __nc_j."${sanitize(
-              link.mmParentCol,
+              link.mmChildCol,
             )}"`,
           );
         }
@@ -653,7 +665,7 @@ export class ListDatasService {
             );
           } else {
             levelQb.whereRaw(
-              `__nc_j."${sanitize(link.mmParentCol)}" NOT IN (${placeholders})`,
+              `__nc_j."${sanitize(link.mmChildCol)}" NOT IN (${placeholders})`,
               collapsed[depth - 1],
             );
           }

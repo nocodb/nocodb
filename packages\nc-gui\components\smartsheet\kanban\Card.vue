@@ -1,59 +1,54 @@
-<script lang="ts" setup>
-import type { ColumnType } from 'nocodb-sdk'
+<script setup lang="ts">
 import type { Row as RowType } from '#imports'
+import {
+  computed,
+  inject,
+  nextTick,
+  onMounted,
+  ref,
+  useKanbanViewStoreOrThrow,
+  useRoles,
+  useSmartsheetRowStoreOrThrow,
+  useSmartsheetStoreOrThrow,
+} from '#imports'
 
 const props = defineProps<{
   row: RowType
-  fields: ColumnType[]
-  compactMode?: boolean
+  fields: any[]
+  groupField?: any
+  readOnly?: boolean
+  lazy?: boolean
 }>()
 
 const emit = defineEmits(['expandRecord', 'deleteRecord'])
 
-const { row, fields, compactMode } = toRefs(props)
+const { isCompactMode } = useKanbanViewStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
-const meta = inject(MetaInj, ref())
+const { meta } = useSmartsheetStoreOrThrow()
 
-const selected = ref(false)
+const { row } = useSmartsheetRowStoreOrThrow()
 
-function expandRecord() {
-  emit('expandRecord', row.value)
-}
+const displayField = computed(() => props.fields?.find((f) => f.pv))
 
-const displayField = computed(() => fields.value?.[0])
+const remainingFields = computed(() => props.fields?.filter((f) => !f.pv && f.visible))
 
 const displayValue = computed(() => {
-  if (!displayField.value) return ''
-  return row.value?.row?.[displayField.value.title as string] ?? ''
+  if (displayField.value) {
+    return props.row?.row?.[displayField.value.title]
+  }
+  return null
 })
 </script>
 
 <template>
   <div
-    class="nc-kanban-data-card group"
+    class="nc-kanban-card"
     :class="{
-      'nc-compact': compactMode,
+      'nc-kanban-card-compact': isCompactMode,
     }"
   >
-    <template v-if="compactMode">
-      <div class="flex items-center gap-2 px-2 py-1">
-        <span class="text-sm text-nc-content-gray-subtle truncate flex-1">
-          {{ displayValue }}
-        </span>
-        <NcButton
-          size="xsmall"
-          type="text"  
-          class="opacity-0 group-hover:opacity-100 transition-all !h-5 !w-5 !p-0"
-          @click.stop="expandRecord"
-        >
-          <GeneralIcon icon="expand" class="h-3 w-3" />
-        </NcButton>
-      </div>
-    </template>
-    <template v-else>
-      <slot />
-    </template>
+    <slot />
   </div>
 </template>

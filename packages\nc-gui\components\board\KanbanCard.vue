@@ -58,9 +58,10 @@ function expandCard() {
     ]"
     @click="expandCard"
   >
+    <!-- Compact mode -->
     <template v-if="isCompact">
       <div class="flex items-center gap-1 min-h-[22px]">
-        <div class="flex-1 min-w-0 text-[11px] text-gray-800 leading-snug truncate">
+        <div class="flex-1 min-w-0 truncate text-xs text-gray-800">
           <template v-if="primaryField">
             <LazySmartsheetVirtualCell
               v-if="isVirtualCol(primaryField)"
@@ -68,7 +69,7 @@ function expandCard() {
               :column="primaryField"
               :row="row"
               :read-only="true"
-              class="!text-[11px] !leading-snug"
+              class="!text-xs truncate"
             />
             <LazySmartsheetCell
               v-else
@@ -76,28 +77,26 @@ function expandCard() {
               :column="primaryField"
               :row="row"
               :read-only="true"
-              class="!text-[11px] !leading-snug"
+              class="!text-xs truncate"
             />
           </template>
+          <span v-else class="text-gray-400 italic text-xs">—</span>
         </div>
-        <div
+        <NcButton
           v-if="!readOnly"
-          class="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-          @click.stop
+          size="xsmall"
+          type="text"
+          class="flex-shrink-0 !h-5 !w-5 !min-w-5 !p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+          @click.stop="emits('expand')"
         >
-          <NcButton
-            size="xsmall"
-            type="text"
-            class="!h-5 !w-5 !min-w-5 !p-0"
-            @click.stop="emits('expand')"
-          >
-            <component :is="iconMap.expand" class="h-2.5 w-2.5 text-gray-500" />
-          </NcButton>
-        </div>
+          <component :is="iconMap.expand" class="h-3 w-3 text-gray-500" />
+        </NcButton>
       </div>
     </template>
 
+    <!-- Normal mode -->
     <template v-else>
+      <!-- Cover image -->
       <div v-if="attachments.length" class="-mt-2 -mx-3 mb-0 overflow-hidden rounded-t-md">
         <img
           :src="getPossibleAttachmentSrc(attachments[0])"
@@ -131,20 +130,15 @@ function expandCard() {
             />
           </div>
         </div>
-        <div
+        <NcButton
           v-if="!readOnly"
-          class="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-          @click.stop
+          size="xsmall"
+          type="text"
+          class="flex-shrink-0 !h-6 !w-6 !min-w-6 !p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+          @click.stop="emits('expand')"
         >
-          <NcButton
-            size="xsmall"
-            type="text"
-            class="!h-6 !w-6 !min-w-6 !p-0"
-            @click.stop="emits('expand')"
-          >
-            <component :is="iconMap.expand" class="h-3.5 w-3.5 text-gray-500" />
-          </NcButton>
-        </div>
+          <component :is="iconMap.expand" class="h-3.5 w-3.5 text-gray-500" />
+        </NcButton>
       </div>
     </template>
   </div>

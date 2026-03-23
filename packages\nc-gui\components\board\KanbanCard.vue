@@ -58,10 +58,9 @@ function expandCard() {
     ]"
     @click="expandCard"
   >
-    <!-- Compact mode: minimal single-line card -->
     <template v-if="isCompact">
-      <div class="flex items-center gap-1 min-h-[22px]">
-        <div class="flex-1 min-w-0 truncate text-xs leading-snug text-gray-800">
+      <div class="flex items-center gap-1">
+        <div class="flex-1 min-w-0 truncate text-xs text-gray-800">
           <template v-if="primaryField">
             <LazySmartsheetVirtualCell
               v-if="isVirtualCol(primaryField)"
@@ -94,24 +93,14 @@ function expandCard() {
       </div>
     </template>
 
-    <!-- Normal mode -->
     <template v-else>
-      <!-- Cover image -->
       <div v-if="attachments.length" class="-mt-2 -mx-3 mb-0 overflow-hidden rounded-t-md">
-        <img
-          :src="getPossibleAttachmentSrc(attachments[0])"
-          class="w-full h-40 object-cover"
-          alt=""
-        />
+        <img :src="getPossibleAttachmentSrc(attachments[0])" class="w-full h-40 object-cover" alt="" />
       </div>
 
       <div class="flex gap-1 items-start w-full">
         <div class="flex-1 min-w-0 flex flex-col gap-1">
-          <div
-            v-for="field in fieldsWithoutCover"
-            :key="field.id"
-            class="flex items-start gap-1 min-w-0"
-          >
+          <div v-for="field in fieldsWithoutCover" :key="field.id" class="flex items-start gap-1 min-w-0">
             <LazySmartsheetVirtualCell
               v-if="isVirtualCol(field)"
               :model-value="row.row[field.title!]"

@@ -6,7 +6,7 @@ const props = defineProps<{
   selectedWorkspaceId: string | null
   baseCount: number
   canCreateWorkspace: boolean
-  baseListAllWsMap?: Map<string, { plan_title: string | null }>
+  baseListAllWsMap?: Record<string, { plan_title: string | null }>
 }>()
 
 const emit = defineEmits<{
@@ -67,7 +67,7 @@ const onCreateWorkspace = () => {
           </div>
           <div class="flex items-center gap-2 text-xs text-nc-content-gray-muted">
             <span>{{
-              selectedWorkspace?.payment?.plan?.title || baseListAllWsMap?.get(selectedWorkspace?.id!)?.plan_title || 'Free'
+              selectedWorkspace?.payment?.plan?.title || baseListAllWsMap?.[selectedWorkspace?.id!]?.plan_title || 'Free'
             }}</span>
             <span class="w-1 h-1 rounded-full bg-nc-content-gray-muted" />
             <span>{{ baseCount }} {{ baseCount !== 1 ? $t('objects.projects') : $t('objects.project') }}</span>

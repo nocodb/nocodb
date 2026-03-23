@@ -74,11 +74,11 @@ const loadBaseListAll = async () => {
 }
 
 const baseListAllWsMap = computed(() => {
-  const map = new Map<string, { plan_title: string | null }>()
+  const obj: Record<string, { plan_title: string | null }> = {}
   for (const ws of baseListAllData.value?.workspaces ?? []) {
-    map.set(ws.id, { plan_title: ws.plan_title })
+    obj[ws.id] = { plan_title: ws.plan_title }
   }
-  return map
+  return obj
 })
 
 // Provide base actions to child components
@@ -597,7 +597,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
               :workspace="workspace"
               :is-selected="modalState.selectedWorkspaceId === workspace.id"
               :base-count="workspace.id === modalState.selectedWorkspaceId ? baseCount : undefined"
-              :plan-title="baseListAllWsMap.get(workspace.id)?.plan_title"
+              :plan-title="baseListAllWsMap[workspace.id]?.plan_title"
               @select="onSelectWorkspace"
             />
           </div>

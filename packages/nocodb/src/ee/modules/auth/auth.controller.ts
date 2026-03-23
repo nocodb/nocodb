@@ -58,8 +58,9 @@ export class AuthController extends AuthControllerCE {
     }
 
     // Check if user has 2FA enabled
-    const twoFactorToken =
-      await this.mfaService.getTwoFactorTokenIfEnabled(req.user.id);
+    const twoFactorToken = await this.mfaService.getTwoFactorTokenIfEnabled(
+      req.user.id,
+    );
     if (twoFactorToken) {
       res.json({
         twoFactorRequired: true,
@@ -81,10 +82,7 @@ export class AuthController extends AuthControllerCE {
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Acl('mfaSetup', { scope: 'org' })
   @HttpCode(200)
-  async mfaSetup(
-    @Req() req: NcRequest,
-    @Body() body: { password: string },
-  ) {
+  async mfaSetup(@Req() req: NcRequest, @Body() body: { password: string }) {
     return this.mfaService.setup(req.user.id, body.password, req);
   }
 
@@ -92,10 +90,7 @@ export class AuthController extends AuthControllerCE {
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Acl('mfaVerifySetup', { scope: 'org' })
   @HttpCode(200)
-  async mfaVerifySetup(
-    @Req() req: NcRequest,
-    @Body() body: { code: string },
-  ) {
+  async mfaVerifySetup(@Req() req: NcRequest, @Body() body: { code: string }) {
     return this.mfaService.verifySetup(req.user.id, body.code, req);
   }
 
@@ -107,7 +102,11 @@ export class AuthController extends AuthControllerCE {
     @Res() res: Response,
     @Body() body: { token: string; code: string },
   ) {
-    const result = await this.mfaService.verifySignin(body.token, body.code, req);
+    const result = await this.mfaService.verifySignin(
+      body.token,
+      body.code,
+      req,
+    );
     await this.setRefreshToken({ req, res });
     setAuthCookie(res, result.token);
     res.json(result);
@@ -117,10 +116,7 @@ export class AuthController extends AuthControllerCE {
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Acl('mfaDisable', { scope: 'org' })
   @HttpCode(200)
-  async mfaDisable(
-    @Req() req: NcRequest,
-    @Body() body: { code: string },
-  ) {
+  async mfaDisable(@Req() req: NcRequest, @Body() body: { code: string }) {
     return this.mfaService.disable(req.user.id, body.code, req);
   }
 

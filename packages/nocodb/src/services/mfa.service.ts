@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import * as QRCode from 'qrcode';
@@ -75,8 +76,7 @@ export class MfaService {
       );
     }
 
-    const bcrypt = await import('bcryptjs');
-    const valid = await bcrypt.default.compare(password, user.password);
+    const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
       NcError.badRequest('Incorrect password');
     }
@@ -225,9 +225,7 @@ export class MfaService {
    * Check if user has 2FA enabled. If so, return a short-lived token
    * for the 2FA verification step. Returns null if 2FA is not enabled.
    */
-  async getTwoFactorTokenIfEnabled(
-    userId: string,
-  ): Promise<string | null> {
+  async getTwoFactorTokenIfEnabled(userId: string): Promise<string | null> {
     const user = await User.get(userId);
     if (!user?.totp_enabled) return null;
 

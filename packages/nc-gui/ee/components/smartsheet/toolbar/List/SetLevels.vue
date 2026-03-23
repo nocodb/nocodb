@@ -70,7 +70,7 @@ function filterLinkColumnForLevel(targetTableId: string | undefined) {
     if (!isLinksOrLTAR(c) || c.system) return false
     const colOptions = c.colOptions as LinkToAnotherRecordType | undefined
     if (!colOptions) return false
-    if (colOptions.type !== RelationTypes.HAS_MANY) return false
+    if (colOptions.type !== RelationTypes.HAS_MANY && colOptions.type !== RelationTypes.ONE_TO_MANY) return false
     if (targetTableId && colOptions.fk_related_model_id !== targetTableId) return false
     return true
   }

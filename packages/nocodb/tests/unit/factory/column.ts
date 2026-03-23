@@ -922,11 +922,8 @@ const createColumn = async (
     .set('xc-auth', context.token)
     .send({
       ...columnAttr,
-      ...(columnAttr.uidt === UITypes.LinkToAnotherRecord && columnAttr.version == null
-        ? {
-            version: 1,
-          }
-        : {}),
+      // Let the backend auto-detect version based on relation type
+      // (hm/bt/oo → V1, om/mo/mm → V2)
     });
   if (response.status >= 400 && option?.throwError) {
     if (option?.responseAsError) {
@@ -961,11 +958,8 @@ const createColumn2 = async ({
     .set('xc-auth', context.token)
     .send({
       ...columnAttr,
-      ...(columnAttr.uidt === UITypes.LinkToAnotherRecord && columnAttr.version == null
-        ? {
-            version: 1,
-          }
-        : {}),
+      // Let the backend auto-detect version based on relation type
+      // (hm/bt/oo → V1, om/mo/mm → V2)
     });
   if (response.status >= 400 && option?.throwError) {
     throw response.error;
@@ -1218,7 +1212,6 @@ const createLtarColumn2 = async (
     parentId: parentTable.id,
     childId: childTable.id,
     type: type,
-    version: 2,
   });
 
   return ltarColumn;

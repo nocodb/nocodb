@@ -371,17 +371,15 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           const row = responses[i];
           let rowId = row[baseModel.model.primaryKey?.title];
 
-          if (aiPkCol || agPkCol) {
-            rowId = baseModel.extractCompositePK({
-              rowId,
-              ai: aiPkCol,
-              ag: agPkCol,
-              insertObj: insertDatas[i],
-            });
-          }
+          rowId = baseModel.extractCompositePK({
+            rowId,
+            ai: aiPkCol,
+            ag: agPkCol,
+            insertObj: insertDatas[i],
+          });
 
           await baseModel.runOps(
-            postInsertOpsMap[i].map((f) => f(rowId)),
+            (postInsertOpsMap[i] ?? []).map((f) => f(rowId)),
             trx,
           );
         }

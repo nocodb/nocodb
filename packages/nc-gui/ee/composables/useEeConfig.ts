@@ -1840,8 +1840,11 @@ export const useEeConfig = createSharedComposable(() => {
     }
 
     handleUpgradePlan({
-      limitOrFeature: PlanFeatureTypes.FEATURE_DATE_DEPENDENCY,
+      title: t('upgrade.upgradeToUseDateDependency'),
+      content: t('upgrade.upgradeToUseDateDependencySubtitle'),
       callback,
+      requiredPlan: PlanTitles.BUSINESS,
+      limitOrFeature: PlanFeatureTypes.FEATURE_DATE_DEPENDENCY,
     })
 
     return true

@@ -121,8 +121,8 @@ import { ListsService } from '~/ee/services/lists.service';
 import { ListDatasService } from '~/ee/services/list-datas.service';
 import { DateDependencyService } from '~/services/date-dependency.service';
 import {
-  MetaDependencyModuleProvider as MetaDependencyModuleProviderEE,
-  MetaDependencyServices as MetaDependencyServicesEE,
+  MetaDependencyModuleProvider,
+  MetaDependencyServices,
 } from '~/services/meta-dependency/meta-dependency.provider';
 
 /* View Sections */
@@ -276,8 +276,8 @@ export const nocoModuleEeMetadata = {
     ...nocoModuleMetadata.providers,
 
     /* EE Meta Dependency Handlers (overrides CE provider) */
-    ...MetaDependencyServicesEE,
-    MetaDependencyModuleProviderEE,
+    ...MetaDependencyServices,
+    MetaDependencyModuleProvider,
   ],
   controllers: [
     ActionsController,
@@ -394,7 +394,7 @@ export const nocoModuleEeMetadata = {
     OrgWorkspacesService,
 
     /* EE Meta Dependency Handlers */
-    ...MetaDependencyServicesEE,
+    ...MetaDependencyServices,
 
     ...nocoModuleMetadata.exports,
   ],

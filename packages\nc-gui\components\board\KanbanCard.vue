@@ -53,14 +53,14 @@ function expandCard() {
 <template>
   <div
     :class="[
-      'nc-kanban-item group relative flex flex-col rounded-md border border-gray-200 bg-white shadow-sm transition-shadow',
-      isCompact ? 'py-1 px-2 gap-0' : 'pt-2 pb-3 px-3 gap-2',
+      'nc-kanban-item group relative flex flex-col rounded-md border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer',
+      isCompact ? 'py-1 px-2' : 'pt-2 pb-3 px-3 gap-2',
     ]"
+    @click="expandCard"
   >
-    <!-- Compact view: single row -->
     <template v-if="isCompact">
-      <div class="flex items-center gap-1">
-        <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-1 min-h-[22px]">
+        <div class="flex-1 min-w-0 text-[11px] text-gray-800 leading-snug truncate">
           <template v-if="primaryField">
             <LazySmartsheetVirtualCell
               v-if="isVirtualCol(primaryField)"
@@ -68,7 +68,7 @@ function expandCard() {
               :column="primaryField"
               :row="row"
               :read-only="true"
-              class="!text-xs !leading-snug truncate"
+              class="!text-[11px] !leading-snug"
             />
             <LazySmartsheetCell
               v-else
@@ -76,7 +76,7 @@ function expandCard() {
               :column="primaryField"
               :row="row"
               :read-only="true"
-              class="!text-xs !leading-snug truncate"
+              class="!text-[11px] !leading-snug"
             />
           </template>
         </div>
@@ -85,22 +85,34 @@ function expandCard() {
           class="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
           @click.stop
         >
-          <NcButton size="xsmall" type="text" class="!h-5 !w-5 !min-w-5 !p-0" @click.stop="$emit('expand')">
-            <component :is="iconMap.expand" class="h-3 w-3" />
+          <NcButton
+            size="xsmall"
+            type="text"
+            class="!h-5 !w-5 !min-w-5 !p-0"
+            @click.stop="emits('expand')"
+          >
+            <component :is="iconMap.expand" class="h-2.5 w-2.5 text-gray-500" />
           </NcButton>
         </div>
       </div>
     </template>
 
-    <!-- Normal view -->
     <template v-else>
       <div v-if="attachments.length" class="-mt-2 -mx-3 mb-0 overflow-hidden rounded-t-md">
-        <img :src="getPossibleAttachmentSrc(attachments[0])" class="w-full h-40 object-cover" alt="" />
+        <img
+          :src="getPossibleAttachmentSrc(attachments[0])"
+          class="w-full h-40 object-cover"
+          alt=""
+        />
       </div>
 
-      <div class="flex gap-1 items-start">
+      <div class="flex gap-1 items-start w-full">
         <div class="flex-1 min-w-0 flex flex-col gap-1">
-          <div v-for="field in fieldsWithoutCover" :key="field.id" class="flex items-start gap-1 min-w-0">
+          <div
+            v-for="field in fieldsWithoutCover"
+            :key="field.id"
+            class="flex items-start gap-1 min-w-0"
+          >
             <LazySmartsheetVirtualCell
               v-if="isVirtualCol(field)"
               :model-value="row.row[field.title!]"
@@ -124,8 +136,13 @@ function expandCard() {
           class="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
           @click.stop
         >
-          <NcButton size="xsmall" type="text" class="!h-6 !w-6 !min-w-6 !p-0" @click.stop="$emit('expand')">
-            <component :is="iconMap.expand" class="h-3.5 w-3.5" />
+          <NcButton
+            size="xsmall"
+            type="text"
+            class="!h-6 !w-6 !min-w-6 !p-0"
+            @click.stop="emits('expand')"
+          >
+            <component :is="iconMap.expand" class="h-3.5 w-3.5 text-gray-500" />
           </NcButton>
         </div>
       </div>

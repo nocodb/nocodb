@@ -26,6 +26,7 @@ export default class Subscription {
   stripe_price_id: string;
 
   seat_count: number;
+  last_paid_seat_count: number;
 
   status: string;
 
@@ -113,6 +114,7 @@ export default class Subscription {
       'stripe_subscription_id',
       'stripe_price_id',
       'seat_count',
+      'last_paid_seat_count',
       'status',
       'start_at',
       'billing_cycle_anchor',
@@ -153,6 +155,7 @@ export default class Subscription {
       'fk_user_id',
       'status',
       'seat_count',
+      'last_paid_seat_count',
       'status',
       'trial_end_at',
       'canceled_at',

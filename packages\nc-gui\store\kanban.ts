@@ -1,33 +1,12 @@
 import { message } from 'ant-design-vue'
-import type { ColumnType, KanbanType, SelectOptionType, SortType, TableType, ViewType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
+import type { ColumnType, KanbanType, SelectOptionType, TableType, ViewType } from 'nocodb-sdk'
+import type { ComputedRef, Ref } from 'vue'
 import type { Row as RowType } from '~/lib/types'
-import {
-  IsPublicInj,
-  computed,
-  inject,
-  parseProp,
-  reactive,
-  ref,
-  storeToRefs,
-  useApi,
-  useBase,
-  useFieldQuery,
-  useGlobal,
-  useI18n,
-  useInjectionState,
-  useMetas,
-  useNuxtApp,
-  useRoles,
-  useSharedView,
-  useSmartsheetStoreOrThrow,
-  useUndoRedo,
-  watch,
-} from '#imports'
+import { IsPublicInj, MetaInj, ReloadViewDataHookInj } from '~/lib/inject'
 
 const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
   (
-    meta: Ref<TableType | KanbanType | undefined>,
+    meta: Ref<TableType | undefined>,
     viewMeta: Ref<ViewType & { id: string }> | ComputedRef<ViewType & { id: string }>,
     shared = false,
   ) => {
@@ -45,162 +24,143 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { $e, $api } = useNuxtApp()
 
-    const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
-
     const { isUIAllowed } = useRoles()
 
     const { addUndo, clone, defineViewScope } = useUndoRedo()
 
-    // use useFieldQuery for filter search
-    const { search } = useFieldQuery()
+    const groupingField = ref('')
 
-    const groupingField = ref<string>('')
-
-    const groupingFieldColOptions = ref<SelectOptionType[] & { collapsed: boolean }[]>([])
+    const groupingFieldColOptions = ref<(SelectOptionType & { collapsed: boolean })[]>([])
 
     const groupingFieldColumn = ref<ColumnType | undefined>()
 
-    const stackMetaObj = ref<Record<string, Record<string, any>>>({})
+    const stackMetaObj = ref<Record<string, any>>({})
 
-    const formattedData = ref<Map<string, RowType[]>>(new Map<string, RowType[]>())
+    const formattedData = ref<Map<string, RowType[]>>(new Map())
 
-    const countByStack = ref<Map<string, number>>(new Map<string, number>())
+    const countByStack = ref<Map<string, number>>(new Map())
 
-    const groupingFieldTitleRef = ref<string>('')
+    const groupingFieldTitleRef = ref('')
 
     const loadedStacksRef = ref<Set<string>>(new Set())
 
-    const activeStackId = ref<string>('')
+    const activeStackId = ref('')
 
     const loadMoreLoadingStack = ref<string | null>(null)
 
-    // Compact mode - persisted per view
-    const isCompactMode = ref<boolean>(false)
-
     const kanbanMetaData = ref<KanbanType>({})
 
-    const groupingFieldValue = ref()
+    const hasMore = ref<Map<string, boolean>>(new Map())
 
-    const savedStack = ref<null | string>(null)
+    const isRowsLoading = ref(false)
 
-    const isRowsLoading = ref<boolean>(false)
+    const collapseStack = ref<Map<string, boolean>>(new Map())
 
-    const isAddingEmptyRowAllowed = ref<boolean>(false)
-
-    const hasMore = ref<Map<string, boolean>>(new Map<string, boolean>())
+    // Compact mode - shows cards in a single-line compact format
+    const isCompactMode = ref(false)
 
     const PAGE_SIZE = 25
-    const collapseStack = ref<Map<string, boolean>>(new Map<string, boolean>())
 
     async function loadKanbanMeta() {
       if (!viewMeta?.value?.id || !meta?.value?.id) return
 
-      const { metas } = useMetas()
       kanbanMetaData.value = await $api.dbView.kanbanRead(viewMeta.value.id)
 
-      // get the grouping field column title
       const groupingFieldId = kanbanMetaData.value.fk_grp_col_id!
-      const col = (meta.value as TableType)?.columns?.find((f) => f.id === groupingFieldId)
+      const col = meta.value?.columns?.find((f) => f.id === groupingFieldId)
       groupingFieldColumn.value = col
-
       groupingField.value = col?.title || ''
+      groupingFieldTitleRef.value = col?.title || ''
 
       const gfMeta = await $api.dbTableColumn.read(groupingFieldId!)
-      groupingFieldColOptions.value = gfMeta?.colOptions?.options || []
-      stackMetaObj.value = parseProp(kanbanMetaData.value.meta)
+      groupingFieldColOptions.value = (gfMeta?.colOptions?.options || []).map(
+        (o: SelectOptionType) => ({
+          ...o,
+          collapsed: false,
+        }),
+      )
 
-      if (!stackMetaObj.value || !Object.keys(stackMetaObj.value).length) {
-        await updateKanbanStackMeta()
+      stackMetaObj.value = parseProp(kanbanMetaData.value.meta) || {}
+
+      // Restore compact mode preference
+      if (typeof stackMetaObj.value.isCompactMode === 'boolean') {
+        isCompactMode.value = stackMetaObj.value.isCompactMode
       }
-      
-      // Load compact mode preference from meta
-      isCompactMode.value = !!stackMetaObj.value?.isCompactMode
     }
 
-    async function updateKanbanStackMeta() {
-      const { metas } = useMetas()
-      const { getMeta } = metas
+    async function updateKanbanStackMeta(updateObj?: Record<string, any>) {
+      if (!viewMeta.value?.id) return
 
-      const kanbanMeta: Record<string, any> = {
+      const updatedMeta = {
         ...stackMetaObj.value,
+        ...updateObj,
         isCompactMode: isCompactMode.value,
       }
 
-      if (!viewMeta.value?.id) return
-
-      stackMetaObj.value = kanbanMeta
+      stackMetaObj.value = updatedMeta
 
       await $api.dbView.kanbanUpdate(viewMeta.value.id, {
-        meta: kanbanMeta,
+        meta: updatedMeta,
       })
     }
 
-    // Toggle compact mode and persist
     async function toggleCompactMode() {
       isCompactMode.value = !isCompactMode.value
       await updateKanbanStackMeta()
     }
 
     async function loadKanbanData() {
-      if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
+      if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) return
 
       isRowsLoading.value = true
-
       try {
-        await Promise.all(
-          groupingFieldColOptions.value.map(async (option: SelectOptionType) => {
-            const key = option.title!
-            const hasMoreData = hasMore.value.get(key)
-
-            if (hasMoreData === false) return
-
-            const response = await api.dbViewRow.list('noco', base.value!.id!, meta.value!.id!, viewMeta.value!.id!, {
-              limit: PAGE_SIZE,
-              where: `(${groupingField.value},eq,${key})`,
-              ...{},
-            } as any)
-
-            const data = response.list as RowType[]
-
-            formattedData.value.set(
-              key,
-              data.map((r) => ({
-                row: { ...r },
-                oldRow: { ...r },
-                rowMeta: {},
-              })),
-            )
-
-            countByStack.value.set(key, response.pageInfo.totalRows ?? 0)
-            hasMore.value.set(key, response.pageInfo.isLastPage === false)
-            loadedStacksRef.value.add(key)
-          }),
-        )
-
-        // Load uncategorized stack
-        const uncategorizedResponse = await api.dbViewRow.list('noco', base.value!.id!, meta.value!.id!, viewMeta.value!.id!, {
-          limit: PAGE_SIZE,
-          where: `(${groupingField.value},is,null)`,
-          ...{},
-        } as any)
-
-        formattedData.value.set(
-          'uncategorized',
-          uncategorizedResponse.list.map((r) => ({
-            row: { ...r },
-            oldRow: { ...r },
-            rowMeta: {},
-          })),
-        )
-        countByStack.value.set('uncategorized', uncategorizedResponse.pageInfo.totalRows ?? 0)
-        hasMore.value.set('uncategorized', uncategorizedResponse.pageInfo.isLastPage === false)
-        loadedStacksRef.value.add('uncategorized')
+        await Promise.all([
+          // load uncategorized
+          loadKanbanDataForStack(null),
+          // load each option stack
+          ...groupingFieldColOptions.value.map((option) =>
+            loadKanbanDataForStack(option.title),
+          ),
+        ])
       } catch (e: any) {
         console.error(e)
         message.error(await extractSdkResponseErrorMsg(e))
       } finally {
         isRowsLoading.value = false
       }
+    }
+
+    async function loadKanbanDataForStack(stackTitle: string | null) {
+      if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) return
+
+      const stackKey = stackTitle ?? 'uncategorized'
+      const whereClause = stackTitle
+        ? `(${groupingField.value},eq,${stackTitle})`
+        : `(${groupingField.value},is,null)`
+
+      const response = await api.dbViewRow.list(
+        'noco',
+        base.value.id!,
+        meta.value.id!,
+        viewMeta.value.id,
+        {
+          limit: PAGE_SIZE,
+          where: whereClause,
+        } as any,
+      )
+
+      formattedData.value.set(
+        stackKey,
+        response.list.map((r: any) => ({
+          row: { ...r },
+          oldRow: { ...r },
+          rowMeta: {},
+        })),
+      )
+
+      countByStack.value.set(stackKey, response.pageInfo.totalRows ?? 0)
+      hasMore.value.set(stackKey, !response.pageInfo.isLastPage)
+      loadedStacksRef.value.add(stackKey)
     }
 
     return {
@@ -214,18 +174,19 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       loadedStacksRef,
       activeStackId,
       loadMoreLoadingStack,
-      isCompactMode,
       kanbanMetaData,
-      isRowsLoading,
       hasMore,
+      isRowsLoading,
       collapseStack,
+      isCompactMode,
       loadKanbanMeta,
       loadKanbanData,
+      loadKanbanDataForStack,
       updateKanbanStackMeta,
       toggleCompactMode,
     }
   },
-  'kanban-view-store',
+  'use-kanban-view-store',
 )
 
 export { useProvideKanbanViewStore }
@@ -233,7 +194,9 @@ export { useProvideKanbanViewStore }
 export function useKanbanViewStoreOrThrow() {
   const kanbanViewStore = useKanbanViewStore()
 
-  if (kanbanViewStore == null) throw new Error('Please call `useProvideKanbanViewStore` on the appropriate parent component')
+  if (kanbanViewStore == null) {
+    throw new Error('Please call `useProvideKanbanViewStore` on the appropriate parent component')
+  }
 
   return kanbanViewStore
 }

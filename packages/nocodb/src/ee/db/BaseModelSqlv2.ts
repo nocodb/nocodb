@@ -1277,11 +1277,46 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     const colOptions = await linkCol.getColOptions<LinkToAnotherRecordColumn>(
       this.context,
     );
-    if (!colOptions || colOptions.type !== 'hm') return;
+    if (!colOptions || !['hm', 'om', 'oo'].includes(colOptions.type)) return;
 
-    const childCol = await colOptions.getChildColumn(this.context);
-    const parentCol = await colOptions.getParentColumn(this.context);
-    if (!childCol || !parentCol) return;
+    const isV2 = colOptions.version === 2;
+
+    // V1: direct FK in the main table (childCol=FK, parentCol=PK)
+    // V2: junction table (mmChildCol→child PK, mmParentCol→parent PK)
+    let pkColName: string;
+    let fkColName: string;
+    let junctionInfo:
+      | { tn: string; parentColName: string; childColName: string }
+      | undefined;
+
+    if (isV2) {
+      // V2 junction-based link
+      const mmModel = await colOptions.getMMModel(this.context);
+      const mmChildCol = await colOptions.getMMChildColumn(this.context);
+      const mmParentCol = await colOptions.getMMParentColumn(this.context);
+      if (!mmModel || !mmChildCol || !mmParentCol) return;
+
+      // For V2 self-ref, the main table PK is used on both sides
+      const parentCol = await colOptions.getParentColumn(this.context);
+      if (!parentCol) return;
+      pkColName = parentCol.column_name;
+      fkColName = ''; // not used for V2 — junction replaces it
+      // In the junction table for V2 self-ref OM links, the column naming is
+      // inverted: mmParentCol stores the child/successor ID, mmChildCol stores
+      // the parent/predecessor ID. Swap them so the CTE joins correctly.
+      junctionInfo = {
+        tn: this.getTnPath(mmModel),
+        parentColName: mmChildCol.column_name,
+        childColName: mmParentCol.column_name,
+      };
+    } else {
+      // V1 direct FK link
+      const childCol = await colOptions.getChildColumn(this.context);
+      const parentCol = await colOptions.getParentColumn(this.context);
+      if (!childCol || !parentCol) return;
+      pkColName = parentCol.column_name;
+      fkColName = childCol.column_name;
+    }
 
     const primaryKeys = this.model.primaryKeys;
     if (!primaryKeys?.length) return;
@@ -1289,12 +1324,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     // For composite PKs, find the index of the parent (link) column within the PKs
     // and identify extra PK columns that need to be carried through the CTE
     const parentPkIndex = primaryKeys.findIndex(
-      (pk) => pk.column_name === parentCol.column_name,
+      (pk) => pk.column_name === pkColName,
     );
     if (parentPkIndex === -1) return;
 
     const extraPkCols = primaryKeys.filter(
-      (pk) => pk.column_name !== parentCol.column_name,
+      (pk) => pk.column_name !== pkColName,
     );
 
     // Extract the parent column value from composite PK strings
@@ -1304,19 +1339,25 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     if (primaryKeys.length === 1) {
       seedIds = changedRowIds;
     } else {
-      seedIds = changedRowIds.map((compositeId) => {
-        const parts = compositeId
-          .split('___')
-          .map((v) => v.replaceAll('\\_', '_'));
-        return parts[parentPkIndex];
-      });
+      seedIds = changedRowIds
+        .map((compositeId) => {
+          const parts = compositeId
+            .split('___')
+            .map((v) => v.replaceAll('\\_', '_'));
+          // Guard: if the composite ID has fewer parts than expected, skip it
+          if (parentPkIndex >= parts.length) return undefined;
+          return parts[parentPkIndex];
+        })
+        .filter((id): id is string => id !== undefined);
     }
+    // After filtering, all invalid IDs are removed — if none remain, bail out
+    if (!seedIds.length) return;
 
     const commonParams = {
       tn: this.getTnPath(this.model),
-      pkColName: parentCol.column_name,
+      pkColName,
       extraPkColNames: extraPkCols.map((c) => c.column_name),
-      fkColName: childCol.column_name,
+      fkColName,
       startColName: startCol.column_name,
       endColName: endCol.column_name,
       connectionType:
@@ -1331,6 +1372,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       seedIds,
       dialect: (this.isPg ? 'pg' : 'mysql') as 'pg' | 'mysql',
       includeWeekends: rule.include_weekends ?? true,
+      junction: junctionInfo,
     };
 
     // Build both backward (push predecessors earlier) and forward (push successors later) CTEs

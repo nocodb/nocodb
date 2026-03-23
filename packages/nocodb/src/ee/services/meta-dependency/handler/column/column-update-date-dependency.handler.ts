@@ -6,7 +6,7 @@ import type {
   MetaDependencyEventRequest,
   MetaEventHandler,
 } from '~/services/meta-dependency/types';
-import { DateDependency } from '~/models';
+import { Column, DateDependency } from '~/models';
 import Noco from '~/Noco';
 
 /**
@@ -75,9 +75,21 @@ export class ColumnUpdateDateDependencyHandler implements MetaEventHandler {
       if (colId !== oldCol.id) continue;
 
       if (key === 'fk_dependency_linkrow_field_id') {
-        // Linkrow slot — any change away from Links/LTAR invalidates
+        // Linkrow slot — must remain Links/LTAR with HM/OM or OO direction
         if (!isLinksOrLTAR(newCol)) {
           return { columns: [oldCol] };
+        }
+        // Verify the relationship type is still valid (HM/OO self-ref)
+        const col = await Column.get(context, { colId: newCol.id }, ncMeta);
+        if (col) {
+          const colOptions = await col.getColOptions<any>(context, ncMeta);
+          if (
+            !colOptions ||
+            !['hm', 'om', 'oo'].includes(colOptions.type) ||
+            colOptions.fk_related_model_id !== col.fk_model_id
+          ) {
+            return { columns: [oldCol] };
+          }
         }
       } else {
         const validSet = VALID_TYPES[key];

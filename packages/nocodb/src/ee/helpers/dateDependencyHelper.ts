@@ -29,6 +29,16 @@ export interface DateDependencyPropagationParams {
    * - `backward`: walk predecessors (parents) and push their dates backward
    */
   direction?: 'forward' | 'backward';
+  /**
+   * V2 junction table info. When provided, the CTE joins through the junction
+   * table instead of using a direct FK column in the main table.
+   * `fkColName` is ignored when this is set.
+   */
+  junction?: {
+    tn: string;
+    parentColName: string;
+    childColName: string;
+  };
 }
 
 // ─── Business-day SQL helpers ─────────────────────────────────────────────
@@ -98,8 +108,29 @@ function subBizDaysSql(dateExpr: string, nExpr: string, isPg: boolean): string {
 }
 
 /**
+ * Snap a date expression to the nearest preceding weekday (Friday).
+ * If the date is already Mon–Fri it is returned unchanged.
+ * Used to sanitize inputs to bizDaysBetweenSql which assumes weekday dates.
+ */
+function snapToWeekdaySql(dateExpr: string, isPg: boolean): string {
+  if (isPg) {
+    // ISODOW: 6=Sat, 7=Sun — snap Sat→Fri (-1), Sun→Fri (-2)
+    const dw = `EXTRACT(ISODOW FROM (${dateExpr})::date)::int`;
+    return `(CASE WHEN ${dw} = 6 THEN (${dateExpr})::date - 1
+                 WHEN ${dw} = 7 THEN (${dateExpr})::date - 2
+                 ELSE (${dateExpr})::date END)`;
+  }
+  // WEEKDAY: 5=Sat, 6=Sun
+  const dw = `WEEKDAY(${dateExpr})`;
+  return `(CASE WHEN ${dw} = 5 THEN DATE_SUB(${dateExpr}, INTERVAL 1 DAY)
+               WHEN ${dw} = 6 THEN DATE_SUB(${dateExpr}, INTERVAL 2 DAY)
+               ELSE ${dateExpr} END)`;
+}
+
+/**
  * Count the business-day "distance" from d1 to d2 such that
- * `addBizDays(d1, result) == d2`.  Assumes d2 >= d1 and both are weekdays.
+ * `addBizDays(d1, result) == d2`.  Both inputs are snapped to the nearest
+ * preceding weekday first, so weekend dates are handled safely.
  *
  * Uses the double-floor subtraction method which counts Saturdays and Sundays
  * in the span and subtracts them from the calendar diff. This is mathematically
@@ -109,13 +140,16 @@ function subBizDaysSql(dateExpr: string, nExpr: string, isPg: boolean): string {
  * an integer operand for its / and % operators.
  */
 function bizDaysBetweenSql(d1: string, d2: string, isPg: boolean): string {
+  // Snap both dates to weekdays so the formula's weekday assumption holds
+  const sd1 = snapToWeekdaySql(d1, isPg);
+  const sd2 = snapToWeekdaySql(d2, isPg);
   if (isPg) {
-    const diff = `((${d2})::date - (${d1})::date)`;
-    const dw = `EXTRACT(ISODOW FROM (${d1})::date)::int`;
+    const diff = `(${sd2} - ${sd1})`;
+    const dw = `EXTRACT(ISODOW FROM ${sd1})::int`;
     return `(${diff} - FLOOR((${diff} + ${dw} - 1)::numeric / 7) - FLOOR((${diff} + ${dw})::numeric / 7))::int`;
   }
-  const diff = `DATEDIFF(${d2}, ${d1})`;
-  const dw = `WEEKDAY(${d1})`;
+  const diff = `DATEDIFF(${sd2}, ${sd1})`;
+  const dw = `WEEKDAY(${sd1})`;
   return `CAST(${diff} - FLOOR((${diff} + ${dw}) / 7) - FLOOR((${diff} + ${dw} + 1) / 7) AS SIGNED)`;
 }
 
@@ -145,6 +179,7 @@ export function buildDateDependencyPropagationSQL(
     dialect,
     includeWeekends = true,
     direction = 'forward',
+    junction,
   } = params;
 
   // Guard: empty seedIds would produce `WHERE ... IN ()` — a syntax error
@@ -169,6 +204,17 @@ export function buildDateDependencyPropagationSQL(
   const fk = esc(fkColName);
   const sc = esc(startColName);
   const ec = esc(endColName);
+
+  // V2 junction table support
+  const useJunction = !!junction;
+  const quotedJtn = junction
+    ? junction.tn
+        .split('.')
+        .map((p) => esc(p))
+        .join('.')
+    : '';
+  const jParent = junction ? esc(junction.parentColName) : '';
+  const jChild = junction ? esc(junction.childColName) : '';
 
   // Seed placeholders for knex positional bindings
   const idPlaceholders = seedIds.map(() => '?').join(', ');
@@ -349,29 +395,59 @@ export function buildDateDependencyPropagationSQL(
   // Cycle detection and path tracking differ by dialect
   // PG:    ARRAY[pk] / path || pk / NOT (pk = ANY(path))
   // MySQL: CAST(pk AS CHAR) / CONCAT(path, ',', pk) / NOT FIND_IN_SET(pk, path)
-  const anchorPath = isPg
-    ? `ARRAY[${castText(`t.${pk}`)}]`
-    : castText(`t.${pk}`);
-  const recursivePath = isPg
-    ? `p.path || ${castText(`t.${pk}`)}`
-    : `CONCAT(p.path, ',', ${castText(`t.${pk}`)})`;
-  const cycleCheck = isPg
-    ? `NOT (${castText(`t.${pk}`)} = ANY(p.path))`
-    : `NOT FIND_IN_SET(${castText(`t.${pk}`)}, p.path)`;
+  //
+  // For composite PKs, combine all PK columns into a single identifier so that
+  // rows sharing the same link-column PK but differing in other PK columns are
+  // treated as distinct nodes.  Separator ':' is safe — FIND_IN_SET splits only
+  // on ','.
+  const compositeId = (alias: string) => {
+    if (!extraPkColNames.length) return castText(`${alias}.${pk}`);
+    const parts = [pk, ...extraPkColNames.map((c) => esc(c))].map((col) =>
+      castText(`${alias}.${col}`),
+    );
+    return isPg
+      ? parts.join(` || ':' || `)
+      : `CONCAT(${parts.join(`, ':', `)})`;
+  };
 
-  // Backward propagation needs FK value in CTE to walk up the parent chain
-  const anchorFkVal = isBackward ? `,\n    ${castText(`t.${fk}`)}` : '';
-  const recursiveFkVal = isBackward ? `,\n    ${castText(`t.${fk}`)}` : '';
+  const anchorPath = isPg ? `ARRAY[${compositeId('t')}]` : compositeId('t');
+  const recursivePath = isPg
+    ? `p.path || ${compositeId('t')}`
+    : `CONCAT(p.path, ',', ${compositeId('t')})`;
+  const cycleCheck = isPg
+    ? `NOT (${compositeId('t')} = ANY(p.path))`
+    : `NOT FIND_IN_SET(${compositeId('t')}, p.path)`;
+
+  // Backward propagation needs FK value in CTE to walk up the parent chain.
+  // For V2 junction links, the junction table provides the relationship so no
+  // fk_val column is needed in the CTE.
+  const needsFkVal = isBackward && !useJunction;
+  const anchorFkVal = needsFkVal ? `,\n    ${castText(`t.${fk}`)}` : '';
+  const recursiveFkVal = needsFkVal ? `,\n    ${castText(`t.${fk}`)}` : '';
 
   // Join direction:
-  //   Forward:  t.fk = p.pk   (find children of CTE row)
-  //   Backward: t.pk = p.fk_val (find parent of CTE row)
-  const recursiveJoin = isBackward
-    ? `${castText(`t.${pk}`)} = p.fk_val`
-    : `${castText(`t.${fk}`)} = p.pk`;
+  //   V1 (direct FK):
+  //     Forward:  t.fk = p.pk          (find children of CTE row)
+  //     Backward: t.pk = p.fk_val      (find parent of CTE row)
+  //
+  //   V2 (junction table):
+  //     Forward:  j.parent_col = p.pk AND j.child_col = t.pk  (find children via junction)
+  //     Backward: j.child_col = p.pk AND j.parent_col = t.pk  (find parents via junction)
+  const recursiveJoin = useJunction
+    ? (isBackward
+        ? `${castText(`j.${jChild}`)} = p.pk`
+        : `${castText(`j.${jParent}`)} = p.pk`)
+    : (isBackward
+        ? `${castText(`t.${pk}`)} = p.fk_val`
+        : `${castText(`t.${fk}`)} = p.pk`);
+  const junctionJoinOnT = useJunction
+    ? (isBackward
+        ? `${castText(`t.${pk}`)} = ${castText(`j.${jParent}`)}`
+        : `${castText(`t.${pk}`)} = ${castText(`j.${jChild}`)}`)
+    : '';
 
   // CTE column list
-  const cteColumns = isBackward
+  const cteColumns = needsFkVal
     ? 'pk, fk_val, start_date, end_date, level, path'
     : 'pk, start_date, end_date, level, path';
 
@@ -439,7 +515,7 @@ WITH RECURSIVE propagated(${cteColumns}) AS (
     p.level + 1,
     ${recursivePath}
   FROM ${quotedTn} t
-  JOIN propagated p ON ${recursiveJoin}
+  ${useJunction ? `JOIN ${quotedJtn} j ON ${junctionJoinOnT}\n  ` : ''}JOIN propagated p ON ${recursiveJoin}
   WHERE ${cycleCheck}
     AND t.${sc} IS NOT NULL
     AND t.${ec} IS NOT NULL
@@ -565,7 +641,9 @@ export function applyDateDependencyFieldSync(
     if (d === null || d === undefined) return null;
     const n = Number(d);
     if (isNaN(n)) return null;
-    return isDurationCol ? Math.round(n / 86400) : n;
+    // Floor, not round: 1 day 12 hours (129600s) → 1 day, not 2.
+    // This avoids inflating duration when converting back via fromDays.
+    return isDurationCol ? Math.floor(n / 86400) : n;
   };
 
   const fromDays = (days: number): number => {
@@ -589,19 +667,19 @@ export function applyDateDependencyFieldSync(
   } else if (startPresent && durPresent && !inData(endCol)) {
     const s = toDate(startVal);
     const days = toDays(durVal);
-    if (s && days !== null && days >= 1) {
-      data[endCol.column_name] = addDays(s, days - 1, rule.include_weekends)
+    if (s && days !== null && days >= 0) {
+      data[endCol.column_name] = (
+        days === 0 ? s : addDays(s, days - 1, rule.include_weekends)
+      )
         .toISOString()
         .split('T')[0];
     }
   } else if (endPresent && durPresent && !inData(startCol)) {
     const e = toDate(endVal);
     const days = toDays(durVal);
-    if (e && days !== null && days >= 1) {
-      data[startCol.column_name] = subtractDays(
-        e,
-        days - 1,
-        rule.include_weekends,
+    if (e && days !== null && days >= 0) {
+      data[startCol.column_name] = (
+        days === 0 ? e : subtractDays(e, days - 1, rule.include_weekends)
       )
         .toISOString()
         .split('T')[0];
@@ -618,8 +696,10 @@ export function applyDateDependencyFieldSync(
   } else if (startPresent && durPresent && inData(endCol)) {
     const s = toDate(startVal);
     const days = toDays(durVal);
-    if (s && days !== null && days >= 1) {
-      data[endCol.column_name] = addDays(s, days - 1, rule.include_weekends)
+    if (s && days !== null && days >= 0) {
+      data[endCol.column_name] = (
+        days === 0 ? s : addDays(s, days - 1, rule.include_weekends)
+      )
         .toISOString()
         .split('T')[0];
     }

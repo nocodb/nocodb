@@ -216,14 +216,15 @@ export class DateDependencyService {
         );
       }
 
-      // Load the link column options to verify it's a self-referencing HM relation
+      // Load the link column options to verify it's a self-referencing HM/OM/OO relation
+      // hm = Has Many (v1), om = One to Many (v2), oo = One to One
       const colOptions = await col.getColOptions<any>(context);
       if (
-        colOptions?.type !== 'hm' ||
+        !['hm', 'om', 'oo'].includes(colOptions?.type) ||
         colOptions?.fk_related_model_id !== modelId
       ) {
         NcError.get(context).badRequest(
-          'Dependency linkrow field must be a self-referencing Has-Many relation on this table',
+          'Dependency linkrow field must be a self-referencing Has-Many, One-to-Many, or One-to-One relation on this table',
         );
       }
     }

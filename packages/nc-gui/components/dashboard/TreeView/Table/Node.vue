@@ -701,7 +701,11 @@ const enabledOptions = computed(() => {
                         <div v-e="['c:table:date-dependency']" class="flex gap-2 items-center w-full">
                           <GeneralIcon icon="ncCalendar" class="opacity-80" />
                           <div class="flex-1">{{ $t('labels.dateDependency.title') }}</div>
-                          <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY" />
+                          <LazyPaymentUpgradeBadge
+                            :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY"
+                            :title="$t('upgrade.upgradeToUseDateDependency')"
+                            :content="$t('upgrade.upgradeToUseDateDependencySubtitle')"
+                          />
                         </div>
                       </NcMenuItem>
                     </template>

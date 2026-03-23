@@ -25904,7 +25904,8 @@
             "enum": ["flexible", "fixed", "none"]
           },
           "dependency_buffer_days": {
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0
           },
           "include_weekends": {
             "type": "boolean"

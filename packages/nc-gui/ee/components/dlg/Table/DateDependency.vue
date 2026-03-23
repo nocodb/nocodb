@@ -80,13 +80,14 @@ const durationOptions = computed(() =>
     .map((c) => ({ value: c.id, label: c.title, col: c })),
 )
 
-// Only show self-referencing HM (has-many) link columns — BT/OO/MM cannot be used as predecessor links
+// Only show self-referencing HM/OM/OO link columns — BT/MO/MM cannot be used as predecessor links
+// hm = Has Many (v1), om = One to Many (v2), oo = One to One
 const linkOptions = computed(() =>
   tableColumns.value
     .filter((c) => {
       if (!isLinksOrLTAR(c)) return false
       const opts = (c.colOptions as LinkToAnotherRecordType) ?? {}
-      return opts.type === 'hm' && opts.fk_related_model_id === props.tableId
+      return ['hm', 'om', 'oo'].includes(opts.type as string) && opts.fk_related_model_id === props.tableId
     })
     .map((c) => ({ value: c.id, label: c.title, col: c })),
 )

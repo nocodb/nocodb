@@ -2414,26 +2414,23 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             const row = responses[i];
             let rowId;
             if (this.isSqlite || this.isMySQL) {
-              if (this.isMySQL && this.isSqlite) {
+              if (this.isMySQL) {
                 rowId = row;
               }
 
               if (agPkCol) {
-                // ??? insertDatas should be an array
-                rowId = insertDatas[agPkCol.column_name];
+                rowId = insertDatas[i]?.[agPkCol.column_name];
               }
             } else {
               rowId = row[this.model.primaryKey?.title];
             }
 
-            if (aiPkCol || agPkCol) {
-              rowId = this.extractCompositePK({
-                rowId,
-                ai: aiPkCol,
-                ag: agPkCol,
-                insertObj: insertDatas[i],
-              });
-            }
+            rowId = this.extractCompositePK({
+              rowId,
+              ai: aiPkCol,
+              ag: agPkCol,
+              insertObj: insertDatas[i],
+            });
 
             await this.runOps(
               (postInsertOpsMap[i] ?? []).map((f) => f(rowId)),
@@ -2490,9 +2487,16 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       if (!raw && !skip_hooks) {
         // we will wrap returning primary key values with primary key column name
         if (this.isMySQL) {
-          responses = responses.map((r) => ({
-            [this.model.primaryKey.column_name]: r,
-          }));
+          responses = responses.map((r, idx) => {
+            const rowId = this.extractCompositePK({
+              rowId: r,
+              ai: aiPkCol,
+              ag: agPkCol,
+              insertObj: insertDatas[idx],
+            });
+            if (rowId && typeof rowId === 'object') return rowId;
+            return { [this.model.primaryKey.column_name]: rowId ?? r };
+          });
         }
 
         if (isSingleRecordInsertion) {

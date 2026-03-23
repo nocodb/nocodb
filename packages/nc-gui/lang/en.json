@@ -217,6 +217,8 @@
     "upgradeToUseAutoNumberField": "Upgrade to use AutoNumber fields",
     "upgradeToUseAutoNumberFieldSubtitle": "Upgrade to the {plan} plan to use AutoNumber fields to auto-generate sequential numbers.",
     "upgradeToAccessCopyViewConfigFromAnotherViewSubtitle": "Upgrade to the {plan} plan to access copy view configuration from another view feature.",
+    "upgradeToUseTeamHierarchy": "Upgrade to use team hierarchy",
+    "upgradeToUseTeamHierarchySubtitle": "Upgrade to the {plan} plan to organize teams in nested hierarchies with inherited membership.",
     "upgradeToUseTeams": "Upgrade to use teams",
     "upgradeToUseTeamsSubtitle": "Upgrade to the {plan} plan to use teams to group users and manage their access to workspaces and bases.",
     "upgradeToAddMoreTeams": "Upgrade to add more teams",

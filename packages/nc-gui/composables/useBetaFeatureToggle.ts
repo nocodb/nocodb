@@ -212,15 +212,6 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'team_hierarchy',
-    title: 'Team Hierarchy',
-    description: 'Organize the teams in nested hierarchy',
-    enabled: false,
-    version: 1,
-    isEE: true,
-    isEngineering: true,
-  },
-  {
     id: 'presence_visibility_toggle',
     title: 'Presence Visibility Toggle',
     description: 'Allow users to hide their own presence from other collaborators.',

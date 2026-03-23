@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { IconType } from 'nocodb-sdk'
+import { IconType, PlanFeatureTypes } from 'nocodb-sdk'
 
 interface Props {
   team: TeamType
@@ -16,7 +16,9 @@ const { t } = useI18n()
 
 const workspaceStore = useWorkspace()
 
-const { teams, activeWorkspaceId, isTeamsHierarchyEnabled } = storeToRefs(workspaceStore)
+const { teams, activeWorkspaceId } = storeToRefs(workspaceStore)
+
+const { blockTeamHierarchy } = useEeConfig()
 
 const { getTeamBreadcrumb, moveTeam, getTeamDescendantIds } = workspaceStore
 
@@ -71,8 +73,10 @@ const handleMoveTeam = async () => {
 
   try {
     isMoving.value = true
-    await moveTeam(activeWorkspaceId.value!, team.value.id, selectedParentId.value)
-    message.success(t('msg.success.teamMoved'))
+    const res = await moveTeam(activeWorkspaceId.value!, team.value.id, selectedParentId.value)
+    if (res) {
+      message.success(t('msg.success.teamMoved'))
+    }
   } finally {
     isMoving.value = false
   }
@@ -262,7 +266,7 @@ watch(
     </a-form>
 
     <!-- Team hierarchy breadcrumb -->
-    <div v-if="breadcrumb.length > 1 && isTeamsHierarchyEnabled" class="mt-4">
+    <div v-if="breadcrumb.length > 1" class="mt-4">
       <div class="text-[13px] text-nc-content-gray mb-2">{{ $t('labels.teamHierarchy') }}</div>
       <div class="flex items-center gap-1 text-sm text-nc-content-gray-subtle flex-wrap">
         <template v-for="(crumb, idx) in breadcrumb" :key="crumb.id">
@@ -275,47 +279,55 @@ watch(
     </div>
 
     <!-- Move team -->
-    <div v-if="!readOnly && isTeamsHierarchyEnabled" class="mt-4">
-      <div class="text-bodyDefaultSm text-nc-content-gray mb-2">{{ $t('labels.parentTeam') }}</div>
-      <div class="flex items-center gap-2">
-        <NcSelect
-          v-model:value="selectedParentId"
-          :placeholder="$t('general.none')"
-          allow-clear
-          show-search
-          :filter-option="(input: string, option: any) => option['data-label']?.toLowerCase().includes(input.toLowerCase())"
-          class="flex-1 nc-select-shadow"
-          data-testid="edit-team-parent-select"
-          dropdown-class-name="nc-dropdown-edit-team-parent"
-          :disabled="isMoving"
-        >
-          <a-select-option v-for="pt in parentTeamOptions" :key="pt.id" :value="pt.id" :data-label="pt.title">
-            <div class="flex items-center gap-2" :style="{ paddingLeft: `${(pt.depth ?? 0) * 16}px` }">
-              <GeneralTeamIcon :team="pt" class="!w-5 !h-5 !min-w-5 flex-none !rounded-md" />
-              <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                <template #title>{{ pt.title }}</template>
-                {{ pt.title }}
-              </NcTooltip>
-              <component
-                :is="iconMap.check"
-                v-if="selectedParentId === pt.id"
-                id="nc-selected-item-icon"
-                class="text-primary w-4 h-4 flex-none"
-              />
-            </div>
-          </a-select-option>
-        </NcSelect>
-        <NcButton
-          v-if="selectedParentId !== ((team as any).fk_parent_team_id || null)"
-          size="small"
-          type="primary"
-          :loading="isMoving"
-          :disabled="isMoving"
-          @click="handleMoveTeam"
-        >
-          {{ $t('labels.moveTeam') }}
-        </NcButton>
-      </div>
-    </div>
+    <PaymentUpgradeBadgeProvider v-if="!readOnly" :feature="PlanFeatureTypes.FEATURE_TEAM_HIERARCHY">
+      <template #default="{ click }">
+        <div class="mt-4">
+          <div class="text-bodyDefaultSm text-nc-content-gray mb-2 flex items-center gap-2">
+            {{ $t('labels.parentTeam') }}
+            <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_TEAM_HIERARCHY" />
+          </div>
+          <div class="flex items-center gap-2">
+            <NcSelect
+              v-model:value="selectedParentId"
+              :placeholder="$t('general.none')"
+              allow-clear
+              show-search
+              :filter-option="(input: string, option: any) => option['data-label']?.toLowerCase().includes(input.toLowerCase())"
+              class="flex-1 nc-select-shadow"
+              data-testid="edit-team-parent-select"
+              dropdown-class-name="nc-dropdown-edit-team-parent"
+              :disabled="isMoving || blockTeamHierarchy"
+              @click="click(PlanFeatureTypes.FEATURE_TEAM_HIERARCHY, () => {})"
+            >
+              <a-select-option v-for="pt in parentTeamOptions" :key="pt.id" :value="pt.id" :data-label="pt.title">
+                <div class="flex items-center gap-2" :style="{ paddingLeft: `${(pt.depth ?? 0) * 16}px` }">
+                  <GeneralTeamIcon :team="pt" class="!w-5 !h-5 !min-w-5 flex-none !rounded-md" />
+                  <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                    <template #title>{{ pt.title }}</template>
+                    {{ pt.title }}
+                  </NcTooltip>
+                  <component
+                    :is="iconMap.check"
+                    v-if="selectedParentId === pt.id"
+                    id="nc-selected-item-icon"
+                    class="text-primary w-4 h-4 flex-none"
+                  />
+                </div>
+              </a-select-option>
+            </NcSelect>
+            <NcButton
+              v-if="selectedParentId !== ((team as any).fk_parent_team_id || null)"
+              size="small"
+              type="primary"
+              :loading="isMoving"
+              :disabled="isMoving"
+              @click="click(PlanFeatureTypes.FEATURE_TEAM_HIERARCHY, handleMoveTeam)"
+            >
+              {{ $t('labels.moveTeam') }}
+            </NcButton>
+          </div>
+        </div>
+      </template>
+    </PaymentUpgradeBadgeProvider>
   </div>
 </template>

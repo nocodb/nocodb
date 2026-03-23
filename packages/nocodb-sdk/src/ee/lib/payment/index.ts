@@ -70,6 +70,7 @@ export const PlanFeatureTypesToPlanTitles: Record<
   [PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS]: PlanTitles.BUSINESS,
 
   // Enterprise features
+  [PlanFeatureTypes.FEATURE_TEAM_HIERARCHY]: PlanTitles.ENTERPRISE,
   [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: PlanTitles.ENTERPRISE,
   [PlanFeatureTypes.FEATURE_SSO]: PlanTitles.ENTERPRISE,
   [PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WS]: PlanTitles.ENTERPRISE,

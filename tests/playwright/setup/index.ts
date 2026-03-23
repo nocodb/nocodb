@@ -257,10 +257,47 @@ async function localInit({
       }
     }
 
+    // --- DB reset FIRST ---
+    // Reset the external DB before deleting bases/workspaces.
+    // resetSakilaPg waits for backend connections to drain via pg_stat_activity
+    // before running DROP DATABASE, which avoids killing connections that could
+    // leave the backend in a broken state or trigger uncaught errors.
+    const dbResetFn = async () => {
+      if (dbType === 'pg' && !isEmptyProject) {
+        await resetSakilaPg(`sakila${workerId}`);
+      } else if (dbType === 'sqlite') {
+        if (await fs.stat(sqliteFilePath(parallelId)).catch(() => null)) {
+          await fs.unlink(sqliteFilePath(parallelId));
+        }
+        if (!isEmptyProject) {
+          const testsDir = path.join(__dirname, '../../../packages/nocodb/tests');
+          await fs.copyFile(`${testsDir}/sqlite-sakila-db/sakila.db`, sqliteFilePath(parallelId));
+        }
+      } else if (dbType === 'mysql') {
+        const nc_knex = knex(mysqlConfig);
+
+        try {
+          try {
+            await nc_knex.raw(`USE test_sakila_${parallelId}`);
+          } catch (e) {
+            await nc_knex.raw(`CREATE DATABASE test_sakila_${parallelId}`);
+            await nc_knex.raw(`USE test_sakila_${parallelId}`);
+          }
+          if (!isEmptyProject) {
+            await resetSakilaMysql(nc_knex, parallelId, isEmptyProject);
+          }
+        } finally {
+          await nc_knex.destroy();
+        }
+      }
+    };
+
+    await dbResetFn();
+
+    // --- Cleanup old bases/workspaces ---
+    // Now that external DB connections are gone (drained + dropped), base and
+    // workspace deletion should succeed reliably.
     if (isEE() && api['workspace']) {
-      // Delete associated workspace
-      // Note that: on worker error, entire thread is reset & worker ID numbering is reset too
-      // Hence, workspace delete is based on workerId prefix instead of just workerId
       const ws = await api['workspace'].list();
       for (const w of ws.list) {
         if (w.title.startsWith(`ws_pgExtREST${process.env.TEST_PARALLEL_INDEX}`)) {
@@ -305,38 +342,7 @@ async function localInit({
       }
     }
 
-    // DB reset function (runs in parallel with workspace creation)
-    const dbResetFn = async () => {
-      if (dbType === 'pg' && !isEmptyProject) {
-        await resetSakilaPg(`sakila${workerId}`);
-      } else if (dbType === 'sqlite') {
-        if (await fs.stat(sqliteFilePath(parallelId)).catch(() => null)) {
-          await fs.unlink(sqliteFilePath(parallelId));
-        }
-        if (!isEmptyProject) {
-          const testsDir = path.join(__dirname, '../../../packages/nocodb/tests');
-          await fs.copyFile(`${testsDir}/sqlite-sakila-db/sakila.db`, sqliteFilePath(parallelId));
-        }
-      } else if (dbType === 'mysql') {
-        const nc_knex = knex(mysqlConfig);
-
-        try {
-          try {
-            await nc_knex.raw(`USE test_sakila_${parallelId}`);
-          } catch (e) {
-            await nc_knex.raw(`CREATE DATABASE test_sakila_${parallelId}`);
-            await nc_knex.raw(`USE test_sakila_${parallelId}`);
-          }
-          if (!isEmptyProject) {
-            await resetSakilaMysql(nc_knex, parallelId, isEmptyProject);
-          }
-        } finally {
-          await nc_knex.destroy();
-        }
-      }
-    };
-
-    // Create workspace (can run in parallel with DB reset)
+    // --- Create workspace ---
     const wsCreateFn = async () => {
       if (isEE() && api['workspace']) {
         return api['workspace'].create({ title: workspaceTitle });
@@ -344,9 +350,6 @@ async function localInit({
       return undefined;
     };
 
-    // DB reset must complete before workspace creation to avoid stale backend state
-    // (DROP DATABASE WITH FORCE can kill backend connections during concurrent operations)
-    await dbResetFn();
     const workspace = await wsCreateFn();
 
     // Create base (depends on both DB reset and workspace)
@@ -424,7 +427,7 @@ const setup = async ({
 
   // console.log(process.env.TEST_PARALLEL_INDEX, '#Setup', workerId);
 
-  const maxRetries = 3;
+  const maxRetries = 5;
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       // Localised reset logic
@@ -441,20 +444,31 @@ const setup = async ({
       console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
     }
 
-    if (response.status === 200 && response.data?.token && response.data?.base) {
+    if (response?.status === 200 && response.data?.token && response.data?.base) {
       break;
     }
 
     if (attempt < maxRetries - 1) {
+      const delay = Math.min((attempt + 1) * 2000, 8000);
+      const missing = [];
+      if (response?.status !== 200) missing.push(`status=${response?.status}`);
+      if (!response?.data?.token) missing.push('no token');
+      if (!response?.data?.base) missing.push('no base');
       console.warn(
-        `Setup attempt ${attempt + 1} failed (status=${response.status}), retrying in ${(attempt + 1) * 2}s...`
+        `Setup attempt ${attempt + 1}/${maxRetries} failed [worker=${parallelIndex}, ${missing.join(
+          ', '
+        )}], retrying in ${delay}ms...`
       );
-      await new Promise(resolve => setTimeout(resolve, (attempt + 1) * 2000));
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
 
-  if (response.status !== 200 || !response.data?.token || !response.data?.base) {
-    console.error('Failed to reset test data', response.data, response.status, dbType);
+  if (response?.status !== 200 || !response?.data?.token || !response?.data?.base) {
+    const missing = [];
+    if (response?.status !== 200) missing.push(`status=${response?.status}`);
+    if (!response?.data?.token) missing.push('no token');
+    if (!response?.data?.base) missing.push('no base');
+    console.error(`Failed to reset test data [worker=${parallelIndex}, ${missing.join(', ')}, db=${dbType}]`);
     throw new Error('Failed to reset test data');
   }
   const token = response.data.token;

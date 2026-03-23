@@ -5,7 +5,7 @@
  * Wraps loading/error state from useNocoAi and adds doc-specific methods.
  */
 export const useDocumentAi = createSharedComposable(() => {
-  const { $api } = useNuxtApp()
+  const { $api, $e } = useNuxtApp()
 
   const basesStore = useBases()
 
@@ -61,26 +61,31 @@ export const useDocumentAi = createSharedComposable(() => {
 
   const aiWrite = async (instruction: string, context?: string, title?: string) => {
     const res = await callDocAiApi('docAiWrite', { instruction, context, title })
+    if (res?.text) $e('a:doc:ai:write')
     return res?.text as string | undefined
   }
 
   const aiContinue = async (precedingContent: string, title?: string) => {
     const res = await callDocAiApi('docAiContinue', { precedingContent, title })
+    if (res?.text) $e('a:doc:ai:continue')
     return res?.text as string | undefined
   }
 
   const aiImprove = async (text: string, mode: string) => {
     const res = await callDocAiApi('docAiImprove', { text, mode })
+    if (res?.text) $e('a:doc:ai:improve', { mode })
     return res?.text as string | undefined
   }
 
   const aiSummarize = async (text: string) => {
     const res = await callDocAiApi('docAiSummarize', { text })
+    if (res?.text) $e('a:doc:ai:summarize')
     return res?.text as string | undefined
   }
 
   const aiTranslate = async (text: string, targetLanguage: string) => {
     const res = await callDocAiApi('docAiTranslate', { text, targetLanguage })
+    if (res?.text) $e('a:doc:ai:translate', { targetLanguage })
     return res?.text as string | undefined
   }
 

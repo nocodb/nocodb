@@ -267,7 +267,7 @@ export function useDocumentAutoSave({
   }
 
   /** Reload the document from the server, clearing stale state. */
-  const reloadDocument = async () => {
+  async function reloadDocument() {
     if (!doc.value?.id) return
     // Cancel any pending save — stale content shouldn't overwrite newer version
     if (saveTimeout.value) clearTimeout(saveTimeout.value)

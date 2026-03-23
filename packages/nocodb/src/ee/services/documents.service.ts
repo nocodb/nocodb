@@ -170,9 +170,7 @@ export class DocumentsService extends DocumentsServiceCE {
         // would leak the existence of hidden child pages.
         //
         // Batch: fetch all children for parents with has_children in a single query.
-        const parentsWithChildren = visibleDocs.filter(
-          (d) => d.has_children,
-        );
+        const parentsWithChildren = visibleDocs.filter((d) => d.has_children);
         if (parentsWithChildren.length) {
           const parentIds = parentsWithChildren.map((d) => d.id!);
           const allChildren = await Document.listLiteByParentIds(
@@ -192,8 +190,7 @@ export class DocumentsService extends DocumentsServiceCE {
           for (const doc of parentsWithChildren) {
             const children = childrenByParent.get(doc.id!) || [];
             // Doc's effective visibility becomes the parent for its children
-            const docEffective =
-              visibilityMap.get(doc.id!) || parentEffective;
+            const docEffective = visibilityMap.get(doc.id!) || parentEffective;
 
             let anyVisible = false;
             for (const child of children) {

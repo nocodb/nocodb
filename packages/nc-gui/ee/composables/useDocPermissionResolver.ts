@@ -1,11 +1,5 @@
-import type { DocumentType } from 'nocodb-sdk'
-import {
-  getPermissionOptionValue,
-  PermissionEntity,
-  PermissionGrantedType,
-  type PermissionKey,
-  type PermissionRole,
-} from 'nocodb-sdk'
+import { PermissionEntity, getPermissionOptionValue } from 'nocodb-sdk'
+import type { DocumentType, PermissionGrantedType, PermissionKey, PermissionRole } from 'nocodb-sdk'
 
 interface PermissionRecord {
   entity: string

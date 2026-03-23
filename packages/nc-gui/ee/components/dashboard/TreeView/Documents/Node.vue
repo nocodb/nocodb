@@ -418,11 +418,7 @@ function onStopEdit() {
             'font-medium text-nc-content-brand-disabled': activeDocumentId === doc.id,
           }"
         >
-          <span
-            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
-            data-testid="sidebar-doc-title"
-            class="truncate"
-          >
+          <span :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }" data-testid="sidebar-doc-title" class="truncate">
             {{ doc.title || $t('general.untitled') }}
           </span>
           <NcTooltip v-if="doc.has_permissions">

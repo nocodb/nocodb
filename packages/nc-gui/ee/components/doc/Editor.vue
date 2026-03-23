@@ -327,6 +327,8 @@ const aiSuggestionStyle = ref<Record<string, string>>({ display: 'none' })
 
 const aiSuggestionPopupRef = ref<InstanceType<typeof DocAiSuggestionPopup> | null>(null)
 
+const editorContentRef = ref<HTMLElement | null>(null)
+
 /** Scroll the AI suggestion popup into view within the scroll container. */
 const scrollAiSuggestionIntoView = () => {
   nextTick(() => {
@@ -395,7 +397,7 @@ const markAiHighlightForRemoval = () => {
 }
 
 /** Remove the AI highlight decoration. */
-const removeAiHighlight = () => {
+function removeAiHighlight() {
   if (!editor.value) return
   editor.value.unregisterPlugin(aiHighlightPluginKey)
 }
@@ -712,7 +714,7 @@ const positionSubMenu = (e: MouseEvent) => {
 }
 
 /** Dispatch an AI operation into the suggestion popup. */
-const runAiSuggestionOperation = (operation: string, params: Record<string, any>) => {
+function runAiSuggestionOperation(operation: string, params: Record<string, any>) {
   const selected = getSelectedText()
   if (!selected.trim()) return
 
@@ -1820,7 +1822,6 @@ onMounted(() => document.addEventListener('click', onDocClick, true))
 onBeforeUnmount(() => document.removeEventListener('click', onDocClick, true))
 
 // Setup link hover listeners on editor content container
-const editorContentRef = ref<HTMLElement | null>(null)
 
 // Position is derived from getBoundingClientRect which doesn't trigger Vue reactivity
 // on scroll. Use a ref updated explicitly when hover/edit state changes.

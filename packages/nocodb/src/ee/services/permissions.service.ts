@@ -45,10 +45,7 @@ export class PermissionsService {
 
       if (!isCreatorOrAbove) {
         const roles = extractRolesObj(req.user?.roles);
-        if (
-          !roles?.[ProjectRoles.OWNER] &&
-          !roles?.[ProjectRoles.CREATOR]
-        ) {
+        if (!roles?.[ProjectRoles.OWNER] && !roles?.[ProjectRoles.CREATOR]) {
           NcError.get(context).forbidden(
             'Only base owners and creators can configure document permissions',
           );
@@ -284,7 +281,10 @@ export class PermissionsService {
         );
       }
       if (error instanceof NcError || error instanceof NcBaseError) throw error;
-      this.logger.error((error as Error)?.message ?? 'Failed to set permission', (error as Error)?.stack);
+      this.logger.error(
+        (error as Error)?.message ?? 'Failed to set permission',
+        (error as Error)?.stack,
+      );
       NcError.get(context).internalServerError('Failed to set permission');
     }
 
@@ -413,7 +413,10 @@ export class PermissionsService {
         CacheDelDirection.PARENT_TO_CHILD,
       );
       if (error instanceof NcError || error instanceof NcBaseError) throw error;
-      this.logger.error((error as Error)?.message ?? 'Failed to delete permission', (error as Error)?.stack);
+      this.logger.error(
+        (error as Error)?.message ?? 'Failed to delete permission',
+        (error as Error)?.stack,
+      );
       NcError.get(context).internalServerError('Failed to delete permission');
     }
 
@@ -510,7 +513,10 @@ export class PermissionsService {
         CacheDelDirection.PARENT_TO_CHILD,
       );
       if (error instanceof NcError || error instanceof NcBaseError) throw error;
-      this.logger.error((error as Error)?.message ?? 'Failed to delete permissions', (error as Error)?.stack);
+      this.logger.error(
+        (error as Error)?.message ?? 'Failed to delete permissions',
+        (error as Error)?.stack,
+      );
       NcError.get(context).internalServerError('Failed to delete permissions');
     }
 

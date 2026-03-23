@@ -201,7 +201,7 @@ const mainItems = computed<NavItem[]>(() => [
 
 <template>
   <nav class="nc-rail" data-testid="nc-mini-sidebar-v2-rail">
-    <div class="flex-none h-[var(--topbar-height)] relative flex items-center">
+    <div class="flex-none h-[var(--topbar-height)] w-full relative flex items-center justify-center">
       <!-- Logo — hover shows back arrow, click navigates to workspace -->
       <NcTooltip placement="right" :arrow="false">
         <template #title>{{ $t('labels.backToWorkspace') }}: {{ activeWorkspace?.title }}</template>
@@ -223,10 +223,14 @@ const mainItems = computed<NavItem[]>(() => [
                 : undefined
             "
           />
-          <GeneralIcon icon="ncArrowLeft" class="!h-5 !w-5 nc-back-icon text-nc-content-gray" />
+          <div class="nc-back-icon">
+            <GeneralIcon icon="ncArrowLeft" class="!h-4.5 !w-4.5 text-nc-content-gray" />
+          </div>
         </div>
       </NcTooltip>
-      <NcDivider class="!w-8 !min-w-8 !my-0 !border-nc-border-gray-medium absolute bottom-0" />
+      <div class="absolute bottom-0 left-0 right-0 flex justify-center">
+        <NcDivider class="!w-8 !min-w-8 !my-0 !border-nc-border-gray-medium" />
+      </div>
     </div>
 
     <!-- Main nav items -->
@@ -356,16 +360,36 @@ const mainItems = computed<NavItem[]>(() => [
 }
 
 .nc-rail-logo-hover {
+  @apply relative;
+  // Fixed size so layout never shifts
+  width: 40px;
+  height: 40px;
+
+  .nc-logo-icon,
   .nc-back-icon {
-    display: none;
+    @apply absolute inset-0 m-auto;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .nc-logo-icon {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .nc-back-icon {
+    @apply flex items-center justify-center;
+    opacity: 0;
+    transform: scale(0.8);
   }
 
   &:hover {
     .nc-logo-icon {
-      display: none;
+      opacity: 0;
+      transform: scale(0.8);
     }
     .nc-back-icon {
-      display: block;
+      opacity: 1;
+      transform: scale(1);
     }
   }
 }

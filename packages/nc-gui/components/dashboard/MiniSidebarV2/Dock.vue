@@ -19,7 +19,7 @@ const { $e: _$e } = useNuxtApp()
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspaceId } = storeToRefs(workspaceStore)
+const { activeWorkspaceId, activeWorkspace } = storeToRefs(workspaceStore)
 
 const basesStore = useBases()
 
@@ -272,28 +272,34 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
 
 <template>
   <nav ref="dockRef" class="nc-dock" data-testid="nc-mini-sidebar-v2-dock" @mousemove="onMouseMove" @mouseleave="onMouseLeave">
-    <!-- Logo -->
-    <DashboardMiniSidebarV2DockItem
-      :ref="(el: any) => setItemRef('logo', el)"
-      class="nc-dock-logo"
-      data-testid="nc-mini-sidebar-v2-logo"
-      :scale="getScale('logo')"
-      @click="isBaseListModalOpen = true"
-    >
-      <GeneralProjectIcon
-        class="!h-7 !w-7"
-        :color="parseProp(resolvedProject?.meta).iconColor"
-        :type="resolvedProject?.type"
-        :managed-app="
-          resolvedProject
-            ? {
-                managed_app_master: resolvedProject?.managed_app_master,
-                managed_app_id: resolvedProject?.managed_app_id,
-              }
-            : undefined
-        "
-      />
-    </DashboardMiniSidebarV2DockItem>
+    <!-- Logo — hover shows back arrow, click navigates to workspace -->
+    <NcTooltip placement="right" :arrow="false">
+      <template #title>{{ $t('labels.backToWorkspace') }}: {{ activeWorkspace?.title }}</template>
+      <DashboardMiniSidebarV2DockItem
+        :ref="(el: any) => setItemRef('logo', el)"
+        class="nc-dock-logo nc-dock-logo-hover"
+        data-testid="nc-mini-sidebar-v2-logo"
+        :scale="getScale('logo')"
+        @click="navigateTo(`/${activeWorkspaceId}`)"
+      >
+        <GeneralProjectIcon
+          class="!h-7 !w-7 nc-logo-icon"
+          :color="parseProp(resolvedProject?.meta).iconColor"
+          :type="resolvedProject?.type"
+          :managed-app="
+            resolvedProject
+              ? {
+                  managed_app_master: resolvedProject?.managed_app_master,
+                  managed_app_id: resolvedProject?.managed_app_id,
+                }
+              : undefined
+          "
+        />
+        <div class="nc-back-icon">
+          <GeneralIcon icon="ncArrowLeft" class="!h-4.5 !w-4.5 text-nc-content-gray" />
+        </div>
+      </DashboardMiniSidebarV2DockItem>
+    </NcTooltip>
 
     <NcDivider class="!w-8 !min-w-8 !mb-0 !border-nc-border-gray-medium !-mt-1.5" />
 
@@ -426,6 +432,38 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
   &:hover {
     opacity: 1;
     background: none !important;
+  }
+}
+
+.nc-dock-logo-hover {
+  .nc-logo-icon,
+  .nc-back-icon {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .nc-logo-icon {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .nc-back-icon {
+    @apply flex items-center justify-center;
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  &:hover {
+    .nc-logo-icon {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    .nc-back-icon {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 }
 

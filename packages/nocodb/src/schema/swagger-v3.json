@@ -4717,7 +4717,7 @@
     "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/execute": {
       "post": {
         "summary": "Execute Workflow",
-        "description": "Manually trigger a workflow execution.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "description": "Manually trigger a workflow execution. This endpoint only works for workflows whose trigger type is `manual-trigger`.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "workflow-execute",
         "tags": ["Workflows"],
         "parameters": [

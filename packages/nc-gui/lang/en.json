@@ -1314,32 +1314,50 @@
     "copyCode": "Copy code",
     "dateDependency": {
       "title": "Date Dependencies",
-      "description": "Specify which rows depend on others. When a row is rescheduled, its dependent rows are automatically adjusted.",
+      "description": "Define which records are dependent on others. When you reschedule a record, dependent records are automatically rescheduled.",
+      "learnMore": "Learn more",
       "durationFieldHint": "Use a Duration or Number field to store the number of days.",
       "startDateField": "Start Date",
       "endDateField": "End Date",
       "durationField": "Duration",
       "linkRowField": "Predecessor Link",
-      "linkRowFieldHint": "Use a Link to table field to connect predecessor rows.",
+      "linkRowFieldHint": "Self-referencing link field to connect predecessor rows.",
       "connectionType": "Connection Type",
-      "bufferType": "Buffer",
-      "bufferDays": "Buffer Days",
-      "includeWeekends": "Include Weekends",
+      "schedulingMode": "Scheduling Mode",
+      "bufferDays": "Gap (days)",
+      "bufferDaysHint": "Minimum number of days between linked records.",
+      "includeWeekends": "Include weekends",
+      "includeWeekendsHint": "When off, weekends (Sat/Sun) are skipped in all date calculations.",
       "isActive": "Enable Date Dependencies",
       "fieldMapping": "Field Mapping",
       "propagationSection": "Row Propagation",
-      "save": "Save",
-      "deleteConfirm": "Delete date dependency configuration?",
+      "saving": "Saving...",
+      "fixErrorsToSave": "Fix errors above to save",
+      "disabledMessage": "Enable the toggle above to configure date dependencies.",
       "connectionTypes": {
-        "end-to-start": "End → Start (default)",
+        "end-to-start": "End → Start",
         "end-to-end": "End → End",
         "start-to-end": "Start → End",
         "start-to-start": "Start → Start"
       },
-      "bufferTypes": {
-        "none": "None",
-        "flexible": "Flexible (minimum gap)",
-        "fixed": "Fixed"
+      "connectionTypeDescriptions": {
+        "end-to-start": "Successor starts after predecessor ends.",
+        "end-to-end": "Successor ends after predecessor ends.",
+        "start-to-start": "Successor starts after predecessor starts.",
+        "start-to-end": "Successor ends after predecessor starts."
+      },
+      "schedulingModes": {
+        "off": "Off",
+        "flexible": "Flexible",
+        "fixed": "Strict"
+      },
+      "schedulingModeDescriptions": {
+        "off": "No automatic rescheduling across linked records.",
+        "flexible": "Only adjust when dates overlap or violate the gap.",
+        "fixed": "Always snap to the exact gap — no slack allowed."
+      },
+      "validation": {
+        "sameStartEnd": "Start Date and End Date must be different fields."
       },
       "cascadeNotSupported": "Cascade propagation is only supported on PostgreSQL and MySQL sources.",
       "enabled": "Date dependencies enabled",

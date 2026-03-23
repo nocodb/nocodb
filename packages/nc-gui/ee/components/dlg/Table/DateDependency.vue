@@ -30,6 +30,8 @@ const { loadTableMeta } = tablesStore
 
 const isSaving = ref(false)
 
+const saveError = ref('')
+
 const defaultForm: DateDependencyReqType = {
   is_active: true,
   fk_start_date_field_id: null,
@@ -97,34 +99,92 @@ const cascadeAvailable = computed(() => {
 })
 
 const connectionTypeOptions = computed(() => [
-  { value: 'end-to-start', label: t('labels.dateDependency.connectionTypes.end-to-start') },
-  { value: 'end-to-end', label: t('labels.dateDependency.connectionTypes.end-to-end') },
-  { value: 'start-to-end', label: t('labels.dateDependency.connectionTypes.start-to-end') },
-  { value: 'start-to-start', label: t('labels.dateDependency.connectionTypes.start-to-start') },
+  {
+    value: 'end-to-start',
+    label: t('labels.dateDependency.connectionTypes.end-to-start'),
+    description: t('labels.dateDependency.connectionTypeDescriptions.end-to-start'),
+  },
+  {
+    value: 'end-to-end',
+    label: t('labels.dateDependency.connectionTypes.end-to-end'),
+    description: t('labels.dateDependency.connectionTypeDescriptions.end-to-end'),
+  },
+  {
+    value: 'start-to-start',
+    label: t('labels.dateDependency.connectionTypes.start-to-start'),
+    description: t('labels.dateDependency.connectionTypeDescriptions.start-to-start'),
+  },
+  {
+    value: 'start-to-end',
+    label: t('labels.dateDependency.connectionTypes.start-to-end'),
+    description: t('labels.dateDependency.connectionTypeDescriptions.start-to-end'),
+  },
 ])
 
-const bufferTypeOptions = computed(() => [
-  { value: 'none', label: t('labels.dateDependency.bufferTypes.none') },
-  { value: 'flexible', label: t('labels.dateDependency.bufferTypes.flexible') },
-  { value: 'fixed', label: t('labels.dateDependency.bufferTypes.fixed') },
+const selectedConnectionTypeDescription = computed(
+  () => connectionTypeOptions.value.find((o) => o.value === form.dependency_connection_type)?.description ?? '',
+)
+
+const schedulingModeOptions = computed(() => [
+  {
+    value: 'none',
+    label: t('labels.dateDependency.schedulingModes.off'),
+    description: t('labels.dateDependency.schedulingModeDescriptions.off'),
+  },
+  {
+    value: 'flexible',
+    label: t('labels.dateDependency.schedulingModes.flexible'),
+    description: t('labels.dateDependency.schedulingModeDescriptions.flexible'),
+  },
+  {
+    value: 'fixed',
+    label: t('labels.dateDependency.schedulingModes.fixed'),
+    description: t('labels.dateDependency.schedulingModeDescriptions.fixed'),
+  },
 ])
 
-const validators = computed(() => ({
-  fk_start_date_field_id: form.is_active ? [fieldRequiredValidator()] : [],
-  fk_end_date_field_id: form.is_active ? [fieldRequiredValidator()] : [],
-}))
+const selectedSchedulingModeDescription = computed(
+  () => schedulingModeOptions.value.find((o) => o.value === form.dependency_buffer_type)?.description ?? '',
+)
 
-const { validateInfos, validate, clearValidate } = Form.useForm(form, validators)
+// Inline validation
+const startEndSameFieldError = computed(() => {
+  if (form.fk_start_date_field_id && form.fk_end_date_field_id && form.fk_start_date_field_id === form.fk_end_date_field_id) {
+    return t('labels.dateDependency.validation.sameStartEnd')
+  }
+  return ''
+})
+
+const missingRequiredFields = computed(() => {
+  if (!form.is_active) return false
+  return !form.fk_start_date_field_id || !form.fk_end_date_field_id
+})
+
+const hasValidationErrors = computed(() => !!startEndSameFieldError.value || missingRequiredFields.value)
+
+// Auto-save with debounce
+const debouncedSave = useDebounceFn(async () => {
+  if (!hasChanges.value || hasValidationErrors.value) return
+  await save()
+}, 800)
+
+watch(
+  () => ({ ...form }),
+  () => {
+    saveError.value = ''
+    if (hasChanges.value && !hasValidationErrors.value) {
+      debouncedSave()
+    }
+  },
+  { deep: true },
+)
 
 async function save() {
   if (!activeWorkspaceId.value || !activeProjectId.value) return
-  try {
-    await validate()
-  } catch {
-    return
-  }
+  if (hasValidationErrors.value) return
 
   isSaving.value = true
+  saveError.value = ''
   try {
     const result = await $api.internal.postOperation(
       activeWorkspaceId.value,
@@ -137,29 +197,7 @@ async function save() {
     }
     savedForm.value = { ...form }
   } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    isSaving.value = false
-  }
-}
-
-async function deleteRule() {
-  if (!activeWorkspaceId.value || !activeProjectId.value) return
-  isSaving.value = true
-  try {
-    await $api.internal.postOperation(
-      activeWorkspaceId.value,
-      activeProjectId.value,
-      { operation: 'deleteTableDateDependency', fk_model_id: props.tableId },
-      {},
-    )
-    if (tableMeta.value) {
-      tableMeta.value.date_dependency = null
-    }
-    Object.assign(form, { ...defaultForm })
-    savedForm.value = { ...defaultForm }
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
+    saveError.value = await extractSdkResponseErrorMsg(e)
   } finally {
     isSaving.value = false
   }
@@ -172,7 +210,7 @@ watch(visible, async (val) => {
     initial.dependency_buffer_days = Number(initial.dependency_buffer_days) || 0
     Object.assign(form, initial)
     savedForm.value = { ...initial }
-    clearValidate()
+    saveError.value = ''
   }
 })
 </script>
@@ -180,237 +218,353 @@ watch(visible, async (val) => {
 <template>
   <NcModal v-model:visible="visible" size="sm" height="auto" wrap-class-name="nc-modal-date-dependency">
     <template #header>
-      <span class="text-heading3">
-        {{ $t('labels.dateDependency.title') }}
-      </span>
+      <div class="flex items-center justify-between w-full">
+        <span class="text-heading3">
+          {{ $t('labels.dateDependency.title') }}
+        </span>
+
+        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY">
+          <template #default="{ click }">
+            <NcSwitch
+              v-model:checked="form.is_active"
+              v-e="['c:date-dependency:toggle']"
+              size="small"
+              @click="click(PlanFeatureTypes.FEATURE_DATE_DEPENDENCY, () => {})"
+            />
+            <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY" />
+          </template>
+        </PaymentUpgradeBadgeProvider>
+      </div>
     </template>
 
-    <div class="flex flex-col" style="min-height: 300px; max-height: 70vh">
+    <div class="flex flex-col" style="min-height: 200px; max-height: 70vh">
       <div class="flex-1 overflow-y-auto px-1 pb-2">
         <!-- Description -->
-        <p class="text-body text-nc-content-gray-subtle mb-6">
+        <p class="text-body text-nc-content-gray-subtle mb-5">
           {{ $t('labels.dateDependency.description') }}
+          <a
+            href="https://docs.nocodb.com/features/date-dependencies"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-nc-content-brand hover:underline"
+          >
+            {{ $t('labels.dateDependency.learnMore') }}
+          </a>
         </p>
 
-        <!-- Active toggle -->
-        <div class="flex items-center gap-3 mb-6">
-          <NcSwitch v-model:checked="form.is_active" size="small" />
-          <span class="text-body text-nc-content-gray">{{ $t('labels.dateDependency.isActive') }}</span>
-        </div>
-
         <template v-if="form.is_active">
-          <a-form :model="form" layout="vertical">
-            <div class="grid grid-cols-2 gap-x-6 gap-y-5 mb-5">
-              <div>
-                <div class="text-body font-semibold text-nc-content-gray mb-2">
-                  {{ $t('labels.dateDependency.startDateField') }}
-                </div>
-                <a-form-item v-bind="validateInfos.fk_start_date_field_id" class="!mb-0">
-                  <a-select
-                    v-model:value="form.fk_start_date_field_id"
-                    class="w-full"
-                    allow-clear
-                    :placeholder="$t('placeholder.notSelected')"
-                  >
-                    <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
-                    <a-select-option v-for="opt in startDateOptions" :key="opt.value" :value="opt.value">
-                      <div class="w-full flex gap-2 items-center justify-between">
-                        <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
-                          <SmartsheetHeaderIcon :column="opt.col" />
-                          <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                            <template #title>{{ opt.label }}</template>
-                            {{ opt.label }}
-                          </NcTooltip>
-                        </div>
-                        <GeneralIcon
-                          v-if="opt.value === form.fk_start_date_field_id"
-                          id="nc-selected-item-icon"
-                          icon="check"
-                          class="flex-none text-primary w-4 h-4"
-                        />
-                      </div>
-                    </a-select-option>
-                  </a-select>
-                </a-form-item>
+          <!-- Field Mapping -->
+          <div class="grid grid-cols-2 gap-x-6 gap-y-4 mb-4">
+            <!-- Start date -->
+            <div>
+              <div class="nc-date-dep-label">
+                {{ $t('labels.dateDependency.startDateField') }}
               </div>
-
-              <!-- End date -->
-              <div>
-                <div class="text-body font-semibold text-nc-content-gray mb-2">
-                  {{ $t('labels.dateDependency.endDateField') }}
-                </div>
-                <a-form-item v-bind="validateInfos.fk_end_date_field_id" class="!mb-0">
-                  <a-select
-                    v-model:value="form.fk_end_date_field_id"
-                    class="w-full"
-                    allow-clear
-                    :placeholder="$t('placeholder.notSelected')"
-                  >
-                    <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
-                    <a-select-option v-for="opt in endDateOptions" :key="opt.value" :value="opt.value">
-                      <div class="w-full flex gap-2 items-center justify-between">
-                        <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
-                          <SmartsheetHeaderIcon :column="opt.col" />
-                          <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                            <template #title>{{ opt.label }}</template>
-                            {{ opt.label }}
-                          </NcTooltip>
-                        </div>
-                        <GeneralIcon
-                          v-if="opt.value === form.fk_end_date_field_id"
-                          id="nc-selected-item-icon"
-                          icon="check"
-                          class="flex-none text-primary w-4 h-4"
-                        />
-                      </div>
-                    </a-select-option>
-                  </a-select>
-                </a-form-item>
-              </div>
-
-              <div>
-                <div class="text-body font-semibold text-nc-content-gray mb-2">
-                  {{ $t('labels.dateDependency.durationField') }}
-                </div>
-                <a-select
-                  v-model:value="form.fk_duration_field_id"
-                  class="w-full"
-                  allow-clear
-                  :placeholder="$t('placeholder.notSelected')"
-                >
-                  <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
-                  <a-select-option v-for="opt in durationOptions" :key="opt.value" :value="opt.value">
-                    <div class="w-full flex gap-2 items-center justify-between">
-                      <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
-                        <SmartsheetHeaderIcon :column="opt.col" />
-                        <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                          <template #title>{{ opt.label }}</template>
-                          {{ opt.label }}
-                        </NcTooltip>
-                      </div>
-                      <GeneralIcon
-                        v-if="opt.value === form.fk_duration_field_id"
-                        id="nc-selected-item-icon"
-                        icon="check"
-                        class="flex-none text-primary w-4 h-4"
-                      />
+              <a-select
+                v-model:value="form.fk_start_date_field_id"
+                class="w-full"
+                :class="{ 'nc-select-error': startEndSameFieldError }"
+                allow-clear
+                :placeholder="$t('placeholder.notSelected')"
+              >
+                <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
+                <a-select-option v-for="opt in startDateOptions" :key="opt.value" :value="opt.value">
+                  <div class="w-full flex gap-2 items-center justify-between">
+                    <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
+                      <SmartsheetHeaderIcon :column="opt.col" />
+                      <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                        <template #title>{{ opt.label }}</template>
+                        {{ opt.label }}
+                      </NcTooltip>
                     </div>
-                  </a-select-option>
-                </a-select>
-                <div class="text-captionSm text-nc-content-gray-subtle mt-1.5">
-                  {{ $t('labels.dateDependency.durationFieldHint') }}
-                </div>
-              </div>
+                    <GeneralIcon
+                      v-if="opt.value === form.fk_start_date_field_id"
+                      id="nc-selected-item-icon"
+                      icon="check"
+                      class="flex-none text-primary w-4 h-4"
+                    />
+                  </div>
+                </a-select-option>
+              </a-select>
+            </div>
 
-              <!-- Predecessors -->
-              <div>
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="text-body font-semibold text-nc-content-gray">
-                    {{ $t('labels.dateDependency.linkRowField') }}
-                  </span>
-                  <span class="text-captionSm text-nc-content-gray-subtle">{{ $t('general.optional') }}</span>
-                </div>
-                <a-select
-                  v-model:value="form.fk_dependency_linkrow_field_id"
-                  class="w-full"
-                  allow-clear
-                  :placeholder="$t('placeholder.notSelected')"
-                >
-                  <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
-                  <a-select-option v-for="opt in linkOptions" :key="opt.value" :value="opt.value">
-                    <div class="w-full flex gap-2 items-center justify-between">
-                      <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
-                        <SmartsheetHeaderIcon :column="opt.col" />
-                        <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                          <template #title>{{ opt.label }}</template>
-                          {{ opt.label }}
-                        </NcTooltip>
-                      </div>
-                      <GeneralIcon
-                        v-if="opt.value === form.fk_dependency_linkrow_field_id"
-                        id="nc-selected-item-icon"
-                        icon="check"
-                        class="flex-none text-primary w-4 h-4"
-                      />
+            <!-- End date -->
+            <div>
+              <div class="nc-date-dep-label">
+                {{ $t('labels.dateDependency.endDateField') }}
+              </div>
+              <a-select
+                v-model:value="form.fk_end_date_field_id"
+                class="w-full"
+                :class="{ 'nc-select-error': startEndSameFieldError }"
+                allow-clear
+                :placeholder="$t('placeholder.notSelected')"
+              >
+                <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
+                <a-select-option v-for="opt in endDateOptions" :key="opt.value" :value="opt.value">
+                  <div class="w-full flex gap-2 items-center justify-between">
+                    <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
+                      <SmartsheetHeaderIcon :column="opt.col" />
+                      <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                        <template #title>{{ opt.label }}</template>
+                        {{ opt.label }}
+                      </NcTooltip>
                     </div>
-                  </a-select-option>
-                </a-select>
-                <div class="text-captionSm text-nc-content-gray-subtle mt-1.5">
-                  {{ $t('labels.dateDependency.linkRowFieldHint') }}
-                </div>
+                    <GeneralIcon
+                      v-if="opt.value === form.fk_end_date_field_id"
+                      id="nc-selected-item-icon"
+                      icon="check"
+                      class="flex-none text-primary w-4 h-4"
+                    />
+                  </div>
+                </a-select-option>
+              </a-select>
+            </div>
+          </div>
+
+          <!-- Inline validation: same field error -->
+          <div v-if="startEndSameFieldError" class="nc-date-dep-error mb-3 -mt-2">
+            {{ startEndSameFieldError }}
+          </div>
+
+          <div class="grid grid-cols-2 gap-x-6 gap-y-4 mb-4">
+            <!-- Duration -->
+            <div>
+              <div class="nc-date-dep-label">
+                {{ $t('labels.dateDependency.durationField') }}
+              </div>
+              <a-select
+                v-model:value="form.fk_duration_field_id"
+                class="w-full"
+                allow-clear
+                :placeholder="$t('placeholder.notSelected')"
+              >
+                <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
+                <a-select-option v-for="opt in durationOptions" :key="opt.value" :value="opt.value">
+                  <div class="w-full flex gap-2 items-center justify-between">
+                    <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
+                      <SmartsheetHeaderIcon :column="opt.col" />
+                      <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                        <template #title>{{ opt.label }}</template>
+                        {{ opt.label }}
+                      </NcTooltip>
+                    </div>
+                    <GeneralIcon
+                      v-if="opt.value === form.fk_duration_field_id"
+                      id="nc-selected-item-icon"
+                      icon="check"
+                      class="flex-none text-primary w-4 h-4"
+                    />
+                  </div>
+                </a-select-option>
+              </a-select>
+              <div class="nc-date-dep-hint">
+                {{ $t('labels.dateDependency.durationFieldHint') }}
               </div>
             </div>
-          </a-form>
 
-          <!-- Row-to-row propagation -->
+            <!-- Predecessors -->
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="nc-date-dep-label !mb-0">
+                  {{ $t('labels.dateDependency.linkRowField') }}
+                </span>
+                <span class="text-bodySm text-nc-content-gray-subtle">{{ $t('general.optional') }}</span>
+              </div>
+              <a-select
+                v-model:value="form.fk_dependency_linkrow_field_id"
+                class="w-full"
+                allow-clear
+                :placeholder="$t('placeholder.notSelected')"
+              >
+                <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
+                <a-select-option v-for="opt in linkOptions" :key="opt.value" :value="opt.value">
+                  <div class="w-full flex gap-2 items-center justify-between">
+                    <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
+                      <SmartsheetHeaderIcon :column="opt.col" />
+                      <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                        <template #title>{{ opt.label }}</template>
+                        {{ opt.label }}
+                      </NcTooltip>
+                    </div>
+                    <GeneralIcon
+                      v-if="opt.value === form.fk_dependency_linkrow_field_id"
+                      id="nc-selected-item-icon"
+                      icon="check"
+                      class="flex-none text-primary w-4 h-4"
+                    />
+                  </div>
+                </a-select-option>
+              </a-select>
+              <div class="nc-date-dep-hint">
+                {{ $t('labels.dateDependency.linkRowFieldHint') }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Include Weekends -->
+          <div class="flex items-center gap-2 mb-4">
+            <NcSwitch v-model:checked="form.include_weekends" size="small" />
+            <span class="text-bodySm text-nc-content-gray">{{ $t('labels.dateDependency.includeWeekends') }}</span>
+            <NcTooltip>
+              <template #title>{{ $t('labels.dateDependency.includeWeekendsHint') }}</template>
+              <GeneralIcon icon="info" class="text-nc-content-gray-subtle w-3.5 h-3.5 cursor-help" />
+            </NcTooltip>
+          </div>
+
+          <!-- Row-to-row propagation — only when predecessor link selected -->
           <template v-if="form.fk_dependency_linkrow_field_id">
-            <NcDivider class="mb-4" />
+            <NcDivider class="mb-3" />
 
-            <div class="text-captionSm font-semibold text-nc-content-gray-subtle uppercase tracking-wide mb-3">
+            <div class="nc-date-dep-section-header">
               {{ $t('labels.dateDependency.propagationSection') }}
             </div>
 
             <NcTooltip :disabled="cascadeAvailable" :title="$t('labels.dateDependency.cascadeNotSupported')">
-              <div class="grid grid-cols-2 gap-x-6 gap-y-3" :class="{ 'opacity-50 pointer-events-none': !cascadeAvailable }">
-                <div>
-                  <div class="text-captionSm text-nc-content-gray-subtle mb-1">
-                    {{ $t('labels.dateDependency.connectionType') }}
+              <div class="flex flex-col gap-4" :class="{ 'opacity-50 pointer-events-none': !cascadeAvailable }">
+                <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+                  <!-- Connection Type -->
+                  <div>
+                    <div class="nc-date-dep-label">
+                      {{ $t('labels.dateDependency.connectionType') }}
+                    </div>
+                    <NcSelect
+                      v-model:value="form.dependency_connection_type"
+                      class="w-full"
+                      :disabled="!cascadeAvailable"
+                      :dropdown-match-select-width="false"
+                      dropdown-class-name="nc-date-dep-rich-dropdown"
+                      option-label-prop="label"
+                    >
+                      <a-select-option
+                        v-for="opt in connectionTypeOptions"
+                        :key="opt.value"
+                        :value="opt.value"
+                        :label="opt.label"
+                      >
+                        <div class="flex items-center justify-between gap-2 py-1">
+                          <div class="flex flex-col">
+                            <span class="text-bodySm font-semibold text-nc-content-gray">{{ opt.label }}</span>
+                            <span class="text-bodySm text-nc-content-gray-subtle">{{ opt.description }}</span>
+                          </div>
+                          <GeneralIcon
+                            v-if="opt.value === form.dependency_connection_type"
+                            icon="check"
+                            class="flex-none text-primary w-4 h-4"
+                          />
+                        </div>
+                      </a-select-option>
+                    </NcSelect>
                   </div>
-                  <NcSelect v-model:value="form.dependency_connection_type" class="w-full" :disabled="!cascadeAvailable">
-                    <a-select-option v-for="opt in connectionTypeOptions" :key="opt.value" :value="opt.value" :label="opt.label">
-                      {{ opt.label }}
-                    </a-select-option>
-                  </NcSelect>
-                </div>
 
-                <div>
-                  <div class="text-captionSm text-nc-content-gray-subtle mb-1">
-                    {{ $t('labels.dateDependency.bufferType') }}
+                  <!-- Scheduling Mode -->
+                  <div>
+                    <div class="nc-date-dep-label">
+                      {{ $t('labels.dateDependency.schedulingMode') }}
+                    </div>
+                    <NcSelect
+                      v-model:value="form.dependency_buffer_type"
+                      class="w-full"
+                      :disabled="!cascadeAvailable"
+                      :dropdown-match-select-width="false"
+                      dropdown-class-name="nc-date-dep-rich-dropdown"
+                      option-label-prop="label"
+                    >
+                      <a-select-option
+                        v-for="opt in schedulingModeOptions"
+                        :key="opt.value"
+                        :value="opt.value"
+                        :label="opt.label"
+                      >
+                        <div class="flex items-center justify-between gap-2 py-1">
+                          <div class="flex flex-col">
+                            <span class="text-bodySm font-semibold text-nc-content-gray">{{ opt.label }}</span>
+                            <span class="text-bodySm text-nc-content-gray-subtle">{{ opt.description }}</span>
+                          </div>
+                          <GeneralIcon
+                            v-if="opt.value === form.dependency_buffer_type"
+                            icon="check"
+                            class="flex-none text-primary w-4 h-4"
+                          />
+                        </div>
+                      </a-select-option>
+                    </NcSelect>
                   </div>
-                  <NcSelect v-model:value="form.dependency_buffer_type" class="w-full" :disabled="!cascadeAvailable">
-                    <a-select-option v-for="opt in bufferTypeOptions" :key="opt.value" :value="opt.value" :label="opt.label">
-                      {{ opt.label }}
-                    </a-select-option>
-                  </NcSelect>
-                </div>
 
-                <div v-if="form.dependency_buffer_type !== 'none'">
-                  <div class="text-captionSm text-nc-content-gray-subtle mb-1">
-                    {{ $t('labels.dateDependency.bufferDays') }}
+                  <div v-if="form.dependency_buffer_type !== 'none'">
+                    <div class="nc-date-dep-label">
+                      {{ $t('labels.dateDependency.bufferDays') }}
+                    </div>
+                    <NcNonNullableNumberInput v-model="form.dependency_buffer_days" :min="0" :disabled="!cascadeAvailable" />
+                    <div class="nc-date-dep-hint">
+                      {{ $t('labels.dateDependency.bufferDaysHint') }}
+                    </div>
                   </div>
-                  <NcNonNullableNumberInput v-model="form.dependency_buffer_days" :min="0" :disabled="!cascadeAvailable" />
-                </div>
-
-                <div class="flex items-center gap-2 pt-5">
-                  <NcSwitch v-model:checked="form.include_weekends" size="small" :disabled="!cascadeAvailable" />
-                  <span class="text-body text-nc-content-gray">{{ $t('labels.dateDependency.includeWeekends') }}</span>
                 </div>
               </div>
             </NcTooltip>
           </template>
         </template>
+
+        <!-- Disabled state message -->
+        <div v-if="!form.is_active" class="flex items-center justify-center py-8 text-bodySm text-nc-content-gray-subtle">
+          {{ $t('labels.dateDependency.disabledMessage') }}
+        </div>
       </div>
 
-      <div class="flex items-center justify-end gap-3">
-        <NcButton v-if="rule?.id" type="danger" size="small" :loading="isSaving" @click="deleteRule">
-          {{ $t('general.delete') }}
-        </NcButton>
-
-        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY">
-          <template #default="{ click }">
-            <NcButton
-              v-e="['c:date-dependency:save']"
-              size="small"
-              :loading="isSaving"
-              :disabled="!hasChanges"
-              @click="click(PlanFeatureTypes.FEATURE_DATE_DEPENDENCY, save)"
-            >
-              {{ $t('labels.dateDependency.save') }}
-            </NcButton>
-            <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY" />
-          </template>
-        </PaymentUpgradeBadgeProvider>
+      <!-- Save status bar -->
+      <div class="flex items-center justify-between pt-2 min-h-[24px]">
+        <div v-if="saveError" class="text-bodySm text-nc-content-red truncate max-w-[80%]">
+          {{ saveError }}
+        </div>
+        <div v-else-if="isSaving" class="flex items-center gap-1.5 text-bodySm text-nc-content-gray-subtle">
+          <GeneralLoader size="small" />
+          {{ $t('labels.dateDependency.saving') }}
+        </div>
+        <div v-else-if="hasChanges && hasValidationErrors" class="text-bodySm text-nc-content-gray-subtle">
+          {{ $t('labels.dateDependency.fixErrorsToSave') }}
+        </div>
+        <div v-else />
       </div>
     </div>
   </NcModal>
 </template>
+
+<style lang="scss" scoped>
+// ── Consistent typography tokens for the modal ──
+// Label: 13px/semibold — field labels, section field labels
+.nc-date-dep-label {
+  @apply text-bodySm font-semibold text-nc-content-gray mb-1;
+}
+
+// Hint: 12px/normal — helper text below inputs
+.nc-date-dep-hint {
+  @apply text-bodySm text-nc-content-gray-subtle mt-1;
+}
+
+// Section header: 11px/semibold/uppercase — ROW PROPAGATION
+.nc-date-dep-section-header {
+  @apply text-[11px] font-semibold text-nc-content-gray-subtle uppercase tracking-wide mb-3;
+}
+
+// Error: 12px/red
+.nc-date-dep-error {
+  @apply text-bodySm text-nc-content-red;
+}
+
+.nc-select-error {
+  :deep(.ant-select-selector) {
+    border-color: var(--nc-content-red) !important;
+  }
+}
+</style>
+
+<style lang="scss">
+.nc-date-dep-rich-dropdown {
+  min-width: 320px !important;
+
+  .ant-select-item-option-content {
+    white-space: normal;
+  }
+}
+</style>

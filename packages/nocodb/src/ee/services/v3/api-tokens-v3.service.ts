@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  ApiTokenPermissionCategory,
+  ApiTokenPermissionLevel,
   AppEvents,
   extractRolesObj,
   NcApiVersion,
@@ -97,6 +99,40 @@ export class ApiTokensV3Service {
     return result;
   }
 
+  private static readonly VALID_PERMISSION_LEVELS = new Set(
+    Object.values(ApiTokenPermissionLevel),
+  );
+
+  private static readonly VALID_PERMISSION_CATEGORIES = new Set(
+    Object.values(ApiTokenPermissionCategory),
+  );
+
+  private validateTitle(title?: string) {
+    if (title !== undefined && !title?.trim()) {
+      NcError.badRequest('Token title is required');
+    }
+    if (title && title.length > 255) {
+      NcError.badRequest('Token title must be 255 characters or less');
+    }
+  }
+
+  private validatePermissions(permissions?: Record<string, string>) {
+    if (!permissions) return;
+
+    for (const [category, level] of Object.entries(permissions)) {
+      if (!ApiTokensV3Service.VALID_PERMISSION_CATEGORIES.has(category as any)) {
+        NcError.badRequest(
+          `Invalid permission category: '${category}'. Valid categories: ${[...ApiTokensV3Service.VALID_PERMISSION_CATEGORIES].join(', ')}`,
+        );
+      }
+      if (!ApiTokensV3Service.VALID_PERMISSION_LEVELS.has(level as any)) {
+        NcError.badRequest(
+          `Invalid permission level: '${level}' for category '${category}'. Valid levels: none, read, write`,
+        );
+      }
+    }
+  }
+
   private async validateScopes(
     scopes?: ApiTokensV3CreateRequest['scopes'],
   ) {
@@ -108,6 +144,8 @@ export class ApiTokensV3Service {
           'Each scope must have resource_type and resource_id',
         );
       }
+
+      this.validatePermissions(scope.permissions as any);
 
       if (scope.resource_type === 'base') {
         const base = await Base.get(
@@ -153,6 +191,7 @@ export class ApiTokensV3Service {
   async create(param: { cookie: NcRequest; body: ApiTokensV3CreateRequest }) {
     await this.validateRequestor(param);
 
+    this.validateTitle(param.body.title);
     await this.validateScopes(param.body.scopes);
     this.validateExpiry(param.body.expiry);
 
@@ -201,6 +240,7 @@ export class ApiTokensV3Service {
     const updateData: Record<string, any> = {};
 
     if (param.body.title !== undefined) {
+      this.validateTitle(param.body.title);
       updateData.description = param.body.title;
     }
     if (param.body.expiry !== undefined) {
@@ -234,7 +274,10 @@ export class ApiTokensV3Service {
       req: param.cookie,
     });
 
-    return this.transformToV3(updated);
+    const result = await this.transformToV3(updated);
+    // Never leak full token in update response
+    delete result.token;
+    return result;
   }
 
   async delete(param: { id: string; cookie: NcRequest }) {

@@ -489,7 +489,8 @@ async function toggleForce2fa(enabled: boolean) {
           </a-form>
         </div>
       </div>
-      <div v-if="hasWorkspaceManagePermission" class="nc-settings-item-card-wrapper mt-10">
+      <!-- TODO: unhide once force 2FA flow is fully working -->
+      <div v-if="false && hasWorkspaceManagePermission" class="nc-settings-item-card-wrapper mt-10">
         <div class="nc-settings-item-heading">{{ $t('labels.security') }}</div>
 
         <div class="nc-settings-item-card flex flex-col">

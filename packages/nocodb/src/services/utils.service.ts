@@ -10,6 +10,7 @@ import type { ErrorReportReqType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import {
   NC_ATTACHMENT_FIELD_SIZE,
+  NC_IMPORT_FILE_SIZE,
   NC_MAX_ATTACHMENTS_ALLOWED,
 } from '~/constants';
 import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
@@ -467,6 +468,7 @@ export class UtilsService {
       ncSiteUrl: (param.req as any).ncSiteUrl,
       ee: Noco.isEE(),
       ncAttachmentFieldSize: NC_ATTACHMENT_FIELD_SIZE,
+      ncImportFileSize: NC_IMPORT_FILE_SIZE,
       ncMaxAttachmentsAllowed: NC_MAX_ATTACHMENTS_ALLOWED,
       isCloud: isCloud,
       automationLogLevel: process.env.NC_AUTOMATION_LOG_LEVEL || 'OFF',

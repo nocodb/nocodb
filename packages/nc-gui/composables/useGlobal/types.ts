@@ -31,6 +31,7 @@ export interface AppInfo {
   version: string
   ee?: boolean
   ncAttachmentFieldSize: number
+  ncImportFileSize: number
   ncMaxAttachmentsAllowed: number
   isCloud: boolean
   automationLogLevel: 'OFF' | 'ERROR' | 'ALL'

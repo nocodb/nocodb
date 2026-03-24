@@ -460,9 +460,10 @@ const beforeUpload = (file: UploadFile, fileList: UploadFile[]) => {
     showMaxFileLimitError.value = true
   }
 
-  const exceedLimit = file.size! / 1024 / 1024 > 25
+  const importFileSizeLimitMB = Math.max(1, appInfo.value.ncImportFileSize || 25)
+  const exceedLimit = file.size! / 1024 / 1024 > importFileSizeLimitMB
   if (exceedLimit) {
-    message.error(`File ${file.name} is too big. The accepted file size is less than 25MB.`)
+    message.error(`File ${file.name} is too big. The accepted file size is less than ${importFileSizeLimitMB}MB.`)
   }
   return !exceedLimit || Upload.LIST_IGNORE
 }

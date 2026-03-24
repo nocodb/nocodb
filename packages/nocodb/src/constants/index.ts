@@ -10,6 +10,10 @@ export const NC_ATTACHMENT_FIELD_SIZE =
   +process.env['NC_ATTACHMENT_FIELD_SIZE'] || 20 * 1024 * 1024; // 20 MB
 export const NC_MAX_ATTACHMENTS_ALLOWED =
   +process.env['NC_MAX_ATTACHMENTS_ALLOWED'] || 10;
+export const NC_IMPORT_FILE_SIZE = Math.max(
+  1,
+  +process.env['NC_IMPORT_FILE_SIZE'] || 25,
+); // in MB
 export const NC_REFRESH_TOKEN_EXP_IN_DAYS =
   parseInt(process.env.NC_REFRESH_TOKEN_EXP_IN_DAYS, 10) || 30;
 

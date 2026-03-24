@@ -9,6 +9,7 @@ import errorHandlingMetaTestsV3 from './error-handling/index.test';
 import workspaceUsersTest from './workspaceUsers.test';
 import scriptsTestV3 from './scripts.test';
 import dashboardTestV3 from './dashboard.test';
+import commentsTestV3 from './comments.test';
 import tableVisibilityPermissionsTestV3 from './table-visibility-permissions.test';
 import timelineTestV3 from './timeline.test';
 import hooksTestV3 from './hooks.test';
@@ -36,6 +37,7 @@ export default runOnSet(3, function () {
   workspaceUsersTest();
   scriptsTestV3();
   dashboardTestV3();
+  commentsTestV3();
   tableVisibilityPermissionsTestV3();
   timelineTestV3();
   if (isEE()) {

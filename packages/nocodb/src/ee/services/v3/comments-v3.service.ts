@@ -1,0 +1,109 @@
+import { Injectable } from '@nestjs/common';
+import type {
+  CommentReqType,
+  CommentUpdateReqType,
+  UserType,
+} from 'nocodb-sdk';
+import type { NcContext, NcRequest } from '~/interface/config';
+import { validatePayload } from '~/helpers';
+import { CommentsService } from '~/services/comments.service';
+import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
+
+@Injectable()
+export class CommentsV3Service {
+  protected builder = builderGenerator({
+    allowed: [
+      'id',
+      'row_id',
+      'fk_model_id',
+      'comment',
+      'created_by',
+      'resolved_by',
+      'parent_comment_id',
+      'created_at',
+      'updated_at',
+    ],
+    mappings: {
+      row_id: 'record_id',
+      fk_model_id: 'table_id',
+    },
+    transformFn: (data: Record<string, unknown>) => data,
+  });
+
+  constructor(protected readonly commentsService: CommentsService) {}
+
+  async commentRow(
+    context: NcContext,
+    param: {
+      body: CommentReqType;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    validatePayload(
+      'swagger-v3.json#/components/schemas/CommentCreateRequest',
+      param.body,
+    );
+
+    const result = await this.commentsService.commentRow(context, param);
+    return this.builder().build(result);
+  }
+
+  async commentList(
+    context: NcContext,
+    param: {
+      query: {
+        row_id: string;
+        fk_model_id: string;
+      };
+    },
+  ): Promise<Record<string, unknown>[]> {
+    const result = await this.commentsService.commentList(context, param);
+    const filtered = result.filter((r: any) => !r.is_deleted);
+    return this.builder().build(filtered) as unknown as Record<
+      string,
+      unknown
+    >[];
+  }
+
+  async commentUpdate(
+    context: NcContext,
+    param: {
+      commentId: string;
+      user: UserType;
+      body: CommentUpdateReqType;
+      req: NcRequest;
+    },
+  ) {
+    validatePayload(
+      'swagger-v3.json#/components/schemas/CommentUpdateRequest',
+      param.body,
+    );
+
+    const result = await this.commentsService.commentUpdate(context, param);
+    return this.builder().build(result as any);
+  }
+
+  async commentResolve(
+    context: NcContext,
+    param: {
+      commentId: string;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    const result = await this.commentsService.commentResolve(context, param);
+    return this.builder().build(result as any);
+  }
+
+  async commentDelete(
+    context: NcContext,
+    param: {
+      commentId: string;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    return this.commentsService.commentDelete(context, param);
+  }
+}

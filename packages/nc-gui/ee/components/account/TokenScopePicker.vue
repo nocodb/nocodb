@@ -9,6 +9,7 @@ interface BaseListAllData {
     bases: {
       id: string
       title: string
+      meta?: Record<string, any>
     }[]
   }[]
 }
@@ -32,12 +33,12 @@ const selectedBaseIds = ref<string[]>(
     .map((s) => s.resource_id),
 )
 
-// Build a lookup map: baseId → base title
-const baseNameMap = computed(() => {
-  const map: Record<string, string> = {}
+// Build a lookup map: baseId → base info
+const baseInfoMap = computed(() => {
+  const map: Record<string, { title: string; meta?: Record<string, any> }> = {}
   for (const ws of allData.value?.workspaces || []) {
     for (const base of ws.bases) {
-      map[base.id] = base.title
+      map[base.id] = { title: base.title, meta: base.meta }
     }
   }
   return map
@@ -141,7 +142,9 @@ onMounted(() => {
         <a-select-opt-group v-for="ws in allData?.workspaces" :key="ws.id" :label="ws.title">
           <a-select-option v-for="base in ws.bases" :key="base.id" :value="base.id" :label="`${ws.title} / ${base.title}`">
             <div class="flex items-center gap-2">
-              <GeneralIcon icon="ncDatabase" class="w-3.5 h-3.5 text-nc-content-gray-muted flex-none" />
+              <div class="min-w-5 flex items-center justify-center flex-none">
+                <GeneralProjectIcon :color="parseProp(base.meta).iconColor" size="small" />
+              </div>
               <span class="truncate">{{ base.title }}</span>
             </div>
           </a-select-option>
@@ -155,8 +158,10 @@ onMounted(() => {
           :key="id"
           class="nc-scope-tag"
         >
-          <GeneralIcon icon="ncDatabase" class="w-3.5 h-3.5 text-nc-content-gray-muted flex-none" />
-          <span class="truncate">{{ baseNameMap[id] || id }}</span>
+          <div class="min-w-4 flex items-center justify-center flex-none">
+            <GeneralProjectIcon :color="parseProp(baseInfoMap[id]?.meta).iconColor" size="small" />
+          </div>
+          <span class="truncate">{{ baseInfoMap[id]?.title || id }}</span>
           <NcButton type="text" size="xxsmall" class="!p-0 !h-4 !w-4 !min-w-0 flex-none" @click="removeBase(id)">
             <GeneralIcon icon="close" class="w-3 h-3 text-nc-content-gray-muted" />
           </NcButton>

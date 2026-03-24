@@ -17,6 +17,9 @@ export default defineConfig({
       compiler: 'vue3',
     }),
   ],
+  esbuild: {
+    tsconfigRaw: '{}',
+  },
   test: {
     globals: true,
     environment: 'happy-dom',

@@ -40,3 +40,6 @@ export const BOTTOM_PADDING = 240
 
 // Right padding after the last column
 export const RIGHT_PADDING = 120
+
+// Data fetch chunk size (shared between useDataFetch and useCanvasListView)
+export const CHUNK_SIZE = 50

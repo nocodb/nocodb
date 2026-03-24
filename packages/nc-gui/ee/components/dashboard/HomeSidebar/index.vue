@@ -15,6 +15,9 @@ const navigateToWorkspace = (wsId: string) => {
 
 const name = computed(() => user.value?.display_name?.trim())
 
+// Track which workspace context menu is open
+const openMenuWsId = ref<string | null>(null)
+
 // User menu
 const isUserMenuOpen = ref(false)
 
@@ -85,6 +88,39 @@ const { isDark } = useTheme()
             <GeneralWorkspaceIcon :workspace="ws" size="small" class="flex-none" />
           </template>
           <span class="capitalize">{{ ws.title }}</span>
+          <template #extraRight>
+            <NcDropdown
+              :trigger="['click']"
+              @update:visible="(val: boolean) => { openMenuWsId = val ? ws.id! : null }"
+              @click.stop
+            >
+              <NcButton
+                type="text"
+                size="xxsmall"
+                class="nc-sidebar-node-btn !rounded-md flex-none"
+                :class="{
+                  '!opacity-100 !inline-block': openMenuWsId === ws.id,
+                  'opacity-0 group-hover:opacity-100': openMenuWsId !== ws.id,
+                }"
+              >
+                <GeneralIcon icon="threeDotVertical" class="text-nc-content-gray-subtle" />
+              </NcButton>
+              <template #overlay>
+                <NcMenu variant="small">
+                  <NcMenuItemCopyId
+                    :id="ws.id"
+                    :tooltip="$t('labels.clickToCopy')"
+                    :label="$t('labels.workspaceId', { workspaceId: ws.id })"
+                  />
+                  <NcDivider />
+                  <NcMenuItem @click.stop="navigateTo(`/${ws.id}/more`)">
+                    <GeneralIcon icon="ncSettings" class="h-4 w-4" />
+                    {{ $t('labels.settings') }}
+                  </NcMenuItem>
+                </NcMenu>
+              </template>
+            </NcDropdown>
+          </template>
         </NcSidebarMenuItem>
       </div>
     </div>

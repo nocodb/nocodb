@@ -65,6 +65,9 @@ export const JobsModuleMetadata = {
       ? [
           BullModule.forRoot({
             url: getRedisURL(NC_REDIS_TYPE.JOB),
+            ...(getRedisURL(NC_REDIS_TYPE.JOB)?.startsWith('rediss://')
+              ? { redis: { tls: {} } }
+              : {}),
             prefix: CACHE_PREFIX === 'nc' ? undefined : `${CACHE_PREFIX}`,
           }),
           BullModule.registerQueue({

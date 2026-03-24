@@ -257,7 +257,7 @@ export function useCanvasRender({
 
       // Bottom border
       ctx.strokeStyle = warningColor
-      ctx.lineWidth = 4
+      ctx.lineWidth = 2
       ctx.beginPath()
       ctx.moveTo(0, warningRow.screenY + warningRow.rh)
       ctx.lineTo(width.value, warningRow.screenY + warningRow.rh)

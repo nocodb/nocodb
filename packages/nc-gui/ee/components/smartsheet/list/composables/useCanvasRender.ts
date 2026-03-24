@@ -455,19 +455,13 @@ export function useCanvasRender({
       ctx.fill()
     }
 
-    // Sort-moved indicator: orange top + bottom border with "Row moved" label
+    // Sort-moved indicator: orange bottom border with "Row moved" label
     if (row.__nc_sort_moved) {
       ctx.save()
-      ctx.strokeStyle = 'orange'
-      ctx.lineWidth = 2
-
-      // Top border
-      ctx.beginPath()
-      ctx.moveTo(0, screenY)
-      ctx.lineTo(width.value, screenY)
-      ctx.stroke()
 
       // Bottom border
+      ctx.strokeStyle = 'orange'
+      ctx.lineWidth = 2
       ctx.beginPath()
       ctx.moveTo(0, screenY + rh)
       ctx.lineTo(width.value, screenY + rh)

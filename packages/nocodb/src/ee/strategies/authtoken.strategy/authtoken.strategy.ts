@@ -25,7 +25,7 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
 
         // Check if token is disabled
         // SQLite/MySQL return 0/1 for boolean columns, not true/false
-        if (apiToken.enabled === false || apiToken.enabled === 0) {
+        if (!apiToken.enabled && apiToken.enabled !== undefined) {
           return callback({ msg: 'Token is disabled' });
         }
 

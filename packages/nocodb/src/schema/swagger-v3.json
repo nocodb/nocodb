@@ -15249,9 +15249,9 @@
             "description": "Unique comment ID.",
             "example": "cmt_abc123"
           },
-          "row_id": {
+          "record_id": {
             "type": "string",
-            "description": "Row/record ID this comment belongs to.",
+            "description": "Record ID this comment belongs to.",
             "example": "1"
           },
           "table_id": {
@@ -15374,15 +15374,15 @@
               "description": "Number of comments.",
               "example": "4"
             },
-            "row_id": {
+            "record_id": {
               "type": "string",
-              "description": "Row ID.",
+              "description": "Record ID.",
               "example": "1"
             }
           },
           "required": [
             "count",
-            "row_id"
+            "record_id"
           ]
         }
       }

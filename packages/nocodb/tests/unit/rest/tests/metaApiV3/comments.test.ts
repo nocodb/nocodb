@@ -33,7 +33,7 @@ export default function () {
     function _validateComment(comment: any) {
       expect(comment).to.be.an('object');
       expect(comment).to.have.property('id').that.is.a('string');
-      expect(comment).to.have.property('row_id');
+      expect(comment).to.have.property('record_id');
       expect(comment).to.have.property('table_id');
       expect(comment).to.have.property('comment').that.is.a('string');
       expect(comment).to.have.property('created_by');
@@ -101,7 +101,7 @@ export default function () {
 
       _validateComment(comment);
       expect(comment.comment).to.equal('Hello world');
-      expect(comment.row_id).to.equal(`${rowId}`);
+      expect(comment.record_id).to.equal(`${rowId}`);
       expect(comment.table_id).to.equal(tableId);
       expect(comment.is_deleted).to.equal(false);
     });
@@ -194,7 +194,7 @@ export default function () {
         .expect(200);
 
       expect(response.body).to.be.an('array').with.lengthOf(1);
-      expect(response.body[0]).to.have.property('row_id', `${rowId}`);
+      expect(response.body[0]).to.have.property('record_id', `${rowId}`);
       expect(response.body[0]).to.have.property('count');
       expect(Number(response.body[0].count)).to.equal(2);
     });

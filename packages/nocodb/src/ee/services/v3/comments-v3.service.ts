@@ -24,6 +24,7 @@ export class CommentsV3Service extends CommentsV3ServiceCE {
       'updated_at',
     ],
     mappings: {
+      row_id: 'record_id',
       fk_model_id: 'table_id',
     },
     transformFn: (data: Record<string, unknown>) => ({
@@ -100,6 +101,10 @@ export class CommentsV3Service extends CommentsV3ServiceCE {
     context: NcContext,
     param: { fk_model_id: string; ids: string[] },
   ) {
-    return this.commentsService.commentsCount(context, param);
+    const result = await this.commentsService.commentsCount(context, param);
+    return result.map((r: Record<string, unknown>) => ({
+      record_id: r.row_id,
+      count: r.count,
+    }));
   }
 }

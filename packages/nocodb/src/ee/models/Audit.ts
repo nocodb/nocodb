@@ -52,7 +52,7 @@ export default class Audit extends AuditCE {
       query.where(
         'created_at',
         '>=',
-        dayjs().subtract(7, 'days').toISOString(),
+        dayjs().subtract(30, 'days').toISOString(),
       );
     }
 
@@ -161,7 +161,7 @@ export default class Audit extends AuditCE {
       query.where(
         'created_at',
         '>=',
-        dayjs().subtract(7, 'days').toISOString(),
+        dayjs().subtract(30, 'days').toISOString(),
       );
     }
 

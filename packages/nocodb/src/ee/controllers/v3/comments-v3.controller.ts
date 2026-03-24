@@ -16,6 +16,7 @@ import { CommentReqType, CommentUpdateReqType } from 'nocodb-sdk';
 import { checkForFeature } from '~/ee/helpers/paymentHelpers';
 import { PREFIX_APIV3_METABASE } from '~/constants/controllers';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { License } from '~/decorators/license.decorator';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -25,6 +26,7 @@ import { CommentsV3Service } from '~/ee/services/v3/comments-v3.service';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+@License('comments')
 export class CommentsV3Controller {
   constructor(private readonly commentsV3Service: CommentsV3Service) {}
 

@@ -15270,25 +15270,12 @@
             "description": "User ID of the comment creator.",
             "example": "usr_abc123"
           },
-          "created_by_email": {
-            "type": "string",
-            "description": "Email of the comment creator.",
-            "example": "user@example.com"
-          },
           "resolved_by": {
             "type": [
               "string",
               "null"
             ],
             "description": "User ID who resolved this comment (null if not resolved).",
-            "example": null
-          },
-          "resolved_by_email": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Email of the user who resolved this comment.",
             "example": null
           },
           "parent_comment_id": {
@@ -15298,11 +15285,6 @@
             ],
             "description": "Parent comment ID for threaded comments.",
             "example": null
-          },
-          "is_deleted": {
-            "type": "boolean",
-            "description": "Whether the comment is soft-deleted.",
-            "example": false
           },
           "created_at": {
             "type": "string",

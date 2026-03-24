@@ -209,21 +209,10 @@ export function useCanvasListView({
       cachedRow.__nc_color = getEvaluatedRowMetaRowColorInfo(cachedRow)
     }
 
-    // Re-validate against filters — remove if row no longer passes
+    // Mark — don't remove/move yet. Canvas shows indicator, actual
+    // removal/reposition happens on focus change (applyDeferredChanges).
     if (!validateRowForLevel(cachedRow, depth)) {
-      const { indices, removedCounts } = collectRowAndDescendants(cachedRows.value, totalRows.value, rowIndex, depth)
-      removeRowsAndShift(cachedRows.value, chunkStates.value, indices)
-
-      totalRows.value = Math.max(0, totalRows.value - indices.length)
-      for (const [modelId, count] of Object.entries(removedCounts)) {
-        if (levelCounts.value[modelId] !== undefined) {
-          levelCounts.value[modelId] = Math.max(0, levelCounts.value[modelId] - count)
-        }
-      }
-
-      if (cachedRow.__nc_parent_id && depth > 0) {
-        pruneEmptyParents(cachedRows.value, chunkStates.value, totalRows, levelCounts.value, String(cachedRow.__nc_parent_id), depth - 1)
-      }
+      cachedRow.__nc_filter_failed = true
     } else if (isSortAffected({ [property]: cachedRow[property] }, depth)) {
       cachedRow.__nc_sort_moved = true
     }
@@ -232,24 +221,59 @@ export function useCanvasListView({
   }
 
   /**
-   * Apply deferred sort repositioning for all rows marked with __nc_sort_moved.
-   * Called on focus change (when user clicks a different cell or clicks away),
-   * matching grid's applySorting-on-blur behaviour.
+   * Apply deferred sort/filter changes. Called on focus change (click away from the row).
+   * - Rows with __nc_filter_failed: removed from cache + prune empty parents
+   * - Rows with __nc_sort_moved: repositioned to correct sorted position
    */
-  function applySortReposition() {
-    const movedRows: { index: number; row: ListViewRow }[] = []
+  function applyDeferredChanges() {
+    let changed = false
+
+    // 1. Remove filter-failed rows
+    const failedIndices: number[] = []
+    const failedCounts: Record<string, number> = {}
+    const failedParents: { pk: string; depth: number }[] = []
 
     for (const [idx, row] of cachedRows.value.entries()) {
-      if (row.__nc_sort_moved) {
-        movedRows.push({ index: idx, row })
+      if (row.__nc_filter_failed) {
+        const { indices, removedCounts } = collectRowAndDescendants(cachedRows.value, totalRows.value, idx, row.__nc_depth)
+        for (const i of indices) failedIndices.push(i)
+        for (const [modelId, count] of Object.entries(removedCounts)) {
+          failedCounts[modelId] = (failedCounts[modelId] || 0) + count
+        }
+        if (row.__nc_parent_id && row.__nc_depth > 0) {
+          failedParents.push({ pk: String(row.__nc_parent_id), depth: row.__nc_depth - 1 })
+        }
       }
     }
 
-    if (!movedRows.length) return
+    if (failedIndices.length) {
+      // Deduplicate indices (subtree collection may overlap)
+      const uniqueIndices = [...new Set(failedIndices)].sort((a, b) => a - b)
+      removeRowsAndShift(cachedRows.value, chunkStates.value, uniqueIndices)
 
-    // Process each moved row: remove → find correct position → re-insert
-    for (const { row } of movedRows) {
-      // Re-find the row (indices shift after each move)
+      totalRows.value = Math.max(0, totalRows.value - uniqueIndices.length)
+      for (const [modelId, count] of Object.entries(failedCounts)) {
+        if (levelCounts.value[modelId] !== undefined) {
+          levelCounts.value[modelId] = Math.max(0, levelCounts.value[modelId] - count)
+        }
+      }
+
+      for (const { pk, depth } of failedParents) {
+        pruneEmptyParents(cachedRows.value, chunkStates.value, totalRows, levelCounts.value, pk, depth)
+      }
+
+      changed = true
+    }
+
+    // 2. Reposition sort-moved rows
+    const movedRows: ListViewRow[] = []
+    for (const [_, row] of cachedRows.value.entries()) {
+      if (row.__nc_sort_moved) {
+        movedRows.push(row)
+      }
+    }
+
+    for (const row of movedRows) {
       const current = findCachedRowByPk(cachedRows.value, String(row.__nc_pk), row.__nc_depth)
       if (!current) continue
 
@@ -265,9 +289,10 @@ export function useCanvasListView({
 
       const newInsertAt = findSortedInsertIndex(cachedRows.value, totalRows.value, current.row, depth, parentIndex, getSortFieldsForDepth(depth), getColumnsByIdForDepth(depth))
       insertRowsAt(cachedRows.value, chunkStates.value, newInsertAt, subtreeRows)
+      changed = true
     }
 
-    triggerRefreshCanvas()
+    if (changed) triggerRefreshCanvas()
   }
 
   const {
@@ -857,12 +882,12 @@ export function useCanvasListView({
     const x = e.clientX - rect.left
     const y = e.clientY - rect.top
 
-    // Only apply deferred sort repositioning when clicking AWAY from the moved row
+    // Apply deferred sort/filter changes when clicking AWAY from the affected row
     const clickedRowEl = findElementAt(x, y, 'row')
     const clickedRowIndex = clickedRowEl?.rowIndex ?? -1
     const clickedRow = clickedRowIndex >= 0 ? cachedRows.value.get(clickedRowIndex) : null
-    if (!clickedRow?.__nc_sort_moved) {
-      applySortReposition()
+    if (!clickedRow?.__nc_sort_moved && !clickedRow?.__nc_filter_failed) {
+      applyDeferredChanges()
     }
 
     const expandEl = findElementAt(x, y, 'expandRow')

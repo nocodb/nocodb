@@ -86,7 +86,7 @@ export function useCanvasRender({
   const canvasRef = ref<HTMLCanvasElement>()
 
   // Tracked during renderCanvas loop, drawn after all rows
-  let warningRow: { screenY: number; rh: number } | null = null
+  let warningRow: { screenY: number; rh: number; text: string } | null = null
 
   function getColors() {
     return {
@@ -263,17 +263,19 @@ export function useCanvasRender({
       ctx.lineTo(width.value, warningRow.screenY + warningRow.rh)
       ctx.stroke()
 
-      // "Row moved" label badge
+      // Warning label badge
       const labelY = warningRow.screenY + warningRow.rh
+      ctx.font = '600 12px Inter'
+      const labelW = ctx.measureText(warningRow.text).width + 20
+
       ctx.fillStyle = warningColor
       ctx.beginPath()
-      ctx.roundRect(0, labelY, 90, 25, [0, 0, 6, 0])
+      ctx.roundRect(0, labelY, labelW, 25, [0, 0, 6, 0])
       ctx.fill()
 
       ctx.fillStyle = getColor(themeV4Colors.gray['800'])
-      ctx.font = '600 12px Inter'
       ctx.textBaseline = 'middle'
-      ctx.fillText('Row moved', 10, labelY + 12.5)
+      ctx.fillText(warningRow.text, 10, labelY + 12.5)
 
       ctx.restore()
     }
@@ -490,9 +492,11 @@ export function useCanvasRender({
       ctx.fill()
     }
 
-    // Track sort-moved row — rendered after the loop so it's not painted over
+    // Track warning row — rendered after the loop so label isn't painted over
     if (row.__nc_sort_moved) {
-      warningRow = { screenY, rh }
+      warningRow = { screenY, rh, text: 'Row moved' }
+    } else if (row.__nc_filter_failed) {
+      warningRow = { screenY, rh, text: 'Row filtered' }
     }
 
     // Element map: row

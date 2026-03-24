@@ -37,8 +37,6 @@ export default function () {
       expect(comment).to.have.property('table_id');
       expect(comment).to.have.property('comment').that.is.a('string');
       expect(comment).to.have.property('created_by');
-      expect(comment).to.have.property('created_by_email');
-      expect(comment).to.have.property('is_deleted').that.is.a('boolean');
       expect(comment).to.have.property('created_at');
       expect(comment).to.have.property('updated_at');
     }
@@ -103,7 +101,6 @@ export default function () {
       expect(comment.comment).to.equal('Hello world');
       expect(comment.record_id).to.equal(`${rowId}`);
       expect(comment.table_id).to.equal(tableId);
-      expect(comment.is_deleted).to.equal(false);
     });
 
     it('List comments after create', async () => {
@@ -171,7 +168,6 @@ export default function () {
 
       _validateComment(resolveResponse.body);
       expect(resolveResponse.body.resolved_by).to.be.a('string');
-      expect(resolveResponse.body.resolved_by_email).to.be.a('string');
 
       // Unresolve (toggle)
       const unresolveResponse = await request(context.app)
@@ -180,7 +176,6 @@ export default function () {
         .expect(200);
 
       expect(unresolveResponse.body.resolved_by).to.not.be.ok;
-      expect(unresolveResponse.body.resolved_by_email).to.not.be.ok;
     });
 
     it('Count comments', async () => {

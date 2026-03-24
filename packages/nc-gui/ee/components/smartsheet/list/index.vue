@@ -185,6 +185,7 @@ onExpandRow(async ({ row, depth }) => {
 })
 
 onAddRow(async ({ depth, parentPk }) => {
+  if (isDataReadOnly.value || isPublicView.value) return
   $e('c:list:add-record')
 
   let depthMeta = getMetaForDepth(depth)
@@ -324,6 +325,8 @@ async function onCellSave() {
 }
 
 async function saveRowProperty(cell: NonNullable<typeof activeCell.value>, rowObj: Row, property: string) {
+  if (isDataReadOnly.value || isPublicView.value) return
+
   const newVal = rowObj.row[property]
   const oldVal = rowObj.oldRow[property]
 

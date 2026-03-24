@@ -134,6 +134,7 @@ export function useCanvasListView({
 
   async function updateOrSaveRow(row: Row, property?: string): Promise<any> {
     if (!property) return
+    if (isDataReadOnly.value || isPublicView.value) return
 
     const newVal = row.row[property]
     const oldVal = row.oldRow?.[property]
@@ -945,6 +946,11 @@ export function useCanvasListView({
 
           const canvasOnlyTypes = [UITypes.Checkbox, UITypes.Rating, UITypes.Button]
           if (canvasOnlyTypes.includes(col.columnObj.uidt as UITypes)) {
+            return
+          }
+
+          // Don't open inline editor for readonly columns
+          if (col.readonly) {
             return
           }
 

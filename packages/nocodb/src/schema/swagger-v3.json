@@ -2840,7 +2840,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": "Hook deleted successfully."
           },
           "404": {

@@ -72,8 +72,6 @@ const { fieldsToGroupBy, groupByLimit, groupBy, localGroupBy } = useViewGroupByO
 
 const { isUIAllowed, isMetaReadOnly, isDataReadOnly } = useRoles()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const { showEEFeatures } = useEeConfig()
 
 const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
@@ -686,7 +684,6 @@ const onDeleteColumn = () => {
     <NcMenuItem
       v-if="
         !isMobileMode &&
-        isFeatureEnabled(FEATURE_FLAG.LTAR_V2) &&
         isLinksOrLTAR(column) &&
         (column.colOptions?.version !== 2 || column.uidt === UITypes.Links) &&
         isUIAllowed('fieldAlter') &&

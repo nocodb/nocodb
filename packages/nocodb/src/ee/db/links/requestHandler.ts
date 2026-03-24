@@ -2,6 +2,7 @@ import {
   arrFlatMap,
   AuditV1OperationTypes,
   EventType,
+  LinksVersion,
   type NcContext,
   parseProp,
   RelationTypes,
@@ -201,8 +202,11 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
       model,
     };
 
-    // MM
-    if (colOptions.type === RelationTypes.MANY_TO_MANY) {
+    // V2 relations use junction tables (like MM) — route them through the MM path
+    const isV2JunctionBased = colOptions.version === LinksVersion.V2;
+
+    // MM or any V2 junction-based relation (OM, MO, OO with LTAR)
+    if (colOptions.type === RelationTypes.MANY_TO_MANY || isV2JunctionBased) {
       // skip existing links from being added
       const currentlyLinkedWithParent = await this.getMmLinkedWithParent(
         context,

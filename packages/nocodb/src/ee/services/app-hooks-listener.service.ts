@@ -245,6 +245,7 @@ import type {
 } from '~/services/app-hooks/interfaces';
 import type { SelectOption } from '~/models';
 import { EEOnly } from '~/decorators/ee-only.decorator';
+import Noco from '~/Noco';
 import { Audit, Column, User } from '~/models';
 import { columnBuilder } from '~/utils/data-transformation.builder';
 import { TelemetryService } from '~/services/telemetry.service';
@@ -4542,7 +4543,8 @@ export class AppHooksListenerService
   }
 
   async auditInsert(param: Partial<Audit>) {
-    // if(NcConfig.isAuditEnabled)
+    if (!Noco.isEE()) return;
+
     await Audit.insert(param);
   }
 }

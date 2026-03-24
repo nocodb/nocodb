@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { CommentsV3Service as CommentsV3ServiceCE } from 'src/services/v3/comments-v3.service';
-import type { CommentReqType, CommentUpdateReqType, UserType } from 'nocodb-sdk';
+import type {
+  CommentReqType,
+  CommentUpdateReqType,
+  UserType,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { validatePayload } from '~/helpers';
 import { CommentsService } from '~/services/comments.service';
@@ -62,9 +66,9 @@ export class CommentsV3Service extends CommentsV3ServiceCE {
         fk_model_id: string;
       };
     },
-  ) {
+  ): Promise<Record<string, unknown>[]> {
     const result = await this.commentsService.commentList(context, param);
-    return this.builder().build(result);
+    return this.builder().build(result) as unknown as Record<string, unknown>[];
   }
 
   async commentUpdate(

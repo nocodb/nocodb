@@ -11,8 +11,8 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import type { CommentReqType, CommentUpdateReqType } from 'nocodb-sdk';
 import { PlanFeatureTypes } from 'nocodb-sdk';
+import { CommentReqType, CommentUpdateReqType } from 'nocodb-sdk';
 import { checkForFeature } from '~/ee/helpers/paymentHelpers';
 import { PREFIX_APIV3_METABASE } from '~/constants/controllers';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
@@ -28,9 +28,7 @@ import { CommentsV3Service } from '~/ee/services/v3/comments-v3.service';
 export class CommentsV3Controller {
   constructor(private readonly commentsV3Service: CommentsV3Service) {}
 
-  @Get(
-    `${PREFIX_APIV3_METABASE}/tables/:tableId/records/:recordId/comments`,
-  )
+  @Get(`${PREFIX_APIV3_METABASE}/tables/:tableId/records/:recordId/comments`)
   @Acl('commentList')
   async commentList(
     @TenantContext() context: NcContext,
@@ -49,9 +47,7 @@ export class CommentsV3Controller {
     );
   }
 
-  @Post(
-    `${PREFIX_APIV3_METABASE}/tables/:tableId/records/:recordId/comments`,
-  )
+  @Post(`${PREFIX_APIV3_METABASE}/tables/:tableId/records/:recordId/comments`)
   @HttpCode(200)
   @Acl('commentRow')
   async commentRow(

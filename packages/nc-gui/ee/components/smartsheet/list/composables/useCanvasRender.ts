@@ -455,32 +455,30 @@ export function useCanvasRender({
       ctx.fill()
     }
 
-    // Sort-moved indicator: orange bottom border with "Row moved" label
+    // Sort-moved indicator: bottom border with "Row moved" label (matches grid style)
     if (row.__nc_sort_moved) {
+      const warningColor = getColor(themeV4Colors.yellow['500'])
+
       ctx.save()
 
       // Bottom border
-      ctx.strokeStyle = 'orange'
-      ctx.lineWidth = 2
+      ctx.strokeStyle = warningColor
+      ctx.lineWidth = 3
       ctx.beginPath()
       ctx.moveTo(0, screenY + rh)
       ctx.lineTo(width.value, screenY + rh)
       ctx.stroke()
 
-      // "Row moved" label
-      const labelW = 90
-      const labelH = 22
-      const labelX = 0
+      // "Row moved" label — rounded rect badge at bottom-left
       const labelY = screenY + rh
-
-      ctx.fillStyle = 'orange'
+      ctx.fillStyle = warningColor
       ctx.beginPath()
-      ctx.roundRect(labelX, labelY, labelW, labelH, [0, 0, 6, 0])
+      ctx.roundRect(0, labelY, 90, 25, [0, 0, 6, 0])
       ctx.fill()
 
-      ctx.fillStyle = '#1f2937'
+      ctx.fillStyle = getColor(themeV4Colors.gray['800'])
       ctx.font = '600 12px Inter'
-      ctx.fillText('Row moved', labelX + 10, labelY + 15)
+      ctx.fillText('Row moved', 10, labelY + 7 + 9)
 
       ctx.restore()
     }

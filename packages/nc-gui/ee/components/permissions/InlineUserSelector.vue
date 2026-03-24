@@ -263,21 +263,6 @@ watch(selectedUsersList, () => {
                   {{ user?.isTeam ? user.display_name : extractUserDisplayNameOrEmail(user) }}
                 </span>
               </NcTooltip>
-              <NcTooltip v-if="user?.isTeam && !readonly">
-                <template #title>
-                  {{
-                    teamHierarchyScopes?.[user.id] === 'self_only'
-                      ? t('tooltip.teamScopeThisOnly')
-                      : t('tooltip.teamScopeIncludesSubTeams')
-                  }}
-                </template>
-                <NcButton type="text" size="xs" class="!h-4 !w-4 !min-w-0" @click.stop="toggleTeamScope(user.id)">
-                  <GeneralIcon
-                    :icon="teamHierarchyScopes?.[user.id] === 'self_only' ? 'ncUser' : 'ncUsers'"
-                    class="w-2.5 h-2.5"
-                  />
-                </NcButton>
-              </NcTooltip>
             </span>
           </a-tag>
           <!-- Show +X more if there are additional users -->
@@ -304,6 +289,7 @@ watch(selectedUsersList, () => {
           :permission-label="permissionLabel"
           :permission-description="permissionDescription"
           :permission="permission"
+          :team-hierarchy-scopes="teamHierarchyScopes"
           list-class-name="!w-auto"
           show-list-footer
           :readonly="readonly"
@@ -312,6 +298,7 @@ watch(selectedUsersList, () => {
           :minimum-role-override="minimumRoleOverride"
           @escape="onEsc"
           @change="handleSave"
+          @toggle-team-scope="toggleTeamScope"
         >
         </PermissionsUserSelectorList>
       </template>

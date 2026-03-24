@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { CommentsV3Service as CommentsV3ServiceCE } from 'src/services/v3/comments-v3.service';
 import type {
   CommentReqType,
   CommentUpdateReqType,
@@ -11,7 +10,7 @@ import { CommentsService } from '~/services/comments.service';
 import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 
 @Injectable()
-export class CommentsV3Service extends CommentsV3ServiceCE {
+export class CommentsV3Service {
   protected builder = builderGenerator({
     allowed: [
       'id',
@@ -37,9 +36,7 @@ export class CommentsV3Service extends CommentsV3ServiceCE {
     }),
   });
 
-  constructor(protected readonly commentsService: CommentsService) {
-    super(commentsService);
-  }
+  constructor(protected readonly commentsService: CommentsService) {}
 
   async commentRow(
     context: NcContext,

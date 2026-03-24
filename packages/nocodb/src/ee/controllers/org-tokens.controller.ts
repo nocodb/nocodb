@@ -13,6 +13,7 @@ import {
 import { ApiTokenReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import { getConditionalHandler } from '~/helpers/getHandler';
+import { NcError } from '~/helpers/catchError';
 import { OrgTokensEeService } from '~/services/org-tokens-ee.service';
 import { OrgTokensService } from '~/services/org-tokens.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -63,20 +64,12 @@ export class OrgTokensController {
     blockApiTokenAccess: true,
   })
   async apiTokenUpdate(
-    @Req() req: NcRequest,
-    @Param('tokenId') tokenId: string,
-    @Body() body: any,
+    @Req() _req: NcRequest,
+    @Param('tokenId') _tokenId: string,
+    @Body() _body: any,
   ) {
-    const eeService = this.orgTokensService as any;
-    if (typeof eeService.apiTokenUpdate !== 'function') {
-      return;
-    }
-    return await eeService.apiTokenUpdate({
-      tokenId,
-      data: body,
-      user: req['user'],
-      req,
-    });
+    // V1 token update is not supported — use V3 PATCH /api/v3/meta/tokens/:tokenId
+    NcError.notImplemented('Token update via V1 API is not supported. Use V3 API.');
   }
 
   @Delete('/api/v1/tokens/:tokenId')

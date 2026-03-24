@@ -18,7 +18,7 @@ import { OrgTokensService } from '~/services/org-tokens.service';
 import { OrgTokensEeService } from '~/services/org-tokens-ee.service';
 import { WorkspacesService } from '~/services/workspaces.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { ApiToken, ApiTokenScope, Base } from '~/models';
+import { ApiToken, ApiTokenScope, Base, User } from '~/models';
 import { NcError } from '~/helpers/catchError';
 
 @Injectable()
@@ -135,6 +135,7 @@ export class ApiTokensV3Service {
 
   private async validateScopes(
     scopes?: ApiTokensV3CreateRequest['scopes'],
+    userId?: string,
   ) {
     if (!scopes?.length) return;
 
@@ -154,6 +155,20 @@ export class ApiTokensV3Service {
         );
         if (!base) {
           NcError.badRequest(`Base not found: ${scope.resource_id}`);
+        }
+
+        // Verify the user has access to this base
+        if (userId && base) {
+          const userWithRoles = await User.getWithRoles(
+            { workspace_id: base.fk_workspace_id, base_id: base.id },
+            userId,
+            { baseId: base.id },
+          );
+          if (!userWithRoles?.base_roles) {
+            NcError.badRequest(
+              `You do not have access to base: ${scope.resource_id}`,
+            );
+          }
         }
       }
     }
@@ -192,7 +207,7 @@ export class ApiTokensV3Service {
     await this.validateRequestor(param);
 
     this.validateTitle(param.body.title);
-    await this.validateScopes(param.body.scopes);
+    await this.validateScopes(param.body.scopes, param.cookie['user']?.id);
     this.validateExpiry(param.body.expiry);
 
     const ssoClientId = (param.cookie.user as any)?.extra?.sso_client_id;
@@ -257,7 +272,7 @@ export class ApiTokensV3Service {
 
     // Update scopes if provided
     if (param.body.scopes !== undefined) {
-      await this.validateScopes(param.body.scopes);
+      await this.validateScopes(param.body.scopes, user?.id);
       // Replace all scopes — delete existing, insert new
       await ApiTokenScope.deleteByTokenId(param.id);
       if (param.body.scopes.length) {
@@ -283,9 +298,8 @@ export class ApiTokensV3Service {
   async delete(param: { id: string; cookie: NcRequest }) {
     await this.validateRequestor(param);
 
-    // Delete associated scopes first
-    await ApiTokenScope.deleteByTokenId(param.id);
-
+    // Scope cleanup is handled by ApiToken.delete() (called inside apiTokenDelete)
+    // after ownership is verified — do not delete scopes here before the check.
     await this.orgTokensService.apiTokenDelete({
       tokenId: param.id,
       user: param.cookie['user'],

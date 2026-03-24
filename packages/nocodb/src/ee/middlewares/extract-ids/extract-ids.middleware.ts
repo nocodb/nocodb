@@ -67,6 +67,7 @@ import { NcError } from '~/helpers/catchError';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { beforeAclValidationHook } from '~/middlewares/extract-ids/extract-ids.helpers';
+import { checkTokenPermission } from '~/utils/apiTokenPermissionMap';
 import { RootScopes } from '~/utils/globals';
 import SSOClient from '~/models/SSOClient';
 import {
@@ -1546,9 +1547,6 @@ export class AclMiddleware implements NestInterceptor {
     // Fine-grained API token permission check (intersection model)
     // After role-based ACL passes, further restrict based on token permissions
     if (req?.user?.is_api_token && req.user?.api_token_meta?.permissions) {
-      const { checkTokenPermission } = await import(
-        '~/utils/apiTokenPermissionMap'
-      );
       const tokenCategories =
         req.user.api_token_meta.permissions.categories;
 

@@ -181,20 +181,10 @@ export default class ApiTokenScope implements ApiTokenScopeEntry {
       if (wsScope) return wsScope;
     }
 
-    // 3. If workspace request with base-scoped tokens, check if any base
-    //    belongs to the requested workspace (allows workspace-level reads
-    //    like base list for tokens scoped to bases within that workspace)
-    if (workspaceId && !baseId) {
-      const baseScopes = scopes.filter((s) => s.resource_type === 'base');
-      if (baseScopes.length) {
-        for (const bs of baseScopes) {
-          const base = await Base.get({ workspace_id: RootScopes.ROOT, base_id: RootScopes.ROOT }, bs.resource_id, ncMeta);
-          if (base && base.fk_workspace_id === workspaceId) {
-            return bs;
-          }
-        }
-      }
-    }
+    // Base-scoped tokens should not be promoted to workspace-level access.
+    // Fix #3 (scoped tokens denied on context-free endpoints) makes this
+    // redundant, and the promotion allowed unmapped workspace operations
+    // to bypass token scope restrictions.
 
     return null;
   }

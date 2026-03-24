@@ -1,7 +1,4 @@
 <script setup lang="ts">
-const router = useRouter()
-const route = router.currentRoute
-
 const { user, signOut } = useGlobal()
 
 const workspaceStore = useWorkspace()
@@ -10,19 +7,14 @@ const { workspacesList, activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const isCreateWsDlgOpen = ref(false)
 
-const isHomeActive = computed(() => {
-  return (route.value.name as string) === 'index-home'
-})
-
-const navigateToHome = () => {
-  navigateTo('/home')
-}
-
 const navigateToWorkspace = (wsId: string) => {
   navigateTo(`/${wsId}`)
 }
 
 const name = computed(() => user.value?.display_name?.trim())
+
+// Track which workspace context menu is open
+const openMenuWsId = ref<string | null>(null)
 
 // User menu
 const isUserMenuOpen = ref(false)
@@ -54,7 +46,7 @@ const isNotificationOpen = ref(false)
 
 const { toggleMode } = useMiniSidebarMode()
 
-const { toggleTheme, isThemeEnabled, selectedTheme } = useTheme()
+const { toggleTheme, isThemeEnabled, selectedTheme, isDark } = useTheme()
 
 const themeLabel = computed(
   () =>
@@ -75,6 +67,10 @@ const themeIcon = computed(
 )
 
 const { isExperimentalFeatureModalOpen } = useBetaFeatureToggle()
+
+const { isMobileMode } = useGlobal()
+
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { $e } = useNuxtApp()
 
@@ -102,136 +98,96 @@ const openKeyboardShortcutDialog = () => {
 </script>
 
 <template>
-  <div
-    class="nc-home-sidebar flex flex-col h-full bg-white dark:bg-nc-bg-gray-sidebar border-r-1 border-nc-border-gray-light select-none"
-  >
-    <!-- Brand -->
-    <div class="flex items-center gap-2 px-4 h-[var(--topbar-height)] flex-none">
-      <GeneralIcon icon="nocodb1" class="h-6 w-6 flex-none" />
-      <span class="text-[13px] font-bold text-nc-content-gray">NocoDB</span>
-    </div>
-
-    <!-- Home nav item -->
-    <div class="px-2 mb-1">
-      <div
-        class="flex items-center gap-2 pl-2 pr-3 h-7 rounded-md cursor-pointer transition-colors"
-        :class="{
-          'bg-nc-bg-gray-medium text-nc-content-gray': isHomeActive,
-          'text-nc-content-gray-subtle hover:bg-nc-bg-gray-light': !isHomeActive,
-        }"
-        data-testid="nc-home-sidebar-home"
-        @click="navigateToHome"
-      >
-        <GeneralIcon icon="ncHome" class="h-4 w-4 flex-none" />
-        <span class="text-[13px] font-medium">{{ $t('general.home') }}</span>
+  <div class="nc-home-sidebar flex flex-col h-full bg-nc-bg-gray-sidebar border-r-1 border-nc-border-gray-light select-none">
+    <!-- Brand header — same pattern as SidebarHeaderWrapper -->
+    <div class="w-full px-2 py-1.5 flex items-center justify-between gap-2 h-[var(--topbar-height)] flex-none">
+      <div class="pl-1">
+        <img v-if="isDark" alt="NocoDB" src="~/assets/img/brand/text.png" class="h-4" />
+        <img v-else alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="h-4" />
+      </div>
+      <div class="flex items-center gap-0.5">
+        <NcTooltip class="flex" placement="bottom" hide-on-click :disabled="!!isMobileMode">
+          <template #title>
+            {{ isLeftSidebarOpen ? $t('title.hideSidebar') : $t('title.showSidebar') }}
+          </template>
+          <NcButton
+            v-e="['c:leftSidebar:hideToggle']"
+            :type="isMobileMode ? 'secondary' : 'text'"
+            :size="isMobileMode ? 'medium' : 'small'"
+            class="nc-sidebar-left-toggle-icon !text-nc-content-gray-subtle !hover:text-nc-content-gray !md:(hover:bg-nc-bg-gray-medium) !rounded-md"
+            @click="isLeftSidebarOpen = !isLeftSidebarOpen"
+          >
+            <div class="flex items-center text-inherit">
+              <GeneralIcon v-if="isMobileMode" icon="close" />
+              <GeneralIcon
+                v-else
+                icon="doubleLeftArrow"
+                class="duration-150 transition-all !text-lg -mt-0.5 !text-nc-content-gray-muted bg-opacity-50"
+                :class="{ 'transform rotate-180': !isLeftSidebarOpen }"
+              />
+            </div>
+          </NcButton>
+        </NcTooltip>
       </div>
     </div>
 
-    <!-- Workspaces section -->
-    <div class="flex-1 flex flex-col overflow-hidden">
-      <div class="flex items-center justify-between px-4 py-1.5">
-        <span class="text-xs font-semibold text-nc-content-gray-muted uppercase tracking-wide">
-          {{ $t('labels.workspaces') }}
-        </span>
+    <!-- Workspaces section — uses same layout as nc-project-home-section -->
+    <div class="flex-1 flex flex-col overflow-hidden nc-project-home-section !pb-0">
+      <!-- Header — same style as nc-settings-section-header in WsSettingsMenu -->
+      <div class="nc-ws-section-header flex items-center justify-between">
+        <span>{{ $t('labels.workspaces') }}</span>
         <NcButton type="text" size="xxsmall" data-testid="nc-home-sidebar-create-ws" @click="isCreateWsDlgOpen = true">
           <GeneralIcon icon="plus" class="h-3.5 w-3.5" />
         </NcButton>
       </div>
 
-      <div class="flex-1 overflow-y-auto nc-scrollbar-thin px-2">
-        <div
+      <!-- Workspace list -->
+      <div class="flex-1 overflow-y-auto nc-scrollbar-thin">
+        <NcSidebarMenuItem
           v-for="ws in workspacesList"
           :key="ws.id"
-          class="group flex items-center gap-2 px-2 h-8 rounded-md cursor-pointer transition-colors mb-0.5"
-          :class="{
-            'bg-nc-bg-gray-medium': activeWorkspaceId === ws.id && !isHomeActive,
-            'hover:bg-nc-bg-gray-light': activeWorkspaceId !== ws.id || isHomeActive,
-          }"
+          class="group"
+          :active="activeWorkspaceId === ws.id"
           :data-testid="`nc-home-sidebar-ws-${ws.id}`"
           @click="navigateToWorkspace(ws.id!)"
         >
-          <GeneralWorkspaceIcon :workspace="ws" size="small" />
-          <NcTooltip show-on-truncate-only class="flex-1 truncate text-[13px] font-medium leading-5 text-nc-content-gray">
-            <template #title>{{ ws.title }}</template>
-            {{ ws.title }}
-          </NcTooltip>
-          <NcDropdown :trigger="['click']" @click.stop>
-            <GeneralIcon
-              icon="threeDotVertical"
-              class="h-4 w-4 flex-none text-nc-content-gray-muted opacity-0 group-hover:opacity-100 transition-opacity"
-            />
-            <template #overlay>
-              <NcMenu class="nc-ws-ctx-menu">
-                <NcMenuItem @click.stop="navigateTo(`/${ws.id}`)">
-                  <GeneralIcon icon="ncDatabase" class="h-4 w-4" />
-                  {{ $t('objects.projects') }}
-                </NcMenuItem>
-                <NcMenuItem @click.stop="navigateTo(`/${ws.id}/members`)">
-                  <GeneralIcon icon="users" class="h-4 w-4" />
-                  {{ $t('labels.members') }}
-                </NcMenuItem>
-                <NcMenuItem @click.stop="navigateTo(`/${ws.id}/teams`)">
-                  <GeneralIcon icon="ncBuilding" class="h-4 w-4" />
-                  {{ $t('general.teams') }}
-                </NcMenuItem>
-                <NcMenuItem @click.stop="navigateTo(`/${ws.id}/integrations`)">
-                  <GeneralIcon icon="integration" class="h-4 w-4" />
-                  {{ $t('general.integrations') }}
-                </NcMenuItem>
-                <NcMenuItem @click.stop="navigateTo(`/${ws.id}/audits`)">
-                  <GeneralIcon icon="audit" class="h-4 w-4" />
-                  {{ $t('title.audits') }}
-                </NcMenuItem>
-                <NcMenuItem @click.stop="navigateTo(`/${ws.id}/more`)">
-                  <GeneralIcon icon="ncMoreHorizontal" class="h-4 w-4" />
-                  {{ $t('general.more') }}
-                </NcMenuItem>
-              </NcMenu>
-            </template>
-          </NcDropdown>
-        </div>
+          <template #icon>
+            <GeneralWorkspaceIcon :workspace="ws" size="small" class="flex-none" />
+          </template>
+          <span class="capitalize">{{ ws.title }}</span>
+        </NcSidebarMenuItem>
       </div>
     </div>
 
     <!-- Templates & Import -->
-    <div class="flex-none px-2 pb-1">
-      <div
-        class="flex items-center gap-2 pl-2 pr-3 h-7 rounded-md cursor-pointer text-nc-content-gray-subtle hover:bg-nc-bg-gray-light transition-colors"
-      >
-        <GeneralIcon icon="ncLayout" class="h-4 w-4 flex-none" />
-        <span class="text-[13px]">{{ $t('general.templates') }}</span>
-      </div>
-      <div
-        class="flex items-center gap-2 pl-2 pr-3 h-7 rounded-md cursor-pointer text-nc-content-gray-subtle hover:bg-nc-bg-gray-light transition-colors"
-      >
-        <GeneralIcon icon="ncDownload" class="h-4 w-4 flex-none" />
-        <span class="text-[13px]">{{ $t('general.import') }}</span>
-      </div>
+    <div class="flex-none px-1 pb-1">
+      <NcSidebarMenuItem icon="ncLayout">
+        {{ $t('general.templates') }}
+      </NcSidebarMenuItem>
+      <NcSidebarMenuItem icon="ncDownload">
+        {{ $t('general.import') }}
+      </NcSidebarMenuItem>
     </div>
 
     <!-- Bottom section: User info with dropdown + notification bell -->
-    <div class="flex-none border-t-1 border-nc-border-gray-light p-2">
-      <div class="flex items-center gap-1">
+    <div class="flex-none border-t-1 border-nc-border-gray-light p-1.5">
+      <div class="flex items-center gap-0.5">
         <NcDropdown v-model:visible="isUserMenuOpen" placement="topLeft" overlay-class-name="!min-w-56">
           <div
             class="flex items-center gap-2 pl-1.5 pr-2 py-1.5 rounded-md cursor-pointer flex-1 min-w-0 transition-colors"
             :class="{
               'bg-nc-bg-gray-medium': isUserMenuOpen,
-              'hover:bg-nc-bg-gray-light': !isUserMenuOpen,
+              'hover:bg-nc-bg-gray-medium': !isUserMenuOpen,
             }"
             data-testid="nc-home-sidebar-userinfo"
           >
             <GeneralUserIcon :user="user" size="medium" class="flex-none" />
             <div class="flex-1 min-w-0">
-              <NcTooltip show-on-truncate-only class="truncate text-[13px] text-nc-content-gray block">
+              <NcTooltip show-on-truncate-only class="truncate text-bodyDefaultSm text-nc-content-gray block">
                 <template #title>{{ name || user?.email }}</template>
                 {{ name || user?.email }}
               </NcTooltip>
-              <NcTooltip
-                v-if="name"
-                show-on-truncate-only
-                class="truncate text-xs text-nc-content-gray-muted block"
-              >
+              <NcTooltip v-if="name" show-on-truncate-only class="truncate text-bodySm text-nc-content-gray-muted block">
                 <template #title>{{ user?.email }}</template>
                 {{ user?.email }}
               </NcTooltip>
@@ -347,13 +303,13 @@ const openKeyboardShortcutDialog = () => {
             <template #title>{{ $t('general.notification') }}</template>
             <NcButton
               type="text"
-              size="xxsmall"
-              class="!rounded-md relative"
+              size="small"
+              class="!rounded-md relative self-center flex-none"
               data-testid="nc-home-sidebar-notification"
             >
               <span
                 v-if="unreadCount"
-                class="absolute top-0 right-0 w-1.5 h-1.5 rounded-full border border-white dark:border-[#1a1a1a]"
+                class="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full border border-white dark:border-[#1a1a1a]"
                 style="background: #e75a8d"
               />
               <GeneralIcon icon="ncBell" class="h-4 w-4" />
@@ -373,14 +329,21 @@ const openKeyboardShortcutDialog = () => {
 
 <style lang="scss" scoped>
 .nc-home-sidebar {
+  @apply !pb-0;
   width: 100%;
 }
+
 .menu-icon {
   @apply w-4 h-4;
 }
 
 .menu-btn {
   line-height: 1.5;
+}
+
+.nc-ws-section-header {
+  @apply px-3 pt-1.5 pb-1 font-semibold text-nc-content-brand uppercase tracking-wide;
+  font-size: 13px;
 }
 
 .nc-home-user-kbd {
@@ -391,9 +354,5 @@ const openKeyboardShortcutDialog = () => {
     bg-nc-bg-gray-light
     border-1 border-nc-border-gray-medium
     rounded;
-}
-
-.nc-ws-ctx-menu {
-  font-size: 13px;
 }
 </style>

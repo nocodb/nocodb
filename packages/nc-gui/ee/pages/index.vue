@@ -23,12 +23,9 @@ const { isSharedBase, isSharedErd } = storeToRefs(useBase())
 
 const basesStore = useBases()
 
-const tableStore = useTablesStore()
-
 const navigating = ref(false)
 
 const wsHomeRouteNames = new Set([
-  'index-home',
   'index-typeOrId',
   'index-typeOrId-index',
   'index-typeOrId-members',
@@ -52,11 +49,11 @@ watch(isHomeSidebarRoute, (val) => {
   hideMiniSidebar.value = val
 }, { immediate: true })
 
-const autoNavigateToProject = async ({ initial = false }: { initial: boolean }) => {
+const autoNavigateToWorkspace = async () => {
   const routeName = route.value.name as string
 
-  // Don't auto-navigate when on workspace home (/{ws_id}) or /home
-  if (routeName === 'index-typeOrId' || routeName === 'index-typeOrId-index' || routeName === 'index-home') {
+  // Don't auto-navigate when already on workspace home (/{ws_id})
+  if (routeName === 'index-typeOrId' || routeName === 'index-typeOrId-index') {
     return
   }
 
@@ -68,36 +65,10 @@ const autoNavigateToProject = async ({ initial = false }: { initial: boolean }) 
 
   navigating.value = true
 
-  // open first base if base list is not empty
-  if (basesStore.basesList?.length) {
-    const lastVisitedBase = ncLastVisitedBase().get()
-
-    const firstBase = lastVisitedBase
-      ? basesStore.basesList.find((b) => b.id === lastVisitedBase) ?? basesStore.basesList[0]
-      : basesStore.basesList[0]
-
-    if (firstBase && firstBase.id) {
-      if (initial) {
-        await tableStore.loadProjectTables(firstBase.id)
-        const firstTable = tableStore.baseTables.get(firstBase.id)?.[0]
-        const query = route.value.query
-
-        if (firstTable) {
-          ncNavigateTo({
-            workspaceId: firstBase.fk_workspace_id!,
-            baseId: firstBase.id!,
-            tableId: firstTable.id,
-            query,
-          })
-        }
-      } else {
-        await basesStore.navigateToProject({
-          workspaceId: firstBase.fk_workspace_id!,
-          baseId: firstBase.id!,
-          query: extractAiBaseCreateQueryParams(route.value.query),
-        })
-      }
-    }
+  // Navigate to active workspace home page
+  const wsId = activeWorkspaceId.value
+  if (wsId) {
+    await navigateTo(`/${wsId}`)
   }
 
   navigating.value = false
@@ -145,13 +116,13 @@ watch(
       if (newWorkspace && lastPopulatedWorkspaceId.value !== newId && (newId || workspaceStore.workspacesList.length)) {
         await populateWorkspace()
 
-        if (!route.value.params.baseId && basesStore.basesList.length) {
-          await autoNavigateToProject({ initial: oldId === undefined })
+        if (!route.value.params.baseId) {
+          await autoNavigateToWorkspace()
         }
       }
 
       if (lastPopulatedWorkspaceId.value === newId && !route.value.params.typeOrId) {
-        await autoNavigateToProject({ initial: false })
+        await autoNavigateToWorkspace()
       }
     } catch (e: any) {
       console.error(e)

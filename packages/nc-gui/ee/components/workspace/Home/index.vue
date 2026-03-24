@@ -229,16 +229,19 @@ const chatSuggestions = [
 
 <template>
   <div class="h-full flex flex-col nc-workspace-home bg-white dark:bg-nc-bg-default">
-    <!-- Top bar: workspace name + plan | search (absolutely centered) -->
-    <div class="relative flex items-center px-5 py-2.5 flex-none">
+    <!-- Top bar: sidebar toggle + workspace name + plan | search -->
+    <div class="flex items-center gap-1 px-2 h-[var(--topbar-height)] flex-none border-b-1 border-nc-border-gray-medium">
+      <!-- Sidebar open button (auto-hidden when sidebar is open) -->
+      <GeneralOpenLeftSidebarBtn />
+
       <!-- Left: workspace name + plan -->
-      <div class="flex items-baseline gap-2.5 flex-none z-1">
-        <h1 class="text-[18px] font-bold text-nc-content-gray capitalize leading-none">
+      <div class="flex items-center gap-2 flex-1 min-w-0">
+        <h1 class="text-sm sm:text-[18px] font-bold text-nc-content-gray capitalize leading-none truncate max-w-40 sm:max-w-none">
           {{ activeWorkspace?.title }}
         </h1>
         <div
-          v-if="isEeUI"
-          class="flex items-center justify-center gap-1.5 px-2.5 py-0.75 rounded-full text-[11px] font-medium leading-none bg-nc-bg-gray-light text-nc-content-gray-subtle relative top-[-1px]"
+          v-if="isEeUI && !isMobileMode"
+          class="flex items-center justify-center gap-1.5 px-2.5 py-0.75 rounded-full text-[11px] font-medium leading-none bg-nc-bg-gray-light text-nc-content-gray-subtle"
         >
           <span class="uppercase">{{ activePlanTitle }} {{ $t('general.plan') }}</span>
           <template v-if="isFreePlan && isPaymentEnabled">
@@ -248,25 +251,27 @@ const chatSuggestions = [
         </div>
       </div>
 
-      <!-- Center: search (absolutely positioned to center in row) -->
-      <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div
-          class="flex items-center gap-2 px-3 py-1.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-light cursor-pointer hover:border-nc-border-gray-dark transition-colors w-full max-w-[400px] pointer-events-auto"
-          data-testid="nc-ws-home-search"
-          @click="openSearch"
-        >
-          <GeneralIcon icon="search" class="h-4 w-4 text-nc-content-gray-muted flex-none" />
-          <span class="text-[13px] text-nc-content-gray-muted flex-1">{{ $t('activity.searchWorkspaceBases') }}...</span>
-          <div class="flex items-center gap-0.5">
-            <kbd class="nc-ws-home-kbd">{{ renderCmdOrCtrlKey() }}</kbd>
-            <kbd class="nc-ws-home-kbd">K</kbd>
-          </div>
+      <!-- Right: search -->
+      <div
+        class="flex items-center gap-2 px-3 py-1.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-light cursor-pointer hover:border-nc-border-gray-dark transition-colors w-full max-w-[400px] hidden sm:flex"
+        data-testid="nc-ws-home-search"
+        @click="openSearch"
+      >
+        <GeneralIcon icon="search" class="h-4 w-4 text-nc-content-gray-muted flex-none" />
+        <span class="text-[13px] text-nc-content-gray-muted flex-1">{{ $t('activity.searchWorkspaceBases') }}...</span>
+        <div class="flex items-center gap-0.5">
+          <kbd class="nc-ws-home-kbd">{{ renderCmdOrCtrlKey() }}</kbd>
+          <kbd class="nc-ws-home-kbd">K</kbd>
         </div>
       </div>
+      <!-- Mobile: icon-only search button -->
+      <NcButton type="text" size="small" class="sm:!hidden flex-none" @click="openSearch">
+        <GeneralIcon icon="search" class="h-4 w-4" />
+      </NcButton>
     </div>
 
     <!-- Workspace tabs -->
-    <div class="flex items-center flex-none px-2 border-y-1 border-nc-border-gray-medium">
+    <div class="flex items-center flex-none px-2 border-b-1 border-nc-border-gray-medium overflow-x-auto nc-scrollbar-thin">
       <div class="flex items-center gap-1 flex-1 overflow-x-auto">
         <div
           v-for="tab in wsTabItems"
@@ -319,7 +324,7 @@ const chatSuggestions = [
       <div v-else class="max-w-[1200px] mx-auto w-full">
         <!-- AI Chat mock section (hidden for now) -->
         <!--
-        <div class="px-8 pt-10 pb-6 text-center">
+        <div class="px-4 sm:px-8 pt-10 pb-6 text-center">
           <h1 class="text-2xl font-bold text-nc-content-gray mb-1.5">
             What will you build next?
           </h1>
@@ -352,7 +357,7 @@ const chatSuggestions = [
         -->
 
         <!-- Bases section -->
-        <div class="px-8 py-5">
+        <div class="px-3 xs:px-4 sm:px-6 md:px-8 py-4 sm:py-5">
           <!-- Header row -->
           <div class="flex items-center justify-between mb-4">
 
@@ -412,7 +417,7 @@ const chatSuggestions = [
                 {{ group.label }}
               </div>
 
-              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div class="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                 <div
                   v-for="base in group.bases"
                   :key="base.id"

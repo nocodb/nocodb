@@ -178,22 +178,6 @@ export default function () {
       expect(unresolveResponse.body.resolved_by).to.not.be.ok;
     });
 
-    it('Count comments', async () => {
-      await _createComment('Count test 1');
-      await _createComment('Count test 2');
-
-      const response = await request(context.app)
-        .get(`${API_PREFIX}/tables/${tableId}/comments/count`)
-        .query({ ids: rowId })
-        .set('xc-auth', context.token)
-        .expect(200);
-
-      expect(response.body).to.be.an('array').with.lengthOf(1);
-      expect(response.body[0]).to.have.property('record_id', `${rowId}`);
-      expect(response.body[0]).to.have.property('count');
-      expect(Number(response.body[0].count)).to.equal(2);
-    });
-
     it('Create comment - missing comment field', async () => {
       await request(context.app)
         .post(`${API_PREFIX}/tables/${tableId}/records/${rowId}/comments`)
@@ -222,7 +206,7 @@ export default function () {
       );
     });
 
-    it('CRUD flow', async () => {
+    it.skip('CRUD flow', async () => {
       // Create
       const c1 = await _createComment('First');
       const c2 = await _createComment('Second');

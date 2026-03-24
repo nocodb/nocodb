@@ -2,6 +2,8 @@
 import {
   type ColumnType,
   type LinkToAnotherRecordType,
+  PermissionEntity,
+  PermissionKey,
   RelationTypes,
   type TableType,
   isLinksOrLTAR,
@@ -363,6 +365,7 @@ async function savePendingCell() {
 }
 
 const { isDataReadOnly, isUIAllowed } = useRoles()
+const { isAllowed: isFieldAllowed } = usePermissions()
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 const { copy } = useCopy()
 
@@ -533,25 +536,34 @@ function contextAddComment() {
                   </div>
                 </NcMenuItem>
 
-                <!-- Clear cell — editable, non-virtual (or LTAR), non-readonly, non-synced, non-public -->
-                <NcMenuItem
+                <!-- Clear cell — with field-level permission check -->
+                <PermissionsTooltip
                   v-if="
                     contextMenuTarget.column &&
-                    !contextMenuTarget.column.readonly &&
                     !isDataReadOnly &&
                     !isPublicView &&
                     !isSyncedTable &&
                     (!contextMenuTarget.column.virtual || isLinksOrLTAR(contextMenuTarget.column.columnObj))
                   "
-                  key="clear-cell"
-                  data-testid="nc-list-context-clear"
-                  @click="contextClearCell"
+                  :entity="PermissionEntity.FIELD"
+                  :entity-id="contextMenuTarget.column.columnObj?.id"
+                  :permission="PermissionKey.RECORD_FIELD_EDIT"
+                  placement="right"
                 >
-                  <div v-e="['c:list:context:clear']" class="flex gap-2 items-center">
-                    <GeneralIcon icon="close" />
-                    {{ $t('general.clear') }} {{ $t('objects.cell').toLowerCase() }}
-                  </div>
-                </NcMenuItem>
+                  <template #default="{ isAllowed }">
+                    <NcMenuItem
+                      key="clear-cell"
+                      data-testid="nc-list-context-clear"
+                      :disabled="!isAllowed || contextMenuTarget.column.readonly"
+                      @click="contextClearCell"
+                    >
+                      <div v-e="['c:list:context:clear']" class="flex gap-2 items-center">
+                        <GeneralIcon icon="close" />
+                        {{ $t('general.clear') }} {{ $t('objects.cell').toLowerCase() }}
+                      </div>
+                    </NcMenuItem>
+                  </template>
+                </PermissionsTooltip>
 
                 <!-- Add comment — non-public, has comment permission -->
                 <template v-if="!isPublicView && isUIAllowed('commentEdit')">
@@ -564,20 +576,30 @@ function contextAddComment() {
                   </NcMenuItem>
                 </template>
 
-                <!-- Delete row — non-public, non-synced, has edit permission -->
+                <!-- Delete row — with table-level permission check -->
                 <template v-if="!isPublicView && !isSyncedTable && isUIAllowed('dataEdit') && !isDataReadOnly">
                   <NcDivider />
-                  <NcMenuItem
-                    key="delete-row"
-                    danger
-                    data-testid="nc-list-context-delete"
-                    @click="contextDeleteRow"
+                  <PermissionsTooltip
+                    :entity="PermissionEntity.TABLE"
+                    :entity-id="meta?.id"
+                    :permission="PermissionKey.TABLE_RECORD_DELETE"
+                    placement="right"
                   >
-                    <div v-e="['c:list:context:delete']" class="flex gap-2 items-center">
-                      <GeneralIcon icon="delete" />
-                      {{ $t('activity.deleteRow') }}
-                    </div>
-                  </NcMenuItem>
+                    <template #default="{ isAllowed }">
+                      <NcMenuItem
+                        key="delete-row"
+                        danger
+                        data-testid="nc-list-context-delete"
+                        :disabled="!isAllowed"
+                        @click="contextDeleteRow"
+                      >
+                        <div v-e="['c:list:context:delete']" class="flex gap-2 items-center">
+                          <GeneralIcon icon="delete" />
+                          {{ $t('activity.deleteRow') }}
+                        </div>
+                      </NcMenuItem>
+                    </template>
+                  </PermissionsTooltip>
                 </template>
               </NcMenu>
             </template>

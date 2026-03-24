@@ -84,7 +84,12 @@ export function useCanvasListView({
   const { isAllowed } = usePermissions()
   const isPublicView = inject(IsPublicInj, ref(false))
   const isDataEditAllowed = computed(() => isUIAllowed('dataEdit') && !isPublicView.value)
-  const isAddingEmptyRowAllowed = computed(() => isDataEditAllowed.value && !meta.value?.synced)
+
+  const isPrimaryKeyAvailable = computed(() => {
+    return meta.value?.columns?.some((c: ColumnType) => c.pk) ?? false
+  })
+
+  const isAddingEmptyRowAllowed = computed(() => isDataEditAllowed.value && !meta.value?.synced && isPrimaryKeyAvailable.value)
 
   const spriteLoader = new SpriteLoader(() => triggerRefreshCanvas())
   const canvasCursorRef = ref<CursorType>('')

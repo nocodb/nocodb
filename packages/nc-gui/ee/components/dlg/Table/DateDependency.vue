@@ -163,22 +163,11 @@ const missingRequiredFields = computed(() => {
 
 const hasValidationErrors = computed(() => !!startEndSameFieldError.value || missingRequiredFields.value)
 
-// Auto-save with debounce
-const debouncedSave = useDebounceFn(async () => {
-  if (!hasChanges.value || hasValidationErrors.value) return
-  await save()
-}, 800)
-
-watch(
-  () => ({ ...form }),
-  () => {
-    saveError.value = ''
-    if (hasChanges.value && !hasValidationErrors.value) {
-      debouncedSave()
-    }
-  },
-  { deep: true },
-)
+function cancel() {
+  Object.assign(form, { ...savedForm.value })
+  saveError.value = ''
+  visible.value = false
+}
 
 async function save() {
   if (!activeWorkspaceId.value || !activeProjectId.value) return
@@ -197,6 +186,7 @@ async function save() {
       tableMeta.value.date_dependency = { ...rule.value, ...form, ...result }
     }
     savedForm.value = { ...form }
+    visible.value = false
   } catch (e: any) {
     saveError.value = await extractSdkResponseErrorMsg(e)
   } finally {
@@ -231,7 +221,7 @@ watch(visible, async (val) => {
         <p class="text-bodySm text-nc-content-gray-subtle mb-4">
           {{ $t('labels.dateDependency.description') }}
           <a
-            href="https://docs.nocodb.com/features/date-dependencies"
+            href="https://nocodb.com/docs/product-docs/tables/date-dependency"
             target="_blank"
             rel="noopener noreferrer"
             class="text-nc-content-brand hover:underline"
@@ -515,19 +505,27 @@ watch(visible, async (val) => {
 
       </div>
 
-      <!-- Save status bar -->
-      <div class="flex items-center justify-between pt-2 min-h-[24px]">
-        <div v-if="saveError" class="text-bodySm text-nc-content-red truncate max-w-[80%]">
+      <div class="flex items-center justify-between pt-3 border-t-1 border-nc-border-gray-medium mt-2">
+        <div v-if="saveError" class="text-bodySm text-nc-content-red truncate max-w-[60%]">
           {{ saveError }}
         </div>
-        <div v-else-if="isSaving" class="flex items-center gap-1.5 text-bodySm text-nc-content-gray-subtle">
-          <GeneralLoader size="small" />
-          {{ $t('labels.dateDependency.saving') }}
-        </div>
-        <div v-else-if="hasChanges && hasValidationErrors" class="text-bodySm text-nc-content-gray-subtle">
-          {{ $t('labels.dateDependency.fixErrorsToSave') }}
-        </div>
         <div v-else />
+
+        <div class="flex items-center gap-2">
+          <NcButton type="secondary" size="small" @click="cancel">
+            {{ $t('general.cancel') }}
+          </NcButton>
+          <NcButton
+            v-e="['c:date-dependency:save']"
+            type="primary"
+            size="small"
+            :loading="isSaving"
+            :disabled="!hasChanges || hasValidationErrors"
+            @click="save"
+          >
+            {{ $t('general.save') }}
+          </NcButton>
+        </div>
       </div>
     </div>
   </NcModal>

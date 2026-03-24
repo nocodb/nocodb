@@ -132,12 +132,8 @@ test.describe('Date Dependency — Dialog', () => {
     await pickOption(1, 'EndDate');
     await pickOption(2, 'Duration');
 
-    // Save
+    // Save — modal auto-closes on success
     await modal.locator('button').filter({ hasText: /save/i }).click();
-    await dashboard.rootPage.waitForTimeout(1000);
-
-    // Close by clicking the mask area and reopen to verify persistence
-    await modal.click({ position: { x: 0, y: 0 } });
     await modal.waitFor({ state: 'hidden' });
 
     await dashboard.sidebar.tableNode.clickOptions({ tableTitle: tableName });
@@ -152,7 +148,7 @@ test.describe('Date Dependency — Dialog', () => {
     await expect(m2.locator('.ant-select').nth(2).locator('.ant-select-selection-item')).toContainText('Duration');
   });
 
-  test('delete rule via UI', async () => {
+  test('deactivate rule via toggle', async () => {
     // Pre-configure via API
     await configureDateDependency(api, context, tableId, cols);
 
@@ -163,22 +159,22 @@ test.describe('Date Dependency — Dialog', () => {
     const modal = dashboard.rootPage.locator('.nc-modal-date-dependency');
     await expect(modal).toBeVisible();
 
-    const deleteBtn = modal.locator('button').filter({ hasText: /delete/i });
-    await expect(deleteBtn).toBeVisible();
-    await deleteBtn.click();
-    await dashboard.rootPage.waitForTimeout(1000);
+    // Toggle off
+    const activeSwitch = modal.locator('.ant-switch').first();
+    await activeSwitch.click();
 
-    // Close the modal first — it stays open after delete
-    await modal.click({ position: { x: 0, y: 0 } });
+    // Save
+    await modal.locator('button').filter({ hasText: /save/i }).click();
     await modal.waitFor({ state: 'hidden' });
 
-    // Reopen — delete button should be gone
+    // Reopen and verify toggle is off
     await dashboard.sidebar.tableNode.clickOptions({ tableTitle: tableName });
     await dashboard.rootPage.getByTestId(`sidebar-table-date-dependency-${tableName}`).click();
 
     const m2 = dashboard.rootPage.locator('.nc-modal-date-dependency');
     await expect(m2).toBeVisible();
-    await expect(m2.locator('button').filter({ hasText: /delete/i })).not.toBeVisible();
+    const switch2 = m2.locator('.ant-switch').first();
+    await expect(switch2).toHaveAttribute('aria-checked', 'false');
   });
 
   test('toggle is_active off disables field sync', async () => {

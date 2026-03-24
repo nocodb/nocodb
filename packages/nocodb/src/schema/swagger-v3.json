@@ -4160,17 +4160,13 @@
         "summary": "List Dashboards",
         "description": "Retrieve a list of dashboards in the specified base.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "dashboards-list",
-        "tags": [
-          "Dashboards"
-        ],
+        "tags": ["Dashboards"],
         "parameters": [
           {
             "name": "base_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the base."
           }
         ],
@@ -4185,29 +4181,21 @@
               }
             }
           },
-          "404": {
-            "description": "Base not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
+          "404": { "description": "Base not found." },
+          "500": { "description": "Server error." }
         }
       },
       "post": {
         "summary": "Create Dashboard",
         "description": "Create a new dashboard within the specified base.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "dashboard-create",
-        "tags": [
-          "Dashboards"
-        ],
+        "tags": ["Dashboards"],
         "parameters": [
           {
             "name": "base_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the base."
           }
         ],
@@ -4232,9 +4220,7 @@
               }
             }
           },
-          "500": {
-            "description": "Server error."
-          }
+          "500": { "description": "Server error." }
         }
       }
     },
@@ -4243,26 +4229,20 @@
         "summary": "Get Dashboard",
         "description": "Retrieve details of a specific dashboard. Optionally include widgets by setting the `includeWidgets` query parameter to `true`.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "dashboard-read",
-        "tags": [
-          "Dashboards"
-        ],
+        "tags": ["Dashboards"],
         "parameters": [
           {
             "name": "base_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the base."
           },
           {
             "name": "dashboard_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the dashboard."
           },
           {
@@ -4290,38 +4270,28 @@
               }
             }
           },
-          "422": {
-            "description": "Dashboard not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
+          "422": { "description": "Dashboard not found." },
+          "500": { "description": "Server error." }
         }
       },
       "patch": {
         "summary": "Update Dashboard",
         "description": "Update the specified dashboard.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "dashboard-update",
-        "tags": [
-          "Dashboards"
-        ],
+        "tags": ["Dashboards"],
         "parameters": [
           {
             "name": "base_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the base."
           },
           {
             "name": "dashboard_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the dashboard."
           }
         ],
@@ -4346,38 +4316,28 @@
               }
             }
           },
-          "422": {
-            "description": "Dashboard not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
+          "422": { "description": "Dashboard not found." },
+          "500": { "description": "Server error." }
         }
       },
       "delete": {
         "summary": "Delete Dashboard",
         "description": "Delete the specified dashboard.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "dashboard-delete",
-        "tags": [
-          "Dashboards"
-        ],
+        "tags": ["Dashboards"],
         "parameters": [
           {
             "name": "base_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the base."
           },
           {
             "name": "dashboard_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the dashboard."
           }
         ],
@@ -4393,26 +4353,20 @@
         "summary": "Get Dashboard Data",
         "description": "Retrieve data for all widgets in the specified dashboard. Returns a map of widget IDs to their data.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "dashboard-data-read",
-        "tags": [
-          "Dashboards"
-        ],
+        "tags": ["Dashboards"],
         "parameters": [
           {
             "name": "base_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the base."
           },
           {
             "name": "dashboard_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the dashboard."
           }
         ],
@@ -4427,12 +4381,8 @@
               }
             }
           },
-          "422": {
-            "description": "Dashboard not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
+          "422": { "description": "Dashboard not found." },
+          "500": { "description": "Server error." }
         }
       }
     },
@@ -4441,26 +4391,20 @@
         "summary": "List Widgets",
         "description": "Retrieve a list of widgets in the specified dashboard.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "widgets-list",
-        "tags": [
-          "Dashboards"
-        ],
+        "tags": ["Dashboards"],
         "parameters": [
           {
             "name": "base_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the base."
           },
           {
             "name": "dashboard_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the dashboard."
           }
         ],
@@ -4475,38 +4419,28 @@
               }
             }
           },
-          "422": {
-            "description": "Dashboard not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
+          "422": { "description": "Dashboard not found." },
+          "500": { "description": "Server error." }
         }
       },
       "post": {
         "summary": "Create Widget",
         "description": "Create a new widget within the specified dashboard.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "widget-create",
-        "tags": [
-          "Dashboards"
-        ],
+        "tags": ["Dashboards"],
         "parameters": [
           {
             "name": "base_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the base."
           },
           {
             "name": "dashboard_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the dashboard."
           }
         ],
@@ -4531,12 +4465,8 @@
               }
             }
           },
-          "422": {
-            "description": "Dashboard not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
+          "422": { "description": "Dashboard not found." },
+          "500": { "description": "Server error." }
         }
       }
     },
@@ -4545,35 +4475,27 @@
         "summary": "Get Widget",
         "description": "Retrieve details of a specific widget.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "widget-read",
-        "tags": [
-          "Dashboards"
-        ],
+        "tags": ["Dashboards"],
         "parameters": [
           {
             "name": "base_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the base."
           },
           {
             "name": "dashboard_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the dashboard."
           },
           {
             "name": "widget_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the widget."
           }
         ],
@@ -4588,47 +4510,35 @@
               }
             }
           },
-          "422": {
-            "description": "Widget not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
+          "422": { "description": "Widget not found." },
+          "500": { "description": "Server error." }
         }
       },
       "patch": {
         "summary": "Update Widget",
         "description": "Update the specified widget.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "widget-update",
-        "tags": [
-          "Dashboards"
-        ],
+        "tags": ["Dashboards"],
         "parameters": [
           {
             "name": "base_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the base."
           },
           {
             "name": "dashboard_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the dashboard."
           },
           {
             "name": "widget_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the widget."
           }
         ],
@@ -4653,47 +4563,35 @@
               }
             }
           },
-          "422": {
-            "description": "Widget not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
+          "422": { "description": "Widget not found." },
+          "500": { "description": "Server error." }
         }
       },
       "delete": {
         "summary": "Delete Widget",
         "description": "Delete the specified widget.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "widget-delete",
-        "tags": [
-          "Dashboards"
-        ],
+        "tags": ["Dashboards"],
         "parameters": [
           {
             "name": "base_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the base."
           },
           {
             "name": "dashboard_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the dashboard."
           },
           {
             "name": "widget_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the widget."
           }
         ],
@@ -4709,35 +4607,27 @@
         "summary": "Get Widget Data",
         "description": "Retrieve data for a specific widget.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "widget-data-read",
-        "tags": [
-          "Dashboards"
-        ],
+        "tags": ["Dashboards"],
         "parameters": [
           {
             "name": "base_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the base."
           },
           {
             "name": "dashboard_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the dashboard."
           },
           {
             "name": "widget_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "description": "Unique identifier for the widget."
           }
         ],
@@ -4753,12 +4643,8 @@
               }
             }
           },
-          "422": {
-            "description": "Widget not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
+          "422": { "description": "Widget not found." },
+          "500": { "description": "Server error." }
         }
       }
     },
@@ -9728,44 +9614,44 @@
         ]
       },
       "ViewBase": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string",
-            "description": "Title of the view."
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "description": "Title of the view."
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "grid",
+                "gallery",
+                "kanban",
+                "calendar",
+                "map",
+                "form"
+              ],
+              "description": "Type of the view."
+            },
+            "lock_type": {
+              "type": "string",
+              "enum": [
+                "collaborative",
+                "locked",
+                "personal"
+              ],
+              "description": "Lock type of the view.\n\n Note: Assigning view as personal using API is not supported currently",
+              "default": "collaborative"
+            },
+            "description": {
+              "type": "string",
+              "description": "Description of the view."
+            }
           },
-          "type": {
-            "type": "string",
-            "enum": [
-              "grid",
-              "gallery",
-              "kanban",
-              "calendar",
-              "map",
-              "form"
-            ],
-            "description": "Type of the view."
-          },
-          "lock_type": {
-            "type": "string",
-            "enum": [
-              "collaborative",
-              "locked",
-              "personal"
-            ],
-            "description": "Lock type of the view.\n\n Note: Assigning view as personal using API is not supported currently",
-            "default": "collaborative"
-          },
-          "description": {
-            "type": "string",
-            "description": "Description of the view."
-          }
+          "required": [
+            "title",
+            "type"
+          ]
         },
-        "required": [
-          "title",
-          "type"
-        ]
-      },
       "ViewBaseInUpdate": {
         "type": "object",
         "properties": {
@@ -10003,433 +9889,433 @@
         }
       },
       "ViewOptionsForm": {
-        "type": "object",
-        "properties": {
-          "form_title": {
-            "type": "string",
-            "description": "Heading for the form."
-          },
-          "form_description": {
-            "type": "string",
-            "description": "Subheading for the form."
-          },
-          "thank_you_message": {
-            "type": "string",
-            "description": "Success message shown after form submission."
-          },
-          "form_redirect_after_secs": {
-            "type": "integer",
-            "description": "Seconds to wait before redirecting."
-          },
-          "show_submit_another_button": {
-            "type": "boolean",
-            "description": "Whether to show another form after submission."
-          },
-          "reset_form_after_submit": {
-            "type": "boolean",
-            "description": "Whether to show a blank form after submission."
-          },
-          "form_hide_banner": {
-            "type": "boolean",
-            "description": "Whether to hide the banner on the form."
-          },
-          "form_hide_branding": {
-            "type": "boolean",
-            "description": "Whether to hide branding on the form."
-          },
-          "banner": {
-            "type": "string",
-            "format": "uri",
-            "description": "URL of the banner image for the form."
-          },
-          "logo": {
-            "type": "string",
-            "format": "uri",
-            "description": "URL of the logo for the form."
-          },
-          "form_background_color": {
-            "type": "string",
-            "description": "Background color for the form.",
-            "pattern": "^#[0-9A-Fa-f]{6}$"
-          },
-          "redirect_url": {
-            "type": "string",
-            "format": "uri",
-            "description": "URL to redirect to after form submission."
-          },
-          "submit_button_label": {
-            "type": "string",
-            "description": "Custom label for the submit button."
-          },
-          "send_response_email_to": {
-            "type": "string",
-            "description": "Email address to send form responses to."
-          },
-          "fields_by_id": {
-            "type": "object",
-            "description": "Per-field form configuration keyed by field_id.",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/FormFieldConfig"
+          "type": "object",
+          "properties": {
+            "form_title": {
+              "type": "string",
+              "description": "Heading for the form."
+            },
+            "form_description": {
+              "type": "string",
+              "description": "Subheading for the form."
+            },
+            "thank_you_message": {
+              "type": "string",
+              "description": "Success message shown after form submission."
+            },
+            "form_redirect_after_secs": {
+              "type": "integer",
+              "description": "Seconds to wait before redirecting."
+            },
+            "show_submit_another_button": {
+              "type": "boolean",
+              "description": "Whether to show another form after submission."
+            },
+            "reset_form_after_submit": {
+              "type": "boolean",
+              "description": "Whether to show a blank form after submission."
+            },
+            "form_hide_banner": {
+              "type": "boolean",
+              "description": "Whether to hide the banner on the form."
+            },
+            "form_hide_branding": {
+              "type": "boolean",
+              "description": "Whether to hide branding on the form."
+            },
+            "banner": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL of the banner image for the form."
+            },
+            "logo": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL of the logo for the form."
+            },
+            "form_background_color": {
+              "type": "string",
+              "description": "Background color for the form.",
+              "pattern": "^#[0-9A-Fa-f]{6}$"
+            },
+            "redirect_url": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL to redirect to after form submission."
+            },
+            "submit_button_label": {
+              "type": "string",
+              "description": "Custom label for the submit button."
+            },
+            "send_response_email_to": {
+              "type": "string",
+              "description": "Email address to send form responses to."
+            },
+            "fields_by_id": {
+              "type": "object",
+              "description": "Per-field form configuration keyed by field_id.",
+              "additionalProperties": {
+                "$ref": "#/components/schemas/FormFieldConfig"
+              }
             }
           }
-        }
-      },
+        },
       "ViewCreate": {
-        "type": "object",
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ViewBase"
-          },
-          {
-            "oneOf": [
-              {
-                "type": "object",
-                "title": "grid",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "grid"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsGrid"
-                  },
-                  "sorts": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/SortCreate"
+          "type": "object",
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ViewBase"
+            },
+            {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "title": "grid",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "grid"
+                      ]
                     },
-                    "description": "List of sorts to be applied to the view."
-                  },
-                  "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
-                  },
-                  "fields": {
-                    "$ref": "#/components/schemas/ViewFields"
-                  },
-                  "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
-                  }
-                }
-              },
-              {
-                "type": "object",
-                "title": "gallery",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "gallery"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsGallery"
-                  },
-                  "sorts": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/SortCreate"
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsGrid"
                     },
-                    "description": "List of sorts to be applied to the view."
-                  },
-                  "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
-                  },
-                  "fields": {
-                    "$ref": "#/components/schemas/ViewFields"
-                  },
-                  "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
-                  }
-                }
-              },
-              {
-                "type": "object",
-                "title": "kanban",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "kanban"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsKanban"
-                  },
-                  "sorts": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/SortCreate"
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
                     },
-                    "description": "List of sorts to be applied to the view."
-                  },
-                  "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
-                  },
-                  "fields": {
-                    "$ref": "#/components/schemas/ViewFields"
-                  },
-                  "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
                   }
                 },
-                "required": [
-                  "options"
-                ]
-              },
-              {
-                "type": "object",
-                "title": "calendar",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "calendar"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsCalendar"
-                  },
-                  "sorts": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/SortCreate"
+                {
+                  "type": "object",
+                  "title": "gallery",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "gallery"
+                      ]
                     },
-                    "description": "List of sorts to be applied to the view."
-                  },
-                  "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
-                  },
-                  "fields": {
-                    "$ref": "#/components/schemas/ViewFields"
-                  },
-                  "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsGallery"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
                   }
                 },
-                "required": [
-                  "options"
-                ]
-              },
-              {
-                "type": "object",
-                "title": "map",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "map"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsMap"
-                  },
-                  "sorts": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/SortCreate"
+                {
+                  "type": "object",
+                  "title": "kanban",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "kanban"
+                      ]
                     },
-                    "description": "List of sorts to be applied to the view."
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsKanban"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
                   },
-                  "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  "required": [
+                    "options"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "title": "calendar",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "calendar"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsCalendar"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
                   },
-                  "fields": {
-                    "$ref": "#/components/schemas/ViewFields"
-                  },
-                  "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                  "required": [
+                    "options"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "title": "map",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "map"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsMap"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "title": "form",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "form"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsForm"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    }
                   }
                 }
-              },
-              {
-                "type": "object",
-                "title": "form",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "form"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsForm"
-                  },
-                  "fields": {
-                    "$ref": "#/components/schemas/ViewFields"
-                  }
-                }
+              ],
+              "discriminator": {
+                "propertyName": "type"
               }
-            ],
-            "discriminator": {
-              "propertyName": "type"
             }
-          }
-        ]
-      },
+          ]
+        },
       "ViewUpdate": {
-        "type": "object",
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ViewBaseInUpdate"
-          },
-          {
-            "oneOf": [
-              {
-                "type": "object",
-                "title": "grid",
-                "properties": {
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsGrid"
-                  },
-                  "sorts": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/SortCreate"
+          "type": "object",
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ViewBaseInUpdate"
+            },
+            {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "title": "grid",
+                  "properties": {
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsGrid"
                     },
-                    "description": "List of sorts to be applied to the view."
-                  },
-                  "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
-                  },
-                  "fields": {
-                    "$ref": "#/components/schemas/ViewFields"
-                  },
-                  "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
-                  }
-                }
-              },
-              {
-                "type": "object",
-                "title": "gallery",
-                "properties": {
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsGallery"
-                  },
-                  "sorts": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/SortCreate"
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
                     },
-                    "description": "List of sorts to be applied to the view."
-                  },
-                  "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
-                  },
-                  "fields": {
-                    "$ref": "#/components/schemas/ViewFields"
-                  },
-                  "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
-                  }
-                }
-              },
-              {
-                "type": "object",
-                "title": "kanban",
-                "properties": {
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsKanban"
-                  },
-                  "sorts": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/SortCreate"
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
                     },
-                    "description": "List of sorts to be applied to the view."
-                  },
-                  "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
-                  },
-                  "fields": {
-                    "$ref": "#/components/schemas/ViewFields"
-                  },
-                  "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
-                  }
-                }
-              },
-              {
-                "type": "object",
-                "title": "calendar",
-                "properties": {
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsCalendar"
-                  },
-                  "sorts": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/SortCreate"
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
                     },
-                    "description": "List of sorts to be applied to the view."
-                  },
-                  "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
-                  },
-                  "fields": {
-                    "$ref": "#/components/schemas/ViewFields"
-                  },
-                  "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
                   }
-                }
-              },
-              {
-                "type": "object",
-                "title": "map",
-                "properties": {
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsMap"
-                  },
-                  "sorts": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/SortCreate"
+                },
+                {
+                  "type": "object",
+                  "title": "gallery",
+                  "properties": {
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsGallery"
                     },
-                    "description": "List of sorts to be applied to the view."
-                  },
-                  "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
-                  },
-                  "fields": {
-                    "$ref": "#/components/schemas/ViewFields"
-                  },
-                  "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "title": "kanban",
+                  "properties": {
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsKanban"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "title": "calendar",
+                  "properties": {
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsCalendar"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "title": "map",
+                  "properties": {
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsMap"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "title": "form",
+                  "properties": {
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsForm"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    }
                   }
                 }
-              },
-              {
-                "type": "object",
-                "title": "form",
-                "properties": {
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsForm"
-                  },
-                  "fields": {
-                    "$ref": "#/components/schemas/ViewFields"
-                  }
-                }
+              ],
+              "discriminator": {
+                "propertyName": "type"
               }
-            ],
-            "discriminator": {
-              "propertyName": "type"
             }
-          }
-        ]
-      },
+          ]
+        },
       "View": {
         "type": "object",
         "allOf": [
@@ -13186,10 +13072,7 @@
           },
           "team_role": {
             "type": "string",
-            "enum": [
-              "owner",
-              "member"
-            ],
+            "enum": ["owner", "member"],
             "description": "Member role in the ancestor team",
             "example": "member"
           },
@@ -13792,10 +13675,7 @@
             "description": "Title of the dashboard."
           },
           "description": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "description": "Description of the dashboard."
           },
           "base_id": {
@@ -13821,14 +13701,7 @@
             "description": "User ID of the dashboard creator."
           }
         },
-        "required": [
-          "id",
-          "title",
-          "base_id",
-          "workspace_id",
-          "created_at",
-          "updated_at"
-        ]
+        "required": ["id", "title", "base_id", "workspace_id", "created_at", "updated_at"]
       },
       "DashboardList": {
         "type": "object",
@@ -13840,9 +13713,7 @@
             }
           }
         },
-        "required": [
-          "list"
-        ]
+        "required": ["list"]
       },
       "DashboardGetResponse": {
         "allOf": [
@@ -13872,9 +13743,7 @@
             "description": "Map of widget IDs to their data."
           }
         },
-        "required": [
-          "widgets"
-        ]
+        "required": ["widgets"]
       },
       "WidgetOptionsMetric": {
         "type": "object",
@@ -13882,73 +13751,24 @@
         "properties": {
           "data_source": {
             "type": "string",
-            "enum": [
-              "table",
-              "view",
-              "filter"
-            ],
+            "enum": ["table", "view", "filter"],
             "description": "Data source type."
           },
           "metric": {
             "type": "object",
             "description": "Metric aggregation configuration.",
             "properties": {
-              "type": {
-                "type": "string",
-                "enum": [
-                  "count",
-                  "summary"
-                ],
-                "description": "'count' counts all rows, 'summary' aggregates a column."
-              },
-              "field_id": {
-                "type": "string",
-                "description": "Column to aggregate. Required when type is 'summary'."
-              },
-              "aggregation": {
-                "type": "string",
-                "enum": [
-                  "sum",
-                  "avg",
-                  "count",
-                  "min",
-                  "max"
-                ],
-                "description": "Aggregation function."
-              }
+              "type": { "type": "string", "enum": ["count", "summary"], "description": "'count' counts all rows, 'summary' aggregates a column." },
+              "field_id": { "type": "string", "description": "Column to aggregate. Required when type is 'summary'." },
+              "aggregation": { "type": "string", "enum": ["sum", "avg", "count", "min", "max"], "description": "Aggregation function." }
             },
-            "required": [
-              "type",
-              "aggregation"
-            ]
+            "required": ["type", "aggregation"]
           },
           "appearance": {
             "type": "object",
             "properties": {
-              "type": {
-                "type": "string",
-                "enum": [
-                  "default",
-                  "filled",
-                  "coloured"
-                ],
-                "description": "Visual style variant."
-              },
-              "theme": {
-                "type": "string",
-                "enum": [
-                  "gray",
-                  "red",
-                  "green",
-                  "yellow",
-                  "pink",
-                  "blue",
-                  "orange",
-                  "maroon",
-                  "purple"
-                ],
-                "description": "Color theme."
-              }
+              "type": { "type": "string", "enum": ["default", "filled", "coloured"], "description": "Visual style variant." },
+              "theme": { "type": "string", "enum": ["gray", "red", "green", "yellow", "pink", "blue", "orange", "maroon", "purple"], "description": "Color theme." }
             }
           }
         }
@@ -13957,279 +13777,116 @@
         "type": "object",
         "description": "Options for a pie chart widget (type=chart, chart_type=pie).",
         "properties": {
-          "chart_type": {
-            "type": "string",
-            "enum": [
-              "pie"
-            ]
-          },
-          "data_source": {
-            "type": "string",
-            "enum": [
-              "table",
-              "view",
-              "filter"
-            ]
-          },
+          "chart_type": { "type": "string", "enum": ["pie"] },
+          "data_source": { "type": "string", "enum": ["table", "view", "filter"] },
           "data": {
             "type": "object",
             "properties": {
               "category": {
                 "type": "object",
                 "properties": {
-                  "field_id": {
-                    "type": "string",
-                    "description": "Column to group by."
-                  },
-                  "order_by": {
-                    "type": "string",
-                    "enum": [
-                      "default",
-                      "asc",
-                      "desc"
-                    ]
-                  },
-                  "category_limit": {
-                    "type": "number",
-                    "description": "Max categories (10-50)."
-                  },
-                  "include_empty_records": {
-                    "type": "boolean"
-                  },
-                  "include_others": {
-                    "type": "boolean",
-                    "description": "Aggregate remaining into 'Others'."
-                  }
+                  "field_id": { "type": "string", "description": "Column to group by." },
+                  "order_by": { "type": "string", "enum": ["default", "asc", "desc"] },
+                  "category_limit": { "type": "number", "description": "Max categories (10-50)." },
+                  "include_empty_records": { "type": "boolean" },
+                  "include_others": { "type": "boolean", "description": "Aggregate remaining into 'Others'." }
                 },
-                "required": [
-                  "field_id"
-                ]
+                "required": ["field_id"]
               },
               "value": {
                 "type": "object",
                 "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "count",
-                      "summary"
-                    ]
-                  },
-                  "field_id": {
-                    "type": "string",
-                    "description": "Column to aggregate. Required when type is 'summary'."
-                  },
-                  "aggregation": {
-                    "type": "string",
-                    "description": "Aggregation function. Required when type is 'summary'."
-                  }
+                  "type": { "type": "string", "enum": ["count", "summary"] },
+                  "field_id": { "type": "string", "description": "Column to aggregate. Required when type is 'summary'." },
+                  "aggregation": { "type": "string", "description": "Aggregation function. Required when type is 'summary'." }
                 },
-                "required": [
-                  "type"
-                ]
+                "required": ["type"]
               }
             }
           },
           "appearance": {
             "type": "object",
             "properties": {
-              "size": {
-                "type": "string",
-                "enum": [
-                  "small",
-                  "medium",
-                  "large"
-                ]
-              },
-              "show_count_in_legend": {
-                "type": "boolean"
-              },
-              "show_percentage_on_chart": {
-                "type": "boolean"
-              },
-              "legend_position": {
-                "type": "string",
-                "enum": [
-                  "top",
-                  "right",
-                  "bottom",
-                  "left",
-                  "none"
-                ]
-              },
-              "color_schema": {
-                "type": "string",
-                "enum": [
-                  "default",
-                  "custom"
-                ]
-              },
+              "size": { "type": "string", "enum": ["small", "medium", "large"] },
+              "show_count_in_legend": { "type": "boolean" },
+              "show_percentage_on_chart": { "type": "boolean" },
+              "legend_position": { "type": "string", "enum": ["top", "right", "bottom", "left", "none"] },
+              "color_schema": { "type": "string", "enum": ["default", "custom"] },
               "custom_color_schema": {
                 "type": "array",
                 "items": {
                   "type": "object",
                   "properties": {
-                    "color": {
-                      "type": "string"
-                    },
-                    "label": {
-                      "type": "string"
-                    }
+                    "color": { "type": "string" },
+                    "label": { "type": "string" }
                   }
                 }
               }
             }
           }
         },
-        "required": [
-          "chart_type"
-        ]
+        "required": ["chart_type"]
       },
       "WidgetOptionsDonutChart": {
         "type": "object",
         "description": "Options for a donut chart widget (type=chart, chart_type=donut). Same structure as pie chart.",
         "properties": {
-          "chart_type": {
-            "type": "string",
-            "enum": [
-              "donut"
-            ]
-          },
-          "data_source": {
-            "type": "string",
-            "enum": [
-              "table",
-              "view",
-              "filter"
-            ]
-          },
+          "chart_type": { "type": "string", "enum": ["donut"] },
+          "data_source": { "type": "string", "enum": ["table", "view", "filter"] },
           "data": {
             "type": "object",
             "properties": {
               "category": {
                 "type": "object",
                 "properties": {
-                  "field_id": {
-                    "type": "string"
-                  },
-                  "order_by": {
-                    "type": "string",
-                    "enum": [
-                      "default",
-                      "asc",
-                      "desc"
-                    ]
-                  },
-                  "category_limit": {
-                    "type": "number"
-                  },
-                  "include_empty_records": {
-                    "type": "boolean"
-                  },
-                  "include_others": {
-                    "type": "boolean"
-                  }
+                  "field_id": { "type": "string" },
+                  "order_by": { "type": "string", "enum": ["default", "asc", "desc"] },
+                  "category_limit": { "type": "number" },
+                  "include_empty_records": { "type": "boolean" },
+                  "include_others": { "type": "boolean" }
                 },
-                "required": [
-                  "field_id"
-                ]
+                "required": ["field_id"]
               },
               "value": {
                 "type": "object",
                 "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "count",
-                      "summary"
-                    ]
-                  },
-                  "field_id": {
-                    "type": "string"
-                  },
-                  "aggregation": {
-                    "type": "string"
-                  }
+                  "type": { "type": "string", "enum": ["count", "summary"] },
+                  "field_id": { "type": "string" },
+                  "aggregation": { "type": "string" }
                 },
-                "required": [
-                  "type"
-                ]
+                "required": ["type"]
               }
             }
           },
           "appearance": {
             "type": "object",
             "properties": {
-              "size": {
-                "type": "string",
-                "enum": [
-                  "small",
-                  "medium",
-                  "large"
-                ]
-              },
-              "show_count_in_legend": {
-                "type": "boolean"
-              },
-              "show_percentage_on_chart": {
-                "type": "boolean"
-              },
-              "legend_position": {
-                "type": "string",
-                "enum": [
-                  "top",
-                  "right",
-                  "bottom",
-                  "left",
-                  "none"
-                ]
-              },
-              "color_schema": {
-                "type": "string",
-                "enum": [
-                  "default",
-                  "custom"
-                ]
-              },
+              "size": { "type": "string", "enum": ["small", "medium", "large"] },
+              "show_count_in_legend": { "type": "boolean" },
+              "show_percentage_on_chart": { "type": "boolean" },
+              "legend_position": { "type": "string", "enum": ["top", "right", "bottom", "left", "none"] },
+              "color_schema": { "type": "string", "enum": ["default", "custom"] },
               "custom_color_schema": {
                 "type": "array",
                 "items": {
                   "type": "object",
                   "properties": {
-                    "color": {
-                      "type": "string"
-                    },
-                    "label": {
-                      "type": "string"
-                    }
+                    "color": { "type": "string" },
+                    "label": { "type": "string" }
                   }
                 }
               }
             }
           }
         },
-        "required": [
-          "chart_type"
-        ]
+        "required": ["chart_type"]
       },
       "WidgetOptionsBarChart": {
         "type": "object",
         "description": "Options for a bar chart widget (type=chart, chart_type=bar).",
         "properties": {
-          "chart_type": {
-            "type": "string",
-            "enum": [
-              "bar"
-            ]
-          },
-          "data_source": {
-            "type": "string",
-            "enum": [
-              "table",
-              "view",
-              "filter"
-            ]
-          },
+          "chart_type": { "type": "string", "enum": ["bar"] },
+          "data_source": { "type": "string", "enum": ["table", "view", "filter"] },
           "data": {
             "type": "object",
             "properties": {
@@ -14237,74 +13894,33 @@
                 "type": "object",
                 "description": "X-axis (category) configuration.",
                 "properties": {
-                  "field_id": {
-                    "type": "string",
-                    "description": "X-axis grouping field."
-                  },
-                  "sort_by": {
-                    "type": "string",
-                    "enum": [
-                      "x_axis",
-                      "y_axis"
-                    ],
-                    "description": "Sort by x-axis labels or y-axis values."
-                  },
-                  "order_by": {
-                    "type": "string",
-                    "enum": [
-                      "default",
-                      "asc",
-                      "desc"
-                    ]
-                  },
-                  "include_empty_records": {
-                    "type": "boolean"
-                  },
-                  "include_others": {
-                    "type": "boolean"
-                  },
-                  "category_limit": {
-                    "type": "number",
-                    "description": "Max categories (10-50)."
-                  }
+                  "field_id": { "type": "string", "description": "X-axis grouping field." },
+                  "sort_by": { "type": "string", "enum": ["x_axis", "y_axis"], "description": "Sort by x-axis labels or y-axis values." },
+                  "order_by": { "type": "string", "enum": ["default", "asc", "desc"] },
+                  "include_empty_records": { "type": "boolean" },
+                  "include_others": { "type": "boolean" },
+                  "category_limit": { "type": "number", "description": "Max categories (10-50)." }
                 },
-                "required": [
-                  "field_id"
-                ]
+                "required": ["field_id"]
               },
               "y_axis": {
                 "type": "object",
                 "description": "Y-axis (value) configuration.",
                 "properties": {
-                  "start_at_zero": {
-                    "type": "boolean"
-                  },
+                  "start_at_zero": { "type": "boolean" },
                   "fields": {
                     "type": "array",
                     "description": "Fields to aggregate on the y-axis.",
                     "items": {
                       "type": "object",
                       "properties": {
-                        "field_id": {
-                          "type": "string"
-                        },
-                        "aggregation": {
-                          "type": "string"
-                        }
+                        "field_id": { "type": "string" },
+                        "aggregation": { "type": "string" }
                       },
-                      "required": [
-                        "field_id",
-                        "aggregation"
-                      ]
+                      "required": ["field_id", "aggregation"]
                     }
                   },
-                  "group_by": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "description": "Optional secondary grouping field ID."
-                  }
+                  "group_by": { "type": ["string", "null"], "description": "Optional secondary grouping field ID." }
                 }
               }
             }
@@ -14312,130 +13928,53 @@
           "appearance": {
             "type": "object",
             "properties": {
-              "size": {
-                "type": "string",
-                "enum": [
-                  "small",
-                  "medium",
-                  "large"
-                ]
-              },
-              "show_count_in_legend": {
-                "type": "boolean"
-              },
-              "show_value_in_chart": {
-                "type": "boolean"
-              },
-              "legend_position": {
-                "type": "string",
-                "enum": [
-                  "top",
-                  "right",
-                  "bottom",
-                  "left",
-                  "none"
-                ]
-              },
-              "color_schema": {
-                "type": "string",
-                "enum": [
-                  "default",
-                  "custom"
-                ]
-              }
+              "size": { "type": "string", "enum": ["small", "medium", "large"] },
+              "show_count_in_legend": { "type": "boolean" },
+              "show_value_in_chart": { "type": "boolean" },
+              "legend_position": { "type": "string", "enum": ["top", "right", "bottom", "left", "none"] },
+              "color_schema": { "type": "string", "enum": ["default", "custom"] }
             }
           }
         },
-        "required": [
-          "chart_type"
-        ]
+        "required": ["chart_type"]
       },
       "WidgetOptionsLineChart": {
         "type": "object",
         "description": "Options for a line chart widget (type=chart, chart_type=line). Same data structure as bar chart with additional line-specific appearance options.",
         "properties": {
-          "chart_type": {
-            "type": "string",
-            "enum": [
-              "line"
-            ]
-          },
-          "data_source": {
-            "type": "string",
-            "enum": [
-              "table",
-              "view",
-              "filter"
-            ]
-          },
+          "chart_type": { "type": "string", "enum": ["line"] },
+          "data_source": { "type": "string", "enum": ["table", "view", "filter"] },
           "data": {
             "type": "object",
             "properties": {
               "x_axis": {
                 "type": "object",
                 "properties": {
-                  "field_id": {
-                    "type": "string"
-                  },
-                  "sort_by": {
-                    "type": "string",
-                    "enum": [
-                      "x_axis",
-                      "y_axis"
-                    ]
-                  },
-                  "order_by": {
-                    "type": "string",
-                    "enum": [
-                      "default",
-                      "asc",
-                      "desc"
-                    ]
-                  },
-                  "include_empty_records": {
-                    "type": "boolean"
-                  },
-                  "include_others": {
-                    "type": "boolean"
-                  },
-                  "category_limit": {
-                    "type": "number"
-                  }
+                  "field_id": { "type": "string" },
+                  "sort_by": { "type": "string", "enum": ["x_axis", "y_axis"] },
+                  "order_by": { "type": "string", "enum": ["default", "asc", "desc"] },
+                  "include_empty_records": { "type": "boolean" },
+                  "include_others": { "type": "boolean" },
+                  "category_limit": { "type": "number" }
                 },
-                "required": [
-                  "field_id"
-                ]
+                "required": ["field_id"]
               },
               "y_axis": {
                 "type": "object",
                 "properties": {
-                  "start_at_zero": {
-                    "type": "boolean"
-                  },
+                  "start_at_zero": { "type": "boolean" },
                   "fields": {
                     "type": "array",
                     "items": {
                       "type": "object",
                       "properties": {
-                        "field_id": {
-                          "type": "string"
-                        },
-                        "aggregation": {
-                          "type": "string"
-                        }
+                        "field_id": { "type": "string" },
+                        "aggregation": { "type": "string" }
                       },
-                      "required": [
-                        "field_id",
-                        "aggregation"
-                      ]
+                      "required": ["field_id", "aggregation"]
                     }
                   },
-                  "group_by": {
-                    "type": [
-                      "string",
-                      "null"
-                    ]
-                  }
+                  "group_by": { "type": ["string", "null"] }
                 }
               }
             }
@@ -14443,68 +13982,24 @@
           "appearance": {
             "type": "object",
             "properties": {
-              "size": {
-                "type": "string",
-                "enum": [
-                  "small",
-                  "medium",
-                  "large"
-                ]
-              },
-              "smooth_lines": {
-                "type": "boolean",
-                "description": "Smooth curve vs straight line segments."
-              },
-              "plot_data_points": {
-                "type": "boolean",
-                "description": "Show dots at data points."
-              },
-              "show_count_in_legend": {
-                "type": "boolean"
-              },
-              "show_value_in_chart": {
-                "type": "boolean"
-              },
-              "legend_position": {
-                "type": "string",
-                "enum": [
-                  "top",
-                  "right",
-                  "bottom",
-                  "left",
-                  "none"
-                ]
-              },
-              "color_schema": {
-                "type": "string",
-                "enum": [
-                  "default",
-                  "custom"
-                ]
-              }
+              "size": { "type": "string", "enum": ["small", "medium", "large"] },
+              "smooth_lines": { "type": "boolean", "description": "Smooth curve vs straight line segments." },
+              "plot_data_points": { "type": "boolean", "description": "Show dots at data points." },
+              "show_count_in_legend": { "type": "boolean" },
+              "show_value_in_chart": { "type": "boolean" },
+              "legend_position": { "type": "string", "enum": ["top", "right", "bottom", "left", "none"] },
+              "color_schema": { "type": "string", "enum": ["default", "custom"] }
             }
           }
         },
-        "required": [
-          "chart_type"
-        ]
+        "required": ["chart_type"]
       },
       "WidgetOptionsText": {
         "type": "object",
         "description": "Options for a text widget (type=text). Formatting is nested inside appearance.",
         "properties": {
-          "content": {
-            "type": "string",
-            "description": "Text content (plain text or markdown)."
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "markdown",
-              "text"
-            ],
-            "description": "Text rendering mode."
-          },
+          "content": { "type": "string", "description": "Text content (plain text or markdown)." },
+          "type": { "type": "string", "enum": ["markdown", "text"], "description": "Text rendering mode." },
           "appearance": {
             "type": "object",
             "properties": {
@@ -14512,71 +14007,25 @@
                 "type": "object",
                 "description": "Text formatting options.",
                 "properties": {
-                  "horizontal_align": {
-                    "type": "string",
-                    "enum": [
-                      "flex-start",
-                      "center",
-                      "flex-end"
-                    ]
-                  },
-                  "vertical_align": {
-                    "type": "string",
-                    "enum": [
-                      "flex-start",
-                      "center",
-                      "flex-end"
-                    ]
-                  },
-                  "bold": {
-                    "type": "boolean"
-                  },
-                  "italic": {
-                    "type": "boolean"
-                  },
-                  "underline": {
-                    "type": "boolean"
-                  },
-                  "strikethrough": {
-                    "type": "boolean"
-                  }
+                  "horizontal_align": { "type": "string", "enum": ["flex-start", "center", "flex-end"] },
+                  "vertical_align": { "type": "string", "enum": ["flex-start", "center", "flex-end"] },
+                  "bold": { "type": "boolean" },
+                  "italic": { "type": "boolean" },
+                  "underline": { "type": "boolean" },
+                  "strikethrough": { "type": "boolean" }
                 }
               },
               "font": {
                 "type": "object",
                 "description": "Font settings (only for type=text).",
                 "properties": {
-                  "family": {
-                    "type": "string"
-                  },
-                  "weight": {
-                    "type": "number",
-                    "enum": [
-                      100,
-                      200,
-                      300,
-                      400,
-                      500,
-                      600,
-                      700,
-                      800,
-                      900
-                    ]
-                  },
-                  "size": {
-                    "type": "number",
-                    "description": "Font size in pixels."
-                  },
-                  "line_height": {
-                    "type": "number",
-                    "description": "Line height multiplier."
-                  }
+                  "family": { "type": "string" },
+                  "weight": { "type": "number", "enum": [100, 200, 300, 400, 500, 600, 700, 800, 900] },
+                  "size": { "type": "number", "description": "Font size in pixels." },
+                  "line_height": { "type": "number", "description": "Line height multiplier." }
                 }
               },
-              "color": {
-                "type": "string",
-                "description": "Hex color (only for type=text)."
-              }
+              "color": { "type": "string", "description": "Hex color (only for type=text)." }
             }
           }
         }
@@ -14585,14 +14034,8 @@
         "type": "object",
         "description": "Options for an iframe widget (type=iframe).",
         "properties": {
-          "url": {
-            "type": "string",
-            "description": "URL to embed."
-          },
-          "allow_fullscreen": {
-            "type": "boolean",
-            "description": "Whether to allow fullscreen."
-          }
+          "url": { "type": "string", "description": "URL to embed." },
+          "allow_fullscreen": { "type": "boolean", "description": "Whether to allow fullscreen." }
         }
       },
       "WidgetRead": {
@@ -14607,10 +14050,7 @@
             "description": "Title of the widget."
           },
           "description": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "description": "Description of the widget."
           },
           "dashboard_id": {
@@ -14619,84 +14059,41 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "chart",
-              "metric",
-              "text",
-              "iframe"
-            ],
+            "enum": ["chart", "metric", "text", "iframe"],
             "description": "Type of the widget."
           },
           "options": {
             "description": "Widget configuration. Structure depends on widget type. See WidgetOptions* schemas.",
             "oneOf": [
-              {
-                "$ref": "#/components/schemas/WidgetOptionsMetric"
-              },
-              {
-                "$ref": "#/components/schemas/WidgetOptionsPieChart"
-              },
-              {
-                "$ref": "#/components/schemas/WidgetOptionsDonutChart"
-              },
-              {
-                "$ref": "#/components/schemas/WidgetOptionsBarChart"
-              },
-              {
-                "$ref": "#/components/schemas/WidgetOptionsLineChart"
-              },
-              {
-                "$ref": "#/components/schemas/WidgetOptionsText"
-              },
-              {
-                "$ref": "#/components/schemas/WidgetOptionsIframe"
-              }
+              { "$ref": "#/components/schemas/WidgetOptionsMetric" },
+              { "$ref": "#/components/schemas/WidgetOptionsPieChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsText" },
+              { "$ref": "#/components/schemas/WidgetOptionsIframe" }
             ]
           },
           "order": {
-            "type": [
-              "number",
-              "null"
-            ],
+            "type": ["number", "null"],
             "description": "Display order of the widget."
           },
           "position": {
-            "type": [
-              "object",
-              "null"
-            ],
+            "type": ["object", "null"],
             "properties": {
-              "x": {
-                "type": "number",
-                "description": "Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column."
-              },
-              "y": {
-                "type": "number",
-                "description": "Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row."
-              },
-              "w": {
-                "type": "number",
-                "description": "Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid)."
-              },
-              "h": {
-                "type": "number",
-                "description": "Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall."
-              }
+              "x": { "type": "number", "description": "Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column." },
+              "y": { "type": "number", "description": "Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row." },
+              "w": { "type": "number", "description": "Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid)." },
+              "h": { "type": "number", "description": "Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall." }
             },
             "description": "Position and size of the widget on the dashboard grid."
           },
           "table_id": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "description": "Unique identifier for the associated table."
           },
           "view_id": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "description": "Unique identifier for the associated view."
           },
           "error": {
@@ -14714,14 +14111,7 @@
             "description": "Timestamp when the widget was last updated."
           }
         },
-        "required": [
-          "id",
-          "title",
-          "dashboard_id",
-          "type",
-          "created_at",
-          "updated_at"
-        ]
+        "required": ["id", "title", "dashboard_id", "type", "created_at", "updated_at"]
       },
       "WidgetList": {
         "type": "object",
@@ -14733,26 +14123,19 @@
             }
           }
         },
-        "required": [
-          "list"
-        ]
+        "required": ["list"]
       },
       "DashboardCreateReq": {
         "description": "Dashboard create request body",
         "type": "object",
-        "required": [
-          "title"
-        ],
+        "required": ["title"],
         "properties": {
           "title": {
             "type": "string",
             "description": "Title of the dashboard."
           },
           "description": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "description": "Description of the dashboard."
           }
         }
@@ -14766,10 +14149,7 @@
             "description": "Title of the dashboard."
           },
           "description": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "description": "Description of the dashboard."
           }
         }
@@ -14777,92 +14157,49 @@
       "WidgetCreateReq": {
         "description": "Widget create request body",
         "type": "object",
-        "required": [
-          "title",
-          "type"
-        ],
+        "required": ["title", "type"],
         "properties": {
           "title": {
             "type": "string",
             "description": "Title of the widget."
           },
           "description": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "description": "Description of the widget."
           },
           "type": {
             "type": "string",
-            "enum": [
-              "chart",
-              "metric",
-              "text",
-              "iframe"
-            ],
+            "enum": ["chart", "metric", "text", "iframe"],
             "description": "Type of the widget."
           },
           "options": {
             "description": "Widget configuration. Structure depends on widget type.",
             "oneOf": [
-              {
-                "$ref": "#/components/schemas/WidgetOptionsMetric"
-              },
-              {
-                "$ref": "#/components/schemas/WidgetOptionsPieChart"
-              },
-              {
-                "$ref": "#/components/schemas/WidgetOptionsDonutChart"
-              },
-              {
-                "$ref": "#/components/schemas/WidgetOptionsBarChart"
-              },
-              {
-                "$ref": "#/components/schemas/WidgetOptionsLineChart"
-              },
-              {
-                "$ref": "#/components/schemas/WidgetOptionsText"
-              },
-              {
-                "$ref": "#/components/schemas/WidgetOptionsIframe"
-              }
+              { "$ref": "#/components/schemas/WidgetOptionsMetric" },
+              { "$ref": "#/components/schemas/WidgetOptionsPieChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsText" },
+              { "$ref": "#/components/schemas/WidgetOptionsIframe" }
             ]
           },
           "position": {
             "type": "object",
             "description": "Position and size of the widget on the dashboard grid.",
             "properties": {
-              "x": {
-                "type": "number",
-                "description": "Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column."
-              },
-              "y": {
-                "type": "number",
-                "description": "Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row."
-              },
-              "w": {
-                "type": "number",
-                "description": "Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid)."
-              },
-              "h": {
-                "type": "number",
-                "description": "Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall."
-              }
+              "x": { "type": "number", "description": "Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column." },
+              "y": { "type": "number", "description": "Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row." },
+              "w": { "type": "number", "description": "Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid)." },
+              "h": { "type": "number", "description": "Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall." }
             }
           },
           "table_id": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "description": "Unique identifier for the associated table."
           },
           "view_id": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "description": "Unique identifier for the associated view."
           }
         }
@@ -14876,36 +14213,19 @@
             "description": "Title of the widget."
           },
           "description": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "description": "Description of the widget."
           },
           "options": {
             "description": "Widget configuration. Structure depends on widget type.",
             "oneOf": [
-              {
-                "$ref": "#/components/schemas/WidgetOptionsMetric"
-              },
-              {
-                "$ref": "#/components/schemas/WidgetOptionsPieChart"
-              },
-              {
-                "$ref": "#/components/schemas/WidgetOptionsDonutChart"
-              },
-              {
-                "$ref": "#/components/schemas/WidgetOptionsBarChart"
-              },
-              {
-                "$ref": "#/components/schemas/WidgetOptionsLineChart"
-              },
-              {
-                "$ref": "#/components/schemas/WidgetOptionsText"
-              },
-              {
-                "$ref": "#/components/schemas/WidgetOptionsIframe"
-              }
+              { "$ref": "#/components/schemas/WidgetOptionsMetric" },
+              { "$ref": "#/components/schemas/WidgetOptionsPieChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsText" },
+              { "$ref": "#/components/schemas/WidgetOptionsIframe" }
             ]
           },
           "order": {
@@ -14916,36 +14236,18 @@
             "type": "object",
             "description": "Position and size of the widget on the dashboard grid.",
             "properties": {
-              "x": {
-                "type": "number",
-                "description": "Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column."
-              },
-              "y": {
-                "type": "number",
-                "description": "Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row."
-              },
-              "w": {
-                "type": "number",
-                "description": "Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid)."
-              },
-              "h": {
-                "type": "number",
-                "description": "Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall."
-              }
+              "x": { "type": "number", "description": "Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column." },
+              "y": { "type": "number", "description": "Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row." },
+              "w": { "type": "number", "description": "Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid)." },
+              "h": { "type": "number", "description": "Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall." }
             }
           },
           "table_id": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "description": "Unique identifier for the associated table."
           },
           "view_id": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "description": "Unique identifier for the associated view."
           }
         }
@@ -15380,6 +14682,11 @@
             "description": "Type of validation to apply."
           },
           "value": {
+            "type": [
+              "string",
+              "integer",
+              "null"
+            ],
             "description": "Validator parameter value (e.g., min/max number, pattern string)."
           },
           "message": {

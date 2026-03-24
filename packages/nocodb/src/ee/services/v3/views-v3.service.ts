@@ -57,6 +57,16 @@ import { ViewRowColorService } from '~/services/view-row-color.service';
 import { withoutId } from '~/helpers/exportImportHelpers';
 import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 
+interface FormFieldByIdConfig {
+  alias?: string;
+  description?: string;
+  required?: boolean;
+  allow_scanner_input?: boolean;
+  is_list?: boolean;
+  is_limit_option?: boolean;
+  validators?: { type: string; value?: string | number | null; message?: string; regex?: string }[];
+}
+
 const viewTypeMap = {
   grid: ViewTypes.GRID,
   gallery: ViewTypes.GALLERY,
@@ -334,6 +344,11 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
               .map((k) => k.title),
           };
           formattedData.kanban_stack_by_field_id = undefined;
+        }
+
+        // convert redirect_after_secs from string to integer (V2 stores as varchar)
+        if (formattedData.form_redirect_after_secs != null) {
+          formattedData.form_redirect_after_secs = Number(formattedData.form_redirect_after_secs);
         }
 
         // if description empty then set it to undefined
@@ -1068,18 +1083,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       tableId: string;
       modelColumns?: { id: string; pv: boolean; order: number }[];
       fields?: ViewCreateV3Type['fields'];
-      fieldsById?: Record<
-        string,
-        {
-          alias?: string;
-          description?: string;
-          required?: boolean;
-          allow_scanner_input?: boolean;
-          is_list?: boolean;
-          is_limit_option?: boolean;
-          validators?: { type: string; value?: any; message?: string }[];
-        }
-      >;
+      fieldsById?: Record<string, FormFieldByIdConfig>;
     },
     ncMeta?: MetaService,
   ) {

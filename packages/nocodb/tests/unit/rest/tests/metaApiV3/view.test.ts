@@ -458,7 +458,7 @@ export default function () {
         expect(getResponse.body.options.redirect_url).to.eq(
           'https://example.com/thank-you',
         );
-        expect(getResponse.body.options.form_redirect_after_secs).to.eq('5');
+        expect(getResponse.body.options.form_redirect_after_secs).to.eq(5);
         expect(getResponse.body.options.send_response_email_to).to.eq(
           'admin@example.com',
         );
@@ -510,7 +510,7 @@ export default function () {
         expect(getResponse.body.options.send_response_email_to).to.eq(
           'updated@example.com',
         );
-        expect(getResponse.body.options.form_redirect_after_secs).to.eq('10');
+        expect(getResponse.body.options.form_redirect_after_secs).to.eq(10);
         expect(getResponse.body.options.thank_you_message).to.eq(
           'Updated thanks!',
         );
@@ -518,6 +518,94 @@ export default function () {
           false,
         );
         expect(getResponse.body.options.reset_form_after_submit).to.eq(false);
+      });
+
+      it(`will reject fields_by_id with non-existent field ID`, async () => {
+        await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: 'InvalidFieldForm',
+            type: 'form',
+            options: {
+              fields_by_id: {
+                non_existent_field_id: {
+                  alias: 'Ghost',
+                },
+              },
+            },
+          })
+          .expect(404);
+      });
+
+      it(`will reject invalid validator type via schema validation`, async () => {
+        const titleColumn = (await table.getColumns(ctx)).find(
+          (col) => col.title === 'Title',
+        );
+
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: 'BadValidatorForm',
+            type: 'form',
+            options: {
+              fields_by_id: {
+                [titleColumn.id]: {
+                  validators: [
+                    {
+                      type: 'nonExistentValidator',
+                      value: 5,
+                    },
+                  ],
+                },
+              },
+            },
+          });
+
+        expect(response.status).to.be.oneOf([400, 422]);
+      });
+
+      it(`will handle form_redirect_after_secs with zero and negative values`, async () => {
+        // Zero
+        const zeroResponse = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: 'ZeroRedirectForm',
+            type: 'form',
+            options: {
+              form_redirect_after_secs: 0,
+            },
+          })
+          .expect(200);
+
+        const getZero = await request(context.app)
+          .get(`${API_PREFIX}/views/${zeroResponse.body.id}`)
+          .set('xc-token', context.xc_token)
+          .expect(200);
+
+        expect(getZero.body.options.form_redirect_after_secs).to.eq(0);
+
+        // Negative
+        const negResponse = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: 'NegRedirectForm',
+            type: 'form',
+            options: {
+              form_redirect_after_secs: -1,
+            },
+          })
+          .expect(200);
+
+        const getNeg = await request(context.app)
+          .get(`${API_PREFIX}/views/${negResponse.body.id}`)
+          .set('xc-token', context.xc_token)
+          .expect(200);
+
+        expect(getNeg.body.options.form_redirect_after_secs).to.eq(-1);
       });
     });
 

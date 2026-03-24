@@ -18,11 +18,8 @@ export class CommentsV3Service {
       'fk_model_id',
       'comment',
       'created_by',
-      'created_by_email',
       'resolved_by',
-      'resolved_by_email',
       'parent_comment_id',
-      'is_deleted',
       'created_at',
       'updated_at',
     ],
@@ -30,10 +27,7 @@ export class CommentsV3Service {
       row_id: 'record_id',
       fk_model_id: 'table_id',
     },
-    transformFn: (data: Record<string, unknown>) => ({
-      ...data,
-      is_deleted: data.is_deleted ?? false,
-    }),
+    transformFn: (data: Record<string, unknown>) => data,
   });
 
   constructor(protected readonly commentsService: CommentsService) {}
@@ -65,7 +59,11 @@ export class CommentsV3Service {
     },
   ): Promise<Record<string, unknown>[]> {
     const result = await this.commentsService.commentList(context, param);
-    return this.builder().build(result) as unknown as Record<string, unknown>[];
+    const filtered = result.filter((r: any) => !r.is_deleted);
+    return this.builder().build(filtered) as unknown as Record<
+      string,
+      unknown
+    >[];
   }
 
   async commentUpdate(

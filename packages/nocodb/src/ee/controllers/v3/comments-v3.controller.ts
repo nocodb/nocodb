@@ -7,7 +7,6 @@ import {
   Param,
   Patch,
   Post,
-  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -116,21 +115,6 @@ export class CommentsV3Controller {
       commentId,
       user: req.user,
       req,
-    });
-  }
-
-  @Get(`${PREFIX_APIV3_METABASE}/tables/:tableId/comments/count`)
-  @Acl('commentCount')
-  async commentsCount(
-    @TenantContext() context: NcContext,
-    @Param('tableId') tableId: string,
-    @Query('ids') ids: string | string[],
-  ) {
-    await checkForFeature(context, PlanFeatureTypes.FEATURE_API_COMMENT_V3);
-
-    return await this.commentsV3Service.commentsCount(context, {
-      fk_model_id: tableId,
-      ids: Array.isArray(ids) ? ids : [ids],
     });
   }
 }

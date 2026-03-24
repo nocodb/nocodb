@@ -96,17 +96,6 @@ export class CommentsV3Service {
     return this.builder().build(result as any);
   }
 
-  async commentsCount(
-    context: NcContext,
-    param: { fk_model_id: string; ids: string[] },
-  ) {
-    const result = await this.commentsService.commentsCount(context, param);
-    return result.map((r: Record<string, unknown>) => ({
-      record_id: r.row_id,
-      count: r.count,
-    }));
-  }
-
   async commentDelete(
     context: NcContext,
     param: {

@@ -7888,75 +7888,6 @@
           }
         }
       }
-    },
-    "/api/v3/meta/bases/{baseId}/tables/{tableId}/comments/count": {
-      "get": {
-        "summary": "Count comments",
-        "operationId": "comments-count",
-        "tags": [
-          "Comments"
-        ],
-        "description": "Get comment counts for multiple records in a table.\n\n**Note**: Comment APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
-        "parameters": [
-          {
-            "name": "baseId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the base."
-          },
-          {
-            "name": "tableId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the table."
-          },
-          {
-            "name": "ids",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "description": "Array of row IDs to count comments for."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Comment counts retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CommentCountResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request."
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedV3"
-          },
-          "403": {
-            "$ref": "#/components/responses/ForbiddenV3"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFoundV3"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalServerErrorV3"
-          }
-        }
-      }
     }
   },
   "components": {
@@ -15344,29 +15275,6 @@
         "required": [
           "list"
         ]
-      },
-      "CommentCountResponse": {
-        "type": "array",
-        "description": "Comment counts per row.",
-        "items": {
-          "type": "object",
-          "properties": {
-            "count": {
-              "type": "string",
-              "description": "Number of comments.",
-              "example": "4"
-            },
-            "record_id": {
-              "type": "string",
-              "description": "Record ID.",
-              "example": "1"
-            }
-          },
-          "required": [
-            "count",
-            "record_id"
-          ]
-        }
       }
     },
     "responses": {

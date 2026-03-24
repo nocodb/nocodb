@@ -25,27 +25,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return navigateTo(url, { replace: true })
   }
 
-  // Redirect old workspace settings/integrations routes to new flat ws-level paths
-  if (to.name === 'index-typeOrId-settings') {
-    const wsId = to.params.typeOrId as string
-    const tab = (to.query.tab as string) || 'settings'
-    const slugMap: Record<string, string> = {
-      settings: 'more',
-      collaborator: 'members',
-      collaborators: 'members',
-      teams: 'teams',
-      integrations: 'integrations',
-      billing: 'billing',
-      audits: 'audits',
-      sso: 'sso',
-    }
-    return navigateTo(`/${wsId}/${slugMap[tab] || 'more'}`, { replace: true })
-  }
-
-  if (to.name === 'index-typeOrId-integrations') {
-    return navigateTo(`/${to.params.typeOrId}/integrations`, { replace: true })
-  }
-
   // Redirect old ?page= query param routes to new /settings/{slug} paths
   const page = to.query.page as string | undefined
 

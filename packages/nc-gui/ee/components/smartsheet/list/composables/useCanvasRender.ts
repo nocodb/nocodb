@@ -85,6 +85,9 @@ export function useCanvasRender({
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
 
+  // Tracked during renderCanvas loop, drawn after all rows
+  let warningRow: { screenY: number; rh: number } | null = null
+
   function getColors() {
     return {
       bg: getColor(themeV4Colors.base.white),
@@ -140,8 +143,8 @@ export function useCanvasRender({
     // Track last parent PK per depth (for addRow context)
     const lastPkAtDepth: Record<number, string | number> = {}
 
-    // Track sort-moved row for deferred rendering (drawn after all rows so label isn't painted over)
-    let warningRow: { screenY: number; rh: number } | null = null
+    // Reset warning row each frame
+    warningRow = null
 
     for (let i = start; i < end && i < totalRows.value; i++) {
       const row = rows.get(i)

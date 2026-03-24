@@ -86,6 +86,7 @@ const {
   onAddRow,
   activeCell,
   cachedRows,
+  handleRowSaved,
 } = useCanvasListView({
   scrollLeft,
   scrollTop,
@@ -343,7 +344,7 @@ async function saveRowProperty(cell: NonNullable<typeof activeCell.value>, rowOb
     const cached = cachedRows.value.get(cell.rowIndex)
     if (cached) {
       Object.assign(cached, updatedRowData)
-      triggerRefreshCanvas()
+      handleRowSaved(cell.rowIndex, property)
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

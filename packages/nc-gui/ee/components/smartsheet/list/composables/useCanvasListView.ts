@@ -126,15 +126,11 @@ export function useCanvasListView({
   }
 
   async function updateOrSaveRow(row: Row, property?: string): Promise<any> {
-    console.log('[ListView] updateOrSaveRow called', { property, pk: row.row?.__nc_pk, depth: row.row?.__nc_depth })
     if (!property) return
 
     const newVal = row.row[property]
     const oldVal = row.oldRow?.[property]
-    if (newVal === oldVal) {
-      console.log('[ListView] updateOrSaveRow: no change, skipping')
-      return
-    }
+    if (newVal === oldVal) return
 
     const depth = row.row.__nc_depth ?? 0
     const depthMeta = getMetaForDepth(depth)
@@ -187,10 +183,7 @@ export function useCanvasListView({
             pruneEmptyParents(cachedRows.value, chunkStates.value, totalRows, levelCounts.value, cachedRow.__nc_parent_id, depth - 1)
           }
         } else if (isSortAffected({ [property]: newVal }, depth)) {
-          console.log('[ListView] sort affected — marking __nc_sort_moved', { property, depth, pk: cachedRow.__nc_pk })
           cachedRow.__nc_sort_moved = true
-        } else {
-          console.log('[ListView] updateOrSaveRow: filter passed, sort not affected', { property, depth, sortFields: getSortFieldsForDepth(depth) })
         }
       }
 
@@ -198,6 +191,44 @@ export function useCanvasListView({
     } catch (e: any) {
       message.error(e.message || 'Failed to save')
     }
+  }
+
+  /**
+   * Called after a row is saved (from index.vue's saveRowProperty).
+   * Handles filter re-validation, sort marking, and row color re-evaluation.
+   */
+  function handleRowSaved(rowIndex: number, property: string) {
+    const cachedRow = cachedRows.value.get(rowIndex)
+    if (!cachedRow) return
+
+    const depth = cachedRow.__nc_depth
+
+    // Re-evaluate row color
+    const leafDepth = displayLevels.value.length - 1
+    if (depth === leafDepth && isRowColouringEnabled.value) {
+      cachedRow.__nc_color = getEvaluatedRowMetaRowColorInfo(cachedRow)
+    }
+
+    // Re-validate against filters — remove if row no longer passes
+    if (!validateRowForLevel(cachedRow, depth)) {
+      const { indices, removedCounts } = collectRowAndDescendants(cachedRows.value, totalRows.value, rowIndex, depth)
+      removeRowsAndShift(cachedRows.value, chunkStates.value, indices)
+
+      totalRows.value = Math.max(0, totalRows.value - indices.length)
+      for (const [modelId, count] of Object.entries(removedCounts)) {
+        if (levelCounts.value[modelId] !== undefined) {
+          levelCounts.value[modelId] = Math.max(0, levelCounts.value[modelId] - count)
+        }
+      }
+
+      if (cachedRow.__nc_parent_id && depth > 0) {
+        pruneEmptyParents(cachedRows.value, chunkStates.value, totalRows, levelCounts.value, String(cachedRow.__nc_parent_id), depth - 1)
+      }
+    } else if (isSortAffected({ [property]: cachedRow[property] }, depth)) {
+      cachedRow.__nc_sort_moved = true
+    }
+
+    triggerRefreshCanvas()
   }
 
   /**
@@ -821,8 +852,6 @@ export function useCanvasListView({
     if (isResizing.value) return
 
     // Apply deferred sort repositioning when user clicks away from the edited cell
-    const movedCount = Array.from(cachedRows.value.values()).filter((r) => r.__nc_sort_moved).length
-    if (movedCount) console.log(`[ListView] handleCanvasClick: applying sort reposition for ${movedCount} rows`)
     applySortReposition()
 
     const rect = canvasRef.value?.getBoundingClientRect()
@@ -1523,5 +1552,6 @@ export function useCanvasListView({
     onAddRow: addRowHook.on,
     activeCell,
     cachedRows,
+    handleRowSaved,
   }
 }

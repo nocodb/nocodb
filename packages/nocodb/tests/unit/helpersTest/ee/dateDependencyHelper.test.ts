@@ -139,10 +139,10 @@ export function dateDependencyHelperTests() {
           expect(data.end_date).to.equal('2025-01-05');
         });
 
-        it('should not set end date when duration is 0', () => {
+        it('should set end date equal to start date when duration is 0', () => {
           const data: Record<string, any> = { start_date: '2025-01-01', duration: 0 };
           applyDateDependencyFieldSync(data, null, makeRule(), cols);
-          expect(data.end_date).to.be.undefined;
+          expect(data.end_date).to.equal('2025-01-01');
         });
       });
 

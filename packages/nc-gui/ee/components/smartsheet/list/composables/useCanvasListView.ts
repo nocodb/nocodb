@@ -263,7 +263,36 @@ export function useCanvasListView({
       const parentPk = current.row.__nc_parent_id
       const parentIndex = depth > 0 && parentPk ? findCachedRowByPk(cachedRows.value, String(parentPk), depth - 1)?.index ?? null : null
 
-      const newInsertAt = findSortedInsertIndex(cachedRows.value, totalRows.value, current.row, depth, parentIndex, getSortFieldsForDepth(depth), getColumnsByIdForDepth(depth))
+      const sortFields = getSortFieldsForDepth(depth)
+      const newInsertAt = findSortedInsertIndex(cachedRows.value, totalRows.value, current.row, depth, parentIndex, sortFields, getColumnsByIdForDepth(depth))
+
+      // Debug: log sibling values for the sort field
+      const siblings: any[] = []
+      if (parentIndex !== null) {
+        let si = parentIndex + 1
+        while (si < totalRows.value) {
+          const sr = cachedRows.value.get(si)
+          if (!sr || sr.__nc_depth < depth) break
+          if (sr.__nc_depth === depth) siblings.push({ idx: si, pk: sr.__nc_pk, val: sortFields[0] ? sr[sortFields[0].title] : '?' })
+          si++
+        }
+      } else {
+        for (const [si, sr] of cachedRows.value.entries()) {
+          if (sr.__nc_depth === 0) siblings.push({ idx: si, pk: sr.__nc_pk, val: sortFields[0] ? sr[sortFields[0].title] : '?' })
+        }
+      }
+      console.log('[ListView] applySortReposition', {
+        pk: current.row.__nc_pk,
+        sortField: sortFields[0]?.title,
+        rowVal: sortFields[0] ? current.row[sortFields[0].title] : '?',
+        direction: sortFields[0]?.direction,
+        siblings,
+        newInsertAt,
+        parentIndex,
+        totalRows: totalRows.value,
+        cacheSize: cachedRows.value.size,
+      })
+
       insertRowsAt(cachedRows.value, chunkStates.value, newInsertAt, subtreeRows)
     }
 
@@ -851,14 +880,19 @@ export function useCanvasListView({
   async function handleCanvasClick(e: MouseEvent) {
     if (isResizing.value) return
 
-    // Apply deferred sort repositioning when user clicks away from the edited cell
-    applySortReposition()
-
     const rect = canvasRef.value?.getBoundingClientRect()
     if (!rect) return
 
     const x = e.clientX - rect.left
     const y = e.clientY - rect.top
+
+    // Only apply deferred sort repositioning when clicking AWAY from the moved row
+    const clickedRowEl = findElementAt(x, y, 'row')
+    const clickedRowIndex = clickedRowEl?.rowIndex ?? -1
+    const clickedRow = clickedRowIndex >= 0 ? cachedRows.value.get(clickedRowIndex) : null
+    if (!clickedRow?.__nc_sort_moved) {
+      applySortReposition()
+    }
 
     const expandEl = findElementAt(x, y, 'expandRow')
     if (expandEl) {

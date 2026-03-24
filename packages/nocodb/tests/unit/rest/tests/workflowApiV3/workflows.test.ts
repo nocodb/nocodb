@@ -1,8 +1,10 @@
 import { expect } from 'chai';
 import request from 'supertest';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import { createProject } from '../../../factory/base';
 import init from '../../../init';
 import type { IInitContext, ITestContext } from '../../../init';
+import { overrideFeature } from '../../../utils/plan.utils';
 
 const API_VERSION = 'v3';
 
@@ -11,10 +13,17 @@ describe('workflowApiV3', () => {
   let app: any;
   let token: string;
   let baseId: string;
+  let featureMock: any;
 
   beforeEach(async () => {
     const context = await init();
     const base = await createProject(context);
+
+    featureMock = await overrideFeature({
+      workspace_id: context.fk_workspace_id,
+      feature: `${PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT}`,
+      allowed: true,
+    });
 
     testContext = {
       context,
@@ -28,6 +37,10 @@ describe('workflowApiV3', () => {
     app = context.app;
     token = context.token;
     baseId = base.id;
+  });
+
+  afterEach(async () => {
+    await featureMock?.restore?.();
   });
 
   const workflowUrlPrefix = () =>

@@ -1,5 +1,6 @@
 import { runOnSet } from '../utils/runOnSet';
 import { NcConcurrentTest } from './NcConcurrent.test';
+import { publicDatasSanitizeTest } from './publicDatasSanitize.test';
 import { stringHelperTest } from './stringHelpers.test';
 import { planResolutionTests } from './planResolution.test';
 
@@ -18,6 +19,7 @@ function _helperTests() {
   dashboardV3ConfigTransformTest();
   dateDependencyHelperTests();
   planResolutionTests();
+  describe('PublicDatasService - shared view column sanitization', publicDatasSanitizeTest);
 }
 export const helperTests = runOnSet(1, function () {
   describe('helpersTest', _helperTests);

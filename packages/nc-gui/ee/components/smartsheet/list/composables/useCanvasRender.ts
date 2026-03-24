@@ -272,7 +272,8 @@ export function useCanvasRender({
 
       ctx.fillStyle = getColor(themeV4Colors.gray['800'])
       ctx.font = '600 12px Inter'
-      ctx.fillText('Row moved', 10, labelY + 16)
+      ctx.textBaseline = 'middle'
+      ctx.fillText('Row moved', 10, labelY + 12.5)
 
       ctx.restore()
     }

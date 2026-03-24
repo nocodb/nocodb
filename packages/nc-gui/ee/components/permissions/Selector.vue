@@ -274,7 +274,7 @@ const handleClickDropdown = (e: MouseEvent) => {
         'flex-col': horizontal,
       }"
     >
-      <div class="flex flex-col" :class="{ 'w-full': !horizontal }">
+      <div class="flex flex-col flex-none">
         <div class="flex items-center gap-3">
           <div v-if="mode === 'full' && horizontal" class="flex-1">
             {{ permissionLabel }}
@@ -288,7 +288,7 @@ const handleClickDropdown = (e: MouseEvent) => {
                 : !readonly
                 ? horizontal
                   ? 'w-[200px]'
-                  : 'min-w-[165px]'
+                  : 'w-[165px]'
                 : removeReadonlyPadding
                 ? '!px-0 !border-0'
                 : '!border-0'

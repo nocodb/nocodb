@@ -270,7 +270,7 @@ watch(selectedUsersList, () => {
             v-if="hiddenCount > 0"
             class="flex items-center gap-1 pr-2 py-0.5 !text-caption text-nc-content-gray-subtle2 truncate"
           >
-            {{ t('msg.permissions.inlineUserSelector.moreUsers', { count: hiddenCount }) }}
+            {{ t('objects.permissions.inlineUserSelector.moreUsers', { count: hiddenCount }) }}
           </div>
         </div>
 

@@ -140,6 +140,9 @@ export function useCanvasRender({
     // Track last parent PK per depth (for addRow context)
     const lastPkAtDepth: Record<number, string | number> = {}
 
+    // Track sort-moved row for deferred rendering (drawn after all rows so label isn't painted over)
+    let warningRow: { screenY: number; rh: number } | null = null
+
     for (let i = start; i < end && i < totalRows.value; i++) {
       const row = rows.get(i)
       if (!row) {
@@ -241,6 +244,34 @@ export function useCanvasRender({
         }
         y += ADD_ROW_HEIGHT
       }
+    }
+
+    // Sort-moved warning row — drawn after all rows so the label isn't covered
+    if (warningRow) {
+      const warningColor = getColor(themeV4Colors.yellow['500'])
+
+      ctx.save()
+
+      // Bottom border
+      ctx.strokeStyle = warningColor
+      ctx.lineWidth = 4
+      ctx.beginPath()
+      ctx.moveTo(0, warningRow.screenY + warningRow.rh)
+      ctx.lineTo(width.value, warningRow.screenY + warningRow.rh)
+      ctx.stroke()
+
+      // "Row moved" label badge
+      const labelY = warningRow.screenY + warningRow.rh
+      ctx.fillStyle = warningColor
+      ctx.beginPath()
+      ctx.roundRect(0, labelY, 90, 25, [0, 0, 6, 0])
+      ctx.fill()
+
+      ctx.fillStyle = getColor(themeV4Colors.gray['800'])
+      ctx.font = '600 12px Inter'
+      ctx.fillText('Row moved', 10, labelY + 16)
+
+      ctx.restore()
     }
 
     // Sticky header (drawn last to overlay — shows columns for the depth
@@ -455,32 +486,9 @@ export function useCanvasRender({
       ctx.fill()
     }
 
-    // Sort-moved indicator: bottom border with "Row moved" label (matches grid style)
+    // Track sort-moved row — rendered after the loop so it's not painted over
     if (row.__nc_sort_moved) {
-      const warningColor = getColor(themeV4Colors.yellow['500'])
-
-      ctx.save()
-
-      // Bottom border
-      ctx.strokeStyle = warningColor
-      ctx.lineWidth = 3
-      ctx.beginPath()
-      ctx.moveTo(0, screenY + rh)
-      ctx.lineTo(width.value, screenY + rh)
-      ctx.stroke()
-
-      // "Row moved" label — rounded rect badge at bottom-left
-      const labelY = screenY + rh
-      ctx.fillStyle = warningColor
-      ctx.beginPath()
-      ctx.roundRect(0, labelY, 90, 25, [0, 0, 6, 0])
-      ctx.fill()
-
-      ctx.fillStyle = getColor(themeV4Colors.gray['800'])
-      ctx.font = '600 12px Inter'
-      ctx.fillText('Row moved', 10, labelY + 7 + 9)
-
-      ctx.restore()
+      warningRow = { screenY, rh }
     }
 
     // Element map: row

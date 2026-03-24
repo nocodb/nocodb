@@ -455,6 +455,42 @@ export function useCanvasRender({
       ctx.fill()
     }
 
+    // Sort-moved indicator: orange top + bottom border with "Row moved" label
+    if (row.__nc_sort_moved) {
+      ctx.save()
+      ctx.strokeStyle = 'orange'
+      ctx.lineWidth = 2
+
+      // Top border
+      ctx.beginPath()
+      ctx.moveTo(0, screenY)
+      ctx.lineTo(width.value, screenY)
+      ctx.stroke()
+
+      // Bottom border
+      ctx.beginPath()
+      ctx.moveTo(0, screenY + rh)
+      ctx.lineTo(width.value, screenY + rh)
+      ctx.stroke()
+
+      // "Row moved" label
+      const labelW = 90
+      const labelH = 22
+      const labelX = 0
+      const labelY = screenY + rh
+
+      ctx.fillStyle = 'orange'
+      ctx.beginPath()
+      ctx.roundRect(labelX, labelY, labelW, labelH, [0, 0, 6, 0])
+      ctx.fill()
+
+      ctx.fillStyle = '#1f2937'
+      ctx.font = '600 12px Inter'
+      ctx.fillText('Row moved', labelX + 10, labelY + 15)
+
+      ctx.restore()
+    }
+
     // Element map: row
     elementMap.value.push({
       type: 'row',

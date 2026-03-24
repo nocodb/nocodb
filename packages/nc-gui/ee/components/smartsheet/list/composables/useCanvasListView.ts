@@ -183,16 +183,10 @@ export function useCanvasListView({
             pruneEmptyParents(cachedRows.value, chunkStates.value, totalRows, levelCounts.value, cachedRow.__nc_parent_id, depth - 1)
           }
         } else if (isSortAffected({ [property]: newVal }, depth)) {
-          // Sort-affecting change — reposition the row among its siblings
-          const { indices: subtreeIndices } = collectRowAndDescendants(cachedRows.value, totalRows.value, cachedRowIndex, depth)
-          const subtreeRows: ListViewRow[] = subtreeIndices.map((i) => cachedRows.value.get(i)!).filter(Boolean)
-          removeRowsAndShift(cachedRows.value, chunkStates.value, subtreeIndices)
-
-          const parentPk = cachedRow.__nc_parent_id
-          const parentIndex = depth > 0 && parentPk ? findCachedRowByPk(cachedRows.value, parentPk, depth - 1)?.index ?? null : null
-
-          const newInsertAt = findSortedInsertIndex(cachedRows.value, totalRows.value, cachedRow, depth, parentIndex, getSortFieldsForDepth(depth), getColumnsByIdForDepth(depth))
-          insertRowsAt(cachedRows.value, chunkStates.value, newInsertAt, subtreeRows)
+          // Mark the row — don't move it yet. The canvas will show an orange
+          // "Row moved" indicator. The actual reposition happens on focus change
+          // (applySortReposition), matching grid behaviour.
+          cachedRow.__nc_sort_moved = true
         }
       }
 
@@ -200,6 +194,45 @@ export function useCanvasListView({
     } catch (e: any) {
       message.error(e.message || 'Failed to save')
     }
+  }
+
+  /**
+   * Apply deferred sort repositioning for all rows marked with __nc_sort_moved.
+   * Called on focus change (when user clicks a different cell or clicks away),
+   * matching grid's applySorting-on-blur behaviour.
+   */
+  function applySortReposition() {
+    const movedRows: { index: number; row: ListViewRow }[] = []
+
+    for (const [idx, row] of cachedRows.value.entries()) {
+      if (row.__nc_sort_moved) {
+        movedRows.push({ index: idx, row })
+      }
+    }
+
+    if (!movedRows.length) return
+
+    // Process each moved row: remove → find correct position → re-insert
+    for (const { row } of movedRows) {
+      // Re-find the row (indices shift after each move)
+      const current = findCachedRowByPk(cachedRows.value, String(row.__nc_pk), row.__nc_depth)
+      if (!current) continue
+
+      const depth = current.row.__nc_depth
+      current.row.__nc_sort_moved = false
+
+      const { indices: subtreeIndices } = collectRowAndDescendants(cachedRows.value, totalRows.value, current.index, depth)
+      const subtreeRows: ListViewRow[] = subtreeIndices.map((i) => cachedRows.value.get(i)!).filter(Boolean)
+      removeRowsAndShift(cachedRows.value, chunkStates.value, subtreeIndices)
+
+      const parentPk = current.row.__nc_parent_id
+      const parentIndex = depth > 0 && parentPk ? findCachedRowByPk(cachedRows.value, String(parentPk), depth - 1)?.index ?? null : null
+
+      const newInsertAt = findSortedInsertIndex(cachedRows.value, totalRows.value, current.row, depth, parentIndex, getSortFieldsForDepth(depth), getColumnsByIdForDepth(depth))
+      insertRowsAt(cachedRows.value, chunkStates.value, newInsertAt, subtreeRows)
+    }
+
+    triggerRefreshCanvas()
   }
 
   const {
@@ -782,6 +815,9 @@ export function useCanvasListView({
 
   async function handleCanvasClick(e: MouseEvent) {
     if (isResizing.value) return
+
+    // Apply deferred sort repositioning when user clicks away from the edited cell
+    applySortReposition()
 
     const rect = canvasRef.value?.getBoundingClientRect()
     if (!rect) return

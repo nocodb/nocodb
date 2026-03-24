@@ -126,11 +126,15 @@ export function useCanvasListView({
   }
 
   async function updateOrSaveRow(row: Row, property?: string): Promise<any> {
+    console.log('[ListView] updateOrSaveRow called', { property, pk: row.row?.__nc_pk, depth: row.row?.__nc_depth })
     if (!property) return
 
     const newVal = row.row[property]
     const oldVal = row.oldRow?.[property]
-    if (newVal === oldVal) return
+    if (newVal === oldVal) {
+      console.log('[ListView] updateOrSaveRow: no change, skipping')
+      return
+    }
 
     const depth = row.row.__nc_depth ?? 0
     const depthMeta = getMetaForDepth(depth)
@@ -183,10 +187,10 @@ export function useCanvasListView({
             pruneEmptyParents(cachedRows.value, chunkStates.value, totalRows, levelCounts.value, cachedRow.__nc_parent_id, depth - 1)
           }
         } else if (isSortAffected({ [property]: newVal }, depth)) {
-          // Mark the row — don't move it yet. The canvas will show an orange
-          // "Row moved" indicator. The actual reposition happens on focus change
-          // (applySortReposition), matching grid behaviour.
+          console.log('[ListView] sort affected — marking __nc_sort_moved', { property, depth, pk: cachedRow.__nc_pk })
           cachedRow.__nc_sort_moved = true
+        } else {
+          console.log('[ListView] updateOrSaveRow: filter passed, sort not affected', { property, depth, sortFields: getSortFieldsForDepth(depth) })
         }
       }
 
@@ -817,6 +821,8 @@ export function useCanvasListView({
     if (isResizing.value) return
 
     // Apply deferred sort repositioning when user clicks away from the edited cell
+    const movedCount = Array.from(cachedRows.value.values()).filter((r) => r.__nc_sort_moved).length
+    if (movedCount) console.log(`[ListView] handleCanvasClick: applying sort reposition for ${movedCount} rows`)
     applySortReposition()
 
     const rect = canvasRef.value?.getBoundingClientRect()

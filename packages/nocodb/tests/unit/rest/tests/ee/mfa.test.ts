@@ -282,14 +282,12 @@ function mfaTests() {
   // --- Disable ---
 
   describe('MFA Disable', () => {
-    it('should disable 2FA with valid TOTP code', async () => {
-      const setupData = await enable2FA();
-      const code = await generateTotpCode(setupData.secret);
+    it('should disable 2FA', async () => {
+      await enable2FA();
 
       const res = await request(context.app)
         .post('/api/v2/auth/mfa/disable')
         .set('xc-auth', context.token)
-        .send({ code })
         .expect(200);
 
       expect(res.body.msg).to.include('disabled');
@@ -304,14 +302,12 @@ function mfaTests() {
     });
 
     it('should allow normal signin after disable', async () => {
-      const setupData = await enable2FA();
-      const code = await generateTotpCode(setupData.secret);
+      await enable2FA();
 
       // Disable
       await request(context.app)
         .post('/api/v2/auth/mfa/disable')
         .set('xc-auth', context.token)
-        .send({ code })
         .expect(200);
 
       // Signin should return token directly (no twoFactorRequired)
@@ -327,21 +323,10 @@ function mfaTests() {
       expect(res.body.twoFactorRequired).to.be.undefined;
     });
 
-    it('should reject invalid TOTP code', async () => {
-      await enable2FA();
-
-      await request(context.app)
-        .post('/api/v2/auth/mfa/disable')
-        .set('xc-auth', context.token)
-        .send({ code: '000000' })
-        .expect(400);
-    });
-
     it('should reject if 2FA not enabled', async () => {
       await request(context.app)
         .post('/api/v2/auth/mfa/disable')
         .set('xc-auth', context.token)
-        .send({ code: '123456' })
         .expect(400);
     });
   });
@@ -409,6 +394,14 @@ function mfaTests() {
         .expect(400);
     });
   });
+  // --- Force 2FA (Workspace-level) ---
+  // These tests require a multi-user workspace setup (owner + non-owner member)
+  // because workspace owners are exempt from force 2FA enforcement.
+  // The middleware enforcement is tested via manual/E2E testing:
+  // 1. Set workspace meta.force_2fa = true
+  // 2. Non-owner member without 2FA → 403 ERR_MFA_SETUP_REQUIRED
+  // 3. Non-owner member with 2FA → allowed
+  // 4. Workspace owner without 2FA → allowed (exempt)
 }
 
 export default function () {

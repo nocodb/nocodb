@@ -57,6 +57,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const ssoLoginRequiredDlg = ref(false)
 
+  const mfaSetupRequiredDlg = ref(false)
+
   const upgradeWsDlg = ref(false)
   const upgradeWsJobId = ref<string | null>(null)
 
@@ -341,6 +343,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     ssoLoginRequiredDlg.value = _show
   }
 
+  const toggleMfaSetupRequiredDlg = (_show = !mfaSetupRequiredDlg.value) => {
+    mfaSetupRequiredDlg.value = _show
+  }
+
   /**
    * Teams section start here
    */
@@ -446,6 +452,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isWorkspacesLoading,
     ssoLoginRequiredDlg,
     toggleSsoLoginRequiredDlg,
+    mfaSetupRequiredDlg,
+    toggleMfaSetupRequiredDlg,
     upgradeWsDlg,
     upgradeWsJobId,
     removingCollaboratorMap,

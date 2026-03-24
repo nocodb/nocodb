@@ -268,6 +268,7 @@ watch(
     </NuxtLayout>
     <DlgSharedBaseDuplicate v-model="isDuplicateDlgOpen" />
     <DlgWorkspaceSsoRedirectConfirm />
+    <DlgWorkspaceMfaSetupRequired />
     <DlgOrgSsoRedirectConfirm />
   </div>
 </template>

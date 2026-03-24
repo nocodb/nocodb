@@ -24,9 +24,6 @@ const setupPasswordInput = ref<HTMLInputElement>()
 
 // Disable state
 const showDisableModal = ref(false)
-const disableCode = ref('')
-const disableError = ref('')
-const disableCodeInput = ref<HTMLInputElement>()
 
 // Backup codes state
 const showRegenerateModal = ref(false)
@@ -114,22 +111,16 @@ function closeSetupModal() {
 }
 
 async function confirmDisable() {
-  if (!disableCode.value) return
-
   isLoading.value = true
-  disableError.value = ''
 
   try {
-    await api.instance.post('/api/v2/auth/mfa/disable', {
-      code: disableCode.value,
-    })
+    await api.instance.post('/api/v2/auth/mfa/disable')
     mfaEnabled.value = false
     showDisableModal.value = false
-    disableCode.value = ''
     $e('a:account:security:2fa-disabled')
     message.success(t('msg.success.twoFactorDisabled'))
   } catch (e: any) {
-    disableError.value = await extractSdkResponseErrorMsg(e)
+    message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     isLoading.value = false
   }
@@ -191,14 +182,6 @@ function goToVerifyStep() {
   setupStep.value = 'verify'
   nextTick(() => setupCodeInput.value?.focus())
 }
-
-watch(showDisableModal, (v) => {
-  if (v) {
-    disableCode.value = ''
-    disableError.value = ''
-    nextTick(() => disableCodeInput.value?.focus())
-  }
-})
 
 watch(showRegenerateModal, (v) => {
   if (v) {
@@ -456,30 +439,11 @@ onMounted(() => {
           </template>
         </NcAlert>
 
-        <span class="text-sm text-nc-content-gray-subtle mt-1">
-          {{ $t('labels.enterCodeToDisable') }}
-        </span>
-
-        <div class="flex flex-col gap-2 mt-2">
-          <span class="text-sm">{{ $t('labels.verificationCode') }}</span>
-          <a-input
-            ref="disableCodeInput"
-            v-model:value="disableCode"
-            data-testid="nc-2fa-disable-code"
-            class="w-full nc-input-sm nc-input-shadow"
-            :placeholder="$t('placeholder.enterVerificationCode')"
-            autocomplete="one-time-code"
-            @pressEnter="confirmDisable"
-          />
-        </div>
-
-        <div v-if="disableError" class="text-red-500 text-sm">{{ disableError }}</div>
-
         <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
           <NcButton type="secondary" size="small" @click="showDisableModal = false">
             {{ $t('general.cancel') }}
           </NcButton>
-          <NcButton type="danger" size="small" :loading="isLoading" :disabled="!disableCode" @click="confirmDisable">
+          <NcButton type="danger" size="small" :loading="isLoading" @click="confirmDisable">
             {{ $t('labels.disableTwoFactor') }}
           </NcButton>
         </div>

@@ -132,17 +132,12 @@ export class MfaService {
     return { msg: 'Two-factor authentication has been enabled' };
   }
 
-  async disable(userId: string, code: string, req: NcRequest) {
+  async disable(userId: string, req: NcRequest) {
     const user = await User.get(userId);
     if (!user) NcError.userNotFound(userId);
 
     if (!user.totp_enabled) {
       NcError.badRequest('Two-factor authentication is not enabled');
-    }
-
-    const method = await this.verifyCode(user.totp_secret, code, user);
-    if (!method) {
-      NcError.badRequest('Invalid verification code');
     }
 
     // Disable 2FA and clear secrets

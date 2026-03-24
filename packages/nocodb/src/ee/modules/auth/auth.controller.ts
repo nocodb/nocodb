@@ -116,8 +116,8 @@ export class AuthController extends AuthControllerCE {
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Acl('mfaDisable', { scope: 'org' })
   @HttpCode(200)
-  async mfaDisable(@Req() req: NcRequest, @Body() body: { code: string }) {
-    return this.mfaService.disable(req.user.id, body.code, req);
+  async mfaDisable(@Req() req: NcRequest) {
+    return this.mfaService.disable(req.user.id, req);
   }
 
   @Get(['/api/v2/auth/mfa/status'])

@@ -269,6 +269,9 @@ export const useEeConfig = createSharedComposable(() => {
   const blockMfa = computed(() => true)
   const showUpgradeToUseMfa = (..._args: any[]) => {}
 
+  const blockForce2fa = computed(() => true)
+  const showUpgradeToUseForce2fa = (..._args: any[]) => {}
+
   const isEEFeatureBlocked = computed(() => true)
 
   const showEEFeatures = computed(() => false)
@@ -461,5 +464,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseTrashSettings,
     blockMfa,
     showUpgradeToUseMfa,
+    blockForce2fa,
+    showUpgradeToUseForce2fa,
   }
 })

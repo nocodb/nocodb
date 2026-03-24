@@ -47,6 +47,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const ssoLoginRequiredDlg = ref(false)
 
+  const mfaSetupRequiredDlg = ref(false)
+
   const { loadRoles, isUIAllowed } = useRoles()
 
   const { user: currentUser } = useGlobal()
@@ -672,6 +674,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const toggleSsoLoginRequiredDlg = (show = !ssoLoginRequiredDlg.value) => {
     ssoLoginRequiredDlg.value = show
+  }
+
+  const toggleMfaSetupRequiredDlg = (show = !mfaSetupRequiredDlg.value) => {
+    mfaSetupRequiredDlg.value = show
   }
 
   /**
@@ -1437,6 +1443,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     deletingWorkspace,
     ssoLoginRequiredDlg,
     toggleSsoLoginRequiredDlg,
+    mfaSetupRequiredDlg,
+    toggleMfaSetupRequiredDlg,
     upgradeWsDlg,
     upgradeWsJobId,
     removingCollaboratorMap,

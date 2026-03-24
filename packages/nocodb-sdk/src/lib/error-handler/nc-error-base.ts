@@ -547,6 +547,11 @@ export class NcErrorBase {
       }
     );
   }
+  mfaSetupRequired(ncWorkspaceId: string): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_MFA_SETUP_REQUIRED, {
+      params: ncWorkspaceId,
+    });
+  }
   maxPayloadLimitExceeded(limit: number, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
       NcErrorType.ERR_MAX_PAYLOAD_LIMIT_EXCEEDED,

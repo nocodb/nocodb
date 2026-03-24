@@ -273,6 +273,11 @@ export const presetErrorCodexMap: Partial<
       'This workspace requires SSO-authenticated tokens. Please generate a new token after signing in with SSO',
     code: 403,
   },
+  [NcErrorType.ERR_MFA_SETUP_REQUIRED]: {
+    message: (_workspaceId: string) =>
+      'Two-factor authentication setup required for this workspace',
+    code: 403,
+  },
   [NcErrorType.ERR_MAX_PAYLOAD_LIMIT_EXCEEDED]: {
     message: (limit: string) =>
       `Maximum ${limit} entities are allowed per request`,

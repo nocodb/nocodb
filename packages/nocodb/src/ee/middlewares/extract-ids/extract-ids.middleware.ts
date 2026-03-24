@@ -76,9 +76,11 @@ import {
   checkIfEmailAllowedNonSSOForOrg,
   checkIfOrgSSOAvail,
   checkIfWorkspaceSSOAvail,
+  getFeature,
 } from '~/helpers/paymentHelpers';
 import MCPToken from '~/models/MCPToken';
 import Widget from '~/models/Widget';
+import Workspace from '~/models/Workspace';
 import { isCloud, isOnPrem } from '~/utils';
 import { isMuxEnabled } from '~/utils/envs';
 import Noco from '~/Noco';
@@ -1419,6 +1421,29 @@ export class AclMiddleware implements NestInterceptor {
         }
 
         NcError.allowedOnlySSOAccess(req.ncOrgId);
+      }
+    }
+
+    // If workspace requires 2FA, block users who haven't set it up
+    // Skip for workspace owners, service users, and API tokens
+    // Only enforced when the force_2fa plan feature is available
+    if (
+      req.ncWorkspaceId &&
+      !req.user?.workspace_roles?.[WorkspaceUserRoles.OWNER] &&
+      !isServiceUser(req.user) &&
+      !req.user?.is_api_token &&
+      (await getFeature(
+        PlanFeatureTypes.FEATURE_FORCE_2FA,
+        req.ncWorkspaceId,
+      ))
+    ) {
+      const workspace = await Workspace.get(req.ncWorkspaceId);
+      const meta =
+        typeof workspace?.meta === 'string'
+          ? JSON.parse(workspace.meta)
+          : workspace?.meta;
+      if (meta?.force_2fa && !req.user?.totp_enabled) {
+        NcError.mfaSetupRequired(req.ncWorkspaceId);
       }
     }
 

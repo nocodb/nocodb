@@ -366,6 +366,8 @@ const { isDataReadOnly, isUIAllowed } = useRoles()
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 const { copy } = useCopy()
 
+const isSyncedTable = computed(() => !!meta.value?.synced)
+
 function contextExpandRecord() {
   const target = contextMenuTarget.value
   if (!target) return
@@ -390,7 +392,7 @@ async function contextCopyCell() {
 
 async function contextClearCell() {
   const target = contextMenuTarget.value
-  if (!target?.column || target.column.readonly) return
+  if (!target?.column || target.column.readonly || isDataReadOnly.value || isPublicView.value || isSyncedTable.value) return
 
   const depthMeta = getMetaForDepthFromComposable(target.depth) || getMetaForDepth(target.depth)
   if (!depthMeta) return
@@ -422,7 +424,7 @@ async function contextClearCell() {
 
 async function contextDeleteRow() {
   const target = contextMenuTarget.value
-  if (!target) return
+  if (!target || isDataReadOnly.value || isPublicView.value || isSyncedTable.value) return
 
   const depthMeta = getMetaForDepthFromComposable(target.depth) || getMetaForDepth(target.depth)
   if (!depthMeta) return
@@ -508,8 +510,9 @@ function contextAddComment() {
             />
             <template #overlay>
               <NcMenu v-if="contextMenuTarget" class="!rounded !py-0" variant="small">
-                <NcMenuItem key="expand-record" @click="contextExpandRecord">
-                  <div class="flex gap-2 items-center">
+                <!-- Expand record — always available -->
+                <NcMenuItem key="expand-record" data-testid="nc-list-context-expand" @click="contextExpandRecord">
+                  <div v-e="['c:list:context:expand']" class="flex gap-2 items-center">
                     <GeneralIcon icon="expand" />
                     {{ $t('activity.expandRecord') }}
                   </div>
@@ -517,38 +520,60 @@ function contextAddComment() {
 
                 <NcDivider />
 
-                <NcMenuItem v-if="contextMenuTarget.column" key="copy-cell" @click="contextCopyCell">
-                  <div class="flex gap-2 items-center">
+                <!-- Copy cell — when right-clicked on a cell -->
+                <NcMenuItem
+                  v-if="contextMenuTarget.column"
+                  key="copy-cell"
+                  data-testid="nc-list-context-copy"
+                  @click="contextCopyCell"
+                >
+                  <div v-e="['c:list:context:copy']" class="flex gap-2 items-center">
                     <GeneralIcon icon="copy" />
                     {{ $t('general.copy') }} {{ $t('objects.cell').toLowerCase() }}
                   </div>
                 </NcMenuItem>
 
+                <!-- Clear cell — editable, non-virtual (or LTAR), non-readonly, non-synced, non-public -->
                 <NcMenuItem
-                  v-if="contextMenuTarget.column && !contextMenuTarget.column.readonly && !isDataReadOnly"
+                  v-if="
+                    contextMenuTarget.column &&
+                    !contextMenuTarget.column.readonly &&
+                    !isDataReadOnly &&
+                    !isPublicView &&
+                    !isSyncedTable &&
+                    (!contextMenuTarget.column.virtual || isLinksOrLTAR(contextMenuTarget.column.columnObj))
+                  "
                   key="clear-cell"
+                  data-testid="nc-list-context-clear"
                   @click="contextClearCell"
                 >
-                  <div class="flex gap-2 items-center">
+                  <div v-e="['c:list:context:clear']" class="flex gap-2 items-center">
                     <GeneralIcon icon="close" />
                     {{ $t('general.clear') }} {{ $t('objects.cell').toLowerCase() }}
                   </div>
                 </NcMenuItem>
 
-                <template v-if="isUIAllowed('commentEdit')">
+                <!-- Add comment — non-public, has comment permission -->
+                <template v-if="!isPublicView && isUIAllowed('commentEdit')">
                   <NcDivider />
-                  <NcMenuItem key="add-comment" @click="contextAddComment">
-                    <div class="flex gap-2 items-center">
+                  <NcMenuItem key="add-comment" data-testid="nc-list-context-comment" @click="contextAddComment">
+                    <div v-e="['c:list:context:comment']" class="flex gap-2 items-center">
                       <GeneralIcon icon="ncComment" />
                       {{ $t('general.add') }} {{ $t('general.comment').toLowerCase() }}
                     </div>
                   </NcMenuItem>
                 </template>
 
-                <template v-if="isUIAllowed('dataEdit') && !isDataReadOnly">
+                <!-- Delete row — non-public, non-synced, has edit permission -->
+                <template v-if="!isPublicView && !isSyncedTable && isUIAllowed('dataEdit') && !isDataReadOnly">
                   <NcDivider />
-                  <NcMenuItem key="delete-row" class="!text-red-500 !hover:bg-red-50" @click="contextDeleteRow">
-                    <div class="flex gap-2 items-center">
+                  <NcMenuItem
+                    key="delete-row"
+                    danger
+                    data-testid="nc-list-context-delete"
+                    @click="contextDeleteRow"
+                  >
+                    <div v-e="['c:list:context:delete']" class="flex gap-2 items-center">
                       <GeneralIcon icon="delete" />
                       {{ $t('activity.deleteRow') }}
                     </div>

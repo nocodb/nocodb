@@ -176,6 +176,12 @@ export class DataImportProcessor {
         }
       }
 
+      if (Object.keys(colMap).length === 0) {
+        NcError.badRequest(
+          'No valid column mappings found. Please check your column configuration.',
+        );
+      }
+
       // Step 2: Parse and bulk insert data
       if (!options.shouldImportData) {
         logBasic('Import completed (schema only, no data).');
@@ -250,7 +256,7 @@ export class DataImportProcessor {
           tableId,
           tableName: finalTableName,
         },
-        message: 'Import failed. Please check the file format and try again.',
+        message: e.message || 'Import failed. Please check the file format and try again.',
       };
     }
   }
@@ -435,6 +441,9 @@ export class DataImportProcessor {
               );
             } catch (e) {
               this.logger.error(`Batch flush error: ${e.message}`, e.stack);
+              parser.abort();
+              reject(e);
+              return;
             }
             parser.resume();
           }

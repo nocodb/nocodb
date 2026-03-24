@@ -99,6 +99,15 @@ export class DataImportService {
       });
     });
 
+    if (!headers.length) {
+      return {
+        columns: [],
+        previewData: [],
+        totalSampleRows: 0,
+        detectedDelimiter: delimiter || ',',
+      };
+    }
+
     const columns = detectColumnTypes(headers, sampleRows, {
       maxRowsToParse,
       autoSelectFieldTypes,

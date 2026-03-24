@@ -301,8 +301,6 @@ async function handlePreImport() {
 
 // Server-side import: upload file, call preview API, populate template data (CSV only)
 async function handleServerPreImport(isFileMode: boolean) {
-  let attachment: { path?: string; url?: string; title?: string; mimetype?: string; size?: number }
-
   const draftTableNames: string[] = []
   const tables: any[] = []
   const allImportData: Record<string, any[]> = {}
@@ -561,7 +559,7 @@ const beforeUpload = (file: UploadFile, fileList: UploadFile[]) => {
     showMaxFileLimitError.value = true
   }
 
-  const maxSizeMB = isImportTypeCsv.value ? 600 : 25
+  const maxSizeMB = isImportTypeCsv.value ? Math.round((appInfo.value.ncDataImportFileSize || 100 * 1024 * 1024) / (1024 * 1024)) : 25
   const exceedLimit = file.size! / 1024 / 1024 > maxSizeMB
   if (exceedLimit) {
     message.error(t('msg.error.fileTooLarge', { name: file.name, size: `${maxSizeMB}MB` }))

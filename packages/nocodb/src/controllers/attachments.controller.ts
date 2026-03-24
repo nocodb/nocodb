@@ -35,7 +35,7 @@ import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { Column } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import { NC_CSV_IMPORT_FILE_SIZE } from '~/constants';
+import { NC_DATA_IMPORT_FILE_SIZE } from '~/constants';
 
 @Controller()
 export class AttachmentsController {
@@ -90,7 +90,7 @@ export class AttachmentsController {
     UploadAllowedInterceptor,
     AnyFilesInterceptor({
       limits: {
-        fileSize: NC_CSV_IMPORT_FILE_SIZE,
+        fileSize: NC_DATA_IMPORT_FILE_SIZE,
       },
     }),
   )

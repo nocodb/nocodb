@@ -1223,6 +1223,21 @@ export function useCanvasListView({
         let found = false
         for (const [rowIndex, cachedRow] of cachedRows.value.entries()) {
           if (String(cachedRow.__nc_pk) === String(id) && cachedRow.__nc_depth === depth) {
+            // Check if any value actually changed — skip if duplicate event
+            let hasRealChange = false
+            for (const key of Object.keys(payload)) {
+              if (key.startsWith('__nc_')) continue
+              if (cachedRow[key] !== payload[key]) {
+                hasRealChange = true
+                break
+              }
+            }
+            if (!hasRealChange) {
+              console.log(`[ListView RT] UPDATE skipped (no real change) pk=${id}`)
+              found = true
+              break
+            }
+
             console.log(`[ListView RT] UPDATE found row at index=${rowIndex} pk=${id}`, { before: { ...cachedRow }, payload })
 
             // Apply the update

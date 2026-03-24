@@ -29,7 +29,7 @@ export function findCachedRowByPk(
   depth: number,
 ): { index: number; row: ListViewRow } | null {
   for (const [index, row] of cachedRows.entries()) {
-    if (String(row.__nc_pk) === pk && row.__nc_depth === depth) {
+    if (String(row.__nc_pk) === String(pk) && row.__nc_depth === depth) {
       return { index, row }
     }
   }

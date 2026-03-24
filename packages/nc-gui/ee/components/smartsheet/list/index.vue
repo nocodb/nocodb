@@ -87,6 +87,9 @@ const {
   activeCell,
   cachedRows,
   handleRowSaved,
+  contextMenuTarget,
+  handleContextMenu,
+  getMetaForDepth: getMetaForDepthFromComposable,
 } = useCanvasListView({
   scrollLeft,
   scrollTop,
@@ -358,6 +361,100 @@ async function savePendingCell() {
 
   await saveRowProperty(save.cell!, save.row, save.cell!.column.title)
 }
+
+const { isDataReadOnly, isUIAllowed } = useRoles()
+const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
+const { copy } = useCopy()
+
+function contextExpandRecord() {
+  const target = contextMenuTarget.value
+  if (!target) return
+
+  const depthMeta = getMetaForDepthFromComposable(target.depth) || getMetaForDepth(target.depth)
+  expandedFormMeta.value = depthMeta
+
+  const rowObj: Row = { row: { ...target.row }, oldRow: { ...target.row }, rowMeta: {} }
+  expandForm(rowObj)
+  isContextMenuOpen.value = false
+}
+
+async function contextCopyCell() {
+  const target = contextMenuTarget.value
+  if (!target?.column) return
+
+  const val = target.row[target.column.title]
+  await copy(val != null ? String(val) : '')
+  message.success('Copied to clipboard')
+  isContextMenuOpen.value = false
+}
+
+async function contextClearCell() {
+  const target = contextMenuTarget.value
+  if (!target?.column || target.column.readonly) return
+
+  const depthMeta = getMetaForDepthFromComposable(target.depth) || getMetaForDepth(target.depth)
+  if (!depthMeta) return
+
+  const rowId = extractPkFromRow(target.row, depthMeta.columns as ColumnType[])
+  if (!rowId) return
+
+  try {
+    const property = target.column.title
+    await $api.dbTableRow.update(
+      NOCO,
+      depthMeta.base_id as string,
+      depthMeta.id as string,
+      encodeURIComponent(rowId),
+      { [property]: null },
+    )
+
+    const cached = cachedRows.value.get(target.rowIndex)
+    if (cached) {
+      cached[property] = null
+      handleRowSaved(target.rowIndex, property)
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+
+  isContextMenuOpen.value = false
+}
+
+async function contextDeleteRow() {
+  const target = contextMenuTarget.value
+  if (!target) return
+
+  const depthMeta = getMetaForDepthFromComposable(target.depth) || getMetaForDepth(target.depth)
+  if (!depthMeta) return
+
+  const rowId = extractPkFromRow(target.row, depthMeta.columns as ColumnType[])
+  if (!rowId) return
+
+  try {
+    await $api.dbTableRow.delete(
+      NOCO,
+      depthMeta.base_id as string,
+      depthMeta.id as string,
+      encodeURIComponent(rowId),
+    )
+
+    // Socket event handles proper cache removal + parent pruning.
+    // Force a reload for instant feedback.
+    resetAndReload()
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+
+  isContextMenuOpen.value = false
+}
+
+function contextAddComment() {
+  const target = contextMenuTarget.value
+  if (!target) return
+
+  isExpandedFormCommentMode.value = true
+  contextExpandRecord()
+}
 </script>
 
 <template>
@@ -403,15 +500,60 @@ async function savePendingCell() {
               class="sticky top-0 left-0"
               :height="`${height}px`"
               :width="`${width}px`"
-              oncontextmenu="return false"
               @mousedown="handleCanvasMouseDown"
               @click="handleCanvasClick"
               @mousemove="handleCanvasMouseMove"
               @mouseleave="handleCanvasMouseLeave"
+              @contextmenu.prevent="handleContextMenu"
             />
             <template #overlay>
-              <NcMenu>
-                <NcMenuItem> This is context menu </NcMenuItem>
+              <NcMenu v-if="contextMenuTarget" class="!rounded !py-0" variant="small">
+                <NcMenuItem key="expand-record" @click="contextExpandRecord">
+                  <div class="flex gap-2 items-center">
+                    <GeneralIcon icon="expand" />
+                    {{ $t('activity.expandRecord') }}
+                  </div>
+                </NcMenuItem>
+
+                <NcDivider />
+
+                <NcMenuItem v-if="contextMenuTarget.column" key="copy-cell" @click="contextCopyCell">
+                  <div class="flex gap-2 items-center">
+                    <GeneralIcon icon="copy" />
+                    {{ $t('general.copy') }} {{ $t('objects.cell').toLowerCase() }}
+                  </div>
+                </NcMenuItem>
+
+                <NcMenuItem
+                  v-if="contextMenuTarget.column && !contextMenuTarget.column.readonly && !isDataReadOnly"
+                  key="clear-cell"
+                  @click="contextClearCell"
+                >
+                  <div class="flex gap-2 items-center">
+                    <GeneralIcon icon="close" />
+                    {{ $t('general.clear') }} {{ $t('objects.cell').toLowerCase() }}
+                  </div>
+                </NcMenuItem>
+
+                <template v-if="isUIAllowed('commentEdit')">
+                  <NcDivider />
+                  <NcMenuItem key="add-comment" @click="contextAddComment">
+                    <div class="flex gap-2 items-center">
+                      <GeneralIcon icon="ncComment" />
+                      {{ $t('general.add') }} {{ $t('general.comment').toLowerCase() }}
+                    </div>
+                  </NcMenuItem>
+                </template>
+
+                <template v-if="isUIAllowed('dataEdit') && !isDataReadOnly">
+                  <NcDivider />
+                  <NcMenuItem key="delete-row" class="!text-red-500 !hover:bg-red-50" @click="contextDeleteRow">
+                    <div class="flex gap-2 items-center">
+                      <GeneralIcon icon="delete" />
+                      {{ $t('activity.deleteRow') }}
+                    </div>
+                  </NcMenuItem>
+                </template>
               </NcMenu>
             </template>
           </NcDropdown>

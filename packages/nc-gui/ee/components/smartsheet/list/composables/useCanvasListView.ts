@@ -117,6 +117,8 @@ export function useCanvasListView({
   const totalRows = ref(0)
   const levelCounts = ref<Record<string, number>>({})
 
+  const contextMenuTarget = ref<{ rowIndex: number; depth: number; row: ListViewRow; column?: CanvasGridColumn } | null>(null)
+
   function getMetaForDepth(depth: number): TableType | undefined {
     const level = displayLevels.value[depth]
     if (!level?.fk_model_id) return undefined
@@ -1045,6 +1047,41 @@ export function useCanvasListView({
     triggerRefreshCanvas()
   }
 
+  function handleContextMenu(e: MouseEvent) {
+    const rect = canvasRef.value?.getBoundingClientRect()
+    if (!rect) return
+
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+
+    const rowEl = findElementAt(x, y, 'row')
+    if (!rowEl) {
+      contextMenuTarget.value = null
+      return
+    }
+
+    const row = cachedRows.value.get(rowEl.rowIndex)
+    if (!row) {
+      contextMenuTarget.value = null
+      return
+    }
+
+    // Check if right-clicked on a specific cell
+    const cellEl = findElementAt(x, y, 'cell')
+    let column: CanvasGridColumn | undefined
+    if (cellEl?.columnId) {
+      const cols = getColumnsForDepth(rowEl.depth)
+      column = cols.find((c) => c.id === cellEl.columnId)
+    }
+
+    contextMenuTarget.value = {
+      rowIndex: rowEl.rowIndex,
+      depth: rowEl.depth,
+      row,
+      column,
+    }
+  }
+
   async function loadInitialData() {
     if (!isConfigured.value || !viewId.value) return
 
@@ -1583,5 +1620,8 @@ export function useCanvasListView({
     activeCell,
     cachedRows,
     handleRowSaved,
+    contextMenuTarget,
+    handleContextMenu,
+    getMetaForDepth,
   }
 }

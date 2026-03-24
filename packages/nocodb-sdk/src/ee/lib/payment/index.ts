@@ -87,6 +87,7 @@ export const PlanFeatureDefinitions: Record<PlanTitles, PlanFeatureTypes[]> = {
     PlanFeatureTypes.FEATURE_TIMELINE_VIEW,
     PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS,
     PlanFeatureTypes.FEATURE_DATE_DEPENDENCY,
+    PlanFeatureTypes.FEATURE_API_WEBHOOK_V3,
   ],
 
   [PlanTitles.ENTERPRISE]: [

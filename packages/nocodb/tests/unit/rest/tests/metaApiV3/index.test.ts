@@ -11,6 +11,7 @@ import scriptsTestV3 from './scripts.test';
 import dashboardTestV3 from './dashboard.test';
 import tableVisibilityPermissionsTestV3 from './table-visibility-permissions.test';
 import timelineTestV3 from './timeline.test';
+import hooksTestV3 from './hooks.test';
 import { isEE } from '../../../utils/helpers';
 // import teamsTestV3 from './teams.test';
 // import workspaceTeamsV3 from './workspace-teams.test';
@@ -47,6 +48,7 @@ export default runOnSet(3, function () {
     } catch (e) {
       // EE test files not available in CE
     }
+    hooksTestV3();
   }
   // teamsTestV3();
   // workspaceTeamsV3();

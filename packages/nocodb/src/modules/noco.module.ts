@@ -246,7 +246,6 @@ export const nocoModuleMetadata = {
           ColumnsV3Controller,
           SortsV3Controller,
           FiltersV3Controller,
-
           /* Datas */
           DataTableController,
           DatasController,

@@ -1142,8 +1142,9 @@ export function useCanvasListView({
         const cacheMin = cachedKeys.length ? Math.min(...cachedKeys) : 0
         const cacheMax = cachedKeys.length ? Math.max(...cachedKeys) : -1
 
-        if (insertAt <= cacheMin && cachedKeys.length > 0) {
-          // Row goes BEFORE cached range — shift cached indices down by 1
+        if (insertAt < cacheMin && cacheMin > 0) {
+          // Row goes BEFORE the cached window (there's an evicted gap at start) —
+          // don't insert, just shift cached indices down by 1
           const entries = Array.from(cachedRows.value.entries()).sort((a, b) => b[0] - a[0])
           for (const [idx, row] of entries) {
             cachedRows.value.delete(idx)
@@ -1153,10 +1154,11 @@ export function useCanvasListView({
           for (let c = startChunk; c < chunkStates.value.length; c++) {
             chunkStates.value[c] = undefined
           }
-        } else if (insertAt > cacheMax) {
-          // Row goes AFTER cached range — no cache mutation needed
+        } else if (insertAt > cacheMax && cacheMax < totalRows.value - 1) {
+          // Row goes AFTER the cached window (there's an evicted gap at end) —
+          // no cache mutation needed
         } else {
-          // Row falls WITHIN cached range — insert it
+          // Row falls WITHIN the cached range (or cache covers full range) — insert it
           insertRowsAt(cachedRows.value, chunkStates.value, insertAt, [newRow])
         }
 
@@ -1262,22 +1264,21 @@ export function useCanvasListView({
           const cacheMin = cachedKeys.length ? Math.min(...cachedKeys) : 0
           const cacheMax = cachedKeys.length ? Math.max(...cachedKeys) : -1
 
-          if (insertAt <= cacheMin && cachedKeys.length > 0) {
-            // Row goes BEFORE cached range — shift all cached indices down by 1
+          if (insertAt < cacheMin && cacheMin > 0) {
+            // Row goes BEFORE the cached window — shift indices, don't insert
             const entries = Array.from(cachedRows.value.entries()).sort((a, b) => b[0] - a[0])
             for (const [idx, row] of entries) {
               cachedRows.value.delete(idx)
               cachedRows.value.set(idx + 1, row)
             }
-            // Invalidate chunk states from the start
             const startChunk = Math.floor(cacheMin / CHUNK_SIZE)
             for (let c = startChunk; c < chunkStates.value.length; c++) {
               chunkStates.value[c] = undefined
             }
-          } else if (insertAt > cacheMax) {
-            // Row goes AFTER cached range — no cache changes needed
+          } else if (insertAt > cacheMax && cacheMax < totalRows.value - 1) {
+            // Row goes AFTER the cached window — no cache changes needed
           } else {
-            // Row falls WITHIN cached range — insert it
+            // Row falls WITHIN the cached range — insert it
             const leafDepth = displayLevels.value.length - 1
             const newRow: ListViewRow = {
               __nc_depth: depth,

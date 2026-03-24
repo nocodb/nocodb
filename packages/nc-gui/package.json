@@ -227,7 +227,7 @@
     "@types/validator": "^13.12.2",
     "@types/vue-barcode-reader": "^0.0.3",
     "@vite-pwa/nuxt": "^1.1.1",
-    "@vitest/ui": "^3.0.7",
+    "@vitest/ui": "^4.1.1",
     "@vue/compiler-sfc": "^3.5.13",
     "@vue/test-utils": "^2.4.6",
     "@vueuse/nuxt": "^12.5.0",
@@ -248,7 +248,7 @@
     "unplugin-vue-components": "^0.26.0",
     "vite-plugin-monaco-editor": "^1.1.0",
     "vite-plugin-purge-icons": "^0.10.0",
-    "vitest": "^3.0.7",
+    "vitest": "^4.1.1",
     "windicss": "^3.5.6"
   }
 }

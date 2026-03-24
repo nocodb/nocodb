@@ -387,7 +387,32 @@ describe('integration: ADD cache window handling', () => {
     expect(cacheToArray(cache)).toEqual(['A', 'B', 'C'])
   })
 
-  it('before cached range — shift indices only', () => {
+  it('insert at position 0 when cache starts at 0 — row IS inserted', () => {
+    const cache = new Map<number, ListViewRow>()
+    cache.set(0, makeRow(0, 'B', null, 't1', { name: 'Beta' }))
+    cache.set(1, makeRow(0, 'C', null, 't1', { name: 'Charlie' }))
+    let totalRows = 2
+
+    const newRow = makeRow(0, 'A', null, 't1', { name: 'Alpha' })
+    const insertAt = findSortedInsertIndex(cache, totalRows, newRow, 0, null, [{ title: 'name', fk_column_id: 'col_name', direction: 'asc' }], cols)
+
+    expect(insertAt).toBe(0)
+
+    // cacheMin === 0, so this is NOT "before the window" — it's within range
+    const cachedKeys = Array.from(cache.keys())
+    const cacheMin = Math.min(...cachedKeys)
+
+    // The condition: insertAt < cacheMin && cacheMin > 0 → false (cacheMin is 0)
+    // So we fall through to insertRowsAt
+    expect(cacheMin).toBe(0)
+    insertRowsAt(cache, ['loaded'], insertAt, [newRow])
+    totalRows++
+
+    expect(cacheToArray(cache)).toEqual(['A', 'B', 'C'])
+    expect(totalRows).toBe(3)
+  })
+
+  it('before cached range (windowed) — shift indices only', () => {
     const cache = new Map<number, ListViewRow>()
     cache.set(50, makeRow(0, 'X', null, 't1'))
     cache.set(51, makeRow(0, 'Y', null, 't1'))

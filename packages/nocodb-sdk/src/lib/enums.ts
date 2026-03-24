@@ -307,6 +307,9 @@ export enum AppEvents {
   DOCUMENT_COMMENT_CREATE = 'document.comment.create',
   DOCUMENT_COMMENT_UPDATE = 'document.comment.update',
   DOCUMENT_COMMENT_DELETE = 'document.comment.delete',
+
+  DATE_DEPENDENCY_UPDATE = 'date_dependency.update',
+  DATE_DEPENDENCY_DELETE = 'date_dependency.delete',
 }
 
 export enum ClickhouseTables {

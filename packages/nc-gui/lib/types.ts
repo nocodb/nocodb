@@ -668,6 +668,7 @@ interface CanvasGridColumn {
     tooltip: string
     ignoreTooltip?: boolean
   }
+  isDateDependencyField?: boolean
   abstractType: any
 }
 

@@ -390,6 +390,68 @@ fastify.post(
   queryHandler,
 );
 
+// Streaming endpoint — returns NDJSON (newline-delimited JSON) rows.
+// Used for large result sets (e.g. date dependency propagation) where loading
+// everything into memory on the backend is not feasible.
+const StreamBodyJsonSchema = {
+  type: 'object',
+  required: ['query', 'config'],
+  properties: {
+    query: { type: 'string' },
+    config: {
+      type: 'object',
+      properties: {
+        client: { type: 'string' },
+        connection: { type: 'object' },
+      },
+      required: ['client', 'connection'],
+    },
+    sourceId: { type: 'string' },
+  },
+};
+
+async function streamQueryHandler(req, res) {
+  const { query, config } = req.body;
+  const { sourceId = null } = req.params || {};
+
+  config.client = getKnexClient(config.client);
+
+  let kn: Knex;
+  try {
+    kn = await getConnectionPool(config, sourceId);
+  } catch (err) {
+    console.error('Error establishing connection pool:', err);
+    return res.status(500).send({ error: serializeError(err) });
+  }
+
+  res.raw.writeHead(200, {
+    'Content-Type': 'application/x-ndjson',
+    'Transfer-Encoding': 'chunked',
+  });
+
+  try {
+    const stream = kn.raw(query).stream();
+
+    for await (const row of stream) {
+      res.raw.write(JSON.stringify(row) + '\n');
+    }
+
+    res.raw.end();
+  } catch (e) {
+    console.error('\nStream query failed with error:', e, '\nQuery:', query, '\n');
+    // If headers already sent, write error as NDJSON and close
+    res.raw.write(JSON.stringify({ __error: serializeError(e) }) + '\n');
+    res.raw.end();
+  }
+}
+
+fastify.post('/stream', { schema: { body: StreamBodyJsonSchema } }, streamQueryHandler);
+fastify.post(
+  '/stream/:sourceId',
+  { schema: { body: StreamBodyJsonSchema } },
+  streamQueryHandler,
+);
+
 fastify.get('/api/v1/health', async (req, res) => {
   res.status(200).send({
     uptime: process.uptime(),

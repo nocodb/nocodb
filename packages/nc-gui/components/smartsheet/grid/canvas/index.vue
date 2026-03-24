@@ -1774,7 +1774,7 @@ const getHeaderTooltipRegions = (
 ): {
   x: number
   width: number
-  type: 'columnIcon' | 'title' | 'error' | 'info' | 'columnChevron'
+  type: 'columnIcon' | 'title' | 'error' | 'info' | 'columnChevron' | 'dateDependency'
   text: string
   disableTooltip?: boolean
   tooltipText?: boolean
@@ -1782,7 +1782,7 @@ const getHeaderTooltipRegions = (
   const regions: {
     x: number
     width: number
-    type: 'columnIcon' | 'title' | 'error' | 'info' | 'columnChevron' | 'synced'
+    type: 'columnIcon' | 'title' | 'error' | 'info' | 'columnChevron' | 'synced' | 'dateDependency'
     text: string
     tooltipText?: string
     height?: number
@@ -1892,6 +1892,17 @@ const getHeaderTooltipRegions = (
         width: 14,
         type: 'info',
         text: column.columnObj.description,
+      })
+    }
+
+    // Date dependency icon region
+    if (column.isDateDependencyField && !isPublicView.value) {
+      rightOffset -= 18
+      regions.push({
+        x: rightOffset - scrollLeftValue,
+        width: 14,
+        type: 'dateDependency',
+        text: t('labels.dateDependency.enabled'),
       })
     }
 

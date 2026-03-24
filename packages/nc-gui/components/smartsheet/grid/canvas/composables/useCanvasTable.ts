@@ -490,6 +490,7 @@ export function useCanvasTable({
             ...isInvalid,
             tooltip: isInvalid.ignoreTooltip ? null : isInvalid.tooltip && t(isInvalid.tooltip),
           },
+          isDateDependencyField: isColumnDateDependencyField(meta.value, f.id),
           abstractType: sqlUi?.getAbstractType(f),
         }
       })

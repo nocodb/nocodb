@@ -4208,6 +4208,17 @@ export class ColumnsService implements IColumnsService {
       });
     }
 
+    // Fire COLUMN_DELETED meta event after column is removed so dependency
+    // handlers (e.g. date dependency column ref cleanup) can react
+    await this.metaDependencyEventHandler.handleEvent(
+      context,
+      {
+        eventType: MetaEventType.COLUMN_DELETED,
+        oldEntity: column,
+      },
+      ncMeta,
+    );
+
     NocoSocket.broadcastEvent(
       context,
       {

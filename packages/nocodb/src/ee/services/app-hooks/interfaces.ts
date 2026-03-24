@@ -449,4 +449,27 @@ export interface DocumentCommentDeleteEvent extends NcBaseEvent {
   docId: string;
 }
 
+// Date Dependency Events
+export interface DateDependencyUpdateEvent extends NcBaseEvent {
+  table: { id?: string; title?: string; base_id?: string };
+  dateDependency: {
+    id?: string;
+    fk_start_date_field_id?: string;
+    fk_end_date_field_id?: string;
+    fk_duration_field_id?: string;
+    fk_dependency_linkrow_field_id?: string;
+    dependency_linkrow_role?: string;
+    dependency_connection_type?: string;
+    dependency_buffer_type?: string;
+    dependency_buffer_days?: number;
+    include_weekends?: boolean;
+    is_active?: boolean;
+  };
+  isNew: boolean;
+}
+
+export interface DateDependencyDeleteEvent extends NcBaseEvent {
+  table: { id?: string; title?: string; base_id?: string };
+}
+
 export * from 'src/services/app-hooks/interfaces';

@@ -57,6 +57,7 @@ export enum MetaTable {
   LIST_VIEW = 'nc_list_view_v2',
   LIST_VIEW_COLUMNS = 'nc_list_view_columns_v2',
   LIST_VIEW_LEVELS = 'nc_list_view_levels_v2',
+  DATE_DEPENDENCY = 'nc_date_dependency_v2',
   STORE = 'nc_store',
   BOOK = 'nc_books',
   WORKSPACE = 'workspace',
@@ -165,6 +166,7 @@ export const BaseRelatedMetaTables = [
   MetaTable.LIST_VIEW,
   MetaTable.LIST_VIEW_COLUMNS,
   MetaTable.LIST_VIEW_LEVELS,
+  MetaTable.DATE_DEPENDENCY,
   MetaTable.MCP_TOKENS,
   MetaTable.MODELS,
   MetaTable.PERMISSIONS,
@@ -256,6 +258,9 @@ export const orderedMetaTables = [
   MetaTable.FORM_VIEW,
   MetaTable.SHARED_VIEWS,
   MetaTable.VIEW_SECTIONS,
+
+  // Date Dependency
+  MetaTable.DATE_DEPENDENCY,
 
   // Sort / Filter / Hook
   MetaTable.ROW_COLOR_CONDITIONS,
@@ -376,6 +381,7 @@ export enum CacheScope {
   LIST_VIEW = 'listView',
   LIST_VIEW_COLUMN = 'listViewColumn',
   LIST_VIEW_LEVEL = 'listViewLevel',
+  DATE_DEPENDENCY = 'dateDependency',
   CALENDAR_VIEW = 'calendarView',
   CALENDAR_VIEW_COLUMN = 'calendarViewColumn',
   CALENDAR_VIEW_RANGE = 'calendarViewRange',

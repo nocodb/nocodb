@@ -806,6 +806,36 @@ export const durationOptions = [
     example: '(e.g. 3.45.678, 1:23:40.000)',
     regex: /(\d+)?(?::(\d+))?(?::(\d+))?(?:.(\d{0,4})?)?/,
   },
+  {
+    id: 5,
+    title: 'd h',
+    example: '(e.g. 1d 2h, 2h)',
+    regex: /^(?:(\d+)d\s*)?(?:(\d+)h?)?$/i,
+  },
+  {
+    id: 6,
+    title: 'd h:mm',
+    example: '(e.g. 1d 2:30, 2:30)',
+    regex: /^(?:(\d+)d\s*)?(?:(\d+)(?::(\d+))?)?$/,
+  },
+  {
+    id: 7,
+    title: 'd h:mm:ss',
+    example: '(e.g. 1d 2:30:45, 2:30:45)',
+    regex: /^(?:(\d+)d\s*)?(?:(\d+)(?::(\d+))?(?::(\d+))?)?$/,
+  },
+  {
+    id: 8,
+    title: 'd h m',
+    example: '(e.g. 1d 2h 30m, 2h 30m)',
+    regex: /^(?:(\d+)d\s*)?(?:(\d+)h\s*)?(?:(\d+)m?)?$/i,
+  },
+  {
+    id: 9,
+    title: 'd h m s',
+    example: '(e.g. 1d 2h 30m 45s, 2h 30m 45s)',
+    regex: /^(?:(\d+)d\s*)?(?:(\d+)h\s*)?(?:(\d+)m\s*)?(?:(\d+)s?)?$/i,
+  },
 ];
 
 /**

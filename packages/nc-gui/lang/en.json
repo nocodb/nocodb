@@ -245,6 +245,8 @@
     "upgradeToUseListViewSubtitle": "Upgrade to the {plan} plan to display hierarchical data with parent-child grouping.",
     "upgradeToUseMapView": "Upgrade to use Map View",
     "upgradeToUseMapViewSubtitle": "Upgrade to the {plan} plan to visualize your geo data on an interactive map.",
+    "upgradeToUseDateDependency": "Upgrade to use Date Dependencies",
+    "upgradeToUseDateDependencySubtitle": "Upgrade to use date dependencies to automatically sync date fields and propagate schedule changes across linked rows.",
     "enterpriseFeatureTitle": "Enterprise Feature",
     "enterpriseFeatureSubtitle": "{feature} is available with an Enterprise license. Enter your license key to unlock this feature.",
     "enterLicense": "Enter License",
@@ -264,6 +266,7 @@
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
+    "optional": "Optional",
     "none": "None",
     "done": "Done",
     "properties": "Properties",
@@ -1309,6 +1312,57 @@
     "deleteRow": "Delete row",
     "plainText": "Plain text",
     "copyCode": "Copy code",
+    "dateDependency": {
+      "title": "Date Dependencies",
+      "description": "Define which records are dependent on others. When you reschedule a record, dependent records are automatically rescheduled.",
+      "learnMore": "Learn more",
+      "durationFieldHint": "Use a Duration or Number field to store the number of days.",
+      "startDateField": "Start Date",
+      "endDateField": "End Date",
+      "durationField": "Duration",
+      "linkRowField": "Predecessor Link",
+      "linkRowFieldHint": "Self-referencing link field to connect predecessor rows.",
+      "connectionType": "Connection Type",
+      "schedulingMode": "Scheduling Mode",
+      "bufferDays": "Gap (days)",
+      "bufferDaysHint": "Minimum number of days between linked records.",
+      "includeWeekends": "Include weekends",
+      "includeWeekendsHint": "When off, weekends (Sat/Sun) are skipped in all date calculations.",
+      "isActive": "Enable Date Dependencies",
+      "fieldMapping": "Field Mapping",
+      "propagationSection": "Row Propagation",
+      "saving": "Saving...",
+      "fixErrorsToSave": "Fix errors above to save",
+      "disabledMessage": "Enable the toggle above to configure date dependencies.",
+      "connectionTypes": {
+        "end-to-start": "End → Start",
+        "end-to-end": "End → End",
+        "start-to-end": "Start → End",
+        "start-to-start": "Start → Start"
+      },
+      "connectionTypeDescriptions": {
+        "end-to-start": "Successor starts after predecessor ends.",
+        "end-to-end": "Successor ends after predecessor ends.",
+        "start-to-start": "Successor starts after predecessor starts.",
+        "start-to-end": "Successor ends after predecessor starts."
+      },
+      "schedulingModes": {
+        "off": "Off",
+        "flexible": "Flexible",
+        "fixed": "Strict"
+      },
+      "schedulingModeDescriptions": {
+        "off": "No automatic rescheduling across linked records.",
+        "flexible": "Only adjust when dates overlap or violate the gap.",
+        "fixed": "Always snap to the exact gap — no slack allowed."
+      },
+      "validation": {
+        "sameStartEnd": "Start Date and End Date must be different fields."
+      },
+      "cascadeNotSupported": "Cascade propagation is only supported on PostgreSQL and MySQL sources.",
+      "enabled": "Date dependencies enabled",
+      "cascadeUpdateDescription": "Record was rescheduled to avoid overlap with a conflicting record"
+    },
     "pinToToolbar": "Pin to toolbar",
     "unpinFromToolbar": "Unpin from toolbar",
     "maxPinnedFilters": "Max {count} filters can be pinned",

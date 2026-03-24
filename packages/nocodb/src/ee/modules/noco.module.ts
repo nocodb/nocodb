@@ -119,6 +119,11 @@ import { AttachmentProxyController } from '~/controllers/attachment-proxy.contro
 /* List View */
 import { ListsService } from '~/ee/services/lists.service';
 import { ListDatasService } from '~/ee/services/list-datas.service';
+import { DateDependencyService } from '~/services/date-dependency.service';
+import {
+  MetaDependencyModuleProvider,
+  MetaDependencyServices,
+} from '~/services/meta-dependency/meta-dependency.provider';
 
 /* View Sections */
 import { ViewSectionsService } from '~/ee/services/view-sections.service';
@@ -241,6 +246,9 @@ export const nocoModuleEeMetadata = {
     ListsService,
     ListDatasService,
 
+    /* Date Dependency */
+    DateDependencyService,
+
     /* View Sections */
     ViewSectionsService,
 
@@ -266,6 +274,10 @@ export const nocoModuleEeMetadata = {
     ScimBearerStrategy,
 
     ...nocoModuleMetadata.providers,
+
+    /* EE Meta Dependency Handlers (overrides CE provider) */
+    ...MetaDependencyServices,
+    MetaDependencyModuleProvider,
   ],
   controllers: [
     ActionsController,
@@ -340,6 +352,7 @@ export const nocoModuleEeMetadata = {
     ScriptsService,
     WorkflowsService,
     ListsService,
+    DateDependencyService,
     WorkflowSubscribersService,
     HookSubscribersService,
     'WorkflowExecutionService',
@@ -379,6 +392,9 @@ export const nocoModuleEeMetadata = {
     /* Orgs */
     OrgsService,
     OrgWorkspacesService,
+
+    /* EE Meta Dependency Handlers */
+    ...MetaDependencyServices,
 
     ...nocoModuleMetadata.exports,
   ],

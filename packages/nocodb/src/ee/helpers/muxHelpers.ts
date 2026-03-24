@@ -1,3 +1,4 @@
+import { createInterface } from 'readline';
 import { Logger } from '@nestjs/common';
 import axios from 'axios';
 import { DBErrorExtractor } from '~/helpers/db-error/extractor';
@@ -98,5 +99,67 @@ export async function runExternal(
     NcError._.externalError(
       'Error running query on external source. Confirm if source is accessible.',
     );
+  }
+}
+
+/**
+ * Streams rows from an external source via the sql-executor NDJSON endpoint.
+ * Yields one row at a time so the caller can batch as needed without loading
+ * the full result set into memory.
+ */
+export async function* runExternalStream(
+  query: string,
+  config: { dbMux: string; sourceId: string; [key: string]: any },
+): AsyncGenerator<Record<string, any>> {
+  const { dbMux, sourceId, ...rest } = config;
+
+  let response;
+  try {
+    response = await axios.post(
+      `${dbMux}/stream/${sourceId}`,
+      {
+        query,
+        config: rest,
+      },
+      {
+        responseType: 'stream',
+        timeout: 0, // no timeout — streaming can take a while for large datasets
+      },
+    );
+  } catch (e) {
+    const rawError = e.response?.data?.error;
+    const errorMessage = rawError?.message || e?.message || '';
+
+    logger.error({
+      query,
+      sourceId,
+      msg: errorMessage,
+    });
+
+    NcError._.externalError(
+      'Error streaming query on external source. Confirm if source is accessible.',
+    );
+  }
+
+  const rl = createInterface({
+    input: response.data,
+    crlfDelay: Infinity,
+  });
+
+  for await (const line of rl) {
+    if (!line.trim()) continue;
+
+    const parsed = JSON.parse(line);
+
+    // The stream endpoint sends errors as { __error: ... } NDJSON lines
+    if (parsed.__error) {
+      const errorMessage = parsed.__error?.message || 'Stream query failed';
+      logger.error({ query, sourceId, msg: errorMessage });
+      NcError._.externalError(
+        'Error running query on external source. Confirm if source is accessible.',
+      );
+    }
+
+    yield parsed;
   }
 }

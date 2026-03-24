@@ -370,6 +370,10 @@ export function useCanvasRender({
         iconSpace += 18
       }
 
+      if (column.isDateDependencyField && !isPublic.value) {
+        iconSpace += 18
+      }
+
       const iconConfig = (
         column?.virtual ? renderVIcon(column.columnObj, column.relatedColObj) : renderIcon(column.columnObj, column.abstractType)
       ) as any
@@ -432,6 +436,17 @@ export function useCanvasRender({
         rightOffset -= 18
         spriteLoader.renderIcon(ctx, {
           icon: 'ncInfo',
+          size: 13,
+          color: getColor(themeV4Colors.gray['500']),
+          x: rightOffset - scrollLeft.value,
+          y: headerRowHeight.value / 2 - 7,
+        })
+      }
+
+      if (column.isDateDependencyField && !isPublic.value) {
+        rightOffset -= 18
+        spriteLoader.renderIcon(ctx, {
+          icon: 'viewGannt',
           size: 13,
           color: getColor(themeV4Colors.gray['500']),
           x: rightOffset - scrollLeft.value,
@@ -579,6 +594,10 @@ export function useCanvasRender({
           iconSpace += 18
         }
 
+        if (column.isDateDependencyField && !isPublic.value) {
+          iconSpace += 18
+        }
+
         // Background
         ctx.fillStyle = getColor(themeV4Colors.gray['100'])
         ctx.fillRect(xOffset, 0, width, headerRowHeight.value)
@@ -706,6 +725,17 @@ export function useCanvasRender({
           rightOffset -= 18
           spriteLoader.renderIcon(ctx, {
             icon: 'ncInfo',
+            size: 13,
+            color: getColor(themeV4Colors.gray['500']),
+            x: rightOffset,
+            y: y - 7,
+          })
+        }
+
+        if (column.isDateDependencyField && !isPublic.value) {
+          rightOffset -= 18
+          spriteLoader.renderIcon(ctx, {
+            icon: 'viewGannt',
             size: 13,
             color: getColor(themeV4Colors.gray['500']),
             x: rightOffset,

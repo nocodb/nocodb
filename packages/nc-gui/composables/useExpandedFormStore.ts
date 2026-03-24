@@ -600,7 +600,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         const allAudits = JSON.parse(JSON.stringify(audits.value))
 
         for (const audit of allAudits) {
-          if (audit.op_type !== 'DATA_UPDATE') {
+          if (audit.op_type !== 'DATA_UPDATE' && audit.op_type !== 'DATA_CASCADE_UPDATE') {
             result.push(audit)
             continue
           }
@@ -719,8 +719,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
                 result.push(current)
               }
             }
-          } else if (current.op_type === 'DATA_UPDATE') {
-            const last = result.findLast((it) => it.op_type === 'DATA_UPDATE')
+          } else if (current.op_type === 'DATA_UPDATE' || current.op_type === 'DATA_CASCADE_UPDATE') {
+            const last = result.findLast((it) => it.op_type === current.op_type)
             if (!last || last.user !== current.user || dayjs(current.created_at).diff(dayjs(last.created_at), 'second') > 30) {
               result.push(current)
               continue

@@ -154,6 +154,7 @@ const rolePermissions = {
       tableDescriptionEdit: true,
       tableDuplicate: true,
       tablePermission: true,
+      dateDependencyManage: true,
       tableSort: true,
       airtableImport: true,
       jsonImport: true,

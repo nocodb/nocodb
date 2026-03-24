@@ -822,6 +822,37 @@ function generalHelpers() {
         return \`\${padZero(hours)}:\${padZero(minutes)}:\${padZero(seconds)}.\${padZero(centiseconds)}\`
       } else if (duration_format === 'h:mm:ss.sss') {
         return \`\${padZero(hours)}:\${padZero(minutes)}:\${padZero(seconds)}.\${padZero(milliseconds, true)}\`
+      } else if (duration_format === 'd h') {
+        const totalSec = parseInt(val, 10)
+        const days = Math.floor(totalSec / 86400)
+        const remH = Math.floor((totalSec % 86400) / 3600)
+        return \`\${days}d \${remH}h\`
+      } else if (duration_format === 'd h:mm') {
+        const totalSec = parseInt(val, 10)
+        const days = Math.floor(totalSec / 86400)
+        const remH = Math.floor((totalSec % 86400) / 3600)
+        const remM = Math.floor((totalSec % 3600) / 60)
+        return \`\${days}d \${padZero(remH)}:\${padZero(remM)}\`
+      } else if (duration_format === 'd h:mm:ss') {
+        const totalSec = parseInt(val, 10)
+        const days = Math.floor(totalSec / 86400)
+        const remH = Math.floor((totalSec % 86400) / 3600)
+        const remM = Math.floor((totalSec % 3600) / 60)
+        const remS = totalSec % 60
+        return \`\${days}d \${padZero(remH)}:\${padZero(remM)}:\${padZero(remS)}\`
+      } else if (duration_format === 'd h m') {
+        const totalSec = parseInt(val, 10)
+        const days = Math.floor(totalSec / 86400)
+        const remH = Math.floor((totalSec % 86400) / 3600)
+        const remM = Math.floor((totalSec % 3600) / 60)
+        return \`\${days}d \${remH}h \${remM}m\`
+      } else if (duration_format === 'd h m s') {
+        const totalSec = parseInt(val, 10)
+        const days = Math.floor(totalSec / 86400)
+        const remH = Math.floor((totalSec % 86400) / 3600)
+        const remM = Math.floor((totalSec % 3600) / 60)
+        const remS = totalSec % 60
+        return \`\${days}d \${remH}h \${remM}m \${remS}s\`
       }
       return val
     }

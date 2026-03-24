@@ -45,6 +45,7 @@ export { default as ListViewLevel } from './ListViewLevel';
 export { default as TimelineView } from './TimelineView';
 export { default as TimelineRange } from './TimelineRange';
 export { default as TimelineViewColumn } from './TimelineViewColumn';
+export { default as DateDependency } from './DateDependency';
 
 // Teams-related models
 export { default as Team } from './Team';

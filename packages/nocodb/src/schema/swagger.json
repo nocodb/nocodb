@@ -25812,6 +25812,109 @@
           "id": "psbv6c6y9qvbu"
         }
       },
+      "DateDependency": {
+        "description": "Model for Date Dependency",
+        "title": "Date Dependency Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique identifier"
+          },
+          "fk_model_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Model (Table)"
+          },
+          "fk_start_date_field_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to start date Column"
+          },
+          "fk_end_date_field_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to end date Column"
+          },
+          "fk_duration_field_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to duration Column"
+          },
+          "fk_dependency_linkrow_field_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to link-row Column used for predecessor/successor dependency"
+          },
+          "dependency_linkrow_role": {
+            "type": "string",
+            "enum": ["predecessors", "successors"],
+            "description": "Whether the linkrow field links to predecessors or successors"
+          },
+          "dependency_connection_type": {
+            "type": "string",
+            "enum": ["end-to-start", "end-to-end", "start-to-end", "start-to-start"],
+            "description": "Which date from predecessor drives which date in successor"
+          },
+          "dependency_buffer_type": {
+            "type": "string",
+            "enum": ["flexible", "fixed", "none"],
+            "description": "Type of buffer between predecessor end and successor start"
+          },
+          "dependency_buffer_days": {
+            "type": "integer",
+            "description": "Buffer in days between predecessor and successor"
+          },
+          "include_weekends": {
+            "type": "boolean",
+            "description": "Whether to include weekends in date calculations"
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Whether the date dependency rule is active"
+          }
+        }
+      },
+      "DateDependencyReq": {
+        "description": "Request model for creating/updating Date Dependency",
+        "title": "Date Dependency Request Model",
+        "type": "object",
+        "properties": {
+          "fk_start_date_field_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to start date Column"
+          },
+          "fk_end_date_field_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to end date Column"
+          },
+          "fk_duration_field_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to duration Column"
+          },
+          "fk_dependency_linkrow_field_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to link-row Column"
+          },
+          "dependency_linkrow_role": {
+            "type": "string",
+            "enum": ["predecessors", "successors"]
+          },
+          "dependency_connection_type": {
+            "type": "string",
+            "enum": ["end-to-start", "end-to-end", "start-to-end", "start-to-start"]
+          },
+          "dependency_buffer_type": {
+            "type": "string",
+            "enum": ["flexible", "fixed", "none"]
+          },
+          "dependency_buffer_days": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "include_weekends": {
+            "type": "boolean"
+          },
+          "is_active": {
+            "type": "boolean"
+          }
+        }
+      },
       "CalendarRange": {
         "description": "Model for Calendar Date Range",
         "examples": [
@@ -28576,6 +28679,15 @@
           "source_id": {
             "description": "Unique Source ID",
             "type": "string"
+          },
+          "date_dependency": {
+            "description": "Date dependency rule for this table",
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DateDependency"
+              }
+            ]
           },
           "columns": {
             "description": "The columns included in this table",

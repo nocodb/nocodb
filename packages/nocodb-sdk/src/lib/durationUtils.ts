@@ -44,6 +44,30 @@ export const convertMS2Duration = (val: any, durationType: number) => {
       milliseconds,
       true
     )}`;
+  } else if (durationType >= 5) {
+    const totalSec = parseInt(val, 10);
+    const days = Math.floor(totalSec / 86400);
+    const rem = totalSec % 86400;
+    const remH = Math.floor(rem / 3600);
+    const remM = Math.floor((rem % 3600) / 60);
+    const remS = rem % 60;
+
+    if (durationType === 5) {
+      // d h
+      return `${days}d ${remH}h`;
+    } else if (durationType === 6) {
+      // d h:mm
+      return `${days}d ${padZero(remH)}:${padZero(remM)}`;
+    } else if (durationType === 7) {
+      // d h:mm:ss
+      return `${days}d ${padZero(remH)}:${padZero(remM)}:${padZero(remS)}`;
+    } else if (durationType === 8) {
+      // d h m
+      return `${days}d ${remH}h ${remM}m`;
+    } else if (durationType === 9) {
+      // d h m s
+      return `${days}d ${remH}h ${remM}m ${remS}s`;
+    }
   }
   return val;
 };
@@ -58,7 +82,20 @@ export const convertDurationToSeconds = (val: any, durationType: number) => {
   if (durationRegex.test(val)) {
     let h, mm, ss;
     const groups = val.match(durationRegex);
-    if (groups[0] && groups[1] && !groups[2] && !groups[3] && !groups[4]) {
+    if (durationType >= 5) {
+      // Day-based formats: groups are (days, hours, minutes, seconds)
+      const d = parseInt(groups[1] || '0', 10);
+      h = parseInt(groups[2] || '0', 10);
+      mm = parseInt(groups[3] || '0', 10);
+      ss = parseInt(groups[4] || '0', 10);
+      res._sec = d * 86400 + h * 3600 + mm * 60 + ss;
+    } else if (
+      groups[0] &&
+      groups[1] &&
+      !groups[2] &&
+      !groups[3] &&
+      !groups[4]
+    ) {
       const val = parseInt(groups[1], 10);
       if (groups.input.slice(-1) === ':') {
         // e.g. 30:

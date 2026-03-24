@@ -64,6 +64,11 @@ import {
   remapWithAlias,
 } from '~/utils';
 import { Audit, Column, Filter, Model, ModelStat, Permission } from '~/models';
+import DateDependency from '~/models/DateDependency';
+import {
+  applyDateDependencyFieldSync,
+  buildDateDependencyPropagationSQL,
+} from '~/helpers/dateDependencyHelper';
 import {
   getSingleQueryReadFn,
   singleQueryGroupedList,
@@ -78,7 +83,7 @@ import { isCloud } from '~/utils';
 import Noco from '~/Noco';
 import { NcError, OptionsNotExistsError } from '~/helpers/catchError';
 import { sanitize } from '~/helpers/sqlSanitize';
-import { runExternal } from '~/helpers/muxHelpers';
+import { runExternal, runExternalStream } from '~/helpers/muxHelpers';
 import { checkLimit, getLimit } from '~/helpers/paymentHelpers';
 import { extractMentions } from '~/utils/richTextHelper';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
@@ -1208,6 +1213,257 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         });
       }
     }
+
+    // Date dependency field sync
+    await this.applyDateDependencySync(data, oldData);
+  }
+
+  protected async applyDateDependencySync(
+    data: Record<string, any>,
+    oldData: Record<string, any> | null,
+  ): Promise<void> {
+    const rule = await DateDependency.getByModelId(this.context, this.model.id);
+    if (!rule?.is_active) return;
+
+    applyDateDependencyFieldSync(data, oldData, rule, this.model.columns);
+  }
+
+  /**
+   * Propagates date changes to successor rows using a recursive PostgreSQL CTE.
+   * The CTE computes which rows need updating and their new dates (SELECT only).
+   * Results are streamed in batches of 500 and bulk-updated so that updated_at,
+   * updated_by, hooks, broadcasts, and audit all go through the standard path.
+   */
+  protected async propagateDateDependency(
+    changedRowIds: string[],
+    req: NcRequest,
+  ): Promise<void> {
+    if (!changedRowIds?.length) return;
+
+    // Guard against infinite recursion — bulkUpdate triggers afterBulkUpdate
+    // which calls propagateDateDependency again. Uses context.additionalContext
+    // instead of an instance property so the flag survives across BaseModelSqlv2
+    // instances (bulkUpdate creates a new instance internally).
+    if (this.context.additionalContext?.isDatePropagating) return;
+
+    // Recursive CTE: PostgreSQL and MySQL 8+ only
+    if (!this.isPg && !this.isMySQL) return;
+
+    const rule = await DateDependency.getByModelId(this.context, this.model.id);
+    if (
+      !rule?.is_active ||
+      !rule.fk_dependency_linkrow_field_id ||
+      rule.dependency_buffer_type === 'none'
+    )
+      return;
+
+    if (!this.model.columns?.length) {
+      await this.model.getColumns(this.context);
+    }
+
+    const startCol = this.model.columns.find(
+      (c) => c.id === rule.fk_start_date_field_id,
+    );
+    const endCol = this.model.columns.find(
+      (c) => c.id === rule.fk_end_date_field_id,
+    );
+    if (!startCol || !endCol) return;
+
+    const linkCol = this.model.columns.find(
+      (c) => c.id === rule.fk_dependency_linkrow_field_id,
+    );
+    if (!linkCol) return;
+
+    const colOptions = await linkCol.getColOptions<LinkToAnotherRecordColumn>(
+      this.context,
+    );
+    if (!colOptions || !['hm', 'om', 'oo'].includes(colOptions.type)) return;
+
+    const isV2 = colOptions.version === 2;
+
+    // V1: direct FK in the main table (childCol=FK, parentCol=PK)
+    // V2: junction table (mmChildCol→child PK, mmParentCol→parent PK)
+    let pkColName: string;
+    let fkColName: string;
+    let junctionInfo:
+      | { tn: string; parentColName: string; childColName: string }
+      | undefined;
+
+    if (isV2) {
+      // V2 junction-based link
+      const mmModel = await colOptions.getMMModel(this.context);
+      const mmChildCol = await colOptions.getMMChildColumn(this.context);
+      const mmParentCol = await colOptions.getMMParentColumn(this.context);
+      if (!mmModel || !mmChildCol || !mmParentCol) return;
+
+      // For V2 self-ref, the main table PK is used on both sides
+      const parentCol = await colOptions.getParentColumn(this.context);
+      if (!parentCol) return;
+      pkColName = parentCol.column_name;
+      fkColName = ''; // not used for V2 — junction replaces it
+      // In the junction table for V2 self-ref OM links, the column naming is
+      // inverted: mmParentCol stores the child/successor ID, mmChildCol stores
+      // the parent/predecessor ID. Swap them so the CTE joins correctly.
+      junctionInfo = {
+        tn: this.getTnPath(mmModel),
+        parentColName: mmChildCol.column_name,
+        childColName: mmParentCol.column_name,
+      };
+    } else {
+      // V1 direct FK link
+      const childCol = await colOptions.getChildColumn(this.context);
+      const parentCol = await colOptions.getParentColumn(this.context);
+      if (!childCol || !parentCol) return;
+      pkColName = parentCol.column_name;
+      fkColName = childCol.column_name;
+    }
+
+    const primaryKeys = this.model.primaryKeys;
+    if (!primaryKeys?.length) return;
+
+    // For composite PKs, find the index of the parent (link) column within the PKs
+    // and identify extra PK columns that need to be carried through the CTE
+    const parentPkIndex = primaryKeys.findIndex(
+      (pk) => pk.column_name === pkColName,
+    );
+    if (parentPkIndex === -1) return;
+
+    const extraPkCols = primaryKeys.filter(
+      (pk) => pk.column_name !== pkColName,
+    );
+
+    // Extract the parent column value from composite PK strings
+    // Single PK: changedRowIds are the values directly
+    // Composite PK: changedRowIds are "val1___val2" — extract the parentCol's value
+    let seedIds: string[];
+    if (primaryKeys.length === 1) {
+      seedIds = changedRowIds;
+    } else {
+      seedIds = changedRowIds
+        .map((compositeId) => {
+          const parts = compositeId
+            .split('___')
+            .map((v) => v.replaceAll('\\_', '_'));
+          // Guard: if the composite ID has fewer parts than expected, skip it
+          if (parentPkIndex >= parts.length) return undefined;
+          return parts[parentPkIndex];
+        })
+        .filter((id): id is string => id !== undefined);
+    }
+    // After filtering, all invalid IDs are removed — if none remain, bail out
+    if (!seedIds.length) return;
+
+    const commonParams = {
+      tn: this.getTnPath(this.model),
+      pkColName,
+      extraPkColNames: extraPkCols.map((c) => c.column_name),
+      fkColName,
+      startColName: startCol.column_name,
+      endColName: endCol.column_name,
+      connectionType:
+        (rule.dependency_connection_type as
+          | 'end-to-start'
+          | 'end-to-end'
+          | 'start-to-start'
+          | 'start-to-end') ?? 'end-to-start',
+      bufferType:
+        (rule.dependency_buffer_type as 'flexible' | 'fixed') ?? 'flexible',
+      bufferDays: rule.dependency_buffer_days ?? 0,
+      seedIds,
+      dialect: (this.isPg ? 'pg' : 'mysql') as 'pg' | 'mysql',
+      includeWeekends: rule.include_weekends ?? true,
+      junction: junctionInfo,
+    };
+
+    // Build both backward (push predecessors earlier) and forward (push successors later) CTEs
+    const backwardResult = buildDateDependencyPropagationSQL({
+      ...commonParams,
+      direction: 'backward',
+    });
+    const forwardResult = buildDateDependencyPropagationSQL({
+      ...commonParams,
+      direction: 'forward',
+    });
+
+    const BATCH_SIZE = 500;
+
+    const toUpdateRow = (row: any) => {
+      const updateObj: Record<string, any> = {
+        [primaryKeys[parentPkIndex].title]: row.id,
+        [startCol.title]: row.new_start,
+        [endCol.title]: row.new_end,
+      };
+      // Map extra PK columns from CTE output (id_1, id_2, ...)
+      extraPkCols.forEach((pk, i) => {
+        updateObj[pk.title] = row[`id_${i + 1}`];
+      });
+      return updateObj;
+    };
+
+    // Clear socket_id so the sender also receives realtime updates
+    // for cascaded rows (they didn't directly edit these rows)
+    const savedSocketId = this.context.socket_id;
+    this.context.socket_id = undefined;
+
+    this.context.additionalContext = {
+      ...this.context.additionalContext,
+      isDatePropagating: true,
+    };
+    try {
+      const isExternal = (this.dbDriver as any).isExternal;
+
+      // Run backward propagation first (push predecessors earlier),
+      // then forward propagation (push successors later)
+      for (const { sql, bindings } of [backwardResult, forwardResult]) {
+        if (isExternal) {
+          // External sources: stream rows via NDJSON endpoint, batch updates
+          const rawSql = this.dbDriver.raw(sql, bindings).toQuery();
+          const rowStream = runExternalStream(
+            this.sanitizeQuery(rawSql),
+            (this.dbDriver as any).extDb,
+          );
+          let batch: Record<string, any>[] = [];
+
+          for await (const row of rowStream) {
+            batch.push(toUpdateRow(row));
+
+            if (batch.length >= BATCH_SIZE) {
+              await this.bulkUpdate(batch, { cookie: req });
+              batch = [];
+            }
+          }
+
+          if (batch.length) {
+            await this.bulkUpdate(batch, { cookie: req });
+          }
+        } else {
+          // Internal sources: stream in batches to avoid loading all into memory
+          const stream = this.dbDriver.raw(sql, bindings).stream();
+          let batch: Record<string, any>[] = [];
+
+          for await (const row of stream) {
+            batch.push(toUpdateRow(row));
+
+            if (batch.length >= BATCH_SIZE) {
+              await this.bulkUpdate(batch, { cookie: req });
+              batch = [];
+            }
+          }
+
+          if (batch.length) {
+            await this.bulkUpdate(batch, { cookie: req });
+          }
+        }
+      }
+    } catch (err: any) {
+      this.logger.error('Date dependency propagation failed', err.stack);
+    } finally {
+      this.context.additionalContext = {
+        ...this.context.additionalContext,
+        isDatePropagating: false,
+      };
+      this.context.socket_id = savedSocketId;
+    }
   }
 
   public async beforeInsert(
@@ -1384,6 +1640,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       );
 
     await this.handleRichTextMentions(null, data, req);
+
+    const insertedId = String(this.extractPksValues(data));
+    await this.propagateDateDependency([insertedId], req);
   }
 
   public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
@@ -1474,6 +1733,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
 
     await this.handleRichTextMentions(null, data, req);
+
+    // Propagate date changes to successors
+    const insertedIds = data.map((d) => String(this.extractPksValues(d)));
+    await this.propagateDateDependency(insertedIds, req);
   }
 
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
@@ -3503,6 +3766,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       await this.handleHooks('after.update', prevData, newData, req);
     }
     await this.handleRichTextMentions(prevData, newData, req);
+
+    // Propagate date changes to successors
+    await this.propagateDateDependency(
+      [String(this.extractPksValues(newData))],
+      req,
+    );
   }
 
   public async afterBulkUpdate(
@@ -3579,8 +3848,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               }) as UpdatePayload;
 
               if (updateDiff) {
+                const isCascade =
+                  this.context.additionalContext?.isDatePropagating;
+
                 return await generateAuditV1Payload<DataUpdatePayload>(
-                  AuditV1OperationTypes.DATA_UPDATE,
+                  isCascade
+                    ? AuditV1OperationTypes.DATA_CASCADE_UPDATE
+                    : AuditV1OperationTypes.DATA_UPDATE,
                   {
                     context: {
                       ...this.context,
@@ -3598,6 +3872,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                         d,
                         prevData?.[i],
                       ),
+                      ...(isCascade ? { source: 'date_dependency' } : {}),
                     },
                     req,
                   },
@@ -3612,6 +3887,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
 
     await this.handleRichTextMentions(prevData, newData, req);
+
+    // Propagate date changes to successors (skip bulk-all — no row data available)
+    if (!isBulkAllOperation && newData?.length) {
+      const rowIds = newData.map((d: any) => String(this.extractPksValues(d)));
+      await this.propagateDateDependency(rowIds, req);
+    }
   }
 
   public async beforeDelete(data: any, _trx: any, req): Promise<void> {

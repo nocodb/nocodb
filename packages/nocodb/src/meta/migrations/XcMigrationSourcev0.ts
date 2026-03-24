@@ -40,6 +40,7 @@ import * as nc_202603090001_chat_session_meta from './v0/nc_202603090001_chat_se
 import * as nc_202603110001_chat_session_base_id from './v0/nc_202603110001_chat_session_base_id';
 import * as nc_202603170000_form_view_expires_at from './v0/nc_202603170000_form_view_expires_at';
 import * as nc_202603170001_workflow_draft_reminder from './v0/nc_202603170001_workflow_draft_reminder';
+import * as nc_202603090002_date_dependency from './v0/nc_202603090002_date_dependency';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -91,6 +92,7 @@ export default class XcMigrationSourcev0 {
       'nc_202603110001_chat_session_base_id',
       'nc_202603170000_form_view_expires_at',
       'nc_202603170001_workflow_draft_reminder',
+      'nc_202603090002_date_dependency',
     ]);
   }
 
@@ -184,6 +186,8 @@ export default class XcMigrationSourcev0 {
         return nc_202603170000_form_view_expires_at;
       case 'nc_202603170001_workflow_draft_reminder':
         return nc_202603170001_workflow_draft_reminder;
+      case 'nc_202603090002_date_dependency':
+        return nc_202603090002_date_dependency;
     }
   }
 }

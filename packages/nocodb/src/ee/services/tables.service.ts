@@ -14,6 +14,7 @@ import { ColumnsService } from '~/services/columns.service';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
+import DateDependency from '~/models/DateDependency';
 
 @Injectable()
 export class TablesService extends TableServiceCE {
@@ -98,5 +99,24 @@ export class TablesService extends TableServiceCE {
       ...param,
       sourceId: source?.id || param.sourceId,
     });
+  }
+
+  async getTableWithAccessibleViews(
+    context: NcContext,
+    param: {
+      tableId: string;
+      user: User | UserType;
+    },
+  ) {
+    const table = await super.getTableWithAccessibleViews(context, param);
+
+    if (table) {
+      table.date_dependency = await DateDependency.getByModelId(
+        context,
+        table.id,
+      );
+    }
+
+    return table;
   }
 }

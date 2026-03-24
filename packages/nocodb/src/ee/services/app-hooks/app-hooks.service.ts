@@ -9,6 +9,8 @@ import type {
   ChatSessionUpdateEvent,
   ColumnEvent,
   DocAiCompletionEvent,
+  DateDependencyDeleteEvent,
+  DateDependencyUpdateEvent,
   DocumentCommentCreateEvent,
   DocumentCommentDeleteEvent,
   DocumentCommentUpdateEvent,
@@ -919,6 +921,15 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(
     event: AppEvents.CHAT_SESSION_DELETE,
     data: ChatSessionDeleteEvent,
+  ): void;
+
+  emit(
+    event: AppEvents.DATE_DEPENDENCY_UPDATE,
+    data: DateDependencyUpdateEvent,
+  ): void;
+  emit(
+    event: AppEvents.DATE_DEPENDENCY_DELETE,
+    data: DateDependencyDeleteEvent,
   ): void;
 
   emit(event, data): void {

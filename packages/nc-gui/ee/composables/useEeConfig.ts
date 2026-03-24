@@ -367,6 +367,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_MAP_VIEW)
   })
 
+  const blockDateDependency = computed(() => {
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_DATE_DEPENDENCY)
+  })
+
   /** EE-only feature blocks — gated by license on self-hosted */
   const blockSSO = computed(() => isEEFeatureBlocked.value)
   const blockSnapshots = computed(() => isEEFeatureBlocked.value)
@@ -1826,6 +1830,26 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseDateDependency = ({
+    callback,
+    successCallback,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    if (!blockDateDependency.value) {
+      successCallback?.()
+      return
+    }
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseDateDependency'),
+      content: t('upgrade.upgradeToUseDateDependencySubtitle'),
+      callback,
+      requiredPlan: PlanTitles.BUSINESS,
+      limitOrFeature: PlanFeatureTypes.FEATURE_DATE_DEPENDENCY,
+    })
+
+    return true
+  }
+
   /** EE-only upgrade prompts for self-hosted CE mode */
   const showUpgradeForEEFeature = (featureTitle: string) => {
     handleOnPremUpgrade({
@@ -1996,6 +2020,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseListView,
     blockMapView,
     showUpgradeToUseMapView,
+    blockDateDependency,
+    showUpgradeToUseDateDependency,
     isEEFeatureBlocked,
     showEEFeatures,
     blockSSO,

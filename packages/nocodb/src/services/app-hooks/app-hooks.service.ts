@@ -451,6 +451,10 @@ export class AppHooksService {
       | AppEvents.DOCUMENT_DELETE,
     data: any,
   ): void;
+  emit(
+    event: AppEvents.DATE_DEPENDENCY_UPDATE | AppEvents.DATE_DEPENDENCY_DELETE,
+    data: any,
+  ): void;
 
   emit(event, data): void {
     this.eventEmitter.emit(event, data);

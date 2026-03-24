@@ -32,6 +32,8 @@ import type {
   DashboardUpdatePayload,
   DataExportPayload,
   DataImportPayload,
+  DateDependencyDeletePayload,
+  DateDependencyUpdatePayload,
   DocAiCompletionPayload,
   DocumentCommentCreatePayload,
   DocumentCommentDeletePayload,
@@ -147,6 +149,8 @@ import type {
   DashboardUpdateEvent,
   DataExportEvent,
   DataImportEvent,
+  DateDependencyDeleteEvent,
+  DateDependencyUpdateEvent,
   DocAiCompletionEvent,
   DocumentCommentCreateEvent,
   DocumentCommentDeleteEvent,
@@ -3954,6 +3958,78 @@ export class AppHooksListenerService
               details: {
                 policy_id: param.policyId,
                 table_id: param.tableId,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
+      // Date Dependency Events
+      case AppEvents.DATE_DEPENDENCY_UPDATE: {
+        const param = data as DateDependencyUpdateEvent;
+
+        const resolveCol = async (id?: string) => {
+          if (!id) return undefined;
+          const col = await Column.get(param.context, { colId: id });
+          return col ? { id: col.id, title: col.title } : undefined;
+        };
+
+        const [
+          startDateField,
+          endDateField,
+          durationField,
+          dependencyLinkField,
+        ] = await Promise.all([
+          resolveCol(param.dateDependency?.fk_start_date_field_id),
+          resolveCol(param.dateDependency?.fk_end_date_field_id),
+          resolveCol(param.dateDependency?.fk_duration_field_id),
+          resolveCol(param.dateDependency?.fk_dependency_linkrow_field_id),
+        ]);
+
+        await this.auditInsert(
+          await generateAuditV1Payload<DateDependencyUpdatePayload>(
+            AuditV1OperationTypes.DATE_DEPENDENCY_UPDATE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                table_id: param.table?.id,
+                table_title: param.table?.title,
+                date_dependency_id: param.dateDependency?.id,
+                is_new: param.isNew,
+                start_date_field: startDateField,
+                end_date_field: endDateField,
+                duration_field: durationField,
+                dependency_link_field: dependencyLinkField,
+                dependency_linkrow_role:
+                  param.dateDependency?.dependency_linkrow_role,
+                dependency_connection_type:
+                  param.dateDependency?.dependency_connection_type,
+                dependency_buffer_type:
+                  param.dateDependency?.dependency_buffer_type,
+                dependency_buffer_days:
+                  param.dateDependency?.dependency_buffer_days,
+                include_weekends: param.dateDependency?.include_weekends,
+                is_active: param.dateDependency?.is_active,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
+      case AppEvents.DATE_DEPENDENCY_DELETE: {
+        const param = data as DateDependencyDeleteEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<DateDependencyDeletePayload>(
+            AuditV1OperationTypes.DATE_DEPENDENCY_DELETE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                table_id: param.table?.id,
+                table_title: param.table?.title,
               },
             },
           ),

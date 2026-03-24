@@ -52,6 +52,8 @@ enum AuditV1OperationTypes {
   DATA_BULK_ALL_DELETE = 'DATA_BULK_ALL_DELETE',
   DATA_BULK_ALL_UPDATE = 'DATA_BULK_ALL_UPDATE',
 
+  DATA_CASCADE_UPDATE = 'DATA_CASCADE_UPDATE',
+
   DATA_LINK = 'DATA_LINK',
   DATA_UNLINK = 'DATA_UNLINK',
 
@@ -201,6 +203,9 @@ enum AuditV1OperationTypes {
   DOCUMENT_COMMENT_CREATE = 'DOCUMENT_COMMENT_CREATE',
   DOCUMENT_COMMENT_UPDATE = 'DOCUMENT_COMMENT_UPDATE',
   DOCUMENT_COMMENT_DELETE = 'DOCUMENT_COMMENT_DELETE',
+
+  DATE_DEPENDENCY_UPDATE = 'DATE_DEPENDENCY_UPDATE',
+  DATE_DEPENDENCY_DELETE = 'DATE_DEPENDENCY_DELETE',
 }
 
 export const auditV1OperationTypesAlias = Object.values(
@@ -551,6 +556,10 @@ export interface DataBulkDeletePayload {}
 export interface DataBulkDeletePayloadRecord {
   data: Record<string, unknown>;
   column_meta: Record<string, ColumnMeta>;
+}
+
+export interface DataCascadeUpdatePayload {
+  source?: 'date_dependency';
 }
 
 /*
@@ -1221,6 +1230,28 @@ export interface RlsPolicyDeletePayload {
   table_id: string;
 }
 
+export interface DateDependencyUpdatePayload {
+  table_id: string;
+  table_title: string;
+  date_dependency_id: string;
+  is_new: boolean;
+  start_date_field?: { id: string; title: string };
+  end_date_field?: { id: string; title: string };
+  duration_field?: { id: string; title: string };
+  dependency_link_field?: { id: string; title: string };
+  dependency_linkrow_role?: string;
+  dependency_connection_type?: string;
+  dependency_buffer_type?: string;
+  dependency_buffer_days?: number;
+  include_weekends?: boolean;
+  is_active?: boolean;
+}
+
+export interface DateDependencyDeletePayload {
+  table_id: string;
+  table_title: string;
+}
+
 export interface DocAiCompletionPayload {
   operation: 'write' | 'continue' | 'improve' | 'summarize' | 'translate';
 }
@@ -1442,6 +1473,9 @@ const descriptionTemplates = {
     `Record with ID [${audit.row_id}] has been updated`,
   [AuditV1OperationTypes.DATA_DELETE]: (audit: AuditV1<DataDeletePayload>) =>
     `Record with ID [${audit.row_id}] has been deleted`,
+  [AuditV1OperationTypes.DATA_CASCADE_UPDATE]: (
+    _audit: AuditV1<DataCascadeUpdatePayload>
+  ) => `Record was rescheduled to avoid overlap with a conflicting record`,
 
   /*  [AuditV1OperationTypes.DATA_BULK_INSERT]: (
     audit: AuditV1<DataBulkInsertPayload>
@@ -1655,6 +1689,13 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.DOCUMENT_COMMENT_DELETE]: (
     audit: AuditV1<DocumentCommentDeletePayload>
   ) => `Comment deleted from document '${audit.details.document_id}'`,
+  [AuditV1OperationTypes.DATE_DEPENDENCY_UPDATE]: (
+    audit: AuditV1<DateDependencyUpdatePayload>
+  ) =>
+    `Date dependency ${audit.details.is_new ? 'created' : 'updated'} for table '${audit.details.table_title}'`,
+  [AuditV1OperationTypes.DATE_DEPENDENCY_DELETE]: (
+    audit: AuditV1<DateDependencyDeletePayload>
+  ) => `Date dependency deleted from table '${audit.details.table_title}'`,
 };
 
 function auditDescription(audit: AuditV1) {

@@ -247,6 +247,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseMapView = (..._args: any[]) => {}
 
+  const blockDateDependency = computed(() => true)
+
+  const showUpgradeToUseDateDependency = (..._args: any[]) => {}
+
   const isEEFeatureBlocked = computed(() => true)
 
   const showEEFeatures = computed(() => false)
@@ -374,6 +378,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseListView,
     blockMapView,
     showUpgradeToUseMapView,
+    blockDateDependency,
+    showUpgradeToUseDateDependency,
     isEEFeatureBlocked,
     showEEFeatures,
     blockWorkspaceMembers,

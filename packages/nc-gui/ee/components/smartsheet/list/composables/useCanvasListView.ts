@@ -148,12 +148,54 @@ export function useCanvasListView({
         { [property]: newVal ?? null },
       )
 
-      for (const [_idx, cached] of cachedRows.value) {
-        if (cached.__nc_pk === row.row.__nc_pk) {
+      // Find and update the cached row
+      let cachedRowIndex: number | null = null
+      for (const [idx, cached] of cachedRows.value) {
+        if (cached.__nc_pk === row.row.__nc_pk && cached.__nc_depth === depth) {
           Object.assign(cached, updatedRowData)
+          cachedRowIndex = idx
           break
         }
       }
+
+      if (cachedRowIndex !== null) {
+        const cachedRow = cachedRows.value.get(cachedRowIndex)!
+
+        // Re-evaluate row color
+        const leafDepth = displayLevels.value.length - 1
+        if (depth === leafDepth && isRowColouringEnabled.value) {
+          cachedRow.__nc_color = getEvaluatedRowMetaRowColorInfo(cachedRow)
+        }
+
+        // Re-validate against filters — remove if row no longer passes
+        if (!validateRowForLevel(cachedRow, depth)) {
+          const { indices, removedCounts } = collectRowAndDescendants(cachedRows.value, totalRows.value, cachedRowIndex, depth)
+          removeRowsAndShift(cachedRows.value, chunkStates.value, indices)
+
+          totalRows.value = Math.max(0, totalRows.value - indices.length)
+          for (const [modelId, count] of Object.entries(removedCounts)) {
+            if (levelCounts.value[modelId] !== undefined) {
+              levelCounts.value[modelId] = Math.max(0, levelCounts.value[modelId] - count)
+            }
+          }
+
+          if (cachedRow.__nc_parent_id && depth > 0) {
+            pruneEmptyParents(cachedRows.value, chunkStates.value, totalRows, levelCounts.value, cachedRow.__nc_parent_id, depth - 1)
+          }
+        } else if (isSortAffected({ [property]: newVal }, depth)) {
+          // Sort-affecting change — reposition the row among its siblings
+          const { indices: subtreeIndices } = collectRowAndDescendants(cachedRows.value, totalRows.value, cachedRowIndex, depth)
+          const subtreeRows: ListViewRow[] = subtreeIndices.map((i) => cachedRows.value.get(i)!).filter(Boolean)
+          removeRowsAndShift(cachedRows.value, chunkStates.value, subtreeIndices)
+
+          const parentPk = cachedRow.__nc_parent_id
+          const parentIndex = depth > 0 && parentPk ? findCachedRowByPk(cachedRows.value, parentPk, depth - 1)?.index ?? null : null
+
+          const newInsertAt = findSortedInsertIndex(cachedRows.value, totalRows.value, cachedRow, depth, parentIndex, getSortFieldsForDepth(depth), getColumnsByIdForDepth(depth))
+          insertRowsAt(cachedRows.value, chunkStates.value, newInsertAt, subtreeRows)
+        }
+      }
+
       triggerRefreshCanvas()
     } catch (e: any) {
       message.error(e.message || 'Failed to save')

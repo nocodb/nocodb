@@ -450,6 +450,80 @@ describe('integration: UPDATE sort reposition', () => {
 
     expect(cacheToArray(cache)).toEqual(['B', 'A', 'C'])
   })
+
+  it('repositions non-root row among siblings under same parent', () => {
+    // P1 has children C1(10), C2(20), C3(30). Update C1 score to 25 → should move between C2 and C3
+    const cache = new Map<number, ListViewRow>()
+    cache.set(0, makeRow(0, 'P1', null, 't1'))
+    cache.set(1, makeRow(1, 'C1', 'P1', 't2', { score: 10 }))
+    cache.set(2, makeRow(1, 'C2', 'P1', 't2', { score: 20 }))
+    cache.set(3, makeRow(1, 'C3', 'P1', 't2', { score: 30 }))
+    cache.set(4, makeRow(0, 'P2', null, 't1'))
+    const chunks: any[] = ['loaded']
+    const colsNum = makeColumnsById([{ id: 'col_score', title: 'score', uidt: 'Number' }])
+    const totalRows = 5
+
+    // Update C1's score
+    const cachedRow = cache.get(1)!
+    Object.assign(cachedRow, { score: 25 })
+
+    // Remove C1 (index 1, depth 1 — leaf, no subtree)
+    const { indices } = collectRowAndDescendants(cache, totalRows, 1, 1)
+    expect(indices).toEqual([1])
+    const subtreeRows = indices.map((i) => cache.get(i)!).filter(Boolean)
+    removeRowsAndShift(cache, chunks, indices)
+
+    // After removal: P1(0), C2(1), C3(2), P2(3)
+    expect(cacheToArray(cache)).toEqual(['P1', 'C2', 'C3', 'P2'])
+
+    // Find parent P1's index after shift
+    const parent = findCachedRowByPk(cache, 'P1', 0)
+    expect(parent).not.toBeNull()
+    expect(parent!.index).toBe(0)
+
+    // Find sorted position among P1's children (C2=20, C3=30) — C1(25) goes between them
+    const newInsertAt = findSortedInsertIndex(
+      cache, totalRows, cachedRow, 1, parent!.index,
+      [{ title: 'score', fk_column_id: 'col_score', direction: 'asc' }], colsNum,
+    )
+    expect(newInsertAt).toBe(2) // between C2(index 1) and C3(index 2)
+
+    insertRowsAt(cache, chunks, newInsertAt, subtreeRows)
+
+    expect(cacheToArray(cache)).toEqual(['P1', 'C2', 'C1', 'C3', 'P2'])
+  })
+
+  it('repositions row to first position among siblings', () => {
+    // Children under P1: C1(30), C2(20), C3(10) sorted desc. Update C1 score to 5 → moves to end
+    const cache = new Map<number, ListViewRow>()
+    cache.set(0, makeRow(0, 'P1', null, 't1'))
+    cache.set(1, makeRow(1, 'C1', 'P1', 't2', { score: 30 }))
+    cache.set(2, makeRow(1, 'C2', 'P1', 't2', { score: 20 }))
+    cache.set(3, makeRow(1, 'C3', 'P1', 't2', { score: 10 }))
+    const chunks: any[] = ['loaded']
+    const colsNum = makeColumnsById([{ id: 'col_score', title: 'score', uidt: 'Number' }])
+
+    // Update C3 score to 35 → should move to first position (desc sort)
+    const cachedRow = cache.get(3)!
+    Object.assign(cachedRow, { score: 35 })
+
+    const { indices } = collectRowAndDescendants(cache, 4, 3, 1)
+    const subtreeRows = indices.map((i) => cache.get(i)!).filter(Boolean)
+    removeRowsAndShift(cache, chunks, indices)
+
+    // After removal: P1(0), C1(1), C2(2)
+    const parent = findCachedRowByPk(cache, 'P1', 0)
+
+    const newInsertAt = findSortedInsertIndex(
+      cache, 4, cachedRow, 1, parent!.index,
+      [{ title: 'score', fk_column_id: 'col_score', direction: 'desc' }], colsNum,
+    )
+    expect(newInsertAt).toBe(1) // before C1(30)
+
+    insertRowsAt(cache, chunks, newInsertAt, subtreeRows)
+
+    expect(cacheToArray(cache)).toEqual(['P1', 'C3', 'C1', 'C2'])
+  })
 })
 
 describe('integration: DELETE subtree + prune', () => {

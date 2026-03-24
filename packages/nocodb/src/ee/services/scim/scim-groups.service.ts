@@ -396,7 +396,7 @@ export class ScimGroupsService {
     }
     if (scimGroup.externalId !== undefined) {
       const currentMeta =
-        typeof team.scim_meta === 'object' && team.scim_meta !== null
+        team.scim_meta && typeof team.scim_meta === 'object'
           ? team.scim_meta
           : {};
       updateData.scim_meta = {
@@ -464,7 +464,7 @@ export class ScimGroupsService {
     excludeMembers = false,
   ): Promise<any> {
     const scimMeta =
-      typeof team.scim_meta === 'object' && team.scim_meta !== null
+      team.scim_meta && typeof team.scim_meta === 'object'
         ? team.scim_meta
         : {};
 
@@ -675,8 +675,8 @@ export class ScimGroupsService {
           if (op.path === 'externalId' && op.value) {
             // externalId is client-assigned — store in scim_meta
             const currentMeta =
-              typeof latestTeam.scim_meta === 'object' &&
-              latestTeam.scim_meta !== null
+              latestTeam.scim_meta &&
+              typeof latestTeam.scim_meta === 'object'
                 ? latestTeam.scim_meta
                 : {};
             updateData.scim_meta = {
@@ -709,8 +709,8 @@ export class ScimGroupsService {
           }
           if (op.value.externalId) {
             const currentMeta =
-              typeof latestTeam.scim_meta === 'object' &&
-              latestTeam.scim_meta !== null
+              latestTeam.scim_meta &&
+              typeof latestTeam.scim_meta === 'object'
                 ? latestTeam.scim_meta
                 : {};
             updateData.scim_meta = {

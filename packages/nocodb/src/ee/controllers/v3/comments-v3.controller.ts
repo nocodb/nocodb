@@ -29,12 +29,12 @@ export class CommentsV3Controller {
   constructor(private readonly commentsV3Service: CommentsV3Service) {}
 
   @Get(
-    `${PREFIX_APIV3_METABASE}/tables/:tableId/records/:rowId/comments`,
+    `${PREFIX_APIV3_METABASE}/tables/:tableId/records/:recordId/comments`,
   )
   @Acl('commentList')
   async commentList(
     @TenantContext() context: NcContext,
-    @Param('rowId') rowId: string,
+    @Param('recordId') recordId: string,
     @Param('tableId') tableId: string,
   ) {
     await checkForFeature(context, PlanFeatureTypes.FEATURE_API_COMMENT_V3);
@@ -42,7 +42,7 @@ export class CommentsV3Controller {
     return new PagedResponseImpl(
       await this.commentsV3Service.commentList(context, {
         query: {
-          row_id: rowId,
+          row_id: recordId,
           fk_model_id: tableId,
         },
       }),
@@ -50,13 +50,13 @@ export class CommentsV3Controller {
   }
 
   @Post(
-    `${PREFIX_APIV3_METABASE}/tables/:tableId/records/:rowId/comments`,
+    `${PREFIX_APIV3_METABASE}/tables/:tableId/records/:recordId/comments`,
   )
   @HttpCode(200)
   @Acl('commentRow')
   async commentRow(
     @TenantContext() context: NcContext,
-    @Param('rowId') rowId: string,
+    @Param('recordId') recordId: string,
     @Param('tableId') tableId: string,
     @Req() req: NcRequest,
     @Body() body: CommentReqType,
@@ -65,7 +65,7 @@ export class CommentsV3Controller {
 
     return await this.commentsV3Service.commentRow(context, {
       user: req.user,
-      body: { ...body, row_id: rowId, fk_model_id: tableId },
+      body: { ...body, row_id: recordId, fk_model_id: tableId },
       req,
     });
   }

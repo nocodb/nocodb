@@ -7577,7 +7577,7 @@
         }
       }
     },
-    "/api/v3/meta/bases/{baseId}/tables/{tableId}/records/{rowId}/comments": {
+    "/api/v3/meta/bases/{baseId}/tables/{tableId}/records/{recordId}/comments": {
       "get": {
         "summary": "List comments",
         "operationId": "comments-list",
@@ -7605,13 +7605,13 @@
             "description": "Unique identifier for the table."
           },
           {
-            "name": "rowId",
+            "name": "recordId",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string"
             },
-            "description": "Unique identifier for the record/row."
+            "description": "Unique identifier for the record."
           }
         ],
         "responses": {
@@ -7669,13 +7669,13 @@
             "description": "Unique identifier for the table."
           },
           {
-            "name": "rowId",
+            "name": "recordId",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string"
             },
-            "description": "Unique identifier for the record/row."
+            "description": "Unique identifier for the record."
           }
         ],
         "requestBody": {

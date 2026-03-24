@@ -199,9 +199,9 @@ const applyPreset = (preset: 'readOnly' | 'fullData' | 'allWrite') => {
     }
   }
   &.nc-perm-radio-none {
-    @apply border-gray-300;
+    @apply border-gray-400;
     .nc-perm-radio-dot {
-      @apply w-0 h-0;
+      @apply bg-gray-400;
     }
   }
 }

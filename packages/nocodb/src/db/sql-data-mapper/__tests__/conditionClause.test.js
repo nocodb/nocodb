@@ -98,12 +98,7 @@ it(`Test`, function (done) {
   }),
   expectedOp: 'select * from `test` inner join `test1` on `test1`.`test_ref_id` = `test`.`test_id` inner join `test3` on `test1`.`test3_ref_id` = `test3`.`test3_id` where `test3`.`test3Col` = \'123\''
 },
-{
-  knex :cstomKnex({
-    client: 'oracledb'
-  }),
-  expectedOp: 'select * from "test" inner join "test1" on "test1"."test_ref_id" = "test"."test_id" inner join "test3" on "test1"."test3_ref_id" = "test3"."test3_id" where "test3"."test3Col" = \'123\''
-}].forEach(({knex,expectedOp}) => {
+].forEach(({knex,expectedOp}) => {
 
 
   it(`Nested condition`, function (done) {

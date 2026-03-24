@@ -160,7 +160,6 @@ abstract class KnexClient extends SqlClient {
       api_count: 0,
       mysql: 0,
       pg: 0,
-      oracledb: 0,
       sqlite3: 0,
       rest: 0,
       graphql: 0,

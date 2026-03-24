@@ -22,6 +22,7 @@ const props = defineProps<{
   hideIconTooltip?: boolean
   isHiddenCol?: boolean
   showLockIcon?: boolean
+  showMenuMobile?: boolean
 }>()
 
 const { t } = useI18n()
@@ -37,6 +38,8 @@ const isExternalSource = computed(() =>
 const hideMenu = toRef(props, 'hideMenu')
 
 const { isMobileMode } = useGlobal()
+
+const isMobileMenuHidden = computed(() => props.hideMenu || (isMobileMode.value && !props.showMenuMobile))
 
 const editColumnDropdown = ref(false)
 
@@ -186,7 +189,7 @@ const openHeaderMenu = (e?: MouseEvent, description = false) => {
   if (
     !isForm.value &&
     isUIAllowed('fieldEdit') &&
-    !isMobileMode.value &&
+    !isMobileMenuHidden.value &&
     (!isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.value.uidt))
   ) {
     if (description) {
@@ -197,7 +200,7 @@ const openHeaderMenu = (e?: MouseEvent, description = false) => {
 }
 
 const openDropDown = (e: Event) => {
-  if (isForm.value || (!isUIAllowed('fieldEdit') && !isMobileMode.value) || props.hideIconTooltip) return
+  if (isForm.value || (!isUIAllowed('fieldEdit') && !isMobileMenuHidden.value) || props.hideIconTooltip) return
 
   e.preventDefault()
   e.stopPropagation()
@@ -214,7 +217,13 @@ const onVisibleChange = () => {
 }
 
 const onClick = (e: Event) => {
-  if (isMobileMode.value || !isUIAllowed('fieldEdit') || props.hideIconTooltip) return
+  if (isMobileMenuHidden.value || !isUIAllowed('fieldEdit') || props.hideIconTooltip) return
+
+  // On mobile, only respond to clicks within the name wrapper
+  if (isMobileMode.value && props.showMenuMobile) {
+    const target = e.target as HTMLElement
+    if (!target?.closest('.nc-virtual-cell-name-wrapper')) return
+  }
 
   if (isDropDownOpen.value) {
     e.preventDefault()
@@ -234,18 +243,22 @@ const onClick = (e: Event) => {
   <div
     class="flex items-center w-full h-full text-small text-nc-content-gray-muted font-weight-medium group"
     :class="{
-      'flex-col !items-start justify-center pt-0.5': isExpandedForm && !isMobileMode && !isExpandedBulkUpdateForm,
-      'bg-nc-bg-gray-light': isExpandedForm && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false,
+      'flex-col !items-start justify-center pt-0.5': isExpandedForm && !isMobileMenuHidden && !isExpandedBulkUpdateForm,
       'nc-cell-expanded-form-header cursor-pointer hover:bg-nc-bg-gray-light':
-        isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm,
+        isExpandedForm && !isMobileMenuHidden && !isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm,
+      'cursor-pointer':
+        isExpandedForm && !isMobileMenuHidden && isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm,
+      'bg-nc-bg-gray-light':
+        isExpandedForm && !isMobileMode && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false,
     }"
     @dblclick="openHeaderMenu"
     @click.right="openDropDown"
     @click="onClick"
   >
     <div
-      class="nc-virtual-cell-name-wrapper w-full flex-1 flex items-center"
+      class="nc-virtual-cell-name-wrapper flex items-center"
       :class="{
+        'w-full flex-1': !(isMobileMode && props.showMenuMobile && isExpandedForm),
         'max-w-[calc(100%_-_23px)]': !isExpandedForm && !column.description?.length,
         'max-w-[calc(100%_-_44px)]': !isExpandedForm && column.description?.length,
         'max-w-full': isExpandedForm && !isExpandedBulkUpdateForm,
@@ -289,7 +302,7 @@ const onClick = (e: Event) => {
       </PermissionsTooltip>
 
       <GeneralIcon
-        v-if="isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm && !hideMenu"
+        v-if="isExpandedForm && !isMobileMenuHidden && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm"
         icon="arrowDown"
         class="nc-column-context-menu flex-none cursor-pointer ml-1 group-hover:visible w-4 h-4"
         :class="{

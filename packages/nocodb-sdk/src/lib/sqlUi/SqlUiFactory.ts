@@ -2,7 +2,6 @@ import { BoolType } from '../Api';
 import UITypes from '../UITypes';
 
 import { MysqlUi } from './MysqlUi';
-import { OracleUi } from './OracleUi';
 import { PgUi } from './PgUi';
 import { SqliteUi } from './SqliteUi';
 import { SnowflakeUi } from './SnowflakeUi';
@@ -32,10 +31,6 @@ export class SqlUiFactory {
     if (connectionConfig.client === 'sqlite3') {
       return new SqliteUi();
     }
-    if (connectionConfig.client === 'oracledb') {
-      return new OracleUi();
-    }
-
     if (connectionConfig.client === 'pg') {
       // if (connectionConfig.meta.dbtype === "yugabyte")
       //   return Yugabyte;

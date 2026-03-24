@@ -30,6 +30,8 @@ export enum PlanLimitTypes {
   LIMIT_TEAM_MANAGEMENT = 'limit_team_management',
   LIMIT_SANDBOX_PER_BASE = 'limit_sandbox',
   LIMIT_RLS_POLICIES_PER_TABLE = 'limit_rls_policies_per_table',
+  LIMIT_DOCUMENT_PAGE_PER_BASE = 'limit_document_page_per_base',
+  LIMIT_DOCS_PAGE_SIZE_KB = 'limit_docs_page_size_kb',
 }
 
 export enum PlanFeatureTypes {
@@ -45,6 +47,7 @@ export enum PlanFeatureTypes {
   FEATURE_FORM_URL_REDIRECTION = 'feature_form_url_redirection',
   FEATURE_FORM_CUSTOM_LOGO = 'feature_form_custom_logo',
   FEATURE_FORM_CUSTOM_SUBMIT_LABEL = 'feature_form_custom_submit_label',
+  FEATURE_FORM_SCHEDULING = 'feature_form_scheduling',
   FEATURE_FORM_FIELD_ON_CONDITION = 'feature_form_field_on_condition',
   FEATURE_FORM_FIELD_VALIDATION = 'feature_form_field_validation',
   FEATURE_GROUP_BY_AGGREGATIONS = 'feature_group_by_aggregations',
@@ -64,6 +67,7 @@ export enum PlanFeatureTypes {
   FEATURE_API_MEMBER_MANAGEMENT = 'feature_api_member_management',
   FEATURE_TEAM_MANAGEMENT = 'feature_team_management',
   FEATURE_API_SCRIPT_MANAGEMENT = 'feature_api_script_management',
+  FEATURE_API_DASHBOARD_V3 = 'feature_api_dashboard_v3',
   FEATURE_API_VIEW_V3 = 'feature_api_view_v3',
   FEATURE_CALENDAR_RANGE = 'feature_calendar_range',
   FEATURE_AI_PROMPT_FIELD = 'feature_ai_prompt_field',
@@ -85,7 +89,15 @@ export enum PlanFeatureTypes {
   FEATURE_RLS = 'feature_rls',
   FEATURE_VIEW_SECTIONS = 'feature_view_sections',
   FEATURE_MAP_VIEW = 'feature_map_view',
+  FEATURE_LIST_VIEW = 'feature_list_view',
+  FEATURE_TEAM_HIERARCHY = 'feature_team_hierarchy',
   FEATURE_TIMELINE_VIEW = 'feature_timeline_view',
+  FEATURE_AI_CHAT = 'feature_ai_chat',
+  FEATURE_DOCS_APIS = 'feature_docs_apis',
+  FEATURE_DOCS_INLINE_COMMENTS = 'feature_docs_inline_comments',
+  FEATURE_DOCS_EXPORT_PDF = 'feature_docs_export_pdf',
+  FEATURE_DOCUMENT_PERMISSIONS = 'feature_document_permissions',
+  FEATURE_DOC_AI = 'feature_doc_ai',
 }
 
 export enum PlanTitles {
@@ -247,6 +259,10 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]:
     'to increase workflow logs retention.',
   [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 'to add more sandboxes.',
+  [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE]:
+    'to add more document pages in a base.',
+  [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]:
+    'to increase the document page size limit.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
@@ -264,6 +280,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO]: 'to add a custom logo to forms.',
   [PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL]:
     'to customize the submit button label.',
+  [PlanFeatureTypes.FEATURE_FORM_SCHEDULING]:
+    'to schedule form availability.',
   [PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION]:
     'to access conditional form fields feature',
   [PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION]:
@@ -295,6 +313,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: 'to use team management.',
   [PlanFeatureTypes.FEATURE_API_VIEW_V3]: 'to use view api.',
   [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: 'to use script api.',
+  [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: 'to use dashboard api.',
   [PlanFeatureTypes.FEATURE_CALENDAR_RANGE]:
     'to visualize records in a calendar range.',
   [PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD]: 'to use AI text fields.',
@@ -322,7 +341,18 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_RLS]: 'to use row-level security.',
   [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: 'to organize views into sections.',
   [PlanFeatureTypes.FEATURE_MAP_VIEW]: 'to use map view.',
+  [PlanFeatureTypes.FEATURE_LIST_VIEW]: 'to use list view.',
+  [PlanFeatureTypes.FEATURE_TEAM_HIERARCHY]: 'to use team hierarchy.',
   [PlanFeatureTypes.FEATURE_TIMELINE_VIEW]: 'to use timeline view.',
+  [PlanFeatureTypes.FEATURE_AI_CHAT]: 'to use AI chat.',
+  [PlanFeatureTypes.FEATURE_DOCS_APIS]: 'to access Documents API.',
+  [PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS]:
+    'to use inline comments in documents.',
+  [PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF]:
+    'to export documents as PDF.',
+  [PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS]:
+    'to use document permissions.',
+  [PlanFeatureTypes.FEATURE_DOC_AI]: 'to use AI features in documents.',
 };
 
 export const getUpgradeMessage = (

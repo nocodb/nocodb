@@ -564,7 +564,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
   >
     <div
       ref="kanbanContainerRef"
-      class="nc-kanban-container flex p-3 overflow-y-hidden w-full nc-scrollbar-x-lg min-h-[calc(100%_-_0.4rem)] max-h-[calc(100%_-_0.4rem)]"
+      class="nc-kanban-container flex p-3 overflow-y-hidden w-full nc-view-scrollbar-x min-h-[calc(100%_-_0.4rem)] max-h-[calc(100%_-_0.4rem)]"
     >
       <div v-if="isViewDataLoading" class="flex flex-row min-h-full gap-x-2">
         <a-skeleton-input v-for="index of Array(20)" :key="index" class="!min-w-80 !min-h-full !rounded-xl overflow-hidden" />
@@ -1348,7 +1348,10 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                 {{ $t('activity.expandRecord') }}
               </div>
             </NcMenuItem>
-            <NcMenuItem v-if="contextMenuTarget && contextMenuRowId && !isPublic && isEeUI" @click="showSendRecordModal = true">
+            <NcMenuItem
+              v-if="contextMenuTarget && contextMenuRowId && !isPublic && appInfo.ee"
+              @click="showSendRecordModal = true"
+            >
               <div class="flex items-center gap-2 nc-kanban-context-menu-item">
                 <GeneralIcon icon="mail" class="flex" />
                 {{ $t('activity.sendRecord') }}

@@ -1,4 +1,6 @@
 import { NotificationType, UserType } from '~/lib/Api';
+import { ChatEventAction } from '~/lib/chat';
+import type { ChatContentBlock, ChatMessageType, ChatSessionType } from '~/lib/chat';
 
 export enum EventType {
   HANDSHAKE = 'handshake',
@@ -17,6 +19,9 @@ export enum EventType {
   WORKFLOW_EVENT = 'event-workflow',
   WORKFLOW_EXECUTION_EVENT = 'event-workflow-execution',
   PRESENCE_EVENT = 'event-presence',
+  CHAT_EVENT = 'event-chat',
+  DOCUMENT_EVENT = 'event-document',
+  DOCUMENT_COMMENT_EVENT = 'event-document-comment',
 }
 
 export interface BaseSocketPayload {
@@ -52,6 +57,12 @@ export interface DataPayload extends BaseSocketPayload {
 export interface CommentPayload extends BaseSocketPayload {
   id: string; // rowId
   action: 'add' | 'update' | 'delete';
+  payload: Record<string, any>;
+}
+
+export interface DocumentCommentPayload extends BaseSocketPayload {
+  id: string; // docId
+  action: 'add' | 'update' | 'delete' | 'resolve';
   payload: Record<string, any>;
 }
 
@@ -115,6 +126,7 @@ export enum PresencePageType {
   AUTOMATION = 'automation',
   DASHBOARD = 'dashboard',
   SCRIPT = 'script',
+  DOCUMENT = 'document',
 }
 
 export interface PresenceAnnouncePayload extends BaseSocketPayload {
@@ -188,14 +200,52 @@ export type PresencePayload =
   | PresenceLeavePayload
   | PresenceBatchPayload;
 
+export interface ChatEventPayload extends BaseSocketPayload {
+  action: ChatEventAction;
+  sessionId: string;
+  // action: 'token'
+  content?: string;
+  // action: 'tool-start' | 'tool-call'
+  toolCallId?: string;
+  name?: string;
+  args?: any;
+  // action: 'tool-result'
+  output?: any;
+  isError?: boolean;
+  // action: 'message-done'
+  workspaceId?: string;
+  messageId?: string;
+  /** Final ordered content blocks — single source of truth for the persisted message. */
+  parts?: ChatContentBlock[];
+  /** Braintrust span ID — used for thumbs up/down feedback submission. */
+  btSpanId?: string | null;
+  /** Follow-up suggestions generated after the assistant response */
+  followUps?: string[];
+  // action: 'error'
+  error?: string;
+  // action: 'session-create' | 'session-update' | 'session-delete'
+  session?: ChatSessionType;
+  // action: 'user-message'
+  message?: ChatMessageType;
+  // action: 'agent-switch' — multi-agent system
+  /** Current active agent name */
+  agent?: string;
+  /** Human-readable status label (e.g. "Building table structure...") */
+  agentLabel?: string;
+  /** Tool visibility level for filtering in the UI */
+  visibility?: 'hidden' | 'action' | 'data' | 'ui';
+}
+
 export type SocketEventPayload =
   | ConnectionWelcomePayload
   | ConnectionErrorPayload
   | DataPayload
   | MetaPayload
   | CommentPayload
+  | DocumentCommentPayload
   | NotificationPayload
-  | PresencePayload;
+  | PresencePayload
+  | ChatEventPayload;
 
 // Type mapping for event types to their corresponding payloads
 export type SocketEventPayloadMap = {
@@ -206,7 +256,9 @@ export type SocketEventPayloadMap = {
   [EventType.META_EVENT]: MetaPayload;
   [EventType.USER_EVENT]: UserEventPayload;
   [EventType.COMMENT_EVENT]: CommentPayload;
+  [EventType.DOCUMENT_COMMENT_EVENT]: DocumentCommentPayload;
   [EventType.PRESENCE_EVENT]: PresencePayload;
+  [EventType.CHAT_EVENT]: ChatEventPayload;
   [key: string]: BaseSocketPayload;
 };
 

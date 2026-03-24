@@ -4,7 +4,7 @@ import type { RenderRectangleProps } from '../utils/types'
 
 export const MultiSelectCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, x: _x, y: _y, width: _width, height, pv, padding, getColor, isDark } = props
+    const { column, x: _x, y: _y, width: _width, height, pv, padding, isDark } = props
     let x = _x + padding
     let y = _y
     let width = _width - padding * 2
@@ -63,7 +63,9 @@ export const MultiSelectCellRenderer: CellRenderer = {
       }
 
       const opColor = optionsMap[text]?.color ?? defaultColor
-      const opBgColor = !isDark ? opColor : getAdaptiveTint(opColor, { isDarkMode: isDark, shade: -10 })
+      const opBgColor = !isDark
+        ? getAdaptiveTint(opColor, { saturationMod: 5, isDarkMode: isDark, shade: 20 })
+        : getAdaptiveTint(opColor, { isDarkMode: isDark, shade: -10 })
 
       renderTag(ctx, {
         x,
@@ -82,9 +84,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
         textAlign: 'left',
         verticalAlign: 'middle',
         fontFamily: `${pv ? 600 : 500} 13px Inter`,
-        fillStyle: !isDark
-          ? getSelectTypeOptionTextColor(opColor, getColor, true)
-          : getOppositeColorOfBackground(opBgColor, opColor),
+        fillStyle: getOppositeColorOfBackground(opBgColor, opColor),
         height,
       })
 

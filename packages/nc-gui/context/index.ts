@@ -166,3 +166,7 @@ export const WorkflowVariableInj: InjectionKey<{
 }> = Symbol('workflow-variable-injection')
 
 export const IsWsBaseListModalInj: InjectionKey<Ref<boolean>> = Symbol('is-ws-base-list-modal-injection')
+
+export const IsSettingsSidebarInj: InjectionKey<Ref<boolean>> = Symbol('is-settings-sidebar-injection')
+
+export const DocIdInj: InjectionKey<Ref<string>> = Symbol('doc-id-injection')

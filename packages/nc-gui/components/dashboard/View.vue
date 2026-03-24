@@ -38,6 +38,10 @@ const animationDuration = 250
 
 const viewportWidth = ref(window.innerWidth)
 
+const { isPanelExpanded: isChatPanelExpanded, isFullScreen: isChatFullScreen } = useChatPanel()
+
+const isChatToggling = ref(false)
+
 const currentSidebarSize = computed({
   get: () => sideBarSize.value.current,
   set: (val) => {
@@ -111,16 +115,12 @@ function handleMouseMove(e: MouseEvent) {
   if (sidebarState.value === 'openEnd') return
 
   if (e.clientX < 4 + miniSidebarWidth.value && ['hiddenEnd', 'peekCloseEnd'].includes(sidebarState.value)) {
-    // Open sidebar
     sidebarState.value = 'peekOpenStart'
 
     setTimeout(() => {
       sidebarState.value = 'peekOpenEnd'
     }, animationDuration)
   } else if (e.clientX > sidebarWidth.value + 10 + miniSidebarWidth.value && sidebarState.value === 'peekOpenEnd') {
-    // Hide sidebar
-
-    // Don't hide sidebar if user is hovering over any sidebar context menu dropdown or any dropdown is active
     if ((e.target as HTMLElement).closest('.nc-dropdown.active') || isNcDropdownOpen()) {
       return
     }
@@ -134,16 +134,17 @@ function handleMouseMove(e: MouseEvent) {
 }
 
 function onWindowResize(e?: any): void {
-  viewportWidth.value = window.innerWidth
+  if (isChatToggling.value) return
 
-  // if user hide sidebar and refresh the page then sidebar will be visible again so we have to set sidebar width
+  const chatPanelOffset = parseFloat(document.documentElement.style.getPropertyValue('--nc-chat-panel-offset')) || 0
+  viewportWidth.value = window.innerWidth - chatPanelOffset
+
   if (!e && isLeftSidebarOpen.value && !sideBarSize.value.current && !isMobileMode.value) {
     currentSidebarSize.value = sideBarSize.value.old
   }
 
   leftSidebarWidthPercent.value = (currentSidebarSize.value / viewportWidth.value) * 100
 
-  // if sidebar width is greater than normalized width and this function is called from window resize event (not from template) update left sidebar width
   if (e && normalizedWidth.value < sidebarWidth.value) {
     onResize(leftSidebarWidthPercent.value)
   }
@@ -184,7 +185,6 @@ function onResize(widthPercent: any) {
 
   const fontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
 
-  // If the viewport width is less than 1560px, the max sidebar width should be 20rem
   if (viewportWidth.value <= 1560) {
     if (width > remToPx(20)) {
       sideBarSize.value.old = 20 * fontSize
@@ -219,17 +219,43 @@ const isMiniSidebarVisible = computed(() => {
     !isFullScreen.value
   )
 })
+
+const contentWidthStyle = computed(() => ({
+  width: isMiniSidebarVisible.value
+    ? 'calc(100vw - var(--mini-sidebar-width) - var(--nc-chat-panel-offset, 0px))'
+    : 'calc(100vw - var(--nc-chat-panel-offset, 0px))',
+}))
+
+watch(isChatPanelExpanded, () => {
+  isChatToggling.value = true
+  document.documentElement.classList.add('nc-chat-toggling')
+
+  nextTick(() => {
+    const offset = parseFloat(document.documentElement.style.getPropertyValue('--nc-chat-panel-offset')) || 0
+    viewportWidth.value = window.innerWidth - offset
+
+    const containerWidth = isMiniSidebarVisible.value ? viewportWidth.value - miniSidebarWidth.value : viewportWidth.value
+    if (containerWidth > 0) {
+      leftSidebarWidthPercent.value = (currentSidebarSize.value / containerWidth) * 100
+    }
+
+    window.dispatchEvent(new Event('resize'))
+    setTimeout(() => {
+      isChatToggling.value = false
+      document.documentElement.classList.remove('nc-chat-toggling')
+    }, 50)
+  })
+})
 </script>
 
 <template>
   <div class="h-full flex items-stretch">
-    <DashboardMiniSidebar v-if="isMiniSidebarVisible" />
+    <DashboardMiniSidebarV2 v-if="isMiniSidebarVisible" />
 
     <div
-      :class="{
-        'w-[calc(100vw_-_var(--mini-sidebar-width))] flex-none': isMiniSidebarVisible,
-        'nc-w-screen flex-none': !isMiniSidebarVisible,
-      }"
+      class="flex-none overflow-hidden nc-view-content-area"
+      :class="{ 'nc-view-content-hidden': isChatFullScreen }"
+      :style="contentWidthStyle"
     >
       <DashboardTopbar v-if="showTopbar" :workspace-id="workspaceId" />
       <Splitpanes
@@ -237,8 +263,6 @@ const isMiniSidebarVisible = computed(() => {
         :class="{
           'sidebar-closed': !isLeftSidebarOpen,
           'hide-resize-bar': !isLeftSidebarOpen || sidebarState === 'openStart' || hideSidebar,
-          '!w-[calc(100vw_-_var(--mini-sidebar-width))]': isMiniSidebarVisible && !isSharedBase,
-          '!nc-w-screen': !isMiniSidebarVisible || isSharedBase,
         }"
         @ready="() => onWindowResize()"
         @resize="(event: any) => onResize(event[0].size)"
@@ -374,5 +398,18 @@ const isMiniSidebarVisible = computed(() => {
   > .splitpanes__pane {
     transition: none !important;
   }
+}
+
+:root.nc-chat-toggling .splitpanes__pane {
+  transition: none !important;
+}
+
+.nc-view-content-area {
+  transition: opacity 200ms ease;
+}
+
+.nc-view-content-hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 </style>

@@ -12,6 +12,8 @@ const emits = defineEmits(['rename', 'duplicate', 'showDetails', 'clearData', 'd
 const { activeError, extension } = useExtensionHelperOrThrow()
 
 const { extensionAccess } = useExtensions()
+
+const { showEEFeatures } = useEeConfig()
 </script>
 
 <template>
@@ -40,7 +42,10 @@ const { extensionAccess } = useExtensions()
               Rename
             </NcMenuItem>
 
-            <PaymentUpgradeBadgeProvider v-if="extensionAccess.create" :feature="PlanFeatureTypes.FEATURE_EXTENSIONS">
+            <PaymentUpgradeBadgeProvider
+              v-if="extensionAccess.create && showEEFeatures"
+              :feature="PlanFeatureTypes.FEATURE_EXTENSIONS"
+            >
               <template #default="{ click }">
                 <NcMenuItem
                   data-rec="true"

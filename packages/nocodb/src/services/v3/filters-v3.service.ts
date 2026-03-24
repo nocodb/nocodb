@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { AppEvents, EventType } from 'nocodb-sdk';
 import type {
   FilterCreateV3Type,
   FilterGroupV3Type,
@@ -16,6 +17,7 @@ import { NcError } from '~/helpers/catchError';
 import { Filter, Hook, View } from '~/models';
 import RowColorCondition from '~/models/RowColorCondition';
 import Noco from '~/Noco';
+import NocoSocket from '~/socket/NocoSocket';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { FiltersService } from '~/services/filters.service';
 import {
@@ -110,12 +112,41 @@ export class FiltersV3Service {
   ) {
     // if root group creation then check existing root group
 
+    const insertedFilters: Filter[] = [];
+
     await this.insertFilterGroup({
       context,
       param,
       groupOrFilter: param.filter,
       viewId: param.viewId,
+      insertedFilters,
     });
+
+    // Emit realtime events for each inserted filter
+    if (insertedFilters.length) {
+      const view = await View.get(context, param.viewId);
+
+      for (const filter of insertedFilters) {
+        this.appHooksService.emit(AppEvents.FILTER_CREATE, {
+          filter,
+          view,
+          req: param.req,
+          context,
+        });
+
+        NocoSocket.broadcastEvent(
+          context,
+          {
+            event: EventType.META_EVENT,
+            payload: {
+              action: 'filter_create',
+              payload: filter,
+            },
+          },
+          context.socket_id,
+        );
+      }
+    }
 
     const list = this.filterList(context, param);
 
@@ -131,6 +162,7 @@ export class FiltersV3Service {
     isRoot = true, // Flag to check if it's the root group
     viewId,
     viewWebhookManager,
+    insertedFilters,
     ncMeta = Noco.ncMeta,
   }: {
     context: any;
@@ -145,6 +177,7 @@ export class FiltersV3Service {
     isRoot?: boolean;
     viewId: string;
     viewWebhookManager?: ViewWebhookManager;
+    insertedFilters?: Filter[];
     ncMeta?: MetaService;
   }): Promise<void> {
     validatePayload(
@@ -210,7 +243,7 @@ export class FiltersV3Service {
 
     // if not filter group simply insert filter
     if ('field_id' in groupOrFilter && (groupOrFilter as any).field_id) {
-      await Filter.insert(
+      const filter = await Filter.insert(
         context,
         {
           ...filterRevBuilder().build(groupOrFilter),
@@ -221,6 +254,7 @@ export class FiltersV3Service {
         },
         ncMeta,
       );
+      insertedFilters?.push(filter);
       return;
     }
 
@@ -270,12 +304,13 @@ export class FiltersV3Service {
           },
           ncMeta,
         );
+        insertedFilters?.push(rootGroupResponse);
         currentParentId = rootGroupResponse.id;
       }
     } else if (parentId === 'root') {
       currentParentId = null;
     } else {
-      // Insert root group
+      // Insert nested group
       const rootGroupResponse = await Filter.insert(
         context,
         {
@@ -287,6 +322,7 @@ export class FiltersV3Service {
         },
         ncMeta,
       );
+      insertedFilters?.push(rootGroupResponse);
       currentParentId = rootGroupResponse.id;
     }
 
@@ -295,7 +331,7 @@ export class FiltersV3Service {
       for (const child of groupOrFilter.filters || []) {
         if ('field_id' in child) {
           // Insert individual filter
-          await Filter.insert(
+          const filter = await Filter.insert(
             context,
             {
               ...filterRevBuilder().build(child),
@@ -307,6 +343,7 @@ export class FiltersV3Service {
             },
             ncMeta,
           );
+          insertedFilters?.push(filter);
         } else if ('group_operator' in child) {
           // Recursively handle nested groups
           await this.insertFilterGroup({
@@ -318,13 +355,14 @@ export class FiltersV3Service {
             isRoot: false, // Indicate it's not the root
             viewId,
             viewWebhookManager,
+            insertedFilters,
             ncMeta,
           });
         }
       }
     } else if ('field_id' in groupOrFilter) {
       // Handle a single filter directly
-      await Filter.insert(
+      const filter = await Filter.insert(
         context,
         {
           ...groupOrFilter,
@@ -335,6 +373,7 @@ export class FiltersV3Service {
         },
         ncMeta,
       );
+      insertedFilters?.push(filter);
     } else {
       NcError.get(context).badRequest(
         'Invalid structure: Expected a group or filter.',

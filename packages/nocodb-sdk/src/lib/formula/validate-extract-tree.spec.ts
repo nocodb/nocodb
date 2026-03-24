@@ -920,6 +920,46 @@ describe('validateFormulaAndExtractTreeWithType', () => {
       })
     ).rejects.toHaveProperty('type', FormulaErrorType.INVALID_SYNTAX);
   });
+  it('should fallback to UNKNOWN when referenced formula column parsed_tree lacks dataType (legacy data)', async () => {
+    // Simulate legacy data: formula column with parsed_tree that has no dataType
+    const col4 = mockColumns.find((c) => c.id === 'col4');
+    const origColOptions = col4.colOptions as UnifiedMetaType.IFormulaColumn;
+    const origGetParsedTree = origColOptions.getParsedTree;
+    const origParsedTree = origColOptions.parsed_tree;
+
+    // Strip dataType from parsed_tree to simulate legacy data
+    origColOptions.parsed_tree = {
+      type: JSEPNode.IDENTIFIER,
+      name: 'col1',
+      referencedColumn: { id: 'col1', uidt: UITypes.SingleLineText },
+    } as any;
+    origColOptions.getParsedTree = () =>
+      ({
+        type: JSEPNode.IDENTIFIER,
+        name: 'col1',
+        referencedColumn: { id: 'col1', uidt: UITypes.SingleLineText },
+      } as any);
+
+    try {
+      // Validate a formula that references the legacy formula column
+      const result = await validateFormulaAndExtractTreeWithType({
+        formula: '{Column4}',
+        columns: mockColumns,
+        clientOrSqlUi: mockClientOrSqlUi,
+        getMeta: mockGetMeta,
+      });
+
+      expect(result.type).toBe(JSEPNode.IDENTIFIER);
+      expect((result as any).name).toBe('col4');
+      // Should fallback to UNKNOWN since parsed_tree lacks dataType
+      expect((result as any).dataType).toBe(FormulaDataTypes.UNKNOWN);
+    } finally {
+      // Restore original mock data
+      origColOptions.parsed_tree = origParsedTree;
+      origColOptions.getParsedTree = origGetParsedTree;
+    }
+  });
+
   it('should return correct when identifier to rollup', async () => {
     const result = await validateFormulaAndExtractTreeWithType({
       formula: caseIdentifierRollup.formula,

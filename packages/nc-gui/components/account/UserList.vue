@@ -110,7 +110,7 @@ const resendInvite = async (user: UserType) => {
 const copyInviteUrl = async (user: User) => {
   if (!user.invite_token) return
   try {
-    await copy(`${dashboardUrl.value}#/signup/${user.invite_token}`)
+    await copy(`${dashboardUrl.value}/signup/${user.invite_token}`)
 
     // Invite URL copied to clipboard
     message.success(t('msg.success.inviteURLCopied'))

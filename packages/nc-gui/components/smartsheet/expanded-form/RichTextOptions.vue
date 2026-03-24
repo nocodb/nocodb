@@ -94,7 +94,7 @@ const newMentionNode = () => {
 
 <template>
   <div class="comment-bubble-menu bg-transparent flex-row rounded-lg flex">
-    <NcTooltip>
+    <NcTooltip hide-on-click>
       <template #title>
         <div class="flex flex-col items-center">
           <div>
@@ -115,7 +115,7 @@ const newMentionNode = () => {
       </NcButton>
     </NcTooltip>
 
-    <NcTooltip :disabled="editor?.isActive('italic')">
+    <NcTooltip hide-on-click :disabled="editor?.isActive('italic')">
       <template #title>
         <div class="flex flex-col items-center">
           <div>
@@ -135,7 +135,7 @@ const newMentionNode = () => {
         <GeneralIcon icon="italic" />
       </NcButton>
     </NcTooltip>
-    <NcTooltip>
+    <NcTooltip hide-on-click>
       <template #title>
         <div class="flex flex-col items-center">
           <div>
@@ -156,7 +156,7 @@ const newMentionNode = () => {
         <GeneralIcon icon="underline" />
       </NcButton>
     </NcTooltip>
-    <NcTooltip>
+    <NcTooltip hide-on-click>
       <template #title>
         <div class="flex flex-col items-center">
           <div>
@@ -177,7 +177,7 @@ const newMentionNode = () => {
       </NcButton>
     </NcTooltip>
 
-    <NcTooltip>
+    <NcTooltip hide-on-click>
       <template #title> {{ $t('general.link') }}</template>
       <NcButton
         :class="{ 'is-active': editor?.isActive('link') }"
@@ -190,7 +190,7 @@ const newMentionNode = () => {
         <GeneralIcon icon="link2"></GeneralIcon>
       </NcButton>
     </NcTooltip>
-    <NcTooltip v-if="appInfo.ee && !disableMention">
+    <NcTooltip v-if="appInfo.ee && !disableMention" hide-on-click>
       <template #title>
         <div class="flex flex-col items-center">
           <div>

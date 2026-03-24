@@ -16,6 +16,8 @@ const meta = inject(MetaInj)!
 const workspaceStore = useWorkspace()
 const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
+const { showEEFeatures } = useEeConfig()
+
 const vModel = useVModel(props, 'modelValue', emit)
 
 const availableFields = computed(() => {
@@ -119,6 +121,8 @@ const generate = async () => {
 }
 
 const isPromptEnabled = computed(() => {
+  if (!showEEFeatures.value) return false
+
   if (isEdit.value) {
     return isAIPromptCol(column.value) || isAiBetaFeaturesEnabled.value
   }

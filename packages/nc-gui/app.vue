@@ -156,4 +156,7 @@ const _ = (window as any).ResizeObserver
       <DashboardFeatureExperimentation v-model:value="isExperimentalFeatureModalOpen" />
     </div>
   </ErrorBoundary>
+
+  <LazyChatPanel />
+  <LazyChatFab />
 </template>

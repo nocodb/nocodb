@@ -19,7 +19,7 @@ const { workspacesList, activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const { basesList, isProjectsLoading } = storeToRefs(basesStore)
 
-const { isMobileMode } = useGlobal()
+const { activeBreakpoint } = useGlobal()
 
 // Provide base actions to child components
 const closeModal = () => {
@@ -29,9 +29,8 @@ const { dialogState } = useProvideWsBaseListActions(closeModal)
 
 const searchInputRef = ref<HTMLInputElement>()
 
-// Responsive state
-const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1024)
-const isCompactView = computed(() => isMobileMode.value || windowWidth.value < 1024)
+// Compact view for mobile (xs) and tablet (sm)
+const isCompactView = computed(() => activeBreakpoint.value === 'xs' || activeBreakpoint.value === 'sm')
 
 // Modal state - consolidated
 const modalState = reactive({
@@ -40,18 +39,12 @@ const modalState = reactive({
   activeFilter: 'all' as 'all' | 'owned',
 })
 
-// Event handlers
-const onResize = () => {
-  windowWidth.value = window.innerWidth
-}
-
 const handleKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
     visible.value = false
   }
 }
 
-useEventListener(window, 'resize', onResize)
 useEventListener(window, 'keydown', handleKeydown)
 
 // Reset state when modal opens

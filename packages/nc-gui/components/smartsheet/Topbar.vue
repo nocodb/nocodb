@@ -22,9 +22,11 @@ const { toggleExtensionPanel, isPanelExpanded } = useExtensions()
 
 const { toggleActionPanel, isPanelExpanded: isActionPanelExpanded, isViewActionsEnabled } = useActionPane()
 
+const { isPanelExpanded: isChatPanelExpanded } = useChatPanel()
+
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { isEEFeatureBlocked } = useEeConfig()
+const { isEEFeatureBlocked, showEEFeatures } = useEeConfig()
 
 const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
@@ -86,7 +88,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
 
         <NcButton
           v-if="
-            ((isEeUI && !isEEFeatureBlocked) || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
+            ((isEeUI && showEEFeatures) || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
             !isSharedBase &&
             !activeScriptId &&
             !activeDashboardId &&
@@ -109,8 +111,11 @@ const topbarBreadcrumbItemWidth = computed(() => {
               :class="{ 'border-l-1 border-transparent': isPanelExpanded }"
             />
             <span
-              class="overflow-hidden trasition-all duration-200"
-              :class="{ 'w-[0px] invisible': isPanelExpanded, 'ml-1 w-[74px]': !isPanelExpanded }"
+              class="overflow-hidden transition-all duration-200"
+              :class="{
+                'w-[0px] invisible': isPanelExpanded || isChatPanelExpanded,
+                'ml-1 w-[74px]': !isPanelExpanded && !isChatPanelExpanded,
+              }"
             >
               {{ $t('general.extensions') }}
             </span>
@@ -125,7 +130,8 @@ const topbarBreadcrumbItemWidth = computed(() => {
             !activeWorkflowId &&
             openedViewsTab === 'view' &&
             !isMobileMode &&
-            isViewActionsEnabled
+            isViewActionsEnabled &&
+            showEEFeatures
           "
           v-e="['c:action-toggle']"
           type="secondary"
@@ -142,8 +148,11 @@ const topbarBreadcrumbItemWidth = computed(() => {
               :class="{ 'border-l-1 border-transparent': isActionPanelExpanded }"
             />
             <span
-              class="overflow-hidden trasition-all duration-200"
-              :class="{ 'w-[0px] invisible': isActionPanelExpanded, 'ml-1 w-[54px]': !isActionPanelExpanded }"
+              class="overflow-hidden transition-all duration-200"
+              :class="{
+                'w-[0px] invisible': isActionPanelExpanded || isChatPanelExpanded,
+                'ml-1 w-[54px]': !isActionPanelExpanded && !isChatPanelExpanded,
+              }"
             >
               {{ $t('general.actions') }}
             </span>

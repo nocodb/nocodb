@@ -2,7 +2,7 @@ import { normalizeHexColourWithAlpha } from 'nocodb-sdk'
 
 /**
  * Shared colour-picker logic used by both the cell Editor and the
- * FilterInput components.  Centralises the modal open/close, temp colour,
+ * FilterInput components.  Centralises the open/close state, temp colour,
  * picker-key, keyboard listener, and save/cancel handlers.
  */
 export function useColourPicker(opts: {

@@ -8,7 +8,7 @@ export const useCopy = (showDialogIfFailed = false) => {
   const copyFallback = async (text: string, retryCount = 0): Promise<boolean> => {
     try {
       const textAreaEl = document.createElement('textarea')
-      textAreaEl.innerHTML = text
+      textAreaEl.value = text
       document.body.appendChild(textAreaEl)
       textAreaEl.select()
       const result = document.execCommand('copy')

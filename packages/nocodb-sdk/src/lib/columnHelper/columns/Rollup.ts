@@ -60,14 +60,39 @@ export class RollupHelper extends AbstractColumnHelper {
 
     childColumn = clone(childColumn);
 
+    // Resolve Formula fields with display_type (e.g., Currency, Decimal, Percent)
+    let isFormulaWithDisplayType = false;
+
+    if (childColumn.uidt === UITypes.Formula) {
+      const colMeta = parseProp(childColumn.meta);
+      if (colMeta?.display_type) {
+        isFormulaWithDisplayType = true;
+        const displayColumnMeta = parseProp(colMeta.display_column_meta);
+
+        childColumn = {
+          ...childColumn,
+          uidt: colMeta.display_type,
+          ...displayColumnMeta,
+          meta: {
+            ...parseProp(col?.meta),
+            ...parseProp(displayColumnMeta?.meta),
+          },
+        } as ColumnType;
+      }
+    }
+
     const renderAsTextFun = getRenderAsTextFunForUiType(
       (childColumn.uidt ?? UITypes.SingleLineText) as UITypes
     );
 
-    childColumn.meta = {
-      ...parseProp(childColumn?.meta),
-      ...parseProp(col?.meta),
-    };
+    // Only overwrite meta for non-formula display types — formula display types
+    // already have the correct meta (e.g., currency_code) set above
+    if (!isFormulaWithDisplayType) {
+      childColumn.meta = {
+        ...parseProp(childColumn?.meta),
+        ...parseProp(col?.meta),
+      };
+    }
 
     if (renderAsTextFun.includes(colOptions.rollup_function)) {
       childColumn.uidt = UITypes.Decimal;

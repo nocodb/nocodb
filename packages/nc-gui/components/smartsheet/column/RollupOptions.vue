@@ -40,7 +40,7 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
-const { getPlanTitle } = useEeConfig()
+const { getPlanTitle, showEEFeatures } = useEeConfig()
 
 const filterRef = ref()
 
@@ -113,6 +113,19 @@ provide(
 
     return getMetaByKey(selectedTable.value.base_id, selectedTable.value.id) || {}
   }),
+)
+
+// Eagerly load the related table meta so the filter column dropdown is populated.
+// `getMetaByKey` returns undefined until getMeta is called; this watch fires immediately
+// (and again if the user changes the relation) to ensure the cache is populated.
+watch(
+  selectedTable,
+  async (table) => {
+    if (table?.base_id && table?.id) {
+      await getMeta(table.base_id, table.id)
+    }
+  },
+  { immediate: true },
 )
 
 onMounted(() => {
@@ -236,8 +249,6 @@ vModel.value.meta = {
   ...ColumnHelper.getColumnDefaultMeta(UITypes.Rollup),
   ...(vModel.value.meta || {}),
 }
-
-const { isMetaReadOnly } = useRoles()
 
 const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
 
@@ -391,7 +402,6 @@ const handleScrollIntoView = () => {
       <a-select
         v-if="vModel.meta?.precision || vModel.meta?.precision === 0"
         v-model:value="vModel.meta.precision"
-        :disabled="isMetaReadOnly"
         dropdown-class-name="nc-dropdown-rollup-precision-format"
         @change="onPrecisionChange"
       >
@@ -419,7 +429,7 @@ const handleScrollIntoView = () => {
       </div>
     </a-form-item>
 
-    <div v-if="isEeUI" class="w-full flex flex-col gap-4">
+    <div v-if="isEeUI && showEEFeatures" class="w-full flex flex-col gap-4">
       <div class="flex flex-col gap-2">
         <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER">
           <template #default="{ click }">
@@ -456,7 +466,6 @@ const handleScrollIntoView = () => {
         <div v-if="limitRecToCond" class="overflow-auto nc-scrollbar-thin">
           <LazySmartsheetToolbarColumnFilter
             ref="filterRef"
-            v-model="vModel.filters"
             class="!pl-10 !p-0 max-w-620px"
             :auto-save="false"
             :show-loading="false"

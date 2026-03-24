@@ -53,6 +53,7 @@ const {
   showUpgradeToUseTeams,
   blockWorkspaceMembers,
   showUpgradeToManageWorkspaceMembers,
+  showEEFeatures,
 } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
@@ -70,6 +71,8 @@ const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: save
 const userSearchText = ref('')
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
+
+const isSettingsSidebar = inject(IsSettingsSidebarInj, ref(false))
 
 const isOnlyOneOwner = computed(() => {
   return collaborators.value?.filter((collab) => collab.roles === WorkspaceUserRoles.OWNER).length === 1
@@ -438,6 +441,7 @@ watch(inviteDlg, (newVal) => {
     :class="{
       'nc-is-admin-panel': isAdminPanel,
       'nc-is-ws-members-list': !isAdminPanel,
+      'nc-is-settings-sidebar': isSettingsSidebar,
     }"
     @scroll.passive="handleScroll"
   >
@@ -452,14 +456,14 @@ watch(inviteDlg, (newVal) => {
           allow-clear
           :disabled="isCollaboratorsLoading"
           class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
-          :placeholder="isTeamsEnabled ? $t('title.searchForMembersOrTeams') : $t('title.searchMembers')"
+          :placeholder="isTeamsEnabled && showEEFeatures ? $t('title.searchForMembersOrTeams') : $t('title.searchMembers')"
         >
           <template #prefix>
             <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme" />
           </template>
         </a-input>
         <div class="flex items-center gap-4">
-          <template v-if="!isMobileMode && (isPaymentEnabled || appInfo.isOnPrem) && paidUsersCount">
+          <template v-if="!isMobileMode && (isPaymentEnabled || appInfo.isOnPrem) && paidUsersCount && showEEFeatures">
             <NcTooltip
               v-if="activePlanTitle === PlanTitles.FREE && !appInfo.isOnPrem"
               :tooltip-style="{ width: '230px' }"
@@ -487,22 +491,7 @@ watch(inviteDlg, (newVal) => {
 
           <div class="flex items-center gap-2">
             <NcButton
-              size="small"
-              :type="isTeamsEnabled ? 'secondary' : 'primary'"
-              :disabled="isCollaboratorsLoading"
-              data-testid="nc-add-member-btn"
-              :text-color="isTeamsEnabled ? 'primary' : undefined"
-              @click="blockWorkspaceMembers ? showUpgradeToManageWorkspaceMembers() : (inviteDlg = true)"
-            >
-              <div class="flex items-center gap-2">
-                <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
-                {{ $t('activity.addMembers') }}
-                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !blockWorkspaceMembers" remove-click />
-              </div>
-            </NcButton>
-
-            <NcButton
-              v-if="isTeamsEnabled && !isAdminPanel"
+              v-if="isTeamsEnabled && !isAdminPanel && showEEFeatures"
               v-e="['c:workspace:team-add']"
               size="small"
               type="secondary"
@@ -520,7 +509,21 @@ watch(inviteDlg, (newVal) => {
             >
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="ncBuilding" />
-                {{ $t('labels.addTeams') }}
+                <span class="hidden sm:inline">{{ $t('labels.addTeams') }}</span>
+              </div>
+            </NcButton>
+
+            <NcButton
+              size="small"
+              type="primary"
+              :disabled="isCollaboratorsLoading"
+              data-testid="nc-add-member-btn"
+              @click="blockWorkspaceMembers ? showUpgradeToManageWorkspaceMembers() : (inviteDlg = true)"
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
+                <span class="hidden sm:inline">{{ $t('activity.addMembers') }}</span>
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !blockWorkspaceMembers" remove-click />
               </div>
             </NcButton>
           </div>
@@ -879,6 +882,15 @@ watch(inviteDlg, (newVal) => {
 
     @supports (height: 100dvh) {
       @apply h-[calc(100dvh-var(--topbar-height)-44px)];
+    }
+  }
+
+  // Admin sidebar mode: tab bar is hidden, so no 44px subtraction
+  &.nc-is-settings-sidebar {
+    @apply h-[calc(100vh-var(--topbar-height))];
+
+    @supports (height: 100dvh) {
+      @apply h-[calc(100dvh-var(--topbar-height))];
     }
   }
 }

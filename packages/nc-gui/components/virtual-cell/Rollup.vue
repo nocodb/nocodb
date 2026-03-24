@@ -34,14 +34,33 @@ const relatedTableMeta = computed(() => {
 const colOptions = computed(() => column.value?.colOptions)
 
 const childColumn = computed(() => {
-  if (relatedTableMeta.value?.columns) {
-    if (isRollup(column.value)) {
-      return relatedTableMeta.value?.columns.find(
-        (c: ColumnType) => c.id === (colOptions.value as RollupType).fk_rollup_column_id,
-      )
+  if (!relatedTableMeta.value?.columns || !isRollup(column.value)) return ''
+
+  const col = relatedTableMeta.value?.columns.find(
+    (c: ColumnType) => c.id === (colOptions.value as RollupType).fk_rollup_column_id,
+  )
+
+  if (!col) return ''
+
+  // Resolve Formula fields with display_type (e.g., Currency, Percent) to their effective type
+  if (col.uidt === UITypes.Formula) {
+    const colMeta = parseProp(col.meta)
+    if (colMeta?.display_type) {
+      const displayColumnMeta = parseProp(colMeta.display_column_meta)
+
+      return {
+        ...col,
+        uidt: colMeta.display_type,
+        ...displayColumnMeta,
+        meta: {
+          ...parseProp(column.value?.meta),
+          ...parseProp(displayColumnMeta?.meta),
+        },
+      }
     }
   }
-  return ''
+
+  return col
 })
 
 const renderAsTextFun = computed(() => {

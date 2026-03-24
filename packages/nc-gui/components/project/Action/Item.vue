@@ -28,7 +28,11 @@ defineProps<{
       <div class="label">
         <a-skeleton v-if="isLoading" active :title="false" :paragraph="{ rows: 1 }" />
 
-        <slot v-else name="label">{{ label }}</slot>
+        <slot v-else name="label">
+          <NcTooltip :title="label" show-on-truncate-only class="min-w-0 truncate">
+            {{ label }}
+          </NcTooltip>
+        </slot>
       </div>
       <div v-if="$slots.subtext || subtext || isLoading" class="subtext">
         <a-skeleton v-if="isLoading" active title :paragraph="false" />

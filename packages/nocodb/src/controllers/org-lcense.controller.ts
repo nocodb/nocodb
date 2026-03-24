@@ -22,6 +22,7 @@ export class OrgLcenseController {
     scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async licenseGet() {
     return await this.orgLcenseService.licenseGet();
@@ -33,6 +34,7 @@ export class OrgLcenseController {
     scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async licenseSet(@Body() body) {
     await this.orgLcenseService.licenseSet({ key: body.key });
@@ -44,6 +46,7 @@ export class OrgLcenseController {
     scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async licenseStatus() {
     return await this.orgLcenseService.licenseStatus();

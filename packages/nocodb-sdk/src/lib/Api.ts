@@ -43,6 +43,414 @@ export interface ApiTokenV3V3Type {
 }
 
 /**
+ * Widget update request body
+ */
+export interface WidgetUpdateReqV3Type {
+  /** Title of the widget. */
+  title?: string;
+  /** Description of the widget. */
+  description?: string | null;
+  /** Widget configuration. Structure depends on widget type. */
+  options?:
+    | WidgetOptionsMetricV3Type
+    | WidgetOptionsPieChartV3Type
+    | WidgetOptionsDonutChartV3Type
+    | WidgetOptionsBarChartV3Type
+    | WidgetOptionsLineChartV3Type
+    | WidgetOptionsTextV3Type
+    | WidgetOptionsIframeV3Type;
+  /** Display order of the widget. */
+  order?: number;
+  /** Position and size of the widget on the dashboard grid. */
+  position?: {
+    /** Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column. */
+    x?: number;
+    /** Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row. */
+    y?: number;
+    /** Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid). */
+    w?: number;
+    /** Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall. */
+    h?: number;
+  };
+  /** Unique identifier for the associated table. */
+  table_id?: string | null;
+  /** Unique identifier for the associated view. */
+  view_id?: string | null;
+}
+
+/**
+ * Widget create request body
+ */
+export interface WidgetCreateReqV3Type {
+  /** Title of the widget. */
+  title: string;
+  /** Description of the widget. */
+  description?: string | null;
+  /** Type of the widget. */
+  type: 'chart' | 'metric' | 'text' | 'iframe';
+  /** Widget configuration. Structure depends on widget type. */
+  options?:
+    | WidgetOptionsMetricV3Type
+    | WidgetOptionsPieChartV3Type
+    | WidgetOptionsDonutChartV3Type
+    | WidgetOptionsBarChartV3Type
+    | WidgetOptionsLineChartV3Type
+    | WidgetOptionsTextV3Type
+    | WidgetOptionsIframeV3Type;
+  /** Position and size of the widget on the dashboard grid. */
+  position?: {
+    /** Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column. */
+    x?: number;
+    /** Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row. */
+    y?: number;
+    /** Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid). */
+    w?: number;
+    /** Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall. */
+    h?: number;
+  };
+  /** Unique identifier for the associated table. */
+  table_id?: string | null;
+  /** Unique identifier for the associated view. */
+  view_id?: string | null;
+}
+
+/**
+ * Dashboard update request body
+ */
+export interface DashboardUpdateReqV3Type {
+  /** Title of the dashboard. */
+  title?: string;
+  /** Description of the dashboard. */
+  description?: string | null;
+}
+
+/**
+ * Dashboard create request body
+ */
+export interface DashboardCreateReqV3Type {
+  /** Title of the dashboard. */
+  title: string;
+  /** Description of the dashboard. */
+  description?: string | null;
+}
+
+export interface WidgetListV3Type {
+  list: WidgetReadV3Type[];
+}
+
+export interface WidgetReadV3Type {
+  /** Unique identifier for the widget. */
+  id: string;
+  /** Title of the widget. */
+  title: string;
+  /** Description of the widget. */
+  description?: string | null;
+  /** Unique identifier for the parent dashboard. */
+  dashboard_id: string;
+  /** Type of the widget. */
+  type: 'chart' | 'metric' | 'text' | 'iframe';
+  /** Widget configuration. Structure depends on widget type. See WidgetOptions* schemas. */
+  options?:
+    | WidgetOptionsMetricV3Type
+    | WidgetOptionsPieChartV3Type
+    | WidgetOptionsDonutChartV3Type
+    | WidgetOptionsBarChartV3Type
+    | WidgetOptionsLineChartV3Type
+    | WidgetOptionsTextV3Type
+    | WidgetOptionsIframeV3Type;
+  /** Display order of the widget. */
+  order?: number | null;
+  /** Position and size of the widget on the dashboard grid. */
+  position?: {
+    /** Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column. */
+    x?: number;
+    /** Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row. */
+    y?: number;
+    /** Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid). */
+    w?: number;
+    /** Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall. */
+    h?: number;
+  };
+  /** Unique identifier for the associated table. */
+  table_id?: string | null;
+  /** Unique identifier for the associated view. */
+  view_id?: string | null;
+  /** Whether the widget has a configuration error. */
+  error?: boolean;
+  /**
+   * Timestamp when the widget was created.
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp when the widget was last updated.
+   * @format date-time
+   */
+  updated_at: string;
+}
+
+/**
+ * Options for an iframe widget (type=iframe).
+ */
+export interface WidgetOptionsIframeV3Type {
+  /** URL to embed. */
+  url?: string;
+  /** Whether to allow fullscreen. */
+  allow_fullscreen?: boolean;
+}
+
+/**
+ * Options for a text widget (type=text). Formatting is nested inside appearance.
+ */
+export interface WidgetOptionsTextV3Type {
+  /** Text content (plain text or markdown). */
+  content?: string;
+  /** Text rendering mode. */
+  type?: 'markdown' | 'text';
+  appearance?: {
+    /** Text formatting options. */
+    formatting?: {
+      horizontal_align?: 'flex-start' | 'center' | 'flex-end';
+      vertical_align?: 'flex-start' | 'center' | 'flex-end';
+      bold?: boolean;
+      italic?: boolean;
+      underline?: boolean;
+      strikethrough?: boolean;
+    };
+    /** Font settings (only for type=text). */
+    font?: {
+      family?: string;
+      weight?: 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
+      /** Font size in pixels. */
+      size?: number;
+      /** Line height multiplier. */
+      line_height?: number;
+    };
+    /** Hex color (only for type=text). */
+    color?: string;
+  };
+}
+
+/**
+ * Options for a line chart widget (type=chart, chart_type=line). Same data structure as bar chart with additional line-specific appearance options.
+ */
+export interface WidgetOptionsLineChartV3Type {
+  chart_type: 'line';
+  data_source?: 'table' | 'view' | 'filter';
+  data?: {
+    x_axis?: {
+      field_id: string;
+      sort_by?: 'x_axis' | 'y_axis';
+      order_by?: 'default' | 'asc' | 'desc';
+      include_empty_records?: boolean;
+      include_others?: boolean;
+      category_limit?: number;
+    };
+    y_axis?: {
+      start_at_zero?: boolean;
+      fields?: {
+        field_id: string;
+        aggregation: string;
+      }[];
+      group_by?: string | null;
+    };
+  };
+  appearance?: {
+    size?: 'small' | 'medium' | 'large';
+    /** Smooth curve vs straight line segments. */
+    smooth_lines?: boolean;
+    /** Show dots at data points. */
+    plot_data_points?: boolean;
+    show_count_in_legend?: boolean;
+    show_value_in_chart?: boolean;
+    legend_position?: 'top' | 'right' | 'bottom' | 'left' | 'none';
+    color_schema?: 'default' | 'custom';
+  };
+}
+
+/**
+ * Options for a bar chart widget (type=chart, chart_type=bar).
+ */
+export interface WidgetOptionsBarChartV3Type {
+  chart_type: 'bar';
+  data_source?: 'table' | 'view' | 'filter';
+  data?: {
+    /** X-axis (category) configuration. */
+    x_axis?: {
+      /** X-axis grouping field. */
+      field_id: string;
+      /** Sort by x-axis labels or y-axis values. */
+      sort_by?: 'x_axis' | 'y_axis';
+      order_by?: 'default' | 'asc' | 'desc';
+      include_empty_records?: boolean;
+      include_others?: boolean;
+      /** Max categories (10-50). */
+      category_limit?: number;
+    };
+    /** Y-axis (value) configuration. */
+    y_axis?: {
+      start_at_zero?: boolean;
+      /** Fields to aggregate on the y-axis. */
+      fields?: {
+        field_id: string;
+        aggregation: string;
+      }[];
+      /** Optional secondary grouping field ID. */
+      group_by?: string | null;
+    };
+  };
+  appearance?: {
+    size?: 'small' | 'medium' | 'large';
+    show_count_in_legend?: boolean;
+    show_value_in_chart?: boolean;
+    legend_position?: 'top' | 'right' | 'bottom' | 'left' | 'none';
+    color_schema?: 'default' | 'custom';
+  };
+}
+
+/**
+ * Options for a donut chart widget (type=chart, chart_type=donut). Same structure as pie chart.
+ */
+export interface WidgetOptionsDonutChartV3Type {
+  chart_type: 'donut';
+  data_source?: 'table' | 'view' | 'filter';
+  data?: {
+    category?: {
+      field_id: string;
+      order_by?: 'default' | 'asc' | 'desc';
+      category_limit?: number;
+      include_empty_records?: boolean;
+      include_others?: boolean;
+    };
+    value?: {
+      type: 'count' | 'summary';
+      field_id?: string;
+      aggregation?: string;
+    };
+  };
+  appearance?: {
+    size?: 'small' | 'medium' | 'large';
+    show_count_in_legend?: boolean;
+    show_percentage_on_chart?: boolean;
+    legend_position?: 'top' | 'right' | 'bottom' | 'left' | 'none';
+    color_schema?: 'default' | 'custom';
+    custom_color_schema?: {
+      color?: string;
+      label?: string;
+    }[];
+  };
+}
+
+/**
+ * Options for a pie chart widget (type=chart, chart_type=pie).
+ */
+export interface WidgetOptionsPieChartV3Type {
+  chart_type: 'pie';
+  data_source?: 'table' | 'view' | 'filter';
+  data?: {
+    category?: {
+      /** Column to group by. */
+      field_id: string;
+      order_by?: 'default' | 'asc' | 'desc';
+      /** Max categories (10-50). */
+      category_limit?: number;
+      include_empty_records?: boolean;
+      /** Aggregate remaining into 'Others'. */
+      include_others?: boolean;
+    };
+    value?: {
+      type: 'count' | 'summary';
+      /** Column to aggregate. Required when type is 'summary'. */
+      field_id?: string;
+      /** Aggregation function. Required when type is 'summary'. */
+      aggregation?: string;
+    };
+  };
+  appearance?: {
+    size?: 'small' | 'medium' | 'large';
+    show_count_in_legend?: boolean;
+    show_percentage_on_chart?: boolean;
+    legend_position?: 'top' | 'right' | 'bottom' | 'left' | 'none';
+    color_schema?: 'default' | 'custom';
+    custom_color_schema?: {
+      color?: string;
+      label?: string;
+    }[];
+  };
+}
+
+/**
+ * Options for a metric widget (type=metric).
+ */
+export interface WidgetOptionsMetricV3Type {
+  /** Data source type. */
+  data_source?: 'table' | 'view' | 'filter';
+  /** Metric aggregation configuration. */
+  metric?: {
+    /** 'count' counts all rows, 'summary' aggregates a column. */
+    type: 'count' | 'summary';
+    /** Column to aggregate. Required when type is 'summary'. */
+    field_id?: string;
+    /** Aggregation function. */
+    aggregation: 'sum' | 'avg' | 'count' | 'min' | 'max';
+  };
+  appearance?: {
+    /** Visual style variant. */
+    type?: 'default' | 'filled' | 'coloured';
+    /** Color theme. */
+    theme?:
+      | 'gray'
+      | 'red'
+      | 'green'
+      | 'yellow'
+      | 'pink'
+      | 'blue'
+      | 'orange'
+      | 'maroon'
+      | 'purple';
+  };
+}
+
+export interface DashboardDataResponseV3Type {
+  /** Map of widget IDs to their data. */
+  widgets: Record<string, any>;
+}
+
+export type DashboardGetResponseV3Type = DashboardListItemV3Type & {
+  /** List of widgets. Only included when `includeWidgets=true`. */
+  widgets?: WidgetReadV3Type[];
+};
+
+export interface DashboardListV3Type {
+  list: DashboardListItemV3Type[];
+}
+
+export interface DashboardListItemV3Type {
+  /** Unique identifier for the dashboard. */
+  id: string;
+  /** Title of the dashboard. */
+  title: string;
+  /** Description of the dashboard. */
+  description?: string | null;
+  /** Unique identifier for the base. */
+  base_id: string;
+  /** Unique identifier for the workspace. */
+  workspace_id: string;
+  /**
+   * Timestamp when the dashboard was created.
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp when the dashboard was last updated.
+   * @format date-time
+   */
+  updated_at: string;
+  /** User ID of the dashboard creator. */
+  created_by?: string;
+}
+
+/**
  * Script with additional info
  */
 export interface ScriptGetResponseV3Type {

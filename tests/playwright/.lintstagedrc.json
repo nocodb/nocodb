@@ -1,3 +1,0 @@
-{
-  "**/*.{ts,tsx,js,json}": "pnpm exec eslint --fix"
-}

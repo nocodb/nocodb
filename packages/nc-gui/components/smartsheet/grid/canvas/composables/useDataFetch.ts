@@ -192,8 +192,6 @@ export function useDataFetch({
       }
     }
 
-    nextTick(triggerRefreshCanvas)
-
     clearCache(Math.max(0, start - BUFFER_SIZE), Math.min(totalRows.value, end + BUFFER_SIZE))
 
     debouncedFetchChunks(chunksToFetch, firstChunkId).catch((error) => {

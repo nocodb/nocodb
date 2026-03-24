@@ -1,4 +1,4 @@
-import type { BaseType, OracleUi, SourceType, TableType } from 'nocodb-sdk'
+import type { BaseType, SourceType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { acceptHMRUpdate, defineStore } from 'pinia'
@@ -85,10 +85,7 @@ export const useBase = defineStore('baseStore', () => {
     const temp: Record<string, any> = {}
     for (const source of sources.value) {
       if (source.id) {
-        temp[source.id] = SqlUiFactory.create({ client: source.type }) as Exclude<
-          ReturnType<(typeof SqlUiFactory)['create']>,
-          typeof OracleUi
-        >
+        temp[source.id] = SqlUiFactory.create({ client: source.type })
       }
     }
     return temp
@@ -273,7 +270,11 @@ export const useBase = defineStore('baseStore', () => {
 
     const basUrl = `/nc/${id}`
 
-    return `${basUrl}${projectPage ? `?page=${projectPage}` : ''}`
+    if (projectPage) {
+      return `${basUrl}/settings/${baseSettingsTabToSlug[projectPage] || projectPage}`
+    }
+
+    return basUrl
   }
 
   const loadManagedApp = async () => {}
@@ -306,17 +307,12 @@ export const useBase = defineStore('baseStore', () => {
     page: 'overview' | 'collaborator' | 'data-source'
     action?: string
   }) => {
-    await router.push({
-      name: 'index-typeOrId-baseId-index-index',
-      params: {
-        typeOrId: route.value.params.typeOrId,
-        baseId: route.value.params.baseId,
-      },
-      query: {
-        page,
-        ...(action ? { action } : {}),
-      },
-    })
+    const wsId = route.value.params.typeOrId
+    const bId = route.value.params.baseId
+    const slug = baseSettingsTabToSlug[page] || page
+    const query = action ? { action } : undefined
+
+    navigateTo({ path: `/${wsId}/${bId}/settings/${slug}`, query })
   }
 
   return {

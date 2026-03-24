@@ -13,9 +13,11 @@ export const useNocoAi = createSharedComposable(() => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  const isAiFeaturesEnabled = computed(() => isEeUI)
+  const { appInfo } = useGlobal()
 
-  const isAiBetaFeaturesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.AI_BETA_FEATURES))
+  const isAiFeaturesEnabled = computed(() => appInfo.value?.ee)
+
+  const isAiBetaFeaturesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.AI_BETA_FEATURES) && appInfo.value?.ee)
 
   const aiLoading = ref(false)
 
@@ -366,12 +368,23 @@ export const useNocoAi = createSharedComposable(() => {
     rowIds: string[],
     skipMsgToast = false,
     preview = false,
+    meta?: { workspaceId?: string; baseId?: string },
   ) => {
     try {
+      const workspaceId = meta?.workspaceId || workspaceStore.activeWorkspaceId
+      const baseId = meta?.baseId || activeProjectId.value
+
+      if (!workspaceId || !baseId) return
+
       aiLoading.value = true
       aiError.value = ''
 
-      const res = await $api.ai.dataGenerate(modelId, { rowIds, column, preview })
+      const res = await $api.internal.postOperation(
+        workspaceId,
+        baseId,
+        { operation: 'aiDataGenerateRows' },
+        { modelId, rowIds, column, preview },
+      )
 
       return res
     } catch (e) {
@@ -392,6 +405,25 @@ export const useNocoAi = createSharedComposable(() => {
     } finally {
       aiLoading.value = false
     }
+  }
+
+  const fillRows = async (
+    modelId: string,
+    body: {
+      rows: any[]
+      generateIds: string[]
+      numRows: number
+    },
+    meta?: { workspaceId?: string; baseId?: string },
+  ) => {
+    const workspaceId = meta?.workspaceId || workspaceStore.activeWorkspaceId
+    const baseId = meta?.baseId || activeProjectId.value
+
+    if (!workspaceId || !baseId) return
+
+    const res = await $api.internal.postOperation(workspaceId, baseId, { operation: 'aiDataFillRows' }, { modelId, ...body })
+
+    return res as Record<string, any>[]
   }
 
   const predictSchema = async (input: any, skipMsgToast = true) => {
@@ -437,6 +469,7 @@ export const useNocoAi = createSharedComposable(() => {
     predictNextTables,
     generateTables,
     generateRows,
+    fillRows,
     generatingRows,
     generatingColumnRows,
     generatingColumns,

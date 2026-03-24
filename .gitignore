@@ -42,6 +42,7 @@ _site/
 *.bak
 *.swp
 build/
+*.tsbuildinfo
 uploads/
 
 # Visual Studio Code

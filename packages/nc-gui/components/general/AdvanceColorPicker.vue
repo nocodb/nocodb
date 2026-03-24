@@ -137,10 +137,12 @@ watch(
                   :style="{
                     backgroundColor: getBgColorCallback
                       ? getBgColorCallback(color || '#ccc', isDark)
-                      : getSelectTypeFieldOptionBgColor({
+                      : showTextIcon
+                      ? getSelectTypeFieldOptionBgColor({
                           color: color || '#ccc',
                           isDark: invertInDarkMode && isDark,
-                        }),
+                        })
+                      : getDarkModeCompatibleBgColor({ color: color || '#ccc', isDark: invertInDarkMode && isDark }),
                     color: getTextColorCallback
                       ? getTextColorCallback(color || '#ccc', isDark)
                       : getSelectTypeFieldOptionTextColor({

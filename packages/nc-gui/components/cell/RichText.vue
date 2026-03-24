@@ -48,7 +48,7 @@ const emits = defineEmits(['update:value', 'focus', 'blur', 'close'])
 
 const { fullMode, isFormField, hiddenBubbleMenuOptions } = toRefs(props)
 
-const { appInfo } = useGlobal()
+const { appInfo, user } = useGlobal()
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 const rowHeight = inject(RowHeightInj, ref(1 as const))
@@ -61,7 +61,7 @@ const isKanban = inject(IsKanbanInj, ref(false))
 const isFocused = ref(false)
 const keys = useMagicKeys()
 const meta = inject(MetaInj)!
-const { user } = useGlobal()
+
 const basesStore = useBases()
 const { basesUser } = storeToRefs(basesStore)
 
@@ -118,7 +118,7 @@ const getTiptapExtensions = () => {
       emptyEditorClass: 'is-editor-empty',
       placeholder: props.placeholder,
     }),
-    Markdown.configure({ breaks: true, transformPastedText: true, renderImagesAsLinks: !isEeUI }),
+    Markdown.configure({ breaks: true, transformPastedText: true, renderImagesAsLinks: !appInfo.value?.ee }),
   ]
 
   if (appInfo.value.ee && !props.hideMention) {

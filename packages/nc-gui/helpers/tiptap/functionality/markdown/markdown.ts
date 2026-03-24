@@ -1,4 +1,5 @@
 import MarkdownIt from 'markdown-it'
+import DOMPurify from 'isomorphic-dompurify'
 import mdTaskList from 'markdown-it-task-lists'
 import type { UserType } from 'nocodb-sdk'
 import { mdImageAsText, mdLinkRuleSetupExt } from '.'
@@ -133,9 +134,9 @@ export class NcMarkdownParser {
       parser = new NcMarkdownParser(options)
     }
 
-    // If content is a string, parse it
+    // If content is a string, parse it and sanitize to prevent XSS
     if (ncIsString(content)) {
-      return parser.md.render(NcMarkdownParser.preprocessMarkdown(content))
+      return DOMPurify.sanitize(parser.md.render(NcMarkdownParser.preprocessMarkdown(content)))
     }
 
     return content

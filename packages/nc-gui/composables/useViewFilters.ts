@@ -293,8 +293,8 @@ export function useViewFilters(
 
     const filter: ColumnFilterType = {
       tmp_id: getDraftFilterId(),
-      comparison_op: comparisonOpList(options.value?.[0].uidt as UITypes).filter((compOp) =>
-        isComparisonOpAllowed({ fk_column_id: options.value?.[0].id }, compOp),
+      comparison_op: comparisonOpList(options.value?.[0]?.uidt as UITypes).filter((compOp) =>
+        isComparisonOpAllowed({ fk_column_id: options.value?.[0]?.id }, compOp),
       )?.[0]?.value as FilterType['comparison_op'],
       value: null,
       status: 'create',

@@ -87,10 +87,16 @@ const renderData = computed<Array<Row>>(() => {
     const toCol = range.fk_to_col
     formattedSideBarData.value.forEach((record) => {
       if (fromCol && toCol) {
-        const from = timezoneDayjs.timezonize(record.row[fromCol.title!])
-        const to = timezoneDayjs.timezonize(record.row[toCol.title!])
+        const hasFrom = !!record.row[fromCol.title!] && dayjs(record.row[fromCol.title!]).isValid()
+        const hasTo = !!record.row[toCol.title!] && dayjs(record.row[toCol.title!]).isValid()
+        const from = hasFrom ? timezoneDayjs.timezonize(record.row[fromCol.title!]) : null
+        const to = hasTo ? timezoneDayjs.timezonize(record.row[toCol.title!]) : null
+        // For records with partial dates, use the available date as both start and end (single-day event)
+        const effectiveFrom = from ?? to
+        const effectiveTo = to ?? from
+
         if (sideBarFilterOption.value === 'withoutDates') {
-          if (!dayjs(record.row[fromCol.title!]).isValid() || !dayjs(record.row[toCol.title!]).isValid()) {
+          if (!hasFrom || !hasTo) {
             pushToArray(rangedData, record, range)
           }
         } else if (sideBarFilterOption.value === 'allRecords') {
@@ -133,12 +139,12 @@ const renderData = computed<Array<Row>>(() => {
               break
           }
 
-          if (from && to) {
+          if (effectiveFrom && effectiveTo) {
             if (
-              (from.isSameOrAfter(fromDate) && to.isSameOrBefore(toDate)) ||
-              (from.isSameOrBefore(fromDate) && to.isSameOrAfter(toDate)) ||
-              (from.isSameOrBefore(fromDate) && to.isSameOrAfter(fromDate)) ||
-              (from.isSameOrBefore(toDate) && to.isSameOrAfter(toDate))
+              (effectiveFrom.isSameOrAfter(fromDate) && effectiveTo.isSameOrBefore(toDate)) ||
+              (effectiveFrom.isSameOrBefore(fromDate) && effectiveTo.isSameOrAfter(toDate)) ||
+              (effectiveFrom.isSameOrBefore(fromDate) && effectiveTo.isSameOrAfter(fromDate)) ||
+              (effectiveFrom.isSameOrBefore(toDate) && effectiveTo.isSameOrAfter(toDate))
             ) {
               pushToArray(rangedData, record, range)
             }

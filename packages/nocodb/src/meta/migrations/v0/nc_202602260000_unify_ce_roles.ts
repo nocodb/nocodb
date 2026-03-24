@@ -22,12 +22,12 @@ const WS_ROLE_ORDER = [
  * 1. Resolve the default workspace (idempotent — created by nc_098 on upgrades,
  *    or by verifyDefaultWorkspace() at runtime on fresh installs)
  * 2. Batch-add missing users to the workspace with NO_ACCESS
- * 3. For workspace-level-creator users, insert no-access base_user entries
+ * 3. For users whose nc_users_v2.roles contains 'org-level-creator', upgrade
+ *    their workspace role to workspace-level-creator if current ws role is lower.
+ * 4. For workspace-level-creator users, insert no-access base_user entries
  *    on every existing base they don't already have access to — this blocks
  *    inheritance and preserves the pre-migration access model where bases
  *    were only visible to explicitly assigned users.
- * 4. For users whose nc_users_v2.roles contains 'org-level-creator', upgrade
- *    their workspace role to workspace-level-creator if current ws role is lower.
  */
 const up = async (knex: Knex) => {
   // ── Step 1: Resolve default workspace ID ──────────────────────────────
@@ -94,7 +94,42 @@ const up = async (knex: Knex) => {
     }
   }
 
-  // ── Step 3: Block inheritance for workspace-level-creators ────────────
+  // ── Step 3: Promote org-level-creators to workspace-level-creator ──
+  // For users whose nc_users_v2.roles contains 'org-level-creator',
+  // upgrade their workspace_user row to workspace-level-creator only
+  // if their current ws role is lower on the hierarchy.
+  // Do NOT touch viewers — they keep whatever workspace role they already have.
+  // Do NOT strip org roles from nc_users_v2.roles.
+  const orgCreators = await knex(MetaTable.USERS)
+    .where('roles', 'like', '%org-level-creator%')
+    .select('id');
+
+  if (orgCreators.length) {
+    const targetIndex = WS_ROLE_ORDER.indexOf(WorkspaceUserRoles.CREATOR);
+
+    for (const orgCreator of orgCreators) {
+      const wsUser = await knex(MetaTable.WORKSPACE_USER)
+        .where('fk_workspace_id', defaultWsId)
+        .where('fk_user_id', orgCreator.id)
+        .first();
+
+      if (!wsUser) continue;
+
+      const currentIndex = WS_ROLE_ORDER.indexOf(
+        wsUser.roles as WorkspaceUserRoles,
+      );
+
+      // Only upgrade if current role is strictly lower
+      if (currentIndex < targetIndex) {
+        await knex(MetaTable.WORKSPACE_USER)
+          .where('fk_workspace_id', defaultWsId)
+          .where('fk_user_id', orgCreator.id)
+          .update({ roles: WorkspaceUserRoles.CREATOR });
+      }
+    }
+  }
+
+  // ── Step 4: Block inheritance for workspace-level-creators ────────────
   // For users with workspace-level-creator role, insert no-access base_user
   // entries for every base they don't already have access to.
   // This preserves the CE model where only explicitly invited users see a base.
@@ -142,41 +177,6 @@ const up = async (knex: Knex) => {
             );
           }
         }
-      }
-    }
-  }
-
-  // ── Step 4: Promote org-level-creators to workspace-level-creator ──
-  // For users whose nc_users_v2.roles contains 'org-level-creator',
-  // upgrade their workspace_user row to workspace-level-creator only
-  // if their current ws role is lower on the hierarchy.
-  // Do NOT touch viewers — they keep whatever workspace role they already have.
-  // Do NOT strip org roles from nc_users_v2.roles.
-  const orgCreators = await knex(MetaTable.USERS)
-    .where('roles', 'like', '%org-level-creator%')
-    .select('id');
-
-  if (orgCreators.length) {
-    const targetIndex = WS_ROLE_ORDER.indexOf(WorkspaceUserRoles.CREATOR);
-
-    for (const orgCreator of orgCreators) {
-      const wsUser = await knex(MetaTable.WORKSPACE_USER)
-        .where('fk_workspace_id', defaultWsId)
-        .where('fk_user_id', orgCreator.id)
-        .first();
-
-      if (!wsUser) continue;
-
-      const currentIndex = WS_ROLE_ORDER.indexOf(
-        wsUser.roles as WorkspaceUserRoles,
-      );
-
-      // Only upgrade if current role is strictly lower
-      if (currentIndex < targetIndex) {
-        await knex(MetaTable.WORKSPACE_USER)
-          .where('fk_workspace_id', defaultWsId)
-          .where('fk_user_id', orgCreator.id)
-          .update({ roles: WorkspaceUserRoles.CREATOR });
       }
     }
   }

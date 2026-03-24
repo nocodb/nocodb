@@ -12,6 +12,7 @@ import {
   ButtonActionsType,
   UITypes,
   UITypesName,
+  isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isSelfReferencingTableColumn,
   isSystemColumn,
@@ -119,6 +120,7 @@ const {
   blockUnique,
   blockColourField,
   showUpgradeToUseColourField,
+  showEEFeatures,
 } = useEeConfig()
 
 const { eventBus } = useSmartsheetStoreOrThrow()
@@ -213,14 +215,6 @@ const onlyNameUpdateOnEditColumns = [
 // close modal only when the type popup is close
 const isColumnTypeOpen = ref(false)
 
-const geoDataToggleCondition = (t: { name: UITypes }) => {
-  if (!appInfo.value.ee) return true
-
-  const isColEnabled = isFeatureEnabled(FEATURE_FLAG.GEODATA_COLUMN)
-
-  return isColEnabled || !t.name.includes(UITypes.GeoData)
-}
-
 const showDeprecated = ref(false)
 
 const isSystemField = (t: { name: UITypes }) =>
@@ -232,12 +226,14 @@ const uiFilters = (t: UiTypesType) => {
     return true
   }
   const systemFiledNotEdited = !isSystemField(t) || formState.value.uidt === t.name || !isEdit.value
-  const geoDataToggle = geoDataToggleCondition(t) && (!isEdit.value || !t.virtual || t.name === formState.value.uidt)
+  const isVirtualEditAllowed = !isEdit.value || !t.virtual || t.name === formState.value.uidt
   const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)
   const showDeprecatedField = !t.deprecated || showDeprecated.value
 
-  const showAiFields = [AIPrompt, AIButton].includes(t.name) ? isAiBetaFeaturesEnabled.value && !isEdit.value && isEeUI : true
-  const showColourField = t.name === UITypes.Colour ? isEeUI : true
+  const showAiFields = [AIPrompt, AIButton].includes(t.name)
+    ? isAiBetaFeaturesEnabled.value && !isEdit.value && isEeUI && showEEFeatures.value
+    : true
+  const showColourField = t.name === UITypes.Colour ? isEeUI && showEEFeatures.value : true
   const isAllowToAddInFormView = isForm.value ? !isFormViewHiddenCol(t.name as UITypes) : true
 
   const showLTAR =
@@ -249,14 +245,14 @@ const uiFilters = (t: UiTypesType) => {
   }
 
   // UUID is only supported for PostgreSQL databases
-  const showUUID = t.name !== UITypes.UUID || (isPg(meta.value?.source_id) && isEeUI)
+  const showUUID = t.name !== UITypes.UUID || (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value)
 
   // AutoNumber is only supported for PostgreSQL databases
-  const showAutoNumber = t.name !== UITypes.AutoNumber || (isPg(meta.value?.source_id) && isEeUI)
+  const showAutoNumber = t.name !== UITypes.AutoNumber || (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value)
 
   return (
     systemFiledNotEdited &&
-    geoDataToggle &&
+    isVirtualEditAllowed &&
     !specificDBType &&
     showDeprecatedField &&
     isAllowToAddInFormView &&
@@ -499,7 +495,11 @@ onMounted(() => {
     if (formState.value.pk) {
       message.info(t('msg.info.editingPKnotSupported'))
       emit('cancel')
-    } else if (isSystemColumn(formState.value) && !isSelfReferencingTableColumn(formState.value)) {
+    } else if (
+      isSystemColumn(formState.value) &&
+      !isSelfReferencingTableColumn(formState.value) &&
+      !isCreatedOrLastModifiedTimeCol(formState.value)
+    ) {
       message.info(t('msg.info.editingSystemKeyNotSupported'))
       emit('cancel')
     }
@@ -1186,7 +1186,7 @@ const unique = computed({
               'nc-ai-input': isAiMode,
             }"
             :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
-            :disabled="isKanban || readOnly || !isFullUpdateAllowed || isSyncedField"
+            :disabled="isKanban || readOnly || !isFullUpdateAllowed || isSystem || isSyncedField"
             @change="debouncedOnPredictFieldType"
             @input="onAlter(8)"
           />
@@ -1439,7 +1439,8 @@ const unique = computed({
                 isUniqueConstraintSupportedType(formState.uidt, formState.meta) &&
                 !isUUID(formState) &&
                 !isAutoNumber(formState) &&
-                isEeUI
+                isEeUI &&
+                showEEFeatures
               "
               class="flex"
             >

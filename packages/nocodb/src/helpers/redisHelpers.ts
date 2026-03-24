@@ -13,9 +13,7 @@ export const getRedisURL = (type?: NC_REDIS_TYPE) => {
     case NC_REDIS_TYPE.CACHE:
       return process.env.NC_CACHE_REDIS_URL || process.env.NC_REDIS_URL;
     case NC_REDIS_TYPE.JOB:
-      return (
-        process.env.NC_JOBS_REDIS_URL || process.env.NC_REDIS_JOB_URL
-      );
+      return process.env.NC_JOBS_REDIS_URL || process.env.NC_REDIS_JOB_URL;
     case NC_REDIS_TYPE.THROTTLER:
       return (
         process.env.NC_RATE_LIMIT_REDIS_URL || process.env.NC_THROTTLER_REDIS

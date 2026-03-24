@@ -187,6 +187,7 @@ const permissionScopes = {
     'btExcludedList',
     'ooExcludedList',
     'gridColumnUpdate',
+    'listColumnUpdate',
     'bulkDataInsert',
     'bulkDataUpdate',
     'bulkDataUpdateAll',
@@ -201,6 +202,7 @@ const permissionScopes = {
     'nestedListCopyPasteOrDeleteAll',
     'baseUserList',
     'sourceCreate',
+    'columnAdd',
 
     // Base API Tokens
     'baseApiTokenList',
@@ -229,6 +231,9 @@ const permissionScopes = {
     'aiUtils',
     'aiData',
     'aiBaseSchema',
+    'aiDataGenerateRows',
+    'aiDataFillRows',
+    'aiDataExtractRows',
 
     // MCP
     'mcpList',
@@ -442,6 +447,9 @@ const rolePermissions:
       // AI
       aiUtils: true,
       aiData: true,
+      aiDataGenerateRows: true,
+      aiDataFillRows: true,
+      aiDataExtractRows: true,
 
       // Extensions
       extensionUpdate: true,
@@ -462,6 +470,7 @@ const rolePermissions:
       hideAllColumns: true,
       showAllColumns: true,
       gridColumnUpdate: true,
+      listColumnUpdate: true,
       gridViewUpdate: true,
       galleryViewUpdate: true,
       kanbanViewUpdate: true,
@@ -808,6 +817,7 @@ const permissionDescriptions: Record<string, string> = {
   btExcludedList: 'view excluded relationships',
   ooExcludedList: 'view excluded one-to-one relationships',
   gridColumnUpdate: 'update grid columns',
+  listColumnUpdate: 'update list columns',
   bulkDataInsert: 'bulk insert data',
   bulkDataUpdate: 'bulk update data',
   bulkDataUpdateAll: 'bulk update all data',

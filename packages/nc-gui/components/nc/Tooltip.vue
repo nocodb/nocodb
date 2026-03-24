@@ -43,6 +43,7 @@ interface NcTooltipProps {
   color?: 'dark' | 'light'
   // force disable tooltip
   disabled?: boolean
+  disableInMobile?: boolean
   placement?: TooltipPlacement | undefined
   showOnTruncateOnly?: boolean
   hideOnClick?: boolean
@@ -77,6 +78,7 @@ const {
   disabled,
   showOnTruncateOnly,
   hideOnClick,
+  disableInMobile,
   placement,
   wrapChild,
   attrs: attributes,
@@ -84,13 +86,15 @@ const {
   mouseEnterDelay,
 } = toRefs(props)
 
+const { isMobileMode } = useGlobal()
+
 const el = ref()
 
 const element = ref()
 
 const showTooltip = controlledRef(false, {
   onBeforeChange: (shouldShow) => {
-    if (shouldShow && disabled.value) return false
+    if (shouldShow && (disabled.value || (disableInMobile.value && isMobileMode.value))) return false
   },
 })
 

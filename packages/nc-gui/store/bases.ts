@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { BaseType, OracleUi, ProjectUserReqType, RequestParams, SourceType } from 'nocodb-sdk'
+import type { BaseType, ProjectUserReqType, RequestParams, SourceType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import type Record from '~icons/*'
@@ -58,6 +58,13 @@ export const useBases = defineStore('basesStore', () => {
     }
 
     return basesMap
+  })
+
+  const resolvedProject = computed(() => {
+    if (openedProject.value) return openedProject.value
+
+    const lastVisitedBaseId = ncLastVisitedBase().get()
+    return basesList.value?.find((b) => b.id === lastVisitedBaseId) || basesList.value?.[0]
   })
 
   const isDataSourceLimitReached = computed(() => Number(openedProject.value?.sources?.length) > 9)
@@ -255,7 +262,7 @@ export const useBases = defineStore('basesStore', () => {
         break
       }
     }
-    return sqlUi as Exclude<ReturnType<(typeof SqlUiFactory)['create']>, typeof OracleUi>
+    return sqlUi
   }
 
   const updateProject = async (baseId: string, baseUpdatePayload: BaseType) => {
@@ -480,6 +487,7 @@ export const useBases = defineStore('basesStore', () => {
     baseTeamAdd,
     baseTeamUpdate,
     baseTeamRemove,
+    resolvedProject,
   }
 })
 

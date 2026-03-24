@@ -5,7 +5,7 @@ import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { DependantFields } from '~/helpers/getAst';
 import { nocoExecute } from '~/utils';
-import { Base, Column, Model, Source, View } from '~/models';
+import { Base, Column, FormView, Model, Source, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -21,6 +21,18 @@ import { PublicMetasService } from '~/services/public-metas.service';
 // todo: move to utils
 export function sanitizeUrlPath(paths) {
   return paths.map((url) => url.replace(/[/.?#]+/g, '_'));
+}
+
+// Keys that must never be controllable by public/shared-view callers
+const PUBLIC_QUERY_BLOCKED_KEYS = ['getHiddenColumn', 'nested'];
+
+function sanitizePublicQuery<T extends Record<string, any>>(query: T): T {
+  if (!query) return query;
+  const sanitized = { ...query };
+  for (const key of PUBLIC_QUERY_BLOCKED_KEYS) {
+    delete sanitized[key];
+  }
+  return sanitized;
 }
 
 @Injectable()
@@ -286,7 +298,7 @@ export class PublicDatasService {
 
     const { ast } = await getAst(context, {
       model,
-      query: param.query,
+      query: sanitizePublicQuery(param.query),
       view,
       includeRowColorColumns: query.include_row_color === 'true',
     });
@@ -510,6 +522,9 @@ export class PublicDatasService {
       return NcError.invalidSharedViewPassword();
     }
 
+    // Check if form has started / expired
+    await FormView.validateFormScheduling(context, view.id);
+
     const model = await Model.getByIdOrName(context, {
       id: view?.fk_model_id,
     });
@@ -654,7 +669,7 @@ export class PublicDatasService {
     });
 
     const { ast, dependencyFields } = await getAst(context, {
-      query: param.query,
+      query: sanitizePublicQuery(param.query),
       model,
       extractOnlyPrimaries: true,
     });
@@ -673,8 +688,13 @@ export class PublicDatasService {
       param.query.fields.forEach(listArgs.fieldsSet.add, listArgs.fieldsSet);
 
       param.query.fields.forEach((f) => {
-        if (ast[f] === undefined) {
-          ast[f] = 1;
+        // fields can be column IDs or titles, but AST uses titles as keys
+        // (getAst with extractOnlyPrimaries returns early with title-keyed AST).
+        // Resolve to title so nocoExecute can match against data objects.
+        const col = model.columns.find((c) => c.id === f || c.title === f);
+        const key = col?.title ?? f;
+        if (ast[key] === undefined) {
+          ast[key] = 1;
         }
       });
     }
@@ -967,9 +987,10 @@ export class PublicDatasService {
     const dataListResults = await bulkFilterList.reduce(
       async (accPromise, dF: any) => {
         const acc = await accPromise;
+
         const result = await this.datasService.dataList(context, {
           query: {
-            ...dF,
+            ...sanitizePublicQuery(dF),
           },
           model,
           view,

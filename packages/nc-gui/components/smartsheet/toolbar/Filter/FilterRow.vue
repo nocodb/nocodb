@@ -58,6 +58,8 @@ const meta = inject(MetaInj, ref())
 // t is a standalone dependency, so not need to abstract it
 const { t } = useI18n()
 
+const { appInfo } = useGlobal()
+
 const { blockToggleFilter, showUpgradeToUseToggleFilter } = useEeConfig()
 
 const logicalOps = [
@@ -437,7 +439,7 @@ const onChangeToDynamic = async () => {
     v-bind="containerProps"
   >
     <!-- #region enabled checkbox (EE only) -->
-    <div v-if="isEeUI && isAllowFilterEnableToggle" class="flex items-center pl-2 pr-1">
+    <div v-if="appInfo.ee && isAllowFilterEnableToggle" class="flex items-center pl-2 pr-1">
       <NcCheckbox
         :checked="isFilterEnabled"
         size="default"
@@ -452,7 +454,7 @@ const onChangeToDynamic = async () => {
     <template v-if="index === 0">
       <div
         class="flex items-center !min-w-18 !max-w-18 nc-filter-where-label"
-        :class="isEeUI && isAllowFilterEnableToggle ? 'pl-1' : 'pl-3'"
+        :class="appInfo.ee && isAllowFilterEnableToggle ? 'pl-1' : 'pl-3'"
         v-bind="logicalOpsProps"
       >
         {{ $t('labels.where') }}
@@ -685,7 +687,7 @@ const onChangeToDynamic = async () => {
           <component :is="iconMap.deleteListItem" />
         </NcButton>
       </div>
-      <div v-if="!vModel.readOnly && !disabled && isEeUI" :class="{ 'cursor-wait': isLoadingFilter }">
+      <div v-if="!vModel.readOnly && !disabled && appInfo.ee" :class="{ 'cursor-wait': isLoadingFilter }">
         <NcButton
           :key="index"
           v-e="['c:filter:copy', { link: !!link, webHook: !!webHook, widget: !!widget }]"

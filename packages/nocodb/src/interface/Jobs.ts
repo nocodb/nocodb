@@ -32,9 +32,7 @@ export enum JobTypes {
   MetaDiff = 'meta-diff',
   SourceCreate = 'source-create',
   SourceDelete = 'source-delete',
-  UpdateModelStat = 'update-model-stat',
   UpdateWsStat = 'update-ws-stats',
-  UpdateSrcStat = 'update-source-stat',
   HealthCheck = 'health-check',
   HandleWebhook = 'handle-webhook',
   CleanUp = 'clean-up',
@@ -65,6 +63,9 @@ export enum JobTypes {
   PollWorkflow = 'poll-workflow',
   WorkflowErrorNotification = 'workflow-error-notification',
   HookErrorNotification = 'hook-error-notification',
+  WorkflowDraftReminder = 'workflow-draft-reminder',
+  ChatMessage = 'chat-message',
+  ChatApproval = 'chat-approval',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -74,9 +75,7 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.HandleWebhook,
   JobTypes.ExecuteWorkflow,
   JobTypes.InitMigrationJobs,
-  JobTypes.UpdateModelStat,
   JobTypes.UpdateWsStat,
-  JobTypes.UpdateSrcStat,
   JobTypes.UpdateUsageStats,
   JobTypes.SyncModuleSchedule,
   JobTypes.ReseatSubscription,
@@ -87,6 +86,9 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.PollWorkflow,
   JobTypes.WorkflowErrorNotification,
   JobTypes.HookErrorNotification,
+  JobTypes.WorkflowDraftReminder,
+  JobTypes.ChatMessage,
+  JobTypes.ChatApproval,
 ];
 
 export enum JobStatus {
@@ -126,6 +128,8 @@ export enum InstanceCommands {
   RELEASE = 'release',
   ASSIGN_WORKER_GROUP = 'assignWorkerGroup',
   STOP_OTHER_WORKER_GROUPS = 'stopOtherWorkerGroups',
+  ABORT_CHAT_STREAM = 'abortChatStream',
+  ABORT_CHAT_STREAM_ACK = 'abortChatStreamAck',
 }
 
 export interface JobData {
@@ -311,4 +315,16 @@ export interface PollWorkflowJobData extends JobData {
   workflowId: string;
   triggerNodeId: string;
   activationState: Record<string, any>;
+}
+
+export interface ChatMessageJobData extends JobData {
+  sessionId: string;
+  firstUserMessage?: string;
+  approvals?: Record<string, 'approved' | 'denied'>;
+}
+
+export interface ChatApprovalJobData extends JobData {
+  sessionId: string;
+  messageId: string;
+  decisions: Record<string, 'approved' | 'denied'>;
 }

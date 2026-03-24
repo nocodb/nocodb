@@ -32,6 +32,14 @@ import * as nc_202602270729_timeline_view from './v0/nc_202602270729_timeline_vi
 import * as nc_202602260000_unify_ce_roles from './v0/nc_202602260000_unify_ce_roles';
 import * as nc_202603020000_hook_error_notifications from './v0/nc_202603020000_hook_error_notifications';
 import * as nc_202603020001_teams_hierarchy from './v0/nc_202603020001_teams_hierarchy';
+import * as nc_202603020002_chat from './v0/nc_202603020002_chat';
+import * as nc_202603060621_form_page_breaks from './v0/nc_202603060621_form_page_breaks';
+import * as nc_202603050000_docs from './v0/nc_202603050000_docs';
+import * as nc_202603050001_file_ref_doc_idx from './v0/nc_202603050001_file_ref_doc_idx';
+import * as nc_202603090001_chat_session_meta from './v0/nc_202603090001_chat_session_meta';
+import * as nc_202603110001_chat_session_base_id from './v0/nc_202603110001_chat_session_base_id';
+import * as nc_202603170000_form_view_expires_at from './v0/nc_202603170000_form_view_expires_at';
+import * as nc_202603170001_workflow_draft_reminder from './v0/nc_202603170001_workflow_draft_reminder';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -75,6 +83,14 @@ export default class XcMigrationSourcev0 {
       'nc_202602260000_unify_ce_roles',
       'nc_202603020000_hook_error_notifications',
       'nc_202603020001_teams_hierarchy',
+      'nc_202603020002_chat',
+      'nc_202603060621_form_page_breaks',
+      'nc_202603050000_docs',
+      'nc_202603050001_file_ref_doc_idx',
+      'nc_202603090001_chat_session_meta',
+      'nc_202603110001_chat_session_base_id',
+      'nc_202603170000_form_view_expires_at',
+      'nc_202603170001_workflow_draft_reminder',
     ]);
   }
 
@@ -152,6 +168,22 @@ export default class XcMigrationSourcev0 {
         return nc_202603020000_hook_error_notifications;
       case 'nc_202603020001_teams_hierarchy':
         return nc_202603020001_teams_hierarchy;
+      case 'nc_202603020002_chat':
+        return nc_202603020002_chat;
+      case 'nc_202603060621_form_page_breaks':
+        return nc_202603060621_form_page_breaks;
+      case 'nc_202603050000_docs':
+        return nc_202603050000_docs;
+      case 'nc_202603050001_file_ref_doc_idx':
+        return nc_202603050001_file_ref_doc_idx;
+      case 'nc_202603090001_chat_session_meta':
+        return nc_202603090001_chat_session_meta;
+      case 'nc_202603110001_chat_session_base_id':
+        return nc_202603110001_chat_session_base_id;
+      case 'nc_202603170000_form_view_expires_at':
+        return nc_202603170000_form_view_expires_at;
+      case 'nc_202603170001_workflow_draft_reminder':
+        return nc_202603170001_workflow_draft_reminder;
     }
   }
 }

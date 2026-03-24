@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { isLinksOrLTAR, NcSDKErrorV2 } from 'nocodb-sdk';
+import { isLinksOrLTAR, NcSDKErrorV2, ViewTypes } from 'nocodb-sdk';
 import { NcApiVersion } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/helpers/dataHelpers';
@@ -10,7 +10,7 @@ import { NcBaseError, NcError } from '~/helpers/catchError';
 import { getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { Base, Column, Model, Source, View } from '~/models';
+import { Base, Column, FormView, Model, Source, View } from '~/models';
 import { nocoExecute } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
@@ -147,6 +147,11 @@ export class DatasService {
     },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(context, param);
+
+    // Check form scheduling restrictions
+    if (view?.type === ViewTypes.FORM) {
+      await FormView.validateFormScheduling(context, view.id);
+    }
 
     const source = await Source.get(context, model.source_id);
 
@@ -1003,6 +1008,12 @@ export class DatasService {
       id: param.viewId,
     });
     if (!model) return NcError.get(context).tableNotFound(param.viewId);
+
+    // Check form scheduling restrictions
+    const view = await View.get(context, param.viewId);
+    if (view?.type === ViewTypes.FORM) {
+      await FormView.validateFormScheduling(context, param.viewId);
+    }
 
     const source = await Source.get(context, model.source_id);
 

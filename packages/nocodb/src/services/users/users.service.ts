@@ -18,7 +18,11 @@ import {
   verifyDefaultWorkspace,
 } from '~/helpers/verifyDefaultWorkspace';
 import { isEE, isOnPrem, T } from '~/utils';
-import { genJwt, setTokenCookie } from '~/services/users/helpers';
+import {
+  clearAuthCookie,
+  genJwt,
+  setTokenCookie,
+} from '~/services/users/helpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
@@ -469,7 +473,7 @@ export class UsersService {
         NcError.internalServerError('Failed to update refresh token');
       }
 
-      setTokenCookie(param.res, refreshToken);
+      setTokenCookie(param.res, refreshToken, param.req);
 
       return {
         token: genJwt(
@@ -646,6 +650,7 @@ export class UsersService {
 
   protected clearCookie(param: { res: any; req: any }) {
     param.res.clearCookie('refresh_token');
+    clearAuthCookie(param.res);
   }
 
   private async createDefaultProject(
@@ -690,6 +695,6 @@ export class UsersService {
       meta: req.user?.extra,
     });
 
-    setTokenCookie(res, refreshToken);
+    setTokenCookie(res, refreshToken, req);
   }
 }

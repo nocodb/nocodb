@@ -7,10 +7,6 @@ import importFresh from 'import-fresh';
 import inflection from 'inflection';
 import slash from 'slash';
 import { customAlphabet } from 'nanoid';
-import type MysqlClient from '~/db/sql-client/lib/mysql/MysqlClient';
-import type OracleClient from '~/db/sql-client/lib/oracle/OracleClient';
-import type PGClient from '~/db/sql-client/lib/pg/PgClient';
-import type SqliteClient from '~/db/sql-client/lib/sqlite/SqliteClient';
 import { T } from '~/utils';
 import Result from '~/db/util/Result';
 import Debug from '~/db/util/Debug';
@@ -343,7 +339,7 @@ export default class SqlMgr {
    */
   public async baseGetSqlClient(
     args,
-  ): Promise<MysqlClient | SqliteClient | OracleClient | PGClient> {
+  ) {
     const func = this.baseGetSqlClient.name;
     log.api(`${func}:args:`, args);
 
@@ -505,9 +501,6 @@ export default class SqlMgr {
       case 'pg:':
         return 'pg';
         break;
-      case 'oracledb:':
-        return 'oracledb';
-        break;
       case 'sqlite3:':
         return 'sqlite3';
         break;
@@ -522,27 +515,12 @@ export default class SqlMgr {
   public _getKnexInitObject(sqlConfig) {
     // console.log(sqlConfig);
 
-    const ORACLE_PORT = 1521;
-
     if (sqlConfig.typeOfDatabase === 'sqlite3') {
       return {
         client: 'sqlite3',
         connection: {
           // filename: "./db/sakila-sqlite"
           filename: sqlConfig.database,
-        },
-      };
-    } else if (sqlConfig.typeOfDatabase === 'oracledb') {
-      return {
-        client: sqlConfig.typeOfDatabase,
-        connection: {
-          host: sqlConfig.host,
-          user: sqlConfig.user,
-          password: sqlConfig.password,
-          database: sqlConfig.database,
-          port: sqlConfig.port,
-          connectString: `localhost:${ORACLE_PORT}/xe`,
-          // connectString: `${sqlConfig.host}:${sqlConfig.port}/${sqlConfig.database}`,
         },
       };
     } else if (sqlConfig.typeOfDatabase === 'mariadb') {
@@ -573,9 +551,6 @@ export default class SqlMgr {
         break;
       case 'pg':
         return 5432;
-        break;
-      case 'oracledb':
-        return '5432';
         break;
       case 'sqlite3':
         return 0;

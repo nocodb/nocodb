@@ -10,6 +10,8 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const { $e } = useNuxtApp()
 
+const { appInfo } = useGlobal()
+
 const wrapperDomRef = ref<HTMLElement>()
 const addFiltersRowDomRef = ref<HTMLElement>()
 const filterPrevComparisonOp = ref<Record<string, string>>({})
@@ -510,7 +512,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
     </Draggable>
     <!-- #endregion filter group rows -->
     <template v-if="!nested">
-      <template v-if="isEeUI && !isPublic">
+      <template v-if="appInfo.ee && !isPublic">
         <div
           v-if="!disabled && filtersCount < filterPerViewLimit"
           ref="addFiltersRowDomRef"

@@ -80,6 +80,7 @@ export class UiPostOperations
     'viewColumnCreate' as const,
     'gridColumnUpdate' as const,
     'timelineColumnUpdate' as const,
+    'listColumnUpdate' as const,
     'viewRowColorConditionAdd' as const,
     'viewRowColorConditionUpdate' as const,
     'viewRowColorConditionDelete' as const,

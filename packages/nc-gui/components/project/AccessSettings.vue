@@ -41,13 +41,15 @@ const { orgId, org } = storeToRefs(orgStore)
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
+const isSettingsSidebar = inject(IsSettingsSidebarInj, ref(false))
+
 const { $api, $eventBus } = useNuxtApp()
 
 const { t } = useI18n()
 
 const { projectPageTab } = storeToRefs(useConfigStore())
 
-const { isPaymentEnabled, showUserPlanLimitExceededModal, showUpgradeToUseTeams } = useEeConfig()
+const { isPaymentEnabled, showEEFeatures, showUserPlanLimitExceededModal, showUpgradeToUseTeams } = useEeConfig()
 
 const currentBase = computedAsync(async () => {
   let base
@@ -547,6 +549,7 @@ onBeforeUnmount(() => {
     class="nc-collaborator-table-container nc-access-settings-view flex flex-col relative"
     :class="{
       'nc-admin-panel': isAdminPanel,
+      'nc-is-settings-sidebar': isSettingsSidebar,
     }"
   >
     <ProjectPrivateOverlay v-if="showOverlay" />
@@ -618,7 +621,7 @@ onBeforeUnmount(() => {
         <div v-if="!isAdminPanel" class="w-full flex justify-between items-center max-w-full gap-3">
           <a-input
             v-model:value="userSearchText"
-            :placeholder="isTeamsEnabled ? $t('title.searchForMembersOrTeams') : $t('title.searchMembers')"
+            :placeholder="isTeamsEnabled && showEEFeatures ? $t('title.searchForMembersOrTeams') : $t('title.searchMembers')"
             :disabled="isLoading"
             allow-clear
             class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
@@ -633,21 +636,7 @@ onBeforeUnmount(() => {
 
           <div class="flex items-center gap-2">
             <NcButton
-              size="small"
-              :type="isTeamsEnabled ? 'secondary' : 'primary'"
-              :disabled="isLoading"
-              data-testid="nc-add-member-btn"
-              :text-color="isTeamsEnabled ? 'primary' : undefined"
-              @click="isInviteModalVisible = true"
-            >
-              <div class="flex items-center gap-2">
-                <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
-                {{ $t('activity.addMembers') }}
-              </div>
-            </NcButton>
-
-            <NcButton
-              v-if="isTeamsEnabled && !isAdminPanel"
+              v-if="isTeamsEnabled && !isAdminPanel && showEEFeatures"
               v-e="['c:base:team-add']"
               size="small"
               type="secondary"
@@ -665,7 +654,20 @@ onBeforeUnmount(() => {
             >
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="ncBuilding" />
-                {{ $t('labels.addTeams') }}
+                <span class="hidden sm:inline">{{ $t('labels.addTeams') }}</span>
+              </div>
+            </NcButton>
+
+            <NcButton
+              size="small"
+              type="primary"
+              :disabled="isLoading"
+              data-testid="nc-add-member-btn"
+              @click="isInviteModalVisible = true"
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
+                <span class="hidden sm:inline">{{ $t('activity.addMembers') }}</span>
               </div>
             </NcButton>
           </div>
@@ -829,6 +831,15 @@ onBeforeUnmount(() => {
 
     @supports (height: 100dvh) {
       @apply h-[calc(100dvh-var(--topbar-height)-44px)];
+    }
+  }
+
+  // Admin sidebar mode: tab bar is hidden, so no 44px subtraction
+  &.nc-is-settings-sidebar {
+    @apply h-[calc(100vh-var(--topbar-height))];
+
+    @supports (height: 100dvh) {
+      @apply h-[calc(100dvh-var(--topbar-height))];
     }
   }
 }

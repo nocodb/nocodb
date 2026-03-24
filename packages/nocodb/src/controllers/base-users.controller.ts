@@ -54,7 +54,9 @@ export class BaseUsersController {
     '/api/v2/meta/bases/:baseId/users',
   ])
   @HttpCode(200)
-  @Acl('userInvite')
+  @Acl('userInvite', {
+    blockPublicBaseAccess: true,
+  })
   async userInvite(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
@@ -76,7 +78,9 @@ export class BaseUsersController {
     '/api/v1/db/meta/projects/:baseId/users/:userId',
     '/api/v2/meta/bases/:baseId/users/:userId',
   ])
-  @Acl('baseUserUpdate')
+  @Acl('baseUserUpdate', {
+    blockPublicBaseAccess: true,
+  })
   async baseUserUpdate(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
@@ -102,7 +106,9 @@ export class BaseUsersController {
     '/api/v1/db/meta/projects/:baseId/users/:userId',
     '/api/v2/meta/bases/:baseId/users/:userId',
   ])
-  @Acl('baseUserDelete')
+  @Acl('baseUserDelete', {
+    blockPublicBaseAccess: true,
+  })
   async baseUserDelete(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
@@ -124,7 +130,9 @@ export class BaseUsersController {
     '/api/v2/meta/bases/:baseId/users/:userId/resend-invite',
   ])
   @HttpCode(200)
-  @Acl('baseUserInviteResend')
+  @Acl('baseUserInviteResend', {
+    blockPublicBaseAccess: true,
+  })
   async baseUserInviteResend(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,

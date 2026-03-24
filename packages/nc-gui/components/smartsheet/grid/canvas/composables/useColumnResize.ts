@@ -21,6 +21,8 @@ export function useColumnResize(
   const mousePosition = ref<{ x: number; y: number } | null>(null)
   const isLocked = inject(IsLockedInj, ref(false))
 
+  let resizeRafId: number | null = null
+
   const resizeableColumn = computed(() => {
     if (!mousePosition.value) {
       return null
@@ -73,10 +75,19 @@ export function useColumnResize(
       }
 
       if (isResizing.value && activeColumn.value) {
-        const delta = mousePosition.value.x - activeColumn.value.startX
-        const newWidth = Math.max(50, activeColumn.value.initialWidth + delta)
+        // Throttle resize callbacks to one per animation frame to avoid
+        // triggering heavy columns recomputation on every mousemove event.
+        if (resizeRafId !== null) return
 
-        onResize?.(activeColumn.value.id, newWidth)
+        resizeRafId = requestAnimationFrame(() => {
+          resizeRafId = null
+          if (!isResizing.value || !activeColumn.value || !mousePosition.value) return
+
+          const delta = mousePosition.value.x - activeColumn.value.startX
+          const newWidth = Math.max(50, activeColumn.value.initialWidth + delta)
+
+          onResize?.(activeColumn.value.id, newWidth)
+        })
       }
     } catch (error) {
       console.error('Error in handleMouseMove:', error)
@@ -85,6 +96,11 @@ export function useColumnResize(
   }
 
   function cleanupResize() {
+    if (resizeRafId !== null) {
+      cancelAnimationFrame(resizeRafId)
+      resizeRafId = null
+    }
+
     isResizing.value = false
     activeColumn.value = null
     mousePosition.value = null

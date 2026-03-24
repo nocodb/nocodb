@@ -145,18 +145,14 @@ export const LTARColsUpdater = (param: {
     trx: CustomKnex;
     cookie: any;
   }) => {
-    const promises: Promise<any>[] = [];
     for (const each of linkDataPayload.data) {
-      promises.push(
-        addOrRemoveLinks(baseModel).addLinks({
-          cookie,
-          childIds: each.links,
-          colId: col.id,
-          rowId: each.rowId,
-        }),
-      );
+      await addOrRemoveLinks(baseModel).addLinks({
+        cookie,
+        childIds: each.links,
+        colId: col.id,
+        rowId: each.rowId,
+      });
     }
-    return Promise.all(promises);
   };
   return {
     updateLTARCols: update,

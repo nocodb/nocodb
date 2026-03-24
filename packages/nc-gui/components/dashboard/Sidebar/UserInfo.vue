@@ -1,9 +1,31 @@
 <script lang="ts" setup>
 const isMiniSidebar = inject(IsMiniSidebarInj, undefined)
 
-const { user, signOut, appInfo } = useGlobal()
+const { user, signOut } = useGlobal()
 // So watcher in users store is triggered
 useUsers()
+
+const { toggleMode } = useMiniSidebarMode()
+
+const { toggleTheme, isThemeEnabled, selectedTheme } = useTheme()
+
+const themeLabel = computed(
+  () =>
+    ({
+      light: 'Light',
+      dark: 'Dark',
+      system: 'System',
+    }[selectedTheme.value]),
+)
+
+const themeIcon = computed(
+  () =>
+    ({
+      light: 'ncSun',
+      dark: 'ncMoon',
+      system: 'ncSunMoon',
+    }[selectedTheme.value] as IconMapKey),
+)
 
 const { isExperimentalFeatureModalOpen } = useBetaFeatureToggle()
 
@@ -98,20 +120,14 @@ const openKeyboardShortcutDialog = () => {
       'sticky bottom-0 bg-nc-bg-gray-minisidebar': isMiniSidebar,
     }"
   >
-    <LazyGeneralMaintenanceAlert v-if="!isMiniSidebar" />
-    <div
-      class="flex items-center"
-      :class="{
-        'justify-center h-[var(--mini-sidebar-width)]': isMiniSidebar,
-        'justify-between': !isMiniSidebar,
-      }"
-    >
+    <div class="flex items-center justify-center h-13">
       <NcDropdown
         v-model:visible="isMenuOpen"
-        placement="topLeft"
-        :overlay-class-name="`!min-w-44 md:!min-w-64 ${isMiniSidebar ? '!left-1' : ''}`"
+        placement="rightBottom"
+        overlay-class-name="!min-w-44 md:!min-w-64 nc-user-menu-dropdown"
+        :align="{ offset: [12, 3] }"
       >
-        <NcTooltip :disabled="!isMiniSidebar || isMobileMode" placement="right" hide-on-click :arrow="false">
+        <NcTooltip :disabled="isMobileMode" placement="right" hide-on-click :arrow="false">
           <template #title>
             <div>
               <div v-if="name">{{ name }}</div>
@@ -123,19 +139,17 @@ const openKeyboardShortcutDialog = () => {
           <div
             class="flex"
             :class="{
-              'flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-nc-bg-gray-medium rounded-lg cursor-pointer':
-                !isMiniSidebar,
-              'nc-mini-sidebar-ws-item !w-[var(--mini-sidebar-width)] flex-none': isMiniSidebar,
+              'nc-mini-sidebar-ws-item flex-none': isMiniSidebar,
             }"
             data-testid="nc-sidebar-userinfo"
             :data-email="user?.email"
           >
             <div
               v-if="isMiniSidebar"
-              class="nc-user-icon-wrapper border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300"
+              class="nc-user-icon-wrapper border-1 w-7.5 h-7.5 flex-none rounded-full overflow-hidden transition-all duration-300"
               :class="{
-                'border-nc-gray-medium': !isMenuOpen,
-                'active border-primary shadow-selected': isMenuOpen,
+                'border-nc-border-gray-medium ring-2 ring-nc-border-gray-medium/40': !isMenuOpen,
+                'active border-primary shadow-selected ring-2 ring-primary/30': isMenuOpen,
               }"
             >
               <GeneralUserIcon :user="user" size="medium" class="!w-full !h-full !min-w-full cursor-pointer" />
@@ -158,118 +172,29 @@ const openKeyboardShortcutDialog = () => {
         </NcTooltip>
         <template #overlay>
           <NcMenu variant="medium">
-            <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
-              <div v-e="['c:user:logout']" class="flex gap-2 items-center min-w-40 md:min-w-70">
-                <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
-                <GeneralIcon v-else icon="signout" class="menu-icon" />
-                <span class="menu-btn"> {{ $t('general.logout') }}</span>
-              </div>
-            </NcMenuItem>
-            <NcDivider v-if="!isMiniSidebar" />
-            <a
-              v-if="!isMiniSidebar"
-              v-e="['c:nocodb:discord']"
-              href="https://discord.gg/c7GEYrvFtT"
-              target="_blank"
-              class="!underline-transparent"
-              rel="noopener noreferrer"
-            >
-              <NcMenuItem class="social-icon-wrapper">
-                <GeneralIcon class="social-icon" icon="ncDiscord" />
-                <span class="menu-btn"> {{ $t('labels.community.joinDiscord') }} </span>
-              </NcMenuItem>
-            </a>
-            <a
-              v-if="!isMiniSidebar"
-              v-e="['c:nocodb:reddit']"
-              href="https://www.reddit.com/r/NocoDB"
-              target="_blank"
-              class="!underline-transparent"
-              rel="noopener noreferrer"
-            >
-              <NcMenuItem class="social-icon-wrapper">
-                <GeneralIcon class="social-icon" icon="ncReddit" />
-                <span class="menu-btn"> {{ $t('labels.community.joinReddit') }} </span>
-              </NcMenuItem>
-            </a>
-            <a
-              v-if="!isMiniSidebar"
-              v-e="['c:nocodb:twitter']"
-              href="https://twitter.com/nocodb"
-              target="_blank"
-              class="!underline-transparent"
-              rel="noopener noreferrer"
-            >
-              <NcMenuItem class="social-icon-wrapper group">
-                <GeneralIcon class="social-icon text-nc-content-gray-muted group-hover:text-nc-content-gray" icon="ncTwitter" />
-                <span class="menu-btn"> {{ $t('labels.twitter') }} </span>
-              </NcMenuItem>
-            </a>
-            <NcDivider />
-            <a-popover
-              key="language"
-              class="lang-menu !py-1.5"
-              placement="rightBottom"
-              overlay-class-name="nc-lang-menu-overlay !z-1050"
-            >
-              <NcMenuItem inner-class="w-full">
-                <div v-e="['c:translate:open']" class="flex gap-2 items-center w-full">
-                  <GeneralIcon icon="translate" class="nc-language ml-0.25 menu-icon" />
-                  {{ $t('labels.language') }}
-                  <div class="flex items-center text-nc-content-gray-disabled text-xs">
-                    {{ $t('labels.community.communityTranslated') }}
-                  </div>
-                  <div class="flex-1" />
-
-                  <GeneralIcon icon="ncChevronRight" class="flex-none !text-nc-content-gray-muted" />
-                </div>
-              </NcMenuItem>
-
-              <template #content>
-                <div class="bg-nc-bg-default max-h-50vh min-w-64 mb-1 nc-scrollbar-thin -mr-1.5 pr-1.5">
-                  <LazyGeneralLanguageMenu />
-                </div>
-              </template>
-            </a-popover>
-
             <template v-if="!isMobileMode">
+              <!-- Log Out (furthest from cursor) -->
+              <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
+                <div v-e="['c:user:logout']" class="flex gap-2 items-center min-w-40 md:min-w-70">
+                  <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
+                  <GeneralIcon v-else icon="signout" class="menu-icon" />
+                  <span class="menu-btn"> {{ $t('general.logout') }}</span>
+                </div>
+              </NcMenuItem>
+
               <NcDivider />
 
-              <template v-if="!isMiniSidebar">
-                <a
-                  v-e="['c:nocodb:forum-open']"
-                  href="https://community.nocodb.com"
-                  target="_blank"
-                  class="!underline-transparent"
-                  rel="noopener"
-                >
-                  <NcMenuItem>
-                    <GeneralIcon icon="ncHelp" class="menu-icon mt-0.5" />
-                    <span class="menu-btn"> {{ $t('title.forum') }} </span>
-                  </NcMenuItem>
-                </a>
-
-                <a
-                  v-e="['c:nocodb:docs-open']"
-                  href="https://nocodb.com/docs/product-docs"
-                  target="_blank"
-                  class="!underline-transparent"
-                  rel="noopener"
-                >
-                  <NcMenuItem>
-                    <GeneralIcon icon="file" class="menu-icon mt-0.5" />
-                    <span class="menu-btn"> {{ $t('title.docs') }} </span>
-                  </NcMenuItem>
-                </a>
-
-                <NcDivider />
-              </template>
-
-              <DashboardSidebarEEMenuOption />
+              <!-- Discovery / Meta -->
+              <NcMenuItem @click="toggleMode">
+                <GeneralIcon icon="ncPlaceholderIcon" class="menu-icon mt-0.5" />
+                <span class="menu-btn">Dock Mode</span>
+                <NcBadgeBeta />
+              </NcMenuItem>
               <NcMenuItem @click="openExperimentationMenu">
                 <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
               </NcMenuItem>
+              <!-- Power user tools -->
               <NcMenuItem
                 v-e="['c:user:keyboard-shortcuts']"
                 data-testid="nc-sidebar-keyboard-shortcuts"
@@ -284,12 +209,49 @@ const openKeyboardShortcutDialog = () => {
                   </span>
                 </div>
               </NcMenuItem>
+              <DashboardSidebarEEMenuOption v-if="isEeUI" />
               <nuxt-link v-e="['c:user:api-tokens']" class="!no-underline" to="/account/tokens">
                 <NcMenuItem>
                   <GeneralIcon icon="ncKey2" class="menu-icon mt-0.5" />
                   <span class="menu-btn"> {{ $t('title.apiTokens') }} </span>
                 </NcMenuItem>
               </nuxt-link>
+
+              <NcDivider />
+
+              <!-- Preferences (most used, closest to avatar) -->
+              <a-popover
+                key="language"
+                class="lang-menu !py-1.5"
+                placement="rightBottom"
+                overlay-class-name="nc-lang-menu-overlay !z-1050"
+              >
+                <NcMenuItem inner-class="w-full">
+                  <div v-e="['c:translate:open']" class="flex gap-2 items-center w-full">
+                    <GeneralIcon icon="translate" class="nc-language ml-0.25 menu-icon" />
+                    {{ $t('labels.language') }}
+                    <div class="flex items-center text-nc-content-gray-disabled text-xs">
+                      {{ $t('labels.community.communityTranslated') }}
+                    </div>
+                    <div class="flex-1" />
+
+                    <GeneralIcon icon="ncChevronRight" class="flex-none !text-nc-content-gray-muted" />
+                  </div>
+                </NcMenuItem>
+
+                <template #content>
+                  <div class="bg-nc-bg-default max-h-50vh min-w-64 mb-1 nc-scrollbar-thin -mr-1.5 pr-1.5">
+                    <LazyGeneralLanguageMenu />
+                  </div>
+                </template>
+              </a-popover>
+              <NcMenuItem v-if="isThemeEnabled" v-e="['c:nocodb:theme']" data-testid="nc-sidebar-user-theme" @click="toggleTheme">
+                <GeneralIcon :icon="themeIcon" class="menu-icon" />
+                <span class="menu-btn">{{ themeLabel }}</span>
+                <span class="text-nc-content-gray-muted text-xs ml-auto">Appearance</span>
+              </NcMenuItem>
+
+              <!-- Account Settings (closest to avatar) -->
               <nuxt-link v-e="['c:user:settings']" class="!no-underline" :to="accountUrl" @click="auditsStore.handleReset">
                 <NcMenuItem>
                   <GeneralIcon icon="ncSettings" class="menu-icon" />
@@ -312,6 +274,29 @@ const openKeyboardShortcutDialog = () => {
               </nuxt-link>
             </template>
             <template v-else-if="isMiniSidebar">
+              <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
+                <div v-e="['c:user:logout']" class="flex gap-2 items-center min-w-40">
+                  <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
+                  <GeneralIcon v-else icon="signout" class="menu-icon" />
+                  <span class="menu-btn"> {{ $t('general.logout') }}</span>
+                </div>
+              </NcMenuItem>
+
+              <NcDivider />
+
+              <NcMenuItem @click="openExperimentationMenu">
+                <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
+                <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
+              </NcMenuItem>
+
+              <template v-if="isThemeEnabled">
+                <NcDivider />
+                <NcMenuItem v-e="['c:nocodb:theme']" data-testid="nc-sidebar-user-theme" @click="toggleTheme">
+                  <GeneralIcon :icon="themeIcon" class="menu-icon" />
+                  <span class="menu-btn">{{ themeLabel }}</span>
+                  <span class="text-nc-content-gray-muted text-xs ml-auto">Appearance</span>
+                </NcMenuItem>
+              </template>
               <NcDivider />
 
               <NcMenuItemLabel>
@@ -338,15 +323,7 @@ const openKeyboardShortcutDialog = () => {
           </NcMenu>
         </template>
       </NcDropdown>
-      <LazyNotificationMenu v-if="!isMiniSidebar" />
     </div>
-
-    <template v-if="!isMiniSidebar">
-      <template v-if="isMobileMode || appInfo.ee"></template>
-      <div v-else class="flex flex-row w-full justify-between pt-0.5 truncate">
-        <GeneralJoinCloud />
-      </div>
-    </template>
   </div>
 </template>
 
@@ -403,6 +380,34 @@ const openKeyboardShortcutDialog = () => {
 </style>
 
 <style lang="scss">
+.nc-user-menu-dropdown.nc-user-menu-dropdown {
+  overflow: visible !important;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    bottom: 12px;
+    width: 0;
+    height: 0;
+    border-top: 7px solid transparent;
+    border-bottom: 7px solid transparent;
+    border-right: 7px solid var(--nc-border-gray-medium);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: -5px;
+    bottom: 13px;
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 6px solid var(--nc-bg-default);
+  }
+}
+
 .nc-lang-menu-overlay {
   .ant-popover-arrow-content {
     @apply dark:(border-1 border-nc-border-gray-medium);

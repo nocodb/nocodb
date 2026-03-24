@@ -35,6 +35,7 @@ const props = withDefaults(defineProps<NcListProps>(), {
   theme: 'default',
   groupOrder: () => [] as string[],
   groupHeaderHeight: 28,
+  focusSearchOnOpen: true,
 })
 
 const emits = defineEmits<Emits>()
@@ -45,7 +46,7 @@ const vModel = useVModel(props, 'value', emits, {
 
 const vOpen = useVModel(props, 'open', emits)
 
-const { optionValueKey, optionLabelKey } = props
+const { optionValueKey, optionLabelKey, focusSearchOnOpen } = props
 
 const { closeOnSelect, showSelectedOption, containerClassName, itemClassName, groupHeaderClassName } = toRefs(props)
 
@@ -431,7 +432,7 @@ watch(
       activeOptionIndex.value = -1
     }
 
-    if (isSearchEnabled.value) {
+    if (isSearchEnabled.value && focusSearchOnOpen) {
       focusInputBox()
     } else {
       focusListWrapper()
@@ -469,7 +470,11 @@ const handleResetHoverEffectOnMouseLeave = () => {
   <div
     ref="listRef"
     tabindex="-1"
-    class="flex flex-col nc-list-root pt-2 w-64 !focus:(shadow-none outline-none ring-0)"
+    class="flex flex-col nc-list-root w-64 !focus:(shadow-none outline-none ring-0)"
+    :class="{
+      'pt-1': variant === 'small',
+      'pt-2': variant !== 'small',
+    }"
     @keydown.arrow-down.prevent="onArrowDown"
     @keydown.arrow-up.prevent="onArrowUp"
     @keydown.enter.prevent="handleSelectOption(list[activeOptionIndex], undefined, $event)"

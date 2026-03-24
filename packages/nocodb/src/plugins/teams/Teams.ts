@@ -10,11 +10,14 @@ export default class Teams implements IWebhookNotificationAdapter {
   public async sendMessage(Text: string, payload: any): Promise<any> {
     for (const { webhook_url } of payload?.channels || []) {
       try {
-        return await axios.post(webhook_url, {
-          Text,
-          httpAgent: useAgent(webhook_url),
-          httpsAgent: useAgent(webhook_url),
-        });
+        return await axios.post(
+          webhook_url,
+          { Text },
+          {
+            httpAgent: useAgent(webhook_url),
+            httpsAgent: useAgent(webhook_url),
+          },
+        );
       } catch (e) {
         console.log(e);
         throw e;

@@ -92,14 +92,6 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'geodata_column',
-    title: 'Geodata column',
-    description: 'Enable the geodata column.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
-  },
-  {
     id: 'form_support_column_scanning',
     title: 'Scanner for filling data in forms',
     description: 'Enable scanner to fill data in forms.',
@@ -220,46 +212,20 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'list_view',
-    title: 'List View',
-    description: 'Enable the List view type for hierarchical data display with parent-child grouping.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
-    isEE: true,
-  },
-  {
-    id: 'map_view',
-    title: 'Map View',
-    description: 'Enable map view to visualize geo data fields on an interactive map.',
-    enabled: false,
-    version: 2,
-    isEE: true,
-  },
-  {
-    id: 'timeline',
-    title: 'Timeline View',
-    description: 'Enable timeline view to visualize date-based data on a timeline.',
-    enabled: false,
-    version: 1,
-    isEE: true,
-  },
-  {
-    id: 'team_hierarchy',
-    title: 'Team Hierarchy',
-    description: 'Organize the teams in nested hierarchy',
-    enabled: false,
-    version: 1,
-    isEE: true,
-    isEngineering: true,
-  },
-  {
     id: 'presence_visibility_toggle',
     title: 'Presence Visibility Toggle',
     description: 'Allow users to hide their own presence from other collaborators.',
     enabled: false,
     version: 1,
     isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'form_scheduling',
+    title: 'Form Scheduling',
+    description: 'Set start and end dates to control when shared forms accept submissions.',
+    enabled: false,
+    version: 1,
     isEE: true,
   },
 ] as const
@@ -276,6 +242,13 @@ const STORAGE_KEY = 'featureToggleStates'
 
 export const useBetaFeatureToggle = createSharedComposable(() => {
   const features = ref<BetaFeatureType[]>(deepClone(FEATURES))
+
+  const featureMap = computed(() =>
+    features.value.reduce((acc, f) => {
+      acc[f.id] = f
+      return acc
+    }, {} as Record<BetaFeatureId, BetaFeatureType>),
+  )
 
   const { appInfo } = useGlobal()
 
@@ -329,7 +302,18 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
     }
   }
 
-  const isFeatureEnabled = (id: BetaFeatureId) => featureStates.value[id] ?? false
+  const isFeatureEnabled = (id: BetaFeatureId) => {
+    // useEeConfig is called inside this function (not at the top level of the composable), to avoid a recursive call
+    const { showEEFeatures } = useEeConfig()
+
+    const feature = featureMap.value[id]
+
+    if (feature && 'isEE' in feature && feature.isEE && !(isEeUI && showEEFeatures.value)) {
+      return false
+    }
+
+    return featureStates.value[id] ?? false
+  }
 
   const initializeFeatures = () => {
     try {

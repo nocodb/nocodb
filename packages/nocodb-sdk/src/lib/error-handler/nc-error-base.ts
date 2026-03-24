@@ -84,6 +84,26 @@ export class NcErrorBase {
     });
   }
 
+  chatSessionNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_CHAT_SESSION_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      },
+    );
+  }
+
+  chatMessageNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_CHAT_MESSAGE_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      },
+    );
+  }
+
   workflowNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_WORKFLOW_NOT_FOUND, {
       params: id,
@@ -388,6 +408,13 @@ export class NcErrorBase {
 
   sourceMetaReadOnly(name: string) {
     this.forbidden(`Source '${name}' schema is read-only`);
+  }
+
+  systemFieldNonModifiable(): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_SYSTEM_FIELD_NON_MODIFIABLE,
+      {},
+    );
   }
 
   integrationNotFound(id: string, args?: NcErrorArgs): never {

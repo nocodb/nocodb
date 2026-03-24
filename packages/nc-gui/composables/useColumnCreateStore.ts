@@ -1,6 +1,14 @@
 import rfdc from 'rfdc'
 import type { ColumnReqType, ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { ButtonActionsType, UITypes, isAIPromptCol, isLinksOrLTAR, isMMOrMMLike, isSystemColumn } from 'nocodb-sdk'
+import {
+  ButtonActionsType,
+  UITypes,
+  isAIPromptCol,
+  isCreatedOrLastModifiedTimeCol,
+  isLinksOrLTAR,
+  isMMOrMMLike,
+  isSystemColumn,
+} from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
@@ -98,6 +106,10 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const setPostSaveOrUpdateCbk = (cbk: typeof postSaveOrUpdateCbk) => {
       postSaveOrUpdateCbk = cbk
+    }
+
+    const triggerPostSaveOrUpdateCbk = async (params: { colId: string; column?: ColumnType }) => {
+      await postSaveOrUpdateCbk?.(params)
     }
     const defaultType = isMetaReadOnly.value ? UITypes.Formula : UITypes.SingleLineText
 
@@ -404,7 +416,17 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           }
 
           // ignore filters from payload since it's not required
-          const { filters: _, ...updateData } = formState.value
+          const { filters: _, ...restData } = formState.value
+          let updateData = restData
+
+          // For system datetime fields, only send meta and description
+          // to avoid triggering the system field non-modifiable check
+          if (isSystem.value && isCreatedOrLastModifiedTimeCol(column.value)) {
+            updateData = {
+              meta: updateData.meta,
+              description: updateData.description,
+            } as typeof updateData
+          }
 
           try {
             oldCol = column.value
@@ -578,6 +600,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isXcdbBase,
       disableSubmitBtn,
       setPostSaveOrUpdateCbk,
+      triggerPostSaveOrUpdateCbk,
       updateFieldName,
       fromTableExplorer,
       isAiMode,

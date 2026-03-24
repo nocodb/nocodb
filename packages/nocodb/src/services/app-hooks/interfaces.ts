@@ -117,6 +117,13 @@ export interface UserSigninEvent extends Optional<NcBaseEvent, 'context'> {
   user: UserType;
 }
 
+export interface UserSigninFailedEvent
+  extends Optional<NcBaseEvent, 'context' | 'req'> {
+  email?: string;
+  provider?: string;
+  reason?: string;
+}
+
 export interface UserSignoutEvent extends Optional<NcBaseEvent, 'context'> {
   user: UserType;
 }
@@ -462,7 +469,7 @@ export interface IntegrationUpdateEvent extends IntegrationEvent {
 export interface DataExportEvent extends NcBaseEvent {
   view: ViewType;
   table: TableType;
-  type: 'excel' | 'csv';
+  type: 'excel' | 'csv' | 'json';
 }
 
 export type AppEventPayload =

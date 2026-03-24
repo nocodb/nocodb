@@ -20,6 +20,7 @@ export function useViewRowColorRender() {
       rowLeftBorderColor: null,
       rowHoverColor: null,
       rowBorderColor: null,
+      cellColors: {} as Record<string, any>,
     }
   }
 

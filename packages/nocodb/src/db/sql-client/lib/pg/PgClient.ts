@@ -4,6 +4,7 @@ import isEmpty from 'lodash/isEmpty';
 import mapKeys from 'lodash/mapKeys';
 import find from 'lodash/find';
 import { ncIsNullOrUndefined, UITypes } from 'nocodb-sdk';
+import debug from 'debug';
 import KnexClient from '~/db/sql-client/lib/KnexClient';
 import Debug from '~/db/util/Debug';
 import Result from '~/db/util/Result';
@@ -16,6 +17,7 @@ import pgQueries from '~/db/sql-client/lib/pg/pg.queries';
 import deepClone from '~/helpers/deepClone';
 
 const log = new Debug('PGClient');
+const debugTableUpdateQuery = debug('nc:db:query:PGClient:tableUpdate');
 
 class PGClient extends KnexClient {
   constructor(connectionConfig) {
@@ -2601,8 +2603,10 @@ class PGClient extends KnexClient {
         //upQuery = `ALTER TABLE "${args.columns[0].tn}" ${upQuery};`;
         //downQuery = `ALTER TABLE "${args.columns[0].tn}" ${downQuery};`;
       }
-
-      if (upQuery !== '') await this.sqlClient.raw(upQuery);
+      if (upQuery && upQuery !== '') {
+        debugTableUpdateQuery(upQuery);
+        await this.sqlClient.raw(upQuery);
+      }
 
       // console.log(upQuery);
 

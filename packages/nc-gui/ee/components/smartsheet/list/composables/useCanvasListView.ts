@@ -1113,9 +1113,14 @@ export function useCanvasListView({
     const { id, action, payload } = data
     const levelId = depthToLevelId.value[depth]
 
+    // Debug logging — remove after testing
+    console.log(`[ListView RT] action=${action} id=${id} depth=${depth} tableId=${tableId}`, payload)
+
     if (action === 'add') {
       try {
-        if (!validateRowForLevel(payload, depth)) return
+        const filterResult = validateRowForLevel(payload, depth)
+        console.log(`[ListView RT] ADD filter validation: ${filterResult}`, { levelId, filtersCount: getFiltersForLevel(levelId || '').length })
+        if (!filterResult) return
 
         const leafDepth = displayLevels.value.length - 1
 
@@ -1218,6 +1223,8 @@ export function useCanvasListView({
         let found = false
         for (const [rowIndex, cachedRow] of cachedRows.value.entries()) {
           if (String(cachedRow.__nc_pk) === String(id) && cachedRow.__nc_depth === depth) {
+            console.log(`[ListView RT] UPDATE found row at index=${rowIndex} pk=${id}`, { before: { ...cachedRow }, payload })
+
             // Apply the update
             Object.assign(cachedRow, payload)
 
@@ -1228,7 +1235,11 @@ export function useCanvasListView({
             }
 
             // Re-validate against filters — remove if row no longer passes
-            if (!validateRowForLevel(cachedRow, depth)) {
+            const filterResult = validateRowForLevel(cachedRow, depth)
+            const sortResult = isSortAffected(payload, depth)
+            console.log(`[ListView RT] UPDATE validation: filterPasses=${filterResult} sortAffected=${sortResult}`, { levelId, filtersCount: getFiltersForLevel(levelId || '').length, after: { ...cachedRow } })
+
+            if (!filterResult) {
               // If this is a parent, remove it and all its descendants
               const { indices, removedCounts } = collectRowAndDescendants(cachedRows.value, totalRows.value, rowIndex, depth)
               removeRowsAndShift(cachedRows.value, chunkStates.value, indices)
@@ -1258,6 +1269,7 @@ export function useCanvasListView({
 
                 // Find new sorted position and re-insert the entire subtree
                 const newInsertAt = findSortedInsertIndex(cachedRows.value, totalRows.value, cachedRow, depth, parentIndex, getSortFieldsForDepth(depth), getColumnsByIdForDepth(depth))
+                console.log(`[ListView RT] UPDATE sort reposition: removed ${subtreeIndices.length} rows, reinserting at ${newInsertAt} (parentIndex=${parentIndex})`)
                 insertRowsAt(cachedRows.value, chunkStates.value, newInsertAt, subtreeRows)
               }
             }
@@ -1268,11 +1280,9 @@ export function useCanvasListView({
         }
 
         if (!found && payload) {
-          // Row not in cache — the update payload is the full row.
-          // This row may now pass filters (was previously filtered out).
-          // Check if it belongs in the visible cache window.
+          console.log(`[ListView RT] UPDATE row NOT found in cache, checking if it should be added`, { id, depth, payloadKeys: Object.keys(payload) })
           if (!validateRowForLevel(payload, depth)) {
-            // Still doesn't pass filters — ignore
+            console.log(`[ListView RT] UPDATE not-found: filter validation failed, ignoring`)
             triggerRefreshCanvas()
             return
           }
@@ -1348,8 +1358,10 @@ export function useCanvasListView({
       }
     } else if (action === 'delete') {
       try {
+        console.log(`[ListView RT] DELETE id=${id} depth=${depth}`)
         for (const [rowIndex, cachedRow] of cachedRows.value.entries()) {
           if (String(cachedRow.__nc_pk) === String(id) && cachedRow.__nc_depth === depth) {
+            console.log(`[ListView RT] DELETE found at index=${rowIndex}`)
             const parentId = cachedRow.__nc_parent_id
 
             // Remove this row and all its descendants (if it's a parent)

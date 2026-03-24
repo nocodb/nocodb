@@ -106,4 +106,15 @@ export class CommentsV3Service {
       count: r.count,
     }));
   }
+
+  async commentDelete(
+    context: NcContext,
+    param: {
+      commentId: string;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    return this.commentsService.commentDelete(context, param);
+  }
 }

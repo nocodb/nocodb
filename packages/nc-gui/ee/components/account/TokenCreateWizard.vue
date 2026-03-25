@@ -140,7 +140,7 @@ const submitToken = async () => {
         body: payload,
       })
 
-      message.success(t('msg.info.tokenUpdatedSuccessfully'))
+      message.toast(t('msg.info.tokenUpdatedSuccessfully'))
       emit('saved')
     } else {
       // Create new token

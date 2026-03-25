@@ -132,7 +132,7 @@ const saveToken = async () => {
       body: payload,
     })
 
-    message.success('Token updated successfully')
+    message.toast('Token updated successfully')
     emit('saved')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

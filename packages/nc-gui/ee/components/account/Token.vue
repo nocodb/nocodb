@@ -287,21 +287,24 @@ const onTokenCreated = () => {
   loadAllTokens(pagination.total + 1)
 }
 
-const onTokenSaved = () => {
+const returnToList = () => {
   editingToken.value = null
   viewMode.value = 'list'
-  loadTokens()
+  // Always sync URL back — handles both real navigation (/new route) and history.replaceState (edit)
   if (route.path.endsWith('/new')) {
     navigateTo('/account/tokens')
+  } else {
+    window.history.replaceState({}, '', '/account/tokens')
   }
 }
 
+const onTokenSaved = () => {
+  loadTokens()
+  returnToList()
+}
+
 const onCreateCancel = () => {
-  editingToken.value = null
-  viewMode.value = 'list'
-  if (route.path.endsWith('/new')) {
-    navigateTo('/account/tokens')
-  }
+  returnToList()
 }
 
 const openEditToken = async (token: IApiTokenInfo) => {
@@ -388,7 +391,7 @@ const openEditToken = async (token: IApiTokenInfo) => {
               <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-2/8 text-start" data-rec="true">{{
                 $t('labels.expiresOn')
               }}</span>
-              <span class="py-3.5 pr-5 text-nc-content-gray-muted font-medium text-3.5 w-1/8 text-end" data-rec="true">{{
+              <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-1/8 text-center" data-rec="true">{{
                 $t('labels.actions')
               }}</span>
             </div>
@@ -482,7 +485,7 @@ const openEditToken = async (token: IApiTokenInfo) => {
                   {{ el.expiry ? new Date(el.expiry).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : $t('labels.noExpiration') }}
                 </span>
                 <!-- ACTIONS -->
-                <div class="flex justify-end items-center gap-3 pr-5 text-nc-content-gray-muted font-medium text-3.5 w-1/8">
+                <div class="flex justify-center items-center gap-3 text-nc-content-gray-muted font-medium text-3.5 w-1/8">
                   <NcTooltip v-if="isFineGrained(el)" placement="top">
                     <template #title>{{ $t('general.edit') }}</template>
                     <component
@@ -505,7 +508,7 @@ const openEditToken = async (token: IApiTokenInfo) => {
                     <component
                       :is="iconMap.delete"
                       data-testid="nc-token-row-action-icon"
-                      class="nc-delete-icon hover::cursor-pointer w-4 h-4"
+                      class="nc-delete-icon hover::cursor-pointer w-4 h-4 hover:text-nc-content-red-medium"
                       @click="triggerDeleteModal(el.token as string || el.id as string, (el.description || el.title) as string, el.id)"
                     />
                   </NcTooltip>

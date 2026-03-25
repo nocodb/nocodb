@@ -1,7 +1,7 @@
 ################
 # NocoDB Builder
 ################
-FROM node:22-slim AS builder
+FROM node:24-slim AS builder
 WORKDIR /usr/src/app
 
 # Install dependencies required for node-gyp and other build tools
@@ -45,7 +45,7 @@ RUN rm -rf ./node_modules/nc-lib-gui/lib/dist \
 ########
 # Runner
 ########
-FROM node:22-slim
+FROM node:24-slim
 WORKDIR /usr/src/app
 
 ENV NC_DOCKER=0.6 \

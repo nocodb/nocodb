@@ -37,8 +37,24 @@ export async function initializeSakilaPg(database: string) {
 }
 
 export async function resetSakilaPg(database: string) {
+  const kn = knex(getKnexConfig({ dbName: 'postgres', dbType: 'pg' }));
+
   try {
-    const kn = knex(getKnexConfig({ dbName: 'postgres', dbType: 'pg' }));
+    // Wait for backend connections to drain before dropping the database.
+    // DROP DATABASE WITH (FORCE) kills active connections, which can leave
+    // the backend's connection pool in a broken state or trigger uncaught
+    // errors that crash the process (process.exit(1) in handleUncaughtErrors).
+    for (let i = 0; i < 20; i++) {
+      const result = await kn.raw(
+        `SELECT count(*)::int AS cnt FROM pg_stat_activity WHERE datname = ? AND pid != pg_backend_pid()`,
+        [database]
+      );
+      if (result.rows[0].cnt === 0) break;
+      if (i === 0) {
+        console.log(`resetSakilaPg(${database}): waiting for ${result.rows[0].cnt} connection(s) to close...`);
+      }
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
 
     await kn.raw(`DROP DATABASE IF EXISTS ?? WITH (FORCE)`, [database]);
 
@@ -56,7 +72,8 @@ export async function resetSakilaPg(database: string) {
     // Slow path (local dev): full schema + data import
     await initializeSakilaPg(database);
   } catch (e) {
-    console.error(`Error resetting pg sakila db: Worker ${database}`, e);
+    await kn.destroy().catch(() => {});
+    throw e;
   }
 }
 

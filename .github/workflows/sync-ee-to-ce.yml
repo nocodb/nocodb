@@ -10,17 +10,17 @@ jobs:
     runs-on: ubicloud-standard-2
     steps:
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 22.12.0
+          node-version: 24.14.0
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           path: nocohub
           fetch-depth: 0
       - name: Checkout OSS
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: 'nocodb/nocodb'
           path: nocodb
@@ -122,7 +122,7 @@ jobs:
           fi
       - name: Comment on PR
         if: ${{ steps.sync.outputs.synchronize != 'true' }}
-        uses: thollander/actions-comment-pull-request@v2
+        uses: thollander/actions-comment-pull-request@v3
         with:
           message: ${{ steps.sync.outputs.msg }}
       - name: Error if failed

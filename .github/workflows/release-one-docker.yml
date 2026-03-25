@@ -80,19 +80,19 @@ jobs:
     runs-on: ubicloud-standard-8
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
         with:
           version: 9
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 22.12.0
+          node-version: 24.14.0
           cache: 'pnpm'
 
       - name: Remove use-node-version from .npmrc
@@ -164,19 +164,19 @@ jobs:
     runs-on: ubicloud-standard-8
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
         with:
           version: 9
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 22.12.0
+          node-version: 24.14.0
           cache: 'pnpm'
 
       - name: Remove use-node-version from .npmrc
@@ -216,10 +216,10 @@ jobs:
 
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@v2.2.1
+        uses: docker/setup-buildx-action@v4
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2.1.0
+        uses: docker/setup-qemu-action@v4
 
       - name: Cache Docker layers
         uses: actions/cache@v4
@@ -230,7 +230,7 @@ jobs:
             ${{ runner.os }}-buildx-
 
       - name: Login to DockerHub
-        uses: docker/login-action@v2.1.0
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -247,7 +247,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Build and push
-        uses: docker/build-push-action@v3.2.0
+        uses: docker/build-push-action@v7
         with:
           file: "./packages/nocodb/src/ee-on-prem/Dockerfile-on-prem"
           context: "./packages/nocodb"
@@ -274,7 +274,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout CE repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: nocodb/nocodb
           token: ${{ secrets.NC_GITHUB_TOKEN1 }}
@@ -309,9 +309,9 @@ jobs:
             }
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 22.12.0
+          node-version: 24.14.0
 
       - name: Generate draft release notes
         env:

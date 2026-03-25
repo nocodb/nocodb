@@ -1,6 +1,6 @@
 import { randomBytes } from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
-import * as bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import ScimConfig from '~/ee/models/ScimConfig';

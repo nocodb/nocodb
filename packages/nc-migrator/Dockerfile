@@ -1,5 +1,5 @@
 # Use official Node.js runtime as the base image
-FROM node:22.12.0-bullseye-slim
+FROM node:24.14.0-bookworm-slim
 
 # Set environment variables early
 ENV NODE_ENV=production

@@ -30,6 +30,12 @@ concurrency:
 jobs:
   # ── Unit Tests (wait for pre-build to warm caches) ─────────────
 
+  jest-unit-test:
+    needs: pre-build-for-ci
+    if: ${{ !cancelled() && !failure() && (github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true) }}
+    uses: ./.github/workflows/jest-unit-test.yml
+    secrets: inherit
+
   unit-tests-sqlite:
     needs: pre-build-for-ci
     if: ${{ !cancelled() && !failure() && (github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true) }}
@@ -112,7 +118,7 @@ jobs:
     uses: ./.github/workflows/pre-build-for-ci.yml
     secrets: inherit
     with:
-      build_ce: ${{ github.event_name == 'push' || inputs.force == true }}
+      build_ce: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'pw-all') || inputs.force == true }}
 
   # ── Playwright E2E: PostgreSQL EE (always on PR + push, 3 shards) ──
 
@@ -143,11 +149,11 @@ jobs:
       db: pg
       shard: 3
 
-  # ── Playwright E2E: SQLite CE (develop push only, 3 shards) ────
+  # ── Playwright E2E: SQLite CE (develop push or 'pw-all' label) ────
 
   playwright-sqlite-1:
     needs: pre-build-for-ci
-    if: ${{ github.event_name == 'push' || inputs.force == true }}
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'pw-all') || inputs.force == true }}
     uses: ./.github/workflows/playwright-test-workflow.yml
     secrets: inherit
     with:
@@ -157,7 +163,7 @@ jobs:
 
   playwright-sqlite-2:
     needs: pre-build-for-ci
-    if: ${{ github.event_name == 'push' || inputs.force == true }}
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'pw-all') || inputs.force == true }}
     uses: ./.github/workflows/playwright-test-workflow.yml
     secrets: inherit
     with:
@@ -167,7 +173,7 @@ jobs:
 
   playwright-sqlite-3:
     needs: pre-build-for-ci
-    if: ${{ github.event_name == 'push' || inputs.force == true }}
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'pw-all') || inputs.force == true }}
     uses: ./.github/workflows/playwright-test-workflow.yml
     secrets: inherit
     with:
@@ -175,11 +181,11 @@ jobs:
       shard: 3
       ee: false
 
-  # ── Playwright E2E: MySQL CE (develop push only, 3 shards) ─────
+  # ── Playwright E2E: MySQL CE (develop push or 'pw-all' label) ─────
 
   playwright-mysql-1:
     needs: pre-build-for-ci
-    if: ${{ github.event_name == 'push' || inputs.force == true }}
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'pw-all') || inputs.force == true }}
     uses: ./.github/workflows/playwright-test-workflow.yml
     secrets: inherit
     with:
@@ -189,7 +195,7 @@ jobs:
 
   playwright-mysql-2:
     needs: pre-build-for-ci
-    if: ${{ github.event_name == 'push' || inputs.force == true }}
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'pw-all') || inputs.force == true }}
     uses: ./.github/workflows/playwright-test-workflow.yml
     secrets: inherit
     with:
@@ -199,7 +205,7 @@ jobs:
 
   playwright-mysql-3:
     needs: pre-build-for-ci
-    if: ${{ github.event_name == 'push' || inputs.force == true }}
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'pw-all') || inputs.force == true }}
     uses: ./.github/workflows/playwright-test-workflow.yml
     secrets: inherit
     with:

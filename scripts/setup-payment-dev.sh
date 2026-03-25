@@ -92,7 +92,7 @@ echo -e "${CYAN}[3/4] Starting backend and frontend...${NC}"
   NC_STRIPE_WEBHOOK_SECRET=whsec_85d32ece6231204cb9ea639a08976884cf28587e86beec0d7010b010973a13ab \
   NC_STRIPE_PUBLISHABLE_KEY=pk_test_51QhRouHU2WPCjTxw3ranXD6shPR0VbOjLflMfidsanV0m9mM0vZKQfYk3PserPAbnZAIJJhv701DV8FrwP6zJhaf00KYKhz11c \
   NC_MARKETING_ROOT_URL=https://marketing.nocodb.dev \
-  pnpm --filter=nocodb watch:run:pg:ee
+  NC_DB="pg://localhost:5432?u=postgres&p=password&d=ncdb_payment" pnpm --filter=nocodb watch:run:ee-cloud
 ) &
 PIDS+=($!)
 echo -e "${GREEN}Backend starting (PID: $!).${NC}"

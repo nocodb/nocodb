@@ -290,9 +290,7 @@ export default function () {
           {
             type: 'codeBlock',
             attrs: { language: 'typescript' },
-            content: [
-              { type: 'text', text: 'const x = 42;' },
-            ],
+            content: [{ type: 'text', text: 'const x = 42;' }],
           },
         ],
       };
@@ -420,7 +418,9 @@ export default function () {
             content: [
               {
                 type: 'paragraph',
-                content: [{ type: 'text', text: 'Tip: use callouts for emphasis.' }],
+                content: [
+                  { type: 'text', text: 'Tip: use callouts for emphasis.' },
+                ],
               },
             ],
           },
@@ -529,7 +529,9 @@ export default function () {
               },
               {
                 type: 'text',
-                marks: [{ type: 'link', attrs: { href: 'https://example.com' } }],
+                marks: [
+                  { type: 'link', attrs: { href: 'https://example.com' } },
+                ],
                 text: 'a link',
               },
               {
@@ -878,8 +880,9 @@ export default function () {
 
     describe('Authentication', () => {
       it('Unauthenticated list returns 401', async () => {
-        const res = await request(context.app)
-          .get(`${API_PREFIX}?parent_id=null`);
+        const res = await request(context.app).get(
+          `${API_PREFIX}?parent_id=null`,
+        );
         expect(res.status).to.be.oneOf([401, 403]);
       });
 
@@ -892,8 +895,7 @@ export default function () {
 
       it('Unauthenticated get returns 401', async () => {
         const doc = await _createDoc({ title: 'Auth Test' });
-        const res = await request(context.app)
-          .get(`${API_PREFIX}/${doc.id}`);
+        const res = await request(context.app).get(`${API_PREFIX}/${doc.id}`);
         expect(res.status).to.be.oneOf([401, 403]);
       });
 
@@ -907,8 +909,9 @@ export default function () {
 
       it('Unauthenticated delete returns 401', async () => {
         const doc = await _createDoc({ title: 'Auth Test' });
-        const res = await request(context.app)
-          .delete(`${API_PREFIX}/${doc.id}`);
+        const res = await request(context.app).delete(
+          `${API_PREFIX}/${doc.id}`,
+        );
         expect(res.status).to.be.oneOf([401, 403]);
       });
 
@@ -1094,9 +1097,7 @@ export default function () {
           content: [
             {
               type: 'paragraph',
-              content: [
-                { type: 'text', text: '<img src=x onerror=alert(1)>' },
-              ],
+              content: [{ type: 'text', text: '<img src=x onerror=alert(1)>' }],
             },
           ],
         };
@@ -1234,9 +1235,9 @@ export default function () {
 
         const updated = res.body;
         // updated_at should be >= created_at (may be equal if sub-second)
-        expect(
-          new Date(updated.updated_at).getTime(),
-        ).to.be.greaterThanOrEqual(new Date(doc.created_at).getTime());
+        expect(new Date(updated.updated_at).getTime()).to.be.greaterThanOrEqual(
+          new Date(doc.created_at).getTime(),
+        );
       });
     });
 
@@ -1402,7 +1403,9 @@ export default function () {
       it('List items contain comment_count field', async () => {
         await _createDoc({ title: 'Comment Count Test' });
         const result = await _listDocs(null);
-        expect(result.list[0]).to.have.property('comment_count').that.is.a('number');
+        expect(result.list[0])
+          .to.have.property('comment_count')
+          .that.is.a('number');
       });
     });
 
@@ -1457,13 +1460,12 @@ export default function () {
         expect(result.list[0]).to.not.have.property('content');
       });
 
-      it('Delete returns boolean true', async () => {
+      it('Delete returns success', async () => {
         const doc = await _createDoc({ title: 'Delete Shape' });
-        const res = await request(context.app)
+        await request(context.app)
           .delete(`${API_PREFIX}/${doc.id}`)
           .set('xc-auth', context.token)
           .expect(200);
-        expect(res.status).to.equal(200);
       });
     });
 

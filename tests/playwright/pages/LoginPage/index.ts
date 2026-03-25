@@ -60,7 +60,12 @@ export class LoginPage extends BasePage {
     await this.fillPassword(password);
     await this.submit();
 
-    await this.rootPage.waitForLoadState('networkidle');
+    await this.rootPage.waitForLoadState('domcontentloaded');
+    // Wait for either the dashboard or the onboarding flow to appear
+    await this.rootPage
+      .locator('[data-testid="nc-sidebar-userinfo"], [data-testid="nc-onboarding-flow-container"]')
+      .first()
+      .waitFor({ timeout: 60000 });
 
     // It's possible that user can see onboarding flow after login if they have not attempted that after signup
     if (skipOnboardingFlow) {

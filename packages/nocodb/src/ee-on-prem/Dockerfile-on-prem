@@ -2,7 +2,7 @@
 # Builder — runs on the build host (no QEMU), installs all JS deps
 # and downloads prebuilt native binaries for the target platform
 ###########
-FROM --platform=$BUILDPLATFORM node:22.12.0-alpine AS builder
+FROM --platform=$BUILDPLATFORM node:24.14.0-alpine AS builder
 ARG TARGETPLATFORM
 
 WORKDIR /usr/src/app
@@ -60,7 +60,7 @@ RUN chmod +x /usr/src/appEntry/start.sh
 ##########
 # Runner
 ##########
-FROM node:22.12.0-alpine
+FROM node:24.14.0-alpine
 WORKDIR /usr/src/app
 
 ENV NC_DOCKER=0.6

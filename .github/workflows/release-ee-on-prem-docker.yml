@@ -37,21 +37,21 @@ jobs:
     steps:
       # Checkout repository
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
 
       # Setup pnpm package manager
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
         with:
           version: 9
 
       # Setup Node.js environment
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 22.12.0
+          node-version: 24.14.0
           cache: 'pnpm'
 
       # Configure Docker repository and build tag
@@ -158,11 +158,11 @@ jobs:
       # Setup Docker buildx for multi-architecture builds
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@v2.2.1
+        uses: docker/setup-buildx-action@v4
 
       # Setup QEMU for cross-platform builds
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2.1.0
+        uses: docker/setup-qemu-action@v4
 
       # Cache Docker layers for faster builds
       - name: Cache Docker layers
@@ -175,14 +175,14 @@ jobs:
 
       # Login to DockerHub
       - name: Login to DockerHub
-        uses: docker/login-action@v2.1.0
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # Build and push Docker image
       - name: Build and push
-        uses: docker/build-push-action@v3.2.0
+        uses: docker/build-push-action@v7
         with:
           file: "./packages/nocodb/src/ee-on-prem/Dockerfile-on-prem"
           context: "./packages/nocodb"

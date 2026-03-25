@@ -4,8 +4,8 @@ FROM ubuntu:22.04
 # set the github runner version
 ARG RUNNER_VERSION="2.306.0"
 
-# Get the base image of Node version 18
-FROM node:18
+# Get the base image of Node version 24
+FROM node:24.14.0-bookworm
 
 # Get the latest version of Playwright
 FROM mcr.microsoft.com/playwright:v1.32.2-focal

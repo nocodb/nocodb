@@ -4262,12 +4262,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             teamIds.push(assignment.resource_id);
           }
         }
-      } catch (e) {
+      } catch (_e) {
+        // Teams may not be deployed — flag it so the resolver
+        // can deny access if team-based policies exist (fail-closed)
         teamResolutionFailed = true;
-        new Logger('BaseModelSqlv2').warn(
-          'RLS team resolution failed — will deny access if team-based policies exist',
-          e,
-        );
       }
 
       // Resolve team hierarchy to member user IDs for {currentUser.teamWithDescendantMembers}
@@ -4277,12 +4275,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           teamDescendantMemberUserIds =
             await getMemberUserIdsForTeamsAndDescendants(this.context, teamIds);
         }
-      } catch (e) {
+      } catch (_e) {
+        // Same as above — fail-closed if team policies exist
         teamResolutionFailed = true;
-        new Logger('BaseModelSqlv2').warn(
-          'RLS team descendant member resolution failed',
-          e,
-        );
       }
 
       const rlsUser = {

@@ -18,7 +18,11 @@ export class UtilsService extends UtilsServiceEE {
     result.isOnPrem = true;
     result.isTrial = NocoLicense.isTrial();
     result.isTrialExpired = NocoLicense.isExpired;
-    result.licenseExpiryTime = NocoLicense.getExpiry();
+
+    const expiry = NocoLicense.getExpiry();
+    result.licenseExpiryTime = expiry
+      ? Math.floor(expiry.getTime() / 1000)
+      : undefined;
     result.iframeWhitelistDomains = NC_IFRAME_WHITELIST_DOMAINS.split(',');
     result.defaultWorkspaceId = Noco.ncDefaultWorkspaceId || null;
 

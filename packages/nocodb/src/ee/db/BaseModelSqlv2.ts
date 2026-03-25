@@ -110,10 +110,7 @@ import {
   resolveRlsDynamicValues,
   resolveRlsPolicies,
 } from '~/utils/rls-resolver';
-import {
-  getExpandedTeamIds,
-  getMemberUserIdsForTeamsAndDescendants,
-} from '~/ee/utils/team-subject-matcher';
+import { getMemberUserIdsForTeamsAndDescendants } from '~/ee/utils/team-subject-matcher';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -4239,27 +4236,31 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       // Load user's team memberships for RLS
+      // Use pre-loaded direct_teams from auth context when available (set by GlobalGuard)
       const teamIds: string[] = [];
-      const teamWithDescendantIds: string[] = [];
       let teamResolutionFailed = false;
 
       try {
-        const userTeamAssignments = await PrincipalAssignment.list(
-          this.context,
-          {
-            principal_type: PrincipalType.USER,
-            principal_ref_id: user.id,
-            resource_type: ResourceType.TEAM,
-          },
-        );
+        const directTeams = user.direct_teams || [];
 
-        for (const assignment of userTeamAssignments) {
-          teamIds.push(assignment.resource_id);
-          const expanded = await getExpandedTeamIds(
+        if (directTeams.length > 0) {
+          // Use pre-loaded team data from auth — no DB query needed
+          for (const dt of directTeams) {
+            teamIds.push(dt.team_id);
+          }
+        } else {
+          // Fallback: query DB if direct_teams not available (e.g. socket/job contexts)
+          const userTeamAssignments = await PrincipalAssignment.list(
             this.context,
-            assignment.resource_id,
+            {
+              principal_type: PrincipalType.USER,
+              principal_ref_id: user.id,
+              resource_type: ResourceType.TEAM,
+            },
           );
-          teamWithDescendantIds.push(...expanded);
+          for (const assignment of userTeamAssignments) {
+            teamIds.push(assignment.resource_id);
+          }
         }
       } catch (e) {
         teamResolutionFailed = true;
@@ -4289,7 +4290,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         email: user.email,
         roles: baseRoles,
         teams: teamIds,
-        teamsWithDescendants: [...new Set(teamWithDescendantIds)],
         teamDescendantMemberUserIds,
       };
 

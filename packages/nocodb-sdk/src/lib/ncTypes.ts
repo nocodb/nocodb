@@ -11,6 +11,7 @@ export interface NcContext {
     base_roles?: Record<string, boolean>;
     workspace_roles?: Record<string, boolean>;
     provider?: string;
+    direct_teams?: { team_id: string; path: string }[];
   };
   fk_model_id?: string;
   socket_id?: string;

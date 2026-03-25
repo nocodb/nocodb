@@ -31,6 +31,7 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
             email: req.user.email,
             email_verified: req.user.email_verified,
             base_roles: req.user.base_roles,
+            direct_teams: req.user.direct_teams,
           };
         }
       } catch (e) {
@@ -121,6 +122,7 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
         email: req.user.email,
         email_verified: req.user.email_verified,
         base_roles: req.user.base_roles,
+        direct_teams: req.user.direct_teams,
       };
     }
     return true;

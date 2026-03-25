@@ -34,16 +34,39 @@ export class BaseListModalPage extends BasePage {
   }
 
   /**
-   * Check if we're on the workspace home page or the modal is open.
+   * Check if we're on the workspace home page (bases tab) or the modal is open.
    */
   async isOpen() {
     return (await this.homeSidebar.isVisible()) || (await this.modal.isVisible());
+  }
+
+  /**
+   * Ensure we're on the Bases tab of the workspace home page.
+   * If on another ws tab (Members, Teams, etc.), clicks the Bases tab.
+   */
+  async ensureBasesTab() {
+    if (!(await this.homeSidebar.isVisible())) return;
+
+    // Find the Bases tab in the workspace view tabs
+    const basesTab = this.rootPage.locator('.nc-ws-view-tabs .tab-title').first();
+    if (await basesTab.isVisible().catch(() => false)) {
+      const classList = await basesTab.getAttribute('class');
+      if (!classList?.includes('active')) {
+        await basesTab.click();
+        // Wait for navigation to Bases tab and base list to render
+        await this.rootPage.waitForTimeout(1000);
+        await this.rootPage.waitForLoadState('networkidle');
+      }
+    }
   }
 
   async waitForOpen() {
     // Wait for either the home sidebar (new) or the modal (legacy)
     await this.homeSidebar.or(this.modal).waitFor({ state: 'visible', timeout: 10000 });
     await this.rootPage.waitForTimeout(300);
+
+    // Ensure we're on the Bases tab
+    await this.ensureBasesTab();
   }
 
   async waitForClose() {

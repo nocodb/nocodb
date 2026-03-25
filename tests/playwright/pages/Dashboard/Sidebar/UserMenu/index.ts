@@ -11,11 +11,12 @@ export class SidebarUserMenuObject extends BasePage {
   }
 
   get() {
-    return this.rootPage.getByTestId('nc-sidebar-userinfo');
+    // Match both MiniSidebar userinfo and HomeSidebar userinfo
+    return this.rootPage.getByTestId('nc-sidebar-userinfo').or(this.rootPage.getByTestId('nc-home-sidebar-userinfo'));
   }
 
   async click() {
-    await this.rootPage.getByTestId('nc-sidebar-userinfo').click();
+    await this.get().click();
   }
 
   async clickLogout() {

@@ -153,7 +153,20 @@ export class SidebarNavPage extends BasePage {
 
     // Workspace items start with 'ws-'
     if (item.startsWith('ws-')) {
-      return sidebar.getByTestId(item);
+      const wsTabMap: Record<string, string> = {
+        'ws-collaborators': 'Members',
+        'ws-teams': 'Teams',
+        'ws-integrations': 'Integrations',
+        'ws-billing': 'Billing',
+        'ws-audits': 'Audits',
+        'ws-sso': 'SSO',
+        'ws-settings': 'Settings',
+      };
+
+      const tabLabel = wsTabMap[item];
+
+      // Match either the sidebar settings menu item OR the workspace home tab
+      return sidebar.getByTestId(item).or(this.rootPage.locator('.nc-ws-view-tabs .tab-title', { hasText: tabLabel }));
     }
 
     // Base settings items
@@ -173,7 +186,7 @@ export class SidebarNavPage extends BasePage {
    *   await settings.navigateToSettingsPage('ws-integrations');    // Workspace integrations
    */
   async navigateToSettingsPage(item: SettingsMenuItem): Promise<void> {
-    // Workspace settings — try clicking the workspace home tab directly
+    // Workspace settings — navigate to workspace home page and click the tab
     if (item.startsWith('ws-')) {
       const wsTabMap: Record<string, string> = {
         'ws-collaborators': 'Members',
@@ -187,15 +200,29 @@ export class SidebarNavPage extends BasePage {
 
       const tabLabel = wsTabMap[item];
 
-      // Try workspace home page tabs (ViewTabs component)
+      // Check if workspace home tabs are visible
       const wsTab = this.rootPage.locator('.nc-ws-view-tabs .tab-title', { hasText: tabLabel });
-      if (await wsTab.isVisible().catch(() => false)) {
-        await wsTab.click();
+
+      if (!(await wsTab.isVisible().catch(() => false))) {
+        // Not on workspace home — navigate there via the logo (back arrow) in the mini sidebar
+        const logo = this.miniSidebarV2.getByTestId('nc-mini-sidebar-v2-logo');
+        if (await logo.isVisible().catch(() => false)) {
+          await logo.click();
+          // Wait for workspace home to load (home sidebar appears)
+          await this.rootPage.locator('.nc-home-sidebar').waitFor({ state: 'visible', timeout: 10000 });
+          await this.rootPage.waitForTimeout(500);
+        }
+      }
+
+      // Now click the workspace tab
+      const tab = this.rootPage.locator('.nc-ws-view-tabs .tab-title', { hasText: tabLabel });
+      if (await tab.isVisible().catch(() => false)) {
+        await tab.click();
         await this.rootPage.waitForTimeout(500);
         return;
       }
 
-      // Fall back to settings sidebar menu
+      // Final fallback — settings sidebar (old flow)
       await this.navigateToSettingsTab();
       const menuItem = this.getSettingsMenuItemLocator(item);
       await menuItem.waitFor({ state: 'visible' });

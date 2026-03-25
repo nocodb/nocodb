@@ -131,9 +131,14 @@ export class LeftSidebarPage extends BasePage {
   /**
    * Opens the base list — navigates to workspace home page (V2)
    * or opens the modal (V1 fallback).
+   * Ensures we're on the Bases tab (not Members/Teams/etc).
    */
   async openBaseListModal(): Promise<void> {
-    if (await this.baseListModal.isOpen()) return;
+    if (await this.baseListModal.isOpen()) {
+      // Already on workspace home — ensure Bases tab is active
+      await this.baseListModal.ensureBasesTab();
+      return;
+    }
 
     if (await this.isMiniSidebarV2Visible()) {
       await this.openBaseListModalViaV2();

@@ -1053,6 +1053,13 @@ export class WorkspaceUsersService {
       // If user was pre-created with NO_ACCESS (e.g. from on-prem lazy workspace addition),
       // upgrade their role instead of rejecting the invite
       if (workspaceUser.roles === WorkspaceUserRoles.NO_ACCESS) {
+        await checkSeatLimit(
+          workspace.id,
+          user.id,
+          workspaceUser.roles,
+          roles || WorkspaceUserRoles.VIEWER,
+          ncMeta,
+        );
         await WorkspaceUser.update(
           workspace.id,
           user.id,
@@ -1067,6 +1074,13 @@ export class WorkspaceUsersService {
         return { postOperations: [] };
       }
     } else {
+      await checkSeatLimit(
+        workspace.id,
+        null,
+        WorkspaceUserRoles.NO_ACCESS,
+        roles || WorkspaceUserRoles.VIEWER,
+        ncMeta,
+      );
       await WorkspaceUser.insert(
         {
           fk_workspace_id: workspace.id,

@@ -34,6 +34,13 @@ const META_CONFIG: Record<string, MetaFieldConfig> = {
   'environment.platform': {
     strategy: MetaUpdateStrategy.OVERWRITE,
   },
+  // Binding fields — once set, never overwritten by mergeMeta
+  db_fingerprint: {
+    strategy: MetaUpdateStrategy.PRESERVE,
+  },
+  airgapped: {
+    strategy: MetaUpdateStrategy.PRESERVE,
+  },
 };
 
 /**
@@ -750,12 +757,63 @@ mwIDAQAB
         seat_count: installation.seat_count,
         expires_at: installation.expires_at,
         config: installation.config,
+        db_fingerprint: installation.meta?.db_fingerprint ?? undefined,
       },
       privateKey,
       {
         algorithm: LICENSE_CONFIG.JWT_ALGORITHM,
         expiresIn: LICENSE_CONFIG.JWT_EXPIRY,
       },
+    );
+  }
+
+  /**
+   * Sign a license JWT for airgapped installations.
+   * JWT expiry is set to the license expiration date so that customers
+   * must go online to renew — giving us a chance to re-validate the
+   * fingerprint, update seat limits, or revoke if needed.
+   */
+  public static async signAirgappedLicenseJWT(
+    installation: Installation,
+    dbFingerprint: string,
+  ): Promise<string> {
+    const { privateKey } = await this.getServerKeys();
+
+    if (!installation.expires_at) {
+      throw new Error(
+        'Airgapped licenses must have an expiration date (expires_at)',
+      );
+    }
+
+    // Calculate seconds until license expiry for JWT exp claim
+    const jwtOptions: jwt.SignOptions = {
+      algorithm: LICENSE_CONFIG.JWT_ALGORITHM,
+    };
+
+    if (installation.expires_at) {
+      const expiresAtMs = new Date(installation.expires_at).getTime();
+      const nowMs = Date.now();
+      const remainingSec = Math.max(
+        Math.floor((expiresAtMs - nowMs) / 1000),
+        0,
+      );
+      jwtOptions.expiresIn = remainingSec;
+    }
+
+    return jwt.sign(
+      {
+        installation_id: installation.id,
+        license_key: installation.license_key,
+        license_type: installation.license_type,
+        status: installation.status,
+        seat_count: installation.seat_count,
+        db_fingerprint: dbFingerprint,
+        airgapped: true,
+        expires_at: installation.expires_at,
+        config: installation.config,
+      },
+      privateKey,
+      jwtOptions,
     );
   }
 

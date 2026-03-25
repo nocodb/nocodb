@@ -3033,6 +3033,7 @@
       "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
+      "licenseRequiresPostgres": "Enterprise licensing requires PostgreSQL. Please migrate to PostgreSQL to activate your license key.",
       "convertLinkV2Description": "This will convert the link to use a junction table internally, keeping all existing linked data intact.",
       "convertLinkV2OriginalBecomesRollup": "will become a Rollup showing the linked record count (preserves existing formulas, filters, and sorts)",
       "convertLinkV2NewLtarCreated": "A new Link field will be created next to it, showing the actual linked records",

@@ -39,6 +39,7 @@ import Noco from '~/Noco';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
 import { parseMetaProp } from '~/utils/modelUtils';
 import {
+  checkGlobalSeatHeadroom,
   checkLimit,
   getFeature,
   PlanLimitTypes,
@@ -943,6 +944,9 @@ export class TeamsV3Service {
         );
       }
     }
+
+    // Check seat headroom before adding team members
+    await checkGlobalSeatHeadroom(param.members.length);
 
     // Insert assignments and emit events (inserts are sequential due to individual event/mail needs)
     const addedMembers = [];

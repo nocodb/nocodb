@@ -15,6 +15,7 @@ import {
   NOCODB_USER_EXTENSION,
   WORKSPACE_ROLE_TO_LABEL,
 } from '~/services/scim/scim-helpers';
+import { checkSeatLimit } from '~/helpers/paymentHelpers';
 
 // Enterprise extension schema URI
 const ENTERPRISE_EXTENSION =
@@ -179,6 +180,13 @@ export class ScimUsersService {
 
     // Reactivate soft-deleted user
     if (existingWsUser?.deleted) {
+      await checkSeatLimit(
+        workspaceId,
+        existingWsUser.fk_user_id,
+        WorkspaceUserRoles.NO_ACCESS,
+        workspaceRole,
+      );
+
       const updateData = {
         deleted: false,
         deleted_at: null,
@@ -213,6 +221,14 @@ export class ScimUsersService {
 
       return this.toScimUser(reactivatedUser);
     }
+
+    // Check seat limit before creating new workspace user
+    await checkSeatLimit(
+      workspaceId,
+      user.id,
+      WorkspaceUserRoles.NO_ACCESS,
+      workspaceRole,
+    );
 
     // Create new workspace user with SCIM data
     // (WorkspaceUser.insert calls get() internally and returns the full record)
@@ -384,6 +400,12 @@ export class ScimUsersService {
     // Handle workspace role from NocoDB extension attribute
     const newRole = this.extractWorkspaceRole(scimUser);
     if (newRole) {
+      await checkSeatLimit(
+        workspaceId,
+        workspaceUser.fk_user_id,
+        workspaceUser.roles as WorkspaceUserRoles,
+        newRole,
+      );
       updateData.roles = newRole;
     }
 
@@ -393,7 +415,15 @@ export class ScimUsersService {
       updateData.deleted = true;
       updateData.deleted_at = new Date();
     } else if (scimUser.active === true && workspaceUser.deleted) {
-      // Reactivate user
+      // Reactivate user — check seat limit before restoring
+      const effectiveRole =
+        newRole || (workspaceUser.roles as WorkspaceUserRoles);
+      await checkSeatLimit(
+        workspaceId,
+        workspaceUser.fk_user_id,
+        WorkspaceUserRoles.NO_ACCESS,
+        effectiveRole,
+      );
       updateData.deleted = false;
       updateData.deleted_at = null;
     }

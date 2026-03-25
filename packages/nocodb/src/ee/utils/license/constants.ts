@@ -19,6 +19,15 @@ export const LICENSE_CONFIG = {
 
   // Grace period for network failures (7 days)
   HEARTBEAT_GRACE_PERIOD_MS: 7 * 24 * 60 * 60 * 1000,
+
+  // Airgapped license
+  AIRGAPPED_KEY_PREFIX: 'nc_ag_',
+
+  // DB fingerprint — prefix on installation_secret signals fingerprint-bound installation
+  FINGERPRINT_SECRET_PREFIX: 'fp:',
+
+  // Clock tolerance for iat (issued-at) check
+  CLOCK_TOLERANCE_MS: 5 * 60 * 1000, // 5 minutes
 } as const;
 
 /**

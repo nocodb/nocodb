@@ -44,6 +44,8 @@ interface ActivationRequest extends AgentRequestEnvelope {
   type: AgentRequestType.REGISTER;
   license_key: string;
   environment?: EnvironmentInfo;
+  db_fingerprint?: string; // Database fingerprint for installation binding
+  airgapped?: boolean; // Whether this is an airgapped activation
 }
 
 // Heartbeat request (extends envelope)
@@ -132,6 +134,18 @@ export class OnPremiseController {
       NcError._.badRequest('License key is required');
     }
 
+    const dbFingerprint = body.db_fingerprint;
+    const isAirgapped =
+      body.airgapped === true ||
+      body.license_key.startsWith(LICENSE_CONFIG.AIRGAPPED_KEY_PREFIX);
+
+    // Airgapped licenses require a DB fingerprint
+    if (isAirgapped && !dbFingerprint) {
+      NcError._.badRequest(
+        'Installation ID is required for airgapped license activation',
+      );
+    }
+
     // Check if license key exists (either PENDING or already activated)
     const existingInstallation = await Installation.getByLicenseKey(
       body.license_key,
@@ -143,10 +157,15 @@ export class OnPremiseController {
     if (existingInstallation) {
       // If installation is PENDING, activate it
       if (existingInstallation.status === InstallationStatus.PENDING) {
-        const clientSecret = await Installation.deriveClientSecret(
+        const rawSecret = await Installation.deriveClientSecret(
           existingInstallation.id,
           ncMeta,
         );
+        // Prefix secret with fp: if client sent a fingerprint
+        const clientSecret = dbFingerprint
+          ? `${LICENSE_CONFIG.FINGERPRINT_SECRET_PREFIX}${rawSecret}`
+          : rawSecret;
+
         // Activate the PENDING installation
         await Installation.update(
           existingInstallation.id,
@@ -157,6 +176,8 @@ export class OnPremiseController {
             last_seen_at: new Date(),
             meta: {
               environment: body.environment,
+              ...(dbFingerprint ? { db_fingerprint: dbFingerprint } : {}),
+              ...(isAirgapped ? { airgapped: true } : {}),
             },
           },
           ncMeta,
@@ -164,8 +185,19 @@ export class OnPremiseController {
 
         // Get updated installation
         installation = await Installation.get(existingInstallation.id, ncMeta);
+      } else if (dbFingerprint) {
+        // Already activated — verify fingerprint if provided
+        const storedFingerprint = existingInstallation.meta?.db_fingerprint;
+        if (storedFingerprint && storedFingerprint !== dbFingerprint) {
+          NcError._.badRequest(
+            'This license is already bound to a different installation.',
+          );
+        }
+
+        // Idempotent re-activation with same fingerprint (e.g. airgapped restart after cache loss)
+        installation = existingInstallation;
       } else {
-        // Already activated
+        // Already activated, no fingerprint
         NcError._.badRequest(
           'License key is already activated. Use heartbeat endpoint for updates.',
         );
@@ -186,12 +218,21 @@ export class OnPremiseController {
         existingLicense &&
         existingLicense.status !== InstallationStatus.PENDING
       ) {
-        NcError._.badRequest(
-          'License key is already activated. Use heartbeat endpoint for updates.',
-        );
-      }
-
-      if (existingLicense) {
+        // Check fingerprint for existing old-format activations
+        if (dbFingerprint) {
+          const storedFingerprint = existingLicense.meta?.db_fingerprint;
+          if (storedFingerprint && storedFingerprint !== dbFingerprint) {
+            NcError._.badRequest(
+              'This license is already bound to a different installation.',
+            );
+          }
+          installation = existingLicense;
+        } else {
+          NcError._.badRequest(
+            'License key is already activated. Use heartbeat endpoint for updates.',
+          );
+        }
+      } else if (existingLicense) {
         installation = existingLicense;
       } else {
         installation = await Installation.insert(
@@ -208,6 +249,8 @@ export class OnPremiseController {
             last_seen_at: new Date(),
             meta: {
               environment: body.environment,
+              ...(dbFingerprint ? { db_fingerprint: dbFingerprint } : {}),
+              ...(isAirgapped ? { airgapped: true } : {}),
             },
             config: {
               ...(oldLicense.data.maxWorkspaces
@@ -219,30 +262,48 @@ export class OnPremiseController {
         );
       }
 
-      const clientSecret = await Installation.deriveClientSecret(
-        installation.id,
-        ncMeta,
-      );
+      if (!installation.installation_secret) {
+        const rawSecret = await Installation.deriveClientSecret(
+          installation.id,
+          ncMeta,
+        );
+        const clientSecret = dbFingerprint
+          ? `${LICENSE_CONFIG.FINGERPRINT_SECRET_PREFIX}${rawSecret}`
+          : rawSecret;
 
-      // Set installation secret
-      await Installation.update(
-        installation.id,
-        { installation_secret: clientSecret },
-        ncMeta,
-      );
+        await Installation.update(
+          installation.id,
+          {
+            installation_secret: clientSecret,
+            ...(dbFingerprint
+              ? {
+                  meta: {
+                    ...installation.meta,
+                    db_fingerprint: dbFingerprint,
+                    ...(isAirgapped ? { airgapped: true } : {}),
+                  },
+                }
+              : {}),
+          },
+          ncMeta,
+        );
 
-      // Refresh installation data
-      installation = await Installation.get(installation.id, ncMeta);
+        installation = await Installation.get(installation.id, ncMeta);
+      }
     }
 
     // Generate RSA-signed JWT containing license state
-    const licenseJWT = await Installation.signLicenseStateJWT(installation);
+    const licenseJWT = isAirgapped
+      ? await Installation.signAirgappedLicenseJWT(installation, dbFingerprint)
+      : await Installation.signLicenseStateJWT(installation);
 
     return {
       installation_id: installation.id,
       installation_secret: installation.getClientSecret(),
       license_jwt: licenseJWT,
-      heartbeat_interval_ms: this.HEARTBEAT_INTERVAL_NORMAL_MS,
+      heartbeat_interval_ms: isAirgapped
+        ? 0
+        : this.HEARTBEAT_INTERVAL_NORMAL_MS,
     };
   }
 
@@ -373,6 +434,7 @@ export class OnPremiseController {
       expires_at?: string;
       config?: {
         limit_workspace?: number;
+        limit_seat?: number;
       };
     },
   ) {
@@ -463,6 +525,80 @@ export class OnPremiseController {
     }
 
     return await Installation.update(installation.id, payload, ncMeta);
+  }
+
+  /**
+   * Generate a signed JWT for pure airgapped deployment.
+   * Flow:
+   *  1. Admin creates license via POST /api/internal/on-premise/license
+   *  2. Customer provides their installation ID (printed in server startup logs)
+   *  3. Admin calls this endpoint with the license key + installation ID
+   *  4. Returns a signed JWT that the customer pastes into the license field
+   */
+  @UseGuards(AuthGuard('basic'))
+  @Post('/api/internal/on-premise/license/airgap-jwt')
+  @HttpCode(200)
+  async generateAirgapJWT(
+    @Body()
+    payload: {
+      license_key: string;
+      installation_id: string;
+    },
+  ) {
+    const ncMeta = Noco.ncMeta;
+
+    if (!payload.license_key) {
+      NcError._.badRequest('License key is required');
+    }
+    if (!payload.installation_id) {
+      NcError._.badRequest(
+        'Installation ID is required. The customer can find it in the server startup logs.',
+      );
+    }
+
+    const installation = await Installation.getByLicenseKey(
+      payload.license_key,
+      ncMeta,
+    );
+
+    if (!installation) {
+      NcError._.badRequest('License key not found');
+    }
+
+    // Bind installation ID and activate — use update (not mergeMeta)
+    // so binding fields are set even on first call
+    await Installation.update(
+      installation.id,
+      {
+        ...(installation.status === InstallationStatus.PENDING
+          ? { status: InstallationStatus.ACTIVE }
+          : {}),
+        meta: {
+          ...installation.meta,
+          db_fingerprint: payload.installation_id,
+          airgapped: true,
+        },
+      },
+      ncMeta,
+    );
+
+    // Refresh installation data
+    const updated = await Installation.get(installation.id, ncMeta);
+
+    // Generate the long-lived signed JWT
+    const licenseJWT = await Installation.signAirgappedLicenseJWT(
+      updated,
+      payload.installation_id,
+    );
+
+    return {
+      license_jwt: licenseJWT,
+      installation_id: payload.installation_id,
+      license_key: installation.license_key,
+      expires_at: installation.expires_at,
+      license_type: installation.license_type,
+      config: installation.config,
+    };
   }
 
   private async verifyOldLicense(licenseKey: string): Promise<{

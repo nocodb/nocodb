@@ -10,7 +10,8 @@ import { _wherePk, applyPaginate } from '~/helpers/dbHelpers';
 import getAst from '~/helpers/getAst';
 import { Filter, Model, View } from '~/models';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
-// import { nocoExecute } from '~/utils/nocoExecute';
+import Noco from '~/Noco';
+import { nocoExecute } from '~/utils/nocoExecute';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -24,24 +25,27 @@ export const relationDataFetcher = (param: {
     context: NcContext,
     {
       data,
+      model,
+      query,
     }: {
       data: any[];
       model: Model;
       query: any;
     },
   ) {
-    return data;
+    if (Noco.isEE()) {
+      return data;
+    }
 
-    // FIXME: reopen when we have fixed nocoexecute
-    // // get ast
-    // const { ast, parsedQuery } = await getAst(context, {
-    //   model,
-    //   query,
-    //   extractOnlyPrimaries: false,
-    // });
-    // // nocoexecute
-    // const result = await nocoExecute(ast, data, {}, parsedQuery);
-    // return result;
+    const { ast, parsedQuery } = await getAst(context, {
+      model,
+      query,
+      extractOnlyPrimaries: false,
+    });
+
+    // nocoexecute
+    const result = await nocoExecute(ast, data, {}, parsedQuery);
+    return result;
   }
 
   return {

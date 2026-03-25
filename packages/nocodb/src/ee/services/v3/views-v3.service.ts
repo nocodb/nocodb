@@ -57,6 +57,16 @@ import { ViewRowColorService } from '~/services/view-row-color.service';
 import { withoutId } from '~/helpers/exportImportHelpers';
 import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 
+interface FormFieldByIdConfig {
+  alias?: string;
+  description?: string;
+  required?: boolean;
+  allow_scanner_input?: boolean;
+  is_list?: boolean;
+  is_limit_option?: boolean;
+  validators?: { type: string; value?: string | number | null; message?: string; regex?: string }[];
+}
+
 const viewTypeMap = {
   grid: ViewTypes.GRID,
   gallery: ViewTypes.GALLERY,
@@ -270,6 +280,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         'success_msg',
         'redirect_url',
         'redirect_after_secs',
+        'submit_button_label',
         'email',
         'meta',
         'submit_another_form',
@@ -306,6 +317,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         form_hide_branding: ['view', 'meta', 'hide_branding'],
         background_color: ['view', 'meta', 'background_color'],
         form_hide_banner: ['view', 'meta', 'hide_banner'],
+        submit_button_label: ['meta', 'submit_button_label'],
       },
       transformFn: (viewData) => {
         const formattedData = viewData;
@@ -332,6 +344,11 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
               .map((k) => k.title),
           };
           formattedData.kanban_stack_by_field_id = undefined;
+        }
+
+        // convert redirect_after_secs from string to integer (V2 stores as varchar)
+        if (formattedData.form_redirect_after_secs != null) {
+          formattedData.form_redirect_after_secs = Number(formattedData.form_redirect_after_secs);
         }
 
         // if description empty then set it to undefined
@@ -393,6 +410,8 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         'submit_button_label',
         'thank_you_message',
         'redirect_url',
+        'form_redirect_after_secs',
+        'send_response_email_to',
         'show_submit_another_button',
         'reset_form_after_submit',
         'banner',
@@ -409,6 +428,8 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         form_title: 'heading',
         form_description: 'subheading',
         thank_you_message: 'success_msg',
+        form_redirect_after_secs: 'redirect_after_secs',
+        send_response_email_to: 'email',
         show_submit_another_button: 'submit_another_form',
         reset_form_after_submit: 'show_blank_form',
         banner: 'banner_image_url',
@@ -431,6 +452,18 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
             ? { fk_grp_col_id: options.stack_by.field_id }
             : {}),
         };
+
+        // convert redirect_after_secs from integer to string (V2 expects StringOrNull)
+        if (result.redirect_after_secs !== undefined && result.redirect_after_secs !== null) {
+          result.redirect_after_secs = String(result.redirect_after_secs);
+        }
+
+        // pack submit_button_label into meta (stored in FormView.meta JSON)
+        if (result.submit_button_label !== undefined) {
+          result.meta = result.meta ?? {};
+          result.meta.submit_button_label = result.submit_button_label;
+          result.submit_button_label = undefined;
+        }
 
         return result;
       },
@@ -651,7 +684,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       case ViewTypes.FORM:
         {
           formattedView.options = formattedView.options ?? {};
-          formattedView.options.field_by_ids = viewColumnList.reduce(
+          formattedView.options.fields_by_id = viewColumnList.reduce(
             (acc, cur) => {
               acc[cur.fk_column_id] = this.v2Tov3ViewBuilders
                 .formFieldByIds()
@@ -1050,8 +1083,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       tableId: string;
       modelColumns?: { id: string; pv: boolean; order: number }[];
       fields?: ViewCreateV3Type['fields'];
-      // TODO: update with proper data type if swagger is updated with form
-      fieldsById?: any;
+      fieldsById?: Record<string, FormFieldByIdConfig>;
     },
     ncMeta?: MetaService,
   ) {

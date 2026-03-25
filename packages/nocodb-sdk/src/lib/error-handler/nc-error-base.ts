@@ -90,7 +90,7 @@ export class NcErrorBase {
       {
         params: id,
         ...args,
-      },
+      }
     );
   }
 
@@ -100,7 +100,7 @@ export class NcErrorBase {
       {
         params: id,
         ...args,
-      },
+      }
     );
   }
 
@@ -119,10 +119,13 @@ export class NcErrorBase {
   }
 
   viewSectionNotFound(id: string, args?: NcErrorArgs): never {
-    throw this.errorCodex.generateError(NcErrorType.ERR_VIEW_SECTION_NOT_FOUND, {
-      params: id,
-      ...args,
-    });
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_VIEW_SECTION_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      }
+    );
   }
 
   apiClientNotFound(id: string, args?: NcErrorArgs): never {
@@ -413,7 +416,7 @@ export class NcErrorBase {
   systemFieldNonModifiable(): never {
     throw this.errorCodex.generateError(
       NcErrorType.ERR_SYSTEM_FIELD_NON_MODIFIABLE,
-      {},
+      {}
     );
   }
 
@@ -969,6 +972,13 @@ export class NcErrorBase {
 
   scriptNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_SCRIPT_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  rlsPolicyNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_RLS_POLICY_NOT_FOUND, {
       params: id,
       ...args,
     });

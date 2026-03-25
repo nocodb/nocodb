@@ -46,3 +46,21 @@ export const isSharedBaseOrErdOrViewRoute = (route: RouteLocationNormalizedLoade
     route.params.typeOrId === 'ERD'
   )
 }
+
+export const wsHomeRouteNames = new Set([
+  'index-typeOrId',
+  'index-typeOrId-index',
+  'index-typeOrId-members',
+  'index-typeOrId-teams',
+  'index-typeOrId-billing',
+  'index-typeOrId-audits',
+  'index-typeOrId-sso',
+  'index-typeOrId-settings',
+  'index-typeOrId-integrations',
+])
+
+export const isWsHomeRoute = (route: RouteLocationNormalizedLoadedGeneric) => {
+  if (!route) return false
+
+  return wsHomeRouteNames.has(route.name as string)
+}

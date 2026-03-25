@@ -25,20 +25,8 @@ const basesStore = useBases()
 
 const navigating = ref(false)
 
-const wsHomeRouteNames = new Set([
-  'index-typeOrId',
-  'index-typeOrId-index',
-  'index-typeOrId-members',
-  'index-typeOrId-teams',
-  'index-typeOrId-billing',
-  'index-typeOrId-audits',
-  'index-typeOrId-sso',
-  'index-typeOrId-settings',
-  'index-typeOrId-integrations',
-])
-
 const isHomeSidebarRoute = computed(() => {
-  return wsHomeRouteNames.has(route.value.name as string)
+  return isWsHomeRoute(route.value)
 })
 
 const { hideMiniSidebar } = storeToRefs(useSidebarStore())

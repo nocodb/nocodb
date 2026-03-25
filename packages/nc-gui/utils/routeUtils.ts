@@ -48,6 +48,8 @@ export const isSharedBaseOrErdOrViewRoute = (route: RouteLocationNormalizedLoade
 }
 
 export const wsHomeRouteNames = new Set([
+  'index',
+  'index-index',
   'index-typeOrId',
   'index-typeOrId-index',
   'index-typeOrId-members',

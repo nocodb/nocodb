@@ -14,6 +14,8 @@ interface Props {}
 
 const props = withDefaults(defineProps<Props>(), {})
 
+const isMiniSidebar = inject(IsMiniSidebarInj, undefined)
+
 const { user, signOut, isMobileMode } = useGlobal()
 
 const { toggleMode } = useMiniSidebarMode()
@@ -113,7 +115,7 @@ const openKeyboardShortcutDialog = () => {
       <NcDivider />
 
       <!-- Dock Mode -->
-      <NcMenuItem @click="toggleMode">
+      <NcMenuItem v-if="isMiniSidebar" @click="toggleMode">
         <GeneralIcon icon="ncPlaceholderIcon" class="menu-icon mt-0.5" />
         <span class="menu-btn">Dock Mode</span>
         <NcBadgeBeta />

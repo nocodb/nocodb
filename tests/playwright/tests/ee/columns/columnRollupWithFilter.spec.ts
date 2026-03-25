@@ -52,12 +52,12 @@ test.describe('Rollup with filter condition persistence', () => {
     await page.locator('[data-testid="nc-grid-wrapper"]').waitFor({ state: 'visible', timeout: 15000 });
     await page.waitForTimeout(1000);
 
-    // 4. Create a Links (HasMany) column pointing to ChildTable
+    // 4. Create a LTAR (One to Many) column pointing to ChildTable
     await dashboard.grid.column.create({
       title: 'Link-HM',
-      type: 'Links',
+      type: 'LinkToAnotherRecord',
       childTable: 'ChildTable',
-      relationType: 'Has Many',
+      relationType: 'One to Many',
     });
 
     await page.waitForTimeout(500);

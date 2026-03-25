@@ -433,16 +433,21 @@ export class GridPage extends BasePage {
     });
     // await expect(this.rootPage.locator('text=Insert New Row')).not.toBeVisible();
 
-    // in cell-add
+    // in cell-add — check plus icon not visible (works for Links.vue, HasMany.vue, ManyToMany.vue)
     await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();
     await expect(
-      this.cell.get({ index: 0, columnHeader: 'Cities' }).locator('.nc-action-icon.nc-plus')
+      this.cell
+        .get({ index: 0, columnHeader: 'Cities' })
+        .locator('.nc-action-icon.nc-plus, .nc-has-many-plus-icon, .nc-many-to-many-plus-icon')
     ).not.toBeVisible();
 
-    // expand row
+    // expand row — check action icon not visible
     await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();
     await expect(
-      this.cell.get({ index: 0, columnHeader: 'Cities' }).locator('.nc-action-icon >> nth=0')
+      this.cell
+        .get({ index: 0, columnHeader: 'Cities' })
+        .locator('.nc-action-icon.nc-plus, .nc-has-many-maximize-icon, .nc-many-to-many-maximize-icon')
+        .first()
     ).not.toBeVisible();
   }
 
@@ -464,9 +469,14 @@ export class GridPage extends BasePage {
     });
     // await expect(this.rootPage.locator('text=Insert New Row')).toBeVisible();
 
-    // in cell-add
+    // in cell-add — check plus icon visible (works for Links.vue, HasMany.vue, ManyToMany.vue)
     await this.cell.get({ index: 0, columnHeader: 'Cities' }).hover();
-    await expect(this.cell.get({ index: 0, columnHeader: 'Cities' }).locator('.nc-action-icon.nc-plus')).toBeVisible();
+    await expect(
+      this.cell
+        .get({ index: 0, columnHeader: 'Cities' })
+        .locator('.nc-action-icon.nc-plus, .nc-has-many-plus-icon, .nc-many-to-many-plus-icon')
+        .first()
+    ).toBeVisible();
   }
 
   async verifyRoleAccess(param: { role: string; isToolbarOperationsRestricted?: boolean }) {

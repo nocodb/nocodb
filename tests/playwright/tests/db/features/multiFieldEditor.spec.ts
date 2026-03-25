@@ -112,8 +112,8 @@ const allFieldList = [
   },
   {
     title: 'Links',
-    type: UITypes.Links,
-    relationType: 'Has Many',
+    type: UITypes.LinkToAnotherRecord,
+    relationType: 'One to Many',
     childTable: 'Multifield',
   },
 ];
@@ -328,8 +328,8 @@ test.describe('Multi Field Editor', () => {
       },
       {
         title: 'Links',
-        type: UITypes.Links,
-        relationType: 'Has Many',
+        type: UITypes.LinkToAnotherRecord,
+        relationType: 'One to Many',
         childTable: 'Multifield',
       },
     ];

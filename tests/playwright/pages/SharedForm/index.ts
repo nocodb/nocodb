@@ -35,8 +35,9 @@ export class SharedFormPage extends BasePage {
 
   async clickLinkToChildList() {
     await this.get().locator('.nc-virtual-cell').hover();
-    await this.get().locator('.nc-action-icon').click({ force: true });
-    //await this.get().locator('button[data-testid="nc-child-list-button-link-to"]').click();
+    // Target only the plus icon — HM/MM have two .nc-action-icon elements (plus + maximize)
+    const plusIcon = this.get().locator('.nc-action-icon.nc-plus, .nc-has-many-plus-icon, .nc-many-to-many-plus-icon');
+    await plusIcon.click({ force: true });
   }
 
   async closeLinkToChildList() {

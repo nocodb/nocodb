@@ -5985,6 +5985,7 @@ export class ColumnsService implements IColumnsService {
     // Track progress for rollback
     let junctionCreated = false;
     let fkDropped = false;
+    let assocModel: Model | undefined;
 
     // Compute junction table name and column names before starting the
     // transaction — getJunctionTableName queries the meta DB via Noco.ncMeta
@@ -6172,7 +6173,7 @@ export class ColumnsService implements IColumnsService {
       // This matches the existing MM creation pattern in columnAdd.
 
       // Insert junction table model
-      const assocModel = await Model.insert(context, base.id, source.id, {
+      assocModel = await Model.insert(context, base.id, source.id, {
         table_name: aTn,
         title: aTnAlias,
         mm: true,
@@ -6315,6 +6316,8 @@ export class ColumnsService implements IColumnsService {
       const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
 
       let newLtarCol: Column | undefined;
+      let dependentLookupColIds: string[] = [];
+      let dependentRollupColIds: string[] = [];
 
       try {
         // Delete old HM col_relations
@@ -6455,9 +6458,55 @@ export class ColumnsService implements IColumnsService {
             ncMeta,
           );
 
+          // Retarget existing Lookup/Rollup columns that reference hmColumn
+          // (now a Rollup with no getRelContext()) to use newLtarCol instead.
+          // Without this, getNestedColumn() crashes on table data requests.
+          const dependentLookupRows = await ncMeta.metaList2(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COL_LOOKUP,
+            { condition: { fk_relation_column_id: hmColumn.id } },
+          );
+          const dependentRollupRows = await ncMeta.metaList2(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COL_ROLLUP,
+            { condition: { fk_relation_column_id: hmColumn.id } },
+          );
+
+          if (dependentLookupRows.length > 0) {
+            await ncMeta.metaUpdate(
+              context.workspace_id,
+              context.base_id,
+              MetaTable.COL_LOOKUP,
+              { fk_relation_column_id: newLtarCol.id },
+              { fk_relation_column_id: hmColumn.id },
+            );
+            dependentLookupColIds = dependentLookupRows.map(
+              (r: any) => r.fk_column_id,
+            );
+          }
+          if (dependentRollupRows.length > 0) {
+            await ncMeta.metaUpdate(
+              context.workspace_id,
+              context.base_id,
+              MetaTable.COL_ROLLUP,
+              { fk_relation_column_id: newLtarCol.id },
+              { fk_relation_column_id: hmColumn.id },
+            );
+            dependentRollupColIds = dependentRollupRows.map(
+              (r: any) => r.fk_column_id,
+            );
+          }
+
           Logger.log(
             `[convertLinkToV2] newLtarCol.id=${newLtarCol.id}, title=${newLtarCol.title}. Original ${hmColumn.id} is now Rollup.`,
           );
+          if (dependentLookupColIds.length || dependentRollupColIds.length) {
+            Logger.log(
+              `[convertLinkToV2] Retargeted ${dependentLookupColIds.length} Lookup and ${dependentRollupColIds.length} Rollup columns from ${hmColumn.id} → ${newLtarCol.id}.`,
+            );
+          }
         }
 
         await ncMeta.commit();
@@ -6524,6 +6573,33 @@ export class ColumnsService implements IColumnsService {
         await NocoCache.update(context, `${CacheScope.COLUMN}:${hmColumn.id}`, {
           uidt: UITypes.Rollup,
         });
+
+        // Clear option caches for dependent lookup/rollup columns that were
+        // retargeted from hmColumn → newLtarCol during the transaction.
+        for (const colId of dependentLookupColIds) {
+          await NocoCache.deepDel(
+            context,
+            `${CacheScope.COL_LOOKUP}:${colId}`,
+            CacheDelDirection.CHILD_TO_PARENT,
+          );
+        }
+        for (const colId of dependentRollupColIds) {
+          await NocoCache.deepDel(
+            context,
+            `${CacheScope.COL_ROLLUP}:${colId}`,
+            CacheDelDirection.CHILD_TO_PARENT,
+          );
+        }
+      }
+
+      if (btColumn.uidt === UITypes.Links) {
+        // BT side was a Links column — DB was updated to LinkToAnotherRecord but cache was not.
+        // Update the cache to prevent stale uidt causing incorrect column rendering.
+        await NocoCache.update(
+          childRefContext,
+          `${CacheScope.COLUMN}:${btColumn.id}`,
+          { uidt: UITypes.LinkToAnotherRecord },
+        );
       }
 
       if (fkColumn.uidt === UITypes.ForeignKey) {
@@ -6564,6 +6640,19 @@ export class ColumnsService implements IColumnsService {
         } catch (_e) {
           Logger.warn(
             `Failed to restore FK constraint during rollback: ${_e.message}`,
+          );
+        }
+      }
+
+      // Remove Phase A.2 meta entries (Model.insert + createHmAndBtColumn)
+      // before dropping the data-DB table so that cascade deletes on the
+      // model don't try to touch a table that no longer exists.
+      if (assocModel?.id) {
+        try {
+          await assocModel.delete(context);
+        } catch (_e) {
+          this.logger.warn(
+            `Failed to clean up junction model meta during rollback: ${_e.message}`,
           );
         }
       }

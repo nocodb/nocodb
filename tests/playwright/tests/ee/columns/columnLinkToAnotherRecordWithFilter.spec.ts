@@ -37,12 +37,12 @@ test.describe('LTAR with filter create & update', () => {
     await dashboard.grid.addNewRow({ index: 1, value: '1b' });
     await dashboard.grid.addNewRow({ index: 2, value: '1c' });
 
-    // Create LTAR-HM column
+    // Create LTAR-OM column
     await dashboard.grid.column.create({
-      title: 'Link1-hm',
-      type: 'Links',
+      title: 'Link1-om',
+      type: 'LinkToAnotherRecord',
       childTable: 'Sheet2',
-      relationType: 'Has Many',
+      relationType: 'One to Many',
       ltarFilters: [
         {
           title: 'Id',
@@ -58,7 +58,7 @@ test.describe('LTAR with filter create & update', () => {
     });
     await dashboard.grid.column.create({
       title: 'Link1-mm',
-      type: 'Links',
+      type: 'LinkToAnotherRecord',
       childTable: 'Sheet2',
       relationType: 'Many to Many',
 
@@ -85,7 +85,7 @@ test.describe('LTAR with filter create & update', () => {
       value: '2a',
     });
     await dashboard.expandedForm.fillField({
-      columnTitle: 'Link1-hm',
+      columnTitle: 'Link1-om',
       value: '2a',
       type: 'hasMany',
       ltarCount: 1,
@@ -100,7 +100,7 @@ test.describe('LTAR with filter create & update', () => {
 
     // In cell insert
     await dashboard.grid.addNewRow({ index: 4, value: '2b' });
-    await dashboard.grid.cell.inCellAdd({ index: 4, columnHeader: 'Link1-hm' });
+    await dashboard.grid.cell.inCellAdd({ index: 4, columnHeader: 'Link1-om' });
     await dashboard.linkRecord.select('2a', true);
     await dashboard.grid.cell.inCellAdd({
       index: 1,
@@ -109,10 +109,10 @@ test.describe('LTAR with filter create & update', () => {
     await dashboard.linkRecord.select('2b', true);
 
     // edit column and delete filter
-    await dashboard.grid.column.openEdit({ title: 'Link1-hm' });
+    await dashboard.grid.column.openEdit({ title: 'Link1-om' });
 
     // delete columns
-    await dashboard.grid.column.delete({ title: 'Link1-hm' });
+    await dashboard.grid.column.delete({ title: 'Link1-om' });
     await dashboard.grid.column.delete({ title: 'Link1-mm' });
 
     // delete table
@@ -150,17 +150,17 @@ test.describe('LTAR with filter create & update', () => {
     await dashboard.grid.addNewRow({ index: 1, value: '1b' });
     await dashboard.grid.addNewRow({ index: 2, value: '1c' });
 
-    // Create LTAR-HM column
+    // Create LTAR-OM column
     await dashboard.grid.column.create({
-      title: 'Link1-hm',
-      type: 'Links',
+      title: 'Link1-om',
+      type: 'LinkToAnotherRecord',
       childTable: 'Sheet2',
-      relationType: 'Has Many',
+      relationType: 'One to Many',
       ltarView: 'Sheet2Grid',
     });
     await dashboard.grid.column.create({
       title: 'Link1-mm',
-      type: 'Links',
+      type: 'LinkToAnotherRecord',
       childTable: 'Sheet2',
       relationType: 'Many to Many',
       ltarView: 'Sheet2Grid',
@@ -175,7 +175,7 @@ test.describe('LTAR with filter create & update', () => {
       value: 'new row',
     });
     await dashboard.expandedForm.fillField({
-      columnTitle: 'Link1-hm',
+      columnTitle: 'Link1-om',
       value: '2c',
       type: 'hasMany',
       ltarCount: 1,
@@ -190,7 +190,7 @@ test.describe('LTAR with filter create & update', () => {
 
     // In cell insert
     await dashboard.grid.addNewRow({ index: 4, value: '2c' });
-    await dashboard.grid.cell.inCellAdd({ index: 4, columnHeader: 'Link1-hm' });
+    await dashboard.grid.cell.inCellAdd({ index: 4, columnHeader: 'Link1-om' });
     await dashboard.linkRecord.select('2c', true);
     await dashboard.grid.cell.inCellAdd({
       index: 1,
@@ -199,10 +199,10 @@ test.describe('LTAR with filter create & update', () => {
     await dashboard.linkRecord.select('2c', true);
 
     // edit column and delete filter
-    await dashboard.grid.column.openEdit({ title: 'Link1-hm' });
+    await dashboard.grid.column.openEdit({ title: 'Link1-om' });
 
     // delete columns
-    await dashboard.grid.column.delete({ title: 'Link1-hm' });
+    await dashboard.grid.column.delete({ title: 'Link1-om' });
     await dashboard.grid.column.delete({ title: 'Link1-mm' });
 
     // delete table

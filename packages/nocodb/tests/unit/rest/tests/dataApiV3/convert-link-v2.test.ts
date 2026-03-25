@@ -1,16 +1,19 @@
 import { expect } from 'chai';
+import sinon from 'sinon';
 import request from 'supertest';
 import { RelationTypes, UITypes } from 'nocodb-sdk';
 import { beforeEach as dataApiV3BeforeEach } from './beforeEach';
 import {
   createLtarColumn,
   createLtarColumn2,
+  createLookupColumn,
   customColumns,
 } from '../../../factory/column';
 import { createBulkRows } from '../../../factory/row';
 import { createTable } from '../../../factory/table';
 import { ncAxios } from './ncAxios';
 import { prepareRecords } from './helpers';
+import { Column } from '../../../../../src/models';
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk';
 import type { Model } from '../../../../../src/models';
 import type { INcAxios } from './ncAxios';
@@ -447,6 +450,149 @@ describe('dataApiV3', () => {
 
         // Already V2 + LTAR → reject
         await callConvertToV2(mmCol.id, 400);
+      });
+    });
+
+    // ─── 8. Dependent Lookup/Rollup columns retargeted after HM→V2 conversion ──
+
+    describe('Dependent Lookup columns retargeted after HM Links → V2', () => {
+      it('retargets existing Lookup column fk_relation_column_id to newLtarCol', async () => {
+        const tblA = await createTableWithRows('DepLookupParent', 3);
+        const tblB = await createTableWithRows('DepLookupChild', 5);
+
+        await createLtarColumn(testContext.context, {
+          title: 'DepChildren',
+          parentTable: tblA,
+          childTable: tblB,
+          type: 'hm',
+        });
+
+        const colsBefore = await getColumns(tblA.id);
+        const hmCol = findCol(colsBefore, (c) => c.title === 'DepChildren');
+
+        // Create a Lookup column referencing the HM Links column
+        await createLookupColumn(testContext.context, {
+          base: testContext.base,
+          title: 'DepLookup',
+          table: tblA,
+          relatedTableName: tblB.table_name,
+          relatedTableColumnTitle: 'DepLookupChild',
+          relationColumnId: hmCol.id,
+        });
+
+        // Convert the HM Links column to V2
+        await callConvertToV2(hmCol.id);
+
+        const colsAfter = await getColumns(tblA.id);
+
+        // hmColumn is now a Rollup
+        const rollupCol = findCol(colsAfter, (c) => c.title === 'DepChildren');
+        expect(rollupCol.uidt).to.equal(UITypes.Rollup);
+
+        // New LTAR column was created
+        const ltarCol = findCol(
+          colsAfter,
+          (c) =>
+            c.uidt === UITypes.LinkToAnotherRecord &&
+            !c.system &&
+            c.title !== 'DepChildren',
+        );
+        expect(ltarCol, 'New LTAR column should exist').to.not.be.undefined;
+
+        // Lookup column should now reference newLtarCol (not the old hmColumn)
+        const lookupCol = findCol(colsAfter, (c) => c.title === 'DepLookup');
+        expect(lookupCol, 'Lookup column should still exist').to.not.be.undefined;
+        expect(lookupCol.uidt).to.equal(UITypes.Lookup);
+
+        const lookupOpts = lookupCol.colOptions as any;
+        expect(
+          lookupOpts.fk_relation_column_id,
+          'Lookup fk_relation_column_id should point to newLtarCol, not old hmColumn',
+        ).to.equal(ltarCol.id);
+      });
+    });
+
+    // ─── 9. Rollback: partial failure leaves no side effects ─────
+
+    describe('Rollback on partial failure', () => {
+      let tblRbParent: Model;
+      let tblRbChild: Model;
+      let hmColId: string;
+      let fkColId: string;
+
+      beforeEach(async () => {
+        tblRbParent = await createTableWithRows('RbParent', 3);
+        tblRbChild = await createTableWithRows('RbChild', 5);
+
+        await createLtarColumn(testContext.context, {
+          title: 'RbChildren',
+          parentTable: tblRbParent,
+          childTable: tblRbChild,
+          type: 'hm',
+        });
+
+        const parentCols = await getColumns(tblRbParent.id);
+        const childCols = await getColumns(tblRbChild.id);
+
+        hmColId = findCol(parentCols, (c) => c.title === 'RbChildren').id;
+        fkColId = findCol(childCols, (c) => c.uidt === UITypes.ForeignKey)?.id;
+      });
+
+      it('FK column meta entry is removed after successful conversion', async () => {
+        await callConvertToV2(hmColId);
+
+        const childColsAfter = await getColumns(tblRbChild.id);
+        const fkColAfter = findCol(childColsAfter, (c) => c.uidt === UITypes.ForeignKey);
+        expect(fkColAfter, 'FK column meta entry should be gone after conversion').to.be.undefined;
+      });
+
+      it('cleans up zombie junction model on failure after Model.insert', async () => {
+        // Before: no junction (mm) models should exist for this base
+        const tablesRsp0 = await request(testContext.context.app)
+          .get(`/api/v1/db/meta/projects/${testContext.base.id}/tables`)
+          .set('xc-auth', testContext.context.token)
+          .expect(200);
+        const mmCountBefore = (tablesRsp0.body.list ?? []).filter((t: any) => t.mm).length;
+        expect(mmCountBefore).to.equal(0);
+
+        // Stub Column.insert to throw. This fires inside createHmAndBtColumn,
+        // which is called AFTER assocModel = Model.insert(...) in Phase A.2 of
+        // convertLinkToV2. The catch block must call assocModel.delete(context)
+        // to remove the zombie. Column.insert is NOT used by Model.delete, so
+        // the rollback cleanup is unaffected by the stub.
+        const stub = sinon.stub(Column, 'insert').rejects(
+          new Error('Injected test failure — simulating crash after assocModel.insert'),
+        );
+
+        try {
+          const rsp = await request(testContext.context.app)
+            .post(`/api/v2/internal/${testContext.base.fk_workspace_id}/${testContext.base.id}`)
+            .set('xc-auth', testContext.context.token)
+            .query({ operation: 'convertLinkToV2', columnId: hmColId })
+            .send({});
+
+          expect(
+            rsp.status,
+            `Conversion should fail with injected Column.insert failure (got ${rsp.status}: ${JSON.stringify(rsp.body)})`,
+          ).to.not.equal(200);
+        } finally {
+          stub.restore();
+        }
+
+        // FK column meta entry must still be present — Phase B (which deletes it) never ran
+        const childColsAfter = await getColumns(tblRbChild.id);
+        const fkColAfter = findCol(childColsAfter, (c) => c.id === fkColId);
+        expect(fkColAfter, 'FK column should still exist in child table meta after rollback').to.not.be.undefined;
+        expect(fkColAfter.uidt).to.equal(UITypes.ForeignKey);
+
+        // No zombie junction model should remain in meta —
+        // the catch block's assocModel.delete(context) must have cleaned it up
+        const tablesRsp1 = await request(testContext.context.app)
+          .get(`/api/v1/db/meta/projects/${testContext.base.id}/tables`)
+          .set('xc-auth', testContext.context.token)
+          .expect(200);
+        const mmCountAfter = (tablesRsp1.body.list ?? []).filter((t: any) => t.mm).length;
+        expect(mmCountAfter).to.equal(0, 'No zombie junction model should remain after rollback cleanup');
       });
     });
   });

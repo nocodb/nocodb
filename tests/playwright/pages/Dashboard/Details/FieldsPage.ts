@@ -207,6 +207,7 @@ export class FieldsPage extends BasePage {
           .nth(0)
           .click();
         break;
+      case 'LinkToAnotherRecord':
       case 'Links':
         await this.addOrEditColumn.locator('.nc-ltar-relation-type').getByTestId(relationType).click();
         // await this.addOrEditColumn

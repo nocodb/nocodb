@@ -218,6 +218,7 @@ export class ColumnPageObject extends BasePage {
           .nth(0)
           .click();
         break;
+      case 'LinkToAnotherRecord':
       case 'Links':
         // kludge, fix me
         await this.rootPage.waitForTimeout(2000);

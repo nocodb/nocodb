@@ -35,7 +35,7 @@ export class DatasController {
     });
   }
 
-  @Get('/data/:viewId/:rowId/mm/:colId')
+  @Get(['/data/:viewId/:rowId/mm/:colId', '/data/:viewId/:rowId/mo/:colId', '/data/:viewId/:rowId/om/:colId'])
   @Acl('mmList')
   async mmList(
     @TenantContext() context: NcContext,
@@ -52,7 +52,7 @@ export class DatasController {
     });
   }
 
-  @Get('/data/:viewId/:rowId/mm/:colId/exclude')
+  @Get(['/data/:viewId/:rowId/mm/:colId/exclude', '/data/:viewId/:rowId/mo/:colId/exclude', '/data/:viewId/:rowId/om/:colId/exclude'])
   @Acl('mmExcludedList')
   async mmExcludedList(
     @TenantContext() context: NcContext,

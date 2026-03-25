@@ -1960,7 +1960,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     getCompositePkValue(self.model.primaryKeys, this),
                   );
                 };
-              } else if (isMMLike && isBtLikeV2Junction(column)) {
+              } else if (isBtLikeV2Junction(column)) {
                 // V2 MO/OO: single-record — return object (like BT)
                 // Use multipleMmList for batching, take first record per parent
                 const readLoader = new DataLoader(

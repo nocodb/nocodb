@@ -433,7 +433,7 @@ test.describe('Date Dependency — Propagation', () => {
     // Create a self-referencing HM link column (API returns void)
     await api.dbTableColumn.create(tableId, {
       title: 'Predecessor',
-      uidt: UITypes.Links,
+      uidt: UITypes.LinkToAnotherRecord,
       parentId: tableId,
       childId: tableId,
       type: 'hm',
@@ -441,7 +441,7 @@ test.describe('Date Dependency — Propagation', () => {
 
     // Fetch columns to find the created link column's ID
     const tableMeta = await api.dbTable.read(tableId);
-    const linkCol = tableMeta.columns?.find(c => c.title === 'Predecessor' && c.uidt === UITypes.Links);
+    const linkCol = tableMeta.columns?.find(c => c.title === 'Predecessor' && c.uidt === UITypes.LinkToAnotherRecord);
     if (!linkCol?.id) throw new Error('Failed to find Predecessor link column after creation');
     return linkCol.id;
   }

@@ -652,6 +652,10 @@ export class PublicDatasService {
 
     const column = await Column.get(context, { colId: param.columnId });
     const currentModel = await view.getModel(context);
+
+    if (column.fk_model_id !== currentModel.id)
+      NcError.badRequest("Column doesn't belongs to the model");
+
     await currentModel.getColumns(context);
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
       context,

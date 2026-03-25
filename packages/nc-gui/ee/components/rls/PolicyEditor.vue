@@ -45,6 +45,7 @@ provide(ReloadViewDataHookInj, createEventHook())
 
 // Subject selector state
 const isSubjectDropdownOpen = ref(false)
+const subjectError = ref(false)
 
 // Filter ref for add filter button
 const filterRef = ref()
@@ -102,6 +103,12 @@ const defaultBehaviorOptions = computed(() => [
 const handleSave = async () => {
   if (!policy.value?.id) return
 
+  // Require at least one subject for scoped policies
+  if (!policy.value.is_default && !subjects.value.length) {
+    subjectError.value = true
+    return
+  }
+
   try {
     // Save filter changes first
     if (filterRef.value) {
@@ -120,7 +127,7 @@ const handleSave = async () => {
       await setSubjects(policy.value.id, subjects.value)
     }
 
-    message.success(t('msg.success.rlsPolicySaved'))
+    message.toast(t('msg.success.rlsPolicySaved'))
     emit('close')
   } catch (e: any) {
     message.error(t('msg.error.rlsPolicyUpdateFailed'))
@@ -235,6 +242,7 @@ const handleSubjectToggle = (option: NcListItemType) => {
     subjects.value.splice(existingIdx, 1)
   } else {
     subjects.value.push({ type, id })
+    subjectError.value = false
   }
 }
 
@@ -291,29 +299,27 @@ const showFilterSection = computed(() => {
         />
       </div>
 
-      <!-- Enabled -->
-      <div class="flex items-center">
-        <NcSwitch v-model:checked="policyEnabled" size="small">
-          <span class="text-sm select-none">{{
-            policyEnabled ? $t('objects.permissions.rlsPolicy.enabled') : $t('objects.permissions.rlsPolicy.disabled')
-          }}</span>
-        </NcSwitch>
-      </div>
-
       <!-- Default Behavior (only for default policy) -->
       <div v-if="policy?.is_default" class="flex flex-col gap-2">
         <label class="text-bodyDefaultSm font-semibold text-nc-content-gray-subtle">{{
           $t('objects.permissions.rlsPolicy.defaultBehavior')
         }}</label>
-        <p class="text-xs text-nc-content-gray-muted">{{ $t('objects.permissions.rlsPolicy.defaultBehaviorDescription') }}</p>
-        <a-radio-group v-model:value="defaultBehavior" class="flex flex-col gap-1 mt-1">
-          <a-radio v-for="opt in defaultBehaviorOptions" :key="opt.value" :value="opt.value" class="!flex items-start gap-1">
+        <p class="text-xs text-nc-content-gray-muted mb-0">{{ $t('objects.permissions.rlsPolicy.defaultBehaviorDescription') }}</p>
+        <div class="rounded-lg overflow-hidden nc-rls-behavior-table">
+          <div
+            v-for="(opt, idx) in defaultBehaviorOptions"
+            :key="opt.value"
+            class="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-nc-bg-gray-extralight transition-colors"
+            :class="{ 'border-t border-nc-border-gray-medium': idx > 0 }"
+            @click="defaultBehavior = opt.value"
+          >
+            <a-radio :checked="defaultBehavior === opt.value" :value="opt.value" class="!mr-0" />
             <div class="flex flex-col">
               <span class="text-sm">{{ opt.label }}</span>
               <span class="text-[11px] text-nc-content-gray-muted">{{ opt.description }}</span>
             </div>
-          </a-radio>
-        </a-radio-group>
+          </div>
+        </div>
       </div>
 
       <!-- Subjects (for scoped policies) -->
@@ -414,10 +420,10 @@ const showFilterSection = computed(() => {
             </NcList>
           </template>
         </NcListDropdown>
+        <span v-if="subjectError" class="text-xs text-nc-content-red-dark">
+          {{ $t('objects.permissions.rlsPolicy.subjectsRequired') }}
+        </span>
       </div>
-
-      <!-- Divider -->
-      <div class="border-t border-nc-border-gray-medium" />
 
       <!-- Filter Conditions -->
       <div v-if="showFilterSection && policy?.id" class="flex flex-col gap-2">
@@ -448,3 +454,16 @@ const showFilterSection = computed(() => {
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.nc-rls-behavior-table {
+  border: 1px solid var(--nc-border-gray-medium);
+}
+</style>
+
+<style lang="scss">
+.nc-modal-rls-policies .nc-filter-grid {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+</style>

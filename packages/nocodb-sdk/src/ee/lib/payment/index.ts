@@ -80,7 +80,6 @@ export const PlanFeatureDefinitions: Record<PlanTitles, PlanFeatureTypes[]> = {
     PlanFeatureTypes.FEATURE_SSO,
     PlanFeatureTypes.FEATURE_SYNC,
     PlanFeatureTypes.FEATURE_UNIQUE,
-    PlanFeatureTypes.FEATURE_RLS,
     PlanFeatureTypes.FEATURE_VIEW_SECTIONS,
     PlanFeatureTypes.FEATURE_LIST_VIEW,
     PlanFeatureTypes.FEATURE_MAP_VIEW,
@@ -92,6 +91,7 @@ export const PlanFeatureDefinitions: Record<PlanTitles, PlanFeatureTypes[]> = {
   ],
 
   [PlanTitles.ENTERPRISE]: [
+    PlanFeatureTypes.FEATURE_RLS,
     PlanFeatureTypes.FEATURE_TEAM_HIERARCHY,
     PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
     PlanFeatureTypes.FEATURE_SCIM,

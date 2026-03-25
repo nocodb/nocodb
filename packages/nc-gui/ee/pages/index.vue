@@ -203,7 +203,7 @@ watch(
       </template>
       <template #content>
         <!-- Workspace home: stable header + tabs + dynamic page content -->
-        <div v-if="isHomeSidebarRoute" class="flex flex-col h-full">
+        <div v-if="isHomeSidebarRoute" class="flex flex-col h-full w-full">
           <!-- Topbar: workspace name + plan + search -->
           <WorkspaceViewTopbar />
           <!-- Tabs -->

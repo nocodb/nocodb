@@ -15,18 +15,22 @@ const { appInfo, isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
-const { isWsAuditEnabled, isPaymentEnabled, isEEFeatureBlocked, getFeature, handleUpgradePlan, showUpgradeToUseTeams } =
-  useEeConfig()
+const {
+  isWsAuditEnabled,
+  isPaymentEnabled,
+  isEEFeatureBlocked,
+  getFeature,
+  handleUpgradePlan,
+  showUpgradeToUseTeams,
+  showEEFeatures,
+} = useEeConfig()
 
 const hasTeamsEditPermission = computed(() => {
   return isEeUI && isTeamsEnabled.value && isUIAllowed('teamCreate')
 })
 
 const isWorkspaceSsoAvail = computed(() => {
-  if (isEeUI && appInfo.value?.isCloud && getFeature(PlanFeatureTypes.FEATURE_SSO)) {
-    return true
-  }
-  return false
+  return isEeUI && !!appInfo.value?.isCloud && !!getFeature(PlanFeatureTypes.FEATURE_SSO)
 })
 
 const routeNameToWsTab: Record<string, string> = {
@@ -43,35 +47,12 @@ const routeNameToWsTab: Record<string, string> = {
 
 const wsTabToRouteName: Record<string, string> = Object.fromEntries(Object.entries(routeNameToWsTab).map(([k, v]) => [v, k]))
 
-const activeTab = computed(() => {
-  return routeNameToWsTab[route.value.name as string] || 'bases'
-})
-
-const onTabChange = (tabKey: string) => {
-  if (!isWsAuditEnabled.value && tabKey === 'audits') {
-    handleUpgradePlan({
-      title: t('upgrade.upgradeToAccessWsAudit'),
-      content: t('upgrade.upgradeToAccessWsAuditSubtitle', { plan: PlanTitles.ENTERPRISE }),
-      limitOrFeature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
-    })
-    return
-  }
-
-  if (isEeUI && tabKey === 'teams' && hasTeamsEditPermission.value && showUpgradeToUseTeams()) return
-
-  if (['collaborators', 'teams'].includes(tabKey) && isUIAllowed('workspaceCollaborators')) {
-    loadCollaborators({}, activeWorkspace.value?.id)
-  }
-
-  router.push({ name: wsTabToRouteName[tabKey] || 'index-typeOrId' })
-}
-
-// Tab definitions — built dynamically based on permissions
+// Tab definitions
 interface TabItem {
   key: string
   icon: string
   label: string
-  badge?: any
+  upgradeBadge?: { feature: string; enabledCallback: () => boolean }
 }
 
 const tabItems = computed<TabItem[]>(() => {
@@ -81,8 +62,13 @@ const tabItems = computed<TabItem[]>(() => {
     items.push({ key: 'collaborators', icon: 'users', label: t('labels.members') })
   }
 
-  if (isEeUI && hasTeamsEditPermission.value) {
-    items.push({ key: 'teams', icon: 'ncBuilding', label: t('general.teams') })
+  if (isEeUI && hasTeamsEditPermission.value && showEEFeatures.value) {
+    items.push({
+      key: 'teams',
+      icon: 'ncBuilding',
+      label: t('general.teams'),
+      upgradeBadge: { feature: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT, enabledCallback: () => !isEEFeatureBlocked.value },
+    })
   }
 
   if (!isMobileMode.value) {
@@ -90,15 +76,20 @@ const tabItems = computed<TabItem[]>(() => {
       items.push({ key: 'integrations', icon: 'integration', label: t('general.integrations') })
     }
 
-    if (isEeUI && isPaymentEnabled.value && isUIAllowed('workspaceBilling')) {
+    if (isEeUI && isPaymentEnabled.value && isUIAllowed('workspaceBilling') && showEEFeatures.value) {
       items.push({ key: 'billing', icon: 'ncDollarSign', label: t('general.billing') })
     }
 
-    if (isEeUI && isUIAllowed('workspaceAuditList')) {
-      items.push({ key: 'audits', icon: 'audit', label: t('title.audits') })
+    if (isEeUI && isUIAllowed('workspaceAuditList') && showEEFeatures.value) {
+      items.push({
+        key: 'audits',
+        icon: 'audit',
+        label: t('title.audits'),
+        upgradeBadge: { feature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE, enabledCallback: () => isWsAuditEnabled.value },
+      })
     }
 
-    if (isWorkspaceSsoAvail.value && isUIAllowed('workspaceSSO')) {
+    if (isWorkspaceSsoAvail.value && isUIAllowed('workspaceSSO') && showEEFeatures.value) {
       items.push({ key: 'sso', icon: 'sso', label: t('title.sso') })
     }
   }
@@ -109,48 +100,77 @@ const tabItems = computed<TabItem[]>(() => {
 
   return items
 })
+
+const activeTab = computed({
+  get() {
+    return routeNameToWsTab[route.value.name as string] || 'bases'
+  },
+  set(tabKey: string) {
+    if (!isWsAuditEnabled.value && tabKey === 'audits') {
+      handleUpgradePlan({
+        title: t('upgrade.upgradeToAccessWsAudit'),
+        content: t('upgrade.upgradeToAccessWsAuditSubtitle', { plan: PlanTitles.ENTERPRISE }),
+        limitOrFeature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+      })
+      return
+    }
+
+    if (isEeUI && tabKey === 'teams' && hasTeamsEditPermission.value && showUpgradeToUseTeams()) return
+
+    if (['collaborators', 'teams'].includes(tabKey) && isUIAllowed('workspaceCollaborators')) {
+      loadCollaborators({}, activeWorkspace.value?.id)
+    }
+
+    router.push({ name: wsTabToRouteName[tabKey] || 'index-typeOrId' })
+  },
+})
 </script>
 
 <template>
-  <div class="nc-ws-view-tabs flex items-center border-b-1 border-nc-border-gray-medium overflow-x-auto nc-scrollbar-thin">
-    <div class="w-3 flex-shrink-0" />
-    <div
-      v-for="item in tabItems"
-      :key="item.key"
-      class="tab-title"
-      :class="{ active: activeTab === item.key }"
-      @click="onTabChange(item.key)"
-    >
-      <GeneralIcon :icon="item.icon" class="h-4 w-4 flex-none" />
-      <span>{{ item.label }}</span>
-      <LazyPaymentUpgradeBadge
-        v-if="item.key === 'teams'"
-        :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT"
-        :feature-enabled-callback="() => !isEEFeatureBlocked"
-        remove-click
-      />
-      <LazyPaymentUpgradeBadge
-        v-if="item.key === 'audits'"
-        :feature="PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE"
-        :feature-enabled-callback="() => isWsAuditEnabled"
-        remove-click
-      />
-    </div>
-  </div>
+  <NcTabs v-model:active-key="activeTab" class="nc-ws-view-tabs">
+    <template #leftExtra>
+      <div class="w-3"></div>
+    </template>
+
+    <a-tab-pane v-for="item in tabItems" :key="item.key">
+      <template #tab>
+        <div class="tab-title">
+          <GeneralIcon :icon="item.icon" class="h-4 w-4" />
+          {{ item.label }}
+          <LazyPaymentUpgradeBadge
+            v-if="item.upgradeBadge"
+            :feature="item.upgradeBadge.feature"
+            :feature-enabled-callback="item.upgradeBadge.enabledCallback"
+            remove-click
+          />
+        </div>
+      </template>
+    </a-tab-pane>
+  </NcTabs>
 </template>
 
 <style lang="scss" scoped>
+.nc-ws-view-tabs {
+  @apply flex-none w-full;
+
+  :deep(.ant-tabs-content-holder) {
+    @apply !hidden;
+  }
+
+  :deep(.ant-tabs-nav) {
+    @apply !pl-0 !mb-0;
+  }
+
+  :deep(.ant-tabs-tab) {
+    @apply pt-2 pb-3;
+  }
+
+  :deep(.ant-tabs-tab + .ant-tabs-tab) {
+    @apply !ml-3;
+  }
+}
+
 .tab-title {
-  @apply flex items-center gap-2 px-3 py-2.5 cursor-pointer text-bodyDefaultSm font-medium
-    whitespace-nowrap border-b-2 border-transparent
-    text-nc-content-gray-muted transition-colors duration-150;
-
-  &:hover {
-    @apply text-nc-content-gray-subtle;
-  }
-
-  &.active {
-    @apply border-nc-border-brand !text-nc-content-brand font-semibold;
-  }
+  @apply flex flex-row items-center gap-x-2 py-[1px];
 }
 </style>

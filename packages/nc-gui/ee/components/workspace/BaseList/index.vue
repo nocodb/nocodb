@@ -250,7 +250,7 @@ const selectedWorkspace = computed(() => {
       </div>
 
       <!-- Right: Filter + New Base -->
-      <div class="flex items-center gap-2 flex-shrink-0">
+      <div class="flex items-center gap-2 flex-shrink-0 min-h-8">
         <!-- Active filter pill -->
         <div v-if="isFilterActive" class="nc-filter-pill" @click.stop>
           <GeneralIcon :icon="selectedFilter?.icon || 'ncList'" class="w-3.5 h-3.5" />

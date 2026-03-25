@@ -3,9 +3,7 @@ const workspaceStore = useWorkspace()
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
 
-const { isMobileMode } = useGlobal()
-
-const { activePlanTitle, isPaymentEnabled, handleUpgradePlan } = useEeConfig()
+const { activePlanTitle, isPaymentEnabled, showEEFeatures, handleUpgradePlan } = useEeConfig()
 
 const { setActiveCmdView } = useCommand()
 
@@ -35,7 +33,7 @@ const showUpgrade = () => {
         class="hidden md:flex items-center justify-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-medium leading-none bg-nc-bg-gray-light text-nc-content-gray-subtle flex-shrink-0"
       >
         <span class="uppercase">{{ activePlanTitle }} {{ $t('general.plan') }}</span>
-        <template v-if="isFreePlan && isPaymentEnabled">
+        <template v-if="isFreePlan && isPaymentEnabled && showEEFeatures">
           <span class="text-nc-content-gray-muted">&middot;</span>
           <span class="text-primary cursor-pointer hover:underline" @click="showUpgrade">{{ $t('general.upgrade') }}</span>
         </template>

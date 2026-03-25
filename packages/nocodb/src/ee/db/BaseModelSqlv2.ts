@@ -110,7 +110,7 @@ import {
   resolveRlsDynamicValues,
   resolveRlsPolicies,
 } from '~/utils/rls-resolver';
-import { getMemberUserIdsForTeamsAndDescendants } from '~/ee/utils/team-subject-matcher';
+import { getMemberUserIdsForTeamsAndDescendants } from '~/utils/team-subject-matcher';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 

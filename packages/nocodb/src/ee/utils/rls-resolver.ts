@@ -1,7 +1,7 @@
 import type { RlsDefaultBehavior, RlsPolicySubjectType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import RlsPolicy from '~/ee/models/RlsPolicy';
-import { matchTeamSubjectsBatch } from '~/ee/utils/team-subject-matcher';
+import RlsPolicy from '~/models/RlsPolicy';
+import { matchTeamSubjectsBatch } from '~/utils/team-subject-matcher';
 
 export interface RlsUserContext {
   id: string;

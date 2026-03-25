@@ -239,9 +239,9 @@ const selectedWorkspace = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full">
+  <div class="flex flex-col h-full max-w-[1200px] mx-auto p-4 md:p-6">
     <!-- Toolbar: "Bases in {ws}" (left) + Filter + New Base (right) -->
-    <div class="flex items-center justify-between gap-2 px-4 py-2 flex-none">
+    <div class="flex items-center justify-between gap-2 pb-2 flex-none">
       <!-- Left: Bases in {workspace} -->
       <div v-if="selectedWorkspace" class="flex items-center gap-1.5 text-xs font-medium tracking-wide min-w-0">
         <span class="text-nc-content-gray-muted whitespace-nowrap">{{ $t('activity.basesIn') }}</span>
@@ -294,8 +294,7 @@ const selectedWorkspace = computed(() => {
     </div>
 
     <!-- Bases Content -->
-    <div class="flex-1 overflow-y-auto nc-scrollbar-thin p-4 flex flex-col relative">
-
+    <div class="flex-1 overflow-y-auto nc-scrollbar-thin py-4 flex flex-col relative">
       <!-- Categorized sections -->
       <WorkspaceBaseListModalBasesSection
         v-for="section in displayedSections"
@@ -392,7 +391,11 @@ const selectedWorkspace = computed(() => {
     </div>
 
     <!-- Dialogs -->
-    <DlgBaseDuplicate v-if="dialogState.duplicate.base" v-model="dialogState.duplicate.isOpen" :base="dialogState.duplicate.base" />
+    <DlgBaseDuplicate
+      v-if="dialogState.duplicate.base"
+      v-model="dialogState.duplicate.isOpen"
+      :base="dialogState.duplicate.base"
+    />
     <DlgBaseDelete
       v-if="dialogState.delete.base"
       v-model:visible="dialogState.delete.isOpen"

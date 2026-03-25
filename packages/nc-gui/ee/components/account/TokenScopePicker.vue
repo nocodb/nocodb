@@ -297,7 +297,7 @@ const toggleBaseDropdown = () => {
 }
 
 .nc-scope-dropdown-content {
-  @apply w-80 bg-white rounded-lg shadow-lg border-1 border-nc-border-gray-medium;
+  @apply w-80 bg-nc-bg-default rounded-lg shadow-lg border-1 border-nc-border-gray-medium;
 }
 
 .nc-scope-dropdown-item {

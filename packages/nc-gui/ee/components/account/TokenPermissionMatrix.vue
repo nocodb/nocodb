@@ -15,16 +15,16 @@ const { t } = useI18n()
 const showAddDropdown = ref(false)
 const openLevelDropdown = ref<string | null>(null)
 
-const categoryInfo: Record<string, { label: string; desc: string }> = {
-  [ApiTokenPermissionCategory.RECORDS]: { label: 'Records', desc: 'List, read, create, update, and delete records' },
-  [ApiTokenPermissionCategory.COMMENTS]: { label: 'Comments', desc: 'View and post comments on records' },
-  [ApiTokenPermissionCategory.TABLES]: { label: 'Tables', desc: 'List, create, update, and delete tables' },
-  [ApiTokenPermissionCategory.FIELDS]: { label: 'Fields', desc: 'List, create, update, and delete columns' },
-  [ApiTokenPermissionCategory.VIEWS]: { label: 'Views', desc: 'Manage views, sorts, filters, and sharing' },
-  [ApiTokenPermissionCategory.WEBHOOKS]: { label: 'Webhooks', desc: 'Manage webhook triggers and logs' },
-  [ApiTokenPermissionCategory.BASE]: { label: 'Base', desc: 'Base settings, sources, and jobs' },
-  [ApiTokenPermissionCategory.USERS]: { label: 'Users', desc: 'Base members, workspace members, and invitations' },
-}
+const categoryInfo = computed<Record<string, { label: string; desc: string }>>(() => ({
+  [ApiTokenPermissionCategory.RECORDS]: { label: t('labels.tokenPerm.records'), desc: t('labels.tokenPerm.recordsDesc') },
+  [ApiTokenPermissionCategory.COMMENTS]: { label: t('labels.tokenPerm.comments'), desc: t('labels.tokenPerm.commentsDesc') },
+  [ApiTokenPermissionCategory.TABLES]: { label: t('labels.tokenPerm.tables'), desc: t('labels.tokenPerm.tablesDesc') },
+  [ApiTokenPermissionCategory.FIELDS]: { label: t('labels.tokenPerm.fields'), desc: t('labels.tokenPerm.fieldsDesc') },
+  [ApiTokenPermissionCategory.VIEWS]: { label: t('labels.tokenPerm.views'), desc: t('labels.tokenPerm.viewsDesc') },
+  [ApiTokenPermissionCategory.WEBHOOKS]: { label: t('labels.tokenPerm.webhooks'), desc: t('labels.tokenPerm.webhooksDesc') },
+  [ApiTokenPermissionCategory.BASE]: { label: t('labels.tokenPerm.base'), desc: t('labels.tokenPerm.baseDesc') },
+  [ApiTokenPermissionCategory.USERS]: { label: t('labels.tokenPerm.users'), desc: t('labels.tokenPerm.usersDesc') },
+}))
 
 const accessLevels = [
   { value: ApiTokenPermissionLevel.READ, label: t('labels.readOnlyAccess') },
@@ -179,7 +179,7 @@ const getLevelLabel = (level: string) => {
 }
 
 .nc-perm-dropdown-content {
-  @apply w-72 bg-white rounded-lg shadow-lg border-1 border-nc-border-gray-medium py-1 max-h-64 overflow-y-auto nc-scrollbar-thin;
+  @apply w-72 bg-nc-bg-default rounded-lg shadow-lg border-1 border-nc-border-gray-medium py-1 max-h-64 overflow-y-auto nc-scrollbar-thin;
 }
 
 .nc-perm-dropdown-item {

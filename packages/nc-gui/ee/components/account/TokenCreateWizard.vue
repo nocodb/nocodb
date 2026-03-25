@@ -80,7 +80,7 @@ const expiryOptions = computed(() => [
   { value: '60d', label: `60 days (${formatDate(60)})` },
   { value: '90d', label: `90 days (${formatDate(90)})` },
   { value: '1y', label: `1 year (${formatDate(365)})` },
-  { value: 'custom', label: 'Custom' },
+  { value: 'custom', label: t('labels.custom') },
   { value: 'none', label: t('labels.noExpiration') },
 ])
 
@@ -148,7 +148,8 @@ const submitToken = async () => {
         title: tokenName.value,
         ...(scopesWithPermissions.length ? { scopes: scopesWithPermissions } : {}),
         ...(hasPermissions && !scopesWithPermissions.length ? { permissions: permissions.value } : {}),
-        ...(computedExpiry.value ? { expiry: computedExpiry.value } : {}),
+        // null = no expiration (explicitly clear), undefined = not set (keep default)
+        ...(computedExpiry.value !== undefined ? { expiry: computedExpiry.value } : {}),
       }
 
       const result = await api.request({

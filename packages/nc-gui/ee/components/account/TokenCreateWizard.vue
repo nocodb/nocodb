@@ -2,16 +2,6 @@
 import { ApiTokenPermissionLevel } from 'nocodb-sdk'
 import type { ApiTokenScopeEntry } from 'nocodb-sdk'
 
-interface Props {
-  createdToken?: string
-  resultOnly?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  createdToken: '',
-  resultOnly: false,
-})
-
 const emit = defineEmits(['created', 'cancel'])
 
 const { api } = useApi()
@@ -19,6 +9,8 @@ const { copy } = useCopy()
 const { t } = useI18n()
 
 const isCreating = ref(false)
+const showResultModal = ref(false)
+const createdTokenValue = ref('')
 
 // Form fields
 const tokenName = ref('')
@@ -102,6 +94,8 @@ const createToken = async () => {
       method: 'POST',
       body: payload,
     })
+    createdTokenValue.value = result.token
+    showResultModal.value = true
     emit('created', result.token)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -111,14 +105,10 @@ const createToken = async () => {
 }
 
 const copyToken = async () => {
-  if (!props.createdToken) return
+  if (!createdTokenValue.value) return
   try {
-    await copy(props.createdToken)
+    await copy(createdTokenValue.value)
     tokenCopied.value = true
-    message.info(t('msg.info.copiedToClipboard'))
-    setTimeout(() => {
-      tokenCopied.value = false
-    }, 2000)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -127,68 +117,17 @@ const copyToken = async () => {
 const cancel = () => {
   emit('cancel')
 }
+
+const onResultDone = () => {
+  showResultModal.value = false
+  createdTokenValue.value = ''
+  emit('cancel')
+}
 </script>
 
 <template>
-  <!-- ============ RESULT VIEW ============ -->
-  <div v-if="resultOnly && createdToken" class="flex flex-col gap-6" data-testid="nc-token-create-result">
-    <div>
-      <h6 class="text-xl font-bold my-0 text-nc-content-gray" data-rec="true">{{ $t('title.apiTokens') }}</h6>
-      <span class="text-sm text-nc-content-gray-muted" data-rec="true">{{ $t('msg.apiTokenCreate') }}</span>
-    </div>
-
-    <div class="max-w-150 flex flex-col gap-4">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center flex-none">
-          <GeneralIcon icon="check" class="w-5 h-5 text-green-600" />
-        </div>
-        <div>
-          <div class="text-base font-semibold text-nc-content-gray-extreme">{{ $t('msg.info.tokenCreatedSuccessfully') }}</div>
-          <div class="text-sm text-nc-content-gray-muted">{{ $t('msg.info.tokenCopyWarning') }}</div>
-        </div>
-      </div>
-
-      <div class="bg-nc-bg-gray-extralight border-1 rounded-lg p-4">
-        <div class="flex items-center gap-3">
-          <div class="flex-1 min-w-0">
-            <code
-              class="text-sm break-all text-nc-content-gray-extreme select-all leading-relaxed block font-mono"
-              data-testid="nc-token-created-value"
-            >
-              {{ createdToken }}
-            </code>
-          </div>
-          <NcButton
-            size="xs"
-            :type="tokenCopied ? 'secondary' : 'primary'"
-            class="flex-none"
-            data-testid="nc-token-copy-btn"
-            @click="copyToken"
-          >
-            <div class="flex items-center gap-1">
-              <GeneralIcon :icon="tokenCopied ? 'check' : 'copy'" class="w-3.5 h-3.5" />
-              {{ tokenCopied ? $t('general.copied') : $t('general.copy') }}
-            </div>
-          </NcButton>
-        </div>
-      </div>
-
-      <NcAlert type="warning" class="!rounded-lg" :show-icon="true">
-        <template #message>
-          <span class="text-xs">{{ $t('msg.info.tokenWontBeDisplayedAgain') }}</span>
-        </template>
-      </NcAlert>
-
-      <div class="flex justify-end pt-2">
-        <NcButton type="primary" size="small" data-testid="nc-token-done-btn" @click="cancel">
-          {{ $t('general.done') }}
-        </NcButton>
-      </div>
-    </div>
-  </div>
-
   <!-- ============ CREATE FORM (single page, Airtable-style) ============ -->
-  <div v-else class="flex flex-col gap-6" data-testid="nc-token-create-form">
+  <div class="flex flex-col gap-6" data-testid="nc-token-create-form">
     <span class="text-sm text-nc-content-gray-muted" data-rec="true">{{ $t('msg.apiTokenCreate') }}</span>
 
     <div class="max-w-150 flex flex-col gap-6">
@@ -273,6 +212,80 @@ const cancel = () => {
         </NcButton>
       </div>
     </div>
+
+    <!-- Token Created Modal -->
+    <a-modal
+      v-model:visible="showResultModal"
+      :closable="false"
+      :mask-closable="false"
+      :keyboard="false"
+      :footer="null"
+      width="480px"
+      centered
+    >
+      <div class="flex flex-col gap-4 p-1" data-testid="nc-token-result-modal">
+        <!-- Header -->
+        <div class="flex items-center gap-2">
+          <GeneralIcon icon="ncKey2" class="w-5 h-5 text-nc-content-gray flex-none" />
+          <span class="text-base font-bold text-nc-content-gray-extreme flex-1">
+            {{ $t('msg.info.tokenCreatedSuccessfully') }}
+          </span>
+          <GeneralIcon icon="circleCheck" class="w-5 h-5 text-green-600 flex-none" />
+        </div>
+
+        <!-- Help text -->
+        <p class="text-sm text-nc-content-gray-muted mb-0 leading-5">
+          {{ $t('msg.info.tokenResultHelpText') }}
+        </p>
+
+        <!-- Token value -->
+        <div class="flex items-center gap-2 bg-nc-bg-gray-extralight border-1 border-nc-border-gray-medium rounded-lg px-3 py-2.5">
+          <code
+            class="text-xs text-nc-content-gray-extreme select-all leading-5 flex-1 min-w-0 truncate"
+            style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+            data-testid="nc-token-created-value"
+          >
+            {{ createdTokenValue }}
+          </code>
+          <NcTooltip :title="tokenCopied ? $t('general.copied') : $t('general.copy')">
+            <NcButton
+              size="xs"
+              type="secondary"
+              class="flex-none !px-1.5"
+              data-testid="nc-token-copy-btn"
+              @click="copyToken"
+            >
+              <GeneralIcon
+                :icon="tokenCopied ? 'check' : 'copy'"
+                class="w-4 h-4"
+                :class="tokenCopied ? 'text-green-600' : 'text-nc-content-gray-subtle2'"
+              />
+            </NcButton>
+          </NcTooltip>
+        </div>
+
+        <!-- Warning -->
+        <div class="flex items-start gap-2 bg-orange-50 border-1 border-orange-200 rounded-lg px-3 py-2.5">
+          <GeneralIcon icon="alertTriangle" class="w-4 h-4 text-orange-500 flex-none mt-0.5" />
+          <span class="text-xs text-orange-700 leading-4">
+            {{ $t('msg.info.tokenWontBeDisplayedAgain') }}
+          </span>
+        </div>
+
+        <!-- Footer -->
+        <div class="flex justify-end">
+          <NcButton
+            type="primary"
+            size="small"
+            :disabled="!tokenCopied"
+            data-testid="nc-token-done-btn"
+            @click="onResultDone"
+          >
+            {{ $t('general.done') }}
+          </NcButton>
+        </div>
+      </div>
+    </a-modal>
   </div>
 </template>
 

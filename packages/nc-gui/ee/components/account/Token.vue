@@ -37,11 +37,11 @@ interface IApiTokenInfo extends ApiTokenType {
   title?: string
 }
 
-// View mode: 'list' (token list), 'create' (inline create form), 'result' (token created)
+// View mode: 'list' (token list), 'create' (inline create form)
 const route = useRoute()
 const router = useRouter()
 
-const viewMode = ref<'list' | 'create' | 'result'>(
+const viewMode = ref<'list' | 'create'>(
   props.createMode || route.path.endsWith('/new') ? 'create' : 'list',
 )
 
@@ -89,8 +89,6 @@ const tokenToDeleteId = ref('')
 
 const isValidTokenName = ref(false)
 
-// Result state for created token
-const createdTokenValue = ref('')
 
 const setDefaultTokenName = () => {
   selectedTokenData.value.description = extractNextDefaultName(
@@ -280,19 +278,12 @@ const openCreateForm = () => {
   navigateTo('/account/tokens/new')
 }
 
-const onTokenCreated = (token: string) => {
-  createdTokenValue.value = token
-  viewMode.value = 'result'
+const onTokenCreated = () => {
   loadTokens()
   loadAllTokens(pagination.total + 1)
 }
 
 const onCreateCancel = () => {
-  navigateTo('/account/tokens')
-}
-
-const onResultDone = () => {
-  createdTokenValue.value = ''
   navigateTo('/account/tokens')
 }
 
@@ -329,15 +320,6 @@ const onEditCancel = () => {
       <!-- ============ CREATE FORM (inline, replaces list) ============ -->
       <div v-if="viewMode === 'create'" class="max-w-202 mx-auto w-full">
         <AccountTokenCreateWizard @created="onTokenCreated" @cancel="onCreateCancel" />
-      </div>
-
-      <!-- ============ RESULT (token created, copy & done) ============ -->
-      <div v-else-if="viewMode === 'result'" class="max-w-202 mx-auto w-full">
-        <AccountTokenCreateWizard
-          :created-token="createdTokenValue"
-          result-only
-          @cancel="onResultDone"
-        />
       </div>
 
       <!-- ============ TOKEN LIST ============ -->

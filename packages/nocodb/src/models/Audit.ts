@@ -1,11 +1,16 @@
 import { type AuditV1OperationTypes } from 'nocodb-sdk';
 import dayjs from 'dayjs';
+import PQueue from 'p-queue';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { stringifyMetaProp } from '~/utils/modelUtils';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
+
+// Bounded queue for fire-and-forget audit inserts. Limits concurrent DB writes
+// so bulk operations cannot flood the event loop with unbounded promises.
+const auditQueue = new PQueue({ concurrency: 4 });
 
 export default class Audit {
   id?: string;
@@ -104,7 +109,7 @@ export default class Audit {
       if (forceAwait) {
         return await insertAudit();
       } else {
-        insertAudit().catch((e) => {
+        auditQueue.add(insertAudit).catch((e) => {
           console.error('Error inserting audit', e);
         });
         return;

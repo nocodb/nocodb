@@ -1770,10 +1770,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             qb.orderByRaw(
               this.dbDriver.raw(
                 `CASE WHEN LOWER(??) LIKE ? THEN 0 ELSE 1 END`,
-                [
-                  pvColumn.column_name,
-                  String(pvFilter.value).toLowerCase(),
-                ],
+                [pvColumn.column_name, String(pvFilter.value).toLowerCase()],
               ),
             );
           } else if (op === 'eq') {
@@ -3730,6 +3727,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           await this.afterBulkUpdate(prevData, newData, this.dbDriver, cookie);
         }
       }
+
+      // Release intermediate allocations that are no longer referenced by any
+      // async operation. Note: prevData and newData are NOT cleared because
+      // handleHooks passes them by reference to the webhook job queue, which
+      // processes them asynchronously after this method returns.
+      updatePkValues.length = 0;
+      toBeUpdated.length = 0;
+      pkAndData.length = 0;
+      postUpdateOps = [];
+
       profiler.end();
       return newData;
     } catch (e) {

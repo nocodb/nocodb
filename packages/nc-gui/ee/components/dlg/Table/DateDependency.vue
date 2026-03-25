@@ -502,7 +502,6 @@ watch(visible, async (val) => {
             </NcTooltip>
           </template>
         </template>
-
       </div>
 
       <div class="flex items-center justify-between pt-3 border-t-1 border-nc-border-gray-medium mt-2">

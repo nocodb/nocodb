@@ -9,8 +9,10 @@ export const NC_MAX_TEXT_LENGTH_DEFAULT = 100000
 export const formMaxTextLengthValidator = (maxLength: number) => ({
   validator: (_rule: RuleObject, value: any) => {
     return new Promise((resolve, reject) => {
+      const { t } = getI18n().global
+
       if (value && String(value).length > maxLength) {
-        return reject(`The input must not exceed ${maxLength.toLocaleString()} characters.`)
+        return reject(new Error(t('msg.error.inputExceedsMaxCharacters', { value: maxLength.toLocaleString() })))
       }
       return resolve(true)
     })

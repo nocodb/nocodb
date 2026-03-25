@@ -533,11 +533,7 @@ export function useCanvasListView({
 
     // Add-rows: for multi-level, exclude root group (root never gets an add-row).
     // For single-level (N === 1), the root IS the leaf — include one add-row.
-    const addRowCount = isAddingEmptyRowAllowed.value
-      ? N === 1
-        ? 1
-        : groups.reduce((s: number, g: number) => s + g, 0) - 1
-      : 0
+    const addRowCount = isAddingEmptyRowAllowed.value ? (N === 1 ? 1 : groups.reduce((s: number, g: number) => s + g, 0) - 1) : 0
 
     // Gaps before sub-headers at depth boundaries
     const transitionGapHeight = depthIncreaseCount * DEPTH_INCREASE_GAP + depthDecreaseCount * DEPTH_DECREASE_GAP

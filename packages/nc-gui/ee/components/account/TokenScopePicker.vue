@@ -2,16 +2,20 @@
 import { ApiTokenScopeResourceType, NO_SCOPE } from 'nocodb-sdk'
 import type { ApiTokenScopeEntry } from 'nocodb-sdk'
 
+interface BaseInfo {
+  id: string
+  title: string
+  meta?: Record<string, any>
+}
+
+interface WorkspaceInfo {
+  id: string
+  title: string
+  bases: BaseInfo[]
+}
+
 interface BaseListAllData {
-  workspaces: {
-    id: string
-    title: string
-    bases: {
-      id: string
-      title: string
-      meta?: Record<string, any>
-    }[]
-  }[]
+  workspaces: WorkspaceInfo[]
 }
 
 const props = defineProps<{
@@ -21,32 +25,69 @@ const props = defineProps<{
 const emit = defineEmits(['update:scopes'])
 
 const { $api } = useNuxtApp()
+const { t } = useI18n()
 
 const allData = ref<BaseListAllData | null>(null)
 const isLoading = ref(false)
+const showBaseDropdown = ref(false)
+const searchQuery = ref('')
 
-// Mode: 'org' (no scopes), 'base' (select bases)
-const scopeMode = ref<'org' | 'base'>(props.scopes.length ? 'base' : 'org')
+// Track state: has "all resources" been added?
+const hasAllResources = ref(false)
+
+// Track selected base IDs
 const selectedBaseIds = ref<string[]>(
   props.scopes
     .filter((s) => s.resource_type === ApiTokenScopeResourceType.BASE)
     .map((s) => s.resource_id),
 )
 
-// Build a lookup map: baseId → base info
+// Initialize from props — if no scopes, nothing is selected
+// (unlike radio cards, the user starts from scratch)
+onMounted(() => {
+  loadAll()
+})
+
 const baseInfoMap = computed(() => {
-  const map: Record<string, { title: string; meta?: Record<string, any> }> = {}
+  const map: Record<string, { title: string; meta?: Record<string, any>; workspaceTitle: string }> = {}
   for (const ws of allData.value?.workspaces || []) {
     for (const base of ws.bases) {
-      map[base.id] = { title: base.title, meta: base.meta }
+      map[base.id] = { title: base.title, meta: base.meta, workspaceTitle: ws.title }
     }
   }
   return map
 })
 
-const removeBase = (id: string) => {
-  selectedBaseIds.value = selectedBaseIds.value.filter((v) => v !== id)
-}
+// Group selected bases by workspace for display
+const selectedByWorkspace = computed(() => {
+  const groups: { workspace: WorkspaceInfo; bases: BaseInfo[] }[] = []
+
+  for (const ws of allData.value?.workspaces || []) {
+    const selected = ws.bases.filter((b) => selectedBaseIds.value.includes(b.id))
+    if (selected.length) {
+      groups.push({ workspace: ws, bases: selected })
+    }
+  }
+
+  return groups
+})
+
+// Filtered workspaces/bases for dropdown search
+const filteredWorkspaces = computed(() => {
+  if (!allData.value) return []
+  const q = searchQuery.value.toLowerCase().trim()
+
+  return allData.value.workspaces
+    .map((ws) => ({
+      ...ws,
+      bases: ws.bases.filter((b) => {
+        if (selectedBaseIds.value.includes(b.id)) return false
+        if (!q) return true
+        return b.title.toLowerCase().includes(q) || ws.title.toLowerCase().includes(q)
+      }),
+    }))
+    .filter((ws) => ws.bases.length > 0)
+})
 
 const loadAll = async () => {
   if (allData.value) return
@@ -63,7 +104,8 @@ const loadAll = async () => {
 }
 
 const emitScopes = () => {
-  if (scopeMode.value === 'org') {
+  if (hasAllResources.value) {
+    // "All resources" means no scope restriction
     emit('update:scopes', [])
     return
   }
@@ -75,150 +117,181 @@ const emitScopes = () => {
   emit('update:scopes', newScopes)
 }
 
-watch(scopeMode, () => {
+const addAllResources = () => {
+  hasAllResources.value = true
+  selectedBaseIds.value = []
   emitScopes()
-})
+}
 
-watch(selectedBaseIds, () => {
+const removeAllResources = () => {
+  hasAllResources.value = false
   emitScopes()
-})
+}
 
-onMounted(() => {
-  loadAll()
-})
+const addBase = (baseId: string) => {
+  if (selectedBaseIds.value.includes(baseId)) return
+  selectedBaseIds.value = [...selectedBaseIds.value, baseId]
+  showBaseDropdown.value = false
+  searchQuery.value = ''
+  emitScopes()
+}
+
+const removeBase = (baseId: string) => {
+  selectedBaseIds.value = selectedBaseIds.value.filter((id) => id !== baseId)
+  emitScopes()
+}
+
+const toggleBaseDropdown = () => {
+  showBaseDropdown.value = !showBaseDropdown.value
+  if (showBaseDropdown.value) {
+    searchQuery.value = ''
+  }
+}
 </script>
 
 <template>
   <div class="nc-token-scope-picker flex flex-col gap-3" data-testid="nc-token-scope-picker">
-    <!-- All resources card -->
-    <button
-      class="nc-scope-card"
-      :class="{ 'nc-scope-card-active': scopeMode === 'org' }"
-      data-testid="nc-token-scope-org"
-      @click="scopeMode = 'org'"
-    >
-      <div class="nc-scope-card-radio">
-        <div v-if="scopeMode === 'org'" class="nc-scope-card-radio-dot" />
-      </div>
-      <div class="flex-1">
-        <div class="text-sm font-semibold text-nc-content-gray-extreme">All resources</div>
-        <div class="text-sm text-nc-content-gray-muted mt-0.5">
-          Access all bases and workspaces you have access to
-        </div>
-      </div>
-    </button>
+    <!-- Added resources list -->
 
-    <!-- Specific bases card -->
-    <button
-      class="nc-scope-card"
-      :class="{ 'nc-scope-card-active': scopeMode === 'base' }"
-      data-testid="nc-token-scope-base"
-      @click="scopeMode = 'base'"
-    >
-      <div class="nc-scope-card-radio">
-        <div v-if="scopeMode === 'base'" class="nc-scope-card-radio-dot" />
+    <!-- All Resources row -->
+    <div v-if="hasAllResources" class="flex flex-col gap-1">
+      <span class="text-xs font-bold uppercase tracking-wider text-nc-content-gray-muted">
+        {{ $t('labels.allResources') }}
+      </span>
+      <div class="nc-scope-row">
+        <GeneralIcon icon="globe" class="w-5 h-5 text-nc-content-gray-subtle2 flex-none" />
+        <span class="flex-1 text-sm text-nc-content-gray-extreme">
+          {{ $t('msg.info.allCurrentAndFutureBasesInAllWorkspaces') }}
+        </span>
+        <NcButton type="text" size="xxsmall" class="!p-0.5 flex-none" @click="removeAllResources">
+          <GeneralIcon icon="close" class="w-4 h-4 text-nc-content-gray-muted" />
+        </NcButton>
       </div>
-      <div class="flex-1">
-        <div class="text-sm font-semibold text-nc-content-gray-extreme">Specific bases</div>
-        <div class="text-sm text-nc-content-gray-muted mt-0.5">
-          Restrict this token to only selected bases
-        </div>
-      </div>
-    </button>
+    </div>
 
-    <!-- Base selector (shown when specific bases selected) -->
-    <div v-if="scopeMode === 'base'" class="ml-8 mt-1 flex flex-col gap-2">
-      <a-select
-        v-model:value="selectedBaseIds"
-        mode="multiple"
-        placeholder="Search and select bases..."
-        show-search
-        :loading="isLoading"
-        option-filter-prop="label"
-        class="nc-scope-base-select w-full"
-        :max-tag-count="0"
-        :max-tag-placeholder="() => ''"
+    <!-- Selected bases grouped by workspace -->
+    <div v-for="group in selectedByWorkspace" :key="group.workspace.id" class="flex flex-col gap-1">
+      <span class="text-xs font-bold uppercase tracking-wider text-nc-content-gray-muted">
+        {{ group.workspace.title }}
+      </span>
+      <div
+        v-for="base in group.bases"
+        :key="base.id"
+        class="nc-scope-row"
       >
-        <a-select-opt-group v-for="ws in allData?.workspaces" :key="ws.id" :label="ws.title">
-          <a-select-option v-for="base in ws.bases" :key="base.id" :value="base.id" :label="`${ws.title} / ${base.title}`">
-            <div class="flex items-center gap-2">
-              <div class="min-w-5 flex items-center justify-center flex-none">
-                <GeneralProjectIcon :color="parseProp(base.meta).iconColor" size="small" />
-              </div>
-              <span class="truncate">{{ base.title }}</span>
-            </div>
-          </a-select-option>
-        </a-select-opt-group>
-      </a-select>
-
-      <!-- Selected bases as chips below the selector -->
-      <div v-if="selectedBaseIds.length" class="flex flex-wrap gap-1.5">
-        <div
-          v-for="id in selectedBaseIds"
-          :key="id"
-          class="nc-scope-tag"
-        >
-          <div class="min-w-4 flex items-center justify-center flex-none">
-            <GeneralProjectIcon :color="parseProp(baseInfoMap[id]?.meta).iconColor" size="small" />
-          </div>
-          <span class="truncate">{{ baseInfoMap[id]?.title || id }}</span>
-          <NcButton type="text" size="xxsmall" class="!p-0 !h-4 !w-4 !min-w-0 flex-none" @click="removeBase(id)">
-            <GeneralIcon icon="close" class="w-3 h-3 text-nc-content-gray-muted" />
-          </NcButton>
+        <div class="min-w-5 flex items-center justify-center flex-none">
+          <GeneralProjectIcon :color="parseProp(base.meta).iconColor" size="small" />
         </div>
+        <span class="flex-1 text-sm text-nc-content-gray-extreme truncate">{{ base.title }}</span>
+        <NcButton type="text" size="xxsmall" class="!p-0.5 flex-none" @click="removeBase(base.id)">
+          <GeneralIcon icon="close" class="w-4 h-4 text-nc-content-gray-muted" />
+        </NcButton>
       </div>
+    </div>
+
+    <!-- Action links -->
+    <div class="flex items-center gap-4">
+      <NcButton
+        v-if="!hasAllResources"
+        type="text"
+        size="small"
+        class="!text-brand-500 !px-0 !font-medium"
+        data-testid="nc-token-scope-add-all"
+        @click="addAllResources"
+      >
+        <div class="flex items-center gap-1">
+          <component :is="iconMap.plus" class="w-4 h-4" />
+          {{ $t('labels.addAllResources') }}
+        </div>
+      </NcButton>
+
+      <NcDropdown
+        v-model:visible="showBaseDropdown"
+        :trigger="['click']"
+        placement="bottomLeft"
+        overlay-class-name="nc-scope-base-dropdown"
+      >
+        <NcButton
+          type="text"
+          size="small"
+          class="!text-brand-500 !px-0 !font-medium"
+          data-testid="nc-token-scope-add-base"
+          @click="toggleBaseDropdown"
+        >
+          <div class="flex items-center gap-1">
+            <component :is="iconMap.plus" class="w-4 h-4" />
+            {{ $t('labels.addABase') }}
+          </div>
+        </NcButton>
+
+        <template #overlay>
+          <div class="nc-scope-dropdown-content">
+            <div class="px-2 pt-2 pb-1">
+              <a-input
+                v-model:value="searchQuery"
+                :placeholder="$t('placeholder.findBaseOrWorkspace')"
+                class="!rounded-lg"
+                allow-clear
+              >
+                <template #prefix>
+                  <GeneralIcon icon="search" class="w-4 h-4 text-nc-content-gray-muted" />
+                </template>
+              </a-input>
+            </div>
+
+            <div class="max-h-64 overflow-y-auto nc-scrollbar-thin">
+              <div v-if="isLoading" class="flex items-center justify-center py-4">
+                <GeneralLoader size="regular" />
+              </div>
+
+              <template v-else-if="filteredWorkspaces.length">
+                <div v-for="ws in filteredWorkspaces" :key="ws.id" class="py-1">
+                  <div class="px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-nc-content-gray-muted">
+                    {{ ws.title }}
+                  </div>
+                  <div
+                    v-for="base in ws.bases"
+                    :key="base.id"
+                    class="nc-scope-dropdown-item"
+                    @click="addBase(base.id)"
+                  >
+                    <div class="min-w-5 flex items-center justify-center flex-none">
+                      <GeneralProjectIcon :color="parseProp(base.meta).iconColor" size="small" />
+                    </div>
+                    <span class="truncate">{{ base.title }}</span>
+                  </div>
+                </div>
+              </template>
+
+              <div v-else class="px-3 py-4 text-sm text-nc-content-gray-muted text-center">
+                {{ $t('labels.noData') }}
+              </div>
+            </div>
+          </div>
+        </template>
+      </NcDropdown>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.nc-scope-card {
-  @apply flex items-start gap-3 px-4 py-3.5 rounded-lg border-1
-    border-nc-border-gray-medium bg-nc-bg-default cursor-pointer transition-all text-left w-full;
+.nc-scope-row {
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-lg;
 
   &:hover {
     @apply bg-nc-bg-gray-light;
   }
-
-  &.nc-scope-card-active {
-    @apply border-brand-500 bg-nc-bg-default;
-  }
 }
 
-.nc-scope-card-radio {
-  @apply w-4.5 h-4.5 mt-0.5 rounded-full border-2 border-nc-border-gray-medium
-    flex items-center justify-center flex-none transition-all;
-
-  .nc-scope-card-active & {
-    @apply border-brand-500;
-  }
+.nc-scope-dropdown-content {
+  @apply w-80 bg-white rounded-lg shadow-lg border-1 border-nc-border-gray-medium;
 }
 
-.nc-scope-card-radio-dot {
-  @apply w-2.5 h-2.5 rounded-full bg-brand-500;
-}
+.nc-scope-dropdown-item {
+  @apply flex items-center gap-2 px-3 py-2 cursor-pointer text-sm text-nc-content-gray-extreme;
 
-.nc-scope-base-select {
-  :deep(.ant-select-selector) {
-    @apply !min-h-8 !rounded-lg !border-nc-border-gray-medium !bg-nc-bg-default;
+  &:hover {
+    @apply bg-nc-bg-gray-light;
   }
-
-  :deep(.ant-select-selection-search) {
-    @apply !ms-0;
-  }
-
-  :deep(.ant-select-selection-overflow-item:not(.ant-select-selection-overflow-item-suffix)) {
-    @apply !hidden;
-  }
-
-  :deep(.ant-select-selection-placeholder) {
-    @apply !start-3 text-nc-content-gray-muted;
-  }
-}
-
-.nc-scope-tag {
-  @apply flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-md
-    border-1 border-nc-border-gray-medium bg-nc-bg-gray-light
-    text-xs text-nc-content-gray-extreme max-w-48;
 }
 </style>

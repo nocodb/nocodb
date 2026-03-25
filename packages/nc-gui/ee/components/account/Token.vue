@@ -3,6 +3,14 @@ import type { VNodeRef } from '@vue/runtime-core'
 import type { ApiTokenType, RequestParams } from 'nocodb-sdk'
 import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 
+interface Props {
+  createMode?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  createMode: false,
+})
+
 const { api, isLoading } = useApi()
 
 const { $e } = useNuxtApp()
@@ -29,6 +37,14 @@ interface IApiTokenInfo extends ApiTokenType {
   title?: string
 }
 
+// View mode: 'list' (token list), 'create' (inline create form), 'result' (token created)
+const route = useRoute()
+const router = useRouter()
+
+const viewMode = ref<'list' | 'create' | 'result'>(
+  props.createMode || route.path.endsWith('/new') ? 'create' : 'list',
+)
+
 const tokens = ref<IApiTokenInfo[]>([])
 
 const allTokens = ref<IApiTokenInfo[]>([])
@@ -41,8 +57,6 @@ const selectedToken = reactive({
 const currentPage = ref(1)
 
 const showNewTokenModal = ref(false)
-
-const showWizard = ref(false)
 
 const showEditModal = ref(false)
 
@@ -75,6 +89,9 @@ const tokenToDeleteId = ref('')
 
 const isValidTokenName = ref(false)
 
+// Result state for created token
+const createdTokenValue = ref('')
+
 const setDefaultTokenName = () => {
   selectedTokenData.value.description = extractNextDefaultName(
     [...allTokens.value.map((el) => el?.description || '')],
@@ -93,7 +110,6 @@ const hideOrShowToken = (tokenId: string) => {
   }
 }
 
-// To set default next token name we should need to fetch all token first
 const loadAllTokens = async (limit = pagination.total) => {
   try {
     const response: any = await api.orgTokens.list({
@@ -110,7 +126,6 @@ const loadAllTokens = async (limit = pagination.total) => {
   }
 }
 
-// This will update allTokens local value instead of fetching all tokens on each operation (add|delete)
 const updateAllTokens = (type: 'delete' | 'add', token: IApiTokenInfo) => {
   switch (type) {
     case 'add': {
@@ -169,7 +184,6 @@ const deleteToken = async (token: string): Promise<void> => {
     const id = tokenInfo?.id
 
     if (id) {
-      // Try V3 delete first for fine-grained tokens, fall back to V1
       try {
         await api.request({
           path: `/api/v3/meta/tokens/${id}`,
@@ -182,7 +196,6 @@ const deleteToken = async (token: string): Promise<void> => {
 
     updateAllTokens('delete', { token, id } as IApiTokenInfo)
 
-    // If the current page would be empty after deletion, go back to previous page
     const newTotal = pagination.total - 1
     if (currentPage.value > 1 && (currentPage.value - 1) * currentLimit.value >= newTotal) {
       currentPage.value--
@@ -212,7 +225,6 @@ const generateToken = async () => {
   try {
     const token = await api.orgTokens.create(selectedTokenData.value)
 
-    // Token generated successfully
     await loadTokens(currentPage.value, currentLimit.value, true)
 
     updateAllTokens('add', token as IApiTokenInfo)
@@ -264,9 +276,24 @@ const isFineGrained = (token: IApiTokenInfo) => {
   return !!(token.scopes?.length) || !!token.expiry || !!token.token_prefix
 }
 
-const onWizardCreated = () => {
+const openCreateForm = () => {
+  navigateTo('/account/tokens/new')
+}
+
+const onTokenCreated = (token: string) => {
+  createdTokenValue.value = token
+  viewMode.value = 'result'
   loadTokens()
   loadAllTokens(pagination.total + 1)
+}
+
+const onCreateCancel = () => {
+  navigateTo('/account/tokens')
+}
+
+const onResultDone = () => {
+  createdTokenValue.value = ''
+  navigateTo('/account/tokens')
 }
 
 const openEditModal = (token: IApiTokenInfo) => {
@@ -294,12 +321,27 @@ const onEditCancel = () => {
       </template>
       <template #title>
         <span data-rec="true">
-          {{ $t('title.tokens') }}
+          {{ viewMode === 'list' ? $t('title.tokens') : $t('title.createNewToken') }}
         </span>
       </template>
     </NcPageHeader>
     <div class="nc-content-max-w p-6 h-[calc(100vh_-_100px)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
-      <div class="max-w-202 mx-auto h-full w-full" data-testid="nc-token-list">
+      <!-- ============ CREATE FORM (inline, replaces list) ============ -->
+      <div v-if="viewMode === 'create'" class="max-w-202 mx-auto w-full">
+        <AccountTokenCreateWizard @created="onTokenCreated" @cancel="onCreateCancel" />
+      </div>
+
+      <!-- ============ RESULT (token created, copy & done) ============ -->
+      <div v-else-if="viewMode === 'result'" class="max-w-202 mx-auto w-full">
+        <AccountTokenCreateWizard
+          :created-token="createdTokenValue"
+          result-only
+          @cancel="onResultDone"
+        />
+      </div>
+
+      <!-- ============ TOKEN LIST ============ -->
+      <div v-else class="max-w-202 mx-auto h-full w-full" data-testid="nc-token-list">
         <div class="flex gap-4 items-baseline justify-between">
           <h6 class="text-xl text-left font-bold my-0 text-nc-content-gray" data-rec="true">{{ $t('title.apiTokens') }}</h6>
           <NcButton
@@ -309,10 +351,10 @@ const onEditCancel = () => {
             size="middle"
             type="primary"
             tooltip="bottom"
-            @click="showWizard = true"
+            @click="openCreateForm"
           >
             <span class="hidden md:block" data-rec="true">
-              {{ $t('title.addNewToken') }}
+              {{ $t('title.createNewToken') }}
             </span>
             <span class="flex items-center justify-center md:hidden" data-rec="true">
               <component :is="iconMap.plus" />
@@ -482,7 +524,7 @@ const onEditCancel = () => {
             class="!rounded-lg !py-3 !h-10"
             data-testid="nc-token-create"
             type="primary"
-            @click="showWizard = true"
+            @click="openCreateForm"
           >
             <span class="hidden md:block" data-rec="true">
               {{ $t('title.createNewToken') }}
@@ -503,19 +545,7 @@ const onEditCancel = () => {
         </div>
       </div>
 
-      <!-- Create Wizard Modal -->
-      <a-modal
-        v-model:visible="showWizard"
-        :footer="null"
-        :closable="false"
-        width="640px"
-        :mask-closable="false"
-        :destroy-on-close="true"
-      >
-        <AccountTokenCreateWizard @created="onWizardCreated" @cancel="showWizard = false" />
-      </a-modal>
-
-      <!-- Edit Modal -->
+      <!-- Edit Modal (single-level, not nested) -->
       <a-modal
         v-model:visible="showEditModal"
         :footer="null"

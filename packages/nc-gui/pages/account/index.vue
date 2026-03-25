@@ -73,7 +73,7 @@ const logout = async () => {
                 key="tokens"
                 class="item"
                 :class="{
-                  active: $route.params.page === 'tokens',
+                  active: $route.params.page === 'tokens' || $route.path.startsWith('/account/tokens'),
                 }"
                 @click="navigateTo('/account/tokens')"
               >

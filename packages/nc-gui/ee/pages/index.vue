@@ -39,11 +39,11 @@ watch(
   { immediate: true },
 )
 
-const autoNavigateToWorkspace = async () => {
+const autoNavigateToWorkspace = async ({ initial = false }: { initial?: boolean } = {}) => {
   const routeName = route.value.name as string
 
-  // Don't auto-navigate when already on workspace home (/{ws_id})
-  if (routeName === 'index-typeOrId' || routeName === 'index-typeOrId-index') {
+  // Don't auto-navigate when already on a workspace page
+  if (routeName.startsWith('index-typeOrId')) {
     return
   }
 
@@ -55,8 +55,27 @@ const autoNavigateToWorkspace = async () => {
 
   navigating.value = true
 
-  // Navigate to active workspace home page
   const wsId = activeWorkspaceId.value
+
+  // Try to navigate into last visited base (backward compat with tests & deep links)
+  if (wsId && basesStore.basesList?.length) {
+    const lastVisitedBase = ncLastVisitedBase().get()
+
+    const firstBase = lastVisitedBase
+      ? basesStore.basesList.find((b) => b.id === lastVisitedBase) ?? basesStore.basesList[0]
+      : basesStore.basesList[0]
+
+    if (firstBase?.id) {
+      await basesStore.navigateToProject({
+        workspaceId: firstBase.fk_workspace_id!,
+        baseId: firstBase.id!,
+      })
+      navigating.value = false
+      return
+    }
+  }
+
+  // No bases — navigate to workspace home
   if (wsId) {
     await navigateTo(`/${wsId}`)
   }

@@ -10,57 +10,48 @@ import { isEE } from '../../../../setup/db';
  * Now it targets the inline WorkspaceBaseList component rendered
  * on the workspace home page (/{wsId} route, Bases tab).
  *
- * The modal_baseList locator is kept as a fallback for backward compatibility
- * in case the modal is still used in some flows.
+ * The modal locator is kept as a fallback for backward compatibility.
  */
 export class BaseListModalPage extends BasePage {
   readonly dashboard: DashboardPage;
 
-  /** Legacy modal locator — kept for backward compat */
+  /** Legacy modal locator */
   readonly modal: Locator;
 
-  /** Inline base list on workspace home page */
-  readonly baseList: Locator;
-
-  /** Home sidebar (workspace list) */
+  /** Home sidebar — present when on workspace home routes */
   readonly homeSidebar: Locator;
 
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.modal = this.rootPage.locator('.nc-workspace-base-list-modal-wrapper');
-    this.baseList = this.rootPage.locator('.nc-workspace-home');
     this.homeSidebar = this.rootPage.locator('.nc-home-sidebar');
   }
 
   get() {
-    return this.baseList;
+    // Return whichever container is visible
+    return this.homeSidebar.or(this.modal);
   }
 
   /**
-   * Check if we're on the workspace home page (bases tab visible).
+   * Check if we're on the workspace home page or the modal is open.
    */
   async isOpen() {
-    return this.baseList.isVisible() || this.modal.isVisible();
+    return (await this.homeSidebar.isVisible()) || (await this.modal.isVisible());
   }
 
   async waitForOpen() {
-    // Try inline base list first, then fall back to modal
-    try {
-      await this.baseList.waitFor({ state: 'visible', timeout: 3000 });
-    } catch {
-      await this.modal.waitFor({ state: 'visible' });
-    }
+    // Wait for either the home sidebar (new) or the modal (legacy)
+    await this.homeSidebar.or(this.modal).waitFor({ state: 'visible', timeout: 10000 });
     await this.rootPage.waitForTimeout(300);
   }
 
   async waitForClose() {
-    // For inline view, "close" means navigating away from workspace home
     await this.rootPage.waitForTimeout(300);
   }
 
   async close() {
-    // Modal: press Escape. Inline: no-op (already on the page).
+    // Modal: press Escape. Inline: no-op.
     if (await this.modal.isVisible()) {
       await this.rootPage.keyboard.press('Escape');
       await this.modal.waitFor({ state: 'hidden' });
@@ -68,31 +59,43 @@ export class BaseListModalPage extends BasePage {
     }
   }
 
+  /**
+   * The base list content area — targets the page content, not the sidebar.
+   */
+  private getContentArea(): Locator {
+    return this.rootPage;
+  }
+
   async searchBases(query: string) {
-    // Search is now in the home sidebar
     const searchInput = this.homeSidebar.locator('.nc-home-sidebar-search input');
-    await searchInput.fill(query);
+    if (await searchInput.isVisible()) {
+      await searchInput.fill(query);
+    } else {
+      // Fallback to modal search
+      const modalSearch = this.modal.locator('.nc-workspace-base-search input');
+      await modalSearch.fill(query);
+    }
     await this.rootPage.waitForTimeout(300);
   }
 
   async clearSearch() {
     const searchInput = this.homeSidebar.locator('.nc-home-sidebar-search input');
-    await searchInput.clear();
+    if (await searchInput.isVisible()) {
+      await searchInput.clear();
+    } else {
+      const modalSearch = this.modal.locator('.nc-workspace-base-search input');
+      await modalSearch.clear();
+    }
     await this.rootPage.waitForTimeout(300);
   }
 
-  // Base operations — target both inline and modal
-  private getContainer(): Locator {
-    // Prefer inline base list, fall back to modal
-    return this.baseList.or(this.modal);
-  }
-
+  // Base operations
   getBaseNode(baseTitle: string): Locator {
-    return this.getContainer().getByTestId(`nc-base-list-modal-base-title-${baseTitle}`);
+    return this.getContentArea().getByTestId(`nc-base-list-modal-base-title-${baseTitle}`);
   }
 
   getBaseNodeById(baseId: string): Locator {
-    return this.getContainer().locator(`.nc-base-node[data-id="${baseId}"]`);
+    return this.getContentArea().locator(`.nc-base-node[data-id="${baseId}"]`);
   }
 
   async clickBase(baseTitle: string, baseId?: string) {
@@ -101,8 +104,10 @@ export class BaseListModalPage extends BasePage {
     await baseNode.scrollIntoViewIfNeeded();
     await baseNode.click();
 
-    // Wait for navigation
-    await this.rootPage.waitForTimeout(500);
+    // Wait for navigation — the sidebar switches from HomeSidebar to DashboardSidebar
+    // which renders the treeview. Wait for the sidebar header to appear.
+    await this.rootPage.locator('.nc-sidebar-header').waitFor({ state: 'visible', timeout: 10000 });
+    await this.rootPage.waitForTimeout(300);
   }
 
   async openBaseMenu(baseTitle: string) {
@@ -149,7 +154,7 @@ export class BaseListModalPage extends BasePage {
     await this.rootPage.getByTestId('nc-base-node-delete').click();
   }
 
-  // Workspace operations — now use HomeSidebar instead of modal right panel
+  // Workspace operations — use HomeSidebar
   getWorkspaceNode(workspaceTitle: string): Locator {
     return this.homeSidebar.locator(`[data-testid^="nc-home-sidebar-ws-"]`).filter({
       hasText: workspaceTitle,
@@ -185,13 +190,12 @@ export class BaseListModalPage extends BasePage {
   async createWorkspace() {
     if (!isEE()) return;
 
-    // Click the + button in sidebar workspace header
     const createBtn = this.homeSidebar.getByTestId('nc-home-sidebar-create-ws');
     await createBtn.click();
   }
 
   async clickCreateBase() {
-    const createBtn = this.getContainer().locator('[data-testid="nc-sidebar-create-base-btn"]');
+    const createBtn = this.getContentArea().locator('[data-testid="nc-sidebar-create-base-btn"]');
     await createBtn.click();
     await this.rootPage.waitForTimeout(300);
   }
@@ -203,7 +207,7 @@ export class BaseListModalPage extends BasePage {
 
   // Filter operations
   async setFilter(filter: 'all' | 'starred' | 'private' | 'owned' | 'managed') {
-    const filterDropdown = this.getContainer().locator('.nc-bases-header [data-testid="nc-base-filter-dropdown"]');
+    const filterDropdown = this.getContentArea().locator('.nc-bases-header [data-testid="nc-base-filter-dropdown"]');
     await filterDropdown.click();
     await this.rootPage.waitForTimeout(200);
 
@@ -224,7 +228,7 @@ export class BaseListModalPage extends BasePage {
   }
 
   async verifyBaseCount(count: number) {
-    const baseNodes = this.getContainer().locator('.nc-base-node');
+    const baseNodes = this.getContentArea().locator('.nc-base-node');
     await expect(baseNodes).toHaveCount(count);
   }
 

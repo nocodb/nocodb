@@ -33,7 +33,11 @@ const showBaseDropdown = ref(false)
 const searchQuery = ref('')
 
 // Track state: has "all resources" been added?
-const hasAllResources = ref(false)
+// Initialize from props: sentinel present, or editing with no base scopes = org-wide
+const hasAllResources = ref(
+  props.scopes.some((s) => s.resource_type === 'all') ||
+  (props.scopes.length > 0 && !props.scopes.some((s) => s.resource_type === ApiTokenScopeResourceType.BASE)),
+)
 
 // Track selected base IDs
 const selectedBaseIds = ref<string[]>(
@@ -105,8 +109,10 @@ const loadAll = async () => {
 
 const emitScopes = () => {
   if (hasAllResources.value) {
-    // "All resources" means no scope restriction
-    emit('update:scopes', [])
+    // Emit a sentinel scope to indicate "all resources" was explicitly selected
+    // Backend treats empty scopes as org-wide; this lets the parent distinguish
+    // "all resources selected" from "nothing selected"
+    emit('update:scopes', [{ resource_type: 'all', resource_id: '*' }] as ApiTokenScopeEntry[])
     return
   }
 

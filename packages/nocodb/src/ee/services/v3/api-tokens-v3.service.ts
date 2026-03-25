@@ -222,7 +222,22 @@ export class ApiTokensV3Service {
     await this.validateRequestor(param);
 
     this.validateTitle(param.body.title);
-    await this.validateScopes(param.body.scopes, param.cookie['user']?.id);
+
+    // Fine-grained tokens require at least one access scope.
+    // Empty scopes would result in unrestricted org-wide access — require explicit intent.
+    if (!param.body.scopes?.length) {
+      NcError.badRequest(
+        'At least one access scope is required. Use "Add all resources" for org-wide access or select specific bases.',
+      );
+    }
+
+    // resource_type: 'all' is a sentinel from the UI meaning "org-wide access" —
+    // filter it out before validation/insertion (no scope rows = org-wide in the auth strategy)
+    const scopesForStorage = param.body.scopes.filter(
+      (s: any) => s.resource_type !== 'all',
+    );
+
+    await this.validateScopes(scopesForStorage as any, param.cookie['user']?.id);
     this.validateExpiry(param.body.expiry);
 
     const ssoClientId = (param.cookie.user as any)?.extra?.sso_client_id;
@@ -231,7 +246,7 @@ export class ApiTokensV3Service {
       description: param.body.title,
       fk_user_id: param.cookie['user'].id,
       fk_sso_client_id: ssoClientId || null,
-      scopes: param.body.scopes as any,
+      scopes: scopesForStorage as any,
       expiry: param.body.expiry || null,
       fineGrained: true,
     });
@@ -290,11 +305,15 @@ export class ApiTokensV3Service {
 
     // Update scopes if provided
     if (param.body.scopes !== undefined) {
-      await this.validateScopes(param.body.scopes, user?.id);
+      // Filter out "all resources" sentinel before validation/storage
+      const scopesForUpdate = param.body.scopes.filter(
+        (s: any) => s.resource_type !== 'all',
+      );
+      await this.validateScopes(scopesForUpdate as any, user?.id);
       // Replace all scopes — delete existing, insert new
       await ApiTokenScope.deleteByTokenId(param.id);
-      if (param.body.scopes.length) {
-        await ApiTokenScope.bulkInsert(param.id, param.body.scopes);
+      if (scopesForUpdate.length) {
+        await ApiTokenScope.bulkInsert(param.id, scopesForUpdate as any);
       }
     }
 

@@ -103,8 +103,12 @@ const computedExpiry = computed(() => {
   return now.toISOString()
 })
 
+const hasAccessScope = computed(() => {
+  return scopes.value.length > 0
+})
+
 const isFormValid = computed(() => {
-  return tokenName.value.length > 0 && tokenName.value.length <= 255
+  return tokenName.value.length > 0 && tokenName.value.length <= 255 && hasAccessScope.value
 })
 
 

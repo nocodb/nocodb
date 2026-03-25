@@ -9,7 +9,6 @@ import { DataExportProcessor } from '~/modules/jobs/jobs/data-export/data-export
 import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
 import { AttachmentCleanUpProcessor } from '~/modules/jobs/jobs/attachment-clean-up/attachment-clean-up';
 import { InitMigrationJobs } from '~/modules/jobs/migration-jobs/init-migration-jobs';
-import { UseWorkerProcessor } from '~/modules/jobs/jobs/use-worker/use-worker.processor';
 import { DataExportCleanUpProcessor } from '~/modules/jobs/jobs/data-export-clean-up/data-export-clean-up.processor';
 import { AttachmentUrlUploadProcessor } from '~/modules/jobs/jobs/attachment-url-upload/attachment-url-upload.processor';
 import { JobTypes } from '~/interface/Jobs';
@@ -27,7 +26,6 @@ export class JobsMap {
     protected readonly thumbnailGeneratorProcessor: ThumbnailGeneratorProcessor,
     protected readonly attachmentCleanUpProcessor: AttachmentCleanUpProcessor,
     protected readonly initMigrationJobs: InitMigrationJobs,
-    protected readonly useWorkerProcessor: UseWorkerProcessor,
     protected readonly dataExportCleanUpProcessor: DataExportCleanUpProcessor,
     protected readonly attachmentUrlUploadProcessor: AttachmentUrlUploadProcessor,
   ) {}
@@ -84,9 +82,6 @@ export class JobsMap {
       },
       [JobTypes.InitMigrationJobs]: {
         this: this.initMigrationJobs,
-      },
-      [JobTypes.UseWorker]: {
-        this: this.useWorkerProcessor,
       },
       [JobTypes.AttachmentUrlUpload]: {
         this: this.attachmentUrlUploadProcessor,

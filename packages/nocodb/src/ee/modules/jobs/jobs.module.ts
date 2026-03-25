@@ -1,4 +1,5 @@
 import { forwardRef, Module } from '@nestjs/common';
+import { BullModule } from '@nestjs/bull';
 import {
   JobsModule as JobsModuleCE,
   JobsModuleMetadata,
@@ -24,22 +25,54 @@ import { WorkflowDraftReminderProcessor } from '~/modules/jobs/jobs/workflow/wor
 import { HookErrorNotificationProcessor } from '~/modules/jobs/jobs/hook-error-notification.processor';
 import { WorkerController } from '~/modules/jobs/worker/worker.controller';
 import { PaymentModule } from '~/modules/payment/payment.module';
+import { getRedisURL, NC_REDIS_TYPE } from '~/helpers/redisHelpers';
+import { JOBS_QUEUE } from '~/interface/Jobs';
+import { JobsService } from '~/modules/jobs/redis/jobs.service';
+import { JobsProcessor } from '~/modules/jobs/jobs.processor';
+import { UseWorkerProcessor } from '~/modules/jobs/jobs/use-worker/use-worker.processor';
+import { JobsController } from '~/modules/jobs/jobs.controller';
+import { CACHE_PREFIX } from '~/utils/globals';
 
 @Module({
   ...JobsModuleMetadata,
   imports: [
     ...JobsModuleMetadata.imports,
+    ...(getRedisURL(NC_REDIS_TYPE.JOB)
+      ? [
+          BullModule.forRoot({
+            url: getRedisURL(NC_REDIS_TYPE.JOB),
+            ...(getRedisURL(NC_REDIS_TYPE.JOB)?.startsWith('rediss://')
+              ? { redis: { tls: {} } }
+              : {}),
+            prefix: CACHE_PREFIX === 'nc' ? undefined : `${CACHE_PREFIX}`,
+          }),
+          BullModule.registerQueue({
+            name: JOBS_QUEUE,
+            defaultJobOptions: {
+              removeOnComplete: true,
+              attempts: 1,
+            },
+          }),
+        ]
+      : []),
     forwardRef(() => NocoSyncModule),
     forwardRef(() => PaymentModule),
   ],
   controllers: [
-    ...JobsModuleMetadata.controllers,
+    ...(process.env.NC_WORKER_CONTAINER !== 'true'
+      ? JobsModuleMetadata.controllers
+      : [JobsController]),
     WorkerController,
     CleanUpController,
     SnapshotController,
   ],
   providers: [
     ...JobsModuleMetadata.providers,
+    ...(getRedisURL(NC_REDIS_TYPE.JOB)
+      ? [{ provide: 'JobsService', useClass: JobsService }]
+      : []),
+    JobsProcessor,
+    UseWorkerProcessor,
     UpdateStatsProcessor,
     HealthCheckProcessor,
     CleanUpProcessor,

@@ -224,7 +224,7 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
             dbQueryTime = time;
           },
           apiVersion: refBaseModel.context.api_version,
-          baseModel,
+          baseModel: refBaseModel,
           skipSubstitutingColumnIds:
             context.api_version === NcApiVersion.V3 &&
             param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',

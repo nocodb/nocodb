@@ -219,7 +219,6 @@ const cellClickHandler = () => {
 }
 
 onBeforeUnmount(() => {
-  console.log('on before unmounted', tempDate.value?.isValid(), !localState.value?.isSame(tempDate.value))
   if (tempDate.value && tempDate.value.isValid() && !localState.value?.isSame(tempDate.value)) {
     saveChanges(tempDate.value)
   }

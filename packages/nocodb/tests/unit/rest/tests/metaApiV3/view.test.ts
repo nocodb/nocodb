@@ -535,7 +535,7 @@ export default function () {
               },
             },
           })
-          .expect(404);
+          .expect(422);
       });
 
       it(`will reject invalid validator type via schema validation`, async () => {

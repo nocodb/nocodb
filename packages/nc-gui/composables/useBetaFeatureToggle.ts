@@ -19,15 +19,6 @@ const FEATURES = [
     isAdvanced: true,
   },
   {
-    id: 'row_level_security',
-    title: 'Row-Level Security',
-    description: 'Define filter-based policies to control which rows each role, team, or user can access.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
-    isEE: true,
-  },
-  {
     id: 'bases_v3',
     title: 'Bases V3',
     description: 'Experience the next generation of NocoDB with Bases V3 with and enhanced performance and optimizations.',

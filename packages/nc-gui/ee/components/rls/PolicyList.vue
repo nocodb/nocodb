@@ -185,7 +185,7 @@ const getSubjectLabel = (policy: RlsPolicyType) => {
     </div>
 
     <!-- Empty state -->
-    <div v-else-if="!policies.length" class="flex-1 flex flex-col items-center justify-center gap-3 p-8">
+    <div v-else-if="!policies.length" class="flex-1 flex flex-col items-center justify-center gap-3 p-8 pt-16">
       <GeneralIcon icon="ncShield" class="w-12 h-12 text-nc-content-gray-muted" />
       <div class="text-nc-content-gray-subtle text-center">
         <p class="text-sm font-semibold">{{ $t('objects.permissions.rlsPolicy.noPoliciesConfigured') }}</p>

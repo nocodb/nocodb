@@ -332,7 +332,7 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockRls = computed(() => {
-    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_RLS)
+    return isEEFeatureBlocked.value || (isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_RLS))
   })
 
   const blockUnique = computed(() => {
@@ -1728,11 +1728,11 @@ export const useEeConfig = createSharedComposable(() => {
     handleUpgradePlan({
       title: t('upgrade.upgradeToUseRls'),
       content: t('upgrade.upgradeToUseRlsSubtitle', {
-        plan: PlanTitles.BUSINESS,
+        plan: PlanTitles.ENTERPRISE,
       }),
       callback,
       limitOrFeature: PlanFeatureTypes.FEATURE_RLS,
-      requiredPlan: PlanTitles.BUSINESS,
+      requiredPlan: PlanTitles.ENTERPRISE,
     })
 
     return true

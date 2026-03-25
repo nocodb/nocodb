@@ -143,6 +143,19 @@ const triggerDeleteModal = (tokenToDelete: string, tokenDescription: string, tok
   isModalOpen.value = true
 }
 
+const toggleEnabled = async (token: IApiTokenInfo) => {
+  try {
+    await api.request({
+      path: `/api/v3/meta/tokens/${token.id}`,
+      method: 'PATCH',
+      body: { enabled: !token.enabled },
+    })
+    await loadTokens()
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 const isExpired = (token: IApiTokenInfo) => {
   if (!token.expiry) return false
   return new Date(token.expiry) < new Date()
@@ -269,7 +282,10 @@ const openEditToken = async (token: IApiTokenInfo) => {
           <div class="h-full w-full overflow-y-auto rounded-md">
             <!-- Header -->
             <div class="flex w-full pl-5 bg-nc-bg-gray-extralight border-1 rounded-t-md">
-              <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-2/8" data-rec="true">
+              <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-16 flex-none" data-rec="true">
+                {{ $t('general.active') }}
+              </span>
+              <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 flex-1" data-rec="true">
                 {{ $t('title.tokenName') }}
               </span>
               <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-3/8 text-start" data-rec="true">
@@ -278,7 +294,7 @@ const openEditToken = async (token: IApiTokenInfo) => {
               <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-2/8 text-start" data-rec="true">
                 {{ $t('labels.expiresOn') }}
               </span>
-              <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-1/8 text-center" data-rec="true">
+              <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-20 flex-none text-center" data-rec="true">
                 {{ $t('labels.actions') }}
               </span>
             </div>
@@ -298,8 +314,18 @@ const openEditToken = async (token: IApiTokenInfo) => {
                 data-testid="nc-token-list"
                 class="flex pl-5 py-3 justify-between token items-center border-l-1 border-r-1 border-b-1"
               >
+                <!-- Active toggle -->
+                <div class="w-16 flex-none flex items-center">
+                  <a-switch
+                    :checked="el.enabled !== false"
+                    size="small"
+                    data-testid="nc-token-toggle-enabled"
+                    @change="toggleEnabled(el)"
+                  />
+                </div>
+
                 <!-- Token name + badges -->
-                <div class="flex items-center gap-1.5 w-2/8 min-w-0">
+                <div class="flex items-center gap-1.5 flex-1 min-w-0">
                   <NcTooltip class="truncate text-nc-content-gray-extreme font-bold text-3.5" show-on-truncate-only>
                     <template #title>{{ el.description || el.title }}</template>
                     {{ el.description || el.title }}
@@ -337,7 +363,7 @@ const openEditToken = async (token: IApiTokenInfo) => {
                 </span>
 
                 <!-- Actions -->
-                <div class="flex justify-center items-center gap-3 text-nc-content-gray-muted font-medium text-3.5 w-1/8">
+                <div class="flex justify-center items-center gap-3 text-nc-content-gray-muted font-medium text-3.5 w-20 flex-none">
                   <NcTooltip v-if="isFineGrained(el)" placement="top">
                     <template #title>{{ $t('general.edit') }}</template>
                     <component

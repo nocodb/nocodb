@@ -131,6 +131,8 @@ const { $e } = useNuxtApp()
 
 const { appInfo } = useGlobal()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const workspaceStore = useWorkspace()
 
 const { openedViewsTab } = storeToRefs(useViewsStore())
@@ -234,7 +236,8 @@ const uiFilters = (t: UiTypesType) => {
   const showColourField = t.name === UITypes.Colour ? isEeUI && showEEFeatures.value : true
   const isAllowToAddInFormView = isForm.value ? !isFormViewHiddenCol(t.name as UITypes) : true
 
-  const showLTAR = t.name === UITypes.LinkToAnotherRecord ? !isEdit.value : true
+  const showLTAR =
+    t.name === UITypes.LinkToAnotherRecord ? isFeatureEnabled(FEATURE_FLAG.LINK_TO_ANOTHER_RECORD) && !isEdit.value : true
 
   let formulaColumnTypeValid = true
   if (column?.value?.uidt === UITypes.Formula) {
@@ -1281,6 +1284,7 @@ const unique = computed({
                       {{ UITypesName[opt.name] }}
                       <NcTooltip
                         v-if="
+                          isFeatureEnabled(FEATURE_FLAG.LTAR_V2) &&
                           isEdit &&
                           column &&
                           column.uidt === UITypes.LinkToAnotherRecord &&

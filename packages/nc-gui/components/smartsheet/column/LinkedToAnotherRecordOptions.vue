@@ -227,21 +227,16 @@ const refViews = computed(() => {
 
 const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.value.type !== RelationTypes.ONE_TO_ONE)
 
-// Set version based on relation type and uidt
-// hm/bt are V1-only relation types; om/mo are V2 relation types
-// For mm/oo, version follows the uidt (LinkToAnotherRecord → V2, Links → V1)
+const isLtarV2Enabled = computed(() => isFeatureEnabled(FEATURE_FLAG.LTAR_V2))
+
+// Set version based on feature flag and uidt
+// Links (V1 UI) always sends version=1; LinkToAnotherRecord (V2 UI) sends version=2
 watch(
-  [() => vModel.value.type, () => vModel.value.uidt],
+  [() => vModel.value.type, () => vModel.value.uidt, isLtarV2Enabled],
   () => {
     if (isEdit.value) return
 
-    const type = vModel.value.type
-
-    if (type === RelationTypes.HAS_MANY || type === RelationTypes.BELONGS_TO) {
-      vModel.value.version = LinksVersion.V1
-    } else if (type === RelationTypes.ONE_TO_MANY || type === RelationTypes.MANY_TO_ONE) {
-      vModel.value.version = LinksVersion.V2
-    } else if (vModel.value.uidt === UITypes.LinkToAnotherRecord) {
+    if (isLtarV2Enabled.value && vModel.value.uidt === UITypes.LinkToAnotherRecord) {
       vModel.value.version = LinksVersion.V2
     } else if (vModel.value.uidt === UITypes.Links) {
       vModel.value.version = LinksVersion.V1
@@ -478,7 +473,7 @@ const handleScrollIntoView = () => {
     <div class="flex flex-col gap-4">
       <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type">
         <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit" class="w-full">
-          <template v-if="vModel.uidt === UITypes.LinkToAnotherRecord">
+          <template v-if="vModel.uidt === UITypes.LinkToAnotherRecord && isLtarV2Enabled">
             <a-row :gutter="[8, 8]">
               <a-col :span="12">
                 <a-radio value="mm" data-testid="Many to Many">

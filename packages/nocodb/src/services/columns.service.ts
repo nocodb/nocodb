@@ -4760,47 +4760,22 @@ export class ColumnsService implements IColumnsService {
 
     const reuse = param.reuse ?? {};
 
-    const ltarReq = param.column as LinkToAnotherColumnReqType & {
-      version?: number;
-      virtual?: boolean;
-      readonly?: boolean;
-      meta?: Record<string, any>;
-      ref_base_id?: string;
-    };
-
-    const relationType = ltarReq.type;
-
-    // Determine version based on relation type when not explicitly provided:
-    // - hm/bt → always V1 (FK-based)
-    // - oo → V1 when created via Links (legacy), V2 when created via LTAR
-    // - om/mo/mm → always V2 (junction table)
-    if (ltarReq.version == null) {
-      if (
-        relationType === RelationTypes.HAS_MANY ||
-        relationType === RelationTypes.BELONGS_TO ||
-        (relationType === RelationTypes.ONE_TO_ONE &&
-          ltarReq.uidt === UITypes.Links)
-      ) {
-        ltarReq.version = LinksVersion.V1;
-      } else {
-        ltarReq.version = LinksVersion.V2;
-      }
-    }
-
     // v2 LTAR uses junction table for all relation types (like mm)
+    // v1 is the default - v2 is only used when explicitly requested via version param
     const isMMLike =
-      ltarReq.version === LinksVersion.V2 ||
+      (param.column as any).version === LinksVersion.V2 ||
       // traditional MM is always treated as MM-like regardless of version
-      relationType === RelationTypes.MANY_TO_MANY;
+      (param.column as LinkToAnotherColumnReqType).type ===
+        RelationTypes.MANY_TO_MANY;
 
     // get table and refTable models
     const table = await Model.getWithInfo(context, {
-      id: ltarReq.parentId,
+      id: (param.column as LinkToAnotherColumnReqType).parentId,
     });
 
     const refContext = {
       ...context,
-      base_id: ltarReq.ref_base_id ?? context.base_id,
+      base_id: (param.column as any)?.ref_base_id ?? context.base_id,
     };
 
     // check permission if cross-base link
@@ -4809,14 +4784,14 @@ export class ColumnsService implements IColumnsService {
     }
 
     const refTable = await Model.getWithInfo(refContext, {
-      id: ltarReq.childId,
+      id: (param.column as LinkToAnotherColumnReqType).childId,
     });
     let refColumn: Column;
-    const childView: View | null = ltarReq
+    const childView: View | null = (param.column as LinkToAnotherColumnReqType)
       ?.childViewId
       ? await View.getByTitleOrId(context, {
           fk_model_id: refTable.id,
-          titleOrId: ltarReq.childViewId,
+          titleOrId: (param.column as LinkToAnotherColumnReqType).childViewId,
         })
       : null;
 
@@ -4850,17 +4825,17 @@ export class ColumnsService implements IColumnsService {
           });
     const isLinks =
       param.column.uidt === UITypes.Links ||
-      ltarReq.type === 'bt';
+      (param.column as LinkToAnotherColumnReqType).type === 'bt';
 
     // if xcdb base then treat as virtual relation to avoid creating foreign key
     if (param.source.isMeta() || param.source.type === 'snowflake') {
-      ltarReq.virtual = true;
+      (param.column as LinkToAnotherColumnReqType).virtual = true;
     }
 
     if (
       !isMMLike &&
-      (ltarReq.type === 'hm' ||
-        ltarReq.type === 'bt')
+      ((param.column as LinkToAnotherColumnReqType).type === 'hm' ||
+        (param.column as LinkToAnotherColumnReqType).type === 'bt')
     ) {
       // populate fk column name
       const fkColName = getUniqueColumnName(
@@ -4913,7 +4888,7 @@ export class ColumnsService implements IColumnsService {
         refColumn = await Column.get(refContext, { colId: id });
 
         // ignore relation creation if virtual
-        if (!ltarReq.virtual) {
+        if (!(param.column as LinkToAnotherColumnReqType).virtual) {
           foreignKeyName = generateFkName(table, refTable);
           // create relation
           await sqlMgr.sqlOpPlus(refSource, 'relationCreate', {
@@ -4932,7 +4907,7 @@ export class ColumnsService implements IColumnsService {
         //       create index for foreign key in pg
         if (
           param.source.type === 'pg' ||
-          ltarReq.virtual
+          (param.column as LinkToAnotherColumnReqType).virtual
         ) {
           const indexName = generateFkName(table, refTable);
           await this.createColumnIndex(refContext, {
@@ -4954,16 +4929,16 @@ export class ColumnsService implements IColumnsService {
         table,
         refColumn,
         childView,
-        ltarReq.type as RelationTypes,
-        ltarReq.title,
+        (param.column as LinkToAnotherColumnReqType).type as RelationTypes,
+        (param.column as LinkToAnotherColumnReqType).title,
         foreignKeyName,
-        ltarReq.virtual,
+        (param.column as LinkToAnotherColumnReqType).virtual,
         null,
-        ltarReq.meta,
+        param.column['meta'],
         isLinks,
         {
           ...param.colExtra,
-          readonly: ltarReq.readonly || false,
+          readonly: (param.column as any).readonly || false,
         },
         undefined,
         undefined,
@@ -4971,7 +4946,7 @@ export class ColumnsService implements IColumnsService {
       );
     } else if (
       !isMMLike &&
-      ltarReq.type === 'oo'
+      (param.column as LinkToAnotherColumnReqType).type === 'oo'
     ) {
       // populate fk column name
       const fkColName = getUniqueColumnName(
@@ -5025,7 +5000,7 @@ export class ColumnsService implements IColumnsService {
         refColumn = await Column.get(refContext, { colId: id });
 
         // ignore relation creation if virtual
-        if (!ltarReq.virtual) {
+        if (!(param.column as LinkToAnotherColumnReqType).virtual) {
           foreignKeyName = generateFkName(table, refTable);
           // create relation
           await sqlMgr.sqlOpPlus(refSource, 'relationCreate', {
@@ -5044,7 +5019,7 @@ export class ColumnsService implements IColumnsService {
         //       create index for foreign key in pg
         if (
           param.source.type === 'pg' ||
-          ltarReq.virtual
+          (param.column as LinkToAnotherColumnReqType).virtual
         ) {
           const indexName = generateFkName(table, refTable);
           await this.createColumnIndex(refContext, {
@@ -5065,15 +5040,15 @@ export class ColumnsService implements IColumnsService {
         table,
         refColumn,
         childView,
-        ltarReq.type as RelationTypes,
-        ltarReq.title,
+        (param.column as LinkToAnotherColumnReqType).type as RelationTypes,
+        (param.column as LinkToAnotherColumnReqType).title,
         foreignKeyName,
-        ltarReq.virtual,
+        (param.column as LinkToAnotherColumnReqType).virtual,
         null,
-        ltarReq.meta,
+        param.column['meta'],
         {
           ...param.colExtra,
-          readonly: ltarReq.readonly || false,
+          readonly: (param.column as any).readonly || false,
         },
         undefined,
         undefined,
@@ -5081,7 +5056,7 @@ export class ColumnsService implements IColumnsService {
       );
     } else if (
       isMMLike ||
-      ltarReq.type === 'mm'
+      (param.column as LinkToAnotherColumnReqType).type === 'mm'
     ) {
       const aTn = await getJunctionTableName(param, table, refTable);
       const aTnAlias = aTn;
@@ -5152,7 +5127,7 @@ export class ColumnsService implements IColumnsService {
       let foreignKeyName1;
       let foreignKeyName2;
 
-      if (!ltarReq.virtual) {
+      if (!(param.column as LinkToAnotherColumnReqType).virtual) {
         foreignKeyName1 = generateFkName(table, refTable);
         foreignKeyName2 = generateFkName(table, refTable);
 
@@ -5197,7 +5172,7 @@ export class ColumnsService implements IColumnsService {
         null,
         null,
         foreignKeyName1,
-        ltarReq.virtual,
+        (param.column as LinkToAnotherColumnReqType).virtual,
         true,
         null,
         false,
@@ -5217,7 +5192,7 @@ export class ColumnsService implements IColumnsService {
         null,
         null,
         foreignKeyName2,
-        ltarReq.virtual,
+        (param.column as LinkToAnotherColumnReqType).virtual,
         true,
         null,
         false,
@@ -5306,13 +5281,13 @@ export class ColumnsService implements IColumnsService {
         fk_mm_child_column_id: parentCol.id,
         fk_mm_parent_column_id: childCol.id,
         fk_related_model_id: refTable.id,
-        virtual: ltarReq.virtual,
-        readonly: ltarReq.readonly || false,
+        virtual: (param.column as LinkToAnotherColumnReqType).virtual,
+        readonly: (param.column as any).readonly || false,
         meta: {
-          ...(ltarReq.meta || {}),
-          plural: ltarReq.meta?.plural || pluralize(refTable.title),
+          ...(param.column['meta'] || {}),
+          plural: param.column['meta']?.plural || pluralize(refTable.title),
           singular:
-            ltarReq.meta?.singular || singularize(refTable.title),
+            param.column['meta']?.singular || singularize(refTable.title),
         },
         version: isMMLike ? 2 : 1,
         // column_order and view_id if provided
@@ -5360,8 +5335,8 @@ export class ColumnsService implements IColumnsService {
         fk_mm_child_column_id: childCol.id,
         fk_mm_parent_column_id: parentCol.id,
         fk_related_model_id: table.id,
-        virtual: ltarReq.virtual,
-        readonly: ltarReq.readonly || false,
+        virtual: (param.column as LinkToAnotherColumnReqType).virtual,
+        readonly: (param.column as any).readonly || false,
         meta: {
           plural: pluralize(table.title),
           singular: singularize(table.title),

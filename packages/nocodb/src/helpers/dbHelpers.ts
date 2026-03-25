@@ -227,11 +227,7 @@ export function getRelatedLinksColumn(
   relatedModel: Model,
 ) {
   return relatedModel.columns.find((c: Column) => {
-    if (
-      column.colOptions?.type === RelationTypes.MANY_TO_MANY ||
-      column.colOptions?.type === RelationTypes.ONE_TO_MANY ||
-      column.colOptions?.type === RelationTypes.MANY_TO_ONE
-    ) {
+    if (column.colOptions?.type === RelationTypes.MANY_TO_MANY) {
       return (
         column.colOptions.fk_mm_child_column_id ===
           c.colOptions?.fk_mm_parent_column_id &&

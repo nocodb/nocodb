@@ -66,6 +66,7 @@ export class RlsPostOperations
         return (await this.rlsService.setSubjects(context, {
           policyId: payload.policyId,
           subjects: payload.subjects,
+          userId: req.user?.id,
           req,
         })) as any;
 

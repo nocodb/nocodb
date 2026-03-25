@@ -324,10 +324,11 @@ export class RlsService {
     param: {
       policyId: string;
       subjects: RlsPolicySubjectType[];
+      userId: string;
       req: NcRequest;
     },
   ) {
-    const { policyId, subjects } = param;
+    const { policyId, subjects, userId, req } = param;
 
     const policy = await RlsPolicy.get(context, policyId);
 
@@ -344,6 +345,14 @@ export class RlsService {
     // Invalidate caches: RLS model cache + single query cache
     await RlsPolicy.clearModelCache(context, policy.fk_model_id);
     await View.clearSingleQueryCache(context, policy.fk_model_id);
+
+    this.appHooksService.emit(AppEvents.RLS_POLICY_UPDATE, {
+      context,
+      userId,
+      req,
+      policyId,
+      policyTitle: policy.title || '',
+    });
 
     // Re-subscribe all sockets for this table so RLS rooms are updated
     NocoSocket.resubscribeTableRls(context, policy.fk_model_id).catch((e) => {

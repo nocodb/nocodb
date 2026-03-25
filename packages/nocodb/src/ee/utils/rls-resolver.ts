@@ -1,6 +1,5 @@
 import type { RlsDefaultBehavior, RlsPolicySubjectType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import type Filter from '~/models/Filter';
 import RlsPolicy from '~/ee/models/RlsPolicy';
 import { isUserInTeamOrDescendants } from '~/ee/utils/team-subject-matcher';
 
@@ -15,7 +14,7 @@ export interface RlsUserContext {
 
 export interface RlsResolutionResult {
   type: 'no_rls' | 'filters' | 'deny_all';
-  filters?: Filter[];
+  matchedPolicyIds?: string[];
 }
 
 /**
@@ -99,6 +98,7 @@ export async function resolveRlsPolicies(
   context: NcContext,
   modelId: string,
   user: RlsUserContext,
+  options?: { teamResolutionFailed?: boolean },
 ): Promise<RlsResolutionResult> {
   // 1. Fetch all enabled policies for this model
   const allPolicies = await RlsPolicy.listByModel(context, modelId);
@@ -126,9 +126,23 @@ export async function resolveRlsPolicies(
     }
   }
 
+  // 4b. If team resolution failed and any scoped policy has team subjects,
+  // fail closed — we can't reliably determine access without team data
+  if (options?.teamResolutionFailed) {
+    const hasTeamSubjects = scopedPolicies.some((p) =>
+      p.subjects?.some((s) => s.type === 'team'),
+    );
+    if (hasTeamSubjects) {
+      return { type: 'deny_all' };
+    }
+  }
+
   // 5. If we have scoped matches → use their filters (OR'd together)
   if (matchedPolicies.length > 0) {
-    return { type: 'filters', filters: [] }; // Filters loaded separately
+    return {
+      type: 'filters',
+      matchedPolicyIds: matchedPolicies.map((p) => p.id),
+    };
   }
 
   // 6. If no scoped matches → fall back to default policy
@@ -141,7 +155,10 @@ export async function resolveRlsPolicies(
       case 'deny_all':
         return { type: 'deny_all' };
       case 'condition':
-        return { type: 'filters', filters: [] }; // Default policy filters loaded separately
+        return {
+          type: 'filters',
+          matchedPolicyIds: [defaultPolicy.id],
+        };
     }
   }
 

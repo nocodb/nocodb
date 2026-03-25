@@ -317,15 +317,8 @@ export default class RlsPolicy {
     // Delete all associated subjects
     await this.removeAllSubjects(context, policyId, ncMeta);
 
-    // Delete all associated filters
-    await ncMeta.metaDelete(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.FILTER_EXP,
-      {
-        fk_rls_policy_id: policyId,
-      },
-    );
+    // Note: filter cleanup is handled by the service layer via
+    // Filter.deleteAllByRlsPolicy() which does recursive deletion with cache eviction.
 
     // Delete the policy itself
     const res = await ncMeta.metaDelete(

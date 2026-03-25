@@ -113,7 +113,6 @@ import {
 import {
   getExpandedTeamIds,
   getMemberUserIdsForTeamsAndDescendants,
-  isUserInTeamOrDescendants,
 } from '~/ee/utils/team-subject-matcher';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
@@ -4242,6 +4241,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       // Load user's team memberships for RLS
       const teamIds: string[] = [];
       const teamWithDescendantIds: string[] = [];
+      let teamResolutionFailed = false;
 
       try {
         const userTeamAssignments = await PrincipalAssignment.list(
@@ -4261,8 +4261,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           );
           teamWithDescendantIds.push(...expanded);
         }
-      } catch (_e) {
-        // Silently continue — teams are optional for RLS
+      } catch (e) {
+        teamResolutionFailed = true;
+        new Logger('BaseModelSqlv2').warn(
+          'RLS team resolution failed — will deny access if team-based policies exist',
+          e,
+        );
       }
 
       // Resolve team hierarchy to member user IDs for {currentUser.teamWithDescendantMembers}
@@ -4272,8 +4276,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           teamDescendantMemberUserIds =
             await getMemberUserIdsForTeamsAndDescendants(this.context, teamIds);
         }
-      } catch (_e) {
-        // Silently continue — teams are optional
+      } catch (e) {
+        teamResolutionFailed = true;
+        new Logger('BaseModelSqlv2').warn(
+          'RLS team descendant member resolution failed',
+          e,
+        );
       }
 
       const rlsUser = {
@@ -4289,6 +4297,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         this.context,
         this.model.id,
         rlsUser,
+        { teamResolutionFailed },
       );
 
       if (result.type === 'no_rls') {
@@ -4299,98 +4308,55 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         return this.getDenyAllFilter();
       }
 
-      // Load and resolve filter trees for matched policies
-      const allPolicies = await RlsPolicy.listByModel(
-        this.context,
-        this.model.id,
-      );
-      const enabledPolicies = allPolicies.filter((p) => p.enabled);
-      const defaultPolicy = enabledPolicies.find((p) => p.is_default);
-      const scopedPolicies = enabledPolicies.filter((p) => !p.is_default);
+      // Use the resolver's matched policy IDs directly
+      const policyIdsToLoad = result.matchedPolicyIds;
 
-      const matchedPolicyIds: string[] = [];
-      for (const policy of scopedPolicies) {
-        if (policy.subjects?.length) {
-          let matched = false;
-          for (const subject of policy.subjects) {
-            if (subject.type === 'role' && baseRoles.includes(subject.id)) {
-              matched = true;
-              break;
-            }
-            if (subject.type === 'user' && user.id === subject.id) {
-              matched = true;
-              break;
-            }
-            if (subject.type === 'team') {
-              try {
-                const inTeam = await isUserInTeamOrDescendants(
-                  this.context,
-                  user.id,
-                  subject.id,
-                  subject.hierarchy_scope,
-                );
-                if (inTeam) {
-                  matched = true;
-                  break;
-                }
-              } catch {
-                // continue
-              }
-            }
-          }
-          if (matched) {
-            matchedPolicyIds.push(policy.id);
-          }
-        }
-      }
-
-      // Load filters for matched policies (or default policy)
-      let policyIdsToLoad: string[];
-
-      if (matchedPolicyIds.length > 0) {
-        policyIdsToLoad = matchedPolicyIds;
-      } else if (
-        defaultPolicy &&
-        defaultPolicy.default_behavior === 'condition'
-      ) {
-        policyIdsToLoad = [defaultPolicy.id];
-      } else {
+      if (!policyIdsToLoad?.length) {
         return [];
       }
 
-      // Load filter trees and OR them together
-      const allFilters: Filter[] = [];
+      // Load filter trees per policy: AND within each policy, OR between policies
+      const policyFilterGroups: Filter[][] = [];
       for (const policyId of policyIdsToLoad) {
         const filters = await Filter.rootFilterListByRlsPolicy(this.context, {
           rlsPolicyId: policyId,
         });
         if (filters?.length) {
           const resolvedFilters = resolveRlsDynamicValues(filters, rlsUser);
-          allFilters.push(...resolvedFilters.map((f) => new Filter(f)));
+          policyFilterGroups.push(resolvedFilters.map((f) => new Filter(f)));
         }
       }
 
-      if (allFilters.length === 0) {
+      if (policyFilterGroups.length === 0) {
         return [];
       }
 
-      // If multiple policies, wrap in OR group
-      if (policyIdsToLoad.length > 1) {
-        // Set logical_op on children so conditionV2 joins them with OR
-        const orChildren = allFilters.map((f, idx) => {
-          if (idx === 0) return f;
-          return new Filter({ ...f, logical_op: 'or' });
-        });
-        return [
-          new Filter({
-            children: orChildren,
-            is_group: true,
-            logical_op: 'or',
-          }),
-        ];
+      // Single policy — return its filters directly (AND'd by default)
+      if (policyFilterGroups.length === 1) {
+        return policyFilterGroups[0];
       }
 
-      return allFilters;
+      // Multiple policies: wrap each policy's filters in an AND group,
+      // then OR the groups together: (P1.F1 AND P1.F2) OR (P2.F1 AND P2.F2)
+      const orChildren = policyFilterGroups.map((group, idx) => {
+        const andGroup = new Filter({
+          children: group,
+          is_group: true,
+          logical_op: 'and',
+        });
+        if (idx > 0) {
+          andGroup.logical_op = 'or';
+        }
+        return andGroup;
+      });
+
+      return [
+        new Filter({
+          children: orChildren,
+          is_group: true,
+          logical_op: 'or',
+        }),
+      ];
     } catch (e) {
       // If RLS resolution fails, deny access (fail closed)
       new Logger('BaseModelSqlv2').error('RLS resolution error:', e);
@@ -4399,31 +4365,32 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   /**
-   * Returns a filter that matches zero rows (WHERE pk IS NULL).
+   * Returns a filter that matches zero rows.
+   * Uses (PK IS NULL AND PK IS NOT NULL) which is impossible regardless of data.
    * Used for deny_all default policy and fail-closed error handling.
    */
   private async getDenyAllFilter(): Promise<Filter[]> {
-    // Ensure columns are loaded so primaryKey is available
     await this.model.getColumns(this.context);
-    const pkCol = this.model.primaryKey;
+    const pkCol = this.model.primaryKey ?? this.model.columns?.[0];
     if (pkCol?.id) {
+      // IS NULL AND IS NOT NULL — always false, column-value independent
       return [
         new Filter({
-          comparison_op: 'null',
-          fk_column_id: pkCol.id,
-          is_group: false,
-        }),
-      ];
-    }
-    // Fallback: use first column with an impossible condition
-    const firstCol = this.model.columns?.[0];
-    if (firstCol?.id) {
-      return [
-        new Filter({
-          comparison_op: 'eq',
-          fk_column_id: firstCol.id,
-          value: '__nc_rls_deny_all__',
-          is_group: false,
+          children: [
+            new Filter({
+              comparison_op: 'null',
+              fk_column_id: pkCol.id,
+              is_group: false,
+            }),
+            new Filter({
+              comparison_op: 'notnull',
+              fk_column_id: pkCol.id,
+              is_group: false,
+              logical_op: 'and',
+            }),
+          ],
+          is_group: true,
+          logical_op: 'and',
         }),
       ];
     }

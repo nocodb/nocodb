@@ -12206,6 +12206,11 @@
             ],
             "description": "Record identifier (primary key value)"
           },
+          "id_fields": {
+            "type": "object",
+            "description": "Individual primary key field values as object",
+            "additionalProperties": true
+          },
           "fields": {
             "type": "object",
             "description": "Record fields data (excluding primary key). Undefined when empty.",

@@ -16,13 +16,13 @@ const { base } = storeToRefs(baseStore)
 <template>
   <NcModal
     v-model:visible="visible"
-    size="md"
+    size="sm"
     height="auto"
     :show-separator="false"
     nc-modal-class-name="!p-0 md:!p-0"
     wrap-class-name="nc-modal-rls-policies"
   >
-    <div class="relative" style="min-height: 440px; max-height: 80vh">
+    <div class="relative overflow-hidden" style="min-height: 360px; max-height: 60vh; height: 60vh">
       <RlsPolicyList :table-id="tableId" :base="base" :table-name="title" />
     </div>
   </NcModal>

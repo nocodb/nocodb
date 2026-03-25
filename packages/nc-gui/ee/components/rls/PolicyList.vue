@@ -212,8 +212,8 @@ const getSubjectLabel = (policy: RlsPolicyType) => {
       <!-- Default Policy -->
       <div v-if="defaultPolicy" class="px-4 py-3 border-b border-nc-border-gray-medium bg-nc-bg-gray-extralight">
         <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <NcSwitch :checked="!!defaultPolicy.enabled" size="small" @update:checked="handleTogglePolicy(defaultPolicy)" />
+          <div class="flex items-center gap-4">
+            <NcSwitch :checked="!!defaultPolicy.enabled" size="xsmall" @update:checked="handleTogglePolicy(defaultPolicy)" />
             <div class="text-sm font-medium">{{ $t('objects.permissions.rlsPolicy.defaultPolicy') }}</div>
             <div class="text-xs text-nc-content-gray-subtle px-2 py-0.5 bg-nc-bg-gray-medium rounded">
               {{
@@ -234,7 +234,7 @@ const getSubjectLabel = (policy: RlsPolicyType) => {
             <NcButton
               type="text"
               size="xs"
-              class="!text-nc-content-red-dark !px-0"
+              class="!px-0 hover:!text-nc-content-red-dark"
               icon-only
               @click="handleDeletePolicy(defaultPolicy.id!)"
             >
@@ -249,7 +249,7 @@ const getSubjectLabel = (policy: RlsPolicyType) => {
 
       <!-- Scoped Policies -->
       <div class="px-4 py-2">
-        <div class="text-xs font-semibold text-nc-content-gray-subtle uppercase mb-2">
+        <div class="text-xs font-semibold text-nc-content-gray-muted uppercase mb-2">
           {{ $t('objects.permissions.rlsPolicy.scopedPolicies') }}
         </div>
         <div v-if="!scopedPolicies.length" class="text-xs text-nc-content-gray-muted py-2">
@@ -260,8 +260,8 @@ const getSubjectLabel = (policy: RlsPolicyType) => {
           :key="policy.id"
           class="flex items-center justify-between py-2 border-b border-nc-border-gray-light last:border-0"
         >
-          <div class="flex items-center gap-2 flex-1 min-w-0">
-            <NcSwitch :checked="!!policy.enabled" size="small" @update:checked="handleTogglePolicy(policy)" />
+          <div class="flex items-center gap-4 flex-1 min-w-0">
+            <NcSwitch :checked="!!policy.enabled" size="xsmall" @update:checked="handleTogglePolicy(policy)" />
             <div class="flex flex-col min-w-0">
               <div class="text-sm font-medium truncate">{{ policy.title }}</div>
               <div class="text-xs text-nc-content-gray-subtle truncate">
@@ -281,7 +281,7 @@ const getSubjectLabel = (policy: RlsPolicyType) => {
             <NcButton
               type="text"
               size="xs"
-              class="!text-nc-content-red-dark !px-0"
+              class="!px-0 hover:!text-nc-content-red-dark"
               icon-only
               @click="handleDeletePolicy(policy.id!)"
             >

@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid';
+import { PlanTitles, resolvePlanMeta } from 'nocodb-sdk';
 import { isEE } from './helpers';
 import { CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
@@ -22,10 +23,12 @@ export const overrideFeature = async ({
 
 export const overridePlan = async ({
   workspace_id,
+  planTitle = PlanTitles.FREE,
   features,
   limits,
 }: {
   workspace_id: string;
+  planTitle?: PlanTitles;
   features?: {
     [key: string]: boolean;
   };
@@ -38,9 +41,9 @@ export const overridePlan = async ({
     const subscriptionCacheKey =
       (await NocoCache.get('root', subscriptionAliasKey)) ?? nanoid();
     await NocoCache.set('root', subscriptionAliasKey, subscriptionCacheKey);
-    const planId =
-      (await NocoCache.get('root', subscriptionCacheKey)) ?? nanoid();
+
     const baseSubscription = await NocoCache.get('root', subscriptionCacheKey);
+    const planId = baseSubscription?.fk_plan_id ?? nanoid();
     const planMeta = {
       ...(features ?? {}),
       ...(limits ?? {}),
@@ -59,10 +62,11 @@ export const overridePlan = async ({
       },
     });
 
-    const { FreePlan } = await import('~/ee/models/Plan.ts');
     const planCacheKey = `${CacheScope.PLANS}:${planId}`;
-    const basePlan = (await NocoCache.get('root', planCacheKey)) ?? FreePlan;
-    await NocoCache.set('root', planCacheKey, basePlan);
+    await NocoCache.set('root', planCacheKey, {
+      title: planTitle,
+      meta: resolvePlanMeta(planTitle),
+    });
 
     return {
       restore: async () => {

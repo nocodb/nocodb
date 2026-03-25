@@ -21,6 +21,7 @@ import metaTestV3 from './tests/metaApiV3/index.test';
 import { internalTests } from './tests/internal/index.test';
 import tableTests from './tests/meta-apis/table.test';
 import { paymentTest } from './tests/payment/payment.test';
+import { planGatingTests } from './tests/payment/planGating.test';
 
 let workspaceTest = () => {};
 let ssoTest = () => {};
@@ -44,7 +45,7 @@ if (process.env.EE === 'true') {
   columnTest = require('./tests/ee/column.test').default;
   integrationTest = require('./tests/ee/integration.test').default;
   oauthTests = require('./tests/oauth.test').default;
-  autoNumberTests = require('./tests/ee/autoNumber.test').default
+  autoNumberTests = require('./tests/ee/autoNumber.test').default;
 }
 
 const testVersion = ['v1', 'v2', 'v3'];
@@ -76,6 +77,7 @@ function restTests() {
     columnTest();
     integrationTest();
     paymentTest();
+    planGatingTests();
     oauthTests();
     bulkV1Test();
     oauthDCRTest();

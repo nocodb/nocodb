@@ -6166,47 +6166,6 @@ export class ColumnsService implements IColumnsService {
 
       fkDropped = true;
 
-      // Drop old FK column from data DB
-      if (fkColumn.uidt === UITypes.ForeignKey) {
-        // Only include physical columns (columns with a column_name that
-        // exist in the actual DB table). Virtual columns like LTAR, Rollup,
-        // Lookup, etc. have column_name=null and must be excluded from
-        // the tableUpdate diff, otherwise the SQL client chokes on them.
-        const physicalColumns = childTable.columns.filter(
-          (c) => c.column_name && !isVirtualCol(c),
-        );
-        const tableUpdateBody = {
-          ...childTable,
-          tn: childTable.table_name,
-          originalColumns: physicalColumns.map((c) => ({
-            ...c,
-            cn: c.column_name,
-            cno: c.column_name,
-          })),
-          columns: physicalColumns.map((c) => {
-            if (c.id === fkColumn.id) {
-              return {
-                ...c,
-                cn: c.column_name,
-                cno: c.column_name,
-                altered: Altered.DELETE_COLUMN,
-              };
-            }
-            return {
-              ...c,
-              cn: c.column_name,
-              cno: c.column_name,
-            };
-          }),
-        };
-
-        await sqlMgr.sqlOpPlus(
-          childSource,
-          'tableUpdate',
-          tableUpdateBody,
-        );
-      }
-
       // ── Phase A.2: Meta model + system columns (outside transaction) ──
       // Model.insert and createHmAndBtColumn use Noco.ncMeta internally
       // and cannot run inside a meta transaction (SQLite deadlock).
@@ -6505,6 +6464,46 @@ export class ColumnsService implements IColumnsService {
       } catch (metaError) {
         await ncMeta.rollback();
         throw metaError;
+      }
+
+      // ── Post-commit: Drop the legacy FK column from the data DB ──
+      // All meta changes are committed at this point. If the DROP COLUMN
+      // fails, the conversion is already complete — the FK column becomes
+      // a physical orphan with no meta reference. Non-fatal: log and continue.
+      if (fkColumn.uidt === UITypes.ForeignKey) {
+        const physicalColumns = childTable.columns.filter(
+          (c) => c.column_name && !isVirtualCol(c),
+        );
+        try {
+          await sqlMgr.sqlOpPlus(childSource, 'tableUpdate', {
+            ...childTable,
+            tn: childTable.table_name,
+            originalColumns: physicalColumns.map((c) => ({
+              ...c,
+              cn: c.column_name,
+              cno: c.column_name,
+            })),
+            columns: physicalColumns.map((c) => {
+              if (c.id === fkColumn.id) {
+                return {
+                  ...c,
+                  cn: c.column_name,
+                  cno: c.column_name,
+                  altered: Altered.DELETE_COLUMN,
+                };
+              }
+              return {
+                ...c,
+                cn: c.column_name,
+                cno: c.column_name,
+              };
+            }),
+          });
+        } catch (_e) {
+          this.logger.warn(
+            `[convertLinkToV2] Failed to drop legacy FK column '${fkColumn.column_name}' from '${childTable.table_name}' after successful conversion. The column is now an orphan and can be removed manually. Error: ${_e.message}`,
+          );
+        }
       }
 
       // Clear caches after successful commit

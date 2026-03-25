@@ -32,6 +32,7 @@ export interface AppInfo {
   ee?: boolean
   ncAttachmentFieldSize: number
   ncMaxAttachmentsAllowed: number
+  ncMaxTextLength: number
   isCloud: boolean
   automationLogLevel: 'OFF' | 'ERROR' | 'ALL'
   baseHostName?: string

@@ -5,14 +5,11 @@
  *
  * Used by both the mini-sidebar UserInfo and the HomeSidebar.
  * Expects to be placed inside an NcDropdown overlay slot.
- *
- * Props:
- *   - showEmailInSettings: show email under Account Settings (mini-sidebar style)
  */
 
-interface Props {}
-
-const props = withDefaults(defineProps<Props>(), {})
+const emits = defineEmits<{
+  (e: 'closeMenu'): void
+}>()
 
 const isMiniSidebar = inject(IsMiniSidebarInj, undefined)
 
@@ -49,10 +46,6 @@ const isLoggingOut = ref(false)
 const copyBtnRef = ref()
 
 const { $e } = useNuxtApp()
-
-const emits = defineEmits<{
-  (e: 'closeMenu'): void
-}>()
 
 const logout = async () => {
   isLoggingOut.value = true

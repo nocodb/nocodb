@@ -15,14 +15,8 @@ const { appInfo, isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
-const {
-  isWsAuditEnabled,
-  isPaymentEnabled,
-  isEEFeatureBlocked,
-  getFeature,
-  handleUpgradePlan,
-  showUpgradeToUseTeams,
-} = useEeConfig()
+const { isWsAuditEnabled, isPaymentEnabled, isEEFeatureBlocked, getFeature, handleUpgradePlan, showUpgradeToUseTeams } =
+  useEeConfig()
 
 const hasTeamsEditPermission = computed(() => {
   return isEeUI && isTeamsEnabled.value && isUIAllowed('teamCreate')
@@ -47,9 +41,7 @@ const routeNameToWsTab: Record<string, string> = {
   'index-typeOrId-settings': 'settings',
 }
 
-const wsTabToRouteName: Record<string, string> = Object.fromEntries(
-  Object.entries(routeNameToWsTab).map(([k, v]) => [v, k]),
-)
+const wsTabToRouteName: Record<string, string> = Object.fromEntries(Object.entries(routeNameToWsTab).map(([k, v]) => [v, k]))
 
 const activeTab = computed(() => {
   return routeNameToWsTab[route.value.name as string] || 'bases'
@@ -83,9 +75,7 @@ interface TabItem {
 }
 
 const tabItems = computed<TabItem[]>(() => {
-  const items: TabItem[] = [
-    { key: 'bases', icon: 'ncDatabase', label: t('objects.projects') },
-  ]
+  const items: TabItem[] = [{ key: 'bases', icon: 'ncDatabase', label: t('objects.projects') }]
 
   if (isUIAllowed('workspaceCollaborators')) {
     items.push({ key: 'collaborators', icon: 'users', label: t('labels.members') })

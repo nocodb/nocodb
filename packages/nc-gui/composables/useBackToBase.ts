@@ -7,9 +7,8 @@ export const useBackToBase = () => {
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
   const { isMobileMode } = useGlobal()
 
-  // hideMiniSidebar is true on full-screen flows (payment, checkout, pricing, upgrade)
   // — we don't want back-to-base intruding on those pages
-  const { hideMiniSidebar, isBaseSettingsFullPage } = storeToRefs(useSidebarStore())
+  const { isBaseSettingsFullPage } = storeToRefs(useSidebarStore())
 
   const isOnBasePage = computed(() => route.value.name?.toString().startsWith('index-typeOrId-baseId-') ?? false)
 

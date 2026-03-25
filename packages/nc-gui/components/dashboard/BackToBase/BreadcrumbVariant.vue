@@ -6,7 +6,7 @@ interface Props {
   disableTransition?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   disableTransition: true,
 })
 

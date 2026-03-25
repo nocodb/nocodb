@@ -8,8 +8,6 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { ncNavigateTo } = useGlobal()
-
 const { showOnboardingFlow } = useOnboardingFlow()
 
 const workspaceStore = useWorkspace()

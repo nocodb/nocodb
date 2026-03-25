@@ -268,9 +268,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       headers: { 'xc-auth': $state.token.value as string },
     })
 
-    window.location.href = isOrgBilling.value
-      ? `/admin/${orgId.value}/billing`
-      : `/${activeWorkspaceOrOrgId.value}/billing`
+    window.location.href = isOrgBilling.value ? `/admin/${orgId.value}/billing` : `/${activeWorkspaceOrOrgId.value}/billing`
   }
 
   const getCustomerPortalSession = async () => {

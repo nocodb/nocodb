@@ -110,7 +110,6 @@ const isSearching = computed(() => !!searchQuery.value)
 const hasNoResults = computed(() => {
   return isSearching.value && filteredWorkspaceList.value.length === 0
 })
-
 </script>
 
 <template>

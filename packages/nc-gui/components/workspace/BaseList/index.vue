@@ -22,8 +22,6 @@ const activeFilter = ref<FilterType>('all')
 
 const workspaceBases = computed(() => basesList.value)
 
-const baseCount = computed(() => workspaceBases.value.length)
-
 // Base attribute checkers
 const baseCheckers = {
   starred: (base: NcProject) => !!base.starred,
@@ -126,12 +124,7 @@ const selectedFilter = computed(() => filterOptions.value.find((o) => o.value ==
         </NcDropdown>
       </div>
 
-      <WorkspaceCreateProjectBtn
-        type="primary"
-        placement="bottomRight"
-        centered
-        inner-class="children:justify-center"
-      >
+      <WorkspaceCreateProjectBtn type="primary" placement="bottomRight" centered inner-class="children:justify-center">
         <div class="flex items-center gap-1.5">
           <GeneralIcon icon="plus" />
           <span class="hidden sm:inline">{{ $t('title.newProj') }}</span>
@@ -168,10 +161,7 @@ const selectedFilter = computed(() => filterOptions.value.find((o) => o.value ==
         </GeneralOverlay>
 
         <!-- Empty State -->
-        <div
-          v-else-if="emptyFilterResult"
-          class="flex flex-col items-center justify-center h-full text-nc-content-gray-muted"
-        >
+        <div v-else-if="emptyFilterResult" class="flex flex-col items-center justify-center h-full text-nc-content-gray-muted">
           <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('activity.noBases')" />
         </div>
 
@@ -191,7 +181,11 @@ const selectedFilter = computed(() => filterOptions.value.find((o) => o.value ==
     </div>
 
     <!-- Dialogs -->
-    <DlgBaseDuplicate v-if="dialogState.duplicate.base" v-model="dialogState.duplicate.isOpen" :base="dialogState.duplicate.base" />
+    <DlgBaseDuplicate
+      v-if="dialogState.duplicate.base"
+      v-model="dialogState.duplicate.isOpen"
+      :base="dialogState.duplicate.base"
+    />
     <DlgBaseDelete
       v-if="dialogState.delete.base"
       v-model:visible="dialogState.delete.isOpen"

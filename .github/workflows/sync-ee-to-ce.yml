@@ -122,7 +122,7 @@ jobs:
           fi
       - name: Comment on PR
         if: ${{ steps.sync.outputs.synchronize != 'true' }}
-        uses: thollander/actions-comment-pull-request@v2
+        uses: thollander/actions-comment-pull-request@v3
         with:
           message: ${{ steps.sync.outputs.msg }}
       - name: Error if failed

@@ -95,14 +95,14 @@ jobs:
           cp packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt ./packages/nc-sql-executor/src/public/nc.txt
 
       - name: Configure AWS and Api admin credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
 
       ### main build and deploy starts here ###
       - name: build nc-gui and copy to nocodb
@@ -220,7 +220,7 @@ jobs:
           fetch-depth: 1
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

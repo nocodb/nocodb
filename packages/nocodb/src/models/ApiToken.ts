@@ -218,6 +218,8 @@ export default class ApiToken implements ApiTokenType {
       queryBuilder.orWhereNull(`${MetaTable.API_TOKENS}.fk_user_id`);
     }
 
+    queryBuilder.orderBy(`${MetaTable.API_TOKENS}.created_at`, 'desc');
+
     return queryBuilder;
   }
 

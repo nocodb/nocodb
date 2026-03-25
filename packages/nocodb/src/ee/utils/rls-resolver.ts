@@ -110,23 +110,27 @@ export async function resolveRlsPolicies(
 
   // 4c. Batch team subject matching across all remaining policies
   if (policiesNeedingTeamCheck.length > 0) {
-    // Collect all unique team subjects across all policies
-    const allTeamSubjects: {
-      id: string;
-      hierarchy_scope?: string;
-    }[] = [];
-    const seen = new Set<string>();
+    // Collect all unique team subjects across all policies.
+    // Dedup by team ID but prefer the broader scope (self_and_descendants) over
+    // the narrower scope (self_only) on collision — otherwise a policy using
+    // self_and_descendants could be shadowed by an earlier self_only entry for
+    // the same team, causing descendant-team users to be incorrectly denied.
+    const seenTeams = new Map<string, string | undefined>();
     for (const policy of policiesNeedingTeamCheck) {
       for (const s of policy.subjects!) {
-        if (s.type === 'team' && !seen.has(s.id)) {
-          seen.add(s.id);
-          allTeamSubjects.push({
-            id: s.id,
-            hierarchy_scope: s.hierarchy_scope,
-          });
+        if (s.type !== 'team') continue;
+        const existing = seenTeams.get(s.id);
+        if (
+          !seenTeams.has(s.id) ||
+          (existing === 'self_only' && s.hierarchy_scope !== 'self_only')
+        ) {
+          seenTeams.set(s.id, s.hierarchy_scope);
         }
       }
     }
+    const allTeamSubjects = [...seenTeams.entries()].map(
+      ([id, hierarchy_scope]) => ({ id, hierarchy_scope }),
+    );
 
     // Single batch call for all team subjects
     const matchedTeamIds = await matchTeamSubjectsBatch(

@@ -358,7 +358,7 @@ export class RlsService {
     NocoSocket.resubscribeTableRls(context, policy.fk_model_id).catch((e) => {
       this.logger.error(
         'Failed to resubscribe sockets after subjects change',
-        e,
+        e.stack,
       );
     });
 

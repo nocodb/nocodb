@@ -4354,7 +4354,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       ];
     } catch (e) {
       // If RLS resolution fails, deny access (fail closed)
-      new Logger('BaseModelSqlv2').error('RLS resolution error:', e);
+      new Logger('BaseModelSqlv2').error('RLS resolution error:', e.stack);
       return this.getDenyAllFilter();
     }
   }

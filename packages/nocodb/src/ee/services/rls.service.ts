@@ -71,7 +71,7 @@ export class RlsService {
     const policy = await RlsPolicy.get(context, param.policyId);
 
     if (!policy) {
-      NcError.genericNotFound('RLS Policy', param.policyId);
+      NcError.get(context).rlsPolicyNotFound(param.policyId);
     }
 
     // Load filters
@@ -213,7 +213,7 @@ export class RlsService {
     const policy = await RlsPolicy.get(context, body.id);
 
     if (!policy) {
-      NcError.genericNotFound('RLS Policy', body.id);
+      NcError.get(context).rlsPolicyNotFound(body.id);
     }
 
     await RlsPolicy.update(context, body.id, {
@@ -273,7 +273,7 @@ export class RlsService {
     const policy = await RlsPolicy.get(context, policyId);
 
     if (!policy) {
-      NcError.genericNotFound('RLS Policy', policyId);
+      NcError.get(context).rlsPolicyNotFound(policyId);
     }
 
     // Delete associated filters first
@@ -324,15 +324,16 @@ export class RlsService {
     param: {
       policyId: string;
       subjects: RlsPolicySubjectType[];
+      userId: string;
       req: NcRequest;
     },
   ) {
-    const { policyId, subjects } = param;
+    const { policyId, subjects, userId, req } = param;
 
     const policy = await RlsPolicy.get(context, policyId);
 
     if (!policy) {
-      NcError.genericNotFound('RLS Policy', policyId);
+      NcError.get(context).rlsPolicyNotFound(policyId);
     }
 
     if (policy.is_default) {
@@ -345,11 +346,19 @@ export class RlsService {
     await RlsPolicy.clearModelCache(context, policy.fk_model_id);
     await View.clearSingleQueryCache(context, policy.fk_model_id);
 
+    this.appHooksService.emit(AppEvents.RLS_POLICY_UPDATE, {
+      context,
+      userId,
+      req,
+      policyId,
+      policyTitle: policy.title || '',
+    });
+
     // Re-subscribe all sockets for this table so RLS rooms are updated
     NocoSocket.resubscribeTableRls(context, policy.fk_model_id).catch((e) => {
       this.logger.error(
         'Failed to resubscribe sockets after subjects change',
-        e,
+        e.stack,
       );
     });
 

@@ -1,21 +1,19 @@
 import type { RlsDefaultBehavior, RlsPolicySubjectType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import type Filter from '~/models/Filter';
-import RlsPolicy from '~/ee/models/RlsPolicy';
-import { isUserInTeamOrDescendants } from '~/ee/utils/team-subject-matcher';
+import RlsPolicy from '~/models/RlsPolicy';
+import { matchTeamSubjectsBatch } from '~/utils/team-subject-matcher';
 
 export interface RlsUserContext {
   id: string;
   email?: string;
   roles?: string; // comma-separated base roles
   teams?: string[]; // direct team IDs the user belongs to
-  teamsWithDescendants?: string[]; // all team IDs including descendants of user's teams
   teamDescendantMemberUserIds?: string[]; // user IDs of members across user's teams + descendants
 }
 
 export interface RlsResolutionResult {
   type: 'no_rls' | 'filters' | 'deny_all';
-  filters?: Filter[];
+  matchedPolicyIds?: string[];
 }
 
 /**
@@ -32,52 +30,22 @@ const DYNAMIC_PLACEHOLDERS = {
 };
 
 /**
- * Check if a user matches any subject in a policy.
+ * Check if a user matches any role or user subject (no DB needed).
  */
-async function userMatchesSubjects(
-  context: NcContext,
+function matchesRoleOrUserSubject(
   user: RlsUserContext,
   subjects: RlsPolicySubjectType[],
-): Promise<boolean> {
+): boolean {
+  const userRoles = user.roles
+    ? user.roles.split(',').map((r) => r.trim())
+    : [];
+
   for (const subject of subjects) {
-    switch (subject.type) {
-      case 'role':
-        // Check if user's effective base role matches
-        if (user.roles) {
-          const userRoles = user.roles.split(',').map((r) => r.trim());
-          if (userRoles.includes(subject.id)) {
-            return true;
-          }
-        }
-        break;
-
-      case 'team':
-        {
-          // Fast path: check direct membership via pre-loaded teams
-          if (user.teams?.includes(subject.id)) {
-            return true;
-          }
-
-          // Full check with descendant expansion via DB
-          // isUserInTeamOrDescendants expands the SUBJECT team to include its descendants,
-          // then checks if the user is a member of any of them.
-          const matched = await isUserInTeamOrDescendants(
-            context,
-            user.id,
-            subject.id,
-            subject.hierarchy_scope,
-          );
-          if (matched) {
-            return true;
-          }
-        }
-        break;
-
-      case 'user':
-        if (user.id === subject.id) {
-          return true;
-        }
-        break;
+    if (subject.type === 'role' && userRoles.includes(subject.id)) {
+      return true;
+    }
+    if (subject.type === 'user' && user.id === subject.id) {
+      return true;
     }
   }
   return false;
@@ -90,7 +58,7 @@ async function userMatchesSubjects(
  * 1. Fetch all enabled policies for the model (cached)
  * 2. If no policies exist → no RLS (return null)
  * 3. Separate default policy from scoped policies
- * 4. For each scoped policy, check if user matches ANY subject
+ * 4. Match role/user subjects immediately (no DB), batch team subjects
  * 5. If scoped matches → OR all matched policies' filters
  * 6. If no scoped matches → apply default policy behavior
  * 7. If no default → return null (all rows visible)
@@ -99,6 +67,7 @@ export async function resolveRlsPolicies(
   context: NcContext,
   modelId: string,
   user: RlsUserContext,
+  options?: { teamResolutionFailed?: boolean },
 ): Promise<RlsResolutionResult> {
   // 1. Fetch all enabled policies for this model
   const allPolicies = await RlsPolicy.listByModel(context, modelId);
@@ -114,13 +83,69 @@ export async function resolveRlsPolicies(
   const defaultPolicy = enabledPolicies.find((p) => p.is_default);
   const scopedPolicies = enabledPolicies.filter((p) => !p.is_default);
 
-  // 4. Check which scoped policies match the user
+  // 4a. If team resolution failed and any scoped policy has team subjects,
+  // fail closed — we can't reliably determine access without team data
+  if (options?.teamResolutionFailed) {
+    const hasTeamSubjects = scopedPolicies.some((p) =>
+      p.subjects?.some((s) => s.type === 'team'),
+    );
+    if (hasTeamSubjects) {
+      return { type: 'deny_all' };
+    }
+  }
+
+  // 4b. Match role/user subjects immediately (no DB queries)
   const matchedPolicies: RlsPolicy[] = [];
+  const policiesNeedingTeamCheck: RlsPolicy[] = [];
 
   for (const policy of scopedPolicies) {
-    if (policy.subjects && policy.subjects.length > 0) {
-      const matches = await userMatchesSubjects(context, user, policy.subjects);
-      if (matches) {
+    if (!policy.subjects?.length) continue;
+
+    if (matchesRoleOrUserSubject(user, policy.subjects)) {
+      matchedPolicies.push(policy);
+    } else if (policy.subjects.some((s) => s.type === 'team')) {
+      policiesNeedingTeamCheck.push(policy);
+    }
+  }
+
+  // 4c. Batch team subject matching across all remaining policies
+  if (policiesNeedingTeamCheck.length > 0) {
+    // Collect all unique team subjects across all policies.
+    // Dedup by team ID but prefer the broader scope (self_and_descendants) over
+    // the narrower scope (self_only) on collision — otherwise a policy using
+    // self_and_descendants could be shadowed by an earlier self_only entry for
+    // the same team, causing descendant-team users to be incorrectly denied.
+    const seenTeams = new Map<string, string | undefined>();
+    for (const policy of policiesNeedingTeamCheck) {
+      for (const s of policy.subjects!) {
+        if (s.type !== 'team') continue;
+        const existing = seenTeams.get(s.id);
+        if (
+          !seenTeams.has(s.id) ||
+          (existing === 'self_only' && s.hierarchy_scope !== 'self_only')
+        ) {
+          seenTeams.set(s.id, s.hierarchy_scope);
+        }
+      }
+    }
+    const allTeamSubjects = [...seenTeams.entries()].map(
+      ([id, hierarchy_scope]) => ({ id, hierarchy_scope }),
+    );
+
+    // Single batch call for all team subjects
+    const matchedTeamIds = await matchTeamSubjectsBatch(
+      context,
+      user.id,
+      user.teams || [],
+      allTeamSubjects,
+    );
+
+    // Check which policies matched via team subjects
+    for (const policy of policiesNeedingTeamCheck) {
+      const hasTeamMatch = policy.subjects!.some(
+        (s) => s.type === 'team' && matchedTeamIds.has(s.id),
+      );
+      if (hasTeamMatch) {
         matchedPolicies.push(policy);
       }
     }
@@ -128,7 +153,10 @@ export async function resolveRlsPolicies(
 
   // 5. If we have scoped matches → use their filters (OR'd together)
   if (matchedPolicies.length > 0) {
-    return { type: 'filters', filters: [] }; // Filters loaded separately
+    return {
+      type: 'filters',
+      matchedPolicyIds: matchedPolicies.map((p) => p.id),
+    };
   }
 
   // 6. If no scoped matches → fall back to default policy
@@ -141,7 +169,10 @@ export async function resolveRlsPolicies(
       case 'deny_all':
         return { type: 'deny_all' };
       case 'condition':
-        return { type: 'filters', filters: [] }; // Default policy filters loaded separately
+        return {
+          type: 'filters',
+          matchedPolicyIds: [defaultPolicy.id],
+        };
     }
   }
 

@@ -371,7 +371,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         },
       ]
 
-      const additionalRules = extractFieldValidator(parseProp(column.meta).validators ?? [], column, appInfo.value.ncMaxTextLength)
+      const additionalRules = extractFieldValidator(
+        parseProp(column.meta).validators ?? [],
+        column,
+        appInfo.value.ncMaxTextLength,
+      )
       rules = [...rules, ...additionalRules]
 
       if (rules.length) {

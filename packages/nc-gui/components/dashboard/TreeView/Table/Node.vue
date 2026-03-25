@@ -51,8 +51,6 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { showEEFeatures, showRecordPlanLimitExceededModal } = useEeConfig()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 // todo: temp
 const { baseTables } = storeToRefs(useTablesStore())
 const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
@@ -416,7 +414,6 @@ const enabledOptions = computed(() => {
       showEEFeatures.value,
     tableRowLevelSecurity:
       isEeUI &&
-      isFeatureEnabled(FEATURE_FLAG.ROW_LEVEL_SECURITY) &&
       table.value?.type === 'table' &&
       isUIAllowed('rlsManage', { roles: baseRole?.value, source: source.value }) &&
       showEEFeatures.value,

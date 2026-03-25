@@ -80,17 +80,17 @@ jobs:
     runs-on: ubicloud-standard-8
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
         with:
           version: 9
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 24.14.0
           cache: 'pnpm'
@@ -164,17 +164,17 @@ jobs:
     runs-on: ubicloud-standard-8
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
         with:
           version: 9
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 24.14.0
           cache: 'pnpm'
@@ -274,7 +274,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout CE repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: nocodb/nocodb
           token: ${{ secrets.NC_GITHUB_TOKEN1 }}
@@ -309,7 +309,7 @@ jobs:
             }
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 24.14.0
 

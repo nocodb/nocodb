@@ -31,11 +31,11 @@ jobs:
       AWS_DEFAULT_REGION: us-east-2
     steps:
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v5
         with:
           node-version: 24.14.0
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
         with:
           version: 9
       - name: Get pnpm store directory
@@ -45,7 +45,7 @@ jobs:
           echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
 
@@ -69,7 +69,7 @@ jobs:
           echo "CURRENT_VERSION=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
 
       - name: Checkout2
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
         with:
           repository: nocodb/ee-private
           ref: sameid

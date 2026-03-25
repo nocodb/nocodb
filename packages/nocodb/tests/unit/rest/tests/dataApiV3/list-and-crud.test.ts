@@ -180,6 +180,7 @@ describe('dataApiV3', () => {
             const { Id, ...fields } = record;
             return {
               id: Id,
+              id_fields: { Id },
               fields,
             };
           }),
@@ -228,6 +229,7 @@ describe('dataApiV3', () => {
 
         expect(rsp.body).to.deep.equal({
           id: 401,
+          id_fields: { Id: 401 },
           fields: firstRecordFields,
         });
 
@@ -372,6 +374,7 @@ describe('dataApiV3', () => {
             const { Id, ...fields } = record;
             return {
               id: Id,
+              id_fields: { Id },
               fields,
             };
           }),
@@ -415,6 +418,7 @@ describe('dataApiV3', () => {
         const { Id: firstId, ...firstRecordFields } = firstRecordV3;
         expect(rsp.body).to.deep.equal({
           id: 401,
+          id_fields: { Id: 401 },
           fields: firstRecordFields,
         });
 
@@ -558,6 +562,7 @@ describe('dataApiV3', () => {
         });
         expect(rsp.body).to.deep.equal({
           id: 801,
+          id_fields: { Id: 801 },
           fields: {
             Date: records[0].Date,
             DateTime: records[0].DateTime,
@@ -596,7 +601,12 @@ describe('dataApiV3', () => {
             fields: 'Id,Date,DateTime',
           },
         });
-        expect(rsp.body.records.slice(0, 4)).to.deep.equal(updatedRecords);
+        expect(rsp.body.records.slice(0, 4)).to.deep.equal(
+          updatedRecords.map((r) => ({
+            ...r,
+            id_fields: { Id: r.id },
+          })),
+        );
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -688,11 +698,11 @@ describe('dataApiV3', () => {
         expect(rspFromRecordAPI.body).not.to.have.property('next');
 
         let citiesExpected = [
-          { id: 1, fields: { City: 'City 1' } },
-          { id: 2, fields: { City: 'City 2' } },
-          { id: 3, fields: { City: 'City 3' } },
-          { id: 4, fields: { City: 'City 4' } },
-          { id: 5, fields: { City: 'City 5' } },
+          { id: 1, id_fields: { Id: 1 }, fields: { City: 'City 1' } },
+          { id: 2, id_fields: { Id: 2 }, fields: { City: 'City 2' } },
+          { id: 3, id_fields: { Id: 3 }, fields: { City: 'City 3' } },
+          { id: 4, id_fields: { Id: 4 }, fields: { City: 'City 4' } },
+          { id: 5, id_fields: { Id: 5 }, fields: { City: 'City 5' } },
         ];
 
         // links
@@ -722,6 +732,7 @@ describe('dataApiV3', () => {
           if (i <= 5) {
             expect(rspFromLinkAPI.body.record).to.deep.equal({
               id: 1,
+              id_fields: { Id: 1 },
               fields: { Country: `Country 1` },
             });
 
@@ -730,6 +741,7 @@ describe('dataApiV3', () => {
               rspFromRecordAPI.body.records[0].fields['Country'],
             ).to.deep.eq({
               id: 1,
+              id_fields: { Id: 1 },
               fields: { Country: `Country 1` },
             });
           } else {
@@ -769,13 +781,13 @@ describe('dataApiV3', () => {
         });
 
         citiesExpected = [
-          { id: 1, fields: { City: 'City 1' } },
-          { id: 2, fields: { City: 'City 2' } },
-          { id: 3, fields: { City: 'City 3' } },
-          { id: 4, fields: { City: 'City 4' } },
-          { id: 5, fields: { City: 'City 5' } },
-          { id: 6, fields: { City: 'City 6' } },
-          { id: 7, fields: { City: 'City 7' } },
+          { id: 1, id_fields: { Id: 1 }, fields: { City: 'City 1' } },
+          { id: 2, id_fields: { Id: 2 }, fields: { City: 'City 2' } },
+          { id: 3, id_fields: { Id: 3 }, fields: { City: 'City 3' } },
+          { id: 4, id_fields: { Id: 4 }, fields: { City: 'City 4' } },
+          { id: 5, id_fields: { Id: 5 }, fields: { City: 'City 5' } },
+          { id: 6, id_fields: { Id: 6 }, fields: { City: 'City 6' } },
+          { id: 7, id_fields: { Id: 7 }, fields: { City: 'City 7' } },
         ];
 
         expect(rspFromLinkAPI.body.records).to.deep.equal(citiesExpected);
@@ -804,6 +816,7 @@ describe('dataApiV3', () => {
           if (i <= 7) {
             expect(rspFromLinkAPI.body.record).to.deep.equal({
               id: 1,
+              id_fields: { Id: 1 },
               fields: { Country: `Country 1` },
             });
 
@@ -812,6 +825,7 @@ describe('dataApiV3', () => {
               rspFromRecordAPI.body.records[0].fields['Country'],
             ).to.deep.eq({
               id: 1,
+              id_fields: { Id: 1 },
               fields: { Country: `Country 1` },
             });
           } else {
@@ -851,9 +865,9 @@ describe('dataApiV3', () => {
         });
 
         citiesExpected = [
-          { id: 2, fields: { City: 'City 2' } },
-          { id: 4, fields: { City: 'City 4' } },
-          { id: 6, fields: { City: 'City 6' } },
+          { id: 2, id_fields: { Id: 2 }, fields: { City: 'City 2' } },
+          { id: 4, id_fields: { Id: 4 }, fields: { City: 'City 4' } },
+          { id: 6, id_fields: { Id: 6 }, fields: { City: 'City 6' } },
         ];
         expect(rspFromLinkAPI.body.records).to.deep.equal(citiesExpected);
 
@@ -880,6 +894,7 @@ describe('dataApiV3', () => {
           if (i % 2 === 0 && i <= 6) {
             expect(rspFromLinkAPI.body.record).to.deep.equal({
               id: 1,
+              id_fields: { Id: 1 },
               fields: { Country: `Country 1` },
             });
 
@@ -888,6 +903,7 @@ describe('dataApiV3', () => {
               rspFromRecordAPI.body.records[0].fields['Country'],
             ).to.deep.eq({
               id: 1,
+              id_fields: { Id: 1 },
               fields: { Country: `Country 1` },
             });
           } else {
@@ -983,6 +999,7 @@ describe('dataApiV3', () => {
         const expectedFilmsFromLinkAPI = prepareRecords('Film', 20).map(
           (record) => ({
             id: record.Id,
+            id_fields: { Id: record.Id },
             fields: { Film: record.Film },
           }),
         );
@@ -1014,6 +1031,7 @@ describe('dataApiV3', () => {
         const expectedActorsFromLinkAPI = prepareRecords('Actor', 20).map(
           (record) => ({
             id: record.Id,
+            id_fields: { Id: record.Id },
             fields: { Actor: record.Actor },
           }),
         );
@@ -1042,6 +1060,7 @@ describe('dataApiV3', () => {
         expectedFilmsFromLinkAPI.push(
           ...prepareRecords('Film', 5, 21).map((record) => ({
             id: record.Id,
+            id_fields: { Id: record.Id },
             fields: { Film: record.Film },
           })),
         );
@@ -1089,6 +1108,7 @@ describe('dataApiV3', () => {
           expect(rspFromLinkAPI.body.records.length).to.equal(1);
           expect(rspFromLinkAPI.body.records[0]).to.deep.equal({
             id: 1,
+            id_fields: { Id: 1 },
             fields: {
               Actor: `Actor 1`,
             },
@@ -1131,6 +1151,7 @@ describe('dataApiV3', () => {
         for (let i = 2; i <= 30; i += 2) {
           expectedFilmsFromLinkAPI.push({
             id: i,
+            id_fields: { Id: i },
             fields: { Film: `Film ${i}` },
           });
           expectedFilmsFromRecordV3API.push({
@@ -1185,6 +1206,7 @@ describe('dataApiV3', () => {
             expect(rspFromLinkAPI.body.records.length).to.equal(1);
             expect(rspFromLinkAPI.body.records[0]).to.deep.equal({
               id: 1,
+              id_fields: { Id: 1 },
               fields: {
                 Actor: `Actor 1`,
               },
@@ -1245,6 +1267,7 @@ describe('dataApiV3', () => {
         expect(respFromLinkAPI.body.records.length).to.equal(1);
         expect(respFromLinkAPI.body.records[0]).to.deep.equal({
           id: 1,
+          id_fields: { Id: 1 },
           fields: { City: 'City 1' },
         });
 
@@ -1268,8 +1291,8 @@ describe('dataApiV3', () => {
         expect(respFromLinkAPI.body.records.length).to.equal(2);
         expect(respFromLinkAPI.body.records.sort(idc)).to.deep.equal(
           [
-            { id: 2, fields: { City: 'City 2' } },
-            { id: 3, fields: { City: 'City 3' } },
+            { id: 2, id_fields: { Id: 2 }, fields: { City: 'City 2' } },
+            { id: 3, id_fields: { Id: 3 }, fields: { City: 'City 3' } },
           ].sort(idc),
         );
 
@@ -1305,16 +1328,16 @@ describe('dataApiV3', () => {
         });
         expect(rsp.body.records.length).to.equal(10);
         expect(rsp.body.records).to.deep.equal([
-          { id: 1, fields: { City: 'City 1' } },
-          { id: 2, fields: { City: 'City 2' } },
-          { id: 3, fields: { City: 'City 3' } },
-          { id: 4, fields: { City: 'City 4' } },
-          { id: 5, fields: { City: 'City 5' } },
-          { id: 6, fields: { City: 'City 6' } },
-          { id: 7, fields: { City: 'City 7' } },
-          { id: 8, fields: { City: 'City 8' } },
-          { id: 9, fields: { City: 'City 9' } },
-          { id: 10, fields: { City: 'City 10' } },
+          { id: 1, id_fields: { Id: 1 }, fields: { City: 'City 1' } },
+          { id: 2, id_fields: { Id: 2 }, fields: { City: 'City 2' } },
+          { id: 3, id_fields: { Id: 3 }, fields: { City: 'City 3' } },
+          { id: 4, id_fields: { Id: 4 }, fields: { City: 'City 4' } },
+          { id: 5, id_fields: { Id: 5 }, fields: { City: 'City 5' } },
+          { id: 6, id_fields: { Id: 6 }, fields: { City: 'City 6' } },
+          { id: 7, id_fields: { Id: 7 }, fields: { City: 'City 7' } },
+          { id: 8, id_fields: { Id: 8 }, fields: { City: 'City 8' } },
+          { id: 9, id_fields: { Id: 9 }, fields: { City: 'City 9' } },
+          { id: 10, id_fields: { Id: 10 }, fields: { City: 'City 10' } },
         ]);
 
         rsp = await ncAxiosLinkGet({
@@ -1330,16 +1353,16 @@ describe('dataApiV3', () => {
         });
         expect(rsp.body.records.length).to.equal(10);
         expect(rsp.body.records).to.deep.equal([
-          { id: 6, fields: { City: 'City 6' } },
-          { id: 7, fields: { City: 'City 7' } },
-          { id: 8, fields: { City: 'City 8' } },
-          { id: 9, fields: { City: 'City 9' } },
-          { id: 10, fields: { City: 'City 10' } },
-          { id: 11, fields: { City: 'City 11' } },
-          { id: 12, fields: { City: 'City 12' } },
-          { id: 13, fields: { City: 'City 13' } },
-          { id: 14, fields: { City: 'City 14' } },
-          { id: 15, fields: { City: 'City 15' } },
+          { id: 6, id_fields: { Id: 6 }, fields: { City: 'City 6' } },
+          { id: 7, id_fields: { Id: 7 }, fields: { City: 'City 7' } },
+          { id: 8, id_fields: { Id: 8 }, fields: { City: 'City 8' } },
+          { id: 9, id_fields: { Id: 9 }, fields: { City: 'City 9' } },
+          { id: 10, id_fields: { Id: 10 }, fields: { City: 'City 10' } },
+          { id: 11, id_fields: { Id: 11 }, fields: { City: 'City 11' } },
+          { id: 12, id_fields: { Id: 12 }, fields: { City: 'City 12' } },
+          { id: 13, id_fields: { Id: 13 }, fields: { City: 'City 13' } },
+          { id: 14, id_fields: { Id: 14 }, fields: { City: 'City 14' } },
+          { id: 15, id_fields: { Id: 15 }, fields: { City: 'City 15' } },
         ]);
 
         rsp = await ncAxiosLinkGet({
@@ -1355,11 +1378,11 @@ describe('dataApiV3', () => {
         });
         expect(rsp.body.records.length).to.equal(5);
         expect(rsp.body.records).to.deep.equal([
-          { id: 46, fields: { City: 'City 46' } },
-          { id: 47, fields: { City: 'City 47' } },
-          { id: 48, fields: { City: 'City 48' } },
-          { id: 49, fields: { City: 'City 49' } },
-          { id: 50, fields: { City: 'City 50' } },
+          { id: 46, id_fields: { Id: 46 }, fields: { City: 'City 46' } },
+          { id: 47, id_fields: { Id: 47 }, fields: { City: 'City 47' } },
+          { id: 48, id_fields: { Id: 48 }, fields: { City: 'City 48' } },
+          { id: 49, id_fields: { Id: 49 }, fields: { City: 'City 49' } },
+          { id: 50, id_fields: { Id: 50 }, fields: { City: 'City 50' } },
         ]);
       });
 

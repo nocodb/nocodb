@@ -6,6 +6,7 @@ export interface RecordField {
 
 export interface DataRecord {
   id?: string | number;
+  id_fields?: RecordField;
   fields: RecordField;
 }
 

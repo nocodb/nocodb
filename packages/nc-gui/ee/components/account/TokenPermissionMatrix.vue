@@ -2,8 +2,6 @@
 import {
   ApiTokenPermissionCategory,
   ApiTokenPermissionLevel,
-  API_TOKEN_PERMISSION_GROUPS,
-  API_TOKEN_PERMISSION_PRESETS,
 } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -12,22 +10,12 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
-const permissions = computed({
-  get: () => props.modelValue,
-  set: (val) => emit('update:modelValue', val),
-})
+const { t } = useI18n()
 
-const groups = computed(() => {
-  return API_TOKEN_PERMISSION_GROUPS
-})
+const showAddDropdown = ref(false)
+const openLevelDropdown = ref<string | null>(null)
 
-const levels = [
-  { value: ApiTokenPermissionLevel.NONE, label: 'None' },
-  { value: ApiTokenPermissionLevel.READ, label: 'Read' },
-  { value: ApiTokenPermissionLevel.WRITE, label: 'Write' },
-]
-
-const categoryLabels: Record<string, { label: string; desc: string }> = {
+const categoryInfo: Record<string, { label: string; desc: string }> = {
   [ApiTokenPermissionCategory.RECORDS]: { label: 'Records', desc: 'List, read, create, update, and delete records' },
   [ApiTokenPermissionCategory.COMMENTS]: { label: 'Comments', desc: 'View and post comments on records' },
   [ApiTokenPermissionCategory.TABLES]: { label: 'Tables', desc: 'List, create, update, and delete tables' },
@@ -38,171 +26,167 @@ const categoryLabels: Record<string, { label: string; desc: string }> = {
   [ApiTokenPermissionCategory.USERS]: { label: 'Users', desc: 'Base members, workspace members, and invitations' },
 }
 
-const setLevel = (category: string, level: string) => {
-  permissions.value = {
-    ...permissions.value,
-    [category]: level,
-  }
-}
+const accessLevels = [
+  { value: ApiTokenPermissionLevel.READ, label: t('labels.readOnlyAccess') },
+  { value: ApiTokenPermissionLevel.WRITE, label: t('labels.readAndWrite') },
+]
 
-const matchesPreset = (p: Record<string, string>, preset: Record<string, string>) => {
-  return Object.values(ApiTokenPermissionCategory).every(
-    (c) => (p[c] || ApiTokenPermissionLevel.NONE) === (preset[c] || ApiTokenPermissionLevel.NONE),
-  )
-}
-
-const activePreset = computed(() => {
-  const p = permissions.value
-  const cats = Object.values(ApiTokenPermissionCategory)
-
-  const allWrite = cats.every((c) => p[c] === ApiTokenPermissionLevel.WRITE)
-  if (allWrite) return 'allWrite'
-
-  if (matchesPreset(p, API_TOKEN_PERMISSION_PRESETS.readOnly as Record<string, string>)) return 'readOnly'
-  if (matchesPreset(p, API_TOKEN_PERMISSION_PRESETS.fullDataAccess as Record<string, string>)) return 'fullData'
-
-  return null
+// Categories that have been explicitly added (non-none)
+const addedCategories = computed(() => {
+  return Object.entries(props.modelValue)
+    .filter(([_, level]) => level !== ApiTokenPermissionLevel.NONE)
+    .map(([key]) => key)
 })
 
-const applyPreset = (preset: 'readOnly' | 'fullData' | 'allWrite') => {
-  const categories = Object.values(ApiTokenPermissionCategory)
+// Categories available to add
+const availableCategories = computed(() => {
+  return Object.values(ApiTokenPermissionCategory).filter(
+    (cat) => !addedCategories.value.includes(cat),
+  )
+})
 
-  if (preset === 'readOnly') {
-    permissions.value = { ...API_TOKEN_PERMISSION_PRESETS.readOnly } as Record<string, string>
-  } else if (preset === 'fullData') {
-    permissions.value = { ...API_TOKEN_PERMISSION_PRESETS.fullDataAccess } as Record<string, string>
-  } else if (preset === 'allWrite') {
-    const newPerms: Record<string, string> = {}
-    for (const cat of categories) {
-      newPerms[cat] = ApiTokenPermissionLevel.WRITE
-    }
-    permissions.value = newPerms
-  }
+const addCategory = (category: string) => {
+  emit('update:modelValue', {
+    ...props.modelValue,
+    [category]: ApiTokenPermissionLevel.READ,
+  })
+  showAddDropdown.value = false
+}
+
+const removeCategory = (category: string) => {
+  emit('update:modelValue', {
+    ...props.modelValue,
+    [category]: ApiTokenPermissionLevel.NONE,
+  })
+}
+
+const setLevel = (category: string, level: string) => {
+  emit('update:modelValue', {
+    ...props.modelValue,
+    [category]: level,
+  })
+  openLevelDropdown.value = null
+}
+
+const getLevelLabel = (level: string) => {
+  return accessLevels.find((l) => l.value === level)?.label || level
 }
 </script>
 
 <template>
   <div class="nc-token-permission-matrix">
-    <!-- Presets -->
-    <div class="flex gap-2 mb-4">
-      <NcButton
-        size="xs"
-        :type="activePreset === 'readOnly' ? 'primary' : 'secondary'"
-        data-testid="nc-token-perm-preset-readonly"
-        @click="applyPreset('readOnly')"
+    <!-- Added permission rows in a single bordered container -->
+    <div v-if="addedCategories.length" class="border-1 border-nc-border-gray-medium rounded-lg overflow-hidden">
+      <div
+        v-for="(cat, idx) in addedCategories"
+        :key="cat"
+        class="nc-perm-row"
+        :class="{ 'border-t-1 border-nc-border-gray-light': idx > 0 }"
       >
-        Read-only
-      </NcButton>
-      <NcButton
-        size="xs"
-        :type="activePreset === 'fullData' ? 'primary' : 'secondary'"
-        data-testid="nc-token-perm-preset-fulldata"
-        @click="applyPreset('fullData')"
+      <div class="flex-1 min-w-0">
+        <div class="text-sm font-medium text-nc-content-gray-extreme">{{ categoryInfo[cat]?.label || cat }}</div>
+        <div class="text-xs text-nc-content-gray-subtle2">{{ categoryInfo[cat]?.desc }}</div>
+      </div>
+      <NcDropdown
+        :visible="openLevelDropdown === cat"
+        :trigger="['click']"
+        placement="bottomRight"
+        @update:visible="(v: boolean) => { openLevelDropdown = v ? cat : null }"
       >
-        Full data access
-      </NcButton>
-      <NcButton
-        size="xs"
-        :type="activePreset === 'allWrite' ? 'primary' : 'secondary'"
-        data-testid="nc-token-perm-preset-allwrite"
-        @click="applyPreset('allWrite')"
-      >
-        Full access
+        <button class="nc-perm-level-pill" @click="openLevelDropdown = openLevelDropdown === cat ? null : cat">
+          <span class="text-xs text-nc-content-gray-muted">Access:</span>
+          <span class="text-xs font-semibold text-nc-content-gray-extreme">{{ getLevelLabel(modelValue[cat]) }}</span>
+          <GeneralIcon icon="arrowDown" class="w-3 h-3 text-nc-content-gray-muted ml-auto" />
+        </button>
+
+        <template #overlay>
+          <NcMenu variant="small" class="!min-w-36">
+            <NcMenuItem
+              v-for="lvl in accessLevels"
+              :key="lvl.value"
+              :class="{ '!bg-nc-bg-gray-light': modelValue[cat] === lvl.value }"
+              @click="setLevel(cat, lvl.value)"
+            >
+              {{ lvl.label }}
+            </NcMenuItem>
+          </NcMenu>
+        </template>
+      </NcDropdown>
+      <NcButton type="text" size="xxsmall" class="!p-0.5 flex-none" @click="removeCategory(cat)">
+        <GeneralIcon icon="close" class="w-4 h-4 text-nc-content-gray-muted" />
       </NcButton>
     </div>
+    </div>
 
-    <!-- Matrix table -->
-    <div class="border-1 rounded-md overflow-hidden">
-      <!-- Header -->
-      <div class="flex items-center bg-nc-bg-gray-extralight px-4 py-2.5">
-        <div class="w-[44%] text-3.5 font-medium text-nc-content-gray-muted">Category</div>
-        <div
-          v-for="level in levels"
-          :key="level.value"
-          class="flex-1 text-center text-3.5 font-medium text-nc-content-gray-muted"
-        >
-          {{ level.label }}
+    <!-- Add permission -->
+    <div class="flex">
+    <NcDropdown
+      v-if="availableCategories.length"
+      v-model:visible="showAddDropdown"
+      :trigger="['click']"
+      placement="bottomLeft"
+      overlay-class-name="nc-perm-add-dropdown"
+    >
+      <NcButton
+        type="text"
+        size="small"
+        class="!text-brand-500 !px-0 !font-medium"
+        data-testid="nc-token-perm-add"
+      >
+        <div class="flex items-center gap-1">
+          <component :is="iconMap.plus" class="w-4 h-4" />
+          {{ $t('labels.addPermission') }}
         </div>
-      </div>
+      </NcButton>
 
-      <!-- Groups -->
-      <template v-for="(categories, groupName) in groups" :key="groupName">
-        <!-- Group header -->
-        <div class="flex items-center gap-2 px-4 py-2 bg-nc-bg-gray-extralight/60 border-t-1">
-          <span class="text-xs font-bold uppercase tracking-wider text-nc-content-gray-muted">{{ groupName }}</span>
-        </div>
-
-        <!-- Category rows -->
-        <div
-          v-for="category in categories"
-          :key="category"
-          class="flex items-center px-4 py-2.5 border-t-1 border-nc-border-gray-light"
-        >
-          <div class="w-[44%]">
-            <div class="text-sm text-nc-content-gray-extreme font-medium">
-              {{ categoryLabels[category]?.label || category }}
+      <template #overlay>
+        <div class="nc-perm-dropdown-content">
+          <div
+            v-for="cat in availableCategories"
+            :key="cat"
+            class="nc-perm-dropdown-item"
+            @click="addCategory(cat)"
+          >
+            <div>
+              <div class="text-sm font-medium text-nc-content-gray-extreme">{{ categoryInfo[cat]?.label || cat }}</div>
+              <div class="text-xs text-nc-content-gray-subtle2">{{ categoryInfo[cat]?.desc }}</div>
             </div>
-            <div v-if="categoryLabels[category]?.desc" class="text-[11px] leading-3.5 text-nc-content-gray-subtle2 mt-0.5">
-              {{ categoryLabels[category].desc }}
-            </div>
-          </div>
-          <div v-for="level in levels" :key="level.value" class="flex-1 flex justify-center">
-            <button
-              class="nc-perm-radio"
-              :class="{
-                'nc-perm-radio-active': (permissions[category] || ApiTokenPermissionLevel.NONE) === level.value,
-                'nc-perm-radio-write': level.value === ApiTokenPermissionLevel.WRITE && (permissions[category] || ApiTokenPermissionLevel.NONE) === level.value,
-                'nc-perm-radio-read': level.value === ApiTokenPermissionLevel.READ && (permissions[category] || ApiTokenPermissionLevel.NONE) === level.value,
-                'nc-perm-radio-none': level.value === ApiTokenPermissionLevel.NONE && (permissions[category] || ApiTokenPermissionLevel.NONE) === level.value,
-              }"
-              :data-testid="`nc-token-perm-${category}-${level.value}`"
-              @click="setLevel(category, level.value)"
-            >
-              <div class="nc-perm-radio-dot" />
-            </button>
           </div>
         </div>
       </template>
+    </NcDropdown>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.nc-perm-radio {
-  @apply w-5 h-5 rounded-full border-2 border-gray-300
-    flex items-center justify-center cursor-pointer transition-all;
+.nc-perm-row {
+  @apply flex items-center gap-3 px-3 py-2.5;
+}
+
+.nc-token-permission-matrix {
+  @apply flex flex-col gap-2;
+}
+
+.nc-perm-level-pill {
+  @apply flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg
+    bg-nc-bg-gray-light border-1 border-nc-border-gray-medium
+    cursor-pointer transition-all flex-none w-44;
 
   &:hover {
-    @apply border-gray-400;
+    @apply bg-nc-bg-gray-medium;
   }
+}
 
-  .nc-perm-radio-dot {
-    @apply w-0 h-0 rounded-full transition-all;
-  }
+.nc-perm-dropdown-content {
+  @apply w-72 bg-white rounded-lg shadow-lg border-1 border-nc-border-gray-medium py-1 max-h-64 overflow-y-auto nc-scrollbar-thin;
+}
 
-  &.nc-perm-radio-active {
-    .nc-perm-radio-dot {
-      @apply w-2.5 h-2.5;
-    }
-  }
+.nc-perm-dropdown-item {
+  @apply px-3 py-2 cursor-pointer;
 
-  &.nc-perm-radio-write {
-    @apply border-brand-500;
-    .nc-perm-radio-dot {
-      @apply bg-brand-500;
-    }
-  }
-  &.nc-perm-radio-read {
-    @apply border-green-500;
-    .nc-perm-radio-dot {
-      @apply bg-green-500;
-    }
-  }
-  &.nc-perm-radio-none {
-    @apply border-gray-400;
-    .nc-perm-radio-dot {
-      @apply bg-gray-400;
-    }
+  &:hover {
+    @apply bg-nc-bg-gray-light;
   }
 }
 </style>

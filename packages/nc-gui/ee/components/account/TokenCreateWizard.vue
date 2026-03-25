@@ -1,8 +1,5 @@
 <script lang="ts" setup>
-import {
-  ApiTokenPermissionLevel,
-  BASE_SCOPED_PERMISSION_CATEGORIES,
-} from 'nocodb-sdk'
+import { ApiTokenPermissionLevel } from 'nocodb-sdk'
 import type { ApiTokenScopeEntry } from 'nocodb-sdk'
 
 interface Props {
@@ -31,9 +28,8 @@ const customExpiry = ref('')
 // Scopes
 const scopes = ref<ApiTokenScopeEntry[]>([])
 
-// Permissions
+// Permissions — start empty, user adds one by one
 const permissions = ref<Record<string, string>>({})
-const showCustomPermissions = ref(false)
 
 // Result
 const tokenCopied = ref(false)
@@ -69,20 +65,6 @@ const isFormValid = computed(() => {
   return tokenName.value.length > 0 && tokenName.value.length <= 255
 })
 
-// Initialize default permissions (all none)
-const initPermissions = () => {
-  if (Object.keys(permissions.value).length) return
-  const perms: Record<string, string> = {}
-  for (const cat of BASE_SCOPED_PERMISSION_CATEGORIES) {
-    perms[cat] = ApiTokenPermissionLevel.NONE
-  }
-  permissions.value = perms
-}
-
-const onShowCustomPermissions = () => {
-  initPermissions()
-  showCustomPermissions.value = true
-}
 
 const createToken = async () => {
   isCreating.value = true
@@ -211,20 +193,11 @@ const cancel = () => {
       </div>
 
       <!-- Scopes (permissions) -->
-      <div class="flex flex-col gap-1.5">
+      <div class="flex flex-col gap-2">
         <label class="text-sm font-bold text-nc-content-gray">{{ $t('labels.scopes') }}</label>
         <span class="text-sm text-nc-content-gray-muted">{{ $t('msg.info.tokenScopeDescription') }}</span>
 
-        <div v-if="!showCustomPermissions">
-          <NcButton type="text" size="small" class="!text-brand-500 !px-0" @click="onShowCustomPermissions">
-            <div class="flex items-center gap-1">
-              <component :is="iconMap.plus" class="w-4 h-4" />
-              {{ $t('labels.addAScope') }}
-            </div>
-          </NcButton>
-        </div>
-
-        <AccountTokenPermissionMatrix v-if="showCustomPermissions" v-model="permissions" />
+        <AccountTokenPermissionMatrix v-model="permissions" />
       </div>
 
       <!-- Access (base scoping) -->

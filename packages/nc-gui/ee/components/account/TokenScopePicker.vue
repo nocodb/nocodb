@@ -201,6 +201,7 @@ const toggleBaseDropdown = () => {
     <div class="flex items-center gap-4">
       <NcButton
         v-if="!hasAllResources"
+        v-e="['c:api-token:add-all-resources']"
         type="text"
         size="small"
         class="!text-brand-500 !px-2 !font-medium"
@@ -220,6 +221,7 @@ const toggleBaseDropdown = () => {
         overlay-class-name="nc-scope-base-dropdown"
       >
         <NcButton
+          v-e="['c:api-token:add-base']"
           type="text"
           size="small"
           class="!text-brand-500 !px-2 !font-medium"

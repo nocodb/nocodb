@@ -29,6 +29,7 @@ const emit = defineEmits(['created', 'saved', 'cancel'])
 const { api } = useApi()
 const { copy } = useCopy()
 const { t } = useI18n()
+const { $e } = useNuxtApp()
 
 const isEditing = computed(() => !!props.editToken?.id)
 
@@ -140,6 +141,13 @@ const submitToken = async () => {
         body: payload,
       })
 
+      // Telemetry: token updated — log scope/permission counts, never token values
+      $e('a:api-token:update', {
+        scopeCount: scopesWithPermissions.length,
+        permissionCount: Object.values(permissions.value).filter((v) => v !== ApiTokenPermissionLevel.NONE).length,
+        hasExpiry: !!computedExpiry.value,
+      })
+
       message.toast(t('msg.info.tokenUpdatedSuccessfully'))
       emit('saved')
     } else {
@@ -159,6 +167,14 @@ const submitToken = async () => {
       })
       createdTokenValue.value = result.token
       showResultModal.value = true
+
+      // Telemetry: token created — log scope/permission counts, never token values
+      $e('a:api-token:create', {
+        scopeCount: scopesWithPermissions.length,
+        permissionCount: Object.values(permissions.value).filter((v) => v !== ApiTokenPermissionLevel.NONE).length,
+        hasExpiry: !!computedExpiry.value,
+      })
+
       emit('created', result.token)
     }
   } catch (e: any) {
@@ -261,10 +277,11 @@ const onResultDone = () => {
 
       <!-- Actions -->
       <div class="flex justify-end gap-3 pt-4 border-t border-nc-border-gray-light">
-        <NcButton type="text" size="small" data-testid="nc-token-cancel-btn" @click="cancel">
+        <NcButton v-e="['c:api-token:cancel']" type="text" size="small" data-testid="nc-token-cancel-btn" @click="cancel">
           {{ $t('general.cancel') }}
         </NcButton>
         <NcButton
+          v-e="[isEditing ? 'c:api-token:save' : 'c:api-token:create']"
           type="primary"
           size="small"
           :loading="isCreating"
@@ -313,6 +330,7 @@ const onResultDone = () => {
           </code>
           <NcTooltip :title="tokenCopied ? $t('general.copied') : $t('general.copy')">
             <NcButton
+              v-e="['c:api-token:copy-created']"
               size="xs"
               type="secondary"
               class="flex-none !px-1.5"
@@ -339,6 +357,7 @@ const onResultDone = () => {
         <!-- Footer -->
         <div class="flex justify-end">
           <NcButton
+            v-e="['c:api-token:done']"
             type="primary"
             size="small"
             :disabled="!tokenCopied"

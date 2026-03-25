@@ -333,12 +333,18 @@ export interface ApiTokenCreateEvent extends Optional<NcBaseEvent, 'context'> {
   userId: string;
   tokenId: string;
   tokenTitle: string;
+  scopeCount?: number;
+  permissionCategories?: string[];
+  hasExpiry?: boolean;
 }
 
 export interface ApiTokenUpdateEvent extends Optional<NcBaseEvent, 'context'> {
   userId: string;
   tokenId: string;
   tokenTitle: string;
+  scopeCount?: number;
+  permissionCategories?: string[];
+  hasExpiry?: boolean;
 }
 
 export interface ApiTokenDeleteEvent extends Optional<NcBaseEvent, 'context'> {

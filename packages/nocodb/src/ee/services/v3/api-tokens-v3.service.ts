@@ -46,6 +46,21 @@ export class ApiTokensV3Service {
     }
   }
 
+  /**
+   * Extract non-none permission category names from scopes for audit/telemetry.
+   * Never includes token values or hashes.
+   */
+  private extractPermissionCategories(
+    scopes?: Array<{ permissions?: Record<string, string> }>,
+  ): string[] {
+    if (!scopes?.length) return [];
+    const perms = scopes[0]?.permissions;
+    if (!perms) return [];
+    return Object.entries(perms)
+      .filter(([_, level]) => level !== 'none')
+      .map(([category]) => category);
+  }
+
   private async transformToV3(apiToken: any): Promise<any> {
     const result: any = {
       id: apiToken.id,
@@ -225,6 +240,9 @@ export class ApiTokensV3Service {
       tokenTitle: result.description,
       userId: param.cookie['user']?.id,
       tokenId: result.id,
+      scopeCount: param.body.scopes?.length || 0,
+      permissionCategories: this.extractPermissionCategories(param.body.scopes),
+      hasExpiry: !!param.body.expiry,
       req: param.cookie,
     });
 
@@ -286,6 +304,9 @@ export class ApiTokensV3Service {
       tokenId: param.id,
       tokenTitle: updated?.description,
       userId: user?.id,
+      scopeCount: param.body.scopes?.length,
+      permissionCategories: this.extractPermissionCategories(param.body.scopes),
+      hasExpiry: param.body.expiry !== undefined,
       req: param.cookie,
     });
 

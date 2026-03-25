@@ -128,6 +128,7 @@ const getLevelLabel = (level: string) => {
       overlay-class-name="nc-perm-add-dropdown"
     >
       <NcButton
+        v-e="['c:api-token:add-permission']"
         type="text"
         size="small"
         class="!text-brand-500 !px-2 !font-medium"

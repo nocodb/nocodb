@@ -110,6 +110,7 @@ enum AuditV1OperationTypes {
 
   API_TOKEN_DELETE = 'API_TOKEN_DELETE',
   API_TOKEN_CREATE = 'API_TOKEN_CREATE',
+  API_TOKEN_UPDATE = 'API_TOKEN_UPDATE',
 
   BASE_DUPLICATE = 'BASE_DUPLICATE',
   BASE_DUPLICATE_ERROR = 'BASE_DUPLICATE_ERROR',
@@ -988,6 +989,14 @@ export interface APITokenCreatePayload {
 export interface APITokenDeletePayload {
   token_id: string;
   token_title: string;
+}
+
+export interface APITokenUpdatePayload {
+  token_id: string;
+  token_title: string;
+  scope_count?: number;
+  permission_categories?: string[];
+  has_expiry?: boolean;
 }
 
 export interface SharedBasePayload {

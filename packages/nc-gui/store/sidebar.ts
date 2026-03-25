@@ -26,13 +26,15 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const { activeViewTitleOrId } = storeToRefs(viewsStore)
 
   const allowHideLeftSidebarForCurrentRoute = computed(() => {
-    return [
-      'index-typeOrId-baseId-index-index',
-      'index-typeOrId-settings-page',
-      'index-typeOrId-baseId-index-settings-page',
-      'index-typeOrId-baseId-index-docs',
-      'index-typeOrId-baseId-index-docs-docId-slugs',
-    ].includes(route.value.name as string)
+    return (
+      [
+        'index-typeOrId-baseId-index-index',
+        'index-typeOrId-settings-page',
+        'index-typeOrId-baseId-index-settings-page',
+        'index-typeOrId-baseId-index-docs',
+        'index-typeOrId-baseId-index-docs-docId-slugs',
+      ].includes(route.value.name as string) || isWsHomeRoute(route.value)
+    )
   })
 
   const isLeftSidebarOpen = computed({

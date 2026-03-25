@@ -32,6 +32,10 @@ const canCreateWorkspace = computed(() => {
 
 const navigateToWorkspace = (wsId: string) => {
   navigateTo(`/${wsId}`)
+
+  if (isMobileMode.value) {
+    isLeftSidebarOpen.value = false
+  }
 }
 
 const onCreateWorkspace = () => {
@@ -120,30 +124,8 @@ const hasNoResults = computed(() => {
         <img v-if="isDark" alt="NocoDB" src="~/assets/img/brand/text.png" class="h-4" />
         <img v-else alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="h-4" />
       </div>
-      <div class="flex items-center gap-0.5">
-        <NcTooltip class="flex" placement="bottom" hide-on-click :disabled="!!isMobileMode">
-          <template #title>
-            {{ isLeftSidebarOpen ? $t('title.hideSidebar') : $t('title.showSidebar') }}
-          </template>
-          <NcButton
-            v-e="['c:leftSidebar:hideToggle']"
-            :type="isMobileMode ? 'secondary' : 'text'"
-            :size="isMobileMode ? 'medium' : 'small'"
-            class="nc-sidebar-left-toggle-icon !text-nc-content-gray-subtle !hover:text-nc-content-gray !md:(hover:bg-nc-bg-gray-medium) !rounded-md"
-            @click="isLeftSidebarOpen = !isLeftSidebarOpen"
-          >
-            <div class="flex items-center text-inherit">
-              <GeneralIcon v-if="isMobileMode" icon="close" />
-              <GeneralIcon
-                v-else
-                icon="doubleLeftArrow"
-                class="duration-150 transition-all !text-lg -mt-0.5 !text-nc-content-gray-muted bg-opacity-50"
-                :class="{ 'transform rotate-180': !isLeftSidebarOpen }"
-              />
-            </div>
-          </NcButton>
-        </NcTooltip>
-      </div>
+
+      <GeneralHideLeftSidebarBtn show-always />
     </div>
 
     <!-- Search input -->
@@ -236,6 +218,7 @@ const hasNoResults = computed(() => {
         full-width
         inner-class="children:justify-center"
         class="w-full !border-nc-border-brand justify-center"
+        data-testid="nc-home-sidebar-create-ws"
         @click="onCreateWorkspace"
       >
         <div class="flex items-center justify-center gap-2 text-center">

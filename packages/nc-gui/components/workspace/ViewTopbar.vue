@@ -27,7 +27,7 @@ const showUpgrade = () => {
     <!-- Left -->
     <div class="flex items-center gap-2 min-w-0">
       <GeneralOpenLeftSidebarBtn />
-      <h1 class="text-bodyLgBold text-nc-content-gray capitalize truncate mb-0">
+      <h1 class="text-bodyLgBold text-nc-content-gray capitalize truncate mb-0" data-testid="nc-ws-home-topbar-title">
         {{ activeWorkspace?.title }}
       </h1>
       <div

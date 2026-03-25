@@ -430,6 +430,25 @@ if (!props.isNewWsPage) {
   @apply flex flex-row items-center gap-x-2 py-[1px];
 }
 
+// Integrations sub-tabs: propagate height through Ant tabs internal DOM
+.nc-integrations-tabs-wrapper {
+  :deep(.ant-tabs) {
+    @apply flex flex-col;
+  }
+
+  :deep(.ant-tabs-content-holder) {
+    @apply flex-1 min-h-0;
+  }
+
+  :deep(.ant-tabs-content) {
+    @apply h-[calc(100vh-var(--topbar-height)-41px-44px)];
+  }
+
+  :deep(.ant-tabs-tabpane) {
+    @apply h-[calc(100vh-var(--topbar-height)-41px-44px)];
+  }
+}
+
 .hide-tabs {
   // Hide only the top-level tab nav (this element IS the .ant-tabs)
   > :deep(.ant-tabs-nav) {

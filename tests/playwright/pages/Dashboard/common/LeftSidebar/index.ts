@@ -237,7 +237,21 @@ export class LeftSidebarPage extends BasePage {
   async clickHome(): Promise<void> {}
 
   async getWorkspaceName(): Promise<string | null> {
-    return this.get().locator('.nc-sidebar-header').getAttribute('data-workspace-title');
+    await this.rootPage.waitForTimeout(500);
+
+    // Workspace home page — read from the ViewTopbar heading
+    const topbarTitle = this.rootPage.locator('[data-testid="nc-ws-home-topbar-title"]');
+    if ((await topbarTitle.count()) > 0) {
+      return (await topbarTitle.textContent())?.trim() ?? null;
+    }
+
+    // DashboardSidebar header (inside a base) — any element with data-workspace-title
+    const wsAttr = this.rootPage.locator('[data-workspace-title]');
+    if ((await wsAttr.count()) > 0) {
+      return wsAttr.first().getAttribute('data-workspace-title');
+    }
+
+    return null;
   }
 
   async verifyWorkspaceName({ title }: { title: string }): Promise<void> {

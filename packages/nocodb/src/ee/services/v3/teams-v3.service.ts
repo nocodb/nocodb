@@ -495,6 +495,14 @@ export class TeamsV3Service {
 
     // Add members if provided
     if (param.team.members && param.team.members.length > 0) {
+      for (const member of param.team.members) {
+        if (!member.user_id || !member.team_role) {
+          NcError.get(context).invalidRequestBody(
+            'Each member must have user_id and team_role',
+          );
+        }
+      }
+
       // Batch-validate all users exist
       const memberUserIds = param.team.members.map((m) => m.user_id);
       const usersMap = await User.getByIds(memberUserIds);
@@ -899,6 +907,14 @@ export class TeamsV3Service {
       NcError.get(context).invalidRequestBody(
         'Request body must be an array of {user_id, team_role} objects',
       );
+    }
+
+    for (const member of param.members) {
+      if (!member.user_id || !member.team_role) {
+        NcError.get(context).invalidRequestBody(
+          'Each member must have user_id and team_role',
+        );
+      }
     }
 
     // validate: all users exist

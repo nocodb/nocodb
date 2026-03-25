@@ -51,6 +51,15 @@ const isCreateTeamModalVisible = ref(false)
 
 const createTeamParentId = ref<string | null>(null)
 
+const isMoveTeamModalVisible = ref(false)
+
+const moveTeamTarget = ref<TeamV3V3Type | null>(null)
+
+const handleMoveTeam = (team: TeamV3V3Type) => {
+  moveTeamTarget.value = team
+  isMoveTeamModalVisible.value = true
+}
+
 const viewMode = ref<'flat' | 'tree'>('tree')
 
 const expandedTeams = ref(new Set<string>())
@@ -538,6 +547,14 @@ onMounted(async () => {
                       />
                     </div>
                   </NcMenuItem>
+                  <NcMenuItem
+                    v-if="(record.is_owner || isWsOwner) && !blockTeamHierarchy"
+                    v-e="['c:team:move', { teamId: record.id }]"
+                    @click="handleMoveTeam(record as TeamV3V3Type)"
+                  >
+                    <GeneralIcon icon="ncMove" class="h-4 w-4" />
+                    {{ $t('labels.moveTeam') }}
+                  </NcMenuItem>
                   <NcTooltip
                     v-if="record.is_member"
                     :disabled="!hasSoleTeamOwner(record as TeamV3V3Type)"
@@ -571,5 +588,6 @@ onMounted(async () => {
     </div>
     <WorkspaceTeamsEdit v-if="isTeamsEnabled" :is-open-using-router-push="isEditModalOpenUsingRouterPush" />
     <WorkspaceTeamsCreate v-model:visible="isCreateTeamModalVisible" :parent-team-id="createTeamParentId" />
+    <WorkspaceTeamsMove v-model:visible="isMoveTeamModalVisible" :team="moveTeamTarget" />
   </div>
 </template>

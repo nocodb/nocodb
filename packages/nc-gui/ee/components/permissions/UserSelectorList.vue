@@ -15,11 +15,12 @@ interface Props extends Partial<NcListProps> {
   disabledUsers?: string[]
   /** Override minimum role — uses the more restrictive of this and PermissionMeta.minimumRole */
   minimumRoleOverride?: string
+  teamHierarchyScopes?: Record<string, 'self_only' | 'self_and_descendants'>
 }
 
 const props = withDefaults(defineProps<Props>(), {})
 
-const emits = defineEmits(['update:selectedUsers', 'change', 'update:open', 'escape'])
+const emits = defineEmits(['update:selectedUsers', 'change', 'update:open', 'escape', 'toggleTeamScope'])
 
 const selectedUsers = useVModel(props, 'selectedUsers', emits)
 
@@ -40,6 +41,7 @@ const {
   showListFooter,
   disabledUsers: _disabledUsers,
   minimumRoleOverride: _minimumRoleOverride,
+  teamHierarchyScopes: _teamHierarchyScopes,
   ...restProps
 } = props
 
@@ -273,8 +275,46 @@ defineExpose({
         </div>
       </NcTooltip>
     </template>
-    <template #listItemExtraRight="{ option }">
+    <template #listItemExtraRight="{ option, isSelected }">
       <div class="flex items-center gap-1" :class="{ 'opacity-40': parentRestrictedUserIds.includes(option.id) }">
+        <div
+          v-if="option?.isTeam && isSelected"
+          class="nc-team-scope-toggle flex items-center rounded-md border-1 border-nc-border-gray-medium flex-none"
+          @click.stop
+        >
+          <NcTooltip placement="top" class="flex">
+            <template #title>{{ $t('tooltip.teamScopeThisOnlyDesc') }}</template>
+            <div
+              class="nc-team-scope-segment px-1.5 py-0.5 text-[10px] leading-tight font-medium transition-colors cursor-pointer rounded-l-[5px]"
+              :class="
+                teamHierarchyScopes?.[option.id] === 'self_only'
+                  ? 'bg-nc-fill-primary text-white'
+                  : 'text-nc-content-gray-subtle hover:bg-nc-bg-gray-light'
+              "
+              @click="
+                teamHierarchyScopes?.[option.id] !== 'self_only' ? emits('toggleTeamScope', option.id) : undefined
+              "
+            >
+              {{ $t('labels.thisTeamOnly') }}
+            </div>
+          </NcTooltip>
+          <NcTooltip placement="top" class="flex">
+            <template #title>{{ $t('tooltip.teamScopeWithSubTeamsDesc') }}</template>
+            <div
+              class="nc-team-scope-segment px-1.5 py-0.5 text-[10px] leading-tight font-medium transition-colors cursor-pointer rounded-r-[5px]"
+              :class="
+                teamHierarchyScopes?.[option.id] !== 'self_only'
+                  ? 'bg-nc-fill-primary text-white'
+                  : 'text-nc-content-gray-subtle hover:bg-nc-bg-gray-light'
+              "
+              @click="
+                teamHierarchyScopes?.[option.id] === 'self_only' ? emits('toggleTeamScope', option.id) : undefined
+              "
+            >
+              {{ $t('labels.withSubTeams') }}
+            </div>
+          </NcTooltip>
+        </div>
         <RolesBadge :border="false" :role="option.roles" icon-only nc-badge-class="!px-1" show-tooltip>
           <template #tooltip="{ label }">
             {{ $t('tooltip.basePermissionRole', { role: $t(`objects.roleType.${label}`) }) }}

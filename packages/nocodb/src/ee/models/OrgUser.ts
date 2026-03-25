@@ -66,6 +66,11 @@ export default class OrgUser {
           `${MetaTable.WORKSPACE_USER}.deleted`,
         );
       })
+      .where(function () {
+        this.where(`${MetaTable.USERS}.is_deleted`, false).orWhereNull(
+          `${MetaTable.USERS}.is_deleted`,
+        );
+      })
       .groupBy(
         `${MetaTable.USERS}.id`,
         `${MetaTable.USERS}.email`,

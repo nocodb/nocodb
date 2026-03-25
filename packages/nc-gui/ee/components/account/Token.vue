@@ -58,8 +58,6 @@ const currentPage = ref(1)
 
 const showNewTokenModal = ref(false)
 
-const showEditModal = ref(false)
-
 const editingToken = ref<IApiTokenInfo | null>(null)
 
 const currentLimit = ref(10)
@@ -270,11 +268,17 @@ const handleCancel = () => {
   isValidTokenName.value = false
 }
 
+const isExpired = (token: IApiTokenInfo) => {
+  if (!token.expiry) return false
+  return new Date(token.expiry) < new Date()
+}
+
 const isFineGrained = (token: IApiTokenInfo) => {
   return !!(token.scopes?.length) || !!token.expiry || !!token.token_prefix
 }
 
 const openCreateForm = () => {
+  editingToken.value = null
   navigateTo('/account/tokens/new')
 }
 
@@ -283,24 +287,39 @@ const onTokenCreated = () => {
   loadAllTokens(pagination.total + 1)
 }
 
-const onCreateCancel = () => {
-  navigateTo('/account/tokens')
-}
-
-const openEditModal = (token: IApiTokenInfo) => {
-  editingToken.value = token
-  showEditModal.value = true
-}
-
-const onEditSaved = () => {
-  showEditModal.value = false
+const onTokenSaved = () => {
   editingToken.value = null
+  viewMode.value = 'list'
   loadTokens()
+  if (route.path.endsWith('/new')) {
+    navigateTo('/account/tokens')
+  }
 }
 
-const onEditCancel = () => {
-  showEditModal.value = false
+const onCreateCancel = () => {
   editingToken.value = null
+  viewMode.value = 'list'
+  if (route.path.endsWith('/new')) {
+    navigateTo('/account/tokens')
+  }
+}
+
+const openEditToken = async (token: IApiTokenInfo) => {
+  try {
+    // Fetch full token list from V3 to get scopes/permissions
+    const response: any = await api.request({
+      path: '/api/v3/meta/tokens',
+      method: 'GET',
+    })
+    // V1 returns integer IDs, V3 may return string — compare loosely
+    const detail = response?.list?.find((t: any) => String(t.id) === String(token.id))
+    editingToken.value = detail ? { ...token, ...detail } : token
+  } catch {
+    editingToken.value = token
+  }
+  viewMode.value = 'create'
+  // Update URL without triggering router navigation (which would re-mount the component)
+  window.history.replaceState({}, '', '/account/tokens/new')
 }
 </script>
 
@@ -312,14 +331,20 @@ const onEditCancel = () => {
       </template>
       <template #title>
         <span data-rec="true">
-          {{ viewMode === 'list' ? $t('title.tokens') : $t('title.createNewToken') }}
+          {{ viewMode === 'list' ? $t('title.tokens') : editingToken ? $t('general.edit') + ' ' + $t('labels.token') : $t('title.createNewToken') }}
         </span>
       </template>
     </NcPageHeader>
     <div class="nc-content-max-w p-6 h-[calc(100vh_-_100px)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
-      <!-- ============ CREATE FORM (inline, replaces list) ============ -->
+      <!-- ============ CREATE / EDIT FORM (inline, replaces list) ============ -->
       <div v-if="viewMode === 'create'" class="max-w-202 mx-auto w-full">
-        <AccountTokenCreateWizard @created="onTokenCreated" @cancel="onCreateCancel" />
+        <AccountTokenCreateWizard
+          :key="editingToken?.id || 'new'"
+          :edit-token="editingToken"
+          @created="onTokenCreated"
+          @saved="onTokenSaved"
+          @cancel="onCreateCancel"
+        />
       </div>
 
       <!-- ============ TOKEN LIST ============ -->
@@ -354,16 +379,16 @@ const onEditCancel = () => {
         >
           <div class="h-full w-full overflow-y-auto rounded-md">
             <div class="flex w-full pl-5 bg-nc-bg-gray-extralight border-1 rounded-t-md">
-              <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-2/9" data-rec="true">{{
+              <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-2/8" data-rec="true">{{
                 $t('title.tokenName')
               }}</span>
-              <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-2/9 text-start" data-rec="true">{{
+              <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-3/8 text-start" data-rec="true">{{
                 $t('title.creator')
               }}</span>
-              <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-3/9 text-start" data-rec="true">{{
-                $t('labels.token')
+              <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-2/8 text-start" data-rec="true">{{
+                $t('labels.expiresOn')
               }}</span>
-              <span class="py-3.5 pl-19 text-nc-content-gray-muted font-medium text-3.5 w-2/9 text-start" data-rec="true">{{
+              <span class="py-3.5 pr-5 text-nc-content-gray-muted font-medium text-3.5 w-1/8 text-end" data-rec="true">{{
                 $t('labels.actions')
               }}</span>
             </div>
@@ -424,50 +449,47 @@ const onEditCancel = () => {
                 data-testid="nc-token-list"
                 class="flex pl-5 py-3 justify-between token items-center border-l-1 border-r-1 border-b-1"
               >
-                <span class="text-nc-content-gray-extreme font-bold text-3.5 text-start w-2/9">
-                  <div class="flex items-center gap-2">
-                    <GeneralTruncateText placement="top" :length="20">
-                      {{ el.description || el.title }}
-                    </GeneralTruncateText>
-                    <NcTooltip v-if="el.fk_sso_client_id" placement="top">
-                      <template #title>{{ $t('msg.ssoTokenTooltip') }}</template>
-                      <NcBadge color="orange" class="!text-xs !py-0.5 !px-1.5 mr-4"> SSO </NcBadge>
-                    </NcTooltip>
-                  </div>
-                </span>
-                <span class="text-nc-content-gray-muted font-medium text-3.5 text-start w-2/9">
-                  <GeneralTruncateText placement="top" :length="20">
-                    {{ el.created_by }}
-                  </GeneralTruncateText>
-                </span>
-                <span class="text-nc-content-gray-muted font-medium text-3.5 text-start w-3/9 truncate">
-                  <GeneralTruncateText
-                    v-if="el.token && el.token === selectedToken.id && selectedToken.isShow"
-                    placement="top"
-                    :length="29"
+                <div class="flex items-center gap-1.5 w-2/8 min-w-0">
+                  <NcTooltip class="truncate text-nc-content-gray-extreme font-bold text-3.5" show-on-truncate-only>
+                    <template #title>{{ el.description || el.title }}</template>
+                    {{ el.description || el.title }}
+                  </NcTooltip>
+                  <NcBadge
+                    v-if="isExpired(el)"
+                    :border="false"
+                    color="red"
+                    class="!text-[10px] !leading-[14px] !h-[18px] font-semibold flex-none"
                   >
-                    {{ el.token }}
-                  </GeneralTruncateText>
-                  <span v-else-if="el.token_prefix">{{ el.token_prefix }}…</span>
-                  <span v-else>************************************</span>
+                    {{ $t('labels.expired') }}
+                  </NcBadge>
+                  <NcTooltip v-if="el.fk_sso_client_id" placement="top">
+                    <template #title>{{ $t('msg.ssoTokenTooltip') }}</template>
+                    <NcBadge color="orange" class="!text-[10px] !leading-[14px] !h-[18px] font-semibold flex-none"> SSO </NcBadge>
+                  </NcTooltip>
+                </div>
+                <div class="flex items-center gap-3 w-3/8">
+                  <GeneralUserIcon :user="{ email: el.created_by }" size="medium" />
+                  <div class="flex flex-col min-w-0">
+                    <span class="text-nc-content-gray-extreme font-medium text-3.5 truncate">
+                      {{ el.created_by?.split('@')[0] || '' }}
+                    </span>
+                    <span class="text-nc-content-gray-muted text-xs truncate">
+                      {{ el.created_by }}
+                    </span>
+                  </div>
+                </div>
+                <span class="text-nc-content-gray-muted font-medium text-3.5 text-start w-2/8">
+                  {{ el.expiry ? new Date(el.expiry).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : $t('labels.noExpiration') }}
                 </span>
                 <!-- ACTIONS -->
-                <div class="flex justify-end items-center gap-3 pr-5 text-nc-content-gray-muted font-medium text-3.5 w-2/9">
-                  <NcTooltip v-if="el.token" placement="top">
-                    <template #title>{{ $t('labels.showOrHide') }}</template>
-                    <component
-                      :is="iconMap.eye"
-                      class="nc-toggle-token-visibility hover::cursor-pointer w-h-4 mb-[1.8px]"
-                      @click="hideOrShowToken(el.token as string)"
-                    />
-                  </NcTooltip>
+                <div class="flex justify-end items-center gap-3 pr-5 text-nc-content-gray-muted font-medium text-3.5 w-1/8">
                   <NcTooltip v-if="isFineGrained(el)" placement="top">
                     <template #title>{{ $t('general.edit') }}</template>
                     <component
                       :is="iconMap.edit"
                       class="hover::cursor-pointer w-4 h-4 text-nc-content-gray-subtle2"
                       data-testid="nc-token-row-edit-icon"
-                      @click="openEditModal(el)"
+                      @click="openEditToken(el)"
                     />
                   </NcTooltip>
                   <NcTooltip v-if="el.token" placement="top">
@@ -526,23 +548,6 @@ const onEditCancel = () => {
           />
         </div>
       </div>
-
-      <!-- Edit Modal (single-level, not nested) -->
-      <a-modal
-        v-model:visible="showEditModal"
-        :footer="null"
-        :closable="false"
-        width="640px"
-        :mask-closable="false"
-        :destroy-on-close="true"
-      >
-        <AccountTokenEditModal
-          v-if="editingToken"
-          :token="editingToken"
-          @saved="onEditSaved"
-          @cancel="onEditCancel"
-        />
-      </a-modal>
 
       <GeneralDeleteModal
         v-model:visible="isModalOpen"

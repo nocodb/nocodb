@@ -2,26 +2,56 @@
 import { ApiTokenPermissionLevel } from 'nocodb-sdk'
 import type { ApiTokenScopeEntry } from 'nocodb-sdk'
 
-const emit = defineEmits(['created', 'cancel'])
+interface EditTokenType {
+  id?: string
+  title?: string
+  description?: string
+  expiry?: string
+  enabled?: boolean
+  scopes?: Array<{
+    id?: string
+    resource_type: string
+    resource_id: string
+    permissions?: Record<string, string>
+  }>
+}
+
+interface Props {
+  editToken?: EditTokenType | null
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  editToken: null,
+})
+
+const emit = defineEmits(['created', 'saved', 'cancel'])
 
 const { api } = useApi()
 const { copy } = useCopy()
 const { t } = useI18n()
 
+const isEditing = computed(() => !!props.editToken?.id)
+
 const isCreating = ref(false)
 const showResultModal = ref(false)
 const createdTokenValue = ref('')
 
-// Form fields
-const tokenName = ref('')
-const expiryOption = ref('90d')
+// Form fields — pre-fill from editToken if editing
+const tokenName = ref(props.editToken?.title || props.editToken?.description || '')
+const expiryOption = ref(props.editToken ? 'keep' : '90d')
 const customExpiry = ref('')
 
-// Scopes
-const scopes = ref<ApiTokenScopeEntry[]>([])
+// Scopes — pre-fill from editToken
+const scopes = ref<ApiTokenScopeEntry[]>(
+  props.editToken?.scopes?.map((s) => ({
+    resource_type: s.resource_type,
+    resource_id: s.resource_id,
+  })) || [],
+)
 
-// Permissions — start empty, user adds one by one
-const permissions = ref<Record<string, string>>({})
+// Permissions — pre-fill from editToken's first scope, or empty
+const existingPerms = props.editToken?.scopes?.[0]?.permissions
+const permissions = ref<Record<string, string>>(existingPerms ? { ...existingPerms } : {})
 
 const showExpiryDropdown = ref(false)
 
@@ -38,18 +68,25 @@ const formatDate = (days: number) => {
   return date.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
 }
 
+const keepLabel = computed(() => {
+  if (!props.editToken?.expiry) return t('labels.noExpiration')
+  return `Keep (${new Date(props.editToken.expiry).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })})`
+})
+
 const expiryOptions = computed(() => [
+  ...(isEditing.value ? [{ value: 'keep', label: keepLabel.value }] : []),
   { value: '7d', label: `7 days (${formatDate(7)})` },
   { value: '30d', label: `30 days (${formatDate(30)})` },
   { value: '60d', label: `60 days (${formatDate(60)})` },
   { value: '90d', label: `90 days (${formatDate(90)})` },
   { value: '1y', label: `1 year (${formatDate(365)})` },
   { value: 'custom', label: 'Custom' },
-  { value: 'none', label: 'No expiration' },
+  { value: 'none', label: t('labels.noExpiration') },
 ])
 
 const computedExpiry = computed(() => {
-  if (expiryOption.value === 'none') return undefined
+  if (expiryOption.value === 'keep') return undefined
+  if (expiryOption.value === 'none') return null
   if (expiryOption.value === 'custom') return customExpiry.value || undefined
 
   const now = new Date()
@@ -70,7 +107,7 @@ const isFormValid = computed(() => {
 })
 
 
-const createToken = async () => {
+const submitToken = async () => {
   isCreating.value = true
   try {
     const hasPermissions = Object.values(permissions.value).some(
@@ -82,21 +119,47 @@ const createToken = async () => {
       ...(hasPermissions ? { permissions: permissions.value } : {}),
     }))
 
-    const payload: any = {
-      title: tokenName.value,
-      ...(scopesWithPermissions.length ? { scopes: scopesWithPermissions } : {}),
-      ...(hasPermissions && !scopesWithPermissions.length ? { permissions: permissions.value } : {}),
-      ...(computedExpiry.value ? { expiry: computedExpiry.value } : {}),
-    }
+    if (isEditing.value) {
+      // Update existing token
+      const payload: any = {
+        title: tokenName.value,
+      }
 
-    const result = await api.request({
-      path: '/api/v3/meta/tokens',
-      method: 'POST',
-      body: payload,
-    })
-    createdTokenValue.value = result.token
-    showResultModal.value = true
-    emit('created', result.token)
+      const newExpiry = computedExpiry.value
+      if (newExpiry !== undefined) {
+        payload.expiry = newExpiry
+      }
+
+      if (scopesWithPermissions.length) {
+        payload.scopes = scopesWithPermissions
+      }
+
+      await api.request({
+        path: `/api/v3/meta/tokens/${props.editToken!.id}`,
+        method: 'PATCH',
+        body: payload,
+      })
+
+      message.success(t('msg.info.tokenUpdatedSuccessfully'))
+      emit('saved')
+    } else {
+      // Create new token
+      const payload: any = {
+        title: tokenName.value,
+        ...(scopesWithPermissions.length ? { scopes: scopesWithPermissions } : {}),
+        ...(hasPermissions && !scopesWithPermissions.length ? { permissions: permissions.value } : {}),
+        ...(computedExpiry.value ? { expiry: computedExpiry.value } : {}),
+      }
+
+      const result = await api.request({
+        path: '/api/v3/meta/tokens',
+        method: 'POST',
+        body: payload,
+      })
+      createdTokenValue.value = result.token
+      showResultModal.value = true
+      emit('created', result.token)
+    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -206,9 +269,9 @@ const onResultDone = () => {
           :loading="isCreating"
           :disabled="!isFormValid"
           data-testid="nc-token-create-btn"
-          @click="createToken"
+          @click="submitToken"
         >
-          {{ $t('activity.createToken') }}
+          {{ isEditing ? $t('general.save') : $t('activity.createToken') }}
         </NcButton>
       </div>
     </div>

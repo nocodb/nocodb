@@ -201,8 +201,6 @@ watch(
         <div v-if="isHomeSidebarRoute" class="flex flex-col h-full">
           <!-- Topbar: workspace name + plan + search -->
           <WorkspaceViewTopbar />
-          <!-- Back to base bar -->
-          <DashboardBackToBaseBreadcrumbVariant />
           <!-- Tabs -->
           <WorkspaceViewTabs />
           <!-- Page content (bases, members, teams, etc.) -->

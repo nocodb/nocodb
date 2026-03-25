@@ -161,14 +161,50 @@ export class SidebarNavPage extends BasePage {
   }
 
   /**
-   * Navigates to a specific settings page by clicking the settings tab
-   * (if not already active) and then clicking the target menu item.
+   * Navigates to a specific settings page.
+   *
+   * For base settings: clicks the settings tab then the target menu item.
+   * For workspace settings (ws-* items): navigates via the workspace home
+   * page tabs (Members, Teams, Integrations, etc.) when the HomeSidebar
+   * is active, otherwise falls back to the settings sidebar menu.
    *
    * @example
    *   await settings.navigateToSettingsPage('collaborator');       // Base members
    *   await settings.navigateToSettingsPage('ws-integrations');    // Workspace integrations
    */
   async navigateToSettingsPage(item: SettingsMenuItem): Promise<void> {
+    // Workspace settings — try clicking the workspace home tab directly
+    if (item.startsWith('ws-')) {
+      const wsTabMap: Record<string, string> = {
+        'ws-collaborators': 'Members',
+        'ws-teams': 'Teams',
+        'ws-integrations': 'Integrations',
+        'ws-billing': 'Billing',
+        'ws-audits': 'Audits',
+        'ws-sso': 'SSO',
+        'ws-settings': 'Settings',
+      };
+
+      const tabLabel = wsTabMap[item];
+
+      // Try workspace home page tabs (ViewTabs component)
+      const wsTab = this.rootPage.locator('.nc-ws-view-tabs .tab-title', { hasText: tabLabel });
+      if (await wsTab.isVisible().catch(() => false)) {
+        await wsTab.click();
+        await this.rootPage.waitForTimeout(500);
+        return;
+      }
+
+      // Fall back to settings sidebar menu
+      await this.navigateToSettingsTab();
+      const menuItem = this.getSettingsMenuItemLocator(item);
+      await menuItem.waitFor({ state: 'visible' });
+      await menuItem.click();
+      await this.rootPage.waitForTimeout(500);
+      return;
+    }
+
+    // Base settings — use settings sidebar
     await this.navigateToSettingsTab();
 
     const menuItem = this.getSettingsMenuItemLocator(item);

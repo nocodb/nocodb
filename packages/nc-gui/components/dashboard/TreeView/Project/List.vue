@@ -341,7 +341,7 @@ watch(
       </div>
 
       <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
-        <DashboardTreeViewProjectWsSettingsMenu />
+        <DashboardTreeViewProjectWsSettingsMenu v-if="showWsSettingsInBase" />
       </div>
 
       <slot name="footer" />

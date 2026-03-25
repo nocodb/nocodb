@@ -96,3 +96,5 @@ export const CHART_COLORS = [
 
 /** Virtual section ID for views not assigned to any real section */
 export const DEFAULT_SECTION_ID = '__default__'
+
+export const showWsSettingsInBase = false

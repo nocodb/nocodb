@@ -156,19 +156,19 @@ describe('dataApiV3', () => {
     });
 
     const expectedCities = [
-      { id: 1, fields: { City: 'City 1' } },
-      { id: 2, fields: { City: 'City 2' } },
-      { id: 3, fields: { City: 'City 3' } },
-      { id: 4, fields: { City: 'City 4' } },
-      { id: 5, fields: { City: 'City 5' } },
+      { id: 1, id_fields: { Id: 1 }, fields: { City: 'City 1' } },
+      { id: 2, id_fields: { Id: 2 }, fields: { City: 'City 2' } },
+      { id: 3, id_fields: { Id: 3 }, fields: { City: 'City 3' } },
+      { id: 4, id_fields: { Id: 4 }, fields: { City: 'City 4' } },
+      { id: 5, id_fields: { Id: 5 }, fields: { City: 'City 5' } },
     ];
 
     const expectedFilms = [
-      { id: 1, fields: { Film: 'Film 1' } },
-      { id: 2, fields: { Film: 'Film 2' } },
-      { id: 3, fields: { Film: 'Film 3' } },
-      { id: 4, fields: { Film: 'Film 4' } },
-      { id: 5, fields: { Film: 'Film 5' } },
+      { id: 1, id_fields: { Id: 1 }, fields: { Film: 'Film 1' } },
+      { id: 2, id_fields: { Id: 2 }, fields: { Film: 'Film 2' } },
+      { id: 3, id_fields: { Id: 3 }, fields: { Film: 'Film 3' } },
+      { id: 4, id_fields: { Id: 4 }, fields: { Film: 'Film 4' } },
+      { id: 5, id_fields: { Id: 5 }, fields: { Film: 'Film 5' } },
     ];
 
     // ─── column metadata ──────────────────────────────────────
@@ -231,7 +231,7 @@ describe('dataApiV3', () => {
           query: { where: '(Id,eq,1)' },
         });
 
-        const expectedCountry = { id: 1, fields: { Country: 'Country 1' } };
+        const expectedCountry = { id: 1, id_fields: { Id: 1 }, fields: { Country: 'Country 1' } };
         expect(rsp.body.records[0].fields['Country']).to.deep.equal(
           expectedCountry,
         );
@@ -342,6 +342,7 @@ describe('dataApiV3', () => {
         const country = rsp.body.fields['Country'];
         expect(country).to.deep.equal({
           id: 1,
+          id_fields: { Id: 1 },
           fields: { Country: 'Country 1' },
         });
       });
@@ -382,7 +383,7 @@ describe('dataApiV3', () => {
         const cities = record.fields['Cities'];
         expect(cities).to.be.an('array');
         expect(cities).to.have.length(1);
-        expect(cities[0]).to.deep.equal({ id: 8, fields: { City: 'City 8' } });
+        expect(cities[0]).to.deep.equal({ id: 8, id_fields: { Id: 8 }, fields: { City: 'City 8' } });
       });
 
       it('MO: insert with inline link returns nested object', async function () {
@@ -403,6 +404,7 @@ describe('dataApiV3', () => {
         const country = record.fields['Country'];
         expect(country).to.deep.equal({
           id: 2,
+          id_fields: { Id: 2 },
           fields: { Country: 'Country 2' },
         });
       });
@@ -450,8 +452,8 @@ describe('dataApiV3', () => {
         expect(cities).to.be.an('array');
         expect(cities).to.have.length(2);
         expect(cities.sort(idc)).to.deep.equal([
-          { id: 6, fields: { City: 'City 6' } },
-          { id: 7, fields: { City: 'City 7' } },
+          { id: 6, id_fields: { Id: 6 }, fields: { City: 'City 6' } },
+          { id: 7, id_fields: { Id: 7 }, fields: { City: 'City 7' } },
         ]);
       });
     });
@@ -484,6 +486,7 @@ describe('dataApiV3', () => {
         const country = record.fields['Country'];
         expect(country).to.deep.equal({
           id: 1,
+          id_fields: { Id: 1 },
           fields: { Country: 'Country 1' },
         });
       });
@@ -518,6 +521,7 @@ describe('dataApiV3', () => {
         expect(rec2.fields['Cities']).to.have.length(1);
         expect(rec2.fields['Cities'][0]).to.deep.equal({
           id: 6,
+          id_fields: { Id: 6 },
           fields: { City: 'City 6' },
         });
       });
@@ -544,8 +548,8 @@ describe('dataApiV3', () => {
         expect(cities).to.be.an('array');
         expect(cities).to.have.length(2);
         expect(cities.sort(idc)).to.deep.equal([
-          { id: 2, fields: { City: 'City 2' } },
-          { id: 4, fields: { City: 'City 4' } },
+          { id: 2, id_fields: { Id: 2 }, fields: { City: 'City 2' } },
+          { id: 4, id_fields: { Id: 4 }, fields: { City: 'City 4' } },
         ]);
       });
 
@@ -624,8 +628,8 @@ describe('dataApiV3', () => {
         expect(films).to.be.an('array');
         expect(films).to.have.length(2);
         expect(films.sort(idc)).to.deep.equal([
-          { id: 4, fields: { Film: 'Film 4' } },
-          { id: 5, fields: { Film: 'Film 5' } },
+          { id: 4, id_fields: { Id: 4 }, fields: { Film: 'Film 4' } },
+          { id: 5, id_fields: { Id: 5 }, fields: { Film: 'Film 5' } },
         ]);
       });
     });

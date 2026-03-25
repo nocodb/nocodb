@@ -181,6 +181,7 @@ const hasNoResults = computed(() => {
             <!-- Workspace item -->
             <NcSidebarMenuItem
               class="group"
+              :class="{ 'nc-ws-node-active': activeWorkspaceId === ws.id }"
               :active="activeWorkspaceId === ws.id"
               :data-testid="`nc-home-sidebar-ws-${ws.id}`"
               @click="navigateToWorkspace(ws.id!)"

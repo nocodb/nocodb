@@ -201,7 +201,7 @@ const cancel = () => {
       </div>
 
       <!-- Access (base scoping) -->
-      <div class="flex flex-col gap-1.5">
+      <div class="flex flex-col gap-2">
         <label class="text-sm font-bold text-nc-content-gray">{{ $t('general.access') }}</label>
         <span class="text-sm text-nc-content-gray-muted">{{ $t('msg.info.tokenAccessDescription') }}</span>
 

@@ -150,43 +150,51 @@ const toggleBaseDropdown = () => {
 </script>
 
 <template>
-  <div class="nc-token-scope-picker flex flex-col gap-3" data-testid="nc-token-scope-picker">
-    <!-- Added resources list -->
-
-    <!-- All Resources row -->
-    <div v-if="hasAllResources" class="flex flex-col gap-1">
-      <span class="text-xs font-bold uppercase tracking-wider text-nc-content-gray-muted">
-        {{ $t('labels.allResources') }}
-      </span>
-      <div class="nc-scope-row">
-        <GeneralIcon icon="globe" class="w-5 h-5 text-nc-content-gray-subtle2 flex-none" />
-        <span class="flex-1 text-sm text-nc-content-gray-extreme">
-          {{ $t('msg.info.allCurrentAndFutureBasesInAllWorkspaces') }}
-        </span>
-        <NcButton type="text" size="xxsmall" class="!p-0.5 flex-none" @click="removeAllResources">
-          <GeneralIcon icon="close" class="w-4 h-4 text-nc-content-gray-muted" />
-        </NcButton>
-      </div>
-    </div>
-
-    <!-- Selected bases grouped by workspace -->
-    <div v-for="group in selectedByWorkspace" :key="group.workspace.id" class="flex flex-col gap-1">
-      <span class="text-xs font-bold uppercase tracking-wider text-nc-content-gray-muted">
-        {{ group.workspace.title }}
-      </span>
-      <div
-        v-for="base in group.bases"
-        :key="base.id"
-        class="nc-scope-row"
-      >
-        <div class="min-w-5 flex items-center justify-center flex-none">
-          <GeneralProjectIcon :color="parseProp(base.meta).iconColor" size="small" />
+  <div class="nc-token-scope-picker flex flex-col gap-2" data-testid="nc-token-scope-picker">
+    <!-- Added resources in single bordered container -->
+    <div
+      v-if="hasAllResources || selectedByWorkspace.length"
+      class="nc-scope-container"
+    >
+      <!-- All Resources section -->
+      <template v-if="hasAllResources">
+        <div class="nc-scope-group-header">
+          {{ $t('labels.allResources') }}
         </div>
-        <span class="flex-1 text-sm text-nc-content-gray-extreme truncate">{{ base.title }}</span>
-        <NcButton type="text" size="xxsmall" class="!p-0.5 flex-none" @click="removeBase(base.id)">
-          <GeneralIcon icon="close" class="w-4 h-4 text-nc-content-gray-muted" />
-        </NcButton>
-      </div>
+        <div class="nc-scope-row">
+          <GeneralIcon icon="globe" class="w-5 h-5 text-nc-content-gray-subtle2 flex-none" />
+          <span class="flex-1 text-sm text-nc-content-gray-extreme">
+            {{ $t('msg.info.allCurrentAndFutureBasesInAllWorkspaces') }}
+          </span>
+          <NcButton type="text" size="xxsmall" class="!p-0.5 flex-none" @click="removeAllResources">
+            <GeneralIcon icon="close" class="w-4 h-4 text-nc-content-gray-muted" />
+          </NcButton>
+        </div>
+      </template>
+
+      <!-- Selected bases grouped by workspace -->
+      <template v-for="(group, gIdx) in selectedByWorkspace" :key="group.workspace.id">
+        <div
+          class="nc-scope-group-header"
+          :class="{ '!border-t-1': gIdx > 0 || hasAllResources }"
+        >
+          {{ group.workspace.title }}
+        </div>
+        <div
+          v-for="(base, bIdx) in group.bases"
+          :key="base.id"
+          class="nc-scope-row"
+          :class="{ 'border-t-1 border-nc-border-gray-light': bIdx > 0 }"
+        >
+          <div class="min-w-5 flex items-center justify-center flex-none">
+            <GeneralProjectIcon :color="parseProp(base.meta).iconColor" size="small" />
+          </div>
+          <span class="flex-1 text-sm text-nc-content-gray-extreme truncate">{{ base.title }}</span>
+          <NcButton type="text" size="xxsmall" class="!p-0.5 flex-none" @click="removeBase(base.id)">
+            <GeneralIcon icon="close" class="w-4 h-4 text-nc-content-gray-muted" />
+          </NcButton>
+        </div>
+      </template>
     </div>
 
     <!-- Action links -->
@@ -195,7 +203,7 @@ const toggleBaseDropdown = () => {
         v-if="!hasAllResources"
         type="text"
         size="small"
-        class="!text-brand-500 !px-0 !font-medium"
+        class="!text-brand-500 !px-2 !font-medium"
         data-testid="nc-token-scope-add-all"
         @click="addAllResources"
       >
@@ -214,7 +222,7 @@ const toggleBaseDropdown = () => {
         <NcButton
           type="text"
           size="small"
-          class="!text-brand-500 !px-0 !font-medium"
+          class="!text-brand-500 !px-2 !font-medium"
           data-testid="nc-token-scope-add-base"
           @click="toggleBaseDropdown"
         >
@@ -275,12 +283,17 @@ const toggleBaseDropdown = () => {
 </template>
 
 <style lang="scss" scoped>
-.nc-scope-row {
-  @apply flex items-center gap-3 px-3 py-2.5 rounded-lg;
+.nc-scope-group-header {
+  @apply px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-nc-content-gray-muted
+    bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-light;
+}
 
-  &:hover {
-    @apply bg-nc-bg-gray-light;
-  }
+.nc-scope-row {
+  @apply flex items-center gap-3 px-3 py-2.5;
+}
+
+.nc-scope-container {
+  @apply border-1 border-nc-border-gray-medium rounded-lg overflow-hidden;
 }
 
 .nc-scope-dropdown-content {

@@ -130,7 +130,7 @@ const getLevelLabel = (level: string) => {
       <NcButton
         type="text"
         size="small"
-        class="!text-brand-500 !px-0 !font-medium"
+        class="!text-brand-500 !px-2 !font-medium"
         data-testid="nc-token-perm-add"
       >
         <div class="flex items-center gap-1">

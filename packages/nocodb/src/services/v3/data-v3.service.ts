@@ -86,14 +86,24 @@ export class DataV3Service {
   private async getRelatedModelInfo(
     context: NcContext,
     column: Column,
-  ): Promise<RelatedModelInfo> {
-    const { refContext } = (
-      column.colOptions as LinkToAnotherRecordColumn
-    ).getRelContext(context);
+  ): Promise<RelatedModelInfo | null> {
+    const colOptions = column.colOptions as LinkToAnotherRecordColumn;
 
-    const relatedModel = await (
-      column.colOptions as LinkToAnotherRecordColumn
-    ).getRelatedTable(refContext);
+    // getRelatedTable internally calls getRelContext({...context, base_id: this.base_id})
+    // which correctly resolves the related base for cross-base links
+    const relatedModel = await colOptions.getRelatedTable(context);
+
+    if (!relatedModel) {
+      this.logger.warn(
+        `Related model not found for column ${column.id} (fk_related_model_id: ${colOptions.fk_related_model_id})`,
+      );
+      return null;
+    }
+
+    // Use the refContext computed by getRelContext (now correctly cached
+    // from the getRelatedTable call above) for loading columns
+    const { refContext } = colOptions.getRelContext(context);
+
     await relatedModel.getColumns(refContext);
     const relatedPrimaryKey = relatedModel.primaryKey;
     const primaryKeys = relatedModel.primaryKeys;
@@ -153,6 +163,8 @@ export class DataV3Service {
         reuse,
         async () => this.getRelatedModelInfo(context, column),
       );
+
+      if (!info) continue;
 
       const modelId = info.model.id;
       columnModelMap[column.id] = modelId;
@@ -485,10 +497,14 @@ export class DataV3Service {
     for (const column of ltarColumns) {
       const key = dataWrapper(fields).getColumnKeyName(column);
       if (fields[key]) {
+        const info = await this.getRelatedModelInfo(context, column);
+
+        if (!info) continue;
+
         const {
           primaryKey: relatedPrimaryKey,
           primaryKeys: relatedPrimaryKeys,
-        } = await this.getRelatedModelInfo(context, column);
+        } = info;
 
         const fieldValue = fields[key];
 
@@ -937,8 +953,14 @@ export class DataV3Service {
     });
 
     const column = await Column.get(context, { colId: param.columnId });
+    const relatedModelInfo = await this.getRelatedModelInfo(context, column);
+
+    if (!relatedModelInfo) {
+      NcError.get(context).fieldNotFound(param.columnId);
+    }
+
     const { primaryKey: relatedPrimaryKey, primaryKeys: relatedPrimaryKeys } =
-      await this.getRelatedModelInfo(context, column);
+      relatedModelInfo;
 
     const colOptions = (await column.getColOptions(
       context,

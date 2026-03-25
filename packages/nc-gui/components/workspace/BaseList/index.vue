@@ -96,7 +96,7 @@ const selectedFilter = computed(() => filterOptions.value.find((o) => o.value ==
 <template>
   <div class="flex flex-col h-full">
     <!-- Toolbar: Filter (left) + New Base (right) -->
-    <div class="flex items-center justify-between gap-2 px-4 py-2 flex-none">
+    <div class="flex items-center justify-between gap-2 w-full nc-content-max-w mx-auto px-4 pt-4 md:(px-6 pt-6) pb-2 flex-none">
       <div class="flex items-center gap-2">
         <!-- Active filter pill -->
         <div v-if="isFilterActive" class="nc-filter-pill" @click.stop>
@@ -139,52 +139,54 @@ const selectedFilter = computed(() => filterOptions.value.find((o) => o.value ==
       </WorkspaceCreateProjectBtn>
     </div>
 
-    <!-- Bases Content -->
-    <div class="flex-1 overflow-y-auto nc-scrollbar-thin p-4 flex flex-col relative">
-      <!-- Categorized sections -->
-      <WorkspaceBaseListModalBasesSection
-        v-for="section in displayedSections"
-        :key="section.type"
-        :type="section.type"
-        :bases="section.bases"
-        :is-filter-applied="activeFilter !== 'all'"
-        :is-base-starred="baseCheckers.starred"
-        :is-base-private="baseCheckers.private"
-      />
-
-      <!-- Loading -->
-      <GeneralOverlay
-        v-if="isProjectsLoading && emptyFilterResult"
-        :model-value="true"
-        inline
-        transition
-        class="!bg-opacity-15"
-        data-testid="nc-base-list-loading"
-      >
-        <div class="flex flex-col items-center justify-center h-full w-full">
-          <a-spin size="large" />
-        </div>
-      </GeneralOverlay>
-
-      <!-- Empty State -->
-      <div
-        v-else-if="emptyFilterResult"
-        class="flex flex-col items-center justify-center h-full text-nc-content-gray-muted"
-      >
-        <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('activity.noBases')" />
-      </div>
-
-      <!-- No Search Results -->
-      <div
-        v-else-if="hasNoSearchResults"
-        class="h-full px-2 py-6 text-nc-content-gray-muted flex flex-col items-center justify-center gap-6 text-center"
-      >
-        <img
-          src="~assets/img/placeholder/no-search-result-found.png"
-          class="!w-[164px] flex-none"
-          alt="No search results found"
+    <!-- Bases Content — scrollbar at extreme edge -->
+    <div class="flex-1 overflow-y-auto nc-scrollbar-thin w-full">
+      <div class="nc-content-max-w mx-auto px-4 md:px-6 py-4 flex flex-col relative">
+        <!-- Categorized sections -->
+        <WorkspaceBaseListModalBasesSection
+          v-for="section in displayedSections"
+          :key="section.type"
+          :type="section.type"
+          :bases="section.bases"
+          :is-filter-applied="activeFilter !== 'all'"
+          :is-base-starred="baseCheckers.starred"
+          :is-base-private="baseCheckers.private"
         />
-        {{ $t('title.noResultsMatchedYourSearch') }}
+
+        <!-- Loading -->
+        <GeneralOverlay
+          v-if="isProjectsLoading && emptyFilterResult"
+          :model-value="true"
+          inline
+          transition
+          class="!bg-opacity-15"
+          data-testid="nc-base-list-loading"
+        >
+          <div class="flex flex-col items-center justify-center h-full w-full">
+            <a-spin size="large" />
+          </div>
+        </GeneralOverlay>
+
+        <!-- Empty State -->
+        <div
+          v-else-if="emptyFilterResult"
+          class="flex flex-col items-center justify-center h-full text-nc-content-gray-muted"
+        >
+          <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('activity.noBases')" />
+        </div>
+
+        <!-- No Search Results -->
+        <div
+          v-else-if="hasNoSearchResults"
+          class="h-full px-2 py-6 text-nc-content-gray-muted flex flex-col items-center justify-center gap-6 text-center"
+        >
+          <img
+            src="~assets/img/placeholder/no-search-result-found.png"
+            class="!w-[164px] flex-none"
+            alt="No search results found"
+          />
+          {{ $t('title.noResultsMatchedYourSearch') }}
+        </div>
       </div>
     </div>
 

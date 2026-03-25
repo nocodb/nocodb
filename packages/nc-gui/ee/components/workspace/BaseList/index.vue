@@ -239,9 +239,9 @@ const selectedWorkspace = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full max-w-[1200px] mx-auto p-4 md:p-6">
+  <div class="flex flex-col h-full">
     <!-- Toolbar: "Bases in {ws}" (left) + Filter + New Base (right) -->
-    <div class="flex items-center justify-between gap-2 pb-2 flex-none">
+    <div class="flex items-center justify-between gap-2 w-full nc-content-max-w mx-auto px-4 pt-4 md:(px-6 pt-6) pb-2 flex-none">
       <!-- Left: Bases in {workspace} -->
       <div v-if="selectedWorkspace" class="flex items-center gap-1.5 text-xs font-medium tracking-wide min-w-0">
         <span class="text-nc-content-gray-muted whitespace-nowrap">{{ $t('activity.basesIn') }}</span>
@@ -294,100 +294,102 @@ const selectedWorkspace = computed(() => {
     </div>
 
     <!-- Bases Content -->
-    <div class="flex-1 overflow-y-auto nc-scrollbar-thin py-4 flex flex-col relative">
-      <!-- Categorized sections -->
-      <WorkspaceBaseListModalBasesSection
-        v-for="section in displayedSections"
-        :key="section.type"
-        :type="section.type"
-        :bases="section.bases"
-        :is-filter-applied="activeFilter !== 'all'"
-        :is-base-starred="baseCheckers.starred"
-        :is-base-private="baseCheckers.private"
-      />
-
-      <!-- Loading -->
-      <GeneralOverlay
-        v-if="isProjectsLoading && emptyFilterResult"
-        :model-value="true"
-        inline
-        transition
-        class="!bg-opacity-15"
-        data-testid="nc-base-list-loading"
-      >
-        <div class="flex flex-col items-center justify-center h-full w-full">
-          <a-spin size="large" />
-        </div>
-      </GeneralOverlay>
-
-      <!-- No Search Results -->
-      <div
-        v-else-if="hasNoSearchResults"
-        class="h-full px-2 py-6 text-nc-content-gray-muted flex flex-col items-center justify-center gap-6 text-center"
-      >
-        <img
-          src="~assets/img/placeholder/no-search-result-found.png"
-          class="!w-[164px] flex-none"
-          alt="No search results found"
+    <div class="flex-1 overflow-y-auto nc-scrollbar-thin w-full">
+      <div class="nc-content-max-w mx-auto px-4 md:px-6 py-4 flex flex-col relative">
+        <!-- Categorized sections -->
+        <WorkspaceBaseListModalBasesSection
+          v-for="section in displayedSections"
+          :key="section.type"
+          :type="section.type"
+          :bases="section.bases"
+          :is-filter-applied="activeFilter !== 'all'"
+          :is-base-starred="baseCheckers.starred"
+          :is-base-private="baseCheckers.private"
         />
-        {{ $t('title.noResultsMatchedYourSearch') }}
-      </div>
 
-      <!-- Empty State -->
-      <div
-        v-else-if="emptyFilterResult && !isProjectsLoading"
-        class="flex flex-col items-center justify-center h-full text-nc-content-gray-muted"
-      >
-        <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('activity.noBases')" />
-      </div>
+        <!-- Loading -->
+        <GeneralOverlay
+          v-if="isProjectsLoading && emptyFilterResult"
+          :model-value="true"
+          inline
+          transition
+          class="!bg-opacity-15"
+          data-testid="nc-base-list-loading"
+        >
+          <div class="flex flex-col items-center justify-center h-full w-full">
+            <a-spin size="large" />
+          </div>
+        </GeneralOverlay>
 
-      <!-- Other Workspaces cross-workspace search results -->
-      <template v-if="otherWorkspaceSections.length > 0">
-        <div class="flex items-center gap-3 my-2">
-          <div class="h-px flex-1 bg-nc-border-gray-medium" />
-          <span class="text-xs text-nc-content-gray-muted font-medium tracking-wide whitespace-nowrap">
-            {{ $t('labels.otherWorkspaces') }}
-          </span>
-          <div class="h-px flex-1 bg-nc-border-gray-medium" />
+        <!-- No Search Results -->
+        <div
+          v-else-if="hasNoSearchResults"
+          class="h-full px-2 py-6 text-nc-content-gray-muted flex flex-col items-center justify-center gap-6 text-center"
+        >
+          <img
+            src="~assets/img/placeholder/no-search-result-found.png"
+            class="!w-[164px] flex-none"
+            alt="No search results found"
+          />
+          {{ $t('title.noResultsMatchedYourSearch') }}
         </div>
 
-        <template v-for="wsData in otherWorkspaceSections" :key="wsData.workspace.id">
-          <div :class="{ 'opacity-50 pointer-events-none': workspaceStore.isWorkspaceCeLocked(wsData.workspace.id) }">
-            <div class="flex items-center gap-2 mb-4 mt-4 text-xs font-medium tracking-wide">
-              <span class="text-nc-content-gray-muted">{{ $t('activity.basesIn') }}</span>
-              <span
-                class="text-nc-content-gray-muted capitalize"
-                :class="{
-                  'text-nc-content-brand': activeWorkspaceId === wsData.workspace?.id,
-                  'underline cursor-pointer hover:text-nc-content-brand':
-                    activeWorkspaceId !== wsData.workspace?.id && !workspaceStore.isWorkspaceCeLocked(wsData.workspace.id),
-                }"
-                @click="switchWorkspace(wsData.workspace?.id)"
-              >
-                {{ wsData.workspace.title }}
-              </span>
-              <GeneralIcon
-                v-if="workspaceStore.isWorkspaceCeLocked(wsData.workspace.id)"
-                icon="ncLock"
-                class="w-3 h-3 text-nc-content-gray-muted"
-              />
-              <span class="font-normal text-nc-content-gray-muted">
-                ({{ wsData.sections.reduce((n, s) => n + s.bases.length, 0) }})
-              </span>
-            </div>
+        <!-- Empty State -->
+        <div
+          v-else-if="emptyFilterResult && !isProjectsLoading"
+          class="flex flex-col items-center justify-center h-full text-nc-content-gray-muted"
+        >
+          <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('activity.noBases')" />
+        </div>
 
-            <WorkspaceBaseListModalBasesSection
-              v-for="section in wsData.sections"
-              :key="`${wsData.workspace.id}-${section.type}`"
-              :type="section.type"
-              :bases="section.bases"
-              :is-filter-applied="false"
-              :is-base-starred="baseCheckers.starred"
-              :is-base-private="baseCheckers.private"
-            />
+        <!-- Other Workspaces cross-workspace search results -->
+        <template v-if="otherWorkspaceSections.length > 0">
+          <div class="flex items-center gap-3 my-2">
+            <div class="h-px flex-1 bg-nc-border-gray-medium" />
+            <span class="text-xs text-nc-content-gray-muted font-medium tracking-wide whitespace-nowrap">
+              {{ $t('labels.otherWorkspaces') }}
+            </span>
+            <div class="h-px flex-1 bg-nc-border-gray-medium" />
           </div>
+
+          <template v-for="wsData in otherWorkspaceSections" :key="wsData.workspace.id">
+            <div :class="{ 'opacity-50 pointer-events-none': workspaceStore.isWorkspaceCeLocked(wsData.workspace.id) }">
+              <div class="flex items-center gap-2 mb-4 mt-4 text-xs font-medium tracking-wide">
+                <span class="text-nc-content-gray-muted">{{ $t('activity.basesIn') }}</span>
+                <span
+                  class="text-nc-content-gray-muted capitalize"
+                  :class="{
+                    'text-nc-content-brand': activeWorkspaceId === wsData.workspace?.id,
+                    'underline cursor-pointer hover:text-nc-content-brand':
+                      activeWorkspaceId !== wsData.workspace?.id && !workspaceStore.isWorkspaceCeLocked(wsData.workspace.id),
+                  }"
+                  @click="switchWorkspace(wsData.workspace?.id)"
+                >
+                  {{ wsData.workspace.title }}
+                </span>
+                <GeneralIcon
+                  v-if="workspaceStore.isWorkspaceCeLocked(wsData.workspace.id)"
+                  icon="ncLock"
+                  class="w-3 h-3 text-nc-content-gray-muted"
+                />
+                <span class="font-normal text-nc-content-gray-muted">
+                  ({{ wsData.sections.reduce((n, s) => n + s.bases.length, 0) }})
+                </span>
+              </div>
+
+              <WorkspaceBaseListModalBasesSection
+                v-for="section in wsData.sections"
+                :key="`${wsData.workspace.id}-${section.type}`"
+                :type="section.type"
+                :bases="section.bases"
+                :is-filter-applied="false"
+                :is-base-starred="baseCheckers.starred"
+                :is-base-private="baseCheckers.private"
+              />
+            </div>
+          </template>
         </template>
-      </template>
+      </div>
     </div>
 
     <!-- Dialogs -->

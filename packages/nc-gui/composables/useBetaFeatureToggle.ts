@@ -41,13 +41,6 @@ const FEATURES = [
     version: 1,
   },
   {
-    id: 'link_to_another_record',
-    title: 'Link To Another Record',
-    description: 'Show linked record display value in Link fields.',
-    enabled: true,
-    version: 2,
-  },
-  {
     id: 'ai_beta_features',
     title: 'AI beta features',
     description: 'Unlock AI beta features to enhance your NocoDB experience.',

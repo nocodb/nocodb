@@ -33,11 +33,16 @@ const colOptions = computed(() => props.column?.colOptions as LinkToAnotherRecor
 
 const isMM = computed(() => colOptions.value?.type === RelationTypes.MANY_TO_MANY)
 
+// Links columns (showing count) need a Rollup + new LTAR on conversion
+// LinkToAnotherRecord (LTAR v1) columns upgrade in-place — no rollup
+const isLinksColumn = computed(() => isLink(props.column!))
+
 const isParentSide = computed(() => {
   if (!colOptions.value?.type) return false
   return (
     colOptions.value.type === RelationTypes.HAS_MANY ||
     colOptions.value.type === RelationTypes.MANY_TO_MANY ||
+    colOptions.value.type === RelationTypes.ONE_TO_MANY ||
     (colOptions.value.type === RelationTypes.ONE_TO_ONE && !props.column?.meta?.bt)
   )
 })
@@ -96,27 +101,32 @@ async function handleConvert() {
       </div>
 
       <div class="text-nc-content-gray text-sm flex flex-col gap-2 mb-3">
-        <p>{{ $t('msg.info.convertLinkV2Description') }}</p>
-
-        <template v-if="isParentSide">
-          <ul class="list-disc pl-5 flex flex-col gap-1 text-nc-content-gray-subtle2">
-            <li>
-              <span class="font-medium text-nc-content-gray">{{ column?.title }}</span>
-              {{ $t('msg.info.convertLinkV2OriginalBecomesRollup') }}
-            </li>
-            <li>{{ $t('msg.info.convertLinkV2NewLtarCreated') }}</li>
-            <li v-if="!isMM">{{ $t('msg.info.convertLinkV2FkColumnRemoved') }}</li>
-          </ul>
+        <template v-if="isLinksColumn">
+          <!-- Links column (v1 or v2): becomes Rollup + new LTAR is created -->
+          <p>{{ $t('msg.info.convertLinkV2Description') }}</p>
+        </template>
+        <template v-else>
+          <!-- LTAR v1 column: upgrade to junction table, no extra column created -->
+          <p>{{ $t('msg.info.convertLinkV1Description') }}</p>
         </template>
       </div>
 
       <div class="flex items-start gap-2 mb-3">
         <GeneralIcon icon="alertTriangle" class="flex-none h-4 w-4 mt-0.5 text-nc-content-yellow-medium" />
-        <p class="text-xs text-nc-content-gray-muted">{{ $t('msg.info.convertLinkV2Warning') }}</p>
+        <i18n-t keypath="msg.info.convertLinkV2Warning" tag="p" class="text-xs text-nc-content-gray-muted">
+          <template #learnMore>
+            <a
+              href="https://docs.nocodb.com/fields/field-types/links-based/links#upgrade-to-v2"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-nc-content-brand underline"
+            >{{ $t('msg.learnMore') }}</a>
+          </template>
+        </i18n-t>
       </div>
 
       <div class="flex flex-row gap-x-2 pt-2.5 justify-end border-t-1 border-nc-border-gray-medium">
-        <NcButton size="small" type="secondary" :disabled="isConverting" @click="visible = false">
+        <NcButton size="small" type="secondary" @click="visible = false">
           {{ $t('general.cancel') }}
         </NcButton>
 

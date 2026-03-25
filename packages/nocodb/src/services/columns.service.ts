@@ -5843,9 +5843,17 @@ export class ColumnsService implements IColumnsService {
       context,
     );
 
-    // MM already has junction tables — just update version metadata
-    // Allow V2 MM Links columns through (they need Rollup + LTAR display conversion)
+    // MM — Rollup + LTAR conversion (junction table already exists)
     if (colOptions.type === RelationTypes.MANY_TO_MANY) {
+      return this.convertMMToV2(context, {
+        column,
+        colOptions,
+        req: param.req,
+      });
+    }
+
+    // V2 Links (OM/MO with junction table) — no FK migration needed, just create Rollup + new LTAR
+    if (colOptions.version === LinksVersion.V2 && column.uidt === UITypes.Links) {
       return this.convertMMToV2(context, {
         column,
         colOptions,
@@ -6078,13 +6086,30 @@ export class ColumnsService implements IColumnsService {
       // explicit column mapping to avoid any positional ambiguity.
       // columnName = {parentTable}_id → holds parent PK values (from fkColumn)
       // refColumnName = {childTable}_id → holds child PK values
-      const fkRows = await baseModel.execAndParse(
-        dbDriver(childTnPath)
-          .select(fkColumn.column_name, childPK.column_name)
-          .whereNotNull(fkColumn.column_name),
-        null,
-        { raw: true },
-      );
+      let fkRows: Record<string, any>[] = [];
+      try {
+        fkRows = await baseModel.execAndParse(
+          dbDriver(childTnPath)
+            .select(fkColumn.column_name, childPK.column_name)
+            .whereNotNull(fkColumn.column_name),
+          null,
+          { raw: true },
+        );
+      } catch (e: any) {
+        // FK column may not exist physically (e.g. virtual relation where
+        // the physical column was never created or was already removed).
+        // In that case, skip data migration — there are no FK values to copy.
+        if (
+          e.message?.includes('does not exist') ||
+          e.message?.includes('no such column')
+        ) {
+          this.logger.warn(
+            `[convertLinkToV2] FK column '${fkColumn.column_name}' not found in physical table — skipping data migration`,
+          );
+        } else {
+          throw e;
+        }
+      }
 
       if (fkRows.length) {
         // Batch insert in chunks to avoid exceeding query size limits
@@ -6143,15 +6168,22 @@ export class ColumnsService implements IColumnsService {
 
       // Drop old FK column from data DB
       if (fkColumn.uidt === UITypes.ForeignKey) {
+        // Only include physical columns (columns with a column_name that
+        // exist in the actual DB table). Virtual columns like LTAR, Rollup,
+        // Lookup, etc. have column_name=null and must be excluded from
+        // the tableUpdate diff, otherwise the SQL client chokes on them.
+        const physicalColumns = childTable.columns.filter(
+          (c) => c.column_name && !isVirtualCol(c),
+        );
         const tableUpdateBody = {
           ...childTable,
           tn: childTable.table_name,
-          originalColumns: childTable.columns.map((c) => ({
+          originalColumns: physicalColumns.map((c) => ({
             ...c,
             cn: c.column_name,
             cno: c.column_name,
           })),
-          columns: childTable.columns.map((c) => {
+          columns: physicalColumns.map((c) => {
             if (c.id === fkColumn.id) {
               return {
                 ...c,
@@ -6159,36 +6191,20 @@ export class ColumnsService implements IColumnsService {
                 cno: c.column_name,
                 altered: Altered.DELETE_COLUMN,
               };
-            } else {
-              (c as any).cn = c.column_name;
             }
-            return c;
+            return {
+              ...c,
+              cn: c.column_name,
+              cno: c.column_name,
+            };
           }),
         };
 
-        await sqlMgr.sqlOpPlus(childSource, 'tableUpdate', tableUpdateBody);
-      }
-
-      // PG indexes on junction FK columns
-      if (source.type === 'pg') {
-        await this.createColumnIndex(context, {
-          column: new Column({
-            ...associateTableCols[0],
-            fk_model_id: parentTable.id, // placeholder, overwritten after Model.insert
-          }),
-          indexName: generateFkName(parentTable, childTable),
-          source,
-          sqlMgr,
-        });
-        await this.createColumnIndex(context, {
-          column: new Column({
-            ...associateTableCols[1],
-            fk_model_id: parentTable.id,
-          }),
-          indexName: generateFkName(parentTable, childTable),
-          source,
-          sqlMgr,
-        });
+        await sqlMgr.sqlOpPlus(
+          childSource,
+          'tableUpdate',
+          tableUpdateBody,
+        );
       }
 
       // ── Phase A.2: Meta model + system columns (outside transaction) ──
@@ -6204,6 +6220,29 @@ export class ColumnsService implements IColumnsService {
         columns: associateTableCols,
         user_id: (param.req as any).user?.id,
       });
+
+      // PG indexes on junction FK columns (must run after Model.insert
+      // so createColumnIndex can resolve assocModel.id correctly)
+      if (source.type === 'pg') {
+        await this.createColumnIndex(context, {
+          column: new Column({
+            ...associateTableCols[0],
+            fk_model_id: assocModel.id,
+          }),
+          indexName: generateFkName(parentTable, childTable),
+          source,
+          sqlMgr,
+        });
+        await this.createColumnIndex(context, {
+          column: new Column({
+            ...associateTableCols[1],
+            fk_model_id: assocModel.id,
+          }),
+          indexName: generateFkName(parentTable, childTable),
+          source,
+          sqlMgr,
+        });
+      }
 
       // Get junction table columns
       const parentCol = (await assocModel.getColumns(context))?.find(
@@ -6241,9 +6280,13 @@ export class ColumnsService implements IColumnsService {
         true,
       );
 
-      // Links columns (showing count) → convert to Rollup + new LTAR
+      // HM Links columns (showing count) → convert to Rollup + new LTAR
+      // BT/OO Links → just change uidt to LTAR (no Rollup split needed)
       // LinkToAnotherRecord columns (showing records) → update in-place to V2
-      const isLinksColumn = hmColumn.uidt === UITypes.Links;
+      const isHmOrMm =
+        hmColOptions.type === RelationTypes.HAS_MANY ||
+        hmColOptions.type === RelationTypes.MANY_TO_MANY;
+      const isLinksColumn = hmColumn.uidt === UITypes.Links && isHmOrMm;
 
       Logger.log(
         `[convertLinkToV2] hmColumn.id=${hmColumn.id}, hmColumn.uidt=${hmColumn.uidt}, isLinksColumn=${isLinksColumn}`,
@@ -6336,7 +6379,17 @@ export class ColumnsService implements IColumnsService {
             hmColumn.id,
           );
         } else {
-          // Plain LinkToAnotherRecord → convert in-place to V2
+          // LinkToAnotherRecord or BT/OO Links → convert in-place to V2
+          // For BT/OO Links, also update uidt to LTAR
+          if (hmColumn.uidt === UITypes.Links) {
+            await ncMeta.metaUpdate(
+              context.workspace_id,
+              context.base_id,
+              MetaTable.COLUMNS,
+              { uidt: UITypes.LinkToAnotherRecord },
+              hmColumn.id,
+            );
+          }
           await ncMeta.metaInsert2(
             context.workspace_id,
             context.base_id,
@@ -6355,6 +6408,17 @@ export class ColumnsService implements IColumnsService {
               version: LinksVersion.V2,
               ...crossBaseLinkProps,
             },
+          );
+        }
+
+        // Update BT column uidt if it's Links
+        if (btColumn.uidt === UITypes.Links) {
+          await ncMeta.metaUpdate(
+            childRefContext.workspace_id,
+            childRefContext.base_id,
+            MetaTable.COLUMNS,
+            { uidt: UITypes.LinkToAnotherRecord },
+            btColumn.id,
           );
         }
 
@@ -6474,6 +6538,7 @@ export class ColumnsService implements IColumnsService {
       await View.clearSingleQueryCache(context, parentTable.id);
       await View.clearSingleQueryCache(childRefContext, childTable.id);
 
+
       // Emit events
       (this.appHooksService as any).emit(AppEvents.COLUMN_UPDATE, {
         table: parentTable,
@@ -6533,7 +6598,7 @@ export class ColumnsService implements IColumnsService {
   ) {
     const { column, colOptions } = param;
 
-    // V2 LTAR MM is already fully converted — nothing to do
+    // Already fully converted (V2 + LTAR uidt) — nothing to do
     if (
       colOptions.version === LinksVersion.V2 &&
       column.uidt === UITypes.LinkToAnotherRecord
@@ -6557,7 +6622,10 @@ export class ColumnsService implements IColumnsService {
       if (c.id === column.id) continue;
       const opts = await c.getColOptions<LinkToAnotherRecordColumn>(refContext);
       if (
-        opts.type === RelationTypes.MANY_TO_MANY &&
+        // Match any junction-table based relation type (MM, OM, MO)
+        (opts.type === RelationTypes.MANY_TO_MANY ||
+          opts.type === RelationTypes.ONE_TO_MANY ||
+          opts.type === RelationTypes.MANY_TO_ONE) &&
         opts.fk_mm_model_id === colOptions.fk_mm_model_id &&
         opts.fk_related_model_id === sourceTable.id
       ) {
@@ -6651,7 +6719,7 @@ export class ColumnsService implements IColumnsService {
             fk_model_id: column.fk_model_id,
             title: mmNewLtarTitle,
             uidt: UITypes.LinkToAnotherRecord,
-            type: RelationTypes.MANY_TO_MANY,
+            type: colOptions.type,
             version: LinksVersion.V2,
             fk_child_column_id: colOptions.fk_child_column_id,
             fk_parent_column_id: colOptions.fk_parent_column_id,

@@ -189,6 +189,13 @@ const parseConditionV2 = async (
         await filter.getColumn(context),
       );
 
+      // Always throw for missing columns regardless of throwErrorIfInvalid.
+      // Silently skipping would remove the filter condition, which is dangerous
+      // when the filter is an RLS policy — it would leak restricted rows.
+      if (!column) {
+        NcError.get(context).fieldNotFound(filter.fk_column_id);
+      }
+
       if (
         column.uidt === UITypes.Lookup ||
         column.uidt === UITypes.LinkToAnotherRecord
@@ -225,16 +232,15 @@ const parseConditionV2 = async (
     }
 
     const filterColumn = await filter.getColumn(context);
+    // Always throw for missing columns regardless of throwErrorIfInvalid.
+    // Silently skipping would remove the filter condition, which is dangerous
+    // when the filter is an RLS policy — it would leak restricted rows.
     if (!filterColumn) {
-      if (throwErrorIfInvalid) {
-        NcError.get(context).fieldNotFound(filter.fk_column_id);
-      }
+      NcError.get(context).fieldNotFound(filter.fk_column_id);
     }
     const column = await getRefColumnIfAlias(context, filterColumn);
     if (!column) {
-      if (throwErrorIfInvalid) {
-        NcError.get(context).fieldNotFound(filter.fk_column_id);
-      }
+      NcError.get(context).fieldNotFound(filter.fk_column_id);
     }
 
     if (

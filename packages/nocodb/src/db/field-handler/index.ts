@@ -343,6 +343,11 @@ export class FieldHandler implements IFieldHandler {
             filter.fk_column_id,
           );
         }
+        // Skip filters whose column was deleted — defense-in-depth against
+        // orphaned filter rows that weren't cleaned up on column deletion.
+        if (!column) {
+          continue;
+        }
         qbHandlers.push({
           handler: await this.applyFilter(filter, column, options),
           index: index++,
@@ -415,6 +420,18 @@ export class FieldHandler implements IFieldHandler {
       let column = model.columns.find((col) => col.id === filter.fk_column_id);
       if (!column) {
         column = await this.getRelatedColumnById(context, filter.fk_column_id);
+      }
+      // Fail verification if the filter's column was deleted. This blocks the
+      // query rather than silently skipping — critical because filters may be
+      // RLS policies, and skipping those would leak restricted rows.
+      if (!column) {
+        traverseResult.push({
+          isValid: false,
+          errors: [
+            `Filter references a non-existent field (fk_column_id: ${filter.fk_column_id})`,
+          ],
+        });
+        return;
       }
       traverseResult.push(
         await this.verifyFilter(filter, column, {

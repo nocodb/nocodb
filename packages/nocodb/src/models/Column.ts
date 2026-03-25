@@ -1312,8 +1312,9 @@ export default class Column<T = any> implements ColumnType {
           },
         );
       }
+      // Delete all filters referencing this column, including child filters
+      // nested inside filter groups (which have fk_parent_id set).
       for (const filter of filters) {
-        if (filter.fk_parent_id) continue;
         await Filter.delete(context, filter.id, ncMeta);
       }
     }

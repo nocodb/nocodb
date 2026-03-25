@@ -1,23 +1,22 @@
 <script setup lang="ts">
-import { NO_SCOPE } from 'nocodb-sdk'
+import { OrgUserRoles } from 'nocodb-sdk'
 
 const { user, isMobileMode, appInfo } = useGlobal()
 
-const { orgRoles } = useRoles()
+const workspaceStore = useWorkspace()
+
+const { workspacesList, activeWorkspaceId } = storeToRefs(workspaceStore)
+const { loadWorkspaces } = workspaceStore
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
-const workspaceStore = useWorkspace()
+const { orgRoles } = useRoles()
 
-const { loadWorkspaces } = workspaceStore
-
-const { workspacesList, activeWorkspaceId } = storeToRefs(workspaceStore)
-
-const { $api, $e } = useNuxtApp()
+const { isEEFeatureBlocked, showEEFeatures, showUpgradeToCreateWorkspace } = useEeConfig()
 
 const { navigateToTable } = useTablesStore()
 
-const { isEEFeatureBlocked, showEEFeatures, showUpgradeToCreateWorkspace } = useEeConfig()
+const { $e } = useNuxtApp()
 
 const isCreateWsDlgOpen = ref(false)
 
@@ -34,97 +33,6 @@ const canCreateWorkspace = computed(() => {
 const navigateToWorkspace = (wsId: string) => {
   navigateTo(`/${wsId}`)
 }
-
-const name = computed(() => user.value?.display_name?.trim())
-
-// Track which workspace context menu is open
-const openMenuWsId = ref<string | null>(null)
-
-// User menu
-const isUserMenuOpen = ref(false)
-
-const notificationStore = useNotification()
-
-const { unreadCount } = toRefs(notificationStore)
-
-const isNotificationOpen = ref(false)
-
-const { isDark } = useTheme()
-
-// ── Search (borrowed from BaseListModal) ──
-
-interface BaseListAllData {
-  workspaces: {
-    id: string
-    title: string
-    meta: Record<string, any>
-    plan_title: string | null
-    bases: {
-      id: string
-      title: string
-      meta: Record<string, any>
-      role: string
-      order: number
-      managed_app_master?: boolean
-      managed_app_id?: string | null
-    }[]
-  }[]
-}
-
-// Shared search state — used by both sidebar and WorkspaceHome content area
-const searchQuery = useState<string>('ws-home-search', () => '')
-
-const baseListAllData = ref<BaseListAllData | null>(null)
-const isBaseListAllLoading = ref(false)
-
-const loadBaseListAll = async () => {
-  if (baseListAllData.value || isBaseListAllLoading.value) return
-
-  isBaseListAllLoading.value = true
-  try {
-    baseListAllData.value = (await $api.internal.getOperation(NO_SCOPE, NO_SCOPE, {
-      operation: 'baseListAll',
-    })) as BaseListAllData
-  } catch {
-    // silently fail
-  } finally {
-    isBaseListAllLoading.value = false
-  }
-}
-
-// Load baseListAll on mount
-onMounted(() => {
-  loadBaseListAll()
-})
-
-// Workspace IDs that have at least one base title matching the search query
-const baseListAllMatchByWs = computed(() => {
-  if (!searchQuery.value || !baseListAllData.value) return new Map<string, number>()
-  const map = new Map<string, number>()
-  for (const ws of baseListAllData.value.workspaces) {
-    const count = ws.bases.filter((b) => searchCompare(b.title, searchQuery.value)).length
-    if (count > 0) map.set(ws.id, count)
-  }
-  return map
-})
-
-// Filtered workspace list: show all when no search, filter by ws title or base match when searching
-const filteredWorkspaceList = computed(() => {
-  if (!searchQuery.value) return workspacesList.value
-
-  return workspacesList.value.filter(
-    (ws) =>
-      ws.id === activeWorkspaceId.value ||
-      searchCompare(ws.title ?? '', searchQuery.value) ||
-      baseListAllMatchByWs.value.has(ws.id),
-  )
-})
-
-const isSearching = computed(() => !!searchQuery.value)
-
-const hasNoResults = computed(() => {
-  return isSearching.value && filteredWorkspaceList.value.length === 0
-})
 
 const onCreateWorkspace = () => {
   if (isEEFeatureBlocked.value) {
@@ -152,10 +60,57 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
     })
   }
 
-  if (workspace.id) {
-    navigateToWorkspace(workspace.id)
-  }
+  navigateTo(`/${workspace.id}`)
 }
+
+const name = computed(() => user.value?.display_name?.trim())
+
+// Track which workspace context menu is open
+const openMenuWsId = ref<string | null>(null)
+
+// User menu
+const isUserMenuOpen = ref(false)
+
+const notificationStore = useNotification()
+
+const { unreadCount } = toRefs(notificationStore)
+
+const isNotificationOpen = ref(false)
+
+const { isDark } = useTheme()
+
+// ── Search — shared composable ──
+
+const { isBaseListAllLoading, loadBaseListAll, getBaseMatchCountByWs } = useWsBaseListAll()
+
+const searchQuery = useState<string>('ws-home-search', () => '')
+
+// Load on mount
+onMounted(() => {
+  loadBaseListAll()
+})
+
+// Workspace IDs with matching base count
+const baseListAllMatchByWs = computed(() => getBaseMatchCountByWs(searchQuery.value))
+
+// Filtered workspace list
+const filteredWorkspaceList = computed(() => {
+  if (!searchQuery.value) return workspacesList.value
+
+  return workspacesList.value.filter(
+    (ws) =>
+      ws.id === activeWorkspaceId.value ||
+      searchCompare(ws.title ?? '', searchQuery.value) ||
+      baseListAllMatchByWs.value.has(ws.id),
+  )
+})
+
+const isSearching = computed(() => !!searchQuery.value)
+
+const hasNoResults = computed(() => {
+  return isSearching.value && filteredWorkspaceList.value.length === 0
+})
+
 </script>
 
 <template>
@@ -226,7 +181,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
             <!-- Workspace item -->
             <NcSidebarMenuItem
               class="group"
-              :active="activeWorkspaceId === ws.id && !isSearching"
+              :active="activeWorkspaceId === ws.id"
               :data-testid="`nc-home-sidebar-ws-${ws.id}`"
               @click="navigateToWorkspace(ws.id!)"
             >
@@ -235,15 +190,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
               </template>
               <span class="capitalize">{{ ws.title }}</span>
               <template #extraRight>
-                <!-- Base match count badge when searching -->
-                <div
-                  v-if="isSearching && baseListAllMatchByWs.has(ws.id)"
-                  class="text-[10px] text-nc-content-gray-muted bg-nc-bg-gray-medium rounded-full px-1.5 py-0.25 flex-shrink-0"
-                >
-                  {{ baseListAllMatchByWs.get(ws.id) }}
-                </div>
                 <NcDropdown
-                  v-if="!isSearching"
                   :trigger="['click']"
                   @update:visible="(val: boolean) => { openMenuWsId = val ? ws.id! : null }"
                   @click.stop
@@ -267,7 +214,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
                         :label="$t('labels.workspaceId', { workspaceId: ws.id })"
                       />
                       <NcDivider />
-                      <NcMenuItem @click.stop="navigateTo(`/${ws.id}/more`)">
+                      <NcMenuItem @click.stop="navigateTo(`/${ws.id}/settings`)">
                         <GeneralIcon icon="ncSettings" class="h-4 w-4" />
                         {{ $t('labels.settings') }}
                       </NcMenuItem>

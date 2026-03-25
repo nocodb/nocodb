@@ -22,7 +22,7 @@ export const useBackToBase = () => {
     // Show on base settings full-page mode (even though technically on a base page)
     if (isBaseSettingsFullPage.value) return !!lastVisitedBase.value
 
-    return !isOnBasePage.value && !hideMiniSidebar.value && !!lastVisitedBase.value
+    return !isOnBasePage.value && !!lastVisitedBase.value
   })
 
   const navigateToBase = () => {

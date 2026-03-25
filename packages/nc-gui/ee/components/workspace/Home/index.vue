@@ -30,13 +30,7 @@ const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
-const {
-  isPaymentEnabled,
-  isEEFeatureBlocked,
-  showEEFeatures,
-  activePlanTitle,
-  handleUpgradePlan,
-} = useEeConfig()
+const { isPaymentEnabled, isEEFeatureBlocked, showEEFeatures, activePlanTitle, handleUpgradePlan } = useEeConfig()
 
 const wsTabItems = computed(() => {
   const wsId = activeWorkspaceId.value
@@ -65,7 +59,7 @@ const wsTabItems = computed(() => {
   }
 
   if (!isEEFeatureBlocked.value) {
-    items.push({ key: 'more', label: t('general.more'), icon: 'ncMoreHorizontal', route: `/${wsId}/more` })
+    items.push({ key: 'settings', label: t('general.general'), icon: 'ncMoreHorizontal', route: `/${wsId}/settings` })
   }
 
   return items
@@ -78,8 +72,13 @@ const activeTab = computed(() => {
   if (routeName === 'index-typeOrId-teams') return 'teams'
   if (routeName === 'index-typeOrId-integrations') return 'integrations'
   if (routeName === 'index-typeOrId-audits') return 'audits'
-  if (routeName === 'index-typeOrId-more' || routeName === 'index-typeOrId-general' || routeName === 'index-typeOrId-ws-settings')
-    return 'more'
+  if (
+    routeName === 'index-typeOrId-more' ||
+    routeName === 'index-typeOrId-general' ||
+    routeName === 'index-typeOrId-ws-settings' ||
+    routeName === 'index-typeOrId-settings'
+  )
+    return 'settings'
   if (routeName === 'index-typeOrId-billing') return 'billing'
   if (routeName === 'index-typeOrId-sso') return 'sso'
   return 'bases'
@@ -223,7 +222,6 @@ const getBaseOpenedTimeAgo = (base: any): string => {
 const trackBaseOpened = (baseId: string) => {
   lastOpenedMap.value[baseId] = Date.now()
 }
-
 </script>
 
 <template>
@@ -446,7 +444,11 @@ const trackBaseOpened = (baseId: string) => {
     </div>
 
     <!-- Dialogs (same as BaseListModal) -->
-    <DlgBaseDuplicate v-if="dialogState.duplicate.base" v-model="dialogState.duplicate.isOpen" :base="dialogState.duplicate.base" />
+    <DlgBaseDuplicate
+      v-if="dialogState.duplicate.base"
+      v-model="dialogState.duplicate.isOpen"
+      :base="dialogState.duplicate.base"
+    />
     <DlgBaseDelete
       v-if="dialogState.delete.base"
       v-model:visible="dialogState.delete.isOpen"

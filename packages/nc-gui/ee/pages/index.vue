@@ -33,9 +33,7 @@ const wsHomeRouteNames = new Set([
   'index-typeOrId-billing',
   'index-typeOrId-audits',
   'index-typeOrId-sso',
-  'index-typeOrId-ws-settings',
-  'index-typeOrId-general',
-  'index-typeOrId-more',
+  'index-typeOrId-settings',
   'index-typeOrId-integrations',
 ])
 
@@ -45,9 +43,13 @@ const isHomeSidebarRoute = computed(() => {
 
 const { hideMiniSidebar } = storeToRefs(useSidebarStore())
 
-watch(isHomeSidebarRoute, (val) => {
-  hideMiniSidebar.value = val
-}, { immediate: true })
+watch(
+  isHomeSidebarRoute,
+  (val) => {
+    hideMiniSidebar.value = val
+  },
+  { immediate: true },
+)
 
 const autoNavigateToWorkspace = async () => {
   const routeName = route.value.name as string
@@ -195,7 +197,21 @@ watch(
         <DashboardSidebar v-else />
       </template>
       <template #content>
-        <NuxtPage :transition="false" />
+        <!-- Workspace home: stable header + tabs + dynamic page content -->
+        <div v-if="isHomeSidebarRoute" class="flex flex-col h-full">
+          <!-- Topbar: workspace name + plan + search -->
+          <WorkspaceViewTopbar />
+          <!-- Back to base bar -->
+          <DashboardBackToBaseBreadcrumbVariant />
+          <!-- Tabs -->
+          <WorkspaceViewTabs />
+          <!-- Page content (bases, members, teams, etc.) -->
+          <div class="flex-1 overflow-auto">
+            <NuxtPage :transition="false" />
+          </div>
+        </div>
+        <!-- Non-workspace routes: render page directly -->
+        <NuxtPage v-else :transition="false" />
       </template>
     </NuxtLayout>
     <DlgSharedBaseDuplicate v-model="isDuplicateDlgOpen" />

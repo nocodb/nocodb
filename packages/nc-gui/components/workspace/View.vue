@@ -4,6 +4,7 @@ import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
 const props = defineProps<{
   workspaceId?: string
+  isNewWsPage?: boolean
 }>()
 
 const router = useRouter()
@@ -35,6 +36,13 @@ const {
   isEEFeatureBlocked,
 } = useEeConfig()
 
+const { isFromIntegrationPage, integrationPaginationData, loadIntegrations } = useProvideIntegrationViewStore()
+
+// Local ref for inner integrations sub-tabs in settings sidebar mode.
+// Cannot use activeViewTab (which writes to route.query.tab) because the outer NcTabs
+// also reads route.query.tab — changing it to 'connections' makes the outer pane blank.
+const integrationsSubTab = ref<string>('integrations')
+
 const hasTeamsEditPermission = computed(() => {
   return isEeUI && isTeamsEnabled.value && isUIAllowed('teamCreate')
 })
@@ -55,9 +63,25 @@ const currentWorkspace = computedAsync(async () => {
   return ws
 })
 
+const routeNameToWsTab: Record<string, string> = {
+  'index-typeOrId-index': 'bases',
+  'index-typeOrId': 'bases',
+  'index-typeOrId-members': 'collaborators',
+  'index-typeOrId-teams': 'teams',
+  'index-typeOrId-integrations': 'integrations',
+  'index-typeOrId-audits': 'audits',
+  'index-typeOrId-billing': 'billing',
+  'index-typeOrId-sso': 'sso',
+  'index-typeOrId-settings': 'settings',
+}
+
+const wsTabToRouteName: Record<string, string> = Object.fromEntries(Object.entries(routeNameToWsTab).map(([k, v]) => [v, k]))
+
 const tab = computed({
   get() {
-    return route.value.query?.tab ?? 'collaborators'
+    return props.isNewWsPage
+      ? routeNameToWsTab[route.value.name as string] || 'collaborators'
+      : route.value.query?.tab ?? 'collaborators'
   },
   set(tab: string) {
     if (!isWsAuditEnabled.value && tab === 'audits') {
@@ -76,7 +100,11 @@ const tab = computed({
       loadCollaborators({} as any, props.workspaceId)
     }
 
-    router.push({ query: { ...route.value.query, tab } })
+    if (props.isNewWsPage) {
+      router.push({ name: wsTabToRouteName[tab] || 'index-typeOrId' })
+    } else {
+      router.push({ query: { ...route.value.query, tab } })
+    }
   },
 })
 
@@ -113,7 +141,12 @@ onMounted(() => {
 
 watch(
   () => route.value.query?.tab,
-  async (newTab) => {
+  async (newTab, oldTab) => {
+    if (oldTab === 'integrations') {
+      isFromIntegrationPage.value = false
+      integrationsSubTab.value = 'integrations'
+    }
+
     await until(() => isBaseRolesLoaded.value).toBeTruthy()
 
     if (!isUIAllowed('workspaceCollaborators') && !isEEFeatureBlocked.value) {
@@ -130,19 +163,21 @@ watch(
   },
 )
 
-onMounted(() => {
-  hideSidebar.value = true
-})
+if (!props.isNewWsPage) {
+  onMounted(() => {
+    hideSidebar.value = true
+  })
 
-onBeforeUnmount(() => {
-  hideSidebar.value = false
-})
+  onBeforeUnmount(() => {
+    hideSidebar.value = false
+  })
+}
 </script>
 
 <template>
   <div v-if="currentWorkspace" class="flex w-full flex-col nc-workspace-settings h-full overflow-hidden">
     <div
-      v-if="!props.workspaceId"
+      v-if="!props.workspaceId && !isNewWsPage"
       class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-nc-border-gray-medium flex items-center gap-2"
     >
       <GeneralOpenLeftSidebarBtn v-if="isMobileMode && !isLeftSidebarOpen" />
@@ -152,19 +187,26 @@ onBeforeUnmount(() => {
           'max-w-[calc(100%_-_52px)]': isMobileMode,
         }"
       >
-        <div class="nc-breadcrumb-item capitalize truncate">
+        <div
+          class="nc-breadcrumb-item capitalize truncate"
+          :class="{
+            '!text-bodyLgBold': isNewWsPage,
+          }"
+        >
           {{ currentWorkspace?.title }}
         </div>
-        <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
+        <template v-if="!isNewWsPage">
+          <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
 
-        <h1 class="nc-breadcrumb-item active truncate">
-          {{ $t('title.teamAndSettings') }}
-        </h1>
+          <h1 class="nc-breadcrumb-item active truncate">
+            {{ $t('title.teamAndSettings') }}
+          </h1>
+        </template>
       </div>
 
       <GeneralHideLeftSidebarBtn v-if="isMobileMode && isLeftSidebarOpen" />
     </div>
-    <template v-else>
+    <template v-else-if="!isNewWsPage">
       <div class="nc-breadcrumb px-2">
         <div class="nc-breadcrumb-item">
           {{ org.title }}
@@ -199,10 +241,21 @@ onBeforeUnmount(() => {
       </NcPageHeader>
     </template>
 
-    <NcTabs v-model:active-key="tab" class="flex-1 min-h-0">
+    <NcTabs v-model:active-key="tab" class="flex-1 min-h-0" :class="{ 'hide-tabs': isNewWsPage }">
       <template #leftExtra>
         <div class="w-3"></div>
       </template>
+      <a-tab-pane v-if="isNewWsPage" key="bases" class="w-full h-full">
+        <template #tab>
+          <div class="tab-title">
+            <GeneralIcon icon="ncDatabase" class="h-4 w-4" />
+            {{ $t('objects.projects') }}
+          </div>
+        </template>
+
+        <div>bases</div>
+      </a-tab-pane>
+
       <template v-if="isUIAllowed('workspaceCollaborators')">
         <a-tab-pane key="collaborators" class="w-full h-full">
           <template #tab>
@@ -232,6 +285,59 @@ onBeforeUnmount(() => {
         </a-tab-pane>
       </template>
       <template v-if="!isMobileMode">
+        <a-tab-pane
+          v-if="isNewWsPage && isUIAllowed('workspaceIntegrations') && !isMobileMode"
+          key="integrations"
+          class="w-full h-full"
+        >
+          <template #tab>
+            <div class="tab-title">
+              <GeneralIcon icon="integration" class="h-4 w-4" />
+              {{ $t('general.integrations') }}
+            </div>
+          </template>
+          <div class="nc-integrations-tabs-wrapper h-full flex flex-col">
+            <NcTabs v-model:active-key="integrationsSubTab" class="nc-nested-tabs flex-1 min-h-0">
+              <template #leftExtra>
+                <div class="w-3"></div>
+              </template>
+              <a-tab-pane key="integrations" class="w-full">
+                <template #tab>
+                  <div class="tab-title">
+                    <GeneralIcon icon="integration" />
+                    {{ $t('general.integrations') }}
+                  </div>
+                </template>
+                <div class="h-full overflow-auto nc-scrollbar-thin">
+                  <WorkspaceIntegrationsTab show-filter />
+                </div>
+              </a-tab-pane>
+              <a-tab-pane key="connections" class="w-full">
+                <template #tab>
+                  <div class="tab-title">
+                    <GeneralIcon icon="gitCommit" />
+                    {{ $t('general.connections') }}
+                    <div
+                      v-if="integrationPaginationData?.totalRows"
+                      class="tab-info flex-none"
+                      :class="{
+                        'bg-primary-selected': integrationsSubTab === 'connections',
+                        'bg-nc-bg-gray-extralight': integrationsSubTab !== 'connections',
+                      }"
+                    >
+                      {{ integrationPaginationData.totalRows }}
+                    </div>
+                  </div>
+                </template>
+                <div class="p-6 h-full overflow-auto nc-scrollbar-thin">
+                  <WorkspaceIntegrationsConnectionsTab />
+                </div>
+              </a-tab-pane>
+            </NcTabs>
+            <WorkspaceIntegrationsEditOrAdd />
+          </div>
+        </a-tab-pane>
+
         <template
           v-if="
             isEeUI && !props.workspaceId && !currentWorkspace?.fk_org_id && isPaymentEnabled && isUIAllowed('workspaceBilling')
@@ -308,6 +414,10 @@ onBeforeUnmount(() => {
   @apply pt-2 pb-3;
 }
 
+:deep(.ant-tabs-tab + .ant-tabs-tab) {
+  @apply !ml-3;
+}
+
 .ant-tabs-content-top {
   @apply !h-full;
 }
@@ -318,5 +428,18 @@ onBeforeUnmount(() => {
 
 .tab-title {
   @apply flex flex-row items-center gap-x-2 py-[1px];
+}
+
+.hide-tabs {
+  // Hide only the top-level tab nav (this element IS the .ant-tabs)
+  > :deep(.ant-tabs-nav) {
+    @apply !hidden;
+  }
+
+  :deep(.ant-tabs-content) {
+    > .ant-tabs-tabpane > div {
+      @apply nc-content-max-w mx-auto;
+    }
+  }
 }
 </style>

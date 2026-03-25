@@ -85,7 +85,7 @@ const baseListAllWsMap = computed(() => {
 const closeModal = () => {
   visible.value = false
 }
-const { dialogState, switchWorkspace } = useProvideWsBaseListActions(closeModal)
+const { dialogState, swtchWorkspace } = useProvideWsBaseListActions(closeModal)
 
 const searchInputRef = ref<HTMLInputElement>()
 

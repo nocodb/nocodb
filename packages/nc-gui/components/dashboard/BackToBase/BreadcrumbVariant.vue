@@ -2,11 +2,19 @@
      Full-width bar rendered between the breadcrumb row and the page tabs.
      Only visible when shouldShow is true and variant is 'breadcrumb'. -->
 <script lang="ts" setup>
+interface Props {
+  disableTransition?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  disableTransition: true,
+})
+
 const { shouldShow, navigateToBase, lastVisitedBase } = useBackToBase()
 </script>
 
 <template>
-  <Transition name="nc-btb-bc">
+  <Transition :name="disableTransition ? '' : 'nc-btb-bc'">
     <div
       v-if="shouldShow"
       class="nc-btb-bar w-full flex items-center gap-2 pl-3 pr-4 h-9 border-b-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight cursor-pointer select-none group hover:bg-nc-bg-brand-light transition-colors duration-150"

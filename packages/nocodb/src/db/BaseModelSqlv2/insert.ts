@@ -388,6 +388,20 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       await trx.commit();
 
       if (!raw && !skip_hooks) {
+        // we will wrap returning primary key values with primary key column name
+        if (baseModel.isMySQL) {
+          responses = responses.map((r, idx) => {
+            const rowId = baseModel.extractCompositePK({
+              rowId: r,
+              ai: aiPkCol,
+              ag: agPkCol,
+              insertObj: insertDatas[idx],
+            });
+            if (rowId && typeof rowId === 'object') return rowId;
+            return { [baseModel.model.primaryKey.column_name]: rowId ?? r };
+          });
+        }
+
         if (isSingleRecordInsertion) {
           const insertData = await baseModel.readByPk(responses[0]);
           await baseModel.afterInsert({

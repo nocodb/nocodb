@@ -48,9 +48,9 @@ export class JobsMap extends JobsMapCE {
     protected readonly thumbnailGeneratorProcessor: ThumbnailGeneratorProcessor,
     protected readonly attachmentCleanUpProcessor: AttachmentCleanUpProcessor,
     protected readonly initMigrationJobs: InitMigrationJobs,
-    protected readonly useWorkerProcessor: UseWorkerProcessor,
     protected readonly dataExportCleanUpProcessor: DataExportCleanUpProcessor,
     // EE
+    protected readonly useWorkerProcessor: UseWorkerProcessor,
     protected readonly healthCheckProcessor: HealthCheckProcessor,
     protected readonly updateStatsProcessor: UpdateStatsProcessor,
     protected readonly cleanUpProcessor: CleanUpProcessor,
@@ -84,7 +84,6 @@ export class JobsMap extends JobsMapCE {
       thumbnailGeneratorProcessor,
       attachmentCleanUpProcessor,
       initMigrationJobs,
-      useWorkerProcessor,
       dataExportCleanUpProcessor,
       attachmentUrlUploadProcessor,
     );
@@ -93,6 +92,9 @@ export class JobsMap extends JobsMapCE {
   protected get _jobMap() {
     return {
       ...super._jobMap,
+      [JobTypes.UseWorker]: {
+        this: this.useWorkerProcessor,
+      },
       [JobTypes.HealthCheck]: {
         this: this.healthCheckProcessor,
       },

@@ -389,7 +389,9 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
 
       if (!raw && !skip_hooks) {
         // we will wrap returning primary key values with primary key column name
-        if (baseModel.isMySQL) {
+        // only needed when responses are raw auto-increment IDs (batchInsert path)
+        // skip when insertOneByOneAsFallback already wrapped them via extractCompositePK
+        if (baseModel.isMySQL && !insertOneByOneAsFallback) {
           responses = responses.map((r, idx) => {
             const rowId = baseModel.extractCompositePK({
               rowId: r,

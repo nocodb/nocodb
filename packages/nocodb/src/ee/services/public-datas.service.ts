@@ -81,17 +81,21 @@ export class PublicDatasService extends PublicDatasServiceCE {
 
     const source = await Source.get(context, model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
-    });
-
     if (
       (['mysql', 'mysql2'].includes(source.type) &&
         (await isMysqlVersionSupported(context, source))) ||
       ['pg'].includes(source.type)
     ) {
+      const baseModel = await Model.getBaseModelSQL(context, {
+        id: model.id,
+        viewId: view?.id,
+        dbDriver: await NcConnectionMgrv2.get(source),
+      });
+
+      // Sanitize query params to prevent hidden column data leakage
+      const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
+      this.sanitizeListArgsForPublicView(context, param.query, visibleInfo);
+
       return await this.dataOptService.list(context, {
         model,
         view,

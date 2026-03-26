@@ -3,6 +3,7 @@ import { NcApiVersion, RelationTypes, ViewTypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { XKnex } from '~/db/CustomKnex';
 import { Filter, Model, Sort, Source, View } from '~/models';
+import ListViewColumn from '~/ee/models/ListViewColumn';
 import ListViewLevel from '~/models/ListViewLevel';
 import LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import { NcError } from '~/helpers/catchError';
@@ -16,6 +17,23 @@ import { getAliasGenerator } from '~/utils';
 @Injectable()
 export class ListDatasService {
   protected logger = new Logger(ListDatasService.name);
+
+  private async loadVisibleColumnMap(
+    context: NcContext,
+    viewId: string,
+  ): Promise<Map<string, Set<string>>> {
+    const listViewColumns = await ListViewColumn.list(context, viewId);
+    const visibleByLevel = new Map<string, Set<string>>();
+    for (const vc of listViewColumns) {
+      if (vc.show && vc.fk_level_id && vc.fk_column_id) {
+        if (!visibleByLevel.has(vc.fk_level_id)) {
+          visibleByLevel.set(vc.fk_level_id, new Set());
+        }
+        visibleByLevel.get(vc.fk_level_id)!.add(vc.fk_column_id);
+      }
+    }
+    return visibleByLevel;
+  }
 
   async listViewCount(
     context: NcContext,
@@ -47,6 +65,18 @@ export class ListDatasService {
         // ignore invalid JSON
       }
     }
+    // Sanitize: strip extraFilters referencing non-visible columns to prevent
+    // count-based oracle attacks on hidden column values.
+    const visibleColumnsByLevel = await this.loadVisibleColumnMap(
+      context,
+      viewId,
+    );
+    extraFilters = extraFilters.filter(
+      (f) =>
+        !f.fk_column_id ||
+        (f.fk_level_id &&
+          visibleColumnsByLevel.get(f.fk_level_id)?.has(f.fk_column_id)),
+    );
     const allFilters = [...savedFilters, ...extraFilters];
 
     // 3. Parse collapsed parents: { "0": ["pk1", "pk2"], "1": ["pk3"] }
@@ -241,9 +271,7 @@ export class ListDatasService {
           levelQb.joinRaw(
             `JOIN "__nc_l${
               depth - 1
-            }_ids" parent ON parent.id = __nc_j."${sanitize(
-              link.mmChildCol,
-            )}"`,
+            }_ids" parent ON parent.id = __nc_j."${sanitize(link.mmChildCol)}"`,
           );
         }
 
@@ -366,7 +394,6 @@ export class ListDatasService {
         // ignore invalid JSON
       }
     }
-    const allFilters = [...savedFilters, ...extraFilters];
 
     const savedSorts = await Sort.list(context, { viewId: view.id });
     let extraSorts: any[] = [];
@@ -377,6 +404,27 @@ export class ListDatasService {
         // ignore invalid JSON
       }
     }
+
+    // Sanitize: strip extraFilters/extraSorts referencing non-visible columns
+    // to prevent hidden column data leakage via filtering/sorting on public views.
+    const visibleColumnsByLevel = await this.loadVisibleColumnMap(
+      context,
+      viewId,
+    );
+    extraFilters = extraFilters.filter(
+      (f) =>
+        !f.fk_column_id ||
+        (f.fk_level_id &&
+          visibleColumnsByLevel.get(f.fk_level_id)?.has(f.fk_column_id)),
+    );
+    extraSorts = extraSorts.filter(
+      (s) =>
+        !s.fk_column_id ||
+        (s.fk_level_id &&
+          visibleColumnsByLevel.get(s.fk_level_id)?.has(s.fk_column_id)),
+    );
+
+    const allFilters = [...savedFilters, ...extraFilters];
     const allSorts = [...savedSorts, ...extraSorts];
 
     // 3. Parse collapsed parents: { "0": ["pk1", "pk2"], "1": ["pk3"] }
@@ -639,9 +687,7 @@ export class ListDatasService {
           levelQb.joinRaw(
             `JOIN "__nc_l${
               depth - 1
-            }_ids" parent ON parent.id = __nc_j."${sanitize(
-              link.mmChildCol,
-            )}"`,
+            }_ids" parent ON parent.id = __nc_j."${sanitize(link.mmChildCol)}"`,
           );
         }
 

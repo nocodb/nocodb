@@ -111,9 +111,9 @@ async function handleConvert() {
         </template>
       </div>
 
-      <div class="flex items-start gap-2 mb-3">
-        <GeneralIcon icon="alertTriangle" class="flex-none h-4 w-4 mt-0.5 text-nc-content-yellow-medium" />
-        <i18n-t keypath="msg.info.convertLinkV2Warning" tag="p" class="text-xs text-nc-content-gray-muted">
+      <div class="flex items-center gap-2 mb-3 bg-orange-50 rounded-lg px-3 py-2">
+        <GeneralIcon icon="alertTriangle" class="flex-none h-5 w-5 text-orange-500" />
+        <i18n-t keypath="msg.info.convertLinkV2Warning" tag="span" class="text-sm text-nc-content-gray">
           <template #learnMore>
             <a
               href="https://docs.nocodb.com/fields/field-types/links-based/links#upgrade-to-link-to-another-record"

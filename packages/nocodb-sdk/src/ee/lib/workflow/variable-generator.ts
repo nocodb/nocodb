@@ -363,7 +363,13 @@ export async function getFieldVariable(
   let isArray: boolean;
   let itemType: VariableType | undefined;
 
-  if (column.uidt === UITypes.Lookup && context) {
+  // When linksAsLtar is enabled, treat Links columns as LinkToAnotherRecord
+  const effectiveUidt =
+    context?.linksAsLtar && column.uidt === UITypes.Links
+      ? UITypes.LinkToAnotherRecord
+      : (column.uidt as UITypes);
+
+  if (effectiveUidt === UITypes.Lookup && context) {
     // For Lookup fields, resolve the actual type
     const resolvedType = await resolveLookupType(column, context);
     if (resolvedType.isArray) {
@@ -377,7 +383,7 @@ export async function getFieldVariable(
   } else {
     // For other fields, use the standard type mapping
     const typeInfo = uiTypeToVariableType(
-      column.uidt as UITypes,
+      effectiveUidt,
       column.colOptions
     );
     type = typeInfo.type;
@@ -417,7 +423,7 @@ export async function getFieldVariable(
   }
 
   // Handle LTAR fields - add structure for id and fields properties
-  if (column.uidt === UITypes.LinkToAnotherRecord) {
+  if (effectiveUidt === UITypes.LinkToAnotherRecord) {
     const ltarOptions = column.colOptions as LinkToAnotherRecordType;
     const relatedTableId = ltarOptions?.fk_related_model_id;
 
@@ -721,7 +727,7 @@ export async function getFieldVariable(
         },
       },
     ];
-  } else if (column.uidt === UITypes.LinkToAnotherRecord && isArray) {
+  } else if (effectiveUidt === UITypes.LinkToAnotherRecord && isArray) {
     variable.children = [
       {
         key: `${variable.key}.length`,

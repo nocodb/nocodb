@@ -1,6 +1,9 @@
-import { GithubAuthIntegration } from "@noco-integrations/github-auth";
+import type { GithubAuthIntegration } from '@noco-integrations/github-auth';
 
-export const fetchMilestone = async (auth: GithubAuthIntegration, config: { repo: string }) => {
+export const fetchMilestone = async (
+  auth: GithubAuthIntegration,
+  config: { repo: string },
+) => {
   try {
     const [owner, repo] = config.repo.split('/');
 
@@ -22,4 +25,4 @@ export const fetchMilestone = async (auth: GithubAuthIntegration, config: { repo
     console.error('[GitHub] Error fetching milestones:', error);
     return [];
   }
-}
+};

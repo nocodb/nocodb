@@ -238,6 +238,7 @@ interface VariableGeneratorContext {
   getColumn?: (columnId: string) => Promise<ColumnType> | ColumnType;
   getTableColumns?: (tableId: string) => Promise<ColumnType[]> | ColumnType[];
   port?: string; // Current port for multi-port nodes (e.g., 'body', 'output' for iterate node)
+  linksAsLtar?: boolean; // When true, Links fields are treated as LTAR (nested record objects instead of counts)
 
   /**
    * Infer schema from a workflow expression by analyzing referenced nodes

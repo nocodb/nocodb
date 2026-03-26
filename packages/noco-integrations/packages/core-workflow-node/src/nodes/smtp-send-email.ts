@@ -157,8 +157,7 @@ export class SmtpSendEmailNode extends WorkflowNodeIntegration<SmtpSendEmailConf
       required = false,
     ) => {
       if (!value || !value.trim()) {
-        if (required)
-          errors.push({ path, message: `${label} is required` });
+        if (required) errors.push({ path, message: `${label} is required` });
         return;
       }
       for (const entry of value
@@ -166,7 +165,10 @@ export class SmtpSendEmailNode extends WorkflowNodeIntegration<SmtpSendEmailConf
         .map((e) => e.trim())
         .filter(Boolean)) {
         // Skip validation for $(variable) tokens — resolved at runtime
-        if (!/\$\([^)]*\)/.test(entry) && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(entry)) {
+        if (
+          !/\$\([^)]*\)/.test(entry) &&
+          !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(entry)
+        ) {
           errors.push({
             path,
             message: `"${entry}" is not a valid email address`,
@@ -224,7 +226,10 @@ export class SmtpSendEmailNode extends WorkflowNodeIntegration<SmtpSendEmailConf
         return {
           outputs: { success: false },
           status: 'error',
-          error: { message: 'SMTP account not configured', code: 'MISSING_AUTH' },
+          error: {
+            message: 'SMTP account not configured',
+            code: 'MISSING_AUTH',
+          },
           logs,
         };
       }

@@ -19,6 +19,7 @@ interface FindRecordNodeConfig extends WorkflowNodeConfig {
   modelId: string;
   rowId: string;
   viewId?: string;
+  linksAsLtar?: boolean;
 }
 
 export class FindRecordNode extends WorkflowNodeIntegration<FindRecordNodeConfig> {
@@ -65,6 +66,15 @@ export class FindRecordNode extends WorkflowNodeIntegration<FindRecordNodeConfig
             message: 'Record ID is required',
           },
         ],
+      },
+      {
+        type: FormBuilderInputType.Switch,
+        label: 'Expand link fields',
+        span: 24,
+        model: 'config.linksAsLtar',
+        defaultValue: true,
+        description:
+          'When enabled, link fields return linked record data instead of count',
       },
     ];
 
@@ -202,7 +212,9 @@ export class FindRecordNode extends WorkflowNodeIntegration<FindRecordNodeConfig
         modelId,
         rowId,
         viewId,
-        query: {},
+        query: {
+          ...(ctx.inputs.config.linksAsLtar ? { linksAsLtar: 'true' } : {}),
+        },
         req: {
           user: this.nocodb.user,
         } as NocoSDK.NcRequest,
@@ -347,12 +359,10 @@ export class FindRecordNode extends WorkflowNodeIntegration<FindRecordNodeConfig
 
       if (!table) return [];
 
-      return await NocoSDK.genRecordVariables(
-        table.columns,
-        false,
-        'record',
-        context,
-      );
+      return await NocoSDK.genRecordVariables(table.columns, false, 'record', {
+        ...context,
+        linksAsLtar: !!this.config.linksAsLtar,
+      });
     } catch {
       return [];
     }

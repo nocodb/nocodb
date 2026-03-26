@@ -6,6 +6,7 @@ interface UpdateRecordNodeConfig {
   modelId: string
   rowId: string
   fields: Record<string, any>
+  linksAsLtar?: boolean
 }
 
 const { selectedNodeId, updateNode, selectedNode, fetchNodeIntegrationOptions, isWorkflowEditAllowed } = useWorkflowOrThrow()
@@ -158,5 +159,18 @@ onMounted(() => {
       :meta="meta"
       @update:model-value="updateFields"
     />
+
+    <div class="flex items-center justify-between">
+      <div class="flex flex-col">
+        <label class="text-sm text-nc-content-gray-emphasis">Expand link fields</label>
+        <span class="text-xs text-nc-content-gray-muted">Return linked record data instead of count</span>
+      </div>
+      <NcSwitch
+        :checked="config.linksAsLtar ?? false"
+        :disabled="!isWorkflowEditAllowed"
+        size="small"
+        @update:checked="(val: boolean) => updateConfig({ linksAsLtar: val })"
+      />
+    </div>
   </div>
 </template>

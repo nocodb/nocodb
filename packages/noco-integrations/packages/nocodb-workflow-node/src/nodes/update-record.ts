@@ -20,6 +20,7 @@ interface UpdateRecordNodeConfig extends WorkflowNodeConfig {
   modelId: string;
   rowId: string;
   fields: Record<string, string>;
+  linksAsLtar?: boolean;
 }
 
 export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeConfig> {
@@ -205,6 +206,9 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
         body: { id: String(rowId).trim(), fields: transformedFields },
         cookie: {
           user: this.nocodb.user,
+          ...(ctx.inputs.config.linksAsLtar
+            ? { query: { linksAsLtar: 'true' } }
+            : {}),
         },
       });
 
@@ -351,12 +355,10 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
 
       if (!table) return [];
 
-      return await NocoSDK.genRecordVariables(
-        table.columns,
-        false,
-        'record',
-        context,
-      );
+      return await NocoSDK.genRecordVariables(table.columns, false, 'record', {
+        ...context,
+        linksAsLtar: !!this.config.linksAsLtar,
+      });
     } catch {
       return [];
     }

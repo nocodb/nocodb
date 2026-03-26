@@ -6,6 +6,10 @@ import {
   NocoSDK,
   WorkflowNodeCategory,
 } from '@noco-integrations/core';
+import {
+  GitHubIssueLabelActionNode,
+  type GitHubIssueLabelBaseConfig,
+} from './abstract/issue-labels';
 import type {
   WorkflowNodeDefinition,
   WorkflowNodeLog,
@@ -13,10 +17,6 @@ import type {
   WorkflowNodeRunContext,
 } from '@noco-integrations/core';
 import type { GithubAuthIntegration } from '@noco-integrations/github-auth';
-import {
-  GitHubIssueLabelActionNode,
-  type GitHubIssueLabelBaseConfig,
-} from './abstract/issue-labels';
 
 interface SetIssueLabelsNodeConfig extends GitHubIssueLabelBaseConfig {
   labels: string[];
@@ -79,8 +79,7 @@ export class SetIssueLabelsNode extends GitHubIssueLabelActionNode<SetIssueLabel
     return {
       id: 'github.action.set_issue_labels',
       title: 'Set Issue Labels',
-      description:
-        'Replace all labels on an issue in a GitHub repository',
+      description: 'Replace all labels on an issue in a GitHub repository',
       icon: 'githubSolid',
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],

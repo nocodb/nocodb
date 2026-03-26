@@ -7,6 +7,8 @@ import {
   WorkflowNodeCategory,
   WorkflowNodeIntegration,
 } from '@noco-integrations/core';
+import { fetchRepo } from './utils/fetch-repo';
+import { fetchBranches } from './utils/fetch-branches';
 import type {
   WorkflowNodeConfig,
   WorkflowNodeDefinition,
@@ -15,8 +17,6 @@ import type {
   WorkflowNodeRunContext,
 } from '@noco-integrations/core';
 import type { GithubAuthIntegration } from '@noco-integrations/github-auth';
-import { fetchRepo } from './utils/fetch-repo';
-import { fetchBranches } from './utils/fetch-branches';
 
 interface CreatePullRequestNodeConfig extends WorkflowNodeConfig {
   authIntegrationId: string;

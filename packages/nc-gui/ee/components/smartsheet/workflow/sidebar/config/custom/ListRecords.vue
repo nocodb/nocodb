@@ -9,6 +9,7 @@ interface ListRecordsNodeConfig {
   offset?: number
   filters?: FilterType[]
   sorts?: SortType[]
+  linksAsLtar?: boolean
 }
 
 const { selectedNodeId, updateNode, selectedNode, fetchNodeIntegrationOptions, isWorkflowEditAllowed } = useWorkflowOrThrow()
@@ -410,6 +411,19 @@ onMounted(() => {
           </div>
         </template>
       </NcListDropdown>
+    </div>
+
+    <div class="flex items-center justify-between">
+      <div class="flex flex-col">
+        <label class="text-sm text-nc-content-gray-emphasis">Expand link fields</label>
+        <span class="text-xs text-nc-content-gray-muted">Return linked record data instead of count</span>
+      </div>
+      <NcSwitch
+        :checked="config.linksAsLtar ?? false"
+        :disabled="!isWorkflowEditAllowed"
+        size="small"
+        @update:checked="(val: boolean) => updateConfig({ linksAsLtar: val })"
+      />
     </div>
   </div>
 </template>

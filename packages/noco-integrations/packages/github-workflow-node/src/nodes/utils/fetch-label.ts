@@ -1,6 +1,9 @@
-import { GithubAuthIntegration } from "@noco-integrations/github-auth";
+import type { GithubAuthIntegration } from '@noco-integrations/github-auth';
 
-export const fetchLabel = async (auth: GithubAuthIntegration, config: { repo: string }) => {
+export const fetchLabel = async (
+  auth: GithubAuthIntegration,
+  config: { repo: string },
+) => {
   try {
     const [owner, repo] = config.repo.split('/');
 
@@ -21,4 +24,4 @@ export const fetchLabel = async (auth: GithubAuthIntegration, config: { repo: st
     console.error('[GitHub] Error fetching labels:', error);
     return [];
   }
-}
+};

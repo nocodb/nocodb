@@ -115,14 +115,30 @@ const isWorkspaceSsoAvail = computed(() => {
   return false
 })
 
+const tabTitleMap: Record<string, string> = {
+  bases: t('objects.projects'),
+  collaborators: t('labels.members'),
+  teams: t('general.teams'),
+  integrations: t('general.integrations'),
+  billing: t('general.billing'),
+  audits: t('title.audits'),
+  sso: t('title.sso'),
+  settings: t('labels.settings'),
+}
+
 watch(
-  () => currentWorkspace.value?.title,
-  (title) => {
-    if (!title) return
+  [() => currentWorkspace.value?.title, () => tab.value],
+  ([wsTitle, activeTab]) => {
+    if (!wsTitle) return
 
-    const capitalizedTitle = title.charAt(0).toUpperCase() + title.slice(1)
+    const capitalizedTitle = wsTitle.charAt(0).toUpperCase() + wsTitle.slice(1)
 
-    useTitle(capitalizedTitle)
+    if (props.isNewWsPage) {
+      const tabLabel = tabTitleMap[activeTab as string]
+      useTitle(tabLabel ? `${tabLabel} - ${capitalizedTitle}` : capitalizedTitle)
+    } else {
+      useTitle(capitalizedTitle)
+    }
   },
   {
     immediate: true,
@@ -140,8 +156,18 @@ onMounted(() => {
 })
 
 watch(
-  () => route.value.query?.tab,
+  () => tab.value,
   async (newTab, oldTab) => {
+    if (newTab === 'integrations') {
+      isFromIntegrationPage.value = true
+
+      await until(() => currentWorkspace.value?.id)
+        .toMatch((v) => !!v)
+        .then(async () => {
+          await loadIntegrations()
+        })
+    }
+
     if (oldTab === 'integrations') {
       isFromIntegrationPage.value = false
       integrationsSubTab.value = 'integrations'
@@ -245,17 +271,6 @@ if (!props.isNewWsPage) {
       <template #leftExtra>
         <div class="w-3"></div>
       </template>
-      <a-tab-pane v-if="isNewWsPage" key="bases" class="w-full h-full">
-        <template #tab>
-          <div class="tab-title">
-            <GeneralIcon icon="ncDatabase" class="h-4 w-4" />
-            {{ $t('objects.projects') }}
-          </div>
-        </template>
-
-        <div>bases</div>
-      </a-tab-pane>
-
       <template v-if="isUIAllowed('workspaceCollaborators')">
         <a-tab-pane key="collaborators" class="w-full h-full">
           <template #tab>

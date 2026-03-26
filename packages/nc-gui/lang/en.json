@@ -508,6 +508,7 @@
     "integrations": "Integrations",
     "connection": "Connection",
     "connections": "Connections",
+    "activeConnections": "Active connections",
     "private": "Private",
     "starred": "Starred",
     "request": "Request",

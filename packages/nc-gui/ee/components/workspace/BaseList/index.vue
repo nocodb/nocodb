@@ -25,7 +25,6 @@ const { dialogState, switchWorkspace } = useProvideWsBaseListActions(() => {})
 type FilterType = 'all' | 'starred' | 'private' | 'owned' | 'managed'
 const activeFilter = ref<FilterType>('all')
 
-
 // Load baseListAll on mount
 onMounted(() => {
   loadBaseListAll()
@@ -223,7 +222,6 @@ const selectedWorkspace = computed(() => {
           <template v-if="selectedWorkspace">
             <span class="text-nc-content-gray-muted whitespace-nowrap">{{ $t('activity.basesIn') }}</span>
             <span class="text-nc-content-brand capitalize truncate">{{ selectedWorkspace.title }}</span>
-            <span class="font-normal text-nc-content-gray-muted flex-shrink-0">({{ baseCount }})</span>
           </template>
         </template>
       </WorkspaceBaseListHeader>
@@ -342,4 +340,3 @@ const selectedWorkspace = computed(() => {
     />
   </div>
 </template>
-

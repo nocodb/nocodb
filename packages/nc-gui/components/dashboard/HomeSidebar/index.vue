@@ -62,7 +62,7 @@ const navigateToWorkspace = () => {
         <span>{{ $t('objects.workspace') }}</span>
       </div>
 
-      <div class="flex-1 overflow-y-auto nc-scrollbar-thin">
+      <div class="flex-1 overflow-y-auto nc-scrollbar-thin px-1">
         <NcSidebarMenuItem
           v-if="activeWorkspaceId"
           class="group"
@@ -141,7 +141,7 @@ const navigateToWorkspace = () => {
 }
 
 .nc-ws-section-header {
-  @apply px-3 pt-1.5 pb-1 font-semibold text-nc-content-brand uppercase tracking-wide;
+  @apply px-2 pt-1.5 pb-1 font-semibold text-nc-content-brand uppercase tracking-wide;
   font-size: 13px;
 }
 

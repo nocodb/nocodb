@@ -3,6 +3,15 @@ import { IntegrationsType, integrationCategoryNeedDefault } from 'nocodb-sdk'
 import type { IntegrationType, UserType, WorkspaceUserType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
+const props = withDefaults(
+  defineProps<{
+    showTitle?: boolean
+  }>(),
+  {
+    showTitle: false,
+  },
+)
+
 type SortFields = 'title' | 'sub_type' | 'created_at' | 'created_by' | 'source_count'
 
 const { t } = useI18n()
@@ -298,6 +307,10 @@ const customRow = (record: Record<string, any>) => ({
 <template>
   <div class="h-full flex flex-col gap-6 nc-workspace-connections nc-content-max-w mx-auto">
     <div class="flex flex-col justify-between gap-2 mx-1">
+      <h2 v-if="showTitle" class="text-lg font-semibold text-nc-content-gray mb-0">
+        {{ $t('general.activeConnections') }}
+      </h2>
+
       <div class="text-sm font-normal text-nc-content-gray-subtle2">
         <div>
           {{ $t('msg.manageConnections') }}
@@ -310,7 +323,12 @@ const customRow = (record: Record<string, any>) => ({
           </a>
         </div>
       </div>
-      <div class="flex items-center gap-3">
+      <div
+        class="flex items-center gap-3"
+        :class="{
+          'mt-2': showTitle,
+        }"
+      >
         <a-input
           v-model:value="searchQuery"
           type="text"

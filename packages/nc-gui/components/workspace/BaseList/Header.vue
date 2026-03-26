@@ -79,11 +79,14 @@ const clearFilter = () => {
     </a-input>
 
     <!-- Bases count (desktop only) -->
-    <span class="hidden md:inline text-xs font-medium tracking-wide text-nc-content-gray-muted flex-1">
+    <div
+      class="hidden md:flex flex-1 items-center gap-1.5 text-xs font-medium tracking-wide min-w-0 truncate overflow-hidden"
+    >
       <slot name="label">
-        {{ $t('objects.projects') }} ({{ baseCount }})
+        <span class="text-nc-content-gray-muted">{{ $t('objects.projects') }}</span>
       </slot>
-    </span>
+      <span class="flex-shrink-0 font-normal text-nc-content-gray-muted">({{ baseCount }})</span>
+    </div>
 
     <div class="flex items-center gap-2 flex-shrink-0">
       <!-- Active filter pill (desktop only) -->

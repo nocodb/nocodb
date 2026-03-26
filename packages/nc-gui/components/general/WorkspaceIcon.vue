@@ -16,6 +16,7 @@ const props = withDefaults(
     isRounded?: boolean
     iconBgColor?: string
     showNocodbIcon?: boolean
+    hideBgColor?: boolean
   }>(),
   {
     iconBgColor: 'var(--nc-bg-gray-light)',
@@ -79,6 +80,12 @@ const workspaceColor = computed(() => {
   return props.showNocodbIcon && (blockWsImageLogoUpload.value || !workspace.value) ? undefined : color || '#0A1433'
 })
 
+const isRenderingInitials = computed(() => {
+  if (props.hideLabel) return false
+  if (props.showNocodbIcon && (blockWsImageLogoUpload.value || !workspace.value)) return false
+  return !workspaceIcon.value.icon
+})
+
 const size = computed(() => props.size || 'medium')
 
 const isMiniSidebarSize = computed(() => size.value === 'mini-sidebar')
@@ -99,9 +106,11 @@ const isMiniSidebarSize = computed(() => size.value === 'mini-sidebar')
     }"
     :style="{
       backgroundColor:
-        !props.hideLabel && workspaceIcon.icon && workspaceIcon.iconType === IconType.IMAGE && !isMiniSidebarSize
+        props.hideBgColor && !isRenderingInitials
           ? undefined
-          : workspaceColor,
+          : !props.hideLabel && workspaceIcon.icon && workspaceIcon.iconType === IconType.IMAGE && !isMiniSidebarSize
+            ? undefined
+            : workspaceColor,
     }"
   >
     <template v-if="!props.hideLabel">

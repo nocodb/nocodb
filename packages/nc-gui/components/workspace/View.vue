@@ -296,7 +296,7 @@ if (!props.isNewWsPage) {
               {{ $t('general.integrations') }}
             </div>
           </template>
-          <div class="nc-integrations-layout h-full flex">
+          <div class="nc-integrations-layout h-[calc(100vh-var(--topbar-height)-44px)] flex">
             <!-- Left: vertical nav -->
             <div class="nc-integrations-sidebar flex flex-col gap-1 pl-6 pr-2 pt-6 w-48 flex-shrink-0">
               <div
@@ -305,7 +305,7 @@ if (!props.isNewWsPage) {
                 @click="integrationsSubTab = 'integrations'"
               >
                 <GeneralIcon icon="integration" class="h-4 w-4 flex-none" />
-                <span>{{ $t('general.integrations') }}</span>
+                <span class="flex-1">{{ $t('general.integrations') }}</span>
               </div>
               <div
                 class="nc-integrations-nav-item"
@@ -313,10 +313,10 @@ if (!props.isNewWsPage) {
                 @click="integrationsSubTab = 'connections'"
               >
                 <GeneralIcon icon="gitCommit" class="h-4 w-4 flex-none" />
-                <span>{{ $t('general.connections') }}</span>
+                <span class="flex-1">{{ $t('general.connections') }}</span>
                 <div
                   v-if="integrationPaginationData?.totalRows"
-                  class="tab-info flex-none ml-auto"
+                  class="tab-info flex-none"
                   :class="{
                     'bg-primary-selected': integrationsSubTab === 'connections',
                     'bg-nc-bg-gray-extralight': integrationsSubTab !== 'connections',
@@ -328,12 +328,12 @@ if (!props.isNewWsPage) {
             </div>
 
             <!-- Right: content -->
-            <div class="flex-1 min-w-0 flex flex-col">
-              <div v-if="integrationsSubTab === 'integrations'" class="h-full overflow-auto nc-scrollbar-thin">
-                <WorkspaceIntegrationsTab show-filter />
+            <div class="flex-1 min-w-0 flex flex-col h-full">
+              <div v-if="integrationsSubTab === 'integrations'" class="h-full">
+                <WorkspaceIntegrationsTab show-filter show-title />
               </div>
-              <div v-else-if="integrationsSubTab === 'connections'" class="p-6 h-full overflow-auto nc-scrollbar-thin">
-                <WorkspaceIntegrationsConnectionsTab />
+              <div v-else-if="integrationsSubTab === 'connections'" class="p-6 h-full">
+                <WorkspaceIntegrationsConnectionsTab show-title />
               </div>
             </div>
 
@@ -434,7 +434,7 @@ if (!props.isNewWsPage) {
 }
 
 .nc-integrations-nav-item {
-  @apply flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer
+  @apply flex items-center gap-2 px-3 h-8 rounded-md cursor-pointer
     text-bodyDefaultSm text-nc-content-gray-subtle
     transition-colors;
 

@@ -151,7 +151,7 @@ const hasNoResults = computed(() => {
       </div>
 
       <!-- Workspace list -->
-      <div class="flex-1 overflow-y-auto nc-scrollbar-thin">
+      <div class="flex-1 overflow-y-auto nc-scrollbar-thin px-1">
         <!-- No results -->
         <div v-if="hasNoResults" class="px-3 py-4 text-nc-content-gray-muted text-bodySm text-center">
           {{ $t('title.noResultsMatchedYourSearch') }}
@@ -168,7 +168,9 @@ const hasNoResults = computed(() => {
               @click="navigateToWorkspace(ws.id!)"
             >
               <template #icon>
-                <GeneralWorkspaceIcon :workspace="ws" size="small" class="flex-none" />
+                <div class="h-4 w-4 flex-none flex items-center justify-center">
+                  <GeneralWorkspaceIcon :workspace="ws" hide-bg-color size="small" class="flex-none" />
+                </div>
               </template>
               <span class="capitalize">{{ ws.title }}</span>
               <template #extraRight>
@@ -294,7 +296,7 @@ const hasNoResults = computed(() => {
 }
 
 .nc-ws-section-header {
-  @apply px-3 pt-1.5 pb-1 font-semibold text-nc-content-brand uppercase tracking-wide;
+  @apply px-2 pt-1.5 pb-1 font-semibold text-nc-content-brand uppercase tracking-wide;
   font-size: 13px;
 }
 

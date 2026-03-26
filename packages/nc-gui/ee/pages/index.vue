@@ -42,7 +42,7 @@ watch(
   { immediate: true },
 )
 
-const autoNavigateToWorkspace = async ({ initial = false }: { initial?: boolean } = {}) => {
+const autoNavigateToWorkspace = async () => {
   const routeName = route.value.name as string
 
   // Don't auto-navigate when already on a workspace page

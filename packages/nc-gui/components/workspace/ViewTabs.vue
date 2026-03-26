@@ -114,7 +114,7 @@ const activeTab = computed({
 </script>
 
 <template>
-  <NcTabs v-model:active-key="activeTab" :key="`${tabItems.length}`" class="nc-ws-view-tabs">
+  <NcTabs :key="`${tabItems.length}`" v-model:active-key="activeTab" class="nc-ws-view-tabs">
     <template #leftExtra>
       <div class="w-3"></div>
     </template>

@@ -78,7 +78,7 @@ async function signUp() {
     try {
       // TODO: Add to swagger
       if (isEnabledOnboardingFlow.value) {
-        let continueAfterOnboardingFlow = 'nc'
+        const continueAfterOnboardingFlow = 'nc'
 
         /**
          * Onboarding flow is shown only for new users

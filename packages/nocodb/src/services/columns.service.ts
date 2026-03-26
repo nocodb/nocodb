@@ -6809,6 +6809,18 @@ export class ColumnsService implements IColumnsService {
           { version: LinksVersion.V2 },
           { fk_column_id: pairedColumn.id },
         );
+
+        // Update paired column uidt from Links → LinkToAnotherRecord
+        // (mirrors convertLinkToV2's btColumn uidt update at lines 6383-6390)
+        if (pairedColumn.uidt === UITypes.Links) {
+          await ncMeta.metaUpdate(
+            refContext.workspace_id,
+            refContext.base_id,
+            MetaTable.COLUMNS,
+            { uidt: UITypes.LinkToAnotherRecord },
+            pairedColumn.id,
+          );
+        }
       }
 
       // Create new LTAR column + Rollup metadata inside the same transaction
@@ -6875,6 +6887,14 @@ export class ColumnsService implements IColumnsService {
       CacheDelDirection.CHILD_TO_PARENT,
     );
     if (pairedColumn) {
+      // Update paired column cache uidt if it was Links
+      if (pairedColumn.uidt === UITypes.Links) {
+        await NocoCache.update(
+          refContext,
+          `${CacheScope.COLUMN}:${pairedColumn.id}`,
+          { uidt: UITypes.LinkToAnotherRecord },
+        );
+      }
       await NocoCache.deepDel(
         refContext,
         `${CacheScope.COL_RELATION}:${pairedColumn.id}`,

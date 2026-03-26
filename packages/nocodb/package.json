@@ -187,7 +187,7 @@
     "sharp": "0.33.4",
     "slash": "^3.0.0",
     "slug": "^8.2.3",
-    "snowflake-sdk": "^2.1.0",
+    "snowflake-sdk": "^2.3.6",
     "socket.io": "^4.8.1",
     "sqlite3": "^5.1.7",
     "stream-json": "^1.9.1",

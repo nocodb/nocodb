@@ -40,14 +40,15 @@ export const relationDataFetcher = (param: {
     const { ast, parsedQuery } = await getAst(context, {
       model,
       query,
-      extractOnlyPrimaries: context.cacheMap?.relation_postProcessData ?? false,
+      extractOnlyPrimaries:
+        context.cacheMap?.get('relation_postProcessData') ?? false,
     });
 
     if (!context.cacheMap) {
-      context.cacheMap = {};
+      context.cacheMap = new Map();
     }
     // set context.cacheMap?.relation_postProcessData to ensure non-infinite loop
-    context.cacheMap.relation_postProcessData = true;
+    context.cacheMap.set('relation_postProcessData', true);
 
     // nocoexecute
     const result = await nocoExecute(ast, data, {}, parsedQuery);

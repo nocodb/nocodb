@@ -37,7 +37,7 @@ export default function () {
           .send({ title: '', type: 'SingleLineText' })
           .expect(400);
         expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
-        expect(result.body.message).to.include('Invalid request body');
+        expect(result.body.message).to.include(`'title' must not be empty`);
       });
       it('will handle duplicate alias', async () => {
         await request(context.app)
@@ -61,7 +61,7 @@ export default function () {
           .send({ title: longTitle, type: 'SingleLineText' })
           .expect(400);
         expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
-        expect(result.body.message).to.include('Invalid request body');
+        expect(result.body.message).to.include(`'title' must be at most 255 characters`);
       });
       it('will handle missing type', async () => {
         const result = await request(context.app)
@@ -70,7 +70,7 @@ export default function () {
           .send({ title: 'NoType' })
           .expect(400);
         expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
-        expect(result.body.message).to.include('Invalid request body');
+        expect(result.body.message).to.include(`'type' is required`);
       });
       it('will handle incorrect field', async () => {
         const result = await request(context.app)
@@ -149,10 +149,10 @@ export default function () {
         const result = await request(context.app)
           .patch(`${API_PREFIX}/fields/${column.id}`)
           .set('xc-token', context.xc_token)
-          .send({ uidt: 'NotFoundUIDT' })
+          .send({ title: 'title', type: 'NotFoundUIDT' })
           .expect(400);
         expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
-        expect(result.body.message).to.include('Invalid request body');
+        expect(result.body.message).to.include(`'type' must be one of: SingleLineText`);
       });
     });
 

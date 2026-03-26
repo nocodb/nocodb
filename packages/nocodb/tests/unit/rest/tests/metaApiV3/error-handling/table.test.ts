@@ -98,7 +98,7 @@ export default function () {
         expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
         expect(result.body.message).to.eq(
           sqlUi.tableNameLengthLimit > 250
-            ? 'Invalid request body'
+            ? `Validation failed: 'title' must be at most 255 characters`
             : `Table name exceeds ${sqlUi.tableNameLengthLimit} characters`,
         );
       });

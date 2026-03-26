@@ -209,11 +209,7 @@ export default function () {
       // Validation
       const error = inviteBaseUser.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('msg', 'Invalid request body');
-      expect(error.errors[0]).to.have.property(
-        'message',
-        "must have required property 'base_role'",
-      );
+      expect(error.msg).to.contains(`'base_role' is required`);
     });
     it('Invite Base User v3 - Email/UserID not specified', async () => {
       // Invite base user

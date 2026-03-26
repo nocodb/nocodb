@@ -61,7 +61,7 @@ export default function (API_VERSION: 'v1' | 'v2' | 'v3') {
           })
           .expect(400);
 
-        expect(response.text).to.include(`must have required property 'title'`);
+        expect(response.text).to.include(`'title' is required`);
 
         const tables = await getAllTables({ base });
         expect(tables.length).to.eq(1);
@@ -112,7 +112,7 @@ export default function (API_VERSION: 'v1' | 'v2' | 'v3') {
           })
           .expect(400);
 
-        expect(response.text).to.includes('must NOT have more than ');
+        expect(response.text).to.includes(`'table_name' must be at most 255 characters`);
 
         const tables = await getAllTables({ base });
         expect(tables.length).to.eq(1);

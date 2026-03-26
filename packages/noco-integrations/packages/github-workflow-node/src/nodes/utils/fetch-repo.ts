@@ -1,4 +1,4 @@
-import { GithubAuthIntegration } from "@noco-integrations/github-auth";
+import type { GithubAuthIntegration } from '@noco-integrations/github-auth';
 
 export const fetchRepo = async (auth: GithubAuthIntegration) => {
   try {
@@ -35,4 +35,4 @@ export const fetchRepo = async (auth: GithubAuthIntegration) => {
     console.error('[GitHub] Error fetching repositories:', error);
     return [];
   }
-}
+};

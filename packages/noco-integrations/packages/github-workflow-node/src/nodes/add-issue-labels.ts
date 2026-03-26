@@ -6,6 +6,10 @@ import {
   NocoSDK,
   WorkflowNodeCategory,
 } from '@noco-integrations/core';
+import {
+  GitHubIssueLabelActionNode,
+  type GitHubIssueLabelBaseConfig,
+} from './abstract/issue-labels';
 import type {
   WorkflowNodeDefinition,
   WorkflowNodeLog,
@@ -13,10 +17,6 @@ import type {
   WorkflowNodeRunContext,
 } from '@noco-integrations/core';
 import type { GithubAuthIntegration } from '@noco-integrations/github-auth';
-import {
-  GitHubIssueLabelActionNode,
-  type GitHubIssueLabelBaseConfig,
-} from './abstract/issue-labels';
 
 interface AddIssueLabelsNodeConfig extends GitHubIssueLabelBaseConfig {
   labels: string[];

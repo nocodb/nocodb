@@ -7,6 +7,11 @@ import {
   WorkflowNodeCategory,
   WorkflowNodeIntegration,
 } from '@noco-integrations/core';
+import { fetchRepo } from './utils/fetch-repo';
+import { fetchLabel } from './utils/fetch-label';
+import { fetchMilestone } from './utils/fetch-milestone';
+import { fetchAssignee } from './utils/fetch-assignee';
+import type { GithubAuthIntegration } from '@noco-integrations/github-auth';
 import type {
   WorkflowNodeConfig,
   WorkflowNodeDefinition,
@@ -14,11 +19,6 @@ import type {
   WorkflowNodeResult,
   WorkflowNodeRunContext,
 } from '@noco-integrations/core';
-import type { GithubAuthIntegration } from '@noco-integrations/github-auth';
-import { fetchRepo } from './utils/fetch-repo';
-import { fetchLabel } from './utils/fetch-label';
-import { fetchMilestone } from './utils/fetch-milestone';
-import { fetchAssignee } from './utils/fetch-assignee';
 
 const STATE_OPTIONS = [
   { label: 'Open', value: 'open' },

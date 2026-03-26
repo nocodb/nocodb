@@ -1,11 +1,8 @@
-import {
-  NocoSDK,
-  WorkflowNodeIntegration,
-} from '@noco-integrations/core';
-import type { WorkflowNodeConfig } from '@noco-integrations/core';
-import type { GithubAuthIntegration } from '@noco-integrations/github-auth';
+import { NocoSDK, WorkflowNodeIntegration } from '@noco-integrations/core';
 import { fetchRepo } from '../utils/fetch-repo';
 import { fetchLabel } from '../utils/fetch-label';
+import type { WorkflowNodeConfig } from '@noco-integrations/core';
+import type { GithubAuthIntegration } from '@noco-integrations/github-auth';
 
 /**
  * Base configuration interface for GitHub issue label action nodes

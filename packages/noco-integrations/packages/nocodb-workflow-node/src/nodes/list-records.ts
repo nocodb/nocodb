@@ -27,6 +27,7 @@ interface ListRecordsNodeConfig extends WorkflowNodeConfig {
   offset?: number;
   sorts?: Array<{ fk_column_id: string; direction: 'asc' | 'desc' }>;
   filters?: FilterItem[];
+  linksAsLtar?: boolean;
 }
 
 export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConfig> {
@@ -252,7 +253,10 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
         context,
         {
           modelId,
-          query,
+          query: {
+            ...query,
+            ...(ctx.inputs.config.linksAsLtar ? { linksAsLtar: 'true' } : {}),
+          },
           viewId,
           ignorePagination: false,
           req: {
@@ -592,7 +596,7 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
         table.columns,
         true,
         'records',
-        context,
+        { ...context, linksAsLtar: !!this.config.linksAsLtar },
       );
 
       const paginationVariable: NocoSDK.VariableDefinition = {

@@ -19,6 +19,7 @@ import type {
 interface CreateRecordNodeConfig extends WorkflowNodeConfig {
   modelId: string;
   fields: Record<string, string>;
+  linksAsLtar?: boolean;
 }
 
 export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeConfig> {
@@ -197,6 +198,9 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
         body: { fields: transformedFields },
         cookie: {
           user: this.nocodb.user,
+          ...(ctx.inputs.config.linksAsLtar
+            ? { query: { linksAsLtar: 'true' } }
+            : {}),
         },
       });
 
@@ -335,12 +339,10 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
 
       if (!table) return [];
 
-      return await NocoSDK.genRecordVariables(
-        table.columns,
-        false,
-        'record',
-        context,
-      );
+      return await NocoSDK.genRecordVariables(table.columns, false, 'record', {
+        ...context,
+        linksAsLtar: !!this.config.linksAsLtar,
+      });
     } catch {
       return [];
     }

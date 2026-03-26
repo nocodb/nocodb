@@ -1,8 +1,8 @@
-import { GithubAuthIntegration } from "@noco-integrations/github-auth";
+import type { GithubAuthIntegration } from '@noco-integrations/github-auth';
 
 export const fetchBranches = async (
   auth: GithubAuthIntegration,
-  config: { repo: string }
+  config: { repo: string },
 ) => {
   try {
     const [owner, repo] = config.repo.split('/');
@@ -24,4 +24,4 @@ export const fetchBranches = async (
     console.error('[GitHub] Error fetching branches:', error);
     return [];
   }
-}
+};

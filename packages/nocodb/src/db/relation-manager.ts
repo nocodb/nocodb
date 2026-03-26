@@ -129,6 +129,8 @@ export class RelationManager {
       model: childTable,
     });
 
+    const reversed = RelationManager.isRelationReversed(column, colOptions);
+
     return new RelationManager({
       baseModel,
       relationColumn: column,
@@ -141,15 +143,8 @@ export class RelationManager {
       parentColumn,
       parentTable,
       parentBaseModel,
-      childId:
-        // in bt or mm child id and row id is swapped
-        // due to table definition
-        RelationManager.isRelationReversed(column, colOptions)
-          ? id.rowId
-          : id.childId,
-      parentId: RelationManager.isRelationReversed(column, colOptions)
-        ? id.childId
-        : id.rowId,
+      childId: reversed ? id.rowId : id.childId,
+      parentId: reversed ? id.childId : id.rowId,
       parentContext,
       childContext,
       refContext,
@@ -441,7 +436,6 @@ export class RelationManager {
         }
 
         if (moRemovedPairs.length > 1) {
-          logger.warn(
             `V2 cardinality enforcement removed ${moRemovedPairs.length} junction rows ` +
               `(expected 0-1) for child ${childId} on column ${relationColumn.id}`,
           );
@@ -469,7 +463,6 @@ export class RelationManager {
         }
 
         if (omRemovedPairs.length > 1) {
-          logger.warn(
             `V2 cardinality enforcement removed ${omRemovedPairs.length} junction rows ` +
               `(expected 0-1) for parent ${parentId} on column ${relationColumn.id}`,
           );
@@ -493,7 +486,7 @@ export class RelationManager {
           [vTn, vParentCol.column_name, vChildCol.column_name],
         );
       } else {
-        await trx(vTn).insert({
+        const insertObj = {
           [vParentCol.column_name]: trx(parentTn)
             .select(parentColumn.column_name)
             .where(_wherePk(parentTable.primaryKeys, parentId))
@@ -502,7 +495,8 @@ export class RelationManager {
             .select(childColumn.column_name)
             .where(_wherePk(childTable.primaryKeys, childId))
             .first(),
-        });
+        };
+        await trx(vTn).insert(insertObj);
       }
 
       await trx.commit();

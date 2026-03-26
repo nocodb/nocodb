@@ -130,6 +130,10 @@ export class MySqlDBQueryClient
     switch (column.uidt) {
       case UITypes.LinkToAnotherRecord:
         {
+          // Ensure colOptions is loaded before checking isMMOrMMLike
+          if (!column.colOptions) {
+            await column.getColOptions(context);
+          }
           const isMMLike = isMMOrMMLike(column);
           const relatedModel = await (
             column.colOptions as LinkToAnotherRecordColumn

@@ -26,6 +26,7 @@ export class DataAliasNestedController {
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/ln/:columnName',
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/mo/:columnName',
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/om/:columnName',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/oo/:columnName',
   ])
   @Acl('mmList')
   async mmList(
@@ -50,6 +51,7 @@ export class DataAliasNestedController {
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/ln/:columnName/exclude',
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/mo/:columnName/exclude',
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/om/:columnName/exclude',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/oo/:columnName/exclude',
   ])
   @Acl('mmExcludedList')
   async mmExcludedList(

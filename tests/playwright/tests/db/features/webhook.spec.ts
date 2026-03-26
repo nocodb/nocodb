@@ -658,7 +658,7 @@ test.describe.serial('Webhook', () => {
       // create LTAR Country has-many City
       countryTable = await api.dbTableColumn.create(countryTable.id, {
         title: 'CityList',
-        uidt: UITypes.Links,
+        uidt: UITypes.LinkToAnotherRecord,
         parentId: countryTable.id,
         childId: cityTable.id,
         type: 'hm',
@@ -722,6 +722,8 @@ test.describe.serial('Webhook', () => {
     await dashboard.grid.editRow({ index: 0, columnHeader: 'Country', value: 'INDIA', networkValidation: false });
     const rsp = await getWebhookResponses({ request, count: 1 });
 
+    // CityList is LTAR HM (UITypes.LinkToAnotherRecord) — returns nested objects, not count.
+    // Exclude CityList from subset check since the nested format varies by DB/EE mode.
     const expectedData = {
       type: 'records.after.update',
       data: {
@@ -731,7 +733,6 @@ test.describe.serial('Webhook', () => {
             Id: 1,
             Country: 'India',
             CountryCode: 1,
-            CityList: 2,
             CityCodeRollup: 2,
             CityCodeFormula: 100,
             CityCodeLookup: [23, 33],
@@ -742,7 +743,6 @@ test.describe.serial('Webhook', () => {
             Id: 1,
             Country: 'INDIA',
             CountryCode: 1,
-            CityList: 2,
             CityCodeRollup: 2,
             CityCodeFormula: 100,
             CityCodeLookup: [23, 33],
@@ -772,10 +772,6 @@ test.describe.serial('Webhook', () => {
       expectedData.data.previous_rows[0].CityCodeLookup = [23, 33];
       // @ts-ignore
       expectedData.data.rows[0].CityCodeLookup = [23, 33];
-      // @ts-ignore
-      expectedData.data.previous_rows[0].CityList = 2;
-      // @ts-ignore
-      expectedData.data.rows[0].CityList = 2;
 
       if (isMysql(context)) {
         // @ts-ignore

@@ -47,9 +47,9 @@ test.describe('Rollup filter condition persistence across field switches', () =>
 
     await dashboard.grid.column.create({
       title: 'Link-HM',
-      type: 'Links',
+      type: 'LinkToAnotherRecord',
       childTable: 'ChildTable',
-      relationType: 'Has Many',
+      relationType: 'One to Many',
     });
     await page.waitForTimeout(500);
 

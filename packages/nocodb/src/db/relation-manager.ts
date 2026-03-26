@@ -129,6 +129,8 @@ export class RelationManager {
       model: childTable,
     });
 
+    const reversed = RelationManager.isRelationReversed(column, colOptions);
+
     return new RelationManager({
       baseModel,
       relationColumn: column,
@@ -141,15 +143,8 @@ export class RelationManager {
       parentColumn,
       parentTable,
       parentBaseModel,
-      childId:
-        // in bt or mm child id and row id is swapped
-        // due to table definition
-        RelationManager.isRelationReversed(column, colOptions)
-          ? id.rowId
-          : id.childId,
-      parentId: RelationManager.isRelationReversed(column, colOptions)
-        ? id.childId
-        : id.rowId,
+      childId: reversed ? id.rowId : id.childId,
+      parentId: reversed ? id.childId : id.rowId,
       parentContext,
       childContext,
       refContext,
@@ -493,7 +488,7 @@ export class RelationManager {
           [vTn, vParentCol.column_name, vChildCol.column_name],
         );
       } else {
-        await trx(vTn).insert({
+        const insertObj = {
           [vParentCol.column_name]: trx(parentTn)
             .select(parentColumn.column_name)
             .where(_wherePk(parentTable.primaryKeys, parentId))
@@ -502,7 +497,8 @@ export class RelationManager {
             .select(childColumn.column_name)
             .where(_wherePk(childTable.primaryKeys, childId))
             .first(),
-        });
+        };
+        await trx(vTn).insert(insertObj);
       }
 
       await trx.commit();
@@ -1327,14 +1323,41 @@ export class RelationManager {
     }
   }
 
-  getAuditUpdateObj(req: any) {
-    const { childTable, parentTable, parentColumn, childColumn } =
-      this.relationContext;
+  async getAuditUpdateObj(req: any) {
+    const {
+      childTable,
+      parentTable,
+      relationColumn,
+      baseModel,
+    } = this.relationContext;
+
+    // Find the paired link column on the related table
+    const pairedCol = await extractCorrespondingLinkColumn(
+      baseModel.context,
+      {
+        ltarColumn: relationColumn,
+        referencedTableColumns:
+          relationColumn.fk_model_id === parentTable.id
+            ? childTable.columns
+            : parentTable.columns,
+      },
+    );
+
+    // Determine which link column belongs to which table
+    const isRelColOnParent =
+      relationColumn.fk_model_id === parentTable.id;
+    const parentLinkCol = isRelColOnParent
+      ? relationColumn
+      : pairedCol || relationColumn;
+    const childLinkCol = isRelColOnParent
+      ? pairedCol || relationColumn
+      : relationColumn;
+
     return this.auditUpdateObj.map((log) => {
       const column =
-        log.direction === 'parent_child' ? parentColumn : childColumn;
+        log.direction === 'parent_child' ? parentLinkCol : childLinkCol;
       const refColumn =
-        log.direction === 'parent_child' ? childColumn : parentColumn;
+        log.direction === 'parent_child' ? childLinkCol : parentLinkCol;
       return {
         ...log,
         model: log.direction === 'parent_child' ? parentTable : childTable,

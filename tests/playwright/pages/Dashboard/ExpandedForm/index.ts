@@ -122,7 +122,10 @@ export class ExpandedFormPage extends BasePage {
       }
       case 'belongsTo':
         await field.locator('.nc-virtual-cell').hover();
-        await field.locator('.nc-action-icon').click();
+        await field
+          .locator('.nc-action-icon.nc-plus, .nc-has-many-plus-icon, .nc-many-to-many-plus-icon')
+          .first()
+          .click();
         if (ltarCount !== undefined && ltarCount !== null) {
           await this.dashboard.linkRecord.verifyCount(`${ltarCount}`);
         }
@@ -130,8 +133,12 @@ export class ExpandedFormPage extends BasePage {
         break;
       case 'hasMany':
       case 'manyToMany':
+      case 'manyToOne':
         await field.locator('.nc-virtual-cell').hover();
-        await field.locator('.nc-action-icon').click();
+        await field
+          .locator('.nc-action-icon.nc-plus, .nc-has-many-plus-icon, .nc-many-to-many-plus-icon')
+          .first()
+          .click();
         if (ltarCount !== undefined && ltarCount !== null) {
           await this.dashboard.linkRecord.verifyCount(`${ltarCount}`);
         }
@@ -211,8 +218,22 @@ export class ExpandedFormPage extends BasePage {
 
   async openChildCard(param: { column: string; title: string }) {
     const childField = this.get().locator(`[data-testid="nc-expand-col-${param.column}"]`);
-    await childField.locator('.nc-datatype-link').waitFor({ state: 'visible' });
-    await childField.locator('.nc-datatype-link').click();
+    // Wait for either Links.vue (.nc-datatype-link) or HM/MM (maximize icon) to appear
+    const linkText = childField.locator('.nc-datatype-link');
+    const maximizeIcon = childField.locator('.nc-has-many-maximize-icon, .nc-many-to-many-maximize-icon');
+
+    // Wait for either element with a generous timeout (external DB can be slow)
+    await childField
+      .locator('.nc-datatype-link, .nc-has-many-maximize-icon, .nc-many-to-many-maximize-icon, .chip')
+      .first()
+      .waitFor({ state: 'visible', timeout: 10000 });
+
+    if ((await linkText.count()) > 0 && (await linkText.isVisible())) {
+      await linkText.click();
+    } else if ((await maximizeIcon.count()) > 0) {
+      await childField.hover();
+      await maximizeIcon.click({ force: true });
+    }
 
     const card = await this.rootPage.locator(`.ant-card:has-text("${param.title}")`);
     await card.hover();

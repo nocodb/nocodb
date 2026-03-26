@@ -137,6 +137,10 @@ export class PGDBQueryClient
     switch (column.uidt) {
       case UITypes.LinkToAnotherRecord:
         {
+          // Ensure colOptions is loaded before checking isMMOrMMLike
+          if (!column.colOptions) {
+            await column.getColOptions(context);
+          }
           const isMMLike = isMMOrMMLike(column);
           const relatedModel = await (
             column.colOptions as LinkToAnotherRecordColumn
@@ -1135,7 +1139,10 @@ export class PGDBQueryClient
         }
         break;
       case UITypes.Links:
-        if (params?.linksAsLtar === 'true' && apiVersion === NcApiVersion.V3) {
+        if (
+          params?.linksAsLtar === 'true' && apiVersion === NcApiVersion.V3 ||
+          isBtLikeV2Junction(column)
+        ) {
           try {
             return await this.extractColumn({
               column: new Column({

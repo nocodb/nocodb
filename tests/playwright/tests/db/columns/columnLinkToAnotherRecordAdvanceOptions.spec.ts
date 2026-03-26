@@ -50,17 +50,17 @@ test.describe('LTAR create & update', () => {
     await dashboard.grid.editRow({ index: 1, columnHeader: 'Sheet1Id', value: '1' });
     await dashboard.grid.editRow({ index: 2, columnHeader: 'Sheet1Id', value: '1' });
 
-    // Create LTAR-HM column
+    // Create LTAR-OM column
     await dashboard.grid.column.create({
-      title: 'Link1-2hm',
-      type: UITypes.Links,
+      title: 'Link1-2om',
+      type: UITypes.LinkToAnotherRecord,
       childTable: 'Sheet2',
-      relationType: 'Has Many',
+      relationType: 'One to Many',
       custom: true,
       refColumn: 'Sheet1Id',
     });
 
-    // Sheet2 now has all 3 column categories : HM, BT, MM
+    // Sheet2 now has all 3 column categories : OM, MO, MM
 
     // Verify fields and toggle the visibility
     await dashboard.grid.toolbar.clickFields();
@@ -171,7 +171,7 @@ test.describe('LTAR create & update', () => {
       [['1 Sheet2'], ['1 Sheet2'], ['1 Sheet2']],
       [['2a'], ['2b'], ['2c']],
     ];
-    const colHeaders2 = ['Link1-2hm', 'Link1-2mm', 'Sheet2'];
+    const colHeaders2 = ['Link1-2om', 'Link1-2mm', 'Sheet2'];
 
     // verify LTAR cell values
     for (let i = 0; i < expected2.length; i++) {
@@ -199,7 +199,7 @@ test.describe('LTAR create & update', () => {
     }
 
     // delete columns
-    await dashboard.grid.column.delete({ title: 'Link1-2hm' });
+    await dashboard.grid.column.delete({ title: 'Link1-2om' });
     await dashboard.grid.column.delete({ title: 'Link1-2mm' });
     await dashboard.grid.column.delete({ title: 'Sheet2' });
 

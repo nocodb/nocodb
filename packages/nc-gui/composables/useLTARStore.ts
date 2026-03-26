@@ -118,7 +118,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const colOptions = computed(() => column.value?.colOptions as LinkToAnotherRecordType)
 
-    const type = computed(() => (isLinkV2(column.value) ? 'ln' : (colOptions.value?.type as RelationTypes)))
+    const type = computed(() => colOptions.value?.type as RelationTypes)
 
     const isSingleTargetRelation = computed(() => {
       return (
@@ -724,19 +724,23 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       undo = false,
       index: number, // Index is For Loading and Linked State of Row
     ) => {
-      // const column = meta.columns.find(c => c.id === this.column.colOptions.fk_child_column_id);
-      // todo: handle if new record
-      // if (this.isNew) {
-      //   this.$emit('updateCol', this.row, _cn, null);
-      //   this.localState = null;
-      //   this.$emit('update:localState', this.localState);
-      //   return;
-      // }
-      // todo: handle bt column if required
-      // if (column.rqd) {
-      //   this.$toast.info('Unlink is not possible, instead map to another parent.').goAway(3000);
-      //   return;
-      // }
+      // For new rows, remove from local state
+      if (isNewRow?.value || !rowId.value) {
+        removeLTARRef(row, column.value as ColumnType)
+        const targetRow = rowStoreCurrentRow.value
+        if (isSingleTargetRelation.value) {
+          targetRow.row[column.value.title!] = null
+        } else {
+          const arr = targetRow.row[column.value.title!]
+          if (Array.isArray(arr)) {
+            const idx = arr.indexOf(row)
+            if (idx !== -1) arr.splice(idx, 1)
+          }
+        }
+        isChildrenExcludedListLinked.value[index] = false
+        isChildrenListLinked.value[index] = false
+        return
+      }
       try {
         // todo: audit
 
@@ -794,25 +798,31 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       $e('a:links:unlink')
     }
 
+    const { addLTARRef, removeLTARRef, currentRow: rowStoreCurrentRow } = useSmartsheetRowStoreOrThrow()
+
     const link = async (
       row: Record<string, any>,
       { metaValue = meta.value }: { metaValue?: TableType } = {},
       undo = false,
       index: number, // Index is For Loading and Linked State of Row
     ) => {
-      // todo: handle new record
-      //   const pid = this._extractRowId(parent, this.parentMeta);
-      // const id = this._extractRowId(this.row, this.meta);
-      // const _cn = this.meta.columns.find(c => c.id === this.column.colOptions.fk_child_column_id).title;
-      //
-      // if (this.isNew) {
-      //   const _rcn = this.parentMeta.columns.find(c => c.id === this.column.colOptions.fk_parent_column_id).title;
-      //   this.localState = parent;
-      //   this.$emit('update:localState', this.localState);
-      //   this.$emit('updateCol', this.row, _cn, parent[_rcn]);
-      //   this.newRecordModal = false;
-      //   return;
-      // }
+      // For new rows, store the link in local state — it will be persisted on save via nested insert
+      if (isNewRow?.value || !rowId.value) {
+        addLTARRef(row, column.value as ColumnType)
+        // Update the row store's currentRow (not the LTAR store's snapshot) so components re-render
+        const targetRow = rowStoreCurrentRow.value
+        if (isSingleTargetRelation.value) {
+          targetRow.row[column.value.title!] = row
+        } else {
+          if (!Array.isArray(targetRow.row[column.value.title!])) {
+            targetRow.row[column.value.title!] = []
+          }
+          targetRow.row[column.value.title!].push(row)
+        }
+        isChildrenExcludedListLinked.value[index] = true
+        isChildrenListLinked.value[index] = true
+        return
+      }
       try {
         isChildrenExcludedListLoading.value[index] = true
         isChildrenListLoading.value[index] = true
@@ -834,8 +844,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         if (!undo) {
           let oldValue = null
 
-          // If it is bt or oo relation then we have to restore old value on undo
-          if (isBt(column.value) || isOo(column.value)) {
+          // If it is bt/oo/V2 MO relation then we have to restore old value on undo
+          if (isBt(column.value) || isOo(column.value) || isBtLikeV2Junction(column.value)) {
             oldValue = currentRow.value.row?.[column.value?.title]
           }
 

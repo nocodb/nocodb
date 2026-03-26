@@ -685,7 +685,7 @@ const onDeleteColumn = () => {
       v-if="
         !isMobileMode &&
         isLinksOrLTAR(column) &&
-        (column.colOptions?.version !== 2 || column.uidt === UITypes.Links) &&
+        (column.uidt === UITypes.Links || column.colOptions?.version !== 2) &&
         isUIAllowed('fieldAlter') &&
         !isSqlView
       "

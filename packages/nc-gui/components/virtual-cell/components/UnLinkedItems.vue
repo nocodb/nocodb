@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { PermissionEntity, PermissionKey, RelationTypes, isDateOrDateTimeCol, isLinksOrLTAR } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, RelationTypes, isBtLikeV2Junction, isDateOrDateTimeCol, isLinksOrLTAR } from 'nocodb-sdk'
 import InboxIcon from '~icons/nc-icons/inbox'
 
 const props = defineProps<{
@@ -87,14 +87,34 @@ const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
+const injectedRow = inject(RowInj)!
+
 const relation = computed(() => {
   return injectedColumn!.value?.colOptions?.type
+})
+
+const isSingleTargetLink = computed(() => {
+  return isBtLikeV2Junction(injectedColumn!.value) || relation.value === 'oo' || relation.value === 'bt'
 })
 
 const linkRow = async (row: Record<string, any>, id: number) => {
   if (isNew.value) {
     await addLTARRef(row, injectedColumn?.value as ColumnType)
-    if (relation.value === 'oo' || relation.value === 'bt') {
+
+    // Update the cell value directly on the row so the parent template re-renders
+    const colTitle = injectedColumn?.value?.title
+    if (colTitle && injectedRow.value) {
+      if (isSingleTargetLink.value) {
+        injectedRow.value.row[colTitle] = row
+      } else {
+        if (!Array.isArray(injectedRow.value.row[colTitle])) {
+          injectedRow.value.row[colTitle] = []
+        }
+        injectedRow.value.row[colTitle] = [...(injectedRow.value.row[colTitle] || []), row]
+      }
+    }
+
+    if (isSingleTargetLink.value) {
       isChildrenExcludedListLinked.value.forEach((isLinked, idx) => {
         if (isLinked) {
           isChildrenExcludedListLinked.value[idx] = false

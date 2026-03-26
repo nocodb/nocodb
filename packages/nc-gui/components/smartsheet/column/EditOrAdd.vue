@@ -160,7 +160,17 @@ const showHoverEffectOnSelectedType = ref(true)
 const onMouseOverUniqueValuesInfoIcon = ref(false)
 
 const columnUidt = computed({
-  get: () => formState.value.uidt,
+  get: () => {
+    // Show legacy LTAR v1 columns as "Links" in the type dropdown
+    if (
+      isEdit.value &&
+      formState.value.uidt === UITypes.LinkToAnotherRecord &&
+      formState.value.colOptions?.version !== 2
+    ) {
+      return UITypes.Links
+    }
+    return formState.value.uidt
+  },
   set: (value: UITypes) => {
     if (value === AIPrompt && showUpgradeToUseAiPromptField()) {
       return
@@ -1274,11 +1284,12 @@ const unique = computed({
                       class="nc-field-type-icon w-4 h-4 !opacity-90 text-current"
                     />
                     <div
+                      class="flex items-center gap-1"
                       :class="{
-                        'flex-1': !searchBasisInfoMap[opt.name],
+                        'flex-1 min-w-0': !searchBasisInfoMap[opt.name],
                       }"
                     >
-                      {{ UITypesName[opt.name] }}
+                      <span class="truncate">{{ UITypesName[opt.name] }}</span>
                       <NcTooltip
                         v-if="
                           isEdit &&
@@ -1291,7 +1302,7 @@ const unique = computed({
                         :title="$t('labels.convertToNewLink')"
                       >
                         <span
-                          class="!text-xs !text-nc-content-brand-hover cursor-pointer hover:underline"
+                          class="!text-xs !text-nc-content-brand-hover cursor-pointer hover:underline flex-none"
                           @click.stop="showConvertLinkV2Modal = true"
                           >(Legacy)</span
                         >
@@ -1385,6 +1396,7 @@ const unique = computed({
           :key="`${formState.uidt}-${formState.id || 'new'}`"
           v-model:value="formState"
           :is-edit="isEdit"
+          @upgrade="showConvertLinkV2Modal = true"
         />
         <SmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" v-model:value="formState" />
         <SmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />

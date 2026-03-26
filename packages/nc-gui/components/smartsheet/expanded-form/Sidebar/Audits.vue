@@ -83,12 +83,20 @@ watch(
   },
 )
 
+const meta = inject(MetaInj, ref())
+
 function safeJsonParse(json: string) {
   try {
     return JSON.parse(json)
   } catch (e) {
     return {}
   }
+}
+
+function getLinkColumnType(audit: AuditType) {
+  const details = safeJsonParse(audit.details as string)
+  const col = meta.value?.columns?.find((c: any) => c.id === details.link_field_id)
+  return (col?.colOptions as any)?.type || details.type
 }
 
 function isV0Audit(audit: AuditType) {
@@ -180,7 +188,7 @@ function isV0Audit(audit: AuditType) {
               <div class="rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y py-2 px-3">
                 <div class="flex items-center gap-2 !text-nc-content-gray-subtle2 text-xs nc-audit-mini-item-header mb-3">
                   <SmartsheetHeaderVirtualCellIcon
-                    :column-meta="{ uidt: 'Links', colOptions: { type: safeJsonParse(audit.details).type } }"
+                    :column-meta="{ uidt: 'Links', colOptions: { type: getLinkColumnType(audit) } }"
                     class="!m-0"
                   />
                   {{ safeJsonParse(audit.details).link_field_title }}

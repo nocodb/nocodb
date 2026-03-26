@@ -494,7 +494,7 @@ export function isLinkV2(
   if (col.colOptions) {
     return (
       isLinksOrLTAR(col) &&
-      (col.colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2
+      (col.colOptions as LinkToAnotherRecordType)?.version == LinksVersion.V2
     );
   }
 
@@ -516,7 +516,8 @@ export function isMMOrMMLike(
     if (col.colOptions) {
       const opts = col.colOptions as LinkToAnotherRecordType;
       // V2 relations are all junction-table-based (MM-like)
-      if (opts.version === LinksVersion.V2) {
+      // Use == for version check since DB may store as string "2" not number 2
+      if (opts.version == LinksVersion.V2) {
         return true;
       }
       // Traditional MANY_TO_MANY
@@ -545,7 +546,8 @@ export function isBtLikeV2Junction(
 ): boolean {
   if (typeof col === 'object' && isLinksOrLTAR(col) && col.colOptions) {
     const opts = col.colOptions as LinkToAnotherRecordType;
-    if (opts.version !== LinksVersion.V2) return false;
+    // Use != for version check since DB may store as string "2" not number 2
+    if (opts.version != LinksVersion.V2) return false;
     return [
       RelationTypes.MANY_TO_ONE,
       RelationTypes.ONE_TO_ONE,

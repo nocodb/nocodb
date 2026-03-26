@@ -1,6 +1,15 @@
 ###########
-# Builder — runs on the build host (no QEMU), installs all JS deps
-# and downloads prebuilt native binaries for the target platform
+# Platform-specific runner images
+# node:24.14.0-alpine doesn't publish arm/v7 — fall back to node:22-alpine
+###########
+FROM node:24.14.0-alpine AS runner-amd64
+FROM node:24.14.0-alpine AS runner-arm64
+FROM node:22-alpine AS runner-arm
+
+###########
+# Builder — always runs natively on the build host (no QEMU)
+# Uses the host platform's node image for speed, then cross-downloads
+# prebuilt native binaries for the target platform
 ###########
 FROM --platform=$BUILDPLATFORM node:24.14.0-alpine AS builder
 ARG TARGETPLATFORM
@@ -58,9 +67,10 @@ RUN chmod +x /usr/src/appEntry/start.sh
 
 
 ##########
-# Runner
+# Runner — uses platform-specific image for the target arch
 ##########
-FROM node:24.14.0-alpine
+ARG TARGETARCH
+FROM runner-${TARGETARCH}
 WORKDIR /usr/src/app
 
 ENV NC_DOCKER=0.6

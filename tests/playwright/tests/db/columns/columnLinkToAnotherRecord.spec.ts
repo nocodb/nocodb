@@ -32,29 +32,29 @@ test.describe('LTAR create & update', () => {
     await dashboard.grid.addNewRow({ index: 1, value: '1b' });
     await dashboard.grid.addNewRow({ index: 2, value: '1c' });
 
-    // Create LTAR-HM column
+    // Create LTAR-OM column
     await dashboard.grid.column.create({
-      title: 'Link1-2hm',
-      type: 'Links',
+      title: 'Link1-2om',
+      type: 'LinkToAnotherRecord',
       childTable: 'Sheet2',
-      relationType: 'Has Many',
+      relationType: 'One to Many',
     });
     await dashboard.grid.column.create({
       title: 'Link1-2mm',
-      type: 'Links',
+      type: 'LinkToAnotherRecord',
       childTable: 'Sheet2',
       relationType: 'Many to Many',
     });
 
     await dashboard.treeView.openTable({ title: 'Sheet2', networkResponse: false, baseTitle: context.base.title });
     await dashboard.grid.column.create({
-      title: 'Link2-1hm',
-      type: 'Links',
+      title: 'Link2-1om',
+      type: 'LinkToAnotherRecord',
       childTable: 'Sheet1',
-      relationType: 'Has Many',
+      relationType: 'One to Many',
     });
 
-    // Sheet2 now has all 3 column categories : HM, BT, MM
+    // Sheet2 now has all 3 column categories : OM, MO, MM
 
     // Verify fields and toggle the visibility
     await dashboard.grid.toolbar.clickFields();
@@ -82,7 +82,7 @@ test.describe('LTAR create & update', () => {
       type: 'manyToMany',
     });
     await dashboard.expandedForm.fillField({
-      columnTitle: 'Link2-1hm',
+      columnTitle: 'Link2-1om',
       value: '1a',
       type: 'hasMany',
     });
@@ -91,7 +91,7 @@ test.describe('LTAR create & update', () => {
     // In cell insert
     await dashboard.grid.addNewRow({ index: 1, value: '2b' });
     await dashboard.grid.cell.inCellAdd({ index: 1, columnHeader: 'Sheet1' });
-    await dashboard.linkRecord.select('1b', false);
+    await dashboard.linkRecord.select('1b');
     await dashboard.grid.cell.inCellAdd({
       index: 1,
       columnHeader: 'Sheet1s',
@@ -99,7 +99,7 @@ test.describe('LTAR create & update', () => {
     await dashboard.linkRecord.select('1b');
     await dashboard.grid.cell.inCellAdd({
       index: 1,
-      columnHeader: 'Link2-1hm',
+      columnHeader: 'Link2-1om',
     });
     await dashboard.linkRecord.select('1b');
 
@@ -118,7 +118,7 @@ test.describe('LTAR create & update', () => {
       type: 'manyToMany',
     });
     await dashboard.expandedForm.fillField({
-      columnTitle: 'Link2-1hm',
+      columnTitle: 'Link2-1om',
       value: '1c',
       type: 'hasMany',
     });
@@ -134,10 +134,10 @@ test.describe('LTAR create & update', () => {
 
     const expected = [
       [['1a'], ['1b'], ['1c']],
-      [['1 Sheet1'], ['1 Sheet1'], ['1 Sheet1']],
-      [['1 Sheet1'], ['1 Sheet1'], ['1 Sheet1']],
+      [['1a'], ['1b'], ['1c']],
+      [['1a'], ['1b'], ['1c']],
     ];
-    const colHeaders = ['Sheet1', 'Sheet1s', 'Link2-1hm'];
+    const colHeaders = ['Sheet1', 'Sheet1s', 'Link2-1om'];
 
     // verify LTAR cell values
     for (let i = 0; i < expected.length; i++) {
@@ -162,11 +162,11 @@ test.describe('LTAR create & update', () => {
     await dashboard.grid.toolbar.clickFields();
 
     const expected2 = [
-      [['1 Sheet2'], ['1 Sheet2'], ['1 Sheet2']],
-      [['1 Sheet2'], ['1 Sheet2'], ['1 Sheet2']],
+      [['2a'], ['2b'], ['2c']],
+      [['2a'], ['2b'], ['2c']],
       [['2a'], ['2b'], ['2c']],
     ];
-    const colHeaders2 = ['Link1-2hm', 'Link1-2mm', 'Sheet2'];
+    const colHeaders2 = ['Link1-2om', 'Link1-2mm', 'Sheet2'];
 
     // verify LTAR cell values
     for (let i = 0; i < expected2.length; i++) {
@@ -194,7 +194,7 @@ test.describe('LTAR create & update', () => {
     }
 
     // delete columns
-    await dashboard.grid.column.delete({ title: 'Link1-2hm' });
+    await dashboard.grid.column.delete({ title: 'Link1-2om' });
     await dashboard.grid.column.delete({ title: 'Link1-2mm' });
     await dashboard.grid.column.delete({ title: 'Sheet2' });
 

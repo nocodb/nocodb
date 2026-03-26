@@ -306,7 +306,7 @@ test.describe('Form view with LTAR', () => {
       await api.dbTableColumn.create(countryTable.id, {
         column_name: 'CityList',
         title: 'CityList',
-        uidt: UITypes.Links,
+        uidt: UITypes.LinkToAnotherRecord,
         parentId: countryTable.id,
         childId: cityTable.id,
         type: 'hm',

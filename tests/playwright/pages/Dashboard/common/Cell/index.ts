@@ -105,17 +105,39 @@ export class CellPageObject extends BasePage {
   }
 
   async inCellExpand({ index, columnHeader }: CellProps) {
-    // await this.get({ index, columnHeader }).hover();
-    await this.waitForResponse({
-      uiAction: () => this.get({ index, columnHeader }).locator('.nc-datatype-link').click(),
-      requestUrlPathToMatch: '/api/v1/db/data/noco',
-      httpMethodsToMatch: ['GET'],
-    });
+    const cell = this.get({ index, columnHeader });
+    // Links.vue uses .nc-datatype-link; HM/MM use maximize icon
+    const linkText = cell.locator('.nc-datatype-link');
+    const maximizeIcon = cell.locator('.nc-has-many-maximize-icon, .nc-many-to-many-maximize-icon');
+
+    await cell.hover();
+
+    if ((await linkText.count()) > 0) {
+      await this.waitForResponse({
+        uiAction: () => linkText.click(),
+        requestUrlPathToMatch: '/api/v1/db/data/noco',
+        httpMethodsToMatch: ['GET'],
+      });
+    } else {
+      await this.waitForResponse({
+        uiAction: () => maximizeIcon.click(),
+        requestUrlPathToMatch: '/api/v1/db/data/noco',
+        httpMethodsToMatch: ['GET'],
+      });
+    }
   }
 
   async inCellAdd({ index, columnHeader }: CellProps) {
     await this.get({ index, columnHeader }).hover();
-    await this.get({ index, columnHeader }).locator('.nc-action-icon.nc-plus').click();
+    // .nc-action-icon.nc-plus — combined on same element (Links.vue, BelongsTo.vue, OneToOne.vue)
+    // .nc-has-many-plus-icon — outer container for HM cells (HasMany.vue)
+    // .nc-many-to-many-plus-icon — outer container for MM cells (ManyToMany.vue)
+    const plusIcon = this.get({ index, columnHeader }).locator(
+      '.nc-action-icon.nc-plus, .nc-has-many-plus-icon, .nc-many-to-many-plus-icon'
+    );
+    // Some cells have the plus icon as visibility:hidden until hover; force to activate it
+    await plusIcon.hover({ force: true });
+    await plusIcon.click();
   }
 
   async verifyCellActiveSelected({ index, columnHeader }: CellProps) {
@@ -324,6 +346,7 @@ export class CellPageObject extends BasePage {
     // lazy load - give enough time for cell to load
     await this.rootPage.waitForTimeout(1000);
 
+    // BT columns render as chips (BelongsTo.vue)
     if (type === 'bt') {
       const chips = cell.locator('.chips > .chip');
       expect(await chips.count()).toBe(count);
@@ -336,62 +359,95 @@ export class CellPageObject extends BasePage {
       return;
     }
 
-    // verify chip count & contents
-    if (count) {
-      const expectedText = `${count} ${count === 1 ? options.singular : options.plural}`;
-      let retryCount = 0;
-      while (retryCount < 5) {
-        const receivedText = await linkText.innerText();
-        if (receivedText.includes(expectedText)) {
-          break;
+    // Determine if cell renders as Links.vue (count text) or HM/MM chips
+    const isLinksCell = (await linkText.count()) > 0;
+
+    if (isLinksCell) {
+      // Links.vue — verify count text
+      if (count) {
+        const expectedText = `${count} ${count === 1 ? options.singular : options.plural}`;
+        let retryCount = 0;
+        while (retryCount < 5) {
+          const receivedText = await linkText.innerText();
+          if (receivedText.includes(expectedText)) {
+            break;
+          }
+          retryCount++;
+          await this.rootPage.waitForTimeout(100 * retryCount);
         }
-        retryCount++;
-        // add delay of 100ms
-        await this.rootPage.waitForTimeout(100 * retryCount);
+        expect(await cell.innerText()).toContain(expectedText);
       }
-      expect(await cell.innerText()).toContain(expectedText);
+    } else {
+      // HM/MM chip-based cells (HasMany.vue, ManyToMany.vue) — verify chip count & values
+      const chips = cell.locator('.chip');
+      if (count === 0) {
+        expect(await chips.count()).toBe(0);
+      } else if (count) {
+        await expect.poll(() => chips.count()).toBe(count);
+        if (value) {
+          for (let i = 0; i < value.length; ++i) {
+            await expect(chips.nth(i).locator('.name')).toHaveText(value[i]);
+          }
+        }
+      }
     }
 
     if (verifyChildList) {
-      // open child list
       await this.get({ index, columnHeader }).hover();
 
-      // arrow expand doesn't exist for bt columns
-      if (await linkText.count()) {
+      if (isLinksCell) {
+        // Links.vue — click link text to open child list
         await this.waitForResponse({
           uiAction: () => linkText.click(),
           requestUrlPathToMatch: '/api/v1',
           httpMethodsToMatch: ['GET'],
         });
-
-        // wait for child list to open
-        await this.rootPage.waitForSelector('.nc-modal-child-list:visible');
-
-        // verify child list count & contents
-        await expect.poll(() => this.rootPage.locator('.ant-card:visible').count()).toBe(count);
-
-        // close child list
-        // await this.rootPage.locator('.nc-modal-child-list').locator('.nc-close-btn').last().click();
-        await this.rootPage.locator('.nc-modal-child-list').getByTestId('nc-link-count-info').click();
-        await this.rootPage.keyboard.press('Escape');
+      } else {
+        // HM/MM — click maximize icon to open child list
+        const maximizeIcon = cell.locator('.nc-has-many-maximize-icon, .nc-many-to-many-maximize-icon');
+        await this.waitForResponse({
+          uiAction: () => maximizeIcon.click(),
+          requestUrlPathToMatch: '/api/v1',
+          httpMethodsToMatch: ['GET'],
+        });
       }
+
+      // wait for child list to open
+      await this.rootPage.waitForSelector('.nc-modal-child-list:visible');
+
+      // verify child list count & contents
+      await expect.poll(() => this.rootPage.locator('.ant-card:visible').count()).toBe(count);
+
+      // close child list
+      await this.rootPage.locator('.nc-modal-child-list').getByTestId('nc-link-count-info').click();
+      await this.rootPage.keyboard.press('Escape');
     }
   }
 
   async unlinkVirtualCell({ index, columnHeader }: CellProps) {
     const cell = this.get({ index, columnHeader });
-    const isLink = await cell.locator('.nc-datatype-link').count();
+    const linkTextCount = await cell.locator('.nc-datatype-link').count();
+    const maximizeIcon = cell.locator('.nc-has-many-maximize-icon, .nc-many-to-many-maximize-icon');
+    const hasMaximizeIcon = (await maximizeIcon.count()) > 0;
 
-    // Count will be 0 for BT columns
-    if (!isLink) {
+    // BT columns — no link text, no maximize icon — click unlink icon directly
+    if (!linkTextCount && !hasMaximizeIcon) {
       await cell.click();
       await cell.locator('.nc-icon.unlink-icon').click();
-      // await cell.click();
     }
 
-    // For HM/MM columns
+    // HM/MM columns — open child list, then unlink
     else {
-      await cell.locator('.nc-datatype-link').click();
+      await cell.hover();
+
+      if (linkTextCount) {
+        // Links.vue — click link text
+        await cell.locator('.nc-datatype-link').click();
+      } else {
+        // HasMany/ManyToMany — click maximize icon
+        await maximizeIcon.click();
+      }
+
       await this.rootPage.locator('.nc-links-dropdown.active').waitFor({ state: 'visible' });
       await this.rootPage
         .locator(`[data-testid="nc-child-list-item"]`)

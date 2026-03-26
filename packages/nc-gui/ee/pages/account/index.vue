@@ -11,14 +11,12 @@ const { appInfo, signedIn, signOut } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
-const { isPaymentEnabled, isEEFeatureBlocked } = useEeConfig()
+const { isPaymentEnabled, isEEFeatureBlocked, showEEFeatures } = useEeConfig()
 
 const workspaceStore = useWorkspace()
 
 const { workspacesList } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
-
-const { isPaymentEnabled, showEEFeatures } = useEeConfig()
 
 const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && (!isEeUI || !appInfo.value.isCloud))
 

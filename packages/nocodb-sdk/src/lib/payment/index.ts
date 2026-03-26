@@ -113,10 +113,8 @@ export enum PlanTitles {
 }
 
 export enum OnPremPlanTitles {
-  ENTERPRISE_STARTER = 'Self-hosted Starter',
-  ENTERPRISE = 'Self-hosted Enterprise',
-  SELF_HOSTED_PLUS = 'Self-hosted Plus',
   SELF_HOSTED_BUSINESS = 'Self-hosted Business',
+  SELF_HOSTED_SCALE = 'Self-hosted Scale',
   SELF_HOSTED_ENTERPRISE = 'Self-hosted Enterprise',
 }
 
@@ -128,14 +126,10 @@ export enum PlanPriceLookupKeys {
 }
 
 export enum OnPremPlanPriceLookupKeys {
-  // Legacy aliases
-  STARTER_MONTHLY = 'on_prem_starter_monthly',
-  STARTER_YEARLY = 'on_prem_starter_yearly',
-  // New 3-tier lookup keys
-  PLUS_MONTHLY = 'on_prem_plus_monthly',
-  PLUS_YEARLY = 'on_prem_plus_yearly',
   BUSINESS_MONTHLY = 'on_prem_business_monthly',
   BUSINESS_YEARLY = 'on_prem_business_yearly',
+  SCALE_MONTHLY = 'on_prem_scale_monthly',
+  SCALE_YEARLY = 'on_prem_scale_yearly',
   ENTERPRISE_MONTHLY = 'on_prem_enterprise_monthly',
   ENTERPRISE_YEARLY = 'on_prem_enterprise_yearly',
 }
@@ -231,32 +225,20 @@ export const HigherPlan = {
 } as Record<string, PlanTitles>;
 
 export const OnPremPlanMeta = {
-  // Legacy aliases
-  [OnPremPlanTitles.ENTERPRISE_STARTER]: {
-    title: OnPremPlanTitles.ENTERPRISE_STARTER,
-    color: 'var(--plus-plan-color, #EDF9FF)',
-    accent: 'var(--plus-plan-accent, #AFE5FF)',
-    primary: 'var(--plus-plan-primary, #207399)',
-    bgLight: 'var(--plus-plan-bg-light, #EDF9FF)',
-    bgDark: 'var(--plus-plan-bg-dark, #D7F2FF)',
-    border: 'var(--plus-plan-border, #AFE5FF)',
-    badgeBgColor: 'var(--plus-plan-badge-bg-color, #D7F2FF)',
-    badgeTextColor: 'var(--plus-plan-badge-text-color, #207399)',
-  },
-  // New 3-tier plan meta (Plus=blue, Business=pink, Enterprise=orange)
-  [OnPremPlanTitles.SELF_HOSTED_PLUS]: {
-    title: OnPremPlanTitles.SELF_HOSTED_PLUS,
-    color: 'var(--plus-plan-color, #EDF9FF)',
-    accent: 'var(--plus-plan-accent, #AFE5FF)',
-    primary: 'var(--plus-plan-primary, #207399)',
-    bgLight: 'var(--plus-plan-bg-light, #EDF9FF)',
-    bgDark: 'var(--plus-plan-bg-dark, #D7F2FF)',
-    border: 'var(--plus-plan-border, #AFE5FF)',
-    badgeBgColor: 'var(--plus-plan-badge-bg-color, #D7F2FF)',
-    badgeTextColor: 'var(--plus-plan-badge-text-color, #207399)',
-  },
+  // Business = blue (first tier), Scale = pink (second tier), Enterprise = orange (third tier)
   [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: {
     title: OnPremPlanTitles.SELF_HOSTED_BUSINESS,
+    color: 'var(--plus-plan-color, #EDF9FF)',
+    accent: 'var(--plus-plan-accent, #AFE5FF)',
+    primary: 'var(--plus-plan-primary, #207399)',
+    bgLight: 'var(--plus-plan-bg-light, #EDF9FF)',
+    bgDark: 'var(--plus-plan-bg-dark, #D7F2FF)',
+    border: 'var(--plus-plan-border, #AFE5FF)',
+    badgeBgColor: 'var(--plus-plan-badge-bg-color, #D7F2FF)',
+    badgeTextColor: 'var(--plus-plan-badge-text-color, #207399)',
+  },
+  [OnPremPlanTitles.SELF_HOSTED_SCALE]: {
+    title: OnPremPlanTitles.SELF_HOSTED_SCALE,
     color: 'var(--business-plan-color, #FAF5FF)',
     accent: 'var(--business-plan-accent, #FEB0E8)',
     primary: 'var(--business-plan-primary, #972377)',
@@ -280,21 +262,67 @@ export const OnPremPlanMeta = {
 } as const;
 
 export const OnPremPlanOrder = {
-  // Legacy
-  [OnPremPlanTitles.ENTERPRISE_STARTER]: 0,
-  // New 3-tier
-  [OnPremPlanTitles.SELF_HOSTED_PLUS]: 0,
-  [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: 1,
+  [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: 0,
+  [OnPremPlanTitles.SELF_HOSTED_SCALE]: 1,
   [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: 2,
 };
 
 export const OnPremHigherPlan = {
-  // Legacy
-  [OnPremPlanTitles.ENTERPRISE_STARTER]: OnPremPlanTitles.ENTERPRISE,
-  // New 3-tier
-  [OnPremPlanTitles.SELF_HOSTED_PLUS]: OnPremPlanTitles.SELF_HOSTED_BUSINESS,
-  [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: OnPremPlanTitles.SELF_HOSTED_ENTERPRISE,
+  [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: OnPremPlanTitles.SELF_HOSTED_SCALE,
+  [OnPremPlanTitles.SELF_HOSTED_SCALE]: OnPremPlanTitles.SELF_HOSTED_ENTERPRISE,
 } as Record<string, OnPremPlanTitles>;
+
+/**
+ * Centralized on-prem plan definitions.
+ *
+ * Base assumption: all features enabled, all limits unlimited (-1).
+ * Each plan only lists OVERRIDES — disabled features and restricted limits.
+ * Edit this object to change what each tier gets.
+ */
+export const OnPremPlanDefinitions: Record<
+  string,
+  {
+    features: Partial<Record<PlanFeatureTypes, boolean>>;
+    limits: Partial<Record<PlanLimitTypes, number>>;
+  }
+> = {
+  [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: {
+    features: {
+      // Scale+ only
+      [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: false,
+      [PlanFeatureTypes.FEATURE_SSO]: false,
+      [PlanFeatureTypes.FEATURE_PRIVATE_BASES]: false,
+      // Enterprise only
+      [PlanFeatureTypes.FEATURE_RLS]: false,
+      [PlanFeatureTypes.FEATURE_SCIM]: false,
+    },
+    limits: {
+      [PlanLimitTypes.LIMIT_WORKSPACE]: 1,
+      [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 5,
+      [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 180, // days
+      [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 90, // days
+      [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 180, // days
+    },
+  },
+  [OnPremPlanTitles.SELF_HOSTED_SCALE]: {
+    features: {
+      // Enterprise only
+      [PlanFeatureTypes.FEATURE_RLS]: false,
+      [PlanFeatureTypes.FEATURE_SCIM]: false,
+    },
+    limits: {
+      [PlanLimitTypes.LIMIT_WORKSPACE]: 1,
+      [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 5,
+      [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 365, // days
+      [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 180, // days
+      [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 365, // days
+    },
+  },
+  [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: {
+    features: {},
+    limits: {},
+  },
+};
 
 export const GRACE_PERIOD_DURATION = 14;
 

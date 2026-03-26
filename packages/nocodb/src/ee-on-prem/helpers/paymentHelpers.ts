@@ -1,11 +1,7 @@
 import { NON_SEAT_ROLES, OnPremPlanTitles, PlanLimitTypes } from 'nocodb-sdk';
 import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import NocoLicense from '~/NocoLicense';
-import Plan, {
-  EnterprisePlan,
-  EnterpriseStarterPlan,
-  FreePlan,
-} from '~/models/Plan';
+import Plan, { EnterprisePlan, FreePlan } from '~/models/Plan';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
 
@@ -16,9 +12,8 @@ export const getOnPremPlan = () => {
     const config = NocoLicense.getConfig();
     const planTitle = config?.plan_title;
 
-    // New JWTs carry plan_title — build plan from everything-enabled base
+    // JWTs carry plan_title — build plan from everything-enabled base
     // and let the JWT config be the sole authority for restrictions.
-    // This keeps plan definitions on the license server, not in client code.
     if (planTitle && Object.values(OnPremPlanTitles).includes(planTitle)) {
       return Plan.prepare({
         title: planTitle,
@@ -32,47 +27,20 @@ export const getOnPremPlan = () => {
       });
     }
 
-    // Legacy: JWT with config but no plan_title — infer from workspace limit
-    if (config && Object.keys(config).length > 1) {
-      const title =
-        NocoLicense.getWorkspaceLimit() === 1
-          ? OnPremPlanTitles.ENTERPRISE_STARTER
-          : OnPremPlanTitles.ENTERPRISE;
-
-      return Plan.prepare({
-        title,
-        description: 'On-premise plan',
-        meta: {
-          ...Plan.limitPairs(-1, false),
-          ...Plan.featurePairs(true),
-          ...config,
-        },
-        free: false,
-      });
-    }
-
-    // Legacy: old JWT with only limit_workspace (no full config)
-    const basePlan =
-      NocoLicense.getWorkspaceLimit() === 1
-        ? EnterpriseStarterPlan
-        : EnterprisePlan;
-
     // If limit_seat is set, inject it as LIMIT_EDITOR so that
     // preInviteValidate and other plan-based checks enforce it.
     const seatLimit = NocoLicense.getSeatLimit();
-    if (seatLimit !== null && seatLimit > 0) {
-      return {
-        ...basePlan,
-        meta: {
-          ...basePlan.meta,
-          [PlanLimitTypes.LIMIT_EDITOR]: seatLimit,
-        },
-      };
-    }
-
-    // Licensed but no config restrictions → full enterprise
     if (NocoLicense.isEE) {
-      return basePlan;
+      if (seatLimit !== null && seatLimit > 0) {
+        return {
+          ...EnterprisePlan,
+          meta: {
+            ...EnterprisePlan.meta,
+            [PlanLimitTypes.LIMIT_EDITOR]: seatLimit,
+          },
+        };
+      }
+      return EnterprisePlan;
     }
 
     return FreePlan;

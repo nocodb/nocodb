@@ -49,7 +49,7 @@ interface OnPremLicense {
 
 export const useOnPremLicense = createSharedComposable(() => {
   const { $api } = useNuxtApp()
-  const { $state } = useNuxtApp()
+  const { token } = useGlobal()
 
   const baseURL = $api.instance.defaults.baseURL
 
@@ -62,7 +62,7 @@ export const useOnPremLicense = createSharedComposable(() => {
   const paymentMode = ref<'year' | 'month'>('year')
 
   const fetchHeaders = computed(() => ({
-    'xc-auth': $state.token.value as string,
+    'xc-auth': token.value as string,
   }))
 
   const listLicenses = async () => {
@@ -149,19 +149,13 @@ export const useOnPremLicense = createSharedComposable(() => {
   }
 
   const TITLE_TO_LOOKUP_KEYS: Record<string, { monthly: string; yearly: string }> = {
-    // Legacy
-    [OnPremPlanTitles.ENTERPRISE_STARTER]: {
-      monthly: OnPremPlanPriceLookupKeys.STARTER_MONTHLY,
-      yearly: OnPremPlanPriceLookupKeys.STARTER_YEARLY,
-    },
-    // New 3-tier
-    [OnPremPlanTitles.SELF_HOSTED_PLUS]: {
-      monthly: OnPremPlanPriceLookupKeys.PLUS_MONTHLY,
-      yearly: OnPremPlanPriceLookupKeys.PLUS_YEARLY,
-    },
     [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: {
       monthly: OnPremPlanPriceLookupKeys.BUSINESS_MONTHLY,
       yearly: OnPremPlanPriceLookupKeys.BUSINESS_YEARLY,
+    },
+    [OnPremPlanTitles.SELF_HOSTED_SCALE]: {
+      monthly: OnPremPlanPriceLookupKeys.SCALE_MONTHLY,
+      yearly: OnPremPlanPriceLookupKeys.SCALE_YEARLY,
     },
     [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: {
       monthly: OnPremPlanPriceLookupKeys.ENTERPRISE_MONTHLY,

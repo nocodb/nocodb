@@ -792,10 +792,9 @@
       "Team": "Team",
       "Plus": "Plus",
       "Business": "Business",
-      "Self-hosted Starter": "Starter",
-      "Self-hosted Enterprise": "Enterprise",
-      "Self-hosted Plus": "Plus",
-      "Self-hosted Business": "Business"
+      "Self-hosted Business": "Business",
+      "Self-hosted Scale": "Scale",
+      "Self-hosted Enterprise": "Enterprise"
     },
     "currentPlan": {
       "nextInvoice": "Next invoice",

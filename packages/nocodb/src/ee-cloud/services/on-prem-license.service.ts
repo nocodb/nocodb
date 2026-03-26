@@ -18,18 +18,14 @@ const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder', {
  * Maps on-prem plan titles to license types
  */
 const PLAN_TO_LICENSE_TYPE: Record<string, LicenseType> = {
-  // Legacy
-  [OnPremPlanTitles.ENTERPRISE_STARTER]: LicenseType.ENTERPRISE_STARTER,
-  // New 3-tier (SELF_HOSTED_ENTERPRISE shares value with legacy ENTERPRISE)
-  [OnPremPlanTitles.SELF_HOSTED_PLUS]: LicenseType.SELF_HOSTED_PLUS,
   [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: LicenseType.SELF_HOSTED_BUSINESS,
+  [OnPremPlanTitles.SELF_HOSTED_SCALE]: LicenseType.SELF_HOSTED_SCALE,
   [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: LicenseType.SELF_HOSTED_ENTERPRISE,
 };
 
 /**
  * Builds license config from a plan's metadata.
  * Always includes plan_title so on-prem can select the correct base plan.
- * Falls back to the legacy hardcoded config if plan has no meta.
  */
 function buildConfigFromPlan(
   plan: Plan,
@@ -41,13 +37,6 @@ function buildConfigFromPlan(
 
   if (plan.meta && Object.keys(plan.meta).length > 0) {
     Object.assign(config, plan.meta);
-  } else {
-    // Legacy fallback for plans without full metadata
-    const LEGACY_CONFIG: Record<string, Record<string, any>> = {
-      [OnPremPlanTitles.ENTERPRISE_STARTER]: { limit_workspace: 1 },
-      [OnPremPlanTitles.ENTERPRISE]: {},
-    };
-    Object.assign(config, LEGACY_CONFIG[plan.title] || {});
   }
 
   // Per-subscription overrides (addons, custom limits)

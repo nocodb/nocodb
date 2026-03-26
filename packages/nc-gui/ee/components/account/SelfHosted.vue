@@ -75,13 +75,13 @@ const statusLabel = (status: string) => {
 const statusClass = (status: string) => {
   switch (status) {
     case 'ACTIVE':
-      return 'bg-nc-green-50 text-nc-green-700 border-nc-green-200'
+      return 'bg-nc-bg-green-light text-nc-content-green-dark border-nc-border-green'
     case 'PENDING':
-      return 'bg-nc-orange-50 text-nc-orange-700 border-nc-orange-200'
+      return 'bg-nc-bg-orange-light text-nc-content-orange-dark border-nc-border-orange'
     case 'SUSPENDED':
-      return 'bg-nc-red-50 text-nc-red-700 border-nc-red-200'
+      return 'bg-nc-bg-red-light text-nc-content-red-dark border-nc-border-red'
     default:
-      return 'bg-nc-gray-50 text-nc-gray-700 border-nc-gray-200'
+      return 'bg-nc-bg-gray-light text-nc-content-gray border-nc-border-gray-medium'
   }
 }
 
@@ -382,8 +382,8 @@ onBeforeUnmount(async () => {
         <!-- Success View -->
         <template v-if="viewState === 'success' && successLicense">
           <div class="flex flex-col items-center gap-6 py-10">
-            <div class="w-16 h-16 rounded-full bg-nc-green-50 flex items-center justify-center">
-              <GeneralIcon icon="ncCheck" class="h-8 w-8 text-nc-green-600" />
+            <div class="w-16 h-16 rounded-full bg-nc-bg-green-light flex items-center justify-center">
+              <GeneralIcon icon="ncCheck" class="h-8 w-8 text-nc-content-green-dark" />
             </div>
 
             <div class="text-center">

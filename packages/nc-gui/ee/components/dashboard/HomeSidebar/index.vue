@@ -181,7 +181,7 @@ const hasNoResults = computed(() => {
             >
               <template #icon>
                 <div class="h-4 w-4 flex-none flex items-center justify-center">
-                  <GeneralWorkspaceIcon :workspace="ws" hide-bg-color size="small" class="flex-none" />
+                  <GeneralWorkspaceIcon :workspace="ws" hide-bg-color :initials-length="1" size="small" class="flex-none" />
                 </div>
               </template>
               <span class="capitalize">{{ ws.title }}</span>

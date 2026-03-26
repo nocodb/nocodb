@@ -17,10 +17,12 @@ const props = withDefaults(
     iconBgColor?: string
     showNocodbIcon?: boolean
     hideBgColor?: boolean
+    initialsLength?: 1 | 2
   }>(),
   {
     iconBgColor: 'var(--nc-bg-gray-light)',
     showNocodbIcon: false,
+    initialsLength: 2,
   },
 )
 
@@ -176,7 +178,7 @@ const isMiniSidebarSize = computed(() => size.value === 'mini-sidebar')
             'text-sm': size === 'account-sidebar' || isMiniSidebarSize,
           }"
         >
-          {{ getSafeInitials(workspace?.title, size === 'account-sidebar' || isMiniSidebarSize ? 1 : 2, true) }}
+          {{ getSafeInitials(workspace?.title, size === 'account-sidebar' || isMiniSidebarSize ? 1 : initialsLength, true) }}
         </div>
       </template>
     </template>

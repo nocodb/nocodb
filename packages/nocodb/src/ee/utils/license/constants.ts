@@ -57,10 +57,26 @@ export const LICENSE_ENV_VARS = {
  *
  * For staging/testing, embed the staging public key in this array alongside
  * production keys. All keys are compiled into the binary — no env var override.
+ *
+ * In production on-prem builds, __NC_DERIVED_KEYS__ is injected by the build
+ * system with XOR-encoded key data. Both LICENSE_SERVER_PUBLIC_KEYS and
+ * getLicenseServerPublicKeys() resolve through the same derivation path,
+ * so no plain keys exist in the production bundle.
  */
-export const LICENSE_SERVER_PUBLIC_KEYS: string[] = [
-  // Production
-  `-----BEGIN PUBLIC KEY-----
+declare const __NC_DERIVED_KEYS__: Array<{ d: string; m: string }> | undefined;
+
+function _resolveKeys(): string[] {
+  if (typeof __NC_DERIVED_KEYS__ !== 'undefined') {
+    return __NC_DERIVED_KEYS__.map((k) => {
+      const a = Buffer.from(k.d, 'base64');
+      const b = Buffer.from(k.m, 'base64');
+      return Buffer.from(a.map((v, i) => v ^ b[i])).toString('utf-8');
+    });
+  }
+  // Dev only — plain keys (dead-code eliminated in production builds)
+  return [
+    // Production
+    `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoJmGmnm0jzZ0PsXd/8Lb
 FmII2KreX1hDoC3dOGdOrpvkGx/RMgkDb3XOhjOXRhJconVutzbnwvbSVemXCVHn
 5hav08+STDqvGveu0zrvB5+E+zKTyb2yqdBbjPUr6l3IZuRsozHeNYWpohZAsTM+
@@ -69,8 +85,8 @@ eaPwgqhKnyemzX7kpftcbdqBm7rmmU9IKHxei9Qv5Jd7yVs3IqO5HkBUOn+hSfGU
 whonhMeWGMHt00hfs5xjdrXm92HBQGsHbbsHczvlmvnYFQGp0O8UZniTFvNDuG/g
 /QIDAQAB
 -----END PUBLIC KEY-----`,
-  // Added 2026-03-26 - Staging
-  `-----BEGIN PUBLIC KEY-----
+    // Added 2026-03-26 - Staging
+    `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzyjQz/hecDaVINX3OW95
 dpz39CJ5GgX7UDekOMUk+xo9Qu66V/5hZoGSOQEPwNfoMuQM1YspyNTr/CvD2C/j
 Yhy+TdljsNo47SYdsuPIIvy48BlXmvOg/pgXMyxbPRSAD6ZrtlGlb88cSsBXLIA8
@@ -79,14 +95,28 @@ LxzlJNQaHAcjzs1bzcLqwETXh/GjgLvK+j9gZgjsLt9Z05W5UnVWUtTIslZo2Kv+
 movc8CBf+p2KX/usUEiBf2jtBHWmBuGFUp4kaFopnSsFq0KhGja5uo9Oi3ppdDOD
 aQIDAQAB
 -----END PUBLIC KEY-----`,
-];
+  ];
+}
+
+// Resolved once at module load — in production, goes through XOR derivation.
+// No plain keys survive in the production bundle.
+export const LICENSE_SERVER_PUBLIC_KEYS: string[] = _resolveKeys();
 
 /** Returns the embedded public keys array. */
 export function getLicenseServerPublicKeys(): string[] {
   return LICENSE_SERVER_PUBLIC_KEYS;
 }
 
-export const LICENSE_SERVER_OLD_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
+declare const __NC_DERIVED_OLD_KEY__: { d: string; m: string } | undefined;
+
+function _resolveOldKey(): string {
+  if (typeof __NC_DERIVED_OLD_KEY__ !== 'undefined') {
+    const a = Buffer.from(__NC_DERIVED_OLD_KEY__.d, 'base64');
+    const b = Buffer.from(__NC_DERIVED_OLD_KEY__.m, 'base64');
+    return Buffer.from(a.map((v, i) => v ^ b[i])).toString('utf-8');
+  }
+  // Dev only — dead-code eliminated in production builds
+  return `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmvm9e3qSr4r4fgXdbJE6
 9Wkk7LQk/QVvpyCT8/kAWtSPRepeeih+CDlS3szWl2EahctBDPcuWjICIfPnaYXs
 G/KKTNV2Q5orzzYtIAxa7xqyK7/nGHQMHGsVdbAdlLH53DInzcI6oeRijRhMdTNn
@@ -95,3 +125,6 @@ g51Rsk5P27TppQH0oYnyJDfOwvwlvCPN/SO0l7WbnqZTSRlPx3UsLls5RUIx91RL
 wgB8qNPFuz/58jGESPXWbWNE/uT34px+QDgoew0nk5ZlCc2Uy90u3UM9SFk9ctE2
 fwIDAQAB
 -----END PUBLIC KEY-----`;
+}
+
+export const LICENSE_SERVER_OLD_PUBLIC_KEY: string = _resolveOldKey();

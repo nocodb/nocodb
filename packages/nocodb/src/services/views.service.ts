@@ -261,6 +261,16 @@ export class ViewsService {
       }
     }
 
+    // When changing FROM personal to non-personal, clear owned_by
+    if (
+      oldView.lock_type === ViewLockType.Personal &&
+      param.view.lock_type &&
+      param.view.lock_type !== ViewLockType.Personal
+    ) {
+      ownedBy = null;
+      includeCreatedByAndUpdateBy = true;
+    }
+
     // handle view ownership transfer
     if (ownedBy && param.view.owned_by && ownedBy !== param.view.owned_by) {
       // extract user roles and allow creator and owner to change to personal view

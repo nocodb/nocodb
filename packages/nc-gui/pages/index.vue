@@ -55,10 +55,10 @@ const autoNavigateToWorkspace = async () => {
   const wsId = activeWorkspaceId.value
 
   // Try to navigate into last visited base (backward compat)
-  if (wsId && basesStore.basesList?.length) {
+  if (wsId && basesList.value?.length) {
     const lastVisitedBase = ncLastVisitedBase().get()
 
-    const firstBase = lastVisitedBase ? basesStore.basesList.find((b) => b.id === lastVisitedBase) : undefined
+    const firstBase = lastVisitedBase ? basesList.value.find((b) => b.id === lastVisitedBase) : undefined
 
     if (firstBase?.id) {
       await basesStore.navigateToProject({ baseId: firstBase.id! })

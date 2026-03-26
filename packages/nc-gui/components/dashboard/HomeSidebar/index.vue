@@ -67,7 +67,7 @@ const navigateToWorkspace = () => {
           v-if="activeWorkspaceId"
           class="group"
           :active="true"
-          :data-testid="`nc-home-sidebar-ws-nc`"
+          data-testid="nc-home-sidebar-ws-nc"
           @click="navigateToWorkspace()"
         >
           <template #icon>

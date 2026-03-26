@@ -79,9 +79,7 @@ const clearFilter = () => {
     </a-input>
 
     <!-- Bases count (desktop only) -->
-    <div
-      class="hidden md:flex flex-1 items-center gap-1.5 text-xs font-medium tracking-wide min-w-0 truncate overflow-hidden"
-    >
+    <div class="hidden md:flex flex-1 items-center gap-1.5 text-xs font-medium tracking-wide min-w-0 truncate overflow-hidden">
       <slot name="label">
         <span class="text-nc-content-gray-muted">{{ $t('objects.projects') }}</span>
       </slot>

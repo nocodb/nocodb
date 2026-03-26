@@ -125,9 +125,9 @@ const onMenuClick = (e: Event) => {
       size="medium"
       icon-class="!h-6 !w-6"
       :readonly="!isOptionVisible.baseRename"
+      class="-mr-1"
       @update:model-value="handleColorChange"
       @click.stop
-      class="-mr-1"
     />
 
     <div class="flex-1 min-w-0 min-h-[28px] flex items-center">

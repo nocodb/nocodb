@@ -1,4 +1,7 @@
 <script setup lang="ts">
+/**
+ * @deprecated Use WorkspaceBaseList instead (we will remove this component in the future)
+ */
 import { Empty } from 'ant-design-vue'
 import { useStorage } from '@vueuse/core'
 import { ProjectRoles } from 'nocodb-sdk'

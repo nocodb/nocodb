@@ -3,7 +3,7 @@ import { IntegrationsType, integrationCategoryNeedDefault } from 'nocodb-sdk'
 import type { IntegrationType, UserType, WorkspaceUserType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     showTitle?: boolean
   }>(),

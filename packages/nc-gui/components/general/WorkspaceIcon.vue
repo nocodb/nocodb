@@ -109,8 +109,8 @@ const isMiniSidebarSize = computed(() => size.value === 'mini-sidebar')
         props.hideBgColor && !isRenderingInitials
           ? undefined
           : !props.hideLabel && workspaceIcon.icon && workspaceIcon.iconType === IconType.IMAGE && !isMiniSidebarSize
-            ? undefined
-            : workspaceColor,
+          ? undefined
+          : workspaceColor,
     }"
   >
     <template v-if="!props.hideLabel">

@@ -252,7 +252,7 @@ const hasNoResults = computed(() => {
               'bg-nc-bg-gray-medium': isUserMenuOpen,
               'hover:bg-nc-bg-gray-medium': !isUserMenuOpen,
             }"
-            data-testid="nc-home-sidebar-userinfo"
+            data-testid="nc-sidebar-userinfo"
             :data-email="user?.email"
           >
             <GeneralUserIcon :user="user" size="medium" class="flex-none" />

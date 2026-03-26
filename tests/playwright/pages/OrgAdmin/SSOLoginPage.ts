@@ -34,7 +34,7 @@ export class CloudSSOLoginPage extends BasePage {
 
     // If it is cloud auth login flow then we first login sso and then redirect to localhost:4000 and there we need to login again
     if (waitForUserInfoMenu) {
-      const userInfoMenu = this.rootPage.locator(`[data-testid="nc-sidebar-userinfo"]`);
+      const userInfoMenu = this.rootPage.locator(`[data-testid="nc-sidebar-userinfo"]`).first();
       await userInfoMenu.waitFor();
 
       await expect(userInfoMenu).toHaveAttribute('data-email', email);

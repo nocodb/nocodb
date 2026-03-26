@@ -339,7 +339,7 @@ export class LeftSidebarPage extends BasePage {
       integration: this.miniSidebar.getByTestId('nc-sidebar-integrations-btn'),
       feeds: this.miniSidebar.getByTestId('nc-sidebar-product-feed'),
       notification: this.miniSidebar.getByTestId('nc-sidebar-notification-btn'),
-      userInfo: this.miniSidebar.getByTestId('nc-sidebar-userinfo'),
+      userInfo: this.miniSidebar.getByTestId('nc-sidebar-userinfo').first(),
     };
 
     return locators[type];
@@ -399,7 +399,7 @@ export class LeftSidebarPage extends BasePage {
         const v2Key = v2Mapping[type];
 
         if (v2Key === 'userInfo') {
-          const locator = this.rootPage.getByTestId('nc-sidebar-userinfo');
+          const locator = this.rootPage.getByTestId('nc-sidebar-userinfo').first();
           if (isVisible) await expect(locator).toBeVisible();
           else await expect(locator).not.toBeVisible();
         } else if (v2Key) {

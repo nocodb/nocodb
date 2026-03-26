@@ -63,9 +63,7 @@ export class LoginPage extends BasePage {
     await this.rootPage.waitForLoadState('domcontentloaded');
     // Wait for either the dashboard or the onboarding flow to appear
     await this.rootPage
-      .locator(
-        '[data-testid="nc-sidebar-userinfo"], [data-testid="nc-home-sidebar-userinfo"], [data-testid="nc-onboarding-flow-container"]'
-      )
+      .locator('[data-testid="nc-sidebar-userinfo"], [data-testid="nc-onboarding-flow-container"]')
       .first()
       .waitFor({ timeout: 60000 });
 

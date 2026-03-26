@@ -76,12 +76,13 @@ export class OAuthController {
   @Get('/api/v2/oauth/authorize')
   @UseGuards(MetaApiLimiterGuard)
   async authorizeRedirect(@Req() req: NcRequest, @Res() res: Response) {
-    const queryParams = new URLSearchParams(req.query).toString();
-    const redirectUrl = `${req.ncSiteUrl}/oauth/authorize${
-      queryParams ? '?' + queryParams : ''
-    }`;
-
-    return res.redirect(redirectUrl);
+    const queryParams = new URLSearchParams(
+      req.query as Record<string, string>,
+    );
+    // claude.ai sends prompt=consent which causes redirect loops
+    queryParams.delete('prompt');
+    const queryString = queryParams.toString();
+    return res.redirect(`/oauth/authorize${queryString ? `?${queryString}` : ''}`);
   }
 
   @Post('/api/v2/oauth/authorize')

@@ -1,4 +1,4 @@
-import { RelationTypes, isBtLikeV2Junction, isLinksOrLTAR } from 'nocodb-sdk'
+import { RelationTypes, isBtLikeV2Junction, isLinksOrLTAR, isMMOrMMLike } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 
@@ -28,7 +28,7 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
       if (isBtLikeV2Junction(column) || isBt(column) || isOo(column)) {
         getRowLtarHelpers(row)[column.title!] = value
         row.row[column.title!] = value
-      } else if (isHm(column) || isMm(column)) {
+      } else if (isHm(column) || isMm(column) || isMMOrMMLike(column)) {
         if (!getRowLtarHelpers(row)[column.title!]) getRowLtarHelpers(row)[column.title!] = []
 
         if (getRowLtarHelpers(row)[column.title!]!.find((ln: Record<string, any>) => deepCompare(ln, value))) {
@@ -52,7 +52,7 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
       if (isBtLikeV2Junction(column) || isBt(column) || isOo(column)) {
         getRowLtarHelpers(row)[column.title!] = null
         row.row[column.title!] = null
-      } else if (isHm(column) || isMm(column)) {
+      } else if (isHm(column) || isMm(column) || isMMOrMMLike(column)) {
         getRowLtarHelpers(row)[column.title!]?.splice(getRowLtarHelpers(row)[column.title!]?.indexOf(value), 1)
         row.row[column.title!] = [...(getRowLtarHelpers(row)[column.title!] || [])]
       }
@@ -109,7 +109,7 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
               { metaValue },
             )
           }
-        } else if (isHm(column) || isMm(column)) {
+        } else if (isHm(column) || isMm(column) || isMMOrMMLike(column)) {
           const relatedRows = (getRowLtarHelpers(row)?.[column.title!] ?? []) as Record<string, any>[]
 
           for (const relatedRow of relatedRows) {

@@ -76,7 +76,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const formResetHook = createEventHook<void>()
 
-  const { isMobileMode } = useGlobal()
+  const { isMobileMode, appInfo } = useGlobal()
 
   const { api, isLoading } = useApi()
 
@@ -371,7 +371,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         },
       ]
 
-      const additionalRules = extractFieldValidator(parseProp(column.meta).validators ?? [], column)
+      const additionalRules = extractFieldValidator(
+        parseProp(column.meta).validators ?? [],
+        column,
+        appInfo.value.ncMaxTextLength,
+      )
       rules = [...rules, ...additionalRules]
 
       if (rules.length) {

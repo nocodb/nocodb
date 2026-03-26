@@ -13,7 +13,10 @@ import {
   YearValidationType,
 } from 'nocodb-sdk'
 import {
+  NC_MAX_TEXT_LENGTH_DEFAULT,
+  TEXT_INPUT_UITYPES,
   formEmailValidator,
+  formMaxTextLengthValidator,
   formNumberInputValidator,
   formPhoneNumberValidator,
   formUrlValidator,
@@ -473,12 +476,17 @@ function getFormattedValue(value: any, col: ColumnType, val?: Validation) {
   return value
 }
 
-export const extractFieldValidator = (validators: Validation[], element: ColumnType) => {
+export const extractFieldValidator = (validators: Validation[], element: ColumnType, maxTextLength?: number) => {
   const rules: RuleObject[] = []
 
   // Add column default validators if not present in validators array
   if ([UITypes.Number, UITypes.Currency, UITypes.Percent].includes(element.uidt)) {
     rules.push(formNumberInputValidator(element))
+  }
+
+  // Add default max text length validator for text-based fields if user hasn't configured a custom one
+  if (TEXT_INPUT_UITYPES.includes(element.uidt) && !validators.find((val) => val.type === StringValidationType.MaxLength)) {
+    rules.push(formMaxTextLengthValidator(maxTextLength ?? NC_MAX_TEXT_LENGTH_DEFAULT))
   }
 
   switch (element.uidt) {

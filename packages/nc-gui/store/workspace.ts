@@ -347,7 +347,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isTeamsEnabled = computed(() => false)
 
-
   const teams = ref([])
 
   const teamsMap = computed(() => {})

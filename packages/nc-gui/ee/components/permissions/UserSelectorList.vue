@@ -291,9 +291,7 @@ defineExpose({
                   ? 'bg-nc-fill-primary text-white'
                   : 'text-nc-content-gray-subtle hover:bg-nc-bg-gray-light'
               "
-              @click="
-                teamHierarchyScopes?.[option.id] !== 'self_only' ? emits('toggleTeamScope', option.id) : undefined
-              "
+              @click="teamHierarchyScopes?.[option.id] !== 'self_only' ? emits('toggleTeamScope', option.id) : undefined"
             >
               {{ $t('labels.thisTeamOnly') }}
             </div>
@@ -307,9 +305,7 @@ defineExpose({
                   ? 'bg-nc-fill-primary text-white'
                   : 'text-nc-content-gray-subtle hover:bg-nc-bg-gray-light'
               "
-              @click="
-                teamHierarchyScopes?.[option.id] === 'self_only' ? emits('toggleTeamScope', option.id) : undefined
-              "
+              @click="teamHierarchyScopes?.[option.id] === 'self_only' ? emits('toggleTeamScope', option.id) : undefined"
             >
               {{ $t('labels.withSubTeams') }}
             </div>

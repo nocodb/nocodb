@@ -4,6 +4,23 @@ import { StringValidationType, UITypes } from 'nocodb-sdk'
 import type { ColumnType, Validation } from 'nocodb-sdk'
 import { getI18n } from '../plugins/a.i18n'
 
+export const NC_MAX_TEXT_LENGTH_DEFAULT = 100000
+
+export const formMaxTextLengthValidator = (maxLength: number) => ({
+  validator: (_rule: RuleObject, value: any) => {
+    return new Promise((resolve, reject) => {
+      const { t } = getI18n().global
+
+      if (value && String(value).length > maxLength) {
+        return reject(new Error(t('msg.error.inputExceedsMaxCharacters', { value: maxLength.toLocaleString() })))
+      }
+      return resolve(true)
+    })
+  },
+})
+
+export const TEXT_INPUT_UITYPES = [UITypes.SingleLineText, UITypes.LongText, UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
+
 export const formEmailValidator = (val: Validation) => {
   return {
     validator: (_rule: RuleObject, value: any) => {
@@ -97,12 +114,21 @@ export const isEmptyValidatorValue = (v: Validation) => {
   return false
 }
 
-export const extractFieldValidator = (_validators: Validation[], element: ColumnType) => {
+export const extractFieldValidator = (
+  _validators: Validation[],
+  element: ColumnType,
+  maxTextLength = NC_MAX_TEXT_LENGTH_DEFAULT,
+) => {
   const rules: RuleObject[] = []
 
   // Add column default validators
   if ([UITypes.Number, UITypes.Currency, UITypes.Percent].includes(element.uidt)) {
     rules.push(formNumberInputValidator(element))
+  }
+
+  // Add default max text length validator for text-based fields
+  if (TEXT_INPUT_UITYPES.includes(element.uidt)) {
+    rules.push(formMaxTextLengthValidator(maxTextLength))
   }
 
   switch (element.uidt) {

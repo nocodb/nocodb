@@ -40,14 +40,26 @@ export const LICENSE_ENV_VARS = {
 
   // Server-side (license server)
   LICENSE_SERVER_PRIVATE_KEY: 'NC_LICENSE_SERVER_PRIVATE_KEY',
-  LICENSE_SERVER_PUBLIC_KEY: 'NC_LICENSE_SERVER_PUBLIC_KEY',
   ON_PREMISE_SECRET: 'NC_ON_PREMISE_SECRET',
 } as const;
 
 /**
- * RSA public key for JWT verification (on-premise installations)
+ * RSA public keys for JWT verification (on-premise installations).
+ *
+ * This is an array to support key rotation. When rotating:
+ *   1. Generate a new key pair
+ *   2. Prepend the new public key to this array
+ *   3. Deploy the new private key to the license server
+ *   4. Keep old keys in the array until all JWTs signed with them have expired
+ *      (2 days for standard licenses, up to license expiry for airgapped)
+ *   5. Remove the old key once safe
+ *
+ * For staging/testing, embed the staging public key in this array alongside
+ * production keys. All keys are compiled into the binary — no env var override.
  */
-export const LICENSE_SERVER_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
+export const LICENSE_SERVER_PUBLIC_KEYS: string[] = [
+  // Production
+  `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoJmGmnm0jzZ0PsXd/8Lb
 FmII2KreX1hDoC3dOGdOrpvkGx/RMgkDb3XOhjOXRhJconVutzbnwvbSVemXCVHn
 5hav08+STDqvGveu0zrvB5+E+zKTyb2yqdBbjPUr6l3IZuRsozHeNYWpohZAsTM+
@@ -55,7 +67,23 @@ eaPwgqhKnyemzX7kpftcbdqBm7rmmU9IKHxei9Qv5Jd7yVs3IqO5HkBUOn+hSfGU
 7QN5f7qPGOUUEUpCI72+sMI/1J3YoUMWmThrFrc9u95feVvQh4kF9UEeI5AuZn8d
 whonhMeWGMHt00hfs5xjdrXm92HBQGsHbbsHczvlmvnYFQGp0O8UZniTFvNDuG/g
 /QIDAQAB
------END PUBLIC KEY-----`;
+-----END PUBLIC KEY-----`,
+  // Added 2026-03-26 - Staging
+  `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzyjQz/hecDaVINX3OW95
+dpz39CJ5GgX7UDekOMUk+xo9Qu66V/5hZoGSOQEPwNfoMuQM1YspyNTr/CvD2C/j
+Yhy+TdljsNo47SYdsuPIIvy48BlXmvOg/pgXMyxbPRSAD6ZrtlGlb88cSsBXLIA8
+rK8dsQAChlpR/3aXOjR5ZHlO9xNmJOQ/HCMaSDxwnn7XuQmTEOlaxMznRgGaLS5u
+LxzlJNQaHAcjzs1bzcLqwETXh/GjgLvK+j9gZgjsLt9Z05W5UnVWUtTIslZo2Kv+
+movc8CBf+p2KX/usUEiBf2jtBHWmBuGFUp4kaFopnSsFq0KhGja5uo9Oi3ppdDOD
+aQIDAQAB
+-----END PUBLIC KEY-----`,
+];
+
+/** Returns the embedded public keys array. */
+export function getLicenseServerPublicKeys(): string[] {
+  return LICENSE_SERVER_PUBLIC_KEYS;
+}
 
 export const LICENSE_SERVER_OLD_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmvm9e3qSr4r4fgXdbJE6

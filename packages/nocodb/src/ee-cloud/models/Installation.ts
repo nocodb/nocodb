@@ -702,23 +702,11 @@ export default class Installation {
    * Get RSA key pair for JWT signing
    * Requires NC_LICENSE_SERVER_PRIVATE_KEY environment variable to be set
    *
-   * @returns RSA key pair (private and public keys in PEM format)
+   * @returns Server private key in PEM format
    * @throws Error if NC_LICENSE_SERVER_PRIVATE_KEY is not set
    */
-  private static async getServerKeys(): Promise<{
-    privateKey: string;
-    publicKey: string;
-  }> {
+  private static async getServerPrivateKey(): Promise<string> {
     const privateKey = process.env.NC_LICENSE_SERVER_PRIVATE_KEY;
-    const publicKey = `-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAodQkNztOFlnvajjcrJYl
-aM5zEyApANuJBaipGgKaXnVWseSEX32x8pqD6CuDS7TXbmsJ7VTRou0bhaCoPi/O
-zYWPLxIoCDwgWkyeFqOJgAzUv0AEx/Z6Ecj12Eu561WeaHvR5CjurmF94q7lrrUl
-uvrnnTxZpHU3Gj7YpFIopSRgmF1KDv/QnrkkS94RhBUQrr56j0j5PXnEsZHNsWRs
-iuw1xDDNsCsonzp81T7zIKVS65v2S5DvuOpesBt2xRbfY1T3ONH8MFZyfmcucdhf
-CmIgS4CsVOV8eBGWsB3JrpmLKQqmApUBW8I1vQgXP5C7FabY5wb9fO+TXsw+4u+o
-mwIDAQAB
------END PUBLIC KEY-----`;
 
     if (!privateKey) {
       throw new Error(
@@ -726,13 +714,7 @@ mwIDAQAB
       );
     }
 
-    if (!publicKey) {
-      throw new Error(
-        'NC_LICENSE_SERVER_PUBLIC_KEY environment variable is required for license server functionality',
-      );
-    }
-
-    return { privateKey, publicKey };
+    return privateKey;
   }
 
   /**
@@ -746,7 +728,7 @@ mwIDAQAB
   public static async signLicenseStateJWT(
     installation: Installation,
   ): Promise<string> {
-    const { privateKey } = await this.getServerKeys();
+    const privateKey = await this.getServerPrivateKey();
 
     return jwt.sign(
       {
@@ -777,7 +759,7 @@ mwIDAQAB
     installation: Installation,
     dbFingerprint: string,
   ): Promise<string> {
-    const { privateKey } = await this.getServerKeys();
+    const privateKey = await this.getServerPrivateKey();
 
     if (!installation.expires_at) {
       throw new Error(
@@ -824,6 +806,6 @@ mwIDAQAB
     await this.getMasterSecret(ncMeta);
 
     // Ensure RSA keys are initialized
-    await this.getServerKeys();
+    await this.getServerPrivateKey();
   }
 }

@@ -6,11 +6,11 @@ import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { getArrayAggExpression } from '~/helpers/dbHelpers';
 import {
+  getLicenseServerPublicKeys,
   InstallationStatus,
   LICENSE_CONFIG,
   LICENSE_ENV_VARS,
   LICENSE_SERVER_OLD_PUBLIC_KEY,
-  LICENSE_SERVER_PUBLIC_KEY,
   LicenseType,
   validateClientLicenseEnvironment,
 } from '~/utils/license';
@@ -345,30 +345,37 @@ export default class NocoLicense {
   }
 
   /**
-   * Verify and decode license JWT using embedded public key
-   * This prevents clients from tampering with license data
-   *
-   * @param jwtToken - JWT token from server
-   * @returns Decoded license data or null if verification fails
+   * Verify and decode license JWT by trying all known public keys.
+   * Supports key rotation — iterates embedded keys + env extras until
+   * one succeeds. Stops early on TokenExpiredError (signature matched).
    */
   private static verifyAndDecodeLicenseJWT(
     jwtToken: string,
   ): LicenseData | null {
-    try {
-      const decoded = jwt.verify(jwtToken, LICENSE_SERVER_PUBLIC_KEY, {
-        algorithms: [LICENSE_CONFIG.JWT_ALGORITHM],
-      }) as any;
+    const publicKeys = getLicenseServerPublicKeys();
+    let lastError: any = null;
 
-      // Return decoded data (without installation_secret - that's not in JWT)
-      return decoded;
-    } catch (error: any) {
-      if (error.name === 'TokenExpiredError') {
-        this.logger.warn('License JWT expired, will attempt refresh');
-      } else {
-        this.logger.error(`JWT verification failed: ${error.message}`);
+    for (const key of publicKeys) {
+      try {
+        const decoded = jwt.verify(jwtToken, key, {
+          algorithms: [LICENSE_CONFIG.JWT_ALGORITHM],
+        }) as any;
+
+        return decoded;
+      } catch (error: any) {
+        lastError = error;
+        // TokenExpiredError means the signature matched but the token is expired —
+        // no point trying other keys
+        if (error.name === 'TokenExpiredError') break;
       }
-      return null;
     }
+
+    if (lastError?.name === 'TokenExpiredError') {
+      this.logger.warn('License JWT expired, will attempt refresh');
+    } else {
+      this.logger.error(`JWT verification failed: ${lastError?.message}`);
+    }
+    return null;
   }
 
   /**

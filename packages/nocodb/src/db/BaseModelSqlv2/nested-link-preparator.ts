@@ -1,4 +1,4 @@
-import { type NcRequest, RelationTypes, isLinkV2 } from 'nocodb-sdk';
+import { isLinkV2, type NcRequest, RelationTypes } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import {
   extractIdPropIfObjectOrReturn,
@@ -86,10 +86,10 @@ export class NestedLinkPreparator {
         });
 
         // V2 OO uses junction table (like MO), not FK-based like V1 OO
-        const effectiveType = isLinkV2(col) && colOptions.type === RelationTypes.ONE_TO_ONE
-          ? RelationTypes.MANY_TO_ONE
-          : colOptions.type;
-
+        const effectiveType =
+          isLinkV2(col) && colOptions.type === RelationTypes.ONE_TO_ONE
+            ? RelationTypes.MANY_TO_ONE
+            : colOptions.type;
 
         switch (effectiveType) {
           case RelationTypes.BELONGS_TO:
@@ -327,22 +327,31 @@ export class NestedLinkPreparator {
             if (!Array.isArray(nestedData)) continue;
 
             // OM cardinality: each linked record can only link to ONE parent
-            // Remove existing junction rows for each child being linked
-            for (const nd of nestedData) {
-              postInsertOps.push(async (_rowId) => {
-                const parentModel = await colOptions
-                  .getParentColumn(baseModel.context)
-                  .then((c) => c.getModel(baseModel.context));
-                await parentModel.getColumns(baseModel.context);
-                const parentMMCol = await colOptions.getMMParentColumn(baseModel.context);
-                const mmModel = await colOptions.getMMModel(baseModel.context);
-                const targetId = extractIdPropIfObjectOrReturn(nd, parentModel.primaryKey.title);
-                return baseModel.dbDriver(baseModel.getTnPath(mmModel.table_name))
-                  .where(parentMMCol.column_name, targetId)
-                  .del()
-                  .toQuery();
-              });
-            }
+            // Batch-delete existing junction rows for all children being linked
+            postInsertOps.push(async (_rowId) => {
+              const parentModel = await colOptions
+                .getParentColumn(baseModel.context)
+                .then((c) => c.getModel(baseModel.context));
+              await parentModel.getColumns(baseModel.context);
+              const parentMMCol = await colOptions.getMMParentColumn(
+                baseModel.context,
+              );
+              const mmModel = await colOptions.getMMModel(baseModel.context);
+              const targetIds = nestedData
+                .map((nd) =>
+                  extractIdPropIfObjectOrReturn(
+                    nd,
+                    parentModel.primaryKey.title,
+                  ),
+                )
+                .filter(Boolean);
+              if (!targetIds.length) return '';
+              return baseModel
+                .dbDriver(baseModel.getTnPath(mmModel.table_name))
+                .whereIn(parentMMCol.column_name, targetIds)
+                .del()
+                .toQuery();
+            });
 
             // Insert all junction rows
             postInsertOps.push(async (rowId) => {
@@ -415,12 +424,20 @@ export class NestedLinkPreparator {
             if (colOptions.type === RelationTypes.ONE_TO_ONE) {
               const _nestedData = nestedData;
               postInsertOps.push(async (_rowId) => {
-                const parentMMCol = await colOptions.getMMParentColumn(baseModel.context);
-                const parentModel = await colOptions.getParentColumn(baseModel.context).then((c) => c.getModel(baseModel.context));
+                const parentMMCol = await colOptions.getMMParentColumn(
+                  baseModel.context,
+                );
+                const parentModel = await colOptions
+                  .getParentColumn(baseModel.context)
+                  .then((c) => c.getModel(baseModel.context));
                 await parentModel.getColumns(baseModel.context);
                 const mmModel = await colOptions.getMMModel(baseModel.context);
-                const targetId = extractIdPropIfObjectOrReturn(_nestedData, parentModel.primaryKey.title);
-                return baseModel.dbDriver(baseModel.getTnPath(mmModel.table_name))
+                const targetId = extractIdPropIfObjectOrReturn(
+                  _nestedData,
+                  parentModel.primaryKey.title,
+                );
+                return baseModel
+                  .dbDriver(baseModel.getTnPath(mmModel.table_name))
                   .where(parentMMCol.column_name, targetId)
                   .del()
                   .toQuery();
@@ -430,9 +447,12 @@ export class NestedLinkPreparator {
             // MO cardinality: this child can only link to ONE parent
             // Remove existing junction rows for this child (no-op for new rows)
             postInsertOps.push(async (rowId) => {
-              const childMMCol = await colOptions.getMMChildColumn(baseModel.context);
+              const childMMCol = await colOptions.getMMChildColumn(
+                baseModel.context,
+              );
               const mmModel = await colOptions.getMMModel(baseModel.context);
-              return baseModel.dbDriver(baseModel.getTnPath(mmModel.table_name))
+              return baseModel
+                .dbDriver(baseModel.getTnPath(mmModel.table_name))
                 .where(childMMCol.column_name, rowId)
                 .del()
                 .toQuery();
@@ -444,8 +464,12 @@ export class NestedLinkPreparator {
                 .getParentColumn(baseModel.context)
                 .then((c) => c.getModel(baseModel.context));
               await parentModel.getColumns(baseModel.context);
-              const parentMMCol = await colOptions.getMMParentColumn(baseModel.context);
-              const childMMCol = await colOptions.getMMChildColumn(baseModel.context);
+              const parentMMCol = await colOptions.getMMParentColumn(
+                baseModel.context,
+              );
+              const childMMCol = await colOptions.getMMChildColumn(
+                baseModel.context,
+              );
               const mmModel = await colOptions.getMMModel(baseModel.context);
 
               return baseModel

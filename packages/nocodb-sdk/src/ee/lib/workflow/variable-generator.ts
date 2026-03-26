@@ -399,7 +399,7 @@ export async function getFieldVariable(
     extra: {
       entity_id: column.id,
       entity: 'column',
-      uiType: column.uidt,
+      uiType: effectiveUidt,
       icon: uiTypeToIcon(column),
     },
   };

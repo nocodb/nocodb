@@ -1239,6 +1239,8 @@
     "manyToOne": "Many to One"
   },
   "labels": {
+    "expandLinkFields": "Expand link fields",
+    "expandLinkFieldsDesc": "Return linked record data instead of count",
     "inheritedFromParent": "Inherited from parent",
     "pageOrUrl": "Page or URL",
     "linkTitle": "Link title",

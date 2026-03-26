@@ -162,8 +162,8 @@ onMounted(() => {
 
     <div class="flex items-center justify-between">
       <div class="flex flex-col">
-        <label class="text-sm text-nc-content-gray-emphasis">Expand link fields</label>
-        <span class="text-xs text-nc-content-gray-muted">Return linked record data instead of count</span>
+        <label class="text-sm text-nc-content-gray-emphasis">{{ $t('labels.expandLinkFields') }}</label>
+        <span class="text-xs text-nc-content-gray-muted">{{ $t('labels.expandLinkFieldsDesc') }}</span>
       </div>
       <NcSwitch
         :checked="config.linksAsLtar ?? false"

@@ -4,7 +4,7 @@
 ###########
 FROM node:24.14.0-alpine AS base-amd64
 FROM node:24.14.0-alpine AS base-arm64
-FROM node:22-alpine AS base-armv7
+FROM node:22-alpine AS base-arm
 
 ###########
 # Builder — runs on the build host (no QEMU), installs all JS deps

@@ -138,7 +138,6 @@ export class DataAliasNestedController {
 
   @Get([
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/hm/:columnName',
-    '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/om/:columnName',
   ])
   @Acl('hmList')
   async hmList(

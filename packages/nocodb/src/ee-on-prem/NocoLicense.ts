@@ -6,14 +6,16 @@ import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { getArrayAggExpression } from '~/helpers/dbHelpers';
 import {
+  getLicenseServerPublicKeys,
   InstallationStatus,
   LICENSE_CONFIG,
   LICENSE_ENV_VARS,
   LICENSE_SERVER_OLD_PUBLIC_KEY,
-  LICENSE_SERVER_PUBLIC_KEY,
   LicenseType,
   validateClientLicenseEnvironment,
 } from '~/utils/license';
+import { getDbFingerprint } from '~/helpers/dbFingerprint';
+import { packageVersion } from '~/utils/packageVersion';
 
 const LICENSE_SERVER_URL =
   process.env[LICENSE_ENV_VARS.LICENSE_SERVER_URL] || 'https://app.nocodb.com';
@@ -29,7 +31,11 @@ interface LicenseData {
   last_heartbeat_at?: string;
   config?: {
     limit_workspace?: number;
+    limit_seat?: number;
   };
+  db_fingerprint?: string;
+  airgapped?: boolean;
+  iat?: number; // JWT issued-at timestamp (seconds)
 }
 
 // Cached license data stored in database
@@ -53,6 +59,7 @@ export default class NocoLicense {
   private static licenseData: LicenseData | null = null;
   private static _isExpired: boolean = false;
   private static heartbeatState: HeartbeatState | null = null;
+  private static _isAirgapped: boolean = false;
 
   // Heartbeat intervals from shared constants
   private static readonly HEARTBEAT_INTERVAL_NORMAL_MS =
@@ -84,6 +91,16 @@ export default class NocoLicense {
     );
   }
 
+  /** Whether this is an airgapped license (no heartbeats, offline operation) */
+  public static get isAirgapped(): boolean {
+    return this._isAirgapped;
+  }
+
+  /** Maximum allowed seats from license config, or null if unlimited */
+  public static getSeatLimit(): number | null {
+    return this.licenseData?.config?.limit_seat ?? null;
+  }
+
   /** Human-readable license status for API responses */
   public static get licenseStatus(): string {
     if (!this.licenseData) return 'none';
@@ -103,6 +120,8 @@ export default class NocoLicense {
     }
     this.licenseData = null;
     this._isExpired = false;
+    this._isAirgapped = false;
+
     this.heartbeatState = null;
     this.currentHeartbeatInterval = this.HEARTBEAT_INTERVAL_NORMAL_MS;
   }
@@ -122,6 +141,23 @@ export default class NocoLicense {
 
     try {
       const ncMeta = Noco.ncMeta;
+
+      // Airgapped license key (nc_ag_ prefix) — one-time online activation
+      if (licenseKey?.startsWith(LICENSE_CONFIG.AIRGAPPED_KEY_PREFIX)) {
+        await this.initAirgapped(licenseKey, ncMeta);
+        return;
+      }
+
+      // Pre-signed license JWT (pure airgapped — no network ever)
+      // Distinguish from legacy JWT keys by checking for the airgapped claim
+      if (licenseKey?.startsWith('eyJ')) {
+        const decoded = jwt.decode(licenseKey, { json: true }) as any;
+        if (decoded?.airgapped) {
+          await this.initFromSignedJWT(licenseKey, ncMeta);
+          return;
+        }
+        // Not airgapped — fall through to standard flow (handles legacy JWT keys)
+      }
 
       // Load cached license data from nc_store
       const storedData = await ncMeta.metaGet2(
@@ -143,6 +179,23 @@ export default class NocoLicense {
           );
 
           if (licenseData) {
+            // Verify DB fingerprint if this is a fingerprint-bound installation
+            if (
+              cached.installation_secret?.startsWith(
+                LICENSE_CONFIG.FINGERPRINT_SECRET_PREFIX,
+              )
+            ) {
+              const currentFingerprint = await getDbFingerprint(ncMeta);
+              if (
+                licenseData.db_fingerprint &&
+                licenseData.db_fingerprint !== currentFingerprint
+              ) {
+                throw new Error(
+                  'This license is bound to a different installation. Please ensure you are using the correct license for this instance.',
+                );
+              }
+            }
+
             // JWT valid - use it
             this.licenseData = {
               ...licenseData,
@@ -159,7 +212,9 @@ export default class NocoLicense {
               this.licenseData.status === InstallationStatus.REVOKED ||
               this.licenseData.status === InstallationStatus.SUSPENDED
             ) {
-              throw new Error(`License has been ${this.licenseData.status}`);
+              throw new Error(
+                `Your license is currently ${this.licenseData.status}. Please contact support for assistance.`,
+              );
             }
           } else {
             // JWT invalid/expired - refresh from server
@@ -222,6 +277,8 @@ export default class NocoLicense {
    * Start the heartbeat timer
    */
   private static startHeartbeatTimer(): void {
+    if (this._isAirgapped) return;
+
     if (this.heartbeatTimer) {
       clearTimeout(this.heartbeatTimer);
     }
@@ -288,30 +345,37 @@ export default class NocoLicense {
   }
 
   /**
-   * Verify and decode license JWT using embedded public key
-   * This prevents clients from tampering with license data
-   *
-   * @param jwtToken - JWT token from server
-   * @returns Decoded license data or null if verification fails
+   * Verify and decode license JWT by trying all known public keys.
+   * Supports key rotation — iterates embedded keys + env extras until
+   * one succeeds. Stops early on TokenExpiredError (signature matched).
    */
   private static verifyAndDecodeLicenseJWT(
     jwtToken: string,
   ): LicenseData | null {
-    try {
-      const decoded = jwt.verify(jwtToken, LICENSE_SERVER_PUBLIC_KEY, {
-        algorithms: [LICENSE_CONFIG.JWT_ALGORITHM],
-      }) as any;
+    const publicKeys = getLicenseServerPublicKeys();
+    let lastError: any = null;
 
-      // Return decoded data (without installation_secret - that's not in JWT)
-      return decoded;
-    } catch (error: any) {
-      if (error.name === 'TokenExpiredError') {
-        this.logger.warn('License JWT expired, will attempt refresh');
-      } else {
-        this.logger.error(`JWT verification failed: ${error.message}`);
+    for (const key of publicKeys) {
+      try {
+        const decoded = jwt.verify(jwtToken, key, {
+          algorithms: [LICENSE_CONFIG.JWT_ALGORITHM],
+        }) as any;
+
+        return decoded;
+      } catch (error: any) {
+        lastError = error;
+        // TokenExpiredError means the signature matched but the token is expired —
+        // no point trying other keys
+        if (error.name === 'TokenExpiredError') break;
       }
-      return null;
     }
+
+    if (lastError?.name === 'TokenExpiredError') {
+      this.logger.warn('License JWT expired, will attempt refresh');
+    } else {
+      this.logger.error(`JWT verification failed: ${lastError?.message}`);
+    }
+    return null;
   }
 
   /**
@@ -322,6 +386,8 @@ export default class NocoLicense {
    * - Updates cached license data
    */
   private static async handleHeartbeat() {
+    if (this._isAirgapped) return;
+
     if (!this.licenseData) {
       this.startHeartbeatTimer();
       return;
@@ -368,7 +434,7 @@ export default class NocoLicense {
         seat_count: seatCount,
         environment: {
           domains: Array.from(Noco.domains), // Track accessed domains
-          version: process.env.npm_package_version,
+          version: packageVersion,
           platform: process.platform,
         },
       };
@@ -686,7 +752,7 @@ export default class NocoLicense {
         seat_count: seatCount,
         environment: {
           domains: Array.from(Noco.domains), // Track accessed domains
-          version: process.env.npm_package_version,
+          version: packageVersion,
           platform: process.platform,
         },
       };
@@ -775,14 +841,18 @@ export default class NocoLicense {
     try {
       const timestamp = Date.now();
 
+      // Compute DB fingerprint for installation binding
+      const dbFingerprint = await getDbFingerprint(ncMeta);
+
       // Build activation payload
       const activationPayload = {
         type: 'register',
         timestamp,
         version: 0,
         license_key: licenseKey,
+        db_fingerprint: dbFingerprint,
         environment: {
-          version: process.env.npm_package_version,
+          version: packageVersion,
           platform: process.platform,
           domains: Array.from(Noco.domains),
         },
@@ -968,6 +1038,270 @@ export default class NocoLicense {
       return false;
     }
   }
+
+  // ───── Pre-Signed JWT License (Pure Airgapped) ─────
+
+  /**
+   * Initialize from a pre-signed license JWT (pure airgapped).
+   * The JWT was generated offline by NocoDB from the customer's fingerprint.
+   * No network required — ever. The JWT is the license key itself.
+   */
+  private static async initFromSignedJWT(
+    jwtToken: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    // Verify RSA signature
+    const licenseData = this.verifyAndDecodeLicenseJWT(jwtToken);
+    if (!licenseData) {
+      throw new Error(
+        'Invalid or expired license. Please contact NocoDB to obtain a renewed license.',
+      );
+    }
+
+    // Verify DB fingerprint
+    const currentFingerprint = await getDbFingerprint(ncMeta);
+    if (
+      licenseData.db_fingerprint &&
+      licenseData.db_fingerprint !== currentFingerprint
+    ) {
+      throw new Error(
+        'This license is bound to a different installation. Please ensure you are using the correct license for this instance.',
+      );
+    }
+
+    // Verify iat — clock not before issue date
+    if (licenseData.iat) {
+      const iatMs = licenseData.iat * 1000;
+      const tolerance = LICENSE_CONFIG.CLOCK_TOLERANCE_MS;
+      if (Date.now() < iatMs - tolerance) {
+        throw new Error(
+          'System clock appears to be incorrect. Please verify the system time is accurate and try again.',
+        );
+      }
+    }
+
+    // Check license expiry from claims
+    if (
+      licenseData.expires_at &&
+      new Date(licenseData.expires_at) < new Date()
+    ) {
+      this._isExpired = true;
+      this.logger.warn('License has expired');
+    }
+
+    this.licenseData = {
+      ...licenseData,
+      installation_secret: '',
+      license_key: jwtToken,
+    };
+    this._isExpired =
+      this._isExpired || !this.isValidStatus(this.licenseData.status);
+    this._isAirgapped = true;
+
+    this.logger.log(
+      'Pre-signed license JWT loaded successfully (pure airgapped)',
+    );
+  }
+
+  // ───── Airgapped License Methods ─────
+
+  /**
+   * Initialize an airgapped license.
+   * Loads from cache if available (verifying fingerprint + clock),
+   * otherwise performs a one-time online activation.
+   */
+  private static async initAirgapped(
+    licenseKey: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    // Try loading from cache
+    const storedData = await ncMeta.metaGet2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.STORE,
+      { key: 'NC_LICENSE_DATA' },
+    );
+
+    if (storedData?.value) {
+      try {
+        const cached: CachedLicenseData = JSON.parse(storedData.value);
+
+        // Verify DB fingerprint BEFORE checking JWT validity.
+        // A fingerprint mismatch is a hard block — never fall through to re-activation.
+        const decodedForFingerprint = jwt.decode(cached.license_jwt) as any;
+        if (decodedForFingerprint?.db_fingerprint) {
+          const currentFingerprint = await getDbFingerprint(ncMeta);
+          if (decodedForFingerprint.db_fingerprint !== currentFingerprint) {
+            throw new Error(
+              'This license is bound to a different installation. Please ensure you are using the correct license for this instance.',
+            );
+          }
+        }
+
+        const licenseData = this.verifyAndDecodeLicenseJWT(cached.license_jwt);
+
+        if (licenseData) {
+          // Verify iat (issued-at) from the signed JWT — tamper-proof clock check.
+          // If current time is before iat, the clock was rolled back after activation.
+          if (licenseData.iat) {
+            const iatMs = licenseData.iat * 1000; // JWT iat is in seconds
+            const tolerance = LICENSE_CONFIG.CLOCK_TOLERANCE_MS;
+            if (Date.now() < iatMs - tolerance) {
+              throw new Error(
+                'System clock appears to be incorrect. Please verify the system time is accurate and try again.',
+              );
+            }
+          }
+
+          // Check license expiry from claims
+          if (
+            licenseData.expires_at &&
+            new Date(licenseData.expires_at) < new Date()
+          ) {
+            this._isExpired = true;
+            this.logger.warn('Airgapped license has expired');
+          }
+
+          this.licenseData = {
+            ...licenseData,
+            installation_secret: cached.installation_secret,
+            license_key: cached.license_key,
+          };
+          this._isExpired =
+            this._isExpired || !this.isValidStatus(this.licenseData.status);
+          this._isAirgapped = true;
+
+          this.logger.log('Airgapped license loaded from cache successfully');
+          return;
+        }
+
+        // JWT expired (TokenExpiredError) — need to go online to renew
+        this.logger.warn(
+          'Airgapped license JWT has expired. Online renewal required.',
+        );
+      } catch (error) {
+        // Installation binding and clock errors are fatal — re-throw, don't fall through to re-activation
+        if (
+          error.message.includes('bound to a different installation') ||
+          error.message.includes('clock appears to be incorrect') ||
+          error.message.includes('currently suspended') ||
+          error.message.includes('currently revoked')
+        ) {
+          throw error;
+        }
+        this.logger.warn(
+          `Failed to load cached airgapped license: ${error.message}`,
+        );
+      }
+    }
+
+    // No valid cache — perform one-time activation
+    this.logger.log(
+      'Airgapped license: performing one-time online activation...',
+    );
+
+    const activated = await this.activateAirgappedLicense(licenseKey, ncMeta);
+    if (!activated) {
+      throw new Error(
+        'Airgapped license activation failed. Ensure network connectivity for one-time activation and that the license key is valid.',
+      );
+    }
+
+    this._isAirgapped = true;
+    this.logger.log('Airgapped license activated successfully');
+  }
+
+  /**
+   * One-time online activation for airgapped licenses.
+   * Sends DB fingerprint to the server for binding.
+   */
+  private static async activateAirgappedLicense(
+    licenseKey: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    try {
+      const dbFingerprint = await getDbFingerprint(ncMeta);
+      const timestamp = Date.now();
+
+      const activationPayload = {
+        type: 'register',
+        timestamp,
+        version: 0,
+        license_key: licenseKey,
+        db_fingerprint: dbFingerprint,
+        airgapped: true,
+        environment: {
+          version: packageVersion,
+          platform: process.platform,
+          domains: Array.from(Noco.domains),
+        },
+      };
+
+      const response = await fetch(
+        `${LICENSE_SERVER_URL}/api/v1/on-premise/agent`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(activationPayload),
+        },
+      );
+
+      if (!response.ok) {
+        this.logger.error(
+          `Airgapped activation failed: ${JSON.stringify(
+            await response.json(),
+          )}`,
+        );
+        return false;
+      }
+
+      const data = (await response.json()) as {
+        installation_id: string;
+        installation_secret: string;
+        license_jwt: string;
+      };
+
+      const licenseData = this.verifyAndDecodeLicenseJWT(data.license_jwt);
+      if (!licenseData) {
+        this.logger.error(
+          'Received invalid JWT from server during airgapped activation',
+        );
+        return false;
+      }
+
+      // Verify fingerprint in JWT matches what we sent
+      if (licenseData.db_fingerprint !== dbFingerprint) {
+        this.logger.error(
+          'License activation rejected — installation ID mismatch',
+        );
+        return false;
+      }
+
+      // Store license data
+      await this.storeLicenseData(
+        data.license_jwt,
+        data.installation_secret,
+        licenseKey,
+        ncMeta,
+      );
+
+      this.licenseData = {
+        ...licenseData,
+        installation_secret: data.installation_secret,
+        license_key: licenseKey,
+      };
+      this._isExpired = !this.isValidStatus(licenseData.status);
+
+      return true;
+    } catch (error) {
+      this.logger.error(`Airgapped activation error: ${error.message}`);
+      return false;
+    }
+  }
+
+  // ───── Clock Rollback Protection ─────
+
+  // ───── Utility Methods ─────
 
   public static isInitialized(): boolean {
     return this.licenseData !== null;

@@ -488,6 +488,17 @@ const checkIfEmailAllowedNonSSOForOrg = async (
     !!email && domains?.some((d: Domain) => d.domain === email?.split('@')[1])
   );
 };
+
+/**
+ * Check if there is headroom for additional seat-consuming users.
+ * Cloud: no-op (paid plans have unlimited seats, reseat handles billing).
+ * On-prem: overridden to enforce limit_seat from license config.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function checkGlobalSeatHeadroom(_additionalSeats = 1) {
+  // No-op on cloud — seat limits are handled by reseatSubscription
+}
+
 export {
   PlanLimitTypes,
   PlanFeatureTypes,
@@ -497,6 +508,7 @@ export {
   getWorkspaceOrOrg,
   getActivePlanAndSubscription,
   checkSeatLimit,
+  checkGlobalSeatHeadroom,
   checkForFeature,
   checkIfWorkspaceSSOAvail,
   checkIfOrgSSOAvail,

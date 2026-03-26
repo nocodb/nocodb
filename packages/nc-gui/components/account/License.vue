@@ -11,6 +11,8 @@ const key = ref('')
 
 const isEEActive = computed(() => appInfo.value.ee === true)
 
+const isPostgresRequired = computed(() => appInfo.value.isOnPrem && appInfo.value.isPostgres === false)
+
 const licenseStatus = computed(() => {
   if (!key.value) return 'none'
 
@@ -57,42 +59,52 @@ loadLicense()
     <div class="max-w-[600px] mx-auto mt-8 px-4">
       <div class="text-xl font-semibold mb-6">{{ $t('title.license') }}</div>
 
-      <NcAlert
-        visible
-        :type="licenseStatus === 'active' ? 'success' : licenseStatus === 'expired' ? 'warning' : 'info'"
-        background
-        class="mb-6"
-      >
-        <template #description>
-          {{
-            licenseStatus === 'active'
-              ? $t('title.licenseActive')
-              : licenseStatus === 'expired'
-              ? $t('title.licenseInvalid')
-              : $t('title.licenseNone')
-          }}
-        </template>
-      </NcAlert>
+      <template v-if="isPostgresRequired">
+        <NcAlert visible type="warning" background>
+          <template #description>
+            {{ $t('msg.info.licenseRequiresPostgres') }}
+          </template>
+        </NcAlert>
+      </template>
 
-      <div class="flex flex-col gap-2 mb-4">
-        <label class="text-sm font-medium text-nc-content-gray-subtle">{{ $t('title.licenseKey') }}</label>
-        <a-textarea
-          v-model:value="key"
-          :placeholder="$t('labels.enterLicenseKey')"
-          :rows="4"
-          class="!rounded-lg"
-          data-testid="nc-license-key-input"
-        />
-      </div>
+      <template v-else>
+        <NcAlert
+          visible
+          :type="licenseStatus === 'active' ? 'success' : licenseStatus === 'expired' ? 'warning' : 'info'"
+          background
+          class="mb-6"
+        >
+          <template #description>
+            {{
+              licenseStatus === 'active'
+                ? $t('title.licenseActive')
+                : licenseStatus === 'expired'
+                ? $t('title.licenseInvalid')
+                : $t('title.licenseNone')
+            }}
+          </template>
+        </NcAlert>
 
-      <div class="flex gap-3">
-        <NcButton type="primary" size="small" :loading="isLoading" data-testid="nc-license-save-btn" @click="setLicense">
-          {{ $t('general.save') }}
-        </NcButton>
-        <NcButton v-if="key" type="secondary" size="small" data-testid="nc-license-remove-btn" @click="removeLicense">
-          {{ $t('general.remove') }}
-        </NcButton>
-      </div>
+        <div class="flex flex-col gap-2 mb-4">
+          <label class="text-sm font-medium text-nc-content-gray-subtle">{{ $t('title.licenseKey') }}</label>
+          <a-textarea
+            v-model:value="key"
+            :placeholder="$t('labels.enterLicenseKey')"
+            :rows="4"
+            class="!rounded-lg"
+            data-testid="nc-license-key-input"
+          />
+        </div>
+
+        <div class="flex gap-3">
+          <NcButton type="primary" size="small" :loading="isLoading" data-testid="nc-license-save-btn" @click="setLicense">
+            {{ $t('general.save') }}
+          </NcButton>
+          <NcButton v-if="key" type="secondary" size="small" data-testid="nc-license-remove-btn" @click="removeLicense">
+            {{ $t('general.remove') }}
+          </NcButton>
+        </div>
+      </template>
     </div>
   </div>
 </template>

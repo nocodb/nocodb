@@ -30,10 +30,7 @@ export function validateClientLicenseEnvironment(): void {
  * @throws {LicenseEnvironmentError} If required environment variables are missing
  */
 export function validateServerLicenseEnvironment(): void {
-  const required = [
-    LICENSE_ENV_VARS.LICENSE_SERVER_PRIVATE_KEY,
-    LICENSE_ENV_VARS.LICENSE_SERVER_PUBLIC_KEY,
-  ];
+  const required = [LICENSE_ENV_VARS.LICENSE_SERVER_PRIVATE_KEY];
   const missing = required.filter((key) => !process.env[key]);
 
   if (missing.length > 0) {

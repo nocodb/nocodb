@@ -3,6 +3,7 @@ import NocoEE from 'src/ee/Noco';
 import type { Express } from 'express';
 import type http from 'http';
 import { NC_LICENSE_KEY } from '~/constants';
+import { getDbFingerprint } from '~/helpers/dbFingerprint';
 import { verifyDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
 import NocoLicense from '~/NocoLicense';
 import { Store } from '~/models';
@@ -37,6 +38,16 @@ export default class Noco extends NocoEE {
     } else {
       this.ee = false;
       logger.log('No license key found — running in CE mode');
+    }
+
+    // Log installation ID for license activation (safe — it's a one-way hash)
+    try {
+      const installationId = await getDbFingerprint();
+      logger.log(`Installation ID: ${installationId}`);
+    } catch {
+      logger.warn(
+        'Installation ID unavailable — PostgreSQL is required for enterprise licensing',
+      );
     }
 
     // Always ensure default workspace exists — on-prem needs it regardless of license state

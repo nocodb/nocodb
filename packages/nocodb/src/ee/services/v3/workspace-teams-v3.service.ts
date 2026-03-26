@@ -1,6 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents, PlanFeatureTypes, TeamUserRoles } from 'nocodb-sdk';
-import { WorkspaceUserRoles } from 'nocodb-sdk';
+import {
+  AppEvents,
+  NON_SEAT_ROLES,
+  PlanFeatureTypes,
+  TeamUserRoles,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   WorkspaceTeamCreateV3BulkReqType,
@@ -26,7 +31,7 @@ import { Base, PrincipalAssignment, Team, User, Workspace } from '~/models';
 import { PrincipalType, ResourceType } from '~/utils/globals';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { validatePayload } from '~/helpers';
-import { getFeature } from '~/helpers/paymentHelpers';
+import { checkGlobalSeatHeadroom, getFeature } from '~/helpers/paymentHelpers';
 import { getWorkspaceRolePower } from '~/utils/roleHelper';
 import Noco from '~/Noco';
 
@@ -160,6 +165,17 @@ export class WorkspaceTeamsV3Service {
       NcError.get(context).invalidRequestBody(
         `Team ${param.team.team_id} is already assigned to this workspace`,
       );
+    }
+
+    // Check seat headroom before assigning team to workspace with seat-consuming role
+    if (!NON_SEAT_ROLES.includes(param.team.workspace_role)) {
+      // Count team members who could become new seat users
+      const teamMembers = await PrincipalAssignment.list(context, {
+        resource_type: ResourceType.TEAM,
+        resource_id: param.team.team_id,
+        principal_type: PrincipalType.USER,
+      });
+      await checkGlobalSeatHeadroom(teamMembers.length);
     }
 
     // Create the assignment
@@ -339,6 +355,19 @@ export class WorkspaceTeamsV3Service {
         NcError.get(context).forbidden(
           `Insufficient privilege to update team with this role`,
         );
+      }
+
+      // Check seat headroom when upgrading team to a seat-consuming role
+      if (
+        NON_SEAT_ROLES.includes(
+          existingAssignment.roles as WorkspaceUserRoles,
+        ) &&
+        !NON_SEAT_ROLES.includes(team.workspace_role)
+      ) {
+        const memberAssignments = teamMemberAssignments.filter(
+          (a) => a.resource_id === team.team_id,
+        );
+        await checkGlobalSeatHeadroom(memberAssignments.length);
       }
 
       // Update the assignment

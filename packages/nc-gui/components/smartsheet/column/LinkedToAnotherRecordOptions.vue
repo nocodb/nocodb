@@ -28,9 +28,10 @@ const isUpgradeable = computed(() => {
   if (!isEdit.value) return false
   const col = vModel.value
   const colOpts = col?.colOptions as LinkToAnotherRecordType | undefined
-  // Links v1 (deprecated) or LTAR v1 — both can be upgraded. V2 is already upgraded.
-  if (colOpts?.version === LinksVersion.V2) return false
-  return col?.uidt === UITypes.Links || col?.uidt === UITypes.LinkToAnotherRecord
+  // All Links columns (deprecated) can be upgraded — even v2 (splits into Rollup + LTAR)
+  if (col?.uidt === UITypes.Links) return true
+  // LTAR v1 can be upgraded; LTAR v2 is already fully upgraded
+  return col?.uidt === UITypes.LinkToAnotherRecord && colOpts?.version !== LinksVersion.V2
 })
 
 const meta = inject(MetaInj, ref())
@@ -493,7 +494,7 @@ const handleScrollIntoView = () => {
     <div class="flex flex-col gap-4">
       <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type !mb-0">
         <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit" class="w-full">
-          <template v-if="vModel.uidt === UITypes.LinkToAnotherRecord || isUpgradeable">
+          <template v-if="vModel.uidt === UITypes.LinkToAnotherRecord || isUpgradeable || (vModel.colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2">
             <a-row :gutter="[8, 8]">
               <a-col :span="12">
                 <a-radio value="mm" data-testid="Many to Many">

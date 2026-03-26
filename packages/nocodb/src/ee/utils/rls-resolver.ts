@@ -1,4 +1,8 @@
-import type { RlsDefaultBehavior, RlsPolicySubjectType } from 'nocodb-sdk';
+import type {
+  RlsDefaultBehavior,
+  RlsPolicySubjectType,
+  SubjectHierarchyScope,
+} from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import RlsPolicy from '~/models/RlsPolicy';
 import { matchTeamSubjectsBatch } from '~/utils/team-subject-matcher';
@@ -115,7 +119,7 @@ export async function resolveRlsPolicies(
     // the narrower scope (self_only) on collision — otherwise a policy using
     // self_and_descendants could be shadowed by an earlier self_only entry for
     // the same team, causing descendant-team users to be incorrectly denied.
-    const seenTeams = new Map<string, string | undefined>();
+    const seenTeams = new Map<string, SubjectHierarchyScope | undefined>();
     for (const policy of policiesNeedingTeamCheck) {
       for (const s of policy.subjects!) {
         if (s.type !== 'team') continue;

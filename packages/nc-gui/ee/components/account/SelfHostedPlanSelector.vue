@@ -29,12 +29,7 @@ const planMeta = (title: OnPremPlanTitles) => OnPremPlanMeta[title] || null
 
 const enterpriseMeta = OnPremPlanMeta[OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]
 
-const enterpriseDescriptions = [
-  'Everything in Scale',
-  'SCIM & Row-Level Security',
-  'Unlimited workspaces',
-  'Priority support',
-]
+const enterpriseDescriptions = ['Everything in Scale', 'SCIM & Row-Level Security', 'Unlimited workspaces', 'Priority support']
 
 const selectPlan = (plan: (typeof plans.value)[0]) => {
   const price = getPlanPrice(plan, paymentMode.value)
@@ -191,7 +186,7 @@ onMounted(async () => {
               type="secondary"
               size="medium"
               class="!w-full"
-              @click="navigateTo('https://nocodb.com/contact', { external: true, open: { target: '_blank' } })"
+              @click="navigateTo('https://cal.com/nocodb/sales', { external: true, open: { target: '_blank' } })"
             >
               <div class="flex items-center gap-1.5">
                 <GeneralIcon icon="ncMail" class="h-4 w-4" />
@@ -236,11 +231,7 @@ onMounted(async () => {
 
           <!-- Features -->
           <div class="flex flex-col gap-2.5 mt-4">
-            <div
-              v-for="desc in enterpriseDescriptions"
-              :key="desc"
-              class="flex items-start gap-2 text-sm text-nc-content-gray"
-            >
+            <div v-for="desc in enterpriseDescriptions" :key="desc" class="flex items-start gap-2 text-sm text-nc-content-gray">
               <GeneralIcon icon="circleCheckSolid" class="flex-none w-4 h-4 mt-0.5 text-nc-content-green-dark" />
               {{ desc }}
             </div>
@@ -252,7 +243,7 @@ onMounted(async () => {
               type="secondary"
               size="medium"
               class="!w-full"
-              @click="navigateTo('https://nocodb.com/contact', { external: true, open: { target: '_blank' } })"
+              @click="navigateTo('https://cal.com/nocodb/sales', { external: true, open: { target: '_blank' } })"
             >
               <div class="flex items-center gap-1.5">
                 <GeneralIcon icon="ncMail" class="h-4 w-4" />
@@ -279,7 +270,7 @@ onMounted(async () => {
           <NcButton
             type="secondary"
             size="small"
-            @click="navigateTo('https://nocodb.com/contact', { external: true, open: { target: '_blank' } })"
+            @click="navigateTo('https://cal.com/nocodb/sales', { external: true, open: { target: '_blank' } })"
           >
             <div class="flex items-center gap-1.5">
               <GeneralIcon icon="ncMail" class="h-4 w-4" />

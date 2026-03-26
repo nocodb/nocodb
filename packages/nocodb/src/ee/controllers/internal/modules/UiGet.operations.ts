@@ -67,10 +67,7 @@ export class UiGetOperations
       baseIntegrationsService,
     );
 
-    (this.operations as string[]) = [
-      ...this.operations,
-      'getDateDependency',
-    ];
+    (this.operations as string[]) = [...this.operations, 'getDateDependency'];
   }
 
   async handle(

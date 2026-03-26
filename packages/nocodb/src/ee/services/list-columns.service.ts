@@ -47,11 +47,7 @@ export class ListColumnsService {
       ncMeta,
     );
 
-    const view = await View.get(
-      context,
-      oldListViewColumn.fk_view_id,
-      ncMeta,
-    );
+    const view = await View.get(context, oldListViewColumn.fk_view_id, ncMeta);
 
     const viewWebhookManager =
       param.viewWebhookManager ??
@@ -70,11 +66,7 @@ export class ListColumnsService {
       ncMeta,
     );
 
-    const viewColumn = extractProps(param.list, [
-      'order',
-      'show',
-      'width',
-    ]);
+    const viewColumn = extractProps(param.list, ['order', 'show', 'width']);
 
     this.appHooksService.emit(AppEvents.VIEW_COLUMN_UPDATE, {
       oldViewColumn: oldListViewColumn,

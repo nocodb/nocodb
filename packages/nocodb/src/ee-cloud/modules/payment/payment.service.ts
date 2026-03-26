@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type Stripe from 'stripe';
 import { PaymentService as PaymentServiceEE } from 'src/ee/modules/payment/payment.service';
+import type Stripe from 'stripe';
 import { OnPremLicenseService } from '~/services/on-prem-license.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';

@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { InternalController as InternalControllerCE } from 'src/controllers/internal.controller';
 import { isServiceUser, ServiceUserType } from 'nocodb-sdk';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import type { InternalApiModule } from '~/utils/internal-type';
 import { DataReflectionService } from '~/services/data-reflection.service';
 import { DashboardsService } from '~/services/dashboards.service';
@@ -34,7 +35,6 @@ import {
 import { ColumnsService } from '~/services/columns.service';
 import { AuditsService } from '~/services/audits.service';
 import { PermissionsService } from '~/services/permissions.service';
-import { PlanFeatureTypes } from 'nocodb-sdk';
 import {
   checkForFeature,
   getLimit,

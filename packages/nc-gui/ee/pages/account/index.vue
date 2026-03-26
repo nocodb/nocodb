@@ -193,8 +193,8 @@ onMounted(() => {
 
               <NcMenuItem
                 v-if="appInfo.isCloud"
-                v-e="['c:account:self-hosted']"
                 key="self-hosted"
+                v-e="['c:account:self-hosted']"
                 :class="{
                   active: $route.params.page === 'self-hosted',
                 }"

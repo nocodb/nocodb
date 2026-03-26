@@ -11,10 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { HookV3CreateV3Type, HookV3UpdateV3Type } from 'nocodb-sdk';
-import {
-  checkForFeature,
-  PlanFeatureTypes,
-} from '~/ee/helpers/paymentHelpers';
+import { checkForFeature, PlanFeatureTypes } from '~/ee/helpers/paymentHelpers';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';

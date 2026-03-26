@@ -344,7 +344,9 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockUnique = computed(() => {
-    return isEEFeatureBlocked.value || ((isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_UNIQUE))
+    return (
+      isEEFeatureBlocked.value || ((isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_UNIQUE))
+    )
   })
 
   // UUID is available on all cloud plans + self-hosted EE — never blocked in EE
@@ -354,7 +356,10 @@ export const useEeConfig = createSharedComposable(() => {
   const blockAutoNumberField = computed(() => false)
 
   const blockRecordTemplates = computed(() => {
-    return isEEFeatureBlocked.value || ((isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_RECORD_TEMPLATES))
+    return (
+      isEEFeatureBlocked.value ||
+      ((isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_RECORD_TEMPLATES))
+    )
   })
 
   const blockFormScheduling = computed(() => {
@@ -380,13 +385,9 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   /** EE-only feature blocks — gated by license on self-hosted, plan-gated for licensed on-prem */
-  const blockSSO = computed(
-    () => isEEFeatureBlocked.value || (isOnPrem.value && !getFeature(PlanFeatureTypes.FEATURE_SSO)),
-  )
+  const blockSSO = computed(() => isEEFeatureBlocked.value || (isOnPrem.value && !getFeature(PlanFeatureTypes.FEATURE_SSO)))
   const blockSnapshots = computed(
-    () =>
-      isEEFeatureBlocked.value ||
-      (isOnPrem.value && getLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE) === 0),
+    () => isEEFeatureBlocked.value || (isOnPrem.value && getLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE) === 0),
   )
   const blockCustomUrls = computed(() => isEEFeatureBlocked.value)
   const blockScripts = computed(() => isEEFeatureBlocked.value)

@@ -37,10 +37,7 @@ export class DateDependencyService {
       req: NcRequest;
     },
   ): Promise<DateDependency> {
-    await checkForFeature(
-      context,
-      PlanFeatureTypes.FEATURE_DATE_DEPENDENCY,
-    );
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_DATE_DEPENDENCY);
 
     validatePayload(
       'swagger.json#/components/schemas/DateDependencyReq',
@@ -99,10 +96,7 @@ export class DateDependencyService {
     context: NcContext,
     param: { modelId: string; req: NcRequest },
   ): Promise<void> {
-    await checkForFeature(
-      context,
-      PlanFeatureTypes.FEATURE_DATE_DEPENDENCY,
-    );
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_DATE_DEPENDENCY);
 
     const model = param.modelId && (await Model.get(context, param.modelId));
 

@@ -136,9 +136,7 @@ export class DataAliasNestedController {
 
   // todo: handle case where the given column is not ltar
 
-  @Get([
-    '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/hm/:columnName',
-  ])
+  @Get(['/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/hm/:columnName'])
   @Acl('hmList')
   async hmList(
     @TenantContext() context: NcContext,

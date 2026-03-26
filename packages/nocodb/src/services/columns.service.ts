@@ -6832,6 +6832,11 @@ export class ColumnsService implements IColumnsService {
             fk_target_view_id: colOptions.fk_target_view_id,
             virtual: colOptions.virtual,
             column_order: mmColumnOrder,
+            // Cross-base properties — needed for cross-base relations
+            fk_related_base_id: colOptions.fk_related_base_id,
+            fk_mm_base_id: colOptions.fk_mm_base_id,
+            fk_related_source_id: colOptions.fk_related_source_id,
+            fk_mm_source_id: colOptions.fk_mm_source_id,
           },
           ncMeta,
         );

@@ -19,12 +19,7 @@ const isScimFeatureEnabled = computed(() => {
 // Plan check controls whether SCIM can be configured (vs showing upgrade prompt)
 const isScimAvail = computed(() => {
   if (!isScimFeatureEnabled.value) return false
-  // On cloud: requires SCIM feature in the plan
-  // On-prem EE: always available (no plan gating)
-  if (appInfo.value?.isCloud) {
-    return !!getFeature(PlanFeatureTypes.FEATURE_SCIM)
-  }
-  return true
+  return !!getFeature(PlanFeatureTypes.FEATURE_SCIM)
 })
 
 // SCIM composable

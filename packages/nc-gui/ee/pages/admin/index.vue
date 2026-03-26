@@ -9,7 +9,7 @@ const { orgRoles, isUIAllowed } = useRoles()
 
 const { appInfo } = useGlobal()
 
-const { isEEFeatureBlocked, showEEFeatures, showUpgradeToUseSSO } = useEeConfig()
+const { isEEFeatureBlocked, showEEFeatures, blockSSO, showUpgradeToUseSSO } = useEeConfig()
 
 const isSuperAdmin = computed(() => !!orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
@@ -166,14 +166,14 @@ watch(
               key="authentication"
               :class="{ active: activeTab === 'authentication' }"
               class="item"
-              @click="isEEFeatureBlocked ? showUpgradeToUseSSO() : (activeTab = 'authentication')"
+              @click="blockSSO ? showUpgradeToUseSSO() : (activeTab = 'authentication')"
             >
               <div class="flex items-center space-x-2">
                 <component :is="iconMap.ncLock" />
                 <div class="select-none text-sm">{{ $t('title.sso') }}</div>
                 <LazyPaymentUpgradeBadge
                   :feature="PlanFeatureTypes.FEATURE_SSO"
-                  :feature-enabled-callback="() => !isEEFeatureBlocked"
+                  :feature-enabled-callback="() => !blockSSO"
                   remove-click
                 />
               </div>

@@ -97,7 +97,7 @@ export const useEeConfig = createSharedComposable(() => {
   const isWsAuditEnabled = computed(() => {
     if (isEEFeatureBlocked.value) return false
 
-    return (isPaymentEnabled.value && getFeature(PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE)) || appInfo.value?.isOnPrem
+    return (isPaymentEnabled.value || isOnPrem.value) && getFeature(PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE)
   })
 
   const isRecordLimitReached = computed(() => {
@@ -431,14 +431,32 @@ export const useEeConfig = createSharedComposable(() => {
   }
 
   /** Helper functions */
+
+  /**
+   * Resolve plan meta for feature/limit lookups.
+   * On cloud: reads from workspace.payment.plan.meta
+   * On on-prem: plan is instance-wide. Tries workspace first, falls back to appInfo.onPremPlan.
+   */
+  function resolvePlanMeta(workspace?: NcWorkspace | null): Record<string, any> | null {
+    const ws = workspace ?? activeWorkspace.value
+
+    if (ws && 'payment' in ws && ws.payment?.plan?.meta) {
+      return ws.payment.plan.meta
+    }
+
+    // On-prem fallback: instance-wide plan from appInfo (always available, no workspace needed)
+    if (isOnPrem.value && appInfo.value?.onPremPlan) {
+      return appInfo.value.onPremPlan
+    }
+
+    return null
+  }
+
   function getLimit(type: PlanLimitTypes, workspace?: NcWorkspace | null) {
     if (!isPaymentEnabled.value && !isOnPrem.value) return Infinity
 
-    if (!workspace) {
-      workspace = activeWorkspace.value
-    }
-
-    const limit = Number(workspace?.payment?.plan?.meta?.[type] ?? Infinity)
+    const meta = resolvePlanMeta(workspace)
+    const limit = Number(meta?.[type] ?? Infinity)
 
     return limit === -1 ? Infinity : limit
   }
@@ -481,16 +499,12 @@ export const useEeConfig = createSharedComposable(() => {
 
     if (!isPaymentEnabled.value && !isOnPrem.value) return true
 
-    if (!workspace) {
-      workspace = activeWorkspace.value
-    }
+    const meta = resolvePlanMeta(workspace)
 
-    // if full workspace details not loaded then return true to avoid blocking user
-    if (!workspace || !('payment' in workspace)) return true
+    // if plan details not loaded then return true to avoid blocking user
+    if (!meta) return true
 
-    return ncIsString(workspace?.payment?.plan?.meta?.[type])
-      ? JSON.parse(workspace?.payment?.plan?.meta?.[type])
-      : workspace?.payment?.plan?.meta?.[type]
+    return ncIsString(meta[type]) ? JSON.parse(meta[type]) : meta[type]
   }
 
   const getHigherPlan = (plan: string | PlanTitles | undefined = activePlanTitle.value) => {

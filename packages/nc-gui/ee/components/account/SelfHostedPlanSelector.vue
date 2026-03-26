@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { OnPremPlanMeta, OnPremPlanOrder, type OnPremPlanTitles } from 'nocodb-sdk'
+import { OnPremPlanMeta, OnPremPlanOrder, OnPremPlanTitles } from 'nocodb-sdk'
 
 const emit = defineEmits<{
   (e: 'select', planId: string, priceId: string, quantity: number): void
@@ -26,6 +26,15 @@ const sortedPlans = computed(() =>
 )
 
 const planMeta = (title: OnPremPlanTitles) => OnPremPlanMeta[title] || null
+
+const enterpriseMeta = OnPremPlanMeta[OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]
+
+const enterpriseDescriptions = [
+  'Everything in Scale',
+  'SCIM & Row-Level Security',
+  'Unlimited workspaces',
+  'Priority support',
+]
 
 const selectPlan = (plan: (typeof plans.value)[0]) => {
   const price = getPlanPrice(plan, paymentMode.value)
@@ -117,14 +126,8 @@ onMounted(async () => {
       </div>
 
       <!-- Plan cards -->
-      <div
-        class="grid gap-4 mt-6"
-        :class="{
-          'grid-cols-1 max-w-[400px] mx-auto': sortedPlans.length === 1,
-          'grid-cols-2': sortedPlans.length === 2,
-          'grid-cols-3': sortedPlans.length >= 3,
-        }"
-      >
+      <div class="grid grid-cols-3 gap-4 mt-6">
+        <!-- Self-serve plans (Starter, Scale) -->
         <div
           v-for="plan in sortedPlans"
           :key="plan.id"
@@ -185,6 +188,67 @@ onMounted(async () => {
             </NcButton>
             <NcButton
               v-else
+              type="secondary"
+              size="medium"
+              class="!w-full"
+              @click="navigateTo('https://nocodb.com/contact', { external: true, open: { target: '_blank' } })"
+            >
+              <div class="flex items-center gap-1.5">
+                <GeneralIcon icon="ncMail" class="h-4 w-4" />
+                {{ $t('labels.contactSales') }}
+              </div>
+            </NcButton>
+          </div>
+        </div>
+
+        <!-- Enterprise — Contact Sales (not self-serve) -->
+        <div
+          class="nc-plan-card"
+          :style="{
+            '--plan-border': enterpriseMeta.border,
+            '--plan-bg': enterpriseMeta.bgLight,
+            '--plan-bg-dark': enterpriseMeta.bgDark,
+            '--plan-badge-bg': enterpriseMeta.badgeBgColor,
+            '--plan-badge-text': enterpriseMeta.badgeTextColor,
+          }"
+          data-testid="nc-self-hosted-plan-enterprise"
+        >
+          <!-- Badge -->
+          <div
+            class="inline-flex px-2 py-0.75 rounded-[6px] text-xs font-semibold w-fit"
+            :style="{ backgroundColor: 'var(--plan-badge-bg)', color: 'var(--plan-badge-text)' }"
+          >
+            {{ $t('objects.paymentPlan.Self-hosted Enterprise') }}
+          </div>
+
+          <!-- Custom pricing -->
+          <div class="mt-4">
+            <div class="flex items-baseline gap-1">
+              <span class="text-2xl font-bold text-nc-content-gray-emphasis">{{ $t('labels.customPricing') }}</span>
+            </div>
+            <div class="h-4" />
+          </div>
+
+          <!-- Spacer to align with total row -->
+          <div class="nc-plan-total-row">
+            <span class="text-sm text-nc-content-gray-subtle">{{ $t('labels.tailoredForYourOrg') }}</span>
+          </div>
+
+          <!-- Features -->
+          <div class="flex flex-col gap-2.5 mt-4">
+            <div
+              v-for="desc in enterpriseDescriptions"
+              :key="desc"
+              class="flex items-start gap-2 text-sm text-nc-content-gray"
+            >
+              <GeneralIcon icon="circleCheckSolid" class="flex-none w-4 h-4 mt-0.5 text-nc-content-green-dark" />
+              {{ desc }}
+            </div>
+          </div>
+
+          <!-- CTA -->
+          <div class="mt-auto pt-5">
+            <NcButton
               type="secondary"
               size="medium"
               class="!w-full"

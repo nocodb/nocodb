@@ -113,7 +113,7 @@ export enum PlanTitles {
 }
 
 export enum OnPremPlanTitles {
-  SELF_HOSTED_BUSINESS = 'Self-hosted Business',
+  SELF_HOSTED_STARTER = 'Self-hosted Starter',
   SELF_HOSTED_SCALE = 'Self-hosted Scale',
   SELF_HOSTED_ENTERPRISE = 'Self-hosted Enterprise',
 }
@@ -126,12 +126,10 @@ export enum PlanPriceLookupKeys {
 }
 
 export enum OnPremPlanPriceLookupKeys {
-  BUSINESS_MONTHLY = 'on_prem_business_monthly',
-  BUSINESS_YEARLY = 'on_prem_business_yearly',
+  STARTER_MONTHLY = 'on_prem_starter_monthly',
+  STARTER_YEARLY = 'on_prem_starter_yearly',
   SCALE_MONTHLY = 'on_prem_scale_monthly',
   SCALE_YEARLY = 'on_prem_scale_yearly',
-  ENTERPRISE_MONTHLY = 'on_prem_enterprise_monthly',
-  ENTERPRISE_YEARLY = 'on_prem_enterprise_yearly',
 }
 
 export const LoyaltyPriceLookupKeyMap = {
@@ -226,8 +224,8 @@ export const HigherPlan = {
 
 export const OnPremPlanMeta = {
   // Business = blue (first tier), Scale = pink (second tier), Enterprise = orange (third tier)
-  [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: {
-    title: OnPremPlanTitles.SELF_HOSTED_BUSINESS,
+  [OnPremPlanTitles.SELF_HOSTED_STARTER]: {
+    title: OnPremPlanTitles.SELF_HOSTED_STARTER,
     color: 'var(--plus-plan-color, #EDF9FF)',
     accent: 'var(--plus-plan-accent, #AFE5FF)',
     primary: 'var(--plus-plan-primary, #207399)',
@@ -262,13 +260,13 @@ export const OnPremPlanMeta = {
 } as const;
 
 export const OnPremPlanOrder = {
-  [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: 0,
+  [OnPremPlanTitles.SELF_HOSTED_STARTER]: 0,
   [OnPremPlanTitles.SELF_HOSTED_SCALE]: 1,
   [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: 2,
 };
 
 export const OnPremHigherPlan = {
-  [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: OnPremPlanTitles.SELF_HOSTED_SCALE,
+  [OnPremPlanTitles.SELF_HOSTED_STARTER]: OnPremPlanTitles.SELF_HOSTED_SCALE,
   [OnPremPlanTitles.SELF_HOSTED_SCALE]: OnPremPlanTitles.SELF_HOSTED_ENTERPRISE,
 } as Record<string, OnPremPlanTitles>;
 
@@ -286,7 +284,7 @@ export const OnPremPlanDefinitions: Record<
     limits: Partial<Record<PlanLimitTypes, number>>;
   }
 > = {
-  [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: {
+  [OnPremPlanTitles.SELF_HOSTED_STARTER]: {
     features: {
       // Scale+ only
       [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: false,
@@ -323,6 +321,43 @@ export const OnPremPlanDefinitions: Record<
     limits: {},
   },
 };
+
+/**
+ * On-prem: feature → lowest plan that enables it.
+ * Derived from OnPremPlanDefinitions — a feature is "disabled" in a plan
+ * if it appears in that plan's features with `false`. The minimum plan
+ * is the first (by OnPremPlanOrder) where the feature is NOT disabled.
+ */
+export const OnPremFeatureToMinPlan: Partial<
+  Record<PlanFeatureTypes, OnPremPlanTitles>
+> = (() => {
+  const result: Partial<Record<PlanFeatureTypes, OnPremPlanTitles>> = {};
+  const sortedPlans = Object.keys(OnPremPlanOrder).sort(
+    (a, b) => OnPremPlanOrder[a] - OnPremPlanOrder[b]
+  ) as OnPremPlanTitles[];
+
+  // Collect all features that are disabled in at least one plan
+  const disabledFeatures = new Set<PlanFeatureTypes>();
+  for (const plan of sortedPlans) {
+    const def = OnPremPlanDefinitions[plan];
+    for (const [feat, val] of Object.entries(def?.features ?? {})) {
+      if (val === false) disabledFeatures.add(feat as PlanFeatureTypes);
+    }
+  }
+
+  // For each disabled feature, find the first plan that enables it
+  for (const feature of disabledFeatures) {
+    for (const plan of sortedPlans) {
+      const def = OnPremPlanDefinitions[plan];
+      if (def?.features?.[feature] !== false) {
+        result[feature] = plan;
+        break;
+      }
+    }
+  }
+
+  return result;
+})();
 
 export const GRACE_PERIOD_DURATION = 14;
 

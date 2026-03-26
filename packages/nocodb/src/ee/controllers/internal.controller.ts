@@ -34,7 +34,12 @@ import {
 import { ColumnsService } from '~/services/columns.service';
 import { AuditsService } from '~/services/audits.service';
 import { PermissionsService } from '~/services/permissions.service';
-import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
+import { PlanFeatureTypes } from 'nocodb-sdk';
+import {
+  checkForFeature,
+  getLimit,
+  PlanLimitTypes,
+} from '~/helpers/paymentHelpers';
 import { ActionsService } from '~/services/actions.service';
 import { MailService } from '~/services/mail/mail.service';
 import { TablesService } from '~/services/tables.service';
@@ -241,6 +246,10 @@ export class InternalController extends InternalControllerCE {
         );
       case 'workspaceAuditList':
       case 'baseAuditList': {
+        await checkForFeature(
+          context,
+          PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+        );
         const { limit } = await getLimit(
           PlanLimitTypes.LIMIT_AUDIT_RETENTION,
           context.workspace_id,

@@ -18,7 +18,7 @@ const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder', {
  * Maps on-prem plan titles to license types
  */
 const PLAN_TO_LICENSE_TYPE: Record<string, LicenseType> = {
-  [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: LicenseType.SELF_HOSTED_BUSINESS,
+  [OnPremPlanTitles.SELF_HOSTED_STARTER]: LicenseType.SELF_HOSTED_STARTER,
   [OnPremPlanTitles.SELF_HOSTED_SCALE]: LicenseType.SELF_HOSTED_SCALE,
   [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: LicenseType.SELF_HOSTED_ENTERPRISE,
 };

@@ -5,7 +5,7 @@ import Noco from '~/Noco';
 import { Store } from '~/models';
 
 @Injectable()
-export class OrgLcenseService {
+export class OrgLicenseService {
   async licenseGet() {
     const license = await Store.get(NC_LICENSE_KEY);
 

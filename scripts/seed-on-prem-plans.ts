@@ -76,7 +76,7 @@ interface PlanDef {
 
 const ON_PREM_PLANS: PlanDef[] = [
   {
-    name: 'Self-hosted Business', // OnPremPlanTitles.SELF_HOSTED_BUSINESS
+    name: 'Self-hosted Starter', // OnPremPlanTitles.SELF_HOSTED_STARTER
     description: 'Self-hosted NocoDB for small teams',
     metadata: {
       // Limits (from OnPremPlanDefinitions)
@@ -89,7 +89,6 @@ const ON_PREM_PLANS: PlanDef[] = [
       feature_audit_workspace: 'false',
       feature_sso: 'false',
       feature_private_bases: 'false',
-
       feature_rls: 'false',
       feature_scim: 'false',
       // Descriptions
@@ -100,12 +99,12 @@ const ON_PREM_PLANS: PlanDef[] = [
     },
     prices: [
       {
-        lookup_key: 'on_prem_business_monthly', // OnPremPlanPriceLookupKeys.BUSINESS_MONTHLY
+        lookup_key: 'on_prem_starter_monthly', // OnPremPlanPriceLookupKeys.STARTER_MONTHLY
         interval: 'month',
         tiers: [{ up_to: 'inf', unit_amount: 1500 }],
       },
       {
-        lookup_key: 'on_prem_business_yearly', // OnPremPlanPriceLookupKeys.BUSINESS_YEARLY
+        lookup_key: 'on_prem_starter_yearly', // OnPremPlanPriceLookupKeys.STARTER_YEARLY
         interval: 'year',
         tiers: [{ up_to: 'inf', unit_amount: 14400 }], // $15 × 12 × 0.8 = $144
       },
@@ -122,11 +121,10 @@ const ON_PREM_PLANS: PlanDef[] = [
       limit_automation_retention: '180',
       limit_workflow_retention: '365',
       // Features disabled (Enterprise only)
-
       feature_rls: 'false',
       feature_scim: 'false',
       // Descriptions
-      description_1: 'Everything in Business',
+      description_1: 'Everything in Starter',
       description_2: 'SSO & Private Bases',
       description_3: 'Workspace Audit & Advanced Security',
       description_4: 'Extended retention & Snapshots',
@@ -144,30 +142,10 @@ const ON_PREM_PLANS: PlanDef[] = [
       },
     ],
   },
-  {
-    name: 'Self-hosted Enterprise', // OnPremPlanTitles.SELF_HOSTED_ENTERPRISE
-    description: 'Self-hosted NocoDB for organizations',
-    metadata: {
-      // Everything enabled, no restrictions
-      // Descriptions
-      description_1: 'Everything in Scale',
-      description_2: 'SCIM & Row-Level Security',
-      description_3: 'Unlimited workspaces',
-      description_4: 'Priority support',
-    },
-    prices: [
-      {
-        lookup_key: 'on_prem_enterprise_monthly', // OnPremPlanPriceLookupKeys.ENTERPRISE_MONTHLY
-        interval: 'month',
-        tiers: [{ up_to: 'inf', unit_amount: 6000 }],
-      },
-      {
-        lookup_key: 'on_prem_enterprise_yearly', // OnPremPlanPriceLookupKeys.ENTERPRISE_YEARLY
-        interval: 'year',
-        tiers: [{ up_to: 'inf', unit_amount: 57600 }], // $60 × 12 × 0.8 = $576
-      },
-    ],
-  },
+  // Enterprise is contact-sales only — no Stripe pricing.
+  // Licenses are created manually by admin via internal API.
+  // The plan definition still exists in OnPremPlanDefinitions (SDK)
+  // so feature gating works once a license is issued.
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -303,6 +281,7 @@ async function main() {
 
     if (product) {
       product = await stripe.products.update(product.id, {
+        name: planDef.name,
         description: planDef.description,
         metadata: planDef.metadata,
       });

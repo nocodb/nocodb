@@ -28,8 +28,8 @@ function buildOnPremPlan(title: OnPremPlanTitles) {
 
 // ── On-prem plan constants (derived from SDK OnPremPlanDefinitions) ──────
 
-export const BusinessPlan = buildOnPremPlan(
-  OnPremPlanTitles.SELF_HOSTED_BUSINESS,
+export const StarterPlan = buildOnPremPlan(
+  OnPremPlanTitles.SELF_HOSTED_STARTER,
 );
 export const ScalePlan = buildOnPremPlan(OnPremPlanTitles.SELF_HOSTED_SCALE);
 export const EnterprisePlan = buildOnPremPlan(

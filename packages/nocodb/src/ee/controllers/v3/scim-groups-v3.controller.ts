@@ -22,7 +22,7 @@ import { ScimContentTypeInterceptor } from '~/ee/interceptors/scim-content-type/
 import { ScimApiLimiterGuard } from '~/ee/guards/scim-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { checkForFeature } from '~/ee/helpers/paymentHelpers';
-import { isCloud } from '~/utils';
+import { isCloud, isOnPrem } from '~/utils';
 import { NcError } from '~/helpers/catchError';
 
 @Controller()
@@ -33,7 +33,7 @@ export class ScimGroupsController {
   constructor(private readonly scimGroupsService: ScimGroupsService) {}
 
   private async checkScimFeature(context: NcContext) {
-    if (isCloud) {
+    if (isCloud || isOnPrem) {
       await checkForFeature(context, PlanFeatureTypes.FEATURE_SCIM);
     }
   }

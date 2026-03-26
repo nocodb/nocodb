@@ -296,7 +296,7 @@ if (!props.isNewWsPage) {
               {{ $t('general.integrations') }}
             </div>
           </template>
-          <div class="nc-integrations-layout h-[calc(100vh-var(--topbar-height)-44px)] flex">
+          <div class="nc-integrations-layout h-[calc(100vh-var(--topbar-height)-44px)] flex nc-content-max-w mx-auto">
             <!-- Left: vertical nav -->
             <div class="nc-integrations-sidebar flex flex-col gap-1 pl-6 pr-2 pt-6 w-48 flex-shrink-0">
               <div
@@ -443,7 +443,7 @@ if (!props.isNewWsPage) {
   }
 
   &.active {
-    @apply bg-nc-bg-gray-medium text-nc-content-brand font-medium;
+    @apply bg-nc-bg-brand-inverted text-nc-content-brand font-medium;
   }
 }
 
@@ -451,12 +451,6 @@ if (!props.isNewWsPage) {
   // Hide only the top-level tab nav (this element IS the .ant-tabs)
   > :deep(.ant-tabs-nav) {
     @apply !hidden;
-  }
-
-  :deep(.ant-tabs-content) {
-    > .ant-tabs-tabpane > div {
-      @apply nc-content-max-w mx-auto;
-    }
   }
 }
 </style>

@@ -32,10 +32,15 @@ const isHomeSidebarRoute = computed(() => {
 
 const { hideMiniSidebar } = storeToRefs(useSidebarStore())
 
+const wsHomeSearchQuery = useState<string>('ws-home-search', () => '')
+
 watch(
   isHomeSidebarRoute,
   (val) => {
     hideMiniSidebar.value = val
+    if (val) {
+      wsHomeSearchQuery.value = ''
+    }
   },
   { immediate: true },
 )

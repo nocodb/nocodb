@@ -633,8 +633,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     if (cmdOrCtrl) {
       await navigateTo(
         router.resolve({
-          name: 'index-typeOrId-settings-page',
-          params: { typeOrId: workspaceId, page: 'ws-integrations' },
+          name: 'index-typeOrId-integrations',
+          params: { typeOrId: workspaceId },
           query,
         }).href,
         {
@@ -642,7 +642,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         },
       )
     } else {
-      router.push({ name: 'index-typeOrId-settings-page', params: { typeOrId: workspaceId, page: 'ws-integrations' }, query })
+      router.push({ name: 'index-typeOrId-integrations', params: { typeOrId: workspaceId }, query })
     }
   }
 

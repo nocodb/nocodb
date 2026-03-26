@@ -32,19 +32,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const workspaces = ref<Map<string, any>>(new Map())
   const workspacesList = computed<any[]>(() => Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at))
 
-  const wsSettingsRouteNames = [
-    'index-typeOrId-settings-page',
-    'index-typeOrId-members',
-    'index-typeOrId-teams',
-    'index-typeOrId-billing',
-    'index-typeOrId-audits',
-    'index-typeOrId-sso',
-    'index-typeOrId-ws-settings',
-    'index-typeOrId-general',
-    'index-typeOrId-more',
-  ]
-
-  const isWorkspaceSettingsPageOpened = computed(() => wsSettingsRouteNames.includes(route.value.name as string))
+  const isWorkspaceSettingsPageOpened = computed(() => wsSettingsRouteNames.has(route.value.name as string))
 
   const isIntegrationsPageOpened = computed(
     () =>

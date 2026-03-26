@@ -63,20 +63,6 @@ const currentWorkspace = computedAsync(async () => {
   return ws
 })
 
-const routeNameToWsTab: Record<string, string> = {
-  'index-typeOrId-index': 'bases',
-  'index-typeOrId': 'bases',
-  'index-typeOrId-members': 'collaborators',
-  'index-typeOrId-teams': 'teams',
-  'index-typeOrId-integrations': 'integrations',
-  'index-typeOrId-audits': 'audits',
-  'index-typeOrId-billing': 'billing',
-  'index-typeOrId-sso': 'sso',
-  'index-typeOrId-settings': 'settings',
-}
-
-const wsTabToRouteName: Record<string, string> = Object.fromEntries(Object.entries(routeNameToWsTab).map(([k, v]) => [v, k]))
-
 const tab = computed({
   get() {
     return props.isNewWsPage

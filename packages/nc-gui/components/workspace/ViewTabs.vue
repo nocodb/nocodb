@@ -33,20 +33,6 @@ const isWorkspaceSsoAvail = computed(() => {
   return isEeUI && !!appInfo.value?.isCloud && !!getFeature(PlanFeatureTypes.FEATURE_SSO)
 })
 
-const routeNameToWsTab: Record<string, string> = {
-  'index-typeOrId-index': 'bases',
-  'index-typeOrId': 'bases',
-  'index-typeOrId-members': 'collaborators',
-  'index-typeOrId-teams': 'teams',
-  'index-typeOrId-integrations': 'integrations',
-  'index-typeOrId-audits': 'audits',
-  'index-typeOrId-billing': 'billing',
-  'index-typeOrId-sso': 'sso',
-  'index-typeOrId-settings': 'settings',
-}
-
-const wsTabToRouteName: Record<string, string> = Object.fromEntries(Object.entries(routeNameToWsTab).map(([k, v]) => [v, k]))
-
 // Tab definitions
 interface TabItem {
   key: string

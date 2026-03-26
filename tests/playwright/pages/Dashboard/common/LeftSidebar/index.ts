@@ -271,6 +271,10 @@ export class LeftSidebarPage extends BasePage {
     await inputModal.locator('input').clear();
     await inputModal.locator('input').fill(title);
     await inputModal.locator('button.ant-btn-primary').click();
+
+    // Wait for modal to close and workspace home page to load
+    await inputModal.waitFor({ state: 'hidden', timeout: 10000 });
+    await this.rootPage.waitForLoadState('networkidle');
   }
 
   async verifyWorkspaceCount({ count }: { count: number }): Promise<void> {

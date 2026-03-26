@@ -36,7 +36,7 @@ export class LoginPage extends BasePage {
 
   async submit() {
     await this.get().locator(`[data-testid="nc-form-signin__submit"]`).click();
-    await this.rootPage.locator('.nc-treeview-container').waitFor({ timeout: 10000 });
+    await this.rootPage.locator('.nc-treeview-container, .nc-home-sidebar').first().waitFor({ timeout: 10000 });
   }
 
   async signIn({
@@ -63,7 +63,9 @@ export class LoginPage extends BasePage {
     await this.rootPage.waitForLoadState('domcontentloaded');
     // Wait for either the dashboard or the onboarding flow to appear
     await this.rootPage
-      .locator('[data-testid="nc-sidebar-userinfo"], [data-testid="nc-onboarding-flow-container"]')
+      .locator(
+        '[data-testid="nc-sidebar-userinfo"], [data-testid="nc-home-sidebar-userinfo"], [data-testid="nc-onboarding-flow-container"]'
+      )
       .first()
       .waitFor({ timeout: 60000 });
 

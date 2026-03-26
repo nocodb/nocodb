@@ -279,6 +279,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
         :ref="(el: any) => setItemRef('logo', el)"
         class="nc-dock-logo nc-dock-logo-hover"
         data-testid="nc-mini-sidebar-v2-logo"
+        :data-workspace-title="activeWorkspace?.title"
         :scale="getScale('logo')"
         @click="navigateTo(`/${isEeUI ? activeWorkspaceId : 'nc'}`)"
       >

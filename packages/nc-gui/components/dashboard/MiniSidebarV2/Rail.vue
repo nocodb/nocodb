@@ -208,6 +208,7 @@ const mainItems = computed<NavItem[]>(() => [
         <div
           class="nc-rail-logo nc-rail-logo-hover"
           data-testid="nc-mini-sidebar-v2-logo"
+          :data-workspace-title="activeWorkspace?.title"
           @click="navigateTo(`/${isEeUI ? activeWorkspaceId : 'nc'}`)"
         >
           <GeneralProjectIcon

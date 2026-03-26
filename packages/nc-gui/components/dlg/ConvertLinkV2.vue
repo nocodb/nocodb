@@ -60,7 +60,7 @@ async function handleConvert() {
       {},
     )
 
-    message.success(t('msg.info.convertLinkV2Success'))
+    message.toast(t('msg.info.convertLinkV2Success'))
 
     // Reload current table meta
     await getMeta(meta.value.base_id!, meta.value.id!, true)
@@ -87,7 +87,7 @@ async function handleConvert() {
 </script>
 
 <template>
-  <NcModal v-model:visible="visible" size="small" :show-separator="false" :centered="false">
+  <NcModal v-model:visible="visible" size="small" :show-separator="false" :centered="false" wrap-class-name="nc-modal-convert-link-v2">
     <template #header>
       <div class="flex flex-row items-center gap-x-2">{{ $t('title.convertLegacyLink') }}</div>
     </template>
@@ -138,3 +138,9 @@ async function handleConvert() {
     </div>
   </NcModal>
 </template>
+
+<style lang="scss">
+.nc-modal-convert-link-v2 {
+  z-index: 1100;
+}
+</style>

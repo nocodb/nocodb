@@ -18,11 +18,19 @@ const props = defineProps<{
   isEdit: boolean
 }>()
 
-const emit = defineEmits(['update:value'])
+const emit = defineEmits(['update:value', 'upgrade'])
 
 const vModel = useVModel(props, 'value', emit)
 
 const isEdit = toRef(props, 'isEdit')
+
+const isUpgradeable = computed(() => {
+  if (!isEdit.value) return false
+  const col = vModel.value
+  const colOpts = col?.colOptions as LinkToAnotherRecordType | undefined
+  // Links (deprecated) or LTAR v1 — both can be upgraded
+  return col?.uidt === UITypes.Links || (col?.uidt === UITypes.LinkToAnotherRecord && colOpts?.version !== LinksVersion.V2)
+})
 
 const meta = inject(MetaInj, ref())
 
@@ -476,7 +484,7 @@ const handleScrollIntoView = () => {
 <template>
   <div class="w-full flex flex-col gap-4">
     <div class="flex flex-col gap-4">
-      <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type">
+      <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type !mb-0">
         <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit" class="w-full">
           <template v-if="vModel.uidt === UITypes.LinkToAnotherRecord">
             <a-row :gutter="[8, 8]">
@@ -544,6 +552,27 @@ const handleScrollIntoView = () => {
           </template>
         </a-radio-group>
       </a-form-item>
+    </div>
+    <div
+      v-if="isUpgradeable"
+      class="flex items-center justify-between bg-orange-50 rounded-lg px-3 py-2 -mt-4"
+      data-testid="nc-ltar-upgrade-banner"
+    >
+      <div class="flex items-center gap-2">
+        <GeneralIcon icon="alertTriangle" class="flex-none h-4 w-4 text-orange-500" />
+        <span class="text-sm text-nc-content-gray">
+          {{ $t('msg.info.upgradeLinkFieldAvailable') }}
+          <a
+            href="https://docs.nocodb.com/fields/field-types/links-based/links#upgrade-to-link-to-another-record"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-nc-content-brand underline ml-1"
+          >{{ $t('msg.learnMore') }}</a>
+        </span>
+      </div>
+      <NcButton size="xs" type="primary" @click="emit('upgrade')">
+        {{ $t('general.upgrade') }}
+      </NcButton>
     </div>
     <div v-if="isFeatureEnabled(FEATURE_FLAG.CUSTOM_LINK) && isEeUI">
       <a-switch

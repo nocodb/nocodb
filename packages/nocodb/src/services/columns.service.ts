@@ -6337,7 +6337,13 @@ export class ColumnsService implements IColumnsService {
             context.workspace_id,
             context.base_id,
             MetaTable.COLUMNS,
-            { uidt: UITypes.Rollup },
+            {
+              uidt: UITypes.Rollup,
+              meta: JSON.stringify({
+                ...parseProp(hmColumn.meta),
+                precision: 0,
+              }),
+            },
             hmColumn.id,
           );
         } else {
@@ -6572,6 +6578,7 @@ export class ColumnsService implements IColumnsService {
         // (deepDel would remove it from the list cache, making it disappear from table metadata)
         await NocoCache.update(context, `${CacheScope.COLUMN}:${hmColumn.id}`, {
           uidt: UITypes.Rollup,
+          meta: { ...parseProp(hmColumn.meta), precision: 0 },
         });
 
         // Clear option caches for dependent lookup/rollup columns that were
@@ -6764,7 +6771,13 @@ export class ColumnsService implements IColumnsService {
           context.workspace_id,
           context.base_id,
           MetaTable.COLUMNS,
-          { uidt: UITypes.Rollup },
+          {
+            uidt: UITypes.Rollup,
+            meta: JSON.stringify({
+              ...parseProp(column.meta),
+              precision: 0,
+            }),
+          },
           column.id,
         );
 
@@ -6841,10 +6854,11 @@ export class ColumnsService implements IColumnsService {
     }
 
     if (isLinksColumn) {
-      // Update column cache entry to reflect new Rollup uidt
+      // Update column cache entry to reflect new Rollup uidt + precision
       // (deepDel would remove it from the list cache, making it disappear from table metadata)
       await NocoCache.update(context, `${CacheScope.COLUMN}:${column.id}`, {
         uidt: UITypes.Rollup,
+        meta: { ...parseProp(column.meta), precision: 0 },
       });
     }
 

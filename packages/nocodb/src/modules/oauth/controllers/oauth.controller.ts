@@ -19,6 +19,7 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { OauthAuthorizationService } from '~/modules/oauth/services/oauth-authorization.service';
 import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
+import { OauthDiscoveryService } from '~/modules/oauth/services/oauth-discovery.service';
 
 const logger = new Logger('OAuthController');
 
@@ -27,7 +28,17 @@ export class OAuthController {
   constructor(
     protected readonly oauthAuthorizationService: OauthAuthorizationService,
     protected readonly oauthTokenService: OauthTokenService,
+    protected readonly oauthDiscoveryService: OauthDiscoveryService,
   ) {}
+
+  @UseGuards(PublicApiLimiterGuard)
+  @Get([
+    '/.well-known/oauth-authorization-server',
+    '/.well-known/oauth-authorization-server/*',
+  ])
+  async discovery(@Req() req: NcRequest) {
+    return this.oauthDiscoveryService.getMetadata(req.ncSiteUrl);
+  }
 
   @UseGuards(PublicApiLimiterGuard)
   @Get(['/api/v2/public/oauth/client/:clientId'])

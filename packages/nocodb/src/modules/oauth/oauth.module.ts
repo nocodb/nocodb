@@ -5,14 +5,15 @@ import { OauthClientService } from '~/modules/oauth/services/oauth-client.servic
 import { OAuthController } from '~/modules/oauth/controllers/oauth.controller';
 import { OauthAuthorizationService } from '~/modules/oauth/services/oauth-authorization.service';
 import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
+import { OauthDiscoveryService } from '~/modules/oauth/services/oauth-discovery.service';
 
 export const oAuthModuleMetadata = {
   imports: [forwardRef(() => NocoModule)],
   controllers: [
     ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [OAuthController] : []),
   ],
-  providers: [OauthClientService, OauthAuthorizationService, OauthTokenService],
-  exports: [OauthClientService, OauthTokenService],
+  providers: [OauthClientService, OauthAuthorizationService, OauthTokenService, OauthDiscoveryService],
+  exports: [OauthClientService, OauthTokenService, OauthDiscoveryService],
 };
 
 @Module(oAuthModuleMetadata)

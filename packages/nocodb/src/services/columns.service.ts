@@ -6624,6 +6624,7 @@ export class ColumnsService implements IColumnsService {
       // Emit events
       (this.appHooksService as any).emit(AppEvents.COLUMN_UPDATE, {
         table: parentTable,
+        oldColumn: column,
         column: hmColumn,
         req: param.req,
         context,
@@ -6882,6 +6883,7 @@ export class ColumnsService implements IColumnsService {
     // Emit events
     (this.appHooksService as any).emit(AppEvents.COLUMN_UPDATE, {
       table: sourceTable,
+      oldColumn: column,
       column,
       req: param.req,
       context,

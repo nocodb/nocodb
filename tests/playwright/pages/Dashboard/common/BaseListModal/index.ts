@@ -55,7 +55,6 @@ export class BaseListModalPage extends BasePage {
         await basesTab.click();
         // Wait for navigation to Bases tab and base list to render
         await this.rootPage.waitForTimeout(1000);
-        await this.rootPage.waitForLoadState('networkidle');
       }
     }
   }

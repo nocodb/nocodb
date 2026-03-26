@@ -14,8 +14,6 @@ const { t } = useI18n()
 
 const { isEnabledOnboardingFlow, showOnboardingFlowLocalState } = useOnboardingFlow()
 
-const { navigateToTable } = useTablesStore()
-
 const formValidator = ref()
 
 const subscribe = ref(false)
@@ -75,22 +73,12 @@ async function signUp() {
     try {
       // TODO: Add to swagger
       const workspace = (user as any).createdWorkspace
-      const base = (workspace as any)?.bases?.[0]
-      const table = base?.tables?.[0]
 
       if (isEnabledOnboardingFlow.value) {
         let continueAfterOnboardingFlow = ''
 
         if (workspace?.id) {
           continueAfterOnboardingFlow = `/${workspace.id}`
-
-          if (base?.id) {
-            continueAfterOnboardingFlow += `/${base.id}`
-
-            if (table?.id) {
-              continueAfterOnboardingFlow += `/${table.id}`
-            }
-          }
         }
 
         /**
@@ -106,11 +94,13 @@ async function signUp() {
         return
       }
 
-      if (workspace && base && table) {
-        return await navigateToTable({
-          baseId: base.id,
-          tableId: table.id,
-          workspaceId: workspace.id,
+      if (workspace) {
+        // if user signed up then redirect to ws bases list page
+        return await navigateTo({
+          name: 'index-typeOrId',
+          params: {
+            typeOrId: workspace.id,
+          },
         })
       }
     } catch (e) {

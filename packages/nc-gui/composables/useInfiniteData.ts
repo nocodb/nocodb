@@ -17,6 +17,8 @@ import {
   isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
+  isDeletedCol,
+  isOrderCol,
   isSystemColumn,
 } from 'nocodb-sdk'
 import type { CanvasGroup } from '../lib/types'
@@ -1377,28 +1379,36 @@ export function useInfiniteData(args: {
         row.row = fullRecord
 
         if (!undo) {
+          const hasSoftDelete = meta.value?.columns?.some((c) => isDeletedCol(c))
+
           addUndo({
-            undo: {
-              fn: async (row: Row, ltarState: Record<string, any>, path: Array<number>) => {
-                const pkData = rowPkData(row.row, meta?.value?.columns as ColumnType[])
-
-                row.row = { ...pkData, ...row.row }
-
-                await insertRow(row, ltarState, {}, true, undefined, undefined, path)
-                // refreshing the view
-                dataCache.cachedRows.value.clear()
-                dataCache.chunkStates.value = []
-
-                try {
-                  await recoverLTARRefs(row.row, undefined, { suppressError: true })
-                } catch (ex) {
-                  // expected and silenced
-                  // the relation should already exists on above operation (insertRow)
-                  // this is left to keep things unchanged
+            undo: hasSoftDelete
+              ? {
+                  fn: async (id: string, _path: Array<number>) => {
+                    await $api.internal.postOperation(
+                      (meta.value as TableType)?.fk_workspace_id ?? 'nc__',
+                      (meta.value as TableType)?.base_id!,
+                      { operation: 'recordTrashRestore' as any } as any,
+                      { tableId: meta.value?.id, rowIds: [id] },
+                    )
+                    // Socket event from backend handles row insertion with nc_order
+                  },
+                  args: [id as string, clone(path)],
                 }
-              },
-              args: [clone(row), {}, clone(path)],
-            },
+              : {
+                  fn: async (row: Row, ltarState: Record<string, any>, path: Array<number>) => {
+                    const pkData = rowPkData(row.row, meta?.value?.columns as ColumnType[])
+                    row.row = { ...pkData, ...row.row }
+                    await insertRow(row, ltarState, {}, true, undefined, undefined, path)
+                    const dc = getDataCache(path)
+                    dc.cachedRows.value.clear()
+                    dc.chunkStates.value = []
+                    try {
+                      await recoverLTARRefs(row.row, undefined, { suppressError: true })
+                    } catch (_e) {}
+                  },
+                  args: [clone(row), {}, clone(path)],
+                },
             redo: {
               fn: async (rowIndex: number, path) => {
                 await deleteRow(rowIndex, false, path)
@@ -2265,15 +2275,49 @@ export function useInfiniteData(args: {
         }
 
         if (!isValidationFailed) {
-          // If no order is found, append to the end
-          const newRowIndex = dataCache.totalRows.value
-          dataCache.cachedRows.value.set(newRowIndex, {
+          // No `before` hint — find correct sorted position locally
+          const orderCol = meta.value?.columns?.find((c) => isOrderCol(c))
+          const orderField = orderCol?.title || orderCol?.column_name
+          let insertAtIndex = dataCache.totalRows.value
+
+          if (!sorts.value.length && orderField && payload[orderField] != null) {
+            // Default sort by nc_order — find the right position
+            const payloadOrder = Number(payload[orderField])
+            const entries = Array.from(dataCache.cachedRows.value.entries()).sort((a, b) => a[0] - b[0])
+            for (const [idx, cachedRow] of entries) {
+              const cachedOrder = Number(cachedRow.row[orderField])
+              if (!isNaN(cachedOrder) && payloadOrder < cachedOrder) {
+                insertAtIndex = idx
+                break
+              }
+            }
+          }
+
+          // Shift rows down to make room at insertAtIndex
+          if (insertAtIndex < dataCache.totalRows.value) {
+            const rowsToShift = Array.from(dataCache.cachedRows.value.entries())
+              .filter(([index]) => index >= insertAtIndex)
+              .sort((a, b) => b[0] - a[0])
+            for (const [index, rowData] of rowsToShift) {
+              rowData.rowMeta.rowIndex = index + 1
+              dataCache.cachedRows.value.delete(index)
+              dataCache.cachedRows.value.set(index + 1, rowData)
+            }
+          }
+
+          const newRow: Row = {
             row: payload,
             oldRow: {},
-            rowMeta: { new: false, rowIndex: newRowIndex, path: [], ...getEvaluatedRowMetaRowColorInfo(payload) },
-          })
+            rowMeta: { new: false, rowIndex: insertAtIndex, path: [], ...getEvaluatedRowMetaRowColorInfo(payload) },
+          }
+          dataCache.cachedRows.value.set(insertAtIndex, newRow)
           dataCache.totalRows.value++
           dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
+
+          // If explicit sorts exist, apply them (nc_order handled above)
+          if (sorts.value.length) {
+            applySorting(newRow)
+          }
 
           callbacks?.syncVisibleData?.()
         }

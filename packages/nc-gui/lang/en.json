@@ -3774,5 +3774,28 @@
     "tryAgain": "Try Again",
     "internalUrlsNotAllowed": "Internal URLs are not allowed",
     "cyclicCallsWarning": "This URL points to the same NocoDB instance which may cause cyclic calls"
+  },
+  "trash": {
+    "title": "Deleted Records",
+    "restore": "Restore",
+    "restoreSelected": "Restore Selected",
+    "deleteForever": "Delete Forever",
+    "emptyTrash": "Empty Trash",
+    "autoExpiry": "Records are permanently deleted after {days} days",
+    "deletedBy": "Deleted by",
+    "deletedAt": "Deleted at",
+    "noDeletedRecords": "No deleted records",
+    "deletedRecordsWillAppearHere": "Deleted records will appear here",
+    "selectedRecords": "{count} record selected | {count} records selected",
+    "confirmEmpty": "Permanently delete all deleted records? This cannot be undone.",
+    "confirmDeleteForever": "Permanently delete {count} record(s)? This cannot be undone.",
+    "recordsRestored": "{count} record(s) restored",
+    "recordsDeleted": "{count} record(s) permanently deleted",
+    "trashEmptied": "Trash emptied",
+    "justNow": "just now",
+    "minutesAgo": "{count}m ago",
+    "hoursAgo": "{count}h ago",
+    "daysAgo": "{count}d ago",
+    "ooConflict": "Cannot restore: one-to-one link conflict. Another record already occupies the link slot. Remove the conflicting link first, then retry."
   }
 }

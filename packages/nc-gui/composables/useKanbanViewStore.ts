@@ -748,6 +748,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     async function deleteRow(row: Row, undo = false) {
       try {
         if (!undo) {
+          const hasSoftDelete = meta.value?.columns?.some((c) => isDeletedCol(c))
+
           addUndo({
             redo: {
               fn: async function redo(this: UndoRedoAction, r: Row) {
@@ -755,15 +757,29 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
               },
               args: [clone(row)],
             },
-            undo: {
-              fn: async function undo(this: UndoRedoAction, row: Row) {
-                const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
-                row.row = { ...pkData, ...row.row }
-                await insertRow(row.row, undefined, true)
-                addOrEditStackRow(row, true)
-              },
-              args: [clone(row)],
-            },
+            undo: hasSoftDelete
+              ? {
+                  fn: async function undo(this: UndoRedoAction, row: Row) {
+                    const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                    await $api.internal.postOperation(
+                      (meta.value as TableType)?.fk_workspace_id ?? 'nc__',
+                      (meta.value as TableType)?.base_id!,
+                      { operation: 'recordTrashRestore' as any } as any,
+                      { tableId: meta.value?.id, rowIds: [id] },
+                    )
+                    addOrEditStackRow(row, true)
+                  },
+                  args: [clone(row)],
+                }
+              : {
+                  fn: async function undo(this: UndoRedoAction, row: Row) {
+                    const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
+                    row.row = { ...pkData, ...row.row }
+                    await insertRow(row.row, undefined, true)
+                    addOrEditStackRow(row, true)
+                  },
+                  args: [clone(row)],
+                },
             scope: defineViewScope({ view: viewMeta.value as ViewType }),
           })
         }

@@ -28,6 +28,7 @@ export async function singleQueryRead(
     extractOrderColumn?: boolean;
     customConditions?: Filter[];
     ignoreRls?: boolean;
+    deletedOnly?: boolean;
   },
 ): Promise<PagedResponseImpl<Record<string, any>>> {
   const dbQuery = DBQueryClient.get(ClientType.MYSQL);
@@ -54,6 +55,7 @@ export async function singleQueryList(
     skipSortBasedOnOrderCol?: boolean;
     ignoreViewFilterAndSort?: boolean;
     ignoreRls?: boolean;
+    deletedOnly?: boolean;
   },
 ): Promise<
   PagedResponseImpl<Record<string, any>> | Array<Record<string, any>>

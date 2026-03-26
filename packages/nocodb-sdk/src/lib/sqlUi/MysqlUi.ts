@@ -212,6 +212,30 @@ export class MysqlUi implements SqlUi {
         uicn: '',
         system: true,
       },
+      {
+        column_name: '__nc_deleted',
+        title: '__nc_deleted',
+        dt: 'tinyint',
+        dtx: 'specificType',
+        ct: 'tinyint(1)',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        cdf: '0',
+        clen: null,
+        np: null,
+        ns: null,
+        dtxp: '1',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.Deleted,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
     ];
   }
 
@@ -1163,6 +1187,10 @@ export class MysqlUi implements SqlUi {
       case 'Order':
         colProp.dt = 'decimal';
         break;
+      case UITypes.Deleted:
+        colProp.dt = 'tinyint';
+        colProp.dtxp = '1';
+        break;
       default:
         colProp.dt = 'varchar';
         break;
@@ -1356,6 +1384,9 @@ export class MysqlUi implements SqlUi {
           'multilinestring',
           'multipolygon',
         ];
+
+      case UITypes.Deleted:
+        return ['tinyint', 'boolean'];
 
       default:
         return dbTypes;

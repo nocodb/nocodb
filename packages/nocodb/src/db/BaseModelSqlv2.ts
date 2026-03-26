@@ -9,6 +9,7 @@ import utc from 'dayjs/plugin/utc.js';
 import equal from 'fast-deep-equal';
 import groupBy from 'lodash/groupBy';
 import {
+  AppEvents,
   AuditOperationSubTypes,
   AuditV1OperationTypes,
   ClientType,
@@ -22,6 +23,7 @@ import {
   isBtLikeV2Junction,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
+  isDeletedCol,
   isLinksOrLTAR,
   isMMOrMMLike,
   isOrderCol,
@@ -337,6 +339,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       );
     }
 
+    // Exclude soft-deleted records
+    const softDeleteFilterReadByPk = await this.getSoftDeleteFilter();
+    if (softDeleteFilterReadByPk) {
+      qb.where(softDeleteFilterReadByPk);
+    }
+
     let data;
 
     try {
@@ -519,6 +527,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       );
     }
 
+    // Exclude soft-deleted records
+    const softDeleteFilterExist = await this.getSoftDeleteFilter();
+    if (softDeleteFilterExist) {
+      qb.where(softDeleteFilterExist);
+    }
+
     return !!(await this.execAndParse(qb, null, { raw: true, first: true }));
   }
 
@@ -570,6 +584,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       ],
       qb,
     );
+
+    // Exclude soft-deleted records
+    const softDeleteFilterFindOne = await this.getSoftDeleteFilter();
+    if (softDeleteFilterFindOne) {
+      qb.where(softDeleteFilterFindOne);
+    }
 
     const orderColumn = columns.find((c) => isOrderCol(c));
 
@@ -626,6 +646,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       skipSubstitutingColumnIds?: boolean;
       skipSortBasedOnOrderCol?: boolean;
       ignoreRls?: boolean;
+      deletedOnly?: boolean;
     } = {},
   ): Promise<any> {
     const {
@@ -636,6 +657,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       limitOverride,
       skipSortBasedOnOrderCol = false,
       ignoreRls: ignoreRlsOpt = false,
+      deletedOnly = false,
     } = options;
 
     const columns = await this.model.getColumns(this.context);
@@ -681,6 +703,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const rlsFilterGroup = rlsConditions.length
       ? [new Filter({ children: rlsConditions, is_group: true })]
       : [];
+
+    // Soft-delete filter: exclude deleted records normally, or select ONLY deleted for trash listing
+    if (deletedOnly) {
+      const deletedCol = this.model.columns.find((c) => isDeletedCol(c));
+      if (deletedCol) {
+        qb.where(deletedCol.column_name, true);
+      } else {
+        // No soft-delete column — no trashed records can exist, return nothing
+        qb.whereRaw('1 = 0');
+      }
+    } else {
+      const softDeleteFilterList = await this.getSoftDeleteFilter();
+      if (softDeleteFilterList) {
+        qb.where(softDeleteFilterList);
+      }
+    }
 
     // todo: replace with view id
     if (!ignoreViewFilterAndSort && this.viewId) {
@@ -863,6 +901,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       ? [new Filter({ children: rlsConditionsCount, is_group: true })]
       : [];
 
+    // Exclude soft-deleted records
+    const softDeleteFilterCount = await this.getSoftDeleteFilter();
+    if (softDeleteFilterCount) {
+      qb.where(softDeleteFilterCount);
+    }
+
     if (!ignoreViewFilterAndSort && this.viewId) {
       await conditionV2(
         this,
@@ -999,6 +1043,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       ],
       qb,
     );
+
+    // Exclude soft-deleted records
+    const softDeleteFilterGBA = await this.getSoftDeleteFilter();
+    if (softDeleteFilterGBA) {
+      qb.where(softDeleteFilterGBA);
+    }
+
     if (args?.groupByColumnName) {
       qb.groupBy(args?.groupByColumnName);
     }
@@ -1242,6 +1293,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           tQb,
         );
 
+        // Exclude soft-deleted records
+        const softDeleteFilterBulkAgg = await this.getSoftDeleteFilter();
+        if (softDeleteFilterBulkAgg) {
+          tQb.where(softDeleteFilterBulkAgg);
+        }
+
         let jsonBuildObject;
 
         switch (this.dbDriver.client.config.client) {
@@ -1397,6 +1454,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ],
         qb,
       );
+
+      // Exclude soft-deleted records
+      const softDeleteFilterAgg = await this.getSoftDeleteFilter();
+      if (softDeleteFilterAgg) {
+        qb.where(softDeleteFilterAgg);
+      }
 
       const selectors: Array<Knex.Raw> = [];
 
@@ -2350,7 +2413,77 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       });
       await this.beforeDelete(id, trx, cookie);
 
+      // Detect soft-delete column for meta sources
+      const deletedColumn = this.model.columns.find((c) => isDeletedCol(c));
+      const isSoftDelete = !!deletedColumn && source.isMeta();
+
+      if (isSoftDelete) {
+        // Soft-delete: flag the record instead of removing it
+        const where = await this._wherePk(id);
+        const softDeletePayload: Record<string, any> = {
+          [deletedColumn.column_name]: true,
+        };
+        // Stamp deleted-at / deleted-by so the trash UI can display them
+        const lmtCol = this.model.columns.find(
+          (c) => c.uidt === UITypes.LastModifiedTime && c.system,
+        );
+        const lmbCol = this.model.columns.find(
+          (c) => c.uidt === UITypes.LastModifiedBy && c.system,
+        );
+        if (lmtCol) softDeletePayload[lmtCol.column_name] = this.now();
+        if (lmbCol) softDeletePayload[lmbCol.column_name] = cookie?.user?.id;
+
+        // Use the caller's transaction or run without one (single UPDATE, no link cleanup)
+        const response = _trx
+          ? await _trx(this.tnPath).update(softDeletePayload).where(where)
+          : await this.dbDriver(this.tnPath)
+              .update(softDeletePayload)
+              .where(where);
+
+        Noco.eventEmitter.emit(AppEvents.RECORDS_SOFT_DELETE, {
+          context: this.context,
+          req: cookie,
+          tableId: this.model.id,
+          rowIds: [id],
+        });
+
+        await this.softDeleteFileReferences({
+          oldData: [data],
+          columns: this.model.columns,
+        });
+
+        // Update LMT + broadcast on linked records
+        await this.updateLinkedRecordsOnDelete([id], cookie);
+
+        await this.afterDelete(
+          data,
+          null,
+          cookie,
+          AuditV1OperationTypes.DATA_SOFT_DELETE,
+        );
+        await this.statsUpdate({ count: -1 });
+
+        // Set trash_cleanup_due_at on first soft-delete if not already scheduled
+        if (!this.model.trash_cleanup_due_at) {
+          await Model.updateTrashCleanupDueAt(
+            this.context,
+            this.model.id,
+            new Date().toISOString(),
+          );
+        }
+
+        return response;
+      }
+
       const execQueries: ((trx: Knex.Transaction) => Promise<any>)[] = [];
+
+      // Collect linked record IDs BEFORE the transaction nulls FKs / deletes junction rows
+      const linkedRecordNotifications: {
+        baseModel: BaseModelSqlv2;
+        model: Model;
+        ids: string[];
+        colId: string;
+      }[] = [];
 
       for (const column of this.model.columns) {
         if (!isLinksOrLTAR(column)) continue;
@@ -2358,9 +2491,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const colOptions =
           await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
 
-        const { mmContext, refContext } = colOptions.getRelContext(
-          this.context,
-        );
+        const { mmContext, refContext, parentContext, childContext } =
+          await colOptions.getParentChildContext(this.context);
 
         const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
 
@@ -2387,14 +2519,54 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 queryQueue: this._queryQueue,
               });
 
-              const mmParentColumn = await Column.get(mmContext, {
+              const mmChildCol = await Column.get(mmContext, {
                 colId: colOptions.fk_mm_child_column_id,
               });
+
+              // Collect linked parent IDs via junction BEFORE deletion
+              const mmParentCol = await Column.get(mmContext, {
+                colId: colOptions.fk_mm_parent_column_id,
+              });
+              const parentTable = await (
+                await colOptions.getParentColumn(parentContext)
+              ).getModel(parentContext);
+              await parentTable.getColumns(parentContext);
+              const parentBaseModel = await Model.getBaseModelSQL(
+                parentContext,
+                { model: parentTable, dbDriver: this.dbDriver },
+              );
+              const inverseLinkCol = await extractCorrespondingLinkColumn(
+                this.context,
+                {
+                  ltarColumn: column,
+                  referencedTable: parentTable,
+                  referencedTableColumns: parentTable.columns,
+                },
+              );
+
+              const mmLinkedRows = await this.execAndParse(
+                this.dbDriver(mmBaseModel.getTnPath(mmTable.table_name))
+                  .select(mmParentCol.column_name)
+                  .where(mmChildCol.column_name, id),
+                null,
+                { raw: true },
+              );
+              const mmLinkedIds = mmLinkedRows.map(
+                (r) => r[mmParentCol.column_name],
+              );
+              if (mmLinkedIds.length) {
+                linkedRecordNotifications.push({
+                  baseModel: parentBaseModel,
+                  model: parentTable,
+                  ids: mmLinkedIds,
+                  colId: inverseLinkCol?.id,
+                });
+              }
 
               execQueries.push((trx) =>
                 trx(mmBaseModel.getTnPath(mmTable.table_name))
                   .del()
-                  .where(mmParentColumn.column_name, id),
+                  .where(mmChildCol.column_name, id),
               );
             }
             break;
@@ -2419,6 +2591,35 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 colId: colOptions.fk_child_column_id,
               });
 
+              // Collect linked child IDs BEFORE FK nulling
+              await relatedTable.getColumns(refContext);
+              const inverseLinkCol = await extractCorrespondingLinkColumn(
+                this.context,
+                {
+                  ltarColumn: column,
+                  referencedTable: relatedTable,
+                  referencedTableColumns: relatedTable.columns,
+                },
+              );
+              const hmLinkedRows = await this.execAndParse(
+                this.dbDriver(refBaseModel.getTnPath(relatedTable.table_name))
+                  .select(relatedTable.primaryKey.column_name)
+                  .where(childColumn.column_name, id),
+                null,
+                { raw: true },
+              );
+              const hmLinkedIds = hmLinkedRows.map(
+                (r) => r[relatedTable.primaryKey.column_name],
+              );
+              if (hmLinkedIds.length) {
+                linkedRecordNotifications.push({
+                  baseModel: refBaseModel,
+                  model: relatedTable,
+                  ids: hmLinkedIds,
+                  colId: inverseLinkCol?.id,
+                });
+              }
+
               execQueries.push((trx) =>
                 trx(refBaseModel.getTnPath(relatedTable.table_name))
                   .update({
@@ -2428,9 +2629,154 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               );
             }
             break;
+          case 'oo':
+            {
+              if (column.meta?.bt) {
+                // BT-side: FK is on the deleted record — no cleanup needed
+                // Collect parent IDs for LMT from deleted record's FK
+                const btChildColumn = await colOptions.getChildColumn(
+                  childContext,
+                );
+                const btParentColumn = await colOptions.getParentColumn(
+                  parentContext,
+                );
+                const btParentTable = await btParentColumn.getModel(
+                  parentContext,
+                );
+                await btParentTable.getColumns(parentContext);
+                const btParentBaseModel = await Model.getBaseModelSQL(
+                  parentContext,
+                  { model: btParentTable, dbDriver: this.dbDriver },
+                );
+                const btInverseLinkCol = await extractCorrespondingLinkColumn(
+                  this.context,
+                  {
+                    ltarColumn: column,
+                    referencedTable: btParentTable,
+                    referencedTableColumns: btParentTable.columns,
+                  },
+                );
+
+                const fkRow = await this.execAndParse(
+                  this.dbDriver(this.tnPath)
+                    .select(btChildColumn.column_name)
+                    .where(await this._wherePk(id))
+                    .whereNotNull(btChildColumn.column_name),
+                  null,
+                  { raw: true, first: true },
+                );
+                if (fkRow?.[btChildColumn.column_name]) {
+                  linkedRecordNotifications.push({
+                    baseModel: btParentBaseModel,
+                    model: btParentTable,
+                    ids: [fkRow[btChildColumn.column_name]],
+                    colId: btInverseLinkCol?.id,
+                  });
+                }
+                break;
+              }
+              // HM-side: FK on child table needs nulling (same as HM)
+              const ooRelatedTable = await colOptions.getRelatedTable(
+                refContext,
+              );
+
+              if (ooRelatedTable.mm) {
+                break;
+              }
+
+              const ooRefBaseModel = await Model.getBaseModelSQL(refContext, {
+                model: ooRelatedTable,
+                dbDriver: this.dbDriver,
+                queryQueue: this._queryQueue,
+              });
+
+              const ooChildColumn = await Column.get(refContext, {
+                colId: colOptions.fk_child_column_id,
+              });
+
+              // Collect linked child ID BEFORE FK nulling
+              await ooRelatedTable.getColumns(refContext);
+              const ooInverseLinkCol = await extractCorrespondingLinkColumn(
+                this.context,
+                {
+                  ltarColumn: column,
+                  referencedTable: ooRelatedTable,
+                  referencedTableColumns: ooRelatedTable.columns,
+                },
+              );
+              const ooLinkedRows = await this.execAndParse(
+                this.dbDriver(
+                  ooRefBaseModel.getTnPath(ooRelatedTable.table_name),
+                )
+                  .select(ooRelatedTable.primaryKey.column_name)
+                  .where(ooChildColumn.column_name, id),
+                null,
+                { raw: true },
+              );
+              const ooLinkedIds = ooLinkedRows.map(
+                (r) => r[ooRelatedTable.primaryKey.column_name],
+              );
+              if (ooLinkedIds.length) {
+                linkedRecordNotifications.push({
+                  baseModel: ooRefBaseModel,
+                  model: ooRelatedTable,
+                  ids: ooLinkedIds,
+                  colId: ooInverseLinkCol?.id,
+                });
+              }
+
+              execQueries.push((trx) =>
+                trx(ooRefBaseModel.getTnPath(ooRelatedTable.table_name))
+                  .update({
+                    [ooChildColumn.column_name]: null,
+                  })
+                  .where(ooChildColumn.column_name, id),
+              );
+            }
+            break;
           case 'bt':
             {
-              // nothing to do
+              // Collect parent IDs for LMT from deleted record's FK
+              const btChildColumn = await colOptions.getChildColumn(
+                childContext,
+              );
+              const btParentColumn = await colOptions.getParentColumn(
+                parentContext,
+              );
+              const btParentTable = await btParentColumn.getModel(
+                parentContext,
+              );
+              await btParentTable.getColumns(parentContext);
+              const btParentBaseModel = await Model.getBaseModelSQL(
+                parentContext,
+                { model: btParentTable, dbDriver: this.dbDriver },
+              );
+              const btInverseLinkCol = await extractCorrespondingLinkColumn(
+                this.context,
+                {
+                  ltarColumn: column,
+                  referencedTable: btParentTable,
+                  referencedTableColumns: btParentTable.columns,
+                },
+              );
+
+              const fkRow = await this.execAndParse(
+                this.dbDriver(this.tnPath)
+                  .select(btChildColumn.column_name)
+                  .where(await this._wherePk(id))
+                  .whereNotNull(btChildColumn.column_name),
+                null,
+                { raw: true, first: true },
+              );
+              if (fkRow?.[btChildColumn.column_name]) {
+                linkedRecordNotifications.push({
+                  baseModel: btParentBaseModel,
+                  model: btParentTable,
+                  ids: [fkRow[btChildColumn.column_name]],
+                  colId: btInverseLinkCol?.id,
+                });
+              }
+              // No FK cleanup — FK is on the deleted record itself
             }
             break;
         }
@@ -2450,6 +2796,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         oldData: [data],
         columns: this.model.columns,
       });
+
+      // Notify linked records AFTER transaction — using IDs collected BEFORE
+      for (const entry of linkedRecordNotifications) {
+        try {
+          await entry.baseModel.updateLastModified({
+            model: entry.model,
+            rowIds: entry.ids,
+            cookie,
+            updatedColIds: [entry.colId].filter(Boolean),
+          });
+          await entry.baseModel.broadcastLinkUpdates(entry.ids);
+        } catch (e) {
+          logger.error(e?.message, e?.stack);
+        }
+      }
 
       await this.afterDelete(data, trx, cookie);
       return response;
@@ -3273,28 +3634,55 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           }
         }
 
-        existingRecords = await this.chunkList({
-          pks: dataWithPks.map((v) => v.pk),
-        });
+      // Check which records with PKs exist in the database (active records)
+      const existingRecords = await this.chunkList({
+        pks: dataWithPks.map((v) => v.pk),
+      });
 
         const existingPkSet = new Set(
           existingRecords.map((r) => this.extractPksValues(r, true)),
         );
 
-        toInsert.push(...dataWithoutPks);
+      // Also check for trashed records — their PKs still physically exist
+      // so an INSERT with the same PK would fail with a duplicate key error.
+      // When a PK matches a trashed record, strip the PK and insert as a new record.
+      const trashedRecords = await this.chunkList({
+        pks: dataWithPks.map((v) => v.pk),
+        deletedOnly: true,
+      });
 
-        for (const { pk, data } of dataWithPks) {
-          if (existingPkSet.has(pk)) {
-            await this.prepareNocoData(data, false, cookie);
-            toUpdate.push(data);
-          } else {
-            await this.prepareNocoData(data, true, cookie, null, {
-              ncOrder: order,
-              undo,
-            });
-            order = order?.plus(1);
-            toInsert.push(data);
+      const trashedPkSet = new Set(
+        trashedRecords.map((r) => this.extractPksValues(r, true)),
+      );
+
+      const toInsert = [...dataWithoutPks];
+      const toUpdate = [];
+
+      for (const { pk, data } of dataWithPks) {
+        if (existingPkSet.has(pk)) {
+          await this.prepareNocoData(data, false, cookie);
+          toUpdate.push(data);
+        } else if (trashedPkSet.has(pk)) {
+          // PK belongs to a trashed record — strip the PK and insert as a new record.
+          // The old PK is still physically occupied; a fresh auto-generated PK avoids conflicts.
+          for (const pkCol of this.model.primaryKeys) {
+            delete data[pkCol.column_name];
+            delete data[pkCol.title];
           }
+          await this.prepareNocoData(data, true, cookie, null, {
+            ncOrder: order,
+            undo,
+          });
+          order = order?.plus(1);
+          toInsert.push(data);
+        } else {
+          await this.prepareNocoData(data, true, cookie, null, {
+            ncOrder: order,
+            undo,
+          });
+          order = order?.plus(1);
+          // const insertObj = this.handleValidateBulkInsert(data, columns);
+          toInsert.push(data);
         }
       }
 
@@ -3440,6 +3828,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     apiVersion?: NcApiVersion;
     args?: Record<string, any>;
     extractOnlyPrimaries?: boolean;
+    deletedOnly?: boolean;
   }) {
     const { pks, chunkSize = 1000 } = args;
 
@@ -3463,6 +3852,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         {
           limitOverride: chunk.length,
           ignoreViewFilterAndSort: true,
+          deletedOnly: args.deletedOnly,
         },
       );
       chunkData = await nocoExecute(ast, chunkData, {}, args.args || {});
@@ -3981,6 +4371,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
         await conditionV2(this, conditionObj, qb, undefined, true);
 
+        // Exclude soft-deleted records from bulk update
+        const softDeleteFilterBUA = await this.getSoftDeleteFilter();
+        if (softDeleteFilterBUA) {
+          qb.where(softDeleteFilterBUA);
+        }
+
         count = (
           await this.execAndParse(
             qb.clone().count('*', { as: 'count' }),
@@ -4100,84 +4496,370 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       await this.beforeBulkDelete(deleted, this.dbDriver, cookie);
 
-      const execQueries: ((
-        trx: Knex.Transaction,
-        ids: any[],
-      ) => Promise<any>)[] = [];
-
       const source = await this.getSource();
 
-      for (const column of this.model.columns) {
-        if (!isLinksOrLTAR(column)) continue;
-
-        const colOptions =
-          await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
-        const { mmContext, refContext, childContext } =
-          await colOptions.getParentChildContext(this.context);
-
-        const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
-
-        const shouldCascadeHere = await shouldCascadeLinkCleanup(this.context, {
-          isMeta: !!source.isMeta(),
-          relationType,
-          colOptions,
-          mmContext,
-        });
-
-        switch (relationType) {
-          case 'mm':
-            {
-              if (!shouldCascadeHere) break;
-
-              const mmTable = await Model.get(
-                mmContext,
-                colOptions.fk_mm_model_id,
-              );
-              const mmParentColumn = await Column.get(mmContext, {
-                colId: colOptions.fk_mm_child_column_id,
-              });
-
-              execQueries.push((trx, ids) =>
-                trx(this.getTnPath(mmTable.table_name))
-                  .del()
-                  .whereIn(mmParentColumn.column_name, ids),
-              );
-            }
-            break;
-          case 'hm':
-            {
-              if (!shouldCascadeHere) break;
-
-              // skip if it's an mm table column
-              const relatedTable = await colOptions.getRelatedTable(refContext);
-              if (relatedTable.mm) {
-                break;
-              }
-
-              const childColumn = await Column.get(childContext, {
-                colId: colOptions.fk_child_column_id,
-              });
-
-              execQueries.push((trx, ids) =>
-                trx(this.getTnPath(relatedTable.table_name))
-                  .update({
-                    [childColumn.column_name]: null,
-                  })
-                  .whereIn(childColumn.column_name, ids),
-              );
-            }
-            break;
-          case 'bt':
-            {
-              // nothing to do
-            }
-            break;
-        }
-      }
-
-      const idsVals = res.map((d) => d[this.model.primaryKey.column_name]);
+      // Detect soft-delete column for meta sources
+      const deletedColumn = columns.find((c) => isDeletedCol(c));
+      const isSoftDelete = !!deletedColumn && source.isMeta();
 
       transaction = await this.dbDriver.transaction();
+
+      if (isSoftDelete) {
+        // Soft-delete: flag records instead of removing them, skip link cleanup
+        const softDeletePayload: Record<string, any> = {
+          [deletedColumn.column_name]: true,
+        };
+        // Stamp deleted-at / deleted-by so the trash UI can display them
+        const lmtCol = this.model.columns.find(
+          (c) => c.uidt === UITypes.LastModifiedTime && c.system,
+        );
+        const lmbCol = this.model.columns.find(
+          (c) => c.uidt === UITypes.LastModifiedBy && c.system,
+        );
+        if (lmtCol) softDeletePayload[lmtCol.column_name] = this.now();
+        if (lmbCol) softDeletePayload[lmbCol.column_name] = cookie?.user?.id;
+
+        if (this.model.primaryKeys.length === 1) {
+          // Single PK — batch update with whereIn
+          const idsVals = res.map((d) => d[this.model.primaryKey.column_name]);
+          await transaction(this.tnPath)
+            .update(softDeletePayload)
+            .whereIn(this.model.primaryKey.column_name, idsVals);
+        } else {
+          // Composite PK — per-row update
+          for (const d of res) {
+            await transaction(this.tnPath).update(softDeletePayload).where(d);
+          }
+        }
+
+        Noco.eventEmitter.emit(AppEvents.RECORDS_SOFT_DELETE, {
+          context: this.context,
+          req: cookie,
+          tableId: this.model.id,
+          rowIds: res.map((d) =>
+            this.model.primaryKeys.length === 1
+              ? d[this.model.primaryKey.column_name]
+              : this.extractPksValues(d, true),
+          ),
+        });
+      } else {
+        const execQueries: ((
+          trx: Knex.Transaction,
+          ids: any[],
+        ) => Promise<any>)[] = [];
+
+        // Phase 1: Collect linked record IDs BEFORE the transaction nulls FKs / deletes junction rows
+        // Phase 2: Notify (LMT + broadcast) AFTER transaction commits
+        const bulkLinkedCollectors: ((ids: any[]) => Promise<{
+          baseModel: any;
+          model: any;
+          ids: string[];
+          colId: string;
+        } | null>)[] = [];
+
+        for (const column of this.model.columns) {
+          if (!isLinksOrLTAR(column)) continue;
+
+          const colOptions =
+            await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
+          const { mmContext, refContext, childContext, parentContext } =
+            await colOptions.getParentChildContext(this.context);
+
+          const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
+          const shouldCascadeHere = await shouldCascadeLinkCleanup(this.context, {
+            isMeta: !!source.isMeta(),
+            relationType,
+            colOptions,
+            mmContext,
+          });
+          switch (relationType) {
+            case 'mm':
+              {
+                if (!shouldCascadeHere) break;
+                const mmTable = await Model.get(
+                  mmContext,
+                  colOptions.fk_mm_model_id,
+                );
+                const mmChildCol = await Column.get(mmContext, {
+                  colId: colOptions.fk_mm_child_column_id,
+                });
+                const mmParentCol = await Column.get(mmContext, {
+                  colId: colOptions.fk_mm_parent_column_id,
+                });
+                const parentTable = await (
+                  await colOptions.getParentColumn(parentContext)
+                ).getModel(parentContext);
+                await parentTable.getColumns(parentContext);
+                const parentBaseModel = await Model.getBaseModelSQL(
+                  parentContext,
+                  { model: parentTable, dbDriver: this.dbDriver },
+                );
+                const inverseLinkCol = await extractCorrespondingLinkColumn(
+                  this.context,
+                  {
+                    ltarColumn: column,
+                    referencedTable: parentTable,
+                    referencedTableColumns: parentTable.columns,
+                  },
+                );
+
+                // Collect linked parent IDs before junction deletion
+                bulkLinkedCollectors.push(async (ids) => {
+                  const rows = await this.execAndParse(
+                    this.dbDriver(this.getTnPath(mmTable.table_name))
+                      .select(mmParentCol.column_name)
+                      .whereIn(mmChildCol.column_name, ids),
+                    null,
+                    { raw: true },
+                  );
+                  const linkedIds = rows.map((r) => r[mmParentCol.column_name]);
+                  return linkedIds.length
+                    ? {
+                        baseModel: parentBaseModel,
+                        model: parentTable,
+                        ids: linkedIds,
+                        colId: inverseLinkCol?.id,
+                      }
+                    : null;
+                });
+
+                execQueries.push((trx, ids) =>
+                  trx(this.getTnPath(mmTable.table_name))
+                    .del()
+                    .whereIn(mmChildCol.column_name, ids),
+                );
+              }
+              break;
+            case 'hm':
+              {
+                if (!shouldCascadeHere) break;
+                // skip if it's an mm table column
+                const relatedTable = await colOptions.getRelatedTable(
+                  refContext,
+                );
+                if (relatedTable.mm) {
+                  break;
+                }
+
+                const childColumn = await Column.get(childContext, {
+                  colId: colOptions.fk_child_column_id,
+                });
+
+                await relatedTable.getColumns(refContext);
+                const refBaseModel = await Model.getBaseModelSQL(refContext, {
+                  model: relatedTable,
+                  dbDriver: this.dbDriver,
+                });
+                const inverseLinkCol = await extractCorrespondingLinkColumn(
+                  this.context,
+                  {
+                    ltarColumn: column,
+                    referencedTable: relatedTable,
+                    referencedTableColumns: relatedTable.columns,
+                  },
+                );
+
+                // Collect child IDs before FK nulling
+                bulkLinkedCollectors.push(async (ids) => {
+                  const rows = await this.execAndParse(
+                    this.dbDriver(this.getTnPath(relatedTable.table_name))
+                      .select(relatedTable.primaryKey.column_name)
+                      .whereIn(childColumn.column_name, ids),
+                    null,
+                    { raw: true },
+                  );
+                  const linkedIds = rows.map(
+                    (r) => r[relatedTable.primaryKey.column_name],
+                  );
+                  return linkedIds.length
+                    ? {
+                        baseModel: refBaseModel,
+                        model: relatedTable,
+                        ids: linkedIds,
+                        colId: inverseLinkCol?.id,
+                      }
+                    : null;
+                });
+
+                execQueries.push((trx, ids) =>
+                  trx(this.getTnPath(relatedTable.table_name))
+                    .update({ [childColumn.column_name]: null })
+                    .whereIn(childColumn.column_name, ids),
+                );
+              }
+              break;
+            case 'oo':
+              {
+                if (column.meta?.bt) {
+                  // BT-side: collect parent IDs from deleted records' FKs
+                  const btChildColumn = await colOptions.getChildColumn(
+                    childContext,
+                  );
+                  const btParentColumn = await colOptions.getParentColumn(
+                    parentContext,
+                  );
+                  const btParentTable = await btParentColumn.getModel(
+                    parentContext,
+                  );
+                  await btParentTable.getColumns(parentContext);
+                  const btParentBaseModel = await Model.getBaseModelSQL(
+                    parentContext,
+                    { model: btParentTable, dbDriver: this.dbDriver },
+                  );
+                  const btInverseLinkCol = await extractCorrespondingLinkColumn(
+                    this.context,
+                    {
+                      ltarColumn: column,
+                      referencedTable: btParentTable,
+                      referencedTableColumns: btParentTable.columns,
+                    },
+                  );
+
+                  bulkLinkedCollectors.push(async (_ids) => {
+                    const rows = await this.execAndParse(
+                      this.dbDriver(this.tnPath)
+                        .select(btChildColumn.column_name)
+                        .whereIn(this.model.primaryKey.column_name, _ids)
+                        .whereNotNull(btChildColumn.column_name),
+                      null,
+                      { raw: true },
+                    );
+                    const parentIds = [
+                      ...new Set(rows.map((r) => r[btChildColumn.column_name])),
+                    ];
+                    return parentIds.length
+                      ? {
+                          baseModel: btParentBaseModel,
+                          model: btParentTable,
+                          ids: parentIds as string[],
+                          colId: btInverseLinkCol?.id,
+                        }
+                      : null;
+                  });
+                  break;
+                }
+                // HM-side: same as HM
+                const ooRelatedTable = await colOptions.getRelatedTable(
+                  refContext,
+                );
+                if (ooRelatedTable.mm) break;
+
+                const ooChildColumn = await Column.get(childContext, {
+                  colId: colOptions.fk_child_column_id,
+                });
+
+                await ooRelatedTable.getColumns(refContext);
+                const ooRefBaseModel = await Model.getBaseModelSQL(refContext, {
+                  model: ooRelatedTable,
+                  dbDriver: this.dbDriver,
+                });
+                const ooInverseLinkCol = await extractCorrespondingLinkColumn(
+                  this.context,
+                  {
+                    ltarColumn: column,
+                    referencedTable: ooRelatedTable,
+                    referencedTableColumns: ooRelatedTable.columns,
+                  },
+                );
+
+                bulkLinkedCollectors.push(async (ids) => {
+                  const rows = await this.execAndParse(
+                    this.dbDriver(this.getTnPath(ooRelatedTable.table_name))
+                      .select(ooRelatedTable.primaryKey.column_name)
+                      .whereIn(ooChildColumn.column_name, ids),
+                    null,
+                    { raw: true },
+                  );
+                  const linkedIds = rows.map(
+                    (r) => r[ooRelatedTable.primaryKey.column_name],
+                  );
+                  return linkedIds.length
+                    ? {
+                        baseModel: ooRefBaseModel,
+                        model: ooRelatedTable,
+                        ids: linkedIds,
+                        colId: ooInverseLinkCol?.id,
+                      }
+                    : null;
+                });
+
+                execQueries.push((trx, ids) =>
+                  trx(this.getTnPath(ooRelatedTable.table_name))
+                    .update({ [ooChildColumn.column_name]: null })
+                    .whereIn(ooChildColumn.column_name, ids),
+                );
+              }
+              break;
+            case 'bt':
+              {
+                // Collect parent IDs from deleted records' FKs
+                const btChildColumn = await colOptions.getChildColumn(
+                  childContext,
+                );
+                const btParentColumn = await colOptions.getParentColumn(
+                  parentContext,
+                );
+                const btParentTable = await btParentColumn.getModel(
+                  parentContext,
+                );
+                await btParentTable.getColumns(parentContext);
+                const btParentBaseModel = await Model.getBaseModelSQL(
+                  parentContext,
+                  { model: btParentTable, dbDriver: this.dbDriver },
+                );
+                const btInverseLinkCol = await extractCorrespondingLinkColumn(
+                  this.context,
+                  {
+                    ltarColumn: column,
+                    referencedTable: btParentTable,
+                    referencedTableColumns: btParentTable.columns,
+                  },
+                );
+
+                bulkLinkedCollectors.push(async (_ids) => {
+                  const rows = await this.execAndParse(
+                    this.dbDriver(this.tnPath)
+                      .select(btChildColumn.column_name)
+                      .whereIn(this.model.primaryKey.column_name, _ids)
+                      .whereNotNull(btChildColumn.column_name),
+                    null,
+                    { raw: true },
+                  );
+                  const parentIds = [
+                    ...new Set(rows.map((r) => r[btChildColumn.column_name])),
+                  ];
+                  return parentIds.length
+                    ? {
+                        baseModel: btParentBaseModel,
+                        model: btParentTable,
+                        ids: parentIds as string[],
+                        colId: btInverseLinkCol?.id,
+                      }
+                    : null;
+                });
+                // No FK cleanup — FK is on the deleted record itself
+              }
+              break;
+          }
+        }
+
+        // Phase 1: Collect linked IDs BEFORE transaction (data still intact)
+        const idsVals = res.map((d) => d[this.model.primaryKey.column_name]);
+        const collectedNotifications: {
+          baseModel: any;
+          model: any;
+          ids: string[];
+          colId: string;
+        }[] = [];
+
+        for (const collector of bulkLinkedCollectors) {
+          try {
+            const result = await collector(idsVals);
+            if (result) collectedNotifications.push(result);
+          } catch (e) {
+            logger.error(e?.message, e?.stack);
+          }
+        }
 
       // execQueries are pre-filtered above: pushed only when NocoDB must
       // cascade itself (meta source, or external FK with dr === 'NO ACTION').
@@ -4187,21 +4869,85 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
-      for (const d of res) {
-        await transaction(this.tnPath).del().where(d);
+        for (const d of res) {
+          await transaction(this.tnPath).del().where(d);
+        }
       }
 
       await transaction.commit();
 
-      await this.clearFileReferences({
-        oldData: deleted,
-        columns: columns,
-      });
+      const deletedIds = res.map((d) =>
+        this.model.primaryKeys.length === 1
+          ? d[this.model.primaryKey.column_name]
+          : this.extractPksValues(d, true),
+      );
+      if (isSoftDelete) {
+        // Mark file references as soft-deleted (excluded from storage count,
+        // but physical files preserved for restore)
+        await this.softDeleteFileReferences({
+          oldData: deleted,
+          columns: columns,
+        });
+        // Soft-delete: data still intact, updateLinkedRecordsOnDelete queries live data
+        await this.updateLinkedRecordsOnDelete(deletedIds, cookie);
+      } else {
+        // Hard-delete: mark deleted — physical files cleaned up by file cleanup job
+        await this.clearFileReferences({
+          oldData: deleted,
+          columns: columns,
+        });
+
+        // Phase 2: Notify linked records AFTER transaction commit — using IDs collected BEFORE
+        for (const entry of collectedNotifications) {
+          try {
+            await entry.baseModel.updateLastModified({
+              model: entry.model,
+              rowIds: entry.ids,
+              cookie,
+              updatedColIds: [entry.colId].filter(Boolean),
+            });
+            await entry.baseModel.broadcastLinkUpdates(entry.ids);
+          } catch (e) {
+            logger.error(e?.message, e?.stack);
+          }
+        }
+      }
 
       if (isSingleRecordDeletion) {
-        await this.afterDelete(deleted[0], null, cookie);
+        await this.afterDelete(
+          deleted[0],
+          null,
+          cookie,
+          isSoftDelete
+            ? AuditV1OperationTypes.DATA_SOFT_DELETE
+            : AuditV1OperationTypes.DATA_DELETE,
+        );
       } else {
-        await this.afterBulkDelete(deleted, this.dbDriver, cookie);
+        await this.afterBulkDelete(
+          deleted,
+          this.dbDriver,
+          cookie,
+          false,
+          isSoftDelete
+            ? AuditV1OperationTypes.DATA_BULK_SOFT_DELETE
+            : AuditV1OperationTypes.DATA_BULK_DELETE,
+          isSoftDelete
+            ? AuditV1OperationTypes.DATA_SOFT_DELETE
+            : AuditV1OperationTypes.DATA_DELETE,
+        );
+      }
+
+      if (isSoftDelete) {
+        await this.statsUpdate({ count: -deleted.length });
+
+        // Set trash_cleanup_due_at on first soft-delete if not already scheduled
+        if (!this.model.trash_cleanup_due_at) {
+          await Model.updateTrashCleanupDueAt(
+            this.context,
+            this.model.id,
+            new Date().toISOString(),
+          );
+        }
       }
 
       return res;
@@ -4217,6 +4963,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       filterArr?: Filter[];
       viewId?: string;
       skipPks?: string;
+      permanentDelete?: boolean;
     } = {},
     { cookie, skip_hooks = false }: { cookie: NcRequest; skip_hooks?: boolean },
   ) {
@@ -4225,6 +4972,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       cookie,
       skip_hooks,
     });
+  }
+
+  async permanentDeleteByIds(rowIds: string[], cookie: NcRequest) {
+    return await new BaseModelDelete(this).permanentDeleteByIds(rowIds, cookie);
   }
 
   /**
@@ -4401,28 +5152,30 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     await this.handleRichTextMentions(null, data, req);
   }
 
-  public async afterDelete(data: any, _trx: any, req): Promise<void> {
+  public async afterDelete(
+    data: any,
+    _trx: any,
+    req,
+    eventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_DELETE,
+  ): Promise<void> {
     const id = this.extractPksValues(data);
 
     // disable external source audit in cloud
     if (await this.isDataAuditEnabled()) {
       await Audit.insert(
-        await generateAuditV1Payload<DataDeletePayload>(
-          AuditV1OperationTypes.DATA_DELETE,
-          {
-            details: {
-              data: removeBlankPropsAndMask(data, ['CreatedAt', 'UpdatedAt']),
-              column_meta: extractColsMetaForAudit(this.model.columns, data),
-            },
-            context: {
-              ...this.context,
-              source_id: this.model.source_id,
-              fk_model_id: this.model.id,
-              row_id: this.extractPksValues(id, true),
-            },
-            req,
+        await generateAuditV1Payload<DataDeletePayload>(eventType, {
+          details: {
+            data: removeBlankPropsAndMask(data, ['CreatedAt', 'UpdatedAt']),
+            column_meta: extractColsMetaForAudit(this.model.columns, data),
           },
-        ),
+          context: {
+            ...this.context,
+            source_id: this.model.source_id,
+            fk_model_id: this.model.id,
+            row_id: this.extractPksValues(id, true),
+          },
+          req,
+        }),
       );
     }
 
@@ -4434,6 +5187,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     _trx: any,
     req,
     _isBulkAllOperation = false,
+    bulkEventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_BULK_DELETE,
+    rowEventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_DELETE,
   ): Promise<void> {
     await this.handleHooks('after.bulkDelete', null, data, req);
 
@@ -4442,8 +5197,58 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // disable external source audit in cloud
     if (await this.isDataAuditEnabled()) {
       await Audit.insert(
+        await generateAuditV1Payload<DataBulkDeletePayload>(bulkEventType, {
+          details: {},
+          context: {
+            ...this.context,
+            source_id: this.model.source_id,
+            fk_model_id: this.model.id,
+          },
+          req,
+          id: parentAuditId,
+        }),
+      );
+    }
+    req.ncParentAuditId = parentAuditId;
+
+    const column_meta = extractColsMetaForAudit(this.model.columns);
+
+    // disable external source audit in cloud
+    if (await this.isDataAuditEnabled()) {
+      await Audit.insert(
+        await Promise.all(
+          data?.map?.((d) =>
+            generateAuditV1Payload<DataDeletePayload>(rowEventType, {
+              details: {
+                data: d
+                  ? formatDataForAudit(
+                      removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt']),
+                      this.model.columns,
+                    )
+                  : null,
+                column_meta,
+              },
+              context: {
+                ...this.context,
+                source_id: this.model.source_id,
+                fk_model_id: this.model.id,
+                row_id: this.extractPksValues(d, true),
+              },
+              req,
+            }),
+          ),
+        ),
+      );
+    }
+  }
+
+  public async afterBulkRestore(data: any, req): Promise<void> {
+    const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
+
+    if (await this.isDataAuditEnabled()) {
+      await Audit.insert(
         await generateAuditV1Payload<DataBulkDeletePayload>(
-          AuditV1OperationTypes.DATA_BULK_DELETE,
+          AuditV1OperationTypes.DATA_BULK_RESTORE,
           {
             details: {},
             context: {
@@ -4461,13 +5266,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const column_meta = extractColsMetaForAudit(this.model.columns);
 
-    // disable external source audit in cloud
     if (await this.isDataAuditEnabled()) {
       await Audit.insert(
         await Promise.all(
           data?.map?.((d) =>
             generateAuditV1Payload<DataDeletePayload>(
-              AuditV1OperationTypes.DATA_DELETE,
+              AuditV1OperationTypes.DATA_RESTORE,
               {
                 details: {
                   data: d
@@ -4491,6 +5295,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ),
       );
     }
+
+    // Re-add the restored records to the active row count
+    await this.statsUpdate({ count: data?.length ?? 0 });
   }
 
   public async afterBulkUpdate(
@@ -4894,9 +5701,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return null;
     }
 
-    const orderQuery = await this.dbDriver(this.tnPath)
+    const qb = this.dbDriver(this.tnPath)
       .max(`${orderColumn.column_name} as max_order`)
       .first();
+
+    const softDeleteFilter = await this.getSoftDeleteFilter();
+    if (softDeleteFilter) {
+      qb.where(softDeleteFilter);
+    }
+
+    const orderQuery = await qb;
 
     const order = new BigNumber(orderQuery ? orderQuery['max_order'] || 0 : 0);
 
@@ -5474,14 +6288,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       );
       groupingValues.add(null);
     } else {
+      const qb = this.dbDriver(this.tnPath)
+        .select(column.column_name)
+        .distinct();
+
+      const softDeleteFilter = await this.getSoftDeleteFilter();
+      if (softDeleteFilter) {
+        qb.where(softDeleteFilter);
+      }
+
       groupingValues = new Set(
-        (
-          await this.execAndParse(
-            this.dbDriver(this.tnPath).select(column.column_name).distinct(),
-            null,
-            { raw: true },
-          )
-        ).map((row) => row[column.column_name]),
+        (await this.execAndParse(qb, null, { raw: true })).map(
+          (row) => row[column.column_name],
+        ),
       );
       groupingValues.add(null);
     }
@@ -5596,6 +6415,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         if (!sorts) sorts = args.sortArr;
 
         if (sorts?.['length']) await sortV2(this, sorts, qb);
+      }
+
+      // Exclude soft-deleted records
+      const softDeleteFilterGL = await this.getSoftDeleteFilter();
+      if (softDeleteFilterGL) {
+        qb.where(softDeleteFilterGL);
       }
 
       // sort by primary key if not autogenerated string
@@ -5756,6 +6581,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ],
         qb,
       );
+    }
+
+    // Exclude soft-deleted records
+    const softDeleteFilterGLC = await this.getSoftDeleteFilter();
+    if (softDeleteFilterGLC) {
+      qb.where(softDeleteFilterGLC);
     }
 
     await this.selectObject({
@@ -6871,15 +7702,20 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await relatedBaseModel.model.getColumns(relatedBaseModel.context)
       ).find((col) => joinIds.includes(col.id));
 
-      const row = await relatedBaseModel.execAndParse(
-        relatedBaseModel
-          .dbDriver(
-            relatedBaseModel.getTnPath(relatedBaseModel.model.table_name),
-          )
-          .where(relatedColumn.column_name, '=', id),
-        null,
-        { raw: true, first: true },
-      );
+      const ooQb = relatedBaseModel
+        .dbDriver(relatedBaseModel.getTnPath(relatedBaseModel.model.table_name))
+        .where(relatedColumn.column_name, '=', id);
+
+      // Exclude soft-deleted related records
+      const ooSoftDeleteFilter = await relatedBaseModel.getSoftDeleteFilter();
+      if (ooSoftDeleteFilter) {
+        ooQb.where(ooSoftDeleteFilter);
+      }
+
+      const row = await relatedBaseModel.execAndParse(ooQb, null, {
+        raw: true,
+        first: true,
+      });
 
       // validate rowId
       if (!row) {
@@ -6907,11 +7743,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       const relColumn = this.model.columnsById[colId];
 
-      const row = await this.execAndParse(
-        this.dbDriver(this.tnPath).where(await this._wherePk(id)),
-        null,
-        { raw: true, first: true },
-      );
+      const childQb = this.dbDriver(this.tnPath).where(await this._wherePk(id));
+
+      const childSoftDeleteFilter = await this.getSoftDeleteFilter();
+      if (childSoftDeleteFilter) {
+        childQb.where(childSoftDeleteFilter);
+      }
+
+      const row = await this.execAndParse(childQb, null, {
+        raw: true,
+        first: true,
+      });
 
       // validate rowId
       if (!row) {
@@ -6950,6 +7792,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           .select(chilCol.column_name)
           .where(_wherePk(childTable.primaryKeys, id)),
       );
+
+      // Exclude soft-deleted parent records
+      const parentSoftDeleteFilter = await parentModel.getSoftDeleteFilter();
+      if (parentSoftDeleteFilter) {
+        qb.where(parentSoftDeleteFilter);
+      }
 
       await parentModel.selectObject({ qb, fieldsSet: args.fieldSet });
 
@@ -7075,6 +7923,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         .where(orderColumn.column_name, '<', currentRowOrder.toString())
         .max(orderColumn.column_name + ' as maxOrder')
         .first();
+
+      const softDeleteFilter = await this.getSoftDeleteFilter();
+      if (softDeleteFilter) {
+        resultQuery.where(softDeleteFilter);
+      }
 
       const result = await resultQuery;
 
@@ -7816,6 +8669,51 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
+  protected async softDeleteFileReferences(args: {
+    oldData?: Record<string, any>[] | Record<string, any>;
+    columns?: Column[];
+  }) {
+    const { oldData: _oldData, columns } = args;
+    const oldData = Array.isArray(_oldData) ? _oldData : [_oldData];
+
+    const modelColumns = columns || (await this.model.getColumns(this.context));
+
+    const attachmentColumns = modelColumns.filter(
+      (c) => c.uidt === UITypes.Attachment,
+    );
+
+    if (attachmentColumns.length === 0) return;
+
+    for (const column of attachmentColumns) {
+      const oldAttachments = [];
+
+      if (oldData) {
+        for (const row of oldData) {
+          let attachmentRecord = row[column.title];
+          if (attachmentRecord) {
+            try {
+              if (typeof attachmentRecord === 'string') {
+                attachmentRecord = JSON.parse(row[column.title]);
+              }
+              for (const attachment of attachmentRecord) {
+                oldAttachments.push(attachment);
+              }
+            } catch (e) {
+              logger.error(e);
+            }
+          }
+        }
+      }
+
+      if (oldAttachments.length === 0) continue;
+
+      await FileReference.softDelete(
+        this.context,
+        oldAttachments.filter((at) => at.id).map((at) => at.id),
+      );
+    }
+  }
+
   private async broadcastLinkUpdateAwaited(ids: Array<string>) {
     const ast = await getAst(this.context, {
       model: this.model,
@@ -7845,6 +8743,353 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     this.broadcastLinkUpdateAwaited(ids).catch((e) => {
       logger.error(e);
     });
+  }
+
+  /**
+   * After soft-deleting or hard-deleting records, update LMT and broadcast
+   * for linked records (HM children, MM targets) so their UI reflects the
+   * change in visible links.
+   */
+  /**
+   * After deleting (soft or hard) or restoring records, update LMT and
+   * broadcast on linked records so their UI reflects the link change.
+   *
+   * Relation type routing:
+   *   'bt'  → V1 BT only. Deleted record is child → update parent.
+   *   'oo'  → V1 OO only. Two sub-cases based on column.meta.bt:
+   *           - meta.bt=true  (BT-side): deleted record is child → update parent
+   *           - meta.bt=false (HM-side): deleted record is parent → update child
+   *   'hm'  → V1 HM only. Deleted record is parent → update children.
+   *   'mm'  → V1 MM + ALL V2 (mm/om/mo/oo/bt). Junction-based → update linked via junction.
+   */
+  /**
+   * Collect linked record IDs without writing anything.
+   * Used by hard-delete paths to gather IDs BEFORE the transaction,
+   * then notify AFTER transaction commits.
+   */
+  protected async collectLinkedRecordNotifications(
+    deletedIds: any[],
+  ): Promise<{ baseModel: any; model: any; ids: string[]; colId: string }[]> {
+    const result: {
+      baseModel: any;
+      model: any;
+      ids: string[];
+      colId: string;
+    }[] = [];
+    if (!deletedIds.length) return result;
+
+    const columns = await this.model.getColumns(this.context);
+
+    for (const column of columns) {
+      if (!isLinksOrLTAR(column)) continue;
+
+      const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+        this.context,
+      );
+
+      try {
+        const { mmContext, parentContext, childContext } =
+          await colOptions.getParentChildContext(this.context);
+
+        const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
+
+        if (
+          relationType === 'bt' ||
+          (relationType === 'oo' && column.meta?.bt)
+        ) {
+          const childColumn = await colOptions.getChildColumn(childContext);
+          const parentColumn = await colOptions.getParentColumn(parentContext);
+          const parentTable = await parentColumn.getModel(parentContext);
+          await parentTable.getColumns(parentContext);
+          const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
+            model: parentTable,
+            dbDriver: this.dbDriver,
+          });
+          const inverseLinkCol = await extractCorrespondingLinkColumn(
+            this.context,
+            {
+              ltarColumn: column,
+              referencedTable: parentTable,
+              referencedTableColumns: parentTable.columns,
+            },
+          );
+
+          const fkRows = await this.execAndParse(
+            this.dbDriver(this.tnPath)
+              .select(childColumn.column_name)
+              .whereIn(this.model.primaryKey.column_name, deletedIds)
+              .whereNotNull(childColumn.column_name),
+            null,
+            { raw: true },
+          );
+          const parentIds = [
+            ...new Set(fkRows.map((r) => r[childColumn.column_name])),
+          ] as string[];
+          if (parentIds.length) {
+            result.push({
+              baseModel: parentBaseModel,
+              model: parentTable,
+              ids: parentIds as string[],
+              colId: inverseLinkCol?.id,
+            });
+          }
+        } else if (
+          relationType === 'hm' ||
+          (relationType === 'oo' && !column.meta?.bt)
+        ) {
+          const childColumn = await colOptions.getChildColumn(childContext);
+          const childTable = await childColumn.getModel(childContext);
+          await childTable.getColumns(childContext);
+          const childBaseModel = await Model.getBaseModelSQL(childContext, {
+            model: childTable,
+            dbDriver: this.dbDriver,
+          });
+          const inverseLinkCol = await extractCorrespondingLinkColumn(
+            this.context,
+            {
+              ltarColumn: column,
+              referencedTable: childTable,
+              referencedTableColumns: childTable.columns,
+            },
+          );
+
+          const linkedRows = await this.execAndParse(
+            this.dbDriver(childBaseModel.getTnPath(childTable))
+              .select(childTable.primaryKey.column_name)
+              .whereIn(childColumn.column_name, deletedIds),
+            null,
+            { raw: true },
+          );
+          const linkedIds = linkedRows.map(
+            (r) => r[childTable.primaryKey.column_name],
+          );
+          if (linkedIds.length) {
+            result.push({
+              baseModel: childBaseModel,
+              model: childTable,
+              ids: linkedIds,
+              colId: inverseLinkCol?.id,
+            });
+          }
+        } else if (relationType === 'mm') {
+          const vChildCol = await colOptions.getMMChildColumn(mmContext);
+          const vParentCol = await colOptions.getMMParentColumn(mmContext);
+          const vTable = await colOptions.getMMModel(mmContext);
+          const parentTable = await (
+            await colOptions.getParentColumn(parentContext)
+          ).getModel(parentContext);
+          await parentTable.getColumns(parentContext);
+          const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+            model: vTable,
+            dbDriver: this.dbDriver,
+          });
+          const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
+            model: parentTable,
+            dbDriver: this.dbDriver,
+          });
+          const inverseLinkCol = await extractCorrespondingLinkColumn(
+            this.context,
+            {
+              ltarColumn: column,
+              referencedTable: parentTable,
+              referencedTableColumns: parentTable.columns,
+            },
+          );
+
+          const linkedRows = await this.execAndParse(
+            this.dbDriver(assocBaseModel.getTnPath(vTable))
+              .select(vParentCol.column_name)
+              .whereIn(vChildCol.column_name, deletedIds),
+            null,
+            { raw: true },
+          );
+          const linkedIds = linkedRows.map((r) => r[vParentCol.column_name]);
+          if (linkedIds.length) {
+            result.push({
+              baseModel: parentBaseModel,
+              model: parentTable,
+              ids: linkedIds,
+              colId: inverseLinkCol?.id,
+            });
+          }
+        }
+      } catch (e) {
+        logger.error(e?.message, e?.stack);
+      }
+    }
+
+    return result;
+  }
+
+  public async updateLinkedRecordsOnDelete(deletedIds: any[], cookie?: any) {
+    if (!deletedIds.length) return;
+
+    const columns = await this.model.getColumns(this.context);
+
+    for (const column of columns) {
+      if (!isLinksOrLTAR(column)) continue;
+
+      const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+        this.context,
+      );
+
+      try {
+        const { mmContext, parentContext, childContext } =
+          await colOptions.getParentChildContext(this.context);
+
+        const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
+
+        // ── V1 BT / V1 OO BT-side ─────────────────────────────────────────
+        // Deleted record is the child (holds FK). Parent loses a visible link.
+        // Read FK values from deleted records → find affected parent IDs.
+        if (
+          relationType === 'bt' ||
+          (relationType === 'oo' && column.meta?.bt)
+        ) {
+          const childColumn = await colOptions.getChildColumn(childContext);
+          const parentColumn = await colOptions.getParentColumn(parentContext);
+          const parentTable = await parentColumn.getModel(parentContext);
+          await parentTable.getColumns(parentContext);
+
+          const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
+            model: parentTable,
+            dbDriver: this.dbDriver,
+          });
+
+          // Find the inverse link column on the parent table
+          const inverseLinkCol = await extractCorrespondingLinkColumn(
+            this.context,
+            {
+              ltarColumn: column,
+              referencedTable: parentTable,
+              referencedTableColumns: parentTable.columns,
+            },
+          );
+
+          // Read FK values from deleted records to find which parents are affected
+          const fkRows = await this.execAndParse(
+            this.dbDriver(this.tnPath)
+              .select(childColumn.column_name)
+              .whereIn(this.model.primaryKey.column_name, deletedIds)
+              .whereNotNull(childColumn.column_name),
+            null,
+            { raw: true },
+          );
+          const parentIds = [
+            ...new Set(fkRows.map((r) => r[childColumn.column_name])),
+          ] as string[];
+
+          if (parentIds.length) {
+            await parentBaseModel.updateLastModified({
+              model: parentTable,
+              rowIds: parentIds,
+              cookie,
+              updatedColIds: [inverseLinkCol?.id].filter(Boolean),
+            });
+            await parentBaseModel.broadcastLinkUpdates(parentIds as string[]);
+          }
+        }
+
+        // ── V1 HM / V1 OO HM-side ─────────────────────────────────────────
+        // Deleted record is the parent. Children hold FK → they lose their parent.
+        // Query child table for rows whose FK matches deleted IDs.
+        else if (
+          relationType === 'hm' ||
+          (relationType === 'oo' && !column.meta?.bt)
+        ) {
+          const childColumn = await colOptions.getChildColumn(childContext);
+          const childTable = await childColumn.getModel(childContext);
+          await childTable.getColumns(childContext);
+
+          const childBaseModel = await Model.getBaseModelSQL(childContext, {
+            model: childTable,
+            dbDriver: this.dbDriver,
+          });
+
+          const inverseLinkCol = await extractCorrespondingLinkColumn(
+            this.context,
+            {
+              ltarColumn: column,
+              referencedTable: childTable,
+              referencedTableColumns: childTable.columns,
+            },
+          );
+
+          const linkedRows = await this.execAndParse(
+            this.dbDriver(childBaseModel.getTnPath(childTable))
+              .select(childTable.primaryKey.column_name)
+              .whereIn(childColumn.column_name, deletedIds),
+            null,
+            { raw: true },
+          );
+          const linkedIds = linkedRows.map(
+            (r) => r[childTable.primaryKey.column_name],
+          );
+
+          if (linkedIds.length) {
+            await childBaseModel.updateLastModified({
+              model: childTable,
+              rowIds: linkedIds,
+              cookie,
+              updatedColIds: [inverseLinkCol?.id].filter(Boolean),
+            });
+            await childBaseModel.broadcastLinkUpdates(linkedIds);
+          }
+        }
+
+        // ── V1 MM + ALL V2 (mm/om/mo/oo/bt) ───────────────────────────────
+        // Junction-table-based. Query junction for linked record IDs.
+        else if (relationType === 'mm') {
+          const vChildCol = await colOptions.getMMChildColumn(mmContext);
+          const vParentCol = await colOptions.getMMParentColumn(mmContext);
+          const vTable = await colOptions.getMMModel(mmContext);
+          const parentTable = await (
+            await colOptions.getParentColumn(parentContext)
+          ).getModel(parentContext);
+          await parentTable.getColumns(parentContext);
+
+          const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+            model: vTable,
+            dbDriver: this.dbDriver,
+          });
+          const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
+            model: parentTable,
+            dbDriver: this.dbDriver,
+          });
+
+          const inverseLinkCol = await extractCorrespondingLinkColumn(
+            this.context,
+            {
+              ltarColumn: column,
+              referencedTable: parentTable,
+              referencedTableColumns: parentTable.columns,
+            },
+          );
+
+          const linkedRows = await this.execAndParse(
+            this.dbDriver(assocBaseModel.getTnPath(vTable))
+              .select(vParentCol.column_name)
+              .whereIn(vChildCol.column_name, deletedIds),
+            null,
+            { raw: true },
+          );
+          const linkedIds = linkedRows.map((r) => r[vParentCol.column_name]);
+
+          if (linkedIds.length) {
+            await parentBaseModel.updateLastModified({
+              model: parentTable,
+              rowIds: linkedIds,
+              cookie,
+              updatedColIds: [inverseLinkCol?.id].filter(Boolean),
+            });
+            await parentBaseModel.broadcastLinkUpdates(linkedIds);
+          }
+        }
+      } catch (e) {
+        // Don't fail the delete if linked record updates fail
+        logger.error(e?.message, e?.stack);
+      }
+    }
   }
 
   async bulkAudit({
@@ -7897,7 +9142,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             conditions,
             data,
           });
-        } else if (event === AuditV1OperationTypes.DATA_BULK_DELETE) {
+        } else if (
+          event === AuditV1OperationTypes.DATA_BULK_DELETE ||
+          event === AuditV1OperationTypes.DATA_BULK_SOFT_DELETE ||
+          event === AuditV1OperationTypes.DATA_BULK_PERMANENT_DELETE
+        ) {
           await this.bulkDeleteAudit({
             rowIds: ids,
             req,
@@ -7999,6 +9248,24 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
    */
   public async getRlsConditions(): Promise<Filter[]> {
     return [];
+  }
+
+  /**
+   * Returns a knex where-clause callback that excludes soft-deleted records,
+   * or null if the table has no __nc_deleted column or is not a meta (NocoDB-managed) source.
+   */
+  public async getSoftDeleteFilter(): Promise<Knex.QueryCallback | null> {
+    const columns = await this.model.getColumns(this.context);
+    const deletedColumn = columns.find((c) => isDeletedCol(c));
+    if (!deletedColumn) return null;
+
+    const source = await this.getSource();
+    if (!source.isMeta()) return null;
+
+    const columnName = deletedColumn.column_name;
+    return function () {
+      this.whereNull(columnName).orWhere(columnName, false);
+    };
   }
 }
 

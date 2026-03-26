@@ -18,6 +18,7 @@ import { OrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_005_o
 import { RecoverOrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_007_recover_order_column';
 import { NoOpMigration } from '~/modules/jobs/migration-jobs/nc_job_no_op';
 import { AuditMigration } from '~/modules/jobs/migration-jobs/nc_job_009_audit_migration';
+import { SoftDeleteColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_010_soft_delete_column';
 import { isEE } from '~/utils';
 
 @Injectable()
@@ -68,6 +69,11 @@ export class InitMigrationJobs {
       job: MigrationJobTypes.AuditMigration,
       service: this.auditMigration,
     },
+    {
+      version: '10',
+      job: MigrationJobTypes.SoftDeleteColumnMigration,
+      service: this.softDeleteColumnMigration,
+    },
   ];
 
   private readonly debugLog = debug('nc:migration-jobs:init');
@@ -84,6 +90,7 @@ export class InitMigrationJobs {
     private readonly recoverDisconnectedTableNames: RecoverDisconnectedTableNames,
     private readonly noOpMigration: NoOpMigration,
     private readonly auditMigration: AuditMigration,
+    private readonly softDeleteColumnMigration: SoftDeleteColumnMigration,
   ) {}
 
   log = (...msgs: string[]) => {

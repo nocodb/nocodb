@@ -53,6 +53,7 @@ enum UITypes {
   CreatedBy = 'CreatedBy',
   LastModifiedBy = 'LastModifiedBy',
   Order = 'Order',
+  Deleted = 'Deleted',
   Meta = 'Meta',
   UUID = 'UUID',
 }
@@ -330,6 +331,7 @@ export const FieldNameFromUITypes: Record<UITypes, string> = {
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
   [UITypes.Order]: 'Order',
+  [UITypes.Deleted]: 'Deleted',
   [UITypes.Meta]: 'Row Meta',
   [UITypes.UUID]: 'UUID',
 };
@@ -425,6 +427,18 @@ export function isOrderCol(
     | ColumnType
 ) {
   return [UITypes.Order].includes(
+    <UITypes>(typeof col === 'object' ? col?.uidt : col)
+  );
+}
+
+export function isDeletedCol(
+  col:
+    | UITypes
+    | { readonly uidt: UITypes | string }
+    | ColumnReqType
+    | ColumnType
+) {
+  return [UITypes.Deleted].includes(
     <UITypes>(typeof col === 'object' ? col?.uidt : col)
   );
 }
@@ -873,6 +887,7 @@ export const isReadOnlyColumn = (column: ColumnType): boolean => {
     isCreatedOrLastModifiedTimeCol(column) ||
     // Check if the column is used for row ordering
     isOrderCol(column) ||
+    isDeletedCol(column) ||
     // if primary key and auto generated then treat as readonly
     (column.pk && (column.ai || parseProp(column.meta)?.ag))
   );

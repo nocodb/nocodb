@@ -8,6 +8,7 @@ import {
   isAttachment,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
+  isDeletedCol,
   isLinksOrLTAR,
   isMMOrMMLike,
   isOrderCol,
@@ -86,6 +87,7 @@ import Noco from '~/Noco';
 import { NcError, OptionsNotExistsError } from '~/helpers/catchError';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { runExternal, runExternalStream } from '~/helpers/muxHelpers';
+import { extractCorrespondingLinkColumn } from '~/db/BaseModelSqlv2/add-remove-links';
 import { checkLimit, getLimit } from '~/helpers/paymentHelpers';
 import { extractMentions } from '~/utils/richTextHelper';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
@@ -1799,6 +1801,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     _trx: any,
     req,
     _isBulkAllOperation = false,
+    bulkEventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_BULK_DELETE,
+    rowEventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_DELETE,
   ): Promise<void> {
     await this.handleHooks('after.bulkDelete', null, data, req);
 
@@ -1822,19 +1826,16 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 
       await Audit.insert(
-        await generateAuditV1Payload<DataBulkDeletePayload>(
-          AuditV1OperationTypes.DATA_BULK_DELETE,
-          {
-            details: {},
-            context: {
-              ...this.context,
-              source_id: this.model.source_id,
-              fk_model_id: this.model.id,
-            },
-            req,
-            id: parentAuditId,
+        await generateAuditV1Payload<DataBulkDeletePayload>(bulkEventType, {
+          details: {},
+          context: {
+            ...this.context,
+            source_id: this.model.source_id,
+            fk_model_id: this.model.id,
           },
-        ),
+          req,
+          id: parentAuditId,
+        }),
       );
       req.ncParentAuditId = parentAuditId;
 
@@ -1842,31 +1843,47 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       await Audit.insert(
         await Promise.all(
           data?.map?.((d) =>
-            generateAuditV1Payload<DataDeletePayload>(
-              AuditV1OperationTypes.DATA_DELETE,
-              {
-                details: {
-                  data: d
-                    ? formatDataForAudit(
-                        removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt']),
-                        this.model.columns,
-                      )
-                    : null,
-                  column_meta,
-                },
-                context: {
-                  ...this.context,
-                  source_id: this.model.source_id,
-                  fk_model_id: this.model.id,
-                  row_id: this.extractPksValues(d, true),
-                },
-                req,
+            generateAuditV1Payload<DataDeletePayload>(rowEventType, {
+              details: {
+                data: d
+                  ? formatDataForAudit(
+                      removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt']),
+                      this.model.columns,
+                    )
+                  : null,
+                column_meta,
               },
-            ),
+              context: {
+                ...this.context,
+                source_id: this.model.source_id,
+                fk_model_id: this.model.id,
+                row_id: this.extractPksValues(d, true),
+              },
+              req,
+            }),
           ),
         ),
       );
     }
+  }
+
+  public async afterBulkRestore(data: any, req): Promise<void> {
+    const pks = data.map((d) => this.extractPksValues(d, true));
+    const rows = await this.chunkList({ pks, extractOrderColumn: true });
+
+    for (const row of rows) {
+      const id = this.extractPksValues(row, true);
+      NocoSocket.broadcastDataEvent(this.context, {
+        payload: {
+          id,
+          action: 'add',
+          payload: row,
+        },
+        tableId: this.model.id,
+      });
+    }
+
+    await super.afterBulkRestore(data, req);
   }
 
   async delByPk(id, _trx?, cookie?) {
@@ -1886,9 +1903,88 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       await this.beforeDelete(id, null, cookie);
 
+      // Detect soft-delete column for meta sources
+      const deletedColumn = this.model.columns.find((c) => isDeletedCol(c));
+      const source = await this.getSource();
+      const isSoftDelete = !!deletedColumn && source.isMeta();
+
+      if (isSoftDelete) {
+        const where = await this._wherePk(id);
+        const softDeletePayload: Record<string, any> = {
+          [deletedColumn.column_name]: true,
+        };
+        // Stamp deleted-at / deleted-by so the trash UI can display them
+        const lmtCol = this.model.columns.find(
+          (c) => c.uidt === UITypes.LastModifiedTime && c.system,
+        );
+        const lmbCol = this.model.columns.find(
+          (c) => c.uidt === UITypes.LastModifiedBy && c.system,
+        );
+        if (lmtCol) softDeletePayload[lmtCol.column_name] = this.now();
+        if (lmbCol) softDeletePayload[lmbCol.column_name] = cookie?.user?.id;
+
+        const updateQb = this.dbDriver(this.tnPath)
+          .update(softDeletePayload)
+          .where(where);
+
+        const rlsConditions = await this.getRlsConditions();
+        if (rlsConditions.length) {
+          await conditionV2(
+            this,
+            [new Filter({ children: rlsConditions, is_group: true })],
+            updateQb,
+          );
+        }
+
+        if ((this.dbDriver as any).isExternal) {
+          await runExternal(
+            this.sanitizeQuery(updateQb.toQuery()),
+            (this.dbDriver as any).extDb,
+          );
+        } else {
+          await this.execAndParse(updateQb, null, { raw: true });
+        }
+
+        Noco.eventEmitter.emit(AppEvents.RECORDS_SOFT_DELETE, {
+          context: this.context,
+          req: cookie,
+          tableId: this.model.id,
+          rowIds: [id],
+        });
+
+        await this.afterDelete(data, null, cookie);
+
+        await this.softDeleteFileReferences({
+          oldData: [data],
+          columns: this.model.columns,
+        });
+
+        // Update LMT + broadcast on linked records
+        await this.updateLinkedRecordsOnDelete([id], cookie);
+
+        await this.statsUpdate({ count: -1 });
+
+        // Set trash_cleanup_due_at on first soft-delete if not already scheduled
+        if (!this.model.trash_cleanup_due_at) {
+          await Model.updateTrashCleanupDueAt(
+            this.context,
+            this.model.id,
+            new Date().toISOString(),
+          );
+        }
+
+        return 1;
+      }
+
       const execQueries: ((trx: CustomKnex) => Knex.QueryBuilder)[] = [];
 
-      const source = await this.getSource();
+      // Collect linked record IDs BEFORE the transaction nulls FKs / deletes junction rows
+      const linkedRecordNotifications: {
+        baseModel: any;
+        model: any;
+        ids: string[];
+        colId: string;
+      }[] = [];
 
       for (const column of this.model.columns) {
         if (!isLinksOrLTAR(column)) continue;
@@ -1896,9 +1992,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         const colOptions =
           await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
 
-        const { mmContext, refContext } = colOptions.getRelContext(
-          this.context,
-        );
+        const { mmContext, refContext, parentContext, childContext } =
+          await colOptions.getParentChildContext(this.context);
 
         const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
 
@@ -1925,14 +2020,56 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 queryQueue: this._queryQueue,
               });
 
-              const mmParentColumn = await Column.get(mmContext, {
+              const mmChildCol = await Column.get(mmContext, {
                 colId: colOptions.fk_mm_child_column_id,
               });
+              const mmParentCol = await Column.get(mmContext, {
+                colId: colOptions.fk_mm_parent_column_id,
+              });
+              const parentTable = await (
+                await colOptions.getParentColumn(parentContext)
+              ).getModel(parentContext);
+              await parentTable.getColumns(parentContext);
+              const parentBaseModel = await Model.getBaseModelSQL(
+                parentContext,
+                {
+                  model: parentTable,
+                  dbDriver: this.dbDriver,
+                },
+              );
+              const inverseLinkCol = await extractCorrespondingLinkColumn(
+                this.context,
+                {
+                  ltarColumn: column,
+                  referencedTable: parentTable,
+                  referencedTableColumns: parentTable.columns,
+                },
+              );
+
+              // Collect linked parent IDs via junction BEFORE deletion
+              const mmLinkedRows = await this.execAndParse(
+                this.dbDriver(mmBaseModel.getTnPath(mmTable.table_name))
+                  .select(mmParentCol.column_name)
+                  .where(mmChildCol.column_name, id),
+                null,
+                { raw: true },
+              );
+              const mmLinkedIds = mmLinkedRows.map(
+                (r) => r[mmParentCol.column_name],
+              );
+              if (mmLinkedIds.length) {
+                linkedRecordNotifications.push({
+                  baseModel: parentBaseModel,
+                  model: parentTable,
+                  ids: mmLinkedIds,
+                  colId: inverseLinkCol?.id,
+                });
+              }
 
               execQueries.push((trx) =>
                 trx(mmBaseModel.getTnPath(mmTable.table_name))
                   .del()
-                  .where(mmParentColumn.column_name, id),
+                  .where(mmChildCol.column_name, id),
               );
             }
             break;
@@ -1942,33 +2079,196 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
               // skip if it's an mm table column
               const relatedTable = await colOptions.getRelatedTable(refContext);
-
-              if (relatedTable.mm) {
-                break;
-              }
+              if (relatedTable.mm) break;
 
               const refBaseModel = await Model.getBaseModelSQL(refContext, {
                 model: relatedTable,
                 dbDriver: this.dbDriver,
                 queryQueue: this._queryQueue,
               });
-
               const childColumn = await Column.get(refContext, {
                 colId: colOptions.fk_child_column_id,
               });
 
+              // Collect linked child IDs BEFORE FK nulling
+              await relatedTable.getColumns(refContext);
+              const inverseLinkCol = await extractCorrespondingLinkColumn(
+                this.context,
+                {
+                  ltarColumn: column,
+                  referencedTable: relatedTable,
+                  referencedTableColumns: relatedTable.columns,
+                },
+              );
+              const hmLinkedRows = await this.execAndParse(
+                this.dbDriver(refBaseModel.getTnPath(relatedTable.table_name))
+                  .select(relatedTable.primaryKey.column_name)
+                  .where(childColumn.column_name, id),
+                null,
+                { raw: true },
+              );
+              const hmLinkedIds = hmLinkedRows.map(
+                (r) => r[relatedTable.primaryKey.column_name],
+              );
+              if (hmLinkedIds.length) {
+                linkedRecordNotifications.push({
+                  baseModel: refBaseModel,
+                  model: relatedTable,
+                  ids: hmLinkedIds,
+                  colId: inverseLinkCol?.id,
+                });
+              }
+
               execQueries.push((trx) =>
                 trx(refBaseModel.getTnPath(relatedTable.table_name))
-                  .update({
-                    [childColumn.column_name]: null,
-                  })
+                  .update({ [childColumn.column_name]: null })
                   .where(childColumn.column_name, id),
+              );
+            }
+            break;
+          case 'oo':
+            {
+              if (column.meta?.bt) {
+                // BT-side: collect parent IDs from deleted record's FK
+                const btChildColumn = await colOptions.getChildColumn(
+                  childContext,
+                );
+                const btParentColumn = await colOptions.getParentColumn(
+                  parentContext,
+                );
+                const btParentTable = await btParentColumn.getModel(
+                  parentContext,
+                );
+                await btParentTable.getColumns(parentContext);
+                const btParentBaseModel = await Model.getBaseModelSQL(
+                  parentContext,
+                  {
+                    model: btParentTable,
+                    dbDriver: this.dbDriver,
+                  },
+                );
+                const btInverseLinkCol = await extractCorrespondingLinkColumn(
+                  this.context,
+                  {
+                    ltarColumn: column,
+                    referencedTable: btParentTable,
+                    referencedTableColumns: btParentTable.columns,
+                  },
+                );
+                const fkRow = await this.execAndParse(
+                  this.dbDriver(this.tnPath)
+                    .select(btChildColumn.column_name)
+                    .where(await this._wherePk(id))
+                    .whereNotNull(btChildColumn.column_name),
+                  null,
+                  { raw: true, first: true },
+                );
+                if (fkRow?.[btChildColumn.column_name]) {
+                  linkedRecordNotifications.push({
+                    baseModel: btParentBaseModel,
+                    model: btParentTable,
+                    ids: [fkRow[btChildColumn.column_name]],
+                    colId: btInverseLinkCol?.id,
+                  });
+                }
+                break;
+              }
+              // HM-side
+              const ooRelatedTable = await colOptions.getRelatedTable(
+                refContext,
+              );
+              if (ooRelatedTable.mm) break;
+
+              const ooRefBaseModel = await Model.getBaseModelSQL(refContext, {
+                model: ooRelatedTable,
+                dbDriver: this.dbDriver,
+                queryQueue: this._queryQueue,
+              });
+              const ooChildColumn = await Column.get(refContext, {
+                colId: colOptions.fk_child_column_id,
+              });
+
+              await ooRelatedTable.getColumns(refContext);
+              const ooInverseLinkCol = await extractCorrespondingLinkColumn(
+                this.context,
+                {
+                  ltarColumn: column,
+                  referencedTable: ooRelatedTable,
+                  referencedTableColumns: ooRelatedTable.columns,
+                },
+              );
+              const ooLinkedRows = await this.execAndParse(
+                this.dbDriver(
+                  ooRefBaseModel.getTnPath(ooRelatedTable.table_name),
+                )
+                  .select(ooRelatedTable.primaryKey.column_name)
+                  .where(ooChildColumn.column_name, id),
+                null,
+                { raw: true },
+              );
+              const ooLinkedIds = ooLinkedRows.map(
+                (r) => r[ooRelatedTable.primaryKey.column_name],
+              );
+              if (ooLinkedIds.length) {
+                linkedRecordNotifications.push({
+                  baseModel: ooRefBaseModel,
+                  model: ooRelatedTable,
+                  ids: ooLinkedIds,
+                  colId: ooInverseLinkCol?.id,
+                });
+              }
+
+              execQueries.push((trx) =>
+                trx(ooRefBaseModel.getTnPath(ooRelatedTable.table_name))
+                  .update({ [ooChildColumn.column_name]: null })
+                  .where(ooChildColumn.column_name, id),
               );
             }
             break;
           case 'bt':
             {
-              // nothing to do
+              // Collect parent IDs from deleted record's FK
+              const btChildColumn = await colOptions.getChildColumn(
+                childContext,
+              );
+              const btParentColumn = await colOptions.getParentColumn(
+                parentContext,
+              );
+              const btParentTable = await btParentColumn.getModel(
+                parentContext,
+              );
+              await btParentTable.getColumns(parentContext);
+              const btParentBaseModel = await Model.getBaseModelSQL(
+                parentContext,
+                {
+                  model: btParentTable,
+                  dbDriver: this.dbDriver,
+                },
+              );
+              const btInverseLinkCol = await extractCorrespondingLinkColumn(
+                this.context,
+                {
+                  ltarColumn: column,
+                  referencedTable: btParentTable,
+                  referencedTableColumns: btParentTable.columns,
+                },
+              );
+              const fkRow = await this.execAndParse(
+                this.dbDriver(this.tnPath)
+                  .select(btChildColumn.column_name)
+                  .where(await this._wherePk(id))
+                  .whereNotNull(btChildColumn.column_name),
+                null,
+                { raw: true, first: true },
+              );
+              if (fkRow?.[btChildColumn.column_name]) {
+                linkedRecordNotifications.push({
+                  baseModel: btParentBaseModel,
+                  model: btParentTable,
+                  ids: [fkRow[btChildColumn.column_name]],
+                  colId: btInverseLinkCol?.id,
+                });
+              }
             }
             break;
         }
@@ -2021,6 +2321,21 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         oldData: [data],
         columns: this.model.columns,
       });
+
+      // Notify linked records AFTER transaction — using IDs collected BEFORE
+      for (const entry of linkedRecordNotifications) {
+        try {
+          await entry.baseModel.updateLastModified({
+            model: entry.model,
+            rowIds: entry.ids,
+            cookie,
+            updatedColIds: [entry.colId].filter(Boolean),
+          });
+          await entry.baseModel.broadcastLinkUpdates(entry.ids);
+        } catch (e) {
+          logger.error(e?.message, e?.stack);
+        }
+      }
 
       await this.afterDelete(data, null, cookie);
 
@@ -2650,6 +2965,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     args?: Record<string, any>;
     ignoreRls?: boolean;
     extractOnlyPrimaries?: boolean;
+    extractOrderColumn?: boolean;
+    deletedOnly?: boolean;
   }) {
     const { pks, chunkSize = 1000 } = args;
 
@@ -2659,6 +2976,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       model: this.model,
       query: args.args || {},
       extractOnlyPrimaries: args.extractOnlyPrimaries,
+      extractOrderColumn: args.extractOrderColumn,
     });
 
     const chunkedPks = chunkArray(pks, chunkSize);
@@ -2678,6 +2996,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         limitOverride: chunk.length,
         ignoreViewFilterAndSort: true,
         ignoreRls: args.ignoreRls,
+        getHiddenColumns: args.extractOrderColumn,
+        deletedOnly: args.deletedOnly,
       };
 
       if (['mysql', 'mysql2'].includes(source.type)) {
@@ -2708,6 +3028,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             limitOverride: chunk.length,
             ignoreViewFilterAndSort: true,
             ignoreRls: args.ignoreRls,
+            deletedOnly: args.deletedOnly,
           },
         );
         chunkData = await nocoExecute(ast, chunkData, {}, args.args || {});
@@ -2910,47 +3231,76 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         const dataWithPks = [];
         const dataWithoutPks = [];
 
-        for (const data of preparedDatas) {
-          const pkValues = this.extractPksValues(data, true);
-          if (pkValues !== 'N/A' && pkValues !== undefined) {
-            dataWithPks.push({ pk: pkValues, data });
-          } else {
-            await this.prepareNocoData(data, true, cookie, null, {
-              ncOrder: order,
-              undo,
-            });
-            order = order?.plus(1);
-            dataWithoutPks.push(data);
-          }
-        }
+      const updatePkValues = [];
 
-        existingRecords = await this.chunkList({
-          pks: dataWithPks.map((v) => v.pk),
-        });
+      for (const data of preparedDatas) {
+        const pkValues = this.extractPksValues(data, true);
+        if (pkValues !== 'N/A' && pkValues !== undefined) {
+          dataWithPks.push({ pk: pkValues, data });
+        } else {
+          // const insertObj = this.handleValidateBulkInsert(data, columns);
+          await this.prepareNocoData(data, true, cookie, null, {
+            ncOrder: order,
+            undo,
+          });
+          order = order?.plus(1);
+          dataWithoutPks.push(data);
+        }
+      }
+      // Check which records with PKs exist in the database (active records)
+      const existingRecords = await this.chunkList({
+        pks: dataWithPks.map((v) => v.pk),
+      });
 
         const existingPkSet = new Set(
           existingRecords.map((r) => this.extractPksValues(r, true)),
         );
 
-        toInsert.push(...dataWithoutPks);
+      // Also check for trashed records — their PKs still physically exist
+      // so an INSERT with the same PK would fail with a duplicate key error.
+      // When a PK matches a trashed record, strip the PK and insert as a new record.
+      const trashedRecords = await this.chunkList({
+        pks: dataWithPks.map((v) => v.pk),
+        deletedOnly: true,
+      });
 
-        for (const { pk, data } of dataWithPks) {
-          if (existingPkSet.has(pk)) {
-            await this.prepareNocoData(data, false, cookie);
-            toUpdate.push(data);
-            updatePkValues.push(
-              getCompositePkValue(this.model.primaryKeys, {
-                ...data,
-              }),
-            );
-          } else {
-            await this.prepareNocoData(data, true, cookie, null, {
-              ncOrder: order,
-              undo,
-            });
-            order = order?.plus(1);
-            toInsert.push(data);
+      const trashedPkSet = new Set(
+        trashedRecords.map((r) => this.extractPksValues(r, true)),
+      );
+
+      const toInsert = [...dataWithoutPks];
+      const toUpdate = [];
+
+      for (const { pk, data } of dataWithPks) {
+        if (existingPkSet.has(pk)) {
+          await this.prepareNocoData(data, false, cookie);
+          toUpdate.push(data);
+
+          updatePkValues.push(
+            getCompositePkValue(this.model.primaryKeys, {
+              ...data,
+            }),
+          );
+        } else if (trashedPkSet.has(pk)) {
+          // PK belongs to a trashed record — strip the PK and insert as a new record
+          for (const pkCol of this.model.primaryKeys) {
+            delete data[pkCol.column_name];
+            delete data[pkCol.title];
           }
+          await this.prepareNocoData(data, true, cookie, null, {
+            ncOrder: order,
+            undo,
+          });
+          order = order?.plus(1);
+          toInsert.push(data);
+        } else {
+          await this.prepareNocoData(data, true, cookie, null, {
+            ncOrder: order,
+            undo,
+          });
+          order = order?.plus(1);
+          // const insertObj = this.handleValidateBulkInsert(data, columns);
+          toInsert.push(data);
         }
       }
 
@@ -3035,6 +3385,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         const rlsFilterGroup = rlsConditions.length
           ? [new Filter({ children: rlsConditions, is_group: true })]
           : [];
+        const softDeleteFilterUpdate = await this.getSoftDeleteFilter();
 
         for (const d of toUpdate) {
           const pkValues = getCompositePkValue(
@@ -3060,12 +3411,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             if (rlsFilterGroup.length) {
               await conditionV2(this, rlsFilterGroup, qb, undefined, true);
             }
+            if (softDeleteFilterUpdate) qb.where(softDeleteFilterUpdate);
             updateQueries.push(qb.toQuery());
           } else {
             const qb = this.dbDriver(this.tnPath).update(d).where(wherePk);
             if (rlsFilterGroup.length) {
               await conditionV2(this, rlsFilterGroup, qb, undefined, true);
             }
+            if (softDeleteFilterUpdate) qb.where(softDeleteFilterUpdate);
             updateQueries.push(qb.toQuery());
           }
         }
@@ -3381,6 +3734,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const rlsFilterGroup = rlsConditions.length
         ? [new Filter({ children: rlsConditions, is_group: true })]
         : [];
+      const softDeleteFilterBU = await this.getSoftDeleteFilter();
 
       if (
         this.model.primaryKeys.length === 1 &&
@@ -3397,6 +3751,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           if (rlsFilterGroup.length) {
             await conditionV2(this, rlsFilterGroup, batchQb, undefined, true);
           }
+          if (softDeleteFilterBU) batchQb.where(softDeleteFilterBU);
           queries.push(batchQb.toQuery());
         }
       } else {
@@ -3405,6 +3760,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           if (rlsFilterGroup.length) {
             await conditionV2(this, rlsFilterGroup, qb, undefined, true);
           }
+          if (softDeleteFilterBU) qb.where(softDeleteFilterBU);
           queries.push(qb.toQuery());
         }
       }
@@ -3756,83 +4112,149 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       await this.beforeBulkDelete(deleted, this.dbDriver, cookie);
 
-      const execQueries: ((
-        trx: CustomKnex,
-        ids: any[],
-      ) => Knex.QueryBuilder)[] = [];
+      const base = await this.getSource();
+
+      // Detect soft-delete column for meta sources
+      const deletedColumn = columns.find((c) => isDeletedCol(c));
+      const isSoftDelete = !!deletedColumn && base.isMeta();
+
+      const rlsConditions = await this.getRlsConditions();
+      const rlsFilterGroup = rlsConditions.length
+        ? [new Filter({ children: rlsConditions, is_group: true })]
+        : [];
+
+      const idsVals = res.map((d) => d[this.model.primaryKey.column_name]);
+
+      let collectedNotifications: {
+        baseModel: any;
+        model: any;
+        ids: string[];
+        colId: string;
+      }[] = [];
+
+      if (isSoftDelete) {
+        // Soft-delete: flag records instead of removing them, skip link cleanup
+        const softDeletePayload: Record<string, any> = {
+          [deletedColumn.column_name]: true,
+        };
+        const lmtCol = this.model.columns.find(
+          (c) => c.uidt === UITypes.LastModifiedTime && c.system,
+        );
+        const lmbCol = this.model.columns.find(
+          (c) => c.uidt === UITypes.LastModifiedBy && c.system,
+        );
+        if (lmtCol) softDeletePayload[lmtCol.column_name] = this.now();
+        if (lmbCol) softDeletePayload[lmbCol.column_name] = cookie?.user?.id;
+
+        for (const d of res) {
+          const qb = this.dbDriver(this.tnPath)
+            .update(softDeletePayload)
+            .where(d);
+          if (rlsFilterGroup.length) {
+            await conditionV2(this, rlsFilterGroup, qb);
+          }
+          queries.push(qb.toQuery());
+        }
+      } else {
+        const execQueries: ((
+          trx: CustomKnex,
+          ids: any[],
+        ) => Knex.QueryBuilder)[] = [];
 
       const source = await this.getSource();
 
       for (const column of this.model.columns) {
         if (!isLinksOrLTAR(column)) continue;
 
-        const colOptions =
-          await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
+          const colOptions =
+            await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
 
-        const { childContext, refContext, mmContext } =
-          await colOptions.getParentChildContext(this.context);
+          const { childContext, refContext, mmContext } =
+            await colOptions.getParentChildContext(this.context);
 
-        const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
-
+          const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
         const shouldCascadeHere = await shouldCascadeLinkCleanup(this.context, {
           isMeta: !!source.isMeta(),
           relationType,
           colOptions,
           mmContext,
         });
+          switch (relationType) {
+            case 'mm':
+              {
+                if (!shouldCascadeHere) break;
+                const mmTable = await Model.get(
+                  mmContext,
+                  colOptions.fk_mm_model_id,
+                );
+                const mmParentColumn = await Column.get(mmContext, {
+                  colId: colOptions.fk_mm_child_column_id,
+                });
 
-        switch (relationType) {
-          case 'mm':
-            {
-              if (!shouldCascadeHere) break;
-
-              const mmTable = await Model.get(
-                mmContext,
-                colOptions.fk_mm_model_id,
-              );
-              const mmParentColumn = await Column.get(mmContext, {
-                colId: colOptions.fk_mm_child_column_id,
-              });
-
-              execQueries.push((trx, ids) =>
-                trx(this.getTnPath(mmTable.table_name))
-                  .del()
-                  .whereIn(mmParentColumn.column_name, ids),
-              );
-            }
-            break;
-          case 'hm':
-            {
-              if (!shouldCascadeHere) break;
-
-              // skip if it's an mm table column
-              const relatedTable = await colOptions.getRelatedTable(refContext);
-              if (relatedTable.mm) {
-                break;
+                execQueries.push((trx, ids) =>
+                  trx(this.getTnPath(mmTable.table_name))
+                    .del()
+                    .whereIn(mmParentColumn.column_name, ids),
+                );
               }
+              break;
+            case 'hm':
+              {
+                if (!shouldCascadeHere) break;
+                // skip if it's an mm table column
+                const relatedTable = await colOptions.getRelatedTable(
+                  refContext,
+                );
+                if (relatedTable.mm) {
+                  break;
+                }
 
-              const childColumn = await Column.get(childContext, {
-                colId: colOptions.fk_child_column_id,
-              });
+                const childColumn = await Column.get(childContext, {
+                  colId: colOptions.fk_child_column_id,
+                });
 
-              execQueries.push((trx, ids) =>
-                trx(this.getTnPath(relatedTable.table_name))
-                  .update({
-                    [childColumn.column_name]: null,
-                  })
-                  .whereIn(childColumn.column_name, ids),
-              );
-            }
-            break;
-          case 'bt':
-            {
-              // nothing to do
-            }
-            break;
+                execQueries.push((trx, ids) =>
+                  trx(this.getTnPath(relatedTable.table_name))
+                    .update({
+                      [childColumn.column_name]: null,
+                    })
+                    .whereIn(childColumn.column_name, ids),
+                );
+              }
+              break;
+            case 'oo':
+              {
+                if (column.meta?.bt) {
+                  break;
+                }
+                const ooRelatedTable = await colOptions.getRelatedTable(
+                  refContext,
+                );
+                if (ooRelatedTable.mm) break;
+
+                const ooChildColumn = await Column.get(childContext, {
+                  colId: colOptions.fk_child_column_id,
+                });
+
+                execQueries.push((trx, ids) =>
+                  trx(this.getTnPath(ooRelatedTable.table_name))
+                    .update({ [ooChildColumn.column_name]: null })
+                    .whereIn(ooChildColumn.column_name, ids),
+                );
+              }
+              break;
+            case 'bt':
+              {
+                // nothing to do
+              }
+              break;
+          }
         }
-      }
 
-      const idsVals = res.map((d) => d[this.model.primaryKey.column_name]);
+        // Phase 1: Collect linked IDs BEFORE transaction (data still intact)
+        collectedNotifications = await this.collectLinkedRecordNotifications(
+          idsVals,
+        );
 
       // execQueries are pre-filtered above: pushed only when NocoDB must
       // cascade itself (meta source, or external FK with dr === 'NO ACTION').
@@ -3842,17 +4264,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
-      const rlsConditions = await this.getRlsConditions();
-      const rlsFilterGroup = rlsConditions.length
-        ? [new Filter({ children: rlsConditions, is_group: true })]
-        : [];
-
-      for (const d of res) {
-        const qb = this.dbDriver(this.tnPath).del().where(d);
-        if (rlsFilterGroup.length) {
-          await conditionV2(this, rlsFilterGroup, qb, undefined, true);
+        for (const d of res) {
+          const qb = this.dbDriver(this.tnPath).del().where(d);
+          if (rlsFilterGroup.length) {
+            await conditionV2(this, rlsFilterGroup, qb);
+          }
+          queries.push(qb.toQuery());
         }
-        queries.push(qb.toQuery());
       }
 
       if ((this.dbDriver as any).isExternal) {
@@ -3873,15 +4291,71 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
-      await this.clearFileReferences({
-        oldData: deleted,
-        columns,
-      });
+      if (isSoftDelete) {
+        await this.softDeleteFileReferences({
+          oldData: deleted,
+          columns,
+        });
+
+        // Soft-delete: data intact, notify linked records after
+        await this.updateLinkedRecordsOnDelete(idsVals, cookie);
+      } else {
+        await this.clearFileReferences({
+          oldData: deleted,
+          columns,
+        });
+
+        // Phase 2: Notify linked records AFTER transaction — using IDs collected BEFORE
+        for (const entry of collectedNotifications) {
+          try {
+            await entry.baseModel.updateLastModified({
+              model: entry.model,
+              rowIds: entry.ids,
+              cookie,
+              updatedColIds: [entry.colId].filter(Boolean),
+            });
+            await entry.baseModel.broadcastLinkUpdates(entry.ids);
+          } catch (e) {
+            logger.error(e?.message, e?.stack);
+          }
+        }
+      }
+
+      if (isSoftDelete) {
+        Noco.eventEmitter.emit(AppEvents.RECORDS_SOFT_DELETE, {
+          context: this.context,
+          req: cookie,
+          tableId: this.model.id,
+          rowIds: idsVals,
+        });
+      }
 
       if (isSingleRecordDeletion) {
         await this.afterDelete(deleted[0], null, cookie);
       } else {
-        await this.afterBulkDelete(deleted, this.dbDriver, cookie);
+        await this.afterBulkDelete(
+          deleted,
+          this.dbDriver,
+          cookie,
+          false,
+          isSoftDelete
+            ? AuditV1OperationTypes.DATA_BULK_SOFT_DELETE
+            : AuditV1OperationTypes.DATA_BULK_DELETE,
+          isSoftDelete
+            ? AuditV1OperationTypes.DATA_SOFT_DELETE
+            : AuditV1OperationTypes.DATA_DELETE,
+        );
+      }
+
+      if (isSoftDelete) {
+        // Set trash_cleanup_due_at on first soft-delete if not already scheduled
+        if (!this.model.trash_cleanup_due_at) {
+          await Model.updateTrashCleanupDueAt(
+            this.context,
+            this.model.id,
+            new Date().toISOString(),
+          );
+        }
       }
 
       await this.statsUpdate({
@@ -3900,6 +4374,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       filterArr?: Filter[];
       viewId?: string;
       skipPks?: string;
+      permanentDelete?: boolean;
     } = {},
     { cookie, skip_hooks = false }: { cookie: NcRequest; skip_hooks?: boolean },
   ) {

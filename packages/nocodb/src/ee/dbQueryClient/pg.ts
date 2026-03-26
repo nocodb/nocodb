@@ -45,6 +45,7 @@ import { recursiveCTEFromLookupColumn } from '~/helpers/lookupHelpers';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { Column, Model, View } from '~/models';
 import { NC_MAX_TEXT_LENGTH } from '~/constants';
+import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { extractColumns } from '~/dbQueryClient/cross-db-utils/extract-columns';
 
 export class PGDBQueryClient
@@ -288,6 +289,15 @@ export class PGDBQueryClient
                   .limit(isSingleTargetV2 ? 1 : +listArgs.limit + 1)
                   .offset(isSingleTargetV2 ? 0 : +listArgs.offset);
 
+                // Exclude soft-deleted parent records from MM CTE
+                const mmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+                  parentBaseModel,
+                  alias2,
+                );
+                if (mmSoftDeleteFilter) {
+                  mmQb.where(mmSoftDeleteFilter);
+                }
+
                 // apply filters on nested query
                 await conditionV2(
                   parentBaseModel,
@@ -389,6 +399,13 @@ export class PGDBQueryClient
                   )
                   .first();
 
+                // Exclude soft-deleted parent records from BT CTE
+                const btSoftDeleteFilter =
+                  await parentBaseModel.getSoftDeleteFilter();
+                if (btSoftDeleteFilter) {
+                  btQb.where(btSoftDeleteFilter);
+                }
+
                 // apply filters on nested query
                 await conditionV2(parentBaseModel, queryFilterObj, btQb);
 
@@ -467,6 +484,13 @@ export class PGDBQueryClient
                     )
                     .first();
 
+                  // Exclude soft-deleted ref records from OO (BT side) CTE
+                  const ooBtSoftDeleteFilter =
+                    await refBaseModel.getSoftDeleteFilter();
+                  if (ooBtSoftDeleteFilter) {
+                    btQb.where(ooBtSoftDeleteFilter);
+                  }
+
                   // apply filters on nested query
                   await conditionV2(refBaseModel, queryFilterObj, btQb);
 
@@ -512,6 +536,13 @@ export class PGDBQueryClient
                       knex.raw('??.??', [rootAlias, parentColumn.column_name]),
                     )
                     .first();
+
+                  // Exclude soft-deleted ref records from OO (HM side) CTE
+                  const ooHmSoftDeleteFilter =
+                    await refBaseModel.getSoftDeleteFilter();
+                  if (ooHmSoftDeleteFilter) {
+                    hmQb.where(ooHmSoftDeleteFilter);
+                  }
 
                   // apply filters on nested query
                   await conditionV2(refBaseModel, queryFilterObj, hmQb);
@@ -594,6 +625,13 @@ export class PGDBQueryClient
 
                   .limit(+listArgs.limit + 1)
                   .offset(+listArgs.offset);
+
+                // Exclude soft-deleted child records from HM CTE
+                const hmSoftDeleteFilter =
+                  await childBaseModel.getSoftDeleteFilter();
+                if (hmSoftDeleteFilter) {
+                  hmQb.where(hmSoftDeleteFilter);
+                }
 
                 // apply filters on nested query
                 await conditionV2(childBaseModel, queryFilterObj, hmQb);
@@ -963,6 +1001,15 @@ export class PGDBQueryClient
               }
 
               break;
+          }
+
+          // Exclude soft-deleted records from Lookup relation CTE
+          const lookupSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+            refBaseModel,
+            relTableAlias,
+          );
+          if (lookupSoftDeleteFilter) {
+            relQb.where(lookupSoftDeleteFilter);
           }
 
           await extractLinkRelFiltersAndApply({

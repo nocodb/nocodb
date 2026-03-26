@@ -131,6 +131,11 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
     });
     const relatedModel = relatedBaseModel.model;
     await relatedModel.getColumns(relatedContext);
+
+    // Exclude soft-deleted records from related table existence check
+    const _softDeleteFilterValidate =
+      await relatedBaseModel.getSoftDeleteFilter();
+
     const notExistsQb = DBQueryClient.get(
       baseModel.dbDriver.clientType() as ClientType,
     )
@@ -145,7 +150,7 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
         alias: '_tbl',
       })
       .whereNotExists(function () {
-        this.from(
+        const subQb = this.from(
           relatedBaseModel.getTnPath(relatedModel) as '_rel_tbl',
         ).whereRaw(
           knex.raw(`??::text = ??::text`, [
@@ -153,6 +158,11 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
             '_tbl._id',
           ]),
         );
+
+        // Exclude soft-deleted records — treat them as non-existent
+        if (_softDeleteFilterValidate) {
+          subQb.where(_softDeleteFilterValidate);
+        }
       });
     const notExistsId = await notExistsQb;
     if (notExistsId.length) {
@@ -620,6 +630,14 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
         childColumn.column_name,
         links.map((link) => link.rowId),
       );
+
+    // Exclude soft-deleted records from child table
+    const softDeleteFilterHmOoChild =
+      await childBaseModel.getSoftDeleteFilter();
+    if (softDeleteFilterHmOoChild) {
+      query.where(softDeleteFilterHmOoChild);
+    }
+
     // get id of child table by querying with foreign key column
     const childLinks = await query;
     for (const each of childLinks) {
@@ -662,7 +680,7 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
 
     const response = new Map<string, string[]>();
     // get id of child table by querying with foreign key column
-    const childLinks = await knex(childBaseModel.getTnPath(childModel, '_tbl'))
+    const childLinksQb = knex(childBaseModel.getTnPath(childModel, '_tbl'))
       .select({
         id: childModel.primaryKey.column_name,
         fk_id: childColumn.column_name,
@@ -671,6 +689,15 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
         childModel.primaryKey.column_name,
         arrFlatMap(links.map((link) => [...link.linkIds])),
       );
+
+    // Exclude soft-deleted records from child table
+    const softDeleteFilterHmOoParent =
+      await childBaseModel.getSoftDeleteFilter();
+    if (softDeleteFilterHmOoParent) {
+      childLinksQb.where(softDeleteFilterHmOoParent);
+    }
+
+    const childLinks = await childLinksQb;
     for (const each of childLinks) {
       if (!each.id || !each.fk_id) {
         continue;
@@ -707,7 +734,7 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
 
     const response = new Map<string, string[]>();
     // get id of child table by querying with foreign key column
-    const existingLinks = await knex(baseModel.getTnPath(model, '_tbl'))
+    const existingLinksQb = knex(baseModel.getTnPath(model, '_tbl'))
       .select({
         id: model.primaryKey.column_name,
         fk_id: childColumn.column_name,
@@ -716,6 +743,14 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
         model.primaryKey.column_name,
         links.map((link) => link.rowId),
       );
+
+    // Exclude soft-deleted records from model table
+    const softDeleteFilterBtChild = await baseModel.getSoftDeleteFilter();
+    if (softDeleteFilterBtChild) {
+      existingLinksQb.where(softDeleteFilterBtChild);
+    }
+
+    const existingLinks = await existingLinksQb;
     for (const each of existingLinks) {
       if (!each.id || !each.fk_id) {
         continue;
@@ -760,6 +795,13 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
         childColumn.column_name,
         arrFlatMap(links.map((link) => [...link.linkIds])),
       );
+
+    // Exclude soft-deleted records from model table
+    const softDeleteFilterBtParent = await baseModel.getSoftDeleteFilter();
+    if (softDeleteFilterBtParent) {
+      existingLinksQb.where(softDeleteFilterBtParent);
+    }
+
     // get id of child table by querying with foreign key column
     const existingLinks = await existingLinksQb;
     for (const each of existingLinks) {

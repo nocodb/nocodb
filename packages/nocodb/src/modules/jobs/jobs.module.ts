@@ -26,6 +26,7 @@ import { PublicDataExportController } from '~/modules/jobs/jobs/data-export/publ
 import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
 import { AttachmentCleanUpProcessor } from '~/modules/jobs/jobs/attachment-clean-up/attachment-clean-up';
 import { AttachmentUrlUploadProcessor } from '~/modules/jobs/jobs/attachment-url-upload/attachment-url-upload.processor';
+import { RecordTrashCleanupJob } from '~/modules/jobs/jobs/record-trash-cleanup/record-trash-cleanup.job';
 
 // Job Map
 import { JobsMap } from '~/modules/jobs/jobs-map.service';
@@ -38,6 +39,7 @@ import { OrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_005_o
 import { RecoverOrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_007_recover_order_column';
 import { NoOpMigration } from '~/modules/jobs/migration-jobs/nc_job_no_op';
 import { AuditMigration } from '~/modules/jobs/migration-jobs/nc_job_009_audit_migration';
+import { SoftDeleteColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_010_soft_delete_column';
 
 // Jobs Module Related
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
@@ -87,6 +89,7 @@ export const JobsModuleMetadata = {
     ThumbnailGeneratorProcessor,
     AttachmentCleanUpProcessor,
     AttachmentUrlUploadProcessor,
+    RecordTrashCleanupJob,
 
     // Migration Jobs
     InitMigrationJobs,
@@ -99,6 +102,7 @@ export const JobsModuleMetadata = {
     RecoverOrderColumnMigration,
     RecoverDisconnectedTableNames,
     AuditMigration,
+    SoftDeleteColumnMigration,
   ],
   exports: ['JobsService', JobsLogService, DuplicateProcessor],
 };

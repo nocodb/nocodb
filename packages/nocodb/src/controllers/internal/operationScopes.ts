@@ -179,4 +179,11 @@ export const OPERATION_SCOPES = {
   // Workspace integration link management
   integrationLinkedBaseList: 'workspace',
   integrationUpdateLinkedBases: 'workspace',
+
+  // Record Trash
+  recordTrashList: 'base',
+  recordTrashCount: 'base',
+  recordTrashRestore: 'base',
+  recordTrashPermanentDelete: 'base',
+  recordTrashEmpty: 'base',
 } as const;

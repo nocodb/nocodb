@@ -31,6 +31,7 @@ import { NcError } from '~/helpers/catchError';
 import { JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { ExtensionsService } from '~/services/extensions.service';
+import { RecordTrashService } from '~/services/record-trash.service';
 
 @Injectable()
 export class UiPostOperations
@@ -59,6 +60,7 @@ export class UiPostOperations
     protected syncService: SyncService,
     protected readonly nocoJobsService: NocoJobsService,
     protected extensionsService: ExtensionsService,
+    protected recordTrashService: RecordTrashService,
   ) {}
   operations = [
     'tableUpdate' as const,
@@ -143,6 +145,9 @@ export class UiPostOperations
     'listViewCreate' as const,
     'listViewUpdate' as const,
     'convertLinkToV2' as const,
+    'recordTrashRestore' as const,
+    'recordTrashPermanentDelete' as const,
+    'recordTrashEmpty' as const,
   ];
   httpMethod = 'POST' as const;
 
@@ -709,6 +714,25 @@ export class UiPostOperations
           extensionId: req.query.extensionId,
           req,
         });
+      case 'recordTrashRestore':
+        return await this.recordTrashService.restoreRecords(context, {
+          tableId: req.body.tableId as string,
+          rowIds: req.body.rowIds as string[],
+          force: req.body.force as boolean,
+          req,
+        });
+      case 'recordTrashPermanentDelete':
+        return await this.recordTrashService.permanentDeleteRecords(context, {
+          tableId: req.body.tableId as string,
+          rowIds: req.body.rowIds as string[],
+          req,
+        });
+      case 'recordTrashEmpty':
+        return await this.recordTrashService.emptyTrash(context, {
+          tableId: req.body.tableId as string,
+          req,
+        });
+
     }
   }
 }

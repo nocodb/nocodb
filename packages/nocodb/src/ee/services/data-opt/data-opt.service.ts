@@ -36,6 +36,7 @@ export class DataOptService {
       includeSortAndFilterColumns?: boolean;
       skipSortBasedOnOrderCol?: boolean;
       ignoreViewFilterAndSort?: boolean;
+      deletedOnly?: boolean;
     },
   ): Promise<PagedResponseImpl<Record<string, any>>> {
     const params = { ...(ctx.params || {}) };

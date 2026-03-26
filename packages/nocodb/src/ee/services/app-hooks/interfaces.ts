@@ -501,4 +501,20 @@ export interface ScimConfigEvent {
   req?: any;
 }
 
+// Record Trash Events
+export interface RecordsSoftDeleteEvent extends NcBaseEvent {
+  tableId: string;
+  rowIds: string[];
+}
+
+export interface RecordsRestoreEvent extends NcBaseEvent {
+  tableId: string;
+  rowIds: string[];
+}
+
+export interface RecordsPermanentDeleteEvent extends NcBaseEvent {
+  tableId: string;
+  rowIds: string[];
+}
+
 export * from 'src/services/app-hooks/interfaces';

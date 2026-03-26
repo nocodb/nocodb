@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid';
-import { extractFilterFromXwhere, NcApiVersion } from 'nocodb-sdk';
+import { extractFilterFromXwhere, isDeletedCol, NcApiVersion } from 'nocodb-sdk';
 import debug from 'debug';
 import { normalizeIdForQuery } from '../utils';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -42,6 +42,7 @@ export const singleQueryRead = (client: DBQueryClient) => {
       extractOnlyPrimaries?: boolean;
       extractOrderColumn?: boolean;
       ignoreRls?: boolean;
+      deletedOnly?: boolean;
     },
   ): Promise<PagedResponseImpl<Record<string, any>>> {
     client.validateClientType(ctx.source.type);
@@ -84,7 +85,8 @@ export const singleQueryRead = (client: DBQueryClient) => {
       (ctx.getHiddenColumn ? 1 : 0) |
       (ctx.extractOnlyPrimaries ? 2 : 0) |
       (ctx.extractOrderColumn ? 4 : 0) |
-      (linksAsLtar ? 8 : 0);
+      (linksAsLtar ? 8 : 0) |
+      (ctx.deletedOnly ? 16 : 0);
 
     const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
       ctx.view?.id ?? 'default'
@@ -119,6 +121,21 @@ export const singleQueryRead = (client: DBQueryClient) => {
     const columns = await ctx.model.getColumns(context);
 
     const rootQb = knex(baseModel.getTnPath(ctx.model));
+
+    // Soft-delete filter: exclude deleted records normally, or select ONLY deleted for trash listing
+    if (ctx.deletedOnly) {
+      const deletedCol = ctx.model.columns?.find((c) => isDeletedCol(c));
+      if (deletedCol) {
+        rootQb.where(deletedCol.column_name, true);
+      } else {
+        rootQb.whereRaw('1 = 0');
+      }
+    } else {
+      const softDeleteFilter = await baseModel.getSoftDeleteFilter();
+      if (softDeleteFilter) {
+        rootQb.where(softDeleteFilter);
+      }
+    }
 
     // dummy id placeholder to be replaced later
     const idSym = Symbol('__dummy_id_placeholder');

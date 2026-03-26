@@ -23,6 +23,7 @@ import { ListDatasService } from '~/ee/services/list-datas.service';
 import { SyncService } from '~/services/sync.service';
 import { ExtensionsService } from '~/services/extensions.service';
 import { DateDependencyService } from '~/services/date-dependency.service';
+import { RecordTrashService } from '~/services/record-trash.service';
 
 @Injectable()
 export class UiGetOperations
@@ -46,6 +47,7 @@ export class UiGetOperations
     protected syncService: SyncService,
     protected extensionsService: ExtensionsService,
     protected dateDependencyService: DateDependencyService,
+    protected recordTrashService: RecordTrashService,
   ) {
     super(
       dataTableService,
@@ -62,6 +64,7 @@ export class UiGetOperations
       commentsService,
       syncService,
       extensionsService,
+      recordTrashService,
     );
 
     (this.operations as string[]) = [...this.operations, 'getDateDependency'];

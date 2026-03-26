@@ -99,6 +99,7 @@ export type InternalGETResponseType = Promise<
   | (RlsPolicy & { filters: Filter[] })[]
   | { workspaces: any[] }
   | { totalRows: number; counts: Record<string, number> }
+  | { count: number }
   | {
       totalWorkspaces: number;
       totalBases: number;
@@ -184,6 +185,8 @@ export type InternalPOSTResponseType = Promise<
       link: (string | number | Record<string, any>)[];
       unlink: (string | number | Record<string, any>)[];
     }[]
+  | { link: (string | number | Record<string, any>)[]; unlink: (string | number | Record<string, any>)[] }[]
+  | { message: string }
 >;
 
 export interface InternalApiModule<

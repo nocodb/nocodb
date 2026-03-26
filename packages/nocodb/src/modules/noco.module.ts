@@ -140,6 +140,7 @@ import { BaseMembersV3Service } from '~/services/v3/base-members-v3.service';
 import { ViewRowColorService } from '~/services/view-row-color.service';
 import { DataAliasNestedService } from '~/services/data-alias-nested.service';
 import { DataTableService } from '~/services/data-table.service';
+import { RecordTrashService } from '~/services/record-trash.service';
 import { DatasService } from '~/services/datas.service';
 import { FormulaColumnTypeChanger } from '~/services/formula-column-type-changer.service';
 import { IntegrationsService } from '~/services/integrations.service';
@@ -335,6 +336,8 @@ export const nocoModuleMetadata = {
     ViewsV3Service,
     DependencyService,
     WorkspaceUsersService,
+
+    RecordTrashService,
 
     /* Datas */
     DataTableService,

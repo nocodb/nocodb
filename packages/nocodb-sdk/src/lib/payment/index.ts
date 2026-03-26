@@ -33,6 +33,7 @@ export enum PlanLimitTypes {
   LIMIT_DOCUMENT_PAGE_PER_BASE = 'limit_document_page_per_base',
   LIMIT_DOCS_PAGE_SIZE_KB = 'limit_docs_page_size_kb',
   LIMIT_WORKSPACE = 'limit_workspace',
+  LIMIT_TRASH_RETENTION = 'limit_trash_retention',
 }
 
 export enum PlanFeatureTypes {
@@ -283,6 +284,7 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
     'to add more document pages in a base.',
   [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]:
     'to increase the document page size limit.',
+  [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 'for extended trash retention.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {

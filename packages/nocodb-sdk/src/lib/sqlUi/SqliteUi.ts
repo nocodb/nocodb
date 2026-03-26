@@ -193,6 +193,30 @@ export class SqliteUi implements SqlUi {
         uicn: '',
         system: true,
       },
+      {
+        column_name: '__nc_deleted',
+        title: '__nc_deleted',
+        dt: 'boolean',
+        dtx: 'specificType',
+        ct: 'boolean',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        cdf: '0',
+        clen: null,
+        np: null,
+        ns: null,
+        dtxp: '',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.Deleted,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
     ];
   }
 
@@ -719,6 +743,9 @@ export class SqliteUi implements SqlUi {
       case 'Order':
         colProp.dt = 'real';
         break;
+      case UITypes.Deleted:
+        colProp.dt = 'boolean';
+        break;
       default:
         colProp.dt = 'varchar';
         break;
@@ -936,6 +963,8 @@ export class SqliteUi implements SqlUi {
         return ['text'];
       case 'JSON':
         return ['text'];
+      case UITypes.Deleted:
+        return ['boolean', 'integer'];
       default:
         return dbTypes;
     }

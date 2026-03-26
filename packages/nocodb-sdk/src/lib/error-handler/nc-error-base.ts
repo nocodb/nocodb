@@ -984,6 +984,32 @@ export class NcErrorBase {
     });
   }
 
+  tableTrashNotSupported(tableTitle: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_TABLE_TRASH_NOT_SUPPORTED,
+      {
+        params: tableTitle,
+        ...args,
+      }
+    );
+  }
+
+  recordRestoreConflict(details: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_RECORD_RESTORE_CONFLICT,
+      {
+        params: details,
+        ...args,
+      }
+    );
+  }
+
+  recordNotTrashed(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_RECORD_NOT_TRASHED, {
+      ...args,
+    });
+  }
+
   methodNotAllowed(method: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_METHOD_NOT_ALLOWED, {
       params: `${method} method not allowed`,

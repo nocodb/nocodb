@@ -209,7 +209,13 @@ export interface IBaseModelSqlV2 {
     _trx: any,
     req: any,
     isBulkAllOperation?: boolean,
+    bulkEventType?: AuditV1OperationTypes,
+    rowEventType?: AuditV1OperationTypes,
   ): Promise<void>;
+
+  afterBulkRestore(data: any, req: any): Promise<void>;
+
+  permanentDeleteByIds(rowIds: string[], cookie: any): Promise<any[]>;
 
   applySortAndFilter(param: {
     table: Model;
@@ -421,4 +427,6 @@ export interface IBaseModelSqlV2 {
    */
   formulaDryRunFailed?: boolean;
   getRlsConditions(): Promise<Filter[]>;
+  getSoftDeleteFilter(): Promise<Knex.QueryCallback | null>;
+  updateLinkedRecordsOnDelete(deletedIds: any[], cookie?: any): Promise<void>;
 }

@@ -92,6 +92,21 @@ export const presetErrorCodexMap: Partial<
     },
     code: 404,
   },
+  [NcErrorType.ERR_TABLE_TRASH_NOT_SUPPORTED]: {
+    message: (tableTitle: string) =>
+      `Record trash is not supported for table '${tableTitle || 'unknown'}'`,
+    code: 422,
+  },
+  [NcErrorType.ERR_RECORD_RESTORE_CONFLICT]: {
+    message: (details: string) =>
+      `Cannot restore record — link conflict: ${details || 'unknown conflict'}`,
+    code: 409,
+  },
+  [NcErrorType.ERR_RECORD_NOT_TRASHED]: {
+    message: () =>
+      `Cannot permanently delete active records that are not in trash`,
+    code: 422,
+  },
   [NcErrorType.ERR_GENERIC_NOT_FOUND]: {
     message: (resource: string, id: string) => `${resource} '${id}' not found`,
     code: 404,

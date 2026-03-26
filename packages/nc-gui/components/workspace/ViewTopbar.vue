@@ -5,12 +5,12 @@ const { activeWorkspace } = storeToRefs(workspaceStore)
 
 const { activePlanTitle, isPaymentEnabled, showEEFeatures, handleUpgradePlan } = useEeConfig()
 
-const { setActiveCmdView } = useCommand()
+const { openCommandPalette } = useCommand()
 
 const isFreePlan = computed(() => activePlanTitle.value === 'Free')
 
 const openSearch = () => {
-  setActiveCmdView('cmd-k')
+  openCommandPalette()
 }
 
 const showUpgrade = () => {

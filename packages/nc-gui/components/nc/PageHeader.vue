@@ -36,7 +36,7 @@ withDefaults(defineProps<Props>(), {
 
 <style lang="scss" scoped>
 .nc-page-header {
-  @apply h-12 flex items-center gap-3 px-3 py-2;
+  @apply h-12 flex items-center gap-3 px-3 py-2 min-h-[var(--topbar-height)];
 
   .nc-page-header-title {
     @apply text-xl font-semibold text-nc-content-gray my-0;

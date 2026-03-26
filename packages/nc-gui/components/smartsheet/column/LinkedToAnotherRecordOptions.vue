@@ -28,8 +28,9 @@ const isUpgradeable = computed(() => {
   if (!isEdit.value) return false
   const col = vModel.value
   const colOpts = col?.colOptions as LinkToAnotherRecordType | undefined
-  // Links (deprecated) or LTAR v1 — both can be upgraded
-  return col?.uidt === UITypes.Links || (col?.uidt === UITypes.LinkToAnotherRecord && colOpts?.version !== LinksVersion.V2)
+  // Links v1 (deprecated) or LTAR v1 — both can be upgraded. V2 is already upgraded.
+  if (colOpts?.version === LinksVersion.V2) return false
+  return col?.uidt === UITypes.Links || col?.uidt === UITypes.LinkToAnotherRecord
 })
 
 const meta = inject(MetaInj, ref())

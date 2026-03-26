@@ -57,7 +57,7 @@ export const useCommandPalette = createSharedComposable(() => {
         },
         handler: processHandler({
           type: 'navigate',
-          payload: `/${workspace.id}/settings`,
+          payload: `/${workspace.id}`,
         }),
       }),
     ),

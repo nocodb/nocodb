@@ -1,17 +1,17 @@
 ###########
-# Platform-specific base images
+# Platform-specific runner images
 # node:24.14.0-alpine doesn't publish arm/v7 — fall back to node:22-alpine
 ###########
-FROM node:24.14.0-alpine AS base-amd64
-FROM node:24.14.0-alpine AS base-arm64
-FROM node:22-alpine AS base-arm
+FROM node:24.14.0-alpine AS runner-amd64
+FROM node:24.14.0-alpine AS runner-arm64
+FROM node:22-alpine AS runner-arm
 
 ###########
-# Builder — runs on the build host (no QEMU), installs all JS deps
-# and downloads prebuilt native binaries for the target platform
+# Builder — always runs natively on the build host (no QEMU)
+# Uses the host platform's node image for speed, then cross-downloads
+# prebuilt native binaries for the target platform
 ###########
-ARG TARGETARCH
-FROM --platform=$BUILDPLATFORM base-${TARGETARCH} AS builder
+FROM --platform=$BUILDPLATFORM node:24.14.0-alpine AS builder
 ARG TARGETPLATFORM
 
 WORKDIR /usr/src/app
@@ -67,10 +67,10 @@ RUN chmod +x /usr/src/appEntry/start.sh
 
 
 ##########
-# Runner
+# Runner — uses platform-specific image for the target arch
 ##########
 ARG TARGETARCH
-FROM base-${TARGETARCH}
+FROM runner-${TARGETARCH}
 WORKDIR /usr/src/app
 
 ENV NC_DOCKER=0.6

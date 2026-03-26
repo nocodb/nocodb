@@ -6723,7 +6723,11 @@ export class ColumnsService implements IColumnsService {
           opts.type === RelationTypes.ONE_TO_MANY ||
           opts.type === RelationTypes.MANY_TO_ONE) &&
         opts.fk_mm_model_id === colOptions.fk_mm_model_id &&
-        opts.fk_related_model_id === sourceTable.id
+        opts.fk_related_model_id === sourceTable.id &&
+        // For self-referencing tables, verify junction FK columns are swapped
+        // to uniquely identify the correct paired column
+        opts.fk_mm_child_column_id === colOptions.fk_mm_parent_column_id &&
+        opts.fk_mm_parent_column_id === colOptions.fk_mm_child_column_id
       ) {
         pairedColumn = c;
         break;

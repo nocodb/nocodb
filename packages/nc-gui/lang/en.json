@@ -3038,7 +3038,7 @@
     "info": {
       "licenseRequiresPostgres": "Enterprise licensing requires PostgreSQL. Please migrate to PostgreSQL to activate your license key.",
       "convertLinkV2Description": "Your data will not be affected. After upgrading, this field will show only the count of linked records, and a new field will be added next to it to display the linked records themselves.",
-      "convertLinkV1Description": "This will upgrade your link field to V2 format (junction table) without affecting your data. The field will continue to display linked records after the upgrade.",
+      "convertLinkV1Description": "Your data will not be affected. The field will continue to display linked records after the upgrade.",
       "convertLinkV2OriginalBecomesRollup": "will show only the number of linked records",
       "convertLinkV2NewLtarCreated": "A new field will be added to display the actual linked records",
       "convertLinkV2FkColumnRemoved": "Internal link structure will be updated",

@@ -355,7 +355,14 @@ const isLinkedTablePrivate = computed(() => {
 })
 
 const linkType = computed({
-  get: () => (isEdit.value ? vModel.value?.colOptions?.type : vModel.value?.type) ?? null,
+  get: () => {
+    const type = (isEdit.value ? vModel.value?.colOptions?.type : vModel.value?.type) ?? null
+    // BT is displayed as Many to One in the radio group
+    if (type === RelationTypes.BELONGS_TO) return RelationTypes.MANY_TO_ONE
+    // HM is displayed as One to Many in the radio group
+    if (type === RelationTypes.HAS_MANY) return RelationTypes.ONE_TO_MANY
+    return type
+  },
   set: (value) => {
     if (!isEdit.value && value) {
       vModel.value.type = value
@@ -555,7 +562,7 @@ const handleScrollIntoView = () => {
     </div>
     <div
       v-if="isUpgradeable"
-      class="flex items-center justify-between bg-orange-50 rounded-lg px-3 py-2 -mt-4"
+      class="flex items-center justify-between bg-orange-50 rounded-lg px-3 py-2 -mt-2"
       data-testid="nc-ltar-upgrade-banner"
     >
       <div class="flex items-center gap-2">

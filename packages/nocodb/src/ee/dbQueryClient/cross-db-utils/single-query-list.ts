@@ -1,12 +1,12 @@
 import debug from 'debug';
-import { nanoid } from 'nanoid';
 import { NcApiVersion } from 'nocodb-sdk';
 import { listQueryEnrichment } from './list-query-enrichment';
-import type { Logger } from '@nestjs/common';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type { DBQueryClient } from '~/dbQueryClient/types';
+import type { Logger } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
 import type { Filter, Source, View } from '~/models';
+import type { DBQueryClient } from '~/dbQueryClient/types';
+import { shouldSkipCache } from '~/services/data-opt/common-helpers';
 import NocoCache from '~/cache/NocoCache';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 import { getListArgs } from '~/db/BaseModelSqlv2';
@@ -15,7 +15,6 @@ import { haveFormulaColumn } from '~/helpers/dbHelpers';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Profiler } from '~/helpers/profiler';
 import { Model } from '~/models';
-import { shouldSkipCache } from '~/services/data-opt/common-helpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import { isTransientError } from '~/helpers/db-error/utils';
@@ -54,7 +53,7 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
     const excludeCount = ctx.params?.excludeCount;
 
     let dbQueryTime;
-    const skipCache = shouldSkipCache(ctx);
+    let skipCache = shouldSkipCache(ctx);
 
     const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
 
@@ -156,31 +155,55 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
       }
     }
 
+    // Random non-zero integer sentinel for limit/offset used when caching.
+    // After toQuery() resolves all bindings, we find `limit X offset X` in
+    // the SQL and replace it with `limit ? offset ?` for later injection.
+    const limitOffsetPlaceholder =
+      Math.floor(Math.random() * 8999999) + 1000000;
+
+    // Build the base table query — enrich will apply all filters, sorts,
+    // column extraction, and pagination on top of it.
+    const rootQb = knex(baseModel.getTnPath(ctx.model));
+
     const enriched = await listQueryEnrichment(client, logger).enrich(context, {
-      sourceQb: knex(baseModel.getTnPath(ctx.model)),
-      ...ctx,
-      listArgs: listArgs,
+      sourceQb: rootQb,
+      model: ctx.model,
+      view: ctx.view,
+      source: ctx.source,
+      params: ctx.params,
+      throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
+      validateFormula: ctx.validateFormula,
+      ignorePagination: ctx.ignorePagination,
+      limitOverride: ctx.limitOverride,
+      baseModel,
+      customConditions: ctx.customConditions,
+      getHiddenColumns: ctx.getHiddenColumns,
+      apiVersion: ctx.apiVersion,
+      includeSortAndFilterColumns: ctx.includeSortAndFilterColumns,
+      skipSortBasedOnOrderCol: ctx.skipSortBasedOnOrderCol,
+      ignoreViewFilterAndSort: ctx.ignoreViewFilterAndSort,
+      ignoreRls: ctx.ignoreRls,
       skipCache,
-      rlsConditions,
+      listArgs,
+      limitOffsetPlaceholder: skipCache ? undefined : limitOffsetPlaceholder,
     });
 
-    // const finalQb = qb.select(countQb.as('__nc_count'));
-    const finalQb = enriched.finalQb;
+    const { finalQb, countQb } = enriched;
+    // skipCache may have been updated inside enrich (static date filters, current user filters)
+    skipCache = enriched.skipCache;
+
+    // dataQuery (from finalQb.toQuery()) has all bindings resolved,
+    // including the unique placeholder for limit/offset.
+    // Escape any literal ? to prevent them from being treated as bindings,
+    // then replace the placeholder limit/offset with binding placeholders.
     let dataQuery = finalQb.toQuery();
-    if (!enriched.skipCache) {
-      const { sql, bindings } = finalQb.toSQL();
-
-      // get unique placeholder for limit and offset which is not present in query
-      const placeholder = nanoid();
-
-      // bind all params and replace limit and offset with placeholders
-      // and in generated sql replace placeholders with bindings
-      dataQuery = knex
-        .raw(sql, [...bindings.slice(0, -2), placeholder, placeholder])
-        .toQuery()
-        // escape any `?` in the query to avoid replacing them with bindings
+    if (!skipCache) {
+      dataQuery = dataQuery
         .replace(/\?/g, '\\?')
-        .replaceAll(`'${placeholder}'`, '?');
+        .replace(
+          `limit ${limitOffsetPlaceholder} offset ${limitOffsetPlaceholder}`,
+          'limit ? offset ?',
+        );
     }
     profiler.log('get data without cache');
 
@@ -189,12 +212,12 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
       debugSingleQueryList(dataQuery);
       [count, res] = await getDataWithCountCache(context, {
         query: dataQuery,
-        countQuery: enriched.countQb.toQuery(),
+        countQuery: countQb.toQuery(),
         limit: +listArgs.limit,
         offset: +listArgs.offset,
         knex,
         countCacheKey,
-        skipCache: enriched.skipCache,
+        skipCache,
         excludeCount,
         recordQueryTime: (time: string) => {
           dbQueryTime = time;
@@ -209,19 +232,16 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
       // Check if this is a transient error (connection/timeout issue)
       const isTransient = isTransientError(e);
 
-      if (
-        isTransient ||
-        ctx.validateFormula ||
-        !haveFormulaColumn(ctx.model.columns)
-      )
-        throw e;
+      if (isTransient || ctx.validateFormula) throw e;
+      const columns = await ctx.model.getColumns(context);
+      if (!haveFormulaColumn(columns)) throw e;
       return list(context, {
         ...ctx,
         validateFormula: true,
       });
     }
 
-    if (!enriched.skipCache) {
+    if (!skipCache) {
       // cache query for later use after successful execution
       await NocoCache.set(context, cacheKey, dataQuery);
 

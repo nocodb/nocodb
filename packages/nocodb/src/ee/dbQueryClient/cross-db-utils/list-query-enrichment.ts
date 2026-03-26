@@ -39,13 +39,14 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
       getHiddenColumns?: boolean;
       apiVersion?: NcApiVersion;
       includeSortAndFilterColumns?: boolean;
+      skipPaginateWrapper?: boolean;
       skipSortBasedOnOrderCol?: boolean;
       ignoreViewFilterAndSort?: boolean;
       extractOnlyPrimaries?: boolean;
       skipCache?: boolean;
       listArgs?: XcFilter;
       ignoreRls?: boolean;
-      rlsConditions?: any[];
+      limitOffsetPlaceholder?: number;
     },
   ): Promise<{
     finalQb: Knex.QueryBuilder;
@@ -60,6 +61,7 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
     );
 
     let skipCache = ctx.skipCache;
+    let skipSortBasedOnOrderCol = ctx.skipSortBasedOnOrderCol;
 
     const listArgs =
       ctx.listArgs ??
@@ -80,10 +82,11 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
         dbDriver: knex,
       }));
 
-    // Resolve RLS conditions — use pre-resolved if passed, otherwise fetch
-    const rlsConditions =
-      ctx.rlsConditions ??
-      (ctx.ignoreRls ? [] : await baseModel.getRlsConditions());
+    // Resolve RLS conditions — include policy hash in cache key
+    // so users with the same RLS filters share a cache entry
+    const rlsConditions = ctx.ignoreRls
+      ? []
+      : await baseModel.getRlsConditions();
     let rlsCacheSegment = '';
     if (rlsConditions.length) {
       const hash = RlsSubscriptionRegistry.computeAccessHash(rlsConditions);
@@ -93,15 +96,16 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
     // load columns list
     const columns = await ctx.model.getColumns(context);
 
-    const rootQb = ctx.sourceQb.clone();
+    // Use sourceQb as the root/inner query
+    const rootQb = ctx.sourceQb;
 
-    const countQb = ctx.sourceQb.clone();
-    countQb.count({ count: ctx.model.primaryKey?.column_name || '*' });
+    // Clone before conditions are applied so countQb starts from the same base
+    const countQbBase = rootQb.clone();
 
     // handle shuffle if query param preset
     if (+listArgs?.shuffle) {
       await baseModel.shuffle({ qb: rootQb });
-      ctx.skipSortBasedOnOrderCol = true;
+      skipSortBasedOnOrderCol = true;
     }
 
     if (listArgs.pks) {
@@ -137,7 +141,7 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
     }
 
     let viewFilters: Filter[] = [];
-    // allViewFilters will have every filters defined in a view in a flatten form
+    // allViewFilters will have every filter defined in a view in a flatten form
     // used to verify whether cache will be skipped
     let allViewFilters: Filter[] = [];
 
@@ -154,6 +158,7 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
       skipCache = true;
     }
 
+    // RLS conditions already resolved above
     const rlsFilterGroup = rlsConditions.length
       ? [new Filter({ children: rlsConditions, is_group: true })]
       : [];
@@ -195,6 +200,7 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
     ) {
       skipCache = true;
     }
+
     profiler.log('apply condition');
 
     // RLS filters — always throw on missing columns to prevent row leaks
@@ -224,12 +230,12 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
     // apply sort on root query
     if (sorts?.length) await sortV2(baseModel, sorts, rootQb);
 
-    // apply sort on root query only if not skipped
-    if (!ctx.skipSortBasedOnOrderCol) {
+    if (!skipSortBasedOnOrderCol) {
       if (orderColumn) {
         rootQb.orderBy(orderColumn.column_name);
       }
     }
+
     // ignore stable sorting / sort by created time when shuffle
     if (!+listArgs?.shuffle) {
       // Ensure stable ordering:
@@ -244,13 +250,17 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
         );
         if (createdAtColumn) {
           rootQb.orderBy(createdAtColumn.column_name);
-        } /*else if (ctx.model.primaryKey) {
-            rootQb.orderBy(ctx.model.primaryKey.column_name);
-          }*/
+        }
       }
     }
 
+    // Wrap rootQb with ROOT_ALIAS for column extraction
     const qb = knex.from(rootQb.as(ROOT_ALIAS));
+
+    // Build count query wrapping the conditioned base
+    const countQb = knex
+      .from(countQbBase.as('count_qb'))
+      .count({ count: ctx.model.primaryKey?.column_name || '*' });
 
     profiler.log('get ast');
     const { ast } = await getAst(context, {
@@ -261,9 +271,9 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
       apiVersion: ctx.apiVersion,
       includeSortAndFilterColumns: ctx.includeSortAndFilterColumns,
       getHiddenColumn: ctx.getHiddenColumns,
-      includeRowColorColumns: ctx.params.include_row_color === 'true',
+      includeRowColorColumns: ctx.params?.include_row_color === 'true',
       includeButtonFilterColumns:
-        ctx.params.include_button_filter_columns === 'true',
+        ctx.params?.include_button_filter_columns === 'true',
       extractOnlyPrimaries: ctx.extractOnlyPrimaries,
     });
     profiler.log('extract column');
@@ -281,36 +291,31 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
       alias: ROOT_ALIAS,
       apiVersion: ctx.apiVersion,
     });
+
     if (!ctx.ignorePagination) {
-      if (ctx.limitOverride) {
-        rootQb.limit(ctx.limitOverride);
-        rootQb.offset(+listArgs.offset);
-      } else if (skipCache) {
-        rootQb.limit(+listArgs.limit);
-        rootQb.offset(+listArgs.offset);
+      if (!skipCache && ctx.limitOffsetPlaceholder) {
+        rootQb.limit(ctx.limitOffsetPlaceholder);
+        rootQb.offset(ctx.limitOffsetPlaceholder);
       } else {
-        // provide some dummy non-zero value to limit and offset to populate bindings,
-        // if offset is 0 then it will ignore bindings
-        rootQb.limit(9999);
-        rootQb.offset(9999);
+        rootQb.limit(ctx.limitOverride || +listArgs.limit);
+        rootQb.offset(+listArgs.offset);
       }
     }
+
     profiler.log('apply sort');
     // apply the sort on final query to get the result in correct order
     if (sorts?.length) await sortV2(baseModel, sorts, qb, ROOT_ALIAS);
 
-    // apply sort on root query only if not skipped
-    if (!ctx.skipSortBasedOnOrderCol) {
+    // apply sort on outer query only if not skipped
+    if (!skipSortBasedOnOrderCol) {
       if (orderColumn) {
         qb.orderBy(orderColumn.column_name);
       }
     }
+
     // ignore stable sorting / sort by created time when shuffle
     if (!+listArgs?.shuffle) {
-      // Ensure stable ordering:
-      // - Use auto-increment PK if available
-      // - Otherwise, fallback to system CreatedTime
-      // This avoids issues when order column has duplicates
+      // Ensure stable ordering on the outer query
       if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
         qb.orderBy(`${ROOT_ALIAS}.${ctx.model.primaryKey.column_name}`);
       } else {
@@ -320,9 +325,6 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
         if (createdAtColumn) {
           qb.orderBy(`${ROOT_ALIAS}.${createdAtColumn.column_name}`);
         }
-        /*else if (ctx.model.primaryKey) {
-            rootQb.orderBy(`${ROOT_ALIAS}.${ctx.model.primaryKey.column_name}`);
-          }*/
       }
     }
 

@@ -65,15 +65,17 @@ const integrationListRef = ref<HTMLDivElement>()
 const { width: integrationListContainerWidth } = useElementSize(integrationListRef)
 
 const listWrapperMaxWidth = computed(() => {
-  if (integrationListContainerWidth.value <= 328 || integrationListContainerWidth.value < 624) {
-    return '328px'
+  const w = integrationListContainerWidth.value
+
+  if (w < 580) {
+    return '280px'
   }
 
-  if (integrationListContainerWidth.value < 920) {
+  if (w < 870) {
     return '576px'
   }
 
-  if (integrationListContainerWidth.value < 1216) {
+  if (w < 1160) {
     return '872px'
   }
 

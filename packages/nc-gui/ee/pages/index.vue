@@ -45,7 +45,7 @@ const autoNavigateToWorkspace = async ({ initial = false }: { initial?: boolean 
     return
   }
 
-  if (routeName !== 'index-index') {
+  if (routeName !== 'index') {
     return
   }
 
@@ -59,9 +59,7 @@ const autoNavigateToWorkspace = async ({ initial = false }: { initial?: boolean 
   if (wsId && basesStore.basesList?.length) {
     const lastVisitedBase = ncLastVisitedBase().get()
 
-    const firstBase = lastVisitedBase
-      ? basesStore.basesList.find((b) => b.id === lastVisitedBase) ?? basesStore.basesList[0]
-      : basesStore.basesList[0]
+    const firstBase = lastVisitedBase ? basesStore.basesList.find((b) => b.id === lastVisitedBase) : undefined
 
     if (firstBase?.id) {
       await basesStore.navigateToProject({

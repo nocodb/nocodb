@@ -21,8 +21,8 @@ const isNotificationOpen = ref(false)
 
 const searchQuery = useState<string>('ws-home-search', () => '')
 
-const navigateToWorkspace = (wsId: string) => {
-  navigateTo(`/${wsId}`)
+const navigateToWorkspace = () => {
+  navigateTo(`/nc`)
 
   if (isMobileMode.value) {
     isLeftSidebarOpen.value = false
@@ -67,8 +67,8 @@ const navigateToWorkspace = (wsId: string) => {
           v-if="activeWorkspaceId"
           class="group"
           :active="true"
-          :data-testid="`nc-home-sidebar-ws-${activeWorkspaceId}`"
-          @click="navigateToWorkspace(activeWorkspaceId)"
+          :data-testid="`nc-home-sidebar-ws-nc`"
+          @click="navigateToWorkspace()"
         >
           <template #icon>
             <GeneralIcon icon="ncWorkspace" class="flex-none h-4 w-4" />

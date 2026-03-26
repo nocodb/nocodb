@@ -280,7 +280,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
         class="nc-dock-logo nc-dock-logo-hover"
         data-testid="nc-mini-sidebar-v2-logo"
         :scale="getScale('logo')"
-        @click="navigateTo(`/${activeWorkspaceId}`)"
+        @click="navigateTo(`/${isEeUI ? activeWorkspaceId : 'nc'}`)"
       >
         <GeneralProjectIcon
           class="!h-7 !w-7 nc-logo-icon"

@@ -121,7 +121,8 @@ const activeTab = computed({
       loadCollaborators({}, activeWorkspace.value?.id)
     }
 
-    router.push({ name: wsTabToRouteName[tabKey] || 'index-typeOrId' })
+    const typeOrId = route.value.params.typeOrId || activeWorkspace.value?.id || 'nc'
+    router.push({ name: wsTabToRouteName[tabKey] || 'index-typeOrId', params: { typeOrId } })
   },
 })
 </script>

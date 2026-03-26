@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Empty } from 'ant-design-vue'
-import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk'
+import { ProjectRoles } from 'nocodb-sdk'
 
 provide(IsWsBaseListModalInj, readonly(ref(true)))
 
@@ -12,14 +12,6 @@ const { workspacesList, activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const { workspaceBasesMap, basesList, isProjectsLoading } = storeToRefs(basesStore)
 const { loadProjects } = basesStore
-
-const { appInfo } = useGlobal()
-
-const { t } = useI18n()
-
-const { orgRoles } = useRoles()
-
-const { showEEFeatures } = useEeConfig()
 
 // Shared state
 const { baseListAllData, loadBaseListAll } = useWsBaseListAll()
@@ -33,27 +25,6 @@ const { dialogState, switchWorkspace } = useProvideWsBaseListActions(() => {})
 type FilterType = 'all' | 'starred' | 'private' | 'owned' | 'managed'
 const activeFilter = ref<FilterType>('all')
 
-const isSuperAdmin = computed(() => !!orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
-
-const filterOptions = computed<{ value: string; label: string; icon: string }[]>(() => [
-  { value: 'all', label: t('activity.allBases'), icon: 'ncList' },
-  ...(appInfo.value.ee
-    ? [
-        { value: 'starred', label: t('general.starred'), icon: 'star' },
-        ...(showEEFeatures.value
-          ? [
-              { value: 'private', label: t('general.private'), icon: 'ncLock' },
-              { value: 'managed', label: t('labels.managed'), icon: 'ncBox' },
-            ]
-          : []),
-      ]
-    : []),
-  ...(!isSuperAdmin.value ? [{ value: 'owned', label: t('activity.ownedByMe'), icon: 'ncUser' }] : []),
-])
-
-const isFilterActive = computed(() => activeFilter.value !== 'all')
-
-const selectedFilter = computed(() => filterOptions.value.find((o) => o.value === activeFilter.value))
 
 // Load baseListAll on mount
 onMounted(() => {
@@ -240,57 +211,22 @@ const selectedWorkspace = computed(() => {
 
 <template>
   <div class="flex flex-col h-full">
-    <!-- Toolbar: "Bases in {ws}" (left) + Filter + New Base (right) -->
-    <div class="flex items-center justify-between gap-2 w-full nc-content-max-w mx-auto px-4 pt-4 md:(px-6 pt-6) pb-2 flex-none">
-      <!-- Left: Bases in {workspace} -->
-      <div v-if="selectedWorkspace" class="flex items-center gap-1.5 text-xs font-medium tracking-wide min-w-0">
-        <span class="text-nc-content-gray-muted whitespace-nowrap">{{ $t('activity.basesIn') }}</span>
-        <span class="text-nc-content-brand capitalize truncate">{{ selectedWorkspace.title }}</span>
-        <span class="font-normal text-nc-content-gray-muted flex-shrink-0">({{ baseCount }})</span>
-      </div>
-
-      <!-- Right: Filter + New Base -->
-      <div class="flex items-center gap-2 flex-shrink-0 min-h-8">
-        <!-- Active filter pill -->
-        <div v-if="isFilterActive" class="nc-filter-pill" @click.stop>
-          <GeneralIcon :icon="selectedFilter?.icon || 'ncList'" class="w-3.5 h-3.5" />
-          <span class="text-bodyDefaultSm font-medium">{{ selectedFilter?.label }}</span>
-          <GeneralIcon icon="close" class="nc-filter-pill-close w-3.5 h-3.5 cursor-pointer" @click="activeFilter = 'all'" />
-        </div>
-
-        <!-- Filter Dropdown -->
-        <NcDropdown v-if="!isFilterActive">
-          <NcButton size="small" type="secondary">
-            <div class="flex items-center gap-1">
-              <GeneralIcon icon="ncList" class="w-4 h-4" />
-              <span class="text-bodyDefaultSm">{{ $t('activity.allBases') }}</span>
-              <GeneralIcon icon="chevronDown" class="w-3.5 h-3.5" />
-            </div>
-          </NcButton>
-          <template #overlay>
-            <NcMenu>
-              <NcMenuItem v-for="opt in filterOptions" :key="opt.value" @click="activeFilter = opt.value as FilterType">
-                <GeneralIcon :icon="opt.icon" class="w-4 h-4" />
-                {{ opt.label }}
-                <GeneralIcon v-if="activeFilter === opt.value" icon="check" class="w-4 h-4 text-primary ml-auto" />
-              </NcMenuItem>
-            </NcMenu>
+    <!-- Toolbar -->
+    <div class="w-full nc-content-max-w mx-auto px-4 pt-4 md:(px-6 pt-4) flex-none">
+      <WorkspaceBaseListHeader
+        v-model:search-query="searchQuery"
+        :base-count="baseCount"
+        :active-filter="activeFilter"
+        @update:active-filter="activeFilter = $event"
+      >
+        <template #label>
+          <template v-if="selectedWorkspace">
+            <span class="text-nc-content-gray-muted whitespace-nowrap">{{ $t('activity.basesIn') }}</span>
+            <span class="text-nc-content-brand capitalize truncate">{{ selectedWorkspace.title }}</span>
+            <span class="font-normal text-nc-content-gray-muted flex-shrink-0">({{ baseCount }})</span>
           </template>
-        </NcDropdown>
-
-        <WorkspaceCreateProjectBtn
-          :workspace-id="activeWorkspaceId ?? undefined"
-          type="primary"
-          placement="bottomRight"
-          centered
-          inner-class="children:justify-center"
-        >
-          <div class="flex items-center gap-1.5">
-            <GeneralIcon icon="plus" />
-            <span class="hidden sm:inline">{{ $t('title.newProj') }}</span>
-          </div>
-        </WorkspaceCreateProjectBtn>
-      </div>
+        </template>
+      </WorkspaceBaseListHeader>
     </div>
 
     <!-- Bases Content -->
@@ -407,14 +343,3 @@ const selectedWorkspace = computed(() => {
   </div>
 </template>
 
-<style lang="scss" scoped>
-.nc-filter-pill {
-  @apply flex items-center gap-1.5 px-2.5 py-1 rounded-full
-    bg-primary-selected text-nc-content-brand border-1 border-primary/20
-    text-bodyDefaultSm font-medium;
-}
-
-.nc-filter-pill-close {
-  @apply opacity-70 hover:opacity-100 transition-opacity;
-}
-</style>

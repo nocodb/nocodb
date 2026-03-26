@@ -35,7 +35,7 @@ const isMM = computed(() => colOptions.value?.type === RelationTypes.MANY_TO_MAN
 
 // Links columns (showing count) need a Rollup + new LTAR on conversion
 // LinkToAnotherRecord (LTAR v1) columns upgrade in-place — no rollup
-const isLinksColumn = computed(() => isLink(props.column!))
+const isLinksColumn = computed(() => props.column ? isLink(props.column) : false)
 
 const isParentSide = computed(() => {
   if (!colOptions.value?.type) return false
@@ -87,7 +87,13 @@ async function handleConvert() {
 </script>
 
 <template>
-  <NcModal v-model:visible="visible" size="small" :show-separator="false" :centered="false" wrap-class-name="nc-modal-convert-link-v2">
+  <NcModal
+    v-model:visible="visible"
+    size="small"
+    :show-separator="false"
+    :centered="false"
+    wrap-class-name="nc-modal-convert-link-v2"
+  >
     <template #header>
       <div class="flex flex-row items-center gap-x-2">{{ $t('title.convertLegacyLink') }}</div>
     </template>
@@ -120,7 +126,8 @@ async function handleConvert() {
               target="_blank"
               rel="noopener noreferrer"
               class="text-nc-content-brand underline"
-            >{{ $t('msg.learnMore') }}</a>
+              >{{ $t('msg.learnMore') }}</a
+            >
           </template>
         </i18n-t>
       </div>

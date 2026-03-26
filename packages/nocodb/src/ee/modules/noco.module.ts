@@ -81,6 +81,9 @@ import { DashboardsV3Service } from '~/services/v3/dashboards-v3.service';
 /* Documents V3 */
 import { DocumentsV3Controller } from '~/ee/controllers/v3/documents-v3.controller';
 import { DocumentsV3Service } from '~/services/v3/documents-v3.service';
+/* Workflows V3 */
+import { WorkflowsV3Controller } from '~/controllers/v3/workflows-v3.controller';
+import { WorkflowsV3Service } from '~/services/v3/workflows-v3.service';
 
 /* Snapshot */
 import { SnapshotController } from '~/controllers/snapshot.controller';
@@ -217,6 +220,8 @@ export const nocoModuleEeMetadata = {
 
     /* Dashboards V3 */
     DashboardsV3Service,
+    /* Workflows V3 */
+    WorkflowsV3Service,
 
     /* Managed Apps */
     ManagedAppService,
@@ -320,6 +325,7 @@ export const nocoModuleEeMetadata = {
     DashboardsV3Controller,
 
     DocumentsV3Controller,
+    WorkflowsV3Controller,
 
     Datav3Controller,
 

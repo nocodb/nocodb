@@ -67,7 +67,6 @@ export const PlanFeatureDefinitions: Record<PlanTitles, PlanFeatureTypes[]> = {
     PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS,
     PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF,
   ],
-
   [PlanTitles.BUSINESS]: [
     PlanFeatureTypes.FEATURE_DOCS_APIS,
     PlanFeatureTypes.FEATURE_AI_INTEGRATIONS,
@@ -88,6 +87,7 @@ export const PlanFeatureDefinitions: Record<PlanTitles, PlanFeatureTypes[]> = {
     PlanFeatureTypes.FEATURE_DATE_DEPENDENCY,
     PlanFeatureTypes.FEATURE_API_WEBHOOK_V3,
     PlanFeatureTypes.FEATURE_API_COMMENT_V3,
+    PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT,
   ],
 
   [PlanTitles.ENTERPRISE]: [

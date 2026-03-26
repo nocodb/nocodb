@@ -5,6 +5,7 @@ import modelTests from './model/index.test';
 import { formulaTests } from './formula/index.test';
 import TestDbMngr from './TestDbMngr';
 import { dataApiV3Test } from './rest/tests/dataApiV3/index.test';
+import { workflowApiV3Test } from './rest/tests/workflowApiV3/index.test';
 import { processorTests } from './processor/index.test';
 import { errorTests } from './error/index.test';
 import { rollupTests } from './rollup/index.test';
@@ -45,6 +46,7 @@ dotenv.config({
   restTests();
   processorTests();
   await dataApiV3Test();
+  await workflowApiV3Test();
 
   run();
 })();

@@ -436,6 +436,7 @@ export class RelationManager {
         }
 
         if (moRemovedPairs.length > 1) {
+          logger.warn(
             `V2 cardinality enforcement removed ${moRemovedPairs.length} junction rows ` +
               `(expected 0-1) for child ${childId} on column ${relationColumn.id}`,
           );

@@ -233,6 +233,13 @@ export class PublicDatasService {
     listArgs: any,
     visibleInfo: VisibleColumnInfo,
   ): void {
+    // Strip keys that must never be controlled by public/shared-view callers
+    // (e.g. getHiddenColumn, nested) — applies to both top-level listArgs and
+    // inner bulkFilterList entries so the full attack surface is covered.
+    for (const key of PUBLIC_QUERY_BLOCKED_KEYS) {
+      delete listArgs[key];
+    }
+
     // Parse `where` with a restricted alias map so only visible columns are
     // accepted.  The parsed filters are merged into filterArr and the raw
     // `where` string is deleted so BaseModel won't re-parse it with the

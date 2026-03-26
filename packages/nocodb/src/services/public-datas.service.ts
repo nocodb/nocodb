@@ -209,9 +209,13 @@ export class PublicDatasService {
       (agg, c) => ({ ...agg, [c.id]: c }),
       {} as Record<string, Column>,
     );
+    const colNameReduce = visibleColumns.reduce(
+      (agg, c) => ({ ...agg, [c.column_name]: c }),
+      idReduce,
+    );
     return visibleColumns.reduce(
       (agg, c) => ({ ...agg, [c.title]: c }),
-      idReduce,
+      colNameReduce,
     );
   }
 

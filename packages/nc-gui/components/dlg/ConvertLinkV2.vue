@@ -116,7 +116,7 @@ async function handleConvert() {
         <i18n-t keypath="msg.info.convertLinkV2Warning" tag="span" class="text-sm text-nc-content-gray">
           <template #learnMore>
             <a
-              href="https://docs.nocodb.com/fields/field-types/links-based/links#upgrade-to-link-to-another-record"
+              href="https://nocodb.com/docs/product-docs/fields/field-types/links-based/link-to-another-record#upgrade-from-links-v1"
               target="_blank"
               rel="noopener noreferrer"
               class="text-nc-content-brand underline"

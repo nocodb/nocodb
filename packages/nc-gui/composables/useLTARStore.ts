@@ -844,8 +844,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         if (!undo) {
           let oldValue = null
 
-          // If it is bt or oo relation then we have to restore old value on undo
-          if (isBt(column.value) || isOo(column.value)) {
+          // If it is bt/oo/V2 MO relation then we have to restore old value on undo
+          if (isBt(column.value) || isOo(column.value) || isBtLikeV2Junction(column.value)) {
             oldValue = currentRow.value.row?.[column.value?.title]
           }
 

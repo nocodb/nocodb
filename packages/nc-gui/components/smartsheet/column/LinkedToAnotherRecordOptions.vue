@@ -357,9 +357,8 @@ const isLinkedTablePrivate = computed(() => {
 const linkType = computed({
   get: () => {
     const type = (isEdit.value ? vModel.value?.colOptions?.type : vModel.value?.type) ?? null
-    // BT is displayed as Many to One in the radio group
+    // Remap legacy relation types to V2 radio values (om/mo)
     if (type === RelationTypes.BELONGS_TO) return RelationTypes.MANY_TO_ONE
-    // HM is displayed as One to Many in the radio group
     if (type === RelationTypes.HAS_MANY) return RelationTypes.ONE_TO_MANY
     return type
   },
@@ -493,7 +492,7 @@ const handleScrollIntoView = () => {
     <div class="flex flex-col gap-4">
       <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type !mb-0">
         <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit" class="w-full">
-          <template v-if="vModel.uidt === UITypes.LinkToAnotherRecord">
+          <template v-if="vModel.uidt === UITypes.LinkToAnotherRecord || isUpgradeable">
             <a-row :gutter="[8, 8]">
               <a-col :span="12">
                 <a-radio value="mm" data-testid="Many to Many">

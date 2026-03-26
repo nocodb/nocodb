@@ -1,11 +1,5 @@
 <script setup lang="ts">
-interface ColumnMeta {
-  column_name: string
-  title: string
-  uidt: string
-  system: boolean
-  pv?: boolean
-}
+import type { ColumnType } from 'nocodb-sdk'
 
 interface Props {
   isLoading: boolean
@@ -13,10 +7,12 @@ interface Props {
   trashCount: number
   pageSize: number
   totalCount: number
-  columnsMeta: ColumnMeta[]
+  pkColumn: string
+  pvColumn?: ColumnType
   deletedAtColumn: string | null
   deletedByColumn: string | null
-  pkColumn: string
+  deletedByColumnObj?: ColumnType | null
+  previewColumns: ColumnType[]
   retentionDays: number
 }
 
@@ -40,20 +36,14 @@ const { t } = useI18n()
 
 const { showConfirmModal } = useNcConfirmModal()
 
-const pvColumn = computed(() => props.columnsMeta.find((c) => c.pv))
-
-const previewColumns = computed(() =>
-  props.columnsMeta.filter((c) => !c.system && !c.pv).slice(0, 6),
-)
-
 function getRowId(record: Record<string, any>) {
   return String(record[props.pkColumn] ?? '')
 }
 
 function getPvValue(record: Record<string, any>) {
-  if (pvColumn.value) return record[pvColumn.value.column_name]
-  const first = props.columnsMeta.find((c) => !c.system)
-  return first ? record[first.column_name] : getRowId(record)
+  if (props.pvColumn) return record[props.pvColumn.title!]
+  const first = props.previewColumns[0]
+  return first ? record[first.title!] : getRowId(record)
 }
 
 function getDeletedAt(record: Record<string, any>) {
@@ -227,7 +217,7 @@ watch(isOpen, (val) => {
             :data-testid="`nc-trash-row-${getRowId(record)}`"
             @click="toggleSelect(record)"
           >
-            <div class="flex items-center gap-3 px-4 py-2.5">
+            <div class="flex items-center gap-3 px-4 py-3">
               <NcCheckbox
                 :checked="isSelected(record)"
                 @click.stop
@@ -235,16 +225,25 @@ watch(isOpen, (val) => {
               />
 
               <!-- Record content -->
-              <div class="flex-1 flex flex-col gap-1 justify-center overflow-hidden min-w-0">
+              <div class="flex-1 flex flex-col gap-1.5 justify-center overflow-hidden min-w-0">
                 <div class="font-semibold text-nc-content-brand text-sm leading-5 truncate">
-                  {{ getPvValue(record) || '—' }}
+                  <SmartsheetPlainCell
+                    v-if="pvColumn && record[pvColumn.title!] != null"
+                    :column="pvColumn"
+                    :model-value="record[pvColumn.title!]"
+                  />
+                  <span v-else>{{ getPvValue(record) || '—' }}</span>
                 </div>
                 <div v-if="previewColumns.length" class="flex items-center gap-4">
-                  <div v-for="col in previewColumns" :key="col.column_name" class="max-w-1/3 overflow-hidden">
-                    <span v-if="record[col.column_name]" class="text-small text-nc-content-gray-subtle2 truncate block">
-                      {{ record[col.column_name] }}
-                    </span>
-                    <span v-else class="text-small text-nc-content-gray-muted">-</span>
+                  <div v-for="col in previewColumns" :key="col.title" class="w-1/6 max-w-32 overflow-hidden">
+                    <SmartsheetPlainCell
+                      v-if="record[col.title!] != null"
+                      :column="col"
+                      :model-value="record[col.title!]"
+                      class="text-nc-content-gray-subtle2 text-small truncate"
+                      show-tooltip
+                    />
+                    <span v-else class="text-nc-content-gray-muted text-small">-</span>
                   </div>
                 </div>
               </div>
@@ -277,13 +276,19 @@ watch(isOpen, (val) => {
               </div>
 
               <!-- Deleted metadata (always visible, at end) -->
-              <div class="flex flex-col items-end shrink-0 gap-0.5">
+              <div class="flex flex-col items-end shrink-0 gap-1.5 min-w-28">
                 <span v-if="getDeletedAt(record)" class="text-captionSm text-nc-content-gray-muted whitespace-nowrap">
                   {{ formatDate(getDeletedAt(record)) }}
                 </span>
-                <span v-if="deletedByColumn && getDeletedBy(record)" class="text-captionSm text-nc-content-gray-subtle2 whitespace-nowrap truncate max-w-32">
-                  {{ $t('trash.deletedBy') }} {{ getDeletedBy(record) }}
-                </span>
+                <div v-if="deletedByColumn && deletedByColumnObj && getDeletedBy(record)" class="text-captionSm text-nc-content-gray-subtle2 whitespace-nowrap flex items-center gap-1">
+                  <span>{{ $t('trash.deletedBy') }}</span>
+                  <SmartsheetPlainCell
+                    :column="deletedByColumnObj"
+                    :model-value="getDeletedBy(record)"
+                    class="truncate max-w-24"
+                    show-tooltip
+                  />
+                </div>
               </div>
             </div>
           </div>

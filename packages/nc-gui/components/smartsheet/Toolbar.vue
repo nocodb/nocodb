@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { UITypes } from 'nocodb-sdk'
+
 defineProps<{
   showFullScreenToggle?: boolean
 }>()

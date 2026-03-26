@@ -476,7 +476,11 @@ export function isHiddenCol(
     return col.colOptions?.type === RelationTypes.HAS_MANY;
   }
 
-  if (col.uidt === UITypes.Order || col.uidt === UITypes.Meta) {
+  if (
+    col.uidt === UITypes.Order ||
+    col.uidt === UITypes.Meta ||
+    col.uidt === UITypes.Deleted
+  ) {
     return true;
   }
 

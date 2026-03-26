@@ -2333,7 +2333,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           });
           await entry.baseModel.broadcastLinkUpdates(entry.ids);
         } catch (e) {
-          logger.error(e?.message, e?.stack);
+          this.logger.error(e?.message, e?.stack);
         }
       }
 
@@ -4316,7 +4316,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             });
             await entry.baseModel.broadcastLinkUpdates(entry.ids);
           } catch (e) {
-            logger.error(e?.message, e?.stack);
+            this.logger.error(e?.message, e?.stack);
           }
         }
       }

@@ -1,12 +1,9 @@
-import type { TableType } from 'nocodb-sdk'
-
-interface TrashColumnMeta {
-  column_name: string
-  title: string
-  uidt: string
-  system: boolean
-  pv?: boolean
-}
+import {
+  isDeletedCol,
+  isVirtualCol,
+  UITypes,
+} from 'nocodb-sdk'
+import type { ColumnType, TableType } from 'nocodb-sdk'
 
 type RecordTrashOperation = 'recordTrashList' | 'recordTrashCount' | 'recordTrashRestore' | 'recordTrashPermanentDelete' | 'recordTrashEmpty'
 
@@ -33,17 +30,38 @@ export const useRecordTrash = createSharedComposable(() => {
 
   const selectedRowIds = ref<string[]>([])
 
-  const columnsMeta = ref<TrashColumnMeta[]>([])
-
-  const deletedAtColumn = ref<string | null>(null)
-
-  const deletedByColumn = ref<string | null>(null)
-
-  const pkColumn = ref<string>('id')
-
   const retentionDays = ref(30)
 
   const tableId = computed(() => meta.value?.id)
+
+  // Derive column info from table meta — no need for backend to return it
+  const columns = computed(() => (meta.value?.columns ?? []) as ColumnType[])
+
+  const pkColumn = computed(
+    () => columns.value.find((c) => c.pk)?.title ?? 'Id',
+  )
+
+  const pvColumn = computed(() => columns.value.find((c) => c.pv))
+
+  const deletedAtColumn = computed(
+    () => columns.value.find((c) => c.uidt === UITypes.LastModifiedTime && c.system)?.title ?? null,
+  )
+
+  const deletedByColumnObj = computed(
+    () => columns.value.find((c) => c.uidt === UITypes.LastModifiedBy && c.system) ?? null,
+  )
+
+  const deletedByColumn = computed(
+    () => deletedByColumnObj.value?.title ?? null,
+  )
+
+  const displayColumns = computed(() =>
+    columns.value.filter(
+      (c) => !isDeletedCol(c) && !c.pk && !c.pv && !c.system && !isVirtualCol(c),
+    ),
+  )
+
+  const previewColumns = computed(() => displayColumns.value.slice(0, 6))
 
   async function loadTrashCount() {
     if (!tableId.value) return
@@ -80,10 +98,6 @@ export const useRecordTrash = createSharedComposable(() => {
       )) as any
 
       deletedRecords.value = result?.list ?? []
-      columnsMeta.value = result?.columns ?? []
-      deletedAtColumn.value = result?.deletedAtColumn ?? null
-      deletedByColumn.value = result?.deletedByColumn ?? null
-      pkColumn.value = result?.pkColumn ?? 'id'
       totalCount.value = result?.pageInfo?.totalRows ?? 0
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
@@ -149,7 +163,7 @@ export const useRecordTrash = createSharedComposable(() => {
     try {
       await $api.internal.postOperation(
         (meta.value as TableType)?.fk_workspace_id ?? 'nc__',
-        (meta.value as TableType)?.base_id!,
+        (meta.value as TableType)?.base_id,
         { operation: 'recordTrashEmpty' as RecordTrashOperation } as any,
         { tableId: tableId.value },
       )
@@ -223,10 +237,12 @@ export const useRecordTrash = createSharedComposable(() => {
     pageSize,
     totalCount,
     selectedRowIds,
-    columnsMeta,
+    pkColumn,
+    pvColumn,
     deletedAtColumn,
     deletedByColumn,
-    pkColumn,
+    deletedByColumnObj,
+    previewColumns,
     retentionDays,
     loadDeletedRecords,
     loadTrashCount,

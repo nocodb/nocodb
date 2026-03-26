@@ -4502,6 +4502,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const deletedColumn = columns.find((c) => isDeletedCol(c));
       const isSoftDelete = !!deletedColumn && source.isMeta();
 
+      let collectedNotifications: {
+        baseModel: any;
+        model: any;
+        ids: string[];
+        colId: string;
+      }[] = [];
+
       transaction = await this.dbDriver.transaction();
 
       if (isSoftDelete) {
@@ -4845,12 +4852,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
         // Phase 1: Collect linked IDs BEFORE transaction (data still intact)
         const idsVals = res.map((d) => d[this.model.primaryKey.column_name]);
-        const collectedNotifications: {
-          baseModel: any;
-          model: any;
-          ids: string[];
-          colId: string;
-        }[] = [];
 
         for (const collector of bulkLinkedCollectors) {
           try {

@@ -8,10 +8,12 @@ const {
   pageSize,
   totalCount,
   selectedRowIds,
-  columnsMeta,
+  pkColumn,
+  pvColumn,
   deletedAtColumn,
   deletedByColumn,
-  pkColumn,
+  deletedByColumnObj,
+  previewColumns,
   retentionDays,
   loadDeletedRecords,
   loadTrashCount,
@@ -51,10 +53,12 @@ const {
     :trash-count="trashCount"
     :page-size="pageSize"
     :total-count="totalCount"
-    :columns-meta="columnsMeta"
+    :pk-column="pkColumn"
+    :pv-column="pvColumn"
     :deleted-at-column="deletedAtColumn"
     :deleted-by-column="deletedByColumn"
-    :pk-column="pkColumn"
+    :deleted-by-column-obj="deletedByColumnObj"
+    :preview-columns="previewColumns"
     :retention-days="retentionDays"
     @load-deleted-records="loadDeletedRecords"
     @load-trash-count="loadTrashCount"

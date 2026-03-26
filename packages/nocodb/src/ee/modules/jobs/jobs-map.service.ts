@@ -34,7 +34,7 @@ import { WorkflowDraftReminderProcessor } from '~/modules/jobs/jobs/workflow/wor
 import { HookErrorNotificationProcessor } from '~/modules/jobs/jobs/hook-error-notification.processor';
 import { ChatMessageProcessor } from '~/modules/jobs/jobs/chat-message.processor';
 import { ChatApprovalProcessor } from '~/modules/jobs/jobs/chat-approval.processor';
-import { RecordTrashCleanupJob } from '~/ee/modules/jobs/jobs/record-trash-cleanup.job';
+import { RecordTrashCleanupJob } from '~/modules/jobs/jobs/record-trash-cleanup/record-trash-cleanup.job';
 
 @Injectable()
 export class JobsMap extends JobsMapCE {

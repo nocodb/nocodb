@@ -55,8 +55,8 @@ export const useEeConfig = createSharedComposable(() => {
   /** True when running on-prem without a valid enterprise license (CE mode) */
   const isEEFeatureBlocked = computed(() => isOnPrem.value && !appInfo.value?.ee)
 
-  /** True on licensed On-Prem & Cloud — false on unlicensed On-Prem */
-  const showEEFeatures = computed(() => !isEEFeatureBlocked.value)
+  /** Always true in EE build — features are visible with upgrade badges when blocked */
+  const showEEFeatures = computed(() => true)
 
   // Will only consider ws owner not super admin
   const isWsOwner = computed(() =>

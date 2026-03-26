@@ -1327,14 +1327,41 @@ export class RelationManager {
     }
   }
 
-  getAuditUpdateObj(req: any) {
-    const { childTable, parentTable, parentColumn, childColumn } =
-      this.relationContext;
+  async getAuditUpdateObj(req: any) {
+    const {
+      childTable,
+      parentTable,
+      relationColumn,
+      baseModel,
+    } = this.relationContext;
+
+    // Find the paired link column on the related table
+    const pairedCol = await extractCorrespondingLinkColumn(
+      baseModel.context,
+      {
+        ltarColumn: relationColumn,
+        referencedTableColumns:
+          relationColumn.fk_model_id === parentTable.id
+            ? childTable.columns
+            : parentTable.columns,
+      },
+    );
+
+    // Determine which link column belongs to which table
+    const isRelColOnParent =
+      relationColumn.fk_model_id === parentTable.id;
+    const parentLinkCol = isRelColOnParent
+      ? relationColumn
+      : pairedCol || relationColumn;
+    const childLinkCol = isRelColOnParent
+      ? pairedCol || relationColumn
+      : relationColumn;
+
     return this.auditUpdateObj.map((log) => {
       const column =
-        log.direction === 'parent_child' ? parentColumn : childColumn;
+        log.direction === 'parent_child' ? parentLinkCol : childLinkCol;
       const refColumn =
-        log.direction === 'parent_child' ? childColumn : parentColumn;
+        log.direction === 'parent_child' ? childLinkCol : parentLinkCol;
       return {
         ...log,
         model: log.direction === 'parent_child' ? parentTable : childTable,

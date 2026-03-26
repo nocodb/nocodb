@@ -26,12 +26,20 @@ const fieldsChanged = computed(() => {
   }
 })
 
+const meta = inject(MetaInj, ref())
+
 function safeGetFromAuditDetails(audit: AuditType, key: string) {
   try {
     return JSON.parse(audit.details || '')[key]
   } catch {
     return '-'
   }
+}
+
+function getLinkColumnType(audit: AuditType) {
+  const fieldId = safeGetFromAuditDetails(audit, 'link_field_id')
+  const col = meta.value?.columns?.find((c: any) => c.id === fieldId)
+  return (col?.colOptions as any)?.type || safeGetFromAuditDetails(audit, 'type')
 }
 
 /* formatting */
@@ -115,7 +123,7 @@ const createdBy = computed(() => {
             class="rounded-md px-1 !h-[20px] inline-flex items-center gap-1 text-nc-content-gray-emphasis border-1 border-nc-border-gray-medium"
           >
             <SmartsheetHeaderVirtualCellIcon
-              :column-meta="{ uidt: 'Links', colOptions: { type: safeGetFromAuditDetails(props.auditGroup.audit, 'type') } }"
+              :column-meta="{ uidt: 'Links', colOptions: { type: getLinkColumnType(props.auditGroup.audit) } }"
               class="!w-[16px] !h-[16px] !m-0"
             />
             <span class="text-small1 font-weight-500">

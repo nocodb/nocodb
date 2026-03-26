@@ -1274,11 +1274,12 @@ const unique = computed({
                       class="nc-field-type-icon w-4 h-4 !opacity-90 text-current"
                     />
                     <div
+                      class="flex items-center gap-1"
                       :class="{
-                        'flex-1': !searchBasisInfoMap[opt.name],
+                        'flex-1 min-w-0': !searchBasisInfoMap[opt.name],
                       }"
                     >
-                      {{ UITypesName[opt.name] }}
+                      <span class="truncate">{{ UITypesName[opt.name] }}</span>
                       <NcTooltip
                         v-if="
                           isEdit &&
@@ -1291,7 +1292,7 @@ const unique = computed({
                         :title="$t('labels.convertToNewLink')"
                       >
                         <span
-                          class="!text-xs !text-nc-content-brand-hover cursor-pointer hover:underline"
+                          class="!text-xs !text-nc-content-brand-hover cursor-pointer hover:underline flex-none"
                           @click.stop="showConvertLinkV2Modal = true"
                           >(Legacy)</span
                         >

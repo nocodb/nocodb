@@ -571,6 +571,9 @@ export const RootScopeTables = {
     MetaTable.CUSTOM_URLS,
     MetaTable.MCP_TOKENS,
     MetaTable.TEAMS,
+    MetaTable.OAUTH_CLIENTS,
+    MetaTable.OAUTH_AUTHORIZATION_CODES,
+    MetaTable.OAUTH_TOKENS,
   ],
   [RootScopes.ORG]: [
     MetaTable.ORG,

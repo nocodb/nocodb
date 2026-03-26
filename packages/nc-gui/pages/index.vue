@@ -10,7 +10,11 @@ const { isSharedBase, isSharedErd } = storeToRefs(useBase())
 
 const basesStore = useBases()
 
-const { populateWorkspace } = useWorkspace()
+const workspaceStore = useWorkspace()
+
+const { populateWorkspace } = workspaceStore
+
+const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const { signedIn } = useGlobal()
 
@@ -22,21 +26,52 @@ const route = router.currentRoute
 
 const { basesList } = storeToRefs(basesStore)
 
-const autoNavigateToProject = async () => {
+const isHomeSidebarRoute = computed(() => {
+  return isWsHomeRoute(route.value)
+})
+
+const { hideMiniSidebar } = storeToRefs(useSidebarStore())
+
+watch(
+  isHomeSidebarRoute,
+  (val) => {
+    hideMiniSidebar.value = val
+  },
+  { immediate: true },
+)
+
+const autoNavigateToWorkspace = async () => {
   const routeName = route.value.name as string
-  if (routeName !== 'index-typeOrId' && routeName !== 'index') {
+
+  // Don't auto-navigate when already on a workspace page
+  if (routeName.startsWith('index-typeOrId')) {
     return
   }
 
-  const lastVisitedBase = ncLastVisitedBase().get()
+  if (routeName !== 'index-index') {
+    return
+  }
 
-  const firstBase = lastVisitedBase
-    ? basesStore.basesList.find((b) => b.id === lastVisitedBase) ?? basesStore.basesList[0]
-    : basesStore.basesList[0]
+  const wsId = activeWorkspaceId.value
 
-  if (!firstBase?.id) return
+  // Try to navigate into last visited base (backward compat)
+  if (wsId && basesStore.basesList?.length) {
+    const lastVisitedBase = ncLastVisitedBase().get()
 
-  await basesStore.navigateToProject({ baseId: firstBase.id! })
+    const firstBase = lastVisitedBase
+      ? basesStore.basesList.find((b) => b.id === lastVisitedBase) ?? basesStore.basesList[0]
+      : basesStore.basesList[0]
+
+    if (firstBase?.id) {
+      await basesStore.navigateToProject({ baseId: firstBase.id! })
+      return
+    }
+  }
+
+  // No bases — navigate to workspace home
+  if (wsId) {
+    await navigateTo(`/${wsId}`)
+  }
 }
 
 const isSharedView = computed(() => {
@@ -77,8 +112,8 @@ async function handleRouteTypeIdChange() {
     // Load bases
     await populateWorkspace()
 
-    if (!route.value.params.baseId && basesList.value.length > 0) {
-      await autoNavigateToProject()
+    if (!route.value.params.baseId) {
+      await autoNavigateToWorkspace()
     }
   } catch (e: any) {
     console.error(e)
@@ -128,10 +163,20 @@ watch(
     </NuxtLayout>
     <NuxtLayout v-else name="dashboard">
       <template #sidebar>
-        <DashboardSidebar />
+        <DashboardHomeSidebar v-if="isHomeSidebarRoute" />
+        <DashboardSidebar v-else />
       </template>
       <template #content>
-        <NuxtPage />
+        <!-- Workspace home: stable header + tabs + dynamic page content -->
+        <div v-if="isHomeSidebarRoute" class="flex flex-col h-full w-full">
+          <WorkspaceViewTopbar />
+          <WorkspaceViewTabs />
+          <div class="flex-1 overflow-auto">
+            <NuxtPage :transition="false" />
+          </div>
+        </div>
+        <!-- Non-workspace routes: render page directly -->
+        <NuxtPage v-else :transition="false" />
       </template>
     </NuxtLayout>
     <DlgSharedBaseDuplicate v-if="isUIAllowed('baseDuplicate')" v-model="isDuplicateDlgOpen" />

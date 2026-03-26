@@ -16,6 +16,11 @@ const openSearch = () => {
 const showUpgrade = () => {
   handleUpgradePlan({})
 }
+
+const workspaceTitle = computed(() => {
+  if (isEeUI) return activeWorkspace.value?.title
+  return 'Default Workspace'
+})
 </script>
 
 <template>
@@ -26,7 +31,7 @@ const showUpgrade = () => {
     <div class="flex items-center gap-2 min-w-0">
       <GeneralOpenLeftSidebarBtn />
       <h1 class="text-bodyLgBold text-nc-content-gray capitalize truncate mb-0" data-testid="nc-ws-home-topbar-title">
-        {{ activeWorkspace?.title }}
+        {{ workspaceTitle }}
       </h1>
       <div
         v-if="isEeUI"

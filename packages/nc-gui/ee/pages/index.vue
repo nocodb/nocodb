@@ -45,7 +45,7 @@ const autoNavigateToWorkspace = async ({ initial = false }: { initial?: boolean 
     return
   }
 
-  if (routeName !== 'index') {
+  if (routeName !== 'index-index') {
     return
   }
 

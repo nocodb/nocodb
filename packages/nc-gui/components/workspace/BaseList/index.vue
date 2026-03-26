@@ -8,19 +8,19 @@ const basesStore = useBases()
 
 const { basesList, isProjectsLoading } = storeToRefs(basesStore)
 
-const { t } = useI18n()
-
 // Actions provider
 const { dialogState } = useProvideWsBaseListActions(() => {})
 
 // Search — shared with sidebar
 const searchQuery = useState<string>('ws-home-search', () => '')
 
-// Filter state — CE only has 'all' | 'owned'
+// Filter state
 type FilterType = 'all' | 'owned'
 const activeFilter = ref<FilterType>('all')
 
 const workspaceBases = computed(() => basesList.value)
+
+const baseCount = computed(() => workspaceBases.value.length)
 
 // Base attribute checkers
 const baseCheckers = {
@@ -80,62 +80,23 @@ const hasNoSearchResults = computed(() => {
   if (workspaceBases.value.length === 0) return false
   return displayedSections.value.length === 0 && searchQuery.value.length > 0
 })
-
-const isFilterActive = computed(() => activeFilter.value !== 'all')
-
-const filterOptions = computed<{ value: string; label: string; icon: string }[]>(() => [
-  { value: 'all', label: t('activity.allBases'), icon: 'ncList' },
-  { value: 'owned', label: t('activity.ownedByMe'), icon: 'ncUser' },
-])
-
-const selectedFilter = computed(() => filterOptions.value.find((o) => o.value === activeFilter.value))
 </script>
 
 <template>
   <div class="flex flex-col h-full">
-    <!-- Toolbar: Filter (left) + New Base (right) -->
-    <div class="flex items-center justify-between gap-2 w-full nc-content-max-w mx-auto px-4 pt-4 md:(px-6 pt-6) pb-2 flex-none">
-      <div class="flex items-center gap-2">
-        <!-- Active filter pill -->
-        <div v-if="isFilterActive" class="nc-filter-pill" @click.stop>
-          <GeneralIcon :icon="selectedFilter?.icon || 'ncList'" class="w-3.5 h-3.5" />
-          <span class="text-bodyDefaultSm font-medium">{{ selectedFilter?.label }}</span>
-          <GeneralIcon icon="close" class="nc-filter-pill-close w-3.5 h-3.5 cursor-pointer" @click="activeFilter = 'all'" />
-        </div>
-
-        <!-- Filter Dropdown -->
-        <NcDropdown v-if="!isFilterActive">
-          <NcButton size="small" type="secondary">
-            <div class="flex items-center gap-1">
-              <GeneralIcon icon="ncList" class="w-4 h-4" />
-              <span class="text-bodyDefaultSm">{{ $t('activity.allBases') }}</span>
-              <GeneralIcon icon="chevronDown" class="w-3.5 h-3.5" />
-            </div>
-          </NcButton>
-          <template #overlay>
-            <NcMenu>
-              <NcMenuItem v-for="opt in filterOptions" :key="opt.value" @click="activeFilter = opt.value as FilterType">
-                <GeneralIcon :icon="opt.icon" class="w-4 h-4" />
-                {{ opt.label }}
-                <GeneralIcon v-if="activeFilter === opt.value" icon="check" class="w-4 h-4 text-primary ml-auto" />
-              </NcMenuItem>
-            </NcMenu>
-          </template>
-        </NcDropdown>
-      </div>
-
-      <WorkspaceCreateProjectBtn type="primary" placement="bottomRight" centered inner-class="children:justify-center">
-        <div class="flex items-center gap-1.5">
-          <GeneralIcon icon="plus" />
-          <span class="hidden sm:inline">{{ $t('title.newProj') }}</span>
-        </div>
-      </WorkspaceCreateProjectBtn>
+    <!-- Toolbar -->
+    <div class="w-full nc-content-max-w mx-auto px-4 pt-4 md:(px-6 pt-4) flex-none">
+      <WorkspaceBaseListHeader
+        v-model:search-query="searchQuery"
+        :base-count="baseCount"
+        :active-filter="activeFilter"
+        @update:active-filter="activeFilter = $event"
+      />
     </div>
 
-    <!-- Bases Content — scrollbar at extreme edge -->
+    <!-- Bases Content -->
     <div class="flex-1 overflow-y-auto nc-scrollbar-thin w-full">
       <div class="nc-content-max-w mx-auto px-4 md:px-6 py-4 flex flex-col relative">
-        <!-- Categorized sections -->
         <WorkspaceBaseListModalBasesSection
           v-for="section in displayedSections"
           :key="section.type"
@@ -193,15 +154,3 @@ const selectedFilter = computed(() => filterOptions.value.find((o) => o.value ==
     />
   </div>
 </template>
-
-<style lang="scss" scoped>
-.nc-filter-pill {
-  @apply flex items-center gap-1.5 px-2.5 py-1 rounded-full
-    bg-primary-selected text-nc-content-brand border-1 border-primary/20
-    text-bodyDefaultSm font-medium;
-}
-
-.nc-filter-pill-close {
-  @apply opacity-70 hover:opacity-100 transition-opacity;
-}
-</style>

@@ -131,7 +131,7 @@ async function handleConvert() {
         </NcButton>
 
         <NcButton size="small" type="primary" :loading="isConverting" data-testid="nc-convert-link-v2-btn" @click="handleConvert">
-          {{ $t('labels.convertToNewLink') }}
+          {{ $t('general.upgrade') }}
           <template #loading> {{ $t('general.saving') }}... </template>
         </NcButton>
       </div>

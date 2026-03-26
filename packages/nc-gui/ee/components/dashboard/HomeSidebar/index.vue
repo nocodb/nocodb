@@ -8,6 +8,9 @@ const workspaceStore = useWorkspace()
 const { workspacesList, activeWorkspaceId } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
+const basesStore = useBases()
+const { isProjectsLoaded } = storeToRefs(basesStore)
+
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { orgRoles } = useRoles()
@@ -31,6 +34,15 @@ const canCreateWorkspace = computed(() => {
 })
 
 const navigateToWorkspace = (wsId: string) => {
+  if (!wsId || activeWorkspaceId.value === wsId) return
+
+  // Prevent navigating to locked workspaces (CE mode, non-default)
+  if (workspaceStore.isWorkspaceCeLocked(wsId)) return
+
+  isProjectsLoaded.value = false
+
+  $e('a:workspace:switch')
+
   navigateTo(`/${wsId}`)
 
   if (isMobileMode.value) {

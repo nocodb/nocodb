@@ -116,7 +116,7 @@ const hasNoSearchResults = computed(() => {
           class="!bg-opacity-15"
           data-testid="nc-base-list-loading"
         >
-          <div class="flex flex-col items-center justify-center h-full w-full">
+          <div class="flex flex-col items-center justify-center h-full w-full mt-20">
             <a-spin size="large" />
           </div>
         </GeneralOverlay>

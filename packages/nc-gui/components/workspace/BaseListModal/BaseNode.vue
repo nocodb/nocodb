@@ -14,6 +14,8 @@ const { isUIAllowed } = useRoles()
 
 const { activeProjectId } = storeToRefs(useBases())
 
+const { lastVisitedBase } = useBackToBase({ useFallback: false })
+
 // Local state
 const isMenuOpen = ref(false)
 const editMode = ref(false)
@@ -104,7 +106,7 @@ const onMenuClick = (e: Event) => {
 <template>
   <div
     :tabindex="0"
-    class="nc-base-node group relative flex items-center gap-3 p-4 rounded-xl cursor-pointer border-1 transition-all border-nc-border-gray-medium hover:border-nc-border-gray-dark hover:shadow-sm"
+    class="nc-base-node group relative flex items-center gap-3 p-4 rounded-xl cursor-pointer border-1 transition-all border-nc-border-gray-medium dark:(border-nc-border-gray-light hover:border-nc-border-gray-medium) hover:shadow-sm"
     :class="{ 'is-marked': isMarked, 'is-editing': editMode }"
     :data-id="base.id"
     :data-testid="`nc-base-list-modal-base-title-${base.title}`"
@@ -120,10 +122,12 @@ const onMenuClick = (e: Event) => {
       }"
       :type="base?.type"
       :model-value="iconColor"
-      size="small"
+      size="medium"
+      icon-class="!h-6 !w-6"
       :readonly="!isOptionVisible.baseRename"
       @update:model-value="handleColorChange"
       @click.stop
+      class="-mr-1"
     />
 
     <div class="flex-1 min-w-0 min-h-[28px] flex items-center">
@@ -148,6 +152,14 @@ const onMenuClick = (e: Event) => {
     </div>
 
     <div class="flex items-center space-x-2">
+      <!-- Last opened badge -->
+      <div
+        v-if="lastVisitedBase?.id === base.id"
+        class="flex items-center gap-1 px-1.5 py-1 rounded-full bg-nc-bg-gray-medium/80 text-nc-content-gray-muted text-bodySm font-medium leading-none flex-none"
+      >
+        {{ $t('labels.lastOpened') }}
+      </div>
+
       <!-- Indicator icons when base has attribute but shown in another section -->
       <div v-if="showStarIndicator || showPrivateIndicator" class="flex items-center gap-1">
         <NcTooltip v-if="showStarIndicator" class="flex">
@@ -237,12 +249,16 @@ const onMenuClick = (e: Event) => {
 
 <style scoped lang="scss">
 .nc-base-node {
-  @apply bg-white dark:bg-nc-bg-gray-light;
+  @apply bg-nc-bg-gray-extralight;
+
+  .nc-base-node-menu-btn {
+    @apply !hover:bg-nc-bg-gray-medium;
+  }
 
   &:hover,
   &:focus-within,
   &:focus-visible {
-    @apply bg-nc-bg-gray-light dark:bg-nc-bg-gray-medium;
+    @apply bg-nc-bg-gray-light;
 
     .nc-base-node-menu-wrapper {
       @apply w-6 !flex;
@@ -262,7 +278,7 @@ const onMenuClick = (e: Event) => {
   }
 
   &.is-marked {
-    @apply bg-nc-bg-gray-medium border-nc-border-brand;
+    @apply bg-nc-bg-gray-light border-nc-border-brand;
   }
 
   &.is-editing {

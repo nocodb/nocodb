@@ -113,18 +113,25 @@ export class PublicDatasService {
   ): any[] {
     if (!ncIsArray(filters) || !filters.length) return filters;
 
-    return filters.filter((f) => {
-      if (f.is_group && ncIsArray(f.children)) {
-        f.children = this.stripHiddenColumnsFromFilters(
-          f.children,
-          visibleColumnIds,
-        );
-        return f.children.length > 0;
-      }
-      // Keep filters that have no fk_column_id (e.g. logical-op-only nodes)
-      // or that reference a visible column
-      return !f.fk_column_id || visibleColumnIds.has(f.fk_column_id);
-    });
+    return filters
+      .map((f) => {
+        if (f.is_group && ncIsArray(f.children)) {
+          return {
+            ...f,
+            children: this.stripHiddenColumnsFromFilters(
+              f.children,
+              visibleColumnIds,
+            ),
+          };
+        }
+        return f;
+      })
+      .filter((f) => {
+        if (f.is_group && ncIsArray(f.children)) {
+          return f.children.length > 0;
+        }
+        return !f.fk_column_id || visibleColumnIds.has(f.fk_column_id);
+      });
   }
 
   /**

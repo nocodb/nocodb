@@ -107,10 +107,10 @@ watch(
 )
 
 // Command palette search
-const { setActiveCmdView } = useCommand()
+const { openCommandPalette } = useCommandPalette()
 
 const openSearch = () => {
-  setActiveCmdView('cmd-k')
+  openCommandPalette()
 }
 
 // Plan info

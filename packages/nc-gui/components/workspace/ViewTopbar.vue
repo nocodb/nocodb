@@ -5,13 +5,9 @@ const { activeWorkspace } = storeToRefs(workspaceStore)
 
 const { activePlanTitle, isPaymentEnabled, showEEFeatures, handleUpgradePlan } = useEeConfig()
 
-const { openCommandPalette } = useCommand()
+const { openCommandPalette } = useCommandPalette()
 
 const isFreePlan = computed(() => activePlanTitle.value === 'Free')
-
-const openSearch = () => {
-  openCommandPalette()
-}
 
 const showUpgrade = () => {
   handleUpgradePlan({})
@@ -34,7 +30,7 @@ const workspaceTitle = computed(() => {
         {{ workspaceTitle }}
       </h1>
       <div
-        v-if="isEeUI"
+        v-if="isEeUI && showEEFeatures"
         class="hidden md:flex items-center justify-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-medium leading-none bg-nc-bg-gray-light text-nc-content-gray-subtle flex-shrink-0"
       >
         <span class="uppercase">{{ activePlanTitle }} {{ $t('general.plan') }}</span>
@@ -50,7 +46,7 @@ const workspaceTitle = computed(() => {
       <div
         class="flex items-center gap-2 px-3 py-1.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-light cursor-pointer hover:border-nc-border-gray-dark transition-colors w-full max-w-[400px]"
         data-testid="nc-ws-home-search"
-        @click="openSearch"
+        @click="openCommandPalette"
       >
         <GeneralIcon icon="search" class="h-4 w-4 text-nc-content-gray-muted flex-none" />
         <span class="text-[13px] text-nc-content-gray-muted flex-1 truncate">{{ $t('activity.searchWorkspaceBases') }}...</span>

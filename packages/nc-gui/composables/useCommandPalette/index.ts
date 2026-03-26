@@ -216,6 +216,10 @@ export const useCommandPalette = createSharedComposable(() => {
     { immediate: true, deep: true },
   )
 
+  const openCommandPalette = () => {
+    commandPalette.value?.open?.()
+  }
+
   return {
     commandPalette,
     cmdData,
@@ -225,5 +229,6 @@ export const useCommandPalette = createSharedComposable(() => {
     refreshCommandPalette: refreshCommandPalette.trigger,
     loadTemporaryScope,
     cmdLoading,
+    openCommandPalette,
   }
 })

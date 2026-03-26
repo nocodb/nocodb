@@ -4812,8 +4812,7 @@ export class ColumnsService implements IColumnsService {
       id: ltarReq.childId,
     });
     let refColumn: Column;
-    const childView: View | null = ltarReq
-      ?.childViewId
+    const childView: View | null = ltarReq?.childViewId
       ? await View.getByTitleOrId(context, {
           fk_model_id: refTable.id,
           titleOrId: ltarReq.childViewId,
@@ -4849,19 +4848,14 @@ export class ColumnsService implements IColumnsService {
             id: refTable.base_id,
           });
     const isLinks =
-      param.column.uidt === UITypes.Links ||
-      ltarReq.type === 'bt';
+      param.column.uidt === UITypes.Links || ltarReq.type === 'bt';
 
     // if xcdb base then treat as virtual relation to avoid creating foreign key
     if (param.source.isMeta() || param.source.type === 'snowflake') {
       ltarReq.virtual = true;
     }
 
-    if (
-      !isMMLike &&
-      (ltarReq.type === 'hm' ||
-        ltarReq.type === 'bt')
-    ) {
+    if (!isMMLike && (ltarReq.type === 'hm' || ltarReq.type === 'bt')) {
       // populate fk column name
       const fkColName = getUniqueColumnName(
         await refTable.getColumns(refContext),
@@ -4930,10 +4924,7 @@ export class ColumnsService implements IColumnsService {
 
         // todo: create index for virtual relations as well
         //       create index for foreign key in pg
-        if (
-          param.source.type === 'pg' ||
-          ltarReq.virtual
-        ) {
+        if (param.source.type === 'pg' || ltarReq.virtual) {
           const indexName = generateFkName(table, refTable);
           await this.createColumnIndex(refContext, {
             column: new Column({
@@ -4969,10 +4960,7 @@ export class ColumnsService implements IColumnsService {
         undefined,
         param.columnWebhookManager,
       );
-    } else if (
-      !isMMLike &&
-      ltarReq.type === 'oo'
-    ) {
+    } else if (!isMMLike && ltarReq.type === 'oo') {
       // populate fk column name
       const fkColName = getUniqueColumnName(
         await refTable.getColumns(refContext),
@@ -5042,10 +5030,7 @@ export class ColumnsService implements IColumnsService {
 
         // todo: create index for virtual relations as well
         //       create index for foreign key in pg
-        if (
-          param.source.type === 'pg' ||
-          ltarReq.virtual
-        ) {
+        if (param.source.type === 'pg' || ltarReq.virtual) {
           const indexName = generateFkName(table, refTable);
           await this.createColumnIndex(refContext, {
             column: new Column({
@@ -5079,10 +5064,7 @@ export class ColumnsService implements IColumnsService {
         undefined,
         param.columnWebhookManager,
       );
-    } else if (
-      isMMLike ||
-      ltarReq.type === 'mm'
-    ) {
+    } else if (isMMLike || ltarReq.type === 'mm') {
       const aTn = await getJunctionTableName(param, table, refTable);
       const aTnAlias = aTn;
 
@@ -5311,8 +5293,7 @@ export class ColumnsService implements IColumnsService {
         meta: {
           ...(ltarReq.meta || {}),
           plural: ltarReq.meta?.plural || pluralize(refTable.title),
-          singular:
-            ltarReq.meta?.singular || singularize(refTable.title),
+          singular: ltarReq.meta?.singular || singularize(refTable.title),
         },
         version: isMMLike ? 2 : 1,
         // column_order and view_id if provided
@@ -5853,7 +5834,10 @@ export class ColumnsService implements IColumnsService {
     }
 
     // V2 Links (OM/MO with junction table) — no FK migration needed, just create Rollup + new LTAR
-    if (colOptions.version === LinksVersion.V2 && column.uidt === UITypes.Links) {
+    if (
+      colOptions.version === LinksVersion.V2 &&
+      column.uidt === UITypes.Links
+    ) {
       return this.convertMMToV2(context, {
         column,
         colOptions,
@@ -6620,7 +6604,6 @@ export class ColumnsService implements IColumnsService {
       await View.clearSingleQueryCache(context, parentTable.id);
       await View.clearSingleQueryCache(childRefContext, childTable.id);
 
-
       // Emit events
       (this.appHooksService as any).emit(AppEvents.COLUMN_UPDATE, {
         table: parentTable,
@@ -6867,6 +6850,47 @@ export class ColumnsService implements IColumnsService {
           },
           ncMeta,
         );
+
+        // Retarget existing Lookup/Rollup columns that reference the old Links
+        // column (now a Rollup) to use the new LTAR column instead.
+        // Without this, getNestedColumn() crashes on table data requests.
+        const dependentLookupRows = await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.COL_LOOKUP,
+          { condition: { fk_relation_column_id: column.id } },
+        );
+        const dependentRollupRows = await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.COL_ROLLUP,
+          { condition: { fk_relation_column_id: column.id } },
+        );
+
+        if (dependentLookupRows.length > 0) {
+          await ncMeta.metaUpdate(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COL_LOOKUP,
+            { fk_relation_column_id: mmNewLtarCol.id },
+            { fk_relation_column_id: column.id },
+          );
+        }
+        if (dependentRollupRows.length > 0) {
+          await ncMeta.metaUpdate(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COL_ROLLUP,
+            { fk_relation_column_id: mmNewLtarCol.id },
+            { fk_relation_column_id: column.id },
+          );
+        }
+
+        if (dependentLookupRows.length || dependentRollupRows.length) {
+          Logger.log(
+            `[convertMMToV2] Retargeted ${dependentLookupRows.length} Lookup and ${dependentRollupRows.length} Rollup columns from ${column.id} → ${mmNewLtarCol.id}.`,
+          );
+        }
       }
 
       await ncMeta.commit();

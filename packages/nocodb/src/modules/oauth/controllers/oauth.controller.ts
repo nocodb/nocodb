@@ -20,6 +20,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { OauthAuthorizationService } from '~/modules/oauth/services/oauth-authorization.service';
 import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
 import { OauthDiscoveryService } from '~/modules/oauth/services/oauth-discovery.service';
+import { OauthDcrService } from '~/modules/oauth/services/oauth-dcr.service';
 
 const logger = new Logger('OAuthController');
 
@@ -29,6 +30,7 @@ export class OAuthController {
     protected readonly oauthAuthorizationService: OauthAuthorizationService,
     protected readonly oauthTokenService: OauthTokenService,
     protected readonly oauthDiscoveryService: OauthDiscoveryService,
+    protected readonly oauthDcrService: OauthDcrService,
   ) {}
 
   @UseGuards(PublicApiLimiterGuard)
@@ -38,6 +40,25 @@ export class OAuthController {
   ])
   async discovery(@Req() req: NcRequest) {
     return this.oauthDiscoveryService.getMetadata(req.ncSiteUrl);
+  }
+
+  @UseGuards(PublicApiLimiterGuard)
+  @Post('/api/v2/oauth/register')
+  async register(@Body() body: any, @Res() res: Response) {
+    try {
+      const client = await this.oauthDcrService.registerClient(body);
+      return res.status(201).json(client);
+    } catch (e) {
+      const msg = e?.message ?? 'server_error';
+      if (msg.startsWith('invalid_client_metadata:')) {
+        return res.status(400).json({
+          error: 'invalid_client_metadata',
+          error_description: msg.replace('invalid_client_metadata: ', ''),
+        });
+      }
+      logger.error('DCR error:', e);
+      return res.status(500).json({ error: 'server_error' });
+    }
   }
 
   @UseGuards(PublicApiLimiterGuard)

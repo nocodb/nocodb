@@ -235,31 +235,6 @@ onBeforeUnmount(async () => {
       <div class="max-w-[800px] mx-auto mt-8 px-4 pb-16">
         <!-- List View -->
         <template v-if="viewState === 'list'">
-          <div class="flex items-center justify-between mb-6">
-            <div class="text-xl font-semibold">{{ $t('title.selfHostedLicenses') }}</div>
-            <div class="flex items-center gap-2">
-              <NcButton
-                type="text"
-                size="small"
-                :loading="isSyncing"
-                :tooltip="$t('labels.syncFromStripe')"
-                data-testid="nc-self-hosted-sync-btn"
-                @click="onSyncLicenses"
-              >
-                <GeneralIcon icon="refresh" class="h-4 w-4" />
-              </NcButton>
-              <NcButton
-                v-if="licenses.length > 0"
-                type="primary"
-                size="small"
-                data-testid="nc-self-hosted-buy-btn"
-                @click="onBuyLicense"
-              >
-                {{ $t('labels.buyNewLicense') }}
-              </NcButton>
-            </div>
-          </div>
-
           <div v-if="isLoading" class="flex items-center justify-center py-20">
             <GeneralLoader size="xlarge" />
           </div>
@@ -276,15 +251,43 @@ onBeforeUnmount(async () => {
             </div>
           </div>
 
-          <div v-else class="flex flex-col gap-4">
+          <div v-else class="flex flex-col gap-5">
+            <div class="flex items-center justify-end gap-2">
+              <NcButton
+                type="secondary"
+                size="small"
+                @click="onManageBilling"
+              >
+                {{ $t('labels.manageBilling') }}
+              </NcButton>
+              <NcButton
+                type="text"
+                size="small"
+                :loading="isSyncing"
+                :tooltip="$t('labels.syncFromStripe')"
+                data-testid="nc-self-hosted-sync-btn"
+                @click="onSyncLicenses"
+              >
+                <GeneralIcon icon="refresh" class="h-4 w-4" />
+              </NcButton>
+              <NcButton
+                type="primary"
+                size="small"
+                data-testid="nc-self-hosted-buy-btn"
+                @click="onBuyLicense"
+              >
+                {{ $t('labels.buyNewLicense') }}
+              </NcButton>
+            </div>
+
             <div
               v-for="license in licenses"
               :key="license.id"
-              class="border border-nc-border-gray-medium rounded-xl p-5 hover:border-nc-border-gray-dark transition-colors"
+              class="border-1 border-nc-border-gray-medium rounded-2xl p-5 hover:border-nc-border-gray-dark transition-colors"
               data-testid="nc-self-hosted-license-card"
             >
               <div class="flex items-start justify-between mb-3">
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2">
                   <div
                     v-if="license.plan"
                     class="px-2 py-0.5 rounded-md text-xs font-semibold"
@@ -295,7 +298,7 @@ onBeforeUnmount(async () => {
                   >
                     {{ $t(`objects.paymentPlan.${license.plan.title}`) }}
                   </div>
-                  <div class="px-2 py-0.5 rounded-md text-xs font-medium border" :class="statusClass(license.status)">
+                  <div class="px-2 py-0.5 rounded-md text-xs font-medium border-1" :class="statusClass(license.status)">
                     {{ statusLabel(license.status) }}
                   </div>
                 </div>
@@ -317,7 +320,7 @@ onBeforeUnmount(async () => {
                   <GeneralIcon :icon="revealedKeys.has(license.id) ? 'ncEyeOff' : 'ncEye'" class="h-4 w-4" />
                 </NcButton>
                 <NcButton type="text" size="xs" :tooltip="$t('general.copy')" @click="copyKey(license.license_key)">
-                  <GeneralIcon icon="ncCopy" class="h-4 w-4" />
+                  <GeneralIcon :icon="copiedKey ? 'ncCheck' : 'ncCopy'" class="h-4 w-4" />
                 </NcButton>
               </div>
 
@@ -328,14 +331,6 @@ onBeforeUnmount(async () => {
                   {{ license.subscription.period === 'year' ? $t('labels.annual') : $t('general.monthly') }}
                 </span>
               </div>
-            </div>
-
-            <NcDivider class="!my-4" />
-
-            <div class="flex items-center gap-3">
-              <NcButton type="secondary" size="small" @click="onManageBilling">
-                {{ $t('labels.manageBilling') }}
-              </NcButton>
             </div>
           </div>
         </template>

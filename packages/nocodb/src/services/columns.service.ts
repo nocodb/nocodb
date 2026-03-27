@@ -6565,20 +6565,20 @@ export class ColumnsService implements IColumnsService {
           meta: { ...parseProp(hmColumn.meta), precision: 0 },
         });
 
-        // Clear option caches for dependent lookup/rollup columns that were
-        // retargeted from hmColumn → newLtarCol during the transaction.
+        // Update cached fk_relation_column_id for dependent lookup/rollup columns
+        // that were retargeted from hmColumn → newLtarCol during the transaction.
         for (const colId of dependentLookupColIds) {
-          await NocoCache.deepDel(
+          await NocoCache.update(
             context,
             `${CacheScope.COL_LOOKUP}:${colId}`,
-            CacheDelDirection.CHILD_TO_PARENT,
+            { fk_relation_column_id: newLtarCol.id },
           );
         }
         for (const colId of dependentRollupColIds) {
-          await NocoCache.deepDel(
+          await NocoCache.update(
             context,
             `${CacheScope.COL_ROLLUP}:${colId}`,
-            CacheDelDirection.CHILD_TO_PARENT,
+            { fk_relation_column_id: newLtarCol.id },
           );
         }
       }
@@ -6897,20 +6897,20 @@ export class ColumnsService implements IColumnsService {
 
       await ncMeta.commit();
 
-      // Post-commit: clear caches for retargeted dependent columns
+      // Post-commit: update cached fk_relation_column_id for retargeted dependents
       if (isLinksColumn) {
         for (const row of dependentLookupRows) {
-          await NocoCache.deepDel(
+          await NocoCache.update(
             context,
             `${CacheScope.COL_LOOKUP}:${row.fk_column_id}`,
-            CacheDelDirection.CHILD_TO_PARENT,
+            { fk_relation_column_id: mmNewLtarCol.id },
           );
         }
         for (const row of dependentRollupRows) {
-          await NocoCache.deepDel(
+          await NocoCache.update(
             context,
             `${CacheScope.COL_ROLLUP}:${row.fk_column_id}`,
-            CacheDelDirection.CHILD_TO_PARENT,
+            { fk_relation_column_id: mmNewLtarCol.id },
           );
         }
       }

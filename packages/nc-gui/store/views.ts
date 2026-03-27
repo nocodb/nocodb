@@ -1112,6 +1112,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
     return (
       view?.owned_by === _user?.id ||
+      !!(view?.created_by && view.created_by === _user?.id) ||
       !!(!view?.owned_by && (_user?.base_roles?.[ProjectRoles.OWNER] || _user?.workspace_roles?.[WorkspaceUserRoles.OWNER]))
     )
   }

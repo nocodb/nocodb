@@ -170,10 +170,16 @@ export class SendEmailAction extends WorkflowNodeIntegration<SendEmailActionConf
         data: { to: config.to, subject: config.subject },
       });
 
+      const bodyText = NocoSDK.ncIsString(config.body)
+        ? config.body
+        : NocoSDK.ncIsObject(config.body) || NocoSDK.ncIsArray(config.body)
+          ? JSON.stringify(config.body)
+          : String(config.body ?? '');
+
       const emailParams = {
         to: config.to,
         subject: config.subject,
-        text: config.body,
+        text: bodyText,
         ...(config.cc && { cc: config.cc }),
         ...(config.bcc && { bcc: config.bcc }),
       };

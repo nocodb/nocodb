@@ -390,12 +390,18 @@ export class SendWhatsAppNode extends WorkflowNodeIntegration<SendWhatsAppNodeCo
         ? `whatsapp:${alphanumericSenderId}`
         : `whatsapp:${fromNumber}`;
 
+      const messageText = NocoSDK.ncIsString(message)
+        ? message
+        : NocoSDK.ncIsObject(message) || NocoSDK.ncIsArray(message)
+          ? JSON.stringify(message)
+          : String(message ?? '');
+
       const results = await auth.use(async (client) => {
         const messagePromises = phoneNumbers.map(async (to: string) => {
           const messageOptions: any = {
             from: fromAddress,
             to: `whatsapp:${to}`,
-            body: message,
+            body: messageText,
           };
 
           if (mediaUrl) {

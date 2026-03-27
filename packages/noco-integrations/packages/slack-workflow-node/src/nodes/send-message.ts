@@ -1,5 +1,6 @@
 import {
   IntegrationType,
+  NocoSDK,
   WorkflowNodeCategory,
   WorkflowNodeIntegration,
 } from '@noco-integrations/core';
@@ -302,7 +303,13 @@ export class SendMessageNode extends WorkflowNodeIntegration<SendMessageNodeConf
         ts: Date.now(),
       });
 
-      const decodedMessage = decode(message);
+      const messageText = NocoSDK.ncIsString(message)
+        ? message
+        : NocoSDK.ncIsObject(message) || NocoSDK.ncIsArray(message)
+          ? JSON.stringify(message)
+          : String(message ?? '');
+
+      const decodedMessage = decode(messageText);
 
       const result = await auth.use(async (client) => {
         const postMessageArgs: any = {

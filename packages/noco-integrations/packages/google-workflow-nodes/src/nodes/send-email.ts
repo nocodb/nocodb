@@ -312,7 +312,13 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
     );
     headers.push('MIME-Version: 1.0');
 
-    const email = headers.join('\r\n') + '\r\n\r\n' + body;
+    const bodyText = NocoSDK.ncIsString(body)
+      ? body
+      : NocoSDK.ncIsObject(body) || NocoSDK.ncIsArray(body)
+        ? JSON.stringify(body)
+        : String(body ?? '');
+
+    const email = headers.join('\r\n') + '\r\n\r\n' + bodyText;
 
     return Buffer.from(email)
       .toString('base64')

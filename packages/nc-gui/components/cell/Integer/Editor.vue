@@ -80,6 +80,8 @@ function onKeyDown(e: any) {
   }
 }
 
+const formFieldAutocomplete = inject(FormFieldAutocompleteInj, ref(undefined))
+
 onMounted(() => {
   if (isCanvasInjected && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
     inputRef.value?.focus()
@@ -96,6 +98,7 @@ onMounted(() => {
     :type="inputType"
     style="letter-spacing: 0.06rem"
     :disabled="readOnly"
+    :autocomplete="formFieldAutocomplete"
     @blur="editEnabled = false"
     @keydown="onKeyDown"
     @keydown.down.stop

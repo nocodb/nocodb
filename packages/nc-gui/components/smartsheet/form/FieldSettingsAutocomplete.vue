@@ -11,75 +11,116 @@ const autocompleteUiTypes = [
   UITypes.PhoneNumber,
   UITypes.URL,
   UITypes.LongText,
+  UITypes.Number,
 ] as string[]
 
 const columnSupportsAutocomplete = (elementType: string) => autocompleteUiTypes.includes(elementType)
 
-const autocompleteOptions = computed<NcListItemType[]>(() => [
-  { value: 'off', label: t('general.off'), ncGroupHeaderLabel: t('general.formAutocomplete.basic') },
-  { value: 'on', label: t('general.on'), ncGroupHeaderLabel: t('general.formAutocomplete.basic') },
-  { value: 'name', label: t('general.formAutocomplete.fullName'), ncGroupHeaderLabel: t('general.formAutocomplete.personal') },
-  {
-    value: 'given-name',
-    label: t('general.formAutocomplete.firstName'),
-    ncGroupHeaderLabel: t('general.formAutocomplete.personal'),
-  },
-  {
-    value: 'family-name',
-    label: t('general.formAutocomplete.lastName'),
-    ncGroupHeaderLabel: t('general.formAutocomplete.personal'),
-  },
-  { value: 'email', label: t('general.formAutocomplete.email'), ncGroupHeaderLabel: t('general.formAutocomplete.personal') },
-  { value: 'tel', label: t('general.formAutocomplete.phoneNumber'), ncGroupHeaderLabel: t('general.formAutocomplete.personal') },
-  {
-    value: 'organization',
-    label: t('general.formAutocomplete.companyOrganization'),
-    ncGroupHeaderLabel: t('general.formAutocomplete.personal'),
-  },
-  {
-    value: 'organization-title',
-    label: t('general.formAutocomplete.jobTitle'),
-    ncGroupHeaderLabel: t('general.formAutocomplete.personal'),
-  },
-  { value: 'bday', label: t('general.formAutocomplete.birthday'), ncGroupHeaderLabel: t('general.formAutocomplete.personal') },
-  {
-    value: 'street-address',
-    label: t('general.formAutocomplete.streetAddress'),
-    ncGroupHeaderLabel: t('general.formAutocomplete.address'),
-  },
-  {
-    value: 'address-line1',
-    label: t('general.formAutocomplete.addressLine1'),
-    ncGroupHeaderLabel: t('general.formAutocomplete.address'),
-  },
-  {
-    value: 'address-line2',
-    label: t('general.formAutocomplete.addressLine2'),
-    ncGroupHeaderLabel: t('general.formAutocomplete.address'),
-  },
-  {
-    value: 'address-level2',
-    label: t('general.formAutocomplete.city'),
-    ncGroupHeaderLabel: t('general.formAutocomplete.address'),
-  },
-  {
-    value: 'address-level1',
-    label: t('general.formAutocomplete.stateProvince'),
-    ncGroupHeaderLabel: t('general.formAutocomplete.address'),
-  },
-  {
-    value: 'postal-code',
-    label: t('general.formAutocomplete.postalZipCode'),
-    ncGroupHeaderLabel: t('general.formAutocomplete.address'),
-  },
-  {
-    value: 'country-name',
-    label: t('general.formAutocomplete.country'),
-    ncGroupHeaderLabel: t('general.formAutocomplete.address'),
-  },
-  { value: 'url', label: t('general.formAutocomplete.websiteUrl'), ncGroupHeaderLabel: t('general.formAutocomplete.web') },
-  { value: 'username', label: t('general.formAutocomplete.username'), ncGroupHeaderLabel: t('general.formAutocomplete.web') },
-])
+// HTML spec control groups mapped to NocoDB UITypes
+// See: https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#autofilling-form-controls:-the-autocomplete-attribute
+type AutocompleteControlGroup = 'text' | 'multiline' | 'password' | 'url' | 'email' | 'tel' | 'numeric'
+
+const controlGroupToUiTypes: Record<AutocompleteControlGroup, UITypes[]> = {
+  text: [UITypes.SingleLineText, UITypes.LongText],
+  multiline: [UITypes.LongText],
+  password: [UITypes.SingleLineText],
+  url: [UITypes.URL, UITypes.SingleLineText],
+  email: [UITypes.Email, UITypes.SingleLineText],
+  tel: [UITypes.PhoneNumber, UITypes.SingleLineText],
+  numeric: [UITypes.Number, UITypes.SingleLineText],
+}
+
+interface AutocompleteOption {
+  value: string
+  labelKey: string
+  group: string
+  controlGroup: AutocompleteControlGroup
+}
+
+const allAutocompleteOptions: AutocompleteOption[] = [
+  // Personal — Text
+  { value: 'name', labelKey: 'fullName', group: 'personal', controlGroup: 'text' },
+  { value: 'honorific-prefix', labelKey: 'honorificPrefix', group: 'personal', controlGroup: 'text' },
+  { value: 'given-name', labelKey: 'firstName', group: 'personal', controlGroup: 'text' },
+  { value: 'additional-name', labelKey: 'middleName', group: 'personal', controlGroup: 'text' },
+  { value: 'family-name', labelKey: 'lastName', group: 'personal', controlGroup: 'text' },
+  { value: 'honorific-suffix', labelKey: 'honorificSuffix', group: 'personal', controlGroup: 'text' },
+  { value: 'nickname', labelKey: 'nickname', group: 'personal', controlGroup: 'text' },
+  { value: 'organization', labelKey: 'companyOrganization', group: 'personal', controlGroup: 'text' },
+  { value: 'organization-title', labelKey: 'jobTitle', group: 'personal', controlGroup: 'text' },
+  { value: 'sex', labelKey: 'gender', group: 'personal', controlGroup: 'text' },
+  { value: 'language', labelKey: 'language', group: 'personal', controlGroup: 'text' },
+
+  // Personal — Email
+  { value: 'email', labelKey: 'email', group: 'personal', controlGroup: 'email' },
+
+  // Personal — Tel
+  { value: 'tel', labelKey: 'phoneNumber', group: 'personal', controlGroup: 'tel' },
+  { value: 'tel-country-code', labelKey: 'telCountryCode', group: 'personal', controlGroup: 'text' },
+  { value: 'tel-national', labelKey: 'telNational', group: 'personal', controlGroup: 'text' },
+  { value: 'tel-area-code', labelKey: 'telAreaCode', group: 'personal', controlGroup: 'text' },
+  { value: 'tel-local', labelKey: 'telLocal', group: 'personal', controlGroup: 'text' },
+
+  // Personal — Numeric
+  { value: 'bday-day', labelKey: 'birthdayDay', group: 'personal', controlGroup: 'numeric' },
+  { value: 'bday-month', labelKey: 'birthdayMonth', group: 'personal', controlGroup: 'numeric' },
+  { value: 'bday-year', labelKey: 'birthdayYear', group: 'personal', controlGroup: 'numeric' },
+
+  // Address — Text
+  { value: 'address-line1', labelKey: 'addressLine1', group: 'address', controlGroup: 'text' },
+  { value: 'address-line2', labelKey: 'addressLine2', group: 'address', controlGroup: 'text' },
+  { value: 'address-line3', labelKey: 'addressLine3', group: 'address', controlGroup: 'text' },
+  { value: 'address-level2', labelKey: 'city', group: 'address', controlGroup: 'text' },
+  { value: 'address-level1', labelKey: 'stateProvince', group: 'address', controlGroup: 'text' },
+  { value: 'postal-code', labelKey: 'postalZipCode', group: 'address', controlGroup: 'text' },
+  { value: 'country', labelKey: 'countryCode', group: 'address', controlGroup: 'text' },
+  { value: 'country-name', labelKey: 'country', group: 'address', controlGroup: 'text' },
+
+  // Address — Multiline
+  { value: 'street-address', labelKey: 'streetAddress', group: 'address', controlGroup: 'multiline' },
+
+  // Web — URL
+  { value: 'url', labelKey: 'websiteUrl', group: 'web', controlGroup: 'url' },
+
+  // Web — Text
+  { value: 'username', labelKey: 'username', group: 'web', controlGroup: 'text' },
+
+  // Web — Password
+  { value: 'new-password', labelKey: 'newPassword', group: 'web', controlGroup: 'password' },
+  { value: 'current-password', labelKey: 'currentPassword', group: 'web', controlGroup: 'password' },
+  { value: 'one-time-code', labelKey: 'oneTimeCode', group: 'web', controlGroup: 'password' },
+]
+
+const groupLabelKeys: Record<string, string> = {
+  basic: 'general.formAutocomplete.basic',
+  personal: 'general.formAutocomplete.personal',
+  address: 'general.formAutocomplete.address',
+  web: 'general.formAutocomplete.web',
+}
+
+const autocompleteOptions = computed<NcListItemType[]>(() => {
+  const uidt = activeField.value?.uidt as UITypes | undefined
+
+  const tGroup = (key: string) => t(groupLabelKeys[key] || key)
+
+  const basicOptions: NcListItemType[] = [
+    { value: 'off', label: t('general.off'), ncGroupHeaderLabel: tGroup('basic') },
+    { value: 'on', label: t('general.on'), ncGroupHeaderLabel: tGroup('basic') },
+  ]
+
+  const filtered = allAutocompleteOptions
+    .filter((opt) => {
+      if (!uidt) return true
+      return controlGroupToUiTypes[opt.controlGroup]?.includes(uidt)
+    })
+    .map((opt) => ({
+      value: opt.value,
+      label: t(`general.formAutocomplete.${opt.labelKey}`),
+      ncGroupHeaderLabel: tGroup(opt.group),
+    }))
+
+  return [...basicOptions, ...filtered]
+})
 
 const groupOrder = computed(() => [
   t('general.formAutocomplete.basic'),

@@ -144,7 +144,7 @@ const hasNoResults = computed(() => {
     <div class="px-2 h-[var(--toolbar-height)] flex items-center">
       <a-input
         v-model:value="searchQuery"
-        :placeholder="$t('placeholder.searchWorkspacesAndBases')"
+        :placeholder="showEEFeatures ? $t('placeholder.searchWorkspacesAndBases') : $t('activity.searchProject')"
         allow-clear
         class="nc-home-sidebar-search nc-input-sm"
       >

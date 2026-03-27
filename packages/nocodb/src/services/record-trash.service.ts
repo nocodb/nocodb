@@ -192,12 +192,17 @@ export class RecordTrashService {
         const colOpts = await col.getColOptions<LinkToAnotherRecordColumn>(
           context,
         );
-        const mmModel = await colOpts.getMMModel(context);
-        const mmChildCol = await colOpts.getMMChildColumn(context);
+        const { mmContext } = await colOpts.getParentChildContext(context);
+        const mmModel = await colOpts.getMMModel(mmContext);
+        const mmChildCol = await colOpts.getMMChildColumn(mmContext);
 
         if (mmModel && mmChildCol) {
+          const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+            id: mmModel.id,
+            dbDriver: baseModel.dbDriver,
+          });
           await baseModel
-            .dbDriver(mmModel.table_name)
+            .dbDriver(assocBaseModel.getTnPath(mmModel))
             .where(mmChildCol.column_name, v2c.rowId)
             .del();
         }
@@ -221,7 +226,11 @@ export class RecordTrashService {
           .dbDriver(baseModel.tnPath)
           .whereIn(pk, batchIds)
           .where(deletedColumn.column_name, true)
-          .select(model.columns.map((c) => c.column_name)),
+          .select(
+            model.columns
+              .filter((c) => c.column_name)
+              .map((c) => c.column_name),
+          ),
         model.columns,
         { raw: true },
       );
@@ -600,9 +609,10 @@ export class RecordTrashService {
       const pk = model.primaryKey.column_name;
 
       for (const { col, colOpts } of ooV2Cols) {
-        const mmModel = await colOpts.getMMModel(context);
-        const mmChildCol = await colOpts.getMMChildColumn(context);
-        const mmParentCol = await colOpts.getMMParentColumn(context);
+        const { mmContext } = await colOpts.getParentChildContext(context);
+        const mmModel = await colOpts.getMMModel(mmContext);
+        const mmChildCol = await colOpts.getMMChildColumn(mmContext);
+        const mmParentCol = await colOpts.getMMParentColumn(mmContext);
 
         if (!mmModel || !mmChildCol || !mmParentCol) {
           this.logger.warn(
@@ -611,7 +621,11 @@ export class RecordTrashService {
           continue;
         }
 
-        const mmTnPath = `${mmModel.table_name}`;
+        const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+          id: mmModel.id,
+          dbDriver: baseModel.dbDriver,
+        });
+        const mmTnPath = assocBaseModel.getTnPath(mmModel);
 
         // For each row being restored, find its linked parent PKs from the junction table
         for (const rowId of rowIds) {

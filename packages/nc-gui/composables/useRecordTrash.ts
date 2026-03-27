@@ -1,6 +1,7 @@
 import {
   isDeletedCol,
   isVirtualCol,
+  NcErrorType,
   UITypes,
 } from 'nocodb-sdk'
 import type { ColumnType, TableType } from 'nocodb-sdk'
@@ -13,6 +14,8 @@ export const useRecordTrash = createSharedComposable(() => {
   const { t } = useI18n()
 
   const { meta, eventBus } = useSmartsheetStoreOrThrow()
+
+  const { showWarningModal } = useNcConfirmModal()
 
   const isOpen = ref(false)
 
@@ -116,23 +119,46 @@ export const useRecordTrash = createSharedComposable(() => {
     totalCount.value = Math.max(0, totalCount.value - rowIds.length)
   }
 
+  async function _doRestoreRecords(rowIds: string[], force = false) {
+    await $api.internal.postOperation(
+      (meta.value as TableType)?.fk_workspace_id ?? 'nc__',
+      (meta.value as TableType)?.base_id!,
+      { operation: 'recordTrashRestore' as RecordTrashOperation } as any,
+      { tableId: tableId.value, rowIds, force },
+    )
+    message.success(t('trash.recordsRestored', { count: rowIds.length }))
+    await loadTrashCount()
+  }
+
   async function restoreRecords(rowIds: string[]) {
     if (!tableId.value || !rowIds.length) return
     removeRowsLocally(rowIds)
     try {
-      await $api.internal.postOperation(
-        (meta.value as TableType)?.fk_workspace_id ?? 'nc__',
-        (meta.value as TableType)?.base_id!,
-        { operation: 'recordTrashRestore' as RecordTrashOperation } as any,
-        { tableId: tableId.value, rowIds },
-      )
-      message.success(t('trash.recordsRestored', { count: rowIds.length }))
-      await loadTrashCount()
+      await _doRestoreRecords(rowIds)
     } catch (e: any) {
-      const errorMsg = await extractSdkResponseErrorMsg(e)
-      message.error(errorMsg)
-      await loadDeletedRecords()
-      await loadTrashCount()
+      const { error } = await extractSdkResponseErrorMsgv2(e)
+      if (error === NcErrorType.ERR_RECORD_RESTORE_CONFLICT) {
+        await loadDeletedRecords()
+        showWarningModal({
+          title: t('trash.ooConflictTitle'),
+          content: t('trash.ooConflictForce'),
+          okText: t('trash.restoreAnyway'),
+          okCallback: async () => {
+            removeRowsLocally(rowIds)
+            try {
+              await _doRestoreRecords(rowIds, true)
+            } catch (e2: any) {
+              message.error(await extractSdkResponseErrorMsg(e2))
+              await loadDeletedRecords()
+              await loadTrashCount()
+            }
+          },
+        })
+      } else {
+        message.error(await extractSdkResponseErrorMsg(e))
+        await loadDeletedRecords()
+        await loadTrashCount()
+      }
     }
   }
 

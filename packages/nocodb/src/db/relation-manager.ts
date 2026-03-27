@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import {
   AuditOperationSubTypes,
+  isDeletedCol,
   isLinksOrLTAR,
   isLinkV2,
   isMMOrMMLike,
@@ -302,6 +303,10 @@ export class RelationManager {
         qb: Knex.QueryBuilder | string,
         opts?: { first?: boolean },
       ) => Promise<any>;
+      /** Table + path for the "other side" of the junction — used to skip soft-deleted rows */
+      otherSideTable?: Model;
+      otherSideColName?: string;
+      otherSideTn?: string | Knex.Raw;
     },
   ): Promise<Array<{ childFk: any; parentFk: any }>> {
     const {
@@ -311,6 +316,9 @@ export class RelationManager {
       filterColName,
       filterSubquery,
       execQb,
+      otherSideTable,
+      otherSideColName,
+      otherSideTn,
     } = params;
 
     // 1. SELECT existing junction rows (just FK columns)
@@ -323,12 +331,49 @@ export class RelationManager {
       return [];
     }
 
-    // 2. Batch DELETE all matching junction rows
-    const deleteQb = trx(vTn).where(filterColName, filterSubquery).delete();
+    // 2. DELETE — skip rows where the other side is soft-deleted so that the
+    //    junction entry is preserved for restore conflict detection.
+    const deleteQb = trx(vTn).where(filterColName, filterSubquery);
+    const softDeleteCol = otherSideTable?.columns?.find((c) => isDeletedCol(c));
+    if (softDeleteCol && otherSideColName && otherSideTn) {
+      deleteQb.whereNotExists(
+        trx(otherSideTn).select(1).where(softDeleteCol.column_name, true).where(
+          otherSideTable.primaryKey.column_name,
+          // Bare column reference — SQL resolves this to the outer (junction) table
+          trx.ref(otherSideColName),
+        ),
+      );
+    }
+    deleteQb.delete();
     if (execQb) {
       await execQb(deleteQb);
     } else {
       await deleteQb;
+    }
+    // Return only the rows that were actually deleted (not preserved for soft-deleted other side)
+    if (softDeleteCol && otherSideColName) {
+      const deletedRowsQb = trx(vTn)
+        .select(vChildCol.column_name, vParentCol.column_name)
+        .where(filterColName, filterSubquery);
+      const deletedRows = execQb
+        ? await execQb(deletedRowsQb)
+        : await deletedRowsQb;
+      const deletedSet = new Set(
+        deletedRows.map(
+          (r) => `${r[vChildCol.column_name]}:${r[vParentCol.column_name]}`,
+        ),
+      );
+      return existingRows
+        .filter(
+          (row) =>
+            !deletedSet.has(
+              `${row[vChildCol.column_name]}:${row[vParentCol.column_name]}`,
+            ),
+        )
+        .map((row) => ({
+          childFk: row[vChildCol.column_name],
+          parentFk: row[vParentCol.column_name],
+        }));
     }
 
     return existingRows.map((row) => ({
@@ -456,6 +501,9 @@ export class RelationManager {
           filterColName: vChildCol.column_name,
           filterSubquery: childFkSubquery,
           execQb: isExternal ? execQb : undefined,
+          otherSideTable: parentTable,
+          otherSideColName: vParentCol.column_name,
+          otherSideTn: parentTn,
         });
 
         for (const pair of moRemovedPairs) {
@@ -484,6 +532,9 @@ export class RelationManager {
           vParentCol,
           filterColName: vParentCol.column_name,
           filterSubquery: parentFkSubquery,
+          otherSideTable: childTable,
+          otherSideColName: vChildCol.column_name,
+          otherSideTn: childTn,
           execQb: isExternal ? execQb : undefined,
         });
 

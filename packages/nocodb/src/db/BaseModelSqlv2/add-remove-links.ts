@@ -1,5 +1,6 @@
 import {
   AuditV1OperationTypes,
+  isDeletedCol,
   isLinksOrLTAR,
   isLinkV2,
   isMMOrMMLike,
@@ -425,6 +426,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             const unlinkAuditChildObj = [];
 
             // mo/oo: child can only link to one parent — clear existing child links
+            // Preserve junction rows where the parent is soft-deleted so that
+            // restore conflict detection can detect them on restore.
             if (['mo', 'oo'].includes(colOptions.type)) {
               const childFkValue =
                 dataWrapper(row).getByColumnNameTitleOrId(childColumn);
@@ -439,14 +442,32 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
               );
 
               if (existing.length) {
-                await assocBaseModel.execAndParse(
-                  baseModel
-                    .dbDriver(vTn)
-                    .where(vChildCol.column_name, childFkValue)
-                    .delete(),
-                  null,
-                  { raw: true },
+                const deleteQb = baseModel
+                  .dbDriver(vTn)
+                  .where(vChildCol.column_name, childFkValue);
+
+                // Skip rows whose parent is soft-deleted
+                const parentSoftDeleteCol = parentTable.columns.find((c) =>
+                  isDeletedCol(c),
                 );
+                if (parentSoftDeleteCol) {
+                  deleteQb.whereNotExists(
+                    baseModel
+                      .dbDriver(parentTn)
+                      .select(1)
+                      .where(parentSoftDeleteCol.column_name, true)
+                      .where(
+                        parentTable.primaryKey.column_name,
+                        baseModel.dbDriver.ref(
+                          `${vTable.table_name}.${vParentCol.column_name}`,
+                        ),
+                      ),
+                  );
+                }
+
+                await assocBaseModel.execAndParse(deleteQb.delete(), null, {
+                  raw: true,
+                });
 
                 for (const r of existing) {
                   unlinkAuditParentObj.push({
@@ -466,6 +487,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             }
 
             // om/oo: each parent can only be linked by one child — clear existing parent links
+            // Preserve junction rows where the child is soft-deleted so that
+            // restore conflict detection can detect them on restore.
             if (['om', 'oo'].includes(colOptions.type)) {
               for (const data of insertData) {
                 const parentFkValue = data[vParentCol.column_name];
@@ -480,14 +503,32 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                 );
 
                 if (existing.length) {
-                  await assocBaseModel.execAndParse(
-                    baseModel
-                      .dbDriver(vTn)
-                      .where(vParentCol.column_name, parentFkValue)
-                      .delete(),
-                    null,
-                    { raw: true },
+                  const deleteQb = baseModel
+                    .dbDriver(vTn)
+                    .where(vParentCol.column_name, parentFkValue);
+
+                  // Skip rows whose child is soft-deleted
+                  const childSoftDeleteCol = childTable.columns.find((c) =>
+                    isDeletedCol(c),
                   );
+                  if (childSoftDeleteCol) {
+                    deleteQb.whereNotExists(
+                      baseModel
+                        .dbDriver(childTn)
+                        .select(1)
+                        .where(childSoftDeleteCol.column_name, true)
+                        .where(
+                          childTable.primaryKey.column_name,
+                          baseModel.dbDriver.ref(
+                            `${vTable.table_name}.${vChildCol.column_name}`,
+                          ),
+                        ),
+                    );
+                  }
+
+                  await assocBaseModel.execAndParse(deleteQb.delete(), null, {
+                    raw: true,
+                  });
 
                   for (const r of existing) {
                     unlinkAuditParentObj.push({

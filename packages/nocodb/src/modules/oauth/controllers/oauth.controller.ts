@@ -19,6 +19,8 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { OauthAuthorizationService } from '~/modules/oauth/services/oauth-authorization.service';
 import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
+import { OauthDiscoveryService } from '~/modules/oauth/services/oauth-discovery.service';
+import { OauthDcrService } from '~/modules/oauth/services/oauth-dcr.service';
 
 const logger = new Logger('OAuthController');
 
@@ -27,7 +29,37 @@ export class OAuthController {
   constructor(
     protected readonly oauthAuthorizationService: OauthAuthorizationService,
     protected readonly oauthTokenService: OauthTokenService,
+    protected readonly oauthDiscoveryService: OauthDiscoveryService,
+    protected readonly oauthDcrService: OauthDcrService,
   ) {}
+
+  @UseGuards(PublicApiLimiterGuard)
+  @Get([
+    '/.well-known/oauth-authorization-server',
+    '/.well-known/oauth-authorization-server/*',
+  ])
+  async discovery(@Req() req: NcRequest) {
+    return this.oauthDiscoveryService.getMetadata(req.ncSiteUrl);
+  }
+
+  @UseGuards(PublicApiLimiterGuard)
+  @Post('/api/v2/oauth/register')
+  async register(@Body() body: any, @Res() res: Response) {
+    try {
+      const client = await this.oauthDcrService.registerClient(body);
+      return res.status(201).json(client);
+    } catch (e) {
+      const msg = e?.message ?? 'server_error';
+      if (msg.startsWith('invalid_client_metadata:')) {
+        return res.status(400).json({
+          error: 'invalid_client_metadata',
+          error_description: msg.replace('invalid_client_metadata: ', ''),
+        });
+      }
+      logger.error('DCR error:', e);
+      return res.status(500).json({ error: 'server_error' });
+    }
+  }
 
   @UseGuards(PublicApiLimiterGuard)
   @Get(['/api/v2/public/oauth/client/:clientId'])
@@ -44,12 +76,13 @@ export class OAuthController {
   @Get('/api/v2/oauth/authorize')
   @UseGuards(MetaApiLimiterGuard)
   async authorizeRedirect(@Req() req: NcRequest, @Res() res: Response) {
-    const queryParams = new URLSearchParams(req.query).toString();
-    const redirectUrl = `${req.ncSiteUrl}/oauth/authorize${
-      queryParams ? '?' + queryParams : ''
-    }`;
-
-    return res.redirect(redirectUrl);
+    const queryParams = new URLSearchParams(
+      req.query as Record<string, string>,
+    );
+    // claude.ai sends prompt=consent which causes redirect loops
+    queryParams.delete('prompt');
+    const queryString = queryParams.toString();
+    return res.redirect(`/oauth/authorize${queryString ? `?${queryString}` : ''}`);
   }
 
   @Post('/api/v2/oauth/authorize')

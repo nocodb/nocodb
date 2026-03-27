@@ -41,6 +41,12 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
         if (apiToken.token_hash) {
           const scopes = await ApiTokenScope.listByTokenId(apiToken.id);
 
+          // Fine-grained token with zero scopes = all access revoked
+          // (e.g., all scoped bases were deleted)
+          if (scopes.length === 0) {
+            return callback({ msg: 'Token has no valid access scopes' });
+          }
+
           if (scopes.length > 0) {
             const requestBaseId = req['ncBaseId'];
             const requestWorkspaceId = req['ncWorkspaceId'];

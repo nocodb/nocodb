@@ -15,9 +15,9 @@ const up = async (knex: Knex) => {
     table.timestamp('last_used_at').nullable();
   });
 
-  // Index for hash-based token lookup
+  // Unique index for hash-based token lookup (NULLs allowed for legacy tokens)
   await knex.schema.alterTable(MetaTable.API_TOKENS, (table) => {
-    table.index('token_hash', 'idx_api_tokens_hash');
+    table.unique(['token_hash'], { indexName: 'idx_api_tokens_hash' });
   });
 
   // Create the scopes join table for multi-resource token scoping
@@ -50,7 +50,7 @@ const down = async (knex: Knex) => {
   await knex.schema.dropTableIfExists('nc_api_token_scopes');
 
   await knex.schema.alterTable(MetaTable.API_TOKENS, (table) => {
-    table.dropIndex('token_hash', 'idx_api_tokens_hash');
+    table.dropUnique(['token_hash'], 'idx_api_tokens_hash');
   });
 
   await knex.schema.alterTable(MetaTable.API_TOKENS, (table) => {

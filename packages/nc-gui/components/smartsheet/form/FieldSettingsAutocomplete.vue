@@ -14,7 +14,13 @@ const autocompleteUiTypes = [
   UITypes.Number,
 ] as string[]
 
-const columnSupportsAutocomplete = (elementType: string) => autocompleteUiTypes.includes(elementType)
+const columnSupportsAutocomplete = computed(() => {
+  if (!activeField.value?.uidt) return false
+  if (!autocompleteUiTypes.includes(activeField.value.uidt)) return false
+  // Rich text mode uses a WYSIWYG editor (TipTap/ProseMirror), not a native textarea — autocomplete doesn't apply
+  if (activeField.value.uidt === UITypes.LongText && parseProp(activeField.value.meta)?.richMode) return false
+  return true
+})
 
 // HTML spec control groups mapped to NocoDB UITypes
 // See: https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#autofilling-form-controls:-the-autocomplete-attribute
@@ -198,7 +204,7 @@ const filterOption = (input: string, option: NcListItemType) => {
 
 <template>
   <div
-    v-if="activeField?.uidt && columnSupportsAutocomplete(activeField.uidt)"
+    v-if="columnSupportsAutocomplete"
     class="nc-form-field-autocomplete-settings p-4 flex flex-col gap-4 border-b border-nc-border-gray-medium"
   >
     <div class="text-bodyBold text-nc-content-gray">

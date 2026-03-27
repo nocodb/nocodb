@@ -37,7 +37,7 @@ const vModel = useVModel(props, 'value', (_, val) => {
         v-if="props.discount"
         class="flex items-center gap-1 px-1 py-[3px] bg-nc-bg-green-light rounded-[6px] text-xs text-nc-content-green-dark"
       >
-        -{{ props.discount }}%
+        {{ props.discount }}% off
       </span>
     </div>
   </div>

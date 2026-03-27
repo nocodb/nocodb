@@ -5,7 +5,7 @@ const { user, isMobileMode, appInfo } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
-const { workspacesList, activeWorkspaceId } = storeToRefs(workspaceStore)
+const { workspacesList, activeWorkspaceId, isWorkspacesLoading } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
 const basesStore = useBases()
@@ -167,6 +167,17 @@ const hasNoResults = computed(() => {
         <!-- No results -->
         <div v-if="hasNoResults" class="px-3 py-4 text-nc-content-gray-muted text-bodySm text-center">
           {{ $t('title.noResultsMatchedYourSearch') }}
+        </div>
+
+        <!-- Loading skeleton -->
+        <DashboardTreeViewProjectListSkeletonEntity v-else-if="isWorkspacesLoading && !workspacesList.length" />
+
+        <!-- No workspaces -->
+        <div
+          v-else-if="!workspacesList.length"
+          class="py-0.5 text-nc-content-gray-muted nc-project-home-section-item !pl-1 font-normal"
+        >
+          {{ $t('labels.noWorkspaces') }}
         </div>
 
         <template v-else>

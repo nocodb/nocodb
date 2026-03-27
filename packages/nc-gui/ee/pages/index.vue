@@ -12,8 +12,10 @@ const { showOnboardingFlow } = useOnboardingFlow()
 
 const workspaceStore = useWorkspace()
 const { populateWorkspace } = workspaceStore
-const { collaborators, lastPopulatedWorkspaceId, activeWorkspaceId, activeWorkspace, isWorkspacesLoading } =
+const { collaborators, lastPopulatedWorkspaceId, activeWorkspaceId, activeWorkspace, isWorkspacesLoading, workspacesList } =
   storeToRefs(workspaceStore)
+
+const { isEEFeatureBlocked } = useEeConfig()
 
 const { isDuplicateDlgOpen } = useCopySharedBase()
 
@@ -172,10 +174,14 @@ onMounted(async () => {
   if (!['base'].includes(route.value.params.typeOrId as string)) {
     await loadWorkspaces()
 
-    // No workspaces available (e.g. fresh user with NO_ACCESS) — stop skeleton
-    if (!workspaceStore.workspacesList.length) {
+    // No workspaces available (e.g. fresh user with NO_ACCESS) — stop skeleton and redirect to index
+    if (!workspaceStore.workspacesList.length && isEEFeatureBlocked.value) {
       workspaceStore.setLoadingState(false)
       basesStore.setProjectsLoaded()
+
+      if (route.value.params.typeOrId) {
+        await router.replace({ name: 'index' })
+      }
     }
   }
 
@@ -205,16 +211,32 @@ watch(
         <DashboardSidebar v-else />
       </template>
       <template #content>
-        <!-- Workspace home: stable header + tabs + dynamic page content -->
+        <!-- Workspace home -->
         <div v-if="isHomeSidebarRoute" class="flex flex-col h-full w-full">
           <!-- Topbar: workspace name + plan + search -->
           <WorkspaceViewTopbar />
-          <!-- Tabs -->
-          <WorkspaceViewTabs />
-          <!-- Page content (bases, members, teams, etc.) -->
-          <div class="flex-1 overflow-auto">
-            <NuxtPage :transition="false" />
+
+          <!-- No workspace access: show empty state -->
+          <div
+            v-if="!isWorkspacesLoading && !workspacesList.length && isEEFeatureBlocked"
+            class="flex-1 flex flex-col items-center justify-center gap-3"
+          >
+            <GeneralIcon icon="ncWorkspace" class="h-10 w-10 text-nc-content-gray-muted" />
+            <h3 class="text-lg font-semibold text-nc-content-gray">
+              {{ $t('title.noWorkspaceAccess') }}
+            </h3>
+            <p class="text-sm text-nc-content-gray-subtle">
+              {{ $t('msg.info.contactAdminForAccess') }}
+            </p>
           </div>
+
+          <!-- Normal: tabs + page content -->
+          <template v-else>
+            <WorkspaceViewTabs />
+            <div class="flex-1 overflow-auto">
+              <NuxtPage :transition="false" />
+            </div>
+          </template>
         </div>
         <!-- Non-workspace routes: render page directly -->
         <NuxtPage v-else :transition="false" />

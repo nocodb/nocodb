@@ -161,14 +161,6 @@ const onMenuClick = (e: Event) => {
     </div>
 
     <div class="flex items-center space-x-2">
-      <!-- Last opened badge -->
-      <div
-        v-if="lastVisitedBase?.id === base.id"
-        class="flex items-center gap-1 px-1.5 py-1 rounded-full bg-nc-bg-gray-medium/80 text-nc-content-gray-muted text-bodySm font-medium leading-none flex-none"
-      >
-        {{ $t('labels.lastOpened') }}
-      </div>
-
       <!-- Indicator icons when base has attribute but shown in another section -->
       <div v-if="showStarIndicator || showPrivateIndicator" class="flex items-center gap-1">
         <NcTooltip v-if="showStarIndicator" class="flex">

@@ -554,6 +554,8 @@ export function shouldSkipField(
 ) {
   // skip row meta column
   if (column.uidt === UITypes.Meta) return true;
+  // skip soft-delete column
+  if (column.uidt === UITypes.Deleted) return true;
   if (fieldsSet && !pkAndPvOnly) {
     return !fieldsSet.has(column.title) && !fieldsSet.has(column.id);
   } else {

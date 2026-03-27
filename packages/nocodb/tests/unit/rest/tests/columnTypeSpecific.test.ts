@@ -75,6 +75,11 @@ function columnTypeSpecificTests() {
         ]
       : []),
     {
+      title: '__nc_deleted',
+      uidt: UITypes.Deleted,
+      system: true,
+    },
+    {
       title: 'DateField',
       uidt: UITypes.Date,
       system: false,

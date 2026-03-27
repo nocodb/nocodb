@@ -74,7 +74,7 @@ export const useOnPremLicense = createSharedComposable(() => {
         headers: fetchHeaders.value,
       })
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      message.toast(await extractSdkResponseErrorMsg(e))
     } finally {
       isLoading.value = false
     }
@@ -92,7 +92,7 @@ export const useOnPremLicense = createSharedComposable(() => {
       }
       return result.synced
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      message.toast(await extractSdkResponseErrorMsg(e))
       return 0
     }
   }
@@ -105,7 +105,7 @@ export const useOnPremLicense = createSharedComposable(() => {
         headers: fetchHeaders.value,
       })
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      message.toast(await extractSdkResponseErrorMsg(e))
       return null
     }
   }
@@ -144,7 +144,7 @@ export const useOnPremLicense = createSharedComposable(() => {
       const onPremLookupKeys = new Set(Object.values(OnPremPlanPriceLookupKeys))
       plans.value = allPlans.filter((p) => p.prices?.some((price) => onPremLookupKeys.has(price.lookup_key as any)))
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      message.toast(await extractSdkResponseErrorMsg(e))
     }
   }
 
@@ -196,7 +196,7 @@ export const useOnPremLicense = createSharedComposable(() => {
         headers: fetchHeaders.value,
       })
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      message.toast(await extractSdkResponseErrorMsg(e))
       return null
     }
   }

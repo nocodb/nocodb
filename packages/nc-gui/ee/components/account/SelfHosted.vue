@@ -26,9 +26,9 @@ const onSyncLicenses = async () => {
   try {
     const synced = await syncLicenses()
     if (synced > 0) {
-      message.success(t('msg.success.licensesSynced', { count: synced }))
+      message.toast(t('msg.success.licensesSynced', { count: synced }))
     } else {
-      message.info(t('msg.info.licensesUpToDate'))
+      message.toast(t('msg.info.licensesUpToDate'))
     }
   } finally {
     isSyncing.value = false
@@ -102,13 +102,13 @@ const copyKey = async (key: string) => {
   try {
     await navigator.clipboard.writeText(key)
     copiedKey.value = true
-    message.success(t('general.copied'))
+    message.toast(t('general.copied'))
     $e('c:on-prem:license:copy-key')
     setTimeout(() => {
       copiedKey.value = false
     }, 2000)
   } catch {
-    message.error(t('msg.error.copyToClipboardError'))
+    message.toast(t('msg.error.copyToClipboardError'))
   }
 }
 
@@ -147,7 +147,7 @@ const initCheckout = async (planId: string, priceId: string, quantity: number = 
     await nextTick()
     checkoutRef.value.mount('#on-prem-checkout')
   } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
+    message.toast(await extractSdkResponseErrorMsg(e))
     viewState.value = 'plan-select'
   } finally {
     checkoutLoading.value = false
@@ -190,7 +190,7 @@ const handleAfterPayment = async () => {
       viewState.value = 'success'
       $e('a:on-prem:license:purchase')
     } else {
-      message.error(t('msg.error.paymentFailed'))
+      message.toast(t('msg.error.paymentFailed'))
       viewState.value = 'list'
     }
   } catch {

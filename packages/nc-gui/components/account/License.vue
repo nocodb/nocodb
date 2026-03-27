@@ -32,7 +32,7 @@ const loadLicense = async () => {
     key.value = response.key ?? ''
     savedKey.value = key.value
   } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
+    message.toast(await extractSdkResponseErrorMsg(e))
   }
 }
 
@@ -40,25 +40,36 @@ const setLicense = async () => {
   try {
     await api.orgLicense.set({ key: key.value })
     savedKey.value = key.value
-    message.success(t('msg.success.licenseKeyUpdated'))
+    message.toast(t('msg.success.licenseKeyUpdated'))
     await loadAppInfo()
   } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
+    message.toast(await extractSdkResponseErrorMsg(e))
   }
   $e('a:account:license')
 }
 
-const removeLicense = async () => {
-  try {
-    await api.orgLicense.set({ key: '' })
-    key.value = ''
-    savedKey.value = ''
-    message.success(t('title.licenseKeyRemoved'))
-    await loadAppInfo()
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-  $e('a:account:license:remove')
+const { showWarningModal } = useNcConfirmModal()
+
+const removeLicense = () => {
+  showWarningModal({
+    title: t('labels.removeLicense'),
+    content: t('labels.removeLicenseConfirm'),
+    showCancelBtn: true,
+    okText: t('general.remove'),
+    okProps: { type: 'danger' },
+    okCallback: async () => {
+      try {
+        await api.orgLicense.set({ key: '' })
+        key.value = ''
+        savedKey.value = ''
+        message.toast(t('title.licenseKeyRemoved'))
+        await loadAppInfo()
+      } catch (e: any) {
+        message.toast(await extractSdkResponseErrorMsg(e))
+      }
+      $e('a:account:license:remove')
+    },
+  })
 }
 
 const isRefreshing = ref(false)
@@ -77,17 +88,32 @@ const refreshLicense = async () => {
     })
 
     if (result.success) {
-      message.success(t('upgrade.licenseRefreshed'))
+      message.toast(t('upgrade.licenseRefreshed'))
       await loadAppInfo()
     } else {
-      message.error(t('upgrade.licenseRefreshFailed'))
+      message.toast(t('upgrade.licenseRefreshFailed'))
     }
   } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
+    message.toast(await extractSdkResponseErrorMsg(e))
   } finally {
     isRefreshing.value = false
   }
   $e('a:account:license:refresh')
+}
+
+const isCopied = ref(false)
+
+const copyLicenseKey = async () => {
+  try {
+    await navigator.clipboard.writeText(key.value)
+    isCopied.value = true
+    message.toast(t('general.copied'))
+    setTimeout(() => {
+      isCopied.value = false
+    }, 2000)
+  } catch {
+    message.toast(t('msg.error.copyToClipboardError'))
+  }
 }
 
 const onBuyLicense = () => {
@@ -129,6 +155,12 @@ loadLicense()
               <span class="font-bold text-base text-nc-content-gray">{{ $t('title.licenseKey') }}</span>
               <span class="text-sm text-nc-content-gray-subtle2">
                 {{ $t('labels.licenseKeyDescription') }}
+                <a
+                  href="https://nocodb.com/docs/product-docs/cloud-enterprise-edition/community-vs-paid-editions"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="!text-nc-content-brand !no-underline hover:underline"
+                >{{ $t('msg.learnMore') }}</a>
               </span>
             </div>
 
@@ -164,14 +196,22 @@ loadLicense()
               </span>
             </div>
 
-            <a-textarea
+            <a-input
               v-model:value="key"
               :placeholder="$t('labels.enterLicenseKey')"
-              :rows="2"
-              class="!rounded-lg"
+              class="!rounded-lg nc-license-key-input"
               spellcheck="false"
+              size="large"
               data-testid="nc-license-key-input"
-            />
+            >
+              <template v-if="key" #suffix>
+                <NcTooltip :title="$t('general.copy')">
+                  <NcButton type="text" size="xs" @click="copyLicenseKey">
+                    <GeneralIcon :icon="isCopied ? 'ncCheck' : 'ncCopy'" class="h-4 w-4" />
+                  </NcButton>
+                </NcTooltip>
+              </template>
+            </a-input>
 
             <div class="flex gap-3">
               <NcButton
@@ -235,4 +275,12 @@ loadLicense()
     </div>
   </div>
 </template>
+
+<style lang="scss">
+.nc-license-key-input,
+.nc-license-key-input .ant-input {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace !important;
+  font-size: 14px !important;
+}
+</style>
 

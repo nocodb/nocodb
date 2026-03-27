@@ -64,6 +64,8 @@ watchEffect(() => {
 
 const isPending = computed(() => !emailConfigured.value || !storageConfigured.value)
 
+const backRoute = computed(() => ncBackRoute().get())
+
 // Guard: redirect if not on-prem super admin
 watch(
   [isSuperAdmin, isNotCloud],
@@ -90,7 +92,7 @@ watch(
                 size="small"
                 class="transition-all duration-200 mx-2 cursor-pointer transform nc-noco-brand-icon"
                 data-testid="nc-noco-brand-icon"
-                @click="navigateTo('/')"
+                @click="navigateTo(backRoute)"
               >
                 <div class="flex flex-row gap-x-2 items-center">
                   <GeneralIcon icon="ncArrowLeft" />

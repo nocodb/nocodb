@@ -55,6 +55,14 @@ const isBaseOpen = computed(() => {
   return route.value.name?.toString().startsWith('index-typeOrId-baseId-')
 })
 
+watch(
+  isBaseOpen,
+  (val) => {
+    if (val && ncBackRoute().get() !== '/') ncBackRoute().set('')
+  },
+  { immediate: true },
+)
+
 const isBaseListModalOpen = ref(false)
 
 const hasAvailableBases = computed(() => !!basesList.value?.length)

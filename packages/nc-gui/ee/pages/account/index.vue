@@ -20,6 +20,8 @@ const filteredWorkspaces = computed(() => workspacesList.value.filter((w) => w.r
 
 const loadingWorkspaces = ref(false)
 
+const backRoute = computed(() => ncBackRoute().get())
+
 const selectedKeys = computed(() => [$route.params.nestedPage ?? $route.params.page])
 
 const openKeys = ref([])
@@ -62,7 +64,7 @@ onMounted(() => {
                   size="small"
                   class="transition-all duration-200 mx-2 cursor-pointer transform hover:bg-nc-bg-gray-light nc-noco-brand-icon"
                   data-testid="nc-noco-brand-icon"
-                  @click="navigateTo('/')"
+                  @click="navigateTo(backRoute)"
                 >
                   <div class="flex flex-row gap-x-2 items-center">
                     <GeneralIcon icon="ncArrowLeft" />

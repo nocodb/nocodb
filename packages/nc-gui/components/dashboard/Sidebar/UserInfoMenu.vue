@@ -67,7 +67,13 @@ const openExperimentationMenu = () => {
   isExperimentalFeatureModalOpen.value = true
 }
 
+const route = useRoute()
+
 const accountUrl = computed(() => '/account/profile')
+
+const saveBackRoute = () => {
+  ncBackRoute().set(route.fullPath)
+}
 
 const copyEmail = () => {
   if (!user?.value?.email) return
@@ -140,7 +146,7 @@ const openKeyboardShortcutDialog = () => {
       <DashboardSidebarEEMenuOption v-if="isEeUI" />
 
       <!-- API Tokens -->
-      <nuxt-link v-e="['c:user:api-tokens']" class="!no-underline" to="/account/tokens">
+      <nuxt-link v-e="['c:user:api-tokens']" class="!no-underline" to="/account/tokens" @click="saveBackRoute">
         <NcMenuItem>
           <GeneralIcon icon="ncKey2" class="menu-icon mt-0.5" />
           <span class="menu-btn">{{ $t('title.apiTokens') }}</span>
@@ -182,7 +188,17 @@ const openKeyboardShortcutDialog = () => {
       </NcMenuItem>
 
       <!-- Account Settings -->
-      <nuxt-link v-e="['c:user:settings']" class="!no-underline" :to="accountUrl" @click="auditsStore.handleReset">
+      <nuxt-link
+        v-e="['c:user:settings']"
+        class="!no-underline"
+        :to="accountUrl"
+        @click="
+          () => {
+            saveBackRoute()
+            auditsStore.handleReset()
+          }
+        "
+      >
         <NcMenuItem>
           <GeneralIcon icon="ncSettings" class="menu-icon" />
           <div class="flex-1 flex flex-col">

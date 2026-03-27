@@ -64,7 +64,8 @@ const isMiniSidebarVisible = computed(() => {
     slots.sidebar &&
     !isSharedBase.value &&
     (!isMobileMode.value || isLeftSidebarOpen.value) &&
-    !isFullScreen.value
+    !isFullScreen.value &&
+    !isWsHomeRoute(route.value)
   )
 })
 

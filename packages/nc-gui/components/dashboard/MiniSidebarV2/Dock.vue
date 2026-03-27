@@ -273,34 +273,33 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
 <template>
   <nav ref="dockRef" class="nc-dock" data-testid="nc-mini-sidebar-v2-dock" @mousemove="onMouseMove" @mouseleave="onMouseLeave">
     <!-- Logo — hover shows back arrow, click navigates to workspace -->
-    <NcTooltip placement="right" :arrow="false">
-      <template #title>{{ $t('labels.backToWorkspace') }}: {{ activeWorkspace?.title }}</template>
-      <DashboardMiniSidebarV2DockItem
-        :ref="(el: any) => setItemRef('logo', el)"
-        class="nc-dock-logo nc-dock-logo-hover"
-        data-testid="nc-mini-sidebar-v2-logo"
-        :data-workspace-title="activeWorkspace?.title"
-        :scale="getScale('logo')"
-        @click="navigateTo(`/${isEeUI ? activeWorkspaceId : 'nc'}`)"
-      >
-        <GeneralProjectIcon
-          class="!h-7 !w-7 nc-logo-icon"
-          :color="parseProp(resolvedProject?.meta).iconColor"
-          :type="resolvedProject?.type"
-          :managed-app="
-            resolvedProject
-              ? {
-                  managed_app_master: resolvedProject?.managed_app_master,
-                  managed_app_id: resolvedProject?.managed_app_id,
-                }
-              : undefined
-          "
-        />
-        <div class="nc-back-icon">
-          <GeneralIcon icon="ncArrowLeft" class="!h-4.5 !w-4.5 text-nc-content-gray" />
-        </div>
-      </DashboardMiniSidebarV2DockItem>
-    </NcTooltip>
+
+    <DashboardMiniSidebarV2DockItem
+      :ref="(el: any) => setItemRef('logo', el)"
+      class="nc-dock-logo nc-dock-logo-hover"
+      data-testid="nc-mini-sidebar-v2-logo"
+      :data-workspace-title="activeWorkspace?.title"
+      :label="`${$t('labels.backToWorkspace')} ${activeWorkspace?.title}`"
+      :scale="getScale('logo')"
+      @click="navigateTo(`/${isEeUI ? activeWorkspaceId : 'nc'}`)"
+    >
+      <GeneralProjectIcon
+        class="!h-7 !w-7 nc-logo-icon"
+        :color="parseProp(resolvedProject?.meta).iconColor"
+        :type="resolvedProject?.type"
+        :managed-app="
+          resolvedProject
+            ? {
+                managed_app_master: resolvedProject?.managed_app_master,
+                managed_app_id: resolvedProject?.managed_app_id,
+              }
+            : undefined
+        "
+      />
+      <div class="nc-back-icon">
+        <GeneralIcon icon="ncArrowLeft" class="!h-4.5 !w-4.5 text-nc-content-gray" />
+      </div>
+    </DashboardMiniSidebarV2DockItem>
 
     <NcDivider class="!w-8 !min-w-8 !mb-0 !border-nc-border-gray-medium !-mt-1.5" />
 

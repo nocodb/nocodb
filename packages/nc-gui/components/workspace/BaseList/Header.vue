@@ -24,6 +24,8 @@ const { orgRoles } = useRoles()
 
 const { showEEFeatures } = useEeConfig()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const isFilterDropdownOpen = ref(false)
 
 const isSuperAdmin = computed(() => !!orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
@@ -36,7 +38,9 @@ const filterOptions = computed<NcListItemType[]>(() => [
         ...(showEEFeatures.value
           ? [
               { value: 'private', label: t('general.private'), icon: 'ncLock' },
-              { value: 'managed', label: t('labels.managed'), icon: 'ncBox' },
+              ...(isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS)
+                ? [{ value: 'managed', label: t('labels.managed'), icon: 'ncBox' }]
+                : []),
             ]
           : []),
       ]

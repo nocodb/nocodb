@@ -1422,6 +1422,7 @@
     "manageBilling": "Manage Billing",
     "syncFromStripe": "Sync licenses from Stripe",
     "selectPlan": "Select Plan",
+    "selectPlanName": "Select {plan}",
     "customPricing": "Custom",
     "tailoredForYourOrg": "Tailored for your organization",
     "billedAnnually": "Billed annually",

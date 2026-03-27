@@ -78,7 +78,7 @@ onMounted(async () => {
   <div class="flex flex-col">
     <!-- Billing period toggle -->
     <div class="flex items-center justify-center mb-6">
-      <PaymentPlansSelectMode v-model:value="paymentMode" />
+      <PaymentPlansSelectMode v-model:value="paymentMode" :discount="20" />
     </div>
 
     <div v-if="isLoadingPlans" class="flex items-center justify-center py-10">
@@ -144,7 +144,7 @@ onMounted(async () => {
         >
           <!-- Badge -->
           <div
-            class="inline-flex px-2 py-0.75 rounded-[6px] text-xs font-semibold w-fit"
+            class="inline-flex px-2 py-0.75 rounded-[6px] text-sm font-bold w-fit"
             :style="{ backgroundColor: 'var(--plan-badge-bg)', color: 'var(--plan-badge-text)' }"
           >
             {{ $t(`objects.paymentPlan.${plan.title}`) }}
@@ -184,8 +184,14 @@ onMounted(async () => {
 
           <!-- CTA -->
           <div class="mt-auto pt-5">
-            <NcButton v-if="!isContactSales" type="primary" size="medium" class="!w-full" @click.stop="selectPlan(plan)">
-              {{ $t('labels.selectPlan') }}
+            <NcButton
+              v-if="!isContactSales"
+              :type="plan.title === OnPremPlanTitles.SELF_HOSTED_SCALE ? 'primary' : 'secondary'"
+              size="medium"
+              class="!w-full"
+              @click.stop="selectPlan(plan)"
+            >
+              {{ $t('labels.selectPlanName', { plan: $t(`objects.paymentPlan.${plan.title}`) }) }}
             </NcButton>
             <NcButton
               v-else
@@ -216,7 +222,7 @@ onMounted(async () => {
         >
           <!-- Badge -->
           <div
-            class="inline-flex px-2 py-0.75 rounded-[6px] text-xs font-semibold w-fit"
+            class="inline-flex px-2 py-0.75 rounded-[6px] text-sm font-bold w-fit"
             :style="{ backgroundColor: 'var(--plan-badge-bg)', color: 'var(--plan-badge-text)' }"
           >
             {{ $t('objects.paymentPlan.Self-hosted Enterprise') }}
@@ -417,15 +423,9 @@ onMounted(async () => {
 .nc-plan-card {
   @apply flex flex-col p-5 rounded-lg border-1 transition-all duration-300;
   border-color: var(--plan-border);
-  background-color: var(--plan-bg);
 
   &:hover {
-    background-color: var(--plan-bg-dark);
     box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.06);
-
-    .nc-plan-total-row {
-      background-color: var(--plan-bg);
-    }
   }
 }
 

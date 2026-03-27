@@ -87,7 +87,7 @@ const statusClass = (status: string) => {
 
 const maskKey = (key: string) => {
   if (!key) return ''
-  return `${key.slice(0, 6)}${'•'.repeat(20)}${key.slice(-4)}`
+  return `${key.slice(0, 6)}${'*'.repeat(16)}${key.slice(-4)}`
 }
 
 const toggleRevealKey = (licenseId: string) => {
@@ -232,7 +232,7 @@ onBeforeUnmount(async () => {
       </template>
     </NcPageHeader>
     <div class="h-full overflow-y-auto nc-scrollbar-thin">
-      <div class="max-w-[800px] mx-auto mt-8 px-4 pb-16">
+      <div class="max-w-[640px] mx-auto mt-8 px-4 pb-16">
         <!-- List View -->
         <template v-if="viewState === 'list'">
           <div v-if="isLoading" class="flex items-center justify-center py-20">
@@ -254,13 +254,6 @@ onBeforeUnmount(async () => {
           <div v-else class="flex flex-col gap-5">
             <div class="flex items-center justify-end gap-2">
               <NcButton
-                type="secondary"
-                size="small"
-                @click="onManageBilling"
-              >
-                {{ $t('labels.manageBilling') }}
-              </NcButton>
-              <NcButton
                 type="text"
                 size="small"
                 :loading="isSyncing"
@@ -269,6 +262,13 @@ onBeforeUnmount(async () => {
                 @click="onSyncLicenses"
               >
                 <GeneralIcon icon="refresh" class="h-4 w-4" />
+              </NcButton>
+              <NcButton
+                type="secondary"
+                size="small"
+                @click="onManageBilling"
+              >
+                {{ $t('labels.manageBilling') }}
               </NcButton>
               <NcButton
                 type="primary"
@@ -286,29 +286,31 @@ onBeforeUnmount(async () => {
               class="border-1 border-nc-border-gray-medium rounded-2xl p-5 hover:border-nc-border-gray-dark transition-colors"
               data-testid="nc-self-hosted-license-card"
             >
-              <div class="flex items-start justify-between mb-3">
-                <div class="flex items-center gap-2">
-                  <div
-                    v-if="license.plan"
-                    class="px-2 py-0.5 rounded-md text-xs font-semibold"
-                    :style="{
-                      backgroundColor: planMeta(license.plan.title)?.badgeBgColor,
-                      color: planMeta(license.plan.title)?.badgeTextColor,
-                    }"
-                  >
-                    {{ $t(`objects.paymentPlan.${license.plan.title}`) }}
-                  </div>
-                  <div class="px-2 py-0.5 rounded-md text-xs font-medium border-1" :class="statusClass(license.status)">
-                    {{ statusLabel(license.status) }}
-                  </div>
+              <div class="flex items-center gap-2 mb-3">
+                <div
+                  v-if="license.plan"
+                  class="px-2 py-0.5 rounded-md text-xs font-semibold border-1"
+                  :style="{
+                    backgroundColor: planMeta(license.plan.title)?.badgeBgColor,
+                    color: planMeta(license.plan.title)?.badgeTextColor,
+                    borderColor: planMeta(license.plan.title)?.badgeTextColor,
+                  }"
+                >
+                  {{ $t(`objects.paymentPlan.${license.plan.title}`) }}
                 </div>
-                <div class="text-xs text-nc-content-gray-muted">
-                  {{ license.created_at ? new Date(license.created_at).toLocaleDateString() : '' }}
+                <div class="px-2 py-0.5 rounded-md text-xs font-medium border-1" :class="statusClass(license.status)">
+                  {{ statusLabel(license.status) }}
+                </div>
+                <div
+                  v-if="license.subscription"
+                  class="px-2 py-0.5 rounded-md text-xs font-medium border-1 border-nc-border-gray-medium text-nc-content-gray-subtle bg-nc-bg-gray-light"
+                >
+                  {{ license.subscription.period === 'year' ? $t('labels.annual') : $t('general.monthly') }}
                 </div>
               </div>
 
               <div class="flex items-center gap-2 mb-3">
-                <code class="flex-1 text-xs bg-nc-bg-gray-light rounded-lg px-3 py-2 font-mono select-all break-all">
+                <code class="nc-license-key-code flex-1 text-xs bg-nc-bg-gray-light rounded-lg px-3 py-2 select-all break-all leading-5">
                   {{ revealedKeys.has(license.id) ? license.license_key : maskKey(license.license_key) }}
                 </code>
                 <NcButton
@@ -324,11 +326,13 @@ onBeforeUnmount(async () => {
                 </NcButton>
               </div>
 
-              <div class="flex items-center gap-4 text-xs text-nc-content-gray-subtle">
+              <div class="flex items-center gap-1.5 text-xs text-nc-content-gray-subtle">
                 <span>{{ license.licensed_to }}</span>
-                <span v-if="license.min_seats > 1"> {{ license.min_seats }} {{ $t('general.seats') }} </span>
-                <span v-if="license.subscription">
-                  {{ license.subscription.period === 'year' ? $t('labels.annual') : $t('general.monthly') }}
+                <span v-if="license.min_seats > 1" class="before:content-['|'] before:mr-1.5">
+                  {{ license.min_seats }} {{ $t('general.seats') }}
+                </span>
+                <span v-if="license.created_at" class="before:content-['|'] before:mr-1.5">
+                  {{ $t('labels.createdOn') }} {{ new Date(license.created_at).toLocaleDateString() }}
                 </span>
               </div>
             </div>
@@ -436,3 +440,9 @@ onBeforeUnmount(async () => {
     </div>
   </div>
 </template>
+
+<style lang="scss">
+.nc-license-key-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+}
+</style>

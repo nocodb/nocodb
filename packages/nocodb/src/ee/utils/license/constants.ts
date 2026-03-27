@@ -17,10 +17,11 @@ export const LICENSE_CONFIG = {
   // Request envelope version
   AGENT_REQUEST_VERSION: 0,
 
-  // Grace period for network failures (7 days)
-  HEARTBEAT_GRACE_PERIOD_MS: 7 * 24 * 60 * 60 * 1000,
+  // Grace period for network failures (2 days)
+  HEARTBEAT_GRACE_PERIOD_MS: 2 * 24 * 60 * 60 * 1000,
 
-  // Airgapped license
+  // License key prefixes
+  LICENSE_KEY_PREFIX: 'nc_',
   AIRGAPPED_KEY_PREFIX: 'nc_ag_',
 
   // DB fingerprint — prefix on installation_secret signals fingerprint-bound installation

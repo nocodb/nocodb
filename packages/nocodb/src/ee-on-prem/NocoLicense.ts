@@ -60,6 +60,7 @@ export default class NocoLicense {
   private static _isExpired: boolean = false;
   private static heartbeatState: HeartbeatState | null = null;
   private static _isAirgapped: boolean = false;
+  private static _graceExpiredLogged: boolean = false;
 
   // Heartbeat intervals from shared constants
   private static readonly HEARTBEAT_INTERVAL_NORMAL_MS =
@@ -76,10 +77,29 @@ export default class NocoLicense {
     return this._isExpired;
   }
 
-  /** EE is active when license is initialized, not expired, and not suspended */
+  /** EE is active when license is initialized, not expired, not suspended,
+   *  and (for non-airgapped) still within the heartbeat grace period. */
   public static get isEE(): boolean {
     if (!this.licenseData) return false;
-    return !this._isExpired && !this.isSuspended;
+    if (this._isExpired || this.isSuspended) return false;
+
+    // For non-airgapped licenses, enforce grace period —
+    // if heartbeats haven't succeeded within the window, fall to CE mode
+    if (!this._isAirgapped && !this.isInGracePeriod()) {
+      if (!this._graceExpiredLogged) {
+        this._graceExpiredLogged = true;
+        this.logger.warn(
+          'License grace period expired — falling back to CE mode. ' +
+            'Ensure the license server is reachable to restore EE features.',
+        );
+      }
+      return false;
+    }
+
+    // Reset the flag once we're back in grace period (heartbeat recovered)
+    this._graceExpiredLogged = false;
+
+    return true;
   }
 
   /** License is suspended or revoked */
@@ -111,7 +131,7 @@ export default class NocoLicense {
 
   /**
    * Reset license state so init() can be called again with a new key.
-   * Stops heartbeat timer and clears all cached data.
+   * Stops heartbeat timer and clears all in-memory cached data.
    */
   public static reset(): void {
     if (this.heartbeatTimer) {
@@ -121,9 +141,43 @@ export default class NocoLicense {
     this.licenseData = null;
     this._isExpired = false;
     this._isAirgapped = false;
+    this._graceExpiredLogged = false;
 
     this.heartbeatState = null;
     this.currentHeartbeatInterval = this.HEARTBEAT_INTERVAL_NORMAL_MS;
+  }
+
+  /**
+   * Refresh an airgapped (nc_ag_) license from the server.
+   * Contacts the license server to get a fresh JWT with updated expires_at.
+   * On failure the existing cached license is preserved — no data is lost.
+   * @returns true if refresh succeeded, false if server was unreachable
+   */
+  public static async refreshAirgappedFromServer(
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    const licenseKey = process.env[LICENSE_ENV_VARS.LICENSE_KEY];
+
+    if (!licenseKey?.startsWith(LICENSE_CONFIG.AIRGAPPED_KEY_PREFIX)) {
+      return false;
+    }
+
+    // Attempt online activation — gets a fresh JWT with latest expires_at
+    const activated = await this.activateAirgappedLicense(licenseKey, ncMeta);
+
+    if (!activated) {
+      this.logger.warn(
+        'Airgapped license refresh failed — server unreachable. Existing license preserved.',
+      );
+      return false;
+    }
+
+    this._isAirgapped = true;
+    this._isExpired = this.licenseData
+      ? !this.isValidStatus(this.licenseData.status)
+      : false;
+    this.logger.log('Airgapped license refreshed from server successfully');
+    return true;
   }
 
   /**
@@ -1058,6 +1112,13 @@ export default class NocoLicense {
       );
     }
 
+    // Airgapped licenses must have an expiration date
+    if (!licenseData.expires_at) {
+      throw new Error(
+        'Airgapped licenses must have an expiration date. Please contact NocoDB to obtain a valid license.',
+      );
+    }
+
     // Verify DB fingerprint
     const currentFingerprint = await getDbFingerprint(ncMeta);
     if (
@@ -1376,44 +1437,10 @@ export default class NocoLicense {
   }
 
   public static shouldBlockAccess(): boolean {
-    if (!this.licenseData) {
-      // No license data loaded — CE mode, don't block
-      return false;
-    }
-
-    // Always block if explicitly revoked or suspended
-    if (
-      this.licenseData.status === InstallationStatus.REVOKED ||
-      this.licenseData.status === InstallationStatus.SUSPENDED
-    ) {
-      return true;
-    }
-
-    /* TODO: Enable, for now we only block on REVOKED/SUSPENDED
-    // For expired licenses, check if we're in grace period
-    if (this.licenseData.status === InstallationStatus.EXPIRED) {
-      if (!this.isInGracePeriod()) {
-        this.logger.error(
-          'Access blocked: License expired and grace period ended',
-        );
-        return true;
-      }
-      // Within grace period - allow access but log warning
-      this.logger.warn('License expired but within grace period');
-      return false;
-    }
-
-    // For active licenses, check network failure grace period
-    if (this.licenseData.status === InstallationStatus.ACTIVE) {
-      if (!this.isInGracePeriod()) {
-        this.logger.error(
-          'Access blocked: Unable to reach license server for extended period',
-        );
-        return true;
-      }
-    }
-    */
-
+    // Never hard-block access — the instance falls back to CE mode instead.
+    // isEE returns false when the license is invalid, suspended, or grace
+    // period has expired, which makes LicenseGuard reject EE-only endpoints
+    // while still allowing CE functionality.
     return false;
   }
 

@@ -292,6 +292,13 @@ export class OnPremiseController {
       }
     }
 
+    // Airgapped licenses must have an expiration date to prevent abuse
+    if (isAirgapped && !installation.expires_at) {
+      NcError._.badRequest(
+        'Airgapped licenses must have an expiration date. Please contact support to set one.',
+      );
+    }
+
     // Generate RSA-signed JWT containing license state
     const licenseJWT = isAirgapped
       ? await Installation.signAirgappedLicenseJWT(installation, dbFingerprint)

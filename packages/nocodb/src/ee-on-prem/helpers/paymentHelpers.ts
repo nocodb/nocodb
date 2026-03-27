@@ -1,4 +1,4 @@
-import { NON_SEAT_ROLES, PlanLimitTypes } from 'nocodb-sdk';
+import { NON_SEAT_ROLES, OnPremPlanTitles, PlanLimitTypes } from 'nocodb-sdk';
 import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import NocoLicense from '~/NocoLicense';
 import { EnterprisePlan, EnterpriseStarterPlan, FreePlan } from '~/models/Plan';
@@ -60,7 +60,7 @@ export async function checkGlobalSeatHeadroom(
     NcError.planLimitExceeded(
       `Maximum seat limit of ${seatLimit} reached. Contact your administrator to increase the licensed seat count.`,
       {
-        plan: 'Enterprise',
+        plan: OnPremPlanTitles.ENTERPRISE,
         limit: seatLimit,
         current: currentCount,
       },
@@ -93,7 +93,7 @@ export async function checkSeatLimit(
       NcError.planLimitExceeded(
         `Maximum seat limit of ${seatLimit} reached. Contact your administrator to increase the licensed seat count.`,
         {
-          plan: 'Enterprise',
+          plan: OnPremPlanTitles.ENTERPRISE,
           limit: seatLimit,
           current: currentCount,
         },

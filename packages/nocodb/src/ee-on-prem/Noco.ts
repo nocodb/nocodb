@@ -15,14 +15,21 @@ const logger = new Logger('Noco');
 export default class Noco extends NocoEE {
   public static domains: Set<string> = new Set();
 
+  /**
+   * On-prem override: dynamically checks NocoLicense.isEE so that
+   * runtime state changes (grace period expiry, revocation) take
+   * effect immediately without requiring a restart.
+   */
+  public static isEE(): boolean {
+    return NocoLicense.isEE;
+  }
+
   static async init(param: any, httpServer: http.Server, server: Express) {
     const res = await super.init(param, httpServer, server);
 
     if (isLicenseClientEnabled()) {
       try {
         await NocoLicense.init();
-
-        this.ee = NocoLicense.isEE;
 
         logger.log(
           NocoLicense.isEE
@@ -33,10 +40,8 @@ export default class Noco extends NocoEE {
         logger.warn(
           `License activation failed: ${e.message} — falling back to CE mode`,
         );
-        this.ee = false;
       }
     } else {
-      this.ee = false;
       logger.log('No license key found — running in CE mode');
     }
 
@@ -68,16 +73,17 @@ export default class Noco extends NocoEE {
 
       if (!licenseKey) {
         NocoLicense.reset();
-        this.ee = false;
         await verifyDefaultWorkspace();
         return false;
       }
 
       process.env[LICENSE_ENV_VARS.LICENSE_KEY] = licenseKey;
       NocoLicense.reset();
-      await NocoLicense.init();
 
-      this.ee = NocoLicense.isEE;
+      // Preserve DB cache — for standard licenses the heartbeat will
+      // refresh the JWT, for airgapped the cache is the only fallback
+      // if the server is unreachable.
+      await NocoLicense.init();
 
       logger.log(
         NocoLicense.isEE
@@ -91,7 +97,6 @@ export default class Noco extends NocoEE {
       return NocoLicense.isEE;
     } catch (e) {
       logger.error(`Failed to load EE state: ${e.message}`);
-      this.ee = false;
       await verifyDefaultWorkspace();
       return false;
     }

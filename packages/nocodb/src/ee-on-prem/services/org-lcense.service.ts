@@ -1,13 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { NC_LICENSE_KEY } from '~/constants';
 import { OrgLcenseService as OrgLcenseServiceEE } from 'src/ee/services/org-lcense.service';
+import { NC_LICENSE_KEY } from '~/constants';
 import { NcError } from '~/helpers/catchError';
 import { getDbFingerprint } from '~/helpers/dbFingerprint';
 import { validatePayload } from '~/helpers';
 import { Store } from '~/models';
 import Noco from '~/Noco';
 import NocoLicense from '~/NocoLicense';
-import { LICENSE_ENV_VARS } from '~/utils/license/constants';
+import { LICENSE_CONFIG, LICENSE_ENV_VARS } from '~/utils/license/constants';
 
 @Injectable()
 export class OrgLcenseService extends OrgLcenseServiceEE {
@@ -19,7 +19,6 @@ export class OrgLcenseService extends OrgLcenseServiceEE {
     if (!param.key) {
       await Store.saveOrUpdate({ value: '', key: NC_LICENSE_KEY });
       NocoLicense.reset();
-      Noco.ee = false;
       return true;
     }
 
@@ -32,7 +31,10 @@ export class OrgLcenseService extends OrgLcenseServiceEE {
       );
     }
 
-    // Validate the key by attempting activation BEFORE saving
+    // Validate the key by attempting activation BEFORE saving.
+    // DB cache is preserved intentionally — init() loads from cache for
+    // airgapped licenses (fallback if server unreachable), and the
+    // subsequent refreshAirgappedFromServer() handles the online refresh.
     process.env[LICENSE_ENV_VARS.LICENSE_KEY] = param.key;
     NocoLicense.reset();
 
@@ -50,16 +52,25 @@ export class OrgLcenseService extends OrgLcenseServiceEE {
           // Previous key also failed — stay in CE mode
         }
       }
-      Noco.ee = NocoLicense.isEE;
       this.logger.error(e.message, e.stack);
       NcError.badRequest(
         'License activation failed. Please verify your license key and try again.',
       );
     }
 
-    // Activation succeeded — now save
+    // Activation succeeded — save first, then attempt best-effort refresh
     await Store.saveOrUpdate({ value: param.key, key: NC_LICENSE_KEY });
-    Noco.ee = NocoLicense.isEE;
+
+    // For airgapped nc_ag_ keys: attempt online refresh to pull the
+    // latest expires_at from the server (covers the case where the
+    // admin renewed the license remotely and the customer is refreshing).
+    // init() already handles first-time activation and expired JWTs —
+    // this call is only needed when the cache is still valid but the
+    // user explicitly wants to sync with the server.
+    // Best-effort — failure must not affect the saved key or rollback.
+    if (param.key.startsWith(LICENSE_CONFIG.AIRGAPPED_KEY_PREFIX)) {
+      await NocoLicense.refreshAirgappedFromServer();
+    }
 
     return true;
   }

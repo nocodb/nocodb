@@ -261,13 +261,13 @@ export class ViewsService {
       }
     }
 
-    // When changing FROM personal to non-personal, clear owned_by
+    // When changing FROM personal to non-personal, reset owned_by to created_by if available
     if (
       oldView.lock_type === ViewLockType.Personal &&
       param.view.lock_type &&
       param.view.lock_type !== ViewLockType.Personal
     ) {
-      ownedBy = null;
+      ownedBy = createdBy || null;
       includeCreatedByAndUpdateBy = true;
     }
 

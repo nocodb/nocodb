@@ -176,6 +176,7 @@ export default class NocoLicense {
     this._isExpired = this.licenseData
       ? !this.isValidStatus(this.licenseData.status)
       : false;
+    this.startHeartbeatTimer();
     this.logger.log('Airgapped license refreshed from server successfully');
     return true;
   }
@@ -328,18 +329,30 @@ export default class NocoLicense {
   }
 
   /**
-   * Start the heartbeat timer
+   * Start the heartbeat timer.
+   * If the license has an expiry sooner than the normal interval,
+   * schedule at expiry + 5s so the next heartbeat catches it precisely.
    */
   private static startHeartbeatTimer(): void {
-    if (this._isAirgapped) return;
-
     if (this.heartbeatTimer) {
       clearTimeout(this.heartbeatTimer);
     }
 
+    let interval = this.currentHeartbeatInterval;
+
+    // If license expires before the next scheduled heartbeat,
+    // tighten the interval so we fire just after expiry
+    if (this.licenseData?.expires_at) {
+      const msUntilExpiry =
+        new Date(this.licenseData.expires_at).getTime() - Date.now();
+      if (msUntilExpiry > 0 && msUntilExpiry < interval) {
+        interval = msUntilExpiry + 5_000;
+      }
+    }
+
     this.heartbeatTimer = setTimeout(() => {
       this.handleHeartbeat();
-    }, this.currentHeartbeatInterval);
+    }, interval);
   }
 
   /**
@@ -440,7 +453,23 @@ export default class NocoLicense {
    * - Updates cached license data
    */
   private static async handleHeartbeat() {
-    if (this._isAirgapped) return;
+    // For airgapped: no server call — just check expiry locally
+    if (this._isAirgapped) {
+      if (
+        this.licenseData?.expires_at &&
+        new Date(this.licenseData.expires_at) < new Date()
+      ) {
+        this._isExpired = true;
+        this.logger.warn(
+          'Airgapped license has expired — falling back to CE mode. ' +
+            'Please renew your license to restore EE features.',
+        );
+        return;
+      }
+      // Not expired yet — reschedule to check again
+      this.startHeartbeatTimer();
+      return;
+    }
 
     if (!this.licenseData) {
       this.startHeartbeatTimer();
@@ -1165,6 +1194,8 @@ export default class NocoLicense {
     this.logger.log(
       'Pre-signed license JWT loaded successfully (pure airgapped)',
     );
+
+    this.startHeartbeatTimer();
   }
 
   // ───── Airgapped License Methods ─────
@@ -1236,6 +1267,7 @@ export default class NocoLicense {
           this._isAirgapped = true;
 
           this.logger.log('Airgapped license loaded from cache successfully');
+          this.startHeartbeatTimer();
           return;
         }
 
@@ -1273,6 +1305,7 @@ export default class NocoLicense {
 
     this._isAirgapped = true;
     this.logger.log('Airgapped license activated successfully');
+    this.startHeartbeatTimer();
   }
 
   /**

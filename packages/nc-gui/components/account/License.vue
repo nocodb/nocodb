@@ -94,9 +94,21 @@ loadLicense()
 </script>
 
 <template>
-  <div class="h-full overflow-y-auto nc-scrollbar-thin">
+  <div class="flex flex-col h-full">
+    <NcPageHeader>
+      <template #icon>
+        <div class="flex justify-center items-center h-5 w-5">
+          <GeneralIcon icon="ncKey2" class="flex-none text-[20px]" />
+        </div>
+      </template>
+      <template #title>
+        <span data-rec="true">
+          {{ $t('title.license') }}
+        </span>
+      </template>
+    </NcPageHeader>
+    <div class="flex-1 overflow-y-auto nc-scrollbar-thin">
     <div class="max-w-[600px] mx-auto mt-8 px-4">
-      <div class="text-xl font-semibold mb-6">{{ $t('title.license') }}</div>
 
       <template v-if="isPostgresRequired">
         <NcAlert visible type="warning" background>
@@ -191,6 +203,7 @@ loadLicense()
           </div>
         </div>
       </template>
+    </div>
     </div>
   </div>
 </template>

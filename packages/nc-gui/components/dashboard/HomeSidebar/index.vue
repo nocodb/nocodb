@@ -91,15 +91,11 @@ const navigateToWorkspace = () => {
             data-testid="nc-sidebar-userinfo"
             :data-email="user?.email"
           >
-            <GeneralUserIcon :user="user" size="medium" class="flex-none" />
+            <GeneralUserIcon :user="user" size="medium" :initials-length="1" class="flex-none" />
             <div class="flex-1 min-w-0">
               <NcTooltip show-on-truncate-only class="truncate text-bodyDefaultSm text-nc-content-gray block">
                 <template #title>{{ name || user?.email }}</template>
                 {{ name || user?.email }}
-              </NcTooltip>
-              <NcTooltip v-if="name" show-on-truncate-only class="truncate text-bodySm text-nc-content-gray-muted block">
-                <template #title>{{ user?.email }}</template>
-                {{ user?.email }}
               </NcTooltip>
             </div>
           </div>

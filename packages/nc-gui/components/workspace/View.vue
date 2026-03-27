@@ -33,7 +33,7 @@ const {
   getFeature,
   blockTeamsManagement,
   showUpgradeToUseTeams,
-  isEEFeatureBlocked,
+  showEEFeatures,
 } = useEeConfig()
 
 const { isFromIntegrationPage, integrationPaginationData, loadIntegrations } = useProvideIntegrationViewStore()
@@ -161,7 +161,7 @@ watch(
 
     await until(() => isBaseRolesLoaded.value).toBeTruthy()
 
-    if (!isUIAllowed('workspaceCollaborators') && !isEEFeatureBlocked.value) {
+    if (!isUIAllowed('workspaceCollaborators') && showEEFeatures.value) {
       tab.value = 'settings'
     } else if (
       (!isWsAuditEnabled.value && newTab === 'audits') ||
@@ -269,16 +269,12 @@ if (!props.isNewWsPage) {
           <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" :is-active="tab === 'collaborators'" />
         </a-tab-pane>
 
-        <a-tab-pane v-if="isEeUI && hasTeamsEditPermission" key="teams" class="w-full h-full">
+        <a-tab-pane v-if="isEeUI && hasTeamsEditPermission && showEEFeatures" key="teams" class="w-full h-full">
           <template #tab>
             <div class="tab-title">
               <GeneralIcon icon="ncBuilding" class="h-4 w-4" />
               {{ $t('general.teams') }}
-              <LazyPaymentUpgradeBadge
-                :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT"
-                :feature-enabled-callback="() => !isEEFeatureBlocked"
-                remove-click
-              />
+              <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT" remove-click />
             </div>
           </template>
 
@@ -391,7 +387,7 @@ if (!props.isNewWsPage) {
         </template>
       </template>
 
-      <a-tab-pane v-if="!isEEFeatureBlocked" key="settings" class="w-full">
+      <a-tab-pane v-if="showEEFeatures" key="settings" class="w-full">
         <template #tab>
           <div class="tab-title" data-testid="nc-workspace-settings-tab-settings">
             <GeneralIcon icon="ncSettings" class="h-4 w-4" />

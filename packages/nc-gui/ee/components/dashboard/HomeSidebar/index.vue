@@ -257,7 +257,7 @@ const hasNoResults = computed(() => {
           >
             <GeneralUserIcon :user="user" size="medium" :initials-length="1" class="flex-none" />
             <div class="flex-1 min-w-0">
-              <NcTooltip show-on-truncate-only class="truncate text-bodyDefaultSm leading-tight text-nc-content-gray block">
+              <NcTooltip show-on-truncate-only class="truncate text-bodyDefaultSm text-nc-content-gray block">
                 <template #title>{{ name || user?.email }}</template>
                 {{ name || user?.email }}
               </NcTooltip>

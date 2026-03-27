@@ -15,15 +15,7 @@ const { appInfo, isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
-const {
-  isWsAuditEnabled,
-  isPaymentEnabled,
-  isEEFeatureBlocked,
-  getFeature,
-  handleUpgradePlan,
-  showUpgradeToUseTeams,
-  showEEFeatures,
-} = useEeConfig()
+const { isWsAuditEnabled, isPaymentEnabled, getFeature, handleUpgradePlan, showUpgradeToUseTeams, showEEFeatures } = useEeConfig()
 
 const hasTeamsEditPermission = computed(() => {
   return isEeUI && isTeamsEnabled.value && isUIAllowed('teamCreate')
@@ -38,7 +30,7 @@ interface TabItem {
   key: string
   icon: string
   label: string
-  upgradeBadge?: { feature: string; enabledCallback: () => boolean }
+  upgradeBadge?: { feature: string }
 }
 
 const tabItems = computed<TabItem[]>(() => {
@@ -53,7 +45,9 @@ const tabItems = computed<TabItem[]>(() => {
       key: 'teams',
       icon: 'ncBuilding',
       label: t('general.teams'),
-      upgradeBadge: { feature: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT, enabledCallback: () => !isEEFeatureBlocked.value },
+      upgradeBadge: {
+        feature: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+      },
     })
   }
 
@@ -80,7 +74,7 @@ const tabItems = computed<TabItem[]>(() => {
     }
   }
 
-  if (!isEEFeatureBlocked.value) {
+  if (showEEFeatures.value) {
     items.push({ key: 'settings', icon: 'ncSettings', label: t('labels.settings') })
   }
 
@@ -124,12 +118,7 @@ const activeTab = computed({
         <div class="tab-title">
           <GeneralIcon :icon="item.icon" class="h-4 w-4" />
           {{ item.label }}
-          <LazyPaymentUpgradeBadge
-            v-if="item.upgradeBadge"
-            :feature="item.upgradeBadge.feature"
-            :feature-enabled-callback="item.upgradeBadge.enabledCallback"
-            remove-click
-          />
+          <LazyPaymentUpgradeBadge v-if="item.upgradeBadge" :feature="item.upgradeBadge.feature" remove-click />
         </div>
       </template>
     </a-tab-pane>
@@ -153,7 +142,7 @@ const activeTab = computed({
   }
 
   :deep(.ant-tabs-tab + .ant-tabs-tab) {
-    @apply !ml-3;
+    @apply !ml-2;
   }
 }
 

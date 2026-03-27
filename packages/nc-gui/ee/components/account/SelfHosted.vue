@@ -60,7 +60,7 @@ const sessionId = computed(() => route.query.session_id as string)
 const planMeta = (title: OnPremPlanTitles) => OnPremPlanMeta[title] || null
 
 const statusLabel = (status: string) => {
-  switch (status) {
+  switch (status?.toUpperCase()) {
     case 'ACTIVE':
       return t('general.active')
     case 'PENDING':
@@ -71,6 +71,8 @@ const statusLabel = (status: string) => {
       return status
   }
 }
+
+const statusClassNormalized = (status: string) => statusClass(status?.toUpperCase())
 
 const statusClass = (status: string) => {
   switch (status) {
@@ -232,7 +234,7 @@ onBeforeUnmount(async () => {
       </template>
     </NcPageHeader>
     <div class="h-full overflow-y-auto nc-scrollbar-thin">
-      <div class="max-w-[640px] mx-auto mt-8 px-4 pb-16">
+      <div class="mx-auto mt-8 px-4 pb-16" :class="viewState === 'list' ? 'max-w-[640px]' : 'max-w-[960px]'">
         <!-- List View -->
         <template v-if="viewState === 'list'">
           <div v-if="isLoading" class="flex items-center justify-center py-20">
@@ -298,7 +300,7 @@ onBeforeUnmount(async () => {
                 >
                   {{ $t(`objects.paymentPlan.${license.plan.title}`) }}
                 </div>
-                <div class="px-2 py-0.5 rounded-md text-xs font-medium border-1" :class="statusClass(license.status)">
+                <div class="px-2 py-0.5 rounded-md text-xs font-medium border-1" :class="statusClassNormalized(license.status)">
                   {{ statusLabel(license.status) }}
                 </div>
                 <div
@@ -328,12 +330,14 @@ onBeforeUnmount(async () => {
 
               <div class="flex items-center gap-1.5 text-xs text-nc-content-gray-subtle">
                 <span>{{ license.licensed_to }}</span>
-                <span v-if="license.min_seats > 1" class="before:content-['|'] before:mr-1.5">
-                  {{ license.min_seats }} {{ $t('general.seats') }}
-                </span>
-                <span v-if="license.created_at" class="before:content-['|'] before:mr-1.5">
-                  {{ $t('labels.createdOn') }} {{ new Date(license.created_at).toLocaleDateString() }}
-                </span>
+                <template v-if="license.min_seats > 1">
+                  <span>|</span>
+                  <span>{{ license.min_seats }} {{ $t('general.seats') }}</span>
+                </template>
+                <template v-if="license.created_at">
+                  <span>|</span>
+                  <span>{{ $t('labels.createdOn') }} {{ new Date(license.created_at).toLocaleDateString() }}</span>
+                </template>
               </div>
             </div>
           </div>
@@ -381,7 +385,7 @@ onBeforeUnmount(async () => {
         <!-- Success View -->
         <template v-if="viewState === 'success' && successLicense">
           <div class="flex flex-col items-center gap-6 py-10">
-            <div class="w-full max-w-[560px] border border-nc-border-gray-medium rounded-2xl p-8 flex flex-col items-center gap-5">
+            <div class="w-full max-w-[560px] border-1 border-nc-border-gray-medium rounded-2xl p-8 flex flex-col items-center gap-5">
               <div class="w-16 h-16 rounded-full bg-nc-bg-green-light flex items-center justify-center">
                 <GeneralIcon icon="ncCheck" class="h-8 w-8 text-nc-content-green-dark" />
               </div>
@@ -403,7 +407,7 @@ onBeforeUnmount(async () => {
                 <div class="text-xs text-nc-content-gray-subtle mb-2">{{ $t('title.licenseKey') }}</div>
                 <div class="flex items-center gap-2">
                   <code
-                    class="flex-1 text-sm bg-nc-bg-gray-light rounded-lg px-4 py-3 font-mono select-all break-all"
+                    class="nc-license-key-code flex-1 text-sm bg-nc-bg-gray-light rounded-lg px-4 py-3 select-all break-all"
                     data-testid="nc-self-hosted-success-key"
                   >
                     {{ successLicense.license_key }}

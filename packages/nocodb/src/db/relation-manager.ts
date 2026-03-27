@@ -238,26 +238,36 @@ export class RelationManager {
     const {
       childBaseModel: baseModel,
       childTn,
+      childTable,
       parentTn,
       childColumn,
       parentColumn,
       parentTable,
       parentId,
     } = this.relationContext;
-    return await baseModel.execAndParse(
-      baseModel.dbDriver(childTn).where({
-        [childColumn.column_name]: baseModel.dbDriver.from(
-          baseModel
-            .dbDriver(parentTn)
-            .select(parentColumn.column_name)
-            .where(_wherePk(parentTable.primaryKeys, parentId))
-            .first()
-            .as('___cn_alias'),
-        ),
-      }),
-      null,
-      { raw: true, first: true },
-    );
+    const qb = baseModel.dbDriver(childTn).where({
+      [childColumn.column_name]: baseModel.dbDriver.from(
+        baseModel
+          .dbDriver(parentTn)
+          .select(parentColumn.column_name)
+          .where(_wherePk(parentTable.primaryKeys, parentId))
+          .first()
+          .as('___cn_alias'),
+      ),
+    });
+
+    // Exclude soft-deleted rows — they should not block new OO links
+    const softDeleteCol = childTable.columns?.find((c) => isDeletedCol(c));
+    if (softDeleteCol) {
+      qb.where(function () {
+        this.whereNull(softDeleteCol.column_name).orWhere(
+          softDeleteCol.column_name,
+          false,
+        );
+      });
+    }
+
+    return await baseModel.execAndParse(qb, null, { raw: true, first: true });
   }
 
   /**
@@ -337,11 +347,13 @@ export class RelationManager {
     const softDeleteCol = otherSideTable?.columns?.find((c) => isDeletedCol(c));
     if (softDeleteCol && otherSideColName && otherSideTn) {
       deleteQb.whereNotExists(
-        trx(otherSideTn).select(1).where(softDeleteCol.column_name, true).where(
-          otherSideTable.primaryKey.column_name,
-          // Bare column reference — SQL resolves this to the outer (junction) table
-          trx.ref(otherSideColName),
-        ),
+        trx(otherSideTn)
+          .select(1)
+          .where(softDeleteCol.column_name, true)
+          .whereRaw('?? = ??', [
+            otherSideTable.primaryKey.column_name,
+            otherSideColName,
+          ]),
       );
     }
     deleteQb.delete();
@@ -1050,10 +1062,10 @@ export class RelationManager {
               updatedColIds: [refTableLinkColumnId],
             });
           }
-          // todo: unlink if it's already mapped
-          // unlink already mapped record if any
-          await childBaseModel.execAndParse(
-            baseModel
+          // Unlink existing child records — but preserve FK on soft-deleted
+          // rows so restore conflict detection can detect the OO violation.
+          {
+            const unlinkQb = baseModel
               .dbDriver(childTn)
               .where({
                 [childColumn.column_name]: baseModel.dbDriver.from(
@@ -1065,10 +1077,22 @@ export class RelationManager {
                     .as('___cn_alias'),
                 ),
               })
-              .update({ [childColumn.column_name]: null }),
-            null,
-            { raw: true },
-          );
+              .update({ [childColumn.column_name]: null });
+
+            const softDeleteCol = childTable.columns?.find((c) =>
+              isDeletedCol(c),
+            );
+            if (softDeleteCol) {
+              unlinkQb.where(function () {
+                this.whereNull(softDeleteCol.column_name).orWhere(
+                  softDeleteCol.column_name,
+                  false,
+                );
+              });
+            }
+
+            await childBaseModel.execAndParse(unlinkQb, null, { raw: true });
+          }
 
           await childBaseModel.execAndParse(
             baseModel

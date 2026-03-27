@@ -5137,7 +5137,9 @@ export class ColumnsService implements IColumnsService {
           dtxs: table.primaryKey.dtxs,
           un: table.primaryKey.un,
           altered: Altered.NEW_COLUMN,
-          unique: 1, // Ensure the foreign key column is unique for one-to-one relationships
+          // No unique constraint — soft-deleted records may retain their FK
+          // value for restore conflict detection. OO cardinality is enforced
+          // at the application level (RelationManager.addChild).
         };
 
         const tableUpdateBody = {

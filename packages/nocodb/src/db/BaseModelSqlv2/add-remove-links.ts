@@ -456,12 +456,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                       .dbDriver(parentTn)
                       .select(1)
                       .where(parentSoftDeleteCol.column_name, true)
-                      .where(
+                      .whereRaw('?? = ??', [
                         parentTable.primaryKey.column_name,
-                        baseModel.dbDriver.ref(
-                          `${vTable.table_name}.${vParentCol.column_name}`,
-                        ),
-                      ),
+                        vParentCol.column_name,
+                      ]),
                   );
                 }
 
@@ -517,12 +515,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                         .dbDriver(childTn)
                         .select(1)
                         .where(childSoftDeleteCol.column_name, true)
-                        .where(
+                        .whereRaw('?? = ??', [
                           childTable.primaryKey.column_name,
-                          baseModel.dbDriver.ref(
-                            `${vTable.table_name}.${vChildCol.column_name}`,
-                          ),
-                        ),
+                          vChildCol.column_name,
+                        ]),
                     );
                   }
 

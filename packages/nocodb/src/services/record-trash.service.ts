@@ -208,9 +208,10 @@ export class RecordTrashService {
         }
       }
       for (const c of v1Conflicts) {
-        const cols = conflictMap.get(c.rowId) ?? [];
+        const key = String(c.rowId);
+        const cols = conflictMap.get(key) ?? [];
         cols.push(c.fkColumnName);
-        conflictMap.set(c.rowId, cols);
+        conflictMap.set(key, cols);
       }
     }
 

@@ -8840,6 +8840,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ) {
           const childColumn = await colOptions.getChildColumn(childContext);
           const childTable = await childColumn.getModel(childContext);
+
+          // Skip junction tables (system HM columns from MM point here)
+          if (childTable.mm) continue;
+
           await childTable.getColumns(childContext);
           const childBaseModel = await Model.getBaseModelSQL(childContext, {
             model: childTable,
@@ -9000,6 +9004,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ) {
           const childColumn = await colOptions.getChildColumn(childContext);
           const childTable = await childColumn.getModel(childContext);
+
+          // Skip junction tables — they are internal MM tables, not user-facing.
+          // System HM columns from V1 MM point to the junction table as child;
+          // broadcasting / LMT updates on them fails (composite PK) and is meaningless.
+          if (childTable.mm) continue;
+
           await childTable.getColumns(childContext);
 
           const childBaseModel = await Model.getBaseModelSQL(childContext, {

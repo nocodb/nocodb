@@ -842,7 +842,7 @@ export class BaseModelDelete {
       this.baseModel
         .dbDriver(this.baseModel.tnPath)
         .whereIn(pk.column_name, rowIds)
-        .select(columns.map((c) => c.column_name)),
+        .select(columns.filter((c) => c.column_name).map((c) => c.column_name)),
       columns,
       { raw: true },
     );

@@ -274,66 +274,107 @@ export class SoftDeleteColumnMigration {
       ncMeta,
     );
 
-    // Check if __nc_deleted column already exists
-    const deletedColumn = model.columns.find((c) => isDeletedCol(c));
-
-    if (!deletedColumn) {
-      const newColumn = await this.addSoftDeleteColumn(model, source, sqlMgr);
-
-      await Column.insert(
+    const v1OoFkColIds = new Set<string>();
+    for (const col of model.columns) {
+      if (col.uidt !== UITypes.LinkToAnotherRecord) continue;
+      const colOpts = await col.getColOptions<any>(context, ncMeta);
+      if (colOpts?.type !== 'oo' || !col.meta?.bt) continue;
+      if (colOpts?.version == 2) continue;
+      const fkCol = await Column.get(
         context,
-        {
-          ...newColumn,
-          system: true,
-          fk_model_id: model.id,
-          source_id,
-        },
+        { colId: colOpts.fk_child_column_id },
         ncMeta,
       );
+      if (!fkCol || fkCol.fk_model_id !== model.id || !fkCol.unique) continue;
+      v1OoFkColIds.add(fkCol.id);
+    }
 
-      // Add index on __nc_deleted for fast filtering
-      const realDbDriver = await NcConnectionMgrv2.get(
-        new Source({
-          ...source,
-          upgraderMode: false,
-        } as any),
+    const needsDeletedCol = !model.columns.find((c) => isDeletedCol(c));
+    const needsOoUniqueDrop = v1OoFkColIds.size > 0;
+
+    if (!needsDeletedCol && !needsOoUniqueDrop) {
+      await this.updateModelStatus(Noco.ncMeta, modelId, true);
+      return;
+    }
+
+    let newDeletedColumn: any;
+    const originalColumns = model.columns.map((c) => ({
+      ...c,
+      cn: c.column_name,
+    }));
+
+    const columns = model.columns.map((c) => ({
+      ...c,
+      cn: c.column_name,
+      ...(v1OoFkColIds.has(c.id)
+        ? { altered: Altered.UPDATE_COLUMN, unique: false }
+        : {}),
+    }));
+
+    if (needsDeletedCol) {
+      newDeletedColumn = {
+        ...(await memoizedGetColumnPropsFromUIDT(source)),
+        column_name: getUniqueColumnName(model.columns, '__nc_deleted'),
+        title: getUniqueColumnAliasName(model.columns, '__nc_deleted'),
+        cdf: source.type === 'mysql2' ? '0' : 'false',
+        system: true,
+        altered: Altered.NEW_COLUMN,
+      };
+      columns.push({ ...newDeletedColumn, cn: newDeletedColumn.column_name });
+    }
+
+    await sqlMgr.sqlOpPlus(source, 'tableUpdate', {
+      ...model,
+      tn: model.table_name,
+      originalColumns,
+      columns,
+    });
+
+    if (needsDeletedCol && newDeletedColumn) {
+      await Column.insert(
+        context,
+        { ...newDeletedColumn, system: true, fk_model_id: model.id, source_id },
+        ncMeta,
       );
+    }
 
-      const queries = source.upgraderQueries.splice(0);
+    for (const fkColId of v1OoFkColIds) {
+      await Column.update(context, fkColId, { unique: false }, ncMeta);
+    }
 
-      if (queries.length) {
-        if (isEE) {
-          await realDbDriver.raw(queries.join(';'));
-        } else {
-          const trans = await realDbDriver.transaction();
-          try {
-            for (const query of queries) {
-              await trans.raw(query);
-            }
-            await trans.commit();
-          } catch (e) {
-            await trans.rollback();
-            throw e;
+    const realDbDriver = await NcConnectionMgrv2.get(
+      new Source({ ...originalSource, upgraderMode: false } as any),
+    );
+
+    const queries = source.upgraderQueries.splice(0);
+    if (queries.length) {
+      if (isEE) {
+        await realDbDriver.raw(queries.join(';'));
+      } else {
+        const trans = await realDbDriver.transaction();
+        try {
+          for (const query of queries) {
+            await trans.raw(query);
           }
+          await trans.commit();
+        } catch (e) {
+          await trans.rollback();
+          throw e;
         }
       }
+    }
 
-      // Add index separately
+    if (needsDeletedCol) {
       try {
         await realDbDriver.schema.table(tnPath as string, (t) => {
           t.index(['__nc_deleted'], `${model.table_name}_nc_deleted_idx`);
         });
       } catch (_e) {
-        // index may already exist, ignore
+        // index may already exist
       }
-
-      await ncMeta.runUpgraderQueries();
-    } else {
-      this.log(
-        `__nc_deleted column already exists for model ${modelId}, Table: ${model.table_name}`,
-      );
     }
 
+    await ncMeta.runUpgraderQueries();
     await this.updateModelStatus(Noco.ncMeta, modelId, true);
   }
 

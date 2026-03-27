@@ -19,6 +19,7 @@ import dataAPIsV3Test from './tests/dataAPIsV3.test';
 import bulkV1Test from './tests/bulk-v1.test';
 import metaTestV3 from './tests/metaApiV3/index.test';
 import { internalTests } from './tests/internal/index.test';
+import recordTrashTests from './tests/record-trash.test';
 import tableTests from './tests/meta-apis/table.test';
 import { paymentTest } from './tests/payment/payment.test';
 import { planGatingTests } from './tests/payment/planGating.test';
@@ -65,6 +66,7 @@ function restTests() {
     formulaTests();
     ssoTest();
     scimTest();
+    recordTrashTests();
   }
   if (willRunOnSet(2)) {
     convertDateFormatTests();

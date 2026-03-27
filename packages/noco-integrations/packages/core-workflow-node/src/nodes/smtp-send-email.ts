@@ -251,12 +251,18 @@ export class SmtpSendEmailNode extends WorkflowNodeIntegration<SmtpSendEmailConf
         data: { to, subject, from },
       });
 
+      const bodyText = NocoSDK.ncIsString(body)
+        ? body
+        : NocoSDK.ncIsObject(body) || NocoSDK.ncIsArray(body)
+          ? JSON.stringify(body)
+          : String(body ?? '');
+
       const messageInfo = await auth.use(async (transporter) => {
         return transporter.sendMail({
           from,
           to: this.sanitizeHeader(to),
           subject: this.sanitizeHeader(subject),
-          text: body, // TODO: add html body support
+          text: bodyText, // TODO: add html body support
           ...(cc && { cc: this.sanitizeHeader(cc) }),
           ...(bcc && { bcc: this.sanitizeHeader(bcc) }),
         });

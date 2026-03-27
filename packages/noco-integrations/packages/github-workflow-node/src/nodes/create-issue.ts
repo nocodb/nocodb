@@ -361,7 +361,13 @@ export class CreateIssueNode extends WorkflowNodeIntegration<CreateIssueNodeConf
           title,
         };
 
-        if (body) issueData.body = body;
+        if (body) {
+          issueData.body = NocoSDK.ncIsString(body)
+            ? body
+            : NocoSDK.ncIsObject(body) || NocoSDK.ncIsArray(body)
+              ? JSON.stringify(body)
+              : String(body ?? '');
+        }
         if (milestone) issueData.milestone = milestone;
         if (labels && labels.length > 0) issueData.labels = labels;
         if (assignees && assignees.length > 0) issueData.assignees = assignees;

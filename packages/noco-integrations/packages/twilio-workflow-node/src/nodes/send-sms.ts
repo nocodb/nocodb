@@ -392,9 +392,17 @@ export class SendSmsNode extends WorkflowNodeIntegration<SendSmsNodeConfig> {
         };
       }
 
+      const messageText = NocoSDK.ncIsString(message)
+        ? message
+        : NocoSDK.ncIsObject(message) || NocoSDK.ncIsArray(message)
+          ? JSON.stringify(message)
+          : String(message ?? '');
+
       const maxLength = sendLargeMessages ? 1600 : 160;
       const truncatedMessage =
-        message.length > maxLength ? message.substring(0, maxLength) : message;
+        messageText.length > maxLength
+          ? messageText.substring(0, maxLength)
+          : messageText;
 
       if (message.length > maxLength) {
         logs.push({

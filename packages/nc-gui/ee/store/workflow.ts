@@ -38,6 +38,8 @@ export const useWorkflowStore = defineStore('workflow', () => {
   // State
   const workflows = ref<Map<string, (WorkflowType & { _dirty?: string | number; ___is_new?: boolean })[]>>(new Map())
 
+  const workflowsListLoaded = ref<Set<string>>(new Set())
+
   const workflowNodes = ref<Map<string, WorkflowNodeDefinition[]>>(new Map())
 
   const isLoadingWorkflow = ref(false)
@@ -91,9 +93,8 @@ export const useWorkflowStore = defineStore('workflow', () => {
   const loadWorkflows = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
     if (!activeWorkspaceId.value || isSharedBase.value) return []
 
-    const existingWorkflows = workflows.value.get(baseId)
-    if (existingWorkflows && !force) {
-      return existingWorkflows
+    if (workflowsListLoaded.value.has(baseId) && !force) {
+      return workflows.value.get(baseId) || []
     }
 
     try {
@@ -105,6 +106,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
       if (ncIsArray(response)) {
         workflows.value.set(baseId, response)
+        workflowsListLoaded.value.add(baseId)
         return response
       } else {
         return []

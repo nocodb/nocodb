@@ -191,7 +191,12 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
     const config = ctx.inputs?.config || {};
 
     try {
-      const { authIntegrationId, to, subject, body } = config;
+      const { authIntegrationId, to, subject, body: rawBody } = config;
+      const body = NocoSDK.ncIsString(rawBody)
+        ? rawBody
+        : NocoSDK.ncIsObject(rawBody) || NocoSDK.ncIsArray(rawBody)
+          ? JSON.stringify(rawBody)
+          : String(rawBody ?? '');
 
       if (!authIntegrationId) {
         return {

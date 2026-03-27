@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { OrgLcenseService as OrgLcenseServiceEE } from 'src/ee/services/org-lcense.service';
 import { NC_LICENSE_KEY } from '~/constants';
 import { NcError } from '~/helpers/catchError';
-import { getDbFingerprint } from '~/helpers/dbFingerprint';
+import { getInstanceId } from '~/helpers/instanceId';
 import { validatePayload } from '~/helpers';
 import { Store } from '~/models';
 import Noco from '~/Noco';
@@ -24,7 +24,7 @@ export class OrgLcenseService extends OrgLcenseServiceEE {
 
     // Validate PostgreSQL requirement
     try {
-      await getDbFingerprint();
+      await getInstanceId();
     } catch {
       NcError.badRequest(
         'License activation requires PostgreSQL. SQLite and MySQL are not supported for on-premise licensing.',

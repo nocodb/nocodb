@@ -3,9 +3,9 @@ import pawPixels from '~/assets/img/paw-pixels.png'
 
 const { isPanelExpanded, hasBaseContext, toggleChatPanel } = useChatPanel()
 
-const { isEEFeatureBlocked } = useEeConfig()
+const { blockAiChat } = useEeConfig()
 
-const showFab = computed(() => isEeUI && !isEEFeatureBlocked.value && !isPanelExpanded.value && hasBaseContext.value)
+const showFab = computed(() => isEeUI && !blockAiChat.value && !isPanelExpanded.value && hasBaseContext.value)
 
 const isPressed = ref(false)
 const isDragging = ref(false)

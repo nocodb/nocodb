@@ -40,6 +40,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const { isSideBannerExpanded } = eeConfigState()
 
+  const { aiIntegrationAvailable } = useNocoAi()
+
   const cloudFeatures = ref([])
 
   /** Ref or Computed value */
@@ -280,6 +282,9 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockAiChat = computed(() => {
     if (isEEFeatureBlocked.value) return true
+
+    // On-prem: hide AI chat entirely when no AI integrations are configured
+    if (isOnPrem.value && !aiIntegrationAvailable.value) return true
 
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_AI_CHAT)
   })

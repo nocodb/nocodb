@@ -35,7 +35,7 @@ const META_CONFIG: Record<string, MetaFieldConfig> = {
     strategy: MetaUpdateStrategy.OVERWRITE,
   },
   // Binding fields — once set, never overwritten by mergeMeta
-  db_fingerprint: {
+  instance_id: {
     strategy: MetaUpdateStrategy.PRESERVE,
   },
   airgapped: {
@@ -739,7 +739,7 @@ export default class Installation {
         seat_count: installation.seat_count,
         expires_at: installation.expires_at,
         config: installation.config,
-        db_fingerprint: installation.meta?.db_fingerprint ?? undefined,
+        instance_id: installation.meta?.instance_id ?? undefined,
       },
       privateKey,
       {
@@ -753,11 +753,11 @@ export default class Installation {
    * Sign a license JWT for airgapped installations.
    * JWT expiry is set to the license expiration date so that customers
    * must go online to renew — giving us a chance to re-validate the
-   * fingerprint, update seat limits, or revoke if needed.
+   * instance ID, update seat limits, or revoke if needed.
    */
   public static async signAirgappedLicenseJWT(
     installation: Installation,
-    dbFingerprint: string,
+    instanceId: string,
   ): Promise<string> {
     const privateKey = await this.getServerPrivateKey();
 
@@ -789,7 +789,7 @@ export default class Installation {
         license_type: installation.license_type,
         status: installation.status,
         seat_count: installation.seat_count,
-        db_fingerprint: dbFingerprint,
+        instance_id: instanceId,
         airgapped: true,
         expires_at: installation.expires_at,
         config: installation.config,

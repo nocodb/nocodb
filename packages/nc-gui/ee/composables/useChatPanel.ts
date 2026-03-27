@@ -8,7 +8,7 @@ export const useChatPanel = createSharedComposable(() => {
   const basesStore = useBases()
   const { activeProjectId: activeBaseId } = storeToRefs(basesStore)
 
-  const { isEEFeatureBlocked } = useEeConfig()
+  const { blockAiChat } = useEeConfig()
 
   const { $e } = useNuxtApp()
 
@@ -23,7 +23,7 @@ export const useChatPanel = createSharedComposable(() => {
   const hasBaseContext = computed(() => !!activeBaseId.value)
 
   const isPanelExpanded = computed({
-    get: () => panelPreference.value && hasWorkspaceContext.value && hasBaseContext.value && !isEEFeatureBlocked.value,
+    get: () => panelPreference.value && hasWorkspaceContext.value && hasBaseContext.value && !blockAiChat.value,
     set: (val: boolean) => {
       panelPreference.value = val
       if (!val) isFullScreen.value = false
@@ -81,7 +81,7 @@ export const useChatPanel = createSharedComposable(() => {
   }
 
   watch(
-    [isEEFeatureBlocked, isExtensionPanelExpanded, isActionPanelExpanded, hasBaseContext],
+    [blockAiChat, isExtensionPanelExpanded, isActionPanelExpanded, hasBaseContext],
     ([blocked, ext, act, hasBase]) => {
       if ((blocked || ext || act || !hasBase) && panelPreference.value) {
         panelPreference.value = false

@@ -173,6 +173,9 @@ export default class NocoLicense {
     }
 
     this._isAirgapped = true;
+    this._isExpired = this.licenseData
+      ? !this.isValidStatus(this.licenseData.status)
+      : false;
     this.logger.log('Airgapped license refreshed from server successfully');
     return true;
   }

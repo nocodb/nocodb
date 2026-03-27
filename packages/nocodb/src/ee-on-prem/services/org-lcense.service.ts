@@ -5,6 +5,7 @@ import { NcError } from '~/helpers/catchError';
 import { getDbFingerprint } from '~/helpers/dbFingerprint';
 import { validatePayload } from '~/helpers';
 import { Store } from '~/models';
+import Noco from '~/Noco';
 import NocoLicense from '~/NocoLicense';
 import { LICENSE_CONFIG, LICENSE_ENV_VARS } from '~/utils/license/constants';
 

@@ -232,6 +232,7 @@ export const orderedMetaTables = [
   MetaTable.ORGS_OLD,
 
   // User-related
+  MetaTable.API_TOKEN_SCOPES,
   MetaTable.API_TOKENS,
   MetaTable.PROJECT_USERS,
   MetaTable.WORKSPACE_USER,

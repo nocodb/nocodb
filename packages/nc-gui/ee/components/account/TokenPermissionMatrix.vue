@@ -94,7 +94,7 @@ const getLevelLabel = (level: string) => {
         @update:visible="(v: boolean) => { openLevelDropdown = v ? cat : null }"
       >
         <button class="nc-perm-level-pill" @click="openLevelDropdown = openLevelDropdown === cat ? null : cat">
-          <span class="text-xs text-nc-content-gray-muted">Access:</span>
+          <span class="text-xs text-nc-content-gray-muted">{{ $t('general.access') }}:</span>
           <span class="text-xs font-semibold text-nc-content-gray-extreme">{{ getLevelLabel(modelValue[cat]) }}</span>
           <GeneralIcon icon="arrowDown" class="w-3 h-3 text-nc-content-gray-muted ml-auto" />
         </button>

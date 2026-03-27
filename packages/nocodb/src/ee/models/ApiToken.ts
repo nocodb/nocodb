@@ -78,38 +78,49 @@ export default class ApiToken extends ApiTokenCE {
         enabled: apiToken.enabled !== undefined ? apiToken.enabled : true,
       };
 
-      await ncMeta.metaInsert2(
-        RootScopes.ROOT,
-        RootScopes.ROOT,
-        MetaTable.API_TOKENS,
-        insertData,
-        true,
-      );
-
-      const created = await this.getByTokenHash(tokenHash, ncMeta);
-
-      if (created) {
-        await NocoCache.appendToList(
-          'root',
-          CacheScope.API_TOKEN,
-          [],
-          `${CacheScope.API_TOKEN}:${tokenHash}`,
+      const trx = await ncMeta.startTransaction();
+      try {
+        await trx.metaInsert2(
+          RootScopes.ROOT,
+          RootScopes.ROOT,
+          MetaTable.API_TOKENS,
+          insertData,
+          true,
         );
 
-        // Insert scopes if provided
-        if (apiToken.scopes?.length) {
-          created.scopes = await ApiTokenScope.bulkInsert(
-            created.id,
-            apiToken.scopes,
-            ncMeta,
+        const created = await this.getByTokenHash(tokenHash, trx);
+
+        if (created) {
+          // Insert scopes if provided
+          if (apiToken.scopes?.length) {
+            created.scopes = await ApiTokenScope.bulkInsert(
+              created.id,
+              apiToken.scopes,
+              trx,
+            );
+          }
+        }
+
+        await trx.commit();
+
+        // Cache operations after commit
+        if (created) {
+          await NocoCache.appendToList(
+            'root',
+            CacheScope.API_TOKEN,
+            [],
+            `${CacheScope.API_TOKEN}:${tokenHash}`,
           );
         }
-      }
 
-      // Return the token with plaintext (shown only once)
-      const result = this.castType(created);
-      result.token = plainToken;
-      return result;
+        // Return the token with plaintext (shown only once)
+        const result = this.castType(created);
+        result.token = plainToken;
+        return result;
+      } catch (e) {
+        await trx.rollback(e);
+        throw e;
+      }
     }
 
     // Legacy token — delegate to CE insert
@@ -287,8 +298,26 @@ export default class ApiToken extends ApiTokenCE {
   static async delete(tokenId: string, ncMeta = Noco.ncMeta) {
     const tokenData = await this.get(tokenId, ncMeta);
 
+    const trx = await ncMeta.startTransaction();
+    try {
+      // Clean up scopes
+      await ApiTokenScope.deleteByTokenId(tokenId, trx);
+
+      await trx.metaDelete(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.API_TOKENS,
+        tokenId,
+      );
+
+      await trx.commit();
+    } catch (e) {
+      await trx.rollback(e);
+      throw e;
+    }
+
+    // Invalidate cache after commit
     if (tokenData) {
-      // Invalidate hash-based cache (fine-grained tokens)
       if (tokenData.token_hash) {
         await NocoCache.deepDel(
           'root',
@@ -296,8 +325,6 @@ export default class ApiToken extends ApiTokenCE {
           CacheDelDirection.CHILD_TO_PARENT,
         );
       }
-
-      // Invalidate plaintext-based cache (legacy tokens)
       if (tokenData.token) {
         await NocoCache.deepDel(
           'root',
@@ -305,17 +332,7 @@ export default class ApiToken extends ApiTokenCE {
           CacheDelDirection.CHILD_TO_PARENT,
         );
       }
-
-      // Clean up scopes
-      await ApiTokenScope.deleteByTokenId(tokenId, ncMeta);
     }
-
-    return await ncMeta.metaDelete(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.API_TOKENS,
-      tokenId,
-    );
   }
 
   public static castType(apiToken: ApiToken): ApiToken {

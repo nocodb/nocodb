@@ -11,6 +11,7 @@ import type { NcRequest } from 'nocodb-sdk';
 import type {
   ApiTokensV3CreateRequest,
   ApiTokensV3ListResponse,
+  ApiTokensV3Scope,
   ApiTokensV3UpdateRequest,
   ApiTokensV3WithToken,
 } from '~/services/v3/api-tokens-v3.type';
@@ -20,6 +21,7 @@ import { WorkspacesService } from '~/services/workspaces.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { ApiToken, ApiTokenScope, Base, User } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import Noco from '~/Noco';
 
 @Injectable()
 export class ApiTokensV3Service {
@@ -38,7 +40,7 @@ export class ApiTokensV3Service {
       const result = await this.workspaceService.list({
         user: param.cookie.user,
       });
-      if (!result.list.some((ws: any) => !!ws.fk_org_id)) {
+      if (!result.list.some((ws) => !!(ws as Record<string, any>).fk_org_id)) {
         NcError.get({ api_version: NcApiVersion.V3 }).forbidden(
           `Accessing api token api require enterprise plan`,
         );
@@ -61,8 +63,10 @@ export class ApiTokensV3Service {
       .map(([category]) => category);
   }
 
-  private async transformToV3(apiToken: any): Promise<any> {
-    const result: any = {
+  private async transformToV3(
+    apiToken: ApiToken & { scopes?: ApiTokenScope[] },
+  ): Promise<Partial<ApiTokensV3WithToken>> {
+    const result: Partial<ApiTokensV3WithToken> = {
       id: apiToken.id,
       title: apiToken.description,
       created_at: apiToken.created_at,
@@ -70,10 +74,11 @@ export class ApiTokensV3Service {
     };
 
     // Load scopes from the join table
-    const scopes = apiToken.scopes || (await ApiTokenScope.listByTokenId(apiToken.id));
+    const scopes =
+      apiToken.scopes || (await ApiTokenScope.listByTokenId(apiToken.id));
     if (scopes?.length) {
-      result.scopes = scopes.map((s: any) => {
-        const scope: any = {
+      result.scopes = scopes.map((s) => {
+        const scope: ApiTokensV3Scope = {
           id: s.id,
           resource_type: s.resource_type,
           resource_id: s.resource_id,
@@ -135,12 +140,12 @@ export class ApiTokensV3Service {
     if (!permissions) return;
 
     for (const [category, level] of Object.entries(permissions)) {
-      if (!ApiTokensV3Service.VALID_PERMISSION_CATEGORIES.has(category as any)) {
+      if (!ApiTokensV3Service.VALID_PERMISSION_CATEGORIES.has(category as ApiTokenPermissionCategory)) {
         NcError.badRequest(
           `Invalid permission category: '${category}'. Valid categories: ${[...ApiTokensV3Service.VALID_PERMISSION_CATEGORIES].join(', ')}`,
         );
       }
-      if (!ApiTokensV3Service.VALID_PERMISSION_LEVELS.has(level as any)) {
+      if (!ApiTokensV3Service.VALID_PERMISSION_LEVELS.has(level as ApiTokenPermissionLevel)) {
         NcError.badRequest(
           `Invalid permission level: '${level}' for category '${category}'. Valid levels: none, read, write`,
         );
@@ -161,7 +166,7 @@ export class ApiTokensV3Service {
         );
       }
 
-      this.validatePermissions(scope.permissions as any);
+      this.validatePermissions(scope.permissions as Record<string, string>);
 
       if (scope.resource_type === 'base') {
         const base = await Base.get(
@@ -234,19 +239,20 @@ export class ApiTokensV3Service {
     // resource_type: 'all' is a sentinel from the UI meaning "org-wide access" —
     // filter it out before validation/insertion (no scope rows = org-wide in the auth strategy)
     const scopesForStorage = param.body.scopes.filter(
-      (s: any) => s.resource_type !== 'all',
+      (s) => s.resource_type !== 'all',
     );
 
-    await this.validateScopes(scopesForStorage as any, param.cookie['user']?.id);
+    await this.validateScopes(scopesForStorage, param.cookie['user']?.id);
     this.validateExpiry(param.body.expiry);
 
-    const ssoClientId = (param.cookie.user as any)?.extra?.sso_client_id;
+    const ssoClientId = (param.cookie.user as Record<string, any>)?.extra
+      ?.sso_client_id;
 
     const result = await ApiToken.insert({
       description: param.body.title,
       fk_user_id: param.cookie['user'].id,
       fk_sso_client_id: ssoClientId || null,
-      scopes: scopesForStorage as any,
+      scopes: scopesForStorage,
       expiry: param.body.expiry || null,
       fineGrained: true,
     });
@@ -303,17 +309,25 @@ export class ApiTokensV3Service {
       await ApiToken.update(param.id, updateData);
     }
 
-    // Update scopes if provided
+    // Update scopes if provided — wrapped in transaction for atomicity
     if (param.body.scopes !== undefined) {
       // Filter out "all resources" sentinel before validation/storage
       const scopesForUpdate = param.body.scopes.filter(
-        (s: any) => s.resource_type !== 'all',
+        (s) => s.resource_type !== 'all',
       );
-      await this.validateScopes(scopesForUpdate as any, user?.id);
-      // Replace all scopes — delete existing, insert new
-      await ApiTokenScope.deleteByTokenId(param.id);
-      if (scopesForUpdate.length) {
-        await ApiTokenScope.bulkInsert(param.id, scopesForUpdate as any);
+      await this.validateScopes(scopesForUpdate, user?.id);
+
+      const trx = await Noco.ncMeta.startTransaction();
+      try {
+        // Replace all scopes — delete existing, insert new
+        await ApiTokenScope.deleteByTokenId(param.id, trx);
+        if (scopesForUpdate.length) {
+          await ApiTokenScope.bulkInsert(param.id, scopesForUpdate, trx);
+        }
+        await trx.commit();
+      } catch (e) {
+        await trx.rollback(e);
+        throw e;
       }
     }
 

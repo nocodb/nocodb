@@ -27,6 +27,7 @@ import {
   CustomUrl,
   Dashboard,
   DataReflection,
+  ApiTokenScope,
   Extension,
   FileReference,
   ManagedAppVersion,
@@ -591,6 +592,8 @@ export default class Base extends BaseCE {
 
     await Extension.deleteByBaseId(context, baseId, ncMeta);
 
+    await ApiTokenScope.deleteByResourceId(baseId, ncMeta);
+
     return res;
   }
 
@@ -658,6 +661,8 @@ export default class Base extends BaseCE {
     });
 
     await MCPToken.bulkDelete({ base_id: baseId }, ncMeta);
+
+    await ApiTokenScope.deleteByResourceId(baseId, ncMeta);
 
     await ModelStat.deleteByBaseId(context, baseId, ncMeta);
 

@@ -338,13 +338,24 @@ export class ApiTokensV3Service {
   async delete(param: { id: string; cookie: NcRequest }) {
     await this.validateRequestor(param);
 
+    const user = param.cookie['user'];
+    const token = await ApiToken.get(param.id);
+
     // Scope cleanup is handled by ApiToken.delete() (called inside apiTokenDelete)
     // after ownership is verified — do not delete scopes here before the check.
     await this.orgTokensService.apiTokenDelete({
       tokenId: param.id,
-      user: param.cookie['user'],
+      user,
       req: param.cookie,
     });
+
+    this.appHooksService.emit(AppEvents.ORG_API_TOKEN_DELETE, {
+      tokenId: param.id,
+      tokenTitle: token?.description,
+      userId: user?.id,
+      req: param.cookie,
+    });
+
     return { deleted: true };
   }
 }

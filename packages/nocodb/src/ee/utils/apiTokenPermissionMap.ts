@@ -79,6 +79,8 @@ export const API_TOKEN_PERMISSION_MAP: Record<string, TokenPermissionMapping> = 
   // Fields / Columns (read)
   // ──────────────────────────────────
   columnList: { category: 'fields', level: 'read' },
+  relationList: { category: 'fields', level: 'read' },
+  relationListAll: { category: 'fields', level: 'read' },
   indexList: { category: 'fields', level: 'read' },
 
   // Fields / Columns (write)

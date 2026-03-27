@@ -115,10 +115,10 @@ const deleteToken = async (token: string): Promise<void> => {
     }
 
     await loadTokens(currentPage.value)
+    $e('a:api-token:delete')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
-  $e('a:account:token:delete')
   isModalOpen.value = false
   tokenToCopy.value = ''
   tokenToDeleteId.value = ''
@@ -145,12 +145,14 @@ const triggerDeleteModal = (tokenToDelete: string, tokenDescription: string, tok
 
 const toggleEnabled = async (token: IApiTokenInfo) => {
   try {
+    const newEnabled = !token.enabled
     await api.request({
       path: `/api/v3/meta/tokens/${token.id}`,
       method: 'PATCH',
-      body: { enabled: !token.enabled },
+      body: { enabled: newEnabled },
     })
     await loadTokens()
+    $e('a:api-token:toggle-enabled', { enabled: newEnabled })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -253,6 +255,7 @@ const openEditToken = async (token: IApiTokenInfo) => {
         <div class="flex gap-4 items-baseline justify-between">
           <h6 class="text-xl text-left font-bold my-0 text-nc-content-gray" data-rec="true">{{ $t('title.apiTokens') }}</h6>
           <NcButton
+            v-e="['c:api-token:create:open']"
             class="!rounded-md"
             data-testid="nc-token-create"
             size="middle"
@@ -317,6 +320,7 @@ const openEditToken = async (token: IApiTokenInfo) => {
                 <!-- Active toggle -->
                 <div class="w-16 flex-none flex items-center">
                   <a-switch
+                    v-e="['c:api-token:toggle-enabled', { enabled: el.enabled !== false }]"
                     :checked="el.enabled !== false"
                     size="small"
                     data-testid="nc-token-toggle-enabled"
@@ -368,6 +372,7 @@ const openEditToken = async (token: IApiTokenInfo) => {
                     <template #title>{{ $t('general.edit') }}</template>
                     <component
                       :is="iconMap.edit"
+                      v-e="['c:api-token:edit:open']"
                       class="cursor-pointer w-4 h-4 text-nc-content-gray-subtle2"
                       data-testid="nc-token-row-edit-icon"
                       @click="openEditToken(el)"
@@ -385,6 +390,7 @@ const openEditToken = async (token: IApiTokenInfo) => {
                     <template #title>{{ $t('general.delete') }}</template>
                     <component
                       :is="iconMap.delete"
+                      v-e="['c:api-token:delete:open']"
                       data-testid="nc-token-row-action-icon"
                       class="nc-delete-icon cursor-pointer w-4 h-4 hover:text-nc-content-red-medium"
                       @click="triggerDeleteModal(el.token as string || el.id as string, (el.description || el.title) as string, el.id)"
@@ -407,6 +413,7 @@ const openEditToken = async (token: IApiTokenInfo) => {
             {{ $t('placeholder.noTokenCreatedLabel') }}
           </div>
           <NcButton
+            v-e="['c:api-token:create:open']"
             class="!rounded-lg !py-3 !h-10"
             data-testid="nc-token-create"
             type="primary"

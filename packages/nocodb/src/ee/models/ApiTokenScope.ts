@@ -231,6 +231,33 @@ export default class ApiTokenScope implements ApiTokenScopeEntry {
     return scope;
   }
 
+  public static async deleteByResourceId(
+    resourceId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const scopes = await ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.API_TOKEN_SCOPES,
+      {
+        condition: { resource_id: resourceId },
+      },
+    );
+
+    for (const scope of scopes) {
+      await NocoCache.deepDel(
+        'root',
+        `${CacheScope.API_TOKEN_SCOPE}:${scope.id}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
+    }
+
+    await ncMeta
+      .knex(MetaTable.API_TOKEN_SCOPES)
+      .where('resource_id', resourceId)
+      .delete();
+  }
+
   public static async deleteByTokenId(
     tokenId: string,
     ncMeta = Noco.ncMeta,

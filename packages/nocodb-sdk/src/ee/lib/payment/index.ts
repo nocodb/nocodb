@@ -14,10 +14,10 @@ export * from 'src/lib/payment';
 // Override model: base = all features enabled (true), all limits unlimited (-1).
 // Each plan lists OVERRIDES — disabled features (false) and restricted limits.
 //
-// FREE:       5 features stay enabled; all 62 others are explicitly disabled.
-//             All 33 limits are set here (single source of truth for cloud Free).
-// PLUS:       Business+ and Enterprise-only features disabled (27 total).
-// BUSINESS:   Enterprise-only features disabled (7 total).
+// FREE:       Only a handful of features stay enabled; all others are explicitly disabled.
+//             All limits are set here (single source of truth for cloud Free).
+// PLUS:       Business+ and Enterprise-only features disabled.
+// BUSINESS:   Enterprise-only features disabled.
 // ENTERPRISE: Nothing disabled — all features available.
 //
 // To add a new paid feature:
@@ -37,9 +37,7 @@ export const CloudPlanDefinitions: Record<
   }
 > = {
   // -------------------------------------------------------------------------
-  // FREE — 5 features enabled, 62 disabled; all limits explicit
-  // Enabled: WEBHOOK_CUSTOM_PAYLOAD, DISCUSSION_MODE, GROUP_BY_AGGREGATIONS,
-  //          AI_CHAT, FORM_FIELD_ON_CONDITION
+  // FREE — all limits explicit; only features NOT listed here are enabled
   // -------------------------------------------------------------------------
   [PlanTitles.FREE]: {
     features: {
@@ -157,7 +155,7 @@ export const CloudPlanDefinitions: Record<
   },
 
   // -------------------------------------------------------------------------
-  // PLUS — Business+ and Enterprise-only features disabled (27 total)
+  // PLUS — Business+ and Enterprise-only features disabled
   // -------------------------------------------------------------------------
   [PlanTitles.PLUS]: {
     features: {
@@ -211,7 +209,7 @@ export const CloudPlanDefinitions: Record<
   },
 
   // -------------------------------------------------------------------------
-  // BUSINESS — Enterprise-only features disabled (7 total)
+  // BUSINESS — Enterprise-only features disabled
   // -------------------------------------------------------------------------
   [PlanTitles.BUSINESS]: {
     features: {

@@ -83,6 +83,8 @@ const onBlur = () => {
 const showClicableLink = computed(() => {
   return (isExpandedFormOpen.value || isForm.value) && !isFocused.value && url.value
 })
+
+const formFieldAutocomplete = inject(FormFieldAutocompleteInj, ref(undefined))
 </script>
 
 <template>
@@ -92,6 +94,7 @@ const showClicableLink = computed(() => {
       :ref="focus"
       v-model="vModel"
       inputmode="url"
+      :autocomplete="formFieldAutocomplete"
       class="nc-cell-field outline-none w-full py-1 bg-transparent h-full"
       :class="{
         'nc-text-transparent': showClicableLink,

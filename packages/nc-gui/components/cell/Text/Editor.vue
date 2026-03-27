@@ -42,6 +42,8 @@ onMounted(() => {
   }
 })
 
+const formFieldAutocomplete = inject(FormFieldAutocompleteInj, ref(undefined))
+
 // This way special characters are updated immediately
 // which does not occur in vanilla v-model
 // See https://github.com/vuejs/vue/issues/9777
@@ -56,6 +58,7 @@ function updateInput(e: any) {
     v-if="!isExpandedFormOpen"
     :ref="focus"
     :value="vModel"
+    :autocomplete="formFieldAutocomplete"
     class="nc-cell-field h-full w-full outline-none py-1 bg-transparent"
     @input="updateInput"
     @blur="editEnabled = false"

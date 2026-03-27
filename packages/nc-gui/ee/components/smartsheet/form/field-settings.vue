@@ -136,6 +136,9 @@ const columnSupportsScanning = (elementType: UITypes) =>
     <!-- Custom Validations -->
     <SmartsheetFormCustomValidation></SmartsheetFormCustomValidation>
 
+    <!-- Browser Autofill Settings -->
+    <SmartsheetFormFieldSettingsAutocomplete />
+
     <!-- Field Appearance Settings -->
     <div
       v-if="isSelectTypeCol(activeField.uidt)"

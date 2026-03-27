@@ -54,11 +54,11 @@ export class GoogleCalendarAuthIntegration extends AuthIntegration<
     oauth2Client.on('tokens', (token) => {
       const callbackPayload: TokenData & { expires_in: number } = {
         oauth_token: token.access_token!,
-        refresh_token: token.refresh_token!,
+        refresh_token: token.refresh_token || self.config.refresh_token!,
         expires_in: token.expiry_date!,
       };
       self.tokenRefreshCallback?.(callbackPayload);
-      Object.assign(self._config, token);
+      Object.assign(self._config, callbackPayload);
     });
 
     this.client = google.calendar({ version: 'v3', auth: oauth2Client });

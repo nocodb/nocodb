@@ -150,7 +150,7 @@ const hasNoResults = computed(() => {
       >
         <template #prefix>
           <GeneralLoader v-if="isBaseListAllLoading" size="regular" class="h-4 w-4 mr-0.5" />
-          <GeneralIcon v-else icon="search" class="text-nc-content-gray-muted mr-0.5" />
+          <GeneralIcon v-else icon="search" class="text-nc-content-gray-muted/80 mr-0.5" />
         </template>
       </a-input>
     </div>
@@ -209,11 +209,6 @@ const hasNoResults = computed(() => {
                         :tooltip="$t('labels.clickToCopy')"
                         :label="$t('labels.workspaceId', { workspaceId: ws.id })"
                       />
-                      <NcDivider />
-                      <NcMenuItem @click.stop="navigateTo(`/${ws.id}/settings`)">
-                        <GeneralIcon icon="ncSettings" class="h-4 w-4" />
-                        {{ $t('labels.settings') }}
-                      </NcMenuItem>
                     </NcMenu>
                   </template>
                 </NcDropdown>

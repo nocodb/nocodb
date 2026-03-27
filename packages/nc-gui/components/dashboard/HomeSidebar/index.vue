@@ -51,7 +51,7 @@ const navigateToWorkspace = () => {
         class="nc-home-sidebar-search nc-input-sm"
       >
         <template #prefix>
-          <GeneralIcon icon="search" class="text-nc-content-gray-muted mr-0.5" />
+          <GeneralIcon icon="search" class="text-nc-content-gray-muted/80 mr-0.5" />
         </template>
       </a-input>
     </div>

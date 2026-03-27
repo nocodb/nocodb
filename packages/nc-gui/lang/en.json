@@ -1241,6 +1241,7 @@
     "manyToOne": "Many to One"
   },
   "labels": {
+    "noRecentViews": "No recent views",
     "expandLinkFields": "Expand link fields",
     "expandLinkFieldsDesc": "Return linked record data instead of count",
     "inheritedFromParent": "Inherited from parent",

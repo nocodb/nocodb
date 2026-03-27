@@ -120,13 +120,18 @@ watch(vOpen, () => {
             class="!w-[240px] flex-none"
             alt="Search through our documentation"
           />
-          <div>Search through our documentation</div>
+          <div class="text-nc-content-gray-muted">Search through our documentation</div>
         </div>
         <div
           v-else-if="(query.data.value === 'empty' || query.data.value?.length === 0) && !query.isLoading.value"
-          class="flex flex-col p-4 items-start justify-center text-sm"
+          class="flex flex-col p-4 gap-4 items-center justify-center text-sm"
         >
-          Your search did not match any results
+          <img
+            src="~assets/img/placeholder/no-search-result-found.png"
+            class="!w-[240px] flex-none"
+            alt="Your search did not match any results"
+          />
+          <div class="text-nc-content-gray-muted">Your search did not match any results</div>
         </div>
 
         <div v-else-if="!query.isLoading.value" class="cmdk-results">

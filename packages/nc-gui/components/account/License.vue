@@ -9,12 +9,14 @@ const { appInfo, loadAppInfo, token } = useGlobal()
 
 const key = ref('')
 
+const savedKey = ref('')
+
 const isEEActive = computed(() => appInfo.value.ee === true)
 
 const isPostgresRequired = computed(() => appInfo.value.isOnPrem && appInfo.value.isPostgres === false)
 
 const licenseStatus = computed(() => {
-  if (!key.value) return 'none'
+  if (!savedKey.value) return 'none'
 
   return isEEActive.value ? 'active' : 'expired'
 })
@@ -28,6 +30,7 @@ const loadLicense = async () => {
   try {
     const response = await api.orgLicense.get()
     key.value = response.key ?? ''
+    savedKey.value = key.value
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -36,6 +39,7 @@ const loadLicense = async () => {
 const setLicense = async () => {
   try {
     await api.orgLicense.set({ key: key.value })
+    savedKey.value = key.value
     message.success(t('msg.success.licenseKeyUpdated'))
     await loadAppInfo()
   } catch (e: any) {
@@ -48,6 +52,7 @@ const removeLicense = async () => {
   try {
     await api.orgLicense.set({ key: '' })
     key.value = ''
+    savedKey.value = ''
     message.success(t('title.licenseKeyRemoved'))
     await loadAppInfo()
   } catch (e: any) {
@@ -164,27 +169,38 @@ loadLicense()
               :placeholder="$t('labels.enterLicenseKey')"
               :rows="2"
               class="!rounded-lg"
+              spellcheck="false"
               data-testid="nc-license-key-input"
             />
 
             <div class="flex gap-3">
-              <NcButton type="primary" size="small" :loading="isLoading" data-testid="nc-license-save-btn" @click="setLicense">
+              <NcButton
+                type="primary"
+                size="small"
+                :disabled="!key?.trim() || key.trim() === savedKey.trim()"
+                :loading="isLoading"
+                data-testid="nc-license-save-btn"
+                @click="setLicense"
+              >
                 {{ $t('general.save') }}
               </NcButton>
-              <NcButton v-if="key" type="secondary" size="small" data-testid="nc-license-remove-btn" @click="removeLicense">
-                {{ $t('general.remove') }}
-              </NcButton>
-              <NcButton
-                v-if="key && isEEActive"
-                v-e="['c:account:license:refresh']"
-                type="secondary"
-                size="small"
-                :loading="isRefreshing"
-                data-testid="nc-license-refresh-btn"
-                @click="refreshLicense"
-              >
-                {{ $t('upgrade.refreshLicense') }}
-              </NcButton>
+              <NcTooltip v-if="savedKey" :title="$t('labels.removeLicenseTooltip')">
+                <NcButton type="secondary" size="small" data-testid="nc-license-remove-btn" @click="removeLicense">
+                  {{ $t('labels.removeLicense') }}
+                </NcButton>
+              </NcTooltip>
+              <NcTooltip v-if="savedKey && isEEActive" :title="$t('labels.refreshLicenseTooltip')">
+                <NcButton
+                  v-e="['c:account:license:refresh']"
+                  type="secondary"
+                  size="small"
+                  :loading="isRefreshing"
+                  data-testid="nc-license-refresh-btn"
+                  @click="refreshLicense"
+                >
+                  {{ $t('upgrade.refreshLicense') }}
+                </NcButton>
+              </NcTooltip>
             </div>
           </div>
 
@@ -219,3 +235,4 @@ loadLicense()
     </div>
   </div>
 </template>
+

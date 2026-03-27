@@ -1,16 +1,16 @@
 import { internalUiViewTests } from './ui-view/index.test';
 import { internalDocumentTests } from './documents/index.test';
+import { dateDependencyTests } from './ee/date-dependency.test'
+import { isEE } from '../../../utils/helpers';
+import { runOnSet } from '../../../utils/runOnSet';
 
-let dateDependencyTests = () => {};
-if (process.env.EE === 'true') {
-  dateDependencyTests =
-    require('./ee/date-dependency.test').dateDependencyTests;
-}
-
-export const internalTests = function () {
+export const internalTests = runOnSet(2, function () {
   describe('Internal API', () => {
     internalUiViewTests();
     internalDocumentTests();
-    dateDependencyTests();
+
+    if(isEE()) {
+      dateDependencyTests();
+    }
   });
-};
+});

@@ -404,10 +404,10 @@ export class SendSmsNode extends WorkflowNodeIntegration<SendSmsNodeConfig> {
           ? messageText.substring(0, maxLength)
           : messageText;
 
-      if (message.length > maxLength) {
+      if (messageText.length > maxLength) {
         logs.push({
           level: 'warn',
-          message: `Message truncated from ${message.length} to ${maxLength} characters`,
+          message: `Message truncated from ${messageText.length} to ${maxLength} characters`,
           ts: Date.now(),
         });
       }

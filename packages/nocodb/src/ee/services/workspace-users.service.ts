@@ -734,11 +734,11 @@ export class WorkspaceUsersService {
         !param.invitePassive
       ) {
         NcError.planLimitExceeded(
-          `The ${
-            workspace.payment.plan.title
-          } plan allows up to ${editorLimitForWorkspace} editors & ${commenterLimitForWorkspace} commenters per workspace. Upgrade to the ${
-            HigherPlan[workspace.payment.plan.title]
-          } plan for unlimited users.`,
+          this.buildSeatLimitMessage(
+            workspace.payment.plan.title,
+            editorLimitForWorkspace,
+            commenterLimitForWorkspace,
+          ),
           {
             plan: plan.title,
             limit: editorLimitForWorkspace,
@@ -781,11 +781,11 @@ export class WorkspaceUsersService {
         !param.invitePassive
       ) {
         NcError.planLimitExceeded(
-          `The ${
-            workspace.payment.plan.title
-          } plan allows up to ${editorLimitForWorkspace} editors & ${commenterLimitForWorkspace} commenters per workspace. Upgrade to the ${
-            HigherPlan[workspace.payment.plan.title]
-          } plan for unlimited users.`,
+          this.buildSeatLimitMessage(
+            workspace.payment.plan.title,
+            editorLimitForWorkspace,
+            commenterLimitForWorkspace,
+          ),
           {
             plan: plan.title,
             limit: commenterLimitForWorkspace,
@@ -796,6 +796,29 @@ export class WorkspaceUsersService {
     }
 
     return { workspace, emails, roles };
+  }
+
+  private buildSeatLimitMessage(
+    planTitle: string,
+    editorLimit: number,
+    commenterLimit: number,
+  ): string {
+    const higherPlan = HigherPlan[planTitle];
+
+    const editorsStr = isFinite(editorLimit)
+      ? `${editorLimit} editors`
+      : 'unlimited editors';
+    const commentersStr = isFinite(commenterLimit)
+      ? `${commenterLimit} commenters`
+      : 'unlimited commenters';
+
+    const base = `The ${planTitle} plan allows up to ${editorsStr} & ${commentersStr} per workspace.`;
+
+    if (higherPlan) {
+      return `${base} Upgrade to the ${higherPlan} plan for unlimited users.`;
+    }
+
+    return `${base} You have reached the maximum number of users.`;
   }
 
   async invite(

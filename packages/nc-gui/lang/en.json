@@ -1400,6 +1400,7 @@
     "fieldAlreadyPinned": "This field is already pinned by another filter",
     "sectionName": "Section name",
     "enterLicenseKey": "Enter your license key",
+    "licenseKeyDescription": "Activate enterprise features like SSO, audit logs, and advanced access controls by entering your license key.",
     "noLicenseYet": "Don't have a license key yet? Purchase one from your NocoDB Cloud account.",
     "manageLicenseOnCloud": "Manage your license, billing, and plan upgrades from your NocoDB Cloud account.",
     "buyLicense": "Buy License",

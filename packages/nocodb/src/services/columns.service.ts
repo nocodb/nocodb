@@ -6751,6 +6751,8 @@ export class ColumnsService implements IColumnsService {
     const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
 
     let mmNewLtarCol: Column | undefined;
+    let dependentLookupRows: any[] = [];
+    let dependentRollupRows: any[] = [];
 
     try {
       if (isLinksColumn) {
@@ -6854,13 +6856,13 @@ export class ColumnsService implements IColumnsService {
         // Retarget existing Lookup/Rollup columns that reference the old Links
         // column (now a Rollup) to use the new LTAR column instead.
         // Without this, getNestedColumn() crashes on table data requests.
-        const dependentLookupRows = await ncMeta.metaList2(
+        dependentLookupRows = await ncMeta.metaList2(
           context.workspace_id,
           context.base_id,
           MetaTable.COL_LOOKUP,
           { condition: { fk_relation_column_id: column.id } },
         );
-        const dependentRollupRows = await ncMeta.metaList2(
+        dependentRollupRows = await ncMeta.metaList2(
           context.workspace_id,
           context.base_id,
           MetaTable.COL_ROLLUP,
@@ -6894,6 +6896,24 @@ export class ColumnsService implements IColumnsService {
       }
 
       await ncMeta.commit();
+
+      // Post-commit: clear caches for retargeted dependent columns
+      if (isLinksColumn) {
+        for (const row of dependentLookupRows) {
+          await NocoCache.deepDel(
+            context,
+            `${CacheScope.COL_LOOKUP}:${row.fk_column_id}`,
+            CacheDelDirection.CHILD_TO_PARENT,
+          );
+        }
+        for (const row of dependentRollupRows) {
+          await NocoCache.deepDel(
+            context,
+            `${CacheScope.COL_ROLLUP}:${row.fk_column_id}`,
+            CacheDelDirection.CHILD_TO_PARENT,
+          );
+        }
+      }
     } catch (metaError) {
       await ncMeta.rollback();
       throw metaError;

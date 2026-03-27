@@ -43,6 +43,12 @@ export class OAuthController {
   }
 
   @UseGuards(PublicApiLimiterGuard)
+  @Get('/.well-known/oauth-protected-resource')
+  async resourceMetadata(@Req() req: NcRequest) {
+    return this.oauthDiscoveryService.getResourceMetadata(req.ncSiteUrl);
+  }
+
+  @UseGuards(PublicApiLimiterGuard)
   @Post('/api/v2/oauth/register')
   async register(@Body() body: any, @Res() res: Response) {
     try {

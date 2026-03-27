@@ -14,8 +14,23 @@ export interface OAuthServerMetadata {
   scopes_supported: string[];
 }
 
+export interface OAuthResourceMetadata {
+  resource: string;
+  authorization_servers: string[];
+  bearer_methods_supported: string[];
+}
+
 @Injectable()
 export class OauthDiscoveryService {
+  getResourceMetadata(issuer: string): OAuthResourceMetadata {
+    const base = issuer.replace(/\/+$/, '');
+    return {
+      resource: `${base}/mcp`,
+      authorization_servers: [base],
+      bearer_methods_supported: ['header'],
+    };
+  }
+
   getMetadata(issuer: string): OAuthServerMetadata {
     const base = issuer.replace(/\/+$/, '');
 

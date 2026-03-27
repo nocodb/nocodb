@@ -231,6 +231,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       exception instanceof Unauthorized ||
       (exception.getStatus?.() === 401 && !(exception instanceof NcBaseErrorv2))
     ) {
+      if (request.path?.startsWith('/mcp')) {
+        const siteUrl = (request as any).ncSiteUrl || '';
+        response.setHeader(
+          'WWW-Authenticate',
+          `Bearer resource_metadata="${siteUrl}/.well-known/oauth-protected-resource"`,
+        );
+      }
       return response.status(401).json({ msg: exception.message });
     } else if (
       exception instanceof Forbidden ||
@@ -268,6 +275,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         .status(422)
         .json({ msg: exception.message, sql_code: exception.sql_code });
     } else if (exception instanceof NcBaseErrorv2) {
+      if (exception.code === 401 && request.path?.startsWith('/mcp')) {
+        const siteUrl = (request as any).ncSiteUrl || '';
+        response.setHeader(
+          'WWW-Authenticate',
+          `Bearer resource_metadata="${siteUrl}/.well-known/oauth-protected-resource"`,
+        );
+      }
       return response.status(exception.code).json({
         error: exception.error,
         message: exception.message,

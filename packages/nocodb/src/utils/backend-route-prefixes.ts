@@ -13,6 +13,7 @@ export const backendRoutePrefixes = [
   '/internal',
   '/jobs',
   '/.well-known',
+  '/mcp',
 ];
 
 // path-to-regexp v3 (used by NestJS .exclude()): '/*' is a literal asterisk,

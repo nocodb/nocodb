@@ -31,4 +31,21 @@ describe('OauthDiscoveryService', () => {
       expect(meta.authorization_endpoint).toBe('https://example.com/api/v2/oauth/authorize');
     });
   });
+
+  describe('getResourceMetadata (RFC 9728)', () => {
+    it('returns protected resource metadata pointing to MCP endpoint', () => {
+      const issuer = 'https://my-nocodb.example.com';
+      const meta = service.getResourceMetadata(issuer);
+
+      expect(meta.resource).toBe(`${issuer}/mcp`);
+      expect(meta.authorization_servers).toEqual([issuer]);
+      expect(meta.bearer_methods_supported).toEqual(['header']);
+    });
+
+    it('handles issuer with trailing slash', () => {
+      const meta = service.getResourceMetadata('https://example.com/');
+      expect(meta.resource).toBe('https://example.com/mcp');
+      expect(meta.authorization_servers).toEqual(['https://example.com']);
+    });
+  });
 });

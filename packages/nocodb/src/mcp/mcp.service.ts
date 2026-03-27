@@ -34,7 +34,7 @@ export class McpService {
   ) {}
 
   async handleRequest(
-    tokenId: string,
+    tokenId: string | null,
     context: NcContext,
     req: NcRequest,
     res: Response,

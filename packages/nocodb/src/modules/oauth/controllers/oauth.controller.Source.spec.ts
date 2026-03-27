@@ -86,6 +86,20 @@ describe('OAuthController', () => {
     });
   });
 
+  describe('resourceMetadata (RFC 9728)', () => {
+    it('returns protected resource metadata pointing to /mcp', async () => {
+      const req = {
+        ncSiteUrl: 'https://app.nocodb.com',
+      } as any;
+
+      const result = await controller.resourceMetadata(req);
+
+      expect(result.resource).toBe('https://app.nocodb.com/mcp');
+      expect(result.authorization_servers).toEqual(['https://app.nocodb.com']);
+      expect(result.bearer_methods_supported).toEqual(['header']);
+    });
+  });
+
   describe('register', () => {
     it('returns 201 with client data on successful registration', async () => {
       const mockClient = {

@@ -382,31 +382,50 @@ onBeforeUnmount(async () => {
         <!-- Success View -->
         <template v-if="viewState === 'success' && successLicense">
           <div class="flex flex-col items-center gap-6 py-10">
-            <div class="w-16 h-16 rounded-full bg-nc-bg-green-light flex items-center justify-center">
-              <GeneralIcon icon="ncCheck" class="h-8 w-8 text-nc-content-green-dark" />
-            </div>
-
-            <div class="text-center">
-              <div class="text-xl font-semibold mb-2">{{ $t('title.licenseReady') }}</div>
-              <div class="text-sm text-nc-content-gray-subtle">
-                {{ $t('labels.licenseReadyDescription') }}
+            <div class="w-full max-w-[560px] border border-nc-border-gray-medium rounded-2xl p-8 flex flex-col items-center gap-5">
+              <div class="w-16 h-16 rounded-full bg-nc-bg-green-light flex items-center justify-center">
+                <GeneralIcon icon="ncCheck" class="h-8 w-8 text-nc-content-green-dark" />
               </div>
-            </div>
 
-            <div class="w-full max-w-[560px] border border-nc-border-gray-medium rounded-xl p-6">
-              <div class="text-xs text-nc-content-gray-subtle mb-2">{{ $t('title.licenseKey') }}</div>
-              <div class="flex items-center gap-2">
-                <code
-                  class="flex-1 text-sm bg-nc-bg-gray-light rounded-lg px-4 py-3 font-mono select-all break-all"
-                  data-testid="nc-self-hosted-success-key"
+              <div class="text-center">
+                <div class="text-xl font-semibold mb-2">
+                  {{
+                    successLicense.plan
+                      ? $t('title.licenseReadyWithPlan', { plan: $t(`objects.paymentPlan.${successLicense.plan.title}`) })
+                      : $t('title.licenseReady')
+                  }}
+                </div>
+                <div class="text-sm text-nc-content-gray-subtle">
+                  {{ $t('labels.licenseReadyDescription') }}
+                </div>
+              </div>
+
+              <div class="w-full">
+                <div class="text-xs text-nc-content-gray-subtle mb-2">{{ $t('title.licenseKey') }}</div>
+                <div class="flex items-center gap-2">
+                  <code
+                    class="flex-1 text-sm bg-nc-bg-gray-light rounded-lg px-4 py-3 font-mono select-all break-all"
+                    data-testid="nc-self-hosted-success-key"
+                  >
+                    {{ successLicense.license_key }}
+                  </code>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 w-full">
+                <NcButton
+                  :type="copiedKey ? 'secondary' : 'primary'"
+                  size="small"
+                  class="!flex-1"
+                  @click="copyKey(successLicense.license_key)"
                 >
-                  {{ successLicense.license_key }}
-                </code>
-                <NcButton type="secondary" size="small" @click="copyKey(successLicense.license_key)">
                   <div class="flex items-center gap-1">
                     <GeneralIcon :icon="copiedKey ? 'ncCheck' : 'ncCopy'" class="h-4 w-4" />
-                    {{ copiedKey ? $t('general.copied') : $t('general.copy') }}
+                    {{ copiedKey ? $t('general.copied') : $t('labels.copyLicenseKey') }}
                   </div>
+                </NcButton>
+                <NcButton type="secondary" size="small" class="!flex-1" @click="backToList">
+                  {{ $t('labels.viewAllLicenses') }}
                 </NcButton>
               </div>
             </div>
@@ -416,10 +435,6 @@ onBeforeUnmount(async () => {
                 {{ $t('labels.goBackToInstance', { url: instanceUrl }) }}
               </div>
             </div>
-
-            <NcButton type="primary" size="small" @click="backToList">
-              {{ $t('labels.viewAllLicenses') }}
-            </NcButton>
           </div>
         </template>
       </div>

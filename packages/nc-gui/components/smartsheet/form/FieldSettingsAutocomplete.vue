@@ -11,7 +11,6 @@ const autocompleteUiTypes = [
   UITypes.PhoneNumber,
   UITypes.URL,
   UITypes.LongText,
-  UITypes.Number,
 ] as string[]
 
 const columnSupportsAutocomplete = computed(() => {
@@ -24,16 +23,15 @@ const columnSupportsAutocomplete = computed(() => {
 
 // HTML spec control groups mapped to NocoDB UITypes
 // See: https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#autofilling-form-controls:-the-autocomplete-attribute
-type AutocompleteControlGroup = 'text' | 'multiline' | 'password' | 'url' | 'email' | 'tel' | 'numeric'
+type AutocompleteControlGroup = 'text' | 'multiline' | 'password' | 'url' | 'email' | 'tel'
 
 const controlGroupToUiTypes: Record<AutocompleteControlGroup, UITypes[]> = {
   text: [UITypes.SingleLineText, UITypes.LongText],
-  multiline: [UITypes.LongText],
+  multiline: [UITypes.LongText, UITypes.SingleLineText],
   password: [UITypes.SingleLineText],
   url: [UITypes.URL, UITypes.SingleLineText],
   email: [UITypes.Email, UITypes.SingleLineText],
   tel: [UITypes.PhoneNumber, UITypes.SingleLineText],
-  numeric: [UITypes.Number, UITypes.SingleLineText],
 }
 
 interface AutocompleteOption {
@@ -66,11 +64,6 @@ const allAutocompleteOptions: AutocompleteOption[] = [
   { value: 'tel-national', labelKey: 'telNational', group: 'personal', controlGroup: 'text' },
   { value: 'tel-area-code', labelKey: 'telAreaCode', group: 'personal', controlGroup: 'text' },
   { value: 'tel-local', labelKey: 'telLocal', group: 'personal', controlGroup: 'text' },
-
-  // Personal — Numeric
-  { value: 'bday-day', labelKey: 'birthdayDay', group: 'personal', controlGroup: 'numeric' },
-  { value: 'bday-month', labelKey: 'birthdayMonth', group: 'personal', controlGroup: 'numeric' },
-  { value: 'bday-year', labelKey: 'birthdayYear', group: 'personal', controlGroup: 'numeric' },
 
   // Address — Text
   { value: 'address-line1', labelKey: 'addressLine1', group: 'address', controlGroup: 'text' },

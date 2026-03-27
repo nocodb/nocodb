@@ -540,7 +540,7 @@ export async function getAliasedSoftDeleteFilter(
 
   const qualifiedName = `${tableAlias}.${deletedColumn.column_name}`;
   return function () {
-    this.whereNull(qualifiedName).orWhere(qualifiedName, false);
+    this.whereNull(qualifiedName).orWhereRaw(`?? = false`, [qualifiedName]);
   };
 }
 

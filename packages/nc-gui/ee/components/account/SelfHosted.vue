@@ -291,45 +291,60 @@ onBeforeUnmount(async () => {
               <div class="flex items-center gap-2 mb-3">
                 <div
                   v-if="license.plan"
-                  class="px-2 py-0.5 rounded-md text-xs font-semibold border-1"
+                  class="flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold border-1"
                   :style="{
                     backgroundColor: planMeta(license.plan.title)?.badgeBgColor,
                     color: planMeta(license.plan.title)?.badgeTextColor,
                     borderColor: planMeta(license.plan.title)?.badgeTextColor,
                   }"
                 >
+                  <span class="opacity-70 font-normal">{{ $t('general.plan') }}:</span>
                   {{ $t(`objects.paymentPlan.${license.plan.title}`) }}
                 </div>
-                <div class="px-2 py-0.5 rounded-md text-xs font-medium border-1" :class="statusClassNormalized(license.status)">
+                <div class="flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border-1" :class="statusClassNormalized(license.status)">
+                  <span class="opacity-70 font-normal">{{ $t('labels.status') }}:</span>
                   {{ statusLabel(license.status) }}
                 </div>
                 <div
                   v-if="license.subscription"
-                  class="px-2 py-0.5 rounded-md text-xs font-medium border-1 border-nc-border-gray-medium text-nc-content-gray-subtle bg-nc-bg-gray-light"
+                  class="flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border-1 border-nc-border-purple text-nc-content-purple-dark bg-nc-bg-purple-light"
                 >
+                  <span class="opacity-70">{{ $t('general.billing') }}:</span>
                   {{ license.subscription.period === 'year' ? $t('labels.annual') : $t('general.monthly') }}
                 </div>
               </div>
 
-              <div class="flex items-center gap-2 mb-3">
-                <code class="nc-license-key-code flex-1 text-xs bg-nc-bg-gray-light rounded-lg px-3 py-2 select-all break-all leading-5">
+              <div class="flex items-center bg-nc-bg-gray-light rounded-lg mb-3 h-10">
+                <div class="flex-none px-3 py-2 text-xs font-medium text-nc-content-gray-subtle border-r-1 border-nc-border-gray-medium">
+                  {{ $t('title.licenseKey') }}
+                </div>
+                <code class="nc-license-key-code flex-1 text-xs select-all break-all leading-5 px-3 py-2">
                   {{ revealedKeys.has(license.id) ? license.license_key : maskKey(license.license_key) }}
                 </code>
-                <NcButton
-                  type="text"
-                  size="xs"
-                  :tooltip="revealedKeys.has(license.id) ? $t('general.hide') : $t('general.show')"
-                  @click="toggleRevealKey(license.id)"
-                >
-                  <GeneralIcon :icon="revealedKeys.has(license.id) ? 'ncEyeOff' : 'ncEye'" class="h-4 w-4" />
-                </NcButton>
-                <NcButton type="text" size="xs" :tooltip="$t('general.copy')" @click="copyKey(license.license_key)">
-                  <GeneralIcon :icon="copiedKey ? 'ncCheck' : 'ncCopy'" class="h-4 w-4" />
-                </NcButton>
+                <div class="flex items-center gap-1 flex-none pr-2">
+                  <NcButton
+                    type="text"
+                    size="xs"
+                    class="!rounded-md !hover:bg-nc-bg-gray-medium"
+                    :tooltip="revealedKeys.has(license.id) ? $t('general.hide') : $t('general.show')"
+                    @click="toggleRevealKey(license.id)"
+                  >
+                    <GeneralIcon :icon="revealedKeys.has(license.id) ? 'ncEyeOff' : 'ncEye'" class="h-4 w-4" />
+                  </NcButton>
+                  <NcButton
+                    type="text"
+                    size="xs"
+                    class="!rounded-md !hover:bg-nc-bg-gray-medium"
+                    :tooltip="$t('general.copy')"
+                    @click="copyKey(license.license_key)"
+                  >
+                    <GeneralIcon :icon="copiedKey ? 'ncCheck' : 'ncCopy'" class="h-4 w-4" />
+                  </NcButton>
+                </div>
               </div>
 
               <div class="flex items-center gap-1.5 text-xs text-nc-content-gray-subtle">
-                <span>{{ license.licensed_to }}</span>
+                <span>{{ $t('labels.createdBy') }} {{ license.licensed_to }}</span>
                 <template v-if="license.min_seats > 1">
                   <span>|</span>
                   <span>{{ license.min_seats }} {{ $t('general.seats') }}</span>
@@ -403,16 +418,16 @@ onBeforeUnmount(async () => {
                 </div>
               </div>
 
-              <div class="w-full">
-                <div class="text-xs text-nc-content-gray-subtle mb-2">{{ $t('title.licenseKey') }}</div>
-                <div class="flex items-center gap-2">
-                  <code
-                    class="nc-license-key-code flex-1 text-sm bg-nc-bg-gray-light rounded-lg px-4 py-3 select-all break-all"
-                    data-testid="nc-self-hosted-success-key"
-                  >
-                    {{ successLicense.license_key }}
-                  </code>
+              <div class="flex items-center w-full bg-nc-bg-gray-light rounded-lg h-10">
+                <div class="flex-none px-3 py-2 text-xs font-medium text-nc-content-gray-subtle border-r-1 border-nc-border-gray-medium">
+                  {{ $t('title.licenseKey') }}
                 </div>
+                <code
+                  class="nc-license-key-code flex-1 text-sm px-3 py-2 select-all break-all"
+                  data-testid="nc-self-hosted-success-key"
+                >
+                  {{ successLicense.license_key }}
+                </code>
               </div>
 
               <div class="flex items-center gap-3 w-full">

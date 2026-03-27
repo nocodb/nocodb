@@ -14,7 +14,7 @@ import {
   LicenseType,
   validateClientLicenseEnvironment,
 } from '~/utils/license';
-import { getDbFingerprint } from '~/helpers/dbFingerprint';
+import { getInstanceId } from '~/helpers/instanceId';
 import { packageVersion } from '~/utils/packageVersion';
 
 const LICENSE_SERVER_URL =
@@ -33,7 +33,7 @@ interface LicenseData {
     limit_workspace?: number;
     limit_seat?: number;
   };
-  db_fingerprint?: string;
+  instance_id?: string;
   airgapped?: boolean;
   iat?: number; // JWT issued-at timestamp (seconds)
 }
@@ -233,16 +233,16 @@ export default class NocoLicense {
           );
 
           if (licenseData) {
-            // Verify DB fingerprint if this is a fingerprint-bound installation
+            // Verify instance ID if this is an instance-bound installation
             if (
               cached.installation_secret?.startsWith(
-                LICENSE_CONFIG.FINGERPRINT_SECRET_PREFIX,
+                LICENSE_CONFIG.INSTANCE_BOUND_SECRET_PREFIX,
               )
             ) {
-              const currentFingerprint = await getDbFingerprint(ncMeta);
+              const currentInstanceId = await getInstanceId(ncMeta);
               if (
-                licenseData.db_fingerprint &&
-                licenseData.db_fingerprint !== currentFingerprint
+                licenseData.instance_id &&
+                licenseData.instance_id !== currentInstanceId
               ) {
                 throw new Error(
                   'This license is bound to a different installation. Please ensure you are using the correct license for this instance.',
@@ -898,8 +898,8 @@ export default class NocoLicense {
     try {
       const timestamp = Date.now();
 
-      // Compute DB fingerprint for installation binding
-      const dbFingerprint = await getDbFingerprint(ncMeta);
+      // Compute instance ID for license binding
+      const instanceId = await getInstanceId(ncMeta);
 
       // Build activation payload
       const activationPayload = {
@@ -907,7 +907,7 @@ export default class NocoLicense {
         timestamp,
         version: 0,
         license_key: licenseKey,
-        db_fingerprint: dbFingerprint,
+        instance_id: instanceId,
         environment: {
           version: packageVersion,
           platform: process.platform,
@@ -1100,7 +1100,7 @@ export default class NocoLicense {
 
   /**
    * Initialize from a pre-signed license JWT (pure airgapped).
-   * The JWT was generated offline by NocoDB from the customer's fingerprint.
+   * The JWT was generated offline by NocoDB from the customer's instance ID.
    * No network required — ever. The JWT is the license key itself.
    */
   private static async initFromSignedJWT(
@@ -1122,11 +1122,11 @@ export default class NocoLicense {
       );
     }
 
-    // Verify DB fingerprint
-    const currentFingerprint = await getDbFingerprint(ncMeta);
+    // Verify instance ID
+    const currentInstanceId = await getInstanceId(ncMeta);
     if (
-      licenseData.db_fingerprint &&
-      licenseData.db_fingerprint !== currentFingerprint
+      licenseData.instance_id &&
+      licenseData.instance_id !== currentInstanceId
     ) {
       throw new Error(
         'This license is bound to a different installation. Please ensure you are using the correct license for this instance.',
@@ -1171,7 +1171,7 @@ export default class NocoLicense {
 
   /**
    * Initialize an airgapped license.
-   * Loads from cache if available (verifying fingerprint + clock),
+   * Loads from cache if available (verifying instance ID + clock),
    * otherwise performs a one-time online activation.
    */
   private static async initAirgapped(
@@ -1190,12 +1190,12 @@ export default class NocoLicense {
       try {
         const cached: CachedLicenseData = JSON.parse(storedData.value);
 
-        // Verify DB fingerprint BEFORE checking JWT validity.
-        // A fingerprint mismatch is a hard block — never fall through to re-activation.
-        const decodedForFingerprint = jwt.decode(cached.license_jwt) as any;
-        if (decodedForFingerprint?.db_fingerprint) {
-          const currentFingerprint = await getDbFingerprint(ncMeta);
-          if (decodedForFingerprint.db_fingerprint !== currentFingerprint) {
+        // Verify instance ID BEFORE checking JWT validity.
+        // An instance ID mismatch is a hard block — never fall through to re-activation.
+        const decodedForInstanceCheck = jwt.decode(cached.license_jwt) as any;
+        if (decodedForInstanceCheck?.instance_id) {
+          const currentInstanceId = await getInstanceId(ncMeta);
+          if (decodedForInstanceCheck.instance_id !== currentInstanceId) {
             throw new Error(
               'This license is bound to a different installation. Please ensure you are using the correct license for this instance.',
             );
@@ -1277,14 +1277,14 @@ export default class NocoLicense {
 
   /**
    * One-time online activation for airgapped licenses.
-   * Sends DB fingerprint to the server for binding.
+   * Sends instance ID to the server for binding.
    */
   private static async activateAirgappedLicense(
     licenseKey: string,
     ncMeta = Noco.ncMeta,
   ): Promise<boolean> {
     try {
-      const dbFingerprint = await getDbFingerprint(ncMeta);
+      const instanceId = await getInstanceId(ncMeta);
       const timestamp = Date.now();
 
       const activationPayload = {
@@ -1292,7 +1292,7 @@ export default class NocoLicense {
         timestamp,
         version: 0,
         license_key: licenseKey,
-        db_fingerprint: dbFingerprint,
+        instance_id: instanceId,
         airgapped: true,
         environment: {
           version: packageVersion,
@@ -1333,11 +1333,9 @@ export default class NocoLicense {
         return false;
       }
 
-      // Verify fingerprint in JWT matches what we sent
-      if (licenseData.db_fingerprint !== dbFingerprint) {
-        this.logger.error(
-          'License activation rejected — installation ID mismatch',
-        );
+      // Verify instance ID in JWT matches what we sent
+      if (licenseData.instance_id !== instanceId) {
+        this.logger.error('License activation rejected — instance ID mismatch');
         return false;
       }
 

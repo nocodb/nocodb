@@ -24,8 +24,8 @@ export const LICENSE_CONFIG = {
   LICENSE_KEY_PREFIX: 'nc_',
   AIRGAPPED_KEY_PREFIX: 'nc_ag_',
 
-  // DB fingerprint — prefix on installation_secret signals fingerprint-bound installation
-  FINGERPRINT_SECRET_PREFIX: 'fp:',
+  // Prefix on installation_secret signals instance-bound installation
+  INSTANCE_BOUND_SECRET_PREFIX: 'fp:',
 
   // Clock tolerance for iat (issued-at) check
   CLOCK_TOLERANCE_MS: 5 * 60 * 1000, // 5 minutes

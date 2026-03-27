@@ -44,7 +44,7 @@ interface ActivationRequest extends AgentRequestEnvelope {
   type: AgentRequestType.REGISTER;
   license_key: string;
   environment?: EnvironmentInfo;
-  db_fingerprint?: string; // Database fingerprint for installation binding
+  instance_id?: string; // Client instance ID for license binding
   airgapped?: boolean; // Whether this is an airgapped activation
 }
 
@@ -134,15 +134,15 @@ export class OnPremiseController {
       NcError._.badRequest('License key is required');
     }
 
-    const dbFingerprint = body.db_fingerprint;
+    const instanceId = body.instance_id;
     const isAirgapped =
       body.airgapped === true ||
       body.license_key.startsWith(LICENSE_CONFIG.AIRGAPPED_KEY_PREFIX);
 
-    // Airgapped licenses require a DB fingerprint
-    if (isAirgapped && !dbFingerprint) {
+    // Airgapped licenses require an instance ID for binding
+    if (isAirgapped && !instanceId) {
       NcError._.badRequest(
-        'Installation ID is required for airgapped license activation',
+        'Instance ID is required for airgapped license activation',
       );
     }
 
@@ -161,9 +161,9 @@ export class OnPremiseController {
           existingInstallation.id,
           ncMeta,
         );
-        // Prefix secret with fp: if client sent a fingerprint
-        const clientSecret = dbFingerprint
-          ? `${LICENSE_CONFIG.FINGERPRINT_SECRET_PREFIX}${rawSecret}`
+        // Prefix secret with fp: if client sent an instance ID
+        const clientSecret = instanceId
+          ? `${LICENSE_CONFIG.INSTANCE_BOUND_SECRET_PREFIX}${rawSecret}`
           : rawSecret;
 
         // Activate the PENDING installation
@@ -176,7 +176,7 @@ export class OnPremiseController {
             last_seen_at: new Date(),
             meta: {
               environment: body.environment,
-              ...(dbFingerprint ? { db_fingerprint: dbFingerprint } : {}),
+              ...(instanceId ? { instance_id: instanceId } : {}),
               ...(isAirgapped ? { airgapped: true } : {}),
             },
           },
@@ -185,19 +185,19 @@ export class OnPremiseController {
 
         // Get updated installation
         installation = await Installation.get(existingInstallation.id, ncMeta);
-      } else if (dbFingerprint) {
-        // Already activated — verify fingerprint if provided
-        const storedFingerprint = existingInstallation.meta?.db_fingerprint;
-        if (storedFingerprint && storedFingerprint !== dbFingerprint) {
+      } else if (instanceId) {
+        // Already activated — verify instance binding if provided
+        const storedInstanceId = existingInstallation.meta?.instance_id;
+        if (storedInstanceId && storedInstanceId !== instanceId) {
           NcError._.badRequest(
             'This license is already bound to a different installation.',
           );
         }
 
-        // Idempotent re-activation with same fingerprint (e.g. airgapped restart after cache loss)
+        // Idempotent re-activation with same instance ID (e.g. airgapped restart after cache loss)
         installation = existingInstallation;
       } else {
-        // Already activated, no fingerprint
+        // Already activated, no instance ID
         NcError._.badRequest(
           'License key is already activated. Use heartbeat endpoint for updates.',
         );
@@ -218,10 +218,10 @@ export class OnPremiseController {
         existingLicense &&
         existingLicense.status !== InstallationStatus.PENDING
       ) {
-        // Check fingerprint for existing old-format activations
-        if (dbFingerprint) {
-          const storedFingerprint = existingLicense.meta?.db_fingerprint;
-          if (storedFingerprint && storedFingerprint !== dbFingerprint) {
+        // Check instance binding for existing old-format activations
+        if (instanceId) {
+          const storedInstanceId = existingLicense.meta?.instance_id;
+          if (storedInstanceId && storedInstanceId !== instanceId) {
             NcError._.badRequest(
               'This license is already bound to a different installation.',
             );
@@ -249,7 +249,7 @@ export class OnPremiseController {
             last_seen_at: new Date(),
             meta: {
               environment: body.environment,
-              ...(dbFingerprint ? { db_fingerprint: dbFingerprint } : {}),
+              ...(instanceId ? { instance_id: instanceId } : {}),
               ...(isAirgapped ? { airgapped: true } : {}),
             },
             config: {
@@ -267,19 +267,19 @@ export class OnPremiseController {
           installation.id,
           ncMeta,
         );
-        const clientSecret = dbFingerprint
-          ? `${LICENSE_CONFIG.FINGERPRINT_SECRET_PREFIX}${rawSecret}`
+        const clientSecret = instanceId
+          ? `${LICENSE_CONFIG.INSTANCE_BOUND_SECRET_PREFIX}${rawSecret}`
           : rawSecret;
 
         await Installation.update(
           installation.id,
           {
             installation_secret: clientSecret,
-            ...(dbFingerprint
+            ...(instanceId
               ? {
                   meta: {
                     ...installation.meta,
-                    db_fingerprint: dbFingerprint,
+                    instance_id: instanceId,
                     ...(isAirgapped ? { airgapped: true } : {}),
                   },
                 }
@@ -301,7 +301,7 @@ export class OnPremiseController {
 
     // Generate RSA-signed JWT containing license state
     const licenseJWT = isAirgapped
-      ? await Installation.signAirgappedLicenseJWT(installation, dbFingerprint)
+      ? await Installation.signAirgappedLicenseJWT(installation, instanceId)
       : await Installation.signLicenseStateJWT(installation);
 
     return {
@@ -538,8 +538,8 @@ export class OnPremiseController {
    * Generate a signed JWT for pure airgapped deployment.
    * Flow:
    *  1. Admin creates license via POST /api/internal/on-premise/license
-   *  2. Customer provides their installation ID (printed in server startup logs)
-   *  3. Admin calls this endpoint with the license key + installation ID
+   *  2. Customer provides their instance ID (printed in server startup logs)
+   *  3. Admin calls this endpoint with the license key + instance ID
    *  4. Returns a signed JWT that the customer pastes into the license field
    */
   @UseGuards(AuthGuard('basic'))
@@ -549,7 +549,7 @@ export class OnPremiseController {
     @Body()
     payload: {
       license_key: string;
-      installation_id: string;
+      instance_id: string;
     },
   ) {
     const ncMeta = Noco.ncMeta;
@@ -557,9 +557,9 @@ export class OnPremiseController {
     if (!payload.license_key) {
       NcError._.badRequest('License key is required');
     }
-    if (!payload.installation_id) {
+    if (!payload.instance_id) {
       NcError._.badRequest(
-        'Installation ID is required. The customer can find it in the server startup logs.',
+        'Instance ID is required. The customer can find it in the server startup logs.',
       );
     }
 
@@ -572,7 +572,7 @@ export class OnPremiseController {
       NcError._.badRequest('License key not found');
     }
 
-    // Bind installation ID and activate — use update (not mergeMeta)
+    // Bind instance ID and activate — use update (not mergeMeta)
     // so binding fields are set even on first call
     await Installation.update(
       installation.id,
@@ -582,7 +582,7 @@ export class OnPremiseController {
           : {}),
         meta: {
           ...installation.meta,
-          db_fingerprint: payload.installation_id,
+          instance_id: payload.instance_id,
           airgapped: true,
         },
       },
@@ -595,12 +595,12 @@ export class OnPremiseController {
     // Generate the long-lived signed JWT
     const licenseJWT = await Installation.signAirgappedLicenseJWT(
       updated,
-      payload.installation_id,
+      payload.instance_id,
     );
 
     return {
       license_jwt: licenseJWT,
-      installation_id: payload.installation_id,
+      instance_id: payload.instance_id,
       license_key: installation.license_key,
       expires_at: installation.expires_at,
       license_type: installation.license_type,

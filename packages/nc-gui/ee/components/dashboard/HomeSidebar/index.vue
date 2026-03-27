@@ -173,7 +173,7 @@ const hasNoResults = computed(() => {
           <template v-for="ws in filteredWorkspaceList" :key="ws.id">
             <!-- Workspace item -->
             <NcSidebarMenuItem
-              class="group"
+              class="group !my-1"
               :class="{ 'nc-ws-node-active': activeWorkspaceId === ws.id }"
               :active="activeWorkspaceId === ws.id"
               :data-testid="`nc-home-sidebar-ws-${ws.id}`"

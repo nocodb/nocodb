@@ -179,7 +179,7 @@ const logout = async () => {
 
 :deep(.nc-user-sidebar .ant-menu-item-only-child),
 :deep(.ant-menu-submenu-title) {
-  @apply !h-[30px] !leading-[30px];
+  @apply !h-[28px] !leading-[28px];
 }
 
 :deep(.ant-menu-submenu-arrow) {
@@ -193,13 +193,19 @@ const logout = async () => {
   @apply bg-nc-bg-gray-sidebar;
 
   :deep(.item) {
-    @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 text-nc-content-gray-subtle !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle) font-medium;
+    @apply select-none mx-2 !px-3 !text-bodyDefaultSm font-medium !rounded-md !mb-0.5 text-nc-content-gray-subtle !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle) font-medium;
+
     width: calc(100% - 1rem);
+  }
+
+  :deep(.nc-menu-item-inner),
+  :deep(.nc-submenu-title) {
+    @apply !text-bodyDefaultSm font-medium;
   }
 }
 
 :deep(.ant-menu-submenu-title) {
-  @apply select-none mx-2 !pl-3 !pr-1 !text-sm !rounded-md !mb-1 !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle);
+  @apply select-none mx-2 !pl-3 !pr-1 !text-bodyDefaultSm font-medium !rounded-md !mb-0.5 !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle);
   width: calc(100% - 1rem);
 
   & + ul {

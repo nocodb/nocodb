@@ -130,7 +130,7 @@ const onMenuClick = (e: Event) => {
       @click.stop
     />
 
-    <div class="flex-1 min-w-0 min-h-[28px] flex items-center">
+    <div class="flex-1 min-w-0 min-h-[28px] flex items-center gap-2">
       <!-- Inline Edit Input -->
       <a-input
         v-if="editMode"
@@ -143,12 +143,21 @@ const onMenuClick = (e: Event) => {
         @blur="updateTitle"
         @keydown.stop
       />
-      <!-- Title Display -->
-      <NcTooltip v-else show-on-truncate-only class="min-w-0 truncate text-sm font-medium">
-        {{ base.title }}
+      <template v-else>
+        <!-- Title Display -->
+        <NcTooltip show-on-truncate-only class="min-w-0 truncate text-sm font-medium">
+          {{ base.title }}
 
-        <template #title>{{ base.title }}</template>
-      </NcTooltip>
+          <template #title>{{ base.title }}</template>
+        </NcTooltip>
+        <!-- Last opened badge -->
+        <div
+          v-if="lastVisitedBase?.id === base.id"
+          class="flex items-center gap-1 px-1.5 py-1 rounded-full bg-nc-bg-gray-medium/80 text-nc-content-gray-muted text-bodySm font-medium leading-none flex-none"
+        >
+          {{ $t('labels.lastOpened') }}
+        </div>
+      </template>
     </div>
 
     <div class="flex items-center space-x-2">

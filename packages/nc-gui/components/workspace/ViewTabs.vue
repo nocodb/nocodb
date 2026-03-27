@@ -13,7 +13,7 @@ const { loadCollaborators } = workspaceStore
 
 const { appInfo, isMobileMode } = useGlobal()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
 const { isWsAuditEnabled, isPaymentEnabled, getFeature, handleUpgradePlan, showUpgradeToUseTeams, showEEFeatures } = useEeConfig()
 
@@ -34,6 +34,10 @@ interface TabItem {
 }
 
 const tabItems = computed<TabItem[]>(() => {
+  // Ensure re-evaluation when roles load
+  // eslint-disable-next-line no-unused-expressions
+  isBaseRolesLoaded.value
+
   const items: TabItem[] = [{ key: 'bases', icon: 'ncDatabase', label: t('objects.projects') }]
 
   if (isUIAllowed('workspaceCollaborators')) {

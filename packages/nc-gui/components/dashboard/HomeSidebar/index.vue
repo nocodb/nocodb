@@ -65,7 +65,7 @@ const navigateToWorkspace = () => {
       <div class="flex-1 overflow-y-auto nc-scrollbar-thin px-1">
         <NcSidebarMenuItem
           v-if="activeWorkspaceId"
-          class="group"
+          class="group !my-1"
           :active="true"
           data-testid="nc-home-sidebar-ws-nc"
           @click="navigateToWorkspace()"

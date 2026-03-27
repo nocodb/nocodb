@@ -189,9 +189,9 @@ function apiTokenPermissionTests() {
       expect(checkTokenPermission(undefined, 'dataInsert')).to.be.true;
     });
 
-    it('allows unmapped operations regardless of permissions', () => {
+    it('denies unmapped operations for fine-grained tokens (deny-by-default)', () => {
       const perms = { records: ApiTokenPermissionLevel.NONE };
-      expect(checkTokenPermission(perms, 'someUnknownOp')).to.be.true;
+      expect(checkTokenPermission(perms, 'someUnknownOp')).to.be.false;
     });
 
     it('allows read when token has read permission for records', () => {
@@ -534,8 +534,8 @@ function apiTokenPermissionTests() {
       expect(checkTokenPermission(perms, 'baseGet')).to.be.false;
       expect(checkTokenPermission(perms, 'commentList')).to.be.false;
       expect(checkTokenPermission(perms, 'baseUserList')).to.be.false;
-      // But unmapped operations still pass
-      expect(checkTokenPermission(perms, 'unknownOp')).to.be.true;
+      // Unmapped operations are also denied (deny-by-default)
+      expect(checkTokenPermission(perms, 'unknownOp')).to.be.false;
     });
 
     it('handles invalid permission level values gracefully (falls back to none)', () => {
@@ -574,8 +574,8 @@ function apiTokenPermissionTests() {
       const perms = { records: ApiTokenPermissionLevel.READ };
       // 'dataList' is mapped; 'DataList' and 'DATALIST' are not
       expect(checkTokenPermission(perms, 'dataList')).to.be.true;
-      expect(checkTokenPermission(perms, 'DataList')).to.be.true; // unmapped → unrestricted
-      expect(checkTokenPermission(perms, 'DATALIST')).to.be.true; // unmapped → unrestricted
+      expect(checkTokenPermission(perms, 'DataList')).to.be.false; // unmapped → denied
+      expect(checkTokenPermission(perms, 'DATALIST')).to.be.false; // unmapped → denied
     });
   });
 

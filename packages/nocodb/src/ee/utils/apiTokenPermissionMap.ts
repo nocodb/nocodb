@@ -18,9 +18,9 @@ interface TokenPermissionMapping {
  *   webhooks — webhook management
  *   users    — base members, workspace members, invitations
  *
- * Operations NOT in this map are unrestricted — if the user's role allows it,
- * the token allows it. This ensures backward compatibility and avoids blocking
- * unmapped operations (e.g., AI features, MCP, workflows, etc.)
+ * Operations NOT in this map are DENIED for fine-grained tokens (deny-by-default).
+ * Any new API operation must be added here to be accessible via fine-grained tokens.
+ * Legacy tokens (without permissions) are unaffected — they retain full access.
  */
 export const API_TOKEN_PERMISSION_MAP: Record<string, TokenPermissionMapping> = {
   // ──────────────────────────────────
@@ -225,8 +225,8 @@ export function checkTokenPermission(
 
   const mapping = API_TOKEN_PERMISSION_MAP[opName];
 
-  // Operation not mapped = unrestricted
-  if (!mapping) return true;
+  // Operation not mapped = denied (deny-by-default for fine-grained tokens)
+  if (!mapping) return false;
 
   const tokenLevel = tokenPermissions[mapping.category] || 'none';
   return isTokenPermissionSufficient(

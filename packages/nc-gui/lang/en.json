@@ -262,7 +262,8 @@
       "permissions": "Table & Field Permissions",
       "audit": "Workspace Audit",
       "privateBases": "Private Bases"
-    }
+    },
+    "upgradeGenericSubtitle": "Unlock more seats, additional records, more storage, conditional webhooks, and much more!"
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",

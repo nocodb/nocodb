@@ -117,7 +117,9 @@ const openSearch = () => {
 const isFreePlan = computed(() => activePlanTitle.value === 'Free')
 
 const showUpgrade = () => {
-  handleUpgradePlan({})
+  handleUpgradePlan({
+    content: t('upgrade.upgradeGenericSubtitle'),
+  })
 }
 
 // ── Bases: actions provider (same as BaseListModal) ──

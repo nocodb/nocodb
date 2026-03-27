@@ -9,8 +9,12 @@ const { openCommandPalette } = useCommandPalette()
 
 const isFreePlan = computed(() => activePlanTitle.value === 'Free')
 
+const { t } = useI18n()
+
 const showUpgrade = () => {
-  handleUpgradePlan({})
+  handleUpgradePlan({
+    content: t('upgrade.upgradeGenericSubtitle'),
+  })
 }
 
 const workspaceTitle = computed(() => {

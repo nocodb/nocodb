@@ -772,6 +772,9 @@ export default class NocoLicense {
   public static async refreshLicenseFromServer(
     ncMeta = Noco.ncMeta,
   ): Promise<boolean> {
+    // Airgapped licenses must never phone home
+    if (this._isAirgapped) return false;
+
     const licenseKey = process.env[LICENSE_ENV_VARS.LICENSE_KEY];
 
     try {

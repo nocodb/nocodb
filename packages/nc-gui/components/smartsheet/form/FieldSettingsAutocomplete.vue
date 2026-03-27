@@ -207,34 +207,30 @@ const filterOption = (input: string, option: NcListItemType) => {
     v-if="columnSupportsAutocomplete"
     class="nc-form-field-autocomplete-settings p-4 flex flex-col gap-4 border-b border-nc-border-gray-medium"
   >
-    <div class="text-bodyBold text-nc-content-gray">
-      {{ $t('general.browserAutofill') }}
-    </div>
-
     <div class="flex flex-col gap-4">
-      <div class="flex items-center justify-between gap-3">
-        <div class="flex flex-col gap-1">
-          <div class="nc-form-input-autocomplete text-bodyDefaultSm text-nc-content-gray cursor-pointer" @click="toggle">
+      <div class="flex flex-col gap-1">
+        <div class="flex items-center justify-between gap-3">
+          <div class="nc-form-input-autocomplete text-sm font-bold text-nc-content-gray cursor-pointer" @click="toggle">
             {{ $t('general.autocomplete') }}
           </div>
-          <div class="text-nc-content-gray-muted text-bodySm">
-            {{ $t('general.autocompleteHint') }}
-          </div>
-        </div>
 
-        <a-switch
-          v-e="['a:form-view:field:toggle-autocomplete']"
-          :checked="isEnabled"
-          size="small"
-          data-testid="nc-form-input-autocomplete"
-          @change="toggle"
-        />
+          <a-switch
+            v-e="['a:form-view:field:toggle-autocomplete']"
+            :checked="isEnabled"
+            size="small"
+            data-testid="nc-form-input-autocomplete"
+            @change="toggle"
+          />
+        </div>
+        <div class="text-nc-content-gray-muted text-sm">
+          {{ $t('general.autocompleteHint') }}
+        </div>
       </div>
 
       <NcListDropdown v-if="isEnabled" v-model:is-open="isDropdownOpen">
         <div class="flex-1 flex items-center gap-2 min-w-0">
           <NcTooltip show-on-truncate-only class="flex-1 truncate">
-            <span class="text-bodyDefaultSm truncate">{{ currentLabel }}</span>
+            <span class="text-sm truncate">{{ currentLabel }}</span>
             <template #title>{{ currentLabel }}</template>
           </NcTooltip>
           <GeneralIcon

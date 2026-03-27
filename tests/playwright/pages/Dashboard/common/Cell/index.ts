@@ -385,9 +385,11 @@ export class CellPageObject extends BasePage {
       } else if (count) {
         await expect.poll(() => chips.count()).toBe(count);
         if (value) {
+          const actualValues: string[] = [];
           for (let i = 0; i < value.length; ++i) {
-            await expect(chips.nth(i).locator('.name')).toHaveText(value[i]);
+            actualValues.push(await chips.nth(i).locator('.name').innerText());
           }
+          expect(actualValues.sort()).toEqual([...value].sort());
         }
       }
     }

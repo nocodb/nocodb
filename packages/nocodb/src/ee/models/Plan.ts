@@ -4,7 +4,6 @@ import {
   PlanLimitTypes,
   PlanOrder,
   PlanTitles,
-  resolvePlanMeta,
 } from 'nocodb-sdk';
 import type { OnPremPlanTitles } from 'nocodb-sdk';
 import type Stripe from 'stripe';
@@ -251,9 +250,14 @@ export const GraceLimits = {
   [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 10000,
 };
 
+// Dev/CI fallback — everything unlocked so EE features work without Stripe.
+// Cloud uses ee-cloud/models/Plan.ts FreePlan which derives from resolvePlanMeta(FREE).
 export const FreePlan = Plan.prepare({
   title: PlanTitles.FREE,
   description: 'Free plan',
-  meta: resolvePlanMeta(PlanTitles.FREE),
+  meta: {
+    ...Plan.featurePairs(true),
+    ...Plan.limitPairs(-1, false),
+  },
   free: false,
 });

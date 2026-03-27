@@ -728,6 +728,7 @@ export class TablesService {
       tableCreatePayLoad.columns = repopulateCreateTableSystemColumns(context, {
         columns: tableCreatePayLoad.columns,
         clientType: source.type,
+        isMeta: !!source.isMeta(),
       });
     }
 

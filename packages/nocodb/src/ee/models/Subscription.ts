@@ -153,7 +153,6 @@ export default class Subscription {
       'stripe_price_id',
       'fk_plan_id',
       'fk_user_id',
-      'status',
       'seat_count',
       'last_paid_seat_count',
       'status',

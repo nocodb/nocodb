@@ -147,6 +147,26 @@ const cellVerticalAlignAttr = {
   },
 }
 
+const safeColor = /^(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|[a-zA-Z]+)$/
+
+const cellBgColorAttr = {
+  default: null,
+  parseHTML: (el: HTMLElement) => el.getAttribute('data-bg-color') || null,
+  renderHTML: (attrs: Record<string, any>) => {
+    if (!attrs.bgColor || !safeColor.test(attrs.bgColor)) return {}
+    return { 'data-bg-color': attrs.bgColor, 'style': `background-color: ${attrs.bgColor}` }
+  },
+}
+
+const cellTextColorAttr = {
+  default: null,
+  parseHTML: (el: HTMLElement) => el.getAttribute('data-cell-text-color') || null,
+  renderHTML: (attrs: Record<string, any>) => {
+    if (!attrs.cellTextColor || !safeColor.test(attrs.cellTextColor)) return {}
+    return { 'data-cell-text-color': attrs.cellTextColor, 'style': `color: ${attrs.cellTextColor}` }
+  },
+}
+
 export const DocTableCell = TableCell.extend({
   addAttributes() {
     return {
@@ -160,6 +180,8 @@ export const DocTableCell = TableCell.extend({
       },
       textAlign: cellTextAlignAttr,
       verticalAlign: cellVerticalAlignAttr,
+      bgColor: cellBgColorAttr,
+      cellTextColor: cellTextColorAttr,
     }
   },
 })
@@ -177,6 +199,8 @@ export const DocTableHeader = TableHeader.extend({
       },
       textAlign: cellTextAlignAttr,
       verticalAlign: cellVerticalAlignAttr,
+      bgColor: cellBgColorAttr,
+      cellTextColor: cellTextColorAttr,
     }
   },
 })

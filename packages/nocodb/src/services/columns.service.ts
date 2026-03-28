@@ -3545,10 +3545,12 @@ export class ColumnsService implements IColumnsService {
       }
     }
 
-    await columnWebhookManager.addNewColumnById({
-      columnId: newColumn.id,
-      action: WebhookActions.INSERT,
-    });
+    if (newColumn) {
+      await columnWebhookManager.addNewColumnById({
+        columnId: newColumn.id,
+        action: WebhookActions.INSERT,
+      });
+    }
     if (!param.columnWebhookManager) {
       columnWebhookManager.emit();
     }

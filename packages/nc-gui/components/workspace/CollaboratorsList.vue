@@ -449,7 +449,9 @@ watch(inviteDlg, (newVal) => {
       <PaymentBanner />
     </div>
 
-    <div class="nc-collaborator-table-wrapper h-full max-w-[1200px] mx-auto py-6 px-4 md:px-6 flex flex-col gap-6 sticky top-0">
+    <div
+      class="nc-collaborator-table-wrapper h-full max-w-[1200px] mx-auto py-4 md:py-6 px-4 md:px-6 flex flex-col gap-6 sticky top-0"
+    >
       <div class="w-full flex items-center justify-between gap-3">
         <a-input
           v-model:value="userSearchText"

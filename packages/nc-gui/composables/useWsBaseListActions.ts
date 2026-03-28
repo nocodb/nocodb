@@ -147,7 +147,7 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
 
     await navigateToProject({
       baseId: base.id!,
-      workspaceId: base.fk_workspace_id!,
+      workspaceId: isEeUI ? base.fk_workspace_id! : 'nc',
     })
   }
 

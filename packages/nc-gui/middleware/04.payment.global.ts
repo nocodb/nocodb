@@ -40,7 +40,7 @@ export default defineNuxtRouteMiddleware((to) => {
     } else if (returnToPage === 'account') {
       targetPath = `/account/workspace/${workspaceId}/settings`
     } else {
-      targetPath = `/${workspaceId}/settings/ws-billing`
+      targetPath = `/${workspaceId}/billing`
     }
 
     // Only redirect if we're not already on the target path (prevents loop).

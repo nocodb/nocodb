@@ -3,67 +3,121 @@ import { DashboardPage } from '../../index';
 import BasePage from '../../../Base';
 import { isEE } from '../../../../setup/db';
 
+/**
+ * Page object for the workspace base list.
+ *
+ * Previously this targeted the BaseListModal (modal popup).
+ * Now it targets the inline WorkspaceBaseList component rendered
+ * on the workspace home page (/{wsId} route, Bases tab).
+ *
+ * The modal locator is kept as a fallback for backward compatibility.
+ */
 export class BaseListModalPage extends BasePage {
   readonly dashboard: DashboardPage;
+
+  /** Legacy modal locator */
   readonly modal: Locator;
+
+  /** Home sidebar — present when on workspace home routes */
+  readonly homeSidebar: Locator;
 
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.modal = this.rootPage.locator('.nc-workspace-base-list-modal-wrapper');
+    this.homeSidebar = this.rootPage.locator('.nc-home-sidebar');
   }
 
   get() {
-    return this.modal;
+    // Return whichever container is visible
+    return this.homeSidebar.or(this.modal);
   }
 
+  /**
+   * Check if we're on the workspace home page (bases tab) or the modal is open.
+   */
   async isOpen() {
-    return this.modal.isVisible();
+    return (await this.homeSidebar.isVisible()) || (await this.modal.isVisible());
+  }
+
+  /**
+   * Ensure we're on the Bases tab of the workspace home page.
+   * If on another ws tab (Members, Teams, etc.), clicks the Bases tab.
+   */
+  async ensureBasesTab() {
+    if (!(await this.homeSidebar.isVisible())) return;
+
+    // Find the Bases tab in the workspace view tabs
+    const basesTab = this.rootPage.locator('.nc-ws-view-tabs .tab-title').first();
+    if (await basesTab.isVisible().catch(() => false)) {
+      const classList = await basesTab.getAttribute('class');
+      if (!classList?.includes('active')) {
+        await basesTab.click();
+        // Wait for navigation to Bases tab and base list to render
+        await this.rootPage.waitForTimeout(1000);
+      }
+    }
   }
 
   async waitForOpen() {
-    await this.modal.waitFor({ state: 'visible' });
-    // Wait for modal animation to complete
+    // Wait for either the home sidebar (new) or the modal (legacy)
+    await this.homeSidebar.or(this.modal).waitFor({ state: 'visible', timeout: 10000 });
     await this.rootPage.waitForTimeout(300);
 
-    await this.rootPage.getByTestId('nc-base-list-loading').waitFor({ state: 'hidden' });
+    // Ensure we're on the Bases tab
+    await this.ensureBasesTab();
   }
 
   async waitForClose() {
-    await this.modal.waitFor({ state: 'hidden' });
-
-    // Wait for modal animation to complete
     await this.rootPage.waitForTimeout(300);
   }
 
   async close() {
-    if (await this.isOpen()) {
+    // Modal: press Escape. Inline: no-op.
+    if (await this.modal.isVisible()) {
       await this.rootPage.keyboard.press('Escape');
-      await this.waitForClose();
+      await this.modal.waitFor({ state: 'hidden' });
+      await this.rootPage.waitForTimeout(300);
     }
   }
 
+  /**
+   * The base list content area — targets the page content, not the sidebar.
+   */
+  private getContentArea(): Locator {
+    return this.rootPage;
+  }
+
   async searchBases(query: string) {
-    const searchInput = this.modal.locator('.nc-workspace-base-search input');
-    await searchInput.fill(query);
+    const searchInput = this.homeSidebar.locator('.nc-home-sidebar-search input');
+    if (await searchInput.isVisible()) {
+      await searchInput.fill(query);
+    } else {
+      // Fallback to modal search
+      const modalSearch = this.modal.locator('.nc-workspace-base-search input');
+      await modalSearch.fill(query);
+    }
     await this.rootPage.waitForTimeout(300);
   }
 
   async clearSearch() {
-    const searchInput = this.modal.locator('.nc-workspace-base-search input');
-    await searchInput.clear();
+    const searchInput = this.homeSidebar.locator('.nc-home-sidebar-search input');
+    if (await searchInput.isVisible()) {
+      await searchInput.clear();
+    } else {
+      const modalSearch = this.modal.locator('.nc-workspace-base-search input');
+      await modalSearch.clear();
+    }
     await this.rootPage.waitForTimeout(300);
   }
 
   // Base operations
   getBaseNode(baseTitle: string): Locator {
-    // Use data-testid for precise matching
-    return this.modal.getByTestId(`nc-base-list-modal-base-title-${baseTitle}`);
+    return this.getContentArea().getByTestId(`nc-base-list-modal-base-title-${baseTitle}`);
   }
 
   getBaseNodeById(baseId: string): Locator {
-    // Use data-id for matching by base ID
-    return this.modal.locator(`.nc-base-node[data-id="${baseId}"]`);
+    return this.getContentArea().locator(`.nc-base-node[data-id="${baseId}"]`);
   }
 
   async clickBase(baseTitle: string, baseId?: string) {
@@ -72,7 +126,10 @@ export class BaseListModalPage extends BasePage {
     await baseNode.scrollIntoViewIfNeeded();
     await baseNode.click();
 
-    await this.waitForClose();
+    // Wait for navigation — the sidebar switches from HomeSidebar to DashboardSidebar
+    // which renders the treeview. Wait for the sidebar header to appear.
+    await this.rootPage.locator('.nc-sidebar-header').waitFor({ state: 'visible', timeout: 10000 });
+    await this.rootPage.waitForTimeout(300);
   }
 
   async openBaseMenu(baseTitle: string) {
@@ -111,7 +168,7 @@ export class BaseListModalPage extends BasePage {
   async openBaseSettings(baseTitle: string) {
     await this.openBaseMenu(baseTitle);
     await this.rootPage.getByTestId('nc-base-node-settings').click();
-    await this.waitForClose();
+    await this.rootPage.waitForTimeout(500);
   }
 
   async deleteBase(baseTitle: string) {
@@ -119,18 +176,17 @@ export class BaseListModalPage extends BasePage {
     await this.rootPage.getByTestId('nc-base-node-delete').click();
   }
 
-  // Workspace operations (EE only)
+  // Workspace operations — use HomeSidebar
   getWorkspaceNode(workspaceTitle: string): Locator {
-    // Use the title class for precise matching
-    return this.modal.locator('.nc-workspace-node').filter({
-      has: this.rootPage.locator('.nc-workspace-node-title', { hasText: workspaceTitle }),
+    return this.homeSidebar.locator(`[data-testid^="nc-home-sidebar-ws-"]`).filter({
+      hasText: workspaceTitle,
     });
   }
 
   async isWorkspaceSelected(workspaceTitle: string): Promise<boolean> {
     const workspaceNode = this.getWorkspaceNode(workspaceTitle);
     const classAttr = await workspaceNode.getAttribute('class');
-    return classAttr?.includes('nc-selected-workspace-node') ?? false;
+    return classAttr?.includes('nc-ws-node-active') ?? false;
   }
 
   async selectWorkspace(workspaceTitle: string) {
@@ -138,45 +194,34 @@ export class BaseListModalPage extends BasePage {
 
     const workspaceNode = this.getWorkspaceNode(workspaceTitle);
     await workspaceNode.click();
-    await this.rootPage.waitForTimeout(500);
+    await this.rootPage.waitForTimeout(1000);
   }
 
   async switchWorkspace(workspaceTitle: string) {
     if (!isEE()) return;
 
-    // Check if this workspace is already selected/active
     if (await this.isWorkspaceSelected(workspaceTitle)) {
-      // Already on this workspace, just close the modal
-      await this.close();
       return;
     }
 
     const workspaceNode = this.getWorkspaceNode(workspaceTitle);
-    // Click the navigate icon to switch to workspace
-    await workspaceNode.locator('.nc-workspace-node-navigate-icon').click();
+    await workspaceNode.click();
     await this.rootPage.waitForTimeout(1000);
   }
 
   async createWorkspace() {
     if (!isEE()) return;
 
-    const createBtn = this.modal.locator('button:has-text("New Workspace")');
+    const createBtn = this.homeSidebar.getByTestId('nc-home-sidebar-create-ws');
     await createBtn.click();
   }
 
-  /**
-   * Click the create base button in the modal header
-   */
   async clickCreateBase() {
-    const createBtn = this.modal.locator('[data-testid="nc-sidebar-create-base-btn"]');
+    const createBtn = this.getContentArea().locator('[data-testid="nc-sidebar-create-base-btn"]');
     await createBtn.click();
     await this.rootPage.waitForTimeout(300);
   }
 
-  /**
-   * Opens the create base menu using keyboard shortcut (Option/Alt + D)
-   * This works from anywhere in the app, modal doesn't need to be open
-   */
   async openCreateBaseMenuViaShortcut() {
     await this.rootPage.keyboard.press('Alt+d');
     await this.rootPage.waitForTimeout(300);
@@ -184,7 +229,7 @@ export class BaseListModalPage extends BasePage {
 
   // Filter operations
   async setFilter(filter: 'all' | 'starred' | 'private' | 'owned' | 'managed') {
-    const filterDropdown = this.modal.locator('.nc-bases-header [data-testid="nc-base-filter-dropdown"]');
+    const filterDropdown = this.getContentArea().locator('.nc-bases-header [data-testid="nc-base-filter-dropdown"]');
     await filterDropdown.click();
     await this.rootPage.waitForTimeout(200);
 
@@ -205,7 +250,7 @@ export class BaseListModalPage extends BasePage {
   }
 
   async verifyBaseCount(count: number) {
-    const baseNodes = this.modal.locator('.nc-base-node');
+    const baseNodes = this.getContentArea().locator('.nc-base-node');
     await expect(baseNodes).toHaveCount(count);
   }
 
@@ -213,6 +258,6 @@ export class BaseListModalPage extends BasePage {
     if (!isEE()) return;
 
     const workspaceNode = this.getWorkspaceNode(workspaceTitle);
-    await expect(workspaceNode).toHaveClass(/nc-selected-workspace-node/);
+    await expect(workspaceNode).toHaveClass(/nc-ws-node-active/);
   }
 }

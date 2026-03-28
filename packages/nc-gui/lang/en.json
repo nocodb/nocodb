@@ -262,7 +262,8 @@
       "permissions": "Table & Field Permissions",
       "audit": "Workspace Audit",
       "privateBases": "Private Bases"
-    }
+    },
+    "upgradeGenericSubtitle": "Unlock more seats, additional records, more storage, conditional webhooks, and much more!"
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -508,6 +509,7 @@
     "integrations": "Integrations",
     "connection": "Connection",
     "connections": "Connections",
+    "activeConnections": "Active connections",
     "private": "Private",
     "starred": "Starred",
     "request": "Request",
@@ -971,6 +973,7 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "noWorkspaceAccess": "No workspace access",
     "convertLegacyLink": "Upgrade Link Field",
     "versionHistory": "Version History",
     "versionDeployments": "Version Deployments",
@@ -1239,6 +1242,7 @@
     "manyToOne": "Many to One"
   },
   "labels": {
+    "noRecentViews": "No recent views",
     "expandLinkFields": "Expand link fields",
     "expandLinkFieldsDesc": "Return linked record data instead of count",
     "inheritedFromParent": "Inherited from parent",
@@ -1262,6 +1266,7 @@
     "changeCover": "Change",
     "removeCover": "Remove",
     "noDocuments": "No documents",
+    "noWorkspaces": "No workspaces",
     "addNewPage": "Add page",
     "newDocument": "New document",
     "newSubDocument": "New sub-document",
@@ -1709,6 +1714,7 @@
     "signOutUsers": "Sign out users",
     "deactivateUser": "Deactivate User",
     "deactivateUsers": "Deactivate Users",
+    "lastOpened": "Last Opened",
     "lastActive": "Last Active",
     "dateAdded": "Date Added",
     "uploadImage": "Upload Image",
@@ -2025,6 +2031,12 @@
     "importFormulaColumns": "Import formula columns",
     "importUsers": "Import Users (by email)",
     "noData": "No Data",
+    "yourBases": "Your bases",
+    "recentlyOpened": "Recently Opened",
+    "past7Days": "Past 7 days",
+    "past30Days": "Past 30 days",
+    "earlier": "Earlier",
+    "basesIn": "Bases in",
     "noUsersFound": "No users found",
     "noRecipientsSelected": "No recipients selected",
     "goToDashboard": "Go to Dashboard",
@@ -2290,6 +2302,7 @@
     "noBasesFound": "No bases found",
     "ownedByMe": "Owned by me",
     "allBases": "All Bases",
+    "searchWorkspaceBases": "Search",
     "addDomain": "Add Domain",
     "addMembers": "Add Members",
     "enterEmail": "Enter email addresses",
@@ -3036,6 +3049,7 @@
       "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
+      "contactAdminForAccess": "You haven't been added to any workspace yet. Contact your administrator to get access.",
       "licenseRequiresPostgres": "Enterprise licensing requires PostgreSQL. Please migrate to PostgreSQL to activate your license key.",
       "convertLinkV2Description": "Your data will not be affected. After upgrading, this field will show only the count of linked records, and a new field will be added next to it to display the linked records themselves.",
       "convertLinkV1Description": "Your data will not be affected. The field will continue to display linked records after the upgrade.",

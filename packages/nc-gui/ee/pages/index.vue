@@ -8,14 +8,14 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { ncNavigateTo } = useGlobal()
-
 const { showOnboardingFlow } = useOnboardingFlow()
 
 const workspaceStore = useWorkspace()
 const { populateWorkspace } = workspaceStore
-const { collaborators, lastPopulatedWorkspaceId, activeWorkspaceId, activeWorkspace, isWorkspacesLoading } =
+const { collaborators, lastPopulatedWorkspaceId, activeWorkspaceId, activeWorkspace, isWorkspacesLoading, workspacesList } =
   storeToRefs(workspaceStore)
+
+const { isEEFeatureBlocked } = useEeConfig()
 
 const { isDuplicateDlgOpen } = useCopySharedBase()
 
@@ -23,14 +23,36 @@ const { isSharedBase, isSharedErd } = storeToRefs(useBase())
 
 const basesStore = useBases()
 
-const tableStore = useTablesStore()
-
 const navigating = ref(false)
 
-const autoNavigateToProject = async ({ initial = false }: { initial: boolean }) => {
+const isHomeSidebarRoute = computed(() => {
+  return isWsHomeRoute(route.value)
+})
+
+const { hideMiniSidebar } = storeToRefs(useSidebarStore())
+
+const wsHomeSearchQuery = useState<string>('ws-home-search', () => '')
+
+watch(
+  isHomeSidebarRoute,
+  (val) => {
+    hideMiniSidebar.value = val
+    if (val) {
+      wsHomeSearchQuery.value = ''
+    }
+  },
+  { immediate: true },
+)
+
+const autoNavigateToWorkspace = async () => {
   const routeName = route.value.name as string
 
-  if (routeName !== 'index-typeOrId' && routeName !== 'index') {
+  // Don't auto-navigate when already on a workspace page
+  if (routeName.startsWith('index-typeOrId')) {
+    return
+  }
+
+  if (routeName !== 'index') {
     return
   }
 
@@ -38,36 +60,27 @@ const autoNavigateToProject = async ({ initial = false }: { initial: boolean }) 
 
   navigating.value = true
 
-  // open first base if base list is not empty
-  if (basesStore.basesList?.length) {
+  const wsId = activeWorkspaceId.value
+
+  // Try to navigate into last visited base (backward compat with tests & deep links)
+  if (wsId && basesStore.basesList?.length) {
     const lastVisitedBase = ncLastVisitedBase().get()
 
-    const firstBase = lastVisitedBase
-      ? basesStore.basesList.find((b) => b.id === lastVisitedBase) ?? basesStore.basesList[0]
-      : basesStore.basesList[0]
+    const firstBase = lastVisitedBase ? basesStore.basesList.find((b) => b.id === lastVisitedBase) : undefined
 
-    if (firstBase && firstBase.id) {
-      if (initial) {
-        await tableStore.loadProjectTables(firstBase.id)
-        const firstTable = tableStore.baseTables.get(firstBase.id)?.[0]
-        const query = route.value.query
-
-        if (firstTable) {
-          ncNavigateTo({
-            workspaceId: firstBase.fk_workspace_id!,
-            baseId: firstBase.id!,
-            tableId: firstTable.id,
-            query,
-          })
-        }
-      } else {
-        await basesStore.navigateToProject({
-          workspaceId: firstBase.fk_workspace_id!,
-          baseId: firstBase.id!,
-          query: extractAiBaseCreateQueryParams(route.value.query),
-        })
-      }
+    if (firstBase?.id) {
+      await basesStore.navigateToProject({
+        workspaceId: firstBase.fk_workspace_id!,
+        baseId: firstBase.id!,
+      })
+      navigating.value = false
+      return
     }
+  }
+
+  // No bases — navigate to workspace home
+  if (wsId) {
+    await navigateTo(`/${wsId}`)
   }
 
   navigating.value = false
@@ -115,13 +128,13 @@ watch(
       if (newWorkspace && lastPopulatedWorkspaceId.value !== newId && (newId || workspaceStore.workspacesList.length)) {
         await populateWorkspace()
 
-        if (!route.value.params.baseId && basesStore.basesList.length) {
-          await autoNavigateToProject({ initial: oldId === undefined })
+        if (!route.value.params.baseId) {
+          await autoNavigateToWorkspace()
         }
       }
 
       if (lastPopulatedWorkspaceId.value === newId && !route.value.params.typeOrId) {
-        await autoNavigateToProject({ initial: false })
+        await autoNavigateToWorkspace()
       }
     } catch (e: any) {
       console.error(e)
@@ -161,10 +174,14 @@ onMounted(async () => {
   if (!['base'].includes(route.value.params.typeOrId as string)) {
     await loadWorkspaces()
 
-    // No workspaces available (e.g. fresh user with NO_ACCESS) — stop skeleton
-    if (!workspaceStore.workspacesList.length) {
+    // No workspaces available (e.g. fresh user with NO_ACCESS) — stop skeleton and redirect to index
+    if (!workspaceStore.workspacesList.length && isEEFeatureBlocked.value) {
       workspaceStore.setLoadingState(false)
       basesStore.setProjectsLoaded()
+
+      if (route.value.params.typeOrId) {
+        await router.replace({ name: 'index' })
+      }
     }
   }
 
@@ -190,10 +207,39 @@ watch(
 
     <NuxtLayout v-else name="dashboard">
       <template #sidebar>
-        <DashboardSidebar />
+        <DashboardHomeSidebar v-if="isHomeSidebarRoute" />
+        <DashboardSidebar v-else />
       </template>
       <template #content>
-        <NuxtPage :transition="false" />
+        <!-- Workspace home -->
+        <div v-if="isHomeSidebarRoute" class="flex flex-col h-full w-full">
+          <!-- Topbar: workspace name + plan + search -->
+          <WorkspaceViewTopbar />
+
+          <!-- No workspace access: show empty state -->
+          <div
+            v-if="!isWorkspacesLoading && !workspacesList.length && isEEFeatureBlocked"
+            class="flex-1 flex flex-col items-center justify-center gap-3"
+          >
+            <GeneralIcon icon="ncWorkspace" class="h-10 w-10 text-nc-content-gray-muted" />
+            <h3 class="text-lg font-semibold text-nc-content-gray">
+              {{ $t('title.noWorkspaceAccess') }}
+            </h3>
+            <p class="text-sm text-nc-content-gray-subtle">
+              {{ $t('msg.info.contactAdminForAccess') }}
+            </p>
+          </div>
+
+          <!-- Normal: tabs + page content -->
+          <template v-else>
+            <WorkspaceViewTabs />
+            <div class="flex-1 overflow-auto">
+              <NuxtPage :transition="false" />
+            </div>
+          </template>
+        </div>
+        <!-- Non-workspace routes: render page directly -->
+        <NuxtPage v-else :transition="false" />
       </template>
     </NuxtLayout>
     <DlgSharedBaseDuplicate v-model="isDuplicateDlgOpen" />

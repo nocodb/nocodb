@@ -304,7 +304,9 @@ const showFilterSection = computed(() => {
         <label class="text-bodyDefaultSm font-semibold text-nc-content-gray-subtle">{{
           $t('objects.permissions.rlsPolicy.defaultBehavior')
         }}</label>
-        <p class="text-xs text-nc-content-gray-muted mb-0">{{ $t('objects.permissions.rlsPolicy.defaultBehaviorDescription') }}</p>
+        <p class="text-xs text-nc-content-gray-muted mb-0">
+          {{ $t('objects.permissions.rlsPolicy.defaultBehaviorDescription') }}
+        </p>
         <div class="rounded-lg overflow-hidden nc-rls-behavior-table">
           <div
             v-for="(opt, idx) in defaultBehaviorOptions"

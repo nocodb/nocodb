@@ -150,10 +150,29 @@ export class SidebarProjectNodeObject extends BasePage {
   }) {
     // In shared-base/shared-view scenarios there is no mini sidebar at all — skip navigation checks.
     // Must check both V1 (nc-mini-sidebar) and V2 (nc-mini-sidebar-v2) since V2 is now the default.
+    // Also check for HomeSidebar (workspace home page) which has no mini sidebar but needs navigation.
     const hasMiniSidebar =
       (await this.sidebar.dashboard.leftSidebar.isMiniSidebarVisible()) ||
       (await this.sidebar.dashboard.leftSidebar.isMiniSidebarV2Visible());
-    if (!hasMiniSidebar) return true;
+    const hasHomeSidebar = await this.sidebar.dashboard.rootPage
+      .locator('.nc-home-sidebar')
+      .isVisible()
+      .catch(() => false);
+
+    if (!hasMiniSidebar && !hasHomeSidebar) return true;
+
+    // On workspace home page — need to navigate to the base via base list
+    if (hasHomeSidebar && !hasMiniSidebar && open) {
+      await this.sidebar.dashboard.leftSidebar.openBaseListModal();
+      await this.sidebar.dashboard.rootPage.waitForTimeout(300);
+      await this.sidebar.dashboard.leftSidebar.baseListModal.clickBase(baseTitle, baseId);
+      await this.sidebar.dashboard.leftSidebar.active_base.waitFor({ state: 'visible', timeout: 15000 });
+      await this.sidebar.dashboard.leftSidebar.active_base.hover({ force: true, position: { x: 2, y: 2 } });
+      await this.sidebar.dashboard.leftSidebar.sidebarNav.navigateToDataTab();
+      return true;
+    }
+
+    if (!hasMiniSidebar && !hasHomeSidebar) return !open;
 
     const ncProjectHeader = this.sidebar.get().locator('.nc-project-header');
 

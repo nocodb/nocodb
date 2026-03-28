@@ -36,7 +36,7 @@ export class LoginPage extends BasePage {
 
   async submit() {
     await this.get().locator(`[data-testid="nc-form-signin__submit"]`).click();
-    await this.rootPage.locator('.nc-treeview-container').waitFor({ timeout: 10000 });
+    await this.rootPage.locator('.nc-treeview-container, .nc-home-sidebar').first().waitFor({ timeout: 10000 });
   }
 
   async signIn({

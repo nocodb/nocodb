@@ -256,7 +256,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
     window.location.href = isOrgBilling.value
       ? `/admin/${orgId.value}/billing?afterUpgrade=true`
-      : `/${activeWorkspaceOrOrgId.value}/settings/ws-billing${afterUpgrade ? '?afterUpgrade=true' : ''}`
+      : `/${activeWorkspaceOrOrgId.value}/billing${afterUpgrade ? '?afterUpgrade=true' : ''}`
   }
 
   const cancelSubscription = async () => {
@@ -268,9 +268,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       headers: { 'xc-auth': $state.token.value as string },
     })
 
-    window.location.href = isOrgBilling.value
-      ? `/admin/${orgId.value}/billing`
-      : `/${activeWorkspaceOrOrgId.value}/settings/ws-billing`
+    window.location.href = isOrgBilling.value ? `/admin/${orgId.value}/billing` : `/${activeWorkspaceOrOrgId.value}/billing`
   }
 
   const getCustomerPortalSession = async () => {

@@ -22,14 +22,15 @@ export const baseSettingsTabToSlug: Record<string, string> = {
 }
 
 // Workspace settings: internal tab name → URL slug
+// These map to flat routes: /{wsId}/{slug} (e.g. /{wsId}/members)
 export const wsSettingsTabToSlug: Record<string, string> = {
-  'ws-collaborators': 'ws-members',
-  'ws-teams': 'ws-teams',
-  'ws-integrations': 'ws-integrations',
-  'ws-billing': 'ws-billing',
-  'ws-audits': 'ws-audits',
-  'ws-sso': 'ws-sso',
-  'ws-settings': 'ws-settings',
+  'ws-collaborators': 'members',
+  'ws-teams': 'teams',
+  'ws-integrations': 'integrations',
+  'ws-billing': 'billing',
+  'ws-audits': 'audits',
+  'ws-sso': 'sso',
+  'ws-settings': 'more',
 }
 
 // Combined: all settings tabs → URL slugs

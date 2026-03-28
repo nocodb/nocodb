@@ -22,7 +22,7 @@ const item = toRef(props, 'item')
 </script>
 
 <template>
-  <NotificationItemWrapper :item="item" @click="navigateTo(`/${item.body.workspace.id}/settings/ws-billing`)">
+  <NotificationItemWrapper :item="item" @click="navigateTo(`/${item.body.workspace.id}/billing`)">
     <div>
       <span class="font-semibold">{{ item.body.requester.display_name ?? item.body.requester.email }}</span> has requested an
       upgrade for the <span class="font-semibold">{{ item.body.workspace.title }}</span> workspace

@@ -420,7 +420,8 @@ const enabledOptions = computed(() => {
     tableDateDependency:
       isEeUI &&
       table.value?.type === 'table' &&
-      isUIAllowed('dateDependencyManage', { roles: baseRole?.value, source: source.value }),
+      isUIAllowed('dateDependencyManage', { roles: baseRole?.value, source: source.value }) &&
+      showEEFeatures.value,
     tableDelete: isUIAllowed('tableDelete', { roles: baseRole?.value, source: source.value }),
   }
 })

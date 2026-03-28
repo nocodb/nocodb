@@ -47,7 +47,7 @@ export class OpenIDLoginPage extends BasePage {
       await this.onboardingFlowPage.skipOnboardingFlow();
     }
 
-    const userInfoMenu = this.rootPage.locator(`[data-testid="nc-sidebar-userinfo"]`);
+    const userInfoMenu = this.rootPage.locator('[data-testid="nc-sidebar-userinfo"]').first();
     await userInfoMenu.waitFor();
 
     await expect(userInfoMenu).toHaveAttribute('data-email', email);

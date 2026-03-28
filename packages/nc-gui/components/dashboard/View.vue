@@ -58,6 +58,17 @@ const mobileNormalizedContentSize = computed(() => {
   return 100 - leftSidebarWidthPercent.value
 })
 
+const isMiniSidebarVisible = computed(() => {
+  return (
+    !hideMiniSidebar.value &&
+    slots.sidebar &&
+    !isSharedBase.value &&
+    (!isMobileMode.value || isLeftSidebarOpen.value) &&
+    !isFullScreen.value &&
+    !isWsHomeRoute(route.value)
+  )
+})
+
 watch(currentSidebarSize, () => {
   leftSidebarWidthPercent.value = (currentSidebarSize.value / viewportWidth.value) * 100
   setLeftSidebarSize({ current: currentSidebarSize.value, old: sideBarSize.value.old })
@@ -69,6 +80,10 @@ const remToPx = (rem: number) => {
   const fontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
   return rem * fontSize
 }
+
+const normalizedMiniSidebarWidth = computed(() => {
+  return isMiniSidebarVisible.value ? miniSidebarWidth.value : 0
+})
 
 const normalizedWidth = computed(() => {
   const maxSize = remToPx(viewportWidth.value <= 1560 ? 20 : 35)
@@ -114,13 +129,13 @@ function handleMouseMove(e: MouseEvent) {
   if (isFullScreen.value) return
   if (sidebarState.value === 'openEnd') return
 
-  if (e.clientX < 4 + miniSidebarWidth.value && ['hiddenEnd', 'peekCloseEnd'].includes(sidebarState.value)) {
+  if (e.clientX < 4 + normalizedMiniSidebarWidth.value && ['hiddenEnd', 'peekCloseEnd'].includes(sidebarState.value)) {
     sidebarState.value = 'peekOpenStart'
 
     setTimeout(() => {
       sidebarState.value = 'peekOpenEnd'
     }, animationDuration)
-  } else if (e.clientX > sidebarWidth.value + 10 + miniSidebarWidth.value && sidebarState.value === 'peekOpenEnd') {
+  } else if (e.clientX > sidebarWidth.value + 10 + normalizedMiniSidebarWidth.value && sidebarState.value === 'peekOpenEnd') {
     if ((e.target as HTMLElement).closest('.nc-dropdown.active') || isNcDropdownOpen()) {
       return
     }
@@ -209,16 +224,6 @@ function onResize(widthPercent: any) {
   sideBarSize.value.old = width
   sideBarSize.value.current = sideBarSize.value.old
 }
-
-const isMiniSidebarVisible = computed(() => {
-  return (
-    !hideMiniSidebar.value &&
-    slots.sidebar &&
-    !isSharedBase.value &&
-    (!isMobileMode.value || isLeftSidebarOpen.value) &&
-    !isFullScreen.value
-  )
-})
 
 const contentWidthStyle = computed(() => ({
   width: isMiniSidebarVisible.value

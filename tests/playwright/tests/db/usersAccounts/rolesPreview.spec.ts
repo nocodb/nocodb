@@ -120,6 +120,8 @@ test.describe('Preview Mode', () => {
       withoutPrefix: true,
     });
 
+    await dashboard.treeView.openProject({ title: context.base.title, context });
+
     await dashboard.treeView.verifyTable({
       title: 'Actor',
       exists: true,

@@ -15,7 +15,7 @@ export class OrgAdminPage extends BasePage {
   }
   async goto() {
     await this.rootPage.goto('/');
-    await this.rootPage.getByTestId('nc-sidebar-userinfo').click();
+    await this.rootPage.getByTestId('nc-sidebar-userinfo').first().click();
 
     await this.rootPage.waitForTimeout(1000);
 

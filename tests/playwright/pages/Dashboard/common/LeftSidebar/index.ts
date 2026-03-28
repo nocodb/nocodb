@@ -87,11 +87,13 @@ export class LeftSidebarPage extends BasePage {
   // ─────────────────────────────────────────────────────────────────────────
 
   /**
-   * Opens the base list modal by clicking the logo in MiniSidebarV2.
+   * Opens the base list by clicking the logo in MiniSidebarV2.
+   * This navigates to the workspace home page (/{wsId}).
    * The logo element carries data-testid="nc-mini-sidebar-v2-logo".
    */
   async openBaseListModalViaV2(): Promise<void> {
-    if (await this.modal_baseList.isVisible()) return;
+    // If already on workspace home, no-op
+    if (await this.baseListModal.isOpen()) return;
 
     const logo = this.sidebarNav.miniSidebarV2.getByTestId('nc-mini-sidebar-v2-logo');
     await logo.waitFor({ state: 'visible' });
@@ -111,9 +113,9 @@ export class LeftSidebarPage extends BasePage {
    * @param open - If true, opens the modal when it is not already visible.
    */
   async verifyBaseListOpen(open: boolean = false): Promise<boolean> {
-    const isModalOpen = await this.modal_baseList.isVisible();
+    const isVisible = await this.baseListModal.isOpen();
 
-    if (!isModalOpen && open) {
+    if (!isVisible && open) {
       if (await this.isMiniSidebarV2Visible()) {
         await this.openBaseListModalViaV2();
       } else {
@@ -123,12 +125,20 @@ export class LeftSidebarPage extends BasePage {
     }
 
     await this.rootPage.waitForTimeout(300);
-    return this.modal_baseList.isVisible();
+    return this.baseListModal.isOpen();
   }
 
-  /** Opens the base list modal (V2 first, V1 fallback). */
+  /**
+   * Opens the base list — navigates to workspace home page (V2)
+   * or opens the modal (V1 fallback).
+   * Ensures we're on the Bases tab (not Members/Teams/etc).
+   */
   async openBaseListModal(): Promise<void> {
-    if (await this.modal_baseList.isVisible()) return;
+    if (await this.baseListModal.isOpen()) {
+      // Already on workspace home — ensure Bases tab is active
+      await this.baseListModal.ensureBasesTab();
+      return;
+    }
 
     if (await this.isMiniSidebarV2Visible()) {
       await this.openBaseListModalViaV2();
@@ -138,7 +148,10 @@ export class LeftSidebarPage extends BasePage {
     }
   }
 
-  /** Closes the base list modal if open. */
+  /**
+   * Closes the base list modal if open (legacy modal only).
+   * For inline base list (new workspace page), this is a no-op.
+   */
   async closeBaseListModal(): Promise<void> {
     await this.baseListModal.close();
   }
@@ -224,7 +237,21 @@ export class LeftSidebarPage extends BasePage {
   async clickHome(): Promise<void> {}
 
   async getWorkspaceName(): Promise<string | null> {
-    return this.get().locator('.nc-sidebar-header').getAttribute('data-workspace-title');
+    await this.rootPage.waitForTimeout(500);
+
+    // Workspace home page — read from the ViewTopbar heading
+    const topbarTitle = this.rootPage.locator('[data-testid="nc-ws-home-topbar-title"]');
+    if ((await topbarTitle.count()) > 0) {
+      return (await topbarTitle.textContent())?.trim() ?? null;
+    }
+
+    // DashboardSidebar header (inside a base) — any element with data-workspace-title
+    const wsAttr = this.rootPage.locator('[data-workspace-title]');
+    if ((await wsAttr.count()) > 0) {
+      return wsAttr.first().getAttribute('data-workspace-title');
+    }
+
+    return null;
   }
 
   async verifyWorkspaceName({ title }: { title: string }): Promise<void> {
@@ -234,36 +261,39 @@ export class LeftSidebarPage extends BasePage {
   async createWorkspace({ title }: { title: string }): Promise<void> {
     await this.openBaseListModal();
 
-    const newWorkspaceBtn = this.modal_baseList.locator('button:has-text("New Workspace")');
-    await newWorkspaceBtn.waitFor();
-    await newWorkspaceBtn.click();
+    // Click the + button in the HomeSidebar workspace header
+    const createBtn = this.rootPage.getByTestId('nc-home-sidebar-create-ws');
+    await createBtn.waitFor();
+    await createBtn.click();
 
     const inputModal = this.rootPage.locator('div.ant-modal.active').last();
     await inputModal.waitFor();
     await inputModal.locator('input').clear();
     await inputModal.locator('input').fill(title);
     await inputModal.locator('button.ant-btn-primary').click();
+
+    // Wait for modal to close and workspace home page to load
+    await inputModal.waitFor({ state: 'hidden', timeout: 10000 });
+    await this.rootPage.waitForLoadState('networkidle');
   }
 
   async verifyWorkspaceCount({ count }: { count: number }): Promise<void> {
     await this.openBaseListModal();
 
-    const workspaceNodes = this.modal_baseList.locator('.nc-workspace-node');
+    const workspaceNodes = this.rootPage.locator('[data-testid^="nc-home-sidebar-ws-"]');
     await expect(workspaceNodes).toHaveCount(count);
-
-    await this.closeBaseListModal();
   }
 
   getWorkspaceNode(workspaceTitle: string): Locator {
-    return this.modal_baseList.locator('.nc-workspace-node').filter({
-      has: this.rootPage.locator('.nc-workspace-node-title', { hasText: workspaceTitle }),
+    return this.rootPage.locator('[data-testid^="nc-home-sidebar-ws-"]').filter({
+      hasText: workspaceTitle,
     });
   }
 
   async isWorkspaceSelected(workspaceTitle: string): Promise<boolean> {
     const workspaceNode = this.getWorkspaceNode(workspaceTitle);
     const classAttr = await workspaceNode.getAttribute('class');
-    return classAttr?.includes('nc-selected-workspace-node') ?? false;
+    return classAttr?.includes('nc-ws-node-active') ?? false;
   }
 
   async getWorkspaceList(): Promise<string[]> {
@@ -271,15 +301,13 @@ export class LeftSidebarPage extends BasePage {
 
     await this.openBaseListModal();
 
-    const titles = this.modal_baseList.locator('.nc-workspace-node-title');
-    const count = await titles.count();
+    const items = this.rootPage.locator('[data-testid^="nc-home-sidebar-ws-"]');
+    const count = await items.count();
 
     for (let i = 0; i < count; i++) {
-      const title = await titles.nth(i).textContent();
+      const title = await items.nth(i).textContent();
       if (title) ws.push(title.trim());
     }
-
-    await this.closeBaseListModal();
 
     return ws;
   }
@@ -288,17 +316,10 @@ export class LeftSidebarPage extends BasePage {
     await this.openBaseListModal();
     await this.rootPage.waitForTimeout(300);
 
-    if (await this.isWorkspaceSelected(param.title)) {
-      await this.closeBaseListModal();
-      return;
-    }
-
     const workspaceNode = this.getWorkspaceNode(param.title);
-    await workspaceNode.locator('.nc-workspace-node-navigate-icon').click();
+    await workspaceNode.click();
 
-    await this.rootPage.waitForTimeout(2000);
-
-    await this.closeBaseListModal();
+    await this.rootPage.waitForTimeout(1000);
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -318,7 +339,7 @@ export class LeftSidebarPage extends BasePage {
       integration: this.miniSidebar.getByTestId('nc-sidebar-integrations-btn'),
       feeds: this.miniSidebar.getByTestId('nc-sidebar-product-feed'),
       notification: this.miniSidebar.getByTestId('nc-sidebar-notification-btn'),
-      userInfo: this.miniSidebar.getByTestId('nc-sidebar-userinfo'),
+      userInfo: this.miniSidebar.getByTestId('nc-sidebar-userinfo').first(),
     };
 
     return locators[type];
@@ -378,7 +399,7 @@ export class LeftSidebarPage extends BasePage {
         const v2Key = v2Mapping[type];
 
         if (v2Key === 'userInfo') {
-          const locator = this.rootPage.getByTestId('nc-sidebar-userinfo');
+          const locator = this.rootPage.getByTestId('nc-sidebar-userinfo').first();
           if (isVisible) await expect(locator).toBeVisible();
           else await expect(locator).not.toBeVisible();
         } else if (v2Key) {

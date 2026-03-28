@@ -15,6 +15,8 @@ const { loadOrg } = orgStore
 
 provide(IsAdminPanelInj, ref(true))
 
+const backRoute = computed(() => ncBackRoute().get())
+
 const selectedKeys = computed(() => [
   /^\/admin\/users\/?$/.test($route.fullPath)
     ? isUIAllowed('superAdminUserManagement')
@@ -51,7 +53,7 @@ onMounted(async () => {
                 size="small"
                 class="transition-all duration-200 mx-2 cursor-pointer transform nc-noco-brand-icon"
                 data-testid="nc-noco-brand-icon"
-                @click="navigateTo('/')"
+                @click="navigateTo(backRoute)"
               >
                 <div class="flex flex-row gap-x-2 items-center">
                   <GeneralIcon icon="ncArrowLeft" />

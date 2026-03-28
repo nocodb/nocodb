@@ -41,7 +41,7 @@ export class CloudSAMLLoginPage extends BasePage {
       signIn.locator(`#btn-sign-in`).click(),
     ]);
 
-    const userInfoMenu = this.rootPage.locator(`[data-testid="nc-sidebar-userinfo"]`);
+    const userInfoMenu = this.rootPage.locator(`[data-testid="nc-sidebar-userinfo"]`).first();
     await userInfoMenu.waitFor();
 
     await expect(userInfoMenu).toHaveAttribute('data-email', email);

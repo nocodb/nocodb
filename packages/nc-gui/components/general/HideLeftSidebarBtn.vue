@@ -1,24 +1,29 @@
 <script lang="ts" setup>
+interface Props {
+  showAlways?: boolean
+}
+
+const props = defineProps<Props>()
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { isMobileMode } = useGlobal()
 
 const onClick = () => {
-  if (!isLeftSidebarOpen.value) return
+  if (!isLeftSidebarOpen.value && !props.showAlways) return
 
   isLeftSidebarOpen.value = !isLeftSidebarOpen.value
 }
 </script>
 
 <template>
-  <div v-if="isMobileMode || isLeftSidebarOpen" v-e="['c:leftSidebar:hideToggle']">
+  <div v-if="isMobileMode || isLeftSidebarOpen || showAlways" v-e="['c:leftSidebar:hideToggle']">
     <NcTooltip
       placement="topLeft"
       hide-on-click
       class="transition-all duration-150"
       :class="{
-        'opacity-0 w-0 pointer-events-none': !isMobileMode && !isLeftSidebarOpen,
-        'opacity-100 max-w-10': isMobileMode || isLeftSidebarOpen,
+        'opacity-0 w-0 pointer-events-none': !isMobileMode && !isLeftSidebarOpen && !showAlways,
+        'opacity-100 max-w-10': isMobileMode || isLeftSidebarOpen || showAlways,
       }"
       :disabled="!!isMobileMode"
     >

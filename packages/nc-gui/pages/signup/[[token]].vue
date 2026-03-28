@@ -18,8 +18,6 @@ const { t } = useI18n()
 
 const { isEnabledOnboardingFlow, showOnboardingFlowLocalState } = useOnboardingFlow()
 
-const { navigateToTable } = useTablesStore()
-
 const { clearWorkspaces } = useWorkspace()
 
 const formValidator = ref()
@@ -79,19 +77,8 @@ async function signUp() {
 
     try {
       // TODO: Add to swagger
-      const base = (user as any).createdProject
-      const table = base?.tables?.[0]
-
       if (isEnabledOnboardingFlow.value) {
-        let continueAfterOnboardingFlow = ''
-
-        if (base?.id) {
-          continueAfterOnboardingFlow = `nc/${base.id}`
-
-          if (table?.id) {
-            continueAfterOnboardingFlow += `/${table.id}`
-          }
-        }
+        const continueAfterOnboardingFlow = 'nc'
 
         /**
          * Onboarding flow is shown only for new users
@@ -106,13 +93,13 @@ async function signUp() {
         return
       }
 
-      if (base && table) {
-        return await navigateToTable({
-          baseId: base.id,
-          tableId: table.id,
-          workspaceId: 'nc',
-        })
-      }
+      // if user signed up then redirect to ws bases list page
+      return await navigateTo({
+        name: 'index-typeOrId',
+        params: {
+          typeOrId: 'nc',
+        },
+      })
     } catch (e) {
       console.error(e)
     }

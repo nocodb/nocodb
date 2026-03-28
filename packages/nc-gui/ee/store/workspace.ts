@@ -103,7 +103,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isTemplatesPageOpened = computed(() => (route.value.name as string)?.startsWith('index-typeOrId-templates'))
 
-  const isTemplatesFeatureEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.TEMPLATES) && appInfo.value.isCloud)
+  const isTemplatesFeatureEnabled = computed(
+    () =>
+      isFeatureEnabled(FEATURE_FLAG.TEMPLATES) && (appInfo.value.isCloud || (isEeUI && process.env.NODE_ENV === 'development')),
+  )
 
   const isFeedPageOpened = computed(() => route.value.name === 'index-typeOrId-feed')
 
@@ -588,7 +591,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       throw new Error('Workspace not selected')
     }
 
-    const path = `/${workspaceId}/settings/ws-settings`
+    const path = `/${workspaceId}/more`
     if (cmdOrCtrl) {
       await navigateTo(path, { open: navigateToBlankTargetOpenOption })
     } else {
@@ -630,8 +633,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     if (cmdOrCtrl) {
       await navigateTo(
         router.resolve({
-          name: 'index-typeOrId-settings-page',
-          params: { typeOrId: workspaceId, page: 'ws-integrations' },
+          name: 'index-typeOrId-integrations',
+          params: { typeOrId: workspaceId },
           query,
         }).href,
         {
@@ -639,7 +642,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         },
       )
     } else {
-      router.push({ name: 'index-typeOrId-settings-page', params: { typeOrId: workspaceId, page: 'ws-integrations' }, query })
+      router.push({ name: 'index-typeOrId-integrations', params: { typeOrId: workspaceId }, query })
     }
   }
 

@@ -32,7 +32,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const workspaces = ref<Map<string, any>>(new Map())
   const workspacesList = computed<any[]>(() => Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at))
 
-  const isWorkspaceSettingsPageOpened = computed(() => route.value.name === 'index-typeOrId-settings-page')
+  const isWorkspaceSettingsPageOpened = computed(() => wsSettingsRouteNames.has(route.value.name as string))
 
   const isIntegrationsPageOpened = computed(
     () =>
@@ -290,7 +290,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const navigateToWorkspaceSettings = async (_?: string, cmdOrCtrl?: boolean) => {
     const workspaceId = activeWorkspaceId.value
-    const path = `/${workspaceId}/settings/ws-settings`
+    const path = `/${workspaceId}/more`
     if (cmdOrCtrl) {
       await navigateTo(path, {
         open: navigateToBlankTargetOpenOption,

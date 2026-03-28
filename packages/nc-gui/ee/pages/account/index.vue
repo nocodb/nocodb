@@ -20,6 +20,8 @@ const filteredWorkspaces = computed(() => workspacesList.value.filter((w) => w.r
 
 const loadingWorkspaces = ref(false)
 
+const backRoute = computed(() => ncBackRoute().get())
+
 const selectedKeys = computed(() => [$route.params.nestedPage ?? $route.params.page])
 
 const openKeys = ref([])
@@ -62,7 +64,7 @@ onMounted(() => {
                   size="small"
                   class="transition-all duration-200 mx-2 cursor-pointer transform hover:bg-nc-bg-gray-light nc-noco-brand-icon"
                   data-testid="nc-noco-brand-icon"
-                  @click="navigateTo('/')"
+                  @click="navigateTo(backRoute)"
                 >
                   <div class="flex flex-row gap-x-2 items-center">
                     <GeneralIcon icon="ncArrowLeft" />
@@ -246,7 +248,7 @@ onMounted(() => {
 
 :deep(.nc-user-sidebar .ant-menu-item-only-child),
 :deep(.ant-menu-submenu-title) {
-  @apply !h-[30px] !leading-[30px];
+  @apply !h-[28px] !leading-[28px];
 }
 
 :deep(.ant-menu-submenu-arrow) {
@@ -261,13 +263,18 @@ onMounted(() => {
   @apply bg-nc-bg-gray-sidebar;
 
   :deep(.item) {
-    @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 text-nc-content-gray-subtle !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle) font-medium;
+    @apply select-none mx-2 !px-3 !text-bodyDefaultSm font-medium !rounded-md !mb-0.5 text-nc-content-gray-subtle !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle) font-medium;
     width: calc(100% - 1rem);
+  }
+
+  :deep(.nc-menu-item-inner),
+  :deep(.nc-submenu-title) {
+    @apply !text-bodyDefaultSm font-medium;
   }
 }
 
 :deep(.ant-menu-submenu-title) {
-  @apply select-none mx-2 !pl-3 !pr-1 !text-sm !rounded-md !mb-1 !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle);
+  @apply select-none mx-2 !pl-3 !pr-1 !text-bodyDefaultSm !rounded-md !mb-0.5 !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle);
   width: calc(100% - 1rem);
 
   & + ul {

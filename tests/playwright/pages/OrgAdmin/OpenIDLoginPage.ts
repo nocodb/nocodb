@@ -45,7 +45,7 @@ export class CloudOpenIDLoginPage extends BasePage {
       authorize.locator(`[type="submit"]`).click(),
     ]);
 
-    const userInfoMenu = this.rootPage.locator(`[data-testid="nc-sidebar-userinfo"]`);
+    const userInfoMenu = this.rootPage.locator(`[data-testid="nc-sidebar-userinfo"]`).first();
     await userInfoMenu.waitFor();
 
     await expect(userInfoMenu).toHaveAttribute('data-email', email);

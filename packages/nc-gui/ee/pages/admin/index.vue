@@ -64,6 +64,8 @@ watchEffect(() => {
 
 const isPending = computed(() => !emailConfigured.value || !storageConfigured.value)
 
+const backRoute = computed(() => ncBackRoute().get())
+
 // Guard: redirect if not on-prem super admin
 watch(
   [isSuperAdmin, isNotCloud],
@@ -90,7 +92,7 @@ watch(
                 size="small"
                 class="transition-all duration-200 mx-2 cursor-pointer transform nc-noco-brand-icon"
                 data-testid="nc-noco-brand-icon"
-                @click="navigateTo('/')"
+                @click="navigateTo(backRoute)"
               >
                 <div class="flex flex-row gap-x-2 items-center">
                   <GeneralIcon icon="ncArrowLeft" />
@@ -98,7 +100,7 @@ watch(
                 </div>
               </NcButton>
             </div>
-            <NcDivider class="!mt-0" />
+            <NcDivider class="!-mt-[1px]" />
 
             <div class="text-sm ml-2 p-2 mt-2 flex items-center justify-between gap-2">
               <div class="text-base font-bold text-nc-content-gray-emphasis">NocoDB</div>
@@ -235,7 +237,7 @@ watch(
         </div>
 
         <!-- Content -->
-        <div class="h-full flex-1 flex flex-col pt-2 overflow-y-auto nc-scrollbar-thin">
+        <div class="h-full flex-1 flex flex-col overflow-y-auto nc-scrollbar-thin">
           <div class="h-full flex flex-col w-full">
             <div class="h-full">
               <AdminInstanceDashboard v-if="activeTab === 'dashboard'" />

@@ -5,6 +5,7 @@ import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 const props = defineProps<{
   workspaceId?: string
   tab?: string
+  hideTopbar?: boolean
 }>()
 
 const router = useRouter()
@@ -101,12 +102,12 @@ const tab = computed({
       loadCollaborators({}, props.workspaceId)
     }
 
-    // Navigate via route path
+    // Navigate via route path — use flat URL structure (/{wsId}/{tabSlug})
     const wsTab = ncTabKeyToWsTab[newTab]
     if (wsTab) {
       const wsId = route.value.params.typeOrId
       const slug = wsSettingsTabToSlug[wsTab] || wsTab
-      navigateTo(`/${wsId}/settings/${slug}`)
+      navigateTo(`/${wsId}/${slug}`)
     }
   },
 })
@@ -224,7 +225,7 @@ onBeforeUnmount(() => {
   >
     <!-- Settings sidebar mode: simple topbar with page title -->
     <div
-      v-if="isSettingsSidebar"
+      v-if="isSettingsSidebar && !props.hideTopbar"
       class="flex flex-row px-2 py-2 gap-3 justify-between w-full border-b-1 border-nc-border-gray-medium h-[var(--topbar-height)]"
     >
       <div class="flex-1 flex flex-row items-center gap-x-3">
@@ -239,7 +240,7 @@ onBeforeUnmount(() => {
 
     <!-- Original breadcrumb mode -->
     <div
-      v-else-if="!props.workspaceId"
+      v-else-if="!props.workspaceId && !props.hideTopbar"
       class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-nc-border-gray-medium flex items-center gap-2"
     >
       <GeneralOpenLeftSidebarBtn v-if="isMobileMode && !isLeftSidebarOpen" />

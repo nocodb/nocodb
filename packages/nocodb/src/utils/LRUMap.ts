@@ -41,4 +41,20 @@ export class LRUMap<V> {
   delete(key: string): boolean {
     return this.map.delete(key);
   }
+
+  /**
+   * Remove all entries, calling onEvict for each.
+   */
+  clear(): void {
+    if (this.onEvict) {
+      for (const value of this.map.values()) {
+        this.onEvict(value);
+      }
+    }
+    this.map.clear();
+  }
+
+  get size(): number {
+    return this.map.size;
+  }
 }

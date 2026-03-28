@@ -542,6 +542,9 @@ export default class Source implements SourceType {
 
     await Source.update(context, this.id, { deleted: true }, ncMeta);
 
+    // Release the Knex connection pool so it doesn't leak memory
+    await this.sourceCleanup(ncMeta);
+
     await NocoCache.deepDel(
       context,
       `${CacheScope.SOURCE}:${this.id}`,

@@ -77,6 +77,10 @@ export class SocketGateway implements OnModuleInit {
           // T.event({ ...args, id });
           this.telemetryService.sendEvent({ evt_type: event, ...args, id });
         });
+        socket.on('disconnect', () => {
+          delete this.clients[socket.id];
+          delete this._jobs[socket.id];
+        });
       });
   }
 

@@ -4,11 +4,12 @@ import type { MetaService } from '~/meta/meta.service';
 // import type NcMetaIO from '~/meta/NcMetaIO';
 import type Source from '~/models/Source';
 import type { NcContext } from '~/interface/config';
+import { LRUMap } from '~/utils/LRUMap';
+
+const SQL_MGR_CACHE_MAX_SIZE = +(process.env.NC_SQL_MGR_CACHE_MAX_SIZE || 500);
 
 export default class ProjectMgrv2 {
-  private static sqlMgrMap: {
-    [key: string]: SqlMgrv2;
-  } = {};
+  private static sqlMgrMap = new LRUMap<SqlMgrv2>(SQL_MGR_CACHE_MAX_SIZE);
 
   public static getSqlMgr(
     context: NcContext,
@@ -17,10 +18,12 @@ export default class ProjectMgrv2 {
   ): SqlMgrv2 {
     if (ncMeta) return new SqlMgrv2(context, base, ncMeta);
 
-    if (!this.sqlMgrMap[base.id]) {
-      this.sqlMgrMap[base.id] = new SqlMgrv2(context, base);
+    let mgr = this.sqlMgrMap.get(base.id);
+    if (!mgr) {
+      mgr = new SqlMgrv2(context, base);
+      this.sqlMgrMap.set(base.id, mgr);
     }
-    return this.sqlMgrMap[base.id];
+    return mgr;
   }
 
   public static async getSqlMgrTrans(

@@ -78,17 +78,15 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
     // Cross-server staleness check via Redis version key
     await this.checkSourceStaleness(source.id);
 
-    if (this.connectionRefs?.[source.base_id]?.[source.id]) {
-      return this.connectionRefs?.[source.base_id]?.[source.id];
+    const cached = this.connectionRefs.get(source.id);
+    if (cached) {
+      return cached;
     }
 
     if (!isMuxEnabled) {
-      this.connectionRefs[source.base_id] =
-        this.connectionRefs?.[source.base_id] || {};
-
       const connectionConfig = await source.getConnectionConfig();
 
-      this.connectionRefs[source.base_id][source.id] = XKnex({
+      const knex = XKnex({
         ...defaultConnectionOptions,
         ...connectionConfig,
         connection: {
@@ -118,11 +116,10 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
           },
         },
       } as any);
-      return this.connectionRefs[source.base_id][source.id];
-    }
 
-    this.connectionRefs[source.base_id] =
-      this.connectionRefs?.[source.base_id] || {};
+      this.connectionRefs.set(source.id, knex);
+      return knex;
+    }
 
     const connectionConfig = await source.getConnectionConfig();
 
@@ -186,7 +183,7 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
       }
     }
 
-    this.connectionRefs[source.base_id][source.id] = XKnex(
+    const knex = XKnex(
       {
         client,
       },
@@ -200,7 +197,8 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
       },
     );
 
-    return this.connectionRefs[source.base_id][source.id];
+    this.connectionRefs.set(source.id, knex);
+    return knex;
   }
 
   public static async getSqlClient(source: Source, _knex = null) {

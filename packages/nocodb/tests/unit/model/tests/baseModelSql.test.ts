@@ -402,6 +402,149 @@ function baseModelSqlTests() {
     });*/
   });
 
+  it('Bulk upsert - insert only (no PKs)', async () => {
+    // Since sqlite doesn't support multiple sql connections, skip
+    if (isSqlite(context)) return;
+
+    const columns = await table.getColumns(ctx);
+    const request = {
+      clientIp: '::ffff:192.0.0.1',
+      user: context.user,
+    };
+
+    // All records without PKs → should all be inserted
+    const upsertData = Array(5)
+      .fill(0)
+      .map((_, index) => generateDefaultRowAttributes({ columns, index }));
+
+    const result = await baseModelSql.bulkUpsert(upsertData, {
+      cookie: request,
+    });
+
+    expect(result).to.have.length(5);
+
+    const allRows = await baseModelSql.list();
+    expect(allRows).to.have.length(5);
+
+    allRows.forEach((row, index) => {
+      expect(row['Title']).to.equal(`test-${index}`);
+    });
+  });
+
+  it('Bulk upsert - update only (all PKs exist)', async () => {
+    // Since sqlite doesn't support multiple sql connections, skip
+    if (isSqlite(context)) return;
+
+    const columns = await table.getColumns(ctx);
+    const request = {
+      clientIp: '::ffff:192.0.0.1',
+      user: context.user,
+    };
+
+    // First, insert records
+    const bulkData = Array(5)
+      .fill(0)
+      .map((_, index) => generateDefaultRowAttributes({ columns, index }));
+    await baseModelSql.bulkInsert(bulkData, { cookie: request });
+
+    const insertedRows: any[] = await baseModelSql.list();
+    expect(insertedRows).to.have.length(5);
+
+    // Upsert with existing PKs → should all be updated
+    const upsertData = insertedRows.map(
+      ({ CreatedAt: _, UpdatedAt: __, ...row }) => ({
+        ...row,
+        Title: `updated-${row['Title']}`,
+      }),
+    );
+
+    const result = await baseModelSql.bulkUpsert(upsertData, {
+      cookie: request,
+    });
+
+    expect(result).to.have.length(5);
+
+    const allRows = await baseModelSql.list();
+    expect(allRows).to.have.length(5);
+
+    allRows.forEach((row, index) => {
+      expect(row['Title']).to.equal(`updated-test-${index}`);
+    });
+  });
+
+  it('Bulk upsert - mixed insert and update', async () => {
+    // Since sqlite doesn't support multiple sql connections, skip
+    if (isSqlite(context)) return;
+
+    const columns = await table.getColumns(ctx);
+    const request = {
+      clientIp: '::ffff:192.0.0.1',
+      user: context.user,
+    };
+
+    // First, insert 3 records
+    const bulkData = Array(3)
+      .fill(0)
+      .map((_, index) => generateDefaultRowAttributes({ columns, index }));
+    await baseModelSql.bulkInsert(bulkData, { cookie: request });
+
+    const insertedRows: any[] = await baseModelSql.list();
+    expect(insertedRows).to.have.length(3);
+
+    // Upsert: update 2 existing + insert 2 new
+    const rowsToUpdate = insertedRows.slice(0, 2).map(
+      ({ CreatedAt: _, UpdatedAt: __, ...row }) => ({
+        ...row,
+        Title: `updated-${row['Title']}`,
+      }),
+    );
+    const rowsToInsert = Array(2)
+      .fill(0)
+      .map((_, index) =>
+        generateDefaultRowAttributes({ columns, index: index + 10 }),
+      );
+
+    const upsertData = [...rowsToUpdate, ...rowsToInsert];
+
+    const result = await baseModelSql.bulkUpsert(upsertData, {
+      cookie: request,
+    });
+
+    // Should return all 4 upserted records (2 updated + 2 inserted)
+    expect(result).to.have.length(4);
+
+    const allRows = await baseModelSql.list();
+    // Total: 3 original (2 updated + 1 untouched) + 2 new = 5
+    expect(allRows).to.have.length(5);
+
+    // Verify updated rows
+    const updatedRow0 = allRows.find(
+      (r) => r['Id'] === insertedRows[0]['Id'],
+    );
+    const updatedRow1 = allRows.find(
+      (r) => r['Id'] === insertedRows[1]['Id'],
+    );
+    expect(updatedRow0['Title']).to.equal('updated-test-0');
+    expect(updatedRow1['Title']).to.equal('updated-test-1');
+
+    // Verify untouched row
+    const untouchedRow = allRows.find(
+      (r) => r['Id'] === insertedRows[2]['Id'],
+    );
+    expect(untouchedRow['Title']).to.equal('test-2');
+
+    // Verify newly inserted rows
+    const newRows = allRows.filter(
+      (r) =>
+        !insertedRows.some((inserted) => inserted['Id'] === r['Id']),
+    );
+    expect(newRows).to.have.length(2);
+    expect(newRows.map((r) => r['Title']).sort()).to.deep.equal([
+      'test-10',
+      'test-11',
+    ]);
+  });
+
   it('Nested insert', async () => {
     const childTable = await createTable(context, base, {
       title: 'Child Table',

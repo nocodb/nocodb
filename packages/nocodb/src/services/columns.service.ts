@@ -3545,10 +3545,12 @@ export class ColumnsService implements IColumnsService {
       }
     }
 
-    await columnWebhookManager.addNewColumnById({
-      columnId: newColumn.id,
-      action: WebhookActions.INSERT,
-    });
+    if (newColumn) {
+      await columnWebhookManager.addNewColumnById({
+        columnId: newColumn.id,
+        action: WebhookActions.INSERT,
+      });
+    }
     if (!param.columnWebhookManager) {
       columnWebhookManager.emit();
     }
@@ -4787,6 +4789,17 @@ export class ColumnsService implements IColumnsService {
       }
     }
 
+    // om/mo are V2-only types — reject explicit V1 version
+    if (
+      ltarReq.version == LinksVersion.V1 &&
+      (relationType === RelationTypes.ONE_TO_MANY ||
+        relationType === RelationTypes.MANY_TO_ONE)
+    ) {
+      NcError.badRequest(
+        `Relation type '${relationType}' requires version 2 (junction table). Use type 'hm' or 'bt' for V1 FK-based relations.`,
+      );
+    }
+
     // v2 LTAR uses junction table for all relation types (like mm)
     const isMMLike =
       ltarReq.version === LinksVersion.V2 ||
@@ -5411,6 +5424,8 @@ export class ColumnsService implements IColumnsService {
       });
       return savedColumn;
     }
+
+    return savedColumn;
   }
 
   async createColumnIndex(

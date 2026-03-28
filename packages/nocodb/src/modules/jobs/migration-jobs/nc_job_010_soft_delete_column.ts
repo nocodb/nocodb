@@ -364,10 +364,13 @@ export class SoftDeleteColumnMigration {
       }
     }
 
-    if (needsDeletedCol) {
+    if (needsDeletedCol && newDeletedColumn) {
       try {
         await realDbDriver.schema.table(tnPath as string, (t) => {
-          t.index(['__nc_deleted'], `${model.table_name}_nc_deleted_idx`);
+          // PG has a 63-char identifier limit, MySQL 64 — truncate to be safe
+          const idxName =
+            `${model.table_name}_nc_deleted_idx`.slice(0, 63);
+          t.index([newDeletedColumn.column_name], idxName);
         });
       } catch (_e) {
         // index may already exist

@@ -406,7 +406,14 @@ export class BaseModelDelete {
           }
         }
       }
-      await FileReference.delete(this.baseModel.context, fileReferenceIds);
+      if (isSoftDelete) {
+        await FileReference.softDelete(
+          this.baseModel.context,
+          fileReferenceIds,
+        );
+      } else {
+        await FileReference.delete(this.baseModel.context, fileReferenceIds);
+      }
     });
 
     // delete (or soft-delete) the rows in table

@@ -432,7 +432,7 @@ export class OrderColumnMigration {
         `${MetaTable.MODELS}.id`,
         'source_id',
         `${MetaTable.MODELS}.base_id`,
-        ...(isEE ? [`${MetaTable.MODELS}.fk_workspace_id`] : []),
+        `${MetaTable.MODELS}.fk_workspace_id`,
       ])
       .where(`${MetaTable.MODELS}.mm`, false)
       .join(

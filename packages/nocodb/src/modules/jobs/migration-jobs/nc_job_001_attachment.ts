@@ -472,7 +472,7 @@ export class AttachmentMigration {
       };
 
       const selectFields = [
-        ...(Noco.isEE() ? ['fk_workspace_id'] : []),
+        'fk_workspace_id',
         'base_id',
         'source_id',
         'fk_model_id',

@@ -2026,6 +2026,7 @@ onBeforeUnmount(() => {
                   <span class="nc-doc-font-label">{{ $t(`labels.font${f.charAt(0).toUpperCase() + f.slice(1)}`) }}</span>
                 </button>
               </div>
+              <NcDivider />
               <NcMenuItem v-if="isUIAllowed('documentCreate')" @click="onDuplicatePage">
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="duplicate" />
                 {{ $t('general.duplicate') }}

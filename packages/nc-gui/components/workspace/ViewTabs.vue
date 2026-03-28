@@ -8,7 +8,7 @@ const { t } = useI18n()
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspace, isTeamsEnabled } = storeToRefs(workspaceStore)
+const { activeWorkspaceId, isTeamsEnabled } = storeToRefs(workspaceStore)
 const { loadCollaborators } = workspaceStore
 
 const { appInfo, isMobileMode } = useGlobal()
@@ -69,7 +69,7 @@ const tabItems = computed<TabItem[]>(() => {
         key: 'audits',
         icon: 'audit',
         label: t('title.audits'),
-        upgradeBadge: { feature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE, enabledCallback: () => isWsAuditEnabled.value },
+        upgradeBadge: { feature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE },
       })
     }
 
@@ -102,10 +102,10 @@ const activeTab = computed({
     if (isEeUI && tabKey === 'teams' && hasTeamsEditPermission.value && showUpgradeToUseTeams()) return
 
     if (['collaborators', 'teams'].includes(tabKey) && isUIAllowed('workspaceCollaborators')) {
-      loadCollaborators({}, activeWorkspace.value?.id)
+      loadCollaborators({}, activeWorkspaceId.value)
     }
 
-    const typeOrId = route.value.params.typeOrId || activeWorkspace.value?.id || 'nc'
+    const typeOrId = route.value.params.typeOrId || activeWorkspaceId.value || 'nc'
     router.push({ name: wsTabToRouteName[tabKey] || 'index-typeOrId', params: { typeOrId } })
   },
 })

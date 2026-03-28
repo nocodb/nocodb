@@ -62,21 +62,22 @@ const autoNavigateToWorkspace = async () => {
 
   const wsId = activeWorkspaceId.value
 
-  // Try to navigate into last visited base (backward compat with tests & deep links)
-  if (wsId && basesStore.basesList?.length) {
-    const lastVisitedBase = ncLastVisitedBase().get()
+  // // Lets stay in ws page instead of navigating to first default base for now
+  // // Try to navigate into last visited base (backward compat with tests & deep links)
+  // if (wsId && basesStore.basesList?.length) {
+  //   const lastVisitedBase = ncLastVisitedBase().get()
 
-    const firstBase = lastVisitedBase ? basesStore.basesList.find((b) => b.id === lastVisitedBase) : undefined
+  //   const firstBase = lastVisitedBase ? basesStore.basesList.find((b) => b.id === lastVisitedBase) : undefined
 
-    if (firstBase?.id) {
-      await basesStore.navigateToProject({
-        workspaceId: firstBase.fk_workspace_id!,
-        baseId: firstBase.id!,
-      })
-      navigating.value = false
-      return
-    }
-  }
+  //   if (firstBase?.id) {
+  //     await basesStore.navigateToProject({
+  //       workspaceId: firstBase.fk_workspace_id!,
+  //       baseId: firstBase.id!,
+  //     })
+  //     navigating.value = false
+  //     return
+  //   }
+  // }
 
   // No bases — navigate to workspace home
   if (wsId) {

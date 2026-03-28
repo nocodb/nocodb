@@ -10,7 +10,7 @@ const basesStore = useBases()
 
 const { workspacesList, activeWorkspaceId } = storeToRefs(workspaceStore)
 
-const { workspaceBasesMap, basesList, isProjectsLoading } = storeToRefs(basesStore)
+const { workspaceBasesMap, basesList, isProjectsLoading, isProjectsLoaded } = storeToRefs(basesStore)
 const { loadProjects } = basesStore
 
 // Shared state
@@ -243,7 +243,7 @@ const selectedWorkspace = computed(() => {
 
         <!-- Loading -->
         <GeneralOverlay
-          v-if="isProjectsLoading && emptyFilterResult"
+          v-if="!isProjectsLoaded || (isProjectsLoading && emptyFilterResult)"
           :model-value="true"
           inline
           transition

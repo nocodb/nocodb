@@ -151,7 +151,13 @@ export const DocTableCell = TableCell.extend({
   addAttributes() {
     return {
       ...TableCell.config.addAttributes?.call(this),
-      colwidth: { default: null, renderHTML: () => ({}) },
+      colwidth: {
+        default: null,
+        renderHTML: (attrs: Record<string, any>) => {
+          if (!attrs.colwidth || !attrs.colwidth[0]) return {}
+          return { style: `width: ${attrs.colwidth[0]}px` }
+        },
+      },
       textAlign: cellTextAlignAttr,
       verticalAlign: cellVerticalAlignAttr,
     }
@@ -162,7 +168,13 @@ export const DocTableHeader = TableHeader.extend({
   addAttributes() {
     return {
       ...TableHeader.config.addAttributes?.call(this),
-      colwidth: { default: null, renderHTML: () => ({}) },
+      colwidth: {
+        default: null,
+        renderHTML: (attrs: Record<string, any>) => {
+          if (!attrs.colwidth || !attrs.colwidth[0]) return {}
+          return { style: `width: ${attrs.colwidth[0]}px` }
+        },
+      },
       textAlign: cellTextAlignAttr,
       verticalAlign: cellVerticalAlignAttr,
     }

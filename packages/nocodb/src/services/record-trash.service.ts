@@ -204,7 +204,7 @@ export class RecordTrashService {
         c.fkColumnName.startsWith('__nc_v2_jn_'),
       );
 
-      // Handle V2 junction conflicts: delete the conflicting junction row
+      // Handle V2 junction conflicts: delete only the conflicting junction row
       for (const v2c of v2Conflicts) {
         const colId = v2c.fkColumnName.replace('__nc_v2_jn_', '');
         const col = model.columns.find((c) => c.id === colId);
@@ -216,8 +216,14 @@ export class RecordTrashService {
         const { mmContext } = await colOpts.getParentChildContext(context);
         const mmModel = await colOpts.getMMModel(mmContext);
         const mmChildCol = await colOpts.getMMChildColumn(mmContext);
+        const mmParentCol = await colOpts.getMMParentColumn(mmContext);
 
-        if (mmModel && mmChildCol) {
+        if (
+          mmModel &&
+          mmChildCol &&
+          mmParentCol &&
+          v2c.conflictParentPk != null
+        ) {
           const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
             id: mmModel.id,
             dbDriver: baseModel.dbDriver,
@@ -225,6 +231,7 @@ export class RecordTrashService {
           await baseModel
             .dbDriver(assocBaseModel.getTnPath(mmModel))
             .where(mmChildCol.column_name, v2c.rowId)
+            .where(mmParentCol.column_name, v2c.conflictParentPk)
             .del();
         }
       }
@@ -244,11 +251,7 @@ export class RecordTrashService {
 
       // Fetch records before restoring — needed for audit log
       const preRestoreRows = await baseModel.execAndParse(
-        _whereInPks(
-          baseModel.dbDriver(baseModel.tnPath),
-          primaryKeys,
-          batchIds,
-        )
+        _whereInPks(baseModel.dbDriver(baseModel.tnPath), primaryKeys, batchIds)
           .where(deletedColumn.column_name, true)
           .select(
             model.columns
@@ -456,9 +459,7 @@ export class RecordTrashService {
 
       if (!rows.length) break;
 
-      const ids = rows.map((r) =>
-        getCompositePkValue(primaryKeys, r),
-      );
+      const ids = rows.map((r) => getCompositePkValue(primaryKeys, r));
       await baseModel.permanentDeleteByIds(ids, param.req);
       totalDeleted += ids.length;
     }
@@ -548,6 +549,8 @@ export class RecordTrashService {
       rowId: string;
       columnTitle: string;
       fkColumnName: string;
+      /** For V2 junction conflicts: the parent PK value that is conflicting */
+      conflictParentPk?: unknown;
     }> = [];
 
     if (!rowIds.length) return conflicts;
@@ -639,9 +642,7 @@ export class RecordTrashService {
             });
           }
 
-          const existing = await existingQb
-            .count('* as count')
-            .first();
+          const existing = await existingQb.count('* as count').first();
 
           if (+(existing?.count ?? 0) > 0) {
             conflicts.push({
@@ -733,6 +734,7 @@ export class RecordTrashService {
                     // For V2 links there is no direct FK column on the table;
                     // use a synthetic name so force-restore can identify the column.
                     fkColumnName: `__nc_v2_jn_${col.id}`,
+                    conflictParentPk: parentPk,
                   });
                 }
               }

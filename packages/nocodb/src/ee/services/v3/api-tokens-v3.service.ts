@@ -159,6 +159,10 @@ export class ApiTokensV3Service {
   ) {
     if (!scopes?.length) return;
 
+    if (scopes.length > 100) {
+      NcError.badRequest('Maximum 100 scopes per token');
+    }
+
     for (const scope of scopes) {
       if (!scope.resource_type || !scope.resource_id) {
         NcError.badRequest(

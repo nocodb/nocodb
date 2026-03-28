@@ -84,9 +84,10 @@ export class DataV3Service {
    * Get related model information for LTAR columns
    */
   private async getRelatedModelInfo(
-    context: NcContext,
+    _context: NcContext,
     column: Column,
   ): Promise<RelatedModelInfo | null> {
+    const context = { ..._context, base_id: column.base_id };
     const colOptions = column.colOptions as LinkToAnotherRecordColumn;
 
     // getRelatedTable internally calls getRelContext({...context, base_id: this.base_id})

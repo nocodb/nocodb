@@ -165,12 +165,20 @@ export default class ApiTokenScope implements ApiTokenScopeEntry {
 
     if (!scopes.length) return null;
 
-    // 1. Try exact base match
+    // 1. Try exact base match — verify base still exists
     if (baseId) {
       const baseScope = scopes.find(
         (s) => s.resource_type === 'base' && s.resource_id === baseId,
       );
-      if (baseScope) return baseScope;
+      if (baseScope) {
+        const base = await Base.get(
+          { workspace_id: 'bypass', base_id: 'bypass' },
+          baseId,
+          ncMeta,
+        );
+        if (!base) return null;
+        return baseScope;
+      }
     }
 
     // 2. Try exact workspace match

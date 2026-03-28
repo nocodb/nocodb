@@ -228,9 +228,10 @@ export class ApiTokensV3Service {
 
     this.validateTitle(param.body.title);
 
-    // Fine-grained tokens require at least one access scope.
-    // Empty scopes would result in unrestricted org-wide access — require explicit intent.
-    if (!param.body.scopes?.length) {
+    // On licensed EE (Cloud + on-prem licensed), fine-grained tokens require
+    // at least one access scope. On CE / unlicensed on-prem, tokens are org-wide
+    // by default (no scope selection UI).
+    if (Noco.isEE() && !param.body.scopes?.length) {
       NcError.badRequest(
         'At least one access scope is required. Use "Add all resources" for org-wide access or select specific bases.',
       );

@@ -6,6 +6,7 @@ import type { NcRequest } from '~/interface/config';
 import { ApiToken, ApiTokenScope, User } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 import { getApiTokenFromHeader } from '~/helpers';
+import Noco from '~/Noco';
 
 @Injectable()
 export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
@@ -41,9 +42,9 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
         if (apiToken.token_hash) {
           const scopes = await ApiTokenScope.listByTokenId(apiToken.id);
 
-          // Fine-grained token with zero scopes = all access revoked
-          // (e.g., all scoped bases were deleted)
-          if (scopes.length === 0) {
+          // On licensed EE: fine-grained token with zero scopes = all access revoked
+          // (e.g., all scoped bases were deleted). On CE / unlicensed: zero scopes = org-wide.
+          if (Noco.isEE() && scopes.length === 0) {
             return callback({ msg: 'Token has no valid access scopes' });
           }
 

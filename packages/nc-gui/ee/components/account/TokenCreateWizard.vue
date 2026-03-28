@@ -30,6 +30,7 @@ const { api } = useApi()
 const { copy } = useCopy()
 const { t } = useI18n()
 const { $e } = useNuxtApp()
+const { isEEFeatureBlocked } = useEeConfig()
 
 const isEditing = computed(() => !!props.editToken?.id)
 
@@ -107,8 +108,10 @@ const hasAccessScope = computed(() => {
   return scopes.value.length > 0
 })
 
+const isFineGrainedEnabled = computed(() => !isEEFeatureBlocked.value)
+
 const isFormValid = computed(() => {
-  return tokenName.value.length > 0 && tokenName.value.length <= 255 && hasAccessScope.value
+  return tokenName.value.length > 0 && tokenName.value.length <= 255 && (isFineGrainedEnabled.value ? hasAccessScope.value : true)
 })
 
 
@@ -158,8 +161,9 @@ const submitToken = async () => {
       // Create new token
       const payload: any = {
         title: tokenName.value,
-        ...(scopesWithPermissions.length ? { scopes: scopesWithPermissions } : {}),
-        ...(hasPermissions && !scopesWithPermissions.length ? { permissions: permissions.value } : {}),
+        // Only include scopes/permissions when fine-grained is enabled (Cloud / licensed on-prem)
+        ...(isFineGrainedEnabled.value && scopesWithPermissions.length ? { scopes: scopesWithPermissions } : {}),
+        ...(isFineGrainedEnabled.value && hasPermissions && !scopesWithPermissions.length ? { permissions: permissions.value } : {}),
         // null = no expiration (explicitly clear), undefined = not set (keep default)
         ...(computedExpiry.value !== undefined ? { expiry: computedExpiry.value } : {}),
       }
@@ -227,21 +231,23 @@ const onResultDone = () => {
         />
       </div>
 
-      <!-- Scopes (permissions) -->
-      <div class="flex flex-col gap-2">
-        <label class="text-sm font-bold text-nc-content-gray">{{ $t('labels.scopes') }}</label>
-        <span class="text-sm text-nc-content-gray-muted">{{ $t('msg.info.tokenScopeDescription') }}</span>
+      <!-- Scopes (permissions) — hidden on CE / unlicensed on-prem -->
+      <template v-if="isFineGrainedEnabled">
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-bold text-nc-content-gray">{{ $t('labels.scopes') }}</label>
+          <span class="text-sm text-nc-content-gray-muted">{{ $t('msg.info.tokenScopeDescription') }}</span>
 
-        <AccountTokenPermissionMatrix v-model="permissions" />
-      </div>
+          <AccountTokenPermissionMatrix v-model="permissions" />
+        </div>
 
-      <!-- Access (base scoping) -->
-      <div class="flex flex-col gap-2">
-        <label class="text-sm font-bold text-nc-content-gray">{{ $t('general.access') }}</label>
-        <span class="text-sm text-nc-content-gray-muted">{{ $t('msg.info.tokenAccessDescription') }}</span>
+        <!-- Access (base scoping) -->
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-bold text-nc-content-gray">{{ $t('general.access') }}</label>
+          <span class="text-sm text-nc-content-gray-muted">{{ $t('msg.info.tokenAccessDescription') }}</span>
 
-        <AccountTokenScopePicker v-model:scopes="scopes" />
-      </div>
+          <AccountTokenScopePicker v-model:scopes="scopes" />
+        </div>
+      </template>
 
       <!-- Expiration -->
       <div class="flex flex-col gap-2">

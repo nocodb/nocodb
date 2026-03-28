@@ -823,8 +823,44 @@ export default class WorkspaceUser {
     return res;
   }
 
-  // CE stubs — only used by CE services
-  static async softDeleteByUser(..._args: any[]) {}
+  static async softDeleteByUser(userId: string, ncMeta = Noco.ncMeta) {
+    // Find all non-deleted workspace memberships for this user
+    const entries = await ncMeta
+      .knexConnection(MetaTable.WORKSPACE_USER)
+      .where('fk_user_id', userId)
+      .where(function () {
+        this.where('deleted', false).orWhereNull('deleted');
+      })
+      .select('fk_workspace_id');
+
+    // Soft-delete each workspace membership and clear all related caches
+    for (const entry of entries) {
+      await this.softDelete(entry.fk_workspace_id, userId, ncMeta);
+
+      // Clear the workspace user list cache so the deleted entry
+      // is not served from stale cache
+      await NocoCache.deepDel(
+        { workspace_id: entry.fk_workspace_id, base_id: null },
+        `${CacheScope.WORKSPACE_USER}:${entry.fk_workspace_id}:list`,
+        CacheDelDirection.PARENT_TO_CHILD,
+      );
+
+      // Clear base user list caches for all bases in this workspace
+      // because base member lists include workspace-level members
+      const bases = await Base.listByWorkspace(
+        entry.fk_workspace_id,
+        {},
+        ncMeta,
+      );
+      for (const base of bases) {
+        await NocoCache.deepDel(
+          { workspace_id: entry.fk_workspace_id, base_id: base.id },
+          `${CacheScope.BASE_USER}:${base.id}:list`,
+          CacheDelDirection.PARENT_TO_CHILD,
+        );
+      }
+    }
+  }
 
   static async clearBaseUserCacheForWorkspace(..._args: any[]) {}
 

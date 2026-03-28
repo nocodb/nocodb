@@ -318,11 +318,19 @@ export default class BaseUser extends BaseUserCE {
             `${MetaTable.WORKSPACE_USER}.fk_user_id`,
             '=',
             `${MetaTable.USERS}.id`,
-          ).andOn(
-            `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
-            '=',
-            ncMeta.knex.raw('?', [context.workspace_id]),
-          );
+          )
+            .andOn(
+              `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+              '=',
+              ncMeta.knex.raw('?', [context.workspace_id]),
+            )
+            .andOn(
+              ncMeta.knex.raw(
+                `COALESCE(${MetaTable.WORKSPACE_USER}.deleted, FALSE)`,
+              ),
+              '=',
+              ncMeta.knex.raw('?', [false]),
+            );
         })
         .leftJoin(MetaTable.PROJECT_USERS, function () {
           this.on(
@@ -611,11 +619,19 @@ export default class BaseUser extends BaseUserCE {
             `${MetaTable.WORKSPACE_USER}.fk_user_id`,
             '=',
             `${MetaTable.USERS}.id`,
-          ).andOn(
-            `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
-            '=',
-            ncMeta.knex.raw('?', [context.workspace_id]),
-          );
+          )
+            .andOn(
+              `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+              '=',
+              ncMeta.knex.raw('?', [context.workspace_id]),
+            )
+            .andOn(
+              ncMeta.knex.raw(
+                `COALESCE(${MetaTable.WORKSPACE_USER}.deleted, FALSE)`,
+              ),
+              '=',
+              ncMeta.knex.raw('?', [false]),
+            );
         })
         [joinClause](MetaTable.PROJECT_USERS, function () {
           this.on(
@@ -638,6 +654,11 @@ export default class BaseUser extends BaseUserCE {
           'btr.user_id',
           `${MetaTable.USERS}.id`,
         );
+
+      // No is_deleted filter here — soft-deleted users are excluded at the
+      // workspace level (WorkspaceUser.softDeleteByUser removes memberships).
+      // This list intentionally includes them so user fields (created_by,
+      // last_modified_by) can still render historical "Anonymous" entries.
 
       baseUsers = await queryBuilder;
 

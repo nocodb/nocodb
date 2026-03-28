@@ -292,6 +292,11 @@ export default class BaseUser {
           );
         });
 
+      // No is_deleted filter here — soft-deleted users are excluded at the
+      // workspace level (WorkspaceUser.softDeleteByUser removes memberships).
+      // This list intentionally includes them so user fields (created_by,
+      // last_modified_by) can still render historical "Anonymous" entries.
+
       baseUsers = await queryBuilder;
 
       baseUsers = baseUsers.map((baseUser) => {

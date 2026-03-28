@@ -4502,7 +4502,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const deletedColumn = columns.find((c) => isDeletedCol(c));
       const isSoftDelete = !!deletedColumn && source.isMeta();
 
-      let collectedNotifications: {
+      const collectedNotifications: {
         baseModel: any;
         model: any;
         ids: string[];

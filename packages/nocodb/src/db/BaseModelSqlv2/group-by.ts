@@ -1081,8 +1081,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         );
 
         // Exclude soft-deleted records
-        const softDeleteFilterBulkCount =
-          await baseModel.getSoftDeleteFilter();
+        const softDeleteFilterBulkCount = await baseModel.getSoftDeleteFilter();
         if (softDeleteFilterBulkCount) {
           tQb.where(softDeleteFilterBulkCount);
         }
@@ -1442,8 +1441,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         );
 
         // Exclude soft-deleted records
-        const softDeleteFilterBulkList =
-          await baseModel.getSoftDeleteFilter();
+        const softDeleteFilterBulkList = await baseModel.getSoftDeleteFilter();
         if (softDeleteFilterBulkList) {
           tQb.where(softDeleteFilterBulkList);
         }
@@ -1750,8 +1748,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         );
 
         // Exclude soft-deleted records
-        const softDeleteFilterBulkAgg =
-          await baseModel.getSoftDeleteFilter();
+        const softDeleteFilterBulkAgg = await baseModel.getSoftDeleteFilter();
         if (softDeleteFilterBulkAgg) {
           tQb.where(softDeleteFilterBulkAgg);
         }

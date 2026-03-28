@@ -1776,25 +1776,22 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     if (await this.isDataAuditEnabled()) {
       await Audit.insert(
-        await generateAuditV1Payload<DataDeletePayload>(
-          eventType,
-          {
-            details: {
-              data: formatDataForAudit(
-                removeBlankPropsAndMask(data, ['CreatedAt', 'UpdatedAt']),
-                this.model.columns,
-              ),
-              column_meta: extractColsMetaForAudit(this.model.columns, data),
-            },
-            context: {
-              ...this.context,
-              source_id: this.model.source_id,
-              fk_model_id: this.model.id,
-              row_id: this.extractPksValues(id, true),
-            },
-            req,
+        await generateAuditV1Payload<DataDeletePayload>(eventType, {
+          details: {
+            data: formatDataForAudit(
+              removeBlankPropsAndMask(data, ['CreatedAt', 'UpdatedAt']),
+              this.model.columns,
+            ),
+            column_meta: extractColsMetaForAudit(this.model.columns, data),
           },
-        ),
+          context: {
+            ...this.context,
+            source_id: this.model.source_id,
+            fk_model_id: this.model.id,
+            row_id: this.extractPksValues(id, true),
+          },
+          req,
+        }),
       );
     }
 

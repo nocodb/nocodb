@@ -18,12 +18,6 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const isOpen = defineModel<boolean>('isOpen', { required: true })
-
-const currentPage = defineModel<number>('currentPage', { required: true })
-
-const selectedRowIds = defineModel<string[]>('selectedRowIds', { required: true })
-
 const emits = defineEmits<{
   loadDeletedRecords: []
   loadTrashCount: []
@@ -31,6 +25,12 @@ const emits = defineEmits<{
   permanentDeleteRecords: [rowIds: string[]]
   emptyTrash: []
 }>()
+
+const isOpen = defineModel<boolean>('isOpen', { required: true })
+
+const currentPage = defineModel<number>('currentPage', { required: true })
+
+const selectedRowIds = defineModel<string[]>('selectedRowIds', { required: true })
 
 const { t } = useI18n()
 
@@ -127,12 +127,7 @@ watch(isOpen, (val) => {
 </script>
 
 <template>
-  <NcModal
-    v-model:visible="isOpen"
-    :show-separator="true"
-    size="lg"
-    wrap-class-name="nc-modal-record-trash"
-  >
+  <NcModal v-model:visible="isOpen" :show-separator="true" size="lg" wrap-class-name="nc-modal-record-trash">
     <template #header>
       <div class="flex w-full items-center px-4 py-2 justify-between">
         <div class="flex items-center gap-3 flex-1">
@@ -152,7 +147,9 @@ watch(isOpen, (val) => {
 
     <div class="flex flex-col h-[calc(100%_-_66px)] overflow-hidden">
       <!-- Toolbar -->
-      <div class="flex items-center justify-between h-11 px-4 border-b-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight shrink-0">
+      <div
+        class="flex items-center justify-between h-11 px-4 border-b-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight shrink-0"
+      >
         <div class="flex items-center gap-3">
           <NcCheckbox
             v-if="deletedRecords.length"
@@ -170,10 +167,22 @@ watch(isOpen, (val) => {
         </div>
         <div class="flex items-center gap-2">
           <template v-if="selectedRowIds.length">
-            <NcButton v-e="['c:trash:restore:bulk']" size="small" type="secondary" data-testid="nc-trash-restore-selected-btn" @click="() => emits('restoreRecords', selectedRowIds)">
+            <NcButton
+              v-e="['c:trash:restore:bulk']"
+              size="small"
+              type="secondary"
+              data-testid="nc-trash-restore-selected-btn"
+              @click="() => emits('restoreRecords', selectedRowIds)"
+            >
               {{ $t('trash.restore') }}
             </NcButton>
-            <NcButton v-e="['c:trash:permanent-delete:bulk']" size="small" type="danger" data-testid="nc-trash-delete-selected-btn" @click="() => handlePermanentDelete(selectedRowIds)">
+            <NcButton
+              v-e="['c:trash:permanent-delete:bulk']"
+              size="small"
+              type="danger"
+              data-testid="nc-trash-delete-selected-btn"
+              @click="() => handlePermanentDelete(selectedRowIds)"
+            >
               {{ $t('trash.deleteForever') }}
             </NcButton>
           </template>
@@ -218,11 +227,7 @@ watch(isOpen, (val) => {
             @click="toggleSelect(record)"
           >
             <div class="flex items-center gap-3 px-4 py-3">
-              <NcCheckbox
-                :checked="isSelected(record)"
-                @click.stop
-                @update:checked="toggleSelect(record)"
-              />
+              <NcCheckbox :checked="isSelected(record)" @click.stop @update:checked="toggleSelect(record)" />
 
               <!-- Record content -->
               <div class="flex-1 flex flex-col gap-1.5 justify-center overflow-hidden min-w-0">
@@ -280,7 +285,10 @@ watch(isOpen, (val) => {
                 <span v-if="getDeletedAt(record)" class="text-captionSm text-nc-content-gray-muted whitespace-nowrap">
                   {{ formatDate(getDeletedAt(record)) }}
                 </span>
-                <div v-if="deletedByColumn && deletedByColumnObj && getDeletedBy(record)" class="text-captionSm text-nc-content-gray-subtle2 whitespace-nowrap flex items-center gap-1">
+                <div
+                  v-if="deletedByColumn && deletedByColumnObj && getDeletedBy(record)"
+                  class="text-captionSm text-nc-content-gray-subtle2 whitespace-nowrap flex items-center gap-1"
+                >
                   <span>{{ $t('trash.deletedBy') }}</span>
                   <SmartsheetPlainCell
                     :column="deletedByColumnObj"

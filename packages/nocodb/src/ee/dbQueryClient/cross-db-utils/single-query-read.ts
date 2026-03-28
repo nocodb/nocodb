@@ -1,5 +1,9 @@
 import { nanoid } from 'nanoid';
-import { extractFilterFromXwhere, isDeletedCol, NcApiVersion } from 'nocodb-sdk';
+import {
+  extractFilterFromXwhere,
+  isDeletedCol,
+  NcApiVersion,
+} from 'nocodb-sdk';
 import debug from 'debug';
 import { normalizeIdForQuery } from '../utils';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';

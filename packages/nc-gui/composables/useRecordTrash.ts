@@ -1,12 +1,12 @@
-import {
-  isDeletedCol,
-  isVirtualCol,
-  NcErrorType,
-  UITypes,
-} from 'nocodb-sdk'
+import { NcErrorType, UITypes, isDeletedCol, isVirtualCol } from 'nocodb-sdk'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 
-type RecordTrashOperation = 'recordTrashList' | 'recordTrashCount' | 'recordTrashRestore' | 'recordTrashPermanentDelete' | 'recordTrashEmpty'
+type RecordTrashOperation =
+  | 'recordTrashList'
+  | 'recordTrashCount'
+  | 'recordTrashRestore'
+  | 'recordTrashPermanentDelete'
+  | 'recordTrashEmpty'
 
 export const useRecordTrash = createSharedComposable(() => {
   const { $api } = useNuxtApp()
@@ -40,9 +40,7 @@ export const useRecordTrash = createSharedComposable(() => {
   // Derive column info from table meta — no need for backend to return it
   const columns = computed(() => (meta.value?.columns ?? []) as ColumnType[])
 
-  const pkColumn = computed(
-    () => columns.value.find((c) => c.pk)?.title ?? 'Id',
-  )
+  const pkColumn = computed(() => columns.value.find((c) => c.pk)?.title ?? 'Id')
 
   const pvColumn = computed(() => columns.value.find((c) => c.pv))
 
@@ -50,18 +48,12 @@ export const useRecordTrash = createSharedComposable(() => {
     () => columns.value.find((c) => c.uidt === UITypes.LastModifiedTime && c.system)?.title ?? null,
   )
 
-  const deletedByColumnObj = computed(
-    () => columns.value.find((c) => c.uidt === UITypes.LastModifiedBy && c.system) ?? null,
-  )
+  const deletedByColumnObj = computed(() => columns.value.find((c) => c.uidt === UITypes.LastModifiedBy && c.system) ?? null)
 
-  const deletedByColumn = computed(
-    () => deletedByColumnObj.value?.title ?? null,
-  )
+  const deletedByColumn = computed(() => deletedByColumnObj.value?.title ?? null)
 
   const displayColumns = computed(() =>
-    columns.value.filter(
-      (c) => !isDeletedCol(c) && !c.pk && !c.pv && !c.system && !isVirtualCol(c),
-    ),
+    columns.value.filter((c) => !isDeletedCol(c) && !c.pk && !c.pv && !c.system && !isVirtualCol(c)),
   )
 
   const previewColumns = computed(() => displayColumns.value.slice(0, 6))
@@ -111,9 +103,7 @@ export const useRecordTrash = createSharedComposable(() => {
 
   function removeRowsLocally(rowIds: string[]) {
     const idSet = new Set(rowIds)
-    deletedRecords.value = deletedRecords.value.filter(
-      (r) => !idSet.has(String(r[pkColumn.value])),
-    )
+    deletedRecords.value = deletedRecords.value.filter((r) => !idSet.has(String(r[pkColumn.value])))
     selectedRowIds.value = selectedRowIds.value.filter((id) => !idSet.has(id))
     trashCount.value = Math.max(0, trashCount.value - rowIds.length)
     totalCount.value = Math.max(0, totalCount.value - rowIds.length)

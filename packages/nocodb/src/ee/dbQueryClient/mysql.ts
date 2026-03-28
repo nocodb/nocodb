@@ -653,10 +653,7 @@ export class MySqlDBQueryClient
                 } else if (childSorts && childSorts.length > 0)
                   await sortV2(childBaseModel, childSorts, hmQb);
                 else if (childModel.primaryKey) {
-                  hmQb.orderBy(
-                    `${childModel.primaryKey.column_name}`,
-                    'asc',
-                  );
+                  hmQb.orderBy(`${childModel.primaryKey.column_name}`, 'asc');
                 }
 
                 const hmAggQb = knex(hmQb.as(alias3));

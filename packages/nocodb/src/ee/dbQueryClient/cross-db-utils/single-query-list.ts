@@ -83,7 +83,10 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
       rlsCacheSegment = `:rls:${hash}`;
     }
 
-    const cacheKeySuffix = (linksAsLtar ? ':ltar' : '') + (ctx.deletedOnly ? ':deleted' : '') + rlsCacheSegment;
+    const cacheKeySuffix =
+      (linksAsLtar ? ':ltar' : '') +
+      (ctx.deletedOnly ? ':deleted' : '') +
+      rlsCacheSegment;
     const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
       ctx.view?.id ?? 'default'
     }:queries${cacheKeySuffix}`;

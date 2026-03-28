@@ -144,7 +144,7 @@ export default class FileReference {
         context.workspace_id,
         context.base_id,
         MetaTable.FILE_REFERENCES,
-        { deleted: true },
+        { deleted: true, soft_deleted: false },
         fileReferenceObj.id,
       );
     } else {
@@ -152,7 +152,7 @@ export default class FileReference {
         context.workspace_id,
         context.base_id,
         MetaTable.FILE_REFERENCES,
-        { deleted: true },
+        { deleted: true, soft_deleted: false },
         fileReferences,
       );
     }

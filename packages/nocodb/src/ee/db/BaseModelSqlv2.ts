@@ -1753,7 +1753,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     await this.propagateDateDependency(insertedIds, req);
   }
 
-  public async afterDelete(data: any, _trx: any, req): Promise<void> {
+  public async afterDelete(
+    data: any,
+    _trx: any,
+    req,
+    eventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_DELETE,
+  ): Promise<void> {
     const id = this.extractPksValues(data);
 
     NocoSocket.broadcastDataEvent(
@@ -1772,7 +1777,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     if (await this.isDataAuditEnabled()) {
       await Audit.insert(
         await generateAuditV1Payload<DataDeletePayload>(
-          AuditV1OperationTypes.DATA_DELETE,
+          eventType,
           {
             details: {
               data: formatDataForAudit(
@@ -1952,7 +1957,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           rowIds: [id],
         });
 
-        await this.afterDelete(data, null, cookie);
+        await this.afterDelete(
+          data,
+          null,
+          cookie,
+          AuditV1OperationTypes.DATA_SOFT_DELETE,
+        );
 
         await this.softDeleteFileReferences({
           oldData: [data],

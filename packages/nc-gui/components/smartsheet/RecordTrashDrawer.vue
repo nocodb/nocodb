@@ -34,7 +34,7 @@ const emits = defineEmits<{
 
 const { t } = useI18n()
 
-const { showConfirmModal } = useNcConfirmModal()
+const { showWarningModal } = useNcConfirmModal()
 
 function getRowId(record: Record<string, any>) {
   return String(record[props.pkColumn] ?? '')
@@ -92,7 +92,7 @@ function toggleSelectAll() {
 }
 
 function handleEmptyTrash() {
-  showConfirmModal({
+  showWarningModal({
     title: t('trash.emptyTrash'),
     content: t('trash.confirmEmpty'),
     okCallback: async () => {
@@ -102,7 +102,7 @@ function handleEmptyTrash() {
 }
 
 function handlePermanentDelete(rowIds: string[]) {
-  showConfirmModal({
+  showWarningModal({
     title: t('trash.deleteForever'),
     content: t('trash.confirmDeleteForever', { count: rowIds.length }),
     okCallback: async () => {

@@ -322,12 +322,32 @@ export class RecordTrashService {
           .update(restorePayload);
       }
 
-      // Restore soft-deleted file references
-      for (const rowId of batchIds) {
-        await FileReference.bulkSoftRestore(context, {
-          fk_model_id: model.id,
-          fk_doc_id: String(rowId),
-        });
+      // Restore soft-deleted file references by extracting attachment IDs from row data
+      const attachmentColumns = model.columns.filter(
+        (c) => c.uidt === UITypes.Attachment,
+      );
+      if (attachmentColumns.length) {
+        const fileRefIds: string[] = [];
+        for (const row of preRestoreRows) {
+          for (const col of attachmentColumns) {
+            const val = row[col.column_name] || row[col.title];
+            if (!val) continue;
+            try {
+              const attachments =
+                typeof val === 'string' ? JSON.parse(val) : val;
+              if (Array.isArray(attachments)) {
+                for (const att of attachments) {
+                  if (att.id) fileRefIds.push(att.id);
+                }
+              }
+            } catch {
+              // ignore invalid JSON
+            }
+          }
+        }
+        if (fileRefIds.length) {
+          await FileReference.softRestore(context, fileRefIds);
+        }
       }
 
       // LMT + broadcast on linked records

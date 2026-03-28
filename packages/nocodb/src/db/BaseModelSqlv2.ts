@@ -5244,9 +5244,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   public async afterBulkRestore(data: any, req): Promise<void> {
-    const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
+    const isBulk = data?.length > 1;
+    const parentAuditId = isBulk
+      ? await Noco.ncAudit.genNanoid(MetaTable.AUDIT)
+      : undefined;
 
-    if (await this.isDataAuditEnabled()) {
+    if (isBulk && (await this.isDataAuditEnabled())) {
       await Audit.insert(
         await generateAuditV1Payload<DataBulkDeletePayload>(
           AuditV1OperationTypes.DATA_BULK_RESTORE,
@@ -5263,7 +5266,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ),
       );
     }
-    req.ncParentAuditId = parentAuditId;
+    if (parentAuditId) req.ncParentAuditId = parentAuditId;
 
     const column_meta = extractColsMetaForAudit(this.model.columns);
 

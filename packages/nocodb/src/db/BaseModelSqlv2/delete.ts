@@ -845,7 +845,9 @@ export class BaseModelDelete {
       this.baseModel.model.primaryKeys.length > 1
         ? rowIds.map((id) => {
             const pkObj = {};
-            const pkValues = id.split('___');
+            const pkValues = id
+              .split('___')
+              .map((val) => val.replaceAll('\\_', '_'));
             this.baseModel.model.primaryKeys.forEach((pk, i) => {
               pkObj[pk.title] = pkValues[i];
             });

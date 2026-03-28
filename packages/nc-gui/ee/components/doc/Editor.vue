@@ -2008,14 +2008,11 @@ onBeforeUnmount(() => {
           </NcButton>
           <template #overlay>
             <NcMenu variant="small" class="!min-w-52">
-              <NcMenuItemCopyId
-                v-if="doc"
-                :id="doc.id"
-                v-e="['c:document:copy-id']"
-                :tooltip="$t('labels.copyDocumentId')"
-                :label="`DOCUMENT ID: ${doc.id}`"
-                data-testid="nc-doc-page-copy-id"
-              />
+              <NcMenuItem v-e="['c:doc:copy-link']" @click="onCopyPageLink">
+                <GeneralIcon class="text-nc-content-gray-subtle" :icon="isLinkCopied ? 'check' : 'link'" />
+                {{ isLinkCopied ? $t('general.copied') : $t('activity.copyLink') }}
+              </NcMenuItem>
+              <NcDivider />
               <div :key="activeFont" class="nc-doc-font-selector" data-testid="nc-doc-font-selector" @click.stop>
                 <button
                   v-for="f in (['default', 'serif', 'mono'] as const)"
@@ -2029,11 +2026,6 @@ onBeforeUnmount(() => {
                   <span class="nc-doc-font-label">{{ $t(`labels.font${f.charAt(0).toUpperCase() + f.slice(1)}`) }}</span>
                 </button>
               </div>
-              <NcDivider />
-              <NcMenuItem v-e="['c:doc:copy-link']" @click="onCopyPageLink">
-                <GeneralIcon class="text-nc-content-gray-subtle" :icon="isLinkCopied ? 'check' : 'link'" />
-                {{ isLinkCopied ? $t('general.copied') : $t('activity.copyLink') }}
-              </NcMenuItem>
               <NcMenuItem v-if="isUIAllowed('documentCreate')" @click="onDuplicatePage">
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="duplicate" />
                 {{ $t('general.duplicate') }}
@@ -2088,6 +2080,14 @@ onBeforeUnmount(() => {
                 <span v-if="updatedByLabel">{{ $t('labels.lastEditedBy', { user: updatedByLabel }) }}</span>
                 <span v-if="updatedAgo">{{ updatedAgo }}</span>
               </div>
+              <NcMenuItemCopyId
+                v-if="doc"
+                :id="doc.id"
+                v-e="['c:document:copy-id']"
+                :tooltip="$t('labels.copyDocumentId')"
+                :label="`DOCUMENT ID: ${doc.id}`"
+                data-testid="nc-doc-page-copy-id"
+              />
             </NcMenu>
           </template>
         </NcDropdown>

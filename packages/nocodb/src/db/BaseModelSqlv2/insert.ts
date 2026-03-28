@@ -369,10 +369,8 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       if (isSingleRecordInsertion || apiVersion === NcApiVersion.V3) {
         for (let i = 0; i < responses.length; i++) {
           const row = responses[i];
-          let rowId = row[baseModel.model.primaryKey?.title];
-
-          rowId = baseModel.extractCompositePK({
-            rowId,
+          const rowId = baseModel.extractCompositePK({
+            rowId: row[baseModel.model.primaryKey?.title],
             ai: aiPkCol,
             ag: agPkCol,
             insertObj: insertDatas[i],

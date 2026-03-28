@@ -144,6 +144,8 @@ const triggerDeleteModal = (tokenToDelete: string, tokenDescription: string, tok
 }
 
 const toggleEnabled = async (token: IApiTokenInfo) => {
+  if (!isFineGrained(token)) return
+
   try {
     const newEnabled = !token.enabled
     await api.request({
@@ -317,9 +319,10 @@ const openEditToken = async (token: IApiTokenInfo) => {
                 data-testid="nc-token-list"
                 class="flex pl-5 py-3 justify-between token items-center border-l-1 border-r-1 border-b-1"
               >
-                <!-- Active toggle -->
+                <!-- Active toggle (fine-grained tokens only) -->
                 <div class="w-16 flex-none flex items-center">
                   <a-switch
+                    v-if="isFineGrained(el)"
                     v-e="['c:api-token:toggle-enabled', { enabled: el.enabled !== false }]"
                     :checked="el.enabled !== false"
                     size="small"

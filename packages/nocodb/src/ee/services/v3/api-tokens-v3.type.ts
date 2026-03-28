@@ -34,6 +34,13 @@ export interface ApiTokensV3 {
 
 export interface ApiTokensV3ListResponse {
   list: ApiTokensV3[];
+  pageInfo?: {
+    totalRows: number;
+    page: number;
+    pageSize: number;
+    isFirstPage: boolean;
+    isLastPage: boolean;
+  };
 }
 
 export interface ApiTokensV3WithToken extends ApiTokensV3 {

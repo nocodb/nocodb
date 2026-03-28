@@ -222,7 +222,7 @@ export class ApiTokensV3Service {
       list.push(v3Token);
     }
 
-    return { list } as ApiTokensV3ListResponse;
+    return { list, pageInfo: result.pageInfo } as ApiTokensV3ListResponse;
   }
 
   async create(param: { cookie: NcRequest; body: ApiTokensV3CreateRequest }) {

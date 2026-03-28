@@ -494,7 +494,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
     <div
       v-else
       ref="commentsWrapperEl"
-      class="flex flex-col flex-1 py-3 sm:py-1 nc-scrollbar-thin overflow-y-auto nc-scroll-fade-bottom"
+      class="flex flex-col flex-1 py-3 sm:py-1 nc-scrollbar-thin overflow-y-auto"
     >
       <template v-for="(threadItem, index) of filteredThreadedComments" :key="threadItem.id">
         <div

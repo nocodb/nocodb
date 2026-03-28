@@ -22,7 +22,7 @@ const isNotificationOpen = ref(false)
 const searchQuery = useState<string>('ws-home-search', () => '')
 
 const navigateToWorkspace = () => {
-  navigateTo(`/nc`)
+  navigateTo(`/${activeWorkspaceId.value}`)
 
   if (isMobileMode.value) {
     isLeftSidebarOpen.value = false

@@ -289,7 +289,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       :data-workspace-title="activeWorkspace?.title"
       :label="`${$t('labels.backToWorkspace')} ${activeWorkspace?.title}`"
       :scale="getScale('logo')"
-      @click="navigateTo(`/${isEeUI ? activeWorkspaceId : 'nc'}`)"
+      @click="navigateTo(`/${activeWorkspaceId}`)"
     >
       <GeneralProjectIcon
         class="!h-7 !w-7 nc-logo-icon"

@@ -65,6 +65,8 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
   isCreateWsDlgOpen.value = false
   await loadWorkspaces()
 
+  isProjectsLoaded.value = false
+
   // Lets stay in ws page instead of navigating to first default base
   navigateTo(`/${workspace.id}`)
 }

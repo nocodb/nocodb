@@ -35,7 +35,7 @@ const isMM = computed(() => colOptions.value?.type === RelationTypes.MANY_TO_MAN
 
 // Links columns (showing count) need a Rollup + new LTAR on conversion
 // LinkToAnotherRecord (LTAR v1) columns upgrade in-place — no rollup
-const isLinksColumn = computed(() => props.column ? isLink(props.column) : false)
+const isLinksColumn = computed(() => (props.column ? isLink(props.column) : false))
 
 const isParentSide = computed(() => {
   if (!colOptions.value?.type) return false

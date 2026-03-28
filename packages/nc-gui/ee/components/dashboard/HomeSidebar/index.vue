@@ -17,8 +17,6 @@ const { orgRoles } = useRoles()
 
 const { isEEFeatureBlocked, showEEFeatures, showUpgradeToCreateWorkspace } = useEeConfig()
 
-const { navigateToTable } = useTablesStore()
-
 const { $e } = useNuxtApp()
 
 const isCreateWsDlgOpen = ref(false)
@@ -135,7 +133,7 @@ const hasNoResults = computed(() => {
         v-model:value="searchQuery"
         :placeholder="showEEFeatures ? $t('placeholder.searchWorkspacesAndBases') : $t('activity.searchProject')"
         allow-clear
-        class="nc-home-sidebar-search nc-input-sm"
+        class="nc-input-border-on-value nc-home-sidebar-search nc-input-sm"
       >
         <template #prefix>
           <GeneralLoader v-if="isBaseListAllLoading" size="regular" class="h-4 w-4 mr-0.5" />

@@ -48,7 +48,7 @@ const navigateToWorkspace = () => {
         v-model:value="searchQuery"
         :placeholder="$t('activity.searchProject')"
         allow-clear
-        class="nc-home-sidebar-search nc-input-sm"
+        class="nc-input-border-on-value nc-home-sidebar-search nc-input-sm"
       >
         <template #prefix>
           <GeneralIcon icon="search" class="text-nc-content-gray-muted/80 mr-0.5" />

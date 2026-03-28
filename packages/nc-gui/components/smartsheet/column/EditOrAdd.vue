@@ -162,11 +162,7 @@ const onMouseOverUniqueValuesInfoIcon = ref(false)
 const columnUidt = computed({
   get: () => {
     // Show legacy LTAR v1 columns as "Links" in the type dropdown
-    if (
-      isEdit.value &&
-      formState.value.uidt === UITypes.LinkToAnotherRecord &&
-      formState.value.colOptions?.version !== 2
-    ) {
+    if (isEdit.value && formState.value.uidt === UITypes.LinkToAnotherRecord && formState.value.colOptions?.version !== 2) {
       return UITypes.Links
     }
     return formState.value.uidt

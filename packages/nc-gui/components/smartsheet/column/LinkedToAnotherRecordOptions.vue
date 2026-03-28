@@ -494,7 +494,9 @@ const handleScrollIntoView = () => {
     <div class="flex flex-col gap-4">
       <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type !mb-0">
         <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit" class="w-full">
-          <template v-if="vModel.uidt === UITypes.LinkToAnotherRecord || isUpgradeable || (vModel.colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2">
+          <template
+            v-if="vModel.uidt === UITypes.LinkToAnotherRecord || isUpgradeable || (vModel.colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2"
+          >
             <a-row :gutter="[8, 8]">
               <a-col :span="12">
                 <a-radio value="mm" data-testid="Many to Many">
@@ -575,7 +577,8 @@ const handleScrollIntoView = () => {
             target="_blank"
             rel="noopener noreferrer"
             class="text-nc-content-brand underline ml-1"
-          >{{ $t('msg.learnMore') }}</a>
+            >{{ $t('msg.learnMore') }}</a
+          >
         </span>
       </div>
       <NcButton size="xs" type="primary" @click="emit('upgrade')">

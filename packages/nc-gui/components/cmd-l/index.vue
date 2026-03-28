@@ -192,11 +192,7 @@ onMounted(() => {
       <div class="flex flex-col shrink grow overflow-hidden shadow-[rgb(0_0_0_/_50%)_0px_16px_70px] max-w-[650px] p-0">
         <div class="scroll-smooth actions overflow-auto nc-scrollbar-md mb-10 relative mx-0 px-0 py-2">
           <div v-if="filteredViews.length < 1" class="flex flex-col p-4 gap-4 items-center justify-center text-sm">
-            <img
-              src="~assets/img/placeholder/no-search-result-found.png"
-              class="!w-[240px] flex-none"
-              alt="No recent views"
-            />
+            <img src="~assets/img/placeholder/no-search-result-found.png" class="!w-[240px] flex-none" alt="No recent views" />
             <div class="text-nc-content-gray-muted">{{ $t('labels.noRecentViews') }}</div>
           </div>
           <div v-else class="flex flex-col cmdOpt-list w-full">

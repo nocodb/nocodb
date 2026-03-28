@@ -526,6 +526,10 @@ export const SlashCommandExtension = Extension.create({
         char: '/',
         allowSpaces: false,
         startOfLine: false,
+        // Suppress the slash menu inside code blocks and inline code — "/" is just a character there
+        allow: ({ editor }: { editor: Editor }) => {
+          return !editor.isActive('codeBlock') && !editor.isActive('code')
+        },
         items: ({ query, editor }: { query: string; editor: Editor }) => {
           const q = query.toLowerCase()
           return slashCommandItems.filter(

@@ -169,6 +169,13 @@ export function useDocumentAutoSave({
     // Skip saves triggered by programmatic setContent during page load
     if (isSettingContent.value) return
 
+    // Skip saves before the document is fully loaded. isLoaded is false
+    // throughout loadAndSetDoc (from start until after setContent + nextTick)
+    // so this catches any deferred ProseMirror transactions (e.g. extension
+    // appendTransaction, DOM mutation observers) that fire onUpdate after
+    // isSettingContent is already reset.
+    if (!isLoaded.value) return
+
     hasUserEdited.value = true
 
     if (saveTimeout.value) {

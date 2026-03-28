@@ -106,10 +106,7 @@ const filteredWorkspaceList = computed(() => {
   if (!searchQuery.value) return workspacesList.value
 
   return workspacesList.value.filter(
-    (ws) =>
-      ws.id === activeWorkspaceId.value ||
-      searchCompare(ws.title ?? '', searchQuery.value) ||
-      baseListAllMatchByWs.value.has(ws.id),
+    (ws) => searchCompare(ws.title ?? '', searchQuery.value) || baseListAllMatchByWs.value.has(ws.id),
   )
 })
 
@@ -157,8 +154,8 @@ const hasNoResults = computed(() => {
       <!-- Workspace list -->
       <div class="flex-1 overflow-y-auto nc-scrollbar-thin px-1">
         <!-- No results -->
-        <div v-if="hasNoResults" class="px-3 py-4 text-nc-content-gray-muted text-bodySm text-center">
-          {{ $t('title.noResultsMatchedYourSearch') }}
+        <div v-if="hasNoResults" class="px-3 py-4 text-nc-content-gray-muted text-bodyDefaultSm text-center">
+          {{ $t('labels.noResults') }}
         </div>
 
         <!-- Loading skeleton -->

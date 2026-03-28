@@ -1386,14 +1386,15 @@ export function useInfiniteData(args: {
               ? {
                   fn: async (id: string, _path: Array<number>) => {
                     await $api.internal.postOperation(
-                      (meta.value as TableType)?.fk_workspace_id ?? 'nc__',
-                      (meta.value as TableType)?.base_id!,
+                      (meta.value as TableType)?.fk_workspace_id,
+                      (meta.value as TableType).base_id!,
                       { operation: 'recordTrashRestore' as any } as any,
                       { tableId: meta.value?.id, rowIds: [id] },
                     )
                     const dc = getDataCache(_path)
                     dc.cachedRows.value.clear()
                     dc.chunkStates.value = []
+                    await syncCount(path, false, false)
                   },
                   args: [id as string, clone(path)],
                 }
@@ -1402,12 +1403,12 @@ export function useInfiniteData(args: {
                     const pkData = rowPkData(row.row, meta?.value?.columns as ColumnType[])
                     row.row = { ...pkData, ...row.row }
                     await insertRow(row, ltarState, {}, true, undefined, undefined, path)
-                    const dc = getDataCache(path)
-                    dc.cachedRows.value.clear()
-                    dc.chunkStates.value = []
                     try {
                       await recoverLTARRefs(row.row, undefined, { suppressError: true })
                     } catch (_e) {}
+                    const dc = getDataCache(path)
+                    dc.cachedRows.value.clear()
+                    dc.chunkStates.value = []
                   },
                   args: [clone(row), {}, clone(path)],
                 },

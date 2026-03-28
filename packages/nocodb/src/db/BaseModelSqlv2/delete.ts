@@ -119,6 +119,16 @@ export class BaseModelDelete {
     const deletedColumn = columns.find((c) => isDeletedCol(c));
     const isSoftDelete = !args.permanentDelete && !!deletedColumn && isMeta;
 
+    // Exclude already soft-deleted records from the delete query
+    if (isSoftDelete) {
+      qb.where(function () {
+        this.whereNull(deletedColumn.column_name).orWhere(
+          deletedColumn.column_name,
+          false,
+        );
+      });
+    }
+
     // Collect linked record info for LMT updates + realtime broadcasts
     const linkedRecordUpdates: {
       baseModel: any;

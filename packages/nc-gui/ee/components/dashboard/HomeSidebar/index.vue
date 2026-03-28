@@ -65,17 +65,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
   isCreateWsDlgOpen.value = false
   await loadWorkspaces()
 
-  const base = (workspace as any).bases?.[0]
-  const table = base?.tables?.[0]
-
-  if (base && table) {
-    return await navigateToTable({
-      baseId: base.id,
-      tableId: table.id,
-      workspaceId: workspace.id,
-    })
-  }
-
+  // Lets stay in ws page instead of navigating to first default base
   navigateTo(`/${workspace.id}`)
 }
 

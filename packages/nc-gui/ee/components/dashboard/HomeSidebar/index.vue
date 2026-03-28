@@ -104,7 +104,10 @@ const filteredWorkspaceList = computed(() => {
   if (!searchQuery.value) return workspacesList.value
 
   return workspacesList.value.filter(
-    (ws) => searchCompare(ws.title ?? '', searchQuery.value) || baseListAllMatchByWs.value.has(ws.id),
+    (ws) =>
+      (!showEEFeatures.value && ws.id === activeWorkspaceId.value) ||
+      searchCompare(ws.title ?? '', searchQuery.value) ||
+      baseListAllMatchByWs.value.has(ws.id),
   )
 })
 

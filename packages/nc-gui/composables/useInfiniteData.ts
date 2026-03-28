@@ -1391,7 +1391,9 @@ export function useInfiniteData(args: {
                       { operation: 'recordTrashRestore' as any } as any,
                       { tableId: meta.value?.id, rowIds: [id] },
                     )
-                    // Socket event from backend handles row insertion with nc_order
+                    const dc = getDataCache(_path)
+                    dc.cachedRows.value.clear()
+                    dc.chunkStates.value = []
                   },
                   args: [id as string, clone(path)],
                 }

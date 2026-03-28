@@ -9,6 +9,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import TaskList from '@tiptap/extension-task-list'
 import TableRow from '@tiptap/extension-table-row'
 import { Plugin, PluginKey, Selection, TextSelection } from '@tiptap/pm/state'
+import { CellSelection } from '@tiptap/pm/tables'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
 import { marked } from 'marked'
 import DOMPurify from 'isomorphic-dompurify'
@@ -826,6 +827,50 @@ const onAiSummarizeSelection = () => {
 // DocSearchExtension (ProseMirror plugin) for match finding + decorations.
 const isSearchOpen = ref(false)
 const searchBarRef = ref<{ focusSearch: () => void } | null>(null)
+
+// --- Cell selection color (bubble menu shows palette instead of text formatting) ---
+const isCellSelection = computed(() => editor.value?.state.selection instanceof CellSelection)
+
+const CELL_TEXT_COLORS = [
+  { name: 'Default', color: '' },
+  { name: 'Gray', color: '#6b7280' },
+  { name: 'Brown', color: '#92400e' },
+  { name: 'Yellow', color: '#a16207' },
+  { name: 'Green', color: '#15803d' },
+  { name: 'Blue', color: '#1d4ed8' },
+  { name: 'Purple', color: '#7c3aed' },
+  { name: 'Pink', color: '#db2777' },
+  { name: 'Orange', color: '#ea580c' },
+  { name: 'Red', color: '#dc2626' },
+]
+
+const CELL_BG_COLORS = [
+  { name: 'None', color: '' },
+  { name: 'Gray', color: '#f3f4f6' },
+  { name: 'Orange', color: '#fff3e0' },
+  { name: 'Pink', color: '#fce4ec' },
+  { name: 'Yellow', color: '#fffde7' },
+  { name: 'Green', color: '#e8f5e9' },
+  { name: 'Blue', color: '#e3f2fd' },
+  { name: 'Purple', color: '#f3e8ff' },
+  { name: 'Rose', color: '#fff1f2' },
+  { name: 'Red', color: '#ffebee' },
+]
+
+const applyCellColor = (attr: 'bgColor' | 'cellTextColor', color: string | null) => {
+  if (!editor.value) return
+  const sel = editor.value.state.selection
+  if (!(sel instanceof CellSelection)) return
+
+  const { state, dispatch } = editor.value.view
+  const tr = state.tr
+
+  sel.forEachCell((node, pos) => {
+    tr.setNodeMarkup(pos, undefined, { ...node.attrs, [attr]: color || null })
+  })
+
+  dispatch(tr)
+}
 
 // --- Comments sidebar state ---
 const isCommentsPanelOpen = ref(false)
@@ -2211,8 +2256,45 @@ onBeforeUnmount(() => {
                 :tippy-options="{ duration: 100, maxWidth: 'none' }"
                 :should-show="showRichTextMenu"
               >
-                <!-- Formatting toolbar + custom link button -->
-                <div class="nc-doc-bubble-toolbar flex items-center">
+                <!-- Cell selection: show cell color picker instead of text formatting -->
+                <div v-if="isCellSelection" class="nc-doc-bubble-toolbar flex items-center">
+                  <NcDropdown :trigger="['click']" placement="bottomLeft">
+                    <NcButton size="small" type="text">
+                      <GeneralIcon icon="ncPalette" />
+                    </NcButton>
+                    <template #overlay>
+                      <div class="nc-cell-color-picker" @mousedown.prevent>
+                        <div class="nc-cell-color-label">{{ $t('labels.textColor') }}</div>
+                        <div class="nc-cell-color-grid">
+                          <button
+                            v-for="tc in CELL_TEXT_COLORS"
+                            :key="tc.color || 'default'"
+                            class="nc-cell-color-swatch"
+                            :style="{ borderColor: tc.color ? `color-mix(in srgb, ${tc.color} 30%, transparent)` : undefined }"
+                            :title="tc.name"
+                            @click="applyCellColor('cellTextColor', tc.color || null)"
+                          >
+                            <span class="nc-cell-color-letter" :style="{ color: tc.color || '#1f2937' }">A</span>
+                          </button>
+                        </div>
+                        <div class="nc-cell-color-label">{{ $t('labels.backgroundColor') }}</div>
+                        <div class="nc-cell-color-grid">
+                          <button
+                            v-for="b in CELL_BG_COLORS"
+                            :key="b.color || 'none'"
+                            class="nc-cell-color-swatch"
+                            :style="b.color ? { backgroundColor: b.color, borderColor: b.color } : {}"
+                            :title="b.name"
+                            @click="applyCellColor('bgColor', b.color || null)"
+                          />
+                        </div>
+                      </div>
+                    </template>
+                  </NcDropdown>
+                </div>
+
+                <!-- Text selection: formatting toolbar + custom link button -->
+                <div v-else class="nc-doc-bubble-toolbar flex items-center">
                   <CellRichTextSelectedBubbleMenu
                     :editor="editor"
                     embed-mode
@@ -2713,6 +2795,51 @@ onBeforeUnmount(() => {
   .nc-doc-ai-btn:hover {
     @apply !text-nc-content-brand;
   }
+}
+
+// Cell selection color picker (shown in bubble menu for CellSelection)
+.nc-cell-color-picker {
+  padding: 8px;
+}
+
+.nc-cell-color-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--nc-content-gray-subtle);
+  margin-bottom: 6px;
+  margin-top: 10px;
+
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+.nc-cell-color-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.nc-cell-color-swatch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1.5px solid var(--nc-border-gray-medium);
+  cursor: pointer;
+  transition: transform 0.1s ease;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+}
+
+.nc-cell-color-letter {
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
 }
 
 // AI dropdown menu — matches slash command menu styling

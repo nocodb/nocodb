@@ -52,7 +52,7 @@ const tokenToDeleteId = ref('')
 const loadAllTokens = async (limit = pagination.total) => {
   try {
     const response: any = await api.orgTokens.list({
-      query: { limit },
+      query: { limit: Math.min(limit, 500) },
     } as RequestParams)
     if (!response) return
     allTokens.value = response.list as IApiTokenInfo[]

@@ -170,10 +170,17 @@ ${safeContent}
   h2 { font-size: 1.5em; margin: 0.8em 0 0.4em; font-weight: 700; }
   h3 { font-size: 1.2em; margin: 0.6em 0 0.3em; font-weight: 600; }
 
-  /* Tables */
-  table { border-collapse: collapse; width: 100%; margin: 1em 0; page-break-inside: avoid; }
-  td, th { border: 1px solid #d1d5db; padding: 6px 10px; text-align: left; }
+  /* Tables — match editor styling */
+  table { border-collapse: separate; border-spacing: 0; width: 100%; margin: 1em 0; page-break-inside: avoid; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
+  td, th { border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; padding: 6px 8px; text-align: left; vertical-align: top; line-height: 1.4; }
+  td p, th p { margin: 0; }
+  td:last-child, th:last-child { border-right: none; }
+  tr:last-child td, tr:last-child th { border-bottom: none; }
   th { background: #f3f4f6; font-weight: 600; }
+  tr:first-child th:first-child, tr:first-child td:first-child { border-top-left-radius: 7px; }
+  tr:first-child th:last-child, tr:first-child td:last-child { border-top-right-radius: 7px; }
+  tr:last-child td:first-child, tr:last-child th:first-child { border-bottom-left-radius: 7px; }
+  tr:last-child td:last-child, tr:last-child th:last-child { border-bottom-right-radius: 7px; }
 
   /* Blockquote */
   blockquote { border-left: 4px solid #6b7280; padding-left: 1em; margin-left: 0; color: #4b5563; }

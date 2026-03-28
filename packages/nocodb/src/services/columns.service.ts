@@ -3795,16 +3795,35 @@ export class ColumnsService implements IColumnsService {
             childContext,
             ncMeta,
           );
-          const childTable = await childColumn.getModel(childContext, ncMeta);
+          const childTable = childColumn
+            ? await childColumn.getModel(childContext, ncMeta)
+            : null;
 
           const parentColumn = await relationColOpt.getParentColumn(
             parentContext,
             ncMeta,
           );
-          const parentTable = await parentColumn.getModel(
-            parentContext,
-            ncMeta,
-          );
+          const parentTable = parentColumn
+            ? await parentColumn.getModel(parentContext, ncMeta)
+            : null;
+
+          // If child/parent columns or tables are missing (orphaned link),
+          // skip relation cleanup and just delete the column metadata
+          if (!childColumn || !childTable || !parentColumn || !parentTable) {
+            this.logger.warn(
+              `Orphaned LTAR column ${param.columnId} — related column or table missing, deleting column metadata only`,
+            );
+            await Column.delete2(
+              context,
+              {
+                id: param.columnId,
+                ...generateColumnDeleteHandler(columnWebhookManager),
+              },
+              ncMeta,
+            );
+            break;
+          }
+
           const custom = column.meta?.custom;
 
           const isMMLike = isMMOrMMLike(column);
@@ -3916,45 +3935,49 @@ export class ColumnsService implements IColumnsService {
                   refContext,
                   ncMeta,
                 );
-                const columnsInRelatedTable: Column[] =
-                  await refTable.getColumns(refContext, ncMeta);
 
-                for (const c of columnsInRelatedTable) {
-                  if (!isLinksOrLTAR(c.uidt)) continue;
-                  const colOpt =
-                    await c.getColOptions<LinkToAnotherRecordColumn>(
-                      refContext,
-                      ncMeta,
-                    );
-                  if (
-                    isMMOrMMLike(c) &&
-                    colOpt.fk_parent_column_id === childColumn.id &&
-                    colOpt.fk_child_column_id === parentColumn.id &&
-                    colOpt.fk_mm_model_id === relationColOpt.fk_mm_model_id &&
-                    colOpt.fk_mm_parent_column_id ===
-                      relationColOpt.fk_mm_child_column_id &&
-                    colOpt.fk_mm_child_column_id ===
-                      relationColOpt.fk_mm_parent_column_id
-                  ) {
-                    await Column.delete2(
-                      refContext,
-                      {
-                        id: c.id,
-                        ...generateColumnDeleteHandler(columnWebhookManager),
-                      },
-                      ncMeta,
-                    );
-                    if (!c.system) {
-                      this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
-                        table: refTable,
-                        column: c,
-                        req: param.req,
-                        context: refContext,
-                        columnId: c.id,
-                        columns: await refTable.getCachedColumns(refContext),
-                      });
+                // Delete inverse MM column on the related table (if it still exists)
+                if (refTable) {
+                  const columnsInRelatedTable: Column[] =
+                    await refTable.getColumns(refContext, ncMeta);
+
+                  for (const c of columnsInRelatedTable) {
+                    if (!isLinksOrLTAR(c.uidt)) continue;
+                    const colOpt =
+                      await c.getColOptions<LinkToAnotherRecordColumn>(
+                        refContext,
+                        ncMeta,
+                      );
+                    if (
+                      isMMOrMMLike(c) &&
+                      colOpt.fk_parent_column_id === childColumn.id &&
+                      colOpt.fk_child_column_id === parentColumn.id &&
+                      colOpt.fk_mm_model_id === relationColOpt.fk_mm_model_id &&
+                      colOpt.fk_mm_parent_column_id ===
+                        relationColOpt.fk_mm_child_column_id &&
+                      colOpt.fk_mm_child_column_id ===
+                        relationColOpt.fk_mm_parent_column_id
+                    ) {
+                      await Column.delete2(
+                        refContext,
+                        {
+                          id: c.id,
+                          ...generateColumnDeleteHandler(columnWebhookManager),
+                        },
+                        ncMeta,
+                      );
+                      if (!c.system) {
+                        this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
+                          table: refTable,
+                          column: c,
+                          req: param.req,
+                          context: refContext,
+                          columnId: c.id,
+                          columns: await refTable.getCachedColumns(refContext),
+                        });
+                      }
+                      break;
                     }
-                    break;
                   }
                 }
 
@@ -4341,50 +4364,57 @@ export class ColumnsService implements IColumnsService {
     const { refContext } = relationColOpt.getRelContext(context);
 
     const refTable = await relationColOpt.getRelatedTable(refContext, ncMeta);
-    const columnsInRelatedTable: Column[] = await refTable.getColumns(
-      refContext,
-      ncMeta,
-    );
-    const relType = relationColOpt.type === 'bt' ? 'hm' : 'bt';
-    for (const c of columnsInRelatedTable) {
-      if (!isLinksOrLTAR(c.uidt)) continue;
-      const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(
+
+    // Delete inverse column on the related table (if it still exists)
+    if (refTable) {
+      const columnsInRelatedTable: Column[] = await refTable.getColumns(
         refContext,
         ncMeta,
       );
-      if (
-        colOpt.fk_parent_column_id === parentColumn.id &&
-        colOpt.fk_child_column_id === childColumn.id &&
-        colOpt.type === relType
-      ) {
-        const colInRefTable = await Column.get(
+      const relType = relationColOpt.type === 'bt' ? 'hm' : 'bt';
+      for (const c of columnsInRelatedTable) {
+        if (!isLinksOrLTAR(c.uidt)) continue;
+        const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(
           refContext,
-          { colId: c.id },
           ncMeta,
         );
-        await columnWebhookManager?.addOldColumnById({
-          columnId: c.id,
-          action: WebhookActions.DELETE,
-          context: refContext,
-        });
-        await Column.delete2(
-          refContext,
-          { id: c.id, ...generateColumnDeleteHandler(columnWebhookManager) },
-          ncMeta,
-        );
-
-        if (!colInRefTable.system) {
-          this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
-            table: refTable,
-            column: colInRefTable,
-            req,
+        if (
+          colOpt.fk_parent_column_id === parentColumn.id &&
+          colOpt.fk_child_column_id === childColumn.id &&
+          colOpt.type === relType
+        ) {
+          const colInRefTable = await Column.get(
+            refContext,
+            { colId: c.id },
+            ncMeta,
+          );
+          await columnWebhookManager?.addOldColumnById({
+            columnId: c.id,
+            action: WebhookActions.DELETE,
             context: refContext,
-            columnId: colInRefTable.id,
-            columns: await refTable.getColumns(context),
           });
-        }
+          await Column.delete2(
+            refContext,
+            {
+              id: c.id,
+              ...generateColumnDeleteHandler(columnWebhookManager),
+            },
+            ncMeta,
+          );
 
-        break;
+          if (colInRefTable && !colInRefTable.system) {
+            this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
+              table: refTable,
+              column: colInRefTable,
+              req,
+              context: refContext,
+              columnId: colInRefTable.id,
+              columns: await refTable.getColumns(context),
+            });
+          }
+
+          break;
+        }
       }
     }
 
@@ -4591,51 +4621,58 @@ export class ColumnsService implements IColumnsService {
     const { refContext } = relationColOpt.getRelContext(context);
 
     const refTable = await relationColOpt.getRelatedTable(refContext, ncMeta);
-    const columnsInRelatedTable: Column[] = await refTable.getCachedColumns(
-      refContext,
-    );
 
-    const relType = RelationTypes.ONE_TO_ONE;
-
-    for (const c of columnsInRelatedTable) {
-      if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
-      const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(
+    // Delete inverse column on the related table (if it still exists)
+    if (refTable) {
+      const columnsInRelatedTable: Column[] = await refTable.getCachedColumns(
         refContext,
-        ncMeta,
       );
-      if (
-        colOpt.fk_parent_column_id === parentColumn.id &&
-        colOpt.fk_child_column_id === childColumn.id &&
-        colOpt.type === relType
-      ) {
-        const colInRefTable = await Column.get(
+
+      const relType = RelationTypes.ONE_TO_ONE;
+
+      for (const c of columnsInRelatedTable) {
+        if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+        const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(
           refContext,
-          { colId: c.id },
           ncMeta,
         );
+        if (
+          colOpt.fk_parent_column_id === parentColumn.id &&
+          colOpt.fk_child_column_id === childColumn.id &&
+          colOpt.type === relType
+        ) {
+          const colInRefTable = await Column.get(
+            refContext,
+            { colId: c.id },
+            ncMeta,
+          );
 
-        await columnWebhookManager?.addOldColumnById({
-          columnId: c.id,
-          action: WebhookActions.DELETE,
-          context: refContext,
-        });
-        await Column.delete2(
-          refContext,
-          { id: c.id, ...generateColumnDeleteHandler(columnWebhookManager) },
-          ncMeta,
-        );
-
-        if (!colInRefTable.system) {
-          this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
-            table: refTable,
-            column: colInRefTable,
-            req,
+          await columnWebhookManager?.addOldColumnById({
+            columnId: c.id,
+            action: WebhookActions.DELETE,
             context: refContext,
-            columnId: colInRefTable.id,
-            columns: await refTable.getColumns(context),
           });
+          await Column.delete2(
+            refContext,
+            {
+              id: c.id,
+              ...generateColumnDeleteHandler(columnWebhookManager),
+            },
+            ncMeta,
+          );
+
+          if (colInRefTable && !colInRefTable.system) {
+            this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
+              table: refTable,
+              column: colInRefTable,
+              req,
+              context: refContext,
+              columnId: colInRefTable.id,
+              columns: await refTable.getColumns(context),
+            });
+          }
+          break;
         }
-        break;
       }
     }
 

@@ -5411,6 +5411,8 @@ export class ColumnsService implements IColumnsService {
       });
       return savedColumn;
     }
+
+    return savedColumn;
   }
 
   async createColumnIndex(

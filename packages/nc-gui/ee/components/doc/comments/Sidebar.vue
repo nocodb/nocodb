@@ -136,6 +136,15 @@ function createOptimisticComment(text: string, extra: Partial<DocCommentExtended
 const onReply = (commentItem: DocCommentExtended) => {
   setReplyingTo(commentItem)
   replyText.value = ''
+
+  // Scroll the reply box into view after it fully renders.
+  // setTimeout gives the rich text editor component time to mount.
+  setTimeout(() => {
+    const container = commentsWrapperEl.value
+    if (container) {
+      container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' })
+    }
+  }, 150)
 }
 
 const onCancelReply = () => {

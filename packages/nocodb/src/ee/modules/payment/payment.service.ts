@@ -224,6 +224,7 @@ export class PaymentService {
           stripe_subscription_id: `internal_${nanoid()}`,
           stripe_price_id: `internal_${plan.id}`,
           seat_count: 1,
+          last_paid_seat_count: 1,
           status: 'active',
           start_at: dayjs().utc().toISOString(),
           period: 'year',
@@ -854,6 +855,11 @@ export class PaymentService {
       NcError._.subscriptionOwnershipMismatch('org');
     }
 
+    // Void any unpaid proration invoices before changing plan
+    // Otherwise billing_cycle_anchor: 'now' resets the cycle and stale invoices
+    // swallow proration credits
+    await this.voidUnpaidProrationInvoices(existingSub, workspaceOrOrg);
+
     const newPlan = await Plan.get(payload.plan_id, ncMeta);
     if (!newPlan) NcError.genericNotFound('Plan', payload.plan_id);
     if (!newPlan.is_active) NcError._.planNotAvailable();
@@ -1080,6 +1086,220 @@ export class PaymentService {
     );
   }
 
+  /**
+   * Voids any unpaid proration invoices on a subscription.
+   * Used before plan changes to clean up stale invoices that would
+   * otherwise swallow proration credits when the billing cycle resets.
+   */
+  private async voidUnpaidProrationInvoices(
+    existingSub: Subscription,
+    workspaceOrOrg: NonNullable<Awaited<ReturnType<typeof getWorkspaceOrOrg>>>,
+  ) {
+    const [openInvoices, uncollectibleInvoices] = await Promise.all([
+      stripe.invoices.list({
+        customer: workspaceOrOrg.stripe_customer_id,
+        status: 'open',
+        subscription: existingSub.stripe_subscription_id,
+        limit: 100,
+      }),
+      stripe.invoices.list({
+        customer: workspaceOrOrg.stripe_customer_id,
+        status: 'uncollectible',
+        subscription: existingSub.stripe_subscription_id,
+        limit: 100,
+      }),
+    ]);
+
+    const prorationInvoices = [
+      ...openInvoices.data,
+      ...uncollectibleInvoices.data,
+    ].filter((inv) =>
+      inv.lines.data.some(
+        (line) =>
+          line.parent?.invoice_item_details?.proration ||
+          line.parent?.subscription_item_details?.proration,
+      ),
+    );
+
+    if (prorationInvoices.length === 0) return;
+
+    this.logger.warn(
+      `Voiding ${prorationInvoices.length} unpaid proration invoices for ${workspaceOrOrg.id} before plan change`,
+    );
+
+    for (const inv of prorationInvoices) {
+      try {
+        await stripe.invoices.voidInvoice(inv.id);
+      } catch (e: any) {
+        this.logger.warn(`Failed to void invoice ${inv.id}: ${e.message}`);
+      }
+    }
+
+    await this.telemetryService.sendSystemEvent({
+      event_type: 'payment_alert',
+      payment_type: 'proration_voided_before_plan_change',
+      message: `Voided ${prorationInvoices.length} unpaid proration invoices for ${workspaceOrOrg.title} before plan change`,
+      workspace: { id: workspaceOrOrg.id, title: workspaceOrOrg.title },
+      extra: {
+        voided_invoice_ids: prorationInvoices.map((i) => i.id),
+        voided_invoice_amounts: prorationInvoices.map((i) => i.amount_due),
+        subscription_id: existingSub.id,
+      },
+    });
+  }
+
+  /**
+   * Consolidates unpaid proration invoices before a seat change.
+   *
+   * When proration invoices (from prior seat changes) go uncollectible or remain open,
+   * subsequent seat changes produce invoices that prorate against unpaid state rather
+   * than the last actually-paid state. This method:
+   *
+   * 1. Detects open/uncollectible invoices on the subscription
+   * 2. Voids them (removing both the charge and the stale credit)
+   * 3. Resets the Stripe subscription quantity to `last_paid_seat_count` (no proration)
+   * 4. Updates to the new desired seat count (with proration from the correct base)
+   *
+   * If there are no unpaid invoices, it falls through to a normal subscription update.
+   */
+  private async consolidateUnpaidProrationInvoices(
+    stripeSub: Stripe.Subscription,
+    existingSub: Subscription,
+    workspaceOrOrg: NonNullable<Awaited<ReturnType<typeof getWorkspaceOrOrg>>>,
+    newSeatCount: number,
+    _ncMeta = Noco.ncMeta,
+  ) {
+    // Fetch open and uncollectible invoices for this subscription
+    const [openInvoices, uncollectibleInvoices] = await Promise.all([
+      stripe.invoices.list({
+        customer: workspaceOrOrg.stripe_customer_id,
+        status: 'open',
+        subscription: existingSub.stripe_subscription_id,
+        limit: 100,
+      }),
+      stripe.invoices.list({
+        customer: workspaceOrOrg.stripe_customer_id,
+        status: 'uncollectible',
+        subscription: existingSub.stripe_subscription_id,
+        limit: 100,
+      }),
+    ]);
+
+    const problematicInvoices = [
+      ...openInvoices.data,
+      ...uncollectibleInvoices.data,
+    ];
+
+    if (problematicInvoices.length === 0) {
+      // No unpaid invoices — proceed with normal subscription update
+      await stripe.subscriptions.update(stripeSub.id, {
+        items: [
+          {
+            id: stripeSub.items.data[0].id,
+            price: existingSub.stripe_price_id,
+            quantity: newSeatCount,
+          },
+        ],
+        ...(existingSub.period === 'year' || existingSub.stripe_schedule_id
+          ? { proration_behavior: 'always_invoice' }
+          : {}),
+      });
+      return;
+    }
+
+    // Only void proration invoices — not renewal invoices.
+    // Proration invoices have at least one line item with proration=true.
+    const prorationInvoices = problematicInvoices.filter((inv) =>
+      inv.lines.data.some(
+        (line) =>
+          line.parent?.invoice_item_details?.proration ||
+          line.parent?.subscription_item_details?.proration,
+      ),
+    );
+
+    if (prorationInvoices.length === 0) {
+      // Only renewal invoices are unpaid — proceed with normal update
+      // (don't void renewal invoices as that would erase legitimate charges)
+      await stripe.subscriptions.update(stripeSub.id, {
+        items: [
+          {
+            id: stripeSub.items.data[0].id,
+            price: existingSub.stripe_price_id,
+            quantity: newSeatCount,
+          },
+        ],
+        ...(existingSub.period === 'year' || existingSub.stripe_schedule_id
+          ? { proration_behavior: 'always_invoice' }
+          : {}),
+      });
+      return;
+    }
+
+    // Determine the last paid seat count
+    const lastPaidSeatCount =
+      existingSub.last_paid_seat_count ?? existingSub.seat_count;
+
+    this.logger.warn(
+      `Consolidating ${prorationInvoices.length} unpaid proration invoices for ${workspaceOrOrg.id}. ` +
+        `Resetting from ${stripeSub.items.data[0].quantity} seats to last paid state (${lastPaidSeatCount}), ` +
+        `then updating to ${newSeatCount} seats.`,
+    );
+
+    // Step 1: Void all unpaid proration invoices
+    for (const inv of prorationInvoices) {
+      try {
+        await stripe.invoices.voidInvoice(inv.id);
+      } catch (e: any) {
+        this.logger.warn(`Failed to void invoice ${inv.id}: ${e.message}`);
+      }
+    }
+
+    // Step 2: Reset subscription to last paid seat count (no proration)
+    // This aligns Stripe's internal state with what was actually paid for
+    await stripe.subscriptions.update(stripeSub.id, {
+      items: [
+        {
+          id: stripeSub.items.data[0].id,
+          price: existingSub.stripe_price_id,
+          quantity: lastPaidSeatCount,
+        },
+      ],
+      proration_behavior: 'none',
+    });
+
+    // Step 3: Update to the new desired seat count (with proration)
+    // Skip if the new count equals the last paid count — no proration needed
+    if (newSeatCount !== lastPaidSeatCount) {
+      await stripe.subscriptions.update(stripeSub.id, {
+        items: [
+          {
+            id: stripeSub.items.data[0].id,
+            price: existingSub.stripe_price_id,
+            quantity: newSeatCount,
+          },
+        ],
+        proration_behavior: 'always_invoice',
+      });
+    }
+
+    await this.telemetryService.sendSystemEvent({
+      event_type: 'payment_alert',
+      payment_type: 'proration_consolidated',
+      message:
+        `Consolidated ${prorationInvoices.length} unpaid proration invoices for ${workspaceOrOrg.title}. ` +
+        `Reset from ${stripeSub.items.data[0].quantity} to ${lastPaidSeatCount} (last paid), ` +
+        `then updated to ${newSeatCount} seats.`,
+      workspace: { id: workspaceOrOrg.id, title: workspaceOrOrg.title },
+      extra: {
+        voided_invoice_ids: prorationInvoices.map((i) => i.id),
+        voided_invoice_amounts: prorationInvoices.map((i) => i.amount_due),
+        last_paid_seat_count: lastPaidSeatCount,
+        new_seat_count: newSeatCount,
+        subscription_id: existingSub.id,
+      },
+    });
+  }
+
   async reseatSubscriptionAwaited(
     workspaceOrOrgId: string,
     ncMeta = Noco.ncMeta,
@@ -1122,7 +1342,7 @@ export class PaymentService {
       if (workspaceOrOrg.stripe_customer_id === NOCODB_INTERNAL) {
         await Subscription.update(
           existingSub.id,
-          { seat_count: seatCount },
+          { seat_count: seatCount, last_paid_seat_count: seatCount },
           ncMeta,
         );
       } else {
@@ -1146,18 +1366,15 @@ export class PaymentService {
           NcError._.subscriptionOwnershipMismatch('org');
         }
 
-        await stripe.subscriptions.update(stripeSub.id, {
-          items: [
-            {
-              id: stripeSub.items.data[0].id,
-              price: existingSub.stripe_price_id,
-              quantity: seatCount,
-            },
-          ],
-          ...(existingSub.period === 'year' || existingSub.stripe_schedule_id
-            ? { proration_behavior: 'always_invoice' }
-            : {}),
-        });
+        // Consolidate unpaid proration invoices before updating subscription
+        // This prevents the proration chain from breaking when invoices go uncollectible
+        await this.consolidateUnpaidProrationInvoices(
+          stripeSub,
+          existingSub,
+          workspaceOrOrg,
+          seatCount,
+          ncMeta,
+        );
 
         await Subscription.update(
           existingSub.id,
@@ -1779,6 +1996,7 @@ export class PaymentService {
       stripe_subscription_id: subscriptionData.id,
       stripe_price_id: price.id,
       seat_count: subscriptionData.items.data[0].quantity,
+      last_paid_seat_count: subscriptionData.items.data[0].quantity,
       status: subscriptionData.status,
       start_at: dayjs.unix(subscriptionData.start_date).utc().toISOString(),
       period: price.recurring.interval,
@@ -2202,6 +2420,18 @@ export class PaymentService {
 
           this.migrateDb(workspaceOrOrgId).catch(() => {});
 
+          // Update last_paid_seat_count to current subscription quantity
+          // This anchors the proration chain so consolidation knows the last paid state
+          const paidStripeSub = await stripe.subscriptions.retrieve(
+            subRec.stripe_subscription_id,
+          );
+          if (paidStripeSub) {
+            const paidSeatCount = paidStripeSub.items.data[0].quantity;
+            await Subscription.update(subRec.id, {
+              last_paid_seat_count: paidSeatCount,
+            });
+          }
+
           await this.updateNextInvoice(
             subRec.id,
             await this.getNextInvoice(workspaceOrOrgId),
@@ -2295,6 +2525,7 @@ export class PaymentService {
             stripe_subscription_id: stripeSub.id,
             stripe_price_id: price.id,
             seat_count: seatCount,
+            last_paid_seat_count: seatCount,
             status: stripeSub.status,
             start_at: dayjs.unix(stripeSub.start_date).utc().toISOString(),
             trial_end_at: stripeSub.trial_end

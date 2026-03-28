@@ -176,8 +176,6 @@ export async function singleQueryGroupedList(
     : [];
 
   const aggrConditionObj = [
-    // RLS filters — always first, always applied
-    ...rlsFilterGroup,
     ...(ctx.view && !ctx.ignoreViewFilterAndSort
       ? [
           new Filter({
@@ -206,8 +204,19 @@ export async function singleQueryGroupedList(
     }),
   ];
 
-  // apply filters on root query
-  await conditionV2(baseModel, aggrConditionObj, rootQb);
+  // RLS filters — always throw on missing columns to prevent row leaks
+  if (rlsFilterGroup.length) {
+    await conditionV2(baseModel, rlsFilterGroup, rootQb, undefined, true);
+  }
+
+  // apply remaining filters on root query
+  await conditionV2(
+    baseModel,
+    aggrConditionObj,
+    rootQb,
+    undefined,
+    ctx.throwErrorIfInvalidParams,
+  );
 
   const orderColumn = columns.find((c) => isOrderCol(c));
 

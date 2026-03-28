@@ -797,6 +797,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           this,
           [new Filter({ children: rlsConditions, is_group: true })],
           query,
+          undefined,
+          true,
         );
       }
 
@@ -1961,6 +1963,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           this,
           [new Filter({ children: rlsConditions, is_group: true })],
           delQb,
+          undefined,
+          true,
         );
       }
 
@@ -2835,13 +2839,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               .update(dWithoutPk)
               .where(wherePk);
             if (rlsFilterGroup.length) {
-              await conditionV2(this, rlsFilterGroup, qb);
+              await conditionV2(this, rlsFilterGroup, qb, undefined, true);
             }
             updateQueries.push(qb.toQuery());
           } else {
             const qb = this.dbDriver(this.tnPath).update(d).where(wherePk);
             if (rlsFilterGroup.length) {
-              await conditionV2(this, rlsFilterGroup, qb);
+              await conditionV2(this, rlsFilterGroup, qb, undefined, true);
             }
             updateQueries.push(qb.toQuery());
           }
@@ -3167,7 +3171,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
         if (batchQb) {
           if (rlsFilterGroup.length) {
-            await conditionV2(this, rlsFilterGroup, batchQb);
+            await conditionV2(this, rlsFilterGroup, batchQb, undefined, true);
           }
           queries.push(batchQb.toQuery());
         }
@@ -3175,7 +3179,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         for (const o of toBeUpdated) {
           const qb = this.dbDriver(this.tnPath).update(o.d).where(o.wherePk);
           if (rlsFilterGroup.length) {
-            await conditionV2(this, rlsFilterGroup, qb);
+            await conditionV2(this, rlsFilterGroup, qb, undefined, true);
           }
           queries.push(qb.toQuery());
         }
@@ -3608,7 +3612,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       for (const d of res) {
         const qb = this.dbDriver(this.tnPath).del().where(d);
         if (rlsFilterGroup.length) {
-          await conditionV2(this, rlsFilterGroup, qb);
+          await conditionV2(this, rlsFilterGroup, qb, undefined, true);
         }
         queries.push(qb.toQuery());
       }

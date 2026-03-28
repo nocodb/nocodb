@@ -155,8 +155,6 @@ export const singleQueryRead = (client: DBQueryClient) => {
       : [];
 
     const aggrConditionObj = [
-      // RLS filters — always first, always applied
-      ...rlsFilterGroup,
       ...(ctx.view?.id
         ? [
             new Filter({
@@ -178,12 +176,27 @@ export const singleQueryRead = (client: DBQueryClient) => {
     ];
 
     if (
-      await checkForCurrentUserFilters({ context, filters: aggrConditionObj })
+      await checkForCurrentUserFilters({
+        context,
+        filters: [...rlsFilterGroup, ...aggrConditionObj],
+      })
     ) {
       skipCache = true;
     }
-    // apply filters on root query
-    await conditionV2(baseModel, aggrConditionObj, rootQb);
+
+    // RLS filters — always throw on missing columns to prevent row leaks
+    if (rlsFilterGroup.length) {
+      await conditionV2(baseModel, rlsFilterGroup, rootQb, undefined, true);
+    }
+
+    // apply remaining filters on root query
+    await conditionV2(
+      baseModel,
+      aggrConditionObj,
+      rootQb,
+      undefined,
+      ctx.throwErrorIfInvalidParams,
+    );
 
     const qb = knex.from(rootQb.as(ROOT_ALIAS));
 

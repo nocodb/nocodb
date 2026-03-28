@@ -96,7 +96,7 @@ export interface DataUpsertRecordRequest {
 }
 
 export interface DataUpsertRequest {
-  fieldsToMergeOn?: string[];
+  fieldsToMergeOn: string[];
   records: DataUpsertRecordRequest | DataUpsertRecordRequest[];
 }
 
@@ -107,7 +107,6 @@ export interface DataUpsertRecordResponse extends DataRecord {
 export interface DataUpsertParams {
   baseId?: string;
   modelId: string;
-  viewId?: string;
   body: DataUpsertRequest;
   cookie: any;
 }

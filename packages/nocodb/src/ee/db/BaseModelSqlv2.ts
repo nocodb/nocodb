@@ -2760,16 +2760,20 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           mergeColNames.map((cn) => data[cn]),
         );
 
-        existingRecords = await this.findByMergeFields(
+        const mergeMatchedRecords = await this.findByMergeFields(
           mergeColumns,
           mergeValuesPerRecord,
         );
 
+        // Build a lookup map: stringified merge values → matched records
         const existingMap = new Map<string, Record<string, any>[]>();
-        for (const record of existingRecords) {
+        for (const record of mergeMatchedRecords) {
           const key = mergeColNames
-            .map((cn) => String(record[cn] ?? ''))
-            .join('___');
+            .map((cn) => {
+              const v = record[cn];
+              return v === null || v === undefined ? '\0NULL\0' : String(v);
+            })
+            .join('\0SEP\0');
           if (!existingMap.has(key)) {
             existingMap.set(key, [record]);
           } else {
@@ -2780,8 +2784,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         for (let i = 0; i < preparedDatas.length; i++) {
           const data = preparedDatas[i];
           const key = mergeColNames
-            .map((cn) => String(data[cn] ?? ''))
-            .join('___');
+            .map((cn) => {
+              const v = data[cn];
+              return v === null || v === undefined ? '\0NULL\0' : String(v);
+            })
+            .join('\0SEP\0');
           const matchedRecords = existingMap.get(key);
 
           if (matchedRecords?.length > 1 && throwOnDuplicate) {
@@ -2811,6 +2818,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             order = order?.plus(1);
             toInsert.push(data);
           }
+        }
+
+        // Re-fetch full records for audit/webhook callbacks (merge lookup only returns PK + merge cols)
+        if (toUpdate.length > 0) {
+          existingRecords = await this.chunkList({ pks: updatePkValues });
         }
       } else {
         // --- Original PK-based matching ---

@@ -5381,14 +5381,6 @@
         "operationId": "db-v3-data-table-row-upsert",
         "description": "Find-or-create records in a single call. If a record matching the merge key exists, update it; otherwise insert a new one.",
         "tags": ["Table Records"],
-        "parameters": [
-          {
-            "name": "view_id",
-            "in": "query",
-            "schema": { "type": "string" },
-            "description": "View ID to apply view context"
-          }
-        ],
         "requestBody": {
           "required": true,
           "content": {

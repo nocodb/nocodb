@@ -181,7 +181,7 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
       />
 
       <LazySmartsheetToolbarRecordTrash
-        v-if="!isPublic && !isSharedBase && !isMobileMode && !isForm && hasDeletedField && isUIAllowed('dataDelete')"
+        v-if="!isPublic && !isSharedBase && !isMobileMode && !isForm && hasDeletedField && isUIAllowed('dataEdit')"
       />
 
       <div v-if="isCalendar && isMobileMode" class="flex-1 pointer-events-none" />

@@ -401,14 +401,15 @@ const onResizeMouseDown = (colIndex: number, e: MouseEvent) => {
         return Math.round(startWidths[i])
       })
 
-      // Build a single transaction to update colwidth on all cells in the two columns
+      // Build a single transaction to update colwidth on ALL columns so
+      // table-layout:fixed distributes them consistently at 100% width.
       const { state, dispatch } = editor.value.view
       const tr = state.tr
 
       const rows = tableEl.value.querySelectorAll('tr')
       rows.forEach((row) => {
         const rowCells = row.querySelectorAll('td, th')
-        ;[colIndex, colIndex + 1].forEach((ci) => {
+        for (let ci = 0; ci < rowCells.length; ci++) {
           const cell = rowCells[ci]
           if (!cell) return
           const pos = editor.value!.view.posAtDOM(cell, 0)
@@ -423,7 +424,7 @@ const onResizeMouseDown = (colIndex: number, e: MouseEvent) => {
               break
             }
           }
-        })
+        }
       })
 
       dispatch(tr)

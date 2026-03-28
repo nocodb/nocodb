@@ -1770,10 +1770,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             qb.orderByRaw(
               this.dbDriver.raw(
                 `CASE WHEN LOWER(??) LIKE ? THEN 0 ELSE 1 END`,
-                [
-                  pvColumn.column_name,
-                  String(pvFilter.value).toLowerCase(),
-                ],
+                [pvColumn.column_name, String(pvFilter.value).toLowerCase()],
               ),
             );
           } else if (op === 'eq') {
@@ -5620,7 +5617,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return await trx.from(trx.raw(query).wrap('(', ') __nc_alias'));
     } else if (this.isMySQL && INSERT_REGEX.test(query)) {
       const res = await trx.raw(query);
-      if (res && res[0] && res[0].insertId) {
+      if (res?.[0] && res[0].insertId !== undefined) {
         return res[0].insertId;
       }
       return res;

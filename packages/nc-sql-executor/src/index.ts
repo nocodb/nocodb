@@ -163,7 +163,7 @@ async function execAndGetRows(kn: Knex, config: any, query: string) {
     const res = await kn
       .raw(query)
       .timeout(QUERY_TIMEOUT_MS, queryTimeoutOpts(client));
-    if (res && res[0] && res[0].insertId) return res[0].insertId;
+    if (res?.[0]?.insertId !== undefined) return res[0].insertId;
     return res;
   } else {
     return await kn
@@ -438,14 +438,24 @@ async function streamQueryHandler(req, res) {
 
     res.raw.end();
   } catch (e) {
-    console.error('\nStream query failed with error:', e, '\nQuery:', query, '\n');
+    console.error(
+      '\nStream query failed with error:',
+      e,
+      '\nQuery:',
+      query,
+      '\n',
+    );
     // If headers already sent, write error as NDJSON and close
     res.raw.write(JSON.stringify({ __error: serializeError(e) }) + '\n');
     res.raw.end();
   }
 }
 
-fastify.post('/stream', { schema: { body: StreamBodyJsonSchema } }, streamQueryHandler);
+fastify.post(
+  '/stream',
+  { schema: { body: StreamBodyJsonSchema } },
+  streamQueryHandler,
+);
 fastify.post(
   '/stream/:sourceId',
   { schema: { body: StreamBodyJsonSchema } },

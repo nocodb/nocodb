@@ -369,19 +369,15 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       if (isSingleRecordInsertion || apiVersion === NcApiVersion.V3) {
         for (let i = 0; i < responses.length; i++) {
           const row = responses[i];
-          let rowId = row[baseModel.model.primaryKey?.title];
-
-          if (aiPkCol || agPkCol) {
-            rowId = baseModel.extractCompositePK({
-              rowId,
-              ai: aiPkCol,
-              ag: agPkCol,
-              insertObj: insertDatas[i],
-            });
-          }
+          const rowId = baseModel.extractCompositePK({
+            rowId: row[baseModel.model.primaryKey?.title],
+            ai: aiPkCol,
+            ag: agPkCol,
+            insertObj: insertDatas[i],
+          });
 
           await baseModel.runOps(
-            postInsertOpsMap[i].map((f) => f(rowId)),
+            (postInsertOpsMap[i] ?? []).map((f) => f(rowId)),
             trx,
           );
         }
@@ -390,6 +386,22 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       await trx.commit();
 
       if (!raw && !skip_hooks) {
+        // we will wrap returning primary key values with primary key column name
+        // only needed when responses are raw auto-increment IDs (batchInsert path)
+        // skip when insertOneByOneAsFallback already wrapped them via extractCompositePK
+        if (baseModel.isMySQL && !insertOneByOneAsFallback) {
+          responses = responses.map((r, idx) => {
+            const rowId = baseModel.extractCompositePK({
+              rowId: r,
+              ai: aiPkCol,
+              ag: agPkCol,
+              insertObj: insertDatas[idx],
+            });
+            if (rowId && typeof rowId === 'object') return rowId;
+            return { [baseModel.model.primaryKey.column_name]: rowId ?? r };
+          });
+        }
+
         if (isSingleRecordInsertion) {
           const insertData = await baseModel.readByPk(responses[0]);
           await baseModel.afterInsert({

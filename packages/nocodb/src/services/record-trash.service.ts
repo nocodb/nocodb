@@ -8,14 +8,35 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
+import type { Knex } from 'knex';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import { Column, FileReference, Model, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { _wherePk, getCompositePkValue } from '~/helpers/dbHelpers';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Noco from '~/Noco';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+
+/**
+ * Apply a WHERE clause that matches any of the given PK values,
+ * supporting both single and composite primary keys.
+ */
+function _whereInPks(
+  qb: Knex.QueryBuilder,
+  primaryKeys: Column[],
+  ids: unknown[],
+): Knex.QueryBuilder {
+  if (primaryKeys.length === 1) {
+    return qb.whereIn(primaryKeys[0].column_name, ids);
+  }
+  return qb.where(function () {
+    for (const id of ids) {
+      this.orWhere(_wherePk(primaryKeys, id, true));
+    }
+  });
+}
 
 @Injectable()
 export class RecordTrashService {
@@ -171,7 +192,7 @@ export class RecordTrashService {
       NcError.get(context).recordRestoreConflict(details);
     }
 
-    const pk = model.primaryKey.column_name;
+    const primaryKeys = model.primaryKeys;
     const BATCH_SIZE = 100;
 
     // ── Handle OO force-restore conflicts (pre-restore cleanup) ──────────────
@@ -223,9 +244,11 @@ export class RecordTrashService {
 
       // Fetch records before restoring — needed for audit log
       const preRestoreRows = await baseModel.execAndParse(
-        baseModel
-          .dbDriver(baseModel.tnPath)
-          .whereIn(pk, batchIds)
+        _whereInPks(
+          baseModel.dbDriver(baseModel.tnPath),
+          primaryKeys,
+          batchIds,
+        )
           .where(deletedColumn.column_name, true)
           .select(
             model.columns
@@ -242,9 +265,11 @@ export class RecordTrashService {
       if (conflictMap?.size) {
         const cleanIds = batchIds.filter((id) => !conflictMap.has(id));
         if (cleanIds.length) {
-          await baseModel
-            .dbDriver(baseModel.tnPath)
-            .whereIn(pk, cleanIds)
+          await _whereInPks(
+            baseModel.dbDriver(baseModel.tnPath),
+            primaryKeys,
+            cleanIds,
+          )
             .where(deletedColumn.column_name, true)
             .update({ [deletedColumn.column_name]: false });
         }
@@ -260,14 +285,16 @@ export class RecordTrashService {
 
           await baseModel
             .dbDriver(baseModel.tnPath)
-            .where(pk, id)
+            .where(_wherePk(primaryKeys, id, true))
             .where(deletedColumn.column_name, true)
             .update(update);
         }
       } else {
-        await baseModel
-          .dbDriver(baseModel.tnPath)
-          .whereIn(pk, batchIds)
+        await _whereInPks(
+          baseModel.dbDriver(baseModel.tnPath),
+          primaryKeys,
+          batchIds,
+        )
           .where(deletedColumn.column_name, true)
           .update({ [deletedColumn.column_name]: false });
       }
@@ -356,11 +383,13 @@ export class RecordTrashService {
     // Verify all specified rows are actually trashed before allowing permanent delete.
     // Without this check, a caller could permanently delete active (non-trashed) records.
     if (deletedColumn && param.rowIds.length) {
-      const pk = model.primaryKey.column_name;
-      const rows = await baseModel
-        .dbDriver(baseModel.tnPath)
-        .select(pk, deletedColumn.column_name)
-        .whereIn(pk, param.rowIds);
+      const primaryKeys = model.primaryKeys;
+      const pkColNames = primaryKeys.map((pk) => pk.column_name);
+      const rows = await _whereInPks(
+        baseModel.dbDriver(baseModel.tnPath),
+        primaryKeys,
+        param.rowIds,
+      ).select([...pkColNames, deletedColumn.column_name]);
 
       const activeRows = rows.filter((r) => !r[deletedColumn.column_name]);
 
@@ -408,7 +437,8 @@ export class RecordTrashService {
     });
 
     // Paginated permanent delete of all trashed records
-    const pk = model.primaryKey.column_name;
+    const primaryKeys = model.primaryKeys;
+    const pkColNames = primaryKeys.map((pk) => pk.column_name);
     const batchSize = 100;
     let totalDeleted = 0;
 
@@ -417,7 +447,7 @@ export class RecordTrashService {
       const rows = await baseModel.execAndParse(
         baseModel
           .dbDriver(baseModel.tnPath)
-          .select(pk)
+          .select(pkColNames)
           .where(deletedColumn.column_name, true)
           .limit(batchSize),
         null,
@@ -426,7 +456,9 @@ export class RecordTrashService {
 
       if (!rows.length) break;
 
-      const ids = rows.map((r) => String(r[pk]));
+      const ids = rows.map((r) =>
+        getCompositePkValue(primaryKeys, r),
+      );
       await baseModel.permanentDeleteByIds(ids, param.req);
       totalDeleted += ids.length;
     }
@@ -562,38 +594,58 @@ export class RecordTrashService {
 
     // ── V1 conflict detection (direct FK) ───────────────────────────────────
     if (ooV1ChildCols.length) {
-      const pk = model.primaryKey.column_name;
+      const primaryKeys = model.primaryKeys;
+      const pkColNames = primaryKeys.map((pk) => pk.column_name);
       const fkColNames = ooV1ChildCols.map((o) => o.fkChildCol.column_name);
 
       // Load the soft-deleted rows to get their FK values
-      const rows = await baseModel
-        .dbDriver(baseModel.tnPath)
-        .whereIn(pk, rowIds)
+      const rows = await _whereInPks(
+        baseModel.dbDriver(baseModel.tnPath),
+        primaryKeys,
+        rowIds,
+      )
         .where(deletedColumn.column_name, true)
-        .select([pk, ...fkColNames]);
+        .select([...pkColNames, ...fkColNames]);
 
       for (const row of rows) {
+        const rowPkValue = getCompositePkValue(primaryKeys, row);
+
         for (const { col, fkChildCol } of ooV1ChildCols) {
           const fkValue = row[fkChildCol.column_name];
           if (fkValue == null) continue;
 
           // Check if another active (non-deleted) record has already claimed this FK
-          const existing = await baseModel
+          const existingQb = baseModel
             .dbDriver(baseModel.tnPath)
-            .whereNot(pk, row[pk])
             .where(fkChildCol.column_name, fkValue)
             .where(function () {
               this.whereNull(deletedColumn.column_name).orWhere(
                 deletedColumn.column_name,
                 false,
               );
-            })
+            });
+
+          // Exclude the current row
+          if (primaryKeys.length === 1) {
+            existingQb.whereNot(
+              primaryKeys[0].column_name,
+              row[primaryKeys[0].column_name],
+            );
+          } else {
+            existingQb.whereNot(function () {
+              for (const pk of primaryKeys) {
+                this.where(pk.column_name, row[pk.column_name]);
+              }
+            });
+          }
+
+          const existing = await existingQb
             .count('* as count')
             .first();
 
           if (+(existing?.count ?? 0) > 0) {
             conflicts.push({
-              rowId: row[pk],
+              rowId: rowPkValue,
               columnTitle: col.title,
               fkColumnName: fkChildCol.column_name,
             });
@@ -607,7 +659,7 @@ export class RecordTrashService {
     //   - The junction table has a row linking the restored record to a parent, AND
     //   - Another active (non-deleted) record also links to the same parent via the junction.
     if (ooV2Cols.length) {
-      const pk = model.primaryKey.column_name;
+      const primaryKeys = model.primaryKeys;
 
       for (const { col, colOpts } of ooV2Cols) {
         const { mmContext } = await colOpts.getParentChildContext(context);
@@ -660,9 +712,11 @@ export class RecordTrashService {
               );
 
               if (otherChildIds.length) {
-                const activeCount = await baseModel
-                  .dbDriver(baseModel.tnPath)
-                  .whereIn(pk, otherChildIds)
+                const activeCount = await _whereInPks(
+                  baseModel.dbDriver(baseModel.tnPath),
+                  primaryKeys,
+                  otherChildIds,
+                )
                   .where(function () {
                     this.whereNull(deletedColumn.column_name).orWhere(
                       deletedColumn.column_name,

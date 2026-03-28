@@ -352,7 +352,7 @@ export class RelationManager {
           .where(softDeleteCol.column_name, true)
           .whereRaw('?? = ??', [
             otherSideTable.primaryKey.column_name,
-            otherSideColName,
+            `${vTn}.${otherSideColName}`,
           ]),
       );
     }

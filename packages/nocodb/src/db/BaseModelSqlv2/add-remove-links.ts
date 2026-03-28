@@ -458,7 +458,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                       .where(parentSoftDeleteCol.column_name, true)
                       .whereRaw('?? = ??', [
                         parentTable.primaryKey.column_name,
-                        vParentCol.column_name,
+                        `${vTn}.${vParentCol.column_name}`,
                       ]),
                   );
                 }
@@ -517,7 +517,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                         .where(childSoftDeleteCol.column_name, true)
                         .whereRaw('?? = ??', [
                           childTable.primaryKey.column_name,
-                          vChildCol.column_name,
+                          `${vTn}.${vChildCol.column_name}`,
                         ]),
                     );
                   }

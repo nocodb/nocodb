@@ -301,6 +301,12 @@ export class MySqlDBQueryClient
                   await sortV2(parentBaseModel, sorts, mmQb, alias2);
                 } else if (relatedSorts && relatedSorts.length > 0)
                   await sortV2(parentBaseModel, relatedSorts, mmQb, alias2);
+                else if (parentModel.primaryKey) {
+                  mmQb.orderBy(
+                    `${alias2}.${parentModel.primaryKey.column_name}`,
+                    'asc',
+                  );
+                }
 
                 const mmAggQb = knex(mmQb.as(alias5));
                 await this.extractColumns({
@@ -646,6 +652,12 @@ export class MySqlDBQueryClient
                   await sortV2(childBaseModel, sorts, hmQb, alias2);
                 } else if (childSorts && childSorts.length > 0)
                   await sortV2(childBaseModel, childSorts, hmQb);
+                else if (childModel.primaryKey) {
+                  hmQb.orderBy(
+                    `${childModel.primaryKey.column_name}`,
+                    'asc',
+                  );
+                }
 
                 const hmAggQb = knex(hmQb.as(alias3));
                 await this.extractColumns({

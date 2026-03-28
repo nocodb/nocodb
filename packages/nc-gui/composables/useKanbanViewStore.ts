@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import { EventType, UITypes, ViewLockType, ViewTypes } from 'nocodb-sdk'
+import { EventType, UITypes, ViewLockType, ViewTypes, isDeletedCol } from 'nocodb-sdk'
 import type {
   Api,
   ColumnType,

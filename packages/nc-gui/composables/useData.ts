@@ -1,5 +1,5 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RelationTypes, TableType, ViewType } from 'nocodb-sdk'
-import { UITypes, isAIPromptCol, isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
+import { UITypes, isAIPromptCol, isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol, isDeletedCol } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { CellRange } from '#imports'
 

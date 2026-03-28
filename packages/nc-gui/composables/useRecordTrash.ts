@@ -132,21 +132,20 @@ export const useRecordTrash = createSharedComposable(() => {
 
   async function restoreRecords(rowIds: string[]) {
     if (!tableId.value || !rowIds.length) return
-    removeRowsLocally(rowIds)
     try {
       await _doRestoreRecords(rowIds)
+      removeRowsLocally(rowIds)
     } catch (e: any) {
       const { error } = await extractSdkResponseErrorMsgv2(e)
       if (error === NcErrorType.ERR_RECORD_RESTORE_CONFLICT) {
-        await loadDeletedRecords()
         showWarningModal({
           title: t('trash.ooConflictTitle'),
           content: t('trash.ooConflictForce'),
           okText: t('trash.restoreAnyway'),
           okCallback: async () => {
-            removeRowsLocally(rowIds)
             try {
               await _doRestoreRecords(rowIds, true)
+              removeRowsLocally(rowIds)
             } catch (e2: any) {
               message.error(await extractSdkResponseErrorMsg(e2))
               await loadDeletedRecords()
@@ -182,10 +181,6 @@ export const useRecordTrash = createSharedComposable(() => {
 
   async function emptyTrash() {
     if (!tableId.value) return
-    deletedRecords.value = []
-    selectedRowIds.value = []
-    trashCount.value = 0
-    totalCount.value = 0
     try {
       await $api.internal.postOperation(
         (meta.value as TableType)?.fk_workspace_id ?? 'nc__',
@@ -195,10 +190,13 @@ export const useRecordTrash = createSharedComposable(() => {
       )
       message.success(t('trash.trashEmptied'))
       deletedRecords.value = []
+      selectedRowIds.value = []
       trashCount.value = 0
       totalCount.value = 0
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
+      await loadDeletedRecords()
+      await loadTrashCount()
     }
   }
 

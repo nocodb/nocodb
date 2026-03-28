@@ -10,9 +10,10 @@ import {
 import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { LinkToAnotherRecordColumn } from '~/models';
-import { Column, FileReference, Model, Source } from '~/models';
+import { Column, FileReference, Filter, Model, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { _wherePk, getCompositePkValue } from '~/helpers/dbHelpers';
+import conditionV2 from '~/db/conditionV2';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Noco from '~/Noco';
@@ -93,16 +94,22 @@ export class RecordTrashService {
     // Sort by LastModifiedTime desc (most recently deleted first)
     const sortCol = lastModifiedTimeCol;
 
-    // Count trashed records directly (count() applies soft-delete filter, so use raw query)
-    const count = +(
-      (
-        await baseModel
-          .dbDriver(baseModel.tnPath)
-          .count('* as count')
-          .where(deletedColumn.column_name, true)
-          .first()
-      )?.count ?? 0
-    );
+    // Count trashed records — apply RLS so the count matches what list() returns
+    const countQb = baseModel
+      .dbDriver(baseModel.tnPath)
+      .count('* as count')
+      .where(deletedColumn.column_name, true);
+
+    const rlsConditions = await baseModel.getRlsConditions();
+    if (rlsConditions.length) {
+      await conditionV2(
+        baseModel,
+        [new Filter({ children: rlsConditions, is_group: true })],
+        countQb,
+      );
+    }
+
+    const count = +((await countQb.first())?.count ?? 0);
 
     const rows = await baseModel.list(
       {
@@ -501,11 +508,21 @@ export class RecordTrashService {
       source,
     });
 
-    const result = await baseModel
+    const countQb = baseModel
       .dbDriver(baseModel.tnPath)
       .count('* as count')
-      .where(deletedColumn.column_name, true)
-      .first();
+      .where(deletedColumn.column_name, true);
+
+    const rlsConditions = await baseModel.getRlsConditions();
+    if (rlsConditions.length) {
+      await conditionV2(
+        baseModel,
+        [new Filter({ children: rlsConditions, is_group: true })],
+        countQb,
+      );
+    }
+
+    const result = await countQb.first();
 
     const retentionDays = await this.resolveRetentionDays(context);
 

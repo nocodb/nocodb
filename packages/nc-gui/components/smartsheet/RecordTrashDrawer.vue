@@ -67,7 +67,7 @@ function formatDate(dateStr: string) {
   if (diffMins < 60) return t('trash.minutesAgo', { count: diffMins })
   if (diffHours < 24) return t('trash.hoursAgo', { count: diffHours })
   if (diffDays < 7) return t('trash.daysAgo', { count: diffDays })
-  return d.toLocaleDateString()
+  return dayjs(d).format('YYYY-MM-DD')
 }
 
 function isSelected(record: Record<string, any>) {

@@ -133,7 +133,7 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
     await relatedModel.getColumns(relatedContext);
 
     // Exclude soft-deleted records from related table existence check
-    const _softDeleteFilterValidate =
+    const softDeleteFilterValidate =
       await relatedBaseModel.getSoftDeleteFilter();
 
     const notExistsQb = DBQueryClient.get(
@@ -160,8 +160,8 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
         );
 
         // Exclude soft-deleted records — treat them as non-existent
-        if (_softDeleteFilterValidate) {
-          subQb.where(_softDeleteFilterValidate);
+        if (softDeleteFilterValidate) {
+          subQb.where(softDeleteFilterValidate);
         }
       });
     const notExistsId = await notExistsQb;

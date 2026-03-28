@@ -103,6 +103,7 @@ export const UITypesName = {
   [UITypes.User]: 'User',
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
+  [UITypes.Deleted]: 'Deleted',
   [UITypes.Meta]: 'Row Meta',
   [UITypes.UUID]: 'UUID',
   AIButton: 'AI Button',

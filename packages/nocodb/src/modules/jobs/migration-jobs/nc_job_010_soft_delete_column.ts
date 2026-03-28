@@ -3,8 +3,6 @@ import debug from 'debug';
 import PQueue from 'p-queue';
 import { isDeletedCol, UITypes } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
-import type { Knex } from 'knex';
-import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import type CustomKnex from '~/db/CustomKnex';
 import { Column, Model, Source } from '~/models';
 import { MetaTable } from '~/utils/globals';
@@ -52,7 +50,9 @@ export class SoftDeleteColumnMigration {
   private readonly log = (...msgs: string[]) =>
     this.logger.log(`${msgs.join(' ')}`);
 
-  private processingModels = [{ fk_model_id: 'placeholder', processing: true }];
+  private processingModels = [
+    { fk_model_id: '__sentinel__', processing: true },
+  ];
   private processedModelsCount = 0;
   private cache = new SimpleLRUCache(1000);
 
@@ -77,7 +77,7 @@ export class SoftDeleteColumnMigration {
       .where('completed', false);
 
     // Reset processed models count
-    this.processingModels = [{ fk_model_id: 'placeholder', processing: true }];
+    this.processingModels = [{ fk_model_id: '__sentinel__', processing: true }];
     this.processedModelsCount = 0;
 
     // Clear cache
@@ -197,34 +197,6 @@ export class SoftDeleteColumnMigration {
     }
   }
 
-  private async addSoftDeleteColumn(
-    model: Model,
-    source: Source,
-    sqlMgr: SqlMgrv2,
-  ) {
-    const newColumn = {
-      ...(await memoizedGetColumnPropsFromUIDT(source)),
-      column_name: getUniqueColumnName(model.columns, '__nc_deleted'),
-      title: getUniqueColumnAliasName(model.columns, '__nc_deleted'),
-      cdf: source.type === 'mysql2' ? '0' : 'false',
-      system: true,
-      altered: Altered.NEW_COLUMN,
-    };
-
-    const tableUpdateBody = {
-      ...model,
-      tn: model.table_name,
-      originalColumns: model.columns.map((c) => ({ ...c, cn: c.column_name })),
-      columns: [...model.columns, newColumn].map((c) => ({
-        ...c,
-        cn: c.column_name,
-      })),
-    };
-
-    await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
-    return newColumn;
-  }
-
   private async processModel(
     modelData: {
       id: string;
@@ -279,7 +251,7 @@ export class SoftDeleteColumnMigration {
       if (col.uidt !== UITypes.LinkToAnotherRecord) continue;
       const colOpts = await col.getColOptions<any>(context, ncMeta);
       if (colOpts?.type !== 'oo' || !col.meta?.bt) continue;
-      if (colOpts?.version == 2) continue;
+      if (colOpts?.version === 2) continue;
       const fkCol = await Column.get(
         context,
         { colId: colOpts.fk_child_column_id },
@@ -368,8 +340,7 @@ export class SoftDeleteColumnMigration {
       try {
         await realDbDriver.schema.table(tnPath as string, (t) => {
           // PG has a 63-char identifier limit, MySQL 64 — truncate to be safe
-          const idxName =
-            `${model.table_name}_nc_deleted_idx`.slice(0, 63);
+          const idxName = `${model.table_name}_nc_deleted_idx`.slice(0, 63);
           t.index([newDeletedColumn.column_name], idxName);
         });
       } catch (_e) {

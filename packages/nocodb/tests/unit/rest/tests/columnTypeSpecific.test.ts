@@ -65,13 +65,13 @@ function columnTypeSpecificTests() {
       uidt: UITypes.Order,
       system: true,
     },
+    {
+      title: '__nc_deleted',
+      uidt: UITypes.Deleted,
+      system: true,
+    },
     ...(isEE
       ? [
-          {
-            title: '__nc_deleted',
-            uidt: UITypes.Deleted,
-            system: true,
-          },
           {
             title: META_COL_NAME,
             uidt: UITypes.Meta,

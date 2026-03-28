@@ -11,6 +11,7 @@
  */
 import type { Editor } from '@tiptap/vue-3'
 import { TextSelection } from '@tiptap/pm/state'
+import { TEXT_COLORS, CELL_BG_COLORS } from './DocColorConstants'
 
 // px — gap between adjacent handles
 
@@ -304,32 +305,6 @@ const onColumnAlign = (colIndex: number, align: 'left' | 'center' | 'right') => 
 }
 
 // --- Column colors ---
-const TEXT_COLORS = [
-  { name: 'Default', color: '' },
-  { name: 'Gray', color: '#6b7280' },
-  { name: 'Brown', color: '#92400e' },
-  { name: 'Yellow', color: '#a16207' },
-  { name: 'Green', color: '#15803d' },
-  { name: 'Blue', color: '#1d4ed8' },
-  { name: 'Purple', color: '#7c3aed' },
-  { name: 'Pink', color: '#db2777' },
-  { name: 'Orange', color: '#ea580c' },
-  { name: 'Red', color: '#dc2626' },
-]
-
-const BG_COLORS = [
-  { name: 'None', color: '' },
-  { name: 'Gray', color: '#f3f4f6' },
-  { name: 'Orange', color: '#fff3e0' },
-  { name: 'Pink', color: '#fce4ec' },
-  { name: 'Yellow', color: '#fffde7' },
-  { name: 'Green', color: '#e8f5e9' },
-  { name: 'Blue', color: '#e3f2fd' },
-  { name: 'Purple', color: '#f3e8ff' },
-  { name: 'Rose', color: '#fff1f2' },
-  { name: 'Red', color: '#ffebee' },
-]
-
 const onColumnCellAttr = (colIndex: number, attr: string, value: string | null) => {
   const table = tableEl.value
   if (!table || !table.isConnected || !editor.value) return
@@ -353,6 +328,8 @@ const onColumnCellAttr = (colIndex: number, attr: string, value: string | null) 
   })
 
   dispatch(tr)
+
+  menuOpen.value = null
   nextTick(() => recalcPositions())
 }
 
@@ -794,32 +771,12 @@ onBeforeUnmount(() => {
                   <template #icon><GeneralIcon icon="ncPalette" /></template>
                 </NcButton>
                 <template #overlay>
-                  <div class="nc-table-col-color-picker" @mousedown.prevent>
-                    <div class="nc-table-col-color-label">{{ $t('labels.textColor') }}</div>
-                    <div class="nc-table-col-color-grid">
-                      <button
-                        v-for="tc in TEXT_COLORS"
-                        :key="tc.color || 'default'"
-                        class="nc-table-col-color-swatch"
-                        :style="{ borderColor: tc.color ? `color-mix(in srgb, ${tc.color} 30%, transparent)` : undefined }"
-                        :title="tc.name"
-                        @click="onColumnCellAttr(cIdx, 'cellTextColor', tc.color || null)"
-                      >
-                        <span class="nc-table-col-color-letter" :style="{ color: tc.color || '#1f2937' }">A</span>
-                      </button>
-                    </div>
-                    <div class="nc-table-col-color-label">{{ $t('labels.backgroundColor') }}</div>
-                    <div class="nc-table-col-color-grid">
-                      <button
-                        v-for="b in BG_COLORS"
-                        :key="b.color || 'none'"
-                        class="nc-table-col-color-swatch"
-                        :style="b.color ? { backgroundColor: b.color, borderColor: b.color } : {}"
-                        :title="b.name"
-                        @click="onColumnCellAttr(cIdx, 'bgColor', b.color || null)"
-                      />
-                    </div>
-                  </div>
+                  <DocColorPicker
+                    :text-colors="TEXT_COLORS"
+                    :bg-colors="CELL_BG_COLORS"
+                    @text-color="(c) => onColumnCellAttr(cIdx, 'cellTextColor', c)"
+                    @bg-color="(c) => onColumnCellAttr(cIdx, 'bgColor', c)"
+                  />
                 </template>
               </NcDropdown>
 
@@ -1164,7 +1121,7 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
 }
 
-// Color picker overlay
+// Color picker overlay — fit content
 :global(.nc-table-col-color-overlay) {
   width: auto !important;
   min-width: 0 !important;
@@ -1172,49 +1129,5 @@ onBeforeUnmount(() => {
   .ant-dropdown-menu {
     padding: 0;
   }
-}
-
-.nc-table-col-color-picker {
-  padding: 8px;
-}
-
-.nc-table-col-color-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--nc-content-gray-subtle);
-  margin-bottom: 6px;
-  margin-top: 10px;
-
-  &:first-child {
-    margin-top: 0;
-  }
-}
-
-.nc-table-col-color-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
-}
-
-.nc-table-col-color-swatch {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: 1.5px solid var(--nc-border-gray-medium);
-  cursor: pointer;
-  transition: transform 0.1s ease;
-
-  &:hover {
-    transform: scale(1.1);
-  }
-}
-
-.nc-table-col-color-letter {
-  font-weight: 700;
-  font-size: 14px;
-  line-height: 1;
 }
 </style>

@@ -440,6 +440,39 @@ const onResizeMouseDown = (colIndex: number, e: MouseEvent) => {
   document.body.style.userSelect = 'none'
 }
 
+// --- Distribute columns evenly ---
+const onDistributeColumns = () => {
+  menuOpen.value = null
+
+  const table = tableEl.value
+  if (!table || !editor.value) return
+
+  const { state, dispatch } = editor.value.view
+  const tr = state.tr
+
+  // Clear colwidth on every cell → table-layout:fixed distributes equally
+  const rows = table.querySelectorAll('tr')
+  rows.forEach((row) => {
+    const cells = row.querySelectorAll('td, th')
+    cells.forEach((cell) => {
+      const pos = editor.value!.view.posAtDOM(cell, 0)
+      const resolved = tr.doc.resolve(pos)
+      for (let d = resolved.depth; d > 0; d--) {
+        const node = resolved.node(d)
+        if (node.type.name === 'tableCell' || node.type.name === 'tableHeader') {
+          if (node.attrs.colwidth) {
+            tr.setNodeMarkup(resolved.before(d), undefined, { ...node.attrs, colwidth: null })
+          }
+          break
+        }
+      }
+    })
+  })
+
+  dispatch(tr)
+  nextTick(() => recalcPositions())
+}
+
 // --- Delete table ---
 const onDeleteTable = () => {
   menuOpen.value = null
@@ -591,6 +624,11 @@ onBeforeUnmount(() => {
         />
         <template #overlay>
           <NcMenu variant="small">
+            <NcMenuItem @click="onDistributeColumns">
+              <GeneralIcon icon="ncColumns" />
+              {{ $t('labels.distributeColumnsEvenly') }}
+            </NcMenuItem>
+            <NcDivider />
             <NcMenuItem danger @click="onDeleteTable">
               <GeneralIcon icon="delete" />
               {{ $t('labels.deleteTable') }}

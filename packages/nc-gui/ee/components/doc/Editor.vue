@@ -183,7 +183,16 @@ const {
   onSelectionUpdate,
 } = useDocEditorLinks({ editor, isEditable })
 
-const { downloadMarkdown, downloadHTML, downloadPDF } = useDocumentExport({ editor, title })
+const { downloadMarkdown, downloadHTML, downloadPDF } = useDocumentExport({
+  editor,
+  title,
+  imageUrlBuilder: (fileRefId: string) => {
+    const baseId = base.value?.id
+    const docIdVal = doc.value?.id
+    if (!baseId || !docIdVal) return ''
+    return `${appInfo.value.ncSiteUrl}/api/v2/data/bases/${baseId}/docs/${docIdVal}/attachment/${encodeURIComponent(fileRefId)}`
+  },
+})
 
 const { scrollToHeading } = useDocHeadingAnchors(editor, scrollContainerRef, isLoaded)
 

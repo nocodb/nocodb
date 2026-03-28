@@ -4,7 +4,16 @@ import DOMPurify from 'isomorphic-dompurify'
 /**
  * Download helpers for exporting document content as Markdown, HTML, or PDF.
  */
-export function useDocumentExport({ editor, title }: { editor: Ref<Editor | undefined>; title: Ref<string> }) {
+export function useDocumentExport({
+  editor,
+  title,
+  imageUrlBuilder,
+}: {
+  editor: Ref<Editor | undefined>
+  title: Ref<string>
+  /** Build an absolute image URL from a file reference ID. Used to replace blob/stripped src in exports. */
+  imageUrlBuilder?: (fileRefId: string) => string
+}) {
   /** Escape HTML special characters to prevent XSS in generated HTML documents. */
   const escapeHtml = (str: string) =>
     str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
@@ -111,6 +120,18 @@ export function useDocumentExport({ editor, title }: { editor: Ref<Editor | unde
   /** Sanitize editor HTML to prevent XSS in exported documents. */
   const sanitizeContent = (html: string) => DOMPurify.sanitize(html)
 
+  /** Fix image sources: DOMPurify strips blob: URLs. Rebuild from data-id using imageUrlBuilder. */
+  const fixImageSources = (html: string): string => {
+    if (!imageUrlBuilder) return html
+    const div = document.createElement('div')
+    div.innerHTML = html
+    div.querySelectorAll('img[data-id]').forEach((img) => {
+      const fileRefId = img.getAttribute('data-id')
+      if (fileRefId) img.setAttribute('src', imageUrlBuilder(fileRefId))
+    })
+    return div.innerHTML
+  }
+
   const downloadMarkdown = () => {
     if (!editor.value) return
     const md = `# ${title.value || 'Untitled'}\n\n${htmlToMarkdown(editor.value.getHTML())}`
@@ -120,7 +141,7 @@ export function useDocumentExport({ editor, title }: { editor: Ref<Editor | unde
   const downloadHTML = () => {
     if (!editor.value) return
     const safeTitle = escapeHtml(title.value || 'Untitled')
-    const safeContent = sanitizeContent(editor.value.getHTML())
+    const safeContent = fixImageSources(sanitizeContent(editor.value.getHTML()))
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -155,7 +176,7 @@ ${safeContent}
   const downloadPDF = () => {
     if (!editor.value) return
     const safeTitle = escapeHtml(title.value || 'Untitled')
-    const safeContent = sanitizeContent(editor.value.getHTML())
+    const safeContent = fixImageSources(sanitizeContent(editor.value.getHTML()))
     // Open a print-ready window with styled content, then trigger print-to-PDF
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -196,6 +217,9 @@ ${safeContent}
 
   /* Horizontal rule */
   hr { border: none; border-top: 1px solid #e5e7eb; margin: 2em 0; }
+
+  /* Images */
+  img { max-width: 100%; height: auto; border-radius: 4px; margin: 0.5em 0; }
 
   /* Links */
   a { color: #2563eb; text-decoration: underline; }
@@ -258,7 +282,12 @@ ${safeContent}
 <body>
 <h1>${safeTitle}</h1>
 ${safeContent}
-<script>window.onload = function() { window.print(); }<\/script>
+<script>
+// Wait for all images to load before triggering print
+Promise.all(Array.from(document.images).filter(img => !img.complete).map(img =>
+  new Promise(resolve => { img.onload = img.onerror = resolve; })
+)).then(() => window.print());
+<\/script>
 </body>
 </html>`
     const printWindow = window.open('', '_blank')

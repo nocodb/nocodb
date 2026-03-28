@@ -253,6 +253,19 @@ export class RecordTrashService {
     // ── Batch restore ────────────────────────────────────────────────────────
     const allPreRestoreRows = [];
 
+    // Build base restore payload: undelete + stamp LMT/LMB to reflect restore
+    const restorePayload: Record<string, any> = {
+      [deletedColumn.column_name]: false,
+    };
+    const lmtCol = model.columns.find(
+      (c) => c.uidt === UITypes.LastModifiedTime && c.system,
+    );
+    const lmbCol = model.columns.find(
+      (c) => c.uidt === UITypes.LastModifiedBy && c.system,
+    );
+    if (lmtCol) restorePayload[lmtCol.column_name] = baseModel.now();
+    if (lmbCol) restorePayload[lmbCol.column_name] = param.req?.user?.id;
+
     for (let i = 0; i < param.rowIds.length; i += BATCH_SIZE) {
       const batchIds = param.rowIds.slice(i, i + BATCH_SIZE);
 
@@ -271,7 +284,7 @@ export class RecordTrashService {
 
       allPreRestoreRows.push(...preRestoreRows);
 
-      // Restore: set __nc_deleted = false (with V1 OO conflict FK nulling if needed)
+      // Restore: set __nc_deleted = false + LMT/LMB (with V1 OO conflict FK nulling if needed)
       if (conflictMap?.size) {
         const cleanIds = batchIds.filter((id) => !conflictMap.has(id));
         if (cleanIds.length) {
@@ -281,7 +294,7 @@ export class RecordTrashService {
             cleanIds,
           )
             .where(deletedColumn.column_name, true)
-            .update({ [deletedColumn.column_name]: false });
+            .update(restorePayload);
         }
 
         for (const id of batchIds) {
@@ -289,7 +302,7 @@ export class RecordTrashService {
           if (!fkCols) continue;
 
           const update: Record<string, any> = {
-            [deletedColumn.column_name]: false,
+            ...restorePayload,
           };
           for (const col of fkCols) update[col] = null;
 
@@ -306,7 +319,7 @@ export class RecordTrashService {
           batchIds,
         )
           .where(deletedColumn.column_name, true)
-          .update({ [deletedColumn.column_name]: false });
+          .update(restorePayload);
       }
 
       // Restore soft-deleted file references

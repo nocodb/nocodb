@@ -239,8 +239,6 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
       : [];
 
     const aggrConditionObj = [
-      // RLS filters — always first, always applied
-      ...rlsFilterGroup,
       ...(ctx.view && !ctx.ignoreViewFilterAndSort
         ? [
             new Filter({
@@ -272,16 +270,34 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
     if (
       await checkForCurrentUserFilters({
         context,
-        filters: [...aggrConditionObj, ...allViewFilters],
+        filters: [...rlsFilterGroup, ...aggrConditionObj, ...allViewFilters],
       })
     ) {
       skipCache = true;
     }
     profiler.log('apply condition');
 
-    // apply filters on root query and count query
-    await conditionV2(baseModel, aggrConditionObj, rootQb);
-    await conditionV2(baseModel, aggrConditionObj, countQb);
+    // RLS filters — always throw on missing columns to prevent row leaks
+    if (rlsFilterGroup.length) {
+      await conditionV2(baseModel, rlsFilterGroup, rootQb, undefined, true);
+      await conditionV2(baseModel, rlsFilterGroup, countQb, undefined, true);
+    }
+
+    // apply remaining filters on root query and count query
+    await conditionV2(
+      baseModel,
+      aggrConditionObj,
+      rootQb,
+      undefined,
+      ctx.throwErrorIfInvalidParams,
+    );
+    await conditionV2(
+      baseModel,
+      aggrConditionObj,
+      countQb,
+      undefined,
+      ctx.throwErrorIfInvalidParams,
+    );
     const orderColumn = columns.find((c) => isOrderCol(c));
 
     // apply sort on root query

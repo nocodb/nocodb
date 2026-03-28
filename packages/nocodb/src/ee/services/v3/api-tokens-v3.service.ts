@@ -174,7 +174,7 @@ export class ApiTokensV3Service {
           scope.resource_id,
         );
         if (!base) {
-          NcError.badRequest(`Base not found: ${scope.resource_id}`);
+          NcError.badRequest('Invalid or inaccessible resource in scope');
         }
 
         // Verify the user has access to this base
@@ -185,9 +185,7 @@ export class ApiTokensV3Service {
             { baseId: base.id },
           );
           if (!userWithRoles?.base_roles) {
-            NcError.badRequest(
-              `You do not have access to base: ${scope.resource_id}`,
-            );
+            NcError.badRequest('Invalid or inaccessible resource in scope');
           }
         }
       }

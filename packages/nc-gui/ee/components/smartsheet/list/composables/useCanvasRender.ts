@@ -85,6 +85,9 @@ export function useCanvasRender({
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
 
+  // Tracked during renderCanvas loop, drawn after all rows
+  let warningRow: { screenY: number; rh: number; text: string } | null = null
+
   function getColors() {
     return {
       bg: getColor(themeV4Colors.base.white),
@@ -139,6 +142,9 @@ export function useCanvasRender({
 
     // Track last parent PK per depth (for addRow context)
     const lastPkAtDepth: Record<number, string | number> = {}
+
+    // Reset warning row each frame
+    warningRow = null
 
     for (let i = start; i < end && i < totalRows.value; i++) {
       const row = rows.get(i)
@@ -241,6 +247,37 @@ export function useCanvasRender({
         }
         y += ADD_ROW_HEIGHT
       }
+    }
+
+    // Sort-moved warning row — drawn after all rows so the label isn't covered
+    if (warningRow) {
+      const warningColor = getColor(themeV4Colors.yellow['500'])
+
+      ctx.save()
+
+      // Bottom border
+      ctx.strokeStyle = warningColor
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.moveTo(0, warningRow.screenY + warningRow.rh)
+      ctx.lineTo(width.value, warningRow.screenY + warningRow.rh)
+      ctx.stroke()
+
+      // Warning label badge
+      const labelY = warningRow.screenY + warningRow.rh
+      ctx.font = '600 12px Inter'
+      const labelW = ctx.measureText(warningRow.text).width + 20
+
+      ctx.fillStyle = warningColor
+      ctx.beginPath()
+      ctx.roundRect(0, labelY, labelW, 25, [0, 0, 6, 0])
+      ctx.fill()
+
+      ctx.fillStyle = getColor(themeV4Colors.gray['800'])
+      ctx.textBaseline = 'middle'
+      ctx.fillText(warningRow.text, 10, labelY + 12.5)
+
+      ctx.restore()
     }
 
     // Sticky header (drawn last to overlay — shows columns for the depth
@@ -453,6 +490,13 @@ export function useCanvasRender({
       ctx.beginPath()
       ctx.roundRect(indicatorX, indicatorY, indicatorW, indicatorH, 8)
       ctx.fill()
+    }
+
+    // Track warning row — rendered after the loop so label isn't painted over
+    if (row.__nc_sort_moved) {
+      warningRow = { screenY, rh, text: 'Row moved' }
+    } else if (row.__nc_filter_failed) {
+      warningRow = { screenY, rh, text: 'Row filtered' }
     }
 
     // Element map: row

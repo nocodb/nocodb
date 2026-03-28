@@ -1,10 +1,11 @@
-import type { ColumnType, FormulaType, GridColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { PermissionEntity, PermissionKey, UITypes, isLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import type { ColumnType, DataPayload, FilterType, FormulaType, GridColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import { EventType, PermissionEntity, PermissionKey, RelationTypes, UITypes, isLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { ListActiveCell, ListCanvasElement } from './types'
 import {
   ADD_ROW_HEIGHT,
   BOTTOM_PADDING,
   CHEVRON_COL_WIDTH,
+  CHUNK_SIZE,
   DEFAULT_COLUMN_WIDTH,
   DEFAULT_FIRST_COLUMN_WIDTH,
   DEPTH_DECREASE_GAP,
@@ -19,9 +20,18 @@ import { useCanvasRender } from './useCanvasRender'
 import { useColumnResize } from './useColumnResize'
 import { useListDataFetch } from './useDataFetch'
 import { useListCellRenderer } from './useListCellRenderer'
+import {
+  collectRowAndDescendants,
+  doesUpdateAffectSort,
+  findCachedRowByPk,
+  findSortedInsertIndex,
+  insertRowsAt,
+  pruneEmptyParents,
+  removeRowsAndShift,
+} from './listViewCache'
 import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '~/components/smartsheet/grid/canvas/utils/cell'
 import { SpriteLoader } from '~/components/smartsheet/grid/canvas/loaders/SpriteLoader'
-import { stringifyFilterOrSortArr } from '~/utils/dataUtils'
+import { stringifyFilterOrSortArr, validateRowFilters } from '~/utils/dataUtils'
 import type { ListViewRow } from '~/composables/useListViewStore'
 
 export function useCanvasListView({
@@ -38,13 +48,22 @@ export function useCanvasListView({
   mousePosition: { x: number; y: number }
 }) {
   const { getColor } = useTheme()
-  const { $api } = useNuxtApp()
-  const { isMobileMode } = useGlobal()
+  const { $api, $ncSocket } = useNuxtApp()
+  const { isMobileMode, user } = useGlobal()
 
-  const { levels, displayLevels, isCollapsed, toggleCollapse, depthToLevelId, collapsedParents, isConfigured, selectedLevelId } =
-    useListViewStoreOrThrow()
+  const {
+    levels,
+    displayLevels,
+    isCollapsed,
+    toggleCollapse,
+    depthToLevelId,
+    modelIdToDepth,
+    collapsedParents,
+    isConfigured,
+    selectedLevelId,
+  } = useListViewStoreOrThrow()
 
-  const { meta, view, nestedFilters, sorts } = useSmartsheetStoreOrThrow()
+  const { meta, view, nestedFilters, sorts, allFilters } = useSmartsheetStoreOrThrow()
   const {
     fields: viewFields,
     gridViewCols,
@@ -58,13 +77,19 @@ export function useCanvasListView({
 
   const baseStore = useBase()
   const { sqlUis } = storeToRefs(baseStore)
+  const { getBaseType } = baseStore
   const { basesUser } = storeToRefs(useBases())
 
   const { isDataReadOnly, isUIAllowed } = useRoles()
   const { isAllowed } = usePermissions()
   const isPublicView = inject(IsPublicInj, ref(false))
   const isDataEditAllowed = computed(() => isUIAllowed('dataEdit') && !isPublicView.value)
-  const isAddingEmptyRowAllowed = computed(() => isDataEditAllowed.value && !meta.value?.synced)
+
+  const isPrimaryKeyAvailable = computed(() => {
+    return meta.value?.columns?.some((c: ColumnType) => c.pk) ?? false
+  })
+
+  const isAddingEmptyRowAllowed = computed(() => isDataEditAllowed.value && !meta.value?.synced && isPrimaryKeyAvailable.value)
 
   const spriteLoader = new SpriteLoader(() => triggerRefreshCanvas())
   const canvasCursorRef = ref<CursorType>('')
@@ -97,6 +122,8 @@ export function useCanvasListView({
   const totalRows = ref(0)
   const levelCounts = ref<Record<string, number>>({})
 
+  const contextMenuTarget = ref<{ rowIndex: number; depth: number; row: ListViewRow; column?: CanvasGridColumn } | null>(null)
+
   function getMetaForDepth(depth: number): TableType | undefined {
     const level = displayLevels.value[depth]
     if (!level?.fk_model_id) return undefined
@@ -107,6 +134,7 @@ export function useCanvasListView({
 
   async function updateOrSaveRow(row: Row, property?: string): Promise<any> {
     if (!property) return
+    if (isDataReadOnly.value || isPublicView.value) return
 
     const newVal = row.row[property]
     const oldVal = row.oldRow?.[property]
@@ -128,16 +156,151 @@ export function useCanvasListView({
         { [property]: newVal ?? null },
       )
 
-      for (const [_idx, cached] of cachedRows.value) {
-        if (cached.__nc_pk === row.row.__nc_pk) {
+      // Find and update the cached row
+      let cachedRowIndex: number | null = null
+      for (const [idx, cached] of cachedRows.value) {
+        if (cached.__nc_pk === row.row.__nc_pk && cached.__nc_depth === depth) {
           Object.assign(cached, updatedRowData)
+          cachedRowIndex = idx
           break
         }
       }
+
+      if (cachedRowIndex !== null) {
+        const cachedRow = cachedRows.value.get(cachedRowIndex)!
+
+        // Re-evaluate row color
+        const leafDepth = displayLevels.value.length - 1
+        if (depth === leafDepth && isRowColouringEnabled.value) {
+          cachedRow.__nc_color = getEvaluatedRowMetaRowColorInfo(cachedRow)
+        }
+
+        // Re-validate against filters — remove if row no longer passes
+        if (!validateRowForLevel(cachedRow, depth)) {
+          const { indices, removedCounts } = collectRowAndDescendants(cachedRows.value, totalRows.value, cachedRowIndex, depth)
+          removeRowsAndShift(cachedRows.value, chunkStates.value, indices)
+
+          totalRows.value = Math.max(0, totalRows.value - indices.length)
+          for (const [modelId, count] of Object.entries(removedCounts)) {
+            if (levelCounts.value[modelId] !== undefined) {
+              levelCounts.value[modelId] = Math.max(0, levelCounts.value[modelId] - count)
+            }
+          }
+
+          if (cachedRow.__nc_parent_id && depth > 0) {
+            pruneEmptyParents(cachedRows.value, chunkStates.value, totalRows, levelCounts.value, cachedRow.__nc_parent_id, depth - 1)
+          }
+        } else if (isSortAffected({ [property]: newVal }, depth)) {
+          cachedRow.__nc_sort_moved = true
+        }
+      }
+
       triggerRefreshCanvas()
     } catch (e: any) {
       message.error(e.message || 'Failed to save')
     }
+  }
+
+  /**
+   * Called after a row is saved (from index.vue's saveRowProperty).
+   * Handles filter re-validation, sort marking, and row color re-evaluation.
+   */
+  function handleRowSaved(rowIndex: number, property: string) {
+    const cachedRow = cachedRows.value.get(rowIndex)
+    if (!cachedRow) return
+
+    const depth = cachedRow.__nc_depth
+
+    // Re-evaluate row color
+    const leafDepth = displayLevels.value.length - 1
+    if (depth === leafDepth && isRowColouringEnabled.value) {
+      cachedRow.__nc_color = getEvaluatedRowMetaRowColorInfo(cachedRow)
+    }
+
+    // Mark — don't remove/move yet. Canvas shows indicator, actual
+    // removal/reposition happens on focus change (applyDeferredChanges).
+    if (!validateRowForLevel(cachedRow, depth)) {
+      cachedRow.__nc_filter_failed = true
+    } else if (isSortAffected({ [property]: cachedRow[property] }, depth)) {
+      cachedRow.__nc_sort_moved = true
+    }
+
+    triggerRefreshCanvas()
+  }
+
+  /**
+   * Apply deferred sort/filter changes. Called on focus change (click away from the row).
+   * - Rows with __nc_filter_failed: removed from cache + prune empty parents
+   * - Rows with __nc_sort_moved: repositioned to correct sorted position
+   */
+  function applyDeferredChanges() {
+    let changed = false
+
+    // 1. Remove filter-failed rows
+    const failedIndices: number[] = []
+    const failedCounts: Record<string, number> = {}
+    const failedParents: { pk: string; depth: number }[] = []
+
+    for (const [idx, row] of cachedRows.value.entries()) {
+      if (row.__nc_filter_failed) {
+        const { indices, removedCounts } = collectRowAndDescendants(cachedRows.value, totalRows.value, idx, row.__nc_depth)
+        for (const i of indices) failedIndices.push(i)
+        for (const [modelId, count] of Object.entries(removedCounts)) {
+          failedCounts[modelId] = (failedCounts[modelId] || 0) + count
+        }
+        if (row.__nc_parent_id && row.__nc_depth > 0) {
+          failedParents.push({ pk: String(row.__nc_parent_id), depth: row.__nc_depth - 1 })
+        }
+      }
+    }
+
+    if (failedIndices.length) {
+      // Deduplicate indices (subtree collection may overlap)
+      const uniqueIndices = [...new Set(failedIndices)].sort((a, b) => a - b)
+      removeRowsAndShift(cachedRows.value, chunkStates.value, uniqueIndices)
+
+      totalRows.value = Math.max(0, totalRows.value - uniqueIndices.length)
+      for (const [modelId, count] of Object.entries(failedCounts)) {
+        if (levelCounts.value[modelId] !== undefined) {
+          levelCounts.value[modelId] = Math.max(0, levelCounts.value[modelId] - count)
+        }
+      }
+
+      for (const { pk, depth } of failedParents) {
+        pruneEmptyParents(cachedRows.value, chunkStates.value, totalRows, levelCounts.value, pk, depth)
+      }
+
+      changed = true
+    }
+
+    // 2. Reposition sort-moved rows
+    const movedRows: ListViewRow[] = []
+    for (const [_, row] of cachedRows.value.entries()) {
+      if (row.__nc_sort_moved) {
+        movedRows.push(row)
+      }
+    }
+
+    for (const row of movedRows) {
+      const current = findCachedRowByPk(cachedRows.value, String(row.__nc_pk), row.__nc_depth)
+      if (!current) continue
+
+      const depth = current.row.__nc_depth
+      current.row.__nc_sort_moved = false
+
+      const { indices: subtreeIndices } = collectRowAndDescendants(cachedRows.value, totalRows.value, current.index, depth)
+      const subtreeRows: ListViewRow[] = subtreeIndices.map((i) => cachedRows.value.get(i)!).filter(Boolean)
+      removeRowsAndShift(cachedRows.value, chunkStates.value, subtreeIndices)
+
+      const parentPk = current.row.__nc_parent_id
+      const parentIndex = depth > 0 && parentPk ? findCachedRowByPk(cachedRows.value, String(parentPk), depth - 1)?.index ?? null : null
+
+      const newInsertAt = findSortedInsertIndex(cachedRows.value, totalRows.value, current.row, depth, parentIndex, getSortFieldsForDepth(depth), getColumnsByIdForDepth(depth))
+      insertRowsAt(cachedRows.value, chunkStates.value, newInsertAt, subtreeRows)
+      changed = true
+    }
+
+    if (changed) triggerRefreshCanvas()
   }
 
   const {
@@ -723,6 +886,14 @@ export function useCanvasListView({
     const x = e.clientX - rect.left
     const y = e.clientY - rect.top
 
+    // Apply deferred sort/filter changes when clicking AWAY from the affected row
+    const clickedRowEl = findElementAt(x, y, 'row')
+    const clickedRowIndex = clickedRowEl?.rowIndex ?? -1
+    const clickedRow = clickedRowIndex >= 0 ? cachedRows.value.get(clickedRowIndex) : null
+    if (!clickedRow?.__nc_sort_moved && !clickedRow?.__nc_filter_failed) {
+      applyDeferredChanges()
+    }
+
     const expandEl = findElementAt(x, y, 'expandRow')
     if (expandEl) {
       const row = cachedRows.value.get(expandEl.rowIndex)
@@ -771,6 +942,11 @@ export function useCanvasListView({
 
           const canvasOnlyTypes = [UITypes.Checkbox, UITypes.Rating, UITypes.Button]
           if (canvasOnlyTypes.includes(col.columnObj.uidt as UITypes)) {
+            return
+          }
+
+          // Don't open inline editor for readonly columns
+          if (col.readonly) {
             return
           }
 
@@ -878,6 +1054,41 @@ export function useCanvasListView({
     triggerRefreshCanvas()
   }
 
+  function handleContextMenu(e: MouseEvent) {
+    const rect = canvasRef.value?.getBoundingClientRect()
+    if (!rect) return
+
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+
+    const rowEl = findElementAt(x, y, 'row')
+    if (!rowEl) {
+      contextMenuTarget.value = null
+      return
+    }
+
+    const row = cachedRows.value.get(rowEl.rowIndex)
+    if (!row) {
+      contextMenuTarget.value = null
+      return
+    }
+
+    // Check if right-clicked on a specific cell
+    const cellEl = findElementAt(x, y, 'cell')
+    let column: CanvasGridColumn | undefined
+    if (cellEl?.columnId) {
+      const cols = getColumnsForDepth(rowEl.depth)
+      column = cols.find((c) => c.id === cellEl.columnId)
+    }
+
+    contextMenuTarget.value = {
+      rowIndex: rowEl.rowIndex,
+      depth: rowEl.depth,
+      row,
+      column,
+    }
+  }
+
   async function loadInitialData() {
     if (!isConfigured.value || !viewId.value) return
 
@@ -905,8 +1116,500 @@ export function useCanvasListView({
     },
   )
 
+  // ---------------------------------------------------------------------------
+  // Realtime data event handling
+  // ---------------------------------------------------------------------------
+  const activeDataListeners = ref<string[]>([])
+
+  /**
+   * Get the filters scoped to a specific level, used for client-side row validation.
+   * Combines saved filters (allFilters from smartsheet store) and any draft filters
+   * from nestedFilters that haven't been synced yet.
+   */
+  function getFiltersForLevel(levelId: string): FilterType[] {
+    const saved = (allFilters.value ?? []).filter((f: any) => f.fk_level_id === levelId)
+
+    const draft = (nestedFilters.value ?? [])
+      .filter((f: any) => !f.id && f.fk_level_id === levelId)
+
+    return [...saved, ...draft] as FilterType[]
+  }
+
+  /**
+   * Get the sorts scoped to a specific level.
+   */
+  function getSortsForLevel(levelId: string) {
+    return (sorts.value ?? []).filter((s: any) => s.fk_level_id === levelId)
+  }
+
+  /**
+   * Validate a row against the filters for its level.
+   * Returns true if the row passes all filters (should be visible).
+   */
+  function validateRowForLevel(row: Record<string, any>, depth: number): boolean {
+    const levelId = depthToLevelId.value[depth]
+    if (!levelId) return true
+
+    const filters = getFiltersForLevel(levelId)
+    if (!filters.length) return true
+
+    const depthMeta = getMetaForDepth(depth)
+    if (!depthMeta?.columns) return true
+
+    return validateRowFilters(
+      filters,
+      row,
+      depthMeta.columns as ColumnType[],
+      getBaseType(view.value?.source_id),
+      metas.value,
+      meta.value?.base_id,
+      {
+        currentUser: user.value,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+    )
+  }
+
+  /**
+   * Resolve the parent PK for a child row from its socket payload.
+   * HM/BT: extracts FK value from payload. MM: returns null.
+   */
+  function resolveParentPkFromPayload(depth: number, payload: Record<string, any>): string | null {
+    if (depth === 0) return null
+
+    const parentLevel = displayLevels.value[depth - 1]
+    const childLevel = displayLevels.value[depth]
+    const linkColumnId = parentLevel?.fk_link_column_id || childLevel?.fk_link_column_id
+    if (!linkColumnId) return null
+
+    const parentMeta = getMetaForDepth(depth - 1)
+    if (!parentMeta?.columns) return null
+
+    const linkColumn = parentMeta.columns.find((c: ColumnType) => c.id === linkColumnId)
+    const colOptions = (linkColumn as any)?.colOptions as LinkToAnotherRecordType | undefined
+    if (!colOptions) return null
+
+    if (colOptions.type === RelationTypes.HAS_MANY || colOptions.type === RelationTypes.BELONGS_TO) {
+      const childMeta = getMetaForDepth(depth)
+      if (!childMeta?.columns) return null
+
+      const fkColumn = childMeta.columns.find((c: ColumnType) => c.id === colOptions.fk_child_column_id)
+      if (!fkColumn?.title) return null
+
+      const parentPk = payload[fkColumn.title]
+      return parentPk != null ? String(parentPk) : null
+    }
+
+    return null
+  }
+
+  /** Build columnsById map for a given depth (used by sortByUIType). */
+  function getColumnsByIdForDepth(depth: number): Record<string, ColumnType> {
+    const depthMeta = getMetaForDepth(depth)
+    if (!depthMeta?.columns) return {}
+    const map: Record<string, ColumnType> = {}
+    for (const col of depthMeta.columns) {
+      if (col.id) map[col.id] = col
+    }
+    return map
+  }
+
+  /** Resolve sort fields for a depth, with fk_column_id for sortByUIType. */
+  function getSortFieldsForDepth(depth: number): { title: string; fk_column_id: string; direction: 'asc' | 'desc' }[] {
+    const levelId = depthToLevelId.value[depth]
+    if (!levelId) return []
+
+    const levelSorts = getSortsForLevel(levelId)
+    const depthMeta = getMetaForDepth(depth)
+    const columns = depthMeta?.columns as ColumnType[] | undefined
+    if (!levelSorts.length || !columns) return []
+
+    const fields: { title: string; fk_column_id: string; direction: 'asc' | 'desc' }[] = []
+    for (const sort of levelSorts) {
+      const col = columns.find((c) => c.id === sort.fk_column_id)
+      if (col?.title && sort.fk_column_id) {
+        fields.push({
+          title: col.title,
+          fk_column_id: sort.fk_column_id,
+          direction: (sort.direction === 'desc' ? 'desc' : 'asc') as 'asc' | 'desc',
+        })
+      }
+    }
+    return fields
+  }
+
+  function isSortAffected(payload: Record<string, any>, depth: number): boolean {
+    const levelId = depthToLevelId.value[depth]
+    if (!levelId) return false
+    const levelSorts = getSortsForLevel(levelId)
+    if (!levelSorts.length) return false
+    return doesUpdateAffectSort(payload, levelSorts as any, getColumnsByIdForDepth(depth))
+  }
+
+  /**
+   * Handle incoming data events from any table in the list view hierarchy.
+   */
+  function handleDataEvent(tableId: string, data: DataPayload) {
+    if (isPublicView.value) return
+
+    const depth = modelIdToDepth.value[tableId]
+    if (depth === undefined) return
+
+    const { id, action, payload } = data
+    const levelId = depthToLevelId.value[depth]
+
+    if (action === 'add') {
+      try {
+        if (!validateRowForLevel(payload, depth)) return
+
+        const leafDepth = displayLevels.value.length - 1
+
+        const newRow: ListViewRow = {
+          __nc_depth: depth,
+          __nc_pk: id,
+          __nc_parent_id: null,
+          __nc_row_type: tableId,
+          __nc_descendant_count: 0,
+          ...payload,
+        }
+
+        // Evaluate row color for leaf-depth rows
+        if (depth === leafDepth && isRowColouringEnabled.value) {
+          newRow.__nc_color = getEvaluatedRowMetaRowColorInfo(payload)
+        }
+
+        let insertAt: number
+
+        if (depth === 0) {
+          // Root level: find sorted position among depth-0 siblings
+          insertAt = findSortedInsertIndex(cachedRows.value, totalRows.value, newRow, depth, null, getSortFieldsForDepth(depth), getColumnsByIdForDepth(depth))
+        } else {
+          // Non-root: resolve parent PK from the payload's FK column
+          const parentPk = resolveParentPkFromPayload(depth, payload)
+          if (!parentPk) {
+            // MM link or couldn't resolve parent — update counts only.
+            if (levelCounts.value[tableId] !== undefined) {
+              levelCounts.value[tableId]++
+            }
+            totalRows.value++
+            triggerRefreshCanvas()
+            return
+          }
+
+          newRow.__nc_parent_id = parentPk
+
+          // Collapsed parent — don't insert visually, just update counts
+          if (isCollapsed(depth - 1, parentPk)) {
+            if (levelCounts.value[tableId] !== undefined) {
+              levelCounts.value[tableId]++
+            }
+            totalRows.value++
+            triggerRefreshCanvas()
+            return
+          }
+
+          // Check if parent exists in cache
+          const parent = findCachedRowByPk(cachedRows.value, parentPk, depth - 1)
+          if (!parent) {
+            // Parent was pruned — update counts; will appear on next scroll/refetch.
+            if (levelCounts.value[tableId] !== undefined) {
+              levelCounts.value[tableId]++
+            }
+            totalRows.value++
+            triggerRefreshCanvas()
+            return
+          }
+
+          // Find sorted position among siblings under this parent
+          insertAt = findSortedInsertIndex(cachedRows.value, totalRows.value, newRow, depth, parent.index, getSortFieldsForDepth(depth), getColumnsByIdForDepth(depth))
+        }
+
+        // Check if insertion point falls within the cached window
+        const cachedKeys = Array.from(cachedRows.value.keys())
+        const cacheMin = cachedKeys.length ? Math.min(...cachedKeys) : 0
+        const cacheMax = cachedKeys.length ? Math.max(...cachedKeys) : -1
+
+        if (insertAt < cacheMin && cacheMin > 0) {
+          // Row goes BEFORE the cached window (there's an evicted gap at start) —
+          // don't insert, just shift cached indices down by 1
+          const entries = Array.from(cachedRows.value.entries()).sort((a, b) => b[0] - a[0])
+          for (const [idx, row] of entries) {
+            cachedRows.value.delete(idx)
+            cachedRows.value.set(idx + 1, row)
+          }
+          const startChunk = Math.floor(cacheMin / CHUNK_SIZE)
+          for (let c = startChunk; c < chunkStates.value.length; c++) {
+            chunkStates.value[c] = undefined
+          }
+        } else if (insertAt > cacheMax && cacheMax < totalRows.value - 1) {
+          // Row goes AFTER the cached window (there's an evicted gap at end) —
+          // no cache mutation needed
+        } else {
+          // Row falls WITHIN the cached range (or cache covers full range) — insert it
+          insertRowsAt(cachedRows.value, chunkStates.value, insertAt, [newRow])
+        }
+
+        totalRows.value++
+        if (levelCounts.value[tableId] !== undefined) {
+          levelCounts.value[tableId]++
+        }
+
+        triggerRefreshCanvas()
+      } catch (e) {
+        console.error('List view: failed to handle add event', e)
+      }
+    } else if (action === 'update') {
+      try {
+        let found = false
+        for (const [rowIndex, cachedRow] of cachedRows.value.entries()) {
+          if (String(cachedRow.__nc_pk) === String(id) && cachedRow.__nc_depth === depth) {
+            // Check if any value actually changed — skip if duplicate event
+            let hasRealChange = false
+            for (const key of Object.keys(payload)) {
+              if (key.startsWith('__nc_')) continue
+              if (cachedRow[key] !== payload[key]) {
+                hasRealChange = true
+                break
+              }
+            }
+            if (!hasRealChange) {
+              found = true
+              break
+            }
+
+            // Apply the update
+            Object.assign(cachedRow, payload)
+
+            // Re-evaluate row color
+            const leafDepth = displayLevels.value.length - 1
+            if (depth === leafDepth && isRowColouringEnabled.value) {
+              cachedRow.__nc_color = getEvaluatedRowMetaRowColorInfo(cachedRow)
+            }
+
+            // Re-validate against filters — remove if row no longer passes
+            if (!validateRowForLevel(cachedRow, depth)) {
+              // If this is a parent, remove it and all its descendants
+              const { indices, removedCounts } = collectRowAndDescendants(cachedRows.value, totalRows.value, rowIndex, depth)
+              removeRowsAndShift(cachedRows.value, chunkStates.value, indices)
+
+              totalRows.value = Math.max(0, totalRows.value - indices.length)
+              for (const [modelId, count] of Object.entries(removedCounts)) {
+                if (levelCounts.value[modelId] !== undefined) {
+                  levelCounts.value[modelId] = Math.max(0, levelCounts.value[modelId] - count)
+                }
+              }
+
+              // Check if this row's parent is now childless → prune cascade
+              if (cachedRow.__nc_parent_id && depth > 0) {
+                pruneEmptyParents(cachedRows.value, chunkStates.value, totalRows, levelCounts.value, cachedRow.__nc_parent_id, depth - 1)
+              }
+            } else if (levelId && payload) {
+              // Row still passes filters — check if sort position needs to change
+              if (isSortAffected(payload, depth)) {
+                // Remove the row (and its subtree) from current position
+                const { indices: subtreeIndices } = collectRowAndDescendants(cachedRows.value, totalRows.value, rowIndex, depth)
+                const subtreeRows: ListViewRow[] = subtreeIndices.map((i) => cachedRows.value.get(i)!).filter(Boolean)
+                removeRowsAndShift(cachedRows.value, chunkStates.value, subtreeIndices)
+
+                // Find the parent index (may have shifted after removal)
+                const parentPk = cachedRow.__nc_parent_id
+                const parentIndex = depth > 0 && parentPk ? findCachedRowByPk(cachedRows.value, parentPk, depth - 1)?.index ?? null : null
+
+                // Find new sorted position and re-insert the entire subtree
+                const newInsertAt = findSortedInsertIndex(cachedRows.value, totalRows.value, cachedRow, depth, parentIndex, getSortFieldsForDepth(depth), getColumnsByIdForDepth(depth))
+                insertRowsAt(cachedRows.value, chunkStates.value, newInsertAt, subtreeRows)
+              }
+            }
+
+            found = true
+            break
+          }
+        }
+
+        if (!found && payload) {
+          if (!validateRowForLevel(payload, depth)) {
+            triggerRefreshCanvas()
+            return
+          }
+
+          // Determine where this row would be inserted
+          let parentIndex: number | null = null
+          let parentPk: string | null = null
+
+          if (depth > 0) {
+            parentPk = resolveParentPkFromPayload(depth, payload)
+            if (parentPk) {
+              const parent = findCachedRowByPk(cachedRows.value, parentPk, depth - 1)
+              parentIndex = parent?.index ?? null
+            }
+          }
+
+          // If parent isn't in cache (pruned or MM), just bump counts
+          if (depth > 0 && parentIndex === null) {
+            totalRows.value++
+            if (levelCounts.value[tableId] !== undefined) {
+              levelCounts.value[tableId]++
+            }
+            triggerRefreshCanvas()
+            return
+          }
+
+          const insertAt = findSortedInsertIndex(cachedRows.value, totalRows.value, payload, depth, parentIndex, getSortFieldsForDepth(depth), getColumnsByIdForDepth(depth))
+
+          // Determine the currently cached index range
+          const cachedKeys = Array.from(cachedRows.value.keys())
+          const cacheMin = cachedKeys.length ? Math.min(...cachedKeys) : 0
+          const cacheMax = cachedKeys.length ? Math.max(...cachedKeys) : -1
+
+          if (insertAt < cacheMin && cacheMin > 0) {
+            // Row goes BEFORE the cached window — shift indices, don't insert
+            const entries = Array.from(cachedRows.value.entries()).sort((a, b) => b[0] - a[0])
+            for (const [idx, row] of entries) {
+              cachedRows.value.delete(idx)
+              cachedRows.value.set(idx + 1, row)
+            }
+            const startChunk = Math.floor(cacheMin / CHUNK_SIZE)
+            for (let c = startChunk; c < chunkStates.value.length; c++) {
+              chunkStates.value[c] = undefined
+            }
+          } else if (insertAt > cacheMax && cacheMax < totalRows.value - 1) {
+            // Row goes AFTER the cached window — no cache changes needed
+          } else {
+            // Row falls WITHIN the cached range — insert it
+            const leafDepth = displayLevels.value.length - 1
+            const newRow: ListViewRow = {
+              __nc_depth: depth,
+              __nc_pk: id,
+              __nc_parent_id: parentPk,
+              __nc_row_type: tableId,
+              __nc_descendant_count: 0,
+              ...payload,
+            }
+            if (depth === leafDepth && isRowColouringEnabled.value) {
+              newRow.__nc_color = getEvaluatedRowMetaRowColorInfo(payload)
+            }
+            insertRowsAt(cachedRows.value, chunkStates.value, insertAt, [newRow])
+          }
+
+          totalRows.value++
+          if (levelCounts.value[tableId] !== undefined) {
+            levelCounts.value[tableId]++
+          }
+        }
+
+        triggerRefreshCanvas()
+      } catch (e) {
+        console.error('List view: failed to handle update event', e)
+      }
+    } else if (action === 'delete') {
+      try {
+        for (const [rowIndex, cachedRow] of cachedRows.value.entries()) {
+          if (String(cachedRow.__nc_pk) === String(id) && cachedRow.__nc_depth === depth) {
+            const parentId = cachedRow.__nc_parent_id
+
+            // Remove this row and all its descendants (if it's a parent)
+            const { indices, removedCounts } = collectRowAndDescendants(cachedRows.value, totalRows.value, rowIndex, depth)
+            removeRowsAndShift(cachedRows.value, chunkStates.value, indices)
+
+            totalRows.value = Math.max(0, totalRows.value - indices.length)
+            for (const [modelId, count] of Object.entries(removedCounts)) {
+              if (levelCounts.value[modelId] !== undefined) {
+                levelCounts.value[modelId] = Math.max(0, levelCounts.value[modelId] - count)
+              }
+            }
+
+            // Check if this row's parent is now childless → prune cascade
+            if (parentId && depth > 0) {
+              pruneEmptyParents(cachedRows.value, chunkStates.value, totalRows, levelCounts.value, parentId, depth - 1)
+            }
+
+            break
+          }
+        }
+
+        triggerRefreshCanvas()
+      } catch (e) {
+        console.error('List view: failed to handle delete event', e)
+      }
+    } else if (action === 'reorder') {
+      try {
+        const { before } = data
+
+        // Find the row being reordered
+        for (const [rowIndex, cachedRow] of cachedRows.value.entries()) {
+          if (String(cachedRow.__nc_pk) === String(id) && cachedRow.__nc_depth === depth) {
+            // Remove the row and its subtree from current position
+            const { indices: subtreeIndices } = collectRowAndDescendants(cachedRows.value, totalRows.value, rowIndex, depth)
+            const subtreeRows: ListViewRow[] = subtreeIndices.map((i) => cachedRows.value.get(i)!).filter(Boolean)
+            removeRowsAndShift(cachedRows.value, chunkStates.value, subtreeIndices)
+
+            // Update row data if payload has changes
+            if (payload && typeof payload === 'object') {
+              Object.assign(subtreeRows[0], payload)
+            }
+
+            // Find target position using 'before' PK
+            let targetIndex: number
+
+            if (before) {
+              const beforeRow = findCachedRowByPk(cachedRows.value, String(before), depth)
+              targetIndex = beforeRow ? beforeRow.index : totalRows.value
+            } else {
+              const parentPk = cachedRow.__nc_parent_id
+              const parentIndex = depth > 0 && parentPk ? findCachedRowByPk(cachedRows.value, parentPk, depth - 1)?.index ?? null : null
+              targetIndex = findSortedInsertIndex(cachedRows.value, totalRows.value, cachedRow, depth, parentIndex, getSortFieldsForDepth(depth), getColumnsByIdForDepth(depth))
+            }
+
+            insertRowsAt(cachedRows.value, chunkStates.value, targetIndex, subtreeRows)
+            break
+          }
+        }
+
+        triggerRefreshCanvas()
+      } catch (e) {
+        console.error('List view: failed to handle reorder event', e)
+      }
+    }
+  }
+
+  /**
+   * Subscribe to DATA_EVENT for all tables in the list view level hierarchy.
+   */
+  watch(
+    () => displayLevels.value.map((l) => l.fk_model_id).join(','),
+    (newKey, oldKey) => {
+      if (newKey === oldKey) return
+
+      for (const listenerId of activeDataListeners.value) {
+        $ncSocket.offMessage(listenerId)
+      }
+      activeDataListeners.value = []
+
+      const workspaceId = (meta.value as any)?.fk_workspace_id
+      const baseId = meta.value?.base_id
+      if (!workspaceId || !baseId) return
+
+      for (const level of displayLevels.value) {
+        const tableId = level.fk_model_id
+        if (!tableId) continue
+
+        const eventKey = `${EventType.DATA_EVENT}:${workspaceId}:${baseId}:${tableId}`
+        const listenerId = $ncSocket.onMessage(eventKey, (data: DataPayload) => {
+          handleDataEvent(tableId, data)
+        })
+        activeDataListeners.value.push(listenerId)
+      }
+    },
+    { immediate: true },
+  )
+
   onBeforeUnmount(() => {
     if (rafId) cancelAnimationFrame(rafId)
+
+    for (const listenerId of activeDataListeners.value) {
+      $ncSocket.offMessage(listenerId)
+    }
+    activeDataListeners.value = []
   })
 
   return {
@@ -923,5 +1626,9 @@ export function useCanvasListView({
     onAddRow: addRowHook.on,
     activeCell,
     cachedRows,
+    handleRowSaved,
+    contextMenuTarget,
+    handleContextMenu,
+    getMetaForDepth,
   }
 }

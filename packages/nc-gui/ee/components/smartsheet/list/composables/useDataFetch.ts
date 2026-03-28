@@ -14,8 +14,9 @@
  */
 
 import type { ListViewRow } from '~/composables/useListViewStore'
+import { CHUNK_SIZE } from './constants'
 
-const CHUNK_SIZE = 50
+
 const INITIAL_LOAD_SIZE = 100
 const BUFFER_SIZE = 100
 const PREFETCH_THRESHOLD = 25

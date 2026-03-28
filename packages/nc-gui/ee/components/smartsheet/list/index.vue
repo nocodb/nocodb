@@ -2,6 +2,8 @@
 import {
   type ColumnType,
   type LinkToAnotherRecordType,
+  PermissionEntity,
+  PermissionKey,
   RelationTypes,
   type TableType,
   isLinksOrLTAR,
@@ -86,6 +88,10 @@ const {
   onAddRow,
   activeCell,
   cachedRows,
+  handleRowSaved,
+  contextMenuTarget,
+  handleContextMenu,
+  getMetaForDepth: getMetaForDepthFromComposable,
 } = useCanvasListView({
   scrollLeft,
   scrollTop,
@@ -179,6 +185,7 @@ onExpandRow(async ({ row, depth }) => {
 })
 
 onAddRow(async ({ depth, parentPk }) => {
+  if (isDataReadOnly.value || isPublicView.value) return
   $e('c:list:add-record')
 
   let depthMeta = getMetaForDepth(depth)
@@ -318,6 +325,8 @@ async function onCellSave() {
 }
 
 async function saveRowProperty(cell: NonNullable<typeof activeCell.value>, rowObj: Row, property: string) {
+  if (isDataReadOnly.value || isPublicView.value) return
+
   const newVal = rowObj.row[property]
   const oldVal = rowObj.oldRow[property]
 
@@ -343,7 +352,7 @@ async function saveRowProperty(cell: NonNullable<typeof activeCell.value>, rowOb
     const cached = cachedRows.value.get(cell.rowIndex)
     if (cached) {
       Object.assign(cached, updatedRowData)
-      triggerRefreshCanvas()
+      handleRowSaved(cell.rowIndex, property)
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -356,6 +365,103 @@ async function savePendingCell() {
   if (!save?.cell || !save?.row) return
 
   await saveRowProperty(save.cell!, save.row, save.cell!.column.title)
+}
+
+const { isDataReadOnly, isUIAllowed } = useRoles()
+const { isAllowed: isFieldAllowed } = usePermissions()
+const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
+const { copy } = useCopy()
+
+const isSyncedTable = computed(() => !!meta.value?.synced)
+
+function contextExpandRecord() {
+  const target = contextMenuTarget.value
+  if (!target) return
+
+  const depthMeta = getMetaForDepthFromComposable(target.depth) || getMetaForDepth(target.depth)
+  expandedFormMeta.value = depthMeta
+
+  const rowObj: Row = { row: { ...target.row }, oldRow: { ...target.row }, rowMeta: {} }
+  expandForm(rowObj)
+  isContextMenuOpen.value = false
+}
+
+async function contextCopyCell() {
+  const target = contextMenuTarget.value
+  if (!target?.column) return
+
+  const val = target.row[target.column.title]
+  await copy(val != null ? String(val) : '')
+  message.success('Copied to clipboard')
+  isContextMenuOpen.value = false
+}
+
+async function contextClearCell() {
+  const target = contextMenuTarget.value
+  if (!target?.column || target.column.readonly || isDataReadOnly.value || isPublicView.value || isSyncedTable.value) return
+
+  const depthMeta = getMetaForDepthFromComposable(target.depth) || getMetaForDepth(target.depth)
+  if (!depthMeta) return
+
+  const rowId = extractPkFromRow(target.row, depthMeta.columns as ColumnType[])
+  if (!rowId) return
+
+  try {
+    const property = target.column.title
+    await $api.dbTableRow.update(
+      NOCO,
+      depthMeta.base_id as string,
+      depthMeta.id as string,
+      encodeURIComponent(rowId),
+      { [property]: null },
+    )
+
+    const cached = cachedRows.value.get(target.rowIndex)
+    if (cached) {
+      cached[property] = null
+      handleRowSaved(target.rowIndex, property)
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+
+  isContextMenuOpen.value = false
+}
+
+async function contextDeleteRow() {
+  const target = contextMenuTarget.value
+  if (!target || isDataReadOnly.value || isPublicView.value || isSyncedTable.value) return
+
+  const depthMeta = getMetaForDepthFromComposable(target.depth) || getMetaForDepth(target.depth)
+  if (!depthMeta) return
+
+  const rowId = extractPkFromRow(target.row, depthMeta.columns as ColumnType[])
+  if (!rowId) return
+
+  try {
+    await $api.dbTableRow.delete(
+      NOCO,
+      depthMeta.base_id as string,
+      depthMeta.id as string,
+      encodeURIComponent(rowId),
+    )
+
+    // Socket event handles proper cache removal + parent pruning.
+    // Force a reload for instant feedback.
+    resetAndReload()
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+
+  isContextMenuOpen.value = false
+}
+
+function contextAddComment() {
+  const target = contextMenuTarget.value
+  if (!target) return
+
+  isExpandedFormCommentMode.value = true
+  contextExpandRecord()
 }
 </script>
 
@@ -402,15 +508,102 @@ async function savePendingCell() {
               class="sticky top-0 left-0"
               :height="`${height}px`"
               :width="`${width}px`"
-              oncontextmenu="return false"
               @mousedown="handleCanvasMouseDown"
               @click="handleCanvasClick"
               @mousemove="handleCanvasMouseMove"
               @mouseleave="handleCanvasMouseLeave"
+              @contextmenu.prevent="handleContextMenu"
             />
             <template #overlay>
-              <NcMenu>
-                <NcMenuItem> This is context menu </NcMenuItem>
+              <NcMenu v-if="contextMenuTarget" class="!rounded !py-0" variant="small">
+                <!-- Expand record — always available -->
+                <NcMenuItem key="expand-record" data-testid="nc-list-context-expand" @click="contextExpandRecord">
+                  <div v-e="['c:list:context:expand']" class="flex gap-2 items-center">
+                    <GeneralIcon icon="expand" />
+                    {{ $t('activity.expandRecord') }}
+                  </div>
+                </NcMenuItem>
+
+                <NcDivider />
+
+                <!-- Copy cell — when right-clicked on a cell -->
+                <NcMenuItem
+                  v-if="contextMenuTarget.column"
+                  key="copy-cell"
+                  data-testid="nc-list-context-copy"
+                  @click="contextCopyCell"
+                >
+                  <div v-e="['c:list:context:copy']" class="flex gap-2 items-center">
+                    <GeneralIcon icon="copy" />
+                    {{ $t('general.copy') }} {{ $t('objects.cell').toLowerCase() }}
+                  </div>
+                </NcMenuItem>
+
+                <!-- Clear cell — with field-level permission check -->
+                <PermissionsTooltip
+                  v-if="
+                    contextMenuTarget.column &&
+                    !isDataReadOnly &&
+                    !isPublicView &&
+                    !isSyncedTable &&
+                    (!contextMenuTarget.column.virtual || isLinksOrLTAR(contextMenuTarget.column.columnObj))
+                  "
+                  :entity="PermissionEntity.FIELD"
+                  :entity-id="contextMenuTarget.column.columnObj?.id"
+                  :permission="PermissionKey.RECORD_FIELD_EDIT"
+                  placement="right"
+                >
+                  <template #default="{ isAllowed }">
+                    <NcMenuItem
+                      key="clear-cell"
+                      data-testid="nc-list-context-clear"
+                      :disabled="!isAllowed || contextMenuTarget.column.readonly"
+                      @click="contextClearCell"
+                    >
+                      <div v-e="['c:list:context:clear']" class="flex gap-2 items-center">
+                        <GeneralIcon icon="close" />
+                        {{ $t('general.clear') }} {{ $t('objects.cell').toLowerCase() }}
+                      </div>
+                    </NcMenuItem>
+                  </template>
+                </PermissionsTooltip>
+
+                <!-- Add comment — non-public, has comment permission -->
+                <template v-if="!isPublicView && isUIAllowed('commentEdit')">
+                  <NcDivider />
+                  <NcMenuItem key="add-comment" data-testid="nc-list-context-comment" @click="contextAddComment">
+                    <div v-e="['c:list:context:comment']" class="flex gap-2 items-center">
+                      <GeneralIcon icon="ncComment" />
+                      {{ $t('general.add') }} {{ $t('general.comment').toLowerCase() }}
+                    </div>
+                  </NcMenuItem>
+                </template>
+
+                <!-- Delete row — with table-level permission check -->
+                <template v-if="!isPublicView && !isSyncedTable && isUIAllowed('dataEdit') && !isDataReadOnly">
+                  <NcDivider />
+                  <PermissionsTooltip
+                    :entity="PermissionEntity.TABLE"
+                    :entity-id="meta?.id"
+                    :permission="PermissionKey.TABLE_RECORD_DELETE"
+                    placement="right"
+                  >
+                    <template #default="{ isAllowed }">
+                      <NcMenuItem
+                        key="delete-row"
+                        danger
+                        data-testid="nc-list-context-delete"
+                        :disabled="!isAllowed"
+                        @click="contextDeleteRow"
+                      >
+                        <div v-e="['c:list:context:delete']" class="flex gap-2 items-center">
+                          <GeneralIcon icon="delete" />
+                          {{ $t('activity.deleteRow') }}
+                        </div>
+                      </NcMenuItem>
+                    </template>
+                  </PermissionsTooltip>
+                </template>
               </NcMenu>
             </template>
           </NcDropdown>

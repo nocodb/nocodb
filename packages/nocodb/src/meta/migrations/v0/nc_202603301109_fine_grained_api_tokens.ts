@@ -43,6 +43,10 @@ const up = async (knex: Knex) => {
       ['resource_type', 'resource_id'],
       'idx_api_token_scopes_resource',
     );
+    table.unique(
+      ['fk_api_token_id', 'resource_type', 'resource_id'],
+      'idx_api_token_scopes_unique',
+    );
   });
 };
 

@@ -333,6 +333,7 @@ t('labels.signInWithProvider', { provider: 'Google' })
 - **Don't duplicate keys** — search `en.json` before adding a new one.
 - **Pluralisation** — vue-i18n supports `{count} item | {count} items` syntax if needed.
 - **`en.json` is the source of truth** — other locale files are translations of it; only edit `en.json` in PRs.
+- **Verify the full key path** — keys are nested under top-level groups (`labels`, `title`, `msg`, etc.). Always read enough surrounding context in `en.json` to confirm the full path (e.g. `labels.noResults`, not `title.noResults`). Don't guess the group from the key name alone.
 
 ### Composable Patterns
 

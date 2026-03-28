@@ -17,8 +17,6 @@ const { orgRoles } = useRoles()
 
 const { isEEFeatureBlocked, showEEFeatures, showUpgradeToCreateWorkspace } = useEeConfig()
 
-const { navigateToTable } = useTablesStore()
-
 const { $e } = useNuxtApp()
 
 const isCreateWsDlgOpen = ref(false)
@@ -107,7 +105,7 @@ const filteredWorkspaceList = computed(() => {
 
   return workspacesList.value.filter(
     (ws) =>
-      ws.id === activeWorkspaceId.value ||
+      (!showEEFeatures.value && ws.id === activeWorkspaceId.value) ||
       searchCompare(ws.title ?? '', searchQuery.value) ||
       baseListAllMatchByWs.value.has(ws.id),
   )
@@ -138,7 +136,7 @@ const hasNoResults = computed(() => {
         v-model:value="searchQuery"
         :placeholder="showEEFeatures ? $t('placeholder.searchWorkspacesAndBases') : $t('activity.searchProject')"
         allow-clear
-        class="nc-home-sidebar-search nc-input-sm"
+        class="nc-input-border-on-value nc-home-sidebar-search nc-input-sm"
       >
         <template #prefix>
           <GeneralLoader v-if="isBaseListAllLoading" size="regular" class="h-4 w-4 mr-0.5" />
@@ -157,8 +155,8 @@ const hasNoResults = computed(() => {
       <!-- Workspace list -->
       <div class="flex-1 overflow-y-auto nc-scrollbar-thin px-1">
         <!-- No results -->
-        <div v-if="hasNoResults" class="px-3 py-4 text-nc-content-gray-muted text-bodySm text-center">
-          {{ $t('title.noResultsMatchedYourSearch') }}
+        <div v-if="hasNoResults" class="px-3 py-4 text-nc-content-gray-muted text-bodyDefaultSm text-center">
+          {{ $t('labels.noResults') }}
         </div>
 
         <!-- Loading skeleton -->

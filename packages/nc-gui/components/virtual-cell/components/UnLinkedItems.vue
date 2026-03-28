@@ -1,6 +1,13 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { PermissionEntity, PermissionKey, RelationTypes, isBtLikeV2Junction, isDateOrDateTimeCol, isLinksOrLTAR } from 'nocodb-sdk'
+import {
+  PermissionEntity,
+  PermissionKey,
+  RelationTypes,
+  isBtLikeV2Junction,
+  isDateOrDateTimeCol,
+  isLinksOrLTAR,
+} from 'nocodb-sdk'
 import InboxIcon from '~icons/nc-icons/inbox'
 
 const props = defineProps<{

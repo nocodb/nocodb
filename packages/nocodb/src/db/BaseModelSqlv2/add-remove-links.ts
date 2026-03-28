@@ -432,11 +432,32 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
               const childFkValue =
                 dataWrapper(row).getByColumnNameTitleOrId(childColumn);
 
+              // Skip rows whose parent is soft-deleted — they are preserved
+              // for restore conflict detection and should not be deleted or audited.
+              const parentSoftDeleteCol = parentTable.columns.find((c) =>
+                isDeletedCol(c),
+              );
+
+              const existingQb = baseModel
+                .dbDriver(vTn)
+                .select(vChildCol.column_name, vParentCol.column_name)
+                .where(vChildCol.column_name, childFkValue);
+
+              if (parentSoftDeleteCol) {
+                existingQb.whereNotExists(
+                  baseModel
+                    .dbDriver(parentTn)
+                    .select(1)
+                    .where(parentSoftDeleteCol.column_name, true)
+                    .whereRaw('?? = ??', [
+                      parentTable.primaryKey.column_name,
+                      `${vTn}.${vParentCol.column_name}`,
+                    ]),
+                );
+              }
+
               const existing = await assocBaseModel.execAndParse(
-                baseModel
-                  .dbDriver(vTn)
-                  .select(vChildCol.column_name, vParentCol.column_name)
-                  .where(vChildCol.column_name, childFkValue),
+                existingQb,
                 null,
                 { raw: true },
               );
@@ -446,10 +467,6 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                   .dbDriver(vTn)
                   .where(vChildCol.column_name, childFkValue);
 
-                // Skip rows whose parent is soft-deleted
-                const parentSoftDeleteCol = parentTable.columns.find((c) =>
-                  isDeletedCol(c),
-                );
                 if (parentSoftDeleteCol) {
                   deleteQb.whereNotExists(
                     baseModel
@@ -491,11 +508,32 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
               for (const data of insertData) {
                 const parentFkValue = data[vParentCol.column_name];
 
+                // Skip rows whose child is soft-deleted — they are preserved
+                // for restore conflict detection and should not be deleted or audited.
+                const childSoftDeleteCol = childTable.columns.find((c) =>
+                  isDeletedCol(c),
+                );
+
+                const existingQb = baseModel
+                  .dbDriver(vTn)
+                  .select(vChildCol.column_name, vParentCol.column_name)
+                  .where(vParentCol.column_name, parentFkValue);
+
+                if (childSoftDeleteCol) {
+                  existingQb.whereNotExists(
+                    baseModel
+                      .dbDriver(childTn)
+                      .select(1)
+                      .where(childSoftDeleteCol.column_name, true)
+                      .whereRaw('?? = ??', [
+                        childTable.primaryKey.column_name,
+                        `${vTn}.${vChildCol.column_name}`,
+                      ]),
+                  );
+                }
+
                 const existing = await assocBaseModel.execAndParse(
-                  baseModel
-                    .dbDriver(vTn)
-                    .select(vChildCol.column_name, vParentCol.column_name)
-                    .where(vParentCol.column_name, parentFkValue),
+                  existingQb,
                   null,
                   { raw: true },
                 );
@@ -505,10 +543,6 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                     .dbDriver(vTn)
                     .where(vParentCol.column_name, parentFkValue);
 
-                  // Skip rows whose child is soft-deleted
-                  const childSoftDeleteCol = childTable.columns.find((c) =>
-                    isDeletedCol(c),
-                  );
                   if (childSoftDeleteCol) {
                     deleteQb.whereNotExists(
                       baseModel

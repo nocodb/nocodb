@@ -15,16 +15,17 @@ const managedApp = ref({
       Selected color: {{ color1 }}
 
       <div class="flex items-center gap-2">
-        <NcSwitch v-model:checked="managedApp.managed_app_master"> Toggle Managed App state </NcSwitch>
+        <NcSwitch v-model:checked="managedApp.managed_app_master">
+          Toggle Managed App state
+        </NcSwitch>
       </div>
-      <div class="inline-block min-h-[24px] min-w-[24px] h-[24px] w-[24px] rounded-md" :class="[`bg-${color1}`]"></div>
+      <div class="inline-block min-h-[24px] min-w-[24px] h-[24px] w-[24px] rounded-md" :class="[`bg-${color1}`]" />
       <GeneralBaseIconColorPicker
         :model-value="color1"
         type="database"
         :managed-app="managedApp"
         @update:model-value="color1 = $event"
-      >
-      </GeneralBaseIconColorPicker>
+      />
     </a-card>
   </div>
 </template>

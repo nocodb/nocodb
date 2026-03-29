@@ -11,7 +11,7 @@ const { t } = useI18n()
 
 const copied = ref(false)
 
-const copyValue = async () => {
+async function copyValue() {
   if (!props.modelValue) return
 
   await copy(props.modelValue)

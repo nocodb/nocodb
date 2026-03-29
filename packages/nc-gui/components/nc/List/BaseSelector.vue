@@ -33,7 +33,7 @@ const modelValue = useVModel(props, 'value', emit)
 
 const isOpenBaseSelectDropdown = ref(false)
 
-const handleValueUpdate = (value: any) => {
+function handleValueUpdate(value: any) {
   modelValue.value = value
 }
 
@@ -48,11 +48,13 @@ const baseList = computedAsync(async () => {
         baseURL: getBaseUrl(wsId),
       })
       basesList = list || []
-    } else {
+    }
+    else {
       const { list } = await $api.base.list()
       basesList = list || []
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to load bases:', error)
     basesList = []
   }
@@ -77,7 +79,7 @@ const baseList = computedAsync(async () => {
 const baseListMap = computed(() => {
   if (!baseList.value || baseList.value.length === 0) return new Map()
 
-  return new Map(baseList.value.map((base) => [base.value, base]))
+  return new Map(baseList.value.map(base => [base.value, base]))
 })
 
 const selectedBase = computed(() => {
@@ -90,7 +92,7 @@ watch(
   baseList,
   (newBaseList) => {
     if (newBaseList && newBaseList.length > 0) {
-      const baseValueSet = new Set(newBaseList.map((base) => base.value))
+      const baseValueSet = new Set(newBaseList.map(base => base.value))
 
       // Check if current value exists in the new base list
       if (modelValue.value && !baseValueSet.has(modelValue.value)) {
@@ -104,8 +106,9 @@ watch(
         const firstBase = newBaseList[0]!
 
         if (firstBase.ncItemDisabled) {
-          modelValue.value = newBaseList.find((base) => !base.ncItemDisabled)?.value || firstBase.value
-        } else {
+          modelValue.value = newBaseList.find(base => !base.ncItemDisabled)?.value || firstBase.value
+        }
+        else {
           modelValue.value = firstBase.value
         }
       }
@@ -135,7 +138,9 @@ defineExpose({
   >
     <template v-if="!disableLabel" #label>
       <div>
-        <slot name="label">{{ t('objects.project') }}</slot>
+        <slot name="label">
+          {{ t('objects.project') }}
+        </slot>
       </div>
     </template>
     <NcListDropdown v-model:is-open="isOpenBaseSelectDropdown" :disabled="disabled" :has-error="!!selectedBase?.ncItemDisabled">

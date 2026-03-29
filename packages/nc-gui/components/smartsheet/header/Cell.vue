@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
 import {
+  partialUpdateAllowedTypes,
   PermissionEntity,
   PermissionKey,
+  readonlyMetaAllowedTypes,
   UITypes,
   UITypesName,
-  partialUpdateAllowedTypes,
-  readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
 
 interface Props {
@@ -78,7 +78,7 @@ const columnTypeName = computed(() => {
   return column.value.uidt ? UITypesName[column.value.uidt] : ''
 })
 
-const addField = async (payload: any) => {
+async function addField(payload: any) {
   columnOrder.value = payload
   editColumnDropdown.value = true
 }
@@ -93,27 +93,28 @@ watch(editColumnDropdown, (val) => {
   }
 })
 
-const closeAddColumnDropdown = () => {
+function closeAddColumnDropdown() {
   columnOrder.value = null
   editColumnDropdown.value = false
 }
 
 const isColumnEditAllowed = computed(() => {
   if (
-    isMetaReadOnly.value &&
-    !readonlyMetaAllowedTypes.includes(column.value?.uidt) &&
-    !partialUpdateAllowedTypes.includes(column.value?.uidt)
-  )
+    isMetaReadOnly.value
+    && !readonlyMetaAllowedTypes.includes(column.value?.uidt)
+    && !partialUpdateAllowedTypes.includes(column.value?.uidt)
+  ) {
     return false
+  }
   return true
 })
 
-const openHeaderMenu = (e?: MouseEvent, description = false) => {
+function openHeaderMenu(e?: MouseEvent, description = false) {
   if (
-    (isExpandedForm.value && e?.type === 'dblclick') ||
-    isExpandedBulkUpdateForm.value ||
-    isSqlView.value ||
-    props.hideIconTooltip
+    (isExpandedForm.value && e?.type === 'dblclick')
+    || isExpandedBulkUpdateForm.value
+    || isSqlView.value
+    || props.hideIconTooltip
   ) {
     return
   }
@@ -128,7 +129,7 @@ const openHeaderMenu = (e?: MouseEvent, description = false) => {
 
 const isDateDependencyField = computed(() => isColumnDateDependencyField(meta.value, column?.value?.id))
 
-const openDropDown = (e: Event) => {
+function openDropDown(e: Event) {
   if (isForm.value || (!isUIAllowed('fieldEdit') && !isMobileMenuHidden.value) || props.hideIconTooltip) return
 
   e.preventDefault()
@@ -137,7 +138,7 @@ const openDropDown = (e: Event) => {
   isDropDownOpen.value = !isDropDownOpen.value
 }
 
-const onVisibleChange = () => {
+function onVisibleChange() {
   editColumnDropdown.value = true
   if (!editOrAddProviderRef.value?.shouldKeepModalOpen?.()) {
     editColumnDropdown.value = false
@@ -145,7 +146,7 @@ const onVisibleChange = () => {
   }
 }
 
-const onClick = (e: Event) => {
+function onClick(e: Event) {
   if (isMobileMenuHidden.value || !isUIAllowed('fieldEdit') || props.hideIconTooltip) return
 
   // On mobile, only respond to clicks within the name wrapper
@@ -157,7 +158,8 @@ const onClick = (e: Event) => {
   if (isDropDownOpen.value) {
     e.preventDefault()
     e.stopPropagation()
-  } else {
+  }
+  else {
     if (isExpandedForm.value && !editColumnDropdown.value && !isExpandedBulkUpdateForm.value) {
       isDropDownOpen.value = true
       return
@@ -203,7 +205,9 @@ const onClick = (e: Event) => {
             hideIconTooltip || (isExpandedForm && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false)
           "
         >
-          <template #title> {{ columnTypeName }} </template>
+          <template #title>
+            {{ columnTypeName }}
+          </template>
           <SmartsheetHeaderCellIcon
             :class="{
               'self-start': isForm || isSurveyForm,
@@ -229,7 +233,9 @@ const onClick = (e: Event) => {
         show-on-truncate-only
         :disabled="isExpandedForm && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false"
       >
-        <template #title> {{ column.title }} </template>
+        <template #title>
+          {{ column.title }}
+        </template>
 
         <span
           :data-test-id="column.title"
@@ -266,7 +272,9 @@ const onClick = (e: Event) => {
       />
       <div class="flex-1" />
       <NcTooltip v-if="isDateDependencyField && isExpandedForm && !isPublic" class="flex items-center" placement="bottom">
-        <template #title> {{ $t('labels.dateDependency.enabled') }} </template>
+        <template #title>
+          {{ $t('labels.dateDependency.enabled') }}
+        </template>
         <GeneralIcon icon="viewGannt" class="flex-none !w-3.5 !h-3.5 !text-nc-content-gray-muted" />
       </NcTooltip>
       <NcTooltip
@@ -274,13 +282,17 @@ const onClick = (e: Event) => {
         class="flex items-center"
         placement="bottom"
       >
-        <template #title> {{ $t('tooltip.fieldIsExternallySynced') }} </template>
+        <template #title>
+          {{ $t('tooltip.fieldIsExternallySynced') }}
+        </template>
         <GeneralIcon icon="ncZap" class="flex-none !w-3.5 !h-3.5 !text-nc-content-gray-disabled" />
       </NcTooltip>
     </div>
     <NcTooltip v-if="column.description?.length && isPublic && isGrid && !isExpandedForm && !hideMenu">
       <template #title>
-        <div class="whitespace-pre-wrap break-words">{{ column.description }}</div>
+        <div class="whitespace-pre-wrap break-words">
+          {{ column.description }}
+        </div>
       </template>
       <div>
         <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-nc-content-gray-muted flex-none" />
@@ -292,7 +304,9 @@ const onClick = (e: Event) => {
 
       <div v-if="!isExpandedForm && meta?.synced && column.readonly">
         <NcTooltip class="flex items-center" placement="bottom">
-          <template #title> {{ $t('tooltip.fieldIsExternallySynced') }} </template>
+          <template #title>
+            {{ $t('tooltip.fieldIsExternallySynced') }}
+          </template>
           <GeneralIcon icon="ncZap" class="flex-none !w-4 !h-4 !text-nc-content-gray-disabled" />
         </NcTooltip>
       </div>
@@ -313,7 +327,9 @@ const onClick = (e: Event) => {
       :overlay-class-name="`nc-dropdown-edit-column ${editColumnDropdown ? 'active rounded-2xl' : ''}`"
       @visible-change="onVisibleChange"
     >
-      <div v-if="isExpandedForm && !isExpandedBulkUpdateForm" class="h-[1px]" @dblclick.stop>&nbsp;</div>
+      <div v-if="isExpandedForm && !isExpandedBulkUpdateForm" class="h-[1px]" @dblclick.stop>
+&nbsp;
+      </div>
       <div v-else />
 
       <template #overlay>

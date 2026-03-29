@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import type { ImageCropperConfig } from '#imports'
+import type { AttachmentReqType } from 'nocodb-sdk'
 import { Cropper } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css'
 import 'vue-advanced-cropper/dist/theme.classic.css'
-import type { AttachmentReqType } from 'nocodb-sdk'
-import type { ImageCropperConfig } from '#imports'
 
 interface Props {
   attachment?: AttachmentReqType | null
@@ -84,11 +84,11 @@ const imageRestriction = computed(() => {
   return imageCropperData.value.cropperConfig.imageRestriction || 'fit-area'
 })
 
-const openFileDialog = () => {
+function openFileDialog() {
   fileInput.value?.click()
 }
 
-const validateFile = (file: File): string | null => {
+function validateFile(file: File): string | null {
   // Check file size
   if (file.size > props.maxFileSize * 1024 * 1024) {
     return `File size must be less than ${props.maxFileSize}MB`
@@ -102,7 +102,7 @@ const validateFile = (file: File): string | null => {
   return null
 }
 
-const handleFileSelect = (event: Event) => {
+function handleFileSelect(event: Event) {
   const target = event.target as HTMLInputElement
   const files = target.files
 
@@ -151,7 +151,7 @@ const handleFileSelect = (event: Event) => {
   }
 }
 
-const handleCropImage = () => {
+function handleCropImage() {
   const { canvas } = cropperRef.value.getResult()
 
   if (!canvas) return
@@ -165,7 +165,7 @@ const handleCropImage = () => {
   }, imageCropperData.value.imageConfig.type)
 }
 
-const handleUploadImage = async (fileToUpload: AttachmentReqType[]) => {
+async function handleUploadImage(fileToUpload: AttachmentReqType[]) {
   try {
     const uploadResult = await api.storage.uploadByUrl(
       {
@@ -176,7 +176,8 @@ const handleUploadImage = async (fileToUpload: AttachmentReqType[]) => {
     )
 
     attachment.value = uploadResult?.[0]
-  } catch (error: any) {
+  }
+  catch (error: any) {
     console.error(error)
     message.error(await extractSdkResponseErrorMsg(error))
   }
@@ -184,7 +185,7 @@ const handleUploadImage = async (fileToUpload: AttachmentReqType[]) => {
   showCropper.value = false
 }
 
-const handleSaveImage = async () => {
+async function handleSaveImage() {
   if (previewImage.value.canvas) {
     await handleUploadImage([
       {
@@ -199,14 +200,14 @@ const handleSaveImage = async () => {
   }
 }
 
-const defaultSize = ({ imageSize, visibleArea }: { imageSize: Record<string, any>; visibleArea: Record<string, any> }) => {
+function defaultSize({ imageSize, visibleArea }: { imageSize: Record<string, any>, visibleArea: Record<string, any> }) {
   return {
     width: (visibleArea || imageSize).width,
     height: (visibleArea || imageSize).height,
   }
 }
 
-const handleDelete = () => {
+function handleDelete() {
   emit('update:attachment', null)
 }
 
@@ -218,7 +219,8 @@ watch(
         canvas: {},
         src: '',
       }
-    } else {
+    }
+    else {
       until(() => !!cropperRef.value?.getResult?.()?.canvas)
         .toBeTruthy({ timeout: 2000 })
         .then((canvas) => {
@@ -257,8 +259,8 @@ onUnmounted(() => {
           :min-width="imageCropperData.cropperConfig?.minWidth"
           :image-restriction="imageRestriction"
           v-bind="
-            imageCropperData.cropperConfig.stencilProps?.fillDefault ||
-            imageCropperData.cropperConfig.stencilProps?.fillDefault === undefined
+            imageCropperData.cropperConfig.stencilProps?.fillDefault
+              || imageCropperData.cropperConfig.stencilProps?.fillDefault === undefined
               ? { defaultSize }
               : {}
           "
@@ -270,21 +272,25 @@ onUnmounted(() => {
             'rounded-full overflow-hidden': imageCropperData.cropperConfig?.stencilProps?.circlePreview,
           }"
         >
-          <img :src="previewImage.src" alt="Preview Image" />
+          <img :src="previewImage.src" alt="Preview Image">
         </div>
       </div>
       <div class="flex justify-between items-center mt-4 space-x-4">
         <div class="flex items-center space-x-4">
-          <NcButton type="secondary" size="small" :disabled="isLoading" @click="showCropper = false"> Cancel </NcButton>
+          <NcButton type="secondary" size="small" :disabled="isLoading" @click="showCropper = false">
+            Cancel
+          </NcButton>
         </div>
         <div class="flex items-center space-x-4">
           <NcButton type="secondary" size="small" :disabled="isLoading" @click="handleCropImage">
-            <GeneralIcon icon="crop"></GeneralIcon>
+            <GeneralIcon icon="crop" />
             <span class="ml-2">Crop</span>
           </NcButton>
 
           <NcTooltip :disabled="isValidFileSize">
-            <template #title> Cropped file size is greater than max file size </template>
+            <template #title>
+              Cropped file size is greater than max file size
+            </template>
 
             <NcButton
               size="small"
@@ -325,7 +331,7 @@ onUnmounted(() => {
       </NcButton>
     </div>
 
-    <input ref="fileInput" type="file" :accept="acceptedTypes" class="!hidden" @change="handleFileSelect" />
+    <input ref="fileInput" type="file" :accept="acceptedTypes" class="!hidden" @change="handleFileSelect">
   </div>
 </template>
 

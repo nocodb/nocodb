@@ -1,6 +1,6 @@
-import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTag } from '../utils/canvas'
 import type { getSingleMultiselectColOptions } from '../utils/cell'
 import type { RenderRectangleProps } from '../utils/types'
+import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTag } from '../utils/canvas'
 
 export const MultiSelectCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -103,7 +103,8 @@ export const MultiSelectCellRenderer: CellRenderer = {
 
     if (ncIsArray(value)) {
       return value
-    } else if (isMysql?.(column?.source_id)) {
+    }
+    else if (isMysql?.(column?.source_id)) {
       const optionsMap = (column.extra as ReturnType<typeof getSingleMultiselectColOptions>)?.optionsMap
 
       return value
@@ -117,7 +118,8 @@ export const MultiSelectCellRenderer: CellRenderer = {
           }
           return 0
         })
-    } else {
+    }
+    else {
       return value.toString().split(',')
     }
   },
@@ -187,7 +189,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
 
     if (!boxes.length) return
 
-    const hoveredBox = boxes.find((box) => isBoxHovered(box, mousePosition))
+    const hoveredBox = boxes.find(box => isBoxHovered(box, mousePosition))
     if (!hoveredBox) return
     tryShowTooltip({
       rect: hoveredBox,

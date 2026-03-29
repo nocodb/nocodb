@@ -2,7 +2,7 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { isColumnInvalid } from '#imports'
 
-const props = defineProps<{ virtual?: boolean; isOpen: boolean; isHiddenCol?: boolean }>()
+const props = defineProps<{ virtual?: boolean, isOpen: boolean, isHiddenCol?: boolean }>()
 
 const emit = defineEmits(['edit', 'addColumn', 'update:isOpen'])
 
@@ -22,7 +22,7 @@ const { isUIAllowed } = useRoles()
 
 const { aiIntegrations, isNocoAiAvailable } = useNocoAi()
 
-const columnInvalid = computed<{ isInvalid: boolean; tooltip: string }>(() => {
+const columnInvalid = computed<{ isInvalid: boolean, tooltip: string }>(() => {
   if (!column?.value) {
     return {
       isInvalid: false,
@@ -41,16 +41,16 @@ const columnInvalid = computed<{ isInvalid: boolean; tooltip: string }>(() => {
 
 const isDateDependencyField = computed(() => isColumnDateDependencyField(meta.value, column?.value?.id))
 
-const openDropdown = () => {
+function openDropdown() {
   if (isLocked.value) return
   isOpen.value = !isOpen.value
 }
 
-const emitAddColumn = (...args: any[]) => {
+function emitAddColumn(...args: any[]) {
   emit('addColumn', ...args)
 }
 
-const emitEdit = (...args: any[]) => {
+function emitEdit(...args: any[]) {
   emit('edit', ...args)
 }
 </script>
@@ -64,10 +64,14 @@ const emitEdit = (...args: any[]) => {
     @click.stop="openDropdown"
   >
     <div class="flex gap-1 items-center" @dblclick.stop>
-      <div v-if="isExpandedForm" class="h-[1px]">&nbsp;</div>
+      <div v-if="isExpandedForm" class="h-[1px]">
+&nbsp;
+      </div>
       <NcTooltip v-if="column?.description?.length && !isExpandedForm" class="flex">
         <template #title>
-          <div class="whitespace-pre-wrap break-words">{{ column?.description }}</div>
+          <div class="whitespace-pre-wrap break-words">
+            {{ column?.description }}
+          </div>
         </template>
         <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-nc-content-gray-muted flex-none" />
       </NcTooltip>
@@ -84,7 +88,9 @@ const emitEdit = (...args: any[]) => {
         </template>
       </NcTooltip>
       <NcTooltip v-if="isDateDependencyField && !isExpandedForm && !isPublic" class="flex items-center" placement="bottom">
-        <template #title> {{ $t('labels.dateDependency.enabled') }} </template>
+        <template #title>
+          {{ $t('labels.dateDependency.enabled') }}
+        </template>
         <GeneralIcon icon="viewGannt" class="flex-none !w-3.5 !h-3.5 !text-nc-content-gray-muted" />
       </NcTooltip>
       <template v-if="meta?.synced && column?.readonly && !isExpandedForm && !isPublic">

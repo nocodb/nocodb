@@ -22,7 +22,7 @@ const { basesList, isProjectsLoading } = storeToRefs(basesStore)
 const { activeBreakpoint } = useGlobal()
 
 // Provide base actions to child components
-const closeModal = () => {
+function closeModal() {
   visible.value = false
 }
 const { dialogState } = useProvideWsBaseListActions(closeModal)
@@ -39,7 +39,7 @@ const modalState = reactive({
   activeFilter: 'all' as 'all' | 'owned',
 })
 
-const handleKeydown = (e: KeyboardEvent) => {
+function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape') {
     visible.value = false
   }
@@ -83,8 +83,8 @@ const baseCheckers = {
 }
 
 // Helper to filter bases with search
-const filterWithSearch = (bases: NcProject[]) => {
-  return bases.filter((base) => searchCompare(base.title, modalState.searchQuery))
+function filterWithSearch(bases: NcProject[]) {
+  return bases.filter(base => searchCompare(base.title, modalState.searchQuery))
 }
 
 // Priority-based categorization using a single computed
@@ -93,8 +93,8 @@ const categorizedBases = computed(() => {
   const bases = workspaceBases.value
   const { starred, private: isPrivate, managed, owned } = baseCheckers
 
-  const ownedBases = bases.filter((b) => owned(b))
-  const defaultBases = bases.filter((b) => !starred(b) && !isPrivate(b) && !managed(b) && !owned(b))
+  const ownedBases = bases.filter(b => owned(b))
+  const defaultBases = bases.filter(b => !starred(b) && !isPrivate(b) && !managed(b) && !owned(b))
 
   return { owned: ownedBases, default: defaultBases }
 })
@@ -118,11 +118,11 @@ const displayedSections = computed(() => {
   if (filter === 'all') {
     // Show all categories with search filter applied
     return sectionOrder
-      .map((type) => ({
+      .map(type => ({
         type,
         bases: filterWithSearch(categorizedBases.value[type]),
       }))
-      .filter((section) => section.bases.length > 0)
+      .filter(section => section.bases.length > 0)
   }
 
   // Show only the selected filter category (all bases matching, not priority-filtered)
@@ -131,7 +131,7 @@ const displayedSections = computed(() => {
 })
 
 const emptyFilterResult = computed(() => {
-  return displayedSections.value.every((section) => section.bases.length === 0) && !modalState.searchQuery
+  return displayedSections.value.every(section => section.bases.length === 0) && !modalState.searchQuery
 })
 
 // Check if there are no search results
@@ -232,7 +232,7 @@ const hasNoSearchResults = computed(() => {
                 src="~assets/img/placeholder/no-search-result-found.png"
                 class="!w-[164px] flex-none"
                 alt="No search results found"
-              />
+              >
 
               {{ $t('title.noResultsMatchedYourSearch') }}
             </div>

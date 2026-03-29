@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { type ColumnType, type TableType, UITypes } from 'nocodb-sdk'
+import type { ColumnType, TableType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
 interface Props {
@@ -52,7 +53,7 @@ const selectedFieldsCount = computed(() => Object.values(selectedFields.value).f
 
 const hasSelectedFields = computed(() => selectedFieldsCount.value > 0)
 
-const createLookups = async () => {
+async function createLookups() {
   if (!hasSelectedFields.value) {
     return
   }
@@ -68,8 +69,8 @@ const createLookups = async () => {
     const currIndex = meta.value?.columns?.length ?? 0
 
     for (const [k] of Object.entries(selectedFields.value).filter(([, v]) => v)) {
-      const lookupCol = getMetaByKey(fkRelatedBaseId.value, relatedModel.value?.id)?.columns.find((c) => c.id === k)
-      const index = filteredColumns.value.findIndex((c) => c.id === k)
+      const lookupCol = getMetaByKey(fkRelatedBaseId.value, relatedModel.value?.id)?.columns.find(c => c.id === k)
+      const index = filteredColumns.value.findIndex(c => c.id === k)
       const tempCol = {
         uidt: UITypes.Lookup,
         fk_lookup_column_id: k,
@@ -127,9 +128,11 @@ const createLookups = async () => {
     isOpened.value = false
     selectedFields.value = {}
     emit('created')
-  } catch (e) {
+  }
+  catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 }
@@ -161,7 +164,8 @@ watch(isOpened, async (val) => {
     relatedModel.value = await getMeta(fkRelatedBaseId.value as string, fkRelatedModelId.value)
     isInSearchMode.value = false
     searchField.value = ''
-  } else {
+  }
+  else {
     selectedFields.value = {}
   }
 })
@@ -201,7 +205,9 @@ watch(isOpened, async (val) => {
                   class="flex justify-between items-center pl-4 pr-3 py-1.5 absolute w-full overflow-auto"
                   style="scrollbar-gutter: stable"
                 >
-                  <div class="font-weight-600">{{ t('general.add') }} {{ t('datatype.Lookup') }} {{ t('objects.fields') }}</div>
+                  <div class="font-weight-600">
+                    {{ t('general.add') }} {{ t('datatype.Lookup') }} {{ t('objects.fields') }}
+                  </div>
                   <NcButton type="text" size="small" @click="switchToSearchMode()">
                     <GeneralIcon icon="search" class="w-4 h-4" />
                   </NcButton>
@@ -223,7 +229,9 @@ watch(isOpened, async (val) => {
                     <template #title>
                       {{ field.title }}
                     </template>
-                    <template #default>{{ field.title }}</template>
+                    <template #default>
+                      {{ field.title }}
+                    </template>
                   </NcTooltip>
 
                   <NcCheckbox v-model:checked="selectedFields[field.id]" size="default" />
@@ -245,11 +253,11 @@ watch(isOpened, async (val) => {
               {{
                 selectedFieldsCount > 1
                   ? $t('general.addLookupFieldPlural', {
-                      count: selectedFieldsCount,
-                    })
+                    count: selectedFieldsCount,
+                  })
                   : $t('general.addLookupField', {
-                      count: selectedFieldsCount || '',
-                    })
+                    count: selectedFieldsCount || '',
+                  })
               }}
             </NcButton>
           </div>

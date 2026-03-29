@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import { type CalendarRangeType, FormulaDataTypes, PlanFeatureTypes, PlanTitles, UITypes, ViewTypes } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
+import type { CalendarRangeType } from 'nocodb-sdk'
+import { FormulaDataTypes, PlanFeatureTypes, PlanTitles, UITypes, ViewTypes } from 'nocodb-sdk'
 
 const meta = inject(MetaInj, ref())
 
@@ -43,11 +44,11 @@ const dateFieldOptions = computed<SelectProps['options']>(() => {
   return (
     meta.value?.columns
       ?.filter(
-        (c) =>
-          [UITypes.DateTime, UITypes.Date, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(c.uidt) ||
-          (c.uidt === UITypes.Formula && (c.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE),
+        c =>
+          [UITypes.DateTime, UITypes.Date, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(c.uidt)
+          || (c.uidt === UITypes.Formula && (c.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE),
       )
-      .map((c) => ({
+      .map(c => ({
         label: c.title,
         value: c.id,
         uidt: c.uidt,
@@ -117,12 +118,12 @@ watch(calendarRange, () => {
   _calendar_ranges.value = calendarRange.value
 })
 
-const saveCalendarRanges = async () => {
+async function saveCalendarRanges() {
   if (activeView.value) {
     try {
       const calRanges = _calendar_ranges.value
-        .filter((range) => range.fk_from_column_id)
-        .map((range) => ({
+        .filter(range => range.fk_from_column_id)
+        .map(range => ({
           fk_from_column_id: range.fk_from_column_id,
           fk_to_column_id: range.fk_to_column_id,
         }))
@@ -133,26 +134,28 @@ const saveCalendarRanges = async () => {
 
       await Promise.all([loadCalendarData(), loadSidebarData(), fetchActiveDates()])
       // calendarRangeDropdown.value = false
-    } catch (e) {
+    }
+    catch (e) {
       console.log(e)
       message.error('There was an error while updating view!')
     }
-  } else {
+  }
+  else {
     message.error('Please select a view first')
   }
 }
 
-const filterEndDateOptions = (options, startColumnId) => {
+function filterEndDateOptions(options, startColumnId) {
   if (!options || !startColumnId) return []
 
-  const startColumn = meta.value?.columns?.find((c) => c.id === startColumnId)
+  const startColumn = meta.value?.columns?.find(c => c.id === startColumnId)
   const startTimezone = startColumn?.meta?.timezone
 
   return options.filter((option) => {
-    const firstRange = dateFieldOptions.value.find((f) => f.value === startColumnId)
+    const firstRange = dateFieldOptions.value.find(f => f.value === startColumnId)
     const uidtMatches = firstRange?.uidt === option.uidt
 
-    const optionColumn = meta.value?.columns?.find((c) => c.id === option.value)
+    const optionColumn = meta.value?.columns?.find(c => c.id === option.value)
     const timezoneMatches = optionColumn?.meta?.timezone === startTimezone
     return uidtMatches && option.value !== startColumnId && timezoneMatches
   })
@@ -165,7 +168,7 @@ const removeRange = async (id: number) => {
 }
 */
 
-const onValueChange = async () => {
+async function onValueChange() {
   _calendar_ranges.value = _calendar_ranges.value.map((range, i) => {
     if (i === 0) {
       return {
@@ -235,7 +238,9 @@ const onValueChange = async () => {
             "
             @click.stop
           >
-            <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
+            <template #suffixIcon>
+              <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+            </template>
             <a-select-option
               v-for="(option, opId) in [...(dateFieldOptions ?? [])].filter((r) => {
                 if (id === 0) return true
@@ -253,7 +258,9 @@ const onValueChange = async () => {
                     <template #title>
                       {{ option.label }}
                     </template>
-                    <template #default>{{ option.label }}</template>
+                    <template #default>
+                      {{ option.label }}
+                    </template>
                   </NcTooltip>
                 </div>
                 <GeneralIcon
@@ -321,7 +328,9 @@ const onValueChange = async () => {
                       @change="saveCalendarRanges"
                       @click.stop
                     >
-                      <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
+                      <template #suffixIcon>
+                        <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+                      </template>
 
                       <a-select-option
                         v-for="(option, opId) in filterEndDateOptions(dateFieldOptions, range.fk_from_column_id)"
@@ -336,7 +345,9 @@ const onValueChange = async () => {
                               <template #title>
                                 {{ option.label }}
                               </template>
-                              <template #default>{{ option.label }}</template>
+                              <template #default>
+                                {{ option.label }}
+                              </template>
                             </NcTooltip>
                           </div>
                           <GeneralIcon

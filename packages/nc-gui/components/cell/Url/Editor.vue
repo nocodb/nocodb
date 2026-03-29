@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
+import type { VNodeRef } from 'vue'
 
 interface Props {
   modelValue?: string | null
@@ -53,11 +53,11 @@ const focus: VNodeRef = (el) => {
 
 onBeforeUnmount(() => {
   if (
-    !isForm.value &&
-    parseProp(column.value.meta)?.validate &&
-    (!editEnabled.value || isCanvasInjected) &&
-    localState.value &&
-    !isValidURL(trim(localState.value))
+    !isForm.value
+    && parseProp(column.value.meta)?.validate
+    && (!editEnabled.value || isCanvasInjected)
+    && localState.value
+    && !isValidURL(trim(localState.value))
   ) {
     if (!isEditColumn.value) {
       message.error(t('msg.error.invalidURL'))
@@ -75,7 +75,7 @@ onMounted(() => {
   }
 })
 
-const onBlur = () => {
+function onBlur() {
   editEnabled.value = false
   isFocused.value = false
 }
@@ -107,7 +107,7 @@ const showClicableLink = computed(() => {
       @keydown.alt.stop
       @selectstart.capture.stop
       @mousedown.stop
-    />
+    >
     <div
       v-if="showClicableLink"
       class="nc-cell-field nc-cell-link-preview absolute inset-0 flex items-center max-w-full overflow-hidden pointer-events-none"

@@ -1,5 +1,5 @@
-import { Node } from '@tiptap/core'
 import type { MarkdownNodeSpec } from '../../types'
+import { Node } from '@tiptap/core'
 
 // TODO: Extend from tiptap extension
 export const BulletList = Node.create<any, { markdown: MarkdownNodeSpec }>({
@@ -13,8 +13,8 @@ export const BulletList = Node.create<any, { markdown: MarkdownNodeSpec }>({
           const previousNode = parent && index > 0 ? parent.child(index - 1) : null
 
           // Check if the previous node is a different type of list
-          const isDifferentListType =
-            previousNode && previousNode.type.name !== node.type.name && previousNode.type.name === 'taskList'
+          const isDifferentListType
+            = previousNode && previousNode.type.name !== node.type.name && previousNode.type.name === 'taskList'
 
           // Add ` <br>\n\n ` if transitioning from a different list type
           if (isDifferentListType) {

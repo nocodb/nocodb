@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { unified } from 'unified'
-import remarkParse from 'remark-parse'
-import remarkRehype from 'remark-rehype'
+import type { ProductFeedItem } from '../../../lib/types'
 import rehypeSanitize from 'rehype-sanitize'
 import rehypeStringify from 'rehype-stringify'
+import remarkParse from 'remark-parse'
+import remarkRehype from 'remark-rehype'
+import { unified } from 'unified'
 import { YoutubeVue3 } from 'youtube-vue3'
-import type { ProductFeedItem } from '../../../lib/types'
-import { extractYoutubeVideoId } from '../../../utils/urlUtils'
 import { timeAgo } from '~/utils/datetimeUtils'
+import { extractYoutubeVideoId } from '../../../utils/urlUtils'
+
 const props = defineProps<{
   item: ProductFeedItem
 }>()
@@ -27,7 +28,7 @@ const truncate = ref(true)
 
 const { $e } = useNuxtApp()
 
-const expand = () => {
+function expand() {
   truncate.value = false
   $e('c:nocodb:feed:recents:expand', {
     title: Title,
@@ -35,7 +36,7 @@ const expand = () => {
   })
 }
 
-const watchVideo = () => {
+function watchVideo() {
   $e('c:nocodb:feed:recents:watch', {
     title: Title,
     description: Description,
@@ -61,7 +62,7 @@ const renderedText = computedAsync(async () => {
 
 const { width } = useWindowSize()
 
-const handleOpenUrl = (url: string) => {
+function handleOpenUrl(url: string) {
   if (source === 'Cloud') return
 
   openLink(url)
@@ -83,8 +84,8 @@ const handleOpenUrl = (url: string) => {
     </div>
     <template v-if="['Github', 'Cloud'].includes(source)">
       <div class="pb-5">
-        <img v-if="Image" :src="Image" class="cursor-pointer" @click="handleOpenUrl(Url)" />
-        <div class="prose px-5 mt-5" v-html="renderedText"></div>
+        <img v-if="Image" :src="Image" class="cursor-pointer" @click="handleOpenUrl(Url)">
+        <div class="prose px-5 mt-5" v-html="renderedText" />
 
         <NcButton v-if="truncate" size="small" class="w-29 mx-5" type="text" @click="expand">
           <div class="gap-2 flex items-center">

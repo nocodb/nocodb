@@ -24,15 +24,15 @@ const props = withDefaults(defineProps<Props>(), {
 const { t } = useI18n()
 
 const workflows = computed(() => {
-  return props.entities?.filter((e) => e.type === DependencyTableType.Workflow).map((e) => e.entity as WorkflowType) || []
+  return props.entities?.filter(e => e.type === DependencyTableType.Workflow).map(e => e.entity as WorkflowType) || []
 })
 
 const dashboards = computed(() => {
-  return props.entities?.filter((e) => e.type === DependencyTableType.Widget).map((e) => e.entity as DashboardType) || []
+  return props.entities?.filter(e => e.type === DependencyTableType.Widget).map(e => e.entity as DashboardType) || []
 })
 
 const dateDependencyTables = computed(() => {
-  return props.entities?.filter((e) => e.type === DependencyTableType.DateDependency).map((e) => e.entity as TableType) || []
+  return props.entities?.filter(e => e.type === DependencyTableType.DateDependency).map(e => e.entity as TableType) || []
 })
 
 const totalCount = computed(() => {

@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { useCarousel } from './useCarousel'
 import type { WithClassAsProps } from './interface'
-
-const props = defineProps<WithClassAsProps>()
-
-const { carouselRef, orientation } = useCarousel()
+import { useCarousel } from './useCarousel'
 
 defineOptions({
   inheritAttrs: false,
 })
+
+const props = defineProps<WithClassAsProps>()
+
+const { carouselRef, orientation } = useCarousel()
 </script>
 
 <template>

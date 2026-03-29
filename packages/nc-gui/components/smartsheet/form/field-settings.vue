@@ -1,20 +1,21 @@
 <script setup lang="ts">
-import { UITypes, isSelectTypeCol } from 'nocodb-sdk'
+import { isSelectTypeCol, UITypes } from 'nocodb-sdk'
 
 const { formState, activeField, updateColMeta, isRequired } = useFormViewStoreOrThrow()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const updateSelectFieldLayout = (value: boolean) => {
+function updateSelectFieldLayout(value: boolean) {
   if (!activeField.value) return
 
   activeField.value.meta.isList = value
   updateColMeta(activeField.value)
 }
 
-const columnSupportsScanning = (elementType: UITypes) =>
-  isFeatureEnabled(FEATURE_FLAG.FORM_SUPPORT_COLUMN_SCANNING) &&
-  [UITypes.SingleLineText, UITypes.Number, UITypes.Email, UITypes.URL, UITypes.LongText].includes(elementType)
+function columnSupportsScanning(elementType: UITypes) {
+  return isFeatureEnabled(FEATURE_FLAG.FORM_SUPPORT_COLUMN_SCANNING)
+    && [UITypes.SingleLineText, UITypes.Number, UITypes.Email, UITypes.URL, UITypes.LongText].includes(elementType)
+}
 </script>
 
 <template>
@@ -67,8 +68,12 @@ const columnSupportsScanning = (elementType: UITypes) =>
         <!-- Limit options -->
         <div v-if="isSelectTypeCol(activeField.uidt)" class="w-full flex items-start justify-between gap-3">
           <div class="flex-1 max-w-[calc(100%_-_40px)]">
-            <div class="font-medium text-nc-content-gray">{{ $t('labels.limitOptions') }}</div>
-            <div class="text-nc-content-gray-muted mt-1">{{ $t('labels.limitOptionsSubtext') }}.</div>
+            <div class="font-medium text-nc-content-gray">
+              {{ $t('labels.limitOptions') }}
+            </div>
+            <div class="text-nc-content-gray-muted mt-1">
+              {{ $t('labels.limitOptionsSubtext') }}.
+            </div>
             <div v-if="activeField.meta.isLimitOption" class="mt-3">
               <SmartsheetFormLimitOptions
                 v-model:model-value="activeField.meta.limitOptions"
@@ -76,10 +81,10 @@ const columnSupportsScanning = (elementType: UITypes) =>
                 :column="activeField"
                 :is-required="isRequired(activeField, activeField.required)"
                 @update:model-value="updateColMeta(activeField)"
-                @update:form-field-state="(value)=>{
-                                  formState[activeField!.title] = value
-                                }"
-              ></SmartsheetFormLimitOptions>
+                @update:form-field-state="(value) => {
+                  formState[activeField!.title] = value
+                }"
+              />
             </div>
           </div>
 
@@ -101,19 +106,27 @@ const columnSupportsScanning = (elementType: UITypes) =>
       v-if="isSelectTypeCol(activeField.uidt)"
       class="nc-form-field-appearance-settings p-4 flex flex-col gap-4 border-b border-nc-border-gray-medium"
     >
-      <div class="text-sm font-bold text-nc-content-gray">{{ $t('general.appearance') }}</div>
+      <div class="text-sm font-bold text-nc-content-gray">
+        {{ $t('general.appearance') }}
+      </div>
       <div class="flex flex-col gap-6">
         <!-- Select type field Options Layout  -->
         <div>
-          <div class="text-nc-content-gray font-medium">Options layout</div>
+          <div class="text-nc-content-gray font-medium">
+            Options layout
+          </div>
 
           <a-radio-group
             :value="!!activeField.meta.isList"
             class="nc-form-field-layout !mt-3 max-w-[calc(100%_-_40px)]"
             @update:value="updateSelectFieldLayout"
           >
-            <a-radio :value="false">{{ $t('general.dropdown') }}</a-radio>
-            <a-radio :value="true">{{ $t('general.list') }}</a-radio>
+            <a-radio :value="false">
+              {{ $t('general.dropdown') }}
+            </a-radio>
+            <a-radio :value="true">
+              {{ $t('general.list') }}
+            </a-radio>
           </a-radio-group>
         </div>
       </div>

@@ -1,5 +1,5 @@
-import type { FormDefinition, IntegrationsType, SyncCategory } from 'nocodb-sdk'
 import type { VNode } from '@vue/runtime-dom'
+import type { FormDefinition, IntegrationsType, SyncCategory } from 'nocodb-sdk'
 import type { CSSProperties, FunctionalComponent, SVGAttributes } from 'nuxt/dist/app/compat/capi'
 import { ClientType, IntegrationCategoryType, SyncDataType } from '#imports'
 

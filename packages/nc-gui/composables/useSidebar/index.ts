@@ -12,7 +12,7 @@ interface UseSidebarProps {
  * Requires an id to work, id should correspond to the sidebar state you want to create or fetch
  * If `useSidebar` was not called before it will create a new state if no state can be found for the specified id
  */
-const createSidebar = (id: string, props: UseSidebarProps = {}) => {
+function createSidebar(id: string, props: UseSidebarProps = {}) {
   const isOpen = ref(props.isOpen ?? false)
 
   const hasSidebar = ref(props.hasSidebar ?? true)
@@ -66,7 +66,7 @@ const rightSidebar = createSharedComposable(() =>
   createSidebar('rightSidebar', { useStorage: true, isOpen: true, hasSidebar: true }),
 )
 
-export const useSidebar = (id: string, props: UseSidebarProps = {}) => {
+export function useSidebar(id: string, props: UseSidebarProps = {}) {
   const sidebar = id.includes('left') ? leftSidebar() : rightSidebar()
 
   if (props.isOpen !== undefined) sidebar.isOpen.value = props.isOpen

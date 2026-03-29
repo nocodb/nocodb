@@ -17,17 +17,17 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const workspace = computedAsync(async () => {
   if (props.workspaceId) {
-    const ws = workspacesList.value.find((workspace) => workspace.id === props.workspaceId)
+    const ws = workspacesList.value.find(workspace => workspace.id === props.workspaceId)
     if (!ws) {
       await loadWorkspace(props.workspaceId)
 
-      return workspacesList.value.find((workspace) => workspace.id === props.workspaceId)
+      return workspacesList.value.find(workspace => workspace.id === props.workspaceId)
     }
   }
   return activeWorkspace.value ?? workspacesList.value[0]
 })
 
-const onDelete = async () => {
+async function onDelete() {
   if (!workspace.value) return
 
   try {
@@ -39,9 +39,11 @@ const onDelete = async () => {
     }
 
     await navigateToWorkspace(workspacesList.value?.[0]?.id)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     refreshCommandPalette()
   }
 }

@@ -1,14 +1,6 @@
 <script setup lang="ts">
-import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
-import {
-  type BaseType,
-  type LinkToAnotherRecordType,
-  ProjectRoles,
-  type TableType,
-  UITypes,
-  type WorkspaceType,
-  WorkspaceUserRoles,
-} from 'nocodb-sdk'
+import type { BaseType, LinkToAnotherRecordType, TableType, WorkspaceType } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, ProjectRoles, UITypes, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: boolean
@@ -66,8 +58,8 @@ const targetTableMeta = computedAsync(async () => {
 const canTargetOtherBase = computed(() => {
   if (!targetTableMeta.value || (targetTableMeta.value.columns?.length ?? 0) === 0) return false
   return (
-    isEeActive.value &&
-    !targetTableMeta.value.columns?.some((col) => [UITypes.Links, UITypes.LinkToAnotherRecord].includes(col.uidt!))
+    isEeActive.value
+    && !targetTableMeta.value.columns?.some(col => [UITypes.Links, UITypes.LinkToAnotherRecord].includes(col.uidt!))
   )
 })
 
@@ -79,7 +71,7 @@ const workspaceOptions = computed(() => {
   if (!isEeActive.value || !activeWorkspace) return []
   if (!isTargetOtherWsSufficientPlan.value) return [activeWorkspace]
 
-  return workspacesList.filter((ws) =>
+  return workspacesList.filter(ws =>
     [WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(ws.roles as WorkspaceUserRoles),
   )
 })
@@ -90,7 +82,7 @@ const isTargetOtherBaseSufficientPlan = computed(() => {
 
 const targetBases: Ref<BaseType[]> = ref([])
 
-const refreshTargetBases = async () => {
+async function refreshTargetBases() {
   if (!isEeActive.value || !targetWorkspace.value) {
     targetBases.value = []
     return
@@ -103,14 +95,14 @@ const refreshTargetBases = async () => {
   targetBases.value.splice(0)
   targetBases.value.push(
     ...((bases as any[])?.filter(
-      (base) =>
-        [WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(targetWorkspace.value!.roles as WorkspaceUserRoles) ||
-        [ProjectRoles.OWNER, ProjectRoles.CREATOR].includes(base.project_role),
+      base =>
+        [WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(targetWorkspace.value!.roles as WorkspaceUserRoles)
+        || [ProjectRoles.OWNER, ProjectRoles.CREATOR].includes(base.project_role),
     ) ?? []),
   )
 }
 
-const selectWorkspace = async (option: WorkspaceType) => {
+async function selectWorkspace(option: WorkspaceType) {
   if (option.id !== targetWorkspace.value?.id) {
     targetBase.value = null as any
   }
@@ -120,7 +112,7 @@ const selectWorkspace = async (option: WorkspaceType) => {
   targetBase.value = targetBases.value?.[0] as any
 }
 
-const selectBase = (option: BaseType) => {
+function selectBase(option: BaseType) {
   targetBase.value = option
   baseDropdownOpen.value = false
 }
@@ -143,7 +135,7 @@ const optionsToExclude = computed(() => {
 
 const isLoading = ref(false)
 
-const _duplicate = async () => {
+async function _duplicate() {
   try {
     isLoading.value = true
     const isContextDifferent = targetBase.value && targetBase.value.id !== activeBase.value.id
@@ -188,10 +180,11 @@ const _duplicate = async () => {
               if (!isContextDifferent) {
                 await loadTables()
                 refreshCommandPalette()
-                const newTable = tables.value.find((el) => el.id === data?.data?.result?.id)
+                const newTable = tables.value.find(el => el.id === data?.data?.result?.id)
 
                 openTable(newTable!)
-              } else {
+              }
+              else {
                 // Load target base tables if target workspace is the same as active workspace
                 if (targetWorkspace.value?.id === activeWorkspace?.id) {
                   await loadProjectTables(targetBase.value.id!, true)
@@ -201,17 +194,20 @@ const _duplicate = async () => {
                 // TODO: navigating to specified base?
                 message.success(t(`msg.success.tableDuplicatedInOtherBase`))
               }
-            } catch (_e: any) {
+            }
+            catch (_e: any) {
               // ignore
             }
             isLoading.value = false
             dialogShow.value = false
-          } else if (data.status === JobStatus.FAILED) {
+          }
+          else if (data.status === JobStatus.FAILED) {
             message.error(t('msg.error.failedToDuplicateTable'))
 
             try {
               await loadTables()
-            } catch (_e: any) {
+            }
+            catch (_e: any) {
               // ignore
             }
 
@@ -223,7 +219,8 @@ const _duplicate = async () => {
     )
 
     $e('a:table:duplicate')
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
     isLoading.value = false
     dialogShow.value = false
@@ -413,7 +410,7 @@ onMounted(() => {
                   </div>
                 </template>
                 <template v-else>
-                  <div class="flex-1 capitalize truncate flex gap-1"></div>
+                  <div class="flex-1 capitalize truncate flex gap-1" />
                 </template>
                 <div class="flex gap-2 items-center">
                   <div v-if="activeBase?.id === targetBase?.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
@@ -486,9 +483,11 @@ onMounted(() => {
       </div>
     </div>
     <div class="flex flex-row gap-x-2 mt-5 justify-end">
-      <NcButton v-if="!isLoading" key="back" type="secondary" size="small" @click="dialogShow = false">{{
-        $t('general.cancel')
-      }}</NcButton>
+      <NcButton v-if="!isLoading" key="back" type="secondary" size="small" @click="dialogShow = false">
+        {{
+          $t('general.cancel')
+        }}
+      </NcButton>
       <NcButton key="submit" v-e="['a:table:duplicate']" type="primary" size="small" :loading="isLoading" @click="_duplicate">
         Duplicate Table
       </NcButton>

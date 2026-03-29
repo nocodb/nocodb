@@ -47,7 +47,7 @@ const {
 
 const { isEEFeatureBlocked, showEEFeatures } = useEeConfig()
 
-const handleChatToggle = () => {
+function handleChatToggle() {
   toggleChatPanel()
 }
 
@@ -67,24 +67,25 @@ const isBaseListModalOpen = ref(false)
 
 const hasAvailableBases = computed(() => !!basesList.value?.length)
 
-const getBasePath = () => {
+function getBasePath() {
   const wsId = route.value.params.typeOrId || activeWorkspaceId.value
   const baseId = route.value.params.baseId
   if (baseId) return `/${wsId}/${baseId}`
 
   const lastVisitedBaseId = ncLastVisitedBase().get()
-  const resolvedBase = basesList.value?.find((b) => b.id === lastVisitedBaseId) || basesList.value?.[0]
+  const resolvedBase = basesList.value?.find(b => b.id === lastVisitedBaseId) || basesList.value?.[0]
   return resolvedBase?.id ? `/${wsId}/${resolvedBase.id}` : ''
 }
 
-const onTabClick = async (tabKey: string) => {
+async function onTabClick(tabKey: string) {
   if (isChatFullScreen.value) isChatFullScreen.value = false
 
   if (tabKey === 'settings') {
     activeSidebarTab.value = 'settings'
     if (isBaseOpen.value) {
       navigateTo(`${getBasePath()}/settings`)
-    } else {
+    }
+    else {
       const wsId = route.value.params.typeOrId || activeWorkspaceId.value
       navigateTo(`/${wsId}/members`)
     }
@@ -96,16 +97,18 @@ const onTabClick = async (tabKey: string) => {
 
   if (tabKey === 'workflows') {
     await navigateTo(`${basePath}/workflows`)
-  } else if (tabKey === 'docs') {
+  }
+  else if (tabKey === 'docs') {
     await navigateTo(`${basePath}/docs`)
-  } else {
+  }
+  else {
     await navigateTo(basePath)
   }
 
   activeSidebarTab.value = tabKey as typeof activeSidebarTab.value
 }
 
-const navigateToProjectPage = () => {
+function navigateToProjectPage() {
   if (route.value.name?.toString().startsWith('index-typeOrId-baseId-')) {
     return
   }
@@ -113,7 +116,7 @@ const navigateToProjectPage = () => {
   const lastVisitedBase = ncLastVisitedBase().get()
 
   const baseToNavigate = lastVisitedBase
-    ? basesList.value?.find((b) => b.id === lastVisitedBase) ?? basesList.value[0]
+    ? basesList.value?.find(b => b.id === lastVisitedBase) ?? basesList.value[0]
     : basesList.value[0]
 
   navigateToProject({ workspaceId: isEeUI ? activeWorkspaceId.value : undefined, baseId: baseToNavigate?.id })
@@ -135,8 +138,8 @@ const mainItems = computed<NavItem[]>(() => [
           icon: 'ncAutomation',
           label: 'Workflows',
           disabled:
-            !hasAvailableBases.value ||
-            !isUIAllowed('scriptList', {
+            !hasAvailableBases.value
+            || !isUIAllowed('scriptList', {
               roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
             }),
           onClick: () => onTabClick('workflows'),
@@ -167,7 +170,7 @@ const MAG_RANGE = 100
 const MAX_SCALE = 1.6
 const MIN_SCALE = 1.0
 
-const setItemRef = (key: string, el: any) => {
+function setItemRef(key: string, el: any) {
   if (!el) return
 
   let htmlEl = el?.$el ?? el
@@ -179,11 +182,11 @@ const setItemRef = (key: string, el: any) => {
   }
 }
 
-const getScale = (key: string) => {
+function getScale(key: string) {
   return itemScales.value.get(key) ?? MIN_SCALE
 }
 
-const getMagnifyStyle = (key: string) => {
+function getMagnifyStyle(key: string) {
   const scale = getScale(key)
   const margin = ((scale - 1) * 48) / 2
   return {
@@ -194,7 +197,7 @@ const getMagnifyStyle = (key: string) => {
   }
 }
 
-const calculateScales = () => {
+function calculateScales() {
   if (mouseY.value === null || !isHovering.value) {
     itemScales.value = new Map()
     return
@@ -221,13 +224,13 @@ const calculateScales = () => {
   itemScales.value = newScales
 }
 
-const onMouseMove = (e: MouseEvent) => {
+function onMouseMove(e: MouseEvent) {
   mouseY.value = e.clientY
   isHovering.value = true
   requestAnimationFrame(calculateScales)
 }
 
-const onMouseLeave = () => {
+function onMouseLeave() {
   mouseY.value = null
   isHovering.value = false
   calculateScales()
@@ -237,16 +240,16 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const isBaseSearchInput = e.target instanceof HTMLInputElement && e.target.closest('.nc-base-search-input')
 
   if (
-    !e.altKey ||
-    (!isBaseSearchInput &&
-      (isActiveInputElementExist(e) ||
-        cmdKActive() ||
-        isCmdJActive() ||
-        isNcDropdownOpen() ||
-        isActiveElementInsideExtension() ||
-        isActiveElementInsideScriptPane() ||
-        isDrawerOrModalExist() ||
-        isExpandedFormOpenExist()))
+    !e.altKey
+    || (!isBaseSearchInput
+      && (isActiveInputElementExist(e)
+        || cmdKActive()
+        || isCmdJActive()
+        || isNcDropdownOpen()
+        || isActiveElementInsideExtension()
+        || isActiveElementInsideScriptPane()
+        || isDrawerOrModalExist()
+        || isExpandedFormOpenExist()))
   ) {
     return
   }
@@ -265,12 +268,12 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
   if (!isEeUI || isEEFeatureBlocked.value || !hasChatBaseContext.value) return
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (
-    cmdOrCtrl &&
-    e.shiftKey &&
-    e.code === 'KeyA' &&
-    !isActiveInputElementExist(e) &&
-    !isNcDropdownOpen() &&
-    !isDrawerOrModalExist()
+    cmdOrCtrl
+    && e.shiftKey
+    && e.code === 'KeyA'
+    && !isActiveInputElementExist(e)
+    && !isNcDropdownOpen()
+    && !isDrawerOrModalExist()
   ) {
     e.preventDefault()
     handleChatToggle()
@@ -298,9 +301,9 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
         :managed-app="
           resolvedProject
             ? {
-                managed_app_master: resolvedProject?.managed_app_master,
-                managed_app_id: resolvedProject?.managed_app_id,
-              }
+              managed_app_master: resolvedProject?.managed_app_master,
+              managed_app_id: resolvedProject?.managed_app_id,
+            }
             : undefined
         "
       />

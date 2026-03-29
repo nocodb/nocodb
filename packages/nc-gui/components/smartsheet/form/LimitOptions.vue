@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import Draggable from 'vuedraggable'
-import type { ColumnType, SelectOptionType, SelectOptionsType, UserFieldRecordType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import type { ColumnType, SelectOptionsType, SelectOptionType, UserFieldRecordType } from 'nocodb-sdk'
 import type { FormFieldsLimitOptionsType } from '~/lib/types'
+import { UITypes } from 'nocodb-sdk'
+import Draggable from 'vuedraggable'
 
 const props = defineProps<{
   modelValue: FormFieldsLimitOptionsType[]
@@ -32,8 +32,8 @@ const drag = ref(false)
 const vModel = computed({
   get: () => {
     let order = 1
-    const limitOptionsById =
-      (props.modelValue || []).reduce((o: Record<string, FormFieldsLimitOptionsType>, f: FormFieldsLimitOptionsType) => {
+    const limitOptionsById
+      = (props.modelValue || []).reduce((o: Record<string, FormFieldsLimitOptionsType>, f: FormFieldsLimitOptionsType) => {
         if (order < (f?.order ?? 0)) {
           order = f.order
         }
@@ -45,7 +45,7 @@ const vModel = computed({
 
     if (UITypes.User === column.value.uidt) {
       const collaborators = ((baseUsers.value || []) as UserFieldRecordType[])
-        .filter((user) => !user?.deleted)
+        .filter(user => !user?.deleted)
         .map((user: any) => ({
           id: user.id,
           email: user.email,
@@ -59,11 +59,12 @@ const vModel = computed({
       if ((props.modelValue || []).length !== collaborators.length) {
         emits(
           'update:modelValue',
-          collaborators.map((o) => ({ id: o.id, order: o.order, show: o.show })),
+          collaborators.map(o => ({ id: o.id, order: o.order, show: o.show })),
         )
       }
       return collaborators
-    } else if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(column.value.uidt as UITypes)) {
+    }
+    else if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(column.value.uidt as UITypes)) {
       const updateModelValue = ((column.value.colOptions as SelectOptionsType)?.options || [])
         .map((c) => {
           return {
@@ -82,7 +83,7 @@ const vModel = computed({
       if ((props.modelValue || []).length !== ((column.value.colOptions as SelectOptionsType)?.options || []).length) {
         emits(
           'update:modelValue',
-          updateModelValue.map((o) => ({ id: o.id, order: o.order, show: o.show })),
+          updateModelValue.map(o => ({ id: o.id, order: o.order, show: o.show })),
         )
       }
       return updateModelValue
@@ -99,7 +100,8 @@ const vModel = computed({
         if (!o.show) {
           if (column.value.uidt === UITypes.User && fieldState.includes(o.id)) {
             optionsToRemoveFromFieldState.push(o.id)
-          } else if (o?.title && fieldState.includes(o.title)) {
+          }
+          else if (o?.title && fieldState.includes(o.title)) {
             optionsToRemoveFromFieldState.push(o.title)
           }
         }
@@ -107,11 +109,11 @@ const vModel = computed({
       }),
     )
 
-    emits('update:formFieldState', fieldState.filter((o) => !optionsToRemoveFromFieldState.includes(o)).join(','))
+    emits('update:formFieldState', fieldState.filter(o => !optionsToRemoveFromFieldState.includes(o)).join(','))
   },
 })
 
-async function onMove(_event: { moved: { newIndex: number; oldIndex: number; element: any } }) {
+async function onMove(_event: { moved: { newIndex: number, oldIndex: number, element: any } }) {
   const {
     moved: { newIndex = 0, oldIndex = 0, element },
   } = _event
@@ -121,16 +123,19 @@ async function onMove(_event: { moved: { newIndex: number; oldIndex: number; ele
   // set new order value based on the new order of the items
   if (!vModel.value.length || vModel.value.length === 1) {
     nextOrder = 1
-  } else if (vModel.value.length - 1 === newIndex) {
+  }
+  else if (vModel.value.length - 1 === newIndex) {
     // If moving to the end, set nextOrder greater than the maximum order in the list
-    nextOrder = Math.max(...vModel.value.map((item) => item?.order ?? 0)) + 1
-  } else if (newIndex === 0) {
+    nextOrder = Math.max(...vModel.value.map(item => item?.order ?? 0)) + 1
+  }
+  else if (newIndex === 0) {
     // If moving to the beginning, set nextOrder smaller than the minimum order in the list
-    nextOrder = Math.min(...vModel.value.map((item) => item?.order ?? 0)) / 2
-  } else {
-    nextOrder =
-      (parseFloat(String(vModel.value[newIndex - 1]?.order ?? 0)) + parseFloat(String(vModel.value[newIndex + 1]?.order ?? 0))) /
-      2
+    nextOrder = Math.min(...vModel.value.map(item => item?.order ?? 0)) / 2
+  }
+  else {
+    nextOrder
+      = (Number.parseFloat(String(vModel.value[newIndex - 1]?.order ?? 0)) + Number.parseFloat(String(vModel.value[newIndex + 1]?.order ?? 0)))
+        / 2
   }
   const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
 
@@ -139,7 +144,7 @@ async function onMove(_event: { moved: { newIndex: number; oldIndex: number; ele
   vModel.value = [...vModel.value]
 }
 
-const showOrHideAll = (showAll: boolean) => {
+function showOrHideAll(showAll: boolean) {
   if (props.isRequired && !showAll) {
     return
   }
@@ -182,7 +187,9 @@ const showOrHideAll = (showAll: boolean) => {
       class="flex items-stretch gap-2 pr-2 pl-3 py-1.5 rounded-t-lg border-1 border-b-0 border-nc-border-gray-medium"
     >
       <NcTooltip :disabled="!isRequired">
-        <template #title> {{ $t('msg.info.preventHideAllOptions') }} </template>
+        <template #title>
+          {{ $t('msg.info.preventHideAllOptions') }}
+        </template>
 
         <NcButton
           type="secondary"
@@ -243,7 +250,9 @@ const showOrHideAll = (showAll: boolean) => {
           />
 
           <NcTooltip :disabled="!isRequired || !(element.show && isRequired && vModel.filter((o) => o.show).length === 1)">
-            <template #title> {{ $t('msg.info.preventHideAllOptions') }} </template>
+            <template #title>
+              {{ $t('msg.info.preventHideAllOptions') }}
+            </template>
 
             <div
               class="!border-none !px-2"
@@ -324,18 +333,20 @@ const showOrHideAll = (showAll: boolean) => {
           </a-tag>
         </div>
       </template>
-      <template v-if="!vModel.length" #footer
-        ><div class="px-0.5 py-2 text-nc-content-gray-muted text-center">{{ $t('title.noOptionsFound') }}</div></template
-      >
+      <template v-if="!vModel.length" #footer>
+        <div class="px-0.5 py-2 text-nc-content-gray-muted text-center">
+          {{ $t('title.noOptionsFound') }}
+        </div>
+      </template>
       <template
         v-else-if="
-          vModel.length &&
-          searchQuery &&
-          !vModel?.filter((element) => {
-            return column.uidt === UITypes.User
-              ? (element?.display_name?.trim() || element?.email)?.toLowerCase().includes(searchQuery.toLowerCase())
-              : element.title?.toLowerCase().includes(searchQuery.toLowerCase())
-          })?.length
+          vModel.length
+            && searchQuery
+            && !vModel?.filter((element) => {
+              return column.uidt === UITypes.User
+                ? (element?.display_name?.trim() || element?.email)?.toLowerCase().includes(searchQuery.toLowerCase())
+                : element.title?.toLowerCase().includes(searchQuery.toLowerCase())
+            })?.length
         "
         #footer
       >

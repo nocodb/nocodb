@@ -51,7 +51,7 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
-const formatValue = (val: ModelValueType) => {
+function formatValue(val: ModelValueType) {
   return val ?? null
 }
 
@@ -76,10 +76,11 @@ function closeJSONEditor() {
   isExpanded.value = false
 }
 
-const formatJson = (json: string) => {
+function formatJson(json: string) {
   try {
     return JSON.stringify(JSON.parse(json))
-  } catch (e) {
+  }
+  catch (e) {
     console.log(e)
     return json
   }
@@ -88,12 +89,13 @@ const formatJson = (json: string) => {
 function setLocalValue(val: any) {
   try {
     localValue.value = formatValue(val) === null ? null : typeof val === 'string' ? JSON.stringify(JSON.parse(val), null, 2) : val
-  } catch (e) {
+  }
+  catch (e) {
     localValue.value = formatValue(val) === null ? null : val
   }
 }
 
-const clear = () => {
+function clear() {
   error.value = undefined
 
   closeJSONEditor()
@@ -103,7 +105,7 @@ const clear = () => {
   setLocalValue(vModel.value)
 }
 
-const onSave = () => {
+function onSave() {
   closeJSONEditor()
 
   editEnabled.value = false
@@ -127,7 +129,8 @@ watch([localValue, editEnabled], () => {
     JSON.parse(localValue.value as string)
 
     error.value = undefined
-  } catch (e: any) {
+  }
+  catch (e: any) {
     if (localValue.value === undefined || localValue.value === null) return
 
     error.value = e
@@ -165,7 +168,8 @@ useSelectedCellKeydownListener(active, (e) => {
       // Otherwise it's a printing character, append it and open the JSON modal for editing
       if (typeof localValue.value === 'string') {
         localValue.value += e.key
-      } else if (!localValue.value) {
+      }
+      else if (!localValue.value) {
         localValue.value = e.key
       }
       openJSONEditor()
@@ -185,19 +189,19 @@ watch(isExpanded, (newVal, oldVal) => {
   if (oldVal && !newVal) canvasSelectCell?.trigger()
 })
 
-const stopPropagation = (event: MouseEvent) => {
+function stopPropagation(event: MouseEvent) {
   event.stopPropagation()
 }
 
 const listners: Array<'click' | 'mousedown' | 'mouseup'> = ['click', 'mousedown', 'mouseup']
 
-const addListeners = (element: HTMLDivElement) => {
+function addListeners(element: HTMLDivElement) {
   listners.forEach((listener) => {
     element.addEventListener(listener, stopPropagation)
   })
 }
 
-const removeListeners = (element: HTMLDivElement) => {
+function removeListeners(element: HTMLDivElement) {
   listners.forEach((listener) => {
     element.removeEventListener(listener, stopPropagation)
   })
@@ -218,13 +222,14 @@ watch(inputWrapperRef, () => {
   }
 })
 
-const onCellEvent = (event?: Event) => {
+function onCellEvent(event?: Event) {
   if (!(event instanceof KeyboardEvent) || !event.target || isActiveInputElementExist(event)) return
 
   if (isExpandCellKey(event)) {
     if (isExpanded.value) {
       closeJSONEditor()
-    } else {
+    }
+    else {
       openJSONEditor()
     }
 
@@ -240,12 +245,12 @@ onMounted(() => {
   cellEventHook?.on(onCellEvent)
 
   if (
-    !isUnderLookup.value &&
-    isCanvasInjected &&
-    !isExpanded.value &&
-    !isEditColumn.value &&
-    !isForm.value &&
-    !isExpandedFormOpen.value
+    !isUnderLookup.value
+    && isCanvasInjected
+    && !isExpanded.value
+    && !isEditColumn.value
+    && !isForm.value
+    && !isExpandedFormOpen.value
   ) {
     forcedNextTick(() => {
       if (onCellEvent(canvasCellEventData.event)) return
@@ -295,12 +300,14 @@ onUnmounted(() => {
         </NcButton>
 
         <div v-if="!readOnly" class="flex gap-2">
-          <NcButton type="secondary" size="small" @click="clear">{{ $t('general.cancel') }}</NcButton>
+          <NcButton type="secondary" size="small" @click="clear">
+            {{ $t('general.cancel') }}
+          </NcButton>
           <NcButton type="primary" size="small" :disabled="!!error || localValue === vModel" @click="onSave">
             {{ $t('general.save') }}
           </NcButton>
         </div>
-        <div v-else></div>
+        <div v-else />
       </div>
 
       <Suspense>
@@ -339,7 +346,9 @@ onUnmounted(() => {
       class="nc-cell-field"
     />
     <NcTooltip placement="bottom" class="nc-json-expand-btn hidden absolute top-0 bottom-0 right-0">
-      <template #title>{{ isExpandedFormOpen ? $t('title.expand') : $t('tooltip.expandShiftSpace') }}</template>
+      <template #title>
+        {{ isExpandedFormOpen ? $t('title.expand') : $t('tooltip.expandShiftSpace') }}
+      </template>
       <NcButton type="secondary" size="xsmall" class="!w-5 !h-5 !min-w-[fit-content]" @click.stop="openJSONEditor">
         <component :is="iconMap.maximize" class="w-3 h-3" />
       </NcButton>

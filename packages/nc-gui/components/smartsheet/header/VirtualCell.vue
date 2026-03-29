@@ -1,18 +1,17 @@
 <script setup lang="ts">
+import type { ColumnReqType, ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType, TableType } from 'nocodb-sdk'
 import {
-  type ColumnReqType,
-  type ColumnType,
-  type FormulaType,
-  type LinkToAnotherRecordType,
-  type LookupType,
-  PermissionEntity,
-  PermissionKey,
-  type RollupType,
-  type TableType,
+
   isLinksOrLTAR,
+  PermissionEntity,
+
+  PermissionKey,
   readonlyMetaAllowedTypes,
+  RelationTypes,
+  substituteColumnIdWithAliasInFormula,
+  UITypes,
+  UITypesName,
 } from 'nocodb-sdk'
-import { RelationTypes, UITypes, UITypesName, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
 
 const props = defineProps<{
   column: ColumnType
@@ -32,7 +31,7 @@ const column = toRef(props, 'column')
 const { base: activeBase, tables } = storeToRefs(useBase())
 
 const isExternalSource = computed(() =>
-  activeBase.value?.sources?.some((s) => s.id === column.value?.source_id && !s.is_meta && !s.is_local),
+  activeBase.value?.sources?.some(s => s.id === column.value?.source_id && !s.is_meta && !s.is_local),
 )
 
 const hideMenu = toRef(props, 'hideMenu')
@@ -80,9 +79,10 @@ const tableTile = computed(() => meta?.value?.title)
 const relationColumnOptions = computed<LinkToAnotherRecordType | null>(() => {
   if (isLinksOrLTAR(column.value)) {
     return column.value?.colOptions as LinkToAnotherRecordType
-  } else if ((column?.value?.colOptions as LookupType | RollupType)?.fk_relation_column_id) {
+  }
+  else if ((column?.value?.colOptions as LookupType | RollupType)?.fk_relation_column_id) {
     return meta?.value?.columns?.find(
-      (c) => c.id === (column?.value?.colOptions as LookupType | RollupType)?.fk_relation_column_id,
+      c => c.id === (column?.value?.colOptions as LookupType | RollupType)?.fk_relation_column_id,
     )?.colOptions as LinkToAnotherRecordType
   }
   return null
@@ -105,31 +105,37 @@ const tooltipMsg = computed(() => {
   if (isLinksOrLTAR(column.value) && relatedTableTitle.value && isExternalSource.value) {
     if (isMm(column.value)) {
       const mmBaseId = (column.value?.colOptions as any)?.fk_mm_base_id || meta.value?.base_id
-      const mmTableMeta =
-        tables.value?.find((t) => t.id === column.value?.colOptions?.fk_mm_model_id) ||
-        getMetaByKey(mmBaseId, column.value?.colOptions?.fk_mm_model_id as string)
+      const mmTableMeta
+        = tables.value?.find(t => t.id === column.value?.colOptions?.fk_mm_model_id)
+          || getMetaByKey(mmBaseId, column.value?.colOptions?.fk_mm_model_id as string)
       suffix = mmTableMeta ? `\nJunction Table: ${mmTableMeta.title}` : ''
-    } else if (isHm(column.value)) {
+    }
+    else if (isHm(column.value)) {
       const relatedBaseId = (column.value?.colOptions as any)?.fk_related_base_id || meta.value?.base_id
       const fkColumn = getMetaByKey(relatedBaseId, column.value?.colOptions?.fk_related_model_id as string)?.columns?.find(
-        (c) => c.id === column.value?.colOptions?.fk_child_column_id,
+        c => c.id === column.value?.colOptions?.fk_child_column_id,
       )
       suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\nForeign Key Column: ${fkColumn.title}`
-    } else if (isBt(column.value)) {
-      const fkColumn = meta.value?.columns?.find((c) => c.id === column.value?.colOptions?.fk_child_column_id)
+    }
+    else if (isBt(column.value)) {
+      const fkColumn = meta.value?.columns?.find(c => c.id === column.value?.colOptions?.fk_child_column_id)
       suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\nForeign Key Column: ${fkColumn.title}`
     }
   }
 
   if (isHm(column.value)) {
     return `'${tableTile.value}' ${t('labels.hasMany')} '${relatedTableTitle.value}'${suffix}`
-  } else if (isMm(column.value)) {
+  }
+  else if (isMm(column.value)) {
     return `'${tableTile.value}' & '${relatedTableTitle.value}' ${t('labels.manyToMany')}${suffix}`
-  } else if (isBt(column.value)) {
+  }
+  else if (isBt(column.value)) {
     return `'${column?.value?.title}' ${t('labels.belongsTo')} '${relatedTableTitle.value}'${suffix}`
-  } else if (isOo(column.value)) {
+  }
+  else if (isOo(column.value)) {
     return `'${tableTile.value}' & '${relatedTableTitle.value}' ${t('labels.oneToOne')}${suffix}`
-  } else if (isFormula(column.value)) {
+  }
+  else if (isFormula(column.value)) {
     const formula = substituteColumnIdWithAliasInFormula(
       (column.value?.colOptions as FormulaType)?.formula,
       meta?.value?.columns as ColumnType[],
@@ -158,14 +164,14 @@ const columnTypeName = computed(() => {
   return column.value.uidt ? UITypesName[column.value.uidt] : ''
 })
 
-const addField = async (payload: any) => {
+async function addField(payload: any) {
   columnOrder.value = payload
   editColumnDropdown.value = true
 }
 
 const editOrAddProviderRef = ref()
 
-const closeAddColumnDropdown = () => {
+function closeAddColumnDropdown() {
   columnOrder.value = null
   editColumnDropdown.value = false
 }
@@ -176,21 +182,21 @@ watch(editColumnDropdown, (val) => {
   }
 })
 
-const openHeaderMenu = (e?: MouseEvent, description = false) => {
+function openHeaderMenu(e?: MouseEvent, description = false) {
   if (
-    (isExpandedForm.value && e?.type === 'dblclick') ||
-    isExpandedBulkUpdateForm.value ||
-    isSqlView.value ||
-    props.hideIconTooltip
+    (isExpandedForm.value && e?.type === 'dblclick')
+    || isExpandedBulkUpdateForm.value
+    || isSqlView.value
+    || props.hideIconTooltip
   ) {
     return
   }
 
   if (
-    !isForm.value &&
-    isUIAllowed('fieldEdit') &&
-    !isMobileMenuHidden.value &&
-    (!isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.value.uidt))
+    !isForm.value
+    && isUIAllowed('fieldEdit')
+    && !isMobileMenuHidden.value
+    && (!isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.value.uidt))
   ) {
     if (description) {
       enableDescription.value = true
@@ -199,7 +205,7 @@ const openHeaderMenu = (e?: MouseEvent, description = false) => {
   }
 }
 
-const openDropDown = (e: Event) => {
+function openDropDown(e: Event) {
   if (isForm.value || (!isUIAllowed('fieldEdit') && !isMobileMenuHidden.value) || props.hideIconTooltip) return
 
   e.preventDefault()
@@ -208,7 +214,7 @@ const openDropDown = (e: Event) => {
   isDropDownOpen.value = !isDropDownOpen.value
 }
 
-const onVisibleChange = () => {
+function onVisibleChange() {
   editColumnDropdown.value = true
   if (!editOrAddProviderRef.value?.shouldKeepModalOpen?.()) {
     editColumnDropdown.value = false
@@ -216,7 +222,7 @@ const onVisibleChange = () => {
   }
 }
 
-const onClick = (e: Event) => {
+function onClick(e: Event) {
   if (isMobileMenuHidden.value || !isUIAllowed('fieldEdit') || props.hideIconTooltip) return
 
   // On mobile, only respond to clicks within the name wrapper
@@ -228,7 +234,8 @@ const onClick = (e: Event) => {
   if (isDropDownOpen.value) {
     e.preventDefault()
     e.stopPropagation()
-  } else {
+  }
+  else {
     if (isExpandedForm.value && !editColumnDropdown.value && !isExpandedBulkUpdateForm.value) {
       isDropDownOpen.value = true
       return
@@ -266,7 +273,9 @@ const onClick = (e: Event) => {
     >
       <template v-if="column && !props.hideIcon">
         <NcTooltip v-if="isGrid" :disabled="hideIconTooltip" class="flex items-center" placement="bottom">
-          <template #title> {{ columnTypeName }} </template>
+          <template #title>
+            {{ columnTypeName }}
+          </template>
           <LazySmartsheetHeaderVirtualCellIcon />
         </NcTooltip>
         <LazySmartsheetHeaderVirtualCellIcon v-else />
@@ -317,14 +326,18 @@ const onClick = (e: Event) => {
         class="flex items-center"
         placement="bottom"
       >
-        <template #title> {{ $t('tooltip.fieldIsExternallySynced') }} </template>
+        <template #title>
+          {{ $t('tooltip.fieldIsExternallySynced') }}
+        </template>
         <GeneralIcon icon="ncZap" class="flex-none !w-3.5 !h-3.5 !text-nc-content-gray-disabled" />
       </NcTooltip>
     </div>
 
     <NcTooltip v-if="column.description?.length && isPublic && isGrid && !isExpandedForm && !hideMenu">
       <template #title>
-        <div class="whitespace-pre-wrap break-words">{{ column.description }}</div>
+        <div class="whitespace-pre-wrap break-words">
+          {{ column.description }}
+        </div>
       </template>
       <div>
         <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-nc-content-gray-muted flex-none" />
@@ -352,7 +365,9 @@ const onClick = (e: Event) => {
       :overlay-class-name="`nc-dropdown-edit-column ${editColumnDropdown ? 'active rounded-2xl' : ''}`"
       @visible-change="onVisibleChange"
     >
-      <div v-if="isExpandedForm && !isExpandedBulkUpdateForm" class="h-[1px]" @dblclick.stop>&nbsp;</div>
+      <div v-if="isExpandedForm && !isExpandedBulkUpdateForm" class="h-[1px]" @dblclick.stop>
+&nbsp;
+      </div>
       <div v-else />
       <template #overlay>
         <div class="nc-edit-or-add-provider-wrapper">

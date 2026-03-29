@@ -17,7 +17,7 @@ const { openTable, openTableCreateDialog: _openTableCreateDialog } = tablesStore
 
 const isOpen = ref<boolean>(false)
 
-const activeTableSourceIndex = computed(() => base.value?.sources?.findIndex((s) => s.id === activeTable.value?.source_id) ?? -1)
+const activeTableSourceIndex = computed(() => base.value?.sources?.findIndex(s => s.id === activeTable.value?.source_id) ?? -1)
 
 const filteredTableList = computed(() => {
   return activeTables.value.filter((t: TableType) => t?.source_id === activeTable.value?.source_id) || []
@@ -32,7 +32,7 @@ const filteredTableList = computed(() => {
  * This function is called when a user selects a table from the dropdown list.
  * It checks if the table has a valid ID and then opens the selected table.
  */
-const handleNavigateToTable = (table: TableType) => {
+function handleNavigateToTable(table: TableType) {
   if (table?.id) {
     openTable(table)
   }
@@ -51,7 +51,7 @@ function openTableCreateDialog() {
 
 <template>
   <NcDropdown v-model:visible="isOpen" overlay-class-name="max-w-64">
-    <slot name="default" :is-open="isOpen"></slot>
+    <slot name="default" :is-open="isOpen" />
     <template #overlay>
       <LazyNcList
         v-model:open="isOpen"
@@ -92,11 +92,11 @@ function openTableCreateDialog() {
 
         <template
           v-if="
-            !isMobileMode &&
-            isUIAllowed('tableCreate', {
-              roles: base?.project_role || base?.workspace_role,
-              source: base?.sources?.[activeTableSourceIndex] || {},
-            })
+            !isMobileMode
+              && isUIAllowed('tableCreate', {
+                roles: base?.project_role || base?.workspace_role,
+                source: base?.sources?.[activeTableSourceIndex] || {},
+              })
           "
           #listFooter
         >

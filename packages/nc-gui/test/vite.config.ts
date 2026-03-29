@@ -1,10 +1,10 @@
 /// <reference types="vitest" />
 
-import path from 'path'
+import path from 'node:path'
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
+import Vue from '@vitejs/plugin-vue'
 import Icons from 'unplugin-icons/vite'
 import { defineConfig } from 'vite'
-import Vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
   plugins: [

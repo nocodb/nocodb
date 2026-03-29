@@ -44,7 +44,7 @@ const cloudFeatures = computed(() => {
   return _cloudFeatures.value
 })
 
-const onMouseover = async () => {
+async function onMouseover() {
   if (isLoading.value) return
 
   if (cloudFeatures.value.length && !error.value) {
@@ -59,10 +59,12 @@ const onMouseover = async () => {
     const res = await $api.utils.cloudFeatures()
 
     _cloudFeatures.value = res
-  } catch (e: any) {
+  }
+  catch (e: any) {
     error.value = true
     console.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 }
@@ -88,11 +90,17 @@ const onMouseover = async () => {
         <div class="w-70.5 bg-transparent overflow-hidden rounded-2xl shadow border-1 border-nc-border-gray-medium">
           <div class="p-4 bg-nc-bg-default gap-4 inline-flex flex-col w-full">
             <div class="flex items-center gap-3">
-              <div class="text-base text-nc-content-gray-emphasis font-bold flex-1">NocoDB Cloud</div>
-              <div class="text-caption px-1 rounded-md bg-nc-bg-brand text-nc-content-brand">Usage based</div>
+              <div class="text-base text-nc-content-gray-emphasis font-bold flex-1">
+                NocoDB Cloud
+              </div>
+              <div class="text-caption px-1 rounded-md bg-nc-bg-brand text-nc-content-brand">
+                Usage based
+              </div>
             </div>
 
-            <div class="text-sm font-bold text-nc-content-gray-emphasis">Includes</div>
+            <div class="text-sm font-bold text-nc-content-gray-emphasis">
+              Includes
+            </div>
 
             <div v-if="!isLoading" class="flex flex-col gap-2">
               <div
@@ -108,7 +116,7 @@ const onMouseover = async () => {
                 <span class="relative">
                   {{ feature.Title }}
 
-                  <div v-if="feature.Highlight" class="nc-plan-description-gradient" :class="{ 'nc-dark': isDark }"></div>
+                  <div v-if="feature.Highlight" class="nc-plan-description-gradient" :class="{ 'nc-dark': isDark }" />
                 </span>
                 <span v-if="feature['Coming Soon']" class="flex-1 inline-flex justify-end">
                   <span class="inline-block px-1 rounded-md bg-nc-bg-gray-medium text-sm text-nc-content-gray-subtle2">

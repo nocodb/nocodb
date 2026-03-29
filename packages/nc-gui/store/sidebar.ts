@@ -132,10 +132,10 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
       }
 
       if (
-        name.startsWith('index-typeOrId-baseId-index-workflows') ||
-        name.startsWith('index-typeOrId-baseId-index-automation-') ||
-        name.startsWith('index-typeOrId-baseId-index-scripts') ||
-        name.startsWith('index-typeOrId-baseId-index-automations')
+        name.startsWith('index-typeOrId-baseId-index-workflows')
+        || name.startsWith('index-typeOrId-baseId-index-automation-')
+        || name.startsWith('index-typeOrId-baseId-index-scripts')
+        || name.startsWith('index-typeOrId-baseId-index-automations')
       ) {
         return 'workflows'
       }
@@ -166,7 +166,8 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
           console.warn('Exit fullscreen failed:', err)
         })
       }
-    } else {
+    }
+    else {
       isLeftSidebarOpen.value = false
 
       if (!ncIsIframe() && document?.documentElement?.requestFullscreen) {

@@ -7,7 +7,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const dialogShow = computed({
   get: () => modelValue,
-  set: (v) => emit('update:modelValue', v),
+  set: v => emit('update:modelValue', v),
 })
 
 const shortcutList = [

@@ -33,9 +33,11 @@ const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 const topbarBreadcrumbItemWidth = computed(() => {
   if (!isSharedBase.value && !isMobileMode.value) {
     return 'calc(\(100% - 167px - 24px\) / 2)'
-  } else if (isMobileMode.value) {
+  }
+  else if (isMobileMode.value) {
     return 'calc(75% - 12px)'
-  } else {
+  }
+  else {
     return 'calc(\(100% - 12px\) / 2)'
   }
 })
@@ -88,13 +90,13 @@ const topbarBreadcrumbItemWidth = computed(() => {
 
         <NcButton
           v-if="
-            ((isEeUI && showEEFeatures) || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
-            !isSharedBase &&
-            !activeScriptId &&
-            !activeDashboardId &&
-            !activeWorkflowId &&
-            openedViewsTab === 'view' &&
-            !isMobileMode
+            ((isEeUI && showEEFeatures) || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS))
+              && !isSharedBase
+              && !activeScriptId
+              && !activeDashboardId
+              && !activeWorkflowId
+              && openedViewsTab === 'view'
+              && !isMobileMode
           "
           v-e="['c:extension-toggle']"
           type="secondary"
@@ -124,14 +126,14 @@ const topbarBreadcrumbItemWidth = computed(() => {
 
         <NcButton
           v-if="
-            !isSharedBase &&
-            !activeScriptId &&
-            !activeDashboardId &&
-            !activeWorkflowId &&
-            openedViewsTab === 'view' &&
-            !isMobileMode &&
-            isViewActionsEnabled &&
-            showEEFeatures
+            !isSharedBase
+              && !activeScriptId
+              && !activeDashboardId
+              && !activeWorkflowId
+              && openedViewsTab === 'view'
+              && !isMobileMode
+              && isViewActionsEnabled
+              && showEEFeatures
           "
           v-e="['c:action-toggle']"
           type="secondary"

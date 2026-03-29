@@ -6,7 +6,7 @@ withDefaults(defineProps<{ error: Record<string, any> }>(), { error: () => ({}) 
   <GeneralPageDoesNotExist action-button-class="mt-4">
     <template v-if="error.statusCode === 404" #icon>
       <div class="flex min-h-[205px]">
-        <img src="~assets/img/placeholder/no-search-result-found.png" class="!w-[264px] flex-none" alt="404 - Page Not Found" />
+        <img src="~assets/img/placeholder/no-search-result-found.png" class="!w-[264px] flex-none" alt="404 - Page Not Found">
       </div>
     </template>
 

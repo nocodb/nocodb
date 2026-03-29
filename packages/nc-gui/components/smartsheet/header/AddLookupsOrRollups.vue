@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { type ColumnType, type TableType, UITypes, getAvailableRollupForColumn, rollupAllFunctions } from 'nocodb-sdk'
+import type { ColumnType, TableType } from 'nocodb-sdk'
+import { getAvailableRollupForColumn, rollupAllFunctions, UITypes } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
@@ -55,15 +56,15 @@ const relatedBaseId = computed(() => (column.value.colOptions as any)?.fk_relate
 
 const relatedModel = ref<TableType | null>()
 
-const clearAll = () => {
-  Object.keys(selectedFields.value).forEach((k) => (selectedFields.value[k] = false))
+function clearAll() {
+  Object.keys(selectedFields.value).forEach(k => (selectedFields.value[k] = false))
 }
 
-const selectAll = () => {
-  filteredColumns.value.forEach((c) => (selectedFields.value[c.id] = true))
+function selectAll() {
+  filteredColumns.value.forEach(c => (selectedFields.value[c.id] = true))
 }
 
-const getLookupColPayload = (selectedColumn: ColumnType) => {
+function getLookupColPayload(selectedColumn: ColumnType) {
   return {
     fk_lookup_column_id: selectedColumn.id,
     lookupTableTitle: relatedModel.value?.title,
@@ -86,13 +87,13 @@ const availableRollupPerColumn = computed(() => {
           text: t(obj.text),
         }
       })
-      .filter((func) => getAvailableRollupForColumn(curr).includes(func.value))
+      .filter(func => getAvailableRollupForColumn(curr).includes(func.value))
 
     return acc
-  }, {} as Record<string, { text: string; value: string }[]>)
+  }, {} as Record<string, { text: string, value: string }[]>)
 })
 
-const getRollupColPayload = (selectedColumn: ColumnType) => {
+function getRollupColPayload(selectedColumn: ColumnType) {
   const aggFunctionsList = availableRollupPerColumn.value[selectedColumn?.id as string] || []
 
   return {
@@ -113,7 +114,7 @@ const getRollupColPayload = (selectedColumn: ColumnType) => {
   }
 }
 
-const createLookupsOrRollup = async () => {
+async function createLookupsOrRollup() {
   try {
     isLoading.value = true
 
@@ -125,8 +126,8 @@ const createLookupsOrRollup = async () => {
     const currIndex = meta.value?.columns?.length ?? 0
 
     for (const [k] of Object.entries(selectedFields.value).filter(([, v]) => v)) {
-      const selectedColumn = getMetaByKey(relatedBaseId.value, relatedModel.value?.id)?.columns.find((c) => c.id === k)
-      const index = filteredColumns.value.findIndex((c) => c.id === k)
+      const selectedColumn = getMetaByKey(relatedBaseId.value, relatedModel.value?.id)?.columns.find(c => c.id === k)
+      const index = filteredColumns.value.findIndex(c => c.id === k)
       const tempCol = {
         uidt: props.type,
         fk_relation_column_id: column.value.id,
@@ -169,10 +170,12 @@ const createLookupsOrRollup = async () => {
     await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
 
     value.value = false
-  } catch (e) {
+  }
+  catch (e) {
     console.error(e)
     message.error('Failed to create lookup columns')
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 }
@@ -242,8 +245,12 @@ onMounted(async () => {
           </template>
         </a-input>
         <div class="flex items-center gap-2">
-          <NcButton size="small" type="text" class="!text-xs" @click="clearAll"> {{ $t('labels.clearAll') }} </NcButton>
-          <NcButton size="small" type="text" class="!text-xs" @click="selectAll"> {{ $t('general.addAll') }} </NcButton>
+          <NcButton size="small" type="text" class="!text-xs" @click="clearAll">
+            {{ $t('labels.clearAll') }}
+          </NcButton>
+          <NcButton size="small" type="text" class="!text-xs" @click="selectAll">
+            {{ $t('general.addAll') }}
+          </NcButton>
         </div>
       </div>
 
@@ -279,7 +286,9 @@ onMounted(async () => {
                   <template #title>
                     {{ field.title }}
                   </template>
-                  <template #default>{{ field.title }}</template>
+                  <template #default>
+                    {{ field.title }}
+                  </template>
                 </NcTooltip>
 
                 <NcCheckbox v-model:checked="selectedFields[field.id]" size="default" />

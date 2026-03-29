@@ -4,7 +4,8 @@ export async function extractSdkResponseErrorMsg(e: Error & { response?: any }) 
   if (!e || !e.response) {
     if (e?.message?.includes('object ProgressEvent')) {
       return 'Requested file was not accessible. Please check if server allows accessing the file. If you are sure the file exists, it might be a CORS issue.'
-    } else {
+    }
+    else {
       return e.message
     }
   }
@@ -18,10 +19,12 @@ export async function extractSdkResponseErrorMsg(e: Error & { response?: any }) 
       // V2 format support
       msg = parsedData.message || parsedData.msg
       errors = parsedData.errors
-    } catch {
+    }
+    catch {
       msg = 'Some internal error occurred'
     }
-  } else {
+  }
+  else {
     // V2 format: prioritize 'message' field over 'msg'
     // V1 format: falls back to 'msg' field
     msg = e.response?.data?.message || e.response?.data?.msg || 'Some internal error occurred'
@@ -57,10 +60,12 @@ export async function extractSdkResponseErrorMsgv2(e: Error & { response: any })
         return parsedError
       }
       return unknownError
-    } catch {
+    }
+    catch {
       return unknownError
     }
-  } else {
+  }
+  else {
     if (e.response.data.error && e.response.data.error in NcErrorType) {
       return e.response.data
     }
@@ -79,9 +84,9 @@ export function isUniqueConstraintViolationError(e: Error & { response?: any }):
   const errorData = e.response.data
   // Check for FIELD_UNIQUE_CONSTRAINT_VIOLATION error code
   return (
-    errorData.error === NcErrorType.FIELD_UNIQUE_CONSTRAINT_VIOLATION ||
-    (errorData.message ?? errorData.msg)?.includes('Duplicate value') ||
-    (errorData.message ?? errorData.msg)?.includes('Unique constraint violation')
+    errorData.error === NcErrorType.FIELD_UNIQUE_CONSTRAINT_VIOLATION
+    || (errorData.message ?? errorData.msg)?.includes('Duplicate value')
+    || (errorData.message ?? errorData.msg)?.includes('Unique constraint violation')
   )
 }
 

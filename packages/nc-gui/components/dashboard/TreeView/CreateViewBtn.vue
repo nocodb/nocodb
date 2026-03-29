@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import { PlanFeatureTypes, PlanTitles, type TableType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 import type { NcDropdownPlacement } from '#imports'
+import type { TableType } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, viewTypeAlias, ViewTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   // Prop used to align the dropdown to the left in sidebar
@@ -20,8 +21,8 @@ const { showUpgradeToUseListView } = viewsStore
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
-const { blockListView, blockMapView, blockTimelineView, showEEFeatures, showUpgradeToUseMapView, showUpgradeToUseTimelineView } =
-  useEeConfig()
+const { blockListView, blockMapView, blockTimelineView, showEEFeatures, showUpgradeToUseMapView, showUpgradeToUseTimelineView }
+  = useEeConfig()
 
 const table = inject(SidebarTableInj)!
 const base = inject(ProjectInj)!
@@ -210,8 +211,8 @@ async function onOpenModal({
             inner-class="w-full"
             data-testid="sidebar-view-create-list"
             @click="
-              isPgSource &&
-                showUpgradeToUseListView({
+              isPgSource
+                && showUpgradeToUseListView({
                   successCallback: () => {
                     onOpenModal({ type: ViewTypes.LIST })
                   },

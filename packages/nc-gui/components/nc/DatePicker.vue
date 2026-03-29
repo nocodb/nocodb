@@ -24,17 +24,19 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(['update:selectedDate', 'update:pageDate', 'update:selectedWeek', 'currentDate'])
 
-const dayjsTz = (value?: string | null | dayjs.Dayjs, format?: string) => {
+function dayjsTz(value?: string | null | dayjs.Dayjs, format?: string) {
   if (typeof value === 'object') {
     return value
   }
   if (props?.timezone) {
     if (!format) {
       return dayjs.tz(value, props.timezone)
-    } else {
+    }
+    else {
       return dayjs.tz(value, format, props.timezone)
     }
-  } else {
+  }
+  else {
     return dayjs(value, format)
   }
 }
@@ -56,16 +58,18 @@ const pickerStack = ref<Props['type'][]>([])
 
 const tempPickerType = computed(() => pickerType.value || type.value)
 
-const handleUpdatePickerType = (value?: Props['type']) => {
+function handleUpdatePickerType(value?: Props['type']) {
   if (value) {
     pickerType.value = value
     pickerStack.value.push(value)
-  } else {
+  }
+  else {
     if (pickerStack.value.length > 1) {
       pickerStack.value.pop()
       const lastPicker = pickerStack.value.pop()
       pickerType.value = lastPicker
-    } else {
+    }
+    else {
       pickerStack.value = []
       pickerType.value = type.value
     }

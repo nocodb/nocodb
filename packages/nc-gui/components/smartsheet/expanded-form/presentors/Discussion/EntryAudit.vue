@@ -21,7 +21,8 @@ const { user } = useGlobal()
 const fieldsChanged = computed(() => {
   try {
     return Object.keys(JSON.parse(props.auditGroup.audit.details || '').data).length
-  } catch {
+  }
+  catch {
     return '-'
   }
 })
@@ -31,7 +32,8 @@ const meta = inject(MetaInj, ref())
 function safeGetFromAuditDetails(audit: AuditType, key: string) {
   try {
     return JSON.parse(audit.details || '')[key]
-  } catch {
+  }
+  catch {
     return '-'
   }
 }
@@ -48,9 +50,11 @@ const createdBy = computed(() => {
   const displayName = props.auditGroup.displayNameShort?.trim() || props.auditGroup.created_display_name_short?.trim()
   if (props.auditGroup.user === user.value?.email) {
     return 'You'
-  } else if (displayName) {
+  }
+  else if (displayName) {
     return displayName || 'Shared source'
-  } else {
+  }
+  else {
     return 'Shared source'
   }
 })
@@ -94,7 +98,9 @@ const createdBy = computed(() => {
       </p>
       <div class="text-xs font-weight-500 text-nc-content-gray-muted">
         <NcTooltip>
-          <template #title>{{ parseStringDateTime(props.auditGroup.audit?.created_at) }}</template>
+          <template #title>
+            {{ parseStringDateTime(props.auditGroup.audit?.created_at) }}
+          </template>
           {{ timeAgo(props.auditGroup.audit?.created_at) }}
         </NcTooltip>
       </div>
@@ -105,7 +111,9 @@ const createdBy = computed(() => {
           icon="ncNode"
           class="w-[16px] h-[16px] text-nc-content-gray-muted bg-nc-bg-default absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
         />
-        <p class="text-sm font-weight-500 mb-1 ml-6.5">Record was created.</p>
+        <p class="text-sm font-weight-500 mb-1 ml-6.5">
+          Record was created.
+        </p>
       </div>
     </template>
     <template v-else-if="['DATA_UPDATE', 'DATA_CASCADE_UPDATE'].includes(props.auditGroup.audit?.op_type)">

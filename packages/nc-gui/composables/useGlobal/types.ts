@@ -1,8 +1,8 @@
-import type { ComputedRef, Ref, ToRefs } from 'vue'
 import type { WritableComputedRef } from '@vue/reactivity'
-import type { JwtPayload } from 'jwt-decode'
 import type { AxiosInstance } from 'axios'
+import type { JwtPayload } from 'jwt-decode'
 import type { MapProvider } from 'nocodb-sdk'
+import type { ComputedRef, Ref, ToRefs } from 'vue'
 import type { NcBreakpoint } from '~/lib/constants'
 
 export interface AppInfo {
@@ -128,7 +128,7 @@ export interface Actions {
   loadAppInfo: () => void
   setIsMobileMode: (isMobileMode: boolean) => void
   setActiveBreakpoint: (breakpoint: NcBreakpoint) => void
-  navigateToProject: (params: { workspaceId?: string; baseId?: string; query?: any }) => void
+  navigateToProject: (params: { workspaceId?: string, baseId?: string, query?: any }) => void
   /**
    * params `tableTitle, viewTitle, scriptTitle ,dashboardTitle,workflowTitle` will be used for readable url slug
    */
@@ -152,7 +152,7 @@ export interface Actions {
   getBaseUrl: (workspaceId: string) => string | undefined
   getMainUrl: (workspaceId: string) => string | undefined
   setGridViewPageSize: (pageSize: number) => void
-  setLeftSidebarSize: (params: { old?: number; current?: number }) => void
+  setLeftSidebarSize: (params: { old?: number, current?: number }) => void
   setAddNewRecordGridMode: (isGridMode: boolean) => void
   updateSyncDataUpvotes: (upvotes: string[]) => void
 }

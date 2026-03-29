@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableType, ViewType } from 'nocodb-sdk'
-import { ViewTypes, getFirstNonPersonalView } from 'nocodb-sdk'
+import { getFirstNonPersonalView, ViewTypes } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -41,12 +41,13 @@ const randomClass = `record_picker_${Math.floor(Math.random() * 99999)}`
 
 const isOpen = ref(false)
 
-const addOrRemoveClass = (add = false) => {
+function addOrRemoveClass(add = false) {
   const dropdownRoot = ncRecordPickerDropdownRef.value?.parentElement?.parentElement?.parentElement?.parentElement as HTMLElement
   if (dropdownRoot) {
     if (add) {
       dropdownRoot.classList.add('inset-0', 'nc-record-picker-dropdown-root', `nc-root-${randomClass}`)
-    } else {
+    }
+    else {
       dropdownRoot.classList.remove('inset-0', 'nc-record-picker-dropdown-root', `nc-root-${randomClass}`)
     }
   }
@@ -66,7 +67,8 @@ watch(
 
         addOrRemoveClass(false)
       })
-    } else {
+    }
+    else {
       addOrRemoveClass(false)
     }
   },
@@ -78,7 +80,8 @@ watch([ncRecordPickerDropdownRef, isOpen], () => {
 
   if (isOpen.value) {
     addOrRemoveClass(true)
-  } else {
+  }
+  else {
     addOrRemoveClass(false)
   }
 })
@@ -94,7 +97,7 @@ const tableMeta = ref<TableType>()
 
 const isLoading = ref(false)
 
-const loadMetas = async () => {
+async function loadMetas() {
   if (!props.tableId) return
 
   isLoading.value = true
@@ -115,21 +118,24 @@ const loadMetas = async () => {
     }
 
     if (props.viewId) {
-      viewMeta.value = findViews().find((v) => v.id === props.viewId)
+      viewMeta.value = findViews().find(v => v.id === props.viewId)
 
       if (!viewMeta.value) {
         await loadViews({ tableId: props.tableId, baseId: effectiveBaseId!, force: true })
-        viewMeta.value = findViews().find((v) => v.id === props.viewId)
+        viewMeta.value = findViews().find(v => v.id === props.viewId)
       }
-    } else {
+    }
+    else {
       await loadViews({ tableId: props.tableId, baseId: effectiveBaseId!, force: true })
       viewMeta.value = getFirstNonPersonalView(findViews(), {
         includeViewType: ViewTypes.GRID,
       })
     }
-  } catch (e) {
+  }
+  catch (e) {
     console.error(e)
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 }
@@ -140,21 +146,23 @@ onMounted(async () => {
 
 provide(MetaInj, tableMeta)
 
-const displayField = computed(() => (tableMeta?.value?.columns ?? []).find((c) => c.pv))
+const displayField = computed(() => (tableMeta?.value?.columns ?? []).find(c => c.pv))
 
 const localState = ref()
-const resolveInput = async (row: Row) => {
+async function resolveInput(row: Row) {
   localState.value = row
   if (props.version === 'v2') {
     vModel.value = row
-  } else {
+  }
+  else {
     const rowId = extractPkFromRow(row?.row, tableMeta?.value?.columns ?? [])
     try {
       const data = await internalApi.dbDataTableRowRead(tableMeta?.value?.base_id, tableMeta?.value?.id, rowId, {
         fields: props.fields,
       })
       vModel.value = data
-    } catch (e) {
+    }
+    catch (e) {
       console.error(e)
     }
   }

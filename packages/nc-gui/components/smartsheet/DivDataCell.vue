@@ -11,7 +11,7 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const isForm = inject(IsFormInj)!
 
-const onTabPress = () => {
+function onTabPress() {
   if (!isExpandedFormOpen.value && !isForm.value) return
 
   // Find the focused element

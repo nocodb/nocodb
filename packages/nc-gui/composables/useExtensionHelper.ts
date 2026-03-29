@@ -1,5 +1,5 @@
-import { type ViewType } from 'nocodb-sdk'
 import type { ExtensionManifest, ExtensionType } from '#imports'
+import type { ViewType } from 'nocodb-sdk'
 
 const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
   (
@@ -49,7 +49,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
 
     const getViewsForTable = async (tableId: string) => {
       // Find the table to get its base_id
-      const table = tables.value.find((t) => t.id === tableId)
+      const table = tables.value.find(t => t.id === tableId)
       if (!table?.base_id) {
         console.warn('Could not find base_id for table:', tableId)
         return []
@@ -91,7 +91,8 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
         if (pageInfo?.isLastPage) {
           await eachPage(records, () => {})
           await done()
-        } else {
+        }
+        else {
           page++
           await eachPage(records, nextPage)
         }
@@ -104,7 +105,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       return getMeta(baseId.value!, tableId)
     }
 
-    const insertData = async (params: { tableId: string; data: Record<string, any>[]; autoInsertOption?: boolean }) => {
+    const insertData = async (params: { tableId: string, data: Record<string, any>[], autoInsertOption?: boolean }) => {
       const { tableId, data } = params
 
       const chunks = []
@@ -135,7 +136,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       }
     }
 
-    const updateData = async (params: { tableId: string; data: Record<string, any>[] }) => {
+    const updateData = async (params: { tableId: string, data: Record<string, any>[] }) => {
       const { tableId, data } = params
 
       const chunks = []

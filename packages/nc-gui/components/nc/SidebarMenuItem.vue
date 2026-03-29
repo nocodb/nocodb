@@ -26,7 +26,7 @@ const emits = defineEmits<{
   (e: 'click', event: MouseEvent): void
 }>()
 
-const handleClick = (event: MouseEvent) => {
+function handleClick(event: MouseEvent) {
   if (props.disabled) return
   emits('click', event)
 }

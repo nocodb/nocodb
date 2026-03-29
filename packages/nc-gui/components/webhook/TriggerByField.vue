@@ -21,13 +21,13 @@ const isDropdownOpen = ref(false)
 const computedTags = computed(() => {
   return triggerFields.value
     ?.map((colId) => {
-      return columns.value.find((k) => k.id === colId)
+      return columns.value.find(k => k.id === colId)
     })
     .filter(Boolean)
 })
 
-const removeColumnId = (colId: string) => {
-  triggerFields.value = triggerFields.value?.filter((k) => k !== colId)
+function removeColumnId(colId: string) {
+  triggerFields.value = triggerFields.value?.filter(k => k !== colId)
 }
 </script>
 
@@ -64,7 +64,9 @@ const removeColumnId = (colId: string) => {
           option-label-key="title"
         >
           <template #headerExtraRight>
-            <NcBadge :border="false" color="brand" class="mr-2"> {{ triggerFields.length }} fields </NcBadge>
+            <NcBadge :border="false" color="brand" class="mr-2">
+              {{ triggerFields.length }} fields
+            </NcBadge>
           </template>
 
           <template #listItem="{ option }">

@@ -1,5 +1,5 @@
-import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { ChatContentBlock, ChatMessageType, ChatSessionType } from 'nocodb-sdk'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 
 export const useChatStore = defineStore('chatStore', () => {
   const activeSessionId = ref<string | null>(null)

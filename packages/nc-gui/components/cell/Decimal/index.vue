@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { VNodeRef } from '@vue/runtime-core'
+import type { VNodeRef } from 'vue'
 import { roundUpToPrecision } from 'nocodb-sdk'
 
 interface Props {
@@ -56,7 +56,8 @@ const vModel = computed({
       // if we clear / empty a cell in sqlite,
       // the value is considered as ''
       _vModel.value = null
-    } else {
+    }
+    else {
       _vModel.value = value
     }
   },
@@ -74,14 +75,15 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 const isForm = inject(IsFormInj)!
 
 // Handle the arrow keys as its default behavior is to increment/decrement the value
-const onKeyDown = (e: any) => {
+function onKeyDown(e: any) {
   if (e.key === 'ArrowDown') {
     e.preventDefault()
     // Move the cursor to the end of the input
     e.target.type = 'text'
     e.target?.setSelectionRange(e.target.value.length, e.target.value.length)
     e.target.type = 'number'
-  } else if (e.key === 'ArrowUp') {
+  }
+  else if (e.key === 'ArrowUp') {
     e.preventDefault()
 
     e.target.type = 'text'
@@ -90,7 +92,7 @@ const onKeyDown = (e: any) => {
   }
 }
 
-const focus: VNodeRef = (el) =>
+const focus: VNodeRef = el =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 </script>
 
@@ -114,7 +116,7 @@ const focus: VNodeRef = (el) =>
     @keydown.alt.stop
     @selectstart.capture.stop
     @mousedown.stop
-  />
+  >
   <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
   <span v-else class="nc-cell-field">{{ displayValue }}</span>
 </template>

@@ -5,6 +5,6 @@
     <AccountProfile v-if="$route.params.page === 'profile'" />
     <AccountToken v-else-if="$route.params.page === 'tokens'" />
     <AccountMcp v-else-if="$route.params.page === 'mcp'" />
-    <span v-else></span>
+    <span v-else />
   </div>
 </template>

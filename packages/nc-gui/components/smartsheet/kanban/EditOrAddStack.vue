@@ -17,14 +17,14 @@ const { formState, addOrUpdate } = useProvideColumnCreateStore(meta, column, und
 
 const { getMeta } = useMetas()
 
-const reloadMetaAndData = async () => {
+async function reloadMetaAndData() {
   await getMeta(meta.value?.base_id, meta.value?.id as string, true)
 }
 
 async function onSubmit(
   submit = false,
   saveChanges = true,
-  payload: Partial<{ color: string; title: string; [key: string]: any }>,
+  payload: Partial<{ color: string, title: string, [key: string]: any }>,
 ) {
   if (!saveChanges && submit) {
     emit('submit')

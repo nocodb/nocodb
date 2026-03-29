@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { CSSProperties } from '@vue/runtime-dom'
+import type { CSSProperties } from 'vue'
 
 const props = withDefaults(
   defineProps<{

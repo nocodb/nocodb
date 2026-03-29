@@ -1,7 +1,7 @@
 import type { ComputedRef, Ref } from 'vue'
 import type { Row } from '~/lib/types'
 
-export const useRowDragging = ({
+export function useRowDragging({
   updateRecordOrder,
   gridWrapper,
   virtualMargin,
@@ -20,11 +20,11 @@ export const useRowDragging = ({
   ) => Promise<void>
   onDragStart?: (row: Row, e: MouseEvent) => void
   rowHeight: ComputedRef<number>
-  rowSlice: { start: number; end: number }
+  rowSlice: { start: number, end: number }
   totalRows: Ref<number>
   cachedRows: Ref<Map<number, Row>>
   virtualMargin: number
-}) => {
+}) {
   const isDragging = ref(false)
   const row = ref<null | Row>(null)
   const startRowTop = ref(0)
@@ -77,7 +77,8 @@ export const useRowDragging = ({
       if (event !== null) {
         event.preventDefault()
         lastMoveEvent.value = event
-      } else {
+      }
+      else {
         event = lastMoveEvent.value
       }
 
@@ -118,7 +119,8 @@ export const useRowDragging = ({
 
         if (autoScrollMouseTop < side && canScrollUp) {
           speed = -(6 - Math.ceil((Math.max(0, autoScrollMouseTop) / side) * 6))
-        } else if (autoScrollMouseBottom < side && canScrollDown) {
+        }
+        else if (autoScrollMouseBottom < side && canScrollDown) {
           speed = 6 - Math.ceil((Math.max(0, autoScrollMouseBottom) / side) * 6)
         }
 
@@ -135,10 +137,12 @@ export const useRowDragging = ({
             animationFrameId.value = requestAnimationFrame(() => {
               moveHandler(null, false)
             })
-          } else {
+          }
+          else {
             autoScrolling.value = false
           }
-        } else {
+        }
+        else {
           autoScrolling.value = false
           if (animationFrameId.value !== null) {
             cancelAnimationFrame(animationFrameId.value)
@@ -150,14 +154,16 @@ export const useRowDragging = ({
       targetRow.value = newTargetRow
 
       if (
-        newTargetRow?.rowMeta.rowIndex !== row.value.rowMeta.rowIndex &&
-        newTargetRow?.rowMeta.rowIndex !== row.value.rowMeta.rowIndex + 1
+        newTargetRow?.rowMeta.rowIndex !== row.value.rowMeta.rowIndex
+        && newTargetRow?.rowMeta.rowIndex !== row.value.rowMeta.rowIndex + 1
       ) {
         targetTop.value = Math.max(adjustedRowIndex * rowHeight.value, 32) + (rowHeight.value === 32 ? 0 : 32)
-      } else {
+      }
+      else {
         targetTop.value = -9999
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error in moveHandler:', error)
       cancel()
     }
@@ -168,9 +174,9 @@ export const useRowDragging = ({
       event.preventDefault()
       cancel()
 
-      const isSamePosition =
-        row.value?.rowMeta?.rowIndex === targetRow.value?.rowMeta?.rowIndex ||
-        targetRow.value?.rowMeta?.rowIndex === row.value?.rowMeta?.rowIndex + 1
+      const isSamePosition
+        = row.value?.rowMeta?.rowIndex === targetRow.value?.rowMeta?.rowIndex
+          || targetRow.value?.rowMeta?.rowIndex === row.value?.rowMeta?.rowIndex + 1
 
       if (row.value && row.value.rowMeta.rowIndex !== undefined && !isSamePosition) {
         await updateRecordOrder(row.value.rowMeta.rowIndex, targetRow.value ? targetRow.value.rowMeta.rowIndex : null)
@@ -178,7 +184,8 @@ export const useRowDragging = ({
 
       row.value = null
       targetRow.value = null
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error in mouseUp:', error)
       cancel()
     }
@@ -197,7 +204,8 @@ export const useRowDragging = ({
 
       window.removeEventListener('mousemove', moveHandler)
       window.removeEventListener('mouseup', mouseUp)
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error in cancel:', error)
     }
   }
@@ -228,7 +236,8 @@ export const useRowDragging = ({
 
       window.addEventListener('mousemove', moveHandler)
       window.addEventListener('mouseup', mouseUp)
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error in startDragging:', error)
       cancel()
     }

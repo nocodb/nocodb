@@ -80,13 +80,13 @@ export function searchLike<T extends NestedObject>(array: T[], pattern: string):
 
     // Handle arrays
     if (Array.isArray(obj)) {
-      return obj.some((item) => searchRecursive(item))
+      return obj.some(item => searchRecursive(item))
     }
 
     // Handle objects
-    return Object.values(obj).some((value) => searchRecursive(value))
+    return Object.values(obj).some(value => searchRecursive(value))
   }
 
   // Filter the array based on the pattern
-  return array.filter((item) => searchRecursive(item))
+  return array.filter(item => searchRecursive(item))
 }

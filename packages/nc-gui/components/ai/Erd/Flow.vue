@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Background, Controls, Panel, PanelPosition } from '@vue-flow/additional-components'
-import { VueFlow, useVueFlow } from '@vue-flow/core'
 import type { AiBaseSchema, AiERDConfig } from './utils'
+import { Background, Controls, Panel, PanelPosition } from '@vue-flow/additional-components'
+import { useVueFlow, VueFlow } from '@vue-flow/core'
 import { useErdElements } from './utils'
 
 interface Props {
@@ -72,7 +72,8 @@ watch(showSkeleton, async (isSkeleton) => {
 watch(elements, (elements) => {
   if (elements.length > 3) {
     setMaxZoom(2)
-  } else {
+  }
+  else {
     setMaxZoom(1.25)
   }
 })

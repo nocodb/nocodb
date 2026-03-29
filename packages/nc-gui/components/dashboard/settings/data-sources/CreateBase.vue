@@ -1,17 +1,17 @@
 <script lang="ts" setup>
-import { Form } from 'ant-design-vue'
-import { type IntegrationType, IntegrationsType, validateAndExtractSSLProp } from 'nocodb-sdk'
+import type { DatabricksConnection, ProjectCreateForm, SnowflakeConnection } from '#imports'
+import type { IntegrationType } from 'nocodb-sdk'
 import {
   ClientType,
-  type DatabricksConnection,
-  JobStatus,
-  type ProjectCreateForm,
-  SSLUsage,
-  type SnowflakeConnection,
-  clientTypes as _clientTypes,
-} from '#imports'
 
-const props = defineProps<{ open: boolean; connectionType?: ClientType }>()
+  JobStatus,
+
+  SSLUsage,
+} from '#imports'
+import { Form } from 'ant-design-vue'
+import { IntegrationsType, validateAndExtractSSLProp } from 'nocodb-sdk'
+
+const props = defineProps<{ open: boolean, connectionType?: ClientType }>()
 
 const emit = defineEmits(['update:open', 'sourceCreated'])
 
@@ -31,7 +31,7 @@ const _projectId = inject(ProjectIdInj, undefined)
 const baseId = computed(() => _projectId?.value ?? base.value?.id)
 
 const filteredIntegrations = computed(() =>
-  integrations.value.filter((i) => i.sub_type !== SyncDataType.NOCODB && i.type === IntegrationsType.Database),
+  integrations.value.filter(i => i.sub_type !== SyncDataType.NOCODB && i.type === IntegrationsType.Database),
 )
 
 const useForm = Form.useForm
@@ -56,7 +56,7 @@ const advancedOptionsExpansionPanel = ref<string[]>([])
 
 const isLoading = ref<boolean>(false)
 
-const defaultFormState = (client = ClientType.MYSQL) => {
+function defaultFormState(client = ClientType.MYSQL) {
   return {
     title: '',
     dataSource: { ...getDefaultConnectionConfig(client) },
@@ -77,7 +77,7 @@ const easterEgg = ref(false)
 
 const easterEggCount = ref(0)
 
-const onEasterEgg = () => {
+function onEasterEgg() {
   easterEggCount.value += 1
   if (easterEggCount.value >= 2) {
     easterEgg.value = true
@@ -85,7 +85,7 @@ const onEasterEgg = () => {
 }
 
 const selectedIntegration = computed(() => {
-  return formState.value.fk_integration_id && integrations.value.find((i) => i.id === formState.value.fk_integration_id)
+  return formState.value.fk_integration_id && integrations.value.find(i => i.id === formState.value.fk_integration_id)
 })
 
 const selectedIntegrationDb = computed(() => {
@@ -95,7 +95,7 @@ const selectedIntegrationSchema = computed(() => {
   return selectedIntegration.value?.config?.searchPath?.[0]
 })
 
-const getDataSourceValue = (field: 'database' | 'schema') => {
+function getDataSourceValue(field: 'database' | 'schema') {
   if (field === 'database') {
     return selectedIntegrationDb.value
   }
@@ -146,7 +146,7 @@ const validators = computed(() => {
 
 const { validate, validateInfos, clearValidate } = useForm(formState.value, validators)
 
-const onClientChange = () => {
+function onClientChange() {
   formState.value.dataSource = { ...getDefaultConnectionConfig(formState.value.dataSource.client) }
 }
 
@@ -154,7 +154,7 @@ const inflectionTypes = ['camelize', 'none']
 
 function getConnectionConfig() {
   const extraParameters = Object.fromEntries(
-    new Map(formState.value.extraParameters.filter((object) => object.key?.trim()).map((object) => [object.key, object.value])),
+    new Map(formState.value.extraParameters.filter(object => object.key?.trim()).map(object => [object.key, object.value])),
   )
 
   const connection = {
@@ -167,16 +167,17 @@ function getConnectionConfig() {
   return connection
 }
 
-const focusInvalidInput = () => {
+function focusInvalidInput() {
   form.value?.$el.querySelector('.ant-form-item-explain-error')?.parentNode?.parentNode?.querySelector('input')?.focus()
 }
 
 const { $poller } = useNuxtApp()
 
-const createSource = async () => {
+async function createSource() {
   try {
     await validate()
-  } catch (e) {
+  }
+  catch (e) {
     focusInvalidInput()
     return
   }
@@ -232,7 +233,8 @@ const createSource = async () => {
               try {
                 await loadProject(baseId.value, true)
                 await loadProjectTables(baseId.value, true)
-              } catch (_e: any) {
+              }
+              catch (_e: any) {
                 // ignore
               }
             }
@@ -240,27 +242,31 @@ const createSource = async () => {
             emit('sourceCreated')
             vOpen.value = false
             creatingSource.value = false
-          } else if (data.status === JobStatus.FAILED) {
+          }
+          else if (data.status === JobStatus.FAILED) {
             message.error(data?.data?.error?.message || 'Failed to create base')
             creatingSource.value = false
           }
         }
       },
     )
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
     creatingSource.value = false
-  } finally {
+  }
+  finally {
     refreshCommandPalette()
   }
 }
 
 const testConnectionError = ref()
 
-const testConnection = async () => {
+async function testConnection() {
   try {
     await validate()
-  } catch (e) {
+  }
+  catch (e) {
     focusInvalidInput()
     return
   }
@@ -272,7 +278,8 @@ const testConnection = async () => {
 
     if (formState.value.dataSource.client === ClientType.SQLITE) {
       testSuccess.value = true
-    } else {
+    }
+    else {
       const connection = getConnectionConfig()
 
       connection.database = getTestDatabaseName(formState.value.dataSource)!
@@ -297,13 +304,15 @@ const testConnection = async () => {
 
       if (result.code === 0) {
         testSuccess.value = true
-      } else {
+      }
+      else {
         testSuccess.value = false
 
         message.error(`${t('msg.error.dbConnectionFailed')} ${result.message}`)
       }
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     testSuccess.value = false
     testConnectionError.value = await extractSdkResponseErrorMsg(e)
   }
@@ -362,7 +371,7 @@ const allowDataWrite = computed({
     $e('c:source:data-write-toggle', { allowed: !v })
   },
 })
-const changeIntegration = (triggerTestConnection = false) => {
+function changeIntegration(triggerTestConnection = false) {
   if (formState.value.fk_integration_id && selectedIntegration.value) {
     formState.value.dataSource = {
       client: selectedIntegration.value.sub_type,
@@ -371,7 +380,8 @@ const changeIntegration = (triggerTestConnection = false) => {
       },
       searchPath: selectedIntegration.value.config?.searchPath,
     }
-  } else {
+  }
+  else {
     onClientChange()
   }
   clearValidate()
@@ -382,11 +392,11 @@ const changeIntegration = (triggerTestConnection = false) => {
   }
 }
 
-const handleAddNewConnection = () => {
+function handleAddNewConnection() {
   pageMode.value = IntegrationsPageMode.LIST
 }
 
-const eventBusHandler = (event: IntegrationStoreEvents, payload: any) => {
+function eventBusHandler(event: IntegrationStoreEvents, payload: any) {
   if (event === IntegrationStoreEvents.INTEGRATION_ADD && payload?.id) {
     formState.value.fk_integration_id = payload.id
     until(() => selectedIntegration.value?.id === payload.id)
@@ -403,11 +413,12 @@ onBeforeUnmount(() => {
   eventBus.off(eventBusHandler)
 })
 
-const handleUpdateAdvancedOptionsExpansionPanel = (open: boolean) => {
+function handleUpdateAdvancedOptionsExpansionPanel(open: boolean) {
   if (open) {
     advancedOptionsExpansionPanel.value = ['1']
     handleAutoScroll(true, 'nc-source-advanced-options')
-  } else {
+  }
+  else {
     advancedOptionsExpansionPanel.value = []
   }
 }
@@ -434,7 +445,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
 const filterIntegrationCategory = (c: IntegrationCategoryItemType) => [IntegrationCategoryType.DATABASE].includes(c.value)
 const filterIntegration = (i: IntegrationItemType) => i.sub_type !== SyncDataType.NOCODB && i.isAvailable
 
-const isIntgrationDisabled = (integration: IntegrationType = {}) => {
+function isIntgrationDisabled(integration: IntegrationType = {}) {
   switch (integration.sub_type) {
     case ClientType.SQLITE:
       return {
@@ -467,10 +478,12 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
         <div class="h-6 self-start flex items-center">
           <GeneralIcon icon="server1" class="!text-nc-content-green-dark !h-4 !w-4" />
         </div>
-        <div class="flex-1 text-base font-weight-700">Add Data Source</div>
+        <div class="flex-1 text-base font-weight-700">
+          Add Data Source
+        </div>
 
         <div class="flex items-center gap-3">
-          <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg"></div>
+          <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg" />
           <NcTooltip :disabled="!testConnectionError">
             <template #title>
               {{ testConnectionError }}
@@ -609,7 +622,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                 <div class="nc-form-section">
                   <div class="nc-form-section-body">
                     <!-- SQLite File -->
-                    <template v-if="formState.dataSource.client === ClientType.SQLITE"> </template>
+                    <template v-if="formState.dataSource.client === ClientType.SQLITE" />
                     <template v-else-if="formState.dataSource.client === ClientType.SNOWFLAKE">
                       <a-row :gutter="24">
                         <a-col :span="12">
@@ -670,9 +683,9 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                           <!-- Schema name -->
                           <a-form-item
                             v-if="
-                              ([ClientType.PG].includes(formState.dataSource.client) ||
-                                [ClientType.PG].includes(selectedIntegration?.sub_type)) &&
-                              formState.dataSource.searchPath
+                              ([ClientType.PG].includes(formState.dataSource.client)
+                                || [ClientType.PG].includes(selectedIntegration?.sub_type))
+                                && formState.dataSource.searchPath
                             "
                             :label="$t('labels.schemaName')"
                             v-bind="validateInfos['dataSource.searchPath.0']"
@@ -689,7 +702,9 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                 </div>
 
                 <div class="nc-form-section">
-                  <div class="nc-form-section-title">Permissions</div>
+                  <div class="nc-form-section-title">
+                    Permissions
+                  </div>
                   <div class="nc-form-section-body">
                     <DashboardSettingsDataSourcesSourceRestrictions
                       v-model:allow-meta-write="allowMetaWrite"
@@ -709,7 +724,9 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                         class="!-ml-1.5"
                         @click="handleUpdateAdvancedOptionsExpansionPanel(!advancedOptionsExpansionPanel.length)"
                       >
-                        <div class="nc-form-section-title">Advanced options</div>
+                        <div class="nc-form-section-title">
+                          Advanced options
+                        </div>
 
                         <GeneralIcon
                           icon="chevronDown"
@@ -720,7 +737,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                     </template>
                     <a-collapse-panel key="1" collapsible="disabled">
                       <template #header>
-                        <span></span>
+                        <span />
                       </template>
 
                       <div class="flex flex-col gap-4">
@@ -733,7 +750,9 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                                   class="nc-select-shadow"
                                   dropdown-class-name="nc-dropdown-inflection-table-name"
                                 >
-                                  <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">{{ tp }}</a-select-option>
+                                  <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">
+                                    {{ tp }}
+                                  </a-select-option>
                                 </NcSelect>
                               </a-form-item>
                             </a-col>
@@ -744,7 +763,9 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                                   class="nc-select-shadow"
                                   dropdown-class-name="nc-dropdown-inflection-column-name"
                                 >
-                                  <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">{{ tp }}</a-select-option>
+                                  <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">
+                                    {{ tp }}
+                                  </a-select-option>
                                 </NcSelect>
                               </a-form-item>
                             </a-col>

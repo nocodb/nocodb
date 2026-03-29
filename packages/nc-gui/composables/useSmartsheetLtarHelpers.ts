@@ -1,6 +1,6 @@
-import { RelationTypes, isBtLikeV2Junction, isLinksOrLTAR, isMMOrMMLike } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { isBtLikeV2Junction, isLinksOrLTAR, isMMOrMMLike, RelationTypes } from 'nocodb-sdk'
 
 const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjectionState(
   (meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>) => {
@@ -28,7 +28,8 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
       if (isBtLikeV2Junction(column) || isBt(column) || isOo(column)) {
         getRowLtarHelpers(row)[column.title!] = value
         row.row[column.title!] = value
-      } else if (isHm(column) || isMm(column) || isMMOrMMLike(column)) {
+      }
+      else if (isHm(column) || isMm(column) || isMMOrMMLike(column)) {
         if (!getRowLtarHelpers(row)[column.title!]) getRowLtarHelpers(row)[column.title!] = []
 
         if (getRowLtarHelpers(row)[column.title!]!.find((ln: Record<string, any>) => deepCompare(ln, value))) {
@@ -38,7 +39,8 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
 
         if (Array.isArray(value)) {
           getRowLtarHelpers(row)[column.title!]!.push(...value)
-        } else {
+        }
+        else {
           getRowLtarHelpers(row)[column.title!]!.push(value)
         }
         // Also update row.row so cellValue triggers re-render
@@ -52,7 +54,8 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
       if (isBtLikeV2Junction(column) || isBt(column) || isOo(column)) {
         getRowLtarHelpers(row)[column.title!] = null
         row.row[column.title!] = null
-      } else if (isHm(column) || isMm(column) || isMMOrMMLike(column)) {
+      }
+      else if (isHm(column) || isMm(column) || isMMOrMMLike(column)) {
         getRowLtarHelpers(row)[column.title!]?.splice(getRowLtarHelpers(row)[column.title!]?.indexOf(value), 1)
         row.row[column.title!] = [...(getRowLtarHelpers(row)[column.title!] || [])]
       }
@@ -75,7 +78,8 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
           column.id as string,
           encodeURIComponent(relatedRowId),
         )
-      } catch (e: any) {
+      }
+      catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
     }
@@ -109,7 +113,8 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
               { metaValue },
             )
           }
-        } else if (isHm(column) || isMm(column) || isMMOrMMLike(column)) {
+        }
+        else if (isHm(column) || isMm(column) || isMMOrMMLike(column)) {
           const relatedRows = (getRowLtarHelpers(row)?.[column.title!] ?? []) as Record<string, any>[]
 
           for (const relatedRow of relatedRows) {
@@ -140,7 +145,8 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
 
         if (row.rowMeta.new) {
           getRowLtarHelpers(row)[column.title!] = null
-        } else {
+        }
+        else {
           if ([RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes((<LinkToAnotherRecordType>column.colOptions)?.type)) {
             if (!row.row[column.title!]) return
             await $api.dbTableRow.nestedRemove(
@@ -153,7 +159,8 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
               extractPkFromRow(row.row[column.title!], relatedTableMeta?.columns as ColumnType[]),
             )
             row.row[column.title!] = null
-          } else {
+          }
+          else {
             for (const link of (row.row[column.title!] as Record<string, any>[]) || []) {
               await $api.dbTableRow.nestedRemove(
                 NOCO,
@@ -168,7 +175,8 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
             row.row[column.title!] = []
           }
         }
-      } catch (e: any) {
+      }
+      catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
     }
@@ -197,7 +205,8 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
 
         if (row.rowMeta.new) {
           getRowLtarHelpers(row)[column.title!] = null
-        } else {
+        }
+        else {
           if ((<LinkToAnotherRecordType>column.colOptions)?.type === RelationTypes.MANY_TO_MANY) {
             if (!row.row[column.title!]) return
 
@@ -224,7 +233,8 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
             return Array.isArray(result.unlink) ? result.unlink : []
           }
         }
-      } catch (e: any) {
+      }
+      catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
     }

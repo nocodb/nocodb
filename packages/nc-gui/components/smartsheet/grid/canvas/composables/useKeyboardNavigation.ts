@@ -1,4 +1,5 @@
-import { type ColumnType, UITypes } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import { NO_EDITABLE_CELL } from '../utils/cell'
 import { EDIT_INTERACTABLE } from '../utils/constants'
 import { findFirstExpandedGroupWithPath, findGroupByPath, getDefaultGroupData } from '../utils/groupby'
@@ -32,7 +33,7 @@ export function useKeyboardNavigation({
   removeInlineAddRecord,
 }: {
   isGroupBy: ComputedRef<boolean>
-  activeCell: Ref<{ row: number; column: number; path?: Array<number> }>
+  activeCell: Ref<{ row: number, column: number, path?: Array<number> }>
   triggerReRender: () => void
   columns: ComputedRef<CanvasGridColumn[]>
   scrollToCell: CanvasScrollToCellFn
@@ -47,7 +48,7 @@ export function useKeyboardNavigation({
     height: number
   } | null>
   copyValue: (target?: Cell, path?: Array<number>) => void
-  clearCell: (ctx: { row: number; col: number; path?: Array<number> } | null, skipUpdate?: boolean) => Promise<void>
+  clearCell: (ctx: { row: number, col: number, path?: Array<number> } | null, skipUpdate?: boolean) => Promise<void>
   clearSelectedRangeOfCells: (path?: Array<number>) => Promise<void>
   makeCellEditable: MakeCellEditableFn
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path?: Array<number>) => void
@@ -101,7 +102,9 @@ export function useKeyboardNavigation({
 
     if (isDrawerOrModalExist() || isLinkDropdownExist() || isGeneralOverlayActive()) {
       // If Extension Pane is Active, ignore
-      if (!isExtensionPaneActive()) return
+      if (!isExtensionPaneActive()) {
+        return
+      }
       else if (!isActiveElementInsideExtension() && !isActiveElementInsideScriptPane() && isDrawerOrModalExist()) {
         // If extension pane open and active drawer or modal is not extension modal then we have to return, else it will prevent keyboard events
         return
@@ -118,7 +121,8 @@ export function useKeyboardNavigation({
     if (isGroupBy.value) {
       if (activeCell.value.path?.length) {
         groupPath = activeCell.value.path
-      } else {
+      }
+      else {
         const group = findFirstExpandedGroupWithPath(cachedGroups.value)
         if (group.path?.length) groupPath = group.path
         else return
@@ -195,10 +199,10 @@ export function useKeyboardNavigation({
         case 82: {
           // ALT + R
           if (
-            isAddingEmptyRowAllowed.value &&
-            isAddingEmptyRowPermitted.value &&
-            !removeInlineAddRecord.value &&
-            isAddingEmptyRowPermitted.value
+            isAddingEmptyRowAllowed.value
+            && isAddingEmptyRowPermitted.value
+            && !removeInlineAddRecord.value
+            && isAddingEmptyRowPermitted.value
           ) {
             $e('c:shortcut', { key: 'ALT + R' })
             addEmptyRow(undefined, undefined, undefined, defaultData, groupPath)
@@ -223,8 +227,8 @@ export function useKeyboardNavigation({
       case 'Backspace':
         if (isDataReadOnly.value) return
         if (
-          !editEnabled.value ||
-          EDIT_MODE_CLEARABLE_TYPES.includes(columns.value[activeCell.value.column]?.columnObj?.uidt as UITypes)
+          !editEnabled.value
+          || EDIT_MODE_CLEARABLE_TYPES.includes(columns.value[activeCell.value.column]?.columnObj?.uidt as UITypes)
         ) {
           e.preventDefault()
           if (selection.value.isSingleCell()) {
@@ -237,7 +241,8 @@ export function useKeyboardNavigation({
               col: activeCell.value.column,
               path: groupPath,
             })
-          } else {
+          }
+          else {
             await clearSelectedRangeOfCells(groupPath)
             selection.value.clear()
           }
@@ -262,7 +267,8 @@ export function useKeyboardNavigation({
               selection.value.clear()
             }
           }
-        } else {
+        }
+        else {
           const NO_ENTER_KEY_NAVIGATE_COLUMNS = [UITypes.Attachment, UITypes.Barcode, UITypes.QrCode]
           const column = columns.value[activeCell.value.column]?.columnObj
           if (column && NO_ENTER_KEY_NAVIGATE_COLUMNS.includes(column.uidt as UITypes)) {
@@ -297,7 +303,8 @@ export function useKeyboardNavigation({
             selection.value.endRange(newEnd)
             scrollToCell(newEnd.row, newEnd.col, groupPath, false)
             movedSelection = true
-          } else {
+          }
+          else {
             activeCell.value.row = newRow
             moved = true
             onActiveCellChanged()
@@ -318,7 +325,8 @@ export function useKeyboardNavigation({
             }
             selection.value.endRange(newEnd)
             movedSelection = true
-          } else {
+          }
+          else {
             activeCell.value.row = newRow
             moved = true
             onActiveCellChanged()
@@ -338,7 +346,8 @@ export function useKeyboardNavigation({
               col: newCol,
             })
             movedSelection = true
-          } else {
+          }
+          else {
             activeCell.value.column = newCol
             moved = true
           }
@@ -357,7 +366,8 @@ export function useKeyboardNavigation({
               col: newCol,
             })
             movedSelection = true
-          } else {
+          }
+          else {
             activeCell.value.column = newCol
             moved = true
           }
@@ -373,21 +383,25 @@ export function useKeyboardNavigation({
             addEmptyRow(undefined, false, undefined, defaultData, groupPath)
             isAdded = true
           }
-        } else if (e.shiftKey && activeCell.value.row === 0 && activeCell.value.column === MIN_COLUMN_INDEX) {
+        }
+        else if (e.shiftKey && activeCell.value.row === 0 && activeCell.value.column === MIN_COLUMN_INDEX) {
           return
         }
 
         if (e.shiftKey) {
           if (activeCell.value.column > MIN_COLUMN_INDEX) {
             activeCell.value.column--
-          } else if (activeCell.value.row > 0) {
+          }
+          else if (activeCell.value.row > 0) {
             activeCell.value.row--
             activeCell.value.column = lastCol
           }
-        } else {
+        }
+        else {
           if (activeCell.value.column < lastCol) {
             activeCell.value.column++
-          } else if (activeCell.value.row < (isAdded ? lastRow + 1 : lastRow)) {
+          }
+          else if (activeCell.value.row < (isAdded ? lastRow + 1 : lastRow)) {
             activeCell.value.row++
             activeCell.value.column = MIN_COLUMN_INDEX
           }
@@ -409,7 +423,8 @@ export function useKeyboardNavigation({
 
       if (moved) {
         scrollToCell(activeCell.value.row, activeCell.value.column, groupPath, horizontalScroll)
-      } else if (movedSelection) {
+      }
+      else if (movedSelection) {
         scrollToCell(selection.value._end!.row, selection.value._end!.col, groupPath, horizontalScroll)
       }
     }

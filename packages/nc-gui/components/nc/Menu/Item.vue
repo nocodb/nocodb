@@ -10,7 +10,11 @@
  * - **Fix**: Use `v-show` instead of `v-if` when no replacement (fallback) node is provided. This keeps the element
  *   in the DOM but toggles its visibility, preventing the DOM manipulation issue.
  */
-import type { StyleValue } from '@vue/runtime-dom'
+import type { StyleValue } from 'vue'
+
+defineOptions({
+  inheritAttrs: false,
+})
 
 defineProps<{
   mKey?: string
@@ -20,10 +24,6 @@ defineProps<{
   danger?: boolean
   theme?: 'ai'
 }>()
-
-defineOptions({
-  inheritAttrs: false,
-})
 </script>
 
 <template>

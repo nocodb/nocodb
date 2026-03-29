@@ -1,5 +1,3 @@
-import { Form } from 'ant-design-vue'
-import { diff } from 'deep-object-diff'
 import type {
   CustomFormBuilderValidator,
   FormBuilderCondition,
@@ -8,6 +6,8 @@ import type {
   FormBuilderValidator,
   FormDefinition,
 } from 'nocodb-sdk'
+import { Form } from 'ant-design-vue'
+import { diff } from 'deep-object-diff'
 import { FormBuilderValidatorType } from 'nocodb-sdk'
 
 const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
@@ -59,11 +59,14 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
 
         if (field.type === FormBuilderInputType.Switch) {
           setNestedProp(defaultState, field.model, field.defaultValue ?? false)
-        } else if (field.type === FormBuilderInputType.Select) {
+        }
+        else if (field.type === FormBuilderInputType.Select) {
           setNestedProp(defaultState, field.model, field.defaultValue ?? [])
-        } else if (field.type === FormBuilderInputType.ConditionBuilder) {
+        }
+        else if (field.type === FormBuilderInputType.ConditionBuilder) {
           setNestedProp(defaultState, field.model, field.defaultValue ?? { combinator: 'and', conditions: [] })
-        } else {
+        }
+        else {
           setNestedProp(defaultState, field.model, field.defaultValue ?? '')
         }
       }
@@ -91,7 +94,8 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
 
       try {
         fieldOptions.value[field.model] = await fetchOptions(field.fetchOptionsKey, searchQuery)
-      } finally {
+      }
+      finally {
         isLoadingFieldOptions.value[field.model] = false
       }
     }
@@ -106,11 +110,11 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
 
     const setupDependencyWatchers = () => {
       if (unref(disabled)) return
-      dependencyWatcherCleanups.forEach((cleanup) => cleanup())
+      dependencyWatcherCleanups.forEach(cleanup => cleanup())
       dependencyWatcherCleanups.length = 0
 
       const fieldsWithDependencies = (unref(formSchema) || []).filter(
-        (field) => field.fetchOptionsKey && field.dependsOn && field.model,
+        field => field.fetchOptionsKey && field.dependsOn && field.model,
       )
 
       fieldsWithDependencies.forEach((field) => {
@@ -152,7 +156,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       // When value is an array (multi-select), check if ANY condition.in element is in value
       if (condition.in) {
         if (Array.isArray(value)) {
-          return condition.in.some((item) => value.includes(item))
+          return condition.in.some(item => value.includes(item))
         }
         return condition.in.includes(value)
       }
@@ -161,7 +165,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       // When value is an array (multi-select), check if NONE of condition.notIn elements are in value
       if (condition.notIn) {
         if (Array.isArray(value)) {
-          return !condition.notIn.some((item) => value.includes(item))
+          return !condition.notIn.some(item => value.includes(item))
         }
         return !condition.notIn.includes(value)
       }
@@ -195,7 +199,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
 
       // Array of conditions (AND logic)
       if (Array.isArray(conditionOrGroup)) {
-        return conditionOrGroup.every((c) => checkConditionItem(c))
+        return conditionOrGroup.every(c => checkConditionItem(c))
       }
 
       // Condition group with operator
@@ -204,10 +208,10 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
         const operator = group.operator || 'and'
 
         if (operator === 'or') {
-          return group.conditions.some((c) => checkConditionItem(c))
+          return group.conditions.some(c => checkConditionItem(c))
         }
         // Default: AND
-        return group.conditions.every((c) => checkConditionItem(c))
+        return group.conditions.every(c => checkConditionItem(c))
       }
 
       return true
@@ -376,7 +380,8 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       if (unref(disabled)) return
       try {
         await validate()
-      } catch (e) {
+      }
+      catch (e) {
         form.value?.$el.querySelector('.ant-form-item-explain-error')?.parentNode?.parentNode?.querySelector('input')?.focus()
 
         return {
@@ -393,12 +398,14 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
           success: true,
           result,
         }
-      } catch (e) {
+      }
+      catch (e) {
         return {
           success: false,
           details: e,
         }
-      } finally {
+      }
+      finally {
         isLoading.value = false
       }
     }
@@ -461,7 +468,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
     )
 
     onBeforeUnmount(() => {
-      dependencyWatcherCleanups.forEach((cleanup) => cleanup())
+      dependencyWatcherCleanups.forEach(cleanup => cleanup())
       dependencyWatcherCleanups.length = 0
     })
 

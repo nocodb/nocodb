@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { TableType } from 'nocodb-sdk'
+
 interface Props {
   value?: string | string[] | null
   baseId?: string
@@ -32,13 +33,13 @@ const tableList = computed(() => {
 
 const tableListMap = computed(() => {
   if (!tableList.value || tableList.value.length === 0) return new Map()
-  return new Map(tableList.value.map((table) => [table.value, table]))
+  return new Map(tableList.value.map(table => [table.value, table]))
 })
 
 const selectedTable = computed(() => {
   if (!tableListMap.value || tableListMap.value.size === 0) return undefined
   if (props.multiple && Array.isArray(modelValue.value)) {
-    return modelValue.value.map((val) => tableListMap.value.get(val)).filter(Boolean)
+    return modelValue.value.map(val => tableListMap.value.get(val)).filter(Boolean)
   }
   return tableListMap.value.get(modelValue.value as string) || undefined
 })
@@ -53,7 +54,7 @@ const selectedTableLabel = computed(() => {
   return selectedTable.value.label
 })
 
-const handleValueUpdate = (value: any) => {
+function handleValueUpdate(value: any) {
   modelValue.value = value
 }
 </script>

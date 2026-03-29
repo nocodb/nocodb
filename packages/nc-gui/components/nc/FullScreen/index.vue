@@ -4,7 +4,7 @@
  * This is same component as vue-fullscreen, but it does not have support to disable esc key.
  */
 
-import type { CSSProperties } from '@vue/runtime-dom'
+import type { CSSProperties } from 'vue'
 import { screenfull as sf } from 'vue-fullscreen'
 
 const props = withDefaults(
@@ -67,15 +67,17 @@ function request() {
     isFullscreen.value = true
     onChangeFullScreen()
     // 🚫 No Escape listener
-  } else {
+  }
+  else {
     sf.off('change', fullScreenCallback)
     sf.on('change', fullScreenCallback)
     sf.request(props.teleport ? document.body : wrapper.value!)
   }
 
   if (props.teleport && wrapper.value) {
-    if (wrapper.value.parentNode === document.body) return
-    ;(wrapper.value as any).__parentNode = wrapper.value.parentNode
+    if (wrapper.value.parentNode === document.body) {
+      return
+    }(wrapper.value as any).__parentNode = wrapper.value.parentNode
     ;(wrapper.value as any).__token = document.createComment('fullscreen-token')
     ;(wrapper.value.parentNode as Node).insertBefore((wrapper.value as any).__token, wrapper.value)
     document.body.appendChild(wrapper.value)
@@ -87,7 +89,8 @@ function exit() {
   if (isPageOnly.value) {
     isFullscreen.value = false
     onChangeFullScreen()
-  } else {
+  }
+  else {
     sf.exit()
   }
 }
@@ -95,7 +98,8 @@ function exit() {
 function toggle(value?: boolean) {
   if (value === undefined) {
     isFullscreen.value ? exit() : request()
-  } else {
+  }
+  else {
     value ? request() : exit()
   }
 }
@@ -129,7 +133,7 @@ function onChangeFullScreen() {
   emit('change', isFullscreen.value)
 }
 
-const handleFullScreenChange = async () => {
+async function handleFullScreenChange() {
   const isBrowserFullScreen = !!document.fullscreenElement
 
   if (isFullscreen.value !== isBrowserFullScreen) {
@@ -147,7 +151,8 @@ const handleFullScreenChange = async () => {
       window.parent.postMessage({
         type: 'request-fullscreen-esc-key-lock',
       })
-    } else {
+    }
+    else {
       await navigator.keyboard.lock(['Escape'])
     }
 
@@ -158,7 +163,8 @@ const handleFullScreenChange = async () => {
     window.parent.postMessage({
       type: 'request-fullscreen-esc-key-unlock',
     })
-  } else {
+  }
+  else {
     navigator.keyboard.unlock()
   }
 }

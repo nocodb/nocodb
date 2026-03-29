@@ -1,8 +1,9 @@
-import TiptapLink, { type LinkOptions } from '@tiptap/extension-link'
-import { mergeAttributes } from '@tiptap/core'
-import { Plugin, TextSelection } from '@tiptap/pm/state'
+import type { LinkOptions } from '@tiptap/extension-link'
 import type { AddMarkStep, Step } from '@tiptap/pm/transform'
+import { mergeAttributes } from '@tiptap/core'
+import TiptapLink from '@tiptap/extension-link'
 import { defaultMarkdownSerializer } from '@tiptap/pm/markdown'
+import { Plugin, TextSelection } from '@tiptap/pm/state'
 
 const DANGEROUS_URL_RE = /^\s*(javascript|vbscript|data):/i
 
@@ -136,7 +137,8 @@ export const Link = TiptapLink.extend<LinkOptions>({
 
             const { tr } = newState
             return tr.setSelection(new TextSelection(tr.doc.resolve(addMarkStep.to)))
-          } catch (e) {
+          }
+          catch (e) {
             console.error(e)
             return null
           }
@@ -147,7 +149,7 @@ export const Link = TiptapLink.extend<LinkOptions>({
         appendTransaction: (transactions, oldState, newState) => {
           try {
             // ✅ Skip if it's a paste transaction
-            if (transactions.some((tr) => tr.getMeta('paste') || tr.getMeta('uiEvent') === 'paste')) {
+            if (transactions.some(tr => tr.getMeta('paste') || tr.getMeta('uiEvent') === 'paste')) {
               return null
             }
 
@@ -196,7 +198,8 @@ export const Link = TiptapLink.extend<LinkOptions>({
             }
 
             return null
-          } catch (e) {
+          }
+          catch (e) {
             console.error(e)
             return null
           }

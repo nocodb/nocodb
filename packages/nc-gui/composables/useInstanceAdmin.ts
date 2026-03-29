@@ -49,9 +49,11 @@ export const useInstanceAdmin = createSharedComposable(() => {
       })) as InstanceAdminStats
 
       stats.value = result
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -64,9 +66,11 @@ export const useInstanceAdmin = createSharedComposable(() => {
       })) as InstanceAdminWorkspace[]
 
       workspaces.value = result
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -79,9 +83,11 @@ export const useInstanceAdmin = createSharedComposable(() => {
       })) as InstanceAdminBase[]
 
       bases.value = result
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }

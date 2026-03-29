@@ -25,7 +25,7 @@ const activeMenu = ref<'local' | 'url' | 'webcam'>('local')
 
 const { clearFiles } = useUploadState()
 
-const selectMenu = (option: 'local' | 'url' | 'webcam') => {
+function selectMenu(option: 'local' | 'url' | 'webcam') {
   clearFiles()
   activeMenu.value = option
 }

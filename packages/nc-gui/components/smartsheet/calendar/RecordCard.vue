@@ -69,13 +69,13 @@ const rowColorInfo = computed(() => {
       }"
       class="w-1 min-h-6.5"
       :style="rowColorInfo.rowLeftBorderColor"
-    ></div>
+    />
 
     <div
       v-if="(position === 'leftRounded' || position === 'rounded') && resize"
       class="mt-0.7 w-2 h-7.1 -left-1 absolute resize"
       @mousedown.stop="emit('resizeStart', 'left', $event, record)"
-    ></div>
+    />
 
     <div class="overflow-hidden items-center justify-center gap-2 flex w-full">
       <span v-if="position === 'rightRounded' || position === 'none'" class="ml-2 mb-0.6"> .... </span>
@@ -108,7 +108,7 @@ const rowColorInfo = computed(() => {
       v-if="(position === 'rightRounded' || position === 'rounded') && resize"
       class="absolute mt-0.3 h-7.1 w-2 right-0 resize"
       @mousedown.stop="emit('resizeStart', 'right', $event, record)"
-    ></div>
+    />
   </div>
 </template>
 

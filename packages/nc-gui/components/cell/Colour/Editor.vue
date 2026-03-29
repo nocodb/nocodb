@@ -70,7 +70,7 @@ const { isOpen, tempColor, pickerKey, openColorPicker, onColorChange, save, clos
   disabled: readOnly,
 })
 
-const onTextInput = (e: Event) => {
+function onTextInput(e: Event) {
   const val = (e.target as HTMLInputElement).value.trim()
   if (!val) {
     emit('update:modelValue', null)
@@ -126,7 +126,7 @@ watch(isOpen, (open) => {
       @input="onTextInput"
       @keydown.stop
       @mousedown.stop
-    />
+    >
 
     <!-- Color Picker Dropdown -->
     <NcDropdown
@@ -135,7 +135,7 @@ watch(isOpen, (open) => {
       use-backdrop
       overlay-class-name="nc-colour-picker-dropdown !rounded-xl"
     >
-      <div class="sr-only w-5 h-5"></div>
+      <div class="sr-only w-5 h-5" />
       <template #overlay>
         <div>
           <GeneralAdvanceColorPicker
@@ -149,8 +149,12 @@ watch(isOpen, (open) => {
             @click.stop
             @mousedown.stop
           >
-            <NcButton type="secondary" size="small" @click="close"> {{ $t('general.cancel') }} </NcButton>
-            <NcButton type="primary" size="small" @click="save"> {{ $t('general.save') }} </NcButton>
+            <NcButton type="secondary" size="small" @click="close">
+              {{ $t('general.cancel') }}
+            </NcButton>
+            <NcButton type="primary" size="small" @click="save">
+              {{ $t('general.save') }}
+            </NcButton>
           </div>
         </div>
       </template>

@@ -1,5 +1,5 @@
-import type { InjectionKey, Ref } from 'vue'
 import type { AttachmentReqType, PublicAttachmentScope } from 'nocodb-sdk'
+import type { InjectionKey, Ref } from 'vue'
 
 export interface UploadState {
   isLoading: Ref<boolean>
@@ -16,13 +16,7 @@ export interface UploadState {
 
 export const UploadStateKey: InjectionKey<UploadState> = Symbol('upload-state')
 
-export const useProvideUploadState = (
-  onUpload: (files: File[]) => Promise<void>,
-  onUploadAttachments: (attachments: AttachmentReqType[]) => Promise<void>,
-  onClose: () => void,
-  path: string,
-  scope?: PublicAttachmentScope,
-) => {
+export function useProvideUploadState(onUpload: (files: File[]) => Promise<void>, onUploadAttachments: (attachments: AttachmentReqType[]) => Promise<void>, onClose: () => void, path: string, scope?: PublicAttachmentScope) {
   const isLoading = ref(false)
   const tempFiles = ref<File[]>([])
   const uploadPath = ref(path)
@@ -48,7 +42,8 @@ export const useProvideUploadState = (
       await onUpload(tempFiles.value)
       // Clear files after successful upload
       tempFiles.value = []
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -59,7 +54,8 @@ export const useProvideUploadState = (
     try {
       isLoading.value = true
       await onUploadAttachments(attachments)
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -86,7 +82,7 @@ export const useProvideUploadState = (
   return state
 }
 
-export const useUploadState = () => {
+export function useUploadState() {
   const state = inject(UploadStateKey)
 
   if (!state) {

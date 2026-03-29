@@ -159,22 +159,24 @@ const cancelBtnRef = ref<HTMLButtonElement>()
 
 const okBtnRef = ref<HTMLButtonElement>()
 
-const onClickCancel = () => {
+function onClickCancel() {
   vModel.value = false
   emits('clickCancel')
 }
 
 /** Watches for cancel button reference and sets focus if applicable */
 watch(cancelBtnRef, () => {
-  if (!showCancelBtn.value || !cancelBtnRef.value?.$el || props.focusBtn !== 'cancel') return
-  ;(cancelBtnRef.value?.$el as HTMLButtonElement)?.focus()
+  if (!showCancelBtn.value || !cancelBtnRef.value?.$el || props.focusBtn !== 'cancel') {
+    return
+  }(cancelBtnRef.value?.$el as HTMLButtonElement)?.focus()
   initialFocus.value = true
 })
 
 /** Watches for OK button reference and sets focus if applicable */
 watch(okBtnRef, () => {
-  if (!showOkBtn.value || !okBtnRef.value?.$el || props.focusBtn !== 'ok') return
-  ;(okBtnRef.value?.$el as HTMLButtonElement)?.focus()
+  if (!showOkBtn.value || !okBtnRef.value?.$el || props.focusBtn !== 'ok') {
+    return
+  }(okBtnRef.value?.$el as HTMLButtonElement)?.focus()
   initialFocus.value = true
 })
 
@@ -184,9 +186,9 @@ useSelectedCellKeydownListener(
     switch (e.key) {
       case 'Enter':
         if (
-          isActiveInputElementExist() ||
-          isActiveButtonOrLinkElementExist() ||
-          !document.activeElement?.closest('.nc-modal-confirm-wrapper')
+          isActiveInputElementExist()
+          || isActiveButtonOrLinkElementExist()
+          || !document.activeElement?.closest('.nc-modal-confirm-wrapper')
         ) {
           return
         }
@@ -202,7 +204,8 @@ useSelectedCellKeydownListener(
           // if focusBtn provided set first focus to the button on first tab
           if (props.focusBtn === 'cancel') {
             cancelBtnRef.value?.$el?.focus()
-          } else {
+          }
+          else {
             okBtnRef.value?.$el?.focus()
           }
         }
@@ -228,16 +231,20 @@ useSelectedCellKeydownListener(
         <div class="flex-1 flex flex-col gap-2">
           <div class="flex items-start gap-3">
             <div class="nc-modal-confirm-title" :class="titleClass">
-              <slot name="title">{{ title }}</slot>
+              <slot name="title">
+                {{ title }}
+              </slot>
             </div>
-            <slot name="headerAction"></slot>
+            <slot name="headerAction" />
           </div>
           <div v-if="content || $slots.content" class="nc-modal-confirm-content" :class="contentClass">
-            <slot name="content">{{ content }}</slot>
+            <slot name="content">
+              {{ content }}
+            </slot>
           </div>
         </div>
       </div>
-      <slot name="extraContent"></slot>
+      <slot name="extraContent" />
 
       <div class="flex flex-row w-full justify-end gap-2">
         <NcButton

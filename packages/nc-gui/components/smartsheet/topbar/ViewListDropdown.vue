@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { type TableType, type ViewType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
+import type { TableType, ViewType } from 'nocodb-sdk'
+import { viewTypeAlias, ViewTypes } from 'nocodb-sdk'
 
 const { $e } = useNuxtApp()
 
@@ -22,7 +23,7 @@ const { showEEFeatures, showUpgradeToUseMapView, showUpgradeToUseTimelineView } 
 const isOpen = ref<boolean>(false)
 
 const activeSource = computed(() => {
-  return base.value.sources?.find((s) => s.id === activeView.value?.source_id)
+  return base.value.sources?.find(s => s.id === activeView.value?.source_id)
 })
 
 const isSqlView = computed(() => (activeTable.value as TableType)?.type === 'view')
@@ -42,7 +43,7 @@ const isPgSource = computed(() => activeSource.value?.type === 'pg')
  * It checks if the view has a valid ID and then navigates to the selected view.
  * If the view is a form and it's already active, it performs a hard reload.
  */
-const handleNavigateToView = async (view: ViewType) => {
+async function handleNavigateToView(view: ViewType) {
   if (!view?.id) return
 
   await navigateToView({
@@ -67,7 +68,7 @@ const handleNavigateToView = async (view: ViewType) => {
  * It checks if the input string matches either the default view title (translated) or the view's title.
  * The matching is case-insensitive.
  */
-const filterOption = (input = '', view: ViewType) => {
+function filterOption(input = '', view: ViewType) {
   return view.title?.toLowerCase()?.includes(input.toLowerCase())
 }
 
@@ -130,7 +131,7 @@ async function onOpenModal({
 
 <template>
   <NcDropdown v-if="activeView" v-model:visible="isOpen" overlay-class-name="max-w-64">
-    <slot name="default" :is-open="isOpen"></slot>
+    <slot name="default" :is-open="isOpen" />
     <template #overlay>
       <LazyNcList
         v-model:open="isOpen"
@@ -190,7 +191,7 @@ async function onOpenModal({
                   </div>
                 </template>
 
-                <template #expandIcon> </template>
+                <template #expandIcon />
 
                 <a-menu-item @click.stop="onOpenModal({ type: ViewTypes.GRID })">
                   <div class="nc-viewlist-submenu-popup-item" data-testid="topbar-view-create-grid">
@@ -250,8 +251,8 @@ async function onOpenModal({
                     :disabled="!isPgSource"
                     data-testid="topbar-view-create-list"
                     @click="
-                      isPgSource &&
-                        showUpgradeToUseListView({
+                      isPgSource
+                        && showUpgradeToUseListView({
                           successCallback: () => onOpenModal({ type: ViewTypes.LIST }),
                         })
                     "

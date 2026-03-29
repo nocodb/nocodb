@@ -57,21 +57,23 @@ const { isMobileMode } = useGlobal()
 
 const mode = computed(() => props.mode || (isMobileMode.value ? 'simple' : 'full'))
 
-const changePage = ({ increase, set }: { increase?: boolean; set?: number }) => {
+function changePage({ increase, set }: { increase?: boolean, set?: number }) {
   if (set) {
     current.value = set
-  } else if (increase && current.value < totalPages.value) {
+  }
+  else if (increase && current.value < totalPages.value) {
     current.value = current.value + 1
-  } else if (current.value > 0) {
+  }
+  else if (current.value > 0) {
     current.value = current.value - 1
   }
 }
 
-const goToLastPage = () => {
+function goToLastPage() {
   current.value = totalPages.value
 }
 
-const goToFirstPage = () => {
+function goToFirstPage() {
   current.value = 1
 }
 
@@ -104,12 +106,12 @@ const pageSizeOptions = [
 const pageListRef = ref()
 const pageSizeRef = ref()
 
-const pageListDropdownVisibleChange = (value: boolean) => {
+function pageListDropdownVisibleChange(value: boolean) {
   if (!value && pageListRef.value) {
     pageListRef.value?.blur()
   }
 }
-const pageSizeDropdownVisibleChange = (value: boolean) => {
+function pageSizeDropdownVisibleChange(value: boolean) {
   if (!value && pageSizeRef.value) {
     pageSizeRef.value?.blur()
   }

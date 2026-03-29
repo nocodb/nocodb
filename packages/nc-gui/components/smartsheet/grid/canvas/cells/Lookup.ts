@@ -1,7 +1,7 @@
-import { RelationTypes, UITypes, getMetaWithCompositeKey, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
-import { getRelatedBaseId, getSingleMultiselectColOptions, getUserColOptions, renderAsCellLookupOrLtarValue } from '../utils/cell'
+import { getMetaWithCompositeKey, isLinksOrLTAR, isVirtualCol, RelationTypes, UITypes } from 'nocodb-sdk'
 import { renderSingleLineText } from '../utils/canvas'
+import { getRelatedBaseId, getSingleMultiselectColOptions, getUserColOptions, renderAsCellLookupOrLtarValue } from '../utils/cell'
 import { PlainCellRenderer } from './Plain'
 
 const renderOnly1Row = [UITypes.QrCode, UITypes.Barcode, UITypes.Attachment, UITypes.LinkToAnotherRecord, UITypes.Links]
@@ -63,15 +63,16 @@ export const LookupCellRenderer: CellRenderer = {
 
     if (!lookupColumn || lookupColumn?.uidt === UITypes.Button) return
 
-    y =
-      y +
-      (renderOnly1Row.includes(lookupColumn.uidt) && lookupColumn.uidt !== UITypes.Attachment
-        ? Math.floor(height / 2 - rowHeightInPx['1']! / 2)
-        : 0)
+    y
+      = y
+        + (renderOnly1Row.includes(lookupColumn.uidt) && lookupColumn.uidt !== UITypes.Attachment
+          ? Math.floor(height / 2 - rowHeightInPx['1']! / 2)
+          : 0)
 
     if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(lookupColumn.uidt)) {
       lookupColumn.extra = getSingleMultiselectColOptions(lookupColumn)
-    } else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(lookupColumn.uidt)) {
+    }
+    else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(lookupColumn.uidt)) {
       lookupColumn.extra = getUserColOptions(lookupColumn, props.baseUsers || [])
     }
 
@@ -79,9 +80,9 @@ export const LookupCellRenderer: CellRenderer = {
       const relatedColType = (relatedColObj.colOptions as LinkToAnotherRecordType)?.type
 
       if (
-        lookupColumn.uidt === UITypes.Checkbox &&
-        relatedColType &&
-        [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relatedColType as RelationTypes)
+        lookupColumn.uidt === UITypes.Checkbox
+        && relatedColType
+        && [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relatedColType as RelationTypes)
       ) {
         const hasLink = !!(row && relatedColObj?.title && row[relatedColObj.title])
 
@@ -98,8 +99,8 @@ export const LookupCellRenderer: CellRenderer = {
         }
 
         if (
-          ncIsArray(value) &&
-          value.every((v) => {
+          ncIsArray(value)
+          && value.every((v) => {
             if (ncIsNull(v)) return true
 
             if (ncIsArray(v)) {
@@ -110,7 +111,7 @@ export const LookupCellRenderer: CellRenderer = {
           })
         ) {
           return value
-            .filter((v) => v !== null)
+            .filter(v => v !== null)
             .reduce((acc, v) => {
               acc.push(...v)
 
@@ -120,7 +121,7 @@ export const LookupCellRenderer: CellRenderer = {
       }
 
       if (ncIsArray(value)) {
-        return value.filter((v) => v !== null)
+        return value.filter(v => v !== null)
       }
 
       return [value]
@@ -220,7 +221,8 @@ export const LookupCellRenderer: CellRenderer = {
           if (point?.x) {
             x = point?.x
           }
-        } else if (point?.x) {
+        }
+        else if (point?.x) {
           if (point?.x >= _x + _width - padding * 2 - (count < arrValue.length ? 50 - ellipsisWidth : 0)) {
             if (line + 1 > maxLines || renderOnly1Row.includes(lookupColumn.uidt)) {
               flag = true
@@ -231,11 +233,13 @@ export const LookupCellRenderer: CellRenderer = {
             width = _width - ellipsisWidth
             y = point?.y && y !== point?.y && point?.y - y >= 24 ? point?.y : y + 24
             line += 1
-          } else {
+          }
+          else {
             width = x + width - (point?.x - 2 * 4) - padding * 2 - ellipsisWidth
             x = point?.x
           }
-        } else {
+        }
+        else {
           if (line + 1 > maxLines || renderOnly1Row.includes(lookupColumn.uidt)) {
             break
           }
@@ -261,14 +265,16 @@ export const LookupCellRenderer: CellRenderer = {
           if (point?.x) {
             x = point?.x
           }
-        } else if (point?.x && !point?.nextLine) {
+        }
+        else if (point?.x && !point?.nextLine) {
           if (point?.x >= _x + _width - padding * 4 - (line + 1 > maxLines && count < arrValue.length ? 50 - ellipsisWidth : 0)) {
             if (line + 1 > maxLines || renderOnly1Row.includes(lookupColumn.uidt)) {
               flag = true
 
               if (point?.x) {
                 x = point?.x + padding
-              } else {
+              }
+              else {
                 x = _x + _width - padding - ellipsisWidth
               }
 
@@ -279,11 +285,13 @@ export const LookupCellRenderer: CellRenderer = {
             width = _width - ellipsisWidth
             y = point?.y && y !== point?.y && point?.y - y >= 24 ? point?.y : y + 24
             line += 1
-          } else {
+          }
+          else {
             width = _x + _width - (point?.x - 2 * 4) - padding * 2
             x = point?.x
           }
-        } else {
+        }
+        else {
           if (line + 1 > maxLines || renderOnly1Row.includes(lookupColumn.uidt)) {
             if (!point?.nextLine) {
               flag = true
@@ -312,24 +320,27 @@ export const LookupCellRenderer: CellRenderer = {
 
     if (isVirtualCol(lookupColumn) && ![UITypes.Rollup, UITypes.Formula].includes(lookupColumn.uidt)) {
       if (
-        lookupColumn.uidt !== UITypes.LinkToAnotherRecord ||
-        (lookupColumn.uidt === UITypes.LinkToAnotherRecord &&
-          [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions?.type))
+        lookupColumn.uidt !== UITypes.LinkToAnotherRecord
+        || (lookupColumn.uidt === UITypes.LinkToAnotherRecord
+          && [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions?.type))
       ) {
         handleRenderVirtualCol()
-      } else {
+      }
+      else {
         lookupRenderer({
           ...renderProps,
           tag: { ...renderProps.tag, renderAsTag: false },
         })
       }
-    } else {
+    }
+    else {
       if (isAttachment(lookupColumn) && ncIsObject(arrValue[0])) {
         renderCell(ctx, lookupColumn, {
           ...renderProps,
           tag: { ...renderProps.tag, renderAsTag: false },
         })
-      } else {
+      }
+      else {
         handleRenderDefault()
       }
     }

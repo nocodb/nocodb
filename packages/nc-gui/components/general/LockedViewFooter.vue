@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { ViewLockType, type ViewType } from 'nocodb-sdk'
+import type { ViewType } from 'nocodb-sdk'
+import { ViewLockType } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -21,7 +22,7 @@ const { activeView } = storeToRefs(useViewsStore())
 
 const view = computed(() => props.view || activeView.value)
 
-const handleUnlockView = () => {
+function handleUnlockView() {
   emits('onOpen')
   const isOpen = ref(true)
 

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
-import { isSystemColumn } from 'nocodb-sdk'
 import { NavigateDir } from '#imports'
+import { isSystemColumn } from 'nocodb-sdk'
 
 interface Props {
   column: ColumnType
@@ -87,7 +87,7 @@ const sqlUi = computed(() => baseStore.getSqlUiBySourceId(meta.value?.source_id 
 
 const abstractType = computed(() => column.value && sqlUi.value?.getAbstractType(column.value))
 
-const emitSave = () => {
+function emitSave() {
   emit('save', [currentRow.value, column.value.title, state.value, undefined, undefined, path.value])
 }
 
@@ -122,11 +122,12 @@ watch(editEnabled, (newVal, oldVal) => {
 
 let saveTimer: number
 
-const updateWhenEditCompleted = () => {
+function updateWhenEditCompleted() {
   if (editEnabled.value) {
     if (saveTimer) clearTimeout(saveTimer)
     saveTimer = window.setTimeout(updateWhenEditCompleted, 500)
-  } else {
+  }
+  else {
     emitSave()
   }
 }
@@ -138,7 +139,8 @@ const vModel = computed({
   set: (val) => {
     if (isEditColumnMenu.value) {
       emit('update:cdf', val)
-    } else if (val !== props.modelValue) {
+    }
+    else if (val !== props.modelValue) {
       currentRow.value.rowMeta.changed = true
 
       // Clear error on value change
@@ -151,28 +153,31 @@ const vModel = computed({
       // For Date/DateTime cells, directly update the row data so it's in sync
       // even if the parent can't process the emit (e.g. during canvas unmount when editEnabled is null)
       if (
-        (isDate(column.value, abstractType.value) || isDateTime(column.value, abstractType.value)) &&
-        currentRow.value.row &&
-        column.value.title
+        (isDate(column.value, abstractType.value) || isDateTime(column.value, abstractType.value))
+        && currentRow.value.row
+        && column.value.title
       ) {
         currentRow.value.row[column.value.title] = val
       }
 
       if (column.value.pk || column.value.unique) {
         updateWhenEditCompleted()
-      } else if (isAutoSaved(column.value) && isRlsEnabled.value) {
+      }
+      else if (isAutoSaved(column.value) && isRlsEnabled.value) {
         // RLS enabled: skip debounced auto-save to prevent row disappearing mid-edit.
         // Save will happen on blur (editEnabled watcher) or cell unmount (canvas).
-      } else if (isAutoSaved(column.value)) {
+      }
+      else if (isAutoSaved(column.value)) {
         syncValue()
-      } else if (!isManualSaved(column.value)) {
+      }
+      else if (!isManualSaved(column.value)) {
         emitSave()
       }
     }
   },
 })
 
-const navigate = (dir: NavigateDir, e: KeyboardEvent) => {
+function navigate(dir: NavigateDir, e: KeyboardEvent) {
   if (isJSON(column.value)) return
 
   if (currentRow.value.rowMeta.changed || currentRow.value.rowMeta.new) {
@@ -190,7 +195,7 @@ const isNumericField = computed(() => {
 // disable contexxtmenu event propagation when cell is in
 // editable state and typable (e.g. text area)
 // this is to prevent the custom grid view context menu from opening
-const onContextmenu = (e: MouseEvent) => {
+function onContextmenu(e: MouseEvent) {
   if (props.editEnabled && isTypableInputColumn(column.value)) {
     e.stopPropagation()
   }
@@ -203,7 +208,7 @@ const showCurrentDateOption = computed(() => {
   return sqlUi.value?.getCurrentDateDefault?.(column.value) ? true : 'disabled'
 })
 
-const currentDate = () => {
+function currentDate() {
   vModel.value = sqlUi.value?.getCurrentDateDefault?.(column.value)
 }
 
@@ -261,8 +266,8 @@ const showReadonlyField = computed(() => {
       if (isUnderLookup.value && !isLinkRecordDropdown.value) return true
 
       return !(
-        (!readOnly.value && editEnabled.value) ||
-        (isExpandedFormOpen.value && (localEditEnabled.value || parseProp(column.value?.meta).is_progress))
+        (!readOnly.value && editEnabled.value)
+        || (isExpandedFormOpen.value && (localEditEnabled.value || parseProp(column.value?.meta).is_progress))
       )
     }
 
@@ -300,14 +305,14 @@ const showLockedOverlay = computed(() => {
    * else overlay will cover area of rendered cell and actual value will not be visible
    */
   return (
-    !isUnderLookup.value &&
-    !isUnderLTAR.value &&
-    ((isPublic.value && readOnly.value && !isForm.value) || isSystemColumn(column.value)) &&
-    cellType.value !== 'attachment' &&
-    cellType.value !== 'textarea' &&
-    cellType.value !== 'ai' &&
-    cellType.value !== 'json' &&
-    cellType.value !== 'geoData'
+    !isUnderLookup.value
+    && !isUnderLTAR.value
+    && ((isPublic.value && readOnly.value && !isForm.value) || isSystemColumn(column.value))
+    && cellType.value !== 'attachment'
+    && cellType.value !== 'textarea'
+    && cellType.value !== 'ai'
+    && cellType.value !== 'json'
+    && cellType.value !== 'geoData'
   )
 })
 
@@ -319,24 +324,24 @@ const cellClassName = computed(() => {
   }
 
   if (
-    isGrid.value &&
-    isNumericField.value &&
-    !isEditColumnMenu.value &&
-    !isForm.value &&
-    !isExpandedFormOpen.value &&
-    cellType.value !== 'rating' &&
-    cellType.value !== 'yearPicker'
+    isGrid.value
+    && isNumericField.value
+    && !isEditColumnMenu.value
+    && !isForm.value
+    && !isExpandedFormOpen.value
+    && cellType.value !== 'rating'
+    && cellType.value !== 'yearPicker'
   ) {
     className += ' nc-grid-numeric-cell-right'
   }
 
   if (
-    !isEditColumnMenu.value &&
-    isForm.value &&
-    !props.virtual &&
-    cellType.value !== 'attachment' &&
-    cellType.value !== 'textarea' &&
-    cellType.value !== 'ai'
+    !isEditColumnMenu.value
+    && isForm.value
+    && !props.virtual
+    && cellType.value !== 'attachment'
+    && cellType.value !== 'textarea'
+    && cellType.value !== 'ai'
   ) {
     className += ' h-10'
   }
@@ -369,7 +374,9 @@ const cellClassName = computed(() => {
       <div v-if="isGenerating" class="nc-cell-field flex items-center gap-2 w-full">
         <GeneralLoader />
         <NcTooltip class="truncate max-w-[calc(100%_-_24px)]" show-on-truncate-only>
-          <template #title> {{ $t('general.generating') }} </template>
+          <template #title>
+            {{ $t('general.generating') }}
+          </template>
           {{ $t('general.generating') }}
         </NcTooltip>
       </div>

@@ -1,7 +1,7 @@
 import type { Api } from 'nocodb-sdk'
-import { NcErrorType } from 'nocodb-sdk'
 import type { UseGlobalReturn } from '../composables/useGlobal/types'
 import type { Actions } from '~/composables/useGlobal/types'
+import { NcErrorType } from 'nocodb-sdk'
 
 /** Strip continueAfterSignIn param from a path to prevent recursive nesting */
 function stripContinueParam(fullPath: string) {
@@ -64,15 +64,15 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   if (to.params.typeOrId === 'base') return
 
   /** In history mode, root URLs with payment query params (e.g. /?upgrade=true) are meaningful routes that should be preserved */
-  const hasPaymentRedirectParams =
-    to.query.upgrade || to.query.pricing || to.query.afterPayment || to.query.afterManage || to.query.afterUpgrade
+  const hasPaymentRedirectParams
+    = to.query.upgrade || to.query.pricing || to.query.afterPayment || to.query.afterManage || to.query.afterUpgrade
 
   /** if auth is required or unspecified (same `as required) and user is not signed in, redirect to signin page */
   if ((to.meta.requiresAuth || typeof to.meta.requiresAuth === 'undefined') && !state.signedIn.value) {
     /** If this is the first usern navigate to signup page directly */
     if (state.appInfo.value.firstUser) {
-      const continuePath =
-        to.fullPath !== '/' && (to.fullPath.match(/^\/(?!\?)/) || hasPaymentRedirectParams)
+      const continuePath
+        = to.fullPath !== '/' && (to.fullPath.match(/^\/(?!\?)/) || hasPaymentRedirectParams)
           ? stripContinueParam(to.fullPath)
           : undefined
       const query = continuePath ? { continueAfterSignIn: continuePath } : {}
@@ -89,14 +89,15 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     try {
       /** try generating access token using refresh token */
       await state.refreshToken({})
-    } catch (e) {
+    }
+    catch (e) {
       console.info('Refresh token failed', (e as Error)?.message)
     }
 
     /** if user is still not signed in, redirect to signin page */
     if (!state.signedIn.value) {
-      const signinContinuePath =
-        to.fullPath !== '/' && (to.fullPath.match(/^\/(?!\?)/) || hasPaymentRedirectParams)
+      const signinContinuePath
+        = to.fullPath !== '/' && (to.fullPath.match(/^\/(?!\?)/) || hasPaymentRedirectParams)
           ? stripContinueParam(to.fullPath)
           : undefined
       if (signinContinuePath) {
@@ -107,7 +108,8 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
         query: signinContinuePath ? { continueAfterSignIn: signinContinuePath } : {},
       })
     }
-  } else if (to.meta.requiresAuth === false && state.signedIn.value) {
+  }
+  else if (to.meta.requiresAuth === false && state.signedIn.value) {
     if (to.query?.logout) {
       await state.signOut({ redirectToSignin: true })
     }
@@ -120,13 +122,15 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
      */
     if (from.meta.requiresAuth === false) {
       return navigateTo('/')
-    } else {
+    }
+    else {
       return navigateTo(from.path)
     }
-  } else {
+  }
+  else {
     /** If page is limited to certain users verify the user have the roles */
-    if (to.meta.allowedRoles && to.meta.allowedRoles.every((role) => !allRoles.value?.[role])) {
-      message.error("You don't have enough permission to access the page.")
+    if (to.meta.allowedRoles && to.meta.allowedRoles.every(role => !allRoles.value?.[role])) {
+      message.error('You don\'t have enough permission to access the page.')
       return navigateTo('/')
     }
 
@@ -135,7 +139,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       await loadRoles()
 
       if (state.user.value?.roles?.guest) {
-        message.error("You don't have enough permission to access the base.")
+        message.error('You don\'t have enough permission to access the base.')
 
         return navigateTo('/')
       }
@@ -153,7 +157,8 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
       let authProvider = 'google'
       if (window.location.search.includes('state=github')) {
         authProvider = 'github'
-      } else if (window.location.search.includes('state=oidc')) {
+      }
+      else if (window.location.search.includes('state=oidc')) {
         authProvider = 'oidc'
       }
 
@@ -166,7 +171,8 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
       extraProps = extra || {}
 
       signIn(token)
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
 
@@ -209,7 +215,8 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn'], state
       if (state.lastUsedAuthMethod) state.lastUsedAuthMethod.value = 'sso'
 
       signIn(token)
-    } catch (e: any) {
+    }
+    catch (e: any) {
       if (e?.response?.data?.error === NcErrorType.ERR_MAX_WORKSPACE_LIMIT_REACHED) {
         // Store error information in global state
         setError({
@@ -239,7 +246,8 @@ async function checkForRedirect() {
     let url
     try {
       url = new URLSearchParams(window.location.search).get('ui-redirect')
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const { header, field, toggleSort } = defineProps<{
   header: string
-  activeSort: { field?: string; direction?: string }
+  activeSort: { field?: string, direction?: string }
   field: UsersSortType['field']
   toggleSort: Function
 }>()

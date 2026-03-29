@@ -46,7 +46,7 @@ const isSaveChangesBtnEnabled = computed(() => {
   return !!(form.title && form.title !== currentWorkspace.value?.title)
 })
 
-const saveChanges = async () => {
+async function saveChanges() {
   if (!currentWorkspace.value || !currentWorkspace.value.id || isWorkspaceUpdating.value) return
 
   const valid = await formValidator.value.validate()
@@ -62,14 +62,16 @@ const saveChanges = async () => {
   try {
     await updateWorkspace(currentWorkspace.value.id, { title: form.title })
     refreshCommandPalette()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     isWorkspaceUpdating.value = false
   }
 }
 
-const onCancel = () => {
+function onCancel() {
   if (currentWorkspace.value?.title) form.title = currentWorkspace.value.title
 }
 
@@ -88,7 +90,8 @@ watch(
       if (!currentWorkspace.value) return
 
       isErrored.value = !(await formValidator.value.validate())
-    } catch {
+    }
+    catch {
       isErrored.value = true
     }
   },
@@ -108,7 +111,9 @@ watch(
         <div class="nc-settings-item-card flex flex-col w-full p-4 md:p-6">
           <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="saveChanges">
             <div class="flex-1">
-              <div class="text-sm text-nc-content-gray-subtle2">{{ $t('general.name') }}</div>
+              <div class="text-sm text-nc-content-gray-subtle2">
+                {{ $t('general.name') }}
+              </div>
               <a-form-item name="title" :rules="formRules.title" class="!mt-2 !mb-0">
                 <a-input
                   v-model:value="form.title"
@@ -138,7 +143,9 @@ watch(
                 :disabled="isErrored || !isSaveChangesBtnEnabled || isWorkspaceUpdating"
                 :loading="isWorkspaceUpdating"
               >
-                <template #loading> {{ $t('general.saving') }} </template>
+                <template #loading>
+                  {{ $t('general.saving') }}
+                </template>
                 {{ $t('general.save') }}
               </NcButton>
             </div>

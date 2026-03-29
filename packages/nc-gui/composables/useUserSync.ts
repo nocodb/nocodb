@@ -30,7 +30,8 @@ export const useUserSync = createSharedComposable(() => {
         return url.origin
       }
       return null
-    } catch (error) {
+    }
+    catch (error) {
       return null
     }
   }
@@ -57,7 +58,8 @@ export const useUserSync = createSharedComposable(() => {
           },
           targetOrigin,
         )
-      } catch (error) {
+      }
+      catch (error) {
         console.warn('Failed to send user data to iframe:', error)
       }
     })
@@ -70,7 +72,8 @@ export const useUserSync = createSharedComposable(() => {
         currentUser.value = event.data.user
       }
     })
-  } else {
+  }
+  else {
     // PARENT MODE: Set currentUser to user
     currentUser.value = user.value
     watch(

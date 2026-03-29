@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { useVirtualList } from '@vueuse/core'
 import type { NcListProps } from '#imports'
+import { useVirtualList } from '@vueuse/core'
 
 interface Emits {
   (e: 'update:value', value: RawValueType): void
@@ -80,10 +80,10 @@ const showHoverEffectOnSelectedOption = ref(true)
 
 const isSearchEnabled = computed(
   () =>
-    props.showSearchAlways ||
-    slots.headerExtraLeft ||
-    slots.headerExtraRight ||
-    (props.list?.length ?? 0) > props.minItemsForSearch,
+    props.showSearchAlways
+    || slots.headerExtraLeft
+    || slots.headerExtraRight
+    || (props.list?.length ?? 0) > props.minItemsForSearch,
 )
 
 const keyDown = ref(false)
@@ -114,7 +114,7 @@ const listGroups = computed(() => {
  *
  * @returns {boolean} - True if the item matches the search query, false otherwise
  */
-const defaultFilter = (item: NcListItemType, i: number, _array: NcListItemType[], query: string) => {
+function defaultFilter(item: NcListItemType, i: number, _array: NcListItemType[], query: string) {
   if (props?.filterOption) {
     return props.filterOption(query, item, i)
   }
@@ -122,7 +122,7 @@ const defaultFilter = (item: NcListItemType, i: number, _array: NcListItemType[]
   return searchCompare(item[optionLabelKey], query)
 }
 
-const applyFilterOnList = (listToFilter: NcListItemType[], query: string) => {
+function applyFilterOnList(listToFilter: NcListItemType[], query: string) {
   return listToFilter.filter((item, i, array) => {
     // Step 1: apply default filter
     if (defaultFilter(item, i, array, query)) return true
@@ -167,7 +167,7 @@ const list = computed(() => {
   const filteredList = applyFilterOnList(props.list ?? [], query)
 
   const listWithGroups = listGroups.value.reduce((acc, group) => {
-    const groupList = filteredList.filter((item) => item.ncGroupHeaderLabel === group)
+    const groupList = filteredList.filter(item => item.ncGroupHeaderLabel === group)
 
     // If group list is empty, then don't add that group label item in the list
     if (!groupList.length) return acc
@@ -190,7 +190,7 @@ const list = computed(() => {
 })
 
 const listWithoutGroupHeaders = computed(() => {
-  return list.value.filter((item) => !item.ncGroupHeader)
+  return list.value.filter(item => !item.ncGroupHeader)
 })
 
 const {
@@ -211,11 +211,11 @@ const {
 const revisedWrapperProps = computed(() => {
   const virtualListHeight = virtualList.value.length * (itemHeight.value + 2)
 
-  const groupHeaders = virtualList.value.filter((item) => item.data.ncGroupHeader)
+  const groupHeaders = virtualList.value.filter(item => item.data.ncGroupHeader)
 
   const groupHeaderHeight = groupHeaders.length * (props.groupHeaderHeight + 2)
 
-  const totalHeight = parseFloat(virtualListHeight.toString()) - groupHeaders.length * (itemHeight.value + 2) + groupHeaderHeight
+  const totalHeight = Number.parseFloat(virtualListHeight.toString()) - groupHeaders.length * (itemHeight.value + 2) + groupHeaderHeight
 
   return {
     ...(wrapperProps.value || {}),
@@ -248,7 +248,7 @@ function compareVModel(value: string | number, isGroupHeader = false): boolean {
  * Resets the hover effect on the selected option
  * @param clearActiveOption - Whether to clear the active option index
  */
-const handleResetHoverEffect = (clearActiveOption = false, newActiveIndex?: number) => {
+function handleResetHoverEffect(clearActiveOption = false, newActiveIndex?: number) {
   if ((clearActiveOption && keyDown.value) || (clearActiveOption && activeOptionIndex.value === newActiveIndex)) {
     return
   }
@@ -274,7 +274,7 @@ const handleResetHoverEffect = (clearActiveOption = false, newActiveIndex?: numb
  * This function is responsible for handling the selection of an option from the list.
  * It updates the model value, emits a change event, and optionally closes the dropdown.
  */
-const handleSelectOption = (option: NcListItemType, index?: number, e?: MouseEvent) => {
+function handleSelectOption(option: NcListItemType, index?: number, e?: MouseEvent) {
   if (e && props.stopPropagationOnItemClick) {
     e.stopPropagation()
   }
@@ -287,11 +287,13 @@ const handleSelectOption = (option: NcListItemType, index?: number, e?: MouseEve
 
   if (props.isMultiSelect) {
     if ((vModel.value as MultiSelectRawValueType).includes(option?.[optionValueKey])) {
-      vModel.value = (vModel.value as MultiSelectRawValueType).filter((op) => op !== option?.[optionValueKey])
-    } else {
+      vModel.value = (vModel.value as MultiSelectRawValueType).filter(op => op !== option?.[optionValueKey])
+    }
+    else {
       vModel.value = [...(vModel.value as MultiSelectRawValueType), option?.[optionValueKey]]
     }
-  } else {
+  }
+  else {
     vModel.value = option[optionValueKey] as RawValueType
   }
 
@@ -304,7 +306,7 @@ const handleSelectOption = (option: NcListItemType, index?: number, e?: MouseEve
 /**
  * Automatically scrolls to the active option in the list
  */
-const handleAutoScrollOption = (useDelay = false) => {
+function handleAutoScrollOption(useDelay = false) {
   if (activeOptionIndex.value === -1) return
 
   if (!useDelay) {
@@ -330,14 +332,15 @@ const handleAutoScrollOption = (useDelay = false) => {
  * Increment - false
  * - If current option is the first option, then return the last enabled option index
  */
-const getNextEnabledOptionIndex = (currentIndex: number, increment = true) => {
+function getNextEnabledOptionIndex(currentIndex: number, increment = true) {
   const listLength = list.value.length
 
   let nextIndex = -1
 
   if (increment) {
     nextIndex = currentIndex === listLength - 1 ? 0 : currentIndex + 1
-  } else {
+  }
+  else {
     nextIndex = currentIndex === 0 ? listLength - 1 : currentIndex - 1
   }
 
@@ -348,7 +351,7 @@ const getNextEnabledOptionIndex = (currentIndex: number, increment = true) => {
   return nextIndex
 }
 
-const onArrowDown = () => {
+function onArrowDown() {
   keyDown.value = true
   handleResetHoverEffect()
 
@@ -360,7 +363,7 @@ const onArrowDown = () => {
   })
 }
 
-const onArrowUp = () => {
+function onArrowUp() {
   keyDown.value = true
   handleResetHoverEffect()
 
@@ -372,13 +375,14 @@ const onArrowUp = () => {
   })
 }
 
-const handleKeydownEnter = (event: KeyboardEvent) => {
+function handleKeydownEnter(event: KeyboardEvent) {
   event.preventDefault()
   event.stopPropagation()
 
   if (list.value[activeOptionIndex.value]) {
     handleSelectOption(list.value[activeOptionIndex.value])
-  } else if (list.value[0]) {
+  }
+  else if (list.value[0]) {
     handleSelectOption(list.value[activeOptionIndex.value])
   }
 }
@@ -386,7 +390,7 @@ const handleKeydownEnter = (event: KeyboardEvent) => {
 /**
  * Focuses the input box when the list is opened
  */
-const focusInputBox = () => {
+function focusInputBox() {
   if (!vOpen.value) return
 
   setTimeout(() => {
@@ -401,7 +405,7 @@ const focusInputBox = () => {
  * It sets a timeout to focus the list wrapper element after a short delay.
  * This allows for proper rendering and improves accessibility.
  */
-const focusListWrapper = () => {
+function focusListWrapper() {
   if (!vOpen.value || isSearchEnabled.value) return
 
   setTimeout(() => {
@@ -418,23 +422,26 @@ watch(
 
     if (props.isMultiSelect) {
       showHoverEffectOnSelectedOption.value = false
-    } else {
+    }
+    else {
       showHoverEffectOnSelectedOption.value = true
     }
 
     if (vModel.value && !props.isMultiSelect) {
-      activeOptionIndex.value = list.value.findIndex((o) => compareVModel(o?.[optionValueKey], o?.ncGroupHeader))
+      activeOptionIndex.value = list.value.findIndex(o => compareVModel(o?.[optionValueKey], o?.ncGroupHeader))
 
       nextTick(() => {
         handleAutoScrollOption(true)
       })
-    } else {
+    }
+    else {
       activeOptionIndex.value = -1
     }
 
     if (isSearchEnabled.value && focusSearchOnOpen) {
       focusInputBox()
-    } else {
+    }
+    else {
       focusListWrapper()
     }
   },
@@ -455,11 +462,11 @@ defineExpose({
   list: listWithoutGroupHeaders,
 })
 
-const handleEscape = (event: KeyboardEvent) => {
+function handleEscape(event: KeyboardEvent) {
   emits('escape', event)
 }
 
-const handleResetHoverEffectOnMouseLeave = () => {
+function handleResetHoverEffectOnMouseLeave() {
   if (!props.resetHoverEffectOnMouseLeave) return
 
   handleResetHoverEffect(true, -1)
@@ -490,7 +497,7 @@ const handleResetHoverEffectOnMouseLeave = () => {
         }"
         @click.stop
       >
-        <slot name="headerExtraLeft"> </slot>
+        <slot name="headerExtraLeft" />
         <a-input
           ref="inputRef"
           v-model:value="searchQuery"
@@ -503,14 +510,16 @@ const handleResetHoverEffectOnMouseLeave = () => {
           @keydown.enter.stop="handleKeydownEnter"
           @change="handleResetHoverEffect(false, 0)"
         >
-          <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template>
+          <template #prefix>
+            <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" />
+          </template>
         </a-input>
-        <slot name="headerExtraRight"> </slot>
+        <slot name="headerExtraRight" />
       </div>
       <NcDivider v-if="!hideTopDivider" class="!my-1" />
     </template>
 
-    <slot name="listHeader"></slot>
+    <slot name="listHeader" />
     <div
       class="nc-list-wrapper"
       :class="[
@@ -589,7 +598,7 @@ const handleResetHoverEffectOnMouseLeave = () => {
         </slot>
       </template>
     </div>
-    <slot name="listFooter"></slot>
+    <slot name="listFooter" />
   </div>
 </template>
 

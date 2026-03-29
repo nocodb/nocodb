@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { PlanFeatureTypes } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
+import { PlanFeatureTypes } from 'nocodb-sdk'
 
 const { openedViewsTab } = storeToRefs(useViewsStore())
 const { onViewsTabChange } = useViewsStore()
@@ -13,8 +13,8 @@ const { $e } = useNuxtApp()
 
 const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
-const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions, isEEFeatureBlocked, showEEFeatures } =
-  useEeConfig()
+const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions, isEEFeatureBlocked, showEEFeatures }
+  = useEeConfig()
 
 const { base } = storeToRefs(useBase())
 const meta = inject(MetaInj, ref())
@@ -56,14 +56,14 @@ watch(
     // Re-enable this check for first render
 
     const fieldTabCondition = openedSubTab.value !== 'field' || shouldShowTab.value.field
-    const permissionsTabCondition =
-      openedSubTab.value !== 'permissions' || (shouldShowTab.value.permissions && !blockTableAndFieldPermissions.value)
+    const permissionsTabCondition
+      = openedSubTab.value !== 'permissions' || (shouldShowTab.value.permissions && !blockTableAndFieldPermissions.value)
     const webhookTabCondition = openedSubTab.value !== 'webhook' || shouldShowTab.value.webhook
 
     if (
       // check page access only after base roles are loaded
-      isBaseRolesLoaded.value &&
-      (!fieldTabCondition || !webhookTabCondition || !permissionsTabCondition)
+      isBaseRolesLoaded.value
+      && (!fieldTabCondition || !webhookTabCondition || !permissionsTabCondition)
     ) {
       onViewsTabChange('relation')
     }

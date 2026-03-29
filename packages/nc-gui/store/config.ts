@@ -1,6 +1,7 @@
-import { acceptHMRUpdate, defineStore } from 'pinia'
+import type { NcBreakpoint } from '~/lib/constants'
 import { useBreakpoints } from '@vueuse/core'
-import { NC_BREAKPOINTS, type NcBreakpoint } from '~/lib/constants'
+import { acceptHMRUpdate, defineStore } from 'pinia'
+import { NC_BREAKPOINTS } from '~/lib/constants'
 
 export const useConfigStore = defineStore('configStore', () => {
   const router = useRouter()
@@ -40,9 +41,11 @@ export const useConfigStore = defineStore('configStore', () => {
       document.body.classList.remove('mobile', 'tablet', 'desktop')
       if (bp === 'xs') {
         document.body.classList.add('mobile')
-      } else if (bp === 'sm') {
+      }
+      else if (bp === 'sm') {
         document.body.classList.add('tablet')
-      } else {
+      }
+      else {
         document.body.classList.add('desktop')
       }
     },

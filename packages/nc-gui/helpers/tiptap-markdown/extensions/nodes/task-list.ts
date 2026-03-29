@@ -1,6 +1,6 @@
-import taskListPlugin from 'markdown-it-task-lists'
-import { Node } from '@tiptap/core'
 import type { MarkdownNodeSpec } from '../../types'
+import { Node } from '@tiptap/core'
+import taskListPlugin from 'markdown-it-task-lists'
 import { BulletList } from './bullet-list'
 
 // TODO: Extend from tiptap extension
@@ -15,8 +15,8 @@ export const TaskList = Node.create<any, { markdown: MarkdownNodeSpec }>({
           const previousNode = parent && index > 0 ? parent.child(index - 1) : null
 
           // Check if the previous node is a different type of list
-          const isDifferentListType =
-            previousNode && previousNode.type.name !== node.type.name && previousNode.type.name === 'bulletList'
+          const isDifferentListType
+            = previousNode && previousNode.type.name !== node.type.name && previousNode.type.name === 'bulletList'
           // Add ` <br>\n\n ` if transitioning from a different list type
           if (isDifferentListType) {
             state.write('<br>\n\n ')

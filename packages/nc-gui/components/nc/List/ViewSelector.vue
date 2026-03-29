@@ -37,7 +37,7 @@ const modelValue = useVModel(props, 'value', emit)
 
 const isOpenViewSelectDropdown = ref(false)
 
-const handleValueUpdate = (value: any) => {
+function handleValueUpdate(value: any) {
   const stringValue = String(value)
   modelValue.value = stringValue
 }
@@ -58,7 +58,8 @@ const viewList = computedAsync(async () => {
       ignoreLoading: props.ignoreLoading,
       force: props.forceFetchViews,
     })
-  } catch (e) {
+  }
+  catch (e) {
     console.error(e)
     return []
   }
@@ -88,7 +89,7 @@ const viewList = computedAsync(async () => {
 const viewListMap = computed(() => {
   if (!viewList.value || viewList.value.length === 0) return new Map()
 
-  return new Map(viewList.value.map((view) => [view.value, view]))
+  return new Map(viewList.value.map(view => [view.value, view]))
 })
 
 const selectedView = computed(() => {
@@ -103,7 +104,7 @@ watch(
   viewList,
   (newViewList) => {
     if (newViewList && newViewList.length > 0) {
-      const newViewListMap = new Map(newViewList.map((view) => [view.value, view]))
+      const newViewListMap = new Map(newViewList.map(view => [view.value, view]))
 
       // Check if current value exists in the new view list
       if (modelValue.value && !newViewListMap.has(modelValue.value)) {
@@ -120,9 +121,10 @@ watch(
 
         // Change view id only if it is default view selected initially and its not enabled
         if (viewObj && viewObj.ncItemDisabled && viewObj.value === newViewList[0]?.value) {
-          const selectedValue = newViewList.find((view) => !view.ncItemDisabled)?.value || newViewList[0]?.value
+          const selectedValue = newViewList.find(view => !view.ncItemDisabled)?.value || newViewList[0]?.value
           modelValue.value = selectedValue
-        } else {
+        }
+        else {
           modelValue.value = newViewId
         }
       }
@@ -152,7 +154,9 @@ defineExpose({
   >
     <template v-if="!disableLabel" #label>
       <div>
-        <slot name="label">{{ t('objects.view') }}</slot>
+        <slot name="label">
+          {{ t('objects.view') }}
+        </slot>
       </div>
     </template>
     <NcListDropdown v-model:is-open="isOpenViewSelectDropdown" :disabled="disabled" :has-error="!!selectedView?.ncItemDisabled">

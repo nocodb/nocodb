@@ -44,7 +44,7 @@ const renameTitle = ref('')
 
 const inputBox = ref()
 
-const handleFileRenameStart = () => {
+function handleFileRenameStart() {
   if (!props.renameInline) {
     renameFile(props.attachment, props.index)
     return
@@ -59,26 +59,27 @@ const handleFileRenameStart = () => {
   })
 }
 
-const handleResetFileRename = () => {
+function handleResetFileRename() {
   renameTitle.value = ''
   isRenamingFile.value = false
 }
 
-const handleFileRename = async () => {
+async function handleFileRename() {
   if (!isRenamingFile.value) return
 
   if (renameTitle.value) {
     try {
       await renameFileInline(props.index, renameTitle.value)
       handleResetFileRename()
-    } catch (e) {
+    }
+    catch (e) {
       message.error('Error while renaming file')
       throw e
     }
   }
 }
 
-const handleFileDeleteStart = () => {
+function handleFileDeleteStart() {
   if (!props.confirmToDelete) {
     removeFile(props.index)
     return
@@ -144,7 +145,9 @@ const handleFileDeleteStart = () => {
         :class="{ '!h-auto !w-auto !overflow-visible !whitespace-normal': isRenamingFile }"
       >
         <NcTooltip placement="bottom">
-          <template #title> {{ $t('title.downloadFile') }} </template>
+          <template #title>
+            {{ $t('title.downloadFile') }}
+          </template>
           <NcButton
             class="!p-0 !w-5 !h-5 !text-nc-content-gray-muted !min-w-[fit-content]"
             size="xsmall"
@@ -156,7 +159,9 @@ const handleFileDeleteStart = () => {
         </NcTooltip>
 
         <NcTooltip v-if="allowRename && isEditAllowed" placement="bottom">
-          <template #title> {{ $t('title.renameFile') }} </template>
+          <template #title>
+            {{ $t('title.renameFile') }}
+          </template>
           <NcButton
             size="xsmall"
             class="!p-0 nc-attachment-rename !h-5 !w-5 !text-nc-content-gray-muted !min-w-[fit-content] gap-2"
@@ -168,7 +173,9 @@ const handleFileDeleteStart = () => {
         </NcTooltip>
 
         <NcTooltip v-if="allowDelete && isEditAllowed" placement="bottom">
-          <template #title> {{ $t('title.removeFile') }} </template>
+          <template #title>
+            {{ $t('title.removeFile') }}
+          </template>
           <NcButton
             class="!p-0 !h-5 !w-5 !text-nc-fill-red-medium nc-attachment-remove !min-w-[fit-content]"
             size="xsmall"

@@ -188,13 +188,7 @@ export const buttonColorMap = {
   },
 } as const
 
-export const getButtonColors = (
-  theme: 'solid' | 'light' | 'text',
-  color: 'brand' | 'red' | 'green' | 'maroon' | 'blue' | 'orange' | 'pink' | 'purple' | 'yellow' | 'gray',
-  isHovered: boolean,
-  isDisabled: boolean,
-  getColor: GetColorType,
-) => {
+export function getButtonColors(theme: 'solid' | 'light' | 'text', color: 'brand' | 'red' | 'green' | 'maroon' | 'blue' | 'orange' | 'pink' | 'purple' | 'yellow' | 'gray', isHovered: boolean, isDisabled: boolean, getColor: GetColorType) {
   const themeColors = buttonColorMap[theme]?.[color]
   if (!themeColors) {
     return isHovered && !isDisabled
@@ -212,11 +206,7 @@ export const getButtonColors = (
   }
 }
 
-export const getButtonColorsCssVariables = (
-  theme: 'solid' | 'light' | 'text',
-  color: 'brand' | 'red' | 'green' | 'maroon' | 'blue' | 'orange' | 'pink' | 'purple' | 'yellow' | 'gray',
-  getColor: GetColorType,
-) => {
+export function getButtonColorsCssVariables(theme: 'solid' | 'light' | 'text', color: 'brand' | 'red' | 'green' | 'maroon' | 'blue' | 'orange' | 'pink' | 'purple' | 'yellow' | 'gray', getColor: GetColorType) {
   const defaultColors = getButtonColors(theme, color, false, false, getColor)
 
   const hoverColors = getButtonColors(theme, color, true, false, getColor)

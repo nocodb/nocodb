@@ -61,18 +61,18 @@ const errorInfo = computed(() => {
 
   const missingToDate = toCol.value && !toDateRaw.value
 
-  const dateOrderError =
-    fromCol.value &&
-    toCol.value &&
-    fromDateRaw.value &&
-    toDateRaw.value &&
-    timezoneDayjs.timezonize(fromDateRaw.value).isAfter(timezoneDayjs.timezonize(toDateRaw.value))
+  const dateOrderError
+    = fromCol.value
+      && toCol.value
+      && fromDateRaw.value
+      && toDateRaw.value
+      && timezoneDayjs.timezonize(fromDateRaw.value).isAfter(timezoneDayjs.timezonize(toDateRaw.value))
 
   if (dateOrderError) {
     return {
       message: 'Date Error',
       tooltip:
-        "Record with end date before the start date won't be displayed in the calendar. Update the end date to display the record.",
+        'Record with end date before the start date won\'t be displayed in the calendar. Update the end date to display the record.',
     }
   }
 
@@ -108,7 +108,7 @@ const errorInfo = computed(() => {
         }"
         class="block h-12 w-1"
         :style="rowColorInfo.rowLeftBorderColor"
-      ></span>
+      />
       <slot name="image" />
       <div class="flex gap-1 py-1 flex-col">
         <span
@@ -139,20 +139,20 @@ const errorInfo = computed(() => {
             fromDate && toDate
               ? `${fromDate} - ${toDate}`
               : fromDate && toCol
-              ? `${fromDate} -`
-              : toDate && fromCol
-              ? `- ${toDate}`
-              : fromDate || toDate || ''
+                ? `${fromDate} -`
+                : toDate && fromCol
+                  ? `- ${toDate}`
+                  : fromDate || toDate || ''
           }}
           <template #title>
             {{
               fromDate && toDate
                 ? `${fromDate} - ${toDate}`
                 : fromDate && toCol
-                ? `${fromDate} -`
-                : toDate && fromCol
-                ? `- ${toDate}`
-                : fromDate || toDate || ''
+                  ? `${fromDate} -`
+                  : toDate && fromCol
+                    ? `- ${toDate}`
+                    : fromDate || toDate || ''
             }}
           </template>
         </NcTooltip>

@@ -1,8 +1,8 @@
-import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
-import type { ColumnType, FilterType, FormType, TableType, ViewType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { ValidateInfo } from 'ant-design-vue/es/form/useForm'
+import type { ColumnType, FilterType, FormType, TableType, ViewType } from 'nocodb-sdk'
+import type { Ref } from 'vue'
+import { isLinksOrLTAR, RelationTypes, UITypes } from 'nocodb-sdk'
 
 const useForm = Form.useForm
 
@@ -57,16 +57,17 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
     })
 
     const visibleColumns = computed(() =>
-      localColumns.value.filter((f) => f.show).sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity)),
+      localColumns.value.filter(f => f.show).sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity)),
     )
-    const activeField = computed(() => visibleColumns.value.find((c) => c.id === activeRow.value) || null)
+    const activeField = computed(() => visibleColumns.value.find(c => c.id === activeRow.value) || null)
 
     const activeColumn = computed(() => {
       if (_meta.value && activeField.value) {
         if (_meta.value.columnsById && (_meta.value.columnsById as Record<string, ColumnType>)[activeField.value?.fk_column_id]) {
           return (_meta.value.columnsById as Record<string, ColumnType>)[activeField.value.fk_column_id]
-        } else if (_meta.value.columns) {
-          return _meta.value.columns.find((c) => c.id === activeField.value?.fk_column_id) ?? null
+        }
+        else if (_meta.value.columns) {
+          return _meta.value.columns.find(c => c.id === activeField.value?.fk_column_id) ?? null
         }
       }
       return null
@@ -97,8 +98,8 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
                   }
 
                   if (
-                    (column.uidt === UITypes.Checkbox && !value) ||
-                    (column.uidt !== UITypes.Checkbox && !requiredFieldValidatorFn(value))
+                    (column.uidt === UITypes.Checkbox && !value)
+                    || (column.uidt !== UITypes.Checkbox && !requiredFieldValidatorFn(value))
                   ) {
                     return reject(t('msg.error.fieldRequired'))
                   }
@@ -155,7 +156,8 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
 
       try {
         await validate(fieldMappings.value[col.title])
-      } catch {}
+      }
+      catch {}
     }
 
     const isValidRedirectUrl = (): ValidateInfo => {
@@ -199,7 +201,8 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
             { operation: 'formColumnUpdate', formColumnId: col.id },
             col,
           )
-        } catch (e: any) {
+        }
+        catch (e: any) {
           message.error(await extractSdkResponseErrorMsg(e))
         }
       }
@@ -219,8 +222,8 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
     const loadAllviewFilters = async () => {
       if (!viewMeta.value?.id) return
       try {
-        const formViewFilters =
-          (
+        const formViewFilters
+          = (
             await $api.internal.getOperation(viewMeta.value!.fk_workspace_id!, viewMeta.value!.base_id!, {
               operation: 'filterList',
               viewId: viewMeta.value.id,
@@ -235,7 +238,8 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
         const allFilters = formFilter.getNestedGroupedFilters()
 
         allViewFilters.value = { ...allFilters }
-      } catch (e: any) {
+      }
+      catch (e: any) {
         console.error('Error loading view filters:', e)
       }
     }

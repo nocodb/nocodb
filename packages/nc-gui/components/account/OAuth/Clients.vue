@@ -70,26 +70,26 @@ const regenerateModalVisible = ref(false)
 const selectedClientId = ref<string | undefined>(undefined)
 const selectedClient = ref<any>(null)
 
-const addNewClient = () => {
+function addNewClient() {
   modalVisible.value = true
 }
 
-const viewClientDetails = (clientId: string) => {
+function viewClientDetails(clientId: string) {
   selectedClientId.value = clientId
   detailsModalVisible.value = true
 }
 
-const handleRegenerateSecret = (client: any) => {
+function handleRegenerateSecret(client: any) {
   selectedClient.value = client
   regenerateModalVisible.value = true
 }
 
-const handleDeleteClient = (client: any) => {
+function handleDeleteClient(client: any) {
   selectedClient.value = client
   deleteModalVisible.value = true
 }
 
-const onRegeneratedSecret = () => {
+function onRegeneratedSecret() {
   if (selectedClient.value?.client_id) {
     viewClientDetails(selectedClient.value.client_id)
   }
@@ -115,7 +115,9 @@ onMounted(async () => {
     <div class="nc-content-max-w p-6 h-[calc(100vh_-_100px)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
       <div class="max-w-202 mx-auto h-full w-full" data-testid="nc-token-list">
         <div class="flex gap-4 items-baseline justify-between">
-          <h6 class="text-xl text-left font-bold my-0" data-rec="true">{{ $t('title.oauthClients') }}</h6>
+          <h6 class="text-xl text-left font-bold my-0" data-rec="true">
+            {{ $t('title.oauthClients') }}
+          </h6>
           <NcButton
             :disabled="isOauthClientsLoading"
             data-testid="nc-token-create-top"

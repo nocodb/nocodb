@@ -35,7 +35,7 @@ interface TabItem {
 
 const tabItems = computed<TabItem[]>(() => {
   // Ensure re-evaluation when roles load
-  // eslint-disable-next-line no-unused-expressions
+
   isBaseRolesLoaded.value
 
   const items: TabItem[] = [{ key: 'bases', icon: 'ncDatabase', label: t('objects.projects') }]
@@ -114,7 +114,7 @@ const activeTab = computed({
 <template>
   <NcTabs :key="`${tabItems.length}`" v-model:active-key="activeTab" class="nc-ws-view-tabs">
     <template #leftExtra>
-      <div class="w-3"></div>
+      <div class="w-3" />
     </template>
 
     <a-tab-pane v-for="item in tabItems" :key="item.key">

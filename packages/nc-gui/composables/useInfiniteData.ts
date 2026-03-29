@@ -1,41 +1,29 @@
+import type { Row } from '#imports'
+import type { Api, ColumnType, CommentPayload, DataPayload, FilterType, LinkToAnotherRecordType, PaginatedType, RelationTypes, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
+import type { CanvasGroup } from '../lib/types'
 import {
-  type Api,
-  type ColumnType,
-  type CommentPayload,
-  type DataPayload,
+
   EventType,
-  type FilterType,
-  type LinkToAnotherRecordType,
-  NcApiVersion,
-  type PaginatedType,
-  type RelationTypes,
-  type TableType,
-  UITypes,
-  type ViewType,
+
   extractFilterFromXwhere,
+
   isAIPromptCol,
+
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isSystemColumn,
+  NcApiVersion,
+  UITypes,
 } from 'nocodb-sdk'
-import type { CanvasGroup } from '../lib/types'
-import type { Row } from '#imports'
-import { validateRowFilters } from '~/utils/dataUtils'
 import { NavigateDir } from '~/lib/enums'
+import { validateRowFilters } from '~/utils/dataUtils'
 import { isUniqueConstraintViolationError } from '~/utils/errorUtils'
 
-const formatData = (
-  list: Record<string, any>[],
-  pageInfo?: PaginatedType,
-  params?: {
-    limit?: number
-    offset?: number
-  },
-  path: Array<number> = [],
-  evaluateRowMetaRowColorInfoCallback?: (row: Record<string, any>) => RowMetaRowColorInfo,
-  evaluateButtonVisibilityCallback?: (row: Record<string, any>) => Record<string, boolean> | undefined,
-) => {
+function formatData(list: Record<string, any>[], pageInfo?: PaginatedType, params?: {
+  limit?: number
+  offset?: number
+}, path: Array<number> = [], evaluateRowMetaRowColorInfoCallback?: (row: Record<string, any>) => RowMetaRowColorInfo, evaluateButtonVisibilityCallback?: (row: Record<string, any>) => Record<string, boolean> | undefined) {
   // If pageInfo exists, use it for calculation
   if (pageInfo?.page && pageInfo?.pageSize) {
     return list.map((row, index) => {
@@ -81,7 +69,7 @@ export function useInfiniteData(args: {
     getWhereFilter?: (path: Array<number>, ignoreWhereFilter?: boolean) => Promise<string>
     getWhereFilterArr?: (path: Array<number>) => Promise<FilterType[]>
     reloadAggregate?: (params: {
-      fields?: Array<{ title: string; aggregation?: string | undefined }>
+      fields?: Array<{ title: string, aggregation?: string | undefined }>
       path: Array<number>
     }) => void
     findGroupByPath?: (path?: Array<number>) => CanvasGroup | null
@@ -89,7 +77,7 @@ export function useInfiniteData(args: {
   where?: ComputedRef<string | undefined>
   disableSmartsheet?: boolean
   isPublic?: Ref<boolean>
-  groupByColumns?: ComputedRef<{ column: ColumnType; sort: string; order?: number }[]>
+  groupByColumns?: ComputedRef<{ column: ColumnType, sort: string, order?: number }[]>
 }) {
   const NOCO = 'noco'
   const { meta, viewMeta, callbacks, where, disableSmartsheet, isPublic, groupByColumns = ref(null) } = args
@@ -158,7 +146,7 @@ export function useInfiniteData(args: {
   /** Identifies button columns with visibility filters and evaluates them per-row during data fetch */
   const buttonFilterColumns = computed(() => {
     if (!meta.value?.columns) return []
-    return meta.value.columns.filter((col) => col.uidt === UITypes.Button && (col.colOptions as any)?.filters?.length)
+    return meta.value.columns.filter(col => col.uidt === UITypes.Button && (col.colOptions as any)?.filters?.length)
   })
 
   const evaluateButtonVisibility = (row: Record<string, any>): Record<string, boolean> | undefined => {
@@ -248,11 +236,11 @@ export function useInfiniteData(args: {
   })
 
   const selectedRows = computed<Row[]>(() => {
-    return Array.from(cachedRows.value.values()).filter((row) => row.rowMeta?.selected)
+    return Array.from(cachedRows.value.values()).filter(row => row.rowMeta?.selected)
   })
 
   const isRowSortRequiredRows = computed(() => {
-    return Array.from(cachedRows.value.values()).filter((row) => row.rowMeta?.isRowOrderUpdated)
+    return Array.from(cachedRows.value.values()).filter(row => row.rowMeta?.isRowOrderUpdated)
   })
 
   const getDataCache = (path: Array<number> = []) => {
@@ -295,9 +283,9 @@ export function useInfiniteData(args: {
         },
       }),
       actualTotalRows: ref(0),
-      selectedRows: computed<Row[]>(() => Array.from(newCache.cachedRows.value.values()).filter((row) => row.rowMeta?.selected)),
+      selectedRows: computed<Row[]>(() => Array.from(newCache.cachedRows.value.values()).filter(row => row.rowMeta?.selected)),
       isRowSortRequiredRows: computed<Array<Row>>(() =>
-        Array.from(newCache.cachedRows.value.values()).filter((row) => row.rowMeta?.isRowOrderUpdated),
+        Array.from(newCache.cachedRows.value.values()).filter(row => row.rowMeta?.isRowOrderUpdated),
       ),
     }
 
@@ -333,7 +321,8 @@ export function useInfiniteData(args: {
         dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
       })
       dataCache.chunkStates.value[chunkId] = 'loaded'
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error fetching chunk:', error)
       dataCache.chunkStates.value[chunkId] = undefined
     }
@@ -350,7 +339,7 @@ export function useInfiniteData(args: {
   const BATCH_SIZE = 50
   const BATCH_TIMEOUT = 200
 
-  async function loadBulkAggCommentsCount(allFormattedRows: Array<{ rows: Array<Row>; path: Array<number> }>) {
+  async function loadBulkAggCommentsCount(allFormattedRows: Array<{ rows: Array<Row>, path: Array<number> }>) {
     if (!isUIAllowed('commentCount') || isPublic?.value) return
     if (allFormattedRows.length === 0) return
 
@@ -384,7 +373,8 @@ export function useInfiniteData(args: {
       })
 
       eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
-    } catch (e) {
+    }
+    catch (e) {
       console.error('Failed to load bulk aggregate comment count:', e)
     }
   }
@@ -405,7 +395,8 @@ export function useInfiniteData(args: {
         dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
       })
       dataCache.chunkStates.value[chunkId] = 'loaded'
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error fetching chunk:', error)
       dataCache.chunkStates.value[chunkId] = undefined
       throw error
@@ -458,8 +449,8 @@ export function useInfiniteData(args: {
           )
         : await fetchBulkListData({}, bulkRequests)
 
-      const allFormattedRows: Array<{ rows: Array<Row>; path: Array<number> }> = []
-      const processedChunks: Array<{ request: any; rows: Array<Row>; dataCache: any }> = []
+      const allFormattedRows: Array<{ rows: Array<Row>, path: Array<number> }> = []
+      const processedChunks: Array<{ request: any, rows: Array<Row>, dataCache: any }> = []
 
       for (const request of batch) {
         try {
@@ -483,12 +474,14 @@ export function useInfiniteData(args: {
 
             allFormattedRows.push({ rows, path: request.path })
             processedChunks.push({ request, rows, dataCache })
-          } else {
+          }
+          else {
             dataCache.chunkStates.value[request.chunkId] = undefined
           }
 
           request.resolve(undefined)
-        } catch (error) {
+        }
+        catch (error) {
           console.error(`Error processing chunk ${request.chunkId}:`, error)
           const dataCache = getDataCache(request.path)
           dataCache.chunkStates.value[request.chunkId] = undefined
@@ -508,19 +501,21 @@ export function useInfiniteData(args: {
 
           dataCache.chunkStates.value[request.chunkId] = 'loaded'
           request.resolve(undefined)
-        } catch (error) {
+        }
+        catch (error) {
           console.error(`Error caching chunk ${request.chunkId}:`, error)
           dataCache.chunkStates.value[request.chunkId] = undefined
           request.reject(error)
         }
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Bulk chunk request failed, falling back to individual requests:', error)
 
-      const promises = batch.map((request) =>
+      const promises = batch.map(request =>
         fetchChunkIndividually(request.chunkId, request.path)
           .then(() => request.resolve(undefined))
-          .catch((err) => request.reject(err)),
+          .catch(err => request.reject(err)),
       )
 
       await Promise.allSettled(promises)
@@ -532,7 +527,7 @@ export function useInfiniteData(args: {
 
     if (dataCache.chunkStates.value[chunkId] && !forceFetch) return
 
-    const existingRequest = pendingChunkRequests.find((req) => req.chunkId === chunkId && req.path.join(',') === path.join(','))
+    const existingRequest = pendingChunkRequests.find(req => req.chunkId === chunkId && req.path.join(',') === path.join(','))
 
     if (existingRequest && !forceFetch) {
       return new Promise<void>((resolve, reject) => {
@@ -564,7 +559,8 @@ export function useInfiniteData(args: {
 
       if (pendingChunkRequests.length >= BATCH_SIZE) {
         processBatch()
-      } else {
+      }
+      else {
         if (!batchTimer) {
           batchTimer = setTimeout(() => {
             processBatch()
@@ -640,7 +636,7 @@ export function useInfiniteData(args: {
 
       formattedData.forEach((row) => {
         const cachedRow = Array.from(dataCache.cachedRows.value.values()).find(
-          (cachedRow) => cachedRow.rowMeta.rowIndex === row.rowMeta.rowIndex,
+          cachedRow => cachedRow.rowMeta.rowIndex === row.rowMeta.rowIndex,
         )
         if (!cachedRow) return
 
@@ -651,7 +647,8 @@ export function useInfiniteData(args: {
 
       // Trigger re-render canvas to update the comment count
       eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
-    } catch (e) {
+    }
+    catch (e) {
       console.error('Failed to load aggregate comment count:', e)
     }
   }
@@ -697,12 +694,12 @@ export function useInfiniteData(args: {
       const response = !isPublic?.value
         ? await $api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
             ...params,
-            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: stringifyFilterOrSortArr(sorts.value?.filter((s) => !s.id)) }),
+            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: stringifyFilterOrSortArr(sorts.value?.filter(s => !s.id)) }),
             ...(isUIAllowed('filterSync')
               ? { filterArrJson: stringifyFilterOrSortArr(jsonWhereFilterArr) }
               : {
                   filterArrJson: stringifyFilterOrSortArr([
-                    ...(nestedFilters.value || []).filter((f) => !f.id),
+                    ...(nestedFilters.value || []).filter(f => !f.id),
                     ...jsonWhereFilterArr,
                   ]),
                 }),
@@ -738,7 +735,8 @@ export function useInfiniteData(args: {
       }
 
       return data
-    } catch (error: any) {
+    }
+    catch (error: any) {
       if (error?.response?.data.error === 'ERR_INVALID_OFFSET_VALUE') {
         return []
       }
@@ -779,7 +777,8 @@ export function useInfiniteData(args: {
 
     if (targetIndex === null) {
       finalTargetIndex = dataCache.cachedRows.value.size - 1
-    } else {
+    }
+    else {
       finalTargetIndex = targetIndex > draggedIndex ? targetIndex - 1 : targetIndex
       targetRecord = dataCache.cachedRows.value.get(targetIndex) ?? null
       if (!targetRecord) return
@@ -795,7 +794,8 @@ export function useInfiniteData(args: {
           newCachedRows.set(newIndex, row)
         }
       }
-    } else {
+    }
+    else {
       for (let i = draggedIndex + 1; i <= finalTargetIndex; i++) {
         const row = newCachedRows.get(i)
         if (row) {
@@ -884,7 +884,7 @@ export function useInfiniteData(args: {
   }
 
   const navigateToSiblingRow = async (dir: NavigateDir) => {
-    const path = routeQuery.value?.path?.length === 0 ? [] : (routeQuery.value?.path?.split('-') ?? []).map((c) => +c)
+    const path = routeQuery.value?.path?.length === 0 ? [] : (routeQuery.value?.path?.split('-') ?? []).map(c => +c)
     const expandedRowIndex = await getExpandedRowIndexWithWait(path)
     if (expandedRowIndex === -1) return
 
@@ -923,7 +923,7 @@ export function useInfiniteData(args: {
     const dataCache = getDataCache(path)
 
     const chunksToFetch = Array.from({ length: lastChunkId - firstChunkId + 1 }, (_, i) => firstChunkId + i).filter(
-      (chunkId) => !dataCache.chunkStates.value[chunkId],
+      chunkId => !dataCache.chunkStates.value[chunkId],
     )
     await Promise.all(chunksToFetch.map(fetchChunk, path))
   }
@@ -932,7 +932,7 @@ export function useInfiniteData(args: {
   function clearInvalidRows(
     path: Array<number> = [],
     callbackFns?: {
-      onGroupRowChange?: (params: { row: Row; property: string; groupByColumn: ColumnType; level: number }) => void
+      onGroupRowChange?: (params: { row: Row, property: string, groupByColumn: ColumnType, level: number }) => void
     },
   ) {
     const dataCache = getDataCache(path)
@@ -967,7 +967,7 @@ export function useInfiniteData(args: {
 
     for (const [oldIndex, row] of sortedEntries) {
       if (!invalidIndexes.includes(oldIndex)) {
-        const newIndex = oldIndex - invalidIndexes.filter((i) => i < oldIndex).length
+        const newIndex = oldIndex - invalidIndexes.filter(i => i < oldIndex).length
         row.rowMeta.rowIndex = newIndex
         newCachedRows.set(newIndex, row)
       }
@@ -1078,7 +1078,7 @@ export function useInfiniteData(args: {
 
   const getContinuousRanges = (cachedRows: Map<number, Row>) => {
     const indexes = Array.from(cachedRows.keys()).sort((a, b) => a - b)
-    const ranges: { start: number; end: number }[] = []
+    const ranges: { start: number, end: number }[] = []
 
     let rangeStart = indexes[0]
     let prev = indexes[0]
@@ -1114,7 +1114,7 @@ export function useInfiniteData(args: {
       const originalIndex = inputRow.rowMeta.rowIndex!
 
       // from the range, find where the records belongs to in batch
-      const sourceRange = ranges.find((r) => originalIndex >= r.start && originalIndex <= r.end)
+      const sourceRange = ranges.find(r => originalIndex >= r.start && originalIndex <= r.end)
       if (!sourceRange) return
 
       // get records belong in the group range
@@ -1146,7 +1146,7 @@ export function useInfiniteData(args: {
       })
 
       // find affected row's new position
-      const entry = sortedRangeEntries.find((e) => e.pk === extractPkFromRow(inputRow.row, meta.value?.columns ?? []))
+      const entry = sortedRangeEntries.find(e => e.pk === extractPkFromRow(inputRow.row, meta.value?.columns ?? []))
 
       if (!entry) return
 
@@ -1167,7 +1167,8 @@ export function useInfiniteData(args: {
               newCachedRows.set(i + 1, row)
             }
           }
-        } else {
+        }
+        else {
           //  Shift Rows (Move Down): Shifts rows up to make space.
           for (let i = originalIndex + 1; i <= targetIndex; i++) {
             const row = newCachedRows.get(i)
@@ -1192,13 +1193,15 @@ export function useInfiniteData(args: {
             for (let i = 0; i <= targetChunkIndex; i++) {
               dataCache.chunkStates.value[i] = undefined
             }
-          } else if (targetIndex >= sourceRange.end) {
+          }
+          else if (targetIndex >= sourceRange.end) {
             for (let i = targetChunkIndex; i <= getChunkIndex(dataCache.totalRows.value - 1); i++) {
               dataCache.chunkStates.value[i] = undefined
             }
           }
         }
-      } else {
+      }
+      else {
         // Sets isRowOrderUpdated to false if position didn't change.
         inputRow.rowMeta.isRowOrderUpdated = false
       }
@@ -1283,7 +1286,8 @@ export function useInfiniteData(args: {
         column.title as string,
         encodeURIComponent(relatedRowId),
       )
-    } catch (e: any) {
+    }
+    catch (e: any) {
       if (!options?.suppressError) {
         const errorMessage = await extractSdkResponseErrorMsg(e)
         message.error(`Failed to link record: ${errorMessage}`)
@@ -1319,7 +1323,8 @@ export function useInfiniteData(args: {
             await linkRecord(id, relatedId, column, colOptions.type as RelationTypes, { metaValue: relatedTableMeta }, options)
           }
         }
-      } else if (isBt(column) && row[column.title!]) {
+      }
+      else if (isBt(column) && row[column.title!]) {
         const relatedId = extractPkFromRow(row[column.title!] as Record<string, any>, relatedTableMeta.columns as ColumnType[])
 
         if (relatedId) {
@@ -1338,8 +1343,8 @@ export function useInfiniteData(args: {
 
       if (!row.rowMeta.new) {
         const id = meta?.value?.columns
-          ?.filter((c) => c.pk)
-          .map((c) => row.row[c.title!])
+          ?.filter(c => c.pk)
+          .map(c => row.row[c.title!])
           .join('___')
 
         const fullRecord = await $api.dbTableRow.read(
@@ -1374,7 +1379,8 @@ export function useInfiniteData(args: {
 
                 try {
                   await recoverLTARRefs(row.row, undefined, { suppressError: true })
-                } catch (ex) {
+                }
+                catch (ex) {
                   // expected and silenced
                   // the relation should already exists on above operation (insertRow)
                   // this is left to keep things unchanged
@@ -1414,7 +1420,8 @@ export function useInfiniteData(args: {
       dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
       await syncCount(path, true, false)
       callbacks?.syncVisibleData?.()
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.error(e)
 
       message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
@@ -1607,11 +1614,13 @@ export function useInfiniteData(args: {
       callbacks?.syncVisibleData?.()
 
       return insertedData
-    } catch (error: any) {
+    }
+    catch (error: any) {
       const errorMessage = await extractSdkResponseErrorMsg(error)
       message.error(`Failed to insert row: ${errorMessage}`)
       throw error
-    } finally {
+    }
+    finally {
       currentRow.rowMeta.saving = false
     }
   }
@@ -1674,7 +1683,8 @@ export function useInfiniteData(args: {
                   true,
                   path,
                 )
-              } catch (e: any) {
+              }
+              catch (e: any) {
                 // ignore
               }
             },
@@ -1691,7 +1701,8 @@ export function useInfiniteData(args: {
             fn: async (toUpdate: Row, property: string, path) => {
               try {
                 await updateRowProperty(toUpdate, property, undefined, true, path)
-              } catch (e: any) {
+              }
+              catch (e: any) {
                 // ignore
               }
             },
@@ -1733,12 +1744,12 @@ export function useInfiniteData(args: {
         toUpdate.row,
         metaValue?.columns?.reduce<Record<string, any>>((acc, col: ColumnType) => {
           if (
-            col.title &&
-            col.title in updatedRowData &&
-            (columnsToUpdate.has(col.uidt as UITypes) ||
-              isAIPromptCol(col) ||
-              col.au ||
-              (isValidValue(col?.cdf) && / on update /i.test(col.cdf as string)))
+            col.title
+            && col.title in updatedRowData
+            && (columnsToUpdate.has(col.uidt as UITypes)
+              || isAIPromptCol(col)
+              || col.au
+              || (isValidValue(col?.cdf) && / on update /i.test(col.cdf as string)))
           ) {
             acc[col.title] = updatedRowData[col.title]
           }
@@ -1768,15 +1779,16 @@ export function useInfiniteData(args: {
       }
 
       return updatedRowData
-    } catch (e: any) {
+    }
+    catch (e: any) {
       // Check if it's a unique constraint violation
       if (isUniqueConstraintViolationError(e)) {
         // Clear the cell value for unique constraint violations and set to previous value
         toUpdate.row[property] = toUpdate.oldRow[property] ?? null
         // Use message directly from response (already includes field name)
         const errorData = e.response?.data
-        const errorMessage =
-          errorData?.message || (await extractSdkResponseErrorMsg(e)) || t('msg.error.uniqueConstraintViolation')
+        const errorMessage
+          = errorData?.message || (await extractSdkResponseErrorMsg(e)) || t('msg.error.uniqueConstraintViolation')
         message.error(errorMessage)
         return undefined
       }
@@ -1785,7 +1797,8 @@ export function useInfiniteData(args: {
       const errorMessage = await extractSdkResponseErrorMsg(e)
       message.error(`${t('msg.error.rowUpdateFailed')}: ${errorMessage}`)
       throw e
-    } finally {
+    }
+    finally {
       toUpdate.rowMeta.saving = false
     }
   }
@@ -1794,7 +1807,7 @@ export function useInfiniteData(args: {
     row: Row,
     property?: string,
     ltarState?: Record<string, any>,
-    args: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    args: { metaValue?: TableType, viewMetaValue?: ViewType } = {},
     beforeRowID?: string,
     path: Array<number> = [],
   ): Promise<void> {
@@ -1818,7 +1831,8 @@ export function useInfiniteData(args: {
 
         if (isComplete) {
           resolve(true)
-        } else {
+        }
+        else {
           setTimeout(checkStatus, 100)
         }
       }
@@ -1830,11 +1844,11 @@ export function useInfiniteData(args: {
     let data
 
     const fieldsToOverwrite = meta.value?.columns?.filter(
-      (c) =>
-        isSystemColumn(c) ||
-        isCreatedOrLastModifiedByCol(c) ||
-        isCreatedOrLastModifiedTimeCol(c) ||
-        [
+      c =>
+        isSystemColumn(c)
+        || isCreatedOrLastModifiedByCol(c)
+        || isCreatedOrLastModifiedTimeCol(c)
+        || [
           UITypes.Formula,
           UITypes.QrCode,
           UITypes.Barcode,
@@ -1849,7 +1863,8 @@ export function useInfiniteData(args: {
 
     if (row.rowMeta.new) {
       data = await insertRow(row, ltarState, args, false, true, beforeRowID, path)
-    } else if (property) {
+    }
+    else if (property) {
       if (cachedRow) {
         fieldsToOverwrite?.reduce((acc, col) => {
           if (!ncIsUndefined(cachedRow.row[col.title!])) acc[col.title!] = cachedRow.row[col.title!]
@@ -1858,7 +1873,8 @@ export function useInfiniteData(args: {
       }
       try {
         data = await updateRowProperty(row, property, args, false, path)
-      } catch (e: any) {
+      }
+      catch (e: any) {
         // ignore
       }
     }
@@ -1881,7 +1897,7 @@ export function useInfiniteData(args: {
     // check if the column is part of group by and value changed
     if (row.rowMeta?.path?.length && groupByColumns?.value) {
       const groupByFilter = await callbacks?.getWhereFilterArr?.(row.rowMeta?.path)
-      const index = groupByColumns.value.findIndex((c) => c.column.title === property) ?? 0
+      const index = groupByColumns.value.findIndex(c => c.column.title === property) ?? 0
 
       row.rowMeta.isGroupChanged = !validateRowFilters(
         [...(groupByFilter ?? [])],
@@ -1901,7 +1917,8 @@ export function useInfiniteData(args: {
 
     changedFields.push(
       ...(meta.value
-        ?.columns!.filter((c) =>
+        ?.columns!
+        .filter(c =>
           [
             UITypes.LastModifiedBy,
             UITypes.LastModifiedTime,
@@ -1911,7 +1928,7 @@ export function useInfiniteData(args: {
             UITypes.LinkToAnotherRecord,
           ].includes(c.uidt as UITypes),
         )
-        .map((c) => c.title!) || []),
+        .map(c => c.title!) || []),
     )
 
     if (isSortRelevantChange(changedFields, sorts.value, columnsById.value) || row.rowMeta.new) {
@@ -1962,7 +1979,7 @@ export function useInfiniteData(args: {
     path: Array<number> = [],
   ): Promise<boolean> {
     if (!id) {
-      throw new Error("Delete not allowed for table which doesn't have primary Key")
+      throw new Error('Delete not allowed for table which doesn\'t have primary Key')
     }
 
     try {
@@ -1985,7 +2002,8 @@ export function useInfiniteData(args: {
       }
 
       return true
-    } catch (error: any) {
+    }
+    catch (error: any) {
       const errorMessage = await extractSdkResponseErrorMsg(error)
       message.error(`${t('msg.error.deleteRowFailed')}: ${errorMessage}`)
       return false
@@ -2044,14 +2062,16 @@ export function useInfiniteData(args: {
             })
         if (!disableSmartsheet && !path.length && blockExternalSourceRecordVisibility(isExternalSource.value)) {
           totalRowsWithoutSearchQuery.value = Math.max(Math.min(200, _count as number), _count as number)
-        } else {
+        }
+        else {
           totalRowsWithoutSearchQuery.value = _count as number
         }
       }
 
       if (!disableSmartsheet && !path.length && blockExternalSourceRecordVisibility(isExternalSource.value)) {
         dataCache.totalRows.value = Math.min(200, count as number)
-      } else {
+      }
+      else {
         dataCache.totalRows.value = count as number
       }
 
@@ -2060,7 +2080,8 @@ export function useInfiniteData(args: {
       totalRowsWithSearchQuery.value = Math.max(dataCache.totalRows.value, dataCache.actualTotalRows.value)
 
       callbacks?.syncVisibleData?.()
-    } catch (error: any) {
+    }
+    catch (error: any) {
       if (showToastMessage) {
         const errorMessage = await extractSdkResponseErrorMsg(error)
         message.error(`Failed to sync count: ${errorMessage}`)
@@ -2092,7 +2113,7 @@ export function useInfiniteData(args: {
 
     const dataCache = getDataCache(path)
 
-    await until(() => dataCache.chunkStates.value?.every((v) => v !== 'loading')).toBeTruthy({
+    await until(() => dataCache.chunkStates.value?.every(v => v !== 'loading')).toBeTruthy({
       timeout: 5000,
     })
 
@@ -2100,7 +2121,7 @@ export function useInfiniteData(args: {
   }
 
   const isLastRow = computed(() => {
-    const path = routeQuery.value?.path?.trim() ? routeQuery.value?.path?.split('-').map((c) => +c) : []
+    const path = routeQuery.value?.path?.trim() ? routeQuery.value?.path?.split('-').map(c => +c) : []
     const dataCache = getDataCache(path)
 
     const expandedRowIndex = getExpandedRowIndex(path)
@@ -2110,7 +2131,7 @@ export function useInfiniteData(args: {
   })
 
   const isFirstRow = computed(() => {
-    const path = routeQuery.value?.path?.trim() ? routeQuery.value?.path?.split('-').map((c) => +c) : []
+    const path = routeQuery.value?.path?.trim() ? routeQuery.value?.path?.split('-').map(c => +c) : []
     const expandedRowIndex = getExpandedRowIndex(path)
     if (expandedRowIndex === -1) return false
 
@@ -2126,7 +2147,7 @@ export function useInfiniteData(args: {
       chunksToFetch.add(chunkId)
     }
 
-    await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId, path)))
+    await Promise.all([...chunksToFetch].map(chunkId => fetchChunk(chunkId, path)))
 
     const dataCache = getDataCache(path)
 
@@ -2160,7 +2181,8 @@ export function useInfiniteData(args: {
       groupDataCache.value.forEach((group) => {
         group.cachedRows.value.forEach(updateRowColorInfo)
       })
-    } else {
+    }
+    else {
       // If it is not group by, we need to update the rowMeta color info for each row in cachedRows
       const { cachedRows } = getDataCache()
       cachedRows.value.forEach(updateRowColorInfo)
@@ -2246,10 +2268,12 @@ export function useInfiniteData(args: {
 
           callbacks?.syncVisibleData?.()
         }
-      } catch (e) {
+      }
+      catch (e) {
         console.error('Failed to add cached row on socket event', e)
       }
-    } else if (action === 'update') {
+    }
+    else if (action === 'update') {
       // Update the row in the local cache (cachedRows)
       try {
         const dataCache = getDataCache()
@@ -2282,16 +2306,19 @@ export function useInfiniteData(args: {
         }
         if (updated) {
           callbacks?.syncVisibleData?.()
-        } else {
+        }
+        else {
           handleDataEvent({
             ...data,
             action: 'add',
           })
         }
-      } catch (e) {
+      }
+      catch (e) {
         console.error('Failed to update cached row on socket event', e)
       }
-    } else if (action === 'delete') {
+    }
+    else if (action === 'delete') {
       // Delete the row from the local cache (cachedRows)
       try {
         const dataCache = getDataCache()
@@ -2320,10 +2347,12 @@ export function useInfiniteData(args: {
           }
         }
         callbacks?.syncVisibleData?.()
-      } catch (e) {
+      }
+      catch (e) {
         console.error('Failed to delete cached row on socket event', e)
       }
-    } else if (action === 'reorder') {
+    }
+    else if (action === 'reorder') {
       // Reorder/move the row in the local cache (cachedRows)
       try {
         const dataCache = getDataCache()
@@ -2386,11 +2415,13 @@ export function useInfiniteData(args: {
               dataCache.cachedRows.value = newCachedRows
 
               callbacks?.syncVisibleData?.()
-            } else {
+            }
+            else {
               // The 'before' row is not in cache, skip
               console.log('Before row not in cache, skipping reorder operation')
             }
-          } else {
+          }
+          else {
             // No 'before' specified means move to end
             // No changes needed to cache since it's moving to the end
             console.log('Row moved to end, no cache changes needed')
@@ -2418,11 +2449,13 @@ export function useInfiniteData(args: {
 
           if (beforeIndex !== null) {
             targetIndex = beforeIndex
-          } else {
+          }
+          else {
             // If 'before' row not found in cache, move to end
             targetIndex = Math.max(...Array.from(dataCache.cachedRows.value.keys())) + 1
           }
-        } else {
+        }
+        else {
           // If no 'before' specified, move to the end
           targetIndex = Math.max(...Array.from(dataCache.cachedRows.value.keys())) + 1
         }
@@ -2453,7 +2486,8 @@ export function useInfiniteData(args: {
               newCachedRows.set(newIndex, row)
             }
           }
-        } else {
+        }
+        else {
           // Moving down: shift rows up
           for (let i = currentIndex + 1; i <= finalTargetIndex; i++) {
             const row = newCachedRows.get(i)
@@ -2489,7 +2523,8 @@ export function useInfiniteData(args: {
         dataCache.cachedRows.value = newCachedRows
 
         callbacks?.syncVisibleData?.()
-      } catch (e) {
+      }
+      catch (e) {
         console.error('Failed to reorder cached row on socket event', e)
       }
     }
@@ -2536,9 +2571,11 @@ export function useInfiniteData(args: {
                 if (row) {
                   row.rowMeta.commentCount = (row.rowMeta.commentCount || 0) + 1
                 }
-              } else if (action === 'update') {
+              }
+              else if (action === 'update') {
                 // Handle updated comment
-              } else if (action === 'delete') {
+              }
+              else if (action === 'delete') {
                 if (row) {
                   row.rowMeta.commentCount = Math.max((row.rowMeta.commentCount || 0) - 1, 0)
                 }

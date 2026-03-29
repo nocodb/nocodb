@@ -33,7 +33,7 @@ const isWorkspaceSsoAvail = computed(() => {
   return false
 })
 
-const navigateToWsSettings = (page: string) => {
+function navigateToWsSettings(page: string) {
   if (page === 'ws-teams' && showUpgradeToUseTeams()) return
 
   if (page === 'ws-audits' && !isWsAuditEnabled.value) {
@@ -63,7 +63,9 @@ const activeWsSettingsTab = computed(() => {
 
 <template>
   <div class="nc-project-home-section">
-    <div class="nc-settings-section-header">{{ $t('objects.workspace') }} {{ $t('labels.settings') }}</div>
+    <div class="nc-settings-section-header">
+      {{ $t('objects.workspace') }} {{ $t('labels.settings') }}
+    </div>
     <NcSidebarMenuItem
       v-if="isUIAllowed('workspaceCollaborators')"
       v-e="['c:settings:ws:invite-user']"
@@ -99,12 +101,12 @@ const activeWsSettingsTab = computed(() => {
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
       v-if="
-        isEeUI &&
-        !activeWorkspace?.fk_org_id &&
-        isPaymentEnabled &&
-        isUIAllowed('workspaceBilling') &&
-        !isMobileMode &&
-        showEEFeatures
+        isEeUI
+          && !activeWorkspace?.fk_org_id
+          && isPaymentEnabled
+          && isUIAllowed('workspaceBilling')
+          && !isMobileMode
+          && showEEFeatures
       "
       v-e="['c:settings:ws:billing']"
       icon="ncDollarSign"

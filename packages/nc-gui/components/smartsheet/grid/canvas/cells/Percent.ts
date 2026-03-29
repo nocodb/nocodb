@@ -1,4 +1,4 @@
-import { ColumnHelper, UITypes, ncIsNaN } from 'nocodb-sdk'
+import { ColumnHelper, ncIsNaN, UITypes } from 'nocodb-sdk'
 import { renderSingleLineText, roundedRect } from '../utils/canvas'
 
 export const PercentCellRenderer: CellRenderer = {
@@ -72,7 +72,7 @@ export const PercentCellRenderer: CellRenderer = {
     if (column.readonly || column.columnObj?.readonly) return
     const columnObj = column.columnObj
 
-    if (/^[0-9]$/.test(e.key) && columnObj.title) {
+    if (/^\d$/.test(e.key) && columnObj.title) {
       row.row[columnObj.title] = ''
       makeCellEditable(row, column)
       return true

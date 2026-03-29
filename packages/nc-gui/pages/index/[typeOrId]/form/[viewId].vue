@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
 import type { InputPassword } from 'ant-design-vue'
+import type { VNodeRef } from 'vue'
 import { setI18nLanguage } from '~/plugins/a.i18n'
 
 definePageMeta({
@@ -14,8 +14,8 @@ const route = useRoute()
 
 const { isDark } = useTheme()
 
-const { loadSharedView, sharedView, sharedViewMeta, meta, notFound, password, passwordDlg, passwordError } =
-  useProvideSharedFormStore(route.params.viewId as string)
+const { loadSharedView, sharedView, sharedViewMeta, meta, notFound, password, passwordDlg, passwordError }
+  = useProvideSharedFormStore(route.params.viewId as string)
 
 await loadSharedView()
 
@@ -94,7 +94,9 @@ const focus: VNodeRef = (el: typeof InputPassword) => {
                 :placeholder="$t('msg.enterPassword')"
               />
               <Transition name="layout">
-                <div v-if="passwordError" class="mb-2 text-sm text-nc-content-red-medium">{{ passwordError }}</div>
+                <div v-if="passwordError" class="mb-2 text-sm text-nc-content-red-medium">
+                  {{ passwordError }}
+                </div>
               </Transition>
             </a-form-item>
           </a-form>
@@ -107,8 +109,11 @@ const focus: VNodeRef = (el: typeof InputPassword) => {
               class="!px-2"
               data-testid="nc-shared-view-password-submit-btn"
               @click="loadSharedView"
-              >{{ $t('objects.view') }}
-              <template #loading> {{ $t('msg.verifyingPassword') }}</template>
+            >
+              {{ $t('objects.view') }}
+              <template #loading>
+                {{ $t('msg.verifyingPassword') }}
+              </template>
             </NcButton>
           </div>
         </div>
@@ -120,7 +125,7 @@ const focus: VNodeRef = (el: typeof InputPassword) => {
         src="~/assets/img/views/form.png"
         class="fixed inset-0 w-full h-full"
         :class="{ 'bg-view-image--dark': isDark }"
-      />
+      >
     </NuxtLayout>
   </div>
 </template>

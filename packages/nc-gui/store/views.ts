@@ -9,20 +9,20 @@ import type {
   TimelineType,
   ViewType,
 } from 'nocodb-sdk'
+import type { ViewPageType } from '~/lib/types'
+import { DlgViewCopyViewConfigFromAnotherView, DlgViewCreate } from '#components'
+import { userLocalStorageInfoManager } from '#imports'
+import { useTitle } from '@vueuse/core'
 import {
+  ViewTypes as _ViewTypes,
+  getFirstNonPersonalView,
   ProjectRoles,
   ViewSettingOverrideOptions,
   ViewTypes,
   WorkspaceUserRoles,
-  ViewTypes as _ViewTypes,
-  getFirstNonPersonalView,
 } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { useTitle } from '@vueuse/core'
-import type { ViewPageType } from '~/lib/types'
 import { getFormattedViewTabTitle } from '~/helpers/parsers/parserHelpers'
-import { DlgViewCopyViewConfigFromAnotherView, DlgViewCreate } from '#components'
-import { userLocalStorageInfoManager } from '#imports'
 
 // Types and Interfaces
 interface RecentView {
@@ -101,7 +101,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const isPublic = computed(() => route.value.meta?.public)
 
   const recentViews = computed<RecentView[]>(() =>
-    allRecentViews.value.filter((f) => f.workspaceId === activeWorkspaceId.value).splice(0, 10),
+    allRecentViews.value.filter(f => f.workspaceId === activeWorkspaceId.value).splice(0, 10),
   )
 
   const views = computed({
@@ -171,8 +171,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
       if (!activeViewTitleOrId.value) return undefined
 
       return (
-        views.value.find((v) => v.id === activeViewTitleOrId.value) ??
-        views.value.find((v) => v.title === activeViewTitleOrId.value)
+        views.value.find(v => v.id === activeViewTitleOrId.value)
+        ?? views.value.find(v => v.title === activeViewTitleOrId.value)
       )
     },
     set(_view: ViewType | undefined) {
@@ -184,9 +184,9 @@ export const useViewsStore = defineStore('viewsStore', () => {
       if (!activeTable.value) return
       if (!_view) return
 
-      const viewIndex =
-        views.value.findIndex((v) => v.id === activeViewTitleOrId.value) ??
-        views.value.findIndex((v) => v.title === activeViewTitleOrId.value)
+      const viewIndex
+        = views.value.findIndex(v => v.id === activeViewTitleOrId.value)
+          ?? views.value.findIndex(v => v.title === activeViewTitleOrId.value)
       if (viewIndex === -1) return
 
       views.value[viewIndex] = _view
@@ -239,7 +239,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     baseId,
     ignoreLoading,
     force,
-  }: { tableId?: string; baseId?: string; ignoreLoading?: boolean; force?: boolean } = {}) => {
+  }: { tableId?: string, baseId?: string, ignoreLoading?: boolean, force?: boolean } = {}) => {
     const effectiveBaseId = baseId || activeProjectId.value
 
     if (!effectiveBaseId) {
@@ -254,7 +254,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       // Wait for tables to be loaded if they're not available yet
       await until(() => tablesStore.baseTables.get(effectiveBaseId)?.length).toBeTruthy({ timeout: 10000 })
 
-      const table = tablesStore.baseTables.get(effectiveBaseId)?.find((t) => t.id === tableId)
+      const table = tablesStore.baseTables.get(effectiveBaseId)?.find(t => t.id === tableId)
       if (!table) {
         console.warn('Could not find table:', tableId, 'in base:', effectiveBaseId)
         return
@@ -326,9 +326,9 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
 
     if (
-      router.currentRoute.value.query &&
-      router.currentRoute.value.query.page &&
-      router.currentRoute.value.query.page === 'fields'
+      router.currentRoute.value.query
+      && router.currentRoute.value.query.page
+      && router.currentRoute.value.query.page === 'fields'
     ) {
       if (cmdOrCtrl) {
         await navigateTo(
@@ -346,7 +346,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
             open: navigateToBlankTargetOpenOption,
           },
         )
-      } else {
+      }
+      else {
         await router.push({
           name: routeName,
           params: {
@@ -358,7 +359,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
           query: router.currentRoute.value.query,
         })
       }
-    } else {
+    }
+    else {
       if (cmdOrCtrl) {
         await navigateTo(
           router.resolve({
@@ -374,7 +376,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
             open: navigateToBlankTargetOpenOption,
           },
         )
-      } else {
+      }
+      else {
         await router.push({
           name: routeName,
           params: {
@@ -489,7 +492,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
             },
             {
               ...form,
-              calendar_range: form.calendar_range.map((range) => ({
+              calendar_range: form.calendar_range.map(range => ({
                 fk_from_column_id: range.fk_from_column_id,
                 fk_to_column_id: range.fk_to_column_id,
               })),
@@ -517,7 +520,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
             },
             {
               ...form,
-              timeline_range: form.timeline_range.map((range) => ({
+              timeline_range: form.timeline_range.map(range => ({
                 fk_from_column_id: range.fk_from_column_id,
                 fk_to_column_id: range.fk_to_column_id,
               })),
@@ -528,7 +531,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
       if (data) {
         // Get the base_id for the table
-        const table = tablesStore.baseTables.get(activeProjectId.value!)?.find((t) => t.id === tableId)
+        const table = tablesStore.baseTables.get(activeProjectId.value!)?.find(t => t.id === tableId)
         if (!table?.base_id) {
           console.warn('Could not find base_id for table:', tableId)
           return null
@@ -566,7 +569,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
       }
 
       return null
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))
       throw e
@@ -612,7 +616,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
           return {
             ...baseProps,
             calendar_range:
-              (sourceView.view as CalendarType)?.calendar_range?.map((range) => ({
+              (sourceView.view as CalendarType)?.calendar_range?.map(range => ({
                 fk_from_column_id: range.fk_from_column_id as string,
                 fk_to_column_id: range.fk_to_column_id as string,
               })) || [],
@@ -621,7 +625,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
           return {
             ...baseProps,
             timeline_range:
-              (sourceView.view as TimelineType)?.timeline_range?.map((range) => ({
+              (sourceView.view as TimelineType)?.timeline_range?.map(range => ({
                 fk_from_column_id: range.fk_from_column_id as string,
                 fk_to_column_id: range.fk_to_column_id as string,
               })) || [],
@@ -672,7 +676,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
         includeViewType: ViewTypes.GRID,
       })
 
-      const updatedViews = tableViews.filter((v) => v.id !== view.id)
+      const updatedViews = tableViews.filter(v => v.id !== view.id)
       viewsByTable.value.set(key, updatedViews)
 
       // Get the new first collaborative grid view after delete
@@ -710,7 +714,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
             baseId: activeTable.value.base_id!,
             tableId: view.fk_model_id,
           })
-        } else {
+        }
+        else {
           ncNavigateTo({
             workspaceId: activeWorkspaceId.value,
             baseId: view.base_id,
@@ -719,7 +724,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
       }
 
       return true
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))
       throw e
@@ -750,7 +756,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       if (tableId && baseId) {
         const key = getViewsKey(baseId, tableId)
         const tableViews = viewsByTable.value.get(key) || []
-        const viewIndex = tableViews.findIndex((v) => v.id === viewId)
+        const viewIndex = tableViews.findIndex(v => v.id === viewId)
 
         if (viewIndex !== -1) {
           if (extra?.is_default_view && tableId) {
@@ -778,7 +784,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
       }
 
       return updatedView
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.error(e)
       throw e
     }
@@ -864,7 +871,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
           default:
             throw new Error(`Unsupported view type for meta update: ${viewType}`)
         }
-      } else {
+      }
+      else {
         updatedView = {
           ...activeView.value,
           view: {
@@ -880,7 +888,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       if (tableId && baseId) {
         const key = getViewsKey(baseId, tableId)
         const tableViews = viewsByTable.value.get(key) || []
-        const viewIndex = tableViews.findIndex((v) => v.id === viewId)
+        const viewIndex = tableViews.findIndex(v => v.id === viewId)
 
         if (viewIndex !== -1) {
           tableViews[viewIndex] = updatedView
@@ -901,7 +909,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
       refreshCommandPalette()
 
       return updatedView
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.error(e)
       throw e
     }
@@ -920,18 +929,20 @@ export const useViewsStore = defineStore('viewsStore', () => {
     })
   }
 
-  const changeView = async ({ viewId, tableId, baseId }: { viewId: string | null; tableId: string; baseId: string }) => {
+  const changeView = async ({ viewId, tableId, baseId }: { viewId: string | null, tableId: string, baseId: string }) => {
     const routeName = 'index-typeOrId-baseId-index-index-viewId-viewTitle'
     await router.push({ name: routeName, params: { viewTitle: viewId || '', viewId: tableId, baseId } })
   }
 
-  function removeFromRecentViews({ viewId, tableId, baseId }: { viewId?: string | undefined; tableId: string; baseId?: string }) {
+  function removeFromRecentViews({ viewId, tableId, baseId }: { viewId?: string | undefined, tableId: string, baseId?: string }) {
     if (baseId && !viewId && !tableId) {
-      allRecentViews.value = allRecentViews.value.filter((f) => f.baseId !== baseId)
-    } else if (baseId && tableId && !viewId) {
-      allRecentViews.value = allRecentViews.value.filter((f) => f.baseId !== baseId || f.tableID !== tableId)
-    } else if (tableId && viewId) {
-      allRecentViews.value = allRecentViews.value.filter((f) => f.viewId !== viewId || f.tableID !== tableId)
+      allRecentViews.value = allRecentViews.value.filter(f => f.baseId !== baseId)
+    }
+    else if (baseId && tableId && !viewId) {
+      allRecentViews.value = allRecentViews.value.filter(f => f.baseId !== baseId || f.tableID !== tableId)
+    }
+    else if (tableId && viewId) {
+      allRecentViews.value = allRecentViews.value.filter(f => f.viewId !== viewId || f.tableID !== tableId)
     }
   }
 
@@ -945,9 +956,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
     const tableName = tablesStore.baseTables
       .get(activeView.value.base_id)
-      ?.find((t) => t.id === activeView.value.fk_model_id)?.title
+      ?.find(t => t.id === activeView.value.fk_model_id)
+      ?.title
 
-    const baseName = bases.basesList.find((p) => p.id === activeView.value.base_id)?.title
+    const baseName = bases.basesList.find(p => p.id === activeView.value.base_id)?.title
 
     useTitle(
       getFormattedViewTabTitle({
@@ -975,9 +987,9 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
     for (const view of viewsByTable.value.get(key) || []) {
       if (
-        [_ViewTypes.GALLERY, _ViewTypes.KANBAN].includes(view.type) &&
-        view.view?.fk_cover_image_col_id &&
-        columnIds.has(view.view?.fk_cover_image_col_id)
+        [_ViewTypes.GALLERY, _ViewTypes.KANBAN].includes(view.type)
+        && view.view?.fk_cover_image_col_id
+        && columnIds.has(view.view?.fk_cover_image_col_id)
       ) {
         isColumnUsedAsCoverImage = true
         break
@@ -991,9 +1003,9 @@ export const useViewsStore = defineStore('viewsStore', () => {
       (viewsByTable.value.get(key) || [])
         .map((view) => {
           if (
-            [_ViewTypes.GALLERY, _ViewTypes.KANBAN].includes(view.type) &&
-            view.view?.fk_cover_image_col_id &&
-            columnIds.has(view.view?.fk_cover_image_col_id)
+            [_ViewTypes.GALLERY, _ViewTypes.KANBAN].includes(view.type)
+            && view.view?.fk_cover_image_col_id
+            && columnIds.has(view.view?.fk_cover_image_col_id)
           ) {
             view.view.fk_cover_image_col_id = null
           }
@@ -1016,7 +1028,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
           attachment_mode_column_id: columnId,
         })
       }
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -1036,7 +1049,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
       }
 
       Object.assign(activeView.value, { attachment_mode_column_id: columnId })
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -1111,9 +1125,9 @@ export const useViewsStore = defineStore('viewsStore', () => {
     if (!view || !_user) return false
 
     return (
-      view?.owned_by === _user?.id ||
-      !!(view?.created_by && view.created_by === _user?.id) ||
-      !!(!view?.owned_by && (_user?.base_roles?.[ProjectRoles.OWNER] || _user?.workspace_roles?.[WorkspaceUserRoles.OWNER]))
+      view?.owned_by === _user?.id
+      || !!(view?.created_by && view.created_by === _user?.id)
+      || !!(!view?.owned_by && (_user?.base_roles?.[ProjectRoles.OWNER] || _user?.workspace_roles?.[WorkspaceUserRoles.OWNER]))
     )
   }
 
@@ -1133,7 +1147,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
       if (from === 'toolbar') {
         result.isVisible = false
       }
-    } else if (view?.lock_type === LockType.Locked) {
+    }
+    else if (view?.lock_type === LockType.Locked) {
       result.isDisabled = true
       result.tooltip = t('title.thisViewIsLockType', {
         type: t(viewLockIcons[view?.lock_type]?.title).toLowerCase(),
@@ -1142,7 +1157,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
       if (from === 'toolbar') {
         result.isVisible = false
       }
-    } else if (view.base_id) {
+    }
+    else if (view.base_id) {
       const key = getViewsKey(view.base_id, view.fk_model_id)
       if ((viewsByTable.value.get(key) || []).length < 2) {
         result.isDisabled = true
@@ -1217,8 +1233,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
       })
 
       if (
-        defaultView?.id === destView.id &&
-        [ViewSettingOverrideOptions.FIELD_ORDER, ViewSettingOverrideOptions.FIELD_VISIBILITY].some((type) =>
+        defaultView?.id === destView.id
+        && [ViewSettingOverrideOptions.FIELD_ORDER, ViewSettingOverrideOptions.FIELD_VISIBILITY].some(type =>
           settingToOverride.includes(type),
         )
       ) {
@@ -1229,7 +1245,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       if (res?.view && destView.fk_model_id && destView.base_id) {
         const key = getViewsKey(destView.base_id, destView.fk_model_id)
         const tableViews = viewsByTable.value.get(key) || []
-        const viewIndex = tableViews.findIndex((v) => v.id === destView.id)
+        const viewIndex = tableViews.findIndex(v => v.id === destView.id)
 
         if (viewIndex !== -1) {
           // Replace with the response from API
@@ -1260,13 +1276,15 @@ export const useViewsStore = defineStore('viewsStore', () => {
       message.toast(t('objects.copyViewConfig.viewConfigurationCopied'))
 
       return true
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.error(e)
       const errorInfo = await extractSdkResponseErrorMsgv2(e)
 
       if (errorInfo.error === NcErrorType.ERR_FEATURE_NOT_SUPPORTED) {
         message.error(errorInfo.message)
-      } else {
+      }
+      else {
         message.error(t('objects.copyViewConfig.errorOccuredWhileCopyingViewConfiguration'), undefined, {
           copyText: errorInfo.message,
         })
@@ -1274,7 +1292,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
   }
 
-  function getViewReadableUrlSlug({ tableTitle, viewOrViewTitle }: { tableTitle?: string; viewOrViewTitle: ViewType | string }) {
+  function getViewReadableUrlSlug({ tableTitle, viewOrViewTitle }: { tableTitle?: string, viewOrViewTitle: ViewType | string }) {
     const viewTitle = ncIsObject(viewOrViewTitle) ? viewOrViewTitle.title : viewOrViewTitle
 
     return toReadableUrlSlug([tableTitle, viewTitle])
@@ -1296,7 +1314,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
     if (!key) return false
 
-    const grids = viewsByTable.value.get(key)?.filter((v) => v.type === ViewTypes.GRID && v.lock_type !== LockType.Personal)
+    const grids = viewsByTable.value.get(key)?.filter(v => v.type === ViewTypes.GRID && v.lock_type !== LockType.Personal)
     return grids?.length === 1
   }
 
@@ -1318,9 +1336,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
         if (tablesStore.activeTable) tablesStore.activeTable.isViewsLoading = true
 
         await loadViews()
-      } catch (e) {
+      }
+      catch (e) {
         console.error(e)
-      } finally {
+      }
+      finally {
         if (tablesStore.activeTable) tablesStore.activeTable.isViewsLoading = false
       }
     },
@@ -1331,9 +1351,9 @@ export const useViewsStore = defineStore('viewsStore', () => {
     if (!view) return
     if (!view.base_id) return
 
-    const tableName = tablesStore.baseTables.get(view.base_id)?.find((t) => t.id === view.fk_model_id)?.title
+    const tableName = tablesStore.baseTables.get(view.base_id)?.find(t => t.id === view.fk_model_id)?.title
 
-    const base = bases.basesList.find((p) => p.id === view.base_id)
+    const base = bases.basesList.find(p => p.id === view.base_id)
     allRecentViews.value = [
       {
         viewId: view.id,
@@ -1348,7 +1368,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
         managed_app_id: base?.managed_app_id,
         iconColor: parseProp(base?.meta).iconColor,
       },
-      ...allRecentViews.value.filter((f) => f.viewId !== view.id || f.tableID !== view.fk_model_id),
+      ...allRecentViews.value.filter(f => f.viewId !== view.id || f.tableID !== view.fk_model_id),
     ]
   })
 

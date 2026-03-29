@@ -8,7 +8,7 @@ const { workspaces, fetchWorkspaces } = useInstanceAdmin()
 const searchInput = ref('')
 
 const filteredWorkspaces = computed(() =>
-  workspaces.value.filter((ws) => ws.title.toLowerCase().includes(searchInput.value.toLowerCase())),
+  workspaces.value.filter(ws => ws.title.toLowerCase().includes(searchInput.value.toLowerCase())),
 )
 
 const sortedWorkspaces = computed(() => {
@@ -60,15 +60,18 @@ const columns = [
   },
 ] as NcTableColumnProps[]
 
-const customRow = (ws: Record<string, any>) => ({
-  onClick: () => {
-    if (isEeUI) {
-      navigateTo(`/${ws.id}`)
-    } else {
-      navigateTo(`/nc/${ws.id}`)
-    }
-  },
-})
+function customRow(ws: Record<string, any>) {
+  return {
+    onClick: () => {
+      if (isEeUI) {
+        navigateTo(`/${ws.id}`)
+      }
+      else {
+        navigateTo(`/nc/${ws.id}`)
+      }
+    },
+  }
+}
 
 onMounted(() => {
   loadSorts()

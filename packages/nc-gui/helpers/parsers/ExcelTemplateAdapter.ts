@@ -1,5 +1,6 @@
-import { type ColumnType, UITypes, getDateFormat, parseProp, workerWithTimezone } from 'nocodb-sdk'
-import TemplateGenerator, { type ProgressMessageType } from './TemplateGenerator'
+import type { ColumnType } from 'nocodb-sdk'
+import type { ProgressMessageType } from './TemplateGenerator'
+import { getDateFormat, parseProp, UITypes, workerWithTimezone } from 'nocodb-sdk'
 import {
   extractMultiOrSingleSelectProps,
   getCheckboxValue,
@@ -8,6 +9,7 @@ import {
   isMultiLineTextType,
   isUrlType,
 } from './parserHelpers'
+import TemplateGenerator from './TemplateGenerator'
 
 const excelTypeToUidt: Record<string, UITypes> = {
   d: UITypes.DateTime,
@@ -80,7 +82,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
           await new Promise((resolve) => {
             const columnNamePrefixRef: Record<string, any> = { id: 0, Id: 0 }
-            let tn: string = (sheet || 'table').replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_').trim()
+            let tn: string = (sheet || 'table').replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/]/g, '_').trim()
 
             while (tn in tableNamePrefixRef) {
               tn = `${tn}${++tableNamePrefixRef[tn]}`
@@ -122,14 +124,14 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             if (rows[0] && rows[0].length) {
               for (let col = 0; col < rows[0].length; col++) {
                 const title = (
-                  (this.config.firstRowAsHeaders && rows[0] && rows[0][col] && rows[0][col].toString().trim()) ||
-                  `Field ${col + 1}`
+                  (this.config.firstRowAsHeaders && rows[0] && rows[0][col] && rows[0][col].toString().trim())
+                  || `Field ${col + 1}`
                 ).trim()
                 let cn: string = (
-                  (this.config.firstRowAsHeaders && rows[0] && rows[0][col] && rows[0][col].toString().trim()) ||
-                  `field_${col + 1}`
+                  (this.config.firstRowAsHeaders && rows[0] && rows[0][col] && rows[0][col].toString().trim())
+                  || `field_${col + 1}`
                 )
-                  .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
+                  .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/]/g, '_')
                   .trim()
 
                 while (cn in columnNamePrefixRef) {
@@ -160,9 +162,10 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                     )
                     return dateValue?.isValid() ? dateValue.format('YYYY-MM-DD HH:mm:ss Z') : value
                   }
-                } else if (
-                  existingColumn &&
-                  [UITypes.Number, UITypes.Decimal, UITypes.Currency].includes(existingColumn.uidt as UITypes)
+                }
+                else if (
+                  existingColumn
+                  && [UITypes.Number, UITypes.Decimal, UITypes.Currency].includes(existingColumn.uidt as UITypes)
                 ) {
                   colValueResolver[col] = (value: any) => {
                     return Number(value)
@@ -200,11 +203,14 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                   // check for long text
                   if (isMultiLineTextType(rows, col)) {
                     column.uidt = UITypes.LongText
-                  } else if (isEmailType(rows, col)) {
+                  }
+                  else if (isEmailType(rows, col)) {
                     column.uidt = UITypes.Email
-                  } else if (isUrlType(rows, col)) {
+                  }
+                  else if (isUrlType(rows, col)) {
                     column.uidt = UITypes.URL
-                  } else {
+                  }
+                  else {
                     const vals = rows
                       .slice(+this.config.firstRowAsHeaders)
                       .map((r: any) => r[col])
@@ -212,15 +218,17 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
                     if (isCheckboxType(vals)) {
                       column.uidt = UITypes.Checkbox
-                    } else {
+                    }
+                    else {
                       // Single Select / Multi Select
                       Object.assign(column, extractMultiOrSingleSelectProps(vals))
                     }
                   }
-                } else if (column.uidt === UITypes.Number) {
+                }
+                else if (column.uidt === UITypes.Number) {
                   if (
                     rows.slice(1, this.config.maxRowsToParse).some((v: any) => {
-                      return v && v[col] && parseInt(v[col]) !== +v[col]
+                      return v && v[col] && Number.parseInt(v[col]) !== +v[col]
                     })
                   ) {
                     column.uidt = UITypes.Decimal
@@ -247,13 +255,14 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                       })
 
                       const cellObj = ws[cellId]
-                      return !cellObj || (cellObj.w && !(!isNaN(Number(cellObj.w)) && !isNaN(parseFloat(cellObj.w))))
+                      return !cellObj || (cellObj.w && !(!isNaN(Number(cellObj.w)) && !isNaN(Number.parseFloat(cellObj.w))))
                     })
                   ) {
                     // fallback to SingleLineText
                     column.uidt = UITypes.SingleLineText
                   }
-                } else if (column.uidt === UITypes.DateTime) {
+                }
+                else if (column.uidt === UITypes.DateTime) {
                   // TODO(import): centralise
                   // hold the possible date format found in the date
                   const dateFormat: Record<string, number> = {}
@@ -274,8 +283,8 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                   ) {
                     column.uidt = UITypes.Date
                     // take the date format with the max occurrence
-                    column.meta.date_format =
-                      Object.keys(dateFormat).reduce((x, y) => (dateFormat[x] > dateFormat[y] ? x : y)) || 'YYYY/MM/DD'
+                    column.meta.date_format
+                      = Object.keys(dateFormat).reduce((x, y) => (dateFormat[x] > dateFormat[y] ? x : y)) || 'YYYY/MM/DD'
                   }
                 }
               }
@@ -297,36 +306,42 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                     })
                     const cellObj = ws[cellId]
                     rowData[table.columns[i].column_name] = (cellObj && cellObj.w) || row[i]
-                  } else {
+                  }
+                  else {
                     if (table.columns[i].uidt === UITypes.Checkbox) {
                       rowData[table.columns[i].column_name] = getCheckboxValue(row[i])
-                    } else if (table.columns[i].uidt === UITypes.Currency) {
+                    }
+                    else if (table.columns[i].uidt === UITypes.Currency) {
                       const cellId = this.xlsx.utils.encode_cell({
                         c: range.s.c + i,
                         r: rowIndex + +this.config.firstRowAsHeaders,
                       })
 
                       const cellObj = ws[cellId]
-                      rowData[table.columns[i].column_name] =
-                        (cellObj && typeof cellObj?.w === 'string' && cellObj.w.replace(/[^\d.]+/g, '')) || row[i]
-                    } else if (table.columns[i].uidt === UITypes.SingleSelect || table.columns[i].uidt === UITypes.MultiSelect) {
+                      rowData[table.columns[i].column_name]
+                        = (cellObj && typeof cellObj?.w === 'string' && cellObj.w.replace(/[^\d.]+/g, '')) || row[i]
+                    }
+                    else if (table.columns[i].uidt === UITypes.SingleSelect || table.columns[i].uidt === UITypes.MultiSelect) {
                       rowData[table.columns[i].column_name] = (row[i] || '').toString().trim() || null
-                    } else if (table.columns[i].uidt === UITypes.Date) {
+                    }
+                    else if (table.columns[i].uidt === UITypes.Date) {
                       const cellId = this.xlsx.utils.encode_cell({
                         c: range.s.c + i,
                         r: rowIndex + +this.config.firstRowAsHeaders,
                       })
                       const cellObj = ws[cellId]
                       rowData[table.columns[i].column_name] = (cellObj && cellObj.w) || row[i]
-                    } else if (table.columns[i].uidt === UITypes.SingleLineText || table.columns[i].uidt === UITypes.LongText) {
+                    }
+                    else if (table.columns[i].uidt === UITypes.SingleLineText || table.columns[i].uidt === UITypes.LongText) {
                       const rowValue = row[i]
-                      rowData[table.columns[i].column_name] =
-                        rowValue === null || rowValue === undefined
+                      rowData[table.columns[i].column_name]
+                        = rowValue === null || rowValue === undefined
                           ? null
                           : typeof rowValue === 'number'
-                          ? rowValue
-                          : `${rowValue}`
-                    } else {
+                            ? rowValue
+                            : `${rowValue}`
+                    }
+                    else {
                       // TODO: do parsing if necessary based on type
                       rowData[table.columns[i].column_name] = row[i]
                     }

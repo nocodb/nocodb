@@ -1,6 +1,6 @@
+import type { TimeZone } from '@vvo/tzdb'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import { type TimeZone } from '@vvo/tzdb'
 import { isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
 import { defaultOffscreen2DContext, isBoxHovered, truncateText } from '../utils/canvas'
 import { timeCellMaxWidthMap, timeFormatsObj } from '../utils/cell'
@@ -21,8 +21,8 @@ export const DateTimeCellRenderer: CellRenderer = {
 
     const is12hrFormat = columnMeta?.is12hrFormat
     const isValueValid = value && dayjs(value).isValid()
-    const timezoneWidth =
-      isValueValid && isDisplayTimezone && timezone?.abbreviation ? ctx.measureText(timezone.abbreviation).width + 8 : 0
+    const timezoneWidth
+      = isValueValid && isDisplayTimezone && timezone?.abbreviation ? ctx.measureText(timezone.abbreviation).width + 8 : 0
 
     const totalAvailableWidth = width - padding * 3
     const dateTimeWidth = totalAvailableWidth - timezoneWidth
@@ -49,7 +49,8 @@ export const DateTimeCellRenderer: CellRenderer = {
         const { timezonize: timezonizeDayjs } = withTimezone(timezone.name)
 
         dateTimeValue = timezonizeDayjs(dayjs(value))
-      } else {
+      }
+      else {
         dateTimeValue = dayjs(value).utc().local()
       }
     }
@@ -97,7 +98,8 @@ export const DateTimeCellRenderer: CellRenderer = {
       const dateTimeValue = dayjs(value).utc().local()
       dateText = dateTimeValue.format(dateFormat)
       timeText = dateTimeValue.format(is12hrFormat ? timeFormatsObj[timeFormat] : timeFormat)
-    } else {
+    }
+    else {
       dateText = dateFormat
       timeText = timeFormat
       canvasContext.font = '400 13px Inter'

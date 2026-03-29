@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TooltipPlacement } from 'ant-design-vue/es/tooltip'
-import type { CSSProperties } from '@vue/runtime-dom'
+import type { CSSProperties } from 'vue'
 
 defineProps<{
   tooltipStyle?: CSSProperties
@@ -25,9 +25,9 @@ defineProps<{
   >
     <template #title>
       <slot name="title">
-        {{ isSqlView ? $t('tooltip.schemaChangeDisabledFormSqlView') : $t('tooltip.schemaChangeDisabled') }} <br />
+        {{ isSqlView ? $t('tooltip.schemaChangeDisabledFormSqlView') : $t('tooltip.schemaChangeDisabled') }} <br>
         {{ message }}
-        <br v-if="message" />
+        <br v-if="message">
         <a
           v-if="!isSqlView"
           class="!text-current"

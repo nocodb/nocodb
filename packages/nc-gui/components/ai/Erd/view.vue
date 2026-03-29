@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { PanelPosition } from '@vue-flow/additional-components'
 import type { AiBaseSchema, AiERDConfig } from './utils'
+import { PanelPosition } from '@vue-flow/additional-components'
 
 interface Props {
   showAllColumns?: boolean
@@ -21,7 +21,7 @@ const config = reactive<AiERDConfig>({
   isFullScreen: false,
 })
 
-const toggleFullScreen = () => {
+function toggleFullScreen() {
   config.isFullScreen = !config.isFullScreen
 }
 </script>

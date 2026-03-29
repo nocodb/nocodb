@@ -20,17 +20,19 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(['update:selectedDate', 'currentDate'])
 
-const dayjsTz = (value?: string | null | dayjs.Dayjs, format?: string) => {
+function dayjsTz(value?: string | null | dayjs.Dayjs, format?: string) {
   if (typeof value === 'object') {
     return value
   }
   if (props?.timezone) {
     if (!format) {
       return dayjs.tz(value, props.timezone)
-    } else {
+    }
+    else {
       return dayjs.tz(value, format, props.timezone)
     }
-  } else {
+  }
+  else {
     return dayjs(value, format)
   }
 }
@@ -43,13 +45,13 @@ const { is12hrFormat, isMinGranularityPicker, minGranularity, isOpen } = toRefs(
 
 const timeOptionsWrapperRef = ref<HTMLDivElement>()
 
-const compareTime = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
+function compareTime(date1: dayjs.Dayjs, date2: dayjs.Dayjs) {
   if (!date1 || !date2) return false
 
   return date1.format('HH:mm') === date2.format('HH:mm')
 }
 
-const handleSelectTime = (time: dayjs.Dayjs) => {
+function handleSelectTime(time: dayjs.Dayjs) {
   const baseDate = selectedDate.value ? selectedDate.value : dayjsTz()
   pageDate.value = baseDate.set('hour', time.get('hour')).set('minute', time.get('minute'))
 
@@ -71,7 +73,7 @@ const timeOptions = computed(() => {
   })
 })
 
-const handleAutoScroll = (behavior: ScrollBehavior = 'instant') => {
+function handleAutoScroll(behavior: ScrollBehavior = 'instant') {
   if (!timeOptionsWrapperRef.value || !selectedDate.value) return
 
   setTimeout(() => {
@@ -110,7 +112,7 @@ onMounted(() => {
         {{ time.format(is12hrFormat ? 'hh:mm A' : 'HH:mm') }}
       </div>
     </div>
-    <div v-else></div>
+    <div v-else />
     <div class="px-2 py-1 box-border flex items-center justify-center gap-2">
       <NcButton :tabindex="-1" class="!h-7" size="small" type="secondary" @click="handleSelectTime(dayjsTz())">
         <span class="text-small"> {{ $t('general.now') }} </span>

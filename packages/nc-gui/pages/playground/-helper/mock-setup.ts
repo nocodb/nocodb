@@ -43,7 +43,7 @@ const mockUsers = [
   },
 ]
 
-export const mockSetupInit = () => {
+export function mockSetupInit() {
   const { metas } = useMetas()
   for (const table of MOCK_TABLES_RAW) {
     const compositeKey = `${table.base_id}:${table.id}`

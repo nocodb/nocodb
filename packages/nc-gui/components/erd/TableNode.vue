@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import type { NodeProps } from '@vue-flow/core'
-import { Handle, Position, useVueFlow } from '@vue-flow/core'
 import type { LinkToAnotherRecordType } from 'nocodb-sdk'
-import { isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 import type { NodeData } from './utils'
+import { Handle, Position, useVueFlow } from '@vue-flow/core'
+import { isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 
 interface Props extends Pick<NodeProps<NodeData>, 'data' | 'dragging'> {
   data: NodeData
@@ -23,15 +23,16 @@ provide(MetaInj, table)
 
 const { $e } = useNuxtApp()
 
-const relatedColumnId = (colOptions: LinkToAnotherRecordType | any) =>
-  colOptions.type === 'mm' ? colOptions.fk_parent_column_id : colOptions.fk_child_column_id
+function relatedColumnId(colOptions: LinkToAnotherRecordType | any) {
+  return colOptions.type === 'mm' ? colOptions.fk_parent_column_id : colOptions.fk_child_column_id
+}
 
 const hasColumns = computed(() => data.pkAndFkColumns.length || data.nonPkColumns.length)
 
 const nonPkColumns = computed(() =>
   data.nonPkColumns
     // Removed MM system column from the table node
-    .filter((col) => !(col.system && isLinksOrLTAR(col) && /.*_nc_m2m_.*/.test(col.title!))),
+    .filter(col => !(col.system && isLinksOrLTAR(col) && /.*_nc_m2m_.*/.test(col.title!))),
 )
 
 watch(
@@ -49,7 +50,9 @@ watch(
     :disabled="dragging || isZooming"
   >
     <template #title>
-      <div class="capitalize">{{ table?.table_name }}</div>
+      <div class="capitalize">
+        {{ table?.table_name }}
+      </div>
     </template>
 
     <div

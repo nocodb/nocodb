@@ -5,6 +5,7 @@
 import type { PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk'
 
 import { PlanTitles } from 'nocodb-sdk'
+
 interface Props {
   /** Required plan to access new feature */
   planTitle?: PlanTitles

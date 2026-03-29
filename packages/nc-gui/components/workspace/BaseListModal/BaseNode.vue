@@ -34,12 +34,12 @@ const isOptionVisible = computed(() => ({
 }))
 
 // Handlers
-const handleSelect = () => {
+function handleSelect() {
   if (editMode.value) return
   onSelect(props.base)
 }
 
-const enableEditMode = () => {
+function enableEditMode() {
   if (!isOptionVisible.value.baseRename) return
 
   editMode.value = true
@@ -52,7 +52,7 @@ const enableEditMode = () => {
   })
 }
 
-const updateTitle = () => {
+function updateTitle() {
   if (tempTitle.value?.trim()) {
     tempTitle.value = tempTitle.value.trim()
   }
@@ -68,12 +68,12 @@ const updateTitle = () => {
   tempTitle.value = ''
 }
 
-const handleDuplicate = () => {
+function handleDuplicate() {
   onDuplicate(props.base)
   isMenuOpen.value = false
 }
 
-const handleOpenErd = () => {
+function handleOpenErd() {
   const source = props.base.sources?.[0]
 
   if (source) {
@@ -82,23 +82,23 @@ const handleOpenErd = () => {
   isMenuOpen.value = false
 }
 
-const handleOpenSettings = () => {
+function handleOpenSettings() {
   onOpenSettings(props.base)
   isMenuOpen.value = false
 }
 
-const handleDelete = () => {
+function handleDelete() {
   onDelete(props.base)
   isMenuOpen.value = false
 }
 
-const handleColorChange = (color: string) => {
+function handleColorChange(color: string) {
   if (!isOptionVisible.value.baseRename) return
 
   onUpdateColor(props.base, color)
 }
 
-const onMenuClick = (e: Event) => {
+function onMenuClick(e: Event) {
   e.stopPropagation()
 }
 </script>
@@ -148,7 +148,9 @@ const onMenuClick = (e: Event) => {
         <NcTooltip show-on-truncate-only class="min-w-0 truncate text-sm font-medium">
           {{ base.title }}
 
-          <template #title>{{ base.title }}</template>
+          <template #title>
+            {{ base.title }}
+          </template>
         </NcTooltip>
         <!-- Last opened badge -->
         <div
@@ -165,11 +167,15 @@ const onMenuClick = (e: Event) => {
       <div v-if="showStarIndicator || showPrivateIndicator" class="flex items-center gap-1">
         <NcTooltip v-if="showStarIndicator" class="flex">
           <GeneralIcon icon="star" class="flex-none w-3.5 h-3.5 text-nc-content-gray-muted" />
-          <template #title>{{ $t('general.starred') }}</template>
+          <template #title>
+            {{ $t('general.starred') }}
+          </template>
         </NcTooltip>
         <NcTooltip v-if="showPrivateIndicator" class="flex">
           <GeneralIcon icon="ncLock" class="flex-none w-3.5 h-3.5 text-nc-content-gray-muted" />
-          <template #title>{{ $t('general.private') }}</template>
+          <template #title>
+            {{ $t('general.private') }}
+          </template>
         </NcTooltip>
       </div>
 

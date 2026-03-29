@@ -3,30 +3,32 @@ const { api } = useApi()
 
 const { t } = useI18n()
 
-const settings = ref<{ invite_only_signup?: boolean; restrict_workspace_creation?: boolean }>({
+const settings = ref<{ invite_only_signup?: boolean, restrict_workspace_creation?: boolean }>({
   invite_only_signup: false,
   restrict_workspace_creation: false,
 })
 
-const loadSettings = async () => {
+async function loadSettings() {
   try {
     const response = await api.orgAppSettings.get()
     settings.value = response
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
-const saveSettings = async () => {
+async function saveSettings() {
   try {
     await api.orgAppSettings.set(settings.value)
     message.success(t('msg.success.settingsSaved'))
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
-const onRestrictWorkspaceCreationChange = () => {
+function onRestrictWorkspaceCreationChange() {
   // When restricting workspace creation, also enable invite-only signup
   // because users without workspace access won't be able to use the app
   if (settings.value.restrict_workspace_creation) {

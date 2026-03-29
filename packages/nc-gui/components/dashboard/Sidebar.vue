@@ -11,13 +11,14 @@ const treeViewDom = ref<HTMLElement>()
 
 const isTreeViewOnScrollTop = ref(false)
 
-const checkScrollTopMoreThanZero = () => {
+function checkScrollTopMoreThanZero() {
   if (isMobileMode.value) return
 
   if (treeViewDom.value) {
     if (treeViewDom.value.scrollTop > 0) {
       isTreeViewOnScrollTop.value = true
-    } else {
+    }
+    else {
       isTreeViewOnScrollTop.value = false
     }
   }

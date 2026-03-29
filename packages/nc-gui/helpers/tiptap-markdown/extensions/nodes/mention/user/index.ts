@@ -1,25 +1,22 @@
-import TipTapMention, { type MentionNodeAttrs, type MentionOptions } from '@tiptap/extension-mention'
+import type { MentionNodeAttrs, MentionOptions } from '@tiptap/extension-mention'
 import type MarkdownIt from 'markdown-it'
-import regexp from 'markdown-it-regexp'
 import type { UserType } from 'nocodb-sdk'
 import type { MarkdownNodeSpec } from '../../../../types'
+import TipTapMention from '@tiptap/extension-mention'
+import regexp from 'markdown-it-regexp'
 
 const USER_ID_REGEXP = /@\(([^)]+)\)/
 
-export const parseUserMention = (
-  users: (Partial<UserType> | Partial<User>)[] = [],
-  currentUser?: Partial<UserType> | Partial<User> | null,
-  isReadonly = false,
-) => {
+export function parseUserMention(users: (Partial<UserType> | Partial<User>)[] = [], currentUser?: Partial<UserType> | Partial<User> | null, isReadonly = false) {
   return regexp(USER_ID_REGEXP, (match) => {
     const id = match[1]?.split('|')?.[0]
-    const bUser =
-      users.find((user) => user?.id && user.id === id) ||
-      ({
-        id,
-        email: match[1]?.split('|')?.[1],
-        display_name: match[1]?.split('|')?.[2],
-      } as User)
+    const bUser
+      = users.find(user => user?.id && user.id === id)
+        || ({
+          id,
+          email: match[1]?.split('|')?.[1],
+          display_name: match[1]?.split('|')?.[2],
+        } as User)
 
     const processedContent = bUser?.display_name && bUser.display_name.length > 0 ? bUser.display_name : bUser?.email
 
@@ -87,8 +84,8 @@ export const UserMention = TipTapMention.extend<MentionOptions<any, MentionNodeA
       ? (attributes.name && attributes.name.length > 0 ? attributes.name : attributes.email) || ''
       : ''
 
-    const styles =
-      ncIsObject(attributes) && (attributes.isSameUser === true || attributes.isSameUser === 'true') ? 'nc-current-user' : ''
+    const styles
+      = ncIsObject(attributes) && (attributes.isSameUser === true || attributes.isSameUser === 'true') ? 'nc-current-user' : ''
 
     return [
       'span',

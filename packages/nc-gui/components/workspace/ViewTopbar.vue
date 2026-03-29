@@ -11,7 +11,7 @@ const isFreePlan = computed(() => activePlanTitle.value === 'Free')
 
 const { t } = useI18n()
 
-const showUpgrade = () => {
+function showUpgrade() {
   handleUpgradePlan({
     content: t('upgrade.upgradeGenericSubtitle'),
   })

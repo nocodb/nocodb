@@ -1,6 +1,7 @@
+import type { ProgressMessageType } from './TemplateGenerator'
 import { UITypes } from 'nocodb-sdk'
 import { getCheckboxValue, getColumnUIDTAndMetas } from './parserHelpers'
-import TemplateGenerator, { type ProgressMessageType } from './TemplateGenerator'
+import TemplateGenerator from './TemplateGenerator'
 
 const jsonTypeToUidt: Record<string, string> = {
   number: UITypes.Number,
@@ -36,8 +37,8 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
 
   async init() {
     this.progress('Initializing json parser')
-    const parsedJsonData =
-      typeof this._jsonData === 'string'
+    const parsedJsonData
+      = typeof this._jsonData === 'string'
         ? // for json editor
           JSON.parse(this._jsonData)
         : // for file upload
@@ -89,7 +90,8 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
         const normalizedNestedColumns = this._parseColumn([...path, key], this.jsonData, firstRowVal[key])
         columns.push(...normalizedNestedColumns)
       }
-    } else {
+    }
+    else {
       const title = path.join(' ').trim()
       const cn = path.join('_').replace(/\W/g, '_').trim()
       const column: Record<string, any> = {
@@ -117,11 +119,14 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
         const value = extractNestedData(row, tableMeta.columns[i].path || [])
         if (tableMeta.columns[i].uidt === UITypes.Checkbox) {
           rowData[tableMeta.columns[i].ref_column_name] = getCheckboxValue(value)
-        } else if (tableMeta.columns[i].uidt === UITypes.SingleSelect || tableMeta.columns[i].uidt === UITypes.MultiSelect) {
+        }
+        else if (tableMeta.columns[i].uidt === UITypes.SingleSelect || tableMeta.columns[i].uidt === UITypes.MultiSelect) {
           rowData[tableMeta.columns[i].ref_column_name] = (value || '').toString().trim() || null
-        } else if (tableMeta.columns[i].uidt === UITypes.JSON) {
+        }
+        else if (tableMeta.columns[i].uidt === UITypes.JSON) {
           rowData[tableMeta.columns[i].ref_column_name] = JSON.stringify(value)
-        } else {
+        }
+        else {
           // toto: do parsing if necessary based on type
           rowData[tableMeta.columns[i].column_name] = value
         }

@@ -1,14 +1,10 @@
-import { type ColumnType, type UserFieldRecordType, type UserType, arrFlatMap } from 'nocodb-sdk'
+import type { ColumnType, UserFieldRecordType, UserType } from 'nocodb-sdk'
+import { arrFlatMap } from 'nocodb-sdk'
 
-export const getOptions = (
-  column: ColumnType,
-  isEditColumn: boolean,
-  isForm: boolean,
-  baseUsers: (Partial<UserType> | Partial<User>)[],
-) => {
+export function getOptions(column: ColumnType, isEditColumn: boolean, isForm: boolean, baseUsers: (Partial<UserType> | Partial<User>)[]) {
   let order = 1
-  const limitOptionsById =
-    ((parseProp(column.meta)?.limitOptions || []).reduce(
+  const limitOptionsById
+    = ((parseProp(column.meta)?.limitOptions || []).reduce(
       (o: Record<string, FormFieldsLimitOptionsType>, f: FormFieldsLimitOptionsType) => {
         if (order < (f?.order ?? 0)) {
           order = f.order
@@ -42,7 +38,8 @@ export const getOptions = (
         }))
         .sort((a, b) => a.order - b.order),
     )
-  } else {
+  }
+  else {
     collaborators.push(
       ...(baseUsers || [])
         .map((user: any) => ({
@@ -74,31 +71,29 @@ export interface SelectedUserType {
  * @param modelValue
  * @returns
  */
-export const getSelectedUsers = (
-  optionsMap: Record<string, UserFieldRecordType>,
-  modelValue?: UserFieldRecordType[] | UserFieldRecordType | string | null,
-) => {
+export function getSelectedUsers(optionsMap: Record<string, UserFieldRecordType>, modelValue?: UserFieldRecordType[] | UserFieldRecordType | string | null) {
   let selected: SelectedUserType[] = []
 
   if (!modelValue) {
     return selected
   }
   let localModelValue = modelValue
-  if (Array.isArray(localModelValue) && !localModelValue.filter((k) => typeof k !== 'string').length) {
-    localModelValue = arrFlatMap(localModelValue.filter((k) => k).map((u: string) => u?.split?.(','))).join(',')
+  if (Array.isArray(localModelValue) && !localModelValue.filter(k => typeof k !== 'string').length) {
+    localModelValue = arrFlatMap(localModelValue.filter(k => k).map((u: string) => u?.split?.(','))).join(',')
   }
 
   // if stringified json
   if (typeof localModelValue === 'string' && /^\s*[{[]/.test(localModelValue)) {
     try {
       localModelValue = JSON.parse(localModelValue)
-    } catch (e) {
+    }
+    catch (e) {
       // do nothing
     }
   }
 
   if (typeof localModelValue === 'string') {
-    const idsOrMails = localModelValue.split(',').map((idOrMail) => idOrMail.trim())
+    const idsOrMails = localModelValue.split(',').map(idOrMail => idOrMail.trim())
     selected = idsOrMails.reduce((acc, idOrMail) => {
       const user = optionsMap[idOrMail]
       if (user) {
@@ -113,7 +108,8 @@ export const getSelectedUsers = (
       }
       return acc
     }, [] as SelectedUserType[])
-  } else {
+  }
+  else {
     selected = localModelValue
       ? (Array.isArray(localModelValue) ? localModelValue : [localModelValue]).reduce((acc, item) => {
           const label = item?.display_name || item?.email

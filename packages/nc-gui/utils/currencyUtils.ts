@@ -191,7 +191,7 @@ export function validateCurrencyCode(v: string) {
 export async function currencyLocales() {
   const { all } = await import('./currencyCodes')
   return all
-    .filter((l) => validateCurrencyLocale(l.tag))
+    .filter(l => validateCurrencyLocale(l.tag))
     .map((l) => {
       return {
         text: `${l.name} (${l.tag})`,
@@ -203,7 +203,8 @@ export async function currencyLocales() {
 export function validateCurrencyLocale(v: string) {
   try {
     return Intl.NumberFormat.supportedLocalesOf(v).length > 0
-  } catch (e) {
+  }
+  catch (e) {
     return false
   }
 }

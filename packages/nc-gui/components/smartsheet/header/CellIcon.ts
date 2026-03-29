@@ -1,69 +1,97 @@
-// PR review fix #5: UITypes import no longer needed after removing redundant check
-import { type ColumnType } from 'nocodb-sdk'
 import type { PropType } from '@vue/runtime-core'
+// PR review fix #5: UITypes import no longer needed after removing redundant check
+import type { ColumnType } from 'nocodb-sdk'
 
-export const renderIcon = (column: ColumnType, abstractType: any) => {
+export function renderIcon(column: ColumnType, abstractType: any) {
   if (isPrimaryKey(column)) {
     return iconMap.cellSystemKey
     // PR review fix #5: isUUID() already checks column.uidt === UITypes.UUID
-  } else if (isUUID(column)) {
+  }
+  else if (isUUID(column)) {
     return iconMap.cellUuid
-  } else if (isSpecificDBType(column)) {
+  }
+  else if (isSpecificDBType(column)) {
     return iconMap.cellDb
-  } else if (isJSON(column)) {
+  }
+  else if (isJSON(column)) {
     return iconMap.cellJson
-  } else if (isDate(column, abstractType)) {
+  }
+  else if (isDate(column, abstractType)) {
     return iconMap.cellDate
-  } else if (isDateTime(column, abstractType)) {
+  }
+  else if (isDateTime(column, abstractType)) {
     return iconMap.cellDatetime
-  } else if (isGeoData(column)) {
+  }
+  else if (isGeoData(column)) {
     return iconMap.ncMapPin
-  } else if (isSet(column)) {
+  }
+  else if (isSet(column)) {
     return iconMap.cellMultiSelect
-  } else if (isSingleSelect(column)) {
+  }
+  else if (isSingleSelect(column)) {
     return iconMap.cellSingleSelect
-  } else if (isBoolean(column, abstractType)) {
+  }
+  else if (isBoolean(column, abstractType)) {
     return iconMap.cellCheckbox
-  } else if (isAI(column)) {
+  }
+  else if (isAI(column)) {
     return iconMap.cellAi
-  } else if (isTextArea(column)) {
+  }
+  else if (isTextArea(column)) {
     return iconMap.cellLongText
-  } else if (isEmail(column)) {
+  }
+  else if (isEmail(column)) {
     return iconMap.cellEmail
-  } else if (isYear(column, abstractType)) {
+  }
+  else if (isYear(column, abstractType)) {
     return iconMap.cellYear
-  } else if (isTime(column, abstractType)) {
+  }
+  else if (isTime(column, abstractType)) {
     return iconMap.cellTime
-  } else if (isRating(column)) {
+  }
+  else if (isRating(column)) {
     return iconMap.cellRating
-  } else if (isColour(column)) {
+  }
+  else if (isColour(column)) {
     return iconMap.cellColour
-  } else if (isAttachment(column)) {
+  }
+  else if (isAttachment(column)) {
     return iconMap.cellAttachment
-  } else if (isDecimal(column)) {
+  }
+  else if (isDecimal(column)) {
     return iconMap.cellDecimal
-  } else if (isPhoneNumber(column)) {
+  }
+  else if (isPhoneNumber(column)) {
     return iconMap.cellPhone
-  } else if (isURL(column)) {
+  }
+  else if (isURL(column)) {
     return iconMap.cellUrl
-  } else if (isCurrency(column)) {
+  }
+  else if (isCurrency(column)) {
     return iconMap.cellCurrency
-  } else if (isDuration(column)) {
+  }
+  else if (isDuration(column)) {
     return iconMap.cellDuration
-  } else if (isPercent(column)) {
+  }
+  else if (isPercent(column)) {
     return iconMap.cellPercent
-  } else if (isGeometry(column)) {
+  }
+  else if (isGeometry(column)) {
     return iconMap.cellGeometry
-  } else if (isUser(column)) {
-    if ((column.meta as { is_multi?: boolean; notify?: boolean })?.is_multi) {
+  }
+  else if (isUser(column)) {
+    if ((column.meta as { is_multi?: boolean, notify?: boolean })?.is_multi) {
       return iconMap.cellUser
     }
     return iconMap.cellUser
-  } else if (isInt(column, abstractType) || isFloat(column, abstractType)) {
+  }
+  else if (isInt(column, abstractType) || isFloat(column, abstractType)) {
     return iconMap.cellNumber
-  } else if (isString(column, abstractType)) {
+  }
+  else if (isString(column, abstractType)) {
     return iconMap.cellText
-  } else {
+  }
+  else {
     return iconMap.cellSystemText
   }
 }

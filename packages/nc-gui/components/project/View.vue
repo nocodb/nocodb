@@ -41,7 +41,8 @@ const currentBase = computedAsync(async () => {
   if (props.baseId) {
     base = bases.value.get(props.baseId)
     if (!base) base = await $api.base.read(props.baseId!)
-  } else {
+  }
+  else {
     base = openedProject.value
   }
 
@@ -72,7 +73,7 @@ const userCount = computed(() => {
   if (activeProjectId.value) {
     const teamsCount = !isAdminPanel.value && isTeamsEnabled.value ? basesTeams.value.get(activeProjectId.value)?.length ?? 0 : 0
     const usersCount = activeProjectId.value
-      ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length ?? 0
+      ? basesUser.value.get(activeProjectId.value)?.filter(user => !user?.deleted)?.length ?? 0
       : 0
 
     return teamsCount + usersCount
@@ -89,12 +90,12 @@ const isAuditsTabVisible = computed(
 
 const isWorkflowsTabVisible = computed(
   () =>
-    isEeUI &&
-    appInfo.value?.ee &&
-    isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB) &&
-    isUIAllowed('workflowCreateOrEdit') &&
-    !isMobileMode.value &&
-    showEEFeatures.value,
+    isEeUI
+    && appInfo.value?.ee
+    && isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB)
+    && isUIAllowed('workflowCreateOrEdit')
+    && !isMobileMode.value
+    && showEEFeatures.value,
 )
 
 // Get actual workflow count
@@ -148,7 +149,7 @@ watch(
      * We are waiting for base role load and their might be the case that,
      * on navigating to different page this watch get called which will overwrite projectPageTab value and navigateToProjectPage fn get called
      */
-    if (['viewId', 'workflowId', 'scriptId', 'dashboardId'].some((key) => route.value.params[key])) {
+    if (['viewId', 'workflowId', 'scriptId', 'dashboardId'].some(key => route.value.params[key])) {
       return
     }
 
@@ -161,23 +162,32 @@ watch(
     if (newVal && newVal !== oldVal) {
       if (isEeUI && newVal === 'syncs' && !blockSync.value) {
         projectPageTab.value = 'syncs'
-      } else if (newVal === 'data-source') {
+      }
+      else if (newVal === 'data-source') {
         projectPageTab.value = 'data-source'
-      } else if (newVal === 'overview' && isOverviewTabVisible.value) {
+      }
+      else if (newVal === 'overview' && isOverviewTabVisible.value) {
         projectPageTab.value = 'overview'
-      } else if (newVal === 'permissions' && !blockTableAndFieldPermissions.value && isEeUI) {
+      }
+      else if (newVal === 'permissions' && !blockTableAndFieldPermissions.value && isEeUI) {
         projectPageTab.value = 'permissions'
-      } else if (newVal === 'base-settings') {
+      }
+      else if (newVal === 'base-settings') {
         projectPageTab.value = 'base-settings'
-      } else if (newVal === 'audits' && isAuditsTabVisible.value) {
+      }
+      else if (newVal === 'audits' && isAuditsTabVisible.value) {
         projectPageTab.value = 'audits'
-      } else if (newVal === 'workflows' && isWorkflowsTabVisible.value) {
+      }
+      else if (newVal === 'workflows' && isWorkflowsTabVisible.value) {
         projectPageTab.value = 'workflows'
-      } else if (newVal === 'mcp') {
+      }
+      else if (newVal === 'mcp') {
         projectPageTab.value = 'mcp'
-      } else if (newVal === 'snapshots' && isEeUI) {
+      }
+      else if (newVal === 'snapshots' && isEeUI) {
         projectPageTab.value = 'snapshots'
-      } else {
+      }
+      else {
         projectPageTab.value = 'collaborator'
       }
       return
@@ -185,7 +195,8 @@ watch(
 
     if (isAdminPanel.value || !isOverviewTabVisible.value) {
       projectPageTab.value = 'collaborator'
-    } else {
+    }
+    else {
       projectPageTab.value = 'overview'
     }
   },
@@ -355,7 +366,9 @@ watch(
               class="flex font-bold text-base md:text-sm capitalize truncate max-w-150 text-nc-content-gray"
               show-on-truncate-only
             >
-              <template #title> {{ currentBase?.title }}</template>
+              <template #title>
+                {{ currentBase?.title }}
+              </template>
               <span class="truncate">
                 {{ currentBase?.title }}
               </span>
@@ -393,7 +406,7 @@ watch(
         :tab-bar-style="props.tab || showOverviewTab ? { display: 'none' } : undefined"
       >
         <template #leftExtra>
-          <div class="w-3"></div>
+          <div class="w-3" />
         </template>
         <a-tab-pane
           v-if="showOverviewTab || (!isAdminPanel && !props.tab && isOverviewTabVisible && !isMobileMode)"
@@ -521,7 +534,9 @@ watch(
             </div>
           </template>
           <WorkspaceAudits v-if="currentBase?.id && projectPageTab === 'audits'" :base-id="currentBase?.id" />
-          <div v-else>&nbsp;</div>
+          <div v-else>
+&nbsp;
+          </div>
         </a-tab-pane>
         <a-tab-pane v-if="isUIAllowed('manageMCP') && base.id && !isMobileMode" key="mcp">
           <template #tab>
@@ -536,12 +551,12 @@ watch(
         </a-tab-pane>
         <a-tab-pane
           v-if="
-            isEeUI &&
-            isUIAllowed('baseMiscSettings') &&
-            isUIAllowed('manageSnapshot') &&
-            base.id &&
-            !isMobileMode &&
-            showEEFeatures
+            isEeUI
+              && isUIAllowed('baseMiscSettings')
+              && isUIAllowed('manageSnapshot')
+              && base.id
+              && !isMobileMode
+              && showEEFeatures
           "
           key="snapshots"
         >

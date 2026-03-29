@@ -11,7 +11,6 @@ export class OAuthTokenStrategy extends PassportStrategy(
   Strategy,
   'oauth-token',
 ) {
-  // eslint-disable-next-line @typescript-eslint/ban-types
   async validate(req: NcRequest, callback: Function) {
     try {
       // Extract Bearer token from Authorization header

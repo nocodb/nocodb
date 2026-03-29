@@ -66,7 +66,9 @@ const { cellUrlOptions } = useCellUrlConfig(url)
 
     <div v-if="column.meta?.validate && !isValid && value?.length" class="mr-1 w-4">
       <NcTooltip class="flex items-center">
-        <template #title> {{ t('msg.error.invalidURL') }} </template>
+        <template #title>
+          {{ t('msg.error.invalidURL') }}
+        </template>
 
         <GeneralIcon icon="info" class="text-red-400 h-4 w-4 flex-none relative z-3" />
       </NcTooltip>

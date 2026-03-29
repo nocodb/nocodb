@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { Pane } from 'splitpanes'
-import 'splitpanes/dist/splitpanes.css'
-import Draggable from 'vuedraggable'
 import type { ExtensionType } from '#imports'
+import { Pane } from 'splitpanes'
+import Draggable from 'vuedraggable'
+import 'splitpanes/dist/splitpanes.css'
 
 const {
   extensionList,
@@ -42,7 +42,7 @@ const isOpenSearchBox = computed(() => {
   return !!(searchQuery.value || showSearchBox.value)
 })
 
-const handleShowSearchInput = () => {
+function handleShowSearchInput() {
   showSearchBox.value = true
 
   nextTick(() => {
@@ -50,47 +50,49 @@ const handleShowSearchInput = () => {
   })
 }
 
-const handleCloseSearchbox = () => {
+function handleCloseSearchbox() {
   showSearchBox.value = false
   searchQuery.value = ''
 }
 
 const filteredExtensionList = computed(() =>
-  (extensionList.value || []).filter((ext) => ext.title.toLowerCase().includes(searchQuery.value.toLowerCase())),
+  (extensionList.value || []).filter(ext => ext.title.toLowerCase().includes(searchQuery.value.toLowerCase())),
 )
 
-const toggleMarket = () => {
+function toggleMarket() {
   $e('c:extensions:marketplace:open')
   isMarketVisible.value = !isMarketVisible.value
 }
 
-const onMove = async (_event: { moved: { newIndex: number; oldIndex: number; element: ExtensionType } }) => {
+async function onMove(_event: { moved: { newIndex: number, oldIndex: number, element: ExtensionType } }) {
   let {
     moved: { newIndex = 0, oldIndex = 0, element },
   } = _event
 
-  element = extensionList.value?.find((ext) => ext.id === element.id) || element
+  element = extensionList.value?.find(ext => ext.id === element.id) || element
 
   if (!element?.id) return
 
-  newIndex = extensionList.value.findIndex((ext) => ext.id === filteredExtensionList.value[newIndex].id)
+  newIndex = extensionList.value.findIndex(ext => ext.id === filteredExtensionList.value[newIndex].id)
 
-  oldIndex = extensionList.value.findIndex((ext) => ext.id === filteredExtensionList.value[oldIndex].id)
+  oldIndex = extensionList.value.findIndex(ext => ext.id === filteredExtensionList.value[oldIndex].id)
 
   let nextOrder: number
 
   // set new order value based on the new order of the items
   if (extensionList.value.length - 1 === newIndex) {
     // If moving to the end, set nextOrder greater than the maximum order in the list
-    nextOrder = Math.max(...extensionList.value.map((item) => item?.order ?? 0)) + 1
-  } else if (newIndex === 0) {
+    nextOrder = Math.max(...extensionList.value.map(item => item?.order ?? 0)) + 1
+  }
+  else if (newIndex === 0) {
     // If moving to the beginning, set nextOrder smaller than the minimum order in the list
-    nextOrder = Math.min(...extensionList.value.map((item) => item?.order ?? 0)) / 2
-  } else {
-    nextOrder =
-      (parseFloat(String(extensionList.value[newIndex - 1]?.order ?? 0)) +
-        parseFloat(String(extensionList.value[newIndex + 1]?.order ?? 0))) /
-      2
+    nextOrder = Math.min(...extensionList.value.map(item => item?.order ?? 0)) / 2
+  }
+  else {
+    nextOrder
+      = (Number.parseFloat(String(extensionList.value[newIndex - 1]?.order ?? 0))
+        + Number.parseFloat(String(extensionList.value[newIndex + 1]?.order ?? 0)))
+      / 2
   }
 
   const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
@@ -125,7 +127,7 @@ onClickOutside(searchExtensionRef, () => {
   showSearchBox.value = false
 })
 
-const handleAutoScroll = async (id: string) => {
+async function handleAutoScroll(id: string) {
   await ncDelay(500)
 
   await nextTick()
@@ -137,7 +139,7 @@ const handleAutoScroll = async (id: string) => {
   }
 }
 
-const extensionEventBusEvent = (event: ExtensionsEvents, payload: any) => {
+function extensionEventBusEvent(event: ExtensionsEvents, payload: any) {
   if ([ExtensionsEvents.DUPLICATE, ExtensionsEvents.ADD].includes(event) && payload) {
     handleAutoScroll(payload)
   }
@@ -165,8 +167,8 @@ onMounted(() => {
     :style="
       !isReady
         ? {
-            maxWidth: `${extensionPanelSize}%`,
-          }
+          maxWidth: `${extensionPanelSize}%`,
+        }
         : {}
     "
   >
@@ -230,7 +232,9 @@ onMounted(() => {
         </div>
         <template v-if="extensionList.length === 0">
           <div class="flex-1 flex items-center justify-center flex-col gap-4 w-full nc-scrollbar-md text-center p-4">
-            <div class="text-base font-bold text-nc-content-gray">Supercharge Your Workflow with Extensions</div>
+            <div class="text-base font-bold text-nc-content-gray">
+              Supercharge Your Workflow with Extensions
+            </div>
             <div class="text-sm text-nc-content-gray-subtle2">
               Unlock powerful scripts and tools to enhance how you work with your databases. Get started by exploring available
               extensions.
@@ -249,7 +253,7 @@ onMounted(() => {
               </div>
             </NcButton>
 
-            <img src="~assets/img/placeholder/extension.png" class="!w-full min-w-[250px] max-w-[432px] flex-none" />
+            <img src="~assets/img/placeholder/extension.png" class="!w-full min-w-[250px] max-w-[432px] flex-none">
           </div>
         </template>
         <template v-else>
@@ -280,7 +284,7 @@ onMounted(() => {
                     src="~assets/img/placeholder/no-search-result-found.png"
                     class="!w-[164px] flex-none"
                     alt="No search results found"
-                  />
+                  >
 
                   {{ $t('title.noResultsMatchedYourSearch') }}
                 </div>

@@ -1,11 +1,11 @@
 <script setup lang="ts">
+import type { ProductFeedItem } from '../../../lib/types'
+import dayjs from 'dayjs'
 import rehypeSanitize from 'rehype-sanitize'
 import rehypeStringify from 'rehype-stringify'
 import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
 import { unified } from 'unified'
-import dayjs from 'dayjs'
-import type { ProductFeedItem } from '../../../lib/types'
 
 const props = defineProps<{
   item: ProductFeedItem
@@ -40,13 +40,13 @@ const tags = computed(() => [
         },
       ]
     : []),
-  ...(Tags?.split(',').map((tag) => ({
+  ...(Tags?.split(',').map(tag => ({
     text: tag,
     ...(iconColorMap[tag] || {}),
   })) || []),
 ])
 
-const renderMarkdown = async (markdown: string) => {
+async function renderMarkdown(markdown: string) {
   return await unified().use(remarkParse).use(remarkRehype).use(rehypeSanitize).use(rehypeStringify).process(markdown)
 }
 
@@ -55,7 +55,7 @@ const truncate = ref(true)
 const renderedText = computedAsync(async () => {
   return await renderMarkdown(
     truncate.value
-      ? Description.replace(/[*_~]|\[.*?\]|<\/?[^>]+(>|$)/g, '')
+      ? Description.replace(/[*_~]|\[.*?\]|<[^>]+(>|$)/g, '')
           .replace(/\(https?:\/\/[^\s)]+\)\]\(https?:\/\/[^\s)]+\)/g, '')
           .replace(/^(\*\*)?#?\s*(\p{Emoji})\s*NocoDB\s*v[\d.]+(\s*-\s*|\*\*$)/u, '# ')
           .replace(/(!?\(https?:\/\/[^\s)]+\)(?:\]\(https?:\/\/[^\s)]+(?:\s+"[^"]*")?\))?)/g, '')
@@ -71,7 +71,7 @@ const renderedText = computedAsync(async () => {
 
 const { $e } = useNuxtApp()
 
-const expand = (e) => {
+function expand(e) {
   e.stopPropagation()
   truncate.value = false
   $e('c:nocodb:feed:changelog:expand', {
@@ -79,7 +79,7 @@ const expand = (e) => {
   })
 }
 
-const handleOpenUrl = (url: string) => {
+function handleOpenUrl(url: string) {
   if (source === 'Cloud') return
   openLink(url)
 }
@@ -95,7 +95,7 @@ const handleOpenUrl = (url: string) => {
         v-if="Image"
         :src="Image"
         class="absolute w-full h-full inset-0 object-cover transition-all ease-in-out transform hover:scale-105"
-      />
+      >
     </div>
     <div class="flex my-4 px-4 items-center justify-between">
       <div class="flex items-center flex-wrap gap-3">
@@ -138,7 +138,7 @@ const handleOpenUrl = (url: string) => {
       </span>
     </div>
     <div class="flex flex-1 px-4 pb-3 justify-between flex-col gap-2">
-      <div class="prose max-w-none" v-html="renderedText"></div>
+      <div class="prose max-w-none" v-html="renderedText" />
     </div>
     <NcButton v-if="truncate" size="small" class="w-29 mx-4 mb-3" type="text" @click="expand">
       <div class="gap-2 flex items-center">

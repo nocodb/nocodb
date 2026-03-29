@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { CURRENT_USER_TOKEN, type ColumnType, type FilterType, ViewLockType, ViewSettingOverrideOptions } from 'nocodb-sdk'
+import type { ColumnType, FilterType } from 'nocodb-sdk'
 import type ColumnFilter from './ColumnFilter.vue'
+import { CURRENT_USER_TOKEN, ViewLockType, ViewSettingOverrideOptions } from 'nocodb-sdk'
 
 const isLocked = inject(IsLockedInj, ref(false))
 
@@ -78,20 +79,20 @@ watch(
 )
 
 const existingFilters = computed(() => {
-  return (nestedFilters.value || []).filter((f) => f.id && f.status !== 'delete')
+  return (nestedFilters.value || []).filter(f => f.id && f.status !== 'delete')
 })
 
 // We need to cast nestedFilters to any to avoid type check errors in setter for now
 const localFilters = computed({
   get: () => {
     // Strictly return new/local filters (no ID)
-    return (nestedFilters.value || []).filter((f) => !f.id)
+    return (nestedFilters.value || []).filter(f => !f.id)
   },
   set: (val: any[]) => {
     // Merge logic: keep existing (with ID), replace local (no ID)
-    const existing = (nestedFilters.value || []).filter((f) => f.id)
+    const existing = (nestedFilters.value || []).filter(f => f.id)
     // Ensure we don't duplicate if val somehow contains IDs (shouldn't happen)
-    const newLocal = val.filter((f) => !f.id)
+    const newLocal = val.filter(f => !f.id)
 
     nestedFilters.value = [...existing, ...newLocal]
   },
@@ -134,7 +135,7 @@ type FilterTab = 'filters' | 'viewFilters' | 'urlFilters'
 const activeFilterTab = ref<FilterTab>('filters')
 
 const filterTabs = computed(() => {
-  const tabs: { key: FilterTab; label: string; count?: number; tooltip?: string }[] = []
+  const tabs: { key: FilterTab, label: string, count?: number, tooltip?: string }[] = []
 
   // For restricted editors: view filters tab (read-only persisted filters)
   if (isRestrictedEditor.value && filtersLength.value) {
@@ -167,16 +168,16 @@ const showFilterTabs = computed(() => filterTabs.value.length > 1)
 
 // Reset to a valid tab when tabs change (e.g., URL filters removed)
 watch(filterTabs, (tabs) => {
-  if (!tabs.find((tab) => tab.key === activeFilterTab.value)) {
+  if (!tabs.find(tab => tab.key === activeFilterTab.value)) {
     activeFilterTab.value = tabs[0]?.key || 'filters'
   }
 })
 
-const smartsheetEventListener = async (event: string, payload?: any) => {
+async function smartsheetEventListener(event: string, payload?: any) {
   if (
-    (event === SmartsheetStoreEvents.FILTER_RELOAD ||
-      validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.FILTER_CONDITION, payload)) &&
-    activeView?.value?.id
+    (event === SmartsheetStoreEvents.FILTER_RELOAD
+      || validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.FILTER_CONDITION, payload))
+    && activeView?.value?.id
   ) {
     await loadFilters({
       hookId: undefined,
@@ -214,7 +215,7 @@ const combinedFilterLength = computed(() => {
 
 const isCurrentUserFilterPresent = ref(false)
 
-const checkForCurrentUserFilter = (currentFilters: FilterType[] = []) => {
+function checkForCurrentUserFilter(currentFilters: FilterType[] = []) {
   let hasCurrentUserFilter = false
 
   const extractFilterArray = (filters: FilterType[]) => {
@@ -223,10 +224,11 @@ const checkForCurrentUserFilter = (currentFilters: FilterType[] = []) => {
     for (const eachFilter of filters) {
       if (eachFilter.is_group && eachFilter.children?.length) {
         extractFilterArray(eachFilter.children)
-      } else if (
-        eachFilter.fk_column_id &&
-        userColumnIds.value.includes(eachFilter.fk_column_id) &&
-        eachFilter.value?.includes(CURRENT_USER_TOKEN)
+      }
+      else if (
+        eachFilter.fk_column_id
+        && userColumnIds.value.includes(eachFilter.fk_column_id)
+        && eachFilter.value?.includes(CURRENT_USER_TOKEN)
       ) {
         hasCurrentUserFilter = true
       }
@@ -369,8 +371,7 @@ watch(
               data-testid="nc-filter-menu"
               :is-view-filter="true"
               @update:filters-length="filtersLength = $event"
-            >
-            </SmartsheetToolbarColumnFilter>
+            />
           </template>
           <template v-else-if="showTempFilters">
             <SmartsheetToolbarColumnFilter
@@ -383,8 +384,7 @@ watch(
               data-testid="nc-filter-menu"
               :is-view-filter="false"
               :is-temp-filters="true"
-            >
-            </SmartsheetToolbarColumnFilter>
+            />
           </template>
         </div>
 
@@ -404,8 +404,7 @@ watch(
             :is-view-filter="!isPersonalViewNonOwner && !isLocked"
             read-only
             @update:filters-length="filtersLength = $event || 0"
-          >
-          </SmartsheetToolbarColumnFilter>
+          />
         </div>
 
         <!-- Section: URL Filters -->
@@ -426,8 +425,7 @@ watch(
             :is-view-filter="false"
             read-only
             query-filter
-          >
-          </SmartsheetToolbarColumnFilter>
+          />
 
           <div v-else-if="filtersFromUrlParams?.errors?.length">
             <NcAlert

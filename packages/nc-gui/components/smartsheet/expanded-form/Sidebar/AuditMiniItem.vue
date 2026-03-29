@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import type { AttachmentType, AuditType } from 'nocodb-sdk'
 import {
-  type AttachmentType,
-  type AuditType,
+
   checkboxIconListMap,
   isAIPromptCol,
   parseHelper,
@@ -15,7 +15,8 @@ const props = defineProps<{
 const details = computed(() => {
   try {
     return JSON.parse(props.audit.details || '')
-  } catch (e) {
+  }
+  catch (e) {
     return {}
   }
 })
@@ -62,7 +63,7 @@ function normalizeMeta(key: string) {
     ...opts,
     ...mta,
     icon: mta.type === 'Rating' ? ratingIconListMap[icn] : checkboxIconListMap[icn],
-    duration: opts.duration_format ? durationOptions.find((it) => it.title === opts.duration_format)?.id : undefined,
+    duration: opts.duration_format ? durationOptions.find(it => it.title === opts.duration_format)?.id : undefined,
     is12hrFormat: opts['12hr_format'],
     isLocaleString: opts.locale_string,
     isDisplayTimezone: opts?.isDisplayTimezone || opts?.is_display_timezone,
@@ -134,14 +135,14 @@ function shouldShowRaw(key: string) {
   return ['URL', 'PhoneNumber', 'Email'].includes(meta.value?.[key]?.type)
 }
 
-const isAiGeneratedText = (key: string) => {
+function isAiGeneratedText(key: string) {
   return (
     isAIPromptCol({
       uidt: meta.value?.[key]?.type,
       dt: meta.value?.[key]?.type === 'Number' ? 'bigint' : undefined,
       meta: normalizeMeta(key),
-    }) &&
-    (!ncIsObject(newData.value[key]) || !newData.value[key]?.lastModifiedBy)
+    })
+    && (!ncIsObject(newData.value[key]) || !newData.value[key]?.lastModifiedBy)
   )
 }
 </script>
@@ -325,13 +326,11 @@ const isAiGeneratedText = (key: string) => {
             <pre
               v-if="block.op === 'removed'"
               class="text-small1 text-nc-content-red-dark border-1 border-nc-red-200 rounded-md px-1 bg-nc-bg-red-light line-through decoration-clone inline"
-              >{{ block.text }}</pre
-            >
+            >{{ block.text }}</pre>
             <pre
               v-else-if="block.op === 'added'"
               class="text-small1 text-nc-content-green-dark border-1 border-nc-green-200 rounded-md px-1 bg-nc-bg-green-light decoration-clone inline"
-              >{{ block.text }}</pre
-            >
+            >{{ block.text }}</pre>
             <pre v-else class="inline text-small1">{{ block.text }}</pre>
           </template>
         </div>

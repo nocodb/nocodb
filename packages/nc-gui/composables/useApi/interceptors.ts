@@ -1,4 +1,5 @@
 import type { Api } from 'nocodb-sdk'
+
 const DbNotFoundMsg = 'Database config not found'
 
 const TIMEOUT_RETRY_COUNT = 1
@@ -24,7 +25,8 @@ export function addAxiosInterceptors(api: Api<any>, skipSocket = false) {
       if (route.value && route.value.params && route.value.params.typeOrId === 'base') {
         config.headers['xc-shared-base-id'] = route.value.params.baseId
         delete config.headers['xc-auth']
-      } else if (route.value && route.value.params && route.value.params.typeOrId === 'ERD') {
+      }
+      else if (route.value && route.value.params && route.value.params.typeOrId === 'ERD') {
         config.headers['xc-shared-erd-id'] = route.value.params.erdUuid
         delete config.headers['xc-auth']
       }
@@ -38,10 +40,10 @@ export function addAxiosInterceptors(api: Api<any>, skipSocket = false) {
   })
 
   axiosInstance.interceptors.response.use(
-    (response) => response,
+    response => response,
     async (error) => {
-      const isSharedPage =
-        route.value?.params?.typeOrId === 'base' || route.value?.params?.typeOrId === 'ERD' || route.value.meta.public
+      const isSharedPage
+        = route.value?.params?.typeOrId === 'base' || route.value?.params?.typeOrId === 'ERD' || route.value.meta.public
 
       if (error.code === 'ERR_CANCELED') return Promise.reject(error)
 
@@ -87,7 +89,8 @@ export function addAxiosInterceptors(api: Api<any>, skipSocket = false) {
 
           const response = await axiosInstance.request(config)
           return response
-        } catch (refreshTokenError) {
+        }
+        catch (refreshTokenError) {
           if ((refreshTokenError as any)?.code === 'ERR_CANCELED') {
             return Promise.reject(refreshTokenError)
           }

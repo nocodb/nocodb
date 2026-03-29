@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { computed } from '@vue/reactivity'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { forcedNextTick } from '../../utils/browserUtils'
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
@@ -62,8 +61,8 @@ loadRelatedTableMeta()
 
 const hasEditPermission = computed(() => {
   return (
-    ((!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || (isForm.value && !readOnly.value)) &&
-    !(column.value?.readonly && meta.value?.synced)
+    ((!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || (isForm.value && !readOnly.value))
+    && !(column.value?.readonly && meta.value?.synced)
   )
 })
 
@@ -72,17 +71,19 @@ const textVal = computed(() => {
     return state.value?.[colTitle.value]?.length
       ? `${+state.value?.[colTitle.value]?.length} ${t('msg.recordsLinked')}`
       : isForm.value && !isExpandedFormOpen.value
-      ? t('title.linkRecords')
-      : t('msg.noRecordsLinked')
+        ? t('title.linkRecords')
+        : t('msg.noRecordsLinked')
   }
 
   const parsedValue = +value?.value || 0
 
   if (!parsedValue) {
     return t('msg.noRecordsLinked')
-  } else if (parsedValue === 1) {
+  }
+  else if (parsedValue === 1) {
     return `1 ${column.value?.meta?.singular || t('general.link')}`
-  } else {
+  }
+  else {
     return `${parsedValue} ${column.value?.meta?.plural || t('general.links')}`
   }
 })
@@ -94,18 +95,18 @@ const toatlRecordsLinked = computed(() => {
   return +value?.value || 0
 })
 
-const onAttachRecord = () => {
+function onAttachRecord() {
   childListDlg.value = false
   listItemsDlg.value = true
   hideBackBtn.value = false
 }
 
-const onAttachLinkedRecord = () => {
+function onAttachLinkedRecord() {
   listItemsDlg.value = false
   childListDlg.value = true
 }
 
-const openChildList = () => {
+function openChildList() {
   if (isUnderLookup.value) return
 
   childListDlg.value = true
@@ -133,7 +134,7 @@ const localCellValue = computed<any[]>(() => {
   return []
 })
 
-const openListDlg = () => {
+function openListDlg() {
   if (!hasEditPermission.value) return
 
   listItemsDlg.value = true
@@ -157,14 +158,15 @@ watch(
   { flush: 'post' },
 )
 
-const onCellEvent = (event?: Event) => {
+function onCellEvent(event?: Event) {
   if (!(event instanceof KeyboardEvent) || !event.target || isActiveInputElementExist(event)) return
 
   if (isExpandCellKey(event)) {
     if (childListDlg.value) {
       listItemsDlg.value = false
       childListDlg.value = false
-    } else {
+    }
+    else {
       openChildList()
     }
 
@@ -181,11 +183,14 @@ onMounted(() => {
 
       if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-canvas-links-icon-plus', clientMousePosition)) {
         openListDlg()
-      } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-canvas-links-text', clientMousePosition)) {
+      }
+      else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-canvas-links-text', clientMousePosition)) {
         openChildList()
-      } else if (hasEditPermission.value) {
+      }
+      else if (hasEditPermission.value) {
         openListDlg()
-      } else {
+      }
+      else {
         openChildList()
       }
     })

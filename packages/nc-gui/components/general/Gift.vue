@@ -9,10 +9,10 @@ const hideImage = Math.max(document.documentElement.clientHeight || 0, window.in
 
 const isAvailable = computed(() => {
   return (
-    !isEeUI &&
-    user.value?.email &&
-    !/^[a-zA-Z0-9._%+-]+@(gmail|yahoo|hotmail|outlook|aol|icloud|qq|163|126|sina|nocodb)(\.com)?$/i.test(user.value?.email) &&
-    (!giftBannerDismissedCount.value || giftBannerDismissedCount.value < 5)
+    !isEeUI
+    && user.value?.email
+    && !/^[\w.%+-]+@(gmail|yahoo|hotmail|outlook|aol|icloud|qq|163|126|sina|nocodb)(\.com)?$/i.test(user.value?.email)
+    && (!giftBannerDismissedCount.value || giftBannerDismissedCount.value < 5)
   )
 })
 
@@ -20,32 +20,34 @@ if (giftBannerDismissedCount.value) {
   setTimeout(() => {
     isBannerClosed.value = false
   }, giftBannerDismissedCount.value * 60000)
-} else {
+}
+else {
   isBannerClosed.value = false
 }
 
-const open = () => {
+function open() {
   giftBannerDismissedCount.value++
   $e('a:claim:gift:coupon')
   window.open(appInfo.value?.giftUrl, '_blank', 'noopener,noreferrer')
 }
 
-const closeBanner = () => {
+function closeBanner() {
   if (!giftBannerDismissedCount.value || giftBannerDismissedCount.value < 4) {
     confirmDialog.value = true
-  } else {
+  }
+  else {
     isBannerClosed.value = true
     giftBannerDismissedCount.value++
   }
 }
 
-const dontShowAgain = () => {
+function dontShowAgain() {
   isBannerClosed.value = true
   giftBannerDismissedCount.value = 5
   confirmDialog.value = false
 }
 
-const closeAndShowAgain = () => {
+function closeAndShowAgain() {
   isBannerClosed.value = true
   giftBannerDismissedCount.value++
   confirmDialog.value = false
@@ -59,10 +61,12 @@ const closeAndShowAgain = () => {
         <GeneralIcon class="icon" icon="gift" size="xlarge" />
         <h4>Gifts Unlocked!</h4>
       </div>
-      <div class="body">We are giving away $25 worth of amazon coupons to our pro community edition users!</div>
+      <div class="body">
+        We are giving away $25 worth of amazon coupons to our pro community edition users!
+      </div>
     </div>
     <div v-if="!hideImage && !giftBannerDismissedCount" class="img-wrapper">
-      <img src="~assets/img/giftCard.svg" />
+      <img src="~assets/img/giftCard.svg">
     </div>
 
     <NcButton type="text" size="small" class="close-icon" @click.stop="closeBanner">
@@ -70,10 +74,16 @@ const closeAndShowAgain = () => {
     </NcButton>
     <NcModal v-model:visible="confirmDialog" size="small">
       <div>
-        <div class="mt-1 text-sm">Do you want to remind later on your next visit?</div>
+        <div class="mt-1 text-sm">
+          Do you want to remind later on your next visit?
+        </div>
         <div class="flex justify-end mt-7 gap-x-2">
-          <NcButton type="secondary" size="small" @click="dontShowAgain"> Don’t show again </NcButton>
-          <NcButton type="primary" size="small" @click="closeAndShowAgain"> Yes </NcButton>
+          <NcButton type="secondary" size="small" @click="dontShowAgain">
+            Don’t show again
+          </NcButton>
+          <NcButton type="primary" size="small" @click="closeAndShowAgain">
+            Yes
+          </NcButton>
         </div>
       </div>
     </NcModal>

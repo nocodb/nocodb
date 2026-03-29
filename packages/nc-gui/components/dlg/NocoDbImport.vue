@@ -61,12 +61,12 @@ const migrationUrl = computed(() => {
   return syncOptions.value.secretToken ? `${ncSiteUrl}/?secret=${syncOptions.value.secretToken}` : ''
 })
 
-const onLog = (data: { message: string }) => {
+function onLog(data: { message: string }) {
   progressRef.value?.pushProgress(data.message, 'progress')
   lastProgress.value = { msg: data.message, status: 'progress' }
 }
 
-const onStatus = async (status: JobStatus, data?: any) => {
+async function onStatus(status: JobStatus, data?: any) {
   lastProgress.value = { msg: data?.message, status }
   try {
     if (status === JobStatus.COMPLETED) {
@@ -74,17 +74,20 @@ const onStatus = async (status: JobStatus, data?: any) => {
 
       if (syncOptions.value.workspaceMode || syncOptions.value.newBase) {
         await basesStore.loadProjects()
-      } else {
+      }
+      else {
         await baseStore.loadProject()
       }
 
       progressRef.value?.pushProgress('Done!', status)
       refreshCommandPalette()
       // TODO: add tab of the first table
-    } else if (status === JobStatus.FAILED) {
+    }
+    else if (status === JobStatus.FAILED) {
       if (syncOptions.value.workspaceMode || syncOptions.value.newBase) {
         await basesStore.loadProjects()
-      } else {
+      }
+      else {
         await baseStore.loadProject()
       }
       goBack.value = true
@@ -94,14 +97,15 @@ const onStatus = async (status: JobStatus, data?: any) => {
 
       refreshCommandPalette()
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.log('Error while loading project(s)', e)
   }
 }
 
 const dialogShow = computed({
   get: () => modelValue,
-  set: (v) => emit('update:modelValue', v),
+  set: v => emit('update:modelValue', v),
 })
 
 async function startListening() {
@@ -138,11 +142,13 @@ async function startListening() {
         if (data.status !== 'close') {
           if (data.status) {
             onStatus(data.status as JobStatus, data.data)
-          } else {
+          }
+          else {
             step.value = 2
             onLog(data.data as any)
           }
-        } else {
+        }
+        else {
           listeningForUpdates.value = false
         }
       },
@@ -150,7 +156,8 @@ async function startListening() {
 
     await copy(migrationUrl.value)
     message.info(t('msg.info.copiedToClipboard'))
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.error(e)
     message.error('Failed to start listening')
     listeningImport.value = false
@@ -247,7 +254,9 @@ onUnmounted(() => {
 
     <div v-if="step === 1">
       <div class="text-nc-content-gray-subtle2 text-sm px-2">
-        <p class="mb-2">Easily migrate your base with the following steps:</p>
+        <p class="mb-2">
+          Easily migrate your base with the following steps:
+        </p>
         <ol class="list-decimal list-inside mt-2 pl-1">
           <li>Open <strong>settings</strong> in your NocoDB base</li>
           <li>Navigate to <strong>Migrate</strong> tab</li>
@@ -279,11 +288,15 @@ onUnmounted(() => {
         <a-collapse v-if="!listeningImport" v-model:active-key="collapseKey" ghost class="nc-import-collapse">
           <a-collapse-panel key="advanced-settings">
             <div class="mb-2">
-              <a-checkbox v-model:checked="syncOptions.newBase"> New Base </a-checkbox>
+              <a-checkbox v-model:checked="syncOptions.newBase">
+                New Base
+              </a-checkbox>
             </div>
 
             <div class="mt-2">
-              <a-checkbox v-model:checked="syncOptions.workspaceMode"> Workspace Mode </a-checkbox>
+              <a-checkbox v-model:checked="syncOptions.workspaceMode">
+                Workspace Mode
+              </a-checkbox>
             </div>
 
             <!--
@@ -330,7 +343,9 @@ onUnmounted(() => {
       </div>
 
       <div v-if="!isInProgress" class="text-right mt-4">
-        <NcButton v-if="lastProgress?.status === JobStatus.FAILED" size="small" @click="retryImport"> Retry import </NcButton>
+        <NcButton v-if="lastProgress?.status === JobStatus.FAILED" size="small" @click="retryImport">
+          Retry import
+        </NcButton>
         <NcButton v-else size="small" @click="dialogShow = false">
           {{ syncOptions.workspaceMode || syncOptions.newBase ? 'Go To Dashboard' : 'Go To Base' }}
         </NcButton>

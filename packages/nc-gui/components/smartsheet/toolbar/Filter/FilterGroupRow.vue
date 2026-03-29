@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ClientType } from 'nocodb-sdk'
+import type { ClientType } from 'nocodb-sdk'
 import type { GroupHandler } from './types'
 import { SmartsheetToolbarFilterGroup } from '#components'
 
@@ -78,7 +78,7 @@ const isDisabled = computed(() => {
 })
 
 const isChildLogicalOpChangeAllowed = computed(() => {
-  return new Set(vModel.value.children?.slice(1).map((filter) => filter.logical_op)).size > 1
+  return new Set(vModel.value.children?.slice(1).map(filter => filter.logical_op)).size > 1
 })
 
 // For now hide toggle filter enabled feature
@@ -86,7 +86,7 @@ const isAllowFilterEnableToggle = false
 // #endregion
 
 // #region event handling
-const onFilterChange = (event: FilterGroupChangeEvent) => {
+function onFilterChange(event: FilterGroupChangeEvent) {
   switch (event.type) {
     case 'add': {
       event.filter.fk_parent_id = vModel.value.id
@@ -112,13 +112,13 @@ const onFilterChange = (event: FilterGroupChangeEvent) => {
     }
   }
 }
-const onFilterRowChange = (event: FilterRowChangeEvent) => {
+function onFilterRowChange(event: FilterRowChangeEvent) {
   emits('change', {
     ...event,
     index: props.index,
   })
 }
-const onLogicalOpChange = (logical_op: string) => {
+function onLogicalOpChange(logical_op: string) {
   const prevValue = vModel.value.logical_op
   if (props.handler?.rowChange) {
     props.handler?.rowChange({
@@ -128,7 +128,8 @@ const onLogicalOpChange = (logical_op: string) => {
       value: logical_op,
       index: props.index,
     })
-  } else {
+  }
+  else {
     vModel.value.logical_op = logical_op as any
     emits('change', {
       filter: { ...vModel.value },
@@ -139,14 +140,14 @@ const onLogicalOpChange = (logical_op: string) => {
     })
   }
 }
-const onDelete = () => {
+function onDelete() {
   emits('delete', {
     filter: { ...vModel.value },
     index: props.index,
   })
 }
 
-const onCopy = () => {
+function onCopy() {
   emits('copy', {
     filter: { ...vModel.value },
     index: props.index,
@@ -157,7 +158,7 @@ const isFilterEnabled = computed(() => vModel.value.enabled !== false)
 
 const effectiveEnabled = computed(() => props.parentEnabled !== false && isFilterEnabled.value)
 
-const onEnabledChange = (val: boolean | Event) => {
+function onEnabledChange(val: boolean | Event) {
   const newValue = typeof val === 'boolean' ? val : (val?.target as HTMLInputElement)?.checked
   const prevValue = vModel.value.enabled
   vModel.value.enabled = newValue
@@ -170,7 +171,8 @@ const onEnabledChange = (val: boolean | Event) => {
       value: newValue,
       index: props.index,
     })
-  } else {
+  }
+  else {
     emits('change', {
       filter: { ...vModel.value },
       type: 'enabled',
@@ -181,7 +183,7 @@ const onEnabledChange = (val: boolean | Event) => {
   }
 }
 
-const onToggleFilterChange = (val: boolean | Event) => {
+function onToggleFilterChange(val: boolean | Event) {
   if (blockToggleFilter.value) {
     showUpgradeToUseToggleFilter()
     return
@@ -254,7 +256,9 @@ const onToggleFilterChange = (val: boolean | Event) => {
             >
               <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value">
                 <div class="flex items-center w-full justify-between gap-2">
-                  <div class="truncate flex-1 capitalize">{{ op.text }}</div>
+                  <div class="truncate flex-1 capitalize">
+                    {{ op.text }}
+                  </div>
                   <component
                     :is="iconMap.check"
                     v-if="vModel.logical_op === op.value"

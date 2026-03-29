@@ -9,8 +9,8 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { isGrid, isGallery, isKanban, isMap, isCalendar, isList, isForm, isViewOperationsAllowed, allFilters, isTimeline } =
-  useSmartsheetStoreOrThrow()
+const { isGrid, isGallery, isKanban, isMap, isCalendar, isList, isForm, isViewOperationsAllowed, allFilters, isTimeline }
+  = useSmartsheetStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
@@ -38,10 +38,10 @@ const router = useRouter()
 
 const disableToolbar = computed(
   () =>
-    router.currentRoute.value.query?.disableToolbar === 'true' ||
-    (isCalendar.value && isMobileMode.value) ||
-    isTimeline.value ||
-    isForm.value,
+    router.currentRoute.value.query?.disableToolbar === 'true'
+    || (isCalendar.value && isMobileMode.value)
+    || isTimeline.value
+    || isForm.value,
 )
 
 const isTab = computed(() => {
@@ -49,14 +49,16 @@ const isTab = computed(() => {
   return width.value > 1200
 })
 
-/** EE only: Check if any filters are pinned to the toolbar.
+/**
+ * EE only: Check if any filters are pinned to the toolbar.
  *  Hidden for restricted editors in collaborative/locked views — they cannot modify filters.
- *  Visible for personal view owners — they have full control over view config. */
+ *  Visible for personal view owners — they have full control over view config.
+ */
 const hasPinnedFilters = computed(() => {
   if (!isEeUI) return false
   if (blockPinnedFilter.value) return false
   if (isLocked.value || !canSyncFilter.value) return false
-  return allFilters.value.some((f) => f.id && !f.is_group && parseProp(f.meta)?.pinned === true)
+  return allFilters.value.some(f => f.id && !f.is_group && parseProp(f.meta)?.pinned === true)
 })
 
 const isToolbarIconMode = computed(() => {
@@ -126,13 +128,13 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
 
           <SmartsheetToolbarBulkAction
             v-if="
-              !isMobileMode &&
-              (isGrid || isGallery) &&
-              !isPublic &&
-              !isSharedBase &&
-              isUIAllowed('scriptExecute') &&
-              isViewActionsEnabled &&
-              showEEFeatures
+              !isMobileMode
+                && (isGrid || isGallery)
+                && !isPublic
+                && !isSharedBase
+                && isUIAllowed('scriptExecute')
+                && isViewActionsEnabled
+                && showEEFeatures
             "
           />
         </template>
@@ -154,12 +156,12 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
 
       <SmartsheetToolbarPinnedFilters
         v-if="
-          isEeUI &&
-          !blockPinnedFilter &&
-          !isMobileMode &&
-          !isLocked &&
-          canSyncFilter &&
-          (isGrid || isGallery || isKanban || isMap)
+          isEeUI
+            && !blockPinnedFilter
+            && !isMobileMode
+            && !isLocked
+            && canSyncFilter
+            && (isGrid || isGallery || isKanban || isMap)
         "
       />
 

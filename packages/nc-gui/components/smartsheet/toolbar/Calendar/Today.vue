@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-const { selectedDate, selectedMonth, selectedDateRange, pageDate, activeCalendarView, timezoneDayjs } =
-  useCalendarViewStoreOrThrow()
+const { selectedDate, selectedMonth, selectedDateRange, pageDate, activeCalendarView, timezoneDayjs }
+  = useCalendarViewStoreOrThrow()
 
 const { $e } = useNuxtApp()
 
-const goToToday = () => {
+function goToToday() {
   $e('c:calendar:calendar-today-btn', activeCalendarView.value)
   selectedDate.value = timezoneDayjs.dayjsTz()
   pageDate.value = timezoneDayjs.dayjsTz()

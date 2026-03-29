@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { type GridType, type ListType, ViewTypes } from 'nocodb-sdk'
+import type { GridType, ListType } from 'nocodb-sdk'
+import { ViewTypes } from 'nocodb-sdk'
 
-const rowHeightOptions: { icon: keyof typeof iconMap; heightClass: string }[] = [
+const rowHeightOptions: { icon: keyof typeof iconMap, heightClass: string }[] = [
   {
     icon: 'heightShort',
     heightClass: 'short',
@@ -55,7 +56,7 @@ const currentRowHeight = computed(() => {
   return (view.value?.view as GridType)?.row_height
 })
 
-const updateRowHeight = async (rh: number, undo = false) => {
+async function updateRowHeight(rh: number, undo = false) {
   if (isLocked.value) return
 
   if (view.value?.id) {
@@ -87,7 +88,8 @@ const updateRowHeight = async (rh: number, undo = false) => {
       )
 
       open.value = false
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error((await extractSdkResponseErrorMsg(e)) || 'There was an error while updating view!')
     }
   }
@@ -101,7 +103,7 @@ const _wrapHeaders = computed({
   set: async (val: boolean) => {
     if (isLocked.value || !view.value?.id || !isList.value || !listViewStore?.selectedLevel.value) return
 
-    const updatedLevels = listViewStore.levels.value.map((l) =>
+    const updatedLevels = listViewStore.levels.value.map(l =>
       l.id === listViewStore!.selectedLevel.value?.id ? { ...l, wrap_headers: val } : { ...l },
     )
     await listViewStore.saveLevelConfiguration({ levels: updatedLevels })
@@ -136,7 +138,9 @@ useMenuCloseOnEsc(open)
     <template #overlay>
       <div class="p-1.5 menu-filter-dropdown min-w-[160px]" data-testid="nc-height-menu">
         <div class="flex flex-col w-full text-sm" @click.stop>
-          <div class="text-xs text-nc-content-gray-muted px-3 pt-2 pb-1 select-none">{{ $t('objects.rowHeight') }}</div>
+          <div class="text-xs text-nc-content-gray-muted px-3 pt-2 pb-1 select-none">
+            {{ $t('objects.rowHeight') }}
+          </div>
           <div
             v-for="(item, i) of rowHeightOptions"
             :key="i"

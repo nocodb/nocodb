@@ -50,20 +50,20 @@ const filteredManagedApps = computed(() => {
     filtered = filtered.filter((ma) => {
       if (!ma.category) return false
       // Check if selected category exists in comma-separated list
-      const categories = ma.category.split(',').map((c) => c.trim())
+      const categories = ma.category.split(',').map(c => c.trim())
       return categories.includes(selected)
     })
   }
 
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter((ma) => searchCompare([ma.title, ma.description, ma.category], query))
+    filtered = filtered.filter(ma => searchCompare([ma.title, ma.description, ma.category], query))
   }
 
   return filtered
 })
 
-const loadManagedApps = async () => {
+async function loadManagedApps() {
   if (!props.workspaceId) {
     console.error('WorkspaceId is required')
     return
@@ -81,15 +81,17 @@ const loadManagedApps = async () => {
     })
 
     managedApps.value = response?.list || []
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.error('API error:', e)
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
 
-const installManagedApp = async (managedApp: ManagedAppType) => {
+async function installManagedApp(managedApp: ManagedAppType) {
   installing.value = managedApp.id
   try {
     await $api.internal.postOperation(
@@ -107,14 +109,16 @@ const installManagedApp = async (managedApp: ManagedAppType) => {
     message.success(t('msg.success.baseInstalled'))
     emit('installed', managedApp)
     visible.value = false
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     installing.value = null
   }
 }
 
-const formatInstallCount = (count: number | null | undefined): string => {
+function formatInstallCount(count: number | null | undefined): string {
   const num = count || 0
   if (num >= 1000000) {
     return `${(num / 1000000).toFixed(1)}M`
@@ -145,8 +149,12 @@ watch(
           <GeneralIcon icon="ncBox" class="h-5 w-5" />
         </div>
         <div class="flex-1">
-          <div class="text-lg font-semibold text-nc-content-gray-emphasis">{{ t('title.appStore') }}</div>
-          <div class="text-xs text-nc-content-gray-subtle2">Discover and install managed applications</div>
+          <div class="text-lg font-semibold text-nc-content-gray-emphasis">
+            {{ t('title.appStore') }}
+          </div>
+          <div class="text-xs text-nc-content-gray-subtle2">
+            Discover and install managed applications
+          </div>
         </div>
 
         <NcButton size="small" type="text" @click="visible = false">
@@ -193,7 +201,9 @@ watch(
       <div v-if="loading" class="flex items-center justify-center h-full">
         <div class="flex flex-col items-center gap-3">
           <a-spin size="large" />
-          <div class="text-sm text-nc-content-gray-muted">Loading applications...</div>
+          <div class="text-sm text-nc-content-gray-muted">
+            Loading applications...
+          </div>
         </div>
       </div>
 
@@ -202,7 +212,9 @@ watch(
         <div class="nc-empty-icon">
           <GeneralIcon icon="ncBox" class="h-10 w-10 text-nc-content-gray-muted" />
         </div>
-        <div class="text-base font-semibold text-nc-content-gray mb-2">No applications found</div>
+        <div class="text-base font-semibold text-nc-content-gray mb-2">
+          No applications found
+        </div>
         <div class="text-sm text-nc-content-gray-subtle text-center max-w-md">
           {{
             searchQuery || selectedCategory
@@ -223,7 +235,9 @@ watch(
               </div>
               <div class="nc-app-details">
                 <div class="nc-app-title-row">
-                  <h3 class="nc-app-title">{{ managedApp.title }}</h3>
+                  <h3 class="nc-app-title">
+                    {{ managedApp.title }}
+                  </h3>
                   <div v-if="managedApp.category" class="nc-app-categories">
                     <div
                       v-for="cat in managedApp.category

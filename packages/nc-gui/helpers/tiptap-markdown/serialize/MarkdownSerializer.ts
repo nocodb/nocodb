@@ -1,6 +1,6 @@
 import type { AnyExtension, Editor } from '@tiptap/core'
 import type { Node } from '@tiptap/pm/model'
-import { HTMLMark, HTMLNode, HardBreak } from '../extensions'
+import { HardBreak, HTMLMark, HTMLNode } from '../extensions'
 import { getMarkdownSpec } from '../util/extensions'
 import { MarkdownSerializerState } from './state'
 
@@ -23,22 +23,22 @@ export class MarkdownSerializer {
 
   get nodes() {
     return {
-      ...Object.fromEntries(Object.keys(this.editor.schema.nodes).map((name) => [name, this.serializeNode(HTMLNode)])),
+      ...Object.fromEntries(Object.keys(this.editor.schema.nodes).map(name => [name, this.serializeNode(HTMLNode)])),
       ...Object.fromEntries(
         this.editor.extensionManager.extensions
-          .filter((extension) => extension.type === 'node' && this.serializeNode(extension))
-          .map((extension) => [extension.name, this.serializeNode(extension)]) ?? [],
+          .filter(extension => extension.type === 'node' && this.serializeNode(extension))
+          .map(extension => [extension.name, this.serializeNode(extension)]) ?? [],
       ),
     }
   }
 
   get marks() {
     return {
-      ...Object.fromEntries(Object.keys(this.editor.schema.marks).map((name) => [name, this.serializeMark(HTMLMark)])),
+      ...Object.fromEntries(Object.keys(this.editor.schema.marks).map(name => [name, this.serializeMark(HTMLMark)])),
       ...Object.fromEntries(
         this.editor.extensionManager.extensions
-          .filter((extension) => extension.type === 'mark' && this.serializeMark(extension))
-          .map((extension) => [extension.name, this.serializeMark(extension)]) ?? [],
+          .filter(extension => extension.type === 'mark' && this.serializeMark(extension))
+          .map(extension => [extension.name, this.serializeMark(extension)]) ?? [],
       ),
     }
   }

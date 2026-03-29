@@ -51,6 +51,6 @@ export default plugin(({ addUtilities }) => {
   addUtilities(utils, {
     layer: 'utilities',
     variants: ['responsive'],
-    completions: Object.keys(utils).map((k) => k.replace(/^\./, '')),
+    completions: Object.keys(utils).map(k => k.replace(/^\./, '')),
   })
 })

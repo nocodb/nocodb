@@ -16,7 +16,7 @@ onKeyDown('esc', () => {
   emit('update:modelValue', false)
 })
 
-const close = () => {
+function close() {
   dialogShow.value = false
   emit('cancel')
 }
@@ -35,11 +35,15 @@ const close = () => {
       {{ isSelectedAll ? $t('activity.deleteAllRecords') : $t('activity.deleteAllSelectedRecords') }}
     </div>
     <div data-testid="nc-expand-table-modal" class="flex flex-col">
-      <div class="mb-2 nc-content-gray">{{ $t('objects.deleteAllRecordDlg.subtitle', { rowCount: rows }) }}</div>
+      <div class="mb-2 nc-content-gray">
+        {{ $t('objects.deleteAllRecordDlg.subtitle', { rowCount: rows }) }}
+      </div>
     </div>
 
     <div class="bg-nc-bg-gray-light py-2 px-4 flex items-center gap-4 w-full rounded-lg">
-      <div class="leading-5 text-nc-content-gray">{{ $t('objects.deleteAllRecordDlg.warning') }}</div>
+      <div class="leading-5 text-nc-content-gray">
+        {{ $t('objects.deleteAllRecordDlg.warning') }}
+      </div>
     </div>
 
     <div class="flex flex-row mt-5 justify-end gap-x-2">

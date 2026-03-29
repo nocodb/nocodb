@@ -1,16 +1,16 @@
 import { RelationTypes } from './globals';
 import UITypes, {
   isBtLikeV2Junction,
+  isLinksOrLTAR,
   isLinkV2,
   isMMOrMMLike,
-  isLinksOrLTAR,
 } from './UITypes';
 
 // Helper to create a column-like object with colOptions
 function makeCol(
   uidt: UITypes,
   type: string,
-  version: number | string | undefined,
+  version: number | string | undefined
 ) {
   return {
     uidt,
@@ -24,11 +24,15 @@ describe('UITypes — V2 LTAR helpers', () => {
   // ==========================================================================
   describe('isLinkV2', () => {
     it('returns true for V2 with numeric version', () => {
-      expect(isLinkV2(makeCol(UITypes.LinkToAnotherRecord, 'oo', 2))).toBe(true);
+      expect(isLinkV2(makeCol(UITypes.LinkToAnotherRecord, 'oo', 2))).toBe(
+        true
+      );
     });
 
     it('returns true for V2 with string version (DB stores as string)', () => {
-      expect(isLinkV2(makeCol(UITypes.LinkToAnotherRecord, 'oo', '2'))).toBe(true);
+      expect(isLinkV2(makeCol(UITypes.LinkToAnotherRecord, 'oo', '2'))).toBe(
+        true
+      );
     });
 
     it('returns true for UITypes.Links with string version', () => {
@@ -38,21 +42,31 @@ describe('UITypes — V2 LTAR helpers', () => {
     it.each(['mo', 'om', 'mm', 'oo', 'bt', 'hm'])(
       'returns true for V2 type=%s regardless of relation type',
       (type) => {
-        expect(isLinkV2(makeCol(UITypes.LinkToAnotherRecord, type, 2))).toBe(true);
-        expect(isLinkV2(makeCol(UITypes.LinkToAnotherRecord, type, '2'))).toBe(true);
-      },
+        expect(isLinkV2(makeCol(UITypes.LinkToAnotherRecord, type, 2))).toBe(
+          true
+        );
+        expect(isLinkV2(makeCol(UITypes.LinkToAnotherRecord, type, '2'))).toBe(
+          true
+        );
+      }
     );
 
     it('returns false for V1 (version=1)', () => {
-      expect(isLinkV2(makeCol(UITypes.LinkToAnotherRecord, 'hm', 1))).toBe(false);
+      expect(isLinkV2(makeCol(UITypes.LinkToAnotherRecord, 'hm', 1))).toBe(
+        false
+      );
     });
 
     it('returns false for V1 with string version', () => {
-      expect(isLinkV2(makeCol(UITypes.LinkToAnotherRecord, 'hm', '1'))).toBe(false);
+      expect(isLinkV2(makeCol(UITypes.LinkToAnotherRecord, 'hm', '1'))).toBe(
+        false
+      );
     });
 
     it('returns false for undefined version', () => {
-      expect(isLinkV2(makeCol(UITypes.LinkToAnotherRecord, 'hm', undefined))).toBe(false);
+      expect(
+        isLinkV2(makeCol(UITypes.LinkToAnotherRecord, 'hm', undefined))
+      ).toBe(false);
     });
 
     it('returns false for non-LTAR column', () => {
@@ -79,15 +93,19 @@ describe('UITypes — V2 LTAR helpers', () => {
       it.each(['mo', 'om', 'mm', 'oo', 'bt'])(
         'returns true for V2 type=%s with numeric version',
         (type) => {
-          expect(isMMOrMMLike(makeCol(UITypes.LinkToAnotherRecord, type, 2))).toBe(true);
-        },
+          expect(
+            isMMOrMMLike(makeCol(UITypes.LinkToAnotherRecord, type, 2))
+          ).toBe(true);
+        }
       );
 
       it.each(['mo', 'om', 'mm', 'oo', 'bt'])(
         'returns true for V2 type=%s with string version from DB',
         (type) => {
-          expect(isMMOrMMLike(makeCol(UITypes.LinkToAnotherRecord, type, '2'))).toBe(true);
-        },
+          expect(
+            isMMOrMMLike(makeCol(UITypes.LinkToAnotherRecord, type, '2'))
+          ).toBe(true);
+        }
       );
 
       it('returns true for UITypes.Links V2', () => {
@@ -98,16 +116,26 @@ describe('UITypes — V2 LTAR helpers', () => {
 
     describe('V1 columns', () => {
       it('returns true for V1 MM (traditional many-to-many)', () => {
-        expect(isMMOrMMLike(makeCol(UITypes.LinkToAnotherRecord, RelationTypes.MANY_TO_MANY, 1))).toBe(true);
-        expect(isMMOrMMLike(makeCol(UITypes.LinkToAnotherRecord, 'mm', '1'))).toBe(true);
+        expect(
+          isMMOrMMLike(
+            makeCol(UITypes.LinkToAnotherRecord, RelationTypes.MANY_TO_MANY, 1)
+          )
+        ).toBe(true);
+        expect(
+          isMMOrMMLike(makeCol(UITypes.LinkToAnotherRecord, 'mm', '1'))
+        ).toBe(true);
       });
 
       it.each(['hm', 'bt', 'oo'])(
         'returns false for V1 type=%s (FK-based)',
         (type) => {
-          expect(isMMOrMMLike(makeCol(UITypes.LinkToAnotherRecord, type, 1))).toBe(false);
-          expect(isMMOrMMLike(makeCol(UITypes.LinkToAnotherRecord, type, '1'))).toBe(false);
-        },
+          expect(
+            isMMOrMMLike(makeCol(UITypes.LinkToAnotherRecord, type, 1))
+          ).toBe(false);
+          expect(
+            isMMOrMMLike(makeCol(UITypes.LinkToAnotherRecord, type, '1'))
+          ).toBe(false);
+        }
       );
     });
 
@@ -116,7 +144,9 @@ describe('UITypes — V2 LTAR helpers', () => {
     });
 
     it('returns false for non-LTAR column', () => {
-      expect(isMMOrMMLike(makeCol(UITypes.SingleLineText, 'mm', 2))).toBe(false);
+      expect(isMMOrMMLike(makeCol(UITypes.SingleLineText, 'mm', 2))).toBe(
+        false
+      );
     });
   });
 
@@ -130,19 +160,25 @@ describe('UITypes — V2 LTAR helpers', () => {
       it.each(['mo', 'oo', 'bt'])(
         'returns true for V2 type=%s with numeric version',
         (type) => {
-          expect(isBtLikeV2Junction(makeCol(UITypes.LinkToAnotherRecord, type, 2))).toBe(true);
-        },
+          expect(
+            isBtLikeV2Junction(makeCol(UITypes.LinkToAnotherRecord, type, 2))
+          ).toBe(true);
+        }
       );
 
       it.each(['mo', 'oo', 'bt'])(
         'returns true for V2 type=%s with string version from DB',
         (type) => {
-          expect(isBtLikeV2Junction(makeCol(UITypes.LinkToAnotherRecord, type, '2'))).toBe(true);
-        },
+          expect(
+            isBtLikeV2Junction(makeCol(UITypes.LinkToAnotherRecord, type, '2'))
+          ).toBe(true);
+        }
       );
 
       it('returns true for UITypes.Links V2 MO', () => {
-        expect(isBtLikeV2Junction(makeCol(UITypes.Links, 'mo', '2'))).toBe(true);
+        expect(isBtLikeV2Junction(makeCol(UITypes.Links, 'mo', '2'))).toBe(
+          true
+        );
       });
     });
 
@@ -150,9 +186,13 @@ describe('UITypes — V2 LTAR helpers', () => {
       it.each(['mm', 'om'])(
         'returns false for V2 type=%s (multi-record)',
         (type) => {
-          expect(isBtLikeV2Junction(makeCol(UITypes.LinkToAnotherRecord, type, '2'))).toBe(false);
-          expect(isBtLikeV2Junction(makeCol(UITypes.LinkToAnotherRecord, type, 2))).toBe(false);
-        },
+          expect(
+            isBtLikeV2Junction(makeCol(UITypes.LinkToAnotherRecord, type, '2'))
+          ).toBe(false);
+          expect(
+            isBtLikeV2Junction(makeCol(UITypes.LinkToAnotherRecord, type, 2))
+          ).toBe(false);
+        }
       );
     });
 
@@ -160,18 +200,26 @@ describe('UITypes — V2 LTAR helpers', () => {
       it.each(['bt', 'oo', 'hm', 'mm'])(
         'returns false for V1 type=%s',
         (type) => {
-          expect(isBtLikeV2Junction(makeCol(UITypes.LinkToAnotherRecord, type, 1))).toBe(false);
-          expect(isBtLikeV2Junction(makeCol(UITypes.LinkToAnotherRecord, type, '1'))).toBe(false);
-        },
+          expect(
+            isBtLikeV2Junction(makeCol(UITypes.LinkToAnotherRecord, type, 1))
+          ).toBe(false);
+          expect(
+            isBtLikeV2Junction(makeCol(UITypes.LinkToAnotherRecord, type, '1'))
+          ).toBe(false);
+        }
       );
     });
 
     it('returns false when colOptions not loaded', () => {
-      expect(isBtLikeV2Junction({ uidt: UITypes.LinkToAnotherRecord })).toBe(false);
+      expect(isBtLikeV2Junction({ uidt: UITypes.LinkToAnotherRecord })).toBe(
+        false
+      );
     });
 
     it('returns false for non-LTAR column', () => {
-      expect(isBtLikeV2Junction(makeCol(UITypes.SingleLineText, 'mo', 2))).toBe(false);
+      expect(isBtLikeV2Junction(makeCol(UITypes.SingleLineText, 'mo', 2))).toBe(
+        false
+      );
     });
   });
 

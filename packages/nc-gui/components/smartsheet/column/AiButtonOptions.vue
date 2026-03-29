@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
-import { type ColumnType } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { isVirtualCol, UITypes } from 'nocodb-sdk'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
 const props = defineProps<{
@@ -47,8 +47,8 @@ const isOpenSelectRecordDropdown = ref<boolean>(false)
 
 const fieldTitle = computed(() => {
   return (
-    vModel.value.title ||
-    generateUniqueColumnName({
+    vModel.value.title
+    || generateUniqueColumnName({
       formState: vModel.value,
       tableExplorerColumns: tableExplorerColumns?.value,
       metaColumns: meta.value?.columns || [],
@@ -72,7 +72,7 @@ const isLoadingViewData = ref(false)
 
 const inputFieldPlaceholder = 'Enter prompt here...\n\n eg : Categorise this {Notes}'
 
-const displayField = computed(() => meta.value?.columns?.find((c) => c?.pv) || meta.value?.columns?.[0] || null)
+const displayField = computed(() => meta.value?.columns?.find(c => c?.pv) || meta.value?.columns?.[0] || null)
 
 const sampleRecords = computed<
   {
@@ -93,14 +93,14 @@ const sampleRecords = computed<
         row,
       }
     })
-    .filter((r) => !!(r.label && r.value))
+    .filter(r => !!(r.label && r.value))
 })
 
 const selectedRecordPk = ref('')
 
 const selectedRecord = computed(() => {
   return (
-    sampleRecords.value.find((r) => r.value === selectedRecordPk.value) || {
+    sampleRecords.value.find(r => r.value === selectedRecordPk.value) || {
       row: {
         row: {},
         oldRow: {},
@@ -116,12 +116,12 @@ const selectedRecord = computed(() => {
 const availableFields = computed(() => {
   if (!meta.value?.columns) return []
   return meta.value.columns.filter(
-    (c) =>
-      c.title &&
-      !c.system &&
-      (!vModel.value?.id || c.id !== vModel.value.id) &&
-      ![UITypes.ID, UITypes.Button, UITypes.Links, UITypes.LinkToAnotherRecord].includes(c.uidt) &&
-      (isEdit.value ? column.value?.id !== c.id : true),
+    c =>
+      c.title
+      && !c.system
+      && (!vModel.value?.id || c.id !== vModel.value.id)
+      && ![UITypes.ID, UITypes.Button, UITypes.Links, UITypes.LinkToAnotherRecord].includes(c.uidt)
+      && (isEdit.value ? column.value?.id !== c.id : true),
   )
 })
 
@@ -134,13 +134,13 @@ const inputColumns = computed(() => {
 const outputFieldOptions = computed(() => {
   if (!meta.value?.columns) return []
   return meta.value.columns.filter(
-    (c) =>
-      !c.system &&
-      !c.pk &&
-      !c.readonly &&
-      c.id !== column.value?.id &&
-      ![UITypes.Attachment, UITypes.Button, UITypes.Links, UITypes.LinkToAnotherRecord].includes(c.uidt) &&
-      !isReadOnlyVirtualCell(c),
+    c =>
+      !c.system
+      && !c.pk
+      && !c.readonly
+      && c.id !== column.value?.id
+      && ![UITypes.Attachment, UITypes.Button, UITypes.Links, UITypes.LinkToAnotherRecord].includes(c.uidt)
+      && !isReadOnlyVirtualCell(c),
   )
 })
 
@@ -155,7 +155,7 @@ const outputColumnIds = computed({
   },
 })
 
-const loadViewData = async (selectDefaultRecord = false) => {
+async function loadViewData(selectDefaultRecord = false) {
   if (!formattedData.value.length && !isLoadingViewData.value) {
     isLoadingViewData.value = true
 
@@ -171,11 +171,11 @@ const loadViewData = async (selectDefaultRecord = false) => {
   }
 }
 
-const removeFromOutputFieldOptions = (id: string) => {
-  outputColumnIds.value = outputColumnIds.value.filter((op) => op !== id)
+function removeFromOutputFieldOptions(id: string) {
+  outputColumnIds.value = outputColumnIds.value.filter(op => op !== id)
 }
 
-const generate = async () => {
+async function generate() {
   if (!selectedRecordPk.value || !outputColumnIds.value.length) return
 
   generatingPreview.value = true
@@ -212,10 +212,11 @@ enum ExpansionPanelKeys {
 
 const expansionInputPanel = ref<ExpansionPanelKeys[]>([])
 
-const handleUpdateExpansionInputPanel = () => {
+function handleUpdateExpansionInputPanel() {
   if (expansionInputPanel.value.includes(ExpansionPanelKeys.input)) {
     expansionInputPanel.value = []
-  } else {
+  }
+  else {
     expansionInputPanel.value = [ExpansionPanelKeys.input]
   }
 }
@@ -231,7 +232,8 @@ watch(isOpenConfigModal, (newValue) => {
   if (newValue) {
     isAiButtonConfigModalOpen.value = true
     loadViewData(true)
-  } else {
+  }
+  else {
     setTimeout(() => {
       isAiButtonConfigModalOpen.value = false
     }, 500)
@@ -259,18 +261,19 @@ const previewPanelDom = ref<HTMLElement>()
 
 const isPreviewPanelOnScrollTop = ref(false)
 
-const checkScrollTopMoreThanZero = () => {
+function checkScrollTopMoreThanZero() {
   if (previewPanelDom.value) {
     if (previewPanelDom.value.scrollTop > 0) {
       isPreviewPanelOnScrollTop.value = true
-    } else {
+    }
+    else {
       isPreviewPanelOnScrollTop.value = false
     }
   }
   return false
 }
 
-const handleResetOutput = () => {
+function handleResetOutput() {
   isAlreadyGenerated.value = false
 
   previewOutputRow.value = { row: {}, oldRow: {}, rowMeta: {} }
@@ -281,7 +284,8 @@ watch(
   () => {
     if (!vModel.value.formula_raw || !outputColumnIds.value.length) {
       disableSubmitBtn.value = true
-    } else {
+    }
+    else {
       disableSubmitBtn.value = false
     }
   },
@@ -294,7 +298,8 @@ onMounted(() => {
   aiError.value = ''
   if (!vModel.value.formula_raw || !outputColumnIds.value.length) {
     disableSubmitBtn.value = true
-  } else {
+  }
+  else {
     disableSubmitBtn.value = false
   }
 })
@@ -308,7 +313,7 @@ onBeforeUnmount(() => {
 <template>
   <div v-if="isAiButtonEnabled" class="relative flex flex-col gap-4">
     <AiIntegrationNotFound v-if="!aiIntegrationAvailable" />
-    <template v-else-if="!!aiError"> </template>
+    <template v-else-if="!!aiError" />
     <template v-else>
       <NcButton type="secondary" size="small" theme="ai" @click.stop="isOpenConfigModal = true">
         <div class="flex items-center justify-center gap-2">
@@ -404,7 +409,9 @@ onBeforeUnmount(() => {
               >
                 <a-form-item class="!my-0" v-bind="validateInfos.formula_raw">
                   <div class="flex flex-col gap-2">
-                    <div class="font-bold">Input Prompt</div>
+                    <div class="font-bold">
+                      Input Prompt
+                    </div>
                     <div class="text-small leading-[18px] text-nc-content-gray-subtle2">
                       Include at least one field in your prompt. Optionally, specify how the field's data should guide the AI's
                       response and the format for the output.
@@ -420,17 +427,17 @@ onBeforeUnmount(() => {
                     />
                     <div class="rounded-b-lg flex items-center gap-2 p-1">
                       <GeneralIcon icon="info" class="!text-nc-content-purple-medium h-4 w-4" />
-                      <span class="text-xs text-nc-content-gray-subtle2"
-                        >Mention fields using curly braces, e.g.
-                        <span class="text-nc-content-purple-dark">{Field name}</span>.</span
-                      >
+                      <span class="text-xs text-nc-content-gray-subtle2">Mention fields using curly braces, e.g.
+                        <span class="text-nc-content-purple-dark">{Field name}</span>.</span>
                     </div>
                   </div>
                 </a-form-item>
 
                 <a-form-item v-bind="validateInfos.output_column_ids" class="!mb-0 !mt-7">
                   <div class="flex flex-col gap-2">
-                    <div class="font-bold">Choose Output Fields To Be Generated by AI</div>
+                    <div class="font-bold">
+                      Choose Output Fields To Be Generated by AI
+                    </div>
                     <div class="text-small leading-[18px] text-nc-content-gray-subtle2">
                       Choose the fields where the AI-generated data will be applied.
                     </div>
@@ -496,7 +503,9 @@ onBeforeUnmount(() => {
                           <SmartsheetHeaderIcon :column="op" class="!mx-0 !mr-1 opacity-80" />
 
                           <NcTooltip show-on-truncate-only class="truncate max-w-[150px]">
-                            <template #title>{{ op.title }}</template>
+                            <template #title>
+                              {{ op.title }}
+                            </template>
                             {{ op.title }}
                           </NcTooltip>
 
@@ -522,7 +531,9 @@ onBeforeUnmount(() => {
             >
               <div class="border-b-1 border-b-nc-border-gray-medium py-2.5 w-full">
                 <div class="flex items-center mx-auto px-6 w-full max-w-[568px]">
-                  <div class="text-base text-nc-content-gray font-bold flex-1">Test Data Generation</div>
+                  <div class="text-base text-nc-content-gray font-bold flex-1">
+                    Test Data Generation
+                  </div>
                 </div>
               </div>
               <div class="flex flex-col gap-6 h-[calc(100%_-_45px)] nc-scrollbar-thin py-6">
@@ -542,14 +553,16 @@ onBeforeUnmount(() => {
                 </div>
 
                 <div class="nc-ai-button-config-right-section">
-                  <div class="px-3 py-1 text-nc-content-gray-subtle2 text-sm">Input fields</div>
+                  <div class="px-3 py-1 text-nc-content-gray-subtle2 text-sm">
+                    Input fields
+                  </div>
                   <div class="flex-1 flex border-1 bg-nc-bg-default border-nc-border-gray-medium rounded-xl mt-2 w-full">
                     <a-collapse
                       v-model:active-key="expansionInputPanel"
                       ghost
                       class="flex-1 nc-ai-button-config-right-collapse nc-collapse-input w-full"
                     >
-                      <template #expandIcon> </template>
+                      <template #expandIcon />
                       <a-collapse-panel :key="ExpansionPanelKeys.input" collapsible="disabled">
                         <template #header>
                           <div
@@ -605,7 +618,9 @@ onBeforeUnmount(() => {
                                       class="!leading-6"
                                     />
                                   </NcTooltip>
-                                  <div v-else class="flex-1 flex items-center gap-2">- Select Record -</div>
+                                  <div v-else class="flex-1 flex items-center gap-2">
+                                    - Select Record -
+                                  </div>
                                   <GeneralLoader v-if="isLoadingViewData && !isOpenSelectRecordDropdown" size="regular" />
                                   <GeneralIcon
                                     v-else
@@ -716,11 +731,13 @@ onBeforeUnmount(() => {
                     'text-nc-content-purple-dark': !!(selectedRecordPk && outputColumnIds.length && inputColumns.length),
                   }"
                 >
-                  <div class="h-2.5 w-2.5 flex-none absolute -top-[30px] border-1 border-current rounded-full bg-current"></div>
+                  <div class="h-2.5 w-2.5 flex-none absolute -top-[30px] border-1 border-current rounded-full bg-current" />
                   <NcTooltip :disabled="!!(selectedRecordPk && outputColumnIds.length && inputColumns.length)">
                     <template #title>
                       <div class="flex flex-col gap-2 py-1 px-0.5">
-                        <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">Preview checklist</div>
+                        <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">
+                          Preview checklist
+                        </div>
 
                         <div class="flex gap-2">
                           <div
@@ -785,8 +802,8 @@ onBeforeUnmount(() => {
                               ? 'Re-generating data'
                               : 'Generating data'
                             : isAlreadyGenerated
-                            ? 'Re-generate data'
-                            : 'Generate data'
+                              ? 'Re-generate data'
+                              : 'Generate data'
                         }}
                       </div>
                     </NcButton>
@@ -817,9 +834,9 @@ onBeforeUnmount(() => {
                       ghost
                       class="flex-1 nc-ai-button-config-right-collapse nc-collapse-output w-full"
                     >
-                      <template #expandIcon> </template>
+                      <template #expandIcon />
                       <a-collapse-panel :key="ExpansionPanelKeys.output" collapsible="disabled">
-                        <template #header> </template>
+                        <template #header />
                         <div
                           v-if="!outputColumnIds.length"
                           class="flex-1 flex text-nc-content-gray-muted text-small leading-[18px]"
@@ -889,7 +906,7 @@ onBeforeUnmount(() => {
       </div>
     </NcModal>
   </div>
-  <div v-else></div>
+  <div v-else />
 </template>
 
 <style lang="scss">

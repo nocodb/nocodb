@@ -40,7 +40,7 @@ const { getMeta } = useMetas()
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
 /** Create a record using the selected template (delegates to shared utility) */
-const handleUseTemplate = async (tmpl: any) => {
+async function handleUseTemplate(tmpl: any) {
   if (!base.value?.id || !meta.value?.id || !tmpl?.id) return
   try {
     await createRecordFromTemplate({
@@ -54,7 +54,8 @@ const handleUseTemplate = async (tmpl: any) => {
 
     message.toast('Record created from template')
     reloadViewDataHook?.trigger()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.error(e)
     message.toast(await extractSdkResponseErrorMsg(e))
   }
@@ -148,11 +149,11 @@ const templatesList = computed(() => {
         :search-input-placeholder="$t('placeholder.searchRecordTemplates')"
         reset-hover-effect-on-mouse-leave
         @change="
-        (option) => {
-          setSelectedTemplate(option.value as string)
-          handleUseTemplate(option.template)
-        }
-      "
+          (option) => {
+            setSelectedTemplate(option.value as string)
+            handleUseTemplate(option.template)
+          }
+        "
       >
         <template #listItemExtraLeft>
           <GeneralIcon icon="ncClipboardType" class="h-4 w-4 flex-none" />

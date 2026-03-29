@@ -49,7 +49,8 @@ export function useColourPicker(opts: {
       e.preventDefault()
       e.stopPropagation()
       save()
-    } else if (e.key === 'Escape') {
+    }
+    else if (e.key === 'Escape') {
       e.preventDefault()
       e.stopPropagation()
       close()
@@ -59,7 +60,8 @@ export function useColourPicker(opts: {
   watch(isOpen, (open) => {
     if (open) {
       document.addEventListener('keydown', onKeyDown)
-    } else {
+    }
+    else {
       document.removeEventListener('keydown', onKeyDown)
     }
   })

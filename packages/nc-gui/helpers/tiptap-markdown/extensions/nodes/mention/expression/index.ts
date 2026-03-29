@@ -1,5 +1,5 @@
-import TipTapMention from '@tiptap/extension-mention'
 import type { VariableDefinition } from 'nocodb-sdk'
+import TipTapMention from '@tiptap/extension-mention'
 
 export const WorkflowExpression = TipTapMention.extend({
   name: 'workflowExpression',
@@ -16,7 +16,7 @@ export const WorkflowExpression = TipTapMention.extend({
     return {
       id: {
         default: null,
-        parseHTML: (element) => element.getAttribute('data-id'),
+        parseHTML: element => element.getAttribute('data-id'),
         renderHTML: (attributes) => {
           if (!attributes.id) {
             return {}
@@ -28,7 +28,7 @@ export const WorkflowExpression = TipTapMention.extend({
       },
       label: {
         default: null,
-        parseHTML: (element) => element.getAttribute('data-label'),
+        parseHTML: element => element.getAttribute('data-label'),
         renderHTML: (attributes) => {
           if (!attributes.label) {
             return {}
@@ -40,7 +40,7 @@ export const WorkflowExpression = TipTapMention.extend({
       },
       expression: {
         default: null,
-        parseHTML: (element) => element.getAttribute('data-expression'),
+        parseHTML: element => element.getAttribute('data-expression'),
         renderHTML: (attributes) => {
           if (!attributes.expression) {
             return {}
@@ -86,10 +86,10 @@ export const WorkflowExpression = TipTapMention.extend({
       },
       // Parse NocoDB expression format
       parse(text: string) {
-        const expressionRegex = /\{\{([^}]+)}}/g
+        const expressionRegex = /\{\{([^}]+)\}\}/g
         const matches = text.matchAll(expressionRegex)
 
-        const expressions: Array<{ expression: string; position: number }> = []
+        const expressions: Array<{ expression: string, position: number }> = []
         for (const match of matches) {
           expressions.push({
             expression: match[1].trim(),

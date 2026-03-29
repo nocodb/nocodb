@@ -1,11 +1,11 @@
 <script setup lang="ts">
+import type { VariableDefinition } from 'nocodb-sdk'
 import Placeholder from '@tiptap/extension-placeholder'
 import StarterKit from '@tiptap/starter-kit'
-import { EditorContent, VueRenderer, useEditor } from '@tiptap/vue-3'
-import type { VariableDefinition } from 'nocodb-sdk'
+import { EditorContent, useEditor, VueRenderer } from '@tiptap/vue-3'
 import tippy from 'tippy.js'
-import { WorkflowExpression, WorkflowVariablePicker } from '~/helpers/tiptap-markdown/extensions'
 import { Markdown } from '~/helpers/tiptap-markdown'
+import { WorkflowExpression, WorkflowVariablePicker } from '~/helpers/tiptap-markdown/extensions'
 
 interface NodeGroup {
   nodeId: string
@@ -42,63 +42,65 @@ const vModel = computed({
 const { readOnly } = toRefs(props)
 
 // Custom suggestion render to pass groupedItems
-const createSuggestionRender = () => ({
-  render: () => {
-    let component: VueRenderer
-    let popup: any
+function createSuggestionRender() {
+  return {
+    render: () => {
+      let component: VueRenderer
+      let popup: any
 
-    return {
-      onStart: (suggestionProps: Record<string, any>) => {
-        component = new VueRenderer(WorkflowVariablePicker, {
-          props: {
+      return {
+        onStart: (suggestionProps: Record<string, any>) => {
+          component = new VueRenderer(WorkflowVariablePicker, {
+            props: {
+              ...suggestionProps,
+              groupedItems: props.groupedVariables,
+            },
+            editor: suggestionProps.editor,
+          })
+
+          if (!suggestionProps.clientRect) return
+
+          popup = tippy('body', {
+            getReferenceClientRect: suggestionProps.clientRect,
+            appendTo: () => document.body,
+            content: component.element,
+            showOnCreate: true,
+            interactive: true,
+            offset: [40, 100],
+            trigger: 'manual',
+            placement: 'left-end',
+          })
+        },
+
+        onUpdate(suggestionProps: Record<string, any>) {
+          component.updateProps({
             ...suggestionProps,
             groupedItems: props.groupedVariables,
-          },
-          editor: suggestionProps.editor,
-        })
+          })
 
-        if (!suggestionProps.clientRect) return
+          if (!suggestionProps.clientRect) return
 
-        popup = tippy('body', {
-          getReferenceClientRect: suggestionProps.clientRect,
-          appendTo: () => document.body,
-          content: component.element,
-          showOnCreate: true,
-          interactive: true,
-          offset: [40, 100],
-          trigger: 'manual',
-          placement: 'left-end',
-        })
-      },
+          popup[0].setProps({
+            getReferenceClientRect: suggestionProps.clientRect,
+          })
+        },
 
-      onUpdate(suggestionProps: Record<string, any>) {
-        component.updateProps({
-          ...suggestionProps,
-          groupedItems: props.groupedVariables,
-        })
+        onKeyDown(suggestionProps: Record<string, any>) {
+          if (suggestionProps.event.key === 'Escape') {
+            popup?.[0]?.hide()
+            return true
+          }
+          return component.ref?.onKeyDown(suggestionProps)
+        },
 
-        if (!suggestionProps.clientRect) return
-
-        popup[0].setProps({
-          getReferenceClientRect: suggestionProps.clientRect,
-        })
-      },
-
-      onKeyDown(suggestionProps: Record<string, any>) {
-        if (suggestionProps.event.key === 'Escape') {
-          popup?.[0]?.hide()
-          return true
-        }
-        return component.ref?.onKeyDown(suggestionProps)
-      },
-
-      onExit() {
-        popup[0].destroy()
-        component.destroy()
-      },
-    }
-  },
-})
+        onExit() {
+          popup[0].destroy()
+          component.destroy()
+        },
+      }
+    },
+  }
+}
 
 const isMultiline = computed(() => props.plugins?.includes('multiline') || false)
 
@@ -130,10 +132,10 @@ const editor = useEditor({
 
           const lowercaseQuery = query.toLowerCase()
           return props.variables.filter(
-            (v) =>
-              v.name.toLowerCase().includes(lowercaseQuery) ||
-              v.key.toLowerCase().includes(lowercaseQuery) ||
-              v.extra?.description?.toLowerCase().includes(lowercaseQuery),
+            v =>
+              v.name.toLowerCase().includes(lowercaseQuery)
+              || v.key.toLowerCase().includes(lowercaseQuery)
+              || v.extra?.description?.toLowerCase().includes(lowercaseQuery),
           )
         },
         char: '{{',
@@ -176,7 +178,7 @@ const editor = useEditor({
 onMounted(() => {
   if (!editor.value || !vModel.value) return
 
-  const expressionRegex = /\{\{([^}]+)}}/g
+  const expressionRegex = /\{\{([^}]+)\}\}/g
   let htmlContent = ''
   let lastIndex = 0
   let match
@@ -199,7 +201,7 @@ onMounted(() => {
 
     // Find the longest matching variable key
     const variable = props.variables
-      .filter((v) => trimmedExpression.includes(v.key))
+      .filter(v => trimmedExpression.includes(v.key))
       .sort((a, b) => b.key.length - a.key.length)[0]
 
     let displayLabel = trimmedExpression
@@ -227,10 +229,12 @@ onMounted(() => {
         if (properties.length > 0) {
           // Use the last property in the chain as the display label
           displayLabel = properties[properties.length - 1]
-        } else {
+        }
+        else {
           displayLabel = variable.name
         }
-      } else {
+      }
+      else {
         displayLabel = variable.name
       }
     }
@@ -250,7 +254,7 @@ onMounted(() => {
   editor.value.commands.setContent(htmlContent || vModel.value)
 })
 
-const insertExpression = () => {
+function insertExpression() {
   if (!editor.value) return
 
   const { $from } = editor.value.state.selection
@@ -262,9 +266,11 @@ const insertExpression = () => {
 
   if (lastChar === '{') {
     editor.value.chain().insertContent('{').run()
-  } else if (lastChar !== ' ' && $from.pos !== 1) {
+  }
+  else if (lastChar !== ' ' && $from.pos !== 1) {
     editor.value.chain().insertContent(' {{').run()
-  } else {
+  }
+  else {
     editor.value.chain().insertContent('{{').run()
   }
 }

@@ -30,7 +30,8 @@ export const PhoneNumberCellRenderer: CellRenderer = {
 
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })
-    } else {
+    }
+    else {
       const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
         x: x + padding,
         y,

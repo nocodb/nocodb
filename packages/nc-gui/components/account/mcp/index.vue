@@ -77,14 +77,16 @@ const columns = [
   },
 ] as NcTableColumnProps[]
 
-const loadUserMcpTokens = async () => {
+async function loadUserMcpTokens() {
   try {
     isLoading.value = true
     await listAccountMcpTokens()
-  } catch (error: any) {
+  }
+  catch (error: any) {
     message.error(await extractSdkResponseErrorMsg(error))
     console.error(error)
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 }
@@ -92,19 +94,19 @@ const loadUserMcpTokens = async () => {
 const isTokenModalVisible = ref(false)
 const activeToken = ref<MCPTokenExtendedType | null>(null)
 
-const handleOpenTokenModal = (token: MCPTokenExtendedType) => {
+function handleOpenTokenModal(token: MCPTokenExtendedType) {
   activeToken.value = token
   isTokenModalVisible.value = true
 }
 
-const regenerateToken = async (token: MCPTokenExtendedType) => {
+async function regenerateToken(token: MCPTokenExtendedType) {
   const newToken = await updateMcpToken(token, true)
   if (newToken) {
     handleOpenTokenModal(newToken)
   }
 }
 
-const confirmDeleteToken = (token: MCPTokenExtendedType) => {
+function confirmDeleteToken(token: MCPTokenExtendedType) {
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgMCPDelete'), {
@@ -123,7 +125,7 @@ const confirmDeleteToken = (token: MCPTokenExtendedType) => {
   }
 }
 
-const closeModal = async () => {
+async function closeModal() {
   activeToken.value = null
   isTokenModalVisible.value = false
   await loadUserMcpTokens()

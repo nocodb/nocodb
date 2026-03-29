@@ -18,7 +18,7 @@ const metaWrite = useVModel(props, 'allowMetaWrite', emits)
           <template #title>
             {{ $t('tooltip.dataWriteOptionDisabled') }}
           </template>
-          <a-switch v-model:checked="dataWrite" :disabled="metaWrite" data-testid="nc-allow-data-write" size="small"></a-switch>
+          <a-switch v-model:checked="dataWrite" :disabled="metaWrite" data-testid="nc-allow-data-write" size="small" />
         </NcTooltip>
         <span class="cursor-pointer text-nc-content-gray" @click="!metaWrite ? (dataWrite = !dataWrite) : undefined">
           {{ $t('labels.allowDataWrite') }}
@@ -37,7 +37,7 @@ const metaWrite = useVModel(props, 'allowMetaWrite', emits)
           data-testid="nc-allow-meta-write"
           class="nc-allow-meta-write"
           size="small"
-        ></a-switch>
+        />
 
         <span class="cursor-pointer text-nc-content-gray" @click="metaWrite = !metaWrite">
           {{ $t('labels.allowMetaWrite') }}

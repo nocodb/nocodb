@@ -19,9 +19,11 @@ function onResize(widthPercent: any) {
 
   if (sidebarWidth > formRightSidebarState.value.maxWidth) {
     formRightSidebarState.value.width = formRightSidebarState.value.maxWidth
-  } else if (sidebarWidth < formRightSidebarState.value.minWidth) {
+  }
+  else if (sidebarWidth < formRightSidebarState.value.minWidth) {
     formRightSidebarState.value.width = formRightSidebarState.value.minWidth
-  } else {
+  }
+  else {
     formRightSidebarState.value.width = sidebarWidth
   }
 }
@@ -29,9 +31,11 @@ function onResize(widthPercent: any) {
 const normalizeSidebarWidth = computed(() => {
   if (formRightSidebarState.value.width > formRightSidebarState.value.maxWidth) {
     return formRightSidebarState.value.maxWidth
-  } else if (formRightSidebarState.value.width < formRightSidebarState.value.minWidth) {
+  }
+  else if (formRightSidebarState.value.width < formRightSidebarState.value.minWidth) {
     return formRightSidebarState.value.minWidth
-  } else {
+  }
+  else {
     return formRightSidebarState.value.width
   }
 })

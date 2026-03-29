@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { type IntegrationCategoryType, SyncDataType, clientTypes as _clientTypes } from '#imports'
+import type { IntegrationCategoryType } from '#imports'
+import { SyncDataType } from '#imports'
 
 const props = defineProps<{
   open: boolean
@@ -11,8 +12,8 @@ const emit = defineEmits(['update:open'])
 
 const vOpen = useVModel(props, 'open', emit)
 
-const { isFromIntegrationPage, showBackButton, pageMode, IntegrationsPageMode, activeIntegration, activeIntegrationItem } =
-  useIntegrationStore()
+const { isFromIntegrationPage, showBackButton, pageMode, IntegrationsPageMode, activeIntegration, activeIntegrationItem }
+  = useIntegrationStore()
 
 const isEditMode = computed(() => pageMode.value === IntegrationsPageMode.EDIT)
 </script>
@@ -38,11 +39,13 @@ const isEditMode = computed(() => pageMode.value === IntegrationsPageMode.EDIT)
             :size="activeIntegrationItem.sub_type === SyncDataType.NOCODB ? 'lg' : 'sm'"
           />
         </div>
-        <div class="flex-1 text-base font-weight-700">{{ activeIntegration?.title }}</div>
+        <div class="flex-1 text-base font-weight-700">
+          {{ activeIntegration?.title }}
+        </div>
       </div>
       <div class="flex items-center gap-3">
-        <slot name="headerRightExtra"> </slot>
-        <slot name="headerRight"> </slot>
+        <slot name="headerRightExtra" />
+        <slot name="headerRight" />
         <NcButton size="small" type="text" @click="vOpen = false">
           <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
         </NcButton>
@@ -52,7 +55,7 @@ const isEditMode = computed(() => pageMode.value === IntegrationsPageMode.EDIT)
     <div class="h-[calc(100%_-_66px)] flex">
       <div class="nc-edit-or-add-integration-left-panel nc-scrollbar-thin relative">
         <div class="w-full gap-4 max-w-[784px]">
-          <slot name="leftPanel" class="nc-edit-or-add-integration relative flex flex-col justify-center gap-2 w-full"> </slot>
+          <slot name="leftPanel" class="nc-edit-or-add-integration relative flex flex-col justify-center gap-2 w-full" />
         </div>
       </div>
 

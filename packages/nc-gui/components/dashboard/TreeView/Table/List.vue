@@ -51,7 +51,7 @@ const menuRefs = ref<HTMLElement[] | HTMLElement>()
 const sortables: Record<string, Sortable> = {}
 
 // todo: replace with vuedraggable
-const initSortable = (el: Element) => {
+function initSortable(el: Element) {
   const source_id = el.getAttribute('nc-source')
   if (!source_id) return
   if (isMobileMode.value) return
@@ -59,7 +59,7 @@ const initSortable = (el: Element) => {
   if (sortables[source_id]) sortables[source_id].destroy()
   Sortable.create(el as HTMLLIElement, {
     onEnd: async (evt) => {
-      const offset = tables.value.findIndex((table) => table.source_id === source_id)
+      const offset = tables.value.findIndex(table => table.source_id === source_id)
 
       const { newIndex = 0, oldIndex = 0 } = evt
 
@@ -85,9 +85,11 @@ const initSortable = (el: Element) => {
       // set new order value based on the new order of the items
       if (children.length - 1 === evt.newIndex) {
         item.order = (itemBefore.order as number) + 1
-      } else if (newIndex === 0) {
+      }
+      else if (newIndex === 0) {
         item.order = (itemAfter.order as number) / 2
-      } else {
+      }
+      else {
         item.order = ((itemBefore.order as number) + (itemAfter.order as number)) / 2
       }
 
@@ -97,7 +99,8 @@ const initSortable = (el: Element) => {
       // force re-render the list
       if (keys.value[source_id]) {
         keys.value[source_id] = keys.value[source_id] + 1
-      } else {
+      }
+      else {
         keys.value[source_id] = 1
       }
 
@@ -136,14 +139,15 @@ watchEffect(() => {
   if (menuRefs.value && isUIAllowed('viewCreateOrEdit')) {
     if (menuRefs.value instanceof HTMLElement) {
       initSortable(menuRefs.value)
-    } else {
-      menuRefs.value.forEach((el) => initSortable(el))
+    }
+    else {
+      menuRefs.value.forEach(el => initSortable(el))
     }
   }
 })
 
 const availableTables = computed(() => {
-  return tables.value.filter((table) => table.source_id === base.value?.sources?.[sourceIndex.value].id)
+  return tables.value.filter(table => table.source_id === base.value?.sources?.[sourceIndex.value].id)
 })
 
 const filteredAvailableTables = computed(() => {
@@ -151,7 +155,7 @@ const filteredAvailableTables = computed(() => {
     if (searchCompare(table.title, baseHomeSearchQuery.value)) return true
     if (!table.base_id || !table.id) return false
     const key = `${table.base_id}:${table.id}`
-    return viewsByTable.value.get(key)?.some((view) => searchCompare(view.title, baseHomeSearchQuery.value))
+    return viewsByTable.value.get(key)?.some(view => searchCompare(view.title, baseHomeSearchQuery.value))
   })
 })
 </script>
@@ -214,8 +218,7 @@ const filteredAvailableTables = computed(() => {
           :data-title="table.title"
           :data-source-id="source?.id"
           :data-type="table.type"
-        >
-        </TableNode>
+        />
       </div>
     </template>
   </div>

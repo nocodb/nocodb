@@ -19,12 +19,13 @@ const ncLinksDropdownRef = ref<HTMLDivElement>()
 
 const randomClass = `link-records_${Math.floor(Math.random() * 99999)}`
 
-const addOrRemoveClass = (add = false) => {
+function addOrRemoveClass(add = false) {
   const dropdownRoot = ncLinksDropdownRef.value?.parentElement?.parentElement?.parentElement?.parentElement as HTMLElement
   if (dropdownRoot) {
     if (add) {
       dropdownRoot.classList.add('inset-0', 'nc-link-dropdown-root', `nc-root-${randomClass}`)
-    } else {
+    }
+    else {
       dropdownRoot.classList.remove('inset-0', 'nc-link-dropdown-root', `nc-root-${randomClass}`)
     }
   }
@@ -39,7 +40,7 @@ const DEFAULT_WIDTH = 540
 const DEFAULT_HEIGHT = 412
 const MAX_HEIGHT = 700
 
-const onResizeStart = (e: MouseEvent) => {
+function onResizeStart(e: MouseEvent) {
   e.preventDefault()
   e.stopPropagation()
 
@@ -96,7 +97,8 @@ watch(
 
         addOrRemoveClass(false)
       })
-    } else {
+    }
+    else {
       addOrRemoveClass(false)
     }
   },
@@ -108,7 +110,8 @@ watch([ncLinksDropdownRef, isOpen], () => {
 
   if (isOpen.value) {
     addOrRemoveClass(true)
-  } else {
+  }
+  else {
     addOrRemoveClass(false)
   }
 })

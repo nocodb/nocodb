@@ -13,7 +13,7 @@ const openKeys = ref([])
 
 const backRoute = computed(() => ncBackRoute().get())
 
-const logout = async () => {
+async function logout() {
   await signOut({
     redirectToSignin: true,
   })
@@ -47,13 +47,17 @@ const logout = async () => {
                 >
                   <div class="flex flex-row gap-x-2 items-center">
                     <GeneralIcon icon="ncArrowLeft" />
-                    <div class="flex text-small leading-[18px] font-semibold">{{ $t('labels.back') }}</div>
+                    <div class="flex text-small leading-[18px] font-semibold">
+                      {{ $t('labels.back') }}
+                    </div>
                   </div>
                 </NcButton>
               </div>
               <NcDivider class="!mt-0" />
 
-              <div class="text-sm text-nc-content-gray-muted font-semibold ml-4 py-1.5 mt-2">{{ $t('labels.account') }}</div>
+              <div class="text-sm text-nc-content-gray-muted font-semibold ml-4 py-1.5 mt-2">
+                {{ $t('labels.account') }}
+              </div>
 
               <NcMenuItem
                 key="profile"
@@ -66,7 +70,9 @@ const logout = async () => {
                 <div class="flex items-center space-x-2">
                   <GeneralIcon icon="ncUser" class="!h-4 !w-4" />
 
-                  <div class="select-none">{{ $t('labels.profile') }}</div>
+                  <div class="select-none">
+                    {{ $t('labels.profile') }}
+                  </div>
                 </div>
               </NcMenuItem>
               <NcMenuItem
@@ -80,7 +86,9 @@ const logout = async () => {
                 <div class="flex items-center space-x-2">
                   <GeneralIcon icon="ncKey2" class="h-4 w-4 flex-none" />
 
-                  <div class="select-none">{{ $t('title.apiTokens') }}</div>
+                  <div class="select-none">
+                    {{ $t('title.apiTokens') }}
+                  </div>
                 </div>
               </NcMenuItem>
               <NcMenuItem
@@ -94,7 +102,9 @@ const logout = async () => {
                 <div class="flex items-center space-x-2">
                   <GeneralIcon icon="mcp" class="h-4 w-4 flex-none" />
 
-                  <div class="select-none">{{ $t('title.mcpServer') }}</div>
+                  <div class="select-none">
+                    {{ $t('title.mcpServer') }}
+                  </div>
                 </div>
               </NcMenuItem>
               <NcMenuItem
@@ -107,7 +117,9 @@ const logout = async () => {
               >
                 <div class="flex items-center space-x-2">
                   <GeneralIcon icon="ncLock" class="!h-4 !w-4" />
-                  <div class="select-none">{{ $t('title.resetPasswordMenu') }}</div>
+                  <div class="select-none">
+                    {{ $t('title.resetPasswordMenu') }}
+                  </div>
                 </div>
               </NcMenuItem>
             </NcMenu>
@@ -124,7 +136,9 @@ const logout = async () => {
               <GeneralReleaseInfo />
 
               <NcTooltip placement="bottom" class="mr-4">
-                <template #title>{{ $t('labels.community.communityTranslated') }}</template>
+                <template #title>
+                  {{ $t('labels.community.communityTranslated') }}
+                </template>
 
                 <div class="flex items-center">
                   <GeneralLanguage button class="cursor-pointer text-2xl hover:text-nc-content-gray" />

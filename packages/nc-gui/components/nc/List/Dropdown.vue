@@ -45,19 +45,20 @@ const vModelIsOpen = computed({
   set(value: boolean) {
     if (isControlled.value) {
       emits('update:isOpen', value)
-    } else {
+    }
+    else {
       innerIsOpen.value = value
     }
   },
 })
 
-const onEsc = (_e: KeyboardEvent) => {
+function onEsc(_e: KeyboardEvent) {
   nextTick(() => {
     triggerRef.value?.focus()
   })
 }
 
-const onEnter = (e: KeyboardEvent) => {
+function onEnter(e: KeyboardEvent) {
   if (disabled.value || vModelIsOpen.value) return
 
   e.preventDefault()
@@ -107,9 +108,9 @@ watch(vModelIsOpen, (newVal) => {
         type="button"
         tabindex="-1"
         class="sr-only outline-none ring-0 shadow-none focus:(outline-none shadow-none)"
-      ></button>
+      />
 
-      <slot name="default" :is-open="vModelIsOpen"> </slot>
+      <slot name="default" :is-open="vModelIsOpen" />
     </div>
     <div v-else :class="defaultSlotWrapperClass">
       <button
@@ -117,13 +118,13 @@ watch(vModelIsOpen, (newVal) => {
         type="button"
         tabindex="-1"
         class="sr-only outline-none ring-0 shadow-none focus:(outline-none shadow-none)"
-      ></button>
+      />
 
-      <slot name="default" :is-open="vModelIsOpen"> </slot>
+      <slot name="default" :is-open="vModelIsOpen" />
     </div>
 
     <template #overlay>
-      <slot name="overlay" :is-open="vModelIsOpen" :on-close="() => (vModelIsOpen = false)" :on-esc="onEsc"></slot>
+      <slot name="overlay" :is-open="vModelIsOpen" :on-close="() => (vModelIsOpen = false)" :on-esc="onEsc" />
     </template>
   </NcDropdown>
 </template>

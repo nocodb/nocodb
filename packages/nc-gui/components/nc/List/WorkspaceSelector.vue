@@ -30,7 +30,7 @@ const modelValue = useVModel(props, 'value', emit)
 
 const isOpenWorkspaceSelectDropdown = ref(false)
 
-const handleValueUpdate = (value: any) => {
+function handleValueUpdate(value: any) {
   modelValue.value = value
 }
 
@@ -57,7 +57,7 @@ const workspaceList = computedAsync(async () => {
 const workspaceListMap = computed(() => {
   if (!workspaceList.value || workspaceList.value.length === 0) return new Map()
 
-  return new Map(workspaceList.value.map((workspace) => [workspace.value, workspace]))
+  return new Map(workspaceList.value.map(workspace => [workspace.value, workspace]))
 })
 
 const selectedWorkspace = computed(() => {
@@ -70,7 +70,7 @@ watch(
   workspaceList,
   (newWorkspaceList) => {
     if (newWorkspaceList && newWorkspaceList.length > 0) {
-      const workspaceValueSet = new Set(newWorkspaceList.map((workspace) => workspace.value))
+      const workspaceValueSet = new Set(newWorkspaceList.map(workspace => workspace.value))
 
       // Check if current value exists in the new workspace list
       if (modelValue.value && !workspaceValueSet.has(modelValue.value)) {
@@ -84,8 +84,9 @@ watch(
         const firstWorkspace = newWorkspaceList[0]
 
         if (firstWorkspace.ncItemDisabled) {
-          modelValue.value = newWorkspaceList.find((workspace) => !workspace.ncItemDisabled)?.value || firstWorkspace.value
-        } else {
+          modelValue.value = newWorkspaceList.find(workspace => !workspace.ncItemDisabled)?.value || firstWorkspace.value
+        }
+        else {
           modelValue.value = firstWorkspace.value
         }
       }
@@ -115,7 +116,9 @@ defineExpose({
   >
     <template v-if="!disableLabel" #label>
       <div>
-        <slot name="label">{{ t('objects.workspace') }}</slot>
+        <slot name="label">
+          {{ t('objects.workspace') }}
+        </slot>
       </div>
     </template>
     <NcListDropdown

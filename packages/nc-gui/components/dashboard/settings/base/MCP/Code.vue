@@ -18,7 +18,7 @@ const { copy } = useCopy()
 
 const isCopied = ref(false)
 
-const onCopyToClipboard = async () => {
+async function onCopyToClipboard() {
   try {
     await copy(code.value)
     // Copied to clipboard
@@ -29,7 +29,8 @@ const onCopyToClipboard = async () => {
     setTimeout(() => {
       isCopied.value = false
     }, 5000)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(e.message)
   }
 }
@@ -38,7 +39,9 @@ const onCopyToClipboard = async () => {
 <template>
   <div class="nc-mcp-code-tab-wrapper h-80 flex flex-col mt-2">
     <div class="flex h-9 bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-medium rounded-t-lg items-center px-3">
-      <div class="flex-1 text-nc-content-gray leading-5">MCP Configuration</div>
+      <div class="flex-1 text-nc-content-gray leading-5">
+        MCP Configuration
+      </div>
       <NcButton type="text" size="small" class="!hover:bg-nc-bg-gray-medium" @click="onCopyToClipboard">
         <div class="flex items-center gap-2 text-small leading-[18px] min-w-80px justify-center">
           <GeneralIcon

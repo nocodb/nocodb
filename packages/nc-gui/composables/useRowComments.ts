@@ -35,8 +35,8 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
           const str = timeAgo(comment.updated_at).replace(' ', '_')
           commentValue += ` [(edited)](a~~~###~~~Edited_${str}) `
         }
-        acc[comment.id] =
-          NcMarkdownParser.parse(
+        acc[comment.id]
+          = NcMarkdownParser.parse(
             commentValue,
             {
               enableMention: !!isEeUI,
@@ -69,8 +69,8 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
       ).list || []) as Array<CommentTypeExtended>
 
       comments.value = res.map((comment) => {
-        const user = baseUsers.value.find((u) => u.id === comment.created_by)
-        const resolvedUser = comment.resolved_by ? baseUsers.value.find((u) => u.id === comment.resolved_by) : null
+        const user = baseUsers.value.find(u => u.id === comment.created_by)
+        const resolvedUser = comment.resolved_by ? baseUsers.value.find(u => u.id === comment.resolved_by) : null
         return {
           ...comment,
           created_display_name: user?.display_name,
@@ -81,7 +81,8 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
           resolved_by_meta: resolvedUser?.meta,
         }
       })
-    } catch (e: unknown) {
+    }
+    catch (e: unknown) {
       message.error(
         await extractSdkResponseErrorMsg(
           e as Error & {
@@ -89,19 +90,20 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
           },
         ),
       )
-    } finally {
+    }
+    finally {
       if (!ignoreLoadingIndicator) isCommentsLoading.value = false
     }
   }
 
   const deleteComment = async (commentId: string) => {
     if (!isUIAllowed('commentDelete')) return
-    const tempC = comments.value.find((c) => c.id === commentId)
+    const tempC = comments.value.find(c => c.id === commentId)
 
     if (!tempC) return
 
     try {
-      comments.value = comments.value.filter((c) => c.id !== commentId)
+      comments.value = comments.value.filter(c => c.id !== commentId)
 
       await $api.internal.postOperation(
         (meta.value as any).fk_workspace_id!,
@@ -122,7 +124,8 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
           commentCount: (row.value.rowMeta.commentCount ?? 1) - 1,
         },
       })
-    } catch (e: unknown) {
+    }
+    catch (e: unknown) {
       message.error(
         await extractSdkResponseErrorMsg(
           e as Error & {
@@ -136,7 +139,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
 
   const resolveComment = async (commentId: string) => {
     if (!isUIAllowed('commentResolve')) return
-    const tempC = comments.value.find((c) => c.id === commentId)
+    const tempC = comments.value.find(c => c.id === commentId)
 
     if (!tempC) return
 
@@ -166,7 +169,8 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
           commentId,
         },
       )
-    } catch (e: unknown) {
+    }
+    catch (e: unknown) {
       comments.value = comments.value.map((c) => {
         if (c.id === commentId) {
           return tempC
@@ -186,7 +190,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
   const saveComment = async (comment: string) => {
     try {
       if (!row.value || !comment) {
-        comments.value = comments.value.filter((c) => !c.id?.startsWith('temp-'))
+        comments.value = comments.value.filter(c => !c.id?.startsWith('temp-'))
         return
       }
 
@@ -218,8 +222,9 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
       // reloadTrigger?.trigger()
 
       await loadComments()
-    } catch (e: any) {
-      comments.value = comments.value.filter((c) => !(c.id ?? '').startsWith('temp-'))
+    }
+    catch (e: any) {
+      comments.value = comments.value.filter(c => !(c.id ?? '').startsWith('temp-'))
       message.error(
         await extractSdkResponseErrorMsg(
           e as Error & {
@@ -233,7 +238,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
   }
 
   const updateComment = async (commentId: string, comment: Partial<CommentType>) => {
-    const tempEdit = comments.value.find((c) => c.id === commentId)
+    const tempEdit = comments.value.find(c => c.id === commentId)
     if (!tempEdit) return
     try {
       comments.value = comments.value.map((c) => {
@@ -257,7 +262,8 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
           ...comment,
         },
       )
-    } catch (e: any) {
+    }
+    catch (e: any) {
       comments.value = comments.value.map((c) => {
         if (c.id === commentId) {
           return tempEdit

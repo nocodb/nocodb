@@ -1,6 +1,6 @@
-import { getActivePinia } from 'pinia'
 import type { Actions, AppInfo, Getters, State } from './types'
 import type { NcBreakpoint } from '~/lib/constants'
+import { getActivePinia } from 'pinia'
 
 export function useGlobalActions(state: State, _getters: Getters): Actions {
   const isTokenUpdatedTab = useState('isTokenUpdatedTab', () => false)
@@ -25,9 +25,11 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
         const nuxtApp = useNuxtApp()
         await nuxtApp.$api.auth.signout()
       }
-    } catch {
+    }
+    catch {
       // ignore error
-    } finally {
+    }
+    finally {
       state.token.value = null
       state.user.value = null
 
@@ -46,9 +48,10 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
     }
   }
 
-  /** Sign in by setting the token in localStorage
+  /**
+   * Sign in by setting the token in localStorage
    * keepProps - is for keeping any existing role info if user id is same as previous user
-   * */
+   */
   const signIn: Actions['signIn'] = (newToken, keepProps = false) => {
     isTokenUpdatedTab.value = true
     state.token.value = newToken
@@ -90,7 +93,8 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
         return response.data.token
       }
       return null
-    } catch (e) {
+    }
+    catch (e) {
       if (state.token.value && state.user.value && !skipSignOut) {
         await signOut({
           skipApiCall: true,
@@ -112,7 +116,8 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
       const nuxtApp = useNuxtApp()
       state.appInfo.value = (await nuxtApp.$api.utils.appInfo()) as AppInfo
       state.appInfoStatus.value = 'loaded'
-    } catch (e) {
+    }
+    catch (e) {
       state.appInfoStatus.value = 'error'
       console.error(e)
     }
@@ -135,7 +140,8 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
 
     if (baseId) {
       path = `/${workspaceId}/${baseId}${queryParams}`
-    } else {
+    }
+    else {
       path = `/${workspaceId}${queryParams}`
     }
 
@@ -167,10 +173,10 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
   }) => {
     const tablePath = tableId
       ? `/${tableId}${
-          viewId
-            ? `/${viewId}${toReadableUrlSlug([tableTitle, viewTitle]) ? `/${toReadableUrlSlug([tableTitle, viewTitle])}` : ''}`
-            : ''
-        }`
+        viewId
+          ? `/${viewId}${toReadableUrlSlug([tableTitle, viewTitle]) ? `/${toReadableUrlSlug([tableTitle, viewTitle])}` : ''}`
+          : ''
+      }`
       : ''
 
     const workspaceId = _workspaceId || 'nc'
@@ -180,13 +186,15 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
 
     if (baseId) {
       path = `/${workspaceId}/${baseId}${tablePath}${queryParams}`
-    } else {
+    }
+    else {
       path = `/${workspaceId}${queryParams}`
     }
 
     if (newTab) {
       window.open(`${window.location.origin}#${path}`, '_blank')
-    } else {
+    }
+    else {
       return navigateTo({
         path,
         replace,
@@ -214,7 +222,7 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
     state.gridViewPageSize.value = pageSize
   }
 
-  const setLeftSidebarSize = ({ old, current }: { old?: number; current?: number }) => {
+  const setLeftSidebarSize = ({ old, current }: { old?: number, current?: number }) => {
     state.leftSidebarSize.value = {
       old: old ?? state.leftSidebarSize.value.old,
       current: current ?? state.leftSidebarSize.value.current,

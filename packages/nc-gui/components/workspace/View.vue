@@ -56,7 +56,8 @@ const currentWorkspace = computedAsync(async () => {
       await loadWorkspace(props.workspaceId)
       ws = workspaces.value.get(props.workspaceId)
     }
-  } else {
+  }
+  else {
     ws = _activeWorkspace.value
   }
   await loadRoles(undefined, {}, ws?.id)
@@ -88,7 +89,8 @@ const tab = computed({
 
     if (props.isNewWsPage) {
       router.push({ name: wsTabToRouteName[tab] || 'index-typeOrId' })
-    } else {
+    }
+    else {
       router.push({ query: { ...route.value.query, tab } })
     }
   },
@@ -122,7 +124,8 @@ watch(
     if (props.isNewWsPage) {
       const tabLabel = tabTitleMap[activeTab as string]
       useTitle(tabLabel ? `${tabLabel} - ${capitalizedTitle}` : capitalizedTitle)
-    } else {
+    }
+    else {
       useTitle(capitalizedTitle)
     }
   },
@@ -133,7 +136,7 @@ watch(
 
 onMounted(() => {
   until(() => currentWorkspace.value?.id && isBaseRolesLoaded.value)
-    .toMatch((v) => !!v)
+    .toMatch(v => !!v)
     .then(async () => {
       if (isUIAllowed('workspaceCollaborators')) {
         await loadCollaborators({} as any, currentWorkspace.value!.id)
@@ -148,7 +151,7 @@ watch(
       isFromIntegrationPage.value = true
 
       await until(() => currentWorkspace.value?.id)
-        .toMatch((v) => !!v)
+        .toMatch(v => !!v)
         .then(async () => {
           await loadIntegrations()
         })
@@ -163,9 +166,10 @@ watch(
 
     if (!isUIAllowed('workspaceCollaborators') && showEEFeatures.value) {
       tab.value = 'settings'
-    } else if (
-      (!isWsAuditEnabled.value && newTab === 'audits') ||
-      ((!isEeUI || !hasTeamsEditPermission.value || blockTeamsManagement.value) && newTab === 'teams')
+    }
+    else if (
+      (!isWsAuditEnabled.value && newTab === 'audits')
+      || ((!isEeUI || !hasTeamsEditPermission.value || blockTeamsManagement.value) && newTab === 'teams')
     ) {
       tab.value = 'collaborators'
     }
@@ -255,7 +259,7 @@ if (!props.isNewWsPage) {
 
     <NcTabs v-model:active-key="tab" class="flex-1 min-h-0" :class="{ 'hide-tabs': isNewWsPage }">
       <template #leftExtra>
-        <div class="w-3"></div>
+        <div class="w-3" />
       </template>
       <template v-if="isUIAllowed('workspaceCollaborators')">
         <a-tab-pane key="collaborators" class="w-full h-full">
@@ -369,7 +373,9 @@ if (!props.isNewWsPage) {
               </div>
             </template>
             <WorkspaceAudits v-if="isWsAuditEnabled" />
-            <div v-else>&nbsp;</div>
+            <div v-else>
+&nbsp;
+            </div>
           </a-tab-pane>
         </template>
 

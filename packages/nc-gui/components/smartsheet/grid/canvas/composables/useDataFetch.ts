@@ -20,7 +20,7 @@ export function useDataFetch({
   cachedRows: Ref<Map<number, Row>>
   clearCache: (start: number, end: number) => void
   loadData: (params?: any, shouldShowLoading?: boolean, path?: Array<number>) => Promise<Array<Row>>
-  rowSlice: Ref<{ start: number; end: number }>
+  rowSlice: Ref<{ start: number, end: number }>
   totalRows: Ref<number>
   triggerRefreshCanvas: () => void
   isAlreadyShownUpgradeModal: Ref<boolean>
@@ -46,9 +46,9 @@ export function useDataFetch({
     if (offset >= totalRows.value) return
 
     if (
-      !isAlreadyShownUpgradeModal.value &&
-      offset >= EXTERNAL_SOURCE_VISIBLE_ROWS &&
-      blockExternalSourceRecordVisibility(isExternalSource.value)
+      !isAlreadyShownUpgradeModal.value
+      && offset >= EXTERNAL_SOURCE_VISIBLE_ROWS
+      && blockExternalSourceRecordVisibility(isExternalSource.value)
     ) {
       isAlreadyShownUpgradeModal.value = true
 
@@ -72,12 +72,13 @@ export function useDataFetch({
     }
     try {
       const newItems = await loadData({ offset, limit }, undefined, [])
-      newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
+      newItems.forEach(item => cachedRows.value.set(item.rowMeta.rowIndex!, item))
       chunkStates.value[chunkId] = 'loaded'
       if (isInitialLoad) {
         chunkStates.value[chunkId + 1] = 'loaded'
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error(`Error fetching chunk ${chunkId}:`, error)
       chunkStates.value[chunkId] = undefined
       if (isInitialLoad) {
@@ -97,14 +98,15 @@ export function useDataFetch({
 
     if (offset >= totalRows.value) return
 
-    group.forEach((chunkId) => (chunkStates.value[chunkId] = 'loading'))
+    group.forEach(chunkId => (chunkStates.value[chunkId] = 'loading'))
     try {
       const newItems = await loadData({ offset, limit }, undefined, [])
-      newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
-      group.forEach((chunkId) => (chunkStates.value[chunkId] = 'loaded'))
-    } catch (error) {
+      newItems.forEach(item => cachedRows.value.set(item.rowMeta.rowIndex!, item))
+      group.forEach(chunkId => (chunkStates.value[chunkId] = 'loaded'))
+    }
+    catch (error) {
       console.error(`Error fetching chunks group from ${startChunk} to ${endChunk}:`, error)
-      group.forEach((chunkId) => (chunkStates.value[chunkId] = undefined))
+      group.forEach(chunkId => (chunkStates.value[chunkId] = undefined))
     }
   }
 
@@ -118,7 +120,8 @@ export function useDataFetch({
         for (let i = 1; i < chunks.length; i++) {
           if (chunks[i] === chunks[i - 1]! + 1) {
             currentGroup.push(chunks[i]!)
-          } else {
+          }
+          else {
             groups.push(currentGroup)
             currentGroup = [chunks[i]!]
           }
@@ -129,21 +132,23 @@ export function useDataFetch({
         for (const group of groups) {
           if (group[0] === 0 && firstChunkId === 0 && !chunkStates.value[0]) {
             await fetchChunk(0, true)
-            const remainingGroup = group.filter((id) => id > 1)
+            const remainingGroup = group.filter(id => id > 1)
             if (remainingGroup.length) {
               for (let i = 0; i < remainingGroup.length; i += maxGroupSize) {
                 const subGroup = remainingGroup.slice(i, i + maxGroupSize)
                 await fetchChunksForGroup(subGroup)
               }
             }
-          } else {
+          }
+          else {
             // If the group is larger than what we can fetch in one call
             if (group.length > maxGroupSize) {
               for (let i = 0; i < group.length; i += maxGroupSize) {
                 const subGroup = group.slice(i, i + maxGroupSize)
                 await fetchChunksForGroup(subGroup)
               }
-            } else {
+            }
+            else {
               await fetchChunksForGroup(group)
             }
           }
@@ -164,7 +169,8 @@ export function useDataFetch({
     let scrollDirection: 'down' | 'up' | 'none' = 'none'
     if (start > previousRowSlice.value.start) {
       scrollDirection = 'down'
-    } else if (start < previousRowSlice.value.start) {
+    }
+    else if (start < previousRowSlice.value.start) {
       scrollDirection = 'up'
     }
 
@@ -185,7 +191,8 @@ export function useDataFetch({
       if (end % CHUNK_SIZE > CHUNK_SIZE - PREFETCH_THRESHOLD && !chunkStates.value[nextChunkId]) {
         chunksToFetch.add(nextChunkId)
       }
-    } else if (scrollDirection === 'up') {
+    }
+    else if (scrollDirection === 'up') {
       const prevChunkId = firstChunkId - 1
       if (prevChunkId >= 0 && start % CHUNK_SIZE < PREFETCH_THRESHOLD && !chunkStates.value[prevChunkId]) {
         chunksToFetch.add(prevChunkId)

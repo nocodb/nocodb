@@ -30,18 +30,18 @@ const { blockAddNewExtension } = useEeConfig()
 
 const filteredAvailableExtensions = computed(() =>
   (availableExtensions.value || []).filter(
-    (ext) =>
-      ext.title.toLowerCase().includes(searchQuery.value.toLowerCase()?.trim()) ||
-      ext.subTitle.toLowerCase().includes(searchQuery.value.toLowerCase()?.trim()),
+    ext =>
+      ext.title.toLowerCase().includes(searchQuery.value.toLowerCase()?.trim())
+      || ext.subTitle.toLowerCase().includes(searchQuery.value.toLowerCase()?.trim()),
   ),
 )
 
-const onExtensionClick = (extensionId: string) => {
+function onExtensionClick(extensionId: string) {
   showExtensionDetails(extensionId, 'market')
   isOpen.value = false
 }
 
-const onAddExtension = (ext: any) => {
+function onAddExtension(ext: any) {
   addExtension(ext)
   isOpen.value = false
 }
@@ -50,17 +50,21 @@ const onAddExtension = (ext: any) => {
 <template>
   <div class="h-full py-4 overflow-auto nc-scrollbar-thin">
     <div class="h-full flex flex-col gap-5 flex-1 pt-2 px-6 w-full mx-auto">
-      <div class="text-base font-bold text-nc-content-gray">Popular Extensions</div>
-      <div v-if="searchQuery" class="text-base text-nc-content-gray-subtle">Search result for ‘{{ searchQuery }}’</div>
+      <div class="text-base font-bold text-nc-content-gray">
+        Popular Extensions
+      </div>
+      <div v-if="searchQuery" class="text-base text-nc-content-gray-subtle">
+        Search result for ‘{{ searchQuery }}’
+      </div>
 
       <div
         class="pb-2 grid gap-4"
         :class="{
           'h-full': searchQuery && !filteredAvailableExtensions.length && availableExtensions.length,
           'grid-cols-1 md:grid-cols-2 xl:grid-cols-3': !(
-            searchQuery &&
-            !filteredAvailableExtensions.length &&
-            availableExtensions.length
+            searchQuery
+            && !filteredAvailableExtensions.length
+            && availableExtensions.length
           ),
         }"
       >
@@ -71,7 +75,7 @@ const onAddExtension = (ext: any) => {
             @click="onExtensionClick(ext.id)"
           >
             <div class="h-[56px] w-[56px] overflow-hidden m-auto flex-none">
-              <img :src="getExtensionAssetsUrl(ext.iconUrl)" alt="icon" class="w-full h-full object-contain" />
+              <img :src="getExtensionAssetsUrl(ext.iconUrl)" alt="icon" class="w-full h-full object-contain">
             </div>
             <div class="flex-1 flex flex-grow flex-col gap-2">
               <div>
@@ -123,7 +127,7 @@ const onAddExtension = (ext: any) => {
               src="~assets/img/placeholder/no-search-result-found.png"
               class="!w-[164px] flex-none"
               alt="No search results found"
-            />
+            >
 
             {{ $t('title.noResultsMatchedYourSearch') }}
           </div>

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { SelectProps } from 'ant-design-vue'
-import { ref } from 'vue'
-import { StreamBarcodeReader } from 'vue-barcode-reader'
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
+import { ref } from 'vue'
+import { StreamBarcodeReader } from 'vue-barcode-reader'
 
 const meta = inject(MetaInj, ref())
 
@@ -24,7 +24,8 @@ const view = inject(ActiveViewInj, ref())
 const fieldOptionsOfSupportedColumnsToScanFor = computed<SelectProps['options']>(
   () =>
     meta?.value
-      ?.columns!.filter((column) => column.uidt && [UITypes.QrCode, UITypes.Barcode].includes(column.uidt))
+      ?.columns!
+      .filter(column => column.uidt && [UITypes.QrCode, UITypes.Barcode].includes(column.uidt))
       .map((field) => {
         return {
           value: field.id,
@@ -33,20 +34,22 @@ const fieldOptionsOfSupportedColumnsToScanFor = computed<SelectProps['options']>
       }) || [],
 )
 
-const getColumnToSearchForByBarOrQrCodeColumnId = (columnId: string): ColumnType => {
-  const qrOrBarcodeColumn = meta.value?.columns?.find((column) => column.id === columnId)
+function getColumnToSearchForByBarOrQrCodeColumnId(columnId: string): ColumnType {
+  const qrOrBarcodeColumn = meta.value?.columns?.find(column => column.id === columnId)
   if (!qrOrBarcodeColumn) {
     throw new Error('QrCode or BarCode Column not found')
   }
   let columnIdToSearchFor: string
   if (qrOrBarcodeColumn.uidt === UITypes.QrCode) {
     columnIdToSearchFor = (qrOrBarcodeColumn.colOptions as any).fk_qr_value_column_id
-  } else if (qrOrBarcodeColumn.uidt === UITypes.Barcode) {
+  }
+  else if (qrOrBarcodeColumn.uidt === UITypes.Barcode) {
     columnIdToSearchFor = (qrOrBarcodeColumn.colOptions as any).fk_barcode_value_column_id
-  } else {
+  }
+  else {
     throw new Error('Column to scan for is not of supported type')
   }
-  const columnToSearchFor = meta.value?.columns?.find((column) => column.id === columnIdToSearchFor)
+  const columnToSearchFor = meta.value?.columns?.find(column => column.id === columnIdToSearchFor)
   if (!columnToSearchFor) {
     throw new Error('Column to search for not found')
   }
@@ -59,14 +62,14 @@ const idOfSelectedColumnToScanFor = ref('')
 const lastScannedCode = ref('')
 
 watch(fieldOptionsOfSupportedColumnsToScanFor, () => {
-  if (fieldOptionsOfSupportedColumnsToScanFor.value?.every((option) => option.value !== idOfSelectedColumnToScanFor.value)) {
+  if (fieldOptionsOfSupportedColumnsToScanFor.value?.every(option => option.value !== idOfSelectedColumnToScanFor.value)) {
     idOfSelectedColumnToScanFor.value = ''
   }
 })
 
 const scannerIsReady = ref(false)
 
-const onLoaded = async () => {
+async function onLoaded() {
   scannerIsReady.value = true
 }
 
@@ -74,7 +77,7 @@ const showScannerField = computed(() => scannerIsReady.value && idOfSelectedColu
 const showPleaseSelectColumnMessage = computed(() => !idOfSelectedColumnToScanFor.value)
 const showScannerIsLoadingMessage = computed(() => !!idOfSelectedColumnToScanFor.value && !scannerIsReady.value)
 
-const onDecode = async (codeValue: string) => {
+async function onDecode(codeValue: string) {
   if (!showScannerField.value || codeValue === lastScannedCode.value) {
     return
   }
@@ -114,7 +117,8 @@ const onDecode = async (codeValue: string) => {
         rowId: primaryKeyValueForFoundRow,
       },
     })
-  } catch (error) {
+  }
+  catch (error) {
     console.error(error)
   }
 }
@@ -140,7 +144,9 @@ const onDecode = async (codeValue: string) => {
       @cancel="scannerIsReady = false"
     >
       <div class="relative flex flex-col h-full">
-        <div class="text-left text-wrap mt-2 text-xl mb-4">{{ $t('title.findRowByScanningCode') }}</div>
+        <div class="text-left text-wrap mt-2 text-xl mb-4">
+          {{ $t('title.findRowByScanningCode') }}
+        </div>
         <a-form-item :label="$t('labels.columnToScanFor')" class="nc-dropdown-scanner-column-id">
           <a-select
             v-model:value="idOfSelectedColumnToScanFor"
@@ -150,7 +156,7 @@ const onDecode = async (codeValue: string) => {
         </a-form-item>
 
         <div>
-          <StreamBarcodeReader v-show="showScannerField" @decode="onDecode" @loaded="onLoaded"></StreamBarcodeReader>
+          <StreamBarcodeReader v-show="showScannerField" @decode="onDecode" @loaded="onLoaded" />
           <div v-if="showPleaseSelectColumnMessage" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
             {{ $t('msg.info.codeScanner.selectColumn') }}
           </div>

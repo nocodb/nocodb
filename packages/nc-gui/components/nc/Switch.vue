@@ -24,7 +24,7 @@ const { loading, disabled } = toRefs(props)
 
 const switchSize = computed(() => (['default', 'small'].includes(props.size) ? props.size : undefined))
 
-const onChange = (e: boolean, updateValue = false) => {
+function onChange(e: boolean, updateValue = false) {
   if (loading.value || disabled.value) return
 
   if (updateValue) {
@@ -63,8 +63,7 @@ const onChange = (e: boolean, updateValue = false) => {
     v-bind="$attrs"
     :size="switchSize"
     @change="onChange"
-  >
-  </a-switch>
+  />
   <span
     v-if="placement === 'left' && $slots.default"
     class="pl-2"

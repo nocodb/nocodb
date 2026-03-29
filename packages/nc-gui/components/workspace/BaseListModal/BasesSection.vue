@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import Sortable, { type SortableEvent } from 'sortablejs'
+import type { SortableEvent } from 'sortablejs'
+import Sortable from 'sortablejs'
 
 type SectionType = 'starred' | 'private' | 'owned' | 'managed' | 'default'
 
@@ -29,7 +30,7 @@ const isMarked = ref<string | false>(false)
 let sortable: Sortable | null = null
 
 // Section configuration - using object map instead of switch
-const sectionConfigs: Record<SectionType, { icon: string; labelKey: string }> = {
+const sectionConfigs: Record<SectionType, { icon: string, labelKey: string }> = {
   starred: { icon: 'star', labelKey: 'general.starred' },
   owned: { icon: 'ncUser', labelKey: 'activity.ownedByMe' },
   private: { icon: 'ncLock', labelKey: 'general.private' },
@@ -58,12 +59,12 @@ const canReorder = computed(() => {
 })
 
 // Determine if indicator icons should be shown based on section type
-const shouldShowStarIndicator = (base: NcProject) => {
+function shouldShowStarIndicator(base: NcProject) {
   if (props.type === 'starred') return false
   return props.isBaseStarred?.(base) ?? false
 }
 
-const shouldShowPrivateIndicator = (base: NcProject) => {
+function shouldShowPrivateIndicator(base: NcProject) {
   if (props.type === 'private') return false
   return props.isBasePrivate?.(base) ?? false
 }
@@ -76,7 +77,7 @@ function markItem(id: string) {
   }, 300)
 }
 
-const initSortable = (el: Element) => {
+function initSortable(el: Element) {
   if (isMobileMode.value || !isUIAllowed('baseReorder')) return
   if (sortable) sortable.destroy()
 
@@ -119,9 +120,11 @@ const initSortable = (el: Element) => {
       // Calculate new order using fractional ordering
       if (children.length - 1 === newIndex) {
         newOrder = (itemBefore?.order ?? 0) + 1
-      } else if (newIndex === 0) {
+      }
+      else if (newIndex === 0) {
         newOrder = (itemAfter?.order ?? 1) / 2
-      } else {
+      }
+      else {
         newOrder = ((itemBefore?.order ?? 0) + (itemAfter?.order ?? 0)) / 2
       }
 

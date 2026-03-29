@@ -1,6 +1,7 @@
 <script lang="ts" setup>
+import type { UserFieldRecordType } from 'nocodb-sdk'
 import { Checkbox, CheckboxGroup, Radio, RadioGroup } from 'ant-design-vue'
-import { CURRENT_USER_TOKEN, type UserFieldRecordType } from 'nocodb-sdk'
+import { CURRENT_USER_TOKEN } from 'nocodb-sdk'
 import { getOptions, getSelectedUsers } from './utils'
 
 interface Props {
@@ -39,7 +40,7 @@ const idUserMap = computed(() => {
 
 const isForm = inject(IsFormInj, ref(false))
 
-const isMultiple = computed(() => forceMulti || (column.value.meta as { is_multi: boolean; notify: boolean })?.is_multi)
+const isMultiple = computed(() => forceMulti || (column.value.meta as { is_multi: boolean, notify: boolean })?.is_multi)
 
 const rowHeight = inject(RowHeightInj, ref(isInFilter.value ? 1 : undefined))
 
@@ -80,14 +81,15 @@ const selectedUsers = computed(() => getSelectedUsers(optionsMap.value, modelVal
 
 const selectedUsersListLayout = computed(() => {
   if (isMultiple.value) {
-    return (selectedUsers.value || []).map((item) => item.value)
-  } else {
+    return (selectedUsers.value || []).map(item => item.value)
+  }
+  else {
     return (selectedUsers.value || [])?.[0]?.value || ''
   }
 })
 
 // check if user is part of the base
-const isCollaborator = (userIdOrEmail) => {
+function isCollaborator(userIdOrEmail) {
   return !idUserMap.value?.[userIdOrEmail]?.deleted
 }
 </script>
@@ -155,11 +157,11 @@ const isCollaborator = (userIdOrEmail) => {
       :style="
         extensionConfig?.widget?.displayAs !== 'List'
           ? {
-              'flex-wrap': !isInFilter,
-              'max-width': '100%',
-              '-webkit-line-clamp': rowHeightTruncateLines(rowHeight, true),
-              'maxHeight': `${rowHeightInPx[rowHeight] - 12}px`,
-            }
+            'flex-wrap': !isInFilter,
+            'max-width': '100%',
+            '-webkit-line-clamp': rowHeightTruncateLines(rowHeight, true),
+            'maxHeight': `${rowHeightInPx[rowHeight] - 12}px`,
+          }
           : {}
       "
     >

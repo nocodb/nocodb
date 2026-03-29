@@ -24,9 +24,13 @@ const navItems = [
   <div class="h-screen w-screen bg-nc-bg-gray-light overflow-auto">
     <div class="max-w-6xl mx-auto p-8">
       <div class="mb-8">
-        <h1 class="text-4xl font-bold text-nc-content-gray-emphasis mb-2">NocoDB Playground</h1>
+        <h1 class="text-4xl font-bold text-nc-content-gray-emphasis mb-2">
+          NocoDB Playground
+        </h1>
         <div>
-          <NcBadge color="purple" :border="false" class="!h-5 max-w-34 text-nc-content-purple-dark"> Development Only </NcBadge>
+          <NcBadge color="purple" :border="false" class="!h-5 max-w-34 text-nc-content-purple-dark">
+            Development Only
+          </NcBadge>
         </div>
       </div>
 

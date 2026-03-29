@@ -1,5 +1,6 @@
+import type { CanvasElement } from '../utils/CanvasElement'
+import { ElementTypes } from '../utils/CanvasElement'
 import { parseCellWidth } from '../utils/cell'
-import { type CanvasElement, ElementTypes } from '../utils/CanvasElement'
 
 const MAX_SELECTION_LIMIT = 100
 
@@ -43,12 +44,12 @@ export function useMouseSelection({
     const path = element?.row?.rowMeta?.path
 
     let fixedWidth = 0
-    const fixedCols = columns.value.filter((col) => col.fixed)
+    const fixedCols = columns.value.filter(col => col.fixed)
     for (let i = 0; i < fixedCols.length; i++) {
       if (!fixedCols[i]?.width) continue
       const width = parseCellWidth(fixedCols[i]?.width)
       if (x >= fixedWidth && x < fixedWidth + width) {
-        return { row, col: i === 0 ? -1 : columns.value.findIndex((c) => c.id === fixedCols[i]!.id), path: path ?? [] }
+        return { row, col: i === 0 ? -1 : columns.value.findIndex(c => c.id === fixedCols[i]!.id), path: path ?? [] }
       }
       fixedWidth += width
     }

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { onKeyDown, useEventListener } from '@vueuse/core'
-import { useAttachmentCell } from './utils'
 import { useSortable } from './sort'
+import { useAttachmentCell } from './utils'
 
 const { isUIAllowed } = useRoles()
 
@@ -30,7 +30,7 @@ const canvasSelectCell = inject(CanvasSelectCellInj, null)
 const sortableRef = ref<HTMLDivElement>()
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, readOnly)
-const onDropAction = function (...args: any[]) {
+function onDropAction(...args: any[]) {
   const draggingBool = unref(dragging)
   if (!draggingBool) {
     onDrop.apply(this, args)
@@ -76,7 +76,7 @@ useEventListener(dropZoneRef, 'paste', (event: ClipboardEvent) => {
     onDrop(event.clipboardData.files, {} as any)
   }
 })
-const onFileDialogOpen = (_event) => {
+function onFileDialogOpen(_event) {
   _open()
 }
 
@@ -95,7 +95,9 @@ const isNewAttachmentModalOpen = ref(false)
     width="80%"
   >
     <div class="flex justify-between pb-6 gap-4 items-center">
-      <div class="font-semibold text-xl">{{ column?.title }}</div>
+      <div class="font-semibold text-xl">
+        {{ column?.title }}
+      </div>
 
       <div class="flex items-center gap-2">
         <NcButton
@@ -139,7 +141,9 @@ const isNewAttachmentModalOpen = ref(false)
       >
         <component :is="iconMap.upload" class="w-8 h-8 text-nc-content-brand" />
         <div class="p-4">
-          <h1 class="text-nc-content-brand font-bold">{{ $t('labels.dropHere') }}</h1>
+          <h1 class="text-nc-content-brand font-bold">
+            {{ $t('labels.dropHere') }}
+          </h1>
         </div>
       </div>
 

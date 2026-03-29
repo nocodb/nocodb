@@ -1,6 +1,6 @@
 import type { ViewType } from 'nocodb-sdk'
-import { ViewLockType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { ViewLockType } from 'nocodb-sdk'
 
 /**
  * Shared composable for personal view permission checks.

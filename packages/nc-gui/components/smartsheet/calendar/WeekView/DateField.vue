@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Row } from '~/lib/types'
+import dayjs from 'dayjs'
 
 const emits = defineEmits(['expandRecord', 'newRecord'])
 
@@ -41,7 +41,7 @@ const { fields: _fields } = useViewColumnsOrThrow()
 const fieldStyles = computed(() => {
   if (!_fields.value) return new Map()
   return new Map(
-    _fields.value.map((field) => [
+    _fields.value.map(field => [
       field.fk_column_id,
       {
         underline: field.underline,
@@ -52,7 +52,7 @@ const fieldStyles = computed(() => {
   )
 })
 
-const getFieldStyle = (field: ColumnType) => {
+function getFieldStyle(field: ColumnType) {
   return fieldStyles.value.get(field.id)
 }
 
@@ -76,7 +76,7 @@ const weekDates = computed(() => {
 // This function is used to find the first suitable row for a record
 // It takes the recordsInDay object, the start day index and the span of the record in days
 // It returns the first suitable row for the entire span of the record
-const findFirstSuitableRow = (recordsInDay: any, startDayIndex: number, spanDays: number) => {
+function findFirstSuitableRow(recordsInDay: any, startDayIndex: number, spanDays: number) {
   let row = 0
   while (true) {
     let isRowSuitable = true
@@ -100,9 +100,9 @@ const findFirstSuitableRow = (recordsInDay: any, startDayIndex: number, spanDays
   }
 }
 
-const isInRange = (date: dayjs.Dayjs) => {
-  const rangeEndDate =
-    maxVisibleDays.value === 5 ? dayjs(selectedDateRange.value.end).subtract(2, 'day') : dayjs(selectedDateRange.value.end)
+function isInRange(date: dayjs.Dayjs) {
+  const rangeEndDate
+    = maxVisibleDays.value === 5 ? dayjs(selectedDateRange.value.end).subtract(2, 'day') : dayjs(selectedDateRange.value.end)
 
   return (
     date && date.isBetween(dayjs(selectedDateRange.value.start).startOf('day'), dayjs(rangeEndDate).endOf('day'), 'day', '[]')
@@ -125,8 +125,8 @@ const calendarData = computed(() => {
       let startDate = record.row[fk_from_col.title!]
         ? dayjs(record.row[fk_from_col.title!])
         : fk_to_col && record.row[fk_to_col.title!]
-        ? dayjs(record.row[fk_to_col.title!])
-        : dayjs(record.row[fk_from_col.title!])
+          ? dayjs(record.row[fk_to_col.title!])
+          : dayjs(record.row[fk_from_col.title!])
       const ogStartDate = startDate.clone()
       const endDate = fk_to_col && record.row[fk_to_col.title!] ? dayjs(record.row[fk_to_col.title!]) : startDate
 
@@ -182,14 +182,15 @@ const calendarData = computed(() => {
           // If either date is missing, treat as single-day event
           if (!startDate || !endDate) return true
           return (
-            startDate.isValid() &&
-            endDate.isValid() &&
-            !endDate.isBefore(startDate) &&
-            !endDate.isBefore(selectedDateRange.value.start, 'day')
+            startDate.isValid()
+            && endDate.isValid()
+            && !endDate.isBefore(startDate)
+            && !endDate.isBefore(selectedDateRange.value.start, 'day')
           )
         })
         .forEach(processRecord)
-    } else {
+    }
+    else {
       formattedData.value.forEach(processRecord)
     }
   })
@@ -218,7 +219,7 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
 }, 500)
 
 // This function is used to calculate the new start and end date of a record when resizing
-const onResize = (event: MouseEvent) => {
+function onResize(event: MouseEvent) {
   if (!isUIAllowed('dataEdit') || !container.value || !resizeRecord.value) return
 
   const { width, left } = container.value.getBoundingClientRect()
@@ -257,7 +258,8 @@ const onResize = (event: MouseEvent) => {
         [toCol.title!]: newEndDate.format(updateFormat.value),
       },
     }
-  } else if (resizeDirection.value === 'left') {
+  }
+  else if (resizeDirection.value === 'left') {
     // Calculate the new start date based on the day index by adding the day index to the start date of the selected date range
     let newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day')
     updateProperty = [fromCol.title!]
@@ -287,7 +289,7 @@ const onResize = (event: MouseEvent) => {
   useDebouncedRowUpdate(updateRecord, updateProperty, false)
 }
 
-const onResizeEnd = () => {
+function onResizeEnd() {
   resizeInProgress.value = false
   resizeDirection.value = null
   resizeRecord.value = null
@@ -295,7 +297,7 @@ const onResizeEnd = () => {
   document.removeEventListener('mouseup', onResizeEnd)
 }
 
-const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
+function onResizeStart(direction: 'right' | 'left', event: MouseEvent, record: Row) {
   if (!isUIAllowed('dataEdit')) return
   resizeInProgress.value = true
   resizeDirection.value = direction
@@ -310,7 +312,7 @@ const dragOffset = ref<{
 }>({ x: null, y: null })
 
 // This method is used to calculate the new start and end date of a record when dragging and dropping
-const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
+function calculateNewRow(event: MouseEvent, updateSideBarData?: boolean) {
   const { width, left } = container.value?.getBoundingClientRect()
 
   const relativeX = event.clientX - left
@@ -357,11 +359,14 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
     // If the record has an end date and no start Date, we set the end date to the start date
     if (fromDate && toDate) {
       endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
-    } else if (fromDate && !toDate) {
+    }
+    else if (fromDate && !toDate) {
       endDate = dayjs(newStartDate).endOf('day')
-    } else if (!fromDate && toDate) {
+    }
+    else if (!fromDate && toDate) {
       endDate = dayjs(newStartDate).endOf('day')
-    } else {
+    }
+    else {
       endDate = newStartDate.clone()
     }
 
@@ -378,7 +383,8 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
       const pk = extractPkFromRow(r.row, meta.value!.columns!)
       return pk !== newPk
     })
-  } else {
+  }
+  else {
     // If the record is being dragged within the calendar, we need to update the record in the calendar data
     formattedData.value = formattedData.value.map((r) => {
       const pk = extractPkFromRow(r.row, meta.value!.columns!)
@@ -389,7 +395,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
   return { updateProperty, newRow }
 }
 
-const onDrag = (event: MouseEvent) => {
+function onDrag(event: MouseEvent) {
   if (!isUIAllowed('dataEdit')) return
   if (!container.value || !dragRecord.value) return
   event.preventDefault()
@@ -397,7 +403,7 @@ const onDrag = (event: MouseEvent) => {
   calculateNewRow(event, false)
 }
 
-const stopDrag = (event: MouseEvent) => {
+function stopDrag(event: MouseEvent) {
   event.preventDefault()
   clearTimeout(dragTimeout.value!)
 
@@ -433,7 +439,7 @@ const stopDrag = (event: MouseEvent) => {
   document.removeEventListener('mouseup', stopDrag)
 }
 
-const dragStart = (event: MouseEvent, record: Row) => {
+function dragStart(event: MouseEvent, record: Row) {
   if (resizeInProgress.value || isSyncedFromColumn.value) return
   let target = event.target as HTMLElement
 
@@ -483,7 +489,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
   document.addEventListener('mouseup', onMouseUp)
 }
 
-const dropEvent = (event: DragEvent) => {
+function dropEvent(event: DragEvent) {
   if (!isUIAllowed('dataEdit')) return
   event.preventDefault()
 
@@ -512,13 +518,13 @@ const dropEvent = (event: DragEvent) => {
   }
 }
 
-const selectDate = (day: dayjs.Dayjs) => {
+function selectDate(day: dayjs.Dayjs) {
   selectedDate.value = day
   dragRecord.value = undefined
 }
 
 // TODO: Add Support for multiple ranges when multiple ranges are supported
-const addRecord = (date: dayjs.Dayjs) => {
+function addRecord(date: dayjs.Dayjs) {
   if (!isUIAllowed('dataEdit') || !calendarRange.value || !isSyncedTable.value) return
   const fromCol = calendarRange.value[0].fk_from_col
   if (!fromCol) return
@@ -563,7 +569,7 @@ const addRecord = (date: dayjs.Dayjs) => {
         data-testid="nc-calendar-week-day"
         @click="selectDate(date)"
         @dblclick="addRecord(date)"
-      ></div>
+      />
     </div>
     <div
       class="absolute nc-scrollbar-md overflow-y-auto z-2 mt-6 pointer-events-none inset-0"

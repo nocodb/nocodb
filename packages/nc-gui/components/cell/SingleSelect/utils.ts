@@ -1,14 +1,8 @@
 import type { ColumnType, SelectOptionType } from 'nocodb-sdk'
 
-export type LocalSelectOptionType = SelectOptionType & { value?: string; bgColor?: string; textColor?: string }
+export type LocalSelectOptionType = SelectOptionType & { value?: string, bgColor?: string, textColor?: string }
 
-export const getOptions = (
-  column: ColumnType,
-  isEditColumn: boolean,
-  isForm: boolean,
-  isDark: boolean,
-  getColor: GetColorType,
-): LocalSelectOptionType[] => {
+export function getOptions(column: ColumnType, isEditColumn: boolean, isForm: boolean, isDark: boolean, getColor: GetColorType): LocalSelectOptionType[] {
   if (column && column?.colOptions) {
     const opts = column.colOptions
       ? // todo: fix colOptions type, options does not exist as a property
@@ -21,8 +15,8 @@ export const getOptions = (
 
     let order = 1
 
-    const limitOptionsById =
-      ((parseProp(column.meta)?.limitOptions || []).reduce(
+    const limitOptionsById
+      = ((parseProp(column.meta)?.limitOptions || []).reduce(
         (o: Record<string, FormFieldsLimitOptionsType>, f: FormFieldsLimitOptionsType) => {
           if (order < (f?.order ?? 0)) {
             order = f.order
@@ -51,7 +45,8 @@ export const getOptions = (
           textColor: getSelectTypeFieldOptionTextColor({ color: o.color, isDark, getColor }),
         }))
         .sort((a, b) => a.order - b.order)
-    } else {
+    }
+    else {
       return opts.map((o: any) => ({
         ...o,
         value: o.title,

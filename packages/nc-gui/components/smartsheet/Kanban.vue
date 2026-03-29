@@ -1,9 +1,10 @@
 <script lang="ts" setup>
-import type { VNodeRef } from '@vue/runtime-core'
-import Draggable from 'vuedraggable'
-import tinycolor from 'tinycolor2'
-import { type ColumnType, PermissionEntity, PermissionKey, isVirtualCol } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
+import type { ColumnType } from 'nocodb-sdk'
+import type { VNodeRef } from 'vue'
+import { isVirtualCol, PermissionEntity, PermissionKey } from 'nocodb-sdk'
+import tinycolor from 'tinycolor2'
+import Draggable from 'vuedraggable'
 
 interface Attachment {
   url: string
@@ -103,9 +104,9 @@ const hasEditPermission = computed(
 
 const fields = inject(FieldsInj, ref([]))
 
-const fieldsWithoutDisplay = computed(() => fields.value.filter((f) => !isPrimary(f)))
+const fieldsWithoutDisplay = computed(() => fields.value.filter(f => !isPrimary(f)))
 
-const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
+const displayField = computed(() => meta.value?.columns?.find(c => c.pv && fields.value.includes(c)) ?? null)
 
 const coverImageColumn: any = computed(() =>
   meta.value?.columnsById
@@ -130,7 +131,7 @@ const {
   getCellLeftBorderStyle: _getCellLeftBorderStyle,
 } = useViewRowColorRender()
 
-const getCellColorStyle = (record: Row, columnId: string) => {
+function getCellColorStyle(record: Row, columnId: string) {
   // Access pre-computed cell colors from rowMeta (optimized - no function calls)
   const cellColorInfo = record.rowMeta?.cellColors?.[columnId]
   if (!cellColorInfo) return {}
@@ -142,7 +143,7 @@ const getCellColorStyle = (record: Row, columnId: string) => {
   return style
 }
 
-const getCellLeftBorderStyle = (record: Row, columnId: string) => {
+function getCellLeftBorderStyle(record: Row, columnId: string) {
   // Access pre-computed cell colors from rowMeta (optimized - no function calls)
   const cellColorInfo = record.rowMeta?.cellColors?.[columnId]
   if (!cellColorInfo || cellColorInfo.is_set_as_background || !cellColorInfo.cellLeftBorderColor) return null
@@ -150,12 +151,12 @@ const getCellLeftBorderStyle = (record: Row, columnId: string) => {
   return { backgroundColor: cellColorInfo.cellLeftBorderColor }
 }
 
-const getCellColorClass = (record: Row, columnId: string) => {
+function getCellColorClass(record: Row, columnId: string) {
   const bgStyle = getCellColorStyle(record, columnId)
   return bgStyle?.backgroundColor ? 'has-cell-bg-color' : ''
 }
 
-const getCellColorBgVar = (record: Row, columnId: string) => {
+function getCellColorBgVar(record: Row, columnId: string) {
   const bgStyle = getCellColorStyle(record, columnId)
   return bgStyle?.backgroundColor ? { '--cell-bg-color': bgStyle.backgroundColor } : {}
 }
@@ -170,7 +171,7 @@ const reloadViewDataListener = withLoading(async () => {
 
 reloadViewDataHook?.on(reloadViewDataListener)
 
-const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
+function smartsheetEventHandler(event: SmartsheetStoreEvents) {
   if (event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()
   }
@@ -178,31 +179,32 @@ const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
 
 eventBus.on(smartsheetEventHandler)
 
-const attachments = (record: any): Attachment[] => {
+function attachments(record: any): Attachment[] {
   if (!coverImageColumn.value?.title || !record.row[coverImageColumn.value.title]) return []
 
   try {
-    const att =
-      typeof record.row[coverImageColumn.value.title] === 'string'
+    const att
+      = typeof record.row[coverImageColumn.value.title] === 'string'
         ? JSON.parse(record.row[coverImageColumn.value.title])
         : record.row[coverImageColumn.value.title]
 
     if (Array.isArray(att)) {
       return att
         .flat()
-        .map((a) => (typeof a === 'string' ? JSON.parse(a) : a))
-        .filter((a) => a && !Array.isArray(a) && typeof a === 'object' && Object.keys(a).length)
+        .map(a => (typeof a === 'string' ? JSON.parse(a) : a))
+        .filter(a => a && !Array.isArray(a) && typeof a === 'object' && Object.keys(a).length)
     }
 
     return []
-  } catch (e) {
+  }
+  catch (e) {
     return []
   }
 }
 
 const reloadAttachments = ref(false)
 
-const reloadViewMetaListener = async () => {
+async function reloadViewMetaListener() {
   reloadAttachments.value = true
 
   nextTick(() => {
@@ -212,7 +214,7 @@ const reloadViewMetaListener = async () => {
 
 reloadViewMetaHook?.on(reloadViewMetaListener)
 
-const expandForm = (row: RowType, state?: Record<string, any>) => {
+function expandForm(row: RowType, state?: Record<string, any>) {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
   expandedFormRowState.value = state
   if (rowId && !isPublic.value) {
@@ -224,7 +226,8 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
         rowId,
       },
     })
-  } else {
+  }
+  else {
     expandedFormRow.value = row
     expandedFormDlg.value = true
   }
@@ -250,7 +253,7 @@ const contextMenuRowId = computed(() => {
   return extractPkFromRow(contextMenuTarget.value.row, meta.value?.columns)
 })
 
-const showContextMenu = (e: MouseEvent, target?: RowType) => {
+function showContextMenu(e: MouseEvent, target?: RowType) {
   e.preventDefault()
   if (target) {
     contextMenuTarget.value = target
@@ -262,17 +265,18 @@ const expandedFormOnRowIdDlg = computed({
     return !!route.value.query.rowId
   },
   set(val) {
-    if (!val)
+    if (!val) {
       router.push({
         query: {
           ...route.value.query,
           rowId: undefined,
         },
       })
+    }
   },
 })
 
-const expandFormClick = async (e: MouseEvent, row: RowType) => {
+async function expandFormClick(e: MouseEvent, row: RowType) {
   const target = e.target as HTMLElement
   if (target.closest('.arrow') || target.closest('.slick-dots')) return
   if (e.target as HTMLElement) {
@@ -280,7 +284,7 @@ const expandFormClick = async (e: MouseEvent, row: RowType) => {
   }
 }
 
-/** Block dragging the stack to first index (reserved for uncategorized) **/
+/** Block dragging the stack to first index (reserved for uncategorized) */
 function onMoveCallback(event: { draggedContext: { futureIndex: number } }) {
   if (event.draggedContext.futureIndex === 0) {
     return false
@@ -360,7 +364,8 @@ async function onMove(event: any, stackKey: string) {
     ele.row[groupingField.value] = stackKey
     countByStack.value.set(stackKey, countByStack.value.get(stackKey)! + 1)
     await updateOrSaveRow(ele)
-  } else if (event.removed) {
+  }
+  else if (event.removed) {
     countByStack.value.set(stackKey, countByStack.value.get(stackKey)! - 1)
     moveHistory.value.unshift({
       op: 'removed',
@@ -399,23 +404,23 @@ const kanbanListRef: VNodeRef = (kanbanListElement) => {
   }
 }
 
-const handleDeleteStackClick = (stackTitle: string, stackIdx: number) => {
+function handleDeleteStackClick(stackTitle: string, stackIdx: number) {
   deleteStackVModel.value = true
   stackToBeDeleted.value = stackTitle
   stackIdxToBeDeleted.value = stackIdx
 }
 
-const handleDeleteStackConfirmClick = async () => {
+async function handleDeleteStackConfirmClick() {
   await deleteStack(stackToBeDeleted.value, stackIdxToBeDeleted.value)
   deleteStackVModel.value = false
 }
 
-const handleCollapseStack = async (stackIdx: number) => {
+async function handleCollapseStack(stackIdx: number) {
   const currentCollapsed = groupingFieldColOptions.value[stackIdx].collapsed
   await updateStackProperty(stackIdx, { collapsed: !currentCollapsed })
 }
 
-const handleCollapseAllStack = async () => {
+async function handleCollapseAllStack() {
   await updateAllStacksProperty((stack) => {
     if (stack.id !== addNewStackId && !stack.collapsed) {
       return { collapsed: true }
@@ -424,7 +429,7 @@ const handleCollapseAllStack = async () => {
   })
 }
 
-const handleExpandAllStack = async () => {
+async function handleExpandAllStack() {
   await updateAllStacksProperty((stack) => {
     if (stack.id !== addNewStackId && stack.collapsed) {
       return { collapsed: false }
@@ -433,13 +438,13 @@ const handleExpandAllStack = async () => {
   })
 }
 
-const handleCellClick = (col, event) => {
+function handleCellClick(col, event) {
   if (isButton(col)) {
     event.stopPropagation()
   }
 }
 
-const openNewRecordFormHookHandler = async () => {
+async function openNewRecordFormHookHandler() {
   const newRow = await addEmptyRow()
   // preset the grouping field value
   newRow.row = {
@@ -485,13 +490,14 @@ onMounted(async () => {
       }
     })
     isViewDataLoading.value = false
-  } catch (error) {
+  }
+  catch (error) {
     console.error(error)
     isViewDataLoading.value = false
   }
 })
 
-const getRowId = (row: RowType) => {
+function getRowId(row: RowType) {
   const pk = extractPkFromRow(row.row, meta.value!.columns!)
   return pk ? `row-${pk}` : ''
 }
@@ -508,7 +514,7 @@ const compareStack = (stack: any, stack2?: any) => stack?.id && stack2?.id && st
 
 const isSavingStack = ref(null)
 
-const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stackIdx?: number) => {
+async function handleSubmitRenameOrNewStack(loadMeta: boolean, stack?: any, stackIdx?: number) {
   isSavingStack.value = isRenameOrNewStack.value
   isRenameOrNewStack.value = null
 
@@ -522,26 +528,26 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
   isSavingStack.value = null
 }
 
-const draggableStackFilter = (event: Event) => {
+function draggableStackFilter(event: Event) {
   return event.target?.closest('.not-draggable')
   // || isTouchEvent(event) // allow drag and drop for touch devices for now
 }
 
-const draggableCardFilter = (event: Event, target: HTMLElement) => {
+function draggableCardFilter(event: Event, target: HTMLElement) {
   const eventTarget = event.target as HTMLElement | null
   const closestNotDraggable = eventTarget?.closest('.not-draggable')
 
   return !!(
-    eventTarget &&
-    target &&
-    target.contains(eventTarget) &&
-    closestNotDraggable &&
-    (target.contains(closestNotDraggable) || closestNotDraggable === target)
+    eventTarget
+    && target
+    && target.contains(eventTarget)
+    && closestNotDraggable
+    && (target.contains(closestNotDraggable) || closestNotDraggable === target)
   )
   // || isTouchEvent(event) // allow drag and drop for touch devices for now
 }
 
-const handleOpenNewRecordForm = (stackTitle?: string) => {
+function handleOpenNewRecordForm(stackTitle?: string) {
   if (showRecordPlanLimitExceededModal()) return
 
   selectedStackTitle.value = stackTitle ?? ''
@@ -549,7 +555,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
   openNewRecordFormHook.trigger()
 }
 
-const resetPointerEvent = (record: RowType, col: ColumnType) => {
+function resetPointerEvent(record: RowType, col: ColumnType) {
   return isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col))
 }
 </script>
@@ -597,8 +603,8 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                 :class="{
                   'w-[44px]': stack.collapsed,
                   'hidden':
-                    (hideEmptyStack && !formattedData.get(stack.title)?.length) ||
-                    (isRequiredGroupingFieldColumn && stack.id === uncategorizedStackId),
+                    (hideEmptyStack && !formattedData.get(stack.title)?.length)
+                    || (isRequiredGroupingFieldColumn && stack.id === uncategorizedStackId),
                 }"
                 :data-testid="`nc-kanban-stack-${stack.title}`"
               >
@@ -828,8 +834,8 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                             tinycolor(stack.color || '#ccc').isLight()
                               ? 70
                               : tinycolor(stack.color || '#ccc').getBrightness() <= 100
-                              ? 80
-                              : 90,
+                                ? 80
+                                : 90,
                           )
                           .toString(),
                       }"
@@ -891,7 +897,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                         <template #customPaging>
                                           <a>
                                             <div>
-                                              <div></div>
+                                              <div />
                                             </div>
                                           </a>
                                         </template>
@@ -936,7 +942,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                       v-else
                                       class="h-52 w-full !flex flex-row !border-b-1 !border-nc-border-gray-medium items-center justify-center bg-nc-bg-default"
                                     >
-                                      <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
+                                      <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png">
                                     </div>
                                   </template>
                                   <div class="flex-1 flex content-stretch gap-3 w-full">
@@ -944,7 +950,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                       v-if="isRowColouringEnabled"
                                       class="w-1 flex-none min-h-4 rounded-sm"
                                       :style="extractRowBackgroundColorStyle(record).rowLeftBorderColor"
-                                    ></div>
+                                    />
                                     <div
                                       class="flex-1 flex flex-col !children:pointer-events-none"
                                       :class="{
@@ -963,7 +969,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                           v-if="getCellLeftBorderStyle(record, displayField.id)"
                                           class="w-1 flex-none min-h-4 rounded-sm"
                                           :style="getCellLeftBorderStyle(record, displayField.id)"
-                                        ></div>
+                                        />
                                         <h2
                                           class="nc-card-display-value-wrapper flex-1 min-w-0"
                                           :class="{
@@ -990,7 +996,9 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                               :read-only="true"
                                             />
                                           </template>
-                                          <template v-else> -</template>
+                                          <template v-else>
+                                            -
+                                          </template>
                                         </h2>
                                       </div>
 
@@ -1042,7 +1050,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                               v-if="getCellLeftBorderStyle(record, col.id)"
                                               class="w-1 flex-none min-h-4 rounded-sm"
                                               :style="getCellLeftBorderStyle(record, col.id)"
-                                            ></div>
+                                            />
                                             <div class="flex flex-col w-full">
                                               <div
                                                 v-if="isActiveViewFieldHeaderVisible"
@@ -1082,7 +1090,9 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                                   class="!text-nc-content-gray"
                                                 />
                                               </div>
-                                              <div v-else class="flex flex-row w-full h-7 items-center justify-start">-</div>
+                                              <div v-else class="flex flex-row w-full h-7 items-center justify-start">
+                                                -
+                                              </div>
                                             </div>
                                           </div>
                                         </NcTooltip>
@@ -1153,7 +1163,9 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                             </NcButton>
                           </template>
                         </PermissionsTooltip>
-                        <div v-else>&nbsp;</div>
+                        <div v-else>
+&nbsp;
+                        </div>
 
                         <!-- Record Count -->
                         <div class="nc-kanban-data-count text-nc-content-gray-muted font-weight-500 px-1">

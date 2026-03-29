@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { UITypes, getRenderAsTextFunForUiType } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, RollupType } from 'nocodb-sdk'
+import { getRenderAsTextFunForUiType, UITypes } from 'nocodb-sdk'
 
 const { metas } = useMetas()
 
@@ -10,12 +10,12 @@ const column = inject(ColumnInj)!
 
 const meta = inject(MetaInj, ref())
 
-const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
-  useShowNotEditableWarning()
+const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning }
+  = useShowNotEditableWarning()
 
 const relationColumnOptions = computed<LinkToAnotherRecordType | null>(() => {
   if ((column?.value?.colOptions as RollupType)?.fk_relation_column_id) {
-    return meta?.value?.columns?.find((c) => c.id === (column?.value?.colOptions as RollupType)?.fk_relation_column_id)
+    return meta?.value?.columns?.find(c => c.id === (column?.value?.colOptions as RollupType)?.fk_relation_column_id)
       ?.colOptions as LinkToAnotherRecordType
   }
   return null

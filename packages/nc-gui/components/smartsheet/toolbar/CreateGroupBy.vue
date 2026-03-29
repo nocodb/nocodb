@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { type ColumnType, type LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { isHiddenCol, isLinksOrLTAR, isSystemColumn, RelationTypes, UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   // As we need to focus search box when the parent is opened
@@ -38,20 +38,21 @@ const options = computed<ColumnType[]>(
           }
 
           return showSystemFields.value
-        } else {
+        }
+        else {
           /** ignore hasmany and manytomany relations if it's using within group menu */
           return !(
-            isLinksOrLTAR(c) &&
-            ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
+            isLinksOrLTAR(c)
+            && ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
               (c.colOptions as LinkToAnotherRecordType).type as RelationTypes,
             )
           )
         }
       })
-      .filter((c: ColumnType) => !groupBy.value.find((g) => g.column?.id === c.id)) ?? [],
+      .filter((c: ColumnType) => !groupBy.value.find(g => g.column?.id === c.id)) ?? [],
 )
 
-const onClick = (column: ColumnType) => {
+function onClick(column: ColumnType) {
   emits('created', column)
 }
 </script>

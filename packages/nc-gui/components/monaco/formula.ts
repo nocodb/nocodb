@@ -1,4 +1,4 @@
-import type { Thenable, editor, languages } from 'monaco-editor'
+import type { editor, languages, Thenable } from 'monaco-editor'
 
 import { formulas } from 'nocodb-sdk'
 
@@ -50,8 +50,8 @@ const themeDark: editor.IStandaloneThemeData = {
   },
 }
 
-const generateLanguageDefinition = (identifiers: string[]) => {
-  identifiers = identifiers.map((identifier) => `{${identifier}}`)
+function generateLanguageDefinition(identifiers: string[]) {
+  identifiers = identifiers.map(identifier => `{${identifier}}`)
 
   const languageDefinition: languages.IMonarchLanguage | Thenable<languages.IMonarchLanguage> = {
     defaultToken: 'invalid',
@@ -68,7 +68,7 @@ const generateLanguageDefinition = (identifiers: string[]) => {
         [
           new RegExp(
             `\\{(${identifiers
-              .map((identifier) =>
+              .map(identifier =>
                 identifier
                   // remove curly braces wrapping the identifier
                   .replace(/^\{([\s\S]+)\}$/, '$1')
@@ -85,7 +85,7 @@ const generateLanguageDefinition = (identifiers: string[]) => {
           },
         ],
         [
-          /[a-zA-Z_]\w*/,
+          /[a-z_]\w*/i,
           {
             cases: {
               '@keywords': 'keyword',
@@ -125,7 +125,7 @@ const languageConfiguration: languages.LanguageConfiguration = {
     { open: '{', close: '}' },
     { open: '(', close: ')' },
     { open: '"', close: '"' },
-    { open: "'", close: "'" },
+    { open: '\'', close: '\'' },
   ],
 }
 

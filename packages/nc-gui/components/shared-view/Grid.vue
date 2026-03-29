@@ -34,7 +34,8 @@ useViewRowColorProvider({ shared: true })
 if (signedIn.value) {
   try {
     await loadProject()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.error(e)
     message.error(await extractSdkResponseErrorMsg(e))
   }

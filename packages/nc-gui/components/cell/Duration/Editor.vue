@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
+import type { VNodeRef } from 'vue'
 
 interface Props {
   modelValue: number | string | null | undefined
@@ -45,13 +45,14 @@ const localState = computed({
       emit('update:modelValue', null)
       isEdited.value = false
       tempState.value = undefined
-    } else {
+    }
+    else {
       emit('update:modelValue', durationInMS.value)
     }
   },
 })
 
-const checkDurationFormat = (evt: KeyboardEvent) => {
+function checkDurationFormat(evt: KeyboardEvent) {
   evt = evt || window.event
   const charCode = evt.which ? evt.which : evt.keyCode
   const PRINTABLE_CTL_RANGE = charCode > 31
@@ -61,13 +62,14 @@ const checkDurationFormat = (evt: KeyboardEvent) => {
   if (PRINTABLE_CTL_RANGE && NON_DIGIT && NON_COLON && NON_PERIOD) {
     showWarningMessage.value = true
     evt.preventDefault()
-  } else {
+  }
+  else {
     showWarningMessage.value = false
     return true
   }
 }
 
-const submitDuration = () => {
+function submitDuration() {
   if (isEdited.value) {
     emit('update:modelValue', durationInMS.value)
   }
@@ -113,7 +115,7 @@ onMounted(() => {
       @keydown.alt.stop
       @selectstart.capture.stop
       @mousedown.stop
-    />
+    >
 
     <div v-if="showWarningMessage && props.showValidationError" class="nc-cell-field duration-warning">
       {{ $t('msg.plsEnterANumber') }}

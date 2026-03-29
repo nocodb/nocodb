@@ -1,5 +1,5 @@
-import dayjs from 'dayjs'
 import type { ProductFeedItem } from '../lib/types'
+import dayjs from 'dayjs'
 
 export const useProductFeed = createSharedComposable(() => {
   const activeTab = ref('recents')
@@ -23,7 +23,7 @@ export const useProductFeed = createSharedComposable(() => {
     cloud: false,
   })
 
-  const loadFeed = async ({ loadMore, type }: { loadMore: boolean; type: 'youtube' | 'github' | 'all' | 'cloud' }) => {
+  const loadFeed = async ({ loadMore, type }: { loadMore: boolean, type: 'youtube' | 'github' | 'all' | 'cloud' }) => {
     try {
       let page = 1
 
@@ -60,7 +60,8 @@ export const useProductFeed = createSharedComposable(() => {
           cloudFeed.value = [...cloudFeed.value, ...response] as ProductFeedItem[]
           break
       }
-    } catch (error) {
+    }
+    catch (error) {
       switch (type) {
         case 'youtube':
           isErrorOccurred.youtube = true
@@ -94,7 +95,8 @@ export const useProductFeed = createSharedComposable(() => {
       if (!lastFeed.isValid() || dayjs(latestFeed['Published Time']).isAfter(lastFeed)) {
         isNewFeedAvailable.value = true
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error while checking new feed', error)
     }
   }

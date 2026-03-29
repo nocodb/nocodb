@@ -140,7 +140,6 @@ export default class OAuthAuthorizationCode {
     const BATCH_SIZE = 100;
     let deletedCount = 0;
 
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       // Fetch a batch of codes
       const codes = await ncMeta.metaList2(

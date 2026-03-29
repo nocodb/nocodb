@@ -5,7 +5,7 @@ function mdStrikeExt(md: MarkdownIt) {
     const max = state.posMax
     const start = state.pos
 
-    if (state.src.charCodeAt(start) !== 0x7e /* ~ */) {
+    if (state.src.charCodeAt(start) !== 0x7E /* ~ */) {
       return false
     }
     if (silent) {
@@ -19,7 +19,7 @@ function mdStrikeExt(md: MarkdownIt) {
     let found = false
 
     while (state.pos < max) {
-      if (state.src.charCodeAt(state.pos) === 0x7e /* ~ */) {
+      if (state.src.charCodeAt(state.pos) === 0x7E /* ~ */) {
         found = true
         break
       }

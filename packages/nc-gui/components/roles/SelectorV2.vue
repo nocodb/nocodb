@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { ProjectRoles, RoleColors, RoleIcons, RoleLabels } from 'nocodb-sdk'
-import type { SelectValue } from 'ant-design-vue/es/select'
 import type { IconMapKey } from '#imports'
+import type { SelectValue } from 'ant-design-vue/es/select'
+import { ProjectRoles, RoleColors, RoleIcons, RoleLabels } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { FormulaDataTypes, handleTZ } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { FormulaDataTypes, handleTZ } from 'nocodb-sdk'
 import { useDetachedLongText } from '../smartsheet/grid/canvas/composables/useDetachedLongText'
 
 provide(IsUnderFormulaInj, ref(true))
@@ -31,12 +31,12 @@ const isStringDataType = computed(() => {
   if (isUnderLookup.value) return false
 
   return (
-    !(column.value.colOptions as any)?.parsed_tree?.dataType ||
-    (column.value.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.STRING
+    !(column.value.colOptions as any)?.parsed_tree?.dataType
+    || (column.value.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.STRING
   )
 })
 
-const openLongText = (event: MouseEvent) => {
+function openLongText(event: MouseEvent) {
   if (!isStringDataType.value) return
 
   const target = event.target as HTMLElement
@@ -54,8 +54,8 @@ const openLongText = (event: MouseEvent) => {
   })
 }
 
-const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
-  useShowNotEditableWarning({
+const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning }
+  = useShowNotEditableWarning({
     onEnter: (e) => {
       if (isStringDataType.value) {
         openLongText(e)
@@ -74,7 +74,8 @@ const updatedColumn = computed(() => {
       uidt: column.value.meta?.display_type,
       ...column.value.meta?.display_column_meta,
     }
-  } else if (column.value.colOptions?.parsed_tree?.referencedColumn) {
+  }
+  else if (column.value.colOptions?.parsed_tree?.referencedColumn) {
     return {
       ...column.value,
       uidt: column.value.colOptions?.parsed_tree?.referencedColumn.uidt,
@@ -139,7 +140,9 @@ const renderAsCell = computed(() => {
         placement="bottom"
         class="nc-action-icon hidden group-hover:block absolute right-4 top-1"
       >
-        <template #title>{{ isExpandedFormOpen ? $t('title.expand') : $t('tooltip.expandShiftSpace') }}</template>
+        <template #title>
+          {{ isExpandedFormOpen ? $t('title.expand') : $t('tooltip.expandShiftSpace') }}
+        </template>
         <NcButton
           type="secondary"
           size="xsmall"

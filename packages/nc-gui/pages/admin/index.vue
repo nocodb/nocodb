@@ -17,16 +17,16 @@ provide(IsAdminPanelInj, ref(true))
 
 const route = useRoute()
 
-type AdminTab =
-  | 'dashboard'
-  | 'workspaces'
-  | 'bases'
-  | 'setup'
-  | 'external-integrations'
-  | 'authentication'
-  | 'license'
-  | 'users-list'
-  | 'settings'
+type AdminTab
+  = | 'dashboard'
+    | 'workspaces'
+    | 'bases'
+    | 'setup'
+    | 'external-integrations'
+    | 'authentication'
+    | 'license'
+    | 'users-list'
+    | 'settings'
 
 const validTabs = computed<AdminTab[]>(() => {
   const tabs: AdminTab[] = [
@@ -101,14 +101,18 @@ watch(
               >
                 <div class="flex flex-row gap-x-2 items-center">
                   <GeneralIcon icon="ncArrowLeft" />
-                  <div class="flex text-small leading-[18px] font-semibold">{{ $t('labels.back') }}</div>
+                  <div class="flex text-small leading-[18px] font-semibold">
+                    {{ $t('labels.back') }}
+                  </div>
                 </div>
               </NcButton>
             </div>
             <NcDivider class="!mt-0" />
 
             <div class="text-sm ml-2 p-2 mt-2 flex items-center justify-between gap-2">
-              <div class="text-base font-bold text-nc-content-gray-emphasis">NocoDB</div>
+              <div class="text-base font-bold text-nc-content-gray-emphasis">
+                NocoDB
+              </div>
               <span class="text-nc-content-gray-muted">{{ $t('labels.adminPanel') }}</span>
             </div>
 
@@ -121,7 +125,9 @@ watch(
             >
               <div class="flex items-center space-x-2">
                 <GeneralIcon class="!h-4 !w-4" icon="home1" />
-                <div class="select-none">{{ $t('labels.dashboard') }}</div>
+                <div class="select-none">
+                  {{ $t('labels.dashboard') }}
+                </div>
               </div>
             </NcMenuItem>
 
@@ -142,14 +148,18 @@ watch(
                     'fill-brand-200': activeTab === 'workspaces',
                   }"
                 />
-                <div class="select-none">{{ $t('labels.workspaces') }}</div>
+                <div class="select-none">
+                  {{ $t('labels.workspaces') }}
+                </div>
               </div>
             </NcMenuItem>
 
             <NcMenuItem key="bases" :class="{ active: activeTab === 'bases' }" class="item" @click="activeTab = 'bases'">
               <div class="flex items-center space-x-2">
                 <GeneralProjectIcon :color="activeTab === 'bases' ? undefined : 'gray'" />
-                <div class="select-none">{{ $t('objects.projects') }}</div>
+                <div class="select-none">
+                  {{ $t('objects.projects') }}
+                </div>
               </div>
             </NcMenuItem>
 
@@ -163,7 +173,9 @@ watch(
             >
               <div class="flex items-center space-x-2">
                 <GeneralIcon icon="ncUsers" class="!h-4 !w-4" />
-                <div class="select-none">{{ $t('title.userManagement') }}</div>
+                <div class="select-none">
+                  {{ $t('title.userManagement') }}
+                </div>
               </div>
             </NcMenuItem>
 
@@ -176,7 +188,9 @@ watch(
             >
               <div class="flex items-center space-x-2">
                 <component :is="iconMap.ncLock" />
-                <div class="select-none text-sm">{{ $t('title.sso') }}</div>
+                <div class="select-none text-sm">
+                  {{ $t('title.sso') }}
+                </div>
               </div>
             </NcMenuItem>
 
@@ -190,7 +204,9 @@ watch(
             >
               <div class="flex items-center space-x-2 w-full">
                 <GeneralIcon icon="ncSliders" class="!h-4 !w-4" />
-                <div class="select-none">{{ $t('labels.setup') }}</div>
+                <div class="select-none">
+                  {{ $t('labels.setup') }}
+                </div>
                 <span class="flex-grow" />
                 <NcTooltip v-if="isPending">
                   <template #title>
@@ -210,7 +226,9 @@ watch(
             >
               <div class="flex items-center space-x-2">
                 <GeneralIcon icon="ncSliders" class="!h-4 !w-4" />
-                <div class="select-none">{{ $t('title.externalIntegrations') }}</div>
+                <div class="select-none">
+                  {{ $t('title.externalIntegrations') }}
+                </div>
               </div>
             </NcMenuItem>
 
@@ -223,7 +241,9 @@ watch(
             >
               <div class="flex items-center space-x-2">
                 <GeneralIcon icon="settings" class="!h-4 !w-4" />
-                <div class="select-none">{{ $t('activity.settings') }}</div>
+                <div class="select-none">
+                  {{ $t('activity.settings') }}
+                </div>
               </div>
             </NcMenuItem>
 
@@ -237,7 +257,9 @@ watch(
             >
               <div class="flex items-center space-x-2">
                 <GeneralIcon icon="ncKey2" class="h-4 w-4 flex-none" />
-                <div class="select-none">{{ $t('title.license') }}</div>
+                <div class="select-none">
+                  {{ $t('title.license') }}
+                </div>
               </div>
             </NcMenuItem>
           </NcMenu>

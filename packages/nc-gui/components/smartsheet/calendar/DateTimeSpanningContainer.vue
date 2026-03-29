@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type dayjs from 'dayjs'
 import type { Row } from '#imports'
+import type dayjs from 'dayjs'
 
 const props = defineProps<{
   records: Row[]
@@ -30,7 +30,7 @@ const fieldStyles = computed(() => {
       underline: !!field.underline,
     }
     return acc
-  }, {} as Record<string, { bold?: boolean; italic?: boolean; underline?: boolean }>)
+  }, {} as Record<string, { bold?: boolean, italic?: boolean, underline?: boolean }>)
 })
 
 const {
@@ -54,7 +54,7 @@ const maxVisibleDays = computed(() => {
 // This function is used to find the first suitable row for a record
 // It takes the recordsInDay object, the start day index and the span of the record in days
 // It returns the first suitable row for the entire span of the record
-const findFirstSuitableRow = (recordsInDay: any, startDayIndex: number, spanDays: number) => {
+function findFirstSuitableRow(recordsInDay: any, startDayIndex: number, spanDays: number) {
   let row = 0
   while (true) {
     let isRowSuitable = true
@@ -81,23 +81,25 @@ const findFirstSuitableRow = (recordsInDay: any, startDayIndex: number, spanDays
 const viewStartDate = computed(() => {
   if (activeCalendarView.value === 'week') {
     return selectedDateRange.value.start
-  } else {
+  }
+  else {
     return selectedDate.value
   }
 })
 
-const isInRange = (date: dayjs.Dayjs) => {
+function isInRange(date: dayjs.Dayjs) {
   if (activeCalendarView.value === 'day') {
     return date.isSame(selectedDate.value, 'day')
-  } else {
-    const rangeEndDate =
-      maxVisibleDays.value === 5
+  }
+  else {
+    const rangeEndDate
+      = maxVisibleDays.value === 5
         ? timezoneDayjs.dayjsTz(selectedDateRange.value.end).subtract(2, 'day')
         : timezoneDayjs.dayjsTz(selectedDateRange.value.end)
 
     return (
-      date &&
-      date.isBetween(
+      date
+      && date.isBetween(
         timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day'),
         timezoneDayjs.dayjsTz(rangeEndDate).endOf('day'),
         'day',
@@ -124,8 +126,8 @@ const calendarData = computed(() => {
       const startDate = record.row[fk_from_col.title!]
         ? timezoneDayjs.timezonize(record.row[fk_from_col.title!])
         : record.row[fk_to_col.title!]
-        ? timezoneDayjs.timezonize(record.row[fk_to_col.title!])
-        : null
+          ? timezoneDayjs.timezonize(record.row[fk_to_col.title!])
+          : null
       if (!startDate) continue
 
       const endDate = record.row[fk_to_col.title!]
@@ -193,7 +195,7 @@ const hoverRecord = ref<string | null>()
 const isExpanded = ref(false)
 
 // This method is used to calculate the new start and end date of a record when dragging and dropping
-const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
+function calculateNewRow(event: MouseEvent, updateSideBarData?: boolean) {
   if (!container.value || !dragRecord.value) return { updatedProperty: [], newRow: null }
   const { width, left } = container.value.getBoundingClientRect()
 
@@ -244,11 +246,14 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
     // If the record has an end date and no start Date, we set the end date to the start date
     if (fromDate && toDate) {
       endDate = timezoneDayjs.dayjsTz(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
-    } else if (fromDate && !toDate) {
+    }
+    else if (fromDate && !toDate) {
       endDate = timezoneDayjs.dayjsTz(newStartDate).endOf('day')
-    } else if (!fromDate && toDate) {
+    }
+    else if (!fromDate && toDate) {
       endDate = timezoneDayjs.dayjsTz(newStartDate).endOf('day')
-    } else {
+    }
+    else {
       endDate = newStartDate.clone()
     }
 
@@ -265,7 +270,8 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
       const pk = extractPkFromRow(r.row, meta.value!.columns!)
       return pk !== newPk
     })
-  } else {
+  }
+  else {
     // If the record is being dragged within the calendar, we need to update the record in the calendar data
     formattedData.value = formattedData.value.map((r) => {
       const pk = extractPkFromRow(r.row, meta.value!.columns!)
@@ -281,7 +287,7 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
 }, 500)
 
 // This function is used to calculate the new start and end date of a record when resizing
-const onResize = (event: MouseEvent) => {
+function onResize(event: MouseEvent) {
   if (!isUIAllowed('dataEdit') || !container.value || !resizeRecord.value) return
 
   const { width, left } = container.value.getBoundingClientRect()
@@ -325,7 +331,8 @@ const onResize = (event: MouseEvent) => {
         [fromCol.title!]: newStartDate.format(updateFormat.value),
       },
     }
-  } else if (resizeDirection.value === 'left') {
+  }
+  else if (resizeDirection.value === 'left') {
     // Calculate the new start date based on the day index by adding the day index to the start date of the selected date range
     let newStartDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).add(day, 'day')
     let newEndDate = ogEndDate.clone()
@@ -359,7 +366,7 @@ const onResize = (event: MouseEvent) => {
   useDebouncedRowUpdate(updateRecord, updateProperty, false)
 }
 
-const onResizeEnd = () => {
+function onResizeEnd() {
   resizeInProgress.value = false
   resizeDirection.value = null
   resizeRecord.value = null
@@ -367,7 +374,7 @@ const onResizeEnd = () => {
   document.removeEventListener('mouseup', onResizeEnd)
 }
 
-const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
+function onResizeStart(direction: 'right' | 'left', event: MouseEvent, record: Row) {
   if (!isUIAllowed('dataEdit')) return
   resizeInProgress.value = true
   resizeDirection.value = direction
@@ -376,13 +383,13 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
   document.addEventListener('mouseup', onResizeEnd)
 }
 
-const onDrag = (event: MouseEvent) => {
+function onDrag(event: MouseEvent) {
   if (!isUIAllowed('dataEdit')) return
   if (!container.value || !dragRecord.value) return
   calculateNewRow(event, false)
 }
 
-const stopDrag = (event: MouseEvent) => {
+function stopDrag(event: MouseEvent) {
   event.preventDefault()
   clearTimeout(dragTimeout.value!)
 
@@ -412,7 +419,7 @@ const stopDrag = (event: MouseEvent) => {
   document.removeEventListener('mouseup', stopDrag)
 }
 
-const dragStart = (event: MouseEvent, record: Row) => {
+function dragStart(event: MouseEvent, record: Row) {
   if (resizeInProgress.value) return
   let target = event.target as HTMLElement
 
@@ -512,7 +519,7 @@ defineExpose({
           :style="{
             width: `${(containerWidth / 7) * 2}px`,
           }"
-        ></div>
+        />
         <template v-for="(record, id) in calendarData" :key="id">
           <div
             v-if="record.rowMeta.style?.display !== 'none'"

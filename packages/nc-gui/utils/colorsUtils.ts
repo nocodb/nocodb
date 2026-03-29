@@ -1,6 +1,7 @@
-import colors from 'windicss/colors'
 import { enumColors as enumColor } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
+import colors from 'windicss/colors'
+
 export { enumColors as enumColor } from 'nocodb-sdk'
 
 export const theme = {
@@ -40,17 +41,17 @@ export const themeColors = {
 export const themeV2Colors = {
   /** Primary shades */
   'royal-blue': {
-    'DEFAULT': '#4351E8',
-    '50': '#E7E8FC',
-    '100': '#D4D8FA',
-    '200': '#B0B6F5',
-    '300': '#8C94F1',
-    '400': '#6773EC',
-    '500': '#4351E8',
-    '600': '#1A2BD8',
-    '700': '#1421A6',
-    '800': '#0E1774',
-    '900': '#080D42',
+    DEFAULT: '#4351E8',
+    50: '#E7E8FC',
+    100: '#D4D8FA',
+    200: '#B0B6F5',
+    300: '#8C94F1',
+    400: '#6773EC',
+    500: '#4351E8',
+    600: '#1A2BD8',
+    700: '#1421A6',
+    800: '#0E1774',
+    900: '#080D42',
   },
 
   /** Accent shades */
@@ -200,7 +201,7 @@ type Shade = keyof (typeof themeV3Colors)[ThemeV3ColorKeys]
  * @returns The color
  */
 export function getThemeV3RandomColor(randomNumber = 1, shade: Shade = 600): string {
-  const colorGroups = Object.keys(themeV3Colors).filter((key) => key !== 'base') as ThemeV3ColorKeys[]
+  const colorGroups = Object.keys(themeV3Colors).filter(key => key !== 'base') as ThemeV3ColorKeys[]
 
   const groupIndex = Math.floor(Math.random() * 1000 * randomNumber) % colorGroups.length
   const colorGroup = colorGroups[groupIndex]!
@@ -209,13 +210,13 @@ export function getThemeV3RandomColor(randomNumber = 1, shade: Shade = 600): str
   return selectedGroup[shade]
 }
 
-const isValidHex = (hex: string) => /^#([A-Fa-f0-9]{3,4}){1,2}$/.test(hex)
+const isValidHex = (hex: string) => /^#([A-F0-9]{3,4}){1,2}$/i.test(hex)
 
 const getChunksFromString = (st: string, chunkSize: number) => st.match(new RegExp(`.{${chunkSize}}`, 'g'))
 
-const convertHexUnitTo256 = (hexStr: string) => parseInt(hexStr.repeat(2 / hexStr.length), 16)
+const convertHexUnitTo256 = (hexStr: string) => Number.parseInt(hexStr.repeat(2 / hexStr.length), 16)
 
-export const hexToRGB = (hex: string) => {
+export function hexToRGB(hex: string) {
   if (!isValidHex(hex)) {
     throw new Error('Invalid HEX')
   }
@@ -342,7 +343,7 @@ const designSystem = {
 }
 
 // convert string into a unique color
-export const stringToColor = (input: string, colorArray = designSystem.light) => {
+export function stringToColor(input: string, colorArray = designSystem.light) {
   // Calculate a numeric hash value from the input string
   let hash = 0
   for (let i = 0; i < input.length; i++) {
@@ -362,9 +363,9 @@ function hexToRGBObject(hexColor: string) {
   hexColor = hexColor.replace(/^#/, '')
 
   // Split the hexColor into red, green, and blue components
-  const r = parseInt(hexColor.substring(0, 2), 16)
-  const g = parseInt(hexColor.substring(2, 4), 16)
-  const b = parseInt(hexColor.substring(4, 6), 16)
+  const r = Number.parseInt(hexColor.substring(0, 2), 16)
+  const g = Number.parseInt(hexColor.substring(2, 4), 16)
+  const b = Number.parseInt(hexColor.substring(4, 6), 16)
 
   return { r, g, b }
 }
@@ -383,7 +384,7 @@ export function getEnumColorByIndex(i: number, mode: 'light' | 'dark' = 'light')
 
 export function hexToRgb(hex: string) {
   const cleaned = hex.replace('#', '')
-  const bigint = parseInt(cleaned, 16)
+  const bigint = Number.parseInt(cleaned, 16)
   const r = (bigint >> 16) & 255
   const g = (bigint >> 8) & 255
   const b = bigint & 255
@@ -398,7 +399,8 @@ export function flattenColors(colors: Record<string, any>, prefix = ''): Record<
 
     if (typeof value === 'string') {
       result[newKey] = value
-    } else {
+    }
+    else {
       Object.assign(result, flattenColors(value, newKey))
     }
   })
@@ -414,7 +416,7 @@ export function ncBuildColorsWithOpacity(colors: Record<string, any>, prefix: st
   Object.entries(flat).forEach(([key, value]) => {
     const rgb = value.startsWith('#') ? hexToRgb(value) : `var(${value})`
 
-    result[key] = ({ opacityVariable, opacityValue }: { opacityVariable?: string; opacityValue?: number } = {}) => {
+    result[key] = ({ opacityVariable, opacityValue }: { opacityVariable?: string, opacityValue?: number } = {}) => {
       if (opacityValue !== undefined) return `rgba(${rgb}, ${opacityValue})`
       if (opacityVariable !== undefined) return `rgba(${rgb}, var(${opacityVariable}, 1))`
       return `rgb(${rgb})`
@@ -851,16 +853,13 @@ export const themeVariables = {
   },
 }
 
-export const getAdaptiveTint = (
-  color: string,
-  opts?: {
-    isDarkMode?: boolean
-    saturationMod?: number
-    brightnessMod?: number
-    shade?: number // darker
-    tint?: number // lighter
-  },
-) => {
+export function getAdaptiveTint(color: string, opts?: {
+  isDarkMode?: boolean
+  saturationMod?: number
+  brightnessMod?: number
+  shade?: number // darker
+  tint?: number // lighter
+}) {
   const { isDarkMode, shade = 0, tint = 0 } = opts || {}
 
   const { saturationMod = 0, brightnessMod = 0 } = opts || {}
@@ -881,7 +880,8 @@ export const getAdaptiveTint = (
     const safeV = Math.min(100, (isGray ? 97 : 100) + brightnessMod)
     s = safeS
     v = safeV
-  } else {
+  }
+  else {
     //
     // 🌙 DARK MODE — softer, not too dark
     //
@@ -903,11 +903,7 @@ export const getAdaptiveTint = (
   return tinycolor({ h: hsv.h, s, v }).toHexString()
 }
 
-export const getOppositeColorOfBackground = (
-  background?: string,
-  preferredText?: string,
-  fallbackColors: string[] = ['#1f293a', '#101015', '#ffffff'],
-) => {
+export function getOppositeColorOfBackground(background?: string, preferredText?: string, fallbackColors: string[] = ['#1f293a', '#101015', '#ffffff']) {
   const bg = background || '#cccccc'
   const txt = preferredText || '#ffffff'
 

@@ -36,7 +36,9 @@ defineProps<{
       </div>
       <div v-if="$slots.subtext || subtext || isLoading" class="subtext">
         <a-skeleton v-if="isLoading" active title :paragraph="false" />
-        <slot v-else name="subtext">{{ subtext }}</slot>
+        <slot v-else name="subtext">
+          {{ subtext }}
+        </slot>
       </div>
     </div>
     <div v-if="$slots.srOnly" class="sr-only">

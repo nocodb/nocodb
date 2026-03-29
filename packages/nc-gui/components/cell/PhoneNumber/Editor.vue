@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { VNodeRef } from '@vue/runtime-core'
+import type { VNodeRef } from 'vue'
 import isMobilePhone from 'validator/lib/isMobilePhone'
 
 interface Props {
@@ -59,7 +59,7 @@ onMounted(() => {
   }
 })
 
-const onBlur = () => {
+function onBlur() {
   editEnabled.value = false
   isFocused.value = false
 }
@@ -93,7 +93,7 @@ const showClicableLink = computed(() => {
     @keydown.alt.stop
     @selectstart.capture.stop
     @mousedown.stop
-  />
+  >
   <div
     v-if="showClicableLink"
     class="nc-cell-field nc-cell-link-preview absolute inset-0 flex items-center max-w-full overflow-hidden pointer-events-none"

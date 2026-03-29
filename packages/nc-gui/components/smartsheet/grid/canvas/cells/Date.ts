@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
-import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTagLabel, truncateText } from '../utils/canvas'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
+import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTagLabel, truncateText } from '../utils/canvas'
+
 const defaultDateFormat = 'YYYY-MM-DD'
 
 export const DateCellRenderer: CellRenderer = {
@@ -37,7 +38,8 @@ export const DateCellRenderer: CellRenderer = {
       const date = dayjs(/^\d+$/.test(value) ? +value : value, defaultDateFormat)
       if (date.isValid()) {
         formattedDate = date.format(dateFormat)
-      } else {
+      }
+      else {
         const parsedDate = parseFlexibleDate(value)
         if (parsedDate) {
           formattedDate = parsedDate.format(dateFormat)
@@ -54,7 +56,8 @@ export const DateCellRenderer: CellRenderer = {
 
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text: formattedDate })
-    } else {
+    }
+    else {
       const { x: xOffset, y: yOffset } = renderSingleLineText(ctx, {
         x: x + padding,
         y,
@@ -88,7 +91,8 @@ export const DateCellRenderer: CellRenderer = {
       if (date.isValid()) {
         text = date.format(dateFormat)
       }
-    } else {
+    }
+    else {
       text = dateFormat
       canvasContext.font = '400 13px Inter'
     }

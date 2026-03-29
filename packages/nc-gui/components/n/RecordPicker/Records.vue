@@ -1,8 +1,7 @@
 <script setup lang="ts">
+import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import {
-  type ColumnType,
-  type TableType,
-  type ViewType,
+
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isSystemColumn,
@@ -24,7 +23,7 @@ const emits = defineEmits<{
 
 const { meta, viewMeta, where, records, fields: propsFields } = toRefs(props)
 
-const pv = computed(() => (meta.value?.columns ?? []).find((c) => c.pv))
+const pv = computed(() => (meta.value?.columns ?? []).find(c => c.pv))
 useProvideSmartsheetLtarHelpers(meta)
 
 const { isMobileMode } = useGlobal()
@@ -36,11 +35,11 @@ const _fields = computedInject(FieldsInj, (_fields) => {
     !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isCreatedOrLastModifiedTimeCol(col)
 
   if (propsFields.value?.length) {
-    return (meta.value?.columns ?? []).filter((col) => propsFields.value.includes(col.title!) && conditionToCheck(col))
+    return (meta.value?.columns ?? []).filter(col => propsFields.value.includes(col.title!) && conditionToCheck(col))
   }
 
   return (meta.value?.columns ?? [])
-    .filter((col) => conditionToCheck(col))
+    .filter(col => conditionToCheck(col))
     .sort((a, b) => {
       return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
     })
@@ -50,7 +49,7 @@ const fieldsToDisplay = computed(() => _fields.value.slice(0, isMobileMode.value
 
 const computedWhere = computed(() => {
   const columnsToSearch = fieldsToDisplay.value
-    .filter((col) => isSearchableColumn(col) && !col.pv)
+    .filter(col => isSearchableColumn(col) && !col.pv)
     .concat(...(pv.value ? [pv.value] : []))
 
   const fieldQuery = columnsToSearch
@@ -96,7 +95,7 @@ const BUFFER_SIZE = 100
 const INITIAL_LOAD_SIZE = 100
 const PREFETCH_THRESHOLD = 40
 
-const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
+async function fetchChunk(chunkId: number, isInitialLoad = false) {
   if (chunkStates.value[chunkId]) return
 
   const offset = chunkId * CHUNK_SIZE
@@ -113,13 +112,14 @@ const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
   try {
     const newItems = await loadData({ offset, limit })
 
-    newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
+    newItems.forEach(item => cachedRows.value.set(item.rowMeta.rowIndex!, item))
 
     chunkStates.value[chunkId] = 'loaded'
     if (isInitialLoad) {
       chunkStates.value[chunkId + 1] = 'loaded'
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error(`Error fetching chunk ${chunkId}:`, error)
     chunkStates.value[chunkId] = undefined
     if (isInitialLoad) {
@@ -128,7 +128,7 @@ const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
   }
 }
 
-const updateVisibleRows = async () => {
+async function updateVisibleRows() {
   if (records.value) return
 
   const { start, end } = rowSlice
@@ -161,13 +161,13 @@ const updateVisibleRows = async () => {
       chunksToFetch.delete(1)
     }
 
-    await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId)))
+    await Promise.all([...chunksToFetch].map(chunkId => fetchChunk(chunkId)))
   }
 
   clearCache(Math.max(0, start - BUFFER_SIZE), Math.min(totalRows.value, end + BUFFER_SIZE))
 }
 
-const calculateSlices = () => {
+function calculateSlices() {
   // if the scrollWrapper is not rendered yet
   if (!scrollWrapper.value) {
     // try again until the grid is rendered
@@ -183,10 +183,10 @@ const calculateSlices = () => {
   const newEnd = Math.min(totalRows.value, Math.max(endIndex + ROW_VIRTUAL_MARGIN, newStart + 50))
 
   if (
-    rowSlice.start < 10 ||
-    Math.abs(newStart - rowSlice.start) >= ROW_VIRTUAL_MARGIN / 2 ||
-    Math.abs(newEnd - rowSlice.end) >= ROW_VIRTUAL_MARGIN / 2 ||
-    lastTotalRows.value !== totalRows.value
+    rowSlice.start < 10
+    || Math.abs(newStart - rowSlice.start) >= ROW_VIRTUAL_MARGIN / 2
+    || Math.abs(newEnd - rowSlice.end) >= ROW_VIRTUAL_MARGIN / 2
+    || lastTotalRows.value !== totalRows.value
   ) {
     rowSlice.start = newStart
     rowSlice.end = newEnd
@@ -209,7 +209,7 @@ const visibleRows = computed(() => {
   })
 })
 
-const resolve = (row: Row) => {
+function resolve(row: Row) {
   emits('resolve', row)
 }
 
@@ -251,7 +251,7 @@ watch(computedWhere, async () => {
 
   await syncCount()
   const newItems = await loadData()
-  newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
+  newItems.forEach(item => cachedRows.value.set(item.rowMeta.rowIndex!, item))
 
   calculateSlices()
   await updateVisibleRows()
@@ -269,10 +269,11 @@ onMounted(async () => {
       })
     })
     totalRows.value = records.value.length
-  } else {
+  }
+  else {
     await syncCount()
     const newItems = await loadData()
-    newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
+    newItems.forEach(item => cachedRows.value.set(item.rowMeta.rowIndex!, item))
 
     calculateSlices()
     await updateVisibleRows()
@@ -307,7 +308,7 @@ defineExpose({
     v-if="where && !visibleRows.length"
     class="px-2 py-6 pt-24 text-nc-content-gray-muted flex flex-col items-center gap-6 text-center"
   >
-    <img src="~assets/img/placeholder/no-search-result-found.png" class="!w-[164px] flex-none" alt="No search results found" />
+    <img src="~assets/img/placeholder/no-search-result-found.png" class="!w-[164px] flex-none" alt="No search results found">
 
     {{ $t('title.noResultsMatchedYourSearch') }}
   </div>

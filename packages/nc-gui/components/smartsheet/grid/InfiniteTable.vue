@@ -1,25 +1,25 @@
 <script setup lang="ts">
+import type { CellRange, Row, ViewActionState } from '#imports'
+import type { ButtonType, ColumnReqType, ColumnType, TableType, ViewType } from 'nocodb-sdk'
+
+import { NavigateDir } from '#imports'
+import axios from 'axios'
 import {
-  type ButtonType,
-  type ColumnReqType,
-  type ColumnType,
-  PlanLimitTypes,
-  PlanTitles,
-  type TableType,
-  UITypes,
-  type ViewType,
-  ViewTypes,
+
   isAIPromptCol,
   isLinksOrLTAR,
+
   isOrderCol,
+
   isSystemColumn,
   isVirtualCol,
+  PlanLimitTypes,
+  PlanTitles,
+  UITypes,
+  ViewTypes,
 } from 'nocodb-sdk'
-
-import axios from 'axios'
 import { useColumnDrag } from './useColumnDrag'
 import { useRowDragging } from './useRowDragging'
-import { type CellRange, NavigateDir, type Row, type ViewActionState } from '#imports'
 
 const props = defineProps<{
   totalRows: number
@@ -33,7 +33,7 @@ const props = defineProps<{
     row: Row,
     property?: string,
     ltarState?: Record<string, any>,
-    args?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    args?: { metaValue?: TableType, viewMetaValue?: ViewType },
     beforeRow?: string,
   ) => Promise<any>
   deleteSelectedRows?: () => Promise<void>
@@ -49,7 +49,7 @@ const props = defineProps<{
   bulkUpdateRows?: (
     rows: Row[],
     props: string[],
-    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    metas?: { metaValue?: TableType, viewMetaValue?: ViewType },
     undo?: boolean,
   ) => Promise<void>
   bulkDeleteAll?: () => Promise<void>
@@ -57,7 +57,7 @@ const props = defineProps<{
     insertRows: Row[],
     updateRows: [],
     props: string[],
-    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    metas?: { metaValue?: TableType, viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
   ) => Promise<void>
   expandForm?: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
@@ -121,8 +121,8 @@ const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
 
 const { appInfo, isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
 
-const { isPkAvail, isSqlView, eventBus, allFilters, sorts, isExternalSource, isViewOperationsAllowed } =
-  useSmartsheetStoreOrThrow()
+const { isPkAvail, isSqlView, eventBus, allFilters, sorts, isExternalSource, isViewOperationsAllowed }
+  = useSmartsheetStoreOrThrow()
 
 const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
@@ -182,7 +182,7 @@ const columnWidthLimit = {
     maxWidth: 320,
   },
 }
-const normalizedWidth = (col: ColumnType, width: number) => {
+function normalizedWidth(col: ColumnType, width: number) {
   if (col.uidt! in columnWidthLimit) {
     const { minWidth, maxWidth } = columnWidthLimit[col.uidt]
 
@@ -193,7 +193,7 @@ const normalizedWidth = (col: ColumnType, width: number) => {
   return width
 }
 
-const onresize = (colID: string | undefined, event: any) => {
+function onresize(colID: string | undefined, event: any) {
   if (!colID || !ncIsString(event?.detail)) return
 
   const size = event.detail.split('px')[0]
@@ -201,7 +201,7 @@ const onresize = (colID: string | undefined, event: any) => {
   updateGridViewColumn(colID, { width: `${normalizedWidth(metaColumnById.value[colID], size)}px` })
 }
 
-const onXcResizing = (cn: string | undefined, event: any) => {
+function onXcResizing(cn: string | undefined, event: any) {
   if (!cn || !ncIsString(event?.detail)) return
 
   const size = event.detail.split('px')[0]
@@ -210,7 +210,7 @@ const onXcResizing = (cn: string | undefined, event: any) => {
   refreshFillHandle()
 }
 
-const onXcStartResizing = (cn: string | undefined, event: any) => {
+function onXcStartResizing(cn: string | undefined, event: any) {
   if (!cn) return
   resizingColOldWith.value = event.detail
   resizingColumn.value = true
@@ -250,7 +250,7 @@ const BUFFER_SIZE = 100
 const INITIAL_LOAD_SIZE = 100
 const PREFETCH_THRESHOLD = 40
 
-const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
+async function fetchChunk(chunkId: number, isInitialLoad = false) {
   if (chunkStates.value[chunkId]) return
 
   const offset = chunkId * CHUNK_SIZE
@@ -267,13 +267,14 @@ const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
 
   try {
     const newItems = await loadData({ offset, limit })
-    newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex, item))
+    newItems.forEach(item => cachedRows.value.set(item.rowMeta.rowIndex, item))
 
     chunkStates.value[chunkId] = 'loaded'
     if (isInitialLoad) {
       chunkStates.value[chunkId + 1] = 'loaded'
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error(`Error fetching chunk ${chunkId}:`, error)
     chunkStates.value[chunkId] = undefined
     if (isInitialLoad) {
@@ -310,7 +311,7 @@ const totalMaxPlaceholderRows = computed(() => {
     return 0
   }
 
-  return parseInt(`${gridWrapper.value?.clientHeight / (rowHeight.value || 32)}`) * 3
+  return Number.parseInt(`${gridWrapper.value?.clientHeight / (rowHeight.value || 32)}`) * 3
 })
 
 const placeholderStartRows = computed(() => {
@@ -343,7 +344,7 @@ const topOffset = computed(() => {
 let debounceTimeout: any = null // To store the debounced timeout
 const debounceDelay = 50 // Delay in ms after the last scroll event
 
-const updateVisibleRows = async (fromCalculateSlice = false) => {
+async function updateVisibleRows(fromCalculateSlice = false) {
   const { start, end } = rowSlice
 
   const firstChunkId = Math.floor(start / CHUNK_SIZE)
@@ -386,7 +387,7 @@ const updateVisibleRows = async (fromCalculateSlice = false) => {
       }
 
       // Fetch the necessary chunks concurrently
-      await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId)))
+      await Promise.all([...chunksToFetch].map(chunkId => fetchChunk(chunkId)))
 
       // Clear cache for chunks that are no longer visible
       const bufferStart = Math.max(0, start - BUFFER_SIZE)
@@ -409,7 +410,7 @@ const { onDrag, onDragStart, onDragEnd, draggedCol, dragColPlaceholderDomRef, to
   gridWrapper,
 })
 
-const isOrderColumnExists = computed(() => (meta.value?.columns ?? []).some((col) => isOrderCol(col)))
+const isOrderColumnExists = computed(() => (meta.value?.columns ?? []).some(col => isOrderCol(col)))
 
 const isInsertBelowDisabled = computed(() => allFilters.value?.length || sorts.value?.length || isPublicView.value)
 
@@ -437,7 +438,7 @@ const selectedRows = toRef(props, 'selectedRows')
 
 const contextMenuClosing = ref(false)
 
-const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
+const contextMenuTarget = ref<{ row: number, col: number } | null>(null)
 const showSendRecordModal = ref(false)
 
 const contextMenuRowId = computed(() => {
@@ -450,10 +451,11 @@ const contextMenuRowId = computed(() => {
 const contextMenu = computed({
   get: () => {
     if (
-      (selectedRows.value.length && isDataReadOnly.value) ||
-      (contextMenuTarget.value === null && !selectedRows.value.length && !vSelectedAllRecords.value)
-    )
+      (selectedRows.value.length && isDataReadOnly.value)
+      || (contextMenuTarget.value === null && !selectedRows.value.length && !vSelectedAllRecords.value)
+    ) {
       return false
+    }
     return _contextMenu.value
   },
   set: (val) => {
@@ -461,7 +463,7 @@ const contextMenu = computed({
   },
 })
 
-const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) => {
+function showContextMenu(e: MouseEvent, target?: { row: number, col: number }) {
   if (isSqlView.value) return
   e.preventDefault()
   if (target) {
@@ -474,7 +476,7 @@ provide(JsonExpandInj, isJsonExpand)
 
 const isKeyDown = ref(false)
 
-const isReadonly = (col: ColumnType) => {
+function isReadonly(col: ColumnType) {
   return isReadonlyVirtualColumn(col) || col.readonly
 }
 
@@ -487,19 +489,20 @@ const colMeta = computed(() => {
   })
 })
 
-async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = false) {
+async function clearCell(ctx: { row: number, col: number } | null, skipUpdate = false) {
   // If the data is readonly, return
   // If the cell is not available, return
   // If the user doesn't have edit permission, return
   // If the cell is a virtual column and not Links/Ltar, return
   if (
-    isDataReadOnly.value ||
-    !ctx ||
-    !hasEditPermission.value ||
-    (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col])) ||
-    fields.value[ctx.col].readonly
-  )
+    isDataReadOnly.value
+    || !ctx
+    || !hasEditPermission.value
+    || (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col]))
+    || fields.value[ctx.col].readonly
+  ) {
     return
+  }
 
   // If the cell is readonly, return
   if (colMeta.value[ctx.col].isReadonly && !isVirtualCol(fields.value[ctx.col])) return
@@ -527,7 +530,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
     addUndo({
       undo: {
         fn: async (
-          ctx: { row: number; col: number },
+          ctx: { row: number, col: number },
           col: ColumnType,
           row: Row,
           mmClearResult: any[],
@@ -538,17 +541,18 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
           const rowObj = cachedRows.value.get(ctx.row)
           const columnObj = fields.value[ctx.col]
           if (
-            rowObj &&
-            columnObj.title &&
-            rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
-            columnObj.id === col.id
+            rowObj
+            && columnObj.title
+            && rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
+            && columnObj.id === col.id
           ) {
             if (isBt(columnObj) || isOo(columnObj)) {
               rowObj.row[columnObj.title] = row.row[columnObj.title]
 
               await addLTARRef(rowObj, rowObj.row[columnObj.title], columnObj)
               await syncLTARRefs(rowObj, rowObj.row)
-            } else if (isMm(columnObj)) {
+            }
+            else if (isMm(columnObj)) {
               await $api.internal.postOperation(
                 meta.value?.fk_workspace_id as string,
                 meta.value?.base_id as string,
@@ -573,21 +577,23 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             }
 
             scrollToCell?.()
-          } else {
+          }
+          else {
             throw new Error(t('msg.recordCouldNotBeFound'))
           }
         },
         args: [clone(ctx), clone(columnObj), clone(rowObj), mmClearResult, mmOldResult],
       },
       redo: {
-        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, isSelfLinkColumn: boolean) => {
+        fn: async (ctx: { row: number, col: number }, col: ColumnType, row: Row, isSelfLinkColumn: boolean) => {
           const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
           const rowObj = cachedRows.value.get(ctx.row)
           const columnObj = fields.value[ctx.col]
           if (rowObj && rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) && columnObj.id === col.id) {
             if (isBt(columnObj) || isOo(columnObj)) {
               await clearLTARCell(rowObj, columnObj)
-            } else if (isMm(columnObj)) {
+            }
+            else if (isMm(columnObj)) {
               await cleaMMCell(rowObj, columnObj)
             }
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -600,7 +606,8 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             }
 
             scrollToCell?.()
-          } else {
+          }
+          else {
             throw new Error(t('msg.recordCouldNotBeFound'))
           }
         },
@@ -725,11 +732,11 @@ async function openNewRecordHandler() {
   if (newRow) expandForm?.(newRow, undefined, true)
 }
 
-const onDraftRecordClick = () => {
+function onDraftRecordClick() {
   openNewRecordFormHook.trigger()
 }
 
-const onNewRecordToGridClick = () => {
+function onNewRecordToGridClick() {
   if (showRecordPlanLimitExceededModal()) return
 
   setAddNewRecordGridMode(true)
@@ -746,21 +753,17 @@ function onNewRecordToFormClick() {
 const numColHeader = ref<HTMLElement | null>(null)
 const primaryColHeader = ref<HTMLElement | null>(null)
 
-const getContainerScrollForElement = (
-  childPos: {
-    top: number
-    right: number
-    bottom: number
-    left: number
-  },
-  container: HTMLElement,
-  offset?: {
-    top?: number
-    bottom?: number
-    left?: number
-    right?: number
-  },
-) => {
+function getContainerScrollForElement(childPos: {
+  top: number
+  right: number
+  bottom: number
+  left: number
+}, container: HTMLElement, offset?: {
+  top?: number
+  bottom?: number
+  left?: number
+  right?: number
+}) {
   const parentPos = container.getBoundingClientRect()
 
   // provide an extra offset to show the prev/next/up/bottom cell
@@ -788,28 +791,28 @@ const getContainerScrollForElement = (
    * If the element is to the right of the container, scroll right (positive)
    * If the element is to the left of the container, scroll left (negative)
    */
-  scroll.left =
-    relativePos.right + (offset?.right || 0) > 0
+  scroll.left
+    = relativePos.right + (offset?.right || 0) > 0
       ? container.scrollLeft + relativePos.right + (offset?.right || 0) + extraOffset
       : relativePos.left - (offset?.left || 0) < 0
-      ? container.scrollLeft + relativePos.left - (offset?.left || 0) - extraOffset
-      : container.scrollLeft
+        ? container.scrollLeft + relativePos.left - (offset?.left || 0) - extraOffset
+        : container.scrollLeft
 
   /*
    * If the element is below the container, scroll down (positive)
    * If the element is above the container, scroll up (negative)
    */
-  scroll.top =
-    relativePos.bottom + (offset?.bottom || 0) > 0
+  scroll.top
+    = relativePos.bottom + (offset?.bottom || 0) > 0
       ? container.scrollTop + relativePos.bottom + (offset?.bottom || 0) + extraOffset
       : relativePos.top - (offset?.top || 0) < 0
-      ? container.scrollTop + relativePos.top - (offset?.top || 0) - extraOffset
-      : container.scrollTop
+        ? container.scrollTop + relativePos.top - (offset?.top || 0) - extraOffset
+        : container.scrollTop
 
   return scroll
 }
 
-const onActiveCellChanged = () => {
+function onActiveCellChanged() {
   clearInvalidRows?.()
   if (rowSortRequiredRows.value.length) {
     applySorting?.(rowSortRequiredRows.value)
@@ -944,12 +947,14 @@ const {
         expandForm?.(row)
         return true
       }
-    } else if (e.key === 'Escape') {
+    }
+    else if (e.key === 'Escape') {
       if (editEnabled.value) {
         editEnabled.value = false
         return true
       }
-    } else if (e.key === 'Enter') {
+    }
+    else if (e.key === 'Enter') {
       if (e.shiftKey) {
         // add a line break for types like LongText / JSON
         return true
@@ -958,7 +963,8 @@ const {
         editEnabled.value = false
         return true
       }
-    } else if (e.key === 'Tab') {
+    }
+    else if (e.key === 'Tab') {
       if (!e.shiftKey && activeCell.row === totalRows.value - 1 && activeCell.col === fields.value?.length - 1) {
         e.preventDefault()
         if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value) {
@@ -967,7 +973,8 @@ const {
           return true
         }
         return true
-      } else if (e.shiftKey && activeCell.row === 0 && activeCell.col === 0) {
+      }
+      else if (e.shiftKey && activeCell.row === 0 && activeCell.col === 0) {
         e.preventDefault()
         return true
       }
@@ -1066,7 +1073,7 @@ const {
       }
     }
   },
-  async (ctx: { row: number; col?: number; updatedColumnTitle?: string }) => {
+  async (ctx: { row: number, col?: number, updatedColumnTitle?: string }) => {
     const rowObj = cachedRows.value.get(ctx.row)
     const columnObj = ctx.col !== undefined ? fields.value[ctx.col] : null
 
@@ -1149,7 +1156,7 @@ async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
   return rowObj
 }
 
-const confirmDeleteRow = (row: number) => {
+function confirmDeleteRow(row: number) {
   try {
     deleteRow?.(row)
 
@@ -1162,12 +1169,13 @@ const confirmDeleteRow = (row: number) => {
       activeCell.row = null
       activeCell.col = null
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(e.message)
   }
 }
 
-const commentRow = (rowId: number) => {
+function commentRow(rowId: number) {
   try {
     // set the expanded form comment mode
     isExpandedFormCommentMode.value = true
@@ -1180,12 +1188,13 @@ const commentRow = (rowId: number) => {
     activeCell.row = null
     activeCell.col = null
     selectedRange.clear()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(e.message)
   }
 }
 
-const deleteSelectedRangeOfRows = () => {
+function deleteSelectedRangeOfRows() {
   deleteRangeOfRows?.(selectedRange).then(() => {
     clearSelectedRange()
     activeCell.row = null
@@ -1227,7 +1236,7 @@ const isSelectedOnlyScript = computed(() => {
 
 const { runScript } = useScriptExecutor()
 
-const bulkExecuteScript = async () => {
+async function bulkExecuteScript() {
   if (!isSelectedOnlyScript.value.enabled || !meta?.value?.id || !meta.value.columns) return
 
   const field = fields.value[selectedRange.start.col]
@@ -1247,7 +1256,7 @@ const bulkExecuteScript = async () => {
 
 const isAIFillMode = computed(() => metaKey.value && isAiFeaturesEnabled.value)
 
-const generateAIBulk = async () => {
+async function generateAIBulk() {
   if (!isSelectedOnlyAI.value.enabled || !meta?.value?.id || !meta.value.columns) return
 
   const field = fields.value[selectedRange.start.col]
@@ -1261,13 +1270,13 @@ const generateAIBulk = async () => {
   let outputColumnIds = [field.id]
 
   if (isAiButton(field)) {
-    outputColumnIds =
-      ncIsString(field.colOptions?.output_column_ids) && field.colOptions.output_column_ids.split(',').length > 0
+    outputColumnIds
+      = ncIsString(field.colOptions?.output_column_ids) && field.colOptions.output_column_ids.split(',').length > 0
         ? field.colOptions.output_column_ids.split(',')
         : []
   }
 
-  const pks = rows.map((row) => extractPkFromRow(row.row, meta.value!.columns!)).filter((pk) => pk !== null)
+  const pks = rows.map(row => extractPkFromRow(row.row, meta.value!.columns!)).filter(pk => pk !== null)
 
   generatingRows.value.push(...pks)
   generatingColumnRows.value.push(field.id)
@@ -1280,7 +1289,7 @@ const generateAIBulk = async () => {
     // find rows using pk and update with generated rows
     for (const row of res) {
       const oldRow = Array.from(cachedRows.value.values()).find(
-        (r) => extractPkFromRow(r.row, meta.value!.columns!) === extractPkFromRow(row, meta.value!.columns!),
+        r => extractPkFromRow(r.row, meta.value!.columns!) === extractPkFromRow(row, meta.value!.columns!),
       )
 
       if (oldRow) {
@@ -1289,9 +1298,9 @@ const generateAIBulk = async () => {
     }
   }
 
-  generatingRows.value = generatingRows.value.filter((pk) => !pks.includes(pk))
-  generatingColumnRows.value = generatingColumnRows.value.filter((v) => v !== field.id)
-  generatingColumns.value = generatingColumns.value.filter((v) => !outputColumnIds?.includes(v))
+  generatingRows.value = generatingRows.value.filter(pk => !pks.includes(pk))
+  generatingColumnRows.value = generatingColumnRows.value.filter(v => v !== field.id)
+  generatingColumns.value = generatingColumns.value.filter(v => !outputColumnIds?.includes(v))
 }
 
 onClickOutside(tableBodyEl, (e) => {
@@ -1323,11 +1332,12 @@ onClickOutside(tableBodyEl, (e) => {
     '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-dropdown-user-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active,.nc-link-dropdown-root',
   )
   if (
-    e.target &&
-    activePickerOrDropdownEl &&
-    (activePickerOrDropdownEl === e.target || activePickerOrDropdownEl?.contains(e.target as Element))
-  )
+    e.target
+    && activePickerOrDropdownEl
+    && (activePickerOrDropdownEl === e.target || activePickerOrDropdownEl?.contains(e.target as Element))
+  ) {
     return
+  }
 
   // skip if drawer / modal is active
   if (isDrawerOrModalExist()) {
@@ -1341,7 +1351,7 @@ onClickOutside(tableBodyEl, (e) => {
   activeCell.col = null
 })
 
-const onNavigate = (dir: NavigateDir) => {
+function onNavigate(dir: NavigateDir) {
   if (activeCell.row === null || activeCell.col === null) return
 
   editEnabled.value = false
@@ -1351,7 +1361,8 @@ const onNavigate = (dir: NavigateDir) => {
     case NavigateDir.NEXT:
       if (activeCell.row < totalRows.value - 1) {
         activeCell.row++
-      } else {
+      }
+      else {
         addEmptyRow()
         activeCell.row++
       }
@@ -1409,7 +1420,7 @@ async function clearSelectedRangeOfCells() {
 
 const colPositions = computed(() => {
   return fields.value
-    .filter((col) => col.id && gridViewCols.value[col.id] && gridViewCols.value[col.id].width && gridViewCols.value[col.id].show)
+    .filter(col => col.id && gridViewCols.value[col.id] && gridViewCols.value[col.id].width && gridViewCols.value[col.id].show)
     .map((col) => {
       return +gridViewCols.value[col.id!]!.width!.replace('px', '') || 180
     })
@@ -1463,7 +1474,8 @@ function scrollToCell(row?: number | null, col?: number | null, behaviour: Scrol
       if (col === fields.value.length - 1) {
         scrollOptions.left = gridWrapper.value.scrollWidth
       }
-    } else if (col === fields.value.length - 1) {
+    }
+    else if (col === fields.value.length - 1) {
       scrollOptions.left = gridWrapper.value.scrollWidth
     }
     gridWrapper.value.scrollTo(scrollOptions)
@@ -1472,9 +1484,7 @@ function scrollToCell(row?: number | null, col?: number | null, behaviour: Scrol
 
 const temporaryNewRowStore = ref<Row[]>([])
 
-const saveOrUpdateRecords = async (
-  args: { metaValue?: TableType; viewMetaValue?: ViewType; data?: any; keepNewRecords?: boolean } = {},
-) => {
+async function saveOrUpdateRecords(args: { metaValue?: TableType, viewMetaValue?: ViewType, data?: any, keepNewRecords?: boolean } = {}) {
   for (const currentRow of args.data || cachedRows.value.entries()) {
     if (currentRow.rowMeta?.fromExpandedForm) continue
 
@@ -1484,7 +1494,8 @@ const saveOrUpdateRecords = async (
       const savedRow = await updateOrSaveRow?.(currentRow, '', currentRow.rowMeta.ltarState || {}, args)
       if (savedRow) {
         currentRow.rowMeta.changed = false
-      } else {
+      }
+      else {
         if (args.keepNewRecords) {
           if (beforeSave.rowMeta.new && Object.keys(beforeSave.row).length) {
             temporaryNewRowStore.value.push(beforeSave)
@@ -1511,7 +1522,7 @@ const saveOrUpdateRecords = async (
 
 const editOrAddProviderRef = ref()
 
-const onVisibilityChange = () => {
+function onVisibilityChange() {
   addColumnDropdown.value = editOrAddProviderRef.value?.shouldKeepModalOpen?.()
 }
 
@@ -1535,7 +1546,7 @@ let lastRenderStart = -1
 let lastRenderEnd = -1
 
 // Optimized binary search to determine the visible column range
-const binarySearchForStart = (scrollLeft: number, clientWidth: number) => {
+function binarySearchForStart(scrollLeft: number, clientWidth: number) {
   if (prevScrollLeft === scrollLeft && prevScrollWidth === clientWidth) {
     // Return cached results if the scroll position and grid width haven't changed
     return { renderStart: lastRenderStart, renderEnd: lastRenderEnd }
@@ -1554,13 +1565,14 @@ const binarySearchForStart = (scrollLeft: number, clientWidth: number) => {
     }
     if (colPositions.value[middle] < scrollLeft) {
       startRange = middle + 1
-    } else {
+    }
+    else {
       endRange = middle - 1
     }
   }
 
   // Find the ending column using a simple linear scan starting from renderStart
-  let renderEnd = colPositions.value.findIndex((pos) => pos > clientWidth + scrollLeft)
+  let renderEnd = colPositions.value.findIndex(pos => pos > clientWidth + scrollLeft)
   renderEnd = renderEnd === -1 ? colPositions.value.length : renderEnd
 
   // Cache the results
@@ -1573,7 +1585,7 @@ const binarySearchForStart = (scrollLeft: number, clientWidth: number) => {
 }
 
 // Function to update slices only if there's a significant change
-const updateSliceIfNeeded = (newStart, newEnd, slice) => {
+function updateSliceIfNeeded(newStart, newEnd, slice) {
   if (slice.start !== newStart || slice.end !== newEnd) {
     Object.assign(slice, {
       start: newStart,
@@ -1586,7 +1598,7 @@ const updateSliceIfNeeded = (newStart, newEnd, slice) => {
 }
 
 // Optimized calculateSlices function
-const calculateSlices = () => {
+function calculateSlices() {
   // Skip calculation if the grid wrapper is not rendered yet
   if (!gridWrapper.value) {
     Object.assign(colSlice.value, {
@@ -1601,11 +1613,11 @@ const calculateSlices = () => {
 
   // Avoid recalculating if only vertical scrolling occurred and no major change
   if (
-    lastScrollLeft.value &&
-    lastScrollLeft.value === scrollLeft.value &&
-    Math.abs(lastScrollTop.value - scrollTop.value) < 32 * (ROW_VIRTUAL_MARGIN - 2) &&
-    lastTotalRows.value === totalRows.value &&
-    lastTotalFields.value === fields.value.length
+    lastScrollLeft.value
+    && lastScrollLeft.value === scrollLeft.value
+    && Math.abs(lastScrollTop.value - scrollTop.value) < 32 * (ROW_VIRTUAL_MARGIN - 2)
+    && lastTotalRows.value === totalRows.value
+    && lastTotalFields.value === fields.value.length
   ) {
     return
   }
@@ -1636,10 +1648,10 @@ const calculateSlices = () => {
 
   // Update row slice if needed
   if (
-    rowSlice.start < 10 || // Ensure we initialize the slice
-    Math.abs(newStart - rowSlice.start) >= ROW_VIRTUAL_MARGIN / 2 ||
-    Math.abs(newEnd - rowSlice.end) >= ROW_VIRTUAL_MARGIN / 2 ||
-    lastTotalRows.value !== totalRows.value
+    rowSlice.start < 10 // Ensure we initialize the slice
+    || Math.abs(newStart - rowSlice.start) >= ROW_VIRTUAL_MARGIN / 2
+    || Math.abs(newEnd - rowSlice.end) >= ROW_VIRTUAL_MARGIN / 2
+    || lastTotalRows.value !== totalRows.value
   ) {
     rowSlice.start = newStart
     rowSlice.end = newEnd
@@ -1652,7 +1664,7 @@ const calculateSlices = () => {
 const visibleFields = computed(() => {
   // return data as { field, index } to keep track of the index
   const vFields = fields.value.slice(colSlice.value.start, colSlice.value.end)
-  return vFields.map((field, index) => ({ field, index: index + colSlice.value.start })).filter((f) => f.index !== 0)
+  return vFields.map((field, index) => ({ field, index: index + colSlice.value.start })).filter(f => f.index !== 0)
 })
 
 const placeholderStartFields = computed(() => {
@@ -1693,52 +1705,52 @@ function refreshFillHandle() {
     // 32 for the header
     fillHandleTop.value = (rowIndex + 1) * rowHeight.value + 32
     // 80 for the row number column
-    fillHandleLeft.value =
-      80 +
-      colPositions.value[colIndex + 1] +
-      (colIndex === 0 ? Math.max(0, gridWrapper.value.scrollLeft - gridWrapper.value.offsetLeft) : 0)
+    fillHandleLeft.value
+      = 80
+        + colPositions.value[colIndex + 1]
+        + (colIndex === 0 ? Math.max(0, gridWrapper.value.scrollLeft - gridWrapper.value.offsetLeft) : 0)
   }
 }
 
 const selectedReadonly = computed(
   () =>
     // if all the selected columns are not readonly
-    (selectedRange.isEmpty() && activeCell.col && colMeta.value[activeCell.col].isReadonly) ||
-    (!selectedRange.isEmpty() &&
-      Array.from({ length: selectedRange.end.col - selectedRange.start.col + 1 }).every(
+    (selectedRange.isEmpty() && activeCell.col && colMeta.value[activeCell.col].isReadonly)
+    || (!selectedRange.isEmpty()
+      && Array.from({ length: selectedRange.end.col - selectedRange.start.col + 1 }).every(
         (_, i) => colMeta.value[selectedRange.start.col + i].isReadonly,
       )),
 )
 
 const disablePasteCell = computed(() => {
   return (
-    selectedReadonly.value &&
-    (!selectedRange.isSingleCell() ||
-      !contextMenuTarget.value ||
-      (!isMm(fields.value[contextMenuTarget.value.col]) && !isBt(fields.value[contextMenuTarget.value.col])))
+    selectedReadonly.value
+    && (!selectedRange.isSingleCell()
+      || !contextMenuTarget.value
+      || (!isMm(fields.value[contextMenuTarget.value.col]) && !isBt(fields.value[contextMenuTarget.value.col])))
   )
 })
 
 const disableClearCell = computed(() => {
   return (
-    selectedReadonly.value &&
-    (!selectedRange.isSingleCell() || !contextMenuTarget.value || !isLinksOrLTAR(fields.value[contextMenuTarget.value.col]))
+    selectedReadonly.value
+    && (!selectedRange.isSingleCell() || !contextMenuTarget.value || !isLinksOrLTAR(fields.value[contextMenuTarget.value.col]))
   )
 })
 
 const showFillHandle = computed(
   () =>
-    !isDataReadOnly.value &&
-    !readOnly.value &&
-    !editEnabled.value &&
-    (!selectedRange.isEmpty() || (activeCell.row !== null && activeCell.col !== null)) &&
-    !cachedRows.value.get((isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) ?? -1)?.rowMeta?.new &&
-    activeCell.col !== null &&
-    fields.value[activeCell.col] &&
-    totalRows.value &&
-    !selectedReadonly.value &&
-    !isSqlView.value &&
-    (!removeInlineAddRecord.value || selectedRange.end.row < EXTERNAL_SOURCE_VISIBLE_ROWS),
+    !isDataReadOnly.value
+    && !readOnly.value
+    && !editEnabled.value
+    && (!selectedRange.isEmpty() || (activeCell.row !== null && activeCell.col !== null))
+    && !cachedRows.value.get((isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) ?? -1)?.rowMeta?.new
+    && activeCell.col !== null
+    && fields.value[activeCell.col]
+    && totalRows.value
+    && !selectedReadonly.value
+    && !isSqlView.value
+    && (!removeInlineAddRecord.value || selectedRange.end.row < EXTERNAL_SOURCE_VISIBLE_ROWS),
 )
 
 watch(
@@ -1750,7 +1762,7 @@ watch(
   },
 )
 
-const handleProgress = (payload: any) => {
+function handleProgress(payload: any) {
   switch (payload.type) {
     case 'table':
       tableState.viewProgress = {
@@ -1781,7 +1793,7 @@ const handleProgress = (payload: any) => {
   }
 }
 
-const resetProgress = (payload: { type: 'table' | 'row' | 'cell'; data: { rowId?: string; cellId?: string } }) => {
+function resetProgress(payload: { type: 'table' | 'row' | 'cell', data: { rowId?: string, cellId?: string } }) {
   switch (payload.type) {
     case 'table':
       tableState.viewProgress = null
@@ -1803,7 +1815,8 @@ const resetProgress = (payload: { type: 'table' | 'row' | 'cell'; data: { rowId?
           rowCells.delete(payload.data.cellId)
           if (rowCells.size === 0) {
             tableState.cellProgress.delete(payload.data.rowId)
-          } else {
+          }
+          else {
             tableState.cellProgress.set(payload.data.rowId, rowCells)
           }
         }
@@ -1812,7 +1825,7 @@ const resetProgress = (payload: { type: 'table' | 'row' | 'cell'; data: { rowId?
   }
 }
 
-const smartsheetEvents = async (event: SmartsheetStoreEvents, payload: any) => {
+async function smartsheetEvents(event: SmartsheetStoreEvents, payload: any) {
   if (event === SmartsheetStoreEvents.FIELD_ADD) {
     columnOrder.value = payload
     addColumnDropdown.value = true
@@ -1864,7 +1877,7 @@ const reloadViewDataHookHandler = withLoading(async (param) => {
 let requestAnimationFrameId: null | number = null
 const { eventBus: scriptEventBus } = useScriptExecutor()
 
-const scriptEventHandler = async (event, payload) => {
+async function scriptEventHandler(event, payload) {
   if (event === SmartsheetScriptActions.UPDATE_PROGRESS) {
     handleProgress(payload)
   }
@@ -1932,20 +1945,20 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
 
   if (
-    isKeyDown.value &&
-    !isRichModalOpen &&
-    !activeDropdownEl &&
-    !isDrawerOrModalExist() &&
-    !cmdOrCtrl &&
-    !e.shiftKey &&
-    !e.altKey
+    isKeyDown.value
+    && !isRichModalOpen
+    && !activeDropdownEl
+    && !isDrawerOrModalExist()
+    && !cmdOrCtrl
+    && !e.shiftKey
+    && !e.altKey
   ) {
     if (
-      (e.key === 'Tab' && activeCell.row === totalRows.value - 1 && activeCell.col === fields.value?.length - 1) ||
-      (e.key === 'ArrowDown' &&
-        activeCell.row === totalRows.value - 1 &&
-        isAddingEmptyRowAllowed.value &&
-        !removeInlineAddRecord.value)
+      (e.key === 'Tab' && activeCell.row === totalRows.value - 1 && activeCell.col === fields.value?.length - 1)
+      || (e.key === 'ArrowDown'
+        && activeCell.row === totalRows.value - 1
+        && isAddingEmptyRowAllowed.value
+        && !removeInlineAddRecord.value)
     ) {
       addEmptyRow()
       isKeyDown.value = false
@@ -1969,7 +1982,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
-const triggerReload = () => {
+function triggerReload() {
   calculateSlices()
   refreshFillHandle()
   updateVisibleRows()
@@ -2008,7 +2021,8 @@ watch(contextMenu, () => {
   if (!contextMenu.value) {
     contextMenuClosing.value = true
     contextMenuTarget.value = null
-  } else {
+  }
+  else {
     contextMenuClosing.value = false
   }
 })
@@ -2018,7 +2032,7 @@ watch(
   async (next, old) => {
     try {
       if (next && next.id !== old?.id && (next.fk_model_id === route.params.viewId || isPublicView.value)) {
-        await until(isViewColumnsLoading).toMatch((c) => !c)
+        await until(isViewColumnsLoading).toMatch(c => !c)
 
         switchingTab.value = true
         // whenever tab changes or view changes save any unsaved data
@@ -2042,16 +2056,19 @@ watch(
             rowSlice.end = Math.min(100, totalRows.value)
           }
           await Promise.allSettled([loadViewAggregate(), updateVisibleRows()])
-        } catch (e) {
+        }
+        catch (e) {
           if (!axios.isCancel(e)) {
             console.log(e)
             message.error(t('msg.errorLoadingData'))
           }
         }
       }
-    } catch (e) {
+    }
+    catch (e) {
       console.error(e)
-    } finally {
+    }
+    finally {
       switchingTab.value = false
     }
   },
@@ -2077,7 +2094,7 @@ defineExpose({
   openColumnCreate,
 })
 
-const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
+function expandAndLooseFocus(row: Row, col: Record<string, any>) {
   if (expandForm) {
     expandForm(row, col)
   }
@@ -2087,7 +2104,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
   selectedRange.clear()
 }
 
-const handleCellClick = (event: MouseEvent, row: number, col: number) => {
+function handleCellClick(event: MouseEvent, row: number, col: number) {
   const rowData = cachedRows.value.get(row)
 
   if (activeCell.row !== row) {
@@ -2129,18 +2146,19 @@ watch(
   },
 )
 
-const callAddNewRow = (context: { row: number; col: number }, direction: 'above' | 'below') => {
+function callAddNewRow(context: { row: number, col: number }, direction: 'above' | 'below') {
   const row = cachedRows.value.get(direction === 'above' ? context.row : context.row + 1)
 
   if (row) {
     const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
     addEmptyRow(context.row + (direction === 'above' ? 0 : 1), false, rowId)
-  } else {
+  }
+  else {
     addEmptyRow()
   }
 }
 
-const onRecordDragStart = (row: Row) => {
+function onRecordDragStart(row: Row) {
   activeCell.row = null
   activeCell.col = null
 
@@ -2165,14 +2183,14 @@ const {
   cachedRows,
 })
 
-const startDragging = (row: Row, event: MouseEvent) => {
+function startDragging(row: Row, event: MouseEvent) {
   if (isPublicView.value) return
   row.rowMeta.isDragging = true
   cachedRows.value.set(row.rowMeta.rowIndex!, row)
   _startDragging(row, event)
 }
 
-const toggleRowSelection = (row: number) => {
+function toggleRowSelection(row: number) {
   if (vSelectedAllRecords.value) return
   const data = cachedRows.value.get(row)
 
@@ -2211,7 +2229,7 @@ const cellAlignClass = computed(() => {
   return 'align-top'
 })
 
-const cellFilteredOrSortedClass = (colId: string) => {
+function cellFilteredOrSortedClass(colId: string) {
   const columnState = isColumnSortedOrFiltered(colId)
   if (columnState) {
     const className = filteredOrSortedAppearanceConfig[columnState]?.cellBgClass
@@ -2224,7 +2242,7 @@ const cellFilteredOrSortedClass = (colId: string) => {
   return {}
 }
 
-const headerFilteredOrSortedClass = (colId: string) => {
+function headerFilteredOrSortedClass(colId: string) {
   const columnState = isColumnSortedOrFiltered(colId, true)
   if (columnState) {
     const headerBgClass = filteredOrSortedAppearanceConfig[columnState]?.headerBgClass
@@ -2240,7 +2258,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
 
 <template>
   <div class="flex flex-col h-full w-full">
-    <div data-testid="drag-icon-placeholder" class="absolute w-1 h-1 pointer-events-none opacity-0"></div>
+    <div data-testid="drag-icon-placeholder" class="absolute w-1 h-1 pointer-events-none opacity-0" />
     <div
       ref="dragColPlaceholderDomRef"
       :class="{
@@ -2251,12 +2269,12 @@ const headerFilteredOrSortedClass = (colId: string) => {
       <div
         v-if="draggedCol"
         :style="{
-        'min-width': gridViewCols[draggedCol.id!]?.width || '200px',
-        'max-width': gridViewCols[draggedCol.id!]?.width || '200px',
-        'width': gridViewCols[draggedCol.id!]?.width || '200px',
-      }"
+          'min-width': gridViewCols[draggedCol.id!]?.width || '200px',
+          'max-width': gridViewCols[draggedCol.id!]?.width || '200px',
+          'width': gridViewCols[draggedCol.id!]?.width || '200px',
+        }"
         class="border-r-1 border-l-1 border-nc-border-gray-medium h-full"
-      ></div>
+      />
     </div>
     <div
       v-if="isBulkOperationInProgress || tableState.viewProgress"
@@ -2306,7 +2324,9 @@ const headerFilteredOrSortedClass = (colId: string) => {
               <tr v-show="!isViewColumnsLoading" class="nc-grid-header transform">
                 <th ref="numColHeader" class="w-[80px] min-w-[80px]" data-testid="grid-id-column">
                   <div v-if="!readOnly" data-testid="nc-check-all" class="flex items-center pl-2 pr-1 w-full h-full">
-                    <div class="nc-no-label text-nc-content-gray-muted" :class="{ hidden: vSelectedAllRecords }">#</div>
+                    <div class="nc-no-label text-nc-content-gray-muted" :class="{ hidden: vSelectedAllRecords }">
+                      #
+                    </div>
                     <div
                       :class="{
                         'hidden': !vSelectedAllRecords,
@@ -2322,7 +2342,9 @@ const headerFilteredOrSortedClass = (colId: string) => {
                     </div>
                   </div>
                   <template v-else>
-                    <div class="w-full h-full text-nc-content-gray-muted flex pl-2 pr-1" data-testid="nc-check-all">#</div>
+                    <div class="w-full h-full text-nc-content-gray-muted flex pl-2 pr-1" data-testid="nc-check-all">
+                      #
+                    </div>
                   </template>
                 </th>
                 <th
@@ -2332,9 +2354,9 @@ const headerFilteredOrSortedClass = (colId: string) => {
                   v-bind="
                     isPlaywright
                       ? {
-                          'data-col': fields[0].id,
-                          'data-title': fields[0].title,
-                        }
+                        'data-col': fields[0].id,
+                        'data-title': fields[0].title,
+                      }
                       : {}
                   "
                   :style="{
@@ -2376,7 +2398,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                     width: `${placeholderStartFields.width}px`,
                   }"
                   class="nc-grid-column-header"
-                ></th>
+                />
                 <th
                   v-for="{ field: col, index } in visibleFields"
                   :key="col.id"
@@ -2384,9 +2406,9 @@ const headerFilteredOrSortedClass = (colId: string) => {
                   v-bind="
                     isPlaywright
                       ? {
-                          'data-col': col.id,
-                          'data-title': col.title,
-                        }
+                        'data-col': col.id,
+                        'data-title': col.title,
+                      }
                       : {}
                   "
                   :style="{
@@ -2428,7 +2450,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                     width: `${placeholderEndFields.width}px`,
                   }"
                   class="nc-grid-column-header"
-                ></th>
+                />
                 <th
                   v-if="isAddingColumnAllowed"
                   v-e="['c:column:add']"
@@ -2492,7 +2514,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
             </thead>
           </table>
 
-          <div v-show="isDragging" class="dragging-record" :style="{ width: `${width}px`, top: `${targetTop}px` }"></div>
+          <div v-show="isDragging" class="dragging-record" :style="{ width: `${width}px`, top: `${targetTop}px` }" />
 
           <div
             class="table-overlay"
@@ -2566,7 +2588,9 @@ const headerFilteredOrSortedClass = (colId: string) => {
                         Row moved
 
                         <NcTooltip>
-                          <template #title> This record will move to a new position when you click outside of it. </template>
+                          <template #title>
+                            This record will move to a new position when you click outside of it.
+                          </template>
 
                           <GeneralIcon icon="info" class="w-4 h-4 text-nc-content-gray" />
                         </NcTooltip>
@@ -2586,7 +2610,9 @@ const headerFilteredOrSortedClass = (colId: string) => {
                         Row hidden
 
                         <NcTooltip>
-                          <template #title> This record will be hidden as it does not match your access permissions. </template>
+                          <template #title>
+                            This record will be hidden as it does not match your access permissions.
+                          </template>
 
                           <GeneralIcon icon="info" class="w-4 h-4 text-nc-content-gray" />
                         </NcTooltip>
@@ -2633,7 +2659,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                             <span>
                               {{ row.rowMeta.rowIndex + 1 }}
                             </span>
-                            <div class="inline-block min-w-[4px] h-full rounded-full"></div>
+                            <div class="inline-block min-w-[4px] h-full rounded-full" />
                           </div>
 
                           <div
@@ -2669,8 +2695,8 @@ const headerFilteredOrSortedClass = (colId: string) => {
                             <NcCheckbox
                               :checked="row.rowMeta.selected || vSelectedAllRecords"
                               :disabled="
-                                (!row.rowMeta.selected && selectedRows.length >= EXTERNAL_SOURCE_VISIBLE_ROWS) ||
-                                vSelectedAllRecords
+                                (!row.rowMeta.selected && selectedRows.length >= EXTERNAL_SOURCE_VISIBLE_ROWS)
+                                  || vSelectedAllRecords
                               "
                               class="!w-4 !h-4"
                               @change="toggleRowSelection(row.rowMeta.rowIndex)"
@@ -2717,15 +2743,15 @@ const headerFilteredOrSortedClass = (colId: string) => {
                         v-if="fields[0]"
                         :key="fields[0].id"
                         :active="
-                          (activeCell.row === row.rowMeta.rowIndex && activeCell.col === 0) ||
-                          (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === 0)
+                          (activeCell.row === row.rowMeta.rowIndex && activeCell.col === 0)
+                            || (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === 0)
                         "
                         class="cell relative nc-grid-cell cursor-pointer"
                         :class="{
                           'active': selectRangeMap[`${row.rowMeta.rowIndex}-0`],
                           'active-cell !after:h-[calc(100%-1px)]':
-                            (activeCell.row === row.rowMeta.rowIndex && activeCell.col === 0) ||
-                            (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === 0),
+                            (activeCell.row === row.rowMeta.rowIndex && activeCell.col === 0)
+                            || (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === 0),
                           'nc-required-cell':
                             !row.rowMeta?.isLoading && cellMeta[index]?.[0]?.isColumnRequiredAndNull && !isPublicView,
                           'filling': fillRangeMap[`${row.rowMeta.rowIndex}-0`],
@@ -2744,12 +2770,12 @@ const headerFilteredOrSortedClass = (colId: string) => {
                         v-bind="
                           isPlaywright
                             ? {
-                                'data-key': `data-key-${row.rowMeta.rowIndex}-${fields[0].id}`,
-                                'data-col': fields[0].id,
-                                'data-title': fields[0].title,
-                                'data-row-index': row.rowMeta.rowIndex,
-                                'data-col-index': 0,
-                              }
+                              'data-key': `data-key-${row.rowMeta.rowIndex}-${fields[0].id}`,
+                              'data-col': fields[0].id,
+                              'data-title': fields[0].title,
+                              'data-row-index': row.rowMeta.rowIndex,
+                              'data-col-index': 0,
+                            }
                             : {}
                         "
                         @mousedown="handleMouseDown($event, row.rowMeta.rowIndex, 0)"
@@ -2789,10 +2815,10 @@ const headerFilteredOrSortedClass = (colId: string) => {
                             v-model="row.row[fields[0].title]"
                             :column="fields[0]"
                             :edit-enabled="
-                              !!hasEditPermission &&
-                              !!editEnabled &&
-                              activeCell.col === 0 &&
-                              activeCell.row === row.rowMeta.rowIndex
+                              !!hasEditPermission
+                                && !!editEnabled
+                                && activeCell.col === 0
+                                && activeCell.row === row.rowMeta.rowIndex
                             "
                             :row-index="row.rowMeta.rowIndex"
                             :active="activeCell.col === 0 && activeCell.row === row.rowMeta.rowIndex"
@@ -2813,28 +2839,28 @@ const headerFilteredOrSortedClass = (colId: string) => {
                           width: `${placeholderStartFields.width}px`,
                         }"
                         class="nc-grid-cell"
-                      ></td>
+                      />
                       <SmartsheetTableDataCell
                         v-for="{ field: columnObj, index: colIndex } of visibleFields"
                         :key="`cell-${colIndex}-${row.rowMeta.rowIndex}`"
                         :active="
-                          (activeCell.row === row.rowMeta.rowIndex && activeCell.col === colIndex) ||
-                          (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === colIndex)
+                          (activeCell.row === row.rowMeta.rowIndex && activeCell.col === colIndex)
+                            || (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === colIndex)
                         "
                         class="cell relative nc-grid-cell cursor-pointer"
                         :class="{
                           'active': selectRangeMap[`${row.rowMeta.rowIndex}-${colIndex}`],
                           'active-cell':
-                            (activeCell.row === row.rowMeta.rowIndex && activeCell.col === colIndex) ||
-                            (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === colIndex),
+                            (activeCell.row === row.rowMeta.rowIndex && activeCell.col === colIndex)
+                            || (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === colIndex),
                           'nc-required-cell':
                             !row.rowMeta?.isLoading && cellMeta[index][colIndex].isColumnRequiredAndNull && !isPublicView,
 
                           'filling': fillRangeMap[`${row.rowMeta.rowIndex}-${colIndex}`],
                           'readonly':
-                            colMeta[colIndex].isReadonly &&
-                            hasEditPermission &&
-                            selectRangeMap[`${row.rowMeta.rowIndex}-${colIndex}`],
+                            colMeta[colIndex].isReadonly
+                            && hasEditPermission
+                            && selectRangeMap[`${row.rowMeta.rowIndex}-${colIndex}`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
                           [cellAlignClass]: true,
                           ...cellFilteredOrSortedClass(columnObj.id),
@@ -2848,12 +2874,12 @@ const headerFilteredOrSortedClass = (colId: string) => {
                         v-bind="
                           isPlaywright
                             ? {
-                                'data-key': `data-key-${row.rowMeta.rowIndex}-${columnObj.id}`,
-                                'data-col': columnObj.id,
-                                'data-title': columnObj.title,
-                                'data-row-index': row.rowMeta.rowIndex,
-                                'data-col-index': 0,
-                              }
+                              'data-key': `data-key-${row.rowMeta.rowIndex}-${columnObj.id}`,
+                              'data-col': columnObj.id,
+                              'data-title': columnObj.title,
+                              'data-row-index': row.rowMeta.rowIndex,
+                              'data-col-index': 0,
+                            }
                             : {}
                         "
                         @mousedown="handleMouseDown($event, row.rowMeta.rowIndex, colIndex)"
@@ -2892,10 +2918,10 @@ const headerFilteredOrSortedClass = (colId: string) => {
                             v-else-if="columnObj.title"
                             v-model="row.row[columnObj.title]"
                             :edit-enabled="
-                              !!hasEditPermission &&
-                              !!editEnabled &&
-                              activeCell.col === colIndex &&
-                              activeCell.row === row.rowMeta.rowIndex
+                              !!hasEditPermission
+                                && !!editEnabled
+                                && activeCell.col === colIndex
+                                && activeCell.row === row.rowMeta.rowIndex
                             "
                             :active="activeCell.col === colIndex && activeCell.row === row.rowMeta.rowIndex"
                             :read-only="!hasEditPermission"
@@ -2916,7 +2942,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                           width: `${placeholderEndFields.width}px`,
                         }"
                         class="nc-grid-cell"
-                      ></td>
+                      />
                     </tr>
                   </template>
                 </LazySmartsheetRow>
@@ -2948,7 +2974,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                       class="text-pint-500 text-base ml-2 mt-0 text-nc-content-gray-subtle2 group-hover:text-nc-content-gray-extreme"
                     />
                   </td>
-                  <td :colspan="visibleColLength" class="!border-nc-border-gray-light"></td>
+                  <td :colspan="visibleColLength" class="!border-nc-border-gray-light" />
                 </tr>
               </tbody>
             </table>
@@ -3107,11 +3133,11 @@ const headerFilteredOrSortedClass = (colId: string) => {
             <!-- Clear cell -->
             <NcMenuItem
               v-if="
-                contextMenuTarget &&
-                hasEditPermission &&
-                selectedRange.isSingleCell() &&
-                (isLinksOrLTAR(fields[contextMenuTarget.col]) || !cellMeta[0]?.[contextMenuTarget.col].isVirtualCol) &&
-                !isDataReadOnly
+                contextMenuTarget
+                  && hasEditPermission
+                  && selectedRange.isSingleCell()
+                  && (isLinksOrLTAR(fields[contextMenuTarget.col]) || !cellMeta[0]?.[contextMenuTarget.col].isVirtualCol)
+                  && !isDataReadOnly
               "
               class="nc-base-menu-item"
               :disabled="disableClearCell"
@@ -3191,7 +3217,9 @@ const headerFilteredOrSortedClass = (colId: string) => {
       <div v-if="removeInlineAddRecord" class="sticky left-0 py-[120px]">
         <div class="flex flex-col gap-5 p-6 max-w-[520px] text-center mx-auto">
           <div class="flex flex-col gap-2">
-            <div class="text-base font-700 text-nc-content-gray">{{ $t('upgrade.upgradeToSeeMoreRecordInline') }}</div>
+            <div class="text-base font-700 text-nc-content-gray">
+              {{ $t('upgrade.upgradeToSeeMoreRecordInline') }}
+            </div>
             <div>
               {{
                 $t('upgrade.upgradeToSeeMoreRecordInlineSubtitle', {
@@ -3256,7 +3284,9 @@ const headerFilteredOrSortedClass = (colId: string) => {
               <template v-if="isAddNewRecordGridMode">
                 {{ $t('activity.newRecord') }}
               </template>
-              <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }} </template>
+              <template v-else>
+                {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}
+              </template>
             </div>
           </NcButton>
           <NcButton

@@ -22,7 +22,7 @@
  * deepCompare(null, null); // true
  * ```
  */
-export const deepCompare = (a: any, b: any) => {
+export function deepCompare(a: any, b: any) {
   if (a === b) return true
 
   // Handle null

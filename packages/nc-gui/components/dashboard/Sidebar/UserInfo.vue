@@ -44,7 +44,9 @@ onMounted(() => {
         <NcTooltip :disabled="isMobileMode" placement="right" hide-on-click :arrow="false">
           <template #title>
             <div>
-              <div v-if="name">{{ name }}</div>
+              <div v-if="name">
+                {{ name }}
+              </div>
               <div>
                 {{ user?.email }}
               </div>

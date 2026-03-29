@@ -1,4 +1,5 @@
 import { isBoxHovered, renderTag } from '../utils/canvas'
+
 export const CheckboxCellRenderer: CellRenderer = {
   render: (
     ctx,
@@ -48,7 +49,8 @@ export const CheckboxCellRenderer: CellRenderer = {
 
     if (!isRowHovered && !selected && !checked && !renderAsTag) {
       return
-    } else if ((isRowHovered || selected) && !checked && readonly && !renderAsTag) {
+    }
+    else if ((isRowHovered || selected) && !checked && readonly && !renderAsTag) {
       return
     }
 
@@ -65,22 +67,23 @@ export const CheckboxCellRenderer: CellRenderer = {
         borderColor: tagBorderColor,
         borderWidth: tagBorderWidth,
       })
-      ;(checked || isUnderLookup) &&
-        spriteLoader.renderIcon(ctx, {
-          icon: checked ? columnMeta.icon.checked : columnMeta.icon.unchecked,
-          size: 14,
-          x: x + tagWidth / 2 - 4,
-          y: initialY + 3,
-          color: isDark
-            ? getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), columnMetaColor, ['#4a5268', '#d5dce8'])
-            : columnMetaColor,
-        })
+      ;(checked || isUnderLookup)
+      && spriteLoader.renderIcon(ctx, {
+        icon: checked ? columnMeta.icon.checked : columnMeta.icon.unchecked,
+        size: 14,
+        x: x + tagWidth / 2 - 4,
+        y: initialY + 3,
+        color: isDark
+          ? getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), columnMetaColor, ['#4a5268', '#d5dce8'])
+          : columnMetaColor,
+      })
 
       return {
         x: x + tagWidth + 8,
         y: y + tagHeight,
       }
-    } else {
+    }
+    else {
       const isHover = isBoxHovered({ x: x + width / 2 - 7, y: y + height / 2 - 7, width: 14, height: 14 }, mousePosition)
 
       if ((isHover || (selected && isCellHovered)) && !readonly) {
@@ -108,7 +111,8 @@ export const CheckboxCellRenderer: CellRenderer = {
       row.row[columnObj.title!] = !row.row[columnObj.title!]
       try {
         await updateOrSaveRow(row, columnObj.title, undefined, undefined, undefined, ctx.path)
-      } catch (e: any) {
+      }
+      catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
       return true
@@ -124,7 +128,8 @@ export const CheckboxCellRenderer: CellRenderer = {
       row.row[column.title!] = !row.row[column.title!]
       try {
         await updateOrSaveRow(row, column.title, undefined, undefined, undefined, ctx.path)
-      } catch (e: any) {
+      }
+      catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
       return true
@@ -145,7 +150,8 @@ export const CheckboxCellRenderer: CellRenderer = {
       row.row[column.title!] = !row.row[column.title!]
       try {
         await updateOrSaveRow(row, column.title, undefined, undefined, undefined, ctx.path)
-      } catch (e: any) {
+      }
+      catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
       return true

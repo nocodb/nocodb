@@ -14,7 +14,7 @@ interface Props {
     points?: [string, string]
     offset?: [number, number]
     targetOffset?: [number, number]
-    overflow?: { adjustX?: boolean; adjustY?: boolean }
+    overflow?: { adjustX?: boolean, adjustY?: boolean }
   }
   autoClose?: boolean
   disabled?: boolean

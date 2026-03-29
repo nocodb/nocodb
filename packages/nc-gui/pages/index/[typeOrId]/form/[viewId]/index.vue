@@ -5,7 +5,7 @@ const route = useRoute()
 
 const router = useRouter()
 
-const shouldRedirect = (to: string) => {
+function shouldRedirect(to: string) {
   if (sharedViewMeta.value.surveyMode) {
     if (!to.includes('survey')) {
       navigateTo({
@@ -13,7 +13,8 @@ const shouldRedirect = (to: string) => {
         query: route.query,
       })
     }
-  } else {
+  }
+  else {
     if (to.includes('survey')) {
       navigateTo({
         path: `/nc/form/${route.params.viewId}`,
@@ -25,7 +26,7 @@ const shouldRedirect = (to: string) => {
 
 shouldRedirect(route.name as string)
 
-router.afterEach((to) => shouldRedirect(to.name as string))
+router.afterEach(to => shouldRedirect(to.name as string))
 </script>
 
 <template>

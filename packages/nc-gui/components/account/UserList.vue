@@ -60,7 +60,8 @@ const loadUsers = useDebounceFn(async (page = currentPage.value, limit = current
     pagination.pageSize = 10
 
     users.value = response.list as UserType[]
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }, 500)
@@ -72,7 +73,7 @@ onMounted(() => {
 
 const deleteModalInfo = ref<UserType | null>(null)
 
-const deleteUser = async () => {
+async function deleteUser() {
   try {
     await api.orgUsers.delete(deleteModalInfo.value?.id as string)
     message.success(t('msg.success.userDeleted'))
@@ -84,43 +85,47 @@ const deleteUser = async () => {
       loadUsers(currentPage.value)
     }
     $e('a:org-user:user-deleted')
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     // closing the modal
     isOpen.value = false
     deleteModalInfo.value = null
   }
 }
 
-const resendInvite = async (user: UserType) => {
+async function resendInvite(user: UserType) {
   try {
     await api.orgUsers.resendInvite(user.id)
 
     // Invite email sent successfully
     message.success(t('msg.success.inviteEmailSent'))
     await loadUsers()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 
   $e('a:org-user:resend-invite')
 }
 
-const copyInviteUrl = async (user: User) => {
+async function copyInviteUrl(user: User) {
   if (!user.invite_token) return
   try {
     await copy(`${dashboardUrl.value}/signup/${user.invite_token}`)
 
     // Invite URL copied to clipboard
     message.success(t('msg.success.inviteURLCopied'))
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(e.message)
   }
   $e('c:user:copy-url')
 }
 
-const copyPasswordResetUrl = async (user: UserType) => {
+async function copyPasswordResetUrl(user: UserType) {
   try {
     const { reset_password_url } = await api.orgUsers.generatePasswordResetToken(user.id)
 
@@ -129,17 +134,18 @@ const copyPasswordResetUrl = async (user: UserType) => {
     // Invite URL copied to clipboard
     message.success(t('msg.success.passwordResetURLCopied'))
     $e('c:user:copy-url')
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
-const openInviteModal = () => {
+function openInviteModal() {
   showUserModal.value = true
   userMadalKey.value++
 }
 
-const openDeleteModal = (user: UserType) => {
+function openDeleteModal(user: UserType) {
   deleteModalInfo.value = user
   isOpen.value = true
 }
@@ -277,11 +283,15 @@ const columns = [
                         <!-- Resend invite Email -->
                         <NcMenuItem @click="resendInvite(el)">
                           <component :is="iconMap.email" class="flex text-nc-content-gray-subtle2" />
-                          <div data-rec="true">{{ $t('activity.resendInvite') }}</div>
+                          <div data-rec="true">
+                            {{ $t('activity.resendInvite') }}
+                          </div>
                         </NcMenuItem>
                         <NcMenuItem @click="copyInviteUrl(el)">
                           <component :is="iconMap.copy" class="flex text-nc-content-gray-subtle2" />
-                          <div data-rec="true">{{ $t('activity.copyInviteURL') }}</div>
+                          <div data-rec="true">
+                            {{ $t('activity.copyInviteURL') }}
+                          </div>
                         </NcMenuItem>
                         <NcMenuItem @click="copyPasswordResetUrl(el)">
                           <component :is="iconMap.copy" class="flex text-nc-content-gray-subtle2" />
@@ -311,7 +321,7 @@ const columns = [
                 <div class="text-sm text-nc-content-gray-subtle">
                   {{ $t('placeholder.inviteYourTeamLabel') }}
                 </div>
-                <img src="~assets/img/placeholder/invite-team.png" class="!w-[30rem] flex-none" />
+                <img src="~assets/img/placeholder/invite-team.png" class="!w-[30rem] flex-none">
               </div>
             </template>
 
@@ -333,7 +343,7 @@ const columns = [
                 <div
                   class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle mb-4"
                 >
-                  <GeneralIcon icon="account" class="nc-view-icon"></GeneralIcon>
+                  <GeneralIcon icon="account" class="nc-view-icon" />
                   <div
                     class="text-ellipsis overflow-hidden select-none w-full pl-1.75"
                     :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"

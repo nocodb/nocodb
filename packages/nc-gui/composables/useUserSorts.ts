@@ -1,7 +1,7 @@
-import rfdc from 'rfdc'
-import { OrderedOrgRoles, OrderedProjectRoles, OrderedWorkspaceRoles } from 'nocodb-sdk'
-import dayjs from 'dayjs'
 import type { UsersSortType } from '~/lib/types'
+import dayjs from 'dayjs'
+import { OrderedOrgRoles, OrderedProjectRoles, OrderedWorkspaceRoles } from 'nocodb-sdk'
+import rfdc from 'rfdc'
 
 /**
  * Hook for managing user sorts and sort configurations.
@@ -48,10 +48,12 @@ export function useUserSorts(
       if (sortConfig && isValidSortConfig(sortConfig)) {
         // Load user-specific sort configurations or default configurations
         sorts.value = user.value?.id ? sortConfig[user.value.id] || {} : sortConfig[defaultUserId] || {}
-      } else {
+      }
+      else {
         throw new Error('Invalid sort config stored in local storage')
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error(error)
 
       // remove sortConfig from localStorage in case of error
@@ -70,7 +72,8 @@ export function useUserSorts(
     try {
       if (newSortConfig.field && newSortConfig.direction) {
         sorts.value = { ...newSortConfig }
-      } else {
+      }
+      else {
         sorts.value = {}
       }
 
@@ -82,16 +85,19 @@ export function useUserSorts(
         // Save or delete user-specific sort configurations
         if (sorts.value.field) {
           sortConfig[user.value.id] = sorts.value
-        } else {
+        }
+        else {
           delete sortConfig[user.value.id]
         }
-      } else {
+      }
+      else {
         // Save or delete default user sort configurations
         sortConfig[defaultUserId] = sorts.value
       }
 
       localStorage.setItem(userSortConfigKey, JSON.stringify(sortConfig))
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error while saving sort configuration into local storage:', error)
     }
   }
@@ -117,17 +123,20 @@ export function useUserSorts(
     let userRoleOrder: string[] = []
     if (roleType === 'Workspace') {
       userRoleOrder = Object.values(OrderedWorkspaceRoles)
-    } else if (roleType === 'Org') {
+    }
+    else if (roleType === 'Org') {
       userRoleOrder = Object.values(OrderedOrgRoles)
-    } else if (roleType === 'Project') {
+    }
+    else if (roleType === 'Project') {
       userRoleOrder = Object.values(OrderedProjectRoles)
-    } else if (roleType === 'Organization') {
+    }
+    else if (roleType === 'Organization') {
       userRoleOrder = Object.values(OrderedOrgRoles)
     }
 
     data = clone(data)
 
-    const superUserIndex = data.findIndex((user) => user?.roles?.includes('super'))
+    const superUserIndex = data.findIndex(user => user?.roles?.includes('super'))
     const superUser = sortsConfig.field === 'roles' && superUserIndex !== -1 ? data.splice(superUserIndex, 1) : null
 
     let sortedData = data.sort((a, b) => {
@@ -138,7 +147,8 @@ export function useUserSorts(
 
           if (sortsConfig.direction === 'asc') {
             return userRoleOrder.indexOf(roleA) - userRoleOrder.indexOf(roleB)
-          } else {
+          }
+          else {
             return userRoleOrder.indexOf(roleB) - userRoleOrder.indexOf(roleA)
           }
         }
@@ -148,7 +158,8 @@ export function useUserSorts(
         case 'created_by': {
           if (sortsConfig.direction === 'asc') {
             return a[sortsConfig.field]?.localeCompare(b[sortsConfig.field])
-          } else {
+          }
+          else {
             return b[sortsConfig.field]?.localeCompare(a[sortsConfig.field])
           }
         }
@@ -157,14 +168,16 @@ export function useUserSorts(
         case 'memberCount': {
           if (sortsConfig.direction === 'asc') {
             return a[sortsConfig.field] - b[sortsConfig.field]
-          } else {
+          }
+          else {
             return b[sortsConfig.field] - a[sortsConfig.field]
           }
         }
         case 'webhook-operation-type': {
           if (sortsConfig.direction === 'asc') {
             return `${a?.event} ${a?.operation}`?.localeCompare(`${b?.event} ${b?.operation}`)
-          } else {
+          }
+          else {
             return `${b?.event} ${b?.operation}`?.localeCompare(`${a?.event} ${a?.operation}`)
           }
         }
@@ -172,7 +185,8 @@ export function useUserSorts(
         case 'updated_at': {
           if (sortsConfig.direction === 'asc') {
             return dayjs(a[sortsConfig.field]).isAfter(dayjs(b[sortsConfig.field])) ? 1 : -1
-          } else {
+          }
+          else {
             return dayjs(a[sortsConfig.field]).isBefore(dayjs(b[sortsConfig.field])) ? 1 : -1
           }
         }
@@ -184,7 +198,8 @@ export function useUserSorts(
     if (superUser && superUser.length) {
       if (sortsConfig.direction === 'desc') {
         sortedData = [...sortedData, superUser[0]]
-      } else {
+      }
+      else {
         sortedData = [superUser[0], ...sortedData]
       }
     }
@@ -205,7 +220,7 @@ export function useUserSorts(
   ): boolean {
     // Check if the sortConfig has the expected keys
     for (const key in sortConfig) {
-      const isValidConfig = Object.keys(sortConfig[key]).every((key) =>
+      const isValidConfig = Object.keys(sortConfig[key]).every(key =>
         Object.prototype.hasOwnProperty.call(expectedStructure, key),
       )
       if (!isValidConfig) return false
@@ -219,7 +234,8 @@ export function useUserSorts(
         field,
         ...(sortDirection.value[field] === 'asc' ? { direction: 'desc' } : {}),
       })
-    } else {
+    }
+    else {
       saveOrUpdate({
         field,
         direction: 'asc',

@@ -44,7 +44,7 @@ const { isOpen, tempColor, pickerKey, openColorPicker, onColorChange, save, clos
   disabled: disabledRef,
 })
 
-const onTextInput = (e: Event) => {
+function onTextInput(e: Event) {
   const raw = (e.target as HTMLInputElement).value.trim()
   if (!raw) {
     vModel.value = null
@@ -79,7 +79,7 @@ const onTextInput = (e: Event) => {
       @input="onTextInput"
       @keydown.stop
       @mousedown.stop
-    />
+    >
 
     <!-- Color Picker Dropdown -->
     <NcDropdown
@@ -88,7 +88,7 @@ const onTextInput = (e: Event) => {
       use-backdrop
       overlay-class-name="nc-colour-picker-dropdown !rounded-xl"
     >
-      <div class="sr-only w-5 h-5"></div>
+      <div class="sr-only w-5 h-5" />
       <template #overlay>
         <div>
           <GeneralAdvanceColorPicker :key="pickerKey" :model-value="tempColor" :is-open="isOpen" @input="onColorChange" />
@@ -97,8 +97,12 @@ const onTextInput = (e: Event) => {
             @click.stop
             @mousedown.stop
           >
-            <NcButton type="secondary" size="small" @click="close"> {{ $t('general.cancel') }} </NcButton>
-            <NcButton type="primary" size="small" @click="save"> {{ $t('general.save') }} </NcButton>
+            <NcButton type="secondary" size="small" @click="close">
+              {{ $t('general.cancel') }}
+            </NcButton>
+            <NcButton type="primary" size="small" @click="save">
+              {{ $t('general.save') }}
+            </NcButton>
           </div>
         </div>
       </template>

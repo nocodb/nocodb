@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
 import type { InputPassword } from 'ant-design-vue'
+import type { VNodeRef } from 'vue'
 import { ViewTypes } from 'nocodb-sdk'
-import gridImage from '~/assets/img/views/grid.png'
-import galleryImage from '~/assets/img/views/gallery.png'
-import kanbanImage from '~/assets/img/views/kanban.png'
 import calendarImage from '~/assets/img/views/calendar.png'
+import galleryImage from '~/assets/img/views/gallery.png'
+import gridImage from '~/assets/img/views/grid.png'
+import kanbanImage from '~/assets/img/views/kanban.png'
 
 const props = defineProps<{
   modelValue: boolean
@@ -26,17 +26,19 @@ const formState = ref({ password: undefined })
 
 const passwordError = ref<string | null>(null)
 
-const onFinish = async () => {
+async function onFinish() {
   try {
     await loadSharedView(route.params.viewId as string, formState.value.password)
     vModel.value = false
-  } catch (e: any) {
+  }
+  catch (e: any) {
     const error = await extractSdkResponseErrorMsgv2(e)
     console.error(error.message)
 
     if (error.error === NcErrorType.ERR_INVALID_SHARED_VIEW_PASSWORD) {
       passwordError.value = error.message
-    } else {
+    }
+    else {
       message.error(error.message)
     }
   }
@@ -95,7 +97,9 @@ const bgImageName = computed(() => {
             @input="passwordError = null"
           />
           <Transition name="layout">
-            <div v-if="passwordError" class="mb-2 text-sm text-nc-content-red-medium">{{ passwordError }}</div>
+            <div v-if="passwordError" class="mb-2 text-sm text-nc-content-red-medium">
+              {{ passwordError }}
+            </div>
           </Transition>
         </a-form-item>
       </a-form>
@@ -110,13 +114,15 @@ const bgImageName = computed(() => {
           @click="onFinish"
         >
           {{ $t('objects.view') }}
-          <template #loading> {{ $t('msg.verifyingPassword') }}</template>
+          <template #loading>
+            {{ $t('msg.verifyingPassword') }}
+          </template>
         </NcButton>
       </div>
     </div>
   </NcModal>
 
-  <img alt="view image" :src="bgImageName" class="fixed inset-0 w-full h-full" :class="{ 'bg-view-image--dark': isDark }" />
+  <img alt="view image" :src="bgImageName" class="fixed inset-0 w-full h-full" :class="{ 'bg-view-image--dark': isDark }">
 </template>
 
 <style lang="scss" scoped>

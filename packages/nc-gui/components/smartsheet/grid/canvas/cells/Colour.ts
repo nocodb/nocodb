@@ -1,4 +1,4 @@
-import { ColumnHelper, UITypes, isValidHexColour } from 'nocodb-sdk'
+import { ColumnHelper, isValidHexColour, UITypes } from 'nocodb-sdk'
 import { renderTag, truncateText } from '../utils/canvas'
 
 /** Fixed swatch size in the grid cell — matches the HTML Editor (w-4 h-4 = 16px). */
@@ -77,8 +77,8 @@ export const ColourCellRenderer: CellRenderer = {
 
     // Set cursor to pointer when hovering over the cell
     if (mousePosition && !readonly) {
-      const isHovered =
-        mousePosition.x >= x && mousePosition.x <= x + width && mousePosition.y >= y && mousePosition.y <= y + height
+      const isHovered
+        = mousePosition.x >= x && mousePosition.x <= x + width && mousePosition.y >= y && mousePosition.y <= y + height
 
       if (isHovered) {
         setCursor('pointer')
@@ -96,10 +96,12 @@ export const ColourCellRenderer: CellRenderer = {
       if (showTagSwatch && showHex) {
         const hexTextWidth = ctx.measureText(hexDisplayText).width
         tagWidth = tagSwatchSize + 8 + hexTextWidth + tagPaddingX * 2
-      } else if (showHex) {
+      }
+      else if (showHex) {
         const hexTextWidth = ctx.measureText(hexDisplayText).width
         tagWidth = hexTextWidth + tagPaddingX * 2
-      } else {
+      }
+      else {
         tagWidth = tagSwatchSize + tagPaddingX * 2
       }
 
@@ -125,7 +127,8 @@ export const ColourCellRenderer: CellRenderer = {
           ctx.beginPath()
           if (columnMeta.swatchStyle === 'circle') {
             ctx.arc(contentX + tagSwatchSize / 2, initialY + tagHeight / 2, tagSwatchSize / 2, 0, 2 * Math.PI)
-          } else {
+          }
+          else {
             ctx.roundRect(contentX, initialY + (tagHeight - tagSwatchSize) / 2, tagSwatchSize, tagSwatchSize, tagBorderRadius)
           }
           ctx.fill()
@@ -153,7 +156,8 @@ export const ColourCellRenderer: CellRenderer = {
         x: x + tagWidth + tagSpacing,
         y: y + tagHeight + tagSpacing,
       }
-    } else {
+    }
+    else {
       // Regular cell rendering
       let contentX = swatchX
 
@@ -162,7 +166,8 @@ export const ColourCellRenderer: CellRenderer = {
         ctx.beginPath()
         if (columnMeta.swatchStyle === 'circle') {
           ctx.arc(contentX + swatchSize / 2, swatchY + swatchSize / 2, swatchSize / 2, 0, 2 * Math.PI)
-        } else {
+        }
+        else {
           ctx.roundRect(contentX, swatchY, swatchSize, swatchSize, borderRadius)
         }
         ctx.fill()
@@ -189,15 +194,15 @@ export const ColourCellRenderer: CellRenderer = {
 
   async handleClick({ row, column, makeCellEditable, selected, readonly, formula }) {
     if (
-      !row ||
-      !column ||
-      readonly ||
-      formula ||
-      column.readonly ||
-      column.columnObj?.readonly ||
-      !column.isCellEditable ||
-      column.isSyncedColumn ||
-      !selected
+      !row
+      || !column
+      || readonly
+      || formula
+      || column.readonly
+      || column.columnObj?.readonly
+      || !column.isCellEditable
+      || column.isSyncedColumn
+      || !selected
     ) {
       return false
     }
@@ -221,7 +226,8 @@ export const ColourCellRenderer: CellRenderer = {
       row.row[column.title] = null
       try {
         await ctx.updateOrSaveRow(row, column.title, undefined, undefined, undefined, ctx.path)
-      } catch (e: any) {
+      }
+      catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
       return true

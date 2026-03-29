@@ -33,7 +33,7 @@ const formRules = {
   ],
 }
 
-const passwordChange = async () => {
+async function passwordChange() {
   try {
     const valid = formValidator.value.validate()
     if (!valid) return
@@ -50,12 +50,13 @@ const passwordChange = async () => {
     await signOut({
       redirectToSignin: true,
     })
-  } catch {
+  }
+  catch {
     // ignore since error value is set by useApi and will be displayed in UI
   }
 }
 
-const resetError = () => {
+function resetError() {
   if (error.value) error.value = null
 }
 </script>

@@ -33,7 +33,8 @@ export const YearCellRenderer: CellRenderer = {
 
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })
-    } else {
+    }
+    else {
       const { x: xOffset, y: yOffset } = renderSingleLineText(ctx, {
         x: x + padding,
         y,
@@ -66,7 +67,8 @@ export const YearCellRenderer: CellRenderer = {
         canvasContext.font = '500 13px Inter'
         textWidth = canvasContext.measureText(text).width
       }
-    } else {
+    }
+    else {
       canvasContext.font = '400 13px Inter'
       textWidth = canvasContext.measureText('YYYY').width
     }

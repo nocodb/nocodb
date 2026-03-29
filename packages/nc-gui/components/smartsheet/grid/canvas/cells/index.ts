@@ -1,53 +1,52 @@
-import {
-  type ColumnType,
-  type TableType,
-  UITypes,
-  type UserType,
-  type ViewType,
-  isAIPromptCol,
-  isBtLikeV2Junction,
-} from 'nocodb-sdk'
-import { renderSingleLineText, renderSpinner, renderTag, roundedRect } from '../utils/canvas'
+import type { ColumnType, TableType, UserType, ViewType } from 'nocodb-sdk'
 import type { ActionManager } from '../loaders/ActionManager'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import type { MarkdownLoader } from '../loaders/markdownLoader'
+import {
+
+  isAIPromptCol,
+
+  isBtLikeV2Junction,
+  UITypes,
+} from 'nocodb-sdk'
 import { useDetachedLongText } from '../composables/useDetachedLongText'
+import { renderSingleLineText, renderSpinner, renderTag, roundedRect } from '../utils/canvas'
 import { comparePath } from '../utils/groupby'
-import { EmailCellRenderer } from './Email'
-import { SingleLineTextCellRenderer } from './SingleLineText'
-import { LongTextCellRenderer } from './LongText'
-import { FloatCellRenderer } from './Number'
-import { DecimalCellRenderer } from './Decimal'
 import { AttachmentCellRenderer } from './Attachment'
+import { BarcodeCellRenderer } from './Barcode'
+import { ButtonCellRenderer } from './Button'
 import { CheckboxCellRenderer } from './Checkbox'
+import { ColourCellRenderer } from './Colour'
+import { CurrencyRenderer } from './Currency'
 import { DateCellRenderer } from './Date'
 import { DateTimeCellRenderer } from './DateTime'
-import { YearCellRenderer } from './Year'
-import { TimeCellRenderer } from './Time'
-import { CurrencyRenderer } from './Currency'
-import { PercentCellRenderer } from './Percent'
-import { UrlCellRenderer } from './Url'
-import { GeoDataCellRenderer } from './GeoData'
-import { PhoneNumberCellRenderer } from './PhoneNumber'
+import { DecimalCellRenderer } from './Decimal'
 import { DurationCellRenderer } from './Duration'
+import { EmailCellRenderer } from './Email'
+import { FormulaCellRenderer } from './Formula'
+import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
+import { GeoDataCellRenderer } from './GeoData'
 import { JsonCellRenderer } from './Json'
-import { BarcodeCellRenderer } from './Barcode'
+import { LinksCellRenderer } from './Links'
+import { LongTextCellRenderer } from './LongText'
+import { LookupCellRenderer } from './Lookup'
+import { LtarCellRenderer } from './LTAR'
+import { MultiSelectCellRenderer } from './MultiSelect'
+import { NullCellRenderer } from './Null'
+import { FloatCellRenderer } from './Number'
+import { PercentCellRenderer } from './Percent'
+import { PhoneNumberCellRenderer } from './PhoneNumber'
+import { PlainCellRenderer } from './Plain'
 import { QRCodeCellRenderer } from './QRCode'
 import { RatingCellRenderer } from './Rating'
-import { ColourCellRenderer } from './Colour'
-import { UserFieldCellRenderer } from './User'
-import { SingleSelectCellRenderer } from './SingleSelect'
-import { MultiSelectCellRenderer } from './MultiSelect'
 import { RollupCellRenderer } from './Rollup'
-import { LinksCellRenderer } from './Links'
-import { LookupCellRenderer } from './Lookup'
-import { ButtonCellRenderer } from './Button'
-import { LtarCellRenderer } from './LTAR'
-import { FormulaCellRenderer } from './Formula'
+import { SingleLineTextCellRenderer } from './SingleLineText'
+import { SingleSelectCellRenderer } from './SingleSelect'
+import { TimeCellRenderer } from './Time'
+import { UrlCellRenderer } from './Url'
+import { UserFieldCellRenderer } from './User'
 import { UUIDCellRenderer } from './UUID'
-import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
-import { NullCellRenderer } from './Null'
-import { PlainCellRenderer } from './Plain'
+import { YearCellRenderer } from './Year'
 
 const CLEANUP_INTERVAL = 1000
 
@@ -56,7 +55,7 @@ export function useGridCellHandler(params: {
     column: CanvasGridColumn,
     rowIndex: number,
     path: Array<number>,
-  ) => { x: number; y: number; width: number; height: number }
+  ) => { x: number, y: number, width: number, height: number }
   actionManager: ActionManager
   markdownLoader: MarkdownLoader
   makeCellEditable: MakeCellEditableFn
@@ -64,7 +63,7 @@ export function useGridCellHandler(params: {
     row: Row,
     property?: string,
     ltarState?: Record<string, any>,
-    args?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    args?: { metaValue?: TableType, viewMetaValue?: ViewType },
     beforeRow?: string,
     path?: Array<number>,
   ) => Promise<any>
@@ -220,7 +219,8 @@ export function useGridCellHandler(params: {
         if (selected || isRowChecked || isCellInSelectionRange) {
           bgColorProps = 'cellBgColor.selected'
           borderColorProps = 'cellBorderColor.selected'
-        } else if (isRowHovered) {
+        }
+        else if (isRowHovered) {
           bgColorProps = 'cellBgColor.hovered'
           borderColorProps = 'cellBorderColor.hovered'
         }
@@ -236,7 +236,8 @@ export function useGridCellHandler(params: {
             left: true,
           },
         })
-      } else if (!rowMeta?.isValidationFailed && isRootCell) {
+      }
+      else if (!rowMeta?.isValidationFailed && isRootCell) {
         // Read pre-computed cell colors from rowMeta (populated by getEvaluatedRowMetaRowColorInfo on data load/change)
         const cellColorInfo = isCellColouringEnabled.value ? rowMeta?.cellColors?.[column.id] : null
 
@@ -251,19 +252,20 @@ export function useGridCellHandler(params: {
           backgroundColorToRender = cellColorInfo.cellBgColor
           hoverColorToRender = cellColorInfo.cellHoverColor
           isCellSpecificColor = true
-        } else if (!cellColorInfo?.cellLeftBorderColor) {
+        }
+        else if (!cellColorInfo?.cellLeftBorderColor) {
           // Fall back to row coloring only if no cell-specific color at all
-          const rowColor =
-            rowMeta?.is_set_as_background &&
-            (selected || isRowHovered || isRowChecked || isCellInSelectionRange || isRowCellSelected)
+          const rowColor
+            = rowMeta?.is_set_as_background
+              && (selected || isRowHovered || isRowChecked || isCellInSelectionRange || isRowCellSelected)
               ? rowMeta?.rowHoverColor
               : rowMeta?.rowBgColor
           backgroundColorToRender = rowColor
         }
 
         // Apply the final background color (cell or row)
-        const finalColor =
-          selected || isRowHovered || isRowChecked || isCellInSelectionRange || isRowCellSelected
+        const finalColor
+          = selected || isRowHovered || isRowChecked || isCellInSelectionRange || isRowCellSelected
             ? hoverColorToRender || backgroundColorToRender
             : backgroundColorToRender
 
@@ -301,8 +303,8 @@ export function useGridCellHandler(params: {
       }
     }
     // V2 MO/OO Links render as single-record (BT-like) via LtarCellRenderer
-    const cellType =
-      column.uidt === UITypes.Links && isBtLikeV2Junction(column)
+    const cellType
+      = column.uidt === UITypes.Links && isBtLikeV2Junction(column)
         ? cellTypesRegistry.get(UITypes.LinkToAnotherRecord)
         : cellTypesRegistry.get(column.uidt!)
 
@@ -337,17 +339,21 @@ export function useGridCellHandler(params: {
 
     if (renderAsPlainCell) {
       cellRenderer = PlainCellRenderer.render
-    } else if (cellType) {
+    }
+    else if (cellType) {
       if (!shouldRenderNull) {
         cellRenderer = cellType.render
-      } else {
+      }
+      else {
         if (cellType.renderEmpty) {
           cellRenderer = cellType.renderEmpty
-        } else {
+        }
+        else {
           cellRenderer = NullCellRenderer.render
         }
       }
-    } else if (shouldRenderNull) {
+    }
+    else if (shouldRenderNull) {
       cellRenderer = NullCellRenderer.render
     }
 
@@ -403,14 +409,14 @@ export function useGridCellHandler(params: {
       })
 
       if (
-        !isGroupHeader &&
-        isRootCell &&
-        column.uidt === UITypes.Attachment &&
-        !readonly &&
-        params.attachmentCellDropOver.value &&
-        comparePath(path, params.attachmentCellDropOver.value.path ?? []) &&
-        params.attachmentCellDropOver.value.columnId === column.id &&
-        params.attachmentCellDropOver.value.rowIndex === rowMeta.rowIndex
+        !isGroupHeader
+        && isRootCell
+        && column.uidt === UITypes.Attachment
+        && !readonly
+        && params.attachmentCellDropOver.value
+        && comparePath(path, params.attachmentCellDropOver.value.path ?? [])
+        && params.attachmentCellDropOver.value.columnId === column.id
+        && params.attachmentCellDropOver.value.rowIndex === rowMeta.rowIndex
       ) {
         roundedRect(ctx, x, y, width, height, 0, {
           backgroundColor: '#4A5268BF', // gray-600/75
@@ -432,7 +438,8 @@ export function useGridCellHandler(params: {
       }
 
       return cellRendered
-    } else {
+    }
+    else {
       return renderSingleLineText(ctx, {
         x: x + padding,
         y,
@@ -451,7 +458,7 @@ export function useGridCellHandler(params: {
     row: Row
     column: CanvasGridColumn
     value: any
-    mousePosition: { x: number; y: number }
+    mousePosition: { x: number, y: number }
     pk: any
     selected: boolean
     imageLoader: ImageWindowLoader
@@ -459,8 +466,8 @@ export function useGridCellHandler(params: {
   }) => {
     if (!ctx.column?.columnObj?.uidt) return
     const columnObj = ctx.column.columnObj
-    const cellHandler =
-      columnObj.uidt === UITypes.Links && isBtLikeV2Junction(columnObj)
+    const cellHandler
+      = columnObj.uidt === UITypes.Links && isBtLikeV2Junction(columnObj)
         ? cellTypesRegistry.get(UITypes.LinkToAnotherRecord)
         : cellTypesRegistry.get(columnObj.uidt)
 
@@ -502,8 +509,8 @@ export function useGridCellHandler(params: {
     path: Array<number>
   }) => {
     const keyDownColumnObj = ctx.column.columnObj!
-    const cellHandler =
-      keyDownColumnObj.uidt === UITypes.Links && isBtLikeV2Junction(keyDownColumnObj)
+    const cellHandler
+      = keyDownColumnObj.uidt === UITypes.Links && isBtLikeV2Junction(keyDownColumnObj)
         ? cellTypesRegistry.get(UITypes.LinkToAnotherRecord)
         : cellTypesRegistry.get(keyDownColumnObj.uidt!)
 
@@ -524,7 +531,8 @@ export function useGridCellHandler(params: {
         path: ctx.path ?? [],
         t,
       })
-    } else {
+    }
+    else {
       console.log('No handler found for cell type', ctx.column.columnObj.uidt)
     }
 
@@ -536,7 +544,7 @@ export function useGridCellHandler(params: {
     row: Row
     column: CanvasGridColumn
     value: any
-    mousePosition: { x: number; y: number }
+    mousePosition: { x: number, y: number }
     pk: any
     selected: boolean
     imageLoader: ImageWindowLoader
@@ -545,8 +553,8 @@ export function useGridCellHandler(params: {
     if (!ctx.column?.columnObj?.uidt) return
 
     const hoverColumnObj = ctx.column.columnObj
-    const cellHandler =
-      hoverColumnObj.uidt === UITypes.Links && isBtLikeV2Junction(hoverColumnObj)
+    const cellHandler
+      = hoverColumnObj.uidt === UITypes.Links && isBtLikeV2Junction(hoverColumnObj)
         ? cellTypesRegistry.get(UITypes.LinkToAnotherRecord)
         : cellTypesRegistry.get(hoverColumnObj.uidt)
 

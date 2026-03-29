@@ -1,16 +1,15 @@
-import {
-  type ColumnType,
-  CommonAggregations,
-  type LinkToAnotherRecordType,
-  type LookupType,
-  type TableType,
-  UITypesName,
-  type ViewType,
-} from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import rfdc from 'rfdc'
 import type { Group } from '../lib/types'
+import {
+
+  CommonAggregations,
+
+  UITypes,
+  UITypesName,
+
+} from 'nocodb-sdk'
+import rfdc from 'rfdc'
 import { findKeyColor, valueToTitle } from '../utils/groupbyUtils'
 
 const excludedGroupingUidt = [UITypes.Attachment, UITypes.QrCode, UITypes.Barcode, UITypes.Button]
@@ -46,13 +45,13 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     const { hasPersonalViewPermission } = usePersonalViewPermissions(view)
     const canSyncGroupBy = hasPersonalViewPermission('groupBySync')
 
-    const localGroupBy = ref<{ column: ColumnType; sort: string; order: number }[] | null>(null)
+    const localGroupBy = ref<{ column: ColumnType, sort: string, order: number }[] | null>(null)
 
-    const syncedGroupBy = computed<{ column: ColumnType; sort: string; order?: number }[]>(() => {
-      const tempGroupBy: { column: ColumnType; sort: string; order?: number }[] = []
+    const syncedGroupBy = computed<{ column: ColumnType, sort: string, order?: number }[]>(() => {
+      const tempGroupBy: { column: ColumnType, sort: string, order?: number }[] = []
       Object.values(gridViewCols.value).forEach((col) => {
         if (col.group_by) {
-          const column = meta?.value?.columns?.find((f) => f.id === col.fk_column_id)
+          const column = meta?.value?.columns?.find(f => f.id === col.fk_column_id)
           if (column) {
             tempGroupBy.push({
               column,
@@ -66,7 +65,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       return tempGroupBy
     })
 
-    const groupBy = computed<{ column: ColumnType; sort: string; order?: number }[]>(() => {
+    const groupBy = computed<{ column: ColumnType, sort: string, order?: number }[]>(() => {
       // null = no override (use synced), [] = override with empty (no grouping)
       if (localGroupBy.value !== null) {
         return localGroupBy.value.map((e, i) => ({
@@ -99,12 +98,13 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     const fieldsToGroupBy = computed(() => {
       return clone(meta?.value?.columns || []).map((field) => {
         if (
-          (field.uidt === UITypes.Lookup && field.id && unsupportedLookups.value.includes(field.id)) ||
-          excludedGroupingUidt.includes(field.uidt as UITypes)
+          (field.uidt === UITypes.Lookup && field.id && unsupportedLookups.value.includes(field.id))
+          || excludedGroupingUidt.includes(field.uidt as UITypes)
         ) {
           field.ncItemDisabled = true
           field.ncItemTooltip = `This Field of type ${UITypesName[field.uidt]} not supported for grouping`
-        } else {
+        }
+        else {
           field.ncItemDisabled = false
           field.ncItemTooltip = ''
         }
@@ -141,7 +141,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     }
 
     const formatData = (list: Record<string, any>[]) =>
-      list.map((row) => ({
+      list.map(row => ({
         row: { ...row },
         oldRow: { ...row },
         rowMeta: {
@@ -158,7 +158,8 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       const index = colors.value.indexOf(nextGroupColor.value)
       if (index === colors.value.length - 1) {
         nextGroupColor.value = colors.value[0]
-      } else {
+      }
+      else {
         nextGroupColor.value = colors.value[index + 1]
       }
       return tempColor
@@ -168,22 +169,27 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       return nestedIn.reduce((acc, curr) => {
         if (curr.key === GROUP_BY_VARS.NULL) {
           acc += `${acc.length ? '~and' : ''}(${curr.title},gb_null)`
-        } else if (curr.column_uidt === UITypes.Checkbox) {
+        }
+        else if (curr.column_uidt === UITypes.Checkbox) {
           acc += `${acc.length ? '~and' : ''}(${curr.title},${curr.key === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked'})`
-        } else if (
+        }
+        else if (
           [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(curr.column_uidt as UITypes)
         ) {
           acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,exactDate,${curr.key})`
-        } else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(curr.column_uidt as UITypes)) {
+        }
+        else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(curr.column_uidt as UITypes)) {
           try {
             const value = JSON.parse(curr.key)
             acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,${(Array.isArray(value) ? value : [value])
               .map((v: any) => v.id)
               .join(',')})`
-          } catch (e) {
+          }
+          catch (e) {
             console.error(e)
           }
-        } else {
+        }
+        else {
           acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,${curr.key})`
         }
         return acc
@@ -193,11 +199,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     const getSortParams = (sort: string) => {
       if (sort === 'asc') {
         return '+'
-      } else if (sort === 'desc') {
+      }
+      else if (sort === 'desc') {
         return '-'
-      } else if (sort === 'count-asc') {
+      }
+      else if (sort === 'count-asc') {
         return '~+'
-      } else if (sort === 'count-desc') {
+      }
+      else if (sort === 'count-desc') {
         return '~-'
       }
     }
@@ -211,7 +220,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
       const tempList: Group[] = response.list.reduce((acc: Group[], curr: Record<string, any>) => {
         const keyExists = acc.find(
-          (a) => a.key === valueToTitle(curr[groupby.column.column_name!] ?? curr[groupby.column.title!], groupby.column),
+          a => a.key === valueToTitle(curr[groupby.column.column_name!] ?? curr[groupby.column.title!], groupby.column),
         )
         if (keyExists) {
           keyExists.count += +curr.count
@@ -256,7 +265,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       if (!group.children) group.children = []
 
       for (const temp of tempList) {
-        const keyExists = group.children?.find((a) => a.key === temp.key)
+        const keyExists = group.children?.find(a => a.key === temp.key)
         if (keyExists) {
           temp.paginationData = {
             page: keyExists.paginationData.page || temp.paginationData.page,
@@ -270,12 +279,12 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         group.children.push(temp)
       }
 
-      group.children = group.children.filter((c) => tempList.find((t) => t.key === c.key))
+      group.children = group.children.filter(c => tempList.find(t => t.key === c.key))
 
       if (group.count <= (group.paginationData.pageSize ?? groupByGroupLimit.value)) {
         group.children.sort((a, b) => {
-          const orderA = tempList.findIndex((t) => t.key === a.key)
-          const orderB = tempList.findIndex((t) => t.key === b.key)
+          const orderA = tempList.findIndex(t => t.key === a.key)
+          const orderB = tempList.findIndex(t => t.key === b.key)
           return orderA - orderB
         })
       }
@@ -325,7 +334,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             (groupby.column.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
           )
           if (!relatedTableMeta) return
-          group.displayValueProp = (relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
+          group.displayValueProp = (relatedTableMeta.columns?.find(c => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
         }
 
         // if (!options?.triggerChildOnly) {
@@ -366,11 +375,11 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           const aggregationAliasMapper = new AliasMapper()
 
           const aggregation = Object.values(gridViewCols.value)
-            .map((f) => ({
+            .map(f => ({
               field: f.fk_column_id!,
               type: f.aggregation ?? CommonAggregations.None,
             }))
-            .filter((f) => f.type !== CommonAggregations.None)
+            .filter(f => f.type !== CommonAggregations.None)
 
           const aggregationParams = (group.children ?? []).map((child) => {
             return {
@@ -404,14 +413,15 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                 )
 
             await aggregationAliasMapper.process(aggResponse, (originalKey, value) => {
-              const child = (group?.children ?? []).find((c) => c.key.toString() === (originalKey as any).toString())
+              const child = (group?.children ?? []).find(c => c.key.toString() === (originalKey as any).toString())
               if (child) {
                 Object.assign(child.aggregations, value)
               }
             })
           }
         }
-      } catch (e) {
+      }
+      catch (e) {
         console.log(e)
         message.error(await extractSdkResponseErrorMsg(e))
       }
@@ -449,7 +459,8 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         group.rows = formatData(response.list)
         await loadAggCommentsCount(group.rows)
         group.paginationData = response.pageInfo
-      } catch (e) {
+      }
+      catch (e) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
     }
@@ -466,13 +477,13 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
         let filteredFields = fields
         if (!fields) {
-          filteredFields = Object.values(gridViewCols.value).map((f) => ({
+          filteredFields = Object.values(gridViewCols.value).map(f => ({
             field: f.fk_column_id!,
             type: f.aggregation ?? CommonAggregations.None,
           }))
         }
 
-        filteredFields = filteredFields?.filter((x) => x.type !== CommonAggregations.None)
+        filteredFields = filteredFields?.filter(x => x.type !== CommonAggregations.None)
 
         if ((filteredFields && !filteredFields?.length) || !group.children?.length) return
 
@@ -507,12 +518,13 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             )
 
         await aliasMapper.process(response, (originalKey, value) => {
-          const child = (group.children ?? []).find((c) => c.key.toString() === originalKey.toString())
+          const child = (group.children ?? []).find(c => c.key.toString() === originalKey.toString())
           if (child) {
             Object.assign(child.aggregations, value)
           }
         })
-      } catch (e) {
+      }
+      catch (e) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
     }
@@ -531,7 +543,8 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
       if (nestLevel < groupBy.value.length) {
         group.nested = true
-      } else {
+      }
+      else {
         group.nested = false
       }
 
@@ -539,7 +552,8 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         if (group?.rows) {
           group.rows = []
         }
-      } else {
+      }
+      else {
         if (group?.children) {
           group.children = []
         }
@@ -578,7 +592,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     const findGroupByNestedIn = (nestedIn: GroupNestedIn[], group?: Group, nestLevel = 0): Group => {
       group = group || rootGroup.value
       if (nestLevel >= nestedIn.length) return group
-      const child = group.children?.find((g) => g.key === nestedIn[nestLevel].key)
+      const child = group.children?.find(g => g.key === nestedIn[nestLevel].key)
       if (child) {
         if (child.nested) {
           return findGroupByNestedIn(nestedIn, child, nestLevel + 1)
@@ -600,22 +614,22 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       if (group.count === 0) {
         const parent = parentGroup(group)
         if (parent) {
-          parent.children = parent.children?.filter((c) => c.key !== group.key)
+          parent.children = parent.children?.filter(c => c.key !== group.key)
         }
       }
       if (group.root) return
       modifyCount(parentGroup(group), countEffect)
     }
 
-    const findGroupForRow = (row: Row, group?: Group, nestLevel = 0): { found: boolean; group: Group } => {
+    const findGroupForRow = (row: Row, group?: Group, nestLevel = 0): { found: boolean, group: Group } => {
       group = group || rootGroup.value
       if (group.nested) {
         const child = group.children?.find((g) => {
           if (!groupBy.value[nestLevel].column.title) return undefined
 
           return (
-            g.key ===
-            valueToTitle(row.row[groupBy.value[nestLevel].column.title!], groupBy.value[nestLevel].column, group.displayValueProp)
+            g.key
+            === valueToTitle(row.row[groupBy.value[nestLevel].column.title!], groupBy.value[nestLevel].column, group.displayValueProp)
           )
         })
 
@@ -644,18 +658,21 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                 modifyCount(group, -1)
               }
             }
-          } else {
+          }
+          else {
             if (group) {
               group.rows?.splice(group!.rows.indexOf(row), 1)
               modifyCount(group, -1)
-            } else {
+            }
+            else {
               rootGroup.value.rows?.splice(rootGroup.value.rows!.indexOf(row), 1)
             }
             // if (properGroup.group?.children) loadGroups({}, properGroup.group)
           }
         })
-      } else {
-        group.children?.forEach((g) => redistributeRows(g))
+      }
+      else {
+        group.children?.forEach(g => redistributeRows(g))
       }
     }
 
@@ -671,7 +688,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           while (nextCol && nextCol.uidt === UITypes.Lookup) {
             // Use the tracked base_id for the current table where nextCol resides
             const lookupRelation = (await getMeta(currentBaseId, nextCol.fk_model_id as string))?.columns?.find(
-              (c) => c.id === (nextCol?.colOptions as LookupType).fk_relation_column_id,
+              c => c.id === (nextCol?.colOptions as LookupType).fk_relation_column_id,
             )
 
             if (!lookupRelation?.colOptions) break
@@ -682,12 +699,13 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             const relatedBaseId = lookupRelColOpts.fk_related_base_id || currentBaseId
             try {
               relatedTableMeta = await getMeta(relatedBaseId, relatedTableId, undefined, undefined, undefined, true)
-            } catch {
+            }
+            catch {
               relatedTableMeta = await getPartialMeta(relatedBaseId, lookupRelation?.id, relatedTableId)
             }
 
             nextCol = relatedTableMeta?.columns?.find(
-              (c) => c.id === ((nextCol?.colOptions as LookupType).fk_lookup_column_id as string),
+              c => c.id === ((nextCol?.colOptions as LookupType).fk_lookup_column_id as string),
             ) as ColumnType
 
             // Update currentBaseId for next iteration
@@ -707,7 +725,8 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         }
 
         unsupportedLookups.value = filteredLookupCols
-      } catch (e) {
+      }
+      catch (e) {
         console.error(e)
       }
     }
@@ -735,7 +754,8 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           row.rowMeta = row.rowMeta ?? {}
           row.rowMeta.commentCount = +count
         })
-      } catch (e) {
+      }
+      catch (e) {
         console.error('Failed to load aggregate comment count:', e)
       }
     }

@@ -2,8 +2,8 @@ import { precisionFormats, supportedBarcodeFormats } from 'nocodb-sdk'
 
 export { precisionFormats, supportedBarcodeFormats }
 
-export const makePrecisionFormatsDiplay = (t: (input: string) => string) =>
-  ({
+export function makePrecisionFormatsDiplay(t: (input: string) => string) {
+  return {
     0: t('placeholder.decimal0'),
     1: t('placeholder.decimal1'),
     2: t('placeholder.decimal2'),
@@ -13,4 +13,5 @@ export const makePrecisionFormatsDiplay = (t: (input: string) => string) =>
     6: t('placeholder.decimal6'),
     7: t('placeholder.decimal7'),
     8: t('placeholder.decimal8'),
-  } as const)
+  } as const
+}

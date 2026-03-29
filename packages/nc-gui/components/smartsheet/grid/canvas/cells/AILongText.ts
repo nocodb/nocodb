@@ -7,7 +7,7 @@ import {
   truncateText,
 } from '../utils/canvas'
 
-const getButtonDimensions = ({
+function getButtonDimensions({
   ctx,
   width,
   label = 'Generate',
@@ -17,7 +17,7 @@ const getButtonDimensions = ({
   width: number
   label?: string
   hasIcon?: boolean
-}) => {
+}) {
   if (!ctx) {
     ctx = defaultOffscreen2DContext
   }
@@ -56,32 +56,29 @@ const getButtonDimensions = ({
   }
 }
 
-const renderAIButton = (
-  ctx: CanvasRenderingContext2D,
-  {
-    x,
-    y,
-    width,
-    disabled,
-    mousePosition,
-    spriteLoader,
-    loadingStartTime,
-    isLoading,
-    setCursor,
-    getColor,
-  }: {
-    x: number
-    y: number
-    width: number
-    isLoading?: boolean
-    disabled?: boolean
-    mousePosition?: { x: number; y: number }
-    spriteLoader?: any
-    loadingStartTime?: number
-    setCursor: SetCursorType
-    getColor: GetColorType
-  },
-) => {
+function renderAIButton(ctx: CanvasRenderingContext2D, {
+  x,
+  y,
+  width,
+  disabled,
+  mousePosition,
+  spriteLoader,
+  loadingStartTime,
+  isLoading,
+  setCursor,
+  getColor,
+}: {
+  x: number
+  y: number
+  width: number
+  isLoading?: boolean
+  disabled?: boolean
+  mousePosition?: { x: number, y: number }
+  spriteLoader?: any
+  loadingStartTime?: number
+  setCursor: SetCursorType
+  getColor: GetColorType
+}) {
   const dims = getButtonDimensions({
     ctx,
     width,
@@ -93,13 +90,13 @@ const renderAIButton = (
 
   disabled = disabled || isLoading
 
-  const isHovered =
-    !disabled &&
-    mousePosition &&
-    mousePosition.x >= startX &&
-    mousePosition.x <= startX + dims.buttonWidth &&
-    mousePosition.y >= startY &&
-    mousePosition.y <= startY + dims.buttonHeight
+  const isHovered
+    = !disabled
+      && mousePosition
+      && mousePosition.x >= startX
+      && mousePosition.x <= startX + dims.buttonWidth
+      && mousePosition.y >= startY
+      && mousePosition.y <= startY + dims.buttonHeight
 
   if (isHovered) setCursor('pointer')
 
@@ -122,7 +119,8 @@ const renderAIButton = (
   if (isLoading && loadingStartTime) {
     renderSpinner(ctx, contentX, contentY, dims.iconSize, colors.loader, loadingStartTime, 1.5)
     contentX += dims.iconSize + dims.iconSpacing
-  } else if (spriteLoader) {
+  }
+  else if (spriteLoader) {
     spriteLoader.renderIcon(ctx, {
       icon: 'ncAutoAwesome',
       size: dims.iconSize,
@@ -300,7 +298,8 @@ export const AILongTextCellRenderer: CellRenderer = {
       if (isBoxHovered(buttonBounds, mousePosition)) {
         await actionManager.executeButtonAction([pk], column, { row: [row], isAiPromptCol: true, path })
         return true
-      } else {
+      }
+      else {
         return false
       }
     }
@@ -322,8 +321,8 @@ export const AILongTextCellRenderer: CellRenderer = {
     }
 
     if (
-      selected &&
-      (isBoxHovered(expandIconBox, mousePosition) || (!isReadOnlyCol && isBoxHovered(regenerateIconBox, mousePosition)))
+      selected
+      && (isBoxHovered(expandIconBox, mousePosition) || (!isReadOnlyCol && isBoxHovered(regenerateIconBox, mousePosition)))
     ) {
       makeCellEditable(row, column)
       return true
@@ -335,13 +334,13 @@ export const AILongTextCellRenderer: CellRenderer = {
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
     if (
-      !row ||
-      !column?.id ||
-      !mousePosition ||
-      column?.isInvalidColumn?.isInvalid ||
-      !value ||
-      !value?.value ||
-      (!selected && !value?.isStale)
+      !row
+      || !column?.id
+      || !mousePosition
+      || column?.isInvalidColumn?.isInvalid
+      || !value
+      || !value?.value
+      || (!selected && !value?.isStale)
     ) {
       return
     }

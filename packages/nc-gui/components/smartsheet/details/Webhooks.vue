@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import { type HookType, PlanLimitTypes } from 'nocodb-sdk'
+import type { HookType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
+import { PlanLimitTypes } from 'nocodb-sdk'
 
 const { activeTable } = storeToRefs(useTablesStore())
 
@@ -41,17 +42,18 @@ const showDeleteModal = ref(false)
 const isDeleting = ref(false)
 
 const toBeDeleteHook = computed(() => {
-  return hooks.value.find((hook) => hook.id === deleteHookId.value)
+  return hooks.value.find(hook => hook.id === deleteHookId.value)
 })
 
-const deleteHook = async () => {
+async function deleteHook() {
   isDeleting.value = true
   if (!deleteHookId.value) return
 
   try {
     await _deleteHook(deleteHookId.value)
     updateStatLimit(PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE, -1)
-  } finally {
+  }
+  finally {
     isDeleting.value = false
     showDeleteModal.value = false
     deleteHookId.value = ''
@@ -62,19 +64,20 @@ const selectedHookId = ref<string | undefined>(undefined)
 
 const isCopying = ref(false)
 
-const copyWebhook = async (hook: HookType) => {
+async function copyWebhook(hook: HookType) {
   if (isCopying.value || showWebhookPlanLimitExceededModal()) return
 
   isCopying.value = true
   try {
     await copyHook(hook)
     updateStatLimit(PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE, 1)
-  } finally {
+  }
+  finally {
     isCopying.value = false
   }
 }
 
-const openDeleteModal = (hookId: string) => {
+function openDeleteModal(hookId: string) {
   deleteHookId.value = hookId
   showDeleteModal.value = true
 }
@@ -84,7 +87,7 @@ const webHookSearch = ref('')
 const isOpenContextMenu = ref<Record<string, boolean>>({})
 
 const filteredHooks = computed(() =>
-  hooks.value.filter((hook) => hook.title?.toLowerCase().includes(webHookSearch.value.toLowerCase())),
+  hooks.value.filter(hook => hook.title?.toLowerCase().includes(webHookSearch.value.toLowerCase())),
 )
 
 const sortedHooks = computed(() => {
@@ -118,7 +121,7 @@ watch(
   },
 )
 
-const toggleHook = async (hook: HookType) => {
+async function toggleHook(hook: HookType) {
   if (hook.event === 'manual' && hook.operation === 'trigger') {
     message.error(t('msg.error.manualTriggerHook'))
     return
@@ -129,7 +132,7 @@ const toggleHook = async (hook: HookType) => {
   await saveHooks({ hook, ogHook })
 }
 
-const createWebhook = async () => {
+async function createWebhook() {
   if (showWebhookPlanLimitExceededModal()) return
 
   isWebhookModalOpen.value = true
@@ -137,13 +140,13 @@ const createWebhook = async () => {
 
 const initialHookTab = ref<string | undefined>()
 
-const editHook = (hook: HookType, tab?: string) => {
+function editHook(hook: HookType, tab?: string) {
   selectedHook.value = hook
   initialHookTab.value = tab
   isWebhookModalOpen.value = true
 }
 
-const onModalClose = () => {
+function onModalClose() {
   isWebhookModalOpen.value = false
   selectedHook.value = undefined
   initialHookTab.value = undefined
@@ -158,7 +161,7 @@ watch(
   (hooksList) => {
     if (!pendingDeepLinkHookId.value || !hooksList.length) return
 
-    const hook = hooksList.find((h) => h.id === pendingDeepLinkHookId.value)
+    const hook = hooksList.find(h => h.id === pendingDeepLinkHookId.value)
     if (hook && !isWebhookModalOpen.value) {
       editHook(hook, pendingDeepLinkHookTab.value || undefined)
     }
@@ -200,8 +203,8 @@ const eventList = ref<Record<string, any>[]>([
     { text: [t('objects.field'), t('general.create').toLowerCase()], value: ['field', 'insert'] },
     { text: [t('objects.field'), t('general.update').toLowerCase()], value: ['field', 'update'] },
     { text: [t('objects.field'), t('general.delete').toLowerCase()], value: ['field', 'delete'] },
-  ]) ||
-    []),
+  ])
+  || []),
 
   {
     text: [t('general.manual'), t('general.trigger').toLowerCase()],
@@ -253,19 +256,19 @@ const columns: NcTableColumnProps[] = [
   },
 ]
 
-const customRow = (hook: HookType) => {
+function customRow(hook: HookType) {
   return {
     onClick: () => editHook(hook),
   }
 }
 
-const getHookTypeText = (hook: HookType) => {
+function getHookTypeText(hook: HookType) {
   if (hook.version === 'v3') {
     const operationsArray = Array.isArray(hook.operation) ? hook.operation : []
 
     const operations = operationsArray
       .map((op) => {
-        const eventData = eventList.value.find((e) => e.value[0] === hook.event)
+        const eventData = eventList.value.find(e => e.value[0] === hook.event)
         const operationData = eventData?.operations?.[op] || eventData?.[op]
         return operationData?.text?.[1] || op
       })
@@ -297,7 +300,7 @@ const getHookTypeText = (hook: HookType) => {
     return `${prefix}${t('labels.sendAllEvents').toLowerCase()}`
   }
 
-  const result = v2EventList.value.find((e) => e.value.includes(hook.event) && e.value.includes(hook.operation))?.text
+  const result = v2EventList.value.find(e => e.value.includes(hook.event) && e.value.includes(hook.operation))?.text
 
   if (result && result.includes('Manual Trigger')) {
     return 'Manual Trigger'
@@ -384,8 +387,12 @@ const getHookTypeText = (hook: HookType) => {
             v-if="!hooks.length"
             class="flex-col flex items-center gap-6 justify-center w-full h-full py-12 px-4 border-1 rounded-xl border-nc-border-gray-medium"
           >
-            <div class="text-nc-content-gray-subtle font-bold text-center text-2xl">{{ $t('msg.createWebhookMsg1') }}</div>
-            <div class="text-nc-content-gray-subtle text-center max-w-[24rem]">{{ $t('msg.createWebhookMsg2') }}</div>
+            <div class="text-nc-content-gray-subtle font-bold text-center text-2xl">
+              {{ $t('msg.createWebhookMsg1') }}
+            </div>
+            <div class="text-nc-content-gray-subtle text-center max-w-[24rem]">
+              {{ $t('msg.createWebhookMsg2') }}
+            </div>
             <NcButton v-e="['c:actions:webhook']" class="flex max-w-40" type="primary" size="small" @click="createWebhook">
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="plus" class="flex-none" />
@@ -430,7 +437,9 @@ const getHookTypeText = (hook: HookType) => {
                 <NcTooltip v-if="hook.version === 'v2'" class="-mr-2 flex">
                   <GeneralIcon icon="ncAlertTriangle" class="flex-none text-nc-content-orange-dark" />
 
-                  <template #title> Port this webhook from v2 to v3 </template>
+                  <template #title>
+                    Port this webhook from v2 to v3
+                  </template>
                 </NcTooltip>
               </template>
               <template v-if="column.key === 'type'">

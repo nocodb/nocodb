@@ -64,15 +64,15 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       try {
         if (newToken && newToken !== oldToken) socketTele.init(newToken, appInfo.value.ncSiteUrl)
         else if (!newToken) socketTele.disconnect()
-      } catch (e) {
+      }
+      catch (e) {
         console.error(e)
       }
     })
 
     nuxtApp.provide('tele', tele)
     nuxtApp.provide('e', (e: string, data?: Record<string, any>, rootProps?: Record<string, any>) =>
-      tele.emit(e, { data, ...(rootProps ?? {}) }),
-    )
+      tele.emit(e, { data, ...(rootProps ?? {}) }))
   }
 
   document.body.removeEventListener('click', clickListener, true)

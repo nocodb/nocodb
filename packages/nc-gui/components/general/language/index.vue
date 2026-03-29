@@ -18,10 +18,10 @@ const languages = computed(
       .map(([key, value]) => ({
         label: value,
         value: key,
-      })) as { label: string; value: string }[],
+      })) as { label: string, value: string }[],
 )
 
-async function changeLanguage(lang: { label: string; value: string }) {
+async function changeLanguage(lang: { label: string, value: string }) {
   const nextLang = lang.value as keyof typeof Language
 
   await setI18nLanguage(nextLang)

@@ -8,7 +8,7 @@ const { bases, fetchBases } = useInstanceAdmin()
 const searchInput = ref('')
 
 const filteredBases = computed(() => {
-  return bases.value.filter((base) => base.title.toLowerCase().includes(searchInput.value.toLowerCase()))
+  return bases.value.filter(base => base.title.toLowerCase().includes(searchInput.value.toLowerCase()))
 })
 
 const sortedBases = computed(() => {
@@ -67,15 +67,18 @@ const columns = computed(() => {
   return cols
 })
 
-const customRow = (base: Record<string, any>) => ({
-  onClick: () => {
-    if (isEeUI) {
-      navigateTo(`/${base.workspace_id}/${base.id}`)
-    } else {
-      navigateTo(`/nc/${base.workspace_id}/${base.id}`)
-    }
-  },
-})
+function customRow(base: Record<string, any>) {
+  return {
+    onClick: () => {
+      if (isEeUI) {
+        navigateTo(`/${base.workspace_id}/${base.id}`)
+      }
+      else {
+        navigateTo(`/nc/${base.workspace_id}/${base.id}`)
+      }
+    },
+  }
+}
 
 onMounted(() => {
   loadSorts()

@@ -36,7 +36,8 @@ onKeyStroke(
 onBeforeMount(async () => {
   try {
     await loadProject()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     if (e.response?.status === 403) {
       // Base is not accessible
       message.error(t('msg.error.projectNotAccessible'))

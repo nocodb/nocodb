@@ -24,11 +24,12 @@ const placeholder = computed(() => {
     : `${t('activity.searchProject').charAt(0).toUpperCase()}${t('activity.searchProject').slice(1).toLowerCase()}`
 })
 
-const onKeydown = (e: KeyboardEvent) => {
+function onKeydown(e: KeyboardEvent) {
   if (e.altKey && (e.code === 'KeyB' || e.code === 'KeyD')) {
     e.preventDefault()
     inputRef.value.input?.blur()
-  } else {
+  }
+  else {
     e.stopPropagation()
   }
 }

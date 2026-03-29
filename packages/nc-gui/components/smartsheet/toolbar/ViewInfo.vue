@@ -35,8 +35,8 @@ const viewModeInfo = computed(() => {
         isViewOwner.value
           ? `(${t('general.you')})`
           : activeView.value?.owned_by && idUserMap.value[activeView.value.owned_by]
-          ? `(${idUserMap.value[activeView.value.owned_by]?.display_name || idUserMap.value[activeView.value.owned_by]?.email})`
-          : ''
+            ? `(${idUserMap.value[activeView.value.owned_by]?.display_name || idUserMap.value[activeView.value.owned_by]?.email})`
+            : ''
       }`
     case ViewLockType.Locked:
       if (!activeView.value?.meta?.lockedByUserId || idUserMap.value[activeView.value?.meta?.lockedByUserId]) {
@@ -47,8 +47,8 @@ const viewModeInfo = computed(() => {
         user:
           idUserMap.value[activeView.value?.meta?.lockedByUserId]?.id === user.value?.id
             ? t('general.you')
-            : idUserMap.value[activeView.value?.meta?.lockedByUserId]?.display_name ||
-              idUserMap.value[activeView.value?.meta?.lockedByUserId]?.email,
+            : idUserMap.value[activeView.value?.meta?.lockedByUserId]?.display_name
+              || idUserMap.value[activeView.value?.meta?.lockedByUserId]?.email,
       })
 
     default:

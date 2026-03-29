@@ -33,10 +33,10 @@ const activeItem = computed<HookLogType>({
 
 const showLogs = computed(
   () =>
-    true ||
-    !(
-      appInfo.value.automationLogLevel === AutomationLogLevel.OFF ||
-      (appInfo.value.automationLogLevel === AutomationLogLevel.ALL && !appInfo.value.ee)
+    true
+    || !(
+      appInfo.value.automationLogLevel === AutomationLogLevel.OFF
+      || (appInfo.value.automationLogLevel === AutomationLogLevel.ALL && !appInfo.value.ee)
     ),
 )
 
@@ -52,7 +52,8 @@ async function loadHookLogs(page = logPaginationData.value.page, limit = logPagi
     })
     hookLogs.value = parseHookLog(list)
     logPaginationData.value.totalRows = pageInfo.totalRows ?? 0
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }

@@ -135,7 +135,7 @@ const FEATURES = [
   },
   {
     id: 'show_everyones_personal_views',
-    title: "Show Everyone's Personal Views",
+    title: 'Show Everyone\'s Personal Views',
     description: 'With this feature we can avoid showing other users personal views in left sidebar',
     enabled: false,
     version: 1,
@@ -215,7 +215,7 @@ const FEATURES = [
   },
 ] as const
 
-export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<
+export const FEATURE_FLAG = Object.fromEntries(FEATURES.map(feature => [feature.id.toUpperCase(), feature.id])) as Record<
   Uppercase<(typeof FEATURES)[number]['id']>,
   (typeof FEATURES)[number]['id']
 >
@@ -258,31 +258,34 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
 
   const saveFeatures = () => {
     try {
-      const featuresToSave = features.value.map((feature) => ({
+      const featuresToSave = features.value.map(feature => ({
         id: feature.id,
         enabled: feature.enabled,
         version: feature.version,
       }))
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(featuresToSave))
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Failed to save features:', error)
     }
   }
 
   const toggleFeature = (id: BetaFeatureId, forceUpdate?: boolean) => {
-    const feature = features.value.find((f) => f.id === id)
+    const feature = features.value.find(f => f.id === id)
     if (feature) {
       if (forceUpdate !== undefined) {
         feature.enabled = forceUpdate
-      } else {
+      }
+      else {
         feature.enabled = !feature.enabled
       }
       $e(`a:feature-preview:${id}:${feature.enabled ? 'on' : 'off'}`)
       saveFeatures()
 
       return true
-    } else {
+    }
+    else {
       console.error(`Feature ${id} not found`)
     }
   }
@@ -311,7 +314,7 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
         }>
 
         features.value = FEATURES.map((defaultFeature) => {
-          const storedFeature = parsedFeatures.find((f) => f.id === defaultFeature.id)
+          const storedFeature = parsedFeatures.find(f => f.id === defaultFeature.id)
 
           if (!storedFeature) {
             return { ...defaultFeature }
@@ -331,10 +334,12 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
             enabled: storedFeature.enabled,
           }
         })
-      } else {
+      }
+      else {
         features.value = deepClone(FEATURES)
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Failed to initialize features:', error)
       features.value = deepClone(FEATURES)
     }

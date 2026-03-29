@@ -1,6 +1,6 @@
 <script lang="ts" setup>
+import type { CSSProperties } from 'vue'
 import { onKeyStroke } from '@vueuse/core'
-import type { CSSProperties } from '@vue/runtime-dom'
 
 interface Props {
   // Key to be pressed on hover to trigger the tooltip
@@ -27,7 +27,7 @@ const attrs = useAttrs()
 const isKeyPressed = ref(false)
 
 onKeyStroke(
-  (e) => e.key === modifierKey,
+  e => e.key === modifierKey,
   (e) => {
     e.preventDefault()
 
@@ -41,7 +41,7 @@ onKeyStroke(
 )
 
 onKeyStroke(
-  (e) => e.key === modifierKey,
+  e => e.key === modifierKey,
   (e) => {
     e.preventDefault()
 

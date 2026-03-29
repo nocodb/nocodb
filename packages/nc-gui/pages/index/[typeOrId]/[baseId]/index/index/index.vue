@@ -36,12 +36,12 @@ const allowedQuickImportTypes = [
   'text/json',
 ]
 
-watch(files, (nextFiles) => nextFiles && onFileSelect(nextFiles), { flush: 'post' })
+watch(files, nextFiles => nextFiles && onFileSelect(nextFiles), { flush: 'post' })
 
 function onFileSelect(fileList: FileList | null) {
   if (!fileList) return
 
-  const files = Array.from(fileList).map((file) => file)
+  const files = Array.from(fileList).map(file => file)
 
   onDrop(files)
 }
@@ -130,7 +130,7 @@ const showProjectViewPage = computed(() => {
   return activeTables.value.length === 0 || !!route.value.query.page || isUIAllowed('projectOverviewTab')
 })
 
-const hideEmptySkeleton = () => {
+function hideEmptySkeleton() {
   if (!showEmptySkeleton.value) return
 
   nextTick(() => {

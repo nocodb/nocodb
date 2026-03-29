@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { type ViewType, ViewTypes } from 'nocodb-sdk'
+import type { ViewType } from 'nocodb-sdk'
+import { ViewTypes } from 'nocodb-sdk'
 
 interface Props {
   tableId: string
@@ -15,7 +16,7 @@ const { viewsByTable } = storeToRefs(viewStore)
 
 const { base } = storeToRefs(useBase())
 
-const filterView = (v: ViewType) => {
+function filterView(v: ViewType) {
   return v.type === ViewTypes.FORM
 }
 
@@ -25,7 +26,7 @@ const formOptions = computed(() => {
   const key = `${base.value.id}:${props.tableId}`
   const views = viewsByTable.value.get(key) || []
 
-  return views.filter(filterView).map((view) => ({
+  return views.filter(filterView).map(view => ({
     label: view.title,
     value: view.id,
   }))
@@ -34,14 +35,14 @@ const formOptions = computed(() => {
 const triggerForm = useVModel(props, 'triggerForm')
 const triggerFormId = useVModel(props, 'triggerFormId')
 
-const onChangeTriggerForm = (val: boolean) => {
+function onChangeTriggerForm(val: boolean) {
   if (!val) {
     triggerFormId.value = undefined
   }
 }
 
 onMounted(() => {
-  if (triggerFormId.value && formOptions.value.every((o) => o.value !== triggerFormId.value)) {
+  if (triggerFormId.value && formOptions.value.every(o => o.value !== triggerFormId.value)) {
     triggerFormId.value = undefined
   }
   if (formOptions.value.length === 0) {

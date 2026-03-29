@@ -1,22 +1,23 @@
 <script setup lang="ts">
+import type { PredictedFieldType } from '#imports'
+import type { ButtonType, ColumnType, FilterType, SelectOptionsType, TableType } from 'nocodb-sdk'
+import type { NavigationGuardNext, RouteLocationNormalizedLoadedGeneric } from 'vue-router'
+import { AiWizardTabsType } from '#imports'
+import { onKeyDown, useMagicKeys } from '@vueuse/core'
 import { diff } from 'deep-object-diff'
 import {
   ButtonActionsType,
   ColumnHelper,
-  UITypes,
   hiddenColumnTypes,
   isAIPromptCol,
   isLinksOrLTAR,
   isSystemColumn,
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
+  UITypes,
 } from 'nocodb-sdk'
-import type { ButtonType, ColumnType, FilterType, SelectOptionsType, TableType } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
-import { onKeyDown, useMagicKeys } from '@vueuse/core'
-import type { NavigationGuardNext, RouteLocationNormalizedLoadedGeneric } from 'vue-router'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
-import { AiWizardTabsType, type PredictedFieldType } from '#imports'
 
 interface TableExplorerColumn extends ColumnType {
   id?: string
@@ -119,10 +120,11 @@ const columnsHash = ref<string>()
 
 const newFields = ref<TableExplorerColumn[]>([])
 
-const compareCols = (a?: TableExplorerColumn, b?: TableExplorerColumn) => {
+function compareCols(a?: TableExplorerColumn, b?: TableExplorerColumn) {
   if (a?.id && b?.id) {
     return a.id === b.id
-  } else if (a?.temp_id && b?.temp_id) {
+  }
+  else if (a?.temp_id && b?.temp_id) {
     return a.temp_id === b.temp_id
   }
   return false
@@ -138,12 +140,13 @@ const viewFieldsMap = computed<Record<string, Field>>(() => {
   return temp
 })
 
-const getFieldOrder = (field?: TableExplorerColumn) => {
+function getFieldOrder(field?: TableExplorerColumn) {
   if (!field) return -1
-  const mop = moveOps.value.find((op) => compareCols(op.column, field))
+  const mop = moveOps.value.find(op => compareCols(op.column, field))
   if (mop) {
     return mop.order
-  } else if (field.id) {
+  }
+  else if (field.id) {
     const viewField = viewFieldsMap.value[field.id]
     if (viewField) {
       return viewField.order
@@ -160,14 +163,14 @@ const fields = computed<TableExplorerColumn[]>({
       .filter((field) => {
         const isAllowToShowCol = isForm.value ? !formViewHiddenColTypes.includes(t.name) : true
         return (
-          !hiddenColumnTypes.includes(field.uidt) &&
-          !field.fk_column_id &&
-          (showOrHideSystemFields.value ? !!viewFieldsMap.value[field.id] : !isSystemColumn(field)) &&
-          isAllowToShowCol
+          !hiddenColumnTypes.includes(field.uidt)
+          && !field.fk_column_id
+          && (showOrHideSystemFields.value ? !!viewFieldsMap.value[field.id] : !isSystemColumn(field))
+          && isAllowToShowCol
         )
       })
       .concat(newFields.value)
-      .map((field) => updateDefaultColumnValues(field))
+      .map(field => updateDefaultColumnValues(field))
       .sort((a, b) => {
         return getFieldOrder(a) - getFieldOrder(b)
       })
@@ -175,7 +178,7 @@ const fields = computed<TableExplorerColumn[]>({
   },
   set: (val) => {
     localMetaColumns.value = localMetaColumns.value?.map((col) => {
-      const field = val.find((f) => compareCols(f, col))
+      const field = val.find(f => compareCols(f, col))
       if (field) {
         return field
       }
@@ -186,7 +189,7 @@ const fields = computed<TableExplorerColumn[]>({
 
 const isAllFieldsVisible = computed(() => {
   return fields.value.every((field) => {
-    if (visibilityOps.value.find((op) => op.column.fk_column_id === field.id)?.visible ?? viewFieldsMap.value[field.id!]?.show) {
+    if (visibilityOps.value.find(op => op.column.fk_column_id === field.id)?.visible ?? viewFieldsMap.value[field.id!]?.show) {
       return true
     }
     return false
@@ -224,17 +227,17 @@ const {
   onToggleTag: _onToggleTag,
 } = usePredictFields(ref(true), fields)
 
-const activeTabNonSelectedFields = computed(() => activeTabPredictedFields.value.filter((f) => !f.selected))
+const activeTabNonSelectedFields = computed(() => activeTabPredictedFields.value.filter(f => !f.selected))
 
 onBeforeMount(() => {
   onInit()
 })
 
-const calculateOrderForIndex = (index: number, fromAbove = false) => {
+function calculateOrderForIndex(index: number, fromAbove = false) {
   if (!viewFields.value) return -1
 
   if (index <= 0) {
-    const pv = fields.value.find((f) => f.pv)
+    const pv = fields.value.find(f => f.pv)
     if (pv) {
       return pv.order || 0
     }
@@ -242,7 +245,7 @@ const calculateOrderForIndex = (index: number, fromAbove = false) => {
   }
 
   if (index >= fields.value.length - 1) {
-    const fieldOrders = fields.value.map((f) => getFieldOrder(f))
+    const fieldOrders = fields.value.map(f => getFieldOrder(f))
     return Math.max(...fieldOrders) + 1
   }
 
@@ -296,15 +299,15 @@ const duplicateFieldHook = ref<TableExplorerColumn>()
 
 const hasUnsavedChanges = computed(() => {
   return (
-    ops.value.length > 0 ||
-    moveOps.value.length > 0 ||
-    visibilityOps.value.length > 0 ||
-    showOrHideSystemFields.value !== showSystemFields.value
+    ops.value.length > 0
+    || moveOps.value.length > 0
+    || visibilityOps.value.length > 0
+    || showOrHideSystemFields.value !== showSystemFields.value
   )
 })
 
-const setFieldMoveHook = (field: TableExplorerColumn, before = false) => {
-  const index = fields.value.findIndex((f) => compareCols(f, field))
+function setFieldMoveHook(field: TableExplorerColumn, before = false) {
+  const index = fields.value.findIndex(f => compareCols(f, field))
   if (index !== -1) {
     addFieldMoveHook.value = before ? index : index + 1
   }
@@ -312,18 +315,19 @@ const setFieldMoveHook = (field: TableExplorerColumn, before = false) => {
 
 const { isMetaReadOnly } = useRoles()
 
-const isColumnUpdateAllowed = (column: ColumnType) => {
+function isColumnUpdateAllowed(column: ColumnType) {
   if (
-    isMetaReadOnly.value &&
-    !readonlyMetaAllowedTypes.includes(column?.uidt) &&
-    !partialUpdateAllowedTypes.includes(column?.uidt) &&
-    !isSystemColumn(column)
-  )
+    isMetaReadOnly.value
+    && !readonlyMetaAllowedTypes.includes(column?.uidt)
+    && !partialUpdateAllowedTypes.includes(column?.uidt)
+    && !isSystemColumn(column)
+  ) {
     return false
+  }
   return true
 }
 
-const changeField = (field?: TableExplorerColumn, event?: MouseEvent) => {
+function changeField(field?: TableExplorerColumn, event?: MouseEvent) {
   if (field?.id && field?.uidt && !isColumnUpdateAllowed(field)) {
     return message.info(t('msg.info.schemaReadOnly'))
   }
@@ -357,7 +361,7 @@ const changeField = (field?: TableExplorerColumn, event?: MouseEvent) => {
   })
 }
 
-const addField = (field?: TableExplorerColumn, before = false) => {
+function addField(field?: TableExplorerColumn, before = false) {
   if (field) {
     setFieldMoveHook(field, before)
   }
@@ -373,10 +377,10 @@ const addField = (field?: TableExplorerColumn, before = false) => {
 
 const displayColumn = computed(() => {
   if (!localMetaColumns.value) return
-  return localMetaColumns.value.find((col) => col.pv)
+  return localMetaColumns.value.find(col => col.pv)
 })
 
-const duplicateField = async (field: TableExplorerColumn) => {
+async function duplicateField(field: TableExplorerColumn) {
   if (!localMetaColumns.value) return
 
   // generate duplicate column name
@@ -430,7 +434,7 @@ const duplicateField = async (field: TableExplorerColumn) => {
 }
 
 // Check any filter is changed recursively
-const checkForFilterChange = (filters: (FilterType & { status?: string })[]) => {
+function checkForFilterChange(filters: (FilterType & { status?: string })[]) {
   for (const filter of filters) {
     if (filter.status) {
       return true
@@ -443,8 +447,8 @@ const checkForFilterChange = (filters: (FilterType & { status?: string })[]) => 
   }
 }
 // This method is called whenever there is a change in field properties
-const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
-  const col = fields.value.find((col) => compareCols(col, state))
+function onFieldUpdate(state: TableExplorerColumn, skipLinkChecks = false) {
+  const col = fields.value.find(col => compareCols(col, state))
   if (!col) return
 
   if (state.colOptions && [UITypes.SingleSelect, UITypes.MultiSelect].includes(col.uidt)) {
@@ -470,21 +474,22 @@ const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
   ) as Partial<TableExplorerColumn>
 
   if (
-    Object.keys(diffs).length === 0 ||
+    Object.keys(diffs).length === 0
     // skip custom prop since it's only used for custom LTAR links
-    (Object.keys(diffs).length === 1 && 'custom' in diffs && Object.keys(diffs.custom).length === 0) ||
-    (Object.keys(diffs).length === 1 && 'altered' in diffs)
+    || (Object.keys(diffs).length === 1 && 'custom' in diffs && Object.keys(diffs.custom).length === 0)
+    || (Object.keys(diffs).length === 1 && 'altered' in diffs)
   ) {
-    ops.value = ops.value.filter((op) => op.op === 'add' || !compareCols(op.column, state))
-  } else {
-    const field = ops.value.find((op) => compareCols(op.column, state))
-    const moveField = moveOps.value.find((op) => compareCols(op.column, state))
-    const isNewField = newFields.value.find((nField) => compareCols(nField, state))
+    ops.value = ops.value.filter(op => op.op === 'add' || !compareCols(op.column, state))
+  }
+  else {
+    const field = ops.value.find(op => compareCols(op.column, state))
+    const moveField = moveOps.value.find(op => compareCols(op.column, state))
+    const isNewField = newFields.value.find(nField => compareCols(nField, state))
 
     if (isNewField) {
       newFields.value = newFields.value.map((op) => {
         if (compareCols(op, state)) {
-          ops.value = ops.value.filter((op) => op.op === 'add' && !compareCols(op.column, state))
+          ops.value = ops.value.filter(op => op.op === 'add' && !compareCols(op.column, state))
           ops.value = [
             ...ops.value,
             {
@@ -501,11 +506,12 @@ const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
 
     if (field || (field && moveField)) {
       field.column = state
-    } else if (isLinksOrLTAR(state) && !skipLinkChecks) {
+    }
+    else if (isLinksOrLTAR(state) && !skipLinkChecks) {
       if (
-        ['title', 'column_name', 'meta'].some((k) => k in diffs) ||
-        ('childViewId' in diffs && diffs.childViewId !== col.colOptions?.fk_target_view_id) ||
-        checkForFilterChange(diffs.filters || [])
+        ['title', 'column_name', 'meta'].some(k => k in diffs)
+        || ('childViewId' in diffs && diffs.childViewId !== col.colOptions?.fk_target_view_id)
+        || checkForFilterChange(diffs.filters || [])
       ) {
         ops.value = [
           ...ops.value,
@@ -515,7 +521,8 @@ const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
           },
         ]
       }
-    } else {
+    }
+    else {
       ops.value = [
         ...ops.value,
         {
@@ -526,40 +533,43 @@ const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
     }
 
     if (
-      activeField.value &&
-      Object.keys(activeField.value).length &&
-      ((state?.id && activeField.value?.id && state?.id === activeField.value?.id) ||
-        (state?.temp_id && activeField.value?.temp_id && state?.temp_id === activeField.value?.temp_id))
+      activeField.value
+      && Object.keys(activeField.value).length
+      && ((state?.id && activeField.value?.id && state?.id === activeField.value?.id)
+        || (state?.temp_id && activeField.value?.temp_id && state?.temp_id === activeField.value?.temp_id))
     ) {
       activeField.value = state
     }
   }
 }
 
-const onFieldDelete = (state: TableExplorerColumn) => {
-  const field = ops.value.find((op) => compareCols(op.column, state))
+function onFieldDelete(state: TableExplorerColumn) {
+  const field = ops.value.find(op => compareCols(op.column, state))
 
   if (field) {
     if (field.op === 'delete') {
-      ops.value = ops.value.filter((op) => op.column.id !== state.id)
-    } else if (field.op === 'add') {
+      ops.value = ops.value.filter(op => op.column.id !== state.id)
+    }
+    else if (field.op === 'add') {
       if (activeField.value && compareCols(activeField.value, state)) {
         changeField()
       }
-      ops.value = ops.value.filter((op) => op.column.temp_id !== state.temp_id)
-      newFields.value = newFields.value.filter((op) => op.temp_id !== state.temp_id)
+      ops.value = ops.value.filter(op => op.column.temp_id !== state.temp_id)
+      newFields.value = newFields.value.filter(op => op.temp_id !== state.temp_id)
 
       if (state.is_ai_field) {
-        const selectedAiField = predicted.value.find((sf) => sf.ai_temp_id === state.ai_temp_id)
+        const selectedAiField = predicted.value.find(sf => sf.ai_temp_id === state.ai_temp_id)
         if (!selectedAiField) return
 
         _onToggleTag(selectedAiField)
       }
-    } else {
+    }
+    else {
       field.op = 'delete'
       field.column = state
     }
-  } else {
+  }
+  else {
     ops.value = [
       ...ops.value,
       {
@@ -570,7 +580,7 @@ const onFieldDelete = (state: TableExplorerColumn) => {
   }
 }
 
-const onFieldAdd = (state: TableExplorerColumn) => {
+function onFieldAdd(state: TableExplorerColumn) {
   if (duplicateFieldHook.value) {
     state = duplicateFieldHook.value
     duplicateFieldHook.value = undefined
@@ -595,7 +605,8 @@ const onFieldAdd = (state: TableExplorerColumn) => {
       order: calculateOrderForIndex(addFieldMoveHook.value),
     })
     addFieldMoveHook.value = undefined
-  } else {
+  }
+  else {
     moveOps.value.push({
       op: 'move',
       column: state,
@@ -607,11 +618,11 @@ const onFieldAdd = (state: TableExplorerColumn) => {
   changeField(state)
 }
 
-const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
+function onMove(_event: { moved: { newIndex: number, oldIndex: number } }) {
   const field = fields.value[_event.moved.oldIndex]
   const order = calculateOrderForIndex(_event.moved.newIndex, _event.moved.newIndex < _event.moved.oldIndex)
 
-  const op = ops.value.find((op) => compareCols(op.column, field))
+  const op = ops.value.find(op => compareCols(op.column, field))
   if (op?.op === 'update') {
     const diffs = diff(op.column, field)
     if (!(Object.keys(diffs).length === 1 && 'column_order' in diffs)) {
@@ -625,11 +636,12 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
     return
   }
 
-  const mop = moveOps.value.find((op) => compareCols(op.column, fields.value[_event.moved.oldIndex]))
+  const mop = moveOps.value.find(op => compareCols(op.column, fields.value[_event.moved.oldIndex]))
   if (mop) {
     mop.index = _event.moved.newIndex
     mop.order = order
-  } else {
+  }
+  else {
     moveOps.value.push({
       op: 'move',
       column: fields.value[_event.moved.oldIndex],
@@ -649,7 +661,8 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
       },
       true,
     )
-  } else {
+  }
+  else {
     onFieldUpdate(
       {
         ...field,
@@ -663,17 +676,17 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
   }
 }
 
-const isColumnValid = (column: TableExplorerColumn) => {
-  const isDeleteOp = ops.value.find((op) => compareCols(column, op.column) && op.op === 'delete')
-  const isNew = ops.value.find((op) => compareCols(column, op.column) && op.op === 'add')
+function isColumnValid(column: TableExplorerColumn) {
+  const isDeleteOp = ops.value.find(op => compareCols(column, op.column) && op.op === 'delete')
+  const isNew = ops.value.find(op => compareCols(column, op.column) && op.op === 'add')
   if (isDeleteOp) return true
   if (!column.title && !isNew) {
     return false
   }
   if (isLinksOrLTAR(column) && isNew) {
     if (
-      (!column.childColumn || !column.childTable || !column.childId) &&
-      (!column.custom?.ref_model_id || !column.custom?.ref_column_id)
+      (!column.childColumn || !column.childTable || !column.childId)
+      && (!column.custom?.ref_model_id || !column.custom?.ref_column_id)
     ) {
       return false
     }
@@ -702,10 +715,10 @@ const isColumnValid = (column: TableExplorerColumn) => {
 
     if (column.type === ButtonActionsType.Ai) {
       return !(
-        !column.fk_integration_id ||
-        !column.formula_raw?.trim() ||
-        !column.output_column_ids?.length ||
-        !column.output_column_ids?.split(',')?.length
+        !column.fk_integration_id
+        || !column.formula_raw?.trim()
+        || !column.output_column_ids?.length
+        || !column.output_column_ids?.split(',')?.length
       )
     }
   }
@@ -736,10 +749,10 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
   }
 
   if (
-    column.uidt === UITypes.Rollup &&
-    column?.colOptions?.fk_relation_column_id &&
-    column?.colOptions?.fk_rollup_column_id &&
-    column?.colOptions?.rollup_function
+    column.uidt === UITypes.Rollup
+    && column?.colOptions?.fk_relation_column_id
+    && column?.colOptions?.fk_rollup_column_id
+    && column?.colOptions?.rollup_function
   ) {
     if (!column?.fk_relation_column_id) {
       column.fk_relation_column_id = column.colOptions.fk_relation_column_id
@@ -773,7 +786,8 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
         column.fk_integration_id = colOptions?.fk_integration_id
         column.model = colOptions?.model
       }
-    } else {
+    }
+    else {
       column.type = column?.type || ButtonActionsType.Url
 
       if (column.type === ButtonActionsType.Ai) {
@@ -782,7 +796,8 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
         column.color = column.color || 'purple'
         column.icon = column.icon || 'ncAutoAwesome'
         column.output_column_ids = column?.output_column_ids || ''
-      } else {
+      }
+      else {
         column.theme = column.theme || 'solid'
         column.label = column.label || 'Button'
         column.color = column.color || 'brand'
@@ -800,7 +815,8 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
       column.prompt_raw = colOptions?.prompt_raw
       column.fk_integration_id = colOptions?.fk_integration_id
       column.model = colOptions?.model
-    } else {
+    }
+    else {
       column.prompt_raw = column.prompt_raw || ''
     }
   }
@@ -808,24 +824,25 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
   return column
 }
 
-const recoverField = (state: TableExplorerColumn) => {
-  const field = ops.value.find((op) => compareCols(op.column, state))
+function recoverField(state: TableExplorerColumn) {
+  const field = ops.value.find(op => compareCols(op.column, state))
   if (field) {
     if (field.op === 'delete') {
-      ops.value = ops.value.filter((op) => !compareCols(op.column, state))
-    } else if (field.op === 'update') {
-      ops.value = ops.value.filter((op) => !compareCols(op.column, state))
-      moveOps.value = moveOps.value.filter((op) => !compareCols(op.column, state))
+      ops.value = ops.value.filter(op => !compareCols(op.column, state))
+    }
+    else if (field.op === 'update') {
+      ops.value = ops.value.filter(op => !compareCols(op.column, state))
+      moveOps.value = moveOps.value.filter(op => !compareCols(op.column, state))
     }
     activeField.value = null
-    changeField(fields.value.filter((fiel) => fiel.id === state.id)[0])
+    changeField(fields.value.filter(fiel => fiel.id === state.id)[0])
   }
 }
 
-const fieldState = (field: TableExplorerColumn) => {
-  const col = fields.value.find((col) => compareCols(col, field))
+function fieldState(field: TableExplorerColumn) {
+  const col = fields.value.find(col => compareCols(col, field))
   if (col) {
-    const op = ops.value.find((op) => compareCols(op.column, col))
+    const op = ops.value.find(op => compareCols(op.column, col))
     if (op) {
       return op.column
     }
@@ -838,16 +855,18 @@ const fieldStatuses = computed<Record<string, string>>(() => {
   for (const op of ops.value) {
     if (op.op === 'add') {
       if (op.column.temp_id) statuses[op.column.temp_id] = 'add'
-    } else if (op.op === 'update') {
+    }
+    else if (op.op === 'update') {
       if (op.column.id) statuses[op.column.id] = 'update'
-    } else if (op.op === 'delete') {
+    }
+    else if (op.op === 'delete') {
       if (op.column.id) statuses[op.column.id] = 'delete'
     }
   }
   return statuses
 })
 
-const fieldStatus = (field?: TableExplorerColumn) => {
+function fieldStatus(field?: TableExplorerColumn) {
   const id = field?.id || field?.temp_id
   return id ? fieldStatuses.value[id] : ''
 }
@@ -864,12 +883,12 @@ const fieldErrors = computed<Record<string, string>>(() => {
   return errors
 })
 
-const fieldError = (field?: TableExplorerColumn) => {
+function fieldError(field?: TableExplorerColumn) {
   const id = field?.id || field?.temp_id
   return id ? fieldErrors.value[id] : ''
 }
 
-const clearChanges = () => {
+function clearChanges() {
   ops.value = []
   moveOps.value = []
   newFields.value = []
@@ -880,9 +899,9 @@ const clearChanges = () => {
   onInit()
 }
 
-const isColumnsValid = computed(() => fields.value.every((f) => isColumnValid(f)))
+const isColumnsValid = computed(() => fields.value.every(f => isColumnValid(f)))
 
-const metaToLocal = () => {
+function metaToLocal() {
   localMetaColumns.value = meta.value?.columns?.map((c: ColumnType) => {
     const defaultColumnMeta = c.uidt ? ColumnHelper.getColumnDefaultMeta(c.uidt as UITypes) : {}
     if (!ncIsEmptyObject(defaultColumnMeta)) {
@@ -898,14 +917,15 @@ const metaToLocal = () => {
   })
 
   if (activeField.value?.id) {
-    const field = fields.value.find((c) => c.id === activeField.value?.id)
+    const field = fields.value.find(c => c.id === activeField.value?.id)
     if (field) {
       // For keep-alive types, changeField already updates activeField without the
       // changingField unmount cycle, so don't re-apply it here (it would briefly
       // destroy all keep-alive editors via the outer v-if="!changingField" container).
       if (isKeepAliveType(field)) {
         activeField.value = field
-      } else {
+      }
+      else {
         changeField(field)
         changingField.value = true
 
@@ -930,11 +950,12 @@ watch(
   { immediate: true },
 )
 
-const saveChanges = async () => {
+async function saveChanges() {
   if (!isColumnsValid.value) {
     message.error(t('msg.error.multiFieldSaveValidation'))
     return
-  } else if (!loading.value && !hasUnsavedChanges.value) {
+  }
+  else if (!loading.value && !hasUnsavedChanges.value) {
     return
   }
   try {
@@ -943,7 +964,7 @@ const saveChanges = async () => {
     loading.value = true
     const newFieldTitles: string[] = []
     for (const mop of moveOps.value) {
-      const op = ops.value.find((op) => compareCols(op.column, mop.column))
+      const op = ops.value.find(op => compareCols(op.column, mop.column))
       if (op && op.op === 'add') {
         if (!op.column?.userHasChangedTitle && !op.column.title) {
           const defaultColumnName = generateUniqueColumnName({
@@ -983,14 +1004,16 @@ const saveChanges = async () => {
         if (activeField.value && compareCols(activeField.value, op.column)) {
           changeField()
         }
-      } else if (op.op === 'delete') {
+      }
+      else if (op.op === 'delete') {
         deletedOrUpdatedColumnIds.add(op.column.id as string)
 
         if (activeField.value && compareCols(activeField.value, op.column)) {
           changeField()
         }
-      } else if (op.op === 'update') {
-        const originalColumn = meta.value?.columns?.find((c) => c.id === op.column.id) as ColumnType
+      }
+      else if (op.op === 'update') {
+        const originalColumn = meta.value?.columns?.find(c => c.id === op.column.id) as ColumnType
 
         if (originalColumn?.uidt === UITypes.Attachment && originalColumn?.uidt !== op.column.uidt) {
           deletedOrUpdatedColumnIds.add(op.column.id as string)
@@ -1026,7 +1049,8 @@ const saveChanges = async () => {
       if (!provider?.triggerPostSaveOrUpdateCbk) continue
       try {
         await provider.triggerPostSaveOrUpdateCbk({ colId: key })
-      } catch {
+      }
+      catch {
         // Filter save failure shouldn't block the rest of the save flow
       }
     }
@@ -1035,7 +1059,8 @@ const saveChanges = async () => {
     if (activeField.value?.id && !isKeepAliveType(activeField.value) && regularProviderRef.value?.triggerPostSaveOrUpdateCbk) {
       try {
         await regularProviderRef.value.triggerPostSaveOrUpdateCbk({ colId: activeField.value.id })
-      } catch {
+      }
+      catch {
         // Filter save failure shouldn't block the rest of the save flow
       }
     }
@@ -1090,14 +1115,16 @@ const saveChanges = async () => {
     eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
 
     return !hasUnsavedChanges.value
-  } catch (e) {
+  }
+  catch (e) {
     message.error(t('msg.error.somethingWentWrong'))
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
 
-const toggleVisibility = async (checked: boolean, field: Field) => {
+async function toggleVisibility(checked: boolean, field: Field) {
   if (!field?.fk_column_id) return
 
   if (field.fk_column_id && fieldStatuses.value[field.fk_column_id]) {
@@ -1105,12 +1132,13 @@ const toggleVisibility = async (checked: boolean, field: Field) => {
     return
   }
 
-  const visibilityOpIndex = visibilityOps.value.findIndex((op) => op.column.fk_column_id === field.fk_column_id)
+  const visibilityOpIndex = visibilityOps.value.findIndex(op => op.column.fk_column_id === field.fk_column_id)
 
   if (visibilityOpIndex !== -1) {
     if (field.show === checked) {
-      visibilityOps.value = visibilityOps.value.filter((op) => op.column.fk_column_id !== field.fk_column_id)
-    } else {
+      visibilityOps.value = visibilityOps.value.filter(op => op.column.fk_column_id !== field.fk_column_id)
+    }
+    else {
       visibilityOps.value[visibilityOpIndex]!.visible = checked
     }
     return
@@ -1122,8 +1150,8 @@ const toggleVisibility = async (checked: boolean, field: Field) => {
   })
 }
 
-const showOrHideAllFields = (isAllFieldsVisible = false) => {
-  fields.value.forEach((f) => toggleVisibility(!isAllFieldsVisible, viewFieldsMap.value[f.id]))
+function showOrHideAllFields(isAllFieldsVisible = false) {
+  fields.value.forEach(f => toggleVisibility(!isAllFieldsVisible, viewFieldsMap.value[f.id]))
 }
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
@@ -1146,13 +1174,13 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 })
 
 onKeyDown('ArrowDown', () => {
-  const index = fields.value.findIndex((f) => compareCols(f, activeField.value))
+  const index = fields.value.findIndex(f => compareCols(f, activeField.value))
   if (index === -1) changeField(fields.value[0])
   else if (index === fields.value.length - 1) changeField(fields.value[0])
   else changeField(fields.value[index + 1])
 })
 onKeyDown('ArrowUp', () => {
-  const index = fields.value.findIndex((f) => compareCols(f, activeField.value))
+  const index = fields.value.findIndex(f => compareCols(f, activeField.value))
   if (index === -1) changeField(fields.value[0])
   else if (index === 0) changeField(fields.value[fields.value.length - 1])
   else changeField(fields.value[index - 1])
@@ -1241,22 +1269,22 @@ watch(
   (_newValue, oldValue) => {
     if (!oldValue) return
 
-    const oldField = fields.value.find((field) => field.temp_id === oldValue)
+    const oldField = fields.value.find(field => field.temp_id === oldValue)
     if (
-      !oldField ||
-      (oldField &&
-        (oldField.title ||
-          !ops.value.find((op) => op.op === 'add' && op.column.temp_id === oldField.temp_id) ||
-          oldField?.userHasChangedTitle ||
-          !isColumnValid(oldField)))
+      !oldField
+      || (oldField
+        && (oldField.title
+          || !ops.value.find(op => op.op === 'add' && op.column.temp_id === oldField.temp_id)
+          || oldField?.userHasChangedTitle
+          || !isColumnValid(oldField)))
     ) {
       return
     }
 
     const newFieldTitles = ops.value
-      .filter((op) => op.op === 'add' && op.column.title)
-      .map((op) => op.column.title)
-      .filter((t) => t) as string[]
+      .filter(op => op.op === 'add' && op.column.title)
+      .map(op => op.column.title)
+      .filter(t => t) as string[]
 
     const defaultColumnName = generateUniqueColumnName({
       formState: oldField,
@@ -1270,7 +1298,7 @@ watch(
   },
 )
 
-const onAiFieldAdd = (field: PredictedFieldType) => {
+function onAiFieldAdd(field: PredictedFieldType) {
   if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(field.type)) {
     if (field.options) {
       const options: {
@@ -1280,7 +1308,7 @@ const onAiFieldAdd = (field: PredictedFieldType) => {
       }[] = []
       for (const option of field.options) {
         // skip if option already exists
-        if (options.find((el) => el.title === option)) continue
+        if (options.find(el => el.title === option)) continue
 
         options.push({
           title: option,
@@ -1295,12 +1323,12 @@ const onAiFieldAdd = (field: PredictedFieldType) => {
     }
   }
 
-  const uidt =
-    fieldPredictionMode.value === 'formula'
+  const uidt
+    = fieldPredictionMode.value === 'formula'
       ? UITypes.Formula
       : fieldPredictionMode.value === 'button'
-      ? UITypes.Button
-      : field.type
+        ? UITypes.Button
+        : field.type
 
   onFieldAdd(
     updateDefaultColumnValues({
@@ -1323,7 +1351,7 @@ const onAiFieldAdd = (field: PredictedFieldType) => {
   )
 }
 
-const onToggleTag = (field: PredictedFieldType) => {
+function onToggleTag(field: PredictedFieldType) {
   if (loading.value) return
 
   const onAdd = _onToggleTag(field)
@@ -1338,13 +1366,13 @@ const onToggleTag = (field: PredictedFieldType) => {
   }
 }
 
-const handleNavigateToIntegrations = () => {
+function handleNavigateToIntegrations() {
   workspaceStore.navigateToIntegrations(undefined, undefined, {
     categories: 'ai',
   })
 }
 
-const toggleAiMode = (...args: any[]) => {
+function toggleAiMode(...args: any[]) {
   _toggleAiMode(...args)
 
   changingField.value = true
@@ -1354,7 +1382,7 @@ const toggleAiMode = (...args: any[]) => {
   })
 }
 
-const disableAiMode = () => {
+function disableAiMode() {
   _disableAiMode()
 
   changingField.value = true
@@ -1399,7 +1427,7 @@ const rightPanelWidth = computed(() => {
   return oldRightPanelWidth.value
 })
 
-const confirmUnsavedChangesBeforeLeaving = (from: RouteLocationNormalizedLoadedGeneric, next: NavigationGuardNext) => {
+function confirmUnsavedChangesBeforeLeaving(from: RouteLocationNormalizedLoadedGeneric, next: NavigationGuardNext) {
   if (!hasUnsavedChanges.value || !(ncIsArray(from.params?.slugs) && from.params?.slugs?.[1] === 'field')) {
     next()
     return
@@ -1425,7 +1453,8 @@ const confirmUnsavedChangesBeforeLeaving = (from: RouteLocationNormalizedLoadedG
 
       if (res) {
         next()
-      } else {
+      }
+      else {
         next(false)
       }
 
@@ -1518,7 +1547,9 @@ onBeforeRouteUpdate((_to, from, next) => {
             <template v-if="isAiFeaturesEnabled">
               <div class="nc-fields-add-new-field-btn-wrapper rounded-lg shadow-nc-sm">
                 <NcTooltip>
-                  <template #title> {{ `${renderAltOrOptlKey()} + C` }} </template>
+                  <template #title>
+                    {{ `${renderAltOrOptlKey()} + C` }}
+                  </template>
                   <NcButton
                     data-testid="nc-field-add-new"
                     type="secondary"
@@ -1587,7 +1618,9 @@ onBeforeRouteUpdate((_to, from, next) => {
             <template v-else>
               <div class="nc-fields-add-new-field-btn-wrapper shadow-sm">
                 <NcTooltip>
-                  <template #title> {{ `${renderAltOrOptlKey()} + C` }} </template>
+                  <template #title>
+                    {{ `${renderAltOrOptlKey()} + C` }}
+                  </template>
                   <NcButton
                     data-testid="nc-field-add-new"
                     type="secondary"
@@ -1615,7 +1648,9 @@ onBeforeRouteUpdate((_to, from, next) => {
               {{ $t('general.reset') }}
             </NcButton>
             <NcTooltip>
-              <template #title> {{ `${renderCmdOrCtrlKey()} + S` }}</template>
+              <template #title>
+                {{ `${renderCmdOrCtrlKey()} + S` }}
+              </template>
 
               <NcButton
                 data-testid="nc-field-save-changes"
@@ -1651,7 +1686,9 @@ onBeforeRouteUpdate((_to, from, next) => {
                     <div v-if="!aiIntegrationAvailable" class="flex items-center">
                       <div class="flex-1 flex items-center gap-3">
                         <GeneralIcon icon="alertTriangleSolid" class="!text-nc-content-orange-medium w-4 h-4" />
-                        <div class="text-sm text-nc-content-gray-subtle flex-1">{{ $t('title.noAiIntegrationAvailable') }}</div>
+                        <div class="text-sm text-nc-content-gray-subtle flex-1">
+                          {{ $t('title.noAiIntegrationAvailable') }}
+                        </div>
                       </div>
                       <NcButton type="text" size="small" @click.stop="handleNavigateToIntegrations">
                         <template #icon>
@@ -1728,7 +1765,9 @@ onBeforeRouteUpdate((_to, from, next) => {
                             To generate more {{ isFormulaPredictionMode ? 'formula' : '' }} field suggestions, click the + or ⟳
                             icon on the right
                           </div>
-                          <div v-else class="text-nc-content-gray-subtle2">{{ $t('labels.noData') }}</div>
+                          <div v-else class="text-nc-content-gray-subtle2">
+                            {{ $t('labels.noData') }}
+                          </div>
                         </div>
                         <div class="flex items-center gap-1">
                           <NcTooltip
@@ -1767,7 +1806,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                             >
                               <template #loadingIcon>
                                 <!-- eslint-disable vue/no-lone-template -->
-                                <template></template>
+                                <template />
                               </template>
                               <GeneralIcon
                                 icon="refresh"
@@ -1798,7 +1837,9 @@ onBeforeRouteUpdate((_to, from, next) => {
                     <div v-if="!aiIntegrationAvailable" class="flex items-center">
                       <div class="flex-1 flex items-center gap-3">
                         <GeneralIcon icon="alertTriangleSolid" class="!text-nc-content-orange-medium w-4 h-4" />
-                        <div class="text-sm text-nc-content-gray-subtle flex-1">{{ $t('title.noAiIntegrationAvailable') }}</div>
+                        <div class="text-sm text-nc-content-gray-subtle flex-1">
+                          {{ $t('title.noAiIntegrationAvailable') }}
+                        </div>
                       </div>
                       <NcButton type="text" size="small" @click.stop="handleNavigateToIntegrations">
                         <template #icon>
@@ -1816,8 +1857,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                           placeholder="Enter your prompt to get field suggestions.."
                           class="nc-ai-input nc-input-shadow !px-3 !pt-2 !pb-3 !text-sm !min-h-[68px] !rounded-lg"
                           @keydown.enter.stop
-                        >
-                        </a-textarea>
+                        />
 
                         <NcButton
                           size="xs"
@@ -1825,10 +1865,10 @@ onBeforeRouteUpdate((_to, from, next) => {
                           theme="ai"
                           class="!px-1 !absolute bottom-2 right-2"
                           :disabled="
-                            !prompt.trim() ||
-                            isPredictFromPromptLoading ||
-                            (!!prompt.trim() && prompt.trim() === oldPrompt.trim()) ||
-                            loading
+                            !prompt.trim()
+                              || isPredictFromPromptLoading
+                              || (!!prompt.trim() && prompt.trim() === oldPrompt.trim())
+                              || loading
                           "
                           :loading="isPredictFromPromptLoading"
                           icon-only
@@ -1859,7 +1899,9 @@ onBeforeRouteUpdate((_to, from, next) => {
                       </div>
 
                       <div v-else-if="isPromtAlreadyGenerated" class="flex flex-col gap-3">
-                        <div class="text-nc-content-purple-dark font-semibold text-xs">Generated Field(s)</div>
+                        <div class="text-nc-content-purple-dark font-semibold text-xs">
+                          Generated Field(s)
+                        </div>
                         <div class="flex gap-2 flex-wrap">
                           <template v-if="activeTabNonSelectedFields.length">
                             <template v-for="f of activeTabNonSelectedFields" :key="f.title">
@@ -1900,7 +1942,9 @@ onBeforeRouteUpdate((_to, from, next) => {
                           <div v-else-if="activeTabSelectedFields.length" class="text-nc-content-purple-light">
                             No suggestions remaining. To generate more fields, prompt again...
                           </div>
-                          <div v-else class="text-nc-content-gray-subtle2">{{ $t('labels.noData') }}</div>
+                          <div v-else class="text-nc-content-gray-subtle2">
+                            {{ $t('labels.noData') }}
+                          </div>
                         </div>
                       </div>
                     </template>
@@ -1942,16 +1986,16 @@ onBeforeRouteUpdate((_to, from, next) => {
                         :disabled="isLocked"
                         :checked="
                           !!(
-                            visibilityOps.find((op) => op.column.fk_column_id === field.id)?.visible ??
-                            viewFieldsMap[field.id].show
+                            visibilityOps.find((op) => op.column.fk_column_id === field.id)?.visible
+                            ?? viewFieldsMap[field.id].show
                           )
                         "
                         data-testid="nc-field-visibility-checkbox"
                         @change="
-                        (event: any) => {
-                          toggleVisibility(event.target.checked, viewFieldsMap[field.id])
-                        }
-                      "
+                          (event: any) => {
+                            toggleVisibility(event.target.checked, viewFieldsMap[field.id])
+                          }
+                        "
                       />
                       <NcCheckbox v-else :disabled="true" class="opacity-0" :checked="true" />
 
@@ -1967,7 +2011,9 @@ onBeforeRouteUpdate((_to, from, next) => {
                         class="truncate flex-1"
                         show-on-truncate-only
                       >
-                        <template #title> {{ fieldState(field)?.title || field.title }} </template>
+                        <template #title>
+                          {{ fieldState(field)?.title || field.title }}
+                        </template>
                         <span data-testid="nc-field-title">
                           {{ fieldState(field)?.title || field.title }}
                         </span>
@@ -2175,7 +2221,9 @@ onBeforeRouteUpdate((_to, from, next) => {
                         }"
                         show-on-truncate-only
                       >
-                        <template #title> {{ fieldState(displayColumn)?.title || displayColumn.title }} </template>
+                        <template #title>
+                          {{ fieldState(displayColumn)?.title || displayColumn.title }}
+                        </template>
                         <span data-testid="nc-field-title">
                           {{ fieldState(displayColumn)?.title || displayColumn.title }}
                         </span>
@@ -2310,7 +2358,7 @@ onBeforeRouteUpdate((_to, from, next) => {
               />
 
               <div v-if="!activeField" class="w-[25rem] flex flex-col justify-center p-4 items-center">
-                <img src="~assets/img/placeholder/multi-field-editor.png" class="!w-[18rem]" />
+                <img src="~assets/img/placeholder/multi-field-editor.png" class="!w-[18rem]">
                 <div class="text-2xl text-nc-content-gray-subtle2 font-bold text-center pt-6">
                   {{ $t('labels.multiField.selectField') }}
                 </div>

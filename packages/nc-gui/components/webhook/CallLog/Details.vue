@@ -11,30 +11,37 @@ const props = defineProps<Props>()
 const parsedPayload = computed(() => {
   try {
     return (typeof props.item.payload === 'object' ? props.item.payload : JSON.stringify(props.item.payload, null, 2)) || {}
-  } catch {
+  }
+  catch {
     return {}
   }
 })
 const parsedRespondePayload = computed(() => {
   try {
     return (typeof props.item.response === 'object' ? props.item.response : JSON.stringify(props.item.response, null, 2)) || {}
-  } catch {
+  }
+  catch {
     return {}
   }
 })
 
-const hookType = (item: HookLogType) => {
+function hookType(item: HookLogType) {
   if (item.operation === 'update') {
     return 'On Record Update'
-  } else if (item.operation === 'insert') {
+  }
+  else if (item.operation === 'insert') {
     return 'On Record Insert'
-  } else if (item.operation === 'delete') {
+  }
+  else if (item.operation === 'delete') {
     return 'On Record Delete'
-  } else if (item.operation === 'bulkDelete' || item.operation === 'bulkDeleteAll') {
+  }
+  else if (item.operation === 'bulkDelete' || item.operation === 'bulkDeleteAll') {
     return 'On Bulk Record Delete'
-  } else if (item.operation === 'bulkInsert') {
+  }
+  else if (item.operation === 'bulkInsert') {
     return 'On Bulk Record Insert'
-  } else if (item.operation === 'bulkUpdate' || item.operation === 'bulkUpdateAll') {
+  }
+  else if (item.operation === 'bulkUpdate' || item.operation === 'bulkUpdateAll') {
     return 'On Bulk Record Update'
   }
 
@@ -46,8 +53,12 @@ const hookType = (item: HookLogType) => {
   <div class="container">
     <template v-if="item">
       <div v-if="parsedPayload.method && parsedPayload.url" class="log-url-wrapper">
-        <div class="log-method">{{ parsedPayload.method }}</div>
-        <div class="log-url">{{ parsedPayload.url }}</div>
+        <div class="log-method">
+          {{ parsedPayload.method }}
+        </div>
+        <div class="log-url">
+          {{ parsedPayload.url }}
+        </div>
       </div>
 
       <div class="log-details">

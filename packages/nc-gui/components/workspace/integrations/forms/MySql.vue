@@ -1,6 +1,8 @@
 <template>
   <div class="panels">
-    <div class="panel">DUMMY</div>
+    <div class="panel">
+      DUMMY
+    </div>
   </div>
 </template>
 

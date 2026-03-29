@@ -1,5 +1,5 @@
-import { useStorage } from '@vueuse/core'
 import type { SerializerOrParserFnProps } from 'nocodb-sdk'
+import { useStorage } from '@vueuse/core'
 import { extractProps } from 'nocodb-sdk'
 
 /**
@@ -12,7 +12,7 @@ export enum NcClipboardDataKey {
   ncWaitingClipboardDataIds = 'ncWaitingClipboardDataIds',
 }
 
-const useNcClipboardData = () => {
+function useNcClipboardData() {
   const cellClipboardData = useStorage<NcClipboardDataType>(NcClipboardDataKey.ncClipboardData, {})
 
   const currentCellClipboardDataId = useStorage<string>(NcClipboardDataKey.ncCurrentClipboardDataId, '')
@@ -34,10 +34,11 @@ const useNcClipboardData = () => {
 
     if (currentClipboardDataItem?.copiedPlainText === clipboardData && currentClipboardDataItem.dbCellValueArr.length) {
       return currentClipboardDataItem
-    } else {
+    }
+    else {
       // If pasted data is different from the copied data, then clear current clipboard data item
       waitingCellClipboardDataIds.value = waitingCellClipboardDataIds.value.filter(
-        (id) => id !== currentCellClipboardDataId.value,
+        id => id !== currentCellClipboardDataId.value,
       )
       cellClipboardData.value = {
         ...extractProps(cellClipboardData.value, waitingCellClipboardDataIds.value),

@@ -48,8 +48,8 @@ const PENALTY_CASE_MISMATCH = 0.999999
 // with the number of tokens.
 const PENALTY_NOT_COMPLETE = 0.98
 
-const IS_GAP_REGEXP = /[\\\/_+.#"@\[\(\{&]/
-const COUNT_GAPS_REGEXP = /[\\\/_+.#"@\[\(\{&]/g
+const IS_GAP_REGEXP = /[\\/_+.#"@[({&]/
+const COUNT_GAPS_REGEXP = /[\\/_+.#"@[({&]/g
 const IS_SPACE_REGEXP = /[\s-]/
 const COUNT_SPACE_REGEXP = /[\s-]/g
 
@@ -93,19 +93,22 @@ function commandScoreInner(
     if (score > highScore) {
       if (index === stringIndex) {
         score *= SCORE_CONTINUE_MATCH
-      } else if (IS_GAP_REGEXP.test(string.charAt(index - 1))) {
+      }
+      else if (IS_GAP_REGEXP.test(string.charAt(index - 1))) {
         score *= SCORE_NON_SPACE_WORD_JUMP
         wordBreaks = string.slice(stringIndex, index - 1).match(COUNT_GAPS_REGEXP)
         if (wordBreaks && stringIndex > 0) {
           score *= PENALTY_SKIPPED ** wordBreaks.length
         }
-      } else if (IS_SPACE_REGEXP.test(string.charAt(index - 1))) {
+      }
+      else if (IS_SPACE_REGEXP.test(string.charAt(index - 1))) {
         score *= SCORE_SPACE_WORD_JUMP
         spaceBreaks = string.slice(stringIndex, index - 1).match(COUNT_SPACE_REGEXP)
         if (spaceBreaks && stringIndex > 0) {
           score *= PENALTY_SKIPPED ** spaceBreaks.length
         }
-      } else {
+      }
+      else {
         score *= SCORE_CHARACTER_JUMP
         if (stringIndex > 0) {
           score *= PENALTY_SKIPPED ** (index - stringIndex)
@@ -118,9 +121,9 @@ function commandScoreInner(
     }
 
     if (
-      (score < SCORE_TRANSPOSITION && lowerString.charAt(index - 1) === lowerAbbreviation.charAt(abbreviationIndex + 1)) ||
-      (lowerAbbreviation.charAt(abbreviationIndex + 1) === lowerAbbreviation.charAt(abbreviationIndex) && // allow duplicate letters. Ref #7428
-        lowerString.charAt(index - 1) !== lowerAbbreviation.charAt(abbreviationIndex))
+      (score < SCORE_TRANSPOSITION && lowerString.charAt(index - 1) === lowerAbbreviation.charAt(abbreviationIndex + 1))
+      || (lowerAbbreviation.charAt(abbreviationIndex + 1) === lowerAbbreviation.charAt(abbreviationIndex) // allow duplicate letters. Ref #7428
+        && lowerString.charAt(index - 1) !== lowerAbbreviation.charAt(abbreviationIndex))
     ) {
       transposedScore = commandScoreInner(
         string,

@@ -45,7 +45,9 @@ const showSidebarBtn = computed(() => {
         />
         <NcTooltip v-if="!isMobileMode && !isSharedBase" class="flex" placement="bottom" hide-on-click>
           <template #title>
-            <div class="flex items-center gap-1">{{ $t('labels.quickSearch') }} {{ renderCmdOrCtrlKey(true) }} K</div>
+            <div class="flex items-center gap-1">
+              {{ $t('labels.quickSearch') }} {{ renderCmdOrCtrlKey(true) }} K
+            </div>
           </template>
           <NcButton
             v-e="['c:quick-actions']"

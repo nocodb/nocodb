@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { nextTick } from '@vue/runtime-core'
-import { ProjectRoles, RoleColors, RoleIcons, RoleLabels, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
 import type { BaseType, SourceType, WorkspaceUserRoles } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
+import { ProjectRoles, RoleColors, RoleIcons, RoleLabels, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
+import { nextTick } from 'vue'
 
 interface Props {
   isProjectHeader?: boolean
@@ -42,8 +42,8 @@ const collaborators = computed(() => {
       ...user,
       base_roles: user.roles,
       roles:
-        user.roles ??
-        (user.workspace_roles
+        user.roles
+        ?? (user.workspace_roles
           ? WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
           : ProjectRoles.NO_ACCESS),
     }
@@ -51,7 +51,7 @@ const collaborators = computed(() => {
 })
 
 const currentUserRole = computed(() => {
-  return collaborators.value.find((coll) => coll.id === user.value?.id)?.roles as keyof typeof RoleLabels
+  return collaborators.value.find(coll => coll.id === user.value?.id)?.roles as keyof typeof RoleLabels
 })
 
 const { loadProjectTables, openTableCreateDialog: _openTableCreateDialog } = useTablesStore()
@@ -70,7 +70,7 @@ const tempTitle = ref('')
 
 const activeBaseId = ref('')
 
-const isErdModalOpen = ref<Boolean>(false)
+const isErdModalOpen = ref<boolean>(false)
 
 const { t } = useI18n()
 
@@ -103,11 +103,11 @@ const baseViewOpen = computed(() => {
   return routeNameAfterProjectView.split('-').length === 2 || routeNameAfterProjectView.split('-').length === 1
 })
 
-const showBaseOption = (source: SourceType) => {
-  return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission, { source }))
+function showBaseOption(source: SourceType) {
+  return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some(permission => isUIAllowed(permission, { source }))
 }
 
-const enableEditMode = (fromProjectHeader = false) => {
+function enableEditMode(fromProjectHeader = false) {
   if (fromProjectHeader) {
     isProjectNodeContextMenuOpen.value = false
   }
@@ -123,7 +123,7 @@ const enableEditMode = (fromProjectHeader = false) => {
   })
 }
 
-const updateProjectTitle = async () => {
+async function updateProjectTitle() {
   if (tempTitle.value) {
     tempTitle.value = tempTitle.value.trim()
   }
@@ -144,14 +144,15 @@ const updateProjectTitle = async () => {
     $e('a:base:rename')
 
     refreshViewTabTitle?.()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
 const { copy } = useCopy(true)
 
-const copyProjectInfo = async () => {
+async function copyProjectInfo() {
   try {
     if (
       await copy(
@@ -163,13 +164,14 @@ const copyProjectInfo = async () => {
       // Copied to clipboard
       message.info(t('msg.info.copiedToClipboard'))
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.error(e)
     message.error(e.message)
   }
 }
 
-const setColor = async (color: string, base: BaseType) => {
+async function setColor(color: string, base: BaseType) {
   try {
     const meta = {
       ...parseProp(base.meta),
@@ -179,9 +181,11 @@ const setColor = async (color: string, base: BaseType) => {
     basesStore.updateProject(base.id!, { meta: JSON.stringify(meta) })
 
     $e('a:base:icon:color:navdraw', { iconColor: color })
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     refreshCommandPalette()
   }
 }
@@ -223,12 +227,13 @@ async function addNewProjectChildEntity(showSourceSelector = true) {
 
   try {
     openTableCreateDialog(undefined, showSourceSelector)
-  } finally {
+  }
+  finally {
     isAddNewProjectChildEntityLoading.value = false
   }
 }
 
-const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) => {
+async function onProjectClick(base: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) {
   if (!base || isProjectHeader.value) {
     return
   }
@@ -262,7 +267,8 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
 
   if (toggleIsExpanded) {
     base.isExpanded = !base.isExpanded
-  } else {
+  }
+  else {
     base.isExpanded = true
   }
 
@@ -316,8 +322,9 @@ function openErdView(source: SourceType) {
 const contextMenuBase = computed(() => {
   if (contextMenuTarget.type === 'source') {
     return contextMenuTarget.value
-  } else if (contextMenuTarget.type === 'table') {
-    const source = base.value?.sources?.find((b) => b.id === contextMenuTarget.value.source_id)
+  }
+  else if (contextMenuTarget.type === 'table') {
+    const source = base.value?.sources?.find(b => b.id === contextMenuTarget.value.source_id)
     if (source) return source
   }
   return null
@@ -357,23 +364,23 @@ onKeyStroke('Escape', () => {
 const isDuplicateDlgOpen = ref(false)
 const selectedProjectToDuplicate = ref()
 
-const duplicateProject = (base: BaseType) => {
+function duplicateProject(base: BaseType) {
   selectedProjectToDuplicate.value = base
   isDuplicateDlgOpen.value = true
 }
 
-const tableDelete = () => {
+function tableDelete() {
   isTableDeleteDialogVisible.value = true
   $e('c:table:delete')
 }
 
-const projectDelete = () => {
+function projectDelete() {
   isBaseDeleteDialogVisible.value = true
   $e('c:project:delete')
 }
 
-const getSource = (sourceId: string) => {
-  return base.value.sources?.find((s) => s.id === sourceId)
+function getSource(sourceId: string) {
+  return base.value.sources?.find(s => s.id === sourceId)
 }
 
 const labelEl = ref()
@@ -389,11 +396,11 @@ watch(
   },
 )
 
-const openBaseSettings = async (baseId: string) => {
+async function openBaseSettings(baseId: string) {
   await navigateTo(`/nc/${baseId}/settings/settings`)
 }
 
-const openMcpSettings = async (baseId: string) => {
+async function openMcpSettings(baseId: string) {
   await navigateTo(`/nc/${baseId}/settings/mcp`)
 }
 
@@ -417,7 +424,7 @@ const shouldOpenContextMenu = computed(() => {
   return false
 })
 
-const onClickMenu = () => {
+function onClickMenu() {
   isOptionsOpen.value = false
   isProjectNodeContextMenuOpen.value = false
 }
@@ -451,13 +458,13 @@ defineExpose({
         hide-on-click
         :mouse-enter-delay="0.5"
         :disabled="
-          editMode ||
-          isOptionsOpen ||
-          isAddNewProjectChildEntityLoading ||
-          !showNodeTooltip ||
-          !collaborators.length ||
-          isProjectNodeContextMenuOpen ||
-          !!isMobileMode
+          editMode
+            || isOptionsOpen
+            || isAddNewProjectChildEntityLoading
+            || !showNodeTooltip
+            || !collaborators.length
+            || isProjectNodeContextMenuOpen
+            || !!isMobileMode
         "
       >
         <template #title>
@@ -466,7 +473,9 @@ defineExpose({
               <div class="text-[10px] leading-[14px] text-nc-content-brand-hover dark:text-nc-content-gray-muted uppercase mb-1">
                 {{ $t('labels.projName') }}
               </div>
-              <div class="text-small leading-[18px] mb-1">{{ base.title }}</div>
+              <div class="text-small leading-[18px] mb-1">
+                {{ base.title }}
+              </div>
             </div>
             <div v-if="currentUserRole">
               <div class="text-[10px] leading-[14px] text-nc-content-brand-hover dark:text-nc-content-gray-muted uppercase mb-1">
@@ -552,8 +561,7 @@ defineExpose({
                       (base?.type && base?.type !== 'database') || !isUIAllowed('baseRename') || isProjectNodeContextMenuOpen
                     "
                     @update:model-value="setColor($event, base)"
-                  >
-                  </GeneralBaseIconColorPicker>
+                  />
                 </div>
               </div>
             </div>
@@ -593,7 +601,9 @@ defineExpose({
               show-on-truncate-only
               @click="onProjectClick(base)"
             >
-              <template #title>{{ base.title }}</template>
+              <template #title>
+                {{ base.title }}
+              </template>
               <span @dblclick.stop="enableEditMode()">
                 {{ base.title }}
               </span>
@@ -688,9 +698,9 @@ defineExpose({
         }"
         variant="small"
       >
-        <template v-if="contextMenuTarget.type === 'base' && base.type === 'database'"></template>
+        <template v-if="contextMenuTarget.type === 'base' && base.type === 'database'" />
 
-        <template v-else-if="contextMenuTarget.type === 'source'"></template>
+        <template v-else-if="contextMenuTarget.type === 'source'" />
 
         <template v-else-if="contextMenuTarget.type === 'table'">
           <NcMenuItemCopyId
@@ -706,8 +716,8 @@ defineExpose({
 
           <template
             v-if="
-              isUIAllowed('tableRename', { source: getSource(contextMenuTarget.value?.source_id) }) ||
-              isUIAllowed('tableDelete', { source: getSource(contextMenuTarget.value?.source_id) })
+              isUIAllowed('tableRename', { source: getSource(contextMenuTarget.value?.source_id) })
+                || isUIAllowed('tableDelete', { source: getSource(contextMenuTarget.value?.source_id) })
             "
           >
             <NcDivider />
@@ -723,8 +733,8 @@ defineExpose({
 
             <NcMenuItem
               v-if="
-                isUIAllowed('tableDuplicate', { source: getSource(contextMenuTarget.value?.source_id) }) &&
-                (contextMenuBase?.is_meta || contextMenuBase?.is_local)
+                isUIAllowed('tableDuplicate', { source: getSource(contextMenuTarget.value?.source_id) })
+                  && (contextMenuBase?.is_meta || contextMenuBase?.is_local)
               "
               @click="duplicateTable(contextMenuTarget.value)"
             >

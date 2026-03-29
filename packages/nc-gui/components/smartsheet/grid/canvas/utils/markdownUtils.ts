@@ -19,7 +19,7 @@ export interface Marker {
   close?: string
   style?: MarkdownStyle
   // Optional handler to process complex markers (like links)
-  handler?: (text: string, index: number, activeStyles: MarkdownStyle[]) => { tokens: Token[]; newIndex: number }
+  handler?: (text: string, index: number, activeStyles: MarkdownStyle[]) => { tokens: Token[], newIndex: number }
 }
 
 const markers: Marker[] = [
@@ -59,14 +59,15 @@ const markers: Marker[] = [
         }
 
         // Merge the tokens from the link text into one string
-        const mergedText = linkTextTokens.map((t) => t.value).join('')
+        const mergedText = linkTextTokens.map(t => t.value).join('')
 
         activeStyles.push('link')
 
         return { tokens: [{ styles: activeStyles, value: mergedText, url }], newIndex: index }
-      } else {
+      }
+      else {
         return {
-          tokens: [{ styles: activeStyles, value: `[${linkTextTokens.map((t) => t.value).join('')}]` }],
+          tokens: [{ styles: activeStyles, value: `[${linkTextTokens.map(t => t.value).join('')}]` }],
           newIndex: index,
         }
       }
@@ -122,7 +123,7 @@ function parseTokens(
   index: number = 0,
   activeStyles: MarkdownStyle[] = [],
   expectedClosing: string | null = null,
-): { tokens: Token[]; newIndex: number } {
+): { tokens: Token[], newIndex: number } {
   const tokens: Token[] = []
   let currentText = ''
 
@@ -155,7 +156,8 @@ function parseTokens(
         const result = foundMarker.handler(text, index, activeStyles)
         tokens.push(...result.tokens)
         index = result.newIndex
-      } else {
+      }
+      else {
         const innerResult = parseTokens(text, index, [...activeStyles, foundMarker.style!], foundMarker.close)
         tokens.push(...innerResult.tokens)
         index = innerResult.newIndex
@@ -171,13 +173,10 @@ function parseTokens(
   return { tokens, newIndex: index }
 }
 
-export const tokenizeLine = (
-  text: string,
-  options?: {
-    users?: Partial<UserType | User>[]
-    currentUser?: Partial<UserType | User> | null
-  },
-): Token[] => {
+export function tokenizeLine(text: string, options?: {
+  users?: Partial<UserType | User>[]
+  currentUser?: Partial<UserType | User> | null
+}): Token[] {
   let tokens = parseTokens(text).tokens
 
   if (options?.users && options.users.length > 0) {
@@ -209,13 +208,10 @@ const blockMarkers: BlockMarker[] = [
   { open: /\d+\. /, type: 'numbered-list-item' },
 ]
 
-export const parseMarkdown = (
-  text: string,
-  options?: {
-    users?: Partial<UserType | User>[]
-    currentUser?: Partial<UserType | User> | null
-  },
-): Block[] => {
+export function parseMarkdown(text: string, options?: {
+  users?: Partial<UserType | User>[]
+  currentUser?: Partial<UserType | User> | null
+}): Block[] {
   const lines = text.split('\n')
   const blocks: Block[] = []
   const { users = [], currentUser = null } = options || {}
@@ -234,7 +230,8 @@ export const parseMarkdown = (
           content = content.slice(marker.open.length)
           break
         }
-      } else {
+      }
+      else {
         const match = content.match(marker.open)
         if (match) {
           blockType = marker.type
@@ -261,14 +258,10 @@ export const parseMarkdown = (
   return blocks
 }
 
-export const getFontForToken = (
-  token: Token,
-  blockType: BlockType,
-  props: {
-    baseFontSize: number
-    fontFamily: string
-  },
-): string => {
+export function getFontForToken(token: Token, blockType: BlockType, props: {
+  baseFontSize: number
+  fontFamily: string
+}): string {
   const { baseFontSize, fontFamily } = props
 
   const fontParts: string[] = []
@@ -295,7 +288,7 @@ function updateMentionsWithUserData(
   return tokens.map((token) => {
     if (token.mentionData && token.styles.includes('mention')) {
       const id = token.mentionData.id
-      const foundUser = users.find((user) => user?.id && user.id === id)
+      const foundUser = users.find(user => user?.id && user.id === id)
 
       if (foundUser) {
         return {

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { Panel, PanelPosition } from '@vue-flow/additional-components'
 import type { ERDConfig } from './utils'
+import { Panel, PanelPosition } from '@vue-flow/additional-components'
 import MiFullscreen from '~icons/material-symbols/fullscreen'
 import MiFullscreenExit from '~icons/material-symbols/fullscreen-exit'
 
@@ -8,15 +8,15 @@ const props = defineProps<{
   config:
     | ERDConfig
     | {
-        isFullScreen: boolean
-      }
+      isFullScreen: boolean
+    }
 }>()
 
 const emit = defineEmits(['toggleFullScreen'])
 
 const { config } = toRefs(props)
 
-const toggleFullScreen = () => {
+function toggleFullScreen() {
   emit('toggleFullScreen')
 }
 </script>

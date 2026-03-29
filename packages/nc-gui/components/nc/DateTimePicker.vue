@@ -74,7 +74,8 @@ function emitValue(date: dayjs.Dayjs) {
 
   if (isDateOnly.value) {
     emit('update:modelValue', date.format('YYYY-MM-DD'))
-  } else {
+  }
+  else {
     emit('update:modelValue', date.utc().format('YYYY-MM-DD HH:mm:ssZ'))
   }
 }
@@ -149,7 +150,8 @@ function handleSelectHour(h: number) {
     const isPm = selectedAmPm.value === 'PM'
     if (h === 12) {
       hour24 = isPm ? 12 : 0
-    } else {
+    }
+    else {
       hour24 = isPm ? h + 12 : h
     }
   }
@@ -234,7 +236,7 @@ watch(isOpen, (next) => {
             isOpen = false
           }
         "
-      />
+      >
 
       <!-- Time input -->
       <template v-if="!isDateOnly">
@@ -255,7 +257,7 @@ watch(isOpen, (next) => {
               isOpen = false
             }
           "
-        />
+        >
       </template>
 
       <GeneralIcon
@@ -288,9 +290,13 @@ watch(isOpen, (next) => {
         <div v-if="!isDateOnly" class="nc-dtp-time-panel flex flex-col border-l-1 border-nc-border-gray-medium">
           <!-- Column headers -->
           <div class="flex flex-none border-b-1 border-nc-border-gray-medium h-10 items-center">
-            <div class="nc-dtp-col-header w-[46px] text-center text-nc-content-gray-subtle text-sm font-semibold">Hr</div>
+            <div class="nc-dtp-col-header w-[46px] text-center text-nc-content-gray-subtle text-sm font-semibold">
+              Hr
+            </div>
             <div class="w-px h-full bg-nc-border-gray-light" />
-            <div class="nc-dtp-col-header w-[46px] text-center text-nc-content-gray-subtle text-sm font-semibold">Min</div>
+            <div class="nc-dtp-col-header w-[46px] text-center text-nc-content-gray-subtle text-sm font-semibold">
+              Min
+            </div>
             <template v-if="is12hrFormat">
               <div class="w-px h-full bg-nc-border-gray-light" />
               <div class="nc-dtp-col-header w-[46px] text-center text-xs font-semibold text-nc-content-gray-subtle2" />

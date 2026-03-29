@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { type ColumnType, isVirtualCol } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { isVirtualCol } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -40,7 +41,7 @@ interface Attachment {
 }
 
 const attachmentField = computed(() => {
-  return fields.value.filter((f) => isAttachment(f))?.[0]
+  return fields.value.filter(f => isAttachment(f))?.[0]
 })
 
 const attachments: ComputedRef<Attachment[]> = computed(() => {
@@ -52,7 +53,8 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
         : row.value.row[attachmentField.value.title]
     }
     return []
-  } catch (e) {
+  }
+  catch (e) {
     return []
   }
 })
@@ -74,7 +76,7 @@ useProvideSmartsheetRowStore(row)
         <template v-if="attachmentField">
           <div v-if="isMounted && attachments && attachments.length">
             <a-carousel autoplay class="!w-11 !h-11 !max-h-11 !max-w-11">
-              <template #customPaging> </template>
+              <template #customPaging />
               <template v-for="(attachmentObj, index) in attachments">
                 <LazyCellAttachmentPreviewImage
                   v-if="isImage(attachmentObj.title, attachmentObj.mimetype ?? attachmentObj.type)"
@@ -137,7 +139,9 @@ useProvideSmartsheetRowStore(row)
                   </div>
                 </NcTooltip>
               </div>
-              <div v-else class="flex flex-row w-full max-w-72 h-5 pl-1 items-center justify-start">-</div>
+              <div v-else class="flex flex-row w-full max-w-72 h-5 pl-1 items-center justify-start">
+                -
+              </div>
             </div>
           </div>
         </div>

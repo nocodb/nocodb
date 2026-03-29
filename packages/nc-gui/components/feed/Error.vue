@@ -7,7 +7,7 @@ const emits = defineEmits(['reload'])
 
 const { loadFeed } = useProductFeed()
 
-const triggerReload = async () => {
+async function triggerReload() {
   if (props.page === 'twitter') {
     emits('reload')
     return

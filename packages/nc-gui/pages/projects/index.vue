@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { Modal, message } from 'ant-design-vue'
 import type { BaseType } from 'nocodb-sdk'
+import { message, Modal } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
 import MaterialSymbolsFormatListBulletedRounded from '~icons/material-symbols/format-list-bulleted-rounded'
 import MaterialSymbolsGridView from '~icons/material-symbols/grid-view'
@@ -35,7 +35,7 @@ const { $api } = useNuxtApp()
 const response = await $api.base.list({})
 const bases = ref(response.list)
 const activePage = ref(navDrawerOptions[0].title)
-const deleteProject = (base: BaseType) => {
+function deleteProject(base: BaseType) {
   Modal.confirm({
     title: t('msg.info.deleteProject'),
     // icon: createVNode(ExclamationCircleOutlined),
@@ -47,7 +47,8 @@ const deleteProject = (base: BaseType) => {
       try {
         await $api.base.delete(base.id as string)
         bases.value.splice(bases.value.indexOf(base), 1)
-      } catch (e: any) {
+      }
+      catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
     },
@@ -80,7 +81,9 @@ const deleteProject = (base: BaseType) => {
                   @click="navigateTo('/base/create')"
                 >
                   <component :is="iconMap.plus" class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
-                  <div class="col-span-10 text-sm xl:text-md">{{ $t('activity.createProject') }}</div>
+                  <div class="col-span-10 text-sm xl:text-md">
+                    {{ $t('activity.createProject') }}
+                  </div>
                 </div>
                 <div
                   class="grid grid-cols-12 cursor-pointer hover:bg-nc-bg-gray-medium flex items-center p-2"
@@ -141,7 +144,7 @@ const deleteProject = (base: BaseType) => {
         <NuxtPage :bases="bases" @delete-base="deleteProject" />
       </div>
 
-      <a-modal></a-modal>
+      <a-modal />
     </NuxtLayout>
   </div>
 </template>

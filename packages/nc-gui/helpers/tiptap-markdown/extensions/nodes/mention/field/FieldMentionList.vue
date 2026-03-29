@@ -127,7 +127,9 @@ export default {
         </NcTooltip>
       </div>
     </template>
-    <div v-else class="px-4">No field available</div>
+    <div v-else class="px-4">
+      No field available
+    </div>
   </div>
 </template>
 

@@ -49,7 +49,8 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
       updateBaseInWorkspace(base, { title })
       await $api.base.update(base.id!, { title })
       $e('a:base:rename')
-    } catch (e: any) {
+    }
+    catch (e: any) {
       updateBaseInWorkspace(base, { title: base.title })
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -67,7 +68,8 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
         },
       )
       $e('a:base:star:toggle')
-    } catch (e: any) {
+    }
+    catch (e: any) {
       updateBaseInWorkspace(base, { starred: base.starred })
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -117,7 +119,8 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
       updateBaseInWorkspace(base, { meta: newMeta as any })
       await $api.base.update(base.id!, { meta: JSON.stringify(newMeta) })
       $e('a:base:icon:color:modal', { iconColor: color })
-    } catch (e: any) {
+    }
+    catch (e: any) {
       updateBaseInWorkspace(base, { meta: base.meta })
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -128,7 +131,8 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
       updateBaseInWorkspace(base, { order: newOrder })
       await $api.base.update(base.id!, { order: newOrder })
       $e('a:base:reorder')
-    } catch (e: any) {
+    }
+    catch (e: any) {
       updateBaseInWorkspace(base, { order: base.order })
       message.error(await extractSdkResponseErrorMsg(e))
     }

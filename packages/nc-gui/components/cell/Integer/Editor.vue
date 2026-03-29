@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
+import type { VNodeRef } from 'vue'
 import { toSafeInteger } from 'nocodb-sdk'
 
 interface Props {
@@ -34,9 +34,11 @@ const vModel = computed({
       // if we clear / empty a cell in sqlite,
       // the value is considered as ''
       _vModel.value = null
-    } else if (isForm.value && !isEditColumn.value) {
+    }
+    else if (isForm.value && !isEditColumn.value) {
       _vModel.value = isNaN(Number(value)) ? value : Number(value)
-    } else {
+    }
+    else {
       const currentValue = +(value ?? 0)
       _vModel.value = toSafeInteger(currentValue)
     }
@@ -72,7 +74,8 @@ function onKeyDown(e: any) {
     e.target.type = 'text'
     e.target?.setSelectionRange(e.target.value.length, e.target.value.length)
     e.target.type = 'number'
-  } else if (e.key === 'ArrowUp') {
+  }
+  else if (e.key === 'ArrowUp') {
     e.preventDefault()
     e.target.type = 'text'
     e.target?.setSelectionRange(0, 0)
@@ -106,7 +109,7 @@ onMounted(() => {
     @keydown.alt.stop
     @selectstart.capture.stop
     @mousedown.stop
-  />
+  >
 </template>
 
 <style scoped lang="scss">

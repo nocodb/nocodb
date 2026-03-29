@@ -16,16 +16,19 @@ const { getFeature } = useEeConfig()
 
 const isFeatureEnabled = computed(() => getFeature(props.feature))
 
-const onClick = (feature: PlanFeatureTypes, successCallback?: (...arg: any[]) => any | Promise<any>, bypass: boolean = false) => {
+function onClick(feature: PlanFeatureTypes, successCallback?: (...arg: any[]) => any | Promise<any>, bypass: boolean = false) {
   if (isEeUI && !getFeature(feature) && !bypass) {
     planUpgradeClickHook.trigger()
 
     // Return true if feature is not available so that we can prevent any action
     return true
-  } else {
+  }
+  else {
     successCallback?.()
   }
 }
 </script>
 
-<template><slot :is-feature-enabled="isFeatureEnabled" :click="onClick" /></template>
+<template>
+  <slot :is-feature-enabled="isFeatureEnabled" :click="onClick" />
+</template>

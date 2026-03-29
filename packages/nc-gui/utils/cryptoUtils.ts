@@ -1,8 +1,8 @@
 // https://stackoverflow.com/questions/14733374/how-to-generate-an-md5-hash-from-a-string-in-javascript-node-js
 
-/* eslint-disable vars-on-top, no-var, no-unused-expressions, no-sequences, block-scoped-var */
+/* eslint-disable vars-on-top, no-var, no-sequences, block-scoped-var */
 
-export const MD5 = function (d) {
+export function MD5(d) {
   const r = M(V(Y(X(d), 8 * d.length)))
   return r.toLowerCase()
 }
@@ -12,7 +12,7 @@ function M(d) {
   return f
 }
 function X(d) {
-  for (var _ = Array(d.length >> 2), m = 0; m < _.length; m++) _[m] = 0
+  for (var _ = Array.from({ length: d.length >> 2 }), m = 0; m < _.length; m++) _[m] = 0
   for (m = 0; m < 8 * d.length; m += 8) _[m >> 5] |= (255 & d.charCodeAt(m / 8)) << m % 32
   return _
 }
@@ -316,10 +316,10 @@ function Y(d, _) {
       21,
       -343485551,
     )),
-      (m = safe_add(m, h)),
-      (f = safe_add(f, t)),
-      (r = safe_add(r, g)),
-      (i = safe_add(i, e))
+    (m = safe_add(m, h)),
+    (f = safe_add(f, t)),
+    (r = safe_add(r, g)),
+    (i = safe_add(i, e))
   }
   return [m, f, r, i]
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { dateFormats, timeFormats } from 'nocodb-sdk'
 import dayjs from 'dayjs'
+import { dateFormats, timeFormats } from 'nocodb-sdk'
 import { timeCellMaxWidthMap, timeFormatsObj } from './utils'
 
 interface Props {
@@ -69,8 +69,8 @@ const timeZoneDisplay = computed(() => {
 
 const cellValue = computed(
   () =>
-    localState.value?.format(parseProp(column.value.meta).is12hrFormat ? timeFormatsObj[timeFormat.value] : timeFormat.value) ??
-    '',
+    localState.value?.format(parseProp(column.value.meta).is12hrFormat ? timeFormatsObj[timeFormat.value] : timeFormat.value)
+    ?? '',
 )
 
 const timeCellMaxWidth = computed(() => {

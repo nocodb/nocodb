@@ -21,7 +21,7 @@ const isNotificationOpen = ref(false)
 
 const searchQuery = useState<string>('ws-home-search', () => '')
 
-const navigateToWorkspace = () => {
+function navigateToWorkspace() {
   navigateTo(`/${activeWorkspaceId.value}`)
 
   if (isMobileMode.value) {
@@ -35,8 +35,8 @@ const navigateToWorkspace = () => {
     <!-- Brand header -->
     <div class="w-full px-2 py-1.5 flex items-center justify-between gap-2 h-[var(--topbar-height)] flex-none">
       <div class="pl-1">
-        <img v-if="isDark" alt="NocoDB" src="~/assets/img/brand/text.png" class="h-4" />
-        <img v-else alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="h-4" />
+        <img v-if="isDark" alt="NocoDB" src="~/assets/img/brand/text.png" class="h-4">
+        <img v-else alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="h-4">
       </div>
 
       <GeneralHideLeftSidebarBtn show-always />
@@ -94,7 +94,9 @@ const navigateToWorkspace = () => {
             <GeneralUserIcon :user="user" size="medium" :initials-length="1" class="flex-none" />
             <div class="flex-1 min-w-0">
               <NcTooltip show-on-truncate-only class="truncate text-bodyDefaultSm text-nc-content-gray block">
-                <template #title>{{ name || user?.email }}</template>
+                <template #title>
+                  {{ name || user?.email }}
+                </template>
                 {{ name || user?.email }}
               </NcTooltip>
             </div>
@@ -107,7 +109,9 @@ const navigateToWorkspace = () => {
         <!-- Notification bell -->
         <NcDropdown v-model:visible="isNotificationOpen" :trigger="['click']" placement="topRight" overlay-class-name="!min-w-80">
           <NcTooltip placement="top" :arrow="false" :disabled="isNotificationOpen">
-            <template #title>{{ $t('general.notification') }}</template>
+            <template #title>
+              {{ $t('general.notification') }}
+            </template>
             <NcButton
               type="text"
               size="xxsmall"

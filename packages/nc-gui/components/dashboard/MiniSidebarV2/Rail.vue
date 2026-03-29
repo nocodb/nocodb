@@ -47,7 +47,7 @@ const {
 
 const { isEEFeatureBlocked, showEEFeatures } = useEeConfig()
 
-const handleChatToggle = () => {
+function handleChatToggle() {
   toggleChatPanel()
 }
 
@@ -65,7 +65,7 @@ watch(
 
 const isBaseListModalOpen = ref(false)
 
-const navigateToProjectPage = () => {
+function navigateToProjectPage() {
   if (route.value.name?.toString().startsWith('index-typeOrId-baseId-')) {
     return
   }
@@ -73,7 +73,7 @@ const navigateToProjectPage = () => {
   const lastVisitedBase = ncLastVisitedBase().get()
 
   const baseToNavigate = lastVisitedBase
-    ? basesList.value?.find((b) => b.id === lastVisitedBase) ?? basesList.value[0]
+    ? basesList.value?.find(b => b.id === lastVisitedBase) ?? basesList.value[0]
     : basesList.value[0]
 
   navigateToProject({ workspaceId: isEeUI ? activeWorkspaceId.value : undefined, baseId: baseToNavigate?.id })
@@ -81,7 +81,7 @@ const navigateToProjectPage = () => {
 
 const hasAvailableBases = computed(() => !!basesList.value?.length)
 
-const getBasePath = () => {
+function getBasePath() {
   const wsId = route.value.params.typeOrId || activeWorkspaceId.value
   const baseId = route.value.params.baseId
   if (baseId) return `/${wsId}/${baseId}`
@@ -89,7 +89,7 @@ const getBasePath = () => {
   return resolvedProject.value?.id ? `/${wsId}/${resolvedProject.value.id}` : ''
 }
 
-const onTabClick = async (tabKey: string) => {
+async function onTabClick(tabKey: string) {
   if (isChatFullScreen.value) isChatFullScreen.value = false
 
   if (tabKey === 'settings') {
@@ -97,7 +97,8 @@ const onTabClick = async (tabKey: string) => {
     // If a base is open, navigate to base settings; otherwise ws-level settings
     if (isBaseOpen.value) {
       navigateTo(`${getBasePath()}/settings`)
-    } else {
+    }
+    else {
       const wsId = route.value.params.typeOrId || activeWorkspaceId.value
       navigateTo(`/${wsId}/members`)
     }
@@ -110,9 +111,11 @@ const onTabClick = async (tabKey: string) => {
 
   if (tabKey === 'workflows') {
     await navigateTo(`${basePath}/workflows`)
-  } else if (tabKey === 'docs') {
+  }
+  else if (tabKey === 'docs') {
     await navigateTo(`${basePath}/docs`)
-  } else {
+  }
+  else {
     await navigateTo(basePath)
   }
 
@@ -123,16 +126,16 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const isBaseSearchInput = e.target instanceof HTMLInputElement && e.target.closest('.nc-base-search-input')
 
   if (
-    !e.altKey ||
-    (!isBaseSearchInput &&
-      (isActiveInputElementExist(e) ||
-        cmdKActive() ||
-        isCmdJActive() ||
-        isNcDropdownOpen() ||
-        isActiveElementInsideExtension() ||
-        isActiveElementInsideScriptPane() ||
-        isDrawerOrModalExist() ||
-        isExpandedFormOpenExist()))
+    !e.altKey
+    || (!isBaseSearchInput
+      && (isActiveInputElementExist(e)
+        || cmdKActive()
+        || isCmdJActive()
+        || isNcDropdownOpen()
+        || isActiveElementInsideExtension()
+        || isActiveElementInsideScriptPane()
+        || isDrawerOrModalExist()
+        || isExpandedFormOpenExist()))
   ) {
     return
   }
@@ -151,12 +154,12 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
   if (!isEeUI || isEEFeatureBlocked.value) return
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (
-    cmdOrCtrl &&
-    e.shiftKey &&
-    e.code === 'KeyA' &&
-    !isActiveInputElementExist(e) &&
-    !isNcDropdownOpen() &&
-    !isDrawerOrModalExist()
+    cmdOrCtrl
+    && e.shiftKey
+    && e.code === 'KeyA'
+    && !isActiveInputElementExist(e)
+    && !isNcDropdownOpen()
+    && !isDrawerOrModalExist()
   ) {
     e.preventDefault()
     handleChatToggle()
@@ -181,8 +184,8 @@ const mainItems = computed<NavItem[]>(() => [
           icon: 'ncAutomation',
           label: 'Workflows',
           disabled:
-            !hasAvailableBases.value ||
-            !isUIAllowed('scriptList', {
+            !hasAvailableBases.value
+            || !isUIAllowed('scriptList', {
               roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
             }),
           onClick: () => {
@@ -212,7 +215,9 @@ const mainItems = computed<NavItem[]>(() => [
     <div class="flex-none h-[var(--topbar-height)] w-full relative flex items-center justify-center">
       <!-- Logo — hover shows back arrow, click navigates to workspace -->
       <NcTooltip placement="right" :arrow="false">
-        <template #title>{{ $t('labels.backToWorkspace') }}: {{ activeWorkspace?.title }}</template>
+        <template #title>
+          {{ $t('labels.backToWorkspace') }}: {{ activeWorkspace?.title }}
+        </template>
         <div
           class="nc-rail-logo nc-rail-logo-hover"
           data-testid="nc-mini-sidebar-v2-logo"
@@ -226,9 +231,9 @@ const mainItems = computed<NavItem[]>(() => [
             :managed-app="
               resolvedProject
                 ? {
-                    managed_app_master: resolvedProject?.managed_app_master,
-                    managed_app_id: resolvedProject?.managed_app_id,
-                  }
+                  managed_app_master: resolvedProject?.managed_app_master,
+                  managed_app_id: resolvedProject?.managed_app_id,
+                }
                 : undefined
             "
           />

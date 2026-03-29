@@ -1,7 +1,7 @@
+import type { EventHook, MaybeRef } from '@vueuse/core'
+import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
 import type { Api } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
-import type { EventHook, MaybeRef } from '@vueuse/core'
 
 export interface UseApiReturn<D = any, R = any> {
   api: Api<any>

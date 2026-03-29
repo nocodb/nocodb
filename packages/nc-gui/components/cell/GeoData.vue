@@ -1,8 +1,9 @@
 <script lang="ts" setup>
-import 'leaflet/dist/leaflet.css'
-import L from 'leaflet'
-import { type GeoLocationType, convertGeoNumberToString, latLongToJoinedString } from 'nocodb-sdk'
+import type { GeoLocationType } from 'nocodb-sdk'
 import { useDebounceFn } from '@vueuse/core'
+import L from 'leaflet'
+import { convertGeoNumberToString, latLongToJoinedString } from 'nocodb-sdk'
+import 'leaflet/dist/leaflet.css'
 
 interface Props {
   modelValue?: string | null
@@ -72,7 +73,8 @@ function updateMarkerPosition(lat: number, lng: number) {
   if (!mapInstanceRef.value) return
   if (markerRef.value) {
     markerRef.value.setLatLng([lat, lng])
-  } else {
+  }
+  else {
     const marker = L.marker([lat, lng], { draggable: !readonly.value }).addTo(mapInstanceRef.value)
     setupMarkerDrag(marker)
     markerRef.value = marker
@@ -90,8 +92,8 @@ function initMap() {
   if (!mapContainerRef.value || mapInstanceRef.value) return
 
   const hasCoords = formState.latitude && formState.longitude
-  const lat = parseFloat(formState.latitude)
-  const lng = parseFloat(formState.longitude)
+  const lat = Number.parseFloat(formState.latitude)
+  const lng = Number.parseFloat(formState.longitude)
   const validCoords = hasCoords && !isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180
   const center: [number, number] = validCoords ? [lat, lng] : DEFAULT_CENTER
   const zoom = validCoords ? LOCATION_ZOOM : DEFAULT_ZOOM
@@ -114,7 +116,8 @@ function initMap() {
     const marker = L.marker(center, { draggable: !readonly.value }).addTo(map)
     setupMarkerDrag(marker)
     markerRef.value = marker
-  } else {
+  }
+  else {
     // No saved coordinates - try auto-positioning with geolocation
     tryAutoPositionMap()
   }
@@ -210,19 +213,21 @@ const performSearch = useDebounceFn(async () => {
     const data: NominatimResult[] = await response.json()
     searchResults.value = data
     showSearchResults.value = data.length > 0
-  } catch (err: unknown) {
+  }
+  catch (err: unknown) {
     if (err instanceof DOMException && err.name === 'AbortError') return
     console.error('Geocoding error:', err)
     searchResults.value = []
     showSearchResults.value = false
-  } finally {
+  }
+  finally {
     isSearching.value = false
   }
 }, 400)
 
 function selectSearchResult(result: NominatimResult) {
-  const lat = parseFloat(result.lat)
-  const lng = parseFloat(result.lon)
+  const lat = Number.parseFloat(result.lat)
+  const lng = Number.parseFloat(result.lon)
 
   // Update form state
   syncToFormState(lat, lng)
@@ -261,7 +266,8 @@ function onSearchBlur() {
 watch(searchQuery, () => {
   if (searchQuery.value.trim().length >= 3) {
     performSearch()
-  } else {
+  }
+  else {
     searchResults.value = []
     showSearchResults.value = false
   }
@@ -271,8 +277,8 @@ watch(searchQuery, () => {
 const syncMapFromInputs = useDebounceFn(() => {
   if (isUpdatingFromMap.value || !mapInstanceRef.value) return
 
-  const lat = parseFloat(formState.latitude)
-  const lng = parseFloat(formState.longitude)
+  const lat = Number.parseFloat(formState.latitude)
+  const lng = Number.parseFloat(formState.longitude)
   if (isNaN(lat) || isNaN(lng)) return
   if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return
 
@@ -298,37 +304,37 @@ const latLongStr = computed(() => {
 
 const isLatitudeInvalid = computed(() => {
   if (!formState.latitude) return false
-  const lat = parseFloat(formState.latitude)
+  const lat = Number.parseFloat(formState.latitude)
   return isNaN(lat) || lat < -90 || lat > 90
 })
 
 const isLongitudeInvalid = computed(() => {
   if (!formState.longitude) return false
-  const lng = parseFloat(formState.longitude)
+  const lng = Number.parseFloat(formState.longitude)
   return isNaN(lng) || lng < -180 || lng > 180
 })
 
-const handleFinish = () => {
+function handleFinish() {
   if (isLatitudeInvalid.value || isLongitudeInvalid.value) return
-  vModel.value = latLongToJoinedString(parseFloat(formState.latitude), parseFloat(formState.longitude))
+  vModel.value = latLongToJoinedString(Number.parseFloat(formState.latitude), Number.parseFloat(formState.longitude))
   isExpanded.value = false
 }
 
-const clear = () => {
+function clear() {
   isExpanded.value = false
 
   formState.latitude = latitude
   formState.longitude = longitude
 }
 
-const clearValue = () => {
+function clearValue() {
   vModel.value = null
   formState.latitude = ''
   formState.longitude = ''
   isExpanded.value = false
 }
 
-const onClickSetCurrentLocation = () => {
+function onClickSetCurrentLocation() {
   isLoading.value = true
   const onSuccess: PositionCallback = (position: GeolocationPosition) => {
     const crd = position.coords
@@ -350,14 +356,14 @@ const onClickSetCurrentLocation = () => {
   navigator.geolocation.getCurrentPosition(onSuccess, onError, options)
 }
 
-const openInGoogleMaps = () => {
+function openInGoogleMaps() {
   const [latitude, longitude] = (vModel.value || '').split(';')
   if (!latitude || !longitude) return
   const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(latitude)},${encodeURIComponent(longitude)}`
   window.open(url, '_blank', 'noopener,noreferrer')
 }
 
-const openInOSM = () => {
+function openInOSM() {
   const [latitude, longitude] = (vModel.value || '').split(';')
   if (!latitude || !longitude) return
   const url = `https://www.openstreetmap.org/?mlat=${encodeURIComponent(latitude)}&mlon=${encodeURIComponent(
@@ -366,7 +372,7 @@ const openInOSM = () => {
   window.open(url, '_blank', 'noopener,noreferrer')
 }
 
-const handleClose = (e: MouseEvent) => {
+function handleClose(e: MouseEvent) {
   if (e.target instanceof HTMLElement && !e.target.closest('.nc-geodata-picker-overlay')) {
     isExpanded.value = false
   }
@@ -387,7 +393,8 @@ function parseGeoString(raw: string): string | null {
     try {
       const converted = convertCellData({ value: trimmed, to: column.value.uidt, column: column.value }, false)
       if (converted) return converted
-    } catch {
+    }
+    catch {
       // fall through to manual parsing
     }
   }
@@ -395,8 +402,8 @@ function parseGeoString(raw: string): string | null {
   // Manual parsing: split on ; or , or whitespace
   const parts = trimmed.split(/[;,\s]+/).filter(Boolean)
   if (parts.length === 2) {
-    const lat = parseFloat(parts[0])
-    const lng = parseFloat(parts[1])
+    const lat = Number.parseFloat(parts[0])
+    const lng = Number.parseFloat(parts[1])
     if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
       return `${convertGeoNumberToString(lat)};${convertGeoNumberToString(lng)}`
     }
@@ -411,7 +418,7 @@ const isGrid = inject(IsGridInj, ref(false))
 const isEditColumn = inject(EditColumnInj, ref(false))
 const isForm = inject(IsFormInj, ref(false))
 
-const handlePaste = (e: ClipboardEvent) => {
+function handlePaste(e: ClipboardEvent) {
   if ([identifier.latitude, identifier.longitude].includes(e.target?.id)) {
     return
   }
@@ -430,20 +437,21 @@ const handlePaste = (e: ClipboardEvent) => {
       // In expanded form with overlay closed, commit directly
       if (isExpandedForm.value && !isExpanded.value) {
         e.preventDefault()
-        vModel.value = latLongToJoinedString(parseFloat(pastedLat), parseFloat(pastedLng))
+        vModel.value = latLongToJoinedString(Number.parseFloat(pastedLat), Number.parseFloat(pastedLng))
       }
     }
   }
 }
 
-const handleBlur = (e: Event) => {
+function handleBlur(e: Event) {
   const target = e.target as HTMLInputElement
   const originalValue = target.value
   const value = convertGeoNumberToString(Number(originalValue))
   if (value !== originalValue) {
     if (target.id === identifier.latitude) {
       formState.latitude = value
-    } else if (target.id === identifier.longitude) {
+    }
+    else if (target.id === identifier.longitude) {
       formState.longitude = value
     }
   }
@@ -463,7 +471,8 @@ watch(
     if (newValue.value) {
       formState.latitude = newValue.value?.split(';')[0]
       formState.longitude = newValue.value?.split(';')[1]
-    } else {
+    }
+    else {
       formState.latitude = ''
       formState.longitude = ''
     }
@@ -472,7 +481,7 @@ watch(
 
 const isCopied = ref(false)
 
-const copyCoordinates = (e: Event) => {
+function copyCoordinates(e: Event) {
   e.stopPropagation()
   const text = latLongStr.value
   if (text && text !== t('labels.setLocation')) {
@@ -486,14 +495,14 @@ const copyCoordinates = (e: Event) => {
   }
 }
 
-const openEditor = (e: Event) => {
+function openEditor(e: Event) {
   e.stopPropagation()
   if (!readonly.value) {
     isExpanded.value = true
   }
 }
 
-const handleKeyDown = (e: KeyboardEvent) => {
+function handleKeyDown(e: KeyboardEvent) {
   // Allow copy shortcuts to pass through
   if ((e.metaKey || e.ctrlKey) && e.key === 'c') {
     return
@@ -523,7 +532,8 @@ watch(isExpanded, async (expanded) => {
       initMap()
       mapInstanceRef.value?.invalidateSize()
     }, 150)
-  } else {
+  }
+  else {
     destroyMap()
   }
 })
@@ -587,7 +597,9 @@ onBeforeUnmount(() => {
           <span class="nc-geodata-selectable-text" @click.stop>{{ latLongStr }}</span>
           <div v-if="!isLinkRecordDropdown" class="nc-geodata-action-icons" @click.stop>
             <NcTooltip>
-              <template #title>{{ isCopied ? $t('general.copied') : $t('general.copy') }}</template>
+              <template #title>
+                {{ isCopied ? $t('general.copied') : $t('general.copy') }}
+              </template>
               <GeneralIcon
                 :icon="isCopied ? 'check' : 'copy'"
                 class="nc-geodata-action-icon"
@@ -600,7 +612,9 @@ onBeforeUnmount(() => {
               />
             </NcTooltip>
             <NcTooltip v-if="!readonly">
-              <template #title>{{ $t('general.edit') }}</template>
+              <template #title>
+                {{ $t('general.edit') }}
+              </template>
               <GeneralIcon
                 icon="ncEdit"
                 class="nc-geodata-action-icon"
@@ -624,7 +638,9 @@ onBeforeUnmount(() => {
             <!-- Modal content area -->
             <div class="nc-geodata-content">
               <!-- Coordinates section -->
-              <div class="nc-geodata-section-label">{{ $t('labels.coordinates') }}</div>
+              <div class="nc-geodata-section-label">
+                {{ $t('labels.coordinates') }}
+              </div>
               <div class="nc-geodata-coordinates-grid">
                 <div class="nc-geodata-input-group">
                   <label :for="identifier.latitude" class="nc-geodata-input-label">{{ $t('labels.latitude') }}</label>
@@ -702,7 +718,7 @@ onBeforeUnmount(() => {
                       @blur="onSearchBlur"
                       @keydown.stop
                       @mousedown.stop
-                    />
+                    >
                     <GeneralIcon v-if="isSearching" icon="loading" class="nc-geodata-search-spinner animate-spin" />
                   </div>
                   <div v-if="showSearchResults" id="nc-geo-search-results" role="listbox" class="nc-geodata-search-results">
@@ -722,7 +738,9 @@ onBeforeUnmount(() => {
                 <!-- Current location button -->
                 <div v-if="!readonly" class="nc-geodata-locate-wrapper">
                   <NcTooltip placement="bottom">
-                    <template #title>{{ $t('labels.currentLocation') }}</template>
+                    <template #title>
+                      {{ $t('labels.currentLocation') }}
+                    </template>
                     <button
                       class="nc-geodata-locate-btn"
                       :class="{ 'nc-geodata-locate-btn--loading': isLoading }"

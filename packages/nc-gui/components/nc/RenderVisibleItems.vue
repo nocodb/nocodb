@@ -41,7 +41,8 @@ async function calculateVisibleItems() {
     if (usedWidth + tagWidth <= containerWidth) {
       usedWidth += tagWidth + 10
       count++
-    } else {
+    }
+    else {
       break
     }
   }
@@ -62,7 +63,7 @@ watch(items, () => {
 
 <template>
   <div ref="containerRef" class="flex items-center gap-2 flex-1 overflow-hidden">
-    <slot name="default" :visible-items="visibleItems" :hidden-count="hiddenCount"></slot>
+    <slot name="default" :visible-items="visibleItems" :hidden-count="hiddenCount" />
 
     <slot name="more" :hidden-count="hiddenCount">
       <!-- Show +X more if there are additional items -->

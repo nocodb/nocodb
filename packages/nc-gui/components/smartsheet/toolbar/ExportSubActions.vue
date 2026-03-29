@@ -14,15 +14,16 @@ const selectedView = inject(ActiveViewInj)!
 // Get the shared view password from the injected value
 const sharedViewPassword = inject(SharedViewPasswordInj, ref<string | null>(null))
 
-const urlHelper = (url: string) => {
+function urlHelper(url: string) {
   if (url.startsWith('http')) {
     return url
-  } else {
+  }
+  else {
     return `${appInfo.value.ncSiteUrl || BASE_FALLBACK_URL}/${url}`
   }
 }
 
-const handleDownload = async (url: string) => {
+async function handleDownload(url: string) {
   url = urlHelper(url)
 
   const isExpired = await isLinkExpired(url)
@@ -56,7 +57,7 @@ const { sorts, nestedFilters, isLocked } = useSmartsheetStore() || {
 }
 const { isUIAllowed } = useRoles()
 
-const exportFile = async (exportType: ExportTypes) => {
+async function exportFile(exportType: ExportTypes) {
   try {
     if (activeExportType.value || !selectedView.value.id) return
 
@@ -94,7 +95,8 @@ const exportFile = async (exportType: ExportTypes) => {
       }
 
       jobData = await $api.public.exportData(selectedView.value.uuid, exportType, options, params)
-    } else {
+    }
+    else {
       jobData = await $api.internal.postOperation(
         meta.value!.fk_workspace_id!,
         meta.value!.base_id!,
@@ -132,7 +134,8 @@ const exportFile = async (exportType: ExportTypes) => {
             handleDownload(data.data?.result?.url)
 
             activeExportType.value = null
-          } else if (data.status === JobStatus.FAILED) {
+          }
+          else if (data.status === JobStatus.FAILED) {
             message.error('Failed to export data!')
 
             activeExportType.value = null
@@ -140,7 +143,8 @@ const exportFile = async (exportType: ExportTypes) => {
         }
       },
     )
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
     activeExportType.value = null
   }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onKeyDown } from '@vueuse/core'
-import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
+import { useProvideAttachmentCell } from './utils'
 
 interface Props {
   modelValue?: string | Record<string, any>[] | null
@@ -99,7 +99,7 @@ if (!isPublic.value && !isForm.value && meta.value) {
   useProvideRowComments(meta, row)
 }
 
-const onDropAction = function (...args: any[]) {
+function onDropAction(...args: any[]) {
   const draggingBool = unref(dragging)
   if (!draggingBool) {
     onDrop.apply(this, args)
@@ -117,21 +117,26 @@ watch(
 
         if (isPublic.value && isForm.value) {
           storedFiles.value = nextAttachments
-        } else {
+        }
+        else {
           attachments.value = nextAttachments
         }
-      } catch (e) {
+      }
+      catch (e) {
         console.error(e)
         if (isPublic.value && isForm.value) {
           storedFiles.value = []
-        } else {
+        }
+        else {
           attachments.value = []
         }
       }
-    } else {
+    }
+    else {
       if (isPublic.value && isForm.value) {
         storedFiles.value = []
-      } else {
+      }
+      else {
         attachments.value = []
       }
     }
@@ -170,7 +175,7 @@ watch(selectedFile, (newVal, oldVal) => {
   if (oldVal && !newVal) canvasSelectCell?.trigger()
 })
 
-const openAttachmentModal = (e: Event) => {
+function openAttachmentModal(e: Event) {
   if (!isEditAllowed.value) return
 
   e?.stopPropagation()
@@ -182,7 +187,8 @@ onKeyDown('Enter', () => {
     if (attachments.value.length) {
       modalRendered.value = true
       modalVisible.value = true
-    } else if (isEditAllowed.value) {
+    }
+    else if (isEditAllowed.value) {
       isNewAttachmentModalOpen.value = true
     }
   }
@@ -196,7 +202,8 @@ useSelectedCellKeydownListener(inject(ActiveCellInj, ref(false)), (e) => {
     if (!isMobileMode.value && visibleItems.value.length) {
       modalRendered.value = true
       modalVisible.value = true
-    } else {
+    }
+    else {
       // open attachment modal
       openAttachmentModal(e)
     }
@@ -205,27 +212,27 @@ useSelectedCellKeydownListener(inject(ActiveCellInj, ref(false)), (e) => {
 
 const rowHeight = inject(RowHeightInj, ref())
 
-const onExpand = () => {
+function onExpand() {
   if (isMobileMode.value) return
 
   modalRendered.value = true
   modalVisible.value = true
 }
 
-const onFileClick = (item: any) => {
+function onFileClick(item: any) {
   if (isMobileMode.value && !isExpandedForm.value) return
 
   if (!isMobileMode.value && (isGallery.value || isKanban.value) && !isExpandedForm.value) return
   selectedFile.value = item
 }
 
-const keydownEnter = (e: KeyboardEvent) => {
+function keydownEnter(e: KeyboardEvent) {
   if (!isSurveyForm.value) {
     openAttachmentModal(e)
     e.stopPropagation()
   }
 }
-const keydownSpace = (e: KeyboardEvent) => {
+function keydownSpace(e: KeyboardEvent) {
   if (isSurveyForm.value) {
     openAttachmentModal(e)
     e.stopPropagation()
@@ -244,7 +251,7 @@ function onRemoveFileClick(title: any, i: number) {
   filetoDelete.title = title
 }
 
-const handleFileDelete = (i: number) => {
+function handleFileDelete(i: number) {
   removeFile(i)
   isConfirmModalOpen.value = false
   filetoDelete.i = 0
@@ -279,14 +286,15 @@ defineExpose({
   isEditAllowed,
 })
 
-const onCellEvent = (event?: Event) => {
+function onCellEvent(event?: Event) {
   if (!(event instanceof KeyboardEvent) || !event.target || isActiveInputElementExist(event) || !visibleItems.value.length) return
 
   if (isExpandCellKey(event)) {
     if (modalVisible.value) {
       modalRendered.value = false
       modalVisible.value = false
-    } else {
+    }
+    else {
       onExpand()
     }
 
@@ -302,16 +310,18 @@ onMounted(() => {
       if (onCellEvent(canvasCellEventData.event)) return
 
       const clickableSelectors = ['.view-attachments', '.add-files', '.nc-attachment', '.empty-add-files']
-        .map((selector) => `.nc-canvas-table-editable-cell-wrapper ${selector}`)
+        .map(selector => `.nc-canvas-table-editable-cell-wrapper ${selector}`)
         .join(', ')
       const clickable = getElementAtMouse<HTMLElement>(clickableSelectors, clientMousePosition)
       if (clickable) {
         clickable.click()
-      } else {
+      }
+      else {
         if (attachments.value.length) {
           modalRendered.value = true
           modalVisible.value = true
-        } else if (isEditAllowed.value) {
+        }
+        else if (isEditAllowed.value) {
           isNewAttachmentModalOpen.value = true
         }
       }
@@ -444,7 +454,9 @@ onUnmounted(() => {
         <GeneralIcon icon="upload" class="flex-none w-6 h-6 text-nc-content-brand" />
 
         <div class="p-3">
-          <h1 class="text-nc-content-brand font-bold">{{ $t('labels.dropHere') }}</h1>
+          <h1 class="text-nc-content-brand font-bold">
+            {{ $t('labels.dropHere') }}
+          </h1>
         </div>
       </template>
     </div>
@@ -459,7 +471,7 @@ onUnmounted(() => {
           <div
             class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle mb-4"
           >
-            <GeneralIcon icon="file" class="nc-view-icon"></GeneralIcon>
+            <GeneralIcon icon="file" class="nc-view-icon" />
             <div
               class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
@@ -535,7 +547,9 @@ onUnmounted(() => {
       >
         <NcTooltip v-for="(item, i) of visibleItems" :key="item.url || item.title" placement="bottom" class="nc-attachment-item">
           <template #title>
-            <div class="text-center w-full">{{ item.title }}</div>
+            <div class="text-center w-full">
+              {{ item.title }}
+            </div>
           </template>
           <div
             class="aspect-square"
@@ -598,7 +612,9 @@ onUnmounted(() => {
         }"
         :style="isGrid && (!rowHeight || rowHeight === 1) ? { top: '50%', transform: 'translateY(-50%)' } : undefined"
       >
-        <template #title>{{ $t('activity.addFiles') }}</template>
+        <template #title>
+          {{ $t('activity.addFiles') }}
+        </template>
         <NcButton
           type="secondary"
           size="xsmall"

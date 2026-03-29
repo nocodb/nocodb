@@ -23,7 +23,7 @@ const { tabs, as, contentClassName } = toRefs(props)
 
 const { aiIntegrationAvailable, aiLoading } = useNocoAi()
 
-const handleChangeTab = (tab: string) => {
+function handleChangeTab(tab: string) {
   if (aiLoading.value) return
   activeTab.value = tab
 }
@@ -48,19 +48,21 @@ const handleChangeTab = (tab: string) => {
         </template>
       </div>
       <div class="nc-ai-wizard-card-tab-extra-right">
-        <slot name="tabExtraRight"></slot>
+        <slot name="tabExtraRight" />
       </div>
     </div>
     <div class="nc-ai-wizard-card-tab-content" :class="contentClassName">
       <div v-if="as === 'default' && !aiIntegrationAvailable" class="py-2.5 pl-3 pr-2 flex items-center gap-3">
         <GeneralIcon icon="alertTriangleSolid" class="!text-nc-content-orange-medium w-4 h-4" />
-        <div class="text-sm text-nc-content-gray-subtle flex-1">{{ $t('title.noAiIntegrationAvailable') }}</div>
+        <div class="text-sm text-nc-content-gray-subtle flex-1">
+          {{ $t('title.noAiIntegrationAvailable') }}
+        </div>
 
         <NcButton size="small" type="text" class="!text-nc-content-brand" @click.stop="emits('navigateToIntegrations')">
           {{ $t('labels.createAiIntegration') }}
         </NcButton>
       </div>
-      <slot v-else name="tabContent"> </slot>
+      <slot v-else name="tabContent" />
     </div>
   </div>
 </template>

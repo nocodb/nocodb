@@ -6620,18 +6620,14 @@ export class ColumnsService implements IColumnsService {
         // Update cached fk_relation_column_id for dependent lookup/rollup columns
         // that were retargeted from hmColumn → newLtarCol during the transaction.
         for (const colId of dependentLookupColIds) {
-          await NocoCache.update(
-            context,
-            `${CacheScope.COL_LOOKUP}:${colId}`,
-            { fk_relation_column_id: newLtarCol.id },
-          );
+          await NocoCache.update(context, `${CacheScope.COL_LOOKUP}:${colId}`, {
+            fk_relation_column_id: newLtarCol.id,
+          });
         }
         for (const colId of dependentRollupColIds) {
-          await NocoCache.update(
-            context,
-            `${CacheScope.COL_ROLLUP}:${colId}`,
-            { fk_relation_column_id: newLtarCol.id },
-          );
+          await NocoCache.update(context, `${CacheScope.COL_ROLLUP}:${colId}`, {
+            fk_relation_column_id: newLtarCol.id,
+          });
         }
       }
 

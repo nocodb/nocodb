@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { VNodeRef } from '@vue/runtime-core'
+import type { VNodeRef } from 'vue'
 
 const { onInitOnboardingFlow, visibleQuestion, stepper } = useOnboardingFlow()
 

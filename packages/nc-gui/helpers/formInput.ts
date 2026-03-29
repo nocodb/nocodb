@@ -1,8 +1,8 @@
-export const deepReferenceHelper = (formState: Ref, path: string): any => {
+export function deepReferenceHelper(formState: Ref, path: string): any {
   return path.split('.').reduce((acc, key) => (acc ? acc[key] : null), formState.value)
 }
 
-export const setFormStateHelper = (formState: Ref, path: string, value: any) => {
+export function setFormStateHelper(formState: Ref, path: string, value: any) {
   // update nested prop in formState
   const keys = path.split('.')
   const lastKey = keys.pop()

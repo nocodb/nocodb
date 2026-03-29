@@ -32,7 +32,7 @@ const { aiLoading } = useNocoAi()
     }"
   >
     <template #leftExtra>
-      <div class="w-0"></div>
+      <div class="w-0" />
     </template>
     <template #rightExtra>
       <NcTooltip
@@ -57,19 +57,23 @@ const { aiLoading } = useNocoAi()
         </div>
       </template>
       <div class="w-full">
-        <slot name="AutoSuggestedContent"></slot>
+        <slot name="AutoSuggestedContent" />
       </div>
     </a-tab-pane>
 
     <a-tab-pane :key="AiWizardTabsType.PROMPT" class="w-full" disabled>
       <template #tab>
         <NcTooltip class="flex">
-          <template #title> {{ $t('msg.toast.futureRelease') }}</template>
-          <div class="tab-title">{{ $t('labels.usePrompt') }}</div>
+          <template #title>
+            {{ $t('msg.toast.futureRelease') }}
+          </template>
+          <div class="tab-title">
+            {{ $t('labels.usePrompt') }}
+          </div>
         </NcTooltip>
       </template>
       <div>
-        <slot name="PromptContent"></slot>
+        <slot name="PromptContent" />
       </div>
     </a-tab-pane>
   </NcTabs>

@@ -32,7 +32,8 @@ export class TableMetaLoader {
     try {
       await this.getMeta(effectiveBaseId, tableIdOrTitle, undefined, undefined, true)
       this.onSettled?.()
-    } finally {
+    }
+    finally {
       this.loadingCache.delete(cacheKey)
     }
   }

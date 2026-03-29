@@ -1,6 +1,7 @@
-import TiptapStrike, { type StrikeOptions } from '@tiptap/extension-strike'
-import { markInputRule, markPasteRule } from '@tiptap/core'
+import type { StrikeOptions } from '@tiptap/extension-strike'
 import type { MarkdownMarkSpec } from '../../types'
+import { markInputRule, markPasteRule } from '@tiptap/core'
+import TiptapStrike from '@tiptap/extension-strike'
 
 /**
  * Matches a strike to a ~strike~ on input.

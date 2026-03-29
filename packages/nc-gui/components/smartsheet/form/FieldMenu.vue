@@ -41,7 +41,7 @@ const isDuplicateDlgOpen = ref(false)
 const selectedColumnExtra = ref<any>()
 const duplicateDialogRef = ref<any>()
 
-const duplicateVirtualColumn = async () => {
+async function duplicateVirtualColumn() {
   let columnCreatePayload = {}
 
   // generate duplicate column title
@@ -66,11 +66,12 @@ const duplicateVirtualColumn = async () => {
       })
     ).list
 
-    const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
+    const currentColumnIndex = gridViewColumnList.findIndex(f => f.fk_column_id === column!.value.id)
     let newColumnOrder
     if (currentColumnIndex === gridViewColumnList.length - 1) {
       newColumnOrder = gridViewColumnList[currentColumnIndex].order! + 1
-    } else {
+    }
+    else {
       newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1].order!) / 2
     }
 
@@ -97,18 +98,19 @@ const duplicateVirtualColumn = async () => {
     reloadDataHook?.trigger()
 
     // message.success(t('msg.success.columnDuplicated'))
-  } catch (e) {
+  }
+  catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
   // closing dropdown
   isOpen.value = false
 }
 
-const openDuplicateDlg = async () => {
+async function openDuplicateDlg() {
   if (!column?.value) return
   if (
-    column.value.uidt &&
-    [
+    column.value.uidt
+    && [
       UITypes.Lookup,
       UITypes.Rollup,
       UITypes.CreatedTime,
@@ -118,7 +120,8 @@ const openDuplicateDlg = async () => {
     ].includes(column.value.uidt as UITypes)
   ) {
     duplicateVirtualColumn()
-  } else {
+  }
+  else {
     const gridViewColumnList = (
       await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
         operation: 'viewColumnList',
@@ -126,11 +129,12 @@ const openDuplicateDlg = async () => {
       })
     ).list
 
-    const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
+    const currentColumnIndex = gridViewColumnList.findIndex(f => f.fk_column_id === column!.value.id)
     let newColumnOrder
     if (currentColumnIndex === gridViewColumnList.length - 1) {
       newColumnOrder = gridViewColumnList[currentColumnIndex].order! + 1
-    } else {
+    }
+    else {
       newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1].order!) / 2
     }
 
@@ -147,7 +151,8 @@ const openDuplicateDlg = async () => {
       nextTick(() => {
         duplicateDialogRef?.value?.duplicate()
       })
-    } else {
+    }
+    else {
       isDuplicateDlgOpen.value = true
     }
 
@@ -156,13 +161,13 @@ const openDuplicateDlg = async () => {
 }
 
 // hide the field in view
-const hideField = async () => {
+async function hideField() {
   if (isRequired.value) return
   isOpen.value = false
   emit('hideField')
 }
 
-const handleDelete = () => {
+function handleDelete() {
   // closing the dropdown
   // when modal opens
   isOpen.value = false

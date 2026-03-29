@@ -1,5 +1,5 @@
-import { barcodeCache } from '../components/smartsheet/grid/canvas/utils/canvas'
 import { isSharedViewRoute } from '~/utils/routeUtils'
+import { barcodeCache } from '../components/smartsheet/grid/canvas/utils/canvas'
 
 export type ThemeMode = 'system' | 'light' | 'dark'
 
@@ -52,7 +52,8 @@ export const useTheme = createSharedComposable(() => {
         if (!document.documentElement.classList.contains('dark')) {
           document.documentElement.classList.add('dark')
         }
-      } else {
+      }
+      else {
         document.documentElement.removeAttribute('theme')
         document.documentElement.classList.remove('dark')
         document.documentElement.style.colorScheme = 'light'
@@ -98,7 +99,7 @@ export const useTheme = createSharedComposable(() => {
     if (color.startsWith('rgba')) {
       const rgbaMatch = color.match(/rgba?\(([^)]+)\)/)
       if (rgbaMatch) {
-        const values = rgbaMatch[1].split(',').map((v) => v.trim())
+        const values = rgbaMatch[1].split(',').map(v => v.trim())
         const r = values[0]
         const g = values[1]
         const b = values[2]
@@ -110,7 +111,7 @@ export const useTheme = createSharedComposable(() => {
     if (color.startsWith('rgb')) {
       const rgbMatch = color.match(/rgb\(([^)]+)\)/)
       if (rgbMatch) {
-        const values = rgbMatch[1].split(',').map((v) => v.trim())
+        const values = rgbMatch[1].split(',').map(v => v.trim())
         const r = values[0]
         const g = values[1]
         const b = values[2]
@@ -124,14 +125,16 @@ export const useTheme = createSharedComposable(() => {
       let r: number, g: number, b: number
 
       if (hex.length === 3) {
-        r = parseInt(hex[0] + hex[0], 16)
-        g = parseInt(hex[1] + hex[1], 16)
-        b = parseInt(hex[2] + hex[2], 16)
-      } else if (hex.length === 6) {
-        r = parseInt(hex.slice(0, 2), 16)
-        g = parseInt(hex.slice(2, 4), 16)
-        b = parseInt(hex.slice(4, 6), 16)
-      } else {
+        r = Number.parseInt(hex[0] + hex[0], 16)
+        g = Number.parseInt(hex[1] + hex[1], 16)
+        b = Number.parseInt(hex[2] + hex[2], 16)
+      }
+      else if (hex.length === 6) {
+        r = Number.parseInt(hex.slice(0, 2), 16)
+        g = Number.parseInt(hex.slice(2, 4), 16)
+        b = Number.parseInt(hex.slice(4, 6), 16)
+      }
+      else {
         console.warn(`Invalid hex color format: ${color}`)
         return `rgba(0, 0, 0, ${opacity})`
       }
@@ -176,25 +179,29 @@ export const useTheme = createSharedComposable(() => {
       if (!variableName) {
         console.warn(`Invalid CSS variable format: ${cssVariableValue}`)
         baseColor = cssVariableValue
-      } else {
+      }
+      else {
         // Get the computed value from the document root
         const computedValue = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim()
 
         if (!computedValue) {
           console.warn(`CSS variable ${variableName} not found or has no value`)
           baseColor = '#000000' // Fallback color
-        } else {
+        }
+        else {
           baseColor = computedValue
         }
       }
-    } else if (cssVariableValue.startsWith('--rgb-')) {
+    }
+    else if (cssVariableValue.startsWith('--rgb-')) {
       // Get the computed value from the document root
       const computedValue = getComputedStyle(document.documentElement).getPropertyValue(cssVariableValue).trim()
 
       if (!computedValue) {
         console.warn(`CSS variable ${cssVariableValue} not found or has no value`)
         baseColor = '#000000' // Fallback color
-      } else {
+      }
+      else {
         // Clamp opacity between 0 and 1
         const clampedOpacity = Math.max(0, Math.min(1, opacity ?? 1))
 

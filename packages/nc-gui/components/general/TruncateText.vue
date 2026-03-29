@@ -24,10 +24,14 @@ const shortName = computed(() =>
     <template #title>
       <slot />
     </template>
-    <div class="w-full">{{ shortName }}</div>
+    <div class="w-full">
+      {{ shortName }}
+    </div>
   </NcTooltip>
   <div v-else class="w-full" data-testid="truncate-label">
     <slot />
   </div>
-  <div ref="text" class="hidden"><slot /></div>
+  <div ref="text" class="hidden">
+    <slot />
+  </div>
 </template>

@@ -1,6 +1,6 @@
+import type { EventHook } from '@vueuse/core'
 import type { ColumnType, SortType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import type { EventHook } from '@vueuse/core'
 import type { UndoRedoAction } from '~/lib/types'
 
 export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () => void) {
@@ -53,7 +53,8 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
           viewId: view.value!.id!,
         })
       ).list as SortType[]
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -119,7 +120,8 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
             sort,
           )
           $e('sort-updated')
-        } else {
+        }
+        else {
           sorts.value[i] = (await $api.internal.postOperation(
             meta.value!.fk_workspace_id!,
             meta.value!.base_id!,
@@ -133,7 +135,8 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
       }
       reloadData?.()
       $e('a:sort:dir', { direction: sort.direction })
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -152,7 +155,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
   }) => {
     try {
       $e('a:sort:add', { from: 'column-menu' })
-      const existingSortIndex = sorts.value.findIndex((s) => s.fk_column_id === column.id)
+      const existingSortIndex = sorts.value.findIndex(s => s.fk_column_id === column.id)
       const existingSort = existingSortIndex > -1 ? sorts.value[existingSortIndex] : undefined
 
       const isLocalMode = isPublic.value || isSharedBase.value || !canSyncSort.value
@@ -177,7 +180,8 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
           fk_column_id: column!.id,
           direction,
         }
-      } else {
+      }
+      else {
         data = await $api.internal.postOperation(
           meta.value!.fk_workspace_id!,
           meta.value!.base_id!,
@@ -240,7 +244,8 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
       eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
       reloadDataHook?.trigger()
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -286,7 +291,8 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
       reloadHook?.trigger()
       $e('a:sort:delete')
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -330,14 +336,16 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
     if (evt === 'sort_create') {
       sorts.value.push(payload)
       reloadHook?.trigger()
-    } else if (evt === 'sort_update') {
-      const index = sorts.value.findIndex((s) => s.id === payload.id)
+    }
+    else if (evt === 'sort_update') {
+      const index = sorts.value.findIndex(s => s.id === payload.id)
       if (index !== -1) {
         sorts.value[index] = payload
       }
       reloadHook?.trigger()
-    } else if (evt === 'sort_delete') {
-      sorts.value = sorts.value.filter((s) => s.id !== payload.id)
+    }
+    else if (evt === 'sort_delete') {
+      sorts.value = sorts.value.filter(s => s.id !== payload.id)
       reloadHook?.trigger()
     }
   }

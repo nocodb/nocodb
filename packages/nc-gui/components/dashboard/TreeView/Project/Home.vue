@@ -47,11 +47,11 @@ const hasTableCreatePermission = computed(() => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <img v-if="isDark" width="96" alt="NocoDB" src="~/assets/img/brand/text.png" />
-              <img v-else width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" />
+              <img v-if="isDark" width="96" alt="NocoDB" src="~/assets/img/brand/text.png">
+              <img v-else width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png">
             </a>
 
-            <div class="flex flex-grow"></div>
+            <div class="flex flex-grow" />
           </div>
         </div>
         <DashboardTreeViewProjectNode v-else ref="projectNodeRef" is-project-header />
@@ -88,7 +88,9 @@ const hasTableCreatePermission = computed(() => {
           </NcDropdown>
         </div>
       </div>
-      <div v-else class="h-1">&nbsp;</div>
+      <div v-else class="h-1">
+&nbsp;
+      </div>
     </div>
 
     <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
@@ -101,7 +103,7 @@ const hasTableCreatePermission = computed(() => {
       <template v-else-if="activeSidebarTab === 'settings'">
         <DashboardTreeViewProjectBaseSettingsMenu v-if="!isSharedBase" />
         <template v-if="showWsSettingsInBase">
-          <div v-if="!isSharedBase && !isMobileMode" class="mx-3 border-t border-nc-border-gray-medium"></div>
+          <div v-if="!isSharedBase && !isMobileMode" class="mx-3 border-t border-nc-border-gray-medium" />
           <DashboardTreeViewProjectWsSettingsMenu />
         </template>
       </template>
@@ -112,7 +114,7 @@ const hasTableCreatePermission = computed(() => {
       </template>
     </div>
 
-    <slot name="footer"> </slot>
+    <slot name="footer" />
   </div>
 </template>
 

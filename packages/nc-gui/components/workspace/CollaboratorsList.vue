@@ -1,13 +1,14 @@
 <script lang="ts" setup>
+import type { PlanLimitExceededDetailsType, WorkspaceUserType } from 'nocodb-sdk'
 import {
   HigherPlan,
   OrderedWorkspaceRoles,
   OrgUserRoles,
-  type PlanLimitExceededDetailsType,
+
   PlanLimitTypes,
   PlanTitles,
   WorkspaceUserRoles,
-  type WorkspaceUserType,
+
 } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -58,7 +59,7 @@ const {
 
 const currentWorkspace = computedAsync(async () => {
   if (props.workspaceId) {
-    const ws = workspacesList.value.find((workspace) => workspace.id === props.workspaceId)
+    const ws = workspacesList.value.find(workspace => workspace.id === props.workspaceId)
     if (ws) {
       return ws
     }
@@ -75,7 +76,7 @@ const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 const isSettingsSidebar = inject(IsSettingsSidebarInj, ref(false))
 
 const isOnlyOneOwner = computed(() => {
-  return collaborators.value?.filter((collab) => collab.roles === WorkspaceUserRoles.OWNER).length === 1
+  return collaborators.value?.filter(collab => collab.roles === WorkspaceUserRoles.OWNER).length === 1
 })
 
 const { t } = useI18n()
@@ -96,7 +97,7 @@ const { height: toSectionHeight } = useElementSize(topSectionRef)
 const { height: tableHeaderSectionHeight } = useElementSize(tableHeaderSectionRef)
 
 const workspaceTeamsToCollaborators = computed(() => {
-  return (workspaceTeams.value || []).map((wt) => ({
+  return (workspaceTeams.value || []).map(wt => ({
     ...wt,
     id: wt.team_id,
     isTeam: true,
@@ -112,7 +113,7 @@ const filterCollaborators = computed(() => {
   return (collaborators.value || [])
     .concat(workspaceTeamsToCollaborators.value)
     .filter(
-      (collab) =>
+      collab =>
         searchCompare([collab.display_name, collab.email], userSearchText.value) && !removingCollaboratorMap.value[collab.id],
     )
 })
@@ -121,7 +122,7 @@ const selected = reactive<{
   [key: number]: boolean
 }>({})
 
-const toggleSelectAll = (value: boolean) => {
+function toggleSelectAll(value: boolean) {
   filterCollaborators.value.forEach((_, i) => {
     selected[i] = value
   })
@@ -135,7 +136,7 @@ const sortedCollaborators = computed(() => {
   )
 })
 
-const paidUsersCount = computed(() => (collaborators.value || []).filter((c) => !!parseProp(c?.meta).billable).length)
+const paidUsersCount = computed(() => (collaborators.value || []).filter(c => !!parseProp(c?.meta).billable).length)
 
 const nonPaidUsersCount = computed(() => {
   return (collaborators.value || []).length - paidUsersCount.value
@@ -145,22 +146,22 @@ const showBanner = false
 
 const showUpgradeAlert = computed(() => {
   return (
-    (showBanner && isPaymentEnabled.value && paidUsersCount.value > getLimit(PlanLimitTypes.LIMIT_EDITOR)) ||
-    nonPaidUsersCount.value > getLimit(PlanLimitTypes.LIMIT_COMMENTER)
+    (showBanner && isPaymentEnabled.value && paidUsersCount.value > getLimit(PlanLimitTypes.LIMIT_EDITOR))
+    || nonPaidUsersCount.value > getLimit(PlanLimitTypes.LIMIT_COMMENTER)
   )
 })
 
 const selectAll = computed({
   get: () =>
-    Object.values(selected).every((v) => v) &&
-    Object.keys(selected).length > 0 &&
-    Object.values(selected).length === sortedCollaborators.value.length,
+    Object.values(selected).every(v => v)
+    && Object.keys(selected).length > 0
+    && Object.values(selected).length === sortedCollaborators.value.length,
   set: (value) => {
     toggleSelectAll(value)
   },
 })
 
-const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles, overrideBaseRole: boolean = false) => {
+async function updateCollaborator(collab: any, roles: WorkspaceUserRoles, overrideBaseRole: boolean = false) {
   if (!currentWorkspace.value || !currentWorkspace.value.id) return
 
   try {
@@ -179,7 +180,8 @@ const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles, overri
       if (!res) return
 
       message.success(t('msg.info.teamRoleUpdated'))
-    } else {
+    }
+    else {
       const res = await _updateCollaborator(collab.id, roles, currentWorkspace.value.id, overrideBaseRole)
       if (!res) return
       message.success(t('msg.info.userRoleUpdated'))
@@ -190,7 +192,8 @@ const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles, overri
         }
       })
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     const errorInfo = await extractSdkResponseErrorMsgv2(e)
 
     if (isPaymentEnabled.value && errorInfo.error === NcErrorType.ERR_PLAN_LIMIT_EXCEEDED) {
@@ -222,7 +225,7 @@ const userRoleUpdateInfo = ref<{
 /**
  * If user is only owner in any base then we should restrict overriding base role
  */
-const showRoleChangeConfirmationModal = async (collab: any, roles: WorkspaceUserRoles) => {
+async function showRoleChangeConfirmationModal(collab: any, roles: WorkspaceUserRoles) {
   if (!currentWorkspace.value || !currentWorkspace.value.id) return
 
   userRoleUpdateInfo.value.collab = collab
@@ -236,17 +239,18 @@ const showRoleChangeConfirmationModal = async (collab: any, roles: WorkspaceUser
      */
 
     userRoleUpdateInfo.value.showConfirmationModal = true
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.error(e)
   }
 }
 
-const onCancelRoleChangeConfirmationModal = () => {
+function onCancelRoleChangeConfirmationModal() {
   userRoleUpdateInfo.value.showConfirmationModal = false
   userRoleUpdateInfo.value.overrideBaseRole = false
 }
 
-const onConfirmRoleChangeConfirmationModal = () => {
+function onConfirmRoleChangeConfirmationModal() {
   userRoleUpdateInfo.value.showConfirmationModal = false
 
   updateCollaborator(userRoleUpdateInfo.value.collab, userRoleUpdateInfo.value.roles!, userRoleUpdateInfo.value.overrideBaseRole)
@@ -264,10 +268,10 @@ const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
   // Super admin can assign all workspace roles (treated as owner)
   const currentRoleIndex = isSuperAdmin.value
     ? 0
-    : OrderedWorkspaceRoles.findIndex((role) => workspaceRoles.value && Object.keys(workspaceRoles.value).includes(role))
+    : OrderedWorkspaceRoles.findIndex(role => workspaceRoles.value && Object.keys(workspaceRoles.value).includes(role))
 
   if (currentRoleIndex === -1) return []
-  const roles = OrderedWorkspaceRoles.slice(currentRoleIndex).filter((r) => r)
+  const roles = OrderedWorkspaceRoles.slice(currentRoleIndex).filter(r => r)
 
   // move INHERIT role to the end of the list
   const inheritIndex = roles.indexOf(WorkspaceUserRoles.INHERIT)
@@ -278,10 +282,10 @@ const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
   return roles
 })
 
-const getTeamCompatibleAccessibleRoles = (roles: WorkspaceUserRoles[], record: any) => {
-  if (!record?.isTeam || !isEeUI) return roles.filter((r) => r !== WorkspaceUserRoles.INHERIT || isTeamsEnabled.value)
+function getTeamCompatibleAccessibleRoles(roles: WorkspaceUserRoles[], record: any) {
+  if (!record?.isTeam || !isEeUI) return roles.filter(r => r !== WorkspaceUserRoles.INHERIT || isTeamsEnabled.value)
 
-  return roles.filter((r) => r !== WorkspaceUserRoles.OWNER && r !== WorkspaceUserRoles.INHERIT)
+  return roles.filter(r => r !== WorkspaceUserRoles.OWNER && r !== WorkspaceUserRoles.INHERIT)
 }
 
 onMounted(async () => {
@@ -346,17 +350,19 @@ const columns = [
   },
 ] as NcTableColumnProps[]
 
-const customRow = (_record: Record<string, any>, recordIndex: number) => ({
-  class: `${selected[recordIndex] ? 'selected' : ''} last:!border-b-0 !cursor-default`,
-})
+function customRow(_record: Record<string, any>, recordIndex: number) {
+  return {
+    class: `${selected[recordIndex] ? 'selected' : ''} last:!border-b-0 !cursor-default`,
+  }
+}
 
 const isScimManaged = (record: any) => !!record?.scim_managed
 
-const isRoleUpdateAllowed = (user) => {
+function isRoleUpdateAllowed(user) {
   return !(isOnlyOneOwner.value && user.roles === WorkspaceUserRoles.OWNER)
 }
 
-const isDeleteAllowed = (user) => {
+function isDeleteAllowed(user) {
   if (isScimManaged(user)) return false
   return !(isOnlyOneOwner.value && user.roles === WorkspaceUserRoles.OWNER)
 }
@@ -369,13 +375,13 @@ const tableHeight = computed(() => {
   }px)`
 })
 
-const handleScroll = (e) => {
+function handleScroll(e) {
   if (!isTopBannerVisible.value) return
 
   topScroll.value = e.target?.scrollTop
 }
 
-const removeCollaborator = (userId: string, workspaceId: string, record: any) => {
+function removeCollaborator(userId: string, workspaceId: string, record: any) {
   if (record?.isTeam) {
     $e('c:workspace:team-remove')
 
@@ -392,7 +398,8 @@ const removeCollaborator = (userId: string, workspaceId: string, record: any) =>
         workspaceStore.workspaceTeamRemove(workspaceId, [record.id])
       },
     })
-  } else {
+  }
+  else {
     showInfoModal({
       title: userId === user.value?.id ? t('title.confirmLeaveWorkspaceTitle') : t('title.confirmRemoveMemberFromWorkspaceTitle'),
       content:
@@ -410,7 +417,7 @@ const removeCollaborator = (userId: string, workspaceId: string, record: any) =>
   }
 }
 
-const handleEditTeam = (team: any) => {
+function handleEditTeam(team: any) {
   if (!team?.team_id) return
 
   router.push({ query: { ...route.value.query, teamId: team.team_id } })
@@ -488,7 +495,7 @@ watch(inviteDlg, (newVal) => {
               {{ paidUsersCount }} {{ $t('general.paid') }}
               {{ paidUsersCount === 1 ? $t('general.seat').toLowerCase() : $t('general.seats').toLowerCase() }}
             </div>
-            <div class="self-stretch border-r-1 border-nc-border-gray-medium"></div>
+            <div class="self-stretch border-r-1 border-nc-border-gray-medium" />
           </template>
 
           <div class="flex items-center gap-2">
@@ -731,8 +738,8 @@ watch(inviteDlg, (newVal) => {
 
                     <template
                       v-if="
-                        isEeUI &&
-                        (isOwnerOrCreator || record.id === user?.id || (record.isTeam && teamsMap[record.id]?.is_member))
+                        isEeUI
+                          && (isOwnerOrCreator || record.id === user?.id || (record.isTeam && teamsMap[record.id]?.is_member))
                       "
                     >
                       <NcDivider />
@@ -769,8 +776,8 @@ watch(inviteDlg, (newVal) => {
                             record.isTeam
                               ? $t('objects.teams.removeTeam')
                               : record.id === user.id
-                              ? t('activity.leaveWorkspace')
-                              : t('activity.removeMember')
+                                ? t('activity.leaveWorkspace')
+                                : t('activity.removeMember')
                           }}
                         </NcMenuItem>
                       </NcTooltip>
@@ -789,7 +796,7 @@ watch(inviteDlg, (newVal) => {
               <div class="text-sm text-nc-content-gray-subtle">
                 {{ $t('placeholder.inviteYourTeamLabel') }}
               </div>
-              <img src="~assets/img/placeholder/invite-team.png" alt="Invite Team" class="!w-[30rem] flex-none" />
+              <img src="~assets/img/placeholder/invite-team.png" alt="Invite Team" class="!w-[30rem] flex-none">
             </div>
           </template>
         </NcTable>
@@ -824,7 +831,7 @@ watch(inviteDlg, (newVal) => {
               {{ $t('title.changeWorkspaceRoleTo') }}
             </div>
 
-            <RolesBadge :border="false" :role="userRoleUpdateInfo.roles" class="inline-flex text-body"> </RolesBadge>
+            <RolesBadge :border="false" :role="userRoleUpdateInfo.roles" class="inline-flex text-body" />
           </div>
         </template>
         <template #extraContent>
@@ -852,7 +859,9 @@ watch(inviteDlg, (newVal) => {
               </div>
 
               <div class="flex flex-col gap-2">
-                <div class="font-semibold">Apply to all bases</div>
+                <div class="font-semibold">
+                  Apply to all bases
+                </div>
                 <div class="text-nc-content-gray-subtle">
                   This will override explicit base roles and apply the workspace role to all bases.
                 </div>

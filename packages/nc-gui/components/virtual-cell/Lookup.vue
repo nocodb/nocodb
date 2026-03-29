@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { type ColumnType, type LinkToAnotherRecordType, type LookupType, isMMOrMMLike } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
+import { isMMOrMMLike, isVirtualCol, RelationTypes, UITypes } from 'nocodb-sdk'
 
 const { getMeta, getMetaByKey } = useMetas()
 
@@ -47,7 +47,7 @@ provide(RowHeightInj, providedHeightRef)
 const dropdownInitialHeight = ref(0)
 
 // Helper to get the correct base ID for related table (handles cross-base links)
-const getRelatedBaseId = (col: ColumnType | undefined) => {
+function getRelatedBaseId(col: ColumnType | undefined) {
   if (!col) return parentMeta.value?.base_id
   return (col.colOptions as any)?.fk_related_base_id || parentMeta.value?.base_id
 }
@@ -92,8 +92,8 @@ const lookupTableMeta = computed<Record<string, any> | undefined>(() => {
 const lookupColumn = computed(
   () =>
     lookupTableMeta.value?.columns?.find((c: any) => c.id === (column.value?.colOptions as LookupType)?.fk_lookup_column_id) as
-      | ColumnType
-      | undefined,
+    | ColumnType
+    | undefined,
 )
 
 watch(
@@ -101,7 +101,8 @@ watch(
   () => {
     if (lookupColumn.value && !isAttachment(lookupColumn.value)) {
       providedHeightRef.value = 1
-    } else {
+    }
+    else {
       providedHeightRef.value = rowHeight.value
     }
   },
@@ -112,8 +113,8 @@ watch(
 
 const arrValue = computed(() => {
   if (
-    lookupColumn.value?.uidt === UITypes.Checkbox &&
-    [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relationColumn.value?.colOptions?.type)
+    lookupColumn.value?.uidt === UITypes.Checkbox
+    && [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relationColumn.value?.colOptions?.type)
   ) {
     const hasLink = !!row?.value?.row?.[relationColumn.value?.title]
 
@@ -132,8 +133,8 @@ const arrValue = computed(() => {
     }
 
     if (
-      ncIsArray(cellValue.value) &&
-      cellValue.value.every((v) => {
+      ncIsArray(cellValue.value)
+      && cellValue.value.every((v) => {
         if (ncIsNull(v)) return true
 
         if (ncIsArray(v)) {
@@ -144,7 +145,7 @@ const arrValue = computed(() => {
       })
     ) {
       return cellValue.value
-        .filter((v) => v !== null)
+        .filter(v => v !== null)
         .reduce((acc, v) => {
           acc.push(...v)
 
@@ -154,7 +155,7 @@ const arrValue = computed(() => {
   }
 
   // TODO: We are filtering null as cell value can be null. Find the root cause and fix it
-  if (Array.isArray(cellValue.value)) return cellValue.value.filter((v) => v !== null)
+  if (Array.isArray(cellValue.value)) return cellValue.value.filter(v => v !== null)
 
   return [cellValue.value]
 })
@@ -165,8 +166,8 @@ provide(IsUnderLookupInj, ref(true))
 
 provide(CellUrlDisableOverlayInj, ref(true))
 
-const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
-  useShowNotEditableWarning()
+const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning }
+  = useShowNotEditableWarning()
 
 const search = ref('')
 const searchableUITypes = [
@@ -221,7 +222,7 @@ function toggleDropdown(e: Event) {
   }
 }
 
-const onCellEvent = (event?: Event) => {
+function onCellEvent(event?: Event) {
   if (!(event instanceof KeyboardEvent) || !event.target || isActiveInputElementExist(event)) return
 
   if (isExpandCellKey(event)) {
@@ -283,8 +284,8 @@ const smartsheetCellClass = computed(() => {
       [UITypes.MultiSelect, UITypes.SingleSelect, UITypes.User].includes(lookupColumn.value!.uidt! as UITypes)
         ? 'pl-2'
         : !isAttachmentColumn
-        ? 'px-1'
-        : ''
+            ? 'px-1'
+            : ''
     }`,
     {
       'min-h-0 min-w-0': isAttachmentColumn,
@@ -297,11 +298,11 @@ const cellHeight = computed(() =>
   isGroupByLabel.value || (lookupColumn.value && isAttachment(lookupColumn.value))
     ? undefined
     : rowHeight.value
-    ? `${rowHeight.value === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight.value}`] - (isGrid.value ? 17 : 0)}px`
-    : `2.85rem`,
+      ? `${rowHeight.value === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight.value}`] - (isGrid.value ? 17 : 0)}px`
+      : `2.85rem`,
 )
 
-const handleCloseDropdown = (e: MouseEvent) => {
+function handleCloseDropdown(e: MouseEvent) {
   if (e.target && e.target.closest('.nc-attachment-item')) {
     e.stopPropagation()
     dropdownVisible.value = false
@@ -321,7 +322,7 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
     v-if="extensionConfig.isPageDesignerPreviewPanel && attachmentUrl"
     :src="attachmentUrl"
     class="object-contain h-full w-full"
-  />
+  >
   <NcDropdown
     v-else
     :disabled="disableDropdown"
@@ -353,10 +354,10 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
             <!-- If non-belongs-to and non-one-to-one LTAR column then pass the array value, else iterate and render -->
             <template
               v-if="
-                lookupColumn.uidt !== UITypes.LinkToAnotherRecord ||
-                (lookupColumn.uidt === UITypes.LinkToAnotherRecord &&
-                  !isMMOrMMLike(lookupColumn) &&
-                  [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions.type))
+                lookupColumn.uidt !== UITypes.LinkToAnotherRecord
+                  || (lookupColumn.uidt === UITypes.LinkToAnotherRecord
+                    && !isMMOrMMLike(lookupColumn)
+                    && [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions.type))
               "
             >
               <LazySmartsheetVirtualCell
@@ -472,7 +473,7 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
               src="~assets/img/placeholder/no-search-result-found.png"
               class="!w-[164px] flex-none"
               alt="No search results found"
-            />
+            >
 
             {{ $t('title.noResultsMatchedYourSearch') }}
           </div>
@@ -480,9 +481,9 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
             <!-- If non-belongs-to and non-one-to-one LTAR column then pass the array value, else iterate and render -->
             <template
               v-if="
-                lookupColumn.uidt !== UITypes.LinkToAnotherRecord ||
-                (lookupColumn.uidt === UITypes.LinkToAnotherRecord &&
-                  [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions.type))
+                lookupColumn.uidt !== UITypes.LinkToAnotherRecord
+                  || (lookupColumn.uidt === UITypes.LinkToAnotherRecord
+                    && [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions.type))
               "
             >
               <LazySmartsheetVirtualCell

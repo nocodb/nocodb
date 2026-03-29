@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import FeedRecents from './Recents/index.vue'
 import FeedChangelog from './Changelog/index.vue'
+import FeedRecents from './Recents/index.vue'
 import FeedYoutube from './Youtube/index.vue'
 // import FeedTwitter from './Twitter.vue'
 // import FeedRoadmap from './Roadmap.vue'
@@ -64,7 +64,7 @@ watch(activeTab, (val) => {
 onMounted(() => {
   hideSidebar.value = true
   const tab = router.currentRoute.value.query.tab as string
-  if (tab && tabs.some((t) => t.key === tab)) {
+  if (tab && tabs.some(t => t.key === tab)) {
     activeTab.value = tab
   }
 })
@@ -95,7 +95,7 @@ onBeforeUnmount(() => {
                 'text-nc-content-gray-subtle': activeTab !== tab.key,
               }"
               class="text-sm"
-              >{{ tab.title }}
+            >{{ tab.title }}
             </span>
           </div>
         </template>

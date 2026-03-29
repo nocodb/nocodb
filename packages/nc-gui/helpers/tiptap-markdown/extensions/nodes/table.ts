@@ -1,6 +1,6 @@
+import type { MarkdownNodeSpec } from '../../types'
 import { Node } from '@tiptap/core'
 import { childNodes } from '../../util/prosemirror'
-import type { MarkdownNodeSpec } from '../../types'
 import { HTMLNode } from './html'
 
 export const Table = Node.create<any, { markdown: MarkdownNodeSpec }>({
@@ -56,13 +56,13 @@ function isMarkdownSerializable(node) {
   const firstRow = rows[0]
   const bodyRows = rows.slice(1)
 
-  if (childNodes(firstRow).some((cell) => cell.type.name !== 'tableHeader' || hasSpan(cell) || cell.childCount > 1)) {
+  if (childNodes(firstRow).some(cell => cell.type.name !== 'tableHeader' || hasSpan(cell) || cell.childCount > 1)) {
     return false
   }
 
   if (
-    bodyRows.some((row) =>
-      childNodes(row).some((cell) => cell.type.name === 'tableHeader' || hasSpan(cell) || cell.childCount > 1),
+    bodyRows.some(row =>
+      childNodes(row).some(cell => cell.type.name === 'tableHeader' || hasSpan(cell) || cell.childCount > 1),
     )
   ) {
     return false

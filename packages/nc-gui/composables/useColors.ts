@@ -1,5 +1,5 @@
-import { ref } from 'vue'
 import type { MaybeRef } from '@vueuse/core'
+import { ref } from 'vue'
 
 export function useColors(darkMode?: MaybeRef<boolean>) {
   const scope = effectScope()

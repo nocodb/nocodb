@@ -7681,7 +7681,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     try {
       let batchStart = 0;
       const batchSize = 1000;
-      // eslint-disable-next-line no-constant-condition
+
       while (true) {
         const pkQb = qb
           .clone()

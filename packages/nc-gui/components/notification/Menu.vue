@@ -36,7 +36,7 @@ const isDropdownOpen = ref(false)
             v-if="unreadCount"
             :key="unreadCount"
             class="bg-nc-red-500 w-2 h-2 border-1 border-nc-bg-gray-minisidebar rounded-[6px] absolute top-[5px] left-[15px]"
-          ></span>
+          />
           <GeneralIcon
             icon="notification"
             :class="{

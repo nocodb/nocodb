@@ -1,7 +1,7 @@
 <script lang="ts" setup>
+import type { RichTextBubbleMenuOptions } from '#imports'
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3'
-import type { RichTextBubbleMenuOptions } from '#imports'
 
 interface Props {
   editor: Editor
@@ -22,7 +22,7 @@ const isSelectAllShortcut = ref(false)
 
 // Debounce show menu to prevent flickering
 const showMenu = computed(() => {
-  if (!editor || isSelectAllShortcut.value) return false
+  if (!editor.value || isSelectAllShortcut.value) return false
 
   const selection = editor.value.state.selection
   const selectedNode = selection && 'node' in selection ? (selection as any).node : null
@@ -44,9 +44,9 @@ watchDebounced(
   },
 )
 
-const handleEditorMouseDown = (e: MouseEvent) => {
+function handleEditorMouseDown(e: MouseEvent) {
   const domsInEvent = document.elementsFromPoint(e.clientX, e.clientY) as HTMLElement[]
-  const isBubble = domsInEvent.some((dom) => dom?.classList?.contains('bubble-menu'))
+  const isBubble = domsInEvent.some(dom => dom?.classList?.contains('bubble-menu'))
   if (isBubble || isSelectAllShortcut.value) {
     isSelectAllShortcut.value = false
     return
@@ -56,9 +56,9 @@ const handleEditorMouseDown = (e: MouseEvent) => {
   pageContent?.classList.add('bubble-menu-hidden')
 }
 
-const handleEditorMouseUp = (e: MouseEvent) => {
+function handleEditorMouseUp(e: MouseEvent) {
   const domsInEvent = document.elementsFromPoint(e.clientX, e.clientY) as HTMLElement[]
-  const isBubble = domsInEvent.some((dom) => dom?.classList?.contains('bubble-menu'))
+  const isBubble = domsInEvent.some(dom => dom?.classList?.contains('bubble-menu'))
 
   if (isBubble || isSelectAllShortcut.value) {
     isSelectAllShortcut.value = false

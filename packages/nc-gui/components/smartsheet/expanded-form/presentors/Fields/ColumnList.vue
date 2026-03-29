@@ -1,12 +1,12 @@
 <script setup lang="ts">
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import {
-  type ColumnType,
-  type LinkToAnotherRecordType,
-  PermissionEntity,
-  PermissionKey,
-  type TableType,
+
   isLinksOrLTAR,
   isVirtualCol,
+
+  PermissionEntity,
+  PermissionKey,
 } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -46,7 +46,7 @@ const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value || is
  * Such columns are auto-linked and should be disabled (read-only) in the blueprint editor
  * to prevent circular linking.
  */
-const isParentLtarColumn = (col: ColumnType): boolean => {
+function isParentLtarColumn(col: ColumnType): boolean {
   if (!blueprintParentTableId.value || !isLinksOrLTAR(col)) return false
   const colOptions = col.colOptions as LinkToAnotherRecordType
   return colOptions?.fk_related_model_id === blueprintParentTableId.value
@@ -57,7 +57,7 @@ const isParentLtarColumn = (col: ColumnType): boolean => {
  * When saved, the blueprint is added to the parent row's ltarState,
  * which will later be resolved into a real record when the template is used.
  */
-const addBlueprintForColumn = async (col: ColumnType) => {
+async function addBlueprintForColumn(col: ColumnType) {
   const colOptions = col.colOptions as LinkToAnotherRecordType
   const relatedTableId = colOptions?.fk_related_model_id
   const baseId = meta.value?.base_id
@@ -92,18 +92,20 @@ const addBlueprintForColumn = async (col: ColumnType) => {
             _row.value.rowMeta.ltarState[col.title!] = []
           }
           _row.value.rowMeta.ltarState[col.title!].push(blueprint)
-        } else {
+        }
+        else {
           // BT or OO — single linked record
           _row.value.rowMeta.ltarState[col.title!] = blueprint
         }
       },
     })
-  } catch (e) {
+  }
+  catch (e) {
     console.error('Failed to open blueprint form:', e)
   }
 }
 
-const getRelatedTableName = (col: ColumnType): string => {
+function getRelatedTableName(col: ColumnType): string {
   const colOptions = col.colOptions as LinkToAnotherRecordType
   const relatedTableId = colOptions?.fk_related_model_id
   const baseId = meta.value?.base_id
@@ -113,11 +115,11 @@ const getRelatedTableName = (col: ColumnType): string => {
   return relatedMeta?.title || 'Sub Record'
 }
 
-const showCol = (col: ColumnType) => {
+function showCol(col: ColumnType) {
   return props.showColCallback?.(col) || !isVirtualCol(col) || !isNew.value || isLinksOrLTAR(col)
 }
 
-const revertLocalOnlyChanges = (col: string) => {
+function revertLocalOnlyChanges(col: string) {
   if (localOnlyChanges.value[col]) {
     _row.value.row[col] = localOnlyChanges.value[col]
     changedColumns.value.delete(col)
@@ -195,9 +197,11 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
         :disabled="!showReadonlyColumnTooltip(col) && !isParentLtarColumn(col)"
         :arrow="false"
       >
-        <template #title>{{
-          isParentLtarColumn(col) ? 'This field will be auto-linked to the parent record' : $t('msg.info.fieldReadonly')
-        }}</template>
+        <template #title>
+          {{
+            isParentLtarColumn(col) ? 'This field will be auto-linked to the parent record' : $t('msg.info.fieldReadonly')
+          }}
+        </template>
         <PermissionsTooltip
           v-if="col.title"
           class="w-full"

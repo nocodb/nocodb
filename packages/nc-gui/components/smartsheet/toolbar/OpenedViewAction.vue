@@ -15,7 +15,7 @@ const isDropdownOpen = ref(false)
 
 const isViewIdCopied = ref(false)
 
-const updateDescription = async () => {
+async function updateDescription() {
   if (!activeView.value || !activeView.value.id) return
 
   $e('c:view:description')

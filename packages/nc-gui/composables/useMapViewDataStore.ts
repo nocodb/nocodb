@@ -1,15 +1,16 @@
-import type { ComputedRef, Ref } from 'vue'
 import type { ColumnType, MapType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import type { ComputedRef, Ref } from 'vue'
 
-const formatData = (list: Record<string, any>[]) =>
-  list.map(
-    (row) =>
+function formatData(list: Record<string, any>[]) {
+  return list.map(
+    row =>
       ({
         row: { ...row },
         oldRow: { ...row },
         rowMeta: {},
       } as Row),
   )
+}
 
 const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
   (
@@ -70,8 +71,8 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
             mapViewId: viewMeta.value.id,
           })
 
-      geoDataFieldColumn.value =
-        (meta.value.columns as ColumnType[]).filter((f) => f.id === mapMetaData.value.fk_geo_data_col_id)[0] || {}
+      geoDataFieldColumn.value
+        = (meta.value.columns as ColumnType[]).filter(f => f.id === mapMetaData.value.fk_geo_data_col_id)[0] || {}
     }
 
     async function loadMapData() {
@@ -109,7 +110,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
       {
         metaValue = meta.value,
         viewMetaValue = viewMeta.value,
-      }: { metaValue?: MapType & { id: string }; viewMetaValue?: (ViewType | MapType) & { id: string } } = {},
+      }: { metaValue?: MapType & { id: string }, viewMetaValue?: (ViewType | MapType) & { id: string } } = {},
     ) {
       const row = currentRow.row
       if (currentRow.rowMeta) currentRow.rowMeta.saving = true
@@ -140,9 +141,11 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
         syncCount()
 
         return insertedData
-      } catch (error: any) {
+      }
+      catch (error: any) {
         message.error(await extractSdkResponseErrorMsg(error))
-      } finally {
+      }
+      finally {
         if (currentRow.rowMeta) currentRow.rowMeta.saving = false
       }
     }

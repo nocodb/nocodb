@@ -32,7 +32,8 @@ async function onDelete() {
       vModel.value = false
       emits('deleted')
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -43,8 +44,7 @@ async function onDelete() {
     <template #entity-preview>
       <div class="text-nc-content-gray-subtle text-sm mb-3">
         Are you sure you want to delete
-        <span class="font-semibold">{{ oauthClient.client_name }}</span
-        >? This action cannot be undone and will immediately revoke all access tokens.
+        <span class="font-semibold">{{ oauthClient.client_name }}</span>? This action cannot be undone and will immediately revoke all access tokens.
       </div>
 
       <div class="flex flex-row items-center py-2 px-3 bg-nc-bg-gray-extralight rounded-lg text-gray-700">

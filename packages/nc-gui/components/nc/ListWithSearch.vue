@@ -49,7 +49,7 @@ const { t } = useI18n()
 
 const wrapperRef = ref()
 
-const handleAutoScrollOption = () => {
+function handleAutoScrollOption() {
   const option = document.querySelector('.nc-unified-list-option-active')
 
   if (option) {
@@ -61,30 +61,31 @@ const handleAutoScrollOption = () => {
 
 const filteredOptions = computed(
   () =>
-    options.value?.filter((c: T) => (c[filterField.value] as string)?.toLowerCase().includes(searchQuery.value.toLowerCase())) ??
-    [],
+    options.value?.filter((c: T) => (c[filterField.value] as string)?.toLowerCase().includes(searchQuery.value.toLowerCase()))
+    ?? [],
 )
 
-const onArrowDown = () => {
+function onArrowDown() {
   activeOptionIndex.value = Math.min(activeOptionIndex.value + 1, filteredOptions.value.length - 1)
   handleAutoScrollOption()
 }
 
-const onArrowUp = () => {
+function onArrowUp() {
   activeOptionIndex.value = Math.max(activeOptionIndex.value - 1, 0)
   handleAutoScrollOption()
 }
 
-const onClick = (column: T) => {
+function onClick(column: T) {
   if (!column) return
 
   emits('selected', column)
 }
 
-const handleKeydownEnter = () => {
+function handleKeydownEnter() {
   if (filteredOptions.value[activeOptionIndex.value]) {
     onClick(filteredOptions.value[activeOptionIndex.value])
-  } else if (filteredOptions.value[0]) {
+  }
+  else if (filteredOptions.value[0]) {
     onClick(filteredOptions.value[activeOptionIndex.value])
   }
 }
@@ -127,8 +128,10 @@ watch(
         @keydown.enter.stop="handleKeydownEnter"
         @change="activeOptionIndex = 0"
       >
-        <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
-      ></a-input>
+        <template #prefix>
+          <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" />
+        </template>
+      </a-input>
     </div>
 
     <div class="nc-unified-search-list-wrapper flex-col w-full max-h-100 nc-scrollbar-thin !overflow-y-auto px-2 pb-2">
@@ -138,7 +141,7 @@ watch(
           src="~assets/img/placeholder/no-search-result-found.png"
           class="!w-[164px] flex-none"
           alt="No search results found"
-        />
+        >
 
         {{ options.length ? t('title.noResultsMatchedYourSearch') : 'The list is empty' }}
       </div>
@@ -166,7 +169,9 @@ watch(
         >
           <slot :option="option" />
           <NcTooltip class="truncate" show-on-truncate-only>
-            <template #title> {{ option.title }}</template>
+            <template #title>
+              {{ option.title }}
+            </template>
             <span>
               {{ option.title }}
             </span>

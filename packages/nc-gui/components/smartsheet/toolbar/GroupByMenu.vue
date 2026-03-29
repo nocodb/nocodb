@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import {
+  isLinksOrLTAR,
+  isSystemColumn,
   RelationTypes,
   UITypes,
   ViewLockType,
   ViewSettingOverrideOptions,
   ViewTypes,
-  isLinksOrLTAR,
-  isSystemColumn,
 } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
@@ -63,9 +63,9 @@ const syncedGroupByEntries = computed<Group[]>(() => {
 const groupedByColumnIds = computed(() => {
   // null = no override (use synced), [] = override with empty (no grouping)
   if (localGroupBy.value !== null) {
-    return localGroupBy.value.map((g) => g.column.id).filter(Boolean)
+    return localGroupBy.value.map(g => g.column.id).filter(Boolean)
   }
-  return syncedGroupByEntries.value.map((g) => g.fk_column_id).filter(Boolean)
+  return syncedGroupByEntries.value.map(g => g.fk_column_id).filter(Boolean)
 })
 
 const totalGroupByCount = computed(() => _groupBy.value.length)
@@ -97,16 +97,17 @@ const availableColumns = computed(() => {
           /** hide system columns if not enabled */
           showSystemFields.value
         )
-      } else {
+      }
+      else {
         /** ignore hasmany and manytomany relations if it's using within sort menu */
         return !(isLinksOrLTAR(c) && (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO)
         /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
       }
     })
-    .filter((c) => !groupedByColumnIds.value.includes(c.id!))
+    .filter(c => !groupedByColumnIds.value.includes(c.id!))
 })
 
-const getColumnUidtByID = (key?: string) => {
+function getColumnUidtByID(key?: string) {
   return sortGetColumnUidtByID(key, columnByID.value)
 }
 
@@ -114,7 +115,7 @@ const open = ref(false)
 
 useMenuCloseOnEsc(open)
 
-const saveGroupBy = async () => {
+async function saveGroupBy() {
   if (!view.value?.id) {
     message.error('View not found!!!')
     return
@@ -137,7 +138,7 @@ const saveGroupBy = async () => {
 
       for (const gby of syncedGroupByEntries.value) {
         if (!gby.fk_column_id) continue
-        if (_groupBy.value.find((g) => g.fk_column_id === gby.fk_column_id)) continue
+        if (_groupBy.value.find(g => g.fk_column_id === gby.fk_column_id)) continue
         const col = gridViewCols.value[gby.fk_column_id]
         if (col && col.group_by) {
           await updateGridViewColumn(gby.fk_column_id, {
@@ -151,20 +152,22 @@ const saveGroupBy = async () => {
       $e('a:group-by:update', { groupBy: syncedGroupByEntries.value })
 
       eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
-    } catch (e) {
+    }
+    catch (e) {
       message.error('There was an error while updating view!')
     }
-  } else {
+  }
+  else {
     // Local mode: update localGroupBy ref
     const allColumns = meta.value?.columns || []
     const newLocalGroupBy = _groupBy.value
-      .filter((g) => g.fk_column_id)
+      .filter(g => g.fk_column_id)
       .map((g, i) => ({
-        column: allColumns.find((c) => c.id === g.fk_column_id)!,
+        column: allColumns.find(c => c.id === g.fk_column_id)!,
         sort: g.sort,
         order: i + 1,
       }))
-      .filter((g) => g.column)
+      .filter(g => g.column)
 
     localGroupBy.value = newLocalGroupBy
 
@@ -180,19 +183,19 @@ const saveGroupBy = async () => {
   }
 }
 
-const addFieldToGroupBy = (column: ColumnType) => {
+function addFieldToGroupBy(column: ColumnType) {
   _groupBy.value.push({ fk_column_id: column.id, sort: 'asc', order: _groupBy.value.length + 1 })
   saveGroupBy()
   showCreateGroupBy.value = false
 }
 
-const removeFieldFromGroupBy = async (group: Group) => {
+async function removeFieldFromGroupBy(group: Group) {
   if (groupedByColumnIds.value.length === 0) {
     open.value = false
     return
   }
 
-  const index = _groupBy.value.findIndex((g) => g.fk_column_id === group.fk_column_id)
+  const index = _groupBy.value.findIndex(g => g.fk_column_id === group.fk_column_id)
   if (index >= 0) {
     _groupBy.value.splice(index, 1)
   }
@@ -208,26 +211,29 @@ watch(open, () => {
         sort: e.sort,
         order: i + 1,
       }))
-    } else {
+    }
+    else {
       // Creators or restricted editors without local overrides (null): load from synced
       _groupBy.value = [...syncedGroupByEntries.value]
     }
-  } else {
+  }
+  else {
     showCreateGroupBy.value = false
   }
 })
 
-const smartSheetListener = async (event: SmartsheetStoreEvents, payload: any = {}) => {
+async function smartSheetListener(event: SmartsheetStoreEvents, payload: any = {}) {
   const column = payload?.column
 
   if (!column?.id) return
 
   if (event === SmartsheetStoreEvents.GROUP_BY_ADD) {
     addFieldToGroupBy(column)
-  } else if (event === SmartsheetStoreEvents.GROUP_BY_REMOVE) {
+  }
+  else if (event === SmartsheetStoreEvents.GROUP_BY_REMOVE) {
     if (groupedByColumnIds.value.length === 0) return
 
-    _groupBy.value = _groupBy.value.filter((g) => g.fk_column_id !== column.id)
+    _groupBy.value = _groupBy.value.filter(g => g.fk_column_id !== column.id)
 
     await saveGroupBy()
   }
@@ -239,7 +245,7 @@ onBeforeUnmount(() => {
   eventBus.off(smartSheetListener)
 })
 
-const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) => {
+async function onMove(event: { moved: { newIndex: number, oldIndex: number } }) {
   const { newIndex, oldIndex } = event.moved
 
   const tempGroups = [..._groupBy.value]
@@ -256,7 +262,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
 }
 
 // exclude columns which are already grouped by
-const getFieldsToGroupBy = (currentGroup: Group) => {
+function getFieldsToGroupBy(currentGroup: Group) {
   return fieldsToGroupBy.value.filter((column) => {
     return _groupBy.value?.every((group) => {
       return group.fk_column_id !== column.id || group.fk_column_id === currentGroup.fk_column_id
@@ -366,7 +372,9 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                       :value="option.value"
                     >
                       <div class="w-full flex items-center justify-between gap-2">
-                        <div class="truncate flex-1">{{ option.text }}</div>
+                        <div class="truncate flex-1">
+                          {{ option.text }}
+                        </div>
                         <component
                           :is="iconMap.check"
                           v-if="group.sort === option.value"
@@ -417,10 +425,10 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
           <div v-if="!isPersonalViewNonOwner" class="flex items-center justify-between mt-2 empty:hidden">
             <NcDropdown
               v-if="
-                availableColumns.length &&
-                fieldsToGroupBy.length > totalGroupByCount &&
-                totalGroupByCount < groupByLimit &&
-                !(view?.type === ViewTypes.TIMELINE && totalGroupByCount >= 1)
+                availableColumns.length
+                  && fieldsToGroupBy.length > totalGroupByCount
+                  && totalGroupByCount < groupByLimit
+                  && !(view?.type === ViewTypes.TIMELINE && totalGroupByCount >= 1)
               "
               v-model:visible="showCreateGroupBy"
               :trigger="['click']"

@@ -31,7 +31,7 @@ const visible = ref(false)
 
 const copyBtnRef = ref()
 
-const toggleChatSupport = () => {
+function toggleChatSupport() {
   if (!isChatVisible.value && !ncIsFunction(window.$chatwoot?.toggle)) {
     return
   }
@@ -141,7 +141,7 @@ const helpItems = computed<CategoryItemType[]>(() => {
   ]
 })
 
-const openUrl = (item: ItemType) => {
+function openUrl(item: ItemType) {
   if (item.e) {
     $e(item.e, {
       trigger: 'mini-sidebar',
@@ -151,9 +151,11 @@ const openUrl = (item: ItemType) => {
   if (item.onClick) {
     item.onClick()
     visible.value = false
-  } else if (item.link.startsWith('http')) {
+  }
+  else if (item.link.startsWith('http')) {
     window.open(item.link, '_blank')
-  } else if (item.link) {
+  }
+  else if (item.link) {
     openLinkUsingATag(item.link, '_blank')
   }
 

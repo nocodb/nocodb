@@ -44,7 +44,7 @@ const showBarcode = computed(
   () => barcodeValue?.value.length > 0 && !tooManyCharsForBarcode.value && barcodeValue?.value !== 'ERR!',
 )
 
-const showBarcodeModal = () => {
+function showBarcodeModal() {
   if (!showBarcode.value) return
   modalVisible.value = true
 }
@@ -85,7 +85,9 @@ onMounted(() => {
   >
     <template #title>
       <div class="flex gap-2 items-center w-full">
-        <h1 class="font-weight-700 m-0">{{ column?.title }}</h1>
+        <h1 class="font-weight-700 m-0">
+          {{ column?.title }}
+        </h1>
         <div class="h-5 px-1 bg-nc-bg-gray-medium text-nc-content-gray-subtle2 rounded-md justify-center items-center flex">
           <SmartsheetHeaderIcon
             v-if="meta?.columnsById?.[valueFieldId]"
@@ -93,9 +95,11 @@ onMounted(() => {
             class="h-4"
           />
 
-          <div class="text-sm font-medium">{{ meta?.columnsById?.[valueFieldId]?.title }}</div>
+          <div class="text-sm font-medium">
+            {{ meta?.columnsById?.[valueFieldId]?.title }}
+          </div>
         </div>
-        <div class="flex-1"></div>
+        <div class="flex-1" />
         <NcButton class="nc-barcode-close !px-1" type="text" size="xs" @click="modalVisible = false">
           <GeneralIcon class="text-md text-nc-content-gray-subtle h-4 w-4" icon="close" />
         </NcButton>

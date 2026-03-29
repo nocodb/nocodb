@@ -58,7 +58,8 @@ const currentWorkspace = computedAsync(async () => {
       await loadWorkspace(props.workspaceId)
       ws = workspaces.value.get(props.workspaceId)
     }
-  } else {
+  }
+  else {
     ws = _activeWorkspace.value
   }
   await loadRoles(undefined, {}, ws?.id)
@@ -153,7 +154,7 @@ watch(
 
 onMounted(() => {
   until(() => currentWorkspace.value?.id && isBaseRolesLoaded.value)
-    .toMatch((v) => !!v)
+    .toMatch(v => !!v)
     .then(async () => {
       if (isUIAllowed('workspaceCollaborators')) {
         await loadCollaborators({}, currentWorkspace.value!.id)
@@ -171,9 +172,10 @@ watch(
 
     if (!isUIAllowed('workspaceCollaborators') && showEEFeatures.value) {
       tab.value = 'settings'
-    } else if (
-      (!isWsAuditEnabled.value && newTab === 'audits') ||
-      ((!isEeUI || !hasTeamsEditPermission.value || blockTeamsManagement.value) && newTab === 'teams')
+    }
+    else if (
+      (!isWsAuditEnabled.value && newTab === 'audits')
+      || ((!isEeUI || !hasTeamsEditPermission.value || blockTeamsManagement.value) && newTab === 'teams')
     ) {
       tab.value = 'collaborators'
     }
@@ -196,7 +198,7 @@ watch(
 
     // Load data for specific tabs
     until(() => currentWorkspace.value?.id)
-      .toMatch((v) => !!v)
+      .toMatch(v => !!v)
       .then(async () => {
         if (['ws-collaborators', 'ws-teams'].includes(newTab) && isUIAllowed('workspaceCollaborators')) {
           await loadCollaborators({}, currentWorkspace.value!.id)
@@ -299,7 +301,7 @@ onBeforeUnmount(() => {
 
     <NcTabs v-model:active-key="tab" class="flex-1 min-h-0" :tab-bar-style="isSettingsSidebar ? { display: 'none' } : undefined">
       <template #leftExtra>
-        <div class="w-3"></div>
+        <div class="w-3" />
       </template>
       <template v-if="isUIAllowed('workspaceCollaborators')">
         <a-tab-pane key="collaborators" class="w-full h-full">
@@ -328,12 +330,12 @@ onBeforeUnmount(() => {
       <template v-if="!isMobileMode">
         <template
           v-if="
-            isEeUI &&
-            !props.workspaceId &&
-            !currentWorkspace?.fk_org_id &&
-            isPaymentEnabled &&
-            isUIAllowed('workspaceBilling') &&
-            showEEFeatures
+            isEeUI
+              && !props.workspaceId
+              && !currentWorkspace?.fk_org_id
+              && isPaymentEnabled
+              && isUIAllowed('workspaceBilling')
+              && showEEFeatures
           "
         >
           <a-tab-pane key="billing" class="w-full">
@@ -358,7 +360,9 @@ onBeforeUnmount(() => {
               </div>
             </template>
             <WorkspaceAudits v-if="isWsAuditEnabled" />
-            <div v-else>&nbsp;</div>
+            <div v-else>
+&nbsp;
+            </div>
           </a-tab-pane>
         </template>
 
@@ -390,7 +394,7 @@ onBeforeUnmount(() => {
         <div class="nc-integrations-tabs-wrapper h-full flex flex-col">
           <NcTabs v-model:active-key="integrationsSubTab" class="flex-1 min-h-0">
             <template #leftExtra>
-              <div class="w-3"></div>
+              <div class="w-3" />
             </template>
             <a-tab-pane key="integrations" class="w-full">
               <template #tab>

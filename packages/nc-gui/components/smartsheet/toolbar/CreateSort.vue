@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { type ColumnType, type LinkToAnotherRecordType, type SortType, UITypesName } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, SortType } from 'nocodb-sdk'
+import { isHiddenCol, isLinksOrLTAR, isSystemColumn, RelationTypes, UITypes, UITypesName } from 'nocodb-sdk'
 
 import rfdc from 'rfdc'
 
@@ -58,18 +58,19 @@ const options = computed<ColumnType[]>(() =>
             /** hide system columns if not enabled */
             showSystemFields.value
           )
-        } else {
+        }
+        else {
           /** ignore hasmany and manytomany relations if it's using within sort menu */
           return !(
-            isLinksOrLTAR(c) &&
-            ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
+            isLinksOrLTAR(c)
+            && ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
               (c.colOptions as LinkToAnotherRecordType).type as RelationTypes,
             )
           )
           /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
         }
       })
-      .filter((c: ColumnType) => !props.sorts?.find((s) => s.fk_column_id === c.id)) ?? []
+      .filter((c: ColumnType) => !props.sorts?.find(s => s.fk_column_id === c.id)) ?? []
   ).map((c) => {
     const isDisabled = [UITypes.QrCode, UITypes.Barcode, UITypes.ID, UITypes.Button].includes(c.uidt)
 
@@ -82,7 +83,7 @@ const options = computed<ColumnType[]>(() =>
   }),
 )
 
-const onClick = (column: ColumnType) => {
+function onClick(column: ColumnType) {
   emits('created', column)
 }
 </script>

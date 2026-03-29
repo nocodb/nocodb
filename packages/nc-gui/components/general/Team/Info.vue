@@ -67,7 +67,9 @@ const breadcrumb = computed(() => {
         :class="{ 'text-nc-content-gray-muted': disabled, 'text-nc-content-gray-subtle2': !disabled }"
         show-on-truncate-only
       >
-        <template #title> {{ team.members_count }} {{ $t('labels.members') }} </template>
+        <template #title>
+          {{ team.members_count }} {{ $t('labels.members') }}
+        </template>
         {{ team.members_count }} {{ $t('labels.members') }}
       </NcTooltip>
     </div>

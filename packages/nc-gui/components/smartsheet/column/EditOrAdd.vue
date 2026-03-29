@@ -1,29 +1,27 @@
 <script lang="ts" setup>
+import type { PredictedFieldType, UiTypesType } from '#imports'
+import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
+import { AiWizardTabsType, isEeUI } from '#imports'
 import {
-  type ColumnReqType,
-  type ColumnType,
-  PlanFeatureTypes,
-  PlanTitles,
-  UITypesSearchTerms,
-  isAIPromptCol,
-  isSupportedDisplayValueColumn,
-} from 'nocodb-sdk'
-import {
+
   ButtonActionsType,
-  UITypes,
-  UITypesName,
+  isAIPromptCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isSelfReferencingTableColumn,
+  isSupportedDisplayValueColumn,
   isSystemColumn,
   isVirtualCol,
+  PlanFeatureTypes,
+  PlanTitles,
   readonlyMetaAllowedTypes,
+  UITypes,
+  UITypesName,
+  UITypesSearchTerms,
 } from 'nocodb-sdk'
-import { AiWizardTabsType, type PredictedFieldType, type UiTypesType } from '#imports'
-import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
-import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
-import { isEeUI } from '#imports'
+import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
+import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 
 const props = defineProps<{
   preload?: Partial<ColumnType>
@@ -221,10 +219,11 @@ const isColumnTypeOpen = ref(false)
 
 const showDeprecated = ref(false)
 
-const isSystemField = (t: { name: UITypes }) =>
-  [UITypes.CreatedBy, UITypes.CreatedTime, UITypes.LastModifiedBy, UITypes.LastModifiedTime].includes(t.name)
+function isSystemField(t: { name: UITypes }) {
+  return [UITypes.CreatedBy, UITypes.CreatedTime, UITypes.LastModifiedBy, UITypes.LastModifiedTime].includes(t.name)
+}
 
-const uiFilters = (t: UiTypesType) => {
+function uiFilters(t: UiTypesType) {
   // always enable field to return to it's  column type
   if (t.name === column?.value?.uidt) {
     return true
@@ -254,17 +253,17 @@ const uiFilters = (t: UiTypesType) => {
   const showAutoNumber = t.name !== UITypes.AutoNumber || (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value)
 
   return (
-    systemFiledNotEdited &&
-    isVirtualEditAllowed &&
-    !specificDBType &&
-    showDeprecatedField &&
-    isAllowToAddInFormView &&
-    showAiFields &&
-    showColourField &&
-    showLTAR &&
-    formulaColumnTypeValid &&
-    showUUID &&
-    showAutoNumber
+    systemFiledNotEdited
+    && isVirtualEditAllowed
+    && !specificDBType
+    && showDeprecatedField
+    && isAllowToAddInFormView
+    && showAiFields
+    && showColourField
+    && showLTAR
+    && formulaColumnTypeValid
+    && showUUID
+    && showAutoNumber
   )
 }
 
@@ -274,10 +273,10 @@ const predictedFieldType = ref<UITypes | null>(null)
 
 // const lastPredictedAt = ref<number>(0)
 
-const uiTypesOptions = computed<(UiTypesType & { disabled?: boolean; tooltip?: string })[]>(() => {
+const uiTypesOptions = computed<(UiTypesType & { disabled?: boolean, tooltip?: string })[]>(() => {
   const types = [
     ...uiTypes.filter(uiFilters),
-    ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
+    ...(!isEdit.value && meta?.value?.columns?.every(c => !c.pk)
       ? [
           {
             name: UITypes.ID,
@@ -317,12 +316,13 @@ const uiTypesOptions = computed<(UiTypesType & { disabled?: boolean; tooltip?: s
 
   if (!isEdit.value) {
     return types
-  } else {
+  }
+  else {
     return types.map((type) => {
       if (!isEdit.value) return type
 
-      const isColumnTypeDisabled =
-        !!column.value?.pv && column.value?.uidt !== type.name && !isSupportedDisplayValueColumn({ uidt: type.name as UITypes })
+      const isColumnTypeDisabled
+        = !!column.value?.pv && column.value?.uidt !== type.name && !isSupportedDisplayValueColumn({ uidt: type.name as UITypes })
 
       return {
         ...type,
@@ -345,12 +345,13 @@ const handleScrollDebounce = useDebounceFn(() => {
 
   if (editOrAddRef.value.clientHeight < editOrAddRef.value.scrollHeight) {
     isScrollEnabled.value = true
-  } else {
+  }
+  else {
     isScrollEnabled.value = false
   }
 }, 500)
 
-const onSelectType = (uidt: UITypes | typeof AIButton | typeof AIPrompt, fromSearchList = false) => {
+function onSelectType(uidt: UITypes | typeof AIButton | typeof AIPrompt, fromSearchList = false) {
   let preload
 
   if ((uidt === AIPrompt && blockAiPromptField.value) || (uidt === AIButton && blockAiButtonField.value)) return
@@ -366,14 +367,16 @@ const onSelectType = (uidt: UITypes | typeof AIButton | typeof AIPrompt, fromSea
     preload = {
       type: ButtonActionsType.Ai,
     }
-  } else if (uidt === AIPrompt) {
+  }
+  else if (uidt === AIPrompt) {
     formState.value.uidt = UITypes.LongText
     preload = {
       meta: {
         [LongTextAiMetaProp]: true,
       },
     }
-  } else {
+  }
+  else {
     formState.value.uidt = uidt
   }
 
@@ -384,7 +387,7 @@ const onSelectType = (uidt: UITypes | typeof AIButton | typeof AIPrompt, fromSea
   })
 }
 
-const reloadMetaAndData = async () => {
+async function reloadMetaAndData() {
   await getMeta(meta.value?.base_id, meta.value?.id as string, true)
 
   eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
@@ -400,7 +403,7 @@ const saving = ref(false)
 
 const warningVisible = ref(false)
 
-const saveSubmitted = async () => {
+async function saveSubmitted() {
   if (readOnly.value) return
   let saved, savedColumn
   saving.value = true
@@ -410,7 +413,8 @@ const saveSubmitted = async () => {
     if (!saved && !ncIsArrayIncludes(activeTabSelectedFields.value, activeSelectedField.value, 'ai_temp_id')) {
       onSelectedTagClick()
     }
-  } else {
+  }
+  else {
     saved = await addOrUpdate(async (col?: ColumnType) => {
       if (props.columnPosition) {
         savedColumn = col
@@ -448,14 +452,17 @@ async function onSubmit() {
 
     const { close } = useDialog(resolveComponent('DlgColumnUpdateConfirm'), {
       'visible': warningVisible,
-      'onUpdate:visible': (value) => (warningVisible.value = value),
+      'onUpdate:visible': value => (warningVisible.value = value),
       'saving': saving,
       'onSubmit': async () => {
         close()
         await saveSubmitted()
       },
     })
-  } else await saveSubmitted()
+  }
+  else {
+    await saveSubmitted()
+  }
 }
 
 // focus and select the column name field
@@ -466,10 +473,10 @@ watchEffect(() => {
     setTimeout(() => {
       // focus and select input only if active element is not an input or textarea
       if (
-        (document.activeElement === document.body ||
-          document.activeElement === null ||
-          ['BUTTON', 'DIV'].includes(document.activeElement?.tagName)) &&
-        !props.disableTitleFocus
+        (document.activeElement === document.body
+          || document.activeElement === null
+          || ['BUTTON', 'DIV'].includes(document.activeElement?.tagName))
+        && !props.disableTitleFocus
       ) {
         antInput.value?.focus()
         antInput.value?.select()
@@ -483,7 +490,7 @@ const enableDescription = ref(false)
 
 const descInputEl = ref()
 
-const removeDescription = () => {
+function removeDescription() {
   formState.value.description = ''
   enableDescription.value = false
 }
@@ -494,14 +501,16 @@ onMounted(() => {
   }
   if (!isEdit.value) {
     generateNewColumnMeta(true)
-  } else {
+  }
+  else {
     if (formState.value.pk) {
       message.info(t('msg.info.editingPKnotSupported'))
       emit('cancel')
-    } else if (
-      isSystemColumn(formState.value) &&
-      !isSelfReferencingTableColumn(formState.value) &&
-      !isCreatedOrLastModifiedTimeCol(formState.value)
+    }
+    else if (
+      isSystemColumn(formState.value)
+      && !isSelfReferencingTableColumn(formState.value)
+      && !isCreatedOrLastModifiedTimeCol(formState.value)
     ) {
       message.info(t('msg.info.editingSystemKeyNotSupported'))
       emit('cancel')
@@ -526,7 +535,8 @@ onMounted(() => {
         meta,
       }
     }
-  } else {
+  }
+  else {
     formState.value.filters = undefined
   }
 
@@ -575,7 +585,8 @@ onMounted(() => {
         antInput.value?.focus()
         antInput.value?.select()
       }, 100)
-    } else if (props.editDescription) {
+    }
+    else if (props.editDescription) {
       setTimeout(() => {
         descInputEl.value?.focus()
       }, 100)
@@ -583,7 +594,7 @@ onMounted(() => {
   })
 })
 
-const handleEscape = (event: KeyboardEvent): void => {
+function handleEscape(event: KeyboardEvent): void {
   if (isColumnTypeOpen.value || isWebhookCreateModalOpen.value || isAiButtonConfigModalOpen.value) return
 
   if (event.key === 'Escape') emit('cancel')
@@ -593,10 +604,11 @@ const isFieldsTab = computed(() => {
   return openedViewsTab.value === 'field'
 })
 
-const onDropdownChange = (value: boolean) => {
+function onDropdownChange(value: boolean) {
   if (value) {
     isColumnTypeOpen.value = value
-  } else {
+  }
+  else {
     showHoverEffectOnSelectedType.value = true
     setTimeout(() => {
       isColumnTypeOpen.value = value
@@ -604,7 +616,7 @@ const onDropdownChange = (value: boolean) => {
   }
 }
 
-const handleResetHoverEffect = () => {
+function handleResetHoverEffect() {
   if (!showHoverEffectOnSelectedType.value) return
 
   showHoverEffectOnSelectedType.value = false
@@ -616,8 +628,9 @@ watch(
     if (mounted.value) {
       if (props.fromTableExplorer) {
         emit('update', formState.value)
-      } else if (activeSelectedField.value === formState.value.ai_temp_id) {
-        const selectedField = predicted.value.find((f) => f.ai_temp_id === activeSelectedField.value)
+      }
+      else if (activeSelectedField.value === formState.value.ai_temp_id) {
+        const selectedField = predicted.value.find(f => f.ai_temp_id === activeSelectedField.value)
 
         if (!selectedField) return
 
@@ -646,7 +659,7 @@ const submitBtnLabel = computed(() => {
 
 const searchBasisInfoMap = ref<Record<string, string>>({})
 
-const filterOption = (input: string, option: { value: UITypes }) => {
+function filterOption(input: string, option: { value: UITypes }) {
   delete searchBasisInfoMap.value[option.value]
 
   // Step 1: apply default filter
@@ -660,10 +673,11 @@ const filterOption = (input: string, option: { value: UITypes }) => {
   })
 }
 
-const triggerDescriptionEnable = () => {
+function triggerDescriptionEnable() {
   if (enableDescription.value) {
     enableDescription.value = false
-  } else {
+  }
+  else {
     enableDescription.value = true
     setTimeout(() => {
       descInputEl.value?.focus()
@@ -683,7 +697,7 @@ const isFullUpdateAllowed = computed(() => {
   return true
 })
 
-const onPredictFieldType = async () => {
+async function onPredictFieldType() {
   /*
   ### disable for now as this is only action triggered without user interaction -- need to be discussed
 
@@ -703,7 +717,7 @@ const onPredictFieldType = async () => {
 
 const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
 
-const handleNavigateToIntegrations = () => {
+function handleNavigateToIntegrations() {
   emit('cancel')
 
   workspaceStore.navigateToIntegrations(undefined, undefined, {
@@ -711,14 +725,14 @@ const handleNavigateToIntegrations = () => {
   })
 }
 
-const toggleAiMode = () => {
+function toggleAiMode() {
   formState.value = {
     ...defaultFormState,
   }
   _toggleAiMode(undefined, true)
 }
 
-const disableAiMode = () => {
+function disableAiMode() {
   activeSelectedField.value = null
   formState.value = {
     ...defaultFormState,
@@ -751,22 +765,23 @@ function onSelectedTagClick(field: PredictedFieldType | undefined = undefined) {
   onUidtOrIdTypeChange(field.formState)
 }
 
-const onToggleTag = (field: PredictedFieldType, select = false) => {
+function onToggleTag(field: PredictedFieldType, select = false) {
   if (saving.value) return
 
   if (select) {
     _onToggleTag(field)
     onSelectedTagClick(field.selected ? field : undefined)
-  } else {
+  }
+  else {
     onSelectedTagClick(field)
   }
 }
 
-const isAiButtonSelectOption = (uidt: string) => {
+function isAiButtonSelectOption(uidt: string) {
   return uidt === UITypes.Button && formState.value.uidt === UITypes.Button && formState.value.type === ButtonActionsType.Ai
 }
 
-const isAiPromptSelectOption = (uidt: string) => {
+function isAiPromptSelectOption(uidt: string) {
   return uidt === UITypes.LongText && isAIPromptCol(formState.value)
 }
 
@@ -844,7 +859,9 @@ const unique = computed({
           }"
         >
           <div class="flex items-center gap-3">
-            <div class="flex-1 text-base font-bold text-nc-content-gray">{{ $t('general.new') }} {{ $t('objects.field') }}</div>
+            <div class="flex-1 text-base font-bold text-nc-content-gray">
+              {{ $t('general.new') }} {{ $t('objects.field') }}
+            </div>
 
             <AiToggleButton
               v-if="isAiFeaturesEnabled"
@@ -885,7 +902,9 @@ const unique = computed({
                       <GeneralLoader size="regular" class="!text-nc-content-purple-dark" />
 
                       <!-- Todo: add table name  -->
-                      <div class="nc-animate-dots">Auto suggesting fields for {{ meta?.title }}</div>
+                      <div class="nc-animate-dots">
+                        Auto suggesting fields for {{ meta?.title }}
+                      </div>
                     </div>
                   </div>
                   <div v-else-if="aiAutoSuggestModeStep === 'pick'" class="flex gap-3 items-start">
@@ -894,7 +913,9 @@ const unique = computed({
                         <template v-for="f of activeTabPredictedFields" :key="f.title">
                           <NcTooltip :disabled="selected.length < maxSelectionCount || f.selected">
                             <template #title>
-                              <div class="w-[150px]">You can only select {{ maxSelectionCount }} fields to create at a time.</div>
+                              <div class="w-[150px]">
+                                You can only select {{ maxSelectionCount }} fields to create at a time.
+                              </div>
                             </template>
 
                             <a-tag
@@ -931,7 +952,9 @@ const unique = computed({
                           </NcTooltip>
                         </template>
                       </template>
-                      <div v-else class="text-nc-content-gray-subtle2">{{ $t('labels.noData') }}</div>
+                      <div v-else class="text-nc-content-gray-subtle2">
+                        {{ $t('labels.noData') }}
+                      </div>
                     </div>
                     <div class="flex items-center gap-1">
                       <NcTooltip
@@ -970,7 +993,7 @@ const unique = computed({
                         >
                           <template #loadingIcon>
                             <!-- eslint-disable vue/no-lone-template -->
-                            <template></template>
+                            <template />
                           </template>
                           <GeneralIcon
                             icon="refresh"
@@ -995,8 +1018,7 @@ const unique = computed({
                       placeholder="Enter your prompt to get field suggestions.."
                       class="nc-ai-input nc-input-shadow !px-3 !pt-2 !pb-3 !text-sm !min-h-[68px] !rounded-lg"
                       @keydown.enter.stop
-                    >
-                    </a-textarea>
+                    />
 
                     <NcButton
                       size="xs"
@@ -1004,10 +1026,10 @@ const unique = computed({
                       theme="ai"
                       class="!px-1 !absolute bottom-2 right-2"
                       :disabled="
-                        !prompt.trim() ||
-                        isPredictFromPromptLoading ||
-                        (!!prompt.trim() && prompt.trim() === oldPrompt.trim()) ||
-                        saving
+                        !prompt.trim()
+                          || isPredictFromPromptLoading
+                          || (!!prompt.trim() && prompt.trim() === oldPrompt.trim())
+                          || saving
                       "
                       :loading="isPredictFromPromptLoading"
                       icon-only
@@ -1038,13 +1060,17 @@ const unique = computed({
                   </div>
 
                   <div v-else-if="isPromtAlreadyGenerated" class="flex flex-col gap-3">
-                    <div class="text-nc-content-purple-dark font-semibold text-xs">Generated Field(s)</div>
+                    <div class="text-nc-content-purple-dark font-semibold text-xs">
+                      Generated Field(s)
+                    </div>
                     <div class="flex gap-2 flex-wrap">
                       <template v-if="activeTabPredictedFields.length">
                         <template v-for="f of activeTabPredictedFields" :key="f.title">
                           <NcTooltip :disabled="selected.length < maxSelectionCount || f.selected">
                             <template #title>
-                              <div class="w-[150px]">You can only select {{ maxSelectionCount }} fields to create at a time.</div>
+                              <div class="w-[150px]">
+                                You can only select {{ maxSelectionCount }} fields to create at a time.
+                              </div>
                             </template>
 
                             <a-tag
@@ -1081,7 +1107,9 @@ const unique = computed({
                           </NcTooltip>
                         </template>
                       </template>
-                      <div v-else class="text-nc-content-gray-subtle2">{{ $t('labels.noData') }}</div>
+                      <div v-else class="text-nc-content-gray-subtle2">
+                        {{ $t('labels.noData') }}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1094,7 +1122,9 @@ const unique = computed({
             >
               <GeneralIcon icon="ncInfoSolid" class="flex-none text-nc-content-red-dark" />
               <div class="flex flex-col gap-1">
-                <div class="text-nc-content-gray text-base font-bold">Failed to add fields</div>
+                <div class="text-nc-content-gray text-base font-bold">
+                  Failed to add fields
+                </div>
                 <div class="text-nc-content-gray-muted text-sm">
                   NocoDB was unable to add {{ predicted.length }} fields to the table. Please retry adding the fields.
                 </div>
@@ -1143,7 +1173,9 @@ const unique = computed({
                   {{ submitBtnLabel.loadingLabel }}
                 </template>
               </NcButton>
-              <NcButton v-else type="primary" size="small" @click="handleNavigateToIntegrations"> Add AI integration </NcButton>
+              <NcButton v-else type="primary" size="small" @click="handleNavigateToIntegrations">
+                Add AI integration
+              </NcButton>
             </div>
           </a-form-item>
         </div>
@@ -1168,7 +1200,7 @@ const unique = computed({
             :contenteditable="true"
             @change="debouncedOnPredictFieldType"
             @input="formState.userHasChangedTitle = true"
-          />
+          >
         </div>
       </a-form-item>
       <a-form-item
@@ -1230,13 +1262,13 @@ const unique = computed({
                 '!pointer-events-none !cursor-not-allowed': !isEdit && formState.uidt && !!formState?.ai_temp_id,
               }"
               :disabled="
-                (isEdit && isMetaReadOnly && !readonlyMetaAllowedTypes.includes(formState.uidt)) ||
-                isKanban ||
-                readOnly ||
-                (isEdit && !!onlyNameUpdateOnEditColumns.includes(column?.uidt)) ||
-                (isEdit && !isFullUpdateAllowed) ||
-                isSystem ||
-                isSyncedField
+                (isEdit && isMetaReadOnly && !readonlyMetaAllowedTypes.includes(formState.uidt))
+                  || isKanban
+                  || readOnly
+                  || (isEdit && !!onlyNameUpdateOnEditColumns.includes(column?.uidt))
+                  || (isEdit && !isFullUpdateAllowed)
+                  || isSystem
+                  || isSyncedField
               "
               dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg !border-nc-border-gray-medium"
               :filter-option="filterOption"
@@ -1267,15 +1299,17 @@ const unique = computed({
                     'data-testid': opt.name,
                   }"
                 >
-                  <template #title> {{ opt?.tooltip }} </template>
+                  <template #title>
+                    {{ opt?.tooltip }}
+                  </template>
                   <div class="flex-1 flex gap-2 items-center max-w-[calc(100%_-_24px)]">
                     <component
                       :is="
                         isAiButtonSelectOption(opt.name) && !isColumnTypeOpen
                           ? iconMap.cellAiButton
                           : isAiPromptSelectOption(opt.name) && !isColumnTypeOpen
-                          ? iconMap.cellAi
-                          : opt.icon
+                            ? iconMap.cellAi
+                            : opt.icon
                       "
                       class="nc-field-type-icon w-4 h-4 !opacity-90 text-current"
                     />
@@ -1288,20 +1322,19 @@ const unique = computed({
                       <span class="truncate">{{ UITypesName[opt.name] }}</span>
                       <NcTooltip
                         v-if="
-                          isEdit &&
-                          column &&
-                          column.uidt === UITypes.LinkToAnotherRecord &&
-                          opt.name === UITypes.LinkToAnotherRecord &&
-                          column.colOptions?.version !== 2 &&
-                          column.colOptions?.type !== 'mm'
+                          isEdit
+                            && column
+                            && column.uidt === UITypes.LinkToAnotherRecord
+                            && opt.name === UITypes.LinkToAnotherRecord
+                            && column.colOptions?.version !== 2
+                            && column.colOptions?.type !== 'mm'
                         "
                         :title="$t('labels.convertToNewLink')"
                       >
                         <span
                           class="!text-xs !text-nc-content-brand-hover cursor-pointer hover:underline flex-none"
                           @click.stop="showConvertLinkV2Modal = true"
-                          >(Legacy)</span
-                        >
+                        >(Legacy)</span>
                       </NcTooltip>
                     </div>
 
@@ -1311,14 +1344,11 @@ const unique = computed({
                       </NcTooltip>
                     </div>
 
-                    <span v-if="opt.deprecated" class="!text-xs !text-nc-content-brand-hover"
-                      >({{ $t('general.deprecated') }})</span
-                    >
+                    <span v-if="opt.deprecated" class="!text-xs !text-nc-content-brand-hover">({{ $t('general.deprecated') }})</span>
                     <span
                       v-if="opt.isNew || (isAiButtonSelectOption(opt.name) && !isColumnTypeOpen)"
                       class="nc-new-field-badge text-sm text-nc-content-purple-dark bg-nc-bg-purple-light px-2 rounded-md font-normal"
-                      >{{ $t('general.new') }}</span
-                    >
+                    >{{ $t('general.new') }}</span>
                   </div>
                   <component
                     :is="iconMap.check"
@@ -1438,13 +1468,13 @@ const unique = computed({
             <!-- Unique Constraint Toggle -->
             <div
               v-if="
-                isXcdbBase(meta?.source_id) &&
-                !isVirtualCol(formState) &&
-                isUniqueConstraintSupportedType(formState.uidt, formState.meta) &&
-                !isUUID(formState) &&
-                !isAutoNumber(formState) &&
-                isEeUI &&
-                showEEFeatures
+                isXcdbBase(meta?.source_id)
+                  && !isVirtualCol(formState)
+                  && isUniqueConstraintSupportedType(formState.uidt, formState.meta)
+                  && !isUUID(formState)
+                  && !isAutoNumber(formState)
+                  && isEeUI
+                  && showEEFeatures
               "
               class="flex"
             >
@@ -1516,14 +1546,14 @@ const unique = computed({
             />
             <NcTooltip
               v-else-if="
-                !isVirtualCol(formState) &&
-                !isAttachment(formState) &&
-                !(isMysql(meta?.source_id) && (isJSON(formState) || isTextArea(formState))) &&
-                !isDatabricks(meta?.source_id) &&
-                formState.unique &&
-                !isAI(formState) &&
-                !isUUID(formState) &&
-                !isAutoNumber(formState)
+                !isVirtualCol(formState)
+                  && !isAttachment(formState)
+                  && !(isMysql(meta?.source_id) && (isJSON(formState) || isTextArea(formState)))
+                  && !isDatabricks(meta?.source_id)
+                  && formState.unique
+                  && !isAI(formState)
+                  && !isUUID(formState)
+                  && !isAutoNumber(formState)
               "
               title="Cannot set default value as Unique constraint is set. Please disable unique constraint to configure default value"
               placement="right"
@@ -1537,13 +1567,13 @@ const unique = computed({
             </NcTooltip>
             <LazySmartsheetColumnDefaultValue
               v-else-if="
-                !isVirtualCol(formState) &&
-                !isAttachment(formState) &&
-                !(isMysql(meta?.source_id) && (isJSON(formState) || isTextArea(formState))) &&
-                !isDatabricks(meta?.source_id) &&
-                !isAI(formState) &&
-                !isUUID(formState) &&
-                !isAutoNumber(formState)
+                !isVirtualCol(formState)
+                  && !isAttachment(formState)
+                  && !(isMysql(meta?.source_id) && (isJSON(formState) || isTextArea(formState)))
+                  && !isDatabricks(meta?.source_id)
+                  && !isAI(formState)
+                  && !isUUID(formState)
+                  && !isAutoNumber(formState)
               "
               v-model:value="formState"
               v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
@@ -1553,10 +1583,10 @@ const unique = computed({
             <!-- TODO: Refactor the if condition and verify AttachmentOption -->
             <div
               v-if="
-                !props.hideAdditionalOptions &&
-                !isVirtualCol(formState.uidt) &&
-                !(!appInfo.ee && isAttachment(formState)) &&
-                (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta?.source_id) && formState.uidt === UITypes.SpecificDBType))
+                !props.hideAdditionalOptions
+                  && !isVirtualCol(formState.uidt)
+                  && !(!appInfo.ee && isAttachment(formState))
+                  && (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta?.source_id) && formState.uidt === UITypes.SpecificDBType))
               "
               class="text-xs text-nc-content-gray-disabled flex items-center justify-end"
             >
@@ -1649,7 +1679,7 @@ const unique = computed({
                 </span>
               </div>
             </NcButton>
-            <div v-else-if="!aiAutoSuggestMode"></div>
+            <div v-else-if="!aiAutoSuggestMode" />
 
             <a-form-item v-if="!aiAutoSuggestMode">
               <div

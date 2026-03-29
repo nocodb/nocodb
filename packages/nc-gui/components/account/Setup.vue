@@ -84,7 +84,9 @@ onMounted(async () => {
 
             <span class="font-bold text-base"> {{ config.title }}</span>
           </div>
-          <div class="text-nc-content-gray-subtle2 text-sm">{{ config.description }}</div>
+          <div class="text-nc-content-gray-subtle2 text-sm">
+            {{ config.description }}
+          </div>
 
           <div class="flex justify-between mt-4">
             <NcButton
@@ -107,7 +109,9 @@ onMounted(async () => {
                 {{ $t('general.edit') }}
               </div>
             </NcButton>
-            <NcButton v-else size="small" @click.stop="config.buttonClick">{{ $t('general.configure') }}</NcButton>
+            <NcButton v-else size="small" @click.stop="config.buttonClick">
+              {{ $t('general.configure') }}
+            </NcButton>
           </div>
         </div>
       </div>

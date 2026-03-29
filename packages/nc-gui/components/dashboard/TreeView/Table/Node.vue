@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import { type BaseType, PlanFeatureTypes, PlanTitles, type TableType } from 'nocodb-sdk'
+import type { BaseType, TableType } from 'nocodb-sdk'
 
 import type { SidebarTableNode } from '~/lib/types'
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -72,7 +73,7 @@ const isOptionsOpen = ref(false)
 
 const emojiPickerRef = ref<HTMLElement>()
 
-const onChangeIcon = () => {
+function onChangeIcon() {
   isOptionsOpen.value = false
   nextTick(() => {
     emojiPickerRef.value?.querySelector<HTMLElement>('.nc-emoji')?.click()
@@ -103,7 +104,8 @@ const validators = computed(() => {
             let tableNameLengthLimit = 255
             if (isMysql(source.value?.id)) {
               tableNameLengthLimit = 64
-            } else if (isPg(source.value?.id)) {
+            }
+            else if (isPg(source.value?.id)) {
               tableNameLengthLimit = 63
             }
             const basePrefix = base?.value?.prefix || ''
@@ -119,7 +121,7 @@ const validators = computed(() => {
           return new Promise<void>((resolve, reject) => {
             if (
               !(tables?.value || []).every(
-                (t) => t.id === table.value.id || t.title?.trim().toLowerCase() !== (value?.trim() || '').toLowerCase(),
+                t => t.id === table.value.id || t.title?.trim().toLowerCase() !== (value?.trim() || '').toLowerCase(),
               )
             ) {
               return reject(new Error('Duplicate table alias'))
@@ -134,13 +136,13 @@ const validators = computed(() => {
 
 const { validate } = useForm(formState, validators)
 
-const setIcon = async (icon: string, table: TableType) => {
+async function setIcon(icon: string, table: TableType) {
   try {
     table.meta = {
       ...((table.meta as object) || {}),
       icon,
     }
-    const index = tables.value.findIndex((t) => t.id === table.id)
+    const index = tables.value.findIndex(t => t.id === table.id)
 
     if (index !== -1) {
       tables.value[index] = { ...table }
@@ -159,7 +161,8 @@ const setIcon = async (icon: string, table: TableType) => {
     )
 
     $e('a:table:icon:navdraw', { icon })
-  } catch (e) {
+  }
+  catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -176,7 +179,7 @@ const canUserEditEmote = computed(() => {
 const isExpanded = ref(false)
 const isLoading = ref(false)
 
-const onExpand = async () => {
+async function onExpand() {
   if (isExpanded.value) {
     isExpanded.value = false
     return
@@ -185,21 +188,24 @@ const onExpand = async () => {
   isLoading.value = true
   try {
     await _loadViews({ tableId: table.value?.id as string, baseId: base.value.id!, ignoreLoading: true })
-  } catch (e) {
+  }
+  catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     isLoading.value = false
     isExpanded.value = true
   }
 }
 
-const onOpenTable = async () => {
+async function onOpenTable() {
   if (isEditing.value || isStopped.value) return
 
   if (isMac() ? metaKey.value : control.value) {
     try {
       await _openTable(table.value, true)
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
     return
@@ -212,9 +218,11 @@ const onOpenTable = async () => {
     if (isMobileMode.value) {
       isLeftSidebarOpen.value = false
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     isLoading.value = false
     isExpanded.value = true
   }
@@ -234,7 +242,7 @@ watch(
   },
 )
 
-const duplicateTable = (table: SidebarTableNode) => {
+function duplicateTable(table: SidebarTableNode) {
   isOptionsOpen.value = false
 
   if (showRecordPlanLimitExceededModal()) return
@@ -242,14 +250,14 @@ const duplicateTable = (table: SidebarTableNode) => {
   _duplicateTable(table)
 }
 
-const focusInput = () => {
+function focusInput() {
   setTimeout(() => {
     input.value?.focus()
     input.value?.select()
   })
 }
 
-const onRenameMenuClick = (table: SidebarTableNode) => {
+function onRenameMenuClick(table: SidebarTableNode) {
   if (isMobileMode.value || !isUIAllowed('tableRename', { roles: baseRole?.value, source: source.value })) return
 
   isOptionsOpen.value = false
@@ -271,7 +279,8 @@ watch(
 
     if (n && `${table.value.id}:${source.value?.id}` === tableRenameId.value) {
       onRenameMenuClick(table.value)
-    } else {
+    }
+    else {
       isEditing.value = false
       onCancel()
     }
@@ -279,12 +288,12 @@ watch(
   { immediate: true },
 )
 
-const openTableDescriptionDialog = (table: SidebarTableNode) => {
+function openTableDescriptionDialog(table: SidebarTableNode) {
   isOptionsOpen.value = false
   _openTableDescriptionDialog(table)
 }
 
-const deleteTable = () => {
+function deleteTable() {
   isOptionsOpen.value = false
   isTableDeleteDialogVisible.value = true
 }
@@ -328,7 +337,8 @@ function onStopEdit() {
 function onKeyDown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
     onKeyEsc(event)
-  } else if (event.key === 'Enter') {
+  }
+  else if (event.key === 'Enter') {
     onKeyEnter(event)
   }
 }
@@ -355,11 +365,12 @@ onKeyStroke('Enter', (event) => {
   }
 })
 
-const validateTitle = async () => {
+async function validateTitle() {
   try {
     await validate()
     return true
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.log('e', e)
     const errMsg = e.errorFields?.[0]?.errors?.[0]
 
@@ -407,24 +418,24 @@ const enabledOptions = computed(() => {
     tableDuplicate:
       isUIAllowed('tableDuplicate', {
         source: source.value,
-      }) &&
-      (source.value?.is_meta || source.value?.is_local),
+      })
+      && (source.value?.is_meta || source.value?.is_local),
     tablePermission:
-      isEeUI &&
-      table.value?.type === 'table' &&
-      isUIAllowed('tablePermission', { roles: baseRole?.value, source: source.value }) &&
-      showEEFeatures.value,
+      isEeUI
+      && table.value?.type === 'table'
+      && isUIAllowed('tablePermission', { roles: baseRole?.value, source: source.value })
+      && showEEFeatures.value,
     tableRowLevelSecurity:
-      isEeUI &&
-      isFeatureEnabled(FEATURE_FLAG.ROW_LEVEL_SECURITY) &&
-      table.value?.type === 'table' &&
-      isUIAllowed('rlsManage', { roles: baseRole?.value, source: source.value }) &&
-      showEEFeatures.value,
+      isEeUI
+      && isFeatureEnabled(FEATURE_FLAG.ROW_LEVEL_SECURITY)
+      && table.value?.type === 'table'
+      && isUIAllowed('rlsManage', { roles: baseRole?.value, source: source.value })
+      && showEEFeatures.value,
     tableDateDependency:
-      isEeUI &&
-      table.value?.type === 'table' &&
-      isUIAllowed('dateDependencyManage', { roles: baseRole?.value, source: source.value }) &&
-      showEEFeatures.value,
+      isEeUI
+      && table.value?.type === 'table'
+      && isUIAllowed('dateDependencyManage', { roles: baseRole?.value, source: source.value })
+      && showEEFeatures.value,
     tableDelete: isUIAllowed('tableDelete', { roles: baseRole?.value, source: source.value }),
   }
 })
@@ -535,7 +546,9 @@ const enabledOptions = computed(() => {
           class="nc-tbl-title nc-sidebar-node-title text-ellipsis overflow-hidden select-none !flex-1"
           show-on-truncate-only
         >
-          <template #title>{{ table.title }}</template>
+          <template #title>
+            {{ table.title }}
+          </template>
           <span
             :class="openedTableId === table.id ? 'text-nc-content-gray' : 'text-nc-content-gray-subtle'"
             :data-testid="`nc-tbl-title-${table.title}`"
@@ -548,7 +561,9 @@ const enabledOptions = computed(() => {
         <div v-if="!isEditing" class="flex items-center">
           <NcTooltip v-if="table.description?.length" placement="bottom">
             <template #title>
-              <div class="whitespace-pre-wrap break-words">{{ table.description }}</div>
+              <div class="whitespace-pre-wrap break-words">
+                {{ table.description }}
+              </div>
             </template>
 
             <NcButton type="text" class="!hover:bg-transparent" size="xsmall">
@@ -590,11 +605,11 @@ const enabledOptions = computed(() => {
 
                 <template
                   v-if="
-                    !isSharedBase &&
-                    (enabledOptions.tableRename ||
-                      enabledOptions.tableDescriptionEdit ||
-                      enabledOptions.tableDuplicate ||
-                      enabledOptions.tablePermission)
+                    !isSharedBase
+                      && (enabledOptions.tableRename
+                        || enabledOptions.tableDescriptionEdit
+                        || enabledOptions.tableDuplicate
+                        || enabledOptions.tablePermission)
                   "
                 >
                   <NcDivider v-if="enabledOptions.tableRename || enabledOptions.tableDuplicate" />
@@ -686,7 +701,9 @@ const enabledOptions = computed(() => {
                   >
                     <div v-e="['c:table:rls']" class="flex gap-2 items-center w-full">
                       <GeneralIcon icon="ncShield" class="opacity-80" />
-                      <div class="flex-1">{{ $t('objects.permissions.rlsPolicy.rowLevelSecurity') }}</div>
+                      <div class="flex-1">
+                        {{ $t('objects.permissions.rlsPolicy.rowLevelSecurity') }}
+                      </div>
                     </div>
                   </NcMenuItem>
                   <PaymentUpgradeBadgeProvider
@@ -701,7 +718,9 @@ const enabledOptions = computed(() => {
                       >
                         <div v-e="['c:table:date-dependency']" class="flex gap-2 items-center w-full">
                           <GeneralIcon icon="ncCalendar" class="opacity-80" />
-                          <div class="flex-1">{{ $t('labels.dateDependency.title') }}</div>
+                          <div class="flex-1">
+                            {{ $t('labels.dateDependency.title') }}
+                          </div>
                           <LazyPaymentUpgradeBadge
                             :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY"
                             :title="$t('upgrade.upgradeToUseDateDependency')"

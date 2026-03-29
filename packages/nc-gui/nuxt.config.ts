@@ -1,11 +1,11 @@
 import { dirname, resolve } from 'node:path'
-import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
-import Icons from 'unplugin-icons/vite'
-import IconsResolver from 'unplugin-icons/resolver'
-import Components from 'unplugin-vue-components/vite'
-import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill'
+import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 import { FileSystemIconLoader } from 'unplugin-icons/loaders'
+import IconsResolver from 'unplugin-icons/resolver'
+import Icons from 'unplugin-icons/vite'
+import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
+import Components from 'unplugin-vue-components/vite'
 
 import PurgeIcons from 'vite-plugin-purge-icons'
 // https://nuxt.com/docs/api/configuration/nuxt-config
@@ -180,12 +180,10 @@ export default defineNuxtConfig({
         compiler: 'vue3',
         defaultClass: 'nc-icon',
         customCollections: {
-          'nc-icons': FileSystemIconLoader('./assets/nc-icons', (svg) =>
-            svg.replace(/^<svg (?!=\s*data-ignore)/, '<svg stroke="currentColor" '),
-          ),
-          'nc-icons-v2': FileSystemIconLoader('./assets/nc-icons-v2', (svg) =>
-            svg.replace(/^<svg (?!=\s*data-ignore)/, '<svg stroke="currentColor" '),
-          ),
+          'nc-icons': FileSystemIconLoader('./assets/nc-icons', svg =>
+            svg.replace(/^<svg (?!=\s*data-ignore)/, '<svg stroke="currentColor" ')),
+          'nc-icons-v2': FileSystemIconLoader('./assets/nc-icons-v2', svg =>
+            svg.replace(/^<svg (?!=\s*data-ignore)/, '<svg stroke="currentColor" ')),
         },
       }),
       Components({

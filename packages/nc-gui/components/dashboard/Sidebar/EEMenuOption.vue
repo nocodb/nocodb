@@ -5,7 +5,7 @@ const { orgRoles } = useRoles()
 
 const route = useRoute()
 
-const saveBackRoute = () => {
+function saveBackRoute() {
   ncBackRoute().set(route.fullPath)
 }
 </script>
@@ -22,5 +22,5 @@ const saveBackRoute = () => {
       <NcMenuItem> <GeneralIcon class="menu-icon" icon="controlPanel" /> {{ $t('labels.adminPanel') }} </NcMenuItem>
     </nuxt-link>
   </template>
-  <span v-else></span>
+  <span v-else />
 </template>

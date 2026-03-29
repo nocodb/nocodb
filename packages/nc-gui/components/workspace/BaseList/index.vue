@@ -30,9 +30,9 @@ const baseCheckers = {
   owned: (base: NcProject) => base.project_role === ProjectRoles.OWNER,
 }
 
-const filterWithSearch = (bases: NcProject[]) => {
+function filterWithSearch(bases: NcProject[]) {
   if (!searchQuery.value) return bases
-  return bases.filter((base) => searchCompare(base.title, searchQuery.value))
+  return bases.filter(base => searchCompare(base.title, searchQuery.value))
 }
 
 // CE categorization: owned + default only
@@ -40,8 +40,8 @@ const categorizedBases = computed(() => {
   const bases = workspaceBases.value
   const { starred, private: isPrivate, managed, owned } = baseCheckers
 
-  const ownedBases = bases.filter((b) => owned(b))
-  const defaultBases = bases.filter((b) => !starred(b) && !isPrivate(b) && !managed(b) && !owned(b))
+  const ownedBases = bases.filter(b => owned(b))
+  const defaultBases = bases.filter(b => !starred(b) && !isPrivate(b) && !managed(b) && !owned(b))
 
   return { owned: ownedBases, default: defaultBases }
 })
@@ -61,11 +61,11 @@ const displayedSections = computed(() => {
 
   if (filter === 'all') {
     return sectionOrder
-      .map((type) => ({
+      .map(type => ({
         type,
         bases: filterWithSearch(categorizedBases.value[type]),
       }))
-      .filter((section) => section.bases.length > 0)
+      .filter(section => section.bases.length > 0)
   }
 
   const bases = filterWithSearch(allFilteredBases.value[filter] || [])
@@ -73,7 +73,7 @@ const displayedSections = computed(() => {
 })
 
 const emptyFilterResult = computed(() => {
-  return displayedSections.value.every((section) => section.bases.length === 0) && !searchQuery.value
+  return displayedSections.value.every(section => section.bases.length === 0) && !searchQuery.value
 })
 
 const hasNoSearchResults = computed(() => {
@@ -135,7 +135,7 @@ const hasNoSearchResults = computed(() => {
             src="~assets/img/placeholder/no-search-result-found.png"
             class="!w-[164px] flex-none"
             alt="No search results found"
-          />
+          >
           {{ $t('title.noResultsMatchedYourSearch') }}
         </div>
       </div>

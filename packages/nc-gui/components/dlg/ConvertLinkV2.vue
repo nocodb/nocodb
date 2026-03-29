@@ -40,10 +40,10 @@ const isLinksColumn = computed(() => (props.column ? isLink(props.column) : fals
 const isParentSide = computed(() => {
   if (!colOptions.value?.type) return false
   return (
-    colOptions.value.type === RelationTypes.HAS_MANY ||
-    colOptions.value.type === RelationTypes.MANY_TO_MANY ||
-    colOptions.value.type === RelationTypes.ONE_TO_MANY ||
-    (colOptions.value.type === RelationTypes.ONE_TO_ONE && !props.column?.meta?.bt)
+    colOptions.value.type === RelationTypes.HAS_MANY
+    || colOptions.value.type === RelationTypes.MANY_TO_MANY
+    || colOptions.value.type === RelationTypes.ONE_TO_MANY
+    || (colOptions.value.type === RelationTypes.ONE_TO_ONE && !props.column?.meta?.bt)
   )
 })
 
@@ -78,9 +78,11 @@ async function handleConvert() {
 
     emit('converted')
     visible.value = false
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     isConverting.value = false
   }
 }
@@ -95,7 +97,9 @@ async function handleConvert() {
     wrap-class-name="nc-modal-convert-link-v2"
   >
     <template #header>
-      <div class="flex flex-row items-center gap-x-2">{{ $t('title.convertLegacyLink') }}</div>
+      <div class="flex flex-row items-center gap-x-2">
+        {{ $t('title.convertLegacyLink') }}
+      </div>
     </template>
 
     <div class="flex flex-col" @click.stop>
@@ -126,8 +130,7 @@ async function handleConvert() {
               target="_blank"
               rel="noopener noreferrer"
               class="text-nc-content-brand underline"
-              >{{ $t('msg.learnMore') }}</a
-            >
+            >{{ $t('msg.learnMore') }}</a>
           </template>
         </i18n-t>
       </div>
@@ -139,7 +142,9 @@ async function handleConvert() {
 
         <NcButton size="small" type="primary" :loading="isConverting" data-testid="nc-convert-link-v2-btn" @click="handleConvert">
           {{ $t('general.upgrade') }}
-          <template #loading> {{ $t('general.saving') }}... </template>
+          <template #loading>
+            {{ $t('general.saving') }}...
+          </template>
         </NcButton>
       </div>
     </div>

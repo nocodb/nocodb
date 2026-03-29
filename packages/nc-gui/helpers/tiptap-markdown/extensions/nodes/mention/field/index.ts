@@ -1,26 +1,22 @@
-import TipTapMention from '@tiptap/extension-mention'
 import type MarkdownIt from 'markdown-it'
-import regexp from 'markdown-it-regexp'
 import type { UserType } from 'nocodb-sdk'
+import TipTapMention from '@tiptap/extension-mention'
+import regexp from 'markdown-it-regexp'
 
 // Todo: Update user mention to field mention
 
 const USER_ID_REGEXP = /@\(([^)]+)\)/
 
-export const parseFieldMention = (
-  users: (Partial<UserType> | Partial<User>)[] = [],
-  currentUser?: Partial<UserType> | Partial<User> | null,
-  isReadonly = false,
-) => {
+export function parseFieldMention(users: (Partial<UserType> | Partial<User>)[] = [], currentUser?: Partial<UserType> | Partial<User> | null, isReadonly = false) {
   return regexp(USER_ID_REGEXP, (match) => {
     const id = match[1]?.split('|')?.[0]
-    const bUser =
-      users.find((user) => user?.id && user.id === id) ||
-      ({
-        id,
-        email: match[1]?.split('|')?.[1],
-        display_name: match[1]?.split('|')?.[2],
-      } as User)
+    const bUser
+      = users.find(user => user?.id && user.id === id)
+        || ({
+          id,
+          email: match[1]?.split('|')?.[1],
+          display_name: match[1]?.split('|')?.[2],
+        } as User)
 
     const processedContent = bUser?.display_name && bUser.display_name.length > 0 ? bUser.display_name : bUser?.email
 

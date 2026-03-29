@@ -39,7 +39,8 @@ export function useDependencies() {
       )
 
       status.value = 'done'
-    } catch (e) {
+    }
+    catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
       status.value = 'error'

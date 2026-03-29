@@ -44,14 +44,16 @@ function pollJob(jobId: string) {
           workspace.loadWorkspace(activeWorkspace.value!.id!).catch(() => {
             // ignore
           })
-        } else if (data.status === JobStatus.FAILED) {
+        }
+        else if (data.status === JobStatus.FAILED) {
           completed.value = true
           isLoading.value = false
 
           workspace.loadWorkspace(activeWorkspace.value!.id!).catch(() => {
             // ignore
           })
-        } else {
+        }
+        else {
           lastMessage.value = data.data?.message || 'Upgrading workspace...'
         }
       }
@@ -71,7 +73,9 @@ onMounted(() => {
     <div class="flex flex-col gap-4">
       <div class="flex items-center gap-2">
         <GeneralIcon icon="nocodb1" class="w-5 h-5" />
-        <div class="text-lg font-bold self-center">Upgrading Workspace</div>
+        <div class="text-lg font-bold self-center">
+          Upgrading Workspace
+        </div>
       </div>
 
       <div class="flex items-center gap-2">
@@ -81,7 +85,9 @@ onMounted(() => {
         </div>
       </div>
 
-      <NcButton v-if="completed" type="primary" @click="vModel = false"> Done </NcButton>
+      <NcButton v-if="completed" type="primary" @click="vModel = false">
+        Done
+      </NcButton>
     </div>
   </GeneralModal>
 </template>

@@ -30,7 +30,8 @@ export const CurrencyRenderer: CellRenderer = {
         minimumFractionDigits: currencyMeta.precision ?? 2,
         maximumFractionDigits: currencyMeta.precision ?? 2,
       }).format(roundedValue)
-    } catch (e) {
+    }
+    catch (e) {
       formattedValue = value.toString()
     }
 
@@ -43,7 +44,8 @@ export const CurrencyRenderer: CellRenderer = {
 
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text: formattedValue })
-    } else {
+    }
+    else {
       const { x: xOffset, y: yOffset } = renderSingleLineText(ctx, {
         x: x + width - padding,
         y,
@@ -65,7 +67,7 @@ export const CurrencyRenderer: CellRenderer = {
     const { e, row, column, makeCellEditable } = ctx
     if (column.readonly || column.columnObj?.readonly) return false
     const columnObj = column.columnObj
-    if (/^[0-9]$/.test(e.key) && columnObj.title) {
+    if (/^\d$/.test(e.key) && columnObj.title) {
       row.row[columnObj.title] = ''
       makeCellEditable(row, column)
       return true

@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type { NcDropdownPlacement } from '#imports'
 
+defineOptions({ inheritAttrs: false })
+
 const props = withDefaults(
   defineProps<{
     trigger?: Array<'click' | 'hover' | 'contextmenu'>
@@ -13,7 +15,7 @@ const props = withDefaults(
       points?: [string, string]
       offset?: [number, number]
       targetOffset?: [number, number]
-      overflow?: { adjustX?: boolean; adjustY?: boolean }
+      overflow?: { adjustX?: boolean, adjustY?: boolean }
     }
     autoClose?: boolean
     // if true, the dropdown will not have the nc-dropdown class (used for blocking keyboard events)
@@ -37,8 +39,6 @@ const props = withDefaults(
 )
 
 const emits = defineEmits(['update:visible'])
-
-defineOptions({ inheritAttrs: false })
 
 // Global z-index counter for backdrop dropdowns — each nested level gets a higher z-index
 const backdropBaseZIndex = 1050
@@ -81,12 +81,13 @@ onClickOutside(overlayWrapperDomRef, () => {
   visible.value = false
 })
 
-const onVisibleUpdate = (event: boolean) => {
+function onVisibleUpdate(event: boolean) {
   localIsVisible.value = event
 
   if (visible.value !== undefined) {
     visible.value = event
-  } else {
+  }
+  else {
     emits('update:visible', event)
   }
 }
@@ -96,7 +97,7 @@ const onVisibleUpdate = (event: boolean) => {
  * So we need to use this method to update the local state of the dropdown.
  * @param isVisible - the new visibility state of the dropdown
  */
-const onVisibilityChange = (isVisible: boolean) => {
+function onVisibilityChange(isVisible: boolean) {
   props.onVisibleChange?.(isVisible)
 
   if (!ncIsUndefined(props.visible)) return
@@ -104,7 +105,7 @@ const onVisibilityChange = (isVisible: boolean) => {
   localIsVisible.value = isVisible
 }
 
-const onBackdropMouseDown = () => {
+function onBackdropMouseDown() {
   visible.value = false
 }
 
@@ -131,7 +132,8 @@ watch(
       if (newValue && !oldValue) {
         backdropLevel.value = activeBackdropCount.value
         activeBackdropCount.value++
-      } else if (!newValue && oldValue) {
+      }
+      else if (!newValue && oldValue) {
         activeBackdropCount.value = Math.max(0, activeBackdropCount.value - 1)
       }
     }

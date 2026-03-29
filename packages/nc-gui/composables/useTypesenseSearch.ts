@@ -1,11 +1,6 @@
 import type { Client } from 'typesense'
-export const useTypesenseSearch = (
-  client: Client,
-  typesenseCollection: string,
-  delayMs = 100,
-  allowEmpty = false,
-  key?: string,
-) => {
+
+export function useTypesenseSearch(client: Client, typesenseCollection: string, delayMs = 100, allowEmpty = false, key?: string) {
   const search = ref('')
   const results = ref<'empty' | SortedResult[]>('empty')
   const error = ref<any>()
@@ -38,7 +33,8 @@ export const useTypesenseSearch = (
 
       if (search.value.length === 0 && !allowEmpty) {
         result = 'empty'
-      } else {
+      }
+      else {
         result = await searchDocs(client, typesenseCollection, search.value)
       }
 
@@ -47,11 +43,13 @@ export const useTypesenseSearch = (
         error.value = undefined
         results.value = result
       }
-    } catch (err) {
+    }
+    catch (err) {
       if (requestId === currentRequestId) {
         error.value = err
       }
-    } finally {
+    }
+    finally {
       if (requestId === currentRequestId) {
         isLoading.value = false
       }

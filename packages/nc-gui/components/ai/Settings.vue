@@ -33,11 +33,11 @@ const lastIntegrationId = ref<string | null>(null)
 
 const isDropdownOpen = ref(false)
 
-const availableModels = ref<{ value: string; label: string }[]>([])
+const availableModels = ref<{ value: string, label: string }[]>([])
 
 const isLoadingAvailableModels = ref<boolean>(false)
 
-const onIntegrationChange = async (newFkINtegrationId?: string) => {
+async function onIntegrationChange(newFkINtegrationId?: string) {
   if (!vFkIntegrationId.value && !newFkINtegrationId) return
 
   if (!newFkINtegrationId) {
@@ -54,14 +54,16 @@ const onIntegrationChange = async (newFkINtegrationId?: string) => {
 
   try {
     const response = await $api.integrations.endpoint(newFkINtegrationId, 'availableModels', {})
-    availableModels.value = (response || []) as { value: string; label: string }[]
+    availableModels.value = (response || []) as { value: string, label: string }[]
 
     if (!vModel.value && availableModels.value.length > 0) {
       vModel.value = availableModels.value[0].value
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error(error)
-  } finally {
+  }
+  finally {
     isLoadingAvailableModels.value = false
   }
 }
@@ -74,7 +76,8 @@ onMounted(async () => {
         onIntegrationChange()
       })
     }
-  } else if (vFkIntegrationId.value) {
+  }
+  else if (vFkIntegrationId.value) {
     lastIntegrationId.value = vFkIntegrationId.value
 
     if (!vModel.value || !availableModels.value.length) {
@@ -99,8 +102,7 @@ onMounted(async () => {
             target="_blank"
             rel="noopener noreferrer"
             class="!no-underline !hover:(underline text-nc-content-purple-dark) text-nc-content-purple-dark"
-            >{{ $t('title.docs') }}</a
-          >
+          >{{ $t('title.docs') }}</a>
         </div>
         <div class="flex flex-col p-3 text-sm gap-3">
           <!-- Integration Select -->
@@ -182,7 +184,7 @@ onMounted(async () => {
               </NcSelect>
             </a-form-item>
           </div>
-          <!-- Randomness 
+          <!-- Randomness
           <div class="flex items-center gap-2">
             <span class="text-nc-content-gray w-2/6">Randomness</span>
             <div v-if="showTooltip" class="w-1/6 flex justify-end">

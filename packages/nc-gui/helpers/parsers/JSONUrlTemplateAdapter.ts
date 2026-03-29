@@ -1,6 +1,6 @@
 import type { Api } from 'nocodb-sdk'
-import JSONTemplateAdapter from './JSONTemplateAdapter'
 import type { ProgressMessageType } from './TemplateGenerator'
+import JSONTemplateAdapter from './JSONTemplateAdapter'
 
 export default class JSONUrlTemplateAdapter extends JSONTemplateAdapter {
   url: string

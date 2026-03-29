@@ -20,7 +20,7 @@ const isGallery = inject(IsGalleryInj, ref(false))
 const barcodeSvgRef = ref<SVGGraphicsElement>()
 const errorForCurrentInput = ref(false)
 
-const generate = () => {
+function generate() {
   try {
     JsBarcode(barcodeSvgRef.value, String(props.barcodeValue), {
       format: props.barcodeFormat,
@@ -28,8 +28,8 @@ const generate = () => {
       ...(props.isModal && isDark.value
         ? { marginTop: 12, marginBottom: 12, marginLeft: 24, marginRight: 24 }
         : isDark.value
-        ? { marginTop: 4, marginBottom: 4, marginLeft: 8, marginRight: 8 }
-        : { margin: 0 }),
+          ? { marginTop: 4, marginBottom: 4, marginLeft: 8, marginRight: 8 }
+          : { margin: 0 }),
     })
     if (props.customStyle) {
       if (barcodeSvgRef.value) {
@@ -39,26 +39,27 @@ const generate = () => {
       }
     }
     errorForCurrentInput.value = false
-  } catch (e) {
+  }
+  catch (e) {
     console.log('e', e)
     errorForCurrentInput.value = true
   }
 }
 
-const downloadSvg = () => {
+function downloadSvg() {
   if (!barcodeSvgRef.value) return
 
   _downloadSvg(barcodeSvgRef.value, `${props.barcodeValue}.png`)
 }
 const { isCopied, performCopy } = useIsCopied()
 
-const copyAsPng = async () => {
+async function copyAsPng() {
   if (!barcodeSvgRef.value) return
   const success = await copySVGToClipboard(barcodeSvgRef.value)
   if (!success) throw new Error(t('msg.error.notSupported'))
 }
 
-const onBarcodeClick = (ev: MouseEvent) => {
+function onBarcodeClick(ev: MouseEvent) {
   ev.stopPropagation()
   emit('onClickBarcode')
 }
@@ -79,7 +80,7 @@ onMounted(generate)
       }"
       data-testid="barcode"
       @click="onBarcodeClick"
-    ></svg>
+    />
     <slot v-if="errorForCurrentInput" name="barcodeRenderError" />
 
     <div v-if="showDownload" class="bg-nc-bg-gray-light mx-4 px-3 py-2 rounded-lg">

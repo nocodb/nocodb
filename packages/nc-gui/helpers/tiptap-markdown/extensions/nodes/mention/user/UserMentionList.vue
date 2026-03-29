@@ -123,7 +123,9 @@ export default {
         </div>
       </div>
     </template>
-    <div v-else class="px-4">No users</div>
+    <div v-else class="px-4">
+      No users
+    </div>
   </div>
 </template>
 

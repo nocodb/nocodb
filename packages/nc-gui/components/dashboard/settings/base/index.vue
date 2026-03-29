@@ -24,7 +24,7 @@ const router = useRouter()
 
 const allTabs = ['baseType', 'snapshots', 'visibility', 'migrateToV3', 'migrate']
 
-const getDefaultTab = () => {
+function getDefaultTab() {
   if (hasPermissionForBaseAccess.value) return 'baseType'
   if (hasPermissionForVisibility.value) return 'visibility'
   if (hasPermissionForMigrateToV3.value) return 'migrateToV3'
@@ -34,7 +34,7 @@ const getDefaultTab = () => {
 
 const activeMenu = ref('')
 
-const selectMenu = (option: string, updateQuery = true) => {
+function selectMenu(option: string, updateQuery = true) {
   if (!hasPermissionForBaseAccess.value && option === 'baseType') {
     return
   }
@@ -68,7 +68,8 @@ onMounted(() => {
 
   if (query && query.tab && allTabs.includes(query.tab as string)) {
     selectMenu(query.tab as string)
-  } else {
+  }
+  else {
     selectMenu(defaultTab, true)
   }
 })

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { type ColumnType, type LinkToAnotherRecordType, RelationTypes, isBtLikeV2Junction, isMMOrMMLike } from 'nocodb-sdk'
-import { isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { isBtLikeV2Junction, isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol, isMMOrMMLike, RelationTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   column: ColumnType

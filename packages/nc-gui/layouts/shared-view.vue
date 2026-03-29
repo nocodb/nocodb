@@ -44,7 +44,7 @@ onMounted(() => {
         '*',
       )
 
-    router.afterEach((to) => notifyLocationChange(location.origin + to.fullPath))
+    router.afterEach(to => notifyLocationChange(location.origin + to.fullPath))
     useEventListener(window, 'beforeunload', () => {
       const { href } = document.activeElement as { href?: string }
       if (href) notifyLocationChange(href)
@@ -54,7 +54,8 @@ onMounted(() => {
   // handle meta title
   if (sharedView.value?.title) {
     document.title = `${sharedView.value.title}`
-  } else {
+  }
+  else {
     document.title = 'NocoDB'
   }
 })
@@ -82,8 +83,8 @@ export default {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <img v-if="isDark" width="96" alt="NocoDB" src="~/assets/img/brand/text.png" class="flex-none min-w-[96px]" />
-              <img v-else width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="flex-none min-w-[96px]" />
+              <img v-if="isDark" width="96" alt="NocoDB" src="~/assets/img/brand/text.png" class="flex-none min-w-[96px]">
+              <img v-else width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="flex-none min-w-[96px]">
             </a>
 
             <div class="flex items-center gap-2 text-nc-content-gray-emphasis text-sm truncate">

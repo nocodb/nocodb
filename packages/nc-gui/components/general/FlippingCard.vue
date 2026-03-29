@@ -44,13 +44,13 @@ onBeforeUnmount(() => {
 function onHover(isHovering: boolean) {
   hovered.value = isHovering
 
-  if (props.triggers.find((trigger) => trigger === 'hover')) {
+  if (props.triggers.find(trigger => trigger === 'hover')) {
     flipped.value = isHovering
   }
 }
 
 function onClick() {
-  if (props.triggers.find((trigger) => trigger === 'click')) {
+  if (props.triggers.find(trigger => trigger === 'click')) {
     flipped.value = !flipped.value
   }
 }

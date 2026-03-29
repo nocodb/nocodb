@@ -1429,11 +1429,17 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.USER_SIGNUP]: (audit: AuditV1<UserSignupPayload>) =>
     `User '${audit.user}' signed up`,
   [AuditV1OperationTypes.USER_SIGNIN]: (audit: AuditV1<UserSigninPayload>) =>
-    `User '${audit.user}' signed in${audit.details.provider ? ` via ${audit.details.provider}` : ''}`,
+    `User '${audit.user}' signed in${
+      audit.details.provider ? ` via ${audit.details.provider}` : ''
+    }`,
   [AuditV1OperationTypes.USER_SIGNIN_FAILED]: (
     audit: AuditV1<UserSigninFailedPayload>
   ) =>
-    `Failed sign-in attempt${audit.details.email ? ` for '${audit.details.email}'` : ''}${audit.details.provider ? ` via ${audit.details.provider}` : ''}${audit.details.reason ? ` - ${audit.details.reason}` : ''}`,
+    `Failed sign-in attempt${
+      audit.details.email ? ` for '${audit.details.email}'` : ''
+    }${audit.details.provider ? ` via ${audit.details.provider}` : ''}${
+      audit.details.reason ? ` - ${audit.details.reason}` : ''
+    }`,
   [AuditV1OperationTypes.USER_INVITE]: (audit: AuditV1<UserInvitePayload>) =>
     `User '${audit.user}' invited '${audit.details.user_email}'`,
   [AuditV1OperationTypes.USER_PASSWORD_CHANGE]: (
@@ -1692,7 +1698,9 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.DATE_DEPENDENCY_UPDATE]: (
     audit: AuditV1<DateDependencyUpdatePayload>
   ) =>
-    `Date dependency ${audit.details.is_new ? 'created' : 'updated'} for table '${audit.details.table_title}'`,
+    `Date dependency ${
+      audit.details.is_new ? 'created' : 'updated'
+    } for table '${audit.details.table_title}'`,
   [AuditV1OperationTypes.DATE_DEPENDENCY_DELETE]: (
     audit: AuditV1<DateDependencyDeletePayload>
   ) => `Date dependency deleted from table '${audit.details.table_title}'`,

@@ -47,7 +47,9 @@ onMounted(() => {
       <div class="flex items-center gap-2 w-full">
         <GeneralIcon icon="ncPlusCircleSolid" />
 
-        <div class="flex flex-1">{{ $t('title.createBase') }}</div>
+        <div class="flex flex-1">
+          {{ $t('title.createBase') }}
+        </div>
 
         <div class="px-1 flex-none text-bodySmBold !leading-[18px] text-nc-content-gray-subtle bg-nc-bg-gray-medium rounded">
           {{ renderAltOrOptlKey(true) }} D

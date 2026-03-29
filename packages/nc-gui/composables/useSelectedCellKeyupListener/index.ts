@@ -1,10 +1,10 @@
-import { isClient } from '@vueuse/core'
 import type { ComputedRef, Ref } from 'vue'
+import { isClient } from '@vueuse/core'
 
 function useSelectedCellKeydownListener(
   selected: Ref<boolean | undefined> | ComputedRef<boolean | undefined>,
   handler: (e: KeyboardEvent) => void,
-  { immediate = false, isGridCell = true }: { immediate?: boolean; isGridCell?: boolean } = {},
+  { immediate = false, isGridCell = true }: { immediate?: boolean, isGridCell?: boolean } = {},
 ) {
   const finalHandler = (e: KeyboardEvent) => {
     if (cmdKActive()) return
@@ -18,8 +18,8 @@ function useSelectedCellKeydownListener(
       }
 
       if (
-        isActiveInputElementExist() &&
-        !(document.activeElement as HTMLElement).closest('table, .nc-group-table, .nc-grid-wrapper')
+        isActiveInputElementExist()
+        && !(document.activeElement as HTMLElement).closest('table, .nc-group-table, .nc-grid-wrapper')
       ) {
         return
       }
@@ -36,7 +36,8 @@ function useSelectedCellKeydownListener(
         if (nextVal) {
           document.addEventListener('keydown', finalHandler, true)
           // if `selected` is falsy then remove the event handler
-        } else {
+        }
+        else {
           document.removeEventListener('keydown', finalHandler, true)
         }
 
@@ -50,4 +51,4 @@ function useSelectedCellKeydownListener(
   }
 }
 
-export { useSelectedCellKeydownListener, useSelectedCellKeydownListener as useActiveKeydownListener }
+export { useSelectedCellKeydownListener as useActiveKeydownListener, useSelectedCellKeydownListener }

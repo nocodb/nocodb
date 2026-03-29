@@ -19,7 +19,7 @@ const activeKey = useVModel(props, 'activeKey', emits)
 </script>
 
 <template>
-  <NcTabs v-model:activeKey="activeKey" class="nc-filter-tabs">
+  <NcTabs v-model:active-key="activeKey" class="nc-filter-tabs">
     <a-tab-pane v-for="tab in tabs" :key="tab.key">
       <template #tab>
         <div class="flex items-center gap-1">

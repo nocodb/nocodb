@@ -8,7 +8,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { isMobileMode } = useGlobal()
 
-const onClick = () => {
+function onClick() {
   if (!isLeftSidebarOpen.value && !props.showAlways) return
 
   isLeftSidebarOpen.value = !isLeftSidebarOpen.value

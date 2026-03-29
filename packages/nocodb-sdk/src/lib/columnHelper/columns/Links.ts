@@ -28,7 +28,7 @@ export class LinksHelper extends AbstractColumnHelper {
         parsedVal &&
         ncIsObject(parsedVal) &&
         ['rowId', 'columnId', 'fk_related_model_id', 'value'].every((key) =>
-          (parsedVal as Object).hasOwnProperty(key)
+          (parsedVal as object).hasOwnProperty(key)
         )
       ) ||
       (parsedVal as Record<string, any>)?.fk_related_model_id !==

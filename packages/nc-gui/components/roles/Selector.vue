@@ -1,7 +1,7 @@
 <script lang="ts" setup>
+import type { SelectValue } from 'ant-design-vue/es/select'
 import type { RoleLabels } from 'nocodb-sdk'
 import { RoleDescriptions } from 'nocodb-sdk'
-import type { SelectValue } from 'ant-design-vue/es/select'
 
 const props = withDefaults(
   defineProps<{
@@ -53,7 +53,7 @@ onClickOutside(dropdownRef, (e) => {
 })
 
 /** Select input will not trigger onChange event if old value is same as new value so manually we have to handle close dropdown */
-const closeOnClickOption = (optionValue: keyof typeof RoleLabels) => {
+function closeOnClickOption(optionValue: keyof typeof RoleLabels) {
   if (!!newRole.value || optionValue !== roleRef.value) return
 
   isDropdownOpen.value = false
@@ -112,7 +112,9 @@ const closeOnClickOption = (optionValue: keyof typeof RoleLabels) => {
             <RolesBadge disabled :border="false" :inherit="inheritRef === rl" :role="rl" />
             <GeneralIcon v-if="!newRole && rl === roleRef" icon="check" class="text-primary" />
           </div>
-          <div v-if="descriptionRef" class="text-nc-content-gray-muted text-xs">{{ RoleDescriptions[rl] }}</div>
+          <div v-if="descriptionRef" class="text-nc-content-gray-muted text-xs">
+            {{ RoleDescriptions[rl] }}
+          </div>
         </div>
       </a-select-option>
       <a-select-option
@@ -137,7 +139,9 @@ const closeOnClickOption = (optionValue: keyof typeof RoleLabels) => {
 
             <GeneralIcon v-else-if="!newRole && rl === roleRef" icon="check" class="text-primary" />
           </div>
-          <div v-if="descriptionRef" class="text-nc-content-gray-muted text-xs">{{ RoleDescriptions[rl] }}</div>
+          <div v-if="descriptionRef" class="text-nc-content-gray-muted text-xs">
+            {{ RoleDescriptions[rl] }}
+          </div>
         </div>
       </a-select-option>
     </a-select>

@@ -38,7 +38,7 @@ onBeforeUnmount(() => {
   }
 })
 
-const handleError = async () => {
+async function handleError() {
   const isURLExp = await isURLExpired(props.src?.[0])
   if (isURLExp.isExpired) {
     emit('error')
@@ -58,7 +58,7 @@ const handleError = async () => {
       }"
       class="videoplayer !min-w-128 !min-h-72 w-full h-auto"
       @error="handleError"
-    ></video>
+    />
   </template>
   <video
     v-else
@@ -71,7 +71,7 @@ const handleError = async () => {
     class="videoplayer !min-w-128 !min-h-72 w-full h-auto"
     @error="handleError"
   >
-    <source v-for="(source, id) in props.src" :key="id" :src="source" :type="mimeType" />
+    <source v-for="(source, id) in props.src" :key="id" :src="source" :type="mimeType">
   </video>
 </template>
 

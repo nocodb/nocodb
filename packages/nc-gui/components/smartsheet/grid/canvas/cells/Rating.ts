@@ -1,4 +1,5 @@
-import { ColumnHelper, type ColumnType, UITypes } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { ColumnHelper, UITypes } from 'nocodb-sdk'
 import { renderTag } from '../utils/canvas'
 
 function getIconsData({
@@ -31,8 +32,8 @@ function getIconsData({
     color: '#fcb401',
     ...parseProp(column?.meta),
     max:
-      ((ncIsUndefined(selected) && ncIsUndefined(isRowHovered)) || selected || isRowHovered) &&
-      (ncIsUndefined(readonly) || !readonly)
+      ((ncIsUndefined(selected) && ncIsUndefined(isRowHovered)) || selected || isRowHovered)
+      && (ncIsUndefined(readonly) || !readonly)
         ? maxRating
         : rating,
     icon: extractRatingIcon(parseProp(column?.meta)),
@@ -56,7 +57,7 @@ function getIconsData({
 
   const iconsToShow = Math.min(totalPossibleIcons, ratingMeta.max)
 
-  const iconPositions: Array<{ iconX: number; iconY: number }> = []
+  const iconPositions: Array<{ iconX: number, iconY: number }> = []
   for (let i = 0; i < iconsToShow; i++) {
     const row = Math.floor(i / iconsPerRow)
     const col = i % iconsPerRow
@@ -118,12 +119,13 @@ export const RatingCellRenderer: CellRenderer = {
 
     const iconsData = getIconsData({ height, width, x, y, column, padding, selected, isRowHovered, value, readonly })!
     if (!iconsData) return
-    const { ratingMeta, startX, startY, iconSize, rowSpacing, iconWidthWithSpacing, maxRows, iconsPerRow, iconsToShow, rating } =
-      iconsData
+    const { ratingMeta, startX, startY, iconSize, rowSpacing, iconWidthWithSpacing, maxRows, iconsPerRow, iconsToShow, rating }
+      = iconsData
 
     if (!isRowHovered && !selected && !rating && !renderAsTag) {
       return
-    } else if ((isRowHovered || selected) && !rating && readonly && !renderAsTag) {
+    }
+    else if ((isRowHovered || selected) && !rating && readonly && !renderAsTag) {
       return
     }
 
@@ -139,14 +141,14 @@ export const RatingCellRenderer: CellRenderer = {
       const hoveredCol = Math.floor(relativeX / iconWidthWithSpacing)
 
       if (
-        hoveredRow >= 0 &&
-        hoveredRow < maxRows &&
-        hoveredCol >= 0 &&
-        hoveredCol < iconsPerRow &&
-        relativeX >= 0 &&
-        relativeY >= 0 &&
-        mouseX < x + width &&
-        mouseY < y + height
+        hoveredRow >= 0
+        && hoveredRow < maxRows
+        && hoveredCol >= 0
+        && hoveredCol < iconsPerRow
+        && relativeX >= 0
+        && relativeY >= 0
+        && mouseX < x + width
+        && mouseY < y + height
       ) {
         hoveredIconIndex = hoveredRow * iconsPerRow + hoveredCol
         if (hoveredIconIndex >= iconsToShow) {
@@ -182,7 +184,8 @@ export const RatingCellRenderer: CellRenderer = {
 
         if (hoveredIconIndex === hoverValue - 1) {
           isHovered = i + 1 <= value
-        } else {
+        }
+        else {
           cellRenderStore.ratingChanged = undefined
         }
       }
@@ -196,15 +199,17 @@ export const RatingCellRenderer: CellRenderer = {
         if (!readonly) {
           setCursor('pointer')
         }
-      } else {
+      }
+      else {
         iconColor = inactiveColor
       }
-      if (hoveredIconIndex === -1)
+      if (hoveredIconIndex === -1) {
         iconColor = isActive
           ? isDark
             ? getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), ratingMeta.color, ['#4a5268', '#d5dce8'])
             : ratingMeta.color
           : inactiveColor
+      }
 
       if (row < maxRows) {
         const x = startX + col * iconWidthWithSpacing
@@ -296,11 +301,12 @@ export const RatingCellRenderer: CellRenderer = {
     if (column.readonly || readonly || !column.isCellEditable || column.isSyncedColumn) return
     const columnObj = column.columnObj
 
-    if (/^[0-9]$/.test(e.key)) {
+    if (/^\d$/.test(e.key)) {
       row.row[columnObj.title!] = Number(e.key)
       try {
         await updateOrSaveRow(row, columnObj.title, undefined, undefined, undefined, path)
-      } catch (e: any) {
+      }
+      catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
       return true

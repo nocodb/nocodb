@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { type ColumnType, UITypes, UITypesName, isAIPromptCol, substituteColumnIdWithAliasInPrompt } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { isAIPromptCol, substituteColumnIdWithAliasInPrompt, UITypes, UITypesName } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: any
@@ -23,16 +24,16 @@ const vModel = useVModel(props, 'modelValue', emit)
 const availableFields = computed(() => {
   if (!meta.value?.columns) return []
   return meta.value.columns.filter(
-    (c) =>
-      c.title &&
-      !c.system &&
-      (!vModel.value?.id || c.id !== vModel.value.id) &&
-      ![UITypes.Button, UITypes.ID].includes(c.uidt as UITypes),
+    c =>
+      c.title
+      && !c.system
+      && (!vModel.value?.id || c.id !== vModel.value.id)
+      && ![UITypes.Button, UITypes.ID].includes(c.uidt as UITypes),
   )
 })
 
-const { isEdit, setAdditionalValidations, column, formattedData, loadData, disableSubmitBtn, updateFieldName, isSyncedField } =
-  useColumnCreateStoreOrThrow()
+const { isEdit, setAdditionalValidations, column, formattedData, loadData, disableSubmitBtn, updateFieldName, isSyncedField }
+  = useColumnCreateStoreOrThrow()
 
 const { isAiBetaFeaturesEnabled, aiIntegrationAvailable, generateRows } = useNocoAi()
 
@@ -74,13 +75,13 @@ const isPvColumn = computed(() => {
   return !!column.value?.pv
 })
 
-const loadViewData = async () => {
+async function loadViewData() {
   if (!formattedData.value.length) {
     await loadData(undefined, false)
   }
 }
 
-const generate = async () => {
+async function generate() {
   generatingPreview.value = true
 
   await loadViewData()
@@ -132,8 +133,8 @@ const isPromptEnabled = computed(() => {
 
 onMounted(() => {
   // set default value
-  vModel.value.prompt_raw =
-    substituteColumnIdWithAliasInPrompt(
+  vModel.value.prompt_raw
+    = substituteColumnIdWithAliasInPrompt(
       (column.value?.colOptions as Record<string, any>)?.prompt ?? '',
       meta?.value?.columns as ColumnType[],
       (column.value?.colOptions as Record<string, any>)?.prompt_raw,
@@ -174,7 +175,7 @@ const richMode = computed({
   },
 })
 
-const handleDisableSubmitBtn = () => {
+function handleDisableSubmitBtn() {
   updateFieldName()
 
   if (!isEnabledGenerateText.value) {
@@ -187,7 +188,8 @@ const handleDisableSubmitBtn = () => {
 
   if (isPreviewEnabled.value) {
     disableSubmitBtn.value = false
-  } else {
+  }
+  else {
     disableSubmitBtn.value = true
   }
 }
@@ -230,10 +232,10 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
               isSyncedField
                 ? 'You cannot generate content in a synced field'
                 : isPvColumn && !isEnabledGenerateText
-                ? `${UITypesName.AIPrompt} field cannot be used as display value field`
-                : 'Generate text using AI is not supported when rich text formatting is enabled'
-            }}</template
-          >
+                  ? `${UITypesName.AIPrompt} field cannot be used as display value field`
+                  : 'Generate text using AI is not supported when rich text formatting is enabled'
+            }}
+          </template>
 
           <NcSwitch
             v-model:checked="isEnabledGenerateText"
@@ -253,10 +255,12 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
           </NcSwitch>
         </NcTooltip>
         <NcTooltip class="ml-2 mr-[40px] flex cursor-pointer">
-          <template #title> Use AI to generate content based on record data. </template>
+          <template #title>
+            Use AI to generate content based on record data.
+          </template>
           <GeneralIcon icon="info" class="text-nc-content-gray-muted hover:text-nc-content-gray-subtle opacity-70 w-3.5 h-3.5" />
         </NcTooltip>
-        <div class="flex-1"></div>
+        <div class="flex-1" />
 
         <!-- Todo @rameshmane7218 remove hidden after enabling other integrations, hidden for now as we allow only nocoai -->
         <div
@@ -294,9 +298,7 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
           />
           <div class="rounded-b-lg flex items-center gap-1.5 p-1">
             <GeneralIcon icon="info" class="!text-nc-content-purple-medium w-3.5 h-3.5" />
-            <span class="text-xs text-nc-content-gray-subtle2"
-              >Mention fields using curly braces, e.g. <span class="text-nc-content-purple-dark">{Field name}</span>.</span
-            >
+            <span class="text-xs text-nc-content-gray-subtle2">Mention fields using curly braces, e.g. <span class="text-nc-content-purple-dark">{Field name}</span>.</span>
           </div>
         </div>
       </a-form-item>
@@ -313,7 +315,9 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
               <div class="flex items-center gap-2">
                 <span class="text-sm font-bold text-nc-content-gray-subtle">Preview</span>
                 <NcTooltip class="flex cursor-pointer">
-                  <template #title> Preview is generated using the first record in this table</template>
+                  <template #title>
+                    Preview is generated using the first record in this table
+                  </template>
                   <GeneralIcon
                     icon="info"
                     class="text-nc-content-gray-muted hover:text-nc-content-gray-subtle opacity-70 w-3.5 h-3.5"
@@ -326,7 +330,9 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
             </div>
 
             <NcTooltip :disabled="isPreviewEnabled">
-              <template #title> Include at least 1 field in prompt to generate </template>
+              <template #title>
+                Include at least 1 field in prompt to generate
+              </template>
               <NcButton
                 class="nc-aioptions-preview-generate-btn"
                 :class="{
@@ -353,8 +359,8 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
                         ? 'Re-generating'
                         : 'Re-generate'
                       : generatingPreview
-                      ? 'Generating'
-                      : 'Generate preview'
+                        ? 'Generating'
+                        : 'Generate preview'
                   }}
                 </div>
               </NcButton>

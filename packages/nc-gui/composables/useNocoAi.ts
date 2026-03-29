@@ -1,4 +1,5 @@
-import { BaseVersion, type IntegrationType, type SerializedAiViewType, type TableType } from 'nocodb-sdk'
+import type { IntegrationType, SerializedAiViewType, TableType } from 'nocodb-sdk'
+import { BaseVersion } from 'nocodb-sdk'
 
 const aiIntegrationNotFound = 'AI integration not found'
 
@@ -27,7 +28,7 @@ export const useNocoAi = createSharedComposable(() => {
 
   const aiIntegrationAvailable = computed(() => !!aiIntegrations.value.length)
 
-  const isNocoAiAvailable = computed(() => aiIntegrations.value.some((integration) => integration.id?.startsWith('global_')))
+  const isNocoAiAvailable = computed(() => aiIntegrations.value.some(integration => integration.id?.startsWith('global_')))
 
   const isAiIntegrationAvailableInList = (integrationId?: string) => {
     if (!aiIntegrationAvailable.value) return false
@@ -49,7 +50,8 @@ export const useNocoAi = createSharedComposable(() => {
       const res = await $api.ai.utils(baseId, { operation, input })
 
       return res
-    } catch (e) {
+    }
+    catch (e) {
       console.error(e)
       const error = await extractSdkResponseErrorMsg(e)
 
@@ -57,14 +59,16 @@ export const useNocoAi = createSharedComposable(() => {
         message.warning(error)
 
         return
-      } else {
+      }
+      else {
         aiError.value = error
       }
 
       if (!skipMsgToast) {
         message.warning(error || 'NocoAI: Underlying GPT API are busy. Please try after sometime.')
       }
-    } finally {
+    }
+    finally {
       aiLoading.value = false
     }
   }
@@ -83,7 +87,8 @@ export const useNocoAi = createSharedComposable(() => {
       const res = await $api.ai.schema(baseId, { operation, input })
 
       return res
-    } catch (e) {
+    }
+    catch (e) {
       console.error(e)
       const error = await extractSdkResponseErrorMsg(e)
 
@@ -91,14 +96,16 @@ export const useNocoAi = createSharedComposable(() => {
         message.warning(error)
 
         return
-      } else {
+      }
+      else {
         aiError.value = error
       }
 
       if (!skipMsgToast) {
         message.warning(error || 'NocoAI: Underlying GPT API are busy. Please try after sometime.')
       }
-    } finally {
+    }
+    finally {
       aiLoading.value = false
     }
   }
@@ -119,7 +126,8 @@ export const useNocoAi = createSharedComposable(() => {
       })
 
       return res
-    } catch (e) {
+    }
+    catch (e) {
       console.error(e)
       const error = await extractSdkResponseErrorMsg(e)
 
@@ -127,14 +135,16 @@ export const useNocoAi = createSharedComposable(() => {
         message.warning(error)
 
         return
-      } else {
+      }
+      else {
         aiError.value = error
       }
 
       if (!skipMsgToast) {
         message.warning(error || 'NocoAI: Underlying GPT API are busy. Please try after sometime.')
       }
-    } finally {
+    }
+    finally {
       aiLoading.value = false
     }
   }
@@ -241,7 +251,8 @@ export const useNocoAi = createSharedComposable(() => {
       if (res?.length) {
         await onTableCreate?.(res[0])
       }
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
     }
   }
@@ -260,7 +271,8 @@ export const useNocoAi = createSharedComposable(() => {
       )
 
       return res
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.error(e)
       message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
     }
@@ -272,7 +284,7 @@ export const useNocoAi = createSharedComposable(() => {
     prompt?: string,
     sourceId?: string,
     skipMsgToast = true,
-  ): Promise<{ title: string; selected: boolean }[]> => {
+  ): Promise<{ title: string, selected: boolean }[]> => {
     const res = await callAiUtilsApi('predictNextTables', { history, prompt, sourceId }, baseId, skipMsgToast)
 
     if (res?.tables) {
@@ -297,7 +309,7 @@ export const useNocoAi = createSharedComposable(() => {
     const res = await callAiSchemaApi('predictViews', { tableId, history, description, type, sourceId }, baseId, skipMsgToast)
 
     if (res?.views) {
-      return res.views.map((view) => ({
+      return res.views.map(view => ({
         ...view,
         selected: false,
       }))
@@ -358,17 +370,17 @@ export const useNocoAi = createSharedComposable(() => {
     column:
       | string
       | {
-          title: string
-          prompt_raw: string
-          fk_integration_id: string
-          uidt: string
-          model?: string
-          output_column_ids?: string
-        },
+        title: string
+        prompt_raw: string
+        fk_integration_id: string
+        uidt: string
+        model?: string
+        output_column_ids?: string
+      },
     rowIds: string[],
     skipMsgToast = false,
     preview = false,
-    meta?: { workspaceId?: string; baseId?: string },
+    meta?: { workspaceId?: string, baseId?: string },
   ) => {
     try {
       const workspaceId = meta?.workspaceId || workspaceStore.activeWorkspaceId
@@ -387,7 +399,8 @@ export const useNocoAi = createSharedComposable(() => {
       )
 
       return res
-    } catch (e) {
+    }
+    catch (e) {
       console.error(e)
       const error = await extractSdkResponseErrorMsg(e)
 
@@ -395,14 +408,16 @@ export const useNocoAi = createSharedComposable(() => {
         message.warning(error)
 
         return
-      } else {
+      }
+      else {
         aiError.value = error
       }
 
       if (!skipMsgToast) {
         message.warning(error || 'NocoAI: Underlying GPT API are busy. Please try after sometime.')
       }
-    } finally {
+    }
+    finally {
       aiLoading.value = false
     }
   }
@@ -414,7 +429,7 @@ export const useNocoAi = createSharedComposable(() => {
       generateIds: string[]
       numRows: number
     },
-    meta?: { workspaceId?: string; baseId?: string },
+    meta?: { workspaceId?: string, baseId?: string },
   ) => {
     const workspaceId = meta?.workspaceId || workspaceStore.activeWorkspaceId
     const baseId = meta?.baseId || activeProjectId.value

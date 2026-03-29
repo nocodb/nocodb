@@ -42,9 +42,9 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { addUndo, defineProjectScope } = useUndoRedo()
 
-const contextMenuTarget = reactive<{ type?: 'base' | 'source' | 'table' | 'main' | 'layout'; value?: any }>({})
+const contextMenuTarget = reactive<{ type?: 'base' | 'source' | 'table' | 'main' | 'layout', value?: any }>({})
 
-const setMenuContext = (type: 'base' | 'source' | 'table' | 'main' | 'layout', value?: any) => {
+function setMenuContext(type: 'base' | 'source' | 'table' | 'main' | 'layout', value?: any) {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
 }
@@ -169,7 +169,8 @@ async function handleTableRename(
     refreshCommandPalette()
 
     $e('a:table:rename')
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
     updateTitle(originalTitle)
   }
@@ -196,7 +197,7 @@ function openTableCreateDialog(sourceId?: string, baseId?: string) {
   }
 }
 
-const duplicateTable = async (table: TableType) => {
+async function duplicateTable(table: TableType) {
   if (!table || !table.id || !table.base_id) return
 
   const isOpen = ref(true)
@@ -218,13 +219,13 @@ const duplicateTable = async (table: TableType) => {
 
 const isCreateTableAllowed = computed(
   () =>
-    base.value?.sources?.[0] &&
-    isUIAllowed('tableCreate', { source: base.value?.sources?.[0] }) &&
-    route.value.name !== 'index' &&
-    route.value.name !== 'index-index' &&
-    route.value.name !== 'index-index-create' &&
-    route.value.name !== 'index-index-create-external' &&
-    route.value.name !== 'index-user-index',
+    base.value?.sources?.[0]
+    && isUIAllowed('tableCreate', { source: base.value?.sources?.[0] })
+    && route.value.name !== 'index'
+    && route.value.name !== 'index-index'
+    && route.value.name !== 'index-index-create'
+    && route.value.name !== 'index-index-create-external'
+    && route.value.name !== 'index-user-index',
 )
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
@@ -272,7 +273,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
-const handleContext = (e: MouseEvent) => {
+function handleContext(e: MouseEvent) {
   if (!document.querySelector('.source-context, .table-context')?.contains(e.target as Node)) {
     setMenuContext('main')
   }
@@ -290,7 +291,7 @@ provide(TreeViewInj, {
 
 useEventListener(document, 'contextmenu', handleContext, true)
 
-const scrollTableNode = () => {
+function scrollTableNode() {
   const activeTableDom = document.querySelector(`.nc-treeview [data-table-id="${_activeTable.value?.id}"]`)
   if (!activeTableDom) return
 
@@ -321,7 +322,7 @@ watch(
       <ProjectWrapper :base-role="resolvedProject?.project_role" :base="resolvedProject">
         <DashboardTreeViewProjectHome>
           <template #footer>
-            <slot name="footer"></slot>
+            <slot name="footer" />
           </template>
         </DashboardTreeViewProjectHome>
       </ProjectWrapper>
@@ -334,7 +335,9 @@ watch(
       <div>
         <DashboardSidebarHeaderWrapper>
           <NcTooltip class="truncate font-semibold text-sm text-nc-content-gray" show-on-truncate-only>
-            <template #title>{{ activeWorkspace?.title }}</template>
+            <template #title>
+              {{ activeWorkspace?.title }}
+            </template>
             {{ activeWorkspace?.title }}
           </NcTooltip>
         </DashboardSidebarHeaderWrapper>

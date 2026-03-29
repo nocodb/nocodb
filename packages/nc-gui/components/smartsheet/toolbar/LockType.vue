@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 import { LockType } from '#imports'
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
 const { type, hideTick } = defineProps<{
   hideTick?: boolean
@@ -47,7 +47,7 @@ const { getPlanTitle } = useEeConfig()
             {{ $t(types[type].title) }}
           </div>
           <template v-if="!hideTick">
-            <div class="flex flex-grow"></div>
+            <div class="flex flex-grow" />
             <GeneralIcon
               v-if="selectedView?.lock_type === type"
               icon="circleCheckSolid"

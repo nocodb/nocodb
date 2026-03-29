@@ -1,9 +1,10 @@
 <script lang="ts" setup>
-import type { VNodeRef } from '@vue/runtime-core'
+import type { IntegrationItemType } from '#imports'
+import type { VNodeRef } from 'vue'
+import { SyncDataType } from '#imports'
 import { IntegrationCategoryType } from 'nocodb-sdk'
-import NcModal from '~/components/nc/Modal.vue'
 
-import { type IntegrationItemType, SyncDataType } from '#imports'
+import NcModal from '~/components/nc/Modal.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -56,7 +57,7 @@ const {
   availableSyncAuthIntegrationSubtypes,
 } = useIntegrationStore()
 
-const focusTextArea: VNodeRef = (el) => el && el?.focus?.()
+const focusTextArea: VNodeRef = el => el && el?.focus?.()
 
 const activeCategory = ref<IntegrationCategoryItemType | null>(null)
 
@@ -109,7 +110,7 @@ const isOpenFilter = ref(false)
 
 const categoriesQuery = computed({
   get: () => {
-    const availableCategories = integrationCategoriesRef.value.map((c) => c.value)
+    const availableCategories = integrationCategoriesRef.value.map(c => c.value)
 
     if (route.value.query.categories === undefined) {
       return integrationsCategoryFilter.value
@@ -117,8 +118,8 @@ const categoriesQuery = computed({
 
     const query = ((route.value.query.categories as string) || '')
       .split(',')
-      .map((c) => c.trim())
-      .filter((c) => availableCategories.includes(c))
+      .map(c => c.trim())
+      .filter(c => availableCategories.includes(c))
 
     integrationsCategoryFilter.value = query
 
@@ -137,7 +138,7 @@ const isDataReflectionEnabled = computed(() => {
   return isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION)
 })
 
-const getIntegrationsByCategory = (category: IntegrationCategoryType, query: string) => {
+function getIntegrationsByCategory(category: IntegrationCategoryType, query: string) {
   return allIntegrations.filter((i) => {
     const isOssOnly = isEeUI ? !i?.isOssOnly : true
 
@@ -152,7 +153,6 @@ const getIntegrationsByCategory = (category: IntegrationCategoryType, query: str
 }
 
 const integrationsMapByCategory = computed(() => {
-  // eslint-disable-next-line no-unused-expressions
   integrationsRefreshKey.value
 
   return integrationCategories
@@ -161,8 +161,8 @@ const integrationsMapByCategory = computed(() => {
 
       const filterByActiveCategory = activeCategory.value ? c.value === activeCategory.value.value : true
 
-      const filterByUrlQuery =
-        categoriesQuery.value.includes(c.value) || categoriesQuery.value.some((q) => `${q}-coming-soon` === c.value)
+      const filterByUrlQuery
+        = categoriesQuery.value.includes(c.value) || categoriesQuery.value.some(q => `${q}-coming-soon` === c.value)
 
       return filterCategory(c) && filterByActiveCategory && filterByUrlQuery
     })
@@ -200,7 +200,7 @@ const isEmptyList = computed(() => {
     return true
   }
 
-  return !categories.some((category) => integrationsMapByCategory.value[category].list.length > 0)
+  return !categories.some(category => integrationsMapByCategory.value[category].list.length > 0)
 })
 
 const isAddNewIntegrationModalOpen = computed({
@@ -214,7 +214,7 @@ const isAddNewIntegrationModalOpen = computed({
   },
 })
 
-const handleUpvote = (category: IntegrationCategoryType, syncDataType: SyncDataType) => {
+function handleUpvote(category: IntegrationCategoryType, syncDataType: SyncDataType) {
   if (upvotesData.value.has(syncDataType)) return
 
   $e(`a:integration-request:${integrationsMapByCategory.value[category]?.teleEventName || category}:${syncDataType}`)
@@ -222,7 +222,7 @@ const handleUpvote = (category: IntegrationCategoryType, syncDataType: SyncDataT
   updateSyncDataUpvotes([...syncDataUpvotes.value, syncDataType])
 }
 
-const handleAddIntegration = async (category: IntegrationCategoryType, integration: IntegrationItemType) => {
+async function handleAddIntegration(category: IntegrationCategoryType, integration: IntegrationItemType) {
   if (!integration.isAvailable) {
     handleUpvote(category, integration.sub_type)
     return
@@ -235,15 +235,16 @@ const isVisibleAllCategory = computed(() => {
   return integrationCategoriesRef.value.length === categoriesQuery.value.length
 })
 
-const toggleShowOrHideAllCategory = () => {
+function toggleShowOrHideAllCategory() {
   if (isVisibleAllCategory.value) {
     categoriesQuery.value = []
-  } else {
-    categoriesQuery.value = integrationCategoriesRef.value.map((c) => c.value)
+  }
+  else {
+    categoriesQuery.value = integrationCategoriesRef.value.map(c => c.value)
   }
 }
 
-const isIntegrationVisible = (integration: IntegrationItemType, category: any) => {
+function isIntegrationVisible(integration: IntegrationItemType, category: any) {
   if (easterEggToggle.value) return true
 
   if (isSyncFeatureEnabled.value && category.value === IntegrationCategoryType.AUTH) {
@@ -257,7 +258,7 @@ onMounted(() => {
   loadDynamicIntegrations()
 
   if (!integrationsCategoryFilter.value.length) {
-    integrationsCategoryFilter.value = integrationCategoriesRef.value.map((c) => c.value)
+    integrationsCategoryFilter.value = integrationCategoriesRef.value.map(c => c.value)
   }
 })
 
@@ -291,7 +292,9 @@ watch(activeViewTab, (value) => {
             <GeneralIcon icon="arrowLeft" />
           </NcButton>
           <GeneralIcon icon="gitCommit" class="flex-none h-5 w-5" />
-          <div class="flex-1 text-base font-weight-700">New Connection</div>
+          <div class="flex-1 text-base font-weight-700">
+            New Connection
+          </div>
           <div class="flex items-center gap-3">
             <NcButton size="small" type="text" @click="isAddNewIntegrationModalOpen = false">
               <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
@@ -385,8 +388,8 @@ watch(activeViewTab, (value) => {
                               </div>
                             </div>
                           </div>
-                        </template></NcList
-                      >
+                        </template>
+                      </NcList>
                     </template>
                   </NcDropdown>
                 </div>
@@ -423,10 +426,10 @@ watch(activeViewTab, (value) => {
                 <template v-for="(category, key) in integrationsMapByCategory">
                   <div
                     v-if="
-                      (easterEggToggle ||
-                        category.value === IntegrationCategoryType.DATABASE ||
-                        (isSyncFeatureEnabled && category.value === IntegrationCategoryType.AUTH)) &&
-                      category.list.length
+                      (easterEggToggle
+                        || category.value === IntegrationCategoryType.DATABASE
+                        || (isSyncFeatureEnabled && category.value === IntegrationCategoryType.AUTH))
+                        && category.list.length
                     "
                     :key="key"
                     class="integration-type-wrapper"
@@ -437,8 +440,9 @@ watch(activeViewTab, (value) => {
                         v-if="!category.isAvailable"
                         :border="false"
                         class="text-nc-content-brand !h-5 bg-nc-bg-brand text-xs font-normal px-2"
-                        >{{ $t('msg.toast.futureRelease') }}</NcBadge
                       >
+                        {{ $t('msg.toast.futureRelease') }}
+                      </NcBadge>
                     </div>
                     <div v-if="category.list.length" class="integration-type-list">
                       <template v-for="integration of category.list" :key="integration.sub_type">
@@ -447,7 +451,9 @@ watch(activeViewTab, (value) => {
                           :disabled="integration?.isAvailable"
                           placement="bottom"
                         >
-                          <template #title>{{ $t('tooltip.comingSoonIntegration') }}</template>
+                          <template #title>
+                            {{ $t('tooltip.comingSoonIntegration') }}
+                          </template>
 
                           <div
                             :tabindex="0"
@@ -461,10 +467,14 @@ watch(activeViewTab, (value) => {
                               <component :is="integration.icon" class="integration-icon" :style="integration.iconStyle" />
                             </div>
                             <div class="flex-1">
-                              <div class="name">{{ $t(integration.title) }}</div>
-                              <div v-if="integration.subtitle" class="subtitle flex-1">{{ $t(integration.subtitle) }}</div>
+                              <div class="name">
+                                {{ $t(integration.title) }}
+                              </div>
+                              <div v-if="integration.subtitle" class="subtitle flex-1">
+                                {{ $t(integration.subtitle) }}
+                              </div>
                             </div>
-                            <div v-if="!isDataReflectionEnabled && integration?.sub_type === SyncDataType.NOCODB"></div>
+                            <div v-if="!isDataReflectionEnabled && integration?.sub_type === SyncDataType.NOCODB" />
                             <div v-else-if="integration?.sub_type === SyncDataType.NOCODB" class="flex items-center">
                               <NcButton
                                 v-if="dataReflectionEnabled"
@@ -519,7 +529,9 @@ watch(activeViewTab, (value) => {
                 </div>
               </div>
             </div>
-            <div v-else class="h-full flex items-center justify-center"><GeneralLoader size="xlarge" /></div>
+            <div v-else class="h-full flex items-center justify-center">
+              <GeneralLoader size="xlarge" />
+            </div>
           </div>
         </div>
         <NcModal
@@ -530,7 +542,9 @@ watch(activeViewTab, (value) => {
         >
           <div v-show="requestIntegration.isOpen" class="flex flex-col gap-4">
             <div class="flex items-center justify-between gap-4">
-              <div class="text-base font-bold text-nc-content-gray">Request Integration</div>
+              <div class="text-base font-bold text-nc-content-gray">
+                Request Integration
+              </div>
               <NcButton size="small" type="text" @click="requestIntegration.isOpen = false">
                 <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
               </NcButton>

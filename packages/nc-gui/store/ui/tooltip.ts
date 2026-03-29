@@ -1,5 +1,5 @@
-import { isBoxHovered } from '../../components/smartsheet/grid/canvas/utils/canvas'
 import type { RenderRectangleProps } from '../../components/smartsheet/grid/canvas/utils/types'
+import { isBoxHovered } from '../../components/smartsheet/grid/canvas/utils/canvas'
 
 export interface TooltipPosition {
   x: number
@@ -95,8 +95,8 @@ export const useTooltipStore = defineStore('tooltip', () => {
   }) {
     if (!rect || !isBoxHovered(rect, mousePosition) || !text) return false
 
-    const tooltipWithDescription =
-      ncIsString(text) && description
+    const tooltipWithDescription
+      = ncIsString(text) && description
         ? h('div', { class: 'flex flex-col gap-1' }, [
             h('div', { class: 'text-captionBold' }, text),
             h('div', { class: 'text-captionSm' }, description),

@@ -110,7 +110,8 @@ export function useRowReorder({
 
     if (mouseY < edgeThreshold) {
       scrollToCell(Math.max(0, targetRowIndex.value - 2), 0)
-    } else if (mouseY > rect.height - edgeThreshold) {
+    }
+    else if (mouseY > rect.height - edgeThreshold) {
       scrollToCell(Math.min(totalRows.value - 1, targetRowIndex.value + 2), 0)
     }
   }

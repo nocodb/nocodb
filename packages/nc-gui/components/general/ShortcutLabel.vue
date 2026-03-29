@@ -5,7 +5,7 @@ const props = defineProps<{
 
 const isMacOs = isMac()
 
-const getLabel = (key: string) => {
+function getLabel(key: string) {
   if (isMacOs) {
     switch (key.toLowerCase()) {
       case 'alt':

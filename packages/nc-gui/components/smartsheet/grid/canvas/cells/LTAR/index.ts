@@ -1,11 +1,11 @@
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { LinksVersion, RelationTypes, isBtLikeV2Junction } from 'nocodb-sdk'
+import { isBtLikeV2Junction, LinksVersion, RelationTypes } from 'nocodb-sdk'
 import { BelongsToCellRenderer } from './BelongsTo'
 import { HasManyCellRenderer } from './HasMany'
 import { ManyToManyCellRenderer } from './ManyToMany'
 import { OneToOneCellRenderer } from './OneToOne'
 
-export const getLtarCellRenderer = (column: ColumnType): CellRenderer | undefined => {
+export function getLtarCellRenderer(column: ColumnType): CellRenderer | undefined {
   if (isHm(column)) return HasManyCellRenderer
   if (isBtLikeV2Junction(column)) {
     const opts = (column as ColumnType).colOptions as LinkToAnotherRecordType

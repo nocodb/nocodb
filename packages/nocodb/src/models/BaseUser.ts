@@ -227,9 +227,9 @@ export default class BaseUser {
       base_id,
       mode = 'full',
       strict_in_record = false,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       include_ws_deleted = true,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       include_internal_user = false,
       user_ids,
     }: {

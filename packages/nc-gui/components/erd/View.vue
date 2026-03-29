@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { LinkToAnotherRecordType, SourceType, TableType } from 'nocodb-sdk'
-import { isLinksOrLTAR } from 'nocodb-sdk'
 import type { ERDConfig } from './utils'
+import { isLinksOrLTAR } from 'nocodb-sdk'
 
 const props = defineProps({
   sourceId: {
@@ -51,7 +51,7 @@ const config = reactive<ERDConfig>({
   isFullScreen: false,
 })
 
-const fetchMissingTableMetas = async (localTables: TableType[]) => {
+async function fetchMissingTableMetas(localTables: TableType[]) {
   const chunkSize = 5
 
   // Function to process a chunk of tables
@@ -75,7 +75,7 @@ const fetchMissingTableMetas = async (localTables: TableType[]) => {
   }
 }
 
-const populateTables = async () => {
+async function populateTables() {
   let localTables: TableType[] = []
   if (props.table) {
     // use getMeta method to load meta since it will get meta if not loaded already
@@ -84,12 +84,13 @@ const populateTables = async () => {
     // if table is provided only get the table and its related tables
     localTables = baseTables.value.filter(
       (t: TableType) =>
-        t.id === props.table?.id ||
-        tableMeta?.columns?.find((column) => {
+        t.id === props.table?.id
+        || tableMeta?.columns?.find((column) => {
           return isLinksOrLTAR(column.uidt!) && (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id === t.id
         }),
     )
-  } else {
+  }
+  else {
     localTables = baseTables.value
   }
 
@@ -97,18 +98,18 @@ const populateTables = async () => {
 
   tables.value = localTables
     .filter(
-      (t) =>
-        config.showMMTables ||
-        (!config.showMMTables && !t.mm) ||
+      t =>
+        config.showMMTables
+        || (!config.showMMTables && !t.mm)
         // Show mm table if it's the selected table
-        t.id === props.table?.id,
+        || t.id === props.table?.id,
     )
     .filter((t: TableType) => config.singleTableMode || (!config.showViews && t.type !== 'view') || config.showViews)
 
   isLoading.value = false
 }
 
-const toggleFullScreen = () => {
+function toggleFullScreen() {
   config.isFullScreen = !config.isFullScreen
 }
 

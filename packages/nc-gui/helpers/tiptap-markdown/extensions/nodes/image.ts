@@ -1,7 +1,8 @@
-import { defaultMarkdownSerializer } from '@tiptap/pm/markdown'
-import TiptapImage, { type ImageOptions } from '@tiptap/extension-image'
-import { nodeInputRule, nodePasteRule } from '@tiptap/core'
+import type { ImageOptions } from '@tiptap/extension-image'
 import type { MarkdownNodeSpec } from '../../types'
+import { nodeInputRule, nodePasteRule } from '@tiptap/core'
+import TiptapImage from '@tiptap/extension-image'
+import { defaultMarkdownSerializer } from '@tiptap/pm/markdown'
 import { mdImageAsText } from '../../../tiptap/functionality'
 
 /**

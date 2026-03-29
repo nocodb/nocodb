@@ -30,7 +30,7 @@ export function countBlueprintsInLtarState(_ltarState: Record<string, any>): num
 }
 
 export async function createRecordFromTemplate(_params: {
-  tmpl: { id?: string; template_data: Record<string, any> | string }
+  tmpl: { id?: string, template_data: Record<string, any> | string }
   api: any
   baseId: string
   tableId: string

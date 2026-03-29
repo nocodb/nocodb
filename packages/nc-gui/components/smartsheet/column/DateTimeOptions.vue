@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ColumnHelper, UITypes, dateFormats, timeFormats } from 'nocodb-sdk'
-import { type TimeZone, getTimeZones } from '@vvo/tzdb'
+import type { TimeZone } from '@vvo/tzdb'
+import { getTimeZones } from '@vvo/tzdb'
+import { ColumnHelper, dateFormats, timeFormats, UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -14,16 +15,16 @@ const { appInfo } = useGlobal()
 
 const timezones = getTimeZones({ includeUtc: true }).sort((a, b) => a.name.localeCompare(b.name))
 const browserTzName = Intl.DateTimeFormat().resolvedOptions().timeZone
-const browserTz = timezones.find((tz) => isSameTimezone(tz.name, browserTzName))
-const utcTz = timezones.find((tz) => tz.name === 'Etc/UTC')
-const defaultSuggestedTzs = [browserTz, utcTz].filter((k) => k) as TimeZone[]
+const browserTz = timezones.find(tz => isSameTimezone(tz.name, browserTzName))
+const utcTz = timezones.find(tz => tz.name === 'Etc/UTC')
+const defaultSuggestedTzs = [browserTz, utcTz].filter(k => k) as TimeZone[]
 
 const priorityTzs = computed(() => {
   const otherPriorityTzs = []
   for (const tz of timezones) {
     if (
-      browserTz?.countryCode === tz.countryCode &&
-      !defaultSuggestedTzs.find((suggestedTz) => isSameTimezone(suggestedTz?.name, tz.name))
+      browserTz?.countryCode === tz.countryCode
+      && !defaultSuggestedTzs.find(suggestedTz => isSameTimezone(suggestedTz?.name, tz.name))
     ) {
       otherPriorityTzs.push(tz)
     }
@@ -50,7 +51,9 @@ const useSameTimezoneForAll = computed({
   set: (value) => {
     if (!vModel.value.meta) vModel.value.meta = {}
     vModel.value.meta.useSameTimezoneForAll = value
-    if (!value) vModel.value.meta.timezone = undefined
+    if (!value) {
+      vModel.value.meta.timezone = undefined
+    }
     else if (!vModel.value.meta.timezone) {
       vModel.value.meta.timezone = priorityTzs.value[0]?.name
     }
@@ -107,8 +110,12 @@ const useSameTimezoneForAll = computed({
     </div>
     <a-form-item>
       <a-radio-group v-if="vModel.meta" v-model:value="vModel.meta.is12hrFormat" class="nc-time-form-layout">
-        <a-radio :value="true">12 Hrs</a-radio>
-        <a-radio :value="false">24 Hrs</a-radio>
+        <a-radio :value="true">
+          12 Hrs
+        </a-radio>
+        <a-radio :value="false">
+          24 Hrs
+        </a-radio>
       </a-radio-group>
     </a-form-item>
 

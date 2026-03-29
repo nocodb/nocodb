@@ -15,7 +15,7 @@ const isAuthTokenCopied = ref(false)
 
 const isLoggingOut = ref(false)
 
-const logout = async () => {
+async function logout() {
   isLoggingOut.value = true
   try {
     const isSsoUser = !!(user?.value as any)?.sso_client_id
@@ -24,9 +24,11 @@ const logout = async () => {
       redirectToSignin: true,
       signinUrl: isSsoUser ? '/sso' : '/signin',
     })
-  } catch (e) {
+  }
+  catch (e) {
     console.error(e)
-  } finally {
+  }
+  finally {
     isLoggingOut.value = false
   }
 }

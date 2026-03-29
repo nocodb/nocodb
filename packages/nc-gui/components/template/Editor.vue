@@ -1,20 +1,20 @@
 <script setup lang="ts">
+import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
+import type { ColumnType, TableType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import type { ColumnType, TableType } from 'nocodb-sdk'
 import {
-  PermissionEntity,
-  PermissionKey,
-  SqlUiFactory,
-  UITypes,
   getDateFormat,
   getDateTimeFormat,
   isSystemColumn,
   isVirtualCol,
   parseStringDate,
+  PermissionEntity,
+  PermissionKey,
+  SqlUiFactory,
+  UITypes,
   validateDateWithUnknownFormat,
 } from 'nocodb-sdk'
-import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
 
 interface Props {
@@ -35,8 +35,8 @@ interface Option {
   value: string
 }
 
-const { quickImportType, baseTemplate, importData, importColumns, importDataOnly, maxRowsToParse, baseId, sourceId } =
-  defineProps<Props>()
+const { quickImportType, baseTemplate, importData, importColumns, importDataOnly, maxRowsToParse, baseId, sourceId }
+  = defineProps<Props>()
 
 const emit = defineEmits(['import', 'error', 'change'])
 
@@ -52,17 +52,18 @@ const { appInfo } = useGlobal()
 
 const meta = inject(MetaInj, ref())
 
-const filterForDestinationColumn = (col: ColumnType): boolean => {
+function filterForDestinationColumn(col: ColumnType): boolean {
   if ([UITypes.ForeignKey, UITypes.ID].includes(col.uidt as UITypes)) {
     return true
-  } else {
+  }
+  else {
     return !isSystemColumn(col) && !isVirtualCol(col) && !isAttachment(col)
   }
 }
 
 const columns = computed(() =>
   (meta.value?.columns || [])
-    ?.filter((col) => filterForDestinationColumn(col))
+    ?.filter(col => filterForDestinationColumn(col))
     .map((col) => {
       // If it is import data only, then we need to check if the field is editable
       const isEditAllowed = importDataOnly ? isAllowed(PermissionEntity.FIELD, col.id!, PermissionKey.RECORD_FIELD_EDIT) : true
@@ -78,8 +79,8 @@ const columns = computed(() =>
           tooltip: isReadonlyCol
             ? t('msg.info.fieldReadonly')
             : !isEditAllowed
-            ? t('tooltip.youDontHavePermissionToEditThisField')
-            : '',
+                ? t('tooltip.youDontHavePermissionToEditThisField')
+                : '',
         },
       }
     }),
@@ -142,7 +143,7 @@ const srcDestMapping = ref<Record<string, Record<string, any>[]>>({})
 const data = reactive<{
   title: string | null
   name: string
-  tables: (TableType & { ref_table_name: string; columns: (ColumnType & { key: number; _disableSelect?: boolean })[] })[]
+  tables: (TableType & { ref_table_name: string, columns: (ColumnType & { key: number, _disableSelect?: boolean })[] })[]
 }>({
   title: null,
   name: 'Base Name',
@@ -179,7 +180,8 @@ const validators = computed(() =>
             let tableNameLengthLimit = 255
             if (isMysql(sourceId)) {
               tableNameLengthLimit = 64
-            } else if (isPg(sourceId)) {
+            }
+            else if (isPg(sourceId)) {
               tableNameLengthLimit = 63
             }
 
@@ -197,7 +199,7 @@ const validators = computed(() =>
       {
         validator: (_rule: any, value: any) => {
           return new Promise<void>((resolve, reject) => {
-            if (!importDataOnly && ncIsArray(value) && !value.some((item) => item.selected)) {
+            if (!importDataOnly && ncIsArray(value) && !value.some(item => item.selected)) {
               return reject(new Error(t('msg.error.selectAtleastOneColumn')))
             }
 
@@ -219,10 +221,10 @@ const validators = computed(() =>
 
               if (!field || !field?.selected) return resolve()
 
-              const fieldToCheck = table.columns.filter((item) => item.selected)
+              const fieldToCheck = table.columns.filter(item => item.selected)
               if (
-                fieldToCheck.length &&
-                table.columns.some((item, idx) => idx !== columnIdx && item.selected && item.title === value)
+                fieldToCheck.length
+                && table.columns.some((item, idx) => idx !== columnIdx && item.selected && item.title === value)
               ) {
                 return reject(new Error(t('msg.error.duplicateColumnName')))
               }
@@ -306,7 +308,8 @@ watch(
           break
         }
       }
-    } else {
+    }
+    else {
       for (const [_, o] of Object.entries(validateInfos)) {
         if (o?.validateStatus) {
           if (o.validateStatus === 'error') {
@@ -385,7 +388,7 @@ function _deleteTable(tableIdx: number) {
 
 function remapColNames(batchData: any[], columns: ColumnType[]) {
   const dateFormatMap: Record<number, string> = {}
-  return batchData.map((data) =>
+  return batchData.map(data =>
     (columns || []).reduce((aggObj, col: Record<string, any>) => {
       // we renaming existing id column and using our own auto increment id
       if (col.uidt === UITypes.ID) return aggObj
@@ -401,14 +404,17 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
         if (col?.meta?.date_format) {
           dateFormat = col.meta.date_format
           dateFormatMap[col.key] = dateFormat
-        } else if (col.key in dateFormatMap) {
+        }
+        else if (col.key in dateFormatMap) {
           dateFormat = dateFormatMap[col.key]
-        } else {
+        }
+        else {
           dateFormat = getDateFormat(d)
           dateFormatMap[col.key] = dateFormat
         }
         d = parseStringDate(d, dateFormat)
-      } else if (col.uidt === UITypes.DateTime && d) {
+      }
+      else if (col.uidt === UITypes.DateTime && d) {
         const dateTimeFormat = getDateTimeFormat(data[key])
         d = dayjs(data[key], dateTimeFormat).format('YYYY-MM-DD HH:mm')
       }
@@ -423,15 +429,16 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
 function missingRequiredColumnsValidation(tn: string, showError = false) {
   const missingRequiredColumns = columns.value.filter(
     (c: Record<string, any>) =>
-      (c.pk ? !c.ai && !c.cdf && !c.meta?.ag : !c.cdf && c.rqd) &&
-      !srcDestMapping.value[tn].some((r: Record<string, any>) => r.destCn === c.title),
+      (c.pk ? !c.ai && !c.cdf && !c.meta?.ag : !c.cdf && c.rqd)
+      && !srcDestMapping.value[tn].some((r: Record<string, any>) => r.destCn === c.title),
   )
 
   if (missingRequiredColumns.length) {
-    const error = `${t('msg.error.columnsRequired')} : ${missingRequiredColumns.map((c) => c.title).join(', ')}`
+    const error = `${t('msg.error.columnsRequired')} : ${missingRequiredColumns.map(c => c.title).join(', ')}`
     if (showError) {
       message.error(error)
-    } else {
+    }
+    else {
       return error
     }
 
@@ -446,7 +453,8 @@ function atLeastOneEnabledValidation(tn: string, showError = false) {
     const err = t('msg.error.selectAtleastOneColumn')
     if (showError) {
       message.error(err)
-    } else {
+    }
+    else {
       return err
     }
 
@@ -462,7 +470,7 @@ function getUnselectedFields(record: Record<string, any>, tn: string) {
   return columns.value.filter((c) => {
     // Exclude columns that are already mapped, except for the current record's `destCn`
 
-    return !allRecord?.some((item) => item.srcTitle !== record.srcTitle && item.destCn === c.title)
+    return !allRecord?.some(item => item.srcTitle !== record.srcTitle && item.destCn === c.title)
   })
 }
 
@@ -482,7 +490,7 @@ function fieldsValidation(record: Record<string, any>, tn: string) {
     return false
   }
 
-  const v = columns.value.find((c) => c.title === record.destCn) as Record<string, any>
+  const v = columns.value.find(c => c.title === record.destCn) as Record<string, any>
 
   if (!v) {
     message.error(`Column '${record.destCn}' not found`)
@@ -523,14 +531,14 @@ function fieldsValidation(record: Record<string, any>, tn: string) {
               if (typeof input === 'string') {
                 input = input.replace(/["']/g, '').toLowerCase().trim()
                 return !(
-                  input === 'false' ||
-                  input === 'no' ||
-                  input === 'n' ||
-                  input === '0' ||
-                  input === 'true' ||
-                  input === 'yes' ||
-                  input === 'y' ||
-                  input === '1'
+                  input === 'false'
+                  || input === 'no'
+                  || input === 'n'
+                  || input === '0'
+                  || input === 'true'
+                  || input === 'yes'
+                  || input === 'y'
+                  || input === '1'
                 )
               }
 
@@ -550,7 +558,7 @@ function fieldsValidation(record: Record<string, any>, tn: string) {
 
 function updateImportTips(baseName: string, tableName: string, progress: number, total: number) {
   importingTips.value[`${baseName}-${tableName}`] = `Importing data to ${baseName} - ${tableName}: ${progress}/${total} records`
-  importingTableTips.value[tableName] = parseInt(`${(progress / total) * 100}`)
+  importingTableTips.value[tableName] = Number.parseInt(`${(progress / total) * 100}`)
 }
 
 async function importTemplate() {
@@ -593,25 +601,31 @@ async function importTemplate() {
                       input = input ?? 'false'
                       if (input === 'false' || input === 'no' || input === 'n') {
                         input = '0'
-                      } else if (input === 'true' || input === 'yes' || input === 'y') {
+                      }
+                      else if (input === 'true' || input === 'yes' || input === 'y') {
                         input = '1'
                       }
-                    } else if (v.uidt === UITypes.Number) {
+                    }
+                    else if (v.uidt === UITypes.Number) {
                       if (input === '') {
                         input = null
                       }
-                    } else if (v.uidt === UITypes.SingleSelect || v.uidt === UITypes.MultiSelect) {
+                    }
+                    else if (v.uidt === UITypes.SingleSelect || v.uidt === UITypes.MultiSelect) {
                       if (input === '') {
                         input = null
                       }
-                    } else if (v.uidt === UITypes.Date) {
+                    }
+                    else if (v.uidt === UITypes.Date) {
                       if (input === '' || input === null || input === undefined) {
                         input = null
-                      } else if (input instanceof Date) {
+                      }
+                      else if (input instanceof Date) {
                         // Handle JS Date objects from Excel parser
                         const d = dayjs(input)
                         input = d.isValid() ? d.format('YYYY-MM-DD') : null
-                      } else {
+                      }
+                      else {
                         const originalInput = String(input)
 
                         if (validateDateWithUnknownFormat(originalInput)) {
@@ -621,11 +635,13 @@ async function importTemplate() {
                             const detectedFormat = getDateFormat(originalInput)
                             input = dayjs(originalInput, detectedFormat, true).format('YYYY-MM-DD')
                           }
-                        } else if (/\d/.test(originalInput) && dayjs(originalInput).isValid()) {
+                        }
+                        else if (/\d/.test(originalInput) && dayjs(originalInput).isValid()) {
                           // Fallback: contains digits and dayjs native parsing accepts it
                           // Handles formats like 2024-01-15T10:30:00, 15-Jan-24, etc.
                           input = dayjs(originalInput).format('YYYY-MM-DD')
-                        } else {
+                        }
+                        else {
                           throw new Error(
                             `Invalid date value "${originalInput}" provided for field "${col.destCn}" in row ${
                               data.indexOf(row) + 1
@@ -675,17 +691,21 @@ async function importTemplate() {
 
       // Successfully imported table data
       message.success(t('msg.success.tableDataImported'))
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.log(e)
       throw e
-    } finally {
+    }
+    finally {
       isImporting.value = false
     }
-  } else {
+  }
+  else {
     // check if form is valid
     try {
       await validate()
-    } catch (errorInfo) {
+    }
+    catch (errorInfo) {
       throw new Error('Please fill all the required values')
     }
 
@@ -706,12 +726,12 @@ async function importTemplate() {
         // e.g. id, created_at, updated_at
         const systemColumns = sqlUi?.value.getNewTableColumns().filter((c: ColumnType) => c.column_name !== 'title')
         for (const systemColumn of systemColumns) {
-          if (!table.columns?.some((c) => c.column_name?.toLowerCase() === systemColumn.column_name.toLowerCase())) {
+          if (!table.columns?.some(c => c.column_name?.toLowerCase() === systemColumn.column_name.toLowerCase())) {
             table.columns?.push(systemColumn)
           }
         }
 
-        table.columns = table.columns?.filter((c) => !('selected' in c) || (c as any).selected)
+        table.columns = table.columns?.filter(c => !('selected' in c) || (c as any).selected)
 
         if (table.columns) {
           for (const column of table.columns) {
@@ -721,9 +741,9 @@ async function importTemplate() {
               column.rqd = true
             }
             if (
-              (!isSystemColumn(column) || ['created_at', 'updated_at'].includes(column.column_name!)) &&
-              column.uidt !== UITypes.SingleSelect &&
-              column.uidt !== UITypes.MultiSelect
+              (!isSystemColumn(column) || ['created_at', 'updated_at'].includes(column.column_name!))
+              && column.uidt !== UITypes.SingleSelect
+              && column.uidt !== UITypes.MultiSelect
             ) {
               // delete dtxp if the final data type is not single & multi select
               // e.g. import -> detect as single / multi select -> switch to SingleLineText
@@ -793,10 +813,12 @@ async function importTemplate() {
 
       // reload table list
       await loadProjectTables(base.value.id, true)
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.log(e)
       throw e
-    } finally {
+    }
+    finally {
       isImporting.value = false
     }
   }
@@ -804,7 +826,7 @@ async function importTemplate() {
   if (!data.tables?.length) return
 
   const tables = baseTables.value.get(base.value!.id!)
-  const toBeNavigatedTable = tables?.find((t) => t.id === data.tables[0].id)
+  const toBeNavigatedTable = tables?.find(t => t.id === data.tables[0].id)
   if (!toBeNavigatedTable) return
 
   openTable(toBeNavigatedTable)
@@ -816,10 +838,11 @@ function mapDefaultColumns() {
     for (const col of importColumns[i]) {
       const o = { srcCn: col.column_name, srcTitle: col.title, destCn: undefined, enabled: true }
       if (columns.value) {
-        const tableColumn = columns.value.find((c) => !c.readonly && (c.title === col.title || c.column_name === col.column_name))
+        const tableColumn = columns.value.find(c => !c.readonly && (c.title === col.title || c.column_name === col.column_name))
         if (tableColumn) {
           o.destCn = tableColumn.title as string
-        } else {
+        }
+        else {
           o.enabled = false
         }
       }
@@ -841,18 +864,18 @@ defineExpose({
 })
 
 function getMappedColumns(tableName: string) {
-  return (srcDestMapping.value[tableName] || []).filter((item) => item.destCn)
+  return (srcDestMapping.value[tableName] || []).filter(item => item.destCn)
 }
 
 function isAllMappedSelected(tableName: string) {
   const cols = getMappedColumns(tableName)
-  return !!cols.length && getMappedColumns(tableName).every((item) => item.enabled)
+  return !!cols.length && getMappedColumns(tableName).every(item => item.enabled)
 }
 
 function isSomeMappedSelected(tableName: string) {
   const cols = getMappedColumns(tableName)
 
-  return cols.length && getMappedColumns(tableName).some((item) => item.destCn && item.enabled)
+  return cols.length && getMappedColumns(tableName).some(item => item.destCn && item.enabled)
 }
 
 function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {
@@ -864,7 +887,7 @@ function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {
   }
 }
 
-const setErrorState = (errorsFields: any[] = []) => {
+function setErrorState(errorsFields: any[] = []) {
   const errorMap: any = {}
   for (const error of errorsFields) {
     errorMap[error.name] = error.errors
@@ -877,8 +900,8 @@ function populateUniqueColumnName(cn: string, draftCn: string[] = [], columns: C
   let c = 2
   let columnName = `${cn}${1}`
   while (
-    draftCn.includes(columnName) ||
-    columns?.some((c) => {
+    draftCn.includes(columnName)
+    || columns?.some((c) => {
       return c.column_name === columnName || c.title === columnName
     })
   ) {
@@ -893,7 +916,8 @@ watch(formRef, () => {
       await validate()
       emit('change')
       formError.value = null
-    } catch (e: any) {
+    }
+    catch (e: any) {
       emit('error', e)
       setErrorState(e?.errorFields)
     }
@@ -905,7 +929,8 @@ watch(modelRef, async () => {
     await validate()
     emit('change')
     formError.value = null
-  } catch (e: any) {
+  }
+  catch (e: any) {
     emit('error', e)
     setErrorState(e?.errorFields)
   }
@@ -916,7 +941,8 @@ function toggleTableSelecteds(table: any) {
     for (const column of table.columns) {
       column.selected = false
     }
-  } else {
+  }
+  else {
     for (const column of table.columns) {
       column.selected = true
     }
@@ -926,7 +952,7 @@ function toggleTableSelecteds(table: any) {
 const currentColumnToEdit = ref('')
 const currentTableToEdit = ref<number | undefined>()
 
-const getErrorForTable = (tableIdx: number) => {
+function getErrorForTable(tableIdx: number) {
   return (formError.value?.[`tables.${tableIdx}.table_name`] || []).concat(formError.value?.[`tables.${tableIdx}.columns`] || [])
 }
 
@@ -1253,9 +1279,9 @@ function getErrorByTableName(tableName: string) {
                   <template v-if="column.key === 'enabled'">
                     <NcCheckbox
                       :indeterminate="
-                        table.columns.length &&
-                        table.columns.some((it) => it.selected) &&
-                        !table.columns.every((it) => it.selected)
+                        table.columns.length
+                          && table.columns.some((it) => it.selected)
+                          && !table.columns.every((it) => it.selected)
                       "
                       :checked="table.columns.every((it) => it.selected)"
                       @click="toggleTableSelecteds(table)"
@@ -1283,7 +1309,7 @@ function getErrorByTableName(tableName: string) {
                         class="nc-table-field-name !mb-0 w-full"
                       >
                         <a-input
-                          :ref="(el: HTMLInputElement) => {inputRefs[record.key] = el; el?.focus?.(); return el;}"
+                          :ref="(el: HTMLInputElement) => { inputRefs[record.key] = el; el?.focus?.(); return el; }"
                           v-model:value="record.title"
                           class="!rounded-md animate-sidebar-node-input-padding !font-weight-500 !text-nc-content-gray"
                           :autofocus="true"

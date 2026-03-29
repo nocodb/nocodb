@@ -1,11 +1,11 @@
-import { type RouteLocationNormalizedLoadedGeneric } from 'vue-router'
+import type { RouteLocationNormalizedLoadedGeneric } from 'vue-router'
 
 /**
  * Check if the route is a shared view route
  * @param route - The route to check
  * @returns true if the route is a shared view route, false otherwise
  */
-export const isSharedViewRoute = (route: RouteLocationNormalizedLoadedGeneric) => {
+export function isSharedViewRoute(route: RouteLocationNormalizedLoadedGeneric) {
   if (!route) return false
 
   return route.meta.pageType === 'shared-view'
@@ -16,7 +16,7 @@ export const isSharedViewRoute = (route: RouteLocationNormalizedLoadedGeneric) =
  * @param route - The route to check
  * @returns true if the route is a shared form view route, false otherwise
  */
-export const isSharedFormViewRoute = (route: RouteLocationNormalizedLoadedGeneric) => {
+export function isSharedFormViewRoute(route: RouteLocationNormalizedLoadedGeneric) {
   if (!route) return false
 
   const routeName = (route.name as string) || ''
@@ -30,20 +30,20 @@ export const isSharedFormViewRoute = (route: RouteLocationNormalizedLoadedGeneri
  * @param route - The route to check
  * @returns true if the route is a public route, false otherwise
  */
-export const isPublicRoute = (route: RouteLocationNormalizedLoadedGeneric) => {
+export function isPublicRoute(route: RouteLocationNormalizedLoadedGeneric) {
   if (!route) return false
 
   return route.meta?.public
 }
 
-export const isSharedBaseOrErdOrViewRoute = (route: RouteLocationNormalizedLoadedGeneric) => {
+export function isSharedBaseOrErdOrViewRoute(route: RouteLocationNormalizedLoadedGeneric) {
   if (!route) return false
 
   return (
-    isSharedViewRoute(route) ||
-    isSharedFormViewRoute(route) ||
-    route.params.typeOrId === 'base' ||
-    route.params.typeOrId === 'ERD'
+    isSharedViewRoute(route)
+    || isSharedFormViewRoute(route)
+    || route.params.typeOrId === 'base'
+    || route.params.typeOrId === 'ERD'
   )
 }
 
@@ -61,7 +61,7 @@ export const wsHomeRouteNames = new Set([
   'index-typeOrId-integrations',
 ])
 
-export const isWsHomeRoute = (route: RouteLocationNormalizedLoadedGeneric) => {
+export function isWsHomeRoute(route: RouteLocationNormalizedLoadedGeneric) {
   if (!route) return false
 
   return wsHomeRouteNames.has(route.name as string)

@@ -1,15 +1,15 @@
 import dayjs, { extend } from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime.js'
+import advanced from 'dayjs/plugin/advancedFormat'
 import customParseFormat from 'dayjs/plugin/customParseFormat.js'
 import duration from 'dayjs/plugin/duration.js'
-import utc from 'dayjs/plugin/utc.js'
-import weekday from 'dayjs/plugin/weekday.js'
+import isBetween from 'dayjs/plugin/isBetween'
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
+import relativeTime from 'dayjs/plugin/relativeTime.js'
 import timezone from 'dayjs/plugin/timezone.js'
 import updateLocale from 'dayjs/plugin/updateLocale'
-import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
-import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
-import isBetween from 'dayjs/plugin/isBetween'
-import advanced from 'dayjs/plugin/advancedFormat'
+import utc from 'dayjs/plugin/utc.js'
+import weekday from 'dayjs/plugin/weekday.js'
 
 export default defineNuxtPlugin(() => {
   extend(utc)

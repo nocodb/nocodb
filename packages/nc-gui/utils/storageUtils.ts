@@ -14,10 +14,10 @@
  * console.log(lastVisited); // Output: 'my-base'
  * ```
  */
-export const ncBackRoute = (): {
+export function ncBackRoute(): {
   get: () => string
   set: (value: string) => void
-} => {
+} {
   const key = 'ncBackRoute'
 
   return {
@@ -35,11 +35,11 @@ export const ncBackRoute = (): {
   }
 }
 
-export const ncLastVisitedBase = (): {
+export function ncLastVisitedBase(): {
   key: string
   get: () => string | null
   set: (value: string | null | undefined) => void
-} => {
+} {
   const key = 'ncLastVisitedBase'
 
   return {

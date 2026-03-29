@@ -38,13 +38,13 @@ const isFirstField = computed(() => {
   return !!(visibleColumns.value.length && visibleColumns.value[0].id === activeField.value?.id)
 })
 
-const filterOption = (column: ColumnType) => {
+function filterOption(column: ColumnType) {
   // hide active field from filter option
   const isNotActiveField = column.id !== activeField.value?.fk_column_id
 
   // show only form view visible columns and order is less than active field
-  const orderIsLessThanActiveField =
-    column.id && localColumnsMapByFkColumnId.value[column.id]
+  const orderIsLessThanActiveField
+    = column.id && localColumnsMapByFkColumnId.value[column.id]
       ? (localColumnsMapByFkColumnId.value[column.id].order ?? Infinity) < (activeField.value?.order ?? Infinity)
       : false
 
@@ -58,7 +58,9 @@ const filterOption = (column: ColumnType) => {
   <div v-if="activeField" class="flex flex-col">
     <div class="flex flex-col gap-3">
       <div class="flex items-center justify-between">
-        <div class="text-nc-content-gray font-medium">{{ $t('labels.showOnConditions') }}</div>
+        <div class="text-nc-content-gray font-medium">
+          {{ $t('labels.showOnConditions') }}
+        </div>
 
         <div class="flex flex-col">
           <NcDropdown
@@ -69,7 +71,9 @@ const filterOption = (column: ColumnType) => {
             overlay-class-name="nc-form-field-visibility-dropdown"
           >
             <NcTooltip placement="left" :disabled="!isFirstField">
-              <template #title> Cannot add conditions to the first field in a form. </template>
+              <template #title>
+                Cannot add conditions to the first field in a form.
+              </template>
               <div
                 class="nc-form-field-visibility-btn border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 !min-w-[170px] transition-all cursor-pointer select-none text-sm"
                 :class="{
@@ -130,7 +134,9 @@ const filterOption = (column: ColumnType) => {
         </div>
       </div>
       <div>
-        <div class="text-sm text-nc-content-gray-muted">{{ $t('labels.showFieldOnConditionsMet') }}</div>
+        <div class="text-sm text-nc-content-gray-muted">
+          {{ $t('labels.showFieldOnConditionsMet') }}
+        </div>
         <div v-if="hasvisibilityError" class="mt-2 visibility-condition-input-error text-nc-content-red-medium">
           Error conditions will not be used for determining field visibility.
         </div>

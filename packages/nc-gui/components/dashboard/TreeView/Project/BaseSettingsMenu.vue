@@ -30,7 +30,7 @@ const {
   showEEFeatures,
 } = useEeConfig()
 
-const navigateToBaseSettings = (page: string) => {
+function navigateToBaseSettings(page: string) {
   if (page === 'permissions' && showUpgradeToUseTableAndFieldPermissions()) return
   if (page === 'docs-permissions' && showUpgradeToUseDocumentPermissions()) return
   if (page === 'syncs' && showUpgradeToUseSync()) return
@@ -148,12 +148,12 @@ onMounted(() => {
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
       v-if="
-        isEeUI &&
-        appInfo?.ee &&
-        showEEFeatures &&
-        isUIAllowed('workflowCreateOrEdit', { roles: effectiveRoles }) &&
-        isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB) &&
-        !isMobileMode
+        isEeUI
+          && appInfo?.ee
+          && showEEFeatures
+          && isUIAllowed('workflowCreateOrEdit', { roles: effectiveRoles })
+          && isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB)
+          && !isMobileMode
       "
       v-e="['c:settings:base:workflows']"
       icon="ncAutomation"
@@ -175,11 +175,11 @@ onMounted(() => {
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
       v-if="
-        isEeUI &&
-        showEEFeatures &&
-        isUIAllowed('baseMiscSettings', { roles: effectiveRoles }) &&
-        isUIAllowed('manageSnapshot', { roles: effectiveRoles }) &&
-        !isMobileMode
+        isEeUI
+          && showEEFeatures
+          && isUIAllowed('baseMiscSettings', { roles: effectiveRoles })
+          && isUIAllowed('manageSnapshot', { roles: effectiveRoles })
+          && !isMobileMode
       "
       v-e="['c:settings:base:snapshots']"
       icon="camera"

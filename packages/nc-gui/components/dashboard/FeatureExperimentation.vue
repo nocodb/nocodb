@@ -18,18 +18,18 @@ const selectedFeatures = ref<Record<string, boolean>>({})
 // Add search functionality
 const searchQuery = ref('')
 
-const isEnabledOnPremFeature = (feature: BetaFeatureType) => {
+function isEnabledOnPremFeature(feature: BetaFeatureType) {
   if (appInfo.value.isOnPrem && feature.isOnPrem === false) return false
 
   return true
 }
 
-const isFeatureVisible = (feature: BetaFeatureType) => {
+function isFeatureVisible(feature: BetaFeatureType) {
   return (
-    (!feature?.isEE || (isEeUI && showEEFeatures.value)) &&
-    (!feature?.isEngineering || isEngineeringModeOn.value) &&
-    (!feature?.isAdvanced || isAdvancedModeOn.value) &&
-    isEnabledOnPremFeature(feature)
+    (!feature?.isEE || (isEeUI && showEEFeatures.value))
+    && (!feature?.isEngineering || isEngineeringModeOn.value)
+    && (!feature?.isAdvanced || isAdvancedModeOn.value)
+    && isEnabledOnPremFeature(feature)
   )
 }
 
@@ -87,7 +87,7 @@ const isAllFeaturesEnabled = computed({
   },
 })
 
-const saveExperimentalFeatures = () => {
+function saveExperimentalFeatures() {
   features.value.forEach((feature) => {
     if (selectedFeatures.value[feature.id] !== feature.enabled) {
       toggleFeature(feature.id)
@@ -96,18 +96,18 @@ const saveExperimentalFeatures = () => {
 }
 
 onMounted(() => {
-  selectedFeatures.value = Object.fromEntries(features.value.map((feature) => [feature.id, feature.enabled]))
+  selectedFeatures.value = Object.fromEntries(features.value.map(feature => [feature.id, feature.enabled]))
 })
 
 watch(value, (val) => {
   if (val) {
-    selectedFeatures.value = Object.fromEntries(features.value.map((feature) => [feature.id, feature.enabled]))
+    selectedFeatures.value = Object.fromEntries(features.value.map(feature => [feature.id, feature.enabled]))
   }
 })
 
 const clickCount = ref(0)
 const clickTimer = ref<NodeJS.Timeout | undefined>(undefined)
-const handleClick = () => {
+function handleClick() {
   clickCount.value++
 
   if (clickCount.value === 1) {
@@ -129,7 +129,7 @@ const handleClick = () => {
 
 const advancedClickCount = ref(0)
 const advancedClickTimer = ref<NodeJS.Timeout | undefined>(undefined)
-const handleAdvancedClick = () => {
+function handleAdvancedClick() {
   advancedClickCount.value++
   if (advancedClickCount.value === 1) {
     if (advancedClickTimer.value) clearTimeout(advancedClickTimer.value)
@@ -240,7 +240,7 @@ onUnmounted(() => {
           src="~assets/img/placeholder/no-search-result-found.png"
           class="!w-[164px] flex-none"
           alt="No search results found"
-        />
+        >
 
         {{ features?.length ? $t('title.noResultsMatchedYourSearch') : 'The list is empty' }}
       </div>

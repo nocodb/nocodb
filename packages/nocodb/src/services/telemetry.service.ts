@@ -24,7 +24,7 @@ export class TelemetryService {
 
   public async sendSystemEvent({
     event_type,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     ...payload
   }: {
     event_type: string;

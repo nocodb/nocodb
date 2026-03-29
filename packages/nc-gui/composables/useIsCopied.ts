@@ -12,7 +12,8 @@ export function useIsCopied(timeoutInMs = 3000) {
         isCopied.value = false
         clearTimeout(copiedTimeoutId)
       }, timeoutInMs)
-    } catch (e: any) {
+    }
+    catch (e: any) {
       if (e?.message) message.error(e.message)
     }
   }

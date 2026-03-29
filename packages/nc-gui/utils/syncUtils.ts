@@ -1,5 +1,6 @@
 import type { SyncConfig } from 'nocodb-sdk'
 import {
+  generateUniqueCopyName,
   IntegrationsType,
   OnDeleteAction,
   OnDeleteActionMeta,
@@ -8,10 +9,9 @@ import {
   SyncTriggerMeta,
   SyncType,
   SyncTypeMeta,
-  generateUniqueCopyName,
 } from 'nocodb-sdk'
 
-const getSyncFrequency = (trigger: SyncTrigger, cron?: string) => {
+function getSyncFrequency(trigger: SyncTrigger, cron?: string) {
   if (trigger === SyncTrigger.Manual) return 'Manual'
   if (trigger === SyncTrigger.Schedule && cron) {
     if (cron.includes('hourly')) return 'Hourly'
@@ -23,7 +23,7 @@ const getSyncFrequency = (trigger: SyncTrigger, cron?: string) => {
   return 'Unknown'
 }
 
-const getDefaultSyncConfig = () => {
+function getDefaultSyncConfig() {
   return {
     title: 'New Source',
     sync_type: SyncType.Incremental,
@@ -38,14 +38,14 @@ const getDefaultSyncConfig = () => {
   } as Partial<SyncConfig> & Record<string, unknown>
 }
 
-const defaultSyncConfig = (configs: SyncConfig[]) => {
+function defaultSyncConfig(configs: SyncConfig[]) {
   const newTitle = generateUniqueCopyName('New Sync Source', configs, {
-    accessor: (c) => c.title,
+    accessor: c => c.title,
     prefix: null,
   })
 
   const isDefaultSyncCategoryAlreadyAdded = configs.some(
-    (config) => config.sync_category === getDefaultSyncConfig().sync_category,
+    config => config.sync_category === getDefaultSyncConfig().sync_category,
   )
 
   return {
@@ -106,12 +106,12 @@ interface CustomSyncSchema {
 }
 
 export {
-  getSyncFrequency,
-  defaultSyncConfig,
-  SyncFormStep,
   defaultIntegrationConfig,
-  syncEntityToReadableMap,
+  defaultSyncConfig,
   getDefaultSyncConfig,
+  getSyncFrequency,
+  syncEntityToReadableMap,
+  SyncFormStep,
 }
 
-export type { IntegrationConfig, CustomSyncSchema }
+export type { CustomSyncSchema, IntegrationConfig }

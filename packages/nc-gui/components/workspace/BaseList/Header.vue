@@ -49,7 +49,7 @@ const filterOptions = computed<NcListItemType[]>(() => [
 ])
 
 const selectedFilter = computed(() => {
-  return filterOptions.value.find((option) => option.value === props.activeFilter)
+  return filterOptions.value.find(option => option.value === props.activeFilter)
 })
 
 const activeFilterIcon = computed(() => {
@@ -58,11 +58,11 @@ const activeFilterIcon = computed(() => {
 
 const isFilterActive = computed(() => props.activeFilter !== 'all')
 
-const onFilterChange = (value: string) => {
+function onFilterChange(value: string) {
   emit('update:activeFilter', value as FilterType)
 }
 
-const clearFilter = () => {
+function clearFilter() {
   emit('update:activeFilter', 'all')
 }
 </script>
@@ -158,7 +158,9 @@ const clearFilter = () => {
         </template>
       </i18n-t>
       <NcTooltip class="flex">
-        <template #title>{{ $t('activity.clearSearch') }}</template>
+        <template #title>
+          {{ $t('activity.clearSearch') }}
+        </template>
         <NcButton type="text" size="xxsmall" class="!rounded-md" icon-only @click="vSearchQuery = ''">
           <template #icon>
             <GeneralIcon icon="close" class="w-4 h-4" />

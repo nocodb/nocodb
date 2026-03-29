@@ -15,14 +15,16 @@ function insertAtCursor(myField: typeof AntInput, myValue: string, len = 0, b = 
     if (myField.setSelectionRange) {
       myField.focus()
       myField.setSelectionRange(pos, pos)
-    } else if (myField.createTextRange) {
+    }
+    else if (myField.createTextRange) {
       const range = myField.createTextRange()
       range.collapse(true)
       range.moveEnd('character', pos)
       range.moveStart('character', pos)
       range.select()
     }
-  } else {
+  }
+  else {
     myField.value += myValue
   }
   return myField.value
@@ -33,7 +35,8 @@ function ReturnWord(text: string, caretPos: number) {
   if (preText.indexOf(' ') > 0) {
     const words = preText.split(' ')
     return words[words.length - 1] // return last word
-  } else {
+  }
+  else {
     return preText
   }
 }
@@ -71,9 +74,10 @@ function isCursorInsideString(text: string, offset: number) {
       continue
     }
 
-    if (char === "'" && !inDoubleQuoteString) {
+    if (char === '\'' && !inDoubleQuoteString) {
       inSingleQuoteString = !inSingleQuoteString
-    } else if (char === '"' && !inSingleQuoteString) {
+    }
+    else if (char === '"' && !inSingleQuoteString) {
       inDoubleQuoteString = !inDoubleQuoteString
     }
   }

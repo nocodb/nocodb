@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { UITypes, UITypesName, UITypesSearchTerms, readonlyMetaAllowedTypes } from 'nocodb-sdk'
+import { readonlyMetaAllowedTypes, UITypes, UITypesName, UITypesSearchTerms } from 'nocodb-sdk'
 
 const props = defineProps<{
   options: typeof uiTypes
@@ -44,11 +44,11 @@ const inputRef = ref()
 
 const activeFieldIndex = ref(-1)
 
-const isDisabledUIType = (type: UITypes) => {
+function isDisabledUIType(type: UITypes) {
   return isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(type)
 }
 
-const onClick = (uidt: UITypes) => {
+function onClick(uidt: UITypes) {
   if (!uidt || isDisabledUIType(uidt)) return
 
   if (uidt === AIPrompt && showUpgradeToUseAiPromptField()) {
@@ -76,7 +76,7 @@ const onClick = (uidt: UITypes) => {
   emits('selected', uidt)
 }
 
-const handleAutoScrollOption = () => {
+function handleAutoScrollOption() {
   const option = document.querySelector('.nc-column-list-option-active')
 
   if (option) {
@@ -86,27 +86,28 @@ const handleAutoScrollOption = () => {
   }
 }
 
-const onArrowDown = () => {
+function onArrowDown() {
   activeFieldIndex.value = Math.min(activeFieldIndex.value + 1, filteredOptions.value.length - 1)
   handleAutoScrollOption()
 }
 
-const onArrowUp = () => {
+function onArrowUp() {
   activeFieldIndex.value = Math.max(activeFieldIndex.value - 1, 0)
   handleAutoScrollOption()
 }
 
-const handleKeydownEnter = () => {
+function handleKeydownEnter() {
   if (filteredOptions.value[activeFieldIndex.value]) {
     onClick(filteredOptions.value[activeFieldIndex.value].name)
-  } else if (filteredOptions.value[0]) {
+  }
+  else if (filteredOptions.value[0]) {
     onClick(filteredOptions.value[activeFieldIndex.value].name)
   }
 }
 
 onMounted(() => {
   searchQuery.value = ''
-  activeFieldIndex.value = options.value?.findIndex((o) => o.name === UITypes.SingleLineText) ?? -1
+  activeFieldIndex.value = options.value?.findIndex(o => o.name === UITypes.SingleLineText) ?? -1
 })
 
 const { isSystem } = useColumnCreateStoreOrThrow()
@@ -130,7 +131,9 @@ const { isSystem } = useColumnCreateStoreOrThrow()
         @keydown.enter.stop="handleKeydownEnter"
         @change="activeFieldIndex = 0"
       >
-        <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-4 w-4 mr-1" /> </template>
+        <template #prefix>
+          <GeneralIcon icon="search" class="nc-search-icon h-4 w-4 mr-1" />
+        </template>
       </a-input>
     </div>
     <div
@@ -141,7 +144,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
           src="~assets/img/placeholder/no-search-result-found.png"
           class="!w-[164px] flex-none"
           alt="No search results found"
-        />
+        >
 
         {{ options?.length ? $t('title.noResultsMatchedYourSearch') : 'The list is empty' }}
       </div>

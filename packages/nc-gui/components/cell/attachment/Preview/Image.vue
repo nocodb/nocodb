@@ -34,7 +34,7 @@ const transformStyle = computed(() => ({
   cursor: scale.value > 1 ? 'grab' : '',
 }))
 
-const limitDrag = (x: number, y: number) => {
+function limitDrag(x: number, y: number) {
   if (!containerRef.value || !imageRef.value) return { x, y }
 
   const containerRect = containerRef.value.getBoundingClientRect()
@@ -49,7 +49,7 @@ const limitDrag = (x: number, y: number) => {
   }
 }
 
-const onError = async () => {
+async function onError() {
   index.value++
   if (index.value >= props.srcs.length) {
     const isURLExp = await isURLExpired(props.srcs[0])
@@ -59,9 +59,9 @@ const onError = async () => {
   }
 }
 
-const zoom = (direction: 'in' | 'out') => {
-  const newScale =
-    direction === 'in' ? Math.min(scale.value + ZOOM_STEP, MAX_SCALE) : Math.max(scale.value - ZOOM_STEP, MIN_SCALE)
+function zoom(direction: 'in' | 'out') {
+  const newScale
+    = direction === 'in' ? Math.min(scale.value + ZOOM_STEP, MAX_SCALE) : Math.max(scale.value - ZOOM_STEP, MIN_SCALE)
 
   scale.value = newScale
   if (newScale === MIN_SCALE) {
@@ -69,7 +69,7 @@ const zoom = (direction: 'in' | 'out') => {
   }
 }
 
-const startDrag = (clientX: number, clientY: number) => {
+function startDrag(clientX: number, clientY: number) {
   if (scale.value <= 1 || !props.isCellPreview) return
   isDragging.value = true
   startPos.value = {
@@ -78,7 +78,7 @@ const startDrag = (clientX: number, clientY: number) => {
   }
 }
 
-const drag = (clientX: number, clientY: number) => {
+function drag(clientX: number, clientY: number) {
   if (!isDragging.value || !props.isCellPreview) return
   const newPosition = {
     x: clientX - startPos.value.x,
@@ -87,11 +87,11 @@ const drag = (clientX: number, clientY: number) => {
   position.value = limitDrag(newPosition.x, newPosition.y)
 }
 
-const stopDrag = () => {
+function stopDrag() {
   isDragging.value = false
 }
 
-const stopPropagationIfScaled = (e: MouseEvent | TouchEvent) => {
+function stopPropagationIfScaled(e: MouseEvent | TouchEvent) {
   if (scale.value <= 1 || !props.isCellPreview) return
   e.preventDefault()
   e.stopPropagation()
@@ -102,11 +102,11 @@ useEventListener(window, 'mouseup', stopDrag)
 useEventListener(window, 'touchmove', (e: TouchEvent) => drag(e.touches[0].clientX, e.touches[0].clientY))
 useEventListener(window, 'touchend', stopDrag)
 
-const onMouseDown = (e: MouseEvent) => {
+function onMouseDown(e: MouseEvent) {
   stopPropagationIfScaled(e)
   startDrag(e.clientX, e.clientY)
 }
-const onTouchStart = (e: TouchEvent) => {
+function onTouchStart(e: TouchEvent) {
   if (props.isCellPreview) {
     e.preventDefault()
   }
@@ -137,7 +137,7 @@ const onTouchStart = (e: TouchEvent) => {
         class="m-auto h-full max-h-full w-auto nc-attachment-image object-cover origin-center"
         loading="lazy"
         @error="onError"
-      />
+      >
       <GeneralIcon v-else icon="ncFileTypeImage" class="flex-none w-6" />
     </div>
 

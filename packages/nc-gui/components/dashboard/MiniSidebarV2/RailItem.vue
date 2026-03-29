@@ -47,7 +47,9 @@ const disableTooltipForNewSidebar = true
     :arrow="false"
     :disabled="!tooltipText || disableTooltip || disableTooltipForNewSidebar"
   >
-    <template #title>{{ tooltipText }}</template>
+    <template #title>
+      {{ tooltipText }}
+    </template>
 
     <div
       class="nc-rail-item"

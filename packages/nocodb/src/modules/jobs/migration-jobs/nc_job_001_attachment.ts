@@ -251,7 +251,6 @@ export class AttachmentMigration {
           `Processing model "${model.title}" with ${numRecords} records and ${attachmentColumns.length} attachment columns`,
         );
 
-        // eslint-disable-next-line no-constant-condition
         while (true) {
           const data = await baseModel.list(
             {
@@ -536,7 +535,6 @@ export class AttachmentMigration {
 
       // get models that have at least one attachment column, and not processed
 
-      // eslint-disable-next-line no-constant-condition
       while (true) {
         if (queue.pending > parallelLimit) {
           await new Promise((resolve) => setTimeout(resolve, 1000));

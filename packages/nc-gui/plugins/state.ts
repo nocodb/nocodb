@@ -12,7 +12,7 @@ import { loadLocaleMessages, setI18nLanguage } from '~/plugins/a.i18n'
  * console.log($state.lang.value) // 'en'
  * ```
  */
-const statePlugin = async (_nuxtApp) => {
+async function statePlugin(_nuxtApp) {
   const state = useGlobal()
 
   const { api } = useApi({ useGlobalInstance: true })
@@ -32,13 +32,14 @@ const statePlugin = async (_nuxtApp) => {
     state.appInfoStatus.value = 'loading'
     state.appInfo.value = await api.utils.appInfo()
     state.appInfoStatus.value = 'loaded'
-  } catch (e) {
+  }
+  catch (e) {
     state.appInfoStatus.value = 'error'
     console.error(e)
   }
 }
 
-export default defineNuxtPlugin(async function (nuxtApp) {
+export default defineNuxtPlugin(async (nuxtApp) => {
   if (!isEeUI) return await statePlugin(nuxtApp)
 })
 

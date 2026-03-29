@@ -1,7 +1,7 @@
-import axios from 'axios'
 import type { PaginatedType } from 'nocodb-sdk'
+import axios from 'axios'
 
-const usePaginationShortcuts = ({
+function usePaginationShortcuts({
   changePage,
   paginationDataRef,
   isViewDataLoading,
@@ -9,7 +9,7 @@ const usePaginationShortcuts = ({
   changePage: (page: number) => Promise<void> | undefined
   paginationDataRef: Ref<PaginatedType | undefined>
   isViewDataLoading: Ref<boolean>
-}) => {
+}) {
   const getTotalPages = () => {
     return Math.ceil(paginationDataRef.value!.totalRows! / paginationDataRef.value!.pageSize!)
   }
@@ -19,7 +19,8 @@ const usePaginationShortcuts = ({
     try {
       await changePage?.(page)
       isViewDataLoading.value = false
-    } catch (e) {
+    }
+    catch (e) {
       if (axios.isCancel(e)) return
 
       isViewDataLoading.value = false

@@ -16,20 +16,20 @@ withDefaults(defineProps<Props>(), {
   >
     <div class="flex-1 flex items-start gap-3">
       <div v-if="$slots.icon" class="h-7 flex items-center children:flex-none text-nc-content-gray-subtle">
-        <slot name="icon"></slot>
+        <slot name="icon" />
       </div>
 
       <div class="flex flex-col gap-3">
         <h1 class="nc-page-header-title truncate">
-          <slot name="title"></slot>
+          <slot name="title" />
         </h1>
         <p v-if="$slots.subtitle" class="nc-page-header-subtitle">
-          <slot name="subtitle"></slot>
+          <slot name="subtitle" />
         </p>
       </div>
     </div>
     <div v-if="$slots.action">
-      <slot name="action"></slot>
+      <slot name="action" />
     </div>
   </div>
 </template>

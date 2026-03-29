@@ -31,7 +31,8 @@ export const UrlCellRenderer: CellRenderer = {
 
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })
-    } else {
+    }
+    else {
       const iconSize = 16
 
       const validate = parseProp(column?.meta).validate

@@ -1,53 +1,53 @@
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes, ncIsNaN, roundUpToPrecision } from 'nocodb-sdk'
-import tinycolor from 'tinycolor2'
 import type { HTMLAttributes } from 'vue'
+import { ncIsNaN, roundUpToPrecision, UITypes } from 'nocodb-sdk'
+import tinycolor from 'tinycolor2'
 
 export {
   dataTypeLow,
-  isBoolean,
-  isString,
-  isTextArea,
-  isRichText,
-  isInt,
-  isFloat,
-  isDate,
-  isYear,
-  isTime,
-  isDateTime,
-  isReadonlyDateTime,
-  isReadonlyUser,
-  isJSON,
-  isEnum,
-  isSingleSelect,
-  isSet,
-  isMultiSelect,
-  isURL,
-  isEmail,
+  isAI,
+  isAiButton,
   isAttachment,
-  isRating,
+  isAutoNumber,
+  isAutoSaved,
+  isBoolean,
+  isButton,
+  isColour,
   isCurrency,
-  isPhoneNumber,
+  isDate,
+  isDateTime,
   isDecimal,
   isDuration,
+  isEmail,
+  isEnum,
+  isFloat,
   isGeoData,
-  isPercent,
-  isColour,
-  isSpecificDBType,
   isGeometry,
-  isUUID,
-  isAutoNumber,
-  isUser,
-  isButton,
-  isAiButton,
-  isScriptButton,
-  isAI,
-  isAutoSaved,
+  isInt,
+  isJSON,
   isManualSaved,
+  isMultiSelect,
+  isNumericFieldType,
+  isPercent,
+  isPhoneNumber,
   isPrimary,
   isPrimaryKey,
+  isRating,
+  isReadonlyDateTime,
+  isReadonlyUser,
+  isRichText,
+  isScriptButton,
+  isSet,
+  isSingleSelect,
+  isSpecificDBType,
+  isString,
+  isTextArea,
+  isTime,
+  isURL,
+  isUser,
+  isUUID,
+  isYear,
   renderValue,
-  isNumericFieldType,
 } from 'nocodb-sdk'
 
 export const rowHeightInPx: Record<string, number> = {
@@ -64,7 +64,7 @@ export const pxToRowHeight: Record<number, number> = {
   120: 6,
 }
 
-export const rowHeightTruncateLines = (rowHeightOrHeighInPx?: number, isSelectOption = false) => {
+export function rowHeightTruncateLines(rowHeightOrHeighInPx?: number, isSelectOption = false) {
   switch (rowHeightOrHeighInPx) {
     case 2:
     case 60:
@@ -80,7 +80,7 @@ export const rowHeightTruncateLines = (rowHeightOrHeighInPx?: number, isSelectOp
   }
 }
 
-export const isShowNullField = (column: ColumnType) => {
+export function isShowNullField(column: ColumnType) {
   return [
     UITypes.SingleLineText,
     UITypes.LongText,
@@ -104,11 +104,7 @@ export const isShowNullField = (column: ColumnType) => {
   ].includes(column.uidt as UITypes)
 }
 
-export const getSelectTypeOptionTextColor = (
-  color: string | null | undefined,
-  getColor: GetColorType,
-  disableGetColor = false,
-): string => {
+export function getSelectTypeOptionTextColor(color: string | null | undefined, getColor: GetColorType, disableGetColor = false): string {
   color = color ?? disableGetColor ? color || '#ccc' : getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)') // Set default only if color is null or undefined
 
   return tinycolor.isReadable(color, '#fff', { level: 'AA', size: 'large' })
@@ -121,7 +117,7 @@ export const getSelectTypeOptionTextColor = (
         .toHex8String()
 }
 
-export const getSelectTypeFieldOptionBgColor = ({
+export function getSelectTypeFieldOptionBgColor({
   color,
   isDark,
   shade,
@@ -129,17 +125,17 @@ export const getSelectTypeFieldOptionBgColor = ({
   color?: string
   isDark: boolean
   shade?: number
-}) => {
+}) {
   return !isDark
     ? getAdaptiveTint(color || '#e7e7e9', { saturationMod: 5, isDarkMode: isDark, shade: shade ?? 20 })
     : getAdaptiveTint(color || '#e7e7e9', { isDarkMode: isDark, shade: shade ?? -10 })
 }
 
-export const getDarkModeCompatibleBgColor = ({ color, isDark, shade }: { color?: string; isDark: boolean; shade?: number }) => {
+export function getDarkModeCompatibleBgColor({ color, isDark, shade }: { color?: string, isDark: boolean, shade?: number }) {
   return !isDark ? color : getAdaptiveTint(color || '#e7e7e9', { isDarkMode: isDark, shade: shade ?? -10 })
 }
 
-export const getSelectTypeFieldOptionTextColor = ({
+export function getSelectTypeFieldOptionTextColor({
   color,
   isDark,
   getColor: _getColor,
@@ -147,11 +143,11 @@ export const getSelectTypeFieldOptionTextColor = ({
   color?: string
   isDark: boolean
   getColor: GetColorType
-}) => {
+}) {
   return getOppositeColorOfBackground(getSelectTypeFieldOptionBgColor({ color, isDark }), color)
 }
 
-export const getInputModeFromUITypes = (uidt: UITypes): HTMLAttributes['inputmode'] => {
+export function getInputModeFromUITypes(uidt: UITypes): HTMLAttributes['inputmode'] {
   if ([UITypes.Number, UITypes.Year, UITypes.Rating].includes(uidt)) {
     return 'numeric'
   }
@@ -176,7 +172,7 @@ export const getInputModeFromUITypes = (uidt: UITypes): HTMLAttributes['inputmod
 /**
  * Check if a column is part of an active date dependency rule on the table.
  */
-export const isColumnDateDependencyField = (meta: TableType | undefined, columnId?: string): boolean => {
+export function isColumnDateDependencyField(meta: TableType | undefined, columnId?: string): boolean {
   if (!columnId) return false
   const rule = meta?.date_dependency
   if (!rule?.is_active) return false
@@ -189,7 +185,7 @@ export const isColumnDateDependencyField = (meta: TableType | undefined, columnI
   ].includes(columnId)
 }
 
-export const formatPercentage = (n: number, precision = 2) => {
+export function formatPercentage(n: number, precision = 2) {
   if (ncIsNaN(n)) return '0%'
 
   return n % 1 === 0 ? `${n}%` : `${roundUpToPrecision(n, precision)}%`

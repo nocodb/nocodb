@@ -1,8 +1,9 @@
 <script lang="ts" setup>
-import { IconType, type WorkspaceType } from 'nocodb-sdk'
-import 'emoji-mart-vue-fast/css/emoji-mart.css'
-import { Icon } from '@iconify/vue'
+import type { WorkspaceType } from 'nocodb-sdk'
 import { isColorDark, stringToColor } from '#imports'
+import { Icon } from '@iconify/vue'
+import { IconType } from 'nocodb-sdk'
+import 'emoji-mart-vue-fast/css/emoji-mart.css'
 
 const props = withDefaults(
   defineProps<{
@@ -111,8 +112,8 @@ const isMiniSidebarSize = computed(() => size.value === 'mini-sidebar')
         props.hideBgColor && !isRenderingInitials
           ? undefined
           : !props.hideLabel && workspaceIcon.icon && workspaceIcon.iconType === IconType.IMAGE && !isMiniSidebarSize
-          ? undefined
-          : workspaceColor,
+            ? undefined
+            : workspaceColor,
     }"
   >
     <template v-if="!props.hideLabel">
@@ -148,7 +149,7 @@ const isMiniSidebarSize = computed(() => size.value === 'mini-sidebar')
               'w-10 h-10': size === 'xlarge',
             }"
             :icon="workspaceIcon.icon"
-          ></Icon>
+          />
         </template>
       </div>
       <GeneralIcon

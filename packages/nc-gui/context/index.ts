@@ -1,7 +1,7 @@
+import type { PageSidebarNode } from '#imports'
+import type { EventHook } from '@vueuse/core'
 import type { ColumnType, FilterType, SourceType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Reactive, Ref } from 'vue'
-import type { EventHook } from '@vueuse/core'
-import type { PageSidebarNode } from '#imports'
 
 export type ExtractInjectedRef<T> = T extends InjectionKey<Ref<infer U>> ? U : never
 export type ExtractInjectedReactive<T> = T extends InjectionKey<Reactive<infer U>> ? U : never
@@ -52,17 +52,17 @@ export const ReloadViewDataHookInj: InjectionKey<
 > = Symbol('reload-view-data-injection')
 export const ReloadViewMetaHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-meta-injection')
 export const ReloadVisibleDataHookInj: InjectionKey<EventHook<void>> = Symbol('reload-visible-data-injection')
-export const ReloadRowDataHookInj: InjectionKey<EventHook<{ shouldShowLoading?: boolean; offset?: number } | void>> =
-  Symbol('reload-row-data-injection')
+export const ReloadRowDataHookInj: InjectionKey<EventHook<{ shouldShowLoading?: boolean, offset?: number } | void>>
+  = Symbol('reload-row-data-injection')
 export const ReloadAggregateHookInj: InjectionKey<
   EventHook<
     | {
-        fields?: {
-          title: string
-          aggregation?: string
-        }[]
-        path?: Array<number>
-      }
+      fields?: {
+        title: string
+        aggregation?: string
+      }[]
+      path?: Array<number>
+    }
     | undefined
   >
 > = Symbol('reload-aggregate-data-injection')
@@ -73,8 +73,8 @@ export const SharedViewPasswordInj: InjectionKey<Ref<string | null>> = Symbol('s
 export const CellUrlDisableOverlayInj: InjectionKey<Ref<boolean>> = Symbol('cell-url-disable-url')
 export const DropZoneRef: InjectionKey<Ref<Element | undefined>> = Symbol('drop-zone-ref')
 export const CellClickHookInj: InjectionKey<EventHook<MouseEvent> | undefined> = Symbol('cell-click-injection')
-export const CellEventHookInj: InjectionKey<EventHook<MouseEvent | KeyboardEvent | PointerEvent> | undefined> =
-  Symbol('cell-event-injection')
+export const CellEventHookInj: InjectionKey<EventHook<MouseEvent | KeyboardEvent | PointerEvent> | undefined>
+  = Symbol('cell-event-injection')
 export const OnDivDataCellEventHookInj: InjectionKey<EventHook<Event> | undefined> = Symbol('on-div-data-cell-event-injection')
 export const SaveRowInj: InjectionKey<(() => void) | undefined> = Symbol('save-row-injection')
 export const CurrentCellInj: InjectionKey<Ref<Element | undefined>> = Symbol('current-cell-injection')
@@ -104,7 +104,7 @@ export const TreeViewInj: InjectionKey<{
   openDashboardDescriptionDialog?: (dashboard: any) => void
   openWorkflowDescriptionDialog?: (workflow: any) => void
   openTableDescriptionDialog: (table: TableType) => void
-  contextMenuTarget: { type?: 'base' | 'table' | 'main' | 'layout'; value?: any }
+  contextMenuTarget: { type?: 'base' | 'table' | 'main' | 'layout', value?: any }
   tableRenameId: Ref<string>
 }> = Symbol('tree-view-functions-injection')
 export const CalendarViewTypeInj: InjectionKey<Ref<'week' | 'month' | 'day' | 'year'>> = Symbol('calendar-view-type-injection')
@@ -125,10 +125,10 @@ export const ActiveSourceInj: InjectionKey<
 > = Symbol('active-source-injection')
 
 export const IsToolbarIconMode: InjectionKey<ComputedRef<boolean>> = Symbol('toolbar-icon-mode-injection')
-export const FieldNameAlias: InjectionKey<ComputedRef<Record<string, string>> | Ref<Record<string, string>>> =
-  Symbol('field-name-alias')
+export const FieldNameAlias: InjectionKey<ComputedRef<Record<string, string>> | Ref<Record<string, string>>>
+  = Symbol('field-name-alias')
 export const IsCanvasInjectionInj: InjectionKey<boolean> = Symbol('is-canvas-injection')
-export const ClientMousePositionInj: InjectionKey<Reactive<{ clientX: number; clientY: number }>> = Symbol(
+export const ClientMousePositionInj: InjectionKey<Reactive<{ clientX: number, clientY: number }>> = Symbol(
   'client-mouse-position-injection',
 )
 export const CanvasCellEventDataInj: InjectionKey<
@@ -147,8 +147,8 @@ export const PlanUpgraderClickHookInj: InjectionKey<EventHook<void>> = Symbol('p
 
 export const IsMiniSidebarInj: InjectionKey<Ref<boolean>> = Symbol('is-mini-sidebar-injection')
 
-export const ExtensionConfigInj: InjectionKey<Ref<ExtensionConfigInjType> | ComputedRef<ExtensionConfigInjType>> =
-  Symbol('extension-config-injection')
+export const ExtensionConfigInj: InjectionKey<Ref<ExtensionConfigInjType> | ComputedRef<ExtensionConfigInjType>>
+  = Symbol('extension-config-injection')
 
 export const IsOrgBillingInj: InjectionKey<Ref<boolean>> = Symbol('is-org-billing-injection')
 
@@ -162,7 +162,7 @@ export const TemplateBreadcrumbsInj: InjectionKey<Ref<string[]>> = Symbol('templ
 export const WorkflowVariableInj: InjectionKey<{
   selectedNodeId: Ref<string | null>
   getAvailableVariablesFlat: (nodeId: string) => any[]
-  getAvailableVariables: (nodeId: string) => Array<{ nodeId: string; nodeTitle: string; variables: any[] }>
+  getAvailableVariables: (nodeId: string) => Array<{ nodeId: string, nodeTitle: string, variables: any[] }>
 }> = Symbol('workflow-variable-injection')
 
 export const IsWsBaseListModalInj: InjectionKey<Ref<boolean>> = Symbol('is-ws-base-list-modal-injection')

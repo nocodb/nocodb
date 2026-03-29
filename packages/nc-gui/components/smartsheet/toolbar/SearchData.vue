@@ -11,8 +11,8 @@ const activeView = inject(ActiveViewInj, ref())
 
 const { $e } = useNuxtApp()
 
-const { meta, eventBus, isGrid, isGallery, isList, totalRowsWithSearchQuery, totalRowsWithoutSearchQuery, gridEditEnabled } =
-  useSmartsheetStoreOrThrow()
+const { meta, eventBus, isGrid, isGallery, isList, totalRowsWithSearchQuery, totalRowsWithoutSearchQuery, gridEditEnabled }
+  = useSmartsheetStoreOrThrow()
 
 const { lastOpenedViewId } = storeToRefs(useViewsStore())
 
@@ -54,10 +54,10 @@ const isValidSearchQuery = computed(() => {
 
 const isSearchResultVisible = computed(() => {
   return (
-    !isDropdownOpen.value &&
-    search.value.query?.trim() &&
-    !isMobileMode.value &&
-    ((isGrid.value && !isGroupBy.value) || isGallery.value)
+    !isDropdownOpen.value
+    && search.value.query?.trim()
+    && !isMobileMode.value
+    && ((isGrid.value && !isGroupBy.value) || isGallery.value)
   )
 })
 
@@ -67,10 +67,10 @@ const columns = computed(() => {
     const baseId = (meta.value as TableType)?.base_id
     const levelMeta = getMetaByKey(baseId, levelTableId)
     if (levelMeta?.columns) {
-      return (levelMeta.columns as ColumnType[]).filter((column) => isSearchableColumn(column))
+      return (levelMeta.columns as ColumnType[]).filter(column => isSearchableColumn(column))
     }
   }
-  return (meta.value as TableType)?.columns?.filter((column) => isSearchableColumn(column)) ?? []
+  return (meta.value as TableType)?.columns?.filter(column => isSearchableColumn(column)) ?? []
 })
 
 watch(
@@ -109,10 +109,10 @@ function onPressEnter() {
 const displayColumn = computed(() => {
   if (search.value.field) {
     // use search field label if specified
-    return columns.value?.find((column) => column.id === search.value.field)
+    return columns.value?.find(column => column.id === search.value.field)
   }
   // use primary value label by default
-  const pvColumn = columns.value?.find((column) => column.pv)
+  const pvColumn = columns.value?.find(column => column.pv)
   search.value.field = pvColumn?.id as string
   return pvColumn
 })
@@ -138,7 +138,7 @@ watchDebounced(
   },
 )
 
-const onSelectOption = (column: ColumnType) => {
+function onSelectOption(column: ColumnType) {
   search.value.field = column.id as string
   isDropdownOpen.value = false
 
@@ -151,7 +151,7 @@ const onSelectOption = (column: ColumnType) => {
   })
 }
 
-const handleShowSearchInput = () => {
+function handleShowSearchInput() {
   showSearchBox.value = true
 
   setTimeout(() => {
@@ -164,14 +164,14 @@ const handleShowSearchInput = () => {
   }, 300)
 }
 
-const handleEscapeKey = () => {
+function handleEscapeKey() {
   if (isDropdownOpen.value || gridEditEnabled.value) return
 
   search.value.query = ''
   showSearchBox.value = false
 }
 
-const handleClickOutside = (e: MouseEvent | KeyboardEvent) => {
+function handleClickOutside(e: MouseEvent | KeyboardEvent) {
   const targetEl = e.target as HTMLElement
   if (search.value.query || targetEl?.closest('.nc-dropdown-toolbar-search, .nc-dropdown-toolbar-search-field-option')) {
     return
@@ -200,7 +200,8 @@ useEventListener('keydown', (e: KeyboardEvent) => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
     e.preventDefault()
     handleShowSearchInput()
-  } else if (e.key === 'Escape') {
+  }
+  else if (e.key === 'Escape') {
     handleEscapeKey()
   }
 })
@@ -305,8 +306,7 @@ watch(
               autocomplete="off"
               data-testid="search-data-input"
               @press-enter="onPressEnter"
-            >
-            </a-input>
+            />
           </form>
           <NcTooltip
             v-if="!isValidSearchQuery"

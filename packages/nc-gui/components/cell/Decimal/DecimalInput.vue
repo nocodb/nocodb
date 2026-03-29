@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { composeNewDecimalValue, ncIsNaN } from 'nocodb-sdk'
 import type { StyleValue } from 'vue'
+import { composeNewDecimalValue, ncIsNaN } from 'nocodb-sdk'
 
 interface Props {
   placeholder?: string
@@ -24,7 +24,7 @@ const { isMobileMode } = useGlobal()
 
 const inputRef = templateRef('input-ref')
 
-const pasteText = (target: HTMLInputElement, value: string) => {
+function pasteText(target: HTMLInputElement, value: string) {
   if (!value || value === '') {
     return { changed: false }
   }
@@ -45,20 +45,23 @@ const pasteText = (target: HTMLInputElement, value: string) => {
   }
 }
 
-const getFormattedModelValue = (format = true) => {
+function getFormattedModelValue(format = true) {
   if (vModel.value || vModel.value === 0) {
     if (typeof vModel.value === 'number') {
       if (props.precision && format) {
         return vModel.value.toFixed(props.precision) ?? ''
-      } else {
+      }
+      else {
         return vModel.value.toString()
       }
-    } else if (typeof vModel.value === 'string') {
+    }
+    else if (typeof vModel.value === 'string') {
       const numberValue = Number(vModel.value)
       if (!ncIsNaN(numberValue)) {
         if (props.precision && format) {
           return numberValue.toFixed(props.precision) ?? ''
-        } else {
+        }
+        else {
           return numberValue.toString()
         }
       }
@@ -67,12 +70,12 @@ const getFormattedModelValue = (format = true) => {
 
   return ''
 }
-const refreshVModel = (format = true) => {
+function refreshVModel(format = true) {
   if (inputRef.value && (vModel.value || vModel.value === 0)) {
     inputRef.value.value = getFormattedModelValue(format)
   }
 }
-const saveValue = (targetValue: string) => {
+function saveValue(targetValue: string) {
   if (targetValue === '') {
     vModel.value = null
     return
@@ -85,7 +88,7 @@ const saveValue = (targetValue: string) => {
   vModel.value = value
 }
 let savingHandle: any
-const onInputKeyUp = (e: KeyboardEvent, debounce = true) => {
+function onInputKeyUp(e: KeyboardEvent, debounce = true) {
   const target: HTMLInputElement = e.target as HTMLInputElement
   if (target) {
     // mac's double space insert period
@@ -99,7 +102,8 @@ const onInputKeyUp = (e: KeyboardEvent, debounce = true) => {
     }
     if (!debounce) {
       saveValue(target.value)
-    } else {
+    }
+    else {
       savingHandle = setTimeout(() => {
         saveValue(target.value)
       }, 100)
@@ -107,7 +111,7 @@ const onInputKeyUp = (e: KeyboardEvent, debounce = true) => {
   }
 }
 // Handle the arrow keys as its default behavior is to increment/decrement the value
-const onInputKeyDown = (e: KeyboardEvent) => {
+function onInputKeyDown(e: KeyboardEvent) {
   const target: HTMLInputElement = e.target as HTMLInputElement
   if (!target) {
     return
@@ -127,20 +131,22 @@ const onInputKeyDown = (e: KeyboardEvent) => {
       'Backspace',
       'Tab',
       ...functionKeys,
-    ].includes(e.key) ||
-    e.ctrlKey ||
-    e.altKey ||
-    e.metaKey
+    ].includes(e.key)
+    || e.ctrlKey
+    || e.altKey
+    || e.metaKey
   ) {
     return
   }
   if (e.key === 'ArrowDown') {
     target.setSelectionRange(target.value.length, target.value.length)
     return
-  } else if (e.key === 'ArrowUp') {
+  }
+  else if (e.key === 'ArrowUp') {
     target.setSelectionRange(0, 0)
     return
-  } else if (e.key.match('[^-0-9\.]')) {
+  }
+  else if (e.key.match('[^-0-9\.]')) {
     // prevent everything non ctrl / alt and non . and non number
     e.preventDefault()
     e.stopPropagation()
@@ -152,7 +158,7 @@ const onInputKeyDown = (e: KeyboardEvent) => {
   e.stopPropagation()
 }
 
-const onInputPaste = (e: ClipboardEvent) => {
+function onInputPaste(e: ClipboardEvent) {
   if (e.clipboardData === null || typeof e.clipboardData === 'undefined') {
     return
   }
@@ -169,7 +175,7 @@ const onInputPaste = (e: ClipboardEvent) => {
   pasteText(target, value)
 }
 
-const onInputBlur = (e: FocusEvent) => {
+function onInputBlur(e: FocusEvent) {
   emits('blur', e)
   if (e.target) {
     const targetValue = (e.target as HTMLInputElement).value
@@ -181,11 +187,11 @@ const onInputBlur = (e: FocusEvent) => {
   }
 }
 
-const onInputFocus = () => {
+function onInputFocus() {
   refreshVModel(false)
 }
 
-const registerEvents = (input: HTMLInputElement) => {
+function registerEvents(input: HTMLInputElement) {
   input.addEventListener('keydown', onInputKeyDown)
   input.addEventListener('keyup', onInputKeyUp)
   input.addEventListener('paste', onInputPaste)
@@ -193,7 +199,7 @@ const registerEvents = (input: HTMLInputElement) => {
   input.addEventListener('focus', onInputFocus)
 }
 
-const removeEvents = (input: HTMLInputElement) => {
+function removeEvents(input: HTMLInputElement) {
   input.removeEventListener('keydown', onInputKeyDown)
   input.removeEventListener('keyup', onInputKeyUp)
   input.removeEventListener('paste', onInputPaste)
@@ -201,7 +207,7 @@ const removeEvents = (input: HTMLInputElement) => {
   input.removeEventListener('focus', onInputFocus)
 }
 
-const onBeforeInput = (e: InputEvent) => {
+function onBeforeInput(e: InputEvent) {
   if (!e.data || !isMobileMode.value) return // may be null for deletions etc.
 
   // allow only digits, minus, dot
@@ -230,10 +236,10 @@ onBeforeUnmount(() => {
 
 watch(vModel, (newValue) => {
   if (
-    !inputRef.value ||
-    newValue ||
-    inputRef.value.value === getFormattedModelValue() ||
-    inputRef.value.value === (newValue?.toString() || '')
+    !inputRef.value
+    || newValue
+    || inputRef.value.value === getFormattedModelValue()
+    || inputRef.value.value === (newValue?.toString() || '')
   ) {
     return
   }
@@ -263,7 +269,7 @@ watch(vModel, (newValue) => {
     @selectstart.capture.stop
     @mousedown.stop
     @beforeinput="onBeforeInput"
-  />
+  >
 </template>
 
 <style scoped lang="scss">

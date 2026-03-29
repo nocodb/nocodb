@@ -12,7 +12,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
   const { activeTable } = toRefs(useTablesStore())
 
   const hasV2Webhooks = computed(() => {
-    return hooks.value.some((hook) => hook.version === 'v2')
+    return hooks.value.some(hook => hook.version === 'v2')
   })
 
   async function loadHooksList() {
@@ -29,15 +29,17 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
         hook.notification = parseProp(hook.notification)
         return hook
       })
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
+    }
+    finally {
       isHooksLoading.value = false
     }
   }
 
   async function deleteHook(id: string) {
-    const index = hooks.value.findIndex((hook) => hook.id === id)
+    const index = hooks.value.findIndex(hook => hook.id === id)
 
     try {
       if (id) {
@@ -51,16 +53,19 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
           {},
         )
         hooks.value.splice(index, 1)
-      } else {
+      }
+      else {
         hooks.value.splice(index, 1)
       }
 
       if (!hooks.value.length) {
         hooks.value = []
       }
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
+    }
+    finally {
       await getMeta(activeTable.value.base_id!, activeTable.value.id!, true)
     }
   }
@@ -113,14 +118,16 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
         newHook.notification = parseProp(newHook.notification)
         hooks.value = [newHook, ...hooks.value]
       }
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
+    }
+    finally {
       await getMeta(activeTable.value.base_id!, activeTable.value.id!, true)
     }
   }
 
-  async function saveHooks({ hook: _hook, ogHook }: { hook: HookType; ogHook: HookType }) {
+  async function saveHooks({ hook: _hook, ogHook }: { hook: HookType, ogHook: HookType }) {
     if (!activeTable.value) throw new Error('activeTable is not defined')
 
     _hook.trigger_field = !!_hook.trigger_field
@@ -152,7 +159,8 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
             },
           },
         )
-      } else {
+      }
+      else {
         res = await $api.internal.postOperation(
           activeTable.value!.fk_workspace_id!,
           activeTable.value!.base_id!,
@@ -187,7 +195,8 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
         }
         return h
       })
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
       console.error(e)
 
@@ -199,7 +208,8 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
           return h
         })
       }
-    } finally {
+    }
+    finally {
       await getMeta(activeTable.value.base_id!, activeTable.value.id!, true)
     }
 

@@ -51,7 +51,7 @@ const filterOptions = computed<NcListItemType[]>(() => [
 ])
 
 const selectedFilter = computed(() => {
-  return filterOptions.value.find((option) => option.value === props.activeFilter)
+  return filterOptions.value.find(option => option.value === props.activeFilter)
 })
 
 // Get icon for active filter (for compact display)
@@ -61,11 +61,11 @@ const activeFilterIcon = computed(() => {
 
 const isFilterActive = computed(() => props.activeFilter !== 'all')
 
-const onFilterChange = (value: string) => {
+function onFilterChange(value: string) {
   emit('update:activeFilter', value as FilterType)
 }
 
-const clearFilter = () => {
+function clearFilter() {
   emit('update:activeFilter', 'all')
 }
 </script>
@@ -91,7 +91,7 @@ const clearFilter = () => {
       <div
         class="hidden md:flex flex-1 justify-end items-center gap-2 text-xs font-medium tracking-wide min-w-0 truncate overflow-hidden"
       >
-        <slot name="baseListHeader"> </slot>
+        <slot name="baseListHeader" />
         <span class="flex-shrink-0 font-normal text-nc-content-gray-muted">({{ baseCount }})</span>
       </div>
 

@@ -1,6 +1,16 @@
 import type { WritableComputedRef } from '@vue/reactivity'
-import { AllAggregations, type ColumnType, PlanTitles, type TableType, UITypes, isCreatedOrLastModifiedByCol } from 'nocodb-sdk'
+import type { ColumnType, TableType } from 'nocodb-sdk'
 import type { Composer } from 'vue-i18n'
+import type { ImageWindowLoader } from '../loaders/ImageLoader'
+import type { MarkdownLoader } from '../loaders/markdownLoader'
+import type { SpriteLoader } from '../loaders/SpriteLoader'
+import type { TableMetaLoader } from '../loaders/TableMetaLoader'
+import type { CanvasElement } from '../utils/CanvasElement'
+import type { RenderTagProps } from '../utils/types'
+import { AllAggregations, isCreatedOrLastModifiedByCol, PlanTitles, UITypes } from 'nocodb-sdk'
+import { parseKey } from '../../../../../utils/groupbyUtils'
+import { renderIcon } from '../../../header/CellIcon'
+import { renderIcon as renderVIcon } from '../../../header/VirtualCellIcon'
 import {
   isBoxHovered,
   renderCheckbox,
@@ -12,11 +22,8 @@ import {
   roundedRect,
   truncateText,
 } from '../utils/canvas'
-import type { ImageWindowLoader } from '../loaders/ImageLoader'
-import type { SpriteLoader } from '../loaders/SpriteLoader'
-import { renderIcon } from '../../../header/CellIcon'
-import { renderIcon as renderVIcon } from '../../../header/VirtualCellIcon'
-import type { TableMetaLoader } from '../loaders/TableMetaLoader'
+import { ElementTypes } from '../utils/CanvasElement'
+import { parseCellWidth } from '../utils/cell'
 import {
   ADD_NEW_COLUMN_WIDTH,
   AGGREGATION_HEIGHT,
@@ -25,7 +32,6 @@ import {
   GROUP_PADDING,
   MAX_SELECTED_ROWS,
 } from '../utils/constants'
-import { parseCellWidth } from '../utils/cell'
 import {
   calculateGroupHeight,
   calculateGroupRange,
@@ -34,12 +40,7 @@ import {
   generateGroupPath,
   getGroupColors,
 } from '../utils/groupby'
-import { parseKey } from '../../../../../utils/groupbyUtils'
-import type { CanvasElement } from '../utils/CanvasElement'
-import { ElementTypes } from '../utils/CanvasElement'
-import type { RenderTagProps } from '../utils/types'
 import { getSafe2DContext } from '../utils/safeCanvas'
-import type { MarkdownLoader } from '../loaders/markdownLoader'
 
 export function useCanvasRender({
   width,
@@ -108,8 +109,8 @@ export function useCanvasRender({
   rowHeight: Ref<number>
   headerRowHeight: Ref<number>
   columns: ComputedRef<CanvasGridColumn[]>
-  colSlice: Ref<{ start: number; end: number }>
-  rowSlice: Ref<{ start: number; end: number }>
+  colSlice: Ref<{ start: number, end: number }>
+  rowSlice: Ref<{ start: number, end: number }>
   activeCell: Ref<{
     row?: number
     column?: number
@@ -118,7 +119,7 @@ export function useCanvasRender({
   scrollLeft: Ref<number>
   scrollTop: Ref<number>
   cachedGroups: Ref<Map<number, CanvasGroup>>
-  dragOver: Ref<{ id: string; index: number } | null>
+  dragOver: Ref<{ id: string, index: number } | null>
   hoverRow: Ref<{
     path?: Array<number> | null
     rowIndex: number
@@ -143,7 +144,7 @@ export function useCanvasRender({
   isDragging: Ref<boolean>
   draggedRowIndex: Ref<number | null>
   targetRowIndex: Ref<number | null>
-  mousePosition: { x: number; y: number }
+  mousePosition: { x: number, y: number }
   renderCell: (ctx: CanvasRenderingContext2D, column: ColumnType, options: any) => void
   updateFrameTimestamp: () => void
   meta: ComputedRef<TableType>
@@ -204,7 +205,7 @@ export function useCanvasRender({
   // Pre-compute PK columns to avoid filtering all columns on every row render
   const pkColumns = computed(() => (meta.value?.columns ?? []).filter((c: ColumnType) => c.pk))
 
-  const fixedCols = computed(() => columns.value.filter((c) => c.fixed))
+  const fixedCols = computed(() => columns.value.filter(c => c.fixed))
 
   const fixedColsWidth = computed(() => fixedCols.value.reduce((sum, col) => sum + parseCellWidth(col.width), 1))
 
@@ -270,13 +271,13 @@ export function useCanvasRender({
     // causing the misalignment. Resetting textAlign fixes it.
     ctx.textAlign = 'left'
     const plusColumnWidth = ADD_NEW_COLUMN_WIDTH
-    const columnsWidth =
-      totalColumnsWidth.value +
-      (!isAddingColumnAllowed.value && isGroupBy.value
-        ? groupByColumns?.value?.length * 13 + (groupByColumns?.value?.length - 1) * 13
-        : 0) +
-      (isAddingColumnAllowed.value && !isMobileMode.value ? plusColumnWidth : 0) -
-      scrollLeft.value
+    const columnsWidth
+      = totalColumnsWidth.value
+        + (!isAddingColumnAllowed.value && isGroupBy.value
+          ? groupByColumns?.value?.length * 13 + (groupByColumns?.value?.length - 1) * 13
+          : 0)
+        + (isAddingColumnAllowed.value && !isMobileMode.value ? plusColumnWidth : 0)
+        - scrollLeft.value
 
     // Header background
     ctx.fillStyle = getColor(themeV4Colors.gray['100'])
@@ -319,9 +320,9 @@ export function useCanvasRender({
 
       const isLastCol = column.id === columns.value?.[columns.value.length - 1]?.id
 
-      const width =
-        parseCellWidth(column.width) +
-        (isLastCol && !isAddingColumnAllowed.value && isGroupBy.value ? (groupByColumns.value?.length - 1) * 13 - 1 : 0)
+      const width
+        = parseCellWidth(column.width)
+          + (isLastCol && !isAddingColumnAllowed.value && isGroupBy.value ? (groupByColumns.value?.length - 1) * 13 - 1 : 0)
 
       if (column.fixed) {
         xOffset += width
@@ -410,7 +411,8 @@ export function useCanvasRender({
           x: rightOffset - scrollLeft.value,
           y: headerRowHeight.value / 2 - 7,
         })
-      } else if (meta.value?.synced && colObj?.readonly && !isPublic.value) {
+      }
+      else if (meta.value?.synced && colObj?.readonly && !isPublic.value) {
         rightOffset -= 16
         spriteLoader.renderIcon(ctx, {
           icon: 'ncZap',
@@ -456,10 +458,10 @@ export function useCanvasRender({
       xOffset += width
 
       const resizeHandleWidth = 10
-      const isNearEdge =
-        mousePosition &&
-        Math.abs(xOffset - scrollLeft.value - mousePosition.x) <= resizeHandleWidth &&
-        mousePosition.y <= headerRowHeight.value
+      const isNearEdge
+        = mousePosition
+          && Math.abs(xOffset - scrollLeft.value - mousePosition.x) <= resizeHandleWidth
+          && mousePosition.y <= headerRowHeight.value
 
       if (isNearEdge && !isLocked.value && isViewOperationsAllowed.value) {
         colResizeHoveredColIds.value.add(column.id)
@@ -473,7 +475,8 @@ export function useCanvasRender({
         // Reset for regular column separator
         ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
         ctx.lineWidth = 1
-      } else {
+      }
+      else {
         colResizeHoveredColIds.value.delete(column.id)
         ctx.beginPath()
         ctx.moveTo(xOffset - scrollLeft.value, 0)
@@ -510,10 +513,10 @@ export function useCanvasRender({
       // The issue is the border gets drawn over the active state border.
       // For quick hack, we skip rendering border over the y values of the active state to avoid the overlap.
       if (
-        (activeState &&
-          xOffset - scrollLeft.value >= activeState.x &&
-          xOffset - scrollLeft.value <= activeState.x + activeState.width) ||
-        (fillHandler && xOffset - scrollLeft.value + 1 >= fillHandler.x && xOffset - scrollLeft.value - 1 <= fillHandler.x)
+        (activeState
+          && xOffset - scrollLeft.value >= activeState.x
+          && xOffset - scrollLeft.value <= activeState.x + activeState.width)
+        || (fillHandler && xOffset - scrollLeft.value + 1 >= fillHandler.x && xOffset - scrollLeft.value - 1 <= fillHandler.x)
       ) {
         // Draw line above active state
         ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
@@ -531,7 +534,8 @@ export function useCanvasRender({
 
             if (selection.value.start.col !== selection.value.end.col) {
               ctx.moveTo(xOffset - scrollLeft.value, activeState ? activeState.y : headerRowHeight.value)
-            } else {
+            }
+            else {
               let y = activeState ? activeState.y + activeState.height : headerRowHeight.value
 
               // Adjust y position if fill handler is in the same active cell and multiple rows are selected
@@ -550,7 +554,8 @@ export function useCanvasRender({
             (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + headerRowHeight.value,
           )
           ctx.stroke()
-        } else if (activeState?.y && activeState?.height) {
+        }
+        else if (activeState?.y && activeState?.height) {
           // Draw line below active state
           ctx.beginPath()
           ctx.moveTo(xOffset - scrollLeft.value, activeState.y + activeState.height)
@@ -560,7 +565,8 @@ export function useCanvasRender({
           )
           ctx.stroke()
         }
-      } else if (visibleCols.filter((f) => !f.fixed).length) {
+      }
+      else if (visibleCols.filter(f => !f.fixed).length) {
         // Draw full line if not intersecting with active state
         // To avoid rendering the line inside fixed columns, set the xOffset to the right of fixed columns if xOffset is less than fixedColsWidth
         const verticalLineXOffset = Math.max(fixedColsWidth.value, xOffset - scrollLeft.value)
@@ -652,11 +658,11 @@ export function useCanvasRender({
 
         if (column.id === 'row_number') {
           if (
-            !readOnly.value &&
-            !isMobileMode.value &&
-            (isSelectedAllRecords.value ||
-              isBoxHovered({ x: 0, y: 0, width: canvasWidth, height: headerRowHeight.value }, mousePosition)) &&
-            !isGroupBy.value
+            !readOnly.value
+            && !isMobileMode.value
+            && (isSelectedAllRecords.value
+              || isBoxHovered({ x: 0, y: 0, width: canvasWidth, height: headerRowHeight.value }, mousePosition))
+            && !isGroupBy.value
           ) {
             const checkSize = 16
             const checkboxX = x + (isRowDraggingEnabled.value ? 26 - 6 : 0)
@@ -671,10 +677,12 @@ export function useCanvasRender({
               isCheckboxHovered ? getColor(themeV4Colors.brand['500']) : getColor('#D9D9D9', '--rgb-color-gray-200'),
               getColor,
             )
-          } else {
+          }
+          else {
             ctx.fillText(truncatedText, x, y)
           }
-        } else {
+        }
+        else {
           ctx.fillText(truncatedText, x, y)
 
           if (isRequired) {
@@ -697,7 +705,8 @@ export function useCanvasRender({
             x: rightOffset,
             y: y - 7,
           })
-        } else if (meta.value?.synced && colObj?.readonly && !isPublic.value) {
+        }
+        else if (meta.value?.synced && colObj?.readonly && !isPublic.value) {
           rightOffset -= 16
           spriteLoader.renderIcon(ctx, {
             icon: 'ncZap',
@@ -746,8 +755,8 @@ export function useCanvasRender({
 
         // Border
         const resizeHandleWidth = 10
-        const isNearEdge =
-          mousePosition && Math.abs(xOffset - mousePosition.x) <= resizeHandleWidth && mousePosition.y <= headerRowHeight.value
+        const isNearEdge
+          = mousePosition && Math.abs(xOffset - mousePosition.x) <= resizeHandleWidth && mousePosition.y <= headerRowHeight.value
 
         // Right border for row number field
         if (column.id === 'row_number') {
@@ -771,7 +780,8 @@ export function useCanvasRender({
           // Reset for regular column separator
           ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
           ctx.lineWidth = 1
-        } else {
+        }
+        else {
           colResizeHoveredColIds.value.delete(column.id)
         }
       })
@@ -787,7 +797,8 @@ export function useCanvasRender({
         ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
         ctx.rect(xOffset, 0, 4, isGroupBy.value ? height.value : headerRowHeight.value)
         ctx.fill()
-      } else {
+      }
+      else {
         ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
         ctx.beginPath()
         ctx.lineWidth = 1
@@ -814,7 +825,7 @@ export function useCanvasRender({
   ) => {
     if (!activeState) return
 
-    const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 0)
+    const fixedWidth = columns.value.filter(col => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 0)
     const isInFixedArea = activeState.x <= fixedWidth
 
     let borderColor = getColor(themeV4Colors.brand['500'])
@@ -940,17 +951,17 @@ export function useCanvasRender({
     }
 
     if (isFillMode.value) {
-      const startY =
-        calculateGroupRowTop(
+      const startY
+        = calculateGroupRowTop(
           cachedGroups.value,
           groupPath,
           selection.value.start.row,
           rowHeight.value,
           headerRowHeight.value,
           isAddingEmptyRowAllowed.value,
-        ) -
-        scrollTop.value +
-        headerRowHeight.value
+        )
+        - scrollTop.value
+        + headerRowHeight.value
 
       ctx.setLineDash([2, 2])
       ctx.strokeStyle = isAiFillMode.value ? getColor(themeV4Colors.purple['400']) : getColor(themeV4Colors.brand['500'])
@@ -969,12 +980,12 @@ export function useCanvasRender({
     ctx.fill()
 
     // check if the fill handle is hovered
-    const isHovered =
-      mousePosition &&
-      mousePosition.x >= fillHandler.x - fillHandler.size / 2 &&
-      mousePosition.x <= fillHandler.x + fillHandler.size / 2 &&
-      mousePosition.y >= fillHandler.y - fillHandler.size / 2 &&
-      mousePosition.y <= fillHandler.y + fillHandler.size / 2
+    const isHovered
+      = mousePosition
+        && mousePosition.x >= fillHandler.x - fillHandler.size / 2
+        && mousePosition.x <= fillHandler.x + fillHandler.size / 2
+        && mousePosition.y >= fillHandler.y - fillHandler.size / 2
+        && mousePosition.y <= fillHandler.y + fillHandler.size / 2
 
     if (isHovered) {
       setCursor('crosshair')
@@ -999,13 +1010,14 @@ export function useCanvasRender({
   ) => {
     const isHover = hoverRow.value?.rowIndex === row.rowMeta.rowIndex && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
     const isChecked = isRecordSelected(row)
-    const isRowCellSelected =
-      activeCell.value.row === row.rowMeta.rowIndex && comparePath(activeCell.value.path, row?.rowMeta?.path)
+    const isRowCellSelected
+      = activeCell.value.row === row.rowMeta.rowIndex && comparePath(activeCell.value.path, row?.rowMeta?.path)
     const isDisabled = !vSelectedAllRecords.value && !row.rowMeta.selected && selectedRows.value.length >= MAX_SELECTED_ROWS
 
     if (rowColor) {
       ctx.fillStyle = rowColor
-    } else {
+    }
+    else {
       ctx.fillStyle = isHover || isRowCellSelected ? getColor(themeV4Colors.gray['50']) : getColor(themeV4Colors.base.white)
 
       if (isChecked) ctx.fillStyle = getColor('#F6F7FE', themeV4Colors.brand['50'])
@@ -1044,7 +1056,8 @@ export function useCanvasRender({
       })
 
       currentX += Math.max(24, rowIndexWidth + 16)
-    } else if ((isHover || isChecked || isRowCellSelected) && isRowDraggingEnabled.value) {
+    }
+    else if ((isHover || isChecked || isRowCellSelected) && isRowDraggingEnabled.value) {
       /**
        * 2. Render drag icon -
        * If not readonly & row dragging enabled & row is hovered/selected
@@ -1060,7 +1073,8 @@ export function useCanvasRender({
         roundedRect(ctx, currentX, yOffset + (rowHeight.value - 24) / 2, 24, 24, 4, {
           backgroundColor: isHovered ? getColor(themeV4Colors.gray['200']) : 'transparent',
         })
-      } else if (isHovered) {
+      }
+      else if (isHovered) {
         // For now we support on single row reorder if rows are not selected so we have to set cursor
         setCursor('not-allowed')
       }
@@ -1074,11 +1088,12 @@ export function useCanvasRender({
           isHovered && !selectedRows.value.length && !vSelectedAllRecords.value
             ? '#3265FF'
             : selectedRows.value.length
-            ? getColor(themeV4Colors.gray['400'])
-            : getColor(themeV4Colors.gray['500']),
+              ? getColor(themeV4Colors.gray['400'])
+              : getColor(themeV4Colors.gray['500']),
       })
       currentX += 26
-    } else {
+    }
+    else {
       // add 6px padding to the left of the row meta column if the row number is not rendered
       currentX += 6
     }
@@ -1174,7 +1189,8 @@ export function useCanvasRender({
           },
         })
       }
-    } else if (isHover || isRowCellSelected) {
+    }
+    else if (isHover || isRowCellSelected) {
       const box = {
         x: xOffset + width - 4 - 20 - rowColouringBoxTotalWidth,
         y: yOffset + (rowHeight.value - 20) / 2,
@@ -1408,8 +1424,8 @@ export function useCanvasRender({
     const groupPath = generateGroupPath(group)
     const isHovered = hoverRow.value?.rowIndex === rowIdx && comparePath(hoverRow.value?.path, row?.rowMeta?.path ?? group?.path)
     const isActiveCellInCurrentGroup = comparePath(activeCell.value?.path, groupPath ?? group?.path)
-    const isRowCellSelected =
-      activeCell.value.row === rowIdx && comparePath(activeCell.value.path, row?.rowMeta?.path ?? group?.path)
+    const isRowCellSelected
+      = activeCell.value.row === rowIdx && comparePath(activeCell.value.path, row?.rowMeta?.path ?? group?.path)
 
     const recordSelected = isRecordSelected(row)
 
@@ -1462,8 +1478,8 @@ export function useCanvasRender({
 
         const columnState = column.columnObj?.id ? isColumnSortedOrFiltered(column.columnObj?.id) : null
 
-        const prevColumnState =
-          colIdx - 1 >= 0 && visibleCols[colIdx - 1] && visibleCols[colIdx - 1]?.columnObj?.id
+        const prevColumnState
+          = colIdx - 1 >= 0 && visibleCols[colIdx - 1] && visibleCols[colIdx - 1]?.columnObj?.id
             ? isColumnSortedOrFiltered(visibleCols[colIdx - 1]?.columnObj?.id)
             : null
 
@@ -1476,12 +1492,13 @@ export function useCanvasRender({
         if (recordSelected || isCellInRange) {
           ctx.fillStyle = rowColor ? '#3366ff0d' : _rowColors.selectionBg
           ctx.fillRect(xOffset - _scrollLeft, yOffset, width, _rowH)
-        } else if (isRowCellSelected) {
+        }
+        else if (isRowCellSelected) {
           ctx.fillStyle = 'red'
         }
 
-        const isColumnInSelection =
-          isCellInRange || (hasActiveSelection && selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx - 1 }))
+        const isColumnInSelection
+          = isCellInRange || (hasActiveSelection && selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx - 1 }))
 
         // Collect vertical border coordinates for batched stroke.
         // Use gray-200 (darker) for colored rows — gray-100 has near-zero contrast
@@ -1489,7 +1506,8 @@ export function useCanvasRender({
         const borderX = xOffset - _scrollLeft
         if (needsHighlightedBorders || isColumnInSelection || columnState || prevColumnState || rowColor) {
           bordersGray200.push(borderX)
-        } else {
+        }
+        else {
           bordersGray100.push(borderX)
         }
 
@@ -1591,13 +1609,15 @@ export function useCanvasRender({
             }
             ctx.fillStyle = rowColor ? '#3366ff0d' : _rowColors.selectionBg
             ctx.fillRect(xOffset, yOffset, width, _rowH)
-          } else if (rowBgAlreadyApplied) {
+          }
+          else if (rowBgAlreadyApplied) {
             // Row-level fill already painted the correct row color; fixed columns need to
             // repaint since they overlay scrollable content, but use the row color.
             const effectiveColor = isHovered || isRowCellSelected ? row.rowMeta.rowHoverColor || rowColor : rowColor
             ctx.fillStyle = effectiveColor
             ctx.fillRect(xOffset, yOffset, width, _rowH)
-          } else {
+          }
+          else {
             ctx.fillStyle = isHovered || isRowCellSelected ? _rowColors.gray50 : _rowColors.white
             ctx.fillRect(xOffset, yOffset, width, _rowH)
           }
@@ -1612,7 +1632,8 @@ export function useCanvasRender({
           if (column.id === 'row_number') {
             if (isGroupBy.value) width -= initialXOffset
             renderRowMeta(ctx, row, { xOffset, yOffset, width }, rowColor)
-          } else {
+          }
+          else {
             const value = row.row[column.title]
 
             const isActive = isActiveRow && activeCellCol === colIdx
@@ -1661,11 +1682,11 @@ export function useCanvasRender({
             })
           }
 
-          const isColumnInSelection =
-            isCellInRange || (hasActiveSelection && selection.value.isCellInRange({ row: rowIdx, col: colIdx - 1 }))
+          const isColumnInSelection
+            = isCellInRange || (hasActiveSelection && selection.value.isCellInRange({ row: rowIdx, col: colIdx - 1 }))
 
-          ctx.strokeStyle =
-            idx !== 0 && (needsHighlightedBorders || isColumnInSelection || rowColor) ? _rowColors.gray200 : _rowColors.gray100
+          ctx.strokeStyle
+            = idx !== 0 && (needsHighlightedBorders || isColumnInSelection || rowColor) ? _rowColors.gray200 : _rowColors.gray100
           ctx.lineWidth = 1
 
           ctx.beginPath()
@@ -1687,7 +1708,7 @@ export function useCanvasRender({
           ctx.stroke()
         }
 
-        if (!visibleCols.some((f) => !f.fixed)) {
+        if (!visibleCols.some(f => !f.fixed)) {
           ctx.strokeStyle = _rowColors.gray100
           ctx.beginPath()
           ctx.moveTo(xOffset, yOffset)
@@ -1702,7 +1723,8 @@ export function useCanvasRender({
         ctx.shadowOffsetX = 0
         ctx.shadowOffsetY = 0
       }
-    } else {
+    }
+    else {
       row = {
         row: {},
         rowMeta: {
@@ -1772,16 +1794,18 @@ export function useCanvasRender({
           if (selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
             ctx.fillStyle = getColor(themeV4Colors.brand['50'])
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
-          } else {
-            ctx.fillStyle =
-              isHovered || isRowCellSelected ? getColor(themeV4Colors.gray['50']) : getColor(themeV4Colors.base.white)
+          }
+          else {
+            ctx.fillStyle
+              = isHovered || isRowCellSelected ? getColor(themeV4Colors.gray['50']) : getColor(themeV4Colors.base.white)
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           }
 
           if (column.id === 'row_number') {
             if (isGroupBy.value) width -= initialXOffset
             renderRowMeta(ctx, row!, { xOffset, yOffset, width })
-          } else {
+          }
+          else {
             const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
 
             if (isActive) {
@@ -1861,7 +1885,7 @@ export function useCanvasRender({
     const colorWhite = _rowColors.white
     const colorGray200 = _rowColors.gray200
     const colorGray300 = _rowColors.gray300
-    let warningRow: { row: Row; yOffset: number } | null = null
+    let warningRow: { row: Row, yOffset: number } | null = null
     const dataCache = getDataCache()
 
     // Pre-cache reactive refs accessed per-row to avoid repeated .value proxy reads in the loop
@@ -1899,7 +1923,8 @@ export function useCanvasRender({
         if (rowBgApplied) {
           const effectiveRowColor = isRowHovered || isRowCellSelected ? row.rowMeta.rowHoverColor || rowColor : rowColor
           ctx.fillStyle = effectiveRowColor
-        } else {
+        }
+        else {
           ctx.fillStyle = isRowHovered || isRowCellSelected ? colorGray50 : colorWhite
         }
         ctx.fillRect(0, yOffset, adjustedWidth, _rowH)
@@ -1929,14 +1954,14 @@ export function useCanvasRender({
         }
 
         // Bottom border for each row
-        ctx.strokeStyle =
-          isRowHovered ||
-          row?.rowMeta?.selected ||
-          isRowCellSelected ||
-          isNextRowHovered ||
-          isNextRowCellSelected ||
-          isNextRowSelected ||
-          rowColor
+        ctx.strokeStyle
+          = isRowHovered
+            || row?.rowMeta?.selected
+            || isRowCellSelected
+            || isNextRowHovered
+            || isNextRowCellSelected
+            || isNextRowSelected
+            || rowColor
             ? colorGray300
             : colorGray200
         ctx.lineWidth = 1
@@ -1972,8 +1997,8 @@ export function useCanvasRender({
         },
         mousePosition,
       )
-      ctx.fillStyle =
-        isNewRowHovered && isAddingEmptyRowPermitted.value
+      ctx.fillStyle
+        = isNewRowHovered && isAddingEmptyRowPermitted.value
           ? getColor(themeV4Colors.gray['50'])
           : getColor(themeV4Colors.base.white)
       ctx.fillRect(0, yOffset, adjustedWidth, headerRowHeight.value)
@@ -2044,8 +2069,8 @@ export function useCanvasRender({
         text: warningRow.row.rowMeta.isValidationFailed
           ? 'Row filtered'
           : warningRow.row.rowMeta.isRlsHidden
-          ? 'Row hidden'
-          : 'Row moved',
+            ? 'Row hidden'
+            : 'Row moved',
         x: 10,
         y: warningRow.yOffset + rowHeight.value,
         py: 7,
@@ -2062,7 +2087,7 @@ export function useCanvasRender({
       const xOffset = calculateXPosition(columnIdToIndex.value.get(column.id!) ?? -1)
       const width = parseCellWidth(column.width)
 
-      const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 1)
+      const fixedWidth = columns.value.filter(col => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 1)
 
       const isInFixedArea = xOffset - scrollLeft.value <= fixedWidth
 
@@ -2073,7 +2098,8 @@ export function useCanvasRender({
           borderColor: getColor(themeV4Colors.red['500']),
           borderWidth: 2,
         })
-      } else if (isInFixedArea) {
+      }
+      else if (isInFixedArea) {
         if (xOffset + width <= fixedWidth) {
           continue
         }
@@ -2153,8 +2179,8 @@ export function useCanvasRender({
 
       const aggregationValue = column.aggregation?.toString()
 
-      const isHovered =
-        isBoxHovered(
+      const isHovered
+        = isBoxHovered(
           {
             x: xOffset - scrollLeft.value,
             y: height.value - AGGREGATION_HEIGHT,
@@ -2205,7 +2231,8 @@ export function useCanvasRender({
         }
 
         ctx.restore()
-      } else if (isHovered) {
+      }
+      else if (isHovered) {
         if (!isLocked.value) {
           ctx.save()
           ctx.beginPath()
@@ -2233,7 +2260,8 @@ export function useCanvasRender({
             x: rightEdge - textLen - 18,
             y: textY - 7,
           })
-        } else {
+        }
+        else {
           tryShowTooltip({
             mousePosition,
             text: 'Unlock this view to add aggregation',
@@ -2259,8 +2287,8 @@ export function useCanvasRender({
 
     if (fixedCols.value.length) {
       xOffset = 0
-      const rowNumberCol = fixedCols.value.find((col) => col.id === 'row_number')
-      const firstFixedCol = fixedCols.value.find((col) => col.id !== 'row_number')
+      const rowNumberCol = fixedCols.value.find(col => col.id === 'row_number')
+      const firstFixedCol = fixedCols.value.find(col => col.id !== 'row_number')
 
       if (rowNumberCol && firstFixedCol) {
         const mergedWidth = parseCellWidth(rowNumberCol.width) + parseCellWidth(firstFixedCol.width)
@@ -2274,8 +2302,8 @@ export function useCanvasRender({
           mousePosition,
         )
 
-        ctx.fillStyle =
-          isHovered && isViewOperationsAllowed.value ? getColor(themeV4Colors.gray['100']) : getColor(themeV4Colors.gray['50'])
+        ctx.fillStyle
+          = isHovered && isViewOperationsAllowed.value ? getColor(themeV4Colors.gray['100']) : getColor(themeV4Colors.gray['50'])
         ctx.fillRect(xOffset, height.value - AGGREGATION_HEIGHT, mergedWidth, AGGREGATION_HEIGHT)
 
         ctx.fillStyle = getColor(themeV4Colors.gray['500'])
@@ -2323,7 +2351,8 @@ export function useCanvasRender({
           const w = ctx.measureText(aggregationValue ?? '').width
           availWidth -= w
           ctx.restore()
-        } else if (isHovered && isViewOperationsAllowed.value) {
+        }
+        else if (isHovered && isViewOperationsAllowed.value) {
           if (!isLocked.value) {
             ctx.save()
             ctx.beginPath()
@@ -2349,7 +2378,8 @@ export function useCanvasRender({
               x: rightEdge - textLen - 18,
               y: textY - 7,
             })
-          } else {
+          }
+          else {
             tryShowTooltip({
               mousePosition,
               text: 'Unlock this view to add aggregation.',
@@ -2373,31 +2403,31 @@ export function useCanvasRender({
               return acc + selectedRowsCount
             }, 0)
           : vSelectedAllRecords.value
-          ? Math.max(totalRows.value, actualTotalRows.value ?? 0)
-          : selectedRows.value?.length ?? 0
+            ? Math.max(totalRows.value, actualTotalRows.value ?? 0)
+            : selectedRows.value?.length ?? 0
 
-        const count =
-          selectedGroupRecords > 0
+        const count
+          = selectedGroupRecords > 0
             ? selectedGroupRecords
             : selection.value.cellCount > 1
-            ? selection.value.cellCount
-            : isGroupBy.value
-            ? totalGroups.value
-            : Math.max(totalRows.value, actualTotalRows.value ?? 0)
-        const label =
-          selectedGroupRecords > 0
+              ? selection.value.cellCount
+              : isGroupBy.value
+                ? totalGroups.value
+                : Math.max(totalRows.value, actualTotalRows.value ?? 0)
+        const label
+          = selectedGroupRecords > 0
             ? selectedGroupRecords === 1
               ? t('labels.recordSelected')
               : t('labels.recordsSelected')
             : selection.value.cellCount > 1
-            ? t('labels.cellsSelected')
-            : isGroupBy.value
-            ? count !== 1
-              ? t('objects.groups')
-              : t('objects.group')
-            : count !== 1
-            ? t('objects.records')
-            : t('objects.record')
+              ? t('labels.cellsSelected')
+              : isGroupBy.value
+                ? count !== 1
+                  ? t('objects.groups')
+                  : t('objects.group')
+                : count !== 1
+                  ? t('objects.records')
+                  : t('objects.record')
 
         const recordCountResult = renderSingleLineText(ctx, {
           text: `${Intl.NumberFormat('en', { notation: 'compact' }).format(count)} ${label}`,
@@ -2498,7 +2528,8 @@ export function useCanvasRender({
             ctx.fillText(aggregationValue, xOffset + width - 8, height.value - AGGREGATION_HEIGHT / 2)
 
             ctx.restore()
-          } else if (isHovered) {
+          }
+          else if (isHovered) {
             ctx.save()
             ctx.beginPath()
             ctx.rect(xOffset, height.value - AGGREGATION_HEIGHT, width, AGGREGATION_HEIGHT)
@@ -2555,21 +2586,22 @@ export function useCanvasRender({
 
     let targetRowLine
     if (isGroupBy.value) {
-      targetRowLine =
-        calculateGroupRowTop(
+      targetRowLine
+        = calculateGroupRowTop(
           cachedGroups.value,
           path,
           targetRowIndex.value,
           rowHeight.value,
           headerRowHeight.value,
           isAddingEmptyRowAllowed.value,
-        ) -
-        scrollTop.value +
+        )
+        - scrollTop.value
         // add column header height since it's not included
-        headerRowHeight.value
-    } else {
-      targetRowLine =
-        (targetRowIndex.value - rowSlice.value.start) * rowHeight.value - partialRowHeight.value + headerRowHeight.value
+        + headerRowHeight.value
+    }
+    else {
+      targetRowLine
+        = (targetRowIndex.value - rowSlice.value.start) * rowHeight.value - partialRowHeight.value + headerRowHeight.value
     }
 
     // First render the blue line indicator
@@ -2672,14 +2704,14 @@ export function useCanvasRender({
 
     const rowsToFetch = []
 
-    let activeState: { col: any; x: number; y: number; width: number; height: number } | null = null
+    let activeState: { col: any, x: number, y: number, width: number, height: number } | null = null
 
     let renderRedBorders: {
       rowIndex: number
       column: CanvasGridColumn
     }[] = []
 
-    let warningRow: { row: Row; yOffset: number } | null = null
+    let warningRow: { row: Row, yOffset: number } | null = null
     yOffset += 1
     const indent = level * 13 + 1
 
@@ -2740,10 +2772,10 @@ export function useCanvasRender({
       ctx.stroke()
 
       if (
-        row?.rowMeta.isValidationFailed ||
-        row?.rowMeta.isRowOrderUpdated ||
-        row?.rowMeta.isGroupChanged ||
-        row?.rowMeta.isRlsHidden
+        row?.rowMeta.isValidationFailed
+        || row?.rowMeta.isRowOrderUpdated
+        || row?.rowMeta.isGroupChanged
+        || row?.rowMeta.isRlsHidden
       ) {
         warningRow = { row, yOffset }
       }
@@ -2885,8 +2917,8 @@ export function useCanvasRender({
         text: warningRow.row.rowMeta.isValidationFailed
           ? 'Row filtered'
           : warningRow.row.rowMeta.isRlsHidden
-          ? 'Row hidden'
-          : 'Row moved',
+            ? 'Row hidden'
+            : 'Row moved',
         x: 10 + gXOffset,
         y: warningRow.yOffset + rowHeight.value,
         py: 7,
@@ -2900,9 +2932,9 @@ export function useCanvasRender({
       // render this at the end to avoid clipping
       for (const { rowIndex, column } of renderRedBorders) {
         if (
-          editEnabled.value?.column?.id === column.id &&
-          editEnabled.value?.rowIndex === rowIndex &&
-          !comparePath(editEnabled.value?.path, group?.path)
+          editEnabled.value?.column?.id === column.id
+          && editEnabled.value?.rowIndex === rowIndex
+          && !comparePath(editEnabled.value?.path, group?.path)
         ) {
           continue
         }
@@ -2910,7 +2942,7 @@ export function useCanvasRender({
         const xOffset = calculateXPosition(columnIdToIndex.value.get(column.id!) ?? -1)
         const width = parseCellWidth(column.width)
 
-        const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 1)
+        const fixedWidth = columns.value.filter(col => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 1)
 
         const isInFixedArea = xOffset - scrollLeft.value <= fixedWidth
 
@@ -2921,7 +2953,8 @@ export function useCanvasRender({
             borderColor: getColor(themeV4Colors.red['500']),
             borderWidth: 2,
           })
-        } else if (isInFixedArea) {
+        }
+        else if (isInFixedArea) {
           if (xOffset + width <= fixedWidth) {
             continue
           }
@@ -2974,8 +3007,8 @@ export function useCanvasRender({
 
     const missingChunks = []
 
-    const rowNumberCol = fixedCols.value.find((col) => col.id === 'row_number')
-    const firstFixedCol = fixedCols.value.find((col) => col.id !== 'row_number')
+    const rowNumberCol = fixedCols.value.find(col => col.id === 'row_number')
+    const firstFixedCol = fixedCols.value.find(col => col.id !== 'row_number')
     const xOffset = (level + 1) * 13
 
     const mergedWidth = parseCellWidth(rowNumberCol?.width) + parseCellWidth(firstFixedCol?.width) - xOffset
@@ -3090,7 +3123,8 @@ export function useCanvasRender({
             )
             tempCurrentOffset = _tempCurrentOffset
             postRenderCbks.push(postRenderCbk)
-          } else {
+          }
+          else {
             // Calculate the range of nested groups that should be visible
             // based on scroll position and available height
             const { endIndex: nestedEnd } = calculateGroupRange(
@@ -3231,8 +3265,8 @@ export function useCanvasRender({
                 ctx.fillText(
                   column.agg_prefix,
                   aggXOffset + width - aggWidth - 16 - scrollLeft.value,
-                  groupHeaderY +
-                    (GROUP_HEADER_HEIGHT + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2,
+                  groupHeaderY
+                  + (GROUP_HEADER_HEIGHT + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2,
                 )
               }
               ctx.fillStyle = getColor(themeV4Colors.gray['700'])
@@ -3240,18 +3274,19 @@ export function useCanvasRender({
               ctx.fillText(
                 group?.aggregations[column.title] ?? ' - ',
                 aggXOffset + width - 8 - scrollLeft.value,
-                groupHeaderY +
-                  (GROUP_HEADER_HEIGHT + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2,
+                groupHeaderY
+                + (GROUP_HEADER_HEIGHT + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2,
               )
 
               ctx.restore()
-            } else if (isHovered) {
+            }
+            else if (isHovered) {
               if (!isLocked.value) {
                 ctx.save()
 
                 const hoverRectY = groupHeaderY + 1
-                const hoverRectH =
-                  GROUP_HEADER_HEIGHT - 2 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)
+                const hoverRectH
+                  = GROUP_HEADER_HEIGHT - 2 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)
 
                 roundedRect(
                   ctx,
@@ -3278,9 +3313,9 @@ export function useCanvasRender({
                 ctx.textBaseline = 'middle'
 
                 const rightEdge = aggXOffset + width - 8 - scrollLeft.value
-                const textY =
-                  groupHeaderY +
-                  (GROUP_HEADER_HEIGHT + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2
+                const textY
+                  = groupHeaderY
+                    + (GROUP_HEADER_HEIGHT + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2
 
                 ctx.fillText('Summary', rightEdge, textY)
 
@@ -3373,7 +3408,8 @@ export function useCanvasRender({
           })
 
           contentWidth = contentRender.width
-        } else {
+        }
+        else {
           renderIconButton(ctx, {
             buttonX: xOffset + mergedWidth - 12 - 24,
             buttonY: contentY + 1,
@@ -3432,7 +3468,7 @@ export function useCanvasRender({
     return {
       currentOffset,
       missingChunks,
-      postRenderCbk: () => postRenderCbks.map((p) => p?.()),
+      postRenderCbk: () => postRenderCbks.map(p => p?.()),
     }
   }
 
@@ -3450,8 +3486,8 @@ export function useCanvasRender({
     }
 
     if (
-      [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.LinkToAnotherRecord].includes(group?.column?.uidt) &&
-      !(group.value in GROUP_BY_VARS.VAR_TITLES)
+      [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.LinkToAnotherRecord].includes(group?.column?.uidt)
+      && !(group.value in GROUP_BY_VARS.VAR_TITLES)
     ) {
       // parse value if LTAR and extract values separated by ___
       const parsedValue = group?.column?.uidt === UITypes.LinkToAnotherRecord ? parseKey(group) : group.value
@@ -3536,9 +3572,10 @@ export function useCanvasRender({
           break
         }
       }
-    } else if (group.value in GROUP_BY_VARS.VAR_TITLES) {
-      const displayText =
-        group.value in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[group.value] : parseKey(group)?.join(', ')
+    }
+    else if (group.value in GROUP_BY_VARS.VAR_TITLES) {
+      const displayText
+        = group.value in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[group.value] : parseKey(group)?.join(', ')
 
       const isCheckBox = group.column?.uidt === UITypes.Checkbox
 
@@ -3551,12 +3588,14 @@ export function useCanvasRender({
         height: 20,
         maxWidth,
       })
-    } else if (isUser(group.column) || isCreatedOrLastModifiedByCol(group.column)) {
+    }
+    else if (isUser(group.column) || isCreatedOrLastModifiedByCol(group.column)) {
       let val = group.value
 
       try {
         val = JSON.parse(group.value)
-      } catch (e) {
+      }
+      catch (e) {
         val = group.value
       }
       renderCell(ctx, group.column, {
@@ -3582,12 +3621,14 @@ export function useCanvasRender({
         fontFamily: '700 13px Inter',
         isGroupHeader: true,
       })
-    } else {
+    }
+    else {
       let val = group.value
       try {
         const parsedVal = JSON.parse(group.value)
         val = ncIsObject(parsedVal) || ncIsArray(parsedVal) ? parsedVal : group.value
-      } catch (e) {
+      }
+      catch (e) {
         val = group.value
       }
 
@@ -3672,7 +3713,8 @@ export function useCanvasRender({
 
     if (!groupByColumns.value?.length) {
       activeState = renderRows(ctx)
-    } else {
+    }
+    else {
       ctx.save()
       ctx.fillStyle = baseColor.value
       ctx.fillRect(0, 0, width.value, height.value)

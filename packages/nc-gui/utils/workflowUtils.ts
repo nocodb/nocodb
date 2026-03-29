@@ -7,21 +7,21 @@ import { generateRandomUUID } from '~/utils/generateName'
  * Filter nodes and edges based on edit permission
  * Removes Plus and Trigger nodes when user doesn't have edit permission
  */
-const filterNodesByPermission = (nodes: Array<Node>, edges: Array<Edge>, hasEditPermission: boolean) => {
+function filterNodesByPermission(nodes: Array<Node>, edges: Array<Edge>, hasEditPermission: boolean) {
   if (hasEditPermission) {
     return { nodes, edges }
   }
 
   // Filter out Plus and Trigger nodes when user doesn't have edit permission
-  const filteredNodes = nodes.filter((node) => node.type !== GeneralNodeID.PLUS && node.type !== GeneralNodeID.TRIGGER)
+  const filteredNodes = nodes.filter(node => node.type !== GeneralNodeID.PLUS && node.type !== GeneralNodeID.TRIGGER)
 
   // Get IDs of filtered out nodes
   const filteredNodeIds = new Set(
-    nodes.filter((node) => node.type === GeneralNodeID.PLUS || node.type === GeneralNodeID.TRIGGER).map((n) => n.id),
+    nodes.filter(node => node.type === GeneralNodeID.PLUS || node.type === GeneralNodeID.TRIGGER).map(n => n.id),
   )
 
   // Filter out edges connected to filtered nodes
-  const filteredEdges = edges.filter((edge) => !filteredNodeIds.has(edge.source) && !filteredNodeIds.has(edge.target))
+  const filteredEdges = edges.filter(edge => !filteredNodeIds.has(edge.source) && !filteredNodeIds.has(edge.target))
 
   return { nodes: filteredNodes, edges: filteredEdges }
 }
@@ -30,7 +30,7 @@ const filterNodesByPermission = (nodes: Array<Node>, edges: Array<Edge>, hasEdit
  * Get source nodes/edges based on permission
  * Don't use draft if user doesn't have edit permission
  */
-const getSourceNodesAndEdges = (workflow: WorkflowType, hasEditPermission: boolean) => {
+function getSourceNodesAndEdges(workflow: WorkflowType, hasEditPermission: boolean) {
   const sourceNodes = hasEditPermission
     ? workflow?.draft?.nodes || workflow?.nodes || INIT_WORKFLOW_NODES
     : workflow?.nodes || INIT_WORKFLOW_NODES
@@ -40,11 +40,11 @@ const getSourceNodesAndEdges = (workflow: WorkflowType, hasEditPermission: boole
   return { sourceNodes: sourceNodes as Array<Node>, sourceEdges: sourceEdges as Array<Edge> }
 }
 
-const generateUniqueNodeId = (nodes: Node[]): string => {
+function generateUniqueNodeId(nodes: Node[]): string {
   let candidateId = generateRandomUUID()
 
   // Keep incrementing until we find an ID that doesn't exist
-  while (nodes.some((n) => n.id === candidateId)) {
+  while (nodes.some(n => n.id === candidateId)) {
     candidateId = generateRandomUUID()
   }
 
@@ -55,7 +55,7 @@ const generateUniqueNodeId = (nodes: Node[]): string => {
  * Generate a unique trigger ID for webhook triggers
  * Format: trg_{8 alphanumeric characters}
  */
-const generateTriggerId = (): string => {
+function generateTriggerId(): string {
   const uuid = generateRandomUUID()
   // Use first 8 characters of UUID (removing hyphens)
   const shortId = uuid.replace(/-/g, '').substring(0, 8)
@@ -84,7 +84,7 @@ function transformNode(backendNode: WorkflowNodeDefinition): UIWorkflowNodeDefin
  * @param edges - All edges in the workflow
  * @returns array of parent node IDs in execution order
  */
-const findAllParentNodes = (nodeId: string, edges: Edge[]): string[] => {
+function findAllParentNodes(nodeId: string, edges: Edge[]): string[] {
   const parents: string[] = []
   const visited = new Set<string>()
 
@@ -93,7 +93,7 @@ const findAllParentNodes = (nodeId: string, edges: Edge[]): string[] => {
     visited.add(currentId)
 
     // Find edges that point to this node
-    const parentEdges = edges.filter((edge) => edge.target === currentId)
+    const parentEdges = edges.filter(edge => edge.target === currentId)
 
     for (const edge of parentEdges) {
       if (edge.source && edge.source !== currentId) {
@@ -114,7 +114,7 @@ const findAllParentNodes = (nodeId: string, edges: Edge[]): string[] => {
 /**
  * Recursively prefix all variable keys (including children) with the node reference
  */
-const prefixVariableKeysRecursive = (variable: any, prefix: string): any => {
+function prefixVariableKeysRecursive(variable: any, prefix: string): any {
   return {
     ...variable,
     key: `${prefix}.${variable.key}`,
@@ -126,11 +126,11 @@ const prefixVariableKeysRecursive = (variable: any, prefix: string): any => {
  * Generate a unique node title based on the node type title
  * E.g., 'NocoDB', 'NocoDB1', 'NocoDB2', etc.
  */
-const generateUniqueNodeTitle = (nodeMeta: UIWorkflowNodeDefinition, nodes: Node[]): string => {
+function generateUniqueNodeTitle(nodeMeta: UIWorkflowNodeDefinition, nodes: Node[]): string {
   const baseTitle = nodeMeta.title
 
   // Get all existing node titles that start with this base title
-  const existingTitles = nodes.map((n) => n.data?.title).filter((title): title is string => typeof title === 'string')
+  const existingTitles = nodes.map(n => n.data?.title).filter((title): title is string => typeof title === 'string')
 
   // Check if base title is available (without number)
   if (!existingTitles.includes(baseTitle)) {
@@ -144,7 +144,7 @@ const generateUniqueNodeTitle = (nodeMeta: UIWorkflowNodeDefinition, nodes: Node
   existingTitles.forEach((title) => {
     const match = title.match(regex)
     if (match && match[1]) {
-      const num = parseInt(match[1], 10)
+      const num = Number.parseInt(match[1], 10)
       if (num > maxNumber) {
         maxNumber = num
       }
@@ -155,7 +155,7 @@ const generateUniqueNodeTitle = (nodeMeta: UIWorkflowNodeDefinition, nodes: Node
   return `${baseTitle}${maxNumber + 1}`
 }
 
-const findAllChildNodes = (nodeId: string, edges: Edge[]): Set<string> => {
+function findAllChildNodes(nodeId: string, edges: Edge[]): Set<string> {
   const children = new Set<string>()
   const visited = new Set<string>()
 
@@ -163,7 +163,7 @@ const findAllChildNodes = (nodeId: string, edges: Edge[]): Set<string> => {
     if (visited.has(currentId)) return
     visited.add(currentId)
 
-    const childEdges = edges.filter((edge) => edge.source === currentId)
+    const childEdges = edges.filter(edge => edge.source === currentId)
 
     for (const edge of childEdges) {
       if (edge.target) {
@@ -185,9 +185,9 @@ const findAllChildNodes = (nodeId: string, edges: Edge[]): Set<string> => {
  * @param edges - All edges in the workflow
  * @returns The port ID ('body' or 'output') or null if no path found
  */
-const findIterateNodePortForPath = (iterateNodeId: string, targetNodeId: string, edges: Edge[]): string | null => {
+function findIterateNodePortForPath(iterateNodeId: string, targetNodeId: string, edges: Edge[]): string | null {
   // Find all edges from the iterate node
-  const iterateEdges = edges.filter((e) => e.source === iterateNodeId)
+  const iterateEdges = edges.filter(e => e.source === iterateNodeId)
 
   // For each output port from the iterate node
   for (const edge of iterateEdges) {
@@ -209,7 +209,7 @@ const findIterateNodePortForPath = (iterateNodeId: string, targetNodeId: string,
       visited.add(currentNodeId)
 
       // Add all child nodes to the queue
-      const childEdges = edges.filter((e) => e.source === currentNodeId)
+      const childEdges = edges.filter(e => e.source === currentNodeId)
       for (const childEdge of childEdges) {
         queue.push(childEdge.target)
       }
@@ -227,7 +227,7 @@ const findIterateNodePortForPath = (iterateNodeId: string, targetNodeId: string,
  * @param newTitle - The new node title
  * @returns Updated string with replaced variable references
  */
-const updateVariableReferences = (content: string, oldTitle: string, newTitle: string): string => {
+function updateVariableReferences(content: string, oldTitle: string, newTitle: string): string {
   if (!ncIsString(content)) return content
 
   // Escape special regex characters in both titles
@@ -250,7 +250,7 @@ const updateVariableReferences = (content: string, oldTitle: string, newTitle: s
  * @param newTitle - The new node title
  * @returns Updated object with replaced variable references
  */
-const updateVariableReferencesInObject = (obj: any, oldTitle: string, newTitle: string): any => {
+function updateVariableReferencesInObject(obj: any, oldTitle: string, newTitle: string): any {
   if (ncIsNullOrUndefined(obj)) return obj
 
   if (ncIsString(obj)) {
@@ -258,7 +258,7 @@ const updateVariableReferencesInObject = (obj: any, oldTitle: string, newTitle: 
   }
 
   if (ncIsArray(obj)) {
-    return obj.map((item) => updateVariableReferencesInObject(item, oldTitle, newTitle))
+    return obj.map(item => updateVariableReferencesInObject(item, oldTitle, newTitle))
   }
 
   if (ncIsObject(obj)) {
@@ -276,15 +276,15 @@ const updateVariableReferencesInObject = (obj: any, oldTitle: string, newTitle: 
 
 export {
   filterNodesByPermission,
-  getSourceNodesAndEdges,
-  generateUniqueNodeId,
-  generateTriggerId,
-  transformNode,
-  findAllParentNodes,
-  prefixVariableKeysRecursive,
-  generateUniqueNodeTitle,
   findAllChildNodes,
+  findAllParentNodes,
   findIterateNodePortForPath,
+  generateTriggerId,
+  generateUniqueNodeId,
+  generateUniqueNodeTitle,
+  getSourceNodesAndEdges,
+  prefixVariableKeysRecursive,
+  transformNode,
   updateVariableReferences,
   updateVariableReferencesInObject,
 }

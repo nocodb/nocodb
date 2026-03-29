@@ -30,7 +30,7 @@ export interface RenderSingleLineTextProps {
 export interface RenderMultiLineTextProps extends RenderSingleLineTextProps {
   maxLines?: number
   lineHeight?: number
-  mousePosition?: { x: number; y: number }
+  mousePosition?: { x: number, y: number }
   firstLineMaxWidth?: number
   yOffset?: number
   selected?: boolean

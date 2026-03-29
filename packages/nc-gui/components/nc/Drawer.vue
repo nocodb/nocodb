@@ -178,7 +178,8 @@ function onContentTouchEnd() {
         wrapper.style.transform = ''
       }
     }, 250)
-  } else {
+  }
+  else {
     // Snap back
     currentTranslateY.value = 0
     if (wrapper) {
@@ -283,7 +284,9 @@ onMounted(() => {
       <!-- Header -->
       <div v-if="slots.header || title" ref="headerRef" class="nc-drawer-header">
         <slot name="header">
-          <div class="text-sm font-semibold text-nc-content-gray">{{ title }}</div>
+          <div class="text-sm font-semibold text-nc-content-gray">
+            {{ title }}
+          </div>
         </slot>
       </div>
 

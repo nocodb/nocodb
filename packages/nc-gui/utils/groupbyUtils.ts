@@ -1,6 +1,7 @@
-import { type ColumnType, type SelectOptionsType, UITypes, dateFormats, isBtLikeV2Junction, timeFormats } from 'nocodb-sdk'
+import type { ColumnType, SelectOptionsType } from 'nocodb-sdk'
+import { dateFormats, isBtLikeV2Junction, timeFormats, UITypes } from 'nocodb-sdk'
 
-export const valueToTitle = (value: string, col: ColumnType, displayValueProp?: string) => {
+export function valueToTitle(value: string, col: ColumnType, displayValueProp?: string) {
   if (col.uidt === UITypes.Checkbox) {
     return value ? GROUP_BY_VARS.TRUE : GROUP_BY_VARS.FALSE
   }
@@ -12,10 +13,10 @@ export const valueToTitle = (value: string, col: ColumnType, displayValueProp?: 
   }
 
   if (
-    (col.uidt === UITypes.LinkToAnotherRecord || (col.uidt === UITypes.Links && isBtLikeV2Junction(col))) &&
-    displayValueProp &&
-    value &&
-    typeof value === 'object'
+    (col.uidt === UITypes.LinkToAnotherRecord || (col.uidt === UITypes.Links && isBtLikeV2Junction(col)))
+    && displayValueProp
+    && value
+    && typeof value === 'object'
   ) {
     return value[displayValueProp] ?? GROUP_BY_VARS.NULL
   }
@@ -28,14 +29,14 @@ export const valueToTitle = (value: string, col: ColumnType, displayValueProp?: 
   return value ?? GROUP_BY_VARS.NULL
 }
 
-export const findKeyColor = (key?: string, col?: ColumnType, getNextColor: () => string): string => {
+export function findKeyColor(key?: string, col?: ColumnType, getNextColor: () => string): string {
   if (col) {
     switch (col.uidt) {
       case UITypes.MultiSelect: {
         const keys = key?.split(',') || []
         const colors = []
         for (const k of keys) {
-          const option = (col.colOptions as SelectOptionsType).options?.find((o) => o.title === k)
+          const option = (col.colOptions as SelectOptionsType).options?.find(o => o.title === k)
           if (option) {
             colors.push(option.color)
           }
@@ -43,7 +44,7 @@ export const findKeyColor = (key?: string, col?: ColumnType, getNextColor: () =>
         return colors.join(',')
       }
       case UITypes.SingleSelect: {
-        const option = (col.colOptions as SelectOptionsType).options?.find((o) => o.title === key)
+        const option = (col.colOptions as SelectOptionsType).options?.find(o => o.title === key)
         if (option) {
           return option.color || getNextColor()
         }
@@ -62,7 +63,7 @@ export const findKeyColor = (key?: string, col?: ColumnType, getNextColor: () =>
   return key ? getNextColor() : 'gray'
 }
 
-export const shouldRenderCell = (colOrUidt: ColumnType | { uidt: UITypes | string } | UITypes | string) => {
+export function shouldRenderCell(colOrUidt: ColumnType | { uidt: UITypes | string } | UITypes | string) {
   return [
     UITypes.Lookup,
     UITypes.Attachment,
@@ -81,14 +82,15 @@ export const shouldRenderCell = (colOrUidt: ColumnType | { uidt: UITypes | strin
 
 // a method to parse group key if grouped column type is LTAR or Lookup
 // in these 2 scenario it will return json array or `___` separated value
-export const parseKey = (group: Group | CanvasGroup) => {
+export function parseKey(group: Group | CanvasGroup) {
   let key = (group?.key ?? group?.value).toString()
 
   // parse json array key if it's a lookup or link to another record
   if ((key && group.column?.uidt === UITypes.Lookup) || group.column?.uidt === UITypes.LinkToAnotherRecord) {
     try {
       key = JSON.parse(key)
-    } catch {
+    }
+    catch {
       // if parsing try to split it by `___` (for sqlite)
       return key.split('___')
     }
@@ -115,7 +117,8 @@ export const parseKey = (group: Group | CanvasGroup) => {
     try {
       const parsedKey = JSON.parse(key)
       return [parsedKey]
-    } catch {
+    }
+    catch {
       return null
     }
   }

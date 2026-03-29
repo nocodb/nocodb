@@ -1,4 +1,4 @@
-import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { isLinksOrLTAR, UITypes } from 'nocodb-sdk'
 import { GROUP_EXPANDED_BOTTOM_PADDING, GROUP_HEADER_HEIGHT, GROUP_PADDING } from './constants'
 
 export function getGroupColors(depth: number, maxDepth: number, getColor: (color: string) => string) {
@@ -132,7 +132,8 @@ export function calculateGroupHeight(
       }
       // 1 Px Offset is Added for Showing the activeBorders. Else it wont be visible
       h += 1
-    } else if (group?.groupCount) {
+    }
+    else if (group?.groupCount) {
       // add group padding if expanded since there will be top padding in the beginning of the group
       h += GROUP_EXPANDED_BOTTOM_PADDING
       for (let i = 0; i < group?.groupCount; i++) {
@@ -157,7 +158,7 @@ export function calculateGroupRange(
   viewportHeight: number,
   _nested = false,
   isAddingNewRowAllowed?: boolean,
-): { startIndex: number; endIndex: number; startGroupYOffset: number } {
+): { startIndex: number, endIndex: number, startGroupYOffset: number } {
   let currentOffset = GROUP_PADDING
   let startIndex = 0
   let endIndex = groupCount - 1
@@ -206,7 +207,7 @@ export function generateGroupPath(data?: CanvasGroup) {
 
   // Add groupIndex from each nestedIn entry
   if (data.nestedIn && data.nestedIn.length > 0) {
-    data.nestedIn.forEach((nested) => path.push(nested.groupIndex!))
+    data.nestedIn.forEach(nested => path.push(nested.groupIndex!))
   }
 
   return path
@@ -265,21 +266,23 @@ export function calculateGroupRowTop(
       top += rowIndex * rowHeight + 1
       // }
       return top
-    } else if (group.groups) {
+    }
+    else if (group.groups) {
       top += GROUP_EXPANDED_BOTTOM_PADDING
       currentGroups = group.groups
-    } else {
+    }
+    else {
       return top
     }
   }
   return top
 }
 
-export function findRowInGroups(groups: Map<number, CanvasGroup>, y: number, rowHeight: number): { row: number; path: number[] } {
+export function findRowInGroups(groups: Map<number, CanvasGroup>, y: number, rowHeight: number): { row: number, path: number[] } {
   let currentOffset = 0
   const path: number[] = []
 
-  function traverseGroups(currentGroups: Map<number, CanvasGroup>, targetY: number): { row: number; path: number[] } {
+  function traverseGroups(currentGroups: Map<number, CanvasGroup>, targetY: number): { row: number, path: number[] } {
     for (const [groupIndex, group] of currentGroups) {
       if (!group) continue
 
@@ -300,7 +303,8 @@ export function findRowInGroups(groups: Map<number, CanvasGroup>, y: number, row
             return { row: rowOffset, path: [...path, groupIndex] }
           }
           currentOffset += groupContentHeight
-        } else if (group.groups) {
+        }
+        else if (group.groups) {
           // Nested groups
           const subgroupStart = currentOffset
           path.push(groupIndex)
@@ -333,7 +337,7 @@ export function findFirstExpandedGroupWithPath(groups: Map<number, CanvasGroup>)
   function traverseGroups(
     currentGroups: Map<number, CanvasGroup>,
     currentPath: number[] = [],
-  ): { group: CanvasGroup | null; index: number; path: number[] } {
+  ): { group: CanvasGroup | null, index: number, path: number[] } {
     for (const [index, group] of currentGroups) {
       if (!group) continue
 
@@ -397,16 +401,16 @@ export function getDefaultGroupData(group?: CanvasGroup) {
   if (!group) return {}
   return group.nestedIn.reduce((acc, curr) => {
     if (
-      curr.key !== '__nc_null__' &&
+      curr.key !== '__nc_null__'
       // avoid setting default value for rollup, formula, barcode, qrcode, links, ltar
-      !isLinksOrLTAR(curr.column_uidt) &&
-      ![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(curr.column_uidt)
+      && !isLinksOrLTAR(curr.column_uidt)
+      && ![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(curr.column_uidt)
     ) {
       acc[curr.title] = curr.key
 
       if (curr.column_uidt === UITypes.Checkbox) {
-        acc[curr.title] =
-          acc[curr.title] === GROUP_BY_VARS.TRUE ? true : acc[curr.title] === GROUP_BY_VARS.FALSE ? false : !!acc[curr.title]
+        acc[curr.title]
+          = acc[curr.title] === GROUP_BY_VARS.TRUE ? true : acc[curr.title] === GROUP_BY_VARS.FALSE ? false : !!acc[curr.title]
       }
     }
     return acc
@@ -420,7 +424,7 @@ export function getDefaultGroupData(group?: CanvasGroup) {
  */
 export function createGroupUniqueIdentifier(group: CanvasGroup): string {
   // Get the nested path as a string
-  const nestedPathKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
+  const nestedPathKey = group.nestedIn.map(n => `${n.key}-${n.column_name}`).join('_') || 'default'
 
   // Combine the value and nested path
   // The value might be an object, so convert to string safely

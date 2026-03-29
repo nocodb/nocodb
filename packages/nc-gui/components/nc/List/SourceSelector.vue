@@ -34,14 +34,15 @@ const sourceList = computed(() => {
     const ncItemTooltip = isHidden
       ? t('tooltip.sourceVisibilityIsHidden')
       : source.is_schema_readonly
-      ? t('tooltip.schemaChangeDisabled')
-      : ''
+        ? t('tooltip.schemaChangeDisabled')
+        : ''
 
     let sourceLabel = t('general.default')
 
     if (idx !== 0 && (source.is_meta || source.is_local)) {
       sourceLabel = t('general.base')
-    } else if (idx !== 0) {
+    }
+    else if (idx !== 0) {
       sourceLabel = source.alias || source.id!
     }
 
@@ -58,23 +59,24 @@ const sourceList = computed(() => {
 const selectedSource = computed(() => {
   if (!sourceList.value.length) return undefined
 
-  return sourceList.value.find((source) => sourceId.value && source.value === sourceId.value) || sourceList.value[0]
+  return sourceList.value.find(source => sourceId.value && source.value === sourceId.value) || sourceList.value[0]
 })
 
 onMounted(() => {
   const newSourceId = sourceId.value || sourceList.value[0]?.value
 
-  const sourceObj = sourceList.value.find((source) => source.value === newSourceId)
+  const sourceObj = sourceList.value.find(source => source.value === newSourceId)
 
   // Change source id only if it is default source selected initially and its not enabled
   if (sourceObj && sourceObj.ncItemDisabled && sourceObj.value === sourceList.value[0]?.value) {
-    sourceId.value = sourceList.value.find((source) => !source.ncItemDisabled)?.value || sourceList.value[0]?.value
-  } else {
+    sourceId.value = sourceList.value.find(source => !source.ncItemDisabled)?.value || sourceList.value[0]?.value
+  }
+  else {
     sourceId.value = newSourceId
   }
 })
 
-const onUpdateValue = (value: string) => {
+function onUpdateValue(value: string) {
   sourceId.value = value
 }
 
@@ -123,8 +125,7 @@ defineExpose({
           wrapper-class-name="!h-auto"
           @update:value="onUpdateValue($event as string)"
           @escape="onEsc"
-        >
-        </NcList>
+        />
       </template>
     </NcListDropdown>
   </a-form-item>

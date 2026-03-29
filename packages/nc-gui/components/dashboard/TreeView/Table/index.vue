@@ -54,10 +54,10 @@ const base = inject(ProjectInj)!
 
 const baseRole = computed(() => base.value.project_role || base.value.workspace_role)
 
-const enableEditModeForSource = (sourceId: string) => {
+function enableEditModeForSource(sourceId: string) {
   if (!isUIAllowed('baseRename')) return
 
-  const source = base.value.sources?.find((s) => s.id === sourceId)
+  const source = base.value.sources?.find(s => s.id === sourceId)
   if (!source?.id) return
 
   sourceRenameHelpers.value[source.id] = {
@@ -73,26 +73,27 @@ const enableEditModeForSource = (sourceId: string) => {
   })
 }
 
-const toggleSourceExpand = (sourceId: string) => {
+function toggleSourceExpand(sourceId: string) {
   const key = `collapse-${sourceId}`
   const idx = activeKey.value.indexOf(key)
   if (idx >= 0) {
     activeKey.value.splice(idx, 1)
-  } else {
+  }
+  else {
     activeKey.value.push(key)
   }
 }
 
-const isSourceExpanded = (sourceId: string) => {
+function isSourceExpanded(sourceId: string) {
   return activeKey.value.includes(`collapse-${sourceId}`)
 }
 
-const showBaseOption = (source: SourceType) => {
-  return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission, { source }))
+function showBaseOption(source: SourceType) {
+  return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some(permission => isUIAllowed(permission, { source }))
 }
 
-const updateSourceTitle = async (sourceId: string) => {
-  const source = base.value.sources?.find((s) => s.id === sourceId)
+async function updateSourceTitle(sourceId: string) {
+  const source = base.value.sources?.find(s => s.id === sourceId)
 
   if (!source?.id || !sourceRenameHelpers.value[source.id]) return
 
@@ -117,9 +118,11 @@ const updateSourceTitle = async (sourceId: string) => {
     $e('a:source:rename')
 
     refreshViewTabTitle?.()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     refreshCommandPalette()
   }
 }
@@ -224,7 +227,9 @@ onKeyStroke('Escape', () => {
 <template>
   <div class="nc-project-home-section">
     <div v-if="!hideHeader" class="nc-project-home-section-header !cursor-pointer" @click.stop="isExpanded = !isExpanded">
-      <div class="flex-1">{{ $t('objects.tables') }}</div>
+      <div class="flex-1">
+        {{ $t('objects.tables') }}
+      </div>
 
       <GeneralIcon
         icon="chevronRight"
@@ -247,7 +252,7 @@ onKeyStroke('Escape', () => {
           <div v-if="base?.sources?.slice(1).some((el) => el.enabled)" class="transition-height duration-200">
             <div class="border-none sortable-list">
               <div v-for="(source, sourceIndex) of base.sources" :key="`source-${source.id}`">
-                <template v-if="sourceIndex === 0"></template>
+                <template v-if="sourceIndex === 0" />
                 <a-collapse
                   v-else-if="source && source.enabled"
                   v-model:active-key="activeKey"
@@ -257,7 +262,7 @@ onKeyStroke('Escape', () => {
                   :bordered="false"
                   ghost
                 >
-                  <template #expandIcon> </template>
+                  <template #expandIcon />
                   <a-collapse-panel :key="`collapse-${source.id}`">
                     <template #header>
                       <div
@@ -372,7 +377,9 @@ onKeyStroke('Escape', () => {
                             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
                             show-on-truncate-only
                           >
-                            <template #title> {{ source.alias || '' }}</template>
+                            <template #title>
+                              {{ source.alias || '' }}
+                            </template>
                             <span
                               :data-testid="`nc-sidebar-base-${source.alias}`"
                               @dblclick.stop="enableEditModeForSource(source.id!)"

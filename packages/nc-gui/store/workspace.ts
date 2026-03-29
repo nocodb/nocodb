@@ -1,6 +1,6 @@
 import type { BaseType, WorkspaceType, WorkspaceUserRoles } from 'nocodb-sdk'
-import { acceptHMRUpdate, defineStore } from 'pinia'
 import { isString } from '@vue/shared'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 
 export interface NcWorkspace extends WorkspaceType {}
 
@@ -36,8 +36,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isIntegrationsPageOpened = computed(
     () =>
-      route.value.name === 'index-typeOrId-integrations' ||
-      (route.value.name === 'index-typeOrId-settings-page' && route.value.params.page === 'ws-integrations'),
+      route.value.name === 'index-typeOrId-integrations'
+      || (route.value.name === 'index-typeOrId-settings-page' && route.value.params.page === 'ws-integrations'),
   )
 
   const isTemplatesPageOpened = computed(() => false)
@@ -81,10 +81,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     if (!activeWorkspace.value) return defaultMeta
     try {
       return (
-        (isString(activeWorkspace.value.meta) ? JSON.parse(activeWorkspace.value.meta) : activeWorkspace.value.meta) ??
-        defaultMeta
+        (isString(activeWorkspace.value.meta) ? JSON.parse(activeWorkspace.value.meta) : activeWorkspace.value.meta)
+        ?? defaultMeta
       )
-    } catch (e) {
+    }
+    catch (e) {
       return defaultMeta
     }
   })
@@ -99,7 +100,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const deleteWorkspace = async (_: string, { skipStateUpdate: __ }: { skipStateUpdate?: boolean } = {}) => {}
 
   const loadCollaborators = async (
-    params?: { offset?: number; limit?: number; ignoreLoading?: boolean },
+    params?: { offset?: number, limit?: number, ignoreLoading?: boolean },
     workspaceId?: string,
   ) => {
     if (!params?.ignoreLoading) isCollaboratorsLoading.value = true
@@ -112,9 +113,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       allCollaborators.value = response.list
       collaborators.value = response.list
       workspaceUserCount.value = response.pageInfo?.totalRows
-    } catch {
+    }
+    catch {
       // Silently fail if user doesn't have permission
-    } finally {
+    }
+    finally {
       if (!params?.ignoreLoading) isCollaboratorsLoading.value = false
     }
   }
@@ -125,7 +128,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       await $api.workspaceUser.invite(workspaceId ?? activeWorkspaceId.value, { email, roles } as any)
       await loadCollaborators({} as any, workspaceId)
       basesStore.clearBasesUser()
-    } finally {
+    }
+    finally {
       isInvitingCollaborators.value = false
     }
   }
@@ -137,9 +141,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       await $api.workspaceUser.delete(workspaceId ?? activeWorkspaceId.value, userId)
       await loadCollaborators({} as any, workspaceId)
       basesStore.clearBasesUser()
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
+    }
+    finally {
       delete removingCollaboratorMap.value[userId]
     }
   }
@@ -155,7 +161,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       await loadCollaborators({} as any, workspaceId)
       basesStore.clearBasesUser()
       return true
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
@@ -173,9 +180,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     try {
       await basesStore.loadProjects()
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.error(e)
-    } finally {
+    }
+    finally {
       isWorkspaceLoading.value = false
     }
   }
@@ -205,7 +214,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
           baseURL: appInfo.value.baseHostName ? `https://${activeWorkspace.value?.id}.${appInfo.value.baseHostName}` : undefined,
         },
       )
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
@@ -226,12 +236,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
           baseURL: appInfo.value.baseHostName ? `https://${activeWorkspace.value?.id}.${appInfo.value.baseHostName}` : undefined,
         },
       )
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
 
-  const updateProjectTitle = async (base: BaseType & { edit: boolean; temp_title: string }) => {
+  const updateProjectTitle = async (base: BaseType & { edit: boolean, temp_title: string }) => {
     try {
       await $api.base.update(
         base.id!,
@@ -243,7 +254,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       base.title = base.temp_title
       base.edit = false
       refreshCommandPalette()
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
@@ -295,7 +307,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       await navigateTo(path, {
         open: navigateToBlankTargetOpenOption,
       })
-    } else {
+    }
+    else {
       await navigateTo(path)
     }
   }
@@ -309,7 +322,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
           open: navigateToBlankTargetOpenOption,
         },
       )
-    } else {
+    }
+    else {
       await navigateTo({ path: '/nc/integrations', query })
     }
   }
@@ -322,7 +336,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
           open: navigateToBlankTargetOpenOption,
         },
       )
-    } else {
+    }
+    else {
       await navigateTo({ path: '/nc/feed', query })
     }
   }

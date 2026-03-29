@@ -1,14 +1,12 @@
+import type { ColumnType, SelectOptionsType, SelectOptionType, UserFieldRecordType, UserType } from 'nocodb-sdk'
 import JsBarcode from 'jsbarcode'
-import {
-  type ColumnType,
-  type SelectOptionType,
-  type SelectOptionsType,
-  UITypes,
-  type UserFieldRecordType,
-  type UserType,
-  timeFormats,
-} from 'nocodb-sdk'
 import { LRUCache } from 'lru-cache'
+import {
+
+  timeFormats,
+
+  UITypes,
+} from 'nocodb-sdk'
 import { getI18n } from '../../../../../plugins/a.i18n'
 
 export const timeFormatsObj = {
@@ -39,12 +37,12 @@ export const EDIT_CELL_REDUCTION = {
   6: 88,
 } as const
 
-export const parseCellWidth = (width?: string | number) => {
+export function parseCellWidth(width?: string | number) {
   if (typeof width === 'number') return width
-  return width ? parseInt(width.replace('px', ''), 10) : 180
+  return width ? Number.parseInt(width.replace('px', ''), 10) : 180
 }
 
-export const getSingleMultiselectColOptions = (column: ColumnType) => {
+export function getSingleMultiselectColOptions(column: ColumnType) {
   const colOptions: {
     options: (SelectOptionType & { value: string })[]
     optionsMap: Record<string, SelectOptionType & { value: string }>
@@ -58,7 +56,7 @@ export const getSingleMultiselectColOptions = (column: ColumnType) => {
   if (!selectColOptions || !ncIsArray(selectColOptions.options)) return colOptions
 
   colOptions.options = selectColOptions.options
-    .filter((op) => op.title !== '')
+    .filter(op => op.title !== '')
     .map((op) => {
       if (op.order !== null) {
         op.title = op.title?.replace(/^'/, '').replace(/'$/, '')
@@ -79,7 +77,7 @@ export const getSingleMultiselectColOptions = (column: ColumnType) => {
   return colOptions
 }
 
-export const getUserColOptions = (column: ColumnType, baseUsers: (Partial<UserType> | Partial<User>)[]) => {
+export function getUserColOptions(column: ColumnType, baseUsers: (Partial<UserType> | Partial<User>)[]) {
   const colOptions: {
     options: UserFieldRecordType[]
     optionsMap: Record<string, UserFieldRecordType>
@@ -164,7 +162,7 @@ export function getMouseClickType(e: MouseEvent) {
   return null
 }
 
-export const showFieldEditWarning = () => {
+export function showFieldEditWarning() {
   const { t } = getI18n().global
   message.toast(t('msg.info.computedFieldEditWarning'))
 }
@@ -174,7 +172,7 @@ const barcodeCache = new LRUCache({
   ttl: 1000 * 60 * 60,
 })
 
-export const validateBarcode = (value: string, column: ColumnType): { isValid: boolean; format: string } => {
+export function validateBarcode(value: string, column: ColumnType): { isValid: boolean, format: string } {
   if (!value) return { isValid: false, format: '' }
 
   const meta = parseProp(column?.meta)
@@ -184,7 +182,7 @@ export const validateBarcode = (value: string, column: ColumnType): { isValid: b
 
   const cachedResult = barcodeCache.get(cacheKey)
   if (cachedResult !== undefined) {
-    return cachedResult as { isValid: boolean; format: string }
+    return cachedResult as { isValid: boolean, format: string }
   }
 
   try {
@@ -200,7 +198,8 @@ export const validateBarcode = (value: string, column: ColumnType): { isValid: b
     const result = { isValid: true, format }
     barcodeCache.set(cacheKey, result)
     return result
-  } catch (error) {
+  }
+  catch (error) {
     const result = { isValid: false, format }
     barcodeCache.set(cacheKey, result)
     return result
@@ -212,7 +211,7 @@ export const validateBarcode = (value: string, column: ColumnType): { isValid: b
  * For cross-base links, this returns the fk_related_base_id from the column options.
  * For same-base links, it returns the current base ID.
  */
-export const getRelatedBaseId = (relationColumn: ColumnType | undefined, currentBaseId: string): string => {
+export function getRelatedBaseId(relationColumn: ColumnType | undefined, currentBaseId: string): string {
   if (!relationColumn) return currentBaseId
 
   const colOptions = relationColumn.colOptions as any

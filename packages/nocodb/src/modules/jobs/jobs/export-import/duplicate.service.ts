@@ -132,7 +132,6 @@ export class DuplicateService {
     return { id: job.id, base_id: dupProject.id };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async handleDifferentWs(params: {
     sourceBase: Base;
     targetBase: Base;

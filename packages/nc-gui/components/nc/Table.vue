@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { CSSProperties } from '@vue/runtime-dom'
+import type { PaginatedType } from 'nocodb-sdk'
 
-import { type PaginatedType } from 'nocodb-sdk'
+import type { CSSProperties } from 'vue'
 
 interface Props {
   columns: NcTableColumnProps[]
@@ -86,10 +86,10 @@ const paginationData = ref<PaginatedType>(defaultPaginationData)
 
 const showPagination = computed(() => {
   return (
-    props.pagination &&
-    !isDataLoading.value &&
-    paginationData.value.totalRows &&
-    paginationData.value.totalRows > props.paginationOffset
+    props.pagination
+    && !isDataLoading.value
+    && paginationData.value.totalRows
+    && paginationData.value.totalRows > props.paginationOffset
   )
 })
 
@@ -111,14 +111,15 @@ const tableFooterHeight = computed(() => {
   return showPagination.value ? Math.max(40, _tableFooterHeight.value) : _tableFooterHeight.value
 })
 
-const updateOrderBy = (field: string) => {
+function updateOrderBy(field: string) {
   if (!data.value.length || !field) return
 
   const orderCycle = { undefined: 'asc', asc: 'desc', desc: undefined }
 
   if (props.multiFieldOrderBy) {
     orderBy.value[field] = orderCycle[`${orderBy.value[field]}`] as SordDirectionType
-  } else {
+  }
+  else {
     orderBy.value = { [field]: orderCycle[`${orderBy.value[field]}`] as SordDirectionType }
   }
 }
@@ -139,7 +140,7 @@ watch(
  * We are using 2 different table tag to make header sticky,
  * so it's imp to keep header cell and body cell width same
  */
-const handleUpdateCellWidth = () => {
+function handleUpdateCellWidth() {
   if (!tableHeader.value || !tableHeadWidth.value) return
 
   ncDelay(500).then(() => [
@@ -177,22 +178,23 @@ useEventListener(tableWrapper, 'scroll', () => {
   const nonStickyHeaderFirstCell = tableWrapper.value?.querySelector('th:nth-of-type(2)')
 
   if (
-    !stickyHeaderCell ||
-    !nonStickyHeaderFirstCell ||
-    !stickyHeaderCell?.getBoundingClientRect()?.right ||
-    !nonStickyHeaderFirstCell?.getBoundingClientRect()?.left
+    !stickyHeaderCell
+    || !nonStickyHeaderFirstCell
+    || !stickyHeaderCell?.getBoundingClientRect()?.right
+    || !nonStickyHeaderFirstCell?.getBoundingClientRect()?.left
   ) {
     return
   }
 
   if (nonStickyHeaderFirstCell?.getBoundingClientRect().left < stickyHeaderCell?.getBoundingClientRect().right) {
     tableWrapper.value?.classList.add('sticky-border')
-  } else {
+  }
+  else {
     tableWrapper.value?.classList.remove('sticky-border')
   }
 })
 
-const onRowClick = (record: Record<string, any>, recordIndex: number) => {
+function onRowClick(record: Record<string, any>, recordIndex: number) {
   emit('rowClick', record, recordIndex)
 }
 

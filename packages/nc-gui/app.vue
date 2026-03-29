@@ -77,7 +77,7 @@ const key = ref(0)
 const messages = [
   `Uncaught NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.`, // chromium based
   `NotFoundError: The object can not be found here.`, // safari
-  "Cannot read properties of null (reading 'parentNode')",
+  'Cannot read properties of null (reading \'parentNode\')',
 ]
 
 if (typeof window !== 'undefined') {
@@ -104,7 +104,7 @@ function onScope(scope: string) {
 
 // ref: https://github.com/vuejs/vue-cli/issues/7431#issuecomment-1793385162
 // Stop error resizeObserver
-const debounce = (callback: (...args: any[]) => void, delay: number) => {
+function debounce(callback: (...args: any[]) => void, delay: number) {
   let tid: any
   return function (...args: any[]) {
     const ctx = self

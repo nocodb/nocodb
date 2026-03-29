@@ -175,7 +175,6 @@ export default class OAuthToken {
     const BATCH_SIZE = 100;
     let deletedCount = 0;
 
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       // Fetch a batch of tokens
       const tokens = await ncMeta.metaList2(

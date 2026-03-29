@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
-import { type LocalSelectOptionType, getOptions } from './utils'
+import type { LocalSelectOptionType } from './utils'
+import { getOptions } from './utils'
 
 interface Props {
   modelValue?: string | undefined
@@ -88,7 +89,7 @@ const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && activ
 const vModel = computed({
   get: () => tempSelectedOptState.value ?? modelValue,
   set: (val) => {
-    if (val && isNewOptionCreateEnabled.value && (options.value ?? []).every((op) => op.title !== val)) {
+    if (val && isNewOptionCreateEnabled.value && (options.value ?? []).every(op => op.title !== val)) {
       tempSelectedOptState.value = val
       return addIfMissingAndSave()
     }
@@ -100,7 +101,8 @@ watch(isOpen, (n, _o) => {
   if (editAllowed.value) {
     if (!n) {
       aselect.value?.$el?.querySelector('input')?.blur()
-    } else {
+    }
+    else {
       aselect.value?.$el?.querySelector('input')?.focus()
     }
   }
@@ -174,7 +176,7 @@ async function addIfMissingAndSave() {
 
         // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
         if (!isMysql(column.value.source_id) && !isPg(column.value.source_id)) {
-          updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, "'")
+          updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, '\'')
         }
       }
 
@@ -188,24 +190,25 @@ async function addIfMissingAndSave() {
         updatedColMeta,
       )
 
-      column.value.colOptions = data.columns.find((c) => c.id === column.value.id).colOptions
+      column.value.colOptions = data.columns.find(c => c.id === column.value.id).colOptions
 
       vModel.value = newOptValue
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
 }
 
-const search = () => {
+function search() {
   if (isMobileMode.value) return
 
   searchVal.value = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value
 }
 
 // prevent propagation of keydown event if select is open
-const onKeydown = (e: KeyboardEvent) => {
+function onKeydown(e: KeyboardEvent) {
   if (isOpen.value && active.value) {
     e.stopPropagation()
   }
@@ -218,17 +221,17 @@ const onKeydown = (e: KeyboardEvent) => {
   }
 }
 
-const onSelect = () => {
+function onSelect() {
   isOpen.value = false
   isEditable.value = false
 }
 
-const toggleMenu = (e: Event) => {
+function toggleMenu(e: Event) {
   // todo: refactor
   // check clicked element is clear icon
   if (
-    (e.target as HTMLElement)?.classList.contains('ant-select-clear') ||
-    (e.target as HTMLElement)?.closest('.ant-select-clear')
+    (e.target as HTMLElement)?.classList.contains('ant-select-clear')
+    || (e.target as HTMLElement)?.closest('.ant-select-clear')
   ) {
     vModel.value = ''
     return e.stopPropagation()
@@ -239,7 +242,7 @@ const toggleMenu = (e: Event) => {
   isOpen.value = editAllowed.value && !isOpen.value
 }
 
-const handleClose = (e: MouseEvent) => {
+function handleClose(e: MouseEvent) {
   if (isOpen.value && aselect.value && !aselect.value.$el.contains(e.target)) {
     isOpen.value = false
   }
@@ -247,7 +250,7 @@ const handleClose = (e: MouseEvent) => {
 
 useEventListener(document, 'click', handleClose, true)
 
-const onFocus = () => {
+function onFocus() {
   isFocusing.value = true
 
   setTimeout(() => {

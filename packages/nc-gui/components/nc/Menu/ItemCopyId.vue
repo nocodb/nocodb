@@ -15,7 +15,7 @@ const isCopied = ref<boolean>(false)
 
 let copiedTimeoutId: any
 
-const onClickCopy = async () => {
+async function onClickCopy() {
   if (copiedTimeoutId) {
     clearTimeout(copiedTimeoutId)
   }
@@ -31,7 +31,8 @@ const onClickCopy = async () => {
       isCopied.value = false
       clearTimeout(copiedTimeoutId)
     }, 3000)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(e.message)
   }
 }
@@ -47,7 +48,7 @@ const onClickCopy = async () => {
       :disabled="!tooltip && !$slots.tooltip"
     >
       <template #title>
-        <slot v-if="$slots.tooltip" name="tooltip"></slot>
+        <slot v-if="$slots.tooltip" name="tooltip" />
         <template v-else>
           {{ tooltip }}
         </template>
@@ -59,7 +60,7 @@ const onClickCopy = async () => {
       >
         <div class="w-full flex flex-row justify-between items-center gap-x-2 font-bold text-xs">
           <div class="flex flex-row text-nc-content-gray-subtle2 text-xs items-baseline gap-x-1 font-bold whitespace-nowrap">
-            <slot v-if="$slots.label" name="label"></slot>
+            <slot v-if="$slots.label" name="label" />
             <template v-else-if="label">
               {{ label }}
             </template>

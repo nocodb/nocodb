@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import {
-  PermissionEntity,
-  PermissionKey,
-  RelationTypes,
   isBtLikeV2Junction,
   isDateOrDateTimeCol,
   isLinksOrLTAR,
+  PermissionEntity,
+  PermissionKey,
+  RelationTypes,
 } from 'nocodb-sdk'
 import InboxIcon from '~icons/nc-icons/inbox'
 
@@ -104,7 +104,7 @@ const isSingleTargetLink = computed(() => {
   return isBtLikeV2Junction(injectedColumn!.value) || relation.value === 'oo' || relation.value === 'bt'
 })
 
-const linkRow = async (row: Record<string, any>, id: number) => {
+async function linkRow(row: Record<string, any>, id: number) {
   if (isNew.value) {
     await addLTARRef(row, injectedColumn?.value as ColumnType)
 
@@ -113,7 +113,8 @@ const linkRow = async (row: Record<string, any>, id: number) => {
     if (colTitle && injectedRow.value) {
       if (isSingleTargetLink.value) {
         injectedRow.value.row[colTitle] = row
-      } else {
+      }
+      else {
         if (!Array.isArray(injectedRow.value.row[colTitle])) {
           injectedRow.value.row[colTitle] = []
         }
@@ -130,25 +131,28 @@ const linkRow = async (row: Record<string, any>, id: number) => {
           isChildrenExcludedListLinked.value[idx] = true
         }
       })
-    } else {
+    }
+    else {
       isChildrenExcludedListLinked.value[id] = true
     }
 
     saveRow!()
 
     $e('a:links:link')
-  } else {
+  }
+  else {
     await link(row, {}, false, id)
   }
 }
 
-const unlinkRow = async (row: Record<string, any>, id: number) => {
+async function unlinkRow(row: Record<string, any>, id: number) {
   if (isNew.value) {
     removeLTARRef(row, injectedColumn?.value as ColumnType)
     isChildrenExcludedListLinked.value[id] = false
     saveRow!()
     $e('a:links:unlink')
-  } else {
+  }
+  else {
     await unlink(row, {}, false, id)
   }
 }
@@ -192,11 +196,12 @@ const newRowState = computed(() => {
 
     if (colOpt.type === RelationTypes.MANY_TO_MANY && colOpt1?.type === RelationTypes.MANY_TO_MANY) {
       return (
-        colOpt.fk_parent_column_id === colOpt1.fk_child_column_id &&
-        colOpt.fk_child_column_id === colOpt1.fk_parent_column_id &&
-        colOpt.fk_mm_model_id === colOpt1.fk_mm_model_id
+        colOpt.fk_parent_column_id === colOpt1.fk_child_column_id
+        && colOpt.fk_child_column_id === colOpt1.fk_parent_column_id
+        && colOpt.fk_mm_model_id === colOpt1.fk_mm_model_id
       )
-    } else {
+    }
+    else {
       return (
         colOpt.fk_parent_column_id === colOpt1.fk_parent_column_id && colOpt.fk_child_column_id === colOpt1.fk_child_column_id
       )
@@ -210,7 +215,8 @@ const newRowState = computed(() => {
     return {
       [colInRelatedTable.title as string]: row?.value?.row,
     }
-  } else {
+  }
+  else {
     return {
       [colInRelatedTable.title as string]: row?.value && [row.value.row],
     }
@@ -256,16 +262,17 @@ watch(filterQueryRef, () => {
   filterQueryRef.value?.focus()
 })
 
-const onClick = (refRow: any, id: string) => {
+function onClick(refRow: any, id: string) {
   if (isSharedBase.value) return
   if (isChildrenExcludedListLinked.value[Number.parseInt(id)]) {
     unlinkRow(refRow, Number.parseInt(id))
-  } else {
+  }
+  else {
     linkRow(refRow, Number.parseInt(id))
   }
 }
 
-const addNewRecord = () => {
+function addNewRecord() {
   if (showRecordPlanLimitExceededModal()) return
   // Don't allow creating new record if linked table is not accessible
   if (!isLinkedTableAccessible.value) return
@@ -277,7 +284,7 @@ const addNewRecord = () => {
   isBlueprintMode.value = false
 }
 
-const onCreatedRecord = (record: any) => {
+function onCreatedRecord(record: any) {
   // Blueprint mode: store the record data as a blueprint in ltarState (no real record created)
   if (isBlueprintMode.value) {
     const blueprint = { ...record, _isBlueprint: true }
@@ -339,28 +346,34 @@ const onCreatedRecord = (record: any) => {
   isNewRecord.value = false
 }
 
-const onDeletedRecord = async () => {
+async function onDeletedRecord() {
   await loadChildrenList()
   loadChildrenExcludedList(rowState.value, true)
 }
 
-const linkedShortcuts = (e: KeyboardEvent) => {
+function linkedShortcuts(e: KeyboardEvent) {
   if (e.key === 'Escape') {
     vModel.value = false
-  } else if (e.key === 'ArrowDown') {
+  }
+  else if (e.key === 'ArrowDown') {
     e.preventDefault()
     try {
       e.target?.nextElementSibling?.focus()
-    } catch (e) {}
-  } else if (e.key === 'ArrowUp') {
+    }
+    catch (e) {}
+  }
+  else if (e.key === 'ArrowUp') {
     e.preventDefault()
     try {
       e.target?.previousElementSibling?.focus()
-    } catch (e) {}
-  } else if (!expandedFormDlg.value && e.key !== 'Tab' && e.key !== 'Shift' && e.key !== 'Enter' && e.key !== ' ') {
+    }
+    catch (e) {}
+  }
+  else if (!expandedFormDlg.value && e.key !== 'Tab' && e.key !== 'Shift' && e.key !== 'Enter' && e.key !== ' ') {
     try {
       filterQueryRef.value?.focus()
-    } catch (e) {}
+    }
+    catch (e) {}
   }
 }
 
@@ -387,22 +400,23 @@ onUnmounted(() => {
   window.removeEventListener('keydown', linkedShortcuts)
 })
 
-const onFilterChange = () => {
+function onFilterChange() {
   childrenExcludedListPagination.page = 1
   resetChildrenExcludedOffsetCount()
 }
 
 const isSearchInputFocused = ref(false)
 
-const handleKeyDown = (e: KeyboardEvent) => {
+function handleKeyDown(e: KeyboardEvent) {
   if (e.key === 'Escape') {
     if (!childrenExcludedListPagination.query) emit('escape')
     filterQueryRef.value?.blur()
-  } else if (e.key === 'Enter') {
+  }
+  else if (e.key === 'Enter') {
     if (
-      childrenExcludedListPagination.query &&
-      ncIsArray(childrenExcludedList.value?.list) &&
-      childrenExcludedList.value?.list.length
+      childrenExcludedListPagination.query
+      && ncIsArray(childrenExcludedList.value?.list)
+      && childrenExcludedList.value?.list.length
     ) {
       onClick(childrenExcludedList.value?.list[0], '0')
     }
@@ -523,19 +537,21 @@ const handleKeyDown = (e: KeyboardEvent) => {
         <div v-else class="h-full my-auto py-2 flex flex-col gap-3 items-center justify-center text-nc-content-gray-muted">
           <InboxIcon class="w-16 h-16 mx-auto" />
 
-          <p v-if="childrenExcludedListPagination.query" class="mb-0">{{ $t('msg.noRecordsMatchYourSearchQuery') }}</p>
+          <p v-if="childrenExcludedListPagination.query" class="mb-0">
+            {{ $t('msg.noRecordsMatchYourSearchQuery') }}
+          </p>
           <p v-else class="mb-0">
             {{ $t('msg.noRecordsAvailForLinking') }}
           </p>
           <div class="flex">
             <PermissionsTooltip
               v-if="
-                !isPublic &&
-                !isDataReadOnly &&
-                !isTemplateMode &&
-                isUIAllowed('dataEdit', externalBaseUserRoles) &&
-                !isForm &&
-                !relatedTableMeta?.synced
+                !isPublic
+                  && !isDataReadOnly
+                  && !isTemplateMode
+                  && isUIAllowed('dataEdit', externalBaseUserRoles)
+                  && !isForm
+                  && !relatedTableMeta?.synced
               "
               :entity="PermissionEntity.TABLE"
               :entity-id="relatedTableMeta?.id"
@@ -550,7 +566,9 @@ const handleKeyDown = (e: KeyboardEvent) => {
                   :disabled="!isAllowed"
                   @click="addNewRecord"
                 >
-                  <div class="flex items-center gap-1"><MdiPlus v-if="!isMobileMode" /> {{ $t('activity.newRecord') }}</div>
+                  <div class="flex items-center gap-1">
+                    <MdiPlus v-if="!isMobileMode" /> {{ $t('activity.newRecord') }}
+                  </div>
                 </NcButton>
               </template>
             </PermissionsTooltip>
@@ -561,12 +579,12 @@ const handleKeyDown = (e: KeyboardEvent) => {
         <div class="flex">
           <PermissionsTooltip
             v-if="
-              !isPublic &&
-              !isDataReadOnly &&
-              !isTemplateMode &&
-              isUIAllowed('dataEdit', externalBaseUserRoles) &&
-              !isForm &&
-              !relatedTableMeta?.synced
+              !isPublic
+                && !isDataReadOnly
+                && !isTemplateMode
+                && isUIAllowed('dataEdit', externalBaseUserRoles)
+                && !isForm
+                && !relatedTableMeta?.synced
             "
             :entity="PermissionEntity.TABLE"
             :entity-id="relatedTableMeta?.id"
@@ -581,7 +599,9 @@ const handleKeyDown = (e: KeyboardEvent) => {
                 :disabled="!isAllowed"
                 @click="addNewRecord"
               >
-                <div class="flex items-center gap-1"><MdiPlus v-if="!isMobileMode" /> {{ $t('activity.newRecord') }}</div>
+                <div class="flex items-center gap-1">
+                  <MdiPlus v-if="!isMobileMode" /> {{ $t('activity.newRecord') }}
+                </div>
               </NcButton>
             </template>
           </PermissionsTooltip>
@@ -622,8 +642,8 @@ const handleKeyDown = (e: KeyboardEvent) => {
           isBlueprintMode
             ? `New ${relatedTableMeta?.title} Record`
             : isExpandedFormCloseAfterSave
-            ? $t('activity.tableNameCreateNewRecord', { tableName: relatedTableMeta?.title })
-            : undefined
+              ? $t('activity.tableNameCreateNewRecord', { tableName: relatedTableMeta?.title })
+              : undefined
         "
         :row="{
           row: expandedFormRow,
@@ -631,8 +651,8 @@ const handleKeyDown = (e: KeyboardEvent) => {
           rowMeta: !isNewRecord
             ? {}
             : {
-                new: true,
-              },
+              new: true,
+            },
         }"
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         :state="newRowState"

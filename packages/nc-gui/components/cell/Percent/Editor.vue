@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
-import { ColumnHelper, UITypes, ncIsNaN, roundUpToPrecision } from 'nocodb-sdk'
+import type { VNodeRef } from 'vue'
+import { ColumnHelper, ncIsNaN, roundUpToPrecision, UITypes } from 'nocodb-sdk'
 
 interface Props {
   modelValue?: number | string | null
@@ -58,7 +58,8 @@ const focus: VNodeRef = (el) => {
     if (isExpandedFormOpen.value) {
       inputRef.value?.focus()
       inputRef.value?.select()
-    } else if (!isForm.value) {
+    }
+    else if (!isForm.value) {
       inputRef.value?.focus()
     }
   }
@@ -73,9 +74,11 @@ const vModel = computed({
   set: (value) => {
     if (value === '') {
       _vModel.value = null
-    } else if (isForm.value && !isEditColumn.value) {
+    }
+    else if (isForm.value && !isEditColumn.value) {
       _vModel.value = ncIsNaN(value) ? value : Number(value)
-    } else {
+    }
+    else {
       _vModel.value = value
     }
   },
@@ -89,7 +92,7 @@ const vModelNumber = computed<number>(() => {
 
 const inputType = computed(() => (isForm.value && !isEditColumn.value && props.location !== 'filter' ? 'text' : 'number'))
 
-const onBlur = () => {
+function onBlur() {
   if (isExpandedFormOpen.value) {
     editEnabled.value = false
     cellFocused.value = false
@@ -97,7 +100,7 @@ const onBlur = () => {
   }
 }
 
-const onFocus = () => {
+function onFocus() {
   cellFocused.value = true
 }
 onMounted(() => {
@@ -140,7 +143,7 @@ onMounted(() => {
         @keydown.alt.stop
         @selectstart.capture.stop
         @mousedown.stop
-      />
+      >
     </template>
   </CellPercentProgressBar>
   <div v-else>
@@ -162,7 +165,7 @@ onMounted(() => {
       @keydown.alt.stop
       @selectstart.capture.stop
       @mousedown.stop
-    />
+    >
   </div>
 </template>
 

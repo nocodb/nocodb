@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
 import type { OrgUserReqType } from 'nocodb-sdk'
+import type { VNodeRef } from 'vue'
 import { OrgUserRoles } from 'nocodb-sdk'
 import { extractEmail } from '~/helpers/parsers/parserHelpers'
 
@@ -35,7 +35,7 @@ const validators = computed(() => {
 
 const { validateInfos } = useForm(usersData.value, validators)
 
-const saveUser = async () => {
+async function saveUser() {
   $e('a:org-user:invite', { role: usersData.value.role })
 
   await formRef.value?.validateFields()
@@ -53,7 +53,8 @@ const saveUser = async () => {
     message.success(t('msg.success.userAdded'))
 
     clearBasesUser()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.error(e)
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -63,16 +64,16 @@ const inviteUrl = computed(() =>
   usersData.value.invitationToken ? `${dashboardUrl.value}/signup/${usersData.value.invitationToken}` : null,
 )
 
-const clickInviteMore = () => {
+function clickInviteMore() {
   $e('c:user:invite-more')
   usersData.value.invitationToken = undefined
   usersData.value.role = OrgUserRoles.VIEWER
   usersData.value.emails = ''
 }
 
-const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+const emailInput: VNodeRef = el => (el as HTMLInputElement)?.focus()
 
-const onPaste = (e: ClipboardEvent) => {
+function onPaste(e: ClipboardEvent) {
   const pastedText = e.clipboardData?.getData('text') ?? ''
 
   usersData.value.emails = extractEmail(pastedText) || pastedText
@@ -108,7 +109,9 @@ const onPaste = (e: ClipboardEvent) => {
           <div class="flex flex-col mt-1 pb-5">
             <div class="flex flex-row items-center pl-1.5 pb-1 h-[1.1rem]">
               <component :is="iconMap.account" />
-              <div class="text-xs ml-0.5 mt-0.5" data-rec="true">{{ $t('activity.copyInviteURL') }}</div>
+              <div class="text-xs ml-0.5 mt-0.5" data-rec="true">
+                {{ $t('activity.copyInviteURL') }}
+              </div>
             </div>
 
             <NcAlert
@@ -131,7 +134,9 @@ const onPaste = (e: ClipboardEvent) => {
                 <div class="flex flex-row justify-center items-center space-x-0.5">
                   <MaterialSymbolsSendOutline class="flex mx-auto h-[0.8rem]" />
 
-                  <div class="text-xs" data-rec="true">{{ $t('activity.inviteMore') }}</div>
+                  <div class="text-xs" data-rec="true">
+                    {{ $t('activity.inviteMore') }}
+                  </div>
                 </div>
               </NcButton>
             </div>
@@ -155,7 +160,9 @@ const onPaste = (e: ClipboardEvent) => {
                     name="emails"
                     :rules="[{ required: true, message: $t('msg.plsInputEmail') }]"
                   >
-                    <div class="ml-1 mb-1 text-xs text-nc-content-gray-muted" data-rec="true">{{ $t('datatype.Email') }}:</div>
+                    <div class="ml-1 mb-1 text-xs text-nc-content-gray-muted" data-rec="true">
+                      {{ $t('datatype.Email') }}:
+                    </div>
 
                     <a-input
                       :ref="emailInput"
@@ -174,7 +181,9 @@ const onPaste = (e: ClipboardEvent) => {
                 <NcButton type="primary" size="small" html-type="submit">
                   <div class="flex flex-row justify-center items-center space-x-1.5">
                     <MaterialSymbolsSendOutline class="flex h-[0.8rem]" />
-                    <div data-rec="true">{{ $t('activity.invite') }}</div>
+                    <div data-rec="true">
+                      {{ $t('activity.invite') }}
+                    </div>
                   </div>
                 </NcButton>
               </div>

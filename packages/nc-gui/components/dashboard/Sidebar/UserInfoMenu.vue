@@ -47,7 +47,7 @@ const copyBtnRef = ref()
 
 const { $e } = useNuxtApp()
 
-const logout = async () => {
+async function logout() {
   isLoggingOut.value = true
   try {
     const isSsoUser = !!(user?.value as any)?.sso_client_id
@@ -55,14 +55,16 @@ const logout = async () => {
       redirectToSignin: true,
       signinUrl: isSsoUser ? '/sso' : '/signin',
     })
-  } catch (e) {
+  }
+  catch (e) {
     console.error(e)
-  } finally {
+  }
+  finally {
     isLoggingOut.value = false
   }
 }
 
-const openExperimentationMenu = () => {
+function openExperimentationMenu() {
   emits('closeMenu')
   isExperimentalFeatureModalOpen.value = true
 }
@@ -71,16 +73,16 @@ const route = useRoute()
 
 const accountUrl = computed(() => '/account/profile')
 
-const saveBackRoute = () => {
+function saveBackRoute() {
   ncBackRoute().set(route.fullPath)
 }
 
-const copyEmail = () => {
+function copyEmail() {
   if (!user?.value?.email) return
   copyBtnRef.value?.copyContent?.(user.value?.email)
 }
 
-const openKeyboardShortcutDialog = () => {
+function openKeyboardShortcutDialog() {
   emits('closeMenu')
   $e('a:actions:keyboard-shortcut')
 
@@ -204,7 +206,9 @@ const openKeyboardShortcutDialog = () => {
           <div class="flex-1 flex flex-col">
             <div>{{ $t('title.accountSettings') }}</div>
             <NcTooltip show-on-truncate-only class="truncate text-bodySm text-nc-content-gray-muted max-w-68">
-              <template #title>{{ user?.email }}</template>
+              <template #title>
+                {{ user?.email }}
+              </template>
               {{ user?.email }}
             </NcTooltip>
           </div>
@@ -246,7 +250,9 @@ const openKeyboardShortcutDialog = () => {
       <NcMenuItem inner-class="w-full" @click="copyEmail">
         <GeneralIcon icon="ncMail" class="h-4 w-4" />
         <NcTooltip show-on-truncate-only class="flex-1 truncate max-w-68">
-          <template #title>{{ user?.email }}</template>
+          <template #title>
+            {{ user?.email }}
+          </template>
           {{ user?.email }}
         </NcTooltip>
         <GeneralCopyButton v-if="user?.email" ref="copyBtnRef" type="secondary" :content="user?.email" :show-toast="false" />

@@ -104,7 +104,6 @@ export class RecoverDisconnectedTableNames {
 
       this.log(`Total models to be processed: ${numberOfModelsToBeProcessed}`);
 
-      // eslint-disable-next-line no-constant-condition
       while (true) {
         const modelToProcessQb = this.getModelsToBeProcessedQueryBuilder(ncMeta)
           .select([

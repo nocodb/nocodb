@@ -7,7 +7,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       emit: (..._args: any[]) => undefined,
       on:
         (..._args: any[]) =>
-        () => {},
+          () => {},
     }
     nuxtApp.provide('ncSocket', ncSocket)
   }

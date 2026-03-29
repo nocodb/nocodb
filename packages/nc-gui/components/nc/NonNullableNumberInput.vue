@@ -31,11 +31,13 @@ function onKeydownEnter() {
 function submitValue() {
   if (vModel.value === '') {
     vModel.value = resetTo ?? min
-  } else {
+  }
+  else {
     const numValue = +vModel.value
     if (numValue < min) {
       vModel.value = min
-    } else if (max !== undefined && numValue > max) {
+    }
+    else if (max !== undefined && numValue > max) {
       vModel.value = max
     }
   }

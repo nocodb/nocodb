@@ -1,8 +1,8 @@
 <script lang="ts" setup>
+import Placeholder from '@tiptap/extension-placeholder'
+import Underline from '@tiptap/extension-underline'
 import StarterKit from '@tiptap/starter-kit'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
-import Underline from '@tiptap/extension-underline'
-import Placeholder from '@tiptap/extension-placeholder'
 import { NcMarkdownParser } from '~/helpers/tiptap'
 import { Markdown } from '~/helpers/tiptap-markdown'
 import { HardBreak, Italic, Link, Strike } from '~/helpers/tiptap-markdown/extensions'
@@ -131,7 +131,7 @@ const editor = useEditor({
   },
 })
 
-const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
+function setEditorContent(contentMd: any, focusEndOfDoc?: boolean) {
   if (!editor.value) return
   editor.value.commands.setContent(contentMd, false)
 
@@ -160,8 +160,8 @@ useEventListener(
   (e: FocusEvent) => {
     const targetEl = e?.relatedTarget as HTMLElement
     if (
-      targetEl?.classList?.contains('tiptap') ||
-      !targetEl?.closest(
+      targetEl?.classList?.contains('tiptap')
+      || !targetEl?.closest(
         '.comment-bubble-menu, .nc-rich-text-comment, .tippy-box, .nc-comment-save-btn, .rich-text-bottom-bar, .mention, .nc-mention-list, .tippy-content, .nc-comment-rich-editor',
       )
     ) {
@@ -178,12 +178,13 @@ useEventListener(
   (e: FocusEvent) => {
     const targetEl = e?.relatedTarget as HTMLElement
     if (
-      !targetEl &&
-      (e.target as HTMLElement)?.closest(
+      !targetEl
+      && (e.target as HTMLElement)?.closest(
         '.comment-bubble-menu, .nc-comment-save-btn, .nc-mention-list, .mention, .rich-text-bottom-bar, .tippy-content, .nc-comment-rich-editor',
       )
-    )
+    ) {
       return
+    }
 
     if (
       !targetEl?.closest(
@@ -215,15 +216,17 @@ onClickOutside(editorDom, (e) => {
 
 const triggerSaveFromList = ref(false)
 
-const emitSave = (event: KeyboardEvent) => {
+function emitSave(event: KeyboardEvent) {
   if (editor.value) {
     if (triggerSaveFromList.value) {
       // If Enter was pressed in the list, do not emit save
       triggerSaveFromList.value = false
-    } else {
+    }
+    else {
       if (editor.value.isActive('bulletList') || editor.value.isActive('orderedList') || editor.value.isActive('blockquote')) {
         event.stopPropagation()
-      } else {
+      }
+      else {
         emits('save')
       }
     }
@@ -232,7 +235,7 @@ const emitSave = (event: KeyboardEvent) => {
 
 let timerId: any
 
-const handleEnterDown = (event: KeyboardEvent) => {
+function handleEnterDown(event: KeyboardEvent) {
   if (!vModel.value?.length) {
     setEditorContent('')
     return
@@ -242,25 +245,31 @@ const handleEnterDown = (event: KeyboardEvent) => {
     clearTimeout(timerId)
   }
 
-  const isListsActive =
-    editor.value?.isActive('bulletList') || editor.value?.isActive('orderedList') || editor.value?.isActive('blockquote')
+  const isListsActive
+    = editor.value?.isActive('bulletList') || editor.value?.isActive('orderedList') || editor.value?.isActive('blockquote')
 
   if (isListsActive) {
     triggerSaveFromList.value = true
     timerId = setTimeout(() => {
       triggerSaveFromList.value = false
     }, 1000)
-  } else emitSave(event)
+  }
+  else {
+    emitSave(event)
+  }
 }
 
-const handleKeyPress = (event: KeyboardEvent) => {
+function handleKeyPress(event: KeyboardEvent) {
   if (event.altKey && event.key === 'Enter') {
     event.stopPropagation()
-  } else if (event.shiftKey && event.key === 'Enter') {
+  }
+  else if (event.shiftKey && event.key === 'Enter') {
     event.stopPropagation()
-  } else if (event.key === 'Enter') {
+  }
+  else if (event.key === 'Enter') {
     handleEnterDown(event)
-  } else if (event.key === 'Escape') {
+  }
+  else if (event.key === 'Escape') {
     isFocused.value = false
     emits('blur')
 
@@ -268,7 +277,7 @@ const handleKeyPress = (event: KeyboardEvent) => {
   }
 }
 
-const saveComment = (e) => {
+function saveComment(e) {
   e.preventDefault()
   e.stopPropagation()
   emits('save')

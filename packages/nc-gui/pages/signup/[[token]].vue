@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { validatePassword } from 'nocodb-sdk'
 import type { RuleObject } from 'ant-design-vue/es/form'
+import { validatePassword } from 'nocodb-sdk'
 
 definePageMeta({
   requiresAuth: false,
@@ -100,7 +100,8 @@ async function signUp() {
           typeOrId: 'nc',
         },
       })
-    } catch (e) {
+    }
+    catch (e) {
       console.error(e)
     }
 
@@ -165,7 +166,9 @@ onMounted(async () => {
                 >
                   <div class="flex items-center gap-2 justify-center">
                     <MaterialSymbolsWarning />
-                    <div class="break-words">{{ error }}</div>
+                    <div class="break-words">
+                      {{ error }}
+                    </div>
                   </div>
                 </div>
               </Transition>
@@ -239,13 +242,17 @@ onMounted(async () => {
                   size="small"
                   class="my-1 hover:(ring ring-accent ring-opacity-100) focus:(!ring !ring-accent ring-opacity-100)"
                 />
-                <div class="prose-xs text-nc-content-gray-muted">{{ $t('msg.subscribeToOurWeeklyNewsletter') }}</div>
+                <div class="prose-xs text-nc-content-gray-muted">
+                  {{ $t('msg.subscribeToOurWeeklyNewsletter') }}
+                </div>
               </div>
 
               <div class="text-end prose-sm">
                 {{ $t('msg.info.signUp.alreadyHaveAccount') }}
 
-                <nuxt-link @click="navigateSignIn">{{ $t('general.signIn') }}</nuxt-link>
+                <nuxt-link @click="navigateSignIn">
+                  {{ $t('general.signIn') }}
+                </nuxt-link>
               </div>
             </div>
           </a-form>
@@ -259,8 +266,7 @@ onMounted(async () => {
             href="https://nocodb.com/policy-nocodb"
             rel="noopener"
           >
-            {{ $t('title.termsOfService') }}</a
-          >
+            {{ $t('title.termsOfService') }}</a>
         </div>
       </div>
     </NuxtLayout>

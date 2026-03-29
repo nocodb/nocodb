@@ -59,13 +59,13 @@ const bgColors = [
   { name: 'Red', color: '#fecaca' },
 ] as const
 
-const recentColors = ref<Array<{ type: 'text' | 'bg'; color: string }>>([])
+const recentColors = ref<Array<{ type: 'text' | 'bg', color: string }>>([])
 const MAX_RECENT = 5
 
-const addRecent = (type: 'text' | 'bg', color: string) => {
+function addRecent(type: 'text' | 'bg', color: string) {
   if (!color) return
   const entry = { type, color }
-  recentColors.value = [entry, ...recentColors.value.filter((r) => !(r.type === type && r.color === color))].slice(0, MAX_RECENT)
+  recentColors.value = [entry, ...recentColors.value.filter(r => !(r.type === type && r.color === color))].slice(0, MAX_RECENT)
 }
 
 const activeTextColor = computed(() => {
@@ -84,34 +84,38 @@ const activeHighlightColor = computed(() => {
   return null
 })
 
-const applyTextColor = (color: string) => {
+function applyTextColor(color: string) {
   if (color === '#1f2937' || !color) {
     editor.value?.chain().focus().unsetTextColor().run()
-  } else if (editor.value?.isActive('textColor', { color })) {
+  }
+  else if (editor.value?.isActive('textColor', { color })) {
     editor.value?.chain().focus().unsetTextColor().run()
-  } else {
+  }
+  else {
     editor.value?.chain().focus().setTextColor({ color }).run()
     addRecent('text', color)
   }
 }
 
-const applyBgColor = (color: string) => {
+function applyBgColor(color: string) {
   if (!color) {
     editor.value?.chain().focus().unsetHighlight().run()
-  } else if (editor.value?.isActive('highlight', { color })) {
+  }
+  else if (editor.value?.isActive('highlight', { color })) {
     editor.value?.chain().focus().unsetHighlight().run()
-  } else {
+  }
+  else {
     editor.value?.chain().focus().setHighlight({ color }).run()
     addRecent('bg', color)
   }
 }
 
-const applyRecent = (entry: { type: 'text' | 'bg'; color: string }) => {
+function applyRecent(entry: { type: 'text' | 'bg', color: string }) {
   if (entry.type === 'text') applyTextColor(entry.color)
   else applyBgColor(entry.color)
 }
 
-const onDocClick = (e: MouseEvent) => {
+function onDocClick(e: MouseEvent) {
   if (!showColorPicker.value) return
   const hit = (e.target as HTMLElement)?.closest?.('.nc-color-picker-dropdown, .nc-highlight-btn')
   if (!hit) showColorPicker.value = false
@@ -133,11 +137,11 @@ const tooltipPlacement = computed(() => {
 
 const tabIndex = computed(() => (isFormField.value ? -1 : 0))
 
-const hasExtension = (name: string) => {
+function hasExtension(name: string) {
   return editor.value?.extensionManager.extensions.some((ext: any) => ext.name === name) ?? false
 }
 
-const isOptionVisible = (option: RichTextBubbleMenuOptions) => {
+function isOptionVisible(option: RichTextBubbleMenuOptions) {
   if (option === RichTextBubbleMenuOptions.image && editor.value?.storage?.markdown?.options?.renderImagesAsLinks) {
     return false
   }
@@ -158,7 +162,7 @@ const isOptionVisible = (option: RichTextBubbleMenuOptions) => {
 
 // ── Link toggle ──
 
-const onToggleLink = () => {
+function onToggleLink() {
   const activeNode = editor.value?.state?.selection?.$from?.nodeBefore || editor.value?.state?.selection?.$from?.nodeAfter
 
   const isLinkMarkedStoredInEditor = editor.value?.state?.storedMarks?.some((mark: any) => mark.type.name === 'link')
@@ -167,10 +171,12 @@ const onToggleLink = () => {
 
   if (isActiveNodeMarkActive) {
     editor.value!.chain().focus().unsetLink().run()
-  } else {
+  }
+  else {
     if (editor.value.state.selection.empty) {
       editor
-        .value!.chain()
+        .value!
+        .chain()
         .focus()
         .insertContent(' ')
         .setTextSelection({ from: editor.value!.state.selection.$from.pos, to: editor.value!.state.selection.$from.pos + 1 })
@@ -180,9 +186,11 @@ const onToggleLink = () => {
         .setTextSelection({ from: editor.value!.state.selection.$from.pos, to: editor.value!.state.selection.$from.pos + 1 })
         .deleteSelection()
         .run()
-    } else {
+    }
+    else {
       editor
-        .value!.chain()
+        .value!
+        .chain()
         .focus()
         .setLink({
           href: '',
@@ -202,7 +210,7 @@ const onToggleLink = () => {
 
 // ── Mention ──
 
-const newMentionNode = () => {
+function newMentionNode() {
   if (!editor.value) return
 
   const lastCharacter = editor.value.state.doc.textBetween(
@@ -215,10 +223,12 @@ const newMentionNode = () => {
       .chain()
       .deleteRange({ from: editor.value.state.selection.$from.pos - 1, to: editor.value.state.selection.$from.pos })
       .run()
-  } else if (lastCharacter !== ' ') {
+  }
+  else if (lastCharacter !== ' ') {
     editor.value?.commands.insertContent(' @')
     editor.value?.chain().focus().run()
-  } else {
+  }
+  else {
     editor.value?.commands.insertContent('@')
     editor.value?.chain().focus().run()
   }
@@ -263,7 +273,7 @@ const menuEntries = computed<MenuEntry[]>(() => {
     tooltip: string,
     activeName: string,
     action: () => void,
-    opts?: { shortcut?: string; activeParams?: any; disableOnCodeBlock?: boolean },
+    opts?: { shortcut?: string, activeParams?: any, disableOnCodeBlock?: boolean },
   ): BubbleMenuButton => ({
     type: 'button',
     key,
@@ -303,8 +313,8 @@ const menuEntries = computed<MenuEntry[]>(() => {
 
   // ── Code ──
   if (
-    hasExtension('code') &&
-    (isFormField.value ? !hiddenOptions.value.includes(RichTextBubbleMenuOptions.quote) : !embedMode.value)
+    hasExtension('code')
+    && (isFormField.value ? !hiddenOptions.value.includes(RichTextBubbleMenuOptions.quote) : !embedMode.value)
   ) {
     entries.push(btn('inlineCode', 'code', t('general.code'), 'code', () => e.chain().focus().toggleCode().run()))
   }
@@ -393,7 +403,7 @@ const menuEntries = computed<MenuEntry[]>(() => {
     RichTextBubbleMenuOptions.numberedList,
     RichTextBubbleMenuOptions.taskList,
   ]
-  if (!isFormField.value || blockOptions.some((o) => !hiddenOptions.value.includes(o))) {
+  if (!isFormField.value || blockOptions.some(o => !hiddenOptions.value.includes(o))) {
     entries.push({ type: 'divider', key: 'div3' })
   }
 
@@ -447,7 +457,9 @@ const menuEntries = computed<MenuEntry[]>(() => {
         <template #title>
           <div class="flex flex-col items-center">
             <div>{{ entry.tooltip }}</div>
-            <div v-if="entry.shortcut">{{ entry.shortcut }}</div>
+            <div v-if="entry.shortcut">
+              {{ entry.shortcut }}
+            </div>
           </div>
         </template>
         <NcButton
@@ -468,7 +480,9 @@ const menuEntries = computed<MenuEntry[]>(() => {
       <!-- Color picker -->
       <template v-else-if="entry.type === 'colorPicker'">
         <NcTooltip :disabled="editor.isActive('codeBlock') || showColorPicker">
-          <template #title> {{ $t('general.color') }} </template>
+          <template #title>
+            {{ $t('general.color') }}
+          </template>
           <NcButton
             size="small"
             type="text"
@@ -484,13 +498,14 @@ const menuEntries = computed<MenuEntry[]>(() => {
                 backgroundColor: activeHighlightColor || 'transparent',
                 borderColor: activeHighlightColor || 'var(--nc-border-gray-medium)',
               }"
-              >A</span
-            >
+            >A</span>
           </NcButton>
         </NcTooltip>
         <div v-if="showColorPicker" class="nc-color-picker-dropdown" @mousedown.prevent>
           <template v-if="recentColors.length">
-            <div class="nc-color-picker-label">{{ $t('labels.recentlyUsed') }}</div>
+            <div class="nc-color-picker-label">
+              {{ $t('labels.recentlyUsed') }}
+            </div>
             <div class="nc-color-picker-grid">
               <button
                 v-for="(r, idx) in recentColors"
@@ -511,7 +526,9 @@ const menuEntries = computed<MenuEntry[]>(() => {
               </button>
             </div>
           </template>
-          <div class="nc-color-picker-label">{{ $t('labels.textColor') }}</div>
+          <div class="nc-color-picker-label">
+            {{ $t('labels.textColor') }}
+          </div>
           <div class="nc-color-picker-grid">
             <button
               v-for="tc in textColors"
@@ -525,7 +542,9 @@ const menuEntries = computed<MenuEntry[]>(() => {
               <span class="nc-color-swatch-letter" :style="{ color: tc.color }">A</span>
             </button>
           </div>
-          <div class="nc-color-picker-label">{{ $t('labels.backgroundColor') }}</div>
+          <div class="nc-color-picker-label">
+            {{ $t('labels.backgroundColor') }}
+          </div>
           <div class="nc-color-picker-grid">
             <button
               v-for="b in bgColors"
@@ -542,7 +561,9 @@ const menuEntries = computed<MenuEntry[]>(() => {
 
       <!-- Link -->
       <NcTooltip v-else-if="entry.type === 'link'" :placement="tooltipPlacement" :disabled="editor.isActive('codeBlock')">
-        <template #title> {{ $t('general.link') }}</template>
+        <template #title>
+          {{ $t('general.link') }}
+        </template>
         <NcButton
           size="small"
           type="text"
@@ -554,7 +575,9 @@ const menuEntries = computed<MenuEntry[]>(() => {
           <GeneralIcon v-if="isFormField" icon="link2" />
           <div v-else class="flex flex-row items-center px-0.5">
             <GeneralIcon icon="link2" />
-            <div class="!text-xs !ml-1">{{ $t('general.link') }}</div>
+            <div class="!text-xs !ml-1">
+              {{ $t('general.link') }}
+            </div>
           </div>
         </NcButton>
       </NcTooltip>

@@ -46,11 +46,11 @@ const {
 
 const { blockAiChat } = useEeConfig()
 
-const handleChatToggle = () => {
+function handleChatToggle() {
   toggleChatPanel()
 }
 
-const navigateToProjectPage = () => {
+function navigateToProjectPage() {
   if (route.value.name?.startsWith('index-typeOrId-baseId-')) {
     return
   }
@@ -58,13 +58,13 @@ const navigateToProjectPage = () => {
   const lastVisitedBase = ncLastVisitedBase().get()
 
   const baseToNavigate = lastVisitedBase
-    ? basesList.value?.find((b) => b.id === lastVisitedBase) ?? basesList.value[0]
+    ? basesList.value?.find(b => b.id === lastVisitedBase) ?? basesList.value[0]
     : basesList.value[0]
 
   navigateToProject({ workspaceId: isEeUI ? activeWorkspaceId.value : undefined, baseId: baseToNavigate?.id })
 }
 
-const navigateToSettings = () => {
+function navigateToSettings() {
   if (isEeUI && !appInfo.value?.ee && !appInfo.value?.isOnPrem) {
     navigateTo('/account/users/list')
     return
@@ -75,13 +75,13 @@ const navigateToSettings = () => {
   navigateToWorkspaceSettings('', cmdOrCtrl)
 }
 
-const navigateToTemplates = () => {
+function navigateToTemplates() {
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
   _navigateToTemplates('', cmdOrCtrl)
 }
 
-const navigateToIntegrations = () => {
+function navigateToIntegrations() {
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
   _navigateToIntegrations('', cmdOrCtrl)
@@ -91,16 +91,16 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const isBaseSearchInput = e.target instanceof HTMLInputElement && e.target.closest('.nc-base-search-input')
 
   if (
-    !e.altKey ||
-    (!isBaseSearchInput &&
-      (isActiveInputElementExist(e) ||
-        cmdKActive() ||
-        isCmdJActive() ||
-        isNcDropdownOpen() ||
-        isActiveElementInsideExtension() ||
-        isActiveElementInsideScriptPane() ||
-        isDrawerOrModalExist() ||
-        isExpandedFormOpenExist()))
+    !e.altKey
+    || (!isBaseSearchInput
+      && (isActiveInputElementExist(e)
+        || cmdKActive()
+        || isCmdJActive()
+        || isNcDropdownOpen()
+        || isActiveElementInsideExtension()
+        || isActiveElementInsideScriptPane()
+        || isDrawerOrModalExist()
+        || isExpandedFormOpenExist()))
   ) {
     return
   }
@@ -119,12 +119,12 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
   if (!isEeUI || blockAiChat.value) return
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (
-    cmdOrCtrl &&
-    e.shiftKey &&
-    e.code === 'KeyA' &&
-    !isActiveInputElementExist(e) &&
-    !isNcDropdownOpen() &&
-    !isDrawerOrModalExist()
+    cmdOrCtrl
+    && e.shiftKey
+    && e.code === 'KeyA'
+    && !isActiveInputElementExist(e)
+    && !isNcDropdownOpen()
+    && !isDrawerOrModalExist()
   ) {
     e.preventDefault()
     handleChatToggle()
@@ -145,7 +145,9 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
           <GeneralLoader v-if="isWorkspacesLoading" size="large" />
           <NcTooltip v-else placement="right" hide-on-click :arrow="false" :disabled="!activeWorkspace">
             <template #title>
-              <div class="capitalize">{{ activeWorkspace?.title ?? '' }}</div>
+              <div class="capitalize">
+                {{ activeWorkspace?.title ?? '' }}
+              </div>
             </template>
             <WorkspaceMenu />
           </NcTooltip>
@@ -155,7 +157,9 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       <DashboardMiniSidebarItemWrapper>
         <NcTooltip placement="right" hide-on-click :arrow="false">
           <template #title>
-            <div class="flex items-center gap-1">{{ $t('labels.quickSearch') }} {{ renderCmdOrCtrlKey(true) }} K</div>
+            <div class="flex items-center gap-1">
+              {{ $t('labels.quickSearch') }} {{ renderCmdOrCtrlKey(true) }} K
+            </div>
           </template>
           <div
             v-e="['c:quick-actions']"
@@ -172,7 +176,9 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       <DashboardMiniSidebarItemWrapper>
         <NcTooltip placement="right" hide-on-click :arrow="false">
           <template #title>
-            <div class="flex items-center gap-1">{{ $t('labels.recentViews') }} {{ renderCmdOrCtrlKey(true) }} L</div>
+            <div class="flex items-center gap-1">
+              {{ $t('labels.recentViews') }} {{ renderCmdOrCtrlKey(true) }} L
+            </div>
           </template>
           <div
             v-e="['c:quick-actions']"
@@ -189,7 +195,9 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       <DashboardMiniSidebarItemWrapper>
         <NcTooltip placement="right" hide-on-click :arrow="false">
           <template #title>
-            <div class="flex items-center gap-1">{{ $t('labels.searchDocumentation') }} {{ renderCmdOrCtrlKey(true) }} J</div>
+            <div class="flex items-center gap-1">
+              {{ $t('labels.searchDocumentation') }} {{ renderCmdOrCtrlKey(true) }} J
+            </div>
           </template>
           <div
             v-e="['c:quick-actions']"
@@ -292,7 +300,9 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       <DashboardMiniSidebarItemWrapper v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext && hasChatBaseContext">
         <NcTooltip placement="right" hide-on-click :arrow="false">
           <template #title>
-            <div class="flex items-center gap-1">{{ $t('labels.aiChat') }} {{ renderCmdOrCtrlKey(true) }} ⇧ A</div>
+            <div class="flex items-center gap-1">
+              {{ $t('labels.aiChat') }} {{ renderCmdOrCtrlKey(true) }} ⇧ A
+            </div>
           </template>
           <div
             v-e="['c:chat:toggle']"

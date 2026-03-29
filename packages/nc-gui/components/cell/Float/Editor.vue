@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { VNodeRef } from '@vue/runtime-core'
+import type { VNodeRef } from 'vue'
 
 interface Props {
   // when we set a number, then it is number type
@@ -31,7 +31,8 @@ const vModel = computed({
       // if we clear / empty a cell in sqlite,
       // the value is considered as ''
       _vModel.value = null
-    } else {
+    }
+    else {
       _vModel.value = value
     }
   },
@@ -41,7 +42,7 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const isForm = inject(IsFormInj)!
 
-const focus: VNodeRef = (el) =>
+const focus: VNodeRef = el =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 </script>
 
@@ -63,7 +64,7 @@ const focus: VNodeRef = (el) =>
     @keydown.alt.stop
     @selectstart.capture.stop
     @mousedown.stop
-  />
+  >
 </template>
 
 <style scoped lang="scss">

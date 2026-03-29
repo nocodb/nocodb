@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type CommentType } from 'nocodb-sdk'
+import type { CommentType } from 'nocodb-sdk'
 
 /* interface */
 
@@ -29,18 +29,19 @@ const hasEditPermission = computed(() => isUIAllowed('commentEdit'))
 
 /* formatting */
 
-const createdBy = (
-  comment: CommentType & {
-    created_display_name_short?: string
-  },
-) => {
+function createdBy(comment: CommentType & {
+  created_display_name_short?: string
+}) {
   if (comment.created_by === user.value?.id) {
     return 'You'
-  } else if (comment.created_display_name_short?.trim()) {
+  }
+  else if (comment.created_display_name_short?.trim()) {
     return comment.created_display_name_short || 'Shared source'
-  } else if (comment.created_by_email) {
+  }
+  else if (comment.created_by_email) {
     return comment.created_by_email
-  } else {
+  }
+  else {
     return 'Shared source'
   }
 }
@@ -49,7 +50,7 @@ const isCreatedByYou = computed(() => {
   return createdBy(props.comment) === 'You'
 })
 
-const editedAt = (comment: CommentType) => {
+function editedAt(comment: CommentType) {
   if (comment.updated_at !== comment.created_at && comment.updated_at) {
     const str = timeAgo(comment.updated_at).replace(' ', '_')
     return `[(edited)](a~~~###~~~Edited_${str}) `
@@ -95,7 +96,8 @@ async function onEditComment() {
   while (editCommentValue.value.comment.endsWith('<br />') || editCommentValue.value.comment.endsWith('\n')) {
     if (editCommentValue.value.comment.endsWith('<br />')) {
       editCommentValue.value.comment = editCommentValue.value.comment.slice(0, -6)
-    } else {
+    }
+    else {
       editCommentValue.value.comment = editCommentValue.value.comment.slice(0, -2)
     }
   }
@@ -180,7 +182,9 @@ async function copyComment(comment: CommentType) {
             >
               <GeneralIcon class="text-md" icon="pencil" />
             </NcButton>
-            <template #title>Click to edit</template>
+            <template #title>
+              Click to edit
+            </template>
           </NcTooltip>
 
           <NcDropdown
@@ -225,10 +229,14 @@ async function copyComment(comment: CommentType) {
             >
               <GeneralIcon class="text-md" icon="checkCircle" />
             </NcButton>
-            <template #title>Click to resolve</template>
+            <template #title>
+              Click to resolve
+            </template>
           </NcTooltip>
           <NcTooltip v-else-if="props.comment.resolved_by">
-            <template #title>{{ `Resolved by ${props.comment.resolved_display_name_short}` }}</template>
+            <template #title>
+              {{ `Resolved by ${props.comment.resolved_display_name_short}` }}
+            </template>
             <NcButton
               class="!h-7 !w-7 !bg-transparent !hover:bg-nc-bg-gray-medium text-semibold"
               size="xsmall"

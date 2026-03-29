@@ -14,27 +14,28 @@ const capturedImage = ref<null | File>(null)
 const videoRef = ref<HTMLVideoElement | undefined>()
 const canvasRef = ref<HTMLCanvasElement | undefined>()
 
-const startCamera = async () => {
+async function startCamera() {
   try {
     await _startCamera()
     if (!videoRef.value || !videoStream.value) return
     videoRef.value.srcObject = videoStream.value
-  } catch (error) {}
+  }
+  catch (error) {}
 }
 
-const stopCamera = () => {
+function stopCamera() {
   _stopCamera()
   if (videoRef.value) {
     videoRef.value.srcObject = null
   }
 }
 
-const retakeImage = () => {
+function retakeImage() {
   capturedImage.value = null
   startCamera()
 }
 
-const captureImage = () => {
+function captureImage() {
   const video = videoRef.value
   const canvas = canvasRef.value
 
@@ -57,7 +58,7 @@ const captureImage = () => {
   }
 }
 
-const closeMenu = () => {
+function closeMenu() {
   emits('update:visible', false)
 }
 
@@ -77,7 +78,9 @@ onBeforeUnmount(() => {
         <GeneralIcon icon="close" />
       </NcButton>
 
-      <template #title> {{ $t('general.close') }} </template>
+      <template #title>
+        {{ $t('general.close') }}
+      </template>
     </NcTooltip>
     <div v-if="!permissionGranted" class="w-full h-full flex bg-nc-bg-gray-extralight items-center justify-center">
       <div
@@ -104,7 +107,7 @@ onBeforeUnmount(() => {
         v-show="!capturedImage"
         class="w-full gap-3 h-full flex-col flex items-center justify-between border border-nc-border-red"
       >
-        <video ref="videoRef" class="rounded-md w-full aspect-video max-w-md flex-1 object-contain" autoplay></video>
+        <video ref="videoRef" class="rounded-md w-full aspect-video max-w-md flex-1 object-contain" autoplay />
 
         <NcButton class="!rounded-full !px-0" @click="captureImage">
           <mdi-camera class="text-xl" />
@@ -112,7 +115,7 @@ onBeforeUnmount(() => {
       </div>
 
       <div v-show="capturedImage" class="flex group flex-col">
-        <canvas ref="canvasRef" class="mb-2 rounded-md w-full aspect-video max-w-md flex-1 object-contain"></canvas>
+        <canvas ref="canvasRef" class="mb-2 rounded-md w-full aspect-video max-w-md flex-1 object-contain" />
 
         <div class="relative text-[12px] font-semibold text-nc-content-gray flex">
           <div class="flex-auto truncate line-height-4">
@@ -120,7 +123,9 @@ onBeforeUnmount(() => {
           </div>
           <div class="flex-none hide-ui transition-all transition-ease-in-out !h-4 flex items-center bg-nc-bg-default">
             <NcTooltip placement="bottom">
-              <template #title> {{ $t('title.removeFile') }} </template>
+              <template #title>
+                {{ $t('title.removeFile') }}
+              </template>
               <component :is="iconMap.delete" class="!text-nc-content-red-medium cursor-pointer" @click="retakeImage" />
             </NcTooltip>
           </div>
@@ -135,9 +140,13 @@ onBeforeUnmount(() => {
         </NcButton>
 
         <NcButton :loading="isLoading" size="small" @click="emits('upload', [capturedImage] as File[])">
-          <template v-if="!isLoading"> {{ $t('labels.uploadImage') }} </template>
+          <template v-if="!isLoading">
+            {{ $t('labels.uploadImage') }}
+          </template>
 
-          <template v-else> {{ $t('labels.uploading') }} </template>
+          <template v-else>
+            {{ $t('labels.uploading') }}
+          </template>
         </NcButton>
       </div>
     </div>

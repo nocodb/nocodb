@@ -31,14 +31,14 @@ const isMasterManagedApp = computed(() => {
   return isEeUI && !!managedApp.value?.managed_app_id && !!managedApp.value?.managed_app_master
 })
 
-const updateIconColor = (color: string) => {
+function updateIconColor(color: string) {
   const tcolor = tinycolor(color)
   if (tcolor.isValid()) {
     colorRef.value = color
   }
 }
 
-const onClick = (e: Event) => {
+function onClick(e: Event) {
   if (readonly.value || isMasterManagedApp.value) return
 
   e.stopPropagation()

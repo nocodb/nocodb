@@ -1,8 +1,9 @@
 <script lang="ts" setup>
-import type { Editor } from '@tiptap/vue-3'
-import { BubbleMenu } from '@tiptap/vue-3'
-import { type Node, getMarkRange } from '@tiptap/core'
+import type { Node } from '@tiptap/core'
 import type { Mark } from '@tiptap/pm/model'
+import type { Editor } from '@tiptap/vue-3'
+import { getMarkRange } from '@tiptap/core'
+import { BubbleMenu } from '@tiptap/vue-3'
 
 const props = defineProps<Props>()
 
@@ -39,7 +40,7 @@ const justDeleted = ref(false)
 
 // This function is called by BubbleMenu on selection change
 // It checks if either a link mark is active or an image node is selected
-const checkLinkMarkOrImageNode = (editor: Editor) => {
+function checkLinkMarkOrImageNode(editor: Editor) {
   if (!editor.view.editable) return false
 
   if (justDeleted.value) {
@@ -121,17 +122,17 @@ function notStartingWithNetworkProtocol(inputString: string) {
   return isMatch
 }
 
-const onChange = () => {
+function onChange() {
   const linkMark = editor.value.schema.marks.link
   if (!linkMark) return
 
   const isLinkMarkedStoredInEditor = editor.value.state?.storedMarks?.some((mark: Mark) => mark.type.name === 'link')
   let formatedHref = href.value
   if (
-    isValidURL(href.value) &&
-    href.value.length > 0 &&
-    !href.value.startsWith('/') &&
-    notStartingWithNetworkProtocol(href.value)
+    isValidURL(href.value)
+    && href.value.length > 0
+    && !href.value.startsWith('/')
+    && notStartingWithNetworkProtocol(href.value)
   ) {
     formatedHref = `https://${href.value}`
   }
@@ -140,7 +141,8 @@ const onChange = () => {
     editor.value.view.dispatch(
       editor.value.view.state.tr.removeStoredMark(linkMark).addStoredMark(linkMark.create({ href: formatedHref })),
     )
-  } else if (linkNodeMark.value) {
+  }
+  else if (linkNodeMark.value) {
     const selection = editor.value.state?.selection
     const markSelection = getMarkRange(selection.$anchor, linkMark) as any
 
@@ -152,7 +154,7 @@ const onChange = () => {
   }
 }
 
-const onDelete = () => {
+function onDelete() {
   const linkMark = editor.value.schema.marks.link
   if (!linkMark) return
 
@@ -160,7 +162,8 @@ const onDelete = () => {
 
   if (isLinkMarkedStoredInEditor) {
     editor.value.view.dispatch(editor.value.view.state.tr.removeStoredMark(linkMark))
-  } else if (linkNodeMark.value) {
+  }
+  else if (linkNodeMark.value) {
     const selection = editor.value.state.selection
     const markSelection = getMarkRange(selection.$anchor, linkMark) as any
 
@@ -170,7 +173,7 @@ const onDelete = () => {
   justDeleted.value = true
 }
 
-const handleKeyDown = (e: any) => {
+function handleKeyDown(e: any) {
   const isCtrlPressed = isMac() ? e.metaKey : e.ctrlKey
 
   // Ctrl + Z/ Meta + Z
@@ -186,12 +189,12 @@ const handleKeyDown = (e: any) => {
   }
 }
 
-const onInputBoxEnter = () => {
+function onInputBoxEnter() {
   inputRef.value?.blur()
   editor.value.chain().focus().run()
 }
 
-const handleInputBoxKeyDown = (e: any) => {
+function handleInputBoxKeyDown(e: any) {
   if (e.key === 'ArrowDown' || e.key === 'Escape') {
     editor.value.chain().focus().run()
   }
@@ -199,8 +202,8 @@ const handleInputBoxKeyDown = (e: any) => {
 
 watch([isLinkOptionsVisible, isImageOptionsVisible], ([linkVisible, imageVisible], [oldLinkVisible, oldImageVisible]) => {
   if (linkVisible && !oldLinkVisible) {
-    const isPlaceholderEmpty =
-      !editor.value.state.selection.$from.nodeBefore?.textContent && !editor.value.state.selection.$from.nodeAfter?.textContent
+    const isPlaceholderEmpty
+      = !editor.value.state.selection.$from.nodeBefore?.textContent && !editor.value.state.selection.$from.nodeAfter?.textContent
 
     if (!isPlaceholderEmpty) return
 
@@ -222,20 +225,20 @@ watch([isImageEditMode, isImageOptionsVisible], () => {
   }
 })
 
-const onImageEditModeUpdate = () => {
+function onImageEditModeUpdate() {
   setTimeout(() => {
     revalidatePosition.value = true
     editor.value?.chain()?.focus().run()
   }, 100)
 }
 
-const openLink = () => {
+function openLink() {
   if (href.value) {
     window.open(href.value, '_blank', 'noopener,noreferrer')
   }
 }
 
-const onMountLinkOptions = (e: any) => {
+function onMountLinkOptions(e: any) {
   if (e?.popper?.style) {
     if (props.isComment) {
       e.popper.style.left = '-10%'
@@ -284,7 +287,9 @@ const tabIndex = computed(() => {
           />
         </div>
         <NcTooltip overlay-class-name="nc-text-area-rich-link-options">
-          <template #title> Open link </template>
+          <template #title>
+            Open link
+          </template>
           <NcButton
             :tabindex="tabIndex"
             :class="{
@@ -299,7 +304,9 @@ const tabIndex = computed(() => {
           </NcButton>
         </NcTooltip>
         <NcTooltip overlay-class-name="nc-text-area-rich-link-options">
-          <template #title> Delete link </template>
+          <template #title>
+            Delete link
+          </template>
           <NcButton
             :tabindex="tabIndex"
             class="!duration-0 !hover:(text-nc-content-red-medium bg-nc-bg-red-light)"

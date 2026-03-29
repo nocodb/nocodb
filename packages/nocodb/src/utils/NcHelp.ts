@@ -13,8 +13,7 @@ export default class NcHelp {
     dbType: string,
   ): Promise<any> {
     const queue = new PQueue({
-      concurrency:
-        NC_EXECUTE_OPERATIONS_CONCURRENCY,
+      concurrency: NC_EXECUTE_OPERATIONS_CONCURRENCY,
     });
 
     const errors = [];

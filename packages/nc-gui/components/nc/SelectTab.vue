@@ -40,7 +40,9 @@ const modelValue = defineModel<string>()
         :key="item.value"
         :disabled="!item.tooltip || props.disabled"
       >
-        <template #title>{{ item.tooltip }}</template>
+        <template #title>
+          {{ item.tooltip }}
+        </template>
         <div
           v-e="[`c:project:mode:${item.value}`]"
           class="tab"

@@ -24,7 +24,11 @@ export function getLookupColumnType({
     : null;
   const relatedTableMeta =
     relationColumnOptions?.fk_related_model_id &&
-    getMetaWithCompositeKey(metas, currentBaseId, relationColumnOptions.fk_related_model_id as string);
+    getMetaWithCompositeKey(
+      metas,
+      currentBaseId,
+      relationColumnOptions.fk_related_model_id as string
+    );
 
   const childColumn = relatedTableMeta?.columns.find(
     (c: ColumnType) => c.id === colOptions.fk_lookup_column_id

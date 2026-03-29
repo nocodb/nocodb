@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
-import { ExpandedFormMode, PermissionEntity, PermissionKey, ViewTypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { Drawer } from 'ant-design-vue'
+import { ExpandedFormMode, PermissionEntity, PermissionKey, ViewTypes } from 'nocodb-sdk'
 import NcModal from '../../nc/Modal.vue'
 
 interface Props {
@@ -143,7 +143,7 @@ const isDuplicateTemplateName = computed(() => {
   if (!props.templateMode || !props.existingTemplateNames?.length) return false
   const trimmed = editableTemplateName.value.trim().toLowerCase()
   if (!trimmed) return false
-  return props.existingTemplateNames.some((name) => name.trim().toLowerCase() === trimmed)
+  return props.existingTemplateNames.some(name => name.trim().toLowerCase() === trimmed)
 })
 
 const expandedFormStore = useProvideExpandedFormStore(
@@ -175,7 +175,7 @@ const {
   isAllowedAddNewRecord,
 } = expandedFormStore
 
-const loadingEmit = (event: 'update:modelValue' | 'cancel' | 'next' | 'prev' | 'createdRecord') => {
+function loadingEmit(event: 'update:modelValue' | 'cancel' | 'next' | 'prev' | 'createdRecord') {
   emits(event)
   isLoading.value = true
 }
@@ -195,7 +195,7 @@ watch(templateNameInputRef, (el) => {
 })
 
 // Handle table change in template mode dropdown
-const onTemplateTableChange = async (tableId: string) => {
+async function onTemplateTableChange(tableId: string) {
   if (!activeMeta.value?.base_id || tableId === activeMeta.value?.id) return
   try {
     const newMeta = await getMeta(activeMeta.value.base_id, tableId)
@@ -204,7 +204,8 @@ const onTemplateTableChange = async (tableId: string) => {
       // Reset row data for the new table's fields
       _row.value = { row: {}, oldRow: {}, rowMeta: { new: true } }
     }
-  } catch (e) {
+  }
+  catch (e) {
     console.error('Failed to load table meta:', e)
   }
 }
@@ -221,14 +222,15 @@ watch(activeViewMode, async (v) => {
 
   if (v === ExpandedFormMode.FIELD || v === ExpandedFormMode.DISCUSSION) {
     await viewsStore.setCurrentViewExpandedFormMode(viewId, v)
-  } else if (v === ExpandedFormMode.ATTACHMENT) {
-    const firstAttachmentField = fields.value?.find((f) => f.uidt === 'Attachment')
+  }
+  else if (v === ExpandedFormMode.ATTACHMENT) {
+    const firstAttachmentField = fields.value?.find(f => f.uidt === 'Attachment')
 
     await viewsStore.setCurrentViewExpandedFormMode(viewId, v, props.view?.attachment_mode_column_id ?? firstAttachmentField?.id)
   }
 })
 
-const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value?.includes(c)) ?? null)
+const displayField = computed(() => meta.value?.columns?.find(c => c.pv && fields.value?.includes(c)) ?? null)
 
 const reloadViewDataListener = withLoading(async (params) => {
   // Skip loading deleted record again
@@ -236,18 +238,20 @@ const reloadViewDataListener = withLoading(async (params) => {
     return
   }
 
-  const isSameRecordUpdated =
-    params?.relatedTableMetaId && params?.rowId && params?.relatedTableMetaId === meta.value?.id && params?.rowId === rowId.value
+  const isSameRecordUpdated
+    = params?.relatedTableMetaId && params?.rowId && params?.relatedTableMetaId === meta.value?.id && params?.rowId === rowId.value
 
   // If relatedTableMetaId & rowId is present that means some nested record is updated
 
   // If same nested record udpated then udpate whole row
   if (isSameRecordUpdated) {
     await _loadRow(rowId.value)
-  } else if (params?.relatedTableMetaId && params?.rowId) {
+  }
+  else if (params?.relatedTableMetaId && params?.rowId) {
     // If it is not same record updated but it has relatedTableMetaId & rowId then update only virtual columns
     await _loadRow(rowId.value, true)
-  } else {
+  }
+  else {
     // Else update only new/duplicated/renamed columns
     await _loadRow(rowId.value, false, true)
   }
@@ -268,14 +272,14 @@ const mobileDiscussionMode = ref(false)
 
 const showMobileDiscussionToggle = computed(() => {
   return (
-    isMobileMode.value &&
-    !isNew.value &&
-    !props.templateMode &&
-    !props.blueprintMode &&
-    commentsDrawer.value &&
-    isUIAllowed('commentList', baseRoles.value) &&
-    !isPublic.value &&
-    !isSqlView.value
+    isMobileMode.value
+    && !isNew.value
+    && !props.templateMode
+    && !props.blueprintMode
+    && commentsDrawer.value
+    && isUIAllowed('commentList', baseRoles.value)
+    && !isPublic.value
+    && !isSqlView.value
   )
 })
 
@@ -286,7 +290,8 @@ watch(
   () => {
     if (state.value) {
       rowState.value = state.value
-    } else {
+    }
+    else {
       rowState.value = {}
     }
   },
@@ -311,20 +316,23 @@ const isSaveRecordBtnDisabled = computed(() => {
   return changedColumns.value.size === 0 && !isUnsavedFormExist.value && !isLTARChanged.value
 })
 
-const onClose = (force = false) => {
+function onClose(force = false) {
   if (force) {
     isExpanded.value = false
-  } else if (!isUIAllowed('dataEdit', baseRoles.value)) {
+  }
+  else if (!isUIAllowed('dataEdit', baseRoles.value)) {
     isExpanded.value = false
-  } else if (changedColumns.value.size > 0) {
+  }
+  else if (changedColumns.value.size > 0) {
     isCloseModalOpen.value = true
-  } else {
+  }
+  else {
     if (_row.value?.rowMeta?.new) emits('cancel')
     isExpanded.value = false
   }
 }
 
-const onDuplicateRow = () => {
+function onDuplicateRow() {
   if (showRecordPlanLimitExceededModal()) return
 
   duplicatingRowInProgress.value = true
@@ -347,7 +355,7 @@ const onDuplicateRow = () => {
   }, 500)
 }
 
-const save = async () => {
+async function save() {
   isSaving.value = true
 
   try {
@@ -403,7 +411,8 @@ const save = async () => {
       await _save(rowState.value, undefined, {
         kanbanClbk,
       })
-    } else {
+    }
+    else {
       await _save(undefined, undefined, {
         kanbanClbk,
       })
@@ -421,9 +430,11 @@ const save = async () => {
     if (_row.value?.row?.__nc_rls_hidden) {
       message.info('Record saved successfully but is hidden due to your access permissions.')
       isExpanded.value = false
-    } else if (props.closeAfterSave) {
+    }
+    else if (props.closeAfterSave) {
       isExpanded.value = false
-    } else {
+    }
+    else {
       if (isUnsavedDuplicatedRecordExist.value) {
         const newRowId = extractPkFromRow(_row.value.row, meta.value.columns as ColumnType[])
         if (newRowId !== rowId.value) {
@@ -437,10 +448,12 @@ const save = async () => {
     }
 
     emits('createdRecord', _row.value.row)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     if (isNew.value) {
       message.error(`Add row failed: ${await extractSdkResponseErrorMsg(e)}`)
-    } else {
+    }
+    else {
       message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
   }
@@ -452,7 +465,7 @@ const isPreventChangeModalOpen = ref(false)
 const isCloseModalOpen = ref(false)
 const interruptedDirectionToGo = ref<'next' | 'prev' | undefined>(undefined)
 
-const discardPreventModal = () => {
+function discardPreventModal() {
   // when user click on next or previous button
   if (isPreventChangeModalOpen.value) {
     loadingEmit('next')
@@ -469,7 +482,7 @@ const discardPreventModal = () => {
   clearColumns()
 }
 
-const onNext = async () => {
+async function onNext() {
   if (changedColumns.value.size > 0) {
     isPreventChangeModalOpen.value = true
     interruptedDirectionToGo.value = 'next'
@@ -478,7 +491,7 @@ const onNext = async () => {
   loadingEmit('next')
 }
 
-const onPrev = async () => {
+async function onPrev() {
   if (changedColumns.value.size > 0) {
     isPreventChangeModalOpen.value = true
     interruptedDirectionToGo.value = 'prev'
@@ -487,7 +500,7 @@ const onPrev = async () => {
   loadingEmit('prev')
 }
 
-const copyRecordUrl = async () => {
+async function copyRecordUrl() {
   const url = `${dashboardUrl?.value}/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}${
     props.view ? `/${props.view.id}` : ''
   }?rowId=${primaryKey.value}${route.query?.path ? `&path=${route.query?.path}` : ''}`
@@ -501,13 +514,14 @@ const copyRecordUrl = async () => {
   isRecordLinkCopied.value = false
 }
 
-const saveChanges = async () => {
+async function saveChanges() {
   if (isPreventChangeModalOpen.value) {
     isUnsavedFormExist.value = false
     await save()
     if (interruptedDirectionToGo.value) {
       loadingEmit(interruptedDirectionToGo.value)
-    } else {
+    }
+    else {
       loadingEmit('next')
     }
     isPreventChangeModalOpen.value = false
@@ -545,7 +559,7 @@ if (isKanban.value) {
 }
 provide(IsExpandedFormOpenInj, isExpanded)
 
-const triggerRowLoad = async (rowId?: string) => {
+async function triggerRowLoad(rowId?: string) {
   await Promise.allSettled([loadComments(rowId, false), _loadRow(rowId)])
   isLoading.value = false
 }
@@ -562,9 +576,11 @@ onMounted(async () => {
   if (props.loadRow && !props.rowId) {
     await triggerRowLoad()
     isTriggered = true
-  } else if (props.rowId && props.loadRow && !isTriggered) {
+  }
+  else if (props.rowId && props.loadRow && !isTriggered) {
     await triggerRowLoad(props.rowId)
-  } else {
+  }
+  else {
     _row.value = props.row
   }
 
@@ -581,7 +597,7 @@ onMounted(async () => {
   }
 })
 
-const addNewRow = () => {
+function addNewRow() {
   if (!isAllowedAddNewRecord.value) {
     message.toast(t('objects.permissions.addNewRecordTooltip'))
     return
@@ -612,7 +628,8 @@ useActiveKeydownListener(
       if (isFirstRow.value) return
 
       loadingEmit('prev')
-    } else if (e.key === 'ArrowRight') {
+    }
+    else if (e.key === 'ArrowRight') {
       e.stopPropagation()
       if (isLastRow.value) return
 
@@ -651,19 +668,23 @@ useActiveKeydownListener(
         if (isNew.value) {
           await _save(rowState.value)
           reloadHook?.trigger(null)
-        } else {
+        }
+        else {
           await save()
           reloadHook?.trigger(null)
         }
-      } catch (e: any) {
+      }
+      catch (e: any) {
         if (isNew.value) {
           message.error(`Add row failed: ${await extractSdkResponseErrorMsg(e)}`)
-        } else {
+        }
+        else {
           message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
         }
       }
       // on alt + n create new record
-    } else if (e.code === 'KeyN') {
+    }
+    else if (e.code === 'KeyN') {
       // remove focus from the active input if any to avoid unwanted input
       ;(document.activeElement as HTMLInputElement)?.blur?.()
 
@@ -681,7 +702,8 @@ useActiveKeydownListener(
             addNewRow()
           },
         })
-      } else if (isNew.value) {
+      }
+      else if (isNew.value) {
         Modal.confirm({
           title: 'Do you want to save the record?',
           okText: t('general.save'),
@@ -691,7 +713,8 @@ useActiveKeydownListener(
               await _save(rowState.value)
               reloadHook?.trigger(null)
               addNewRow()
-            } catch (e: any) {
+            }
+            catch (e: any) {
               message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
             }
           },
@@ -699,7 +722,8 @@ useActiveKeydownListener(
             addNewRow()
           },
         })
-      } else {
+      }
+      else {
         addNewRow()
       }
     }
@@ -709,11 +733,11 @@ useActiveKeydownListener(
 
 const showDeleteRowModal = ref(false)
 
-const onDeleteRowClick = () => {
+function onDeleteRowClick() {
   showDeleteRowModal.value = true
 }
 
-const onConfirmDeleteRowClick = async () => {
+async function onConfirmDeleteRowClick() {
   await deleteRowById(primaryKey.value || undefined)
 
   emits('deletedRecord')
@@ -738,7 +762,7 @@ const preventModalStatus = computed({
   },
 })
 
-const onIsExpandedUpdate = (v: boolean) => {
+function onIsExpandedUpdate(v: boolean) {
   let isDropdownOpen = false
   document.querySelectorAll('.ant-select-dropdown').forEach((el) => {
     isDropdownOpen = isDropdownOpen || el?.checkVisibility?.()
@@ -751,9 +775,11 @@ const onIsExpandedUpdate = (v: boolean) => {
     if (isKanban.value) {
       emits('cancel')
     }
-  } else if (!v && isUIAllowed('dataEdit', baseRoles.value)) {
+  }
+  else if (!v && isUIAllowed('dataEdit', baseRoles.value)) {
     preventModalStatus.value = true
-  } else {
+  }
+  else {
     isExpanded.value = v
   }
 }
@@ -788,7 +814,8 @@ watch([expandedFormScrollWrapper, isLoading], () => {
           onClickOutside(document.querySelector(`[col-id="${columnId}"]`)! as HTMLDivElement, () => {
             mentionedCell.value = null
           })
-        } else {
+        }
+        else {
           expandedFormScrollWrapperEl.scrollTop = 0
         }
       })
@@ -822,7 +849,7 @@ function scrollToColumn(columnId: string) {
   }
 }
 
-const stopLoading = () => {
+function stopLoading() {
   nextTick(() => {
     isLoading.value = false
   })
@@ -850,7 +877,7 @@ function onTouchMove(e: TouchEvent) {
   }
 }
 
-const resetDrawerTransform = () => {
+function resetDrawerTransform() {
   const drawerContentEl = wrapper.value?.closest('.ant-drawer-content-wrapper')
   if (drawerContentEl) {
     drawerContentEl.style.transform = 'none'
@@ -868,7 +895,8 @@ function onTouchEnd() {
     setTimeout(() => {
       resetDrawerTransform()
     }, 500)
-  } else {
+  }
+  else {
     translateY.value = 0
     resetDrawerTransform()
   }
@@ -930,8 +958,8 @@ export default {
       templateMode || blueprintMode
         ? 'min(65vw,700px)'
         : commentsDrawer && isUIAllowed('commentList', baseRoles)
-        ? 'min(80vw,1280px)'
-        : 'min(70vw,768px)'
+          ? 'min(80vw,1280px)'
+          : 'min(70vw,768px)'
     "
     class="nc-drawer-expanded-form"
     :size="isMobileMode ? 'medium' : 'small'"
@@ -947,7 +975,7 @@ export default {
           @touchend="onTouchEnd"
           @click="onClose()"
         >
-          <div class="w-[72px] h-[2px] rounded-full bg-nc-bg-gray-dark"></div>
+          <div class="w-[72px] h-[2px] rounded-full bg-nc-bg-gray-dark" />
         </div>
       </div>
       <div
@@ -956,7 +984,9 @@ export default {
         <div class="flex gap-2 min-w-0 min-h-8">
           <div class="flex gap-2">
             <NcTooltip v-if="props.showNextPrevIcons" class="flex items-center">
-              <template #title> {{ $t('labels.prevRow') }} {{ renderAltOrOptlKey() }} + ←</template>
+              <template #title>
+                {{ $t('labels.prevRow') }} {{ renderAltOrOptlKey() }} + ←
+              </template>
               <NcButton
                 :disabled="isFirstRow || isLoading"
                 class="nc-prev-arrow !w-7 !h-7 !text-nc-content-gray-muted !disabled:text-nc-content-brand-hover"
@@ -968,7 +998,9 @@ export default {
               </NcButton>
             </NcTooltip>
             <NcTooltip v-if="props.showNextPrevIcons" class="flex items-center">
-              <template #title> {{ $t('labels.nextRow') }} {{ renderAltOrOptlKey() }} + →</template>
+              <template #title>
+                {{ $t('labels.nextRow') }} {{ renderAltOrOptlKey() }} + →
+              </template>
               <NcButton
                 :disabled="isLastRow || isLoading"
                 class="nc-next-arrow !w-7 !h-7 !text-nc-content-gray-muted !disabled:text-nc-content-brand-hover"
@@ -995,8 +1027,7 @@ export default {
               dropdown-overlay-class-name="max-w-64 min-w-32"
               default-slot-wrapper-class="!px-1.5 !bg-nc-bg-gray-extralight hover:!bg-nc-bg-gray-light"
               @update:value="onTemplateTableChange($event as string)"
-            >
-            </NcListTableSelector>
+            />
 
             <!-- Static table chip (non-template mode) -->
             <div
@@ -1013,7 +1044,7 @@ export default {
                 class="bg-transparent border-none outline-none font-bold text-xl w-full placeholder-gray-300"
                 :class="isDuplicateTemplateName ? 'text-red-500' : 'text-nc-content-gray'"
                 placeholder="Enter template name..."
-              />
+              >
               <span v-if="isDuplicateTemplateName" class="text-red-500 text-[11px] pl-0.5">
                 A template with this name already exists
               </span>
@@ -1081,12 +1112,16 @@ export default {
                 size="xsmall"
                 @click="save"
               >
-                <div class="xs:px-1">{{ newRecordSubmitBtnText ?? $t('activity.saveRow') }}</div>
+                <div class="xs:px-1">
+                  {{ newRecordSubmitBtnText ?? $t('activity.saveRow') }}
+                </div>
               </NcButton>
             </template>
           </PermissionsTooltip>
           <NcTooltip v-if="visibleMoreOptions.copyRecordUrl && !isMobileMode" class="!<lg:hidden">
-            <template #title> {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }} </template>
+            <template #title>
+              {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
+            </template>
             <NcButton
               :disabled="isLoading"
               class="text-nc-content-inverted-secondary !h-7 !w-7"
@@ -1327,7 +1362,9 @@ export default {
         {{ $t('activity.doYouWantToSaveTheChanges') }}
       </div>
       <div class="flex flex-row justify-end gap-x-2 mt-5">
-        <NcButton type="secondary" size="small" @click="discardPreventModal">{{ $t('labels.discard') }}</NcButton>
+        <NcButton type="secondary" size="small" @click="discardPreventModal">
+          {{ $t('labels.discard') }}
+        </NcButton>
 
         <NcButton key="submit" type="primary" size="small" :loading="isSaving" @click="saveChanges">
           {{ $t('tooltip.saveChanges') }}

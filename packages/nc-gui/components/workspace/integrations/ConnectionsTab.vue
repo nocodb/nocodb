@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { IntegrationsType, integrationCategoryNeedDefault } from 'nocodb-sdk'
 import type { IntegrationType, UserType, WorkspaceUserType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
+import { integrationCategoryNeedDefault, IntegrationsType } from 'nocodb-sdk'
 
 withDefaults(
   defineProps<{
@@ -43,13 +43,13 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 const isDeleteIntegrationModalOpen = ref(false)
 const toBeDeletedIntegration = ref<
   | (IntegrationType & {
-      sources?: {
-        id: string
-        alias: string
-        project_title: string
-        base_id: string
-      }[]
-    })
+    sources?: {
+      id: string
+      alias: string
+      project_title: string
+      base_id: string
+    }[]
+  })
   | null
 >(null)
 
@@ -74,38 +74,42 @@ const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string 
 
 const filteredIntegrations = computed(() =>
   (integrations.value || [])
-    .filter((i) => IntegrationsType.Sync !== i.type)
+    .filter(i => IntegrationsType.Sync !== i.type)
     .sort((a, b) => {
       if (orderBy.value.title) {
         if (a.title && b.title) {
           return orderBy.value.title === 'asc' ? (a.title < b.title ? -1 : 1) : a.title > b.title ? -1 : 1
         }
-      } else if (orderBy.value.sub_type) {
+      }
+      else if (orderBy.value.sub_type) {
         if (a.sub_type && b.sub_type) {
           return orderBy.value.sub_type === 'asc' ? (a.sub_type < b.sub_type ? -1 : 1) : a.sub_type > b.sub_type ? -1 : 1
         }
-      } else if (orderBy.value.created_at) {
+      }
+      else if (orderBy.value.created_at) {
         if (a?.created_at && b?.created_at) {
           return orderBy.value.created_at === 'asc'
             ? dayjs(a.created_at).local().diff(dayjs(b.created_at).local())
             : dayjs(b.created_at).local().diff(dayjs(a.created_at).local())
         }
-      } else if (orderBy.value.created_by) {
+      }
+      else if (orderBy.value.created_by) {
         if (
-          a.created_by &&
-          b.created_by &&
-          collaboratorsMap.value.get(a.created_by) &&
-          collaboratorsMap.value.get(b.created_by)
+          a.created_by
+          && b.created_by
+          && collaboratorsMap.value.get(a.created_by)
+          && collaboratorsMap.value.get(b.created_by)
         ) {
           return orderBy.value.created_by === 'asc'
             ? collaboratorsMap.value.get(a.created_by)?.email < collaboratorsMap.value.get(b.created_by)?.email
               ? -1
               : 1
             : collaboratorsMap.value.get(a.created_by)?.email > collaboratorsMap.value.get(b.created_by)?.email
-            ? -1
-            : 1
+              ? -1
+              : 1
         }
-      } else if (orderBy.value.source_count) {
+      }
+      else if (orderBy.value.source_count) {
         if (a.source_count !== undefined && b.source_count !== undefined) {
           return orderBy.value.source_count === 'asc' ? a.source_count - b.source_count : b.source_count - a.source_count
         }
@@ -125,10 +129,11 @@ async function loadConnections(
     }
 
     await loadIntegrations(null, undefined, updateCurrentPage ? 1 : page, limit)
-  } catch {}
+  }
+  catch {}
 }
 
-const handleChangePage = async (page: number) => {
+async function handleChangePage(page: number) {
   integrationPaginationData.value.page = page
   await loadConnections(undefined, undefined, false)
 }
@@ -139,7 +144,7 @@ const { onLeft, onRight, onUp, onDown } = usePaginationShortcuts({
   isViewDataLoading: isLoadingIntegrations,
 })
 
-const openDeleteIntegration = async (source: IntegrationType) => {
+async function openDeleteIntegration(source: IntegrationType) {
   isLoadingGetLinkedSources.value = true
 
   $e('c:integration:delete')
@@ -155,7 +160,7 @@ const openDeleteIntegration = async (source: IntegrationType) => {
   isLoadingGetLinkedSources.value = false
 }
 
-const openEditIntegration = (integration: IntegrationType) => {
+function openEditIntegration(integration: IntegrationType) {
   if (!isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) && integration.sub_type === SyncDataType.NOCODB) {
     return
   }
@@ -163,7 +168,7 @@ const openEditIntegration = (integration: IntegrationType) => {
   editIntegration(integration)
 }
 
-const onDeleteConfirm = async () => {
+async function onDeleteConfirm() {
   const isDeleted = await deleteIntegration(toBeDeletedIntegration.value, true)
 
   if (isDeleted) {
@@ -180,20 +185,21 @@ const onDeleteConfirm = async () => {
 
       bases.value.set(source.base_id, {
         ...(base || {}),
-        sources: [...base.sources.filter((s) => s.id !== source.id)],
+        sources: [...base.sources.filter(s => s.id !== source.id)],
       })
     }
   }
 }
 
-const loadOrgUsers = async () => {
+async function loadOrgUsers() {
   try {
     const response: any = await $api.orgUsers.list()
 
     if (!response?.list) return
 
     localCollaborators.value = response.list as UserType[]
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -202,20 +208,21 @@ const handleSearchConnection = useDebounceFn(() => {
   loadConnections()
 }, 250)
 
-const isUserDeleted = (userId?: string) => {
+function isUserDeleted(userId?: string) {
   if (!userId) return false
 
   if (isEeUI) {
     return !!collaboratorsMap.value.get(userId)?.deleted
-  } else {
+  }
+  else {
     return !collaboratorsMap.value.get(userId)?.email
   }
 }
 
-const getUserNameByCreatedBy = (createdBy: string) => {
+function getUserNameByCreatedBy(createdBy: string) {
   return (
-    collaboratorsMap.value.get(createdBy)?.display_name ||
-    collaboratorsMap.value.get(createdBy)?.email?.slice(0, collaboratorsMap.value.get(createdBy)?.email?.indexOf('@'))
+    collaboratorsMap.value.get(createdBy)?.display_name
+    || collaboratorsMap.value.get(createdBy)?.email?.slice(0, collaboratorsMap.value.get(createdBy)?.email?.indexOf('@'))
   )
 }
 
@@ -229,7 +236,8 @@ useEventListener(tableWrapper, 'scroll', () => {
 
   if (nonStickyHeaderFirstCell?.getBoundingClientRect().left < stickyHeaderCell?.getBoundingClientRect().right) {
     tableWrapper.value?.classList.add('sticky-shadow')
-  } else {
+  }
+  else {
     tableWrapper.value?.classList.remove('sticky-shadow')
   }
 })
@@ -238,7 +246,8 @@ onMounted(async () => {
   await loadDynamicIntegrations()
   if (!isEeUI) {
     await Promise.allSettled([!integrations.value.length && loadIntegrations(), loadOrgUsers()])
-  } else if (!integrations.value.length) {
+  }
+  else if (!integrations.value.length) {
     await loadIntegrations()
   }
 })
@@ -297,11 +306,13 @@ const columns = [
   },
 ] as NcTableColumnProps[]
 
-const customRow = (record: Record<string, any>) => ({
-  onclick: () => {
-    openEditIntegration(record)
-  },
-})
+function customRow(record: Record<string, any>) {
+  return {
+    onclick: () => {
+      openEditIntegration(record)
+    },
+  }
+}
 </script>
 
 <template>
@@ -355,7 +366,9 @@ const customRow = (record: Record<string, any>) => ({
       <template #bodyCell="{ column, record: integration }">
         <div v-if="column.key === 'title'" class="w-full flex items-center gap-3">
           <NcTooltip placement="bottom" class="truncate !text-nc-content-gray font-semibold" show-on-truncate-only>
-            <template #title> {{ integration.title }}</template>
+            <template #title>
+              {{ integration.title }}
+            </template>
             {{ integration.title }}
           </NcTooltip>
           <span v-if="integration.is_private">
@@ -368,7 +381,9 @@ const customRow = (record: Record<string, any>) => ({
           placement="bottom"
           class="h-8 w-8 flex-none flex items-center justify-center children:flex-none"
         >
-          <template #title> {{ clientTypesMap[integration?.sub_type]?.text || integration?.sub_type }}</template>
+          <template #title>
+            {{ clientTypesMap[integration?.sub_type]?.text || integration?.sub_type }}
+          </template>
 
           <GeneralIntegrationIcon
             :type="integration.sub_type"
@@ -377,7 +392,9 @@ const customRow = (record: Record<string, any>) => ({
         </NcTooltip>
 
         <NcTooltip v-if="column.key === 'created_at'" placement="bottom" show-on-truncate-only>
-          <template #title> {{ dayjs(integration.created_at).local().format('DD MMM YYYY') }}</template>
+          <template #title>
+            {{ dayjs(integration.created_at).local().format('DD MMM YYYY') }}
+          </template>
 
           {{ dayjs(integration.created_at).local().format('DD MMM YYYY') }}
         </NcTooltip>
@@ -386,7 +403,9 @@ const customRow = (record: Record<string, any>) => ({
             <div class="h-8 w-8 grid place-items-center">
               <GeneralIcon icon="nocodb1" />
             </div>
-            <div class="text-sm !leading-5 capitalize font-semibold truncate">NocoDB Cloud</div>
+            <div class="text-sm !leading-5 capitalize font-semibold truncate">
+              NocoDB Cloud
+            </div>
           </div>
           <NcTooltip v-else :disabled="!isUserDeleted(integration.created_by)" class="w-full">
             <template #title>
@@ -406,8 +425,8 @@ const customRow = (record: Record<string, any>) => ({
                 :style="
                   isUserDeleted(integration.created_by)
                     ? {
-                        filter: 'grayscale(100%) brightness(115%)',
-                      }
+                      filter: 'grayscale(100%) brightness(115%)',
+                    }
                     : {}
                 "
               />
@@ -446,7 +465,9 @@ const customRow = (record: Record<string, any>) => ({
                 </NcTooltip>
               </div>
             </div>
-            <div v-else class="w-full truncate text-nc-content-gray-muted">{{ integration.created_by }}</div>
+            <div v-else class="w-full truncate text-nc-content-gray-muted">
+              {{ integration.created_by }}
+            </div>
           </NcTooltip>
         </template>
 
@@ -543,10 +564,10 @@ const customRow = (record: Record<string, any>) => ({
       <template #entity-preview>
         <template v-if="isLoadingGetLinkedSources">
           <div class="rounded-lg overflow-hidden">
-            <a-skeleton-input active class="h-9 !rounded-md !w-full"></a-skeleton-input>
+            <a-skeleton-input active class="h-9 !rounded-md !w-full" />
           </div>
           <div class="rounded-lg overflow-hidden mt-2">
-            <a-skeleton-input active class="h-9 !rounded-md !w-full"></a-skeleton-input>
+            <a-skeleton-input active class="h-9 !rounded-md !w-full" />
           </div>
         </template>
         <div v-else-if="toBeDeletedIntegration" class="w-full flex flex-col text-nc-content-gray">
@@ -565,7 +586,9 @@ const customRow = (record: Record<string, any>) => ({
             v-if="toBeDeletedIntegration?.sources?.length"
             class="flex flex-col pb-2 text-small leading-[18px] text-nc-content-gray-muted"
           >
-            <div class="mb-1">Following external data sources using this connection will also be removed</div>
+            <div class="mb-1">
+              Following external data sources using this connection will also be removed
+            </div>
             <ul class="!list-disc ml-6 mb-0">
               <li
                 v-for="(source, idx) of toBeDeletedIntegration.sources"
@@ -609,7 +632,9 @@ const customRow = (record: Record<string, any>) => ({
                 </div>
               </li>
             </ul>
-            <div class="mt-2">Do you want to proceed anyway?</div>
+            <div class="mt-2">
+              Do you want to proceed anyway?
+            </div>
           </div>
         </div>
       </template>

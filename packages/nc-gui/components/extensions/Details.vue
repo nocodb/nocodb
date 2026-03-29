@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { marked } from 'marked'
 import DOMPurify from 'isomorphic-dompurify'
+import { marked } from 'marked'
 import { PlanFeatureTypes } from 'nocodb-sdk'
 
 interface Prop {
@@ -27,18 +27,18 @@ const {
 
 const { blockAddNewExtension, navigateToPricing, isWsOwner } = useEeConfig()
 
-const onBack = () => {
+function onBack() {
   vModel.value = false
   isMarketVisible.value = true
 }
 
-const onAddExtension = (ext: any) => {
+function onAddExtension(ext: any) {
   addExtension(ext)
   vModel.value = false
 }
 
 const activeExtension = computed(() => {
-  return availableExtensions.value.find((ext) => ext.id === props.extensionId)
+  return availableExtensions.value.find(ext => ext.id === props.extensionId)
 })
 
 // Create a custom renderer
@@ -55,7 +55,7 @@ renderer.image = function (href: string, title: string | null, text: string) {
 // Apply the custom renderer to marked
 marked.use({ renderer })
 
-const getModifiedContent = (content = '') => {
+function getModifiedContent(content = '') {
   // Modify raw <img> tags, supporting both single and double quotes
   return content.replace(/<img\s+src=(["'])(.*?)\1(.*?)>/g, (match, quote, src, rest) => {
     const newSrc = getExtensionAssetsUrl(src)
@@ -66,7 +66,8 @@ const getModifiedContent = (content = '') => {
 const detailsBody = computed(() => {
   if (descriptionContent.value[props.extensionId]) {
     return DOMPurify.sanitize(marked.parse(getModifiedContent(descriptionContent.value[props.extensionId])) as string)
-  } else if (activeExtension.value?.description) {
+  }
+  else if (activeExtension.value?.description) {
     return DOMPurify.sanitize(marked.parse(getModifiedContent(activeExtension.value.description)) as string)
   }
 
@@ -82,13 +83,17 @@ const detailsBody = computed(() => {
           <GeneralIcon icon="arrowLeft" />
         </NcButton>
 
-        <img :src="getExtensionAssetsUrl(activeExtension.iconUrl)" alt="icon" class="h-[50px] w-[50px] object-contain" />
+        <img :src="getExtensionAssetsUrl(activeExtension.iconUrl)" alt="icon" class="h-[50px] w-[50px] object-contain">
         <div class="flex-1 flex flex-col">
           <div class="flex items-center gap-2">
-            <div class="font-semibold text-xl truncate">{{ activeExtension.title }}</div>
+            <div class="font-semibold text-xl truncate">
+              {{ activeExtension.title }}
+            </div>
             <NcBadgeBeta v-if="activeExtension.showAsBeta" />
           </div>
-          <div class="text-small leading-[18px] text-nc-content-gray-muted truncate">{{ activeExtension.subTitle }}</div>
+          <div class="text-small leading-[18px] text-nc-content-gray-muted truncate">
+            {{ activeExtension.subTitle }}
+          </div>
         </div>
         <div class="self-start flex items-center gap-2.5">
           <NcTooltip v-if="!blockAddNewExtension" :disabled="extensionAccess.create">
@@ -125,17 +130,23 @@ const detailsBody = computed(() => {
 
       <div class="extension-details">
         <div class="extension-details-left">
-          <div class="nc-extension-details-body" v-html="detailsBody"></div>
+          <div class="nc-extension-details-body" v-html="detailsBody" />
         </div>
         <div class="extension-details-right">
           <div class="extension-details-right-section">
-            <div class="extension-details-right-title">Version</div>
-            <div class="extension-details-right-subtitle">{{ activeExtension.version }}</div>
+            <div class="extension-details-right-title">
+              Version
+            </div>
+            <div class="extension-details-right-subtitle">
+              {{ activeExtension.version }}
+            </div>
           </div>
 
           <NcDivider />
           <div v-if="activeExtension.publisher" class="extension-details-right-section">
-            <div class="extension-details-right-title">Publisher</div>
+            <div class="extension-details-right-title">
+              Publisher
+            </div>
             <div class="flex items-center gap-2">
               <img
                 v-if="activeExtension.publisher?.icon?.src"
@@ -146,8 +157,10 @@ const detailsBody = computed(() => {
                   width: activeExtension.publisher?.icon?.width ? `${activeExtension.publisher?.icon?.width}px` : '24px',
                   height: activeExtension.publisher?.icon?.height ? `${activeExtension.publisher?.icon?.height}px` : '24px',
                 }"
-              />
-              <div class="extension-details-right-subtitle">{{ activeExtension.publisher.name }}</div>
+              >
+              <div class="extension-details-right-subtitle">
+                {{ activeExtension.publisher.name }}
+              </div>
             </div>
             <div class="flex items-center gap-3 text-sm font-semibold text-nc-content-brand">
               <a
@@ -160,7 +173,7 @@ const detailsBody = computed(() => {
                 Website
               </a>
               <template v-if="activeExtension.publisher?.email">
-                <div class="border-l-1 border-nc-border-gray-medium h-5"></div>
+                <div class="border-l-1 border-nc-border-gray-medium h-5" />
                 <a
                   :href="`mailto:${activeExtension.publisher.email}`"
                   target="_blank"
@@ -175,7 +188,9 @@ const detailsBody = computed(() => {
           <template v-if="activeExtension.links && activeExtension.links.length">
             <NcDivider />
             <div class="extension-details-right-section">
-              <div class="extension-details-right-title">Links</div>
+              <div class="extension-details-right-title">
+                Links
+              </div>
               <div>
                 <div v-for="(doc, idx) of activeExtension.links" :key="idx" class="flex items-center gap-1">
                   <div class="h-7 w-7 flex items-center justify-center">

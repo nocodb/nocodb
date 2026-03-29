@@ -84,7 +84,7 @@ const languageSet = computed(() => {
   return !!activeView.value?.meta?.language || languageSetLocal.value
 })
 
-const toggleLanguageSet = async () => {
+async function toggleLanguageSet() {
   languageSetLocal.value = !languageSet.value
   if (!activeView.value) return
   if (isUpdating.value.language) return
@@ -93,12 +93,14 @@ const toggleLanguageSet = async () => {
   try {
     if (!languageSetLocal.value) {
       activeView.value = { ...(activeView.value as any), meta: { ...activeView.value.meta, language: null } }
-    } else {
+    }
+    else {
       activeView.value = { ...(activeView.value as any), meta: { ...activeView.value.meta, language: 'en' } }
     }
 
     await updateSharedView()
-  } finally {
+  }
+  finally {
     isUpdating.value.language = false
   }
 }
@@ -136,7 +138,7 @@ const viewTheme = computed({
   },
 })
 
-const togglePasswordProtected = async () => {
+async function togglePasswordProtected() {
   passwordProtectedLocal.value = !passwordProtected.value
   if (!activeView.value) return
   if (isUpdating.value.password) return
@@ -145,12 +147,14 @@ const togglePasswordProtected = async () => {
   try {
     if (passwordProtected.value) {
       activeView.value = { ...(activeView.value as any), password: null }
-    } else {
+    }
+    else {
       activeView.value = { ...(activeView.value as any), password: '' }
     }
 
     await updateSharedView()
-  } finally {
+  }
+  finally {
     isUpdating.value.password = false
   }
 }
@@ -187,7 +191,8 @@ const allowCSVDownload = computed({
     try {
       activeView.value.meta = { ...activeView.value.meta, allowCSVDownload: allow }
       await saveAllowCSVDownload()
-    } finally {
+    }
+    finally {
       isUpdating.value.download = false
     }
   },
@@ -214,7 +219,7 @@ const themeSet = computed(() => {
   return !!activeView.value?.meta?.defaultTheme || themeSetLocal.value
 })
 
-const toggleThemeSet = async () => {
+async function toggleThemeSet() {
   themeSetLocal.value = !themeSet.value
   if (!activeView.value) return
   if (isUpdating.value.language) return
@@ -223,12 +228,14 @@ const toggleThemeSet = async () => {
   try {
     if (!themeSetLocal.value) {
       activeView.value = { ...(activeView.value as any), meta: { ...activeView.value.meta, defaultTheme: null } }
-    } else {
+    }
+    else {
       activeView.value = { ...(activeView.value as any), meta: { ...activeView.value.meta, defaultTheme: 'light' } }
     }
 
     await updateSharedView()
-  } finally {
+  }
+  finally {
     isUpdating.value.language = false
   }
 }
@@ -283,7 +290,7 @@ const preFillFormSearchParams = computed(() => {
   return viewStore.preFillFormSearchParams && formPreFill.value.preFillEnabled ? viewStore.preFillFormSearchParams : ''
 })
 
-const handleChangeFormPreFill = (value: { preFillEnabled?: boolean; preFilledMode?: PreFilledMode }) => {
+function handleChangeFormPreFill(value: { preFillEnabled?: boolean, preFilledMode?: PreFilledMode }) {
   formPreFill.value = {
     ...formPreFill.value,
     ...value,
@@ -337,7 +344,7 @@ function sharedViewUrl(withPrefill = true) {
   return `${encodeURI(baseUrl)}${queryParams.length > 0 ? `?${queryParams.join('&')}` : ''}`
 }
 
-const toggleViewShare = async () => {
+async function toggleViewShare() {
   if (!activeView.value?.id) return
 
   if (activeView.value?.uuid) {
@@ -354,7 +361,8 @@ const toggleViewShare = async () => {
     )
 
     activeView.value = { ...activeView.value, uuid: undefined, password: undefined }
-  } else {
+  }
+  else {
     // Get meta using base_id from activeView
     const meta = getMetaByKey(activeView.value.base_id, activeView.value.fk_model_id)
     const response = await $api.internal.postOperation(
@@ -381,15 +389,17 @@ const toggleViewShare = async () => {
   }
 }
 
-const toggleShare = async () => {
+async function toggleShare() {
   if (isUpdating.value.public) return
 
   isUpdating.value.public = true
   try {
     return await toggleViewShare()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     isUpdating.value.public = false
   }
 }
@@ -399,7 +409,8 @@ async function saveAllowCSVDownload() {
   try {
     await updateSharedView()
     $e(`a:view:share:${allowCSVDownload.value ? 'enable' : 'disable'}-csv-download`)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
   isUpdating.value.download = false
@@ -439,7 +450,8 @@ async function updateSharedView(custUrl = undefined) {
     if (custUrl !== undefined) {
       activeView.value.fk_custom_url_id = res.fk_custom_url_id
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 
@@ -450,7 +462,7 @@ async function savePreFilledMode() {
   await updateSharedView()
 }
 
-const copyCustomUrl = async (custUrl = '') => {
+async function copyCustomUrl(custUrl = '') {
   return await copy(
     `${appInfo.value.ncSiteUrl}/p/${encodeURIComponent(custUrl)}${
       preFillFormSearchParams.value && activeView.value?.type === ViewTypes.FORM ? `?${preFillFormSearchParams.value}` : ''
@@ -476,7 +488,9 @@ const copyCustomUrl = async (custUrl = '') => {
           data-testid="share-view-toggle"
           @click="toggleShare"
         />
-        <div v-else class="text-nc-content-gray-muted">{{ $t('labels.sharingRestricted') }}</div>
+        <div v-else class="text-nc-content-gray-muted">
+          {{ $t('labels.sharingRestricted') }}
+        </div>
       </div>
       <template v-if="isPublicShared">
         <div class="mt-0.5 border-t-1 border-nc-border-gray-light pt-3">
@@ -524,13 +538,15 @@ const copyCustomUrl = async (custUrl = '') => {
         </div>
         <div
           v-if="
-            activeView &&
-            [ViewTypes.GRID, ViewTypes.KANBAN, ViewTypes.GALLERY, ViewTypes.MAP, ViewTypes.CALENDAR].includes(activeView.type)
+            activeView
+              && [ViewTypes.GRID, ViewTypes.KANBAN, ViewTypes.GALLERY, ViewTypes.MAP, ViewTypes.CALENDAR].includes(activeView.type)
           "
           class="flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md"
         >
           <div class="flex flex-row items-center justify-between">
-            <div class="flex text-nc-content-gray-extreme">{{ $t('activity.allowDownload') }}</div>
+            <div class="flex text-nc-content-gray-extreme">
+              {{ $t('activity.allowDownload') }}
+            </div>
             <a-switch
               v-model:checked="allowCSVDownload"
               v-e="['c:share:view:allow-csv-download:toggle']"
@@ -582,8 +598,10 @@ const copyCustomUrl = async (custUrl = '') => {
                 {{ $t('activity.surveyMode') }}
               </div>
               <NcTooltip class="flex items-center">
-                <template #title> {{ $t('tooltip.surveyFormInfo') }}</template>
-                <GeneralIcon icon="info" class="flex-none text-gray-400 cursor-pointer"></GeneralIcon>
+                <template #title>
+                  {{ $t('tooltip.surveyFormInfo') }}
+                </template>
+                <GeneralIcon icon="info" class="flex-none text-gray-400 cursor-pointer" />
               </NcTooltip>
             </div>
             <a-switch
@@ -591,8 +609,7 @@ const copyCustomUrl = async (custUrl = '') => {
               v-e="['c:share:view:surver-mode:toggle']"
               data-testid="nc-modal-share-view__surveyMode"
               size="small"
-            >
-            </a-switch>
+            />
           </div>
         </div>
 
@@ -604,11 +621,11 @@ const copyCustomUrl = async (custUrl = '') => {
             <div class="text-nc-content-gray-extreme flex items-center space-x-1">
               <div>Default Theme</div>
               <NcTooltip class="flex items-center">
-                <template #title
-                  >Set the default theme (light or dark) for this shared form. Adds ?nc-theme=light or ?nc-theme=dark to the
-                  URL.</template
-                >
-                <GeneralIcon icon="info" class="flex-none text-gray-400 cursor-pointer"></GeneralIcon>
+                <template #title>
+                  Set the default theme (light or dark) for this shared form. Adds ?nc-theme=light or ?nc-theme=dark to the
+                  URL.
+                </template>
+                <GeneralIcon icon="info" class="flex-none text-gray-400 cursor-pointer" />
               </NcTooltip>
             </div>
             <a-switch
@@ -650,7 +667,7 @@ const copyCustomUrl = async (custUrl = '') => {
                     {{ $t('tooltip.preFillFormInfo') }}
                   </div>
                 </template>
-                <GeneralIcon icon="info" class="flex-none text-gray-400 cursor-pointer"></GeneralIcon>
+                <GeneralIcon icon="info" class="flex-none text-gray-400 cursor-pointer" />
               </NcTooltip>
             </div>
             <a-switch
@@ -659,8 +676,7 @@ const copyCustomUrl = async (custUrl = '') => {
               data-testid="nc-modal-share-view__preFill"
               size="small"
               @update:checked="handleChangeFormPreFill({ preFillEnabled: $event as boolean })"
-            >
-            </a-switch>
+            />
           </div>
 
           <a-radio-group
@@ -671,7 +687,9 @@ const copyCustomUrl = async (custUrl = '') => {
             @update:value="handleChangeFormPreFill({ preFilledMode: $event })"
           >
             <a-radio v-for="mode of Object.values(PreFilledMode)" :key="mode" :value="mode">
-              <div class="flex-1">{{ $t(`activity.preFilledFields.${mode}`) }}</div>
+              <div class="flex-1">
+                {{ $t(`activity.preFilledFields.${mode}`) }}
+              </div>
             </a-radio>
           </a-radio-group>
         </div>

@@ -1,4 +1,5 @@
-import { ColumnHelper, type ColumnType, FormulaDataTypes, type TableType, UITypes, isNumericCol, isVirtualCol } from 'nocodb-sdk'
+import type { ColumnType, TableType } from 'nocodb-sdk'
+import { ColumnHelper, FormulaDataTypes, isNumericCol, isVirtualCol, UITypes } from 'nocodb-sdk'
 
 export interface FieldQueryType {
   field: string
@@ -77,7 +78,8 @@ export function useFieldQuery() {
         metas: metas.value,
         serializeSearchQuery: true,
       })
-    } catch (_err: any) {
+    }
+    catch (_err: any) {
       /**
        * If it is a virtual column, then send query as it is
        */
@@ -87,7 +89,8 @@ export function useFieldQuery() {
          * We don't have to anything if serializeValue is not valid for current column
          */
         console.log('invalid search query for column', col.title, searchQuery)
-      } else if (col.uidt !== UITypes.Formula) {
+      }
+      else if (col.uidt !== UITypes.Formula) {
         searchQuery = query
       }
     }
@@ -103,11 +106,11 @@ export function useFieldQuery() {
     const sqlUi = tableMeta?.source_id ? sqlUis.value[tableMeta.source_id] : Object.values(sqlUis.value)[0]
 
     if (
-      (col.uidt !== UITypes.Formula || getFormulaColDataType(col) !== FormulaDataTypes.NUMERIC) &&
-      !isNumericCol(col) &&
-      sqlUi &&
-      ['text', 'string', 'json'].includes(sqlUi.getAbstractType(col)) &&
-      col.dt !== 'bigint'
+      (col.uidt !== UITypes.Formula || getFormulaColDataType(col) !== FormulaDataTypes.NUMERIC)
+      && !isNumericCol(col)
+      && sqlUi
+      && ['text', 'string', 'json'].includes(sqlUi.getAbstractType(col))
+      && col.dt !== 'bigint'
     ) {
       if (params.getWhereQueryAs === 'object') {
         return {

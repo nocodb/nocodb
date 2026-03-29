@@ -4,13 +4,14 @@
  * Imports the actual pure functions from listViewCache.ts — no mocks.
  */
 
+import type { ListViewRow } from '~/ee/components/smartsheet/list/composables/listViewCache'
 import {
-  type ListViewRow,
   collectRowAndDescendants,
   doesUpdateAffectSort,
   findCachedRowByPk,
   findSortedInsertIndex,
   insertRowsAt,
+
   pruneEmptyParents,
   removeRowsAndShift,
 } from '~/ee/components/smartsheet/list/composables/listViewCache'
@@ -41,7 +42,7 @@ function cacheEntries(cache: Map<number, ListViewRow>): [number, string | number
 }
 
 // Minimal columnsById for sort tests
-function makeColumnsById(cols: { id: string; title: string; uidt: string }[]): Record<string, any> {
+function makeColumnsById(cols: { id: string, title: string, uidt: string }[]): Record<string, any> {
   const map: Record<string, any> = {}
   for (const c of cols) map[c.id] = c
   return map
@@ -87,7 +88,7 @@ describe('removeRowsAndShift', () => {
     cache.set(52, makeRow(0, 'C', null, 't1'))
     cache.set(53, makeRow(0, 'D', null, 't1'))
     cache.set(54, makeRow(0, 'E', null, 't1'))
-    const chunks: any[] = new Array(3).fill('loaded')
+    const chunks: any[] = Array.from({ length: 3 }).fill('loaded')
 
     removeRowsAndShift(cache, chunks, [52])
 
@@ -160,7 +161,7 @@ describe('insertRowsAt', () => {
     cache.set(50, makeRow(0, 'A', null, 't1'))
     cache.set(51, makeRow(0, 'B', null, 't1'))
     cache.set(52, makeRow(0, 'C', null, 't1'))
-    const chunks: any[] = new Array(3).fill('loaded')
+    const chunks: any[] = Array.from({ length: 3 }).fill('loaded')
 
     insertRowsAt(cache, chunks, 51, [makeRow(0, 'X', null, 't1')])
 
@@ -222,7 +223,7 @@ describe('findSortedInsertIndex', () => {
     expect(findSortedInsertIndex(cache, 2, { name: 'Gamma' }, 0, null, [], cols)).toBe(2)
   })
 
-  it('ASC sort — inserts in correct position', () => {
+  it('aSC sort — inserts in correct position', () => {
     const cache = new Map<number, ListViewRow>()
     cache.set(0, makeRow(0, 'A', null, 't1', { name: 'Alpha' }))
     cache.set(1, makeRow(0, 'B', null, 't1', { name: 'Charlie' }))
@@ -231,7 +232,7 @@ describe('findSortedInsertIndex', () => {
     expect(findSortedInsertIndex(cache, 3, { name: 'Beta' }, 0, null, [{ title: 'name', fk_column_id: 'col_name', direction: 'asc' }], cols)).toBe(1)
   })
 
-  it('DESC sort — inserts in correct position', () => {
+  it('dESC sort — inserts in correct position', () => {
     const cache = new Map<number, ListViewRow>()
     cache.set(0, makeRow(0, 'A', null, 't1', { name: 'Echo' }))
     cache.set(1, makeRow(0, 'B', null, 't1', { name: 'Charlie' }))
@@ -442,7 +443,7 @@ describe('integration: UPDATE sort reposition', () => {
     Object.assign(cachedRow, { score: 25 })
 
     const { indices } = collectRowAndDescendants(cache, 3, 0, 0)
-    const subtreeRows = indices.map((i) => cache.get(i)!).filter(Boolean)
+    const subtreeRows = indices.map(i => cache.get(i)!).filter(Boolean)
     removeRowsAndShift(cache, chunks, indices)
 
     const newInsertAt = findSortedInsertIndex(cache, cache.size, cachedRow, 0, null, [{ title: 'score', fk_column_id: 'col_score', direction: 'asc' }], colsNum)
@@ -470,7 +471,7 @@ describe('integration: UPDATE sort reposition', () => {
     // Remove C1 (index 1, depth 1 — leaf, no subtree)
     const { indices } = collectRowAndDescendants(cache, totalRows, 1, 1)
     expect(indices).toEqual([1])
-    const subtreeRows = indices.map((i) => cache.get(i)!).filter(Boolean)
+    const subtreeRows = indices.map(i => cache.get(i)!).filter(Boolean)
     removeRowsAndShift(cache, chunks, indices)
 
     // After removal: P1(0), C2(1), C3(2), P2(3)
@@ -483,8 +484,13 @@ describe('integration: UPDATE sort reposition', () => {
 
     // Find sorted position among P1's children (C2=20, C3=30) — C1(25) goes between them
     const newInsertAt = findSortedInsertIndex(
-      cache, totalRows, cachedRow, 1, parent!.index,
-      [{ title: 'score', fk_column_id: 'col_score', direction: 'asc' }], colsNum,
+      cache,
+      totalRows,
+      cachedRow,
+      1,
+      parent!.index,
+      [{ title: 'score', fk_column_id: 'col_score', direction: 'asc' }],
+      colsNum,
     )
     expect(newInsertAt).toBe(2) // between C2(index 1) and C3(index 2)
 
@@ -508,15 +514,20 @@ describe('integration: UPDATE sort reposition', () => {
     Object.assign(cachedRow, { score: 35 })
 
     const { indices } = collectRowAndDescendants(cache, 4, 3, 1)
-    const subtreeRows = indices.map((i) => cache.get(i)!).filter(Boolean)
+    const subtreeRows = indices.map(i => cache.get(i)!).filter(Boolean)
     removeRowsAndShift(cache, chunks, indices)
 
     // After removal: P1(0), C1(1), C2(2)
     const parent = findCachedRowByPk(cache, 'P1', 0)
 
     const newInsertAt = findSortedInsertIndex(
-      cache, 4, cachedRow, 1, parent!.index,
-      [{ title: 'score', fk_column_id: 'col_score', direction: 'desc' }], colsNum,
+      cache,
+      4,
+      cachedRow,
+      1,
+      parent!.index,
+      [{ title: 'score', fk_column_id: 'col_score', direction: 'desc' }],
+      colsNum,
     )
     expect(newInsertAt).toBe(1) // before C1(30)
 
@@ -581,7 +592,7 @@ describe('integration: REORDER', () => {
     const chunks: any[] = ['loaded']
 
     const { indices } = collectRowAndDescendants(cache, 4, 2, 0)
-    const subtreeRows = indices.map((i) => cache.get(i)!).filter(Boolean)
+    const subtreeRows = indices.map(i => cache.get(i)!).filter(Boolean)
     removeRowsAndShift(cache, chunks, indices)
 
     const beforeRow = findCachedRowByPk(cache, 'A', 0)
@@ -602,7 +613,7 @@ describe('integration: REORDER', () => {
     const { indices } = collectRowAndDescendants(cache, 5, 2, 0)
     expect(indices).toEqual([2, 3])
 
-    const subtreeRows = indices.map((i) => cache.get(i)!).filter(Boolean)
+    const subtreeRows = indices.map(i => cache.get(i)!).filter(Boolean)
     removeRowsAndShift(cache, chunks, indices)
 
     const beforeRow = findCachedRowByPk(cache, 'P1', 0)

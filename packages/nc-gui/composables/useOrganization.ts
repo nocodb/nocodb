@@ -1,4 +1,4 @@
-export const useOrganization = () => {
+export function useOrganization() {
   const workspaces = ref([])
   const members = ref([])
   const bases = ref([])

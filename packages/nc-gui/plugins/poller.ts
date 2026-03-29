@@ -1,6 +1,6 @@
 import type { Api as BaseAPI } from 'nocodb-sdk'
 
-const pollPlugin = async (nuxtApp) => {
+async function pollPlugin(nuxtApp) {
   const api: BaseAPI<any> = nuxtApp.$api as any
 
   // unsubscribe all if signed out
@@ -33,24 +33,25 @@ const pollPlugin = async (nuxtApp) => {
     try {
       const response:
         | {
-            _mid: number
-            id: string
-            status: 'refresh' | 'update' | 'close'
-            data: any
-          }
+          _mid: number
+          id: string
+          status: 'refresh' | 'update' | 'close'
+          data: any
+        }
         | {
-            _mid: number
-            id: string
-            status: 'refresh' | 'update' | 'close'
-            data: any
-          }[] = await api.jobs.listen({ _mid, data: topic })
+          _mid: number
+          id: string
+          status: 'refresh' | 'update' | 'close'
+          data: any
+        }[] = await api.jobs.listen({ _mid, data: topic })
 
       if (Array.isArray(response)) {
         let lastMid = 0
         for (const r of response) {
           if (r.status === 'close') {
             return cb(r)
-          } else {
+          }
+          else {
             if (r.status === 'update') {
               cb(r.data)
             }
@@ -58,17 +59,21 @@ const pollPlugin = async (nuxtApp) => {
           }
         }
         await subscribe(topic, cb, lastMid)
-      } else {
+      }
+      else {
         if (response.status === 'close') {
           return cb(response)
-        } else if (response.status === 'update') {
+        }
+        else if (response.status === 'update') {
           cb(response.data)
           await subscribe(topic, cb, response._mid)
-        } else if (response.status === 'refresh') {
+        }
+        else if (response.status === 'refresh') {
           await subscribe(topic, cb, _mid)
         }
       }
-    } catch (e) {
+    }
+    catch (e) {
       setTimeout(() => {
         subscribe(topic, cb, _mid)
       }, 1000)
@@ -90,7 +95,9 @@ const pollPlugin = async (nuxtApp) => {
   }
 
   watch((nuxtApp.$state as ReturnType<typeof useGlobal>).token, (newToken, oldToken) => {
-    if (newToken && newToken !== oldToken) init()
+    if (newToken && newToken !== oldToken) {
+      init()
+    }
     else if (!newToken) {
       unsub = true
     }
@@ -104,7 +111,7 @@ const pollPlugin = async (nuxtApp) => {
   nuxtApp.provide('poller', poller)
 }
 
-export default defineNuxtPlugin(async function (nuxtApp) {
+export default defineNuxtPlugin(async (nuxtApp) => {
   if (!isEeUI) return await pollPlugin(nuxtApp)
 })
 

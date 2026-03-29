@@ -1,5 +1,5 @@
-import emblaCarouselVue from 'embla-carousel-vue'
 import type { UnwrapRefCarouselApi as CarouselApi, CarouselEmits, CarouselProps } from './interface'
+import emblaCarouselVue from 'embla-carousel-vue'
 
 const [useProvideCarousel, useInjectCarousel] = createInjectionState(
   ({ opts, orientation, plugins }: CarouselProps, emits: CarouselEmits) => {

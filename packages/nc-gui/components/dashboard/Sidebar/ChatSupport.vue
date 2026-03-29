@@ -3,7 +3,7 @@ const { t } = useI18n()
 
 const { isModalVisible } = useChatWoot()
 
-const toggleVisibility = () => {
+function toggleVisibility() {
   // if chatwoot is not initialized, show a message
   if (!isModalVisible.value && !ncIsFunction(window.$chatwoot?.toggle)) {
     message.info({

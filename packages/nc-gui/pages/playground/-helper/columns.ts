@@ -1,4 +1,5 @@
-import { type ColumnType, UITypes } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 
 const defaultColumnModelId = 'mtWA9ZXvsuh'
 const table2ColumnModelId = 'mehpRLA42Cz'

@@ -8,7 +8,7 @@ defineProps<{
 const { t } = useI18n()
 const { clearError } = useSsoError()
 
-const handleRetry = () => {
+function handleRetry() {
   clearError()
 }
 </script>

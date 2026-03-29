@@ -16,7 +16,7 @@ function extractNumbers(str: string): number {
 
   if (str.startsWith('-')) parts.unshift('-')
 
-  return parseFloat(parts.join(''))
+  return Number.parseFloat(parts.join(''))
 }
 
 /*
@@ -29,7 +29,7 @@ function extractNumbers(str: string): number {
  */
 function toDuration(value: string) {
   if (value.includes(':')) {
-    const [hours, minutes, seconds] = value.split(':').map((v) => parseInt(v) || 0)
+    const [hours, minutes, seconds] = value.split(':').map(v => Number.parseInt(v) || 0)
     return hours * 3600 + minutes * 60 + seconds
   }
 
@@ -70,6 +70,6 @@ export function convert(value: string, type: string, limit = 100): unknown {
     case UITypes.Duration:
       return toDuration(value)
     case UITypes.MultiSelect:
-      return value.split(',').map((v) => v.trim())
+      return value.split(',').map(v => v.trim())
   }
 }

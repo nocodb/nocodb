@@ -33,7 +33,7 @@ const editEnabled = ref(false)
 
 const defaultValueWrapperRef = ref<HTMLDivElement>()
 
-const updateCdfValue = (cdf: string | null) => {
+function updateCdfValue(cdf: string | null) {
   vModel.value = { ...vModel.value, cdf }
   cdfValue.value = cdf
 }
@@ -70,7 +70,7 @@ const validationError = computed(() => {
   return getColumnValidationError(vModel.value)
 })
 
-const handleShowInput = () => {
+function handleShowInput() {
   isVisibleDefaultValueInput.value = true
 
   // In playwright testing we first enable this default input and then start filling all fields
@@ -118,7 +118,9 @@ const handleShowInput = () => {
 
   <div v-else>
     <div class="w-full flex items-center gap-2 mb-2">
-      <div class="text-small leading-[18px] flex-1 text-nc-content-gray-subtle">{{ $t('placeholder.defaultValue') }}</div>
+      <div class="text-small leading-[18px] flex-1 text-nc-content-gray-subtle">
+        {{ $t('placeholder.defaultValue') }}
+      </div>
     </div>
     <div class="flex flex-row gap-2 relative">
       <div
@@ -168,6 +170,8 @@ const handleShowInput = () => {
         </NcTooltip>
       </div>
     </div>
-    <div v-if="validationError" class="text-nc-content-red-medium text-small leading-[18px] mt-1">{{ $t(validationError) }}</div>
+    <div v-if="validationError" class="text-nc-content-red-medium text-small leading-[18px] mt-1">
+      {{ $t(validationError) }}
+    </div>
   </div>
 </template>

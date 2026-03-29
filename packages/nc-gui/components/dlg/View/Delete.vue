@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { DependencyTableType } from 'nocodb-sdk'
+
 interface Props {
   modelValue: boolean
   view?: Record<string, any>
@@ -51,7 +52,7 @@ async function onDelete() {
         v-if="view"
         class="flex flex-row items-center py-2 px-3 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle"
       >
-        <GeneralViewIcon :meta="props.view" class="nc-view-icon w-4 min-h-4"></GeneralViewIcon>
+        <GeneralViewIcon :meta="props.view" class="nc-view-icon w-4 min-h-4" />
         <div
           class="capitalize text-ellipsis overflow-hidden select-none w-full pl-3"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ButtonActionsType, type ButtonType, type ColumnType, type FilterType } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, FilterType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { ButtonActionsType } from 'nocodb-sdk'
 import { validateRowFilters } from '~/utils/dataUtils'
 
 const column = inject(ColumnInj) as Ref<
@@ -62,16 +63,16 @@ const isFieldAiIntegrationAvailable = computed(() => {
   return !!fkIntegrationId
 })
 
-const generate = async () => {
+async function generate() {
   if (!meta?.value?.id || !meta.value.columns || !column?.value?.id) return
 
   if (!pk.value) return
 
-  const outputColumnIds =
-    ncIsString(column.value.colOptions?.output_column_ids) && column.value.colOptions.output_column_ids.split(',').length > 0
+  const outputColumnIds
+    = ncIsString(column.value.colOptions?.output_column_ids) && column.value.colOptions.output_column_ids.split(',').length > 0
       ? column.value.colOptions.output_column_ids.split(',')
       : []
-  const outputColumns = outputColumnIds.map((id) => meta.value?.columnsById[id])
+  const outputColumns = outputColumnIds.map(id => meta.value?.columnsById[id])
 
   generatingRows.value.push(pk.value)
   generatingColumnRows.value.push(column.value.id)
@@ -95,17 +96,17 @@ const generate = async () => {
     }
   }
 
-  generatingRows.value = generatingRows.value.filter((v) => v !== pk.value)
-  generatingColumnRows.value = generatingColumnRows.value.filter((v) => v !== column.value.id)
-  generatingColumns.value = generatingColumns.value.filter((v) => !outputColumnIds?.includes(v))
+  generatingRows.value = generatingRows.value.filter(v => v !== pk.value)
+  generatingColumnRows.value = generatingColumnRows.value.filter(v => v !== column.value.id)
+  generatingColumns.value = generatingColumns.value.filter(v => !outputColumnIds?.includes(v))
 }
 
 const isExecutingId = ref('')
 
 const isExecuting = computed(
   () =>
-    activeExecutions.value.get(isExecutingId.value)?.status === 'running' ||
-    fieldIDRowMapping.value.get(`${pk.value}:${column.value.id}`) === 'running',
+    activeExecutions.value.get(isExecutingId.value)?.status === 'running'
+    || fieldIDRowMapping.value.get(`${pk.value}:${column.value.id}`) === 'running',
 )
 
 const invalidUrlTooltip = ref('')
@@ -144,7 +145,8 @@ const componentProps = computed(() => {
     // if url params not encoded, encode them using encodeURI
     try {
       url = decodeURI(url) === url ? encodeURI(url) : url
-    } catch {
+    }
+    catch {
       url = encodeURI(url)
     }
 
@@ -157,32 +159,35 @@ const componentProps = computed(() => {
       target: '_blank',
       ...(column.value?.colOptions.error || !isValidUrl || filterDisabled ? { disabled: true } : {}),
     }
-  } else if (column.value.colOptions.type === ButtonActionsType.Webhook) {
+  }
+  else if (column.value.colOptions.type === ButtonActionsType.Webhook) {
     return {
       disabled:
-        filterDisabled ||
-        isPublic.value ||
-        !isUIAllowed('hookTrigger') ||
-        isLoading.value ||
-        !column.value.colOptions.fk_webhook_id ||
-        !cellValue.value?.fk_webhook_id,
+        filterDisabled
+        || isPublic.value
+        || !isUIAllowed('hookTrigger')
+        || isLoading.value
+        || !column.value.colOptions.fk_webhook_id
+        || !cellValue.value?.fk_webhook_id,
     }
-  } else if (column.value.colOptions.type === ButtonActionsType.Script) {
+  }
+  else if (column.value.colOptions.type === ButtonActionsType.Script) {
     return {
       disabled: filterDisabled || isPublic.value || isExecuting.value || !isUIAllowed('dataEdit') || isLoading.value,
     }
-  } else if (column.value.colOptions.type === ButtonActionsType.Ai) {
+  }
+  else if (column.value.colOptions.type === ButtonActionsType.Ai) {
     return {
       disabled:
-        filterDisabled ||
-        isPublic.value ||
-        !isUIAllowed('dataEdit') ||
-        !isFieldAiIntegrationAvailable.value ||
-        isLoading.value ||
-        (pk.value &&
-          generatingRows.value.includes(pk.value) &&
-          column.value?.id &&
-          generatingColumnRows.value.includes(column.value.id)),
+        filterDisabled
+        || isPublic.value
+        || !isUIAllowed('dataEdit')
+        || !isFieldAiIntegrationAvailable.value
+        || isLoading.value
+        || (pk.value
+          && generatingRows.value.includes(pk.value)
+          && column.value?.id
+          && generatingColumnRows.value.includes(column.value.id)),
     }
   }
 
@@ -205,7 +210,7 @@ const afterActionStatus = ref<{
   tooltip?: string
 } | null>(null)
 
-const triggerAction = async () => {
+async function triggerAction() {
   const colOptions = column.value.colOptions
   afterActionStatus.value = null
 
@@ -213,7 +218,8 @@ const triggerAction = async () => {
 
   if (colOptions.type === ButtonActionsType.Url) {
     confirmPageLeavingRedirect(componentProps.value?.href, componentProps.value?.target, appInfo.value?.allowLocalUrl)
-  } else if (colOptions.type === ButtonActionsType.Webhook) {
+  }
+  else if (colOptions.type === ButtonActionsType.Webhook) {
     try {
       isLoading.value = true
 
@@ -232,7 +238,8 @@ const triggerAction = async () => {
       ncDelay(2000).then(() => {
         afterActionStatus.value = null
       })
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.log(e)
 
       const errorMsg = await extractSdkResponseErrorMsg(e)
@@ -242,12 +249,15 @@ const triggerAction = async () => {
       ncDelay(3000).then(() => {
         afterActionStatus.value = null
       })
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
-  } else if (colOptions.type === ButtonActionsType.Ai) {
+  }
+  else if (colOptions.type === ButtonActionsType.Ai) {
     await generate()
-  } else if (colOptions.type === ButtonActionsType.Script) {
+  }
+  else if (colOptions.type === ButtonActionsType.Script) {
     try {
       isLoading.value = true
 
@@ -279,7 +289,8 @@ const triggerAction = async () => {
       ncDelay(2000).then(() => {
         afterActionStatus.value = null
       })
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.log(e)
 
       const errorMsg = await extractSdkResponseErrorMsg(e)
@@ -289,7 +300,8 @@ const triggerAction = async () => {
       ncDelay(3000).then(() => {
         afterActionStatus.value = null
       })
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -316,10 +328,10 @@ const triggerAction = async () => {
           filterDisabledTooltip
             ? filterDisabledTooltip
             : isAiButtonType
-            ? aiIntegrations.length
-              ? $t('tooltip.aiIntegrationReConfigure')
-              : $t('tooltip.aiIntegrationAddAndReConfigure')
-            : afterActionStatus?.tooltip || invalidUrlTooltip
+              ? aiIntegrations.length
+                ? $t('tooltip.aiIntegrationReConfigure')
+                : $t('tooltip.aiIntegrationAddAndReConfigure')
+              : afterActionStatus?.tooltip || invalidUrlTooltip
         }}
       </template>
       <component
@@ -341,9 +353,9 @@ const triggerAction = async () => {
         />
         <GeneralLoader
           v-else-if="
-            isLoading ||
-            isExecuting ||
-            (pk && generatingRows.includes(pk) && column?.id && generatingColumnRows.includes(column.id))
+            isLoading
+              || isExecuting
+              || (pk && generatingRows.includes(pk) && column?.id && generatingColumnRows.includes(column.id))
           "
           class="flex w-4 h-4 !text-current"
           size="medium"

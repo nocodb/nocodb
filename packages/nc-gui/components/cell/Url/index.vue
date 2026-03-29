@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
+import type { VNodeRef } from 'vue'
 
 interface Props {
   modelValue?: string | null
@@ -57,18 +57,18 @@ const url = computed(() => {
 
 const { cellUrlOptions } = useCellUrlConfig(url)
 
-const focus: VNodeRef = (el) =>
+const focus: VNodeRef = el =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 
 watch(
   () => editEnabled.value,
   () => {
     if (
-      !isForm.value &&
-      parseProp(column.value.meta)?.validate &&
-      !editEnabled.value &&
-      localState.value &&
-      !isValidURL(trim(localState.value))
+      !isForm.value
+      && parseProp(column.value.meta)?.validate
+      && !editEnabled.value
+      && localState.value
+      && !isValidURL(trim(localState.value))
     ) {
       message.error(t('msg.error.invalidURL'))
       localState.value = undefined
@@ -96,7 +96,7 @@ watch(
       @keydown.alt.stop
       @selectstart.capture.stop
       @mousedown.stop
-    />
+    >
 
     <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase"> {{ $t('general.null') }}</span>
 
@@ -126,13 +126,13 @@ watch(
       <LazyCellClampedText :value="cellUrlOptions.overlay" :lines="rowHeight" class="nc-cell-field" />
     </nuxt-link>
 
-    <span v-else class="w-9/10 overflow-ellipsis overflow-hidden"
-      ><LazyCellClampedText :value="value" :lines="rowHeight" class="nc-cell-field"
-    /></span>
+    <span v-else class="w-9/10 overflow-ellipsis overflow-hidden"><LazyCellClampedText :value="value" :lines="rowHeight" class="nc-cell-field" /></span>
 
     <div v-if="column.meta?.validate && !isValid && value?.length && !editEnabled" class="mr-1 w-1/10">
       <a-tooltip placement="top">
-        <template #title> {{ t('msg.error.invalidURL') }} </template>
+        <template #title>
+          {{ t('msg.error.invalidURL') }}
+        </template>
         <div class="flex flex-row items-center">
           <MiCircleWarning class="text-red-400 h-4" />
         </div>

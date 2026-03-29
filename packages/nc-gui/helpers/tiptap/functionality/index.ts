@@ -1,2 +1,2 @@
-export { default as suggestion } from './suggestion'
 export * from './markdown'
+export { default as suggestion } from './suggestion'

@@ -1,13 +1,11 @@
 <script lang="ts" setup>
+import type { PlanLimitExceededDetailsType, RoleLabels, TeamV3V3Type, UserType, WorkspaceType } from 'nocodb-sdk'
 import {
-  NON_SEAT_ROLES,
   NcErrorType,
-  type PlanLimitExceededDetailsType,
+  NON_SEAT_ROLES,
+
   ProjectRoles,
-  type RoleLabels,
-  type TeamV3V3Type,
-  type UserType,
-  type WorkspaceType,
+
   WorkspaceUserRoles,
 } from 'nocodb-sdk'
 
@@ -111,7 +109,7 @@ const selectedWorkspaces = computed<WorkspaceType[]>(() => {
   return workSpaceSelectList.value.filter((ws: WorkspaceType) => checked[ws.id!])
 })
 
-const focusOnDiv = () => {
+function focusOnDiv() {
   focusRef.value?.focus()
   isDivFocused.value = true
 }
@@ -120,7 +118,7 @@ watch(dialogShow, async (newVal) => {
   if (newVal) {
     try {
       const rolesArr = Object.values(orderedRoles.value)
-      let currentRoleIndex = rolesArr.findIndex((role) => userRoles.value && Object.keys(userRoles.value).includes(role))
+      let currentRoleIndex = rolesArr.findIndex(role => userRoles.value && Object.keys(userRoles.value).includes(role))
 
       if (currentRoleIndex !== -1) {
         // We don't allow user to assign owner role to a team
@@ -133,22 +131,24 @@ watch(dialogShow, async (newVal) => {
         // If teams are not enabled, filter out INHERIT role as well
         // todo: remove this check once teams are enabled by default
         if (props.isTeam || !isTeamsEnabled.value) {
-          filteredRoles = rolesArr.filter((role) => role !== WorkspaceUserRoles.INHERIT && role !== ProjectRoles.INHERIT)
+          filteredRoles = rolesArr.filter(role => role !== WorkspaceUserRoles.INHERIT && role !== ProjectRoles.INHERIT)
 
           // Recompute index against filteredRoles since removing INHERIT shifts positions
-          currentRoleIndex = filteredRoles.findIndex((role) => userRoles.value && Object.keys(userRoles.value).includes(role))
+          currentRoleIndex = filteredRoles.findIndex(role => userRoles.value && Object.keys(userRoles.value).includes(role))
         }
 
         allowedRoles.value = filteredRoles.slice(currentRoleIndex)
         disabledRoles.value = filteredRoles.slice(0, currentRoleIndex)
-      } else {
+      }
+      else {
         // Filter out INHERIT role for teams (workspace or base teams)
         let filteredRoles = rolesArr
         if (props.isTeam) {
-          filteredRoles = rolesArr.filter((role) => role !== WorkspaceUserRoles.INHERIT && role !== ProjectRoles.INHERIT)
+          filteredRoles = rolesArr.filter(role => role !== WorkspaceUserRoles.INHERIT && role !== ProjectRoles.INHERIT)
           allowedRoles.value = filteredRoles.slice(1)
           disabledRoles.value = filteredRoles.slice(0, 1)
-        } else {
+        }
+        else {
           allowedRoles.value = rolesArr
           disabledRoles.value = []
         }
@@ -159,7 +159,8 @@ watch(dialogShow, async (newVal) => {
       if (inheritIndex !== -1) {
         allowedRoles.value.push(...allowedRoles.value.splice(inheritIndex, 1))
       }
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
 
@@ -174,7 +175,8 @@ watch(dialogShow, async (newVal) => {
     setTimeout(() => {
       focusOnDiv()
     }, 100)
-  } else {
+  }
+  else {
     emailBadges.value = []
     inviteData.email = ''
     inviteData.roles = orderedRoles.value.NO_ACCESS
@@ -184,7 +186,7 @@ watch(dialogShow, async (newVal) => {
   }
 })
 
-const insertOrUpdateString = (str: string) => {
+function insertOrUpdateString(str: string) {
   // Check if the string already exists in the array
   const index = emailBadges.value.indexOf(str)
 
@@ -197,7 +199,7 @@ const insertOrUpdateString = (str: string) => {
   emailBadges.value.push(str)
 }
 
-const emailInputValidation = (input: string, isBulkEmailCopyPaste = false): boolean => {
+function emailInputValidation(input: string, isBulkEmailCopyPaste = false): boolean {
   if (!input.length) {
     if (isBulkEmailCopyPaste) return false
 
@@ -230,14 +232,14 @@ const isInviteButtonDisabled = computed(() => {
 
 const showUserWillChargedWarning = computed(() => {
   return (
-    isEeUI &&
-    !appInfo.value?.isOnPrem &&
-    isPaymentEnabled.value &&
-    isPaidPlan.value &&
-    !NON_SEAT_ROLES.includes(inviteData.roles) &&
-    showUserMayChargeAlert.value &&
-    !isInviteButtonDisabled.value &&
-    !emailValidation.isError
+    isEeUI
+    && !appInfo.value?.isOnPrem
+    && isPaymentEnabled.value
+    && isPaidPlan.value
+    && !NON_SEAT_ROLES.includes(inviteData.roles)
+    && showUserMayChargeAlert.value
+    && !isInviteButtonDisabled.value
+    && !emailValidation.isError
   )
 })
 
@@ -269,7 +271,7 @@ watch(inviteData, (newVal) => {
     /**
      if email is already entered we delete the already
      existing email and add new one
-     **/
+     */
     if (emailBadges.value.includes(emailToAdd)) {
       insertOrUpdateString(emailToAdd)
       inviteData.email = ''
@@ -284,7 +286,7 @@ watch(inviteData, (newVal) => {
   }
 })
 
-const handleEnter = () => {
+function handleEnter() {
   const isEmailIsValid = emailInputValidation(inviteData.email)
   if (!isEmailIsValid) return
 
@@ -310,7 +312,7 @@ watch(dialogShow, (newVal) => {
 })
 
 // when bulk email is pasted
-const onPaste = (e: ClipboardEvent) => {
+function onPaste(e: ClipboardEvent) {
   emailValidation.isError = false
 
   const pastedText = e.clipboardData?.getData('text')
@@ -333,7 +335,7 @@ const onPaste = (e: ClipboardEvent) => {
     /**
      if email is already entered we delete the already
      existing email and add new one
-     **/
+     */
     if (emailBadges.value.includes(el)) {
       insertOrUpdateString(el)
       return
@@ -345,7 +347,7 @@ const onPaste = (e: ClipboardEvent) => {
   inviteData.email = ''
 }
 
-const inviteCollaborator = async () => {
+async function inviteCollaborator() {
   try {
     isLoading.value = true
 
@@ -360,12 +362,13 @@ const inviteCollaborator = async () => {
       }
 
       for (const email of payloadData?.split(',')) {
-        if (props.users?.some((u) => u.email === email.trim())) {
+        if (props.users?.some(u => u.email === email.trim())) {
           let scopeLabel = 'objects.project'
 
           if (props.type === 'workspace') {
             scopeLabel = 'objects.workspace'
-          } else if (props.type === 'organization') {
+          }
+          else if (props.type === 'organization') {
             scopeLabel = 'general.organization'
           }
 
@@ -379,9 +382,11 @@ const inviteCollaborator = async () => {
           email: payloadData,
           roles: inviteData.roles,
         } as unknown as User)
-      } else if (props.type === 'workspace' && props.workspaceId) {
+      }
+      else if (props.type === 'workspace' && props.workspaceId) {
         await inviteWsCollaborator(payloadData, inviteData.roles, props.workspaceId)
-      } else if (props.type === 'organization') {
+      }
+      else if (props.type === 'organization') {
         // TODO: Add support for Bulk Workspace Invite
         for (const workspace of selectedWorkspaces.value) {
           await inviteWsCollaborator(payloadData, inviteData.roles, workspace.id)
@@ -391,19 +396,21 @@ const inviteCollaborator = async () => {
       message.success(t('msg.info.inviteSent'))
       inviteData.email = ''
       emailBadges.value = []
-    } else {
+    }
+    else {
       if (props.type === 'base' && props.baseId) {
         await baseTeamAdd(
           props.baseId!,
-          inviteData.selectedTeamIds.map((teamId) => ({
+          inviteData.selectedTeamIds.map(teamId => ({
             team_id: teamId,
             base_role: inviteData.roles as Exclude<ProjectRoles, ProjectRoles.OWNER>,
           })),
         )
-      } else if (props.type === 'workspace' && props.workspaceId) {
+      }
+      else if (props.type === 'workspace' && props.workspaceId) {
         await workspaceTeamAdd(
           props.workspaceId,
-          inviteData.selectedTeamIds.map((teamId) => ({
+          inviteData.selectedTeamIds.map(teamId => ({
             team_id: teamId,
             workspace_role: inviteData.roles as Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>,
           })),
@@ -411,14 +418,16 @@ const inviteCollaborator = async () => {
       }
     }
     dialogShow.value = false
-  } catch (e: any) {
+  }
+  catch (e: any) {
     const errorInfo = await extractSdkResponseErrorMsgv2(e)
 
     if (isPaymentEnabled.value && errorInfo.error === NcErrorType.ERR_PLAN_LIMIT_EXCEEDED) {
       let errorWsId
       if (props.type === 'workspace' && props.workspaceId) {
         errorWsId = props.workspaceId
-      } else if (props.type === 'organization') {
+      }
+      else if (props.type === 'organization') {
         // We have to extract ws id from request url as we are making multple api calls
         errorWsId = e?.config?.url?.split('/')?.[4]
       }
@@ -436,13 +445,15 @@ const inviteCollaborator = async () => {
         workspaceId: errorWsId,
         isAdminPanel: props.type === 'organization',
       })
-    } else {
+    }
+    else {
       if (errorInfo.error === NcErrorType.ERR_UNKNOWN) {
         errorInfo.message = await extractSdkResponseErrorMsg(e)
       }
       message.error(errorInfo.message)
     }
-  } finally {
+  }
+  finally {
     singleEmailValue.value = ''
     isLoading.value = false
   }
@@ -457,7 +468,7 @@ onMounted(async () => {
 })
 const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role as ProjectRoles | WorkspaceUserRoles)
 
-const removeEmail = (index: number) => {
+function removeEmail(index: number) {
   warningMsg.value = null
   emailBadges.value.splice(index, 1)
   if (emailBadges.value.length === 0) {
@@ -465,7 +476,7 @@ const removeEmail = (index: number) => {
   }
 }
 
-const onTeamChange = async (_teamIds: RawValueType) => {
+async function onTeamChange(_teamIds: RawValueType) {
   inviteData.selectedTeamIds = (_teamIds as string[]) ?? []
 }
 </script>
@@ -485,12 +496,12 @@ const onTeamChange = async (_teamIds: RawValueType) => {
           type === 'organization'
             ? 'Invite Members to Workspaces'
             : type === 'base'
-            ? isTeam
-              ? $t('activity.addTeamsToBase')
-              : $t('activity.addMember')
-            : isTeam
-            ? $t('activity.addTeamsToWorkspace')
-            : $t('activity.inviteToWorkspace')
+              ? isTeam
+                ? $t('activity.addTeamsToBase')
+                : $t('activity.addMember')
+              : isTeam
+                ? $t('activity.addTeamsToWorkspace')
+                : $t('activity.inviteToWorkspace')
         }}
       </div>
     </template>
@@ -534,7 +545,7 @@ const onTeamChange = async (_teamIds: RawValueType) => {
               @keyup.enter="handleEnter"
               @paste.prevent="onPaste"
               @input="warningMsg = null"
-            />
+            >
           </div>
           <NcListTeamSelector
             v-else
@@ -549,7 +560,9 @@ const onTeamChange = async (_teamIds: RawValueType) => {
           />
 
           <div class="flex items-center justify-between gap-4">
-            <div class="md:hidden text-nc-content-gray text-bodyLg">{{ $t('labels.selectRole') }}:</div>
+            <div class="md:hidden text-nc-content-gray text-bodyLg">
+              {{ $t('labels.selectRole') }}:
+            </div>
             <div class="flex items-center">
               <RolesSelectorV2
                 :on-role-change="onRoleChange"
@@ -651,7 +664,9 @@ const onTeamChange = async (_teamIds: RawValueType) => {
 
     <div class="flex mt-8 justify-end">
       <div class="flex gap-2">
-        <NcButton type="secondary" @click="dialogShow = false"> {{ $t('labels.cancel') }}</NcButton>
+        <NcButton type="secondary" @click="dialogShow = false">
+          {{ $t('labels.cancel') }}
+        </NcButton>
         <NcButton
           :disabled="isInviteButtonDisabled || emailValidation.isError || isLoading || !!warningMsg"
           :loading="isLoading"
@@ -666,8 +681,8 @@ const onTeamChange = async (_teamIds: RawValueType) => {
                 ? $t('labels.addTeams')
                 : $t('labels.addTeam')
               : type === 'base'
-              ? $t('activity.inviteToBase')
-              : $t('activity.inviteToWorkspace')
+                ? $t('activity.inviteToBase')
+                : $t('activity.inviteToWorkspace')
           }}
         </NcButton>
       </div>

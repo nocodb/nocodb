@@ -7,14 +7,15 @@ const { sharedBaseId, isUseThisTemplate, options, templateName } = useCopyShared
 
 const { forcedProjectId } = storeToRefs(useBase())
 
-const getSharedBaseTitle = async () => {
+async function getSharedBaseTitle() {
   if (!route.query.base) return
 
   try {
     const sharedBaseMeta = await $api.public.sharedBaseGet(route.query.base as string)
 
     templateName.value = (sharedBaseMeta?.base_title as string) ?? ''
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.error(e)
   }
 }
@@ -36,7 +37,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div></div>
+  <div />
 </template>
 
 <style scoped></style>

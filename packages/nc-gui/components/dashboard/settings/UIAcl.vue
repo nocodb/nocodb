@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject } from '@vue/runtime-core'
+import { inject } from 'vue'
 
 type Role = 'editor' | 'commenter' | 'viewer'
 
@@ -33,10 +33,10 @@ const searchInput = ref('')
 
 const filteredTables = computed(() =>
   tables.value.filter(
-    (el) =>
-      el?.source_id === props.sourceId &&
-      ((typeof el?._ptn === 'string' && el._ptn.toLowerCase().includes(searchInput.value.toLowerCase())) ||
-        (typeof el?.title === 'string' && el.title.toLowerCase().includes(searchInput.value.toLowerCase()))),
+    el =>
+      el?.source_id === props.sourceId
+      && ((typeof el?._ptn === 'string' && el._ptn.toLowerCase().includes(searchInput.value.toLowerCase()))
+        || (typeof el?.title === 'string' && el.title.toLowerCase().includes(searchInput.value.toLowerCase()))),
   ),
 )
 
@@ -44,12 +44,12 @@ const allSelected = computed(() => {
   return roles.value.reduce((acc, role) => {
     return {
       ...acc,
-      [role]: tables.value.filter((t) => t.disabled[role]).length === 0,
+      [role]: tables.value.filter(t => t.disabled[role]).length === 0,
     }
   }, {} as Record<Role, boolean>)
 })
 
-const toggleSelectAll = (role: Role) => {
+function toggleSelectAll(role: Role) {
   const newValue = !allSelected.value[role]
 
   tables.value.forEach((t) => {
@@ -67,9 +67,11 @@ async function loadTableList() {
     tables.value = await $api.base.modelVisibilityList(baseId.value, {
       includeM2M: includeM2M.value,
     })
-  } catch (e) {
+  }
+  catch (e) {
     console.error(e)
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 }
@@ -80,17 +82,18 @@ async function saveUIAcl() {
 
     await $api.base.modelVisibilitySet(
       baseId.value,
-      tables.value.filter((t) => t.edited),
+      tables.value.filter(t => t.edited),
     )
     // Updated UI ACL for tables successfully
     message.success(t('msg.success.updatedUIACL'))
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
   $e('a:proj-meta:ui-acl')
 }
 
-const onRoleCheck = (record: any, role: Role) => {
+function onRoleCheck(record: any, role: Role) {
   record.disabled[role] = !record.disabled[role]
   record.edited = true
 }
@@ -149,7 +152,9 @@ const columns = [
   <div class="h-full flex flex-row w-full items-center justify-center">
     <div class="w-full h-full flex flex-col">
       <NcTooltip class="mb-4 first-letter:capital" show-on-truncate-only>
-        <template #title>{{ base.title }}</template>
+        <template #title>
+          {{ base.title }}
+        </template>
         <span> Control view visibility for different roles to manage access efficiently. </span>
       </NcTooltip>
       <div class="flex flex-row items-center w-full mb-4 gap-2 justify-between">
@@ -174,7 +179,9 @@ const columns = [
           <NcButton size="small" class="z-10 !rounded-lg !px-2" type="primary" @click="saveUIAcl">
             <div class="flex flex-row items-center w-full gap-x-1">
               <component :is="iconMap.save" />
-              <div class="flex">{{ $t('general.save') }}</div>
+              <div class="flex">
+                {{ $t('general.save') }}
+              </div>
             </div>
           </NcButton>
         </div>
@@ -218,7 +225,9 @@ const columns = [
               </div>
 
               <NcTooltip class="truncate" show-on-truncate-only>
-                <template #title>{{ record._ptn }}</template>
+                <template #title>
+                  {{ record._ptn }}
+                </template>
                 {{ record._ptn }}
               </NcTooltip>
             </div>
@@ -231,10 +240,12 @@ const columns = [
                   :meta="{ meta: record.meta, type: 'view' }"
                   class="text-nc-content-gray-muted !text-sm children:(!w-5 !h-5)"
                 />
-                <GeneralViewIcon v-else :meta="record" class="text-nc-content-gray-muted"></GeneralViewIcon>
+                <GeneralViewIcon v-else :meta="record" class="text-nc-content-gray-muted" />
               </div>
               <NcTooltip class="truncate" show-on-truncate-only>
-                <template #title>{{ record.title }}</template>
+                <template #title>
+                  {{ record.title }}
+                </template>
                 {{ record.title }}
               </NcTooltip>
             </div>
@@ -245,12 +256,9 @@ const columns = [
                 <template #title>
                   <span v-if="record.disabled[column.name]">
                     {{ $t('labels.clickToMake') }} '{{ record.title }}' {{ $t('labels.visibleForRole') }} {{ column.name }}
-                    {{ $t('labels.inUI') }} dashboard</span
-                  >
-                  <span v-else
-                    >{{ $t('labels.clickToHide') }} '{{ record.title }}' {{ $t('labels.forRole') }}:{{ column.name }}
-                    {{ $t('labels.inUI') }}</span
-                  >
+                    {{ $t('labels.inUI') }} dashboard</span>
+                  <span v-else>{{ $t('labels.clickToHide') }} '{{ record.title }}' {{ $t('labels.forRole') }}:{{ column.name }}
+                    {{ $t('labels.inUI') }}</span>
                 </template>
 
                 <NcCheckbox

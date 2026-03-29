@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import type { ColumnType } from 'nocodb-sdk'
+import Mention from '@tiptap/extension-mention'
 import Placeholder from '@tiptap/extension-placeholder'
 import StarterKit from '@tiptap/starter-kit'
-import Mention from '@tiptap/extension-mention'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
+import { UITypes } from 'nocodb-sdk'
 import tippy from 'tippy.js'
-import { type ColumnType, UITypes } from 'nocodb-sdk'
 import { suggestion } from '~/helpers/tiptap'
 import { FieldMentionList, Paragraph } from '~/helpers/tiptap-markdown/extensions'
 
@@ -49,7 +50,7 @@ const { autoFocus, readOnly } = toRefs(props)
 
 const debouncedLoadMentionFieldTagTooltip = useDebounceFn(loadMentionFieldTagTooltip, 500)
 
-const serializeNode = (node: any) => {
+function serializeNode(node: any) {
   if (node.type.name === 'mention') return `{${node.attrs.id}}`
   if (node.text) return node.text
   if (node.type.name === 'paragraph' || node.type.name === 'hardBreak') return '\n'
@@ -76,7 +77,7 @@ const editor = useEditor({
           if (query.length === 0) return props.options ?? []
           return (
             props.options?.filter(
-              (o) =>
+              o =>
                 o.title?.toLowerCase()?.includes(query.toLowerCase()) || `${o.title?.toLowerCase()}}` === query.toLowerCase(),
             ) ?? []
           )
@@ -85,7 +86,7 @@ const editor = useEditor({
         allowSpaces: true,
       },
       renderHTML: ({ node }) => {
-        const matchedOption = props.options?.find((option) => option.title === node.attrs.id)
+        const matchedOption = props.options?.find(option => option.title === node.attrs.id)
         const isAttachment = matchedOption?.uidt === UITypes.Attachment
 
         return [
@@ -137,7 +138,7 @@ const editor = useEditor({
       const text = event.clipboardData?.getData('text/plain') ?? ''
       if (!text.includes('{')) return false
 
-      const regex = /\{([^{}]*?)\}/g
+      const regex = /\{([^{}]*)\}/g
       const tr = view.state.tr
       let lastIndex = 0
       let match
@@ -162,7 +163,7 @@ const editor = useEditor({
   },
 })
 
-const newFieldSuggestionNode = () => {
+function newFieldSuggestionNode() {
   if (!editor.value) return
 
   const { $from } = editor.value.state.selection
@@ -178,10 +179,12 @@ const newFieldSuggestionNode = () => {
       .chain()
       .deleteRange({ from: $from.pos - 1, to: $from.pos })
       .run()
-  } else if (lastCharacter !== ' ' && $from.pos !== 1 && !hasNewlineBefore) {
+  }
+  else if (lastCharacter !== ' ' && $from.pos !== 1 && !hasNewlineBefore) {
     editor.value?.commands.insertContent(' {')
     editor.value?.chain().focus().run()
-  } else {
+  }
+  else {
     editor.value?.commands.insertContent('{')
     editor.value?.chain().focus().run()
   }
@@ -209,8 +212,8 @@ const tooltipInstances: any[] = []
 
 function loadMentionFieldTagTooltip() {
   document.querySelectorAll('.nc-ai-prompt-with-fields .prompt-field-tag').forEach((el) => {
-    const tooltip = Object.values(el.attributes).find((attr) => attr.name === 'data-tooltip')
-    const deletedTooltip = Object.values(el.attributes).find((attr) => attr.name === 'data-deleted-tooltip')
+    const tooltip = Object.values(el.attributes).find(attr => attr.name === 'data-tooltip')
+    const deletedTooltip = Object.values(el.attributes).find(attr => attr.name === 'data-deleted-tooltip')
 
     if (!tooltip || (el.scrollWidth <= el.clientWidth && !deletedTooltip?.value)) return
     // Show tooltip only on truncate
@@ -235,7 +238,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  tooltipInstances.forEach((instance) => instance?.destroy())
+  tooltipInstances.forEach(instance => instance?.destroy())
   tooltipInstances.length = 0
 })
 

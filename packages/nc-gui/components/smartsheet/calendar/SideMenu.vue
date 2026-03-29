@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { VNodeRef } from '@vue/runtime-core'
-import { PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
+import type { VNodeRef } from 'vue'
 import dayjs from 'dayjs'
+import { PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -48,7 +48,7 @@ const { isSyncedTable, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
 
 const sideBarListRef = ref<VNodeRef | null>(null)
 
-const pushToArray = (arr: Array<Row>, record: Row, range) => {
+function pushToArray(arr: Array<Row>, record: Row, range) {
   arr.push({
     ...record,
     rowMeta: {
@@ -60,7 +60,7 @@ const pushToArray = (arr: Array<Row>, record: Row, range) => {
 
 const dragElement = ref<HTMLElement | null>(null)
 
-const dragStart = (event: DragEvent, record: Row) => {
+function dragStart(event: DragEvent, record: Row) {
   dragElement.value = event.target as HTMLElement
 
   const eventRect = dragElement.value.getBoundingClientRect()
@@ -101,15 +101,17 @@ const renderData = computed<Array<Row>>(() => {
           if (!hasFrom || !hasTo) {
             pushToArray(rangedData, record, range)
           }
-        } else if (sideBarFilterOption.value === 'allRecords') {
+        }
+        else if (sideBarFilterOption.value === 'allRecords') {
           pushToArray(rangedData, record, range)
-        } else if (
-          sideBarFilterOption.value === 'month' ||
-          sideBarFilterOption.value === 'year' ||
-          sideBarFilterOption.value === 'selectedDate' ||
-          sideBarFilterOption.value === 'selectedHours' ||
-          sideBarFilterOption.value === 'week' ||
-          sideBarFilterOption.value === 'day'
+        }
+        else if (
+          sideBarFilterOption.value === 'month'
+          || sideBarFilterOption.value === 'year'
+          || sideBarFilterOption.value === 'selectedDate'
+          || sideBarFilterOption.value === 'selectedHours'
+          || sideBarFilterOption.value === 'week'
+          || sideBarFilterOption.value === 'day'
         ) {
           let fromDate: dayjs.Dayjs | null = null
           let toDate: dayjs.Dayjs | null = null
@@ -143,35 +145,40 @@ const renderData = computed<Array<Row>>(() => {
 
           if (effectiveFrom && effectiveTo) {
             if (
-              (effectiveFrom.isSameOrAfter(fromDate) && effectiveTo.isSameOrBefore(toDate)) ||
-              (effectiveFrom.isSameOrBefore(fromDate) && effectiveTo.isSameOrAfter(toDate)) ||
-              (effectiveFrom.isSameOrBefore(fromDate) && effectiveTo.isSameOrAfter(fromDate)) ||
-              (effectiveFrom.isSameOrBefore(toDate) && effectiveTo.isSameOrAfter(toDate))
+              (effectiveFrom.isSameOrAfter(fromDate) && effectiveTo.isSameOrBefore(toDate))
+              || (effectiveFrom.isSameOrBefore(fromDate) && effectiveTo.isSameOrAfter(toDate))
+              || (effectiveFrom.isSameOrBefore(fromDate) && effectiveTo.isSameOrAfter(fromDate))
+              || (effectiveFrom.isSameOrBefore(toDate) && effectiveTo.isSameOrAfter(toDate))
             ) {
               pushToArray(rangedData, record, range)
             }
           }
         }
-      } else if (fromCol) {
+      }
+      else if (fromCol) {
         const from = timezoneDayjs.timezonize(record.row[fromCol.title!])
         if (sideBarFilterOption.value === 'withoutDates') {
           if (!dayjs(record.row[fromCol.title!]).isValid()) {
             pushToArray(rangedData, record, range)
           }
-        } else if (sideBarFilterOption.value === 'allRecords') {
+        }
+        else if (sideBarFilterOption.value === 'allRecords') {
           pushToArray(rangedData, record, range)
-        } else if (sideBarFilterOption.value === 'selectedDate' || sideBarFilterOption.value === 'day') {
+        }
+        else if (sideBarFilterOption.value === 'selectedDate' || sideBarFilterOption.value === 'day') {
           if (from.isSame(selectedDate.value, 'day')) {
             pushToArray(rangedData, record, range)
           }
-        } else if (sideBarFilterOption.value === 'selectedHours') {
+        }
+        else if (sideBarFilterOption.value === 'selectedHours') {
           if (from.isSame(selectedTime.value, 'hour')) {
             pushToArray(rangedData, record, range)
           }
-        } else if (
-          sideBarFilterOption.value === 'week' ||
-          sideBarFilterOption.value === 'month' ||
-          sideBarFilterOption.value === 'year'
+        }
+        else if (
+          sideBarFilterOption.value === 'week'
+          || sideBarFilterOption.value === 'month'
+          || sideBarFilterOption.value === 'year'
         ) {
           let fromDate: dayjs.Dayjs
           let toDate: dayjs.Dayjs
@@ -211,7 +218,8 @@ const options = computed(() => {
           { label: 'In this day', value: 'day' },
           { label: 'Without dates', value: 'withoutDates' },
         ]
-      } else {
+      }
+      else {
         return [
           { label: 'All records', value: 'allRecords' },
           { label: 'In this day', value: 'day' },
@@ -227,7 +235,8 @@ const options = computed(() => {
           { label: 'In selected date', value: 'selectedDate' },
           { label: 'Without dates', value: 'withoutDates' },
         ]
-      } else {
+      }
+      else {
         return [
           { label: 'All records', value: 'allRecords' },
           { label: 'In selected week', value: 'week' },
@@ -265,7 +274,7 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
   }
 })
 
-const newRecord = () => {
+function newRecord() {
   const row = {
     ...rowDefaultData(meta.value?.columns),
   }
@@ -273,11 +282,14 @@ const newRecord = () => {
   let fromDate
   if (activeCalendarView.value === 'day') {
     fromDate = selectedDate.value
-  } else if (activeCalendarView.value === 'week') {
+  }
+  else if (activeCalendarView.value === 'week') {
     fromDate = selectedDateRange.value.start
-  } else if (activeCalendarView.value === 'month') {
+  }
+  else if (activeCalendarView.value === 'month') {
     fromDate = selectedDate.value ?? selectedMonth.value
-  } else if (activeCalendarView.value === 'year') {
+  }
+  else if (activeCalendarView.value === 'year') {
     fromDate = selectedDate.value
   }
 
@@ -298,11 +310,12 @@ const newRecord = () => {
 const showSearch = ref(false)
 const searchRef = ref()
 
-const clickSearch = () => {
+function clickSearch() {
   if (showSearch.value) {
     searchQuery.value = ''
     showSearch.value = false
-  } else {
+  }
+  else {
     showSearch.value = true
     nextTick(() => {
       searchRef.value?.focus()
@@ -310,12 +323,13 @@ const clickSearch = () => {
   }
 }
 
-const toggleSearch = (e) => {
+function toggleSearch(e) {
   if (hasAncestorWithClass(e.target, 'nc-calendar-sidebar-search-btn')) return
 
   if (!searchQuery.value.length) {
     showSearch.value = false
-  } else {
+  }
+  else {
     searchRef.value?.blur()
   }
 }
@@ -336,7 +350,7 @@ onClickOutside(searchRef, toggleSearch)
 
 const isDropdownOpen = ref(false)
 
-const selectOption = (option) => {
+function selectOption(option) {
   isDropdownOpen.value = false
   sideBarFilterOption.value = option.value
 }
@@ -419,7 +433,9 @@ const selectOption = (option) => {
             <NcMenu class="w-56" variant="small">
               <NcMenuItem v-for="option in options" :key="option.value" @click="selectOption(option)">
                 <NcTooltip class="capitalize" :title="option.label" placement="left" show-on-truncate-only>
-                  <template #title>{{ option.label }}</template>
+                  <template #title>
+                    {{ option.label }}
+                  </template>
                   {{ option.label }}
                 </NcTooltip>
                 <div class="flex-1" />

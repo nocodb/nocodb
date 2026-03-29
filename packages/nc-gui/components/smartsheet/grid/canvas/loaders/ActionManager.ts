@@ -24,7 +24,7 @@ export class ActionManager {
   private readonly generateRows: (columnId: string, rowIds: string[]) => Promise<Array<Record<string, any>>>
   private readonly triggerRefreshCanvas: () => void
   private meta: Ref<TableType>
-  private baseInfo: { baseId: string; workspaceId: string } | null = null
+  private baseInfo: { baseId: string, workspaceId: string } | null = null
   private readonly getDataCache: (path?: Array<number>) => {
     cachedRows: Ref<Map<number, Row>>
     totalRows: Ref<number>
@@ -153,7 +153,7 @@ export class ActionManager {
   private updateRowStates(rowIds: string[], columnId: string, affectedColumnIds: string[], updateFn: (key: string) => void) {
     rowIds.forEach((rowId) => {
       updateFn(this.getKey(rowId, columnId))
-      affectedColumnIds.forEach((colId) => updateFn(this.getKey(rowId, colId)))
+      affectedColumnIds.forEach(colId => updateFn(this.getKey(rowId, colId)))
     })
   }
 
@@ -183,7 +183,8 @@ export class ActionManager {
       })
 
       return res
-    } catch (e: any) {
+    }
+    catch (e: any) {
       const errorMsg = await extractSdkResponseErrorMsg(e)
 
       // Set error state
@@ -195,7 +196,8 @@ export class ActionManager {
       })
 
       throw e
-    } finally {
+    }
+    finally {
       // Clean up loading state
       this.updateRowStates(rowIds, columnId, affectedColumnIds, (key) => {
         this.loadingColumns.delete(key)
@@ -231,7 +233,8 @@ export class ActionManager {
         }
         this.triggerRefreshCanvas()
         this.rafId = requestAnimationFrame(animate)
-      } else if (!isCoolingDown) {
+      }
+      else if (!isCoolingDown) {
         isCoolingDown = true
         this.triggerRefreshCanvas()
 
@@ -258,7 +261,8 @@ export class ActionManager {
       url = addMissingUrlSchma(url)
       url = decodeURI(url) === url ? encodeURI(url) : url
       confirmPageLeavingRedirect(url, '_blank', allowLocalUrl, this.userSync?.value)
-    } catch {
+    }
+    catch {
       confirmPageLeavingRedirect(encodeURI(url), '_blank', allowLocalUrl, this.userSync?.value)
     }
   }
@@ -266,12 +270,12 @@ export class ActionManager {
   private getRecordDisplayValue(row?: Record<string, any>): string {
     if (!row?.row) return ''
 
-    const displayField = this.meta.value?.columns?.find((col) => col.pv || col.pk)
+    const displayField = this.meta.value?.columns?.find(col => col.pv || col.pk)
     if (displayField?.title && row.row[displayField.title]) {
       return String(row.row[displayField.title])
     }
 
-    const firstValue = Object.values(row.row).find((val) => val !== null && val !== undefined && val !== '')
+    const firstValue = Object.values(row.row).find(val => val !== null && val !== undefined && val !== '')
     return firstValue ? String(firstValue) : ''
   }
 
@@ -368,7 +372,7 @@ export class ActionManager {
             ? [column.id]
             : colOptions.output_column_ids?.split(',').filter(Boolean) || []
 
-          const outputColumns = outputColumnIds.map((id) => this.meta.value?.columnsById[id])
+          const outputColumns = outputColumnIds.map(id => this.meta.value?.columnsById[id])
 
           await this.executeAction(rowIds, column.id, outputColumnIds, async () => {
             const res = await this.generateRows(column.id, rowIds)
@@ -388,7 +392,8 @@ export class ActionManager {
           break
         }
       }
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.error('Error executing button action', e)
     }
   }

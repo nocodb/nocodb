@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import type { EdgeProps, Position } from '@vue-flow/core'
-import { EdgeLabelRenderer, getBezierPath } from '@vue-flow/core'
-import type { CSSProperties } from '@vue/runtime-dom'
+import type { CSSProperties } from 'vue'
 import type { EdgeData } from './utils'
+import { EdgeLabelRenderer, getBezierPath } from '@vue-flow/core'
 
 interface RelationEdgeProps extends EdgeProps<EdgeData> {
   id: string
@@ -35,7 +35,7 @@ const edgePath = computed(() => {
     const { sourceX, sourceY, targetX, targetY } = props
     const radiusX = (sourceX - targetX) * 0.6
     const radiusY = 50
-    return [`M ${sourceX} ${sourceY} A ${radiusX} ${radiusY} 0 1 0 ${targetX} ${targetY}`, NaN, NaN] as const
+    return [`M ${sourceX} ${sourceY} A ${radiusX} ${radiusY} 0 1 0 ${targetX} ${targetY}`, Number.NaN, Number.NaN] as const
   }
 
   return getBezierPath({ ...props })

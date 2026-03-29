@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import type { NodeProps } from '@vue-flow/core'
-import { Handle, Position, useVueFlow } from '@vue-flow/core'
 import type { LinkToAnotherRecordType } from 'nocodb-sdk'
-import { isVirtualCol } from 'nocodb-sdk'
 import type { AiNodeData } from './utils'
+import { Handle, Position, useVueFlow } from '@vue-flow/core'
+import { isVirtualCol } from 'nocodb-sdk'
 
 interface Props extends Pick<NodeProps<AiNodeData>, 'data' | 'dragging'> {
   data: AiNodeData
@@ -19,8 +19,9 @@ const isZooming = refAutoReset(false, 200)
 
 const { $e } = useNuxtApp()
 
-const relatedColumnId = (colOptions: LinkToAnotherRecordType | any) =>
-  colOptions.type === 'mm' ? colOptions.fk_parent_column_id : colOptions.fk_child_column_id
+function relatedColumnId(colOptions: LinkToAnotherRecordType | any) {
+  return colOptions.type === 'mm' ? colOptions.fk_parent_column_id : colOptions.fk_child_column_id
+}
 
 const hasColumns = computed(() => data.columns.length)
 
@@ -39,7 +40,9 @@ watch(
     :disabled="dragging || isZooming"
   >
     <template #title>
-      <div class="capitalize">{{ data.table }}</div>
+      <div class="capitalize">
+        {{ data.table }}
+      </div>
     </template>
 
     <div

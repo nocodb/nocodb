@@ -29,7 +29,7 @@ interface Perm {
  * `*` - which is wildcard, means all permissions are allowed
  *  `include` - which is an object, means only the permissions listed in the object are allowed
  *  `undefined` or `{}` - which is the default value, means no permissions are allowed
- * */
+ */
 const rolePermissions = {
   // org level role permissions
   [OrgUserRoles.SUPER_ADMIN]: '*',

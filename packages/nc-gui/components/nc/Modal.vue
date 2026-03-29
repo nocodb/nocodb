@@ -120,7 +120,7 @@ const visible = useVModel(props, 'visible', emits)
 
 const slots = useSlots()
 
-const stopPropagation = (event: MouseEvent) => {
+function stopPropagation(event: MouseEvent) {
   event.stopPropagation()
 }
 
@@ -133,7 +133,8 @@ if (stopEventPropogation.value) {
       // modal.parentElement.addEventListener('click', stopPropagation)
       modal.parentElement.addEventListener('mousedown', stopPropagation)
       // modal.parentElement.addEventListener('mouseup', stopPropagation)
-    } else if (modal?.parentElement) {
+    }
+    else if (modal?.parentElement) {
       // modal.parentElement.removeEventListener('click', stopPropagation)
       modal.parentElement.removeEventListener('mousedown', stopPropagation)
       // modal.parentElement.removeEventListener('mouseup', stopPropagation)

@@ -23,7 +23,7 @@ export function filterOutPlusNodes(sourceNodes: Array<Node>, sourceEdges: Array<
  */
 export function getNodeOutputPorts(
   nodeMeta: (WorkflowNodeDefinition & { output?: number }) | null,
-): Array<{ id: string; label?: string; order?: number }> {
+): Array<{ id: string, label?: string, order?: number }> {
   if (!nodeMeta) return []
 
   // Skip Plus nodes - they are placeholders with no outputs
@@ -32,7 +32,7 @@ export function getNodeOutputPorts(
   }
 
   // First check ports array
-  const ports = nodeMeta.ports?.filter((p) => p.direction === 'output').sort((a, b) => (a.order || 0) - (b.order || 0)) || []
+  const ports = nodeMeta.ports?.filter(p => p.direction === 'output').sort((a, b) => (a.order || 0) - (b.order || 0)) || []
 
   if (ports.length > 0) {
     return ports
@@ -52,14 +52,14 @@ export function hasOutputPorts(nodeMeta: WorkflowNodeDefinition | null): boolean
  * Get all edges from a specific node
  */
 export function getNodeOutgoingEdges(nodeId: string, edges: Edge[]): Edge[] {
-  return edges.filter((e) => e.source === nodeId)
+  return edges.filter(e => e.source === nodeId)
 }
 
 /**
  * Get edges from a specific output port of a node
  */
 export function getPortOutgoingEdges(nodeId: string, portId: string, edges: Edge[]): Edge[] {
-  return edges.filter((e) => e.source === nodeId && e.sourceHandle === portId)
+  return edges.filter(e => e.source === nodeId && e.sourceHandle === portId)
 }
 
 /**
@@ -69,11 +69,11 @@ export function findEmptyOutputPorts(
   nodeId: string,
   nodeMeta: (WorkflowNodeDefinition & { output?: number }) | null,
   edges: Edge[],
-): Array<{ id: string; label?: string }> {
+): Array<{ id: string, label?: string }> {
   const outputPorts = getNodeOutputPorts(nodeMeta)
   if (outputPorts.length === 0) return []
 
-  const emptyPorts: Array<{ id: string; label?: string }> = []
+  const emptyPorts: Array<{ id: string, label?: string }> = []
 
   // For single output nodes, check if there are ANY outgoing edges (sourceHandle might be undefined)
   const isSingleOutput = outputPorts.length === 1
@@ -85,7 +85,8 @@ export function findEmptyOutputPorts(
     if (isSingleOutput) {
       // For single output, any outgoing edge counts (sourceHandle may be undefined)
       hasEdge = allOutgoingEdges.length > 0
-    } else {
+    }
+    else {
       // For multi-output, check specific port
       const portEdges = getPortOutgoingEdges(nodeId, port.id, edges)
       hasEdge = portEdges.length > 0
@@ -145,7 +146,7 @@ export function cleanupPortsOnTypeChange(
   nodes: Node[],
   edges: Edge[],
   findAllChildNodesFn: (nodeId: string, edges: Edge[]) => Set<string>,
-): { nodes: Node[]; edges: Edge[] } {
+): { nodes: Node[], edges: Edge[] } {
   // Get all outgoing edges from this node
   const outgoingEdges = getNodeOutgoingEdges(nodeId, edges)
 
@@ -159,9 +160,9 @@ export function cleanupPortsOnTypeChange(
 
   // If same number of ports and same port IDs, preserve child nodes
   if (oldPorts.length === newPorts.length && oldPorts.length > 0) {
-    const oldPortIds = new Set(oldPorts.map((p) => p.id))
-    const newPortIds = new Set(newPorts.map((p) => p.id))
-    const sameStructure = [...oldPortIds].every((id) => newPortIds.has(id))
+    const oldPortIds = new Set(oldPorts.map(p => p.id))
+    const newPortIds = new Set(newPorts.map(p => p.id))
+    const sameStructure = [...oldPortIds].every(id => newPortIds.has(id))
 
     if (sameStructure) {
       return { nodes, edges }
@@ -174,12 +175,12 @@ export function cleanupPortsOnTypeChange(
   for (const edge of outgoingEdges) {
     nodesToDelete.add(edge.target)
     const childNodeIds = findAllChildNodesFn(edge.target, edges)
-    childNodeIds.forEach((id) => nodesToDelete.add(id))
+    childNodeIds.forEach(id => nodesToDelete.add(id))
   }
 
   // Filter out deleted nodes and their edges
-  const filteredNodes = nodes.filter((n) => !nodesToDelete.has(n.id))
-  const filteredEdges = edges.filter((edge) => !nodesToDelete.has(edge.source) && !nodesToDelete.has(edge.target))
+  const filteredNodes = nodes.filter(n => !nodesToDelete.has(n.id))
+  const filteredEdges = edges.filter(edge => !nodesToDelete.has(edge.source) && !nodesToDelete.has(edge.target))
 
   return { nodes: filteredNodes, edges: filteredEdges }
 }
@@ -195,11 +196,11 @@ export function findParentNodesNeedingPlusNodes(
   nodes: Node[],
   getNodeMetaByIdFn: (id?: string) => WorkflowNodeDefinition | null,
   allEdges: Edge[],
-): Map<string, Array<{ id: string; label?: string }>> {
-  const parentNodesWithEmptyPorts = new Map<string, Array<{ id: string; label?: string }>>()
+): Map<string, Array<{ id: string, label?: string }>> {
+  const parentNodesWithEmptyPorts = new Map<string, Array<{ id: string, label?: string }>>()
 
   incomingEdges.forEach((inEdge) => {
-    const parentNode = nodes.find((n) => n.id === inEdge.source)
+    const parentNode = nodes.find(n => n.id === inEdge.source)
     if (!parentNode) return
 
     const parentNodeMeta = getNodeMetaByIdFn(parentNode.type)
@@ -211,18 +212,18 @@ export function findParentNodesNeedingPlusNodes(
     // Check if the parent node's specific port still has any remaining connections
     // after this deletion (excluding edges to deleted nodes)
     const portStillHasConnection = allEdges.some(
-      (edge) => edge.source === inEdge.source && edge.sourceHandle === inEdge.sourceHandle && !deletedNodeIds.has(edge.target),
+      edge => edge.source === inEdge.source && edge.sourceHandle === inEdge.sourceHandle && !deletedNodeIds.has(edge.target),
     )
 
     if (!portStillHasConnection && inEdge.sourceHandle) {
-      const port = outputPorts.find((p) => p.id === inEdge.sourceHandle)
+      const port = outputPorts.find(p => p.id === inEdge.sourceHandle)
       if (port) {
         if (!parentNodesWithEmptyPorts.has(inEdge.source)) {
           parentNodesWithEmptyPorts.set(inEdge.source, [])
         }
         const existingPorts = parentNodesWithEmptyPorts.get(inEdge.source)!
         // Only add if not already in the list (avoid duplicates)
-        if (!existingPorts.some((p) => p.id === port.id)) {
+        if (!existingPorts.some(p => p.id === port.id)) {
           existingPorts.push({ id: port.id, label: port.label })
         }
       }

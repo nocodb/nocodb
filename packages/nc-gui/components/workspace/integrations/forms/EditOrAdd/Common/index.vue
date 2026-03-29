@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { type IntegrationCategoryType, SyncDataType, type clientTypes as _clientTypes } from '#imports'
+import type { IntegrationCategoryType } from '#imports'
+import { SyncDataType } from '#imports'
 
 const props = defineProps<{
   open: boolean
@@ -27,7 +28,7 @@ const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const isEditMode = computed(() => pageMode.value === IntegrationsPageMode.EDIT)
 
-const testConnectionResult = ref<{ success: boolean; message?: string } | null>(null)
+const testConnectionResult = ref<{ success: boolean, message?: string } | null>(null)
 
 const testConnectionLoading = ref(false)
 
@@ -48,15 +49,18 @@ const { form, formState, isLoading, initialState, submit } = useProvideFormBuild
     try {
       if (pageMode.value === IntegrationsPageMode.ADD) {
         await saveIntegration(formState.value)
-      } else {
+      }
+      else {
         await updateIntegration({
           id: activeIntegration.value?.id,
           ...formState.value,
         })
       }
-    } catch (e) {
+    }
+    catch (e) {
       console.error(e)
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   },
@@ -84,7 +88,8 @@ onMounted(async () => {
 
   if (pageMode.value === IntegrationsPageMode.ADD) {
     formState.value.title = activeIntegration.value?.title || ''
-  } else {
+  }
+  else {
     if (!activeIntegration.value) return
 
     formState.value = {
@@ -108,7 +113,7 @@ onMounted(async () => {
   isLoading.value = false
 })
 
-const onTestConnection = async () => {
+async function onTestConnection() {
   testConnectionLoading.value = true
 
   testConnectionResult.value = (await testConnection(formState.value)) || null
@@ -136,7 +141,9 @@ const onTestConnection = async () => {
         <div class="flex items-center gap-2">
           <GeneralIcon v-if="testConnectionResult?.success === true" icon="circleCheckSolid" class="text-success w-4 h-4" />
           <NcTooltip v-if="testConnectionResult?.success === false" placement="top">
-            <template #title>{{ testConnectionResult?.message }}</template>
+            <template #title>
+              {{ testConnectionResult?.message }}
+            </template>
             <GeneralIcon icon="alertTriangleSolid" class="text-warning w-4 h-4" />
           </NcTooltip>
           Test connection
@@ -157,7 +164,7 @@ const onTestConnection = async () => {
       <div :class="leftPanelClass">
         <NcFormBuilder class="px-2" />
         <WorkspaceIntegrationsSyncPanel v-if="activeIntegrationItem.type === 'sync'" class="px-2" />
-        <div class="mt-10"></div>
+        <div class="mt-10" />
       </div>
     </template>
   </WorkspaceIntegrationsFormsEditOrAddCommonWrapper>
@@ -166,7 +173,7 @@ const onTestConnection = async () => {
     v-bind="props"
     @update:open="vOpen = $event"
   />
-  <div v-else></div>
+  <div v-else />
 </template>
 
 <style lang="scss" scoped>

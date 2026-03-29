@@ -27,7 +27,7 @@ export function patchContext<T extends CanvasRenderingContext2D | OffscreenCanva
       y: number,
       width: number,
       height: number,
-      radius: number | number[] | { topLeft?: number; topRight?: number; bottomRight?: number; bottomLeft?: number } = 0,
+      radius: number | number[] | { topLeft?: number, topRight?: number, bottomRight?: number, bottomLeft?: number } = 0,
     ): CanvasRenderingContext2D {
       let r = {
         topLeft: 0,
@@ -38,14 +38,16 @@ export function patchContext<T extends CanvasRenderingContext2D | OffscreenCanva
 
       if (typeof radius === 'number') {
         r = { topLeft: radius, topRight: radius, bottomRight: radius, bottomLeft: radius }
-      } else if (Array.isArray(radius)) {
+      }
+      else if (Array.isArray(radius)) {
         r = {
           topLeft: radius[0] ?? 0,
           topRight: radius[1] ?? radius[0] ?? 0,
           bottomRight: radius[2] ?? radius[0] ?? 0,
           bottomLeft: radius[3] ?? radius[1] ?? radius[0] ?? 0,
         }
-      } else {
+      }
+      else {
         r = {
           topLeft: radius.topLeft ?? 0,
           topRight: radius.topRight ?? 0,

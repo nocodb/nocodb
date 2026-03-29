@@ -1,18 +1,3 @@
-import {
-  RelationTypes,
-  UITypes,
-  dateFormats,
-  getRenderAsTextFunForUiType,
-  isAIPromptCol,
-  isCreatedOrLastModifiedByCol,
-  isCreatedOrLastModifiedTimeCol,
-  isSystemColumn,
-  isValidValue,
-  isVirtualCol,
-  getLookupColumnType as sdkGetLookupColumnType,
-  validateRowFilters as sdkValidateRowFilters,
-  timeFormats,
-} from 'nocodb-sdk'
 import type {
   AIRecordType,
   ButtonType,
@@ -24,25 +9,40 @@ import type {
   TableType,
 } from 'nocodb-sdk'
 import dayjs from 'dayjs'
-import { isColumnRequiredAndNull } from './columnUtils'
+import {
+  dateFormats,
+  getRenderAsTextFunForUiType,
+  isAIPromptCol,
+  isCreatedOrLastModifiedByCol,
+  isCreatedOrLastModifiedTimeCol,
+  isSystemColumn,
+  isValidValue,
+  isVirtualCol,
+  RelationTypes,
+  getLookupColumnType as sdkGetLookupColumnType,
+  validateRowFilters as sdkValidateRowFilters,
+  timeFormats,
+  UITypes,
+} from 'nocodb-sdk'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
+import { isColumnRequiredAndNull } from './columnUtils'
 
 export { isValidValue }
 
 // Core PK extraction from pre-filtered PK columns — avoids re-filtering on every call.
-export const extractPkFromPkColumns = (row: Record<string, any>, pkCols: ColumnType[]) => {
+export function extractPkFromPkColumns(row: Record<string, any>, pkCols: ColumnType[]) {
   if (!row || !pkCols.length) return null
 
   // if multiple pk columns, join them with ___ and escape _ in id values with \_ to avoid conflicts
   if (pkCols.length > 1) {
-    return pkCols.map((c) => row?.[c.title!]?.toString?.().replaceAll('_', '\\_') ?? null).join('___')
+    return pkCols.map(c => row?.[c.title!]?.toString?.().replaceAll('_', '\\_') ?? null).join('___')
   }
 
   const id = row?.[pkCols[0].title!] ?? null
   return id === null ? null : `${id}`
 }
 
-export const extractPkFromRow = (row: Record<string, any>, columns: ColumnType[]) => {
+export function extractPkFromRow(row: Record<string, any>, columns: ColumnType[]) {
   if (!row || !columns) return null
 
   return extractPkFromPkColumns(
@@ -51,9 +51,9 @@ export const extractPkFromRow = (row: Record<string, any>, columns: ColumnType[]
   )
 }
 
-export const rowPkData = (row: Record<string, any>, columns: ColumnType[]) => {
+export function rowPkData(row: Record<string, any>, columns: ColumnType[]) {
   const pkData: Record<string, string> = {}
-  const pks = columns?.filter((c) => c.pk)
+  const pks = columns?.filter(c => c.pk)
   if (row && pks && pks.length) {
     for (const pk of pks) {
       if (pk.title) pkData[pk.title] = row[pk.title]
@@ -62,22 +62,22 @@ export const rowPkData = (row: Record<string, any>, columns: ColumnType[]) => {
   return pkData
 }
 
-export const getRowHash = (row: Record<string, any>) => {
+export function getRowHash(row: Record<string, any>) {
   return MD5(JSON.stringify(row))
 }
 
-export const extractPk = (columns: ColumnType[]) => {
+export function extractPk(columns: ColumnType[]) {
   if (!columns && !Array.isArray(columns)) return null
   return columns
-    .filter((c) => c.pk)
-    .map((c) => c.title)
+    .filter(c => c.pk)
+    .map(c => c.title)
     .join('___')
 }
 
-export const findIndexByPk = (pk: Record<string, string>, data: Row[]) => {
+export function findIndexByPk(pk: Record<string, string>, data: Row[]) {
   for (const [i, row] of Object.entries(data)) {
-    if (Object.keys(pk).every((k) => pk[k] === row.row[k])) {
-      return parseInt(i)
+    if (Object.keys(pk).every(k => pk[k] === row.row[k])) {
+      return Number.parseInt(i)
     }
   }
   return -1
@@ -107,18 +107,18 @@ export async function populateInsertObject({
 
     // if column is BT relation then check if foreign key is not_null(required)
     if (
-      ltarState &&
-      col.uidt === UITypes.LinkToAnotherRecord &&
-      (<LinkToAnotherRecordType>col.colOptions).type === RelationTypes.BELONGS_TO
+      ltarState
+      && col.uidt === UITypes.LinkToAnotherRecord
+      && (<LinkToAnotherRecordType>col.colOptions).type === RelationTypes.BELONGS_TO
     ) {
       if (ltarState[col.title!] || row[col.title!]) {
         const ltarVal = ltarState[col.title!] || row[col.title!]
         const colOpt = <LinkToAnotherRecordType>col.colOptions
-        const childCol = meta.columns!.find((c) => colOpt.fk_child_column_id === c.id)
+        const childCol = meta.columns!.find(c => colOpt.fk_child_column_id === c.id)
         const relatedBaseId = (colOpt as any)?.fk_related_base_id || meta.base_id
         const relatedTableMeta = (await getMeta(relatedBaseId!, colOpt.fk_related_model_id!)) as TableType
         if (relatedTableMeta && childCol) {
-          o[childCol.title!] = ltarVal[relatedTableMeta!.columns!.find((c) => c.id === colOpt.fk_parent_column_id)!.title!]
+          o[childCol.title!] = ltarVal[relatedTableMeta!.columns!.find(c => c.id === colOpt.fk_parent_column_id)!.title!]
           if (o[childCol.title!] !== null && o[childCol.title!] !== undefined) missingRequiredColumns.delete(childCol.title)
         }
       }
@@ -143,13 +143,13 @@ export async function populateInsertObject({
 }
 
 // a function to get default values of row
-export const rowDefaultData = (columns: ColumnType[] = []) => {
+export function rowDefaultData(columns: ColumnType[] = []) {
   const defaultData: Record<string, string> = columns.reduce<Record<string, any>>((acc: Record<string, any>, col: ColumnType) => {
     //  avoid setting default value for system col, virtual col, rollup, formula, barcode, qrcode, links, ltar
     if (
-      !isSystemColumn(col) &&
-      !isVirtualCol(col) &&
-      ![
+      !isSystemColumn(col)
+      && !isVirtualCol(col)
+      && ![
         UITypes.Attachment,
         UITypes.Rollup,
         UITypes.Lookup,
@@ -157,9 +157,9 @@ export const rowDefaultData = (columns: ColumnType[] = []) => {
         UITypes.Barcode,
         UITypes.QrCode,
         UITypes.UUID,
-      ].includes(col.uidt) &&
-      isValidValue(col?.cdf) &&
-      !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(col.cdf)
+      ].includes(col.uidt)
+      && isValidValue(col?.cdf)
+      && !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(col.cdf)
     ) {
       const defaultValue = col.cdf
       acc[col.title!] = typeof defaultValue === 'string' ? defaultValue.replace(/^['"]|['"]$/g, '') : defaultValue
@@ -170,7 +170,7 @@ export const rowDefaultData = (columns: ColumnType[] = []) => {
   return defaultData
 }
 
-export const isRowEmpty = (record: Pick<Row, 'row'>, col: ColumnType): boolean => {
+export function isRowEmpty(record: Pick<Row, 'row'>, col: ColumnType): boolean {
   if (!record || !col || !col.title) return true
 
   return !isValidValue(record.row[col.title])
@@ -202,7 +202,7 @@ export function validateRowFilters(
   })
 }
 
-export const isAllowToRenderRowEmptyField = (col: ColumnType) => {
+export function isAllowToRenderRowEmptyField(col: ColumnType) {
   if (!col) return false
 
   if (isAI(col)) {
@@ -217,11 +217,11 @@ export const isAllowToRenderRowEmptyField = (col: ColumnType) => {
 }
 
 // Plain cell value
-export const getCheckBoxValue = (modelValue: boolean | string | number | '0' | '1') => {
+export function getCheckBoxValue(modelValue: boolean | string | number | '0' | '1') {
   return !!modelValue && modelValue !== '0' && modelValue !== 0 && modelValue !== 'false'
 }
 
-export const getMultiSelectValue = (modelValue: any, params: ParsePlainCellValueProps['params']): string => {
+export function getMultiSelectValue(modelValue: any, params: ParsePlainCellValueProps['params']): string {
   const { col, isMysql } = params
 
   if (!modelValue) {
@@ -233,38 +233,42 @@ export const getMultiSelectValue = (modelValue: any, params: ParsePlainCellValue
       ? modelValue.join(', ')
       : modelValue.toString()
     : isMysql(col.source_id)
-    ? modelValue.toString().split(',').join(', ')
-    : modelValue.split(', ')
+      ? modelValue.toString().split(',').join(', ')
+      : modelValue.split(', ')
 }
 
-export const getDateValue = (modelValue: string | null | number, col: ColumnType) => {
+export function getDateValue(modelValue: string | null | number, col: ColumnType) {
   const dateFormat = parseProp(col.meta)?.date_format ?? 'YYYY-MM-DD'
 
   if (!modelValue) {
     return ''
-  } else if (!dayjs(modelValue).isValid()) {
+  }
+  else if (!dayjs(modelValue).isValid()) {
     const parsedDate = parseFlexibleDate(modelValue)
     if (parsedDate) {
       return parsedDate.format(dateFormat) as string
     }
-  } else {
+  }
+  else {
     return dayjs(/^\d+$/.test(String(modelValue)) ? +modelValue : modelValue).format(dateFormat)
   }
 
   return ''
 }
 
-export const getYearValue = (modelValue: string | null) => {
+export function getYearValue(modelValue: string | null) {
   if (!modelValue) {
     return ''
-  } else if (!dayjs(modelValue).isValid()) {
+  }
+  else if (!dayjs(modelValue).isValid()) {
     return ''
-  } else {
+  }
+  else {
     return dayjs(modelValue.toString(), 'YYYY').format('YYYY')
   }
 }
 
-export const getDateTimeValue = (modelValue: string | null, params: ParsePlainCellValueProps['params']) => {
+export function getDateTimeValue(modelValue: string | null, params: ParsePlainCellValueProps['params']) {
   const { col, isXcdbBase } = params
 
   if (!modelValue || !dayjs(modelValue).isValid()) {
@@ -288,7 +292,7 @@ export const getDateTimeValue = (modelValue: string | null, params: ParsePlainCe
   return timezonize(dayjs(modelValue))?.format(dateTimeFormat) + displayTimezone
 }
 
-export const getTimeValue = (modelValue: string | null, col: ColumnType) => {
+export function getTimeValue(modelValue: string | null, col: ColumnType) {
   const timeFormat = parseProp(col?.meta)?.is12hrFormat ? 'hh:mm A' : 'HH:mm'
 
   if (!modelValue) {
@@ -309,16 +313,16 @@ export const getTimeValue = (modelValue: string | null, col: ColumnType) => {
   return time.format(timeFormat)
 }
 
-export const getDurationValue = (modelValue: string | null, col: ColumnType) => {
+export function getDurationValue(modelValue: string | null, col: ColumnType) {
   const durationType = parseProp(col.meta)?.duration || 0
   return convertMS2Duration(modelValue, durationType)
 }
 
-export const getPercentValue = (modelValue: string | null) => {
+export function getPercentValue(modelValue: string | null) {
   return modelValue ? `${modelValue}%` : ''
 }
 
-export const getCurrencyValue = (modelValue: string | number | null | undefined, col: ColumnType): string => {
+export function getCurrencyValue(modelValue: string | number | null | undefined, col: ColumnType): string {
   const currencyMeta = {
     currency_locale: 'en-US',
     currency_code: 'USD',
@@ -333,12 +337,13 @@ export const getCurrencyValue = (modelValue: string | number | null | undefined,
       style: 'currency',
       currency: currencyMeta.currency_code || 'USD',
     }).format(+modelValue)
-  } catch (e) {
+  }
+  catch (e) {
     return modelValue as string
   }
 }
 
-export const getUserValue = (modelValue: string | string[] | null | Array<any>, params: ParsePlainCellValueProps['params']) => {
+export function getUserValue(modelValue: string | string[] | null | Array<any>, params: ParsePlainCellValueProps['params']) {
   const { meta, baseUsers: baseUsersMap = new Map() } = params
   if (!modelValue) {
     return ''
@@ -350,25 +355,27 @@ export const getUserValue = (modelValue: string | string[] | null | Array<any>, 
 
     return idsOrMails
       .map((idOrMail) => {
-        const user = baseUsers.find((u) => u.id === idOrMail || u.email === idOrMail)
+        const user = baseUsers.find(u => u.id === idOrMail || u.email === idOrMail)
         return user ? user.display_name || user.email : idOrMail.id
       })
       .join(', ')
-  } else {
+  }
+  else {
     if (Array.isArray(modelValue)) {
       return modelValue
         .map((idOrMail) => {
-          const user = baseUsers.find((u) => u.id === idOrMail.id || u.email === idOrMail.email)
+          const user = baseUsers.find(u => u.id === idOrMail.id || u.email === idOrMail.email)
           return user ? user.display_name || user.email : idOrMail.id
         })
         .join(', ')
-    } else {
+    }
+    else {
       return modelValue ? modelValue.display_name || modelValue.email : ''
     }
   }
 }
 
-export const getDecimalValue = (modelValue: string | null | number, col: ColumnType) => {
+export function getDecimalValue(modelValue: string | null | number, col: ColumnType) {
   if ((!ncIsNumber(modelValue) && !modelValue) || isNaN(Number(modelValue))) {
     return ''
   }
@@ -377,17 +384,17 @@ export const getDecimalValue = (modelValue: string | null | number, col: ColumnT
   return Number(modelValue).toFixed(columnMeta?.precision ?? 1)
 }
 
-export const getIntValue = (modelValue: string | null | number) => {
+export function getIntValue(modelValue: string | null | number) {
   if ((!ncIsNumber(modelValue) && !modelValue) || isNaN(Number(modelValue))) {
     return ''
   }
   return Number(modelValue).toString()
 }
 
-export const getTextAreaValue = (modelValue: string | null, col: ColumnType) => {
+export function getTextAreaValue(modelValue: string | null, col: ColumnType) {
   const isRichMode = parseProp(col.meta).richMode
   if (isRichMode) {
-    return modelValue?.replace(/[*_~\[\]]|<\/?[^>]+(>|$)/g, '') || ''
+    return modelValue?.replace(/[*_~[\]]|<[^>]+(>|$)/g, '') || ''
   }
 
   if (isAIPromptCol(col)) {
@@ -397,19 +404,19 @@ export const getTextAreaValue = (modelValue: string | null, col: ColumnType) => 
   return modelValue || ''
 }
 
-export const getRollupValue = (modelValue: string | null | number, params: ParsePlainCellValueProps['params']) => {
+export function getRollupValue(modelValue: string | null | number, params: ParsePlainCellValueProps['params']) {
   const { col, meta, metas } = params
 
   const colOptions = col.colOptions as RollupType
   const relationColumnOptions = colOptions.fk_relation_column_id
-    ? (meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions as LinkToAnotherRecordType)
+    ? (meta?.columns?.find(c => c.id === colOptions.fk_relation_column_id)?.colOptions as LinkToAnotherRecordType)
     : null
 
   // Use fk_related_base_id for cross-base relationships
   const relatedBaseId = relationColumnOptions?.fk_related_base_id || meta?.base_id
   const relatedTableMeta = relationColumnOptions?.fk_related_model_id
-    ? (relatedBaseId ? metas?.[`${relatedBaseId}:${relationColumnOptions.fk_related_model_id}`] : null) ||
-      metas?.[relationColumnOptions.fk_related_model_id as string]
+    ? (relatedBaseId ? metas?.[`${relatedBaseId}:${relationColumnOptions.fk_related_model_id}`] : null)
+    || metas?.[relationColumnOptions.fk_related_model_id as string]
     : null
 
   let childColumn = relatedTableMeta?.columns.find((c: ColumnType) => c.id === colOptions.fk_rollup_column_id) as
@@ -435,23 +442,23 @@ export const getRollupValue = (modelValue: string | null | number, params: Parse
   return parsePlainCellValue(modelValue, { ...params, col: childColumn }) as string
 }
 
-export const getLookupValue = (modelValue: string | null | number | Array<any>, params: ParsePlainCellValueProps['params']) => {
+export function getLookupValue(modelValue: string | null | number | Array<any>, params: ParsePlainCellValueProps['params']) {
   const { col, meta, metas } = params
 
   const colOptions = col.colOptions as LookupType
   const relationColumnOptions = colOptions.fk_relation_column_id
-    ? (meta?.value ?? meta)?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions
+    ? (meta?.value ?? meta)?.columns?.find(c => c.id === colOptions.fk_relation_column_id)?.colOptions
     : col.colOptions
 
   // Use fk_related_base_id for cross-base relationships
   const relatedBaseId = (relationColumnOptions as LinkToAnotherRecordType)?.fk_related_base_id || (meta?.value ?? meta)?.base_id
   const relatedTableMeta = relationColumnOptions?.fk_related_model_id
-    ? (relatedBaseId ? metas?.[`${relatedBaseId}:${relationColumnOptions.fk_related_model_id}`] : null) ||
-      metas?.[relationColumnOptions.fk_related_model_id as string]
+    ? (relatedBaseId ? metas?.[`${relatedBaseId}:${relationColumnOptions.fk_related_model_id}`] : null)
+    || metas?.[relationColumnOptions.fk_related_model_id as string]
     : null
 
   const childColumn = relatedTableMeta?.columns.find(
-    (c: ColumnType) => c.id === (colOptions?.fk_lookup_column_id ?? relatedTableMeta?.columns.find((c) => c.pv).id),
+    (c: ColumnType) => c.id === (colOptions?.fk_lookup_column_id ?? relatedTableMeta?.columns.find(c => c.pv).id),
   ) as ColumnType | undefined
 
   if (Array.isArray(modelValue)) {
@@ -467,7 +474,8 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
   if (!childColumn) {
     if (typeof modelValue === 'string') {
       return modelValue
-    } else {
+    }
+    else {
       return modelValue?.toString() ?? ''
     }
   }
@@ -478,7 +486,7 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
 
 export function getLookupColumnType(
   col: ColumnType,
-  meta: { columns: ColumnType[]; base_id?: string },
+  meta: { columns: ColumnType[], base_id?: string },
   metas: Record<string, any>,
   visitedIds = new Set<string>(),
 ): UITypes | null | undefined {
@@ -491,14 +499,14 @@ export function getLookupColumnType(
   })
 }
 
-export const getAttachmentValue = (modelValue: string | null | number | Array<any>) => {
+export function getAttachmentValue(modelValue: string | null | number | Array<any>) {
   if (Array.isArray(modelValue)) {
-    return modelValue.map((v) => `${v.title}`).join(', ')
+    return modelValue.map(v => `${v.title}`).join(', ')
   }
   return modelValue as string
 }
 
-export const getLinksValue = (modelValue: string, params: ParsePlainCellValueProps['params']) => {
+export function getLinksValue(modelValue: string, params: ParsePlainCellValueProps['params']) {
   const { col, t } = params
 
   if (typeof col?.meta === 'string') {
@@ -508,17 +516,16 @@ export const getLinksValue = (modelValue: string, params: ParsePlainCellValuePro
   const parsedValue = +modelValue || 0
   if (!parsedValue) {
     return `0 ${col?.meta?.plural || t('general.links')}`
-  } else if (parsedValue === 1) {
+  }
+  else if (parsedValue === 1) {
     return `1 ${col?.meta?.singular || t('general.link')}`
-  } else {
+  }
+  else {
     return `${parsedValue} ${col?.meta?.plural || t('general.links')}`
   }
 }
 
-export const parsePlainCellValue = (
-  value: ParsePlainCellValueProps['value'],
-  params: ParsePlainCellValueProps['params'],
-): string => {
+export function parsePlainCellValue(value: ParsePlainCellValueProps['value'], params: ParsePlainCellValueProps['params']): string {
   const { col, abstractType, isUnderLookup } = params
 
   if (!col) {
@@ -576,10 +583,12 @@ export const parsePlainCellValue = (
     try {
       if (isUnderLookup) {
         return typeof value === 'string' ? JSON.stringify(JSON.parse(value)) : JSON.stringify(value)
-      } else {
+      }
+      else {
         return JSON.stringify(JSON.parse(value), null, 2)
       }
-    } catch {
+    }
+    catch {
       return value
     }
   }
@@ -610,7 +619,8 @@ export const parsePlainCellValue = (
       }
 
       return parsePlainCellValue(value, { ...params, col: childColumn })
-    } else {
+    }
+    else {
       const url = replaceUrlsWithLink(value, true)
 
       if (url && ncIsString(url)) {
@@ -628,7 +638,7 @@ export const parsePlainCellValue = (
 }
 
 // Utility to stringify filter or sort array, if the array is empty return undefined
-export const stringifyFilterOrSortArr = (arr: any[]) => {
+export function stringifyFilterOrSortArr(arr: any[]) {
   if (!arr || (Array.isArray(arr) && !arr.length)) return undefined
 
   return JSON.stringify(arr)

@@ -9,8 +9,8 @@ const isUnsavedDuplicatedRecordExist = toRef(props, 'isUnsavedDuplicatedRecordEx
 
 /* stores */
 
-const { saveComment, commentsDrawer, isNew, audits, comments, auditCommentGroups, hasMoreAudits, loadMoreAudits } =
-  useExpandedFormStoreOrThrow()
+const { saveComment, commentsDrawer, isNew, audits, comments, auditCommentGroups, hasMoreAudits, loadMoreAudits }
+  = useExpandedFormStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
@@ -106,7 +106,9 @@ export default {
           v-if="isUIAllowed('commentEdit')"
           class="w-full border-t border-nc-border-gray-medium px-6 2xl:px-0 sticky bottom-0 pb-4 -mb-4 bg-nc-bg-default z-10"
         >
-          <div class="font-bold my-3">Add a comment</div>
+          <div class="font-bold my-3">
+            Add a comment
+          </div>
           <SmartsheetExpandedFormRichComment
             ref="refRichComment"
             v-model:value="newCommentText"

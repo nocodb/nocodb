@@ -1,12 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
+import { SmartsheetStoreEvents } from '#imports'
 import {
-  PlanFeatureTypes,
-  PlanLimitTypes,
-  PlanTitles,
-  RelationTypes,
-  UITypes,
-  ViewTypes,
   columnTypeName,
   getFirstNonPersonalView,
   isCreatedOrLastModifiedTimeCol,
@@ -15,11 +10,16 @@ import {
   isSupportedDisplayValueColumn,
   isSystemColumn,
   partialUpdateAllowedTypes,
+  PlanFeatureTypes,
+  PlanLimitTypes,
+  PlanTitles,
   readonlyMetaAllowedTypes,
+  RelationTypes,
+  UITypes,
+  ViewTypes,
 } from 'nocodb-sdk'
-import { SmartsheetStoreEvents } from '#imports'
 
-const props = defineProps<{ virtual?: boolean; isOpen: boolean; isHiddenCol?: boolean; column: ColumnType }>()
+const props = defineProps<{ virtual?: boolean, isOpen: boolean, isHiddenCol?: boolean, column: ColumnType }>()
 
 const emit = defineEmits(['edit', 'addColumn', 'update:isOpen'])
 
@@ -76,10 +76,10 @@ const { showEEFeatures } = useEeConfig()
 
 const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
 
-const setAsDisplayValue = async () => {
+async function setAsDisplayValue() {
   isLoading.value = 'setDisplay'
   try {
-    const currentDisplayValue = meta?.value?.columns?.find((f) => f.pv)
+    const currentDisplayValue = meta?.value?.columns?.find(f => f.pv)
 
     isOpen.value = false
 
@@ -144,14 +144,16 @@ const setAsDisplayValue = async () => {
 
     // same way reload the row data if trigger is available
     reloadRowTrigger?.trigger()
-  } catch (e) {
+  }
+  catch (e) {
     message.error(t('msg.error.primaryColumnUpdateFailed'))
-  } finally {
+  }
+  finally {
     isLoading.value = ''
   }
 }
 
-const sortByColumn = async (direction: 'asc' | 'desc') => {
+async function sortByColumn(direction: 'asc' | 'desc') {
   await insertSort({
     column: column!.value,
     direction,
@@ -163,7 +165,7 @@ const isDuplicateDlgOpen = ref(false)
 const selectedColumnExtra = ref<any>()
 const duplicateDialogRef = ref<any>()
 
-const duplicateVirtualColumn = async () => {
+async function duplicateVirtualColumn() {
   let columnCreatePayload = {}
 
   // generate duplicate column title
@@ -195,11 +197,12 @@ const duplicateVirtualColumn = async () => {
       })
     ).list
 
-    const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
+    const currentColumnIndex = gridViewColumnList.findIndex(f => f.fk_column_id === column!.value.id)
     let newColumnOrder
     if (currentColumnIndex === gridViewColumnList.length - 1) {
       newColumnOrder = gridViewColumnList[currentColumnIndex].order! + 1
-    } else {
+    }
+    else {
       newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1].order!) / 2
     }
 
@@ -226,18 +229,19 @@ const duplicateVirtualColumn = async () => {
     reloadDataHook?.trigger()
 
     // message.success(t('msg.success.columnDuplicated'))
-  } catch (e) {
+  }
+  catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
   // closing dropdown
   isOpen.value = false
 }
 
-const openDuplicateDlg = async () => {
+async function openDuplicateDlg() {
   if (!column?.value) return
   if (
-    column.value.uidt &&
-    [
+    column.value.uidt
+    && [
       UITypes.Lookup,
       UITypes.Rollup,
       UITypes.CreatedTime,
@@ -247,7 +251,8 @@ const openDuplicateDlg = async () => {
     ].includes(column.value.uidt as UITypes)
   ) {
     duplicateVirtualColumn()
-  } else {
+  }
+  else {
     const gridViewColumnList = (
       await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
         operation: 'viewColumnList',
@@ -255,11 +260,12 @@ const openDuplicateDlg = async () => {
       })
     ).list
 
-    const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
+    const currentColumnIndex = gridViewColumnList.findIndex(f => f.fk_column_id === column!.value.id)
     let newColumnOrder
     if (currentColumnIndex === gridViewColumnList.length - 1) {
       newColumnOrder = gridViewColumnList[currentColumnIndex].order! + 1
-    } else {
+    }
+    else {
       newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1].order!) / 2
     }
 
@@ -276,7 +282,8 @@ const openDuplicateDlg = async () => {
       nextTick(() => {
         duplicateDialogRef?.value?.duplicate()
       })
-    } else {
+    }
+    else {
       isDuplicateDlgOpen.value = true
     }
 
@@ -285,7 +292,7 @@ const openDuplicateDlg = async () => {
 }
 
 // add column before or after current column
-const addColumn = async (before = false) => {
+async function addColumn(before = false) {
   const gridViewColumnList = (
     await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
       operation: 'viewColumnList',
@@ -293,19 +300,22 @@ const addColumn = async (before = false) => {
     })
   ).list
 
-  const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
+  const currentColumnIndex = gridViewColumnList.findIndex(f => f.fk_column_id === column!.value.id)
 
   let newColumnOrder
   if (before) {
     if (currentColumnIndex === 0) {
       newColumnOrder = gridViewColumnList[currentColumnIndex].order / 2
-    } else {
+    }
+    else {
       newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex - 1]?.order) / 2
     }
-  } else {
+  }
+  else {
     if (currentColumnIndex === gridViewColumnList.length - 1) {
       newColumnOrder = gridViewColumnList[currentColumnIndex].order + 1
-    } else {
+    }
+    else {
       newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1]?.order) / 2
     }
   }
@@ -326,7 +336,7 @@ const isDefaultView = computed(() => {
   )
 })
 
-const updateDefaultViewColVisibility = (columnId?: string, show = false) => {
+function updateDefaultViewColVisibility(columnId?: string, show = false) {
   //  Don't update meta if it is not default view
   if (!meta.value || !columnId || meta.value?.id !== view.value?.fk_model_id || !isDefaultView.value) return
 
@@ -346,7 +356,7 @@ const updateDefaultViewColVisibility = (columnId?: string, show = false) => {
 }
 
 // hide the field in view
-const hideOrShowField = async () => {
+async function hideOrShowField() {
   isLoading.value = 'hideOrShow'
 
   const viewId = view.value?.id
@@ -362,14 +372,14 @@ const hideOrShowField = async () => {
   }
 
   try {
-    const currentColumn =
-      currentViewColumn ||
-      (
-        await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
-          operation: 'viewColumnList',
-          viewId,
-        })
-      ).list.find((f) => f.fk_column_id === column!.value.id)
+    const currentColumn
+      = currentViewColumn
+        || (
+          await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+            operation: 'viewColumnList',
+            viewId,
+          })
+        ).list.find(f => f.fk_column_id === column!.value.id)
 
     await $api.internal.postOperation(
       meta.value!.fk_workspace_id!,
@@ -385,7 +395,8 @@ const hideOrShowField = async () => {
     if (!hidingViewColumnsMap.value[column.value.id!]) {
       if (isExpandedForm.value) {
         await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
-      } else {
+      }
+      else {
         updateDefaultViewColVisibility(column?.value.id, !currentColumn.show)
       }
     }
@@ -414,7 +425,8 @@ const hideOrShowField = async () => {
 
           if (isExpandedForm.value) {
             await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
-          } else {
+          }
+          else {
             updateDefaultViewColVisibility(fk_column_id, !show)
           }
 
@@ -440,7 +452,8 @@ const hideOrShowField = async () => {
 
           if (isExpandedForm.value) {
             await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
-          } else {
+          }
+          else {
             updateDefaultViewColVisibility(fk_column_id, show)
           }
 
@@ -454,7 +467,8 @@ const hideOrShowField = async () => {
       },
       scope: defineViewScope({ view: view.value }),
     })
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.log('error', e)
     if (hidingViewColumnsMap.value[column.value.id!]) {
       fieldsMap.value[column.value.id!].show = true
@@ -467,7 +481,8 @@ const hideOrShowField = async () => {
     }
 
     message.error(t('msg.error.columnVisibilityUpdateFailed'))
-  } finally {
+  }
+  finally {
     isLoading.value = ''
     delete hidingViewColumnsMap.value[column.value.id!]
 
@@ -477,23 +492,23 @@ const hideOrShowField = async () => {
   }
 }
 
-const handleDelete = () => {
+function handleDelete() {
   // closing the dropdown
   // when modal opens
   isOpen.value = false
   showDeleteColumnModal.value = true
 }
 
-const onEditPress = (event?: MouseEvent, enableDescription = false) => {
+function onEditPress(event?: MouseEvent, enableDescription = false) {
   isOpen.value = false
   emit('edit', event, enableDescription, column.value)
 }
 
-const onInsertBefore = () => {
+function onInsertBefore() {
   isOpen.value = false
   addColumn(true)
 }
-const onInsertAfter = () => {
+function onInsertAfter() {
   isOpen.value = false
   addColumn()
 }
@@ -503,52 +518,52 @@ const isDeleteAllowed = computed(() => {
 })
 const isDuplicateAllowed = computed(() => {
   return (
-    column?.value &&
-    !column.value.system &&
-    ((!isMetaReadOnly.value && !isDataReadOnly.value) || readonlyMetaAllowedTypes.includes(column.value?.uidt)) &&
-    !column.value.meta?.custom &&
-    column.value.uidt !== UITypes.ForeignKey &&
-    !isCrossBaseLink(column.value)
+    column?.value
+    && !column.value.system
+    && ((!isMetaReadOnly.value && !isDataReadOnly.value) || readonlyMetaAllowedTypes.includes(column.value?.uidt))
+    && !column.value.meta?.custom
+    && column.value.uidt !== UITypes.ForeignKey
+    && !isCrossBaseLink(column.value)
   )
 })
 const isFilterSupported = computed(
   () =>
     !!(meta.value?.columns || []).find(
-      (f) => f.id === column?.value?.id && ![UITypes.QrCode, UITypes.Barcode, UITypes.Button].includes(f.uidt),
+      f => f.id === column?.value?.id && ![UITypes.QrCode, UITypes.Barcode, UITypes.Button].includes(f.uidt),
     ),
 )
 
 const isSortSupported = computed(
-  () => !!(meta.value?.columns || []).find((f) => f.id === column?.value?.id && ![UITypes.Button].includes(f.uidt)),
+  () => !!(meta.value?.columns || []).find(f => f.id === column?.value?.id && ![UITypes.Button].includes(f.uidt)),
 )
 
 const { getPlanLimit } = useWorkspace()
 
 const isFilterLimitExceeded = computed(
   () =>
-    allFilters.value.filter((f) => !(f.is_group || f.status === 'delete')).length >=
-    getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW),
+    allFilters.value.filter(f => !(f.is_group || f.status === 'delete')).length
+    >= getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW),
 )
 
 const isGroupedByThisField = computed(() => {
   // null = no override (use synced), [] = override with empty (no grouping)
   if (localGroupBy.value !== null) {
-    return localGroupBy.value.some((g) => g.column.id === column?.value?.id)
+    return localGroupBy.value.some(g => g.column.id === column?.value?.id)
   }
   return !!gridViewCols.value[column?.value?.id]?.group_by
 })
 
-const isGroupBySupported = computed(() => !!(fieldsToGroupBy.value || []).find((f) => f.id === column?.value?.id))
+const isGroupBySupported = computed(() => !!(fieldsToGroupBy.value || []).find(f => f.id === column?.value?.id))
 
 const isGroupByLimitExceeded = computed(() => {
   return !(
-    fieldsToGroupBy.value.length &&
-    fieldsToGroupBy.value.length > groupBy.value.length &&
-    groupBy.value.length < groupByLimit
+    fieldsToGroupBy.value.length
+    && fieldsToGroupBy.value.length > groupBy.value.length
+    && groupBy.value.length < groupByLimit
   )
 })
 
-const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
+function filterOrGroupByThisField(event: SmartsheetStoreEvents) {
   if (column?.value) {
     eventBus.emit(event, {
       column: column.value,
@@ -559,9 +574,9 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
 
 const isColumnUpdateAllowed = computed(() => {
   if (
-    (isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(column.value?.uidt)) ||
-    isSqlView.value ||
-    (meta.value?.synced && column.value?.readonly)
+    (isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(column.value?.uidt))
+    || isSqlView.value
+    || (meta.value?.synced && column.value?.readonly)
   ) {
     return false
   }
@@ -571,11 +586,11 @@ const isColumnUpdateAllowed = computed(() => {
 
 const isColumnEditAllowed = computed(() => {
   if (
-    (isMetaReadOnly.value &&
-      !readonlyMetaAllowedTypes.includes(column.value?.uidt) &&
-      !partialUpdateAllowedTypes.includes(column.value?.uidt)) ||
-    isSqlView.value ||
-    (meta.value?.synced && column.value?.readonly)
+    (isMetaReadOnly.value
+      && !readonlyMetaAllowedTypes.includes(column.value?.uidt)
+      && !partialUpdateAllowedTypes.includes(column.value?.uidt))
+    || isSqlView.value
+    || (meta.value?.synced && column.value?.readonly)
   ) {
     return false
   }
@@ -586,7 +601,7 @@ const isColumnEditAllowed = computed(() => {
 // check if the column is associated as foreign key in any of the link column
 const linksAssociated = computed(() => {
   return meta.value?.columns?.filter(
-    (c) => isLinksOrLTAR(c) && [c.colOptions?.fk_child_column_id, c.colOptions?.fk_parent_column_id].includes(column?.value?.id),
+    c => isLinksOrLTAR(c) && [c.colOptions?.fk_child_column_id, c.colOptions?.fk_parent_column_id].includes(column?.value?.id),
   )
 })
 
@@ -594,7 +609,7 @@ const addLookupOrRollupMenu = ref(false)
 
 const addLookupOrRollupType = ref<UITypes.Lookup | UITypes.Rollup>(UITypes.Lookup)
 
-const openLookupOrRollupMenuDialog = (type: UITypes.Lookup | UITypes.Rollup) => {
+function openLookupOrRollupMenuDialog(type: UITypes.Lookup | UITypes.Rollup) {
   isOpen.value = false
   addLookupOrRollupMenu.value = true
   addLookupOrRollupType.value = type
@@ -602,24 +617,24 @@ const openLookupOrRollupMenuDialog = (type: UITypes.Lookup | UITypes.Rollup) => 
 
 const changeTitleFieldMenu = ref(false)
 
-const changeTitleField = () => {
+function changeTitleField() {
   isOpen.value = false
   changeTitleFieldMenu.value = true
 }
 
 const showFieldPermissionsModal = ref(false)
 
-const onFieldPermissions = () => {
+function onFieldPermissions() {
   isOpen.value = false
 
   showFieldPermissionsModal.value = true
 }
 
-const onDeleteColumn = () => {
+function onDeleteColumn() {
   eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
 
-  const isFilterRemoved = allFilters.value?.some((f) => f.fk_column_id === column.value.id)
-  const isSortRemoved = sorts.value?.some((f) => f.fk_column_id === column.value.id)
+  const isFilterRemoved = allFilters.value?.some(f => f.fk_column_id === column.value.id)
+  const isSortRemoved = sorts.value?.some(f => f.fk_column_id === column.value.id)
 
   // check if column used in sort list, if used then reload sort list
   if (isSortRemoved) eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
@@ -666,10 +681,10 @@ const onDeleteColumn = () => {
       <NcMenuItem
         v-if="!isMobileMode"
         :disabled="
-          column?.pk ||
-          (isSystemColumn(column) && !isCreatedOrLastModifiedTimeCol(column)) ||
-          !isColumnEditAllowed ||
-          linksAssociated?.length
+          column?.pk
+            || (isSystemColumn(column) && !isCreatedOrLastModifiedTimeCol(column))
+            || !isColumnEditAllowed
+            || linksAssociated?.length
         "
         :title="linksAssociated?.length ? 'Field is associated with a link column' : undefined"
         @click="onEditPress($event, false)"
@@ -683,11 +698,11 @@ const onDeleteColumn = () => {
     </GeneralSourceRestrictionTooltip>
     <NcMenuItem
       v-if="
-        !isMobileMode &&
-        isLinksOrLTAR(column) &&
-        (column.uidt === UITypes.Links || column.colOptions?.version !== 2) &&
-        isUIAllowed('fieldAlter') &&
-        !isSqlView
+        !isMobileMode
+          && isLinksOrLTAR(column)
+          && (column.uidt === UITypes.Links || column.colOptions?.version !== 2)
+          && isUIAllowed('fieldAlter')
+          && !isSqlView
       "
       data-testid="nc-column-convert-link-v2"
       @click="
@@ -913,8 +928,8 @@ const onDeleteColumn = () => {
             !isFilterSupported
               ? $t('tooltip.thisFieldTypeDoesNotSupportFiltering')
               : isFilterLimitExceeded
-              ? $t('tooltip.filterByLimitExceeded')
-              : ''
+                ? $t('tooltip.filterByLimitExceeded')
+                : ''
           }}
         </template>
         <NcMenuItem
@@ -930,13 +945,13 @@ const onDeleteColumn = () => {
       </NcTooltip>
 
       <NcTooltip :disabled="(isGroupBySupported && !isGroupByLimitExceeded) || isGroupedByThisField || !(isEeUI && !isPublic)">
-        <template #title
-          >{{
+        <template #title>
+          {{
             !isGroupBySupported
               ? $t('tooltip.thisFieldTypeDoesNotSupportGrouping')
               : isGroupByLimitExceeded
-              ? $t('tooltip.groupByLimitExceeded')
-              : ''
+                ? $t('tooltip.groupByLimitExceeded')
+                : ''
           }}
         </template>
         <NcMenuItem

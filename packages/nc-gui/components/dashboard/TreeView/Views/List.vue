@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ViewType } from 'nocodb-sdk'
-import { ViewTypes, getFirstNonPersonalView, viewTypeAlias } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
+import { getFirstNonPersonalView, viewTypeAlias, ViewTypes } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
 
 interface Props {
@@ -96,7 +96,7 @@ function markItem(id: string) {
   }, 300)
 }
 
-const source = computed(() => base.value?.sources?.find((b) => b.id === table.value.source_id))
+const source = computed(() => base.value?.sources?.find(b => b.id === table.value.source_id))
 
 const isDefaultSource = computed(() => {
   if (base.value?.sources?.length === 1) return true
@@ -110,7 +110,7 @@ function validate(view: ViewType) {
     return t('msg.error.viewNameRequired')
   }
 
-  if (views.value.some((v) => v.title?.trim() === view.title.trim() && v.id !== view.id)) {
+  if (views.value.some(v => v.title?.trim() === view.title.trim() && v.id !== view.id)) {
     return t('msg.error.viewNameDuplicate')
   }
 
@@ -131,19 +131,21 @@ function computeNewOrder(evt: SortableEvent, newIndex: number): number | null {
   const itemBeforeEl = children[newIndex - 1] as HTMLElement | undefined
   const itemAfterEl = children[newIndex + 1] as HTMLElement | undefined
 
-  const itemBefore = itemBeforeEl && views.value.find((v) => v.id === itemBeforeEl.dataset.id)
-  const itemAfter = itemAfterEl && views.value.find((v) => v.id === itemAfterEl.dataset.id)
+  const itemBefore = itemBeforeEl && views.value.find(v => v.id === itemBeforeEl.dataset.id)
+  const itemAfter = itemAfterEl && views.value.find(v => v.id === itemAfterEl.dataset.id)
 
   if (children.length - 1 === newIndex) {
     return (itemBefore?.order ?? 0) + 1
-  } else if (newIndex === 0) {
+  }
+  else if (newIndex === 0) {
     return (itemAfter?.order ?? 1) / 2
-  } else {
+  }
+  else {
     return ((itemBefore?.order ?? 0) + (itemAfter?.order ?? 0)) / 2
   }
 }
 
-const initSortable = (el: Element) => {
+function initSortable(el: Element) {
   if (isMobileMode.value) return
   if (sortable) sortable.destroy()
 
@@ -186,7 +188,7 @@ const initSortable = (el: Element) => {
       if (!isCrossSection && newIndex === oldIndex) return
 
       const itemEl = evt.item as HTMLElement
-      const currentItem = views.value.find((v) => v.id === itemEl.dataset.id)
+      const currentItem = views.value.find(v => v.id === itemEl.dataset.id)
 
       if (!currentItem || !currentItem.id) return
 
@@ -229,7 +231,8 @@ const initSortable = (el: Element) => {
             }
           }
         }
-      } else {
+      }
+      else {
         // Same-section reorder (existing logic)
         if (table.value.base_id && table.value.id) {
           const key = `${table.value.base_id}:${table.value.id}`
@@ -343,7 +346,8 @@ async function onRename(view: ViewType, originalTitle?: string, undo = false) {
 
     // View renamed successfully
     // message.success(t('msg.success.viewRenamed'))
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -370,7 +374,7 @@ function openDeleteDialog(view: ViewType) {
   }
 }
 
-const setIcon = async (icon: string, view: ViewType) => {
+async function setIcon(icon: string, view: ViewType) {
   try {
     // modify the icon property in meta
     view.meta = {
@@ -391,7 +395,8 @@ const setIcon = async (icon: string, view: ViewType) => {
     )
 
     $e('a:view:icon:sidebar', { icon })
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }

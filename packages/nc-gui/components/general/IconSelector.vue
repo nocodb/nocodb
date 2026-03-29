@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
-import { EmojiIndex, Picker } from 'emoji-mart-vue-fast/src'
 import data from 'emoji-mart-vue-fast/data/apple.json'
-import 'emoji-mart-vue-fast/css/emoji-mart.css'
+import { EmojiIndex, Picker } from 'emoji-mart-vue-fast/src'
 import { IconType } from 'nocodb-sdk'
+import 'emoji-mart-vue-fast/css/emoji-mart.css'
 
 interface Props {
   icon: string | Record<string, any>
@@ -81,7 +81,7 @@ const icons = computed(() => {
   return searchIcons(searchQuery.value)
 })
 
-const selectIcon = (icon: string) => {
+function selectIcon(icon: string) {
   vIcon.value = icon
   vIconType.value = IconType.ICON
 
@@ -90,7 +90,7 @@ const selectIcon = (icon: string) => {
   isOpen.value = false
 }
 
-const handleRemoveIcon = (closeDropdown = true) => {
+function handleRemoveIcon(closeDropdown = true) {
   vIcon.value = ''
   vIconType.value = ''
 
@@ -122,7 +122,7 @@ function selectEmoji(_emoji: any) {
 
 const fileList = ref<UploadFile[]>([])
 
-const handleOnUploadImage = async (data: any) => {
+async function handleOnUploadImage(data: any) {
   vIcon.value = data
   vIconType.value = IconType.IMAGE
 
@@ -151,7 +151,7 @@ function rejectDrop(fileList: UploadFile[]) {
   })
 }
 
-const handleChange = (info: UploadChangeParam) => {
+function handleChange(info: UploadChangeParam) {
   const status = info.file.status
 
   if (status === 'uploading') {
@@ -188,7 +188,7 @@ const handleChange = (info: UploadChangeParam) => {
 }
 
 /** a workaround to override default antd upload api call */
-const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
+function customReqCbk(customReqArgs: { file: any, onSuccess: () => void }) {
   fileList.value.forEach((f) => {
     if (f.uid === customReqArgs.file.uid) {
       f.status = 'done'
@@ -200,7 +200,7 @@ const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
 }
 
 /** check if the file size exceeds the limit */
-const beforeUpload = (file: UploadFile) => {
+function beforeUpload(file: UploadFile) {
   const exceedLimit = file.size! / 1024 / 1024 > 2
   if (exceedLimit) {
     message.error(`File ${file.name} is too big. The accepted file size is less than 2MB.`)
@@ -208,7 +208,7 @@ const beforeUpload = (file: UploadFile) => {
   return !exceedLimit || Upload.LIST_IGNORE
 }
 
-const onVisibilityChange = (value: boolean) => {
+function onVisibilityChange(value: boolean) {
   if (!value && showImageCropperLocal.value) {
     isOpen.value = true
   }
@@ -224,12 +224,14 @@ function focusInput() {
       emojiInput.focus()
       emojiInput.select()
     })
-  } else if (activeTab.value === IconType.ICON) {
+  }
+  else if (activeTab.value === IconType.ICON) {
     setTimeout(() => {
       if (ncIsArray(inputRef.value)) {
         inputRef.value?.[0]?.focus()
         inputRef.value?.[0]?.select()
-      } else {
+      }
+      else {
         inputRef.value?.focus()
         inputRef.value?.select()
       }
@@ -259,14 +261,15 @@ const tabs = computed(() => {
       icon: 'ncSmile',
     },
   ]
-    .filter((tab) => !props.hiddenTabs.includes(tab.value))
+    .filter(tab => !props.hiddenTabs.includes(tab.value))
     .sort((a, b) => props.tabOrder.indexOf(a.value) - props.tabOrder.indexOf(b.value)) as TabItemType[]
 })
 
 watch(showImageCropper, (newValue) => {
   if (newValue) {
     showImageCropperLocal.value = true
-  } else {
+  }
+  else {
     setTimeout(() => {
       showImageCropperLocal.value = false
     }, 500)
@@ -278,7 +281,8 @@ watch(isOpen, (newValue) => {
     nextTick(() => {
       focusInput()
     })
-  } else {
+  }
+  else {
     nextTick(() => {
       triggerRef.value?.focus()
     })
@@ -301,19 +305,21 @@ watch(isOpen, (newValue) => {
           type="button"
           tabindex="-1"
           class="sr-only outline-none ring-0 shadow-none focus:(outline-none shadow-none)"
-        ></button>
+        />
 
-        <slot name="default" :is-open="isOpen" :icon="vIcon" :icon-type="vIconType"> </slot>
+        <slot name="default" :is-open="isOpen" :icon="vIcon" :icon-type="vIconType" />
       </div>
       <template #overlay>
         <div class="pt-2 h-[320px]">
           <NcTabs v-model:active-key="activeTab" class="nc-icon-selector-dropdown-tabs h-full">
             <template #leftExtra>
-              <div class="w-0"></div>
+              <div class="w-0" />
             </template>
             <template #rightExtra>
               <div>
-                <NcButton size="xs" type="text" :disabled="!vIcon" @click.stop="handleRemoveIcon"> Remove </NcButton>
+                <NcButton size="xs" type="text" :disabled="!vIcon" @click.stop="handleRemoveIcon">
+                  Remove
+                </NcButton>
               </div>
             </template>
             <a-tab-pane v-for="tabItem of tabs" :key="tabItem.value" class="w-full" :disabled="isLoading">
@@ -331,8 +337,7 @@ watch(isOpen, (newValue) => {
                     v-model:value="searchQuery"
                     :placeholder="$t('placeholder.searchIcons')"
                     class="nc-dropdown-search-unified-input z-10"
-                  >
-                  </a-input>
+                  />
                 </div>
 
                 <div v-if="icons.length" class="grid px-3 auto-rows-max pb-2 gap-3 grid-cols-10">
@@ -362,7 +367,9 @@ watch(isOpen, (newValue) => {
                   </div>
                   <div class="flex-1 w-[calc(100%_-_108px)]">
                     <NcTooltip class="truncate flex-1 text-current" show-on-truncate-only>
-                      <template #title> {{ vIcon?.title || 'Workspace logo' }}</template>
+                      <template #title>
+                        {{ vIcon?.title || 'Workspace logo' }}
+                      </template>
                       {{ vIcon?.title || 'Workspace logo' }}
                     </NcTooltip>
                     <div class="text-nc-content-gray-muted text-sm">
@@ -401,7 +408,9 @@ watch(isOpen, (newValue) => {
 
                     <div class="ant-upload-text !text-nc-content-gray-muted !text-sm">
                       Drop your icon here or <span class="text-nc-content-brand hover:underline">browse file</span>
-                      <div class="mt-1">Supported: image/*</div>
+                      <div class="mt-1">
+                        Supported: image/*
+                      </div>
                     </div>
                   </a-upload-dragger>
                 </div>
@@ -421,7 +430,7 @@ watch(isOpen, (newValue) => {
                   class="nc-icon-selector-emoji-picker"
                   @select="selectEmoji"
                   @click.stop="() => {}"
-                ></Picker>
+                />
               </div>
             </a-tab-pane>
           </NcTabs>
@@ -436,7 +445,7 @@ watch(isOpen, (newValue) => {
       :image-config="imageCropperData.imageConfig"
       :upload-config="imageCropperData.uploadConfig"
       @submit="handleOnUploadImage"
-    ></GeneralImageCropper>
+    />
   </div>
 </template>
 

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { IntegrationsType } from 'nocodb-sdk'
+
 const { activeIntegrationItem } = useIntegrationStore()
 
 const supportedDocs = computed(() => {
@@ -30,6 +31,8 @@ const supportedDocs = computed(() => {
 
 <template>
   <NcModalSupportedDocs :docs="supportedDocs">
-    <template #title> {{ $t('title.relevantDocumentation') }} </template>
+    <template #title>
+      {{ $t('title.relevantDocumentation') }}
+    </template>
   </NcModalSupportedDocs>
 </template>

@@ -13,17 +13,18 @@ const { $e } = useNuxtApp()
 
 const { getColorByIndex } = useColors(true)
 
-const openProject = async (base: BaseType) => {
+async function openProject(base: BaseType) {
   await navigateTo(`/nc/${base.id}`)
   $e('a:base:open', { count: bases.length })
 }
 
-const formatTitle = (title?: string) =>
-  title
+function formatTitle(title?: string) {
+  return title
     ?.split(' ')
-    .map((w) => w[0])
+    .map(w => w[0])
     .slice(0, 2)
     .join('')
+}
 </script>
 
 <template>
@@ -49,7 +50,9 @@ const formatTitle = (title?: string) =>
             @click="navigateTo('/base/create')"
           >
             <component :is="iconMap.plus" class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
-            <div class="col-span-10 text-sm xl:text-md">{{ $t('activity.createProject') }}</div>
+            <div class="col-span-10 text-sm xl:text-md">
+              {{ $t('activity.createProject') }}
+            </div>
           </div>
           <div
             class="grid grid-cols-12 cursor-pointer hover:bg-nc-bg-gray-medium flex items-center p-2"
@@ -72,13 +75,17 @@ const formatTitle = (title?: string) =>
               <a-menu-item @click.stop="emit('deleteBase', base)">
                 <div class="grid grid-cols-6 cursor-pointer flex items-center p-2">
                   <component :is="iconMap.delete" class="col-span-2 mr-1 mt-[1px] text-red text-lg" />
-                  <div class="col-span-4 text-sm xl:text-md">{{ $t('general.delete') }}</div>
+                  <div class="col-span-4 text-sm xl:text-md">
+                    {{ $t('general.delete') }}
+                  </div>
                 </div>
               </a-menu-item>
               <a-menu-item @click.stop="navigateTo(`/base/${base.id}`)">
                 <div class="grid grid-cols-6 cursor-pointer flex items-center p-2">
                   <component :is="iconMap.edit" class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
-                  <div class="col-span-4 text-sm xl:text-md">{{ $t('general.edit') }}</div>
+                  <div class="col-span-4 text-sm xl:text-md">
+                    {{ $t('general.edit') }}
+                  </div>
                 </div>
               </a-menu-item>
             </a-menu>

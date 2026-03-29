@@ -130,7 +130,7 @@ const firstKeyOfObject = (obj: object) => Object.keys(obj)[0]
 
 // Array of keys of tabs which are selected. In our case will be only one.
 const selectedTabKeys = computed<string[]>({
-  get: () => [Object.keys(tabsInfo).find((key) => key === vOpenKey.value) || firstKeyOfObject(tabsInfo)],
+  get: () => [Object.keys(tabsInfo).find(key => key === vOpenKey.value) || firstKeyOfObject(tabsInfo)],
   set: (value) => {
     vOpenKey.value = value[0]
   },
@@ -163,7 +163,9 @@ watch(
     <div class="nc-modal-settings-content">
       <!--    Settings -->
       <div class="flex flex-row justify-between w-full items-center p-4 border-b-1 border-nc-border-gray-medium">
-        <h5 class="!my-0 text-2xl font-bold">{{ $t('objects.project') }} {{ $t('activity.settings') }}</h5>
+        <h5 class="!my-0 text-2xl font-bold">
+          {{ $t('objects.project') }} {{ $t('activity.settings') }}
+        </h5>
 
         <NcButton type="text" size="small" data-testid="settings-modal-close-button" @click="vModel = false">
           <component :is="iconMap.close" class="cursor-pointer nc-modal-close w-4" />

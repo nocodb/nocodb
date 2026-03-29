@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { type TableType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
+import type { TableType } from 'nocodb-sdk'
+import { viewTypeAlias, ViewTypes } from 'nocodb-sdk'
 
 const { $e } = useNuxtApp()
 
@@ -49,7 +50,7 @@ const toBeCreateType = ref<ViewTypes | 'AI'>()
 const isSqlView = computed(() => (activeTable.value as TableType)?.type === 'view')
 
 const activeSource = computed(() => {
-  return base.value.sources?.find((s) => s.id === activeView.value?.source_id)
+  return base.value.sources?.find(s => s.id === activeView.value?.source_id)
 })
 
 async function onOpenModal({
@@ -82,7 +83,8 @@ async function onOpenModal({
       tableId: activeTable.value?.id as string,
       baseId: base.value.id!,
     })
-  } catch (e) {
+  }
+  catch (e) {
     console.log('error', e)
   }
 
@@ -194,10 +196,10 @@ const hasDocumentCreateAccess = computed(() => {
                 !isWorkflowsTab
                   ? $t('tooltip.switchToWorkflowsTab', { type: $t('general.workflow').toLowerCase() })
                   : !isBaseHomePage
-                  ? $t('tooltip.navigateToBaseToCreateWorkflow')
-                  : !hasWorkflowCreateAccess
-                  ? $t('tooltip.youDontHaveAccessToCreateNewWorkflow')
-                  : ''
+                    ? $t('tooltip.navigateToBaseToCreateWorkflow')
+                    : !hasWorkflowCreateAccess
+                      ? $t('tooltip.youDontHaveAccessToCreateNewWorkflow')
+                      : ''
               "
               :disabled="isWorkflowsTab && isBaseHomePage && hasWorkflowCreateAccess"
               placement="right"
@@ -217,10 +219,10 @@ const hasDocumentCreateAccess = computed(() => {
                 !isWorkflowsTab
                   ? $t('tooltip.switchToWorkflowsTab', { type: $t('general.script').toLowerCase() })
                   : !isBaseHomePage
-                  ? $t('tooltip.navigateToBaseToCreateScript')
-                  : !hasScriptCreateAccess
-                  ? $t('tooltip.youDontHaveAccessToCreateNewScript')
-                  : ''
+                    ? $t('tooltip.navigateToBaseToCreateScript')
+                    : !hasScriptCreateAccess
+                      ? $t('tooltip.youDontHaveAccessToCreateNewScript')
+                      : ''
               "
               :disabled="isWorkflowsTab && isBaseHomePage && hasScriptCreateAccess"
               placement="right"
@@ -241,10 +243,10 @@ const hasDocumentCreateAccess = computed(() => {
                 !isDocsTab
                   ? $t('tooltip.switchToDocsTab', { type: $t('objects.document').toLowerCase() })
                   : !isBaseHomePage
-                  ? $t('tooltip.navigateToBaseToCreateDocument')
-                  : !hasDocumentCreateAccess
-                  ? $t('tooltip.youDontHaveAccessToCreateNewDocument')
-                  : ''
+                    ? $t('tooltip.navigateToBaseToCreateDocument')
+                    : !hasDocumentCreateAccess
+                      ? $t('tooltip.youDontHaveAccessToCreateNewDocument')
+                      : ''
               "
               :disabled="isDocsTab && isBaseHomePage && hasDocumentCreateAccess"
               placement="right"
@@ -267,10 +269,10 @@ const hasDocumentCreateAccess = computed(() => {
               !isDataTab
                 ? $t('tooltip.switchToDataTab', { type: $t('objects.view').toLowerCase() })
                 : !base || !activeTable
-                ? $t('tooltip.navigateToTableToCreateView')
-                : !hasViewCreateAccess
-                ? $t('tooltip.youDontHaveAccessToCreateNewView')
-                : ''
+                  ? $t('tooltip.navigateToTableToCreateView')
+                  : !hasViewCreateAccess
+                    ? $t('tooltip.youDontHaveAccessToCreateNewView')
+                    : ''
             "
             :disabled="isDataTab && !!base && !!activeTable && hasViewCreateAccess"
             placement="right"
@@ -359,10 +361,10 @@ const hasDocumentCreateAccess = computed(() => {
                 !isDataTab
                   ? $t('tooltip.switchToDataTab', { type: $t('general.dashboard').toLowerCase() })
                   : !isBaseHomePage
-                  ? $t('tooltip.navigateToBaseToCreateDashboard')
-                  : !hasDashboardCreateAccess
-                  ? $t('tooltip.youDontHaveAccessToCreateNewDashboard')
-                  : ''
+                    ? $t('tooltip.navigateToBaseToCreateDashboard')
+                    : !hasDashboardCreateAccess
+                      ? $t('tooltip.youDontHaveAccessToCreateNewDashboard')
+                      : ''
               "
               :disabled="isDataTab && isBaseHomePage && hasDashboardCreateAccess"
               placement="right"
@@ -384,10 +386,10 @@ const hasDocumentCreateAccess = computed(() => {
               !isDataTab
                 ? $t('tooltip.switchToDataTab', { type: $t('objects.table').toLowerCase() })
                 : !isBaseHomePage
-                ? $t('tooltip.navigateToBaseToCreateTable')
-                : !hasTableCreateAccess
-                ? $t('tooltip.youDontHaveAccessToCreateNewTable')
-                : ''
+                  ? $t('tooltip.navigateToBaseToCreateTable')
+                  : !hasTableCreateAccess
+                    ? $t('tooltip.youDontHaveAccessToCreateNewTable')
+                    : ''
             "
             :disabled="isDataTab && isBaseHomePage && hasTableCreateAccess"
             placement="right"

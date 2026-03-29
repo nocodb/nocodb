@@ -1,4 +1,4 @@
-export const useNocoEe = () => {
+export function useNocoEe() {
   const loadMagic = ref(false)
 
   const predictColumnType = async (..._args: any) => {}

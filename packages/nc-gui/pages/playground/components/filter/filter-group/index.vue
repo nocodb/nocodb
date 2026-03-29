@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { mockSetupInit } from '../../../-helper/mock-setup'
 import MockInjection from '../../MockInjection.vue'
+
 const { metas } = useMetas()
 
 const rootMeta = ref({})
@@ -8,7 +9,7 @@ const columns = computedAsync(async () => {
   if (!metas.value || Object.keys(metas.value).length === 0) return []
   return await composeColumnsForFilter({
     rootMeta: rootMeta.value,
-    getMeta: async (id) => metas.value[`${rootMeta.value?.base_id}:${id}`],
+    getMeta: async id => metas.value[`${rootMeta.value?.base_id}:${id}`],
   })
 }, [])
 const filterMap = ref({})
@@ -46,7 +47,8 @@ const options1 = ref({
       filterMap.value[newFilter.tmp_id] = newFilter
       if (event.tmp_fk_parent_id) {
         filterMap.value[event.tmp_fk_parent_id].children.push(newFilter)
-      } else {
+      }
+      else {
         filters.value.push(newFilter)
       }
     },
@@ -63,25 +65,27 @@ const options1 = ref({
       filterMap.value[newFilter.tmp_id] = newFilter
       if (event.tmp_fk_parent_id) {
         filterMap.value[event.tmp_fk_parent_id].children.push(newFilter)
-      } else {
+      }
+      else {
         filters.value.push(newFilter)
       }
     },
     deleteFilter: async (event: FilterGroupChangeEvent) => {
       if (event.filter.parent) {
-        event.filter.parent.children = event.filter.parent.children?.filter((child) => child.tmp_id !== event.filter?.tmp_id)
-      } else if (!event.filter?.tmp_fk_parent_id) {
-        filters.value = filters.value.filter((filter) => filter.tmp_id !== event.filter.tmp_id)
+        event.filter.parent.children = event.filter.parent.children?.filter(child => child.tmp_id !== event.filter?.tmp_id)
+      }
+      else if (!event.filter?.tmp_fk_parent_id) {
+        filters.value = filters.value.filter(filter => filter.tmp_id !== event.filter.tmp_id)
       }
     },
     rowChange: async (event: FilterRowChangeEvent) => {
       event.filter[event.type] = event.value
-      const evalColumn = columns.value.find((k) => k.id === event.filter.fk_column_id)
+      const evalColumn = columns.value.find(k => k.id === event.filter.fk_column_id)
       if (evalColumn && event.type === 'fk_column_id') {
         adjustFilterWhenColumnChange({
           column: evalColumn,
           filter: event.filter,
-          showNullAndEmptyInFilter: options1.showNullAndEmptyInFilter,
+          showNullAndEmptyInFilter: options1.value.showNullAndEmptyInFilter,
         })
       }
     },
@@ -90,10 +94,10 @@ const options1 = ref({
 const lastChangeEvent1 = ref({})
 const lastRowChangeEvent1 = ref({})
 
-const onChange = (event) => {
+function onChange(event) {
   lastChangeEvent1.value = event
 }
-const onRowChange = (event) => {
+function onRowChange(event) {
   lastRowChangeEvent1.value = event
 }
 onMounted(async () => {
@@ -110,35 +114,83 @@ onMounted(async () => {
 
         <div class="flex gap-4">
           <div class="flex flex-col gap-2">
-            <div><NcSwitch v-model:checked="options1.disabled">disabled</NcSwitch></div>
-            <div><NcSwitch v-model:checked="options1.isLogicalOpChangeAllowed">isLogicalOpChangeAllowed</NcSwitch><br /></div>
-            <div><NcSwitch v-model:checked="options1.isLockedView">isLockedView</NcSwitch></div>
-            <div><NcSwitch v-model:checked="options1.showNullAndEmptyInFilter">showNullAndEmptyInFilter</NcSwitch></div>
-            <div><NcSwitch v-model:checked="options1.isFullWidth">isFullWidth</NcSwitch></div>
-            <div><NcSwitch v-model:checked="options1.webHook">webHook</NcSwitch></div>
-            <div><NcSwitch v-model:checked="options1.link">link</NcSwitch></div>
-            <div><NcSwitch v-model:checked="options1.isForm">isForm</NcSwitch></div>
-            <div><NcSwitch v-model:checked="options1.isPublic">isPublic</NcSwitch></div>
-            <div><NcSwitch v-model:checked="options1.queryFilter">queryFilter</NcSwitch></div>
-            <div><NcSwitch v-model:checked="options1.disableAddNewFilter">disableAddNewFilter</NcSwitch></div>
+            <div>
+              <NcSwitch v-model:checked="options1.disabled">
+                disabled
+              </NcSwitch>
+            </div>
+            <div>
+              <NcSwitch v-model:checked="options1.isLogicalOpChangeAllowed">
+                isLogicalOpChangeAllowed
+              </NcSwitch><br>
+            </div>
+            <div>
+              <NcSwitch v-model:checked="options1.isLockedView">
+                isLockedView
+              </NcSwitch>
+            </div>
+            <div>
+              <NcSwitch v-model:checked="options1.showNullAndEmptyInFilter">
+                showNullAndEmptyInFilter
+              </NcSwitch>
+            </div>
+            <div>
+              <NcSwitch v-model:checked="options1.isFullWidth">
+                isFullWidth
+              </NcSwitch>
+            </div>
+            <div>
+              <NcSwitch v-model:checked="options1.webHook">
+                webHook
+              </NcSwitch>
+            </div>
+            <div>
+              <NcSwitch v-model:checked="options1.link">
+                link
+              </NcSwitch>
+            </div>
+            <div>
+              <NcSwitch v-model:checked="options1.isForm">
+                isForm
+              </NcSwitch>
+            </div>
+            <div>
+              <NcSwitch v-model:checked="options1.isPublic">
+                isPublic
+              </NcSwitch>
+            </div>
+            <div>
+              <NcSwitch v-model:checked="options1.queryFilter">
+                queryFilter
+              </NcSwitch>
+            </div>
+            <div>
+              <NcSwitch v-model:checked="options1.disableAddNewFilter">
+                disableAddNewFilter
+              </NcSwitch>
+            </div>
           </div>
           <div class="flex-col gap-2">
             <div class="flex-col space-y-2">
-              <div>dbClientType: <NcSelect v-model:value="options1.dbClientType"></NcSelect></div>
+              <div>dbClientType: <NcSelect v-model:value="options1.dbClientType" /></div>
               <div>
                 actionBtnType:
                 <NcSelect v-model:value="options1.actionBtnType">
-                  <a-select-option value="text"> Text </a-select-option>
-                  <a-select-option value="secondary"> Secondary </a-select-option>
+                  <a-select-option value="text">
+                    Text
+                  </a-select-option>
+                  <a-select-option value="secondary">
+                    Secondary
+                  </a-select-option>
                 </NcSelect>
               </div>
 
               <div>
-                Index: <input v-model="options1.index" type="number" class="text-xs p-1 border-nc-border-gray-medium" /><br />
+                Index: <input v-model="options1.index" type="number" class="text-xs p-1 border-nc-border-gray-medium"><br>
               </div>
               <div>
                 NestedLevel:
-                <input v-model="options1.nestedLevel" type="number" class="text-xs p-1 border-nc-border-gray-medium" /><br />
+                <input v-model="options1.nestedLevel" type="number" class="text-xs p-1 border-nc-border-gray-medium"><br>
               </div>
               <div>
                 filterPerViewLimit:
@@ -146,11 +198,11 @@ onMounted(async () => {
                   v-model="options1.filterPerViewLimit"
                   type="number"
                   class="text-xs p-1 border-nc-border-gray-medium"
-                /><br />
+                ><br>
               </div>
               <div>
                 filtersCount:
-                <input v-model="options1.filtersCount" type="number" class="text-xs p-1 border-nc-border-gray-medium" /><br />
+                <input v-model="options1.filtersCount" type="number" class="text-xs p-1 border-nc-border-gray-medium"><br>
               </div>
             </div>
           </div>

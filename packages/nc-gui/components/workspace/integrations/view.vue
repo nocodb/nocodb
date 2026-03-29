@@ -35,7 +35,7 @@ onMounted(() => {
   isFromIntegrationPage.value = true
 
   until(() => currentWorkspace.value?.id)
-    .toMatch((v) => !!v)
+    .toMatch(v => !!v)
     .then(async () => {
       await Promise.all([loadCollaborators({ includeDeleted: true }, currentWorkspace.value!.id), loadIntegrations()])
     })
@@ -62,7 +62,7 @@ onBeforeMount(() => {
 
     <NcTabs v-model:active-key="activeViewTab">
       <template #leftExtra>
-        <div class="w-3"></div>
+        <div class="w-3" />
       </template>
       <template v-if="isUIAllowed('workspaceIntegrations')">
         <a-tab-pane key="integrations" class="w-full">
@@ -101,7 +101,7 @@ onBeforeMount(() => {
         </a-tab-pane>
       </template>
     </NcTabs>
-    <WorkspaceIntegrationsEditOrAdd></WorkspaceIntegrationsEditOrAdd>
+    <WorkspaceIntegrationsEditOrAdd />
   </div>
 </template>
 

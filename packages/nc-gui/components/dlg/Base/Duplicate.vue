@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import type { BaseType } from 'nocodb-sdk'
+import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
-import { type BaseType, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: boolean
@@ -43,7 +44,7 @@ const options = ref({
   includeDashboards: isEeUI && !!appInfo.value?.ee,
   includeWorkflows: isEeUI && !!appInfo.value?.ee,
 })
-const targetWorkspace = ref(workspacesList.find((ws) => ws.id === props.base.fk_workspace_id) ?? activeWorkspace)
+const targetWorkspace = ref(workspacesList.find(ws => ws.id === props.base.fk_workspace_id) ?? activeWorkspace)
 
 const errorMessage = ref()
 
@@ -70,7 +71,7 @@ const optionsToExclude = computed(() => {
 
 const workspaceOptions = computed(() => {
   if (!isEeActive.value) return []
-  return workspacesList.filter((ws) =>
+  return workspacesList.filter(ws =>
     [WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(ws.roles as WorkspaceUserRoles),
   )
 })
@@ -79,7 +80,7 @@ const isLoading = computed(() => status.value === 'loading')
 
 const targetBase = ref()
 
-const _duplicate = async () => {
+async function _duplicate() {
   try {
     status.value = 'loading'
     // pick a random color from array and assign to base
@@ -125,19 +126,22 @@ const _duplicate = async () => {
           if (data.status === JobStatus.COMPLETED) {
             try {
               const resBases = await loadProjects('workspace', targetWorkspace?.value?.id)
-              targetBase.value = resBases.find((b) => b.id === jobData.base_id)
-            } catch (_e: any) {
+              targetBase.value = resBases.find(b => b.id === jobData.base_id)
+            }
+            catch (_e: any) {
               // ignore
             }
 
             status.value = 'success'
             refreshCommandPalette()
-          } else if (data.status === JobStatus.FAILED) {
+          }
+          else if (data.status === JobStatus.FAILED) {
             status.value = 'error'
             errorMessage.value = data?.data?.error?.message || 'Some error occurred'
             try {
               await loadProjects('workspace', targetWorkspace?.value?.id ?? props.base.fk_workspace_id)
-            } catch (_e: any) {
+            }
+            catch (_e: any) {
               // ignore
             }
 
@@ -148,7 +152,8 @@ const _duplicate = async () => {
     )
 
     $e('a:base:duplicate')
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
     errorMessage.value = await extractSdkResponseErrorMsg(e)
     status.value = 'error'
@@ -156,12 +161,12 @@ const _duplicate = async () => {
   }
 }
 
-const selectOption = (option: WorkspaceType) => {
+function selectOption(option: WorkspaceType) {
   targetWorkspace.value = option
   dropdownOpen.value = false
 }
 
-const handleActionClick = () => {
+function handleActionClick() {
   switch (status.value) {
     case 'pending': {
       _duplicate()
@@ -310,7 +315,9 @@ onKeyStroke('Enter', () => {
           class="mt-5 text-nc-content-gray-subtle2 font-medium"
         >
           {{ $t('labels.baseDuplicateMessage') }}
-          <template v-if="!isBaseOwner">{{ $t('labels.baseDuplicateMessage2') }}</template>
+          <template v-if="!isBaseOwner">
+            {{ $t('labels.baseDuplicateMessage2') }}
+          </template>
         </div>
 
         <div v-if="isEeActive" class="mb-5">
@@ -400,7 +407,9 @@ onKeyStroke('Enter', () => {
       </template>
 
       <template v-else-if="status === 'error'">
-        <div class="text-nc-content-gray-emphasis my-5 font-medium">{{ $t('labels.errorMessage') }} {{ errorMessage }}</div>
+        <div class="text-nc-content-gray-emphasis my-5 font-medium">
+          {{ $t('labels.errorMessage') }} {{ errorMessage }}
+        </div>
       </template>
     </div>
     <div class="flex flex-row gap-x-2 justify-end">
@@ -415,10 +424,18 @@ onKeyStroke('Enter', () => {
         :disabled="isLoading"
         @click="handleActionClick"
       >
-        <template v-if="status === 'pending'"> {{ $t('general.duplicate') }} {{ $t('objects.project') }} </template>
-        <template v-else-if="status === 'loading'"> Duplicating {{ $t('objects.project') }} </template>
-        <template v-else-if="status === 'success'"> {{ $t('labels.goToBase') }} </template>
-        <template v-else-if="status === 'error'"> {{ $t('labels.tryAgain') }} </template>
+        <template v-if="status === 'pending'">
+          {{ $t('general.duplicate') }} {{ $t('objects.project') }}
+        </template>
+        <template v-else-if="status === 'loading'">
+          Duplicating {{ $t('objects.project') }}
+        </template>
+        <template v-else-if="status === 'success'">
+          {{ $t('labels.goToBase') }}
+        </template>
+        <template v-else-if="status === 'error'">
+          {{ $t('labels.tryAgain') }}
+        </template>
       </NcButton>
     </div>
   </GeneralModal>

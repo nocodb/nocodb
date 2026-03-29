@@ -1,7 +1,7 @@
+import type { UseGlobalReturn } from './types'
 import { useGlobalActions } from './actions'
 import { useGlobalGetters } from './getters'
 import { useGlobalState } from './state'
-import type { UseGlobalReturn } from './types'
 
 /**
  * Global state is injected by {@link import('~/plugins/state') state} plugin into our nuxt app (available as `$state`).
@@ -71,7 +71,8 @@ export const useGlobal = createGlobalState((): UseGlobalReturn => {
     (newToken) => {
       if (newToken) {
         document.cookie = `nc_token=${newToken}; path=/api; max-age=${10 * 60 * 60}; samesite=lax`
-      } else {
+      }
+      else {
         document.cookie = 'nc_token=; path=/api; max-age=0; samesite=lax'
       }
     },

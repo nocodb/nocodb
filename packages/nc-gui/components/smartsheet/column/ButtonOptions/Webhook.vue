@@ -25,7 +25,7 @@ const webhooksStore = useWebhooksStore()
 const { hooks } = toRefs(webhooksStore)
 
 const manualHooks = computed(() => {
-  return hooks.value.filter((hook) =>
+  return hooks.value.filter(hook =>
     hook.version === 'v3' ? hook.operation?.includes('trigger') : hook.event === 'manual' && hook.active,
   )
 })
@@ -41,7 +41,7 @@ const { isWebhookCreateModalOpen } = useColumnCreateStoreOrThrow()
 
 const isWebhookModal = ref(false)
 
-const onClose = (hook: HookType) => {
+function onClose(hook: HookType) {
   selectedWebhook.value = hook.id ? hook : undefined
   vModel.value.fk_webhook_id = hook.id
   isWebhookModal.value = false
@@ -50,20 +50,20 @@ const onClose = (hook: HookType) => {
   }, 500)
 }
 
-const newWebhook = () => {
+function newWebhook() {
   selectedWebhook.value = undefined
   isWebhookModal.value = true
   isWebhookCreateModalOpen.value = true
 }
 
-const editWebhook = () => {
+function editWebhook() {
   if (selectedWebhook.value) {
     isWebhookCreateModalOpen.value = true
     isWebhookModal.value = true
   }
 }
 
-const onSelectWebhook = (hook: HookType) => {
+function onSelectWebhook(hook: HookType) {
   vModel.value.fk_webhook_id = hook.id
   selectedWebhook.value = hook
   isWebHookSelectionDropdownOpen.value = false

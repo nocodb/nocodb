@@ -7,7 +7,9 @@ defineProps<Props>()
 
 <template>
   <div class="detail-card">
-    <div class="detail-title">{{ title }}</div>
+    <div class="detail-title">
+      {{ title }}
+    </div>
 
     <div class="content">
       <div class="detail-headers">

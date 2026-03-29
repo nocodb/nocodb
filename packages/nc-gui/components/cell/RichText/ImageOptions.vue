@@ -1,6 +1,6 @@
 <script lang="ts" setup>
+import type { Node } from '@tiptap/core'
 import type { Editor } from '@tiptap/vue-3'
-import { type Node } from '@tiptap/core'
 
 interface Props {
   editor: Editor

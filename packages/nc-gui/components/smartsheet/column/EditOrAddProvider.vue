@@ -34,7 +34,7 @@ const { isWebhookCreateModalOpen, isAiButtonConfigModalOpen, triggerPostSaveOrUp
  *
  * @returns {boolean} - Returns `true` if any of the specified modals (e.g., Webhook Create Modal, AI Button Config Modal) are open, otherwise `false`.
  */
-const shouldKeepModalOpen = (): boolean => {
+function shouldKeepModalOpen(): boolean {
   return isSaving.value || isWebhookCreateModalOpen.value || isAiButtonConfigModalOpen.value
 }
 

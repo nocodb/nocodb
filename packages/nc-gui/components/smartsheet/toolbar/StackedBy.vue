@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import type { SelectProps } from 'ant-design-vue'
 import type { KanbanType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import type { SelectProps } from 'ant-design-vue'
 
 provide(IsKanbanInj, ref(true))
 
@@ -38,7 +38,7 @@ watch(
   { immediate: true },
 )
 
-const updateGroupingField = async (v: string) => {
+async function updateGroupingField(v: string) {
   await updateKanbanMeta({
     fk_grp_col_id: v,
   })
@@ -65,7 +65,7 @@ const groupingFieldColumnId = computed({
   },
 })
 
-const updateHideEmptyStack = async (v: boolean) => {
+async function updateHideEmptyStack(v: boolean) {
   const payload = {
     ...parseProp(kanbanMetaData.value?.meta),
     hide_empty_stack: v,
@@ -105,7 +105,7 @@ const hideEmptyStack = computed({
 
 const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
   return fields.value
-    ?.filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id].uidt === UITypes.SingleSelect)
+    ?.filter(el => el.fk_column_id && metaColumnById.value[el.fk_column_id].uidt === UITypes.SingleSelect)
     .map((field) => {
       return {
         value: field.fk_column_id,
@@ -114,7 +114,7 @@ const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
     })
 })
 
-const handleChange = () => {
+function handleChange() {
   open.value = false
 }
 </script>
@@ -174,7 +174,9 @@ const handleChange = () => {
                 @change="handleChange"
                 @click.stop
               >
-                <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
+                <template #suffixIcon>
+                  <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+                </template>
                 <a-select-option v-for="option of singleSelectFieldOptions" :key="option.value" :value="option.value">
                   <div class="w-full h-full flex gap-2 items-center justify-between" :title="option.label">
                     <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
@@ -189,7 +191,9 @@ const handleChange = () => {
                         <template #title>
                           {{ option.label }}
                         </template>
-                        <template #default>{{ option.label }}</template>
+                        <template #default>
+                          {{ option.label }}
+                        </template>
                       </NcTooltip>
                     </div>
                     <GeneralIcon
@@ -198,8 +202,9 @@ const handleChange = () => {
                       icon="check"
                       class="flex-none text-primary w-4 h-4"
                     />
-                  </div> </a-select-option
-              ></a-select>
+                  </div>
+                </a-select-option>
+              </a-select>
             </div>
           </div>
         </div>

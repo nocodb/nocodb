@@ -1,7 +1,7 @@
-import { useStorage } from '@vueuse/core'
 import type { JwtPayload } from 'jwt-decode'
-import { MapProvider } from 'nocodb-sdk'
 import type { AppInfo, State, StoredState } from './types'
+import { useStorage } from '@vueuse/core'
+import { MapProvider } from 'nocodb-sdk'
 import { INITIAL_LEFT_SIDEBAR_WIDTH } from '~/lib/constants'
 
 export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
@@ -32,11 +32,11 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     const [lang, code] = language.split(/[_-]/)
 
     /** find all locales that match the language */
-    let availableLocales = i18n.global.availableLocales.filter((locale) => locale.startsWith(lang))
+    let availableLocales = i18n.global.availableLocales.filter(locale => locale.startsWith(lang))
 
     /** If we can match more than one locale, we check if the code of the language matches as well */
     if (availableLocales.length > 1) {
-      availableLocales = availableLocales.filter((locale) => locale.endsWith(code))
+      availableLocales = availableLocales.filter(locale => locale.endsWith(code))
     }
 
     /** if there are still multiple locales, pick the first one */

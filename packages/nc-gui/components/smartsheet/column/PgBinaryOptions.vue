@@ -27,8 +27,12 @@ vModel.value.meta = {
           :placeholder="$t('labels.binaryEncodingFormat')"
           class="!w-full nc-link-singular"
         >
-          <a-select-option value="escape">{{ $t('general.escape') }}</a-select-option>
-          <a-select-option value="hex">{{ $t('general.hex') }}</a-select-option>
+          <a-select-option value="escape">
+            {{ $t('general.escape') }}
+          </a-select-option>
+          <a-select-option value="hex">
+            {{ $t('general.hex') }}
+          </a-select-option>
         </a-select>
       </a-form-item>
     </a-col>

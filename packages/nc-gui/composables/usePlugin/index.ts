@@ -107,14 +107,14 @@ export const usePlugin = createSharedComposable(() => {
 
   const availablePlugins = computed<PluginManifest[]>(() => [...availableExtensions.value, ...availableScripts.value])
 
-  const availableExtensionIds = computed(() => availableExtensions.value.map((e) => e.id))
+  const availableExtensionIds = computed(() => availableExtensions.value.map(e => e.id))
   const availableExtensionMapById = computed(() => {
     return availableExtensions.value.reduce((acc, ext) => {
       acc[ext.id] = ext
       return acc
     }, {} as Record<string, ExtensionManifest>)
   })
-  const availableScriptIds = computed(() => availableScripts.value.map((s) => s.id))
+  const availableScriptIds = computed(() => availableScripts.value.map(s => s.id))
   const availableScriptMapById = computed(() => {
     return availableScripts.value.reduce((acc, script) => {
       acc[script.id] = script
@@ -134,7 +134,8 @@ export const usePlugin = createSharedComposable(() => {
   const getPluginAssetUrl = (pathOrUrl: string, type: PluginType = PluginType.extension) => {
     if (pathOrUrl.startsWith('http')) {
       return pathOrUrl
-    } else {
+    }
+    else {
       const basePath = type === PluginType.extension ? '../../extensions/' : '../../scripts/'
       const file = pluginAssets[type][PluginLib.assets]?.[`${basePath}${pathOrUrl}`]
       return file || ''
@@ -178,16 +179,17 @@ export const usePlugin = createSharedComposable(() => {
       }
 
       if (
-        manifest?.disabled !== true &&
+        manifest?.disabled !== true
         // Ensure the plugin is enabled for the current environment
-        (appInfo.value?.isOnPrem || (isEeUI && !manifest?.onPrem)) &&
-        (!manifest?.beta || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS))
+        && (appInfo.value?.isOnPrem || (isEeUI && !manifest?.onPrem))
+        && (!manifest?.beta || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS))
       ) {
         // Add to available plugins collection
-        const existingPluginIndex = pluginCollections[type].available.value.findIndex((p) => p.id === manifest.id)
+        const existingPluginIndex = pluginCollections[type].available.value.findIndex(p => p.id === manifest.id)
         if (existingPluginIndex !== -1) {
           pluginCollections[type].available.value.splice(existingPluginIndex, 1, manifest as any)
-        } else {
+        }
+        else {
           pluginCollections[type].available.value.push(manifest as any)
         }
 
@@ -200,7 +202,8 @@ export const usePlugin = createSharedComposable(() => {
             try {
               const markdownContent = pluginAssets[type][PluginLib.markdowns]?.[markdownPath]
               pluginDescriptionContent.value[manifest.id] = `${markdownContent}`
-            } catch (markdownError) {
+            }
+            catch (markdownError) {
               console.error(`Failed to load Markdown file at ${markdownPath}:`, markdownError)
             }
           }
@@ -215,16 +218,19 @@ export const usePlugin = createSharedComposable(() => {
             try {
               const scriptFileContent = pluginAssets[type][PluginLib.scripts]?.[scriptPath]
               scriptContent.value[manifest.id] = `${scriptFileContent}`
-            } catch (scriptError) {
+            }
+            catch (scriptError) {
               console.error(`Failed to load script file at ${scriptPath}:`, scriptError)
             }
           }
         }
-      } else {
+      }
+      else {
         // Increment disabled count
         pluginCollections[type].disabledCount++
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error(`Failed to process ${type} manifest at ${path}:`, error)
     }
   }
@@ -252,7 +258,8 @@ export const usePlugin = createSharedComposable(() => {
               if (pluginAssets[pluginType][lib]) {
                 pluginAssets[pluginType][lib]![path] = await glob[path]()
               }
-            } catch (error) {
+            }
+            catch (error) {
               console.error(`Failed to load ${pluginType} file at ${path} for ${libKey}:`, error)
             }
           }
@@ -271,7 +278,8 @@ export const usePlugin = createSharedComposable(() => {
       }
 
       pluginsLoaded.value = true
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error loading plugins:', error)
     }
   }
@@ -295,10 +303,10 @@ export const usePlugin = createSharedComposable(() => {
    * @returns The plugin manifest or undefined if not found
    */
   const findPluginById = (id: string): PluginManifest | undefined => {
-    const extension = availableExtensions.value.find((e) => e.id === id)
+    const extension = availableExtensions.value.find(e => e.id === id)
     if (extension) return extension
 
-    return availableScripts.value.find((s) => s.id === id)
+    return availableScripts.value.find(s => s.id === id)
   }
 
   /**

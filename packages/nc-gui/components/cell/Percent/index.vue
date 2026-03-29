@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
+import type { VNodeRef } from 'vue'
 import { ColumnHelper, UITypes } from 'nocodb-sdk'
 
 interface Props {
@@ -36,7 +36,7 @@ const isWorkflow = inject(isWorkflowInj, ref(false))!
 
 const isLinkRecordDropdown = inject(IsLinkRecordDropdownInj, ref(false))
 
-const focus: VNodeRef = (el) =>
+const focus: VNodeRef = el =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 
 const cellFocused = ref(false)
@@ -53,21 +53,23 @@ const percentMeta = computed(() => {
 
 const vModel = computed({
   get: () => {
-    return isForm.value &&
-      !isEditColumn.value &&
-      _vModel.value &&
-      !cellFocused.value &&
-      !isNaN(Number(_vModel.value)) &&
-      props.location !== 'filter'
+    return isForm.value
+      && !isEditColumn.value
+      && _vModel.value
+      && !cellFocused.value
+      && !isNaN(Number(_vModel.value))
+      && props.location !== 'filter'
       ? `${_vModel.value}%`
       : _vModel.value
   },
   set: (value) => {
     if (value === '') {
       _vModel.value = null
-    } else if (isForm.value && !isEditColumn.value) {
+    }
+    else if (isForm.value && !isEditColumn.value) {
       _vModel.value = isNaN(Number(value)) ? value : Number(value)
-    } else {
+    }
+    else {
       _vModel.value = value
     }
   },
@@ -75,7 +77,7 @@ const vModel = computed({
 
 const inputType = computed(() => (isForm.value && !isEditColumn.value && props.location !== 'filter' ? 'text' : 'number'))
 
-const onBlur = () => {
+function onBlur() {
   if (editEnabled) {
     editEnabled.value = false
   }
@@ -83,7 +85,7 @@ const onBlur = () => {
   expandedEditEnabled.value = false
 }
 
-const onFocus = () => {
+function onFocus() {
   cellFocused.value = true
   if (!isReadonly(editEnabled)) {
     editEnabled.value = true
@@ -91,7 +93,7 @@ const onFocus = () => {
   expandedEditEnabled.value = true
 }
 
-const onWrapperFocus = () => {
+function onWrapperFocus() {
   cellFocused.value = true
   if (!isReadonly(editEnabled)) {
     editEnabled.value = true
@@ -104,17 +106,17 @@ const onWrapperFocus = () => {
   })
 }
 
-const onMouseover = () => {
+function onMouseover() {
   expandedEditEnabled.value = true
 }
 
-const onMouseleave = () => {
+function onMouseleave() {
   if (!cellFocused.value) {
     expandedEditEnabled.value = false
   }
 }
 
-const onTabPress = (e: KeyboardEvent) => {
+function onTabPress(e: KeyboardEvent) {
   if (e.shiftKey && (isExpandedFormOpen.value || isForm.value)) {
     e.preventDefault()
 
@@ -133,10 +135,10 @@ const onTabPress = (e: KeyboardEvent) => {
 
       for (let i = focusesNcCellIndex - 1; i >= 0; i--) {
         const node = nodes[i]
-        const lastFormItem = (node.querySelector('[tabindex="0"]') ??
-          node.querySelector('input') ??
-          node.querySelector('textarea') ??
-          node.querySelector('button')) as HTMLElement
+        const lastFormItem = (node.querySelector('[tabindex="0"]')
+          ?? node.querySelector('input')
+          ?? node.querySelector('textarea')
+          ?? node.querySelector('button')) as HTMLElement
         if (lastFormItem) {
           lastFormItem.focus()
           break
@@ -176,7 +178,7 @@ const onTabPress = (e: KeyboardEvent) => {
       @keydown.alt.stop
       @selectstart.capture.stop
       @mousedown.stop
-    />
+    >
     <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
     <div v-else-if="percentMeta.is_progress === true && vModel !== null && vModel !== undefined && !isWorkflow" class="px-2">
       <a-progress

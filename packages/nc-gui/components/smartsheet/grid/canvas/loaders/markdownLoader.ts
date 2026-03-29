@@ -1,10 +1,10 @@
-import { LRUCache } from 'lru-cache'
 import type { UserType } from 'nocodb-sdk'
 import type { Block } from '../utils/markdownUtils'
-import { parseMarkdown } from '../utils/markdownUtils'
+import { LRUCache } from 'lru-cache'
 import { NcMarkdownParser } from '~/helpers/tiptap'
+import { parseMarkdown } from '../utils/markdownUtils'
 
-export const markdownTextCache: LRUCache<string, { blocks: Block[]; width: number }> = new LRUCache({
+export const markdownTextCache: LRUCache<string, { blocks: Block[], width: number }> = new LRUCache({
   max: 1000,
 })
 
@@ -16,7 +16,7 @@ export interface MarkdownParserOptions {
 }
 
 export class MarkdownLoader {
-  private loadingMarkdown = new Map<string, Promise<{ blocks: Block[]; width: number } | undefined>>()
+  private loadingMarkdown = new Map<string, Promise<{ blocks: Block[], width: number } | undefined>>()
 
   private pendingLoads = 0
 
@@ -27,7 +27,7 @@ export class MarkdownLoader {
    * - returns cached markdown if ready
    * - otherwise starts async parse and returns undefined
    */
-  loadOrGetMarkdown(cacheKey: string, options: MarkdownParserOptions): { blocks: Block[]; width: number } | undefined {
+  loadOrGetMarkdown(cacheKey: string, options: MarkdownParserOptions): { blocks: Block[], width: number } | undefined {
     // 1️⃣ Cache hit
     const cached = markdownTextCache.get(cacheKey)
     if (cached) return cached
@@ -54,7 +54,7 @@ export class MarkdownLoader {
           }),
         )
 
-        const result: { blocks: Block[]; width: number } = {
+        const result: { blocks: Block[], width: number } = {
           width: maxWidth,
           blocks: parsedBlocks,
         }
@@ -62,9 +62,11 @@ export class MarkdownLoader {
         markdownTextCache.set(cacheKey, result)
 
         return result
-      } catch {
+      }
+      catch {
         return undefined
-      } finally {
+      }
+      finally {
         this.loadingMarkdown.delete(cacheKey)
         this.pendingLoads--
         this.onSettled?.()

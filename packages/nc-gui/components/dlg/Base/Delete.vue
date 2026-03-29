@@ -22,7 +22,7 @@ const base = computed(() => props.base ?? bases.value.get(props.baseId))
 
 const isLoading = ref(false)
 
-const onDelete = async () => {
+async function onDelete() {
   if (!base.value) return
 
   const toBeDeletedProject = JSON.parse(JSON.stringify(base.value))
@@ -38,9 +38,11 @@ const onDelete = async () => {
     if (toBeDeletedProject.id === basesStore.activeProjectId) {
       await navigateToFirstProjectOrHome()
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     isLoading.value = false
     removeFromRecentViews({ baseId: toBeDeletedProject.id! })
   }

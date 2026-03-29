@@ -53,7 +53,7 @@ setAvoidShowingToastMsgForValidations({
 
 const currencyList = currencyCodes || []
 
-const currencyLocaleList = ref<{ text: string; value: string }[]>([])
+const currencyLocaleList = ref<{ text: string, value: string }[]>([])
 
 const isMoney = computed(() => vModel.value.dt === 'money')
 
@@ -62,7 +62,7 @@ const message = computed(() => {
   return ''
 })
 
-function filterOption(input: string, option: { value: string; key: string }) {
+function filterOption(input: string, option: { value: string, key: string }) {
   return searchCompare([option.value, option.key], input)
 }
 
@@ -79,7 +79,7 @@ currencyLocales().then((locales) => {
 // update datatype precision when precision is less than the new value
 // avoid downgrading precision if the new value is less than the current precision
 // to avoid fractional part data loss(eg. 1.2345 -> 1.23)
-const onPrecisionChange = (value: number) => {
+function onPrecisionChange(value: number) {
   vModel.value.dtxs = Math.max(value, vModel.value.dtxs)
 }
 </script>
@@ -96,12 +96,16 @@ const onPrecisionChange = (value: number) => {
           :disabled="isMoney && isPg"
           dropdown-class-name="nc-dropdown-currency-cell-locale"
         >
-          <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /> </template>
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+          </template>
 
           <a-select-option v-for="currencyLocale of currencyLocaleList" :key="currencyLocale.text" :value="currencyLocale.value">
             <div class="flex gap-2 w-full truncate items-center">
               <NcTooltip show-on-truncate-only class="flex-1 truncate">
-                <template #title>{{ currencyLocale.text }}</template>
+                <template #title>
+                  {{ currencyLocale.text }}
+                </template>
                 {{ currencyLocale.text }}
               </NcTooltip>
 
@@ -127,7 +131,9 @@ const onPrecisionChange = (value: number) => {
           :disabled="isMoney && isPg"
           dropdown-class-name="nc-dropdown-currency-cell-code"
         >
-          <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /> </template>
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+          </template>
 
           <a-select-option v-for="(currencyCode, i) of currencyList" :key="i" :value="currencyCode">
             <div class="flex gap-2 w-full justify-between items-center">

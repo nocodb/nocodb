@@ -1,7 +1,7 @@
 import { Modal } from 'ant-design-vue'
 import { getI18n } from '../plugins/a.i18n'
 
-export const useCopy = (showDialogIfFailed = false) => {
+export function useCopy(showDialogIfFailed = false) {
   const { t } = getI18n().global
 
   /** fallback for copy if clipboard api is not supported */
@@ -30,7 +30,8 @@ export const useCopy = (showDialogIfFailed = false) => {
         throw new Error('failed')
       }
       return result
-    } catch (e) {
+    }
+    catch (e) {
       if (!showDialogIfFailed) throw new Error(t('msg.error.copyToClipboardError'))
 
       Modal.info({
@@ -51,7 +52,8 @@ export const useCopy = (showDialogIfFailed = false) => {
         await _copy(text)
         return true
       }
-    } catch {}
+    }
+    catch {}
 
     return copyFallback(text)
   }

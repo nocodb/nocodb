@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Client } from 'typesense'
-import { useVModel } from '@vueuse/core'
 import type { SortedResult } from '#imports'
+import { useVModel } from '@vueuse/core'
+import { Client } from 'typesense'
 
 const props = defineProps<{
   open: boolean
@@ -31,18 +31,18 @@ const typesenseClient = new Client({
 
 const { search, query } = useTypesenseSearch(typesenseClient, 'noco-docs-v2')
 
-const hide = () => {
+function hide() {
   vOpen.value = false
   search.value = ''
   selectedIndex.value = 0
 }
 
-const navigateToResult = (result: SortedResult) => {
+function navigateToResult(result: SortedResult) {
   window.open(`https://nocodb.com${result.url}`, '_blank')
   hide()
 }
 
-const handleKeyDown = (e: KeyboardEvent) => {
+function handleKeyDown(e: KeyboardEvent) {
   if (!vOpen.value || !query.data?.value?.length) return
 
   switch (e.key) {
@@ -76,11 +76,14 @@ onClickOutside(modalEl, () => {
 useEventListener('keydown', (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
     hide()
-  } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+  }
+  else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
     hide()
-  } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l') {
+  }
+  else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l') {
     hide()
-  } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j') {
+  }
+  else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j') {
     if (vOpen.value || !user?.value?.id) {
       hide()
       return
@@ -89,7 +92,8 @@ useEventListener('keydown', (e: KeyboardEvent) => {
     nextTick(() => {
       cmdInputEl.value?.focus()
     })
-  } else {
+  }
+  else {
     handleKeyDown(e)
   }
 })
@@ -99,7 +103,8 @@ watch(vOpen, () => {
     nextTick(() => {
       cmdInputEl.value?.focus()
     })
-  } else {
+  }
+  else {
     selectedIndex.value = 0
   }
 })
@@ -110,7 +115,7 @@ watch(vOpen, () => {
     <div ref="modalEl" class="cmdk-modal-content cmdj-modal-content relative h-[25.25rem]">
       <div class="cmdk-input-wrapper border-b-1 border-nc-border-gray-medium">
         <GeneralIcon class="h-4 w-4 text-nc-content-gray-muted" icon="search" />
-        <input ref="cmdInputEl" v-model="search" class="cmdk-input cmdj-input" placeholder="Search through docs" type="text" />
+        <input ref="cmdInputEl" v-model="search" class="cmdk-input cmdj-input" placeholder="Search through docs" type="text">
       </div>
 
       <div class="cmdk-results-container overflow-y-auto max-h-80">
@@ -119,8 +124,10 @@ watch(vOpen, () => {
             src="~assets/img/placeholder/no-search-result-found.png"
             class="!w-[240px] flex-none"
             alt="Search through our documentation"
-          />
-          <div class="text-nc-content-gray-muted">Search through our documentation</div>
+          >
+          <div class="text-nc-content-gray-muted">
+            Search through our documentation
+          </div>
         </div>
         <div
           v-else-if="(query.data.value === 'empty' || query.data.value?.length === 0) && !query.isLoading.value"
@@ -130,8 +137,10 @@ watch(vOpen, () => {
             src="~assets/img/placeholder/no-search-result-found.png"
             class="!w-[240px] flex-none"
             alt="Your search did not match any results"
-          />
-          <div class="text-nc-content-gray-muted">Your search did not match any results</div>
+          >
+          <div class="text-nc-content-gray-muted">
+            Your search did not match any results
+          </div>
         </div>
 
         <div v-else-if="!query.isLoading.value" class="cmdk-results">
@@ -152,7 +161,9 @@ watch(vOpen, () => {
                   }"
                   class="cmdk-action-text flex-1"
                 >
-                  <div class="cmdk-action-title text-md">{{ result.content }}</div>
+                  <div class="cmdk-action-title text-md">
+                    {{ result.content }}
+                  </div>
                 </div>
               </div>
             </div>

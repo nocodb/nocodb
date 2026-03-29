@@ -12,7 +12,7 @@ interface NodeGroup {
 interface Props {
   items: VariableDefinition[]
   groupedItems?: NodeGroup[]
-  command: (attrs: { id: string; label: string; expression: string }) => void
+  command: (attrs: { id: string, label: string, expression: string }) => void
   query?: string
 }
 
@@ -28,7 +28,7 @@ const selectedVariableIndex = ref(0)
 
 const searchQuery = ref(props.query || '')
 
-const navigationStack = ref<{ title: string; variables: VariableDefinition[] }[]>([])
+const navigationStack = ref<{ title: string, variables: VariableDefinition[] }[]>([])
 
 const nodeGroups = computed(() => {
   if (props.groupedItems && props.groupedItems.length > 0) {
@@ -86,10 +86,10 @@ const filteredVariables = computed(() => {
 
   const query = searchQuery.value.toLowerCase()
   return currentVariables.value.filter(
-    (v) =>
-      v.name.toLowerCase().includes(query) ||
-      v.key.toLowerCase().includes(query) ||
-      v.extra?.description?.toLowerCase().includes(query),
+    v =>
+      v.name.toLowerCase().includes(query)
+      || v.key.toLowerCase().includes(query)
+      || v.extra?.description?.toLowerCase().includes(query),
   )
 })
 
@@ -122,7 +122,7 @@ const groupLabels: Record<string, string> = {
   other: 'Other',
 }
 
-const scrollToSelected = () => {
+function scrollToSelected() {
   nextTick(() => {
     const selectedEl = document.querySelector('.nc-workflow-variable-picker .nc-variable-item.is-selected')
     selectedEl?.scrollIntoView({ block: 'nearest' })
@@ -131,7 +131,7 @@ const scrollToSelected = () => {
 
 const currentParentVariable = ref<VariableDefinition | null>(null)
 
-const navigateInto = (variable: VariableDefinition) => {
+function navigateInto(variable: VariableDefinition) {
   if (variable.children && variable.children.length > 0) {
     navigationStack.value.push({
       title: variable.name,
@@ -143,41 +143,43 @@ const navigateInto = (variable: VariableDefinition) => {
   }
 }
 
-const goBack = () => {
+function goBack() {
   if (navigationStack.value.length > 0) {
     navigationStack.value.pop()
     selectedVariableIndex.value = 0
     if (navigationStack.value.length > 0) {
       const parentLevel = navigationStack.value[navigationStack.value.length - 2]
       if (parentLevel) {
-        currentParentVariable.value =
-          parentLevel.variables.find((v) => v.name === navigationStack.value[navigationStack.value.length - 1].title) || null
+        currentParentVariable.value
+          = parentLevel.variables.find(v => v.name === navigationStack.value[navigationStack.value.length - 1].title) || null
       }
-    } else {
+    }
+    else {
       currentParentVariable.value = null
     }
   }
 }
 
-const upHandler = () => {
+function upHandler() {
   selectedVariableIndex.value = Math.max(0, selectedVariableIndex.value - 1)
   scrollToSelected()
 }
 
-const downHandler = () => {
+function downHandler() {
   selectedVariableIndex.value = Math.min(filteredVariables.value.length - 1, selectedVariableIndex.value + 1)
   scrollToSelected()
 }
 
-const leftHandler = () => {
+function leftHandler() {
   if (navigationStack.value.length > 0) {
     goBack()
-  } else {
+  }
+  else {
     selectedNodeIndex.value = Math.max(0, selectedNodeIndex.value - 1)
   }
 }
 
-const selectVariable = (variable: VariableDefinition) => {
+function selectVariable(variable: VariableDefinition) {
   const expression = `{{ ${variable.key} }}`
 
   props.command({
@@ -187,25 +189,26 @@ const selectVariable = (variable: VariableDefinition) => {
   })
 }
 
-const rightHandler = () => {
+function rightHandler() {
   const variable = filteredVariables.value[selectedVariableIndex.value]
   if (variable?.children && variable.children.length > 0) {
     navigateInto(variable)
   }
 }
 
-const enterHandler = () => {
+function enterHandler() {
   const variable = filteredVariables.value[selectedVariableIndex.value]
   if (variable) {
     if (variable.children && variable.children.length > 0) {
       navigateInto(variable)
-    } else {
+    }
+    else {
       selectVariable(variable)
     }
   }
 }
 
-const onKeyDown = ({ event }: { event: KeyboardEvent }) => {
+function onKeyDown({ event }: { event: KeyboardEvent }) {
   if (event.key === 'ArrowUp') {
     upHandler()
     return true
@@ -240,13 +243,13 @@ const onKeyDown = ({ event }: { event: KeyboardEvent }) => {
   return false
 }
 
-const selectNode = (index: number) => {
+function selectNode(index: number) {
   selectedNodeIndex.value = index
   selectedVariableIndex.value = 0
   navigationStack.value = []
 }
 
-const getVariableIcon = (variable: VariableDefinition) => {
+function getVariableIcon(variable: VariableDefinition) {
   if (variable.extra?.icon) {
     return variable.extra.icon
   }
@@ -273,7 +276,7 @@ const getVariableIcon = (variable: VariableDefinition) => {
   }
 }
 
-const getNodeIcon = (node: NodeGroup) => {
+function getNodeIcon(node: NodeGroup) {
   const firstVar = node.variables[0]
   if (firstVar?.extra?.nodeIcon) {
     return firstVar.extra.nodeIcon
@@ -326,14 +329,18 @@ defineExpose({
             <GeneralIcon :icon="getNodeIcon(node)" class="w-4 h-4" />
           </div>
           <div class="flex-1 min-w-0">
-            <div class="text-sm font-medium text-nc-content-gray-emphasis truncate">{{ node.nodeTitle }}</div>
-            <div class="text-xs text-nc-content-gray-muted">{{ node.variables.length }} fields</div>
+            <div class="text-sm font-medium text-nc-content-gray-emphasis truncate">
+              {{ node.nodeTitle }}
+            </div>
+            <div class="text-xs text-nc-content-gray-muted">
+              {{ node.variables.length }} fields
+            </div>
           </div>
           <GeneralIcon v-if="index === selectedNodeIndex" icon="check" class="w-4 h-4 text-nc-content-brand flex-none" />
         </div>
 
         <div v-if="nodeGroups.length === 0" class="px-4 py-8 text-center text-nc-content-gray-disabled text-sm">
-          No data sources available.<br />
+          No data sources available.<br>
           Run previous steps first.
         </div>
       </div>
@@ -383,13 +390,17 @@ defineExpose({
                   <GeneralIcon :icon="getVariableIcon(variable)" class="w-4 h-4" />
                 </div>
                 <div class="flex-1 min-w-0">
-                  <div class="text-sm font-medium text-nc-content-gray-emphasis truncate">{{ variable.name }}</div>
+                  <div class="text-sm font-medium text-nc-content-gray-emphasis truncate">
+                    {{ variable.name }}
+                  </div>
                   <div v-if="variable?.extra?.description" class="text-xs text-nc-content-gray-disabled truncate">
                     {{ variable.extra.description }}
                   </div>
                 </div>
               </div>
-              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)"> Select </NcButton>
+              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)">
+                Select
+              </NcButton>
             </div>
           </template>
 
@@ -415,13 +426,17 @@ defineExpose({
                   <GeneralIcon :icon="getVariableIcon(variable)" class="w-4 h-4 text-nc-content-gray-subtle" />
                 </div>
                 <div class="flex-1 min-w-0">
-                  <div class="text-sm font-medium text-nc-content-gray-emphasis truncate">{{ variable.name }}</div>
+                  <div class="text-sm font-medium text-nc-content-gray-emphasis truncate">
+                    {{ variable.name }}
+                  </div>
                   <div v-if="variable?.extra?.description" class="text-xs text-nc-content-gray-disabled truncate">
                     {{ variable.extra.description }}
                   </div>
                 </div>
               </div>
-              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)"> Select </NcButton>
+              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)">
+                Select
+              </NcButton>
             </div>
           </template>
 
@@ -446,13 +461,17 @@ defineExpose({
                   <GeneralIcon :icon="getVariableIcon(variable)" class="w-4 h-4 text-nc-content-gray-subtle" />
                 </div>
                 <div class="flex-1 min-w-0">
-                  <div class="text-sm font-medium text-nc-content-gray-emphasis truncate">{{ variable.name }}</div>
+                  <div class="text-sm font-medium text-nc-content-gray-emphasis truncate">
+                    {{ variable.name }}
+                  </div>
                   <div v-if="variable.extra?.description" class="text-xs text-nc-content-gray-disabled truncate">
                     {{ variable.extra.description }}
                   </div>
                 </div>
               </div>
-              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)"> Select </NcButton>
+              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)">
+                Select
+              </NcButton>
             </div>
           </template>
 
@@ -477,13 +496,17 @@ defineExpose({
                   <GeneralIcon :icon="getVariableIcon(variable)" class="w-4 h-4 text-nc-content-gray-subtle" />
                 </div>
                 <div class="flex-1 min-w-0">
-                  <div class="text-sm font-medium text-nc-content-gray-emphasis truncate">{{ variable.name }}</div>
+                  <div class="text-sm font-medium text-nc-content-gray-emphasis truncate">
+                    {{ variable.name }}
+                  </div>
                   <div v-if="variable.extra?.description" class="text-xs text-nc-content-gray-disabled truncate">
                     {{ variable.extra.description }}
                   </div>
                 </div>
               </div>
-              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)"> Select </NcButton>
+              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)">
+                Select
+              </NcButton>
             </div>
           </template>
         </template>

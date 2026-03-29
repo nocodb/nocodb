@@ -60,12 +60,12 @@ const mobileNormalizedContentSize = computed(() => {
 
 const isMiniSidebarVisible = computed(() => {
   return (
-    !hideMiniSidebar.value &&
-    slots.sidebar &&
-    !isSharedBase.value &&
-    (!isMobileMode.value || isLeftSidebarOpen.value) &&
-    !isFullScreen.value &&
-    !isWsHomeRoute(route.value)
+    !hideMiniSidebar.value
+    && slots.sidebar
+    && !isSharedBase.value
+    && (!isMobileMode.value || isLeftSidebarOpen.value)
+    && !isFullScreen.value
+    && !isWsHomeRoute(route.value)
   )
 })
 
@@ -76,8 +76,8 @@ watch(currentSidebarSize, () => {
 
 const sidebarWidth = computed(() => (isMobileMode.value ? viewportWidth.value : sideBarSize.value.old))
 
-const remToPx = (rem: number) => {
-  const fontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
+function remToPx(rem: number) {
+  const fontSize = Number.parseFloat(getComputedStyle(document.documentElement).fontSize)
   return rem * fontSize
 }
 
@@ -91,9 +91,11 @@ const normalizedWidth = computed(() => {
 
   if (sidebarWidth.value > maxSize) {
     return maxSize - miniSidebarWidth.value
-  } else if (sidebarWidth.value < minSize) {
+  }
+  else if (sidebarWidth.value < minSize) {
     return minSize - miniSidebarWidth.value
-  } else {
+  }
+  else {
     return sidebarWidth.value - (sidebarState.value === 'openEnd' ? miniSidebarWidth.value : 0)
   }
 })
@@ -107,7 +109,8 @@ watch(
       setTimeout(() => (sidebarState.value = 'openStart'), 0)
 
       setTimeout(() => (sidebarState.value = 'openEnd'), animationDuration)
-    } else {
+    }
+    else {
       sideBarSize.value.old = sideBarSize.value.current
       sideBarSize.value.current = 0
 
@@ -135,7 +138,8 @@ function handleMouseMove(e: MouseEvent) {
     setTimeout(() => {
       sidebarState.value = 'peekOpenEnd'
     }, animationDuration)
-  } else if (e.clientX > sidebarWidth.value + 10 + normalizedMiniSidebarWidth.value && sidebarState.value === 'peekOpenEnd') {
+  }
+  else if (e.clientX > sidebarWidth.value + 10 + normalizedMiniSidebarWidth.value && sidebarState.value === 'peekOpenEnd') {
     if ((e.target as HTMLElement).closest('.nc-dropdown.active') || isNcDropdownOpen()) {
       return
     }
@@ -151,7 +155,7 @@ function handleMouseMove(e: MouseEvent) {
 function onWindowResize(e?: any): void {
   if (isChatToggling.value) return
 
-  const chatPanelOffset = parseFloat(document.documentElement.style.getPropertyValue('--nc-chat-panel-offset')) || 0
+  const chatPanelOffset = Number.parseFloat(document.documentElement.style.getPropertyValue('--nc-chat-panel-offset')) || 0
   viewportWidth.value = window.innerWidth - chatPanelOffset
 
   if (!e && isLeftSidebarOpen.value && !sideBarSize.value.current && !isMobileMode.value) {
@@ -198,7 +202,7 @@ function onResize(widthPercent: any) {
 
   const width = (widthPercent * viewportWidth.value) / 100
 
-  const fontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
+  const fontSize = Number.parseFloat(getComputedStyle(document.documentElement).fontSize)
 
   if (viewportWidth.value <= 1560) {
     if (width > remToPx(20)) {
@@ -214,7 +218,8 @@ function onResize(widthPercent: any) {
     sideBarSize.value.old = 16 * fontSize
     if (isLeftSidebarOpen.value) sideBarSize.value.current = sideBarSize.value.old
     return
-  } else if (widthRem > 35) {
+  }
+  else if (widthRem > 35) {
     sideBarSize.value.old = 35 * fontSize
     if (isLeftSidebarOpen.value) sideBarSize.value.current = sideBarSize.value.old
 
@@ -236,7 +241,7 @@ watch(isChatPanelExpanded, () => {
   document.documentElement.classList.add('nc-chat-toggling')
 
   nextTick(() => {
-    const offset = parseFloat(document.documentElement.style.getPropertyValue('--nc-chat-panel-offset')) || 0
+    const offset = Number.parseFloat(document.documentElement.style.getPropertyValue('--nc-chat-panel-offset')) || 0
     viewportWidth.value = window.innerWidth - offset
 
     const containerWidth = isMiniSidebarVisible.value ? viewportWidth.value - miniSidebarWidth.value : viewportWidth.value

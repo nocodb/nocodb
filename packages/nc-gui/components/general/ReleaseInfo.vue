@@ -9,10 +9,10 @@ const releaseAlert = computed({
       return false
     }
     return (
-      currentVersion.value &&
-      latestRelease.value &&
-      currentVersion.value !== latestRelease.value &&
-      latestRelease.value !== hiddenRelease.value
+      currentVersion.value
+      && latestRelease.value
+      && currentVersion.value !== latestRelease.value
+      && latestRelease.value !== hiddenRelease.value
     )
   },
   set(val) {
@@ -26,11 +26,13 @@ async function fetchReleaseInfo() {
     if (versionInfo && versionInfo.releaseVersion && versionInfo.currentVersion) {
       currentVersion.value = versionInfo.currentVersion
       latestRelease.value = versionInfo.releaseVersion
-    } else {
+    }
+    else {
       currentVersion.value = null
       latestRelease.value = null
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }

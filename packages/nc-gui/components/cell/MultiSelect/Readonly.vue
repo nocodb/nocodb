@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { type LocalSelectOptionType, getOptions, getSelectedTitles } from './utils'
+import type { LocalSelectOptionType } from './utils'
+import { getOptions, getSelectedTitles } from './utils'
 
 interface Props {
   modelValue?: string | string[]
@@ -51,7 +52,7 @@ const selectedOpts = computed(() => {
   }, [] as LocalSelectOptionType[])
 })
 
-const selectedOptsListLayout = computed(() => selectedOpts.value.map((item) => item.title!))
+const selectedOptsListLayout = computed(() => selectedOpts.value.map(item => item.title!))
 </script>
 
 <template>
@@ -75,13 +76,13 @@ const selectedOptsListLayout = computed(() => selectedOpts.value.map((item) => i
       :style="
         extensionConfig?.widget?.displayAs !== 'List'
           ? {
-              'display': '-webkit-box',
-              'max-width': '100%',
-              '-webkit-line-clamp': rowHeightTruncateLines(rowHeight, true),
-              '-webkit-box-orient': 'vertical',
-              '-webkit-box-align': 'center',
-              'overflow': 'hidden',
-            }
+            'display': '-webkit-box',
+            'max-width': '100%',
+            '-webkit-line-clamp': rowHeightTruncateLines(rowHeight, true),
+            '-webkit-box-orient': 'vertical',
+            '-webkit-box-align': 'center',
+            'overflow': 'hidden',
+          }
           : {}
       "
     >

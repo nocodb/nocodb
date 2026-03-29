@@ -1,4 +1,5 @@
 import { debug } from 'debug'
+
 export class NcDebug {
   private static logger: any
 

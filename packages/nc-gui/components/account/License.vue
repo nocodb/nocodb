@@ -19,33 +19,36 @@ const licenseStatus = computed(() => {
   return isEEActive.value ? 'active' : 'expired'
 })
 
-const loadLicense = async () => {
+async function loadLicense() {
   try {
     const response = await api.orgLicense.get()
     key.value = response.key ?? ''
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
-const setLicense = async () => {
+async function setLicense() {
   try {
     await api.orgLicense.set({ key: key.value })
     message.success(t('msg.success.licenseKeyUpdated'))
     await loadAppInfo()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
   $e('a:account:license')
 }
 
-const removeLicense = async () => {
+async function removeLicense() {
   try {
     await api.orgLicense.set({ key: '' })
     key.value = ''
     message.success(t('title.licenseKeyRemoved'))
     await loadAppInfo()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
   $e('a:account:license:remove')
@@ -57,7 +60,9 @@ loadLicense()
 <template>
   <div class="h-full overflow-y-auto nc-scrollbar-thin">
     <div class="max-w-[600px] mx-auto mt-8 px-4">
-      <div class="text-xl font-semibold mb-6">{{ $t('title.license') }}</div>
+      <div class="text-xl font-semibold mb-6">
+        {{ $t('title.license') }}
+      </div>
 
       <template v-if="isPostgresRequired">
         <NcAlert visible type="warning" background>
@@ -79,8 +84,8 @@ loadLicense()
               licenseStatus === 'active'
                 ? $t('title.licenseActive')
                 : licenseStatus === 'expired'
-                ? $t('title.licenseInvalid')
-                : $t('title.licenseNone')
+                  ? $t('title.licenseInvalid')
+                  : $t('title.licenseNone')
             }}
           </template>
         </NcAlert>

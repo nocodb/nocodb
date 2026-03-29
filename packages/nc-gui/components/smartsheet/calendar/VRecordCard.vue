@@ -50,7 +50,7 @@ const rowColorInfo = computed(() => {
       v-if="resize"
       class="absolute w-full h-1 z-20 top-0 cursor-row-resize"
       @mousedown.stop="emit('resizeStart', 'left', $event, record)"
-    ></div>
+    />
     <div
       :class="{
         'bg-nc-maroon-500': props.color === 'maroon',
@@ -63,7 +63,7 @@ const rowColorInfo = computed(() => {
       }"
       class="h-full min-h-3 w-1.25 -ml-0.25"
       :style="rowColorInfo.rowLeftBorderColor"
-    ></div>
+    />
 
     <div class="flex overflow-x-hidden whitespace-nowrap text-ellipsis pt-1 w-full truncate flex-col gap-1">
       <div class="truncate">
@@ -85,7 +85,7 @@ const rowColorInfo = computed(() => {
       v-if="resize"
       class="absolute cursor-row-resize w-full bottom-0 w-full h-1"
       @mousedown.stop="emit('resizeStart', 'right', $event, record)"
-    ></div>
+    />
   </div>
 </template>
 

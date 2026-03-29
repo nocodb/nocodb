@@ -50,15 +50,15 @@ const pk = computed(() => {
   return extractPkFromRow(unref(row).row, meta.value.columns)
 })
 
-const generate = async () => {
+async function generate() {
   if (!meta?.value?.id || !meta.value.columns || !column?.value?.id) return
 
   if (!pk.value) return
-  const outputColumnIds =
-    ncIsString(column.value.colOptions?.output_column_ids) && column.value.colOptions.output_column_ids.split(',').length > 1
+  const outputColumnIds
+    = ncIsString(column.value.colOptions?.output_column_ids) && column.value.colOptions.output_column_ids.split(',').length > 1
       ? column.value.colOptions.output_column_ids.split(',')
       : []
-  const outputColumns = outputColumnIds.map((id) => meta.value?.columnsById?.[id]).filter(Boolean)
+  const outputColumns = outputColumnIds.map(id => meta.value?.columnsById?.[id]).filter(Boolean)
 
   generatingRows.value.push(pk.value)
   generatingColumnRows.value.push(column.value.id)
@@ -74,7 +74,8 @@ const generate = async () => {
           unref(row).row[col.title!] = resRow[col.title!]
         }
       }
-    } else {
+    }
+    else {
       const obj: AIRecordType = resRow[column.value.title!]
 
       if (ncIsObject(obj)) {
@@ -82,7 +83,8 @@ const generate = async () => {
           ...obj,
           isAiEdited: true,
         }
-      } else {
+      }
+      else {
         vModel.value = {
           ...(ncIsObject(vModel.value) ? vModel.value : {}),
           isStale: false,
@@ -101,20 +103,20 @@ const generate = async () => {
     emits('save')
   }
 
-  generatingRows.value = generatingRows.value.filter((v) => v !== pk.value)
-  generatingColumnRows.value = generatingColumnRows.value.filter((v) => v !== column.value.id)
+  generatingRows.value = generatingRows.value.filter(v => v !== pk.value)
+  generatingColumnRows.value = generatingColumnRows.value.filter(v => v !== column.value.id)
 }
 
 const isLoading = computed(() => {
   return !!(
-    pk.value &&
-    generatingRows.value.includes(pk.value) &&
-    column.value?.id &&
-    generatingColumnRows.value.includes(column.value.id)
+    pk.value
+    && generatingRows.value.includes(pk.value)
+    && column.value?.id
+    && generatingColumnRows.value.includes(column.value.id)
   )
 })
 
-const handleSave = () => {
+function handleSave() {
   vModel.value = { ...vModel.value }
 
   emits('save')
@@ -122,7 +124,7 @@ const handleSave = () => {
 
 const debouncedSave = useDebounceFn(handleSave, 1000)
 
-const handleDebouncedSave = () => {
+function handleDebouncedSave() {
   vModel.value!.isAiEdited = false
   isAiEdited.value = true
 

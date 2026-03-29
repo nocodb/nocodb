@@ -40,7 +40,8 @@ export const TimeCellRenderer: CellRenderer = {
 
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })
-    } else {
+    }
+    else {
       const { x: xOffset, y: yOffset } = renderSingleLineText(ctx, {
         x: x + padding,
         y,
@@ -82,7 +83,8 @@ export const TimeCellRenderer: CellRenderer = {
       if (time.isValid()) {
         text = time.format(timeFormat)
       }
-    } else {
+    }
+    else {
       text = timeFormat
       canvasContext.font = '400 13px Inter'
     }

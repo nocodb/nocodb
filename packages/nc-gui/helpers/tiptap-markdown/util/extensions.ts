@@ -1,7 +1,7 @@
 import type { AnyExtension } from '@tiptap/core'
 import markdownExtensions from '../extensions/defaultMarkdownExtensions'
 
-const getDefaultMarkdownSpec = (extension: AnyExtension) => {
+function getDefaultMarkdownSpec(extension: AnyExtension) {
   return markdownExtensions.find((e: AnyExtension) => e.name === extension.name)?.storage?.markdown
 }
 

@@ -81,7 +81,7 @@ export async function searchDocs(client: Client, collectionName: string, query: 
         group_limit: 1,
       })
 
-    return groupResults(results.hits || []).filter((hit) => hit.type === 'page')
+    return groupResults(results.hits || []).filter(hit => hit.type === 'page')
   }
 
   const results = await client.collections(collectionName).documents().search(searchParams)

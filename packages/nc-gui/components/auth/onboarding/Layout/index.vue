@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-const { stepper, onCompleteOnboardingFlow, isFilledQuestionAnswer, isFilledVisibleOptions, questionsMap, formState } =
-  useOnboardingFlow()
+const { stepper, onCompleteOnboardingFlow, isFilledQuestionAnswer, isFilledVisibleOptions, questionsMap, formState }
+  = useOnboardingFlow()
 
 const { index: stepIndex, steps, isLast, isFirst, goToNext, goToPrevious } = stepper
 
@@ -28,7 +28,8 @@ useEventListener('keydown', (event) => {
     if (!event.shiftKey && isFilledVisibleOptions.value) {
       if (isLast.value) {
         onCompleteOnboardingFlow(false)
-      } else {
+      }
+      else {
         goToNext()
       }
     }
@@ -94,7 +95,7 @@ watch(stepIndex, (newIndex, oldIndex, cleanup) => {
         data-testid="nc-onboarding-flow-content"
         class="flex-1 w-full max-w-[672px] lg:max-w-[704px] mx-auto flex flex-col gap-[120px] px-4 lg:(px-8)"
       >
-        <slot name="content"></slot>
+        <slot name="content" />
       </div>
 
       <slot name="footer">
@@ -110,7 +111,9 @@ watch(stepIndex, (newIndex, oldIndex, cleanup) => {
             }"
           >
             <NcTooltip v-if="stepIndex === 0" :disabled="!isDisabledSkipButton">
-              <template #title> Will be enabled after 2 seconds </template>
+              <template #title>
+                Will be enabled after 2 seconds
+              </template>
               <NcButton
                 type="text"
                 size="small"

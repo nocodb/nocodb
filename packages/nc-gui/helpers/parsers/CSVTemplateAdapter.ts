@@ -1,6 +1,8 @@
-import { parse } from 'papaparse'
 import type { UploadFile } from 'ant-design-vue'
-import { type ColumnType, UITypes, getDateFormat, parseProp, validateDateWithUnknownFormat, workerWithTimezone } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import type { ProgressMessageType } from './TemplateGenerator'
+import { getDateFormat, parseProp, UITypes, validateDateWithUnknownFormat, workerWithTimezone } from 'nocodb-sdk'
+import { parse } from 'papaparse'
 import {
   extractMultiOrSingleSelectProps,
   getCheckboxValue,
@@ -10,7 +12,6 @@ import {
   isMultiLineTextType,
   isUrlType,
 } from './parserHelpers'
-import type { ProgressMessageType } from './TemplateGenerator'
 
 export default class CSVTemplateAdapter {
   config: Record<string, any>
@@ -75,7 +76,7 @@ export default class CSVTemplateAdapter {
     for (const [columnIdx, columnName] of columnNames.entries()) {
       let title = ((columnNameRowExist && columnName.toString().trim()) || `Field ${columnIdx + 1}`).trim()
       let cn: string = ((columnNameRowExist && columnName.toString().trim()) || `field_${columnIdx + 1}`)
-        .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
+        .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/]/g, '_')
         .trim()
 
       while (cn in columnNamePrefixRef) {
@@ -107,7 +108,7 @@ export default class CSVTemplateAdapter {
   }
 
   detectInitialUidt(v: string) {
-    if (!isNaN(Number(v)) && !isNaN(parseFloat(v))) return UITypes.Number
+    if (!isNaN(Number(v)) && !isNaN(Number.parseFloat(v))) return UITypes.Number
     if (validateDateWithUnknownFormat(v)) return UITypes.DateTime
     if (isCheckboxType(v)) return UITypes.Checkbox
     return UITypes.SingleLineText
@@ -122,24 +123,30 @@ export default class CSVTemplateAdapter {
       // TODO(import): centralise
       if (isMultiLineTextType(colData)) {
         colProps.uidt = UITypes.LongText
-      } else if (colProps.uidt === UITypes.SingleLineText) {
+      }
+      else if (colProps.uidt === UITypes.SingleLineText) {
         if (isEmailType(colData)) {
           colProps.uidt = UITypes.Email
-        } else if (isUrlType(colData)) {
+        }
+        else if (isUrlType(colData)) {
           colProps.uidt = UITypes.URL
-        } else if (isCheckboxType(colData)) {
+        }
+        else if (isCheckboxType(colData)) {
           colProps.uidt = UITypes.Checkbox
-        } else {
+        }
+        else {
           if (data[columnIdx] && columnIdx < this.config.maxRowsToParse) {
             this.columnValues[columnIdx].push(data[columnIdx])
             colProps.uidt = UITypes.SingleSelect
           }
         }
-      } else if (colProps.uidt === UITypes.Number) {
+      }
+      else if (colProps.uidt === UITypes.Number) {
         if (isDecimalType(colData)) {
           colProps.uidt = UITypes.Decimal
         }
-      } else if (colProps.uidt === UITypes.DateTime) {
+      }
+      else if (colProps.uidt === UITypes.DateTime) {
         if (data[columnIdx] && columnIdx < this.config.maxRowsToParse) {
           this.columnValues[columnIdx].push(data[columnIdx])
         }
@@ -208,20 +215,24 @@ export default class CSVTemplateAdapter {
             this.tables[tableIdx].columns[columnIdx].meta.date_format = objKeys.length
               ? objKeys.reduce((x, y) => (dateFormat[x] > dateFormat[y] ? x : y))
               : 'YYYY/MM/DD'
-          } else {
+          }
+          else {
             // Datetime
             this.tables[tableIdx].columns[columnIdx].uidt = uidt
           }
-        } else if (uidt === UITypes.SingleSelect || uidt === UITypes.MultiSelect) {
+        }
+        else if (uidt === UITypes.SingleSelect || uidt === UITypes.MultiSelect) {
           // assume it is a SingleLineText first
           this.tables[tableIdx].columns[columnIdx].uidt = UITypes.SingleLineText
           // override with UITypes.SingleSelect or UITypes.MultiSelect if applicable
           Object.assign(this.tables[tableIdx].columns[columnIdx], extractMultiOrSingleSelectProps(this.columnValues[columnIdx]))
-        } else {
+        }
+        else {
           this.tables[tableIdx].columns[columnIdx].uidt = uidt
         }
         delete this.columnValues[columnIdx]
-      } else {
+      }
+      else {
         this.tables[tableIdx].columns[columnIdx].uidt = uidt
       }
     }
@@ -255,12 +266,15 @@ export default class CSVTemplateAdapter {
                 const data = (row.data as [])[columnIdx] === '' ? null : (row.data as [])[columnIdx]
                 if (column.uidt === UITypes.Checkbox) {
                   rowData[column.column_name] = getCheckboxValue(data)
-                } else if (column.uidt === UITypes.SingleSelect || column.uidt === UITypes.MultiSelect) {
+                }
+                else if (column.uidt === UITypes.SingleSelect || column.uidt === UITypes.MultiSelect) {
                   rowData[column.column_name] = (data || '').toString().trim() || null
-                } else if ([UITypes.Date, UITypes.DateTime].includes(column.uidt) && existingColumn) {
+                }
+                else if ([UITypes.Date, UITypes.DateTime].includes(column.uidt) && existingColumn) {
                   if ((data as any) instanceof Date) {
                     rowData[column.column_name] = data
-                  } else {
+                  }
+                  else {
                     const meta = parseProp(existingColumn.meta)
                     const dateValue = workerWithTimezone(that.config.isEeUI, meta?.timezone).dayjsTz(
                       data,
@@ -268,7 +282,8 @@ export default class CSVTemplateAdapter {
                     )
                     rowData[column.column_name] = dateValue?.isValid() ? dateValue.format('YYYY-MM-DD HH:mm:ss Z') : data
                   }
-                } else {
+                }
+                else {
                   // TODO(import): do parsing if necessary based on type
                   rowData[column.column_name] = data
                 }
@@ -296,7 +311,8 @@ export default class CSVTemplateAdapter {
             reject(e)
           },
         })
-      } else {
+      }
+      else {
         resolve(true)
       }
     })
@@ -312,13 +328,13 @@ export default class CSVTemplateAdapter {
         : ((source as UploadFile).name as string)
 
       let tn = ((this.config.importFromURL ? (source as string).split('/').pop() : (source as UploadFile).name) as string)
-        .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
+        .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/]/g, '_')
         .trim()!
 
       if (this.tableNames.includes(tn)) {
         tn = generateUniqueTitle(
           tn,
-          this.tableNames.map((t) => ({ title: t })),
+          this.tableNames.map(t => ({ title: t })),
           'title',
           '_',
         )
@@ -338,19 +354,21 @@ export default class CSVTemplateAdapter {
               if (that.config.firstRowAsHeaders) {
                 // row.data is header
                 that.initTemplate(tableIdx, tn, row.data as [])
-              } else {
+              }
+              else {
                 // use dummy column names as header
                 that.initTemplate(
                   tableIdx,
                   tn,
-                  [...Array((row.data as []).length)].map((_, i) => `field_${i + 1}`),
+                  [...Array.from({ length: (row.data as []).length })].map((_, i) => `field_${i + 1}`),
                 )
                 if (that.config.autoSelectFieldTypes) {
                   // row.data is data
                   that.detectColumnType(tableIdx, row.data as [])
                 }
               }
-            } else {
+            }
+            else {
               if (that.config.autoSelectFieldTypes) {
                 // row.data is data
                 that.detectColumnType(tableIdx, row.data as [])
@@ -378,7 +396,8 @@ export default class CSVTemplateAdapter {
   async parse() {
     if (this.config.importFromURL) {
       await this._parseTableMeta(0, this.source as string)
-    } else {
+    }
+    else {
       await Promise.all(
         (this.source as UploadFile[]).map((file: UploadFile, tableIdx: number) =>
           (async (f, idx) => {

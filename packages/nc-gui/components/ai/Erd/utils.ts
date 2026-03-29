@@ -1,16 +1,17 @@
-import { type LinkToAnotherRecordType, RelationTypes, UITypes } from 'nocodb-sdk'
-import dagre from 'dagre'
 import type { Edge, EdgeMarker, Elements, Node } from '@vue-flow/core'
-import { MarkerType, Position, isEdge, isNode } from '@vue-flow/core'
 import type { MaybeRef } from '@vueuse/core'
+import type { LinkToAnotherRecordType } from 'nocodb-sdk'
+import { isEdge, isNode, MarkerType, Position } from '@vue-flow/core'
 import { scaleLinear as d3ScaleLinear } from 'd3-scale'
+import dagre from 'dagre'
+import { RelationTypes, UITypes } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 
 export interface AiBaseSchema {
   title: string
   tables: {
     title: string
-    columns: { title: string; type: UITypes }[]
+    columns: { title: string, type: UITypes }[]
   }[]
   relationships: {
     from: string
@@ -125,7 +126,7 @@ export function useErdElements(schema: MaybeRef<AiBaseSchema>, props: MaybeRef<A
   function createNodes() {
     return erdSchema.value.tables.reduce<Node<AiNodeData>[]>((acc, table) => {
       const relationshipColumns = erdSchema.value.relationships
-        .filter((relationship) => relationship.from === table.title || relationship.to === table.title)
+        .filter(relationship => relationship.from === table.title || relationship.to === table.title)
         .map((relationship) => {
           return {
             title: relationship.from === table.title ? relationship.to : relationship.from,
@@ -222,7 +223,8 @@ export function useErdElements(schema: MaybeRef<AiBaseSchema>, props: MaybeRef<A
             width,
             height,
           })
-        } else if (isEdge(el)) {
+        }
+        else if (isEdge(el)) {
           dagreGraph.setEdge(el.source, el.target)
         }
       }
@@ -239,13 +241,13 @@ export function useErdElements(schema: MaybeRef<AiBaseSchema>, props: MaybeRef<A
         if (isNode(el)) {
           const nodeWithPosition = dagreGraph.node(el.id)
           const width = skeleton ? nodeWidth * 3 : nodeWidth
-          const height =
-            nodeHeight.value +
-            (skeleton
-              ? 250
-              : (el as Node<AiNodeData>).data!.columnLength > 0
-              ? nodeHeight.value * (el as Node<AiNodeData>).data!.columnLength
-              : nodeHeight.value)
+          const height
+            = nodeHeight.value
+              + (skeleton
+                ? 250
+                : (el as Node<AiNodeData>).data!.columnLength > 0
+                    ? nodeHeight.value * (el as Node<AiNodeData>).data!.columnLength
+                    : nodeHeight.value)
 
           minX = Math.min(minX, nodeWithPosition.x - width / 2)
           minY = Math.min(minY, nodeWithPosition.y - height / 2)
@@ -281,8 +283,9 @@ export function useErdElements(schema: MaybeRef<AiBaseSchema>, props: MaybeRef<A
 
             return boxShadow(skeleton, '#64748B')
           }
-        } else if (isEdge(el)) {
-          const node = elements.value.find((nodes) => nodes.id === el.source)
+        }
+        else if (isEdge(el)) {
+          const node = elements.value.find(nodes => nodes.id === el.source)
           if (node) {
             const color = node.data!.color
 

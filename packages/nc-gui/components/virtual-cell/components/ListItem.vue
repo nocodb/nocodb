@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PermissionEntity, PermissionKey, isVirtualCol } from 'nocodb-sdk'
+import { isVirtualCol, PermissionEntity, PermissionKey } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -8,7 +8,7 @@ const props = withDefaults(
     attachment: any
     displayValueColumn: any
     relatedTableDisplayValueProp: string
-    displayValueTypeAndFormatProp: { type: string; format: string }
+    displayValueTypeAndFormatProp: { type: string, format: string }
     isLoading: boolean
     isLinked: boolean
     isSelected?: boolean
@@ -66,7 +66,8 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
         : row.value[props.attachment.title]
     }
     return []
-  } catch (e) {
+  }
+  catch (e) {
     return []
   }
 })
@@ -91,7 +92,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
         <template v-if="attachment">
           <div v-if="isMounted && attachments && attachments.length">
             <a-carousel autoplay class="!w-11 !h-11 !max-h-11 !max-w-11">
-              <template #customPaging> </template>
+              <template #customPaging />
               <template v-for="(attachmentObj, index) in attachments">
                 <LazyCellAttachmentPreviewImage
                   v-if="isImage(attachmentObj.title, attachmentObj.mimetype ?? attachmentObj.type)"
@@ -162,13 +163,17 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
                   </div>
                 </NcTooltip>
               </div>
-              <div v-else class="flex flex-row w-full max-w-72 h-5 pl-1 items-center justify-start">-</div>
+              <div v-else class="flex flex-row w-full max-w-72 h-5 pl-1 items-center justify-start">
+                -
+              </div>
             </div>
           </div>
         </div>
         <div v-if="!isForm && !isPublic && isLinkedTableAccessible" class="flex-none flex items-center w-7" @click.stop>
           <NcTooltip class="flex" hide-on-click>
-            <template #title>{{ $t('title.expand') }}</template>
+            <template #title>
+              {{ $t('title.expand') }}
+            </template>
 
             <button
               v-e="['c:row-expand:open']"

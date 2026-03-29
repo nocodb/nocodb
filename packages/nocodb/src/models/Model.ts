@@ -160,7 +160,7 @@ export default class Model implements TableType {
   // @ts-ignore
   public async getViews(
     context: NcContext,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     force = false,
     ncMeta = Noco.ncMeta,
   ): Promise<View[]> {

@@ -41,7 +41,7 @@ const {
   updateMcpToken,
 } = useMcpSettings()
 
-const addNewMcpToken = () => {
+function addNewMcpToken() {
   _addNewMcpToken()
 
   nextTick(() => {
@@ -88,13 +88,13 @@ const isTokenModalVisible = ref(false)
 
 const activeToken = ref<MCPTokenExtendedType | null>(null)
 
-const handleOpenTokenModal = (token: MCPTokenExtendedType) => {
+function handleOpenTokenModal(token: MCPTokenExtendedType) {
   if (token.isNew) return
   activeToken.value = token
   isTokenModalVisible.value = true
 }
 
-const createTokenWithExpiry = async (token: Partial<MCPTokenExtendedType>) => {
+async function createTokenWithExpiry(token: Partial<MCPTokenExtendedType>) {
   const res = await createMcpToken(token)
 
   if (res) {
@@ -102,7 +102,7 @@ const createTokenWithExpiry = async (token: Partial<MCPTokenExtendedType>) => {
   }
 }
 
-const regenerateToken = async (token: MCPTokenExtendedType) => {
+async function regenerateToken(token: MCPTokenExtendedType) {
   const newToken = await updateMcpToken(token)
 
   if (newToken) {
@@ -110,13 +110,13 @@ const regenerateToken = async (token: MCPTokenExtendedType) => {
   }
 }
 
-const closeModal = async () => {
+async function closeModal() {
   activeToken.value = null
   isTokenModalVisible.value = false
   await listMcpTokens()
 }
 
-const confirmDeleteToken = (token: MCPTokenExtendedType) => {
+function confirmDeleteToken(token: MCPTokenExtendedType) {
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgMCPDelete'), {
@@ -144,7 +144,9 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
       style="box-shadow: 0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.1)"
       class="bg-nc-bg-default p-6 flex flex-col w-[488px] rounded-2xl dark:(border-1 border-nc-border-gray-medium)"
     >
-      <div class="text-nc-content-gray-emphasis text-lg font-bold">{{ $t('labels.creatingMCPToken') }}</div>
+      <div class="text-nc-content-gray-emphasis text-lg font-bold">
+        {{ $t('labels.creatingMCPToken') }}
+      </div>
       <div class="text-nc-gray-subtle2 mt-2">
         {{ $t('labels.creatingTokenDescription') }}
       </div>

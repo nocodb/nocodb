@@ -30,11 +30,11 @@ export class CellRange {
 
   isCellInRange(cell: Cell) {
     return (
-      !this.isEmpty() &&
-      cell.row >= this.start.row &&
-      cell.row <= this.end.row &&
-      cell.col >= this.start.col &&
-      cell.col <= this.end.col
+      !this.isEmpty()
+      && cell.row >= this.start.row
+      && cell.row <= this.end.row
+      && cell.col >= this.start.col
+      && cell.col <= this.end.col
     )
   }
 
@@ -54,29 +54,29 @@ export class CellRange {
 
   get start(): Cell {
     return {
-      row: Math.min(this._start?.row ?? NaN, this._end?.row ?? NaN),
-      col: Math.min(this._start?.col ?? NaN, this._end?.col ?? NaN),
+      row: Math.min(this._start?.row ?? Number.NaN, this._end?.row ?? Number.NaN),
+      col: Math.min(this._start?.col ?? Number.NaN, this._end?.col ?? Number.NaN),
     }
   }
 
   get oldStart(): Cell {
     return {
-      row: Math.min(this._oldStart?.row ?? NaN, this._oldEnd?.row ?? NaN),
-      col: Math.min(this._oldStart?.col ?? NaN, this._oldEnd?.col ?? NaN),
+      row: Math.min(this._oldStart?.row ?? Number.NaN, this._oldEnd?.row ?? Number.NaN),
+      col: Math.min(this._oldStart?.col ?? Number.NaN, this._oldEnd?.col ?? Number.NaN),
     }
   }
 
   get end(): Cell {
     return {
-      row: Math.max(this._start?.row ?? NaN, this._end?.row ?? NaN),
-      col: Math.max(this._start?.col ?? NaN, this._end?.col ?? NaN),
+      row: Math.max(this._start?.row ?? Number.NaN, this._end?.row ?? Number.NaN),
+      col: Math.max(this._start?.col ?? Number.NaN, this._end?.col ?? Number.NaN),
     }
   }
 
   get oldEnd(): Cell {
     return {
-      row: Math.max(this._oldStart?.row ?? NaN, this._oldEnd?.row ?? NaN),
-      col: Math.max(this._oldStart?.col ?? NaN, this._oldEnd?.col ?? NaN),
+      row: Math.max(this._oldStart?.row ?? Number.NaN, this._oldEnd?.row ?? Number.NaN),
+      col: Math.max(this._oldStart?.col ?? Number.NaN, this._oldEnd?.col ?? Number.NaN),
     }
   }
 

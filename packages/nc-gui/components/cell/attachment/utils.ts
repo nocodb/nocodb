@@ -1,13 +1,13 @@
 import type { AttachmentReqType, AttachmentType } from 'nocodb-sdk'
-import { populateUniqueFileName } from 'nocodb-sdk'
-import DOMPurify from 'isomorphic-dompurify'
 import { zip as fflateZip } from 'fflate'
-import RenameFile from './RenameFile.vue'
-import MdiPdfBox from '~icons/nc-icons-v2/file-type-pdf'
-import MdiFileWordOutline from '~icons/nc-icons-v2/file-type-word'
-import MdiFilePowerpointBox from '~icons/nc-icons-v2/file-type-presentation'
+import DOMPurify from 'isomorphic-dompurify'
+import { populateUniqueFileName } from 'nocodb-sdk'
 import MdiFileExcelOutline from '~icons/nc-icons-v2/file-type-csv'
+import MdiPdfBox from '~icons/nc-icons-v2/file-type-pdf'
+import MdiFilePowerpointBox from '~icons/nc-icons-v2/file-type-presentation'
 import IcOutlineInsertDriveFile from '~icons/nc-icons-v2/file-type-unknown'
+import MdiFileWordOutline from '~icons/nc-icons-v2/file-type-word'
+import RenameFile from './RenameFile.vue'
 
 export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
   (updateModelValue: (data: string | Record<string, any>[]) => void) => {
@@ -21,8 +21,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const { fetchSharedViewAttachment } = useSharedView()
 
-    const { showStoragePlanLimitExceededModal, maxAttachmentsAllowedInCell, showUpgradeToAddMoreAttachmentsInCell } =
-      useEeConfig()
+    const { showStoragePlanLimitExceededModal, maxAttachmentsAllowedInCell, showUpgradeToAddMoreAttachmentsInCell }
+      = useEeConfig()
 
     const { batchUploadFiles } = useAttachment()
 
@@ -99,7 +99,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     }
 
     const stopCamera = () => {
-      videoStream.value?.getTracks().forEach((track) => track.stop())
+      videoStream.value?.getTracks().forEach(track => track.stop())
       videoStream.value = null
     }
 
@@ -117,7 +117,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         selectedVisibleItems.value.splice(i, 1)
 
         updateModelValue(storedFiles.value)
-      } else {
+      }
+      else {
         attachments.value.splice(i, 1)
         selectedVisibleItems.value.splice(i, 1)
 
@@ -165,9 +166,9 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
           // verify mime type
           if (
-            !attachmentMeta.supportedAttachmentMimeTypes.includes('*') &&
-            !attachmentMeta.supportedAttachmentMimeTypes.includes((file as File).type || (file as AttachmentReqType).mimetype) &&
-            !attachmentMeta.supportedAttachmentMimeTypes.includes(
+            !attachmentMeta.supportedAttachmentMimeTypes.includes('*')
+            && !attachmentMeta.supportedAttachmentMimeTypes.includes((file as File).type || (file as AttachmentReqType).mimetype)
+            && !attachmentMeta.supportedAttachmentMimeTypes.includes(
               ((file as File)?.type || (file as AttachmentReqType).mimetype)?.split('/')[0],
             )
           ) {
@@ -182,10 +183,11 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
         if (selectedFiles.length) {
           files.push(file as File)
-        } else {
+        }
+        else {
           const fileName = populateUniqueFileName(
             (file as AttachmentReqType).fileName ?? '',
-            [...attachments.value, ...imageUrls].map((fn) => fn?.title || fn?.fileName),
+            [...attachments.value, ...imageUrls].map(fn => fn?.title || fn?.fileName),
             (file as File)?.type || (file as AttachmentReqType)?.mimetype || '',
           )
 
@@ -196,9 +198,9 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       if (files.length && isPublic.value && isForm.value) {
         const newFiles = await Promise.all<AttachmentType>(
           Array.from(files).map(
-            (file) =>
+            file =>
               new Promise<AttachmentType>((resolve) => {
-                const res: { file: File; title: string; mimetype: string; data?: any } = {
+                const res: { file: File, title: string, mimetype: string, data?: any } = {
                   ...file,
                   file,
                   title: file.name,
@@ -218,7 +220,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
                   }
 
                   reader.readAsDataURL(file)
-                } else {
+                }
+                else {
                   resolve(res)
                 }
               }),
@@ -227,7 +230,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         attachments.value = [...attachments.value, ...newFiles]
 
         return updateModelValue(attachments.value)
-      } else if (isPublic.value && isForm.value) {
+      }
+      else if (isPublic.value && isForm.value) {
         attachments.value = [...attachments.value, ...imageUrls]
 
         return updateModelValue(attachments.value)
@@ -244,17 +248,20 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
               ...uploadedFile,
               title: populateUniqueFileName(
                 uploadedFile?.title,
-                [...attachments.value, ...newAttachments].map((fn) => fn?.title || fn?.fileName),
+                [...attachments.value, ...newAttachments].map(fn => fn?.title || fn?.fileName),
                 uploadedFile?.mimetype,
               ),
             })
           }
-        } catch (e: any) {
+        }
+        catch (e: any) {
           message.error((await extractSdkResponseErrorMsg(e)) || t('msg.error.internalError'))
-        } finally {
+        }
+        finally {
           uploadingCount.value--
         }
-      } else if (imageUrls.length) {
+      }
+      else if (imageUrls.length) {
         const data = await uploadViaUrl(imageUrls)
         if (!data) return
         newAttachments.push(...data)
@@ -273,14 +280,16 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           imageUrl,
         )
         return data
-      } catch (e: any) {
+      }
+      catch (e: any) {
         console.log(e)
         if (returnError) {
-          return "File couldn't be uploaded. Verify URL & try again."
+          return 'File couldn\'t be uploaded. Verify URL & try again.'
         }
-        message.error("File couldn't be uploaded. Verify URL & try again.")
+        message.error('File couldn\'t be uploaded. Verify URL & try again.')
         return null
-      } finally {
+      }
+      finally {
         uploadingCount.value--
       }
     }
@@ -335,7 +344,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       if (droppedFiles) {
         // set files
         await onFileSelect(droppedFiles)
-      } else if (event) {
+      }
+      else if (event) {
         event.preventDefault()
 
         // Sanitize the dataTransfer HTML string
@@ -361,7 +371,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
               },
             ],
           )
-        } else {
+        }
+        else {
           message.error(t('msg.error.fieldToParseImageData'))
         }
       }
@@ -388,7 +399,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         message.error('Failed to download file')
       }
 
-      const filesData: { name: string; data: Uint8Array }[] = []
+      const filesData: { name: string, data: Uint8Array }[] = []
 
       for (const item of items) {
         const src = item.url || item.path
@@ -409,7 +420,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
         try {
           res = await apiPromise()
-        } catch {}
+        }
+        catch {}
 
         if (!res) {
           console.error('Invalid response')
@@ -420,9 +432,11 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         let response: Response
         if (res.path) {
           response = await fetch(`${baseURL}/${res.path}`)
-        } else if (res.url) {
+        }
+        else if (res.url) {
           response = await fetch(`${res.url}`)
-        } else {
+        }
+        else {
           console.error('Invalid blob response')
           message.error('Failed to download file')
           continue
@@ -456,7 +470,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           fflateZip(zip, (err, data) => {
             if (err) {
               reject(err)
-            } else {
+            }
+            else {
               resolve(data)
             }
           })
@@ -468,14 +483,17 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
         try {
           window.open(zipURL, '_self')
-        } catch (e) {
+        }
+        catch (e) {
           console.error('Error opening blob window', e)
           message.error('Failed to download file')
           return undefined
-        } finally {
+        }
+        finally {
           setTimeout(() => URL.revokeObjectURL(zipURL), 1000)
         }
-      } catch (e) {
+      }
+      catch (e) {
         console.error('Error creating zip file', e)
         message.error('Failed to create zip file')
       }
@@ -500,13 +518,16 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         await apiPromise().then((res) => {
           if (res?.path) {
             window.open(`${baseURL}/${res.path}`, '_self')
-          } else if (res?.url) {
+          }
+          else if (res?.url) {
             window.open(res.url, '_self')
-          } else {
+          }
+          else {
             message.error('Failed to download file')
           }
         })
-      } else {
+      }
+      else {
         message.error('Failed to download file')
       }
     }
@@ -519,15 +540,17 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
             return {
               mimetype: response.headers.get('content-type') || undefined,
               size: +(response.headers.get('content-length') || 0) || undefined,
-            } as { mimetype?: string; size?: number }
-          } else if (imageUrl.slice(imageUrl.lastIndexOf('.') + 1).toLowerCase().length) {
+            } as { mimetype?: string, size?: number }
+          }
+          else if (imageUrl.slice(imageUrl.lastIndexOf('.') + 1).toLowerCase().length) {
             return {
               mimetype: `image/${imageUrl.slice(imageUrl.lastIndexOf('.') + 1).toLowerCase()}`,
               size: +(response.headers.get('content-length') || 0) || undefined,
-            } as { mimetype?: string; size?: number }
+            } as { mimetype?: string, size?: number }
           }
         }
-      } catch (err) {
+      }
+      catch (err) {
         console.log(err)
       }
     }
@@ -547,7 +570,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       }
     }
 
-    watch(files, (nextFiles) => nextFiles && onFileSelect(nextFiles))
+    watch(files, nextFiles => nextFiles && onFileSelect(nextFiles))
 
     return {
       attachments,

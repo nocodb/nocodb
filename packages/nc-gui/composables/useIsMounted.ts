@@ -1,4 +1,4 @@
-export const useIsMounted = (options: { waitForNextTick?: boolean } = {}) => {
+export function useIsMounted(options: { waitForNextTick?: boolean } = {}) {
   const isMounted = ref(false)
 
   onMounted(async () => {

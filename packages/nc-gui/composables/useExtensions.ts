@@ -1,9 +1,9 @@
-import { useStorage } from '@vueuse/core'
 import type { ProjectRoles } from 'nocodb-sdk'
-import { PlanLimitTypes, getProjectRole, hasMinimumRoleAccess } from 'nocodb-sdk'
-import { usePlugin } from './usePlugin'
 import { ExtensionsEvents } from '#imports'
+import { useStorage } from '@vueuse/core'
+import { getProjectRole, hasMinimumRoleAccess, PlanLimitTypes } from 'nocodb-sdk'
 import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
+import { usePlugin } from './usePlugin'
 
 const extensionsState = createGlobalState(() => {
   const baseExtensions = ref<Record<string, any>>({})
@@ -20,10 +20,10 @@ const extensionsPanelState = createGlobalState(() =>
 )
 
 export interface IKvStore<T extends Record<string, any>> {
-  get<K extends keyof T>(key: K): T[K] | null
-  set<K extends keyof T>(key: K, value: T[K]): Promise<void>
-  delete<K extends keyof T>(key: K): Promise<void>
-  serialize(): Record<string, T[keyof T]>
+  get: <K extends keyof T>(key: K) => T[K] | null
+  set: <K extends keyof T>(key: K, value: T[K]) => Promise<void>
+  delete: <K extends keyof T>(key: K) => Promise<void>
+  serialize: () => Record<string, T[keyof T]>
 }
 
 abstract class ExtensionType {
@@ -185,7 +185,8 @@ export const useExtensions = createSharedComposable(() => {
         })
       }
       return newExtension
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
@@ -215,7 +216,8 @@ export const useExtensions = createSharedComposable(() => {
       }
 
       return updatedExtension
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
@@ -263,7 +265,8 @@ export const useExtensions = createSharedComposable(() => {
 
       extensionUserPrefsManager.deleteExtension(extensionId)
       $e('a:extension:delete', { extensionId: extensionToDelete.extensionId })
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
@@ -343,7 +346,8 @@ export const useExtensions = createSharedComposable(() => {
 
       if (baseExtensions.value[baseId]) {
         baseExtensions.value[baseId].extensions = extensions || baseExtensions.value[baseId].extensions
-      } else {
+      }
+      else {
         baseExtensions.value[baseId] = {
           extensions: extensions || [],
           expanded: false,
@@ -354,7 +358,8 @@ export const useExtensions = createSharedComposable(() => {
         const validExtensionIds = extensions.map((ext: any) => ext.id)
         extensionUserPrefsManager.verifyAndCleanup(user.value.id, validExtensionIds)
       }
-    } catch (e) {
+    }
+    catch (e) {
       baseExtensions.value[baseId] = {
         extensions: [],
         expanded: false,

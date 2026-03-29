@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import Draggable from 'vuedraggable'
-import { type SelectOptionsType, UITypes } from 'nocodb-sdk'
+import type { SelectOptionsType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import InfiniteLoading from 'v3-infinite-loading'
+import Draggable from 'vuedraggable'
 
 interface Option {
   color: string
@@ -85,8 +86,8 @@ const validators = {
                   return reject(new Error(t('msg.selectOption.multiSelectCantHaveCommas')))
                 }
                 if (
-                  options.value.filter((el) => el.title?.trim() === opt.title?.trim() && (el as any).status !== 'remove').length >
-                  1
+                  options.value.filter(el => el.title?.trim() === opt.title?.trim() && (el as any).status !== 'remove').length
+                  > 1
                 ) {
                   return reject(new Error(t('msg.selectOption.cantHaveDuplicates')))
                 }
@@ -108,13 +109,14 @@ setAdditionalValidations({
 const kanbanStackOption = computed(() => {
   if (isNewStack.value) {
     return renderedOptions.value[renderedOptions.value.length - 1]
-  } else if (optionId.value) {
-    return renderedOptions.value.find((o) => o.id === optionId.value)
+  }
+  else if (optionId.value) {
+    return renderedOptions.value.find(o => o.id === optionId.value)
   }
   return null
 })
 
-const getNextColor = () => {
+function getNextColor() {
   let tempColor = colors.value[0]
   if (options.value.length && options.value[options.value.length - 1].color) {
     const lastColor = colors.value.indexOf(options.value[options.value.length - 1].color)
@@ -123,13 +125,13 @@ const getNextColor = () => {
   return tempColor
 }
 
-const updateOptionsWrapperScrollHeight = (increment = 0) => {
+function updateOptionsWrapperScrollHeight(increment = 0) {
   if (!optionsWrapperDomRef.value) return
 
   optionsWrapperDomRef.value.scrollTop = optionsWrapperDomRef.value.scrollHeight + increment
 }
 
-const addNewOption = () => {
+function addNewOption() {
   isAddingOption.value = true
 
   const tempOption = {
@@ -142,7 +144,8 @@ const addNewOption = () => {
 
   if (isKanbanStack.value) {
     renderedOptions.value = options.value
-  } else {
+  }
+  else {
     isReverseLazyLoad.value = true
 
     loadedOptionAnchor.value = options.value.length - OPTIONS_PAGE_COUNT
@@ -170,14 +173,14 @@ const addNewOption = () => {
   })
 }
 
-const syncOptions = (saveChanges = false, submit = false, payload?: Option) => {
+function syncOptions(saveChanges = false, submit = false, payload?: Option) {
   // set initial colOptions if not set
   vModel.value.colOptions = vModel.value.colOptions || {}
   vModel.value.colOptions.options = options.value
-    .filter((op) => op.status !== 'remove')
+    .filter(op => op.status !== 'remove')
     .sort((a, b) => {
-      const renderA = renderedOptions.value.findIndex((el) => a.index !== undefined && el.index === a.index)
-      const renderB = renderedOptions.value.findIndex((el) => a.index !== undefined && el.index === b.index)
+      const renderA = renderedOptions.value.findIndex(el => a.index !== undefined && el.index === a.index)
+      const renderB = renderedOptions.value.findIndex(el => a.index !== undefined && el.index === b.index)
       if (renderA === -1 || renderB === -1) return 0
       return renderA - renderB
     })
@@ -191,7 +194,7 @@ const syncOptions = (saveChanges = false, submit = false, payload?: Option) => {
   }
 }
 
-const removeRenderedOption = (index: number) => {
+function removeRenderedOption(index: number) {
   const renderedOption = renderedOptions.value[index]
 
   if (renderedOption.index === undefined || isNaN(renderedOption.index)) return
@@ -205,26 +208,28 @@ const removeRenderedOption = (index: number) => {
 
   const optionId = renderedOptions.value[index]?.id
 
-  const removedDefaultOption = defaultOption.value.find((o) => o.id === optionId)
+  const removedDefaultOption = defaultOption.value.find(o => o.id === optionId)
 
   if (removedDefaultOption) {
     if (vModel.value.uidt === UITypes.SingleSelect) {
       savedDefaultOption.value = [removedDefaultOption]
       defaultOption.value = []
       vModel.value.cdf = null
-    } else {
+    }
+    else {
       savedDefaultOption.value = [...savedDefaultOption.value, removedDefaultOption]
-      defaultOption.value = defaultOption.value.filter((o) => o.id !== optionId)
-      vModel.value.cdf = defaultOption.value.map((o) => o.title).join(',')
+      defaultOption.value = defaultOption.value.filter(o => o.id !== optionId)
+      vModel.value.cdf = defaultOption.value.map(o => o.title).join(',')
     }
   }
 }
 
-const optionChanged = (changedElement: Option, saveChanges = false) => {
+function optionChanged(changedElement: Option, saveChanges = false) {
   const changedDefaultOptionIndex = defaultOption.value.findIndex((o) => {
     if (o.id !== undefined && changedElement.id !== undefined) {
       return o.id === changedElement.id
-    } else {
+    }
+    else {
       return o.index === changedElement.index
     }
   })
@@ -233,15 +238,16 @@ const optionChanged = (changedElement: Option, saveChanges = false) => {
     if (vModel.value.uidt === UITypes.SingleSelect) {
       defaultOption.value[changedDefaultOptionIndex].title = changedElement.title
       vModel.value.cdf = changedElement.title
-    } else {
+    }
+    else {
       defaultOption.value[changedDefaultOptionIndex].title = changedElement.title
-      vModel.value.cdf = defaultOption.value.map((o) => o.title).join(',')
+      vModel.value.cdf = defaultOption.value.map(o => o.title).join(',')
     }
   }
   syncOptions(saveChanges)
 }
 
-const undoRemoveRenderedOption = (index: number) => {
+function undoRemoveRenderedOption(index: number) {
   const renderedOption = renderedOptions.value[index]
 
   if (renderedOption.index === undefined || isNaN(renderedOption.index)) return
@@ -255,17 +261,18 @@ const undoRemoveRenderedOption = (index: number) => {
 
   const optionId = renderedOptions.value[index]?.id
 
-  const addedDefaultOption = savedDefaultOption.value.find((o) => o.id === optionId)
+  const addedDefaultOption = savedDefaultOption.value.find(o => o.id === optionId)
 
   if (addedDefaultOption) {
     if (vModel.value.uidt === UITypes.SingleSelect) {
       defaultOption.value = [addedDefaultOption]
       vModel.value.cdf = addedDefaultOption.title
       savedDefaultOption.value = []
-    } else {
+    }
+    else {
       defaultOption.value = [...defaultOption.value, addedDefaultOption]
-      vModel.value.cdf = defaultOption.value.map((o) => o.title).join(',')
-      savedDefaultOption.value = savedDefaultOption.value.filter((o) => o.id !== optionId)
+      vModel.value.cdf = defaultOption.value.map(o => o.title).join(',')
+      savedDefaultOption.value = savedDefaultOption.value.filter(o => o.id !== optionId)
     }
   }
 }
@@ -301,7 +308,7 @@ watch(vModel, (next) => {
   next.cdf = newCdf.length === 0 ? null : newCdf
 })
 
-const loadListDataReverse = async ($state: any) => {
+async function loadListDataReverse($state: any) {
   if (isAddingOption.value) return
 
   if (loadedOptionAnchor.value === 0) {
@@ -324,7 +331,7 @@ const loadListDataReverse = async ($state: any) => {
   $state.loaded()
 }
 
-const loadListData = async ($state: any) => {
+async function loadListData($state: any) {
   if (isAddingOption.value) return
 
   if (loadedOptionAnchor.value === options.value.length) {
@@ -345,14 +352,14 @@ const loadListData = async ($state: any) => {
   $state.loaded()
 }
 
-const predictOptions = async () => {
+async function predictOptions() {
   if (!vModel.value?.title || !meta.value?.id) return
 
   $e('a:column:ai:select:predict-options')
 
   isLoadingPredictOptions.value = true
 
-  const history = options.value.map((o) => o.title).filter((o) => !!o.trim())
+  const history = options.value.map(o => o.title).filter(o => !!o.trim())
 
   const predictedOptions = await predictSelectOptions(vModel.value?.title, meta.value?.id, history, meta.value?.base_id)
 
@@ -361,13 +368,14 @@ const predictOptions = async () => {
   if (predictedOptions) {
     for (const option of predictedOptions) {
       // skip if option already exists
-      if (!option?.trim() || options.value.find((el) => el.title === option)) continue
+      if (!option?.trim() || options.value.find(el => el.title === option)) continue
 
       if (isKanbanStack.value) {
-        const oldOption = options.value.find((el) => el.status === 'new')
+        const oldOption = options.value.find(el => el.status === 'new')
         if (oldOption) {
           oldOption.title = option
-        } else {
+        }
+        else {
           options.value.push({
             title: option,
             color: getNextColor(),
@@ -376,7 +384,8 @@ const predictOptions = async () => {
           })
         }
         break
-      } else {
+      }
+      else {
         options.value.push({
           title: option,
           color: getNextColor(),
@@ -388,7 +397,8 @@ const predictOptions = async () => {
 
     if (isKanbanStack.value) {
       renderedOptions.value = options.value
-    } else {
+    }
+    else {
       isReverseLazyLoad.value = true
 
       loadedOptionAnchor.value = options.value.length - OPTIONS_PAGE_COUNT
@@ -421,31 +431,33 @@ onMounted(() => {
 
   if (isKanbanStack.value) {
     renderedOptions.value = options.value
-  } else {
+  }
+  else {
     loadedOptionAnchor.value = Math.min(loadedOptionAnchor.value, options.value.length)
 
     renderedOptions.value = [...options.value].slice(0, loadedOptionAnchor.value)
   }
 
   // Support for older options
-  for (const op of options.value.filter((el) => el.order === null)) {
+  for (const op of options.value.filter(el => el.order === null)) {
     op.title = op.title.replace(/^'/, '').replace(/'$/, '')
   }
 
   if (vModel.value.cdf && typeof vModel.value.cdf === 'string') {
-    const fndDefaultOption = options.value.filter((el) => el.title === vModel.value.cdf)
+    const fndDefaultOption = options.value.filter(el => el.title === vModel.value.cdf)
     if (!fndDefaultOption.length) {
       vModel.value.cdf = vModel.value.cdf.replace(/^'/, '').replace(/'$/, '')
     }
   }
 
-  const fndDefaultOption = options.value.filter((el) => el.title === vModel.value.cdf)
+  const fndDefaultOption = options.value.filter(el => el.title === vModel.value.cdf)
   if (fndDefaultOption.length) {
     defaultOption.value = vModel.value.uidt === UITypes.SingleSelect ? [fndDefaultOption[0]] : fndDefaultOption
   }
   if (isKanbanStack.value && isNewStack.value) {
     addNewOption()
-  } else if (isKanbanStack.value) {
+  }
+  else if (isKanbanStack.value) {
     nextTick(() => {
       setTimeout(() => {
         const doms = document.querySelectorAll(`.nc-col-option-select-option .nc-select-col-option-select-option`)
@@ -462,7 +474,7 @@ onMounted(() => {
 if (isKanbanStack.value) {
   onClickOutside(optionsWrapperDomRef, (e) => {
     const option = (column.value?.colOptions as SelectOptionsType)?.options?.find(
-      (o) => o?.id && o.id === kanbanStackOption.value?.id,
+      o => o?.id && o.id === kanbanStackOption.value?.id,
     )
 
     if (
@@ -476,11 +488,12 @@ if (isKanbanStack.value) {
     }
 
     if (
-      kanbanStackOption.value?.title &&
-      (option?.title !== kanbanStackOption.value?.title || option?.color !== kanbanStackOption.value?.color)
+      kanbanStackOption.value?.title
+      && (option?.title !== kanbanStackOption.value?.title || option?.color !== kanbanStackOption.value?.color)
     ) {
       syncOptions(true, true, kanbanStackOption.value)
-    } else {
+    }
+    else {
       emit('saveChanges', true, false)
     }
   })
@@ -546,7 +559,7 @@ if (!isKanbanStack.value) {
                       kanbanStackOption!.color = el
                       optionChanged(kanbanStackOption!)
                     }"
-                  ></LazyGeneralAdvanceColorPicker>
+                  />
                 </div>
               </template>
             </NcDropdown>
@@ -559,8 +572,8 @@ if (!isKanbanStack.value) {
               :disabled="isLoadingPredictOptions"
               @keydown.enter.prevent.stop="syncOptions(true, true, kanbanStackOption!)"
               @change="() => {
-                  kanbanStackOption!.status = undefined
-                  optionChanged(kanbanStackOption!)
+                kanbanStackOption!.status = undefined
+                optionChanged(kanbanStackOption!)
               }"
             />
           </div>
@@ -589,7 +602,7 @@ if (!isKanbanStack.value) {
             </div>
           </template>
           <template #complete>
-            <span></span>
+            <span />
           </template>
         </InfiniteLoading>
         <Draggable
@@ -638,7 +651,7 @@ if (!isKanbanStack.value) {
                           element.color = el
                           optionChanged(element)
                         }"
-                      ></LazyGeneralAdvanceColorPicker>
+                      />
                     </div>
                   </template>
                 </NcDropdown>
@@ -692,7 +705,9 @@ if (!isKanbanStack.value) {
                   </div>
                 </div>
 
-                <div class="caption px-3">...</div>
+                <div class="caption px-3">
+                  ...
+                </div>
               </div>
             </div>
           </template>
@@ -710,7 +725,7 @@ if (!isKanbanStack.value) {
             </div>
           </template>
           <template #complete>
-            <span></span>
+            <span />
           </template>
         </InfiniteLoading>
       </template>
@@ -770,7 +785,9 @@ if (!isKanbanStack.value) {
           <template #icon>
             <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
           </template>
-          <template #loading> {{ $t('labels.suggesting') }} </template>
+          <template #loading>
+            {{ $t('labels.suggesting') }}
+          </template>
           {{ $t('labels.autoSuggest') }}
         </NcButton>
       </NcTooltip>
@@ -793,7 +810,9 @@ if (!isKanbanStack.value) {
           <template #icon>
             <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
           </template>
-          <template #loading> {{ $t('labels.suggesting') }} </template>
+          <template #loading>
+            {{ $t('labels.suggesting') }}
+          </template>
           {{ $t('labels.autoSuggest') }}
         </NcButton>
       </NcTooltip>

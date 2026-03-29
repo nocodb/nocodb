@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import type { PaginatedType } from 'nocodb-sdk'
 import axios from 'axios'
-import { type PaginatedType, UITypes } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   scrollLeft?: number
@@ -74,7 +75,8 @@ const page = computed({
     try {
       await changePage?.(p)
       isPaginationLoading.value = false
-    } catch (e) {
+    }
+    catch (e) {
       if (axios.isCancel(e)) {
         return
       }
@@ -96,14 +98,15 @@ const size = computed({
 
       if (vPaginationData.value.totalRows && page.value * size < vPaginationData.value.totalRows) {
         changePage?.(page.value)
-      } else {
+      }
+      else {
         changePage?.(1)
       }
     }
   },
 })
 
-const getAddnlMargin = (depth: number, ignoreCondition = false) => {
+function getAddnlMargin(depth: number, ignoreCondition = false) {
   if (!ignoreCondition ? (scrollLeft.value ?? 0) < 30 : true) {
     switch (depth) {
       case 3:
@@ -119,7 +122,7 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
   return 0
 }
 
-const getCountWithLabel = (defaultCount: number) => {
+function getCountWithLabel(defaultCount: number) {
   let labelCount = defaultCount
 
   if (selectedCellCount.value && selectedCellCount.value > 1) {
@@ -143,7 +146,7 @@ const getCountWithLabel = (defaultCount: number) => {
   >
     <div class="sticky flex items-center bg-nc-bg-gray-extralight left-0">
       <NcDropdown
-        :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey,  UITypes.Button].includes(displayFieldComputed.column?.uidt!) || isLocked || !isViewOperationsAllowed"
+        :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(displayFieldComputed.column?.uidt!) || isLocked || !isViewOperationsAllowed"
         overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-md overflow-auto"
       >
         <div
@@ -166,7 +169,9 @@ const getCountWithLabel = (defaultCount: number) => {
                 <a-skeleton :active="true" :title="true" :paragraph="false" class="w-16 max-w-16" />
               </div>
               <NcTooltip v-else class="flex sticky items-center h-full">
-                <template #title> {{ getCountWithLabel(count).count }} {{ getCountWithLabel(count).label }} </template>
+                <template #title>
+                  {{ getCountWithLabel(count).count }} {{ getCountWithLabel(count).label }}
+                </template>
                 <div class="flex items-center gap-1">
                   <span
                     data-testid="grid-pagination"
@@ -305,10 +310,10 @@ const getCountWithLabel = (defaultCount: number) => {
           depth ?? 0,
           true,
         )}px;max-width: ${getAddnlMargin(depth ?? 0, true)}px`"
-      ></div>
+      />
       <NcDropdown
         v-if="field && column?.id"
-        :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey,  UITypes.Button].includes(column?.uidt!) || isLocked || !isViewOperationsAllowed"
+        :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(column?.uidt!) || isLocked || !isViewOperationsAllowed"
         overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-md overflow-auto"
       >
         <div
@@ -396,7 +401,9 @@ const getCountWithLabel = (defaultCount: number) => {
       </NcDropdown>
     </template>
 
-    <div class="!pl-8 pr-60 !w-8 h-1">‎</div>
+    <div class="!pl-8 pr-60 !w-8 h-1">
+      ‎
+    </div>
 
     <div
       v-if="!disablePagination"

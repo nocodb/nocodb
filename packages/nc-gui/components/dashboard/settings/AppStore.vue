@@ -11,7 +11,7 @@ const showPluginInstallModal = ref(false)
 
 const pluginApp = ref<any>(null)
 
-const fetchPluginApps = async () => {
+async function fetchPluginApps() {
   try {
     const plugins = (await $api.plugin.list()).list ?? []
 
@@ -20,17 +20,18 @@ const fetchPluginApps = async () => {
       .filter((p) => {
         return !['email', 'storage'].includes(p.category.toLowerCase())
       })
-      .map((p) => ({
+      .map(p => ({
         ...p,
         tags: p.tags ? p.tags.split(',') : [],
         parsedInput: p.input && JSON.parse(p.input as string),
       }))
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
-const resetPlugin = async () => {
+async function resetPlugin() {
   try {
     await $api.plugin.update(pluginApp.value.id, {
       input: null,
@@ -40,27 +41,28 @@ const resetPlugin = async () => {
     message.success(t('msg.success.pluginUninstalled'))
     showPluginUninstallModal.value = false
     await fetchPluginApps()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 
   $e('a:appstore:reset', { app: pluginApp.value.title })
 }
 
-const saved = async () => {
+async function saved() {
   showPluginInstallModal.value = false
   await fetchPluginApps()
   $e('a:appstore:install', { app: pluginApp.value.title })
 }
 
-const showInstallPluginModal = async (app: any) => {
+async function showInstallPluginModal(app: any) {
   showPluginInstallModal.value = true
   pluginApp.value = app
 
   $e('c:appstore:install', { app: app.title })
 }
 
-const showResetPluginModal = async (app: any) => {
+async function showResetPluginModal(app: any) {
   showPluginUninstallModal.value = true
   pluginApp.value = app
 }
@@ -105,8 +107,12 @@ onMounted(async () => {
           {{ `Click on confirm to reset ${pluginApp && pluginApp.title}` }}
         </div>
         <div class="flex mt-6 justify-center space-x-2">
-          <NcButton type="secondary" @click="showPluginUninstallModal = false"> {{ $t('general.cancel') }} </NcButton>
-          <NcButton type="danger" @click="resetPlugin"> {{ $t('general.confirm') }} </NcButton>
+          <NcButton type="secondary" @click="showPluginUninstallModal = false">
+            {{ $t('general.cancel') }}
+          </NcButton>
+          <NcButton type="danger" @click="resetPlugin">
+            {{ $t('general.confirm') }}
+          </NcButton>
         </div>
       </div>
     </a-modal>
@@ -145,7 +151,9 @@ onMounted(async () => {
           <a-button v-if="app.parsedInput" size="small" outlined @click="showResetPluginModal(app)">
             <div class="flex flex-row justify-center items-center caption capitalize nc-app-store-card-reset">
               <component :is="iconMap.closeCircle" />
-              <div class="flex ml-0.5">{{ $t('general.reset') }}</div>
+              <div class="flex ml-0.5">
+                {{ $t('general.reset') }}
+              </div>
             </div>
           </a-button>
 
@@ -167,13 +175,15 @@ onMounted(async () => {
                 backgroundColor: app.title === 'SES' ? '#242f3e' : '',
               }"
               :src="app.logo"
-            />
+            >
 
             <div v-else />
           </div>
 
           <div class="flex flex-col flex-1 w-3/5 pl-3">
-            <h5 class="text-subHeading2 text-nc-content-gray">{{ app.title }}</h5>
+            <h5 class="text-subHeading2 text-nc-content-gray">
+              {{ app.title }}
+            </h5>
 
             {{ app.description }}
           </div>

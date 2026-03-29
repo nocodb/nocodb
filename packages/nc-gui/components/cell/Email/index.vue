@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { VNodeRef } from '@vue/runtime-core'
+import type { VNodeRef } from 'vue'
 import { extractEmail } from '~/helpers/parsers/parserHelpers'
 
 interface Props {
@@ -43,15 +43,16 @@ const vModel = computed({
 
 const validEmail = computed(() => vModel.value && validateEmail(vModel.value))
 
-const focus: VNodeRef = (el) =>
+const focus: VNodeRef = el =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 
-const onPaste = (e: ClipboardEvent) => {
+function onPaste(e: ClipboardEvent) {
   const pastedText = e.clipboardData?.getData('text') ?? ''
 
   if (parseProp(column.value.meta).validate) {
     vModel.value = extractEmail(pastedText) || pastedText
-  } else {
+  }
+  else {
     vModel.value = pastedText
   }
 }
@@ -60,11 +61,11 @@ watch(
   () => editEnabled.value,
   () => {
     if (
-      !isForm.value &&
-      parseProp(column.value.meta)?.validate &&
-      !editEnabled.value &&
-      localState.value &&
-      !validateEmail(localState.value)
+      !isForm.value
+      && parseProp(column.value.meta)?.validate
+      && !editEnabled.value
+      && localState.value
+      && !validateEmail(localState.value)
     ) {
       message.error(t('msg.error.invalidEmail'))
       localState.value = undefined
@@ -92,7 +93,7 @@ watch(
     @selectstart.capture.stop
     @mousedown.stop
     @paste.prevent="onPaste"
-  />
+  >
 
   <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
 

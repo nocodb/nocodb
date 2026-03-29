@@ -1,10 +1,9 @@
+import type { ColumnType, LinkToAnotherRecordType, RollupType } from 'nocodb-sdk'
 import {
-  type ColumnType,
-  type LinkToAnotherRecordType,
-  type RollupType,
-  UITypes,
+
   getMetaWithCompositeKey,
   getRenderAsTextFunForUiType,
+  UITypes,
 } from 'nocodb-sdk'
 
 import rfdc from 'rfdc'

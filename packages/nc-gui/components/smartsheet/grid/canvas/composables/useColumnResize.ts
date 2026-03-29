@@ -1,10 +1,11 @@
-import { type ColumnType, UITypes } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import { parseCellWidth } from '../utils/cell'
 
 export function useColumnResize(
   canvasRef: Ref<HTMLCanvasElement | undefined>,
   columns: ComputedRef<CanvasGridColumn[]>,
-  colSlice: Ref<{ start: number; end: number }>,
+  colSlice: Ref<{ start: number, end: number }>,
   scrollLeft: Ref<number>,
   isViewOperationsAllowed: ComputedRef<boolean>,
   onResize?: (columnId: string, width: number) => void,
@@ -18,7 +19,7 @@ export function useColumnResize(
     startX: number
   } | null>(null)
 
-  const mousePosition = ref<{ x: number; y: number } | null>(null)
+  const mousePosition = ref<{ x: number, y: number } | null>(null)
   const isLocked = inject(IsLockedInj, ref(false))
 
   let resizeRafId: number | null = null
@@ -28,7 +29,7 @@ export function useColumnResize(
       return null
     }
 
-    const fixedCols = columns.value.filter((col) => col.fixed)
+    const fixedCols = columns.value.filter(col => col.fixed)
     let currentX = 0
 
     for (const column of fixedCols) {
@@ -89,7 +90,8 @@ export function useColumnResize(
           onResize?.(activeColumn.value.id, newWidth)
         })
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error in handleMouseMove:', error)
       cleanupResize()
     }
@@ -173,12 +175,12 @@ export const columnWidthLimit = {
   },
 } as const
 
-const getColumnWidthLimit = (uidt: keyof typeof columnWidthLimit) => {
+function getColumnWidthLimit(uidt: keyof typeof columnWidthLimit) {
   if (uidt in columnWidthLimit) return columnWidthLimit[uidt]
   return { minWidth: 50, maxWidth: Number.POSITIVE_INFINITY }
 }
 
-export const normalizeWidth = (col: ColumnType, width: number): number => {
+export function normalizeWidth(col: ColumnType, width: number): number {
   if (col.uidt) {
     const { minWidth, maxWidth } = getColumnWidthLimit(col.uidt as keyof typeof columnWidthLimit)
     return Math.min(Math.max(width, minWidth), maxWidth)

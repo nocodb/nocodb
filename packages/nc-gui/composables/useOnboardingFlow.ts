@@ -112,14 +112,14 @@ export const useOnboardingFlow = createSharedComposable(() => {
 
   const isEnabledOnboardingFlow = computed(() => {
     return (
-      !appInfo.value.disableOnboardingFlow &&
-      !ncIsPlaywright() &&
-      signedIn.value &&
-      !isSharedBase.value &&
-      !isSharedErd.value &&
-      !isSharedViewRoute(route.value) &&
-      !isSharedFormViewRoute(route.value) &&
-      !isPublicRoute(route.value)
+      !appInfo.value.disableOnboardingFlow
+      && !ncIsPlaywright()
+      && signedIn.value
+      && !isSharedBase.value
+      && !isSharedErd.value
+      && !isSharedViewRoute(route.value)
+      && !isSharedFormViewRoute(route.value)
+      && !isPublicRoute(route.value)
     )
   })
 
@@ -218,11 +218,11 @@ export const useOnboardingFlow = createSharedComposable(() => {
               'VP',
               'Business Owner',
               'Other',
-            ].map((value) => ({ value }))
+            ].map(value => ({ value }))
           }
 
           if (searchCompare('school', firstQuestionAns as string)) {
-            return ['Undergraduate student', 'Graduate student', 'Faculty', 'Other'].map((value) => ({ value }))
+            return ['Undergraduate student', 'Graduate student', 'Faculty', 'Other'].map(value => ({ value }))
           }
 
           return [
@@ -233,7 +233,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
             'VP',
             'C-level',
             'Business Owner',
-          ].map((value) => ({ value }))
+          ].map(value => ({ value }))
         },
         rightSection: (state = formState.value) => {
           let themeColor: OnboardingRightSectionType['themeColor'] = 'orange'
@@ -451,7 +451,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
         id: 4,
         question: 'How many people work at your company?',
         inputType: 'singleSelect',
-        options: ['0-10', '11-50', '51-250', '251-1000', '1000+'].reverse().map((value) => ({ value })),
+        options: ['0-10', '11-50', '51-250', '251-1000', '1000+'].reverse().map(value => ({ value })),
         rightSection: {
           themeColor: 'orange',
           moscot: 'moscotCollaboration',
@@ -462,7 +462,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
         id: 5,
         question: 'How many people are in your team?',
         inputType: 'singleSelect',
-        options: ['20+', '11-20', '1-10', 'Only me'].map((value) => ({ value })),
+        options: ['20+', '11-20', '1-10', 'Only me'].map(value => ({ value })),
         rightSection: {
           themeColor: 'orange',
           moscot: 'moscotCollaboration',
@@ -786,7 +786,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
   })
 
   const steps = computed(() => {
-    return questions.value.map((q) => q.id)
+    return questions.value.map(q => q.id)
   })
 
   const stepper = useStepper(steps)
@@ -820,8 +820,8 @@ export const useOnboardingFlow = createSharedComposable(() => {
 
   const isFilledQuestionAnswer = (question: OnboardingQuestionType) => {
     return (
-      !ncIsUndefined(formState.value[question.id]) &&
-      (question.inputType === 'singleSelect'
+      !ncIsUndefined(formState.value[question.id])
+      && (question.inputType === 'singleSelect'
         ? !!formState.value[question.id]
         : (formState.value[question.id] as string[]).length >= 1)
     )
@@ -845,21 +845,23 @@ export const useOnboardingFlow = createSharedComposable(() => {
     if (question.inputType === 'multiSelect') {
       const currentValue = (formState.value[question.id] || []) as string[]
 
-      const resetOnSelectOptionValues =
-        (ncIsFunction(question.options) ? question.options(formState.value) : question.options)
-          ?.filter((op) => op.resetOnSelect)
-          .map((op) => op.value) || []
+      const resetOnSelectOptionValues
+        = (ncIsFunction(question.options) ? question.options(formState.value) : question.options)
+          ?.filter(op => op.resetOnSelect)
+          .map(op => op.value) || []
 
       if (currentValue.includes(option.value)) {
-        formState.value[question.id] = currentValue.filter((value) => value !== option.value)
+        formState.value[question.id] = currentValue.filter(value => value !== option.value)
         autoNavigateToNextQuestion = false
-      } else {
+      }
+      else {
         if (option.resetOnSelect) {
           autoNavigateToNextQuestion = false
           formState.value[question.id] = [option.value]
-        } else {
+        }
+        else {
           formState.value[question.id] = [
-            ...currentValue.filter((value) => !resetOnSelectOptionValues.includes(value)),
+            ...currentValue.filter(value => !resetOnSelectOptionValues.includes(value)),
             option.value,
           ]
         }
@@ -969,9 +971,11 @@ export const useOnboardingFlow = createSharedComposable(() => {
           is_new_user: false,
         },
       })
-    } catch (e) {
+    }
+    catch (e) {
       console.error(e)
-    } finally {
+    }
+    finally {
       resetOnboardingFlow()
       isSubmitting.value = false
     }

@@ -1,10 +1,11 @@
-import { message } from 'ant-design-vue/es'
 import type { MessageArgsProps } from 'ant-design-vue/es'
 import type { VueNode } from 'ant-design-vue/es/_util/type'
 import type { VNode } from 'vue'
+import type { NcAlertProps } from '../components/nc/Alert.vue'
+import { message } from 'ant-design-vue/es'
 import { isPrimitiveValue } from 'nocodb-sdk'
-import NcAlert, { type NcAlertProps } from '../components/nc/Alert.vue'
 import { getI18n } from '~/plugins/a.i18n'
+import NcAlert from '../components/nc/Alert.vue'
 
 interface NcAlertMessageProps
   extends Pick<
@@ -84,7 +85,7 @@ const initialToastTypeValue = {
  * Generates a unique key for each message instance.
  * @returns A unique string key for the message.
  */
-const generateMessageKey = (params: NcMessageProps) => {
+function generateMessageKey(params: NcMessageProps) {
   if (ncIsString(params) || !params.key) {
     return `ncMessage_${Date.now()}_${Math.random()}`
   }
@@ -107,11 +108,7 @@ function isNcMessageObjectProps(params: any): params is NcMessageObjectProps {
  * @param ncMessageExtraProps - The extra props
  * @returns A full `NcMessageObjectProps` object with defaults applied.
  */
-const getMessageProps = (
-  type: NcAlertProps['type'],
-  params: NcMessageProps,
-  ncMessageExtraProps: NcMessageExtraProps = defaultNcMessageExtraProps,
-): NcMessageObjectProps => {
+function getMessageProps(type: NcAlertProps['type'], params: NcMessageProps, ncMessageExtraProps: NcMessageExtraProps = defaultNcMessageExtraProps): NcMessageObjectProps {
   const updatedParams = { ...initialValue, ...(type === 'toast' ? initialToastTypeValue : {}) }
   let content = ''
 
@@ -122,14 +119,16 @@ const getMessageProps = (
         content: params,
         renderAsNcAlert: true,
       }
-    } else {
+    }
+    else {
       return {
         ...updatedParams,
         ...params,
         renderAsNcAlert: true,
       }
     }
-  } else if (isPrimitiveValue(params)) {
+  }
+  else if (isPrimitiveValue(params)) {
     content = params?.toString() ?? ''
     // If params is a string, use it as the description and apply a default message based on type
     return {
@@ -138,7 +137,8 @@ const getMessageProps = (
       content,
       copyText: ncMessageExtraProps.showCopyBtn ? ncMessageExtraProps.copyText ?? content ?? '' : '',
     }
-  } else if (!isNcMessageObjectProps(params)) {
+  }
+  else if (!isNcMessageObjectProps(params)) {
     content = params
     return {
       ...updatedParams,
@@ -146,7 +146,8 @@ const getMessageProps = (
       content,
       renderAsNcAlert: false,
     }
-  } else {
+  }
+  else {
     const showDefaultMessage = ncMessageExtraProps.showDefaultMessage ?? params.showDefaultMessage
 
     /**
@@ -159,7 +160,8 @@ const getMessageProps = (
     if (showCopyBtn) {
       if (params?.copyText || ncMessageExtraProps.copyText) {
         copyText = params?.copyText || ncMessageExtraProps.copyText
-      } else if (isPrimitiveValue(params.content)) {
+      }
+      else if (isPrimitiveValue(params.content)) {
         copyText = params.content?.toString() ?? params.title ?? ''
       }
     }
@@ -187,12 +189,7 @@ const getMessageProps = (
  *
  */
 
-const showMessage = (
-  type: NcAlertProps['type'],
-  params: NcMessageProps,
-  duration?: number,
-  ncMessageExtraProps?: NcMessageExtraProps,
-) => {
+function showMessage(type: NcAlertProps['type'], params: NcMessageProps, duration?: number, ncMessageExtraProps?: NcMessageExtraProps) {
   const props = getMessageProps(type, params, ncMessageExtraProps)
 
   const {
@@ -245,8 +242,8 @@ const showMessage = (
               action: ncIsFunction(ncAlertProps.action)
                 ? ncAlertProps.action
                 : ncAlertProps.action
-                ? () => ncAlertProps.action
-                : undefined,
+                  ? () => ncAlertProps.action
+                  : undefined,
               icon: ncIsFunction(ncAlertProps.icon) ? ncAlertProps.icon : ncAlertProps.icon ? () => ncAlertProps.icon : undefined,
             },
           )
@@ -352,8 +349,8 @@ const ncMessage = {
   toast: (
     params:
       | (Omit<NcMessageObjectProps, 'content'> & {
-          content: string | number | null | undefined
-        })
+        content: string | number | null | undefined
+      })
       | string
       | number
       | null

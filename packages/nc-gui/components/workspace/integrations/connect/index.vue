@@ -23,13 +23,15 @@ const {
 
 const isRefreshing = ref(false)
 
-const onRefreshConnection = async () => {
+async function onRefreshConnection() {
   isRefreshing.value = true
   try {
     await refreshConnection()
-  } catch (e) {
+  }
+  catch (e) {
     // Handled in composable
-  } finally {
+  }
+  finally {
     isRefreshing.value = false
   }
 }
@@ -42,10 +44,12 @@ onMounted(async () => {
 <template>
   <WorkspaceIntegrationsFormsEditOrAddCommonWrapper v-bind="props" @update:open="emits('update:open', $event)">
     <template v-if="dataReflectionEnabled" #headerRightExtra>
-      <NcButton type="secondary" size="small" :disabled="isRefreshing" @click="onRefreshConnection"
-        ><GeneralIcon icon="refresh"
-      /></NcButton>
-      <NcButton type="danger" size="small" @click="deleteConnectionDetails">Disable connection</NcButton>
+      <NcButton type="secondary" size="small" :disabled="isRefreshing" @click="onRefreshConnection">
+        <GeneralIcon icon="refresh" />
+      </NcButton>
+      <NcButton type="danger" size="small" @click="deleteConnectionDetails">
+        Disable connection
+      </NcButton>
     </template>
     <template #leftPanel="{ class: leftPanelClass }">
       <div :class="leftPanelClass">
@@ -57,10 +61,12 @@ onMounted(async () => {
             src="~assets/img/placeholder/nocodb-pg-integration.png"
             class="!w-full !max-w-[864px] flex-none"
             alt="NocoDb X Pg integration"
-          />
+          >
           <span class="text-base font-bold">Connect with your favorite tools</span>
           <span class="text-sm text-nc-content-gray-subtle2">Integrate with your favourite tools by bypassing our APIs</span>
-          <NcButton size="small" type="primary" @click="createConnectionDetails"> Get connection details </NcButton>
+          <NcButton size="small" type="primary" @click="createConnectionDetails">
+            Get connection details
+          </NcButton>
           <div>
             <!-- For spacing  -->
           </div>
@@ -79,7 +85,9 @@ onMounted(async () => {
                   class="flex flex-col gap-5.5"
                 >
                   <div class="nc-form-section">
-                    <div class="nc-form-section-title">General</div>
+                    <div class="nc-form-section-title">
+                      General
+                    </div>
                     <div class="nc-form-section-body">
                       <a-row :gutter="24">
                         <a-col :span="12">
@@ -92,7 +100,9 @@ onMounted(async () => {
                   </div>
                   <div class="nc-form-section">
                     <div class="flex items-center justify-between">
-                      <div class="nc-form-section-title">Connection details</div>
+                      <div class="nc-form-section-title">
+                        Connection details
+                      </div>
                     </div>
 
                     <div class="nc-form-section-body">
@@ -160,7 +170,7 @@ onMounted(async () => {
         </div>
       </div>
     </template>
-    <template v-if="!dataReflectionEnabled" #rightPanel> </template>
+    <template v-if="!dataReflectionEnabled" #rightPanel />
   </WorkspaceIntegrationsFormsEditOrAddCommonWrapper>
 </template>
 

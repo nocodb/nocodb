@@ -738,9 +738,10 @@ export default class View implements ViewType {
 
           if (isSystemColumn(col)) show = false;
 
-          const resolvedLevelId = vCol.fk_level_id && levelIdMap.has(vCol.fk_level_id)
-            ? levelIdMap.get(vCol.fk_level_id)
-            : defaultLevelId || undefined;
+          const resolvedLevelId =
+            vCol.fk_level_id && levelIdMap.has(vCol.fk_level_id)
+              ? levelIdMap.get(vCol.fk_level_id)
+              : defaultLevelId || undefined;
 
           await View.insertColumn(
             context,

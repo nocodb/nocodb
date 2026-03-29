@@ -45,7 +45,7 @@ watch(
   { immediate: true },
 )
 
-const autoNavigateToWorkspace = async () => {
+async function autoNavigateToWorkspace() {
   const routeName = route.value.name as string
 
   // Don't auto-navigate when already on a workspace page
@@ -63,7 +63,7 @@ const autoNavigateToWorkspace = async () => {
   if (wsId && basesList.value?.length) {
     const lastVisitedBase = ncLastVisitedBase().get()
 
-    const firstBase = lastVisitedBase ? basesList.value.find((b) => b.id === lastVisitedBase) : undefined
+    const firstBase = lastVisitedBase ? basesList.value.find(b => b.id === lastVisitedBase) : undefined
 
     if (firstBase?.id) {
       await basesStore.navigateToProject({ baseId: firstBase.id! })
@@ -118,7 +118,8 @@ async function handleRouteTypeIdChange() {
     if (!route.value.params.baseId) {
       await autoNavigateToWorkspace()
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.error(e)
   }
 }

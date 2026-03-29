@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ColumnHelper, UITypes, roundUpToPrecision } from 'nocodb-sdk'
+import { ColumnHelper, roundUpToPrecision, UITypes } from 'nocodb-sdk'
 
 interface Props {
   modelValue: number | null | undefined
@@ -31,7 +31,8 @@ const currency = computed(() => {
       minimumFractionDigits: currencyMeta.value.precision ?? 2,
       maximumFractionDigits: currencyMeta.value.precision ?? 2,
     }).format(roundedValue)
-  } catch (e) {
+  }
+  catch (e) {
     return props.modelValue
   }
 })
@@ -39,7 +40,9 @@ const currency = computed(() => {
 
 <template>
   <!-- only show the numeric value as previously string value was accepted -->
-  <div v-if="!isNaN(props.modelValue)" class="nc-cell-field truncate">{{ currency }}</div>
+  <div v-if="!isNaN(props.modelValue)" class="nc-cell-field truncate">
+    {{ currency }}
+  </div>
 
   <!-- possibly unexpected string / null with showNull == false  -->
   <span v-else />

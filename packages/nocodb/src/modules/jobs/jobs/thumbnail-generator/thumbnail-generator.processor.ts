@@ -62,7 +62,7 @@ export class ThumbnailGeneratorProcessor {
       );
 
       const mimeType = attachment.mimetype || '';
-      const fileExtension = attachment.title?.toLowerCase() || '';
+      const _fileExtension = attachment.title?.toLowerCase() || '';
 
       switch (true) {
         case mimeType.startsWith('image/'):

@@ -32,9 +32,11 @@ export const useWsBaseListAll = createSharedComposable(() => {
       baseListAllData.value = (await $api.internal.getOperation(NO_SCOPE, NO_SCOPE, {
         operation: 'baseListAll',
       })) as BaseListAllData
-    } catch {
+    }
+    catch {
       // silently fail — cross-workspace search won't be available
-    } finally {
+    }
+    finally {
       isBaseListAllLoading.value = false
     }
   }
@@ -53,7 +55,7 @@ export const useWsBaseListAll = createSharedComposable(() => {
     if (!query || !baseListAllData.value) return new Map<string, number>()
     const map = new Map<string, number>()
     for (const ws of baseListAllData.value.workspaces) {
-      const count = ws.bases.filter((b) => searchCompare(b.title, query)).length
+      const count = ws.bases.filter(b => searchCompare(b.title, query)).length
       if (count > 0) map.set(ws.id, count)
     }
     return map

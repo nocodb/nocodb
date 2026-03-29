@@ -26,7 +26,8 @@ export class SocketTele {
       this.socket.on('connect_error', () => {
         this.socket?.disconnect()
       })
-    } catch {}
+    }
+    catch {}
   }
 
   disconnect() {

@@ -25,7 +25,7 @@ const tabIndex = computed(() => {
   return -1
 })
 
-const onToggleLink = () => {
+function onToggleLink() {
   if (!editor.value) return
 
   const activeNode = editor.value?.state?.selection?.$from?.nodeBefore || editor.value?.state?.selection?.$from?.nodeAfter
@@ -36,10 +36,12 @@ const onToggleLink = () => {
 
   if (isActiveNodeMarkActive) {
     editor.value.chain().focus().unsetLink().run()
-  } else {
+  }
+  else {
     if (editor.value?.state.selection.empty) {
       editor
-        .value!.chain()
+        .value!
+        .chain()
         .focus()
         .insertContent(' ')
         .setTextSelection({ from: editor.value?.state.selection.$from.pos, to: editor.value.state.selection.$from.pos + 1 })
@@ -49,9 +51,11 @@ const onToggleLink = () => {
         .setTextSelection({ from: editor.value?.state.selection.$from.pos, to: editor.value.state.selection.$from.pos + 1 })
         .deleteSelection()
         .run()
-    } else {
+    }
+    else {
       editor
-        .value!.chain()
+        .value!
+        .chain()
         .focus()
         .setLink({
           href: '',
@@ -69,7 +73,7 @@ const onToggleLink = () => {
   }
 }
 
-const newMentionNode = () => {
+function newMentionNode() {
   if (!editor.value) return
 
   const lastCharacter = editor.value.state.doc.textBetween(
@@ -82,10 +86,12 @@ const newMentionNode = () => {
       .chain()
       .deleteRange({ from: editor.value.state.selection.$from.pos - 1, to: editor.value.state.selection.$from.pos })
       .run()
-  } else if (lastCharacter !== ' ') {
+  }
+  else if (lastCharacter !== ' ') {
     editor.value?.commands.insertContent(' @')
     editor.value?.chain().focus().run()
-  } else {
+  }
+  else {
     editor.value?.commands.insertContent('@')
     editor.value?.chain().focus().run()
   }
@@ -100,7 +106,9 @@ const newMentionNode = () => {
           <div>
             {{ $t('labels.bold') }}
           </div>
-          <div class="text-xs">{{ cmdOrCtrlKey }} B</div>
+          <div class="text-xs">
+            {{ cmdOrCtrlKey }} B
+          </div>
         </div>
       </template>
       <NcButton
@@ -178,7 +186,9 @@ const newMentionNode = () => {
     </NcTooltip>
 
     <NcTooltip hide-on-click>
-      <template #title> {{ $t('general.link') }}</template>
+      <template #title>
+        {{ $t('general.link') }}
+      </template>
       <NcButton
         :class="{ 'is-active': editor?.isActive('link') }"
         :tabindex="tabIndex"
@@ -187,7 +197,7 @@ const newMentionNode = () => {
         type="text"
         @click="onToggleLink"
       >
-        <GeneralIcon icon="link2"></GeneralIcon>
+        <GeneralIcon icon="link2" />
       </NcButton>
     </NcTooltip>
     <NcTooltip v-if="appInfo.ee && !disableMention" hide-on-click>

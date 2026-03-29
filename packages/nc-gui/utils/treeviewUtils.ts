@@ -2,7 +2,7 @@
 import type { SourceType } from 'nocodb-sdk'
 import { clientTypes } from '~/utils/baseCreateUtils'
 
-export const getSourceIconColor = (source: SourceType) => {
+export function getSourceIconColor(source: SourceType) {
   if (source.is_schema_readonly && source.is_data_readonly) {
     return '#278bff'
   }
@@ -13,8 +13,8 @@ export const getSourceIconColor = (source: SourceType) => {
 }
 
 // based on source restriction decide the tooltip message with docs link
-export const getSourceTooltip = (source: SourceType) => {
-  const dbLabel = `Connection type is ${clientTypes.find((c) => c.value === source.type)?.text || source.type?.toUpperCase()}.`
+export function getSourceTooltip(source: SourceType) {
+  const dbLabel = `Connection type is ${clientTypes.find(c => c.value === source.type)?.text || source.type?.toUpperCase()}.`
 
   if (source.is_schema_readonly && source.is_data_readonly) {
     return h(

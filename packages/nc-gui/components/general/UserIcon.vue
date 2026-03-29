@@ -1,8 +1,10 @@
 <script lang="ts" setup>
-import { IconType, type UserType } from 'nocodb-sdk'
-import 'emoji-mart-vue-fast/css/emoji-mart.css'
+import type { IconMapKey } from '#imports'
+import type { UserType } from 'nocodb-sdk'
+import { isColorDark, stringToColor } from '#imports'
 import { Icon } from '@iconify/vue'
-import { type IconMapKey, isColorDark, stringToColor } from '#imports'
+import { IconType } from 'nocodb-sdk'
+import 'emoji-mart-vue-fast/css/emoji-mart.css'
 
 const props = withDefaults(
   defineProps<{
@@ -86,8 +88,8 @@ const backgroundColor = computed(() => {
   const color = user.value.display_name
     ? stringToColor(user.value.display_name)
     : user.value.email
-    ? stringToColor(user.value.email)
-    : '#FFFFFF'
+      ? stringToColor(user.value.email)
+      : '#FFFFFF'
 
   if (userIcon.value.icon) {
     switch (userIcon.value.iconType) {
@@ -136,7 +138,7 @@ const usernameInitials = computed(() => {
     }"
   >
     <div v-if="showPlaceholderIcon" class="border-1 border-nc-border-gray-medium rounded-full overflow-hidden">
-      <img src="~assets/img/placeholder/avatar.png" class="!w-full h-full flex-none" />
+      <img src="~assets/img/placeholder/avatar.png" class="!w-full h-full flex-none">
     </div>
     <CellAttachmentPreviewImage
       v-else-if="userIcon.icon && userIcon.iconType === IconType.IMAGE"
@@ -176,7 +178,7 @@ const usernameInitials = computed(() => {
           'w-14 h-14': size === 'xlarge',
         }"
         :icon="userIcon.icon"
-      ></Icon>
+      />
     </div>
     <GeneralIcon
       v-else-if="userIcon.icon && userIcon.iconType === IconType.ICON"
@@ -207,7 +209,9 @@ const usernameInitials = computed(() => {
     >
       {{ usernameInitials }}
     </div>
-    <div v-else>&nbsp;</div>
+    <div v-else>
+&nbsp;
+    </div>
   </div>
 </template>
 

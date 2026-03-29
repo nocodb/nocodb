@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ColumnHelper, UITypes, ncIsNaN } from 'nocodb-sdk'
+import { ColumnHelper, ncIsNaN, UITypes } from 'nocodb-sdk'
+
 interface Props {
   modelValue?: number | string | null
   localEditEnabled?: boolean
@@ -48,29 +49,29 @@ const percentValueNumber = computed(() => {
   return 0
 })
 
-const onWrapperFocus = () => {
+function onWrapperFocus() {
   if (readOnly.value) return
 
   localEditEnabled.value = true
 }
 
-const onMouseover = () => {
+function onMouseover() {
   expandedEditEnabled.value = true
 }
 
-const onMouseleave = () => {
+function onMouseleave() {
   expandedEditEnabled.value = false
 }
 
 const progressPercent = computed(() => {
   if (
-    (isExpandedFormOpen.value ? !expandedEditEnabled.value : true) &&
-    !!percentMeta.value.is_progress &&
-    !ncIsNull(props.modelValue) &&
-    !ncIsUndefined(props.modelValue) &&
-    !isUnderLookup.value
+    (isExpandedFormOpen.value ? !expandedEditEnabled.value : true)
+    && !!percentMeta.value.is_progress
+    && !ncIsNull(props.modelValue)
+    && !ncIsUndefined(props.modelValue)
+    && !isUnderLookup.value
   ) {
-    return Number(parseFloat(props.modelValue!.toString()).toFixed(2))
+    return Number(Number.parseFloat(props.modelValue!.toString()).toFixed(2))
   }
 
   return null
@@ -114,7 +115,7 @@ const showInput = computed(() => !readOnly.value && (!isGrid.value || isExpanded
             :value="modelValue"
             @click="onWrapperFocus"
             @focus="onWrapperFocus"
-          />
+          >
         </template>
       </CellPercentProgressBar>
     </div>

@@ -1,10 +1,10 @@
-import MarkdownIt from 'markdown-it'
-import DOMPurify from 'isomorphic-dompurify'
 import type { Editor } from '@tiptap/core'
+import type { MarkdownOptions } from '../types'
+import DOMPurify from 'isomorphic-dompurify'
+import MarkdownIt from 'markdown-it'
+import { mdImageAsText } from '~/helpers/tiptap/functionality'
 import { elementFromString, extractElement, unwrapElement } from '../util/dom'
 import { getMarkdownSpec } from '../util/extensions'
-import type { MarkdownOptions } from '../types'
-import { mdImageAsText } from '~/helpers/tiptap/functionality'
 
 export class MarkdownParser {
   editor: Editor
@@ -44,7 +44,7 @@ export class MarkdownParser {
   parse<T>(content: T, { inline }: { inline?: boolean } = {}): T | string {
     if (!ncIsString(content)) return content
 
-    this.editor.extensionManager.extensions.forEach((extension) =>
+    this.editor.extensionManager.extensions.forEach(extension =>
       getMarkdownSpec(extension)?.parse?.setup?.call({ editor: this.editor, options: extension.options }, this.md),
     )
 
@@ -60,7 +60,7 @@ export class MarkdownParser {
     return this.replaceBlockBrWithEmptyParagraph(element.innerHTML)
   }
 
-  normalizeDOM(node: HTMLElement, { inline, content }: { inline?: boolean; content: string }) {
+  normalizeDOM(node: HTMLElement, { inline, content }: { inline?: boolean, content: string }) {
     this.normalizeBlocks(node)
 
     // remove all \n appended by markdown-it
@@ -78,10 +78,10 @@ export class MarkdownParser {
   }
 
   normalizeBlocks(node: HTMLElement) {
-    const blocks = Object.values(this.editor.schema.nodes).filter((node) => node.isBlock)
+    const blocks = Object.values(this.editor.schema.nodes).filter(node => node.isBlock)
 
     const selector = blocks
-      .map((block) => block.spec.parseDOM?.map((spec) => spec.tag))
+      .map(block => block.spec.parseDOM?.map(spec => spec.tag))
       .flat()
       .filter(Boolean)
       .join(',')
@@ -116,18 +116,18 @@ export class MarkdownParser {
   }
 
   withPatchedRenderer(md: MarkdownIt) {
-    const withoutNewLine =
-      (renderer) =>
-      (...args) => {
-        const rendered = renderer(...args)
-        if (rendered === '\n') {
-          return rendered // keep soft breaks
+    const withoutNewLine
+      = renderer =>
+        (...args) => {
+          const rendered = renderer(...args)
+          if (rendered === '\n') {
+            return rendered // keep soft breaks
+          }
+          if (rendered[rendered.length - 1] === '\n') {
+            return rendered.slice(0, -1)
+          }
+          return rendered
         }
-        if (rendered[rendered.length - 1] === '\n') {
-          return rendered.slice(0, -1)
-        }
-        return rendered
-      }
 
     md.renderer.rules.hardbreak = withoutNewLine(md.renderer.rules.hardbreak)
     md.renderer.rules.softbreak = withoutNewLine(md.renderer.rules.softbreak)

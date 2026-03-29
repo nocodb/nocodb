@@ -1,19 +1,21 @@
 <script setup lang="ts">
-import { diff } from 'deep-object-diff'
-import { defineAsyncComponent } from 'vue'
-import {
-  type HookReqType,
-  type HookTestReqType,
-  type HookType,
-  PlanLimitTypes,
-  hasInputCalls,
-  removeUndefinedFromObj,
-} from 'nocodb-sdk'
+import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
-import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
+import { diff } from 'deep-object-diff'
+import {
+  hasInputCalls,
+
+  isLinksOrLTAR,
+  isSystemColumn,
+  isVirtualCol,
+  PlanLimitTypes,
+  removeUndefinedFromObj,
+  UITypes,
+} from 'nocodb-sdk'
+import { defineAsyncComponent } from 'vue'
 import { jsonThemeDark, jsonThemeLight } from '~/components/monaco/json'
+import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 
 const props = defineProps<Props>()
 
@@ -94,9 +96,9 @@ const eventsLabelMap = computed(() => {
   return result
 })
 const eventsEnum = computed(() => {
-  const result: { text: string; value: string }[] = []
+  const result: { text: string, value: string }[] = []
   for (const event of eventList.value) {
-    if (!result.some((k) => k.value === event.value[0])) {
+    if (!result.some(k => k.value === event.value[0])) {
       result.push({
         text: event.text[0],
         value: event.value[0],
@@ -163,8 +165,8 @@ const operationsEnum = computed(() => {
       value: string
     }[]
   }
-  const result: { text: string; value: string }[] = eventList.value
-    .filter((event) => event.value[0] === hookRef.event)
+  const result: { text: string, value: string }[] = eventList.value
+    .filter(event => event.value[0] === hookRef.event)
     .map((event) => {
       return {
         text: event.text[1],
@@ -217,7 +219,7 @@ const notificationTypes = computed(() => {
   ]
 })
 
-const filterScripts = (script: any) => {
+function filterScripts(script: any) {
   if (hasInputCalls(script.script)) {
     return {
       ...script,
@@ -228,13 +230,14 @@ const filterScripts = (script: any) => {
   return script
 }
 
-const toggleOperation = (operation: string) => {
+function toggleOperation(operation: string) {
   const ops = [...hookRef.operation]
   const index = ops?.indexOf(operation) ?? -1
 
   if (index >= 0) {
     ops?.splice(index, 1)
-  } else {
+  }
+  else {
     ops?.push(operation)
   }
   if (!ops.includes('update')) {
@@ -247,13 +250,13 @@ const toggleOperation = (operation: string) => {
   }
   hookRef.operation = ops // this will trigger hookRef.operation watch
   // event other than 'field', 'view', 'after' has no 'send me everything'
-  sendMeEverythingChecked.value =
-    ['field', 'view', 'after'].includes(hookRef.event) && ops?.length === operationsEnum.value?.length
+  sendMeEverythingChecked.value
+    = ['field', 'view', 'after'].includes(hookRef.event) && ops?.length === operationsEnum.value?.length
 }
 
-const toggleSendMeEverythingChecked = (_evt: Event) => {
+function toggleSendMeEverythingChecked(_evt: Event) {
   sendMeEverythingChecked.value = !sendMeEverythingChecked.value
-  hookRef.operation = sendMeEverythingChecked.value ? [...operationsEnum.value.map((k) => k.value)] : []
+  hookRef.operation = sendMeEverythingChecked.value ? [...operationsEnum.value.map(k => k.value)] : []
   if (!sendMeEverythingChecked.value) {
     hookRef.trigger_field = false
     hookRef.trigger_fields = []
@@ -261,7 +264,7 @@ const toggleSendMeEverythingChecked = (_evt: Event) => {
     hookRef.notification.trigger_form_id = undefined
   }
 }
-const handleEventChange = (e: string) => {
+function handleEventChange(e: string) {
   sendMeEverythingChecked.value = false
   hookRef.operation = []
   hookRef.event = e as any
@@ -271,9 +274,10 @@ const handleEventChange = (e: string) => {
     hookRef.trigger_fields = []
     hookRef.notification.trigger_form = false
     hookRef.notification.trigger_form_id = undefined
-  } else {
+  }
+  else {
     sendMeEverythingChecked.value = true
-    hookRef.operation = sendMeEverythingChecked.value ? [...operationsEnum.value.map((k) => k.value)] : []
+    hookRef.operation = sendMeEverythingChecked.value ? [...operationsEnum.value.map(k => k.value)] : []
   }
 
   // Automatically set active to true when event type is manual
@@ -428,7 +432,8 @@ const validators = computed(() => {
 
                 // Check if the hostname matches exactly
                 matched = webhookUrl.hostname === siteUrlObj.hostname
-              } catch (e) {
+              }
+              catch (e) {
                 // If URL parsing fails, fall back to simple includes check
                 matched = path.includes(siteUrl)
               }
@@ -436,7 +441,8 @@ const validators = computed(() => {
               if (matched) {
                 if (appInfo.value?.isCloud) {
                   reject(new Error(t('msg.internalUrlsNotAllowed')))
-                } else {
+                }
+                else {
                   showCyclicCallsWarning.value = true
                 }
               }
@@ -467,11 +473,12 @@ const validators = computed(() => {
 })
 const { validate, validateInfos } = useForm(hookRef, validators)
 
-const getChannelsArray = (val: unknown) => {
+function getChannelsArray(val: unknown) {
   if (val) {
     if (Array.isArray(val)) {
       return val
-    } else if (typeof val === 'object' && Object.keys(val).length > 0) {
+    }
+    else if (typeof val === 'object' && Object.keys(val).length > 0) {
       return [val]
     }
   }
@@ -522,8 +529,8 @@ function setHook(newHook: HookType) {
   const toAssign = { ...newHook }
   if (newHook.version === 'v2') {
     toAssign.version = 'v3'
-    toAssign.operation =
-      typeof newHook.operation === 'string'
+    toAssign.operation
+      = typeof newHook.operation === 'string'
         ? ([(newHook.operation as string).replace('bulk', '').toLowerCase()] as any[])
         : newHook.operation
   }
@@ -537,12 +544,13 @@ function setHook(newHook: HookType) {
     },
   })
   if (
-    ['field', 'view', 'after'].includes(toAssign.event) &&
-    toAssign.operation &&
-    toAssign.operation.length === eventList.value.filter((k) => k.value[0] === toAssign.event).length
+    ['field', 'view', 'after'].includes(toAssign.event)
+    && toAssign.operation
+    && toAssign.operation.length === eventList.value.filter(k => k.value[0] === toAssign.event).length
   ) {
     sendMeEverythingChecked.value = true
-  } else {
+  }
+  else {
     sendMeEverythingChecked.value = false
   }
 
@@ -583,12 +591,12 @@ function onEventChange() {
       break
   }
 
-  if (channels) {
-    hookRef.notification.payload.webhook_url =
-      hookRef.notification.payload.webhook_url &&
-      hookRef.notification.payload.webhook_url.map((v: { webhook_url: string }) =>
-        channels.value?.find((s) => v.webhook_url === s.webhook_url),
-      )
+  if (channels.value) {
+    hookRef.notification.payload.webhook_url
+      = hookRef.notification.payload.webhook_url
+        && hookRef.notification.payload.webhook_url.map((v: { webhook_url: string }) =>
+          channels.value?.find(s => v.webhook_url === s.webhook_url),
+        )
   }
 
   if (hookRef.notification.type === 'URL') {
@@ -611,7 +619,7 @@ async function loadPluginList() {
     ).list!
 
     apps.value = plugins.reduce((o, p) => {
-      const plugin: { title: string; tags: string[]; parsedInput: Record<string, any> } = {
+      const plugin: { title: string, tags: string[], parsedInput: Record<string, any> } = {
         title: '',
         tags: [],
         parsedInput: {},
@@ -623,7 +631,8 @@ async function loadPluginList() {
 
       return o
     }, {} as Record<string, any>)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -644,7 +653,8 @@ async function saveHooks() {
       message.error('You must select a trigger form')
       throw new Error('You must select a trigger form')
     }
-  } catch (error: any) {
+  }
+  catch (error: any) {
     console.error('validation error', error)
 
     loading.value = false
@@ -654,7 +664,7 @@ async function saveHooks() {
 
   let operations = [...(hookRef.operation ?? [])]
   if (sendMeEverythingChecked.value === true) {
-    operations = eventList.value.filter((k) => k.value[0] === hookRef.event).map((k) => k.value[1])
+    operations = eventList.value.filter(k => k.value[0] === hookRef.event).map(k => k.value[1])
   }
 
   try {
@@ -677,7 +687,8 @@ async function saveHooks() {
           },
         },
       )
-    } else {
+    }
+    else {
       res = await $api.internal.postOperation(
         base.value!.fk_workspace_id!,
         base.value!.id!,
@@ -731,15 +742,17 @@ async function saveHooks() {
     if (showUpgradeModal.value) {
       message.success('Webhook upgraded to v3 successfully!')
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     getMeta(activeTable.value.base_id!, activeTable.value.id, true)
     loading.value = false
   }
 }
 
-const closeModal = () => {
+function closeModal() {
   emits('close', hookRef)
 }
 
@@ -749,7 +762,7 @@ const sampleData = ref()
 
 const containerElem = ref()
 
-const resolveInitialTab = (): HookTab => {
+function resolveInitialTab(): HookTab {
   if (props.initialTab && props.hook) {
     if (props.initialTab === 'log') return HookTab.Log
     if (props.initialTab === 'settings') return HookTab.Settings
@@ -761,7 +774,7 @@ const activeTab = ref<HookTab>(resolveInitialTab())
 
 const [isVisible, toggleVisibility] = useToggle()
 
-const toggleSamplePayload = () => {
+function toggleSamplePayload() {
   toggleVisibility()
   nextTick(() => {
     if (isVisible.value) {
@@ -788,9 +801,11 @@ async function testWebhook() {
       } as HookTestReqType,
     )
     testSuccess.value = true
-  } catch (e: any) {
+  }
+  catch (e: any) {
     testConnectionError.value = await extractSdkResponseErrorMsg(e)
-  } finally {
+  }
+  finally {
     isTestLoading.value = false
   }
 }
@@ -845,16 +860,17 @@ async function loadSampleData() {
     sampleData.value = {
       event: sampleData.value?.data?.rows,
     }
-  } else {
+  }
+  else {
     sampleData.value = samplePayload
   }
 }
 
-const getDefaultHookName = (hooks: HookType[]) => {
-  return extractNextDefaultName([...hooks.map((el) => el?.title || '')], defaultHookName)
+function getDefaultHookName(hooks: HookType[]) {
+  return extractNextDefaultName([...hooks.map(el => el?.title || '')], defaultHookName)
 }
 
-const _getNotificationIconName = (type: string): keyof typeof iconMap => {
+function _getNotificationIconName(type: string): keyof typeof iconMap {
   switch (type) {
     case 'URL':
       return 'link2'
@@ -875,7 +891,7 @@ const _getNotificationIconName = (type: string): keyof typeof iconMap => {
   }
 }
 
-const handleChangeTab = (tab: HookTab) => {
+function handleChangeTab(tab: HookTab) {
   if (tab === HookTab.Log && showWebhookLogsFeatureAccessModal()) return
 
   activeTab.value = tab
@@ -902,7 +918,8 @@ watch(
     if (props.hook) {
       setHook(props.hook)
       onEventChange()
-    } else {
+    }
+    else {
       // Set the default hook title only when creating a new hook.
       hookRef.title = getDefaultHookName(hooks.value)
       hookRef.event = eventList.value?.[0]?.value[0]
@@ -926,7 +943,7 @@ onMounted(async () => {
   }
 })
 
-const toggleIncludeUser = async () => {
+async function toggleIncludeUser() {
   hookRef.notification.include_user = !hookRef.notification.include_user
   await loadSampleData()
 }
@@ -940,7 +957,7 @@ const triggerSubType = computed(() => {
     return 'Select operation'
   }
 
-  const operations = hookRef.operation.map((o) => eventsLabelMap.value[hookRef.event]?.[o]?.text[1])
+  const operations = hookRef.operation.map(o => eventsLabelMap.value[hookRef.event]?.[o]?.text[1])
 
   if (operations.length === 1) {
     return `${hookRef.event === 'after' ? `${t('general.after')} ` : ''}${operations[0]}`
@@ -952,10 +969,11 @@ const triggerSubType = computed(() => {
   ).toLowerCase()} ${lastOperation}`
 })
 
-const formatData = (data: any) => {
+function formatData(data: any) {
   try {
     return typeof data === 'object' ? JSON.stringify(data, null, 2) : JSON.stringify(JSON.parse(data), null, 2)
-  } catch {
+  }
+  catch {
     return data
   }
 }
@@ -1003,7 +1021,9 @@ const webhookV2AndV3Diff = computed(() => {
             }"
             @click="handleChangeTab(HookTab.Configuration)"
           >
-            <div class="tab-title nc-tab">{{ $t('general.details') }}</div>
+            <div class="tab-title nc-tab">
+              {{ $t('general.details') }}
+            </div>
           </div>
           <div
             v-e="['c:webhook:log']"
@@ -1013,7 +1033,9 @@ const webhookV2AndV3Diff = computed(() => {
             }"
             @click="handleChangeTab(HookTab.Log)"
           >
-            <div class="tab-title nc-tab">{{ $t('general.logs') }}</div>
+            <div class="tab-title nc-tab">
+              {{ $t('general.logs') }}
+            </div>
           </div>
           <div
             v-e="['c:webhook:settings']"
@@ -1023,14 +1045,18 @@ const webhookV2AndV3Diff = computed(() => {
             }"
             @click="handleChangeTab(HookTab.Settings)"
           >
-            <div class="tab-title nc-tab">{{ $t('labels.settings') }}</div>
+            <div class="tab-title nc-tab">
+              {{ $t('labels.settings') }}
+            </div>
           </div>
         </div>
 
         <div class="flex justify-end items-center gap-3 flex-1">
           <template v-if="activeTab === HookTab.Configuration">
             <NcTooltip v-if="!showUpgradeModal" :disabled="!testConnectionError && hookRef.notification.type !== 'Script'">
-              <template v-if="hookRef.notification.type === 'Script'" #title> Test webhook is disabled for scripts </template>
+              <template v-if="hookRef.notification.type === 'Script'" #title>
+                Test webhook is disabled for scripts
+              </template>
               <template v-else #title>
                 {{ testConnectionError }}
               </template>
@@ -1071,8 +1097,8 @@ const webhookV2AndV3Diff = computed(() => {
                 showUpgradeModal
                   ? $t('general.upgrade')
                   : hook
-                  ? $t('labels.multiField.saveChanges')
-                  : $t('activity.createWebhook')
+                    ? $t('labels.multiField.saveChanges')
+                    : $t('activity.createWebhook')
               }}
             </NcButton>
           </template>
@@ -1086,7 +1112,9 @@ const webhookV2AndV3Diff = computed(() => {
       <div v-if="showUpgradeModal" class="h-full w-full overflow-auto nc-scrollbar-thin">
         <div class="h-full w-full max-w-[1040] min-w-[640px] px-6 md:px-12 py-6 flex flex-col">
           <div class="flex flex-col gap-2 mb-8">
-            <div class="text-base font-bold text-nc-content-gray-emphasis">Change in webhook response</div>
+            <div class="text-base font-bold text-nc-content-gray-emphasis">
+              Change in webhook response
+            </div>
             <div class="text-sm font-normal text-nc-content-gray-subtle2">
               For more information on webhooks v3 visit
               <a
@@ -1101,7 +1129,9 @@ const webhookV2AndV3Diff = computed(() => {
 
           <div class="nc-webhook-version-diff">
             <div v-for="(item, idx) of webhookV2AndV3Diff" :key="idx" class="nc-item">
-              <div class="nc-item-title">{{ item.title }}</div>
+              <div class="nc-item-title">
+                {{ item.title }}
+              </div>
               <div class="nc-item-response">
                 <Suspense>
                   <template #default>
@@ -1166,7 +1196,7 @@ const webhookV2AndV3Diff = computed(() => {
                   :placeholder="$t('placeholder.webhookTitle')"
                   :contenteditable="true"
                   @keydown.enter="titleDomRef?.blur()"
-                />
+                >
                 <GeneralIcon icon="rename" class="cursor-text" @click="titleDomRef?.focus()" />
               </div>
             </a-form-item>
@@ -1192,7 +1222,9 @@ const webhookV2AndV3Diff = computed(() => {
                         dropdown-class-name="nc-modal-hook-event"
                         @change="handleEventChange"
                       >
-                        <a-select-option v-for="event of eventsEnum" :key="event.value"> {{ event.text }}</a-select-option>
+                        <a-select-option v-for="event of eventsEnum" :key="event.value">
+                          {{ event.text }}
+                        </a-select-option>
                       </NcSelect>
                     </a-form-item>
                     <NcDropdown v-if="['field', 'view', 'after'].includes(hookRef.event)" v-model:visible="isDropdownOpen">
@@ -1660,7 +1692,7 @@ const webhookV2AndV3Diff = computed(() => {
         </div>
 
         <NcModalSupportedDocsSidebar>
-          <NcModalSupportedDocs :docs="supportedDocs"> </NcModalSupportedDocs>
+          <NcModalSupportedDocs :docs="supportedDocs" />
         </NcModalSupportedDocsSidebar>
       </template>
     </div>

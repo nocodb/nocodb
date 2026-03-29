@@ -1,7 +1,7 @@
-import { acceptHMRUpdate, defineStore } from 'pinia'
-import { type TableType } from 'nocodb-sdk'
+import type { TableType } from 'nocodb-sdk'
 import type { SidebarTableNode } from '~/lib/types'
 import { DlgTableCreate } from '#components'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 
 export const useTablesStore = defineStore('tablesStore', () => {
   const { includeM2M, ncNavigateTo } = useGlobal()
@@ -33,7 +33,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
     const openedProjectBasesMap = basesStore.openedProjectBasesMap
 
-    return tables.filter((t) => !t.source_id || openedProjectBasesMap.get(t.source_id)?.enabled)
+    return tables.filter(t => !t.source_id || openedProjectBasesMap.get(t.source_id)?.enabled)
   })
 
   const activeTable = computed(() => {
@@ -46,7 +46,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
     if (!tables) return
 
-    return activeTables.value.find((t) => t.id === activeTableId.value)
+    return activeTables.value.find(t => t.id === activeTableId.value)
   })
 
   const loadProjectTables = async (baseId: string, force = false) => {
@@ -68,7 +68,8 @@ export const useTablesStore = defineStore('tablesStore', () => {
       if (typeof meta === 'string') {
         try {
           meta = JSON.parse(meta)
-        } catch (e) {
+        }
+        catch (e) {
           console.error(e)
         }
       }
@@ -208,7 +209,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
       })
       baseTables.value.set(
         table.base_id!,
-        baseTables.value.get(table.base_id!)!.map((t) => (t.id === table.id ? { ...t, ...newMeta } : t)),
+        baseTables.value.get(table.base_id!)!.map(t => (t.id === table.id ? { ...t, ...newMeta } : t)),
       )
 
       // updateTab({ id: tableMeta.id }, { title: newMeta.title })
@@ -216,7 +217,8 @@ export const useTablesStore = defineStore('tablesStore', () => {
       refreshCommandPalette()
 
       $e('a:table:rename')
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
@@ -229,16 +231,17 @@ export const useTablesStore = defineStore('tablesStore', () => {
       })
       baseTables.value.set(
         meta.base_id!,
-        baseTables.value.get(meta.base_id!)!.map((t) => (t.id === tableId ? { ...t, ...meta } : t)),
+        baseTables.value.get(meta.base_id!)!.map(t => (t.id === tableId ? { ...t, ...meta } : t)),
       )
 
       return meta
-    } catch (e: any) {
+    }
+    catch (e: any) {
       return null
     }
   }
 
-  const tableUrl = ({ table, completeUrl, isSharedBase }: { table: TableType; completeUrl: boolean; isSharedBase?: boolean }) => {
+  const tableUrl = ({ table, completeUrl, isSharedBase }: { table: TableType, completeUrl: boolean, isSharedBase?: boolean }) => {
     let base
     if (!isSharedBase) {
       base = basesStore.bases.get(table.base_id!)

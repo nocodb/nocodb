@@ -15,15 +15,15 @@ const { showStoragePlanLimitExceededModal } = useEeConfig()
 
 const activeMenu = ref('local')
 
-const selectMenu = (option: string) => {
+function selectMenu(option: string) {
   activeMenu.value = option
 }
 
-const closeModal = (value: boolean) => {
+function closeModal(value: boolean) {
   dialogShow.value = value
 }
 
-const saveAttachments = async (files: File[]) => {
+async function saveAttachments(files: File[]) {
   if (showStoragePlanLimitExceededModal()) return
 
   await saveAttachment(files, {} as any)

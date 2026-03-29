@@ -75,7 +75,8 @@ const selectedLangName = ref(langs[0].name)
 const apiUrl = computed(() => {
   try {
     return new URL(`/api/v2/tables/${meta.value?.id}/records`, (appInfo.value && appInfo.value.ncSiteUrl) || '/').href
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.log('Failed to construct API URL', e)
     return ''
   }
@@ -105,7 +106,7 @@ const snippet = computed(
     } as any),
 )
 
-const activeLang = computed(() => langs.find((lang) => lang.name === selectedLangName.value))
+const activeLang = computed(() => langs.find(lang => lang.name === selectedLangName.value))
 
 const code = computed(() => {
   if (activeLang.value?.name === 'NocoDB-SDK') {
@@ -140,7 +141,7 @@ api.dbViewRow.list(
   return ''
 })
 
-const onCopyToClipboard = async () => {
+async function onCopyToClipboard() {
   try {
     await copy(code.value)
     // Copied to clipboard
@@ -151,7 +152,8 @@ const onCopyToClipboard = async () => {
     setTimeout(() => {
       isCopied.value = false
     }, 5000)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(e.message)
   }
 }
@@ -277,7 +279,7 @@ const supportedDocs = [
                   {{ client }}
                 </div>
               </template>
-              <div></div>
+              <div />
             </a-tab-pane>
           </NcTabs>
           <Suspense>

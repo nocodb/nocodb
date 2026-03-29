@@ -27,7 +27,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     const displayValue = computed(() => {
       const row = unref(currentRow)
 
-      const column = meta.value?.columns.find((col) => col.pv) || meta.value?.columns.find((col) => col.pk)
+      const column = meta.value?.columns.find(col => col.pv) || meta.value?.columns.find(col => col.pk)
 
       return row.row[column?.title]
     })

@@ -395,7 +395,10 @@ export function useCanvasTable({
         }
 
         if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(f.uidt)) {
-          f.extra = getSingleMultiselectColOptions(f)
+          f.extra = {
+            ...getSingleMultiselectColOptions(f),
+            isColorCodeEnabled: parseProp(f.meta)?.isColorCodeEnabled !== false,
+          }
         } else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(f.uidt)) {
           f.extra = getUserColOptions(f, baseUsers.value)
         }

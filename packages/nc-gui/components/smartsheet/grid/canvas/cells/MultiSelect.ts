@@ -23,6 +23,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
     if (!selectedOptions.length) return
 
     const optionsMap = (column.extra as ReturnType<typeof getSingleMultiselectColOptions>)?.optionsMap
+    const isColorCodeEnabled = (column.extra as any)?.isColorCodeEnabled !== false
     let count = 0
     let line = 1
     for (const option of selectedOptions) {
@@ -62,7 +63,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
         line += 1
       }
 
-      const opColor = optionsMap[text]?.color ?? defaultColor
+      const opColor = isColorCodeEnabled ? (optionsMap[text]?.color ?? defaultColor) : '#e7e7e9'
       const opBgColor = !isDark
         ? getAdaptiveTint(opColor, { saturationMod: 5, isDarkMode: isDark, shade: 20 })
         : getAdaptiveTint(opColor, { isDarkMode: isDark, shade: -10 })

@@ -183,6 +183,8 @@ ${safeContent}
 <head>
 <meta charset="UTF-8">
 <title>${safeTitle}</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"><\/script>
 <style>
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 700px; margin: 0 auto; padding: 40px 20px; color: #1f2937; line-height: 1.7; font-size: 14px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
@@ -258,8 +260,8 @@ ${safeContent}
   .nc-doc-tab { padding: 0.25em 0; }
   .nc-doc-tab::before { content: attr(data-tab-title); display: block; font-weight: 600; font-size: 1em; color: #1f2937; padding-bottom: 4px; border-bottom: 1px solid #e5e7eb; margin-bottom: 4px; }
 
-  /* Math — show LaTeX source as fallback */
-  .nc-inline-math::before { content: attr(data-latex); font-family: 'Courier New', monospace; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  /* Math — KaTeX renders these; hide raw element */
+  .nc-inline-math { display: none; }
 
   /* Embeds — show as link */
   div[data-type="embed"]::before { content: "🔗 " attr(data-url); color: #2563eb; text-decoration: underline; display: block; margin: 0.5em 0; }
@@ -282,10 +284,30 @@ ${safeContent}
 <h1>${safeTitle}</h1>
 ${safeContent}
 <script>
-// Wait for all images to load before triggering print
-Promise.all(Array.from(document.images).filter(img => !img.complete).map(img =>
-  new Promise(resolve => { img.onload = img.onerror = resolve; })
-)).then(() => window.print());
+// Render math with KaTeX, wait for images, then print
+function renderMath() {
+  if (typeof katex === 'undefined') return;
+  document.querySelectorAll('.nc-inline-math[data-latex]').forEach(function(el) {
+    var latex = el.getAttribute('data-latex');
+    if (!latex) return;
+    var rendered = document.createElement('span');
+    try { katex.renderToString(latex, { throwOnError: false, output: 'html' }); }
+    catch(e) {}
+    try {
+      rendered.innerHTML = katex.renderToString(latex, { throwOnError: false });
+      el.parentNode.insertBefore(rendered, el);
+    } catch(e) {
+      el.style.display = 'inline';
+    }
+  });
+}
+// Wait for KaTeX script + images, then print
+window.onload = function() {
+  renderMath();
+  Promise.all(Array.from(document.images).filter(function(img) { return !img.complete; }).map(function(img) {
+    return new Promise(function(resolve) { img.onload = img.onerror = resolve; });
+  })).then(function() { window.print(); });
+};
 <\/script>
 </body>
 </html>`

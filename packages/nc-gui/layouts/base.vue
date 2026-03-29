@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const { signOut, signedIn, isLoading, user, currentVersion } = useGlobal()
+const { signOut, signedIn, isLoading, user, currentVersion, appInfo } = useGlobal()
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
@@ -11,7 +11,7 @@ const hasSider = ref(false)
 
 const sidebar = ref<HTMLDivElement>()
 
-const logout = async () => {
+async function logout() {
   await signOut({
     redirectToSignin: true,
   })
@@ -49,8 +49,8 @@ hooks.hook('page:finish', () => {
               {{ currentVersion }}
             </template>
             <div class="flex items-center gap-2">
-              <img v-if="!isDashboard" width="120" alt="NocoDB" src="~/assets/img/brand/nocodb-full.png" />
-              <img v-else width="25" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
+              <img v-if="!isDashboard" width="120" alt="NocoDB" src="~/assets/img/brand/nocodb-full.png">
+              <img v-else width="25" alt="NocoDB" src="~/assets/img/icons/256x256.png">
             </div>
           </a-tooltip>
         </div>
@@ -68,7 +68,9 @@ hooks.hook('page:finish', () => {
         <GeneralReleaseInfo />
 
         <a-tooltip placement="bottom" :mouse-enter-delay="1" class="mr-4">
-          <template #title>{{ $t('labels.community.communityTranslated') }}</template>
+          <template #title>
+            {{ $t('labels.community.communityTranslated') }}
+          </template>
 
           <div class="flex items-center">
             <GeneralLanguage class="cursor-pointer text-2xl text-nc-content-gray hover:text-accent" />
@@ -87,11 +89,17 @@ hooks.hook('page:finish', () => {
             <template #overlay>
               <a-menu class="!py-0 leading-8 !rounded">
                 <a-menu-item key="0" data-testid="nc-menu-accounts__user-settings" class="!rounded-t">
-                  <nuxt-link v-e="['c:navbar:user:email']" class="nc-base-menu-item group !no-underline" to="/account/users">
+                  <nuxt-link
+                    v-e="['c:navbar:user:email']"
+                    class="nc-base-menu-item group !no-underline"
+                    :to="appInfo.isCloud ? '/account/users' : '/admin?tab=users-list'"
+                  >
                     <component :is="iconMap.accountCircle" class="mt-1 group-hover:text-accent" />&nbsp;
                     <div class="prose group-hover:text-primary">
                       <div>Account</div>
-                      <div class="text-xs text-gray-500">{{ email }}</div>
+                      <div class="text-xs text-gray-500">
+                        {{ email }}
+                      </div>
                     </div>
                   </nuxt-link>
                 </a-menu-item>
@@ -130,7 +138,9 @@ hooks.hook('page:finish', () => {
         placement="left"
         class="nc-lang-btn-wrapper"
       >
-        <template #title>{{ $t('labels.community.communityTranslated') }}</template>
+        <template #title>
+          {{ $t('labels.community.communityTranslated') }}
+        </template>
 
         <GeneralLanguage class="nc-lang-btn text-white" />
       </NcTooltip>

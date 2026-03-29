@@ -15,12 +15,12 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const slots = useSlots()
 
-const slotHasChildren = (name?: string) => {
+function slotHasChildren(name?: string) {
   return (slots[name ?? 'default']?.()?.length ?? 0) > 0
 }
 
 const isOpenColorPicker = ref(false)
-const onColorChange = (value: string) => {
+function onColorChange(value: string) {
   vModel.value = value
   emits('change', value)
 }
@@ -33,13 +33,13 @@ const onColorChange = (value: string) => {
     :disabled="disabled"
     overlay-class-name="nc-select-option-color-picker"
   >
-    <slot></slot>
+    <slot />
     <template v-if="!slotHasChildren()">
       <button
         type="button"
         class="p-1 inline-flex content-center items-center justify-center aspect-square rounded-md min-w-[30px] min-h-[30px] hover:border-nc-border-gray-medium border-2"
         :style="{
-          ...vModel ? ({'background-color': vModel!}) : {},
+          ...vModel ? ({ 'background-color': vModel! }) : {},
         }"
       >
         <GeneralIcon
@@ -53,8 +53,7 @@ const onColorChange = (value: string) => {
       </button>
     </template>
     <template #overlay>
-      <GeneralAdvanceColorPicker v-model="vModel" :is-open="isOpenColorPicker" @input="onColorChange">
-      </GeneralAdvanceColorPicker>
+      <GeneralAdvanceColorPicker v-model="vModel" :is-open="isOpenColorPicker" @input="onColorChange" />
     </template>
   </NcDropdown>
 </template>

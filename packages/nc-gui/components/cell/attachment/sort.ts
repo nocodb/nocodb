@@ -1,7 +1,7 @@
-import type { SortableEvent } from 'sortablejs'
-import Sortable from 'sortablejs'
 import type { MaybeRef } from '@vueuse/core'
+import type { SortableEvent } from 'sortablejs'
 import { watchPostEffect } from '@vue/runtime-core'
+import Sortable from 'sortablejs'
 
 export function useSortable(
   element: MaybeRef<HTMLElement | undefined>,

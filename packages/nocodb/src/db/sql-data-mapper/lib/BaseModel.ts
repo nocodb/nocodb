@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-types,prefer-const */
+/* eslint-disable prefer-const */
 import groupBy from 'lodash/groupBy';
 import { customValidators } from 'src/db/util/customValidators';
 import type { Knex } from 'knex';
@@ -1344,7 +1344,7 @@ abstract class BaseModel {
    * @param {Object} data - insert data
    * @param {Object} trx? - knex transaction reference
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   async beforeInsert(data, trx?: any, cookie?: {}) {}
 
   /**
@@ -1353,7 +1353,7 @@ abstract class BaseModel {
    * @param {Object} response - inserted data
    * @param {Object} trx? - knex transaction reference
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   async afterInsert(response, trx?: any, cookie?: {}) {}
 
   /**
@@ -1363,7 +1363,7 @@ abstract class BaseModel {
    * @param {Object} data - insert data
    * @param {Object} trx? - knex transaction reference
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   async errorInsert(err, data, trx?: any, cookie?: {}) {}
 
   /**
@@ -1372,7 +1372,7 @@ abstract class BaseModel {
    * @param {Object} data - update data
    * @param {Object} trx? - knex transaction reference
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   async beforeUpdate(data, trx?: any, cookie?: {}) {}
 
   /**
@@ -1381,7 +1381,7 @@ abstract class BaseModel {
    * @param {Object} response - updated data
    * @param {Object} trx? - knex transaction reference
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   async afterUpdate(response, trx?: any, cookie?: {}) {}
 
   /**
@@ -1391,7 +1391,7 @@ abstract class BaseModel {
    * @param {Object} data - update data
    * @param {Object} trx? - knex transaction reference
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   async errorUpdate(err, data, trx?: any, cookie?: {}) {}
 
   /**
@@ -1400,7 +1400,7 @@ abstract class BaseModel {
    * @param {Object} data - delete data
    * @param {Object} trx? - knex transaction reference
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   async beforeDelete(data, trx?: any, cookie?: {}) {}
 
   /**
@@ -1409,7 +1409,7 @@ abstract class BaseModel {
    * @param {Object} response - Deleted data
    * @param {Object} trx? - knex transaction reference
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   async afterDelete(response, trx?: any, cookie?: {}) {}
 
   /**
@@ -1419,7 +1419,7 @@ abstract class BaseModel {
    * @param {Object} data - delete data
    * @param {Object} trx? - knex transaction reference
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   async errorDelete(err, data, trx?: any, cookie?: {}) {}
 
   /**
@@ -1428,7 +1428,7 @@ abstract class BaseModel {
    * @param {Object[]} data - insert data
    * @param {Object} trx - knex transaction reference
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   async beforeInsertb(data, trx?: any) {}
 
   /**
@@ -1437,7 +1437,7 @@ abstract class BaseModel {
    * @param {Object[]} response - inserted data
    * @param {Object} trx - knex transaction reference
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   async afterInsertb(response, trx?: any) {}
 
   /**
@@ -1447,7 +1447,7 @@ abstract class BaseModel {
    * @param {Object} data - delete data
    * @param {Object} trx - knex transaction reference
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   async errorInsertb(err, data, trx?: any) {}
 
   /**
@@ -1456,7 +1456,7 @@ abstract class BaseModel {
    * @param {Object[]} data - update data
    * @param {Object} trx - knex transaction reference
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   async beforeUpdateb(data, trx?: any) {}
 
   /**
@@ -1465,7 +1465,7 @@ abstract class BaseModel {
    * @param {Object[]} response - updated data
    * @param {Object} trx - knex transaction reference
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   async afterUpdateb(response, trx?: any) {}
 
   /**
@@ -1475,7 +1475,7 @@ abstract class BaseModel {
    * @param {Object[]} data - delete data
    * @param {Object} trx - knex transaction reference
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   async errorUpdateb(err, data, trx?: any) {}
 
   /**
@@ -1484,7 +1484,7 @@ abstract class BaseModel {
    * @param {Object[]} data - delete data
    * @param {Object} trx - knex transaction reference
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   async beforeDeleteb(data, trx?: any) {}
 
   /**
@@ -1493,7 +1493,7 @@ abstract class BaseModel {
    * @param {Object[]} response - deleted data
    * @param {Object} trx - knex transaction reference
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   async afterDeleteb(response, trx?: any) {}
 
   /**
@@ -1503,7 +1503,7 @@ abstract class BaseModel {
    * @param {Object[]} data - delete data
    * @param {Object} trx - knex transaction reference
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   async errorDeleteb(err, data, trx?: any) {}
 }
 

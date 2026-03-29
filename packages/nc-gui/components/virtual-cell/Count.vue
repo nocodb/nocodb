@@ -3,5 +3,5 @@
 </script>
 
 <template>
-  <span class="prose-sm"></span>
+  <span class="prose-sm" />
 </template>

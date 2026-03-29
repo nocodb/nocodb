@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { validatePassword } from 'nocodb-sdk'
 import type { RuleObject } from 'ant-design-vue/es/form'
+import { validatePassword } from 'nocodb-sdk'
 
 definePageMeta({
   requiresAuth: false,
@@ -17,8 +17,6 @@ const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 const { t } = useI18n()
 
 const { isEnabledOnboardingFlow, showOnboardingFlowLocalState } = useOnboardingFlow()
-
-const { navigateToTable } = useTablesStore()
 
 const { clearWorkspaces } = useWorkspace()
 
@@ -79,19 +77,8 @@ async function signUp() {
 
     try {
       // TODO: Add to swagger
-      const base = (user as any).createdProject
-      const table = base?.tables?.[0]
-
       if (isEnabledOnboardingFlow.value) {
-        let continueAfterOnboardingFlow = ''
-
-        if (base?.id) {
-          continueAfterOnboardingFlow = `nc/${base.id}`
-
-          if (table?.id) {
-            continueAfterOnboardingFlow += `/${table.id}`
-          }
-        }
+        const continueAfterOnboardingFlow = 'nc'
 
         /**
          * Onboarding flow is shown only for new users
@@ -106,14 +93,15 @@ async function signUp() {
         return
       }
 
-      if (base && table) {
-        return await navigateToTable({
-          baseId: base.id,
-          tableId: table.id,
-          workspaceId: 'nc',
-        })
-      }
-    } catch (e) {
+      // if user signed up then redirect to ws bases list page
+      return await navigateTo({
+        name: 'index-typeOrId',
+        params: {
+          typeOrId: 'nc',
+        },
+      })
+    }
+    catch (e) {
       console.error(e)
     }
 
@@ -178,7 +166,9 @@ onMounted(async () => {
                 >
                   <div class="flex items-center gap-2 justify-center">
                     <MaterialSymbolsWarning />
-                    <div class="break-words">{{ error }}</div>
+                    <div class="break-words">
+                      {{ error }}
+                    </div>
                   </div>
                 </div>
               </Transition>
@@ -252,13 +242,17 @@ onMounted(async () => {
                   size="small"
                   class="my-1 hover:(ring ring-accent ring-opacity-100) focus:(!ring !ring-accent ring-opacity-100)"
                 />
-                <div class="prose-xs text-nc-content-gray-muted">{{ $t('msg.subscribeToOurWeeklyNewsletter') }}</div>
+                <div class="prose-xs text-nc-content-gray-muted">
+                  {{ $t('msg.subscribeToOurWeeklyNewsletter') }}
+                </div>
               </div>
 
               <div class="text-end prose-sm">
                 {{ $t('msg.info.signUp.alreadyHaveAccount') }}
 
-                <nuxt-link @click="navigateSignIn">{{ $t('general.signIn') }}</nuxt-link>
+                <nuxt-link @click="navigateSignIn">
+                  {{ $t('general.signIn') }}
+                </nuxt-link>
               </div>
             </div>
           </a-form>
@@ -272,8 +266,7 @@ onMounted(async () => {
             href="https://nocodb.com/policy-nocodb"
             rel="noopener"
           >
-            {{ $t('title.termsOfService') }}</a
-          >
+            {{ $t('title.termsOfService') }}</a>
         </div>
       </div>
     </NuxtLayout>

@@ -10,10 +10,11 @@ const emits = defineEmits(['error'])
 
 const currentIndex = ref(0)
 
-const handleError = async () => {
+async function handleError() {
   if (currentIndex.value < props.src.length - 1) {
     currentIndex.value = currentIndex.value + 1
-  } else {
+  }
+  else {
     const isURLExp = await isURLExpired(props.src[0])
     if (isURLExp.isExpired) {
       emits('error')

@@ -41,6 +41,7 @@ export enum ViewTypes {
   MAP = 5,
   CALENDAR = 6,
   LIST = 7,
+  TIMELINE = 8,
 }
 
 export const viewTypeAlias: Record<ViewTypes, string> = {
@@ -51,6 +52,7 @@ export const viewTypeAlias: Record<ViewTypes, string> = {
   [ViewTypes.MAP]: 'map',
   [ViewTypes.CALENDAR]: 'calendar',
   [ViewTypes.LIST]: 'list',
+  [ViewTypes.TIMELINE]: 'timeline',
 };
 
 export const viewTypeToStringMap: Record<ViewTypes, string> = {
@@ -217,6 +219,8 @@ export enum NcErrorType {
   ERR_DASHBOARD_NOT_FOUND = 'ERR_DASHBOARD_NOT_FOUND',
   ERR_WORKFLOW_NOT_FOUND = 'ERR_WORKFLOW_NOT_FOUND',
   ERR_WIDGET_NOT_FOUND = 'ERR_WIDGET_NOT_FOUND',
+  ERR_CHAT_SESSION_NOT_FOUND = 'ERR_CHAT_SESSION_NOT_FOUND',
+  ERR_CHAT_MESSAGE_NOT_FOUND = 'ERR_CHAT_MESSAGE_NOT_FOUND',
   ERR_VIEW_SECTION_NOT_FOUND = 'ERR_VIEW_SECTION_NOT_FOUND',
   ERR_SHARED_DASHBOARD_PASSWORD_INVALID = 'ERR_SHARED_DASHBOARD_PASSWORD_INVALID',
   ERR_DUPLICATE_IN_ALIAS = 'ERR_DUPLICATE_IN_ALIAS',
@@ -266,6 +270,12 @@ export enum NcErrorType {
   ERR_WORKFLOW_MAX_ITERATIONS_EXCEEDED = 'ERR_WORKFLOW_MAX_ITERATIONS_EXCEEDED',
   ERR_WORKFLOW_NODE_NOT_FOUND = 'ERR_WORKFLOW_NODE_NOT_FOUND',
   ERR_WORKFLOW_WAITING_EXECUTIONS = 'ERR_WORKFLOW_WAITING_EXECUTIONS',
+
+  // License Errors
+  ERR_LICENSE_REQUIRED = 'ERR_LICENSE_REQUIRED',
+  ERR_LICENSE_SUSPENDED = 'ERR_LICENSE_SUSPENDED',
+
+  ERR_SYSTEM_FIELD_NON_MODIFIABLE = 'ERR_SYSTEM_FIELD_NON_MODIFIABLE',
 }
 
 export enum ROW_COLORING_MODE {
@@ -383,6 +393,7 @@ export enum DependencyTableType {
   View = 'view',
   Widget = 'widget',
   Workflow = 'workflow',
+  DateDependency = 'date_dependency',
 }
 
 export enum BaseVersion {

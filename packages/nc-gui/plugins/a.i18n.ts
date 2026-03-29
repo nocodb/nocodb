@@ -1,10 +1,10 @@
-import { createI18n } from 'vue-i18n'
 import { isClient } from '@vueuse/core'
+import { createI18n } from 'vue-i18n'
 
 let globalI18n: NocoI18n
 
-export const createI18nPlugin = async (): Promise<NocoI18n> =>
-  createI18n({
+export async function createI18nPlugin(): Promise<NocoI18n> {
+  return createI18n({
     locale: 'en', // Set the initial locale
 
     fallbackLocale: 'en', // Set the fallback locale in case the current locale can't be found
@@ -13,6 +13,7 @@ export const createI18nPlugin = async (): Promise<NocoI18n> =>
 
     globalInjection: true, // enable global injection, so all utilities are injected into all components
   })
+}
 
 export const getI18n = () => globalI18n
 
@@ -41,7 +42,7 @@ export async function loadLocaleMessages(
   return nextTick()
 }
 
-const i18nPlugin = async (nuxtApp) => {
+async function i18nPlugin(nuxtApp) {
   globalI18n = await createI18nPlugin()
 
   nuxtApp.vueApp.i18n = globalI18n
@@ -49,7 +50,7 @@ const i18nPlugin = async (nuxtApp) => {
   nuxtApp.vueApp.use(globalI18n)
 }
 
-export default defineNuxtPlugin(async function (nuxtApp) {
+export default defineNuxtPlugin(async (nuxtApp) => {
   if (!isEeUI) return await i18nPlugin(nuxtApp)
 })
 

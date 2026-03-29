@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import LogosMysqlIcon from '~icons/logos/mysql-icon'
-import LogosPostgresql from '~icons/nc-icons/postgresql'
-import VscodeIconsFileTypeSqlite from '~icons/vscode-icons/file-type-sqlite'
 import LogosSnowflakeIcon from '~icons/logos/snowflake-icon'
 import MdiDatabaseOutline from '~icons/mdi/database-outline'
+import LogosPostgresql from '~icons/nc-icons/postgresql'
+import VscodeIconsFileTypeSqlite from '~icons/vscode-icons/file-type-sqlite'
 
-const { sourceType } = defineProps<{ sourceType?: string; color?: string }>()
+const { sourceType } = defineProps<{ sourceType?: string, color?: string }>()
 
 const baseIcon = computed(() => {
   switch (sourceType) {

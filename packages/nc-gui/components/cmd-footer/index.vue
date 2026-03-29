@@ -6,7 +6,7 @@ defineProps<{
   setActiveCmdView: (cmd: CommandPaletteType) => void
 }>()
 
-const renderCmdOrCtrlKey = () => {
+function renderCmdOrCtrlKey() {
   return isMac() ? '⌘' : 'Ctrl'
 }
 </script>

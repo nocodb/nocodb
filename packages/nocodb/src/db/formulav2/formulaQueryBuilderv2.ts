@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import {
   CircularRefContext,
   FormulaDataTypes,
+  isBtLikeV2Junction,
   JSEPNode,
   LongTextAiMetaProp,
   NcErrorType,
@@ -79,7 +80,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         | 'pg'
         | 'sqlite3'
         | 'mysql2'
-        | 'oracledb'
         | 'mariadb'
         | 'sqlite'
         | 'snowflake',
@@ -166,6 +166,15 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         break;
       case UITypes.Rollup:
       case UITypes.Links:
+        if (col.uidt === UITypes.Links && isBtLikeV2Junction(col)) {
+          aliasToColumn[col.id] = lookupOrLtarBuilder({
+            ...params,
+            column: col,
+            _formulaQueryBuilder,
+            knex,
+          });
+          break;
+        }
         aliasToColumn[col.id] = async ({
           tableAlias,
           parentColumns: parentColumns,
@@ -502,7 +511,6 @@ export default async function formulaQueryBuilderv2({
       columns,
       getAliasCount,
     });
-
     let sqlLength = 0;
     try {
       sqlLength = qb?.builder?.toSQL?.().sql?.length ?? 0;

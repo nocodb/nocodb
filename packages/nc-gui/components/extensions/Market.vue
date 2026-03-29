@@ -42,7 +42,7 @@ const showSearchBox = ref<boolean>(true)
 
 const activeTab = ref<TabKeysType>('extensions')
 
-const focusSearchInput = () => {
+function focusSearchInput() {
   if (activeTab.value === 'build-an-extension') return
 
   nextTick(() => {
@@ -50,13 +50,13 @@ const focusSearchInput = () => {
   })
 }
 
-const handleShowSearchInput = () => {
+function handleShowSearchInput() {
   showSearchBox.value = true
 
   focusSearchInput()
 }
 
-const handleSetActiveTab = (tab: TabItem) => {
+function handleSetActiveTab(tab: TabItem) {
   if (tab.isDisabled) return
 
   searchQuery.value = ''
@@ -89,7 +89,9 @@ onMounted(() => {
           }"
         >
           <GeneralIcon icon="ncPuzzleSolid" class="h-6 w-6 flex-none text-nc-content-gray-subtle" />
-          <div class="flex-1 font-semibold text-xl">Marketplace</div>
+          <div class="flex-1 font-semibold text-xl">
+            Marketplace
+          </div>
         </div>
         <div class="flex bg-nc-bg-gray-medium rounded-lg p-1">
           <div class="flex items-center">
@@ -102,7 +104,9 @@ onMounted(() => {
                 'selected ': activeTab === tab.tabKey,
               }"
             >
-              <template #title> {{ $t('msg.toast.futureRelease') }}</template>
+              <template #title>
+                {{ $t('msg.toast.futureRelease') }}
+              </template>
               <div
                 class="px-3 py-1 flex items-center gap-2 text-xs rounded-md select-none"
                 :class="{

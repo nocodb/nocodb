@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { type ColumnType, type LinkToAnotherRecordType, UITypesName, ViewLockType, ViewSettingOverrideOptions } from 'nocodb-sdk'
-import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { isLinksOrLTAR, isSystemColumn, PlanLimitTypes, RelationTypes, UITypes, UITypesName, ViewLockType, ViewSettingOverrideOptions } from 'nocodb-sdk'
 import rfdc from 'rfdc'
 import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
 
@@ -33,7 +33,7 @@ const { appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFiltered
 
 const showCreateSort = ref(false)
 
-const { isMobileMode } = useGlobal()
+const { appInfo, isMobileMode } = useGlobal()
 
 const { getPlanLimit } = useWorkspace()
 
@@ -50,21 +50,21 @@ const displayedSorts = computed(() => {
   if (!isList.value || !isListConfigured.value || !listViewStore?.selectedLevelId.value) {
     return sorts.value
   }
-  return sorts.value.filter((s) => s.fk_level_id === listViewStore!.selectedLevelId.value)
+  return sorts.value.filter(s => s.fk_level_id === listViewStore!.selectedLevelId.value)
 })
 
-const displayedExistingSorts = computed(() => displayedSorts.value.filter((s) => s.id))
-const displayedLocalSorts = computed(() => displayedSorts.value.filter((s) => !s.id))
+const displayedExistingSorts = computed(() => displayedSorts.value.filter(s => s.id))
+const displayedLocalSorts = computed(() => displayedSorts.value.filter(s => !s.id))
 
 const isToolbarIconMode = inject(
   IsToolbarIconMode,
   computed(() => false),
 )
 
-const smartsheetEventHandler = (event: SmartsheetStoreEvents, payload) => {
+function smartsheetEventHandler(event: SmartsheetStoreEvents, payload) {
   if (
-    event === SmartsheetStoreEvents.SORT_RELOAD ||
-    validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.SORT, payload)
+    event === SmartsheetStoreEvents.SORT_RELOAD
+    || validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.SORT, payload)
   ) {
     loadSorts()
   }
@@ -120,24 +120,26 @@ const availableColumns = computed(() => {
           /** hide system columns if not enabled */
           showSystemFields.value
         )
-      } else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID || c.uidt === UITypes.Button) {
+      }
+      else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID || c.uidt === UITypes.Button) {
         return false
-      } else {
+      }
+      else {
         /** ignore hasmany and manytomany relations if it's using within sort menu */
         return !(
-          isLinksOrLTAR(c) &&
-          ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes((c.colOptions as LinkToAnotherRecordType).type)
+          isLinksOrLTAR(c)
+          && ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes((c.colOptions as LinkToAnotherRecordType).type)
         )
         /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
       }
     })
     .filter(
-      (c) =>
-        !((isRestrictedEditor.value ? displayedLocalSorts : displayedSorts).value ?? []).find((s) => s.fk_column_id === c.id),
+      c =>
+        !((isRestrictedEditor.value ? displayedLocalSorts : displayedSorts).value ?? []).find(s => s.fk_column_id === c.id),
     )
 })
 
-const getColumnUidtByID = (key?: string) => {
+function getColumnUidtByID(key?: string) {
   return sortGetColumnUidtByID(key, columnByID.value)
 }
 
@@ -145,7 +147,7 @@ const open = ref(false)
 
 useMenuCloseOnEsc(open)
 
-const addSort = (column: ColumnType) => {
+function addSort(column: ColumnType) {
   _addSort(true, column)
 
   const createdSort = sorts.value[sorts.value.length - 1]
@@ -165,7 +167,7 @@ watch(open, () => {
   }
 })
 
-const getSortIndex = (sort: any) => sorts.value.findIndex((s) => s === sort)
+const getSortIndex = (sort: any) => sorts.value.findIndex(s => s === sort)
 
 watch(
   () => view?.value?.id,
@@ -182,7 +184,6 @@ watch(
   <NcDropdown
     v-model:visible="open"
     :trigger="['click']"
-    class="!xs:hidden"
     overlay-class-name="nc-dropdown-sort-menu nc-toolbar-dropdown overflow-hidden"
   >
     <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode" :class="{ 'nc-active-btn': sorts?.length }">
@@ -217,8 +218,7 @@ watch(
               [filteredOrSortedAppearanceConfig.SORTED.toolbarChipBgClass]: true,
               [filteredOrSortedAppearanceConfig.SORTED.toolbarTextClass]: true,
             }"
-            >{{ sorts.length }}</span
-          >
+          >{{ sorts.length }}</span>
         </div>
       </NcButton>
     </NcTooltip>
@@ -244,7 +244,11 @@ watch(
           :is-parent-open="open"
           @created="addSort"
         />
-        <div v-else class="pt-2 pb-2 pl-4 nc-filter-list max-h-[max(80vh,30rem)] min-w-102" data-testid="nc-sorts-menu">
+        <div
+          v-else
+          class="pt-2 pb-2 pl-4 nc-filter-list max-h-[max(80vh,30rem)] xs:nc-min-w-screen-95 sm:min-w-102"
+          data-testid="nc-sorts-menu"
+        >
           <div class="sort-grid max-h-120 nc-scrollbar-thin pr-4 my-2 py-1" @click.stop>
             <template v-if="!isRestrictedEditor">
               <div
@@ -279,7 +283,9 @@ watch(
                     :value="option.value"
                   >
                     <div class="w-full flex items-center justify-between gap-2">
-                      <div class="truncate flex-1">{{ option.text }}</div>
+                      <div class="truncate flex-1">
+                        {{ option.text }}
+                      </div>
                       <component
                         :is="iconMap.check"
                         v-if="sort.direction === option.value"
@@ -340,7 +346,9 @@ watch(
                       :value="option.value"
                     >
                       <div class="w-full flex items-center justify-between gap-2">
-                        <div class="truncate flex-1">{{ option.text }}</div>
+                        <div class="truncate flex-1">
+                          {{ option.text }}
+                        </div>
                         <component
                           :is="iconMap.check"
                           v-if="sort.direction === option.value"
@@ -396,7 +404,9 @@ watch(
                     :value="option.value"
                   >
                     <div class="w-full flex items-center justify-between gap-2">
-                      <div class="truncate flex-1">{{ option.text }}</div>
+                      <div class="truncate flex-1">
+                        {{ option.text }}
+                      </div>
                       <component
                         :is="iconMap.check"
                         v-if="sort.direction === option.value"
@@ -431,11 +441,11 @@ watch(
               :disabled="false"
               overlay-class-name="nc-toolbar-dropdown"
             >
-              <template v-if="isEeUI && !isPublic">
+              <template v-if="appInfo.ee && !isPublic">
                 <NcButton
                   v-if="
-                    (isRestrictedEditor ? displayedLocalSorts.length : displayedSorts.length) <
-                    getPlanLimit(PlanLimitTypes.LIMIT_SORT_PER_VIEW) + 10
+                    (isRestrictedEditor ? displayedLocalSorts.length : displayedSorts.length)
+                      < getPlanLimit(PlanLimitTypes.LIMIT_SORT_PER_VIEW) + 10
                   "
                   v-e="['c:sort:add']"
                   :class="{
@@ -452,7 +462,7 @@ watch(
                     {{ $t('activity.addSort') }}
                   </div>
                 </NcButton>
-                <span v-else></span>
+                <span v-else />
               </template>
               <template v-else>
                 <NcButton

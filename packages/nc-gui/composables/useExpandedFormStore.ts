@@ -7,20 +7,20 @@ import type {
   PlanLimitExceededDetailsType,
   TableType,
 } from 'nocodb-sdk'
+import type { Ref } from 'vue'
+import dayjs from 'dayjs'
 import {
   EventType,
-  PermissionEntity,
-  PermissionKey,
-  PlanLimitTypes,
-  ViewTypes,
   isAIPromptCol,
   isHiddenCol,
   isReadOnlyColumn,
   isSystemColumn,
   isVirtualCol,
+  PermissionEntity,
+  PermissionKey,
+  PlanLimitTypes,
+  ViewTypes,
 } from 'nocodb-sdk'
-import type { Ref } from 'vue'
-import dayjs from 'dayjs'
 
 interface AuditTypeExtended extends AuditType {
   created_display_name?: string
@@ -66,10 +66,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     const { sharedView } = useSharedView()
 
     const row = ref<Row>(
-      !sharedView.value ||
-        sharedView.value?.type === ViewTypes.GALLERY ||
-        sharedView.value?.type === ViewTypes.KANBAN ||
-        _row.value?.rowMeta?.new
+      !sharedView.value
+      || sharedView.value?.type === ViewTypes.GALLERY
+      || sharedView.value?.type === ViewTypes.KANBAN
+      || _row.value?.rowMeta?.new
         ? _row.value
         : ({ row: {}, oldRow: {}, rowMeta: {} } as Row),
     )
@@ -85,8 +85,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
-    const { comments, resolveComment, loadComments, updateComment, deleteComment, saveComment, isCommentsLoading } =
-      useProvideRowComments(meta, row)
+    const { comments, resolveComment, loadComments, updateComment, deleteComment, saveComment, isCommentsLoading }
+      = useProvideRowComments(meta, row)
 
     const { isUIAllowed } = useRoles()
 
@@ -109,7 +109,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     // getters
     const displayValue = computed(() => {
       if (row?.value?.row) {
-        const col = meta?.value?.columns?.find((c) => c.pv)
+        const col = meta?.value?.columns?.find(c => c.pv)
 
         if (!col) {
           return
@@ -146,12 +146,12 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         if (maintainDefaultViewOrder.value) {
           return (meta.value.columns ?? [])
             .filter(
-              (col) =>
-                !isHiddenCol(col, meta.value ?? {}) &&
-                !isSystemColumn(col) &&
-                !!(col.meta?.defaultViewColVisibility ?? true) &&
+              col =>
+                !isHiddenCol(col, meta.value ?? {})
+                && !isSystemColumn(col)
+                && !!(col.meta?.defaultViewColVisibility ?? true)
                 // if new record, then hide readonly fields
-                (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)),
+                && (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)),
             )
             .sort((a, b) => {
               return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
@@ -159,21 +159,21 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         }
 
         return (meta.value.columns ?? []).filter(
-          (col) =>
-            !isHiddenCol(col, meta.value ?? {}) &&
+          col =>
+            !isHiddenCol(col, meta.value ?? {})
             // if new record, then hide readonly fields
-            (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)) &&
+            && (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col))
             // exclude system columns
-            !isSystemColumn(col) &&
+            && !isSystemColumn(col)
             // exclude hidden columns
-            !!(col.meta?.defaultViewColVisibility ?? true),
+            && !!(col.meta?.defaultViewColVisibility ?? true),
         )
       }
 
       // If `props.useMetaFields` is not enabled, use fields from the parent component
       if (fieldsFromParent.value) {
         if (rowStore.isNew.value) {
-          return fieldsFromParent.value.filter((col) => !isHiddenColumnInNewRecord(col))
+          return fieldsFromParent.value.filter(col => !isHiddenColumnInNewRecord(col))
         }
 
         return fieldsFromParent.value
@@ -185,15 +185,15 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     const hiddenFields = computed(() => {
       // todo: figure out when meta.value is undefined
       const _hiddenFields = (meta.value?.columns ?? []).filter(
-        (col) =>
-          !isHiddenCol(col, meta.value ?? {}) &&
-          (!useMetaFields || !isSystemColumn(col)) &&
-          !fields.value?.includes(col) &&
-          (isLocalMode.value && !hasViewFieldDataEditPermission.value && col?.id && fieldsMap.value[col.id]
+        col =>
+          !isHiddenCol(col, meta.value ?? {})
+          && (!useMetaFields || !isSystemColumn(col))
+          && !fields.value?.includes(col)
+          && (isLocalMode.value && !hasViewFieldDataEditPermission.value && col?.id && fieldsMap.value[col.id]
             ? fieldsMap.value[col.id]?.initialShow
-            : true) &&
+            : true)
           // exclude readonly fields from hidden fields if new record creation
-          (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)),
+          && (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)),
       )
 
       if (useMetaFields) {
@@ -265,7 +265,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
         audits.value.unshift(
           ...res.map((audit) => {
-            const user = baseUsers.value.find((u) => u.id === audit.fk_user_id || u.email === audit.user)
+            const user = baseUsers.value.find(u => u.id === audit.fk_user_id || u.email === audit.user)
             return {
               ...audit,
               created_display_name: user?.display_name,
@@ -275,7 +275,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             }
           }),
         )
-      } catch (e: any) {
+      }
+      catch (e: any) {
         console.error(e)
         const errorInfo = await extractSdkResponseErrorMsgv2(e)
 
@@ -291,10 +292,12 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             }),
             limitOrFeature: PlanLimitTypes.LIMIT_AUDIT_RETENTION,
           })
-        } else {
+        }
+        else {
           message.error(errorInfo.message)
         }
-      } finally {
+      }
+      finally {
         isAuditLoading.value = false
       }
     }
@@ -306,13 +309,16 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
       if (days < 14) {
         return `${days} day${days === 1 ? '' : 's'}`
-      } else if (days < 30) {
+      }
+      else if (days < 30) {
         const weeks = Math.floor(days / 7)
         return `${weeks} week${weeks === 1 ? '' : 's'}`
-      } else if (days < 365) {
+      }
+      else if (days < 365) {
         const months = Math.floor(days / 30)
         return `${months} month${months === 1 ? '' : 's'}`
-      } else {
+      }
+      else {
         const years = Math.floor(days / 365)
         return years > 3 ? `${years}+ years` : `${years} year${years === 1 ? '' : 's'}`
       }
@@ -422,7 +428,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             scope: defineViewScope({ view: activeView.value }),
           })
         }
-      } else {
+      }
+      else {
         const updateOrInsertObj = [...changedColumns.value].reduce((obj, col) => {
           obj[col] = row.value.row[col]
           return obj
@@ -479,7 +486,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           if (commentsDrawer.value) {
             await Promise.all([loadComments()])
           }
-        } else {
+        }
+        else {
           // No columns to update
           message.info(t('msg.info.noColumnsToUpdate'))
           return
@@ -521,12 +529,14 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             getHiddenColumn: true,
           },
         )
-      } catch (err: any) {
+      }
+      catch (err: any) {
         if (err.response?.status === 404) {
           const router = useRouter()
           message.error(t('msg.noRecordFound'))
           router.replace({ query: {} })
-        } else {
+        }
+        else {
           message.error(`${await extractSdkResponseErrorMsg(err)}`)
         }
       }
@@ -550,7 +560,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           record = Object.keys(record).reduce((acc, curr) => {
             if (!Object.prototype.hasOwnProperty.call(row.value.row, curr)) {
               acc[curr] = record[curr]
-            } else {
+            }
+            else {
               acc[curr] = row.value.row[curr]
             }
             return acc
@@ -564,7 +575,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             ...row.value.rowMeta,
           },
         })
-      } catch (e: any) {
+      }
+      catch (e: any) {
         message.error(`${t('msg.error.errorLoadingRecord')}`)
       }
     }
@@ -588,7 +600,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           )
           return false
         }
-      } catch (e: any) {
+      }
+      catch (e: any) {
         message.error(`${t('msg.error.deleteFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       }
     }
@@ -600,7 +613,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         const allAudits = JSON.parse(JSON.stringify(audits.value))
 
         for (const audit of allAudits) {
-          if (audit.op_type !== 'DATA_UPDATE') {
+          if (audit.op_type !== 'DATA_UPDATE' && audit.op_type !== 'DATA_CASCADE_UPDATE') {
             result.push(audit)
             continue
           }
@@ -630,7 +643,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             result.push(audit)
           }
         }
-      } catch (e) {
+      }
+      catch (e) {
         console.error(e)
       }
 
@@ -649,18 +663,21 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             if (!detail.consolidated_ref_display_values_links.find((it: any) => it.refRowId === refRowId)) {
               detail.consolidated_ref_display_values_links.push({ refRowId, value })
             }
-          } else {
+          }
+          else {
             detail.consolidated_ref_display_values_unlinks.splice(
               detail.consolidated_ref_display_values_unlinks.findIndex((it: any) => it.refRowId === refRowId),
               1,
             )
           }
-        } else {
+        }
+        else {
           if (!detail.consolidated_ref_display_values_links.find((it: any) => it.refRowId === refRowId)) {
             if (!detail.consolidated_ref_display_values_unlinks.find((it: any) => it.refRowId === refRowId)) {
               detail.consolidated_ref_display_values_unlinks.push({ refRowId, value })
             }
-          } else {
+          }
+          else {
             detail.consolidated_ref_display_values_links.splice(
               detail.consolidated_ref_display_values_links.findIndex((it: any) => it.refRowId === refRowId),
               1,
@@ -675,7 +692,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         while (allAudits.length > 0) {
           const current = allAudits.shift()!
           if (current.op_type === 'DATA_LINK' || current.op_type === 'DATA_UNLINK') {
-            const last = result.findLast((it) => it.op_type === 'DATA_LINK' || it.op_type === 'DATA_UNLINK')
+            const last = result.findLast(it => it.op_type === 'DATA_LINK' || it.op_type === 'DATA_UNLINK')
             const details = JSON.parse(current.details)
             if (!last) {
               applyLinkAuditValue(
@@ -686,13 +703,14 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
               )
               current.details = JSON.stringify(details)
               result.push(current)
-            } else {
+            }
+            else {
               const lastDetails = JSON.parse(last.details)
               if (
-                last.user === current.user &&
-                dayjs(current.created_at).diff(dayjs(last.created_at), 'second') <= 30 &&
-                lastDetails.link_field_id === details.link_field_id &&
-                lastDetails.ref_table_title === details.ref_table_title
+                last.user === current.user
+                && dayjs(current.created_at).diff(dayjs(last.created_at), 'second') <= 30
+                && lastDetails.link_field_id === details.link_field_id
+                && lastDetails.ref_table_title === details.ref_table_title
               ) {
                 applyLinkAuditValue(
                   lastDetails,
@@ -701,14 +719,16 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
                   current.op_type === 'DATA_LINK' ? 'link' : 'unlink',
                 )
                 if (
-                  lastDetails.consolidated_ref_display_values_links?.length > 0 ||
-                  lastDetails.consolidated_ref_display_values_unlinks?.length
+                  lastDetails.consolidated_ref_display_values_links?.length > 0
+                  || lastDetails.consolidated_ref_display_values_unlinks?.length
                 ) {
                   last.details = JSON.stringify(lastDetails)
-                } else {
+                }
+                else {
                   result.pop()
                 }
-              } else {
+              }
+              else {
                 applyLinkAuditValue(
                   details,
                   details.ref_row_id,
@@ -719,8 +739,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
                 result.push(current)
               }
             }
-          } else if (current.op_type === 'DATA_UPDATE') {
-            const last = result.findLast((it) => it.op_type === 'DATA_UPDATE')
+          }
+          else if (current.op_type === 'DATA_UPDATE' || current.op_type === 'DATA_CASCADE_UPDATE') {
+            const last = result.findLast(it => it.op_type === current.op_type)
             if (!last || last.user !== current.user || dayjs(current.created_at).diff(dayjs(last.created_at), 'second') > 30) {
               result.push(current)
               continue
@@ -740,14 +761,16 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
                 delete details.data[field.title]
                 delete details.column_meta[field.title]
                 current.details = JSON.stringify(details)
-              } else if (lastDetails?.column_meta?.[field?.title] && lastDetails.old_data[field.title]) {
+              }
+              else if (lastDetails?.column_meta?.[field?.title] && lastDetails.old_data[field.title]) {
                 lastDetails.data[field.title] = details.data[field.title]
                 last.details = JSON.stringify(lastDetails)
                 delete details.old_data[field.title]
                 delete details.data[field.title]
                 delete details.column_meta[field.title]
                 current.details = JSON.stringify(details)
-              } else if (details?.column_meta?.[field?.title] && !lastDetails?.column_meta?.[field?.title]) {
+              }
+              else if (details?.column_meta?.[field?.title] && !lastDetails?.column_meta?.[field?.title]) {
                 if (!lastDetails.column_meta) lastDetails.column_meta = {}
                 if (!lastDetails.old_data) lastDetails.old_data = {}
                 if (!lastDetails.data) lastDetails.data = {}
@@ -764,11 +787,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             if (Object.values(details.column_meta).length > 0) {
               result.push(current)
             }
-          } else {
+          }
+          else {
             result.push(current)
           }
         }
-      } catch (e) {
+      }
+      catch (e) {
         console.error(e)
       }
 
@@ -776,7 +801,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     })
 
     const auditCommentGroups = computed(() => {
-      const adts = [...consolidatedAudits.value].map((it) => ({
+      const adts = [...consolidatedAudits.value].map(it => ({
         user: it.user,
         displayName: it.created_display_name,
         displayNameShort: it.created_display_name_short,
@@ -785,7 +810,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         audit: it,
       }))
 
-      const cmnts = [...comments.value].map((it) => ({
+      const cmnts = [...comments.value].map(it => ({
         ...it,
         user: it.created_by_email,
         displayName: it.created_display_name,
@@ -852,16 +877,20 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
                         oldRow: { ...mergedRow },
                       })
                       // Do NOT clear changedColumns here, as we want to preserve local changes
-                    } else {
+                    }
+                    else {
                       console.warn('No payload provided for update action')
                     }
-                  } catch (e) {
+                  }
+                  catch (e) {
                     console.error('Failed to update cached row on socket event', e)
                   }
-                } else if (action === 'delete') {
+                }
+                else if (action === 'delete') {
                   try {
                     //
-                  } catch (e) {
+                  }
+                  catch (e) {
                     console.error('Failed to delete cached row on socket event', e)
                   }
                 }
@@ -876,7 +905,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
               if (primaryKey.value && `${id}` === `${primaryKey.value}`) {
                 const commentId = payload.id
-                const user = baseUsers.value.find((u) => u.id === payload.created_by)
+                const user = baseUsers.value.find(u => u.id === payload.created_by)
                 const finalPayload = {
                   ...payload,
                   created_display_name: user?.display_name,
@@ -887,13 +916,15 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
                 if (action === 'add') {
                   comments.value.push(finalPayload)
-                } else if (action === 'update') {
-                  const index = comments.value.findIndex((comment) => comment.id === commentId)
+                }
+                else if (action === 'update') {
+                  const index = comments.value.findIndex(comment => comment.id === commentId)
                   if (index !== -1) {
                     comments.value[index] = finalPayload
                   }
-                } else if (action === 'delete') {
-                  comments.value = comments.value.filter((comment) => comment.id !== commentId)
+                }
+                else if (action === 'delete') {
+                  comments.value = comments.value.filter(comment => comment.id !== commentId)
                 }
               }
             },

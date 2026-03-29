@@ -72,50 +72,50 @@ const officeExt = [
   'xps',
 ]
 
-const isAudio = (name: string, mimetype?: string) => {
-  return audioExt.some((e) => name?.toLowerCase().endsWith(`.${e}`)) || mimetype?.startsWith('audio/')
+function isAudio(name: string, mimetype?: string) {
+  return audioExt.some(e => name?.toLowerCase().endsWith(`.${e}`)) || mimetype?.startsWith('audio/')
 }
 
-const isVideo = (name: string, mimetype?: string) => {
-  return videoExt.some((e) => name?.toLowerCase().endsWith(`.${e}`)) || mimetype?.startsWith('video/')
+function isVideo(name: string, mimetype?: string) {
+  return videoExt.some(e => name?.toLowerCase().endsWith(`.${e}`)) || mimetype?.startsWith('video/')
 }
 
-const isImage = (name: string, mimetype?: string) => {
+function isImage(name: string, mimetype?: string) {
   if (mimetype && (mimetype?.startsWith('image/vnd.') || ['image/svg+xml'].includes(mimetype))) {
     return false
   }
-  return imageExt.some((e) => name?.toLowerCase().endsWith(`.${e}`)) || mimetype?.startsWith('image/')
+  return imageExt.some(e => name?.toLowerCase().endsWith(`.${e}`)) || mimetype?.startsWith('image/')
 }
 
-const isPdf = (name: string, mimetype?: string) => {
+function isPdf(name: string, mimetype?: string) {
   return name?.toLowerCase().endsWith('.pdf') || mimetype?.startsWith('application/pdf')
 }
 
-const isWord = (name: string, _mimetype?: string) => {
-  return wordExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))
+function isWord(name: string, _mimetype?: string) {
+  return wordExt.some(e => name?.toLowerCase().endsWith(`.${e}`))
 }
 
-const isExcel = (name: string, _mimetype?: string) => {
-  return excelExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))
+function isExcel(name: string, _mimetype?: string) {
+  return excelExt.some(e => name?.toLowerCase().endsWith(`.${e}`))
 }
 
-const isPresentation = (name: string, _mimetype?: string) => {
-  return presentationExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))
+function isPresentation(name: string, _mimetype?: string) {
+  return presentationExt.some(e => name?.toLowerCase().endsWith(`.${e}`))
 }
 
-const isOffice = (name: string, _mimetype?: string) => {
-  return officeExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))
+function isOffice(name: string, _mimetype?: string) {
+  return officeExt.some(e => name?.toLowerCase().endsWith(`.${e}`))
 }
 
-const isZip = (name: string, _mimetype?: string) => {
-  return zipExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))
+function isZip(name: string, _mimetype?: string) {
+  return zipExt.some(e => name?.toLowerCase().endsWith(`.${e}`))
 }
 
-const isPreviewSupportedFile = (name: string, mimetype?: string) => {
+function isPreviewSupportedFile(name: string, mimetype?: string) {
   return isImage(name, mimetype) || isVideo(name, mimetype) || isAudio(name, mimetype) || isPdf(name, mimetype)
 }
 
-export { isImage, imageExt, isVideo, isPdf, isOffice, isAudio, isZip, isWord, isExcel, isPresentation, isPreviewSupportedFile }
+export { imageExt, isAudio, isExcel, isImage, isOffice, isPdf, isPresentation, isPreviewSupportedFile, isVideo, isWord, isZip }
 // Ref : https://stackoverflow.com/a/12002275
 
 // Tested in Mozilla Firefox browser, Chrome
@@ -137,7 +137,8 @@ export function readFile(FileElement: HTMLInputElement, CallBackFunction: (conte
         CallBackFunction()
       }
     }
-  } catch (Exception) {
+  }
+  catch (Exception) {
     const fallBack = ieReadFile(FileElement.value)
     // eslint-disable-next-line eqeqeq
     if (fallBack != false) {
@@ -154,7 +155,8 @@ function ieReadFile(filename: string) {
     const contents = fh.ReadAll()
     fh.Close()
     return contents
-  } catch (Exception) {
+  }
+  catch (Exception) {
     return false
   }
 }
@@ -174,15 +176,12 @@ export function extractImageSrcFromRawHtml(rawText: string) {
   }
 }
 
-export const getReadableFileSize = (sizeInBytes: number) => {
+export function getReadableFileSize(sizeInBytes: number) {
   const i = Math.min(Math.floor(Math.log(sizeInBytes) / Math.log(1024)), 4)
   return `${(sizeInBytes / 1024 ** i).toFixed(2) * 1} ${['B', 'KB', 'MB', 'GB', 'TB'][i]}`
 }
 
-export const getAttachmentIcon = (
-  title: MaybeRefOrGetter<string | undefined>,
-  mimetype: MaybeRefOrGetter<string | undefined>,
-) => {
+export function getAttachmentIcon(title: MaybeRefOrGetter<string | undefined>, mimetype: MaybeRefOrGetter<string | undefined>) {
   if (isImage(toValue(title) || '', toValue(mimetype))) {
     return 'ncFileTypeImage'
   }
@@ -216,4 +215,20 @@ export const getAttachmentIcon = (
   }
 
   return 'ncFileTypeUnknown'
+}
+
+export function getFileTypeLabel(fileName: string, mimeType?: string): string {
+  if (isPdf(fileName, mimeType)) return 'PDF'
+  if (isExcel(fileName, mimeType)) return 'Excel'
+  if (isWord(fileName, mimeType)) return 'Word'
+  if (isPresentation(fileName, mimeType)) return 'Presentation'
+  if (isImage(fileName, mimeType)) return 'Image'
+  if (isVideo(fileName, mimeType)) return 'Video'
+  if (isAudio(fileName, mimeType)) return 'Audio'
+  if (isZip(fileName, mimeType)) return 'Archive'
+  if (mimeType === 'text/csv' || fileName.endsWith('.csv')) return 'CSV'
+  if (mimeType === 'application/json' || fileName.endsWith('.json')) return 'JSON'
+  if (mimeType === 'text/markdown' || fileName.endsWith('.md')) return 'Markdown'
+  if (mimeType === 'text/plain' || fileName.endsWith('.txt')) return 'Text'
+  return 'File'
 }

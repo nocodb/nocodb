@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { PermissionEntity, PermissionKey, type TableType, type ViewType, isAIPromptCol, isLinksOrLTAR } from 'nocodb-sdk'
+import type { TableType, ViewType } from 'nocodb-sdk'
 import type { CellRange } from '../../../../../composables/useMultiSelect/cellRange'
 import type { ActionManager } from '../loaders/ActionManager'
+import { isAIPromptCol, isLinksOrLTAR, PermissionEntity, PermissionKey } from 'nocodb-sdk'
+
 const props = defineProps<{
   selectedAllRecords: boolean
   selectedAllRecordsSkipPks: Record<string, string>
-  contextMenuTarget: { row: number; col: number; path: Array<number> | null } | null
+  contextMenuTarget: { row: number, col: number, path: Array<number> | null } | null
   selection: CellRange
   columns: CanvasGridColumn[]
   activeCell: {
@@ -31,17 +33,17 @@ const props = defineProps<{
   deleteRangeOfRows: (cellRange: CellRange, path?: Array<number>) => Promise<void>
   deleteSelectedRows: (path?: Array<number>) => Promise<void>
   bulkDeleteAll: (path?: Array<number>) => Promise<void>
-  callAddNewRow: (context: { row: number; col: number; path: Array<number> }, direction: 'above' | 'below') => void
+  callAddNewRow: (context: { row: number, col: number, path: Array<number> }, direction: 'above' | 'below') => void
   copyValue: (target: Cell, path?: Array<number>) => void
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
-    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    metas?: { metaValue?: TableType, viewMetaValue?: ViewType },
     undo?: boolean,
     path?: Array<number>,
   ) => Promise<void>
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path?: Array<number>) => void
-  clearCell: (ctx: { row: number; col: number; path: Array<number> } | null, skipUpdate?: boolean) => Promise<void>
+  clearCell: (ctx: { row: number, col: number, path: Array<number> } | null, skipUpdate?: boolean) => Promise<void>
   clearSelectedRangeOfCells: (path?: Array<number>) => Promise<void>
   getRows: (start: number, end: number, path?: Array<number>) => Promise<Row[]>
   getDataCache: (path?: Array<number>) => {
@@ -89,7 +91,7 @@ const isDeleteAllRecordsModalOpen = ref(false)
 // Composables
 const { isDataReadOnly, isUIAllowed } = useRoles()
 const { aiIntegrations } = useNocoAi()
-const { isMobileMode } = useGlobal()
+const { appInfo, isMobileMode } = useGlobal()
 const { paste } = usePaste()
 const { meta } = useSmartsheetStoreOrThrow()
 const metaInj = inject(MetaInj, ref())
@@ -125,23 +127,23 @@ const contextMenuRowId = computed(() => {
 
 const disablePasteCell = computed(() => {
   return (
-    props.isSelectionReadOnly &&
-    (!selection.value.isSingleCell() ||
-      !contextMenuCol.value ||
-      !contextMenuPath.value ||
-      !columns.value[contextMenuCol.value]?.columnObj ||
-      (!isMm(columns.value[contextMenuCol.value]?.columnObj) && !isBt(columns.value[contextMenuCol.value]?.columnObj)))
+    props.isSelectionReadOnly
+    && (!selection.value.isSingleCell()
+      || !contextMenuCol.value
+      || !contextMenuPath.value
+      || !columns.value[contextMenuCol.value]?.columnObj
+      || (!isMm(columns.value[contextMenuCol.value]?.columnObj) && !isBt(columns.value[contextMenuCol.value]?.columnObj)))
   )
 })
 
 const disableClearCell = computed(() => {
   return (
-    props.isSelectionReadOnly &&
-    (!selection.value.isSingleCell() ||
-      !contextMenuPath.value ||
-      !contextMenuCol.value ||
-      !columns.value[contextMenuCol.value]?.columnObj ||
-      !isLinksOrLTAR(columns.value[contextMenuCol.value]?.columnObj))
+    props.isSelectionReadOnly
+    && (!selection.value.isSingleCell()
+      || !contextMenuPath.value
+      || !contextMenuCol.value
+      || !columns.value[contextMenuCol.value]?.columnObj
+      || !isLinksOrLTAR(columns.value[contextMenuCol.value]?.columnObj))
   )
 })
 
@@ -173,7 +175,7 @@ async function deleteAllRecords() {
   await until(isDeleteAllRecordsModalOpen).toBe(false)
 }
 
-const confirmDeleteRow = (row: number, path: Array<number>) => {
+function confirmDeleteRow(row: number, path: Array<number>) {
   try {
     deleteRow?.(row, false, path)
 
@@ -186,12 +188,13 @@ const confirmDeleteRow = (row: number, path: Array<number>) => {
       activeCell.value.row = -1
       activeCell.value.column = -1
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(e.message)
   }
 }
 
-const deleteSelectedRangeOfRows = (path: Array<number>) => {
+function deleteSelectedRangeOfRows(path: Array<number>) {
   deleteRangeOfRows?.(selection.value, path).then(() => {
     selection.value.clear()
     activeCell.value.row = -1
@@ -200,7 +203,7 @@ const deleteSelectedRangeOfRows = (path: Array<number>) => {
   })
 }
 
-const commentRow = (rowId: number, path: Array<number>) => {
+function commentRow(rowId: number, path: Array<number>) {
   try {
     // set the expanded form comment mode
     isExpandedFormCommentMode.value = true
@@ -215,12 +218,13 @@ const commentRow = (rowId: number, path: Array<number>) => {
     activeCell.value.column = -1
     activeCell.value.path = path
     selection.value.clear()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(e.message)
   }
 }
 
-const execBulkAction = async (path: Array<number>) => {
+async function execBulkAction(path: Array<number>) {
   const column = columns.value[selection.value.start.col]
 
   const field = column?.columnObj
@@ -232,17 +236,17 @@ const execBulkAction = async (path: Array<number>) => {
   if (!rows || rows.length === 0) return
 
   const pks = rows
-    .map((row) => ({
+    .map(row => ({
       pk: extractPkFromRow(row.row, meta.value?.columns),
       row,
     }))
-    .filter((row) => row.pk !== null)
+    .filter(row => row.pk !== null)
 
   await actionManager.value.executeButtonAction(
-    pks.map((r) => r.pk),
+    pks.map(r => r.pk),
     column,
     {
-      row: pks.map((r) => r.row),
+      row: pks.map(r => r.row),
       isAiPromptCol: isAIPromptCol(column?.columnObj),
       path: contextMenuPath.value,
     },
@@ -255,7 +259,12 @@ const execBulkAction = async (path: Array<number>) => {
     <template v-if="!vSelectedAllRecords">
       <NcTooltip
         v-if="
-          isEeUI && contextMenuCol == null && contextMenuPath !== null && !isDataReadOnly && selectedRows.length && isSyncedTable
+          appInfo.ee
+            && contextMenuCol == null
+            && contextMenuPath !== null
+            && !isDataReadOnly
+            && selectedRows.length
+            && isSyncedTable
         "
         placement="left"
       >
@@ -270,7 +279,7 @@ const execBulkAction = async (path: Array<number>) => {
         </NcMenuItem>
       </NcTooltip>
       <NcMenuItem
-        v-else-if="isEeUI && contextMenuCol == null && contextMenuPath !== null && !isDataReadOnly && selectedRows.length"
+        v-else-if="appInfo.ee && contextMenuCol == null && contextMenuPath !== null && !isDataReadOnly && selectedRows.length"
         key="update-selected-rows"
         @click="emits('bulkUpdateDlg', contextMenuPath)"
       >
@@ -470,12 +479,12 @@ const execBulkAction = async (path: Array<number>) => {
 
     <NcTooltip
       v-if="
-        contextMenuCol !== null &&
-        contextMenuPath !== null &&
-        contextMenuRow !== null &&
-        hasEditPermission &&
-        !isDataReadOnly &&
-        isSelectionOnlyAI.enabled
+        contextMenuCol !== null
+          && contextMenuPath !== null
+          && contextMenuRow !== null
+          && hasEditPermission
+          && !isDataReadOnly
+          && isSelectionOnlyAI.enabled
       "
       :disabled="!isSelectionOnlyAI.disabled"
     >
@@ -637,12 +646,12 @@ const execBulkAction = async (path: Array<number>) => {
 
     <template
       v-if="
-        contextMenuPath !== null &&
-        contextMenuCol !== null &&
-        contextMenuRow != null &&
-        selection.isSingleCell() &&
-        isUIAllowed('commentEdit') &&
-        !isMobileMode
+        contextMenuPath !== null
+          && contextMenuCol !== null
+          && contextMenuRow != null
+          && selection.isSingleCell()
+          && isUIAllowed('commentEdit')
+          && !isMobileMode
       "
     >
       <NcDivider />
@@ -653,7 +662,7 @@ const execBulkAction = async (path: Array<number>) => {
         </div>
       </NcMenuItem>
       <NcMenuItem
-        v-if="isEeUI && contextMenuRowId && !isPublic"
+        v-if="appInfo.ee && contextMenuRowId && !isPublic"
         key="send-record"
         class="nc-base-menu-item"
         @click="emits('sendRecord', contextMenuRowId)"

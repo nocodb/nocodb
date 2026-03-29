@@ -37,7 +37,7 @@ const showExpandButton = computed(() => {
   return showExpandBtn.value && !activeError.value
 })
 
-const enableEditMode = () => {
+function enableEditMode() {
   if (!extensionAccess.value.create) return
 
   titleEditMode.value = true
@@ -48,12 +48,12 @@ const enableEditMode = () => {
   })
 }
 
-const updateExtensionTitle = async () => {
+async function updateExtensionTitle() {
   await extension.value.setTitle(tempTitle.value)
   titleEditMode.value = false
 }
 
-const expandExtension = () => {
+function expandExtension() {
   if (!collapsed.value) return
 
   collapsed.value = false
@@ -65,7 +65,7 @@ const expandExtension = () => {
  * @param open - Optional. If true, the duplicated extension will be opened.
  */
 
-const handleDuplicateExtension = async (id: string, open = false) => {
+async function handleDuplicateExtension(id: string, open = false) {
   const duplicatedExt = await duplicateExtension(id)
 
   if (duplicatedExt?.id && open) {
@@ -90,7 +90,7 @@ const handleDuplicateExtension = async (id: string, open = false) => {
     }"
     @click="expandExtension"
   >
-    <slot v-if="isFullscreen" name="prefix"></slot>
+    <slot v-if="isFullscreen" name="prefix" />
     <NcButton
       v-if="!isFullscreen && extensionAccess.create"
       size="xs"
@@ -110,7 +110,7 @@ const handleDuplicateExtension = async (id: string, open = false) => {
         'mx-1': !isFullscreen && extensionAccess.create,
         'mr-1': !isFullscreen && !extensionAccess.create,
       }"
-    />
+    >
     <div
       v-if="titleEditMode"
       class="flex-1"
@@ -131,8 +131,7 @@ const handleDuplicateExtension = async (id: string, open = false) => {
         @keyup.enter="updateExtensionTitle"
         @keyup.esc="updateExtensionTitle"
         @blur="updateExtensionTitle"
-      >
-      </a-input>
+      />
     </div>
 
     <template v-else>
@@ -157,7 +156,7 @@ const handleDuplicateExtension = async (id: string, open = false) => {
         <NcBadgeBeta v-if="extensionManifest?.showAsBeta" />
       </div>
     </template>
-    <slot v-if="isFullscreen" name="extra"></slot>
+    <slot v-if="isFullscreen" name="extra" />
     <ExtensionsExtensionHeaderMenu
       :is-fullscreen="isFullscreen"
       class="nc-extension-menu"

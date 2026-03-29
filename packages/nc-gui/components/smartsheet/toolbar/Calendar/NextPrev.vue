@@ -5,7 +5,9 @@ const { activeCalendarView, paginateCalendarView } = useCalendarViewStoreOrThrow
 <template>
   <div class="flex items-center gap-2">
     <NcTooltip hide-on-click>
-      <template #title> {{ $t('labels.previous') }}</template>
+      <template #title>
+        {{ $t('labels.previous') }}
+      </template>
 
       <NcButton
         v-e="`['c:calendar:calendar-${activeCalendarView}-prev-btn']`"
@@ -20,7 +22,9 @@ const { activeCalendarView, paginateCalendarView } = useCalendarViewStoreOrThrow
       </NcButton>
     </NcTooltip>
     <NcTooltip hide-on-click>
-      <template #title> {{ $t('labels.next') }}</template>
+      <template #title>
+        {{ $t('labels.next') }}
+      </template>
       <NcButton
         v-e="`['c:calendar:calendar-${activeCalendarView}-next-btn']`"
         class="!w-7 !h-7 !rounded-lg !hover:(text-nc-content-gray-subtle) prev-next-btn"

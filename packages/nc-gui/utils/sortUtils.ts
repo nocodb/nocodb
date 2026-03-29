@@ -1,7 +1,8 @@
-import { type ColumnType, type SortType, UITypes, getEquivalentUIType } from 'nocodb-sdk'
+import type { ColumnType, SortType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
+import { getEquivalentUIType, UITypes } from 'nocodb-sdk'
 
-export const getSortDirectionOptions = (uidt: UITypes | string, isGroupBy?: boolean) => {
+export function getSortDirectionOptions(uidt: UITypes | string, isGroupBy?: boolean) {
   const groupByOptions = isGroupBy
     ? [
         { text: 'Count (9 → 1)', value: 'count-desc' },
@@ -42,7 +43,7 @@ export const getSortDirectionOptions = (uidt: UITypes | string, isGroupBy?: bool
   }
 }
 
-export const sortByUIType = ({
+export function sortByUIType({
   uidt,
   a,
   b,
@@ -55,7 +56,7 @@ export const sortByUIType = ({
     caseSensitive?: boolean
     direction?: 'asc' | 'desc' | 'count-asc' | 'count-desc'
   }
-}) => {
+}) {
   let nullsLast = direction !== 'asc'
 
   if ([UITypes.Formula, UITypes.User].includes(uidt)) {
@@ -103,7 +104,8 @@ export const sortByUIType = ({
 
       if (typeof valA === 'number' && typeof valB === 'number') {
         result = valA - valB
-      } else {
+      }
+      else {
         result = String(valA).localeCompare(String(valB))
       }
       break
@@ -198,7 +200,8 @@ export const sortByUIType = ({
     case UITypes.Formula:
       if (caseSensitive) {
         result = String(a).localeCompare(String(b))
-      } else {
+      }
+      else {
         result = String(a).toLowerCase().localeCompare(String(b).toLowerCase())
       }
       break
@@ -214,28 +217,26 @@ export const sortByUIType = ({
   return direction === 'desc' ? -result : result
 }
 
-export const isSortRelevantChange = (
-  changedFields: string[],
-  sorts: SortType[],
-  columnsById: Record<string, ColumnType>,
-): boolean => {
-  const sortColumnTitles = new Set(sorts.map((sort) => columnsById[sort.fk_column_id!]?.title).filter(Boolean))
+export function isSortRelevantChange(changedFields: string[], sorts: SortType[], columnsById: Record<string, ColumnType>): boolean {
+  const sortColumnTitles = new Set(sorts.map(sort => columnsById[sort.fk_column_id!]?.title).filter(Boolean))
 
-  return changedFields.some((field) => sortColumnTitles.has(field))
+  return changedFields.some(field => sortColumnTitles.has(field))
 }
 
-export const getColumnUidtByID = (key?: string, columns?: ColumnType[] | Record<string, ColumnType>) => {
+export function getColumnUidtByID(key?: string, columns?: ColumnType[] | Record<string, ColumnType>) {
   let columnByID: Record<string, ColumnType> = {}
   if (!key || !columns) {
     return ''
-  } else if (Array.isArray(columns)) {
+  }
+  else if (Array.isArray(columns)) {
     columnByID = columns.reduce((obj, col) => {
       if (col.id) {
         obj[col.id] = col
       }
       return obj
     }, {} as Record<string, ColumnType>)
-  } else {
+  }
+  else {
     columnByID = columns
   }
   if (!columnByID[key]) return ''
@@ -244,8 +245,8 @@ export const getColumnUidtByID = (key?: string, columns?: ColumnType[] | Record<
   let uidt = column.uidt
 
   if (column.uidt === UITypes.Formula) {
-    uidt =
-      getEquivalentUIType({
+    uidt
+      = getEquivalentUIType({
         formulaColumn: column,
       }) || uidt
   }

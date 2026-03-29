@@ -1,4 +1,4 @@
-const useServerConfig = () => {
+function useServerConfig() {
   const getConfig = async () => {}
 
   const checkMaintenance = async () => {}

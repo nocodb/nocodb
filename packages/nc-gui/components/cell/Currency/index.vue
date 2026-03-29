@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
-import { ColumnHelper, UITypes, roundUpToPrecision } from 'nocodb-sdk'
+import type { VNodeRef } from 'vue'
+import { ColumnHelper, roundUpToPrecision, UITypes } from 'nocodb-sdk'
 
 interface Props {
   modelValue: number | null | undefined
@@ -40,7 +40,8 @@ const vModel = computed({
   set: (value: unknown) => {
     if (value === '') {
       _vModel.value = null
-    } else {
+    }
+    else {
       _vModel.value = value as number
     }
   },
@@ -70,7 +71,8 @@ const currency = computed(() => {
       minimumFractionDigits: currencyMeta.value.precision ?? 2,
       maximumFractionDigits: currencyMeta.value.precision ?? 2,
     }).format(roundedValue)
-  } catch (e) {
+  }
+  catch (e) {
     return vModel.value
   }
 })
@@ -85,7 +87,7 @@ const focus: VNodeRef = (el) => {
   }
 }
 
-const submitCurrency = () => {
+function submitCurrency() {
   if (lastSaved.value !== vModel.value) {
     vModel.value = lastSaved.value = vModel.value ?? null
     emit('save')
@@ -94,17 +96,17 @@ const submitCurrency = () => {
   cellFocused.value = false
 }
 
-const onBlur = () => {
+function onBlur() {
   // triggered by events like focus-out / pressing enter
   // for non-firefox browsers only
   submitCurrency()
 }
 
-const onFocus = () => {
+function onFocus() {
   cellFocused.value = true
 }
 
-const onKeydownEnter = () => {
+function onKeydownEnter() {
   // onBlur is never executed for firefox & safari
   // we use keydown.enter to trigger submitCurrency
   if (/(Firefox|Safari)/.test(navigator.userAgent)) {
@@ -151,7 +153,7 @@ const showInputField = computed(
     @selectstart.capture.stop
     @mousedown.stop
     @contextmenu.stop
-  />
+  >
   <input
     v-else-if="showInputField"
     :ref="focus"
@@ -171,7 +173,7 @@ const showInputField = computed(
     @selectstart.capture.stop
     @mousedown.stop
     @contextmenu.stop
-  />
+  >
 
   <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
 

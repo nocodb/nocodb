@@ -32,7 +32,7 @@ const [useProvideListViewStore, useListViewStore] = useInjectionState(
   'listView',
 )
 
-export { useProvideListViewStore, useListViewStore }
+export { useListViewStore, useProvideListViewStore }
 
 export function useListViewStoreOrThrow() {
   const state = useListViewStore()

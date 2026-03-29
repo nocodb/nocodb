@@ -7,10 +7,6 @@
 import KnexMigratorv2 from './KnexMigratorv2';
 import type Source from '~/models/Source';
 import type { XKnex } from '~/db/CustomKnex';
-import type MysqlClient from '~/db/sql-client/lib/mysql/MysqlClient';
-import type OracleClient from '~/db/sql-client/lib/oracle/OracleClient';
-import type PGClient from '~/db/sql-client/lib/pg/PgClient';
-import type SqliteClient from '~/db/sql-client/lib/sqlite/SqliteClient';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -34,9 +30,7 @@ export default class KnexMigratorv2Tans extends KnexMigratorv2 {
   protected get metaDb(): XKnex {
     return this.ncMeta.knex || Noco.ncMeta.knex;
   }
-  protected async getSqlClient(
-    source: Source,
-  ): Promise<MysqlClient | SqliteClient | OracleClient | PGClient> {
+  protected async getSqlClient(source: Source) {
     return this.sqlClient || NcConnectionMgrv2.getSqlClient(source);
   }
 }

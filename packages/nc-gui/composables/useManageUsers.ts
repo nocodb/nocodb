@@ -18,7 +18,7 @@ const [setup, use] = useInjectionState(() => {
     if (!users.value || !lastFetchedUsers.value) return []
 
     return users.value.filter((user) => {
-      const lastFetchedUser = lastFetchedUsers.value?.find((u) => u.id === user.id)
+      const lastFetchedUser = lastFetchedUsers.value?.find(u => u.id === user.id)
       if (!lastFetchedUser) return false
 
       return user.roles !== lastFetchedUser.roles
@@ -43,13 +43,16 @@ const [setup, use] = useInjectionState(() => {
 
       totalUsers.value = (response.users.pageInfo.totalRows ?? 0) - Number(removedUser?.length)
 
-      if (!users.value) users.value = response.users.list.filter((u: User) => u.roles) as User[]
+      if (!users.value) {
+        users.value = response.users.list.filter((u: User) => u.roles) as User[]
+      }
       else {
         users.value = [...users.value, ...(response.users.list.filter((u: User) => u.roles) as User[])]
       }
 
       lastFetchedUsers.value = JSON.parse(JSON.stringify(users.value))
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
@@ -72,7 +75,8 @@ const [setup, use] = useInjectionState(() => {
       users.value = []
       await loadUsers()
       // Successfully added user to base
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
       formStatus.value = 'collaborate'
       return
@@ -89,7 +93,7 @@ const [setup, use] = useInjectionState(() => {
     try {
       await Promise.all(
         _editedUsers
-          .filter((user) => user.roles !== 'No access')
+          .filter(user => user.roles !== 'No access')
           .map(async (user) => {
             await api.auth.baseUserUpdate(base.value!.id!, user.id, {
               email: user.email,
@@ -97,7 +101,7 @@ const [setup, use] = useInjectionState(() => {
               base_id: base.value.id,
               baseName: base.value.title,
             })
-            const savedUser = users.value?.find((u) => u.id === user.id)
+            const savedUser = users.value?.find(u => u.id === user.id)
             if (savedUser) {
               savedUser.roles = user.roles
             }
@@ -105,17 +109,19 @@ const [setup, use] = useInjectionState(() => {
       )
       await Promise.all(
         _editedUsers
-          .filter((user) => user.roles === 'No access')
+          .filter(user => user.roles === 'No access')
           .map(async (user) => {
             await api.auth.baseUserRemove(base.value!.id!, user.id)
           }),
       )
-      users.value = users.value?.filter((user) => user.roles !== 'No access') ?? []
+      users.value = users.value?.filter(user => user.roles !== 'No access') ?? []
       totalUsers.value = users.value?.length ?? 0
       lastFetchedUsers.value = JSON.parse(JSON.stringify(users.value))
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
+    }
+    finally {
       isBatchUpdating.value = false
     }
   }

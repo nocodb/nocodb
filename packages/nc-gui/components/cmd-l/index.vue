@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onKeyUp, useDebounceFn, useVModel } from '@vueuse/core'
 import type { CommandPaletteType } from '~/lib/types'
+import { onKeyUp, useDebounceFn, useVModel } from '@vueuse/core'
 
 const props = defineProps<{
   open: boolean
@@ -27,10 +27,10 @@ const selected: Ref<string> = ref('')
 
 const newView = ref<
   | {
-      viewId: string | null
-      tableId: string
-      baseId: string
-    }
+    viewId: string | null
+    tableId: string
+    baseId: string
+  }
   | undefined
 >()
 
@@ -47,7 +47,7 @@ const filteredViews = computed(() => {
 })
 
 const changeView = useDebounceFn(
-  async ({ viewId, tableId, baseId }: { viewId: string | null; tableId: string; baseId: string }) => {
+  async ({ viewId, tableId, baseId }: { viewId: string | null, tableId: string, baseId: string }) => {
     await viewStore.changeView({ viewId, tableId, baseId })
     vOpen.value = false
   },
@@ -66,12 +66,12 @@ function scrollToTarget() {
   element?.scrollIntoView({ behavior: 'smooth', block: 'center' })
 }
 
-const moveUp = () => {
+function moveUp() {
   if (!filteredViews.value.length) return
-  const index = filteredViews.value.findIndex((v) => v.tableID + v.viewName === selected.value)
+  const index = filteredViews.value.findIndex(v => v.tableID + v.viewName === selected.value)
   if (index === 0) {
-    selected.value =
-      filteredViews.value[filteredViews.value.length - 1].tableID + filteredViews.value[filteredViews.value.length - 1].viewName
+    selected.value
+      = filteredViews.value[filteredViews.value.length - 1].tableID + filteredViews.value[filteredViews.value.length - 1].viewName
 
     const cmdOption = filteredViews.value[filteredViews.value.length - 1]
     newView.value = {
@@ -80,7 +80,8 @@ const moveUp = () => {
       baseId: cmdOption.baseId,
     }
     document.querySelector('.actions')?.scrollTo({ top: 99999, behavior: 'smooth' })
-  } else {
+  }
+  else {
     selected.value = filteredViews.value[index - 1].tableID + filteredViews.value[index - 1].viewName
     const cmdOption = filteredViews.value[index - 1]
 
@@ -93,9 +94,9 @@ const moveUp = () => {
   }
 }
 
-const moveDown = () => {
+function moveDown() {
   if (!filteredViews.value.length) return
-  const index = filteredViews.value.findIndex((v) => v.tableID + v.viewName === selected.value)
+  const index = filteredViews.value.findIndex(v => v.tableID + v.viewName === selected.value)
   if (index === filteredViews.value.length - 1) {
     selected.value = filteredViews.value[0].tableID + filteredViews.value[0].viewName
 
@@ -106,7 +107,8 @@ const moveDown = () => {
       baseId: cmdOption.baseId,
     }
     document.querySelector('.actions')?.scrollTo({ top: 0, behavior: 'smooth' })
-  } else {
+  }
+  else {
     selected.value = filteredViews.value[index + 1].tableID + filteredViews.value[index + 1].viewName
     const cmdOption = filteredViews.value[index + 1]
 
@@ -119,7 +121,7 @@ const moveDown = () => {
   }
 }
 
-const hide = () => {
+function hide() {
   vOpen.value = false
   search.value = ''
 }
@@ -131,35 +133,47 @@ onClickOutside(modalEl, () => {
 useEventListener('keydown', (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
     hide()
-  } else if (e.key === 'Enter') {
+  }
+  else if (e.key === 'Enter') {
     if (newView.value && vOpen.value) {
       changeView({ viewId: newView.value.viewId, tableId: newView.value.tableId, baseId: newView.value.baseId })
     }
-  } else if (e.key === 'ArrowUp') {
+  }
+  else if (e.key === 'ArrowUp') {
     if (!vOpen.value) return
     e.preventDefault()
     moveUp()
-  } else if (e.key === 'ArrowDown') {
+  }
+  else if (e.key === 'ArrowDown') {
     if (!vOpen.value) return
     e.preventDefault()
     moveDown()
-  } else if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'l') {
+  }
+  else if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'l') {
     if (!user.value) return
     if (!vOpen.value) {
       vOpen.value = true
-    } else {
+    }
+    else {
       moveUp()
     }
-  } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'l') {
+  }
+  else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'l') {
     if (!user.value) return
     if (!vOpen.value) {
       vOpen.value = true
-    } else moveDown()
-  } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+    }
+    else {
+      moveDown()
+    }
+  }
+  else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
     hide()
-  } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j') {
+  }
+  else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j') {
     hide()
-  } else if (vOpen.value) {
+  }
+  else if (vOpen.value) {
     cmdInputEl.value?.focus()
   }
 })
@@ -168,11 +182,12 @@ onMounted(() => {
   document.querySelector('.cmdOpt-list')?.focus()
   if (!activeView.value || !filteredViews.value.length) return
   const index = filteredViews.value.findIndex(
-    (v) => v.viewName === activeView.value?.title && v.tableID === activeView.value?.fk_model_id,
+    v => v.viewName === activeView.value?.title && v.tableID === activeView.value?.fk_model_id,
   )
   if (index + 1 > filteredViews.value.length) {
     selected.value = filteredViews.value[0].tableID + filteredViews.value[0].viewName
-  } else {
+  }
+  else {
     if (!filteredViews.value[index + 1]) return
     selected.value = filteredViews.value[index + 1].tableID + filteredViews.value[index + 1].viewName
   }
@@ -184,14 +199,21 @@ onMounted(() => {
     <div ref="modalEl" class="cmdk-modal-content cmdl-modal-content relative h-[25.25rem]">
       <div class="cmdk-input-wrapper border-b-1 border-nc-border-gray-medium">
         <GeneralIcon class="h-4 w-4 text-nc-content-gray-muted" icon="search" />
-        <input ref="cmdInputEl" v-model="search" class="cmdk-input" placeholder="Search" type="text" />
+        <input ref="cmdInputEl" v-model="search" class="cmdk-input" placeholder="Search" type="text">
       </div>
       <div class="flex items-center bg-nc-bg-default w-full z-[50]">
-        <div class="text-sm px-4 py-2 text-nc-content-gray-muted">Recent Views</div>
+        <div class="text-sm px-4 py-2 text-nc-content-gray-muted">
+          Recent Views
+        </div>
       </div>
       <div class="flex flex-col shrink grow overflow-hidden shadow-[rgb(0_0_0_/_50%)_0px_16px_70px] max-w-[650px] p-0">
         <div class="scroll-smooth actions overflow-auto nc-scrollbar-md mb-10 relative mx-0 px-0 py-2">
-          <div v-if="filteredViews.length < 1" class="flex flex-col p-4 items-start justify-center text-md">No recent views</div>
+          <div v-if="filteredViews.length < 1" class="flex flex-col p-4 gap-4 items-center justify-center text-sm">
+            <img src="~assets/img/placeholder/no-search-result-found.png" class="!w-[240px] flex-none" alt="No recent views">
+            <div class="text-nc-content-gray-muted">
+              {{ $t('labels.noRecentViews') }}
+            </div>
+          </div>
           <div v-else class="flex flex-col cmdOpt-list w-full">
             <div
               v-for="cmdOption of filteredViews"

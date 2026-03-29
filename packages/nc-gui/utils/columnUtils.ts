@@ -1,19 +1,19 @@
-import type { FunctionalComponent, SVGAttributes } from 'vue'
 import type { ButtonType, ColumnType, FormulaType, IntegrationType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import type { FunctionalComponent, SVGAttributes } from 'vue'
 import {
-  ButtonActionsType,
-  FormulaDataTypes,
-  RelationTypes,
-  UITypes,
   LongTextAiMetaProp as _LongTextAiMetaProp,
+  ButtonActionsType,
   checkboxIconList,
+  FormulaDataTypes,
   isAIPromptCol,
   isLinksOrLTAR,
   isSystemColumn,
   isValidURL,
   isVirtualCol,
   ratingIconList,
+  RelationTypes,
   substituteColumnIdWithAliasInPrompt,
+  UITypes,
   validateEmail,
 } from 'nocodb-sdk'
 import isMobilePhone from 'validator/lib/isMobilePhone'
@@ -50,12 +50,12 @@ const uiTypes: UiTypesType[] = [
     name: UITypes.Links,
     icon: iconMap.cellLinks,
     virtual: 1,
+    deprecated: 1,
   },
   {
     name: UITypes.LinkToAnotherRecord,
     icon: iconMap.cellLinks,
     virtual: 1,
-    deprecated: 0,
   },
   {
     name: UITypes.Lookup,
@@ -73,6 +73,10 @@ const uiTypes: UiTypesType[] = [
   {
     name: UITypes.Number,
     icon: iconMap.cellNumber,
+  },
+  {
+    name: UITypes.AutoNumber,
+    icon: iconMap.cellAutoNumber,
   },
   {
     name: UITypes.Decimal,
@@ -210,7 +214,7 @@ const uiTypes: UiTypesType[] = [
   },
 ]
 
-const getUIDTIcon = (uidt: UITypes | string) => {
+function getUIDTIcon(uidt: UITypes | string) {
   return (
     [
       ...uiTypes,
@@ -226,7 +230,7 @@ const getUIDTIcon = (uidt: UITypes | string) => {
         name: UITypes.ForeignKey,
         icon: iconMap.cellLinks,
       },
-    ].find((t) => t.name === uidt) || {}
+    ].find(t => t.name === uidt) || {}
   ).icon
 }
 
@@ -236,31 +240,33 @@ const getUIDTIcon = (uidt: UITypes | string) => {
 // 3. column is not auto generated
 const isColumnRequired = (col?: ColumnType) => col && col.rqd && !isValidValue(col?.cdf) && !col.ai && !col.meta?.ag
 
-const isVirtualColRequired = (col: ColumnType, columns: ColumnType[]) =>
-  col.uidt === UITypes.LinkToAnotherRecord &&
-  col.colOptions &&
-  (<LinkToAnotherRecordType>col.colOptions).type === RelationTypes.BELONGS_TO &&
-  isColumnRequired(columns.find((c) => c.id === (<LinkToAnotherRecordType>col.colOptions).fk_child_column_id))
+function isVirtualColRequired(col: ColumnType, columns: ColumnType[]) {
+  return col.uidt === UITypes.LinkToAnotherRecord
+    && col.colOptions
+    && (<LinkToAnotherRecordType>col.colOptions).type === RelationTypes.BELONGS_TO
+    && isColumnRequired(columns.find(c => c.id === (<LinkToAnotherRecordType>col.colOptions).fk_child_column_id))
+}
 
-const isColumnRequiredAndNull = (col: ColumnType, row: Record<string, any>) => {
+function isColumnRequiredAndNull(col: ColumnType, row: Record<string, any>) {
   return isColumnRequired(col) && (row[col.title!] === undefined || row[col.title!] === null)
 }
 
-const getUniqueColumnName = (initName: string, columns: ColumnType[]) => {
+function getUniqueColumnName(initName: string, columns: ColumnType[]) {
   let name = initName
   let i = 1
-  while (columns.find((c) => c.title === name)) {
+  while (columns.find(c => c.title === name)) {
     name = `${initName}_${i}`
     i++
   }
   return name
 }
 
-const isTypableInputColumn = (colOrUidt: ColumnType | UITypes) => {
+function isTypableInputColumn(colOrUidt: ColumnType | UITypes) {
   let uidt: UITypes
   if (typeof colOrUidt === 'object') {
     uidt = colOrUidt.uidt as UITypes
-  } else {
+  }
+  else {
     uidt = colOrUidt
   }
   return [
@@ -280,18 +286,19 @@ const isTypableInputColumn = (colOrUidt: ColumnType | UITypes) => {
   ].includes(uidt)
 }
 
-const isColumnSupportsGroupBySettings = (colOrUidt: ColumnType) => {
+function isColumnSupportsGroupBySettings(colOrUidt: ColumnType) {
   let uidt: UITypes
   if (typeof colOrUidt === 'object') {
     uidt = colOrUidt.uidt as UITypes
-  } else {
+  }
+  else {
     uidt = colOrUidt
   }
 
   return [UITypes.SingleSelect, UITypes.User, UITypes.CreatedBy, UITypes.Checkbox, UITypes.Rating].includes(uidt)
 }
 
-const isColumnInvalid = ({
+function isColumnInvalid({
   col,
   aiIntegrations = [],
   isReadOnly = false,
@@ -303,7 +310,7 @@ const isColumnInvalid = ({
   isReadOnly?: boolean
   isNocoAiAvailable?: boolean
   columns?: ColumnType[]
-}): { isInvalid: boolean; tooltip: string; ignoreTooltip?: boolean } => {
+}): { isInvalid: boolean, tooltip: string, ignoreTooltip?: boolean } {
   const result = {
     isInvalid: false,
     tooltip: 'msg.invalidColumnConfiguration',
@@ -320,11 +327,24 @@ const isColumnInvalid = ({
       if (isAiButton(col) && isReadOnly) {
         result.isInvalid = true
         result.ignoreTooltip = true
-      } else if (colOptions.type === ButtonActionsType.Webhook) {
-        result.isInvalid = !colOptions.fk_webhook_id
-      } else if (colOptions.type === ButtonActionsType.Url) {
+      }
+      else if (colOptions.type === ButtonActionsType.Script && isReadOnly) {
+        result.isInvalid = true
+        result.ignoreTooltip = true
+      }
+      else if (colOptions.type === ButtonActionsType.Webhook) {
+        if (isReadOnly) {
+          result.isInvalid = true
+          result.ignoreTooltip = true
+        }
+        else {
+          result.isInvalid = !colOptions.fk_webhook_id
+        }
+      }
+      else if (colOptions.type === ButtonActionsType.Url) {
         result.isInvalid = !!colOptions.error
-      } else if (colOptions.type === ButtonActionsType.Ai) {
+      }
+      else if (colOptions.type === ButtonActionsType.Ai) {
         const colOptions = col.colOptions as ButtonType
 
         const missingIds = substituteColumnIdWithAliasInPrompt(
@@ -335,19 +355,21 @@ const isColumnInvalid = ({
 
         const isIntegrationMissing = isNocoAiAvailable
           ? false
-          : !colOptions.fk_integration_id ||
-            (isReadOnly
+          : !colOptions.fk_integration_id
+            || (isReadOnly
               ? false
               : !!colOptions.fk_integration_id && !ncIsArrayIncludes(aiIntegrations, colOptions.fk_integration_id, 'id'))
 
         if (isIntegrationMissing) {
           result.isInvalid = true
           result.tooltip = 'title.aiIntegrationMissing'
-        } else if (missingIds.length) {
-          result.isInvalid = true
-          result.tooltip = `Input prompt has deleted column(s): ${missingIds.map((id) => id.title).join(', ')}`
         }
-      } else if (!colOptions.type) {
+        else if (missingIds.length) {
+          result.isInvalid = true
+          result.tooltip = `Input prompt has deleted column(s): ${missingIds.map(id => id.title).join(', ')}`
+        }
+      }
+      else if (!colOptions.type) {
         result.isInvalid = true
         result.tooltip = 'msg.buttonTypeIsMissing'
       }
@@ -365,17 +387,18 @@ const isColumnInvalid = ({
 
         const isIntegrationMissing = isNocoAiAvailable
           ? false
-          : !colOptions.fk_integration_id ||
-            (isReadOnly
+          : !colOptions.fk_integration_id
+            || (isReadOnly
               ? false
               : !!colOptions.fk_integration_id && !ncIsArrayIncludes(aiIntegrations, colOptions.fk_integration_id, 'id'))
 
         if (isIntegrationMissing) {
           result.isInvalid = true
           result.tooltip = 'title.aiIntegrationMissing'
-        } else if (missingIds.length) {
+        }
+        else if (missingIds.length) {
           result.isInvalid = true
-          result.tooltip = `Prompt has deleted column(s): ${missingIds.map((id) => id.title).join(', ')}`
+          result.tooltip = `Prompt has deleted column(s): ${missingIds.map(id => id.title).join(', ')}`
         }
       }
       break
@@ -398,7 +421,8 @@ function extractCheckboxIcon(meta: string | Record<string, any> = null) {
   if (parsedMeta.icon) {
     icon.checked = parsedMeta.icon.checked || icon.checked
     icon.unchecked = parsedMeta.icon.unchecked || icon.unchecked
-  } else if (typeof parsedMeta.iconIdx === 'number' && checkboxIconList[parsedMeta.iconIdx]) {
+  }
+  else if (typeof parsedMeta.iconIdx === 'number' && checkboxIconList[parsedMeta.iconIdx]) {
     icon.checked = checkboxIconList[parsedMeta.iconIdx].checked
     icon.unchecked = checkboxIconList[parsedMeta.iconIdx].unchecked
   }
@@ -416,7 +440,8 @@ function extractRatingIcon(meta: string | Record<string, any> = null) {
   if (parsedMeta.icon) {
     icon.full = parsedMeta.icon.full || icon.full
     icon.empty = parsedMeta.icon.empty || icon.empty
-  } else if (typeof parsedMeta.iconIdx === 'number' && ratingIconList[parsedMeta.iconIdx]) {
+  }
+  else if (typeof parsedMeta.iconIdx === 'number' && ratingIconList[parsedMeta.iconIdx]) {
     icon.full = ratingIconList[parsedMeta.iconIdx].full
     icon.empty = ratingIconList[parsedMeta.iconIdx].empty
   }
@@ -441,7 +466,7 @@ const formViewHiddenColTypes = [
   AIPrompt,
 ]
 
-const isFormViewHiddenCol = (col: ColumnType | UITypes): boolean => {
+function isFormViewHiddenCol(col: ColumnType | UITypes): boolean {
   if (typeof col === 'object') {
     return formViewHiddenColTypes.includes(col.uidt as UITypes) || isAIPromptCol(col)
   }
@@ -451,7 +476,7 @@ const isFormViewHiddenCol = (col: ColumnType | UITypes): boolean => {
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
-const getColumnValidationError = (column: ColumnType, value?: any) => {
+function getColumnValidationError(column: ColumnType, value?: any) {
   if (!columnToValidate.includes(column.uidt as UITypes) || !parseProp(column.meta)?.validate) return ''
   let cdfValue: any = column.cdf
   if (!ncIsUndefined(value)) {
@@ -481,14 +506,14 @@ const getColumnValidationError = (column: ColumnType, value?: any) => {
   }
 }
 
-const getFormulaColDataType = (col: ColumnType) => {
+function getFormulaColDataType(col: ColumnType) {
   return (col?.colOptions as any)?.parsed_tree?.dataType ?? FormulaDataTypes.STRING
 }
 
-const isSearchableColumn = (column: ColumnType) => {
+function isSearchableColumn(column: ColumnType) {
   return (
-    !isSystemColumn(column) &&
-    ![
+    !isSystemColumn(column)
+    && ![
       UITypes.Links,
       UITypes.Rollup,
       UITypes.DateTime,
@@ -503,94 +528,94 @@ const isSearchableColumn = (column: ColumnType) => {
   )
 }
 
-const showReadonlyColumnTooltip = (col: ColumnType) => {
+function showReadonlyColumnTooltip(col: ColumnType) {
   const shouldApplyDataCell = !(isBarcode(col) || isQrCode(col) || isBoolean(col) || isRating(col))
   return isReadOnlyVirtualCell(col) && shouldApplyDataCell && !isLinksOrLTAR(col)
 }
 
-const showEditRestrictedColumnTooltip = (col: ColumnType) => {
+function showEditRestrictedColumnTooltip(col: ColumnType) {
   return (
-    !isReadOnlyVirtualCell(col) &&
-    ![UITypes.Button, UITypes.Count, UITypes.Order, UITypes.ForeignKey].includes(col.uidt as UITypes)
+    !isReadOnlyVirtualCell(col)
+    && ![UITypes.Button, UITypes.Count, UITypes.Order, UITypes.ForeignKey].includes(col.uidt as UITypes)
   )
 }
 
-const disableMakeCellEditable = (col: ColumnType) => {
+function disableMakeCellEditable(col: ColumnType) {
   return showEditRestrictedColumnTooltip(col) && !isLinksOrLTAR(col)
 }
 
-const canUseForRollupLinkField = (c: ColumnType) => {
+function canUseForRollupLinkField(c: ColumnType) {
   return (
-    c &&
-    isLinksOrLTAR(c) &&
-    (c.colOptions as LinkToAnotherRecordType)?.type &&
-    ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
+    c
+    && isLinksOrLTAR(c)
+    && (c.colOptions as LinkToAnotherRecordType)?.type
+    && ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
       (c.colOptions as LinkToAnotherRecordType)?.type as RelationTypes,
-    ) &&
+    )
     // exclude system columns
-    (!c.system ||
+    && (!c.system
       // include system columns if it's self-referencing, mm, oo and bt are self-referencing
       // hm is only used for LTAR with junction table
-      [RelationTypes.MANY_TO_MANY, RelationTypes.ONE_TO_ONE, RelationTypes.BELONGS_TO].includes(
+      || [RelationTypes.MANY_TO_MANY, RelationTypes.ONE_TO_ONE, RelationTypes.BELONGS_TO].includes(
         (c.colOptions as LinkToAnotherRecordType)?.type as RelationTypes,
       ))
   )
 }
 
-const canUseForLookupLinkField = (c: ColumnType, metaSourceId?: string) => {
+function canUseForLookupLinkField(c: ColumnType, metaSourceId?: string) {
   return (
-    c &&
-    isLinksOrLTAR(c) &&
+    c
+    && isLinksOrLTAR(c)
     // exclude system columns
-    (!c.system ||
+    && (!c.system
       // include system columns if it's self-referencing, mm, oo and bt are self-referencing
       // hm is only used for LTAR with junction table
-      [RelationTypes.MANY_TO_MANY, RelationTypes.ONE_TO_ONE, RelationTypes.BELONGS_TO].includes(
+      || [RelationTypes.MANY_TO_MANY, RelationTypes.ONE_TO_ONE, RelationTypes.BELONGS_TO].includes(
         (c.colOptions as LinkToAnotherRecordType)?.type as RelationTypes,
-      )) &&
-    c.source_id === metaSourceId
+      ))
+      && c.source_id === metaSourceId
   )
 }
 
-const getValidRollupColumn = (c: ColumnType) => {
+function getValidRollupColumn(c: ColumnType) {
   return (
-    (!isVirtualCol(c.uidt as UITypes) ||
-      [
+    (!isVirtualCol(c.uidt as UITypes)
+      || [
         UITypes.CreatedTime,
         UITypes.CreatedBy,
         UITypes.LastModifiedTime,
         UITypes.LastModifiedBy,
         UITypes.Formula,
         UITypes.Rollup,
-      ].includes(c.uidt as UITypes)) &&
-    (!isSystemColumn(c) || c.pk)
+      ].includes(c.uidt as UITypes))
+      && (!isSystemColumn(c) || c.pk)
   )
 }
 
 export {
-  uiTypes,
-  isTypableInputColumn,
-  isColumnSupportsGroupBySettings,
-  getUIDTIcon,
-  isColumnInvalid,
-  getUniqueColumnName,
-  isColumnRequiredAndNull,
-  isColumnRequired,
-  isVirtualColRequired,
+  canUseForLookupLinkField,
+  canUseForRollupLinkField,
   checkboxIconList,
-  ratingIconList,
+  columnToValidate,
+  disableMakeCellEditable,
   extractCheckboxIcon,
   extractRatingIcon,
   formViewHiddenColTypes,
-  isFormViewHiddenCol,
-  columnToValidate,
   getColumnValidationError,
   getFormulaColDataType,
-  isSearchableColumn,
-  showReadonlyColumnTooltip,
-  showEditRestrictedColumnTooltip,
-  disableMakeCellEditable,
-  canUseForRollupLinkField,
-  canUseForLookupLinkField,
+  getUIDTIcon,
+  getUniqueColumnName,
   getValidRollupColumn,
+  isColumnInvalid,
+  isColumnRequired,
+  isColumnRequiredAndNull,
+  isColumnSupportsGroupBySettings,
+  isFormViewHiddenCol,
+  isSearchableColumn,
+  isTypableInputColumn,
+  isVirtualColRequired,
+  ratingIconList,
+  showEditRestrictedColumnTooltip,
+  showReadonlyColumnTooltip,
+  uiTypes,
 }

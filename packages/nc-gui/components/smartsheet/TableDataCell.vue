@@ -17,7 +17,7 @@ provide(CellEventHookInj, cellEventHook)
 
 provide(CurrentCellInj, el)
 
-const handleClick = (event: MouseEvent) => {
+function handleClick(event: MouseEvent) {
   cellClickHook.trigger(event)
   cellEventHook.trigger(event)
 }

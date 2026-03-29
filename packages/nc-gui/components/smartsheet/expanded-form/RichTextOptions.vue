@@ -25,7 +25,7 @@ const tabIndex = computed(() => {
   return -1
 })
 
-const onToggleLink = () => {
+function onToggleLink() {
   if (!editor.value) return
 
   const activeNode = editor.value?.state?.selection?.$from?.nodeBefore || editor.value?.state?.selection?.$from?.nodeAfter
@@ -36,10 +36,12 @@ const onToggleLink = () => {
 
   if (isActiveNodeMarkActive) {
     editor.value.chain().focus().unsetLink().run()
-  } else {
+  }
+  else {
     if (editor.value?.state.selection.empty) {
       editor
-        .value!.chain()
+        .value!
+        .chain()
         .focus()
         .insertContent(' ')
         .setTextSelection({ from: editor.value?.state.selection.$from.pos, to: editor.value.state.selection.$from.pos + 1 })
@@ -49,9 +51,11 @@ const onToggleLink = () => {
         .setTextSelection({ from: editor.value?.state.selection.$from.pos, to: editor.value.state.selection.$from.pos + 1 })
         .deleteSelection()
         .run()
-    } else {
+    }
+    else {
       editor
-        .value!.chain()
+        .value!
+        .chain()
         .focus()
         .setLink({
           href: '',
@@ -69,7 +73,7 @@ const onToggleLink = () => {
   }
 }
 
-const newMentionNode = () => {
+function newMentionNode() {
   if (!editor.value) return
 
   const lastCharacter = editor.value.state.doc.textBetween(
@@ -82,10 +86,12 @@ const newMentionNode = () => {
       .chain()
       .deleteRange({ from: editor.value.state.selection.$from.pos - 1, to: editor.value.state.selection.$from.pos })
       .run()
-  } else if (lastCharacter !== ' ') {
+  }
+  else if (lastCharacter !== ' ') {
     editor.value?.commands.insertContent(' @')
     editor.value?.chain().focus().run()
-  } else {
+  }
+  else {
     editor.value?.commands.insertContent('@')
     editor.value?.chain().focus().run()
   }
@@ -94,13 +100,15 @@ const newMentionNode = () => {
 
 <template>
   <div class="comment-bubble-menu bg-transparent flex-row rounded-lg flex">
-    <NcTooltip>
+    <NcTooltip hide-on-click>
       <template #title>
         <div class="flex flex-col items-center">
           <div>
             {{ $t('labels.bold') }}
           </div>
-          <div class="text-xs">{{ cmdOrCtrlKey }} B</div>
+          <div class="text-xs">
+            {{ cmdOrCtrlKey }} B
+          </div>
         </div>
       </template>
       <NcButton
@@ -115,7 +123,7 @@ const newMentionNode = () => {
       </NcButton>
     </NcTooltip>
 
-    <NcTooltip :disabled="editor?.isActive('italic')">
+    <NcTooltip hide-on-click :disabled="editor?.isActive('italic')">
       <template #title>
         <div class="flex flex-col items-center">
           <div>
@@ -135,7 +143,7 @@ const newMentionNode = () => {
         <GeneralIcon icon="italic" />
       </NcButton>
     </NcTooltip>
-    <NcTooltip>
+    <NcTooltip hide-on-click>
       <template #title>
         <div class="flex flex-col items-center">
           <div>
@@ -156,7 +164,7 @@ const newMentionNode = () => {
         <GeneralIcon icon="underline" />
       </NcButton>
     </NcTooltip>
-    <NcTooltip>
+    <NcTooltip hide-on-click>
       <template #title>
         <div class="flex flex-col items-center">
           <div>
@@ -177,8 +185,10 @@ const newMentionNode = () => {
       </NcButton>
     </NcTooltip>
 
-    <NcTooltip>
-      <template #title> {{ $t('general.link') }}</template>
+    <NcTooltip hide-on-click>
+      <template #title>
+        {{ $t('general.link') }}
+      </template>
       <NcButton
         :class="{ 'is-active': editor?.isActive('link') }"
         :tabindex="tabIndex"
@@ -187,10 +197,10 @@ const newMentionNode = () => {
         type="text"
         @click="onToggleLink"
       >
-        <GeneralIcon icon="link2"></GeneralIcon>
+        <GeneralIcon icon="link2" />
       </NcButton>
     </NcTooltip>
-    <NcTooltip v-if="appInfo.ee && !disableMention">
+    <NcTooltip v-if="appInfo.ee && !disableMention" hide-on-click>
       <template #title>
         <div class="flex flex-col items-center">
           <div>

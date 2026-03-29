@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { mockSetupInit } from '../-helper/mock-setup'
+
 interface MockRefType {
   meta: globalThis.Ref
   view: globalThis.Ref
@@ -24,7 +25,7 @@ const reloadEventHook = createEventHook()
 const router = useRouter()
 
 const route = router.currentRoute
-const setMockRef = (handle: (mockRef: MockRefType) => void) => {
+function setMockRef(handle: (mockRef: MockRefType) => void) {
   handle(mockRef)
 }
 
@@ -51,5 +52,5 @@ onMounted(async () => {
 </script>
 
 <template>
-  <slot></slot>
+  <slot />
 </template>

@@ -40,7 +40,8 @@ export default defineNuxtPlugin((nuxtApp) => {
             // set additional context
             const appInfo = (nuxtApp.$state as ReturnType<typeof useGlobal>).appInfo.value
             event.extra.version = appInfo?.version
-          } catch {
+          }
+          catch {
             // ignore
           }
           return event
@@ -60,7 +61,8 @@ export default defineNuxtPlugin((nuxtApp) => {
     ([enabled, sentryDSN]) => {
       try {
         if (enabled && sentryDSN) init(sentryDSN)
-      } catch {
+      }
+      catch {
         // ignore
       }
     },

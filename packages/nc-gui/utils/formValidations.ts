@@ -1,10 +1,29 @@
 import type { RuleObject } from 'ant-design-vue/es/form'
-import isMobilePhone from 'validator/lib/isMobilePhone'
-import { StringValidationType, UITypes } from 'nocodb-sdk'
 import type { ColumnType, Validation } from 'nocodb-sdk'
+import { StringValidationType, UITypes } from 'nocodb-sdk'
+import isMobilePhone from 'validator/lib/isMobilePhone'
 import { getI18n } from '../plugins/a.i18n'
 
-export const formEmailValidator = (val: Validation) => {
+export const NC_MAX_TEXT_LENGTH_DEFAULT = 100000
+
+export function formMaxTextLengthValidator(maxLength: number) {
+  return {
+    validator: (_rule: RuleObject, value: any) => {
+      return new Promise((resolve, reject) => {
+        const { t } = getI18n().global
+
+        if (value && String(value).length > maxLength) {
+          return reject(new Error(t('msg.error.inputExceedsMaxCharacters', { value: maxLength.toLocaleString() })))
+        }
+        return resolve(true)
+      })
+    },
+  }
+}
+
+export const TEXT_INPUT_UITYPES = [UITypes.SingleLineText, UITypes.LongText, UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
+
+export function formEmailValidator(val: Validation) {
   return {
     validator: (_rule: RuleObject, value: any) => {
       return new Promise((resolve, reject) => {
@@ -19,7 +38,7 @@ export const formEmailValidator = (val: Validation) => {
   }
 }
 
-export const formPhoneNumberValidator = (val: Validation) => {
+export function formPhoneNumberValidator(val: Validation) {
   return {
     validator: (_rule: RuleObject, value: any) => {
       return new Promise((resolve, reject) => {
@@ -34,7 +53,7 @@ export const formPhoneNumberValidator = (val: Validation) => {
   }
 }
 
-export const formUrlValidator = (val: Validation) => {
+export function formUrlValidator(val: Validation) {
   return {
     validator: (_rule: RuleObject, value: any) => {
       return new Promise((resolve, reject) => {
@@ -49,13 +68,13 @@ export const formUrlValidator = (val: Validation) => {
   }
 }
 
-export const formNumberInputValidator = (cal: ColumnType) => {
+export function formNumberInputValidator(cal: ColumnType) {
   return {
     validator: (_rule: RuleObject, value: any) => {
       return new Promise((resolve, reject) => {
         const { t } = getI18n().global
 
-        if (value && value !== '-' && !(cal.uidt === UITypes.Number ? /^-?\d+$/.test(value) : /^-?\d*\.?\d+$/.test(value))) {
+        if (value && value !== '-' && !(cal.uidt === UITypes.Number ? /^-?\d+$/.test(value) : /^-?(?:\d+(?:\.\d+)?|\.\d+)$/.test(value))) {
           return reject(t('msg.plsEnterANumber'))
         }
         return resolve(true)
@@ -64,7 +83,7 @@ export const formNumberInputValidator = (cal: ColumnType) => {
   }
 }
 
-export const requiredFieldValidatorFn = (value: unknown) => {
+export function requiredFieldValidatorFn(value: unknown) {
   value = unref(value)
   if (Array.isArray(value)) return !!value.length
 
@@ -87,22 +106,28 @@ export const requiredFieldValidatorFn = (value: unknown) => {
   return !!String(value).length
 }
 
-export const isEmptyValidatorValue = (v: Validation) => {
+export function isEmptyValidatorValue(v: Validation) {
   if (v.type === StringValidationType.Regex) {
     return v.type && typeof v.regex === 'string' ? !v.regex.trim() : v.regex === null
-  } else if (v.type && v.value !== undefined) {
+  }
+  else if (v.type && v.value !== undefined) {
     return v.type && typeof v.value === 'string' ? !v.value.trim() : v.value === null
   }
 
   return false
 }
 
-export const extractFieldValidator = (_validators: Validation[], element: ColumnType) => {
+export function extractFieldValidator(_validators: Validation[], element: ColumnType, maxTextLength = NC_MAX_TEXT_LENGTH_DEFAULT) {
   const rules: RuleObject[] = []
 
   // Add column default validators
   if ([UITypes.Number, UITypes.Currency, UITypes.Percent].includes(element.uidt)) {
     rules.push(formNumberInputValidator(element))
+  }
+
+  // Add default max text length validator for text-based fields
+  if (TEXT_INPUT_UITYPES.includes(element.uidt)) {
+    rules.push(formMaxTextLengthValidator(maxTextLength))
   }
 
   switch (element.uidt) {
@@ -151,7 +176,7 @@ export const extractFieldValidator = (_validators: Validation[], element: Column
  * This ensures the field names are flat, unique, and compatible with form validation libraries.
  * If the sanitized name already exists, a counter is appended to make it unique.
  */
-export const getValidFieldName = (title: string, uniqueFieldNames: Set<string>) => {
+export function getValidFieldName(title: string, uniqueFieldNames: Set<string>) {
   title = title.replace(/\./g, '_').replace(/\[|\]/g, '_')
   let counter = 1
 

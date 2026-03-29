@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { Card as AntCard } from 'ant-design-vue'
-import { JobStatus, iconMap } from '#imports'
+import { iconMap, JobStatus } from '#imports'
 
 const progress = ref<Record<string, any>[]>([])
 
@@ -8,13 +8,13 @@ const logRef = ref<typeof AntCard>()
 
 const autoScroll = ref(true)
 
-const scrollToBottom = () => {
+function scrollToBottom() {
   const container: HTMLDivElement = logRef.value?.$el?.firstElementChild
   if (!container) return
   container.scrollTop = container.scrollHeight
 }
 
-const pushProgress = (message: string, status: JobStatus | 'progress' | 'warning') => {
+function pushProgress(message: string, status: JobStatus | 'progress' | 'warning') {
   if (!message?.trim()) return
   progress.value.push({
     msg: message,
@@ -26,7 +26,7 @@ const pushProgress = (message: string, status: JobStatus | 'progress' | 'warning
   }
 }
 
-const onUserScroll = (e: Event) => {
+function onUserScroll(e: Event) {
   const { scrollTop, scrollHeight, clientHeight } = e.target as HTMLDivElement
 
   // If user is not at the bottom, disable auto-scroll
@@ -116,7 +116,9 @@ onMounted(() => {
       @click="downloadLogs('logs.txt')"
     >
       <nc-tooltip>
-        <template #title>Download Logs</template>
+        <template #title>
+          Download Logs
+        </template>
         <component :is="iconMap.download" />
       </nc-tooltip>
     </NcButton>

@@ -1,5 +1,5 @@
-import type { WatchStopHandle } from 'vue'
 import type { TableType } from 'nocodb-sdk'
+import type { WatchStopHandle } from 'vue'
 
 export const useMetas = createSharedComposable(() => {
   const { $api } = useNuxtApp()
@@ -80,9 +80,10 @@ export const useMetas = createSharedComposable(() => {
 
     const tables = baseTables.value.get(baseId) ?? []
 
-    /** wait until loading is finished if requesting same meta
+    /**
+     * wait until loading is finished if requesting same meta
      * use while to recheck loading state since it can be changed by other requests
-     * */
+     */
     // eslint-disable-next-line no-unmodified-loop-condition
     while (!force && loadingState.value[loadingKey]) {
       await new Promise((resolve) => {
@@ -123,8 +124,8 @@ export const useMetas = createSharedComposable(() => {
       if (!force && metas.value[metaKey]) {
         return metas.value[metaKey]
       }
-      const modelId =
-        (tables.find((t) => t.id === tableIdOrTitle) || tables.find((t) => t.title === tableIdOrTitle))?.id || tableIdOrTitle
+      const modelId
+        = (tables.find(t => t.id === tableIdOrTitle) || tables.find(t => t.title === tableIdOrTitle))?.id || tableIdOrTitle
 
       const model = await $api.internal.getOperation(activeWorkspaceId.value!, baseId, {
         operation: 'tableGet',
@@ -143,7 +144,8 @@ export const useMetas = createSharedComposable(() => {
       }
 
       return model
-    } catch (e: any) {
+    }
+    catch (e: any) {
       if (!disableError) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
@@ -154,7 +156,8 @@ export const useMetas = createSharedComposable(() => {
           baseId: activeProjectId.value,
         })
       }
-    } finally {
+    }
+    finally {
       delete loadingState.value[loadingKey]
     }
     return null
@@ -205,9 +208,11 @@ export const useMetas = createSharedComposable(() => {
       metas.value[getMetaKey(baseId, model.id!)] = model
       metas.value[getMetaKey(baseId, model.title)] = model
       return model
-    } catch (e) {
+    }
+    catch (e) {
       message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
+    }
+    finally {
       loadingState.value[loadingKey] = false
     }
   }

@@ -64,7 +64,7 @@ const iconColors = computed(() => {
           'rounded-l-full': i === 1,
           'rounded-r-full': i === totalOptions,
         }"
-      ></div>
+      />
     </div>
     <component :is="iconItem.icon" v-else-if="iconItem.iconType === 'vNode'" class="flex-none" />
     <div
@@ -75,8 +75,8 @@ const iconColors = computed(() => {
         height: `${iconSize?.height ?? 24}px`,
       }"
     >
-      <img :src="iconItem.img" class="flex-none w-full h-full object-contain" />
+      <img :src="iconItem.img" class="flex-none w-full h-full object-contain">
     </div>
-    <div v-else></div>
+    <div v-else />
   </div>
 </template>

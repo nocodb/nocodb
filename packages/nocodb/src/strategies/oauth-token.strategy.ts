@@ -11,7 +11,6 @@ export class OAuthTokenStrategy extends PassportStrategy(
   Strategy,
   'oauth-token',
 ) {
-  // eslint-disable-next-line @typescript-eslint/ban-types
   async validate(req: NcRequest, callback: Function) {
     try {
       // Extract Bearer token from Authorization header
@@ -57,6 +56,16 @@ export class OAuthTokenStrategy extends PassportStrategy(
 
       if (!dbUser) {
         return callback({ msg: 'User not found for OAuth token' });
+      }
+
+      // Enforce route restriction: OAuth tokens can only access allowed routes
+      // Individual endpoints can further block OAuth via @Acl('x', { blockOAuthTokenAccess: true })
+      const oauthAllowedPaths = ['/mcp', '/api/v3/', '/auth/user/me'];
+
+      if (!oauthAllowedPaths.some((p) => req.path?.startsWith(p))) {
+        return callback({
+          msg: 'OAuth token does not permit access to this endpoint',
+        });
       }
 
       // Validate resource limitations if granted_resources exist

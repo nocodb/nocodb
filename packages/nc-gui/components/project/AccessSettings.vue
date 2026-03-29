@@ -1,14 +1,14 @@
 <script lang="ts" setup>
 import type { MetaType, PlanLimitExceededDetailsType, Roles, WorkspaceUserRoles } from 'nocodb-sdk'
 import {
+  extractBaseRoleFromWorkspaceRole,
+  getEffectiveBaseRole,
   OrderedProjectRoles,
   OrgUserRoles,
   ProjectRoles,
   RoleIcons,
   WorkspaceRolesToProjectRoles,
   WorkspaceUserRoles as WorkspaceUserRolesEnum,
-  extractBaseRoleFromWorkspaceRole,
-  getEffectiveBaseRole,
 } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -26,8 +26,8 @@ const { isTeamsEnabled, activeWorkspaceId, teamsMap } = storeToRefs(useWorkspace
 const { isPrivateBase, base } = storeToRefs(useBase())
 
 const basesStore = useBases()
-const { getBaseUsers, getBaseTeams, createProjectUser, updateProjectUser, removeProjectUser, baseTeamUpdate, baseTeamRemove } =
-  basesStore
+const { getBaseUsers, getBaseTeams, createProjectUser, updateProjectUser, removeProjectUser, baseTeamUpdate, baseTeamRemove }
+  = basesStore
 const { activeProjectId, bases, basesUser, basesTeams } = storeToRefs(basesStore)
 
 const { orgRoles, baseRoles, loadRoles, isUIAllowed } = useRoles()
@@ -41,13 +41,15 @@ const { orgId, org } = storeToRefs(orgStore)
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
+const isSettingsSidebar = inject(IsSettingsSidebarInj, ref(false))
+
 const { $api, $eventBus } = useNuxtApp()
 
 const { t } = useI18n()
 
 const { projectPageTab } = storeToRefs(useConfigStore())
 
-const { isPaymentEnabled, showUserPlanLimitExceededModal, showUpgradeToUseTeams } = useEeConfig()
+const { isPaymentEnabled, showEEFeatures, showUserPlanLimitExceededModal, showUpgradeToUseTeams } = useEeConfig()
 
 const currentBase = computedAsync(async () => {
   let base
@@ -57,7 +59,8 @@ const currentBase = computedAsync(async () => {
     if (!base) {
       base = await $api.base.read(props.baseId!)
     }
-  } else {
+  }
+  else {
     base = bases.value.get(activeProjectId.value)
   }
   return base
@@ -88,22 +91,24 @@ const userSearchText = ref('')
 const isLoading = ref(false)
 const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>([])
 
-const getTeamCompatibleAccessibleRoles = (roles: ProjectRoles[], record: any) => {
+function getTeamCompatibleAccessibleRoles(roles: ProjectRoles[], record: any) {
   let filteredRoles = roles
 
-  if (!record?.isTeam || !isEeUI) {
-    filteredRoles = roles.filter((r) => r !== ProjectRoles.INHERIT || isTeamsEnabled.value)
-  } else {
-    // Allow INHERIT for teams at base level, but filter out OWNER
-    filteredRoles = roles.filter((r) => r !== ProjectRoles.OWNER)
+  if (record?.isTeam && isEeUI) {
+    // EE teams: allow INHERIT, filter out OWNER
+    filteredRoles = roles.filter(r => r !== ProjectRoles.OWNER)
   }
+  else if (isEeUI) {
+    // EE non-team: INHERIT only if teams enabled
+    filteredRoles = roles.filter(r => r !== ProjectRoles.INHERIT || isTeamsEnabled.value)
 
-  // Show INHERIT only if current base-level role is not INHERIT or null/undefined
-  // base_roles is the explicit base-level role (not inherited from workspace)
-  const currentBaseRole = record?.base_roles
-  if (!currentBaseRole || currentBaseRole === ProjectRoles.INHERIT) {
-    filteredRoles = filteredRoles.filter((r) => r !== ProjectRoles.INHERIT)
+    // In EE: hide INHERIT if user is already inheriting (no explicit base role)
+    const currentBaseRole = record?.base_roles
+    if (!currentBaseRole || currentBaseRole === ProjectRoles.INHERIT) {
+      filteredRoles = filteredRoles.filter(r => r !== ProjectRoles.INHERIT)
+    }
   }
+  // CE: always keep INHERIT visible — workspace role inheritance is supported
 
   return filteredRoles
 }
@@ -111,15 +116,15 @@ const getTeamCompatibleAccessibleRoles = (roles: ProjectRoles[], record: any) =>
 const baseTeamsToCollaborators = computed(() => {
   if (!currentBase.value?.id) return []
 
-  return (basesTeams.value.get(currentBase.value.id) || []).map((bt) => ({
+  return (basesTeams.value.get(currentBase.value.id) || []).map(bt => ({
     ...bt,
     id: bt.team_id,
     isTeam: true,
     display_name: bt.team_title,
     email: bt.team_title, // just for sort table by email
     roles:
-      bt.base_role ??
-      (bt.workspace_role
+      bt.base_role
+      ?? (bt.workspace_role
         ? WorkspaceRolesToProjectRoles[bt.workspace_role as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
         : ProjectRoles.NO_ACCESS),
     base_roles: bt.base_role,
@@ -132,7 +137,7 @@ const filteredCollaborators = computed(() => {
 
   return collaborators.value
     .concat(baseTeamsToCollaborators.value)
-    .filter((collab) => searchCompare([collab.display_name, collab.email], userSearchText.value))
+    .filter(collab => searchCompare([collab.display_name, collab.email], userSearchText.value))
 })
 
 const sortedCollaborators = computed(() => {
@@ -143,7 +148,7 @@ const sortedCollaborators = computed(() => {
   )
 })
 
-const loadCollaborators = async () => {
+async function loadCollaborators() {
   try {
     if (!currentBase.value) return
 
@@ -160,15 +165,17 @@ const loadCollaborators = async () => {
           ...user,
           base_roles: user.roles,
           roles:
-            user.roles ??
-            (user.workspace_roles
+            user.roles
+            ?? (user.workspace_roles
               ? WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
               : ProjectRoles.NO_ACCESS),
         })),
     ]
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     if (currentBase.value) {
       getBaseTeams({
         baseId: currentBase.value.id!,
@@ -184,8 +191,8 @@ const isOwnerOrCreator = computed(() => {
   return baseRoles.value?.[ProjectRoles.OWNER] || baseRoles.value?.[ProjectRoles.CREATOR]
 })
 
-const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
-  const currentCollaborator = collaborators.value.find((coll) => coll.id === collab.id)!
+async function updateCollaborator(collab: any, roles: ProjectRoles) {
+  const currentCollaborator = collaborators.value.find(coll => coll.id === collab.id)!
 
   try {
     if (collab?.isTeam) {
@@ -197,45 +204,55 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
         if (currentBaseTeams?.length) {
           basesTeams.value.set(
             currentBase.value.id,
-            currentBaseTeams.filter((team) => team.team_id !== collab.id),
+            currentBaseTeams.filter(team => team.team_id !== collab.id),
           )
         }
-      } else {
+      }
+      else {
         await baseTeamUpdate(currentBase.value.id!, {
           team_id: collab.id,
           base_role: roles,
         })
       }
-    } else {
-      // When role is INHERIT, delete the base user entry
+    }
+    else {
+      // When role is INHERIT, delete the base user entry (if exists)
       if (roles === ProjectRoles.INHERIT) {
-        await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
+        // Only remove if user has an explicit base role to remove
+        if (currentCollaborator.base_roles) {
+          await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
+        }
         if (
-          currentCollaborator.workspace_roles &&
-          WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] &&
-          isEeUI
+          currentCollaborator.workspace_roles
+          && WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles]
         ) {
           currentCollaborator.roles = WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles]
-        } else {
+        }
+        else {
           currentCollaborator.roles = ProjectRoles.NO_ACCESS
         }
         currentCollaborator.base_roles = null
-      } else if (!roles || (roles === ProjectRoles.NO_ACCESS && !isEeUI)) {
-        await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
+      }
+      else if (!roles) {
+        if (currentCollaborator.base_roles) {
+          await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
+        }
         if (
-          currentCollaborator.workspace_roles &&
-          WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] === roles &&
-          isEeUI
+          currentCollaborator.workspace_roles
+          && WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] === roles
         ) {
           currentCollaborator.roles = WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles]
-        } else {
+        }
+        else {
           currentCollaborator.roles = ProjectRoles.NO_ACCESS
         }
         currentCollaborator.base_roles = null
-      } else if (currentCollaborator.base_roles) {
+      }
+      else if (currentCollaborator.base_roles) {
         currentCollaborator.roles = roles
         await updateProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
-      } else {
+      }
+      else {
         currentCollaborator.roles = roles
         currentCollaborator.base_roles = roles
         await createProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
@@ -255,7 +272,8 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
         basesUser.value.set(currentBase.value.id, currentBaseUsers)
       }
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     const errorInfo = await extractSdkResponseErrorMsgv2(e)
 
     if (isPaymentEnabled.value && errorInfo.error === NcErrorType.ERR_PLAN_LIMIT_EXCEEDED) {
@@ -265,14 +283,16 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
         details,
         role: roles,
       })
-    } else {
+    }
+    else {
       message.error(errorInfo.message)
     }
-  } finally {
+  }
+  finally {
     if (
-      currentCollaborator &&
-      user.value?.id === currentCollaborator.id &&
-      currentCollaborator.roles === ProjectRoles.NO_ACCESS
+      currentCollaborator
+      && user.value?.id === currentCollaborator.id
+      && currentCollaborator.roles === ProjectRoles.NO_ACCESS
     ) {
       if (currentBase.value) {
         bases.value.delete(currentBase.value.id!)
@@ -287,7 +307,8 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
         title: `Base access no longer available`,
         content: `You removed your access from base ${currentBase.value?.title}.`,
       })
-    } else {
+    }
+    else {
       loadCollaborators()
     }
   }
@@ -302,26 +323,29 @@ onMounted(async () => {
   try {
     await loadCollaborators()
     const currentRoleIndex = OrderedProjectRoles.findIndex(
-      (role) => baseRoles.value && Object.keys(baseRoles.value).includes(role),
+      role => baseRoles.value && Object.keys(baseRoles.value).includes(role),
     )
     if (isSuper.value) {
       accessibleRoles.value = OrderedProjectRoles.slice(0)
-    } else if (currentRoleIndex !== -1) {
+    }
+    else if (currentRoleIndex !== -1) {
       accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex)
     }
 
     moveInheritRole()
 
     loadSorts()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 })
 
 watch(baseRoles, (br) => {
-  const currentRoleIndex = OrderedProjectRoles.findIndex((role) => br && Object.keys(br).includes(role))
+  const currentRoleIndex = OrderedProjectRoles.findIndex(role => br && Object.keys(br).includes(role))
   accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex)
 
   moveInheritRole()
@@ -336,7 +360,7 @@ function moveInheritRole() {
 }
 
 // Helper function to determine inheritance source and effective role
-const getInheritanceInfo = (record: any) => {
+function getInheritanceInfo(record: any) {
   const baseRole = record.base_roles as ProjectRoles | null
   if (baseRole && baseRole !== ProjectRoles.INHERIT) {
     return null
@@ -350,7 +374,8 @@ const getInheritanceInfo = (record: any) => {
   if (record.isTeam) {
     baseTeamRole = (record.base_role as ProjectRoles | null) || undefined
     workspaceTeamRole = workspaceRole && workspaceRole !== WorkspaceUserRolesEnum.INHERIT ? workspaceRole : undefined
-  } else {
+  }
+  else {
     // Backend already processes team roles to single string values
     // base_team_roles is already a ProjectRole string, workspace_team_roles is already a WorkspaceUserRole string
     baseTeamRole = (record.base_team_roles as ProjectRoles | null) || undefined
@@ -379,15 +404,19 @@ const getInheritanceInfo = (record: any) => {
   let source: 'workspace' | 'team'
   if (record.isTeam) {
     source = baseTeamRole && baseTeamRole === effectiveRole ? 'team' : 'workspace'
-  } else {
+  }
+  else {
     // Priority: baseTeamRole > workspaceUserRole > workspaceTeamRole
     if (baseTeamRole && baseTeamRole === effectiveRole) {
       source = 'team'
-    } else if (workspaceUserRole && extractBaseRoleFromWorkspaceRole(workspaceUserRole) === effectiveRole) {
+    }
+    else if (workspaceUserRole && extractBaseRoleFromWorkspaceRole(workspaceUserRole) === effectiveRole) {
       source = 'workspace'
-    } else if (workspaceTeamRole && extractBaseRoleFromWorkspaceRole(workspaceTeamRole) === effectiveRole) {
+    }
+    else if (workspaceTeamRole && extractBaseRoleFromWorkspaceRole(workspaceTeamRole) === effectiveRole) {
       source = 'team'
-    } else {
+    }
+    else {
       source = 'workspace'
     }
   }
@@ -403,7 +432,7 @@ const selected = reactive<{
   [key: string]: boolean
 }>({})
 
-const toggleSelectAll = (value: boolean) => {
+function toggleSelectAll(value: boolean) {
   filteredCollaborators.value.forEach((_) => {
     selected[_.id] = value
   })
@@ -413,9 +442,9 @@ const toggleSelectAll = (value: boolean) => {
 
 const selectAll = computed({
   get: () =>
-    Object.values(selected).every((v) => v) &&
-    Object.keys(selected).length > 0 &&
-    Object.values(selected).length === filteredCollaborators.value.length,
+    Object.values(selected).every(v => v)
+    && Object.keys(selected).length > 0
+    && Object.values(selected).length === filteredCollaborators.value.length,
   set: (value) => {
     toggleSelectAll(value)
   },
@@ -491,19 +520,21 @@ const columns = [
   },
 ] as NcTableColumnProps[]
 
-const customRow = (record: Record<string, any>) => ({
-  class: `${selected[record.id] ? 'selected' : ''} user-row`,
-})
+function customRow(record: Record<string, any>) {
+  return {
+    class: `${selected[record.id] ? 'selected' : ''} user-row`,
+  }
+}
 
 const isOnlyOneOwner = computed(() => {
-  return collaborators.value?.filter((collab) => collab.roles === ProjectRoles.OWNER).length === 1
+  return collaborators.value?.filter(collab => collab.roles === ProjectRoles.OWNER).length === 1
 })
 
-const isDeleteOrUpdateAllowed = (user) => {
+function isDeleteOrUpdateAllowed(user) {
   return !(isOnlyOneOwner.value && user.roles === ProjectRoles.OWNER)
 }
 
-const goToBaseSettings = () => {
+function goToBaseSettings() {
   router.push({
     query: {
       ...router.currentRoute.value.query,
@@ -519,7 +550,7 @@ watch(projectPageTab, () => {
   userSearchText.value = ''
 })
 
-const evtListener = (event: string, data: any) => {
+function evtListener(event: string, data: any) {
   if (data.baseId !== currentBase.value?.id) return
 
   if (event === 'base_user_update') {
@@ -543,6 +574,7 @@ onBeforeUnmount(() => {
     class="nc-collaborator-table-container nc-access-settings-view flex flex-col relative"
     :class="{
       'nc-admin-panel': isAdminPanel,
+      'nc-is-settings-sidebar': isSettingsSidebar,
     }"
   >
     <ProjectPrivateOverlay v-if="showOverlay" />
@@ -614,7 +646,7 @@ onBeforeUnmount(() => {
         <div v-if="!isAdminPanel" class="w-full flex justify-between items-center max-w-full gap-3">
           <a-input
             v-model:value="userSearchText"
-            :placeholder="isTeamsEnabled ? $t('title.searchForMembersOrTeams') : $t('title.searchMembers')"
+            :placeholder="isTeamsEnabled && showEEFeatures ? $t('title.searchForMembersOrTeams') : $t('title.searchMembers')"
             :disabled="isLoading"
             allow-clear
             class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
@@ -629,21 +661,7 @@ onBeforeUnmount(() => {
 
           <div class="flex items-center gap-2">
             <NcButton
-              size="small"
-              :type="isTeamsEnabled ? 'secondary' : 'primary'"
-              :disabled="isLoading"
-              data-testid="nc-add-member-btn"
-              :text-color="isTeamsEnabled ? 'primary' : undefined"
-              @click="isInviteModalVisible = true"
-            >
-              <div class="flex items-center gap-2">
-                <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
-                {{ $t('activity.addMembers') }}
-              </div>
-            </NcButton>
-
-            <NcButton
-              v-if="isTeamsEnabled && !isAdminPanel"
+              v-if="isTeamsEnabled && !isAdminPanel && showEEFeatures"
               v-e="['c:base:team-add']"
               size="small"
               type="secondary"
@@ -661,7 +679,20 @@ onBeforeUnmount(() => {
             >
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="ncBuilding" />
-                {{ $t('labels.addTeams') }}
+                <span class="hidden sm:inline">{{ $t('labels.addTeams') }}</span>
+              </div>
+            </NcButton>
+
+            <NcButton
+              size="small"
+              type="primary"
+              :disabled="isLoading"
+              data-testid="nc-add-member-btn"
+              @click="isInviteModalVisible = true"
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
+                <span class="hidden sm:inline">{{ $t('activity.addMembers') }}</span>
               </div>
             </NcButton>
           </div>
@@ -698,7 +729,7 @@ onBeforeUnmount(() => {
             </template>
 
             <template v-if="column.key === 'email' && record.isTeam">
-              <GeneralTeamInfo :team="transformToTeamObject(record, teamsMap[record.id])" />
+              <GeneralTeamInfo :team="transformToTeamObject(record, teamsMap[record.id])" show-breadcrumb />
             </template>
 
             <div v-else-if="column.key === 'email'" class="w-full flex gap-3 items-center users-email-grid">
@@ -723,16 +754,16 @@ onBeforeUnmount(() => {
             <div v-if="column.key === 'role'">
               <template
                 v-if="
-                  isDeleteOrUpdateAllowed(record) &&
-                  isOwnerOrCreator &&
-                  (getTeamCompatibleAccessibleRoles(accessibleRoles, record).includes(record.roles) ||
-                    record.roles === ProjectRoles.INHERIT)
+                  isDeleteOrUpdateAllowed(record)
+                    && isOwnerOrCreator
+                    && (getTeamCompatibleAccessibleRoles(accessibleRoles, record).includes(record.roles)
+                      || record.roles === ProjectRoles.INHERIT)
                 "
               >
                 <RolesSelectorV2
                   :role="getInheritanceInfo(record) ? ProjectRoles.INHERIT : record.roles"
                   :roles="getTeamCompatibleAccessibleRoles(accessibleRoles, record)"
-                  :inherit="isEeUI && getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : undefined"
+                  :inherit="getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : undefined"
                   :inherit-source="getInheritanceInfo(record)?.source"
                   :effective-role="getInheritanceInfo(record)?.effectiveRole"
                   :show-inherit="!!getInheritanceInfo(record)"
@@ -745,10 +776,7 @@ onBeforeUnmount(() => {
                     :border="false"
                     :role="getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : record.roles"
                   />
-                  <div
-                    v-if="isEeUI && getInheritanceInfo(record)"
-                    class="flex items-center gap-1 text-xs text-nc-content-gray-muted"
-                  >
+                  <div v-if="getInheritanceInfo(record)" class="flex items-center gap-1 text-xs text-nc-content-gray-muted">
                     <GeneralIcon icon="role_inherit" class="h-3 w-3" />
                     <span>{{
                       getInheritanceInfo(record)?.source === 'team'
@@ -828,6 +856,15 @@ onBeforeUnmount(() => {
 
     @supports (height: 100dvh) {
       @apply h-[calc(100dvh-var(--topbar-height)-44px)];
+    }
+  }
+
+  // Admin sidebar mode: tab bar is hidden, so no 44px subtraction
+  &.nc-is-settings-sidebar {
+    @apply h-[calc(100vh-var(--topbar-height))];
+
+    @supports (height: 100dvh) {
+      @apply h-[calc(100dvh-var(--topbar-height))];
     }
   }
 }

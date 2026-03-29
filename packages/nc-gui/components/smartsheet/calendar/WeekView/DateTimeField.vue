@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import dayjs from 'dayjs'
 import type { Row } from '~/lib/types'
+import dayjs from 'dayjs'
 
 const emits = defineEmits(['expandRecord', 'newRecord'])
 
@@ -49,10 +49,10 @@ const fieldStyles = computed(() => {
       underline: !!field.underline,
     }
     return acc
-  }, {} as Record<string, { bold?: boolean; italic?: boolean; underline?: boolean }>)
+  }, {} as Record<string, { bold?: boolean, italic?: boolean, underline?: boolean }>)
 })
 
-const getDayIndex = (date: dayjs.Dayjs) => {
+function getDayIndex(date: dayjs.Dayjs) {
   let dayIndex = date.day() - 1
   if (dayIndex === -1) {
     dayIndex = 6
@@ -67,11 +67,12 @@ const maxVisibleDays = computed(() => {
 const currTime = ref(timezoneDayjs.dayjsTz())
 
 const overlayStyle = computed(() => {
-  if (!containerWidth.value)
+  if (!containerWidth.value) {
     return {
       top: 0,
       left: 0,
     }
+  }
 
   const left = (containerWidth.value / maxVisibleDays.value) * getDayIndex(currTime.value)
   const minutes = currTime.value.hour() * 60 + currTime.value.minute()
@@ -101,23 +102,22 @@ const datesHours = computed(() => {
   // startOf and endOf dayjs is bugged with timezone
   const start = timezoneDayjs.timezonize(selectedDateRange.value.start)
   return Array.from({ length: maxVisibleDays.value }, (_, i) =>
-    Array.from({ length: 24 }, (_, h) => start.add(i, 'day').hour(h).minute(0).second(0)),
-  )
+    Array.from({ length: 24 }, (_, h) => start.add(i, 'day').hour(h).minute(0).second(0)))
 })
 
-const calculateHourIndices = (dayIndex: number, startDate: dayjs.Dayjs, endDate: dayjs.Dayjs) => {
+function calculateHourIndices(dayIndex: number, startDate: dayjs.Dayjs, endDate: dayjs.Dayjs) {
   // Get the hour component for start and end times
   const startHour = startDate.hour()
   const endHour = endDate.hour()
 
   // Find the indices directly based on hours since datesHours uses integer hours
   const startHourIndex = Math.max(
-    (datesHours.value[dayIndex] ?? []).findIndex((h) => h.hour() === startHour),
+    (datesHours.value[dayIndex] ?? []).findIndex(h => h.hour() === startHour),
     0,
   )
 
   // For end hour, we need to handle cases where the end time has minutes
-  let endHourIndex = (datesHours.value[dayIndex] ?? []).findIndex((h) => h.hour() === endHour)
+  let endHourIndex = (datesHours.value[dayIndex] ?? []).findIndex(h => h.hour() === endHour)
 
   // If we have minutes in the end time, we should include the next hour
   if (endDate.minute() > 0 && endHour < 23) {
@@ -169,24 +169,23 @@ const calculateNewDates = useMemoize(
   },
 )
 
-const getGridTime = (date: dayjs.Dayjs, round = false) => {
+function getGridTime(date: dayjs.Dayjs, round = false) {
   const minutes = date.hour() * 60 + date.minute()
   return round ? Math.ceil(minutes) : Math.floor(minutes)
 }
 
-const getGridTimeSlots = (from: dayjs.Dayjs, to: dayjs.Dayjs) => ({
-  from: getGridTime(from),
-  to: getGridTime(to, true) - 1,
-  dayIndex: getDayIndex(from),
-})
+function getGridTimeSlots(from: dayjs.Dayjs, to: dayjs.Dayjs) {
+  return {
+    from: getGridTime(from),
+    to: getGridTime(to, true) - 1,
+    dayIndex: getDayIndex(from),
+  }
+}
 
-const hasSlotForRecord = (
-  columnArray: Row[],
-  dates: {
-    fromDate: dayjs.Dayjs
-    toDate: dayjs.Dayjs
-  },
-) => {
+function hasSlotForRecord(columnArray: Row[], dates: {
+  fromDate: dayjs.Dayjs
+  toDate: dayjs.Dayjs
+}) {
   const { fromDate, toDate } = dates
 
   if (!fromDate || !toDate) return false
@@ -208,8 +207,8 @@ const hasSlotForRecord = (
     })
 
     if (
-      fromDate.isBetween(columnFromDate, columnToDate, null, '[]') ||
-      toDate.isBetween(columnFromDate, columnToDate, null, '[]')
+      fromDate.isBetween(columnFromDate, columnToDate, null, '[]')
+      || toDate.isBetween(columnFromDate, columnToDate, null, '[]')
     ) {
       return false
     }
@@ -217,7 +216,7 @@ const hasSlotForRecord = (
   return true
 }
 
-const getMaxOverlaps = ({
+function getMaxOverlaps({
   row,
   columnArray,
   graph,
@@ -225,13 +224,13 @@ const getMaxOverlaps = ({
   row: Row
   columnArray: Array<Array<Array<Row>>>
   graph: Map<string, Set<string>>
-}) => {
+}) {
   const id = row.rowMeta.id as string
 
   const visited: Set<string> = new Set()
 
   const dayIndex = row.rowMeta.dayIndex
-  const overlapIndex = columnArray[dayIndex].findIndex((column) => column.findIndex((r) => r.rowMeta.id === id) !== -1) + 1
+  const overlapIndex = columnArray[dayIndex].findIndex(column => column.findIndex(r => r.rowMeta.id === id) !== -1) + 1
   const dfs = (id: string): number => {
     visited.add(id)
     let maxOverlaps = 1
@@ -256,7 +255,7 @@ const getMaxOverlaps = ({
 
   columnArray[dayIndex]
     .flat()
-    .filter((record) => visited.has(record.rowMeta.id!))
+    .filter(record => visited.has(record.rowMeta.id!))
     .forEach((record) => {
       overlapIterations.push(record.rowMeta.overLapIteration!)
     })
@@ -295,12 +294,13 @@ const recordsAcrossAllRange = computed<{
   >
   spanningRecords: Row[]
 }>(() => {
-  if (!formattedData.value || !calendarRange.value || !container.value || !scrollContainer.value)
+  if (!formattedData.value || !calendarRange.value || !container.value || !scrollContainer.value) {
     return {
       records: [],
       gridTimeMap: new Map(),
       spanningRecords: [],
     }
+  }
   const perWidth = containerWidth.value / maxVisibleDays.value
   const perHeight = 52
 
@@ -335,8 +335,15 @@ const recordsAcrossAllRange = computed<{
     const sortedFormattedData = [...formattedData.value]
       .filter((record) => {
         if (fromCol && toCol) {
-          const fromDate = timezoneDayjs.timezonize(record.row[fromCol.title!])
-          const toDate = record.row[toCol.title!] ? timezoneDayjs.timezonize(record.row[toCol.title!]) : fromDate.add(1, 'hour')
+          const hasFrom = !!record.row[fromCol.title!]
+          const hasTo = !!record.row[toCol.title!]
+          // If both dates missing, skip
+          if (!hasFrom && !hasTo) return false
+          // Use whichever date is available; fall back to the other if one is missing
+          const fromDate = hasFrom
+            ? timezoneDayjs.timezonize(record.row[fromCol.title!])
+            : timezoneDayjs.timezonize(record.row[toCol.title!])
+          const toDate = hasTo ? timezoneDayjs.timezonize(record.row[toCol.title!]) : fromDate.add(1, 'hour')
 
           if (fromDate.isValid() && toDate.isValid()) {
             const isMultiDay = !fromDate.isSame(toDate, 'day')
@@ -349,19 +356,27 @@ const recordsAcrossAllRange = computed<{
         }
         return fromCol && !!record.row[fromCol.title!]
       })
-      .sort((a, b) =>
-        timezoneDayjs.timezonize(a.row[fromCol!.title!]).isBefore(timezoneDayjs.timezonize(b.row[fromCol!.title!])) ? 1 : -1,
-      )
+      .sort((a, b) => {
+        const aDate = a.row[fromCol!.title!] || (toCol && a.row[toCol.title!])
+        const bDate = b.row[fromCol!.title!] || (toCol && b.row[toCol.title!])
+        return timezoneDayjs.timezonize(aDate).isBefore(timezoneDayjs.timezonize(bDate)) ? 1 : -1
+      })
 
     for (const record of sortedFormattedData) {
       const id = record.rowMeta.id ?? generateRandomNumber()
 
       if (fromCol && toCol) {
-        const { startDate, endDate } = calculateNewDates({
-          startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
-          endDate: record.row[toCol.title!]
+        // Use whichever date is available; fall back to the other if one is missing
+        const rawStart = record.row[fromCol.title!]
+          ? timezoneDayjs.timezonize(record.row[fromCol.title!])
+          : record.row[toCol.title!]
             ? timezoneDayjs.timezonize(record.row[toCol.title!])
-            : timezoneDayjs.timezonize(record.row[fromCol.title!]).add(1, 'hour'),
+            : null
+        if (!rawStart) continue
+
+        const { startDate, endDate } = calculateNewDates({
+          startDate: rawStart,
+          endDate: record.row[toCol.title!] ? timezoneDayjs.timezonize(record.row[toCol.title!]) : rawStart.add(1, 'hour'),
           scheduleStart,
           scheduleEnd,
         })
@@ -393,7 +408,8 @@ const recordsAcrossAllRange = computed<{
             dayIndex,
           },
         })
-      } else if (fromCol) {
+      }
+      else if (fromCol) {
         // If there is no toColumn chosen in the range
         const { startDate } = calculateNewDates({
           startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
@@ -534,7 +550,7 @@ const recordsAcrossAllRange = computed<{
     for (const dayIndex in columnArray) {
       for (const columnIndex in columnArray[dayIndex]) {
         for (const record of columnArray[dayIndex][columnIndex]) {
-          record.rowMeta.overLapIteration = parseInt(columnIndex) + 1
+          record.rowMeta.overLapIteration = Number.parseInt(columnIndex) + 1
         }
       }
     }
@@ -566,8 +582,8 @@ const recordsAcrossAllRange = computed<{
 
       const majorLeft = dayIndex * perWidth
 
-      const isRecordDraggingOrResizeState =
-        record.rowMeta.id === dragRecord.value?.rowMeta.id || record.rowMeta.id === resizeRecord.value?.rowMeta.id
+      const isRecordDraggingOrResizeState
+        = record.rowMeta.id === dragRecord.value?.rowMeta.id || record.rowMeta.id === resizeRecord.value?.rowMeta.id
 
       if (!isRecordDraggingOrResizeState) {
         if (record.rowMeta.overLapIteration! > 3) {
@@ -592,14 +608,15 @@ const recordsAcrossAllRange = computed<{
             for (let gridCounter = gridTimes.from; gridCounter <= gridTimes.to; gridCounter++) {
               if (gridTimeMap.has(dayIndex) && gridTimeMap.get(dayIndex)?.has(gridCounter)) {
                 const currentSlot = gridTimeMap.get(dayIndex)!.get(gridCounter)!
-                if (!currentSlot.overflowRecords.some((r) => r.rowMeta.id === record.rowMeta.id)) {
+                if (!currentSlot.overflowRecords.some(r => r.rowMeta.id === record.rowMeta.id)) {
                   currentSlot.overflowRecords.push(record)
                   gridTimeMap.get(dayIndex)!.set(gridCounter, currentSlot)
                 }
               }
             }
           }
-        } else {
+        }
+        else {
           // Calculate the available width for each day
           const availableWidth = perWidth - 3 // Account for padding/margins
 
@@ -620,7 +637,8 @@ const recordsAcrossAllRange = computed<{
             width = Math.max(majorLeft + perWidth - left - 1.5, 72)
           }
         }
-      } else {
+      }
+      else {
         left = majorLeft + 1.5
         width = perWidth - 3
       }
@@ -646,7 +664,7 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
   updateRowProperty(row, updateProperty, isDelete)
 }, 500)
 
-const onResize = (event: MouseEvent) => {
+function onResize(event: MouseEvent) {
   if (!isUIAllowed('dataEdit') || !container.value || !resizeRecord.value || !scrollContainer.value) return
   if (resizeRecord.value.rowMeta.range?.is_readonly) return
 
@@ -657,7 +675,8 @@ const onResize = (event: MouseEvent) => {
   // If the mouse is near the top of the container, we scroll up  if (event.clientY > bottom - 20) {
   if (event.clientY > bottom - 20) {
     container.value.scrollTop += 10
-  } else if (event.clientY < top + 20) {
+  }
+  else if (event.clientY < top + 20) {
     container.value.scrollTop -= 10
   }
 
@@ -691,7 +710,8 @@ const onResize = (event: MouseEvent) => {
       newDate = minEndDate
     }
     updateProperty = toCol.title
-  } else if (resizeDirection.value === 'left') {
+  }
+  else if (resizeDirection.value === 'left') {
     const minStartDate = ogEndDate.subtract(1, 'hour')
     newDate = baseDate.isAfter(ogEndDate)
       ? ogEndDate.subtract(Math.ceil(baseDate.diff(ogEndDate, 'minute') / 15) * 15, 'minute')
@@ -701,7 +721,8 @@ const onResize = (event: MouseEvent) => {
       newDate = minStartDate
     }
     updateProperty = fromCol.title
-  } else {
+  }
+  else {
     isValid = false
     newDate = null
   }
@@ -718,12 +739,12 @@ const onResize = (event: MouseEvent) => {
 
   const newPk = extractPkFromRow(newRow.row, meta.value!.columns!)
 
-  formattedData.value = formattedData.value.map((r) => (extractPkFromRow(r.row, meta.value!.columns!) === newPk ? newRow : r))
+  formattedData.value = formattedData.value.map(r => (extractPkFromRow(r.row, meta.value!.columns!) === newPk ? newRow : r))
 
   useDebouncedRowUpdate(newRow, [updateProperty], false)
 }
 
-const onResizeEnd = () => {
+function onResizeEnd() {
   resizeInProgress.value = false
   resizeDirection.value = null
   resizeRecord.value = null
@@ -731,7 +752,7 @@ const onResizeEnd = () => {
   document.removeEventListener('mouseup', onResizeEnd)
 }
 
-const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
+function onResizeStart(direction: 'right' | 'left', event: MouseEvent, record: Row) {
   if (!isUIAllowed('dataEdit')) return
 
   if (record.rowMeta.range?.is_readonly) return
@@ -745,14 +766,11 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
 
 // We calculate the new row based on the mouse position and update the record
 // We also update the sidebar data if the dropped from the sidebar
-const calculateNewRow = (
-  event: MouseEvent,
-  updateSideBar?: boolean,
-): {
+function calculateNewRow(event: MouseEvent, updateSideBar?: boolean): {
   newRow: Row | null
   updatedProperty: string[]
   skipChangeCheck?: boolean
-} => {
+} {
   if (!container.value) return { newRow: null, updatedProperty: [] }
   const { width, left, top } = container.value.getBoundingClientRect()
 
@@ -798,11 +816,14 @@ const calculateNewRow = (
     if (fromDate && toDate) {
       const newMinutes = Math.round(toDate.diff(fromDate, 'minute') / 15) * 15
       endDate = newStartDate.add(newMinutes, 'minute')
-    } else if (fromDate && !toDate) {
+    }
+    else if (fromDate && !toDate) {
       endDate = timezoneDayjs.dayjsTz(newStartDate).endOf('day')
-    } else if (!fromDate && toDate) {
+    }
+    else if (!fromDate && toDate) {
       endDate = timezoneDayjs.dayjsTz(newStartDate).endOf('day')
-    } else {
+    }
+    else {
       endDate = newStartDate.clone()
     }
 
@@ -824,7 +845,8 @@ const calculateNewRow = (
       const pk = extractPkFromRow(r.row, meta.value!.columns!)
       return pk !== newPk
     })
-  } else {
+  }
+  else {
     formattedData.value = formattedData.value.map((r) => {
       const pk = extractPkFromRow(r.row, meta.value!.columns!)
       return pk === newPk ? newRow : r
@@ -838,7 +860,7 @@ const calculateNewRow = (
   return { newRow, updatedProperty }
 }
 
-const onDrag = (event: MouseEvent) => {
+function onDrag(event: MouseEvent) {
   if (!isUIAllowed('dataEdit') || !scrollContainer.value || !dragRecord.value) return
 
   const containerRect = scrollContainer.value.getBoundingClientRect()
@@ -846,14 +868,15 @@ const onDrag = (event: MouseEvent) => {
 
   if (event.clientY > containerRect.bottom - scrollBottomThreshold) {
     scrollContainer.value.scrollTop += 20
-  } else if (event.clientY < containerRect.top + scrollBottomThreshold) {
+  }
+  else if (event.clientY < containerRect.top + scrollBottomThreshold) {
     scrollContainer.value.scrollTop -= 20
   }
 
   calculateNewRow(event)
 }
 
-const stopDrag = (event: MouseEvent) => {
+function stopDrag(event: MouseEvent) {
   if (!isUIAllowed('dataEdit') || !isDragging.value || !container.value || !dragRecord.value) return
 
   event.preventDefault()
@@ -873,7 +896,7 @@ const stopDrag = (event: MouseEvent) => {
   document.removeEventListener('mouseup', stopDrag)
 }
 
-const dragStart = (event: MouseEvent, record: Row) => {
+function dragStart(event: MouseEvent, record: Row) {
   if (resizeInProgress.value || isSyncedFromColumn.value) return
   let target = event.target as HTMLElement
 
@@ -906,7 +929,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
   document.addEventListener('mouseup', onMouseUp)
 }
 
-const dropEvent = (event: DragEvent) => {
+function dropEvent(event: DragEvent) {
   if (!isUIAllowed('dataEdit') || !container.value) return
   event.preventDefault()
 
@@ -934,19 +957,20 @@ const dropEvent = (event: DragEvent) => {
   }
 }
 
-const viewMore = (hour: dayjs.Dayjs) => {
+function viewMore(hour: dayjs.Dayjs) {
   sideBarFilterOption.value = 'selectedHours'
   selectedTime.value = hour
   showSideMenu.value = true
 }
 
-const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
-  if (!recordsAcrossAllRange.value || !recordsAcrossAllRange.value.gridTimeMap)
+function isOverflowAcrossHourRange(hour: dayjs.Dayjs) {
+  if (!recordsAcrossAllRange.value || !recordsAcrossAllRange.value.gridTimeMap) {
     return {
       isOverflow: false,
       overflowCount: 0,
       overflowRecords: [],
     }
+  }
   const { gridTimeMap } = recordsAcrossAllRange.value
   const dayIndex = getDayIndex(hour)
 
@@ -971,7 +995,7 @@ const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
 }
 
 // TODO: Add Support for multiple ranges when multiple ranges are supported
-const addRecord = (date: dayjs.Dayjs) => {
+function addRecord(date: dayjs.Dayjs) {
   if (!isUIAllowed('dataEdit') || !calendarRange.value || isSyncedTable.value) return
   const fromCol = calendarRange.value[0].fk_from_col
   if (!fromCol) return
@@ -994,7 +1018,7 @@ watch(
   { immediate: true },
 )
 
-const expandRecord = (record: Row) => {
+function expandRecord(record: Row) {
   emits('expandRecord', record)
 }
 
@@ -1003,7 +1027,7 @@ const spanningRecordsContainer = ref<HTMLElement | null>(null)
 const isExpanded = ref(false)
 
 const isRangeEnabled = computed(() =>
-  calendarRange.value.some((range) => range.fk_to_col !== null && range.fk_to_col !== undefined),
+  calendarRange.value.some(range => range.fk_to_col !== null && range.fk_to_col !== undefined),
 )
 
 watch(
@@ -1038,7 +1062,7 @@ watch(
         >
           {{ currTime.format('hh:mm A') }}
         </span>
-        <div class="flex-1 relative ml-1 nc-calendar-border-line border-b-2 border-nc-border-brand"></div>
+        <div class="flex-1 relative ml-1 nc-calendar-border-line border-b-2 border-nc-border-brand" />
       </div>
     </div>
     <div class="flex sticky h-6 z-4 top-0 pl-16 bg-nc-bg-gray-extralight w-full">
@@ -1145,12 +1169,21 @@ watch(
                   :from-date="timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM • h:mm A')"
                   :invalid="false"
                   :row="record"
-                  :to-date="record?.rowMeta?.range?.fk_to_col?.title && record.row[record.rowMeta.range!.fk_to_col.title!] ?  timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM • HH:mm A') : null"
+                  :to-date="record?.rowMeta?.range?.fk_to_col?.title && record.row[record.rowMeta.range!.fk_to_col.title!] ? timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM • HH:mm A') : null"
                   data-testid="nc-sidebar-record-card"
                   @click="expandRecord(record)"
                 >
                   <template v-if="!isRowEmpty(record, displayField)">
                     <LazySmartsheetPlainCell v-model="record.row[displayField!.title!]" :column="displayField" />
+                  </template>
+                  <template v-else-if="fields?.length">
+                    <template v-for="field in fields" :key="field.id">
+                      <LazySmartsheetPlainCell
+                        v-if="!isRowEmpty(record, field!)"
+                        v-model="record.row[field!.title!]"
+                        :column="field"
+                      />
+                    </template>
                   </template>
                   <template v-else>
                     <span class="text-nc-content-gray-muted"> - </span>
@@ -1175,8 +1208,8 @@ watch(
               ...record.rowMeta.style,
               lineHeight: '18px',
               opacity:
-                (dragRecord === null || record.rowMeta.id === dragRecord?.rowMeta.id) &&
-                (resizeRecord === null || record.rowMeta.id === resizeRecord?.rowMeta.id)
+                (dragRecord === null || record.rowMeta.id === dragRecord?.rowMeta.id)
+                && (resizeRecord === null || record.rowMeta.id === resizeRecord?.rowMeta.id)
                   ? 1
                   : 0.3,
             }"

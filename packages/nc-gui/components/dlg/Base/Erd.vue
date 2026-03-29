@@ -35,9 +35,11 @@ onMounted(async () => {
         await getMeta(baseId.value!, table.id!)
       }),
     )
-  } catch (e) {
+  }
+  catch (e) {
     console.error(e)
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 })

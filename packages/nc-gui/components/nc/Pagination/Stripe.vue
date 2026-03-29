@@ -25,12 +25,14 @@ const entityName = computed(() => props.entityName || 'item')
 
 const { isMobileMode } = useGlobal()
 
-const changePage = ({ increase, set }: { increase?: boolean; set?: number }) => {
+function changePage({ increase, set }: { increase?: boolean, set?: number }) {
   if (set) {
     current.value = set
-  } else if (increase && hasMore.value) {
+  }
+  else if (increase && hasMore.value) {
     current.value = current.value + 1
-  } else if (current.value > 1) {
+  }
+  else if (current.value > 1) {
     current.value = current.value - 1
   }
 }
@@ -60,7 +62,7 @@ const pageSizeOptions = [
 
 const pageSizeRef = ref()
 
-const pageSizeDropdownVisibleChange = (value: boolean) => {
+function pageSizeDropdownVisibleChange(value: boolean) {
   if (!value && pageSizeRef.value) {
     pageSizeRef.value?.blur()
   }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { LoadingOutlined } from '@ant-design/icons-vue'
+import { PlanFeatureTypes } from 'nocodb-sdk'
 
 const { openedViewsTab } = storeToRefs(useViewsStore())
 const { onViewsTabChange } = useViewsStore()
@@ -12,7 +13,8 @@ const { $e } = useNuxtApp()
 
 const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
-const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions } = useEeConfig()
+const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions, isEEFeatureBlocked, showEEFeatures }
+  = useEeConfig()
 
 const { base } = storeToRefs(useBase())
 const meta = inject(MetaInj, ref())
@@ -30,7 +32,7 @@ const indicator = h(LoadingOutlined, {
 const shouldShowTab = computed(() => {
   return {
     field: isUIAllowed('fieldAdd') && !isSqlView.value,
-    permissions: isEeUI && isUIAllowed('fieldAdd') && !isSqlView.value,
+    permissions: isEeUI && isUIAllowed('fieldAdd') && !isSqlView.value && showEEFeatures.value,
     webhook: isUIAllowed('hookList') && !isSqlView.value,
   }
 })
@@ -54,14 +56,14 @@ watch(
     // Re-enable this check for first render
 
     const fieldTabCondition = openedSubTab.value !== 'field' || shouldShowTab.value.field
-    const permissionsTabCondition =
-      openedSubTab.value !== 'permissions' || (shouldShowTab.value.permissions && !blockTableAndFieldPermissions.value)
+    const permissionsTabCondition
+      = openedSubTab.value !== 'permissions' || (shouldShowTab.value.permissions && !blockTableAndFieldPermissions.value)
     const webhookTabCondition = openedSubTab.value !== 'webhook' || shouldShowTab.value.webhook
 
     if (
       // check page access only after base roles are loaded
-      isBaseRolesLoaded.value &&
-      (!fieldTabCondition || !webhookTabCondition || !permissionsTabCondition)
+      isBaseRolesLoaded.value
+      && (!fieldTabCondition || !webhookTabCondition || !permissionsTabCondition)
     ) {
       onViewsTabChange('relation')
     }
@@ -97,6 +99,11 @@ watch(
           <div class="tab" data-testid="nc-permissions-tab">
             <GeneralIcon icon="ncLock" class="tab-icon" :class="{}" />
             <div>{{ $t('general.permissions') }}</div>
+            <LazyPaymentUpgradeBadge
+              :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
+              :feature-enabled-callback="() => !isEEFeatureBlocked"
+              remove-click
+            />
           </div>
         </template>
 

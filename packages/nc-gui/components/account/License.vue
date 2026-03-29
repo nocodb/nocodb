@@ -5,42 +5,111 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
-const { loadAppInfo } = useGlobal()
+const { appInfo, loadAppInfo } = useGlobal()
 
-let key = ref('')
+const key = ref('')
 
-const loadLicense = async () => {
+const isEEActive = computed(() => appInfo.value.ee === true)
+
+const isPostgresRequired = computed(() => appInfo.value.isOnPrem && appInfo.value.isPostgres === false)
+
+const licenseStatus = computed(() => {
+  if (!key.value) return 'none'
+
+  return isEEActive.value ? 'active' : 'expired'
+})
+
+async function loadLicense() {
   try {
     const response = await api.orgLicense.get()
-    key.value = response.key!
-  } catch (e: any) {
+    key.value = response.key ?? ''
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
-const setLicense = async () => {
+
+async function setLicense() {
   try {
     await api.orgLicense.set({ key: key.value })
-    message.success(t('success.licenseKeyUpdated'))
+    message.success(t('msg.success.licenseKeyUpdated'))
     await loadAppInfo()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
   $e('a:account:license')
+}
+
+async function removeLicense() {
+  try {
+    await api.orgLicense.set({ key: '' })
+    key.value = ''
+    message.success(t('title.licenseKeyRemoved'))
+    await loadAppInfo()
+  }
+  catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+  $e('a:account:license:remove')
 }
 
 loadLicense()
 </script>
 
 <template>
-  <div class="h-full overflow-y-auto scrollbar-thin-dull">
-    <!--    <div class="text-xl mt-4 mb-8 text-center font-weight-bold">License</div>-->
-    <!--    <div class="mx-auto w-150">-->
-    <!--      <div>-->
-    <!--        <a-textarea v-model:value="key" placeholder="License key" class="!mt-2 !max-w-[600px]"></a-textarea>-->
-    <!--      </div>-->
-    <!--      <div class="text-center">-->
-    <!--        <a-button class="mt-4 !h-[2.2rem] !rounded-md" @click="setLicense" type="primary">Save license key</a-button>-->
-    <!--      </div>-->
-    <!--    </div>-->
+  <div class="h-full overflow-y-auto nc-scrollbar-thin">
+    <div class="max-w-[600px] mx-auto mt-8 px-4">
+      <div class="text-xl font-semibold mb-6">
+        {{ $t('title.license') }}
+      </div>
+
+      <template v-if="isPostgresRequired">
+        <NcAlert visible type="warning" background>
+          <template #description>
+            {{ $t('msg.info.licenseRequiresPostgres') }}
+          </template>
+        </NcAlert>
+      </template>
+
+      <template v-else>
+        <NcAlert
+          visible
+          :type="licenseStatus === 'active' ? 'success' : licenseStatus === 'expired' ? 'warning' : 'info'"
+          background
+          class="mb-6"
+        >
+          <template #description>
+            {{
+              licenseStatus === 'active'
+                ? $t('title.licenseActive')
+                : licenseStatus === 'expired'
+                  ? $t('title.licenseInvalid')
+                  : $t('title.licenseNone')
+            }}
+          </template>
+        </NcAlert>
+
+        <div class="flex flex-col gap-2 mb-4">
+          <label class="text-sm font-medium text-nc-content-gray-subtle">{{ $t('title.licenseKey') }}</label>
+          <a-textarea
+            v-model:value="key"
+            :placeholder="$t('labels.enterLicenseKey')"
+            :rows="4"
+            class="!rounded-lg"
+            data-testid="nc-license-key-input"
+          />
+        </div>
+
+        <div class="flex gap-3">
+          <NcButton type="primary" size="small" :loading="isLoading" data-testid="nc-license-save-btn" @click="setLicense">
+            {{ $t('general.save') }}
+          </NcButton>
+          <NcButton v-if="key" type="secondary" size="small" data-testid="nc-license-remove-btn" @click="removeLicense">
+            {{ $t('general.remove') }}
+          </NcButton>
+        </div>
+      </template>
+    </div>
   </div>
 </template>

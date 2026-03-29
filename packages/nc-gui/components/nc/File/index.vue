@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { AttachmentReqType, PublicAttachmentScope } from 'nocodb-sdk'
 import type { UploadFile } from 'ant-design-vue'
+import type { AttachmentReqType, PublicAttachmentScope } from 'nocodb-sdk'
 import { useProvideUploadState } from './UploadProviders/useUploadState'
 
 interface Props {
@@ -37,19 +37,19 @@ const showModal = ref(false)
 
 const uploadedFiles = ref<UploadFile[]>([])
 
-const handleRemove = (file: UploadFile) => {
-  uploadedFiles.value = uploadedFiles.value.filter((f) => f.uid !== file.uid)
+function handleRemove(file: UploadFile) {
+  uploadedFiles.value = uploadedFiles.value.filter(f => f.uid !== file.uid)
 }
 
-const openModal = () => {
+function openModal() {
   showModal.value = true
 }
 
-const closeModalFn = () => {
+function closeModalFn() {
   showModal.value = false
 }
 
-const handleModalUpload = async (files: File[]) => {
+async function handleModalUpload(files: File[]) {
   const uploadPath = props.uploadPath || [NOCO, base.value?.id].filter(Boolean).join('/')
 
   const uploadResult = await batchUploadFiles([...files], uploadPath)
@@ -66,7 +66,8 @@ const handleModalUpload = async (files: File[]) => {
 
   if (props.multiple) {
     uploadedFiles.value.push(...newFiles)
-  } else {
+  }
+  else {
     uploadedFiles.value = newFiles
   }
 
@@ -75,8 +76,8 @@ const handleModalUpload = async (files: File[]) => {
   showModal.value = false
 }
 
-const handleAttachmentUpload = async (attachments: any[]) => {
-  const newFiles = attachments.map((attachment) => ({
+async function handleAttachmentUpload(attachments: any[]) {
+  const newFiles = attachments.map(attachment => ({
     uid: `${Date.now()}-${attachment.title}`,
     name: attachment.title,
     status: 'done' as const,
@@ -87,7 +88,8 @@ const handleAttachmentUpload = async (attachments: any[]) => {
 
   if (props.multiple) {
     uploadedFiles.value.push(...newFiles)
-  } else {
+  }
+  else {
     uploadedFiles.value = newFiles
   }
 

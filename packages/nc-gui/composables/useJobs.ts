@@ -52,7 +52,8 @@ export const useJobs = createSharedComposable(() => {
 
     if (baseJobs.value[baseId]) {
       baseJobs.value[baseId] = jobs || baseJobs.value[baseId]
-    } else {
+    }
+    else {
       baseJobs.value[baseId] = jobs || []
     }
   }

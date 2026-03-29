@@ -1,21 +1,19 @@
+import type { CanvasGroup } from '#imports'
+import type { ColumnType, FilterType, LinkToAnotherRecordType, LookupType, TableType, ViewType } from 'nocodb-sdk'
+import { groupKeysManager } from '#imports'
 import {
-  type ColumnType,
+
   CommonAggregations,
-  type FilterType,
-  type LinkToAnotherRecordType,
-  type LookupType,
-  type TableType,
+
   UITypes,
-  type ViewType,
+
 } from 'nocodb-sdk'
 import { createGroupUniqueIdentifier, generateGroupPath } from '../components/smartsheet/grid/canvas/utils/groupby'
-import type { CanvasGroup } from '#imports'
-import { groupKeysManager } from '#imports'
 
 const GROUP_CHUNK_SIZE = 100
 const MAX_GROUP_CACHE_SIZE = 100
 
-const getSortParams = (sort: string) => {
+function getSortParams(sort: string) {
   if (sort === 'asc') return '+'
   if (sort === 'desc') return '-'
   if (sort === 'count-asc') return '~+'
@@ -23,14 +21,9 @@ const getSortParams = (sort: string) => {
   return '+'
 }
 
-export const useInfiniteGroups = (
-  view: Ref<ViewType | undefined>,
-  meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
-  where: ComputedRef<string | undefined>,
-  callbacks: {
-    syncVisibleData: () => void
-  },
-) => {
+export function useInfiniteGroups(view: Ref<ViewType | undefined>, meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>, where: ComputedRef<string | undefined>, callbacks: {
+  syncVisibleData: () => void
+}) {
   const { gridViewCols } = useViewColumnsOrThrow()
   const baseStore = useBase()
   const { base } = storeToRefs(baseStore)
@@ -80,7 +73,8 @@ export const useInfiniteGroups = (
     const index = colors.value.indexOf(nextGroupColor.value)
     if (index === colors.value.length - 1) {
       nextGroupColor.value = colors.value[0]
-    } else {
+    }
+    else {
       nextGroupColor.value = colors.value[index + 1]
     }
     return tempColor
@@ -141,7 +135,7 @@ export const useInfiniteGroups = (
           const relatedTableMeta = await getMeta(relatedBaseId, colOpts.fk_related_model_id as string)
           if (!relatedTableMeta) continue
           group.relatedTableMeta = relatedTableMeta
-          const col = relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0]
+          const col = relatedTableMeta.columns?.find(c => c.pv) || relatedTableMeta.columns?.[0]
           group.relatedColumn = col
           group.displayValueProp = col?.title
         }
@@ -158,21 +152,42 @@ export const useInfiniteGroups = (
           if (!relatedTableMeta) continue
 
           const lookupColumn = relatedTableMeta.columns?.find(
-            (c) => c.id === (groupCol.column.colOptions as LookupType)?.fk_lookup_column_id,
+            c => c.id === (groupCol.column.colOptions as LookupType)?.fk_lookup_column_id,
           )
           if (!lookupColumn) continue
 
           let finalTableMeta = relatedTableMeta
           let finalColumn = lookupColumn
 
-          // Check if the lookup column is a LinkToAnotherRecord
-          if (lookupColumn.uidt === UITypes.LinkToAnotherRecord) {
-            const lookupColOpts = lookupColumn.colOptions as LinkToAnotherRecordType
-            const targetBaseId = lookupColOpts?.fk_related_base_id || relatedBaseId
+          // Resolve nested lookups (Lookup → Lookup → ... → target column)
+          while (finalColumn?.uidt === UITypes.Lookup) {
+            const nestedRelCol = finalTableMeta.columns?.find(
+              (c: ColumnType) => c.id === (finalColumn!.colOptions as LookupType)?.fk_relation_column_id,
+            )
+            if (!nestedRelCol) break
+
+            const nestedRelOpts = nestedRelCol.colOptions as LinkToAnotherRecordType
+            const nestedBaseId = nestedRelOpts?.fk_related_base_id || (base.value?.id as string)
+            const nestedTableMeta = await getMeta(nestedBaseId, nestedRelOpts.fk_related_model_id as string)
+            if (!nestedTableMeta) break
+
+            const nestedLookupCol = nestedTableMeta.columns?.find(
+              c => c.id === (finalColumn!.colOptions as LookupType)?.fk_lookup_column_id,
+            )
+            if (!nestedLookupCol) break
+
+            finalTableMeta = nestedTableMeta
+            finalColumn = nestedLookupCol
+          }
+
+          // Check if the final column is a LinkToAnotherRecord
+          if (finalColumn?.uidt === UITypes.LinkToAnotherRecord) {
+            const lookupColOpts = finalColumn.colOptions as LinkToAnotherRecordType
+            const targetBaseId = lookupColOpts?.fk_related_base_id || (base.value?.id as string)
             const targetTableMeta = await getMeta(targetBaseId, lookupColOpts.fk_related_model_id as string)
             if (targetTableMeta) {
               finalTableMeta = targetTableMeta
-              finalColumn = targetTableMeta.columns?.find((c) => c.pv) || targetTableMeta.columns?.[0]
+              finalColumn = targetTableMeta.columns?.find(c => c.pv) || targetTableMeta.columns?.[0]
             }
           }
 
@@ -208,7 +223,7 @@ export const useInfiniteGroups = (
                   title: groupCol.column.title!,
                   column_name: groupCol.column.title!,
                   key: value,
-                  column_uidt: groupCol.column.uidt,
+                  column_uidt: group.relatedColumn?.uidt ?? groupCol.column.uidt,
                   column_id: groupCol.column.id,
                   groupIndex,
                 },
@@ -218,7 +233,7 @@ export const useInfiniteGroups = (
                   title: groupCol.column.title!,
                   column_name: groupCol.column.title!,
                   key: value,
-                  column_uidt: groupCol.column.uidt,
+                  column_uidt: group.relatedColumn?.uidt ?? groupCol.column.uidt,
                   column_id: groupCol.column.id,
                   groupIndex,
                 },
@@ -228,16 +243,16 @@ export const useInfiniteGroups = (
 
         const groupPath = generateGroupPath(group)
 
-        let routePath = (routeQuery.value?.path?.split('-') ?? []).map((c) => +c)
+        let routePath = (routeQuery.value?.path?.split('-') ?? []).map(c => +c)
 
         routePath = [
           ...routePath.slice(0, group.nestedIn.length),
-          ...Array(Math.max(0, group.nestedIn.length - routePath.length)).fill(''),
+          ...Array.from({ length: Math.max(0, group.nestedIn.length - routePath.length) }).fill(''),
         ]
 
         const isExpanded = groupPath.join('-') === routePath.join('-')
 
-        const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
+        const nestedKey = group.nestedIn.map(n => `${n.key}-${n.column_name}`).join('_') || 'default'
 
         group.isExpanded = groupKeysManager.hasKey(view.value.id!, nestedKey) || isExpanded
 
@@ -248,7 +263,8 @@ export const useInfiniteGroups = (
 
         if (parentGroup) {
           parentGroup.groups.set(groupIndex, group)
-        } else {
+        }
+        else {
           cachedGroups.value.set(groupIndex, group)
         }
         groups.push(group)
@@ -258,13 +274,13 @@ export const useInfiniteGroups = (
         const aggregationAliasMapper = new AliasMapper()
 
         const aggregation = Object.values(gridViewCols.value)
-          .map((f) => ({
+          .map(f => ({
             field: f.fk_column_id!,
             type: f.aggregation ?? CommonAggregations.None,
           }))
-          .filter((f) => f.type !== CommonAggregations.None)
+          .filter(f => f.type !== CommonAggregations.None)
 
-        const aggregationParams = groups.map((group) => ({
+        const aggregationParams = groups.map(group => ({
           where: where?.value,
           alias: aggregationAliasMapper.generateAlias(group.value),
           filterArrJson: JSON.stringify([...nestedFilters.value, ...buildNestedFilterArr(group)]),
@@ -295,13 +311,13 @@ export const useInfiniteGroups = (
               )
 
           await aggregationAliasMapper.process(aggResponse, (originalKey, value) => {
-            const group = groups.find((g) => g.value.toString() === originalKey.toString())
+            const group = groups.find(g => g.value.toString() === originalKey.toString())
 
             Object.keys(value).forEach((key) => {
               const field = gridViewColByTitle.value[key]
               const col = columnsById.value[field.fk_column_id]
-              value[key] =
-                getFormattedAggrationValue(field.aggregation, value[key], col, [originalKey.toString()], {
+              value[key]
+                = getFormattedAggrationValue(field.aggregation, value[key], col, [originalKey.toString()], {
                   col,
                   meta: meta.value as TableType,
                   metas: metas.value,
@@ -320,10 +336,12 @@ export const useInfiniteGroups = (
       if (!parentGroup) {
         totalGroups.value = response.pageInfo.totalRows || totalGroups.value
         chunkStates.value[chunkId] = 'loaded'
-      } else {
+      }
+      else {
         targetChunkStates[chunkId] = 'loaded'
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error(`Error fetching group chunk at level ${level}:`, error)
       targetChunkStates[chunkId] = undefined
     }
@@ -340,22 +358,27 @@ export const useInfiniteGroups = (
     return group.nestedIn.reduce((acc, curr) => {
       if (curr.key === GROUP_BY_VARS.NULL) {
         acc += `${acc.length ? '~and' : '@'}(${curr.title},gb_null)`
-      } else if (curr.column_uidt === UITypes.Checkbox) {
+      }
+      else if (curr.column_uidt === UITypes.Checkbox) {
         acc += `${acc.length ? '~and' : '@'}(${curr.title},${curr.key === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked'})`
-      } else if (
+      }
+      else if (
         [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(curr.column_uidt as UITypes)
       ) {
         acc += `${acc.length ? '~and' : '@'}(${curr.title},gb_eq,exactDate,${sanitiseValue(curr.key)})`
-      } else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(curr.column_uidt as UITypes)) {
+      }
+      else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(curr.column_uidt as UITypes)) {
         try {
           const value = JSON.parse(curr.key)
           acc += `${acc.length ? '~and' : '@'}(${curr.title},gb_eq,${sanitiseValue(
             (Array.isArray(value) ? value : [value]).map((v: any) => v.id).join(','),
           )})`
-        } catch (e) {
+        }
+        catch (e) {
           console.error(e)
         }
-      } else {
+      }
+      else {
         acc += `${acc.length ? '~and' : '@'}(${curr.title},gb_eq,${sanitiseValue(curr.key)})`
       }
       return acc
@@ -373,12 +396,14 @@ export const useInfiniteGroups = (
           fk_column_id: curr.column_id,
           comparison_op: 'gb_null',
         })
-      } else if (curr.column_uidt === UITypes.Checkbox) {
+      }
+      else if (curr.column_uidt === UITypes.Checkbox) {
         acc.push({
           fk_column_id: curr.column_id,
           comparison_op: curr.key === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked',
         })
-      } else if (
+      }
+      else if (
         [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(curr.column_uidt as UITypes)
       ) {
         acc.push({
@@ -387,7 +412,8 @@ export const useInfiniteGroups = (
           comparison_sub_op: 'exactDate',
           value: curr.key,
         })
-      } else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(curr.column_uidt as UITypes)) {
+      }
+      else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(curr.column_uidt as UITypes)) {
         try {
           const value = JSON.parse(curr.key)
 
@@ -396,10 +422,12 @@ export const useInfiniteGroups = (
             comparison_op: 'gb_eq',
             value: (Array.isArray(value) ? value : [value]).map((v: any) => v.id).join(','),
           })
-        } catch (e) {
+        }
+        catch (e) {
           console.error(e)
         }
-      } else {
+      }
+      else {
         acc.push({
           fk_column_id: curr.column_id,
           comparison_op: 'gb_eq',
@@ -420,10 +448,10 @@ export const useInfiniteGroups = (
 
     const targetChunkStates = parentGroup ? parentGroup.chunkStates : chunkStates.value
     const chunksToFetch = Array.from({ length: lastChunkId - firstChunkId + 1 }, (_, i) => firstChunkId + i).filter(
-      (chunkId) => !targetChunkStates[chunkId] || force,
+      chunkId => !targetChunkStates[chunkId] || force,
     )
 
-    await Promise.all(chunksToFetch.map((chunkId) => fetchGroupChunk(chunkId, parentGroup, force)))
+    await Promise.all(chunksToFetch.map(chunkId => fetchGroupChunk(chunkId, parentGroup, force)))
     callbacks?.syncVisibleData()
 
     // if found empty chunk, remove all chunks after it and fetch all chunks again
@@ -441,7 +469,7 @@ export const useInfiniteGroups = (
       }
     }
 
-    await Promise.all(chunksToFetch.map((chunkId) => fetchGroupChunk(chunkId, parentGroup, force)))
+    await Promise.all(chunksToFetch.map(chunkId => fetchGroupChunk(chunkId, parentGroup, force)))
   }
 
   const clearGroupCache = (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => {
@@ -468,7 +496,8 @@ export const useInfiniteGroups = (
       parentGroup.chunkStates = parentGroup.chunkStates.map((state, index) =>
         index >= getGroupChunkIndex(safeStartIndex) && index <= getGroupChunkIndex(safeEndIndex) ? state : undefined,
       )
-    } else {
+    }
+    else {
       cachedGroups.value = newGroups
       chunkStates.value = chunkStates.value.map((state, index) =>
         index >= getGroupChunkIndex(safeStartIndex) && index <= getGroupChunkIndex(safeEndIndex) ? state : undefined,
@@ -502,7 +531,8 @@ export const useInfiniteGroups = (
               where: where?.value,
               column_name: groupCol.column.title,
             })
-      } else {
+      }
+      else {
         const groupCol = groupByColumns.value?.[group.nestedIn.length]
 
         if (!groupCol) return
@@ -529,7 +559,8 @@ export const useInfiniteGroups = (
               filterArrJson: JSON.stringify(groupFilterArr),
             })
       }
-    } catch (e: any) {
+    }
+    catch (e: any) {
       if (showToastMessage) {
         const errorMessage = await extractSdkResponseErrorMsg(e)
         message.error(`Failed to sync count: ${errorMessage}`)
@@ -566,11 +597,11 @@ export const useInfiniteGroups = (
           })
           .filter(Boolean)
       : Object.values(gridViewCols.value)
-          .map((f) => ({
+          .map(f => ({
             field: f.fk_column_id!,
             type: f.aggregation ?? CommonAggregations.None,
           }))
-          .filter((f) => f.type !== CommonAggregations.None)
+          .filter(f => f.type !== CommonAggregations.None)
 
     if (!aggregation.length) return
 
@@ -587,7 +618,7 @@ export const useInfiniteGroups = (
     for (let i = 0; i < groups.length; i += BATCH_SIZE) {
       const batchGroups = groups.slice(i, i + BATCH_SIZE)
 
-      const aggregationParams = batchGroups.map((group) => ({
+      const aggregationParams = batchGroups.map(group => ({
         where: where?.value,
         alias: aggregationAliasMapper.generateAlias(createGroupUniqueIdentifier(group)),
         filterArrJson: JSON.stringify([...(nestedFilters.value || []), ...buildNestedFilterArr(group)]),
@@ -617,7 +648,7 @@ export const useInfiniteGroups = (
             )
 
         await aggregationAliasMapper.process(aggResponse, (originalKey, value) => {
-          const group = batchGroups.find((g) => createGroupUniqueIdentifier(g) === originalKey.toString())
+          const group = batchGroups.find(g => createGroupUniqueIdentifier(g) === originalKey.toString())
 
           if (!group) return
 
@@ -625,8 +656,8 @@ export const useInfiniteGroups = (
             const field = gridViewColByTitle.value[key]
             const col = columnsById.value[field.fk_column_id]
             const aggregationType = fieldAggregationMap.get(field.fk_column_id) ?? field.aggregation
-            value[key] =
-              getFormattedAggrationValue(aggregationType, value[key], col, [originalKey.toString()], {
+            value[key]
+              = getFormattedAggrationValue(aggregationType, value[key], col, [originalKey.toString()], {
                 col,
                 meta: meta.value as TableType,
                 metas: metas.value,
@@ -637,7 +668,8 @@ export const useInfiniteGroups = (
 
           Object.assign(group.aggregations, value)
         })
-      } catch (error) {
+      }
+      catch (error) {
         console.error('Error refreshing group aggregations batch:', error)
       }
     }
@@ -646,7 +678,7 @@ export const useInfiniteGroups = (
 
   const toggleExpand = async (group: CanvasGroup) => {
     group.isExpanded = !group.isExpanded
-    const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
+    const nestedKey = group.nestedIn.map(n => `${n.key}-${n.column_name}`).join('_') || 'default'
 
     if (!view.value?.id) return
     groupKeysManager.toggleKey(view.value.id, nestedKey, group.isExpanded)
@@ -660,7 +692,8 @@ export const useInfiniteGroups = (
 
     if (path.length === 1) {
       targetGroups = cachedGroups.value
-    } else {
+    }
+    else {
       let currentGroups = cachedGroups.value
 
       for (let i = 0; i < path.length - 1; i++) {
@@ -675,7 +708,7 @@ export const useInfiniteGroups = (
     if (!view.value?.id) return
 
     targetGroups.forEach((group) => {
-      const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
+      const nestedKey = group.nestedIn.map(n => `${n.key}-${n.column_name}`).join('_') || 'default'
       group.isExpanded = expand
       groupKeysManager.toggleKey(view.value.id!, nestedKey, expand)
     })

@@ -22,13 +22,14 @@ const cdfValue = computed({
   set: (value) => {
     if (value === '<br />' || value === '<br>') {
       vModel.value.cdf = null
-    } else {
+    }
+    else {
       vModel.value.cdf = value
     }
   },
 })
 
-const handleShowInput = () => {
+function handleShowInput() {
   isVisibleDefaultValueInput.value = true
 
   // In playwright testing we first enable this default input and then start filling all fields
@@ -71,7 +72,9 @@ const handleShowInput = () => {
 
   <div v-else>
     <div class="w-full flex items-center gap-2 mb-2">
-      <div class="text-small leading-[18px] flex-1 text-nc-content-gray-subtle">{{ $t('placeholder.defaultValue') }}</div>
+      <div class="text-small leading-[18px] flex-1 text-nc-content-gray-subtle">
+        {{ $t('placeholder.defaultValue') }}
+      </div>
     </div>
     <div class="flex flex-row gap-2">
       <div

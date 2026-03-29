@@ -53,7 +53,6 @@ export class DuplicateProcessor {
     protected readonly telemetryService: TelemetryService,
   ) {}
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async handleDuplicateDifferentWs(params: {
     sourceBase: Base; // Base to duplicate
     targetBase: Base; // Base to duplicate to

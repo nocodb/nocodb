@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ButtonType } from 'ant-design-vue/lib/button'
-import { useSlots } from 'vue'
 import type { GeneralLoaderProps } from '../general/Loader.vue'
+import { useSlots } from 'vue'
 
 /**
  * @description
@@ -71,12 +71,13 @@ const buttonSize = computed(() => {
   return size.value
 })
 
-const onFocus = (e: FocusEvent) => {
+function onFocus(e: FocusEvent) {
   // Only focus when coming from another element which is not a mouse click
   nextTick(() => {
     if (isClicked.value) {
       isFocused.value = false
-    } else {
+    }
+    else {
       const relatedTarget = e.relatedTarget as HTMLElement | null
 
       isFocused.value = !!relatedTarget
@@ -86,7 +87,7 @@ const onFocus = (e: FocusEvent) => {
   })
 }
 
-const onBlur = () => {
+function onBlur() {
   isFocused.value = false
   isClicked.value = false
 }

@@ -1,8 +1,8 @@
-import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { BaseType, OracleUi, ProjectUserReqType, RequestParams, SourceType } from 'nocodb-sdk'
-import { SqlUiFactory } from 'nocodb-sdk'
-import { isString } from '@vue/shared'
+import type { BaseType, ProjectUserReqType, RequestParams, SourceType } from 'nocodb-sdk'
 import type Record from '~icons/*'
+import { isString } from '@vue/shared'
+import { SqlUiFactory } from 'nocodb-sdk'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
 
 // todo: merge with base store
@@ -60,6 +60,13 @@ export const useBases = defineStore('basesStore', () => {
     return basesMap
   })
 
+  const resolvedProject = computed(() => {
+    if (openedProject.value) return openedProject.value
+
+    const lastVisitedBaseId = ncLastVisitedBase().get()
+    return basesList.value?.find(b => b.id === lastVisitedBaseId) || basesList.value?.[0]
+  })
+
   const isDataSourceLimitReached = computed(() => Number(openedProject.value?.sources?.length) > 9)
 
   const workspaceStore = useWorkspace()
@@ -69,7 +76,7 @@ export const useBases = defineStore('basesStore', () => {
 
   const { getBaseUrl } = useGlobal()
 
-  async function getBaseUsers({ baseId, searchText, force = false }: { baseId: string; searchText?: string; force?: boolean }) {
+  async function getBaseUsers({ baseId, searchText, force = false }: { baseId: string, searchText?: string, force?: boolean }) {
     if (!baseId) return { users: [], totalRows: 0 }
 
     if (!force && basesUser.value.has(baseId)) {
@@ -142,12 +149,14 @@ export const useBases = defineStore('basesStore', () => {
         })
 
         return
-      } catch (e: any) {
+      }
+      catch (e: any) {
         if (e?.response?.status === 404) {
           return router.push('/error/404')
         }
         throw e
-      } finally {
+      }
+      finally {
         isProjectsLoaded.value = true
       }
     }
@@ -182,10 +191,12 @@ export const useBases = defineStore('basesStore', () => {
       await updateIfBaseOrderIsNullOrDuplicate()
 
       return _projects
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
+    }
+    finally {
       isProjectsLoading.value = false
       isProjectsLoaded.value = true
     }
@@ -205,6 +216,11 @@ export const useBases = defineStore('basesStore', () => {
     if (!base) return false
 
     return !!(base.sources?.length && tableStore.baseTables.get(baseId))
+  }
+
+  function setProjectsLoaded() {
+    isProjectsLoading.value = false
+    isProjectsLoaded.value = true
   }
 
   // actions
@@ -233,7 +249,8 @@ export const useBases = defineStore('basesStore', () => {
       }
 
       bases.value.set(baseId, base)
-    } catch (e: any) {
+    }
+    catch (e: any) {
       await message.error(await extractSdkResponseErrorMsg(e))
     }
   }
@@ -250,7 +267,7 @@ export const useBases = defineStore('basesStore', () => {
         break
       }
     }
-    return sqlUi as Exclude<ReturnType<(typeof SqlUiFactory)['create']>, typeof OracleUi>
+    return sqlUi
   }
 
   const updateProject = async (baseId: string, baseUpdatePayload: BaseType) => {
@@ -309,7 +326,8 @@ export const useBases = defineStore('basesStore', () => {
     }
     try {
       meta = (isString(base.meta) ? JSON.parse(base.meta) : base.meta) ?? meta
-    } catch {}
+    }
+    catch {}
 
     return meta
   }
@@ -326,7 +344,7 @@ export const useBases = defineStore('basesStore', () => {
     bases.value.clear()
   }
 
-  const navigateToProject = async ({ baseId, page, query }: { baseId: string; page?: 'collaborators'; query?: any }) => {
+  const navigateToProject = async ({ baseId, page, query }: { baseId: string, page?: 'collaborators', query?: any }) => {
     if (!baseId) return
 
     const base = bases.value.get(baseId)
@@ -376,7 +394,8 @@ export const useBases = defineStore('basesStore', () => {
           await api.base.update(base.id!, { order: base.order })
         }),
       )
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
@@ -447,6 +466,7 @@ export const useBases = defineStore('basesStore', () => {
     isProjectPopulated,
     isProjectsLoading,
     isProjectsLoaded,
+    setProjectsLoaded,
     activeProjectId,
     openedProject,
     openedProjectBasesMap,
@@ -474,6 +494,7 @@ export const useBases = defineStore('basesStore', () => {
     baseTeamAdd,
     baseTeamUpdate,
     baseTeamRemove,
+    resolvedProject,
   }
 })
 

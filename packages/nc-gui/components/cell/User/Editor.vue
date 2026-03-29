@@ -1,9 +1,10 @@
 <script lang="ts" setup>
-import { Checkbox, CheckboxGroup, Radio, RadioGroup } from 'ant-design-vue'
 import type { Select as AntSelect } from 'ant-design-vue'
-import { CURRENT_USER_TOKEN, type UserFieldRecordType } from 'nocodb-sdk'
-import { getOptions, getSelectedUsers } from './utils'
+import type { UserFieldRecordType } from 'nocodb-sdk'
+import { Checkbox, CheckboxGroup, Radio, RadioGroup } from 'ant-design-vue'
+import { CURRENT_USER_TOKEN } from 'nocodb-sdk'
 import MdiCloseCircle from '~icons/mdi/close-circle'
+import { getOptions, getSelectedUsers } from './utils'
 
 interface Props {
   modelValue?: UserFieldRecordType[] | UserFieldRecordType | string | null
@@ -57,7 +58,7 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
-const isMultiple = computed(() => forceMulti || (column.value.meta as { is_multi: boolean; notify: boolean })?.is_multi)
+const isMultiple = computed(() => forceMulti || (column.value.meta as { is_multi: boolean, notify: boolean })?.is_multi)
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
@@ -77,13 +78,13 @@ const searchVal = ref<string | null>()
 
 const { isUIAllowed } = useRoles()
 
-const { showUpgradeToUseCurrentUserFilter } = useEeConfig()
+const { showEEFeatures, showUpgradeToUseCurrentUserFilter } = useEeConfig()
 
 const isFormListView = computed(() => !isEditColumn.value && isForm.value && parseProp(column.value.meta)?.isList)
 
 const options = computed(() => {
   const currentUserField: any[] = []
-  if (isEeUI && isInFilter.value) {
+  if (isEeUI && isInFilter.value && showEEFeatures.value) {
     currentUserField.push({
       id: CURRENT_USER_TOKEN,
       display_name: t('title.currentUser'),
@@ -94,7 +95,7 @@ const options = computed(() => {
 })
 
 const nonDeletedOptions = computed(() => {
-  return options.value.filter((op) => !op.deleted)
+  return options.value.filter(op => !op.deleted)
 })
 
 const filteredOptions = computed(() => {
@@ -134,7 +135,7 @@ const vModel = computed({
     if (val && val.length) {
       val.forEach((item) => {
         // @ts-expect-error antd select returns string[] instead of { label: string, value: string }[]
-        const user = options.value.find((u) => u.id === item)
+        const user = options.value.find(u => u.id === item)
         if (user) {
           value.push(user.id)
         }
@@ -142,7 +143,8 @@ const vModel = computed({
     }
     if (isMultiple.value) {
       emit('update:modelValue', val?.length ? value.join(',') : null)
-    } else {
+    }
+    else {
       emit('update:modelValue', val?.length ? value[value.length - 1] : null)
       isOpen.value = false
     }
@@ -151,8 +153,9 @@ const vModel = computed({
 
 const vModelListLayout = computed(() => {
   if (isMultiple.value) {
-    return (vModel.value || []).map((item) => item.value)
-  } else {
+    return (vModel.value || []).map(item => item.value)
+  }
+  else {
     return (vModel.value || [])?.[0]?.value || ''
   }
 })
@@ -166,7 +169,8 @@ watch(isOpen, (n, _o) => {
   if (editAllowed.value) {
     if (!n) {
       aselect.value?.$el?.querySelector('input')?.blur()
-    } else {
+    }
+    else {
       aselect.value?.$el?.querySelector('input')?.focus()
     }
   }
@@ -239,15 +243,15 @@ useSelectedCellKeydownListener(
   },
 )
 
-const search = () => {
+function search() {
   searchVal.value = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value
 }
 
-const onTagClick = (e: Event, onClose: Function) => {
+function onTagClick(e: Event, onClose: Function) {
   // check clicked element is remove icon
   if (
-    (e.target as HTMLElement)?.classList.contains('ant-tag-close-icon') ||
-    (e.target as HTMLElement)?.closest('.ant-tag-close-icon')
+    (e.target as HTMLElement)?.classList.contains('ant-tag-close-icon')
+    || (e.target as HTMLElement)?.closest('.ant-tag-close-icon')
   ) {
     e.stopPropagation()
     onClose()
@@ -260,13 +264,13 @@ function toggleMenu() {
   isOpen.value = editAllowed.value && !isOpen.value
 }
 
-const handleClose = (e: MouseEvent) => {
+function handleClose(e: MouseEvent) {
   // close dropdown if clicked outside of dropdown
   if (
-    isOpen.value &&
-    aselect.value &&
-    !aselect.value.$el.contains(e.target) &&
-    !document.querySelector('.nc-dropdown-user-select-cell.active')?.contains(e.target as Node)
+    isOpen.value
+    && aselect.value
+    && !aselect.value.$el.contains(e.target)
+    && !document.querySelector('.nc-dropdown-user-select-cell.active')?.contains(e.target as Node)
   ) {
     // loose focus when clicked outside
     isEditable.value = false
@@ -277,24 +281,25 @@ const handleClose = (e: MouseEvent) => {
 useEventListener(document, 'click', handleClose, true)
 
 // search with email or display_name
-const filterOption = (input: string, option: any): boolean => {
-  const opt = options.value.find((o) => o.id === option.value)
+function filterOption(input: string, option: any): boolean {
+  const opt = options.value.find(o => o.id === option.value)
   if (!opt) return false
 
   return searchCompare([opt.display_name, opt.email], input)
 }
 
 // check if user is part of the base
-const isCollaborator = (userIdOrEmail) => {
+function isCollaborator(userIdOrEmail) {
   return !idUserMap.value?.[userIdOrEmail]?.deleted
 }
 
-const onKeyDown = (e: KeyboardEvent) => {
+function onKeyDown(e: KeyboardEvent) {
   // Tab
   if (e.key === 'Tab') {
     isOpen.value = false
     return
-  } else if (e.key === 'Escape' && isForm.value) {
+  }
+  else if (e.key === 'Escape' && isForm.value) {
     isOpen.value = false
     return
   }
@@ -302,7 +307,7 @@ const onKeyDown = (e: KeyboardEvent) => {
   e.stopPropagation()
 }
 
-const onFocus = () => {
+function onFocus() {
   isFocusing.value = true
 
   setTimeout(() => {
@@ -350,8 +355,9 @@ onMounted(() => {
             :bordered="false"
           >
             <template #prefix>
-              <GeneralIcon icon="search" class="nc-search-icon text-nc-content-gray-muted opacity-50 h-4 w-4 mr-1.5" /> </template
-          ></a-input>
+              <GeneralIcon icon="search" class="nc-search-icon text-nc-content-gray-muted opacity-50 h-4 w-4 mr-1.5" />
+            </template>
+          </a-input>
         </div>
         <div class="w-full max-w-full max-h-[328px] nc-scrollbar-thin p-1">
           <component
@@ -476,7 +482,7 @@ onMounted(() => {
           <div
             v-if="op.email === CURRENT_USER_TOKEN"
             class="absolute -bottom-1 w-[calc(100%_+_16px)] border-b-1 border-nc-border-gray-medium -ml-4"
-          ></div>
+          />
           <div class="w-full flex gap-2 items-center">
             <GeneralUserIcon :user="op" size="base" class="flex-none" :show-placeholder-icon="op.email === CURRENT_USER_TOKEN" />
 

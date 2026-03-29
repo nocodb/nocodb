@@ -79,6 +79,8 @@ export class UiPostOperations
     'viewColumnUpdate' as const,
     'viewColumnCreate' as const,
     'gridColumnUpdate' as const,
+    'timelineColumnUpdate' as const,
+    'listColumnUpdate' as const,
     'viewRowColorConditionAdd' as const,
     'viewRowColorConditionUpdate' as const,
     'viewRowColorConditionDelete' as const,
@@ -103,6 +105,7 @@ export class UiPostOperations
     'kanbanViewCreate' as const,
     'mapViewCreate' as const,
     'calendarViewCreate' as const,
+    'timelineViewCreate' as const,
     'gridViewUpdate' as const,
     'formViewUpdate' as const,
     'formColumnUpdate' as const,
@@ -110,6 +113,7 @@ export class UiPostOperations
     'kanbanViewUpdate' as const,
     'mapViewUpdate' as const,
     'calendarViewUpdate' as const,
+    'timelineViewUpdate' as const,
     'nestedDataLink' as const,
     'nestedDataUnlink' as const,
     'nestedDataListCopyPasteOrDeleteAll' as const,
@@ -136,6 +140,7 @@ export class UiPostOperations
     'extensionDelete' as const,
     'listViewCreate' as const,
     'listViewUpdate' as const,
+    'convertLinkToV2' as const,
   ];
   httpMethod = 'POST' as const;
 
@@ -206,6 +211,11 @@ export class UiPostOperations
           payload,
           req,
         );
+      case 'convertLinkToV2':
+        return await this.columnsService.convertLinkToV2(context, {
+          columnId: req.query.columnId,
+          req,
+        });
       case 'viewUpdate':
         return await this.viewsService.viewUpdate(context, {
           viewId: req.query.viewId,

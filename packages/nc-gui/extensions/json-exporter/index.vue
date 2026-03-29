@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { type ViewType } from 'nocodb-sdk'
-import { ViewTypes, getFirstNonPersonalView } from 'nocodb-sdk'
+import type { ViewType } from 'nocodb-sdk'
+import { getFirstNonPersonalView, ViewTypes } from 'nocodb-sdk'
 
 const { extension, tables, getViewsForTable, getData } = useExtensionHelperOrThrow()
 
@@ -24,7 +24,7 @@ const viewList = computed(() => {
   if (!exportPayload.value.tableId) return []
   return (
     views.value
-      .filter((view) => view.type !== ViewTypes.FORM)
+      .filter(view => view.type !== ViewTypes.FORM)
       .map((view) => {
         return {
           label: view.title,
@@ -34,13 +34,13 @@ const viewList = computed(() => {
   )
 })
 
-const reloadViews = async () => {
+async function reloadViews() {
   if (exportPayload.value.tableId) {
     views.value = await getViewsForTable(exportPayload.value.tableId)
   }
 }
 
-const onTableSelect = async (tableId: string) => {
+async function onTableSelect(tableId: string) {
   exportPayload.value.tableId = tableId
   await reloadViews()
   exportPayload.value.viewId = getFirstNonPersonalView(views.value, {
@@ -49,12 +49,12 @@ const onTableSelect = async (tableId: string) => {
   await extension.value.kvStore.set('exportPayload', exportPayload.value)
 }
 
-const onViewSelect = async (viewId: string) => {
+async function onViewSelect(viewId: string) {
   exportPayload.value.viewId = viewId
   await extension.value.kvStore.set('exportPayload', exportPayload.value)
 }
 
-const exportJson = async () => {
+async function exportJson() {
   if (!exportPayload.value.tableId || !exportPayload.value.viewId) return
 
   const allData: Record<string, any>[] = []
@@ -71,12 +71,13 @@ const exportJson = async () => {
       const blob = new Blob([json], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
-      const table = tables.value.find((table) => table.id === exportPayload.value.tableId)
-      const view = views.value.find((view) => view.id === exportPayload.value.viewId)
+      const table = tables.value.find(table => table.id === exportPayload.value.tableId)
+      const view = views.value.find(view => view.id === exportPayload.value.viewId)
 
       if (table && view) {
         a.download = `${table.title} - ${view.title}.json`
-      } else {
+      }
+      else {
         a.download = 'data.json'
       }
 
@@ -99,7 +100,9 @@ onMounted(() => {
     <div class="flex flex-col gap-2 p-3">
       <NcSelect v-model:value="exportPayload.tableId" :options="tableList" placeholder="-select table-" @change="onTableSelect" />
       <NcSelect v-model:value="exportPayload.viewId" :options="viewList" placeholder="-select view-" @change="onViewSelect" />
-      <NcButton @click="exportJson">Export</NcButton>
+      <NcButton @click="exportJson">
+        Export
+      </NcButton>
     </div>
   </ExtensionsExtensionWrapper>
 </template>

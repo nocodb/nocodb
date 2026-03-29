@@ -1,14 +1,14 @@
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes, getFirstNonPersonalView, isSystemColumn } from 'nocodb-sdk'
 import type { SidebarTableNode } from '~/lib/types'
 import { generateUniqueTitle as generateTitle } from '#imports'
+import { getFirstNonPersonalView, isSystemColumn, UITypes } from 'nocodb-sdk'
 
 export function useTableNew(param: {
   onTableCreate?: (tableMeta: TableType) => void
   baseId: string
   sourceId?: Ref<string | undefined>
 }) {
-  const table = reactive<{ title: string; table_name: string; description?: string; columns: string[]; is_hybrid: boolean }>({
+  const table = reactive<{ title: string, table_name: string, description?: string, columns: string[], is_hybrid: boolean }>({
     title: '',
     table_name: '',
     description: '',
@@ -119,9 +119,11 @@ export function useTableNew(param: {
             )
           }
         }
-      } catch (e) {
+      }
+      catch (e) {
         console.error(e)
-      } finally {
+      }
+      finally {
         table.isViewsLoading = false
       }
     }
@@ -131,15 +133,18 @@ export function useTableNew(param: {
 
       try {
         await getMeta(table.base_id as string, table.id as string)
-      } catch (e) {
+      }
+      catch (e) {
         console.error(e)
-      } finally {
+      }
+      finally {
         table.isMetaLoading = false
       }
     }
     if (cmdOrCtrl) {
       await navigateToTable()
-    } else {
+    }
+    else {
       await Promise.all([navigateToTable(), loadTableMeta()])
     }
   }
@@ -163,7 +168,7 @@ export function useTableNew(param: {
     }
 
     const sqlUi = await basesStore.getSqlUi(baseId, sourceId)
-    const source = bases.value.get(baseId)?.sources?.find((s) => s.id === sourceId)
+    const source = bases.value.get(baseId)?.sources?.find(s => s.id === sourceId)
 
     if (!sqlUi) return
     const columns = sqlUi
@@ -197,7 +202,8 @@ export function useTableNew(param: {
       refreshCommandPalette()
 
       await openTable(tableMeta)
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
@@ -226,7 +232,7 @@ export function useTableNew(param: {
       async onOk() {
         try {
           const meta = (await getMeta(table.base_id as string, table.id as string, true)) as TableType
-          const relationColumns = meta?.columns?.filter((c) => c.uidt === UITypes.LinkToAnotherRecord && !isSystemColumn(c))
+          const relationColumns = meta?.columns?.filter(c => c.uidt === UITypes.LinkToAnotherRecord && !isSystemColumn(c))
 
           if (relationColumns?.length && !isXcdbBase(table.source_id)) {
             const refColMsgs = await Promise.all(
@@ -274,10 +280,12 @@ export function useTableNew(param: {
                 type: 'database',
               }),
             )
-          } else {
+          }
+          else {
             await openTable(tables.value[0])
           }
-        } catch (e: any) {
+        }
+        catch (e: any) {
           message.error(await extractSdkResponseErrorMsg(e))
         }
       },

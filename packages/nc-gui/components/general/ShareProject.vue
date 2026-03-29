@@ -38,21 +38,21 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
-const copySharedBase = async () => {
+async function copySharedBase() {
   const baseUrl = getMainUrl()
-  window.open(`${baseUrl || ''}#/copy-shared-base?base=${route.params.baseId}`, '_blank', 'noopener,noreferrer')
+  window.open(`${baseUrl || ''}/copy-shared-base?base=${route.params.baseId}`, '_blank', 'noopener,noreferrer')
 }
 </script>
 
 <template>
   <div
     v-if="
-      !isSharedBase &&
-      !isManagedAppMaster &&
-      !isSandbox &&
-      isUIAllowed('baseShare') &&
-      visibility !== 'hidden' &&
-      (activeTable || base)
+      !isSharedBase
+        && !isManagedAppMaster
+        && !isSandbox
+        && isUIAllowed('baseShare')
+        && visibility !== 'hidden'
+        && (activeTable || base)
     "
     class="nc-share-base-button flex flex-col justify-center"
     data-testid="share-base-button"
@@ -73,14 +73,16 @@ const copySharedBase = async () => {
       <div v-if="!isMobileMode" class="flex flex-row items-center w-full gap-x-1">
         <MaterialSymbolsPublic v-if="visibility === 'public'" class="h-3.5" />
         <MaterialSymbolsLockOutline v-else-if="visibility === 'private'" class="h-3.5" />
-        <div class="flex">{{ $t('activity.share') }}</div>
+        <div class="flex">
+          {{ $t('activity.share') }}
+        </div>
       </div>
       <GeneralIcon v-else icon="mobileShare" />
     </NcButton>
   </div>
 
   <template v-else-if="isSharedBase && !hideSharedBaseBtn">
-    <div class="flex-1"></div>
+    <div class="flex-1" />
     <div class="flex flex-col justify-center h-full">
       <div class="flex flex-row items-center w-full">
         <NcButton

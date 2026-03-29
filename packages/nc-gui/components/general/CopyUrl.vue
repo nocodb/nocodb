@@ -14,16 +14,16 @@ const isCopied = ref({
 
 const { copy } = useCopy()
 
-const openUrl = async () => {
+async function openUrl() {
   window.open(url.value, '_blank', 'noopener,noreferrer')
 }
 
-const embedHtml = async () => {
+async function embedHtml() {
   await copy(`<iframe src="${url.value}" width="100%" height="100%" style="border: none;"></iframe>`)
   isCopied.value.embed = true
 }
 
-const copyUrl = async () => {
+async function copyUrl() {
   isCopied.value.link = false
 
   await copy(url.value)
@@ -40,7 +40,9 @@ const copyUrl = async () => {
     class="flex flex-row items-center justify-end text-nc-content-gray-subtle2 gap-x-1.5 py-1.5 px-1.5 bg-nc-bg-gray-extralight rounded-md border-1 border-nc-border-gray-medium"
   >
     <div class="flex flex-row block flex-1 overflow-hidden pl-3 cursor-pointer" @click="copyUrl">
-      <div class="overflow-hidden whitespace-nowrap text-nc-content-gray-muted">{{ url }}</div>
+      <div class="overflow-hidden whitespace-nowrap text-nc-content-gray-muted">
+        {{ url }}
+      </div>
     </div>
     <div class="flex flex-row gap-x-1">
       <NcTooltip>
@@ -70,8 +72,12 @@ const copyUrl = async () => {
         <MdiCheck v-if="isCopied.link" class="h-3.5" />
         <MdiContentCopy v-else class="h-3.5" />
         <div class="flex text-xs" :style="{ fontWeight: 500 }">
-          <template v-if="isCopied.link"> {{ $t('activity.copiedLink') }} </template>
-          <template v-else> {{ $t('activity.copyUrl') }} </template>
+          <template v-if="isCopied.link">
+            {{ $t('activity.copiedLink') }}
+          </template>
+          <template v-else>
+            {{ $t('activity.copyUrl') }}
+          </template>
         </div>
       </div>
     </div>

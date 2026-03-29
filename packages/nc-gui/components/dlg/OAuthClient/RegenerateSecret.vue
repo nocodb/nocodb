@@ -35,9 +35,11 @@ async function onRegenerate() {
       vModel.value = false
       emits('regenerated')
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     isRegenerating.value = false
   }
 }
@@ -45,15 +47,16 @@ async function onRegenerate() {
 
 <template>
   <GeneralModal v-model:visible="vModel" size="small" class="!w-[440px]">
-    <div class="flex flex-col gap-4 p-6">
+    <div class="flex flex-col gap-4 p-4 p-6">
       <div class="flex items-start gap-3">
         <GeneralIcon icon="alertTriangle" class="flex-none !text-nc-orange-500 h-5 w-5 mt-0.5" />
         <div class="flex flex-col gap-1">
-          <h3 class="font-bold text-base text-nc-content-gray-emphasis">Regenerate Client Secret</h3>
+          <h3 class="font-bold text-base text-nc-content-gray-emphasis">
+            Regenerate Client Secret
+          </h3>
           <div class="text-sm text-nc-content-gray-subtle">
             Are you sure you want to regenerate the client secret for
-            <span class="font-semibold">{{ oauthClient.client_name }}</span
-            >?
+            <span class="font-semibold">{{ oauthClient.client_name }}</span>?
           </div>
         </div>
       </div>
@@ -70,7 +73,9 @@ async function onRegenerate() {
       </div>
 
       <div class="flex justify-end gap-2 mt-2">
-        <NcButton type="secondary" size="small" @click="vModel = false"> Cancel </NcButton>
+        <NcButton type="secondary" size="small" @click="vModel = false">
+          Cancel
+        </NcButton>
         <NcButton type="danger" size="small" :loading="isRegenerating" @click="onRegenerate">
           {{ isRegenerating ? 'Regenerating...' : 'Regenerate Secret' }}
         </NcButton>

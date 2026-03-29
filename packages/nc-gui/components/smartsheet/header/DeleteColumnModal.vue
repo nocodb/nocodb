@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { DependencyTableType, RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { DependencyTableType, isLinksOrLTAR, RelationTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -72,7 +72,7 @@ const warningMsg = computed(() => {
     .join("', '")}'. Deleting this column will also delete the related Link column${columns.length > 1 ? 's' : ''}.`
 }) */
 
-const onDelete = async () => {
+async function onDelete() {
   if (!column.value) return
 
   isLoading.value = true
@@ -114,9 +114,11 @@ const onDelete = async () => {
     visible.value = false
 
     props.onDeleteColumn?.()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 }

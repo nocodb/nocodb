@@ -77,7 +77,7 @@ const sourceSelectorRef = ref()
 
 const sourceIdRef = ref(sourceId)
 
-const onLog = (data: { message: string }) => {
+function onLog(data: { message: string }) {
   progressRef.value?.pushProgress(data.message, 'progress')
   lastProgress.value = { msg: data.message, status: 'progress' }
 
@@ -86,7 +86,7 @@ const onLog = (data: { message: string }) => {
   }
 }
 
-const onStatus = async (status: JobStatus, data?: any) => {
+async function onStatus(status: JobStatus, data?: any) {
   lastProgress.value = { msg: data?.message, status }
 
   if (status === JobStatus.COMPLETED) {
@@ -98,7 +98,8 @@ const onStatus = async (status: JobStatus, data?: any) => {
       workspace.loadWorkspace(activeWorkspace.value.id)
     }
     // TODO: add tab of the first table
-  } else if (status === JobStatus.FAILED) {
+  }
+  else if (status === JobStatus.FAILED) {
     await loadTables()
     goBack.value = true
     progressRef.value?.pushProgress(data.error.message, status)
@@ -113,7 +114,7 @@ const validators = computed(() => ({
 
 const dialogShow = computed({
   get: () => modelValue,
-  set: (v) => emit('update:modelValue', v),
+  set: v => emit('update:modelValue', v),
 })
 
 const useForm = Form.useForm
@@ -122,9 +123,9 @@ const { validateInfos } = useForm(syncSource, validators)
 
 const disableImportButton = computed(
   () =>
-    !syncSource.value.details.apiKey ||
-    !syncSource.value.details.syncSourceUrlOrId ||
-    sourceSelectorRef.value?.selectedSource?.ncItemDisabled,
+    !syncSource.value.details.apiKey
+    || !syncSource.value.details.syncSourceUrlOrId
+    || sourceSelectorRef.value?.selectedSource?.ncItemDisabled,
 )
 
 const isLoading = ref(false)
@@ -149,7 +150,8 @@ async function createOrUpdate() {
         },
         payload,
       )
-    } else {
+    }
+    else {
       syncSource.value = await $api.internal.postOperation(
         activeWorkspace.value!.id,
         baseId,
@@ -160,7 +162,8 @@ async function createOrUpdate() {
         payload,
       )
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -179,7 +182,7 @@ async function listenForUpdates(id?: string) {
     : jobs
         // sort by created_at desc (latest first)
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        .find((j) => j.base_id === baseId && j.status !== JobStatus.COMPLETED && j.status !== JobStatus.FAILED)
+        .find(j => j.base_id === baseId && j.status !== JobStatus.COMPLETED && j.status !== JobStatus.FAILED)
 
   if (!job) {
     listeningForUpdates.value = false
@@ -203,10 +206,12 @@ async function listenForUpdates(id?: string) {
         step.value = 2
         if (data.status) {
           onStatus(data.status as JobStatus, data.data)
-        } else {
+        }
+        else {
           onLog(data.data as any)
         }
-      } else {
+      }
+      else {
         listeningForUpdates.value = false
         isLoading.value = false
       }
@@ -225,10 +230,11 @@ async function loadSyncSrc() {
   if (srcs && srcs[0]) {
     srcs[0].details = srcs[0].details || {}
     syncSource.value = migrateSync(srcs[0])
-    syncSource.value.details.syncSourceUrlOrId =
-      srcs[0].details.appId && srcs[0].details.appId.length > 0 ? srcs[0].details.syncSourceUrlOrId : srcs[0].details.shareId
+    syncSource.value.details.syncSourceUrlOrId
+      = srcs[0].details.appId && srcs[0].details.appId.length > 0 ? srcs[0].details.syncSourceUrlOrId : srcs[0].details.shareId
     listenForUpdates()
-  } else {
+  }
+  else {
     syncSource.value = {
       id: '',
       type: 'Airtable',
@@ -267,7 +273,8 @@ async function sync() {
     )
     listeningForUpdates.value = false
     listenForUpdates(jobData.id)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -426,7 +433,9 @@ const collapseKey = ref('')
         <a-collapse v-model:active-key="collapseKey" ghost class="nc-import-collapse">
           <a-collapse-panel key="advanced-settings">
             <div class="mb-2">
-              <NcCheckbox v-model:checked="syncSource.details.options.syncData">{{ $t('labels.importData') }}</NcCheckbox>
+              <NcCheckbox v-model:checked="syncSource.details.options.syncData">
+                {{ $t('labels.importData') }}
+              </NcCheckbox>
             </div>
 
             <div class="my-2">
@@ -489,13 +498,19 @@ const collapseKey = ref('')
             <GeneralIcon icon="checkFill" class="text-white w-4 h-4" />
             <span> {{ $t('msg.airtableImportSuccess') }} </span>
           </div>
-          <div v-if="hasWarning" class="text-yellow-500">{{ $t('msg.airtableImportWarning') }}</div>
+          <div v-if="hasWarning" class="text-yellow-500">
+            {{ $t('msg.airtableImportWarning') }}
+          </div>
         </div>
       </div>
 
       <div v-if="!isInProgress" class="text-right mt-5">
-        <nc-button v-if="lastProgress?.status === JobStatus.FAILED" size="small" @click="step = 1"> Retry import </nc-button>
-        <nc-button v-else size="small" @click="dialogShow = false"> Go to base </nc-button>
+        <nc-button v-if="lastProgress?.status === JobStatus.FAILED" size="small" @click="step = 1">
+          Retry import
+        </nc-button>
+        <nc-button v-else size="small" @click="dialogShow = false">
+          Go to base
+        </nc-button>
       </div>
     </div>
 

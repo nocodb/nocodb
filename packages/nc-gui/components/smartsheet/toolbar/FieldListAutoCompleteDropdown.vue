@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { SelectProps } from 'ant-design-vue'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { isHiddenCol, isLinksOrLTAR, isSystemColumn, RelationTypes, UITypes } from 'nocodb-sdk'
 
 const { modelValue, isSort, allowEmpty, disableSmartsheet, ...restProps } = defineProps<{
   modelValue?: string
@@ -23,7 +23,7 @@ const fieldNameAlias = inject(FieldNameAlias, ref({} as Record<string, string>))
 
 const localValue = computed({
   get: () => modelValue,
-  set: (val) => emit('update:modelValue', val),
+  set: val => emit('update:modelValue', val),
 })
 
 const { showSystemFields, fieldsMap, isLocalMode } = disableSmartsheet
@@ -41,10 +41,10 @@ const options = computed<SelectProps['options']>(() =>
         return true
       }
       if (
-        isLocalMode.value &&
-        c?.id &&
-        fieldsMap.value[c.id] &&
-        (!fieldsMap.value[c.id]?.initialShow || (!showSystemFields.value && isSystemColumn(c)))
+        isLocalMode.value
+        && c?.id
+        && fieldsMap.value[c.id]
+        && (!fieldsMap.value[c.id]?.initialShow || (!showSystemFields.value && isSystemColumn(c)))
       ) {
         return false
       }
@@ -56,13 +56,13 @@ const options = computed<SelectProps['options']>(() =>
         }
       }
       return true
-    }) ||
-    meta.value?.columns?.filter((c: ColumnType) => {
+    })
+    || meta.value?.columns?.filter((c: ColumnType) => {
       if (
-        isLocalMode.value &&
-        c?.id &&
-        fieldsMap.value[c.id] &&
-        (!fieldsMap.value[c.id]?.initialShow || (!showSystemFields.value && isSystemColumn(c)))
+        isLocalMode.value
+        && c?.id
+        && fieldsMap.value[c.id]
+        && (!fieldsMap.value[c.id]?.initialShow || (!showSystemFields.value && isSystemColumn(c)))
       ) {
         return false
       }
@@ -78,17 +78,20 @@ const options = computed<SelectProps['options']>(() =>
 
         return (
           /** if the field is used in filter, then show it anyway */
-          localValue.value === c.id ||
+          localValue.value === c.id
           /** hide system columns if not enabled */
-          showSystemFields.value
+          || showSystemFields.value
         )
-      } else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID || c.uidt === UITypes.Button) {
+      }
+      else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID || c.uidt === UITypes.Button) {
         return false
-      } else if (isSort) {
+      }
+      else if (isSort) {
         /** ignore hasmany and manytomany relations if it's using within sort menu */
         return !(isLinksOrLTAR(c) && (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO)
         /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
-      } else {
+      }
+      else {
         const isVirtualSystemField = c.colOptions && c.system
         return !isVirtualSystemField
       }
@@ -108,10 +111,10 @@ const options = computed<SelectProps['options']>(() =>
       }
 
       if (
-        field1?.id &&
-        field2?.id &&
-        fieldsMap.value[field1.id]?.order !== undefined &&
-        fieldsMap.value[field2.id]?.order !== undefined
+        field1?.id
+        && field2?.id
+        && fieldsMap.value[field1.id]?.order !== undefined
+        && fieldsMap.value[field2.id]?.order !== undefined
       ) {
         sortByOrder = fieldsMap.value[field1.id].order - fieldsMap.value[field2.id].order
       }
@@ -154,12 +157,12 @@ if (!localValue.value && allowEmpty !== true) {
       :value="option.value"
       :disabled="option.ncItemDisabled"
     >
-      <NcTooltip :disabled="!option.ncItemDisabled" placement="right" class="w-full max-w-50">
+      <NcTooltip :disabled="!option.ncItemDisabled" placement="right" class="w-full h-full max-w-50">
         <template #title>
           {{ option.ncItemTooltip }}
         </template>
 
-        <div class="flex items-center w-full justify-between gap-2">
+        <div class="h-full flex items-center w-full justify-between gap-2">
           <div class="flex gap-1.5 flex-1 items-center truncate h-full">
             <component :is="option.icon" class="!w-3.5 !h-3.5 !mx-0" color="text-nc-content-gray-muted" />
             <NcTooltip
@@ -167,7 +170,9 @@ if (!localValue.value && allowEmpty !== true) {
               class="field-selection-tooltip-wrapper truncate select-none"
               show-on-truncate-only
             >
-              <template #title> {{ option.label }}</template>
+              <template #title>
+                {{ option.label }}
+              </template>
               {{ option.label }}
             </NcTooltip>
           </div>

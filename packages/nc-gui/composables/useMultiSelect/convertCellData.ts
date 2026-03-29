@@ -1,7 +1,7 @@
 import type { AttachmentType, ColumnType, SerializerOrParserFnProps } from 'nocodb-sdk'
-import { ColumnHelper, UITypes, populateUniqueFileName } from 'nocodb-sdk'
-
 import type { AppInfo } from '~/composables/useGlobal/types'
+
+import { ColumnHelper, populateUniqueFileName, UITypes } from 'nocodb-sdk'
 
 export default function convertCellData(
   args: {
@@ -34,8 +34,8 @@ export default function convertCellData(
     markInfoShown,
   } = args
 
-  const maxAttachmentsAllowedInCell =
-    _maxAttachmentsAllowedInCell || Math.max(1, +args.appInfo.ncMaxAttachmentsAllowed || 50) || 50
+  const maxAttachmentsAllowedInCell
+    = _maxAttachmentsAllowedInCell || Math.max(1, +args.appInfo.ncMaxAttachmentsAllowed || 50) || 50
   const showUpgradeToAddMoreAttachmentsInCell = ncIsFunction(_showUpgradeToAddMoreAttachmentsInCell)
     ? _showUpgradeToAddMoreAttachmentsInCell
     : ({
@@ -72,13 +72,14 @@ export default function convertCellData(
      */
     serializedValue = ColumnHelper.serializeValue(value, {
       col: column,
-      isMysql: (_sourceId) => isMysql,
+      isMysql: _sourceId => isMysql,
       isMultipleCellPaste: isMultiple,
       clipboardItem: args.clipboardItem,
     })
 
     serializedValue = handlePostSerialize(serializedValue, value)
-  } catch (ex) {
+  }
+  catch (ex) {
     throw ex
   }
   /* eslint-enable no-useless-catch */
@@ -145,9 +146,9 @@ export default function convertCellData(
             }
             // verify mime type
             if (
-              !attachmentMeta.supportedAttachmentMimeTypes.includes('*') &&
-              !attachmentMeta.supportedAttachmentMimeTypes.includes(attachment.type) &&
-              !attachmentMeta.supportedAttachmentMimeTypes.includes(attachment.type.split('/')[0])
+              !attachmentMeta.supportedAttachmentMimeTypes.includes('*')
+              && !attachmentMeta.supportedAttachmentMimeTypes.includes(attachment.type)
+              && !attachmentMeta.supportedAttachmentMimeTypes.includes(attachment.type.split('/')[0])
             ) {
               message.error(`${attachment.name} has the mime type ${attachment.type} which is not allowed in this column.`)
               continue
@@ -160,7 +161,8 @@ export default function convertCellData(
         // Todo: on paste file add it don't replace
         if (oldAttachments.length && !attachments.length) {
           return undefined
-        } else if (value && attachments.length) {
+        }
+        else if (value && attachments.length) {
           const newAttachments: AttachmentType[] = []
 
           for (const att of attachments) {
@@ -170,15 +172,17 @@ export default function convertCellData(
               ...att,
               title: populateUniqueFileName(
                 att.title,
-                oldAttachments.concat(newAttachments).map((fn) => fn?.title || fn?.fileName),
+                oldAttachments.concat(newAttachments).map(fn => fn?.title || fn?.fileName),
                 att.mimetype,
               ),
             })
           }
           return JSON.stringify(oldAttachments.concat(newAttachments))
-        } else if (files.length && attachments.length) {
+        }
+        else if (files.length && attachments.length) {
           return attachments
-        } else {
+        }
+        else {
           return null
         }
       }

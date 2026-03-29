@@ -11,7 +11,7 @@ const up = async (knex: Knex) => {
   });
 
   // Backfill canonical_email in batches
-  // eslint-disable-next-line no-constant-condition
+
   while (true) {
     const users = await knex(MetaTable.USERS)
       .select('id', 'email')

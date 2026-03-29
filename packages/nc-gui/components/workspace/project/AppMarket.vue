@@ -50,20 +50,20 @@ const filteredManagedApps = computed(() => {
     filtered = filtered.filter((ma) => {
       if (!ma.category) return false
       // Check if selected category exists in comma-separated list
-      const categories = ma.category.split(',').map((c) => c.trim())
+      const categories = ma.category.split(',').map(c => c.trim())
       return categories.includes(selected)
     })
   }
 
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter((ma) => searchCompare([ma.title, ma.description, ma.category], query))
+    filtered = filtered.filter(ma => searchCompare([ma.title, ma.description, ma.category], query))
   }
 
   return filtered
 })
 
-const loadManagedApps = async () => {
+async function loadManagedApps() {
   if (!props.workspaceId) {
     console.error('WorkspaceId is required')
     return
@@ -81,15 +81,17 @@ const loadManagedApps = async () => {
     })
 
     managedApps.value = response?.list || []
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.error('API error:', e)
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
 
-const installManagedApp = async (managedApp: ManagedAppType) => {
+async function installManagedApp(managedApp: ManagedAppType) {
   installing.value = managedApp.id
   try {
     await $api.internal.postOperation(
@@ -107,14 +109,16 @@ const installManagedApp = async (managedApp: ManagedAppType) => {
     message.success(t('msg.success.baseInstalled'))
     emit('installed', managedApp)
     visible.value = false
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     installing.value = null
   }
 }
 
-const formatInstallCount = (count: number | null | undefined): string => {
+function formatInstallCount(count: number | null | undefined): string {
   const num = count || 0
   if (num >= 1000000) {
     return `${(num / 1000000).toFixed(1)}M`
@@ -145,8 +149,12 @@ watch(
           <GeneralIcon icon="ncBox" class="h-5 w-5" />
         </div>
         <div class="flex-1">
-          <div class="text-lg font-semibold text-nc-content-gray-emphasis">{{ t('title.appStore') }}</div>
-          <div class="text-xs text-nc-content-gray-subtle2">Discover and install managed applications</div>
+          <div class="text-lg font-semibold text-nc-content-gray-emphasis">
+            {{ t('title.appStore') }}
+          </div>
+          <div class="text-xs text-nc-content-gray-subtle2">
+            Discover and install managed applications
+          </div>
         </div>
 
         <NcButton size="small" type="text" @click="visible = false">
@@ -169,8 +177,13 @@ watch(
           </template>
         </a-input>
 
-        <NcSelect v-model:value="selectedCategory" class="w-48 nc-select-sm" :placeholder="t('labels.category')" allow-clear>
-          <a-select-option v-for="cat in categories" :key="cat" :value="cat">
+        <NcSelect
+          v-model:value="selectedCategory"
+          class="xs:max-w-30 md:w-48 nc-select-sm"
+          :placeholder="t('labels.category')"
+          allow-clear
+        >
+          <a-select-option v-for="cat in categories" :key="cat" :value="cat" class="items-center">
             {{ cat }}
           </a-select-option>
         </NcSelect>
@@ -188,7 +201,9 @@ watch(
       <div v-if="loading" class="flex items-center justify-center h-full">
         <div class="flex flex-col items-center gap-3">
           <a-spin size="large" />
-          <div class="text-sm text-nc-content-gray-muted">Loading applications...</div>
+          <div class="text-sm text-nc-content-gray-muted">
+            Loading applications...
+          </div>
         </div>
       </div>
 
@@ -197,7 +212,9 @@ watch(
         <div class="nc-empty-icon">
           <GeneralIcon icon="ncBox" class="h-10 w-10 text-nc-content-gray-muted" />
         </div>
-        <div class="text-base font-semibold text-nc-content-gray mb-2">No applications found</div>
+        <div class="text-base font-semibold text-nc-content-gray mb-2">
+          No applications found
+        </div>
         <div class="text-sm text-nc-content-gray-subtle text-center max-w-md">
           {{
             searchQuery || selectedCategory
@@ -218,7 +235,9 @@ watch(
               </div>
               <div class="nc-app-details">
                 <div class="nc-app-title-row">
-                  <h3 class="nc-app-title">{{ managedApp.title }}</h3>
+                  <h3 class="nc-app-title">
+                    {{ managedApp.title }}
+                  </h3>
                   <div v-if="managedApp.category" class="nc-app-categories">
                     <div
                       v-for="cat in managedApp.category
@@ -241,22 +260,40 @@ watch(
                 >
                   {{ managedApp.description || 'No description available' }}
                 </p>
-                <div class="nc-app-meta">
-                  <span class="nc-app-meta-item">
-                    <GeneralIcon icon="download" class="h-3.5 w-3.5" />
-                    <span class="font-medium">{{ formatInstallCount(managedApp.install_count || 0) }}</span>
-                    <span class="text-nc-content-gray-muted">installs</span>
-                  </span>
-                  <span v-if="managedApp.version" class="nc-app-meta-item">
-                    <GeneralIcon icon="gitCommit" class="h-3.5 w-3.5" />
-                    <span>v{{ managedApp.version }}</span>
-                  </span>
+                <div class="nc-app-meta-row">
+                  <div class="nc-app-meta">
+                    <span class="nc-app-meta-item">
+                      <GeneralIcon icon="download" class="h-3.5 w-3.5" />
+                      <span class="font-medium">{{ formatInstallCount(managedApp.install_count || 0) }}</span>
+                      <span class="text-nc-content-gray-muted">installs</span>
+                    </span>
+                    <span v-if="managedApp.version" class="nc-app-meta-item">
+                      <GeneralIcon icon="gitCommit" class="h-3.5 w-3.5" />
+                      <span>v{{ managedApp.version }}</span>
+                    </span>
+                  </div>
+
+                  <!-- Install Button (inline on mobile) -->
+                  <div class="nc-app-action md:hidden">
+                    <NcButton
+                      :loading="installing === managedApp.id"
+                      :disabled="!!installing"
+                      size="xs"
+                      type="primary"
+                      @click="installManagedApp(managedApp)"
+                    >
+                      <template #icon>
+                        <GeneralIcon icon="download" class="h-3.5 w-3.5" />
+                      </template>
+                      {{ installing === managedApp.id ? 'Installing...' : t('general.install') }}
+                    </NcButton>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <!-- Install Button -->
-            <div class="nc-app-action">
+            <!-- Install Button (desktop) -->
+            <div class="nc-app-action hidden md:block">
               <NcButton
                 :loading="installing === managedApp.id"
                 :disabled="!!installing"
@@ -283,7 +320,7 @@ watch(
 }
 
 .nc-app-market-header {
-  @apply px-6 py-4 bg-nc-bg-default border-b-1 border-nc-border-gray-light;
+  @apply px-4 md:px-6 py-3 md:py-4 bg-nc-bg-default border-b-1 border-nc-border-gray-light;
 }
 
 .nc-app-market-icon {
@@ -293,7 +330,7 @@ watch(
 }
 
 .nc-app-market-filters {
-  @apply px-6 py-4 bg-nc-bg-default border-b-1 border-nc-border-gray-light;
+  @apply px-4 md:px-6 py-4 bg-nc-bg-default border-b-1 border-nc-border-gray-light;
 }
 
 .nc-app-market-empty {
@@ -305,7 +342,7 @@ watch(
 }
 
 .nc-app-market-list {
-  @apply p-6;
+  @apply p-4 md:p-6;
 }
 
 .nc-app-item {
@@ -380,6 +417,10 @@ watch(
   @apply text-sm text-nc-content-gray-subtle m-0 mb-2 leading-normal line-clamp-2;
 }
 
+.nc-app-meta-row {
+  @apply flex items-center justify-between gap-3;
+}
+
 .nc-app-meta {
   @apply flex items-center gap-4 text-xs text-nc-content-gray-subtle2;
 }
@@ -393,19 +434,7 @@ watch(
 }
 
 // Responsive adjustments
-@media (max-width: 768px) {
-  .nc-app-item-content {
-    @apply flex-col items-start gap-4;
-  }
-
-  .nc-app-action {
-    @apply w-full;
-
-    :deep(button) {
-      @apply w-full;
-    }
-  }
-
+@media (max-width: 819px) {
   .nc-app-title-row {
     @apply flex-wrap;
   }

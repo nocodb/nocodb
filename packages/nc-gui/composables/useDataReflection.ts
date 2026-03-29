@@ -56,7 +56,8 @@ export function useDataReflection() {
 
       connectionDetails.value = res
       ;(activeWorkspace.value as any).data_reflection_enabled = true
-    } catch (e) {
+    }
+    catch (e) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
 
@@ -77,7 +78,8 @@ export function useDataReflection() {
       )
       connectionDetails.value = null
       ;(activeWorkspace.value as any).data_reflection_enabled = false
-    } catch (e) {
+    }
+    catch (e) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
@@ -94,7 +96,8 @@ export function useDataReflection() {
         },
         {},
       )
-    } catch (e) {
+    }
+    catch (e) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }

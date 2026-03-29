@@ -15,15 +15,18 @@ export const useCommand = createSharedComposable(() => {
       cmdK.value = true
       cmdL.value = false
       cmdJ.value = false
-    } else if (cmd === 'cmd-l') {
+    }
+    else if (cmd === 'cmd-l') {
       cmdL.value = true
       cmdK.value = false
       cmdJ.value = false
-    } else if (cmd === 'cmd-j') {
+    }
+    else if (cmd === 'cmd-j') {
       cmdK.value = false
       cmdL.value = false
       cmdJ.value = true
-    } else {
+    }
+    else {
       cmdL.value = false
       cmdK.value = false
       cmdJ.value = false

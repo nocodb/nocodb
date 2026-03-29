@@ -1,22 +1,24 @@
 <script setup lang="ts">
-import { type ColumnType, UITypes, isHiddenCol } from 'nocodb-sdk'
-import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue/lib/list'
+import type { editor as MonacoEditor } from 'monaco-editor'
+import type { ColumnType } from 'nocodb-sdk'
+import type { Ref } from 'vue'
 import {
   KeyCode,
+  languages,
   MarkerSeverity,
-  type editor as MonacoEditor,
+
+  editor as monacoEditor,
   Position,
   Range,
-  languages,
-  editor as monacoEditor,
 } from 'monaco-editor'
-import formulaLanguage from '../../monaco/formula'
+import { isHiddenCol, UITypes } from 'nocodb-sdk'
 import { isCursorInsideString } from '../../../utils/formulaUtils'
+import formulaLanguage from '../../monaco/formula'
 
 interface Props {
   error?: boolean
-  editorError?: { isError: boolean; message: string; position: { column: number; row: number; length: number } }
+  editorError?: { isError: boolean, message: string, position: { column: number, row: number, length: number } }
   value: string
   label?: string
   editorHeight?: string
@@ -89,10 +91,11 @@ const sortOrder: Record<string, number> = {
   op: 2,
 }
 
-const getIcon = (c: ColumnType) =>
-  h(resolveComponent('SmartsheetHeaderIcon'), {
+function getIcon(c: ColumnType) {
+  return h(resolveComponent('SmartsheetHeaderIcon'), {
     column: c,
   })
+}
 
 const suggestionsList = computed(() => {
   const unsupportedFnList = sqlUi.value?.getUnsupportedFnList() || []
@@ -136,7 +139,7 @@ const suggestionsList = computed(() => {
         }
         return 0
       })
-      .filter((s) => !props.disabledFormulas.includes(s.text))
+      .filter(s => !props.disabledFormulas.includes(s.text))
   )
 })
 
@@ -152,11 +155,11 @@ const acTree = computed(() => {
 })
 
 const suggestedFormulas = computed(() => {
-  return suggestion.value.filter((s) => s && s.type !== 'column')
+  return suggestion.value.filter(s => s && s.type !== 'column')
 })
 
 const variableList = computed(() => {
-  return suggestion.value.filter((s) => s && s.type === 'column')
+  return suggestion.value.filter(s => s && s.type === 'column')
 })
 
 const monacoRoot = ref<HTMLDivElement>()
@@ -175,7 +178,7 @@ function getCurrentKeyword() {
   return word?.word
 }
 
-const handleInputDeb = useDebounceFn(function () {
+const handleInputDeb = useDebounceFn(() => {
   handleInput()
 }, 250)
 
@@ -192,7 +195,7 @@ onMounted(async () => {
     languages.setMonarchTokensProvider(
       formulaLanguage.name,
       // replace @ with \x01 to avoid conflict with monaco's tokenizer
-      formulaLanguage.generateLanguageDefinition(supportedColumns.value.map((c) => c.title!.replace(/@/g, '\x01'))),
+      formulaLanguage.generateLanguageDefinition(supportedColumns.value.map(c => c.title!.replace(/@/g, '\x01'))),
     )
 
     languages.setLanguageConfiguration(formulaLanguage.name, formulaLanguage.languageConfiguration)
@@ -270,7 +273,8 @@ onMounted(async () => {
       // IF cursor is inside string, don't show any suggestions
       if (isCursorInsideString(text, offset)) {
         suggestion.value = []
-      } else {
+      }
+      else {
         handleInput()
       }
 
@@ -282,15 +286,16 @@ onMounted(async () => {
         let quoteChar = ''
 
         // First scan the text to determine the quote state at each position
-        const quoteState = new Array(text.length).fill(false)
+        const quoteState = Array.from({ length: text.length }).fill(false)
         for (let i = 0; i < text.length; i++) {
-          if ((text[i] === '"' || text[i] === "'") && (i === 0 || text[i - 1] !== '\\')) {
+          if ((text[i] === '"' || text[i] === '\'') && (i === 0 || text[i - 1] !== '\\')) {
             if (!inQuote) {
               inQuote = true
               if (text[i]) {
                 quoteChar = text[i]
               }
-            } else if (text[i] === quoteChar) {
+            }
+            else if (text[i] === quoteChar) {
               inQuote = false
             }
           }
@@ -321,7 +326,8 @@ onMounted(async () => {
 
             if (text[i] === '(') {
               parenBalance++
-            } else if (text[i] === ')') {
+            }
+            else if (text[i] === ')') {
               parenBalance--
               if (parenBalance === 0) {
                 functionData.end = i + 1
@@ -332,9 +338,11 @@ onMounted(async () => {
             // Child value handling
             if (childValueStart === -1 && ['('].includes(text[i])) {
               childValueStart = i
-            } else if (childValueStart !== -1 && ['('].includes(text[i])) {
+            }
+            else if (childValueStart !== -1 && ['('].includes(text[i])) {
               childValueStart = i
-            } else if (childValueStart !== -1 && [')'].includes(text[i])) {
+            }
+            else if (childValueStart !== -1 && [')'].includes(text[i])) {
               childValueStart = -1
             }
 
@@ -350,7 +358,8 @@ onMounted(async () => {
             // Set the end to the last character if we didn't find a proper end
             functionData.end = Math.max(functionData.end, text.length)
             functionStack.push(functionData)
-          } else {
+          }
+          else {
             // Add the function to our stack if it contains the cursor position
             if (functionData.start <= offset && functionData.end >= offset) {
               functionStack.push(functionData)
@@ -359,13 +368,13 @@ onMounted(async () => {
         }
 
         // Make sure to handle the case where offset is in a quote but a function still encloses it
-        const enclosingFunctions = functionStack.filter((func) => func.start <= offset && func.end >= offset)
+        const enclosingFunctions = functionStack.filter(func => func.start <= offset && func.end >= offset)
         return enclosingFunctions.length > 0 ? enclosingFunctions[enclosingFunctions.length - 1].name : null
       }
       const lastFunction = findEnclosingFunction(text, offset)
 
-      suggestionPreviewed.value =
-        (suggestionsList.value.find((s) => s.text === `${lastFunction}()`) as Record<any, string>) || undefined
+      suggestionPreviewed.value
+        = (suggestionsList.value.find(s => s.text === `${lastFunction}()`) as Record<any, string>) || undefined
     })
     editor.focus()
   }
@@ -431,17 +440,20 @@ function appendText(item: Record<string, any>) {
 
   if (item.type === 'function') {
     insertStringAtPosition(editor, text)
-  } else if (item.type === 'column') {
+  }
+  else if (item.type === 'column') {
     insertStringAtPosition(editor, `{${text}}`, true)
-  } else {
+  }
+  else {
     insertStringAtPosition(editor, text, true)
   }
   wordToComplete.value = ''
 
   if (item.type === 'function' || item.type === 'op') {
     // if function / operator is chosen, display columns only
-    suggestion.value = suggestionsList.value.filter((f) => f.type === 'column')
-  } else {
+    suggestion.value = suggestionsList.value.filter(f => f.type === 'column')
+  }
+  else {
     // show all options if column is chosen
     suggestion.value = suggestionsList.value
   }
@@ -467,7 +479,7 @@ function isCursorBetweenParenthesis() {
   return openParenthesis > closeParenthesis
 }
 
-const isItemSelected = (item: Record<string, any>) => {
+function isItemSelected(item: Record<string, any>) {
   return suggestionPreviewed.value?.text === item.text
 }
 
@@ -516,7 +528,8 @@ function handleInput() {
     })
     selected.value = 0
     priority.value = -1
-  } else if (!showFunctionList.value) {
+  }
+  else if (!showFunctionList.value) {
     showFunctionList.value = true
   }
 }
@@ -526,7 +539,8 @@ function selectText() {
     if (selected.value < suggestedFormulas.value.length) {
       if (suggestedFormulas.value[selected.value].unsupported) return
       appendText(suggestedFormulas.value[selected.value])
-    } else {
+    }
+    else {
       // Calculate the index in variableList by subtracting the length of suggestedFormulas
       const variableIndex = selected.value - suggestedFormulas.value.length
       appendText(variableList.value[variableIndex])
@@ -543,7 +557,8 @@ function suggestionListUp() {
     // Update suggestionPreviewed for both formula and field items
     if (selected.value < suggestedFormulas.value.length) {
       suggestionPreviewed.value = suggestedFormulas.value[selected.value]
-    } else {
+    }
+    else {
       const variableIndex = selected.value - suggestedFormulas.value.length
       suggestionPreviewed.value = variableList.value[variableIndex]
     }
@@ -559,7 +574,8 @@ function suggestionListDown() {
     // Update suggestionPreviewed for both formula and field items
     if (selected.value < suggestedFormulas.value.length) {
       suggestionPreviewed.value = suggestedFormulas.value[selected.value]
-    } else {
+    }
+    else {
       const variableIndex = selected.value - suggestedFormulas.value.length
       suggestionPreviewed.value = variableList.value[variableIndex]
     }
@@ -575,7 +591,8 @@ function scrollToSelectedOption() {
         sugOptionsRef.value[selected.value].$el.scrollIntoView({
           block: 'center',
         })
-      } catch (e) {}
+      }
+      catch (e) {}
     }
   })
 }
@@ -597,14 +614,15 @@ onMounted(() => {
 
         if (fromTableExplorer?.value || monacoDivPosition.left > 352) {
           suggestionPreviewPostion.value.left = `${monacoDivPosition.left - 344}px`
-        } else {
+        }
+        else {
           suggestionPreviewPostion.value.left = `${monacoDivPosition.right + 8}px`
         }
       }, 250)
     })
 })
 
-const handleKeydown = (e: KeyboardEvent) => {
+function handleKeydown(e: KeyboardEvent) {
   e.stopPropagation()
   switch (e.key) {
     case 'ArrowUp': {
@@ -640,7 +658,7 @@ const oldAiPrompt = ref('')
 
 const calledFun = ref<null | string>(null)
 
-const promptAI = async () => {
+async function promptAI() {
   if (!aiPrompt.value?.trim()) return
 
   calledFun.value = 'promptAI'
@@ -657,7 +675,7 @@ const promptAI = async () => {
   }
 }
 
-const repairFormulaAI = async () => {
+async function repairFormulaAI() {
   calledFun.value = 'repairFormulaAI'
 
   $e(`a:column:ai:formula:repair`)
@@ -669,12 +687,13 @@ const repairFormulaAI = async () => {
   }
 }
 
-const enableAI = async () => {
+async function enableAI() {
   $e(`c:column:ai:formula:enable`)
 
   if (validateInfos?.formula_raw?.validateStatus === 'error') {
     await repairFormulaAI()
-  } else {
+  }
+  else {
     aiMode.value = AI_MODE.PROMPT
   }
 }
@@ -694,7 +713,8 @@ watch(
           severity: MarkerSeverity.Error,
         },
       ])
-    } else {
+    }
+    else {
       monacoEditor.setModelMarkers(editor.getModel()!, 'owner', [])
     }
   },
@@ -725,13 +745,19 @@ const validationErrorDisplay = computed(() => {
       </div>
     </div>
     <div class="flex flex-col max-h-120 nc-scrollbar-thin pr-2">
-      <div class="flex mt-3 text-[13px] text-nc-content-gray-subtle2 leading-6">{{ suggestionPreviewed.description }}</div>
+      <div class="flex mt-3 text-[13px] text-nc-content-gray-subtle2 leading-6">
+        {{ suggestionPreviewed.description }}
+      </div>
 
-      <div class="text-nc-content-gray-muted uppercase text-[11px] mt-3 mb-2">Syntax</div>
+      <div class="text-nc-content-gray-muted uppercase text-[11px] mt-3 mb-2">
+        Syntax
+      </div>
       <div class="bg-nc-bg-default rounded-md py-1 text-[13px] text-nc-content-gray-subtle2 mono-font leading-6 px-2 border-1">
         {{ suggestionPreviewed.syntax }}
       </div>
-      <div class="text-nc-content-gray-muted uppercase text-[11px] mt-3 mb-2">Examples</div>
+      <div class="text-nc-content-gray-muted uppercase text-[11px] mt-3 mb-2">
+        Examples
+      </div>
       <div
         v-for="(example, index) of suggestionPreviewed.examples"
         :key="example"
@@ -748,8 +774,7 @@ const validationErrorDisplay = computed(() => {
     </div>
     <div class="flex flex-row mt-3 mb-3 justify-end pr-3">
       <a v-if="suggestionPreviewed.docsUrl" target="_blank" rel="noopener noreferrer" :href="suggestionPreviewed.docsUrl">
-        <NcButton type="text" size="small" class="!text-nc-content-gray-disabled !hover:text-nc-content-gray-subtle !text-xs"
-          >View in Docs
+        <NcButton type="text" size="small" class="!text-nc-content-gray-disabled !hover:text-nc-content-gray-subtle !text-xs">View in Docs
           <GeneralIcon icon="openInNew" class="ml-1" />
         </NcButton>
       </a>
@@ -770,7 +795,7 @@ const validationErrorDisplay = computed(() => {
       }"
       class="formula-monaco transition-colors duration-300"
       @keydown.stop="handleKeydown"
-    ></div>
+    />
   </a-form-item>
   <template v-if="isAiFeaturesEnabled">
     <div v-if="aiMode === AI_MODE.NONE" class="w-full flex justify-end mt-2">
@@ -794,10 +819,12 @@ const validationErrorDisplay = computed(() => {
           <path d="M1.51476 8.5L9 0.721111L16.4852 8.5H1.51476Z" fill="var(--nc-bg-default)" stroke="var(--color-purple-100)" />
         </svg>
         <div class="prompt-input-wrapper w-full flex">
-          <div class="nc-triangle-bottom-bar"></div>
+          <div class="nc-triangle-bottom-bar" />
 
           <div class="flex items-center gap-2 pl-3 pr-1 py-1 border-b-1 border-transparent">
-            <div class="flex-1 text-small leading-[18px] font-bold text-nc-content-gray-subtle2">Prompt</div>
+            <div class="flex-1 text-small leading-[18px] font-bold text-nc-content-gray-subtle2">
+              Prompt
+            </div>
             <div class="flex items-center gap-2">
               <NcButton
                 v-if="validateInfos?.formula_raw?.validateStatus === 'error'"
@@ -828,9 +855,9 @@ const validationErrorDisplay = computed(() => {
                 class="nc-formula-helper-ai-btn !px-2"
                 :loading="aiLoading && calledFun === 'promptAI'"
                 :disabled="
-                  !aiPrompt?.trim() ||
-                  (!!aiPrompt.trim() && aiPrompt.trim() === oldAiPrompt.trim()) ||
-                  (aiLoading && calledFun === 'promptAI')
+                  !aiPrompt?.trim()
+                    || (!!aiPrompt.trim() && aiPrompt.trim() === oldAiPrompt.trim())
+                    || (aiLoading && calledFun === 'promptAI')
                 "
                 @click="promptAI"
               >
@@ -840,7 +867,9 @@ const validationErrorDisplay = computed(() => {
                 <template #loadingIcon>
                   <GeneralLoader class="!text-current" size="regular" />
                 </template>
-                <div class="flex items-center gap-1">Generate</div>
+                <div class="flex items-center gap-1">
+                  Generate
+                </div>
               </NcButton>
             </div>
           </div>
@@ -848,7 +877,7 @@ const validationErrorDisplay = computed(() => {
             v-model:value="aiPrompt"
             class="nc-ai-formula-helper-input nc-input-shadow nc-ai-input nc-scrollbar-thin !min-h-[80px]"
             :placeholder="`Enter prompt to ${value ? 'modify' : 'generate'} formula`"
-          ></a-textarea>
+          />
         </div>
       </div>
     </template>

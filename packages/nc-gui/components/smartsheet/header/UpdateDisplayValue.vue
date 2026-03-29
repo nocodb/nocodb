@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { type ColumnType, columnTypeName, isSupportedDisplayValueColumn, isSystemColumn } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { columnTypeName, isSupportedDisplayValueColumn, isSystemColumn } from 'nocodb-sdk'
 
 interface Props {
   value?: boolean
@@ -43,36 +44,38 @@ const selectedFieldId = ref()
 
 const isLoading = ref(false)
 
-const getFormatedColumn = (column: ColumnType) => ({
-  title: column.title,
-  id: column.id,
-  ncItemDisabled: !isSupportedDisplayValueColumn(column) && !column.pv,
-  ncItemTooltip:
+function getFormatedColumn(column: ColumnType) {
+  return {
+    title: column.title,
+    id: column.id,
+    ncItemDisabled: !isSupportedDisplayValueColumn(column) && !column.pv,
+    ncItemTooltip:
     !isSupportedDisplayValueColumn(column) && columnTypeName(column) && !column.pv
       ? `${columnTypeName(column)} field cannot be used as display value field`
       : '',
-  column,
-})
+    column,
+  }
+}
 
 const filteredColumns = computed(() => {
   const columns = meta.value?.columnsById ?? {}
 
   if (useMetaFields.value) {
     return (meta.value?.columns ?? [])
-      .filter((c) => c?.id && !isSystemColumn(c))
+      .filter(c => c?.id && !isSystemColumn(c))
       .map((column) => {
         return getFormatedColumn(column)
       })
   }
 
   return (fields.value ?? [])
-    .filter((f) => columns[f?.fk_column_id] && !isSystemColumn(columns[f.fk_column_id]))
+    .filter(f => columns[f?.fk_column_id] && !isSystemColumn(columns[f.fk_column_id]))
     .map((f) => {
       return getFormatedColumn(columns[f.fk_column_id] as ColumnType)
     })
 })
 
-const changeDisplayField = async () => {
+async function changeDisplayField() {
   if (!selectedFieldId.value) return
   isLoading.value = true
 
@@ -91,17 +94,19 @@ const changeDisplayField = async () => {
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     value.value = false
-  } catch (e) {
+  }
+  catch (e) {
     console.error(e)
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 }
 
 onMounted(() => {
   selectedFieldId.value = useMetaFields.value
-    ? meta.value?.columns?.find((c) => c.id === column.value.id)?.id
-    : fields.value?.find((f) => f.fk_column_id === column.value.id)?.fk_column_id
+    ? meta.value?.columns?.find(c => c.id === column.value.id)?.id
+    : fields.value?.find(f => f.fk_column_id === column.value.id)?.fk_column_id
 })
 </script>
 
@@ -109,7 +114,9 @@ onMounted(() => {
   <NcModal v-model:visible="isVisible" size="small">
     <div class="flex flex-col gap-3">
       <div>
-        <h1 class="text-base text-nc-content-gray font-semibold">{{ $t('labels.searchDisplayValue') }}</h1>
+        <h1 class="text-base text-nc-content-gray font-semibold">
+          {{ $t('labels.searchDisplayValue') }}
+        </h1>
         <div class="text-nc-content-gray-subtle2 flex items-center gap-1">
           {{ $t('labels.selectYourNewTitleFor') }}
 

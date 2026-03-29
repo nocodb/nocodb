@@ -1,8 +1,10 @@
 <script lang="ts" setup>
-import { IconType, type TeamV3V3Type } from 'nocodb-sdk'
-import 'emoji-mart-vue-fast/css/emoji-mart.css'
+import type { IconMapKey } from '#imports'
+import type { TeamV3V3Type } from 'nocodb-sdk'
+import { isColorDark, stringToColor } from '#imports'
 import { Icon } from '@iconify/vue'
-import { type IconMapKey, isColorDark, stringToColor } from '#imports'
+import { IconType } from 'nocodb-sdk'
+import 'emoji-mart-vue-fast/css/emoji-mart.css'
 
 export interface TeamIconProps {
   size?: 'small' | 'medium' | 'base' | 'large' | 'xlarge' | 'auto'
@@ -80,7 +82,7 @@ const teamIcon = computed<{
   }
 })
 
-const getColor = (color: string) => {
+function getColor(color: string) {
   if (color === 'transparent') {
     return _getColor('var(--nc-bg-default)')
   }
@@ -176,7 +178,7 @@ const teamInitials = computed(() => {
           'w-14 h-14': size === 'xlarge',
         }"
         :icon="teamIcon.icon"
-      ></Icon>
+      />
     </div>
     <GeneralIcon
       v-else-if="teamIcon.icon && teamIcon.iconType === IconType.ICON"
@@ -207,7 +209,9 @@ const teamInitials = computed(() => {
     >
       {{ teamInitials }}
     </div>
-    <div v-else>&nbsp;</div>
+    <div v-else>
+&nbsp;
+    </div>
   </div>
 </template>
 

@@ -1,11 +1,11 @@
-import type { Api, ColumnType, SelectOptionType, SelectOptionsType } from 'nocodb-sdk'
+import type { Api, ColumnType, SelectOptionsType, SelectOptionType } from 'nocodb-sdk'
 import { enumColors } from 'nocodb-sdk'
 
-export const appendSelectOptions = async (params: {
+export async function appendSelectOptions(params: {
   api: Api<any>
   col: ColumnType
   addOptions: string[] | SelectOptionType[]
-}) => {
+}) {
   if (!params.addOptions || params.addOptions.length === 0) {
     return
   }
@@ -16,8 +16,8 @@ export const appendSelectOptions = async (params: {
     } as SelectOptionsType
   }
   const existingOptionsLength = (params.col.colOptions as SelectOptionsType).options.length ?? 0
-  const optionsToAdd =
-    typeof params.addOptions[0] === 'string'
+  const optionsToAdd
+    = typeof params.addOptions[0] === 'string'
       ? params.addOptions.map((k, i) => {
           return {
             fk_column_id: params.col.id,

@@ -37,7 +37,7 @@ const modelValue = useVModel(props, 'value', emit)
 
 const isOpenTableSelectDropdown = ref(false)
 
-const handleValueUpdate = (value: any) => {
+function handleValueUpdate(value: any) {
   const stringValue = String(value)
   modelValue.value = stringValue
 }
@@ -48,7 +48,8 @@ const tableList = computedAsync(async () => {
   if (props.baseId) {
     await tableStore.loadProjectTables(props.baseId, props.forceLoadBaseTables)
     tables = baseTables.value.get(props.baseId) || []
-  } else {
+  }
+  else {
     tables = activeTables.value || []
   }
 
@@ -72,7 +73,7 @@ const tableList = computedAsync(async () => {
 const tableListMap = computed(() => {
   if (!tableList.value || tableList.value.length === 0) return new Map()
 
-  return new Map(tableList.value.map((table) => [table.value, table]))
+  return new Map(tableList.value.map(table => [table.value, table]))
 })
 
 const selectedTable = computed(() => {
@@ -85,7 +86,7 @@ watch(
   tableList,
   (newTableList) => {
     if (newTableList && newTableList.length > 0) {
-      const newTableListMap = new Map(newTableList.map((table) => [table.value, table]))
+      const newTableListMap = new Map(newTableList.map(table => [table.value, table]))
 
       // Check if current value exists in the new table list
       if (modelValue.value && !newTableListMap.has(modelValue.value)) {
@@ -101,9 +102,10 @@ watch(
         const tableObj = newTableListMap.get(newTableId)
 
         if (tableObj && tableObj.ncItemDisabled && tableObj.value === newTableList[0]?.value) {
-          const selectedValue = newTableList.find((table) => !table.ncItemDisabled)?.value || newTableList[0]?.value
+          const selectedValue = newTableList.find(table => !table.ncItemDisabled)?.value || newTableList[0]?.value
           modelValue.value = selectedValue
-        } else {
+        }
+        else {
           modelValue.value = newTableId
         }
       }
@@ -133,7 +135,9 @@ defineExpose({
   >
     <template v-if="!disableLabel" #label>
       <div>
-        <slot name="label">{{ t('objects.table') }}</slot>
+        <slot name="label">
+          {{ t('objects.table') }}
+        </slot>
       </div>
     </template>
     <NcListDropdown
@@ -167,7 +171,9 @@ defineExpose({
             <template v-if="selectedTable?.label">
               {{ selectedTable?.label }}
             </template>
-            <slot v-else name="placeholderTooltip"> Select table </slot>
+            <slot v-else name="placeholderTooltip">
+              Select table
+            </slot>
           </template>
         </NcTooltip>
 

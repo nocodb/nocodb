@@ -1,12 +1,13 @@
 import type { TeamV3V3Type } from 'nocodb-sdk'
 
-export const transformToTeamObject = (wsOrBaseTeamInfo: Record<string, any>, team?: TeamV3V3Type) => {
+export function transformToTeamObject(wsOrBaseTeamInfo: Record<string, any>, team?: TeamV3V3Type) {
   const newObj: Record<string, any> = {}
 
   Object.keys(wsOrBaseTeamInfo).forEach((key) => {
     if (key.startsWith('team_')) {
       newObj[key.replace('team_', '')] = wsOrBaseTeamInfo[key]
-    } else {
+    }
+    else {
       newObj[key] = wsOrBaseTeamInfo[key]
     }
   })

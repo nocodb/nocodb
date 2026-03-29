@@ -63,7 +63,8 @@ async function loadMetaDiff(afterSync = false) {
 
             isLoading.value = false
             if (afterSync) syncCompleted.value = true
-          } else if (data.status === JobStatus.FAILED) {
+          }
+          else if (data.status === JobStatus.FAILED) {
             isLoading.value = false
             if (afterSync) syncCompleted.value = true
 
@@ -76,12 +77,13 @@ async function loadMetaDiff(afterSync = false) {
         }
       },
     )
-  } catch (e) {
+  }
+  catch (e) {
     console.error(e)
   }
 }
 
-const onBack = () => {
+function onBack() {
   triggeredSync.value = false
   syncCompleted.value = false
 }
@@ -121,23 +123,27 @@ async function syncMetaDiff() {
             try {
               await loadTables()
               await loadMetaDiff(true)
-            } catch (_e: any) {
+            }
+            catch (_e: any) {
               // ignore
             }
 
             emit('baseSynced')
-          } else if (data.status === JobStatus.FAILED) {
+          }
+          else if (data.status === JobStatus.FAILED) {
             progressRef.value?.pushProgress(data.data?.error?.message || 'Failed to sync base metadata', data.status)
             syncCompleted.value = true
             isLoading.value = false
-          } else {
+          }
+          else {
             // Job is still in progress
             progressRef.value?.pushProgress(data.data?.message)
           }
         }
       },
     )
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -167,9 +173,11 @@ const columns = [
   },
 ]
 
-const customRow = (record: Record<string, any>) => ({
-  class: `nc-metasync-row nc-metasync-row-${record.table_name}`,
-})
+function customRow(record: Record<string, any>) {
+  return {
+    class: `nc-metasync-row nc-metasync-row-${record.table_name}`,
+  }
+}
 </script>
 
 <template>
@@ -249,7 +257,9 @@ const customRow = (record: Record<string, any>) => ({
               </div>
 
               <NcTooltip class="truncate" show-on-truncate-only>
-                <template #title>{{ record.title || record.table_name }}</template>
+                <template #title>
+                  {{ record.title || record.table_name }}
+                </template>
                 {{ record.title || record.table_name }}
               </NcTooltip>
             </div>
@@ -257,7 +267,9 @@ const customRow = (record: Record<string, any>) => ({
           <template v-if="column.key === 'syncState'">
             <div class="flex items-center gap-2 max-w-full">
               <NcTooltip class="truncate" show-on-truncate-only>
-                <template #title> {{ record?.syncState || $t('msg.info.metaNoChange') }} </template>
+                <template #title>
+                  {{ record?.syncState || $t('msg.info.metaNoChange') }}
+                </template>
                 <span
                   :class="{
                     'text-nc-content-red-medium': record?.syncState,

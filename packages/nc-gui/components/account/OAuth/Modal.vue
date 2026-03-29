@@ -78,7 +78,7 @@ const validators = computed(() => ({
 
         const uris = value
           .split('\n')
-          .map((uri) => uri.trim())
+          .map(uri => uri.trim())
           .filter(Boolean)
 
         if (uris.length === 0) {
@@ -122,7 +122,7 @@ async function handleSubmit() {
 
     const redirect_uris = clientRef.redirect_uris
       .split('\n')
-      .map((uri) => uri.trim())
+      .map(uri => uri.trim())
       .filter(Boolean)
 
     const payload = {
@@ -135,12 +135,14 @@ async function handleSubmit() {
 
     // Show success message
     message.success('OAuth client created successfully!')
-  } catch (error: any) {
+  }
+  catch (error: any) {
     if (error.errorFields) {
       // Form validation errors - these will be displayed automatically
       return
     }
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -178,7 +180,9 @@ function copyToClipboard(text: string, label: string) {
           >
             {{ loading ? 'Creating...' : 'Create OAuth Client' }}
           </NcButton>
-          <NcButton v-if="showSuccessView" type="primary" size="small" @click="handleClose"> Done </NcButton>
+          <NcButton v-if="showSuccessView" type="primary" size="small" @click="handleClose">
+            Done
+          </NcButton>
           <NcButton type="text" size="small" data-testid="nc-close-oauth-modal" @click.stop="handleClose">
             <GeneralIcon icon="close" />
           </NcButton>
@@ -194,7 +198,9 @@ function copyToClipboard(text: string, label: string) {
         <!-- Success View -->
         <div v-if="showSuccessView" class="flex flex-col max-w-[640px] w-full mx-auto gap-6">
           <NcAlert type="info">
-            <template #message> OAuth Client Created Successfully! </template>
+            <template #message>
+              OAuth Client Created Successfully!
+            </template>
             <template #description>
               Make sure to copy your client credentials now. You won't be able to see the secret again.
             </template>
@@ -228,9 +234,7 @@ function copyToClipboard(text: string, label: string) {
           <a-form :model="clientRef" name="create-oauth-client" layout="vertical" class="flex flex-col gap-6">
             <a-form-item v-bind="validateInfos.client_name" class="!mb-0 flex-1">
               <template #label>
-                <span class="text-nc-content-gray-subtle font-medium"
-                  >Application Name <span class="text-nc-content-red-medium">*</span></span
-                >
+                <span class="text-nc-content-gray-subtle font-medium">Application Name <span class="text-nc-content-red-medium">*</span></span>
               </template>
               <template #extra>
                 <span class="text-xs text-nc-content-gray-muted">Shown to users during authorization</span>
@@ -305,17 +309,19 @@ function copyToClipboard(text: string, label: string) {
                 </span>
               </template>
               <a-radio-group v-model:value="clientRef.client_type" class="nc-input-shadow">
-                <a-radio value="public">Public</a-radio>
-                <a-radio value="confidential">Confidential</a-radio>
+                <a-radio value="public">
+                  Public
+                </a-radio>
+                <a-radio value="confidential">
+                  Confidential
+                </a-radio>
               </a-radio-group>
             </a-form-item>
 
             <!-- Redirect URIs -->
             <a-form-item v-bind="validateInfos.redirect_uris" class="mb-0">
               <template #label>
-                <span class="text-nc-content-gray-subtle font-medium"
-                  >Authorization Callback URLs <span class="text-nc-content-red-medium">*</span></span
-                >
+                <span class="text-nc-content-gray-subtle font-medium">Authorization Callback URLs <span class="text-nc-content-red-medium">*</span></span>
               </template>
               <template #extra>
                 <span class="text-xs text-nc-content-gray-muted">
@@ -334,7 +340,7 @@ function copyToClipboard(text: string, label: string) {
       </div>
 
       <NcModalSupportedDocsSidebar>
-        <NcModalSupportedDocs :docs="supportedDocs"> </NcModalSupportedDocs>
+        <NcModalSupportedDocs :docs="supportedDocs" />
       </NcModalSupportedDocsSidebar>
     </div>
   </NcModal>

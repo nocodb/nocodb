@@ -22,5 +22,7 @@ const displayValue = computed(() => {
 </script>
 
 <template>
-  <div class="nc-cell-field truncate">{{ displayValue }}</div>
+  <div class="nc-cell-field truncate">
+    {{ displayValue }}
+  </div>
 </template>

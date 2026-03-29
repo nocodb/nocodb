@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { type TableType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
+import type { TableType } from 'nocodb-sdk'
+import { viewTypeAlias, ViewTypes } from 'nocodb-sdk'
 
 const { $e } = useNuxtApp()
 
@@ -19,11 +20,24 @@ const { openNewWorkflowModal } = useWorkflowStore()
 
 const { openNewDashboardModal } = useDashboardStore()
 
+const { createDocument } = useDocumentsStore()
+
 const viewsStore = useViewsStore()
 const { loadViews, onOpenViewCreateModal } = viewsStore
 const { activeView, isListViewEnabled } = storeToRefs(viewsStore)
+const { showUpgradeToUseListView } = viewsStore
 
 const { isAiFeaturesEnabled } = useNocoAi()
+
+const { isEEFeatureBlocked, showEEFeatures, showUpgradeToUseTimelineView, showUpgradeToUseMapView } = useEeConfig()
+
+const { activeSidebarTab } = storeToRefs(useSidebarStore())
+
+const isDataTab = computed(() => activeSidebarTab.value === 'data')
+
+const isWorkflowsTab = computed(() => activeSidebarTab.value === 'workflows')
+
+const isDocsTab = computed(() => activeSidebarTab.value === 'docs')
 
 const isVisibleCreateNew = ref(false)
 
@@ -36,7 +50,7 @@ const toBeCreateType = ref<ViewTypes | 'AI'>()
 const isSqlView = computed(() => (activeTable.value as TableType)?.type === 'view')
 
 const activeSource = computed(() => {
-  return base.value.sources?.find((s) => s.id === activeView.value?.source_id)
+  return base.value.sources?.find(s => s.id === activeView.value?.source_id)
 })
 
 async function onOpenModal({
@@ -69,7 +83,8 @@ async function onOpenModal({
       tableId: activeTable.value?.id as string,
       baseId: base.value.id!,
     })
-  } catch (e) {
+  }
+  catch (e) {
     console.log('error', e)
   }
 
@@ -140,14 +155,25 @@ const hasDashboardCreateAccess = computed(() => {
 
   return isUIAllowed('dashboardCreate')
 })
+
+const hasDocumentCreateAccess = computed(() => {
+  if (!base.value || !isBaseHomePage.value) return true
+
+  return isUIAllowed('documentCreate')
+})
 </script>
 
 <template>
   <div v-if="!isSharedBase" class="nc-mini-sidebar-btn-full-width">
-    <NcDropdown v-model:visible="isVisibleCreateNew" placement="right" overlay-class-name="!min-w-48">
+    <NcDropdown
+      v-model:visible="isVisibleCreateNew"
+      placement="rightBottom"
+      overlay-class-name="!min-w-48 nc-create-new-dropdown"
+      :align="{ offset: [12, 3] }"
+    >
       <div class="w-full py-1 flex items-center justify-center">
         <div
-          class="border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300 flex items-center justify-center bg-nc-bg-gray-medium"
+          class="nc-mini-sidebar-plus-btn border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300 flex items-center justify-center bg-nc-bg-gray-medium cursor-pointer"
           :class="{
             'border-nc-border-gray-dark': !isVisibleCreateNew,
             'active border-primary shadow-selected': isVisibleCreateNew,
@@ -164,60 +190,98 @@ const hasDashboardCreateAccess = computed(() => {
               {{ $t('labels.createNew') }}
             </span>
           </NcMenuItemLabel>
-          <NcMenuItem v-if="hasBaseCreateAccess" data-testid="mini-sidebar-base-create" @click="baseCreateDlg = true">
-            <GeneralIcon icon="ncBaseOutline" class="h-4 w-4" />
-            {{ $t('objects.project') }}
-          </NcMenuItem>
-          <NcTooltip
-            :title="
-              hasTableCreateAccess ? $t('tooltip.navigateToBaseToCreateTable') : $t('tooltip.youDontHaveAccessToCreateNewTable')
-            "
-            :disabled="!(!isBaseHomePage || !hasTableCreateAccess)"
-            placement="right"
-          >
-            <NcMenuItem
-              data-testid="mini-sidebar-table-create"
-              :disabled="!isBaseHomePage || !hasTableCreateAccess"
-              @click="openTableCreateDialog"
-            >
-              <GeneralIcon icon="table" />
-              {{ $t('objects.table') }}
-            </NcMenuItem>
-          </NcTooltip>
-
-          <template v-if="isEeUI">
+          <template v-if="isEeUI && showEEFeatures">
             <NcTooltip
               :title="
-                hasDashboardCreateAccess
-                  ? $t('tooltip.navigateToBaseToCreateDashboard')
-                  : $t('tooltip.youDontHaveAccessToCreateNewDashboard')
+                !isWorkflowsTab
+                  ? $t('tooltip.switchToWorkflowsTab', { type: $t('general.workflow').toLowerCase() })
+                  : !isBaseHomePage
+                    ? $t('tooltip.navigateToBaseToCreateWorkflow')
+                    : !hasWorkflowCreateAccess
+                      ? $t('tooltip.youDontHaveAccessToCreateNewWorkflow')
+                      : ''
               "
-              :disabled="!(!isBaseHomePage || !hasDashboardCreateAccess)"
+              :disabled="isWorkflowsTab && isBaseHomePage && hasWorkflowCreateAccess"
               placement="right"
             >
               <NcMenuItem
-                data-testid="mini-sidebar--dashboard-create"
-                :disabled="!isBaseHomePage || !hasDashboardCreateAccess"
-                @click="openNewDashboardModal({ baseId: openedProject?.id })"
+                data-testid="mini-sidebar--workflow-create"
+                :disabled="!isWorkflowsTab || !isBaseHomePage || !hasWorkflowCreateAccess"
+                @click="openNewWorkflowModal({ baseId: openedProject?.id })"
               >
-                <GeneralIcon icon="dashboards" />
-                {{ $t('general.dashboard') }}
+                <GeneralIcon icon="ncAutomation" />
+                {{ $t('general.workflow') }}
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
+            <NcTooltip
+              :title="
+                !isWorkflowsTab
+                  ? $t('tooltip.switchToWorkflowsTab', { type: $t('general.script').toLowerCase() })
+                  : !isBaseHomePage
+                    ? $t('tooltip.navigateToBaseToCreateScript')
+                    : !hasScriptCreateAccess
+                      ? $t('tooltip.youDontHaveAccessToCreateNewScript')
+                      : ''
+              "
+              :disabled="isWorkflowsTab && isBaseHomePage && hasScriptCreateAccess"
+              placement="right"
+            >
+              <NcMenuItem
+                data-testid="mini-sidebar--script-create"
+                :disabled="!isWorkflowsTab || !isBaseHomePage || !hasScriptCreateAccess"
+                @click="openNewScriptModal({ baseId: openedProject?.id })"
+              >
+                <GeneralIcon icon="ncScript" />
+                {{ $t('general.script') }}
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
+              </NcMenuItem>
+            </NcTooltip>
+            <NcDivider />
+            <NcTooltip
+              :title="
+                !isDocsTab
+                  ? $t('tooltip.switchToDocsTab', { type: $t('objects.document').toLowerCase() })
+                  : !isBaseHomePage
+                    ? $t('tooltip.navigateToBaseToCreateDocument')
+                    : !hasDocumentCreateAccess
+                      ? $t('tooltip.youDontHaveAccessToCreateNewDocument')
+                      : ''
+              "
+              :disabled="isDocsTab && isBaseHomePage && hasDocumentCreateAccess"
+              placement="right"
+            >
+              <NcMenuItem
+                data-testid="mini-sidebar--document-create"
+                :disabled="!isDocsTab || !isBaseHomePage || !hasDocumentCreateAccess"
+                @click="createDocument(openedProject?.id)"
+              >
+                <GeneralIcon icon="ncFileText" />
+                {{ $t('objects.document') }}
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
+              </NcMenuItem>
+            </NcTooltip>
+            <NcDivider />
           </template>
 
           <NcTooltip
             :title="
-              hasViewCreateAccess ? $t('tooltip.navigateToTableToCreateView') : $t('tooltip.youDontHaveAccessToCreateNewView')
+              !isDataTab
+                ? $t('tooltip.switchToDataTab', { type: $t('objects.view').toLowerCase() })
+                : !base || !activeTable
+                  ? $t('tooltip.navigateToTableToCreateView')
+                  : !hasViewCreateAccess
+                    ? $t('tooltip.youDontHaveAccessToCreateNewView')
+                    : ''
             "
-            :disabled="!(!base || !activeTable || !hasViewCreateAccess)"
+            :disabled="isDataTab && !!base && !!activeTable && hasViewCreateAccess"
             placement="right"
           >
             <NcSubMenu
               class="py-0"
               data-testid="mini-sidebar-view-create"
               variant="small"
-              :disabled="!base || !activeTable || !hasViewCreateAccess"
+              :disabled="!isDataTab || !base || !activeTable || !hasViewCreateAccess"
             >
               <template #title>
                 <GeneralIcon icon="grid" />
@@ -254,12 +318,33 @@ const hasDashboardCreateAccess = computed(() => {
                 <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.calendar') }}</div>
               </NcMenuItem>
-              <template v-if="isListViewEnabled">
-                <NcMenuItem data-testid="mini-sidebar-view-create-list" @click="onOpenModal({ type: ViewTypes.LIST })">
-                  <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
-                  <div>{{ $t('objects.viewType.list') }}</div>
-                </NcMenuItem>
-              </template>
+              <NcMenuItem
+                v-if="isListViewEnabled"
+                data-testid="mini-sidebar-view-create-list"
+                @click="showUpgradeToUseListView({ successCallback: () => onOpenModal({ type: ViewTypes.LIST }) })"
+              >
+                <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
+                <div>{{ $t('objects.viewType.list') }}</div>
+                <NcBadgeBeta />
+              </NcMenuItem>
+              <NcMenuItem
+                v-if="isEeUI && showEEFeatures"
+                data-testid="mini-sidebar-view-create-map"
+                @click="showUpgradeToUseMapView({ successCallback: () => onOpenModal({ type: ViewTypes.MAP }) })"
+              >
+                <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" class="!w-4 !h-4" />
+                <div>{{ $t('objects.viewType.map') }}</div>
+                <NcBadgeBeta />
+              </NcMenuItem>
+              <NcMenuItem
+                v-if="isEeUI && showEEFeatures"
+                data-testid="mini-sidebar-view-create-timeline"
+                @click="showUpgradeToUseTimelineView({ successCallback: () => onOpenModal({ type: ViewTypes.TIMELINE }) })"
+              >
+                <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
+                <div>{{ $t('objects.viewType.timeline') }}</div>
+                <NcBadgeBeta />
+              </NcMenuItem>
               <template v-if="isAiFeaturesEnabled">
                 <NcDivider />
                 <NcMenuItem data-testid="mini-sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
@@ -270,55 +355,95 @@ const hasDashboardCreateAccess = computed(() => {
             </NcSubMenu>
           </NcTooltip>
 
-          <template v-if="isEeUI">
-            <NcDivider />
+          <template v-if="isEeUI && showEEFeatures">
             <NcTooltip
               :title="
-                hasScriptCreateAccess
-                  ? $t('tooltip.navigateToBaseToCreateScript')
-                  : $t('tooltip.youDontHaveAccessToCreateNewScript')
+                !isDataTab
+                  ? $t('tooltip.switchToDataTab', { type: $t('general.dashboard').toLowerCase() })
+                  : !isBaseHomePage
+                    ? $t('tooltip.navigateToBaseToCreateDashboard')
+                    : !hasDashboardCreateAccess
+                      ? $t('tooltip.youDontHaveAccessToCreateNewDashboard')
+                      : ''
               "
-              :disabled="!(!isBaseHomePage || !hasScriptCreateAccess)"
+              :disabled="isDataTab && isBaseHomePage && hasDashboardCreateAccess"
               placement="right"
             >
               <NcMenuItem
-                data-testid="mini-sidebar--script-create"
-                :disabled="!isBaseHomePage || !hasScriptCreateAccess"
-                @click="openNewScriptModal({ baseId: openedProject?.id })"
+                data-testid="mini-sidebar--dashboard-create"
+                :disabled="!isDataTab || !isBaseHomePage || !hasDashboardCreateAccess"
+                @click="openNewDashboardModal({ baseId: openedProject?.id })"
               >
-                <GeneralIcon icon="ncScript" />
-                {{ $t('general.script') }}
-              </NcMenuItem>
-            </NcTooltip>
-            <NcTooltip
-              :title="
-                hasWorkflowCreateAccess
-                  ? $t('tooltip.navigateToBaseToCreateWorkflow')
-                  : $t('tooltip.youDontHaveAccessToCreateNewWorkflow')
-              "
-              :disabled="!(!isBaseHomePage || !hasWorkflowCreateAccess)"
-              placement="right"
-            >
-              <NcMenuItem
-                data-testid="mini-sidebar--workflow-create"
-                :disabled="!isBaseHomePage || !hasWorkflowCreateAccess"
-                @click="openNewWorkflowModal({ baseId: openedProject?.id })"
-              >
-                <GeneralIcon icon="ncAutomation" />
-                {{ $t('general.workflow') }}
+                <GeneralIcon icon="dashboards" />
+                {{ $t('general.dashboard') }}
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
           </template>
-          <!-- <NcDivider />
-          <NcTooltip title="Navigate to a view to a create record" :disabled="!!activeView" placement="right">
-            <NcMenuItem data-testid="mini-sidebar-record-create" :disabled="!activeView" class="capitalize">
-              <GeneralIcon icon="ncPlus" />
-              {{ $t('objects.record') }}
+
+          <NcTooltip
+            :title="
+              !isDataTab
+                ? $t('tooltip.switchToDataTab', { type: $t('objects.table').toLowerCase() })
+                : !isBaseHomePage
+                  ? $t('tooltip.navigateToBaseToCreateTable')
+                  : !hasTableCreateAccess
+                    ? $t('tooltip.youDontHaveAccessToCreateNewTable')
+                    : ''
+            "
+            :disabled="isDataTab && isBaseHomePage && hasTableCreateAccess"
+            placement="right"
+          >
+            <NcMenuItem
+              data-testid="mini-sidebar-table-create"
+              :disabled="!isDataTab || !isBaseHomePage || !hasTableCreateAccess"
+              @click="openTableCreateDialog"
+            >
+              <GeneralIcon icon="table" />
+              {{ $t('objects.table') }}
             </NcMenuItem>
-          </NcTooltip> -->
+          </NcTooltip>
+          <NcMenuItem v-if="hasBaseCreateAccess" data-testid="mini-sidebar-base-create" @click="baseCreateDlg = true">
+            <GeneralIcon icon="ncBaseOutline" class="h-4 w-4" />
+            {{ $t('objects.project') }}
+          </NcMenuItem>
         </NcMenu>
       </template>
     </NcDropdown>
     <WorkspaceCreateProjectDlg v-model="baseCreateDlg" is-create-new-action-menu />
   </div>
 </template>
+
+<style lang="scss">
+.nc-mini-sidebar-plus-btn svg {
+  stroke-width: 2.5;
+}
+
+.nc-create-new-dropdown.nc-create-new-dropdown {
+  overflow: visible !important;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    bottom: 11px;
+    width: 0;
+    height: 0;
+    border-top: 7px solid transparent;
+    border-bottom: 7px solid transparent;
+    border-right: 7px solid var(--nc-border-gray-medium);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: -5px;
+    bottom: 13px;
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 6px solid var(--nc-bg-default);
+  }
+}
+</style>

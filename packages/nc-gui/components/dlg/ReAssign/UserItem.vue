@@ -19,6 +19,6 @@ const displayName = computed(() => {
         <span class="text-xs text-nc-content-gray-subtle2">{{ user.email }}</span>
       </div>
     </div>
-    <slot name="append"></slot>
+    <slot name="append" />
   </div>
 </template>

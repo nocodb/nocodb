@@ -2,8 +2,11 @@ import {
   extractRolesObj,
   IconType,
   ncIsObject,
+  OrgUserRoles,
   ProjectRoles,
   type UserType,
+  WorkspaceRolesToProjectRoles,
+  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import type { MetaType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
@@ -18,6 +21,7 @@ import {
   MetaTable,
   RootScopes,
 } from '~/utils/globals';
+import WorkspaceUser from '~/models/WorkspaceUser';
 import { Base, BaseUser, PresignedUrl, UserRefreshToken } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 import { normalizeEmail } from '~/utils/emailUtils';
@@ -277,6 +281,10 @@ export default class User implements UserType {
       qb.where('email', 'like', `%${query.toLowerCase?.()}%`);
     }
 
+    qb.where(function () {
+      this.where('is_deleted', false).orWhereNull('is_deleted');
+    });
+
     return (await qb.count('id', { as: 'count' }).first()).count;
   }
 
@@ -308,6 +316,63 @@ export default class User implements UserType {
     }
 
     return this.castType(user);
+  }
+
+  /**
+   * Get multiple users by IDs in a single query.
+   * Falls back to cache for each ID first, then fetches remaining from DB.
+   */
+  static async getByIds(
+    userIds: string[],
+    ncMeta = Noco.ncMeta,
+  ): Promise<Map<string, User>> {
+    const result = new Map<string, User>();
+    if (!userIds.length) return result;
+
+    const uniqueIds = [...new Set(userIds)];
+    const uncachedIds: string[] = [];
+
+    for (const id of uniqueIds) {
+      const cached = await NocoCache.get(
+        'root',
+        `${CacheScope.USER}:${id}`,
+        CacheGetType.TYPE_OBJECT,
+      );
+      if (cached && !cached.is_deleted) {
+        result.set(id, this.castType(cached));
+      } else if (!cached) {
+        uncachedIds.push(id);
+      }
+    }
+
+    if (uncachedIds.length) {
+      const rows = await ncMeta.metaList2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.USERS,
+        {
+          xcCondition: {
+            _and: [
+              { id: { in: uncachedIds } },
+              {
+                _or: [
+                  { is_deleted: { eq: false } },
+                  { is_deleted: { eq: null } },
+                ],
+              },
+            ],
+          },
+        },
+      );
+
+      for (const row of rows) {
+        row.meta = parseMetaProp(row);
+        await NocoCache.set('root', `${CacheScope.USER}:${row.id}`, row);
+        result.set(row.id, this.castType(row));
+      }
+    }
+
+    return result;
   }
 
   static async getByRefreshToken(refresh_token, ncMeta = Noco.ncMeta) {
@@ -377,7 +442,12 @@ export default class User implements UserType {
             `${MetaTable.USERS}.id = ${MetaTable.PROJECT_USERS}.fk_user_id`,
           )
           .as('projectsCount'),
-      );
+      )
+      .where(function () {
+        this.where(`${MetaTable.USERS}.is_deleted`, false).orWhereNull(
+          `${MetaTable.USERS}.is_deleted`,
+        );
+      });
     if (query) {
       queryBuilder.where(function () {
         this.where(function () {
@@ -411,6 +481,35 @@ export default class User implements UserType {
     );
   }
 
+  public static async softDelete(userId: string, ncMeta = Noco.ncMeta) {
+    const user = await this.get(userId, ncMeta);
+
+    if (!user) NcError.userNotFound(userId);
+
+    await ncMeta.metaUpdate(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.USERS,
+      {
+        email: `deleted_${user.id}@user.invalid`,
+        canonical_email: null,
+        display_name: 'Anonymous',
+        password: null,
+        salt: null,
+        avatar: null,
+        invite_token: null,
+        reset_password_token: null,
+        email_verification_token: null,
+        token_version: null,
+        deleted_at: ncMeta.knex.fn.now(),
+        is_deleted: true,
+      },
+      userId,
+    );
+
+    await this.clearCache(userId, ncMeta);
+  }
+
   static async getWithRoles(
     context: NcContext,
     userId: string,
@@ -425,6 +524,18 @@ export default class User implements UserType {
     const user = args.user ?? (await this.get(userId, ncMeta));
 
     if (!user) NcError.userNotFound(userId);
+
+    // Super admin is treated as owner of all workspaces and bases
+    if (extractRolesObj(user.roles)?.[OrgUserRoles.SUPER_ADMIN]) {
+      return {
+        ...sanitiseUserObj(user),
+        roles: extractRolesObj(user.roles),
+        workspace_roles: args.workspaceId
+          ? { [WorkspaceUserRoles.OWNER]: true }
+          : null,
+        base_roles: args.baseId ? { [ProjectRoles.OWNER]: true } : null,
+      } as any;
+    }
 
     const baseRoles = await new Promise((resolve) => {
       if (args.baseId) {
@@ -451,13 +562,47 @@ export default class User implements UserType {
       }
     });
 
+    let workspaceRoles: Record<string, boolean> | null = null;
+
+    if (args.workspaceId) {
+      const wsUser = await WorkspaceUser.get(
+        args.workspaceId,
+        user.id,
+        {},
+        ncMeta,
+      );
+      if (wsUser?.roles) {
+        workspaceRoles = extractRolesObj(wsUser.roles);
+      }
+    }
+
+    // If no explicit base role, inherit from workspace role
+    let effectiveBaseRoles = baseRoles;
+    if (!effectiveBaseRoles && workspaceRoles) {
+      const wsRoleStr = Object.keys(workspaceRoles).find(
+        (k) => workspaceRoles[k],
+      ) as WorkspaceUserRoles | undefined;
+      if (wsRoleStr) {
+        const projectRole = WorkspaceRolesToProjectRoles[wsRoleStr];
+        if (
+          projectRole &&
+          projectRole !== ProjectRoles.NO_ACCESS &&
+          projectRole !== ProjectRoles.INHERIT
+        ) {
+          effectiveBaseRoles = extractRolesObj(projectRole);
+        }
+      }
+    }
+
     return {
       ...sanitiseUserObj(user),
       roles: user.roles ? extractRolesObj(user.roles) : null,
-      base_roles: baseRoles ? baseRoles : null,
+      base_roles: effectiveBaseRoles ? effectiveBaseRoles : null,
+      workspace_roles: workspaceRoles,
     } as UserType & {
       roles: Record<string, boolean>;
       base_roles: Record<string, boolean>;
+      workspace_roles: Record<string, boolean>;
     };
   }
 

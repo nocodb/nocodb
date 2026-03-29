@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
+import type { VNodeRef } from 'vue'
 
 interface Props {
   // when we set a number, then it is number type
@@ -50,9 +50,11 @@ const vModel = computed({
       // if we clear / empty a cell in sqlite,
       // the value is considered as ''
       _vModel.value = null
-    } else if (isForm.value && !isEditColumn.value) {
+    }
+    else if (isForm.value && !isEditColumn.value) {
       _vModel.value = isNaN(Number(value)) ? value : Number(value)
-    } else {
+    }
+    else {
       _vModel.value = value
     }
   },
@@ -60,7 +62,7 @@ const vModel = computed({
 
 const inputType = computed(() => (isForm.value && !isEditColumn.value && props.location !== 'filter' ? 'text' : 'number'))
 
-const focus: VNodeRef = (el) =>
+const focus: VNodeRef = el =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 
 function onKeyDown(e: any) {
@@ -83,7 +85,8 @@ function onKeyDown(e: any) {
     e.target.type = 'text'
     e.target?.setSelectionRange(e.target.value.length, e.target.value.length)
     e.target.type = 'number'
-  } else if (e.key === 'ArrowUp') {
+  }
+  else if (e.key === 'ArrowUp') {
     e.preventDefault()
 
     e.target.type = 'text'
@@ -112,7 +115,7 @@ function onKeyDown(e: any) {
     @keydown.alt.stop
     @selectstart.capture.stop
     @mousedown.stop
-  />
+  >
   <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
   <span v-else class="nc-cell-field">{{ displayValue }}</span>
 </template>

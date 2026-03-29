@@ -1,6 +1,7 @@
-import { useStorage } from '@vueuse/core'
 import type { JwtPayload } from 'jwt-decode'
 import type { AppInfo, State, StoredState } from './types'
+import { useStorage } from '@vueuse/core'
+import { MapProvider } from 'nocodb-sdk'
 import { INITIAL_LEFT_SIDEBAR_WIDTH } from '~/lib/constants'
 
 export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
@@ -31,11 +32,11 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     const [lang, code] = language.split(/[_-]/)
 
     /** find all locales that match the language */
-    let availableLocales = i18n.global.availableLocales.filter((locale) => locale.startsWith(lang))
+    let availableLocales = i18n.global.availableLocales.filter(locale => locale.startsWith(lang))
 
     /** If we can match more than one locale, we check if the code of the language matches as well */
     if (availableLocales.length > 1) {
-      availableLocales = availableLocales.filter((locale) => locale.endsWith(code))
+      availableLocales = availableLocales.filter(locale => locale.endsWith(code))
     }
 
     /** if there are still multiple locales, pick the first one */
@@ -49,7 +50,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
 
   const { width } = useWindowSize()
   const isViewPortMobile = () => {
-    return width.value < MAX_WIDTH_FOR_MOBILE_MODE
+    return width.value < NC_BREAKPOINTS.sm
   }
 
   /** State */
@@ -64,6 +65,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     latestRelease: null,
     hiddenRelease: null,
     isMobileMode: null,
+    activeBreakpoint: null,
     lastOpenedWorkspaceId: null,
     gridViewPageSize: 25,
     leftSidebarSize: {
@@ -139,14 +141,23 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     version: '0.0.0',
     ncAttachmentFieldSize: 20,
     ncMaxAttachmentsAllowed: 10,
+    ncMaxTextLength: 100000,
     isCloud: false,
     automationLogLevel: 'OFF',
     disableEmailAuth: false,
-    dashboardPath: '/dashboard',
+    dashboardPath: '/',
     inviteOnlySignup: false,
     giftUrl: '',
     isOnPrem: false,
+    isPostgres: false,
+    isAirgapped: false,
+    seatLimit: null,
+    isTrial: false,
+    isTrialExpired: false,
+    licenseExpiryTime: 0,
+    defaultWorkspaceId: null,
     disableGroupByAggregation: false,
+    mapProvider: MapProvider.OPENSTREETMAP,
   })
 
   /** reactive token payload */
@@ -161,6 +172,9 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** our local user object */
   const user = ref<User | null>(null)
 
+  /** tracks appInfo API call status: 'idle' → 'loading' → 'loaded' | 'error' */
+  const appInfoStatus = ref<'idle' | 'loading' | 'loaded' | 'error'>('idle')
+
   return {
     ...toRefs(storage.value),
     storage,
@@ -171,5 +185,6 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     error,
     user,
     appInfo,
+    appInfoStatus,
   }
 }

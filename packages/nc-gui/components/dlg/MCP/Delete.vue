@@ -28,7 +28,8 @@ async function onDelete() {
 
     vModel.value = false
     emits('deleted')
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }

@@ -31,7 +31,7 @@ const pluginTypeMap = {
 
 const { formState, validate, validateInfos } = useProvideFormBuilderHelper({
   formSchema: [
-    ...plugin.value.formDetails.items.flatMap((item) => [
+    ...plugin.value.formDetails.items.flatMap(item => [
       {
         type: pluginTypeMap[item.type] || FormBuilderInputType.Input,
         label: item.label,
@@ -39,7 +39,7 @@ const { formState, validate, validateInfos } = useProvideFormBuilderHelper({
         model: item.key,
         required: item.required,
         helpText: item.help_text,
-        span: 12,
+        span: [24, 12],
         border: false,
         showHintAsTooltip: true,
       },
@@ -48,7 +48,7 @@ const { formState, validate, validateInfos } = useProvideFormBuilderHelper({
   initialState: pluginFormData,
 })
 
-const doAction = async (action: Action) => {
+async function doAction(action: Action) {
   try {
     switch (action) {
       case Action.Save:
@@ -63,15 +63,17 @@ const doAction = async (action: Action) => {
         await testSettings()
         break
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.log(e)
-  } finally {
+  }
+  finally {
     loadingAction.value = null
   }
 }
 
 const isValid = computed(() => {
-  return Object.values(validateInfos || {}).every((info) => info.validateStatus !== 'error')
+  return Object.values(validateInfos || {}).every(info => info.validateStatus !== 'error')
 })
 
 const docLinks = computed(() => {
@@ -132,7 +134,9 @@ const docLinks = computed(() => {
       </div>
       <div class="nc-config-right-panel">
         <div class="flex-grow flex flex-col gap-3">
-          <div class="text-nc-content-gray-muted text-capitalize">{{ $t('labels.documentation') }}</div>
+          <div class="text-nc-content-gray-muted text-capitalize">
+            {{ $t('labels.documentation') }}
+          </div>
           <a
             v-for="doc of docLinks"
             :key="doc.title"
@@ -147,7 +151,9 @@ const docLinks = computed(() => {
 
           <NcDivider />
 
-          <div class="text-nc-content-gray-muted text-capitalize">{{ $t('labels.modifiedOn') }}</div>
+          <div class="text-nc-content-gray-muted text-capitalize">
+            {{ $t('labels.modifiedOn') }}
+          </div>
           <div class="">
             {{ dayjs(plugin.created_at).format('DD MMM YYYY HH:mm') }}
           </div>

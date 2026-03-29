@@ -9,7 +9,6 @@ import { getApiTokenFromHeader } from '~/helpers';
 
 @Injectable()
 export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
-  // eslint-disable-next-line @typescript-eslint/ban-types
   async validate(req: NcRequest, callback: Function) {
     try {
       let user;

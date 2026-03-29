@@ -38,7 +38,7 @@ const layout = {
 
 const addSetting = () => pluginFormData.value.push({})
 
-const saveSettings = async () => {
+async function saveSettings() {
   loadingAction.value = Action.Save
 
   try {
@@ -52,14 +52,16 @@ const saveSettings = async () => {
     emits('saved')
     // Plugin settings saved successfully
     message.success(plugin.value?.formDetails.msgOnInstall || t('msg.success.pluginSettingsSaved'))
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     loadingAction.value = null
   }
 }
 
-const testSettings = async () => {
+async function testSettings() {
   loadingAction.value = Action.Test
 
   try {
@@ -73,19 +75,22 @@ const testSettings = async () => {
       if (res) {
         // Successfully tested plugin settings
         message.success(t('msg.success.pluginTested'))
-      } else {
+      }
+      else {
         // Invalid credentials
         message.info(t('msg.info.invalidCredentials'))
       }
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     loadingAction.value = null
   }
 }
 
-const doAction = async (action: Action) => {
+async function doAction(action: Action) {
   switch (action) {
     case Action.Save:
       await saveSettings()
@@ -99,7 +104,7 @@ const doAction = async (action: Action) => {
   }
 }
 
-const readPluginDetails = async () => {
+async function readPluginDetails() {
   try {
     isLoading.value = true
 
@@ -117,9 +122,11 @@ const readPluginDetails = async () => {
 
     plugin.value = { ...res, formDetails, parsedInput }
     pluginFormData.value = plugin.value.parsedInput
-  } catch (e) {
+  }
+  catch (e) {
     console.log(e)
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 }
@@ -147,7 +154,7 @@ onMounted(async () => {
             class="mr-1 flex items-center justify-center"
             :class="[plugin.title === 'SES' ? 'p-2 bg-[#242f3e]' : '']"
           >
-            <img :alt="plugin.title || 'plugin'" :src="plugin.logo" class="h-6" />
+            <img :alt="plugin.title || 'plugin'" :src="plugin.logo" class="h-6">
           </div>
 
           <span class="font-semibold text-lg">{{ plugin.formDetails.title }}</span>

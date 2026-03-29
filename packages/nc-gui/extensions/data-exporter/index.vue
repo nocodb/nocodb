@@ -1,12 +1,13 @@
 <script setup lang="ts">
+import type { ViewType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import {
-  SupportedExportCharset,
-  type ViewType,
-  ViewTypes,
   charsetOptions,
   csvColumnSeparatorOptions,
   getFirstNonPersonalView,
+  SupportedExportCharset,
+
+  ViewTypes,
 } from 'nocodb-sdk'
 import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
 
@@ -48,10 +49,10 @@ const { width } = useElementSize(dataExporterRef)
 const exportedFiles = computed(() => {
   const list = jobList.value
     .filter(
-      (job) =>
-        (job.job === 'data-export' || job.name === 'data-export') &&
-        job.result?.extension_id === extension.value.id &&
-        !deletedExports.value.includes(job.id),
+      job =>
+        (job.job === 'data-export' || job.name === 'data-export')
+        && job.result?.extension_id === extension.value.id
+        && !deletedExports.value.includes(job.id),
     )
     .map((job) => {
       const isNew = job.result?.timestamp ? dayjs().diff(job.result?.timestamp) < 10000 : false
@@ -101,7 +102,7 @@ const viewList = computed(() => {
   if (!exportPayload.value.tableId) return []
   return (
     views.value
-      .filter((view) => view.type !== ViewTypes.FORM)
+      .filter(view => view.type !== ViewTypes.FORM)
       .map((view) => {
         return {
           label: view.title,
@@ -113,26 +114,27 @@ const viewList = computed(() => {
   )
 })
 
-const reloadViews = async () => {
+async function reloadViews() {
   if (exportPayload.value.tableId) {
     views.value = await getViewsForTable(exportPayload.value.tableId)
   }
 }
 
-const saveChanges = async () => {
+async function saveChanges() {
   extensionUserPrefsManager.set(user.value.id, extension.value.id, exportPayload.value, extension.value.baseId)
 }
 
-const onTableSelect = async (tableId?: string) => {
+async function onTableSelect(tableId?: string) {
   if (!tableId) {
     exportPayload.value.tableId = activeTableId.value
     await reloadViews()
     exportPayload.value.viewId = activeViewTitleOrId.value
-      ? views.value.find((view) => view.id === activeViewTitleOrId.value)?.id
+      ? views.value.find(view => view.id === activeViewTitleOrId.value)?.id
       : getFirstNonPersonalView(views.value, {
-          includeViewType: ViewTypes.GRID,
-        })?.id
-  } else {
+        includeViewType: ViewTypes.GRID,
+      })?.id
+  }
+  else {
     exportPayload.value.tableId = tableId
     await reloadViews()
     exportPayload.value.viewId = getFirstNonPersonalView(views.value, {
@@ -143,7 +145,7 @@ const onTableSelect = async (tableId?: string) => {
   await saveChanges()
 }
 
-const onViewSelect = async (viewId: string) => {
+async function onViewSelect(viewId: string) {
   exportPayload.value.viewId = viewId
   await saveChanges()
 }
@@ -193,7 +195,7 @@ async function exportDataAsync() {
             // Export completed successfully
             message.toast('Successfully exported data!')
 
-            const job = jobList.value.find((j) => j.id === data.id)
+            const job = jobList.value.find(j => j.id === data.id)
             if (job) {
               job.status = JobStatus.COMPLETED
               job.result = data.data?.result
@@ -201,10 +203,11 @@ async function exportDataAsync() {
 
             isExporting.value = false
             $e(`a:extension:${EXTENSION_ID}:export:completed`)
-          } else if (data.status === JobStatus.FAILED) {
+          }
+          else if (data.status === JobStatus.FAILED) {
             message.error('Failed to export data!')
 
-            const job = jobList.value.find((j) => j.id === data.id)
+            const job = jobList.value.find(j => j.id === data.id)
             if (job) {
               job.status = JobStatus.FAILED
               job.result = data.data?.result
@@ -224,22 +227,25 @@ async function exportDataAsync() {
         }
       },
     )
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     $e(`a:extension:${EXTENSION_ID}:export`)
   }
 }
 
-const urlHelper = (url: string) => {
+function urlHelper(url: string) {
   if (url.startsWith('http')) {
     return url
-  } else {
+  }
+  else {
     return `${appInfo.value.ncSiteUrl || BASE_FALLBACK_URL}/${url}`
   }
 }
 
-const handleDownload = async (url: string) => {
+async function handleDownload(url: string) {
   const isExpired = await isLinkExpired(url)
 
   if (isExpired) {
@@ -261,25 +267,25 @@ const handleDownload = async (url: string) => {
 }
 
 function titleHelper() {
-  const table = tables.value.find((t) => t.id === exportPayload.value.tableId)
-  const view = views.value.find((v) => v.id === exportPayload.value.viewId)
+  const table = tables.value.find(t => t.id === exportPayload.value.tableId)
+  const view = views.value.find(v => v.id === exportPayload.value.viewId)
 
   return `${table?.title} (${view?.title})`
 }
 
-const onRemoveExportedFile = async (exportId: string) => {
+async function onRemoveExportedFile(exportId: string) {
   deletedExports.value.push(exportId)
 
   await extension.value.kvStore.set('deletedExports', deletedExports.value)
 }
 
-const filterOption = (input: string, option: { key: string }) => {
+function filterOption(input: string, option: { key: string }) {
   return option.key?.toLowerCase()?.includes(input?.toLowerCase())
 }
 
-const extensionEvents = async (event: ExtensionsEvents, payload: any) => {
+async function extensionEvents(event: ExtensionsEvents, payload: any) {
   if (event === ExtensionsEvents.CLEARDATA && payload && extension.value.id && payload === extension.value.id) {
-    const deleteExportsPayload = exportedFiles.value.map((exp) => exp.id)
+    const deleteExportsPayload = exportedFiles.value.map(exp => exp.id)
 
     if (deleteExportsPayload.length) {
       deletedExports.value.push(...deleteExportsPayload)
@@ -308,7 +314,7 @@ onMounted(async () => {
   await reloadViews()
   await loadJobsForBase()
 
-  if (!exportPayload.value.tableId && tableList.value.find((table) => table.value === activeTableId.value)) {
+  if (!exportPayload.value.tableId && tableList.value.find(table => table.value === activeTableId.value)) {
     onTableSelect()
   }
 })
@@ -320,10 +326,14 @@ onMounted(async () => {
   >
     <template v-if="fullscreen" #headerExtra>
       <NcTooltip class="flex" placement="topRight" :disabled="!isExporting">
-        <template #title> The CSV file is being prepared in the background. You'll be notified once it's ready. </template>
-        <NcButton :disabled="!exportPayload?.viewId" :loading="isExporting" size="small" @click="exportDataAsync">{{
-          isExporting ? 'Generating' : 'Export'
-        }}</NcButton>
+        <template #title>
+          The CSV file is being prepared in the background. You'll be notified once it's ready.
+        </template>
+        <NcButton :disabled="!exportPayload?.viewId" :loading="isExporting" size="small" @click="exportDataAsync">
+          {{
+            isExporting ? 'Generating' : 'Export'
+          }}
+        </NcButton>
       </NcTooltip>
     </template>
     <div
@@ -377,7 +387,9 @@ onMounted(async () => {
                       />
                     </div>
                     <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                      <template #title>{{ table.label }}</template>
+                      <template #title>
+                        {{ table.label }}
+                      </template>
                       <span>{{ table.label }}</span>
                     </NcTooltip>
                     <component
@@ -418,7 +430,9 @@ onMounted(async () => {
                       />
                     </div>
                     <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                      <template #title>{{ view.label }}</template>
+                      <template #title>
+                        {{ view.label }}
+                      </template>
                       <span>{{ view.label }}</span>
                     </NcTooltip>
                     <component
@@ -427,16 +441,21 @@ onMounted(async () => {
                       id="nc-selected-item-icon"
                       class="flex-none text-nc-content-brand w-4 h-4"
                     />
-                  </div> </a-select-option
-              ></NcSelect>
+                  </div>
+                </a-select-option>
+              </NcSelect>
             </a-form-item>
           </div>
           <div class="flex-none flex justify-end">
             <NcTooltip class="flex" placement="topRight" :disabled="!isExporting">
-              <template #title> The CSV file is being prepared in the background. You'll be notified once it's ready. </template>
-              <NcButton :disabled="!exportPayload?.viewId" :loading="isExporting" size="small" @click="exportDataAsync">{{
-                isExporting ? 'Generating' : 'Export'
-              }}</NcButton>
+              <template #title>
+                The CSV file is being prepared in the background. You'll be notified once it's ready.
+              </template>
+              <NcButton :disabled="!exportPayload?.viewId" :loading="isExporting" size="small" @click="exportDataAsync">
+                {{
+                  isExporting ? 'Generating' : 'Export'
+                }}
+              </NcButton>
             </NcTooltip>
           </div>
         </div>
@@ -452,9 +471,13 @@ onMounted(async () => {
           v-if="fullscreen"
           class="w-[320px] border-r-1 border-r-nc-border-gray-medium bg-nc-bg-default p-4 pt-t flex flex-col gap-5 nc-scrollbar-thin"
         >
-          <div class="text-base font-bold text-nc-content-gray-extreme">Settings</div>
+          <div class="text-base font-bold text-nc-content-gray-extreme">
+            Settings
+          </div>
           <div class="flex flex-col gap-2">
-            <div class="text-nc-content-gray font-medium">Table</div>
+            <div class="text-nc-content-gray font-medium">
+              Table
+            </div>
             <a-form-item class="!my-0">
               <NcSelect
                 v-model:value="exportPayload.tableId"
@@ -476,7 +499,9 @@ onMounted(async () => {
                       />
                     </div>
                     <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                      <template #title>{{ table.label }}</template>
+                      <template #title>
+                        {{ table.label }}
+                      </template>
                       <span>{{ table.label }}</span>
                     </NcTooltip>
                     <component
@@ -491,7 +516,9 @@ onMounted(async () => {
             </a-form-item>
           </div>
           <div class="flex flex-col gap-2">
-            <div class="text-nc-content-gray font-medium">View</div>
+            <div class="text-nc-content-gray font-medium">
+              View
+            </div>
             <a-form-item class="!my-0 min-w-1/2">
               <NcSelect
                 v-model:value="exportPayload.viewId"
@@ -513,7 +540,9 @@ onMounted(async () => {
                       />
                     </div>
                     <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                      <template #title>{{ view.label }}</template>
+                      <template #title>
+                        {{ view.label }}
+                      </template>
                       <span>{{ view.label }}</span>
                     </NcTooltip>
                     <component
@@ -541,7 +570,9 @@ onMounted(async () => {
                 <a-select-option v-for="delimiter of csvColumnSeparatorOptions" :key="delimiter.value" :value="delimiter.value">
                   <div class="w-full flex items-center gap-2">
                     <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                      <template #title>{{ delimiter.label }}</template>
+                      <template #title>
+                        {{ delimiter.label }}
+                      </template>
                       <span>{{ delimiter.label }}</span>
                     </NcTooltip>
                     <component
@@ -556,7 +587,9 @@ onMounted(async () => {
             </a-form-item>
           </div>
           <div class="flex flex-col gap-2">
-            <div class="min-w-[65px]">Encoding</div>
+            <div class="min-w-[65px]">
+              Encoding
+            </div>
             <a-form-item class="!my-0 flex-1">
               <NcSelect
                 v-model:value="exportPayload.encoding"
@@ -570,7 +603,9 @@ onMounted(async () => {
                 <a-select-option v-for="encoding of charsetOptions" :key="encoding.label" :value="encoding.value">
                   <div class="w-full flex items-center gap-2">
                     <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                      <template #title>{{ encoding.label }}</template>
+                      <template #title>
+                        {{ encoding.label }}
+                      </template>
                       <span>{{ encoding.label }}</span>
                     </NcTooltip>
                     <component
@@ -586,7 +621,9 @@ onMounted(async () => {
           </div>
         </div>
         <div class="flex flex-col flex-1 nc-scrollbar-thin">
-          <div v-if="fullscreen" class="data-exporter-header sticky top-0 z-100">Recent Exports</div>
+          <div v-if="fullscreen" class="data-exporter-header sticky top-0 z-100">
+            Recent Exports
+          </div>
           <div v-if="exportedFiles.length" class="flex-1 flex flex-col max-h-[calc(100%_-_25px)]">
             <template v-for="exp of exportedFiles">
               <div
@@ -649,9 +686,11 @@ onMounted(async () => {
                 </div>
 
                 <div v-if="exp.result.isNew" class="flex h-7 flex items-center">
-                  <NcBadge color="green" :border="false" class="!bg-nc-bg-green-light !text-nc-content-green-dark">{{
-                    $t('general.new')
-                  }}</NcBadge>
+                  <NcBadge color="green" :border="false" class="!bg-nc-bg-green-light !text-nc-content-green-dark">
+                    {{
+                      $t('general.new')
+                    }}
+                  </NcBadge>
                 </div>
                 <div v-if="exp.status === JobStatus.COMPLETED" class="flex" @click="handleDownload(urlHelper(exp.result.url))">
                   <NcTooltip class="flex">

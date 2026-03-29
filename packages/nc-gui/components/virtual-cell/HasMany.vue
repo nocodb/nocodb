@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { isSystemColumn } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { isSystemColumn } from 'nocodb-sdk'
 import { forcedNextTick } from '../../utils/browserUtils'
 
 const column = inject(ColumnInj)!
@@ -65,7 +65,8 @@ const hasEditPermission = computed(() => {
 const localCellValue = computed<any[]>(() => {
   if (cellValue?.value) {
     return cellValue?.value ?? []
-  } else if (isNew.value) {
+  }
+  else if (isNew.value) {
     return state?.value?.[column?.value.title as string] ?? []
   }
   return []
@@ -81,10 +82,11 @@ const cells = computed(() =>
   }, []),
 )
 
-const unlinkRef = async (rec: Record<string, any>) => {
+async function unlinkRef(rec: Record<string, any>) {
   if (isNew.value) {
     await removeLTARRef(rec, column.value)
-  } else {
+  }
+  else {
     await unlink(rec)
   }
 }
@@ -94,18 +96,18 @@ const hasManyColumn = computed(
     relatedTableMeta.value?.columns?.find((c: any) => c.title === relatedTableDisplayValueProp.value) as ColumnType | undefined,
 )
 
-const onAttachRecord = () => {
+function onAttachRecord() {
   childListDlg.value = false
   listItemsDlg.value = true
   hideBackBtn.value = false
 }
 
-const onAttachLinkedRecord = () => {
+function onAttachLinkedRecord() {
   listItemsDlg.value = false
   childListDlg.value = true
 }
 
-const openChildList = () => {
+function openChildList() {
   if (isUnderLookup.value) return
 
   childListDlg.value = true
@@ -115,7 +117,7 @@ const openChildList = () => {
   hideBackBtn.value = false
 }
 
-const openListDlg = () => {
+function openListDlg() {
   if (!hasEditPermission.value) return
 
   listItemsDlg.value = true
@@ -157,14 +159,15 @@ function onCellClick(e: Event) {
   }
 }
 
-const onCellEvent = (event?: Event) => {
+function onCellEvent(event?: Event) {
   if (!(event instanceof KeyboardEvent) || !event.target || isActiveInputElementExist(event)) return
 
   if (isExpandCellKey(event)) {
     if (childListDlg.value) {
       listItemsDlg.value = false
       childListDlg.value = false
-    } else {
+    }
+    else {
       openChildList()
     }
 
@@ -184,11 +187,14 @@ onMounted(() => {
 
     if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-has-many-plus-icon', clientMousePosition)) {
       openListDlg()
-    } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-has-many-maximize-icon', clientMousePosition)) {
+    }
+    else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-has-many-maximize-icon', clientMousePosition)) {
       openChildList()
-    } else if (hasEditPermission.value) {
+    }
+    else if (hasEditPermission.value) {
       openListDlg()
-    } else {
+    }
+    else {
       openChildList()
     }
   })

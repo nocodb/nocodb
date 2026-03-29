@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type { ColumnType, TableType, UITypes } from 'nocodb-sdk'
 
+const isSearchExpanded = defineModel<boolean>('searchExpanded', { default: false })
+
 const reloadData = inject(ReloadViewDataHookInj)!
 
 const reloadAggregate = inject(ReloadAggregateHookInj)
@@ -9,8 +11,8 @@ const activeView = inject(ActiveViewInj, ref())
 
 const { $e } = useNuxtApp()
 
-const { meta, eventBus, isGrid, isGallery, isList, totalRowsWithSearchQuery, totalRowsWithoutSearchQuery, gridEditEnabled } =
-  useSmartsheetStoreOrThrow()
+const { meta, eventBus, isGrid, isGallery, isList, totalRowsWithSearchQuery, totalRowsWithoutSearchQuery, gridEditEnabled }
+  = useSmartsheetStoreOrThrow()
 
 const { lastOpenedViewId } = storeToRefs(useViewsStore())
 
@@ -36,7 +38,7 @@ function getTableTitle(tableId?: string) {
 
 const isDropdownOpen = ref(false)
 
-const showSearchBox = ref(!!isMobileMode.value)
+const showSearchBox = ref(false)
 
 const globalSearchRef = ref<HTMLInputElement>()
 
@@ -52,10 +54,10 @@ const isValidSearchQuery = computed(() => {
 
 const isSearchResultVisible = computed(() => {
   return (
-    !isDropdownOpen.value &&
-    search.value.query?.trim() &&
-    !isMobileMode.value &&
-    ((isGrid.value && !isGroupBy.value) || isGallery.value)
+    !isDropdownOpen.value
+    && search.value.query?.trim()
+    && !isMobileMode.value
+    && ((isGrid.value && !isGroupBy.value) || isGallery.value)
   )
 })
 
@@ -65,10 +67,10 @@ const columns = computed(() => {
     const baseId = (meta.value as TableType)?.base_id
     const levelMeta = getMetaByKey(baseId, levelTableId)
     if (levelMeta?.columns) {
-      return (levelMeta.columns as ColumnType[]).filter((column) => isSearchableColumn(column))
+      return (levelMeta.columns as ColumnType[]).filter(column => isSearchableColumn(column))
     }
   }
-  return (meta.value as TableType)?.columns?.filter((column) => isSearchableColumn(column)) ?? []
+  return (meta.value as TableType)?.columns?.filter(column => isSearchableColumn(column)) ?? []
 })
 
 watch(
@@ -107,10 +109,10 @@ function onPressEnter() {
 const displayColumn = computed(() => {
   if (search.value.field) {
     // use search field label if specified
-    return columns.value?.find((column) => column.id === search.value.field)
+    return columns.value?.find(column => column.id === search.value.field)
   }
   // use primary value label by default
-  const pvColumn = columns.value?.find((column) => column.pv)
+  const pvColumn = columns.value?.find(column => column.pv)
   search.value.field = pvColumn?.id as string
   return pvColumn
 })
@@ -136,7 +138,7 @@ watchDebounced(
   },
 )
 
-const onSelectOption = (column: ColumnType) => {
+function onSelectOption(column: ColumnType) {
   search.value.field = column.id as string
   isDropdownOpen.value = false
 
@@ -149,7 +151,7 @@ const onSelectOption = (column: ColumnType) => {
   })
 }
 
-const handleShowSearchInput = () => {
+function handleShowSearchInput() {
   showSearchBox.value = true
 
   setTimeout(() => {
@@ -162,30 +164,26 @@ const handleShowSearchInput = () => {
   }, 300)
 }
 
-const handleEscapeKey = () => {
+function handleEscapeKey() {
   if (isDropdownOpen.value || gridEditEnabled.value) return
 
   search.value.query = ''
-  if (!isMobileMode.value) {
-    showSearchBox.value = false
-  }
+  showSearchBox.value = false
 }
 
-const handleClickOutside = (e: MouseEvent | KeyboardEvent) => {
+function handleClickOutside(e: MouseEvent | KeyboardEvent) {
   const targetEl = e.target as HTMLElement
   if (search.value.query || targetEl?.closest('.nc-dropdown-toolbar-search, .nc-dropdown-toolbar-search-field-option')) {
     return
   }
 
-  if (!isMobileMode.value) {
-    showSearchBox.value = false
-  }
+  showSearchBox.value = false
 }
 
 onClickOutside(globalSearchWrapperRef, handleClickOutside)
 
 onMounted(() => {
-  if ((search.value.query || isMobileMode.value) && !showSearchBox.value) {
+  if (search.value.query && !showSearchBox.value) {
     showSearchBox.value = true
   }
 })
@@ -202,7 +200,8 @@ useEventListener('keydown', (e: KeyboardEvent) => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
     e.preventDefault()
     handleShowSearchInput()
-  } else if (e.key === 'Escape') {
+  }
+  else if (e.key === 'Escape') {
     handleEscapeKey()
   }
 })
@@ -210,6 +209,8 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 watch(
   isSearchButtonVisible,
   (newVal) => {
+    isSearchExpanded.value = !newVal
+
     if (newVal) return
 
     isDropdownOpen.value = false
@@ -233,13 +234,7 @@ watch(
       <GeneralIcon icon="search" class="h-4 w-4 text-nc-content-gray-subtle group-hover:text-nc-content-gray-extreme" />
     </NcButton>
     <LazySmartsheetToolbarSearchDataWrapperDropdown v-else :visible="true">
-      <div
-        :class="{
-          'border-1 rounded-lg border-nc-border-gray-medium overflow-hidden focus-within:(border-primary shadow-selected)':
-            isMobileMode,
-          'border-primary shadow-selected': isMobileMode && search.query.length !== 0,
-        }"
-      >
+      <div class="border-1 rounded-lg border-nc-border-gray-medium overflow-hidden focus-within:(border-primary shadow-selected)">
         <div
           v-if="isList && listViewStore && listViewStore.levels.value.length > 1"
           class="flex items-center gap-1 px-2 py-1 border-b-1 border-nc-border-gray-medium"
@@ -311,8 +306,7 @@ watch(
               autocomplete="off"
               data-testid="search-data-input"
               @press-enter="onPressEnter"
-            >
-            </a-input>
+            />
           </form>
           <NcTooltip
             v-if="!isValidSearchQuery"

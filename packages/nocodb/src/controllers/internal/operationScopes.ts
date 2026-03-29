@@ -6,6 +6,9 @@ export const OPERATION_SCOPES = {
   mcpGet: 'base',
   mcpRootList: 'org',
   baseListAll: 'org',
+  instanceAdminStats: 'org',
+  instanceAdminWorkspaces: 'org',
+  instanceAdminBases: 'org',
   recordAuditList: 'base',
   oAuthClientList: 'org',
   oAuthClientCreate: 'org',
@@ -27,6 +30,7 @@ export const OPERATION_SCOPES = {
   filterChildrenList: 'base',
   sortList: 'base',
   hookList: 'base',
+  hookRead: 'base',
   hookLogList: 'base',
   hookFilterList: 'base',
   buttonFilterList: 'base',
@@ -36,6 +40,7 @@ export const OPERATION_SCOPES = {
   widgetFilterList: 'base',
   formViewGet: 'base',
   mapViewGet: 'base',
+  timelineViewGet: 'base',
   // Extensions
   extensionList: 'base',
   extensionRead: 'base',
@@ -58,6 +63,8 @@ export const OPERATION_SCOPES = {
   hideAllColumns: 'base',
   viewColumnUpdate: 'base',
   gridColumnUpdate: 'base',
+  timelineColumnUpdate: 'base',
+  listColumnUpdate: 'base',
   viewColumnCreate: 'base',
   viewRowColorConditionAdd: 'base',
   viewRowColorConditionUpdate: 'base',
@@ -83,6 +90,7 @@ export const OPERATION_SCOPES = {
   kanbanViewCreate: 'base',
   mapViewCreate: 'base',
   calendarViewCreate: 'base',
+  timelineViewCreate: 'base',
   gridViewUpdate: 'base',
   formViewUpdate: 'base',
   formColumnUpdate: 'base',
@@ -90,6 +98,7 @@ export const OPERATION_SCOPES = {
   kanbanViewUpdate: 'base',
   mapViewUpdate: 'base',
   calendarViewUpdate: 'base',
+  timelineViewUpdate: 'base',
   widgetFilterCreate: 'base',
   linkFilterCreate: 'base',
   rowColorConditionsFilterCreate: 'base',
@@ -152,4 +161,7 @@ export const OPERATION_SCOPES = {
   listViewDataCount: 'base',
   listViewCreate: 'base',
   listViewUpdate: 'base',
+
+  // LTAR V2 conversion
+  convertLinkToV2: 'base',
 } as const;

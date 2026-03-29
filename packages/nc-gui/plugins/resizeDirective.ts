@@ -17,12 +17,12 @@ export default defineNuxtPlugin((nuxtApp) => {
 
       const instance = getCurrentInstance()
 
-      const emit =
-        instance?.emit ??
-        ((arg, data) => {
-          const event = new CustomEvent(arg, { detail: data })
+      const emit
+        = instance?.emit
+          ?? ((arg, data) => {
+            const event = new CustomEvent(arg, { detail: data })
           ;(<HTMLElement>el).dispatchEvent(event)
-        })
+          })
 
       let startX: number
       let startWidth: number
@@ -35,7 +35,7 @@ export default defineNuxtPlugin((nuxtApp) => {
 
         document.body.style.cursor = 'col-resize'
         startX = e.clientX
-        startWidth = parseInt(document.defaultView?.getComputedStyle(el)?.width || '0', 10)
+        startWidth = Number.parseInt(document.defaultView?.getComputedStyle(el)?.width || '0', 10)
         document.documentElement.addEventListener('mousemove', doDrag, false)
         document.documentElement.addEventListener('mouseup', stopDrag, false)
         emit('xcstartresizing', startWidth)

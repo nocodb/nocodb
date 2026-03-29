@@ -22,16 +22,20 @@ onMounted(async () => {
   isViewDataLoading.value = true
   try {
     await loadSharedView(route.params.viewId as string)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     if (e?.response?.status === 403) {
       showPassword.value = true
-    } else if (e?.response?.status === 404) {
+    }
+    else if (e?.response?.status === 404) {
       triggerNotFound()
-    } else {
+    }
+    else {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }
-  } finally {
+  }
+  finally {
     isViewDataLoading.value = false
   }
 })

@@ -1,11 +1,12 @@
-import { type ColumnType, type TableType, UITypes, type ViewType } from 'nocodb-sdk'
-import { ColumnHelper, ComputedTypePasteError, TypeConversionError } from 'nocodb-sdk'
-import { clearTextCache } from '../utils/canvas'
+import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import type { Row } from '../../../../../lib/types'
+import type { CanvasElement } from '../utils/CanvasElement'
+import { ColumnHelper, ComputedTypePasteError, TypeConversionError, UITypes } from 'nocodb-sdk'
 import convertCellData from '../../../../../composables/useMultiSelect/convertCellData'
-import { serializeRange } from '../../../../../utils/pasteUtils'
-import { type CanvasElement, ElementTypes } from '../utils/CanvasElement'
 import { isUniqueConstraintViolationError } from '../../../../../utils/errorUtils'
+import { serializeRange } from '../../../../../utils/pasteUtils'
+import { clearTextCache } from '../utils/canvas'
+import { ElementTypes } from '../utils/CanvasElement'
 
 export function useFillHandler({
   isFillMode,
@@ -24,7 +25,7 @@ export function useFillHandler({
   getRows,
 }: {
   selection: Ref<CellRange>
-  activeCell: Ref<{ row: number; column: number; path: Array<number> }>
+  activeCell: Ref<{ row: number, column: number, path: Array<number> }>
   canvasRef: Ref<HTMLCanvasElement>
   isFillMode: Ref<boolean>
   isAiFillMode: Ref<boolean>
@@ -34,7 +35,7 @@ export function useFillHandler({
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
-    metas?: { metaValue?: TableType; viewMetaValue?: ViewType; onError?: (e: any) => void },
+    metas?: { metaValue?: TableType, viewMetaValue?: ViewType, onError?: (e: any) => void },
     undo?: boolean,
     path?: Array<number>,
   ) => Promise<void>
@@ -52,7 +53,9 @@ export function useFillHandler({
 }) {
   const { isMysql, isPg } = useBase()
 
-  const { $api } = useNuxtApp()
+  const { fillRows } = useNocoAi()
+
+  const { base } = storeToRefs(useBase())
 
   const { appInfo } = useGlobal()
 
@@ -82,7 +85,8 @@ export function useFillHandler({
           map[`${row}-${col}`] = true
         }
       }
-    } else {
+    }
+    else {
       // Normal selection behavior
       for (let row = selection.value.start.row; row <= selection.value.end.row; row++) {
         for (let col = selection.value.start.col; col <= selection.value.end.col; col++) {
@@ -166,7 +170,7 @@ export function useFillHandler({
     cpCols: (ColumnType & {
       extra?: any | never
     })[]
-    rowToPaste: { start: number; end: number }
+    rowToPaste: { start: number, end: number }
     originalValues: Map<number, Row>
     onError?: (e: any) => void
   }) => {
@@ -176,7 +180,7 @@ export function useFillHandler({
     const rawMatrixFromDirection = direction === -1 ? rawMatrix.reverse() : rawMatrix
     // we transform from rows to cols based
     const rawMatrixTransposed = rawMatrixFromDirection[0]!.map((_, colIndex) =>
-      rawMatrixFromDirection.map((row) => row[colIndex]),
+      rawMatrixFromDirection.map(row => row[colIndex]),
     )
     const fillValuesByCols: any[][] = []
     const numberOfRows = Math.abs(rowToPaste.end - rowToPaste.start) + 1
@@ -243,7 +247,7 @@ export function useFillHandler({
     // If not in AI fill mode, perform a regular bulk update
     bulkUpdateRows?.(
       rowsToPaste,
-      cpCols.map((k) => k.title!),
+      cpCols.map(k => k.title!),
       { onError },
       undefined,
       groupPath,
@@ -295,7 +299,8 @@ export function useFillHandler({
           if (fillStartRange.value) {
             startRow = Math.min(fillStartRange.value.start.row, selection.value._start!.row)
             endRow = Math.max(fillStartRange.value.end.row, selection.value._start!.row)
-          } else {
+          }
+          else {
             // Fallback to normal selection range if fillStartRange is not set
             startRow = selection.value.start.row
             endRow = selection.value.end.row
@@ -308,7 +313,7 @@ export function useFillHandler({
           const _cpcols = unref(columns).slice(startRangeLeftMost, startRangeRightMost + 1)
 
           // Map to column objects
-          const cpcols = _cpcols.map((col) => col.columnObj)
+          const cpcols = _cpcols.map(col => col.columnObj)
           // Serialize the range into a raw matrix (JSON format)
           const rawMatrix = serializeRange(
             cprows,
@@ -441,13 +446,13 @@ export function useFillHandler({
               // if the column is added only for the fill operation, don't paste the value
               // Check if the current column is within the selection range
               if (
-                selection.value._start &&
-                selection.value._end &&
-                selection.value._start.col <= col &&
-                col <= selection.value._end.col
+                selection.value._start
+                && selection.value._end
+                && selection.value._start.col <= col
+                && col <= selection.value._end.col
               ) {
                 // If column is not found in copied columns, add its title to propsToPaste if not already present in propsToFill
-                if (cpcols.findIndex((c) => c.id === colObj.id) === -1) {
+                if (cpcols.findIndex(c => c.id === colObj.id) === -1) {
                   if (!propsToFill.includes(colObj.title!)) propsToPaste.push(colObj.title!)
                 }
 
@@ -474,7 +479,8 @@ export function useFillHandler({
                     isMysql(meta.value?.source_id),
                     true,
                   )
-                } catch (ex) {
+                }
+                catch (ex) {
                   // Re-throw if it's a ComputedTypePasteError
                   if (ex instanceof ComputedTypePasteError) {
                     throw ex
@@ -488,7 +494,8 @@ export function useFillHandler({
                 if (pasteValue !== undefined) {
                   if (!localAiMode) rowObj.row[colObj.title!] = pasteValue
                 }
-              } else {
+              }
+              else {
                 // If in AI fill mode and column is outside selection range
                 if (localAiMode) {
                   // Add column title to propsToFill
@@ -497,9 +504,9 @@ export function useFillHandler({
                   // Add row to rowsToFill if not already present
                   if (
                     !rowsToFill.find(
-                      (r) =>
-                        extractPkFromRow(r.row, meta.value?.columns as ColumnType[]) ===
-                        extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]),
+                      r =>
+                        extractPkFromRow(r.row, meta.value?.columns as ColumnType[])
+                        === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]),
                     )
                   ) {
                     rowsToFill.push(rowObj)
@@ -514,7 +521,8 @@ export function useFillHandler({
             // Update fill index based on fill direction (cycle through rawMatrix)
             if (fillDirection === 1) {
               fillIndex = fillIndex < rawMatrix.length - 1 ? fillIndex + 1 : 0
-            } else {
+            }
+            else {
               fillIndex = fillIndex >= 1 ? fillIndex - 1 : rawMatrix.length - 1
             }
           }
@@ -541,16 +549,23 @@ export function useFillHandler({
             })
 
             // Generate IDs for rows to paste
-            const generateIds = rowsToPaste.map((row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]))
+            const generateIds = rowsToPaste.map(row => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]))
 
             // Call the AI data fill API
-            $api.ai
-              .dataFill(meta.value?.id, {
+            fillRows(
+              meta.value?.id as string,
+              {
                 rows: sampleRows,
                 generateIds,
                 numRows: generateIds.length,
-              })
-              .then((r: Record<string, any>[]) => {
+              },
+              {
+                workspaceId: (meta.value as any)?.fk_workspace_id ?? base.value!.fk_workspace_id!,
+                baseId: meta.value!.base_id!,
+              },
+            )
+              .then((r?: Record<string, any>[]) => {
+                if (!r) return
                 // If selection start or end is null, exit
                 if (selection.value._start === null || selection.value._end === null) return
 
@@ -558,9 +573,9 @@ export function useFillHandler({
                 for (const row of rowsToPaste.concat(rowsToFill)) {
                   // Find the generated row from the API response
                   const generatedRow = r.find(
-                    (genRow) =>
-                      extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) ===
-                      extractPkFromRow(genRow, meta.value?.columns as ColumnType[]),
+                    genRow =>
+                      extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                      === extractPkFromRow(genRow, meta.value?.columns as ColumnType[]),
                   )
 
                   // Skip if no generated row is found
@@ -603,12 +618,14 @@ export function useFillHandler({
           activeCell.value.path = groupPath
           fillStartRange.value = null
           isFillMode.value = false
-        } else {
+        }
+        else {
           // If selection is invalid, reset fill range and fill mode
           fillStartRange.value = null
           isFillMode.value = false
         }
-      } catch (error) {
+      }
+      catch (error) {
         // Handle errors during the fill operation
         // If the error is not a suppressed TypeConversionError, log it and show a message
         if (error instanceof TypeConversionError !== true || !(error as SuppressedError).isErrorSuppressed) {

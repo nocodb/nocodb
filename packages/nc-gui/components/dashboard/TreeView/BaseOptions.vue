@@ -97,10 +97,10 @@ function openQuickImportDialog(type: string) {
     </template>
 
     <template v-if="$slots.expandIcon" #expandIcon>
-      <slot name="expandIcon"> </slot>
+      <slot name="expandIcon" />
     </template>
 
-    <slot name="label"> </slot>
+    <slot name="label" />
 
     <NcMenuItem
       v-if="isUIAllowed('airtableImport', { roles: baseRole, source })"
@@ -109,7 +109,9 @@ function openQuickImportDialog(type: string) {
       @click="openAirtableImportDialog(source.base_id, source.id)"
     >
       <GeneralIcon icon="airtable" class="max-w-3.75" />
-      <div class="ml-0.5">{{ $t('labels.airtableBase') }}</div>
+      <div class="ml-0.5">
+        {{ $t('labels.airtableBase') }}
+      </div>
     </NcMenuItem>
 
     <NcMenuItem

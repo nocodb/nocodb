@@ -30,7 +30,7 @@ import {
 import { UnifiedMetaType } from '~/lib/types';
 import { unifiedMeta } from '~/lib/unifiedMeta';
 import { getColOptions } from '~/lib/unifiedMeta/getColOptions';
-import { isMMOrMMLike } from '~/lib';
+import { isBtLikeV2Junction, isMMOrMMLike } from '~/lib';
 
 async function extractColumnIdentifierType({
   col,
@@ -233,13 +233,17 @@ async function extractColumnIdentifierType({
               column: relationColumn,
             }
           );
-        const relationType = isMMOrMMLike({
+        const relationColWithOptions = {
           ...relationColumn,
           colOptions: relationColOptions,
-        })
+        };
+        // V2 MO/OO use junction tables (isMMOrMMLike=true) but return single records
+        const relationType = isBtLikeV2Junction(relationColWithOptions)
+          ? relationColOptions.type
+          : isMMOrMMLike(relationColWithOptions)
           ? 'mm'
           : relationColOptions.type;
-        res.isDataArray = ['hm', 'mm'].includes(relationType);
+        res.isDataArray = ['hm', 'mm', 'om'].includes(relationType);
       }
       res.referencedColumn = {
         id: lookupColumnIdentifierType?.referencedColumn?.id,
@@ -282,12 +286,16 @@ async function extractColumnIdentifierType({
         getMeta,
       });
       res.dataType = relatedColumnIdentifierType.dataType;
-      const relationType = isMMOrMMLike({ ...col, colOptions })
+      const colWithOptions = { ...col, colOptions };
+      // V2 MO/OO use junction tables (isMMOrMMLike=true) but return single records
+      const relationType = isBtLikeV2Junction(colWithOptions)
+        ? colOptions.type
+        : isMMOrMMLike(colWithOptions)
         ? 'mm'
         : colOptions.type;
       res.isDataArray =
         relatedColumnIdentifierType.isDataArray ||
-        ['hm', 'mm'].includes(relationType);
+        ['hm', 'mm', 'om'].includes(relationType);
       res.referencedColumn = {
         id: relatedColumnIdentifierType?.referencedColumn?.id,
         uidt: relatedColumnIdentifierType?.referencedColumn?.uidt,
@@ -308,10 +316,13 @@ async function extractColumnIdentifierType({
         unifiedMeta.getContextFromObject(col),
         { colOptions, getMeta }
       );
-      // parsedTree may not exists when formula column create / update
+
       if (parsedTree) {
+        res.dataType = parsedTree.dataType || FormulaDataTypes.UNKNOWN;
         res.isDataArray = parsedTree.isDataArray;
         res.referencedColumn = parsedTree.referencedColumn;
+      } else {
+        res.dataType = FormulaDataTypes.UNKNOWN;
       }
       break;
     }
@@ -595,22 +606,27 @@ async function checkForCircularFormulaRef(
 
     if (ltarColumn) {
       const ltarColumnContext = unifiedMeta.getContextFromObject({
-          ...ltarColumn,
-          base_id: ltarColumn.base_id,
-        });
-      const ltarColOptions = await unifiedMeta.getColOptions<UnifiedMetaType.ILinkToAnotherRecordColumn>(ltarColumnContext, {column: ltarColumn})
+        ...ltarColumn,
+        base_id: ltarColumn.base_id,
+      });
+      const ltarColOptions =
+        await unifiedMeta.getColOptions<UnifiedMetaType.ILinkToAnotherRecordColumn>(
+          ltarColumnContext,
+          { column: ltarColumn }
+        );
       const relatedColumnContext = unifiedMeta.getContextFromObject({
-          ...ltarColumn,
-          base_id:
-            (ltarColumn.colOptions as LinkToAnotherRecordType)
-              .fk_related_base_id ?? ltarColumn.base_id,
-        });
-      const relatedTableMeta = await unifiedMeta.getLTARRelatedTable(relatedColumnContext,
+        ...ltarColumn,
+        base_id:
+          (ltarColumn.colOptions as LinkToAnotherRecordType)
+            .fk_related_base_id ?? ltarColumn.base_id,
+      });
+      const relatedTableMeta = await unifiedMeta.getLTARRelatedTable(
+        relatedColumnContext,
         {
           colOptions: ltarColOptions,
-          getMeta
+          getMeta,
         }
-      )
+      );
       const lookupTarget = (
         await unifiedMeta.getColumns(
           unifiedMeta.getContextFromObject(relatedTableMeta),

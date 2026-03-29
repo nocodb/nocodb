@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { UseVirtualList } from '@vueuse/components'
 import type { NcButtonProps } from './Button.vue'
+import { UseVirtualList } from '@vueuse/components'
 import NcTooltip from '~/components/nc/Tooltip.vue'
 
 const props = withDefaults(
@@ -61,21 +61,23 @@ const mode = computed(() => props.mode || (isMobileMode.value ? 'simple' : 'full
 
 const btnSize = computed<NcButtonProps['size']>(() => (props.variant === 'default' ? 'xsmall' : 'xs'))
 
-const changePage = ({ increase, set }: { increase?: boolean; set?: number }) => {
+function changePage({ increase, set }: { increase?: boolean, set?: number }) {
   if (set) {
     current.value = set
-  } else if (increase && current.value < totalPages.value) {
+  }
+  else if (increase && current.value < totalPages.value) {
     current.value = current.value + 1
-  } else if (current.value > 0) {
+  }
+  else if (current.value > 0) {
     current.value = current.value - 1
   }
 }
 
-const goToLastPage = () => {
+function goToLastPage() {
   current.value = totalPages.value
 }
 
-const goToFirstPage = () => {
+function goToFirstPage() {
   current.value = 1
 }
 
@@ -124,7 +126,7 @@ const pageSizeOptions = [
           <GeneralIcon icon="doubleLeftArrow" class="nc-pagination-icon" />
         </NcButton>
       </component>
-      <div v-if="variant === 'v2'" class="nc-pagition-v2-border"></div>
+      <div v-if="variant === 'v2'" class="nc-pagition-v2-border" />
 
       <component :is="props.prevPageTooltip && mode === 'full' ? NcTooltip : 'div'">
         <template v-if="props.prevPageTooltip" #title>
@@ -160,7 +162,9 @@ const pageSizeOptions = [
               <GeneralIcon icon="arrowDown" class="text-nc-content-gray mt-0.5 nc-select-expand-btn" />
             </div>
           </NcButton>
-          <div v-if="variant === 'v2'" class="text-small1 font-500 text-nc-content-gray-subtle">/{{ pagesList.length }}</div>
+          <div v-if="variant === 'v2'" class="text-small1 font-500 text-nc-content-gray-subtle">
+            /{{ pagesList.length }}
+          </div>
         </div>
 
         <template #overlay>
@@ -172,7 +176,9 @@ const pageSizeOptions = [
               variant="small"
             >
               <template #title>
-                <div class="rounded-lg text-[13px] font-medium w-full">{{ localPageSize }} / page</div>
+                <div class="rounded-lg text-[13px] font-medium w-full">
+                  {{ localPageSize }} / page
+                </div>
               </template>
 
               <NcMenuItem v-for="option in pageSizeOptions" :key="option.value" @click="localPageSize = option.value">
@@ -238,7 +244,7 @@ const pageSizeOptions = [
           <GeneralIcon icon="arrowRight" class="nc-pagination-icon" />
         </NcButton>
       </component>
-      <div v-if="variant === 'v2'" class="nc-pagition-v2-border"></div>
+      <div v-if="variant === 'v2'" class="nc-pagition-v2-border" />
 
       <component :is="props.lastPageTooltip && mode === 'full' ? NcTooltip : 'div'" v-if="mode === 'full'">
         <template v-if="props.lastPageTooltip" #title>
@@ -257,7 +263,7 @@ const pageSizeOptions = [
       </component>
     </div>
 
-    <div v-if="showSizeChanger && !isMobileMode" class="text-nc-content-gray-muted"></div>
+    <div v-if="showSizeChanger && !isMobileMode" class="text-nc-content-gray-muted" />
   </div>
 </template>
 

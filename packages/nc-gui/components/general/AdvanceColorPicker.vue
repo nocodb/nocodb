@@ -52,7 +52,8 @@ const defaultColors = computed<string[][]>(() => {
   for (const color of colors) {
     if (themeV3Colors[color]) {
       allColors.push(color === 'gray' ? Object.values(themeV3Colors[color]).slice(1) : Object.values(themeV3Colors[color]))
-    } else if (windiColors[color]) {
+    }
+    else if (windiColors[color]) {
       allColors.push(Object.values(windiColors[color]))
     }
   }
@@ -85,7 +86,7 @@ const isDefaultColorTab = computed({
   },
 })
 
-const selectColor = (color: string, closeModal = false) => {
+function selectColor(color: string, closeModal = false) {
   picked.value = color
 
   if (closeModal) {
@@ -93,7 +94,7 @@ const selectColor = (color: string, closeModal = false) => {
   }
 }
 
-const compare = (colorA: string, colorB: string) => {
+function compare(colorA: string, colorB: string) {
   if (!colorA || !colorB) return false
 
   return colorA.toLowerCase() === colorB.toLowerCase() || colorA.toLowerCase() === tinycolor(colorB).toHex8String().toLowerCase()
@@ -121,7 +122,9 @@ watch(
     <NcTabs v-model:active-key="isDefaultColorTab" class="nc-advance-color-picker-tab w-full">
       <a-tab-pane key="true">
         <template #tab>
-          <div class="tab" data-testid="nc-default-colors-tab">{{ $t('labels.defaultColours') }}</div>
+          <div class="tab" data-testid="nc-default-colors-tab">
+            {{ $t('labels.defaultColours') }}
+          </div>
         </template>
         <div class="h-full p-2">
           <div class="flex flex-col gap-1">
@@ -137,17 +140,19 @@ watch(
                   :style="{
                     backgroundColor: getBgColorCallback
                       ? getBgColorCallback(color || '#ccc', isDark)
-                      : getSelectTypeFieldOptionBgColor({
+                      : showTextIcon
+                        ? getSelectTypeFieldOptionBgColor({
                           color: color || '#ccc',
                           isDark: invertInDarkMode && isDark,
-                        }),
+                        })
+                        : getDarkModeCompatibleBgColor({ color: color || '#ccc', isDark: invertInDarkMode && isDark }),
                     color: getTextColorCallback
                       ? getTextColorCallback(color || '#ccc', isDark)
                       : getSelectTypeFieldOptionTextColor({
-                          color: color || '#ccc',
-                          isDark: invertInDarkMode && isDark,
-                          getColor,
-                        }),
+                        color: color || '#ccc',
+                        isDark: invertInDarkMode && isDark,
+                        getColor,
+                      }),
                   }"
                   @click="selectColor(color, true)"
                 >

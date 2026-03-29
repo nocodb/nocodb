@@ -24,7 +24,7 @@ const filteredOptions = computed(() => {
   })
 })
 
-const handleKeyDownList = (e: KeyboardEvent) => {
+function handleKeyDownList(e: KeyboardEvent) {
   switch (e.key) {
     case 'ArrowUp':
     case 'ArrowDown':

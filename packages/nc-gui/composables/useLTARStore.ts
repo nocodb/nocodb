@@ -1,20 +1,21 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RequestParams, TableType } from 'nocodb-sdk'
+import type { ComputedRef, Ref } from 'vue'
 import {
-  FormulaDataTypes,
-  RelationTypes,
-  UITypes,
   dateFormats,
+  FormulaDataTypes,
   hideExtraFieldsMetaKey,
+  isBtLikeV2Junction,
   isDateOrDateTimeCol,
-  isLinkV2,
   isLinksOrLTAR,
+  isLinkV2,
   isNumericCol,
   isSystemColumn,
   ncIsNaN,
   parseStringDateTime,
+  RelationTypes,
   timeFormats,
+  UITypes,
 } from 'nocodb-sdk'
-import type { ComputedRef, Ref } from 'vue'
 
 interface DataApiResponse {
   list: Record<string, any>[]
@@ -117,13 +118,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const colOptions = computed(() => column.value?.colOptions as LinkToAnotherRecordType)
 
-    const type = computed(() => (isLinkV2(column.value) ? 'ln' : (colOptions.value?.type as RelationTypes)))
+    const type = computed(() => colOptions.value?.type as RelationTypes)
 
     const isSingleTargetRelation = computed(() => {
       return (
-        colOptions.value?.type === RelationTypes.MANY_TO_ONE ||
-        colOptions.value?.type === RelationTypes.BELONGS_TO ||
-        colOptions.value?.type === RelationTypes.ONE_TO_ONE
+        colOptions.value?.type === RelationTypes.MANY_TO_ONE
+        || colOptions.value?.type === RelationTypes.BELONGS_TO
+        || colOptions.value?.type === RelationTypes.ONE_TO_ONE
+        || isBtLikeV2Junction(column.value)
       )
     })
 
@@ -180,7 +182,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       // the linked column metadata needed to render the LTAR cell.
       try {
         await getMeta(relatedBaseId, tableId, false, false, true)
-      } catch {}
+      }
+      catch {}
       const metaKey = `${relatedBaseId}:${tableId}`
       if (!metas.value[metaKey]) {
         await getPartialMeta(relatedBaseId, colId, tableId)
@@ -196,7 +199,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       try {
         // Pass relatedBaseId as first parameter for proper cross-base support
         targetViewColumns.value = (await getViewColumns(relatedBaseId, viewId)) ?? []
-      } catch (e) {
+      }
+      catch (e) {
         console.error('Failed to load related table view columns:', e)
         targetViewColumns.value = []
         message.error('Failed to load related table view columns')
@@ -204,7 +208,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     }
 
     const relatedTableDisplayValueColumn = computed(() => {
-      return relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0]
+      return relatedTableMeta.value?.columns?.find(c => c.pv) || relatedTableMeta?.value?.columns?.[0]
     })
 
     const relatedTableDisplayValueProp = computed(() => {
@@ -225,7 +229,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         type: '',
         format: '',
       }
-      const currentColumn = relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0]
+      const currentColumn = relatedTableMeta.value?.columns?.find(c => c.pv) || relatedTableMeta?.value?.columns?.[0]
 
       if (currentColumn) {
         if (currentColumn?.uidt === UITypes.DateTime) {
@@ -248,9 +252,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const headerDisplayValue = computed(() => {
       if (
-        row.value.row[displayValueProp.value] &&
-        displayValueTypeAndFormatProp.value.type &&
-        displayValueTypeAndFormatProp.value.format
+        row.value.row[displayValueProp.value]
+        && displayValueTypeAndFormatProp.value.type
+        && displayValueTypeAndFormatProp.value.format
       ) {
         return parseStringDateTime(
           row.value.row[displayValueProp.value],
@@ -264,7 +268,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const attachmentCol = computedInject(
       FieldsInj,
       (_fields) => {
-        return (relatedTableMeta.value.columns ?? []).filter((col) => isAttachment(col))[0]
+        return (relatedTableMeta.value.columns ?? []).filter(col => isAttachment(col))[0]
       },
       ref([]),
     )
@@ -273,7 +277,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       FieldsInj,
       (_fields) => {
         return (relatedTableMeta.value.columns ?? [])
-          .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
+          .filter((col) => {
+            // Hiding lookup field from dropdown as we don't send lookup field info in list response due to performance reasons
+            return !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col) && !isLookup(col)
+          })
           .sort((a, b) => {
             if (isPublic.value) {
               return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
@@ -291,14 +298,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const fieldsToLoad = computed(() => {
       return [
         relatedTableDisplayValueColumn.value,
-        ...(relatedTableMeta.value?.columns?.filter((c) => c.pk) || []),
+        ...(relatedTableMeta.value?.columns?.filter(c => c.pk) || []),
         ...(attachmentCol.value ? [attachmentCol.value] : []),
         ...(fields.value || []),
-      ].filter((c) => c)
+      ].filter(c => c)
     })
 
     const requiredFieldsToLoad = computed(() => {
-      return Array.from(new Set(fieldsToLoad.value?.map((f) => f.id as string)))
+      return Array.from(new Set(fieldsToLoad.value?.map(f => f.id as string)))
     })
 
     // extract external base roles if cross base link
@@ -323,11 +330,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
       if (!currColRelatedTableMeta) return
 
-      const primaryCols = (currColRelatedTableMeta?.columns || []).filter((c) => c.pv || c.pk)
+      const primaryCols = (currColRelatedTableMeta?.columns || []).filter(c => c.pv || c.pk)
 
       const extractValues = (value: any, primaryCols: ColumnType[]): any => {
         if (ncIsArray(value)) {
-          return value.map((val) => extractValues(val, primaryCols)).filter(Boolean)
+          return value.map(val => extractValues(val, primaryCols)).filter(Boolean)
         }
 
         if (!ncIsObject(value)) return null
@@ -373,7 +380,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
              * So extract only title
              */
             if (ncIsArray(value)) {
-              sanitizedRow[col.title] = value.map((item) => (item?.title ? { title: item?.title } : null)).filter(Boolean)
+              sanitizedRow[col.title] = value.map(item => (item?.title ? { title: item?.title } : null)).filter(Boolean)
             }
             break
           }
@@ -406,7 +413,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         ...(relatedTableDisplayValueColumn.value ? [relatedTableDisplayValueColumn.value] : []),
         ...(fields.value || []),
       ]
-        .filter((col) => isSearchableColumn(col))
+        .filter(col => isSearchableColumn(col))
         .map((field: ColumnType): string => {
           let operator = 'like'
           let query = searchQuery.trim()
@@ -421,18 +428,20 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
           if (isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) && isDateOrDateTimeCol(field)) {
             operator = 'eq,exactDate'
-          } else if (
-            (field.uidt !== UITypes.Formula || getFormulaColDataType(field) !== FormulaDataTypes.NUMERIC) &&
-            !isNumericCol(field) &&
-            sqlUi.value &&
-            ['text', 'string'].includes(sqlUi.value.getAbstractType(field)) &&
-            field.dt !== 'bigint'
+          }
+          else if (
+            (field.uidt !== UITypes.Formula || getFormulaColDataType(field) !== FormulaDataTypes.NUMERIC)
+            && !isNumericCol(field)
+            && sqlUi.value
+            && ['text', 'string'].includes(sqlUi.value.getAbstractType(field))
+            && field.dt !== 'bigint'
           ) {
             operator = 'like'
             if (!query) return ''
 
             query = `%${query}%`
-          } else {
+          }
+          else {
             operator = 'eq'
             query = !ncIsNaN(query) ? query : ''
           }
@@ -450,8 +459,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const loadChildrenExcludedList = async (activeState?: any, resetOffset = false) => {
       if (activeState) newRowState.state = activeState
       try {
-        let offset =
-          childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1) - childrenExcludedOffsetCount.value
+        let offset
+          = childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1) - childrenExcludedOffsetCount.value
 
         if (offset < 0 || resetOffset) {
           offset = 0
@@ -494,7 +503,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           )
 
           /** if new row load all records */
-        } else if (isNewRow?.value) {
+        }
+        else if (isNewRow?.value) {
           const linkRowData = await sanitizeRowData(row.value.row)
 
           childrenExcludedList.value = await $api.internal.getOperation(
@@ -509,11 +519,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               linkRowData: JSON.stringify(linkRowData),
             },
           )
-          const ids = new Set(childrenList.value?.list?.map((item) => item.Id) ?? [])
+          const ids = new Set(childrenList.value?.list?.map(item => item.Id) ?? [])
           if (childrenExcludedList.value.list && ids.size) {
-            childrenExcludedList.value.list = childrenExcludedList.value.list.filter((item) => !ids.has(item.Id))
+            childrenExcludedList.value.list = childrenExcludedList.value.list.filter(item => !ids.has(item.Id))
           }
-        } else {
+        }
+        else {
           // extract changed data and include with the api call if any
           let changedRowData
           try {
@@ -525,7 +536,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
               changedRowData = await sanitizeRowData(changedRowData)
             }
-          } catch {}
+          }
+          catch {}
 
           childrenExcludedList.value = await $api.dbTableRow.nestedChildrenExcludedList(
             NOCO,
@@ -571,7 +583,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             }
           })
         }
-      } catch (e: any) {
+      }
+      catch (e: any) {
         // temporary fix to handle when offset is beyond limit
         const error = await extractSdkResponseErrorMsgv2(e)
 
@@ -581,7 +594,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
 
         message.error(`${t('msg.error.failedToLoadList')}: ${error.message}`)
-      } finally {
+      }
+      finally {
         isChildrenExcludedLoading.value = false
       }
     }
@@ -598,7 +612,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           offset = 0
           childrenListOffsetCount.value = 0
           childrenListPagination.page = 1
-        } else if (offset >= childrenListCount.value) {
+        }
+        else if (offset >= childrenListCount.value) {
           offset = 0
         }
 
@@ -621,7 +636,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               totalRows: list.length,
             },
           }
-        } else {
+        }
+        else {
           const where = getWhereClause(childrenListPagination.query)
 
           if (isPublic.value) {
@@ -641,7 +657,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
                 },
               },
             )
-          } else {
+          }
+          else {
             childrenList.value = await $api.dbTableRow.nestedList(
               NOCO,
               meta.value?.base_id ?? ((base?.value?.id || (sharedView.value?.view as any)?.base_id) as string),
@@ -666,9 +683,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         if (!childrenListPagination.query) {
           childrenListCount.value = childrenList.value?.pageInfo.totalRows ?? 0
         }
-      } catch (e: any) {
+      }
+      catch (e: any) {
         message.error(`${t('msg.error.failedToLoadChildrenList')}: ${await extractSdkResponseErrorMsg(e)}`)
-      } finally {
+      }
+      finally {
         isChildrenLoading.value = false
       }
       return childrenList.value
@@ -706,7 +725,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             onSuccess?.(row)
 
             $e('a:links:delete-related-row')
-          } catch (e: any) {
+          }
+          catch (e: any) {
             message.error(`${t('msg.error.deleteFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
           }
         },
@@ -719,19 +739,24 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       undo = false,
       index: number, // Index is For Loading and Linked State of Row
     ) => {
-      // const column = meta.columns.find(c => c.id === this.column.colOptions.fk_child_column_id);
-      // todo: handle if new record
-      // if (this.isNew) {
-      //   this.$emit('updateCol', this.row, _cn, null);
-      //   this.localState = null;
-      //   this.$emit('update:localState', this.localState);
-      //   return;
-      // }
-      // todo: handle bt column if required
-      // if (column.rqd) {
-      //   this.$toast.info('Unlink is not possible, instead map to another parent.').goAway(3000);
-      //   return;
-      // }
+      // For new rows, remove from local state
+      if (isNewRow?.value || !rowId.value) {
+        removeLTARRef(row, column.value as ColumnType)
+        const targetRow = rowStoreCurrentRow.value
+        if (isSingleTargetRelation.value) {
+          targetRow.row[column.value.title!] = null
+        }
+        else {
+          const arr = targetRow.row[column.value.title!]
+          if (Array.isArray(arr)) {
+            const idx = arr.indexOf(row)
+            if (idx !== -1) arr.splice(idx, 1)
+          }
+        }
+        isChildrenExcludedListLinked.value[index] = false
+        isChildrenListLinked.value[index] = false
+        return
+      }
       try {
         // todo: audit
 
@@ -773,9 +798,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         if (!isSingleTargetRelation.value) {
           childrenListCount.value = childrenListCount.value - 1
         }
-      } catch (e: any) {
+      }
+      catch (e: any) {
         message.error(`${t('msg.error.unlinkFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
-      } finally {
+      }
+      finally {
         isChildrenExcludedListLoading.value[index] = false
         isChildrenListLoading.value[index] = false
       }
@@ -789,25 +816,32 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       $e('a:links:unlink')
     }
 
+    const { addLTARRef, removeLTARRef, currentRow: rowStoreCurrentRow } = useSmartsheetRowStoreOrThrow()
+
     const link = async (
       row: Record<string, any>,
       { metaValue = meta.value }: { metaValue?: TableType } = {},
       undo = false,
       index: number, // Index is For Loading and Linked State of Row
     ) => {
-      // todo: handle new record
-      //   const pid = this._extractRowId(parent, this.parentMeta);
-      // const id = this._extractRowId(this.row, this.meta);
-      // const _cn = this.meta.columns.find(c => c.id === this.column.colOptions.fk_child_column_id).title;
-      //
-      // if (this.isNew) {
-      //   const _rcn = this.parentMeta.columns.find(c => c.id === this.column.colOptions.fk_parent_column_id).title;
-      //   this.localState = parent;
-      //   this.$emit('update:localState', this.localState);
-      //   this.$emit('updateCol', this.row, _cn, parent[_rcn]);
-      //   this.newRecordModal = false;
-      //   return;
-      // }
+      // For new rows, store the link in local state — it will be persisted on save via nested insert
+      if (isNewRow?.value || !rowId.value) {
+        addLTARRef(row, column.value as ColumnType)
+        // Update the row store's currentRow (not the LTAR store's snapshot) so components re-render
+        const targetRow = rowStoreCurrentRow.value
+        if (isSingleTargetRelation.value) {
+          targetRow.row[column.value.title!] = row
+        }
+        else {
+          if (!Array.isArray(targetRow.row[column.value.title!])) {
+            targetRow.row[column.value.title!] = []
+          }
+          targetRow.row[column.value.title!].push(row)
+        }
+        isChildrenExcludedListLinked.value[index] = true
+        isChildrenListLinked.value[index] = true
+        return
+      }
       try {
         isChildrenExcludedListLoading.value[index] = true
         isChildrenListLoading.value[index] = true
@@ -829,8 +863,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         if (!undo) {
           let oldValue = null
 
-          // If it is bt or oo relation then we have to restore old value on undo
-          if (isBt(column.value) || isOo(column.value)) {
+          // If it is bt/oo/V2 MO relation then we have to restore old value on undo
+          if (isBt(column.value) || isOo(column.value) || isBtLikeV2Junction(column.value)) {
             oldValue = currentRow.value.row?.[column.value?.title]
           }
 
@@ -846,7 +880,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
                 // Restore old value if present
                 if (oldValue) {
                   link(oldValue, {}, true, index)
-                } else {
+                }
+                else {
                   unlink(row, {}, true, index)
                 }
               },
@@ -860,13 +895,16 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
         if (!isSingleTargetRelation.value) {
           childrenListCount.value = childrenListCount.value + 1
-        } else {
-          isChildrenExcludedListLinked.value = Array(childrenExcludedList.value?.list.length).fill(false)
+        }
+        else {
+          isChildrenExcludedListLinked.value = new Array(childrenExcludedList.value?.list.length).fill(false)
           isChildrenExcludedListLinked.value[index] = true
         }
-      } catch (e: any) {
+      }
+      catch (e: any) {
         message.error(`Linking failed: ${await extractSdkResponseErrorMsg(e)}`)
-      } finally {
+      }
+      finally {
         // To Keep the Loading State for Minimum 600ms
 
         isChildrenExcludedListLoading.value[index] = false

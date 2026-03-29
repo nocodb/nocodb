@@ -21,8 +21,6 @@ import {
   prepareForResponse,
   stringifyMetaProp,
 } from '~/utils/modelUtils';
-import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
-import { InstanceCommands } from '~/interface/Jobs';
 import View from '~/models/View';
 import {
   decryptPropIfRequired,
@@ -227,10 +225,12 @@ export default class Source implements SourceType {
       console.error(e);
     });
 
-    if (JobsRedis.available) {
-      await JobsRedis.emitWorkerCommand(InstanceCommands.RELEASE, sourceId);
-      await JobsRedis.emitPrimaryCommand(InstanceCommands.RELEASE, sourceId);
-    }
+    // Bump Redis version so other servers invalidate on next read.
+    // Don't destroy the local connection — Source.update() is also called
+    // for metadata-only changes (readonly flags, alias, order) where the
+    // connection config hasn't changed. Callers that change connection config
+    // (integrations service, sourceCleanup) call resetSource() directly.
+    await NcConnectionMgrv2.bumpSourceVersion(sourceId);
 
     return await this.get(context, oldSource.id, false, ncMeta);
   }
@@ -412,10 +412,8 @@ export default class Source implements SourceType {
   async sourceCleanup(_ncMeta = Noco.ncMeta) {
     await NcConnectionMgrv2.deleteAwait(this);
 
-    if (JobsRedis.available) {
-      await JobsRedis.emitWorkerCommand(InstanceCommands.RELEASE, this.id);
-      await JobsRedis.emitPrimaryCommand(InstanceCommands.RELEASE, this.id);
-    }
+    // Bump Redis version so all servers invalidate on next read
+    await NcConnectionMgrv2.bumpSourceVersion(this.id);
   }
 
   async delete(

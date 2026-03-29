@@ -103,7 +103,8 @@ watch(
           value: '',
         },
       ]
-    } else if (typeof newValue === 'object') {
+    }
+    else if (typeof newValue === 'object') {
       rows.value = Object.entries(newValue).map(([key, value]) => ({
         id: generateRandomUUID(),
         key,

@@ -1,5 +1,5 @@
+import { getHTMLFromFragment, Node } from '@tiptap/core'
 import { Fragment } from '@tiptap/pm/model'
-import { Node, getHTMLFromFragment } from '@tiptap/core'
 import { elementFromString } from '../../util/dom'
 
 // TODO: Extend from tiptap extension
@@ -11,7 +11,8 @@ export const HTMLNode = Node.create({
         serialize(state, node, parent) {
           if (this.editor.storage.markdown.options.html) {
             state.write(serializeHTML(node, parent))
-          } else {
+          }
+          else {
             console.warn(`Tiptap Markdown: "${node.type.name}" node is only available in html mode`)
             state.write(`[${node.type.name}]`)
           }

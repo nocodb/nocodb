@@ -101,7 +101,7 @@ watchEffect(() => {
   }
 })
 
-const handleUpdateValue = (e: Event, save = false, valueToSave?: dayjs.Dayjs) => {
+function handleUpdateValue(e: Event, save = false, valueToSave?: dayjs.Dayjs) {
   const targetValue = valueToSave || (e.target as HTMLInputElement).value
   if (!targetValue) {
     tempDate.value = undefined
@@ -126,7 +126,7 @@ onClickOutside(datePickerRef, (e) => {
   open.value = false
 })
 
-const onBlur = (e) => {
+function onBlur(e) {
   const value = (e?.target as HTMLInputElement)?.value
 
   if (value && dayjs(value, 'YYYY').isValid()) {
@@ -134,8 +134,8 @@ const onBlur = (e) => {
   }
 
   if (
-    (e?.relatedTarget as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`) ||
-    (e?.target as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`)
+    (e?.relatedTarget as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`)
+    || (e?.target as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`)
   ) {
     return
   }
@@ -156,7 +156,8 @@ watch(
         }
         open.value = false
       })
-    } else {
+    }
+    else {
       isClearedInputMode.value = false
     }
   },
@@ -171,16 +172,19 @@ watch(editable, (nextValue) => {
 
 const placeholder = computed(() => {
   if (
-    ((isForm.value || isExpandedForm.value) && !isYearInvalid.value) ||
-    (isGrid.value && !showNull.value && !isYearInvalid.value && !isSystemColumn(column.value) && active.value) ||
-    isEditColumn.value
+    ((isForm.value || isExpandedForm.value) && !isYearInvalid.value)
+    || (isGrid.value && !showNull.value && !isYearInvalid.value && !isSystemColumn(column.value) && active.value)
+    || isEditColumn.value
   ) {
     return 'YYYY'
-  } else if (modelValue === null && showNull.value) {
+  }
+  else if (modelValue === null && showNull.value) {
     return t('general.null').toUpperCase()
-  } else if (isYearInvalid.value) {
+  }
+  else if (isYearInvalid.value) {
     return t('msg.invalidTime')
-  } else {
+  }
+  else {
     return ''
   }
 })
@@ -190,12 +194,12 @@ const isOpen = computed(() => {
   return (readOnly.value || (localState.value && isPk)) && !active.value && !editable.value ? false : open.value
 })
 
-const clickHandler = () => {
+function clickHandler() {
   if (readOnly.value || open.value) return
   open.value = active.value || editable.value
 }
 
-const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
+function handleKeydown(e: KeyboardEvent, _open?: boolean) {
   if (e.key !== 'Enter' && e.key !== 'Tab') {
     e.stopPropagation()
   }
@@ -234,7 +238,8 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
         if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
           datePickerRef.value?.blur?.()
         }
-      } else {
+      }
+      else {
         editable.value = false
 
         datePickerRef.value?.blur?.()
@@ -261,7 +266,10 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
         localState.value = dayjs(new Date())
         e.preventDefault()
       }
-    } else return
+    }
+    else {
+      return
+    }
   }
 
   if (!isOpen.value && datePickerRef.value && /^[0-9a-z]$/i.test(e.key)) {
@@ -308,7 +316,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
         @mousedown.stop
         @click="clickHandler"
         @input="handleUpdateValue"
-      />
+      >
       <span v-else>
         {{ localState?.format('YYYY') ?? '' }}
       </span>
@@ -334,7 +342,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
       </div>
     </template>
   </NcDropdown>
-  <div v-if="!active && isGrid" class="absolute inset-0 z-90 cursor-pointer"></div>
+  <div v-if="!active && isGrid" class="absolute inset-0 z-90 cursor-pointer" />
 </template>
 
 <style scoped lang="scss">

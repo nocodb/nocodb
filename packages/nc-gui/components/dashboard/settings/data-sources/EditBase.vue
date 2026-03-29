@@ -1,15 +1,13 @@
 <script lang="ts" setup>
-import { IntegrationsType, type SourceType, validateAndExtractSSLProp } from 'nocodb-sdk'
-import { Form } from 'ant-design-vue'
+import type { DatabricksConnection, DefaultConnection, ProjectCreateForm, SnowflakeConnection } from '#imports'
+import type { SourceType } from 'nocodb-sdk'
 import {
   ClientType,
-  type DatabricksConnection,
-  type DefaultConnection,
-  type ProjectCreateForm,
+
   SSLUsage,
-  type SnowflakeConnection,
-  clientTypes as _clientTypes,
 } from '#imports'
+import { Form } from 'ant-design-vue'
+import { IntegrationsType, validateAndExtractSSLProp } from 'nocodb-sdk'
 
 const props = defineProps<{
   sourceId: string
@@ -29,7 +27,7 @@ const baseId = computed(() => _projectId?.value ?? base.value?.id)
 const { refreshCommandPalette } = useCommandPalette()
 
 const filteredIntegrations = computed(() =>
-  integrations.value.filter((i) => i.sub_type !== SyncDataType.NOCODB && i.type === IntegrationsType.Database),
+  integrations.value.filter(i => i.sub_type !== SyncDataType.NOCODB && i.type === IntegrationsType.Database),
 )
 
 const useForm = Form.useForm
@@ -56,14 +54,14 @@ const advancedOptionsExpansionPanel = ref<string[]>([])
 
 const isLoading = ref<boolean>(false)
 
-const onEasterEgg = () => {
+function onEasterEgg() {
   easterEggCount.value += 1
   if (easterEggCount.value >= 2) {
     easterEgg.value = true
   }
 }
 
-const defaultFormState = (client = ClientType.MYSQL) => {
+function defaultFormState(client = ClientType.MYSQL) {
   return {
     title: '',
     dataSource: { ...getDefaultConnectionConfig(client) },
@@ -81,7 +79,7 @@ const defaultFormState = (client = ClientType.MYSQL) => {
 const formState = ref<ProjectCreateForm>(defaultFormState())
 
 const selectedIntegration = computed(() => {
-  return formState.value.fk_integration_id && integrations.value.find((i) => i.id === formState.value.fk_integration_id)
+  return formState.value.fk_integration_id && integrations.value.find(i => i.id === formState.value.fk_integration_id)
 })
 const selectedIntegrationDb = computed(() => {
   return selectedIntegration.value?.config?.connection?.database
@@ -90,7 +88,7 @@ const selectedIntegrationSchema = computed(() => {
   return selectedIntegration.value?.config?.searchPath?.[0]
 })
 
-const getDataSourceValue = (field: 'database' | 'schema') => {
+function getDataSourceValue(field: 'database' | 'schema') {
   if (field === 'database') {
     return selectedIntegrationDb.value
   }
@@ -107,35 +105,37 @@ const validators = computed(() => {
     ...(formState.value.dataSource.client === ClientType.SQLITE
       ? {}
       : formState.value.dataSource.client === ClientType.SNOWFLAKE
-      ? {
-          'dataSource.connection.database': [fieldRequiredValidator()],
-          'dataSource.connection.schema': [fieldRequiredValidator()],
-        }
-      : {
-          'dataSource.connection.database':
+        ? {
+            'dataSource.connection.database': [fieldRequiredValidator()],
+            'dataSource.connection.schema': [fieldRequiredValidator()],
+          }
+        : {
+            'dataSource.connection.database':
             selectedIntegration.value && getDataSourceValue('database') ? [] : [fieldRequiredValidator()],
-          ...([ClientType.PG].includes(formState.value.dataSource.client) && formState.value.dataSource.searchPath
-            ? {
-                'dataSource.searchPath.0':
+            ...([ClientType.PG].includes(formState.value.dataSource.client) && formState.value.dataSource.searchPath
+              ? {
+                  'dataSource.searchPath.0':
                   selectedIntegration.value && getDataSourceValue('schema') ? [] : [fieldRequiredValidator()],
-              }
-            : {}),
-        }),
+                }
+              : {}),
+          }),
   }
 })
 
 const { validate, validateInfos } = useForm(formState, validators)
 
-const updateSSLUse = () => {
+function updateSSLUse() {
   if (formState.value.dataSource.client !== ClientType.SQLITE) {
     const connection = formState.value.dataSource.connection as DefaultConnection
     if (connection.ssl) {
       if (typeof connection.ssl === 'string') {
         formState.value.sslUse = SSLUsage.Allowed
-      } else {
+      }
+      else {
         formState.value.sslUse = SSLUsage.Preferred
       }
-    } else {
+    }
+    else {
       formState.value.sslUse = SSLUsage.No
     }
   }
@@ -144,7 +144,7 @@ const updateSSLUse = () => {
 const inflectionTypes = ['camelize', 'none']
 
 function getConnectionConfig() {
-  const extraParameters = Object.fromEntries(new Map(formState.value.extraParameters.map((object) => [object.key, object.value])))
+  const extraParameters = Object.fromEntries(new Map(formState.value.extraParameters.map(object => [object.key, object.value])))
 
   const connection = {
     ...formState.value.dataSource.connection,
@@ -156,14 +156,15 @@ function getConnectionConfig() {
   return connection
 }
 
-const focusInvalidInput = () => {
+function focusInvalidInput() {
   form.value?.$el.querySelector('.ant-form-item-explain-error')?.parentNode?.parentNode?.querySelector('input')?.focus()
 }
 
-const editBase = async () => {
+async function editBase() {
   try {
     await validate()
-  } catch (e) {
+  }
+  catch (e) {
     focusInvalidInput()
     return
   }
@@ -205,19 +206,22 @@ const editBase = async () => {
     await basesStore.loadProject(baseId.value!, true)
     emit('sourceUpdated')
     emit('close')
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     refreshCommandPalette()
   }
 }
 
 const testConnectionError = ref()
 
-const testConnection = async () => {
+async function testConnection() {
   try {
     await validate()
-  } catch (e) {
+  }
+  catch (e) {
     focusInvalidInput()
     return
   }
@@ -229,7 +233,8 @@ const testConnection = async () => {
 
     if (formState.value.dataSource.client === ClientType.SQLITE) {
       testSuccess.value = true
-    } else {
+    }
+    else {
       const connection = getConnectionConfig()
 
       connection.database = getTestDatabaseName(formState.value.dataSource)!
@@ -256,13 +261,15 @@ const testConnection = async () => {
 
       if (result.code === 0) {
         testSuccess.value = true
-      } else {
+      }
+      else {
         testSuccess.value = false
 
         message.error(`${t('msg.error.dbConnectionFailed')} ${result.message}`)
       }
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     testSuccess.value = false
     testConnectionError.value = await extractSdkResponseErrorMsg(e)
   }
@@ -349,11 +356,12 @@ const allowDataWrite = computed({
   },
 })
 
-const handleUpdateAdvancedOptionsExpansionPanel = (open: boolean) => {
+function handleUpdateAdvancedOptionsExpansionPanel(open: boolean) {
   if (open) {
     advancedOptionsExpansionPanel.value = ['1']
     handleAutoScroll(true, 'nc-source-advanced-options')
-  } else {
+  }
+  else {
     advancedOptionsExpansionPanel.value = []
   }
 }
@@ -451,7 +459,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
             <div class="nc-form-section">
               <div class="nc-form-section-body">
                 <!-- SQLite File -->
-                <template v-if="formState.dataSource.client === ClientType.SQLITE"> </template>
+                <template v-if="formState.dataSource.client === ClientType.SQLITE" />
                 <template v-else-if="formState.dataSource.client === ClientType.SNOWFLAKE">
                   <a-row :gutter="24">
                     <a-col :span="12">
@@ -512,9 +520,9 @@ function handleAutoScroll(scroll: boolean, className: string) {
                       <!-- Schema name -->
                       <a-form-item
                         v-if="
-                          ([ClientType.PG].includes(formState.dataSource.client) ||
-                            [ClientType.PG].includes(selectedIntegration?.sub_type)) &&
-                          formState.dataSource.searchPath
+                          ([ClientType.PG].includes(formState.dataSource.client)
+                            || [ClientType.PG].includes(selectedIntegration?.sub_type))
+                            && formState.dataSource.searchPath
                         "
                         :label="$t('labels.schemaName')"
                         v-bind="validateInfos['dataSource.searchPath.0']"
@@ -531,7 +539,9 @@ function handleAutoScroll(scroll: boolean, className: string) {
             </div>
 
             <div class="nc-form-section">
-              <div class="nc-form-section-title">Permissions</div>
+              <div class="nc-form-section-title">
+                Permissions
+              </div>
               <div class="nc-form-section-body">
                 <DashboardSettingsDataSourcesSourceRestrictions
                   v-model:allow-meta-write="allowMetaWrite"
@@ -550,7 +560,9 @@ function handleAutoScroll(scroll: boolean, className: string) {
                     class="!-ml-1.5"
                     @click="handleUpdateAdvancedOptionsExpansionPanel(!advancedOptionsExpansionPanel.length)"
                   >
-                    <div class="nc-form-section-title">Advanced options</div>
+                    <div class="nc-form-section-title">
+                      Advanced options
+                    </div>
 
                     <GeneralIcon
                       icon="chevronDown"
@@ -561,7 +573,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
                 </template>
                 <a-collapse-panel key="1" collapsible="disabled">
                   <template #header>
-                    <span></span>
+                    <span />
                   </template>
 
                   <div class="flex flex-col gap-4">
@@ -574,7 +586,9 @@ function handleAutoScroll(scroll: boolean, className: string) {
                               class="nc-select-shadow"
                               dropdown-class-name="nc-dropdown-inflection-table-name"
                             >
-                              <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">{{ tp }}</a-select-option>
+                              <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">
+                                {{ tp }}
+                              </a-select-option>
                             </NcSelect>
                           </a-form-item>
                         </a-col>
@@ -585,7 +599,9 @@ function handleAutoScroll(scroll: boolean, className: string) {
                               class="nc-select-shadow"
                               dropdown-class-name="nc-dropdown-inflection-column-name"
                             >
-                              <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">{{ tp }}</a-select-option>
+                              <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">
+                                {{ tp }}
+                              </a-select-option>
                             </NcSelect>
                           </a-form-item>
                         </a-col>
@@ -619,7 +635,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
         </div>
       </div>
       <div class="flex items-center gap-3">
-        <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg"></div>
+        <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg" />
         <NcTooltip :disabled="!testConnectionError">
           <template #title>
             {{ testConnectionError }}

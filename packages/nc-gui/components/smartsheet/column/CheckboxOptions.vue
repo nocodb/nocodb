@@ -43,7 +43,7 @@ const iconColor = computed(() => {
 // antdv doesn't support object as value
 // use iconIdx as value and update back in watch
 const iconIdx = iconList.findIndex(
-  (ele) => ele.checked === vModel.value.meta.icon.checked && ele.unchecked === vModel.value.meta.icon.unchecked,
+  ele => ele.checked === vModel.value.meta.icon.checked && ele.unchecked === vModel.value.meta.icon.unchecked,
 )
 
 vModel.value.meta.iconIdx = iconIdx === -1 ? 0 : iconIdx
@@ -89,6 +89,7 @@ watch(
           v-model:visible="isOpenColorPicker"
           placement="bottomRight"
           :auto-close="false"
+          use-backdrop
           class="nc-color-picker-dropdown-trigger"
         >
           <div
@@ -119,8 +120,8 @@ watch(
               <LazyGeneralAdvanceColorPicker
                 v-model="picked"
                 :is-open="isOpenColorPicker"
-                @input="(el:string)=>vModel.meta.color=el"
-              ></LazyGeneralAdvanceColorPicker>
+                @input="(el:string) => vModel.meta.color = el"
+              />
             </div>
           </template>
         </NcDropdown>

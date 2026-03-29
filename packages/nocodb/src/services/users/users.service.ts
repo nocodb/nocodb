@@ -13,9 +13,16 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { verifyDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
-import { isEE, T } from '~/utils';
-import { genJwt, setTokenCookie } from '~/services/users/helpers';
+import {
+  ensureUserInDefaultWorkspace,
+  verifyDefaultWorkspace,
+} from '~/helpers/verifyDefaultWorkspace';
+import { isEE, isOnPrem, T } from '~/utils';
+import {
+  clearAuthCookie,
+  genJwt,
+  setTokenCookie,
+} from '~/services/users/helpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
@@ -43,7 +50,9 @@ export class UsersService {
 
   // allow signup/signin only if email matches against pattern
   validateEmailPattern(email: string) {
-    const emailPattern = process.env.NC_AUTH_EMAIL_PATTERN;
+    const emailPattern =
+      process.env.NC_USER_ALLOWED_EMAIL_PATTERN ||
+      process.env.NC_AUTH_EMAIL_PATTERN;
     if (emailPattern) {
       const regex = new RegExp(emailPattern);
       if (!regex.test(email)) {
@@ -127,6 +136,7 @@ export class UsersService {
       email_verification_token,
       req,
       is_invite = false,
+      workspace_invite = false,
     }: {
       email: string;
       salt: any;
@@ -134,6 +144,7 @@ export class UsersService {
       email_verification_token;
       req: NcRequest;
       is_invite?: boolean;
+      workspace_invite?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -175,7 +186,9 @@ export class UsersService {
     );
 
     // if first user and super admin, create a base
-    if (isFirstUser && !isEE) {
+    // On unlicensed on-prem (EE build), @EEOnly() falls back to this CE code,
+    // so on-prem also needs workspace + base creation here.
+    if (isFirstUser && (!isEE || isOnPrem)) {
       await verifyDefaultWorkspace(user, ncMeta);
 
       // todo: update swagger type
@@ -184,6 +197,11 @@ export class UsersService {
         req,
         ncMeta,
       );
+    } else if (!isFirstUser && !is_invite && !workspace_invite) {
+      // Only add to default workspace for self-signups, not invites.
+      // Workspace invites set the role explicitly via the invite flow;
+      // org invites call ensureUserInDefaultWorkspace separately.
+      await ensureUserInDefaultWorkspace(user.id, undefined, ncMeta);
     }
 
     // todo: update swagger type
@@ -455,7 +473,7 @@ export class UsersService {
         NcError.internalServerError('Failed to update refresh token');
       }
 
-      setTokenCookie(param.res, refreshToken);
+      setTokenCookie(param.res, refreshToken, param.req);
 
       return {
         token: genJwt(
@@ -632,6 +650,7 @@ export class UsersService {
 
   protected clearCookie(param: { res: any; req: any }) {
     param.res.clearCookie('refresh_token');
+    clearAuthCookie(param.res);
   }
 
   private async createDefaultProject(
@@ -676,6 +695,6 @@ export class UsersService {
       meta: req.user?.extra,
     });
 
-    setTokenCookie(res, refreshToken);
+    setTokenCookie(res, refreshToken, req);
   }
 }

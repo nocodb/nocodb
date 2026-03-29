@@ -35,7 +35,7 @@ const ratingMeta = computed(() => {
 
 const vModel = computed({
   get: () => Number(modelValue),
-  set: (val) => emits('update:modelValue', val),
+  set: val => emits('update:modelValue', val),
 })
 
 useSelectedCellKeydownListener(
@@ -52,7 +52,7 @@ useSelectedCellKeydownListener(
   },
 )
 
-const onKeyPress = (e: KeyboardEvent) => {
+function onKeyPress(e: KeyboardEvent) {
   if (/^\d$/.test(e.key)) {
     e.stopPropagation()
     vModel.value = +e.key === +vModel.value ? 0 : +e.key

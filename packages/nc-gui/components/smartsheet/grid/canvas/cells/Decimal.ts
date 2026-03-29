@@ -14,7 +14,8 @@ export const DecimalCellRenderer: CellRenderer = {
           minimumFractionDigits: meta.precision ?? 1,
           maximumFractionDigits: meta.precision ?? 1,
         })
-      } else {
+      }
+      else {
         displayValue = roundUpToPrecision(Number(value), meta.precision ?? 1)
       }
     }
@@ -30,7 +31,8 @@ export const DecimalCellRenderer: CellRenderer = {
 
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })
-    } else {
+    }
+    else {
       const { x: xOffset, y: yOffset } = renderSingleLineText(ctx, {
         x: x + width - padding,
         y,
@@ -52,7 +54,7 @@ export const DecimalCellRenderer: CellRenderer = {
     const { e, row, column, makeCellEditable } = ctx
     if (column.readonly || column.columnObj?.readonly) return
     const columnObj = column.columnObj
-    if (/^[0-9]$/.test(e.key) && columnObj.title) {
+    if (/^\d$/.test(e.key) && columnObj.title) {
       // default null as to not raise error
       row.row[columnObj.title] = null
       makeCellEditable(row, column)

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { type GridType, type ListType, ViewTypes } from 'nocodb-sdk'
+import type { GridType, ListType } from 'nocodb-sdk'
+import { ViewTypes } from 'nocodb-sdk'
 
-const rowHeightOptions: { icon: keyof typeof iconMap; heightClass: string }[] = [
+const rowHeightOptions: { icon: keyof typeof iconMap, heightClass: string }[] = [
   {
     icon: 'heightShort',
     heightClass: 'short',
@@ -40,7 +41,7 @@ const { isList } = useSmartsheetStoreOrThrow()
 
 const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
 
-const isListConfigured = computed(
+const _isListConfigured = computed(
   () => (listViewStore?.isConfigured.value ?? false) && (listViewStore?.levels.value?.length ?? 0) > 1,
 )
 
@@ -55,7 +56,7 @@ const currentRowHeight = computed(() => {
   return (view.value?.view as GridType)?.row_height
 })
 
-const updateRowHeight = async (rh: number, undo = false) => {
+async function updateRowHeight(rh: number, undo = false) {
   if (isLocked.value) return
 
   if (view.value?.id) {
@@ -87,13 +88,14 @@ const updateRowHeight = async (rh: number, undo = false) => {
       )
 
       open.value = false
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error((await extractSdkResponseErrorMsg(e)) || 'There was an error while updating view!')
     }
   }
 }
 
-const wrapHeaders = computed({
+const _wrapHeaders = computed({
   get: () => {
     if (!isList.value || !listViewStore?.selectedLevel.value) return false
     return !!listViewStore.selectedLevel.value.wrap_headers
@@ -101,7 +103,7 @@ const wrapHeaders = computed({
   set: async (val: boolean) => {
     if (isLocked.value || !view.value?.id || !isList.value || !listViewStore?.selectedLevel.value) return
 
-    const updatedLevels = listViewStore.levels.value.map((l) =>
+    const updatedLevels = listViewStore.levels.value.map(l =>
       l.id === listViewStore!.selectedLevel.value?.id ? { ...l, wrap_headers: val } : { ...l },
     )
     await listViewStore.saveLevelConfiguration({ levels: updatedLevels })
@@ -136,7 +138,9 @@ useMenuCloseOnEsc(open)
     <template #overlay>
       <div class="p-1.5 menu-filter-dropdown min-w-[160px]" data-testid="nc-height-menu">
         <div class="flex flex-col w-full text-sm" @click.stop>
-          <div class="text-xs text-nc-content-gray-muted px-3 pt-2 pb-1 select-none">{{ $t('objects.rowHeight') }}</div>
+          <div class="text-xs text-nc-content-gray-muted px-3 pt-2 pb-1 select-none">
+            {{ $t('objects.rowHeight') }}
+          </div>
           <div
             v-for="(item, i) of rowHeightOptions"
             :key="i"
@@ -160,9 +164,9 @@ useMenuCloseOnEsc(open)
         </div>
         <!--        <template v-if="isList">
           <div class="border-t border-nc-border-gray-medium">
-            <SmartsheetToolbarListLevelSelector v-if="isListConfigured" class="py-2" />
+            <SmartsheetToolbarListLevelSelector v-if="_isListConfigured" class="py-2" />
             <div class="flex items-center px-2">
-              <NcSwitch v-model:checked="wrapHeaders" size="small" class="nc-switch" :disabled="isLocked">
+              <NcSwitch v-model:checked="_wrapHeaders" size="small" class="nc-switch" :disabled="isLocked">
                 <div class="text-sm text-nc-content-gray">
                   {{ $t('labels.wrapHeaders') || 'Wrap headers' }}
                 </div>

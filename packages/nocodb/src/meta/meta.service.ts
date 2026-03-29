@@ -2,7 +2,6 @@ import { Injectable, Optional } from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
 import { v7 as uuidv7 } from 'uuid';
 import { BaseVersion } from 'nocodb-sdk';
-import CryptoJS from 'crypto-js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -105,6 +104,9 @@ export class MetaService {
       [MetaTable.CALENDAR_VIEW]: 'cv',
       [MetaTable.CALENDAR_VIEW_COLUMNS]: 'cvc',
       [MetaTable.CALENDAR_VIEW_RANGE]: 'cvr',
+      [MetaTable.TIMELINE_VIEW]: 'tv',
+      [MetaTable.TIMELINE_VIEW_COLUMNS]: 'tvc',
+      [MetaTable.TIMELINE_VIEW_RANGE]: 'tvr',
       [MetaTable.USERS]: 'us',
       [MetaTable.ORGS_OLD]: 'org',
       [MetaTable.TEAMS]: 'tm',
@@ -141,6 +143,12 @@ export class MetaService {
       [MetaTable.SCIM_CONFIG]: 'scfg',
       [MetaTable.RLS_POLICIES]: 'rlp',
       [MetaTable.RLS_POLICY_SUBJECTS]: 'rlps',
+      [MetaTable.CHAT_SESSIONS]: 'cs',
+      [MetaTable.CHAT_MESSAGES]: 'cm',
+      [MetaTable.RECORD_TEMPLATES]: 'rt',
+      [MetaTable.AUTOMATION_SUBSCRIBERS]: 'as',
+      [MetaTable.DOCS]: 'doc',
+      [MetaTable.DATE_DEPENDENCY]: 'dd',
     };
 
     const prefix = prefixMap[target] || 'nc';
@@ -936,11 +944,9 @@ export class MetaService {
   }
 
   /***
-   * Get base list with decrypted config
-   * @returns {Promise<any[]>} - List of bases
+   * Check if legacy nc_projects table exists (used only to block upgrades from very old versions)
    * */
   public async legacyProjectList(): Promise<any[]> {
-    // check if table exists
     const tableExists = await this.knexConnection.schema.hasTable(
       'nc_projects',
     );
@@ -949,13 +955,7 @@ export class MetaService {
       return [];
     }
 
-    return (await this.knexConnection('nc_projects').select()).map((p) => {
-      p.config = CryptoJS.AES.decrypt(
-        p.config,
-        'secret', // todo: tobe replaced - this.config?.auth?.jwt?.secret
-      ).toString(CryptoJS.enc.Utf8);
-      return p;
-    });
+    return this.knexConnection('nc_projects').select('id');
   }
 
   private getNanoId() {

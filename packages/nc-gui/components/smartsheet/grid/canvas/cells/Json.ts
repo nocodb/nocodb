@@ -62,14 +62,16 @@ export const JsonCellRenderer: CellRenderer = {
     if (typeof text === 'string') {
       try {
         JSON.parse(text)
-      } catch (e) {
+      }
+      catch (e) {
         text = JSON.stringify(text)
       }
     }
 
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })
-    } else {
+    }
+    else {
       const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
         x: x + padding,
         y,

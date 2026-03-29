@@ -27,14 +27,14 @@ const getBannerImageSrc = computed(() => {
     />
     <div v-else class="h-full flex items-stretch justify-between bg-nc-bg-default">
       <div class="flex -mt-1">
-        <img src="~assets/img/form-banner-left.png" alt="form-banner-left'" />
+        <img src="~assets/img/form-banner-left.png" alt="form-banner-left'">
       </div>
 
       <div class="w-[91px] flex justify-center">
-        <img class="max-h-full self-center" src="~assets/img/icons/256x256.png" alt="form-banner-logo" />
+        <img class="max-h-full self-center" src="~assets/img/icons/256x256.png" alt="form-banner-logo">
       </div>
       <div class="flex justify-end -mb-1">
-        <img src="~assets/img/form-banner-right.png" alt="form-banner-left'" />
+        <img src="~assets/img/form-banner-right.png" alt="form-banner-left'">
       </div>
     </div>
   </div>

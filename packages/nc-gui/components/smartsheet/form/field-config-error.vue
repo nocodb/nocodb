@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
 
 interface Props {
   column: ColumnType
@@ -34,7 +34,9 @@ const firstErrorMsg = computed(() => {
           class="nc-field-config-error validation-error text-nc-content-red-dark bg-nc-bg-red-light rounded-lg inline-flex items-center gap-2 px-2 py-1"
         >
           <GeneralIcon icon="alertTriangle" />
-          <div class="flex">Configuration error</div>
+          <div class="flex">
+            Configuration error
+          </div>
         </div>
       </NcTooltip>
     </div>

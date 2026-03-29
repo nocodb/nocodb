@@ -16,23 +16,24 @@ const filteredIcons = computed(() => {
   if (!searchQuery.value) {
     return allIcons.value
   }
-  return allIcons.value.filter((iconName) => iconName.toLowerCase().includes(searchQuery.value.toLowerCase()))
+  return allIcons.value.filter(iconName => iconName.toLowerCase().includes(searchQuery.value.toLowerCase()))
 })
 
-const copyIconName = async (iconName: string) => {
+async function copyIconName(iconName: string) {
   try {
     await navigator.clipboard.writeText(iconName)
     copiedIcon.value = iconName
     setTimeout(() => {
       copiedIcon.value = null
     }, 2000)
-  } catch (err) {
+  }
+  catch (err) {
     console.error('Failed to copy:', err)
   }
 }
 
 // Get icon component
-const getIconComponent = (iconName: string) => {
+function getIconComponent(iconName: string) {
   return iconMap[iconName as keyof typeof iconMap]
 }
 </script>
@@ -43,7 +44,9 @@ const getIconComponent = (iconName: string) => {
     <div class="sticky top-0 bg-nc-bg-default border-b-1 border-nc-border-gray-medium z-10 shadow-sm">
       <div class="max-w-7xl mx-auto px-6 py-4">
         <div class="flex items-center justify-between mb-4">
-          <h1 class="text-3xl font-bold text-nc-content-gray-emphasis mt-2">Icon Library</h1>
+          <h1 class="text-3xl font-bold text-nc-content-gray-emphasis mt-2">
+            Icon Library
+          </h1>
           <NcBadge color="gray" class="!h-8">
             <span class="text-sm px-2 text-nc-content-gray-emphasis font-medium">
               {{ filteredIcons.length }} / {{ allIcons.length }}
@@ -52,10 +55,11 @@ const getIconComponent = (iconName: string) => {
         </div>
 
         <div class="relative">
-          <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-nc-content-gray-muted pointer-events-none">
-            <GeneralIcon icon="search" class="w-4 h-4" />
-          </div>
-          <a-input v-model:value="searchQuery" placeholder="Search icons..." class="nc-input nc-input-md nc-input-shadow" />
+          <a-input v-model:value="searchQuery" placeholder="Search icons..." class="nc-input nc-input-md nc-input-shadow">
+            <template #prefix>
+              <GeneralIcon icon="search" class="w-4 h-4 text-nc-content-gray-muted" />
+            </template>
+          </a-input>
         </div>
       </div>
     </div>
@@ -65,8 +69,12 @@ const getIconComponent = (iconName: string) => {
         <div class="w-16 h-16 rounded-full bg-nc-bg-gray-medium flex items-center justify-center mb-4">
           <GeneralIcon icon="search" class="w-8 h-8 text-nc-content-gray-muted" />
         </div>
-        <p class="text-nc-content-gray-subtle text-base font-medium mb-1">No icons found</p>
-        <p class="text-nc-content-gray-muted text-sm">Try searching with a different keyword</p>
+        <p class="text-nc-content-gray-subtle text-base font-medium mb-1">
+          No icons found
+        </p>
+        <p class="text-nc-content-gray-muted text-sm">
+          Try searching with a different keyword
+        </p>
       </div>
 
       <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">

@@ -14,7 +14,7 @@ const activeTab = inject(
 watch(
   () => route.params.viewId,
   (viewId) => {
-    /** wait until table list loads since meta load requires table list **/
+    /** wait until table list loads since meta load requires table list */
     until(tables)
       .toMatch((tables) => {
         return tables.length > 0

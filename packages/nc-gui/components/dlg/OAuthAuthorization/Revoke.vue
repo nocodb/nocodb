@@ -32,7 +32,8 @@ async function onRevoke() {
       vModel.value = false
       emits('revoked')
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }

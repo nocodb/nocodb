@@ -19,12 +19,12 @@ const OAuthConfig = computed(() => {
   return props.element.oauthMeta!
 })
 
-const generateState = () => {
+function generateState() {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 }
 
 // Generate PKCE code verifier (43-128 characters)
-const generateCodeVerifier = () => {
+function generateCodeVerifier() {
   const array = new Uint8Array(32)
   crypto.getRandomValues(array)
   return btoa(String.fromCharCode(...array))
@@ -34,7 +34,7 @@ const generateCodeVerifier = () => {
 }
 
 // Generate PKCE code challenge (SHA256 hash of verifier)
-const generateCodeChallenge = async (verifier: string) => {
+async function generateCodeChallenge(verifier: string) {
   const encoder = new TextEncoder()
   const data = encoder.encode(verifier)
   const hash = await crypto.subtle.digest('SHA-256', data)
@@ -44,7 +44,7 @@ const generateCodeChallenge = async (verifier: string) => {
     .replace(/=/g, '')
 }
 
-const openPopup = (url: string, name: string, state: string, codeVerifier: string, width = 500, height = 600) => {
+function openPopup(url: string, name: string, state: string, codeVerifier: string, width = 500, height = 600) {
   const left = window.screenX + (window.outerWidth - width) / 2
   const top = window.screenY + (window.outerHeight - height) / 2.5
 
@@ -54,7 +54,7 @@ const openPopup = (url: string, name: string, state: string, codeVerifier: strin
   const popup = window.open(url, name, `width=${width},height=${height},left=${left},top=${top}`)
   if (!popup) throw new Error('Popup blocked')
 
-  return new Promise<{ code: string; codeVerifier: string } | null>((resolve, reject) => {
+  return new Promise<{ code: string, codeVerifier: string } | null>((resolve, reject) => {
     let popupClosed = false
 
     const interval = setInterval(() => {
@@ -88,7 +88,8 @@ const openPopup = (url: string, name: string, state: string, codeVerifier: strin
 
             popup.close()
             resolve({ code, codeVerifier })
-          } else {
+          }
+          else {
             // If user clicked cancel button or code is missing and url is redirect url then we have to close the popup
             clearInterval(interval)
 
@@ -97,7 +98,8 @@ const openPopup = (url: string, name: string, state: string, codeVerifier: strin
             popup.close()
           }
         }
-      } catch (e) {
+      }
+      catch (e) {
         // Handle cross-origin errors
         // If we get an error accessing popup properties, check if we can detect it's closed
         try {
@@ -107,7 +109,8 @@ const openPopup = (url: string, name: string, state: string, codeVerifier: strin
             clearInterval(interval)
             reject(new Error('Popup closed by user'))
           }
-        } catch {
+        }
+        catch {
           // Completely swallow the error - we'll keep checking
         }
       }
@@ -116,7 +119,7 @@ const openPopup = (url: string, name: string, state: string, codeVerifier: strin
 }
 
 // Helper to get nested value from object using dot notation
-const getNestedValue = (obj: any, path: string): any => {
+function getNestedValue(obj: any, path: string): any {
   return path.split('.').reduce((current, key) => current?.[key], obj)
 }
 
@@ -135,7 +138,7 @@ const getResolvedAuthUri = computed(() => {
   return url
 })
 
-const handleOAuth = async () => {
+async function handleOAuth() {
   let url = getResolvedAuthUri.value
 
   // Check if URL still has unresolved templates
@@ -167,7 +170,8 @@ const handleOAuth = async () => {
       code: result.code,
       code_verifier: result.codeVerifier,
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     if (e?.message?.includes('Popup closed by user') || e?.message?.includes('No code returned')) {
       return
     }
@@ -182,7 +186,9 @@ const handleOAuth = async () => {
   <div>
     <NcButton type="primary" @click="handleOAuth">
       <div class="flex items-center gap-2">
-        <div class="font-bold">Authenticate With {{ OAuthConfig.provider }}</div>
+        <div class="font-bold">
+          Authenticate With {{ OAuthConfig.provider }}
+        </div>
         <template v-if="haveValue">
           <GeneralIcon icon="circleCheckSolid" class="text-success w-6 h-6" />
         </template>

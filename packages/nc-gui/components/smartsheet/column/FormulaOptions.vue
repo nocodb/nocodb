@@ -1,15 +1,15 @@
 <script setup lang="ts">
+import type { ColumnType, FormulaType, UnifiedMetaType } from 'nocodb-sdk'
 import {
   ColumnHelper,
   FormulaDataTypes,
   FormulaError,
-  UITypes,
   getUITypesForFormulaDataType,
   isHiddenCol,
   substituteColumnIdWithAliasInFormula,
+  UITypes,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk'
-import type { ColumnType, FormulaType, UnifiedMetaType } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -26,8 +26,8 @@ vModel.value.meta = {
   ...(vModel.value.meta || {}),
 }
 
-const { setAdditionalValidations, setAvoidShowingToastMsgForValidations, sqlUi, column, validateInfos } =
-  useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, setAvoidShowingToastMsgForValidations, sqlUi, column, validateInfos }
+  = useColumnCreateStoreOrThrow()
 
 const { t } = useI18n()
 
@@ -78,7 +78,8 @@ const validators = {
               trackPosition: true,
             })
             editorError.value = { ...defaultEditorError }
-          } catch (e: any) {
+          }
+          catch (e: any) {
             const errorMessage = e instanceof FormulaError && e.extra?.key ? t(e.extra.key, e.extra) : e.message
             if (e instanceof FormulaError && e.extra?.position) {
               editorError.value = {
@@ -86,7 +87,8 @@ const validators = {
                 message: errorMessage,
                 position: e.extra.position,
               }
-            } else {
+            }
+            else {
               editorError.value = { ...defaultEditorError }
             }
             throw new Error(errorMessage)
@@ -99,15 +101,15 @@ const validators = {
 
 // set default value
 if ((column.value?.colOptions as any)?.formula_raw) {
-  vModel.value.formula_raw =
-    substituteColumnIdWithAliasInFormula(
+  vModel.value.formula_raw
+    = substituteColumnIdWithAliasInFormula(
       (column.value?.colOptions as FormulaType)?.formula,
       meta?.value?.columns as ColumnType[],
       (column.value?.colOptions as any)?.formula_raw,
     ) || ''
 }
 
-const source = computed(() => activeBase.value?.sources?.find((s) => s.id === meta.value?.source_id))
+const source = computed(() => activeBase.value?.sources?.find(s => s.id === meta.value?.source_id))
 
 const parsedTree = ref<any>({
   dataType: FormulaDataTypes.UNKNOWN,
@@ -147,7 +149,8 @@ const debouncedValidate = useDebounceFn(async () => {
     }
     previousDisplayType.value = undefined
     hadError.value = false
-  } catch (e) {
+  }
+  catch (e) {
     // Update parsedTree only if this is the latest invocation
     if (currentCounter === watcherCounter) {
       parsedTree.value = {
@@ -156,10 +159,12 @@ const debouncedValidate = useDebounceFn(async () => {
     }
     previousDisplayType.value = vModel.value.meta.display_type
     hadError.value = true
-  } finally {
+  }
+  finally {
     if (vModel.value?.colOptions?.parsed_tree?.dataType !== parsedTree.value?.dataType) {
       vModel.value.meta.display_type = null
-    } else {
+    }
+    else {
       vModel.value.meta.display_type = savedDisplayType.value
     }
   }
@@ -201,7 +206,8 @@ const supportedFormulaAlias = computed(() => {
         }),
       }
     })
-  } catch (e) {
+  }
+  catch (e) {
     return []
   }
 })

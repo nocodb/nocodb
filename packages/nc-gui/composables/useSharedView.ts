@@ -1,16 +1,10 @@
+import type { BaseType, CalendarType, FilterType, KanbanType, MapType, PaginatedType, RequestParams, SortType, TableType, ViewType } from 'nocodb-sdk'
 import {
-  type BaseType,
-  type CalendarType,
+
   ExportTypes,
-  type FilterType,
-  type KanbanType,
-  type MapType,
-  type PaginatedType,
-  type RequestParams,
-  type SortType,
-  type TableType,
+
   UITypes,
-  type ViewType,
+
   ViewTypes,
 } from 'nocodb-sdk'
 import { setI18nLanguage } from '~/plugins/a.i18n'
@@ -18,7 +12,7 @@ import { setI18nLanguage } from '~/plugins/a.i18n'
 export function useSharedView() {
   const router = useRouter()
 
-  const nestedFilters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
+  const nestedFilters = ref<(FilterType & { status?: 'update' | 'delete' | 'create', parentId?: string })[]>([])
 
   const { appInfo } = useGlobal()
 
@@ -56,18 +50,15 @@ export function useSharedView() {
 
   const formColumns = computed(
     () =>
-      (meta.value as TableType)?.columns
-        ?.filter(
-          (f: Record<string, any>) =>
-            f.show &&
-            f.uidt !== UITypes.Rollup &&
-            f.uidt !== UITypes.Lookup &&
-            f.uidt !== UITypes.Formula &&
-            f.uidt !== UITypes.Barcode &&
-            f.uidt !== UITypes.QrCode,
-        )
-        .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
-        .map((c: Record<string, any>) => ({ ...c, required: !!(c.required || 0) })) ?? [],
+      (meta.value as TableType)?.columns?.filter(
+        (f: Record<string, any>) =>
+          f.show
+          && f.uidt !== UITypes.Rollup
+          && f.uidt !== UITypes.Lookup
+          && f.uidt !== UITypes.Formula
+          && f.uidt !== UITypes.Barcode
+          && f.uidt !== UITypes.QrCode,
+      ).sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order).map((c: Record<string, any>) => ({ ...c, required: !!(c.required || 0) })) ?? [],
   )
 
   const { $api } = useNuxtApp()
@@ -88,7 +79,8 @@ export function useSharedView() {
 
     try {
       allowCSVDownload.value = parseProp(viewMeta.meta)?.allowCSVDownload
-    } catch {
+    }
+    catch {
       allowCSVDownload.value = false
     }
 
@@ -103,13 +95,13 @@ export function useSharedView() {
     let order = 1
 
     if (meta.value) {
-      meta.value.columns = [...viewMeta.model.columns].map((c) => ({ ...c, order: order++ })).sort((a, b) => a.order - b.order)
+      meta.value.columns = [...viewMeta.model.columns].map(c => ({ ...c, order: order++ })).sort((a, b) => a.order - b.order)
     }
 
     await setMeta(viewMeta.model)
 
     // if base is not defined then set it with an object containing source
-    if (!base.value?.sources)
+    if (!base.value?.sources) {
       baseStore.setProject({
         id: viewMeta.base_id,
         sources: [
@@ -120,9 +112,10 @@ export function useSharedView() {
           },
         ],
       })
+    }
 
     const relatedMetas = { ...viewMeta.relatedMetas }
-    Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
+    Object.keys(relatedMetas).forEach(key => setMeta(relatedMetas[key]))
 
     if (viewMeta.users) {
       basesUser.value.set(viewMeta.base_id, viewMeta.users)
@@ -147,19 +140,20 @@ export function useSharedView() {
       isInfiniteScroll?: boolean
     },
   ) => {
-    if (!sharedView.value)
+    if (!sharedView.value) {
       return {
         list: [],
         pageInfo: {},
       }
+    }
 
     if (!param.offset) {
       const page = paginationData.value.page || 1
       const pageSize = opts?.isInfiniteScroll
         ? param.limit
         : opts?.isGroupBy
-        ? appInfo.value.defaultGroupByLimit?.limitRecord || 10
-        : paginationData.value.pageSize || appInfoDefaultLimit
+          ? appInfo.value.defaultGroupByLimit?.limitRecord || 10
+          : paginationData.value.pageSize || appInfoDefaultLimit
       param.offset = (page - 1) * pageSize
       param.limit = sharedView.value?.type === ViewTypes.MAP ? 1000 : pageSize
     }
@@ -195,11 +189,12 @@ export function useSharedView() {
     nested?: any
     offset?: number
   }) => {
-    if (!sharedView.value)
+    if (!sharedView.value) {
       return {
         list: [],
         pageInfo: {},
       }
+    }
 
     if (!param.offset) {
       const page = paginationData.value.page || 1
@@ -332,11 +327,12 @@ export function useSharedView() {
     sort?: any[]
     where?: string
   }) => {
-    if (!sharedView.value)
+    if (!sharedView.value) {
       return {
         list: [],
         pageInfo: {},
       }
+    }
 
     return await $api.public.dataCalendarRowCount(
       sharedView.value.uuid!,
@@ -353,7 +349,7 @@ export function useSharedView() {
     )
   }
 
-  const fetchCount = async (param: { filtersArr: FilterType[]; where?: string }) => {
+  const fetchCount = async (param: { filtersArr: FilterType[], where?: string }) => {
     const data = await $api.public.dbViewRowCount(
       sharedView.value.uuid!,
       {
@@ -377,7 +373,7 @@ export function useSharedView() {
       filtersArr,
       include_row_color,
       where,
-    }: { sortsArr: SortType[]; filtersArr: FilterType[]; include_row_color?: boolean; where?: string },
+    }: { sortsArr: SortType[], filtersArr: FilterType[], include_row_color?: boolean, where?: string },
   ) => {
     if (!sharedView.value) return
 
@@ -425,7 +421,7 @@ export function useSharedView() {
     offset: number,
     type: ExportTypes.EXCEL | ExportTypes.CSV,
     responseType: 'base64' | 'blob',
-    { sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] } = {
+    { sortsArr, filtersArr }: { sortsArr: SortType[], filtersArr: FilterType[] } = {
       sortsArr: [],
       filtersArr: [],
     },
@@ -433,7 +429,7 @@ export function useSharedView() {
     return await $api.public.csvExport(sharedView.value!.uuid!, type, {
       format: responseType,
       query: {
-        fields: fields.map((field) => field.title),
+        fields: fields.map(field => field.title),
         offset,
         filterArrJson: stringifyFilterOrSortArr(filtersArr ?? nestedFilters.value),
         sortArrJson: stringifyFilterOrSortArr(sortsArr ?? sorts.value),

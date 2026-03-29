@@ -1,4 +1,4 @@
-export default defineNuxtPlugin(function (nuxtApp) {
+export default defineNuxtPlugin((nuxtApp) => {
   const smartsheetStoreEventBus = useEventBus<SmartsheetStoreEvents>(EventBusEnum.SmartsheetStore)
   const realtimeBaseUserEventBus = useEventBus<SmartsheetStoreEvents>(EventBusEnum.RealtimeBaseUser)
   const realtimeViewMetaEventBus = useEventBus<SmartsheetStoreEvents>(EventBusEnum.RealtimeViewMeta)

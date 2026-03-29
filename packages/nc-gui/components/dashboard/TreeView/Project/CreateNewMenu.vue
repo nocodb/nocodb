@@ -19,10 +19,10 @@ const source = computed(() => {
 
 const { isUIAllowed } = useRoles()
 
-const showBaseOption = (source: SourceType) => {
+function showBaseOption(source: SourceType) {
   return (
-    (source.enabled || (base.value.sources || []).length > 1) &&
-    ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission, { source }))
+    (source.enabled || (base.value.sources || []).length > 1)
+    && ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some(permission => isUIAllowed(permission, { source }))
   )
 }
 </script>
@@ -54,7 +54,7 @@ const showBaseOption = (source: SourceType) => {
                 <GeneralIcon icon="ncChevronRight" />
               </div>
             </template>
-            <template #expandIcon> </template>
+            <template #expandIcon />
             <template #label>
               <NcMenuItemLabel>
                 <span class="normal-case min-w-[180px]"> {{ $t('labels.importOptions') }} </span>

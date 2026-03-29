@@ -1,15 +1,15 @@
-import { defineConfig } from 'windicss/helpers'
-import formsPlugin from 'windicss/plugin/forms'
-import typographyPlugin from 'windicss/plugin/typography'
-import aspectRatioPlugin from 'windicss/plugin/aspect-ratio'
-import lineClampPlugin from 'windicss/plugin/line-clamp'
-import windiColors from 'windicss/colors'
-// @ts-expect-error no types for plugin-scrollbar
-import scrollbar from '@windicss/plugin-scrollbar'
 // @ts-expect-error no types for plugin-animation
 import animations from '@windicss/plugin-animations'
 // @ts-expect-error no types for plugin-question-mark
 import questionMark from '@windicss/plugin-question-mark'
+// @ts-expect-error no types for plugin-scrollbar
+import scrollbar from '@windicss/plugin-scrollbar'
+import windiColors from 'windicss/colors'
+import { defineConfig } from 'windicss/helpers'
+import aspectRatioPlugin from 'windicss/plugin/aspect-ratio'
+import formsPlugin from 'windicss/plugin/forms'
+import lineClampPlugin from 'windicss/plugin/line-clamp'
+import typographyPlugin from 'windicss/plugin/typography'
 
 import ncTypographyPlugin from './assets/nc-typography-plugin'
 
@@ -110,6 +110,8 @@ export default defineConfig({
         'xs': { max: '480px' },
         'sm': { min: '480px' },
         'md': { min: '820px' },
+        'lg': { min: '1024px' },
+        'xl': { min: '1280px' },
         '2xl': { min: '1780px' },
         '3xl': { min: '1920px' },
         '4xl': { min: '2560px' },

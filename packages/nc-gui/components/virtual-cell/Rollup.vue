@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { UITypes, getRenderAsTextFunForUiType } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, RollupType } from 'nocodb-sdk'
+import { getRenderAsTextFunForUiType, UITypes } from 'nocodb-sdk'
 
 const { metas } = useMetas()
 
@@ -10,12 +10,12 @@ const column = inject(ColumnInj)!
 
 const meta = inject(MetaInj, ref())
 
-const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
-  useShowNotEditableWarning()
+const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning }
+  = useShowNotEditableWarning()
 
 const relationColumnOptions = computed<LinkToAnotherRecordType | null>(() => {
   if ((column?.value?.colOptions as RollupType)?.fk_relation_column_id) {
-    return meta?.value?.columns?.find((c) => c.id === (column?.value?.colOptions as RollupType)?.fk_relation_column_id)
+    return meta?.value?.columns?.find(c => c.id === (column?.value?.colOptions as RollupType)?.fk_relation_column_id)
       ?.colOptions as LinkToAnotherRecordType
   }
   return null
@@ -34,14 +34,33 @@ const relatedTableMeta = computed(() => {
 const colOptions = computed(() => column.value?.colOptions)
 
 const childColumn = computed(() => {
-  if (relatedTableMeta.value?.columns) {
-    if (isRollup(column.value)) {
-      return relatedTableMeta.value?.columns.find(
-        (c: ColumnType) => c.id === (colOptions.value as RollupType).fk_rollup_column_id,
-      )
+  if (!relatedTableMeta.value?.columns || !isRollup(column.value)) return ''
+
+  const col = relatedTableMeta.value?.columns.find(
+    (c: ColumnType) => c.id === (colOptions.value as RollupType).fk_rollup_column_id,
+  )
+
+  if (!col) return ''
+
+  // Resolve Formula fields with display_type (e.g., Currency, Percent) to their effective type
+  if (col.uidt === UITypes.Formula) {
+    const colMeta = parseProp(col.meta)
+    if (colMeta?.display_type) {
+      const displayColumnMeta = parseProp(colMeta.display_column_meta)
+
+      return {
+        ...col,
+        uidt: colMeta.display_type,
+        ...displayColumnMeta,
+        meta: {
+          ...parseProp(column.value?.meta),
+          ...parseProp(displayColumnMeta?.meta),
+        },
+      }
     }
   }
-  return ''
+
+  return col
 })
 
 const renderAsTextFun = computed(() => {

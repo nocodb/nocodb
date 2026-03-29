@@ -16,8 +16,8 @@ import * as Diff from 'diff'
  * diffTextBlocks("Hello World", "World"); // true
  * ```
  */
-export const diffTextBlocks = (sourceString: string, targetString: string) => {
-  return Diff.diffWords(sourceString, targetString).map((it) => ({
+export function diffTextBlocks(sourceString: string, targetString: string) {
+  return Diff.diffWords(sourceString?.toString() || '', targetString?.toString() || '').map(it => ({
     text: it.value,
     op: it.added ? 'added' : it.removed ? 'removed' : 'unchanged',
   }))

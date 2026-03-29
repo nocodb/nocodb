@@ -24,6 +24,7 @@ import type {
   IntegrationUpdateEvent,
   KanbanViewUpdateEvent,
   ListViewUpdateEvent,
+  MapViewUpdateEvent,
   MetaDiffEvent,
   OrgUserInviteEvent,
   PluginEvent,
@@ -47,6 +48,7 @@ import type {
   TableDuplicateEvent,
   TableEvent,
   TableUpdateEvent,
+  TimelineViewUpdateEvent,
   UIAclEvent,
   UserEmailVerificationEvent,
   UserInviteEvent,
@@ -55,6 +57,7 @@ import type {
   UserPasswordResetEvent,
   UserProfileUpdateEvent,
   UserSigninEvent,
+  UserSigninFailedEvent,
   UserSignoutEvent,
   UserSignupEvent,
   ViewColumnEvent,
@@ -120,6 +123,10 @@ export class AppHooksService {
   on(
     event: AppEvents.USER_SIGNIN,
     listener: (data: UserSigninEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.USER_SIGNIN_FAILED,
+    listener: (data: UserSigninFailedEvent) => void,
   ): () => void;
   on(
     event: AppEvents.USER_SIGNOUT,
@@ -199,6 +206,7 @@ export class AppHooksService {
   emit(event: AppEvents.PROJECT_UPDATE, data: ProjectUpdateEvent): void;
   emit(event: AppEvents.USER_SIGNUP, data: UserSignupEvent): void;
   emit(event: AppEvents.USER_SIGNIN, data: UserSigninEvent): void;
+  emit(event: AppEvents.USER_SIGNIN_FAILED, data: UserSigninFailedEvent): void;
   emit(event: AppEvents.USER_SIGNOUT, data: UserSignoutEvent): void;
   emit(event: AppEvents.APIS_CREATED, data: ApiCreatedEvent): void;
   emit(
@@ -332,6 +340,7 @@ export class AppHooksService {
       | AppEvents.FORM_CREATE
       | AppEvents.GRID_CREATE
       | AppEvents.CALENDAR_CREATE
+      | AppEvents.TIMELINE_CREATE
       | AppEvents.GALLERY_CREATE
       | AppEvents.KANBAN_CREATE
       | AppEvents.MAP_CREATE
@@ -343,6 +352,7 @@ export class AppHooksService {
       | AppEvents.FORM_DELETE
       | AppEvents.GRID_DELETE
       | AppEvents.CALENDAR_DELETE
+      | AppEvents.TIMELINE_DELETE
       | AppEvents.GALLERY_DELETE
       | AppEvents.KANBAN_DELETE
       | AppEvents.MAP_DELETE
@@ -353,6 +363,7 @@ export class AppHooksService {
     event:
       | AppEvents.GRID_UPDATE
       | AppEvents.CALENDAR_UPDATE
+      | AppEvents.TIMELINE_UPDATE
       | AppEvents.GALLERY_UPDATE
       | AppEvents.KANBAN_UPDATE
       | AppEvents.MAP_UPDATE
@@ -363,8 +374,10 @@ export class AppHooksService {
       | GalleryViewUpdateEvent
       | KanbanViewUpdateEvent
       | CalendarViewUpdateEvent
+      | MapViewUpdateEvent
       | FormViewUpdateEvent
-      | ListViewUpdateEvent,
+      | ListViewUpdateEvent
+      | TimelineViewUpdateEvent,
   ): void;
   emit(
     event:
@@ -407,6 +420,7 @@ export class AppHooksService {
       | AppEvents.FORM_UPDATE
       | AppEvents.GRID_UPDATE
       | AppEvents.CALENDAR_UPDATE
+      | AppEvents.TIMELINE_UPDATE
       | AppEvents.GALLERY_UPDATE
       | AppEvents.KANBAN_UPDATE
       | AppEvents.MAP_UPDATE
@@ -417,8 +431,10 @@ export class AppHooksService {
       | GalleryViewUpdateEvent
       | KanbanViewUpdateEvent
       | CalendarViewUpdateEvent
+      | MapViewUpdateEvent
       | FormViewUpdateEvent
-      | ListViewUpdateEvent,
+      | ListViewUpdateEvent
+      | TimelineViewUpdateEvent,
   ): void;
   emit(
     event:
@@ -426,6 +442,17 @@ export class AppHooksService {
       | AppEvents.RECORD_TEMPLATE_UPDATE
       | AppEvents.RECORD_TEMPLATE_DELETE
       | AppEvents.RECORD_TEMPLATE_USE,
+    data: any,
+  ): void;
+  emit(
+    event:
+      | AppEvents.DOCUMENT_CREATE
+      | AppEvents.DOCUMENT_UPDATE
+      | AppEvents.DOCUMENT_DELETE,
+    data: any,
+  ): void;
+  emit(
+    event: AppEvents.DATE_DEPENDENCY_UPDATE | AppEvents.DATE_DEPENDENCY_DELETE,
     data: any,
   ): void;
 

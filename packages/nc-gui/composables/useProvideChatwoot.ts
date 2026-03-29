@@ -1,4 +1,4 @@
-export const useProvideChatwoot = () => {
+export function useProvideChatwoot() {
   const { setUser, setConversationCustomAttributes, setCustomAttributes } = useChatWoot()
 
   const { $api } = useNuxtApp()
@@ -52,7 +52,8 @@ export const useProvideChatwoot = () => {
   const loadAggMetaInfo = async () => {
     try {
       metaInfo.value = await $api.utils.aggregatedMetaInfo()
-    } catch (e) {}
+    }
+    catch (e) {}
   }
 
   watch(

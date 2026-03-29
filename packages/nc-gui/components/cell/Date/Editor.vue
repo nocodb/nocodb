@@ -122,7 +122,7 @@ watchEffect(() => {
   }
 })
 
-const handleUpdateValue = (e: Event, save = false, valueToSave?: dayjs.Dayjs) => {
+function handleUpdateValue(e: Event, save = false, valueToSave?: dayjs.Dayjs) {
   const targetValue = valueToSave || (e.target as HTMLInputElement).value
   if (!targetValue) {
     tempDate.value = undefined
@@ -148,15 +148,15 @@ onClickOutside(datePickerRef, (e) => {
   open.value = false
 })
 
-const onBlur = (e) => {
+function onBlur(e) {
   const value = (e?.target as HTMLInputElement)?.value
   if (value && dayjs(value, dateFormat.value).isValid()) {
     handleUpdateValue(e, true)
   }
 
   if (
-    (e?.relatedTarget as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`) ||
-    (e?.target as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`)
+    (e?.relatedTarget as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`)
+    || (e?.target as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`)
   ) {
     return
   }
@@ -164,7 +164,7 @@ const onBlur = (e) => {
   open.value = false
 }
 
-const onFocus = () => {
+function onFocus() {
   open.value = true
 }
 
@@ -181,7 +181,8 @@ watch(
         }
         open.value = false
       })
-    } else {
+    }
+    else {
       isClearedInputMode.value = false
     }
   },
@@ -190,16 +191,19 @@ watch(
 
 const placeholder = computed(() => {
   if (
-    ((isForm.value || isExpandedForm.value) && !isDateInvalid.value) ||
-    (isGrid.value && !showNull.value && !isDateInvalid.value && !isSystemColumn(columnMeta.value) && active.value) ||
-    isEditColumn.value
+    ((isForm.value || isExpandedForm.value) && !isDateInvalid.value)
+    || (isGrid.value && !showNull.value && !isDateInvalid.value && !isSystemColumn(columnMeta.value) && active.value)
+    || isEditColumn.value
   ) {
     return dateFormat.value
-  } else if (modelValue === null && showNull.value) {
+  }
+  else if (modelValue === null && showNull.value) {
     return t('general.null').toUpperCase()
-  } else if (isDateInvalid.value) {
+  }
+  else if (isDateInvalid.value) {
     return t('msg.invalidDate')
-  } else {
+  }
+  else {
     return ''
   }
 })
@@ -212,11 +216,17 @@ const isOpen = computed(() => {
 
 const cellClickHook = inject(CellClickHookInj, null)
 
-const cellClickHandler = () => {
+function cellClickHandler() {
   if (readOnly.value || open.value) return
 
   open.value = active.value || editable.value
 }
+
+onBeforeUnmount(() => {
+  if (tempDate.value && tempDate.value.isValid() && !localState.value?.isSame(tempDate.value)) {
+    saveChanges(tempDate.value)
+  }
+})
 
 onMounted(() => {
   cellClickHook?.on(cellClickHandler)
@@ -226,14 +236,14 @@ onUnmounted(() => {
   cellClickHook?.off(cellClickHandler)
 })
 
-const clickHandler = () => {
+function clickHandler() {
   if (cellClickHook) {
     return
   }
   cellClickHandler()
 }
 
-const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
+function handleKeydown(e: KeyboardEvent, _open?: boolean) {
   if (e.key !== 'Enter' && e.key !== 'Tab') {
     e.stopPropagation()
   }
@@ -265,7 +275,8 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
         if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
           datePickerRef.value?.blur?.()
         }
-      } else {
+      }
+      else {
         editable.value = false
 
         datePickerRef.value?.blur?.()
@@ -301,7 +312,10 @@ useSelectedCellKeydownListener(
           localState.value = dayjs(new Date())
           e.preventDefault()
         }
-      } else return
+      }
+      else {
+        return
+      }
     }
 
     if (!isOpen.value && datePickerRef.value && /^[0-9a-z]$/i.test(e.key)) {
@@ -328,7 +342,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
   open.value = false
 }
 
-const currentDate = ($event) => {
+function currentDate($event) {
   emit('currentDate', $event)
   open.value = false
 }
@@ -378,7 +392,7 @@ onMounted(() => {
         @mousedown.stop
         @click="clickHandler"
         @input="handleUpdateValue"
-      />
+      >
       <span v-else>
         {{ localState?.format(dateFormat) ?? '' }}
       </span>

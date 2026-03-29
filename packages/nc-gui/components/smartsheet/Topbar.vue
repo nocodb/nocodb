@@ -22,16 +22,22 @@ const { toggleExtensionPanel, isPanelExpanded } = useExtensions()
 
 const { toggleActionPanel, isPanelExpanded: isActionPanelExpanded, isViewActionsEnabled } = useActionPane()
 
+const { isPanelExpanded: isChatPanelExpanded } = useChatPanel()
+
 const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const { showEEFeatures } = useEeConfig()
 
 const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
 const topbarBreadcrumbItemWidth = computed(() => {
   if (!isSharedBase.value && !isMobileMode.value) {
     return 'calc(\(100% - 167px - 24px\) / 2)'
-  } else if (isMobileMode.value) {
+  }
+  else if (isMobileMode.value) {
     return 'calc(75% - 12px)'
-  } else {
+  }
+  else {
     return 'calc(\(100% - 12px\) / 2)'
   }
 })
@@ -78,15 +84,19 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <!-- Sandbox Status -->
         <LazySmartsheetTopbarSandboxStatus v-if="!isSharedBase && !isMobileMode" />
 
+        <LazySmartsheetTopbarCollaboratorPresence
+          v-if="!isPublic && !isSharedBase && !isMobileMode && openedViewsTab === 'view' && appInfo.ee"
+        />
+
         <NcButton
           v-if="
-            (appInfo.isOnPrem || isEeUI || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
-            !isSharedBase &&
-            !activeScriptId &&
-            !activeDashboardId &&
-            !activeWorkflowId &&
-            openedViewsTab === 'view' &&
-            !isMobileMode
+            ((isEeUI && showEEFeatures) || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS))
+              && !isSharedBase
+              && !activeScriptId
+              && !activeDashboardId
+              && !activeWorkflowId
+              && openedViewsTab === 'view'
+              && !isMobileMode
           "
           v-e="['c:extension-toggle']"
           type="secondary"
@@ -103,8 +113,11 @@ const topbarBreadcrumbItemWidth = computed(() => {
               :class="{ 'border-l-1 border-transparent': isPanelExpanded }"
             />
             <span
-              class="overflow-hidden trasition-all duration-200"
-              :class="{ 'w-[0px] invisible': isPanelExpanded, 'ml-1 w-[74px]': !isPanelExpanded }"
+              class="overflow-hidden transition-all duration-200"
+              :class="{
+                'w-[0px] invisible': isPanelExpanded || isChatPanelExpanded,
+                'ml-1 w-[74px]': !isPanelExpanded && !isChatPanelExpanded,
+              }"
             >
               {{ $t('general.extensions') }}
             </span>
@@ -113,13 +126,14 @@ const topbarBreadcrumbItemWidth = computed(() => {
 
         <NcButton
           v-if="
-            !isSharedBase &&
-            !activeScriptId &&
-            !activeDashboardId &&
-            !activeWorkflowId &&
-            openedViewsTab === 'view' &&
-            !isMobileMode &&
-            isViewActionsEnabled
+            !isSharedBase
+              && !activeScriptId
+              && !activeDashboardId
+              && !activeWorkflowId
+              && openedViewsTab === 'view'
+              && !isMobileMode
+              && isViewActionsEnabled
+              && showEEFeatures
           "
           v-e="['c:action-toggle']"
           type="secondary"
@@ -136,8 +150,11 @@ const topbarBreadcrumbItemWidth = computed(() => {
               :class="{ 'border-l-1 border-transparent': isActionPanelExpanded }"
             />
             <span
-              class="overflow-hidden trasition-all duration-200"
-              :class="{ 'w-[0px] invisible': isActionPanelExpanded, 'ml-1 w-[54px]': !isActionPanelExpanded }"
+              class="overflow-hidden transition-all duration-200"
+              :class="{
+                'w-[0px] invisible': isActionPanelExpanded || isChatPanelExpanded,
+                'ml-1 w-[54px]': !isActionPanelExpanded && !isChatPanelExpanded,
+              }"
             >
               {{ $t('general.actions') }}
             </span>

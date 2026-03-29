@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { ClientType } from 'nocodb-sdk'
 import { defaultColumns } from '../../../-helper/columns'
+
 const columns = defaultColumns
 
 const filter1 = ref({
@@ -11,7 +12,7 @@ const filter1 = ref({
 })
 const column1Id = ref(columns[0]!.id)
 const column1 = computed(() => {
-  return columns.find((col) => col.id === column1Id.value)
+  return columns.find(col => col.id === column1Id.value)
 })
 
 const lastChangeEvent1 = ref({})
@@ -28,13 +29,13 @@ const options1 = ref({
 const deleted1Times = ref(0)
 const deleted1LastEvent = ref({})
 
-const onFilter1Change = (event) => {
+function onFilter1Change(event) {
   lastChangeEvent1.value = event
   if (event.type === 'fk_column_id') {
     column1Id.value = event.value
   }
 }
-const onFilter1Delete = (event) => {
+function onFilter1Delete(event) {
   deleted1LastEvent.value = event
   deleted1Times.value++
 }
@@ -68,22 +69,52 @@ const isFieldInaccessible1 = ref(true)
         </div>
         <div class="flex gap-2">
           <div class="flex flex-col gap-2">
-            <div><NcSwitch v-model:checked="options1.disabled">disabled</NcSwitch></div>
-            <div><NcSwitch v-model:checked="options1.webHook">webHook</NcSwitch></div>
-            <div><NcSwitch v-model:checked="options1.link">link</NcSwitch></div>
-            <div><NcSwitch v-model:checked="options1.isLogicalOpChangeAllowed">isLogicalOpChangeAllowed</NcSwitch><br /></div>
-            <div><NcSwitch v-model:checked="options1.isLockedView">isLockedView</NcSwitch></div>
-            <div><NcSwitch v-model:checked="options1.showNullAndEmptyInFilter">showNullAndEmptyInFilter</NcSwitch></div>
+            <div>
+              <NcSwitch v-model:checked="options1.disabled">
+                disabled
+              </NcSwitch>
+            </div>
+            <div>
+              <NcSwitch v-model:checked="options1.webHook">
+                webHook
+              </NcSwitch>
+            </div>
+            <div>
+              <NcSwitch v-model:checked="options1.link">
+                link
+              </NcSwitch>
+            </div>
+            <div>
+              <NcSwitch v-model:checked="options1.isLogicalOpChangeAllowed">
+                isLogicalOpChangeAllowed
+              </NcSwitch><br>
+            </div>
+            <div>
+              <NcSwitch v-model:checked="options1.isLockedView">
+                isLockedView
+              </NcSwitch>
+            </div>
+            <div>
+              <NcSwitch v-model:checked="options1.showNullAndEmptyInFilter">
+                showNullAndEmptyInFilter
+              </NcSwitch>
+            </div>
             <div>
               dbClientType:
               <NcSelect v-model:value="options1.dbClientType">
-                <a-select-option :value="ClientType.PG"> PG </a-select-option>
-                <a-select-option :value="ClientType.SQLITE"> sqlite </a-select-option>
-                <a-select-option :value="ClientType.MYSQL"> mysql </a-select-option>
+                <a-select-option :value="ClientType.PG">
+                  PG
+                </a-select-option>
+                <a-select-option :value="ClientType.SQLITE">
+                  sqlite
+                </a-select-option>
+                <a-select-option :value="ClientType.MYSQL">
+                  mysql
+                </a-select-option>
               </NcSelect>
             </div>
             <div>
-              Index: <input v-model="options1.index" type="number" class="text-xs p-1 border-nc-border-gray-medium" /><br />
+              Index: <input v-model="options1.index" type="number" class="text-xs p-1 border-nc-border-gray-medium"><br>
             </div>
           </div>
           <div class="flex">
@@ -148,7 +179,11 @@ const isFieldInaccessible1 = ref(true)
 
         <div class="flex gap-2">
           <div class="flex flex-col gap-2">
-            <div><NcSwitch v-model:checked="isFieldInaccessible1">isFieldInaccessible1</NcSwitch></div>
+            <div>
+              <NcSwitch v-model:checked="isFieldInaccessible1">
+                isFieldInaccessible1
+              </NcSwitch>
+            </div>
           </div>
         </div>
       </div>
@@ -169,7 +204,9 @@ const isFieldInaccessible1 = ref(true)
       >
         <template v-if="isFieldInaccessible1" #fieldInaccessibleError>
           <NcTooltip class="flex-1 flex items-center gap-2 px-2 !text-nc-content-red-medium cursor-pointer" :disabled="false">
-            <template #title> Field inaccessible error message</template>
+            <template #title>
+              Field inaccessible error message
+            </template>
             <GeneralIcon icon="alertTriangle" class="flex-none" />
             {{ $t('title.fieldInaccessible') }}
           </NcTooltip>
@@ -177,6 +214,6 @@ const isFieldInaccessible1 = ref(true)
       </SmartsheetToolbarFilterRow>
     </div>
 
-    <div class="min-h-[64px] h-[64px] block"></div>
+    <div class="min-h-[64px] h-[64px] block" />
   </div>
 </template>

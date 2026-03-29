@@ -40,7 +40,7 @@ const responsiveVariant = computed(() => {
       </div>
     </template>
 
-    <template #expandIcon> </template>
+    <template #expandIcon />
     <div class="py-1.5">
       <slot />
     </div>

@@ -81,17 +81,17 @@ const textAreaRef = ref<HTMLTextAreaElement>()
 
 const position = ref<
   | {
-      top: number
-      left: number
-    }
+    top: number
+    left: number
+  }
   | undefined
 >()
 
 const mousePosition = ref<
   | {
-      top: number
-      left: number
-    }
+    top: number
+    left: number
+  }
   | undefined
 >()
 
@@ -135,10 +135,10 @@ const rowId = computed(() => {
 
 const isAiGenerating = computed(() => {
   return !!(
-    rowId.value &&
-    column?.value.id &&
-    generatingRows.value.includes(rowId.value) &&
-    generatingColumnRows.value.includes(column.value.id)
+    rowId.value
+    && column?.value.id
+    && generatingRows.value.includes(rowId.value)
+    && generatingColumnRows.value.includes(column.value.id)
   )
 })
 
@@ -168,7 +168,7 @@ onClickOutside(inputWrapperRef, (e) => {
   isVisible.value = false
 })
 
-const onTextClick = () => {
+function onTextClick() {
   if (!props.virtual) return
 
   isVisible.value = true
@@ -179,7 +179,8 @@ const isRichMode = computed(() => {
   let meta: any = {}
   if (typeof column?.value?.meta === 'string') {
     meta = JSON.parse(column?.value?.meta)
-  } else {
+  }
+  else {
     meta = column?.value?.meta ?? {}
   }
 
@@ -206,11 +207,11 @@ const richTextContent = computedAsync(async () => {
   return Promise.resolve('')
 })
 
-const onExpand = () => {
+function onExpand() {
   isVisible.value = true
 }
 
-const onMouseMove = (e: MouseEvent) => {
+function onMouseMove(e: MouseEvent) {
   if (!isDragging.value) return
 
   e.stopPropagation()
@@ -224,7 +225,7 @@ const onMouseMove = (e: MouseEvent) => {
   }
 }
 
-const onMouseUp = (e: MouseEvent) => {
+function onMouseUp(e: MouseEvent) {
   if (!isDragging.value) return
 
   e.stopPropagation()
@@ -251,7 +252,7 @@ watch(
   { deep: true },
 )
 
-const dragStart = (e: MouseEvent) => {
+function dragStart(e: MouseEvent) {
   if (isEditColumn.value) return
 
   const dom = document.querySelector('.nc-long-text-expanded-modal .ant-modal-content') as HTMLElement
@@ -267,7 +268,7 @@ const dragStart = (e: MouseEvent) => {
   isDragging.value = true
 }
 
-const generate = () => {
+function generate() {
   emits('generate')
 }
 
@@ -283,8 +284,22 @@ watch(editEnabled, () => {
   }
 })
 
-const stopPropagation = (event: MouseEvent) => {
+function stopPropagation(event: MouseEvent) {
   event.stopPropagation()
+}
+
+const listners: Array<'click' | 'mousedown' | 'mouseup'> = ['click', 'mousedown', 'mouseup']
+
+function addListeners(element: HTMLDivElement) {
+  listners.forEach((listener) => {
+    element.addEventListener(listener, stopPropagation)
+  })
+}
+
+function removeListeners(element: HTMLDivElement) {
+  listners.forEach((listener) => {
+    element.removeEventListener(listener, stopPropagation)
+  })
 }
 
 watch(inputWrapperRef, () => {
@@ -293,18 +308,16 @@ watch(inputWrapperRef, () => {
   // stop event propogation in edit column
   const modal = document.querySelector('.nc-long-text-expanded-modal') as HTMLElement
 
-  if (isVisible.value && modal?.parentElement) {
-    modal.parentElement.addEventListener('click', stopPropagation)
-    modal.parentElement.addEventListener('mousedown', stopPropagation)
-    modal.parentElement.addEventListener('mouseup', stopPropagation)
-  } else if (modal?.parentElement) {
-    modal.parentElement.removeEventListener('click', stopPropagation)
-    modal.parentElement.removeEventListener('mousedown', stopPropagation)
-    modal.parentElement.removeEventListener('mouseup', stopPropagation)
+  if (!modal?.parentElement) return
+
+  removeListeners(modal.parentElement as HTMLDivElement)
+
+  if (isVisible.value) {
+    addListeners(modal.parentElement as HTMLDivElement)
   }
 })
 
-const handleClose = () => {
+function handleClose() {
   isVisible.value = false
 }
 
@@ -314,13 +327,14 @@ watch(textAreaRef, (el) => {
   }
 })
 
-const onCellEvent = (event?: Event, isCanvasEvent?: boolean) => {
+function onCellEvent(event?: Event, isCanvasEvent?: boolean) {
   if (!(event instanceof KeyboardEvent) || !event.target) return
 
   if (isExpandCellKey(event)) {
     if (isVisible.value && !isActiveInputElementExist(event)) {
       handleClose()
-    } else if (!isActiveInputElementExist(event) || isCanvasEvent) {
+    }
+    else if (!isActiveInputElementExist(event) || isCanvasEvent) {
       // Expand only if user is not editing inline
       onExpand()
     }
@@ -333,12 +347,12 @@ onMounted(() => {
   cellEventHook?.on(onCellEvent)
 
   if (
-    isUnderLookup.value ||
-    isUnderLTAR.value ||
-    !isCanvasInjected ||
-    !clientMousePosition ||
-    isExpandedFormOpen.value ||
-    isEditColumn.value
+    isUnderLookup.value
+    || isUnderLTAR.value
+    || !isCanvasInjected
+    || !clientMousePosition
+    || isExpandedFormOpen.value
+    || isEditColumn.value
   ) {
     return
   }
@@ -349,9 +363,11 @@ onMounted(() => {
 
     if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-textarea-expand', position)) {
       onExpand()
-    } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-textarea-generate', position)) {
+    }
+    else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-textarea-generate', position)) {
       generate()
-    } else if (isRichMode.value || props.isAi) {
+    }
+    else if (isRichMode.value || props.isAi) {
       onExpand()
     }
   })
@@ -384,7 +400,7 @@ watch(isVisible, (open) => {
  * Updates the size of the text area based on stored dimensions in localStorage.
  * Retrieves the stored size and applies it to the corresponding text area element.
  */
-const updateSize = () => {
+function updateSize() {
   try {
     const size = localStorage.getItem(STORAGE_KEY)
     let elem = document.querySelector('.nc-text-area-expanded') as HTMLElement
@@ -399,7 +415,8 @@ const updateSize = () => {
       elem.style.width = `${parsedJSON.width}px`
       elem.style.height = `${parsedJSON.height}px`
     }
-  } catch (e) {
+  }
+  catch (e) {
     console.error(e)
   }
 }
@@ -408,7 +425,7 @@ const updateSize = () => {
  * Retrieves the element that should be observed for resizing.
  * @returns {HTMLElement | null} The resize target element.
  */
-const getResizeEl = () => {
+function getResizeEl() {
   if (!inputWrapperRef.value) return null
 
   if (isRichMode.value) {
@@ -511,13 +528,13 @@ useResizeObserver(inputWrapperRef, () => {
           maxHeight: isFullHeight
             ? undefined
             : isExpandedFormOpen
-            ? `${height}px`
-            : `${16.6 * rowHeightTruncateLines(localRowHeight)}px`,
+              ? `${height}px`
+              : `${16.6 * rowHeightTruncateLines(localRowHeight)}px`,
           minHeight: isFullHeight
             ? undefined
             : isExpandedFormOpen
-            ? `${height}px`
-            : `${16.5 * rowHeightTruncateLines(localRowHeight)}px`,
+              ? `${height}px`
+              : `${16.5 * rowHeightTruncateLines(localRowHeight)}px`,
         }"
         @click.stop="isExpandedFormOpen ? onExpand() : undefined"
         @dblclick="onExpand"
@@ -532,16 +549,16 @@ useResizeObserver(inputWrapperRef, () => {
               : 'py-2'
           "
           @click="handleDompurifyLinkClick"
-        ></div>
+        />
       </div>
       <!-- eslint-disable vue/use-v-on-exact -->
       <div
         v-else-if="
-          (editEnabled && !isVisible) ||
-          (isForm && !isUnderLTAR) ||
-          (isUnderFormula && isVisible) ||
-          (isCanvasInjected && isUnderFormula) ||
-          (isUnderFormula && isExpandedFormOpen && !isUnderLookup)
+          (editEnabled && !isVisible)
+            || (isForm && !isUnderLTAR)
+            || (isUnderFormula && isVisible)
+            || (isCanvasInjected && isUnderFormula)
+            || (isUnderFormula && isExpandedFormOpen && !isUnderLookup)
         "
         class="h-full w-full"
         :class="{
@@ -558,7 +575,7 @@ useResizeObserver(inputWrapperRef, () => {
             'py-1 h-full': isForm,
             'px-2': isExpandedFormOpen,
             'border-none': !(props.isAi && isExpandedFormOpen),
-            'border-1 border-nc-border-gray-medium rounded-lg !focus:(shadow-selected-ai border-nc-border-purple ring-0) transition-shadow duration-300':
+            'nc-inline-textarea-ai border-1 border-nc-border-gray-medium rounded-lg !focus:(shadow-selected-ai border-nc-border-purple ring-0) transition-shadow duration-300':
               props.isAi && isExpandedFormOpen,
             'bg-transparent': isUnderFormula,
           }"
@@ -584,18 +601,18 @@ useResizeObserver(inputWrapperRef, () => {
             <div class="flex items-start p-3 bg-nc-bg-purple-light gap-4">
               <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-purple-medium h-4 w-4 flex-none" />
               <div class="flex flex-col">
-                <div class="font-bold text-small leading-[18px] text-nc-content-gray">Record Data Updated</div>
                 <div class="text-small leading-[18px] text-nc-content-gray-muted">
-                  Cell values in this record have been updated. Regenerate to get more accurate content.
+                  AI generated content may be outdated. The source data for this record has changed.
                 </div>
               </div>
             </div>
           </div>
 
           <div v-if="!isEditColumn" class="flex items-center gap-2 px-3 pt-0.5 pb-[3.5px] !text-small leading-[18px]">
-            <span class="text-nc-content-purple-light truncate">Generated by AI</span>
             <NcTooltip v-if="isAiEdited" class="text-nc-content-green-dark flex-1 truncate" show-on-truncate-only>
-              <template #title> Edited by you </template>
+              <template #title>
+                Edited by you
+              </template>
               Edited by you
             </NcTooltip>
             <NcTooltip
@@ -618,8 +635,7 @@ useResizeObserver(inputWrapperRef, () => {
                   : idUserMap[props.aiMeta?.lastModifiedBy]?.display_name || idUserMap[props.aiMeta?.lastModifiedBy]?.email
               }}
             </NcTooltip>
-            <div v-else class="flex-1"></div>
-
+            <span v-else class="text-nc-content-purple-light truncate flex-1">Generated by AI</span>
             <NcTooltip :disabled="isFieldAiIntegrationAvailable" class="flex">
               <template #title>
                 {{
@@ -637,7 +653,9 @@ useResizeObserver(inputWrapperRef, () => {
                 <template #icon>
                   <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
                 </template>
-                <template #loading> Re-generating... </template>
+                <template #loading>
+                  Re-generating...
+                </template>
                 Re-generate
               </NcButton>
             </NcTooltip>
@@ -671,11 +689,11 @@ useResizeObserver(inputWrapperRef, () => {
           'right-0': !isForm,
           'top-0 right-0': isGrid && !isExpandedFormOpen && !isForm,
           '!right-2 top-2':
-            isGrid &&
-            !isExpandedFormOpen &&
-            !isForm &&
-            !isRichMode &&
-            ((editEnabled && !isVisible) || isForm || (isUnderFormula && isVisible)),
+            isGrid
+            && !isExpandedFormOpen
+            && !isForm
+            && !isRichMode
+            && ((editEnabled && !isVisible) || isForm || (isUnderFormula && isVisible)),
           'top-1': !(isGrid && !isExpandedFormOpen && !isForm) || isUnderFormula,
         }"
       >
@@ -706,7 +724,9 @@ useResizeObserver(inputWrapperRef, () => {
           </NcButton>
         </NcTooltip>
         <NcTooltip v-if="!isVisible && !isForm" placement="bottom" class="nc-action-icon">
-          <template #title>{{ isExpandedFormOpen ? $t('title.expand') : $t('tooltip.expandShiftSpace') }}</template>
+          <template #title>
+            {{ isExpandedFormOpen ? $t('title.expand') : $t('tooltip.expandShiftSpace') }}
+          </template>
           <NcButton
             type="secondary"
             size="xsmall"
@@ -777,7 +797,6 @@ useResizeObserver(inputWrapperRef, () => {
           </template>
           <template v-if="props.isAi && !isEditColumn">
             <div class="flex items-center text-small leading-[18px] gap-3 ml-2">
-              <span class="text-nc-content-purple-dark truncate">Generated by AI</span>
               <template v-if="!readOnly">
                 <span v-if="isAiEdited" class="text-nc-content-green-dark truncate"> Edited by you </span>
                 <span v-else-if="props.aiMeta?.lastModifiedBy && idUserMap[props.aiMeta?.lastModifiedBy]" class="text-green-600">
@@ -788,9 +807,10 @@ useResizeObserver(inputWrapperRef, () => {
                       : idUserMap[props.aiMeta?.lastModifiedBy]?.display_name || idUserMap[props.aiMeta?.lastModifiedBy]?.email
                   }}
                 </span>
+                <span v-else class="text-nc-content-purple-dark truncate">Generated by AI</span>
               </template>
             </div>
-            <div class="flex-1"></div>
+            <div class="flex-1" />
             <div v-if="!readOnly" class="flex items-center gap-1">
               <NcTooltip :disabled="isFieldAiIntegrationAvailable" class="flex">
                 <template #title>
@@ -825,7 +845,7 @@ useResizeObserver(inputWrapperRef, () => {
             </div>
           </template>
           <template v-if="props.isAi">
-            <div v-if="isEditColumn" class="flex-1"></div>
+            <div v-if="isEditColumn" class="flex-1" />
             <NcButton class="mr-3" type="text" size="small" @click="isVisible = false">
               <GeneralIcon icon="close" />
             </NcButton>
@@ -839,10 +859,8 @@ useResizeObserver(inputWrapperRef, () => {
           <div class="flex items-center p-4 bg-nc-bg-purple-light gap-4">
             <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-purple-medium h-6 w-6 flex-none" />
             <div class="flex flex-col">
-              <div class="font-bold text-base text-nc-content-gray">Record Data Updated</div>
               <div class="text-nc-content-gray-muted text-sm">
-                Cell values in this record have been updated since the last time this content was generated. Regenerate to get
-                more accurate content.
+                AI generated content may be outdated. The source data for this record has changed.
               </div>
             </div>
           </div>
@@ -879,6 +897,12 @@ useResizeObserver(inputWrapperRef, () => {
 .nc-inline-textarea {
   &:disabled {
     @apply !bg-transparent;
+  }
+
+  &.nc-inline-textarea-ai {
+    &:not(:disabled) {
+      @apply dark:!bg-nc-bg-default;
+    }
   }
 }
 

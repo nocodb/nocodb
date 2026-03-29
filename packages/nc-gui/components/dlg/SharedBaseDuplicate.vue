@@ -13,7 +13,7 @@ const { duplicateSharedBase, isLoading, options, selectedWorkspace, isUseThisTem
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const _duplicate = async () => {
+async function _duplicate() {
   if (!selectedWorkspace.value && isEeUI) return
 
   await duplicateSharedBase({
@@ -24,7 +24,7 @@ const _duplicate = async () => {
   })
 }
 
-const filterWorkspace = (workspace: NcWorkspace) => {
+function filterWorkspace(workspace: NcWorkspace) {
   if (!workspace) return false
 
   return [WorkspaceUserRoles.OWNER, WorkspaceUserRoles.CREATOR].includes(workspace.roles as WorkspaceUserRoles)
@@ -43,7 +43,9 @@ const filterWorkspace = (workspace: NcWorkspace) => {
         <template v-if="isUseThisTemplate">
           {{ templateName || $t('labels.useThisTemplate') }}
         </template>
-        <template v-else> {{ $t('general.duplicate') }} {{ $t('labels.sharedBase') }} </template>
+        <template v-else>
+          {{ $t('general.duplicate') }} {{ $t('labels.sharedBase') }}
+        </template>
       </div>
 
       <template v-if="isEeUI">
@@ -64,13 +66,19 @@ const filterWorkspace = (workspace: NcWorkspace) => {
       </template>
 
       <template v-if="!isUseThisTemplate">
-        <div class="prose-md self-center text-gray-500 mt-4">{{ $t('title.advancedSettings') }}</div>
+        <div class="prose-md self-center text-gray-500 mt-4">
+          {{ $t('title.advancedSettings') }}
+        </div>
 
         <a-divider class="!m-0 !p-0 !my-2" />
 
         <div class="text-xs p-2">
-          <a-checkbox v-model:checked="options.includeData">{{ $t('labels.includeData') }}</a-checkbox>
-          <a-checkbox v-model:checked="options.includeViews">{{ $t('labels.includeView') }}</a-checkbox>
+          <a-checkbox v-model:checked="options.includeData">
+            {{ $t('labels.includeData') }}
+          </a-checkbox>
+          <a-checkbox v-model:checked="options.includeViews">
+            {{ $t('labels.includeView') }}
+          </a-checkbox>
         </div>
       </template>
     </div>
@@ -81,9 +89,11 @@ const filterWorkspace = (workspace: NcWorkspace) => {
         'mt-4.5': isUseThisTemplate,
       }"
     >
-      <NcButton key="back" type="secondary" :disabled="isLoading" @click="dialogShow = false">{{
-        $t('general.cancel')
-      }}</NcButton>
+      <NcButton key="back" type="secondary" :disabled="isLoading" @click="dialogShow = false">
+        {{
+          $t('general.cancel')
+        }}
+      </NcButton>
       <NcButton
         key="submit"
         v-e="['a:shared-base:duplicate']"

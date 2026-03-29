@@ -62,10 +62,11 @@ enum ExpansionPanelKeys {
 
 const expansionPanel = ref<ExpansionPanelKeys[]>([])
 
-const handleUpdateExpansionPanel = (key: ExpansionPanelKeys) => {
+function handleUpdateExpansionPanel(key: ExpansionPanelKeys) {
   if (expansionPanel.value.includes(key)) {
-    expansionPanel.value = expansionPanel.value.filter((k) => k !== key)
-  } else {
+    expansionPanel.value = expansionPanel.value.filter(k => k !== key)
+  }
+  else {
     expansionPanel.value.push(key)
   }
 }
@@ -76,12 +77,13 @@ const activePreviewTab = ref<keyof typeof SchemaPreviewTabs>(SchemaPreviewTabs.T
 
 const previewExpansionPanel = ref<string[]>([])
 
-const handleUpdatePreviewExpansionPanel = (key: string, disabled = false) => {
+function handleUpdatePreviewExpansionPanel(key: string, disabled = false) {
   if (disabled) return
 
   if (previewExpansionPanel.value.includes(key)) {
-    previewExpansionPanel.value = previewExpansionPanel.value.filter((k) => k !== key)
-  } else {
+    previewExpansionPanel.value = previewExpansionPanel.value.filter(k => k !== key)
+  }
+  else {
     previewExpansionPanel.value.push(key)
   }
 }
@@ -108,10 +110,10 @@ const aiFormState = ref({ ...defaultAiFormState, prompt: props.initialValue?.bas
 
 const isOldPromptChanged = computed(() => {
   return (
-    aiFormState.value.prompt !== oldAiFormState.value?.prompt ||
-    aiFormState.value.organization !== oldAiFormState.value?.organization ||
-    aiFormState.value.industry !== oldAiFormState.value?.industry ||
-    aiFormState.value.audience !== oldAiFormState.value?.audience
+    aiFormState.value.prompt !== oldAiFormState.value?.prompt
+    || aiFormState.value.organization !== oldAiFormState.value?.organization
+    || aiFormState.value.industry !== oldAiFormState.value?.industry
+    || aiFormState.value.audience !== oldAiFormState.value?.audience
   )
 })
 
@@ -148,7 +150,7 @@ const viewsGrouped = computed(() => {
 
 let timerId: NodeJS.Timeout
 
-const onPredictSchema = async () => {
+async function onPredictSchema() {
   callFunction.value = 'onPredictSchema'
   aiStep.value = AI_STEP.LOADING
   activeLoadingText.value = [''] // Initialize with an empty string for the first message
@@ -179,13 +181,15 @@ const onPredictSchema = async () => {
         // Update the current message in the array with the next character
         activeLoadingText.value[currentMessageIndex] += currentMessage[currentCharIndex]
         currentCharIndex++
-      } else if (currentMessageIndex < loadingMessages.length - 1) {
+      }
+      else if (currentMessageIndex < loadingMessages.length - 1) {
         // Once the current message is done, move to the next message
         currentMessageIndex++
         currentCharIndex = 0
         // Add an empty string to the array to start the next message
         activeLoadingText.value.push('')
-      } else {
+      }
+      else {
         // All messages are displayed, stop the interval
         clearInterval(timerId)
       }
@@ -198,24 +202,27 @@ const onPredictSchema = async () => {
 
     if (!res?.tables) {
       aiStep.value = AI_STEP.PROMPT
-    } else {
+    }
+    else {
       predictedSchema.value = res
       activePreviewTab.value = SchemaPreviewTabs.TABLES_AND_VIEWS
 
-      previewExpansionPanel.value = ((predictedSchema.value || {}).tables || []).map((t) => t?.title).filter(Boolean)
+      previewExpansionPanel.value = ((predictedSchema.value || {}).tables || []).map(t => t?.title).filter(Boolean)
       aiStep.value = AI_STEP.MODIFY
       oldAiFormState.value = clone(aiFormState.value)
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
     aiStep.value = AI_STEP.PROMPT
-  } finally {
+  }
+  finally {
     activeLoadingText.value = []
     clearInterval(timerId)
   }
 }
 
-const onExcludeTable = (table: any) => {
+function onExcludeTable(table: any) {
   table.excluded = !table.excluded
   if (table.excluded) {
     predictedSchema.value.views.forEach((view: any) => {
@@ -223,7 +230,8 @@ const onExcludeTable = (table: any) => {
         view.excluded = true
       }
     })
-  } else {
+  }
+  else {
     predictedSchema.value.views.forEach((view: any) => {
       if (view.table === table.title) {
         view.excluded = false
@@ -232,7 +240,7 @@ const onExcludeTable = (table: any) => {
   }
 }
 
-const onExcludeView = (view: any) => {
+function onExcludeView(view: any) {
   view.excluded = !view.excluded
 
   if (!view.excluded) {
@@ -247,7 +255,7 @@ const finalSchema = computed(() => {
   const schema = {
     title: props.initialValue?.baseName || predictedSchema.value.title,
     tables: predictedSchema.value.tables.filter((table: any) => !table.excluded),
-    relationships: predictedSchema.value.relationships.filter((relationship: { from: string; to: string }) => {
+    relationships: predictedSchema.value.relationships.filter((relationship: { from: string, to: string }) => {
       const fromTable = predictedSchema.value.tables.find((table: { title: string }) => table.title === relationship.from)
       const toTable = predictedSchema.value.tables.find((table: { title: string }) => table.title === relationship.to)
       return !fromTable?.excluded && !toTable?.excluded
@@ -270,7 +278,7 @@ const previewTabs = computed(() => {
   ]
 })
 
-const onCreateSchema = async () => {
+async function onCreateSchema() {
   callFunction.value = 'onCreateSchema'
 
   try {
@@ -284,35 +292,36 @@ const onCreateSchema = async () => {
 
       dialogShow.value = false
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
     aiStep.value = AI_STEP.PROMPT
   }
 }
 
-const handleUpdatePrompt = (description: string) => {
+function handleUpdatePrompt(description: string) {
   if (!aiIntegrationAvailable.value || (aiLoading.value && callFunction.value === 'onPredictSchema')) return
 
   aiFormState.value.prompt = description
 }
 
-const onToggleShowMore = () => {
+function onToggleShowMore() {
   isExpandedPredefiendBasePromts.value = !isExpandedPredefiendBasePromts.value
 }
 
-const handleMouseOverTag = (description: string) => {
+function handleMouseOverTag(description: string) {
   if (!aiIntegrationAvailable.value || (aiLoading.value && callFunction.value === 'onPredictSchema')) return
 
   aiFormState.value.onHoverTagPrompt = description
 }
 
-const handleMouseLeaveTag = () => {
+function handleMouseLeaveTag() {
   if (!aiIntegrationAvailable.value || (aiLoading.value && callFunction.value === 'onPredictSchema')) return
 
   aiFormState.value.onHoverTagPrompt = ''
 }
 
-const resetToDefault = () => {
+function resetToDefault() {
   aiMode.value = null
   baseCreateMode.value = null
   aiStep.value = AI_STEP.PROMPT
@@ -365,7 +374,9 @@ onMounted(() => {
     <div class="flex items-center gap-2.5 px-4 py-2 border-b-1 border-nc-border-purple-light">
       <div class="flex-1 flex items-center gap-3 text-nc-content-purple-dark dark:text-nc-content-purple-medium">
         <GeneralIcon icon="ncAutoAwesome" class="flex-none h-5 w-5 !text-current" />
-        <div class="text-base leading-8 font-bold">{{ $t('title.nocoAiBaseBuilder') }}</div>
+        <div class="text-base leading-8 font-bold">
+          {{ $t('title.nocoAiBaseBuilder') }}
+        </div>
       </div>
 
       <NcButton size="small" type="text" @click.stop="dialogShow = false">
@@ -440,7 +451,7 @@ onMounted(() => {
           </div>
 
           <a-collapse v-model:active-key="expansionPanel" ghost class="flex-1 flex flex-col">
-            <template #expandIcon> </template>
+            <template #expandIcon />
             <a-collapse-panel :key="ExpansionPanelKeys.additionalDetails" collapsible="disabled">
               <template #header>
                 <div class="flex">
@@ -467,7 +478,9 @@ onMounted(() => {
 
               <div class="flex flex-col gap-6 pt-6">
                 <div v-for="field of additionalDetails" :key="field.title" class="flex items-center gap-2">
-                  <div class="min-w-[120px] text-nc-content-gray">{{ field.title }}</div>
+                  <div class="min-w-[120px] text-nc-content-gray">
+                    {{ field.title }}
+                  </div>
                   <a-input
                     v-model:value="aiFormState[field.key]"
                     class="nc-input-sm nc-input-shadow nc-ai-input"
@@ -491,7 +504,9 @@ onMounted(() => {
             <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-6 h-6" />
 
             <div class="w-[calc(100%_-_36px)] flex flex-col gap-1">
-              <div class="font-bold text-base text-nc-content-gray">Something went wrong</div>
+              <div class="font-bold text-base text-nc-content-gray">
+                Something went wrong
+              </div>
               <NcTooltip class="truncate text-sm text-nc-content-gray-subtle" show-on-truncate-only>
                 <template #title>
                   {{ aiError }}
@@ -522,10 +537,10 @@ onMounted(() => {
               theme="ai"
               class="w-1/2"
               :disabled="
-                aiStep !== AI_STEP.MODIFY ||
-                finalSchema?.tables?.length === 0 ||
-                (aiLoading && callFunction === 'onCreateSchema') ||
-                isOldPromptChanged
+                aiStep !== AI_STEP.MODIFY
+                  || finalSchema?.tables?.length === 0
+                  || (aiLoading && callFunction === 'onCreateSchema')
+                  || isOldPromptChanged
               "
               :loading="aiLoading && callFunction === 'onCreateSchema'"
               @click="onCreateSchema"
@@ -538,10 +553,14 @@ onMounted(() => {
               <GeneralIcon icon="alertTriangleSolid" class="flex-none !text-nc-content-orange-medium w-6 h-6" />
             </template>
             <template #title>
-              <div class="text-base font-bold text-nc-content-gray">{{ $t('title.aiIntegrationMissing') }}</div>
+              <div class="text-base font-bold text-nc-content-gray">
+                {{ $t('title.aiIntegrationMissing') }}
+              </div>
             </template>
             <template #description>
-              <div class="text-sm text-nc-content-gray-subtle">{{ $t('title.noAiIntegrationsHaveBeenAdded') }}</div>
+              <div class="text-sm text-nc-content-gray-subtle">
+                {{ $t('title.noAiIntegrationsHaveBeenAdded') }}
+              </div>
             </template>
           </AiIntegrationNotFound>
         </div>
@@ -567,7 +586,7 @@ onMounted(() => {
               class="text-sm text-nc-content-purple-light flex items-center"
             >
               {{ loadingText }}
-              <div v-if="loadingText.length === loadingMessages[idx]?.length" class="nc-animate-dots"></div>
+              <div v-if="loadingText.length === loadingMessages[idx]?.length" class="nc-animate-dots" />
             </div>
 
             <div class="rounded-xl border-1 border-nc-border-purple-light">
@@ -618,7 +637,7 @@ onMounted(() => {
                   v-model:active-key="previewExpansionPanel"
                   class="nc-schema-preview-table flex flex-col"
                 >
-                  <template #expandIcon> </template>
+                  <template #expandIcon />
 
                   <a-collapse-panel v-for="table in predictedSchema.tables" :key="table.title" collapsible="disabled">
                     <template #header>
@@ -678,7 +697,7 @@ onMounted(() => {
                             {{ view.title }}
                           </NcTooltip>
 
-                          <div class="flex-1"></div>
+                          <div class="flex-1" />
                         </div>
                       </template>
                     </div>

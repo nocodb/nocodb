@@ -58,10 +58,12 @@ const vModel = computed({
         }
         // If value is a valid JSON string, leave it as is
         JSON.parse(value)
-      } catch (e) {
+      }
+      catch (e) {
         // If value is an invalid JSON string, convert it to a JSON string format
         return JSON.stringify(value)
-      } finally {
+      }
+      finally {
         // Ensure this block runs only once during the initial load
         isInitialLoad = true
       }
@@ -80,11 +82,13 @@ const vModel = computed({
         // If the new value is 'null', emit null
         const parsedValue = typeof newVal === 'object' ? newVal : JSON.parse(newVal)
         emits('update:modelValue', parsedValue)
-      } else {
+      }
+      else {
         // Directly emit new value if it's not an object
         emits('update:modelValue', newVal)
       }
-    } catch (e) {
+    }
+    catch (e) {
       console.error('Failed to parse JSON:', e)
     }
   },
@@ -102,7 +106,7 @@ let editor: any
 const isLoading = ref(true)
 const loadError = ref(false)
 
-const retryLoad = async () => {
+async function retryLoad() {
   loadError.value = false
   isLoading.value = true
 
@@ -118,18 +122,20 @@ const retryLoad = async () => {
       // ... rest of initialization
       isLoading.value = false
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to retry Monaco Editor:', error)
     loadError.value = true
     isLoading.value = false
   }
 }
 
-const format = (space = monacoConfig.tabSize || 2) => {
+function format(space = monacoConfig.tabSize || 2) {
   try {
     const parsedValue = JSON.parse(editor?.getValue() as string)
     editor.setValue(JSON.stringify(parsedValue, null, space))
-  } catch (error: unknown) {
+  }
+  catch (error: unknown) {
     console.error('Failed to parse and format JSON:', error)
   }
 }
@@ -203,12 +209,14 @@ onMounted(async () => {
 
           if (disableDeepCompare || lang !== 'json') {
             emits('update:modelValue', editor.getValue())
-          } else {
+          }
+          else {
             const obj = JSON.parse(editor.getValue())
 
             if (!obj || !deepCompare(vModel.value, obj)) emits('update:modelValue', obj)
           }
-        } catch (e) {
+        }
+        catch (e) {
           isValid.value = false
           const err = await extractSdkResponseErrorMsg(e as Error)
           error.value = err
@@ -245,7 +253,8 @@ onMounted(async () => {
     }
 
     isLoading.value = false
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to initialize Monaco Editor:', error)
     loadError.value = true
     isLoading.value = false
@@ -261,10 +270,12 @@ watch(vModel, (v) => {
       if (!editorValue || !deepCompare(JSON.parse(v), JSON.parse(editorValue))) {
         editor.setValue(v)
       }
-    } catch (e) {
+    }
+    catch (e) {
       console.error('Failed to parse JSON:', e)
     }
-  } else {
+  }
+  else {
     if (editorValue !== v) editor.setValue(v)
   }
 })
@@ -280,7 +291,8 @@ watch(isDark, async () => {
   const monaco = await import('monaco-editor')
   if (isDark.value) {
     monaco.editor.setTheme('vs-dark')
-  } else {
+  }
+  else {
     monaco.editor.setTheme('vs-light')
   }
 })
@@ -294,8 +306,12 @@ watch(isDark, async () => {
     <!-- Error State -->
     <div v-else-if="loadError" class="absolute inset-0 flex items-center justify-center bg-nc-red-50">
       <div class="text-center">
-        <div class="text-nc-content-red-dark mb-2">Failed to load Monaco Editor</div>
-        <NcButton @click="retryLoad"> Retry </NcButton>
+        <div class="text-nc-content-red-dark mb-2">
+          Failed to load Monaco Editor
+        </div>
+        <NcButton @click="retryLoad">
+          Retry
+        </NcButton>
       </div>
     </div>
 

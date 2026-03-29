@@ -27,7 +27,9 @@ const themeIcon = computed(
 <template>
   <NcTooltip v-if="isThemeEnabled" :placement="placement" :arrow="false">
     <template #title>
-      <div class="capitalize">Appearance (beta): {{ selectedTheme }}</div>
+      <div class="capitalize">
+        Appearance (beta): {{ selectedTheme }}
+      </div>
     </template>
     <div
       v-e="['c:nocodb:theme']"

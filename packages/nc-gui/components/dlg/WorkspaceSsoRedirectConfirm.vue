@@ -5,7 +5,7 @@ const { ssoLoginRequiredDlg, workspaces } = storeToRefs(workspaceStore)
 
 const { user } = useGlobal()
 
-const onOk = () => {
+function onOk() {
   const email = user.value?.email
   navigateTo(
     {
@@ -24,13 +24,13 @@ const onOk = () => {
   })
 }
 
-const onCancel = async () => {
+async function onCancel() {
   // navigate to non-sso workspace
   // find first non-sso workspace and navigate to it
   let nonSsoWorkspace = [...(workspaces.value?.values() || [])].find((workspace) => {
     return (
-      (!workspace.fk_org_id || workspace.fk_org_id !== workspaceStore.activeWorkspace?.fk_org_id) &&
-      workspace.id !== workspaceStore.activeWorkspaceId
+      (!workspace.fk_org_id || workspace.fk_org_id !== workspaceStore.activeWorkspace?.fk_org_id)
+      && workspace.id !== workspaceStore.activeWorkspaceId
     )
   })
 
@@ -56,7 +56,8 @@ const onCancel = async () => {
 
     // reload the page to avoid showing previous workspace API call failure errors
     location.reload()
-  } else {
+  }
+  else {
     workspaceStore.toggleSsoLoginRequiredDlg(false)
   }
 }
@@ -70,6 +71,5 @@ const onCancel = async () => {
     ok-text="Continue to SSO Signin"
     @cancel="onCancel"
     @ok="onOk"
-  >
-  </NcModalConfirm>
+  />
 </template>

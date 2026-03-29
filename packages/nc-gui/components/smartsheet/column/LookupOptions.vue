@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
 import { PlanFeatureTypes, PlanTitles, UITypes } from 'nocodb-sdk'
+import { onMounted } from 'vue'
 
 const props = defineProps<{
   value: any
@@ -17,7 +17,7 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
-const { getPlanTitle } = useEeConfig()
+const { getPlanTitle, showEEFeatures } = useEeConfig()
 
 const {
   setAdditionalValidations,
@@ -57,23 +57,23 @@ const refTables = computed(() => {
   }
 
   const _refTables = meta.value.columns
-    .filter((column) => canUseForLookupLinkField(column, meta.value?.source_id))
+    .filter(column => canUseForLookupLinkField(column, meta.value?.source_id))
     .map((column) => {
       const relatedBaseId = (column.colOptions as any)?.fk_related_base_id || meta.value?.base_id
       return {
         col: column.colOptions,
         column,
-        ...(tables.value.find((table) => table.id === (column.colOptions as LinkToAnotherRecordType).fk_related_model_id) ||
-          getMetaByKey(relatedBaseId, (column.colOptions as LinkToAnotherRecordType).fk_related_model_id!) ||
-          {}),
+        ...(tables.value.find(table => table.id === (column.colOptions as LinkToAnotherRecordType).fk_related_model_id)
+          || getMetaByKey(relatedBaseId, (column.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
+          || {}),
       }
     })
-    .filter((table) => (table.col as LinkToAnotherRecordType)?.fk_related_model_id === table.id && !table.mm)
-  return _refTables as Required<TableType & { column: ColumnType; col: Required<LinkToAnotherRecordType> }>[]
+    .filter(table => (table.col as LinkToAnotherRecordType)?.fk_related_model_id === table.id && !table.mm)
+  return _refTables as Required<TableType & { column: ColumnType, col: Required<LinkToAnotherRecordType> }>[]
 })
 
 const selectedTable = computed(() => {
-  return refTables.value.find((t) => t.column.id === vModel.value.fk_relation_column_id)
+  return refTables.value.find(t => t.column.id === vModel.value.fk_relation_column_id)
 })
 
 // Check if recursive evaluation should be available (EE + PostgreSQL + self-referencing HM/BT relation)
@@ -111,8 +111,8 @@ const columns = computed<ColumnType[]>(() => {
   }
   return getMetaByKey(selectedTable.value.base_id, selectedTable.value.id)?.columns.filter(
     (c: ColumnType) =>
-      vModel.value.fk_lookup_column_id === c.id ||
-      getValidLookupColumn({
+      vModel.value.fk_lookup_column_id === c.id
+      || getValidLookupColumn({
         column: c,
         lookupColumnId: vModel.value.id,
       }),
@@ -141,6 +141,17 @@ provide(
   }),
 )
 
+// Eagerly load the related table meta so the filter column dropdown is populated.
+watch(
+  selectedTable,
+  async (table) => {
+    if (table?.base_id && table?.id) {
+      await getMeta(table.base_id, table.id)
+    }
+  },
+  { immediate: true },
+)
+
 onMounted(() => {
   if (isEdit.value) {
     vModel.value.fk_lookup_column_id = vModel.value.colOptions?.fk_lookup_column_id
@@ -156,15 +167,15 @@ onUnmounted(() => {
   setPostSaveOrUpdateCbk(null)
 })
 
-const getNextColumnId = () => {
+function getNextColumnId() {
   const usedLookupColumnIds = (meta.value?.columns || [])
-    .filter((c) => c.uidt === UITypes.Lookup)
-    .map((c) => (c.colOptions as LookupType)?.fk_lookup_column_id)
+    .filter(c => c.uidt === UITypes.Lookup)
+    .map(c => (c.colOptions as LookupType)?.fk_lookup_column_id)
 
-  return columns.value.find((c) => !usedLookupColumnIds.includes(c.id))?.id
+  return columns.value.find(c => !usedLookupColumnIds.includes(c.id))?.id
 }
 
-const onRelationColChange = async () => {
+async function onRelationColChange() {
   if (selectedTable.value) {
     await getMeta(selectedTable.value.base_id, selectedTable.value.id)
   }
@@ -175,7 +186,8 @@ const onRelationColChange = async () => {
 watchEffect(() => {
   if (!refTables.value.length) {
     disableSubmitBtn.value = true
-  } else if (refTables.value.length && disableSubmitBtn.value) {
+  }
+  else if (refTables.value.length && disableSubmitBtn.value) {
     disableSubmitBtn.value = false
   }
 })
@@ -185,7 +197,7 @@ watch(
   (newValue) => {
     if (!newValue) return
 
-    const selectedTable = refTables.value.find((t) => t.col.fk_column_id === newValue)
+    const selectedTable = refTables.value.find(t => t.col.fk_column_id === newValue)
     if (selectedTable) {
       vModel.value.lookupTableTitle = selectedTable?.title || selectedTable.table_name
     }
@@ -197,7 +209,7 @@ watch(
   (newValue) => {
     if (!newValue) return
 
-    const selectedColumn = columns.value.find((c) => c.id === newValue)
+    const selectedColumn = columns.value.find(c => c.id === newValue)
     if (selectedColumn) {
       vModel.value.lookupColumnTitle = selectedColumn?.title || selectedColumn.column_name
 
@@ -206,13 +218,13 @@ watch(
   },
 )
 
-const onFilterLabelClick = () => {
+function onFilterLabelClick() {
   if (!selectedTable.value) return
 
   limitRecToCond.value = !limitRecToCond.value
 }
 
-const handleScrollIntoView = () => {
+function handleScrollIntoView() {
   filterRef.value?.$el?.scrollIntoView({
     behavior: 'smooth',
     block: 'start',
@@ -244,14 +256,18 @@ const handleScrollIntoView = () => {
                 <SmartsheetHeaderIcon :column="table.column" class="!mx-0" color="text-nc-content-gray-subtle2" />
 
                 <NcTooltip class="truncate min-w-[calc(100%_-_24px)]" show-on-truncate-only>
-                  <template #title>{{ table.column.title }}</template>
+                  <template #title>
+                    {{ table.column.title }}
+                  </template>
                   {{ table.column.title }}
                 </NcTooltip>
               </div>
               <div class="inline-flex items-center truncate gap-2">
                 <div class="text-[0.65rem] leading-4 flex-1 truncate text-nc-content-gray-subtle2 nc-relation-details">
                   <NcTooltip class="truncate" show-on-truncate-only>
-                    <template #title>{{ table.title || table.table_name }}</template>
+                    <template #title>
+                      {{ table.title || table.table_name }}
+                    </template>
                     {{ table.title || table.table_name }}
                   </NcTooltip>
                 </div>
@@ -290,7 +306,9 @@ const handleScrollIntoView = () => {
               <div class="inline-flex items-center gap-2 flex-1 truncate">
                 <SmartsheetHeaderIcon :column="column" class="!mx-0" />
 
-                <div class="truncate flex-1">{{ column.title }}</div>
+                <div class="truncate flex-1">
+                  {{ column.title }}
+                </div>
               </div>
 
               <component
@@ -319,7 +337,7 @@ const handleScrollIntoView = () => {
         </div>
       </a-form-item>
     </div>
-    <div v-if="isEeUI" class="w-full flex flex-col gap-4">
+    <div v-if="isEeUI && showEEFeatures" class="w-full flex flex-col gap-4">
       <div class="flex flex-col gap-2">
         <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER">
           <template #default="{ click }">
@@ -356,7 +374,6 @@ const handleScrollIntoView = () => {
         <div v-if="limitRecToCond" class="overflow-auto nc-scrollbar-thin">
           <LazySmartsheetToolbarColumnFilter
             ref="filterRef"
-            v-model="vModel.filters"
             class="!pl-10 !p-0 max-w-620px"
             :auto-save="false"
             :show-loading="false"
@@ -373,8 +390,12 @@ const handleScrollIntoView = () => {
   </div>
   <div v-else>
     <a-alert type="warning" show-icon>
-      <template #icon><GeneralIcon icon="alertTriangle" class="h-6 w-6" width="24" height="24" /></template>
-      <template #message> Alert </template>
+      <template #icon>
+        <GeneralIcon icon="alertTriangle" class="h-6 w-6" width="24" height="24" />
+      </template>
+      <template #message>
+        Alert
+      </template>
       <template #description>
         {{
           $t('msg.linkColumnClearNotSupportedYet', {

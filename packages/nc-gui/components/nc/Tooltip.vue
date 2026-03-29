@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { onKeyStroke } from '@vueuse/core'
-import type { CSSProperties } from '@vue/runtime-dom'
 import type { TooltipPlacement } from 'ant-design-vue/lib/tooltip'
+import type { CSSProperties } from 'vue'
+import { onKeyStroke } from '@vueuse/core'
 
 /**
  * NcTooltip Component
@@ -43,6 +43,7 @@ interface NcTooltipProps {
   color?: 'dark' | 'light'
   // force disable tooltip
   disabled?: boolean
+  disableInMobile?: boolean
   placement?: TooltipPlacement | undefined
   showOnTruncateOnly?: boolean
   hideOnClick?: boolean
@@ -77,6 +78,7 @@ const {
   disabled,
   showOnTruncateOnly,
   hideOnClick,
+  disableInMobile,
   placement,
   wrapChild,
   attrs: attributes,
@@ -84,13 +86,15 @@ const {
   mouseEnterDelay,
 } = toRefs(props)
 
+const { isMobileMode } = useGlobal()
+
 const el = ref()
 
 const element = ref()
 
 const showTooltip = controlledRef(false, {
   onBeforeChange: (shouldShow) => {
-    if (shouldShow && disabled.value) return false
+    if (shouldShow && (disabled.value || (disableInMobile.value && isMobileMode.value))) return false
   },
 })
 
@@ -111,7 +115,7 @@ const isKeyPressed = ref(false)
 const overlayClassName = computed(() => props.overlayClassName)
 
 onKeyStroke(
-  (e) => e.key === modifierKey.value,
+  e => e.key === modifierKey.value,
   (e) => {
     e.preventDefault()
 
@@ -125,7 +129,7 @@ onKeyStroke(
 )
 
 onKeyStroke(
-  (e) => e.key === modifierKey.value,
+  e => e.key === modifierKey.value,
   (e) => {
     e.preventDefault()
 
@@ -146,7 +150,8 @@ watchDebounced(
       if (props.lineClamp) {
         // Multi-line `line-clamp`
         isElementTruncated = targetElement && isLineClamped(targetElement)
-      } else {
+      }
+      else {
         // Single line `truncate`
         isElementTruncated = targetElement && targetElement.scrollWidth > targetElement.clientWidth
       }
@@ -197,7 +202,7 @@ const divStyles = computed(() => ({
   class: allAttrs.class as string,
 }))
 
-const onClick = () => {
+function onClick() {
   if (hideOnClick.value && showTooltip.value) {
     showTooltip.value = false
   }

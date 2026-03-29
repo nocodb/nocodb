@@ -16,11 +16,11 @@ const toIndex = ref(60)
 
 const filteredIcons = computed(() => {
   return emojiIcons
-    .filter((icon) => !search.value || icon.toLowerCase().includes(search.value.toLowerCase()))
+    .filter(icon => !search.value || icon.toLowerCase().includes(search.value.toLowerCase()))
     .slice(0, toIndex.value)
 })
 
-const load = () => {
+function load() {
   // increment `toIndex` to include next set of icons
   toIndex.value += Math.min(filteredIcons.value.length, toIndex.value + 60)
   if (toIndex.value > filteredIcons.value.length) {
@@ -28,7 +28,7 @@ const load = () => {
   }
 }
 
-const selectIcon = (icon?: string) => {
+function selectIcon(icon?: string) {
   search.value = ''
   emit('selectIcon', icon && `emojione:${icon}`)
 }
@@ -44,15 +44,17 @@ const selectIcon = (icon?: string) => {
           class="p-1 text-xs border-1 w-full overflow-y-auto"
           placeholder="Search"
           @input="toIndex = 60"
-        />
+        >
       </div>
       <div class="flex gap-1 flex-wrap w-full flex-shrink overflow-y-auto scrollbar-thin-dull">
         <div v-for="icon of filteredIcons" :key="icon" @click="selectIcon(icon)">
           <span class="cursor-pointer nc-emoji-item">
-            <IconifyIcon class="text-xl iconify" :icon="`emojione:${icon}`"></IconifyIcon>
+            <IconifyIcon class="text-xl iconify" :icon="`emojione:${icon}`" />
           </span>
         </div>
-        <InfiniteLoading @infinite="load"><span /></InfiniteLoading>
+        <InfiniteLoading @infinite="load">
+          <span />
+        </InfiniteLoading>
       </div>
     </div>
     <div v-if="props.showReset" class="m-1">

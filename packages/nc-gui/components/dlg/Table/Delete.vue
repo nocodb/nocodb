@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { DependencyTableType, type LinkToAnotherRecordType, type TableType, isLinksOrLTAR } from 'nocodb-sdk'
-import { UITypes, isSystemColumn } from 'nocodb-sdk'
+import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import { DependencyTableType, isLinksOrLTAR, isSystemColumn, UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -25,7 +25,7 @@ const { openTable } = useTablesStore()
 
 const tables = computed(() => baseTables.value.get(props.baseId) ?? [])
 
-const table = computed(() => tables.value.find((t) => t.id === props.tableId))
+const table = computed(() => tables.value.find(t => t.id === props.tableId))
 
 const isLoading = ref(false)
 
@@ -42,7 +42,7 @@ watch(
   { immediate: true },
 )
 
-const onDelete = async () => {
+async function onDelete() {
   if (!table.value) return
 
   const toBeDeletedTable = JSON.parse(JSON.stringify(table.value))
@@ -53,7 +53,7 @@ const onDelete = async () => {
   isLoading.value = true
   try {
     const meta = (await getMeta(toBeDeletedTable.base_id as string, toBeDeletedTable.id as string, true)) as TableType
-    const relationColumns = meta?.columns?.filter((c) => c.uidt === UITypes.LinkToAnotherRecord && !isSystemColumn(c))
+    const relationColumns = meta?.columns?.filter(c => c.uidt === UITypes.LinkToAnotherRecord && !isSystemColumn(c))
 
     if (relationColumns?.length && !isXcdbBase(toBeDeletedTable.source_id)) {
       const refColMsgs = await Promise.all(
@@ -97,7 +97,7 @@ const onDelete = async () => {
     // Deleted table successfully
     $e('a:table:delete')
     if (oldActiveTableId === toBeDeletedTable.id) {
-      const sourceTables = tables.value.filter((t) => t.source_id === toBeDeletedTable.source_id)
+      const sourceTables = tables.value.filter(t => t.source_id === toBeDeletedTable.source_id)
       // Navigate to base if no tables left or open first table
       if (sourceTables.length === 0) {
         await navigateTo(
@@ -106,27 +106,31 @@ const onDelete = async () => {
             type: 'database',
           }),
         )
-      } else {
+      }
+      else {
         await openTable(sourceTables[0])
       }
-    } else if (activeTable.value?.id) {
+    }
+    else if (activeTable.value?.id) {
       // get cached meta for active table
       const activeTableMeta = await getMeta(activeTable.value?.base_id as string, activeTable.value?.id as string)
       // if active table has any link to another record column, then force refetch the meta
-      if (activeTableMeta && activeTableMeta.columns?.find((c) => isLinksOrLTAR(c))) {
+      if (activeTableMeta && activeTableMeta.columns?.find(c => isLinksOrLTAR(c))) {
         await getMeta(activeTable.value?.base_id as string, activeTable.value?.id as string, true)
       }
     }
 
-    const tableIndex = tables.value.findIndex((t) => t.id === toBeDeletedTable.id)
+    const tableIndex = tables.value.findIndex(t => t.id === toBeDeletedTable.id)
     if (tableIndex > -1) {
       tables.value.splice(tableIndex, 1)
     }
 
     visible.value = false
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 }

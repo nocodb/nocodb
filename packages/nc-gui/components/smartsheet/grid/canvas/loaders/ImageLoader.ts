@@ -6,7 +6,7 @@ export class ImageWindowLoader {
   private qrCache = new Map<string, HTMLCanvasElement>()
   private loadingImages = new Map<string, Promise<HTMLImageElement | undefined>>()
   private loadingQRs = new Map<string, Promise<HTMLCanvasElement | undefined>>()
-  private failedUrls = new Map<string, { retryCount: number; lastFailedAt: number }>() // Track retry info
+  private failedUrls = new Map<string, { retryCount: number, lastFailedAt: number }>() // Track retry info
   private retryTimers = new Map<string, NodeJS.Timeout>() // Track scheduled retry callbacks
   private readonly maxRetries = 3 // Allow up to 3 retries
   private readonly backoffDelays = [2000, 5000, 8000] // 2s, 5s, 8s backoff
@@ -81,13 +81,13 @@ export class ImageWindowLoader {
     }
 
     // Check if any URL is currently loading
-    const isAnyLoading = urls.some((url) => this.loadingImages.has(url))
+    const isAnyLoading = urls.some(url => this.loadingImages.has(url))
     if (isAnyLoading) {
       return undefined
     }
 
     // Find a URL that can be retried (hasn't exceeded limit and backoff time has passed)
-    const urlToLoad = urls.find((url) => this.canRetryUrl(url))
+    const urlToLoad = urls.find(url => this.canRetryUrl(url))
     if (!urlToLoad) return undefined
 
     const loadPromise = (async () => {
@@ -102,7 +102,8 @@ export class ImageWindowLoader {
 
         // Record failure
         this.recordFailure(urlToLoad)
-      } catch {
+      }
+      catch {
         this.recordFailure(urlToLoad)
       }
 
@@ -118,7 +119,8 @@ export class ImageWindowLoader {
             return nextImage
           }
           this.recordFailure(url)
-        } catch {
+        }
+        catch {
           this.recordFailure(url)
         }
       }
@@ -134,7 +136,7 @@ export class ImageWindowLoader {
     return undefined
   }
 
-  loadOrGetQR(value: string, size: number, options: { dark?: string; light?: string } = {}): HTMLCanvasElement | undefined {
+  loadOrGetQR(value: string, size: number, options: { dark?: string, light?: string } = {}): HTMLCanvasElement | undefined {
     const { dark = '#000000', light = '#ffffff' } = options
     const cacheKey = this.getQRCacheKey(value, size, dark, light)
 
@@ -173,9 +175,11 @@ export class ImageWindowLoader {
 
       this.qrCache.set(cacheKey, canvas)
       return canvas
-    } catch {
+    }
+    catch {
       return undefined
-    } finally {
+    }
+    finally {
       this.pendingSprites--
       this.onSettled?.()
     }
@@ -202,10 +206,12 @@ export class ImageWindowLoader {
 
       this.cache.set(url, img)
       return img
-    } catch {
+    }
+    catch {
       img.src = ''
       return undefined
-    } finally {
+    }
+    finally {
       this.pendingSprites--
       this.onSettled?.()
     }
@@ -269,11 +275,13 @@ export class ImageWindowLoader {
       scale = Math.min(scaleX, scaleY) // Scale to fit inside the box
       offsetX = (availableWidth - image.width * scale) / 2
       offsetY = (availableHeight - image.height * scale) / 2
-    } else if (objectFit === 'cover') {
+    }
+    else if (objectFit === 'cover') {
       scale = Math.max(scaleX, scaleY) // Scale to cover the entire box
       offsetX = (availableWidth - image.width * scale) / 2
       offsetY = (availableHeight - image.height * scale) / 2
-    } else {
+    }
+    else {
       // 'fill' mode - stretch to fit exactly
       scaleX = availableWidth / image.width
       scaleY = availableHeight / image.height
@@ -316,7 +324,7 @@ export class ImageWindowLoader {
     this.loadingQRs.clear()
 
     // Clear all retry timers
-    this.retryTimers.forEach((timer) => clearTimeout(timer))
+    this.retryTimers.forEach(timer => clearTimeout(timer))
     this.retryTimers.clear()
     this.failedUrls.clear()
   }

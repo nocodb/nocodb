@@ -1,7 +1,7 @@
 import type { AttachmentType } from 'nocodb-sdk'
 import { getI18n } from '~/plugins/a.i18n'
 
-const useAttachment = () => {
+function useAttachment() {
   const { appInfo } = useGlobal()
 
   const { $api } = useNuxtApp()
@@ -36,7 +36,8 @@ const useAttachment = () => {
         if (res.ok) {
           return source
         }
-      } catch {}
+      }
+      catch {}
     }
     // if no source can be fetched, it could be probably blocked by CORS
     // return signed url / original url / built url anyway
@@ -75,7 +76,8 @@ const useAttachment = () => {
       }
 
       return uploadedFiles
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error((await extractSdkResponseErrorMsg(e)) || t('msg.error.internalError'))
 
       return []

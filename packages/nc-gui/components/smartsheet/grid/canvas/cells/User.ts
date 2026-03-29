@@ -1,8 +1,8 @@
 import type { WorkspaceUserRoles } from 'nocodb-sdk'
-import { IconType, ProjectRoles, WorkspaceRolesToProjectRoles, isCreatedOrLastModifiedByCol } from 'nocodb-sdk'
-import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTag, roundedRect } from '../utils/canvas'
 import type { RenderRectangleProps } from '../utils/types'
+import { IconType, isCreatedOrLastModifiedByCol, ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
 import { getSelectedUsers } from '../../../../cell/User/utils'
+import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTag, roundedRect } from '../utils/canvas'
 
 const tagPadding = 8
 const tagSpacingY = 4
@@ -11,7 +11,7 @@ const tagHeight = 20
 const iconSize = 14
 const ellipsisWidth = 15
 
-const getUserIcon = (userMeta?: any) => {
+function getUserIcon(userMeta?: any) {
   const { getPossibleAttachmentSrc } = useAttachment()
 
   if (!userMeta) {
@@ -30,21 +30,23 @@ const getUserIcon = (userMeta?: any) => {
   }
 }
 
-const usernameInitials = (username: string, email: string) => {
-  const displayNameSplit = username.split(' ').filter((name) => name) ?? []
+function usernameInitials(username: string, email: string) {
+  const displayNameSplit = username.split(' ').filter(name => name) ?? []
 
   if (displayNameSplit.length > 0) {
     if (displayNameSplit.length > 1) {
       return (displayNameSplit[0]?.[0] ?? '') + (displayNameSplit[1]?.[0] ?? '')
-    } else {
+    }
+    else {
       return username.slice(0, 2)
     }
-  } else {
+  }
+  else {
     return email.split('@')?.[0]?.slice(0, 2) ?? ''
   }
 }
 
-const backgroundColor = (username: string, email: string, userIcon: ReturnType<typeof getUserIcon>, getColor: GetColorType) => {
+function backgroundColor(username: string, email: string, userIcon: ReturnType<typeof getUserIcon>, getColor: GetColorType) {
   const color = username ? stringToColor(username) : email ? stringToColor(email) : '#FFFFFF'
   const bgColor = getColor('var(--nc-bg-gray-light)', 'var(--nc-bg-gray-medium)')
 
@@ -151,15 +153,18 @@ export const UserFieldCellRenderer: CellRenderer = {
           imageLoader.renderImage(ctx, img, x, y + 6, circleSize, circleSize, circleRadius, { border: false })
           needsPlaceholder = false
         }
-      } else if (userIcon.icon && userIcon.iconType === IconType.EMOJI) {
+      }
+      else if (userIcon.icon && userIcon.iconType === IconType.EMOJI) {
         if (isUnicodeEmoji(icon)) {
           renderSingleLineText(ctx, { x: x + 3.5, y: y + 1, text: icon })
           needsPlaceholder = false
-        } else {
+        }
+        else {
           // TODO:
           needsPlaceholder = true
         }
-      } else if (userIcon.icon && userIcon.iconType === IconType.ICON) {
+      }
+      else if (userIcon.icon && userIcon.iconType === IconType.ICON) {
         spriteLoader.renderIcon(ctx, {
           color: getColor('var(--nc-content-gray)'),
           icon: icon as IconMapKey,
@@ -168,7 +173,8 @@ export const UserFieldCellRenderer: CellRenderer = {
           y: y + 9.5,
         })
         needsPlaceholder = false
-      } else if (isDeleted) {
+      }
+      else if (isDeleted) {
         spriteLoader.renderIcon(ctx, {
           icon: 'ncSlash',
           size: iconSize,
@@ -177,7 +183,8 @@ export const UserFieldCellRenderer: CellRenderer = {
           color: getColor('var(--nc-content-gray-muted)'),
         })
         needsPlaceholder = false
-      } else if (initials) {
+      }
+      else if (initials) {
         renderSingleLineText(ctx, {
           x: x + circleRadius,
           y,
@@ -233,12 +240,12 @@ export const UserFieldCellRenderer: CellRenderer = {
     if (!selected) return
 
     const getUserRole = (email: string) => {
-      const user = (baseUsers || []).find((user) => user.email === email)
+      const user = (baseUsers || []).find(user => user.email === email)
       if (!user) return ProjectRoles.NO_ACCESS
 
       return (
-        user.roles ??
-        (user.workspace_roles
+        user.roles
+        ?? (user.workspace_roles
           ? WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
           : ProjectRoles.NO_ACCESS)
       )
@@ -257,7 +264,7 @@ export const UserFieldCellRenderer: CellRenderer = {
 
     if (!users.length) return
 
-    const boxes: (RenderRectangleProps & { display_name?: string; email: string; deleted?: boolean })[] = []
+    const boxes: (RenderRectangleProps & { display_name?: string, email: string, deleted?: boolean })[] = []
     const ctx = defaultOffscreen2DContext
 
     let line = 1
@@ -298,7 +305,7 @@ export const UserFieldCellRenderer: CellRenderer = {
 
     if (!boxes.length) return
 
-    const hoveredBox = boxes.find((box) => isBoxHovered(box, mousePosition))
+    const hoveredBox = boxes.find(box => isBoxHovered(box, mousePosition))
     if (!hoveredBox) return
     tryShowTooltip({
       rect: hoveredBox,
@@ -317,13 +324,14 @@ export const UserFieldCellRenderer: CellRenderer = {
 
   async handleClick({ row, column, mousePosition, getCellPosition, makeCellEditable, selected }) {
     if (
-      column.readonly ||
-      column.isSyncedColumn ||
-      !column?.isCellEditable ||
-      isCreatedOrLastModifiedByCol(column.uidt) ||
-      !selected
-    )
+      column.readonly
+      || column.isSyncedColumn
+      || !column?.isCellEditable
+      || isCreatedOrLastModifiedByCol(column.uidt)
+      || !selected
+    ) {
       return false
+    }
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
     const padding = 10

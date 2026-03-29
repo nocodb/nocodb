@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { TableType } from 'nocodb-sdk'
+
 const props = defineProps<{
   table: TableType
 }>()

@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import StarterKit from '@tiptap/starter-kit'
-import TaskList from '@tiptap/extension-task-list'
-import { EditorContent, useEditor } from '@tiptap/vue-3'
 import Placeholder from '@tiptap/extension-placeholder'
+import TaskList from '@tiptap/extension-task-list'
+import StarterKit from '@tiptap/starter-kit'
+import { EditorContent, useEditor } from '@tiptap/vue-3'
 import { NcMarkdownParser, suggestion } from '~/helpers/tiptap'
 import { Markdown } from '~/helpers/tiptap-markdown'
 
@@ -44,7 +44,7 @@ const emits = defineEmits(['update:value', 'focus', 'blur', 'close'])
 
 const { fullMode, isFormField, hiddenBubbleMenuOptions } = toRefs(props)
 
-const { appInfo } = useGlobal()
+const { appInfo, user } = useGlobal()
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
@@ -67,8 +67,6 @@ const isFocused = ref(false)
 const keys = useMagicKeys()
 
 const meta = inject(MetaInj)!
-
-const { user } = useGlobal()
 
 const basesStore = useBases()
 
@@ -100,10 +98,10 @@ const vModel = computed({
 })
 
 const mentionUsers = computed(() => {
-  return baseUsers.value.filter((user) => user.deleted !== true)
+  return baseUsers.value.filter(user => user.deleted !== true)
 })
 
-const getTiptapExtensions = () => {
+function getTiptapExtensions() {
   const extensions = [
     StarterKit.configure({
       heading: isFormField.value ? false : undefined,
@@ -130,7 +128,7 @@ const getTiptapExtensions = () => {
       emptyEditorClass: 'is-editor-empty',
       placeholder: props.placeholder,
     }),
-    Markdown.configure({ breaks: true, transformPastedText: true, renderImagesAsLinks: !isEeUI }),
+    Markdown.configure({ breaks: true, transformPastedText: true, renderImagesAsLinks: !appInfo.value?.ee }),
   ]
 
   if (appInfo.value.ee && !props.hideMention) {
@@ -140,13 +138,13 @@ const getTiptapExtensions = () => {
           ...suggestion(UserMentionList),
           items: ({ query }) =>
             mentionUsers.value
-              .map((user) => ({
+              .map(user => ({
                 id: user.id,
                 name: user.display_name,
                 email: user.email,
                 meta: user.meta,
               }))
-              .filter((user) => searchCompare([user.name, user.email], query)),
+              .filter(user => searchCompare([user.name, user.email], query)),
         },
         users: unref(mentionUsers.value),
         currentUser: unref(user.value),
@@ -181,13 +179,13 @@ const editor = useEditor({
   },
 })
 
-const setEditorContent = (contentMd: any) => {
+function setEditorContent(contentMd: any) {
   if (!editor.value) return
 
   editor.value.commands.setContent(contentMd, false)
 }
 
-const onFocusWrapper = () => {
+function onFocusWrapper() {
   if (isForm.value && !isFormField.value && !props.readOnly && !keys.shift.value) {
     focusEditor()
   }
@@ -211,7 +209,8 @@ if (isFormField.value) {
   watch([props, editor], () => {
     if (props.readOnly) {
       editor.value?.setEditable(false)
-    } else {
+    }
+    else {
       editor.value?.setEditable(true)
     }
   })
@@ -231,8 +230,8 @@ useEventListener(
   (e: FocusEvent) => {
     const targetEl = e?.relatedTarget as HTMLElement
     if (
-      targetEl?.classList?.contains('tiptap') ||
-      !targetEl?.closest(
+      targetEl?.classList?.contains('tiptap')
+      || !targetEl?.closest(
         '.bubble-menu, .tippy-content, .nc-textarea-rich-editor,  .tippy-box, .mention, .nc-mention-list, .tippy-content',
       )
     ) {
@@ -248,12 +247,13 @@ useEventListener(
   (e: FocusEvent) => {
     const targetEl = e?.relatedTarget as HTMLElement
     if (
-      !targetEl &&
-      (e.target as HTMLElement)?.closest(
+      !targetEl
+      && (e.target as HTMLElement)?.closest(
         '.bubble-menu, .tippy-content, .nc-textarea-rich-editor, .tippy-box, .mention, .nc-mention-list, .tippy-content',
       )
-    )
+    ) {
       return
+    }
 
     if (
       !targetEl?.closest(

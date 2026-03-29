@@ -1,5 +1,5 @@
-import { isBoxHovered, renderMultiLineText, roundedRect } from '../utils/canvas'
 import { pxToRowHeight } from '../../../../../utils/cell'
+import { isBoxHovered, renderMultiLineText, roundedRect } from '../utils/canvas'
 
 export const GeoDataCellRenderer: CellRenderer = {
   render: (
@@ -47,7 +47,8 @@ export const GeoDataCellRenderer: CellRenderer = {
       ctx.font = '10px Inter'
       ctx.textBaseline = 'middle'
       ctx.fillText('Set location', buttonX + 28, buttonY + (buttonHeight + 2) / 2)
-    } else if (isLocationSet) {
+    }
+    else if (isLocationSet) {
       const maxWidth = width - padding * 2
 
       renderMultiLineText(ctx, {

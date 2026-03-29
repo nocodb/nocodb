@@ -1,4 +1,8 @@
-import { extractProjectRolePower, hasMinimumRoleAccess } from 'nocodb-sdk';
+import {
+  extractProjectRolePower,
+  extractWorkspaceRolePower,
+  hasMinimumRoleAccess,
+} from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
 import type { ProjectRoles } from 'nocodb-sdk';
 
@@ -12,6 +16,17 @@ export { getProjectRole } from 'nocodb-sdk';
  */
 export function getProjectRolePower(user: any) {
   return extractProjectRolePower(user, () => {
+    NcError.badRequest('Forbidden');
+  });
+}
+
+/**
+ * Get the power of the workspace role of the user.
+ * @param user - The user object.
+ * @returns The power of the workspace role of the user.
+ */
+export function getWorkspaceRolePower(user: any) {
+  return extractWorkspaceRolePower(user, () => {
     NcError.badRequest('Forbidden');
   });
 }

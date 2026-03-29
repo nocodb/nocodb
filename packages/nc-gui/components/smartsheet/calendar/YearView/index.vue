@@ -79,26 +79,30 @@ const { width } = useElementSize(calendarContainer)
 const size = ref<'small' | 'medium'>('small')
 const cols = ref(4)
 
-const handleResize = () => {
+function handleResize() {
   if (width.value > 1250) {
     size.value = 'medium'
     cols.value = 4
-  } else if (width.value > 950) {
+  }
+  else if (width.value > 950) {
     size.value = 'medium'
     cols.value = 3
-  } else if (width.value > 680) {
+  }
+  else if (width.value > 680) {
     size.value = 'small'
     cols.value = 3
-  } else if (width.value > 375) {
+  }
+  else if (width.value > 375) {
     size.value = 'small'
     cols.value = 2
-  } else {
+  }
+  else {
     size.value = 'medium'
     cols.value = 1
   }
 }
 
-const changeView = (date: dayjs.Dayjs) => {
+function changeView(date: dayjs.Dayjs) {
   // Clear computation caches when changing view to ensure fresh data
   sharedCalendarCache.clearAllCaches()
   selectedDate.value = date

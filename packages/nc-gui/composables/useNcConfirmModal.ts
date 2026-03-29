@@ -1,4 +1,5 @@
-import NcModalConfirm, { type NcConfirmModalProps } from '../components/nc/ModalConfirm.vue'
+import type { NcConfirmModalProps } from '../components/nc/ModalConfirm.vue'
+import NcModalConfirm from '../components/nc/ModalConfirm.vue'
 
 export type NcShowConfirmModalProps = Pick<
   NcConfirmModalProps,
@@ -23,7 +24,7 @@ export type NcShowConfirmModalProps = Pick<
   showOkLoading?: boolean
 }
 
-const useNcConfirmModal = () => {
+function useNcConfirmModal() {
   const showModalCount = ref(0)
 
   const openedModalKeyMap = ref<Record<string, boolean>>({})
@@ -33,7 +34,7 @@ const useNcConfirmModal = () => {
   if (import.meta.hot) {
     import.meta.hot.accept(() => {
       // Close all modals on hot reload
-      Object.values(activeModals).forEach((fn) => fn())
+      Object.values(activeModals).forEach(fn => fn())
       Object.assign(activeModals, {})
       openedModalKeyMap.value = {}
     })
@@ -97,7 +98,8 @@ const useNcConfirmModal = () => {
             await okCallback()
 
             okProps.value.loading = false
-          } else {
+          }
+          else {
             await okCallback()
           }
 

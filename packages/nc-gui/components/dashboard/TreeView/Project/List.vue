@@ -14,9 +14,11 @@ const basesStore = useBases()
 
 const { createProject: _createProject } = basesStore
 
-const { bases, basesList, activeProjectId, isProjectsLoaded, isProjectsLoading } = storeToRefs(basesStore)
+const { bases, basesList, activeProjectId, isProjectsLoaded, isProjectsLoading, resolvedProject } = storeToRefs(basesStore)
 
-const { activeWorkspaceId } = storeToRefs(useWorkspace())
+const { activeWorkspaceId, activeWorkspace } = storeToRefs(useWorkspace())
+
+const { activeSidebarTab } = storeToRefs(useSidebarStore())
 
 const baseCreateDlg = ref(false)
 
@@ -40,13 +42,9 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { addUndo, defineProjectScope } = useUndoRedo()
 
-const openedBase = computed(() => {
-  return basesList.value.find((b) => b.id === activeProjectId.value)
-})
+const contextMenuTarget = reactive<{ type?: 'base' | 'source' | 'table' | 'main' | 'layout', value?: any }>({})
 
-const contextMenuTarget = reactive<{ type?: 'base' | 'source' | 'table' | 'main' | 'layout'; value?: any }>({})
-
-const setMenuContext = (type: 'base' | 'source' | 'table' | 'main' | 'layout', value?: any) => {
+function setMenuContext(type: 'base' | 'source' | 'table' | 'main' | 'layout', value?: any) {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
 }
@@ -171,7 +169,8 @@ async function handleTableRename(
     refreshCommandPalette()
 
     $e('a:table:rename')
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
     updateTitle(originalTitle)
   }
@@ -198,7 +197,7 @@ function openTableCreateDialog(sourceId?: string, baseId?: string) {
   }
 }
 
-const duplicateTable = async (table: TableType) => {
+async function duplicateTable(table: TableType) {
   if (!table || !table.id || !table.base_id) return
 
   const isOpen = ref(true)
@@ -220,13 +219,13 @@ const duplicateTable = async (table: TableType) => {
 
 const isCreateTableAllowed = computed(
   () =>
-    base.value?.sources?.[0] &&
-    isUIAllowed('tableCreate', { source: base.value?.sources?.[0] }) &&
-    route.value.name !== 'index' &&
-    route.value.name !== 'index-index' &&
-    route.value.name !== 'index-index-create' &&
-    route.value.name !== 'index-index-create-external' &&
-    route.value.name !== 'index-user-index',
+    base.value?.sources?.[0]
+    && isUIAllowed('tableCreate', { source: base.value?.sources?.[0] })
+    && route.value.name !== 'index'
+    && route.value.name !== 'index-index'
+    && route.value.name !== 'index-index-create'
+    && route.value.name !== 'index-index-create-external'
+    && route.value.name !== 'index-user-index',
 )
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
@@ -274,7 +273,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
-const handleContext = (e: MouseEvent) => {
+function handleContext(e: MouseEvent) {
   if (!document.querySelector('.source-context, .table-context')?.contains(e.target as Node)) {
     setMenuContext('main')
   }
@@ -292,7 +291,7 @@ provide(TreeViewInj, {
 
 useEventListener(document, 'contextmenu', handleContext, true)
 
-const scrollTableNode = () => {
+function scrollTableNode() {
   const activeTableDom = document.querySelector(`.nc-treeview [data-table-id="${_activeTable.value?.id}"]`)
   if (!activeTableDom) return
 
@@ -319,19 +318,37 @@ watch(
 <template>
   <div class="nc-treeview-container relative w-full h-full overflow-hidden flex items-stretch nc-treeview-container-active-base">
     <!-- Project Home -->
-    <div
-      v-if="activeProjectId && openedBase?.id && !openedBase.isLoading"
-      class="absolute w-full h-full top-0 left-0 z-5 flex flex-col"
-    >
-      <ProjectWrapper :base-role="openedBase?.project_role" :base="openedBase">
+    <div v-if="resolvedProject?.id && !resolvedProject.isLoading" class="absolute w-full h-full top-0 left-0 z-5 flex flex-col">
+      <ProjectWrapper :base-role="resolvedProject?.project_role" :base="resolvedProject">
         <DashboardTreeViewProjectHome>
           <template #footer>
-            <slot name="footer"></slot>
+            <slot name="footer" />
           </template>
         </DashboardTreeViewProjectHome>
       </ProjectWrapper>
     </div>
 
+    <div
+      v-else-if="isProjectsLoaded && !isProjectsLoading && !basesList.length && activeSidebarTab === 'settings'"
+      class="nc-treeview-active-base flex flex-col h-full"
+    >
+      <div>
+        <DashboardSidebarHeaderWrapper>
+          <NcTooltip class="truncate font-semibold text-sm text-nc-content-gray" show-on-truncate-only>
+            <template #title>
+              {{ activeWorkspace?.title }}
+            </template>
+            {{ activeWorkspace?.title }}
+          </NcTooltip>
+        </DashboardSidebarHeaderWrapper>
+      </div>
+
+      <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
+        <DashboardTreeViewProjectWsSettingsMenu v-if="showWsSettingsInBase" />
+      </div>
+
+      <slot name="footer" />
+    </div>
     <div v-else-if="isProjectsLoaded && !isProjectsLoading && !basesList.length" class="nc-treeview-empty-state">
       <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('activity.noBasesFound')" class="!mb-1" />
 

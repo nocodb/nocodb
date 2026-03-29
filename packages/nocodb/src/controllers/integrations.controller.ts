@@ -30,7 +30,7 @@ export class IntegrationsController {
 
   @Get(['/api/v2/meta/integrations/:integrationId'])
   @Acl('integrationGet', {
-    scope: 'org',
+    scope: 'workspace',
   })
   async integrationGet(
     @TenantContext() context: NcContext,
@@ -60,9 +60,12 @@ export class IntegrationsController {
 
     return integration;
   }
-  @Post(['/api/v2/meta/integrations'])
+  @Post([
+    '/api/v2/meta/workspaces/:workspaceId/integrations',
+    '/api/v2/meta/integrations',
+  ])
   @Acl('integrationCreate', {
-    scope: 'org',
+    scope: 'workspace',
   })
   async integrationCreate(
     @TenantContext() context: NcContext,
@@ -77,7 +80,7 @@ export class IntegrationsController {
 
   @Delete(['/api/v2/meta/integrations/:integrationId'])
   @Acl('integrationDelete', {
-    scope: 'org',
+    scope: 'workspace',
   })
   async integrationDelete(
     @TenantContext() context: NcContext,
@@ -94,7 +97,7 @@ export class IntegrationsController {
 
   @Patch(['/api/v2/meta/integrations/:integrationId'])
   @Acl('integrationUpdate', {
-    scope: 'org',
+    scope: 'workspace',
   })
   async integrationUpdate(
     @TenantContext() context: NcContext,
@@ -114,9 +117,12 @@ export class IntegrationsController {
     return integration;
   }
 
-  @Get(['/api/v2/meta/integrations'])
+  @Get([
+    '/api/v2/meta/workspaces/:workspaceId/integrations',
+    '/api/v2/meta/integrations',
+  ])
   @Acl('integrationList', {
-    scope: 'org',
+    scope: 'workspace',
     extendedScope: 'base',
   })
   async integrationList(
@@ -180,7 +186,7 @@ export class IntegrationsController {
 
   @Post(['/api/v2/integrations/:integrationId/store'])
   @Acl('integrationStore', {
-    scope: 'org',
+    scope: 'workspace',
   })
   async storeIntegration(
     @TenantContext() context: NcContext,
@@ -215,7 +221,7 @@ export class IntegrationsController {
 
   @Post(['/api/v2/integrations/:integrationId/:endpoint'])
   @Acl('integrationEndpointGet', {
-    scope: 'org',
+    scope: 'workspace',
   })
   async integrationEndpointGet(
     @TenantContext() context: NcContext,

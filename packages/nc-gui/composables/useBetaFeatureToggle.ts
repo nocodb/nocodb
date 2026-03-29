@@ -50,13 +50,6 @@ const FEATURES = [
     version: 1,
   },
   {
-    id: 'link_to_another_record',
-    title: 'Link To Another Record',
-    description: 'Show linked record display value in Link fields.',
-    enabled: false,
-    version: 1,
-  },
-  {
     id: 'ai_beta_features',
     title: 'AI beta features',
     description: 'Unlock AI beta features to enhance your NocoDB experience.',
@@ -83,14 +76,6 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'import_from_nocodb',
-    title: 'OSS to Enterprise migration',
-    description: 'Enable import from NocoDB OSS instance to Enterprise Edition.',
-    enabled: true,
-    version: 2,
-    isEE: true,
-  },
-  {
     id: 'sync_beta_feature',
     title: 'Advanced Sync Features',
     description: 'Enable sync beta features like custom sync, multi source sync, etc.',
@@ -98,14 +83,6 @@ const FEATURES = [
     version: 1,
     isEngineering: true,
     isEE: true,
-  },
-  {
-    id: 'geodata_column',
-    title: 'Geodata column',
-    description: 'Enable the geodata column.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
   },
   {
     id: 'form_support_column_scanning',
@@ -148,14 +125,6 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'ltar_v2',
-    title: 'Links V2',
-    description: 'Use junction table based relations for all link types (beta).',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
-  },
-  {
     id: 'view_actions',
     title: 'View Actions',
     description: 'Execute scripts and webhooks to all records in a view.',
@@ -166,7 +135,7 @@ const FEATURES = [
   },
   {
     id: 'show_everyones_personal_views',
-    title: "Show Everyone's Personal Views",
+    title: 'Show Everyone\'s Personal Views',
     description: 'With this feature we can avoid showing other users personal views in left sidebar',
     enabled: false,
     version: 1,
@@ -228,17 +197,25 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'list_view',
-    title: 'List View',
-    description: 'Enable the List view type for hierarchical data display with parent-child grouping.',
+    id: 'presence_visibility_toggle',
+    title: 'Presence Visibility Toggle',
+    description: 'Allow users to hide their own presence from other collaborators.',
     enabled: false,
     version: 1,
     isEngineering: true,
     isEE: true,
   },
+  {
+    id: 'form_scheduling',
+    title: 'Form Scheduling',
+    description: 'Set start and end dates to control when shared forms accept submissions.',
+    enabled: false,
+    version: 1,
+    isEE: true,
+  },
 ] as const
 
-export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<
+export const FEATURE_FLAG = Object.fromEntries(FEATURES.map(feature => [feature.id.toUpperCase(), feature.id])) as Record<
   Uppercase<(typeof FEATURES)[number]['id']>,
   (typeof FEATURES)[number]['id']
 >
@@ -250,6 +227,13 @@ const STORAGE_KEY = 'featureToggleStates'
 
 export const useBetaFeatureToggle = createSharedComposable(() => {
   const features = ref<BetaFeatureType[]>(deepClone(FEATURES))
+
+  const featureMap = computed(() =>
+    features.value.reduce((acc, f) => {
+      acc[f.id] = f
+      return acc
+    }, {} as Record<BetaFeatureId, BetaFeatureType>),
+  )
 
   const { appInfo } = useGlobal()
 
@@ -274,36 +258,50 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
 
   const saveFeatures = () => {
     try {
-      const featuresToSave = features.value.map((feature) => ({
+      const featuresToSave = features.value.map(feature => ({
         id: feature.id,
         enabled: feature.enabled,
         version: feature.version,
       }))
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(featuresToSave))
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Failed to save features:', error)
     }
   }
 
   const toggleFeature = (id: BetaFeatureId, forceUpdate?: boolean) => {
-    const feature = features.value.find((f) => f.id === id)
+    const feature = features.value.find(f => f.id === id)
     if (feature) {
       if (forceUpdate !== undefined) {
         feature.enabled = forceUpdate
-      } else {
+      }
+      else {
         feature.enabled = !feature.enabled
       }
       $e(`a:feature-preview:${id}:${feature.enabled ? 'on' : 'off'}`)
       saveFeatures()
 
       return true
-    } else {
+    }
+    else {
       console.error(`Feature ${id} not found`)
     }
   }
 
-  const isFeatureEnabled = (id: BetaFeatureId) => featureStates.value[id] ?? false
+  const isFeatureEnabled = (id: BetaFeatureId) => {
+    // useEeConfig is called inside this function (not at the top level of the composable), to avoid a recursive call
+    const { showEEFeatures } = useEeConfig()
+
+    const feature = featureMap.value[id]
+
+    if (feature && 'isEE' in feature && feature.isEE && !(isEeUI && showEEFeatures.value)) {
+      return false
+    }
+
+    return featureStates.value[id] ?? false
+  }
 
   const initializeFeatures = () => {
     try {
@@ -316,7 +314,7 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
         }>
 
         features.value = FEATURES.map((defaultFeature) => {
-          const storedFeature = parsedFeatures.find((f) => f.id === defaultFeature.id)
+          const storedFeature = parsedFeatures.find(f => f.id === defaultFeature.id)
 
           if (!storedFeature) {
             return { ...defaultFeature }
@@ -336,10 +334,12 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
             enabled: storedFeature.enabled,
           }
         })
-      } else {
+      }
+      else {
         features.value = deepClone(FEATURES)
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Failed to initialize features:', error)
       features.value = deepClone(FEATURES)
     }

@@ -236,36 +236,34 @@ const mockColumns: UnifiedMetaType.IColumn[] = [
 ];
 
 // PR review fix #8: use proper typing instead of `as any` casts
-const mockGetMeta = jest.fn(
-  async (_context, options) => {
-    if (options.id === 'model2') {
-      return {
-        id: 'model2',
-        title: 'Model2',
-        base_id: 'base1',
-        columns: [
-          {
-            id: 'col7',
-            title: 'Column7',
-            uidt: UITypes.SingleLineText as any,
-            dt: 'varchar',
-            pv: true,
-            base_id: 'base1',
-            fk_workspace_id: 'ws1',
-            fk_model_id: 'model2',
-            deleted: false,
-          },
-        ],
-      } as any;
-    }
+const mockGetMeta = jest.fn(async (_context, options) => {
+  if (options.id === 'model2') {
     return {
-      id: 'model1',
-      title: 'Model1',
+      id: 'model2',
+      title: 'Model2',
       base_id: 'base1',
-      columns: mockColumns as any,
+      columns: [
+        {
+          id: 'col7',
+          title: 'Column7',
+          uidt: UITypes.SingleLineText as any,
+          dt: 'varchar',
+          pv: true,
+          base_id: 'base1',
+          fk_workspace_id: 'ws1',
+          fk_model_id: 'model2',
+          deleted: false,
+        },
+      ],
     } as any;
   }
-) as unknown as UnifiedMetaType.IGetModel;
+  return {
+    id: 'model1',
+    title: 'Model1',
+    base_id: 'base1',
+    columns: mockColumns as any,
+  } as any;
+}) as unknown as UnifiedMetaType.IGetModel;
 
 const mockClientOrSqlUi = SqlUiFactory.create({ client: 'pg' });
 
@@ -920,6 +918,46 @@ describe('validateFormulaAndExtractTreeWithType', () => {
       })
     ).rejects.toHaveProperty('type', FormulaErrorType.INVALID_SYNTAX);
   });
+  it('should fallback to UNKNOWN when referenced formula column parsed_tree lacks dataType (legacy data)', async () => {
+    // Simulate legacy data: formula column with parsed_tree that has no dataType
+    const col4 = mockColumns.find((c) => c.id === 'col4');
+    const origColOptions = col4.colOptions as UnifiedMetaType.IFormulaColumn;
+    const origGetParsedTree = origColOptions.getParsedTree;
+    const origParsedTree = origColOptions.parsed_tree;
+
+    // Strip dataType from parsed_tree to simulate legacy data
+    origColOptions.parsed_tree = {
+      type: JSEPNode.IDENTIFIER,
+      name: 'col1',
+      referencedColumn: { id: 'col1', uidt: UITypes.SingleLineText },
+    } as any;
+    origColOptions.getParsedTree = () =>
+      ({
+        type: JSEPNode.IDENTIFIER,
+        name: 'col1',
+        referencedColumn: { id: 'col1', uidt: UITypes.SingleLineText },
+      } as any);
+
+    try {
+      // Validate a formula that references the legacy formula column
+      const result = await validateFormulaAndExtractTreeWithType({
+        formula: '{Column4}',
+        columns: mockColumns,
+        clientOrSqlUi: mockClientOrSqlUi,
+        getMeta: mockGetMeta,
+      });
+
+      expect(result.type).toBe(JSEPNode.IDENTIFIER);
+      expect((result as any).name).toBe('col4');
+      // Should fallback to UNKNOWN since parsed_tree lacks dataType
+      expect((result as any).dataType).toBe(FormulaDataTypes.UNKNOWN);
+    } finally {
+      // Restore original mock data
+      origColOptions.parsed_tree = origParsedTree;
+      origColOptions.getParsedTree = origGetParsedTree;
+    }
+  });
+
   it('should return correct when identifier to rollup', async () => {
     const result = await validateFormulaAndExtractTreeWithType({
       formula: caseIdentifierRollup.formula,

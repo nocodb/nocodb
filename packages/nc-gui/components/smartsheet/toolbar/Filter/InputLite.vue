@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { ClientType, SqlUiFactory, UITypes } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
-import SingleSelect from '~/components/cell/SingleSelect/index.vue'
-import MultiSelect from '~/components/cell/MultiSelect/index.vue'
-import DatePicker from '~/components/cell/Date/index.vue'
-import YearPicker from '~/components/cell/Year/index.vue'
-import TimePicker from '~/components/cell/Time/index.vue'
-import Rating from '~/components/cell/Rating/index.vue'
-import Duration from '~/components/cell/Duration/index.vue'
-import Percent from '~/components/cell/Percent/index.vue'
+import { ClientType, SqlUiFactory, UITypes } from 'nocodb-sdk'
 import Currency from '~/components/cell/Currency/index.vue'
+import DatePicker from '~/components/cell/Date/index.vue'
 import Decimal from '~/components/cell/Decimal/index.vue'
-import Integer from '~/components/cell/Integer/index.vue'
+import Duration from '~/components/cell/Duration/index.vue'
 import Float from '~/components/cell/Float/index.vue'
+import Integer from '~/components/cell/Integer/index.vue'
+import MultiSelect from '~/components/cell/MultiSelect/index.vue'
+import Percent from '~/components/cell/Percent/index.vue'
+import Rating from '~/components/cell/Rating/index.vue'
+import SingleSelect from '~/components/cell/SingleSelect/index.vue'
 import Text from '~/components/cell/Text/index.vue'
+import TimePicker from '~/components/cell/Time/index.vue'
 import User from '~/components/cell/User/index.vue'
+import YearPicker from '~/components/cell/Year/index.vue'
 
 interface Props {
   // column could be possibly undefined when the filter is created
@@ -72,7 +72,7 @@ const dbClientType = computed(() => props.dbClientType ?? ClientType.PG)
 const sqlUi = computed(() => dbClientType.value && SqlUiFactory.create({ client: dbClientType.value }))
 const abstractType = computed(() => column.value && sqlUi.value?.getAbstractType(column.value))
 
-const checkType = (filterUIType: FilterUIType) => {
+function checkType(filterUIType: FilterUIType) {
   const checkTypeFunction = checkTypeFunctions[filterUIType]
 
   if (!column.value || !checkTypeFunction) {
@@ -97,7 +97,7 @@ const booleanOptions = [
   { value: null, label: 'unset' },
 ]
 
-const renderSingleSelect = (op: string) => {
+function renderSingleSelect(op: string) {
   // use MultiSelect for SingleSelect columns for anyof / nanyof filters
   if (['anyof', 'nanyof'].includes(op)) {
     return MultiSelect
@@ -105,7 +105,7 @@ const renderSingleSelect = (op: string) => {
   return SingleSelect
 }
 
-const renderDateFilterInput = (sub_op: string) => {
+function renderDateFilterInput(sub_op: string) {
   if (['daysAgo', 'daysFromNow', 'pastNumberOfDays', 'nextNumberOfDays'].includes(sub_op)) {
     return Decimal
   }
@@ -135,7 +135,7 @@ const componentMap: Partial<Record<FilterUIType, any>> = computed(() => {
 })
 
 const filterUIType = computed(() => {
-  return Object.keys(componentMap.value).find((key) => checkType(key as FilterUIType))
+  return Object.keys(componentMap.value).find(key => checkType(key as FilterUIType))
 })
 
 const componentProps = computed(() => {
@@ -182,13 +182,13 @@ const componentProps = computed(() => {
 
 const hasExtraPadding = computed(() => {
   return (
-    column.value &&
-    (column.value?.uidt === UITypes.Links ||
-      isInt(column.value, abstractType) ||
-      isDate(column.value, abstractType) ||
-      isDateTime(column.value, abstractType) ||
-      isTime(column.value, abstractType) ||
-      isYear(column.value, abstractType))
+    column.value
+    && (column.value?.uidt === UITypes.Links
+      || isInt(column.value, abstractType)
+      || isDate(column.value, abstractType)
+      || isDateTime(column.value, abstractType)
+      || isTime(column.value, abstractType)
+      || isYear(column.value, abstractType))
   )
 })
 

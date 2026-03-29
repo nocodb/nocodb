@@ -8,7 +8,7 @@ export default {
   <NuxtLayout class="nc-h-screen">
     <DashboardTopbar />
     <div class="h-full overflow-auto">
-      <slot></slot>
+      <slot />
     </div>
   </NuxtLayout>
 </template>

@@ -1,1 +1,1 @@
-export { convertMS2Duration, convertDurationToSeconds, durationOptions } from 'nocodb-sdk'
+export { convertDurationToSeconds, convertMS2Duration, durationOptions } from 'nocodb-sdk'

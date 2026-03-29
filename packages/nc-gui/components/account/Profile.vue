@@ -37,14 +37,15 @@ const formRules = {
   ],
 }
 
-const onValidate = async () => {
+async function onValidate() {
   try {
     return await formValidator.value.validate()
-  } catch {
+  }
+  catch {
     return false
   }
 }
-const getIconMeta = () => {
+function getIconMeta() {
   return {
     ...(user.value?.meta ? parseProp(user.value.meta) : {}),
     icon:
@@ -53,7 +54,7 @@ const getIconMeta = () => {
   }
 }
 
-const saveChanges = async (isIconUpdate = false) => {
+async function saveChanges(isIconUpdate = false) {
   if (!isIconUpdate) {
     const isNameChanged = (user.value?.display_name ?? '') !== form.value.title
 
@@ -63,7 +64,8 @@ const saveChanges = async (isIconUpdate = false) => {
     if (!valid) {
       isErrored.value = true
       return
-    } else {
+    }
+    else {
       isErrored.value = false
     }
   }
@@ -76,10 +78,12 @@ const saveChanges = async (isIconUpdate = false) => {
         ...(isIconUpdate ? { meta: getIconMeta() } : { display_name: form.value?.title }),
       },
     })
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.error(e)
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     isProfileUpdating.value = false
   }
 }
@@ -128,7 +132,7 @@ watch(
   },
 )
 
-const onCancel = () => {
+function onCancel() {
   form.value.title = user.value?.display_name ?? ''
 }
 </script>
@@ -187,7 +191,9 @@ const onCancel = () => {
                   <div class="flex-1 flex flex-col gap-4">
                     <div>
                       <div class="flex items-center gap-1.5 justify-between mb-2">
-                        <div class="text-nc-content-gray" data-rec="true">{{ $t('general.name') }}</div>
+                        <div class="text-nc-content-gray" data-rec="true">
+                          {{ $t('general.name') }}
+                        </div>
                         <NcTooltip v-if="user" :title="$t('labels.clickToCopyUserID')" placement="top" hide-on-click class="flex">
                           <div
                             data-rec="true"
@@ -216,7 +222,9 @@ const onCancel = () => {
                       </a-form-item>
                     </div>
                     <div>
-                      <div class="text-nc-content-gray mb-2" data-rec="true">{{ $t('labels.accountEmailID') }}</div>
+                      <div class="text-nc-content-gray mb-2" data-rec="true">
+                        {{ $t('labels.accountEmailID') }}
+                      </div>
                       <a-input
                         v-model:value="email"
                         class="w-full !rounded-lg !px-4 h-10"
@@ -246,7 +254,9 @@ const onCancel = () => {
                     :loading="isProfileUpdating"
                     data-testid="nc-account-settings-save"
                   >
-                    <template #loading> {{ $t('general.saving') }} </template>
+                    <template #loading>
+                      {{ $t('general.saving') }}
+                    </template>
                     {{ $t('general.save') }}
                   </NcButton>
                 </div>

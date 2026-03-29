@@ -1,11 +1,11 @@
 <script lang="ts" setup>
+import type { Group } from '~/lib/types'
 import { CommonAggregations } from 'nocodb-sdk'
 import { shouldRenderCell } from '../../../utils/groupbyUtils'
-import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
-import GroupByTable from './GroupByTable.vue'
 import GroupByLabel from './GroupByLabel.vue'
-import type { Group } from '~/lib/types'
+import GroupByTable from './GroupByTable.vue'
+import Table from './Table.vue'
 
 const props = defineProps<{
   group: Group
@@ -63,27 +63,28 @@ const { withLoading } = useLoadingTrigger()
 const reloadAggregate = inject(ReloadAggregateHookInj, createEventHook())
 
 const displayField = computed(() => {
-  return meta.value?.columns?.find((c) => c.pv)
+  return meta.value?.columns?.find(c => c.pv)
 })
 
 const viewDisplayField = computed(() => {
-  if (!displayField.value || !displayField.value.id)
+  if (!displayField.value || !displayField.value.id) {
     return {
       width: '100px',
     }
+  }
   return gridViewCols.value[displayField.value.id]
 })
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
-const reloadAggregateListener = async (_fields: any) => {
+async function reloadAggregateListener(_fields: any) {
   if (!fields.value?.length) return
   if (!_fields || !_fields?.fields?.length) {
     await props.loadGroupAggregation(vGroup.value)
   }
   if (_fields?.fields) {
     const fieldAggregateMapping = _fields.fields.reduce((acc, field) => {
-      const f = fields.value.find((f) => f.title === field.title)
+      const f = fields.value.find(f => f.title === field.title)
 
       if (!f?.id) return acc
 
@@ -104,7 +105,7 @@ const reloadAggregateListener = async (_fields: any) => {
 
 reloadAggregate?.on(reloadAggregateListener)
 
-const _loadGroupData = async (group: Group, force?: boolean, params?: any) => {
+async function _loadGroupData(group: Group, force?: boolean, params?: any) {
   isViewDataLoading.value = true
   isPaginationLoading.value = true
 
@@ -133,15 +134,16 @@ const _activeGroupKeys = ref<string[] | string>()
 const activeGroups = computed<string[]>(() => {
   if (!_activeGroupKeys.value) return []
   if (Array.isArray(_activeGroupKeys.value)) {
-    return _activeGroupKeys.value.map((k) => k.replace('group-panel-', ''))
-  } else {
+    return _activeGroupKeys.value.map(k => k.replace('group-panel-', ''))
+  }
+  else {
     return [_activeGroupKeys.value.replace('group-panel-', '')]
   }
 })
 
 const oldActiveGroups = ref<string[]>([])
 
-const findAndLoadSubGroup = async (key: any) => {
+async function findAndLoadSubGroup(key: any) {
   key = Array.isArray(key) ? key : [key]
   if (key.length > 0 && vGroup.value.children) {
     if (!oldActiveGroups.value.includes(key[key.length - 1])) {
@@ -152,7 +154,7 @@ const findAndLoadSubGroup = async (key: any) => {
       })
 
       const k = key[key.length - 1].replace('group-panel-', '')
-      const grp = vGroup.value.children.find((g) => `${g.key}` === k)
+      const grp = vGroup.value.children.find(g => `${g.key}` === k)
       if (grp) {
         if (grp.nested) {
           if (!grp.children?.[0]?.children?.length) {
@@ -160,7 +162,8 @@ const findAndLoadSubGroup = async (key: any) => {
               triggerChildOnly: true,
             })
           }
-        } else {
+        }
+        else {
           if (!grp.rows?.length) _loadGroupData(grp)
         }
       }
@@ -170,10 +173,11 @@ const findAndLoadSubGroup = async (key: any) => {
 }
 
 const reloadViewDataHandler = withLoading(
-  (params: void | { shouldShowLoading?: boolean | undefined; offset?: number | undefined }) => {
+  (params: void | { shouldShowLoading?: boolean | undefined, offset?: number | undefined }) => {
     if (vGroup.value.nested) {
       props.loadGroups({ ...(params?.offset !== undefined ? { offset: params.offset } : {}) }, vGroup.value)
-    } else {
+    }
+    else {
       _loadGroupData(vGroup.value, true, {
         ...(params?.offset !== undefined ? { offset: params.offset } : {}),
       })
@@ -195,7 +199,8 @@ watch([() => vGroup.value.key], async (n, o) => {
   if (n !== o) {
     if (!vGroup.value.nested) {
       await _loadGroupData(vGroup.value, true)
-    } else if (vGroup.value.nested) {
+    }
+    else if (vGroup.value.nested) {
       await props.loadGroups({}, vGroup.value)
     }
   }
@@ -213,7 +218,8 @@ const _scrollLeft = ref<number>()
 const scrollBump = computed<number>(() => {
   if (vGroup.value.root === true) {
     return _scrollLeft.value ?? 0
-  } else {
+  }
+  else {
     if (props.scrollLeft && props.viewWidth && scrollable.value) {
       const scrollWidth = scrollable.value.scrollWidth + 12 + 12
       if (props.scrollLeft + props.viewWidth + 20 > scrollWidth) {
@@ -225,34 +231,36 @@ const scrollBump = computed<number>(() => {
   }
 })
 
-const onScroll = (e: Event) => {
+function onScroll(e: Event) {
   if (!vGroup.value.root) return
   _scrollLeft.value = (e.target as HTMLElement).scrollLeft
 }
 
-const expandGroup = async (key: string) => {
+async function expandGroup(key: string) {
   if (Array.isArray(_activeGroupKeys.value)) {
     _activeGroupKeys.value.push(`group-panel-${key}`)
-  } else {
+  }
+  else {
     _activeGroupKeys.value = [`group-panel-${key}`]
   }
   await findAndLoadSubGroup(`group-panel-${key}`)
 }
 
-const collapseGroup = (key: string) => {
+function collapseGroup(key: string) {
   if (Array.isArray(_activeGroupKeys.value)) {
-    _activeGroupKeys.value = _activeGroupKeys.value.filter((k) => k !== `group-panel-${key}`)
-  } else {
+    _activeGroupKeys.value = _activeGroupKeys.value.filter(k => k !== `group-panel-${key}`)
+  }
+  else {
     _activeGroupKeys.value = []
   }
 }
 
-const _collapseAllGroup = () => {
+function _collapseAllGroup() {
   _activeGroupKeys.value = []
 }
 
-const _expandAllGroup = async () => {
-  _activeGroupKeys.value = vGroup.value.children?.map((g) => `group-panel-${g.key}`) ?? []
+async function _expandAllGroup() {
+  _activeGroupKeys.value = vGroup.value.children?.map(g => `group-panel-${g.key}`) ?? []
 
   if (vGroup.value.children) {
     await Promise.all(
@@ -363,7 +371,7 @@ async function openNewRecordHandler() {
         <div
           class="border-b-1 border-nc-border-gray-medium mb-2 bg-nc-bg-gray-light"
           :style="{ 'padding-left': `${(maxDepth || 1) * 9}px` }"
-        ></div>
+        />
         <Table ref="tableHeader" class="mb-2" :data="[]" :hide-checkbox="true" :header-only="true" />
       </div>
       <div :class="{ 'pl-2': vGroup.root === true }">
@@ -591,7 +599,7 @@ async function openNewRecordHandler() {
     }`"
     :fixed-size="undefined"
     :selected-cell-count="groupByTableRef?.selectedCellCount ?? 0"
-  ></LazySmartsheetPagination>
+  />
 
   <div v-if="depth !== 0" class="absolute bottom-12 z-5 left-2" @click.stop>
     <NcButton

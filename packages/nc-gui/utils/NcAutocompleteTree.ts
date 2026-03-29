@@ -48,7 +48,8 @@ export class NcAutocompleteTree {
     for (const letter of word) {
       if (letter in root.children) {
         root = root.children[letter]
-      } else {
+      }
+      else {
         return null // if not found return null
       }
     }

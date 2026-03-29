@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { VNodeRef } from '@vue/runtime-core'
+import type { VNodeRef } from 'vue'
 import isMobilePhone from 'validator/lib/isMobilePhone'
 
 interface Props {
@@ -43,15 +43,15 @@ const validPhoneNumber = computed(() => vModel.value && isMobilePhone(vModel.val
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) =>
+const focus: VNodeRef = el =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 
 watch(
   () => editEnabled.value,
   () => {
     if (
-      (parseProp(column.value.meta)?.validate && !editEnabled.value && localState.value && !isMobilePhone(localState.value)) ||
-      isEditColumn.value
+      (parseProp(column.value.meta)?.validate && !editEnabled.value && localState.value && !isMobilePhone(localState.value))
+      || isEditColumn.value
     ) {
       if (!isEditColumn.value) {
         message.error(t('msg.invalidPhoneNumber'))
@@ -81,7 +81,7 @@ watch(
     @keydown.alt.stop
     @selectstart.capture.stop
     @mousedown.stop
-  />
+  >
 
   <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
 

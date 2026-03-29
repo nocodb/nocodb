@@ -1,6 +1,6 @@
 import plugin from 'windicss/plugin'
 
-const fontStyleMap: Record<string, [string, { lineHeight: string; letterSpacing?: string; fontWeight: number }]> = {
+const fontStyleMap: Record<string, [string, { lineHeight: string, letterSpacing?: string, fontWeight: number }]> = {
   heading1: ['64px', { lineHeight: '92px', letterSpacing: '-0.02rem', fontWeight: 700 }],
   heading2: ['40px', { lineHeight: '64px', letterSpacing: '-0.02rem', fontWeight: 700 }],
   heading3: ['24px', { lineHeight: '36px', letterSpacing: '-0.02rem', fontWeight: 700 }],
@@ -40,6 +40,6 @@ export default plugin(({ addUtilities }) => {
   addUtilities(utils, {
     layer: 'components',
     variants: ['responsive'],
-    completions: Object.keys(fontStyleMap).map((k) => `text-${k}`), // <-- this enables autocomplete in IDE
+    completions: Object.keys(fontStyleMap).map(k => `text-${k}`), // <-- this enables autocomplete in IDE
   })
 })

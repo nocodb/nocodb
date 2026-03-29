@@ -25,7 +25,7 @@ const isShowEveryonePersonalViewsFeatureEnabled = computed(() => {
   return isEeUI && isFeatureEnabled(FEATURE_FLAG.SHOW_EVERYONES_PERSONAL_VIEWS)
 })
 
-const handleClick = () => {
+function handleClick() {
   if (isLoading.value) return
 
   commandPalette.value?.open()
@@ -59,7 +59,9 @@ const handleClick = () => {
     <div v-if="isShowEveryonePersonalViewsFeatureEnabled" class="flex items-center gap-1">
       <NcDropdown v-model:visible="isOpenOptionsDropdown">
         <NcButton icon-only size="small" type="text" @click.stop>
-          <template #icon> <GeneralIcon icon="ncSettings" class="opacity-80" /> </template>
+          <template #icon>
+            <GeneralIcon icon="ncSettings" class="opacity-80" />
+          </template>
         </NcButton>
         <template #overlay>
           <div class="p-4 flex flex-col gap-3">

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import axios from 'axios'
 import type { PaginatedType } from 'nocodb-sdk'
+import axios from 'axios'
 
 interface Props {
   paginationData: PaginatedType
@@ -46,7 +46,8 @@ const page = computed({
     try {
       await changePage?.(p)
       isPaginationLoading.value = false
-    } catch (e) {
+    }
+    catch (e) {
       if (axios.isCancel(e)) {
         return
       }
@@ -68,7 +69,8 @@ const size = computed({
 
       if (vPaginationData.value.totalRows && page.value * size < vPaginationData.value.totalRows) {
         changePage?.(page.value)
-      } else {
+      }
+      else {
         changePage?.(1)
       }
     }
@@ -77,7 +79,7 @@ const size = computed({
 
 const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Language))
 
-const renderAltOrOptlKey = () => {
+function renderAltOrOptlKey() {
   return isMac() ? '⌥' : 'ALT'
 }
 
@@ -164,10 +166,10 @@ const tempPageVal = ref(page.value)
             selectedCellCount && selectedCellCount > 1
               ? $t('labels.cellsSelected')
               : customLabel
-              ? customLabel
-              : count !== 1
-              ? $t('objects.records')
-              : $t('objects.record')
+                ? customLabel
+                : count !== 1
+                  ? $t('objects.records')
+                  : $t('objects.record')
           }}
         </span>
       </div>

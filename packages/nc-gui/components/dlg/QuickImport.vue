@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { toRaw, unref } from '@vue/runtime-core'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
-import { Upload } from 'ant-design-vue'
-import { type TableType, charsetOptions, charsetOptionsMap, ncHasProperties } from 'nocodb-sdk'
-import { defineAsyncComponent } from 'vue'
-import rfdc from 'rfdc'
+import type { TableType } from 'nocodb-sdk'
 import type { ProgressMessageObjType } from '../../helpers/parsers/TemplateGenerator'
+import { Upload } from 'ant-design-vue'
+import { charsetOptions, charsetOptionsMap, ncHasProperties } from 'nocodb-sdk'
+import rfdc from 'rfdc'
+import { defineAsyncComponent, toRaw, unref } from 'vue'
 
 const {
   importType,
@@ -37,9 +37,9 @@ interface Props {
 }
 
 enum ImportTypeTabs {
-  'upload' = 'upload',
-  'uploadFromUrl' = 'uploadFromUrl',
-  'uploadJSON' = 'uploadJSON',
+  upload = 'upload',
+  uploadFromUrl = 'uploadFromUrl',
+  uploadJSON = 'uploadJSON',
 }
 
 const { $api, $importWorker } = useNuxtApp()
@@ -52,7 +52,7 @@ const config = useRuntimeConfig()
 
 const meta = inject(MetaInj, ref())
 
-const existingColumns = computed(() => meta.value?.columns?.filter((col) => !col.system) || [])
+const existingColumns = computed(() => meta.value?.columns?.filter(col => !col.system) || [])
 
 const isWorkerSupport = typeof Worker !== 'undefined'
 
@@ -144,16 +144,18 @@ const importMeta = computed(() => {
       loadUrlDirective: ['c:quick-import:excel:load-url'],
       acceptTypes: '.xls, .xlsx, .xlsm, .ods, .ots',
     }
-  } else if (isImportTypeCsv.value) {
+  }
+  else if (isImportTypeCsv.value) {
     return {
       header: importDataOnly ? t('activity.uploadCSV') : t('title.quickImportCSV'),
       icon: 'importCsv',
       uploadHint: '',
       urlInputLabel: t('msg.info.csvURL'),
       loadUrlDirective: ['c:quick-import:csv:load-url'],
-      acceptTypes: '.csv',
+      acceptTypes: '.csv, text/csv, text/comma-separated-values, application/csv',
     }
-  } else if (isImportTypeJson.value) {
+  }
+  else if (isImportTypeJson.value) {
     return {
       header: `${t('title.quickImportJSON')}`,
       icon: 'importJson',
@@ -190,7 +192,8 @@ const isPreImportUrlFilled = computed(() => {
 const isPreImportJsonFilled = computed(() => {
   try {
     return refMonacoEditor.value.isValid && JSON.stringify(importState.jsonEditor).length > 2
-  } catch {
+  }
+  catch {
     return false
   }
 })
@@ -206,16 +209,18 @@ const hideUpload = computed(() => preImportLoading.value || importState.fileList
 const disablePreImportButton = computed(() => {
   if (activeTab.value === ImportTypeTabs.upload) {
     return !isPreImportFileFilled.value
-  } else if (activeTab.value === ImportTypeTabs.uploadFromUrl) {
+  }
+  else if (activeTab.value === ImportTypeTabs.uploadFromUrl) {
     return !isPreImportUrlFilled.value
-  } else if (activeTab.value === ImportTypeTabs.uploadJSON) {
+  }
+  else if (activeTab.value === ImportTypeTabs.uploadJSON) {
     return !isPreImportJsonFilled.value
   }
 
   return true
 })
 
-const getBtnText = (isLoading: boolean = false) => {
+function getBtnText(isLoading: boolean = false) {
   // configure field screen
   if (templateEditorModal.value) {
     if (isLoading) {
@@ -259,36 +264,45 @@ async function handlePreImport() {
   if (isImportTypeCsv.value) {
     if (isPreImportFileMode) {
       await parseAndExtractData(importState.fileList as streamImportFileList)
-    } else if (isPreImportUrlFilled.value) {
+    }
+    else if (isPreImportUrlFilled.value) {
       try {
         await validate()
         await parseAndExtractData(importState.url)
-      } catch (e: any) {
+      }
+      catch (e: any) {
         localImportError.value = await extractSdkResponseErrorMsg(e)
       }
     }
-  } else if (isImportTypeJson.value) {
+  }
+  else if (isImportTypeJson.value) {
     if (isPreImportFileMode) {
       if (isWorkerSupport && importWorker) {
         await parseAndExtractData(importState.fileList as streamImportFileList)
-      } else {
+      }
+      else {
         await parseAndExtractData((importState.fileList as importFileList)[0].data)
       }
-    } else if (isPreImportJsonFilled.value) {
+    }
+    else if (isPreImportJsonFilled.value) {
       await parseAndExtractData(JSON.stringify(importState.jsonEditor))
     }
-  } else if (IsImportTypeExcel) {
+  }
+  else if (IsImportTypeExcel.value) {
     if (isPreImportFileMode) {
       if (isWorkerSupport && importWorker) {
         await parseAndExtractData(importState.fileList as streamImportFileList)
-      } else {
+      }
+      else {
         await parseAndExtractData((importState.fileList as importFileList)[0].data)
       }
-    } else if (isPreImportUrlFilled.value) {
+    }
+    else if (isPreImportUrlFilled.value) {
       try {
         await validate()
         await parseAndExtractData(importState.url)
-      } catch (e: any) {
+      }
+      catch (e: any) {
         localImportError.value = await extractSdkResponseErrorMsg(e)
       }
     }
@@ -315,13 +329,15 @@ async function handleImport() {
     if (activeWorkspace.value?.id) {
       workspace.loadWorkspace(activeWorkspace.value.id)
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.log(e)
 
     const errorMsg = await extractSdkResponseErrorMsg(e)
     localImportError.value = errorMsg
     return
-  } finally {
+  }
+  finally {
     importLoading.value = false
   }
 }
@@ -337,25 +353,28 @@ function handleChange(info: UploadChangeParam) {
 
   if (status && status !== 'uploading' && status !== 'removed') {
     if (isImportTypeCsv.value || (isWorkerSupport && importWorker)) {
-      if (!importState.fileList.find((f) => f.uid === info.file.uid)) {
+      if (!importState.fileList.find(f => f.uid === info.file.uid)) {
         ;(importState.fileList as streamImportFileList).push({
           ...info.file,
           status: 'done',
           encoding: 'utf-8',
         })
-      } else {
-        // need to set default encoding to utf-8
-        importState.fileList.find((f) => f.uid === info.file.uid)!.encoding = 'utf-8'
       }
-    } else {
+      else {
+        // need to set default encoding to utf-8
+        importState.fileList.find(f => f.uid === info.file.uid)!.encoding = 'utf-8'
+      }
+    }
+    else {
       const reader = new FileReader()
       reader.onload = (e: ProgressEvent<FileReader>) => {
-        const target = (importState.fileList as importFileList).find((f) => f.uid === info.file.uid)
+        const target = (importState.fileList as importFileList).find(f => f.uid === info.file.uid)
         if (e.target && e.target.result) {
           /** if the file was pushed into the list by `<a-upload-dragger>` we just add the data to the file */
           if (target) {
             target.data = e.target.result
-          } else if (!target) {
+          }
+          else if (!target) {
             /** if the file was added programmatically and not with d&d, we create file infos and push it into the list */
             importState.fileList.push({
               ...info.file,
@@ -382,8 +401,8 @@ function formatJson() {
 function populateUniqueTableName(tn: string, draftTn: string[] = []) {
   let c = 1
   while (
-    draftTn.includes(tn) ||
-    baseTables.value.get(baseId)?.some((t: TableType) => {
+    draftTn.includes(tn)
+    || baseTables.value.get(baseId)?.some((t: TableType) => {
       const s = t.table_name.split('___')
       let target = t.table_name
       if (s.length > 1) target = s[1]
@@ -409,7 +428,8 @@ function getAdapter(val: any) {
         undefined,
         unref(existingColumns),
       )
-    } else {
+    }
+    else {
       return new CSVTemplateAdapter(
         val,
         {
@@ -420,16 +440,20 @@ function getAdapter(val: any) {
         unref(existingColumns),
       )
     }
-  } else if (IsImportTypeExcel.value) {
+  }
+  else if (IsImportTypeExcel.value) {
     if (isPreImportFileMode) {
       return new ExcelTemplateAdapter(val, importState.parserConfig, undefined, undefined, unref(existingColumns))
-    } else {
+    }
+    else {
       return new ExcelUrlTemplateAdapter(val, importState.parserConfig, $api, undefined, undefined, unref(existingColumns))
     }
-  } else if (isImportTypeJson.value) {
+  }
+  else if (isImportTypeJson.value) {
     if (isPreImportFileMode) {
       return new JSONTemplateAdapter(val, importState.parserConfig)
-    } else {
+    }
+    else {
       return new JSONTemplateAdapter(val, importState.parserConfig)
     }
   }
@@ -442,7 +466,7 @@ defineExpose({
 })
 
 /** a workaround to override default antd upload api call */
-const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
+function customReqCbk(customReqArgs: { file: any, onSuccess: () => void }) {
   importState.fileList.forEach((f) => {
     if (f.uid === customReqArgs.file.uid) {
       f.status = 'done'
@@ -455,7 +479,7 @@ const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
 const showMaxFileLimitError = ref(false)
 
 /** check if the file size exceeds the limit */
-const beforeUpload = (file: UploadFile, fileList: UploadFile[]) => {
+function beforeUpload(file: UploadFile, fileList: UploadFile[]) {
   if (importState.fileList.length + fileList.length > maxFileUploadLimit.value) {
     showMaxFileLimitError.value = true
   }
@@ -473,9 +497,11 @@ function extractImportWorkerPayload(value: UploadFile[] | ArrayBuffer | string) 
   let importType: ImportType
   if (isImportTypeCsv.value) {
     importType = ImportType.CSV
-  } else if (IsImportTypeExcel.value) {
+  }
+  else if (IsImportTypeExcel.value) {
     importType = ImportType.EXCEL
-  } else if (isImportTypeJson.value) {
+  }
+  else if (isImportTypeJson.value) {
     importType = ImportType.JSON
   }
   importType = importType! ?? ImportType.CSV
@@ -486,9 +512,11 @@ function extractImportWorkerPayload(value: UploadFile[] | ArrayBuffer | string) 
 
   if (isPreImportFileMode) {
     importSource = ImportSource.FILE
-  } else if (isPreImportUrlFilled.value && importType !== ImportType.JSON) {
+  }
+  else if (isPreImportUrlFilled.value && importType !== ImportType.JSON) {
     importSource = ImportSource.URL
-  } else if (importType === ImportType.JSON) {
+  }
+  else if (importType === ImportType.JSON) {
     importSource = ImportSource.STRING
   }
   importSource = importSource! ?? ImportSource.FILE
@@ -525,13 +553,13 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
       let value = toRaw(val)
 
       // if array, iterate and unwrap proxy
-      if (Array.isArray(value)) value = value.map((v) => toRaw(v))
+      if (Array.isArray(value)) value = value.map(v => toRaw(v))
 
       const payload = extractImportWorkerPayload(value)
 
       importWorker.postMessage([
         ImportWorkerOperations.SET_TABLES,
-        unref(baseTables.value.get(baseId) ?? []).map((t) => ({
+        unref(baseTables.value.get(baseId) ?? []).map(t => ({
           table_name: t.table_name,
           title: t.title,
         })),
@@ -561,7 +589,8 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
             case ImportWorkerResponse.PROGRESS:
               if (ncHasProperties<ProgressMessageObjType>(payload, ['title', 'value'])) {
                 progressMsgNew.value = { ...progressMsgNew.value, [payload.title]: payload?.value ?? '' }
-              } else {
+              }
+              else {
                 progressMsg.value = payload
               }
 
@@ -594,7 +623,9 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
       await templateGenerator.parse()
 
       templateData.value = templateGenerator!.getTemplate()
-      if (importDataOnly) importColumns.value = templateGenerator!.getColumns()
+      if (importDataOnly) {
+        importColumns.value = templateGenerator!.getColumns()
+      }
       else {
         // ensure the target table name not exist in current table list
         const draftTableNames = [] as string[]
@@ -610,7 +641,8 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
 
     templateEditorModal.value = true
     showMaxFileLimitError.value = false
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.log(e)
 
     /**
@@ -619,17 +651,18 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
      */
     if (typeof e === 'string' && isPreImportUrlFilled.value && activeTab.value === ImportTypeTabs.uploadFromUrl) {
       localImportError.value = e.replace(importState.url, '').replace(/''/, '')
-    } else {
+    }
+    else {
       localImportError.value = (await extractSdkResponseErrorMsg(e)) || e?.toString()
     }
   }
 }
 
-const onError = () => {
+function onError() {
   isError.value = true
 }
 
-const onChange = () => {
+function onChange() {
   isError.value = false
 }
 
@@ -638,7 +671,7 @@ onMounted(() => {
   importState.parserConfig.autoSelectFieldTypes = importDataOnly
 })
 
-const onCancelImport = () => {
+function onCancelImport() {
   $importWorker.terminate()
   Object.assign(importState, defaultImportState)
   preImportLoading.value = false
@@ -659,7 +692,7 @@ onUnmounted(() => {
   onCancelImport()
 })
 
-const onClickCancel = () => {
+function onClickCancel() {
   dialogShow.value = false
   emit('back')
   onCancelImport()
@@ -670,7 +703,8 @@ function handleJsonChange(newValue: any) {
     temporaryJson.value = newValue
     importState.jsonEditor = JSON.parse(JSON.stringify(newValue))
     jsonErrorText.value = ''
-  } catch (e: any) {
+  }
+  catch (e: any) {
     jsonErrorText.value = e.message || 'Invalid JSON'
   }
 }
@@ -690,7 +724,8 @@ watch(
           try {
             temporaryJson.value = JSON.parse(new TextDecoder().decode(data))
             importState.jsonEditor = JSON.parse(new TextDecoder().decode(data))
-          } catch (e) {
+          }
+          catch (e) {
             console.log(e)
           }
         }
@@ -826,7 +861,9 @@ watch(
                             <template #default="{ visible }">
                               <NcButton size="small" type="secondary" class="w-[120px] children:children:w-full !text-small">
                                 <NcTooltip class="flex-none w-[85px] truncate text-left !leading-[20px]" show-on-truncate-only>
-                                  <template #title> {{ charsetOptionsMap[file.encoding]?.sortLabel ?? '' }}</template>
+                                  <template #title>
+                                    {{ charsetOptionsMap[file.encoding]?.sortLabel ?? '' }}
+                                  </template>
 
                                   {{ charsetOptionsMap[file.encoding]?.sortLabel?.replace('Windows', 'Win') ?? '' }}
                                 </NcTooltip>
@@ -852,8 +889,7 @@ watch(
                                 class="!w-full"
                                 variant="small"
                                 @update:open="onChangeVisibility"
-                              >
-                              </NcList>
+                              />
                             </template>
                           </NcDropdown>
                         </a-form-item>
@@ -867,7 +903,9 @@ watch(
                           class="!max-w-[120px] min-w-[120p] !leading-[18px] truncate"
                           show-on-truncate-only
                         >
-                          <template #title> {{ progressMsgNew[file.name] || progressMsg }}</template>
+                          <template #title>
+                            {{ progressMsgNew[file.name] || progressMsg }}
+                          </template>
 
                           <span class="!text-small text-nc-content-gray-muted">
                             {{ progressMsgNew[file.name] || progressMsg }}
@@ -926,8 +964,8 @@ watch(
                             show-on-truncate-only
                           >
                             <template #title>
-                              {{ progressMsgNew[importState.url.split('/').pop() ?? ''] || progressMsg }}</template
-                            >
+                              {{ progressMsgNew[importState.url.split('/').pop() ?? ''] || progressMsg }}
+                            </template>
 
                             <span class="!text-small text-nc-content-gray-muted">
                               {{ progressMsgNew[importState.url.split('/').pop() ?? ''] || progressMsg }}
@@ -964,7 +1002,9 @@ watch(
                       class="!max-w-1/2 min-w-[120p] !leading-[25px] truncate"
                       show-on-truncate-only
                     >
-                      <template #title> {{ progressMsgNew[importState.url.split('/').pop() ?? ''] || progressMsg }}</template>
+                      <template #title>
+                        {{ progressMsgNew[importState.url.split('/').pop() ?? ''] || progressMsg }}
+                      </template>
 
                       <span class="!text-small text-nc-content-gray-muted">
                         {{ progressMsgNew[importState.url.split('/').pop() ?? ''] || progressMsg }}
@@ -972,7 +1012,9 @@ watch(
                     </NcTooltip>
                     <GeneralLoader class="flex text-nc-content-brand" size="medium" />
                   </template>
-                  <NcButton v-else type="text" size="xsmall" class="!px-2" @click="formatJson()"> Format </NcButton>
+                  <NcButton v-else type="text" size="xsmall" class="!px-2" @click="formatJson()">
+                    Format
+                  </NcButton>
                 </div>
 
                 <div
@@ -1006,7 +1048,7 @@ watch(
                 <div v-if="jsonErrorText || refMonacoEditor?.error" class="text-nc-content-red-medium text-small mt-2">
                   {{ jsonErrorText || refMonacoEditor?.error }}
                 </div>
-                <div v-else></div>
+                <div v-else />
               </div>
             </a-tab-pane>
           </NcTabs>
@@ -1024,11 +1066,7 @@ watch(
         description-class="!text-small !leading-[18px]"
         :copy-text="importError"
         :message="$t('msg.error.importError')"
-        :description="
-          $t('msg.error.anErrorOccuredWhileImporting', {
-            type: getBtnText(true),
-          })
-        "
+        :description="importError"
         @close="handleResetImportError"
       />
 
@@ -1074,7 +1112,9 @@ watch(
             </a-form-item>
 
             <a-form-item v-if="!importDataOnly" class="!my-2 nc-dense-checkbox-container">
-              <NcCheckbox v-model:checked="importState.parserConfig.shouldImportData">{{ $t('labels.importData') }} </NcCheckbox>
+              <NcCheckbox v-model:checked="importState.parserConfig.shouldImportData">
+                {{ $t('labels.importData') }}
+              </NcCheckbox>
             </a-form-item>
           </a-collapse-panel>
         </a-collapse>
@@ -1135,6 +1175,10 @@ watch(
   border: none;
   padding: 0 !important;
 }
+.nc-modal-quick-import .ant-modal-content {
+  @apply xs:!p-4;
+}
+
 .nc-modal-quick-import .ant-collapse-content-box {
   @apply !pb-0;
   padding-top: 0 !important;

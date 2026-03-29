@@ -16,7 +16,7 @@ const isOpen = ref(true)
         <GeneralIcon :icon="isOpen ? 'ncChevronUp' : 'ncChevronDown'" class="w-4 h-4" />
       </NcButton>
     </header>
-    <slot v-if="isOpen"></slot>
+    <slot v-if="isOpen" />
   </div>
 </template>
 

@@ -1027,11 +1027,15 @@ export class AclMiddleware implements NestInterceptor {
       scope = 'base',
       allowedRoles,
       blockApiTokenAccess,
+      blockOAuthTokenAccess,
+      blockPublicBaseAccess,
       extendedScope,
     }: {
       scope?: string;
       allowedRoles?: (OrgUserRoles | string)[];
       blockApiTokenAccess?: boolean;
+      blockOAuthTokenAccess?: boolean;
+      blockPublicBaseAccess?: boolean;
       extendedScope?: string;
     } = {},
     context: ExecutionContext,
@@ -1079,10 +1083,7 @@ export class AclMiddleware implements NestInterceptor {
       NcError.forbidden('Unauthorized access');
     }
 
-    const userScopeRole =
-      req.user.roles?.[OrgUserRoles.SUPER_ADMIN] === true
-        ? OrgUserRoles.SUPER_ADMIN
-        : getUserRoleForScope(req.user, scope);
+    const userScopeRole = getUserRoleForScope(req.user, scope);
     // extendedScope is used to allow access based on extended scope in which permission is prefixed with scope name and separated by underscore
     const extendedScopeRoles =
       extendedScope && getUserRoleForScope(req.user, extendedScope);
@@ -1090,17 +1091,18 @@ export class AclMiddleware implements NestInterceptor {
       NcError.forbidden('Unauthorized access');
     }
 
-    // assign owner role to super admin for all bases
-    if (userScopeRole === OrgUserRoles.SUPER_ADMIN) {
-      req.user.base_roles = {
-        [ProjectRoles.OWNER]: true,
-      };
-    }
-
     const roles: Record<string, boolean> = extractRolesObj(userScopeRole);
 
     if (req?.user?.is_api_token && blockApiTokenAccess) {
       NcError.apiTokenNotAllowed();
+    }
+
+    if (req?.user?.is_oauth_token && blockOAuthTokenAccess) {
+      NcError.forbidden('Not allowed for OAuth token');
+    }
+
+    if (req?.user?.isPublicBase && blockPublicBaseAccess) {
+      NcError.forbidden('Not allowed for shared base');
     }
 
     if (
@@ -1253,6 +1255,14 @@ export class AclMiddleware implements NestInterceptor {
       'blockApiTokenAccess',
       context.getHandler(),
     );
+    const blockOAuthTokenAccess = this.reflector.get<boolean>(
+      'blockOAuthTokenAccess',
+      context.getHandler(),
+    );
+    const blockPublicBaseAccess = this.reflector.get<boolean>(
+      'blockPublicBaseAccess',
+      context.getHandler(),
+    );
     const scope = this.reflector.get<string>('scope', context.getHandler());
     const extendedScope = this.reflector.get<string>(
       'extendedScope',
@@ -1267,6 +1277,8 @@ export class AclMiddleware implements NestInterceptor {
         scope,
         allowedRoles,
         blockApiTokenAccess,
+        blockOAuthTokenAccess,
+        blockPublicBaseAccess,
         extendedScope,
       },
       context,
@@ -1288,11 +1300,15 @@ export const Acl =
       scope = 'base',
       allowedRoles,
       blockApiTokenAccess,
+      blockOAuthTokenAccess,
+      blockPublicBaseAccess,
       extendedScope,
     }: {
       scope?: string;
       allowedRoles?: (OrgUserRoles | string)[];
       blockApiTokenAccess?: boolean;
+      blockOAuthTokenAccess?: boolean;
+      blockPublicBaseAccess?: boolean;
       extendedScope?: string;
     } = {},
   ) =>
@@ -1303,6 +1319,16 @@ export const Acl =
     SetMetadata('extendedScope', extendedScope)(target, key, descriptor);
     SetMetadata('allowedRoles', allowedRoles)(target, key, descriptor);
     SetMetadata('blockApiTokenAccess', blockApiTokenAccess)(
+      target,
+      key,
+      descriptor,
+    );
+    SetMetadata('blockOAuthTokenAccess', blockOAuthTokenAccess)(
+      target,
+      key,
+      descriptor,
+    );
+    SetMetadata('blockPublicBaseAccess', blockPublicBaseAccess)(
       target,
       key,
       descriptor,

@@ -1,17 +1,17 @@
 <script lang="ts" setup>
-import gridImage from '~/assets/img/views/grid-with-sidebar.png'
-import galleryImage from '~/assets/img/views/gallery-with-sidebar.png'
-import kanbanImage from '~/assets/img/views/kanban-with-sidebar.png'
-import calendarImage from '~/assets/img/views/calendar-with-sidebar.png'
+import moscotCollaboration from '~/assets/img/moscot/collabe.png'
+import moscotGridTableBrand from '~/assets/img/moscot/grid-table-brand.png'
+import moscotGridTableOrange from '~/assets/img/moscot/grid-table-orange.png'
+import moscotWelcomeGreen from '~/assets/img/moscot/welcome-green.png'
 
 import moscotWelcomeOrange from '~/assets/img/moscot/welcome-orange.png'
-import moscotWelcomeGreen from '~/assets/img/moscot/welcome-green.png'
 import moscotWelcomePurple from '~/assets/img/moscot/welcome-purple.png'
+import calendarImage from '~/assets/img/views/calendar-with-sidebar.png'
 
-import moscotCollaboration from '~/assets/img/moscot/collabe.png'
+import galleryImage from '~/assets/img/views/gallery-with-sidebar.png'
 
-import moscotGridTableOrange from '~/assets/img/moscot/grid-table-orange.png'
-import moscotGridTableBrand from '~/assets/img/moscot/grid-table-brand.png'
+import gridImage from '~/assets/img/views/grid-with-sidebar.png'
+import kanbanImage from '~/assets/img/views/kanban-with-sidebar.png'
 
 const { questions, lastVisibleQuestionIndex, formState } = useOnboardingFlow()
 
@@ -22,7 +22,7 @@ const currentQuestion = computed(() => questions.value[lastVisibleQuestionIndex.
  */
 const nextQuestion = computed(() => questions.value[lastVisibleQuestionIndex.value + 1])
 
-const getRightSectionInfo = (question: OnboardingQuestionType): OnboardingRightSectionType => {
+function getRightSectionInfo(question: OnboardingQuestionType): OnboardingRightSectionType {
   if (!question || !question.rightSection) {
     return {
       themeColor: 'orange',
@@ -46,7 +46,7 @@ const bgColorClass = computed(() => {
   return onboardingFlowColoursMapping[rightSectionInfo.value.themeColor || 'orange']?.lightBg
 })
 
-const getMoscotImage = (moscot: OnboardingRightSectionType['moscot']) => {
+function getMoscotImage(moscot: OnboardingRightSectionType['moscot']) {
   switch (moscot) {
     case 'moscotWelcomeGreen':
       return moscotWelcomeGreen
@@ -92,7 +92,7 @@ const moscotImageSize = computed(() => {
   }
 })
 
-const getViewImage = (imageName: OnboardingRightSectionType['imageName']) => {
+function getViewImage(imageName: OnboardingRightSectionType['imageName']) {
   switch (imageName) {
     case 'grid':
       return gridImage
@@ -122,7 +122,7 @@ defineExpose({
 
 <template>
   <div class="flex flex-col items-center justify-center h-full relative overflow-hidden" :class="[bgColorClass]">
-    <div class="nc-view-image-box" :style="{ backgroundImage: `url(${viewImage})` }"></div>
+    <div class="nc-view-image-box" :style="{ backgroundImage: `url(${viewImage})` }" />
 
     <div class="nc-view-image-box nc-moscot-image-box">
       <div class="h-full w-full relative">
@@ -134,14 +134,14 @@ defineExpose({
             '!-left-[234px]': rightSectionInfo.moscot === 'moscotCollaboration',
           }"
           :style="moscotImageSize"
-        />
+        >
       </div>
     </div>
 
     <div class="hidden">
       <!-- Pre-render images to avoid flickering -->
-      <img v-if="nextQuestionMoscotImage" alt="prerender moscot image" :src="nextQuestionMoscotImage" />
-      <img v-if="nextQuestionViewImage" alt="prerender view image" :src="nextQuestionViewImage" />
+      <img v-if="nextQuestionMoscotImage" alt="prerender moscot image" :src="nextQuestionMoscotImage">
+      <img v-if="nextQuestionViewImage" alt="prerender view image" :src="nextQuestionViewImage">
     </div>
   </div>
 </template>

@@ -1,5 +1,4 @@
-import type { ComputedRef, Ref } from 'vue'
-import { EventType, FormulaDataTypes, UITypes, ViewTypes, isSystemColumn, isVirtualCol, workerWithTimezone } from 'nocodb-sdk'
+import type dayjs from 'dayjs'
 import type {
   Api,
   CalendarRangeType,
@@ -10,15 +9,13 @@ import type {
   TableType,
   ViewType,
 } from 'nocodb-sdk'
-import type dayjs from 'dayjs'
+import type { ComputedRef, Ref } from 'vue'
+import { EventType, FormulaDataTypes, isSystemColumn, isVirtualCol, UITypes, ViewTypes, workerWithTimezone } from 'nocodb-sdk'
 import { validateRowFilters } from '~/utils/dataUtils'
 
-const formatData = (
-  list: Record<string, any>[],
-  evaluateRowMetaRowColorInfoCallback?: (row: Record<string, any>) => RowMetaRowColorInfo,
-) =>
-  list.map(
-    (row) =>
+function formatData(list: Record<string, any>[], evaluateRowMetaRowColorInfoCallback?: (row: Record<string, any>) => RowMetaRowColorInfo) {
+  return list.map(
+    row =>
       ({
         row: { ...row },
         oldRow: { ...row },
@@ -27,6 +24,7 @@ const formatData = (
         },
       } as Row),
   )
+}
 
 const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
   (
@@ -35,10 +33,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       | Ref<(ViewType | CalendarType | undefined) & { id: string }>
       | ComputedRef<
           | (ViewType & {
-              id: string
-            })
+            id: string
+          })
           | undefined
-        >,
+      >,
     shared = false,
     where?: ComputedRef<string | undefined>,
   ) => {
@@ -54,7 +52,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { sharedView, fetchSharedViewData, fetchSharedViewActiveDate, fetchSharedCalendarViewData } = useSharedView()
 
-    const displayField = computed(() => meta.value?.columns?.find((c) => c.pv))
+    const displayField = computed(() => meta.value?.columns?.find(c => c.pv))
 
     /**
      * In shared view mode, `isPublic` will still be false because both
@@ -100,17 +98,17 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               id?: string
             },
           ) => {
-            const fromCol = meta.value?.columns?.find((col) => col.id === range.fk_from_column_id)
-            const toCol = range.fk_to_column_id ? meta.value?.columns?.find((col) => col.id === range.fk_to_column_id) : null
+            const fromCol = meta.value?.columns?.find(col => col.id === range.fk_from_column_id)
+            const toCol = range.fk_to_column_id ? meta.value?.columns?.find(col => col.id === range.fk_to_column_id) : null
 
             if (fromCol?.uidt === UITypes.Formula || toCol?.uidt === UITypes.Formula) {
               // Check if fromCol Formula return type is Date
-              const isFromColDate =
-                fromCol?.uidt === UITypes.Formula && (fromCol?.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE
+              const isFromColDate
+                = fromCol?.uidt === UITypes.Formula && (fromCol?.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE
               // Check if toCol Formula return type is Date
 
-              const isToColDate =
-                toCol?.uidt === UITypes.Formula && (toCol?.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE
+              const isToColDate
+                = toCol?.uidt === UITypes.Formula && (toCol?.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE
 
               if (!isFromColDate) {
                 message.error(`Please update the Formula column ${fromCol?.title} to return a date`)
@@ -127,7 +125,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               id: range?.id,
               fk_from_col: fromCol,
               fk_to_col: toCol,
-              is_readonly: [fromCol, toCol].some((col) => isSystemColumn(col) || isVirtualCol(col)),
+              is_readonly: [fromCol, toCol].some(col => isSystemColumn(col) || isVirtualCol(col)),
             }
           },
         )
@@ -256,7 +254,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       if (sideBarFilterOption.value === 'allRecords') {
         // If the sideBarFilterOption is allRecords, then we don't need to apply any filters
         combinedFilters = []
-      } else if (sideBarFilterOption.value === 'withoutDates') {
+      }
+      else if (sideBarFilterOption.value === 'withoutDates') {
         // If the sideBarFilterOption is withoutDates, then we need to filter out records that don't have a date
         calendarRange.value.forEach((range) => {
           const fromCol = range.fk_from_col
@@ -290,13 +289,14 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             children: combinedFilters,
           },
         ]
-      } else if (
-        sideBarFilterOption.value === 'week' ||
-        sideBarFilterOption.value === 'month' ||
-        sideBarFilterOption.value === 'day' ||
-        sideBarFilterOption.value === 'year' ||
-        sideBarFilterOption.value === 'selectedDate' ||
-        sideBarFilterOption.value === 'selectedHours'
+      }
+      else if (
+        sideBarFilterOption.value === 'week'
+        || sideBarFilterOption.value === 'month'
+        || sideBarFilterOption.value === 'day'
+        || sideBarFilterOption.value === 'year'
+        || sideBarFilterOption.value === 'selectedDate'
+        || sideBarFilterOption.value === 'selectedHours'
       ) {
         let prevDate: string | null | dayjs.Dayjs = null
         let fromDate: string | null | dayjs.Dayjs = null
@@ -398,13 +398,62 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                   },
                 ],
               },
+              // Include records where start date is in range but end date is missing
+              // (treat as single-day events)
+              {
+                is_group: true,
+                logical_op: 'or',
+                children: [
+                  {
+                    fk_column_id: fromCol.id,
+                    comparison_op: 'lt',
+                    comparison_sub_op: 'exactDate',
+                    value: nextDate,
+                  },
+                  {
+                    fk_column_id: fromCol.id,
+                    comparison_op: 'gt',
+                    comparison_sub_op: 'exactDate',
+                    value: prevDate,
+                  },
+                  {
+                    fk_column_id: toCol.id,
+                    comparison_op: 'blank',
+                  },
+                ],
+              },
+              // Include records where end date is in range but start date is missing
+              // (treat as single-day milestone events)
+              {
+                is_group: true,
+                logical_op: 'or',
+                children: [
+                  {
+                    fk_column_id: toCol.id,
+                    comparison_op: 'lt',
+                    comparison_sub_op: 'exactDate',
+                    value: nextDate,
+                  },
+                  {
+                    fk_column_id: toCol.id,
+                    comparison_op: 'gt',
+                    comparison_sub_op: 'exactDate',
+                    value: prevDate,
+                  },
+                  {
+                    fk_column_id: fromCol.id,
+                    comparison_op: 'blank',
+                  },
+                ],
+              },
             ]
             combinedFilters.push({
               is_group: true,
               logical_op: 'or',
               children: rangeFilter,
             })
-          } else if (fromCol) {
+          }
+          else if (fromCol) {
             rangeFilter = [
               {
                 fk_column_id: fromCol.id,
@@ -437,7 +486,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               children: [...combinedFilters, validSearchQueryForDisplayField.value],
             },
           ]
-        } else {
+        }
+        else {
           combinedFilters.push(validSearchQueryForDisplayField.value)
         }
       }
@@ -472,7 +522,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           ...formattedSideBarData.value,
           ...formatData(response!.list, getEvaluatedRowMetaRowColorInfo),
         ]
-      } catch (e) {
+      }
+      catch (e) {
         console.log(e)
       }
     }
@@ -495,7 +546,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         toDate = timezoneDayjs.timezonize(pageDate.value.endOf('month').endOf('week'))
         prevDate = fromDate.subtract(1, 'day').endOf('day')
         nextDate = toDate.startOf('day')
-      } else if (activeCalendarView.value === 'year') {
+      }
+      else if (activeCalendarView.value === 'year') {
         const startOfYear = timezoneDayjs.timezonize(selectedDate.value.startOf('year'))
         fromDate = timezoneDayjs.timezonize(startOfYear.startOf('week'))
         toDate = timezoneDayjs.timezonize(selectedDate.value.endOf('year')).endOf('week')
@@ -535,7 +587,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             'This current date range has more than 3000 records. Some records may not be displayed. To get complete records, contact support',
           )
         }
-      } catch (e) {
+      }
+      catch (e) {
         activeDates.value = []
         message.error(
           `${t('msg.error.fetchingActiveDates')} ${await extractSdkResponseErrorMsg(
@@ -567,7 +620,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         if (activeCalendarView.value === 'week') {
           selectedTime.value = null
         }
-      } catch (e) {
+      }
+      catch (e) {
         message.error('Error changing calendar view')
         console.log(e)
       }
@@ -575,8 +629,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const isSyncedFromColumn = computed(() => {
       return (
-        isSyncedTable.value &&
-        calendarRange.value.some((range) => {
+        isSyncedTable.value
+        && calendarRange.value.some((range) => {
           return !!range.fk_from_col?.readonly
         })
       )
@@ -657,7 +711,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               whereTz: Intl.DateTimeFormat().resolvedOptions().timeZone,
             })
         formattedData.value = formatData(res!.list, getEvaluatedRowMetaRowColorInfo)
-      } catch (e) {
+      }
+      catch (e) {
         message.error(
           `${t('msg.error.fetchingCalendarData')} ${await extractSdkResponseErrorMsg(
             e as Error & {
@@ -666,7 +721,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           )}`,
         )
         console.log(e)
-      } finally {
+      }
+      finally {
         isCalendarDataLoading.value = false
       }
     }
@@ -674,7 +730,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     function findRowInState(rowData: Record<string, any>) {
       const pk: Record<string, string> = rowPkData(rowData, meta?.value?.columns as ColumnType[])
       for (const row of formattedData.value) {
-        if (Object.keys(pk).every((k) => pk[k] === row.row[k])) {
+        if (Object.keys(pk).every(k => pk[k] === row.row[k])) {
           return row
         }
       }
@@ -701,13 +757,14 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           selectedTime.value = selectedDate.value
           if (pageDate.value.year() !== selectedDate.value.year()) {
             pageDate.value = selectedDate.value
-          } else if (pageDate.value.month() !== selectedDate.value.month()) {
+          }
+          else if (pageDate.value.month() !== selectedDate.value.month()) {
             pageDate.value = selectedDate.value
           }
           break
         case 'week':
-          selectedDateRange.value =
-            action === 'next'
+          selectedDateRange.value
+            = action === 'next'
               ? {
                   start: selectedDateRange.value.start.add(7, 'day'),
                   end: selectedDateRange.value.end.add(7, 'day'),
@@ -743,7 +800,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             })
 
         formattedSideBarData.value = formatData(res!.list, getEvaluatedRowMetaRowColorInfo)
-      } catch (e) {
+      }
+      catch (e) {
         message.error(
           `${t('msg.error.fetchingCalendarData')} ${await extractSdkResponseErrorMsg(
             e as Error & {
@@ -752,7 +810,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           )}`,
         )
         console.log(e)
-      } finally {
+      }
+      finally {
         isSidebarLoading.value = false
       }
     }
@@ -834,7 +893,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
         await fetchActiveDates()
         return updatedRowData
-      } catch (e: any) {
+      }
+      catch (e: any) {
         message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       }
     }
@@ -844,16 +904,20 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         if (sideBarFilterOption.value === 'selectedDate' && showSideMenu.value) {
           await loadSidebarData()
         }
-      } else if (activeCalendarView.value === 'year') {
+      }
+      else if (activeCalendarView.value === 'year') {
         if (value.year() !== oldValue.year()) {
           await Promise.all([loadCalendarData(), loadSidebarData(), await fetchActiveDates()])
-        } else if (sideBarFilterOption.value === 'selectedDate' && showSideMenu.value) {
+        }
+        else if (sideBarFilterOption.value === 'selectedDate' && showSideMenu.value) {
           await loadSidebarData()
         }
-      } else {
+      }
+      else {
         if (showSideMenu.value) {
           await Promise.all([loadSidebarData(), loadCalendarData()])
-        } else {
+        }
+        else {
           await Promise.all([loadCalendarData()])
         }
       }
@@ -885,14 +949,16 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         selectedMonth.value = selectedDate.value ?? selectedDateRange.value.start
         selectedDate.value = selectedDate.value ?? selectedDateRange.value.start
         selectedTime.value = selectedDate.value ?? selectedDateRange.value.start
-      } else if (oldValue === 'month') {
+      }
+      else if (oldValue === 'month') {
         pageDate.value = selectedDate.value
         selectedTime.value = selectedDate.value
         selectedDateRange.value = {
           start: selectedDate.value.startOf('week'),
           end: selectedDate.value.endOf('week'),
         }
-      } else if (oldValue === 'day') {
+      }
+      else if (oldValue === 'day') {
         pageDate.value = selectedDate.value
         selectedTime.value = selectedDate.value
         selectedMonth.value = selectedDate.value
@@ -900,7 +966,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           start: selectedDate.value.startOf('week'),
           end: selectedDate.value.endOf('week'),
         }
-      } else if (oldValue === 'year') {
+      }
+      else if (oldValue === 'year') {
         selectedMonth.value = selectedDate.value
         selectedTime.value = selectedDate.value
         pageDate.value = selectedDate.value
@@ -912,7 +979,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       sideBarFilterOption.value = activeCalendarView.value ?? 'allRecords'
       if (activeCalendarView.value === 'year') {
         await Promise.all([loadSidebarData(), fetchActiveDates()])
-      } else {
+      }
+      else {
         await Promise.all([loadCalendarData(), loadSidebarData(), fetchActiveDates()])
       }
     })
@@ -995,14 +1063,14 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
         if (fromDate) {
           const date = timezoneDayjs.timezonize(fromDate)
-          if (!activeDates.value.some((activeDate) => activeDate.isSame(date, 'day'))) {
+          if (!activeDates.value.some(activeDate => activeDate.isSame(date, 'day'))) {
             activeDates.value.push(date)
           }
         }
 
         if (toDate && toDate !== fromDate) {
           const date = timezoneDayjs.timezonize(toDate)
-          if (!activeDates.value.some((activeDate) => activeDate.isSame(date, 'day'))) {
+          if (!activeDates.value.some(activeDate => activeDate.isSame(date, 'day'))) {
             activeDates.value.push(date)
           }
         }
@@ -1083,10 +1151,12 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           if (shouldBeInCalendar || shouldBeInSidebar) {
             updateActiveDatesForNewRecord(payload)
           }
-        } catch (e) {
+        }
+        catch (e) {
           console.error('Failed to add calendar row on socket event', e)
         }
-      } else if (action === 'update') {
+      }
+      else if (action === 'update') {
         try {
           // Check if row currently exists in calendar view
           const calendarRowIndex = formattedData.value.findIndex((row) => {
@@ -1156,10 +1226,12 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             Object.assign(existingRow.oldRow, payload)
             Object.assign(existingRow.rowMeta, getEvaluatedRowMetaRowColorInfo(existingRow.row))
             existingRow.rowMeta.changed = false
-          } else if (calendarRowIndex !== -1 && !shouldBeInCalendar) {
+          }
+          else if (calendarRowIndex !== -1 && !shouldBeInCalendar) {
             // Case 2: Row exists in calendar BUT should be removed → Remove from calendar
             formattedData.value.splice(calendarRowIndex, 1)
-          } else if (calendarRowIndex === -1 && shouldBeInCalendar) {
+          }
+          else if (calendarRowIndex === -1 && shouldBeInCalendar) {
             // Case 3: Row doesn't exist in calendar BUT should be added → Add to calendar
             const newCalendarRow = {
               row: payload,
@@ -1171,7 +1243,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               },
             }
             formattedData.value.push(newCalendarRow)
-          } else {
+          }
+          else {
             // Case 4: Row doesn't exist in calendar AND shouldn't be added → No action
           }
 
@@ -1183,10 +1256,12 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             Object.assign(existingSidebarRow.oldRow, payload)
             Object.assign(existingSidebarRow.rowMeta, getEvaluatedRowMetaRowColorInfo(existingSidebarRow.row))
             existingSidebarRow.rowMeta.changed = false
-          } else if (sidebarRowIndex !== -1 && !shouldBeInSidebar) {
+          }
+          else if (sidebarRowIndex !== -1 && !shouldBeInSidebar) {
             // Case 6: Row exists in sidebar BUT should be removed → Remove from sidebar
             formattedSideBarData.value.splice(sidebarRowIndex, 1)
-          } else if (sidebarRowIndex === -1 && shouldBeInSidebar) {
+          }
+          else if (sidebarRowIndex === -1 && shouldBeInSidebar) {
             // Case 7: Row doesn't exist in sidebar BUT should be added → Add to sidebar
             const newSidebarRow = {
               row: payload,
@@ -1198,16 +1273,19 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               },
             }
             formattedSideBarData.value.unshift(newSidebarRow)
-          } else {
+          }
+          else {
             // Case 8: Row doesn't exist in sidebar AND shouldn't be added → No action
           }
 
           // Update active dates after any changes
           fetchActiveDates()
-        } catch (e) {
+        }
+        catch (e) {
           console.error('Failed to update calendar row on socket event', e)
         }
-      } else if (action === 'delete') {
+      }
+      else if (action === 'delete') {
         try {
           // For delete, we need to remove the row from wherever it exists
           // We don't need to check filters since we're removing it entirely
@@ -1240,7 +1318,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           if (removedFromCalendar || removedFromSidebar) {
             fetchActiveDates()
           }
-        } catch (e) {
+        }
+        catch (e) {
           console.error('Failed to delete calendar row on socket event', e)
         }
       }

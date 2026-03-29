@@ -1,28 +1,27 @@
-import { parse } from 'papaparse'
+import type { AttachmentType, ColumnType, LinkToAnotherRecordType, TableType, ViewType } from 'nocodb-sdk'
+import type { Cell } from '../../../../../composables/useMultiSelect/cellRange'
+import type { SuppressedError } from '../../../../../error/suppressed.error'
+import type { ActionManager } from '../loaders/ActionManager'
 import {
-  type AttachmentType,
-  type ColumnType,
-  type LinkToAnotherRecordType,
-  PermissionEntity,
-  PermissionKey,
-  type TableType,
-  UITypes,
-  type ViewType,
+
   isLinksOrLTAR,
   isSystemColumn,
+
   isVirtualCol,
+
+  PermissionEntity,
+  PermissionKey,
   populateUniqueFileName,
+  UITypes,
 } from 'nocodb-sdk'
-import { generateUniqueColumnName } from '../../../../../helpers/parsers/parserHelpers'
+import { parse } from 'papaparse'
 import convertCellData from '../../../../../composables/useMultiSelect/convertCellData'
-import type { Cell } from '../../../../../composables/useMultiSelect/cellRange'
-import { serializeRange, valueToCopy } from '../../../../../utils/pasteUtils'
 import { ComputedTypePasteError } from '../../../../../error/computed-type-paste.error'
 import { SelectTypeConversionError } from '../../../../../error/select-type-conversion.error'
 import { TypeConversionError } from '../../../../../error/type-conversion.error'
-import type { SuppressedError } from '../../../../../error/suppressed.error'
+import { generateUniqueColumnName } from '../../../../../helpers/parsers/parserHelpers'
+import { serializeRange, valueToCopy } from '../../../../../utils/pasteUtils'
 import { EDIT_INTERACTABLE } from '../utils/constants'
-import type { ActionManager } from '../loaders/ActionManager'
 
 const MAX_ROWS = 5000
 
@@ -78,12 +77,12 @@ export function useCopyPaste({
   }>
   view: ComputedRef<ViewType | undefined>
   meta: Ref<TableType>
-  syncCellData: (ctx: { row: number; column?: number; updatedColumnTitle?: string }, path?: Array<number>) => Promise<void>
+  syncCellData: (ctx: { row: number, column?: number, updatedColumnTitle?: string }, path?: Array<number>) => Promise<void>
   bulkUpsertRows: (
     insertRows: Row[],
     updateRows: Row[],
     props: string[],
-    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    metas?: { metaValue?: TableType, viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
     undo?: boolean,
     path?: Array<number>,
@@ -91,7 +90,7 @@ export function useCopyPaste({
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
-    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    metas?: { metaValue?: TableType, viewMetaValue?: ViewType },
     undo?: boolean,
     path?: Array<number>,
   ) => Promise<void>
@@ -99,7 +98,7 @@ export function useCopyPaste({
     row: Row,
     property?: string,
     ltarState?: Record<string, any>,
-    args?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    args?: { metaValue?: TableType, viewMetaValue?: ViewType },
     beforeRow?: string,
     path?: Array<number>,
   ) => Promise<any>
@@ -139,7 +138,7 @@ export function useCopyPaste({
   const isPublic = inject(IsPublicInj, ref(false))
 
   const { base } = storeToRefs(useBase())
-  const fields = computed(() => (columns.value ?? []).map((c) => c.columnObj))
+  const fields = computed(() => (columns.value ?? []).map(c => c.columnObj))
 
   const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 
@@ -147,10 +146,10 @@ export function useCopyPaste({
     if (isSqlView.value || isPublic.value || !hasEditPermission.value) return false
 
     return (
-      !editEnabled.value ||
-      (editEnabled.value &&
-        EDIT_INTERACTABLE.includes(editEnabled.value.column?.uidt) &&
-        !(activeCell.value.row === -1 || activeCell.value.column === -1))
+      !editEnabled.value
+      || (editEnabled.value
+        && EDIT_INTERACTABLE.includes(editEnabled.value.column?.uidt)
+        && !(activeCell.value.row === -1 || activeCell.value.column === -1))
     )
   })
 
@@ -223,15 +222,15 @@ export function useCopyPaste({
     if (!meta.value?.id) return
 
     if (
-      isDrawerOrModalExist() ||
-      isExpandedCellInputExist() ||
-      isLinkDropdownExist() ||
-      isViewSearchActive() ||
-      isSidebarNodeRenameActive() ||
-      isActiveElementInsideExtension() ||
-      isActiveElementInsideScriptPane() ||
-      isCmdJActive() ||
-      cmdKActive()
+      isDrawerOrModalExist()
+      || isExpandedCellInputExist()
+      || isLinkDropdownExist()
+      || isViewSearchActive()
+      || isSidebarNodeRenameActive()
+      || isActiveElementInsideExtension()
+      || isActiveElementInsideScriptPane()
+      || isCmdJActive()
+      || cmdKActive()
     ) {
       return
     }
@@ -278,7 +277,7 @@ export function useCopyPaste({
 
         // Special handling for "null" values - convert literal "null" strings to empty strings
         // This ensures that empty cells from numeric fields don't appear as "null" text
-        clipboardMatrix = clipboardMatrix.map((row) => row.map((cell) => (cell === 'null' ? '' : cell)))
+        clipboardMatrix = clipboardMatrix.map(row => row.map(cell => (cell === 'null' ? '' : cell)))
 
         let isTruncated = false
         if (clipboardMatrix.length > MAX_ROWS) {
@@ -369,7 +368,8 @@ export function useCopyPaste({
             await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
             colsToPaste = [...colsToPaste, ...bulkOpsCols.map(({ column }) => column)]
           }
-        } else {
+        }
+        else {
           colsToPaste = fields.value.slice(selection.value.start.col, selection.value.start.col + pasteMatrixCols)
         }
 
@@ -403,7 +403,8 @@ export function useCopyPaste({
             if (targetRow.rowMeta?.isRlsHidden) continue
 
             updatedRows.push(targetRow)
-          } else {
+          }
+          else {
             targetRow = {
               row: {},
               oldRow: {},
@@ -443,25 +444,32 @@ export function useCopyPaste({
                   true,
                 )
                 validateColumnValue(column, pasteValue)
-              } catch (ex) {
+              }
+              catch (ex) {
                 if (ex instanceof ComputedTypePasteError) {
                   throw ex
-                } else if (ex instanceof SelectTypeConversionError) {
+                }
+                else if (ex instanceof SelectTypeConversionError) {
                   await appendSelectOptions({
                     api: $api,
                     col: column!,
                     addOptions: ex.missingOptions,
                   })
                   pasteValue = ex.value.join(',')
-                } else if (ex instanceof TypeConversionError) {
+                }
+                else if (ex instanceof TypeConversionError) {
                   pasteValue = null
-                } else throw ex
+                }
+                else {
+                  throw ex
+                }
               }
 
               if (pasteValue !== undefined) {
                 targetRow.row[column.title!] = pasteValue
               }
-            } else if ((isBt(column) || isOo(column) || isMm(column)) && !isInfoShown) {
+            }
+            else if ((isBt(column) || isOo(column) || isMm(column)) && !isInfoShown) {
               message.toast(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
               isInfoShown = true
             }
@@ -479,14 +487,16 @@ export function useCopyPaste({
             groupPath,
           )
           scrollToCell?.(undefined, undefined, groupPath)
-        } else {
+        }
+        else {
           await bulkUpdateRows?.(updatedRows, propsToPaste, undefined, false, groupPath)
         }
 
         if (isTruncated) {
           message.warning(t('tooltip.pasteOperationLimitedToMaxRows', { max: MAX_ROWS }))
         }
-      } else {
+      }
+      else {
         if (selection.value.isSingleCell()) {
           const rowObj = (unref(cachedRows) as Map<number, Row>).get(activeCell.value.row)
           const columnObj = unref(fields)[activeCell.value.column]
@@ -516,8 +526,8 @@ export function useCopyPaste({
 
             if (!foreignKeyColumn) return
 
-            const relatedBaseId =
-              (columnObj.colOptions as LinkToAnotherRecordType as any)?.fk_related_base_id || meta?.value?.base_id
+            const relatedBaseId
+              = (columnObj.colOptions as LinkToAnotherRecordType as any)?.fk_related_base_id || meta?.value?.base_id
             const relatedTableMeta = await getMeta(
               relatedBaseId as string,
               (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!,
@@ -590,7 +600,8 @@ export function useCopyPaste({
                   },
                 ],
               )
-            } catch {
+            }
+            catch {
               rowObj.row[columnObj.title!] = oldCellValue
               return
             }
@@ -608,42 +619,42 @@ export function useCopyPaste({
                     col: ColumnType,
                     row: Row,
                     value: number,
-                    result: { link: any[]; unlink: any[] },
+                    result: { link: any[], unlink: any[] },
                   ) => {
                     const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
                     const rowObj = (unref(cachedRows) as Map<number, Row>).get(activeCell.row)
                     if (!rowObj || !pasteRowPk) return
                     if (
-                      pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
-                      columnObj.id === col.id
+                      pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
+                      && columnObj.id === col.id
                     ) {
                       await Promise.all([
-                        result.link.length &&
-                          $api.internal.postOperation(
-                            meta.value?.fk_workspace_id as string,
-                            meta.value?.base_id as string,
-                            {
-                              operation: 'nestedDataLink',
-                              tableId: meta.value?.id as string,
-                              columnId: columnObj.id as string,
-                              rowId: pasteRowPk,
-                              viewId: view?.value?.id,
-                            },
-                            result.link,
-                          ),
-                        result.unlink.length &&
-                          $api.internal.postOperation(
-                            meta.value?.fk_workspace_id as string,
-                            meta.value?.base_id as string,
-                            {
-                              operation: 'nestedDataUnlink',
-                              tableId: meta.value?.id as string,
-                              columnId: columnObj.id as string,
-                              rowId: pasteRowPk,
-                              viewId: view?.value?.id,
-                            },
-                            result.unlink,
-                          ),
+                        result.link.length
+                        && $api.internal.postOperation(
+                          meta.value?.fk_workspace_id as string,
+                          meta.value?.base_id as string,
+                          {
+                            operation: 'nestedDataLink',
+                            tableId: meta.value?.id as string,
+                            columnId: columnObj.id as string,
+                            rowId: pasteRowPk,
+                            viewId: view?.value?.id,
+                          },
+                          result.link,
+                        ),
+                        result.unlink.length
+                        && $api.internal.postOperation(
+                          meta.value?.fk_workspace_id as string,
+                          meta.value?.base_id as string,
+                          {
+                            operation: 'nestedDataUnlink',
+                            tableId: meta.value?.id as string,
+                            columnId: columnObj.id as string,
+                            rowId: pasteRowPk,
+                            viewId: view?.value?.id,
+                          },
+                          result.unlink,
+                        ),
                       ])
 
                       rowObj.row[columnObj.title!] = value
@@ -659,41 +670,41 @@ export function useCopyPaste({
                     col: ColumnType,
                     row: Row,
                     value: number,
-                    result: { link: any[]; unlink: any[] },
+                    result: { link: any[], unlink: any[] },
                   ) => {
                     const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
                     const rowObj = (unref(cachedRows) as Map<number, Row>).get(activeCell.row)
                     if (!rowObj || !pasteRowPk) return
 
                     if (
-                      pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
-                      columnObj.id === col.id
+                      pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
+                      && columnObj.id === col.id
                     ) {
                       await Promise.all([
-                        result.unlink.length &&
-                          $api.internal.postOperation(
-                            meta.value?.fk_workspace_id as string,
-                            meta.value?.base_id as string,
-                            {
-                              operation: 'nestedDataLink',
-                              tableId: meta.value?.id as string,
-                              columnId: columnObj.id as string,
-                              rowId: pasteRowPk,
-                            },
-                            result.unlink,
-                          ),
-                        result.link.length &&
-                          $api.internal.postOperation(
-                            meta.value?.fk_workspace_id as string,
-                            meta.value?.base_id as string,
-                            {
-                              operation: 'nestedDataUnlink',
-                              tableId: meta.value?.id as string,
-                              columnId: columnObj.id as string,
-                              rowId: pasteRowPk,
-                            },
-                            result.link,
-                          ),
+                        result.unlink.length
+                        && $api.internal.postOperation(
+                          meta.value?.fk_workspace_id as string,
+                          meta.value?.base_id as string,
+                          {
+                            operation: 'nestedDataLink',
+                            tableId: meta.value?.id as string,
+                            columnId: columnObj.id as string,
+                            rowId: pasteRowPk,
+                          },
+                          result.unlink,
+                        ),
+                        result.link.length
+                        && $api.internal.postOperation(
+                          meta.value?.fk_workspace_id as string,
+                          meta.value?.base_id as string,
+                          {
+                            operation: 'nestedDataUnlink',
+                            tableId: meta.value?.id as string,
+                            columnId: columnObj.id as string,
+                            rowId: pasteRowPk,
+                          },
+                          result.link,
+                        ),
                       ])
 
                       rowObj.row[columnObj.title!] = value
@@ -733,45 +744,54 @@ export function useCopyPaste({
               isMysql(meta.value?.source_id),
             )
             validateColumnValue(columnObj, pasteValue)
-          } catch (ex) {
+          }
+          catch (ex) {
             if (ex instanceof ComputedTypePasteError) {
               throw ex
-            } else if (ex instanceof SelectTypeConversionError) {
+            }
+            else if (ex instanceof SelectTypeConversionError) {
               await appendSelectOptions({
                 api: $api,
                 col: columnObj!,
                 addOptions: ex.missingOptions,
               })
               pasteValue = ex.value.join(',')
-            } else if (ex instanceof TypeConversionError) {
+            }
+            else if (ex instanceof TypeConversionError) {
               pasteValue = null
-            } else throw ex
+            }
+            else {
+              throw ex
+            }
           }
 
           if (columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length && pasteValue?.length) {
             const pasteRowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
 
             const uploadAction = async () => {
-              const newAttachments =
-                (await handleFileUploadAndGetCellValue(pasteValue, columnObj.id!, rowObj.row[columnObj.title!])) || []
+              const newAttachments
+                = (await handleFileUploadAndGetCellValue(pasteValue, columnObj.id!, rowObj.row[columnObj.title!])) || []
 
               const oldAttachments = ncIsArray(rowObj.row[columnObj.title!]) ? rowObj.row[columnObj.title!] : []
 
-              rowObj.row[columnObj.title!] =
-                newAttachments.length || oldAttachments.length ? JSON.stringify(oldAttachments.concat(newAttachments)) : null
+              rowObj.row[columnObj.title!]
+                = newAttachments.length || oldAttachments.length ? JSON.stringify(oldAttachments.concat(newAttachments)) : null
             }
 
             if (pasteRowPk) {
               await actionManager.executeUploadAction(pasteRowPk, columnObj.id!, [], uploadAction)
-            } else {
+            }
+            else {
               await uploadAction()
             }
-          } else if (pasteValue !== undefined) {
+          }
+          else if (pasteValue !== undefined) {
             rowObj.row[columnObj.title!] = pasteValue
           }
 
           await syncCellData?.(activeCell.value, groupPath)
-        } else {
+        }
+        else {
           const { start, end } = selection.value
 
           const startRow = Math.min(start.row, end.row)
@@ -849,12 +869,14 @@ export function useCopyPaste({
                     if (pasteRowsPk.length) {
                       // We do upload action for first row only and use uploaded url in other rows
                       await actionManager.executeUploadAction(pasteRowsPk, col.id!, [], uploadAction)
-                    } else {
+                    }
+                    else {
                       await uploadAction()
                     }
                   }
                 }
-              } else {
+              }
+              else {
                 try {
                   pasteValue = convertCellData(
                     {
@@ -875,19 +897,25 @@ export function useCopyPaste({
                     true,
                   )
                   validateColumnValue(col, pasteValue)
-                } catch (ex) {
+                }
+                catch (ex) {
                   if (ex instanceof ComputedTypePasteError) {
                     throw ex
-                  } else if (ex instanceof SelectTypeConversionError) {
+                  }
+                  else if (ex instanceof SelectTypeConversionError) {
                     await appendSelectOptions({
                       api: $api,
                       col,
                       addOptions: ex.missingOptions,
                     })
                     pasteValue = ex.value.join(',')
-                  } else if (ex instanceof TypeConversionError) {
+                  }
+                  else if (ex instanceof TypeConversionError) {
                     pasteValue = null
-                  } else throw ex
+                  }
+                  else {
+                    throw ex
+                  }
                 }
               }
 
@@ -903,15 +931,17 @@ export function useCopyPaste({
           await bulkUpdateRows?.(rows, props, undefined, false, groupPath)
         }
       }
-    } catch (error: any) {
+    }
+    catch (error: any) {
       if (error instanceof TypeConversionError !== true || !(error as SuppressedError).isErrorSuppressed) {
         console.error(error, (error as SuppressedError).isErrorSuppressed)
         message.error(await extractSdkResponseErrorMsg(error))
       }
-    } finally {
+    }
+    finally {
       // After paste operation is completed, remove the waiting clipboard data id so that on setClipboardDateItem can remove the item from the clipboard data
       if (storedCopiedData && waitingCellClipboardDataIds.value.includes(storedCopiedData.id)) {
-        waitingCellClipboardDataIds.value = waitingCellClipboardDataIds.value.filter((id) => id !== storedCopiedData.id)
+        waitingCellClipboardDataIds.value = waitingCellClipboardDataIds.value.filter(id => id !== storedCopiedData.id)
       }
     }
   }
@@ -928,12 +958,13 @@ export function useCopyPaste({
           ...uploadedFile,
           title: populateUniqueFileName(
             uploadedFile?.title,
-            [...handleParseAttachmentCellData(oldValue), ...newAttachments].map((fn) => fn?.title || (fn as any)?.fileName),
+            [...handleParseAttachmentCellData(oldValue), ...newAttachments].map(fn => fn?.title || (fn as any)?.fileName),
           ),
         })
       }
       return newAttachments
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error((await extractSdkResponseErrorMsg(e)) || t('msg.error.internalError'))
     }
   }
@@ -967,7 +998,7 @@ export function useCopyPaste({
     return res
   }
 
-  async function clearCell(ctx: { row: number; col: number; path?: Array<number> } | null, skipUpdate = false) {
+  async function clearCell(ctx: { row: number, col: number, path?: Array<number> } | null, skipUpdate = false) {
     // If the data is readonly, return
     // If the cell is not available, return
     // If the user doesn't have edit permission, return
@@ -986,18 +1017,18 @@ export function useCopyPaste({
     const columnObj = col.columnObj
 
     if (
-      !columnObj ||
-      isDataReadOnly.value ||
-      !ctx ||
-      !hasEditPermission.value ||
-      columnObj.readonly ||
-      (isSystemColumn(columnObj) && !isLinksOrLTAR(columnObj)) ||
-      (!isLinksOrLTAR(columnObj) && isVirtualCol(columnObj))
+      !columnObj
+      || isDataReadOnly.value
+      || !ctx
+      || !hasEditPermission.value
+      || columnObj.readonly
+      || (isSystemColumn(columnObj) && !isLinksOrLTAR(columnObj))
+      || (!isLinksOrLTAR(columnObj) && isVirtualCol(columnObj))
     ) {
       if (
-        columnObj.readonly ||
-        (isSystemColumn(columnObj) && !isLinksOrLTAR(columnObj)) ||
-        (!isLinksOrLTAR(columnObj) && isVirtualCol(columnObj))
+        columnObj.readonly
+        || (isSystemColumn(columnObj) && !isLinksOrLTAR(columnObj))
+        || (!isLinksOrLTAR(columnObj) && isVirtualCol(columnObj))
       ) {
         message.toast(t('msg.info.computedFieldClearWarning'))
       }
@@ -1018,7 +1049,7 @@ export function useCopyPaste({
       addUndo({
         undo: {
           fn: async (
-            ctx: { row: number; col: number },
+            ctx: { row: number, col: number },
             col: ColumnType,
             row: Row,
             mmClearResult: any[],
@@ -1029,18 +1060,19 @@ export function useCopyPaste({
             const rowObj = cachedRows.value.get(ctx.row)
             const columnObj = fields.value[ctx.col]
             if (
-              rowObj &&
-              columnObj &&
-              columnObj.title &&
-              rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
-              columnObj.id === col.id
+              rowObj
+              && columnObj
+              && columnObj.title
+              && rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
+              && columnObj.id === col.id
             ) {
               if (isBt(columnObj) || isOo(columnObj)) {
                 rowObj.row[columnObj.title] = row.row[columnObj.title]
 
                 await addLTARRef(rowObj, rowObj.row[columnObj.title], columnObj)
                 await syncLTARRefs(rowObj, rowObj.row)
-              } else if (isMm(columnObj)) {
+              }
+              else if (isMm(columnObj)) {
                 await $api.internal.postOperation(
                   meta.value?.fk_workspace_id as string,
                   meta.value?.base_id as string,
@@ -1064,26 +1096,28 @@ export function useCopyPaste({
               }
 
               scrollToCell?.(undefined, undefined, groupPath)
-            } else {
+            }
+            else {
               throw new Error(t('msg.recordCouldNotBeFound'))
             }
           },
           args: [clone(ctx), clone(columnObj), clone(rowObj), mmClearResult, mmOldResult, isSelfLinkColumn],
         },
         redo: {
-          fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, isSelfLinkColumn: boolean) => {
+          fn: async (ctx: { row: number, col: number }, col: ColumnType, row: Row, isSelfLinkColumn: boolean) => {
             const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
             const rowObj = cachedRows.value.get(ctx.row)
             const columnObj = fields.value[ctx.col]
             if (
-              rowObj &&
-              rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
-              columnObj &&
-              columnObj.id === col.id
+              rowObj
+              && rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
+              && columnObj
+              && columnObj.id === col.id
             ) {
               if (isBt(columnObj) || isOo(columnObj)) {
                 await clearLTARCell(rowObj, columnObj)
-              } else if (isMm(columnObj)) {
+              }
+              else if (isMm(columnObj)) {
                 await cleaMMCell(rowObj, columnObj)
               }
               activeCell.value.column = ctx.col
@@ -1095,7 +1129,8 @@ export function useCopyPaste({
               }
 
               scrollToCell?.(undefined, undefined, groupPath)
-            } else {
+            }
+            else {
               throw new Error(t('msg.recordCouldNotBeFound'))
             }
           },
@@ -1146,7 +1181,8 @@ export function useCopyPaste({
             n: cprows.length * cpcols.length,
           }),
         )
-      } else {
+      }
+      else {
         const dataCache = getDataCache(path)
 
         // if copy was called with context (right click position) - copy value from context
@@ -1188,7 +1224,8 @@ export function useCopyPaste({
           )
         }
       }
-    } catch (e) {
+    }
+    catch (e) {
       console.log(e)
       message.error(t('msg.error.copyToClipboardError'))
     }
@@ -1228,7 +1265,8 @@ export function useCopyPaste({
           isMysql(meta.value?.source_id),
         )
         validateColumnValue(columnObj, dropValue)
-      } catch (ex) {
+      }
+      catch (ex) {
         dropValue = null
       }
 
@@ -1238,13 +1276,13 @@ export function useCopyPaste({
       if (!dropRowPk) return
 
       await actionManager.executeUploadAction(dropRowPk, columnObj.id!, [], async () => {
-        const newAttachments =
-          (await handleFileUploadAndGetCellValue(dropValue, columnObj.id!, rowObj.row[columnObj.title!])) || []
+        const newAttachments
+          = (await handleFileUploadAndGetCellValue(dropValue, columnObj.id!, rowObj.row[columnObj.title!])) || []
 
         const oldAttachments = ncIsArray(rowObj.row[columnObj.title!]) ? rowObj.row[columnObj.title!] : []
 
-        rowObj.row[columnObj.title!] =
-          newAttachments.length || oldAttachments.length ? JSON.stringify(oldAttachments.concat(newAttachments)) : null
+        rowObj.row[columnObj.title!]
+          = newAttachments.length || oldAttachments.length ? JSON.stringify(oldAttachments.concat(newAttachments)) : null
 
         await syncCellData?.(
           {
@@ -1254,7 +1292,8 @@ export function useCopyPaste({
           attachmentCellDropOver.path,
         )
       })
-    } catch (ex) {
+    }
+    catch (ex) {
       console.log(ex)
       message.error(t('msg.error.errorOccuredWhileDroppingAttachments'))
     }
@@ -1265,7 +1304,8 @@ export function useCopyPaste({
 
     if (parsedVal && Array.isArray(parsedVal)) {
       return parsedVal as T
-    } else {
+    }
+    else {
       return [] as T
     }
   }

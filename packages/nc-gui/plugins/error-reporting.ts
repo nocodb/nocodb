@@ -1,5 +1,5 @@
-import * as Sentry from '@sentry/vue'
 import type { Api } from 'nocodb-sdk'
+import * as Sentry from '@sentry/vue'
 
 class ErrorReporting {
   errors: Error[] = []
@@ -10,14 +10,15 @@ class ErrorReporting {
       try {
         const errors = this.errors
           // filter out duplicate errors and only include 2 lines of stack trace
-          .filter((error, index, self) => index === self.findIndex((t) => t.message === error.message))
-          .map((error) => ({
+          .filter((error, index, self) => index === self.findIndex(t => t.message === error.message))
+          .map(error => ({
             message: error.message,
             stack: error.stack?.split('\n').slice(0, 2).join('\n'),
           }))
         this.errors = []
         this.$api.utils.errorReport({ errors, extra: {} })
-      } catch {
+      }
+      catch {
         // ignore
       }
     },
@@ -39,10 +40,11 @@ class ErrorReporting {
 
 export default defineNuxtPlugin((nuxtApp) => {
   if (isEeUI) {
-    nuxtApp.provide('report', function (error: Error) {
+    nuxtApp.provide('report', (error: Error) => {
       try {
         Sentry.captureException(error)
-      } catch {
+      }
+      catch {
         // ignore
       }
     })
@@ -66,7 +68,8 @@ export default defineNuxtPlugin((nuxtApp) => {
       isErrorReportingEnabled = enabled
       if (enabled && !sentryDSN) {
         errorReporting = new ErrorReporting(nuxtApp.$api as Api<unknown>)
-      } else {
+      }
+      else {
         errorReporting = null
       }
     },
@@ -84,7 +87,8 @@ export default defineNuxtPlugin((nuxtApp) => {
 
     if (isSentryConfigured) {
       Sentry.captureException(error)
-    } else if (isErrorReportingEnabled) {
+    }
+    else if (isErrorReportingEnabled) {
       errorReporting?.collect(error)
     }
   }

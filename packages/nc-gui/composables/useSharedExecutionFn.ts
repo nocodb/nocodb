@@ -38,10 +38,11 @@ export function useSharedExecutionFn<T>(key: string, fn: () => Promise<T> | T, o
 
   debugLog(`Tab initialized with ID: ${tabId}`)
 
-  const getLock = (): { timestamp: number; tabId: string } | null => {
+  const getLock = (): { timestamp: number, tabId: string } | null => {
     try {
       return JSON.parse(localStorage.getItem(storageLockKey) || 'null')
-    } catch (error) {
+    }
+    catch (error) {
       debugLog(`Error reading lock:`, error)
       return null
     }
@@ -55,7 +56,7 @@ export function useSharedExecutionFn<T>(key: string, fn: () => Promise<T> | T, o
       localStorage.setItem(storageLockKey, JSON.stringify({ timestamp: now, tabId }))
 
       // Allow storage updates to propagate - which will determine strictness of lock
-      await new Promise((resolve) => setTimeout(resolve, storageDelay))
+      await new Promise(resolve => setTimeout(resolve, storageDelay))
 
       currentLock = getLock()
       if (currentLock?.tabId === tabId) {
@@ -72,7 +73,7 @@ export function useSharedExecutionFn<T>(key: string, fn: () => Promise<T> | T, o
       localStorage.setItem(storageLockKey, JSON.stringify({ timestamp: now, tabId }))
 
       // Allow storage updates to propagate - which will determine strictness of lock
-      await new Promise((resolve) => setTimeout(resolve, storageDelay))
+      await new Promise(resolve => setTimeout(resolve, storageDelay))
 
       currentLock = getLock()
       if (currentLock?.tabId === tabId) {
@@ -120,7 +121,7 @@ export function useSharedExecutionFn<T>(key: string, fn: () => Promise<T> | T, o
         }
 
         until(() => storageResultState.value)
-          .toMatch((v) => v.status === 'success' || v.status === 'error')
+          .toMatch(v => v.status === 'success' || v.status === 'error')
           .then((res) => {
             if (timedOut) return
 
@@ -136,10 +137,12 @@ export function useSharedExecutionFn<T>(key: string, fn: () => Promise<T> | T, o
       const result = await fn()
       storageResultState.value = { status: 'success', result }
       return result
-    } catch (error) {
+    }
+    catch (error) {
       storageResultState.value = { status: 'error', error }
       throw error
-    } finally {
+    }
+    finally {
       releaseLock()
       debugLog(`Function execution completed (success or failure).`)
     }

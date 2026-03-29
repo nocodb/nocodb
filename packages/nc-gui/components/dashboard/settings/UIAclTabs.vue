@@ -3,7 +3,7 @@ const { base } = storeToRefs(useBase())
 </script>
 
 <template>
-  <div v-if="!base || !base.sources"></div>
+  <div v-if="!base || !base.sources" />
   <template v-else-if="base.sources.length === 1">
     <DashboardSettingsUIAcl :source-id="base.sources[0].id" class="mt-6" />
   </template>
@@ -11,7 +11,9 @@ const { base } = storeToRefs(useBase())
     <a-tab-pane v-for="source of base.sources" :key="source.id">
       <template #tab>
         <div class="tab-title" data-testid="proj-view-tab__all-tables">
-          <div class="capitalize">{{ source.alias ?? 'Default' }}</div>
+          <div class="capitalize">
+            {{ source.alias ?? 'Default' }}
+          </div>
         </div>
       </template>
       <DashboardSettingsUIAcl :source-id="source.id" class="mt-6" />

@@ -248,7 +248,6 @@ export class ThumbnailMigration {
         }
       };
 
-      // eslint-disable-next-line no-constant-condition
       while (true) {
         if (queue.pending > parallelLimit) {
           await new Promise((resolve) => setTimeout(resolve, 1000));

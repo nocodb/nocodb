@@ -1,9 +1,9 @@
 <script lang="ts" setup>
+import type { ImageCropperProps } from '#imports'
+import type { AttachmentReqType } from 'nocodb-sdk'
 import { Cropper } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css'
 import 'vue-advanced-cropper/dist/theme.classic.css'
-import type { AttachmentReqType } from 'nocodb-sdk'
-import type { ImageCropperProps } from '#imports'
 
 const { imageConfig, uploadConfig, ...props } = defineProps<ImageCropperProps>()
 
@@ -32,7 +32,7 @@ const isValidFileSize = computed(() => {
   return uploadConfig?.maxFileSize ? !!fileSize.value && fileSize.value <= uploadConfig?.maxFileSize : true
 })
 
-const handleCropImage = () => {
+function handleCropImage() {
   const { canvas } = cropperRef.value.getResult()
 
   if (!canvas) return
@@ -46,7 +46,7 @@ const handleCropImage = () => {
   }, imageConfig.type)
 }
 
-const handleUploadImage = async (fileToUpload: AttachmentReqType[]) => {
+async function handleUploadImage(fileToUpload: AttachmentReqType[]) {
   if (uploadConfig?.path) {
     try {
       const uploadResult = await api.storage.uploadByUrl(
@@ -61,21 +61,24 @@ const handleUploadImage = async (fileToUpload: AttachmentReqType[]) => {
           ...uploadResult[0],
           data: fileToUpload[0].data,
         })
-      } else {
+      }
+      else {
         emit('submit', fileToUpload[0])
       }
-    } catch (error: any) {
+    }
+    catch (error: any) {
       console.error(error)
       message.error(await extractSdkResponseErrorMsg(error))
     }
-  } else {
+  }
+  else {
     emit('submit', fileToUpload[0])
   }
 
   showCropper.value = false
 }
 
-const handleSaveImage = async () => {
+async function handleSaveImage() {
   if (previewImage.value.canvas) {
     await handleUploadImage([
       {
@@ -90,7 +93,7 @@ const handleSaveImage = async () => {
   }
 }
 
-const defaultSize = ({ imageSize, visibleArea }: { imageSize: Record<string, any>; visibleArea: Record<string, any> }) => {
+function defaultSize({ imageSize, visibleArea }: { imageSize: Record<string, any>, visibleArea: Record<string, any> }) {
   return {
     width: (visibleArea || imageSize).width,
     height: (visibleArea || imageSize).height,
@@ -105,7 +108,8 @@ watch(
         canvas: {},
         src: '',
       }
-    } else {
+    }
+    else {
       until(() => !!cropperRef.value?.getResult?.()?.canvas)
         .toBeTruthy({ timeout: 2000 })
         .then((canvas) => {
@@ -146,21 +150,25 @@ watch(
           'rounded-full overflow-hidden': cropperConfig?.stencilProps?.circlePreview,
         }"
       >
-        <img :src="previewImage.src" alt="Preview Image" />
+        <img :src="previewImage.src" alt="Preview Image">
       </div>
     </div>
     <div class="flex justify-between items-center space-x-4 mt-4">
       <div class="flex items-center space-x-4">
-        <NcButton type="secondary" size="small" :disabled="isLoading" @click="showCropper = false"> Cancel </NcButton>
+        <NcButton type="secondary" size="small" :disabled="isLoading" @click="showCropper = false">
+          Cancel
+        </NcButton>
       </div>
       <div class="flex items-center space-x-4">
         <NcButton type="secondary" size="small" :disabled="isLoading" @click="handleCropImage">
-          <GeneralIcon icon="crop"></GeneralIcon>
+          <GeneralIcon icon="crop" />
           <span class="ml-2">Crop</span>
         </NcButton>
 
         <NcTooltip :disabled="isValidFileSize">
-          <template #title> Cropped file size is greater than max file size </template>
+          <template #title>
+            Cropped file size is greater than max file size
+          </template>
 
           <NcButton size="small" :loading="isLoading" :disabled="!previewImage.src || !isValidFileSize" @click="handleSaveImage">
             Save

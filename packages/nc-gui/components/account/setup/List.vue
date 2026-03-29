@@ -11,13 +11,13 @@ const configuredApp = computed(() => apps.value.find((app: any) => app.active))
 const showResetActiveAppMsg = ref(false)
 const switchingTo = ref(null)
 
-const showResetPluginModal = async (app: any, resetActiveAppMsg = false) => {
+async function showResetPluginModal(app: any, resetActiveAppMsg = false) {
   showResetActiveAppMsg.value = resetActiveAppMsg
   showPluginUninstallModal.value = true
   activePlugin.value = app
 }
 
-const selectApp = (app: any) => {
+function selectApp(app: any) {
   const activeApp = app !== configuredApp.value && configuredApp.value
   if (activeApp) {
     switchingTo.value = app
@@ -27,7 +27,7 @@ const selectApp = (app: any) => {
   navigateTo(`/account/setup/${props.category}/${app.title}`)
 }
 
-const resetPlugin = async () => {
+async function resetPlugin() {
   await _resetPlugin(activePlugin.value)
   if (showResetActiveAppMsg.value) {
     await selectApp(switchingTo.value)
@@ -36,7 +36,7 @@ const resetPlugin = async () => {
   }
 }
 
-const closeResetModal = () => {
+function closeResetModal() {
   activePlugin.value = null
   switchingTo.value = null
   showResetActiveAppMsg.value = false
@@ -55,7 +55,9 @@ const closeResetModal = () => {
     </NcPageHeader>
     <div class="h-[calc(100%_-_58px)] flex">
       <div class="w-full">
-        <div class="w-950px px-4 mt-3 mx-auto text-lg font-weight-bold">{{ category }} Services</div>
+        <div class="w-950px px-4 mt-3 mx-auto text-lg font-weight-bold">
+          {{ category }} Services
+        </div>
         <div class="container">
           <div
             v-for="app in apps"
@@ -107,16 +109,22 @@ const closeResetModal = () => {
         <div v-if="showResetActiveAppMsg" class="text-base font-weight-bold">
           Switch to {{ switchingTo && switchingTo.title }}
         </div>
-        <div v-else class="text-base font-weight-bold">Reset {{ activePlugin && activePlugin.title }} Configuration</div>
+        <div v-else class="text-base font-weight-bold">
+          Reset {{ activePlugin && activePlugin.title }} Configuration
+        </div>
         <div class="flex flex-row mt-2 w-full">
           <template v-if="showResetActiveAppMsg">
             Switching to {{ switchingTo && switchingTo.title }} will reset your {{ activePlugin && activePlugin.title }}
             settings. Continue?
           </template>
-          <template v-else>Resetting will erase your current configuration.</template>
+          <template v-else>
+            Resetting will erase your current configuration.
+          </template>
         </div>
         <div class="flex mt-6 justify-end space-x-2">
-          <NcButton size="small" type="secondary" @click="closeResetModal"> {{ $t('general.cancel') }}</NcButton>
+          <NcButton size="small" type="secondary" @click="closeResetModal">
+            {{ $t('general.cancel') }}
+          </NcButton>
           <NcButton size="small" type="danger" data-testid="nc-reset-confirm-btn" @click="resetPlugin">
             {{ showResetActiveAppMsg ? `${$t('general.reset')} & ${$t('general.switch')}` : $t('general.reset') }}
           </NcButton>

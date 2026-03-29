@@ -30,6 +30,6 @@ const height = computed(() => `${props.totalRowHeight}px`)
       :style="{
         background,
       }"
-    ></td>
+    />
   </tr>
 </template>

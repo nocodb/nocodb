@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { breakpointsTailwind } from '@vueuse/core'
+import { isVirtualCol, UITypes } from 'nocodb-sdk'
 
 enum TransitionDirection {
   Left = 'left',
@@ -89,8 +89,8 @@ function transition(direction: TransitionDirection) {
   transitionName.value = direction
 
   setTimeout(() => {
-    transitionName.value =
-      transitionName.value === TransitionDirection.Left ? TransitionDirection.Right : TransitionDirection.Left
+    transitionName.value
+      = transitionName.value === TransitionDirection.Left ? TransitionDirection.Right : TransitionDirection.Left
   }, transitionDuration.value / 2)
 
   setTimeout(() => {
@@ -110,7 +110,7 @@ function animate(target: AnimationTarget) {
   }, transitionDuration.value / 2)
 }
 
-const validateField = async (title: string) => {
+async function validateField(title: string) {
   if (fieldMappings.value[title] === undefined) {
     console.warn('Missing mapping field for:', title)
     return false
@@ -120,7 +120,8 @@ const validateField = async (title: string) => {
     await validate(fieldMappings.value[title])
 
     return true
-  } catch (_e: any) {
+  }
+  catch (_e: any) {
     return false
   }
 }
@@ -154,10 +155,10 @@ async function goPrevious(animationTarget?: AnimationTarget) {
 
 function focusInput() {
   if (document && typeof document !== 'undefined') {
-    const inputEl =
-      (document.querySelector('.nc-cell input') as HTMLInputElement) ||
-      (document.querySelector('.nc-cell textarea') as HTMLTextAreaElement) ||
-      (document.querySelector('.nc-cell [tabindex="0"]') as HTMLElement)
+    const inputEl
+      = (document.querySelector('.nc-cell input') as HTMLInputElement)
+        || (document.querySelector('.nc-cell textarea') as HTMLTextAreaElement)
+        || (document.querySelector('.nc-cell [tabindex="0"]') as HTMLElement)
 
     if (inputEl) {
       activeCell.value = inputEl
@@ -183,7 +184,7 @@ async function submit() {
 
 onReset(resetForm)
 
-const onStart = () => {
+function onStart() {
   isStarted.value = true
   handleAddMissingRequiredFieldDefaultState()
 
@@ -192,13 +193,13 @@ const onStart = () => {
   }, 100)
 }
 
-const handleFocus = () => {
+function handleFocus() {
   if (document?.activeElement !== activeCell.value) {
     focusInput()
   }
 }
 
-const showSubmitConfirmModal = async () => {
+async function showSubmitConfirmModal() {
   if (field.value?.title && !(await validateField(field.value.title))) {
     return
   }
@@ -227,15 +228,18 @@ onKeyStroke(['Enter'], async (e) => {
 
   if (!isStarted.value && !submitted.value) {
     onStart()
-  } else if (isStarted.value) {
+  }
+  else if (isStarted.value) {
     if (isLast.value) {
       if (dialogShow.value) {
         submit()
-      } else {
+      }
+      else {
         e.preventDefault()
         showSubmitConfirmModal()
       }
-    } else {
+    }
+    else {
       const activeElement = document.activeElement as HTMLElement
 
       if (activeElement?.classList && activeElement.classList.contains('nc-survey-form__btn-next')) return
@@ -259,7 +263,8 @@ onMounted(() => {
 
         if (direction.value === 'left') {
           goNext()
-        } else if (direction.value === 'right') {
+        }
+        else if (direction.value === 'right') {
           goPrevious()
         }
       },
@@ -315,15 +320,15 @@ const { message: templatedMessage } = useTemplatedMessage(
 
                 <template #icon>
                   <div>
-                    <GeneralIcon icon="circleCheck2" class="text-[#27D665]"></GeneralIcon>
+                    <GeneralIcon icon="circleCheck2" class="text-[#27D665]" />
                   </div>
                 </template>
               </a-alert>
 
               <div
                 v-if="
-                  typeof sharedFormView?.redirect_url !== 'string' &&
-                  (sharedFormView.show_blank_form || sharedFormView.submit_another_form)
+                  typeof sharedFormView?.redirect_url !== 'string'
+                    && (sharedFormView.show_blank_form || sharedFormView.submit_another_form)
                 "
                 class="mt-16 w-full flex justify-between items-center flex-wrap gap-3"
               >
@@ -412,7 +417,9 @@ const { message: templatedMessage } = useTemplatedMessage(
                   </div>
 
                   <NcTooltip :disabled="!field?.read_only">
-                    <template #title> {{ $t('activity.preFilledFields.lockedFieldTooltip') }} </template>
+                    <template #title>
+                      {{ $t('activity.preFilledFields.lockedFieldTooltip') }}
+                    </template>
                     <a-form-item
                       v-if="field.title && fieldMappings[field.title]"
                       :name="fieldMappings[field.title]"
@@ -525,8 +532,8 @@ const { message: templatedMessage } = useTemplatedMessage(
               :disabled="isFirst"
               @click="goPrevious()"
             >
-              <GeneralIcon icon="ncArrowLeft"
-            /></NcButton>
+              <GeneralIcon icon="ncArrowLeft" />
+            </NcButton>
 
             <NcButton
               :size="isMobileMode ? 'medium' : 'small'"
@@ -544,12 +551,18 @@ const { message: templatedMessage } = useTemplatedMessage(
 
     <NcModal v-model:visible="dialogShow" size="small" class="nc-survery-form__confirmation_modal">
       <div>
-        <div class="text-lg font-bold">{{ $t('general.submit') }} {{ $t('objects.viewType.form') }}</div>
-        <div class="mt-1 text-sm">{{ $t('title.surveyFormSubmitConfirmMsg') }}</div>
+        <div class="text-lg font-bold">
+          {{ $t('general.submit') }} {{ $t('objects.viewType.form') }}
+        </div>
+        <div class="mt-1 text-sm">
+          {{ $t('title.surveyFormSubmitConfirmMsg') }}
+        </div>
         <div class="flex justify-end mt-7 gap-x-2">
-          <NcButton type="secondary" :size="isMobileMode ? 'medium' : 'small'" @click="dialogShow = false">{{
-            $t('general.back')
-          }}</NcButton>
+          <NcButton type="secondary" :size="isMobileMode ? 'medium' : 'small'" @click="dialogShow = false">
+            {{
+              $t('general.back')
+            }}
+          </NcButton>
           <NcButton
             type="primary"
             :size="isMobileMode ? 'medium' : 'small'"

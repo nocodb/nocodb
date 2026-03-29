@@ -47,8 +47,8 @@ const checkboxMeta = computed(() => {
   }
 
   if (isDark.value) {
-    result.color =
-      result.color === '#777'
+    result.color
+      = result.color === '#777'
         ? getColor(themeV4Colors.gray['600'])
         : getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), result.color, ['#4a5268', '#d5dce8'])
   }
@@ -63,8 +63,8 @@ const vModel = computed<boolean | number>({
 
 function onClick(force?: boolean, event?: MouseEvent | KeyboardEvent) {
   if (
-    (event?.target as HTMLElement)?.classList?.contains('nc-checkbox') ||
-    (event?.target as HTMLElement)?.closest('.nc-checkbox')
+    (event?.target as HTMLElement)?.classList?.contains('nc-checkbox')
+    || (event?.target as HTMLElement)?.closest('.nc-checkbox')
   ) {
     return
   }
@@ -73,13 +73,13 @@ function onClick(force?: boolean, event?: MouseEvent | KeyboardEvent) {
   }
 }
 
-const keydownEnter = (e: KeyboardEvent) => {
+function keydownEnter(e: KeyboardEvent) {
   if (!isSurveyForm.value) {
     onClick(true, e)
     e.stopPropagation()
   }
 }
-const keydownSpace = (e: KeyboardEvent) => {
+function keydownSpace(e: KeyboardEvent) {
   if (isSurveyForm.value) {
     onClick(true, e)
     e.stopPropagation()
@@ -105,7 +105,8 @@ useSelectedCellKeydownListener(
 const height = computed(() => {
   if (isGrid.value && !isExpandedFormOpen.value) {
     return `${!rowHeight.value || rowHeight.value === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight.value}`] - 20}px`
-  } else {
+  }
+  else {
     return undefined
   }
 })

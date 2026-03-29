@@ -29,8 +29,7 @@ export default {
 
     const navigateToHome = () => {
       error.value = null
-      location.hash = '/'
-      location.reload()
+      window.location.href = '/'
     }
 
     const close = () => {
@@ -54,7 +53,8 @@ export default {
 
         try {
           nuxtApp.$report(err)
-        } catch {
+        }
+        catch {
           // ignore
         }
 
@@ -104,7 +104,8 @@ export default {
       try {
         if (error.value) await copy(`message: ${error.value.message}\n\n${error.value.stack}`)
         message.info('Error message copied to clipboard.')
-      } catch (e) {
+      }
+      catch (e) {
         message.error('Something went wrong while copying to clipboard, please copy from browser console.')
       }
     }
@@ -124,5 +125,5 @@ export default {
 </script>
 
 <template>
-  <slot :key="key"></slot>
+  <slot :key="key" />
 </template>

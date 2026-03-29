@@ -6,11 +6,13 @@ export enum Action {
 }
 
 const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState(() => {
-  const apps = ref<(PluginType & { parsedInput?: Record<string, any>; tags?: string[] })[]>([])
+  const apps = ref<(PluginType & { parsedInput?: Record<string, any>, tags?: string[] })[]>([])
 
   const { $api, $e } = useNuxtApp()
 
   const { t } = useI18n()
+
+  const { appInfo } = useGlobal()
 
   const activePlugin = ref<PluginType | null>(null)
   const activePluginFormData = ref({})
@@ -18,11 +20,11 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
   const loadingAction = ref<null | Action>(null)
   const showPluginUninstallModal = ref(false)
 
-  const emailApps = computed(() => apps.value.filter((app) => app.category === 'Email'))
-  const storageApps = computed(() => apps.value.filter((app) => app.category === 'Storage'))
+  const emailApps = computed(() => apps.value.filter(app => app.category === 'Email'))
+  const storageApps = computed(() => apps.value.filter(app => app.category === 'Storage'))
 
-  const emailConfigured = computed(() => emailApps.value.find((app) => app.active))
-  const storageConfigured = computed(() => storageApps.value.find((app) => app.active))
+  const emailConfigured = computed(() => emailApps.value.find(app => app.active))
+  const storageConfigured = computed(() => storageApps.value.find(app => app.active))
 
   const listModalDlg = ref(false)
   const configModalDlg = ref(false)
@@ -42,12 +44,13 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
     try {
       const plugins = (await $api.plugin.list()).list ?? []
 
-      apps.value = plugins.map((p) => ({
+      apps.value = plugins.map(p => ({
         ...p,
         tags: p.tags ? p.tags.split(',') : [],
         parsedInput: p.input && JSON.parse(p.input as string),
       })) as any[]
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
@@ -65,10 +68,12 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
       message.success(activePlugin.value?.formDetails.msgOnInstall || t('msg.success.pluginSettingsSaved'))
       // load all apps again to update the pending status
       await loadSetupApps()
-      navigateTo('/account/setup')
-    } catch (e: any) {
+      navigateTo(appInfo.value.isCloud ? '/account/setup' : '/admin?tab=setup')
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
+    }
+    finally {
       loadingAction.value = null
     }
   }
@@ -87,14 +92,17 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
         if (res) {
           // Successfully tested plugin settings
           message.success(t('msg.success.pluginTested'))
-        } else {
+        }
+        else {
           // Invalid credentials
           message.info(t('msg.info.invalidCredentials'))
         }
       }
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
+    }
+    finally {
       loadingAction.value = null
     }
   }
@@ -117,9 +125,11 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
 
       activePlugin.value = { ...res, formDetails, parsedInput }
       activePluginFormData.value = activePlugin.value.parsedInput
-    } catch (e) {
+    }
+    catch (e) {
       console.log(e)
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -134,7 +144,8 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
       message.success(t('msg.success.pluginUninstalled'))
       showPluginUninstallModal.value = false
       await loadSetupApps()
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
 

@@ -42,15 +42,16 @@ const autoExpandParent = ref<boolean>(true)
 
 const allowAllMimeTypeCheckbox = ref(true)
 
-const getParentKey = (key: string | number, tree: TreeProps['treeData']): string | null => {
+function getParentKey(key: string | number, tree: TreeProps['treeData']): string | null {
   if (!tree) return null
   let parentKey
   for (let i = 0; i < tree.length; i++) {
     const node = tree[i]
     if (node.children) {
-      if (node.children.some((item) => item.key === key)) {
+      if (node.children.some(item => item.key === key)) {
         parentKey = node.key as string
-      } else if (getParentKey(key, node.children)) {
+      }
+      else if (getParentKey(key, node.children)) {
         parentKey = getParentKey(key, node.children) as string
       }
     }
@@ -61,7 +62,8 @@ const getParentKey = (key: string | number, tree: TreeProps['treeData']): string
 function allowAllMimeTypeCheckboxOnChange(evt: CheckboxChangeEvent) {
   if (evt.target.checked) {
     vModel.value.meta.supportedAttachmentMimeTypes = ['*']
-  } else {
+  }
+  else {
     vModel.value.meta.supportedAttachmentMimeTypes = ['application', 'audio', 'image', 'video', 'misc']
   }
 }
@@ -116,7 +118,7 @@ watch(searchValue, (value) => {
             class="!bg-nc-bg-gray-extralight my-[10px]"
           >
             <template #title="{ title }">
-              <span v-if="title.indexOf(searchValue) > -1">
+              <span v-if="title.includes(searchValue)">
                 {{ title.substr(0, title.indexOf(searchValue)) }}
                 <span class="text-primary font-bold">{{ searchValue }}</span>
                 {{ title.substr(title.indexOf(searchValue) + searchValue.length) }}

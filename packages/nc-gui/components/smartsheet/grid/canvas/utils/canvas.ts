@@ -1,17 +1,19 @@
-import { LRUCache } from 'lru-cache'
-import JsBarcode from 'jsbarcode'
 import type { ColumnType, UserType } from 'nocodb-sdk'
+import type { MarkdownLoader } from '../loaders/markdownLoader'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
-import { type MarkdownLoader, markdownTextCache } from '../loaders/markdownLoader'
+import type { Block } from './markdownUtils'
 import type { RenderMultiLineTextProps, RenderSingleLineTextProps, RenderTagProps } from './types'
-import { type Block, getFontForToken } from './markdownUtils'
+import JsBarcode from 'jsbarcode'
+import { LRUCache } from 'lru-cache'
+import { markdownTextCache } from '../loaders/markdownLoader'
+import { getFontForToken } from './markdownUtils'
 import { getSafe2DContext } from './safeCanvas'
 
-const singleLineTextCache: LRUCache<string, { text: string; width: number; isTruncated: boolean }> = new LRUCache({
+const singleLineTextCache: LRUCache<string, { text: string, width: number, isTruncated: boolean }> = new LRUCache({
   max: 1000,
 })
 
-const multiLineTextCache: LRUCache<string, { lines: string[]; width: number }> = new LRUCache({
+const multiLineTextCache: LRUCache<string, { lines: string[], width: number, lastLineWidth?: number }> = new LRUCache({
   max: 1000,
 })
 
@@ -27,11 +29,7 @@ export const replaceUrlsWithLinkCache: LRUCache<string, boolean | string> = new 
   max: 1000,
 })
 
-export const formulaTextSegmentsCache: LRUCache<string, Array<{ text: string; url?: string }>> = new LRUCache({
-  max: 1000,
-})
-
-export const rowColouringCache: LRUCache<string, RowColouringEvaluatedResultType> = new LRUCache({
+export const formulaTextSegmentsCache: LRUCache<string, Array<{ text: string, url?: string }>> = new LRUCache({
   max: 1000,
 })
 
@@ -50,7 +48,7 @@ export const selectOptionTextColorCache: LRUCache<string, string> = new LRUCache
 /**
  * It is required to remove cache on row height change or even we can clear cache on unmount table component
  */
-export const clearTextCache = () => {
+export function clearTextCache() {
   singleLineTextCache.clear()
   multiLineTextCache.clear()
   abstractTypeCache.clear()
@@ -58,12 +56,7 @@ export const clearTextCache = () => {
   barcodeCache.clear()
   replaceUrlsWithLinkCache.clear()
   formulaTextSegmentsCache.clear()
-  rowColouringCache.clear()
   aggregationCache.clear()
-}
-
-export const clearRowColouringCache = () => {
-  rowColouringCache.clear()
 }
 
 interface TruncateTextWithInfoType {
@@ -134,7 +127,8 @@ export function truncateText(
     if (testWidth <= maxWidth) {
       truncated = testText // Update the truncated text
       start = mid + 1 // Try a longer text
-    } else {
+    }
+    else {
       end = mid // Try a shorter text
     }
   }
@@ -158,7 +152,7 @@ export function roundedRect(
   y: number,
   width: number,
   height: number,
-  radius: number | { topRight?: number; bottomRight?: number; bottomLeft?: number; topLeft?: number },
+  radius: number | { topRight?: number, bottomRight?: number, bottomLeft?: number, topLeft?: number },
   {
     backgroundColor,
     borderColor,
@@ -168,9 +162,46 @@ export function roundedRect(
     backgroundColor?: string
     borderColor?: string
     borderWidth?: number
-    borders?: { top?: boolean; right?: boolean; bottom?: boolean; left?: boolean }
+    borders?: { top?: boolean, right?: boolean, bottom?: boolean, left?: boolean }
   } = {},
 ): void {
+  // Fast path: radius=0 (used by all cell background renders).
+  // Avoids path construction + arcTo calls — uses fillRect + batched line strokes instead.
+  // With row coloring active this saves ~8000 canvas API calls per frame.
+  const isZeroRadius
+    = radius === 0
+      || (typeof radius === 'object' && !radius.topLeft && !radius.topRight && !radius.bottomLeft && !radius.bottomRight)
+  if (isZeroRadius) {
+    if (backgroundColor) {
+      ctx.fillStyle = backgroundColor
+      ctx.fillRect(x, y, width, height)
+    }
+    if (borderColor) {
+      const { top = true, right = true, bottom = true, left = true } = borders
+      ctx.strokeStyle = borderColor
+      ctx.lineWidth = borderWidth
+      ctx.beginPath()
+      if (top) {
+        ctx.moveTo(x, y)
+        ctx.lineTo(x + width, y)
+      }
+      if (right) {
+        ctx.moveTo(x + width, y)
+        ctx.lineTo(x + width, y + height)
+      }
+      if (bottom) {
+        ctx.moveTo(x + width, y + height)
+        ctx.lineTo(x, y + height)
+      }
+      if (left) {
+        ctx.moveTo(x, y + height)
+        ctx.lineTo(x, y)
+      }
+      ctx.stroke()
+    }
+    return
+  }
+
   const {
     topLeft = 0,
     topRight = 0,
@@ -214,7 +245,8 @@ export function roundedRect(
       ctx.beginPath()
       if (!top) {
         ctx.moveTo(x + width, y + topRight)
-      } else {
+      }
+      else {
         ctx.moveTo(x + width, y + topRight)
       }
       ctx.lineTo(x + width, y + height - bottomRight)
@@ -228,7 +260,8 @@ export function roundedRect(
       ctx.beginPath()
       if (!right) {
         ctx.moveTo(x + width - bottomRight, y + height)
-      } else {
+      }
+      else {
         ctx.moveTo(x + width - bottomRight, y + height)
       }
       ctx.lineTo(x + bottomLeft, y + height)
@@ -242,7 +275,8 @@ export function roundedRect(
       ctx.beginPath()
       if (!bottom) {
         ctx.moveTo(x, y + height - bottomLeft)
-      } else {
+      }
+      else {
         ctx.moveTo(x, y + height - bottomLeft)
       }
       ctx.lineTo(x, y + topLeft)
@@ -254,16 +288,7 @@ export function roundedRect(
   }
 }
 
-export const renderCheckbox = (
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  isChecked: boolean,
-  isDisabled: boolean,
-  spriteLoader: SpriteLoader,
-  strokeColor = '#E5E7EB',
-  getColor: GetColorType,
-) => {
+export function renderCheckbox(ctx: CanvasRenderingContext2D, x: number, y: number, isChecked: boolean, isDisabled: boolean, spriteLoader: SpriteLoader, strokeColor = '#E5E7EB', getColor: GetColorType) {
   const size = 16
   const radius = 4
 
@@ -287,7 +312,8 @@ export const renderCheckbox = (
     ctx.strokeStyle = strokeColor ?? getColor('#D9D9D9', 'var(--nc-bg-gray-dark)')
     ctx.lineWidth = 1
     ctx.stroke()
-  } else if (isChecked) {
+  }
+  else if (isChecked) {
     ctx.fillStyle = getColor('--rgb-color-brand-500')
     ctx.fill()
 
@@ -303,7 +329,8 @@ export const renderCheckbox = (
     ctx.lineTo(checkX + checkSize * 0.35 + 0.7, checkY + checkSize)
     ctx.lineTo(checkX + checkSize + 2, checkY)
     ctx.stroke()
-  } else {
+  }
+  else {
     ctx.fillStyle = getColor('#FFFFFF', themeV4Colors.base.white)
     ctx.fill()
 
@@ -313,10 +340,7 @@ export const renderCheckbox = (
   }
 }
 
-const drawUnderline = (
-  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-  { x, y, width, fontSize = 13, strokeStyle }: { x: number; y: number; width: number; fontSize?: number; strokeStyle?: string },
-) => {
+function drawUnderline(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, { x, y, width, fontSize = 13, strokeStyle }: { x: number, y: number, width: number, fontSize?: number, strokeStyle?: string }) {
   ctx.beginPath()
 
   ctx.moveTo(x, y + fontSize / 2)
@@ -330,10 +354,7 @@ const drawUnderline = (
   ctx.stroke()
 }
 
-const drawStrikeThrough = (
-  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-  { x, y, width, strokeStyle }: { x: number; y: number; width: number; fontSize?: number; strokeStyle?: string },
-) => {
+function drawStrikeThrough(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, { x, y, width, strokeStyle }: { x: number, y: number, width: number, fontSize?: number, strokeStyle?: string }) {
   ctx.beginPath()
 
   ctx.moveTo(x, y)
@@ -347,24 +368,21 @@ const drawStrikeThrough = (
   ctx.stroke()
 }
 
-export const drawStraightLine = (
-  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-  {
-    startX,
-    startY,
-    endX,
-    endY,
-    strokeStyle,
-    lineWidth = 1,
-  }: {
-    startX: number
-    startY: number
-    endX: number
-    endY: number
-    strokeStyle?: string
-    lineWidth?: number
-  },
-) => {
+export function drawStraightLine(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, {
+  startX,
+  startY,
+  endX,
+  endY,
+  strokeStyle,
+  lineWidth = 1,
+}: {
+  startX: number
+  startY: number
+  endX: number
+  endY: number
+  strokeStyle?: string
+  lineWidth?: number
+}) {
   ctx.beginPath()
 
   ctx.moveTo(startX, startY)
@@ -378,16 +396,13 @@ export const drawStraightLine = (
   ctx.stroke()
 }
 
-export const renderSingleLineText = (
-  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-  params: RenderSingleLineTextProps,
-): {
+export function renderSingleLineText(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, params: RenderSingleLineTextProps): {
   text: string
   width: number
   x: number
   y: number
   isTruncated: boolean
-} => {
+} {
   const {
     x = 0,
     y = 0,
@@ -425,7 +440,8 @@ export const renderSingleLineText = (
     truncatedText = cachedText.text
     width = cachedText.width
     isTruncated = cachedText.isTruncated
-  } else {
+  }
+  else {
     const res = truncateText(ctx, text, maxWidth, true)
     truncatedText = res.text
     isTruncated = truncatedText !== text
@@ -433,8 +449,8 @@ export const renderSingleLineText = (
     singleLineTextCache.set(cacheKey, { text: truncatedText, width, isTruncated })
   }
 
-  const yOffset =
-    verticalAlign === 'middle'
+  const yOffset
+    = verticalAlign === 'middle'
       ? height && (rowHeightInPx['1'] === height || isTagLabel)
         ? height / 2
         : fontSize / 2 + (py ?? 0)
@@ -458,7 +474,8 @@ export const renderSingleLineText = (
     if (strikethrough) {
       drawStrikeThrough(ctx, { x, y: y + yOffset, fontSize, width, strokeStyle: fillStyle })
     }
-  } else {
+  }
+  else {
     /**
      * Set fontFamily is required for measureText to get currect matrics and
      * it also imp to reset font style if we are not rendering text
@@ -469,16 +486,13 @@ export const renderSingleLineText = (
   return { text: truncatedText, width, x: x + width, y: y + yOffset + fontSize / 2, isTruncated }
 }
 
-export const wrapTextToLines = (
-  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-  {
-    text,
-    maxWidth,
-    maxLines,
-    firstLineMaxWidth,
-    renderAsPreTag,
-  }: { text: string; maxWidth: number; maxLines: number; firstLineMaxWidth?: number; renderAsPreTag?: boolean },
-): string[] => {
+export function wrapTextToLines(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, {
+  text,
+  maxWidth,
+  maxLines,
+  firstLineMaxWidth,
+  renderAsPreTag,
+}: { text: string, maxWidth: number, maxLines: number, firstLineMaxWidth?: number, renderAsPreTag?: boolean }): string[] {
   if (maxLines === 0) return [] // If maxLines is 0, return an empty array
 
   const lines: string[] = [] // Stores the wrapped lines
@@ -497,7 +511,8 @@ export const wrapTextToLines = (
       // If this would be the last line, show ellipsis instead of blank line
       if (lines.length >= maxLines - 1) {
         lines.push('...')
-      } else {
+      }
+      else {
         lines.push('')
       }
       continue
@@ -521,7 +536,8 @@ export const wrapTextToLines = (
           line = testText // Store the longest valid substring
           width = testWidth
           start = mid + 1 // Try a longer substring
-        } else {
+        }
+        else {
           end = mid // Reduce the search space
         }
       }
@@ -529,10 +545,10 @@ export const wrapTextToLines = (
       // Handle word breaking: Prevent splitting words mid-way
       const lastSpaceIndex = line.lastIndexOf(' ')
       if (
-        lastSpaceIndex !== -1 && // There is at least one space in the line
-        remainingText[line.length] !== ' ' && // The line ends mid-word
-        remainingText.length > line.length && // There is more text left
-        lines.length < maxLines - 1 // We are not on the last line
+        lastSpaceIndex !== -1 // There is at least one space in the line
+        && remainingText[line.length] !== ' ' // The line ends mid-word
+        && remainingText.length > line.length // There is more text left
+        && lines.length < maxLines - 1 // We are not on the last line
       ) {
         // If the line ends mid-word, break at the last space
         line = line.slice(0, lastSpaceIndex)
@@ -569,34 +585,31 @@ export const wrapTextToLines = (
   return lines
 }
 
-const renderLines = (
-  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-  {
-    lines,
-    x,
-    y,
-    startX, // Optional startX for the first line
-    textAlign: _,
-    verticalAlign: _1,
-    lineHeight,
-    fontSize,
-    fillStyle: _2,
-    underline,
-    strikethrough,
-  }: {
-    lines: string[]
-    x: number
-    startX?: number // New parameter for first-line alignment
-    y: number
-    textAlign: CanvasTextAlign
-    verticalAlign: CanvasTextBaseline
-    lineHeight: number
-    fontSize: number
-    fillStyle?: string
-    underline?: boolean
-    strikethrough?: boolean
-  },
-) => {
+function renderLines(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, {
+  lines,
+  x,
+  y,
+  startX, // Optional startX for the first line
+  textAlign: _,
+  verticalAlign: _1,
+  lineHeight,
+  fontSize,
+  fillStyle: _2,
+  underline,
+  strikethrough,
+}: {
+  lines: string[]
+  x: number
+  startX?: number // New parameter for first-line alignment
+  y: number
+  textAlign: CanvasTextAlign
+  verticalAlign: CanvasTextBaseline
+  lineHeight: number
+  fontSize: number
+  fillStyle?: string
+  underline?: boolean
+  strikethrough?: boolean
+}) {
   lines.forEach((line, index) => {
     const lineX = index === 0 && startX !== undefined ? startX : x // First line uses startX, others use x
     const lineY = y + index * lineHeight
@@ -612,42 +625,39 @@ const renderLines = (
   })
 }
 
-export const renderMarkdownBlocks = (
-  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-  {
-    blocks,
-    x,
-    y,
-    textAlign = 'left',
-    verticalAlign = 'alphabetic',
-    maxLines,
-    maxWidth,
-    lineHeight,
-    fillStyle,
-    mousePosition = { x: 0, y: 0 },
-    cellRenderStore,
-    fontFamily,
-    height,
-    selected = false,
-    getColor,
-  }: {
-    blocks: Block[]
-    x: number
-    y: number
-    textAlign?: CanvasTextAlign
-    verticalAlign?: CanvasTextBaseline
-    maxLines?: number
-    maxWidth: number
-    lineHeight: number
-    cellRenderStore?: CellRenderStore
-    fillStyle?: string
-    fontFamily?: string
-    mousePosition?: { x: number; y: number }
-    height?: number
-    selected?: boolean
-    getColor: GetColorType
-  },
-) => {
+export function renderMarkdownBlocks(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, {
+  blocks,
+  x,
+  y,
+  textAlign = 'left',
+  verticalAlign = 'alphabetic',
+  maxLines,
+  maxWidth,
+  lineHeight,
+  fillStyle,
+  mousePosition = { x: 0, y: 0 },
+  cellRenderStore,
+  fontFamily,
+  height,
+  selected = false,
+  getColor,
+}: {
+  blocks: Block[]
+  x: number
+  y: number
+  textAlign?: CanvasTextAlign
+  verticalAlign?: CanvasTextBaseline
+  maxLines?: number
+  maxWidth: number
+  lineHeight: number
+  cellRenderStore?: CellRenderStore
+  fillStyle?: string
+  fontFamily?: string
+  mousePosition?: { x: number, y: number }
+  height?: number
+  selected?: boolean
+  getColor: GetColorType
+}) {
   if (fillStyle) {
     ctx.fillStyle = fillStyle
     ctx.strokeStyle = fillStyle
@@ -665,8 +675,8 @@ export const renderMarkdownBlocks = (
   const defaultFillStyle = ctx.fillStyle
   const defaultStrokeStyle = ctx.strokeStyle
 
-  const links: { x: number; y: number; width: number; height: number; url: string }[] = []
-  const mentions: { x: number; y: number; width: number; height: number; mentionData: any }[] = []
+  const links: { x: number, y: number, width: number, height: number, url: string }[] = []
+  const mentions: { x: number, y: number, width: number, height: number, mentionData: any }[] = []
 
   maxLines = maxLines ?? blocks.length
 
@@ -678,7 +688,8 @@ export const renderMarkdownBlocks = (
     let tokens = block.tokens
     if (block.type === 'list-item') {
       tokens = [{ styles: [], value: '• ' }, ...tokens]
-    } else if (block.type === 'numbered-list-item') {
+    }
+    else if (block.type === 'numbered-list-item') {
       tokens = [{ styles: [], value: `${block.number}. ` }, ...tokens]
     }
 
@@ -733,7 +744,8 @@ export const renderMarkdownBlocks = (
         if (token.mentionData.isSameUser) {
           mentionTextColor = getColor('#17803D', themeV4Colors.green['500']) // Current user text color
           bgColor = getColor('#D4F7E0', 'var(--nc-bg-brand-inverted)') // Current user background
-        } else {
+        }
+        else {
           mentionTextColor = getColor(themeV4Colors.brand['500']) // Other user text color
           bgColor = getColor('#EBF0FF', 'var(--nc-bg-brand-inverted)') // Other user background
         }
@@ -823,7 +835,8 @@ export const renderMarkdownBlocks = (
         // If lines count is 1 then we just need to move cursorX as this is rendered inline
         cursorX += lastLineWidth
         if (isMention) cursorX += 8 // Adding the padding value from your code
-      } else {
+      }
+      else {
         /**
          * If text is wrapped to next line then we can set cursorX to cell x + lastLineWidth
          * And then move corsorY position
@@ -906,15 +919,18 @@ export function renderMultiLineText(
   if (ncIsUndefined(maxLines)) {
     if (rowHeightInPx['1'] === height) {
       maxLines = 1 // Only one line if rowHeightInPx['1'] matches height
-    } else if (height) {
+    }
+    else if (height) {
       maxLines = Math.min(Math.floor(height / lineHeight), rowHeightTruncateLines(height)) // Calculate max lines based on height and lineHeight
-    } else {
+    }
+    else {
       maxLines = 1
     }
   }
 
   let lines: string[] = []
   let width = 0
+  let lastLineWidthCached = 0
   const originalFontFamily = ctx.font
 
   if (fontFamily) {
@@ -930,16 +946,19 @@ export function renderMultiLineText(
   if (cachedText) {
     lines = cachedText.lines
     width = cachedText.width
-  } else {
+    lastLineWidthCached = cachedText.lastLineWidth ?? 0
+  }
+  else {
     lines = wrapTextToLines(ctx, { text, maxWidth, maxLines, firstLineMaxWidth, renderAsPreTag })
-    width = Math.min(Math.max(...lines.map((line) => ctx.measureText(line).width)), maxWidth)
+    width = Math.min(Math.max(...lines.map(line => ctx.measureText(line).width)), maxWidth)
+    lastLineWidthCached = lines.length ? Math.min(ctx.measureText(lines[lines.length - 1] ?? '').width, maxWidth) : 0
 
-    multiLineTextCache.set(cacheKey, { lines, width })
+    multiLineTextCache.set(cacheKey, { lines, width, lastLineWidth: lastLineWidthCached })
   }
 
-  const yOffset =
-    yOffsetInitial ??
-    (verticalAlign === 'middle' ? (height && rowHeightInPx['1'] === height ? height / 2 : fontSize / 2 + (py ?? 0)) : py ?? 0)
+  const yOffset
+    = yOffsetInitial
+      ?? (verticalAlign === 'middle' ? (height && rowHeightInPx['1'] === height ? height / 2 : fontSize / 2 + (py ?? 0)) : py ?? 0)
 
   if (render) {
     ctx.textAlign = textAlign
@@ -966,7 +985,8 @@ export function renderMultiLineText(
       underline,
       strikethrough,
     })
-  } else {
+  }
+  else {
     /**
      * Set fontFamily is required for measureText to get currect matrics and
      * it also imp to reset font style if we are not rendering text
@@ -976,7 +996,7 @@ export function renderMultiLineText(
 
   const lastLineStartX = lines.length === 1 && !ncIsUndefined(firstLineMaxWidth) ? x + (maxWidth - firstLineMaxWidth) : x
 
-  const lastLineWidth = lines.length ? Math.min(ctx.measureText(lines[lines.length - 1] ?? '').width, maxWidth) : 0
+  const lastLineWidth = lastLineWidthCached
 
   const newY = y + yOffset + (lines.length - 1) * lineHeight
 
@@ -1028,14 +1048,16 @@ export function renderBarcode(
 
   if (pxToRowHeight[height] === 1) {
     maxHeight = height - 4
-  } else {
+  }
+  else {
     maxHeight = height - 20
   }
 
   try {
     if (cachedBarcode) {
       tempCanvas = cachedBarcode
-    } else {
+    }
+    else {
       tempCanvas = document.createElement('canvas')
 
       JsBarcode(tempCanvas, value.toString(), {
@@ -1079,7 +1101,8 @@ export function renderBarcode(
       width: finalWidth,
       height: finalHeight,
     }
-  } catch (error) {
+  }
+  catch (error) {
     ctx.font = `500 13px Inter`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
@@ -1113,24 +1136,21 @@ export function renderBarcode(
   }
 }
 
-const renderMarkdownSkeleton = (
-  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-  {
-    x,
-    y,
-    width,
-    lineHeight,
-    maxLines,
-    getColor,
-  }: {
-    x: number
-    y: number // ← text baseline reference
-    width: number
-    lineHeight: number
-    maxLines: number
-    getColor: GetColorType
-  },
-) => {
+function renderMarkdownSkeleton(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, {
+  x,
+  y,
+  width,
+  lineHeight,
+  maxLines,
+  getColor,
+}: {
+  x: number
+  y: number // ← text baseline reference
+  width: number
+  lineHeight: number
+  maxLines: number
+  getColor: GetColorType
+}) {
   ctx.save()
 
   const lines = Math.min(maxLines, 3)
@@ -1155,20 +1175,17 @@ const renderMarkdownSkeleton = (
   ctx.restore()
 }
 
-export const renderMarkdown = (
-  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-  params: RenderMultiLineTextProps & {
-    baseUsers?: (Partial<UserType> | Partial<User>)[]
-    user?: Partial<UserType> | Partial<User>
-    getColor: GetColorType
-    markdownLoader: MarkdownLoader
-  },
-): {
+export function renderMarkdown(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, params: RenderMultiLineTextProps & {
+  baseUsers?: (Partial<UserType> | Partial<User>)[]
+  user?: Partial<UserType> | Partial<User>
+  getColor: GetColorType
+  markdownLoader: MarkdownLoader
+}): {
   width: number
   x: number
   y: number
   height: number
-} => {
+} {
   const {
     x = 0,
     y = 0,
@@ -1200,9 +1217,11 @@ export const renderMarkdown = (
   if (ncIsUndefined(maxLines)) {
     if (rowHeightInPx['1'] === height || isTagLabel) {
       maxLines = 1 // Only one line if rowHeightInPx['1'] matches height
-    } else if (height) {
+    }
+    else if (height) {
       maxLines = Math.min(Math.floor(height / lineHeight), rowHeightTruncateLines(height)) // Calculate max lines based on height and lineHeight
-    } else {
+    }
+    else {
       maxLines = 1
     }
   }
@@ -1215,8 +1234,8 @@ export const renderMarkdown = (
     ctx.font = fontFamily
   }
 
-  const yOffset =
-    verticalAlign === 'middle'
+  const yOffset
+    = verticalAlign === 'middle'
       ? height && (rowHeightInPx['1'] === height || isTagLabel)
         ? height / 2
         : fontSize / 2 + (py ?? 0)
@@ -1232,7 +1251,8 @@ export const renderMarkdown = (
   if (cachedText) {
     width = cachedText.width
     blocks = cachedText.blocks
-  } else {
+  }
+  else {
     width = maxWidth
     blocks = []
   }
@@ -1247,7 +1267,8 @@ export const renderMarkdown = (
         maxLines,
         getColor,
       })
-    } else {
+    }
+    else {
       ctx.textAlign = textAlign
       ctx.textBaseline = verticalAlign
 
@@ -1274,7 +1295,8 @@ export const renderMarkdown = (
         getColor,
       })
     }
-  } else {
+  }
+  else {
     /**
      * Set fontFamily is required for measureText to get currect matrics and
      * it also imp to reset font style if we are not rendering text
@@ -1285,10 +1307,7 @@ export const renderMarkdown = (
   return { width, x: x + width, y: newY, height: newY - y }
 }
 
-export const renderTag = (
-  ctx: CanvasRenderingContext2D,
-  { x, y, height, width, fillStyle, radius, borderColor, borderWidth }: RenderTagProps,
-) => {
+export function renderTag(ctx: CanvasRenderingContext2D, { x, y, height, width, fillStyle, radius, borderColor, borderWidth }: RenderTagProps) {
   if (width < 0) {
     width = 0
   }
@@ -1307,10 +1326,7 @@ export const renderTag = (
   }
 }
 
-export const renderTagLabel = (
-  ctx: CanvasRenderingContext2D,
-  props: CellRendererOptions & { text: string; renderAsMarkdown?: boolean },
-) => {
+export function renderTagLabel(ctx: CanvasRenderingContext2D, props: CellRendererOptions & { text: string, renderAsMarkdown?: boolean }) {
   const {
     x,
     y,
@@ -1323,7 +1339,7 @@ export const renderTagLabel = (
     markdownLoader,
     text,
     renderAsMarkdown,
-    getColor = (color) => color,
+    getColor = color => color,
   } = props
   const {
     tagPaddingX = 8,
@@ -1394,7 +1410,8 @@ export const renderTagLabel = (
       x: x + tagSpacing + textWidth + tagPaddingX * 2,
       y: initialY + tagHeight,
     }
-  } else {
+  }
+  else {
     const { text: truncatedText, width: textWidth } = renderSingleLineText(ctx, {
       x: x + tagSpacing + tagPaddingX,
       y,
@@ -1424,15 +1441,7 @@ export const renderTagLabel = (
   }
 }
 
-export const renderSpinner = (
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  size: number,
-  color: string,
-  startTime: number,
-  speed = 1,
-) => {
+export function renderSpinner(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, color: string, startTime: number, speed = 1) {
   const currentTime = Date.now()
   const elapsed = (currentTime - startTime) * speed
   const rotation = ((elapsed % 1000) / 1000) * Math.PI * 2
@@ -1453,8 +1462,8 @@ export const renderSpinner = (
 }
 
 export function isBoxHovered(
-  { x, y, height, width }: { x: number; y: number; height: number; width: number },
-  { x: mouseX, y: mouseY }: { x: number; y: number },
+  { x, y, height, width }: { x: number, y: number, height: number, width: number },
+  { x: mouseX, y: mouseY }: { x: number, y: number },
 ) {
   return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height
 }
@@ -1475,6 +1484,7 @@ export function renderIconButton(
     borderColor = '#e7e7e9',
     setCursor,
     shadow = false,
+    spin,
   }: {
     buttonX: number
     buttonY: number
@@ -1482,13 +1492,17 @@ export function renderIconButton(
     borderRadius: number
     spriteLoader: SpriteLoader
     icon: IconMapKey | VNode
-    mousePosition?: { x: number; y: number }
-    iconData?: { xOffset?: number; yOffset?: number; size?: number; color?: string }
+    mousePosition?: { x: number, y: number }
+    iconData?: { xOffset?: number, yOffset?: number, size?: number, color?: string }
     background?: string
     hoveredBackground?: string
     borderColor?: string
     setCursor?: SetCursorType
     shadow?: boolean
+    spin?: {
+      startTime: number
+      speed?: number // 1 = 1 rotation per second
+    }
   },
 ) {
   const hovered = mousePosition && isBoxHovered({ x: buttonX, y: buttonY, height: buttonSize, width: buttonSize }, mousePosition)
@@ -1517,20 +1531,45 @@ export function renderIconButton(
 
   const { color = '#374151', xOffset = 4, yOffset = 4, size: iconSize = 16 } = iconData
 
-  spriteLoader.renderIcon(ctx, {
-    icon,
-    x: buttonX + xOffset,
-    y: buttonY + yOffset,
-    size: iconSize,
-    color,
-  })
+  const iconX = buttonX + xOffset
+  const iconY = buttonY + yOffset
+
+  if (spin) {
+    const { startTime, speed = 1 } = spin
+    const elapsed = (Date.now() - startTime) * speed
+    const rotation = ((elapsed % 1000) / 1000) * Math.PI * 2
+
+    ctx.save()
+    ctx.translate(iconX + iconSize / 2, iconY + iconSize / 2)
+    ctx.rotate(rotation)
+    ctx.translate(-iconSize / 2, -iconSize / 2)
+
+    spriteLoader.renderIcon(ctx, {
+      icon,
+      x: 0,
+      y: 0,
+      size: iconSize,
+      color,
+    })
+
+    ctx.restore()
+  }
+  else {
+    spriteLoader.renderIcon(ctx, {
+      icon,
+      x: iconX,
+      y: iconY,
+      size: iconSize,
+      color,
+    })
+  }
 
   if (hovered) {
     setCursor?.('pointer')
   }
 }
 
-export const getAbstractType = (column: ColumnType, sqlUis?: Record<string, any>) => {
+export function getAbstractType(column: ColumnType, sqlUis?: Record<string, any>) {
   if (!column || !sqlUis) return
 
   const cacheKey = `${column.source_id}-${column.dt}-${column.dtxp}`
@@ -1565,7 +1604,7 @@ export function renderFormulaURL(
     verticalAlign?: CanvasTextBaseline
     getColor: GetColorType
   },
-): { x: number; y: number; width: number; height: number; url?: string }[] {
+): { x: number, y: number, width: number, height: number, url?: string }[] {
   const {
     htmlText,
     x,
@@ -1580,12 +1619,13 @@ export function renderFormulaURL(
   let maxLines = 1
   if (rowHeightInPx['1'] === height) {
     maxLines = 1 // Only one line if rowHeightInPx['1'] matches height
-  } else if (height) {
+  }
+  else if (height) {
     maxLines = Math.min(Math.floor(height / lineHeight), rowHeightTruncateLines(height)) // Calculate max lines
   }
   const ellipsisWidth = ctx.measureText('...').width
 
-  const urlRects: { x: number; y: number; width: number; height: number; url?: string }[] = []
+  const urlRects: { x: number, y: number, width: number, height: number, url?: string }[] = []
 
   const container = document.createElement('div')
   container.innerHTML = htmlText
@@ -1631,7 +1671,8 @@ export function renderFormulaURL(
             currentX = x
             currentLine++
           }
-        } else {
+        }
+        else {
           // Subsequent lines always start at the beginning of the row
           currentX = x
           currentLine++
@@ -1643,12 +1684,14 @@ export function renderFormulaURL(
           currentX += ctx.measureText(lineText).width
         }
       }
-    } else if (node.nodeType === Node.ELEMENT_NODE && (node as Element).tagName === 'A') {
+    }
+    else if (node.nodeType === Node.ELEMENT_NODE && (node as Element).tagName === 'A') {
       const anchor = node as HTMLAnchorElement
       const url = anchor.href
-      node.childNodes.forEach((child) => processNode(child, url))
-    } else {
-      node.childNodes.forEach((child) => processNode(child, currentUrl))
+      node.childNodes.forEach(child => processNode(child, url))
+    }
+    else {
+      node.childNodes.forEach(child => processNode(child, currentUrl))
     }
   }
 
@@ -1680,10 +1723,12 @@ export function renderFormulaURL(
       if (addEllipsis && availableWidth >= ellipsisWidth) {
         const adjustedMaxWidth = availableWidth - ellipsisWidth // Reserve space for ellipsis
         finalText = `${truncateText(ctx, text, adjustedMaxWidth, false)}...`
-      } else {
+      }
+      else {
         finalText = truncateText(ctx, text, availableWidth, false) // No ellipsis
       }
-    } else if (addEllipsis && textWidth + ellipsisWidth <= availableWidth) {
+    }
+    else if (addEllipsis && textWidth + ellipsisWidth <= availableWidth) {
       finalText += '...'
     }
 
@@ -1709,7 +1754,7 @@ export function renderFormulaURL(
     }
   }
 
-  container.childNodes.forEach((node) => processNode(node))
+  container.childNodes.forEach(node => processNode(node))
 
   return urlRects
 }

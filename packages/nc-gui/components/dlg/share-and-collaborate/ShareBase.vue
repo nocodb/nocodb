@@ -17,6 +17,8 @@ const { dashboardUrl } = useDashboard()
 
 const { $api, $e } = useNuxtApp()
 
+const { showEEFeatures } = useEeConfig()
+
 const { copy } = useCopy()
 
 const sharedBase = ref<null | ShareBase>(null)
@@ -28,10 +30,10 @@ const { appInfo } = useGlobal()
 const url = computed(() => {
   if (!sharedBase.value || !sharedBase.value.uuid) return ''
 
-  return encodeURI(`${dashboardUrl.value}#/base/${sharedBase.value.uuid}`)
+  return encodeURI(`${dashboardUrl.value}/base/${sharedBase.value.uuid}`)
 })
 
-const loadBase = async () => {
+async function loadBase() {
   try {
     if (!base.value.id) return
 
@@ -43,12 +45,13 @@ const loadBase = async () => {
       role: res.roles,
       fk_custom_url_id: res?.fk_custom_url_id || null,
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
-const createShareBase = async (role = ShareBaseRole.Viewer, custUrl = undefined) => {
+async function createShareBase(role = ShareBaseRole.Viewer, custUrl = undefined) {
   try {
     if (!base.value.id) return
 
@@ -67,14 +70,15 @@ const createShareBase = async (role = ShareBaseRole.Viewer, custUrl = undefined)
       sharedBase.value!.fk_custom_url_id = res.fk_custom_url_id
       base.value.fk_custom_url_id = res.fk_custom_url_id
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 
   $e('a:shared-base:enable', { role })
 }
 
-const disableSharedBase = async () => {
+async function disableSharedBase() {
   try {
     if (!base.value.id) return
 
@@ -82,7 +86,8 @@ const disableSharedBase = async () => {
     sharedBase.value = null
 
     base.value.uuid = undefined
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 
@@ -103,38 +108,43 @@ const isSharedBaseEnabled = computed(() => {
 const isToggleBaseLoading = ref(false)
 const isRoleToggleLoading = ref(false)
 
-const toggleSharedBase = async () => {
+async function toggleSharedBase() {
   if (isToggleBaseLoading.value) return
   isToggleBaseLoading.value = true
 
   try {
     if (isSharedBaseEnabled.value) {
       await disableSharedBase()
-    } else {
+    }
+    else {
       await createShareBase()
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     isToggleBaseLoading.value = false
   }
 }
 
-const onRoleToggle = async () => {
+async function onRoleToggle() {
   if (!sharedBase.value) return
   if (isRoleToggleLoading.value) return
 
   isRoleToggleLoading.value = true
   try {
     await createShareBase(ShareBaseRole.Viewer)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     isRoleToggleLoading.value = false
   }
 }
 
-const copyCustomUrl = async (custUrl = '') => {
+async function copyCustomUrl(custUrl = '') {
   return await copy(`${appInfo.value.ncSiteUrl}/p/${encodeURIComponent(custUrl)}`)
 }
 </script>
@@ -143,7 +153,9 @@ const copyCustomUrl = async (custUrl = '') => {
   <div class="flex flex-col py-2 px-3 gap-2 w-full" data-testid="nc-share-base-sub-modal">
     <div class="flex flex-col w-full p-3 border-1 border-nc-border-gray-light rounded-md">
       <div class="flex flex-row w-full justify-between">
-        <div class="text-nc-content-gray-emphasis font-medium">{{ $t('activity.enablePublicAccess') }}</div>
+        <div class="text-nc-content-gray-emphasis font-medium">
+          {{ $t('activity.enablePublicAccess') }}
+        </div>
         <a-switch
           v-if="!isPrivateBase"
           v-e="['c:share:base:enable:toggle']"
@@ -152,12 +164,14 @@ const copyCustomUrl = async (custUrl = '') => {
           class="ml-2"
           @click="toggleSharedBase"
         />
-        <div v-else class="text-nc-content-gray-muted">{{ $t('labels.sharingRestricted') }}</div>
+        <div v-else class="text-nc-content-gray-muted">
+          {{ $t('labels.sharingRestricted') }}
+        </div>
       </div>
       <div v-if="isSharedBaseEnabled" class="flex flex-col gap-3 w-full mt-3 border-t-1 pt-3 border-nc-border-gray-light">
         <GeneralCopyUrl v-model:url="url" />
         <DlgShareAndCollaborateCustomUrl
-          v-if="sharedBase?.uuid"
+          v-if="sharedBase?.uuid && showEEFeatures"
           :id="sharedBase.fk_custom_url_id"
           :backend-url="appInfo.ncSiteUrl"
           :copy-custom-url="copyCustomUrl"
@@ -168,7 +182,9 @@ const copyCustomUrl = async (custUrl = '') => {
           v-if="!appInfo.ee && sharedBase?.role === ShareBaseRole.Editor"
           class="flex flex-row justify-between bg-nc-bg-gray-extralight px-3 py-2 rounded-md"
         >
-          <div class="text-nc-content-gray-extreme">{{ $t('activity.editingAccess') }}</div>
+          <div class="text-nc-content-gray-extreme">
+            {{ $t('activity.editingAccess') }}
+          </div>
           <a-switch
             v-e="['c:share:base:role:toggle']"
             :loading="isRoleToggleLoading"

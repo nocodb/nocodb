@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Tooltip as ATooltip, Empty } from 'ant-design-vue'
 import type { AuditType } from 'nocodb-sdk'
+import { Tooltip as ATooltip, Empty } from 'ant-design-vue'
 import { timeAgo } from 'nocodb-sdk'
 
 const { $api } = useNuxtApp()
@@ -37,9 +37,11 @@ async function loadAudits(page = currentPage.value, limit = currentLimit.value) 
 
     audits.value = list
     totalRows.value = pageInfo.totalRows ?? 0
-  } catch (e) {
+  }
+  catch (e) {
     console.error(e)
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 }

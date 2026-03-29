@@ -13,10 +13,14 @@ defineProps<Props>()
       <slot name="icon" />
     </div>
     <div v-if="$slots.title || title" class="placeholder-title text-subHeading2">
-      <slot name="title">{{ title }}</slot>
+      <slot name="title">
+        {{ title }}
+      </slot>
     </div>
     <div v-if="$slots.subtitle || subtitle" class="placeholder-subtitle text-caption">
-      <slot name="subtitle">{{ subtitle }}</slot>
+      <slot name="subtitle">
+        {{ subtitle }}
+      </slot>
     </div>
     <div v-if="$slots.action" class="placeholder-action">
       <slot name="action" />

@@ -4,7 +4,7 @@ export function getHTMLEncodedText(htmlString: string) {
   return div.innerHTML
 }
 
-export const truncateText = (text: string, maxLength = 50) => {
+export function truncateText(text: string, maxLength = 50) {
   if (ncIsNullOrUndefined(text)) {
     return ''
   }
@@ -13,7 +13,7 @@ export const truncateText = (text: string, maxLength = 50) => {
   return `${text.substring(0, maxLength - 3)}...`
 }
 
-export const capitalize = (str?: string | null): string => {
+export function capitalize(str?: string | null): string {
   if (!str) return ''
   return str.charAt(0).toUpperCase() + str.slice(1)
 }

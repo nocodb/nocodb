@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import type { TableType } from 'nocodb-sdk'
 import { onKeyDown } from '@vueuse/core'
-import { PermissionEntity, PermissionKey, type TableType } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -27,10 +28,10 @@ const { showRecordPlanLimitExceededModal } = useEeConfig()
 
 const expand = ref(isAddingEmptyRowPermitted.value)
 
-const updateExpand = () => {
+function updateExpand() {
   if (
-    expand.value &&
-    showRecordPlanLimitExceededModal({
+    expand.value
+    && showRecordPlanLimitExceededModal({
       callback(type) {
         if (type === 'ok') {
           dialogShow.value = false
@@ -50,7 +51,7 @@ onKeyDown('esc', () => {
   emit('update:modelValue', false)
 })
 
-const close = () => {
+function close() {
   dialogShow.value = false
   emit('cancel')
 }
@@ -76,11 +77,15 @@ const close = () => {
           {{ rowsUpdated === 1 ? 'record' : 'records' }}
         </span>
         <template v-if="newRows">
-          <template v-if="cellsOverwritten || rowsUpdated"> and </template>
+          <template v-if="cellsOverwritten || rowsUpdated">
+            and
+          </template>
           <span class="font-bold"> insert {{ newRows }} additional {{ newRows === 1 ? 'record' : 'records' }} </span>
         </template>
         <template v-if="newColumns">
-          <template v-if="cellsOverwritten || rowsUpdated || newRows"> and </template>
+          <template v-if="cellsOverwritten || rowsUpdated || newRows">
+            and
+          </template>
           <span class="font-bold"> insert {{ newColumns }} additional {{ newColumns === 1 ? 'field' : 'fields' }} </span>
         </template>
       </div>

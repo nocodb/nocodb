@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Pane, Splitpanes } from 'splitpanes'
-import 'splitpanes/dist/splitpanes.css'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
-import { UseDetachedLongTextProvider } from '../smartsheet/grid/canvas/composables/useDetachedLongText'
+import { isLinksOrLTAR, UITypes } from 'nocodb-sdk'
+import { Pane, Splitpanes } from 'splitpanes'
 import DetachedExpandedText from '../smartsheet/grid/canvas/components/DetachedExpandedText.vue'
+import { UseDetachedLongTextProvider } from '../smartsheet/grid/canvas/composables/useDetachedLongText'
+import 'splitpanes/dist/splitpanes.css'
 
 const props = defineProps<{
   activeTab: TabItem
@@ -28,6 +28,10 @@ const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const viewStore = useViewsStore()
 
+const webhooksStore = useWebhooksStore()
+
+const { pendingDeepLinkHookId, pendingDeepLinkHookTab } = storeToRefs(webhooksStore)
+
 const { activeView, openedViewsTab, activeViewTitleOrId, isViewsLoading } = storeToRefs(viewStore)
 
 const meta = computed<TableType | undefined>(() => {
@@ -35,10 +39,8 @@ const meta = computed<TableType | undefined>(() => {
   return viewId && getMetaByKey(activeProjectId.value, viewId)
 })
 
-const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, isList, xWhere, eventBus } = useProvideSmartsheetStore(
-  activeView,
-  meta,
-)
+const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, isList, isTimeline, xWhere, eventBus }
+  = useProvideSmartsheetStore(activeView, meta)
 
 useViewRowColorProvider({ view: activeView, eventBus })
 
@@ -51,13 +53,14 @@ const openNewRecordFormHook = createEventHook<void>()
 const { base, showBaseAccessRequestOverlay } = storeToRefs(useBase())
 
 const activeSource = computed(() => {
-  return meta.value?.source_id && base.value && base.value.sources?.find((source) => source.id === meta.value?.source_id)
+  return meta.value?.source_id && base.value && base.value.sources?.find(source => source.id === meta.value?.source_id)
 })
 
 useProvideKanbanViewStore(meta, activeView)
 useProvideMapViewStore(meta, activeView)
 useProvideCalendarViewStore(meta, activeView, false, xWhere)
 useProvideListViewStore(meta, activeView)
+useProvideTimelineViewStore(meta, activeView, false, xWhere)
 
 // todo: move to store
 provide(MetaInj, meta)
@@ -67,6 +70,7 @@ provide(ReloadViewDataHookInj, reloadViewDataEventHook)
 provide(ReloadViewMetaHookInj, reloadViewMetaEventHook)
 provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(IsFormInj, isForm)
+provide(IsTimelineInj, isTimeline)
 provide(TabMetaInj, activeTab)
 provide(ActiveSourceInj, activeSource)
 provide(ReloadAggregateHookInj, createEventHook())
@@ -107,7 +111,7 @@ const actionPaneRef = ref()
  */
 const { isMounted } = useIsMounted()
 
-const onDrop = async (event: DragEvent) => {
+async function onDrop(event: DragEvent) {
   event.preventDefault()
   try {
     // Access the dropped data
@@ -125,8 +129,8 @@ const onDrop = async (event: DragEvent) => {
 
     if (!childMeta || !parentMeta) return
 
-    const parentPkCol = parentMeta.columns?.find((c) => c.pk)
-    const childPkCol = childMeta.columns?.find((c) => c.pk)
+    const parentPkCol = parentMeta.columns?.find(c => c.pk)
+    const childPkCol = childMeta.columns?.find(c => c.pk)
 
     // if already a link column exists, create a new Lookup column
     const relationCol = parentMeta.columns?.find((c: ColumnType) => {
@@ -148,14 +152,15 @@ const onDrop = async (event: DragEvent) => {
     })
 
     if (relationCol) {
-      const lookupCol = childMeta.columns?.find((c) => c.pv) ?? childMeta.columns?.[0]
+      const lookupCol = childMeta.columns?.find(c => c.pv) ?? childMeta.columns?.[0]
       grid.value?.openColumnCreate({
         uidt: UITypes.Lookup,
         title: `${data.title} Lookup`,
         fk_relation_column_id: relationCol.id,
         fk_lookup_column_id: lookupCol?.id,
       })
-    } else {
+    }
+    else {
       if (!parentPkCol) {
         message.error('Parent table does not have a primary key column')
         return
@@ -177,7 +182,8 @@ const onDrop = async (event: DragEvent) => {
         childColumn: childPkCol?.title,
       })
     }
-  } catch (e) {
+  }
+  catch (e) {
     console.log('error', e)
   }
 }
@@ -191,9 +197,11 @@ const { isPanelExpanded: isActionPanelExpanded, actionPanelSize } = useActionPan
 const contentSize = computed(() => {
   if (isPanelExpanded.value && extensionPanelSize.value) {
     return 100 - extensionPanelSize.value
-  } else if (isActionPanelExpanded.value && actionPanelSize.value) {
+  }
+  else if (isActionPanelExpanded.value && actionPanelSize.value) {
     return 100 - actionPanelSize.value
-  } else {
+  }
+  else {
     return 100
   }
 })
@@ -201,12 +209,13 @@ const contentSize = computed(() => {
 const contentMaxSize = computed(() => {
   if (!isPanelExpanded.value && !isActionPanelExpanded.value) {
     return 100
-  } else {
+  }
+  else {
     return ((windowSize.value - leftSidebarWidth.value - 300) / (windowSize.value - leftSidebarWidth.value)) * 100
   }
 })
 
-const onResize = () => {
+function onResize() {
   if (isPanelExpanded.value && !extensionPaneRef.value?.isReady) {
     extensionPaneRef.value?.onReady()
   }
@@ -215,7 +224,7 @@ const onResize = () => {
   }
 }
 
-const onResized = (sizes: { min: number; max: number; size: number }[]) => {
+function onResized(sizes: { min: number, max: number, size: number }[]) {
   if (sizes.length === 2) {
     if (!sizes[1]?.size) return
     if (isPanelExpanded.value) extensionPanelSize.value = sizes[1]!.size
@@ -223,7 +232,7 @@ const onResized = (sizes: { min: number; max: number; size: number }[]) => {
   }
 }
 
-const onReady = () => {
+function onReady() {
   if (isPanelExpanded.value && extensionPaneRef.value) {
     // wait until extension pane animation complete
     setTimeout(() => {
@@ -238,7 +247,7 @@ const onReady = () => {
   }
 }
 
-const checkIfViewExists = async () => {
+async function checkIfViewExists() {
   await until(() => isViewsLoading.value).toBe(false)
   const views = await viewStore.loadViews({
     baseId: activeProjectId.value,
@@ -247,8 +256,8 @@ const checkIfViewExists = async () => {
 
   // If no views exist or the current view is not found, navigate to workspace/base
   if (
-    !views?.length ||
-    !views.find((view) => view.id === activeViewTitleOrId.value || view.title === activeViewTitleOrId.value)
+    !views?.length
+    || !views.find(view => view.id === activeViewTitleOrId.value || view.title === activeViewTitleOrId.value)
   ) {
     ncNavigateTo({
       workspaceId: activeWorkspaceId.value,
@@ -259,6 +268,15 @@ const checkIfViewExists = async () => {
 
 onMounted(async () => {
   await checkIfViewExists()
+
+  const hookId = route.query.hookId as string
+  if (hookId) {
+    pendingDeepLinkHookId.value = hookId
+    pendingDeepLinkHookTab.value = (route.query.hookTab as string) || 'log'
+    if (openedViewsTab.value !== 'webhook') {
+      viewStore.onViewsTabChange('webhook')
+    }
+  }
 })
 
 watch(isViewsLoading, async () => {
@@ -290,7 +308,10 @@ watch(isViewsLoading, async () => {
         >
           <Pane class="flex flex-col h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
             <SmartsheetToolbar v-if="!isForm" show-full-screen-toggle />
-            <div :style="{ height: isForm ? '100%' : 'calc(100% - var(--toolbar-height))' }" class="flex flex-row w-full">
+            <div
+              :style="{ height: isForm || isTimeline ? '100%' : 'calc(100% - var(--toolbar-height))' }"
+              class="flex flex-row w-full"
+            >
               <Transition name="layout" mode="out-in">
                 <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
                   <div class="h-full flex-1 min-w-0 min-h-0 bg-nc-bg-default">
@@ -304,6 +325,8 @@ watch(isViewsLoading, async () => {
                       <SmartsheetKanbanWrapper v-else-if="isKanban" />
 
                       <SmartsheetCalendar v-else-if="isCalendar" />
+
+                      <SmartsheetTimeline v-else-if="isTimeline" />
 
                       <SmartsheetMap v-else-if="isMap" />
 

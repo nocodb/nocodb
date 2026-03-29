@@ -117,7 +117,6 @@ export type ClientTypeOrSqlUI =
   | 'pg'
   | 'sqlite3'
   | 'mysql2'
-  | 'oracledb'
   | 'mariadb'
   | 'sqlite'
   | 'snowflake'

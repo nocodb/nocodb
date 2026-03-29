@@ -38,13 +38,13 @@ const optionsToExclude = computed(() => {
 
 const isLoading = ref(false)
 
-const reloadTable = async () => {
+async function reloadTable() {
   await getMeta(meta!.value!.base_id, meta!.value!.id!, true)
   eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
   reloadDataHook?.trigger()
 }
 
-const _duplicate = async () => {
+async function _duplicate() {
   try {
     isLoading.value = true
     const jobData = await api.dbTable.duplicateColumn(props.column.base_id!, props.column.id!, {
@@ -70,7 +70,8 @@ const _duplicate = async () => {
             reloadTable()
             isLoading.value = false
             dialogShow.value = false
-          } else if (data.status === JobStatus.FAILED) {
+          }
+          else if (data.status === JobStatus.FAILED) {
             message.error(`There was an error duplicating the column.`)
             reloadTable()
             isLoading.value = false
@@ -81,7 +82,8 @@ const _duplicate = async () => {
     )
 
     $e('a:column:duplicate')
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
     isLoading.value = false
     dialogShow.value = false
@@ -134,7 +136,9 @@ defineExpose({
       <NcButton v-if="!isLoading" key="back" type="secondary" size="small" @click="dialogShow = false">
         {{ $t('general.cancel') }}
       </NcButton>
-      <NcButton key="submit" type="primary" size="small" :loading="isLoading" @click="_duplicate"> Duplicate Field </NcButton>
+      <NcButton key="submit" type="primary" size="small" :loading="isLoading" @click="_duplicate">
+        Duplicate Field
+      </NcButton>
     </div>
   </GeneralModal>
 </template>

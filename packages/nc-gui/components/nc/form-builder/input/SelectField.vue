@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
+
 interface Props {
   value?: string | string[] | null
   tableId?: string
@@ -30,13 +31,13 @@ const columnList = computed(() => {
 
 const columnListMap = computed(() => {
   if (!columnList.value || columnList.value.length === 0) return new Map()
-  return new Map(columnList.value.map((column) => [column.value, column]))
+  return new Map(columnList.value.map(column => [column.value, column]))
 })
 
 const selectedColumn = computed(() => {
   if (!columnListMap.value || columnListMap.value.size === 0) return undefined
   if (props.multiple && Array.isArray(modelValue.value)) {
-    return modelValue.value.map((val) => columnListMap.value.get(val)).filter(Boolean)
+    return modelValue.value.map(val => columnListMap.value.get(val)).filter(Boolean)
   }
   return columnListMap.value.get(modelValue.value as string) || undefined
 })
@@ -51,7 +52,7 @@ const selectedColumnLabel = computed(() => {
   return selectedColumn.value.label
 })
 
-const handleValueUpdate = (value: any) => {
+function handleValueUpdate(value: any) {
   modelValue.value = value
 }
 </script>

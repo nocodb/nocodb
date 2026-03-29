@@ -14,14 +14,14 @@ const { fields, metaColumnById } = useViewColumnsOrThrow()
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { setAdditionalValidations, setAvoidShowingToastMsgForValidations, validateInfos, column, isEdit } =
-  useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, setAvoidShowingToastMsgForValidations, validateInfos, column, isEdit }
+  = useColumnCreateStoreOrThrow()
 
 const columnsAllowedAsQrValue = computed<ColumnType[]>(() => {
   return (
     fields.value
       ?.filter(
-        (el) =>
+        el =>
           el.fk_column_id && AllowedColumnTypesForQrAndBarcodes.includes(metaColumnById.value[el.fk_column_id].uidt as UITypes),
       )
       .map((field) => {
@@ -32,9 +32,9 @@ const columnsAllowedAsQrValue = computed<ColumnType[]>(() => {
 
 onMounted(() => {
   // set default value
-  vModel.value.fk_qr_value_column_id =
-    (column?.value?.colOptions as Record<string, any>)?.fk_qr_value_column_id ||
-    (!isEdit.value ? columnsAllowedAsQrValue.value?.[0]?.id : null)
+  vModel.value.fk_qr_value_column_id
+    = (column?.value?.colOptions as Record<string, any>)?.fk_qr_value_column_id
+      || (!isEdit.value ? columnsAllowedAsQrValue.value?.[0]?.id : null)
 })
 
 setAdditionalValidations({
@@ -68,7 +68,9 @@ setAvoidShowingToastMsgForValidations({
               <SmartsheetHeaderIcon :column="option" class="!mx-0 w-4 h-4" color="text-nc-content-gray-subtle2" />
 
               <NcTooltip show-on-truncate-only class="flex-1 truncate">
-                <template #title>{{ option.title }}</template>
+                <template #title>
+                  {{ option.title }}
+                </template>
                 {{ option.title }}
               </NcTooltip>
             </div>

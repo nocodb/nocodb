@@ -1,18 +1,12 @@
 import type dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
 
-const isRowInDateRange = (
-  rowData: Record<string, any>,
-  rangeStart: dayjs.Dayjs,
-  rangeEnd: dayjs.Dayjs,
-  calendarRange: Array<{
-    fk_from_col: ColumnType
-    fk_to_col?: ColumnType | null
-    id: string
-    is_readonly: boolean
-  }>,
-  timezoneDayjs: { timezonize: (date: any) => dayjs.Dayjs },
-): boolean => {
+function isRowInDateRange(rowData: Record<string, any>, rangeStart: dayjs.Dayjs, rangeEnd: dayjs.Dayjs, calendarRange: Array<{
+  fk_from_col: ColumnType
+  fk_to_col?: ColumnType | null
+  id: string
+  is_readonly: boolean
+}>, timezoneDayjs: { timezonize: (date: any) => dayjs.Dayjs }): boolean {
   if (!calendarRange?.length) return false
 
   for (const range of calendarRange) {
@@ -38,20 +32,12 @@ const isRowInDateRange = (
   return false
 }
 
-const isRowInCurrentDateRange = (
-  rowData: Record<string, any>,
-  calendarRange: Array<{
-    fk_from_col: ColumnType
-    fk_to_col?: ColumnType | null
-    id: string
-    is_readonly: boolean
-  }>,
-  activeCalendarView: 'month' | 'year' | 'day' | 'week',
-  selectedDate: dayjs.Dayjs,
-  selectedDateRange: { start: dayjs.Dayjs; end: dayjs.Dayjs },
-  selectedMonth: dayjs.Dayjs,
-  timezoneDayjs: { timezonize: (date: any) => dayjs.Dayjs },
-): boolean => {
+function isRowInCurrentDateRange(rowData: Record<string, any>, calendarRange: Array<{
+  fk_from_col: ColumnType
+  fk_to_col?: ColumnType | null
+  id: string
+  is_readonly: boolean
+}>, activeCalendarView: 'month' | 'year' | 'day' | 'week', selectedDate: dayjs.Dayjs, selectedDateRange: { start: dayjs.Dayjs, end: dayjs.Dayjs }, selectedMonth: dayjs.Dayjs, timezoneDayjs: { timezonize: (date: any) => dayjs.Dayjs }): boolean {
   if (!calendarRange?.length) return false
 
   for (const range of calendarRange) {
@@ -104,24 +90,15 @@ const isRowInCurrentDateRange = (
   return false
 }
 
-const isRowMatchingSidebarFilter = (
-  rowData: Record<string, any>,
-  sideBarFilterOption: string,
-  calendarRange: Array<{
-    fk_from_col: ColumnType
-    fk_to_col?: ColumnType | null
-    id: string
-    is_readonly: boolean
-  }>,
-  selectedDate: dayjs.Dayjs,
-  selectedDateRange: { start: dayjs.Dayjs; end: dayjs.Dayjs },
-  selectedMonth: dayjs.Dayjs,
-  selectedTime: dayjs.Dayjs,
-  timezoneDayjs: {
-    timezonize: (date: any) => dayjs.Dayjs
-    dayjsTz: () => dayjs.Dayjs
-  },
-): boolean => {
+function isRowMatchingSidebarFilter(rowData: Record<string, any>, sideBarFilterOption: string, calendarRange: Array<{
+  fk_from_col: ColumnType
+  fk_to_col?: ColumnType | null
+  id: string
+  is_readonly: boolean
+}>, selectedDate: dayjs.Dayjs, selectedDateRange: { start: dayjs.Dayjs, end: dayjs.Dayjs }, selectedMonth: dayjs.Dayjs, selectedTime: dayjs.Dayjs, timezoneDayjs: {
+  timezonize: (date: any) => dayjs.Dayjs
+  dayjsTz: () => dayjs.Dayjs
+}): boolean {
   if (!calendarRange?.length) return false
 
   // Apply the same logic as sideBarFilter computed property
@@ -182,4 +159,4 @@ const isRowMatchingSidebarFilter = (
   }
 }
 
-export { isRowInDateRange, isRowInCurrentDateRange, isRowMatchingSidebarFilter }
+export { isRowInCurrentDateRange, isRowInDateRange, isRowMatchingSidebarFilter }

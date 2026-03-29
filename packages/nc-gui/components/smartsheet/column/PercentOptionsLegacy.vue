@@ -37,7 +37,9 @@ if (!vModel.value.meta?.precision) vModel.value.meta.precision = precisions[0].i
       <a-form-item>
         <div class="flex flex-row space-x-2 items-center">
           <a-switch v-model:checked="vModel.meta.negative" :name="$t('labels.negative')" />
-          <div class="text-xs">{{ $t('placeholder.allowNegativeNumbers') }}</div>
+          <div class="text-xs">
+            {{ $t('placeholder.allowNegativeNumbers') }}
+          </div>
         </div>
       </a-form-item>
     </div>

@@ -29,5 +29,5 @@ const isShowColoringButton = ref(false)
       </template>
     </NcDropdown>
   </template>
-  <template v-else></template>
+  <template v-else />
 </template>

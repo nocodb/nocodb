@@ -32,7 +32,7 @@ const modelValue = useVModel(props, 'value', emit)
 
 const isOpenScriptSelectDropdown = ref(false)
 
-const handleValueUpdate = (value: any) => {
+function handleValueUpdate(value: any) {
   modelValue.value = value
 }
 
@@ -44,7 +44,8 @@ const scriptList = computedAsync(async () => {
       baseId: props.baseId,
       force: props.forceLoadScripts,
     })
-  } else {
+  }
+  else {
     // If no baseId provided, return empty array
     scripts = []
   }
@@ -71,7 +72,7 @@ const scriptList = computedAsync(async () => {
 const scriptListMap = computed(() => {
   if (!scriptList.value || scriptList.value.length === 0) return new Map()
 
-  return new Map(scriptList.value.map((script) => [script.value, script]))
+  return new Map(scriptList.value.map(script => [script.value, script]))
 })
 
 const selectedScript = computed(() => {
@@ -84,7 +85,7 @@ watch(
   scriptList,
   (newScriptList) => {
     if (newScriptList && newScriptList.length > 0) {
-      const newScriptListMap = new Map(newScriptList.map((script) => [script.value, script]))
+      const newScriptListMap = new Map(newScriptList.map(script => [script.value, script]))
 
       // Check if current value exists in the new script list
       if (modelValue.value && !newScriptListMap.has(modelValue.value)) {
@@ -100,8 +101,9 @@ watch(
         const scriptObj = newScriptListMap.get(newScriptId)
 
         if (scriptObj && scriptObj.ncItemDisabled && scriptObj.value === newScriptList[0]?.value) {
-          modelValue.value = newScriptList.find((script) => !script.ncItemDisabled)?.value || newScriptList[0]?.value
-        } else {
+          modelValue.value = newScriptList.find(script => !script.ncItemDisabled)?.value || newScriptList[0]?.value
+        }
+        else {
           modelValue.value = newScriptId
         }
       }
@@ -131,7 +133,9 @@ defineExpose({
   >
     <template v-if="!disableLabel" #label>
       <div>
-        <slot name="label">{{ t('general.script') }}</slot>
+        <slot name="label">
+          {{ t('general.script') }}
+        </slot>
       </div>
     </template>
     <NcListDropdown

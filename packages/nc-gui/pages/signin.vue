@@ -91,7 +91,9 @@ function navigateForgotPassword() {
         >
           <GeneralNocoIcon class="color-transition hover:(ring ring-accent ring-opacity-100)" :animate="isLoading" />
 
-          <h1 class="prose-2xl font-bold self-center my-4">{{ $t('general.signIn') }}</h1>
+          <h1 class="prose-2xl font-bold self-center my-4">
+            {{ $t('general.signIn') }}
+          </h1>
 
           <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signIn">
             <template v-if="!appInfo.disableEmailAuth">
@@ -99,7 +101,9 @@ function navigateForgotPassword() {
                 <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
                   <div class="flex items-center gap-2 justify-center">
                     <MaterialSymbolsWarning />
-                    <div class="break-words">{{ error }}</div>
+                    <div class="break-words">
+                      {{ error }}
+                    </div>
                   </div>
                 </div>
               </Transition>
@@ -178,7 +182,9 @@ function navigateForgotPassword() {
 
               <div v-if="!appInfo.inviteOnlySignup" class="text-end prose-sm">
                 {{ $t('msg.info.signUp.dontHaveAccount') }}
-                <nuxt-link @click="navigateSignUp">{{ $t('general.signUp') }}</nuxt-link>
+                <nuxt-link @click="navigateSignUp">
+                  {{ $t('general.signUp') }}
+                </nuxt-link>
               </div>
               <template v-if="!appInfo.disableEmailAuth">
                 <div class="md:hidden">

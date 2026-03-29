@@ -11,7 +11,7 @@ const emit = defineEmits(['deleteBase'])
 
 const { $e } = useNuxtApp()
 
-const openProject = async (base: BaseType) => {
+async function openProject(base: BaseType) {
   await navigateTo(`/nc/${base.id}`)
   $e('a:base:open', { count: bases.length })
 }
@@ -22,7 +22,7 @@ const openProject = async (base: BaseType) => {
     <div class="grid grid-cols-3 gap-2 prose-md p-2 font-semibold">
       <div>{{ $t('general.title') }}</div>
       <div>Updated At</div>
-      <div></div>
+      <div />
     </div>
 
     <div class="col-span-3 w-full h-[1px] bg-gray-500/50" />
@@ -32,7 +32,9 @@ const openProject = async (base: BaseType) => {
         class="cursor-pointer grid grid-cols-3 gap-2 prose-md hover:(bg-nc-bg-gray-dark/30) p-2 transition-colors ease-in duration-100"
         @click="openProject(base)"
       >
-        <div class="font-semibold capitalize">{{ base.title || 'Untitled' }}</div>
+        <div class="font-semibold capitalize">
+          {{ base.title || 'Untitled' }}
+        </div>
         <div>{{ base.updated_at }}</div>
         <div class="flex justify-center">
           <component

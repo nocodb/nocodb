@@ -35,7 +35,7 @@ watch(isFullScreen, async (newValue, _oldValue, onCleanup) => {
   })
 })
 
-const toggleFullScreenState = () => {
+function toggleFullScreenState() {
   // If it is inside iframe then open in new tab
   if (ncIsIframe()) {
     window.open(window.location.href, '_blank')
@@ -64,8 +64,8 @@ const toggleFullScreenState = () => {
       showLockResetLoading
         ? $t('tooltip.releasingPreviousFullscreenLock')
         : ncIsIframe()
-        ? $t('labels.clickToOpenInNewTabToEnterFullscreen')
-        : $t('labels.enterFullscreen')
+          ? $t('labels.clickToOpenInNewTabToEnterFullscreen')
+          : $t('labels.enterFullscreen')
     "
     :disabled="isFullScreen"
     placement="left"
@@ -87,7 +87,9 @@ const toggleFullScreenState = () => {
         <GeneralIcon v-if="!isFullScreen" icon="ncMaximize2" />
         <GeneralIcon v-else icon="ncMinimize2" />
       </template>
-      <template v-if="isFullScreen">{{ $t('labels.exitFullscreen') }}</template>
+      <template v-if="isFullScreen">
+        {{ $t('labels.exitFullscreen') }}
+      </template>
     </NcButton>
   </NcTooltip>
 </template>

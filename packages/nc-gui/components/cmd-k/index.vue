@@ -1,7 +1,7 @@
 <script lang="ts" setup>
+import type { CommandPaletteType } from '#imports'
 import { useMagicKeys, whenever } from '@vueuse/core'
 import { commandScore } from './command-score'
-import type { CommandPaletteType } from '#imports'
 
 interface CmdAction {
   id: string
@@ -25,7 +25,7 @@ const props = defineProps<{
   data: CmdAction[]
   scope?: string
   hotkey?: string
-  loadTemporaryScope?: (scope: { scope: string; data: any }) => void
+  loadTemporaryScope?: (scope: { scope: string, data: any }) => void
   setActiveCmdView: (cmd: CommandPaletteType) => void
 }>()
 
@@ -83,7 +83,7 @@ const nestedScope = computed(() => {
   let parent = activeScope.value
   while (parent !== 'root') {
     const parentId = parent.startsWith('ws-') ? `ws-nav-${parent.split('-')[1]}` : parent
-    const parentEl = formattedData.value.find((el) => el.id === parentId)
+    const parentEl = formattedData.value.find(el => el.id === parentId)
     rt.push({
       id: parent,
       label: parentEl?.title,
@@ -100,7 +100,7 @@ const nestedScope = computed(() => {
   return rt.reverse()
 })
 
-const isThereAnyActionInScope = (sc: string): boolean => {
+function isThereAnyActionInScope(sc: string): boolean {
   return formattedData.value.some((el) => {
     if (el.parent === sc) {
       if (!el.handler) {
@@ -112,8 +112,8 @@ const isThereAnyActionInScope = (sc: string): boolean => {
   })
 }
 
-const getAvailableScopes = (sc: string) => {
-  const tempChildScopes = formattedData.value.filter((el) => el.parent === sc && !el.handler).map((el) => el.id)
+function getAvailableScopes(sc: string) {
+  const tempChildScopes = formattedData.value.filter(el => el.parent === sc && !el.handler).map(el => el.id)
   for (const el of tempChildScopes) {
     tempChildScopes.push(...getAvailableScopes(el))
   }
@@ -125,7 +125,7 @@ const activeScopes = computed(() => {
 })
 
 const actionList = computed(() => {
-  const sections = formattedData.value.filter((el) => el.section).map((el) => el.section)
+  const sections = formattedData.value.filter(el => el.section).map(el => el.section)
   formattedData.value.sort((a, b) => {
     if (a.section && b.section) {
       if (sections.indexOf(a.section) < sections.indexOf(b.section)) return -1
@@ -145,7 +145,8 @@ const actionList = computed(() => {
         return true
       }
       return false
-    } else {
+    }
+    else {
       if (el.parent === activeScope.value || activeScopes.value.includes(el.parent || 'root')) {
         if (!el.handler) {
           return isThereAnyActionInScope(el.id)
@@ -165,7 +166,7 @@ const searchedActionList = computed(() => {
     return 0
   })
   return actionList.value
-    .filter((el) => el.weight > 0)
+    .filter(el => el.weight > 0)
     .sort((a, b) => b.section?.toLowerCase().localeCompare(a.section?.toLowerCase() as string) || 0)
 })
 
@@ -183,7 +184,7 @@ const actionListNormalized = computed(() => {
   const rt: (CmdAction | { sectionTitle: string })[] = []
   visibleSections.value.forEach((el) => {
     rt.push({ sectionTitle: el || 'default' })
-    rt.push(...searchedActionList.value.filter((el2) => el2.section === el))
+    rt.push(...searchedActionList.value.filter(el2 => el2.section === el))
   })
   return rt
 })
@@ -196,17 +197,18 @@ const keys = useMagicKeys()
 
 const shiftModifier = keys.shift
 
-const setAction = (action: string) => {
-  const oldActionIndex = searchedActionList.value.findIndex((el) => el.id === selected.value)
+function setAction(action: string) {
+  const oldActionIndex = searchedActionList.value.findIndex(el => el.id === selected.value)
   selected.value = action
   nextTick(() => {
-    const actionIndex = searchedActionList.value.findIndex((el) => el.id === action)
+    const actionIndex = searchedActionList.value.findIndex(el => el.id === action)
     if (actionIndex === -1) return
 
     if (actionIndex === 0) {
       containerProps.ref.value?.scrollTo({ top: 0, behavior: 'smooth' })
       return
-    } else if (actionIndex === searchedActionList.value.length - 1) {
+    }
+    else if (actionIndex === searchedActionList.value.length - 1) {
       containerProps.ref.value?.scrollTo({
         top: actionIndex * ACTION_HEIGHT,
         behavior: 'smooth',
@@ -221,7 +223,8 @@ const setAction = (action: string) => {
       // if above the old selected action
       if (actionIndex < oldActionIndex) {
         containerProps.ref.value?.scrollTo({ top: (actionIndex + 1) * ACTION_HEIGHT - SCROLL_MARGIN, behavior: 'smooth' })
-      } else {
+      }
+      else {
         containerProps.ref.value?.scrollTo({
           top: (actionIndex + 2) * ACTION_HEIGHT - WRAPPER_HEIGHT + SCROLL_MARGIN,
           behavior: 'smooth',
@@ -231,7 +234,7 @@ const setAction = (action: string) => {
     }
 
     // count sections before the selected action
-    const sectionBefore = visibleSections.value.findIndex((el) => el === searchedActionList.value[actionIndex].section) + 1
+    const sectionBefore = visibleSections.value.findIndex(el => el === searchedActionList.value[actionIndex].section) + 1
 
     // check if selected action is visible in the list
     const actionRect = actionEl?.getBoundingClientRect()
@@ -244,7 +247,8 @@ const setAction = (action: string) => {
             top: (actionIndex + sectionBefore) * ACTION_HEIGHT - SCROLL_MARGIN,
             behavior: 'smooth',
           })
-        } else {
+        }
+        else {
           containerProps.ref.value?.scrollTo({
             top: (actionIndex + 1 + sectionBefore) * ACTION_HEIGHT - WRAPPER_HEIGHT + SCROLL_MARGIN,
             behavior: 'smooth',
@@ -255,7 +259,7 @@ const setAction = (action: string) => {
   })
 }
 
-const setScope = (scope: string) => {
+function setScope(scope: string) {
   activeScope.value = scope
 
   emits('scope', scope)
@@ -265,13 +269,13 @@ const setScope = (scope: string) => {
   })
 }
 
-const determineInitialScope = (): string => {
+function determineInitialScope(): string {
   if (route.value.params.viewId) return `tbl-${route.value.params.viewId}`
   if (route.value.params.baseId) return `p-${route.value.params.baseId}`
 
   return props.scope || 'root'
 }
-const show = () => {
+function show() {
   if (!user.value) return
   if (props.scope === 'disabled') return
 
@@ -284,11 +288,11 @@ const show = () => {
   })
 }
 
-const hide = () => {
+function hide() {
   vOpen.value = false
 }
 
-const fireAction = (action: CmdAction, preview = false) => {
+function fireAction(action: CmdAction, preview = false) {
   if (preview) {
     if (action?.scopePayload) {
       setScope(action.scopePayload.scope)
@@ -301,7 +305,8 @@ const fireAction = (action: CmdAction, preview = false) => {
   if (action?.handler) {
     action.handler()
     hide()
-  } else {
+  }
+  else {
     setScope(action.id)
   }
 }
@@ -317,7 +322,8 @@ const updateDebouncedInput = useDebounceFn(() => {
 watch(cmdInput, () => {
   if (cmdInput.value === '') {
     debouncedCmdInput.value = ''
-  } else {
+  }
+  else {
     updateDebouncedInput()
   }
 })
@@ -344,10 +350,11 @@ whenever(keys.meta_j, () => {
 
 whenever(keys.arrowup, () => {
   if (vOpen.value) {
-    const idx = searchedActionList.value.findIndex((el) => el.id === selected.value)
+    const idx = searchedActionList.value.findIndex(el => el.id === selected.value)
     if (idx > 0) {
       setAction(searchedActionList.value[idx - 1].id)
-    } else if (idx === 0) {
+    }
+    else if (idx === 0) {
       setAction(searchedActionList.value[searchedActionList.value.length - 1].id)
     }
   }
@@ -355,13 +362,14 @@ whenever(keys.arrowup, () => {
 
 whenever(keys.arrowdown, () => {
   if (vOpen.value) {
-    const idx = searchedActionList.value.findIndex((el) => el.id === selected.value)
+    const idx = searchedActionList.value.findIndex(el => el.id === selected.value)
 
     if (idx === -1 || searchedActionList.value.length === 0) return
 
     if (idx < searchedActionList.value.length - 1) {
       setAction(searchedActionList.value[idx + 1].id)
-    } else if (idx === searchedActionList.value.length - 1) {
+    }
+    else if (idx === searchedActionList.value.length - 1) {
       setAction(searchedActionList.value[0].id)
     }
   }
@@ -369,7 +377,7 @@ whenever(keys.arrowdown, () => {
 
 whenever(keys.Enter, () => {
   if (vOpen.value) {
-    const selectedEl = formattedData.value.find((el) => el.id === selected.value)
+    const selectedEl = formattedData.value.find(el => el.id === selected.value)
     cmdInput.value = ''
     if (selectedEl) {
       fireAction(selectedEl, shiftModifier.value)
@@ -379,7 +387,7 @@ whenever(keys.Enter, () => {
 
 whenever(keys.Backspace, () => {
   if (vOpen.value && cmdInput.value === '' && activeScope.value !== 'root') {
-    const activeEl = formattedData.value.find((el) => el.id === activeScope.value)
+    const activeEl = formattedData.value.find(el => el.id === activeScope.value)
     setScope(activeEl?.parent || 'root')
   }
 })
@@ -444,8 +452,7 @@ defineExpose({
                     }"
                     readonly
                     class="cmdk-action-icon !w-5"
-                  >
-                  </GeneralBaseIconColorPicker>
+                  />
                 </template>
 
                 <template v-else-if="el.section === 'Tables' || el.icon === 'table'">
@@ -494,7 +501,7 @@ defineExpose({
 
             <span class="text-nc-content-gray-subtle text-sm pl-1 font-medium">/</span>
           </div>
-          <input ref="cmdInputEl" v-model="cmdInput" class="cmdk-input" type="text" :placeholder="cmdPlaceholder" />
+          <input ref="cmdInputEl" v-model="cmdInput" class="cmdk-input" type="text" :placeholder="cmdPlaceholder">
         </div>
       </div>
       <div class="cmdk-body">
@@ -502,9 +509,14 @@ defineExpose({
           <div v-if="searchedActionList.length === 0 && cmdLoading" class="w-full h-[250px] flex justify-center items-center">
             <GeneralLoader :size="30" />
           </div>
-          <div v-else-if="searchedActionList.length === 0">
-            <div class="cmdk-action">
-              <div class="cmdk-action-content">{{ $t('placeholder.noResultsFoundForYourSearch') }}</div>
+          <div v-else-if="searchedActionList.length === 0" class="flex flex-col p-4 gap-4 items-center justify-center text-sm">
+            <img
+              src="~assets/img/placeholder/no-search-result-found.png"
+              class="!w-[240px] flex-none"
+              :alt="$t('placeholder.noResultsFoundForYourSearch')"
+            >
+            <div class="text-nc-content-gray-muted">
+              {{ $t('placeholder.noResultsFoundForYourSearch') }}
             </div>
           </div>
           <template v-else>
@@ -560,8 +572,7 @@ defineExpose({
                                 managed_app_master: item.data.managed_app_master,
                                 managed_app_id: item.data.managed_app_id,
                               }"
-                            >
-                            </GeneralBaseIconColorPicker>
+                            />
                           </template>
                           <template v-else-if="item.data.section === 'Tables' || item.data.icon === 'table'">
                             <GeneralTableIcon

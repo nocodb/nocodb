@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { UITypes } from 'nocodb-sdk'
 import type { ClientType } from 'nocodb-sdk'
 import type { RowHandler } from './types'
+import { UITypes } from 'nocodb-sdk'
 
 interface Props {
   modelValue: ColumnFilterType
@@ -58,6 +58,8 @@ const meta = inject(MetaInj, ref())
 // t is a standalone dependency, so not need to abstract it
 const { t } = useI18n()
 
+const { appInfo } = useGlobal()
+
 const { blockToggleFilter, showUpgradeToUseToggleFilter } = useEeConfig()
 
 const logicalOps = [
@@ -91,7 +93,7 @@ watch(
   },
 )
 
-const slotHasChildren = (name?: string) => {
+function slotHasChildren(name?: string) {
   return (slots[name ?? 'default']?.()?.length ?? 0) > 0
 }
 
@@ -104,7 +106,7 @@ const column = computed(() => {
   if (!vModel.value.fk_column_id) {
     return undefined
   }
-  return props.columns.find((col) => col.id === fk_column_id)
+  return props.columns.find(col => col.id === fk_column_id)
 })
 
 const dynamicColumns = computed(() => {
@@ -120,7 +122,7 @@ const comparisonOps = computed(() => {
     return []
   }
   const evalUidt = (evalColumn?.filterUidt ?? evalColumn?.uidt) as UITypes
-  const list = comparisonOpList(evalUidt, parseProp(evalColumn?.meta)?.date_format).filter((compOp) =>
+  const list = comparisonOpList(evalUidt, parseProp(evalColumn?.meta)?.date_format).filter(compOp =>
     isComparisonOpAllowed(vModel.value, compOp, evalUidt, props.showNullAndEmptyInFilter),
   )
   return list
@@ -129,7 +131,7 @@ const comparisonOps = computed(() => {
 const comparisonSubOps = computed(() => {
   const evalColumn = column.value
   const evalUidt = (evalColumn?.filterUidt ?? evalColumn?.uidt) as UITypes
-  return comparisonSubOpList(vModel.value.comparison_op!, parseProp(evalColumn?.meta)?.date_format).filter((compSubOp) =>
+  return comparisonSubOpList(vModel.value.comparison_op!, parseProp(evalColumn?.meta)?.date_format).filter(compSubOp =>
     isComparisonSubOpAllowed(vModel.value, compSubOp, evalUidt),
   )
 })
@@ -140,19 +142,20 @@ const showFilterInput = computed(() => {
 
   if (filter.comparison_sub_op) {
     return !comparisonSubOpList(filter.comparison_op, parseProp(column.value?.meta)?.date_format).find(
-      (op) => op.value === filter.comparison_sub_op,
+      op => op.value === filter.comparison_sub_op,
     )?.ignoreVal
-  } else {
+  }
+  else {
     return !comparisonOpList(
       (column.value?.filterUidt ?? column.value?.uidt) as UITypes,
       parseProp(column.value?.meta)?.date_format,
-    ).find((op) => op.value === filter.comparison_op)?.ignoreVal
+    ).find(op => op.value === filter.comparison_op)?.ignoreVal
   }
 })
 // #endregion
 
 // #region event handling
-const onColumnChange = (fk_column_id: string) => {
+function onColumnChange(fk_column_id: string) {
   const prevValue = vModel.value.fk_column_id
   if (props.handler?.rowChange) {
     props.handler?.rowChange({
@@ -162,10 +165,11 @@ const onColumnChange = (fk_column_id: string) => {
       value: fk_column_id,
       index: props.index,
     })
-  } else {
+  }
+  else {
     vModel.value.fk_column_id = fk_column_id
     // adjust comparison ops and sub ops
-    const evalColumn = props.columns.find((col) => col.id === fk_column_id)
+    const evalColumn = props.columns.find(col => col.id === fk_column_id)
     if (evalColumn) {
       adjustFilterWhenColumnChange({
         column: evalColumn,
@@ -183,7 +187,7 @@ const onColumnChange = (fk_column_id: string) => {
     })
   }
 }
-const onLogicalOpChange = (logical_op: string) => {
+function onLogicalOpChange(logical_op: string) {
   const prevValue = vModel.value.logical_op
   if (props.handler?.rowChange) {
     props.handler?.rowChange({
@@ -193,7 +197,8 @@ const onLogicalOpChange = (logical_op: string) => {
       value: logical_op,
       index: props.index,
     })
-  } else {
+  }
+  else {
     vModel.value.logical_op = logical_op as any
     emits('change', {
       filter: { ...vModel.value },
@@ -204,7 +209,7 @@ const onLogicalOpChange = (logical_op: string) => {
     })
   }
 }
-const onComparisonOpChange = (comparison_op: string) => {
+function onComparisonOpChange(comparison_op: string) {
   const prevValue = vModel.value.comparison_op
   if (props.handler?.rowChange) {
     props.handler?.rowChange({
@@ -214,7 +219,8 @@ const onComparisonOpChange = (comparison_op: string) => {
       value: comparison_op,
       index: props.index,
     })
-  } else {
+  }
+  else {
     vModel.value.comparison_op = comparison_op as any
     const filter = vModel.value
 
@@ -222,31 +228,34 @@ const onComparisonOpChange = (comparison_op: string) => {
     if (col) {
       // adjust value and sub op
       if (
-        col.uidt === UITypes.SingleSelect &&
-        ['anyof', 'nanyof'].includes(filterPrevComparisonOp.value) &&
-        ['eq', 'neq'].includes(filter.comparison_op!)
+        col.uidt === UITypes.SingleSelect
+        && ['anyof', 'nanyof'].includes(filterPrevComparisonOp.value)
+        && ['eq', 'neq'].includes(filter.comparison_op!)
       ) {
         // anyof and nanyof can allow multiple selections,
         // while `eq` and `neq` only allow one selection
         filter.value = null
-      } else if (['blank', 'notblank', 'empty', 'notempty', 'null', 'notnull'].includes(filter.comparison_op!)) {
+      }
+      else if (['blank', 'notblank', 'empty', 'notempty', 'null', 'notnull'].includes(filter.comparison_op!)) {
         // since `blank`, `empty`, `null` doesn't require value,
         // hence remove the previous value
         filter.value = null
         filter.comparison_sub_op = null
-      } else if (isDateType((col.filterUidt ?? col.uidt) as UITypes)) {
+      }
+      else if (isDateType((col.filterUidt ?? col.uidt) as UITypes)) {
         // for date / datetime,
         // the input type could be decimal or datepicker / datetime picker
         // hence remove the previous value
         filter.value = null
         if (
           !comparisonSubOpList(filter.comparison_op!, parseProp(col?.meta)?.date_format)
-            .map((op) => op.value)
+            .map(op => op.value)
             .includes(filter.comparison_sub_op!)
         ) {
           if (filter.comparison_op === 'isWithin') {
             filter.comparison_sub_op = 'pastNumberOfDays'
-          } else {
+          }
+          else {
             filter.comparison_sub_op = 'exactDate'
           }
         }
@@ -263,7 +272,7 @@ const onComparisonOpChange = (comparison_op: string) => {
     })
   }
 }
-const onComparisonSubOpChange = (comparison_sub_op: string) => {
+function onComparisonSubOpChange(comparison_sub_op: string) {
   const prevValue = vModel.value.comparison_sub_op
   if (props.handler?.rowChange) {
     props.handler?.rowChange({
@@ -273,7 +282,8 @@ const onComparisonSubOpChange = (comparison_sub_op: string) => {
       value: comparison_sub_op,
       index: props.index,
     })
-  } else {
+  }
+  else {
     vModel.value.comparison_sub_op = comparison_sub_op as any
     emits('change', {
       filter: { ...vModel.value },
@@ -284,7 +294,7 @@ const onComparisonSubOpChange = (comparison_sub_op: string) => {
     })
   }
 }
-const onFkValueColIdChanged = (fk_value_col_id: string) => {
+function onFkValueColIdChanged(fk_value_col_id: string) {
   const prevValue = vModel.value.fk_value_col_id
   if (props.handler?.rowChange) {
     props.handler?.rowChange({
@@ -294,7 +304,8 @@ const onFkValueColIdChanged = (fk_value_col_id: string) => {
       value: fk_value_col_id,
       index: props.index,
     })
-  } else {
+  }
+  else {
     vModel.value.fk_value_col_id = fk_value_col_id as any
     emits('change', {
       filter: { ...vModel.value },
@@ -316,7 +327,8 @@ function onValueChange(value: any, prevValue: any, index: number) {
 
   if (!vModel.value.id) {
     isFilterSaving.value = true
-  } else {
+  }
+  else {
     isFilterSaving.value = false
   }
 
@@ -330,7 +342,8 @@ function onValueChange(value: any, prevValue: any, index: number) {
       value,
       index,
     })
-  } else {
+  }
+  else {
     emits('change', {
       filter: { ...vModel.value },
       type: 'value',
@@ -343,7 +356,7 @@ function onValueChange(value: any, prevValue: any, index: number) {
   localFilterValue.value = ''
 }
 
-const updateFilterValue = (value: string) => {
+function updateFilterValue(value: string) {
   const prevValue = vModel.value.value
   const currentValue = value
   localFilterValue.value = value
@@ -352,14 +365,14 @@ const updateFilterValue = (value: string) => {
   saveOrUpdateDebounced(currentValue, prevValue, props.index)
 }
 
-const onDelete = () => {
+function onDelete() {
   emits('delete', {
     filter: { ...vModel.value },
     index: props.index,
   })
 }
 
-const onCopy = () => {
+function onCopy() {
   emits('copy', {
     filter: { ...vModel.value },
     index: props.index,
@@ -370,7 +383,7 @@ const isFilterEnabled = computed(() => vModel.value.enabled !== false && vModel.
 
 const effectiveEnabled = computed(() => props.parentEnabled !== false && props.parentEnabled !== 0 && isFilterEnabled.value)
 
-const onEnabledChange = (val: boolean | Event) => {
+function onEnabledChange(val: boolean | Event) {
   const newValue = typeof val === 'boolean' ? val : (val?.target as HTMLInputElement)?.checked
   const prevValue = vModel.value.enabled
   vModel.value.enabled = newValue
@@ -383,7 +396,8 @@ const onEnabledChange = (val: boolean | Event) => {
       value: newValue,
       index: props.index,
     })
-  } else {
+  }
+  else {
     emits('change', {
       filter: { ...vModel.value },
       type: 'enabled',
@@ -394,7 +408,7 @@ const onEnabledChange = (val: boolean | Event) => {
   }
 }
 
-const onToggleFilterChange = (val: boolean | Event) => {
+function onToggleFilterChange(val: boolean | Event) {
   if (blockToggleFilter.value) {
     showUpgradeToUseToggleFilter()
     return
@@ -414,7 +428,7 @@ async function onResetDynamicField() {
     index: props.index,
   })
 }
-const onChangeToDynamic = async () => {
+async function onChangeToDynamic() {
   const prevValue = vModel.value.dynamic
   vModel.value.dynamic = isDynamicFilterAllowed(vModel.value, column.value, props.dbClientType) && showFilterInput.value
 
@@ -437,7 +451,7 @@ const onChangeToDynamic = async () => {
     v-bind="containerProps"
   >
     <!-- #region enabled checkbox (EE only) -->
-    <div v-if="isEeUI && isAllowFilterEnableToggle" class="flex items-center pl-2 pr-1">
+    <div v-if="appInfo.ee && isAllowFilterEnableToggle" class="flex items-center pl-2 pr-1">
       <NcCheckbox
         :checked="isFilterEnabled"
         size="default"
@@ -452,7 +466,7 @@ const onChangeToDynamic = async () => {
     <template v-if="index === 0">
       <div
         class="flex items-center !min-w-18 !max-w-18 nc-filter-where-label"
-        :class="isEeUI && isAllowFilterEnableToggle ? 'pl-1' : 'pl-3'"
+        :class="appInfo.ee && isAllowFilterEnableToggle ? 'pl-1' : 'pl-3'"
         v-bind="logicalOpsProps"
       >
         {{ $t('labels.where') }}
@@ -476,7 +490,9 @@ const onChangeToDynamic = async () => {
       >
         <a-select-option v-for="op of logicalOps" :key="op.value" :value="op.value">
           <div class="flex items-center w-full justify-between w-full gap-2">
-            <div class="truncate flex-1 capitalize">{{ op.text }}</div>
+            <div class="truncate flex-1 capitalize">
+              {{ op.text }}
+            </div>
             <component
               :is="iconMap.check"
               v-if="vModel.logical_op === op.value"
@@ -489,7 +505,7 @@ const onChangeToDynamic = async () => {
     </template>
     <!-- #endregion logical op -->
 
-    <slot name="fieldInaccessibleError"></slot>
+    <slot name="fieldInaccessibleError" />
     <template v-if="!slotHasChildren('fieldInaccessibleError')">
       <SmartsheetToolbarFieldListAutoCompleteDropdown
         :value="vModel.fk_column_id"
@@ -528,7 +544,9 @@ const onChangeToDynamic = async () => {
         <template v-for="compOp of comparisonOps" :key="compOp.value">
           <a-select-option :value="compOp.value">
             <div class="flex items-center w-full justify-between w-full gap-2">
-              <div class="truncate flex-1">{{ compOp.text }}</div>
+              <div class="truncate flex-1">
+                {{ compOp.text }}
+              </div>
               <component
                 :is="iconMap.check"
                 v-if="vModel.comparison_op === compOp.value"
@@ -541,7 +559,7 @@ const onChangeToDynamic = async () => {
       </NcSelect>
 
       <template v-if="['blank', 'notblank'].includes(vModel.comparison_op)">
-        <div class="flex flex-grow"></div>
+        <div class="flex flex-grow" />
       </template>
       <template v-else>
         <template v-if="comparisonSubOps && comparisonSubOps.length > 0">
@@ -567,7 +585,9 @@ const onChangeToDynamic = async () => {
               <a-select-option :value="compSubOp.value">
                 <div class="flex items-center w-full justify-between w-full gap-2 max-w-40">
                   <NcTooltip show-on-truncate-only class="truncate flex-1">
-                    <template #title>{{ compSubOp.text }}</template>
+                    <template #title>
+                      {{ compSubOp.text }}
+                    </template>
                     {{ compSubOp.text }}
                   </NcTooltip>
                   <component
@@ -631,14 +651,18 @@ const onChangeToDynamic = async () => {
                         @click="onResetDynamicField()"
                       >
                         <div class="flex flex-row items-center justify-between w-full">
-                          <div class="flex flex-row items-center justify-start gap-x-3">Static condition</div>
+                          <div class="flex flex-row items-center justify-start gap-x-3">
+                            Static condition
+                          </div>
                           <GeneralIcon
                             v-if="!vModel.dynamic && !vModel.fk_value_col_id"
                             icon="check"
                             class="w-4 h-4 text-primary"
                           />
                         </div>
-                        <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on static value</div>
+                        <div class="flex flex-row text-xs text-nc-content-gray-disabled">
+                          Filter based on static value
+                        </div>
                       </div>
                       <div
                         v-e="['c:filter:dynamic-filter']"
@@ -651,14 +675,18 @@ const onChangeToDynamic = async () => {
                         @click="onChangeToDynamic()"
                       >
                         <div class="flex flex-row items-center justify-between w-full">
-                          <div class="flex flex-row items-center justify-start gap-x-2.5">Dynamic condition</div>
+                          <div class="flex flex-row items-center justify-start gap-x-2.5">
+                            Dynamic condition
+                          </div>
                           <GeneralIcon
                             v-if="vModel.dynamic || vModel.fk_value_col_id"
                             icon="check"
                             class="w-4 h-4 text-primary"
                           />
                         </div>
-                        <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on dynamic value</div>
+                        <div class="flex flex-row text-xs text-nc-content-gray-disabled">
+                          Filter based on dynamic value
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -666,7 +694,7 @@ const onChangeToDynamic = async () => {
               </NcDropdown>
             </template>
           </template>
-          <div v-else class="flex-grow"></div>
+          <div v-else class="flex-grow" />
           <SmartsheetToolbarFilterTimezoneAbbreviation :column="column" :filter="vModel" />
         </div>
       </template>
@@ -685,7 +713,7 @@ const onChangeToDynamic = async () => {
           <component :is="iconMap.deleteListItem" />
         </NcButton>
       </div>
-      <div v-if="!vModel.readOnly && !disabled && isEeUI" :class="{ 'cursor-wait': isLoadingFilter }">
+      <div v-if="!vModel.readOnly && !disabled && appInfo.ee" :class="{ 'cursor-wait': isLoadingFilter }">
         <NcButton
           :key="index"
           v-e="['c:filter:copy', { link: !!link, webHook: !!webHook, widget: !!widget }]"

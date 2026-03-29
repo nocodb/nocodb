@@ -3,7 +3,7 @@ const iFrame = ref<HTMLIFrameElement | null>(null)
 
 const isLoaded = ref(false)
 
-const handleIframeLoad = () => {
+function handleIframeLoad() {
   isLoaded.value = true
 }
 </script>
@@ -24,7 +24,7 @@ const handleIframeLoad = () => {
       height="100%"
       style="border: none"
       @load="handleIframeLoad"
-    ></iframe>
+    />
   </div>
 
   <div v-if="!isLoaded" class="flex items-center justify-center h-full">

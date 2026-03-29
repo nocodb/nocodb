@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { type UseTextareaAutosizeOptions, useTextareaAutosize } from '@vueuse/core'
+import type { UseTextareaAutosizeOptions } from '@vueuse/core'
+import { useTextareaAutosize } from '@vueuse/core'
 
 /**
  * Define props — you can extend this later if needed.

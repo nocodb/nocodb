@@ -12,7 +12,13 @@ import { Logger } from '@nestjs/common';
 import hash from 'object-hash';
 import type { NcRequest } from 'nocodb-sdk';
 import type { Knex } from 'knex';
-import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
+import type {
+  BoolType,
+  DateDependencyType,
+  TableReqType,
+  TableType,
+} from 'nocodb-sdk';
+import type PQueue from 'p-queue';
 import type { XKnex } from '~/db/CustomKnex';
 import type { LinksColumn, LinkToAnotherRecordColumn } from '~/models/index';
 import { NcContext } from '~/interface/config';
@@ -88,6 +94,8 @@ export default class Model implements TableType {
 
   uuid: string;
 
+  date_dependency?: DateDependencyType | null;
+
   columns?: Column[];
   columnsById?: { [id: string]: Column };
   columnsHash?: string;
@@ -152,7 +160,7 @@ export default class Model implements TableType {
   // @ts-ignore
   public async getViews(
     context: NcContext,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     force = false,
     ncMeta = Noco.ncMeta,
   ): Promise<View[]> {
@@ -614,6 +622,7 @@ export default class Model implements TableType {
       model?: Model;
       extractFirstCollaborativeView?: boolean;
       source?: Source;
+      queryQueue?: PQueue;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<BaseModelSqlv2> {
@@ -646,6 +655,7 @@ export default class Model implements TableType {
       viewId: args.viewId,
       model,
       schema,
+      queryQueue: args.queryQueue,
     });
   }
 

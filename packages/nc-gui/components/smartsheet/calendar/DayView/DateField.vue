@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
 import { UseVirtualList } from '@vueuse/components'
+import dayjs from 'dayjs'
 
 const emit = defineEmits(['expandRecord', 'newRecord'])
 
@@ -13,8 +13,8 @@ const { isUIAllowed } = useRoles()
 
 const { $e } = useNuxtApp()
 
-const { selectedDate, formattedData, formattedSideBarData, calendarRange, updateRowProperty, isSyncedFromColumn } =
-  useCalendarViewStoreOrThrow()
+const { selectedDate, formattedData, formattedSideBarData, calendarRange, updateRowProperty, isSyncedFromColumn }
+  = useCalendarViewStoreOrThrow()
 
 const fields = inject(FieldsInj, ref())
 
@@ -23,7 +23,7 @@ const { fields: _fields } = useViewColumnsOrThrow()
 const fieldStyles = computed(() => {
   if (!_fields.value) return new Map()
   return new Map(
-    _fields.value.map((field) => [
+    _fields.value.map(field => [
       field.fk_column_id,
       {
         underline: field.underline,
@@ -34,7 +34,7 @@ const fieldStyles = computed(() => {
   )
 })
 
-const getFieldStyle = (field: ColumnType) => {
+function getFieldStyle(field: ColumnType) {
   return fieldStyles.value.get(field.id)
 }
 // We loop through all the records and calculate the position of each record based on the range
@@ -49,15 +49,18 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
     const endCol = range.fk_to_col
     if (fromCol && endCol) {
       const filteredData = formattedData.value.filter((record) => {
-        const startDate = dayjs(record.row[fromCol.title!])
-        const endDate = dayjs(record.row[endCol.title!])
-
+        const startDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
+        const endDate = record.row[endCol.title!] ? dayjs(record.row[endCol.title!]) : null
+        // If either date is missing, treat as single-day event using the available date
+        if (!startDate && !endDate) return false
+        if (!startDate || !endDate) return true
         return startDate.isSameOrBefore(endDate, 'day')
       })
 
       for (const record of filteredData) {
-        const startDate = dayjs(record.row[fromCol.title!])
-        const endDate = dayjs(record.row[endCol.title!])
+        // Use whichever date is available; fall back to the other if one is missing
+        const startDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : dayjs(record.row[endCol.title!])
+        const endDate = record.row[endCol.title!] ? dayjs(record.row[endCol.title!]) : startDate
 
         const id = record.rowMeta.id ?? generateRandomNumber()
 
@@ -69,13 +72,17 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
 
         if (isSelectedDay(startDate) && isSelectedDay(endDate)) {
           position = 'rounded'
-        } else if (isBeforeSelectedDay(startDate) && isAfterSelectedDay(endDate)) {
+        }
+        else if (isBeforeSelectedDay(startDate) && isAfterSelectedDay(endDate)) {
           position = 'none'
-        } else if (isSelectedDay(startDate) && isAfterSelectedDay(endDate)) {
+        }
+        else if (isSelectedDay(startDate) && isAfterSelectedDay(endDate)) {
           position = 'leftRounded'
-        } else if (isBeforeSelectedDay(startDate) && isSelectedDay(endDate)) {
+        }
+        else if (isBeforeSelectedDay(startDate) && isSelectedDay(endDate)) {
           position = 'rightRounded'
-        } else {
+        }
+        else {
           position = 'none'
         }
 
@@ -89,7 +96,8 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
           },
         })
       }
-    } else if (fromCol) {
+    }
+    else if (fromCol) {
       for (const record of formattedData.value) {
         const id = record.rowMeta.id ?? generateRandomNumber()
 
@@ -113,7 +121,7 @@ const dragElement = ref<HTMLElement | null>(null)
 const hoverRecord = ref<string | null>(null)
 
 // We support drag and drop from the sidebar to the day view of the date field
-const dropEvent = (event: DragEvent) => {
+function dropEvent(event: DragEvent) {
   if (!isUIAllowed('dataEdit')) return
   event.preventDefault()
   const data = event.dataTransfer?.getData('text/plain')
@@ -154,11 +162,14 @@ const dropEvent = (event: DragEvent) => {
 
       if (fromDate && toDate) {
         endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
-      } else if (fromDate && !toDate) {
+      }
+      else if (fromDate && !toDate) {
         endDate = dayjs(newStartDate).endOf('day')
-      } else if (!fromDate && toDate) {
+      }
+      else if (!fromDate && toDate) {
         endDate = dayjs(newStartDate).endOf('day')
-      } else {
+      }
+      else {
         endDate = newStartDate.clone()
       }
       newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
@@ -174,7 +185,8 @@ const dropEvent = (event: DragEvent) => {
         const pk = extractPkFromRow(r.row, meta.value!.columns!)
         return pk === newPk ? newRow : r
       })
-    } else {
+    }
+    else {
       formattedData.value = [...formattedData.value, newRow]
       formattedSideBarData.value = formattedSideBarData.value.filter((r) => {
         return extractPkFromRow(r.row, meta.value!.columns!) !== newPk
@@ -191,7 +203,7 @@ const dropEvent = (event: DragEvent) => {
 }
 
 // TODO: Add Support for multiple ranges when multiple ranges are supported
-const newRecord = () => {
+function newRecord() {
   if (!isUIAllowed('dataEdit') || !calendarRange.value?.length || isSyncedFromColumn.value) return
   const record = {
     row: {

@@ -22,7 +22,7 @@ reloadHook.on((params) => {
 
 const { eventBus } = useScriptExecutor()
 
-const eventHandler = async (event: SmartsheetScriptActions, payload: any) => {
+async function eventHandler(event: SmartsheetScriptActions, payload: any) {
   if (event === SmartsheetScriptActions.RELOAD_ROW) {
     // eslint-disable-next-line eqeqeq
     if (payload.rowId == pk.value) {

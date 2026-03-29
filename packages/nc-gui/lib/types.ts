@@ -1,38 +1,20 @@
 import type { CSSProperties } from '@vue/runtime-dom'
 
-import {
-  type BaseType,
-  type BaseVersion,
-  type ColumnType,
-  type FilterType,
-  type MetaType,
-  type PaginatedType,
-  type PermissionEntity,
-  type PermissionKey,
-  type ProjectRoles,
-  type PublicAttachmentScope,
-  type Roles,
-  type RolesObj,
-  type TableType,
-  type UITypes,
-  type UserType,
-  type ViewType,
-  type ViewTypes,
-} from 'nocodb-sdk'
-import type { Composer, I18n } from 'vue-i18n'
-import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
+import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { TooltipPlacement } from 'ant-design-vue/lib/tooltip'
+import type { BaseType, BaseVersion, ColumnType, FilterType, MetaType, PaginatedType, PermissionEntity, PermissionKey, ProjectRoles, PublicAttachmentScope, Roles, RolesObj, TableType, UITypes, UserType, ViewType, ViewTypes } from 'nocodb-sdk'
+import type { Composer, I18n } from 'vue-i18n'
+import type Record from '~icons/*'
+import type { UseDetachedLongTextProps } from '../components/smartsheet/grid/canvas/composables/useDetachedLongText'
+import type { ActionManager } from '../components/smartsheet/grid/canvas/loaders/ActionManager'
+import type { BaseRoleLoader } from '../components/smartsheet/grid/canvas/loaders/BaseRoleLoader'
 import type { ImageWindowLoader } from '../components/smartsheet/grid/canvas/loaders/ImageLoader'
 import type { MarkdownLoader } from '../components/smartsheet/grid/canvas/loaders/markdownLoader'
 import type { SpriteLoader } from '../components/smartsheet/grid/canvas/loaders/SpriteLoader'
-import type { ActionManager } from '../components/smartsheet/grid/canvas/loaders/ActionManager'
 import type { TableMetaLoader } from '../components/smartsheet/grid/canvas/loaders/TableMetaLoader'
-import type { UseDetachedLongTextProps } from '../components/smartsheet/grid/canvas/composables/useDetachedLongText'
-import type { BaseRoleLoader } from '../components/smartsheet/grid/canvas/loaders/BaseRoleLoader'
-import type { AuditLogsDateRange, ImportSource, ImportType, PreFilledMode, TabType } from './enums'
 import type { rolePermissions } from './acl'
-import type Record from '~icons/*'
+import type { AuditLogsDateRange, ImportSource, ImportType, PreFilledMode, TabType } from './enums'
 
 export interface SchemaField {
   name: string
@@ -104,6 +86,7 @@ interface RowMetaRowColorInfo {
   rowHoverColor?: string | null
   rowBorderColor?: string | null
   is_set_as_background?: boolean
+  cellColors?: Record<string, any>
 }
 
 interface Row {
@@ -206,7 +189,7 @@ interface SharedView {
   meta: SharedViewMeta
 }
 
-type importFileList = (UploadFile & { data: string | ArrayBuffer; encoding?: string })[]
+type importFileList = (UploadFile & { data: string | ArrayBuffer, encoding?: string })[]
 
 type streamImportFileList = (UploadFile & { encoding?: string })[]
 
@@ -218,7 +201,7 @@ type Nullable<T> = { [K in keyof T]: T[K] | null }
 type NcProject = BaseType & {
   /**
    * When base is expanded in sidebar
-   * */
+   */
   isExpanded?: boolean
   /**
    * When base's content is being fetched i.e tables, views, etc
@@ -242,9 +225,9 @@ type NcProject = BaseType & {
 }
 
 interface UndoRedoAction {
-  undo: { fn: Function; args: any[] }
-  redo: { fn: Function; args: any[] }
-  scope?: { key: string; param: string | string[] }[]
+  undo: { fn: Function, args: any[] }
+  redo: { fn: Function, args: any[] }
+  scope?: { key: string, param: string | string[] }[]
 }
 
 interface ImportWorkerPayload {
@@ -285,15 +268,17 @@ interface Users {
   invitationToken?: string
 }
 
-type ProjectPageType =
-  | 'overview'
-  | 'collaborator'
-  | 'data-source'
-  | 'base-settings'
-  | 'syncs'
-  | 'permissions'
-  | 'audits'
-  | 'workflows'
+type ProjectPageType
+  = | 'overview'
+    | 'collaborator'
+    | 'data-source'
+    | 'base-settings'
+    | 'syncs'
+    | 'permissions'
+    | 'audits'
+    | 'workflows'
+    | 'mcp'
+    | 'snapshots'
 
 type ViewPageType = 'view' | 'webhook' | 'api' | 'field' | 'relation' | 'permissions'
 
@@ -505,6 +490,11 @@ interface CellRendererOptions {
    * This is used in row colouring
    */
   isRootCell?: boolean
+  /**
+   * When true, the row-level background fill (in renderRows) already painted the row color,
+   * so renderCell can skip the redundant per-cell background fill and only draw borders.
+   */
+  rowBgAlreadyApplied?: boolean
 }
 
 interface CellRenderStore {
@@ -512,12 +502,12 @@ interface CellRenderStore {
   y?: number
   width?: number
   height?: number
-  links?: { x: number; y: number; width: number; height: number; url: string }[]
+  links?: { x: number, y: number, width: number, height: number, url: string }[]
   ratingChanged?: {
     value: number
     hoverValue: number
   }
-  ltar?: { oldX?: number; oldY?: number; x?: number; y?: number; width?: number; height?: number; value?: any }[]
+  ltar?: { oldX?: number, oldY?: number, x?: number, y?: number, width?: number, height?: number, value?: any }[]
   [key: string]: any
 }
 
@@ -535,7 +525,7 @@ type GetColorType = (
 type MakeCellEditableFn = (row: Row, clickedColumn: CanvasGridColumn, showEditCellRestrictionTooltip?: boolean) => void
 
 interface CellRenderFn {
-  (ctx: CanvasRenderingContext2D, options: CellRendererOptions): void | { x?: number; y?: number; nextLine?: boolean }
+  (ctx: CanvasRenderingContext2D, options: CellRendererOptions): void | { x?: number, y?: number, nextLine?: boolean }
 }
 
 interface CellRenderer {
@@ -543,7 +533,7 @@ interface CellRenderer {
   renderEmpty?: CellRenderFn
   handleClick?: (options: {
     event: MouseEvent
-    mousePosition: { x: number; y: number }
+    mousePosition: { x: number, y: number }
     value: any
     column: CanvasGridColumn
     row: Row
@@ -551,12 +541,12 @@ interface CellRenderer {
     path: Array<number>
     readonly: boolean
     isDoubleClick: boolean
-    getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { width: number; height: number; x: number; y: number }
+    getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { width: number, height: number, x: number, y: number }
     updateOrSaveRow: (
       row: Row,
       property?: string,
       ltarState?: Record<string, any>,
-      args?: { metaValue?: TableType; viewMetaValue?: ViewType },
+      args?: { metaValue?: TableType, viewMetaValue?: ViewType },
       beforeRow?: string,
       path?: Array<number>,
     ) => Promise<any>
@@ -586,7 +576,7 @@ interface CellRenderer {
       row: Row,
       property?: string,
       ltarState?: Record<string, any>,
-      args?: { metaValue?: TableType; viewMetaValue?: ViewType },
+      args?: { metaValue?: TableType, viewMetaValue?: ViewType },
       beforeRow?: string,
       path?: Array<number>,
     ) => Promise<any>
@@ -600,17 +590,17 @@ interface CellRenderer {
   }) => Promise<boolean | void>
   handleHover?: (options: {
     event: MouseEvent
-    mousePosition: { x: number; y: number }
+    mousePosition: { x: number, y: number }
     value: any
     column: CanvasGridColumn
     row: Row
     pk: any
-    getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { width: number; height: number; x: number; y: number }
+    getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { width: number, height: number, x: number, y: number }
     updateOrSaveRow?: (
       row: Row,
       property?: string,
       ltarState?: Record<string, any>,
-      args?: { metaValue?: TableType; viewMetaValue?: ViewType },
+      args?: { metaValue?: TableType, viewMetaValue?: ViewType },
       beforeRow?: string,
       path?: Array<number>,
     ) => Promise<any>
@@ -660,6 +650,7 @@ interface CanvasGridColumn {
     tooltip: string
     ignoreTooltip?: boolean
   }
+  isDateDependencyField?: boolean
   abstractType: any
 }
 
@@ -721,14 +712,6 @@ interface CloudFeaturesType {
 
 type CanvasScrollToCellFn = (row?: number, column?: number, path?: Array<number>, horizontalScroll?: boolean) => void
 
-interface RowColouringEvaluatedResultType {
-  is_set_as_background: boolean
-  color: string
-  hoverColor: string | null
-  rawColor: string | undefined
-  borderColor: string | null
-}
-
 interface PermissionConfig {
   entity: PermissionEntity
   entityId: string
@@ -736,6 +719,12 @@ interface PermissionConfig {
   permission: PermissionKey
   disabled?: boolean
   tooltip?: string
+  /** Pre-resolved effective value for inherited permissions (e.g. from parent doc). */
+  effectiveValue?: string
+  /** Parent's effective permission value — child options more permissive than this are disabled. */
+  parentEffectiveValue?: string
+  /** Current visibility value — editing options more permissive than this are disabled. */
+  visibilityValue?: string
 }
 
 interface PermissionSelectorUser {
@@ -743,6 +732,7 @@ interface PermissionSelectorUser {
   email?: string
   display_name?: string | null
   type?: 'user' | 'team'
+  hierarchy_scope?: 'self_only' | 'self_and_descendants'
 }
 
 // NcList type starts here
@@ -776,7 +766,7 @@ interface NcListSearchBasisOptionType {
   /**
    * The filter callback to use for the list.
    */
-  filterCallback: (input: string, option: NcListItemType, index: Number) => boolean
+  filterCallback: (input: string, option: NcListItemType, index: number) => boolean
 }
 
 /**
@@ -822,6 +812,9 @@ interface NcListItemProps {
   searchBasisInfo?: string
   /** Min-height of group header rows in pixels */
   groupHeaderHeight?: number
+
+  /** Focus search input on open */
+  focusSearchOnOpen?: boolean
 }
 
 /**
@@ -876,7 +869,7 @@ interface NcListProps {
   groupHeaderHeight?: number
   variant?: 'default' | 'small' | 'medium'
   /** Custom filter function for list items */
-  filterOption?: (input: string, option: NcListItemType, index: Number) => boolean
+  filterOption?: (input: string, option: NcListItemType, index: number) => boolean
   /**
    * Indicates whether the component allows multiple selections.
    */
@@ -970,16 +963,16 @@ interface NcListProps {
 
 // NcList type ends here
 
-type NcDropdownPlacement =
-  | 'bottom'
-  | 'top'
-  | 'bottomLeft'
-  | 'bottomRight'
-  | 'topLeft'
-  | 'topRight'
-  | 'topCenter'
-  | 'bottomCenter'
-  | 'right'
+type NcDropdownPlacement
+  = | 'bottom'
+    | 'top'
+    | 'bottomLeft'
+    | 'bottomRight'
+    | 'topLeft'
+    | 'topRight'
+    | 'topCenter'
+    | 'bottomCenter'
+    | 'right'
 
 interface CreateViewForm {
   title: string
@@ -1071,77 +1064,76 @@ interface TeamType {
 }
 
 export type {
-  User,
-  ProjectMetaInfo,
-  Field,
-  Filter,
-  NocoI18n,
-  ThemeConfig,
-  RowMetaRowColorInfo,
-  Row,
-  RolePermissions,
-  Permission,
-  TabItem,
-  SharedView,
-  SharedViewMeta,
-  importFileList,
-  streamImportFileList,
-  Nullable,
-  NcProject,
-  UndoRedoAction,
-  ImportWorkerPayload,
-  Group,
-  GroupNestedIn,
-  Users,
-  ProjectPageType,
-  ViewPageType,
-  NcButtonSize,
-  SidebarTableNode,
-  UsersSortType,
-  CommandPaletteType,
-  CalendarRangeType,
-  FormFieldsLimitOptionsType,
-  ImageCropperConfig,
-  ImageCropperProps,
-  AuditLogsQuery,
-  NcTableColumnProps,
-  SordDirectionType,
-  ProductFeedItem,
   Attachment,
-  NestedArray,
-  ViewActionState,
-  CellRenderFn,
+  AttachmentCellDropOverType,
+  AuditLogsQuery,
+  CalendarRangeType,
+  CanvasCellEventDataInjType,
+  CanvasEditEnabledType,
+  CanvasGridColumn,
+  CanvasGroup,
+  CanvasScrollToCellFn,
   CellRenderer,
   CellRendererOptions,
+  CellRenderFn,
   CellRenderStore,
-  CanvasGridColumn,
-  FillHandlerPosition,
-  ParsePlainCellValueProps,
-  CanvasEditEnabledType,
-  SetCursorType,
-  GetColorType,
-  CursorType,
-  CanvasCellEventDataInjType,
-  CanvasGroup,
   CloudFeaturesType,
-  CanvasScrollToCellFn,
-  RowColouringEvaluatedResultType,
-  PermissionConfig,
-  PermissionSelectorUser,
-  NcListProps,
+  CommandPaletteType,
+  CreateViewForm,
+  CursorType,
+  Field,
+  FillHandlerPosition,
+  Filter,
+  FormFieldsLimitOptionsType,
+  GetColorType,
+  Group,
+  GroupKeysStorage,
+  GroupNestedIn,
+  ImageCropperConfig,
+  ImageCropperProps,
+  importFileList,
+  ImportWorkerPayload,
+  MakeCellEditableFn,
+  MultiSelectRawValueType,
+  NcButtonSize,
+  NcClipboardDataItemType,
+  NcClipboardDataType,
+  NcDropdownPlacement,
   NcListItemProps,
   NcListItemType,
+  NcListProps,
   NcListSearchBasisOptionType,
-  MultiSelectRawValueType,
-  RawValueType,
-  NcDropdownPlacement,
-  MakeCellEditableFn,
-  CreateViewForm,
-  NcClipboardDataType,
-  NcClipboardDataItemType,
-  AttachmentCellDropOverType,
-  GroupKeysStorage,
+  NcProject,
+  NcTableColumnProps,
+  NestedArray,
+  NocoI18n,
+  Nullable,
   OAuthAuthorization,
+  ParsePlainCellValueProps,
+  Permission,
+  PermissionConfig,
+  PermissionSelectorUser,
+  ProductFeedItem,
+  ProjectMetaInfo,
+  ProjectPageType,
+  RawValueType,
+  RolePermissions,
+  Row,
+  RowMetaRowColorInfo,
+  SetCursorType,
+  SharedView,
+  SharedViewMeta,
+  SidebarTableNode,
+  SordDirectionType,
+  streamImportFileList,
   SupportedDocsType,
+  TabItem,
   TeamType,
+  ThemeConfig,
+  UndoRedoAction,
+  User,
+  Users,
+  UsersSortType,
+  ViewActionState,
+  ViewPageType,
 }

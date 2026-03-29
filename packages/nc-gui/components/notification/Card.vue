@@ -23,7 +23,7 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
     :style="!isMobileMode ? 'width: min(80svw, 520px);' : ''"
     :class="{
       'max-h-[70vh] h-[620px]': !isMobileMode,
-      'h-[100svh] w-[100svw]': isMobileMode,
+      'nc-h-screen nc-w-screen': isMobileMode,
     }"
     class="!rounded-lg pt-4"
   >
@@ -65,7 +65,9 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
             }"
           >
             <template v-if="!unreadNotifications?.length">
-              <div class="text-sm !text-gray-500">{{ $t('msg.noNewNotifications') }}</div>
+              <div class="text-sm !text-gray-500">
+                {{ $t('msg.noNewNotifications') }}
+              </div>
               <GeneralIcon icon="inbox" class="!text-40px !text-nc-content-gray-muted" />
             </template>
             <template v-else>
@@ -74,8 +76,7 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
               <InfiniteLoading
                 v-if="unreadNotifications && unreadPageInfo && unreadPageInfo.totalRows > unreadNotifications.length"
                 @infinite="loadUnReadNotifications(true)"
-              >
-              </InfiniteLoading>
+              />
             </template>
           </div>
         </a-tab-pane>
@@ -99,7 +100,9 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
             }"
           >
             <template v-if="!readNotifications?.length">
-              <div class="text-sm text-nc-content-gray-muted">{{ $t('msg.noNewNotifications') }}</div>
+              <div class="text-sm text-nc-content-gray-muted">
+                {{ $t('msg.noNewNotifications') }}
+              </div>
               <GeneralIcon icon="inbox" class="!text-40px text-nc-content-gray-muted" />
             </template>
             <template v-else>
@@ -108,8 +111,7 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
               <InfiniteLoading
                 v-if="readNotifications && readPageInfo && readPageInfo.totalRows > readNotifications.length"
                 @infinite="loadReadNotifications(true)"
-              >
-              </InfiniteLoading>
+              />
             </template>
           </div>
         </a-tab-pane>

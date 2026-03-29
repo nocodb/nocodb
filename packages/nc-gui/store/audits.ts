@@ -1,4 +1,4 @@
-import { type AuditType, type UserType, type WorkspaceUserType } from 'nocodb-sdk'
+import type { AuditType, UserType, WorkspaceUserType } from 'nocodb-sdk'
 
 const defaultAuditLogsQuery = {
   type: [],

@@ -1,8 +1,9 @@
+import type { UserType } from 'nocodb-sdk'
+import DOMPurify from 'isomorphic-dompurify'
 import MarkdownIt from 'markdown-it'
 import mdTaskList from 'markdown-it-task-lists'
-import type { UserType } from 'nocodb-sdk'
-import { mdImageAsText, mdLinkRuleSetupExt } from '.'
 import { parseUserMention } from '~/helpers/tiptap-markdown/extensions'
+import { mdImageAsText, mdLinkRuleSetupExt } from '.'
 
 declare module 'markdown-it-task-lists' {
   import type { PluginWithOptions } from 'markdown-it'
@@ -26,7 +27,7 @@ export interface NcMarkdownParserConstructorType {
 }
 
 // Precompiled regex patterns
-const taskRegex = /^(?!.*- )(\s*)\[( |x|X)\]/gm // Matches unchecked and checked tasks
+const taskRegex = /^(?!.*- )(\s*)\[([ x])\]/gim // Matches unchecked and checked tasks
 const strikeThroughRegex = /(?<!~)~(?!~)(.*?)(?<!~)~(?!~)/g // Matches strikethrough syntax
 
 export class NcMarkdownParser {
@@ -80,7 +81,8 @@ export class NcMarkdownParser {
   public static getInstance(options: NcMarkdownParserConstructorType = {}): NcMarkdownParser {
     if (!NcMarkdownParser.instance) {
       NcMarkdownParser.instance = new NcMarkdownParser(options)
-    } else {
+    }
+    else {
       // Reconfigure the instance based on new options
       NcMarkdownParser.instance.updateConfiguration(options)
     }
@@ -128,14 +130,15 @@ export class NcMarkdownParser {
     if (useSingleton) {
       // Use the singleton instance
       parser = NcMarkdownParser.getInstance(options)
-    } else {
+    }
+    else {
       // Create a new instance for each parse call
       parser = new NcMarkdownParser(options)
     }
 
-    // If content is a string, parse it
+    // If content is a string, parse it and sanitize to prevent XSS
     if (ncIsString(content)) {
-      return parser.md.render(NcMarkdownParser.preprocessMarkdown(content))
+      return DOMPurify.sanitize(parser.md.render(NcMarkdownParser.preprocessMarkdown(content)))
     }
 
     return content
@@ -195,7 +198,8 @@ export class NcMarkdownParser {
           // Push opening tag to the stack
           blockStack.push(type)
           blockCount++
-        } else if (nesting === -1 && blockStack.length > 0) {
+        }
+        else if (nesting === -1 && blockStack.length > 0) {
           // Match closing tag with stack
           blockStack.pop()
         }
@@ -213,9 +217,11 @@ export class NcMarkdownParser {
 
       if (type === 'inline') {
         result += this.md.renderer.renderInline(tokens[i].children, options, env)
-      } else if (typeof rules[type] !== 'undefined') {
+      }
+      else if (typeof rules[type] !== 'undefined') {
         result += rules[type](tokens, i, options, env, this.md.renderer)
-      } else {
+      }
+      else {
         result += this.md.renderer.renderToken(tokens, i, options)
       }
 
@@ -230,18 +236,18 @@ export class NcMarkdownParser {
 
   private withPatchedRenderer(md: MarkdownIt): MarkdownIt {
     // Apply withoutNewLine adjustments
-    const withoutNewLine =
-      (renderer: any) =>
-      (...args: any[]) => {
-        const rendered = renderer(...args)
-        if (rendered === '\n') {
-          return rendered // keep soft breaks
+    const withoutNewLine
+      = (renderer: any) =>
+        (...args: any[]) => {
+          const rendered = renderer(...args)
+          if (rendered === '\n') {
+            return rendered // keep soft breaks
+          }
+          if (rendered[rendered.length - 1] === '\n') {
+            return rendered.slice(0, -1)
+          }
+          return rendered
         }
-        if (rendered[rendered.length - 1] === '\n') {
-          return rendered.slice(0, -1)
-        }
-        return rendered
-      }
 
     md.renderer.rules.hardbreak = withoutNewLine(md.renderer.rules.hardbreak)
     md.renderer.rules.softbreak = withoutNewLine(md.renderer.rules.softbreak)

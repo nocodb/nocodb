@@ -16,7 +16,7 @@ const { isMobileMode } = useGlobal()
     overlay-class-name="nc-dropdown-toolbar-search !border-primary !shadow-selected overflow-hidden !z-1000"
     non-nc-dropdown
   >
-    <div class="absolute -right-1 -top-5"></div>
+    <div class="absolute -right-1 -top-5" />
     <template #overlay>
       <slot />
     </template>

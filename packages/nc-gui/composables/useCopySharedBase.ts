@@ -91,7 +91,8 @@ export const useCopySharedBase = createSharedComposable(() => {
               })
               isLoading.value = false
               onComplete?.('success')
-            } else if (data.status === JobStatus.FAILED) {
+            }
+            else if (data.status === JobStatus.FAILED) {
               message.error(failedToastMessage)
               await populateWorkspace().catch(() => {
                 // ignore
@@ -107,10 +108,12 @@ export const useCopySharedBase = createSharedComposable(() => {
         $e('a:templates:use-this-template', {
           templateName: templateName.value,
         })
-      } else {
+      }
+      else {
         $e('a:base:duplicate-shared-base')
       }
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
       isLoading.value = false
       onComplete?.('error')

@@ -1,6 +1,7 @@
 // import worker script according to the doc of Vite
 import getCrossOriginWorkerURL from 'crossoriginworker'
 import importWorkerUrl from '~/workers/importWorker?worker&url'
+
 const isWorkerSupport = typeof Worker !== 'undefined'
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -26,7 +27,8 @@ export default defineNuxtPlugin(async (nuxtApp) => {
         }
 
         return worker
-      } catch (error) {
+      }
+      catch (error) {
         console.error('Failed to create import worker:', error)
         workerInitializationPromise = null
         return null

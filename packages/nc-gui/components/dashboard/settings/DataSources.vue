@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import Draggable from 'vuedraggable'
-import { PlanLimitTypes, type SourceType } from 'nocodb-sdk'
+import type { SourceType } from 'nocodb-sdk'
 import { ClientType } from '#imports'
+import { PlanLimitTypes } from 'nocodb-sdk'
+import Draggable from 'vuedraggable'
 
 interface Props {
   state: string
@@ -98,7 +99,8 @@ async function updateIfSourceOrderIsNullOrDuplicate() {
       }),
     )
     await loadProject(base.value.id as string, true)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -115,27 +117,29 @@ async function loadBases(changed?: boolean) {
       sources.value = baseList.list
     }
     await updateIfSourceOrderIsNullOrDuplicate()
-  } catch (e) {
+  }
+  catch (e) {
     console.error(e)
-  } finally {
+  }
+  finally {
     vReload.value = false
     isReloading.value = false
   }
 }
 
-const baseAction = (sourceId?: string, action?: string) => {
+function baseAction(sourceId?: string, action?: string) {
   if (!sourceId) return
   activeBaseId.value = sourceId
   vState.value = action || ''
 }
 
-const openDeleteBase = (source: SourceType) => {
+function openDeleteBase(source: SourceType) {
   $e('c:source:delete')
   isDeleteBaseModalOpen.value = true
   toBeDeletedBase.value = source
 }
 
-const deleteBase = async () => {
+async function deleteBase() {
   if (!toBeDeletedBase.value) return
 
   try {
@@ -146,16 +150,18 @@ const deleteBase = async () => {
     sources.value.splice(sources.value.indexOf(toBeDeletedBase.value), 1)
     updateStatLimit(PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE, -1)
     await loadProject(base.value.id as string, true)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     // TODO @mertmit
     refreshCommandPalette()
   }
 }
-const toggleBase = async (source: SourceType, state: boolean) => {
+async function toggleBase(source: SourceType, state: boolean) {
   try {
-    if (!state && sources.value.filter((src) => src.enabled).length < 2) {
+    if (!state && sources.value.filter(src => src.enabled).length < 2) {
       message.info('There should be at least one enabled source!')
       return
     }
@@ -166,14 +172,16 @@ const toggleBase = async (source: SourceType, state: boolean) => {
       enabled: source.enabled,
     })
     await loadProject(base.value.id as string, true)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     refreshCommandPalette()
   }
 }
 
-const moveBase = async (e: any) => {
+async function moveBase(e: any) {
   try {
     if (e.oldIndex === e.newIndex) return
     // sources list is mutated so we have to get the new index and mirror it to backend
@@ -184,12 +192,13 @@ const moveBase = async (e: any) => {
       // set new order value based on the new order of the items
       if (sources.value.length - 1 === e.newIndex) {
         // If moving to the end, set nextOrder greater than the maximum order in the list
-        nextOrder = Math.max(...sources.value.map((item) => item?.order ?? 0)) + 1
-      } else {
-        nextOrder =
-          (parseFloat(String(sources.value[e.newIndex - 1]?.order ?? 0)) +
-            parseFloat(String(sources.value[e.newIndex + 1]?.order ?? 0))) /
-          2
+        nextOrder = Math.max(...sources.value.map(item => item?.order ?? 0)) + 1
+      }
+      else {
+        nextOrder
+          = (Number.parseFloat(String(sources.value[e.newIndex - 1]?.order ?? 0))
+            + Number.parseFloat(String(sources.value[e.newIndex + 1]?.order ?? 0)))
+          / 2
       }
 
       const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : e.oldIndex
@@ -202,9 +211,11 @@ const moveBase = async (e: any) => {
     }
     await loadProject(base.value.id as string, true)
     await loadBases()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     await refreshCommandPalette()
   }
 }
@@ -282,10 +293,10 @@ const isNewBaseModalOpen = computed({
 const activeSource = ref<SourceType | null>(null)
 const openedTab = ref('erd')
 
-const isSearchResultAvailable = () => {
+function isSearchResultAvailable() {
   return (
-    sources.value.filter((s) => s?.alias?.toLowerCase()?.includes(searchQuery.value?.toLowerCase())).length ||
-    'default'.includes(searchQuery.value?.toLowerCase())
+    sources.value.filter(s => s?.alias?.toLowerCase()?.includes(searchQuery.value?.toLowerCase())).length
+    || 'default'.includes(searchQuery.value?.toLowerCase())
   )
 }
 
@@ -298,7 +309,7 @@ const isOpenModal = computed({
   },
 })
 
-const handleClickRow = (source: SourceType, tab?: string) => {
+function handleClickRow(source: SourceType, tab?: string) {
   if (tab && tab !== openedTab.value) {
     openedTab.value = tab
   }
@@ -336,7 +347,9 @@ const handleClickRow = (source: SourceType, tab?: string) => {
       >
         <div class="flex flex-row items-center w-full gap-x-1">
           <component :is="iconMap.plus" />
-          <div class="flex">{{ $t('activity.newSource') }}</div>
+          <div class="flex">
+            {{ $t('activity.newSource') }}
+          </div>
         </div>
       </NcButton>
     </div>
@@ -442,11 +455,21 @@ const handleClickRow = (source: SourceType, tab?: string) => {
         <div v-else class="ds-table overflow-y-auto nc-scrollbar-thin relative max-h-full mb-4">
           <div class="ds-table-head sticky top-0 bg-nc-bg-default z-10">
             <div class="ds-table-row !border-0">
-              <div class="ds-table-col ds-table-enabled cursor-pointer">{{ $t('general.visibility') }}</div>
-              <div class="ds-table-col ds-table-name">{{ $t('general.name') }}</div>
-              <div class="ds-table-col ds-table-integration-name">{{ $t('general.connection') }} {{ $t('general.name') }}</div>
-              <div class="ds-table-col ds-table-type">{{ $t('general.type') }}</div>
-              <div class="ds-table-col ds-table-actions">{{ $t('labels.actions') }}</div>
+              <div class="ds-table-col ds-table-enabled cursor-pointer">
+                {{ $t('general.visibility') }}
+              </div>
+              <div class="ds-table-col ds-table-name">
+                {{ $t('general.name') }}
+              </div>
+              <div class="ds-table-col ds-table-integration-name">
+                {{ $t('general.connection') }} {{ $t('general.name') }}
+              </div>
+              <div class="ds-table-col ds-table-type">
+                {{ $t('general.type') }}
+              </div>
+              <div class="ds-table-col ds-table-actions">
+                {{ $t('labels.actions') }}
+              </div>
             </div>
           </div>
           <div class="ds-table-body relative">
@@ -468,8 +491,12 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                       <div v-if="sources.length > 2" class="ds-table-handle" />
                       <NcTooltip>
                         <template #title>
-                          <template v-if="sources[0].enabled">{{ $t('activity.hideInUI') }}</template>
-                          <template v-else>{{ $t('activity.showInUI') }}</template>
+                          <template v-if="sources[0].enabled">
+                            {{ $t('activity.hideInUI') }}
+                          </template>
+                          <template v-else>
+                            {{ $t('activity.showInUI') }}
+                          </template>
                         </template>
                         <a-switch
                           :checked="sources[0].enabled ? true : false"
@@ -488,10 +515,14 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                   </div>
 
                   <div class="ds-table-col ds-table-integration-name">
-                    <div class="flex items-center gap-1">-</div>
+                    <div class="flex items-center gap-1">
+                      -
+                    </div>
                   </div>
                   <div class="ds-table-col ds-table-type">
-                    <div class="flex items-center gap-1">-</div>
+                    <div class="flex items-center gap-1">
+                      -
+                    </div>
                   </div>
 
                   <div class="ds-table-col justify-end gap-x-1 ds-table-actions" @click.stop>
@@ -541,8 +572,12 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                       <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
                       <NcTooltip>
                         <template #title>
-                          <template v-if="source.enabled">{{ $t('activity.hideInUI') }}</template>
-                          <template v-else>{{ $t('activity.showInUI') }}</template>
+                          <template v-if="source.enabled">
+                            {{ $t('activity.hideInUI') }}
+                          </template>
+                          <template v-else>
+                            {{ $t('activity.showInUI') }}
+                          </template>
                         </template>
                         <a-switch
                           :checked="source.enabled ? true : false"
@@ -554,7 +589,9 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                     </div>
                   </div>
                   <div class="ds-table-col ds-table-name font-medium w-full">
-                    <div v-if="source.is_meta || source.is_local" class="h-8 w-1">-</div>
+                    <div v-if="source.is_meta || source.is_local" class="h-8 w-1">
+                      -
+                    </div>
 
                     <NcTooltip v-else class="truncate" show-on-truncate-only>
                       <template #title>
@@ -576,7 +613,9 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                     <NcBadge rounded="lg" class="flex items-center gap-2 px-0 py-1 !h-7 truncate !border-transparent">
                       <GeneralBaseLogo :source-type="source.type" class="flex-none !w-4 !h-4" />
                       <NcTooltip placement="bottom" show-on-truncate-only class="text-sm truncate">
-                        <template #title> {{ clientTypesMap[source.type]?.text || source.type }}</template>
+                        <template #title>
+                          {{ clientTypesMap[source.type]?.text || source.type }}
+                        </template>
 
                         {{ source.type && clientTypesMap[source.type] ? clientTypesMap[source.type]?.text : source.type }}
                       </NcTooltip>
@@ -632,7 +671,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                   src="~assets/img/placeholder/no-search-result-found.png"
                   class="!w-[164px] flex-none"
                   alt="No search results found"
-                />
+                >
 
                 {{ $t('title.noResultsMatchedYourSearch') }}
               </div>

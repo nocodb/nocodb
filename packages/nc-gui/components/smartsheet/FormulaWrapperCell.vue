@@ -34,9 +34,9 @@ const showAsLongText = computed(() => {
   defaultOffscreen2DContext.font = '500 13px Inter'
 
   return (
-    isTextArea(column.value) &&
-    (currentCellRef.value?.getBoundingClientRect()?.width || width.value) - 24 <=
-      defaultOffscreen2DContext.measureText(cellValue.value ?? '').width
+    isTextArea(column.value)
+    && (currentCellRef.value?.getBoundingClientRect()?.width || width.value) - 24
+    <= defaultOffscreen2DContext.measureText(cellValue.value ?? '').width
   )
 })
 

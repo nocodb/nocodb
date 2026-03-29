@@ -7,7 +7,7 @@ const route = router.currentRoute
 
 const { showOnboardingFlow } = useOnboardingFlow()
 
-const stopLoadingIndicator = () => {
+function stopLoadingIndicator() {
   forcedNextTick(() => {
     nuxtLoadingIndicatorRef.value?.finish()
   })

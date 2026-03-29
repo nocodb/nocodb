@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { ExpandedFormMode, type ViewType } from 'nocodb-sdk'
+import type { ViewType } from 'nocodb-sdk'
+import { ExpandedFormMode } from 'nocodb-sdk'
 
 interface ItemType {
   icon: IconMapKey
@@ -15,7 +16,7 @@ const props = defineProps<{
 
 const modelValue = defineModel<string>()
 
-const { isMobileMode } = useGlobal()
+const { appInfo, isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
@@ -29,12 +30,12 @@ const viewsStore = useViewsStore()
 
 const isViewModeEnabled = computed(() => {
   return (
-    isEeUI &&
-    !isNew.value &&
-    commentsDrawer.value &&
-    isUIAllowed('commentList', baseRoles.value) &&
-    !isPublic.value &&
-    !isMobileMode.value
+    appInfo.value.ee
+    && !isNew.value
+    && commentsDrawer.value
+    && isUIAllowed('commentList', baseRoles.value)
+    && !isPublic.value
+    && !isMobileMode.value
   )
 })
 
@@ -52,7 +53,7 @@ const items = computed(() => {
       tooltip: 'Discussion',
       hidden: isSqlView.value,
     },
-  ].filter((i) => !i.hidden) as ItemType[]
+  ].filter(i => !i.hidden) as ItemType[]
 })
 
 onMounted(() => {
@@ -72,7 +73,9 @@ onMounted(() => {
     class="tab-wrapper flex flex-row rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default h-7 overflow-hidden"
   >
     <NcTooltip v-for="(item, idx) of items" :key="item.value" :disabled="!item.tooltip">
-      <template #title>{{ item.tooltip }}</template>
+      <template #title>
+        {{ item.tooltip }}
+      </template>
       <div
         v-e="[`c:project:mode:${item.value}`]"
         class="tab"

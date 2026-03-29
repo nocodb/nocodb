@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
 import type { Group } from '~/lib/types'
+import { UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   group: Group
@@ -23,7 +23,7 @@ const { isMysql, isPg } = baseStore
 
 const { meta, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
 
-const getAddnlMargin = (depth: number) => {
+function getAddnlMargin(depth: number) {
   if (props.maxDepth === 3) {
     switch (depth) {
       case 3:
@@ -35,7 +35,8 @@ const getAddnlMargin = (depth: number) => {
       default:
         return 18
     }
-  } else if (props.maxDepth === 2) {
+  }
+  else if (props.maxDepth === 2) {
     switch (depth) {
       case 1:
         return 0
@@ -56,7 +57,7 @@ const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggre
         depth,
         true,
       )}px`"
-    ></div>
+    />
     <NcDropdown
       v-if="field && column?.id"
       :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(column?.uidt!) || isLocked || !isViewOperationsAllowed"

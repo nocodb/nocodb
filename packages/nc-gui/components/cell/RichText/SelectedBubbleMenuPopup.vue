@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { RichTextBubbleMenuOptions } from '#imports'
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3'
 
@@ -6,9 +7,14 @@ interface Props {
   editor: Editor
   hideMention?: boolean
   hideOnSelectAllSortcut?: boolean
+  isFormField?: boolean
+  hiddenOptions?: RichTextBubbleMenuOptions[]
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  isFormField: false,
+  hiddenOptions: () => [],
+})
 
 const editor = computed(() => props.editor)
 
@@ -16,7 +22,7 @@ const isSelectAllShortcut = ref(false)
 
 // Debounce show menu to prevent flickering
 const showMenu = computed(() => {
-  if (!editor || isSelectAllShortcut.value) return false
+  if (!editor.value || isSelectAllShortcut.value) return false
 
   const selection = editor.value.state.selection
   const selectedNode = selection && 'node' in selection ? (selection as any).node : null
@@ -38,9 +44,9 @@ watchDebounced(
   },
 )
 
-const handleEditorMouseDown = (e: MouseEvent) => {
+function handleEditorMouseDown(e: MouseEvent) {
   const domsInEvent = document.elementsFromPoint(e.clientX, e.clientY) as HTMLElement[]
-  const isBubble = domsInEvent.some((dom) => dom?.classList?.contains('bubble-menu'))
+  const isBubble = domsInEvent.some(dom => dom?.classList?.contains('bubble-menu'))
   if (isBubble || isSelectAllShortcut.value) {
     isSelectAllShortcut.value = false
     return
@@ -50,9 +56,9 @@ const handleEditorMouseDown = (e: MouseEvent) => {
   pageContent?.classList.add('bubble-menu-hidden')
 }
 
-const handleEditorMouseUp = (e: MouseEvent) => {
+function handleEditorMouseUp(e: MouseEvent) {
   const domsInEvent = document.elementsFromPoint(e.clientX, e.clientY) as HTMLElement[]
-  const isBubble = domsInEvent.some((dom) => dom?.classList?.contains('bubble-menu'))
+  const isBubble = domsInEvent.some(dom => dom?.classList?.contains('bubble-menu'))
 
   if (isBubble || isSelectAllShortcut.value) {
     isSelectAllShortcut.value = false
@@ -86,6 +92,12 @@ onUnmounted(() => {
 
 <template>
   <BubbleMenu :editor="editor" :update-delay="300" :tippy-options="{ duration: 100, maxWidth: 600 }">
-    <CellRichTextSelectedBubbleMenu v-if="showMenuDebounced" :editor="editor" :hide-mention="hideMention" />
+    <CellRichTextSelectedBubbleMenu
+      v-if="showMenuDebounced"
+      :editor="editor"
+      :hide-mention="hideMention"
+      :is-form-field="isFormField"
+      :hidden-options="hiddenOptions"
+    />
   </BubbleMenu>
 </template>

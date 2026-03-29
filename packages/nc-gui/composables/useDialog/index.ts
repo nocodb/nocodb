@@ -1,7 +1,7 @@
-import type { AppContext, VNode } from '@vue/runtime-dom'
-import { Suspense, isVNode, render } from '@vue/runtime-dom'
 import type { ComponentPublicInstance } from '@vue/runtime-core'
+import type { AppContext, VNode } from '@vue/runtime-dom'
 import type { MaybeRef } from '@vueuse/core'
+import { isVNode, render, Suspense } from '@vue/runtime-dom'
 import { isClient } from '@vueuse/core'
 
 interface UseDialogOptions {
@@ -108,7 +108,8 @@ export function useDialog(
       setTimeout(() => {
         try {
           ;(mountTarget.value as HTMLElement)?.removeChild(domNode)
-        } catch (e) {}
+        }
+        catch (e) {}
       }, 100)
 
       closeHook.trigger()

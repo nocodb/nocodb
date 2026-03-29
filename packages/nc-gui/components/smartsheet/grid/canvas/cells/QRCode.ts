@@ -41,7 +41,8 @@ export const QRCodeCellRenderer: CellRenderer = {
 
     if (pxToRowHeight[height] === 1) {
       maxHeight = height - 4
-    } else {
+    }
+    else {
       maxHeight = height - 20
     }
 
@@ -70,7 +71,8 @@ export const QRCodeCellRenderer: CellRenderer = {
         x: x + padding + size,
         y: yPos * 2,
       }
-    } else {
+    }
+    else {
       imageLoader.renderPlaceholder(ctx, x + padding, y + padding, size, 'qr_code')
 
       return {

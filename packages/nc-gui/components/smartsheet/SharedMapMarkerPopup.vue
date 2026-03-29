@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { type ColumnType, isVirtualCol } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
   fields: ColumnType[]

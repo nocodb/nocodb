@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { type AuditType, PlanLimitTypes } from 'nocodb-sdk'
+import type { AuditType } from 'nocodb-sdk'
+import { PlanLimitTypes } from 'nocodb-sdk'
 
 const { user } = useGlobal()
 
-const { primaryKey, consolidatedAudits, isAuditLoading, loadMoreAudits, resetAuditPages, hasMoreAudits } =
-  useExpandedFormStoreOrThrow()
+const { primaryKey, consolidatedAudits, isAuditLoading, loadMoreAudits, resetAuditPages, hasMoreAudits }
+  = useExpandedFormStoreOrThrow()
 
 const { getPlanLimit } = useWorkspace()
 
@@ -13,11 +14,14 @@ const auditRetentionLimit = computed(() => {
 
   if (retention === 14) {
     return '2 weeks'
-  } else if (retention === 60) {
+  }
+  else if (retention === 60) {
     return '2 months'
-  } else if (retention === 180) {
+  }
+  else if (retention === 180) {
     return '6 months'
-  } else if (retention === 365) {
+  }
+  else if (retention === 365) {
     return '1 year'
   }
 
@@ -37,18 +41,19 @@ function scrollToLastAudit() {
   })
 }
 
-const createdByAudit = (
-  comment: AuditType & {
-    created_display_name_short?: string
-  },
-) => {
+function createdByAudit(comment: AuditType & {
+  created_display_name_short?: string
+}) {
   if (comment.user === user.value?.email) {
     return 'You'
-  } else if (comment.created_display_name_short?.trim()) {
+  }
+  else if (comment.created_display_name_short?.trim()) {
     return comment.created_display_name_short || 'Shared source'
-  } else if (comment.user) {
+  }
+  else if (comment.user) {
     return comment.user
-  } else {
+  }
+  else {
     return 'Shared source'
   }
 }
@@ -83,12 +88,21 @@ watch(
   },
 )
 
+const meta = inject(MetaInj, ref())
+
 function safeJsonParse(json: string) {
   try {
     return JSON.parse(json)
-  } catch (e) {
+  }
+  catch (e) {
     return {}
   }
+}
+
+function getLinkColumnType(audit: AuditType) {
+  const details = safeJsonParse(audit.details as string)
+  const col = meta.value?.columns?.find((c: any) => c.id === details.link_field_id)
+  return (col?.colOptions as any)?.type || details.type
 }
 
 function isV0Audit(audit: AuditType) {
@@ -116,7 +130,9 @@ function isV0Audit(audit: AuditType) {
           <div class="text-center text-3xl text-nc-content-gray-subtle2">
             <MdiHistory />
           </div>
-          <div class="font-bold text-center my-1 text-nc-content-gray-subtle2">See changes to this record</div>
+          <div class="font-bold text-center my-1 text-nc-content-gray-subtle2">
+            See changes to this record
+          </div>
           <div v-if="auditRetentionLimit" class="text-center text-nc-content-gray-subtle2">
             Your current plan provides <span class="font-bold">{{ auditRetentionLimit }}</span> of revision history.
           </div>
@@ -128,7 +144,9 @@ function isV0Audit(audit: AuditType) {
           You have <span class="font-bold">{{ auditRetentionLimit }}</span> of revision history.
         </div>
         <div v-if="hasMoreAudits" class="p-3 text-center">
-          <NcButton size="small" type="secondary" @click="initLoadMoreAudits()"> Load earlier </NcButton>
+          <NcButton size="small" type="secondary" @click="initLoadMoreAudits()">
+            Load earlier
+          </NcButton>
         </div>
         <div v-for="audit of consolidatedAudits" :key="audit.id" :class="`${audit.id}`" class="nc-audit-item">
           <div class="group gap-3 overflow-hidden px-3 py-2 transition hover:bg-nc-bg-gray-light">
@@ -149,7 +167,9 @@ function isV0Audit(audit: AuditType) {
                   </div>
                   <div class="text-xs text-nc-content-gray-muted">
                     <NcTooltip>
-                      <template #title>{{ parseStringDateTime(audit.created_at) }}</template>
+                      <template #title>
+                        {{ parseStringDateTime(audit.created_at) }}
+                      </template>
                       {{ timeAgo(audit.created_at!) }}
                     </NcTooltip>
                   </div>
@@ -162,13 +182,15 @@ function isV0Audit(audit: AuditType) {
                 v-dompurify-html="audit.details"
                 class="rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y py-2 px-3"
                 @click="handleDompurifyLinkClick"
-              ></div>
+              />
               <div v-else class="rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y py-2 px-3">
                 {{ audit.description }}
               </div>
             </div>
             <template v-else-if="['DATA_INSERT', 'DATA_BULK_INSERT'].includes(audit?.op_type)">
-              <div class="pl-9">created the record.</div>
+              <div class="pl-9">
+                created the record.
+              </div>
               <div
                 v-if="safeJsonParse(audit.details)?.data && Object.keys(safeJsonParse(audit.details)?.column_meta || {}).length"
                 class="ml-9 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y"
@@ -180,7 +202,7 @@ function isV0Audit(audit: AuditType) {
               <div class="rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y py-2 px-3">
                 <div class="flex items-center gap-2 !text-nc-content-gray-subtle2 text-xs nc-audit-mini-item-header mb-3">
                   <SmartsheetHeaderVirtualCellIcon
-                    :column-meta="{ uidt: 'Links', colOptions: { type: safeJsonParse(audit.details).type } }"
+                    :column-meta="{ uidt: 'Links', colOptions: { type: getLinkColumnType(audit) } }"
                     class="!m-0"
                   />
                   {{ safeJsonParse(audit.details).link_field_title }}
@@ -213,7 +235,14 @@ function isV0Audit(audit: AuditType) {
                 </div>
               </div>
             </div>
-            <template v-else-if="['DATA_UPDATE', 'DATA_BULK_UPDATE', 'DATA_BULK_ALL_UPDATE'].includes(audit?.op_type)">
+            <template
+              v-else-if="
+                ['DATA_UPDATE', 'DATA_BULK_UPDATE', 'DATA_BULK_ALL_UPDATE', 'DATA_CASCADE_UPDATE'].includes(audit?.op_type)
+              "
+            >
+              <div v-if="audit?.op_type === 'DATA_CASCADE_UPDATE'" class="pl-9 text-xs text-nc-content-gray-muted mb-1">
+                {{ $t('labels.dateDependency.cascadeUpdateDescription') }}
+              </div>
               <div class="ml-9 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y">
                 <SmartsheetExpandedFormSidebarAuditMiniItem :audit="audit" />
               </div>

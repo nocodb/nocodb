@@ -28,7 +28,7 @@ const isCopied = ref(false)
 
 let copiedTimeoutId: any
 
-const copyContent = async (text?: GeneralCopyButtonProps['content']) => {
+async function copyContent(text?: GeneralCopyButtonProps['content']) {
   if (copiedTimeoutId) {
     clearTimeout(copiedTimeoutId)
   }
@@ -50,7 +50,8 @@ const copyContent = async (text?: GeneralCopyButtonProps['content']) => {
       isCopied.value = false
       clearTimeout(copiedTimeoutId)
     }, props.timeout || 3000)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(e.message)
   }
 }

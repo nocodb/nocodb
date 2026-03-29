@@ -10,6 +10,8 @@ import { NcError } from '~/helpers/catchError';
 export default class Comment implements CommentType {
   id?: string;
   fk_model_id?: string;
+  fk_doc_id?: string;
+  anchor_id?: string;
   row_id?: string;
   comment?: string;
   parent_comment_id?: string;
@@ -61,7 +63,7 @@ export default class Comment implements CommentType {
         limit: pagination?.limit,
         offset: pagination?.offset,
         xcCondition: {
-          _or: [{ is_deleted: { eq: null } }, { is_deleted: { eq: true } }],
+          _or: [{ is_deleted: { eq: null } }, { is_deleted: { neq: true } }],
         },
       },
     );
@@ -228,5 +230,96 @@ export default class Comment implements CommentType {
       .groupBy('row_id');
 
     return audits?.map((a) => new Comment(a));
+  }
+
+  /**
+   * List all non-deleted comments for a document, ordered by created_at asc.
+   */
+  public static async listByDoc(
+    context: NcContext,
+    fk_doc_id: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const commentList = await ncMeta
+      .knex(MetaTable.COMMENTS)
+      .select(`${MetaTable.COMMENTS}.*`)
+      .where('fk_doc_id', fk_doc_id)
+      .where('base_id', context.base_id)
+      .where(function () {
+        this.whereNull('is_deleted').orWhere('is_deleted', '!=', true);
+      })
+      .orderBy('created_at', 'asc');
+
+    return commentList.map((comment) => new Comment(comment));
+  }
+
+  /**
+   * Insert a document comment (does not require fk_model_id / source_id).
+   */
+  public static async insertDocComment(
+    context: NcContext,
+    comment: Partial<Comment>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const insertObj = extractProps(comment, [
+      'id',
+      'fk_doc_id',
+      'anchor_id',
+      'comment',
+      'parent_comment_id',
+      'base_id',
+      'created_by',
+      'created_by_email',
+    ]);
+
+    if (!insertObj.fk_doc_id) {
+      NcError.badRequest('fk_doc_id is required for document comments');
+    }
+
+    const res = await ncMeta.metaInsert2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COMMENTS,
+      prepareForDb(insertObj),
+    );
+
+    return res;
+  }
+
+  /**
+   * Soft-delete all comments for a given document (cascade on doc delete).
+   */
+  static async deleteDocComments(
+    context: NcContext,
+    fk_doc_id: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    return ncMeta
+      .knex(MetaTable.COMMENTS)
+      .where('fk_doc_id', fk_doc_id)
+      .where('base_id', context.base_id)
+      .update({ is_deleted: true });
+  }
+
+  /**
+   * Count comments per document (for sidebar badge).
+   */
+  public static async docCommentsCount(
+    context: NcContext,
+    docIds: string[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    const results = await ncMeta
+      .knex(MetaTable.COMMENTS)
+      .count('id', { as: 'count' })
+      .select('fk_doc_id')
+      .whereIn('fk_doc_id', docIds)
+      .where('base_id', context.base_id)
+      .where(function () {
+        this.whereNull('is_deleted').orWhere('is_deleted', '!=', true);
+      })
+      .groupBy('fk_doc_id');
+
+    return results?.map((r) => new Comment(r));
   }
 }

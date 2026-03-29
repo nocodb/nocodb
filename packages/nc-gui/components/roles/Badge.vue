@@ -78,9 +78,9 @@ const roleProperties = computed(() => {
       <div
         class="badge-text w-full flex items-center justify-between gap-2"
         :class="
-          roleColorsMapping[roleProperties.color]?.badgeContent ??
-          roleColorsMapping[roleProperties.color]?.content ??
-          'text-nc-content-brand-hover'
+          roleColorsMapping[roleProperties.color]?.badgeContent
+            ?? roleColorsMapping[roleProperties.color]?.content
+            ?? 'text-nc-content-brand-hover'
         "
       >
         <div class="flex items-center gap-2">

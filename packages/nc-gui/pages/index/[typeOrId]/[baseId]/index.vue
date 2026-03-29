@@ -36,14 +36,23 @@ onKeyStroke(
 onBeforeMount(async () => {
   try {
     await loadProject()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     if (e.response?.status === 403) {
       // Base is not accessible
       message.error(t('msg.error.projectNotAccessible'))
       router.replace('/')
       return
     }
-    message.error(await extractSdkResponseErrorMsg(e))
+
+    const error = await extractSdkResponseErrorMsgv2(e)
+
+    message.error(error.message)
+
+    if (error.error === NcErrorType.ERR_BASE_NOT_FOUND) {
+      navigateTo({ name: 'index-typeOrId', params: { typeOrId: 'nc' } })
+      return
+    }
   }
 
   // if (route.name.toString().includes('baseType-baseId-index-index') && isUIAllowed('teamAndAuth')) {
@@ -99,8 +108,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 </script>
 
 <template>
-  <div>
-    <div>
+  <div class="h-full">
+    <div class="h-full">
       <NuxtPage />
     </div>
   </div>

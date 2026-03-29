@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { IntegrationCategoryType, SyncDataType } from '#imports'
 
-const props = defineProps<{ loadDatasourceInfo?: boolean; baseId?: string }>()
+const props = defineProps<{ loadDatasourceInfo?: boolean, baseId?: string }>()
 
 const { loadDatasourceInfo, baseId } = toRefs(props)
 

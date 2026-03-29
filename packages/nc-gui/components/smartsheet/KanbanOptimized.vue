@@ -1,9 +1,10 @@
 <script lang="ts" setup>
-import type { VNodeRef } from '@vue/runtime-core'
-import Draggable from 'vuedraggable'
-import tinycolor from 'tinycolor2'
-import { type ColumnType, PermissionEntity, PermissionKey, UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
+import type { ColumnType } from 'nocodb-sdk'
+import type { VNodeRef } from 'vue'
+import { isVirtualCol, PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
+import tinycolor from 'tinycolor2'
+import Draggable from 'vuedraggable'
 
 interface Attachment {
   url: string
@@ -103,9 +104,9 @@ const hasEditPermission = computed(
 
 const fields = inject(FieldsInj, ref([]))
 
-const fieldsWithoutDisplay = computed(() => fields.value.filter((f) => !isPrimary(f)))
+const fieldsWithoutDisplay = computed(() => fields.value.filter(f => !isPrimary(f)))
 
-const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
+const displayField = computed(() => meta.value?.columns?.find(c => c.pv && fields.value.includes(c)) ?? null)
 
 const coverImageColumn: any = computed(() =>
   meta.value?.columnsById
@@ -130,7 +131,7 @@ const {
   getCellLeftBorderStyle: _getCellLeftBorderStyle,
 } = useViewRowColorRender()
 
-const getCellColorStyle = (record: Row, columnId: string) => {
+function getCellColorStyle(record: Row, columnId: string) {
   // Access pre-computed cell colors from rowMeta (optimized - no function calls)
   const cellColorInfo = record.rowMeta?.cellColors?.[columnId]
   if (!cellColorInfo) return {}
@@ -142,7 +143,7 @@ const getCellColorStyle = (record: Row, columnId: string) => {
   return style
 }
 
-const getCellLeftBorderStyle = (record: Row, columnId: string) => {
+function getCellLeftBorderStyle(record: Row, columnId: string) {
   // Access pre-computed cell colors from rowMeta (optimized - no function calls)
   const cellColorInfo = record.rowMeta?.cellColors?.[columnId]
   if (!cellColorInfo || cellColorInfo.is_set_as_background || !cellColorInfo.cellLeftBorderColor) return null
@@ -150,12 +151,12 @@ const getCellLeftBorderStyle = (record: Row, columnId: string) => {
   return { backgroundColor: cellColorInfo.cellLeftBorderColor }
 }
 
-const getCellColorClass = (record: Row, columnId: string) => {
+function getCellColorClass(record: Row, columnId: string) {
   const bgStyle = getCellColorStyle(record, columnId)
   return bgStyle?.backgroundColor ? 'has-cell-bg-color' : ''
 }
 
-const getCellColorBgVar = (record: Row, columnId: string) => {
+function getCellColorBgVar(record: Row, columnId: string) {
   const bgStyle = getCellColorStyle(record, columnId)
   return bgStyle?.backgroundColor ? { '--cell-bg-color': bgStyle.backgroundColor } : {}
 }
@@ -179,7 +180,7 @@ const stackSlice = reactive({
 })
 
 // Calculate horizontal stack visibility
-const calculateStackSlice = () => {
+function calculateStackSlice() {
   if (!kanbanContainerRef.value) {
     setTimeout(calculateStackSlice, 50)
     return
@@ -231,7 +232,7 @@ const calculateStackSlice = () => {
 }
 
 // Check if a stack is visible horizontally
-const isStackVisible = (index: number): boolean => {
+function isStackVisible(index: number): boolean {
   if (!stackSlice.end) {
     // If slice not calculated, show initial stacks
     return index < 5
@@ -271,7 +272,7 @@ const cardHeight = computed(() => {
 const CARD_VIRTUAL_MARGIN = 0 // No margin for maximum memory efficiency
 // Use shallowRef for Maps to reduce reactive dependencies (Maps don't need deep reactivity)
 const stackScrollTops = shallowRef<Map<string | null, number>>(new Map())
-const stackCardSlices = shallowRef<Map<string | null, { start: number; end: number }>>(new Map())
+const stackCardSlices = shallowRef<Map<string | null, { start: number, end: number }>>(new Map())
 // Version counter for slice changes - more efficient than hash calculation
 const slicesVersion = ref(0)
 
@@ -281,7 +282,7 @@ const reloadViewDataListener = withLoading(async () => {
 
 reloadViewDataHook?.on(reloadViewDataListener)
 
-const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
+function smartsheetEventHandler(event: SmartsheetStoreEvents) {
   if (event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()
   }
@@ -289,31 +290,32 @@ const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
 
 eventBus.on(smartsheetEventHandler)
 
-const attachments = (record: any): Attachment[] => {
+function attachments(record: any): Attachment[] {
   if (!coverImageColumn.value?.title || !record.row[coverImageColumn.value.title]) return []
 
   try {
-    const att =
-      typeof record.row[coverImageColumn.value.title] === 'string'
+    const att
+      = typeof record.row[coverImageColumn.value.title] === 'string'
         ? JSON.parse(record.row[coverImageColumn.value.title])
         : record.row[coverImageColumn.value.title]
 
     if (Array.isArray(att)) {
       return att
         .flat()
-        .map((a) => (typeof a === 'string' ? JSON.parse(a) : a))
-        .filter((a) => a && !Array.isArray(a) && typeof a === 'object' && Object.keys(a).length)
+        .map(a => (typeof a === 'string' ? JSON.parse(a) : a))
+        .filter(a => a && !Array.isArray(a) && typeof a === 'object' && Object.keys(a).length)
     }
 
     return []
-  } catch (e) {
+  }
+  catch (e) {
     return []
   }
 }
 
 const reloadAttachments = ref(false)
 
-const reloadViewMetaListener = async () => {
+async function reloadViewMetaListener() {
   reloadAttachments.value = true
 
   nextTick(() => {
@@ -323,7 +325,7 @@ const reloadViewMetaListener = async () => {
 
 reloadViewMetaHook?.on(reloadViewMetaListener)
 
-const expandForm = (row: RowType, state?: Record<string, any>) => {
+function expandForm(row: RowType, state?: Record<string, any>) {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
   expandedFormRowState.value = state
   if (rowId && !isPublic.value) {
@@ -335,7 +337,8 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
         rowId,
       },
     })
-  } else {
+  }
+  else {
     expandedFormRow.value = row
     expandedFormDlg.value = true
   }
@@ -354,7 +357,14 @@ const contextMenu = computed({
 
 const contextMenuTarget = ref<RowType | null>(null)
 
-const showContextMenu = (e: MouseEvent, target?: RowType) => {
+const showSendRecordModal = ref(false)
+
+const contextMenuRowId = computed(() => {
+  if (!contextMenuTarget.value) return null
+  return extractPkFromRow(contextMenuTarget.value.row, meta.value?.columns)
+})
+
+function showContextMenu(e: MouseEvent, target?: RowType) {
   e.preventDefault()
   if (target) {
     contextMenuTarget.value = target
@@ -366,17 +376,18 @@ const expandedFormOnRowIdDlg = computed({
     return !!route.value.query.rowId
   },
   set(val) {
-    if (!val)
+    if (!val) {
       router.push({
         query: {
           ...route.value.query,
           rowId: undefined,
         },
       })
+    }
   },
 })
 
-const expandFormClick = async (e: MouseEvent, row: RowType) => {
+async function expandFormClick(e: MouseEvent, row: RowType) {
   const target = e.target as HTMLElement
   if (target.closest('.arrow') || target.closest('.slick-dots')) return
   if (e.target as HTMLElement) {
@@ -384,7 +395,7 @@ const expandFormClick = async (e: MouseEvent, row: RowType) => {
   }
 }
 
-/** Block dragging the stack to first index (reserved for uncategorized) **/
+/** Block dragging the stack to first index (reserved for uncategorized) */
 function onMoveCallback(event: { draggedContext: { futureIndex: number } }) {
   if (event.draggedContext.futureIndex === 0) {
     return false
@@ -464,7 +475,8 @@ async function onMove(event: any, stackKey: string) {
     ele.row[groupingField.value] = stackKey
     countByStack.value.set(stackKey, countByStack.value.get(stackKey)! + 1)
     await updateOrSaveRow(ele)
-  } else if (event.removed) {
+  }
+  else if (event.removed) {
     countByStack.value.set(stackKey, countByStack.value.get(stackKey)! - 1)
     moveHistory.value.unshift({
       op: 'removed',
@@ -486,7 +498,7 @@ const lastSliceUpdateTime = new Map<string | null, number>()
 const SLICE_UPDATE_THROTTLE_MS = 50 // Throttle slice updates to prevent loops
 
 // Helper to update stackCardSlices with reactivity (shallowRef requires new Map reference)
-const updateStackCardSlice = (stackTitle: string | null, slice: { start: number; end: number }, duringScroll = false) => {
+function updateStackCardSlice(stackTitle: string | null, slice: { start: number, end: number }, duringScroll = false) {
   const currentSlice = stackCardSlices.value.get(stackTitle)
   // Only update if the slice actually changed to prevent unnecessary reactivity and loops
   if (currentSlice && currentSlice.start === slice.start && currentSlice.end === slice.end) {
@@ -517,7 +529,7 @@ const updateStackCardSlice = (stackTitle: string | null, slice: { start: number;
 }
 
 // Calculate visible card range for a specific stack - uses dynamic card height
-const calculateCardSlice = (stackTitle: string | null, scrollTop: number, containerHeight: number) => {
+function calculateCardSlice(stackTitle: string | null, scrollTop: number, containerHeight: number) {
   // Note: isUpdatingSlices is only used in debouncedRecalculateSlices to prevent multiple batch updates
   // Individual calculateCardSlice calls from scroll handlers should proceed normally
 
@@ -659,7 +671,8 @@ const kanbanListScrollHandler = useDebounceFn(async (e: any) => {
                 // Update with duringScroll=true to prevent triggering watch
                 updateStackCardSlice(stackTitle, { start: newStart, end: newEnd }, true)
               }, 50)
-            } else {
+            }
+            else {
               // Not at the end, just recalculate normally
               setTimeout(() => {
                 calculateCardSlice(stackTitle, scrollTop, containerHeight)
@@ -671,7 +684,8 @@ const kanbanListScrollHandler = useDebounceFn(async (e: any) => {
             loadingMoreData.set(stackTitle, false)
           }, 200)
         })
-      } catch (error) {
+      }
+      catch (error) {
         // Reset loading flag on error
         loadingMoreData.set(stackTitle, false)
         console.error('Error loading more kanban data:', error)
@@ -680,23 +694,23 @@ const kanbanListScrollHandler = useDebounceFn(async (e: any) => {
   }
 })
 
-const handleDeleteStackClick = (stackTitle: string, stackIdx: number) => {
+function handleDeleteStackClick(stackTitle: string, stackIdx: number) {
   deleteStackVModel.value = true
   stackToBeDeleted.value = stackTitle
   stackIdxToBeDeleted.value = stackIdx
 }
 
-const handleDeleteStackConfirmClick = async () => {
+async function handleDeleteStackConfirmClick() {
   await deleteStack(stackToBeDeleted.value, stackIdxToBeDeleted.value)
   deleteStackVModel.value = false
 }
 
-const handleCollapseStack = async (stackIdx: number) => {
+async function handleCollapseStack(stackIdx: number) {
   const currentCollapsed = groupingFieldColOptions.value[stackIdx].collapsed
   await updateStackProperty(stackIdx, { collapsed: !currentCollapsed })
 }
 
-const handleCollapseAllStack = async () => {
+async function handleCollapseAllStack() {
   await updateAllStacksProperty((stack) => {
     if (stack.id !== addNewStackId && !stack.collapsed) {
       return { collapsed: true }
@@ -705,7 +719,7 @@ const handleCollapseAllStack = async () => {
   })
 }
 
-const handleExpandAllStack = async () => {
+async function handleExpandAllStack() {
   await updateAllStacksProperty((stack) => {
     if (stack.id !== addNewStackId && stack.collapsed) {
       return { collapsed: false }
@@ -714,7 +728,7 @@ const handleExpandAllStack = async () => {
   })
 }
 
-const handleCellClick = (col, event) => {
+function handleCellClick(col, event) {
   if (isButton(col)) {
     event.stopPropagation()
   }
@@ -731,7 +745,7 @@ const initializedStacks = new Set<string | null>()
 
 // Helper to check visibility - uses version counter for reactivity (more efficient than hash)
 // This function is called in template v-if, so it must access reactive values to trigger re-renders
-const isCardVisible = (stackTitle: string | null, index: number): boolean => {
+function isCardVisible(stackTitle: string | null, index: number): boolean {
   const stackKey = stackTitle ?? null
   const slice = stackCardSlices.value.get(stackKey)
 
@@ -765,7 +779,7 @@ const isCardVisible = (stackTitle: string | null, index: number): boolean => {
 }
 
 // Get total scroll height for a stack (for container height calculation)
-const getTotalScrollHeight = (stackTitle: string | null) => {
+function getTotalScrollHeight(stackTitle: string | null) {
   const stack = formattedData.value?.get(stackTitle)
   if (!stack || !stack.length) return 0
 
@@ -801,7 +815,7 @@ const getTotalScrollHeight = (stackTitle: string | null) => {
 }
 
 // Create kanban list ref with scroll handler
-const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
+function createKanbanListRef(stackTitle: string | null): VNodeRef {
   return (kanbanListElement) => {
     if (kanbanListElement) {
       const element = kanbanListElement as HTMLElement
@@ -842,7 +856,8 @@ const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
             const initialVisibleCount = Math.ceil(initialViewportHeight / cardHeightWithGap) + BUFFER_ROWS
             const initialEnd = Math.min(stack.length, initialVisibleCount)
             updateStackCardSlice(stackTitle, { start: 0, end: initialEnd }, false)
-          } else {
+          }
+          else {
             updateStackCardSlice(stackTitle, { start: 0, end: 0 }, false)
           }
         })
@@ -857,9 +872,9 @@ const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
         // Only call kanbanListScrollHandler if we're near the bottom (for infinite scroll)
         // This prevents it from being called on every scroll event
         if (
-          e.target &&
-          (e.target as HTMLElement).scrollTop + (e.target as HTMLElement).clientHeight + INFINITY_SCROLL_THRESHOLD >=
-            (e.target as HTMLElement).scrollHeight
+          e.target
+          && (e.target as HTMLElement).scrollTop + (e.target as HTMLElement).clientHeight + INFINITY_SCROLL_THRESHOLD
+          >= (e.target as HTMLElement).scrollHeight
         ) {
           kanbanListScrollHandler(e)
         }
@@ -879,7 +894,8 @@ const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
               scrollRaf = true
               try {
                 calculateCardSlice(stackTitle, scrollTop, containerHeight)
-              } catch (e) {
+              }
+              catch (e) {
                 scrollRaf = false
               }
               scrollRaf = false
@@ -914,7 +930,8 @@ const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
               scrollRaf = true
               try {
                 calculateCardSlice(stackTitle, scrollTop, containerHeight)
-              } catch (e) {
+              }
+              catch (e) {
                 scrollRaf = false
               }
               scrollRaf = false
@@ -929,7 +946,8 @@ const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
             // Always calculate slice on scroll - ensure items become visible
             // Updates are throttled and version increment is skipped to prevent watch
             calculateCardSlice(stackTitle, scrollTop, containerHeight)
-          } catch (e) {
+          }
+          catch (e) {
             // Ensure flag is reset even on error
             scrollRaf = false
           }
@@ -973,7 +991,8 @@ const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
           const scrollTop = element.scrollTop || 0
           calculateCardSlice(stackTitle, scrollTop, element.clientHeight)
           // Don't dispatch scroll event - it causes infinite loops
-        } else if (stack && stack.length > 0) {
+        }
+        else if (stack && stack.length > 0) {
           // Even if container height is 0, ensure we have a slice set
           const currentSlice = stackCardSlices.value.get(stackTitle)
           if (!currentSlice || currentSlice.end === 0) {
@@ -988,7 +1007,8 @@ const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
           }
         }
       })
-    } else {
+    }
+    else {
       // Element was removed - clean up
       if (kanbanListRefs.value.get(stackTitle)) {
         const oldScrollHandler = scrollHandlers.get(stackTitle)
@@ -1010,7 +1030,7 @@ const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
   }
 }
 
-const openNewRecordFormHookHandler = async () => {
+async function openNewRecordFormHookHandler() {
   const newRow = await addEmptyRow()
   // preset the grouping field value
   newRow.row = {
@@ -1026,7 +1046,7 @@ openNewRecordFormHook?.on(openNewRecordFormHookHandler)
 
 // Horizontal scroll handler
 let horizontalScrollRaf: number | undefined
-const handleHorizontalScroll = () => {
+function handleHorizontalScroll() {
   if (horizontalScrollRaf) {
     cancelAnimationFrame(horizontalScrollRaf)
   }
@@ -1094,7 +1114,7 @@ const debouncedRecalculateSlices = useDebounceFn(() => {
   if (scrollRaf) return
 
   // Don't recalculate if we're loading more data (prevents loops during infinite scroll)
-  if (Array.from(loadingMoreData.values()).some((loading) => loading)) {
+  if (Array.from(loadingMoreData.values()).some(loading => loading)) {
     return
   }
 
@@ -1117,7 +1137,8 @@ const debouncedRecalculateSlices = useDebounceFn(() => {
         if (stackData && stackData.length > 0) {
           calculateCardSlice(stackKey, scrollTop, element.clientHeight)
         }
-      } else if (stackData) {
+      }
+      else if (stackData) {
         // Initialize slice even if element not found yet
         if (stackData.length > 0) {
           const initialViewportHeight = 600
@@ -1129,7 +1150,8 @@ const debouncedRecalculateSlices = useDebounceFn(() => {
           if (!currentSlice || currentSlice.end !== initialEnd) {
             updateStackCardSlice(stackKey, { start: 0, end: initialEnd })
           }
-        } else {
+        }
+        else {
           const currentSlice = stackCardSlices.value.get(stackKey)
           if (!currentSlice || currentSlice.end !== 0) {
             updateStackCardSlice(stackKey, { start: 0, end: 0 })
@@ -1209,13 +1231,14 @@ onMounted(async () => {
       }
     })
     isViewDataLoading.value = false
-  } catch (error) {
+  }
+  catch (error) {
     console.error(error)
     isViewDataLoading.value = false
   }
 })
 
-const getRowId = (row: RowType) => {
+function getRowId(row: RowType) {
   const pk = extractPkFromRow(row.row, meta.value!.columns!)
   return pk ? `row-${pk}` : ''
 }
@@ -1232,7 +1255,7 @@ const compareStack = (stack: any, stack2?: any) => stack?.id && stack2?.id && st
 
 const isSavingStack = ref(null)
 
-const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stackIdx?: number) => {
+async function handleSubmitRenameOrNewStack(loadMeta: boolean, stack?: any, stackIdx?: number) {
   isSavingStack.value = isRenameOrNewStack.value
   isRenameOrNewStack.value = null
 
@@ -1246,26 +1269,26 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
   isSavingStack.value = null
 }
 
-const draggableStackFilter = (event: Event) => {
+function draggableStackFilter(event: Event) {
   return event.target?.closest('.not-draggable')
   // || isTouchEvent(event) // allow drag and drop for touch devices for now
 }
 
-const draggableCardFilter = (event: Event, target: HTMLElement) => {
+function draggableCardFilter(event: Event, target: HTMLElement) {
   const eventTarget = event.target as HTMLElement | null
   const closestNotDraggable = eventTarget?.closest('.not-draggable')
 
   return !!(
-    eventTarget &&
-    target &&
-    target.contains(eventTarget) &&
-    closestNotDraggable &&
-    (target.contains(closestNotDraggable) || closestNotDraggable === target)
+    eventTarget
+    && target
+    && target.contains(eventTarget)
+    && closestNotDraggable
+    && (target.contains(closestNotDraggable) || closestNotDraggable === target)
   )
   // || isTouchEvent(event) // allow drag and drop for touch devices for now
 }
 
-const handleOpenNewRecordForm = (stackTitle?: string) => {
+function handleOpenNewRecordForm(stackTitle?: string) {
   if (showRecordPlanLimitExceededModal()) return
 
   selectedStackTitle.value = stackTitle ?? ''
@@ -1273,7 +1296,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
   openNewRecordFormHook.trigger()
 }
 
-const resetPointerEvent = (record: RowType, col: ColumnType) => {
+function resetPointerEvent(record: RowType, col: ColumnType) {
   return isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col))
 }
 </script>
@@ -1288,7 +1311,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
   >
     <div
       ref="kanbanContainerRef"
-      class="nc-kanban-container flex p-3 overflow-y-hidden w-full nc-scrollbar-x-lg min-h-[calc(100%_-_0.4rem)] max-h-[calc(100%_-_0.4rem)]"
+      class="nc-kanban-container flex p-3 overflow-y-hidden w-full nc-view-scrollbar-x min-h-[calc(100%_-_0.4rem)] max-h-[calc(100%_-_0.4rem)]"
     >
       <div v-if="isViewDataLoading" class="flex flex-row min-h-full gap-x-2">
         <a-skeleton-input v-for="index of Array(20)" :key="index" class="!min-w-80 !min-h-full !rounded-xl overflow-hidden" />
@@ -1322,8 +1345,8 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                 :class="{
                   'w-[44px]': stack.collapsed,
                   'hidden':
-                    (hideEmptyStack && !formattedData.get(stack.title)?.length) ||
-                    (isRequiredGroupingFieldColumn && stack.id === uncategorizedStackId),
+                    (hideEmptyStack && !formattedData.get(stack.title)?.length)
+                    || (isRequiredGroupingFieldColumn && stack.id === uncategorizedStackId),
                 }"
                 :data-testid="`nc-kanban-stack-${stack.title}`"
               >
@@ -1553,8 +1576,8 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                             tinycolor(stack.color || '#ccc').isLight()
                               ? 70
                               : tinycolor(stack.color || '#ccc').getBrightness() <= 100
-                              ? 80
-                              : 90,
+                                ? 80
+                                : 90,
                           )
                           .toString(),
                       }"
@@ -1630,7 +1653,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                         <template #customPaging>
                                           <a>
                                             <div>
-                                              <div></div>
+                                              <div />
                                             </div>
                                           </a>
                                         </template>
@@ -1675,7 +1698,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                       v-else
                                       class="h-52 w-full !flex flex-row !border-b-1 !border-nc-border-gray-medium items-center justify-center bg-nc-bg-default"
                                     >
-                                      <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
+                                      <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png">
                                     </div>
                                   </template>
                                   <div class="flex-1 flex content-stretch gap-3 w-full">
@@ -1683,7 +1706,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                       v-if="isRowColouringEnabled"
                                       class="w-1 flex-none min-h-4 rounded-sm"
                                       :style="extractRowBackgroundColorStyle(record).rowLeftBorderColor"
-                                    ></div>
+                                    />
                                     <div
                                       class="flex-1 flex flex-col !children:pointer-events-none"
                                       :class="{
@@ -1702,7 +1725,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                           v-if="getCellLeftBorderStyle(record, displayField.id)"
                                           class="w-1 flex-none min-h-4 rounded-sm"
                                           :style="getCellLeftBorderStyle(record, displayField.id)"
-                                        ></div>
+                                        />
                                         <h2
                                           class="nc-card-display-value-wrapper flex-1 min-w-0"
                                           :class="{
@@ -1729,7 +1752,9 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                               :read-only="true"
                                             />
                                           </template>
-                                          <template v-else> -</template>
+                                          <template v-else>
+                                            -
+                                          </template>
                                         </h2>
                                       </div>
 
@@ -1781,7 +1806,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                               v-if="getCellLeftBorderStyle(record, col.id)"
                                               class="w-1 flex-none min-h-4 rounded-sm"
                                               :style="getCellLeftBorderStyle(record, col.id)"
-                                            ></div>
+                                            />
                                             <div class="flex flex-col w-full">
                                               <div
                                                 v-if="isActiveViewFieldHeaderVisible"
@@ -1821,7 +1846,9 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                                   class="!text-nc-content-gray"
                                                 />
                                               </div>
-                                              <div v-else class="flex flex-row w-full h-7 items-center justify-start">-</div>
+                                              <div v-else class="flex flex-row w-full h-7 items-center justify-start">
+                                                -
+                                              </div>
                                             </div>
                                           </div>
                                         </NcTooltip>
@@ -1908,7 +1935,9 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                             </NcButton>
                           </template>
                         </PermissionsTooltip>
-                        <div v-else>&nbsp;</div>
+                        <div v-else>
+&nbsp;
+                        </div>
 
                         <!-- Record Count -->
                         <div class="nc-kanban-data-count text-nc-content-gray-muted font-weight-500 px-1">
@@ -2116,6 +2145,15 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                 {{ $t('activity.expandRecord') }}
               </div>
             </NcMenuItem>
+            <NcMenuItem
+              v-if="contextMenuTarget && contextMenuRowId && !isPublic && appInfo.ee"
+              @click="showSendRecordModal = true"
+            >
+              <div class="flex items-center gap-2 nc-kanban-context-menu-item">
+                <GeneralIcon icon="mail" class="flex" />
+                {{ $t('activity.sendRecord') }}
+              </div>
+            </NcMenuItem>
             <NcDivider />
             <PermissionsTooltip
               v-if="contextMenuTarget"
@@ -2184,6 +2222,8 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
       </div>
     </template>
   </GeneralDeleteModal>
+
+  <DlgSendRecordEmail v-model="showSendRecordModal" :meta="meta" :view="view" :row-id="contextMenuRowId" />
 </template>
 
 <style lang="scss" scoped>

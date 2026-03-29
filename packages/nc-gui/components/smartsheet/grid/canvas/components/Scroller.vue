@@ -26,10 +26,10 @@ const emit = defineEmits(['scroll'])
 
 interface ScrollState {
   startTime: number
-  startPosition: { x: number; y: number }
-  currentPosition: { x: number; y: number }
-  velocity: { x: number; y: number }
-  touchHistory: Array<{ time: number; position: { x: number; y: number } }>
+  startPosition: { x: number, y: number }
+  currentPosition: { x: number, y: number }
+  velocity: { x: number, y: number }
+  touchHistory: Array<{ time: number, position: { x: number, y: number } }>
   animation: number | null
 }
 
@@ -70,22 +70,9 @@ const scrollState = ref<ScrollState>({
   animation: null,
 })
 const isScrollbarVisible = ref(true)
-const scrollbarTimer = ref(null)
-const scrollbarsAlwaysVisible = ref(false)
 
-const showScrollbars = () => {
+function showScrollbars() {
   isScrollbarVisible.value = true
-
-  if (scrollbarTimer.value) {
-    clearTimeout(scrollbarTimer.value)
-  }
-
-  // Only set timer to hide scrollbars if they aren't configured to always be visible
-  if (!scrollbarsAlwaysVisible.value) {
-    scrollbarTimer.value = setTimeout(() => {
-      isScrollbarVisible.value = false
-    }, 2000)
-  }
 }
 
 const showVerticalScrollbar = computed(() => {
@@ -118,7 +105,7 @@ const horizontalThumbPosition = computed(() => {
   return scrollRatio * availableSpace
 })
 
-const getBoundedValue = (value: number, min: number, max: number) => {
+function getBoundedValue(value: number, min: number, max: number) {
   if (value < min) {
     // Apply spring physics when out of bounds
     const delta = value - min
@@ -131,7 +118,7 @@ const getBoundedValue = (value: number, min: number, max: number) => {
   return value
 }
 
-const updateScroll = (vertical?: number, horizontal?: number) => {
+function updateScroll(vertical?: number, horizontal?: number) {
   if (!contentWrapper.value) return
 
   let newTop = scrollTop.value
@@ -161,7 +148,7 @@ const updateScroll = (vertical?: number, horizontal?: number) => {
 
 const isWindowsOrLinux = ref(false)
 
-const handleWheel = (e: WheelEvent) => {
+function handleWheel(e: WheelEvent) {
   if (!contentWrapper.value || !wrapperRef.value) return
 
   // Normalize deltas to pixels
@@ -203,7 +190,7 @@ const handleWheel = (e: WheelEvent) => {
   updateScroll(scrollTop.value + (canScrollVertically ? deltaY : 0), scrollLeft.value + (canScrollHorizontally ? deltaX : 0))
 }
 
-const startDragging = (axis: 'vertical' | 'horizontal', event: DragEvent | TouchEvent) => {
+function startDragging(axis: 'vertical' | 'horizontal', event: DragEvent | TouchEvent) {
   event.preventDefault()
   event.stopPropagation()
 
@@ -233,8 +220,8 @@ function handleDrag(event: MouseEvent | TouchEvent) {
 
   const delta = currentDragAxis.value === 'vertical' ? clientY - dragStartPosition.value : clientX - dragStartPosition.value
 
-  const scrollRatio =
-    currentDragAxis.value === 'vertical'
+  const scrollRatio
+    = currentDragAxis.value === 'vertical'
       ? (scrollHeight.value - height.value) / (height.value - (height.value * verticalThumbHeight.value) / 100)
       : (scrollWidth.value - width.value) / (width.value - (width.value * horizontalThumbWidth.value) / 100)
 
@@ -242,7 +229,8 @@ function handleDrag(event: MouseEvent | TouchEvent) {
 
   if (currentDragAxis.value === 'vertical') {
     updateScroll(newScroll, undefined)
-  } else {
+  }
+  else {
     updateScroll(undefined, newScroll)
   }
 }
@@ -255,7 +243,7 @@ function stopDragging() {
   document.removeEventListener('touchend', stopDragging)
 }
 
-const handleTrackClick = (axis: 'vertical' | 'horizontal', event: any) => {
+function handleTrackClick(axis: 'vertical' | 'horizontal', event: any) {
   if (event.target === (axis === 'vertical' ? verticalScrollbar.value : horizontalScrollbar.value)) return
 
   const rect = event.currentTarget.getBoundingClientRect()
@@ -269,15 +257,16 @@ const handleTrackClick = (axis: 'vertical' | 'horizontal', event: any) => {
 
   if (axis === 'vertical') {
     updateScroll(newScroll, undefined)
-  } else {
+  }
+  else {
     updateScroll(undefined, newScroll)
   }
 }
 
-const calculateVelocity = () => {
+function calculateVelocity() {
   const now = Date.now()
   const history = scrollState.value.touchHistory
-  const recentTouches = history.filter((touch) => now - touch.time <= TRACKING_TIME)
+  const recentTouches = history.filter(touch => now - touch.time <= TRACKING_TIME)
 
   if (recentTouches.length < 2) return { x: 0, y: 0 }
 
@@ -293,7 +282,7 @@ const calculateVelocity = () => {
   }
 }
 
-const handleTouchStart = (event: TouchEvent) => {
+function handleTouchStart(event: TouchEvent) {
   if (scrollState.value.animation) {
     cancelAnimationFrame(scrollState.value.animation)
     scrollState.value.animation = null
@@ -317,7 +306,7 @@ const handleTouchStart = (event: TouchEvent) => {
   }
 }
 
-const handleTouchMove = (event: TouchEvent) => {
+function handleTouchMove(event: TouchEvent) {
   const touch = event.touches[0]
   const time = Date.now()
 
@@ -337,7 +326,7 @@ const handleTouchMove = (event: TouchEvent) => {
 
   updateScroll(scrollTop.value + deltaY, scrollLeft.value + deltaX)
 }
-const springAnimation = (currentValue: number, targetValue: number, velocity: number): { position: number; velocity: number } => {
+function springAnimation(currentValue: number, targetValue: number, velocity: number): { position: number, velocity: number } {
   const delta = targetValue - currentValue
   const spring = SPRING_TENSION * delta
   const damping = SPRING_FRICTION * velocity
@@ -349,11 +338,11 @@ const springAnimation = (currentValue: number, targetValue: number, velocity: nu
   return { position: newPosition, velocity: newVelocity }
 }
 
-const decayAnimation = (value: number, velocity: number): number => {
+function decayAnimation(value: number, velocity: number): number {
   return value + velocity * (FRAME_RATE / 1000)
 }
 
-const animateScroll = () => {
+function animateScroll() {
   const state = scrollState.value
   if (!state.animation) return
 
@@ -370,7 +359,8 @@ const animateScroll = () => {
     const spring = springAnimation(newX, target, velocityX)
     newX = spring.position
     velocityX = spring.velocity
-  } else {
+  }
+  else {
     newX = decayAnimation(newX, velocityX)
     velocityX *= DECAY_FACTOR
   }
@@ -380,7 +370,8 @@ const animateScroll = () => {
     const spring = springAnimation(newY, target, velocityY)
     newY = spring.position
     velocityY = spring.velocity
-  } else {
+  }
+  else {
     newY = decayAnimation(newY, velocityY)
     velocityY *= DECAY_FACTOR
   }
@@ -390,15 +381,16 @@ const animateScroll = () => {
   state.velocity = { x: velocityX, y: velocityY }
 
   if (
-    Math.abs(velocityX) > MIN_VELOCITY ||
-    Math.abs(velocityY) > MIN_VELOCITY ||
-    newX < 0 ||
-    newX > maxScrollX ||
-    newY < 0 ||
-    newY > maxScrollY
+    Math.abs(velocityX) > MIN_VELOCITY
+    || Math.abs(velocityY) > MIN_VELOCITY
+    || newX < 0
+    || newX > maxScrollX
+    || newY < 0
+    || newY > maxScrollY
   ) {
     state.animation = requestAnimationFrame(animateScroll)
-  } else {
+  }
+  else {
     state.animation = null
   }
 }
@@ -412,12 +404,12 @@ const scrollBounds = computed(() => {
   }
 })
 
-const handleTouchEnd = () => {
+function handleTouchEnd() {
   scrollState.value.velocity = calculateVelocity()
   scrollState.value.animation = requestAnimationFrame(animateScroll)
 }
 
-const scrollTo = ({ left, top }: { left?: number; top?: number }) => {
+function scrollTo({ left, top }: { left?: number, top?: number }) {
   if (left !== undefined) {
     const maxScrollLeft = scrollBounds.value.right
     scrollLeft.value = Math.max(0, Math.min(left, maxScrollLeft))
@@ -438,9 +430,8 @@ const scrollTo = ({ left, top }: { left?: number; top?: number }) => {
 
 onMounted(() => {
   showScrollbars()
-  isWindowsOrLinux.value =
-    navigator.userAgent.toLowerCase().includes('windows') || navigator.userAgent.toLowerCase().includes('linux')
-  scrollbarsAlwaysVisible.value = isScrollbarAlwaysVisible()
+  isWindowsOrLinux.value
+    = navigator.userAgent.toLowerCase().includes('windows') || navigator.userAgent.toLowerCase().includes('linux')
 })
 
 onUnmounted(() => {
@@ -475,7 +466,7 @@ defineExpose({
         @touchmove="handleTouchMove"
         @touchend="handleTouchEnd"
       >
-        <slot></slot>
+        <slot />
       </div>
     </div>
 
@@ -491,7 +482,7 @@ defineExpose({
         :style="{ height: `${verticalThumbHeight}%`, transform: `translateY(${verticalThumbPosition}px)` }"
         @mousedown="startDragging('vertical', $event)"
         @touchstart.prevent="startDragging('vertical', $event)"
-      ></div>
+      />
     </div>
 
     <div
@@ -506,7 +497,7 @@ defineExpose({
         :style="{ width: `${horizontalThumbWidth}%`, transform: `translateX(${horizontalThumbPosition}px)` }"
         @mousedown="startDragging('horizontal', $event)"
         @touchstart.prevent="startDragging('horizontal', $event)"
-      ></div>
+      />
     </div>
   </div>
 </template>

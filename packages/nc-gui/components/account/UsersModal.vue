@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
 import type { OrgUserReqType } from 'nocodb-sdk'
+import type { VNodeRef } from 'vue'
 import { OrgUserRoles } from 'nocodb-sdk'
 import { extractEmail } from '~/helpers/parsers/parserHelpers'
 
@@ -35,7 +35,7 @@ const validators = computed(() => {
 
 const { validateInfos } = useForm(usersData.value, validators)
 
-const saveUser = async () => {
+async function saveUser() {
   $e('a:org-user:invite', { role: usersData.value.role })
 
   await formRef.value?.validateFields()
@@ -53,43 +53,31 @@ const saveUser = async () => {
     message.success(t('msg.success.userAdded'))
 
     clearBasesUser()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.error(e)
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
 const inviteUrl = computed(() =>
-  usersData.value.invitationToken ? `${dashboardUrl.value}#/signup/${usersData.value.invitationToken}` : null,
+  usersData.value.invitationToken ? `${dashboardUrl.value}/signup/${usersData.value.invitationToken}` : null,
 )
 
-const clickInviteMore = () => {
+function clickInviteMore() {
   $e('c:user:invite-more')
   usersData.value.invitationToken = undefined
   usersData.value.role = OrgUserRoles.VIEWER
   usersData.value.emails = ''
 }
 
-const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+const emailInput: VNodeRef = el => (el as HTMLInputElement)?.focus()
 
-const onPaste = (e: ClipboardEvent) => {
+function onPaste(e: ClipboardEvent) {
   const pastedText = e.clipboardData?.getData('text') ?? ''
 
   usersData.value.emails = extractEmail(pastedText) || pastedText
 }
-
-const userRoleOptions = [
-  {
-    title: 'objects.roleType.orgLevelCreator',
-    subtitle: 'msg.info.roles.orgCreator',
-    value: OrgUserRoles.CREATOR,
-  },
-  {
-    title: 'objects.roleType.orgLevelViewer',
-    subtitle: 'msg.info.roles.orgViewer',
-    value: OrgUserRoles.VIEWER,
-  },
-]
 </script>
 
 <template>
@@ -121,7 +109,9 @@ const userRoleOptions = [
           <div class="flex flex-col mt-1 pb-5">
             <div class="flex flex-row items-center pl-1.5 pb-1 h-[1.1rem]">
               <component :is="iconMap.account" />
-              <div class="text-xs ml-0.5 mt-0.5" data-rec="true">{{ $t('activity.copyInviteURL') }}</div>
+              <div class="text-xs ml-0.5 mt-0.5" data-rec="true">
+                {{ $t('activity.copyInviteURL') }}
+              </div>
             </div>
 
             <NcAlert
@@ -144,7 +134,9 @@ const userRoleOptions = [
                 <div class="flex flex-row justify-center items-center space-x-0.5">
                   <MaterialSymbolsSendOutline class="flex mx-auto h-[0.8rem]" />
 
-                  <div class="text-xs" data-rec="true">{{ $t('activity.inviteMore') }}</div>
+                  <div class="text-xs" data-rec="true">
+                    {{ $t('activity.inviteMore') }}
+                  </div>
                 </div>
               </NcButton>
             </div>
@@ -161,14 +153,16 @@ const userRoleOptions = [
               @finish="saveUser"
             >
               <div class="flex flex-row space-x-4">
-                <div class="flex flex-col w-3/4">
+                <div class="flex flex-col w-full">
                   <a-form-item
                     v-bind="validateInfos.emails"
                     validate-trigger="onBlur"
                     name="emails"
                     :rules="[{ required: true, message: $t('msg.plsInputEmail') }]"
                   >
-                    <div class="ml-1 mb-1 text-xs text-nc-content-gray-muted" data-rec="true">{{ $t('datatype.Email') }}:</div>
+                    <div class="ml-1 mb-1 text-xs text-nc-content-gray-muted" data-rec="true">
+                      {{ $t('datatype.Email') }}:
+                    </div>
 
                     <a-input
                       :ref="emailInput"
@@ -181,55 +175,15 @@ const userRoleOptions = [
                     />
                   </a-form-item>
                 </div>
-
-                <div v-show="!isEeUI" class="flex flex-col w-2/4">
-                  <a-form-item name="role" :rules="[{ required: true, message: $t('msg.roleRequired') }]">
-                    <div class="ml-1 mb-1 text-xs text-nc-content-gray-muted">{{ $t('labels.selectUserRole') }}</div>
-
-                    <NcSelect
-                      v-model:value="usersData.role"
-                      class="w-55 nc-user-roles"
-                      :dropdown-match-select-width="false"
-                      dropdown-class-name="nc-dropdown-user-role max-w-64"
-                    >
-                      <a-select-option
-                        v-for="(option, idx) of userRoleOptions"
-                        :key="idx"
-                        class="nc-role-option"
-                        :value="option.value"
-                      >
-                        <div class="w-full flex items-start gap-1">
-                          <div class="flex-1 max-w-[calc(100%_-_16px)]">
-                            <NcTooltip show-on-truncate-only class="truncate" data-rec="true">
-                              <template #title>
-                                {{ $t(option.title) }}
-                              </template>
-                              {{ $t(option.title) }}
-                            </NcTooltip>
-
-                            <div class="nc-select-hide-item text-nc-content-gray-muted text-xs whitespace-normal" data-rec="true">
-                              {{ $t(option.subtitle) }}
-                            </div>
-                          </div>
-
-                          <GeneralIcon
-                            v-if="usersData.role === option.value"
-                            id="nc-selected-item-icon"
-                            icon="check"
-                            class="w-4 h-4 text-primary"
-                          />
-                        </div>
-                      </a-select-option>
-                    </NcSelect>
-                  </a-form-item>
-                </div>
               </div>
 
               <div class="flex flex-row justify-end">
                 <NcButton type="primary" size="small" html-type="submit">
                   <div class="flex flex-row justify-center items-center space-x-1.5">
                     <MaterialSymbolsSendOutline class="flex h-[0.8rem]" />
-                    <div data-rec="true">{{ $t('activity.invite') }}</div>
+                    <div data-rec="true">
+                      {{ $t('activity.invite') }}
+                    </div>
                   </div>
                 </NcButton>
               </div>

@@ -1,3 +1,5 @@
+import { ColumnType } from '~/lib';
+
 enum VariableType {
   String = 'string',
   Number = 'number',
@@ -229,6 +231,31 @@ interface WorkflowGeneralEdge {
   targetPortId?: string; // Target node's input port ID
 }
 
+/**
+ * Context interface for async operations
+ */
+interface VariableGeneratorContext {
+  getColumn?: (columnId: string) => Promise<ColumnType> | ColumnType;
+  getTableColumns?: (tableId: string) => Promise<ColumnType[]> | ColumnType[];
+  port?: string; // Current port for multi-port nodes (e.g., 'body', 'output' for iterate node)
+  linksAsLtar?: boolean; // When true, Links fields are treated as LTAR (nested record objects instead of counts)
+
+  /**
+   * Infer schema from a workflow expression by analyzing referenced nodes
+   * Extracts itemSchema from array variables in previous nodes
+   *
+   * @param expression - Template expression like "{{ $('NodeName').fieldPath }}"
+   * @returns Promise resolving to inferred schema, or undefined if not found
+   *
+   * @example
+   * const schema = await context.inferSchemaFromExpression?.("{{ $('Get Records').records }}");
+   * // Returns the itemSchema of the 'records' variable from 'Get Records' node
+   */
+  inferSchemaFromExpression?: (
+    expression: string
+  ) => Promise<VariableDefinition[] | undefined>;
+}
+
 export {
   VariableType,
   VariableGroupKey,
@@ -241,4 +268,5 @@ export {
   LoopContext,
   LoopIteration,
   LoopData,
+  VariableGeneratorContext,
 };

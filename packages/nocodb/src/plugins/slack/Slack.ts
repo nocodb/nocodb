@@ -10,11 +10,14 @@ export default class Slack implements IWebhookNotificationAdapter {
   public async sendMessage(text: string, payload: any): Promise<any> {
     for (const { webhook_url } of payload?.channels || []) {
       try {
-        return await axios.post(webhook_url, {
-          text,
-          httpAgent: useAgent(webhook_url),
-          httpsAgent: useAgent(webhook_url),
-        });
+        return await axios.post(
+          webhook_url,
+          { text },
+          {
+            httpAgent: useAgent(webhook_url),
+            httpsAgent: useAgent(webhook_url),
+          },
+        );
       } catch (e) {
         console.log(e);
         throw e;

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useQRCode } from '@vueuse/integrations/useQRCode'
 import type QRCode from 'qrcode'
-import { IsCanvasInjectionInj } from '../../context'
+import { useQRCode } from '@vueuse/integrations/useQRCode'
 import { base64ToBlob, copyPNGToClipboard } from '~/utils/svgToPng'
+import { IsCanvasInjectionInj } from '../../context'
 
 const { t } = useI18n()
 
@@ -59,7 +59,7 @@ const qrCodeLarge = useQRCode(compressedQrValue, {
 
 const modalVisible = ref(false)
 
-const showQrModal = (ev?: Event) => {
+function showQrModal(ev?: Event) {
   if (!showQrCode.value) return
   ev?.stopPropagation()
   modalVisible.value = true
@@ -74,7 +74,7 @@ const { showClearNonEditableFieldWarning } = useShowNotEditableWarning({ onEnter
 
 const { isCopied, performCopy } = useIsCopied()
 
-const copyAsPng = async () => {
+async function copyAsPng() {
   if (!qrCodeLarge.value) return
   const blob = await base64ToBlob(qrCodeLarge.value)
   const success = await copyPNGToClipboard(blob)
@@ -114,7 +114,9 @@ onMounted(() => {
   >
     <template #title>
       <div class="flex gap-2 items-center w-full">
-        <h1 class="font-weight-700 m-0">{{ column?.title }}</h1>
+        <h1 class="font-weight-700 m-0">
+          {{ column?.title }}
+        </h1>
         <div class="h-5 px-1 bg-nc-bg-gray-medium text-nc-content-gray-subtle2 rounded-md justify-center items-center flex">
           <SmartsheetHeaderIcon
             v-if="meta?.columnsById?.[valueFieldId]"
@@ -122,9 +124,11 @@ onMounted(() => {
             class="h-4"
           />
 
-          <div class="text-sm font-medium">{{ meta?.columnsById?.[valueFieldId]?.title }}</div>
+          <div class="text-sm font-medium">
+            {{ meta?.columnsById?.[valueFieldId]?.title }}
+          </div>
         </div>
-        <div class="flex-1"></div>
+        <div class="flex-1" />
         <NcButton class="nc-qrcode-close !px-1" type="text" size="xs" @click="modalVisible = false">
           <GeneralIcon class="text-md text-nc-content-gray-subtle h-4 w-4" icon="close" />
         </NcButton>
@@ -169,7 +173,7 @@ onMounted(() => {
       </div>
     </template>
     <div v-if="showQrCode" class="w-full px-4">
-      <img :src="qrCodeLarge" :alt="$t('title.qrCode')" class="h-[156px] mx-auto mt-8 mb-4" />
+      <img :src="qrCodeLarge" :alt="$t('title.qrCode')" class="h-[156px] mx-auto mt-8 mb-4">
       <div class="bg-nc-bg-gray-light px-3 py-2 rounded-lg">
         <NcTooltip show-on-truncate-only class="truncate">
           <template #title>
@@ -199,7 +203,7 @@ onMounted(() => {
       :alt="$t('title.qrCode')"
       class="min-w-[1.4em]"
       @click="showQrModal"
-    />
+    >
     <img
       v-else
       class="flex-none min-w-[1.4em]"
@@ -207,7 +211,7 @@ onMounted(() => {
       :src="qrCode"
       :alt="$t('title.qrCode')"
       @click="showQrModal"
-    />
+    >
   </div>
   <div v-if="tooManyCharsForQrCode" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('labels.qrCodeValueTooLong') }}

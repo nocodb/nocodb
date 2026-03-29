@@ -1,11 +1,12 @@
-import isURL from 'validator/lib/isURL'
 import { decode } from 'html-entities'
 import { isValidURL } from 'nocodb-sdk'
+import isURL from 'validator/lib/isURL'
 import { formulaTextSegmentsCache, replaceUrlsWithLinkCache } from '../components/smartsheet/grid/canvas/utils/canvas'
 import { getI18n } from '../plugins/a.i18n'
+
 export { isValidURL }
 
-const _replaceUrlsWithLink = (text: string, plainCellValue = false): boolean | string => {
+function _replaceUrlsWithLink(text: string, plainCellValue = false): boolean | string {
   if (!text) {
     return false
   }
@@ -69,7 +70,7 @@ const _replaceUrlsWithLink = (text: string, plainCellValue = false): boolean | s
   return isUrlPatternFound ? out : false // Return false if no URL found
 }
 
-export const replaceUrlsWithLink = (text: string, plainCellValue = false) => {
+export function replaceUrlsWithLink(text: string, plainCellValue = false) {
   if (replaceUrlsWithLinkCache.has(`${text}-${plainCellValue}`)) {
     return replaceUrlsWithLinkCache.get(`${text}-${plainCellValue}`)!
   }
@@ -85,7 +86,7 @@ export function getFormulaTextSegments(anchorLinkHTML: string) {
   const container = document.createElement('div')
   container.innerHTML = anchorLinkHTML
 
-  const result: Array<{ text: string; url?: string }> = []
+  const result: Array<{ text: string, url?: string }> = []
 
   function traverseNodes(node: ChildNode) {
     if (node.nodeType === Node.TEXT_NODE) {
@@ -93,11 +94,13 @@ export function getFormulaTextSegments(anchorLinkHTML: string) {
       if (text) {
         result.push({ text })
       }
-    } else if (node.nodeType === Node.ELEMENT_NODE) {
+    }
+    else if (node.nodeType === Node.ELEMENT_NODE) {
       if ((node as Element).tagName === 'A') {
         const anchor = node as HTMLAnchorElement
         result.push({ text: node.textContent ?? '', url: anchor.href })
-      } else {
+      }
+      else {
         node.childNodes.forEach(traverseNodes)
       }
     }
@@ -108,11 +111,12 @@ export function getFormulaTextSegments(anchorLinkHTML: string) {
   return result
 }
 
-export const openLink = (path: string, baseURL?: string, target = '_blank') => {
+export function openLink(path: string, baseURL?: string, target = '_blank') {
   try {
     const url = new URL(path, baseURL)
     window.open(url.href, target, 'noopener,noreferrer')
-  } catch (e) {
+  }
+  catch (e) {
     console.error(`Failed constructing URL'${path}'`, e)
     message.error((e as Error)?.message || 'Failed to construct URL')
   }
@@ -126,7 +130,7 @@ export const navigateToBlankTargetOpenOption = {
   },
 }
 
-export const addMissingUrlSchma = (url?: string) => {
+export function addMissingUrlSchma(url?: string) {
   url = url?.trim?.() ?? ''
 
   if (!url) return ''
@@ -136,31 +140,33 @@ export const addMissingUrlSchma = (url?: string) => {
   return `https://${url}`
 }
 
-export const isSameOriginUrl = (url: string, addMissingUrlSchema = false) => {
+export function isSameOriginUrl(url: string, addMissingUrlSchema = false) {
   if (addMissingUrlSchema) {
     url = addMissingUrlSchma(url)
   }
 
   try {
     return new URL(url, window.location.origin).origin === window.location.origin
-  } catch {
+  }
+  catch {
     return false // Invalid URL
   }
 }
 
-const handleCopyToClipboard = async (text: string) => {
+async function handleCopyToClipboard(text: string) {
   const { copy } = useCopy()
 
   try {
     await copy(text)
     // Copied to clipboard
     message.info(getI18n().global.t('msg.info.copyToClipboardLocalFileUrl'))
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(e.message)
   }
 }
 
-export const openLinkUsingATag = (url: string, target?: '_blank') => {
+export function openLinkUsingATag(url: string, target?: '_blank') {
   const link = document.createElement('a')
   link.href = url
   if (target) {
@@ -174,7 +180,7 @@ export const openLinkUsingATag = (url: string, target?: '_blank') => {
   document.body.removeChild(link)
 }
 
-export const patchUrl = (url: string, user?: Record<string, any>): string => {
+export function patchUrl(url: string, user?: Record<string, any>): string {
   // Only patch this exact URL
   if (!url.startsWith('https://app.nocodb.com/p/nocodb-upvote-feature') || !user) {
     // if (!url.startsWith('http://localhost:8080/p/c') || !user) {
@@ -193,12 +199,13 @@ export const patchUrl = (url: string, user?: Record<string, any>): string => {
     }
 
     return urlObj.toString()
-  } catch (error) {
+  }
+  catch (error) {
     return url
   }
 }
 
-export const confirmPageLeavingRedirect = (url: string, target?: '_blank', allowLocalUrl?: boolean, userObj?: any) => {
+export function confirmPageLeavingRedirect(url: string, target?: '_blank', allowLocalUrl?: boolean, userObj?: any) {
   url = addMissingUrlSchma(url)
 
   if (!url) return
@@ -228,9 +235,11 @@ export const confirmPageLeavingRedirect = (url: string, target?: '_blank', allow
   // No need to navigate to leaving page if it is same origin url
   if (isSameOriginUrl(url) || !ncIsSharedViewOrBase()) {
     window.open(url, target, target === '_blank' ? 'noopener,noreferrer' : undefined)
-  } else {
-    const leavingUrl = new URL(`${window.location.origin}/#/leaving`)
-    leavingUrl.hash = `#/leaving?ncRedirectUrl=${encodeURIComponent(url)}&ncBackUrl=${encodeURIComponent(window.location.href)}`
+  }
+  else {
+    const leavingUrl = new URL(`${window.location.origin}/leaving`)
+    leavingUrl.searchParams.set('ncRedirectUrl', url)
+    leavingUrl.searchParams.set('ncBackUrl', window.location.href)
 
     navigateTo(leavingUrl.toString(), {
       open: {
@@ -244,7 +253,7 @@ export const confirmPageLeavingRedirect = (url: string, target?: '_blank', allow
   }
 }
 
-export const handleDompurifyLinkClick = (event: MouseEvent) => {
+export function handleDompurifyLinkClick(event: MouseEvent) {
   const target = (event.target as HTMLElement)?.closest('a') as HTMLAnchorElement | null
   if (!target?.href) return
 
@@ -253,7 +262,7 @@ export const handleDompurifyLinkClick = (event: MouseEvent) => {
   confirmPageLeavingRedirect(target.href, '_blank')
 }
 
-export const addConfirmPageLeavingRedirectToWindow = (remove = false) => {
+export function addConfirmPageLeavingRedirectToWindow(remove = false) {
   if (typeof window === 'undefined') return
 
   if (remove) {
@@ -264,21 +273,22 @@ export const addConfirmPageLeavingRedirectToWindow = (remove = false) => {
   sessionStorage.setItem('ncIsSharedViewOrBase', 'true')
 }
 
-export const isLinkExpired = async (url: string) => {
+export async function isLinkExpired(url: string) {
   try {
     // test if the url is accessible or not
     const res = await fetch(url, { method: 'HEAD' })
     if (res.ok) {
       return false
     }
-  } catch {
+  }
+  catch {
     return true
   }
 
   return true
 }
 
-export const extractYoutubeVideoId = (url: string) => {
+export function extractYoutubeVideoId(url: string) {
   if (typeof url !== 'string') {
     return ''
   }

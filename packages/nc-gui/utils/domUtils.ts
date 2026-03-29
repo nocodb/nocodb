@@ -1,4 +1,4 @@
-const isElementInvisible = (elem: HTMLElement) => {
+function isElementInvisible(elem: HTMLElement) {
   return !!(elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length)
 }
 
@@ -9,7 +9,7 @@ const isElementInvisible = (elem: HTMLElement) => {
  * @param {HTMLElement | Window} element - The element (or window) to track scrolling on.
  * @returns {Promise<void>} Resolves when scrolling has stopped.
  */
-const waitForScrollEnd = (element: HTMLElement | Window = window) => {
+function waitForScrollEnd(element: HTMLElement | Window = window) {
   return new Promise<void>((resolve) => {
     // Get initial scroll positions
     let lastX = element instanceof Window ? window.scrollX : (element as HTMLElement).scrollLeft
@@ -26,7 +26,8 @@ const waitForScrollEnd = (element: HTMLElement | Window = window) => {
       // If positions are nearly the same, scrolling has stopped
       if (Math.abs(currentX - lastX) < 1 && Math.abs(currentY - lastY) < 1) {
         resolve() // Resolve the promise
-      } else {
+      }
+      else {
         // Update last positions and continue checking
         lastX = currentX
         lastY = currentY
@@ -76,4 +77,4 @@ function isScrollbarAlwaysVisible() {
   return scrollbarWidth > 0
 }
 
-export { isElementInvisible, waitForScrollEnd, isScrollbarAlwaysVisible }
+export { isElementInvisible, isScrollbarAlwaysVisible, waitForScrollEnd }

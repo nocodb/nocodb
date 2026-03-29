@@ -25,7 +25,8 @@ function mdLinkRuleSetupExt(md: MarkdownIt, { openLinkOnClick = false }: { openL
       if (hrefIndex >= 0) {
         tokens[idx]!.attrs!.splice(hrefIndex, 1)
       }
-    } else {
+    }
+    else {
       // Add attributes to links
       const targetIndex = tokens[idx]!.attrIndex('target')
       if (targetIndex < 0) {

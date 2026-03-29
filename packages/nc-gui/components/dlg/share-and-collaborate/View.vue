@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { ViewLockType, type ViewType, ViewTypes } from 'nocodb-sdk'
+import type { ViewType } from 'nocodb-sdk'
+import { ViewLockType, ViewTypes } from 'nocodb-sdk'
 import { useViewsStore } from '~/store/views'
 
 const { isViewToolbar } = defineProps<{
@@ -20,7 +21,8 @@ if (isViewToolbar) {
   try {
     const store = useSmartsheetStoreOrThrow()
     view = store.view
-  } catch (_e) {
+  }
+  catch (_e) {
     // console.error(e)
   }
 }
@@ -34,15 +36,17 @@ const isViewSharingRestricted = computed(() => {
   return isPrivateBase.value && view.value?.type !== ViewTypes.FORM
 })
 
-const openManageAccess = async () => {
+async function openManageAccess() {
   isOpeningManageAccess.value = true
   try {
     await navigateToProjectPage({ page: 'collaborator' })
     showShareModal.value = false
-  } catch (e) {
+  }
+  catch (e) {
     console.error(e)
     message.error('Failed to open manage access')
-  } finally {
+  }
+  finally {
     isOpeningManageAccess.value = false
   }
 }
@@ -71,7 +75,9 @@ watch(showShareModal, (val) => {
   >
     <div class="flex flex-col px-1">
       <div class="flex flex-col gap-2 pb-1 mx-4 mt-3">
-        <div class="flex text-base font-medium">{{ $t('activity.share') }}</div>
+        <div class="flex text-base font-medium">
+          {{ $t('activity.share') }}
+        </div>
       </div>
       <div v-if="isViewToolbar && activeView" class="share-view">
         <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
@@ -112,8 +118,8 @@ watch(showShareModal, (val) => {
               isViewSharingRestricted
                 ? $t('msg.privateBaseViewShareRestrictedMsg')
                 : $t('title.viewSettingsCantBeChangedWhenViewIs', {
-                    type: $t(viewLockIcons[activeView?.lock_type]?.title).toLowerCase(),
-                  })
+                  type: $t(viewLockIcons[activeView?.lock_type]?.title).toLowerCase(),
+                })
             }}
           </div>
         </div>
@@ -168,7 +174,9 @@ watch(showShareModal, (val) => {
           <div class="flex items-center justify-center h-4 w-5">
             <GeneralIcon icon="ncBasePrivate" class="flex-none w-3.5 h-3.5" />
           </div>
-          <div class="flex-1">{{ $t('msg.privateBaseShareRestrictedMsg') }}</div>
+          <div class="flex-1">
+            {{ $t('msg.privateBaseShareRestrictedMsg') }}
+          </div>
         </div>
         <LazyDlgShareAndCollaborateShareBase />
       </div>
@@ -181,7 +189,8 @@ watch(showShareModal, (val) => {
           type="secondary"
           :loading="isOpeningManageAccess"
           @click="openManageAccess"
-          >{{ $t('activity.manageProjectAccess') }}
+        >
+          {{ $t('activity.manageProjectAccess') }}
         </NcButton>
       </div>
     </div>

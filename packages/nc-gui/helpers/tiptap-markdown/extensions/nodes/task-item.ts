@@ -1,7 +1,7 @@
 import type { KeyboardShortcutCommand } from '@tiptap/core'
-import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
 import type { MarkdownNodeSpec } from '../../types'
+import { mergeAttributes, Node, wrappingInputRule } from '@tiptap/core'
 
 export interface TaskItemOptions {
   onReadOnlyChecked?: (node: ProseMirrorNode, checked: boolean) => boolean
@@ -36,8 +36,8 @@ export const TaskItem = Node.create<TaskItemOptions, { markdown: MarkdownNodeSpe
       checked: {
         default: false,
         keepOnSplit: false,
-        parseHTML: (element) => element.getAttribute('data-checked') === 'true',
-        renderHTML: (attributes) => ({
+        parseHTML: element => element.getAttribute('data-checked') === 'true',
+        renderHTML: attributes => ({
           'data-checked': attributes.checked,
         }),
       },
@@ -165,7 +165,8 @@ export const TaskItem = Node.create<TaskItemOptions, { markdown: MarkdownNodeSpe
           listItem.dataset.checked = updatedNode.attrs.checked
           if (updatedNode.attrs.checked) {
             checkbox.setAttribute('checked', 'checked')
-          } else {
+          }
+          else {
             checkbox.removeAttribute('checked')
           }
 
@@ -180,7 +181,7 @@ export const TaskItem = Node.create<TaskItemOptions, { markdown: MarkdownNodeSpe
       wrappingInputRule({
         find: inputRegex,
         type: this.type,
-        getAttributes: (match) => ({
+        getAttributes: match => ({
           checked: match[match.length - 1]?.toLowerCase() === 'x',
         }),
       }),

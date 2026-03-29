@@ -322,7 +322,7 @@ export class BaseModelDelete {
           .map((c) => c.column_name)
           .concat(this.baseModel.model.primaryKeys.map((pk) => pk.column_name)),
       );
-    // eslint-disable-next-line no-constant-condition
+
     while (true) {
       const rows = await this.baseModel.execAndParse(
         selectQb

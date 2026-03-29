@@ -1,4 +1,5 @@
-import { type ColumnType, UITypes, UNIQUE_CONSTRAINT_SUPPORTED_TYPES, isUniqueConstraintSupportedType } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { isUniqueConstraintSupportedType, UITypes, UNIQUE_CONSTRAINT_SUPPORTED_TYPES } from 'nocodb-sdk'
 
 // Re-export from SDK
 export { isUniqueConstraintSupportedType, UNIQUE_CONSTRAINT_SUPPORTED_TYPES }
@@ -9,7 +10,7 @@ export { isUniqueConstraintSupportedType, UNIQUE_CONSTRAINT_SUPPORTED_TYPES }
  * @param isXcdbBase - Whether the source is NC-DB
  * @returns object with canEnable flag and reason if cannot enable
  */
-export function canEnableUniqueConstraint(column: ColumnType, isXcdbBase: boolean): { canEnable: boolean; reason?: string } {
+export function canEnableUniqueConstraint(column: ColumnType, isXcdbBase: boolean): { canEnable: boolean, reason?: string } {
   // Check if source is NC-DB
   if (!isXcdbBase) {
     return {

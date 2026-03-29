@@ -1,11 +1,8 @@
 import type { ColumnType, TableType } from 'nocodb-sdk'
+import type TemplateGenerator from '../helpers/parsers/TemplateGenerator'
+import type { ImportWorkerPayload } from '../lib/types'
 import { Api, UITypes } from 'nocodb-sdk'
 import * as xlsx from 'xlsx'
-import type { ImportWorkerPayload } from '../lib/types'
-import { ImportSource, ImportType, ImportWorkerOperations, ImportWorkerResponse } from '../lib/enums'
-import type TemplateGenerator from '../helpers/parsers/TemplateGenerator'
-import { extractSdkResponseErrorMsg } from '../utils/errorUtils'
-import { extractSelectOptions } from '../helpers/parsers/parserHelpers'
 import {
   CSVTemplateAdapter,
   ExcelTemplateAdapter,
@@ -13,6 +10,9 @@ import {
   JSONTemplateAdapter,
   JSONUrlTemplateAdapter,
 } from '../helpers/parsers'
+import { extractSelectOptions } from '../helpers/parsers/parserHelpers'
+import { ImportSource, ImportType, ImportWorkerOperations, ImportWorkerResponse } from '../lib/enums'
+import { extractSdkResponseErrorMsg } from '../utils/errorUtils'
 
 const state: {
   tables: TableType[]
@@ -37,7 +37,7 @@ const state: {
   templateGenerator: null,
 }
 
-const progress = (msg: string) => {
+function progress(msg: string) {
   postMessage([ImportWorkerResponse.PROGRESS, msg])
 }
 
@@ -69,7 +69,8 @@ async function getAdapter(
       case ImportSource.URL:
         return new CSVTemplateAdapter(val, config, progress, existingColumns)
     }
-  } else if (importType === ImportType.EXCEL) {
+  }
+  else if (importType === ImportType.EXCEL) {
     switch (sourceType) {
       case ImportSource.FILE: {
         const data = await readFileContent(val)
@@ -79,7 +80,8 @@ async function getAdapter(
       case ImportSource.URL:
         return new ExcelUrlTemplateAdapter(val, config, state.api!, xlsx, progress, existingColumns)
     }
-  } else if (importType === 'json') {
+  }
+  else if (importType === 'json') {
     switch (sourceType) {
       case ImportSource.FILE: {
         const data = await readFileContent(val)
@@ -110,7 +112,7 @@ function populateUniqueTableName(tn: string) {
   return tn
 }
 
-const process = async (payload: ImportWorkerPayload) => {
+async function process(payload: ImportWorkerPayload) {
   let templateData
   let importColumns = []
   let importData
@@ -136,7 +138,9 @@ const process = async (payload: ImportWorkerPayload) => {
 
     templateData = state.templateGenerator!.getTemplate()
 
-    if (state.config.importDataOnly) importColumns = state.templateGenerator!.getColumns()
+    if (state.config.importDataOnly) {
+      importColumns = state.templateGenerator!.getColumns()
+    }
     else {
       // ensure the target table name not exist in current table list
       for (const table1 of templateData.tables) {
@@ -159,7 +163,8 @@ const process = async (payload: ImportWorkerPayload) => {
         importData,
       },
     ])
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.log('error', e)
     postMessage([ImportWorkerResponse.ERROR, await extractSdkResponseErrorMsg(e)])
   }
@@ -167,7 +172,7 @@ const process = async (payload: ImportWorkerPayload) => {
 
 self.addEventListener(
   'message',
-  async function (e) {
+  async (e) => {
     const [operation, payload] = e.data
 
     switch (operation) {
@@ -199,7 +204,8 @@ self.addEventListener(
 
           if (operation === ImportWorkerOperations.GET_MULTI_SELECT_OPTIONS) {
             postMessage([ImportWorkerResponse.MULTI_SELECT_OPTIONS, colOptions.dtxp])
-          } else {
+          }
+          else {
             postMessage([ImportWorkerResponse.SINGLE_SELECT_OPTIONS, colOptions.dtxp])
           }
         }

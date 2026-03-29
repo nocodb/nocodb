@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { ProjectRoles, RoleColors, RoleIcons, RoleLabels } from 'nocodb-sdk'
-import type { SelectValue } from 'ant-design-vue/es/select'
 import type { IconMapKey } from '#imports'
+import type { SelectValue } from 'ant-design-vue/es/select'
+import { ProjectRoles, RoleColors, RoleIcons, RoleLabels } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -35,6 +35,8 @@ const props = withDefaults(
 const { role, inherit, showInherit, size, placement, description } = toRefs(props)
 
 const { t } = useI18n()
+
+const { getResponsiveValue } = useGlobal()
 
 const isDropdownOpen = ref(false)
 
@@ -76,7 +78,7 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
       <div class="flex flex-col gap-1 cursor-pointer">
         <RolesBadge data-testid="roles" :border="false" :role="effectiveRole || role" :size="size" clickable class="flex-none" />
         <div
-          v-if="showInherit && isEeUI && role === ProjectRoles.INHERIT && !!inherit"
+          v-if="showInherit && role === ProjectRoles.INHERIT && !!inherit"
           class="flex items-center gap-1 text-xs text-nc-content-gray-muted"
         >
           <GeneralIcon icon="role_inherit" class="h-3 w-3" />
@@ -99,6 +101,7 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
           }"
           :is-locked="!!newRole"
           variant="default"
+          :focus-search-on-open="getResponsiveValue(false, true)"
           item-class-name="nc-role-select-dropdown !px-3"
           :wrapper-class-name="`!h-auto nc-role-selector-dropdown ${!!newRole ? '!cursor-wait' : ''}`"
           @update:value="onChangeRole"

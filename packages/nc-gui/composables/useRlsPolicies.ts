@@ -3,7 +3,7 @@
 
 import type { BaseType, RlsDefaultBehavior, RlsPolicySubjectType, RlsPolicyType } from 'nocodb-sdk'
 
-export const useRlsPolicies = (_base: Ref<BaseType | null>, _tableId: Ref<string>) => {
+export function useRlsPolicies(_base: Ref<BaseType | null>, _tableId: Ref<string>) {
   const policies = ref<RlsPolicyType[]>([])
   const isLoading = ref(false)
   const isSaving = ref(false)

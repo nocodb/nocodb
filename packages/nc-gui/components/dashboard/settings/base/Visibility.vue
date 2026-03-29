@@ -20,7 +20,8 @@ onMounted(async () => {
   await until(() => !!baseId.value).toBeTruthy()
   try {
     await basesStore.loadProject(baseId.value!, true)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     // ignore
   }
   showNullAndEmptyInFilter.value = basesStore.getProjectMeta(baseId.value!)?.showNullAndEmptyInFilter

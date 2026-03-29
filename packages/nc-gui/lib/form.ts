@@ -1,6 +1,7 @@
 import type { ColumnType } from 'ant-design-vue/lib/table'
+import type { FilterType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
-import { type FilterType, type LinkToAnotherRecordType, type TableType, UITypes, isDateMonthFormat } from 'nocodb-sdk'
+import { isDateMonthFormat, UITypes } from 'nocodb-sdk'
 
 type FormViewColumn = ColumnType & Record<string, any>
 
@@ -56,13 +57,13 @@ export class FormFilters {
 
   getRootFilters(parentColId: string) {
     return (this.groupedFilters[parentColId] || [])
-      .filter((f) => !f.fk_parent_id)
+      .filter(f => !f.fk_parent_id)
       .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
   }
 
   getParentFilters(parentColId: string, parentId: string) {
     return (this.groupedFilters[parentColId] || [])
-      .filter((f) => f.fk_parent_id === parentId)
+      .filter(f => f.fk_parent_id === parentId)
       .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
   }
 
@@ -124,13 +125,13 @@ export class FormFilters {
 
     if (!relatedTableMeta || !Array.isArray(relatedTableMeta?.columns)) return null
 
-    const displayValTitle = (relatedTableMeta.columns.find((c) => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
+    const displayValTitle = (relatedTableMeta.columns.find(c => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
 
     if (
-      !displayValTitle ||
-      !this.formState[column.title] ||
-      !ncIsObject(this.formState[column.title]) ||
-      this.formState[column.title][displayValTitle] === undefined
+      !displayValTitle
+      || !this.formState[column.title]
+      || !ncIsObject(this.formState[column.title])
+      || this.formState[column.title][displayValTitle] === undefined
     ) {
       return null
     }
@@ -154,7 +155,8 @@ export class FormFilters {
 
       if (filter.is_group) {
         res = await this.validateCondition(filter.children, parentCol, errors)
-      } else {
+      }
+      else {
         if (!filter.fk_column_id || !this.formViewColumnsMapByFkColumnId[filter.fk_column_id]) {
           res = false
         }
@@ -190,8 +192,8 @@ export class FormFilters {
 
         if (res === undefined) {
           if (
-            [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(column.uidt) &&
-            !['empty', 'blank', 'notempty', 'notblank'].includes(filter.comparison_op)
+            [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(column.uidt)
+            && !['empty', 'blank', 'notempty', 'notblank'].includes(filter.comparison_op)
           ) {
             const dateFormat = this.isMysql?.(column.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
@@ -319,13 +321,14 @@ export class FormFilters {
                 }
               }
             }
-          } else {
+          }
+          else {
             switch (typeof filter.value) {
               case 'boolean':
                 val = !!this.formState[field]
                 break
               case 'number':
-                val = Number.isNaN(parseFloat(this.formState[field])) ? this.formState[field] : +this.formState[field]
+                val = Number.isNaN(Number.parseFloat(this.formState[field])) ? this.formState[field] : +this.formState[field]
                 break
             }
 
@@ -381,43 +384,43 @@ export class FormFilters {
                 res = (
                   this.toString(filter.value)
                     .split(',')
-                    .map((item) => item.trim()) ?? []
-                ).every((item) => (this.toString(val).split(',') ?? []).includes(item))
+                    .map(item => item.trim()) ?? []
+                ).every(item => (this.toString(val).split(',') ?? []).includes(item))
                 break
               case 'anyof':
                 res = (
                   this.toString(filter.value)
                     .split(',')
-                    .map((item) => item.trim()) ?? []
-                ).some((item) => (this.toString(val).split(',') ?? []).includes(item))
+                    .map(item => item.trim()) ?? []
+                ).some(item => (this.toString(val).split(',') ?? []).includes(item))
                 break
               case 'nallof':
                 res = !(
                   this.toString(filter.value)
                     .split(',')
-                    .map((item) => item.trim()) ?? []
-                ).every((item) => (this.toString(val).split(',') ?? []).includes(item))
+                    .map(item => item.trim()) ?? []
+                ).every(item => (this.toString(val).split(',') ?? []).includes(item))
                 break
               case 'nanyof':
                 res = !(
                   this.toString(filter.value)
                     .split(',')
-                    .map((item) => item.trim()) ?? []
-                ).some((item) => (this.toString(val).split(',') ?? []).includes(item))
+                    .map(item => item.trim()) ?? []
+                ).some(item => (this.toString(val).split(',') ?? []).includes(item))
                 break
               case 'lt':
-                res = parseFloat(val) < +filter.value
+                res = Number.parseFloat(val) < +filter.value
                 break
               case 'lte':
               case 'le':
-                res = parseFloat(val) <= +filter.value
+                res = Number.parseFloat(val) <= +filter.value
                 break
               case 'gt':
-                res = parseFloat(val) > +filter.value
+                res = Number.parseFloat(val) > +filter.value
                 break
               case 'gte':
               case 'ge':
-                res = parseFloat(val) >= +filter.value
+                res = Number.parseFloat(val) >= +filter.value
                 break
             }
           }
@@ -454,7 +457,8 @@ export class FormFilters {
         if (!column.meta?.preFilledHiddenField) {
           column.visible = !!isValid
         }
-      } else {
+      }
+      else {
         column.visible = !!isValid
 
         column.meta = {

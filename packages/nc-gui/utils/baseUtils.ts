@@ -7,7 +7,7 @@ const isDefaultBase = (source: SourceType) => source.is_meta
  * Each object has a `tag` that identifies the schema type and a `description`
  * that explains its purpose.
  */
-export const aiBaseSchemaPrompts: { tag: string; description: string }[] = [
+export const aiBaseSchemaPrompts: { tag: string, description: string }[] = [
   {
     tag: 'Project Management',
     description: 'Streamline project management by organizing tasks, assigning responsibilities, and tracking progress.',
@@ -91,7 +91,7 @@ export const aiBaseSchemaPromptsReverseMap = Object.fromEntries(
 
 export { isDefaultBase }
 
-export const extractAiBaseCreateQueryParams = (query: any) => {
+export function extractAiBaseCreateQueryParams(query: any) {
   const searchQuery = {} as Record<string, string>
 
   if (query?.basePrompt) {
@@ -105,7 +105,7 @@ export const extractAiBaseCreateQueryParams = (query: any) => {
   return searchQuery
 }
 
-export const suggestManagedAppNextVersion = (currentVersion?: string) => {
+export function suggestManagedAppNextVersion(currentVersion?: string) {
   if (!currentVersion) {
     return '1.0.0'
   }
@@ -117,7 +117,8 @@ export const suggestManagedAppNextVersion = (currentVersion?: string) => {
     versionParts[1] = String(Number(versionParts[1]) + 1)
     versionParts[2] = '0'
     return versionParts.join('.')
-  } else {
+  }
+  else {
     return ''
   }
 }

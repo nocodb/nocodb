@@ -5,5 +5,5 @@ defineProps<{
 </script>
 
 <template>
-  <span></span>
+  <span />
 </template>

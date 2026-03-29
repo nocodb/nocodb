@@ -31,7 +31,7 @@ const props = withDefaults(defineProps<Props>(), {
 const animatedPercentage = ref(0)
 
 // Smooth animation logic
-const animatePercentage = (newPercentage: number) => {
+function animatePercentage(newPercentage: number) {
   const start = animatedPercentage.value
   const end = Math.min(newPercentage, 100) // Cap at 100%
   const duration = props.animationDuration
@@ -74,7 +74,7 @@ const angle = computed(() => (animatedPercentage.value / 100) * 360)
 /**
  * Convert angle to SVG arc path
  */
-const describeArc = (x: number, y: number, radius: number, startAngle: number, endAngle: number) => {
+function describeArc(x: number, y: number, radius: number, startAngle: number, endAngle: number) {
   if (endAngle === 360) {
     // If full circle, return a complete path
     return [

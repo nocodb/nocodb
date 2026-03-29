@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { type ColumnType, isSystemColumn } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { isSystemColumn } from 'nocodb-sdk'
 
 interface Props {
   tableId?: string
@@ -36,7 +37,7 @@ const modelValue = useVModel(props, 'value', emit)
 
 const isOpenColumnSelectDropdown = ref(false)
 
-const handleValueUpdate = (value: any) => {
+function handleValueUpdate(value: any) {
   modelValue.value = value
 }
 
@@ -46,14 +47,16 @@ const columnList = computedAsync(async () => {
   if (props.tableId) {
     const tableMeta = await loadTableMeta(props.tableId)
     fields = tableMeta?.columns || []
-  } else {
+  }
+  else {
     fields = activeTable.value?.columns || []
   }
 
   if (props.filterColumn) {
     fields = fields.filter(props.filterColumn)
-  } else {
-    fields = fields.filter((f) => !isSystemColumn(f) || f.pk)
+  }
+  else {
+    fields = fields.filter(f => !isSystemColumn(f) || f.pk)
   }
 
   return fields.map((column) => {
@@ -74,7 +77,7 @@ const columnList = computedAsync(async () => {
 const columnListMap = computed(() => {
   if (!columnList.value || columnList.value.length === 0) return new Map()
 
-  return new Map(columnList.value.map((column) => [column.value, column]))
+  return new Map(columnList.value.map(column => [column.value, column]))
 })
 
 const selectedColumn = computed(() => {
@@ -88,7 +91,7 @@ watch(
   columnList,
   (newColumnList) => {
     if (newColumnList && newColumnList.length > 0) {
-      const newColumnListMap = new Map(newColumnList.map((column) => [column.value, column]))
+      const newColumnListMap = new Map(newColumnList.map(column => [column.value, column]))
 
       // Check if current value exists in the new column list
       if (modelValue.value && !newColumnListMap.has(modelValue.value)) {
@@ -105,9 +108,10 @@ watch(
 
         // Change column id only if it is default column selected initially and its not enabled
         if (columnObj && columnObj.ncItemDisabled && columnObj.value === newColumnList[0]?.value) {
-          const selectedValue = newColumnList.find((column) => !column.ncItemDisabled)?.value || newColumnList[0]?.value
+          const selectedValue = newColumnList.find(column => !column.ncItemDisabled)?.value || newColumnList[0]?.value
           modelValue.value = selectedValue
-        } else {
+        }
+        else {
           modelValue.value = newColumnId
         }
       }
@@ -137,7 +141,9 @@ defineExpose({
   >
     <template v-if="!disableLabel" #label>
       <div>
-        <slot name="label">{{ t('objects.column') }}</slot>
+        <slot name="label">
+          {{ t('objects.column') }}
+        </slot>
       </div>
     </template>
     <NcListDropdown

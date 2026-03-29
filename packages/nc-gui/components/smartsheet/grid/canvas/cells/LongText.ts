@@ -66,7 +66,8 @@ export const LongTextCellRenderer: CellRenderer = {
 
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text, renderAsMarkdown: isRichMode })
-    } else if (isRichMode) {
+    }
+    else if (isRichMode) {
       // Begin clipping
       ctx.save()
       ctx.beginPath()
@@ -102,7 +103,8 @@ export const LongTextCellRenderer: CellRenderer = {
         x: xOffset,
         y: yOffset,
       }
-    } else {
+    }
+    else {
       const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
         x: x + padding,
         y,
@@ -137,7 +139,7 @@ export const LongTextCellRenderer: CellRenderer = {
     const isRichMode = column.columnObj?.meta?.richMode
 
     if (isRichMode) {
-      const links: { x: number; y: number; width: number; height: number; url: string }[] = cellRenderStore?.links || []
+      const links: { x: number, y: number, width: number, height: number, url: string }[] = cellRenderStore?.links || []
 
       for (const link of links) {
         if (isBoxHovered(link, mousePosition)) {
@@ -181,7 +183,8 @@ export const LongTextCellRenderer: CellRenderer = {
     if (e.key.length === 1 && columnObj.title) {
       if (row.row[columnObj.title] === '<br />' || row.row[columnObj.title] === '<br>') {
         row.row[columnObj.title] = e.key
-      } else if (parseProp(columnObj.meta).richMode) {
+      }
+      else if (parseProp(columnObj.meta).richMode) {
         row.row[columnObj.title] = row.row[columnObj.title] ? row.row[columnObj.title] + e.key : e.key
       }
 
@@ -201,7 +204,7 @@ export const LongTextCellRenderer: CellRenderer = {
     const isRichMode = column.columnObj?.meta?.richMode
 
     if (isRichMode) {
-      const links: { x: number; y: number; width: number; height: number; url: string }[] = cellRenderStore?.links || []
+      const links: { x: number, y: number, width: number, height: number, url: string }[] = cellRenderStore?.links || []
 
       let hoveringAnyLink = false
 
@@ -220,7 +223,8 @@ export const LongTextCellRenderer: CellRenderer = {
 
     if (isAIPromptCol(column?.columnObj)) {
       AILongTextCellRenderer.handleHover?.(props)
-    } else {
+    }
+    else {
       const { tryShowTooltip, hideTooltip } = useTooltipStore()
       hideTooltip()
 

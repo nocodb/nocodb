@@ -1,10 +1,34 @@
 <script lang="ts" setup>
-import { type FormBuilderElement, type IntegrationType } from 'nocodb-sdk'
+import type { FormBuilderElement, FormBuilderResponsiveSpan, IntegrationType } from 'nocodb-sdk'
 import { FORM_BUILDER_NON_CATEGORIZED, FormBuilderInputType, iconMap } from '#imports'
+import { ncIsArray } from 'nocodb-sdk'
 
 const emit = defineEmits(['change'])
 
 const workflowContext = inject(WorkflowVariableInj, null)
+
+const { activeBreakpoint } = useGlobal()
+
+/**
+ * Resolve a field's span value for the current breakpoint.
+ * - number → used as-is
+ * - [sm, md?, lg?] → picks by breakpoint index, inheriting from smaller if omitted
+ */
+function resolveSpan(span: number | FormBuilderResponsiveSpan | undefined): number {
+  if (!span) return 24
+  if (!ncIsArray(span)) return span as number
+
+  const bp = activeBreakpoint.value
+  // [0] = sm (mobile), [1] = md (tablet), [2] = lg (desktop)
+  if (bp === 'xs' || bp === 'sm') {
+    return span[0] ?? 24
+  }
+  if (bp === 'md') {
+    return span[1] ?? span[0] ?? 24
+  }
+  // lg and above
+  return span[2] ?? span[1] ?? span[0] ?? 24
+}
 
 const {
   form,
@@ -23,32 +47,32 @@ const {
   disabled,
 } = useFormBuilderHelperOrThrow()
 
-const { loadIntegrations, addIntegration, integrations, eventBus, pageMode, IntegrationsPageMode } =
-  useProvideIntegrationViewStore()
+const { loadIntegrations, addIntegration, integrations, eventBus, pageMode, IntegrationsPageMode }
+  = useProvideIntegrationViewStore()
 
-const selectMode = (field: FormBuilderElement) => {
+function selectMode(field: FormBuilderElement) {
   return field.selectMode === 'multipleWithInput' || field.selectMode === 'singleWithInput'
     ? 'tags'
     : field.selectMode === 'multiple'
-    ? 'multiple'
-    : undefined
+      ? 'multiple'
+      : undefined
 }
 
 const haveIntegrationInput = computed(() => {
-  return unref(formSchema)?.some((field) => field.type === FormBuilderInputType.SelectIntegration)
+  return unref(formSchema)?.some(field => field.type === FormBuilderInputType.SelectIntegration)
 })
 
 const filteredIntegrations = computed(() => {
   if (!haveIntegrationInput.value) return {}
 
   return (unref(formSchema) || [])
-    .filter((field) => field.type === FormBuilderInputType.SelectIntegration && field.model)
+    .filter(field => field.type === FormBuilderInputType.SelectIntegration && field.model)
     .reduce((acc, field) => {
       acc[field.model!] = integrations.value.filter((integration) => {
         if (field.integrationFilter) {
           return (
-            (!field.integrationFilter.type || field.integrationFilter.type === integration.type) &&
-            (!field.integrationFilter.sub_type || field.integrationFilter.sub_type === integration.sub_type)
+            (!field.integrationFilter.type || field.integrationFilter.type === integration.type)
+            && (!field.integrationFilter.sub_type || field.integrationFilter.sub_type === integration.sub_type)
           )
         }
         return true
@@ -61,25 +85,25 @@ const integrationOptions = computed(() => {
   if (!haveIntegrationInput.value) return {}
 
   return Object.keys(filteredIntegrations.value).reduce((acc, key) => {
-    acc[key] = filteredIntegrations.value[key]!.map((integration) => ({
+    acc[key] = filteredIntegrations.value[key]!.map(integration => ({
       label: integration.title as string,
       value: integration.id as string,
     }))
     return acc
-  }, {} as Record<string, { label: string; value: string }[]>)
+  }, {} as Record<string, { label: string, value: string }[]>)
 })
 
 const activeModel = ref<string | null>(null)
 
-const handleAddNewConnection = (field: FormBuilderElement) => {
+function handleAddNewConnection(field: FormBuilderElement) {
   const model = field.model!
 
   if (field.integrationFilter) {
     const filteredIntegrations = allIntegrations.filter((i) => {
       if (field.integrationFilter) {
         return (
-          (!field.integrationFilter.type || field.integrationFilter.type === i.type) &&
-          (!field.integrationFilter.sub_type || field.integrationFilter.sub_type === i.sub_type)
+          (!field.integrationFilter.type || field.integrationFilter.type === i.type)
+          && (!field.integrationFilter.sub_type || field.integrationFilter.sub_type === i.sub_type)
         )
       }
       return true
@@ -123,7 +147,7 @@ const workflowVariablesGrouped = computed(() => {
 const filterIntegration = computed(() => {
   if (!activeModel.value) return { type: () => true, sub_type: () => true }
 
-  const field = (unref(formSchema) || []).find((field) => field.model === activeModel.value)
+  const field = (unref(formSchema) || []).find(field => field.model === activeModel.value)
 
   return {
     type: (f: IntegrationCategoryItemType) => {
@@ -135,31 +159,31 @@ const filterIntegration = computed(() => {
   }
 })
 
-const setFormStateWithEmit = (path: string, value: any) => {
+function setFormStateWithEmit(path: string, value: any) {
   setFormState(path, value)
   emit('change', path, value)
 }
 
-const isGroupCollapsibleInCategory = (category: string, groupName: string) => {
+function isGroupCollapsibleInCategory(category: string, groupName: string) {
   const fields = formElementsCategorized.value[category] || []
-  const firstFieldInGroup = fields.find((f) => f.group === groupName)
+  const firstFieldInGroup = fields.find(f => f.group === groupName)
   return firstFieldInGroup?.groupCollapsible ?? false
 }
 
-const getGroupDefaultCollapsed = (category: string, groupName: string) => {
+function getGroupDefaultCollapsed(category: string, groupName: string) {
   const fields = formElementsCategorized.value[category] || []
-  const firstFieldInGroup = fields.find((f) => f.group === groupName)
+  const firstFieldInGroup = fields.find(f => f.group === groupName)
   return firstFieldInGroup?.groupDefaultCollapsed ?? true
 }
 
-const integegrationEventHandler = (event: IntegrationStoreEvents, payload: any) => {
+function integegrationEventHandler(event: IntegrationStoreEvents, payload: any) {
   if (event === IntegrationStoreEvents.INTEGRATION_ADD && payload?.id && activeModel.value) {
     setFormStateWithEmit(activeModel.value, payload.id)
     activeModel.value = null
   }
 }
 
-const getSelectValue = (field: FormBuilderElement) => {
+function getSelectValue(field: FormBuilderElement) {
   const value = deepReference(field.model)
   if (field.selectMode === 'singleWithInput') {
     // Convert single value to array for tags mode
@@ -168,19 +192,20 @@ const getSelectValue = (field: FormBuilderElement) => {
   return value
 }
 
-const handleSelectChange = (field: FormBuilderElement, value: any) => {
+function handleSelectChange(field: FormBuilderElement, value: any) {
   if (field.selectMode === 'singleWithInput') {
     // Convert array back to single value
     const singleValue = Array.isArray(value) ? value[value.length - 1] || null : value
     setFormStateWithEmit(field.model, singleValue)
-  } else {
+  }
+  else {
     setFormStateWithEmit(field.model, value)
   }
 }
 
 const searchDebounceMap = new Map<string, ReturnType<typeof useDebounceFn>>()
 
-const getSelectSearchHandler = (field: FormBuilderElement) => {
+function getSelectSearchHandler(field: FormBuilderElement) {
   if (!field.searchable || !field.model) return undefined
 
   if (!searchDebounceMap.has(field.model)) {
@@ -197,7 +222,7 @@ const getSelectSearchHandler = (field: FormBuilderElement) => {
   }
 }
 
-const getSelectFilterOption = (field: FormBuilderElement) => {
+function getSelectFilterOption(field: FormBuilderElement) {
   if (field.searchable) {
     return false // Disable client-side filtering when using server-side search
   }
@@ -224,11 +249,13 @@ watch(
 
 <template>
   <div class="nc-form-builder nc-scrollbar-thin relative">
-    <slot name="header"></slot>
+    <slot name="header" />
     <a-form ref="form" :model="formState" hide-required-mark layout="vertical" class="flex flex-col gap-8 !pb-2">
       <template v-for="category in Object.keys(formElementsCategorized)" :key="category">
         <div class="nc-form-section">
-          <div v-if="category !== FORM_BUILDER_NON_CATEGORIZED" class="nc-form-section-title">{{ category }}</div>
+          <div v-if="category !== FORM_BUILDER_NON_CATEGORIZED" class="nc-form-section-title">
+            {{ category }}
+          </div>
           <div class="nc-form-section-body-grid">
             <template
               v-for="(field, fieldIndex) in formElementsCategorized[category]"
@@ -236,19 +263,20 @@ watch(
             >
               <template v-if="field.type === FormBuilderInputType.Space">
                 <div
+                  v-if="resolveSpan(field.span) > 0"
                   :style="{
-                    gridColumn: `span ${field.span || 24}`,
+                    gridColumn: `span ${resolveSpan(field.span)}`,
                   }"
-                ></div>
+                />
               </template>
 
               <template v-else>
                 <!-- Group toggle button (shown before first field in a collapsible group) -->
                 <div
                   v-if="
-                    field.group &&
-                    isGroupCollapsibleInCategory(category, field.group) &&
-                    (fieldIndex === 0 || formElementsCategorized[category][fieldIndex - 1]?.group !== field.group)
+                    field.group
+                      && isGroupCollapsibleInCategory(category, field.group)
+                      && (fieldIndex === 0 || formElementsCategorized[category][fieldIndex - 1]?.group !== field.group)
                   "
                   class="nc-group-toggle"
                   :style="{ gridColumn: 'span 24' }"
@@ -280,14 +308,15 @@ watch(
                 <!-- Regular form field -->
                 <a-form-item
                   v-if="
-                    !field.group ||
-                    !isGroupCollapsibleInCategory(category, field.group) ||
-                    !isGroupCollapsed(`${category}-${field.group}`, getGroupDefaultCollapsed(category, field.group))
+                    resolveSpan(field.span) > 0
+                      && (!field.group
+                        || !isGroupCollapsibleInCategory(category, field.group)
+                        || !isGroupCollapsed(`${category}-${field.group}`, getGroupDefaultCollapsed(category, field.group)))
                   "
                   v-bind="validateInfos[field.model]"
                   class="nc-form-item"
                   :style="{
-                    gridColumn: `span ${field.span || 24}`,
+                    gridColumn: `span ${resolveSpan(field.span)}`,
                   }"
                   :required="false"
                   :data-testid="`nc-form-input-${field.model}`"
@@ -298,16 +327,15 @@ watch(
                         <span>{{ field.label }}</span>
                         <span
                           v-if="
-                            field.required &&
-                            ![
-                              FormBuilderInputType.Select,
-                              FormBuilderInputType.SelectIntegration,
-                              FormBuilderInputType.SelectBase,
-                            ].includes(field.type)
+                            field.required
+                              && ![
+                                FormBuilderInputType.Select,
+                                FormBuilderInputType.SelectIntegration,
+                                FormBuilderInputType.SelectBase,
+                              ].includes(field.type)
                           "
                           class="text-nc-content-red-medium"
-                          >*</span
-                        >
+                        >*</span>
                         <NcTooltip v-if="field.helpText && field.showHintAsTooltip">
                           <template #title>
                             <div class="text-xs">
@@ -399,7 +427,7 @@ watch(
                           :key="option.value"
                           :value="option.value"
                         >
-                          <div class="w-full flex gap-2 items-center" :data-testid="option.value">
+                          <div class="w-full h-full flex gap-2 items-center" :data-testid="option.value">
                             <GeneralIcon v-if="option.icon" :icon="option.icon" class="flex-none h-4 w-4" />
                             <NcTooltip class="flex-1 truncate min-w-0" show-on-truncate-only>
                               <template #title>
@@ -441,7 +469,9 @@ watch(
                         </NcTooltip>
                       </div>
                       <div v-if="field.helpText && !field.showHintAsTooltip" class="w-full mt-1 pl-[35px]">
-                        <div class="text-xs text-nc-content-gray-muted">{{ field.helpText }}</div>
+                        <div class="text-xs text-nc-content-gray-muted">
+                          {{ field.helpText }}
+                        </div>
                       </div>
                     </div>
                   </template>
@@ -465,7 +495,7 @@ watch(
                         :key="integration.id"
                         :value="integration.id"
                       >
-                        <div class="w-full flex gap-2 items-center" :data-testid="integration.title">
+                        <div class="w-full h-full flex gap-2 items-center" :data-testid="integration.title">
                           <GeneralIntegrationIcon v-if="integration?.sub_type" :type="integration.sub_type" />
                           <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                             <template #title>
@@ -605,7 +635,9 @@ watch(
                     v-if="field.helpText && field.type !== FormBuilderInputType.Switch && !field.showHintAsTooltip"
                     class="w-full mt-1"
                   >
-                    <div class="text-xs text-nc-content-gray-muted">{{ field.helpText }}</div>
+                    <div class="text-xs text-nc-content-gray-muted">
+                      {{ field.helpText }}
+                    </div>
                   </div>
                 </a-form-item>
               </template>

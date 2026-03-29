@@ -25,7 +25,7 @@ const filteredOptions = computed(() => {
   })
 })
 
-const handleUpdateSelectedOptions = (val: string[]) => {
+function handleUpdateSelectedOptions(val: string[]) {
   if (disabled.value) return
 
   searchVal.value = ''

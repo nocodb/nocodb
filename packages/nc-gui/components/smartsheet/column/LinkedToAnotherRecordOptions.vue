@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import type { LinkToAnotherRecordType } from 'nocodb-sdk'
 import {
-  type LinkToAnotherRecordType,
   LinksVersion,
+
   ModelTypes,
   PlanFeatureTypes,
   PlanTitles,
@@ -18,19 +19,29 @@ const props = defineProps<{
   isEdit: boolean
 }>()
 
-const emit = defineEmits(['update:value'])
+const emit = defineEmits(['update:value', 'upgrade'])
 
 const vModel = useVModel(props, 'value', emit)
 
 const isEdit = toRef(props, 'isEdit')
+
+const isUpgradeable = computed(() => {
+  if (!isEdit.value) return false
+  const col = vModel.value
+  const colOpts = col?.colOptions as LinkToAnotherRecordType | undefined
+  // All Links columns (deprecated) can be upgraded — even v2 (splits into Rollup + LTAR)
+  if (col?.uidt === UITypes.Links) return true
+  // LTAR v1 can be upgraded; LTAR v2 is already fully upgraded
+  return col?.uidt === UITypes.LinkToAnotherRecord && colOpts?.version !== LinksVersion.V2
+})
 
 const meta = inject(MetaInj, ref())
 
 const filterRef = ref()
 
 const crossBase = ref(
-  (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id &&
-    (vModel.value?.colOptions as LinkToAnotherRecordType).fk_related_base_id !== vModel.value?.base_id,
+  (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id
+  && (vModel.value?.colOptions as LinkToAnotherRecordType).fk_related_base_id !== vModel.value?.base_id,
 )
 
 const { basesList } = storeToRefs(useBases())
@@ -55,7 +66,7 @@ const { viewsByTable } = storeToRefs(viewsStore)
 
 const { t } = useI18n()
 
-const { getPlanTitle } = useEeConfig()
+const { getPlanTitle, showEEFeatures } = useEeConfig()
 
 const { getMeta, getMetaByKey } = useMetas()
 
@@ -83,7 +94,8 @@ if (!isEdit.value) {
   if (!vModel.value.onDelete) vModel.value.onDelete = onUpdateDeleteOptions[0]
   if (!vModel.value.virtual) vModel.value.virtual = sqlUi instanceof SqliteUi // appInfo.isCloud || sqlUi === SqliteUi
   if (!vModel.value.alias) vModel.value.alias = vModel.value.column_name
-} else {
+}
+else {
   const colOptions = vModel.value?.colOptions as LinkToAnotherRecordType
   if (vModel.value?.meta?.custom && isEeUI) {
     let ref_column_id = colOptions.fk_child_column_id
@@ -91,9 +103,9 @@ if (!isEdit.value) {
 
     // extract ref column id from colOptions
     if (
-      colOptions.type === RelationTypes.MANY_TO_MANY ||
-      colOptions.type === RelationTypes.BELONGS_TO ||
-      vModel?.value?.meta?.bt
+      colOptions.type === RelationTypes.MANY_TO_MANY
+      || colOptions.type === RelationTypes.BELONGS_TO
+      || vModel?.value?.meta?.bt
     ) {
       ref_column_id = colOptions.fk_parent_column_id
       column_id = colOptions.fk_child_column_id
@@ -175,13 +187,14 @@ const refTables = computed(() => {
       return []
     }
 
-    tablesList = tables.value.filter((t) => t.type === ModelTypes.TABLE && t.source_id === meta.value?.source_id)
-  } else {
+    tablesList = tables.value.filter(t => t.type === ModelTypes.TABLE && t.source_id === meta.value?.source_id)
+  }
+  else {
     if (!baseTables.value.get(vModel.value.ref_base_id)) {
       return []
     }
 
-    tablesList = [...baseTables.value.get(vModel.value.ref_base_id).filter((t) => t.type === ModelTypes.TABLE)]
+    tablesList = [...baseTables.value.get(vModel.value.ref_base_id).filter(t => t.type === ModelTypes.TABLE)]
   }
 
   // Backend already filters tables based on visibility, so return all tables from the list
@@ -201,7 +214,7 @@ const refViews = computed(() => {
   if (!relatedBaseId) return []
 
   // Find the child table to get its actual base_id (should match relatedBaseId)
-  const childTable = baseTables.value.get(relatedBaseId)?.find((t) => t.id === childId)
+  const childTable = baseTables.value.get(relatedBaseId)?.find(t => t.id === childId)
 
   if (!childTable) return []
 
@@ -211,7 +224,7 @@ const refViews = computed(() => {
   // In edit mode, if view is not accessible, return a "Private view" object
   if (isEdit.value && vModel.value.childViewId && isLinkedViewPrivate.value) {
     // Try to get the view title from views if available, otherwise use "Private view"
-    const viewMeta = (views || []).find((v) => v.id === vModel.value.childViewId)
+    const viewMeta = (views || []).find(v => v.id === vModel.value.childViewId)
     return [
       {
         id: vModel.value.childViewId,
@@ -222,25 +235,34 @@ const refViews = computed(() => {
   }
 
   // Backend already filters views based on table visibility, so return all views (excluding forms)
-  return (views || []).filter((v) => v.type !== ViewTypes.FORM)
+  return (views || []).filter(v => v.type !== ViewTypes.FORM)
 })
 
 const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.value.type !== RelationTypes.ONE_TO_ONE)
 
-const isLtarV2Enabled = computed(() => isFeatureEnabled(FEATURE_FLAG.LTAR_V2))
-
-// Set version based on feature flag and uidt
-// Links (V1 UI) always sends version=1; LinkToAnotherRecord (V2 UI) sends version=2
+// Set version based on relation type and uidt
+// hm/bt are V1-only relation types; om/mo are V2 relation types
+// For mm/oo, version follows the uidt (LinkToAnotherRecord → V2, Links → V1)
 watch(
-  [() => vModel.value.type, () => vModel.value.uidt, isLtarV2Enabled],
+  [() => vModel.value.type, () => vModel.value.uidt],
   () => {
     if (isEdit.value) return
 
-    if (isLtarV2Enabled.value && vModel.value.uidt === UITypes.LinkToAnotherRecord) {
-      vModel.value.version = LinksVersion.V2
-    } else if (vModel.value.uidt === UITypes.Links) {
+    const type = vModel.value.type
+
+    if (type === RelationTypes.HAS_MANY || type === RelationTypes.BELONGS_TO) {
       vModel.value.version = LinksVersion.V1
-    } else {
+    }
+    else if (type === RelationTypes.ONE_TO_MANY || type === RelationTypes.MANY_TO_ONE) {
+      vModel.value.version = LinksVersion.V2
+    }
+    else if (vModel.value.uidt === UITypes.LinkToAnotherRecord) {
+      vModel.value.version = LinksVersion.V2
+    }
+    else if (vModel.value.uidt === UITypes.Links) {
+      vModel.value.version = LinksVersion.V1
+    }
+    else {
       delete vModel.value.version
     }
   },
@@ -289,7 +311,7 @@ const limitRecToCond = computed({
   },
 })
 
-const onLimitRecToViewChange = (value: boolean) => {
+function onLimitRecToViewChange(value: boolean) {
   if (!value) {
     vModel.value.childViewId = null
   }
@@ -324,7 +346,7 @@ const referenceTableChildId = computed({
   set: (value) => {
     if (!isEdit.value && value) {
       vModel.value.childId = value
-      vModel.value.childTableTitle = refTables.value.find((t) => t.id === value)?.title
+      vModel.value.childTableTitle = refTables.value.find(t => t.id === value)?.title
     }
   },
 })
@@ -342,7 +364,13 @@ const isLinkedTablePrivate = computed(() => {
 })
 
 const linkType = computed({
-  get: () => (isEdit.value ? vModel.value?.colOptions?.type : vModel.value?.type) ?? null,
+  get: () => {
+    const type = (isEdit.value ? vModel.value?.colOptions?.type : vModel.value?.type) ?? null
+    // Remap legacy relation types to V2 radio values (om/mo)
+    if (type === RelationTypes.BELONGS_TO) return RelationTypes.MANY_TO_ONE
+    if (type === RelationTypes.HAS_MANY) return RelationTypes.ONE_TO_MANY
+    return type
+  },
   set: (value) => {
     if (!isEdit.value && value) {
       vModel.value.type = value
@@ -361,7 +389,7 @@ const referenceBaseId = computed({
   },
 })
 
-const handleUpdateRefTable = () => {
+function handleUpdateRefTable() {
   onDataTypeChange()
 
   nextTick(() => {
@@ -369,7 +397,7 @@ const handleUpdateRefTable = () => {
   })
 }
 
-const onBaseChange = async (baseId: string) => {
+async function onBaseChange(baseId: string) {
   // load tables for the selected base
   await tablesStore.loadProjectTables(baseId)
 
@@ -391,7 +419,7 @@ const cusJuncTableValidations = {
   'custom.junc_ref_column_id': [{ required: true, message: t('general.required') }],
 }
 
-const onCustomSwitchToggle = () => {
+function onCustomSwitchToggle() {
   if (vModel.value?.is_custom_link) {
     setAdditionalValidations({
       childId: [],
@@ -400,50 +428,53 @@ const onCustomSwitchToggle = () => {
     })
 
     vModel.value.virtual = true
-  } else
+  }
+  else {
     setAdditionalValidations({
       childId: [{ required: true, message: t('general.required') }],
     })
+  }
 }
 
-const onCustomSwitchLabelClick = () => {
+function onCustomSwitchLabelClick() {
   if (isEdit.value) return
 
   vModel.value.is_custom_link = !vModel.value.is_custom_link
   onCustomSwitchToggle()
 }
 
-const onViewLabelClick = () => {
+function onViewLabelClick() {
   if (isSyncedField.value) return
   if (!vModel.value.childId && !(vModel.value.is_custom_link && vModel.value.custom?.ref_model_id)) return
 
   limitRecToView.value = !limitRecToView.value
   return onLimitRecToViewChange()
 }
-const onFilterLabelClick = () => {
+function onFilterLabelClick() {
   if (isSyncedField.value) return
   if (!vModel.value.childId && !(vModel.value.is_custom_link && vModel.value.custom?.ref_model_id)) return
 
   limitRecToCond.value = !limitRecToCond.value
 }
 
-const onCrossBaseToggle = () => {
+function onCrossBaseToggle() {
   // reset current model id value if cross base disabled and selected table is not in current base
   if (!crossBase.value) {
     referenceBaseId.value = null
-    if (refTables.value.every((t) => t.id !== referenceTableChildId)) {
+    if (refTables.value.every(t => t.id !== referenceTableChildId.value)) {
       referenceTableChildId.value = null
     }
   }
 }
 
 // check user have creator or above role to create cross base link to the base
-const canCreateCrossBaseLink = (base: { workspace_role: string; base_role: string }) => {
+function canCreateCrossBaseLink(base: { workspace_role: string, base_role: string }) {
   if (base.project_role) {
     if ([ProjectRoles.CREATOR, ProjectRoles.OWNER].includes(base.project_role)) {
       return true
     }
-  } else if (base.workspace_role) {
+  }
+  else if (base.workspace_role) {
     if ([WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(base.workspace_role)) {
       return true
     }
@@ -452,14 +483,14 @@ const canCreateCrossBaseLink = (base: { workspace_role: string; base_role: strin
   return false
 }
 
-const toggleCrossBase = () => {
+function toggleCrossBase() {
   if (isEdit.value) return
 
   crossBase.value = !crossBase.value
   onCrossBaseToggle()
 }
 
-const handleScrollIntoView = () => {
+function handleScrollIntoView() {
   filterRef.value?.$el?.scrollIntoView({
     behavior: 'smooth',
     block: 'start',
@@ -471,9 +502,11 @@ const handleScrollIntoView = () => {
 <template>
   <div class="w-full flex flex-col gap-4">
     <div class="flex flex-col gap-4">
-      <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type">
+      <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type !mb-0">
         <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit" class="w-full">
-          <template v-if="vModel.uidt === UITypes.LinkToAnotherRecord && isLtarV2Enabled">
+          <template
+            v-if="vModel.uidt === UITypes.LinkToAnotherRecord || isUpgradeable || (vModel.colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2"
+          >
             <a-row :gutter="[8, 8]">
               <a-col :span="12">
                 <a-radio value="mm" data-testid="Many to Many">
@@ -540,6 +573,27 @@ const handleScrollIntoView = () => {
         </a-radio-group>
       </a-form-item>
     </div>
+    <div
+      v-if="isUpgradeable"
+      class="flex items-center justify-between bg-orange-50 rounded-lg px-3 py-2 -mt-2"
+      data-testid="nc-ltar-upgrade-banner"
+    >
+      <div class="flex items-center gap-2">
+        <GeneralIcon icon="alertTriangle" class="flex-none h-4 w-4 text-orange-500" />
+        <span class="text-sm text-nc-content-gray">
+          {{ $t('msg.info.upgradeLinkFieldAvailable') }}
+          <a
+            href="https://nocodb.com/docs/product-docs/fields/field-types/links-based/link-to-another-record#upgrade-from-links-v1"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-nc-content-brand underline ml-1"
+          >{{ $t('msg.learnMore') }}</a>
+        </span>
+      </div>
+      <NcButton size="xs" type="primary" @click="emit('upgrade')">
+        {{ $t('general.upgrade') }}
+      </NcButton>
+    </div>
     <div v-if="isFeatureEnabled(FEATURE_FLAG.CUSTOM_LINK) && isEeUI">
       <a-switch
         v-model:checked="vModel.is_custom_link"
@@ -555,8 +609,7 @@ const handleScrollIntoView = () => {
           'cursor-pointer': !isEdit,
         }"
         @click="onCustomSwitchLabelClick"
-        >Advanced Link</span
-      >
+      >Advanced Link</span>
     </div>
     <div v-if="isEeUI && vModel.is_custom_link">
       <LazySmartsheetColumnLinkAdvancedOptions v-model:value="vModel" :is-edit="isEdit" :meta="meta" />
@@ -574,7 +627,9 @@ const handleScrollIntoView = () => {
           />
 
           <a-tooltip>
-            <template v-if="!isEdit" #title>{{ $t('tooltip.crossBase') }}</template>
+            <template v-if="!isEdit" #title>
+              {{ $t('tooltip.crossBase') }}
+            </template>
             <span
               class="ml-3"
               :class="{
@@ -582,8 +637,7 @@ const handleScrollIntoView = () => {
               }"
               @click="toggleCrossBase"
               @dblclick="onCustomSwitchLabelClick"
-              >{{ $t('labels.crossBase') }}</span
-            >
+            >{{ $t('labels.crossBase') }}</span>
           </a-tooltip>
         </div>
 
@@ -624,7 +678,9 @@ const handleScrollIntoView = () => {
                     />
                   </div>
                   <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                    <template #title>{{ base.title }}</template>
+                    <template #title>
+                      {{ base.title }}
+                    </template>
                     <span>{{ base.title }}</span>
                   </NcTooltip>
 
@@ -666,7 +722,9 @@ const handleScrollIntoView = () => {
                   <GeneralTableIcon v-else :meta="table" class="text-nc-content-gray-muted" />
                 </div>
                 <NcTooltip v-if="!(table as any).is_private" class="flex-1 truncate" show-on-truncate-only>
-                  <template #title>{{ table.title }}</template>
+                  <template #title>
+                    {{ table.title }}
+                  </template>
                   <span>{{ table.title }}</span>
                 </NcTooltip>
                 <span v-else class="text-nc-content-gray-disabled">{{ $t('labels.privateTable') }}</span>
@@ -693,9 +751,9 @@ const handleScrollIntoView = () => {
             v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
             size="small"
             :disabled="
-              (!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)) ||
-              isSyncedField ||
-              isLinkedTablePrivate
+              (!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id))
+                || isSyncedField
+                || isLinkedTablePrivate
             "
             @change="onLimitRecToViewChange"
           />
@@ -714,16 +772,15 @@ const handleScrollIntoView = () => {
               class="flex text-nc-content-gray-disabled hover:text-nc-content-gray-subtle"
               @click.stop
             >
-              <GeneralIcon icon="ncInfo" class="flex-none w-3.5 h-3.5" /> </a
-          ></span>
+              <GeneralIcon icon="ncInfo" class="flex-none w-3.5 h-3.5" /> </a></span>
         </div>
         <template #title>
           {{
             isSyncedField
               ? $t('tooltip.optionNotAvailableInSyncTable')
               : $t('tooltip.notHaveAccess', {
-                  context: $t('objects.view'),
-                })
+                context: $t('objects.view'),
+              })
           }}
         </template>
       </NcTooltip>
@@ -748,13 +805,15 @@ const handleScrollIntoView = () => {
                 <div class="min-w-5 flex items-center justify-center">
                   <GeneralViewIcon
                     v-if="(view as any).is_private"
-                    :meta="{type: ViewTypes.GRID} as any"
+                    :meta="{ type: ViewTypes.GRID } as any"
                     class="!text-nc-content-gray-disabled"
                   />
                   <GeneralViewIcon v-else :meta="view" class="text-nc-content-gray-muted" />
                 </div>
                 <NcTooltip v-if="!(view as any).is_private" class="flex-1 truncate" show-on-truncate-only>
-                  <template #title>{{ view.title }}</template>
+                  <template #title>
+                    {{ view.title }}
+                  </template>
                   <span>{{ view.title }}</span>
                 </NcTooltip>
                 <span v-else class="text-nc-content-gray-disabled">{{ $t('labels.privateView') }}</span>
@@ -773,7 +832,7 @@ const handleScrollIntoView = () => {
       </a-form-item>
     </div>
 
-    <template v-if="isEeUI">
+    <template v-if="isEeUI && showEEFeatures">
       <div class="flex flex-col gap-2">
         <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER">
           <template #default="{ click }">
@@ -783,9 +842,9 @@ const handleScrollIntoView = () => {
                   v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
                   :checked="limitRecToCond"
                   :disabled="
-                    (!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)) ||
-                    isSyncedField ||
-                    isLinkedTablePrivate
+                    (!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id))
+                      || isSyncedField
+                      || isLinkedTablePrivate
                   "
                   size="small"
                   @change="
@@ -823,14 +882,15 @@ const handleScrollIntoView = () => {
                   "
                 />
               </div>
-              <template #title> {{ $t('tooltip.optionNotAvailableInSyncTable') }} </template>
+              <template #title>
+                {{ $t('tooltip.optionNotAvailableInSyncTable') }}
+              </template>
             </NcTooltip>
           </template>
         </PaymentUpgradeBadgeProvider>
         <div v-if="limitRecToCond && !isLinkedTablePrivate" class="overflow-auto nc-scrollbar-thin">
           <LazySmartsheetToolbarColumnFilter
             ref="filterRef"
-            v-model="vModel.filters"
             class="!pl-8 !p-0 max-w-620px"
             :auto-save="false"
             :show-loading="false"
@@ -880,11 +940,21 @@ const handleScrollIntoView = () => {
                   <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
                 </template>
                 <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
-                  <template v-if="option === 'NO ACTION'">{{ $t('title.links.noAction') }}</template>
-                  <template v-else-if="option === 'CASCADE'">{{ $t('title.links.cascade') }}</template>
-                  <template v-else-if="option === 'RESTRICT'">{{ $t('title.links.restrict') }}</template>
-                  <template v-else-if="option === 'SET NULL'">{{ $t('title.links.setNull') }}</template>
-                  <template v-else-if="option === 'SET DEFAULT'">{{ $t('title.links.setDefault') }}</template>
+                  <template v-if="option === 'NO ACTION'">
+                    {{ $t('title.links.noAction') }}
+                  </template>
+                  <template v-else-if="option === 'CASCADE'">
+                    {{ $t('title.links.cascade') }}
+                  </template>
+                  <template v-else-if="option === 'RESTRICT'">
+                    {{ $t('title.links.restrict') }}
+                  </template>
+                  <template v-else-if="option === 'SET NULL'">
+                    {{ $t('title.links.setNull') }}
+                  </template>
+                  <template v-else-if="option === 'SET DEFAULT'">
+                    {{ $t('title.links.setDefault') }}
+                  </template>
                   <template v-else>
                     {{ option }}
                   </template>
@@ -908,11 +978,21 @@ const handleScrollIntoView = () => {
                   <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
                 </template>
                 <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
-                  <template v-if="option === 'NO ACTION'">{{ $t('title.links.noAction') }}</template>
-                  <template v-else-if="option === 'CASCADE'">{{ $t('title.links.cascade') }}</template>
-                  <template v-else-if="option === 'RESTRICT'">{{ $t('title.links.restrict') }}</template>
-                  <template v-else-if="option === 'SET NULL'">{{ $t('title.links.setNull') }}</template>
-                  <template v-else-if="option === 'SET DEFAULT'">{{ $t('title.links.setDefault') }}</template>
+                  <template v-if="option === 'NO ACTION'">
+                    {{ $t('title.links.noAction') }}
+                  </template>
+                  <template v-else-if="option === 'CASCADE'">
+                    {{ $t('title.links.cascade') }}
+                  </template>
+                  <template v-else-if="option === 'RESTRICT'">
+                    {{ $t('title.links.restrict') }}
+                  </template>
+                  <template v-else-if="option === 'SET NULL'">
+                    {{ $t('title.links.setNull') }}
+                  </template>
+                  <template v-else-if="option === 'SET DEFAULT'">
+                    {{ $t('title.links.setDefault') }}
+                  </template>
                   <template v-else>
                     {{ option }}
                   </template>

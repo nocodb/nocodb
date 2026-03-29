@@ -1,6 +1,6 @@
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, UITypesName, isLinksOrLTAR } from 'nocodb-sdk'
 import type { CanvasGridColumn } from '~/lib/types'
+import { isLinksOrLTAR, RelationTypes, UITypes, UITypesName } from 'nocodb-sdk'
 
 export function columnTypeName(column: CanvasGridColumn) {
   if (column?.columnObj.uidt === UITypes.LongText) {
@@ -59,7 +59,8 @@ export function getCustomColumnTooltip({
     if (mmMeta) {
       // skip if created by NocoDB
       mmTable = mmMeta?.title?.includes('nc_m2m_') ? null : mmMeta
-    } else {
+    }
+    else {
       // if metas not found in store, fetch it with correct base_id
       getMeta?.(relatedBaseId, relOptions.fk_mm_model_id).catch((_e) => {
         // do nothing
@@ -73,19 +74,20 @@ export function getCustomColumnTooltip({
   let mmTableRefColName = ''
 
   if (
-    relOptions.type === RelationTypes.MANY_TO_MANY ||
-    relOptions.type === RelationTypes.BELONGS_TO ||
-    (relOptions.type === RelationTypes.ONE_TO_ONE && column.columnObj?.meta?.bt)
+    relOptions.type === RelationTypes.MANY_TO_MANY
+    || relOptions.type === RelationTypes.BELONGS_TO
+    || (relOptions.type === RelationTypes.ONE_TO_ONE && column.columnObj?.meta?.bt)
   ) {
-    currentTableColName = currentTable?.columns?.find((c) => c.id === relOptions.fk_child_column_id)?.title
-    refTableColName = refTable?.columns?.find((c) => c.id === relOptions.fk_parent_column_id)?.title
+    currentTableColName = currentTable?.columns?.find(c => c.id === relOptions.fk_child_column_id)?.title
+    refTableColName = refTable?.columns?.find(c => c.id === relOptions.fk_parent_column_id)?.title
     if (mmTable) {
-      mmTableColName = mmTable?.columns?.find((c) => c.id === relOptions.fk_mm_child_column_id)?.title
-      mmTableRefColName = mmTable?.columns?.find((c) => c.id === relOptions.fk_mm_parent_column_id)?.title
+      mmTableColName = mmTable?.columns?.find(c => c.id === relOptions.fk_mm_child_column_id)?.title
+      mmTableRefColName = mmTable?.columns?.find(c => c.id === relOptions.fk_mm_parent_column_id)?.title
     }
-  } else {
-    currentTableColName = currentTable?.columns?.find((c) => c.id === relOptions.fk_parent_column_id)?.title
-    refTableColName = refTable?.columns?.find((c) => c.id === relOptions.fk_child_column_id)?.title
+  }
+  else {
+    currentTableColName = currentTable?.columns?.find(c => c.id === relOptions.fk_parent_column_id)?.title
+    refTableColName = refTable?.columns?.find(c => c.id === relOptions.fk_child_column_id)?.title
   }
 
   // Generate a detailed tooltip for link-to-record fields.

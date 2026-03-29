@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ColumnHelper, UITypes, dateFormats, timeFormats } from 'nocodb-sdk'
-import { type TimeZone, getTimeZones } from '@vvo/tzdb'
+import type { TimeZone } from '@vvo/tzdb'
+import { getTimeZones } from '@vvo/tzdb'
+import { ColumnHelper, dateFormats, timeFormats, UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -10,18 +11,20 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
+const { appInfo } = useGlobal()
+
 const timezones = getTimeZones({ includeUtc: true }).sort((a, b) => a.name.localeCompare(b.name))
 const browserTzName = Intl.DateTimeFormat().resolvedOptions().timeZone
-const browserTz = timezones.find((tz) => isSameTimezone(tz.name, browserTzName))
-const utcTz = timezones.find((tz) => tz.name === 'Etc/UTC')
-const defaultSuggestedTzs = [browserTz, utcTz].filter((k) => k) as TimeZone[]
+const browserTz = timezones.find(tz => isSameTimezone(tz.name, browserTzName))
+const utcTz = timezones.find(tz => tz.name === 'Etc/UTC')
+const defaultSuggestedTzs = [browserTz, utcTz].filter(k => k) as TimeZone[]
 
 const priorityTzs = computed(() => {
   const otherPriorityTzs = []
   for (const tz of timezones) {
     if (
-      browserTz?.countryCode === tz.countryCode &&
-      !defaultSuggestedTzs.find((suggestedTz) => isSameTimezone(suggestedTz?.name, tz.name))
+      browserTz?.countryCode === tz.countryCode
+      && !defaultSuggestedTzs.find(suggestedTz => isSameTimezone(suggestedTz?.name, tz.name))
     ) {
       otherPriorityTzs.push(tz)
     }
@@ -35,7 +38,6 @@ vModel.value.meta = {
   ...(vModel.value.meta || {}),
 }
 
-const { isSystem } = useColumnCreateStoreOrThrow()
 const isDisplayTimezone = computed({
   get: () => !!vModel.value.meta?.isDisplayTimezone,
   set: (value) => {
@@ -49,7 +51,9 @@ const useSameTimezoneForAll = computed({
   set: (value) => {
     if (!vModel.value.meta) vModel.value.meta = {}
     vModel.value.meta.useSameTimezoneForAll = value
-    if (!value) vModel.value.meta.timezone = undefined
+    if (!value) {
+      vModel.value.meta.timezone = undefined
+    }
     else if (!vModel.value.meta.timezone) {
       vModel.value.meta.timezone = priorityTzs.value[0]?.name
     }
@@ -65,7 +69,6 @@ const useSameTimezoneForAll = computed({
           v-model:value="vModel.meta.date_format"
           class="nc-date-select"
           dropdown-class-name="nc-dropdown-date-format"
-          :disabled="isSystem"
           show-search
         >
           <template #suffixIcon>
@@ -86,12 +89,7 @@ const useSameTimezoneForAll = computed({
         </a-select>
       </a-form-item>
       <a-form-item>
-        <a-select
-          v-model:value="vModel.meta.time_format"
-          class="nc-time-select"
-          dropdown-class-name="nc-dropdown-time-format"
-          :disabled="isSystem"
-        >
+        <a-select v-model:value="vModel.meta.time_format" class="nc-time-select" dropdown-class-name="nc-dropdown-time-format">
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
@@ -111,13 +109,17 @@ const useSameTimezoneForAll = computed({
       </a-form-item>
     </div>
     <a-form-item>
-      <a-radio-group v-if="vModel.meta" v-model:value="vModel.meta.is12hrFormat" class="nc-time-form-layout" :disabled="isSystem">
-        <a-radio :value="true">12 Hrs</a-radio>
-        <a-radio :value="false">24 Hrs</a-radio>
+      <a-radio-group v-if="vModel.meta" v-model:value="vModel.meta.is12hrFormat" class="nc-time-form-layout">
+        <a-radio :value="true">
+          12 Hrs
+        </a-radio>
+        <a-radio :value="false">
+          24 Hrs
+        </a-radio>
       </a-radio-group>
     </a-form-item>
 
-    <template v-if="isEeUI">
+    <template v-if="appInfo.ee">
       <a-form-item>
         <NcTooltip :disabled="true">
           <div class="flex items-center gap-1">
@@ -149,7 +151,6 @@ const useSameTimezoneForAll = computed({
           dropdown-class-name="nc-dropdown-timezone"
           placeholder="Use same timezone for all collaborator"
           class="nc-search-timezone"
-          :disabled="isSystem"
         >
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />

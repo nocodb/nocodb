@@ -36,7 +36,7 @@ const socialIcons = [
   },
 ]
 
-const openUrl = (url: string, e: string) => {
+function openUrl(url: string, e: string) {
   $e(e, {
     trigger: 'feed',
   })
@@ -46,7 +46,9 @@ const openUrl = (url: string, e: string) => {
 
 <template>
   <div style="width: 230px" class="flex flex-col bg-nc-bg-default border-nc-border-gray-medium rounded-lg border-1">
-    <div class="text-nc-content-gray font-semibold leading-6 border-b-1 border-nc-border-gray-medium px-4 py-3">Stay tuned</div>
+    <div class="text-nc-content-gray font-semibold leading-6 border-b-1 border-nc-border-gray-medium px-4 py-3">
+      Stay tuned
+    </div>
     <div class="flex flex-col p-1">
       <div
         v-for="social in socialIcons"

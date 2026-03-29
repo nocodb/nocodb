@@ -1,6 +1,6 @@
-import { ButtonActionsType, type ButtonType } from 'nocodb-sdk'
+import type { ButtonType } from 'nocodb-sdk'
+import { ButtonActionsType } from 'nocodb-sdk'
 import { defaultOffscreen2DContext, renderSpinner, truncateText } from '../../utils/canvas'
-import { getButtonColors } from './utils'
 
 const horizontalPadding = 12
 const buttonHeight = 24
@@ -26,6 +26,7 @@ export const ButtonCellRenderer: CellRenderer = {
       cellRenderStore,
       t,
       rowMeta,
+      getColor,
     } = props
 
     const isQueued = actionManager.isQueued(pk, column.id!)
@@ -40,8 +41,8 @@ export const ButtonCellRenderer: CellRenderer = {
     cellRenderStore.invalidUrlTooltip = afterActionStatus?.tooltip
       ? afterActionStatus.tooltip
       : filterDisabled
-      ? t('msg.buttonConditionNotMet')
-      : ''
+        ? t('msg.buttonConditionNotMet')
+        : ''
 
     let disabledState = isLoading || disabled?.isInvalid || isQueued || filterDisabled
     ctx.textAlign = 'left'
@@ -62,13 +63,14 @@ export const ButtonCellRenderer: CellRenderer = {
       // if url params not encoded, encode them using encodeURI
       try {
         url = decodeURI(url) === url ? encodeURI(url) : url
-      } catch {
+      }
+      catch {
         url = encodeURI(url)
       }
 
       const urlInvalid = !(
-        url &&
-        isValidURL(url, {
+        url
+        && isValidURL(url, {
           require_tld: !allowLocalUrl,
         })
       )
@@ -113,15 +115,15 @@ export const ButtonCellRenderer: CellRenderer = {
     const startX = x + (width - buttonWidth) / 2
     const startY = y + 4
 
-    const isHovered =
-      !disabledState &&
-      mousePosition &&
-      mousePosition.x >= startX &&
-      mousePosition.x <= startX + buttonWidth &&
-      mousePosition.y >= startY &&
-      mousePosition.y <= startY + buttonHeight
+    const isHovered
+      = !disabledState
+        && mousePosition
+        && mousePosition.x >= startX
+        && mousePosition.x <= startX + buttonWidth
+        && mousePosition.y >= startY
+        && mousePosition.y <= startY + buttonHeight
 
-    const colors = getButtonColors(buttonMeta.theme, buttonMeta.color, isHovered, !!disabledState)
+    const colors = getButtonColors(buttonMeta.theme, buttonMeta.color, isHovered, !!disabledState, getColor)
 
     if (isHovered) props.setCursor('pointer')
 
@@ -147,7 +149,8 @@ export const ButtonCellRenderer: CellRenderer = {
         renderSpinner(ctx, contentX, contentY, iconSize, colors.loader, loadingStartTime, 1.5)
         contentX += iconSize + (hasLabel ? iconSpacing : 0)
       }
-    } else if (afterActionStatus) {
+    }
+    else if (afterActionStatus) {
       spriteLoader.renderIcon(ctx, {
         icon: afterActionStatus.status === 'success' ? 'ncCheck' : 'ncInfo',
         size: iconSize,
@@ -156,7 +159,8 @@ export const ButtonCellRenderer: CellRenderer = {
         color: colors.text,
       })
       contentX += iconSize + (hasLabel ? iconSpacing : 0)
-    } else if (hasIcon) {
+    }
+    else if (hasIcon) {
       spriteLoader.renderIcon(ctx, {
         icon: buttonMeta.icon,
         size: iconSize,
@@ -227,12 +231,12 @@ export const ButtonCellRenderer: CellRenderer = {
     const startX = x + (width - buttonWidth) / 2
     const startY = y + 4
 
-    const isHovered =
-      mousePosition &&
-      mousePosition.x >= startX &&
-      mousePosition.x <= startX + buttonWidth &&
-      mousePosition.y >= startY &&
-      mousePosition.y <= startY + buttonHeight
+    const isHovered
+      = mousePosition
+        && mousePosition.x >= startX
+        && mousePosition.x <= startX + buttonWidth
+        && mousePosition.y >= startY
+        && mousePosition.y <= startY + buttonHeight
 
     if (!isHovered) return false
     await actionManager.executeButtonAction([pk], column, { row: [row], path, allowLocalUrl })
@@ -284,7 +288,8 @@ export const ButtonCellRenderer: CellRenderer = {
 
     if (cellRenderStore.invalidUrlTooltip) {
       tooltip = cellRenderStore.invalidUrlTooltip
-    } else if (isAiButton(column.columnObj)) {
+    }
+    else if (isAiButton(column.columnObj)) {
       tooltip = column?.isInvalidColumn?.tooltip ?? ''
     }
 

@@ -40,7 +40,8 @@ export class MarkdownSerializerState extends BaseMarkdownSerializerState {
           start: this.out.length,
           delimiter: info.open,
         })
-      } else {
+      }
+      else {
         const top = this.inlines.pop() || {}
         this.inlines.push({
           ...top,

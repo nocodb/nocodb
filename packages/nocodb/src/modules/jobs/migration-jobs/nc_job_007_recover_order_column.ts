@@ -96,7 +96,6 @@ export class RecoverOrderColumnMigration {
 
       const queue = new PQueue({ concurrency: PARALLEL_LIMIT });
 
-      // eslint-disable-next-line no-constant-condition
       while (true) {
         if (queue.pending > PARALLEL_LIMIT * 2) {
           await new Promise((resolve) => setTimeout(resolve, 1000));

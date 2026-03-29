@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
-import { type LocalSelectOptionType, type SelectInputOptionType, getOptions, getSelectedTitles } from './utils'
+import type { LocalSelectOptionType, SelectInputOptionType } from './utils'
 import MdiCloseCircle from '~icons/mdi/close-circle'
+import { getOptions, getSelectedTitles } from './utils'
 
 interface Props {
   modelValue?: string | string[]
@@ -122,7 +123,7 @@ const vModel = computed({
 })
 
 const vModelListLayout = computed(() => {
-  return (vModel.value || []).map((item) => item.value)
+  return (vModel.value || []).map(item => item.value)
 })
 
 watch(isOpen, (n, _o) => {
@@ -131,7 +132,8 @@ watch(isOpen, (n, _o) => {
   if (editAllowed.value) {
     if (!n) {
       aselect.value?.$el?.querySelector('input')?.blur()
-    } else {
+    }
+    else {
       aselect.value?.$el?.querySelector('input')?.focus()
     }
   }
@@ -227,7 +229,7 @@ async function addIfMissingAndSave() {
 
         // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
         if (!isMysql(column.value.source_id) && !isPg(column.value.source_id)) {
-          updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, "'")
+          updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, '\'')
         }
       }
 
@@ -241,51 +243,53 @@ async function addIfMissingAndSave() {
         updatedColMeta,
       )
 
-      column.value.colOptions = data.columns.find((c) => c.id === column.value.id).colOptions
+      column.value.colOptions = data.columns.find(c => c.id === column.value.id).colOptions
 
       activeOptCreateInProgress.value--
       if (!activeOptCreateInProgress.value) {
         tempSelectedOptsState.splice(0, tempSelectedOptsState.length)
-        vModel.value = [...vModel.value.map((op) => op.title), newOptPayload.title!]
+        vModel.value = [...vModel.value.map(op => op.title), newOptPayload.title!]
       }
-    } else {
+    }
+    else {
       activeOptCreateInProgress.value--
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.log(e)
     activeOptCreateInProgress.value--
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
-const search = () => {
+function search() {
   searchVal.value = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value
 }
 
-const onTagClick = (e: Event, onClose: Function) => {
+function onTagClick(e: Event, onClose: Function) {
   // check clicked element is remove icon
   if (
-    (e.target as HTMLElement)?.classList.contains('ant-tag-close-icon') ||
-    (e.target as HTMLElement)?.closest('.ant-tag-close-icon')
+    (e.target as HTMLElement)?.classList.contains('ant-tag-close-icon')
+    || (e.target as HTMLElement)?.closest('.ant-tag-close-icon')
   ) {
     e.stopPropagation()
     onClose()
   }
 }
 
-const toggleMenu = () => {
+function toggleMenu() {
   if (isFocusing.value) return
 
   isOpen.value = editAllowed.value && !isOpen.value
 }
 
-const handleClose = (e: MouseEvent) => {
+function handleClose(e: MouseEvent) {
   // close dropdown if clicked outside of dropdown
   if (
-    isOpen.value &&
-    aselect.value &&
-    !aselect.value.$el.contains(e.target) &&
-    !document.querySelector('.nc-dropdown-multi-select-cell.active')?.contains(e.target as Node)
+    isOpen.value
+    && aselect.value
+    && !aselect.value.$el.contains(e.target)
+    && !document.querySelector('.nc-dropdown-multi-select-cell.active')?.contains(e.target as Node)
   ) {
     // loose focus when clicked outside
     isEditable.value = false
@@ -295,12 +299,13 @@ const handleClose = (e: MouseEvent) => {
 
 useEventListener(document, 'click', handleClose, true)
 
-const onKeyDown = (e: KeyboardEvent) => {
+function onKeyDown(e: KeyboardEvent) {
   // Tab
   if (e.key === 'Tab') {
     isOpen.value = false
     return
-  } else if (e.key === 'Escape' && isForm.value) {
+  }
+  else if (e.key === 'Escape' && isForm.value) {
     isOpen.value = false
     return
   }
@@ -308,7 +313,7 @@ const onKeyDown = (e: KeyboardEvent) => {
   e.stopPropagation()
 }
 
-const onFocus = () => {
+function onFocus() {
   isFocusing.value = true
 
   setTimeout(() => {

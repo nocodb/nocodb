@@ -1,19 +1,3 @@
-import {
-  ClientType,
-  SqlUiFactory,
-  UITypes,
-  comparisonOpList,
-  comparisonSubOpList,
-  deleteFilterWithSub,
-  getEquivalentUIType,
-  getFilterCount,
-  getPlaceholderNewRow,
-  isComparisonOpAllowed,
-  isDateType,
-  isSystemColumn,
-  isVirtualCol,
-  parseProp,
-} from 'nocodb-sdk'
 import type {
   ColumnType,
   ColumnTypeForFilter,
@@ -24,52 +8,66 @@ import type {
   LookupType,
   TableType,
 } from 'nocodb-sdk'
+import {
+  ClientType,
+  comparisonOpList,
+  comparisonSubOpList,
+  deleteFilterWithSub,
+  getEquivalentUIType,
+  getFilterCount,
+  getPlaceholderNewRow,
+  isBtLikeV2Junction,
+  isComparisonOpAllowed,
+  isDateType,
+  isSystemColumn,
+  isVirtualCol,
+  parseProp,
+  SqlUiFactory,
+  UITypes,
+} from 'nocodb-sdk'
 
 export const MAX_NESTED_LEVEL = 5
 export const excludedFilterColUidt = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
 // Re-export types from nocodb-sdk for backward compatibility
-export type { ComparisonOpUiType, FilterGroupChangeEvent, FilterRowChangeEvent, ColumnTypeForFilter }
+export type { ColumnTypeForFilter, ComparisonOpUiType, FilterGroupChangeEvent, FilterRowChangeEvent }
 
 // Re-export functions from nocodb-sdk for backward compatibility
 export {
-  isDateType,
   comparisonOpList,
   comparisonSubOpList,
+  deleteFilterWithSub,
+  getFilterCount,
   getPlaceholderNewRow,
   isComparisonOpAllowed,
-  getFilterCount,
-  deleteFilterWithSub,
+  isDateType,
 }
 
-export const isComparisonSubOpAllowed = (
-  filter: ColumnFilterType,
-  compOp: {
-    text: string
-    value: string
-    ignoreVal?: boolean
-    includedTypes?: UITypes[]
-    excludedTypes?: UITypes[]
-  },
-  uidt?: UITypes,
-) => {
+export function isComparisonSubOpAllowed(filter: ColumnFilterType, compOp: {
+  text: string
+  value: string
+  ignoreVal?: boolean
+  includedTypes?: UITypes[]
+  excludedTypes?: UITypes[]
+}, uidt?: UITypes) {
   if (compOp.includedTypes) {
     // include allowed values only if selected column type matches
     return filter.fk_column_id && compOp.includedTypes.includes(uidt!)
-  } else if (compOp.excludedTypes) {
+  }
+  else if (compOp.excludedTypes) {
     // include not allowed values only if selected column type not matches
     return filter.fk_column_id && !compOp.excludedTypes.includes(uidt!)
   }
 }
 
 // filter is draft if it's not saved to db yet
-export const isFilterDraft = (filter: Filter, col: ColumnTypeForFilter) => {
+export function isFilterDraft(filter: Filter, col: ColumnTypeForFilter) {
   if (filter.id) return false
 
   if (
-    filter.comparison_op &&
-    comparisonSubOpList(filter.comparison_op, parseProp(col?.meta)?.date_format).find(
-      (compOp) => compOp.value === filter.comparison_sub_op,
+    filter.comparison_op
+    && comparisonSubOpList(filter.comparison_op, parseProp(col?.meta)?.date_format).find(
+      compOp => compOp.value === filter.comparison_sub_op,
     )?.ignoreVal
   ) {
     return false
@@ -77,7 +75,7 @@ export const isFilterDraft = (filter: Filter, col: ColumnTypeForFilter) => {
 
   if (
     comparisonOpList((col.filterUidt ?? col.uidt) as UITypes, parseProp(col?.meta)?.date_format).find(
-      (compOp) => compOp.value === filter.comparison_op,
+      compOp => compOp.value === filter.comparison_op,
     )?.ignoreVal
   ) {
     return false
@@ -90,7 +88,7 @@ export const isFilterDraft = (filter: Filter, col: ColumnTypeForFilter) => {
   return true
 }
 
-export const isDynamicFilterAllowed = (filter: ColumnFilterType, column?: ColumnType, dbClientType?: ClientType) => {
+export function isDynamicFilterAllowed(filter: ColumnFilterType, column?: ColumnType, dbClientType?: ClientType) {
   if (!column) {
     return false
   }
@@ -110,8 +108,9 @@ export const isDynamicFilterAllowed = (filter: ColumnFilterType, column?: Column
       UITypes.GeoData,
       UITypes.SpecificDBType,
     ].includes(column.uidt as UITypes)
-  )
+  ) {
     return false
+  }
 
   const abstractType = sqlUi.getAbstractType(column)
 
@@ -120,7 +119,7 @@ export const isDynamicFilterAllowed = (filter: ColumnFilterType, column?: Column
   return !filter.comparison_op || ['eq', 'lt', 'gt', 'lte', 'gte', 'like', 'nlike', 'neq'].includes(filter.comparison_op)
 }
 
-export const getDynamicColumns = (metaColumns: ColumnType[], column?: ColumnType, dbClientType?: ClientType) => {
+export function getDynamicColumns(metaColumns: ColumnType[], column?: ColumnType, dbClientType?: ClientType) {
   if (!column) return []
   const sqlUi = SqlUiFactory.create({ client: dbClientType ?? ClientType.PG })
 
@@ -134,12 +133,12 @@ export const getDynamicColumns = (metaColumns: ColumnType[], column?: ColumnType
     const filterColAbstractType = sqlUi.getAbstractType(column)
 
     // treat float and integer as number
-    if ([dynamicColAbstractType, filterColAbstractType].every((type) => ['float', 'integer'].includes(type))) {
+    if ([dynamicColAbstractType, filterColAbstractType].every(type => ['float', 'integer'].includes(type))) {
       return true
     }
 
     // treat text and string as string
-    if ([dynamicColAbstractType, filterColAbstractType].every((type) => ['text', 'string'].includes(type))) {
+    if ([dynamicColAbstractType, filterColAbstractType].every(type => ['text', 'string'].includes(type))) {
       return true
     }
 
@@ -147,7 +146,11 @@ export const getDynamicColumns = (metaColumns: ColumnType[], column?: ColumnType
   })
 }
 
-export const getFilterUidt = (col: ColumnTypeForFilter): UITypes => {
+export function getFilterUidt(col: ColumnTypeForFilter): UITypes {
+  // V2 MO/OO Links → filter by display value like LTAR
+  if (col.uidt === UITypes.Links && isBtLikeV2Junction(col)) {
+    return UITypes.LinkToAnotherRecord
+  }
   if (col.uidt === UITypes.Formula) {
     const formulaUIType = getEquivalentUIType({
       formulaColumn: col,
@@ -158,18 +161,19 @@ export const getFilterUidt = (col: ColumnTypeForFilter): UITypes => {
   // if column is a lookup column, then use the lookup type extracted from the column
   else if (col.btLookupColumn) {
     return col.btLookupColumn.uidt as UITypes
-  } else {
+  }
+  else {
     return col.uidt as UITypes
   }
 }
 
-export const composeColumnsForFilter = async ({
+export async function composeColumnsForFilter({
   rootMeta,
   getMeta,
 }: {
   rootMeta: TableType
   getMeta: (baseId: string, metaIdOrTitle: string) => Promise<TableType | null>
-}) => {
+}) {
   const result: ColumnTypeForFilter[] = []
   for (const column of rootMeta.columns!) {
     if (column.uidt !== UITypes.Lookup) {
@@ -183,7 +187,7 @@ export const composeColumnsForFilter = async ({
     while (nextCol && nextCol.uidt === UITypes.Lookup) {
       // extract the relation column meta
       const lookupRelation: ColumnType | undefined = (await getMeta(rootMeta.base_id!, nextCol.fk_model_id!))?.columns?.find(
-        (c) => c.id === (nextCol!.colOptions as LookupType).fk_relation_column_id,
+        c => c.id === (nextCol!.colOptions as LookupType).fk_relation_column_id,
       )
       // this is less likely to happen but if relation column is not found then break the loop
       if (!lookupRelation) {
@@ -194,7 +198,7 @@ export const composeColumnsForFilter = async ({
         rootMeta.base_id!,
         (lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id!,
       )
-      nextCol = relatedTableMeta?.columns?.find((c) => c.id === (nextCol!.colOptions as LookupType).fk_lookup_column_id)
+      nextCol = relatedTableMeta?.columns?.find(c => c.id === (nextCol!.colOptions as LookupType).fk_lookup_column_id)
 
       // if next column is same as root lookup column then break the loop
       // since it's going to be a circular loop
@@ -212,7 +216,7 @@ export const composeColumnsForFilter = async ({
   return result
 }
 
-export const adjustFilterWhenColumnChange = ({
+export function adjustFilterWhenColumnChange({
   filter,
   column,
   showNullAndEmptyInFilter,
@@ -220,24 +224,26 @@ export const adjustFilterWhenColumnChange = ({
   filter: ColumnFilterType
   column: ColumnTypeForFilter
   showNullAndEmptyInFilter?: boolean
-}) => {
+}) {
   if (!column) return
 
   const evalUidt: UITypes = column.filterUidt ?? column.uidt
   if (isVirtualCol(column)) {
     filter.dynamic = false
     filter.fk_value_col_id = null
-  } else {
+  }
+  else {
     filter.fk_value_col_id = null
   }
-  filter.comparison_op = comparisonOpList(evalUidt, parseProp(column.meta)?.date_format).find((compOp) =>
+  filter.comparison_op = comparisonOpList(evalUidt, parseProp(column.meta)?.date_format).find(compOp =>
     isComparisonOpAllowed(filter, compOp, evalUidt as UITypes, showNullAndEmptyInFilter),
   )?.value
 
   if (isDateType(evalUidt) && !['blank', 'notblank'].includes(filter.comparison_op!)) {
     if (filter.comparison_op === 'isWithin') {
       filter.comparison_sub_op = 'pastNumberOfDays'
-    } else {
+    }
+    else {
       filter.comparison_sub_op = 'exactDate'
     }
 
@@ -248,7 +254,8 @@ export const adjustFilterWhenColumnChange = ({
     if (!filter.meta.timezone) {
       filter.meta.timezone = getTimezoneFromColumn(column)
     }
-  } else {
+  }
+  else {
     // reset
     filter.comparison_sub_op = null
   }

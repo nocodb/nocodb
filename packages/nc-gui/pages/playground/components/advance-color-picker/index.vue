@@ -8,9 +8,9 @@ const color1 = ref('')
       <h4>Simple</h4>
 
       Selected color: {{ color1 }}
-      <div class="inline-block min-h-[24px] min-w-[24px] h-[24px] w-[24px] rounded-md" :class="[`bg-${color1}`]"></div>
+      <div class="inline-block min-h-[24px] min-w-[24px] h-[24px] w-[24px] rounded-md" :class="[`bg-${color1}`]" />
     </a-card>
-    <GeneralAdvanceColorPicker v-model="color1" @input="(_color:string)=>color1=_color"> </GeneralAdvanceColorPicker>
+    <GeneralAdvanceColorPicker v-model="color1" @input="(_color:string) => color1 = _color" />
     <a-card>
       <h4>As dropdown <GeneralAdvanceColorPickerDropdown v-model="color1" /></h4>
     </a-card>

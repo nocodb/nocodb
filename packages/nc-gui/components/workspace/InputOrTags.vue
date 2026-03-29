@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
 import type { Input } from 'ant-design-vue'
+import type { VNodeRef } from 'vue'
 
 const props = withDefaults(
   defineProps<{
@@ -19,7 +19,7 @@ const inputRef = ref<typeof Input>()
 
 const isMultiWorkspace = ref(false)
 
-const focusInput = () => {
+function focusInput() {
   nextTick(() => {
     inputRef.value?.focus()
   })
@@ -30,7 +30,8 @@ const title = computed<string | string[]>({
     if (Array.isArray(title)) {
       if (title.length === 0 && !inputValue.value) isMultiWorkspace.value = false
       vModel.value = title.join()
-    } else {
+    }
+    else {
       if (title.includes(',')) isMultiWorkspace.value = true
       focusInput()
       vModel.value = title
@@ -41,17 +42,18 @@ const title = computed<string | string[]>({
   },
 })
 
-const handleInputConfirm = () => {
+function handleInputConfirm() {
   title.value = [...title.value, inputValue.value]
   inputValue.value = ''
 }
 
-const onKeydown = (e: KeyboardEvent) => {
+function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Backspace' && inputValue.value === '') {
     inputValue.value = (title.value as string[]).pop() as string
     title.value = [...title.value]
     e.preventDefault()
-  } else if (e.key === ',') {
+  }
+  else if (e.key === ',') {
     e.preventDefault()
     title.value = [...title.value, inputValue.value]
     inputValue.value = ''

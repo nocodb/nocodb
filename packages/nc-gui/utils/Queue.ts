@@ -87,8 +87,8 @@ export class Queue {
   ): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       const id = options.id || `task-${++this.taskCounter}`
-      const priority =
-        options.priority !== undefined ? Math.min(Math.max(0, options.priority), (this.options.priorityLevels || 1) - 1) : 0
+      const priority
+        = options.priority !== undefined ? Math.min(Math.max(0, options.priority), (this.options.priorityLevels || 1) - 1) : 0
 
       const abortController = new AbortController()
 
@@ -138,7 +138,7 @@ export class Queue {
       concurrency?: number
     } = {},
   ): Promise<T[]> {
-    const promises = tasks.map((task) =>
+    const promises = tasks.map(task =>
       this.add(task, {
         priority: options.priority,
       }),
@@ -185,31 +185,36 @@ export class Queue {
       if (this.options.timeout || queueTask.timeout) {
         const timeoutMs = queueTask.timeout || this.options.timeout
         result = await this.withTimeoutAndCancellation(task(), timeoutMs!, queueTask.abortController?.signal)
-      } else {
+      }
+      else {
         result = await this.withCancellation(task(), queueTask.abortController?.signal)
       }
 
       // Task completed successfully
       resolve(result)
       this.emit(QueueEvents.TASK_COMPLETED, { id })
-    } catch (error) {
+    }
+    catch (error) {
       // Check if this was a cancellation
       if (queueTask.abortController?.signal.aborted || (error as Error).message.includes('cancelled')) {
         reject(new Error(`Task ${id} was cancelled`))
         this.emit(QueueEvents.TASK_FAILED, { id, error: 'Task cancelled', attempts: queueTask.attempts })
-      } else {
+      }
+      else {
         // Check if we should retry the task
         if (this.shouldRetry(queueTask, error)) {
           this.handleRetry(queueTask, error)
           shouldCleanup = false // Don't cleanup here, handleRetry will manage it
           return
-        } else {
+        }
+        else {
           // No more retries, reject the promise
           reject(error)
           this.emit(QueueEvents.TASK_FAILED, { id, error, attempts: queueTask.attempts })
         }
       }
-    } finally {
+    }
+    finally {
       // Only cleanup if we're not retrying
       if (shouldCleanup) {
         this.runningTasks.delete(id)
@@ -307,7 +312,8 @@ export class Queue {
     let delay: number
     if (typeof retryOptions.retryDelay === 'function') {
       delay = retryOptions.retryDelay(queueTask.attempts)
-    } else {
+    }
+    else {
       delay = retryOptions.retryDelay
     }
 
@@ -338,7 +344,7 @@ export class Queue {
     // Clean up old timestamps outside the window
     const now = Date.now()
     const windowStart = now - this.rateLimitOptions.windowSizeMs
-    this.requestTimestamps = this.requestTimestamps.filter((timestamp) => timestamp > windowStart)
+    this.requestTimestamps = this.requestTimestamps.filter(timestamp => timestamp > windowStart)
 
     // If we're at the rate limit, wait until we can proceed
     if (this.requestTimestamps.length >= this.rateLimitOptions.maxRequestsPerWindow) {
@@ -349,7 +355,7 @@ export class Queue {
         const timeToWait = oldestTimestamp + this.rateLimitOptions.windowSizeMs - now
 
         if (timeToWait > 0) {
-          await new Promise((resolve) => setTimeout(resolve, timeToWait))
+          await new Promise(resolve => setTimeout(resolve, timeToWait))
           // Recursively check again after waiting
           return this.waitForRateLimit()
         }
@@ -504,7 +510,8 @@ export class Queue {
     for (const callback of this.eventListeners.get(event)!) {
       try {
         callback(data)
-      } catch (error) {
+      }
+      catch (error) {
         console.error(`Error in ${event} event handler:`, error)
       }
     }

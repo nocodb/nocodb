@@ -6,8 +6,8 @@ const { isUIAllowed } = useRoles()
   <div class="h-full">
     <template
       v-if="
-        $route.params.nestedPage === 'password-reset' ||
-        (!isUIAllowed('superAdminUserManagement') && !isUIAllowed('superAdminAppSettings'))
+        $route.params.nestedPage === 'password-reset'
+          || (!isUIAllowed('superAdminUserManagement') && !isUIAllowed('superAdminAppSettings'))
       "
     >
       <AccountResetPassword />

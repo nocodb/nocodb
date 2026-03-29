@@ -6,6 +6,6 @@ export default {
 
 <template>
   <NuxtLayout class="nc-h-screen">
-    <slot></slot>
+    <slot />
   </NuxtLayout>
 </template>

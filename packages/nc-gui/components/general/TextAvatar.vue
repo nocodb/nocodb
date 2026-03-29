@@ -1,5 +1,5 @@
 <template>
-  <div class="nc-text-avatar"></div>
+  <div class="nc-text-avatar" />
 </template>
 
 <style scoped>

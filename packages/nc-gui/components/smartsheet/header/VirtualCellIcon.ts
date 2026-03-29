@@ -1,11 +1,11 @@
 import type { PropType } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
-import { ButtonActionsType, RelationTypes, UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { ButtonActionsType, RelationTypes, UITypes } from 'nocodb-sdk'
 
 import CountIcon from '~icons/mdi/counter'
 
-export const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
+export function renderIcon(column: ColumnType, relationColumn?: ColumnType) {
   switch (column.uidt) {
     case UITypes.LinkToAnotherRecord:
     case UITypes.Links:
@@ -106,7 +106,7 @@ export default defineComponent({
       if (column && column.value) {
         if (isLookup(column.value) || isRollup(column.value)) {
           relationColumn = metas.value?.[column.value.fk_model_id]?.columns?.find(
-            (c) => c.id === column.value?.colOptions?.fk_relation_column_id,
+            c => c.id === column.value?.colOptions?.fk_relation_column_id,
           ) as ColumnType
         }
       }

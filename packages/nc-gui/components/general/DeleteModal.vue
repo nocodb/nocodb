@@ -24,16 +24,18 @@ const { t } = useI18n()
 
 const deleteLabel = computed(() => props.deleteLabel ?? t('general.delete'))
 
-const onDelete = async () => {
+async function onDelete() {
   isLoading.value = true
   try {
     await props.onDelete()
 
     visible.value = false
-  } catch (e: any) {
+  }
+  catch (e: any) {
     console.error(e)
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 }
@@ -61,8 +63,10 @@ watch(visible, (value) => {
 
 <template>
   <GeneralModal v-model:visible="visible" size="small" centered>
-    <div ref="modalRef" class="flex flex-col p-6">
-      <div class="flex flex-row pb-2 mb-3 font-medium text-lg text-nc-content-gray">{{ deleteLabel }} {{ props.entityName }}</div>
+    <div ref="modalRef" class="flex flex-col p-4 md:p-6">
+      <div class="flex flex-row pb-2 mb-3 font-medium text-lg text-nc-content-gray">
+        {{ deleteLabel }} {{ props.entityName }}
+      </div>
 
       <div v-if="showDefaultDeleteMsg" class="mb-3 text-nc-content-gray">
         {{
@@ -72,11 +76,11 @@ watch(visible, (value) => {
         }}<span class="ml-1">{{ props.entityName.toLowerCase() }}?</span>
       </div>
 
-      <slot name="entity-preview"></slot>
+      <slot name="entity-preview" />
       <template v-if="$slots.warning">
         <a-alert type="warning" show-icon>
           <template #message>
-            <slot name="warning"></slot>
+            <slot name="warning" />
           </template>
         </a-alert>
       </template>

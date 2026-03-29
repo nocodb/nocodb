@@ -19,7 +19,8 @@ export default class PlaceholderContentWidget implements editor.IEditorContribut
   onDidChangeModelContent() {
     if (this.editor.getValue() === '') {
       this.editor.addContentWidget(this)
-    } else {
+    }
+    else {
       this.editor.removeContentWidget(this)
     }
   }

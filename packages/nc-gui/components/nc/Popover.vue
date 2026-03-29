@@ -1,6 +1,6 @@
 <script setup>
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useMotion } from '@vueuse/motion'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -10,7 +10,7 @@ const props = defineProps({
   placement: {
     type: String,
     default: 'center',
-    validator: (value) => ['top', 'bottom', 'left', 'right', 'center'].includes(value),
+    validator: value => ['top', 'bottom', 'left', 'right', 'center'].includes(value),
   },
   offset: {
     type: Array,
@@ -72,7 +72,7 @@ const { variant } = useMotion(popoverRef, {
   },
 })
 
-const updatePopoverPosition = () => {
+function updatePopoverPosition() {
   if (!triggerRef.value || !popoverRef.value) return
 
   const triggerRect = triggerRef.value.getBoundingClientRect()
@@ -116,7 +116,7 @@ const updatePopoverPosition = () => {
   })
 }
 
-const openPopover = () => {
+function openPopover() {
   isOpen.value = true
   nextTick(() => {
     updatePopoverPosition()
@@ -124,25 +124,25 @@ const openPopover = () => {
   })
 }
 
-const closePopover = () => {
+function closePopover() {
   variant.value = 'leave'
   setTimeout(() => {
     isOpen.value = false
   }, 300)
 }
 
-const handleClickOutside = (event) => {
+function handleClickOutside(event) {
   if (
-    props.closeOnClickOutside &&
-    popoverRef.value &&
-    !popoverRef.value.contains(event.target) &&
-    !triggerRef.value.contains(event.target)
+    props.closeOnClickOutside
+    && popoverRef.value
+    && !popoverRef.value.contains(event.target)
+    && !triggerRef.value.contains(event.target)
   ) {
     closePopover()
   }
 }
 
-const handleKeyDown = (event) => {
+function handleKeyDown(event) {
   if (props.closeOnEsc && event.key === 'Escape') {
     closePopover()
   }
@@ -171,7 +171,8 @@ watch(
         updatePopoverPosition()
         variant.value = 'enter'
       })
-    } else {
+    }
+    else {
       variant.value = 'leave'
     }
   },
@@ -191,7 +192,9 @@ watch(
         <slot name="content" :close="closePopover">
           <div class="p-4">
             <p>Default popover content</p>
-            <button @click="closePopover">Close</button>
+            <button @click="closePopover">
+              Close
+            </button>
           </div>
         </slot>
       </div>

@@ -17,7 +17,7 @@ const labelMarginLeft = computed<number>(() => {
 
 const slots = useSlots()
 
-const slotHasChildren = (name?: string) => {
+function slotHasChildren(name?: string) {
   return (slots[name ?? 'default']?.()?.length ?? 0) > 0
 }
 </script>
@@ -28,16 +28,16 @@ const slotHasChildren = (name?: string) => {
     style="align-self: stretch; justify-self: stretch; height: 100%; border-radius: 9999px"
   >
     <div class="progress-bar-input" :class="slotHasChildren() ? 'has-child' : ''">
-      <slot></slot>
+      <slot />
     </div>
     <div class="progress-bar flex items-center gap-2 w-full h-full">
       <div class="flex-1 flex rounded-full overflow-hidden h-full self-stretch">
-        <div class="bg-nc-brand-500" style="align-self: stretch" :style="{ width: `${cPercentage}%` }"></div>
+        <div class="bg-nc-brand-500" style="align-self: stretch" :style="{ width: `${cPercentage}%` }" />
         <div
           class="bg-[#e5e5e5] dark:bg-nc-bg-brand-inverted"
           style="align-self: stretch"
           :style="{ width: `${100 - cPercentage}%` }"
-        ></div>
+        />
         <template v-if="isShowNumber">
           <div class="absolute transform top-1/2 -translate-y-1/2" :style="{ 'margin-left': `${labelMarginLeft}%` }">
             <span

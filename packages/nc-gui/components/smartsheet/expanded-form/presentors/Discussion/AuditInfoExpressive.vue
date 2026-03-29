@@ -11,7 +11,8 @@ const props = defineProps<{
 const details = computed(() => {
   try {
     return JSON.parse(props.audit.details || '')
-  } catch (e) {
+  }
+  catch (e) {
     return {}
   }
 })
@@ -58,7 +59,7 @@ function normalizeMeta(key: string) {
     ...opts,
     ...mta,
     icon: mta.type === 'Rating' ? ratingIconListMap[icn] : checkboxIconListMap[icn],
-    duration: opts.duration_format ? durationOptions.find((it) => it.title === opts.duration_format)?.id : undefined,
+    duration: opts.duration_format ? durationOptions.find(it => it.title === opts.duration_format)?.id : undefined,
     is12hrFormat: opts['12hr_format'],
     isLocaleString: opts.locale_string,
     isDisplayTimezone: opts?.isDisplayTimezone || opts?.is_display_timezone,
@@ -116,14 +117,14 @@ function isShowableValue(value: any) {
   return ![undefined, null, ''].includes(value)
 }
 
-const isAiGeneratedText = (key: string) => {
+function isAiGeneratedText(key: string) {
   return (
     isAIPromptCol({
       uidt: meta.value?.[key]?.type,
       dt: meta.value?.[key]?.type === 'Number' ? 'bigint' : undefined,
       meta: normalizeMeta(key),
-    }) &&
-    (!ncIsObject(newData.value[key]) || !newData.value[key]?.lastModifiedBy)
+    })
+    && (!ncIsObject(newData.value[key]) || !newData.value[key]?.lastModifiedBy)
   )
 }
 </script>
@@ -298,15 +299,13 @@ const isAiGeneratedText = (key: string) => {
             <pre
               v-if="isShowableValue(processOldDataFor(columnKey))"
               class="!text-nc-content-red-dark border-1 border-nc-red-200 rounded-md bg-nc-bg-red-light line-through !mb-0 mt-1 p-1 max-w-full nc-scrollbar-thin"
-              >{{ processOldDataFor(columnKey) }}</pre
-            >
+            >{{ processOldDataFor(columnKey) }}</pre>
           </div>
           <div class="w-full flex justify-start">
             <pre
               v-if="isShowableValue(processNewDataFor(columnKey))"
               class="!text-nc-content-green-dark border-1 border-nc-green-200 rounded-md bg-nc-bg-green-light !mb-0 mt-1 p-1 max-w-full nc-scrollbar-thin"
-              >{{ processNewDataFor(columnKey) }}</pre
-            >
+            >{{ processNewDataFor(columnKey) }}</pre>
           </div>
         </template>
         <template v-else>

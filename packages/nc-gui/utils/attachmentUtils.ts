@@ -1,4 +1,4 @@
-export const createThumbnail = async (file: File): Promise<string | null> => {
+export async function createThumbnail(file: File): Promise<string | null> {
   if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) return null
   return new Promise<string | null>((resolve, reject) => {
     const reader = new FileReader()
@@ -28,7 +28,8 @@ export const createThumbnail = async (file: File): Promise<string | null> => {
           reject(new Error('Error loading image'))
         }
         img.src = thumbnailURL
-      } else if (file.type.startsWith('video/')) {
+      }
+      else if (file.type.startsWith('video/')) {
         const video = document.createElement('video')
         video.onloadedmetadata = function () {
           video.currentTime = 1
@@ -55,7 +56,8 @@ export const createThumbnail = async (file: File): Promise<string | null> => {
           reject(new Error('Error loading video'))
         }
         video.src = thumbnailURL
-      } else {
+      }
+      else {
         resolve(null)
       }
     }
@@ -84,7 +86,8 @@ export async function isURLExpired(url?: string) {
       isExpired: response.status === 403,
       status: response.status,
     }
-  } catch (error) {
+  }
+  catch (error) {
     return {
       isExpired: true,
       status: 0,
@@ -100,7 +103,7 @@ export function formatFileSize(bytes?: number, decimals = 2): string {
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
 
-  const size = parseFloat((bytes / k ** i).toFixed(decimals))
+  const size = Number.parseFloat((bytes / k ** i).toFixed(decimals))
 
   return `${size} ${sizes[i]}`
 }

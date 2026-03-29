@@ -37,8 +37,8 @@ const checkboxMeta = computed(() => {
   }
 
   if (isDark.value) {
-    result.color =
-      result.color === '#777'
+    result.color
+      = result.color === '#777'
         ? getColor(themeV4Colors.gray['600'])
         : getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), result.color, ['#4a5268', '#d5dce8'])
   }
@@ -51,7 +51,8 @@ const modelValue = computed(() => !!_modelValue && _modelValue !== '0' && _model
 const height = computed(() => {
   if (isGrid.value && !isExpandedFormOpen.value) {
     return `${!rowHeight.value || rowHeight.value === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight.value}`] - 20}px`
-  } else {
+  }
+  else {
     return undefined
   }
 })

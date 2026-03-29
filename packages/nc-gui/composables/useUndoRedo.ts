@@ -1,6 +1,6 @@
+import type { BaseType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import rfdc from 'rfdc'
-import type { BaseType, TableType, ViewType } from 'nocodb-sdk'
 
 export const useUndoRedo = createSharedComposable(() => {
   const clone = rfdc()
@@ -10,12 +10,13 @@ export const useUndoRedo = createSharedComposable(() => {
   const route = router.currentRoute
 
   // keys: baseType | baseId | type | title | viewTitle
-  const scope = computed<{ key: string; param: string }[]>(() => {
-    const tempScope: { key: string; param: string }[] = [{ key: 'root', param: 'root' }]
+  const scope = computed<{ key: string, param: string }[]>(() => {
+    const tempScope: { key: string, param: string }[] = [{ key: 'root', param: 'root' }]
     for (const [key, param] of Object.entries(route.value.params)) {
       if (Array.isArray(param)) {
         tempScope.push({ key, param: param.join(',') })
-      } else {
+      }
+      else {
         tempScope.push({ key, param })
       }
     }
@@ -23,13 +24,13 @@ export const useUndoRedo = createSharedComposable(() => {
     return tempScope
   })
 
-  const isSameScope = (sc: { key: string; param: string | string[] }[]) => {
+  const isSameScope = (sc: { key: string, param: string | string[] }[]) => {
     // TODO - improve this logic
     // for now we disable undo/redo for webhook, field, api, relation
-    const slugs = scope.value.find((s) => s.key === 'slugs')
+    const slugs = scope.value.find(s => s.key === 'slugs')
     if (slugs) {
       const params = Array.isArray(slugs.param) ? slugs.param : slugs.param.split(',')
-      if (params.some((el) => ['webhook', 'field', 'api', 'relation'].includes(el))) {
+      if (params.some(el => ['webhook', 'field', 'api', 'relation'].includes(el))) {
         return false
       }
     }
@@ -40,10 +41,11 @@ export const useUndoRedo = createSharedComposable(() => {
         (s2) => {
           if (Array.isArray(s.param)) {
             return (
-              (s.key === 'viewTitle' && s2.key === 'viewTitle' && s2.param === '') ||
-              (s.key === s2.key && s.param.includes(s2.param))
+              (s.key === 'viewTitle' && s2.key === 'viewTitle' && s2.param === '')
+              || (s.key === s2.key && s.param.includes(s2.param))
             )
-          } else {
+          }
+          else {
             return (
               (s.key === 'viewTitle' && s2.key === 'viewTitle' && s2.param === '') || (s.key === s2.key && s.param === s2.param)
             )
@@ -59,7 +61,7 @@ export const useUndoRedo = createSharedComposable(() => {
 
   const addUndo = (action: UndoRedoAction, fromRedo = false) => {
     // remove all redo actions that are in the same scope
-    if (!fromRedo) redoQueue.value = redoQueue.value.filter((a) => !isSameScope(a.scope || []))
+    if (!fromRedo) redoQueue.value = redoQueue.value.filter(a => !isSameScope(a.scope || []))
     undoQueue.value.push(action)
   }
 
@@ -84,7 +86,8 @@ export const useUndoRedo = createSharedComposable(() => {
       try {
         await action.undo.fn.apply(action, action.undo.args)
         addRedo(action)
-      } catch (e) {
+      }
+      catch (e) {
         message.warn('Error while undoing action, it is skipped.')
       }
     }
@@ -107,7 +110,8 @@ export const useUndoRedo = createSharedComposable(() => {
       try {
         await action.redo.fn.apply(action, action.redo.args)
         addUndo(action, true)
-      } catch (e) {
+      }
+      catch (e) {
         message.warn('Error while redoing action, it is skipped.')
       }
     }
@@ -117,30 +121,35 @@ export const useUndoRedo = createSharedComposable(() => {
     return [{ key: 'root', param: 'root' }]
   }
 
-  const defineProjectScope = (param: { base?: BaseType; model?: TableType; view?: ViewType; base_id?: string }) => {
+  const defineProjectScope = (param: { base?: BaseType, model?: TableType, view?: ViewType, base_id?: string }) => {
     if (param.base) {
       return [{ key: 'baseId', param: param.base.id! }]
-    } else if (param.model) {
+    }
+    else if (param.model) {
       return [{ key: 'baseId', param: param.model.base_id! }]
-    } else if (param.view) {
+    }
+    else if (param.view) {
       return [{ key: 'baseId', param: param.view.base_id! }]
-    } else {
+    }
+    else {
       return [{ key: 'baseId', param: param.base_id! }]
     }
   }
 
-  const defineModelScope = (param: { model?: TableType; view?: ViewType; base_id?: string; model_id?: string }) => {
+  const defineModelScope = (param: { model?: TableType, view?: ViewType, base_id?: string, model_id?: string }) => {
     if (param.model) {
       return [
         { key: 'baseId', param: param.model.base_id! },
         { key: 'viewId', param: param.model.id! },
       ]
-    } else if (param.view) {
+    }
+    else if (param.view) {
       return [
         { key: 'baseId', param: param.view.base_id! },
         { key: 'viewId', param: param.view.fk_model_id! },
       ]
-    } else {
+    }
+    else {
       return [
         { key: 'baseId', param: param.base_id! },
         { key: 'viewId', param: param.model_id! },
@@ -148,14 +157,15 @@ export const useUndoRedo = createSharedComposable(() => {
     }
   }
 
-  const defineViewScope = (param: { view?: ViewType; base_id?: string; model_id?: string; title?: string; id?: string }) => {
+  const defineViewScope = (param: { view?: ViewType, base_id?: string, model_id?: string, title?: string, id?: string }) => {
     if (param.view) {
       return [
         { key: 'baseId', param: param.view.base_id! },
         { key: 'viewId', param: param.view.fk_model_id! },
         { key: 'viewTitle', param: [param.view.title, param.view.id!] },
       ]
-    } else {
+    }
+    else {
       return [
         { key: 'baseId', param: param.base_id! },
         { key: 'viewId', param: param.model_id! },
@@ -180,7 +190,8 @@ export const useUndoRedo = createSharedComposable(() => {
             if (undoQueue.value.length) {
               undo()
             }
-          } else {
+          }
+          else {
             if (redoQueue.value.length) {
               redo()
             }

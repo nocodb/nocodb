@@ -1,7 +1,8 @@
-import { type ColumnType, type NcContext } from 'nocodb-sdk';
 import {
+  type ColumnType,
   extractRolesObj,
   getProjectRole,
+  type NcContext,
   PermissionEntity,
   PermissionGrantedType,
   PermissionKey,
@@ -10,6 +11,7 @@ import {
 } from 'nocodb-sdk';
 import type { UITypes, UserType } from 'nocodb-sdk';
 import type { User } from '~/models';
+import { Permission } from '~/models';
 import {
   deleteColumnSystemPropsFromRequest,
   TableSystemColumns,
@@ -20,7 +22,6 @@ import {
 } from '~/helpers/getUniqueName';
 import { DriverClient } from '~/utils/nc-config';
 import { isEE } from '~/utils';
-import { Permission } from '~/models';
 
 export const repopulateCreateTableSystemColumns = (
   _context: NcContext,
@@ -191,14 +192,8 @@ export async function hasTableVisibilityAccess(
   }
 
   // Check if user has permission
-  const hasPermission = await Permission.isAllowed(
-    context,
-    visibilityPermission,
-    {
-      id: user.id,
-      role: userRole,
-    },
-  );
-
-  return hasPermission;
+  return await Permission.isAllowed(context, visibilityPermission, {
+    id: user.id,
+    role: userRole,
+  });
 }

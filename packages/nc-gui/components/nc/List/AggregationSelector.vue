@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { CommonAggregations, UITypes, getAvailableAggregations } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
+import { CommonAggregations, getAvailableAggregations, UITypes } from 'nocodb-sdk'
 
 interface Props {
   baseId?: string
@@ -34,16 +34,16 @@ const modelValue = useVModel(props, 'value', emit)
 
 const isOpenAggregationSelectDropdown = ref(false)
 
-const handleValueUpdate = (value: any) => {
+function handleValueUpdate(value: any) {
   const stringValue = String(value)
   modelValue.value = stringValue
 }
 
 const column = ref<ColumnType | null>(null)
 const isLoading = ref(false)
-const aggregationList = ref<Array<{ label: string; value: string; ncItemDisabled: boolean; ncItemTooltip: string }>>([])
+const aggregationList = ref<Array<{ label: string, value: string, ncItemDisabled: boolean, ncItemTooltip: string }>>([])
 
-const loadAggregationList = async () => {
+async function loadAggregationList() {
   if (!props.tableId || !props.columnId) {
     isLoading.value = false
     aggregationList.value = []
@@ -59,7 +59,7 @@ const loadAggregationList = async () => {
       return
     }
 
-    const columnMeta = tableMeta.columns?.find((col) => col.id === props.columnId)
+    const columnMeta = tableMeta.columns?.find(col => col.id === props.columnId)
     if (!columnMeta) {
       aggregationList.value = []
       return
@@ -70,12 +70,13 @@ const loadAggregationList = async () => {
     let availableAggregations: string[]
     if (columnMeta.uidt === UITypes.Formula && columnMeta.colOptions && 'parsed_tree' in columnMeta.colOptions) {
       availableAggregations = getAvailableAggregations(columnMeta.uidt, (columnMeta.colOptions as any).parsed_tree)
-    } else {
+    }
+    else {
       availableAggregations = getAvailableAggregations(columnMeta.uidt!)
     }
 
     // Filter out None aggregation
-    availableAggregations = availableAggregations.filter((agg) => agg !== CommonAggregations.None)
+    availableAggregations = availableAggregations.filter(agg => agg !== CommonAggregations.None)
 
     // Apply custom filter if provided
     if (props.filterAggregation) {
@@ -90,9 +91,11 @@ const loadAggregationList = async () => {
         ncItemTooltip: '',
       }
     })
-  } catch (error) {
+  }
+  catch (error) {
     aggregationList.value = []
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 }
@@ -104,7 +107,7 @@ watch([() => props.tableId, () => props.columnId], () => {
 const aggregationListMap = computed(() => {
   if (!aggregationList.value || aggregationList.value.length === 0) return new Map()
 
-  return new Map(aggregationList.value.map((agg) => [agg.value, agg]))
+  return new Map(aggregationList.value.map(agg => [agg.value, agg]))
 })
 
 const selectedAggregation = computed(() => {
@@ -117,7 +120,7 @@ watch(
   aggregationList,
   (newAggregationList) => {
     if (newAggregationList && newAggregationList.length > 0) {
-      const newAggregationListMap = new Map(newAggregationList.map((agg) => [agg.value, agg]))
+      const newAggregationListMap = new Map(newAggregationList.map(agg => [agg.value, agg]))
 
       // Check if current value exists in the new aggregation list
       if (modelValue.value && !newAggregationListMap.has(modelValue.value)) {
@@ -162,7 +165,9 @@ defineExpose({
   >
     <template v-if="!disableLabel" #label>
       <div>
-        <slot name="label">{{ t('general.aggregation') }}</slot>
+        <slot name="label">
+          {{ t('general.aggregation') }}
+        </slot>
       </div>
     </template>
     <NcListDropdown
@@ -202,8 +207,7 @@ defineExpose({
           wrapper-class-name="!h-auto"
           @update:value="handleValueUpdate"
           @escape="onEsc"
-        >
-        </NcList>
+        />
       </template>
     </NcListDropdown>
   </a-form-item>

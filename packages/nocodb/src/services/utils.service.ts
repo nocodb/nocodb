@@ -11,6 +11,7 @@ import type { AppConfig, NcRequest } from '~/interface/config';
 import {
   NC_ATTACHMENT_FIELD_SIZE,
   NC_MAX_ATTACHMENTS_ALLOWED,
+  NC_MAX_TEXT_LENGTH,
 } from '~/constants';
 import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import { NcError } from '~/helpers/catchError';
@@ -468,6 +469,7 @@ export class UtilsService {
       ee: Noco.isEE(),
       ncAttachmentFieldSize: NC_ATTACHMENT_FIELD_SIZE,
       ncMaxAttachmentsAllowed: NC_MAX_ATTACHMENTS_ALLOWED,
+      ncMaxTextLength: NC_MAX_TEXT_LENGTH,
       isCloud: isCloud,
       automationLogLevel: process.env.NC_AUTOMATION_LOG_LEVEL || 'OFF',
       baseHostName: process.env.NC_BASE_HOST_NAME,
@@ -483,7 +485,9 @@ export class UtilsService {
       samlAuthEnabled,
       giftUrl,
       prodReady: Noco.getConfig()?.meta?.db?.client !== DriverClient.SQLITE,
-      allowLocalUrl: process.env.NC_ALLOW_LOCAL_HOOKS === 'true',
+      allowLocalUrl:
+        process.env.NC_WEBHOOK_ALLOW_PRIVATE_NETWORK === 'true' ||
+        process.env.NC_ALLOW_LOCAL_HOOKS === 'true',
       isOnPrem,
       disableSupportChat: NC_DISABLE_SUPPORT_CHAT,
       disableGroupByAggregation: NC_DISABLE_GROUP_BY_AGG,
@@ -498,7 +502,7 @@ export class UtilsService {
         process.env.NODE_ENV === 'test',
       ...(isEE === false
         ? {
-            ncDefaultWorkspaceId: Noco.ncDefaultWorkspaceId || null,
+            defaultWorkspaceId: Noco.ncDefaultWorkspaceId || null,
           }
         : {}),
     };

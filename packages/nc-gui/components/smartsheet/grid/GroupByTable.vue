@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import { type ColumnType, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
-import Table from './Table.vue'
+import type { ColumnType } from 'nocodb-sdk'
+import { isLinksOrLTAR, UITypes } from 'nocodb-sdk'
 import { NavigateDir } from '~/lib/enums'
+import Table from './Table.vue'
 
 const props = defineProps<{
   group: Group
@@ -95,7 +96,8 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, 
         rowId,
       },
     })
-  } else {
+  }
+  else {
     if (groupByKey && groupByKey !== vGroup.value.key) {
       return
     }
@@ -105,7 +107,7 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, 
   }
 }
 
-const addRowExpandOnClose = (row: Row) => {
+function addRowExpandOnClose(row: Row) {
   eventBus.emit(SmartsheetStoreEvents.CLEAR_NEW_ROW, row)
 }
 
@@ -116,16 +118,16 @@ function addEmptyRow(group: Group, addAfter?: number, metaValue = meta.value) {
 
   const setGroup = group.nestedIn.reduce((acc, curr) => {
     if (
-      curr.key !== '__nc_null__' &&
+      curr.key !== '__nc_null__'
       // avoid setting default value for rollup, formula, barcode, qrcode, links, ltar
-      !isLinksOrLTAR(curr.column_uidt) &&
-      ![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(curr.column_uidt)
+      && !isLinksOrLTAR(curr.column_uidt)
+      && ![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(curr.column_uidt)
     ) {
       acc[curr.title] = curr.key
 
       if (curr.column_uidt === UITypes.Checkbox) {
-        acc[curr.title] =
-          acc[curr.title] === GROUP_BY_VARS.TRUE ? true : acc[curr.title] === GROUP_BY_VARS.FALSE ? false : !!acc[curr.title]
+        acc[curr.title]
+          = acc[curr.title] === GROUP_BY_VARS.TRUE ? true : acc[curr.title] === GROUP_BY_VARS.FALSE ? false : !!acc[curr.title]
       }
     }
     return acc
@@ -179,13 +181,13 @@ const {
   },
 })
 
-const deleteRow = async (rowIndex: number) => {
+async function deleteRow(rowIndex: number) {
   vGroup.value.count = vGroup.value.count - 1
   await _deleteRow(rowIndex)
 }
 
 const reloadTableData = withLoading(
-  async (params: void | { shouldShowLoading?: boolean | undefined; offset?: number | undefined }) => {
+  async (params: void | { shouldShowLoading?: boolean | undefined, offset?: number | undefined }) => {
     await props.loadGroupData(vGroup.value, true, {
       ...(params?.offset !== undefined ? { offset: params.offset } : {}),
     })
@@ -209,7 +211,7 @@ function getExpandedRowIndex() {
   )
 }
 
-const navigateToSiblingRow = async (dir: NavigateDir) => {
+async function navigateToSiblingRow(dir: NavigateDir) {
   // debugger
   const expandedRowIndex = getExpandedRowIndex()
 
@@ -233,7 +235,8 @@ const navigateToSiblingRow = async (dir: NavigateDir) => {
 
     // if next row index is greater than total rows in current view
     // then load next page of formattedData and set next row index to 0
-  } else if (siblingRowIndex >= formattedData.value.length) {
+  }
+  else if (siblingRowIndex >= formattedData.value.length) {
     if (vGroup.value.paginationData?.isLastPage) return message.info(t('msg.info.noMoreRecords'))
 
     await props.loadGroupPage(vGroup.value, currentPage + 1)
@@ -253,10 +256,10 @@ const navigateToSiblingRow = async (dir: NavigateDir) => {
   }
 }
 
-const validateExternalSourceRecordVisibility = (page: number, callback?: () => void) => {
+function validateExternalSourceRecordVisibility(page: number, callback?: () => void) {
   if (
-    (vGroup.value.paginationData?.pageSize ?? 10) * page > 100 &&
-    showUpgradeToSeeMoreRecordsModal({ isExternalSource: isExternalSource.value })
+    (vGroup.value.paginationData?.pageSize ?? 10) * page > 100
+    && showUpgradeToSeeMoreRecordsModal({ isExternalSource: isExternalSource.value })
   ) {
     return true
   }
@@ -264,13 +267,13 @@ const validateExternalSourceRecordVisibility = (page: number, callback?: () => v
   callback?.()
 }
 
-const goToNextRow = async () => {
+async function goToNextRow() {
   const currentIndex = getExpandedRowIndex()
 
   if (
-    !vGroup.value.paginationData?.isLastPage &&
-    currentIndex === (vGroup.value.paginationData?.pageSize ?? 10) - 1 &&
-    validateExternalSourceRecordVisibility(vGroup.value.paginationData?.page ? vGroup.value.paginationData?.page + 1 : 1)
+    !vGroup.value.paginationData?.isLastPage
+    && currentIndex === (vGroup.value.paginationData?.pageSize ?? 10) - 1
+    && validateExternalSourceRecordVisibility(vGroup.value.paginationData?.page ? vGroup.value.paginationData?.page + 1 : 1)
   ) {
     expandedFormRef.value?.stopLoading?.()
     return
@@ -286,7 +289,7 @@ const goToNextRow = async () => {
   navigateToSiblingRow(NavigateDir.NEXT)
 }
 
-const goToPreviousRow = async () => {
+async function goToPreviousRow() {
   const currentIndex = getExpandedRowIndex()
   /* when first index of current page is reached and then clicked back
     previos page should be loaded
@@ -319,7 +322,7 @@ async function deleteSelectedRowsWrapper() {
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
-const smartsheetEvents = (event: string) => {
+function smartsheetEvents(event: string) {
   if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()
   }
@@ -351,7 +354,7 @@ defineExpose({
     :v-group="vGroup"
     :pagination-data="vGroup.paginationData"
     :load-data="async () => {}"
-    :change-page="(p: number) => validateExternalSourceRecordVisibility(p, ()=> props.loadGroupPage(vGroup, p))"
+    :change-page="(p: number) => validateExternalSourceRecordVisibility(p, () => props.loadGroupPage(vGroup, p))"
     :call-add-empty-row="(addAfter?: number) => addEmptyRow(vGroup, addAfter)"
     :expand-form="expandForm"
     :row-height-enum="rowHeight"

@@ -52,7 +52,8 @@ const timezoneDayjs = computed(() => {
 const days = computed(() => {
   if (props.isMondayFirst) {
     return ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
-  } else {
+  }
+  else {
     return ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
   }
 })
@@ -69,7 +70,7 @@ const currentYear = computed(() => {
   return timezoneDayjs.value.dayjsTz(pageDate.value).format('YYYY')
 })
 
-const selectWeek = (date: dayjs.Dayjs) => {
+function selectWeek(date: dayjs.Dayjs) {
   const startDate = date.startOf('week')
   const newWeek = {
     start: startDate,
@@ -98,36 +99,38 @@ const dates = computed(() => {
 })
 
 // Check if the date is in the selected week
-const isDateInSelectedWeek = (date: dayjs.Dayjs) => {
+function isDateInSelectedWeek(date: dayjs.Dayjs) {
   if (!selectedWeek.value) return false
   return date.isBetween(selectedWeek.value.start, selectedWeek.value.end, 'day', '[]')
 }
 
 // Used to check if two dates are the same
-const isSameDate = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
+function isSameDate(date1: dayjs.Dayjs, date2: dayjs.Dayjs) {
   if (!date1 || !date2) return false
   return date1.isSame(date2, 'day')
 }
 
 // Used in DatePicker for checking if the date is currently selected
-const isSelectedDate = (dObj: dayjs.Dayjs) => {
+function isSelectedDate(dObj: dayjs.Dayjs) {
   if (!selectedDate.value) return false
   const propDate = timezoneDayjs.value.dayjsTz(selectedDate.value)
   return props.selectedDate ? isSameDate(propDate, dObj) : false
 }
 
-const isDayInPagedMonth = (date: dayjs.Dayjs) => {
+function isDayInPagedMonth(date: dayjs.Dayjs) {
   return date.month() === timezoneDayjs.value.dayjsTz(pageDate.value).month()
 }
 
 // Since we are using the same component for week picker and date picker we need to handle the date selection differently
-const handleSelectDate = (date: dayjs.Dayjs) => {
+function handleSelectDate(date: dayjs.Dayjs) {
   if (props.isWeekPicker) {
     selectWeek(date)
-  } else if (props.isCellInputField) {
+  }
+  else if (props.isCellInputField) {
     selectedDate.value = date
     emit('update:selectedDate', date)
-  } else {
+  }
+  else {
     if (!isDayInPagedMonth(date)) {
       pageDate.value = date
       emit('update:pageDate', date)
@@ -138,21 +141,22 @@ const handleSelectDate = (date: dayjs.Dayjs) => {
 }
 
 // Used to check if a date is in the current month
-const isDateInCurrentMonth = (date: dayjs.Dayjs) => {
+function isDateInCurrentMonth(date: dayjs.Dayjs) {
   return date.month() === timezoneDayjs.value.dayjsTz(pageDate.value).month()
 }
 
 // Used to Check if an event is in the date
-const isActiveDate = (date: dayjs.Dayjs) => {
-  return activeDates.value.some((d) => isSameDate(d, date))
+function isActiveDate(date: dayjs.Dayjs) {
+  return activeDates.value.some(d => isSameDate(d, date))
 }
 
 // Paginate the calendar
-const paginate = (action: 'next' | 'prev') => {
+function paginate(action: 'next' | 'prev') {
   let newDate = timezoneDayjs.value.dayjsTz(pageDate.value)
   if (action === 'next') {
     newDate = newDate.add(1, 'month')
-  } else {
+  }
+  else {
     newDate = newDate.subtract(1, 'month')
   }
   pageDate.value = newDate
@@ -238,8 +242,7 @@ const paginate = (action: 'next' | 'prev') => {
             v-for="(day, index) in days"
             :key="index"
             class="flex w-8 h-8 items-center font-[400] justify-center text-nc-content-gray-muted"
-            >{{ day }}</span
-          >
+          >{{ day }}</span>
         </div>
       </div>
       <div
@@ -285,7 +288,7 @@ const paginate = (action: 'next' | 'prev') => {
               '!border-nc-brand-50': isSameDate(date, timezoneDayjs.dayjsTz()),
             }"
             class="absolute top-1 transition right-1 h-1.5 w-1.5 z-2 border-1 rounded-full border-nc-base-white bg-nc-fill-primary"
-          ></span>
+          />
           <span class="nc-date-item-inner z-2">
             {{ date.get('date') }}
           </span>

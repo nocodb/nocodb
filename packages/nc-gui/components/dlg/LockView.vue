@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
 import type { ViewType } from 'nocodb-sdk'
-import { viewTypeAlias } from 'nocodb-sdk'
+import type { VNodeRef } from 'vue'
 import { LockType } from '#imports'
+import { viewTypeAlias } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue?: boolean
@@ -36,7 +36,7 @@ const changeType = computed(() =>
   view.value?.lock_type !== LockType.Locked ? LockType.Locked : props.changeType || LockType.Collaborative,
 )
 
-const focusInput: VNodeRef = (el) => el && el?.focus?.()
+const focusInput: VNodeRef = el => el && el?.focus?.()
 
 const formValidator = ref()
 
@@ -52,7 +52,7 @@ const formRules = {
 
 const isLoading = ref(false)
 
-const changeLockType = async () => {
+async function changeLockType() {
   if (!view.value?.id) return
 
   if (changeType.value === LockType.Locked) {
@@ -80,9 +80,11 @@ const changeLockType = async () => {
     message.success(`Successfully Switched to ${view.value.lock_type} view`)
 
     $e(`a:${viewTypeAlias[view.value.type] || 'view'}:lock`, { lockType: view.value.lock_type, title: view.value.title })
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     dialogShow.value = false
     isLoading.value = false
   }
@@ -108,7 +110,8 @@ watch(
 
     try {
       isErrored.value = !(await formValidator.value?.validate?.())
-    } catch (e: any) {
+    }
+    catch (e: any) {
       isErrored.value = true
     }
   },
@@ -124,7 +127,9 @@ watch(
       <div v-if="view?.meta?.lockedViewDescription" class="text-sm bg-nc-bg-gray-light rounded-lg px-2 py-2">
         {{ view?.meta?.lockedViewDescription }}
       </div>
-      <div class="text-sm text-nc-content-gray">{{ $t('title.unlockThisVieToMakeChanges') }}</div>
+      <div class="text-sm text-nc-content-gray">
+        {{ $t('title.unlockThisVieToMakeChanges') }}
+      </div>
       <div class="text-sm text-nc-content-gray">
         {{ $t('title.unlockViewTitleSubtitle') }}
         <span v-if="idUserMap[view?.meta?.lockedByUserId]?.id === user?.id" class="font-bold"> {{ $t('general.you') }} </span>
@@ -207,9 +212,11 @@ watch(
       </div>
 
       <div class="flex gap-2 items-center justify-end">
-        <NcButton type="secondary" size="small" :disabled="isLoading" data-testid="nc-cancel-btn" @click="dialogShow = false">{{
-          $t('general.cancel')
-        }}</NcButton>
+        <NcButton type="secondary" size="small" :disabled="isLoading" data-testid="nc-cancel-btn" @click="dialogShow = false">
+          {{
+            $t('general.cancel')
+          }}
+        </NcButton>
 
         <NcButton
           type="primary"

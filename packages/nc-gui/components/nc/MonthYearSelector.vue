@@ -52,47 +52,50 @@ const months = computed(() => {
   return months
 })
 
-const compareDates = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
+function compareDates(date1: dayjs.Dayjs, date2: dayjs.Dayjs) {
   if (!date1 || !date2) return false
   return date1.isSame(date2, 'month') && date1.isSame(date2, 'year')
 }
 
-const isMonthSelected = (date: dayjs.Dayjs) => {
+function isMonthSelected(date: dayjs.Dayjs) {
   if (!timezoneDayjs.value.dayjsTz(selectedDate.value).isValid()) return false
   return compareDates(date, selectedDate.value)
 }
 
-const paginateMonth = (action: 'next' | 'prev') => {
+function paginateMonth(action: 'next' | 'prev') {
   let date = pageDate.value
   if (action === 'next') {
     date = date.add(1, 'year')
-  } else {
+  }
+  else {
     date = date.subtract(1, 'year')
   }
   pageDate.value = date
   emit('update:pageDate', date)
 }
 
-const paginateYear = (action: 'next' | 'prev') => {
+function paginateYear(action: 'next' | 'prev') {
   let date = timezoneDayjs.value.dayjsTz(pageDate.value)
   if (action === 'next') {
     date = date.add(12, 'year')
-  } else {
+  }
+  else {
     date = date.subtract(12, 'year')
   }
   pageDate.value = date
   emit('update:pageDate', date)
 }
 
-const paginate = (action: 'next' | 'prev') => {
+function paginate(action: 'next' | 'prev') {
   if (props.isYearPicker) {
     paginateYear(action)
-  } else {
+  }
+  else {
     paginateMonth(action)
   }
 }
 
-const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
+function compareYear(date1: dayjs.Dayjs, date2: dayjs.Dayjs) {
   if (!date1 || !date2) return false
   return date1.isSame(date2, 'year')
 }
@@ -125,14 +128,13 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
             'cursor-pointer hover:text-nc-content-brand': isCellInputField && !isYearPicker,
           }"
           @click="!isYearPicker ? (pickerType = 'year') : () => undefined"
-          >{{
-            isYearPicker
-              ? isCellInputField
-                ? timezoneDayjs.dayjsTz(selectedDate).year() || timezoneDayjs.dayjsTz().year()
-                : timezoneDayjs.dayjsTz(selectedDate).year()
-              : timezoneDayjs.dayjsTz(pageDate).format('YYYY')
-          }}</span
-        >
+        >{{
+          isYearPicker
+            ? isCellInputField
+              ? timezoneDayjs.dayjsTz(selectedDate).year() || timezoneDayjs.dayjsTz().year()
+              : timezoneDayjs.dayjsTz(selectedDate).year()
+            : timezoneDayjs.dayjsTz(pageDate).format('YYYY')
+        }}</span>
         <div class="flex">
           <NcTooltip hide-on-click>
             <NcButton class="nc-next-page-btn !border-0" size="small" type="text" @click="paginate('next')">

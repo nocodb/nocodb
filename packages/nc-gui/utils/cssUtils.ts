@@ -1,4 +1,4 @@
-export const onboardingFlowColoursMapping: Record<string, { lightBg: string; content: string }> = {
+export const onboardingFlowColoursMapping: Record<string, { lightBg: string, content: string }> = {
   brand: {
     lightBg: 'bg-nc-bg-brand',
     content: 'text-nc-content-brand',
@@ -79,7 +79,7 @@ export const roleColorsMapping: Record<
   },
 }
 
-export const getTableAndFieldPermissionsColors = (color: string) => {
+export function getTableAndFieldPermissionsColors(color: string) {
   switch (color) {
     case 'purple':
       return 'text-purple-700'

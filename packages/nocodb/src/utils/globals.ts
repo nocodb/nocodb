@@ -26,6 +26,9 @@ export enum MetaTable {
   CALENDAR_VIEW = 'nc_calendar_view_v2',
   CALENDAR_VIEW_COLUMNS = 'nc_calendar_view_columns_v2',
   CALENDAR_VIEW_RANGE = 'nc_calendar_view_range_v2',
+  TIMELINE_VIEW = 'nc_timeline_view_v2',
+  TIMELINE_VIEW_COLUMNS = 'nc_timeline_view_columns_v2',
+  TIMELINE_VIEW_RANGE = 'nc_timeline_view_range_v2',
   GRID_VIEW = 'nc_grid_view_v2',
   GRID_VIEW_COLUMNS = 'nc_grid_view_columns_v2',
   KANBAN_VIEW = 'nc_kanban_view_v2',
@@ -50,6 +53,7 @@ export enum MetaTable {
   LIST_VIEW = 'nc_list_view_v2',
   LIST_VIEW_COLUMNS = 'nc_list_view_columns_v2',
   LIST_VIEW_LEVELS = 'nc_list_view_levels_v2',
+  DATE_DEPENDENCY = 'nc_date_dependency_v2',
   STORE = 'nc_store',
   NOTIFICATION = 'notification',
   USER_REFRESH_TOKENS = 'nc_user_refresh_tokens',
@@ -118,12 +122,19 @@ export enum MetaTable {
   RLS_POLICIES = 'nc_rls_policies',
   RLS_POLICY_SUBJECTS = 'nc_rls_policy_subjects',
   VIEW_SECTIONS = 'nc_view_sections',
+  CHAT_SESSIONS = 'nc_chat_sessions',
+  CHAT_MESSAGES = 'nc_chat_messages',
+  DOCS = 'nc_docs_v2',
+  DOC_CONTENT = 'nc_doc_content_v2',
 }
 
 export const BaseRelatedMetaTables = [
   MetaTable.CALENDAR_VIEW_COLUMNS,
   MetaTable.CALENDAR_VIEW_RANGE,
   MetaTable.CALENDAR_VIEW,
+  MetaTable.TIMELINE_VIEW_COLUMNS,
+  MetaTable.TIMELINE_VIEW_RANGE,
+  MetaTable.TIMELINE_VIEW,
   MetaTable.COL_BARCODE,
   MetaTable.COL_BUTTON,
   MetaTable.COL_FORMULA,
@@ -156,6 +167,7 @@ export const BaseRelatedMetaTables = [
   MetaTable.LIST_VIEW_COLUMNS,
   MetaTable.LIST_VIEW_LEVELS,
   MetaTable.LIST_VIEW,
+  MetaTable.DATE_DEPENDENCY,
   MetaTable.MCP_TOKENS,
   MetaTable.MODELS,
   MetaTable.PERMISSIONS,
@@ -175,6 +187,8 @@ export const BaseRelatedMetaTables = [
   MetaTable.AUTOMATIONS,
   MetaTable.AUTOMATION_EXECUTIONS,
   MetaTable.DEPENDENCY_TRACKER,
+  MetaTable.DOCS,
+  MetaTable.DOC_CONTENT,
 ];
 
 export enum MetaTableOldV2 {
@@ -194,24 +208,64 @@ export enum MetaTableOldV2 {
 }
 
 export const orderedMetaTables = [
+  // Misc leaf tables
   MetaTable.MODEL_ROLE_VISIBILITY,
   MetaTable.PLUGIN,
   MetaTable.AUDIT,
+  MetaTable.ACL,
+
+  // Team / Permission (children before parents)
+  MetaTable.TEAM_USERS,
   MetaTable.TEAMS,
+  MetaTable.TEAM_USERS_OLD,
+  MetaTable.TEAMS_OLD,
   MetaTable.PRINCIPAL_ASSIGNMENTS,
+  MetaTable.PRINCIPALS,
+  MetaTable.PERMISSION_SUBJECTS,
+  MetaTable.PERMISSIONS,
+
+  // Org
+  MetaTable.ORG_USERS,
+  MetaTable.ORG_DOMAIN,
+  MetaTable.ORG,
   MetaTable.ORGS_OLD,
+
+  // User-related
+  MetaTable.API_TOKENS,
   MetaTable.PROJECT_USERS,
+  MetaTable.WORKSPACE_USER,
+  MetaTable.USER_REFRESH_TOKENS,
   MetaTable.USERS,
-  MetaTable.MAP_VIEW,
+
+  // OAuth
+  MetaTable.OAUTH_AUTHORIZATION_CODES,
+  MetaTable.OAUTH_TOKENS,
+  MetaTable.OAUTH_CLIENTS,
+
+  // SSO
+  MetaTable.SSO_CLIENT_DOMAIN,
+  MetaTable.SSO_CLIENT,
+
+  // Notification / Comments
+  MetaTable.NOTIFICATION,
+  MetaTable.COMMENTS_REACTIONS,
+  MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE,
+  MetaTable.COMMENTS,
+
+  // View types (children before parents)
   MetaTable.MAP_VIEW_COLUMNS,
-  MetaTable.LIST_VIEW,
+  MetaTable.MAP_VIEW,
   MetaTable.LIST_VIEW_COLUMNS,
   MetaTable.LIST_VIEW_LEVELS,
+  MetaTable.LIST_VIEW,
   MetaTable.KANBAN_VIEW_COLUMNS,
   MetaTable.KANBAN_VIEW,
-  MetaTable.CALENDAR_VIEW,
   MetaTable.CALENDAR_VIEW_COLUMNS,
   MetaTable.CALENDAR_VIEW_RANGE,
+  MetaTable.CALENDAR_VIEW,
+  MetaTable.TIMELINE_VIEW_COLUMNS,
+  MetaTable.TIMELINE_VIEW_RANGE,
+  MetaTable.TIMELINE_VIEW,
   MetaTable.GRID_VIEW_COLUMNS,
   MetaTable.GRID_VIEW,
   MetaTable.GALLERY_VIEW_COLUMNS,
@@ -219,23 +273,99 @@ export const orderedMetaTables = [
   MetaTable.FORM_VIEW_COLUMNS,
   MetaTable.FORM_VIEW,
   MetaTable.SHARED_VIEWS,
+  MetaTable.VIEW_SECTIONS,
+
+  // Sort / Filter / Hook
+  MetaTable.ROW_COLOR_CONDITIONS,
   MetaTable.SORT,
   MetaTable.FILTER_EXP,
   MetaTable.HOOK_LOGS,
-  MetaTable.HOOKS,
   MetaTable.HOOK_TRIGGER_FIELDS,
+  MetaTable.HOOKS,
   MetaTable.VIEWS,
+
+  // Column subtypes (children before parent)
   MetaTable.COL_FORMULA,
   MetaTable.COL_ROLLUP,
   MetaTable.COL_LOOKUP,
   MetaTable.COL_SELECT_OPTIONS,
   MetaTable.COL_RELATIONS,
+  MetaTable.COL_PROPS,
+  MetaTable.COL_QRCODE,
+  MetaTable.COL_BARCODE,
+  MetaTable.COL_LONG_TEXT,
+  MetaTable.COL_BUTTON,
   MetaTable.COLUMN_VALIDATIONS,
   MetaTable.COLUMNS,
+
+  // Model-related
   MetaTable.RECORD_TEMPLATES,
+  MetaTable.DEPENDENCY_TRACKER,
+  MetaTable.MODEL_STAT,
+  MetaTable.CUSTOM_URLS,
+  MetaTable.MCP_TOKENS,
+  MetaTable.DOCS,
+  MetaTable.DOC_CONTENT,
   MetaTable.MODELS,
+
+  // Dashboard / Widget
+  MetaTable.WIDGET_DB_DEPENDENCIES,
+  MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS,
+  MetaTable.WIDGETS,
+  MetaTable.WIDGET,
+  MetaTable.DASHBOARDS,
+  MetaTable.LAYOUT,
+
+  // Sync
+  MetaTable.SYNC_LOGS,
+  MetaTable.SYNC_SOURCE,
+  MetaTable.SYNC_CONFIGS,
+  MetaTable.SYNC_MAPPINGS,
+
+  // Integrations / Sources / Project
+  MetaTable.INTEGRATIONS_STORE,
+  MetaTable.INTEGRATIONS,
+  MetaTable.DATA_REFLECTION,
   MetaTable.SOURCES,
   MetaTable.PROJECT,
+
+  // Automations
+  MetaTable.AUTOMATION_SUBSCRIBERS,
+  MetaTable.AUTOMATION_EXECUTIONS,
+  MetaTable.AUTOMATIONS,
+
+  // Payment
+  MetaTable.SUBSCRIPTIONS,
+  MetaTable.PLANS,
+
+  // Installations / Sandboxes / Apps
+  MetaTable.MANAGED_APP_DEPLOYMENT_LOGS,
+  MetaTable.MANAGED_APP_VERSIONS,
+  MetaTable.MANAGED_APPS,
+  MetaTable.SANDBOX_DEPLOYMENT_LOGS_OLD,
+  MetaTable.SANDBOX_VERSIONS_OLD,
+  MetaTable.SANDBOXES_OLD,
+  MetaTable.SANDBOXES,
+  MetaTable.INSTALLATIONS,
+
+  // Misc standalone
+  MetaTable.EXTENSIONS,
+  MetaTable.JOBS,
+  MetaTable.FILE_REFERENCES,
+  MetaTable.SNAPSHOT,
+  MetaTable.USAGE_STATS,
+  MetaTable.DB_SERVERS,
+  MetaTable.DB_MUX,
+  MetaTable.SCIM_CONFIG,
+  MetaTable.RLS_POLICY_SUBJECTS,
+  MetaTable.RLS_POLICIES,
+
+  // Workspace-scoped
+  MetaTable.BOOK,
+  MetaTable.FOLLOWER,
+  MetaTable.COWRITER,
+  MetaTable.WORKSPACE,
+  MetaTable.STORE,
 ];
 
 export const sakilaTableNames = [
@@ -292,12 +422,16 @@ export enum CacheScope {
   CALENDAR_VIEW = 'calendarView',
   CALENDAR_VIEW_COLUMN = 'calendarViewColumn',
   CALENDAR_VIEW_RANGE = 'calendarViewRange',
+  TIMELINE_VIEW = 'timelineView',
+  TIMELINE_VIEW_COLUMN = 'timelineViewColumn',
+  TIMELINE_VIEW_RANGE = 'timelineViewRange',
   MAP_VIEW = 'mapView',
   MAP_VIEW_COLUMN = 'mapViewColumn',
   KANBAN_VIEW_COLUMN = 'kanbanViewColumn',
   LIST_VIEW = 'listView',
   LIST_VIEW_COLUMN = 'listViewColumn',
   LIST_VIEW_LEVEL = 'listViewLevel',
+  DATE_DEPENDENCY = 'dateDependency',
   USER = 'user',
   ORGS_OLD = 'orgs',
   TEAM = 'team',
@@ -350,6 +484,7 @@ export enum CacheScope {
   TEMPLATES = 'templates',
   WORKFLOW = 'nc_workflow',
   WORKFLOW_EXECUTION = 'nc_workflow_execution',
+  PRESENCE = 'presence',
   WORKFLOW_WEBHOOK_TEST_LISTENER = 'nc_workflow_webhook_test_listener',
   DEPENDENCY_TRACKER = 'nc_dependency_tracker',
   INSTALLATION = 'installation',
@@ -364,6 +499,9 @@ export enum CacheScope {
   RECORD_TEMPLATE = 'recordTemplate',
   RLS_POLICY = 'rlsPolicy',
   VIEW_SECTION = 'viewSection',
+  CHAT_SESSION = 'chatSession',
+  DOCUMENT = 'document',
+  DOC_CONTENT = 'docContent',
 }
 
 export enum CacheGetType {
@@ -382,7 +520,6 @@ export const DB_TYPES = <const>[
   'sqlite3',
   'mysql',
   'snowflake',
-  'oracledb',
   'pg',
   'databricks',
 ];

@@ -1,15 +1,10 @@
 {
   "extends": "./.nuxt/tsconfig.json",
   "compilerOptions": {
-    "strict": true,
-    "esModuleInterop": true,
-    "incremental": false,
-    "skipLibCheck": true,
-    "moduleResolution": "node",
+    "incremental": true,
+    "tsBuildInfoFile": "./node_modules/.cache/.tsbuildinfo",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
-    "noUnusedLocals": false,
-    "strictNullChecks": true,
-    "forceConsistentCasingInFileNames": true,
     "types": [
       "@intlify/unplugin-vue-i18n/messages",
       "vue-i18n",
@@ -17,7 +12,13 @@
       "nuxt-windicss",
       "vite/client",
       "@nuxt/image"
-    ]
+    ],
+    "strict": true,
+    "strictNullChecks": true,
+    "noUnusedLocals": false,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
   },
-  "exclude": ["node_modules", "dist", ".output"]
+  "exclude": ["node_modules", "dist", ".output", "test", "**/node_modules", "**/dist", "**/.output"]
 }

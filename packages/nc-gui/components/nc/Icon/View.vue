@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { ViewType } from 'nocodb-sdk'
+
 const props = defineProps<{
   view: ViewType
   ignoreColor?: boolean

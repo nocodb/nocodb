@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Tooltip as ATooltip, Empty } from 'ant-design-vue'
 import type { AuditType } from 'nocodb-sdk'
+import { Tooltip as ATooltip, Empty } from 'ant-design-vue'
 import { timeAgo } from 'nocodb-sdk'
 
 interface Props {
@@ -43,9 +43,11 @@ async function loadAudits(page = currentPage.value, limit = currentLimit.value) 
 
     audits.value = list
     totalRows.value = pageInfo.totalRows ?? 0
-  } catch (e) {
+  }
+  catch (e) {
     console.error(e)
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 }
@@ -108,7 +110,9 @@ const columns = [
       Audit logs are currently disabled by administrators.
     </div>
     <div class="flex flex-row justify-between items-center">
-      <h6 class="mb-4 first-letter:capital font-bold">Audit : {{ base.title }}</h6>
+      <h6 class="mb-4 first-letter:capital font-bold">
+        Audit : {{ base.title }}
+      </h6>
       <a-button class="self-start !rounded-md" @click="loadAudits">
         <!-- Reload -->
         <div class="flex items-center gap-2 text-nc-content-gray-subtle2 font-light">

@@ -1,6 +1,6 @@
 import type { ColumnType, FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
-import { NcApiVersion, ViewLockType, ViewTypes, extractFilterFromXwhere, getFirstNonPersonalView } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { extractFilterFromXwhere, getFirstNonPersonalView, NcApiVersion, ViewLockType, ViewTypes } from 'nocodb-sdk'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   (
@@ -43,14 +43,15 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const isLocked = computed(
       () =>
-        (view.value?.lock_type === ViewLockType.Personal && user.value?.id !== view.value?.owned_by) ||
-        view.value?.lock_type === ViewLockType.Locked,
+        (view.value?.lock_type === ViewLockType.Personal && user.value?.id !== view.value?.owned_by)
+        || view.value?.lock_type === ViewLockType.Locked,
     )
-    const isPkAvail = computed(() => (meta.value as TableType)?.columns?.some((c) => c.pk))
+    const isPkAvail = computed(() => (meta.value as TableType)?.columns?.some(c => c.pk))
     const isGrid = computed(() => view.value?.type === ViewTypes.GRID)
     const isForm = computed(() => view.value?.type === ViewTypes.FORM)
     const isGallery = computed(() => view.value?.type === ViewTypes.GALLERY)
     const isCalendar = computed(() => view.value?.type === ViewTypes.CALENDAR)
+    const isTimeline = computed(() => view.value?.type === ViewTypes.TIMELINE)
     const isKanban = computed(() => view.value?.type === ViewTypes.KANBAN)
     const isMap = computed(() => view.value?.type === ViewTypes.MAP)
     const isList = computed(() => view.value?.type === ViewTypes.LIST)
@@ -65,7 +66,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const gridEditEnabled = ref(true)
 
     const isExternalSource = computed(
-      () => !!base.value?.sources?.some((s) => s.id === (meta.value as TableType)?.source_id && !s.is_meta && !s.is_local),
+      () => !!base.value?.sources?.some(s => s.id === (meta.value as TableType)?.source_id && !s.is_meta && !s.is_local),
     )
 
     /**
@@ -136,9 +137,9 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
         where = whereQueryFromUrl.value
       }
 
-      const col =
-        (meta.value as TableType)?.columns?.find(({ id }) => id === search.value.field) ||
-        (meta.value as TableType)?.columns?.find((v) => v.pv)
+      const col
+        = (meta.value as TableType)?.columns?.find(({ id }) => id === search.value.field)
+          || (meta.value as TableType)?.columns?.find(v => v.pv)
 
       const searchQuery = search.value.query.trim()
 
@@ -221,7 +222,8 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
           viewColumnsMap[key] = result?.list ?? []
           pendingRequests.delete(key)
           return result?.list ?? []
-        } catch (error) {
+        }
+        catch (error) {
           pendingRequests.delete(key)
           throw error
         }
@@ -246,6 +248,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       isMap,
       isList,
       isCalendar,
+      isTimeline,
       isSharedForm,
       sorts,
       nestedFilters,

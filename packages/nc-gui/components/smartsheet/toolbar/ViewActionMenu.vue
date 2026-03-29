@@ -1,7 +1,11 @@
 <script lang="ts" setup>
 import type { GalleryType, KanbanType, TableType, ViewType } from 'nocodb-sdk'
-import { PermissionEntity, PermissionKey, PlanFeatureTypes, PlanTitles, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 import { LockType } from '#imports'
+import { PermissionEntity, PermissionKey, PlanFeatureTypes, PlanTitles, viewTypeAlias, ViewTypes } from 'nocodb-sdk'
+
+defineOptions({
+  inheritAttrs: false,
+})
 
 const props = withDefaults(
   defineProps<{
@@ -15,7 +19,7 @@ const props = withDefaults(
   },
 )
 
-const emits = defineEmits(['rename', 'closeModal', 'delete', 'descriptionUpdate'])
+const emits = defineEmits(['rename', 'closeModal', 'delete', 'descriptionUpdate', 'changeIcon'])
 
 const { isUIAllowed, isDataReadOnly } = useRoles()
 
@@ -46,7 +50,7 @@ const { base } = storeToRefs(useBase())
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { showRecordPlanLimitExceededModal, getPlanTitle } = useEeConfig()
+const { showEEFeatures, showRecordPlanLimitExceededModal, getPlanTitle } = useEeConfig()
 
 const lockType = computed(() => (view.value?.lock_type as LockType) || LockType.Collaborative)
 
@@ -54,11 +58,11 @@ const currentSourceId = computed(() => table.value?.source_id)
 
 const isLastGridViewInTable = computedAsync(async () => await hasOnlyOneGridViewInTable(table.value?.id))
 
-const onRenameMenuClick = () => {
+function onRenameMenuClick() {
   emits('rename')
 }
 
-const onDescriptionUpdateClick = () => {
+function onDescriptionUpdateClick() {
   emits('descriptionUpdate')
 }
 
@@ -83,7 +87,7 @@ const quickImportDialogs: Record<(typeof quickImportDialogTypes)[number], Ref<bo
   {},
 ) as Record<ImportType, Ref<boolean>>
 
-const onImportClick = (dialog: any) => {
+function onImportClick(dialog: any) {
   emits('closeModal')
 
   if (showRecordPlanLimitExceededModal()) return
@@ -91,7 +95,7 @@ const onImportClick = (dialog: any) => {
   dialog.value = true
 }
 
-const onLockTypeChange = (type: LockType) => {
+function onLockTypeChange(type: LockType) {
   const { close } = useDialog(resolveComponent('DlgLockView'), {
     'modelValue': ref(true),
     'onUpdate:modelValue': () => {
@@ -138,7 +142,8 @@ async function changeLockType(type: LockType) {
       lock_type: type,
     })
     message.success(`Successfully Switched to ${type} view`)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 
@@ -171,11 +176,11 @@ async function onDuplicate() {
   emits('closeModal')
 }
 
-const onDelete = async () => {
+async function onDelete() {
   emits('delete')
 }
 
-const openReAssignDlg = () => {
+function openReAssignDlg() {
   const { close } = useDialog(resolveComponent('DlgReAssign'), {
     'modelValue': ref(true),
     'onUpdate:modelValue': () => {
@@ -187,7 +192,7 @@ const openReAssignDlg = () => {
   emits('closeModal')
 }
 
-const onClickCopyViewConfig = () => {
+function onClickCopyViewConfig() {
   emits('closeModal')
 
   onOpenCopyViewConfigFromAnotherViewModal({ destView: view.value })
@@ -195,10 +200,11 @@ const onClickCopyViewConfig = () => {
 
 const isFieldHeaderVisibilityOptionVisible = computed(() => {
   return (
-    !props.inSidebar &&
-    isUIAllowed('viewCreateOrEdit') &&
-    [ViewTypes.GALLERY, ViewTypes.KANBAN].includes(view.value?.type) &&
-    isEeUI
+    !props.inSidebar
+    && isUIAllowed('viewCreateOrEdit')
+    && [ViewTypes.GALLERY, ViewTypes.KANBAN].includes(view.value?.type)
+    && isEeUI
+    && showEEFeatures.value
   )
 })
 
@@ -206,7 +212,7 @@ const isFieldHeaderVisible = computed(() => {
   return parseProp((view.value?.view as GalleryType | KanbanType)?.meta)?.is_field_header_visible ?? true
 })
 
-const onToggleFieldHeaderVisibility = async () => {
+async function onToggleFieldHeaderVisibility() {
   if (!view.value) {
     emits('closeModal')
 
@@ -226,7 +232,8 @@ const onToggleFieldHeaderVisibility = async () => {
     await updateViewMeta(view.value.id!, view.value.type, {
       meta: payload,
     })
-  } catch (e: any) {
+  }
+  catch (e: any) {
     // revert local changes on error
     view.value.meta = {
       ...payload,
@@ -264,10 +271,6 @@ const isUploadAllowed = computed(() => {
 
 const copyViewConfigMenuItemStatus = computed(() => {
   return getCopyViewConfigBtnAccessStatus(view.value, 'view-action-menu')
-})
-
-defineOptions({
-  inheritAttrs: false,
 })
 
 /**
@@ -316,7 +319,9 @@ defineOptions({
             }}
           </NcMenuItem>
           <NcTooltip v-else>
-            <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
+            <template #title>
+              {{ $t('msg.info.disabledAsViewLocked') }}
+            </template>
             <NcMenuItem disabled>
               <GeneralIcon icon="rename" class="opacity-80" />
               {{
@@ -332,6 +337,11 @@ defineOptions({
 
             {{ $t('labels.editDescription') }}
           </NcMenuItem>
+          <NcMenuItemChangeIcon
+            v-if="lockType !== LockType.Locked"
+            v-e="['c:view:change-icon']"
+            @change-icon="emits('changeIcon')"
+          />
         </template>
         <NcMenuItem @click="onDuplicate">
           <GeneralLoader v-if="isOnDuplicateLoading" size="regular" />
@@ -344,7 +354,7 @@ defineOptions({
         </NcMenuItem>
 
         <SmartsheetToolbarViewActionMenuMoveToSection
-          v-if="isEeUI"
+          v-if="isEeUI && showEEFeatures"
           :view="view"
           :table="table"
           :in-sidebar="inSidebar"
@@ -353,7 +363,7 @@ defineOptions({
       </template>
 
       <SmartsheetToolbarNotAllowedTooltip
-        v-if="copyViewConfigMenuItemStatus.isVisible"
+        v-if="copyViewConfigMenuItemStatus.isVisible && showEEFeatures"
         :enabled="copyViewConfigMenuItemStatus.isDisabled"
       >
         <template #title>
@@ -390,6 +400,7 @@ defineOptions({
                       plan: getPlanTitle(PlanTitles.PLUS),
                     })
                   "
+                  show-as-lock
                   :on-click-callback="() => emits('closeModal')"
                 />
               </div>
@@ -507,7 +518,7 @@ defineOptions({
                   hide-tick
                 />
               </div>
-              <div class="flex flex-grow"></div>
+              <div class="flex flex-grow" />
             </div>
           </template>
 
@@ -522,7 +533,7 @@ defineOptions({
           >
             <SmartsheetToolbarLockType :type="LockType.Collaborative" :disabled="!isUIAllowed('fieldAdd')" />
           </NcMenuItem>
-          <SmartsheetToolbarNotAllowedTooltip v-if="isEeUI" :enabled="disablePersonalView">
+          <SmartsheetToolbarNotAllowedTooltip v-if="isEeUI && showEEFeatures" :enabled="disablePersonalView">
             <template #title>
               <div class="max-w-80">
                 {{
@@ -558,7 +569,7 @@ defineOptions({
             <SmartsheetToolbarLockType :type="LockType.Locked" :disabled="!isUIAllowed('fieldAdd')" />
           </NcMenuItem>
         </NcSubMenu>
-        <template v-if="isEeUI">
+        <template v-if="isEeUI && showEEFeatures">
           <SmartsheetToolbarNotAllowedTooltip
             v-if="isPersonalView"
             :enabled="!(isViewOwner || isUIAllowed('reAssignViewOwner'))"
@@ -635,6 +646,7 @@ defineOptions({
                           plan: getPlanTitle(PlanTitles.PLUS),
                         })
                       "
+                      show-as-lock
                       :on-click-callback="() => emits('closeModal')"
                     />
                   </div>
@@ -702,7 +714,7 @@ defineOptions({
       </template>
     </template>
   </NcMenu>
-  <span v-else v-bind="$attrs"></span>
+  <span v-else v-bind="$attrs" />
 
   <template v-if="table?.base_id && currentSourceId && isUploadAllowed">
     <!-- Don't add this inside the NcMenu else it will show 2 modals at the same time -->

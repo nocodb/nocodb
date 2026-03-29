@@ -116,7 +116,7 @@ watchEffect(() => {
   }
 })
 
-const handleUpdateValue = (e: Event, save = false) => {
+function handleUpdateValue(e: Event, save = false) {
   let targetValue = (e.target as HTMLInputElement).value
 
   if (!targetValue) {
@@ -151,12 +151,12 @@ onClickOutside(datePickerRef, (e) => {
   open.value = false
 })
 
-const onBlur = (e) => {
+function onBlur(e) {
   handleUpdateValue(e, true)
 
   if (
-    (e?.relatedTarget as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`) ||
-    (e?.target as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`)
+    (e?.relatedTarget as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`)
+    || (e?.target as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`)
   ) {
     return
   }
@@ -164,7 +164,7 @@ const onBlur = (e) => {
   open.value = false
 }
 
-const onFocus = () => {
+function onFocus() {
   open.value = true
 }
 
@@ -181,7 +181,8 @@ watch(
         }
         open.value = false
       })
-    } else {
+    }
+    else {
       isClearedInputMode.value = false
     }
   },
@@ -196,16 +197,19 @@ watch(editable, (nextValue) => {
 
 const placeholder = computed(() => {
   if (
-    ((isForm.value || isExpandedForm.value) && !isTimeInvalid.value) ||
-    (isGrid.value && !showNull.value && !isTimeInvalid.value && !isSystemColumn(column.value) && active.value) ||
-    isEditColumn.value
+    ((isForm.value || isExpandedForm.value) && !isTimeInvalid.value)
+    || (isGrid.value && !showNull.value && !isTimeInvalid.value && !isSystemColumn(column.value) && active.value)
+    || isEditColumn.value
   ) {
     return parseProp(column.value.meta).is12hrFormat ? 'hh:mm AM' : 'HH:mm'
-  } else if (modelValue === null && showNull.value) {
+  }
+  else if (modelValue === null && showNull.value) {
     return t('general.null').toUpperCase()
-  } else if (isTimeInvalid.value) {
+  }
+  else if (isTimeInvalid.value) {
     return t('msg.invalidTime')
-  } else {
+  }
+  else {
     return ''
   }
 })
@@ -216,12 +220,12 @@ const isOpen = computed(() => {
   return (readOnly.value || (localState.value && isPk)) && !active.value && !editable.value ? false : open.value
 })
 
-const clickHandler = () => {
+function clickHandler() {
   if (readOnly.value || open.value) return
   open.value = active.value || editable.value
 }
 
-const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
+function handleKeydown(e: KeyboardEvent, _open?: boolean) {
   if (e.key !== 'Enter') {
     e.stopPropagation()
   }
@@ -263,7 +267,8 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
           editable.value = false
           datePickerRef.value?.blur?.()
         }
-      } else {
+      }
+      else {
         editable.value = false
 
         datePickerRef.value?.blur?.()
@@ -295,7 +300,10 @@ useSelectedCellKeydownListener(
           localState.value = dayjs(new Date())
           e.preventDefault()
         }
-      } else return
+      }
+      else {
+        return
+      }
     }
 
     if (!isOpen.value && datePickerRef.value && /^[0-9a-z]$/i.test(e.key)) {
@@ -322,7 +330,8 @@ function handleSelectTime(value?: dayjs.Dayjs) {
     const dateTime = dayjs(`${localState.value.format('YYYY-MM-DD')} ${value.format('HH:mm')}:00`)
     tempDate.value = dateTime
     localState.value = dateTime
-  } else {
+  }
+  else {
     const dateTime = dayjs(`${dayjs().format('YYYY-MM-DD')} ${value.format('HH:mm')}:00`)
     tempDate.value = dateTime
     localState.value = dateTime
@@ -376,7 +385,7 @@ onMounted(() => {
         @mousedown.stop
         @click="clickHandler"
         @input="handleUpdateValue"
-      />
+      >
       <span v-else>
         {{ cellValue }}
       </span>
@@ -402,7 +411,7 @@ onMounted(() => {
       </div>
     </template>
   </NcDropdown>
-  <div v-if="!editable && isGrid" class="absolute inset-0 z-90 cursor-pointer"></div>
+  <div v-if="!editable && isGrid" class="absolute inset-0 z-90 cursor-pointer" />
 </template>
 
 <style scoped lang="scss">

@@ -1,20 +1,17 @@
 <script lang="ts" setup>
-import { Form } from 'ant-design-vue'
+import type { CertTypes, DatabricksConnection, DefaultConnection, ProjectCreateForm, SnowflakeConnection, SQLiteConnection } from '#imports'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
+import {
+  clientTypes as _clientTypes,
+
+  ClientType,
+
+  SSLUsage,
+} from '#imports'
+import { Form } from 'ant-design-vue'
 import { diff } from 'deep-object-diff'
 import { IntegrationsType, validateAndExtractSSLProp } from 'nocodb-sdk'
 import { defineAsyncComponent } from 'vue'
-import {
-  type CertTypes,
-  ClientType,
-  type DatabricksConnection,
-  type DefaultConnection,
-  type ProjectCreateForm,
-  type SQLiteConnection,
-  SSLUsage,
-  type SnowflakeConnection,
-  clientTypes as _clientTypes,
-} from '#imports'
 
 const props = defineProps<{
   open: boolean
@@ -62,7 +59,7 @@ const { appInfo } = useGlobal()
 
 const creatingSource = ref(false)
 
-const _getDefaultConnectionConfig = (client = ClientType.MYSQL) => {
+function _getDefaultConnectionConfig(client = ClientType.MYSQL) {
   const config = getDefaultConnectionConfig(client)
   if ('database' in config.connection) {
     config.connection.database = ''
@@ -74,7 +71,7 @@ const _getDefaultConnectionConfig = (client = ClientType.MYSQL) => {
   return config
 }
 
-const defaultFormState = (client = ClientType.MYSQL) => {
+function defaultFormState(client = ClientType.MYSQL) {
   return {
     title: '',
     dataSource: { ..._getDefaultConnectionConfig(client) },
@@ -113,7 +110,7 @@ const isDisabledSubmitBtn = computed(() => {
   return !testSuccess.value
 })
 
-const onEasterEgg = () => {
+function onEasterEgg() {
   easterEggCount.value += 1
   if (easterEggCount.value >= 2) {
     easterEgg.value = true
@@ -123,8 +120,8 @@ const onEasterEgg = () => {
 const clientTypes = computed(() => {
   return _clientTypes.filter((type) => {
     return (
-      ([ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(type.value) && easterEgg.value) ||
-      ![ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(type.value)
+      ([ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(type.value) && easterEgg.value)
+      || ![ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(type.value)
     )
   })
 })
@@ -181,7 +178,7 @@ const validators = computed(() => {
 
 const { validate, validateInfos } = useForm(formState, validators)
 
-const onClientChange = () => {
+function onClientChange() {
   formState.value.dataSource = { ..._getDefaultConnectionConfig(formState.value.dataSource.client) }
 }
 
@@ -206,16 +203,18 @@ const onSSLModeChange = ((mode: SSLUsage) => {
   }
 }) as SelectHandler
 
-const updateSSLUse = (updateActiveIntegrationFormState = false) => {
+function updateSSLUse(updateActiveIntegrationFormState = false) {
   if (formState.value.dataSource.client !== ClientType.SQLITE) {
     const connection = formState.value.dataSource.connection as DefaultConnection
     if (connection.ssl) {
       if (typeof connection.ssl === 'string') {
         formState.value.sslUse = SSLUsage.Allowed
-      } else {
+      }
+      else {
         formState.value.sslUse = SSLUsage.Preferred
       }
-    } else {
+    }
+    else {
       formState.value.sslUse = SSLUsage.No
     }
 
@@ -226,11 +225,11 @@ const updateSSLUse = (updateActiveIntegrationFormState = false) => {
   }
 }
 
-const addNewParam = () => {
+function addNewParam() {
   formState.value.extraParameters.push({ key: '', value: '' })
 }
 
-const removeParam = (index: number) => {
+function removeParam(index: number) {
   formState.value.extraParameters.splice(index, 1)
 }
 
@@ -241,7 +240,7 @@ const caFileInput = ref<HTMLInputElement>()
 const keyFileInput = ref<HTMLInputElement>()
 const certFileInput = ref<HTMLInputElement>()
 
-const onFileSelect = (key: CertTypes, el?: HTMLInputElement) => {
+function onFileSelect(key: CertTypes, el?: HTMLInputElement) {
   if (!el) return
 
   readFile(el, (content) => {
@@ -257,7 +256,7 @@ const sslFilesRequired = computed(
 
 function getConnectionConfig() {
   const extraParameters = Object.fromEntries(
-    new Map(formState.value.extraParameters.filter((object) => object.key?.trim()).map((object) => [object.key, object.value])),
+    new Map(formState.value.extraParameters.filter(object => object.key?.trim()).map(object => [object.key, object.value])),
   )
 
   const connection = {
@@ -269,17 +268,18 @@ function getConnectionConfig() {
   return connection
 }
 
-const focusInvalidInput = () => {
+function focusInvalidInput() {
   form.value?.$el.querySelector('.ant-form-item-explain-error')?.parentNode?.parentNode?.querySelector('input')?.focus()
 }
 
-const createOrUpdateIntegration = async () => {
+async function createOrUpdateIntegration() {
   // if it is edit mode and activeIntegration id is not present then return
   if (isEditMode.value && !activeIntegration.value?.id) return
 
   try {
     await validate()
-  } catch (e) {
+  }
+  catch (e) {
     focusInvalidInput()
     return
   }
@@ -304,7 +304,8 @@ const createOrUpdateIntegration = async () => {
         props.loadDatasourceInfo,
         props.baseId,
       )
-    } else {
+    }
+    else {
       await updateIntegration({
         id: activeIntegration.value.id,
         title: formState.value.title,
@@ -314,9 +315,11 @@ const createOrUpdateIntegration = async () => {
         is_private: formState.value.is_private,
       })
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     creatingSource.value = false
   }
 }
@@ -337,10 +340,11 @@ function applyConfigFix(fix: any) {
 
 const testConnectionError = ref()
 
-const testConnection = async (retry = 0, initialConfig = null, initialError = null) => {
+async function testConnection(retry = 0, initialConfig = null, initialError = null) {
   try {
     await validate()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     if (e?.errorFields?.length) {
       focusInvalidInput()
       return
@@ -355,7 +359,8 @@ const testConnection = async (retry = 0, initialConfig = null, initialError = nu
     if (formState.value.dataSource.client === ClientType.SQLITE) {
       testSuccess.value = true
       isEnabledSaveChangesBtn.value = true
-    } else {
+    }
+    else {
       const connection = getConnectionConfig()
 
       connection.database = getTestDatabaseName(formState.value.dataSource)!
@@ -370,17 +375,20 @@ const testConnection = async (retry = 0, initialConfig = null, initialError = nu
       if (result.code === 0) {
         testSuccess.value = true
         isEnabledSaveChangesBtn.value = true
-      } else {
+      }
+      else {
         testSuccess.value = false
 
         message.error(`${t('msg.error.dbConnectionFailed')} ${result.message}`)
       }
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     // take a copy of the current config
     const config = initialConfig || JSON.parse(JSON.stringify(formState.value.dataSource))
     await handleConnectionError(e, retry, config, initialError || e)
-  } finally {
+  }
+  finally {
     testingConnection.value = false
   }
 }
@@ -405,7 +413,7 @@ async function handleConnectionError(e: any, retry: number, initialConfig: any, 
   testConnectionError.value = await extractSdkResponseErrorMsg(initialError || e)
 }
 
-const handleImportURL = async () => {
+async function handleImportURL() {
   if (!importURL.value || importURL.value === '') return
 
   const connectionConfig = await api.utils.urlToConfig({ url: importURL.value })
@@ -422,7 +430,8 @@ const handleImportURL = async () => {
         filename: connectionConfig?.connection?.filename || '',
       }
     }
-  } else {
+  }
+  else {
     message.error(t('msg.error.invalidURL'))
   }
   importURLDlg.value = false
@@ -434,7 +443,8 @@ const customJsonFormState = computed({
   set: (value) => {
     if (value && typeof value === 'object') {
       formState.value = { ...defaultFormState(), ...value }
-    } else {
+    }
+    else {
       formState.value = defaultFormState(formState.value?.dataSource?.client ? formState.value?.dataSource?.client : undefined)
     }
     updateSSLUse()
@@ -451,10 +461,11 @@ function checkDifference() {
   return true
 }
 
-const handleUpdateUseSslExpannsionPanel = (open: boolean) => {
+function handleUpdateUseSslExpannsionPanel(open: boolean) {
   if (open) {
     useSslExpansionPanel.value = ['1']
-  } else {
+  }
+  else {
     useSslExpansionPanel.value = []
     // reset only on collapse use ssl panel
     formState.value.sslUse = SSLUsage.No
@@ -462,11 +473,12 @@ const handleUpdateUseSslExpannsionPanel = (open: boolean) => {
   }
 }
 
-const handleUpdateAdvancedOptionsExpansionPanel = (open: boolean) => {
+function handleUpdateAdvancedOptionsExpansionPanel(open: boolean) {
   if (open) {
     advancedOptionsExpansionPanel.value = ['1']
     handleAutoScroll(true, 'nc-connection-advanced-options')
-  } else {
+  }
+  else {
     advancedOptionsExpansionPanel.value = []
   }
 }
@@ -499,7 +511,7 @@ const activeIntegrationIcon = computed(() => {
   return integrationsIconMap[activeIntegrationType]
 })
 
-const onFocusPassword = () => {
+function onFocusPassword() {
   if (maskedPassword.value) {
     formState.value.dataSource.connection.password = ''
     maskedPassword.value = false
@@ -515,7 +527,8 @@ watch(
       testConnectionError.value = null
 
       isEnabledSaveChangesBtn.value = false
-    } else {
+    }
+    else {
       isEnabledSaveChangesBtn.value = true
     }
   },
@@ -528,7 +541,8 @@ onMounted(async () => {
 
   if (pageMode.value === IntegrationsPageMode.ADD) {
     formState.value.title = await generateUniqueName()
-  } else {
+  }
+  else {
     if (!activeIntegration.value) return
 
     const definedParameters = ['host', 'port', 'user', 'password', 'database']
@@ -595,10 +609,12 @@ watch(
           <component :is="activeIntegrationIcon" class="!stroke-transparent w-4 h-4" />
         </div>
 
-        <div class="flex-1 text-base font-weight-700">{{ activeIntegration?.title }}</div>
+        <div class="flex-1 text-base font-weight-700">
+          {{ activeIntegration?.title }}
+        </div>
       </div>
       <div class="flex items-center gap-3">
-        <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg"></div>
+        <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg" />
         <NcTooltip :disabled="!testConnectionError">
           <template #title>
             {{ testConnectionError }}
@@ -654,7 +670,9 @@ watch(
               class="flex flex-col gap-8"
             >
               <div class="nc-form-section">
-                <div class="nc-form-section-title">General</div>
+                <div class="nc-form-section-title">
+                  General
+                </div>
                 <div class="nc-form-section-body">
                   <a-row :gutter="24">
                     <a-col :span="12">
@@ -668,7 +686,9 @@ watch(
 
               <div class="nc-form-section">
                 <div class="flex items-center justify-between">
-                  <div class="nc-form-section-title">Connection details</div>
+                  <div class="nc-form-section-title">
+                    Connection details
+                  </div>
 
                   <!-- Use Connection URL -->
                   <NcDropdown
@@ -701,7 +721,7 @@ watch(
                           "
                           v-model:value="importURL"
                           class="!rounded-lg !min-h-[120px] !max-h-[250px] nc-scrollbar-thin"
-                        ></a-textarea>
+                        />
 
                         <div class="flex items-center gap-2 justify-end">
                           <NcButton
@@ -714,9 +734,11 @@ watch(
                               }
                             "
                           >
-                            {{ $t('general.cancel') }}</NcButton
-                          >
-                          <NcButton size="small" @click="handleImportURL"> Import</NcButton>
+                            {{ $t('general.cancel') }}
+                          </NcButton>
+                          <NcButton size="small" @click="handleImportURL">
+                            Import
+                          </NcButton>
                         </div>
                       </div>
                     </template>
@@ -732,8 +754,8 @@ watch(
                           dropdown-class-name="nc-dropdown-ext-db-type"
                           @change="onClientChange"
                         >
-                          <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value"
-                            >{{ client.text }}
+                          <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value">
+                            {{ client.text }}
                           </a-select-option>
                         </NcSelect>
                       </a-form-item>
@@ -785,7 +807,9 @@ watch(
                           v-bind="validateInfos['dataSource.connection.password']"
                         >
                           <template #help>
-                            <div class="text-xs text-warning mt-1">{{ maskedPasswordHelp }}</div>
+                            <div class="text-xs text-warning mt-1">
+                              {{ maskedPasswordHelp }}
+                            </div>
                           </template>
                           <a-input-password
                             v-model:value="(formState.dataSource.connection as SnowflakeConnection).password"
@@ -917,7 +941,9 @@ watch(
                         <!-- Password -->
                         <a-form-item :label="$t('labels.password')">
                           <template #help>
-                            <div class="text-xs text-warning mt-1">{{ maskedPasswordHelp }}</div>
+                            <div class="text-xs text-warning mt-1">
+                              {{ maskedPasswordHelp }}
+                            </div>
                           </template>
                           <a-input-password
                             v-model:value="(formState.dataSource.connection as DefaultConnection).password"
@@ -967,7 +993,9 @@ watch(
                           <div class="flex flex-col gap-3">
                             <div v-for="(item, index) of formState.extraParameters" :key="index">
                               <a-row :gutter="24">
-                                <a-col :span="12"><a-input v-model:value="item.key" placeholder="Key" /> </a-col>
+                                <a-col :span="12">
+                                  <a-input v-model:value="item.key" placeholder="Key" />
+                                </a-col>
                                 <a-col :span="12">
                                   <div class="flex gap-2">
                                     <a-input v-model:value="item.value" placeholder="Value" />
@@ -1114,7 +1142,7 @@ watch(
                         class="!hidden"
                         accept=".ca"
                         @change="onFileSelect(CertTypes.ca, caFileInput)"
-                      />
+                      >
 
                       <input
                         ref="certFileInput"
@@ -1122,7 +1150,7 @@ watch(
                         class="!hidden"
                         accept=".cert"
                         @change="onFileSelect(CertTypes.cert, certFileInput)"
-                      />
+                      >
 
                       <input
                         ref="keyFileInput"
@@ -1130,7 +1158,7 @@ watch(
                         class="!hidden"
                         accept=".key"
                         @change="onFileSelect(CertTypes.key, keyFileInput)"
-                      />
+                      >
                     </div>
                   </a-collapse-panel>
                 </a-collapse>
@@ -1178,7 +1206,9 @@ watch(
                       class="!-ml-1.5"
                       @click="handleUpdateAdvancedOptionsExpansionPanel(!advancedOptionsExpansionPanel.length)"
                     >
-                      <div class="nc-form-section-title">Advanced options</div>
+                      <div class="nc-form-section-title">
+                        Advanced options
+                      </div>
 
                       <GeneralIcon
                         icon="chevronDown"
@@ -1189,7 +1219,7 @@ watch(
                   </template>
                   <a-collapse-panel key="1" collapsible="disabled">
                     <template #header>
-                      <span></span>
+                      <span />
                     </template>
 
                     <div class="flex flex-col gap-2">
@@ -1210,7 +1240,7 @@ watch(
               </template>
             </a-form>
 
-            <div class="mt-10"></div>
+            <div class="mt-10" />
           </div>
         </div>
         <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15">

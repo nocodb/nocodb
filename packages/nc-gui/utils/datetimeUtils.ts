@@ -7,14 +7,15 @@ export function parseStringDateTime(v: string, dateTimeFormat = `${dateFormats[0
 
   if (dayjsObj.isValid()) {
     v = dayjsObj.format(dateTimeFormat)
-  } else {
+  }
+  else {
     v = toLocal ? dayjs(v, dateTimeFormat).local().format(dateTimeFormat) : dayjs(v, dateTimeFormat).format(dateTimeFormat)
   }
 
   return v
 }
 
-export const timeAgo = (date: string) => {
+export function timeAgo(date: string) {
   if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(date)) {
     // if there is no timezone info, consider as UTC
     // e.g. 2023-01-01 08:00:00 (MySQL)
@@ -53,7 +54,7 @@ export const timeAgo = (date: string) => {
   return `${years}y ago`
 }
 
-export const hookLogFormatter = (date: string) => {
+export function hookLogFormatter(date: string) {
   return date && dayjs(date).format('HH:mm:ss • DD MMMM YYYY')
 }
 
@@ -84,10 +85,10 @@ export function parseFlexibleDate(dateString: string) {
 
 const timezones = getTimeZones({ includeUtc: true })
 export function getTimeZoneFromName(name: string = Intl.DateTimeFormat().resolvedOptions().timeZone) {
-  let timezone = timezones.find((k) => isSameTimezone(k.name, name))
+  let timezone = timezones.find(k => isSameTimezone(k.name, name))
 
   if (!timezone) {
-    timezone = timezones.find((k) => k.group.includes(name))
+    timezone = timezones.find(k => k.group.includes(name))
   }
 
   if (!timezone) {

@@ -16,7 +16,8 @@ export const DurationCellRenderer: CellRenderer = {
 
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })
-    } else {
+    }
+    else {
       const { x: xOffset, y: yOffset } = renderSingleLineText(ctx, {
         x: x + width - padding,
         y,
@@ -38,7 +39,7 @@ export const DurationCellRenderer: CellRenderer = {
     const { e, row, column, makeCellEditable } = ctx
     if (column.readonly || column.columnObj?.readonly) return
     const columnObj = column.columnObj
-    if (/^[0-9]$/.test(e.key) && columnObj.title) {
+    if (/^\d$/.test(e.key) && columnObj.title) {
       row.row[columnObj.title] = ''
       makeCellEditable(row, column)
       return true

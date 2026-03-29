@@ -23,10 +23,10 @@ const { height } = useElementSize(headerRef)
     <div ref="headerRef" class="extension-header-wrapper" @click="$emit('headerClick')">
       <ExtensionsExtensionHeader>
         <template #prefix>
-          <slot name="headerPrefix"></slot>
+          <slot name="headerPrefix" />
         </template>
         <template #extra>
-          <slot name="headerExtra"></slot>
+          <slot name="headerExtra" />
         </template>
       </ExtensionsExtensionHeader>
     </div>

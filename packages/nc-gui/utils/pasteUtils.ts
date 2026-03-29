@@ -1,25 +1,20 @@
-import { ColumnHelper } from 'nocodb-sdk'
 import type { ColumnType, TableType, UITypes } from 'nocodb-sdk'
+import { ColumnHelper } from 'nocodb-sdk'
 
-export const valueToCopy = (
-  rowObj: Row,
-  columnObj: ColumnType,
-  cb: {
-    isPg: (sourceId: string) => boolean
-    isMysql: (sourceId: string) => boolean
-    meta: TableType
-    metas?: { [idOrTitle: string]: TableType | any }
-  },
-  option?: {
-    skipUidt?: UITypes[]
-    skipClipboardColumn?: boolean
-  },
-): {
+export function valueToCopy(rowObj: Row, columnObj: ColumnType, cb: {
+  isPg: (sourceId: string) => boolean
+  isMysql: (sourceId: string) => boolean
+  meta: TableType
+  metas?: { [idOrTitle: string]: TableType | any }
+}, option?: {
+  skipUidt?: UITypes[]
+  skipClipboardColumn?: boolean
+}): {
   textToCopy: any
   cellValue: any
   clipboardColumn: Partial<ColumnType>
   rowId: string
-} => {
+} {
   const { isPg, isMysql, meta, metas } = cb
 
   const result: {
@@ -63,19 +58,14 @@ export const valueToCopy = (
   return result
 }
 
-export const serializeRange = (
-  rows: Row[],
-  cols: ColumnType[],
-  cb: {
-    isPg: (sourceId: string) => boolean
-    isMysql: (sourceId: string) => boolean
-    meta: TableType
-    metas?: { [idOrTitle: string]: TableType | any }
-  },
-  option?: {
-    skipUidt?: UITypes[]
-  },
-) => {
+export function serializeRange(rows: Row[], cols: ColumnType[], cb: {
+  isPg: (sourceId: string) => boolean
+  isMysql: (sourceId: string) => boolean
+  meta: TableType
+  metas?: { [idOrTitle: string]: TableType | any }
+}, option?: {
+  skipUidt?: UITypes[]
+}) {
   let html = '<table>'
   let text = ''
   const json: string[][] = []

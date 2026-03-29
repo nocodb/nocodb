@@ -1,9 +1,9 @@
-import { isString } from '@vue/shared'
-import { type Roles, type RolesObj, SourceRestriction, type SourceType, type WorkspaceUserRoles } from 'nocodb-sdk'
-import { extractRolesObj } from 'nocodb-sdk'
+import type { Roles, RolesObj, SourceType } from 'nocodb-sdk'
 import type { MaybeRef } from 'vue'
+import { isString } from '@vue/shared'
+import { extractRolesObj, SourceRestriction } from 'nocodb-sdk'
 
-const hasPermission = (role: Exclude<Roles, WorkspaceUserRoles>, hasRole: boolean, permission: Permission | string) => {
+function hasPermission(role: Roles, hasRole: boolean, permission: Permission | string) {
   const rolePermission = rolePermissions[role]
 
   if (!hasRole || !rolePermission) return false
@@ -20,10 +20,11 @@ const hasPermission = (role: Exclude<Roles, WorkspaceUserRoles>, hasRole: boolea
 /**
  * Provides the roles a user currently has
  *
- * * `userRoles` - the roles a user has outside of bases
- * * `baseRoles` - the roles a user has in the current base (if one was loaded)
- * * `allRoles` - all roles a user has (userRoles + baseRoles)
- * * `loadRoles` - a function to load reload user roles for scope
+ * `userRoles` - the roles a user has outside of bases
+ * `baseRoles` - the roles a user has in the current base (if one was loaded)
+ * `workspaceRoles` - the roles a user has in the current workspace
+ * `allRoles` - all roles a user has (userRoles + workspaceRoles + baseRoles)
+ * `loadRoles` - a function to load reload user roles for scope
  */
 export const useRolesShared = createSharedComposable(() => {
   const { user } = useGlobal()
@@ -35,12 +36,17 @@ export const useRolesShared = createSharedComposable(() => {
 
     orgRoles = extractRolesObj(orgRoles)
 
+    let wsRoles = user.value?.workspace_roles ?? {}
+
+    wsRoles = extractRolesObj(wsRoles)
+
     let baseRoles = user.value?.base_roles ?? {}
 
     baseRoles = extractRolesObj(baseRoles)
 
     return {
       ...orgRoles,
+      ...wsRoles,
       ...baseRoles,
     }
   })
@@ -66,7 +72,9 @@ export const useRolesShared = createSharedComposable(() => {
   })
 
   const workspaceRoles = computed<RolesObj | null>(() => {
-    return null
+    const wsRoles = user.value?.workspace_roles
+    if (!wsRoles) return null
+    return extractRolesObj(wsRoles)
   })
 
   async function loadRoles(
@@ -96,9 +104,11 @@ export const useRolesShared = createSharedComposable(() => {
         ...user.value,
         roles: res.roles,
         base_roles: res.base_roles,
+        workspace_roles: (res as any).workspace_roles,
         meta: res.meta,
       } as User
-    } else if (options?.isSharedErd) {
+    }
+    else if (options?.isSharedErd) {
       const res = await api.auth.me(
         {
           base_id: baseId,
@@ -115,19 +125,23 @@ export const useRolesShared = createSharedComposable(() => {
         ...user.value,
         roles: res.roles,
         base_roles: res.base_roles,
+        workspace_roles: (res as any).workspace_roles,
         meta: res.meta,
       } as User
-    } else if (baseId) {
+    }
+    else if (baseId) {
       const res = await api.auth.me({ base_id: baseId })
 
       user.value = {
         ...user.value,
         roles: res.roles,
         base_roles: res.base_roles,
+        workspace_roles: (res as any).workspace_roles,
         display_name: res.display_name,
         meta: res.meta,
       } as User
-    } else {
+    }
+    else {
       const res = await api.auth.me({})
 
       if (options.skipUpdatingUser) return res
@@ -135,6 +149,7 @@ export const useRolesShared = createSharedComposable(() => {
         ...user.value,
         roles: res.roles,
         base_roles: res.base_roles,
+        workspace_roles: (res as any).workspace_roles,
         display_name: res.display_name,
         meta: res.meta,
         /**
@@ -161,15 +176,16 @@ export const useRolesShared = createSharedComposable(() => {
 
     if (!roles) {
       if (allRoles.value) checkRoles = allRoles.value
-    } else {
+    }
+    else {
       checkRoles = extractRolesObj(roles)
     }
 
     // check source level restrictions
     if (
-      !args.skipSourceCheck &&
-      (sourceRestrictions[SourceRestriction.DATA_READONLY][permission] ||
-        sourceRestrictions[SourceRestriction.SCHEMA_READONLY][permission])
+      !args.skipSourceCheck
+      && (sourceRestrictions[SourceRestriction.DATA_READONLY][permission]
+        || sourceRestrictions[SourceRestriction.SCHEMA_READONLY][permission])
     ) {
       const source = unref(args.source || null)
 
@@ -186,9 +202,7 @@ export const useRolesShared = createSharedComposable(() => {
       }
     }
 
-    return Object.entries(checkRoles).some(([role, hasRole]) =>
-      hasPermission(role as Exclude<Roles, WorkspaceUserRoles>, hasRole, permission),
-    )
+    return Object.entries(checkRoles).some(([role, hasRole]) => hasPermission(role as Roles, hasRole, permission))
   }
 
   const isBaseRolesLoaded = computed(() => !!user.value?.base_roles || !!user.value?.workspace_roles)
@@ -202,7 +216,7 @@ type IsUIAllowedParams = Parameters<ReturnType<typeof useRolesShared>['isUIAllow
  * Wrap the default shared composable to inject the current source if available
  * which will be used to determine if a user has permission to perform an action based on the source's restrictions
  */
-export const useRoles = () => {
+export function useRoles() {
   const currentSource = inject(ActiveSourceInj, ref())
   const useRolesRes = useRolesShared()
 

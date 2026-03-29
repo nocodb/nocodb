@@ -1,4 +1,4 @@
-export const useLoadingTrigger = () => {
+export function useLoadingTrigger() {
   const { $state } = useNuxtApp()
 
   return {
@@ -8,7 +8,8 @@ export const useLoadingTrigger = () => {
       }
       try {
         await handler(param)
-      } finally {
+      }
+      finally {
         if (param?.shouldShowLoading !== false) {
           $state.isLoading.value = false
         }

@@ -14,7 +14,8 @@ export class BaseRoleLoader {
     try {
       await this.getBaseRole(baseId)
       this.onSettled?.()
-    } finally {
+    }
+    finally {
       this.loadingCache.delete(baseId)
     }
   }

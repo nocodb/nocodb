@@ -1,6 +1,6 @@
 import type { ColumnType } from 'nocodb-sdk'
 
-export const useColumnDrag = ({
+export function useColumnDrag({
   fields,
   tableBodyEl,
   gridWrapper,
@@ -8,7 +8,7 @@ export const useColumnDrag = ({
   fields: Ref<ColumnType[]>
   tableBodyEl: Ref<HTMLElement | undefined>
   gridWrapper: Ref<HTMLElement | undefined>
-}) => {
+}) {
   const { eventBus, isDefaultView, meta } = useSmartsheetStoreOrThrow()
   const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -46,7 +46,7 @@ export const useColumnDrag = ({
     // if toBeReorderedViewCol/toViewCol is null, return
     if (!toBeReorderedViewCol || !toViewCol) return
 
-    const toColIndex = fields.value.findIndex((f) => f.id === toColId)
+    const toColIndex = fields.value.findIndex(f => f.id === toColId)
 
     const nextToColField = toColIndex < fields.value.length - 1 ? fields.value[toColIndex + 1] : null
     const nextToViewCol = nextToColField ? gridViewCols.value[nextToColField.id!] : null
@@ -111,9 +111,11 @@ export const useColumnDrag = ({
       dragColPlaceholderDomRef.value!.style.left = '0px'
       dragColPlaceholderDomRef.value!.style.height = '0px'
       await reorderColumn(draggedCol.value!.id!, toBeDroppedColId.value!)
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Failed to reorder column: ', error)
-    } finally {
+    }
+    finally {
       isProcessing.value = false
     }
     draggedCol.value = null
@@ -134,9 +136,9 @@ export const useColumnDrag = ({
     e.dataTransfer.clearData()
     e.dataTransfer.setData('text/plain', colId)
 
-    draggedCol.value = fields.value.find((f) => f.id === colId) ?? null
+    draggedCol.value = fields.value.find(f => f.id === colId) ?? null
 
-    const remInPx = parseFloat(getComputedStyle(document.documentElement).fontSize)
+    const remInPx = Number.parseFloat(getComputedStyle(document.documentElement).fontSize)
 
     const placeholderHeight = tableBodyEl.value?.getBoundingClientRect().height ?? 6.1 * remInPx
     dragColPlaceholderDomRef.value!.style.height = `${placeholderHeight}px`
@@ -163,7 +165,7 @@ export const useColumnDrag = ({
 
     const y = dragColPlaceholderDomRef.value!.getBoundingClientRect().top
     const domsUnderMouse = document.elementsFromPoint(e.clientX, y)
-    const columnDom = domsUnderMouse.find((dom) => dom.classList.contains('nc-grid-column-header'))
+    const columnDom = domsUnderMouse.find(dom => dom.classList.contains('nc-grid-column-header'))
 
     if (columnDom) {
       toBeDroppedColId.value = columnDom?.getAttribute('data-col') ?? null
@@ -175,13 +177,14 @@ export const useColumnDrag = ({
       dragColPlaceholderDomRef.value.style.left = `${x.toString()}px`
     }
 
-    const remInPx = parseFloat(getComputedStyle(document.documentElement).fontSize)
+    const remInPx = Number.parseFloat(getComputedStyle(document.documentElement).fontSize)
 
     if (x < leftSidebarWidth.value + 1 * remInPx) {
       setTimeout(() => {
         gridWrapper.value!.scrollLeft -= 2.5
       }, 250)
-    } else if (width.value - x - leftSidebarWidth.value < 15 * remInPx) {
+    }
+    else if (width.value - x - leftSidebarWidth.value < 15 * remInPx) {
       setTimeout(() => {
         gridWrapper.value!.scrollLeft += 2.5
       }, 250)

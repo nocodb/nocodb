@@ -1,16 +1,10 @@
-import type { ColumnType, SelectOptionType, SelectOptionsType } from 'nocodb-sdk'
+import type { ColumnType, SelectOptionsType, SelectOptionType } from 'nocodb-sdk'
 
-export type LocalSelectOptionType = SelectOptionType & { value?: string; bgColor?: string; textColor?: string }
+export type LocalSelectOptionType = SelectOptionType & { value?: string, bgColor?: string, textColor?: string }
 
-export type SelectInputOptionType = { label: string; value: string } & SelectOptionType
+export type SelectInputOptionType = { label: string, value: string } & SelectOptionType
 
-export const getOptions = (
-  column: ColumnType,
-  isEditColumn: boolean,
-  isForm: boolean,
-  isDark: boolean,
-  getColor: GetColorType,
-) => {
+export function getOptions(column: ColumnType, isEditColumn: boolean, isForm: boolean, isDark: boolean, getColor: GetColorType) {
   if (column && column?.colOptions) {
     const opts = column.colOptions
       ? (column.colOptions as SelectOptionsType).options.filter((el: SelectOptionType) => el.title !== '') || []
@@ -22,8 +16,8 @@ export const getOptions = (
 
     let order = 1
 
-    const limitOptionsById =
-      ((parseProp(column.meta)?.limitOptions || []).reduce(
+    const limitOptionsById
+      = ((parseProp(column.meta)?.limitOptions || []).reduce(
         (o: Record<string, FormFieldsLimitOptionsType>, f: FormFieldsLimitOptionsType) => {
           if (order < (f?.order ?? 0)) {
             order = f.order
@@ -44,7 +38,7 @@ export const getOptions = (
           }
           return false
         })
-        .map((o) => ({
+        .map(o => ({
           ...o,
           value: o.title,
           order: o.id && limitOptionsById[o.id] ? limitOptionsById[o.id]?.order : order++,
@@ -52,7 +46,8 @@ export const getOptions = (
           textColor: getSelectTypeFieldOptionTextColor({ color: o.color, isDark, getColor }),
         }))
         .sort((a, b) => a.order - b.order)
-    } else {
+    }
+    else {
       return opts.map((o: SelectOptionType) => ({
         ...o,
         value: o.title,
@@ -64,27 +59,22 @@ export const getOptions = (
   return []
 }
 
-export const getSelectedTitles = (
-  column: ColumnType,
-  optionsMap: Record<string, LocalSelectOptionType>,
-  isMysql: (sourceId?: string) => boolean,
-  modelValue?: string | string[],
-) => {
+export function getSelectedTitles(column: ColumnType, optionsMap: Record<string, LocalSelectOptionType>, isMysql: (sourceId?: string) => boolean, modelValue?: string | string[]) {
   return modelValue
     ? Array.isArray(modelValue)
       ? modelValue
       : isMysql(column.source_id)
-      ? modelValue
-          .toString()
-          .split(',')
-          .sort((a, b) => {
-            const opa = optionsMap[a?.trim()]
-            const opb = optionsMap[b?.trim()]
-            if (opa && opb) {
-              return opa.order! - opb.order!
-            }
-            return 0
-          })
-      : modelValue.toString().split(',')
+        ? modelValue
+            .toString()
+            .split(',')
+            .sort((a, b) => {
+              const opa = optionsMap[a?.trim()]
+              const opb = optionsMap[b?.trim()]
+              if (opa && opb) {
+                return opa.order! - opb.order!
+              }
+              return 0
+            })
+        : modelValue.toString().split(',')
     : []
 }

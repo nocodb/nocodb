@@ -5,10 +5,11 @@ const { isUIAllowed } = useRoles()
 
 const { onViewsTabChange } = useViewsStore()
 
-const onClickDetails = () => {
+function onClickDetails() {
   if (isUIAllowed('fieldAdd')) {
     onViewsTabChange('field')
-  } else {
+  }
+  else {
     onViewsTabChange('relation')
   }
 }
@@ -26,7 +27,9 @@ const onClickDetails = () => {
     >
       <GeneralViewIcon v-if="activeView?.type" :meta="{ type: activeView?.type }" class="tab-icon" ignore-color />
       <GeneralLoader v-else class="tab-icon" />
-      <div class="tab-title nc-tab">{{ $t('general.data') }}</div>
+      <div class="tab-title nc-tab">
+        {{ $t('general.data') }}
+      </div>
     </div>
     <div
       v-e="['c:project:mode:details']"
@@ -44,7 +47,9 @@ const onClickDetails = () => {
           fontWeight: 500,
         }"
       />
-      <div class="tab-title nc-tab">{{ $t('general.details') }}</div>
+      <div class="tab-title nc-tab">
+        {{ $t('general.details') }}
+      </div>
     </div>
   </div>
 </template>

@@ -24,7 +24,8 @@ const formattedPayload = computed(() => {
     return typeof props.payload === 'object'
       ? JSON.stringify(props.payload, null, 2)
       : JSON.stringify(JSON.parse(props.payload), null, 2)
-  } catch {
+  }
+  catch {
     return props.payload
   }
 })
@@ -32,28 +33,38 @@ const formattedPayload = computed(() => {
 
 <template>
   <div class="detail-card">
-    <div class="detail-title font-weight-bold">{{ title }}</div>
+    <div class="detail-title font-weight-bold">
+      {{ title }}
+    </div>
     <div class="content">
       <div v-if="headers" class="detail-headers">
         <span v-if="!headers['nc-script-id']" class="text-nc-content-gray-muted font-weight-bold text-small1">Header</span>
         <div v-if="headers['nc-script-id']" class="log-details">
           <div class="log-detail-item">
             <NcTooltip class="text-small1 min-w-40" show-on-truncate-only>
-              <template #title>Script ID</template>
+              <template #title>
+                Script ID
+              </template>
               <span class="label script"> Script ID </span>
             </NcTooltip>
             <NcTooltip class="text-small1 max-w-[calc(100%_-_160px)] truncate" show-on-truncate-only>
-              <template #title>{{ headers['nc-script-id'] }}</template>
+              <template #title>
+                {{ headers['nc-script-id'] }}
+              </template>
               <span class="value"> {{ headers['nc-script-id'] }}</span>
             </NcTooltip>
           </div>
           <div class="log-detail-item">
             <NcTooltip class="text-small1 min-w-40" show-on-truncate-only>
-              <template #title>Script Title</template>
+              <template #title>
+                Script Title
+              </template>
               <span class="label script"> Script Title </span>
             </NcTooltip>
             <NcTooltip class="text-small1 max-w-[calc(100%_-_160px)] truncate" show-on-truncate-only>
-              <template #title>{{ headers['nc-script-title'] }}</template>
+              <template #title>
+                {{ headers['nc-script-title'] }}
+              </template>
               <span class="value"> {{ headers['nc-script-title'] }}</span>
             </NcTooltip>
           </div>
@@ -61,11 +72,15 @@ const formattedPayload = computed(() => {
         <div v-else class="log-details">
           <div v-for="(value, key) in headers" :key="key" class="log-detail-item">
             <NcTooltip class="text-small1 min-w-40" show-on-truncate-only>
-              <template #title>{{ key }}</template>
+              <template #title>
+                {{ key }}
+              </template>
               <span class="label"> {{ key }} </span>
             </NcTooltip>
             <NcTooltip class="text-small1 max-w-[calc(100%_-_160px)] truncate" show-on-truncate-only>
-              <template #title>{{ value }}</template>
+              <template #title>
+                {{ value }}
+              </template>
               <span class="value"> {{ value }}</span>
             </NcTooltip>
           </div>
@@ -76,11 +91,15 @@ const formattedPayload = computed(() => {
         <div class="log-details">
           <div v-for="(value, key) in params" :key="key" class="log-detail-item">
             <NcTooltip class="text-small1 min-w-40" show-on-truncate-only>
-              <template #title>{{ key }}</template>
+              <template #title>
+                {{ key }}
+              </template>
               <span class="label"> {{ key }}</span>
             </NcTooltip>
             <NcTooltip class="text-small1 max-w-[calc(100%_-_160px)]" show-on-truncate-only>
-              <template #title>{{ value }}</template>
+              <template #title>
+                {{ value }}
+              </template>
               <span class="value"> {{ value }}</span>
             </NcTooltip>
           </div>

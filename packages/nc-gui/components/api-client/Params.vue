@@ -8,14 +8,15 @@ const emits = defineEmits(['update:modelValue'])
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-const addParamRow = () =>
-  vModel.value.push({
+function addParamRow() {
+  return vModel.value.push({
     enabled: false,
     name: '',
     value: '',
   })
+}
 
-const deleteParamRow = (i: number) => {
+function deleteParamRow(i: number) {
   if (vModel.value.length === 1) return
 
   vModel.value.splice(i, 1)
@@ -60,7 +61,9 @@ const deleteParamRow = (i: number) => {
       <NcButton size="small" type="secondary" class="nc-btn-focus" :disabled="disabled" @click="addParamRow">
         <div class="flex flex-row items-center gap-x-2">
           <component :is="iconMap.plus" class="flex-none" />
-          <div data-rec="true">{{ $t('general.add') }}</div>
+          <div data-rec="true">
+            {{ $t('general.add') }}
+          </div>
         </div>
       </NcButton>
     </div>

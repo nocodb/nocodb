@@ -96,6 +96,7 @@ export class DuplicateService {
         title: uniqueTitle,
         status: ProjectStatus.JOB,
         ...(body.base || {}),
+        fk_workspace_id: targetWorkspaceId,
       },
       user: {
         id: req.user.id,
@@ -131,7 +132,6 @@ export class DuplicateService {
     return { id: job.id, base_id: dupProject.id };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected async handleDifferentWs(params: {
     sourceBase: Base;
     targetBase: Base;

@@ -10,7 +10,7 @@ const { te, t } = useI18n()
 const hasSidebar = ref(true)
 const isOpen = ref(true)
 
-const { signOut, user } = useGlobal()
+const { signOut, user, appInfo } = useGlobal()
 const { clearWorkspaces } = useWorkspace()
 
 const email = computed(() => user.value?.email ?? '---')
@@ -30,7 +30,7 @@ watch(hasSidebar, (val) => {
   }
 })
 
-const logout = async () => {
+async function logout() {
   await signOut({
     redirectToSignin: true,
   })
@@ -50,7 +50,7 @@ export default {
       <div class="flex w-full h-full items-center nc-header-content">
         <div class="flex-1 min-w-0 w-50">
           <nuxt-link :to="isPublic ? '' : '/'">
-            <img src="~/assets/img/brand/nocodb-full.png" class="h-11" />
+            <img src="~/assets/img/brand/nocodb-full.png" class="h-11">
           </nuxt-link>
         </div>
 
@@ -87,11 +87,17 @@ export default {
             <template #overlay>
               <a-menu class="!py-0 leading-8 !rounded min-w-40">
                 <a-menu-item key="0" data-testid="nc-menu-accounts__user-settings" class="!rounded-t">
-                  <nuxt-link v-e="['c:navbar:user:email']" class="nc-base-menu-item group !no-underline" to="/account/users">
+                  <nuxt-link
+                    v-e="['c:navbar:user:email']"
+                    class="nc-base-menu-item group !no-underline"
+                    :to="appInfo.isCloud ? '/account/users' : '/admin?tab=users-list'"
+                  >
                     <MdiAccountCircleOutline class="mt-1 group-hover:text-accent" />&nbsp;
                     <div class="prose group-hover:text-primary">
                       <div>{{ $t('labels.account') }}</div>
-                      <div class="text-xs text-nc-content-gray-muted">{{ email }}</div>
+                      <div class="text-xs text-nc-content-gray-muted">
+                        {{ email }}
+                      </div>
                     </div>
                   </nuxt-link>
                 </a-menu-item>
@@ -146,7 +152,7 @@ export default {
         <slot name="sidebar" />
       </a-layout-sider>
       <div class="w-full h-[calc(100vh_-_var(--new-header-height))]">
-        <slot></slot>
+        <slot />
       </div>
     </a-layout>
   </a-layout>

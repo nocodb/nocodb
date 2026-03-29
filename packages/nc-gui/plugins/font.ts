@@ -6,7 +6,7 @@ export default defineNuxtPlugin(() => {
     document.documentElement?.classList.add('nc-fonts-not-loaded')
 
     const fontFaces = [...document.fonts.values()]
-    const materialFont = fontFaces.find((fontFace) => fontFace.family === 'Material Symbols')
+    const materialFont = fontFaces.find(fontFace => fontFace.family === 'Material Symbols')
 
     if (!materialFont || !materialFont.loaded) {
       document.documentElement?.classList.remove('nc-fonts-not-loaded')
@@ -14,10 +14,10 @@ export default defineNuxtPlugin(() => {
     }
 
     materialFont.loaded
-      .then(function () {
+      .then(() => {
         document.documentElement?.classList.remove('nc-fonts-not-loaded')
       })
-      .catch(function (error) {
+      .catch((error) => {
         document.documentElement?.classList.remove('nc-fonts-not-loaded')
         console.error(error)
       })
@@ -28,12 +28,13 @@ export default defineNuxtPlugin(() => {
 
     function poll() {
       const fontFaces = [...document.fonts.values()]
-      const materialFont = fontFaces.find((fontFace) => fontFace.family === 'Material Symbols')
+      const materialFont = fontFaces.find(fontFace => fontFace.family === 'Material Symbols')
 
       if (materialFont?.status === 'unloaded') {
         document.documentElement?.classList.remove('nc-fonts-not-loaded')
         stopPolling()
-      } else if (materialFont?.status === 'loaded') {
+      }
+      else if (materialFont?.status === 'loaded') {
         stopPolling()
       }
     }
@@ -47,7 +48,8 @@ export default defineNuxtPlugin(() => {
     }
 
     startPolling(200)
-  } catch (error) {
+  }
+  catch (error) {
     document.documentElement?.classList.remove('nc-fonts-not-loaded')
     console.error(error)
   }

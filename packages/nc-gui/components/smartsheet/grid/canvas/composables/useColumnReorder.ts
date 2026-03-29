@@ -3,10 +3,10 @@ import { parseCellWidth } from '../utils/cell'
 export function useColumnReorder(
   canvasRef: Ref<HTMLCanvasElement | undefined>,
   columns: ComputedRef<CanvasGridColumn[]>,
-  colSlice: Ref<{ start: number; end: number }>,
+  colSlice: Ref<{ start: number, end: number }>,
   scrollLeft: Ref<number>,
   drawCanvas: () => void,
-  dragOver: Ref<{ id: string; index: number } | null>,
+  dragOver: Ref<{ id: string, index: number } | null>,
   emit: (event: string, ...args: any[]) => void,
   isViewOperationsAllowed: ComputedRef<boolean>,
 ) {
@@ -20,7 +20,7 @@ export function useColumnReorder(
 
   const findColumnAtPosition = (x: number) => {
     let currentX = 0
-    const fixedCols = columns.value.filter((col) => col.fixed)
+    const fixedCols = columns.value.filter(col => col.fixed)
     for (const col of fixedCols) {
       const width = parseCellWidth(col.width)
       if (x >= currentX && x < currentX + width) return null
@@ -58,7 +58,7 @@ export function useColumnReorder(
     if (col && col.id !== dragStart.value.id) {
       dragOver.value = {
         id: col.id,
-        index: columns.value.findIndex((c) => c.id === col.id),
+        index: columns.value.findIndex(c => c.id === col.id),
       }
       requestAnimationFrame(drawCanvas)
     }
@@ -89,7 +89,7 @@ export function useColumnReorder(
       isDragging.value = true
       dragStart.value = {
         id: col.id,
-        index: columns.value.findIndex((c) => c.id === col.id),
+        index: columns.value.findIndex(c => c.id === col.id),
         startX: x,
       }
       window.addEventListener('mousemove', handleDrag)

@@ -598,7 +598,11 @@ export async function populateRollupForLTAR({
 }
 
 export const sanitizeColumnName = (name: string, sourceType?: DriverClient) => {
-  if (process.env.NC_SANITIZE_COLUMN_NAME === 'false') return name;
+  if (
+    process.env.NC_DATABASE_COLUMN_NAME_SANITIZE_ENABLED === 'false' ||
+    process.env.NC_SANITIZE_COLUMN_NAME === 'false'
+  )
+    return name;
   let columnName = name.replace(
     new RegExp(`[^${REGEXSTR_INTL_LETTER}${REGEXSTR_NUMERIC_ARABIC}_]`, 'g'),
     '_',

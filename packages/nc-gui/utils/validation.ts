@@ -1,8 +1,8 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { validateEmail } from 'nocodb-sdk'
 import validator from 'validator'
-import { getI18n } from '../plugins/a.i18n'
 import { TypeConversionError } from '../error/type-conversion.error'
+import { getI18n } from '../plugins/a.i18n'
 
 export { validateEmail }
 
@@ -23,7 +23,7 @@ export const validateTableName = {
       if (m) {
         // return `Following characters are not allowed ${m.map((c) => JSON.stringify(c)).join(', ')}`
         return reject(
-          new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map((c) => JSON.stringify(c)).join(', ')}`),
+          new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map(c => JSON.stringify(c)).join(', ')}`),
         )
       }
       return resolve(true)
@@ -52,7 +52,7 @@ export const validateScriptName = {
       if (m) {
         // return `Following characters are not allowed ${m.map((c) => JSON.stringify(c)).join(', ')}`
         return reject(
-          new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map((c) => JSON.stringify(c)).join(', ')}`),
+          new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map(c => JSON.stringify(c)).join(', ')}`),
         )
       }
       return resolve(true)
@@ -81,7 +81,7 @@ export const validateWorkflowName = {
       if (m) {
         // return `Following characters are not allowed ${m.map((c) => JSON.stringify(c)).join(', ')}`
         return reject(
-          new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map((c) => JSON.stringify(c)).join(', ')}`),
+          new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map(c => JSON.stringify(c)).join(', ')}`),
         )
       }
       return resolve(true)
@@ -105,7 +105,7 @@ export const validateDashboardName = {
       const m = value.match(/[./\\]/g)
       if (m) {
         return reject(
-          new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map((c) => JSON.stringify(c)).join(', ')}`),
+          new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map(c => JSON.stringify(c)).join(', ')}`),
         )
       }
       return resolve(true)
@@ -129,7 +129,7 @@ export const validateTeamName = {
       const m = value.match(/[./\\]/g)
       if (m) {
         return reject(
-          new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map((c) => JSON.stringify(c)).join(', ')}`),
+          new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map(c => JSON.stringify(c)).join(', ')}`),
         )
       }
       return resolve(true)
@@ -154,7 +154,7 @@ export const validateColumnName = {
       if (m) {
         // return `Following characters are not allowed ${m.map((c) => JSON.stringify(c)).join(', ')}`
         return reject(
-          new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map((c) => JSON.stringify(c)).join(', ')}`),
+          new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map(c => JSON.stringify(c)).join(', ')}`),
         )
       }
       return resolve(true)
@@ -180,7 +180,7 @@ export const layoutTitleValidator = {
   },
 }
 
-export const baseTitleValidator = (title: string = 'objects.project') => {
+export function baseTitleValidator(title: string = 'objects.project') {
   return {
     validator: (rule: any, value: any) => {
       const { t } = getI18n().global
@@ -212,7 +212,7 @@ export const baseTitleValidator = (title: string = 'objects.project') => {
   }
 }
 
-export const fieldRequiredValidator = () => {
+export function fieldRequiredValidator() {
   const { t } = getI18n().global
   return {
     required: true,
@@ -221,7 +221,7 @@ export const fieldRequiredValidator = () => {
   }
 }
 
-export const fieldLengthValidator = () => {
+export function fieldLengthValidator() {
   return {
     validator: (rule: any, value: any) => {
       const { t } = getI18n().global
@@ -241,7 +241,7 @@ export const fieldLengthValidator = () => {
     },
   }
 }
-export const reservedFieldNameValidator = () => {
+export function reservedFieldNameValidator() {
   return {
     validator: (rule: any, value: any) => {
       const { t } = getI18n().global
@@ -261,7 +261,7 @@ export const importUrlValidator = {
     return new Promise((resolve, reject) => {
       const { t } = getI18n().global
       if (
-        /(10)(\.([2]([0-5][0-5]|[01234][6-9])|[1][0-9][0-9]|[1-9][0-9]|[0-9])){3}|(172)\.(1[6-9]|2[0-9]|3[0-1])(\.(2[0-4][0-9]|25[0-5]|[1][0-9][0-9]|[1-9][0-9]|[0-9])){2}|(192)\.(168)(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])){2}|(0.0.0.0)|localhost?/g.test(
+        /(10)(\.(2([0-5][0-5]|[0-4][6-9])|1\d\d|[1-9]\d|\d)){3}|(172)\.(1[6-9]|2\d|3[01])(\.(2[0-4]\d|25[0-5]|1\d\d|[1-9]\d|\d)){2}|(192)\.(168)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){2}|(0.0.0.0)|localhost?/.test(
           value,
         )
       ) {
@@ -306,11 +306,11 @@ export const importExcelUrlValidator = {
 }
 
 export const extraParameterValidator = {
-  validator: (_: unknown, value: { key: string; value: string }[]) => {
+  validator: (_: unknown, value: { key: string, value: string }[]) => {
     return new Promise((resolve, reject) => {
       const { t } = getI18n().global
       for (const param of value) {
-        if (!value.every((el) => el.key === '') && value.filter((el: any) => el.key === param.key).length !== 1) {
+        if (!value.every(el => el.key === '') && value.filter((el: any) => el.key === param.key).length !== 1) {
           // return reject(new Error('Duplicate parameter keys are not allowed'))
           return reject(new Error(t('msg.error.duplicateParameterKeysAreNotAllowed')))
         }
@@ -349,7 +349,7 @@ export const urlValidator = {
   },
 }
 
-export const validateColumnValue = (column: ColumnType, value: any) => {
+export function validateColumnValue(column: ColumnType, value: any) {
   if (value === undefined || value === null || value === '') return
   const metaValidate = (column.meta as any)?.validate
   const validate = (column as any).validate
@@ -357,7 +357,8 @@ export const validateColumnValue = (column: ColumnType, value: any) => {
     let validateObj: any
     try {
       validateObj = JSON.parse(validate)
-    } catch (ex) {}
+    }
+    catch (ex) {}
     if (validateObj.func?.[0] && validator[validateObj.func[0] as string]) {
       const validatorFunc = validator[validateObj.func[0] as any]
       const validationResult = validatorFunc(value)

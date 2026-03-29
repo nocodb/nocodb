@@ -108,6 +108,14 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Dashboard '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_CHAT_SESSION_NOT_FOUND]: {
+    message: (id: string) => `Chat session '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_CHAT_MESSAGE_NOT_FOUND]: {
+    message: (id: string) => `Chat message '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_WORKFLOW_NOT_FOUND]: {
     message: (id: string) => `Workflow '${id}' not found`,
     code: 404,
@@ -411,5 +419,20 @@ export const presetErrorCodexMap: Partial<
   [NcErrorType.ERR_METHOD_NOT_ALLOWED]: {
     message: (method: string) => `Method ${method} not allowed`,
     code: 405,
+  },
+  [NcErrorType.ERR_LICENSE_REQUIRED]: {
+    message: (feature: string) =>
+      feature
+        ? `The "${feature}" feature requires an Enterprise license.`
+        : 'This feature requires an Enterprise license.',
+    code: 402,
+  },
+  [NcErrorType.ERR_LICENSE_SUSPENDED]: {
+    message: 'Your license has been suspended. Please contact support.',
+    code: 403,
+  },
+  [NcErrorType.ERR_SYSTEM_FIELD_NON_MODIFIABLE]: {
+    message: 'System field cannot be modified',
+    code: 422,
   },
 };

@@ -1,5 +1,5 @@
-import { NO_SCOPE } from 'nocodb-sdk'
 import type { OAuthAuthorization } from '#imports'
+import { NO_SCOPE } from 'nocodb-sdk'
 
 export const useOAuthAuthorizations = defineStore('oauthAuthorizationsStore', () => {
   const { $api, $e } = useNuxtApp()
@@ -20,11 +20,13 @@ export const useOAuthAuthorizations = defineStore('oauthAuthorizationsStore', ()
 
       authorizations.value = response as OAuthAuthorization[]
       return response as OAuthAuthorization[]
-    } catch (e) {
+    }
+    catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
       return []
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -40,12 +42,13 @@ export const useOAuthAuthorizations = defineStore('oauthAuthorizationsStore', ()
         { tokenId },
       )
 
-      authorizations.value = authorizations.value.filter((auth) => auth.id !== tokenId)
+      authorizations.value = authorizations.value.filter(auth => auth.id !== tokenId)
 
       $e('a:oauth-authorization:revoke')
 
       return true
-    } catch (e) {
+    }
+    catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
       return false

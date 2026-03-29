@@ -24,7 +24,7 @@ export const useCommandPalette = createSharedComposable(() => {
 
   const refreshCommandPalette = createEventHook<void>()
 
-  const activeScope: Ref<{ scope: string; data: any }> = ref({ scope: 'disabled', data: {} })
+  const activeScope: Ref<{ scope: string, data: any }> = ref({ scope: 'disabled', data: {} })
 
   const cmdLoading = ref(false)
 
@@ -41,7 +41,7 @@ export const useCommandPalette = createSharedComposable(() => {
       (workspace: {
         id: string
         title: string
-        meta?: { color: string; icon: string | Record<string, any>; iconType: string }
+        meta?: { color: string, icon: string | Record<string, any>, iconType: string }
       }) => ({
         id: `ws-nav-${workspace.id}`,
         title: workspace.title,
@@ -57,7 +57,7 @@ export const useCommandPalette = createSharedComposable(() => {
         },
         handler: processHandler({
           type: 'navigate',
-          payload: `/${workspace.id}/settings`,
+          payload: `/${workspace.id}`,
         }),
       }),
     ),
@@ -77,7 +77,8 @@ export const useCommandPalette = createSharedComposable(() => {
         if (user.value && user.value.display_name && user.value.email) {
           cmd.title = user.value.display_name ?? user.value.email.split('@')[0] ?? 'User'
         }
-      } else if (cmd.id === 'user_account-logout') {
+      }
+      else if (cmd.id === 'user_account-logout') {
         cmd.handler = async () => {
           await signOut()
           window.location.reload()
@@ -102,12 +103,13 @@ export const useCommandPalette = createSharedComposable(() => {
   const cmdData = computed(() => {
     if (cmdLoading.value) {
       return [{ id: 'loading', title: 'Loading...' }, ...staticData.value]
-    } else {
+    }
+    else {
       return [...dynamicData.value, ...tempData.value, ...staticData.value]
     }
   })
 
-  function processHandler(handler: { type: string; payload: string }) {
+  function processHandler(handler: { type: string, payload: string }) {
     switch (handler.type) {
       case 'navigate':
         return () => navigateTo(handler.payload)
@@ -116,14 +118,15 @@ export const useCommandPalette = createSharedComposable(() => {
     }
   }
 
-  async function loadTemporaryScope(scope: { scope: string; data: any }) {
+  async function loadTemporaryScope(scope: { scope: string, data: any }) {
     if (loadedTemporaryScopes.value.find((s: any) => s.scope === scope.scope)) return
 
     if (
-      activeScope.value.scope === scope.scope &&
-      Object.keys(scope.data).every((k) => activeScope.value.data[k] && scope.data[k] === activeScope.value.data[k])
-    )
+      activeScope.value.scope === scope.scope
+      && Object.keys(scope.data).every(k => activeScope.value.data[k] && scope.data[k] === activeScope.value.data[k])
+    ) {
       return
+    }
     $api.utils.commandPalette(scope).then((res) => {
       const fetchData = res.map((item: any) => {
         if (item.handler) item.handler = processHandler(item.handler)
@@ -133,7 +136,8 @@ export const useCommandPalette = createSharedComposable(() => {
         const fnd = tempData.value.find((t: any) => t.id === d.id)
         if (fnd) {
           Object.assign(fnd, d)
-        } else {
+        }
+        else {
           tempData.value.push(d)
         }
       }
@@ -190,7 +194,8 @@ export const useCommandPalette = createSharedComposable(() => {
           if (activeScope.value.scope === 'disabled') return
 
           activeScope.value = { scope: 'disabled', data: {} }
-        } else if (route.value.params.typeOrId.startsWith('w')) {
+        }
+        else if (route.value.params.typeOrId.startsWith('w')) {
           if (activeScope.value.data?.workspace_id === route.value.params.typeOrId) return
 
           activeScope.value = {
@@ -199,7 +204,8 @@ export const useCommandPalette = createSharedComposable(() => {
           }
 
           refreshCommandPalette.trigger()
-        } else if (route.value.params.typeOrId === 'nc') {
+        }
+        else if (route.value.params.typeOrId === 'nc') {
           if (activeScope.value.data.base_id === route.value.params.baseId) return
 
           activeScope.value = {
@@ -207,7 +213,8 @@ export const useCommandPalette = createSharedComposable(() => {
             data: { base_id: route.value.params.baseId },
           }
         }
-      } else {
+      }
+      else {
         if (activeScope.value.scope === 'root') return
 
         activeScope.value = { scope: 'root', data: {} }
@@ -215,6 +222,10 @@ export const useCommandPalette = createSharedComposable(() => {
     },
     { immediate: true, deep: true },
   )
+
+  const openCommandPalette = () => {
+    commandPalette.value?.open?.()
+  }
 
   return {
     commandPalette,
@@ -225,5 +236,6 @@ export const useCommandPalette = createSharedComposable(() => {
     refreshCommandPalette: refreshCommandPalette.trigger,
     loadTemporaryScope,
     cmdLoading,
+    openCommandPalette,
   }
 })

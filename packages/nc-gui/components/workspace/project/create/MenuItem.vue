@@ -25,10 +25,14 @@ withDefaults(defineProps<Props>(), {})
 
     <div class="nc-content-wrapper">
       <div class="nc-content-label">
-        <slot name="label">{{ label }}</slot>
+        <slot name="label">
+          {{ label }}
+        </slot>
       </div>
       <div v-if="$slots.subtext || subtext" class="nc-content-subtext">
-        <slot name="subtext">{{ subtext }}</slot>
+        <slot name="subtext">
+          {{ subtext }}
+        </slot>
       </div>
     </div>
   </component>

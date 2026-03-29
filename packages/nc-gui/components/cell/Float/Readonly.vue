@@ -10,5 +10,7 @@ defineProps<Props>()
 </script>
 
 <template>
-  <div class="nc-cell-field truncate">{{ modelValue }}</div>
+  <div class="nc-cell-field truncate">
+    {{ modelValue }}
+  </div>
 </template>

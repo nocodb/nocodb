@@ -1,4 +1,9 @@
-import { isMMOrMMLike, RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  isBtLikeV2Junction,
+  isMMOrMMLike,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { QueryWithCte } from '~/helpers/dbHelpers';
@@ -171,7 +176,10 @@ export default async function generateLookupSelectQuery({
           ]),
         );
       } else if (relationType === RelationTypes.MANY_TO_MANY || isMMLike) {
-        isBtLookup = false;
+        const isSingleTargetV2 = isBtLikeV2Junction(relationCol);
+        if (!isSingleTargetV2) {
+          isBtLookup = false;
+        }
         const childColumn = await relation.getChildColumn(context);
         const parentColumn = await relation.getParentColumn(context);
         const childModel = await childColumn.getModel(childContext);
@@ -223,6 +231,10 @@ export default async function generateLookupSelectQuery({
               }.${childColumn.column_name}`,
             ),
           );
+
+        if (isSingleTargetV2) {
+          selectQb.limit(1);
+        }
       }
     }
     let lookupColumn = lookupColOpt
@@ -323,7 +335,10 @@ export default async function generateLookupSelectQuery({
             `${prevAlias}.${parentColumn.column_name}`,
           );
         } else if (relationType === RelationTypes.MANY_TO_MANY) {
-          isBtLookup = false;
+          const nestedIsSingleTargetV2 = isBtLikeV2Junction(relationCol);
+          if (!nestedIsSingleTargetV2) {
+            isBtLookup = false;
+          }
           const childColumn = await relation.getChildColumn(context);
           const parentColumn = await relation.getParentColumn(context);
           const childModel = await childColumn.getModel(childContext);
@@ -377,6 +392,10 @@ export default async function generateLookupSelectQuery({
                 }`,
               ),
             );
+
+          if (nestedIsSingleTargetV2) {
+            selectQb.limit(1);
+          }
         }
 
         if (lookupColumn.uidt === UITypes.Lookup)

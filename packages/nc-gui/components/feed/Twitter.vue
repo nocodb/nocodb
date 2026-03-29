@@ -6,13 +6,13 @@ const timelineStatus = reactive({
   isError: false,
 })
 
-const handleIframeLoad = () => {
+function handleIframeLoad() {
   setTimeout(() => {
     timelineStatus.isLoaded = true
   }, 2000)
 }
 
-const triggerReload = () => {
+function triggerReload() {
   timelineStatus.isLoaded = false
   timelineStatus.isError = false
   nextTick(() => {
@@ -24,7 +24,7 @@ onMounted(() => {
   scriptTag.value.src = 'https://platform.twitter.com/widgets.js'
 })
 
-const handleError = () => {
+function handleError() {
   timelineStatus.isLoaded = true
   timelineStatus.isError = true
 }
@@ -47,7 +47,7 @@ const handleError = () => {
 
     <div class="mx-auto flex flex-col my-6 items-center">
       <div style="min-width: 650px">
-        <a data-chrome="nofooter" class="twitter-timeline" href="https://twitter.com/nocodb?ref_src=twsrc%5Etfw"></a>
+        <a data-chrome="nofooter" class="twitter-timeline" href="https://twitter.com/nocodb?ref_src=twsrc%5Etfw" />
         <Script
           v-if="!timelineStatus.isError"
           ref="scriptTag"
@@ -55,7 +55,7 @@ const handleError = () => {
           charset="utf-8"
           @load="handleIframeLoad"
           @error="handleError"
-        ></Script>
+        />
       </div>
     </div>
   </div>

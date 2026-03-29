@@ -46,7 +46,8 @@ async function resetPassword() {
     await api.auth.passwordForgot(form).then(() => {
       success.value = true
     })
-  } catch {
+  }
+  catch {
     // ignore since error value is set by useApi and will be displayed in UI
   }
 }
@@ -73,11 +74,17 @@ function navigateSignIn() {
           <GeneralNocoIcon class="color-transition hover:(ring ring-accent ring-opacity-100)" :animate="isLoading" />
 
           <div class="self-center flex flex-col justify-center items-center text-center gap-2">
-            <h1 class="prose-2xl font-bold my-4 w-full">{{ $t('title.resetPassword') }}</h1>
+            <h1 class="prose-2xl font-bold my-4 w-full">
+              {{ $t('title.resetPassword') }}
+            </h1>
 
             <template v-if="!success">
-              <div class="prose-sm">{{ $t('msg.info.passwordRecovery.message_1') }}</div>
-              <div class="prose-sm mb-4">{{ $t('msg.info.passwordRecovery.message_2') }}</div>
+              <div class="prose-sm">
+                {{ $t('msg.info.passwordRecovery.message_1') }}
+              </div>
+              <div class="prose-sm mb-4">
+                {{ $t('msg.info.passwordRecovery.message_2') }}
+              </div>
             </template>
 
             <template v-else>
@@ -85,7 +92,9 @@ function navigateSignIn() {
                 {{ $t('msg.info.passwordRecovery.success') }} <ClaritySuccessLine />
               </div>
 
-              <nuxt-link @click="navigateSignIn">{{ $t('general.signIn') }}</nuxt-link>
+              <nuxt-link @click="navigateSignIn">
+                {{ $t('general.signIn') }}
+              </nuxt-link>
             </template>
           </div>
 
@@ -94,7 +103,9 @@ function navigateSignIn() {
               <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
                 <div class="flex items-center gap-2 justify-center">
                   <MaterialSymbolsWarning />
-                  <div class="break-words">{{ error }}</div>
+                  <div class="break-words">
+                    {{ error }}
+                  </div>
                 </div>
               </div>
             </Transition>
@@ -118,7 +129,9 @@ function navigateSignIn() {
 
               <div class="text-end prose-sm">
                 {{ $t('msg.info.signUp.alreadyHaveAccount') }}
-                <nuxt-link @click="navigateSignIn">{{ $t('general.signIn') }}</nuxt-link>
+                <nuxt-link @click="navigateSignIn">
+                  {{ $t('general.signIn') }}
+                </nuxt-link>
               </div>
             </div>
           </a-form>

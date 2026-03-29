@@ -1,16 +1,14 @@
+import type { SelectProps } from 'ant-design-vue'
+import type { ColumnType, FilterType, LinkToAnotherRecordType, LookupType, ViewType } from 'nocodb-sdk'
+import type { ComputedRef, Ref } from 'vue'
 import {
-  type ColumnType,
-  type FilterType,
-  type LinkToAnotherRecordType,
-  type LookupType,
-  type ViewType,
+
   getEquivalentUIType,
   isDateType,
+  isSystemColumn,
   parseProp,
+  UITypes,
 } from 'nocodb-sdk'
-import type { ComputedRef, Ref } from 'vue'
-import type { SelectProps } from 'ant-design-vue'
-import { UITypes, isSystemColumn } from 'nocodb-sdk'
 
 export type ColumnFilterType = FilterType & {
   status?: string
@@ -52,8 +50,8 @@ export function useViewFilters(
 
   const reloadHook = inject(ReloadViewDataHookInj)
 
-  const { nestedFilters, isForm, allFilters } =
-    isWidget || isWorkflow || isRlsPolicy
+  const { nestedFilters, isForm, allFilters }
+    = isWidget || isWorkflow || isRlsPolicy
       ? {
           nestedFilters: ref([]),
           isForm: ref(false),
@@ -102,7 +100,7 @@ export function useViewFilters(
 
     if (linkColId?.value && fieldsToFilter?.value) {
       // Find the link column to get its base_id
-      const linkColumn = fieldsToFilter.value.find((col) => col.id === linkColId.value)
+      const linkColumn = fieldsToFilter.value.find(col => col.id === linkColId.value)
       if (linkColumn?.base_id) {
         return linkColumn.base_id
       }
@@ -121,8 +119,8 @@ export function useViewFilters(
 
   const filters = computed<ColumnFilterType[]>({
     get: () => {
-      return (nestedMode.value && !isLink && !isWebhook && !isWidget && !isWorkflow && !isRlsPolicy && !buttonColId?.value) ||
-        (isForm.value && !isWebhook)
+      return (nestedMode.value && !isLink && !isWebhook && !isWidget && !isWorkflow && !isRlsPolicy && !buttonColId?.value)
+        || (isForm.value && !isWebhook)
         ? currentFilters.value!
         : _filters.value
     },
@@ -130,7 +128,8 @@ export function useViewFilters(
       if (isForm.value && !isWebhook) {
         currentFilters.value = value
         return
-      } else if (nestedMode.value || isWorkflow) {
+      }
+      else if (nestedMode.value || isWorkflow) {
         currentFilters.value = value
         if (!isLink && !isWebhook && !isWidget && !isWorkflow && !isRlsPolicy && !buttonColId?.value) {
           if (!isNestedRoot) {
@@ -151,14 +150,14 @@ export function useViewFilters(
 
     do {
       id = generateRandomUUID()
-    } while ((filters.value || []).some((f) => f.id === id || f.tmp_id === id))
+    } while ((filters.value || []).some(f => f.id === id || f.tmp_id === id))
 
     return id
   }
 
   // when a filter is deleted with auto apply disabled, the status is marked as 'delete'
   // nonDeletedFilters are those filters that are not deleted physically & virtually
-  const nonDeletedFilters = computed(() => filters.value.filter((f) => f.status !== 'delete'))
+  const nonDeletedFilters = computed(() => filters.value.filter(f => f.status !== 'delete'))
 
   const activeView = inject(ActiveViewInj, ref())
 
@@ -182,9 +181,11 @@ export function useViewFilters(
       if (isSystemColumn(c)) {
         /** hide system columns if not enabled */
         return showSystemFields.value
-      } else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID || c.system) {
+      }
+      else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID || c.system) {
         return false
-      } else {
+      }
+      else {
         const isVirtualSystemField = c.colOptions && c.system
         return !isVirtualSystemField
       }
@@ -207,7 +208,8 @@ export function useViewFilters(
       // if column is a lookup column, then use the lookup type extracted from the column
       else if (btLookupTypesMap.value[col.id]) {
         obj[col.id] = btLookupTypesMap.value[col.id].uidt
-      } else {
+      }
+      else {
         obj[col.id] = col.uidt
       }
       return obj
@@ -246,16 +248,19 @@ export function useViewFilters(
         // for 'empty', 'notempty', 'null', 'notnull',
         // show them based on `showNullAndEmptyInFilter` in Base Settings
         return isNullOrEmptyOp ? baseMeta.value.showNullAndEmptyInFilter : true
-      } else {
+      }
+      else {
         return false
       }
-    } else if (compOp.excludedTypes) {
+    }
+    else if (compOp.excludedTypes) {
       // include not allowed values only if selected column type not matches
       if (filter.fk_column_id && !compOp.excludedTypes.includes(uidt)) {
         // for 'empty', 'notempty', 'null', 'notnull',
         // show them based on `showNullAndEmptyInFilter` in Base Settings
         return isNullOrEmptyOp ? baseMeta.value.showNullAndEmptyInFilter : true
-      } else {
+      }
+      else {
         return false
       }
     }
@@ -278,14 +283,15 @@ export function useViewFilters(
     if (compOp.includedTypes) {
       // include allowed values only if selected column type matches
       return filter.fk_column_id && compOp.includedTypes.includes(uidt)
-    } else if (compOp.excludedTypes) {
+    }
+    else if (compOp.excludedTypes) {
       // include not allowed values only if selected column type not matches
       return filter.fk_column_id && !compOp.excludedTypes.includes(uidt)
     }
   }
 
   const placeholderFilter = (): ColumnFilterType => {
-    const logicalOps = new Set(filters.value.slice(1).map((filter) => filter.logical_op))
+    const logicalOps = new Set(filters.value.slice(1).map(filter => filter.logical_op))
 
     const defaultColumn = fieldsToFilter?.value?.find((col) => {
       return !isSystemColumn(col) && !(fieldsMap.value[col.id] && !fieldsMap.value[col.id]?.initialShow)
@@ -293,8 +299,8 @@ export function useViewFilters(
 
     const filter: ColumnFilterType = {
       tmp_id: getDraftFilterId(),
-      comparison_op: comparisonOpList(options.value?.[0].uidt as UITypes).filter((compOp) =>
-        isComparisonOpAllowed({ fk_column_id: options.value?.[0].id }, compOp),
+      comparison_op: comparisonOpList(options.value?.[0]?.uidt as UITypes).filter(compOp =>
+        isComparisonOpAllowed({ fk_column_id: options.value?.[0]?.id }, compOp),
       )?.[0]?.value as FilterType['comparison_op'],
       value: null,
       status: 'create',
@@ -303,7 +309,7 @@ export function useViewFilters(
       fk_column_id: defaultColumn?.id ?? undefined,
       ...(parentColId?.value ? { fk_parent_column_id: parentColId.value } : {}),
       ...(widgetId?.value ? { fk_widget_id: widgetId.value } : {}),
-      order: (filters.value.length ? Math.max(...filters.value.map((item) => item?.order ?? 0)) : 0) + 1,
+      order: (filters.value.length ? Math.max(...filters.value.map(item => item?.order ?? 0)) : 0) + 1,
       enabled: true,
     }
 
@@ -323,7 +329,7 @@ export function useViewFilters(
   }
 
   const placeholderGroupFilter = (): ColumnFilterType => {
-    const logicalOps = new Set(filters.value.slice(1).map((filter) => filter.logical_op))
+    const logicalOps = new Set(filters.value.slice(1).map(filter => filter.logical_op))
 
     return {
       tmp_id: getDraftFilterId(),
@@ -332,7 +338,7 @@ export function useViewFilters(
       logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',
       ...(parentColId?.value ? { fk_parent_column_id: parentColId.value, children: [] } : {}),
       ...(widgetId?.value ? { fk_widget_id: widgetId.value } : {}),
-      order: (filters.value.length ? Math.max(...filters.value.map((item) => item?.order ?? 0)) : 0) + 1,
+      order: (filters.value.length ? Math.max(...filters.value.map(item => item?.order ?? 0)) : 0) + 1,
       enabled: true,
     }
   }
@@ -427,7 +433,8 @@ export function useViewFilters(
               filterId: parentId.value,
             })
           ).list as ColumnFilterType[]
-        } else if (!isNestedRoot) {
+        }
+        else if (!isNestedRoot) {
           filters.value = (
             await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
               operation: 'rlsPolicyFilterList',
@@ -435,7 +442,8 @@ export function useViewFilters(
             })
           ).list as ColumnFilterType[]
         }
-      } else if (isWebhook || hookId) {
+      }
+      else if (isWebhook || hookId) {
         if (parentId.value) {
           filters.value = (
             await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
@@ -443,7 +451,8 @@ export function useViewFilters(
               filterId: parentId.value,
             })
           ).list as ColumnFilterType[]
-        } else if (hookId && !isNestedRoot) {
+        }
+        else if (hookId && !isNestedRoot) {
           filters.value = (
             await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
               operation: 'hookFilterList',
@@ -451,7 +460,8 @@ export function useViewFilters(
             })
           ).list as ColumnFilterType[]
         }
-      } else {
+      }
+      else {
         if (isLink || linkColId?.value) {
           if (parentId.value) {
             filters.value = (
@@ -460,7 +470,8 @@ export function useViewFilters(
                 filterId: parentId.value,
               })
             ).list as ColumnFilterType[]
-          } else if (linkColId?.value && !isNestedRoot) {
+          }
+          else if (linkColId?.value && !isNestedRoot) {
             filters.value = (
               await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
                 operation: 'linkFilterList',
@@ -468,7 +479,8 @@ export function useViewFilters(
               })
             ).list as ColumnFilterType[]
           }
-        } else if (isButton || buttonColId?.value) {
+        }
+        else if (isButton || buttonColId?.value) {
           if (parentId.value) {
             filters.value = (
               await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
@@ -476,7 +488,8 @@ export function useViewFilters(
                 filterId: parentId.value,
               })
             ).list as ColumnFilterType[]
-          } else if (buttonColId?.value && !isNestedRoot) {
+          }
+          else if (buttonColId?.value && !isNestedRoot) {
             filters.value = (
               await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
                 operation: 'buttonFilterList',
@@ -484,7 +497,8 @@ export function useViewFilters(
               })
             ).list as ColumnFilterType[]
           }
-        } else if (isWidget || widgetId) {
+        }
+        else if (isWidget || widgetId) {
           if (parentId.value) {
             filters.value = (
               await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
@@ -492,7 +506,8 @@ export function useViewFilters(
                 filterId: parentId.value,
               })
             ).list as ColumnFilterType[]
-          } else if (widgetId && !isNestedRoot) {
+          }
+          else if (widgetId && !isNestedRoot) {
             filters.value = (
               await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
                 operation: 'widgetFilterList',
@@ -500,7 +515,8 @@ export function useViewFilters(
               })
             ).list as ColumnFilterType[]
           }
-        } else {
+        }
+        else {
           if (parentId.value) {
             filters.value = (
               await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
@@ -508,7 +524,8 @@ export function useViewFilters(
                 filterId: parentId.value,
               })
             ).list as ColumnFilterType[]
-          } else {
+          }
+          else {
             if (!canListFilter.value) {
               return
             }
@@ -527,7 +544,8 @@ export function useViewFilters(
           }
         }
       }
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -561,11 +579,13 @@ export function useViewFilters(
           )
           if (filter.is_group) {
             deleteFilterGroupFromAllFilters(filter)
-          } else {
-            if (!isLink && !isWebhook && !isWidget && !isRlsPolicy && !buttonColId?.value)
-              allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
           }
-        } else if (filter.status === 'update') {
+          else {
+            if (!isLink && !isWebhook && !isWidget && !isRlsPolicy && !buttonColId?.value)
+              allFilters.value = allFilters.value.filter(f => f.id !== filter.id)
+          }
+        }
+        else if (filter.status === 'update') {
           await $api.internal.postOperation(
             apiWorkspaceId.value!,
             apiBaseId.value!,
@@ -582,7 +602,7 @@ export function useViewFilters(
           // EE only: Sync updated filter properties to the smartsheet store's allFilters
           // so PinnedFilters and other consumers see changes immediately
           if (isEeUI && !isLink && !isWebhook && !isWidget && !isRlsPolicy && !buttonColId?.value) {
-            const storeFilter = allFilters.value.find((f) => f.id === filter.id)
+            const storeFilter = allFilters.value.find(f => f.id === filter.id)
             if (storeFilter) {
               Object.assign(storeFilter, {
                 value: filter.value,
@@ -594,7 +614,8 @@ export function useViewFilters(
               })
             }
           }
-        } else if (filter.status === 'create') {
+        }
+        else if (filter.status === 'create') {
           // extract children value if found to restore
           const children = filters.value[+i]?.children
           if (hookId) {
@@ -611,7 +632,8 @@ export function useViewFilters(
                 fk_parent_id: parentId.value,
               } as FilterType,
             )) as ColumnFilterType
-          } else if (rlsPolicyId) {
+          }
+          else if (rlsPolicyId) {
             filters.value[+i] = (await $api.internal.postOperation(
               apiWorkspaceId.value!,
               apiBaseId.value!,
@@ -625,7 +647,8 @@ export function useViewFilters(
                 fk_rls_policy_id: rlsPolicyId,
               } as FilterType,
             )) as ColumnFilterType
-          } else if (linkId || linkColId?.value) {
+          }
+          else if (linkId || linkColId?.value) {
             filters.value[+i] = (await $api.internal.postOperation(
               apiWorkspaceId.value!,
               apiBaseId.value!,
@@ -639,7 +662,8 @@ export function useViewFilters(
                 fk_parent_id: parentId.value,
               } as FilterType,
             )) as ColumnFilterType
-          } else if (buttonId || buttonColId?.value) {
+          }
+          else if (buttonId || buttonColId?.value) {
             filters.value[+i] = (await $api.internal.postOperation(
               apiWorkspaceId.value!,
               apiBaseId.value!,
@@ -653,7 +677,8 @@ export function useViewFilters(
                 fk_parent_id: parentId.value,
               } as FilterType,
             )) as ColumnFilterType
-          } else if (widgetId) {
+          }
+          else if (widgetId) {
             filters.value[+i] = (await $api.internal.postOperation(
               apiWorkspaceId.value!,
               apiBaseId.value!,
@@ -667,7 +692,8 @@ export function useViewFilters(
                 fk_parent_id: parentId.value,
               } as FilterType,
             )) as ColumnFilterType
-          } else {
+          }
+          else {
             filters.value[+i] = (await $api.internal.postOperation(
               apiWorkspaceId.value!,
               apiBaseId.value!,
@@ -690,7 +716,8 @@ export function useViewFilters(
       }
 
       if (!isWebhook && !isLink && !isWidget && !isRlsPolicy && !buttonColId?.value) reloadData?.()
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -736,12 +763,12 @@ export function useViewFilters(
           const targetKeys = Array.from(
             new Set([
               keys[0], // backward compat
-              ...keys.filter((k) => extraKeys.includes(k)), // allowed extras
+              ...keys.filter(k => extraKeys.includes(k)), // allowed extras
             ]),
           )
 
-          const undoChanges = Object.fromEntries(targetKeys.map((k) => [k, delta[k as keyof ColumnFilterType]]))
-          const redoChanges = Object.fromEntries(targetKeys.map((k) => [k, filter[k as keyof ColumnFilterType]]))
+          const undoChanges = Object.fromEntries(targetKeys.map(k => [k, delta[k as keyof ColumnFilterType]]))
+          const redoChanges = Object.fromEntries(targetKeys.map(k => [k, filter[k as keyof ColumnFilterType]]))
 
           addUndo({
             undo: {
@@ -781,10 +808,12 @@ export function useViewFilters(
       if (nestedMode.value || isWorkflow) {
         filters.value[i] = { ...filter }
         filters.value = [...filters.value].sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
-      } else if (!autoApply?.value && !force) {
+      }
+      else if (!autoApply?.value && !force) {
         filter.status = filter.id ? 'update' : 'create'
         isFilterUpdated.value = true
-      } else if (filters.value[i]?.id && filters.value[i]?.status !== 'create') {
+      }
+      else if (filters.value[i]?.id && filters.value[i]?.status !== 'create') {
         await $api.internal.postOperation(
           apiWorkspaceId.value!,
           apiBaseId.value!,
@@ -810,7 +839,7 @@ export function useViewFilters(
         // EE only: Sync updated filter to the smartsheet store's allFilters
         // so PinnedFilters and other consumers see changes immediately
         if (isEeUI && !isLink && !isWebhook && !isWidget && !isRlsPolicy && !buttonColId?.value) {
-          const storeFilter = allFilters.value.find((f) => f.id === filter.id)
+          const storeFilter = allFilters.value.find(f => f.id === filter.id)
           if (storeFilter) {
             Object.assign(storeFilter, {
               value: filter.value,
@@ -826,7 +855,8 @@ export function useViewFilters(
         if (undo) {
           filters.value = [...filters.value].sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
         }
-      } else {
+      }
+      else {
         if (linkColId?.value) {
           const savedFilter = await $api.internal.postOperation(
             apiWorkspaceId.value!,
@@ -848,7 +878,8 @@ export function useViewFilters(
             id: savedFilter.id,
             status: undefined,
           } as ColumnFilterType
-        } else if (buttonColId?.value) {
+        }
+        else if (buttonColId?.value) {
           const savedFilter = await $api.internal.postOperation(
             apiWorkspaceId.value!,
             apiBaseId.value!,
@@ -867,7 +898,8 @@ export function useViewFilters(
             id: savedFilter.id,
             status: undefined,
           } as ColumnFilterType
-        } else if (widgetId?.value) {
+        }
+        else if (widgetId?.value) {
           const savedFilter = await $api.internal.postOperation(
             apiWorkspaceId.value!,
             apiBaseId.value!,
@@ -888,7 +920,8 @@ export function useViewFilters(
             id: savedFilter.id,
             status: undefined,
           } as ColumnFilterType
-        } else {
+        }
+        else {
           const savedFilter = await $api.internal.postOperation(
             apiWorkspaceId.value!,
             apiBaseId.value!,
@@ -915,10 +948,12 @@ export function useViewFilters(
         if (!isLink && !isWebhook && !isWidget && !isRlsPolicy && !buttonColId?.value)
           allFilters.value.push(filters.value[+i] as FilterType)
       }
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
+    }
+    finally {
       savingStatus[i] = false
     }
 
@@ -933,7 +968,7 @@ export function useViewFilters(
     // if (!isLink && !isWebhook) return
 
     // Find all child filters of the specified parentId
-    const childFilters = allFilters.value.filter((f) => f && f.fk_parent_id === filter.id)
+    const childFilters = allFilters.value.filter(f => f && f.fk_parent_id === filter.id)
 
     // Recursively delete child filter of child filter
     childFilters.forEach((childFilter) => {
@@ -943,7 +978,7 @@ export function useViewFilters(
     })
 
     // Remove the parent object and its children from the array
-    allFilters.value = allFilters.value.filter((f) => f && f.id !== filter.id && f.fk_parent_id !== filter.id)
+    allFilters.value = allFilters.value.filter(f => f && f.id !== filter.id && f.fk_parent_id !== filter.id)
   }
 
   const deleteFilter = async (filter: ColumnFilterType, i: number, undo = false) => {
@@ -978,14 +1013,16 @@ export function useViewFilters(
       filters.value.splice(i, 1)
       filters.value = [...filters.value].sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
       if (!isWebhook && !isLink && !isWidget && !isWorkflow && !isRlsPolicy && !buttonColId?.value) reloadData?.()
-    } else {
+    }
+    else {
       if (filter.id) {
         // if auto-apply disabled mark it as disabled
         if (!autoApply?.value) {
           filter.status = 'delete'
           // if auto-apply enabled invoke delete api and remove from array
           // no splice is required here
-        } else {
+        }
+        else {
           try {
             await $api.internal.postOperation(
               apiWorkspaceId.value!,
@@ -999,15 +1036,17 @@ export function useViewFilters(
             if (!isWebhook && !isLink && !isWidget && !isRlsPolicy && !buttonColId?.value) reloadData?.()
 
             // find item index by using id and remove it from array since item index may change
-            const itemIndex = filters.value.findIndex((f) => f.id === filter.id)
+            const itemIndex = filters.value.findIndex(f => f.id === filter.id)
             if (itemIndex > -1) filters.value.splice(itemIndex, 1)
-          } catch (e: any) {
+          }
+          catch (e: any) {
             console.log(e)
             message.error(await extractSdkResponseErrorMsg(e))
           }
         }
         // if not synced yet remove it from array
-      } else {
+      }
+      else {
         filters.value.splice(i, 1)
       }
       $e('a:filter:delete', {
@@ -1021,9 +1060,10 @@ export function useViewFilters(
 
     if (filter.is_group) {
       deleteFilterGroupFromAllFilters(filter)
-    } else {
+    }
+    else {
       if (!isLink && !isWebhook && !isWidget && !isRlsPolicy && !buttonColId?.value)
-        allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
+        allFilters.value = allFilters.value.filter(f => f.id !== filter.id)
     }
   }
 
@@ -1050,7 +1090,7 @@ export function useViewFilters(
 
       // children must exist for group
       group.children = ncIsArray(raw.children)
-        ? raw.children.filter((child) => child && child.status !== 'delete').map((child) => normalizeFilterNode(child))
+        ? raw.children.filter(child => child && child.status !== 'delete').map(child => normalizeFilterNode(child))
         : []
 
       // reset order for children
@@ -1134,10 +1174,11 @@ export function useViewFilters(
     const draftFilterHasChildren = draftFilter && ncIsArray(draftFilter.children) && draftFilter.children.length > 0
 
     if (draftFilterHasChildren) {
-      draftFilter.children = draftFilter.children.map((child) => normalizeFilterNode(child))
+      draftFilter.children = draftFilter.children.map(child => normalizeFilterNode(child))
 
       placeHolderGroupFilter.children = draftFilter.children
-    } else if (nestedMode.value || isWorkflow) {
+    }
+    else if (nestedMode.value || isWorkflow) {
       const child = placeholderFilter()
       child.order = 1
 
@@ -1212,7 +1253,7 @@ export function useViewFilters(
         while (nextCol && nextCol.uidt === UITypes.Lookup) {
           // extract the relation column meta
           const lookupRelation = (await getMeta(currentBaseId, nextCol.fk_model_id!))?.columns?.find(
-            (c) => c.id === (nextCol!.colOptions as LookupType).fk_relation_column_id,
+            c => c.id === (nextCol!.colOptions as LookupType).fk_relation_column_id,
           )
 
           // this is less likely to happen but if relation column is not found then break the loop
@@ -1227,7 +1268,7 @@ export function useViewFilters(
             relatedBaseId,
             (lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id!,
           )
-          nextCol = relatedTableMeta?.columns?.find((c) => c.id === (nextCol!.colOptions as LookupType).fk_lookup_column_id)
+          nextCol = relatedTableMeta?.columns?.find(c => c.id === (nextCol!.colOptions as LookupType).fk_lookup_column_id)
 
           // Update currentBaseId for the next iteration
           currentBaseId = relatedBaseId
@@ -1241,7 +1282,8 @@ export function useViewFilters(
         btLookupTypes[col.id!] = nextCol
       }
       btLookupTypesMap.value = btLookupTypes
-    } catch (e) {
+    }
+    catch (e) {
       // ignore error since it is not blocking any functionality of the app
       console.error(e)
     }
@@ -1256,25 +1298,28 @@ export function useViewFilters(
         filters.value.push(payload)
       }
       reloadHook?.trigger()
-    } else if (evt === 'filter_update') {
-      const index = filters.value.findIndex((f) => f.id === payload.id)
+    }
+    else if (evt === 'filter_update') {
+      const index = filters.value.findIndex(f => f.id === payload.id)
       if (index !== -1) {
         filters.value[index] = payload
         filters.value = [...filters.value].sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
       }
 
-      const allIndex = allFilters.value.findIndex((f) => f.id === payload.id)
+      const allIndex = allFilters.value.findIndex(f => f.id === payload.id)
       if (allIndex !== -1) {
         allFilters.value[allIndex] = payload
       }
 
       reloadHook?.trigger()
-    } else if (evt === 'filter_delete') {
-      filters.value = filters.value.filter((f) => f.id !== payload.id)
+    }
+    else if (evt === 'filter_delete') {
+      filters.value = filters.value.filter(f => f.id !== payload.id)
       if (payload.is_group) {
         deleteFilterGroupFromAllFilters(payload)
-      } else {
-        allFilters.value = allFilters.value.filter((f) => f.id !== payload.id)
+      }
+      else {
+        allFilters.value = allFilters.value.filter(f => f.id !== payload.id)
       }
       reloadHook?.trigger()
     }

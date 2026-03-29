@@ -1,5 +1,6 @@
-import TiptapItalic, { type ItalicOptions } from '@tiptap/extension-italic'
+import type { ItalicOptions } from '@tiptap/extension-italic'
 import type { MarkdownMarkSpec } from '../../types'
+import TiptapItalic from '@tiptap/extension-italic'
 
 export const Italic = TiptapItalic.extend<ItalicOptions, { markdown: MarkdownMarkSpec }>({
   addStorage() {

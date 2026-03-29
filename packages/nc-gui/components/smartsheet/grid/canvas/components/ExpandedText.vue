@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { type ColumnType, handleTZ } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { handleTZ } from 'nocodb-sdk'
 
 const props = defineProps<{
   column: ColumnType
@@ -16,8 +17,8 @@ const inputRef = ref<HTMLElement | null>(null)
 const column = toRef(props, 'column')
 const modelValue = toRef(props, 'modelValue')
 
-const position = ref<{ top: number; left: number } | undefined>()
-const mousePosition = ref<{ top: number; left: number } | undefined>()
+const position = ref<{ top: number, left: number } | undefined>()
+const mousePosition = ref<{ top: number, left: number } | undefined>()
 const isDragging = ref(false)
 
 /**
@@ -32,7 +33,7 @@ const isSizeUpdated = ref(false)
  */
 const skipSizeUpdate = ref(true)
 
-const onMouseMove = (e: MouseEvent) => {
+function onMouseMove(e: MouseEvent) {
   if (!isDragging.value) return
 
   e.stopPropagation()
@@ -46,7 +47,7 @@ const onMouseMove = (e: MouseEvent) => {
   }
 }
 
-const onMouseUp = (e: MouseEvent) => {
+function onMouseUp(e: MouseEvent) {
   if (!isDragging.value) return
 
   e.stopPropagation()
@@ -59,7 +60,7 @@ const onMouseUp = (e: MouseEvent) => {
   document.removeEventListener('mouseup', onMouseUp)
 }
 
-const dragStart = (e: MouseEvent) => {
+function dragStart(e: MouseEvent) {
   const dom = document.querySelector('.nc-long-text-expanded .ant-modal-content') as HTMLElement
   if (!dom) return
 
@@ -113,7 +114,7 @@ onClickOutside(inputWrapperRef, (e) => {
  * Updates the size of the text area based on stored dimensions in localStorage.
  * Retrieves the stored size and applies it to the corresponding text area element.
  */
-const updateSize = () => {
+function updateSize() {
   try {
     const size = localStorage.getItem(STORAGE_KEY)
     const elem = document.querySelector('.nc-long-text-expanded-textarea') as HTMLElement
@@ -123,7 +124,8 @@ const updateSize = () => {
       elem.style.width = `${parsedJSON.width}px`
       elem.style.height = `${parsedJSON.height}px`
     }
-  } catch (e) {
+  }
+  catch (e) {
     console.error('Error updating size:', e)
   }
 }
@@ -132,7 +134,7 @@ const updateSize = () => {
  * Retrieves the element that should be observed for resizing.
  * @returns {HTMLElement | null} The resize target element.
  */
-const getResizeEl = () => {
+function getResizeEl() {
   if (!inputWrapperRef.value) return null
 
   return inputWrapperRef.value.querySelector('.nc-long-text-expanded-textarea') as HTMLElement
@@ -234,7 +236,7 @@ const urls = replaceUrlsWithLink(result)
           }"
           class="nc-long-text-expanded-textarea border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight !py-1 !px-3 !text-nc-content-gray-extreme !transition-none !cursor-text !min-h-[210px] !rounded-lg focus:border-nc-border-brand disabled:!bg-nc-bg-gray-extralight nc-longtext-scrollbar"
           @click="handleDompurifyLinkClick"
-        ></div>
+        />
 
         <a-textarea
           v-else

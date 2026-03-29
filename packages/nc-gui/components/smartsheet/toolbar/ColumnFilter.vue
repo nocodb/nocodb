@@ -1,14 +1,15 @@
 <script setup lang="ts">
+import type { ColumnType, FilterType } from 'nocodb-sdk'
 import {
-  type ColumnType,
-  type FilterType,
-  ViewSettingOverrideOptions,
+
   isCreatedOrLastModifiedTimeCol,
   isHiddenCol,
   isSystemColumn,
   isVirtualCol,
+  PlanLimitTypes,
+  UITypes,
+  ViewSettingOverrideOptions,
 } from 'nocodb-sdk'
-import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
 interface Props {
@@ -120,6 +121,8 @@ const nested = computed(() => nestedLevel.value > 0)
 
 const { t } = useI18n()
 
+const { appInfo, isMobileMode } = useGlobal()
+
 const { clone } = useUndoRedo()
 
 const logicalOps = [
@@ -143,7 +146,8 @@ const isLockedView = computed(() => isLocked.value && isViewFilter.value)
 
 const { $e } = useNuxtApp()
 
-const { blockToggleFilter, showUpgradeToUseToggleFilter, blockPinnedFilter, showUpgradeToUsePinnedFilter } = useEeConfig()
+const { blockToggleFilter, showUpgradeToUseToggleFilter, blockPinnedFilter, showUpgradeToUsePinnedFilter, showEEFeatures }
+  = useEeConfig()
 
 const {
   nestedFilters,
@@ -183,8 +187,8 @@ const columns = computed(() => {
   return meta.value?.columns || []
 })
 
-const { showSystemFields } =
-  widget.value || workflow.value || rlsPolicyId?.value ? { showSystemFields: ref(false) } : useViewColumnsOrThrow()
+const { showSystemFields }
+  = widget.value || workflow.value || rlsPolicyId?.value ? { showSystemFields: ref(false) } : useViewColumnsOrThrow()
 
 const fieldsToFilter = computed(() =>
   columns.value.filter((c) => {
@@ -245,6 +249,21 @@ const {
   buttonColId,
 )
 
+// Sync internal filter changes to v-model for consumers that bind it (e.g. webhooks,
+// buttons). Rollup/Lookup/LTAR column editors intentionally omit v-model — their filter
+// state is preserved by the keep-alive component approach, not via vModel.filters.
+// Skip for queryFilter (URL filters) — those are read-only parsed from URL params and
+// must not be overwritten by internal filter state from useViewFilters.
+if (!autoSave.value && !props.queryFilter) {
+  watch(
+    filters,
+    (newFilters) => {
+      modelValue.value = [...newFilters]
+    },
+    { deep: true },
+  )
+}
+
 const { getPlanLimit } = useWorkspace()
 
 const localNestedFilters = ref([])
@@ -255,34 +274,33 @@ const addFiltersRowDomRef = ref<HTMLElement>()
 const isMounted = ref(false)
 
 const isFilterUpdated = computed(() => {
-  return _isFilterUpdated.value || localNestedFilters.value.some((filter) => filter?.isFilterUpdated)
+  return _isFilterUpdated.value || localNestedFilters.value.some(filter => filter?.isFilterUpdated)
 })
 
 const isReorderEnabled = computed(() => {
-  return isEeUI && isViewFilter.value
+  return appInfo.value.ee && isViewFilter.value && !isMobileMode.value
 })
 
-const getColumn = (filter: Filter) => {
+function getColumn(filter: Filter) {
   // extract looked up column if available
   return btLookupTypesMap.value[filter.fk_column_id] || columns.value.find((col: ColumnType) => col.id === filter.fk_column_id)
 }
 
 const filterPrevComparisonOp = ref<Record<string, string>>({})
 
-const isFilterDraft = (filter: Filter, col: ColumnType) => {
+function isFilterDraft(filter: Filter, col: ColumnType) {
   if (filter.id) return false
 
   if (
-    filter.comparison_op &&
-    comparisonSubOpList(filter.comparison_op, col?.meta?.date_format).find((compOp) => compOp.value === filter.comparison_sub_op)
-      ?.ignoreVal
+    filter.comparison_op
+    && comparisonSubOpList(filter.comparison_op, col?.meta?.date_format).find(compOp => compOp.value === filter.comparison_sub_op)?.ignoreVal
   ) {
     return false
   }
 
   if (
     comparisonOpList(types.value[col.id] as UITypes, col?.meta?.date_format).find(
-      (compOp) => compOp.value === filter.comparison_op,
+      compOp => compOp.value === filter.comparison_op,
     )?.ignoreVal
   ) {
     return false
@@ -295,35 +313,38 @@ const isFilterDraft = (filter: Filter, col: ColumnType) => {
   return true
 }
 
-const filterUpdateCondition = (filter: FilterType, i: number) => {
+function filterUpdateCondition(filter: FilterType, i: number) {
   const col = getColumn(filter)
   if (!col) return
   if (
-    col.uidt === UITypes.SingleSelect &&
-    ['anyof', 'nanyof'].includes(filterPrevComparisonOp.value[filter.id!]) &&
-    ['eq', 'neq'].includes(filter.comparison_op!)
+    col.uidt === UITypes.SingleSelect
+    && ['anyof', 'nanyof'].includes(filterPrevComparisonOp.value[filter.id!])
+    && ['eq', 'neq'].includes(filter.comparison_op!)
   ) {
     // anyof and nanyof can allow multiple selections,
     // while `eq` and `neq` only allow one selection
     filter.value = null
-  } else if (['blank', 'notblank', 'empty', 'notempty', 'null', 'notnull'].includes(filter.comparison_op!)) {
+  }
+  else if (['blank', 'notblank', 'empty', 'notempty', 'null', 'notnull'].includes(filter.comparison_op!)) {
     // since `blank`, `empty`, `null` doesn't require value,
     // hence remove the previous value
     filter.value = null
     filter.comparison_sub_op = null
-  } else if (isDateType(types.value[col.id] as UITypes)) {
+  }
+  else if (isDateType(types.value[col.id] as UITypes)) {
     // for date / datetime,
     // the input type could be decimal or datepicker / datetime picker
     // hence remove the previous value
     filter.value = null
     if (
       !comparisonSubOpList(filter.comparison_op!, col?.meta?.date_format)
-        .map((op) => op.value)
+        .map(op => op.value)
         .includes(filter.comparison_sub_op!)
     ) {
       if (filter.comparison_op === 'isWithin') {
         filter.comparison_sub_op = 'pastNumberOfDays'
-      } else {
+      }
+      else {
         filter.comparison_sub_op = 'exactDate'
       }
     }
@@ -352,21 +373,33 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
   })
 }
 
+// Track whether the initial load has been performed to avoid overwriting
+// pre-populated modelValue (e.g. restored pending filters in field editor)
+let hasPerformedInitialLoad = false
+
 watch(
   () => activeView.value?.id,
   (viewId, oldViewId) => {
     // if nested no need to reload since it will get reloaded from parent
     // if isViewFilter (toolbar), rely on ColumnFilterMenu to load filters
     if (
-      !nested.value &&
-      !isViewFilter.value &&
-      viewId &&
-      viewId !== oldViewId &&
-      (hookId?.value || !webHook.value) &&
-      (linkColId?.value || !link.value) &&
-      (widgetId.value || !widget.value) &&
-      (buttonColId?.value || !isButton.value)
-    )
+      !nested.value
+      && !isViewFilter.value
+      && !props.queryFilter
+      && viewId
+      && viewId !== oldViewId
+      && (hookId?.value || !webHook.value)
+      && (linkColId?.value || !link.value)
+      && (widgetId.value || !widget.value)
+      && (buttonColId?.value || !isButton.value)
+    ) {
+      // On the first fire (immediate), skip loading if initialModelValue has data —
+      // matches the onMounted guard that also skips loadFilters when initialModelValue exists
+      if (!hasPerformedInitialLoad && initialModelValue?.length) {
+        hasPerformedInitialLoad = true
+        return
+      }
+      hasPerformedInitialLoad = true
       loadFilters({
         hookId: hookId.value,
         rlsPolicyId: rlsPolicyId?.value,
@@ -377,6 +410,7 @@ watch(
         isLink: link.value,
         isButton: isButton.value,
       })
+    }
   },
   { immediate: true },
 )
@@ -400,7 +434,7 @@ if (isEeUI) {
       if (!storeFilters?.length) return
       for (const storeFilter of storeFilters) {
         if (!storeFilter.id) continue
-        const localFilter = filters.value.find((f) => f.id === storeFilter.id)
+        const localFilter = filters.value.find(f => f.id === storeFilter.id)
         if (!localFilter) continue
 
         // Sync value, enabled, and meta if they differ
@@ -423,11 +457,11 @@ if (isEeUI) {
 
 const filtersCount = computed(() => {
   return Object.values(allFilters.value).reduce((acc, filters) => {
-    return acc + filters.filter((el) => !el.is_group).length
+    return acc + filters.filter(el => !el.is_group).length
   }, 0)
 })
 
-const applyChanges = async (hookOrColId?: string, nested = false, isConditionSupported = true) => {
+async function applyChanges(hookOrColId?: string, nested = false, isConditionSupported = true) {
   // if condition is not supported, delete all filters present
   // it's used for bulk webhooks with filters since bulk webhooks don't support conditions at the moment
   if (!isConditionSupported) {
@@ -439,12 +473,15 @@ const applyChanges = async (hookOrColId?: string, nested = false, isConditionSup
   if (link.value) {
     if (!hookOrColId && !props.nestedLevel) return
     await sync({ linkId: hookOrColId, nested })
-  } else if (isButton.value || buttonColId?.value) {
+  }
+  else if (isButton.value || buttonColId?.value) {
     if (!hookOrColId && !props.nestedLevel) return
     await sync({ buttonId: hookOrColId, nested })
-  } else if (rlsPolicyId?.value) {
+  }
+  else if (rlsPolicyId?.value) {
     await sync({ rlsPolicyId: rlsPolicyId.value, nested })
-  } else {
+  }
+  else {
     await sync({ hookId: hookOrColId, nested })
   }
   if (!localNestedFilters.value?.length) return
@@ -456,7 +493,7 @@ const applyChanges = async (hookOrColId?: string, nested = false, isConditionSup
   }
 }
 
-const selectFilterField = (filter: Filter, index: number) => {
+function selectFilterField(filter: Filter, index: number) {
   const col = getColumn(filter)
 
   if (!col) return
@@ -466,7 +503,8 @@ const selectFilterField = (filter: Filter, index: number) => {
     resetDynamicField(filter, index).catch(() => {
       // do nothing
     })
-  } else {
+  }
+  else {
     filter.fk_value_col_id = null
   }
 
@@ -475,17 +513,19 @@ const selectFilterField = (filter: Filter, index: number) => {
   // since the existing one may not be supported for the new field
   // e.g. `eq` operator is not supported in checkbox field
   // hence, get the first option of the supported operators of the new field
-  filter.comparison_op = comparisonOpList(types.value[col.id] as UITypes, col?.meta?.date_format).find((compOp) =>
+  filter.comparison_op = comparisonOpList(types.value[col.id] as UITypes, col?.meta?.date_format).find(compOp =>
     isComparisonOpAllowed(filter, compOp),
   )?.value as FilterType['comparison_op']
 
   if (isDateType(types.value[col.id] as UITypes) && !['blank', 'notblank'].includes(filter.comparison_op!)) {
     if (filter.comparison_op === 'isWithin') {
       filter.comparison_sub_op = 'pastNumberOfDays'
-    } else {
+    }
+    else {
       filter.comparison_sub_op = 'exactDate'
     }
-  } else {
+  }
+  else {
     // reset
     filter.comparison_sub_op = null
   }
@@ -506,12 +546,12 @@ const selectFilterField = (filter: Filter, index: number) => {
   }
 }
 
-const updateFilterValue = (value: string, filter: Filter, index: number) => {
+function updateFilterValue(value: string, filter: Filter, index: number) {
   filter.value = value
   saveOrUpdateDebounced(filter, index)
 }
 
-const scrollToBottom = () => {
+function scrollToBottom() {
   const wrapperDomRefEl = wrapperDomRef.value?.$el as HTMLDivElement
   wrapperDomRefEl?.scrollTo({
     top: wrapperDomRefEl?.scrollHeight,
@@ -519,7 +559,7 @@ const scrollToBottom = () => {
   })
 }
 
-const scrollDownIfNeeded = () => {
+function scrollDownIfNeeded() {
   if (nested.value) {
     addFiltersRowDomRef?.value?.scrollIntoView({
       behavior: 'smooth',
@@ -537,7 +577,7 @@ const scrollDownIfNeeded = () => {
  *   creation where the draft already contains the correct operator, value, and logical_op
  *   (e.g. AI-generated filters, copy-paste filters).
  */
-const addFilter = async (filter?: Partial<FilterType>, isCopyFilter = false) => {
+async function addFilter(filter?: Partial<FilterType>, isCopyFilter = false) {
   const draft = levelId.value && !nested.value ? { ...(filter ?? {}), fk_level_id: levelId.value } : filter
   await _addFilter(false, draft)
 
@@ -548,28 +588,30 @@ const addFilter = async (filter?: Partial<FilterType>, isCopyFilter = false) => 
   if (!nested.value) {
     // if nested, scroll to bottom
     scrollToBottom()
-  } else {
+  }
+  else {
     scrollDownIfNeeded()
   }
 
   emit('addFilter', nested.value)
 }
 
-const addFilterGroup = async (filter?: Partial<FilterType>) => {
+async function addFilterGroup(filter?: Partial<FilterType>) {
   const draft = levelId.value && !nested.value ? { ...(filter ?? {}), fk_level_id: levelId.value } : filter
   await _addFilterGroup(draft)
 
   if (!nested.value) {
     // if nested, scroll to bottom
     scrollToBottom()
-  } else {
+  }
+  else {
     scrollDownIfNeeded()
   }
 
   emit('addFilterGroup', nested.value)
 }
 
-const copyFilter = (filter: Filter, isGroup = false) => {
+function copyFilter(filter: Filter, isGroup = false) {
   const filterToCopy = clone(filter)
 
   // EE only: Strip pinned state from copied filter (pinned filters are EE feature)
@@ -583,27 +625,29 @@ const copyFilter = (filter: Filter, isGroup = false) => {
 
   if (isGroup) {
     addFilterGroup(filterToCopy)
-  } else {
+  }
+  else {
     addFilter(filterToCopy, true)
   }
 }
 
-const showFilterInput = (filter: Filter) => {
+function showFilterInput(filter: Filter) {
   const col = getColumn(filter)
   if (!filter.comparison_op) return false
 
   if (filter.comparison_sub_op) {
     return !comparisonSubOpList(filter.comparison_op, getColumn(filter)?.meta?.date_format).find(
-      (op) => op.value === filter.comparison_sub_op,
+      op => op.value === filter.comparison_sub_op,
     )?.ignoreVal
-  } else {
+  }
+  else {
     return !comparisonOpList(types.value[col?.id] as UITypes, col?.meta?.date_format).find(
-      (op) => op.value === filter.comparison_op,
+      op => op.value === filter.comparison_op,
     )?.ignoreVal
   }
 }
 
-const eventBusHandler = async (event) => {
+async function eventBusHandler(event) {
   // reload filters only for views
   if (isViewFilter.value && event === SmartsheetStoreEvents.FIELD_UPDATE) {
     await loadFilters({
@@ -617,7 +661,7 @@ onMounted(async () => {
 
   await Promise.all([
     (async () => {
-      if (!props.isTempFilters && !initialModelValue?.length)
+      if (!props.queryFilter && !props.isTempFilters && !initialModelValue?.length) {
         await loadFilters({
           hookId: hookId?.value,
           rlsPolicyId: rlsPolicyId?.value,
@@ -628,6 +672,7 @@ onMounted(async () => {
           isLink: link.value,
           isButton: isButton.value,
         })
+      }
     })(),
     loadBtLookupTypes(),
   ])
@@ -659,8 +704,8 @@ watch(
     draftFilter.value = {}
     if (!filterWrapper.length) return
 
-    const filterInputElement =
-      filterWrapper[filterWrapper.length - 1]?.querySelector<HTMLInputElement>('.nc-filter-value-select input')
+    const filterInputElement
+      = filterWrapper[filterWrapper.length - 1]?.querySelector<HTMLInputElement>('.nc-filter-value-select input')
     if (filterInputElement) {
       setTimeout(() => {
         filterInputElement?.focus?.()
@@ -685,15 +730,15 @@ const visibleFilters = computed(() =>
 // Resolve the real index in filters.value from a visibleFilters element.
 // Needed because Draggable iterates visibleFilters (level-filtered) but
 // useViewFilters operations use indices into the full filters array.
-const getFilterIndex = (filter: ColumnFilterType) => filters.value.findIndex((f) => f === filter)
+const getFilterIndex = (filter: ColumnFilterType) => filters.value.findIndex(f => f === filter)
 
 const isLogicalOpChangeAllowed = computed(() => {
-  return new Set(visibleFilters.value.slice(1).map((filter) => filter.logical_op)).size > 1
+  return new Set(visibleFilters.value.slice(1).map(filter => filter.logical_op)).size > 1
 })
 
 // when logical operation is updated, update all the siblings with the same logical operation only if it's in locked state
-const onLogicalOpUpdate = async (filter: Filter, index: number) => {
-  if (index === 1 && visibleFilters.value.slice(2).every((siblingFilter) => siblingFilter.logical_op !== filter.logical_op)) {
+async function onLogicalOpUpdate(filter: Filter, index: number) {
+  if (index === 1 && visibleFilters.value.slice(2).every(siblingFilter => siblingFilter.logical_op !== filter.logical_op)) {
     await Promise.all(
       visibleFilters.value.slice(2).map(async (siblingFilter, i) => {
         siblingFilter.logical_op = filter.logical_op
@@ -704,7 +749,7 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
   await saveOrUpdate(filter, index)
 }
 
-const onEnabledChange = async (filter: ColumnFilterType, index: number) => {
+async function onEnabledChange(filter: ColumnFilterType, index: number) {
   const newEnabled = filter.enabled === false
   $e('a:filter:toggle-enabled', { enabled: newEnabled, isGroup: !!filter.is_group })
   filter.enabled = newEnabled
@@ -715,14 +760,14 @@ const onEnabledChange = async (filter: ColumnFilterType, index: number) => {
     allFilters.value[parentId?.value ?? 'root'] = [...nonDeletedFilters.value]
 
     // EE only: Sync enabled state to smartsheet store so PinnedFilters.vue reflects it
-    const storeFilter = smartsheetAllFilters.value.find((f) => f.id === filter.id)
+    const storeFilter = smartsheetAllFilters.value.find(f => f.id === filter.id)
     if (storeFilter) {
       storeFilter.enabled = filter.enabled
     }
   }
 }
 
-const onToggleFilterChange = (filter: ColumnFilterType, index: number) => {
+function onToggleFilterChange(filter: ColumnFilterType, index: number) {
   if (blockToggleFilter.value) {
     showUpgradeToUseToggleFilter()
     return
@@ -733,26 +778,26 @@ const onToggleFilterChange = (filter: ColumnFilterType, index: number) => {
 const MAX_PINNED_FILTERS = 3
 
 const pinnedFilterCount = computed(() => {
-  return visibleFilters.value.filter((f) => !f.is_group && parseProp(f.meta)?.pinned === true).length
+  return visibleFilters.value.filter(f => !f.is_group && parseProp(f.meta)?.pinned === true).length
 })
 
 const PINNABLE_TYPES = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy]
 
-const isPinnableType = (filter: ColumnFilterType): boolean => {
+function isPinnableType(filter: ColumnFilterType): boolean {
   const col = getColumn(filter)
   return !!col && PINNABLE_TYPES.includes(col.uidt as UITypes)
 }
 
-const isFieldAlreadyPinned = (filter: ColumnFilterType): boolean => {
+function isFieldAlreadyPinned(filter: ColumnFilterType): boolean {
   if (!filter.fk_column_id) return false
   const isPinned = parseProp(filter.meta)?.pinned
   if (isPinned) return false // this filter itself is the pinned one
   return smartsheetAllFilters.value.some(
-    (f) => f.id !== filter.id && f.fk_column_id === filter.fk_column_id && !f.is_group && parseProp(f.meta)?.pinned === true,
+    f => f.id !== filter.id && f.fk_column_id === filter.fk_column_id && !f.is_group && parseProp(f.meta)?.pinned === true,
   )
 }
 
-const canPinFilter = (filter: ColumnFilterType): boolean => {
+function canPinFilter(filter: ColumnFilterType): boolean {
   if (filter.is_group) return false
   if (!isPinnableType(filter)) return false
   if (isFieldAlreadyPinned(filter)) return false
@@ -760,7 +805,7 @@ const canPinFilter = (filter: ColumnFilterType): boolean => {
   return meta?.pinned || pinnedFilterCount.value < MAX_PINNED_FILTERS
 }
 
-const togglePinFilter = async (filter: ColumnFilterType, index: number) => {
+async function togglePinFilter(filter: ColumnFilterType, index: number) {
   const meta = parseProp(filter.meta) || {}
   const newPinned = !meta.pinned
   $e('a:filter:toggle-pin', { pinned: newPinned })
@@ -769,14 +814,14 @@ const togglePinFilter = async (filter: ColumnFilterType, index: number) => {
   await saveOrUpdate(filter, index)
 
   // Sync pin state to smartsheet store's allFilters so PinnedFilters.vue updates immediately
-  const storeFilter = smartsheetAllFilters.value.find((f) => f.id === filter.id)
+  const storeFilter = smartsheetAllFilters.value.find(f => f.id === filter.id)
   if (storeFilter) {
     storeFilter.meta = { ...meta }
   }
 }
 
 /** Tooltip text for the pin/unpin button — extracted from template for readability */
-const getPinTooltip = (filter: ColumnFilterType): string => {
+function getPinTooltip(filter: ColumnFilterType): string {
   if (!isPinnableType(filter)) return t('labels.pinNotSupported')
   if (parseProp(filter.meta)?.pinned) return t('labels.unpinFromToolbar')
   if (isFieldAlreadyPinned(filter)) return t('labels.fieldAlreadyPinned')
@@ -791,7 +836,7 @@ function onMoveCallback(event: any) {
   }
 }
 
-const onMove = async (event: { moved: { newIndex: number; oldIndex: number; element: ColumnFilterType } }) => {
+async function onMove(event: { moved: { newIndex: number, oldIndex: number, element: ColumnFilterType } }) {
   // For now add reorder support only in view filter
   if (!isReorderEnabled.value) return
 
@@ -817,30 +862,32 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
     // set new order value based on the new order of the items
     if (visibleFilters.value.length - 1 === newIndex) {
       // If moving to the end, set nextOrder greater than the maximum order in the list
-      nextOrder = Math.max(...visibleFilters.value.map((item) => item?.order ?? 0)) + 1
+      nextOrder = Math.max(...visibleFilters.value.map(item => item?.order ?? 0)) + 1
 
       // This is when we drag first position filter and logical operator is different that others
       if (
-        visibleFilters.value[newIndex] &&
-        visibleFilters.value[newIndex - 1] &&
-        element.logical_op !== visibleFilters.value[newIndex - 1]?.logical_op
+        visibleFilters.value[newIndex]
+        && visibleFilters.value[newIndex - 1]
+        && element.logical_op !== visibleFilters.value[newIndex - 1]?.logical_op
       ) {
         element.logical_op = visibleFilters.value[newIndex - 1]?.logical_op
       }
-    } else if (newIndex === 0) {
+    }
+    else if (newIndex === 0) {
       // If moving to the beginning, set nextOrder smaller than the minimum order in the list
-      nextOrder = Math.min(...visibleFilters.value.map((item) => item?.order ?? 0)) / 2
+      nextOrder = Math.min(...visibleFilters.value.map(item => item?.order ?? 0)) / 2
 
       if (visibleFilters.value[1] && element.logical_op !== visibleFilters.value[1].logical_op) {
         changedLogicalOperatorEl = visibleFilters.value[1]
         changedLogicalOperatorEl.logical_op = element.logical_op
         changedLogicalOperatorElIndex = 1
       }
-    } else {
-      nextOrder =
-        (parseFloat(String(visibleFilters.value[newIndex - 1]?.order ?? 0)) +
-          parseFloat(String(visibleFilters.value[newIndex + 1]?.order ?? 0))) /
-        2
+    }
+    else {
+      nextOrder
+        = (Number.parseFloat(String(visibleFilters.value[newIndex - 1]?.order ?? 0))
+          + Number.parseFloat(String(visibleFilters.value[newIndex + 1]?.order ?? 0)))
+        / 2
 
       // This is when we drag first position filter and logical operator is different that others
       if (visibleFilters.value[newIndex + 1] && element.logical_op !== visibleFilters.value[newIndex + 1]!.logical_op) {
@@ -852,17 +899,17 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
 
     element.order = _nextOrder
 
-    const elementIndex =
-      visibleFilters.value.findIndex((item) => item?.id === element?.id) ||
-      visibleFilters.value.findIndex((item) => item?.tmp_id === element?.tmp_id)
+    const elementIndex
+      = visibleFilters.value.findIndex(item => item?.id === element?.id)
+        || visibleFilters.value.findIndex(item => item?.tmp_id === element?.tmp_id)
 
-    const lastFilterElIndex =
-      lastFilters.value.findIndex((item) => item.id === element.id) ||
-      lastFilters.value.findIndex((item) => item.tmp_id === element.tmp_id)
+    const lastFilterElIndex
+      = lastFilters.value.findIndex(item => item.id === element.id)
+        || lastFilters.value.findIndex(item => item.tmp_id === element.tmp_id)
 
     const lastFilterChangedLogicalOperatorElIndex = changedLogicalOperatorEl
-      ? lastFilters.value.findIndex((item) => item.id === changedLogicalOperatorEl?.id) ||
-        lastFilters.value.findIndex((item) => item.tmp_id === changedLogicalOperatorEl?.tmp_id)
+      ? lastFilters.value.findIndex(item => item.id === changedLogicalOperatorEl?.id)
+      || lastFilters.value.findIndex(item => item.tmp_id === changedLogicalOperatorEl?.tmp_id)
       : -1
 
     await saveOrUpdate(element, elementIndex, false, false, false, lastFilterElIndex)
@@ -907,7 +954,7 @@ const sqlUi = computed(() => {
     : Object.values(sqlUis.value)[0]
 })
 
-const isDynamicFilterAllowed = (filter: FilterType) => {
+function isDynamicFilterAllowed(filter: FilterType) {
   const col = getColumn(filter)
   // if virtual column, don't allow dynamic filter
   if (!col || isVirtualCol(col)) return false
@@ -924,8 +971,9 @@ const isDynamicFilterAllowed = (filter: FilterType) => {
       UITypes.GeoData,
       UITypes.SpecificDBType,
     ].includes(col.uidt as UITypes)
-  )
+  ) {
     return false
+  }
 
   const abstractType = sqlUi.value?.getAbstractType(col)
 
@@ -934,7 +982,7 @@ const isDynamicFilterAllowed = (filter: FilterType) => {
   return !filter.comparison_op || ['eq', 'lt', 'gt', 'lte', 'gte', 'like', 'nlike', 'neq'].includes(filter.comparison_op)
 }
 
-const dynamicColumns = (filter: FilterType) => {
+function dynamicColumns(filter: FilterType) {
   const filterCol = getColumn(filter)
 
   if (!filterCol) return []
@@ -948,12 +996,12 @@ const dynamicColumns = (filter: FilterType) => {
     const filterColAbstractType = sqlUi.value?.getAbstractType(filterCol)
 
     // treat float and integer as number
-    if ([dynamicColAbstractType, filterColAbstractType].every((type) => ['float', 'integer'].includes(type))) {
+    if ([dynamicColAbstractType, filterColAbstractType].every(type => ['float', 'integer'].includes(type))) {
       return true
     }
 
     // treat text and string as string
-    if ([dynamicColAbstractType, filterColAbstractType].every((type) => ['text', 'string'].includes(type))) {
+    if ([dynamicColAbstractType, filterColAbstractType].every(type => ['text', 'string'].includes(type))) {
       return true
     }
 
@@ -961,9 +1009,46 @@ const dynamicColumns = (filter: FilterType) => {
   })
 }
 
-const changeToDynamic = async (filter, i) => {
+async function changeToDynamic(filter, i) {
   filter.dynamic = isDynamicFilterAllowed(filter) && showFilterInput(filter)
   await saveOrUpdate(filter, i)
+}
+
+function isFormFieldInaccessible(filter: FilterType) {
+  return isForm.value && !webHook.value && !fieldsToFilter.value.find(c => c?.id === filter.fk_column_id)
+}
+
+function mobileActionMenuItems(filter: FilterType) {
+  if (filter.value?.readOnly || props.readOnly) return []
+
+  return [
+    appInfo.value.ee && {
+      title: t('general.copy'),
+      onClick: () => {
+        $e('c:filter:copy', {
+          link: !!link.value,
+          webHook: !!webHook.value,
+        })
+
+        copyFilter(filter)
+      },
+    },
+    {
+      title: t('general.delete'),
+      onClick: () => {
+        $e('c:filter:delete')
+
+        deleteFilter(filter, getFilterIndex(filter))
+      },
+      danger: true,
+    },
+  ].filter(Boolean)
+}
+
+function isTimezoneAbbreviationAvailable(filter, column) {
+  if (!column || !isDateType(column.uidt)) return false
+
+  return !!getTimeZoneFromName(filter?.meta?.timezone)?.abbreviation
 }
 
 // Expose internal state and methods for parent components.
@@ -983,21 +1068,24 @@ defineExpose({
 <template>
   <div
     data-testid="nc-filter"
-    class="menu-filter-dropdown w-min"
+    class="menu-filter-dropdown"
     :class="{
-      'min-w-122 py-2 pl-4': !nested && !queryFilter && !widget,
-      'max-h-[max(80vh,500px)]': !nested && !queryFilter && !link,
-      'max-h-[max(50vh,400px)]': !nested && !queryFilter && link,
-      '!min-w-127.5': isForm && !webHook,
+      'w-min': !isMobileMode,
+      'w-full': isMobileMode,
+      'min-w-122 py-2 pl-4': !nested && !widget && !isMobileMode,
+      'py-2 pl-4': !nested && !widget && isMobileMode,
+      'xs:(h-full max-h-full flex flex-col) max-h-[max(80vh,500px)]': !nested && !link,
+      'xs:(max-h-full) max-h-[max(50vh,400px)]': !nested && link,
+      '!min-w-127.5': isForm && !webHook && !isMobileMode,
       '!min-w-full !w-full !pl-0': !nested && (webHook || widget),
-      'min-w-full': nested || queryFilter,
+      'min-w-full': nested,
     }"
   >
     <div v-if="nested" class="flex min-w-full w-min items-center gap-1 mb-2">
       <div class="flex items-center gap-2" :class="[`nc-filter-logical-op-level-${nestedLevel}`]">
-        <slot name="start"></slot>
+        <slot name="start" />
       </div>
-      <div class="flex-grow"></div>
+      <div class="flex-grow" />
       <NcDropdown
         :trigger="['hover']"
         overlay-class-name="nc-dropdown-filter-group-sub-menu"
@@ -1053,7 +1141,7 @@ defineExpose({
         </template>
       </NcDropdown>
       <div>
-        <slot name="end"></slot>
+        <slot name="end" />
       </div>
     </div>
 
@@ -1069,9 +1157,9 @@ defineExpose({
       handle=".nc-column-filter-drag-handler"
       class="flex flex-col gap-y-1.5 nc-filter-grid min-w-full w-min"
       :class="{
-        'nc-scrollbar-thin nc-filter-top-wrapper pr-4 mt-1 mb-2 py-1': !nested && !queryFilter,
-        'max-h-420px': !nested && !queryFilter && !link,
-        'max-h-320px': !nested && !queryFilter && link,
+        'nc-scrollbar-thin nc-filter-top-wrapper pr-4 mt-1 mb-2 py-1': !nested,
+        'xs:(max-h-full) max-h-420px': !nested && !link,
+        'xs:(max-h-full) max-h-320px': !nested && link,
         '!pr-0': (webHook || widget) && !nested,
       }"
       :move="onMoveCallback"
@@ -1120,7 +1208,7 @@ defineExpose({
                 >
                   <template #start>
                     <NcCheckbox
-                      v-if="isEeUI && !hideCheckbox"
+                      v-if="appInfo.ee && !hideCheckbox"
                       :checked="filter.enabled !== false"
                       size="default"
                       :disabled="isLockedView || readOnly"
@@ -1149,7 +1237,9 @@ defineExpose({
                       >
                         <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value">
                           <div class="flex items-center w-full justify-between w-full gap-2">
-                            <div class="truncate flex-1 capitalize">{{ op.text }}</div>
+                            <div class="truncate flex-1 capitalize">
+                              {{ op.text }}
+                            </div>
                             <component
                               :is="iconMap.check"
                               v-if="filter.logical_op === op.value"
@@ -1162,118 +1252,135 @@ defineExpose({
                     </div>
                   </template>
                   <template #end>
-                    <NcButton
-                      v-if="!filter.readOnly && !readOnly"
-                      :key="i"
-                      v-e="['c:filter:delete', { link: !!link, webHook: !!webHook }]"
-                      type="text"
-                      size="small"
-                      :disabled="isLockedView"
-                      class="nc-filter-item-remove-btn cursor-pointer"
-                      @click.stop="deleteFilter(filter, getFilterIndex(filter))"
-                    >
-                      <GeneralIcon icon="deleteListItem" />
-                    </NcButton>
-                    <NcButton
-                      v-if="!filter.readOnly && !readOnly && isEeUI"
-                      v-e="['c:filter:copy', { link: !!link, webHook: !!webHook }]"
-                      type="text"
-                      size="small"
-                      :disabled="isLockedView"
-                      class="nc-filter-item-copy-btn"
-                      @click.stop="copyFilter(filter, true)"
-                    >
-                      <GeneralIcon icon="copy" />
-                    </NcButton>
-                    <NcButton
-                      v-if="!filter.readOnly && !readOnly && isReorderEnabled"
-                      v-e="['c:filter:reorder', { link: !!link, webHook: !!webHook }]"
-                      type="text"
-                      size="small"
-                      class="nc-filter-item-reorder-btn nc-column-filter-drag-handler self-center"
-                      :shadow="false"
-                      :disabled="visibleFilters.length === 1"
-                    >
-                      <GeneralIcon icon="drag" class="flex-none h-4 w-4" />
-                    </NcButton>
+                    <template v-if="isMobileMode">
+                      <SmartsheetToolbarColumnFilterMobileActionMenu
+                        v-if="mobileActionMenuItems(filter).length"
+                        :items="mobileActionMenuItems(filter)"
+                      />
+                    </template>
+
+                    <template v-else>
+                      <NcButton
+                        v-if="!filter.readOnly && !readOnly"
+                        :key="i"
+                        v-e="['c:filter:delete', { link: !!link, webHook: !!webHook }]"
+                        type="text"
+                        size="small"
+                        :disabled="isLockedView"
+                        class="nc-filter-item-remove-btn cursor-pointer"
+                        @click.stop="deleteFilter(filter, getFilterIndex(filter))"
+                      >
+                        <GeneralIcon icon="deleteListItem" />
+                      </NcButton>
+                      <NcButton
+                        v-if="!filter.readOnly && !readOnly && appInfo.ee"
+                        v-e="['c:filter:copy', { link: !!link, webHook: !!webHook }]"
+                        type="text"
+                        size="small"
+                        :disabled="isLockedView"
+                        class="nc-filter-item-copy-btn"
+                        @click.stop="copyFilter(filter, true)"
+                      >
+                        <GeneralIcon icon="copy" />
+                      </NcButton>
+                      <NcButton
+                        v-if="!filter.readOnly && !readOnly && isReorderEnabled"
+                        v-e="['c:filter:reorder', { link: !!link, webHook: !!webHook }]"
+                        type="text"
+                        size="small"
+                        class="nc-filter-item-reorder-btn nc-column-filter-drag-handler self-center"
+                        :shadow="false"
+                        :disabled="visibleFilters.length === 1"
+                      >
+                        <GeneralIcon icon="drag" class="flex-none h-4 w-4" />
+                      </NcButton>
+                    </template>
                   </template>
                 </LazySmartsheetToolbarColumnFilter>
               </div>
             </div>
           </template>
 
-          <div v-else class="flex items-center gap-2 w-full">
+          <div v-else class="flex xs:(items-start) items-center gap-2 w-full">
             <NcCheckbox
-              v-if="isEeUI && !hideCheckbox"
+              v-if="appInfo.ee && !hideCheckbox"
               :checked="filter.enabled !== false"
               size="default"
               :disabled="isLockedView || readOnly"
-              class="nc-filter-enabled-checkbox"
+              class="nc-filter-enabled-checkbox xs:(flex min-h-8)"
               @change="onToggleFilterChange(filter, getFilterIndex(filter))"
             />
             <div
-              class="flex flex-row gap-x-0 flex-1 nc-filter-wrapper"
+              class="flex flex-col gap-y-2 sm:gap-y-0 sm:flex-row gap-x-0 flex-1"
               :class="[
                 `nc-filter-wrapper-${filter.fk_column_id}`,
-                { 'nc-filter-disabled-row': isEeUI && filter.enabled === false },
+                { 'nc-filter-disabled-row': isEeUI && filter.enabled === false, 'nc-filter-wrapper': !isMobileMode },
               ]"
             >
-              <div
-                v-if="!visibleFilters.indexOf(filter)"
-                class="flex items-center !min-w-18 !max-w-18 pl-3 nc-filter-where-label"
-              >
-                {{ $t('labels.where') }}
-              </div>
+              <NcWrap :wrap="!!isMobileMode" class="grid grid-cols-12 gap-x-0 flex-1 nc-filter-wrapper">
+                <div
+                  v-if="!visibleFilters.indexOf(filter)"
+                  class="xs:col-span-3 flex items-center sm:(!min-w-18 !max-w-18) pl-3 nc-filter-where-label"
+                >
+                  {{ $t('labels.where') }}
+                </div>
 
-              <NcSelect
-                v-else
-                v-model:value="filter.logical_op"
-                v-e="['c:filter:logical-op:select', { link: !!link, webHook: !!webHook }]"
-                :dropdown-match-select-width="false"
-                class="h-full !max-w-18 !min-w-18 capitalize"
-                hide-details
-                :disabled="
-                  filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed) || isLockedView || readOnly
-                "
-                dropdown-class-name="nc-dropdown-filter-logical-op"
-                :class="{
-                  'nc-disabled-logical-op':
-                    filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed) || readOnly,
-                }"
-                @change="onLogicalOpUpdate(filter, getFilterIndex(filter))"
-                @click.stop
-              >
-                <a-select-option v-for="op of logicalOps" :key="op.value" :value="op.value">
-                  <div class="flex items-center w-full justify-between w-full gap-2">
-                    <div class="truncate flex-1 capitalize">{{ op.text }}</div>
-                    <component
-                      :is="iconMap.check"
-                      v-if="filter.logical_op === op.value"
-                      id="nc-selected-item-icon"
-                      class="text-primary w-4 h-4"
-                    />
-                  </div>
-                </a-select-option>
-              </NcSelect>
+                <NcSelect
+                  v-else
+                  v-model:value="filter.logical_op"
+                  v-e="['c:filter:logical-op:select', { link: !!link, webHook: !!webHook }]"
+                  :dropdown-match-select-width="false"
+                  class="xs:(col-span-3 !max-w-none !min-w-0) h-full !max-w-18 !min-w-18 capitalize"
+                  hide-details
+                  :disabled="
+                    filter.readOnly
+                      || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed)
+                      || isLockedView
+                      || readOnly
+                  "
+                  dropdown-class-name="nc-dropdown-filter-logical-op"
+                  :class="{
+                    'nc-disabled-logical-op':
+                      filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed) || readOnly,
+                  }"
+                  @change="onLogicalOpUpdate(filter, getFilterIndex(filter))"
+                  @click.stop
+                >
+                  <a-select-option v-for="op of logicalOps" :key="op.value" :value="op.value">
+                    <div class="flex items-center w-full justify-between w-full gap-2">
+                      <div class="truncate flex-1 capitalize">
+                        {{ op.text }}
+                      </div>
+                      <component
+                        :is="iconMap.check"
+                        v-if="filter.logical_op === op.value"
+                        id="nc-selected-item-icon"
+                        class="text-primary w-4 h-4"
+                      />
+                    </div>
+                  </a-select-option>
+                </NcSelect>
 
-              <NcTooltip
-                v-if="isForm && !webHook && !fieldsToFilter.find((c) => c?.id === filter.fk_column_id)"
-                class="flex-1 flex items-center gap-2 px-2 !text-nc-content-red-medium cursor-pointer"
-                :disabled="!filter.fk_column_id || !visibilityError[filter.fk_column_id]"
-              >
-                <template #title> {{ visibilityError[filter.fk_column_id!] ?? '' }}</template>
-                <GeneralIcon icon="alertTriangle" class="flex-none" />
-                {{ $t('title.fieldInaccessible') }}
-              </NcTooltip>
+                <NcTooltip
+                  v-if="isFormFieldInaccessible(filter)"
+                  class="xs:col-span-9 flex-1 flex items-center gap-2 px-2 !text-nc-content-red-medium cursor-pointer"
+                  :disabled="!filter.fk_column_id || !visibilityError[filter.fk_column_id]"
+                >
+                  <template #title>
+                    {{ visibilityError[filter.fk_column_id!] ?? '' }}
+                  </template>
+                  <GeneralIcon icon="alertTriangle" class="flex-none" />
+                  {{ $t('title.fieldInaccessible') }}
+                </NcTooltip>
 
-              <template v-else>
                 <SmartsheetToolbarFieldListAutoCompleteDropdown
+                  v-if="!isFormFieldInaccessible(filter)"
                   :key="`${i}_6`"
                   v-model="filter.fk_column_id"
                   :class="{
-                    'max-w-32': !webHook,
+                    'xs:(!max-w-none) !max-w-32': !webHook,
                   }"
-                  class="nc-filter-field-select min-w-32 max-h-8"
+                  class="xs:(col-span-6 min-w-0) nc-filter-field-select min-w-32 max-h-8"
                   :columns="fieldsToFilter"
                   :disable-smartsheet="!!widget || !!workflow || !!rlsPolicyId"
                   :disabled="filter.readOnly || isLockedView || readOnly"
@@ -1284,10 +1391,11 @@ defineExpose({
                 />
 
                 <NcSelect
+                  v-if="!isFormFieldInaccessible(filter)"
                   v-model:value="filter.comparison_op"
                   v-e="['c:filter:comparison-op:select', { link: !!link, webHook: !!webHook }]"
                   :dropdown-match-select-width="false"
-                  class="caption nc-filter-operation-select !min-w-26.75 max-h-8"
+                  class="xs:(col-span-3 !min-w-0) caption nc-filter-operation-select !min-w-26.75 max-h-8"
                   :placeholder="$t('labels.operation')"
                   :class="{
                     '!max-w-26.75': !webHook,
@@ -1305,7 +1413,9 @@ defineExpose({
                   >
                     <a-select-option v-if="isComparisonOpAllowed(filter, compOp)" :value="compOp.value">
                       <div class="flex items-center w-full justify-between w-full gap-2">
-                        <div class="truncate flex-1">{{ compOp.text }}</div>
+                        <div class="truncate flex-1">
+                          {{ compOp.text }}
+                        </div>
                         <component
                           :is="iconMap.check"
                           v-if="filter.comparison_op === compOp.value"
@@ -1316,15 +1426,20 @@ defineExpose({
                     </a-select-option>
                   </template>
                 </NcSelect>
+              </NcWrap>
 
-                <div v-if="['blank', 'notblank'].includes(filter.comparison_op)" class="flex flex-grow"></div>
+              <NcWrap :wrap="!!isMobileMode" class="grid grid-cols-12 gap-x-0 flex-1 min-h-8 nc-filter-wrapper">
+                <div
+                  v-if="!isFormFieldInaccessible(filter) && ['blank', 'notblank'].includes(filter.comparison_op)"
+                  class="xs:col-span-3 sm:(flex flex-grow)"
+                />
 
                 <NcSelect
-                  v-else-if="isDateType(types[filter.fk_column_id])"
+                  v-else-if="!isFormFieldInaccessible(filter) && isDateType(types[filter.fk_column_id])"
                   v-model:value="filter.comparison_sub_op"
                   v-e="['c:filter:sub-comparison-op:select', { link: !!link, webHook: !!webHook }]"
                   :dropdown-match-select-width="false"
-                  class="caption nc-filter-sub_operation-select min-w-28"
+                  class="xs:(col-span-3 !min-w-0) caption nc-filter-sub_operation-select !min-w-28"
                   :class="{
                     'flex-grow w-full': !showFilterInput(filter),
                     'max-w-28': showFilterInput(filter) && !webHook,
@@ -1344,7 +1459,9 @@ defineExpose({
                     <a-select-option v-if="isComparisonSubOpAllowed(filter, compSubOp)" :value="compSubOp.value">
                       <div class="flex items-center w-full justify-between w-full gap-2 max-w-40">
                         <NcTooltip show-on-truncate-only class="truncate flex-1">
-                          <template #title>{{ compSubOp.text }}</template>
+                          <template #title>
+                            {{ compSubOp.text }}
+                          </template>
                           {{ compSubOp.text }}
                         </NcTooltip>
                         <component
@@ -1357,7 +1474,20 @@ defineExpose({
                     </a-select-option>
                   </template>
                 </NcSelect>
-                <div class="flex items-center flex-grow min-w-0">
+                <div
+                  class="flex items-center flex-grow min-w-0 empty:!hidden"
+                  :class="{
+                    'xs:(col-span-6)':
+                      isTimezoneAbbreviationAvailable(filter, getColumn(filter))
+                      && (['blank', 'notblank'].includes(filter.comparison_op) || isDateType(types[filter.fk_column_id])),
+                    'xs:(col-span-9)':
+                      !isTimezoneAbbreviationAvailable(filter, getColumn(filter))
+                      && (['blank', 'notblank'].includes(filter.comparison_op) || isDateType(types[filter.fk_column_id])),
+                    'xs:(col-span-full)':
+                      !isTimezoneAbbreviationAvailable(filter, getColumn(filter))
+                      && !(['blank', 'notblank'].includes(filter.comparison_op) || isDateType(types[filter.fk_column_id])),
+                  }"
+                >
                   <div v-if="link && (filter.dynamic || filter.fk_value_col_id)" class="flex-grow">
                     <SmartsheetToolbarFieldListAutoCompleteDropdown
                       v-if="showFilterInput(filter)"
@@ -1399,7 +1529,7 @@ defineExpose({
                       @click.stop
                     />
 
-                    <div v-else-if="!isDateType(types[filter.fk_column_id])" class="flex-grow"></div>
+                    <div v-else-if="!isDateType(types[filter.fk_column_id])" class="flex-grow" />
                   </template>
                   <template v-if="workflow && showDynamicCondition">
                     <NcDropdown
@@ -1422,14 +1552,18 @@ defineExpose({
                               @click="resetDynamicField(filter, getFilterIndex(filter))"
                             >
                               <div class="flex flex-row items-center justify-between w-full">
-                                <div class="flex flex-row items-center justify-start gap-x-3">Static condition</div>
+                                <div class="flex flex-row items-center justify-start gap-x-3">
+                                  Static condition
+                                </div>
                                 <GeneralIcon
                                   v-if="!filter.dynamic && !filter.fk_value_col_id"
                                   icon="check"
                                   class="w-4 h-4 text-primary"
                                 />
                               </div>
-                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on static value</div>
+                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">
+                                Filter based on static value
+                              </div>
                             </div>
                             <div
                               v-e="['c:filter:dynamic-filter']"
@@ -1437,14 +1571,18 @@ defineExpose({
                               @click="changeToDynamic(filter, getFilterIndex(filter))"
                             >
                               <div class="flex flex-row items-center justify-between w-full">
-                                <div class="flex flex-row items-center justify-start gap-x-2.5">Dynamic condition</div>
+                                <div class="flex flex-row items-center justify-start gap-x-2.5">
+                                  Dynamic condition
+                                </div>
                                 <GeneralIcon
                                   v-if="filter.dynamic || filter.fk_value_col_id"
                                   icon="check"
                                   class="w-4 h-4 text-primary"
                                 />
                               </div>
-                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on dynamic value</div>
+                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">
+                                Filter based on dynamic value
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1473,14 +1611,18 @@ defineExpose({
                               @click="resetDynamicField(filter, getFilterIndex(filter))"
                             >
                               <div class="flex flex-row items-center justify-between w-full">
-                                <div class="flex flex-row items-center justify-start gap-x-3">Static condition</div>
+                                <div class="flex flex-row items-center justify-start gap-x-3">
+                                  Static condition
+                                </div>
                                 <GeneralIcon
                                   v-if="!filter.dynamic && !filter.fk_value_col_id"
                                   icon="check"
                                   class="w-4 h-4 text-primary"
                                 />
                               </div>
-                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on static value</div>
+                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">
+                                Filter based on static value
+                              </div>
                             </div>
                             <div
                               v-e="['c:filter:dynamic-filter']"
@@ -1493,14 +1635,18 @@ defineExpose({
                               @click="changeToDynamic(filter, getFilterIndex(filter))"
                             >
                               <div class="flex flex-row items-center justify-between w-full">
-                                <div class="flex flex-row items-center justify-start gap-x-2.5">Dynamic condition</div>
+                                <div class="flex flex-row items-center justify-start gap-x-2.5">
+                                  Dynamic condition
+                                </div>
                                 <GeneralIcon
                                   v-if="filter.dynamic || filter.fk_value_col_id"
                                   icon="check"
                                   class="w-4 h-4 text-primary"
                                 />
                               </div>
-                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on dynamic value</div>
+                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">
+                                Filter based on dynamic value
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1508,82 +1654,94 @@ defineExpose({
                     </NcDropdown>
                   </template>
                 </div>
-                <SmartsheetToolbarFilterTimezoneAbbreviation :column="getColumn(filter)" :filter="filter" />
-              </template>
-              <NcButton
-                v-if="!filter.readOnly && !readOnly"
-                v-e="['c:filter:delete', { link: !!link, webHook: !!webHook }]"
-                type="text"
-                size="small"
-                :disabled="isLockedView"
-                class="nc-filter-item-remove-btn self-center"
-                @click.stop="deleteFilter(filter, getFilterIndex(filter))"
-              >
-                <GeneralIcon icon="deleteListItem" />
-              </NcButton>
-              <NcButton
-                v-if="!filter.readOnly && !readOnly && isEeUI"
-                v-e="['c:filter:copy', { link: !!link, webHook: !!webHook }]"
-                type="text"
-                size="small"
-                :disabled="isLockedView"
-                class="nc-filter-item-copy-btn self-center"
-                @click.stop="copyFilter(filter)"
-              >
-                <GeneralIcon icon="copy" />
-              </NcButton>
+                <SmartsheetToolbarFilterTimezoneAbbreviation
+                  v-if="!isFormFieldInaccessible(filter)"
+                  :column="getColumn(filter)"
+                  :filter="filter"
+                  class="xs:(rounded-r-lg col-span-3)"
+                />
+              </NcWrap>
 
-              <NcTooltip
-                v-if="
-                  !filter.readOnly &&
-                  !readOnly &&
-                  isEeUI &&
-                  isViewFilter &&
-                  !filter.is_group &&
-                  !webHook &&
-                  !link &&
-                  !widget &&
-                  !isList
-                "
-              >
-                <template #title>
-                  {{ getPinTooltip(filter) }}
-                </template>
+              <template v-if="!isMobileMode">
                 <NcButton
-                  v-e="['c:filter:pin']"
+                  v-if="!filter.readOnly && !readOnly"
+                  v-e="['c:filter:delete', { link: !!link, webHook: !!webHook }]"
                   type="text"
                   size="small"
-                  :disabled="!canPinFilter(filter) || isLockedView"
-                  class="nc-filter-item-pin-btn self-center"
-                  @click.stop="
-                    blockPinnedFilter ? showUpgradeToUsePinnedFilter() : togglePinFilter(filter, getFilterIndex(filter))
+                  :disabled="isLockedView"
+                  class="nc-filter-item-remove-btn self-center"
+                  @click.stop="deleteFilter(filter, getFilterIndex(filter))"
+                >
+                  <GeneralIcon icon="deleteListItem" />
+                </NcButton>
+                <NcButton
+                  v-if="!filter.readOnly && !readOnly && appInfo.ee"
+                  v-e="['c:filter:copy', { link: !!link, webHook: !!webHook }]"
+                  type="text"
+                  size="small"
+                  :disabled="isLockedView"
+                  class="nc-filter-item-copy-btn self-center"
+                  @click.stop="copyFilter(filter)"
+                >
+                  <GeneralIcon icon="copy" />
+                </NcButton>
+
+                <NcTooltip
+                  v-if="
+                    !filter.readOnly
+                      && !readOnly
+                      && appInfo.ee
+                      && isViewFilter
+                      && !filter.is_group
+                      && !webHook
+                      && !link
+                      && !widget
+                      && !isList
                   "
                 >
-                  <GeneralIcon
-                    :icon="parseProp(filter.meta)?.pinned ? 'ncPinOff' : 'ncPin'"
-                    class="h-3.5 w-3.5"
-                    :class="
-                      (!canPinFilter(filter) && !parseProp(filter.meta)?.pinned) || isLockedView
-                        ? 'text-nc-content-gray-muted'
-                        : parseProp(filter.meta)?.pinned
-                        ? 'text-primary'
-                        : 'text-nc-content-gray-subtle2'
+                  <template #title>
+                    {{ getPinTooltip(filter) }}
+                  </template>
+                  <NcButton
+                    v-if="showEEFeatures"
+                    v-e="['c:filter:pin']"
+                    type="text"
+                    size="small"
+                    :disabled="!canPinFilter(filter) || isLockedView"
+                    class="nc-filter-item-pin-btn self-center"
+                    @click.stop="
+                      blockPinnedFilter ? showUpgradeToUsePinnedFilter() : togglePinFilter(filter, getFilterIndex(filter))
                     "
-                  />
-                </NcButton>
-              </NcTooltip>
+                  >
+                    <GeneralIcon
+                      :icon="parseProp(filter.meta)?.pinned ? 'ncPinOff' : 'ncPin'"
+                      class="h-3.5 w-3.5"
+                      :class="
+                        (!canPinFilter(filter) && !parseProp(filter.meta)?.pinned) || isLockedView
+                          ? 'text-nc-content-gray-muted'
+                          : parseProp(filter.meta)?.pinned
+                            ? 'text-primary'
+                            : 'text-nc-content-gray-subtle2'
+                      "
+                    />
+                  </NcButton>
+                </NcTooltip>
 
-              <NcButton
-                v-if="!filter.readOnly && !readOnly && isReorderEnabled"
-                v-e="['c:filter:reorder', { link: !!link, webHook: !!webHook }]"
-                type="text"
-                size="small"
-                class="nc-filter-item-reorder-btn nc-column-filter-drag-handler self-center"
-                :shadow="false"
-                :disabled="visibleFilters.length === 1"
-              >
-                <GeneralIcon icon="drag" class="flex-none h-4 w-4" />
-              </NcButton>
+                <NcButton
+                  v-if="!filter.readOnly && !readOnly && isReorderEnabled"
+                  v-e="['c:filter:reorder', { link: !!link, webHook: !!webHook }]"
+                  type="text"
+                  size="small"
+                  class="nc-filter-item-reorder-btn nc-column-filter-drag-handler self-center"
+                  :shadow="false"
+                  :disabled="visibleFilters.length === 1"
+                >
+                  <GeneralIcon icon="drag" class="flex-none h-4 w-4" />
+                </NcButton>
+              </template>
+            </div>
+            <div v-if="isMobileMode && mobileActionMenuItems(filter).length" class="h-8 flex items-center">
+              <SmartsheetToolbarColumnFilterMobileActionMenu :items="mobileActionMenuItems(filter)" />
             </div>
           </div>
         </div>
@@ -1592,45 +1750,47 @@ defineExpose({
 
     <template v-if="!nested">
       <div class="flex">
-        <template v-if="isEeUI && !isPublic">
+        <template v-if="appInfo.ee && !isPublic">
           <div
             v-if="!readOnly && filtersCount < getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW) && !hiddenAddNewFilter"
-            class="flex gap-2 w-full pr-4"
+            class="flex gap-2 xs:(justify-between items-start) w-full pr-4"
             :class="{
               'mt-1 mb-2': filters.length,
             }"
           >
-            <NcButton
-              v-if="!hiddenAddNewFilter"
-              size="small"
-              :type="actionBtnType"
-              :disabled="disableAddNewFilter || isLockedView || readOnly"
-              class="nc-btn-focus"
-              data-testid="add-filter"
-              @click.stop="addFilter()"
-            >
-              <div class="flex items-center gap-1">
-                <component :is="iconMap.plus" />
-                <!-- Add Filter -->
-                {{ isForm && !webHook ? $t('activity.addCondition') : $t('activity.addFilter') }}
-              </div>
-            </NcButton>
+            <NcWrap :wrap="!!isMobileMode" class="flex flex-col items-start gap-y-2">
+              <NcButton
+                v-if="!hiddenAddNewFilter"
+                size="small"
+                :type="actionBtnType"
+                :disabled="disableAddNewFilter || isLockedView || readOnly"
+                class="nc-btn-focus"
+                data-testid="add-filter"
+                @click.stop="addFilter()"
+              >
+                <div class="flex items-center gap-1">
+                  <component :is="iconMap.plus" />
+                  <!-- Add Filter -->
+                  {{ isForm && !webHook ? $t('activity.addCondition') : $t('activity.addFilter') }}
+                </div>
+              </NcButton>
 
-            <NcButton
-              v-if="nestedLevel < 5 && !readOnly"
-              class="nc-btn-focus"
-              :disabled="disableAddNewFilter || isLockedView"
-              :type="actionBtnType"
-              size="small"
-              data-testid="add-filter-group"
-              @click.stop="addFilterGroup()"
-            >
-              <div class="flex items-center gap-1">
-                <!-- Add Filter Group -->
-                <component :is="iconMap.plus" />
-                {{ isForm && !webHook ? $t('activity.addConditionGroup') : $t('activity.addFilterGroup') }}
-              </div>
-            </NcButton>
+              <NcButton
+                v-if="nestedLevel < 5 && !readOnly"
+                class="nc-btn-focus"
+                :disabled="disableAddNewFilter || isLockedView"
+                :type="actionBtnType"
+                size="small"
+                data-testid="add-filter-group"
+                @click.stop="addFilterGroup()"
+              >
+                <div class="flex items-center gap-1">
+                  <!-- Add Filter Group -->
+                  <component :is="iconMap.plus" />
+                  {{ isForm && !webHook ? $t('activity.addConditionGroup') : $t('activity.addFilterGroup') }}
+                </div>
+              </NcButton>
+            </NcWrap>
 
             <LazyGeneralCopyFromAnotherViewActionBtn
               v-if="activeView && isViewFilter"
@@ -1644,7 +1804,7 @@ defineExpose({
         <template v-else-if="!readOnly && !hiddenAddNewFilter">
           <div
             ref="addFiltersRowDomRef"
-            class="flex gap-2"
+            class="flex gap-2 xs:(flex-col items-start)"
             :class="{
               'mt-1 mb-2': filters.length,
             }"
@@ -1762,11 +1922,7 @@ defineExpose({
   }
 
   & > :last-child {
-    @apply relative;
-    &::after {
-      content: '';
-      @apply absolute h-full w-1px bg-[var(--nc-bg-gray-medium)] -left-1px top-0;
-    }
+    @apply relative sm:(after:(content-[''] absolute h-full w-1px bg-[var(--nc-bg-gray-medium)] -left-1px top-0));
   }
 
   :deep(::placeholder) {

@@ -1,4 +1,4 @@
-import dayjs from 'dayjs'
+import type { RuleObject } from 'ant-design-vue/es/form'
 import type {
   BoolType,
   ColumnType,
@@ -10,11 +10,14 @@ import type {
   StringOrNullType,
   TableType,
 } from 'nocodb-sdk'
-import { PermissionEntity, PermissionKey, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { useTitle } from '@vueuse/core'
-import type { RuleObject } from 'ant-design-vue/es/form'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import { isLinksOrLTAR, isSystemColumn, isVirtualCol, PermissionEntity, PermissionKey, RelationTypes, UITypes } from 'nocodb-sdk'
 import { filterNullOrUndefinedObjectProperties } from '~/helpers/parsers/parserHelpers'
+
+dayjs.extend(utc)
 
 const useForm = Form.useForm
 
@@ -22,6 +25,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const progress = ref(false)
   const notFound = ref(false)
   const submitted = ref(false)
+
   const passwordDlg = ref(false)
   const password = ref<string | null>(null)
   const passwordError = ref<string | null>(null)
@@ -45,9 +49,34 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     })[]
   >()
   const sharedViewMeta = ref<SharedViewMeta>({})
+
+  const { isFeatureEnabled } = useBetaFeatureToggle()
+
+  const isFormExpired = computed(() => {
+    if (!isFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING)) return false
+
+    const expiresAt = (sharedFormView.value as any)?.expires_at
+
+    if (!expiresAt) return false
+
+    return dayjs.utc(expiresAt).isBefore(dayjs.utc())
+  })
+
+  const isFormNotStarted = computed(() => {
+    if (!isFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING)) return false
+
+    const startsAt = (sharedFormView.value as any)?.starts_at
+
+    if (!startsAt) return false
+
+    return dayjs.utc(startsAt).isAfter(dayjs.utc())
+  })
+
+  const formStartsAt = computed(() => (sharedFormView.value as any)?.starts_at || null)
+
   const formResetHook = createEventHook<void>()
 
-  const { isMobileMode } = useGlobal()
+  const { isMobileMode, appInfo } = useGlobal()
 
   const { api, isLoading } = useApi()
 
@@ -99,7 +128,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     }
 
     if (parseProp(sharedFormView.value?.meta).background_color) {
-      result.bgColor = getSelectTypeFieldOptionBgColor({
+      result.bgColor = getDarkModeCompatibleBgColor({
         color: parseProp(sharedFormView.value?.meta).background_color,
         isDark: isDark.value,
         shade: 0,
@@ -121,7 +150,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   )
 
   const localColumns = computed<(ColumnType & Record<string, any>)[]>(() => {
-    return (columns.value || [])?.filter((c) => supportedFields(c))
+    return (columns.value || [])?.filter(c => supportedFields(c))
   })
 
   const localColumnsMapByFkColumnId = computed(() => {
@@ -193,7 +222,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       await setMeta(viewMeta.model)
 
       // if base is not defined then set it with an object containing source
-      if (!base.value?.sources)
+      if (!base.value?.sources) {
         baseStore.setProject({
           id: viewMeta.base_id,
           sources: [
@@ -203,10 +232,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
             },
           ],
         })
+      }
 
       const relatedMetas = { ...viewMeta.relatedMetas }
 
-      Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
+      Object.keys(relatedMetas).forEach(key => setMeta(relatedMetas[key]))
 
       if (viewMeta.users) {
         basesUser.value.set(viewMeta.base_id, viewMeta.users)
@@ -224,27 +254,30 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         .filter((c: ColumnType) => fieldById[c.id])
         .map((c: ColumnType) => {
           if (
-            !isSystemColumn(c) &&
-            !isVirtualCol(c) &&
-            !isAttachment(c) &&
-            c.uidt !== UITypes.SpecificDBType &&
-            c?.title &&
-            isValidValue(c?.cdf) &&
-            !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(c.cdf)
+            !isSystemColumn(c)
+            && !isVirtualCol(c)
+            && !isAttachment(c)
+            && c.uidt !== UITypes.SpecificDBType
+            && c?.title
+            && isValidValue(c?.cdf)
+            && !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(c.cdf)
           ) {
             const defaultValue = typeof c.cdf === 'string' ? c.cdf.replace(/^['"]|['"]$/g, '') : c.cdf
             if ([UITypes.Number, UITypes.Duration, UITypes.Percent, UITypes.Currency, UITypes.Decimal].includes(c.uidt)) {
               formState.value[c.title] = Number(defaultValue) || null
               preFilledDefaultValueformState.value[c.title] = Number(defaultValue) || null
-            } else if (c.uidt === UITypes.Checkbox) {
+            }
+            else if (c.uidt === UITypes.Checkbox) {
               if (['true', '1'].includes(String(defaultValue).toLowerCase())) {
                 formState.value[c.title] = true
                 preFilledDefaultValueformState.value[c.title] = true
-              } else if (['false', '0'].includes(String(defaultValue).toLowerCase())) {
+              }
+              else if (['false', '0'].includes(String(defaultValue).toLowerCase())) {
                 formState.value[c.title] = false
                 preFilledDefaultValueformState.value[c.title] = false
               }
-            } else {
+            }
+            else {
               formState.value[c.title] = defaultValue
               preFilledDefaultValueformState.value[c.title] = defaultValue
             }
@@ -274,18 +307,21 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       nextTick(() => {
         showRecordPlanLimitExceededModal({ isSharedFormView: true, focusBtn: null })
       })
-    } catch (e: any) {
+    }
+    catch (e: any) {
       const error = await extractSdkResponseErrorMsgv2(e)
 
       if (e.response && e.response.status === 404) {
         notFound.value = true
-      } else if (error.error === NcErrorType.ERR_INVALID_SHARED_VIEW_PASSWORD) {
+      }
+      else if (error.error === NcErrorType.ERR_INVALID_SHARED_VIEW_PASSWORD) {
         passwordDlg.value = true
 
         if (password.value && password.value !== '') {
           passwordError.value = error.message
         }
-      } else if (error.error === NcErrorType.ERR_UNKNOWN) {
+      }
+      else if (error.error === NcErrorType.ERR_UNKNOWN) {
         console.error('Error occurred while loading shared form view', e)
         message.error('Error occurred while loading shared form view')
       }
@@ -321,8 +357,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
                 }
 
                 if (
-                  (column.uidt === UITypes.Checkbox && !value) ||
-                  (column.uidt !== UITypes.Checkbox && !requiredFieldValidatorFn(value))
+                  (column.uidt === UITypes.Checkbox && !value)
+                  || (column.uidt !== UITypes.Checkbox && !requiredFieldValidatorFn(value))
                 ) {
                   return reject(t('msg.error.fieldRequired'))
                 }
@@ -342,7 +378,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         },
       ]
 
-      const additionalRules = extractFieldValidator(parseProp(column.meta).validators ?? [], column)
+      const additionalRules = extractFieldValidator(
+        parseProp(column.meta).validators ?? [],
+        column,
+        appInfo.value.ncMaxTextLength,
+      )
       rules = [...rules, ...additionalRules]
 
       if (rules.length) {
@@ -374,20 +414,21 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const handleAddMissingRequiredFieldDefaultState = async () => {
     for (const col of localColumns.value) {
       if (
-        col.title &&
-        col.show &&
-        col.visible &&
-        col.permissions?.isAllowedToEdit &&
-        isRequired(col) &&
-        formState.value[col.title] === undefined &&
-        additionalState.value[col.title] === undefined
+        col.title
+        && col.show
+        && col.visible
+        && col.permissions?.isAllowedToEdit
+        && isRequired(col)
+        && formState.value[col.title] === undefined
+        && additionalState.value[col.title] === undefined
       ) {
         if (isVirtualCol(col)) {
           additionalState.value = {
             ...(additionalState.value || {}),
             [col.title]: null,
           }
-        } else {
+        }
+        else {
           formState.value[col.title] = null
         }
       }
@@ -407,12 +448,13 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       // filter `undefined` keys which is hidden prefilled fields
       await validate(
         [
-          ...Object.keys(formState.value).map((title) => fieldMappings.value[title]),
-          ...Object.keys(additionalState.value).map((title) => fieldMappings.value[title]),
-        ].filter((v) => v !== undefined),
+          ...Object.keys(formState.value).map(title => fieldMappings.value[title]),
+          ...Object.keys(additionalState.value).map(title => fieldMappings.value[title]),
+        ].filter(v => v !== undefined),
       )
       return true
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.error('Error occurred while validating all fields:', e)
 
       if (e?.errorFields?.length) {
@@ -473,15 +515,18 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           window.history.pushState({}, 'Redirect', redirectUrl)
           // Reload the page
           window.location.reload()
-        } else {
+        }
+        else {
           // For external links, use window.location.href
           window.location.href = redirectUrl
         }
-      } else {
+      }
+      else {
         submitted.value = true
         progress.value = false
       }
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.error(e)
       await message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -510,18 +555,18 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           const queryParam = route.query[c.title as string]
 
           if (
-            !c.title ||
-            !queryParam ||
-            isSystemColumn(c) ||
-            (isVirtualCol(c) && !isLinksOrLTAR(c)) ||
-            (!sharedViewMeta.value.preFillEnabled && !isVirtualCol(c) && !isLinksOrLTAR(c)) ||
-            isAttachment(c) ||
-            c.uidt === UITypes.SpecificDBType
+            !c.title
+            || !queryParam
+            || isSystemColumn(c)
+            || (isVirtualCol(c) && !isLinksOrLTAR(c))
+            || (!sharedViewMeta.value.preFillEnabled && !isVirtualCol(c) && !isLinksOrLTAR(c))
+            || isAttachment(c)
+            || c.uidt === UITypes.SpecificDBType
           ) {
             return c
           }
           const decodedQueryParam = Array.isArray(queryParam)
-            ? queryParam.map((qp) => decodeURIComponent(qp as string).trim())
+            ? queryParam.map(qp => decodeURIComponent(qp as string).trim())
             : decodeURIComponent(queryParam as string).trim()
 
           const preFillValue = await getPreFillValue(c, decodedQueryParam)
@@ -532,7 +577,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
                 ...(additionalState.value || {}),
                 [c.title]: preFillValue,
               }
-            } else {
+            }
+            else {
               // Prefill form state
               formState.value[c.title] = preFillValue
             }
@@ -563,7 +609,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
         // preFilledformState will be used in clear form to fill the prefilled data
         preFilledformState.value = JSON.parse(JSON.stringify(formState.value || {}))
-      } catch {}
+      }
+      catch {}
     }
   }
 
@@ -592,42 +639,43 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           options = ((c.colOptions as SelectOptionsType)?.options || [])
             .filter((op) => {
               if (
-                op?.id &&
-                op?.title &&
-                queryOptions.includes(op.title) &&
-                (limitOptions[op.id]
+                op?.id
+                && op?.title
+                && queryOptions.includes(op.title)
+                && (limitOptions[op.id]
                   ? limitOptions[op.id]?.show
                   : parseProp(c.meta).isLimitOption
-                  ? !(parseProp(c.meta).limitOptions || []).length
-                  : true)
+                    ? !(parseProp(c.meta).limitOptions || []).length
+                    : true)
               ) {
                 return true
               }
               return false
             })
-            .map((op) => op.title as string)
+            .map(op => op.title as string)
 
           if (options.length) {
             preFillValue = c.uidt === UITypes.SingleSelect ? options[0] : options.join(',')
           }
-        } else {
+        }
+        else {
           options = (meta.value?.base_id ? basesUser.value.get(meta.value.base_id) || [] : [])
             .filter((user) => {
               if (
-                user?.id &&
-                user?.email &&
-                (queryOptions.includes(user.email) || queryOptions.includes(user.id)) &&
-                (limitOptions[user.id]
+                user?.id
+                && user?.email
+                && (queryOptions.includes(user.email) || queryOptions.includes(user.id))
+                && (limitOptions[user.id]
                   ? limitOptions[user.id]?.show
                   : parseProp(c.meta).isLimitOption
-                  ? !(parseProp(c.meta).limitOptions || []).length
-                  : true)
+                    ? !(parseProp(c.meta).limitOptions || []).length
+                    : true)
               ) {
                 return true
               }
               return false
             })
-            .map((user) => user.email)
+            .map(user => user.email)
 
           if (options.length) {
             preFillValue = !parseProp(c.meta)?.is_multi ? options[0] : options.join(',')
@@ -638,7 +686,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       case UITypes.Checkbox: {
         if (['true', true, '1', 1].includes(value.toLowerCase())) {
           preFillValue = true
-        } else if (['false', false, '0', 0].includes(value.toLowerCase())) {
+        }
+        else if (['false', false, '0', 0].includes(value.toLowerCase())) {
           preFillValue = false
         }
         break
@@ -654,7 +703,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           if (isValidURL(value)) {
             preFillValue = value
           }
-        } else {
+        }
+        else {
           preFillValue = value
         }
         break
@@ -676,8 +726,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         const parsedDateTime = dayjs(value)
 
         if (
-          (parsedDateTime.isValid() && parsedDateTime.toISOString() === value) ||
-          dayjs(value, 'YYYY-MM-DD HH:mm:ss').isValid()
+          (parsedDateTime.isValid() && parsedDateTime.toISOString() === value)
+          || dayjs(value, 'YYYY-MM-DD HH:mm:ss').isValid()
         ) {
           preFillValue = dayjs(value).utc().format('YYYY-MM-DD HH:mm:ssZ')
         }
@@ -716,7 +766,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           if (!isNaN(Number(value))) {
             preFillValue = Number(value)
           }
-        } else {
+        }
+        else {
           preFillValue = value
         }
       }
@@ -820,19 +871,21 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   function isRequired(column: Record<string, any>) {
     if (!isVirtualCol(column) && ((column.rqd && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || column.required)) {
       return true
-    } else if (
-      isLinksOrLTAR(column) &&
-      column.colOptions &&
-      (column.colOptions as LinkToAnotherRecordType).type === RelationTypes.BELONGS_TO
+    }
+    else if (
+      isLinksOrLTAR(column)
+      && column.colOptions
+      && (column.colOptions as LinkToAnotherRecordType).type === RelationTypes.BELONGS_TO
     ) {
-      const col = columns.value?.find((c) => c.id === (column?.colOptions as LinkToAnotherRecordType)?.fk_child_column_id)
+      const col = columns.value?.find(c => c.id === (column?.colOptions as LinkToAnotherRecordType)?.fk_child_column_id)
 
       if ((col && col.rqd && !col.cdf) || column.required) {
         if (col) {
           return true
         }
       }
-    } else if (isVirtualCol(column) && column.required) {
+    }
+    else if (isVirtualCol(column) && column.required) {
       return true
     }
     return false
@@ -872,10 +925,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       try {
         await validate(
           Object.keys(additionalState.value)
-            .map((title) => fieldMappings.value[title])
-            .filter((v) => v !== undefined),
+            .map(title => fieldMappings.value[title])
+            .filter(v => v !== undefined),
         )
-      } catch {}
+      }
+      catch {}
     },
     {
       deep: true,
@@ -914,6 +968,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     loadAllviewFilters,
     checkFieldVisibility,
     isAddingEmptyRowPermitted,
+    isFormExpired,
+    isFormNotStarted,
+    formStartsAt,
     backgroundAndTextColor,
   }
 }, 'shared-form-view-store')

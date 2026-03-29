@@ -21,17 +21,27 @@ const { user } = useGlobal()
 const fieldsChanged = computed(() => {
   try {
     return Object.keys(JSON.parse(props.auditGroup.audit.details || '').data).length
-  } catch {
+  }
+  catch {
     return '-'
   }
 })
 
+const meta = inject(MetaInj, ref())
+
 function safeGetFromAuditDetails(audit: AuditType, key: string) {
   try {
     return JSON.parse(audit.details || '')[key]
-  } catch {
+  }
+  catch {
     return '-'
   }
+}
+
+function getLinkColumnType(audit: AuditType) {
+  const fieldId = safeGetFromAuditDetails(audit, 'link_field_id')
+  const col = meta.value?.columns?.find((c: any) => c.id === fieldId)
+  return (col?.colOptions as any)?.type || safeGetFromAuditDetails(audit, 'type')
 }
 
 /* formatting */
@@ -40,9 +50,11 @@ const createdBy = computed(() => {
   const displayName = props.auditGroup.displayNameShort?.trim() || props.auditGroup.created_display_name_short?.trim()
   if (props.auditGroup.user === user.value?.email) {
     return 'You'
-  } else if (displayName) {
+  }
+  else if (displayName) {
     return displayName || 'Shared source'
-  } else {
+  }
+  else {
     return 'Shared source'
   }
 })
@@ -74,13 +86,21 @@ const createdBy = computed(() => {
         <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_UPDATE'" class="font-weight-500 text-nc-content-gray-subtle2">
           updated {{ fieldsChanged }} fields
         </span>
+        <span
+          v-else-if="props.auditGroup.audit?.op_type === 'DATA_CASCADE_UPDATE'"
+          class="font-weight-500 text-nc-content-gray-subtle2"
+        >
+          {{ $t('labels.dateDependency.cascadeUpdateDescription') }}
+        </span>
         <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_LINK'" class="font-weight-500 text-nc-content-gray-subtle2">
           updated 1 field
         </span>
       </p>
       <div class="text-xs font-weight-500 text-nc-content-gray-muted">
         <NcTooltip>
-          <template #title>{{ parseStringDateTime(props.auditGroup.audit?.created_at) }}</template>
+          <template #title>
+            {{ parseStringDateTime(props.auditGroup.audit?.created_at) }}
+          </template>
           {{ timeAgo(props.auditGroup.audit?.created_at) }}
         </NcTooltip>
       </div>
@@ -91,10 +111,12 @@ const createdBy = computed(() => {
           icon="ncNode"
           class="w-[16px] h-[16px] text-nc-content-gray-muted bg-nc-bg-default absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
         />
-        <p class="text-sm font-weight-500 mb-1 ml-6.5">Record was created.</p>
+        <p class="text-sm font-weight-500 mb-1 ml-6.5">
+          Record was created.
+        </p>
       </div>
     </template>
-    <template v-else-if="props.auditGroup.audit?.op_type === 'DATA_UPDATE'">
+    <template v-else-if="['DATA_UPDATE', 'DATA_CASCADE_UPDATE'].includes(props.auditGroup.audit?.op_type)">
       <SmartsheetExpandedFormPresentorsDiscussionAuditInfoExpressive :audit="props.auditGroup.audit" />
     </template>
     <template v-else-if="['DATA_LINK', 'DATA_UNLINK'].includes(props.auditGroup.audit?.op_type)">
@@ -109,7 +131,7 @@ const createdBy = computed(() => {
             class="rounded-md px-1 !h-[20px] inline-flex items-center gap-1 text-nc-content-gray-emphasis border-1 border-nc-border-gray-medium"
           >
             <SmartsheetHeaderVirtualCellIcon
-              :column-meta="{ uidt: 'Links', colOptions: { type: safeGetFromAuditDetails(props.auditGroup.audit, 'type') } }"
+              :column-meta="{ uidt: 'Links', colOptions: { type: getLinkColumnType(props.auditGroup.audit) } }"
               class="!w-[16px] !h-[16px] !m-0"
             />
             <span class="text-small1 font-weight-500">

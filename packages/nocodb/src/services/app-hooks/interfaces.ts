@@ -117,6 +117,13 @@ export interface UserSigninEvent extends Optional<NcBaseEvent, 'context'> {
   user: UserType;
 }
 
+export interface UserSigninFailedEvent
+  extends Optional<NcBaseEvent, 'context' | 'req'> {
+  email?: string;
+  provider?: string;
+  reason?: string;
+}
+
 export interface UserSignoutEvent extends Optional<NcBaseEvent, 'context'> {
   user: UserType;
 }
@@ -210,6 +217,20 @@ export interface CalendarViewUpdateEvent extends NcBaseEvent {
   view: ViewType;
   calendarView: any;
   oldCalendarView: any;
+  owner: UserType;
+}
+
+export interface MapViewUpdateEvent extends NcBaseEvent {
+  view: ViewType;
+  mapView: any;
+  oldMapView: any;
+  owner: UserType;
+}
+
+export interface TimelineViewUpdateEvent extends NcBaseEvent {
+  view: ViewType;
+  timelineView: any;
+  oldTimelineView: any;
   owner: UserType;
 }
 
@@ -448,7 +469,7 @@ export interface IntegrationUpdateEvent extends IntegrationEvent {
 export interface DataExportEvent extends NcBaseEvent {
   view: ViewType;
   table: TableType;
-  type: 'excel' | 'csv';
+  type: 'excel' | 'csv' | 'json';
 }
 
 export type AppEventPayload =

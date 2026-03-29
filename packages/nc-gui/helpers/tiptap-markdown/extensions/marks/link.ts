@@ -1,8 +1,11 @@
-import TiptapLink, { type LinkOptions } from '@tiptap/extension-link'
-import { mergeAttributes } from '@tiptap/core'
-import { Plugin, TextSelection } from '@tiptap/pm/state'
+import type { LinkOptions } from '@tiptap/extension-link'
 import type { AddMarkStep, Step } from '@tiptap/pm/transform'
+import { mergeAttributes } from '@tiptap/core'
+import TiptapLink from '@tiptap/extension-link'
 import { defaultMarkdownSerializer } from '@tiptap/pm/markdown'
+import { Plugin, TextSelection } from '@tiptap/pm/state'
+
+const DANGEROUS_URL_RE = /^\s*(javascript|vbscript|data):/i
 
 export const Link = TiptapLink.extend<LinkOptions>({
   addOptions() {
@@ -17,7 +20,7 @@ export const Link = TiptapLink.extend<LinkOptions>({
         rel: 'noopener noreferrer nofollow',
         class: null,
       },
-      validate: (_url) => true,
+      validate: (url: string) => !DANGEROUS_URL_RE.test(url),
       internal: false,
     }
   },
@@ -38,13 +41,18 @@ export const Link = TiptapLink.extend<LinkOptions>({
   renderHTML({ HTMLAttributes }) {
     const attr = mergeAttributes(this.options.HTMLAttributes, HTMLAttributes)
 
+    // Block dangerous URL protocols
+    if (attr.href && DANGEROUS_URL_RE.test(attr.href)) {
+      return ['span', {}, 0]
+    }
+
     if (isValidURL(attr.href)) {
       return ['a', attr, 0]
     }
 
     // We use this as a workaround to show a tooltip on the content
     // We use the href to store the tooltip content
-    if (!attr.href.includes('~~~###~~~')) {
+    if (!attr.href?.includes('~~~###~~~')) {
       return ['a', attr, 0]
     }
 
@@ -129,7 +137,8 @@ export const Link = TiptapLink.extend<LinkOptions>({
 
             const { tr } = newState
             return tr.setSelection(new TextSelection(tr.doc.resolve(addMarkStep.to)))
-          } catch (e) {
+          }
+          catch (e) {
             console.error(e)
             return null
           }
@@ -140,7 +149,7 @@ export const Link = TiptapLink.extend<LinkOptions>({
         appendTransaction: (transactions, oldState, newState) => {
           try {
             // ✅ Skip if it's a paste transaction
-            if (transactions.some((tr) => tr.getMeta('paste') || tr.getMeta('uiEvent') === 'paste')) {
+            if (transactions.some(tr => tr.getMeta('paste') || tr.getMeta('uiEvent') === 'paste')) {
               return null
             }
 
@@ -189,7 +198,8 @@ export const Link = TiptapLink.extend<LinkOptions>({
             }
 
             return null
-          } catch (e) {
+          }
+          catch (e) {
             console.error(e)
             return null
           }

@@ -27,7 +27,7 @@ const gotoFeed = () => navigateToFeed()
       }"
     >
       <div v-if="isNewFeedAvailable" class="flex justify-center items-center w-3 absolute top-0.5 right-0.5">
-        <div class="w-2.5 h-2.5 pulsing-dot bg-nc-fill-red-medium border-2 border-white rounded-full"></div>
+        <div class="w-2.5 h-2.5 pulsing-dot bg-nc-fill-red-medium border-2 border-white rounded-full" />
       </div>
       <GeneralIcon icon="megaPhone" class="h-4 w-4" />
     </div>
@@ -58,7 +58,7 @@ const gotoFeed = () => navigateToFeed()
         <span class="">{{ $t('labels.whatsNew') }}!</span>
       </div>
       <div v-if="isNewFeedAvailable" class="flex justify-center items-center w-4">
-        <div class="w-3 h-3 pulsing-dot bg-nc-fill-red-medium border-2 border-white rounded-full"></div>
+        <div class="w-3 h-3 pulsing-dot bg-nc-fill-red-medium border-2 border-white rounded-full" />
       </div>
     </div>
   </NcButton>

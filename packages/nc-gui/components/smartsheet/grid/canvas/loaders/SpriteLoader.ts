@@ -85,10 +85,12 @@ export class SpriteLoader {
           }
           img.src = objectUrl
         })
-      } finally {
+      }
+      finally {
         URL.revokeObjectURL(objectUrl)
       }
-    } finally {
+    }
+    finally {
       this.pendingSprites--
       if (this.pendingSprites === 0) {
         this.onSettled?.()

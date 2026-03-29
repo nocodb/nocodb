@@ -5,7 +5,7 @@ export interface SsoError {
   message: string
 }
 
-export const useSsoError = () => {
+export function useSsoError() {
   const ssoError = useState<SsoError | null>('ssoError', () => null)
 
   const setError = (error: SsoError | null) => {

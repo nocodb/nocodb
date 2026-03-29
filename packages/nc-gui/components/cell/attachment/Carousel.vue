@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import type { CarouselApi } from '../../nc/Carousel/interface'
-import { useAttachmentCell } from './utils'
 import { isOffice } from '~/utils/fileUtils'
+import { useAttachmentCell } from './utils'
 
-const { selectedFile, visibleItems, downloadAttachment, removeFile, renameFile, isPublic, isRenameModalOpen, isEditAllowed } =
-  useAttachmentCell()!
+const { selectedFile, visibleItems, downloadAttachment, removeFile, renameFile, isPublic, isRenameModalOpen, isEditAllowed }
+  = useAttachmentCell()!
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
@@ -25,14 +25,14 @@ useEventListener(container, 'click', (e) => {
   }
 })
 
-const onThumbClick = (index: number) => {
+function onThumbClick(index: number) {
   if (!emblaMainApi.value || !emblaThumbnailApi.value) return
 
   emblaMainApi.value.scrollTo(index)
   emblaThumbnailApi.value.scrollTo(index)
 }
 
-const onSelect = () => {
+function onSelect() {
   if (!emblaMainApi.value || !emblaThumbnailApi.value) return
 
   const newSnap = emblaMainApi.value.selectedScrollSnap()
@@ -42,14 +42,14 @@ const onSelect = () => {
   emblaThumbnailApi.value.scrollTo(newSnap)
 }
 
-const goPrev = () => {
+function goPrev() {
   if (!emblaMainApi.value || !emblaThumbnailApi.value) return
 
   emblaMainApi.value.scrollPrev()
   emblaThumbnailApi.value.scrollPrev()
 }
 
-const goNext = () => {
+function goNext() {
   if (!emblaMainApi.value || !emblaThumbnailApi.value) return
 
   emblaMainApi.value.scrollNext()
@@ -86,7 +86,7 @@ const { loadRow } = useSmartsheetRowStoreOrThrow()
 
 const isUpdated = ref(1)
 
-const triggerReload = async () => {
+async function triggerReload() {
   await loadRow()
   isUpdated.value = isUpdated.value + 1
 }
@@ -120,23 +120,23 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const openComments = ref(false)
 
-const toggleComment = () => {
+function toggleComment() {
   openComments.value = !openComments.value
 }
 
 onMounted(() => {
   if (
-    !isPublic.value &&
-    !isExpandedFormOpen.value &&
-    isUIAllowed('commentList') &&
-    isFeatureEnabled(FEATURE_FLAG.ATTACHMENT_CAROUSEL_COMMENTS)
+    !isPublic.value
+    && !isExpandedFormOpen.value
+    && isUIAllowed('commentList')
+    && isFeatureEnabled(FEATURE_FLAG.ATTACHMENT_CAROUSEL_COMMENTS)
   ) {
     const { loadComments } = useRowCommentsOrThrow()
     loadComments()
   }
 })
 
-const initEmblaApi = (val: any) => {
+function initEmblaApi(val: any) {
   emblaMainApi.value = val
 }
 </script>
@@ -216,7 +216,9 @@ const initEmblaApi = (val: any) => {
                 />
                 <div v-else class="bg-white h-full flex flex-col justify-center rounded-md gap-1 items-center w-full">
                   <component :is="iconMap.file" class="text-gray-600 w-20 h-20" />
-                  <div class="text-gray-800 text-sm">{{ item.title }}</div>
+                  <div class="text-gray-800 text-sm">
+                    {{ item.title }}
+                  </div>
                 </div>
               </div>
             </NcCarouselItem>
@@ -252,7 +254,7 @@ const initEmblaApi = (val: any) => {
           </NcButton>
         </div>
 
-        <div class="text-white absolute right-2 top-2 cursor-pointer"></div>
+        <div class="text-white absolute right-2 top-2 cursor-pointer" />
 
         <div class="absolute w-full !bottom-2 max-h-18 z-30 flex items-center justify-center">
           <NcCarousel class="absolute max-w-sm" @init-api="(val) => (emblaThumbnailApi = val)">
@@ -286,7 +288,9 @@ const initEmblaApi = (val: any) => {
 
         <div class="absolute keep-open right-2 z-30 bottom-3 transition-all gap-3 transition-ease-in-out !h-6 flex items-center">
           <NcTooltip v-if="isEditAllowed" color="light" placement="bottom">
-            <template #title> {{ $t('title.renameFile') }} </template>
+            <template #title>
+              {{ $t('title.renameFile') }}
+            </template>
             <NcButton
               size="xsmall"
               class="nc-attachment-rename !hover:text-gray-400 !hover:bg-transparent !text-white"
@@ -298,7 +302,9 @@ const initEmblaApi = (val: any) => {
           </NcTooltip>
 
           <NcTooltip color="light" placement="bottom">
-            <template #title> {{ $t('title.downloadFile') }} </template>
+            <template #title>
+              {{ $t('title.downloadFile') }}
+            </template>
             <NcButton
               class="!hover:bg-transparent !text-white"
               size="xsmall"
@@ -310,7 +316,9 @@ const initEmblaApi = (val: any) => {
           </NcTooltip>
 
           <NcTooltip v-if="isEditAllowed" color="light" placement="bottomRight">
-            <template #title> {{ $t('title.removeFile') }} </template>
+            <template #title>
+              {{ $t('title.removeFile') }}
+            </template>
             <NcButton class="!hover:bg-transparent !text-white" size="xsmall" type="text" @click="removeFile(selectedIndex)">
               <component :is="iconMap.delete" class="!hover:text-gray-400" />
             </NcButton>
@@ -320,7 +328,7 @@ const initEmblaApi = (val: any) => {
           <template #entity-preview>
             <span>
               <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
-                <GeneralIcon icon="file" class="nc-view-icon"></GeneralIcon>
+                <GeneralIcon icon="file" class="nc-view-icon" />
                 <div
                   class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
                   :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"

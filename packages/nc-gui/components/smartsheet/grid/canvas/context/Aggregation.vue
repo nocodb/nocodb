@@ -17,7 +17,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 const gridCol = computed(() => gridViewCols.value[column.value.id])
 const aggregations = computed(() => getAggregations(column.value.columnObj))
 
-const onClick = (agg) => {
+function onClick(agg) {
   updateAggregate(column.value.id, agg)
   column.value = null
 }

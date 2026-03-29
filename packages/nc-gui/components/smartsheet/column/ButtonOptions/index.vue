@@ -3,11 +3,12 @@ import type { ButtonType, ColumnType, FilterType, HookType, ScriptType, UnifiedM
 import {
   ButtonActionsType,
   FormulaError,
-  PlanFeatureTypes,
-  UITypes,
   isHiddenCol,
+  PlanFeatureTypes,
+  PlanTitles,
   substituteColumnIdWithAliasInFormula,
   substituteColumnIdWithAliasInPrompt,
+  UITypes,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk'
 import { searchIcons } from '~/utils/iconUtils'
@@ -31,10 +32,14 @@ const { t } = useI18n()
 
 const { getMeta } = useMetas()
 
+const { getColor } = useTheme()
+
 const { isAiBetaFeaturesEnabled } = useNocoAi()
 
-const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName, setPostSaveOrUpdateCbk } =
-  useColumnCreateStoreOrThrow()
+const { getPlanTitle, showEEFeatures } = useEeConfig()
+
+const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName, setPostSaveOrUpdateCbk }
+  = useColumnCreateStoreOrThrow()
 
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
@@ -52,7 +57,9 @@ const bases = useBases()
 
 const { openedProject } = storeToRefs(bases)
 
-await Promise.all([loadHooksList(), loadScripts({ baseId: openedProject.value!.id, force: true })])
+if (showEEFeatures.value) {
+  await Promise.all([loadHooksList(), loadScripts({ baseId: openedProject.value!.id, force: true })])
+}
 
 const { activeBaseScripts } = toRefs(scriptStore)
 
@@ -89,7 +96,7 @@ const buttonTypes = computed(() => [
     value: ButtonActionsType.Webhook,
     icon: 'ncWebhook',
   },
-  ...(isAiButtonEnabled.value
+  ...(isAiButtonEnabled.value && showEEFeatures.value
     ? [
         {
           icon: 'ncAutoAwesome',
@@ -99,7 +106,7 @@ const buttonTypes = computed(() => [
         },
       ]
     : []),
-  ...(isEeUI
+  ...(isEeUI && showEEFeatures.value
     ? [
         {
           icon: 'ncScript',
@@ -144,7 +151,8 @@ const validators = {
                 trackPosition: true,
               })
               editorError.value = { ...defaultEditorError }
-            } catch (e: any) {
+            }
+            catch (e: any) {
               const errorMessage = e instanceof FormulaError && e.extra?.key ? t(e.extra.key, e.extra) : e.message
               if (e instanceof FormulaError && e.extra?.position) {
                 editorError.value = {
@@ -152,12 +160,14 @@ const validators = {
                   message: errorMessage,
                   position: e.extra.position,
                 }
-              } else {
+              }
+              else {
                 editorError.value = { ...defaultEditorError }
               }
               throw new Error(e.message)
             }
-          } else if (vModel.value.type === ButtonActionsType.Ai) {
+          }
+          else if (vModel.value.type === ButtonActionsType.Ai) {
             if (!formula?.trim()) throw new Error('Prompt required for AI Button')
           }
         })()
@@ -273,15 +283,16 @@ if (isEdit.value) {
   vModel.value.fk_webhook_id = colOptions?.fk_webhook_id
   vModel.value.fk_script_id = colOptions?.fk_script_id
   vModel.value.icon = colOptions?.icon
-  selectedWebhook.value = hooks.value.find((hook) => hook.id === vModel.value?.fk_webhook_id)
-  selectedScript.value = activeBaseScripts.value.find((script) => script.id === vModel.value?.fk_script_id)
+  selectedWebhook.value = hooks.value.find(hook => hook.id === vModel.value?.fk_webhook_id)
+  selectedScript.value = activeBaseScripts.value.find(script => script.id === vModel.value?.fk_script_id)
 
   if (vModel.value.type === ButtonActionsType.Ai) {
     vModel.value.formula_raw = colOptions?.formula_raw || ''
     vModel.value.output_column_ids = colOptions?.output_column_ids || ''
     vModel.value.fk_integration_id = colOptions?.fk_integration_id
   }
-} else {
+}
+else {
   vModel.value.type = vModel.value?.type || buttonTypes.value[0]?.value
 
   if (vModel.value.type === ButtonActionsType.Ai) {
@@ -290,7 +301,8 @@ if (isEdit.value) {
     vModel.value.color = 'purple'
     vModel.value.icon = 'ncAutoAwesome'
     vModel.value.output_column_ids = vModel.value?.output_column_ids || ''
-  } else {
+  }
+  else {
     vModel.value.theme = 'solid'
     vModel.value.label = 'Button'
     vModel.value.color = 'brand'
@@ -306,66 +318,29 @@ setAdditionalValidations({
 // set default value
 if (vModel.value?.type === ButtonActionsType.Url || (column.value?.colOptions as any)?.type === ButtonActionsType.Url) {
   if ((column.value?.colOptions as any)?.formula_raw) {
-    vModel.value.formula_raw =
-      substituteColumnIdWithAliasInFormula(
+    vModel.value.formula_raw
+      = substituteColumnIdWithAliasInFormula(
         (column.value?.colOptions as ButtonType)?.formula,
         meta?.value?.columns as ColumnType[],
         (column.value?.colOptions as any)?.formula_raw,
       ) || ''
-  } else {
+  }
+  else {
     vModel.value.formula_raw = ''
   }
-} else if (vModel.value?.type === ButtonActionsType.Ai || (column.value?.colOptions as any)?.type === ButtonActionsType.Ai) {
-  vModel.value.formula_raw =
-    substituteColumnIdWithAliasInPrompt(
+}
+else if (vModel.value?.type === ButtonActionsType.Ai || (column.value?.colOptions as any)?.type === ButtonActionsType.Ai) {
+  vModel.value.formula_raw
+    = substituteColumnIdWithAliasInPrompt(
       (column.value?.colOptions as ButtonType)?.formula ?? '',
       meta?.value?.columns as ColumnType[],
       (column.value?.colOptions as any)?.formula_raw,
     ).substituted || ''
 }
 
-const colorClass = {
-  solid: {
-    brand: 'bg-brand-500 text-white',
-    red: 'bg-red-600 text-white',
-    green: 'bg-green-600 text-white',
-    maroon: 'bg-maroon-600 text-white',
-    blue: 'bg-blue-600 text-white',
-    orange: 'bg-orange-600 text-white',
-    pink: 'bg-pink-600 text-white',
-    purple: 'bg-purple-500 text-white',
-    yellow: 'bg-yellow-600 text-white',
-    gray: 'bg-gray-600 text-white',
-  },
-  light: {
-    brand: 'bg-brand-200 text-gray-800',
-    red: 'bg-red-200 text-gray-800',
-    green: 'bg-green-200 text-gray-800',
-    maroon: 'bg-maroon-200 text-gray-800',
-    blue: 'bg-blue-200 text-gray-800',
-    orange: 'bg-orange-200 text-gray-800',
-    pink: 'bg-pink-200 text-gray-800',
-    purple: 'bg-purple-200 text-gray-800',
-    yellow: 'bg-yellow-200 text-gray-800',
-    gray: 'bg-gray-200',
-  },
-  text: {
-    brand: 'text-brand-500',
-    red: 'text-red-600',
-    green: 'text-green-600',
-    maroon: 'text-maroon-600',
-    blue: 'text-blue-600',
-    orange: 'text-orange-600',
-    pink: 'text-pink-600',
-    purple: 'text-purple-500',
-    yellow: 'text-yellow-600',
-    gray: 'text-gray-600',
-  },
-}
-
 const isDropdownOpen = ref(false)
 
-const updateButtonTheme = (type: string, name: string) => {
+function updateButtonTheme(type: string, name: string) {
   vModel.value.theme = type
   vModel.value.color = name
   isDropdownOpen.value = false
@@ -379,22 +354,20 @@ const icons = computed(() => {
   return searchIcons(iconSearchQuery.value)
 })
 
-const removeIcon = () => {
+function removeIcon() {
   vModel.value.icon = null
   isButtonIconDropdownOpen.value = false
 }
 
-const selectIcon = (icon: string) => {
+function selectIcon(icon: string) {
   vModel.value.icon = icon
   isButtonIconDropdownOpen.value = false
 }
 
-const handleUpdateActionType = () => {
+function handleUpdateActionType() {
   updateFieldName(true, undefined, true)
   vModel.value.formula_raw = ''
 }
-
-const { blockButtonVisibility, showUpgradeToUseButtonVisibility } = useEeConfig()
 
 const filterRef = ref()
 
@@ -449,6 +422,11 @@ onUnmounted(() => {
               class="flex items-center justify-between border-1 h-8 px-[11px] border-nc-border-gray-dark !w-full transition-all cursor-pointer !rounded-lg"
             >
               <div
+                :style="{
+                  background: getButtonColors(vModel.theme ?? 'solid', vModel.color ?? 'brand', false, false, getColor)
+                    .background,
+                  color: getButtonColors(vModel.theme ?? 'solid', vModel.color ?? 'brand', false, false, getColor).text,
+                }"
                 :class="`${vModel.color ?? 'brand'} ${vModel.theme ?? 'solid'}`"
                 class="flex items-center justify-center nc-cell-button rounded-md h-6 w-6 gap-2"
               >
@@ -458,11 +436,14 @@ onUnmounted(() => {
             </div>
             <template #overlay>
               <div class="bg-nc-bg-default space-y-2 p-2 rounded-lg">
-                <div v-for="[type, colors] in Object.entries(colorClass)" :key="type" class="flex gap-2">
+                <div v-for="[type, colors] in Object.entries(buttonColorMap)" :key="type" class="flex gap-2">
                   <div v-for="[name, color] in Object.entries(colors)" :key="name">
                     <button
+                      :style="{
+                        background: getColor(color.base.background),
+                        color: getColor(color.base.text),
+                      }"
                       :class="{
-                        [color]: true,
                         '!border-transparent': type !== 'text',
                       }"
                       class="border-1 border-nc-border-gray-medium flex items-center justify-center rounded h-6 w-6"
@@ -508,8 +489,10 @@ onUnmounted(() => {
                       'nc-ai-input': isAiMode,
                     }"
                   >
-                    <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
-                  ></a-input>
+                    <template #prefix>
+                      <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" />
+                    </template>
+                  </a-input>
                   <NcButton size="small" class="!px-4" type="text" @click="removeIcon">
                     <span class="text-[13px]">
                       {{ $t('general.remove') }}
@@ -545,7 +528,9 @@ onUnmounted(() => {
             dropdown-class-name="nc-dropdown-button-cell-type"
             @change="handleUpdateActionType"
           >
-            <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-nc-content-gray-muted" /> </template>
+            <template #suffixIcon>
+              <GeneralIcon icon="arrowDown" class="text-nc-content-gray-muted" />
+            </template>
 
             <a-select-option v-for="(type, i) of buttonTypes" :key="i" :value="type.value">
               <NcTooltip :disabled="!type.tooltip" placement="right" class="w-full" :title="type.tooltip">
@@ -585,45 +570,52 @@ onUnmounted(() => {
       v-model:selected-webhook="selectedWebhook"
     />
     <SmartsheetColumnButtonOptionsScript
-      v-if="vModel?.type === buttonActionsType.Script"
+      v-if="vModel?.type === buttonActionsType.Script && showEEFeatures"
       v-model:model-value="vModel"
       v-model:selected-script="selectedScript"
     />
 
-    <div v-if="isEeUI" class="nc-button-filter-section mt-2">
-      <div
-        class="flex items-center gap-2 cursor-pointer py-1 text-nc-content-gray-subtle2 hover:text-nc-content-gray"
-        @click="blockButtonVisibility ? showUpgradeToUseButtonVisibility() : (isFilterSectionOpen = !isFilterSectionOpen)"
-      >
-        <GeneralIcon
-          icon="arrowDown"
-          class="transform transition-transform duration-150 !w-4 !h-4"
-          :class="{ '-rotate-90': !isFilterSectionOpen || blockButtonVisibility }"
-        />
-        <span class="text-small font-medium select-none">{{ $t('labels.visibilityCondition') }}</span>
-        <PaymentUpgradeBadge v-if="blockButtonVisibility" :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY" />
-        <span
-          v-else-if="filtersCount > 0"
-          class="bg-brand-50 text-brand-500 rounded-full px-1.5 text-xs min-w-4.5 h-4.5 flex items-center justify-center"
-        >
-          {{ filtersCount }}
-        </span>
-      </div>
-      <div v-if="isFilterSectionOpen && !blockButtonVisibility" class="mt-2 overflow-x-auto nc-scrollbar-thin">
-        <SmartsheetToolbarColumnFilter
-          ref="filterRef"
-          v-model="vModel.filters"
-          :auto-save="false"
-          :is-button="true"
-          :button-col-id="vModel.id"
-          :show-loading="false"
-          :show-dynamic-condition="false"
-          :hide-checkbox="true"
-          class="!min-w-full !pl-0"
-          @update:filters-length="filtersCount = $event"
-        />
-      </div>
-    </div>
+    <PaymentUpgradeBadgeProvider v-if="isEeUI && showEEFeatures" :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY">
+      <template #default="{ click }">
+        <div class="nc-button-filter-section mt-2">
+          <div
+            class="flex items-center gap-2 cursor-pointer py-1 text-nc-content-gray-subtle2 hover:text-nc-content-gray"
+            @click="click(PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY, () => (isFilterSectionOpen = !isFilterSectionOpen))"
+          >
+            <GeneralIcon
+              icon="arrowDown"
+              class="transform transition-transform duration-150 !w-4 !h-4"
+              :class="{ '-rotate-90': !isFilterSectionOpen }"
+            />
+            <span class="text-small font-medium select-none">{{ $t('labels.visibilityCondition') }}</span>
+            <PaymentUpgradeBadge
+              :plan-title="PlanTitles.BUSINESS"
+              :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY"
+              :title="$t('upgrade.upgradeToUseButtonVisibility')"
+              :content="
+                $t('upgrade.upgradeToUseButtonVisibilitySubtitle', {
+                  plan: getPlanTitle(PlanTitles.BUSINESS),
+                })
+              "
+            />
+          </div>
+          <div v-if="isFilterSectionOpen" class="mt-2 overflow-x-auto nc-scrollbar-thin">
+            <SmartsheetToolbarColumnFilter
+              ref="filterRef"
+              v-model="vModel.filters"
+              :auto-save="false"
+              :is-button="true"
+              :button-col-id="vModel.id"
+              :show-loading="false"
+              :show-dynamic-condition="false"
+              :hide-checkbox="true"
+              class="!min-w-full !pl-0"
+              @update:filters-length="filtersCount = $event"
+            />
+          </div>
+        </div>
+      </template>
+    </PaymentUpgradeBadgeProvider>
   </div>
 </template>
 
@@ -641,136 +633,8 @@ onUnmounted(() => {
 }
 
 .nc-cell-button {
-  &.solid {
-    @apply text-base-white;
-
-    &.brand {
-      @apply bg-brand-500;
-    }
-
-    &.red {
-      @apply bg-red-600;
-    }
-
-    &.green {
-      @apply bg-green-600;
-    }
-
-    &.maroon {
-      @apply bg-maroon-600;
-    }
-
-    &.blue {
-      @apply bg-blue-600;
-    }
-
-    &.orange {
-      @apply bg-orange-600;
-    }
-
-    &.pink {
-      @apply bg-pink-600;
-    }
-
-    &.purple {
-      @apply bg-purple-500;
-    }
-
-    &.yellow {
-      @apply bg-yellow-600;
-    }
-
-    &.gray {
-      @apply bg-gray-600;
-    }
-  }
-
-  &.light {
-    @apply text-gray-700;
-
-    &.brand {
-      @apply bg-brand-200;
-    }
-
-    &.red {
-      @apply bg-red-200;
-    }
-
-    &.green {
-      @apply bg-green-200;
-    }
-
-    &.maroon {
-      @apply bg-maroon-200;
-    }
-
-    &.blue {
-      @apply bg-blue-200;
-    }
-
-    &.orange {
-      @apply bg-orange-200;
-    }
-
-    &.pink {
-      @apply bg-pink-200;
-    }
-
-    &.purple {
-      @apply bg-purple-200;
-    }
-
-    &.yellow {
-      @apply bg-yellow-200;
-    }
-
-    &.gray {
-      @apply bg-gray-200;
-    }
-  }
-
   &.text {
     @apply border-1 border-nc-border-gray-medium rounded;
-
-    &.brand {
-      @apply text-brand-500;
-    }
-
-    &.red {
-      @apply text-red-600;
-    }
-
-    &.green {
-      @apply text-green-600;
-    }
-
-    &.maroon {
-      @apply text-maroon-600;
-    }
-
-    &.blue {
-      @apply text-blue-600;
-    }
-
-    &.orange {
-      @apply text-orange-600;
-    }
-
-    &.pink {
-      @apply text-pink-600;
-    }
-
-    &.purple {
-      @apply text-purple-500;
-    }
-
-    &.yellow {
-      @apply text-yellow-600;
-    }
-
-    &.gray {
-      @apply text-gray-600;
-    }
   }
 }
 </style>

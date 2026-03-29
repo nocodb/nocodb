@@ -38,6 +38,7 @@ export interface NcRequest extends Partial<Request> {
     workspace_roles?: Record<string, boolean>;
     provider?: string;
     is_api_token?: boolean;
+    direct_teams?: { team_id: string; path: string }[];
   };
   ncSiteUrl: string;
   dashboardUrl: string;

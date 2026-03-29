@@ -44,14 +44,14 @@ const supportedDocs: SupportedDocsType[] = [
 
 const { updateMcpToken } = useMcpSettings()
 
-const regenerateToken = async () => {
+async function regenerateToken() {
   const newToken = await updateMcpToken(token.value, props.isAccountLevel)
   if (newToken) {
     token.value = newToken
   }
 }
 
-const closeModal = () => {
+function closeModal() {
   emits('close')
   modalVisible.value = false
 }
@@ -65,7 +65,8 @@ const serverName = computed(() => {
     title = isEeUI
       ? `NocoDB ${token.value.workspace?.title || 'Workspace'} - ${token.value.base?.title || 'Base'}`
       : `NocoDB - ${token.value.base?.title || 'Base'}`
-  } else {
+  }
+  else {
     title = `NocoDB Base - ${openedProject.value?.title}`
   }
 
@@ -140,7 +141,7 @@ const code = computed(
               {{ $t('labels.mcpTokenVisibilityInfo') }}
             </template>
             <template #description>
-              {{ $t('labels.mcpTokenVisibilityInfoDescription') }} <br />
+              {{ $t('labels.mcpTokenVisibilityInfoDescription') }} <br>
               {{ $t('labels.mcpTokenVisibilityInfoDescription2') }}
             </template>
           </NcAlert>
@@ -291,7 +292,7 @@ const code = computed(
       </div>
 
       <NcModalSupportedDocsSidebar>
-        <NcModalSupportedDocs :docs="supportedDocs"> </NcModalSupportedDocs>
+        <NcModalSupportedDocs :docs="supportedDocs" />
       </NcModalSupportedDocsSidebar>
     </div>
   </NcModal>

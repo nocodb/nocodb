@@ -19,8 +19,8 @@ const basesStore = useBases()
 
 const baseOptions = computed(() => {
   return basesStore.basesList
-    .filter((base) => !props.filterOption || props.filterOption(base))
-    .map((base) => ({
+    .filter(base => !props.filterOption || props.filterOption(base))
+    .map(base => ({
       label: base.title,
       value: base.id,
       meta: base.meta,

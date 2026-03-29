@@ -196,4 +196,4 @@ export const fileMimeTypes = [
   },
 ]
 
-export const fileMimeTypeList = fileMimeTypes.map((o) => o.children).flat(1)
+export const fileMimeTypeList = fileMimeTypes.map(o => o.children).flat(1)

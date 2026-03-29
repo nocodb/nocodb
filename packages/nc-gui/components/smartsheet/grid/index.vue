@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import type { ColumnType, GridType } from 'nocodb-sdk'
-import InfiniteTable from './InfiniteTable.vue'
-import Table from './Table.vue'
 import CanvasTable from './canvas/index.vue'
 import GroupBy from './GroupBy.vue'
+import InfiniteTable from './InfiniteTable.vue'
+import Table from './Table.vue'
 
 const meta = inject(MetaInj, ref())
 
@@ -135,17 +135,19 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, 
     // if expand is true, replace the route to avoid adding a new history entry
     if (routeQuery.value.expand) {
       router.replace(routeParams)
-    } else {
+    }
+    else {
       router.push(routeParams)
     }
-  } else {
+  }
+  else {
     expandedFormRow.value = row
     expandedFormDlg.value = true
     skipRowRemovalOnCancel.value = !fromToolbar
   }
 }
 
-const exposeOpenColumnCreate = (data: any) => {
+function exposeOpenColumnCreate(data: any) {
   tableRef.value?.openColumnCreate(data)
 }
 
@@ -159,7 +161,7 @@ const expandedFormOnRowIdDlg = computed({
     return !!routeQuery.value.rowId
   },
   set(val) {
-    if (!val)
+    if (!val) {
       router.push({
         query: {
           ...routeQuery.value,
@@ -167,20 +169,22 @@ const expandedFormOnRowIdDlg = computed({
           rowId: undefined,
         },
       })
+    }
   },
 })
 
-const addRowExpandOnClose = (row: Row) => {
+function addRowExpandOnClose(row: Row) {
   if (!skipRowRemovalOnCancel.value) {
     eventBus.emit(SmartsheetStoreEvents.CLEAR_NEW_ROW, row)
   }
 }
 
-const toggleOptimisedQuery = () => {
+function toggleOptimisedQuery() {
   if (optimisedQuery.value) {
     optimisedQuery.value = false
     message.info(t('msg.optimizedQueryDisabled'))
-  } else {
+  }
+  else {
     optimisedQuery.value = true
     message.info(t('msg.optimizedQueryEnabled'))
   }
@@ -192,7 +196,7 @@ const { windowSize, leftSidebarWidth } = toRefs(sidebarStore)
 
 const viewWidth = ref(0)
 
-const smartsheetEvents = (event: SmartsheetStoreEvents) => {
+function smartsheetEvents(event: SmartsheetStoreEvents) {
   if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()
   }
@@ -204,15 +208,15 @@ onBeforeUnmount(() => {
   eventBus.off(smartsheetEvents)
 })
 
-const goToNextRow = () => {
+function goToNextRow() {
   navigateToSiblingRow(NavigateDir.NEXT)
 }
 
-const goToPreviousRow = () => {
+function goToPreviousRow() {
   navigateToSiblingRow(NavigateDir.PREV)
 }
 
-const updateViewWidth = () => {
+function updateViewWidth() {
   if (isPublic.value) {
     viewWidth.value = windowSize.value
     return
@@ -280,12 +284,12 @@ const baseColor = computed(() => {
   }
 })
 
-const updateRowCommentCount = (count: number) => {
+function updateRowCommentCount(count: number) {
   if (!routeQuery.value.rowId) return
 
   if (isInfiniteScrollingEnabled.value) {
     const currentRowIndex = Array.from(cachedRows.value.values()).find(
-      (row) => extractPkFromRow(row.row, meta.value!.columns!) === routeQuery.value.rowId,
+      row => extractPkFromRow(row.row, meta.value!.columns!) === routeQuery.value.rowId,
     )?.rowMeta.rowIndex
 
     if (currentRowIndex === undefined) return
@@ -296,11 +300,12 @@ const updateRowCommentCount = (count: number) => {
     currentRow.rowMeta.commentCount = count
 
     syncVisibleData?.()
-  } else {
-    const aggCommentCountIndex = pAggCommentCount.value.findIndex((row) => row.row_id === routeQuery.value.rowId)
+  }
+  else {
+    const aggCommentCountIndex = pAggCommentCount.value.findIndex(row => row.row_id === routeQuery.value.rowId)
 
     const currentRowIndex = pData.value.findIndex(
-      (row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) === routeQuery.value.rowId,
+      row => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) === routeQuery.value.rowId,
     )
 
     if (currentRowIndex === -1) return
@@ -322,10 +327,10 @@ const updateRowCommentCount = (count: number) => {
   }
 }
 
-const validateExternalSourceRecordVisibility = (page: number, callback?: () => void) => {
+function validateExternalSourceRecordVisibility(page: number, callback?: () => void) {
   if (
-    (pPaginationData.value?.pageSize ?? 25) * page > 100 &&
-    showUpgradeToSeeMoreRecordsModal({ isExternalSource: isExternalSource.value })
+    (pPaginationData.value?.pageSize ?? 25) * page > 100
+    && showUpgradeToSeeMoreRecordsModal({ isExternalSource: isExternalSource.value })
   ) {
     return true
   }
@@ -333,13 +338,13 @@ const validateExternalSourceRecordVisibility = (page: number, callback?: () => v
   callback?.()
 }
 
-const pGoToNextRow = () => {
+function pGoToNextRow() {
   const currentIndex = pGetExpandedRowIndex()
 
   if (
-    !pPaginationData.value.isLastPage &&
-    currentIndex === (pPaginationData.value.pageSize ?? 25) - 1 &&
-    validateExternalSourceRecordVisibility(pPaginationData.value?.page ? pPaginationData.value?.page + 1 : 1)
+    !pPaginationData.value.isLastPage
+    && currentIndex === (pPaginationData.value.pageSize ?? 25) - 1
+    && validateExternalSourceRecordVisibility(pPaginationData.value?.page ? pPaginationData.value?.page + 1 : 1)
   ) {
     expandedFormRef.value?.stopLoading?.()
     return
@@ -348,7 +353,7 @@ const pGoToNextRow = () => {
   pNavigateToSiblingRow(NavigateDir.NEXT)
 }
 
-const pGoToPreviousRow = () => {
+function pGoToPreviousRow() {
   pNavigateToSiblingRow(NavigateDir.PREV)
 }
 
@@ -359,7 +364,7 @@ const selectedRows = computed(() => {
   return dataCache?.selectedRows.value
 })
 
-const bulkUpdateTrigger = (path: Array<number>) => {
+function bulkUpdateTrigger(path: Array<number>) {
   groupPath.value = path
   bulkUpdateDlg.value = true
 }
@@ -382,7 +387,7 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
       :data="pData"
       :pagination-data="pPaginationData"
       :load-data="pLoadData"
-      :change-page="(p: number) => validateExternalSourceRecordVisibility(p, ()=> pChangePage(p))"
+      :change-page="(p: number) => validateExternalSourceRecordVisibility(p, () => pChangePage(p))"
       :call-add-empty-row="pAddEmptyRow"
       :delete-row="pDeleteRow"
       :update-or-save-row="pUpdateOrSaveRow"

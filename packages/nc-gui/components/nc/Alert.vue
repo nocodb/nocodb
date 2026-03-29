@@ -158,7 +158,7 @@ let copiedTimeoutId: any
  * Handles the copy button click event.
  * Copies the `copyText` value to the clipboard and shows a success indicator.
  */
-const onClickCopy = async () => {
+async function onClickCopy() {
   if (copiedTimeoutId) {
     clearTimeout(copiedTimeoutId)
   }
@@ -178,7 +178,8 @@ const onClickCopy = async () => {
       isCopied.value = false
       clearTimeout(copiedTimeoutId)
     }, 3000)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(e.message)
   }
 }
@@ -205,7 +206,7 @@ const iconName = computed<IconMapKey>(() => {
 /**
  * Handles alert close action.
  */
-const handleClose = () => {
+function handleClose() {
   vVisible.value = false
   emits('close')
 }
@@ -230,7 +231,7 @@ let frameId: number
 /**
  * Updates the progress bar smoothly using requestAnimationFrame.
  */
-const updateProgress = () => {
+function updateProgress() {
   const elapsedTime = (performance.now() - startTime.value) / 1000 // Convert ms to seconds
   const totalDuration = props.duration ?? ANT_MESSAGE_DURATION
   const remaining = Math.max(totalDuration - elapsedTime, 0)
@@ -241,7 +242,8 @@ const updateProgress = () => {
   if (remDuration.value > 0.01) {
     // Stop when close to zero
     frameId = requestAnimationFrame(updateProgress)
-  } else {
+  }
+  else {
     remDuration.value = 0 // Ensure it reaches zero exactly
   }
 }
@@ -286,7 +288,9 @@ onUnmounted(() => {
 
     <div class="nc-alert-content flex-1">
       <div v-if="message || $slots.message" class="nc-alert-message" :class="messageClass">
-        <slot name="message">{{ message }}</slot>
+        <slot name="message">
+          {{ message }}
+        </slot>
       </div>
 
       <NcTooltip
@@ -305,13 +309,15 @@ onUnmounted(() => {
             },
           ]"
         >
-          <slot name="description">{{ description }}</slot>
+          <slot name="description">
+            {{ description }}
+          </slot>
         </div>
       </NcTooltip>
     </div>
 
     <div v-if="$slots.action || copyText || closable" class="nc-alert-action">
-      <slot name="action"> </slot>
+      <slot name="action" />
       <NcTooltip
         v-if="copyText"
         :title="copyBtnTooltip"
@@ -350,7 +356,7 @@ onUnmounted(() => {
         :style="{
           width: `${remDurationPercent}%`,
         }"
-      ></div>
+      />
     </div>
   </div>
 </template>
@@ -465,7 +471,7 @@ onUnmounted(() => {
 
 <style lang="scss">
 .ant-message {
-  @apply z-1051;
+  @apply z-1053;
 
   .ant-message-notice {
     &:has(.nc-alert-notification) {

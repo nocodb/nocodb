@@ -12,7 +12,9 @@ const visible = useVModel(props, 'visible', emit)
 <template>
   <NcModal v-model:visible="visible" size="small" :show-separator="false" :centered="false">
     <template #header>
-      <div class="flex flex-row items-center gap-x-2">Field Type Change</div>
+      <div class="flex flex-row items-center gap-x-2">
+        Field Type Change
+      </div>
     </template>
 
     <div class="flex flex-col" @click.stop>
@@ -29,7 +31,7 @@ const visible = useVModel(props, 'visible', emit)
         </div>
       </div>
 
-      <slot name="entity-preview"></slot>
+      <slot name="entity-preview" />
 
       <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
         <NcButton size="small" type="secondary" @click="visible = false">
@@ -47,7 +49,9 @@ const visible = useVModel(props, 'visible', emit)
           @click="emit('submit')"
         >
           Update
-          <template #loading> Saving... </template>
+          <template #loading>
+            Saving...
+          </template>
         </NcButton>
       </div>
     </div>

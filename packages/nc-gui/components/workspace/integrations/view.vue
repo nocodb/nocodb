@@ -3,8 +3,6 @@ import { useTitle } from '@vueuse/core'
 
 const { isUIAllowed } = useRoles()
 
-const { hideSidebar } = storeToRefs(useSidebarStore())
-
 const workspaceStore = useWorkspace()
 
 const { loadRoles } = useRoles()
@@ -13,8 +11,6 @@ const { activeWorkspace: _activeWorkspace } = storeToRefs(workspaceStore)
 const { loadCollaborators } = workspaceStore
 
 const { isFromIntegrationPage, integrationPaginationData, activeViewTab, loadIntegrations } = useProvideIntegrationViewStore()
-
-const { shouldShow: btbShouldShow } = useBackToBase()
 
 const currentWorkspace = computedAsync(async () => {
   await loadRoles(undefined, {}, _activeWorkspace.value?.id)
@@ -36,12 +32,10 @@ watch(
 )
 
 onMounted(() => {
-  hideSidebar.value = true
-
   isFromIntegrationPage.value = true
 
   until(() => currentWorkspace.value?.id)
-    .toMatch((v) => !!v)
+    .toMatch(v => !!v)
     .then(async () => {
       await Promise.all([loadCollaborators({ includeDeleted: true }, currentWorkspace.value!.id), loadIntegrations()])
     })
@@ -49,8 +43,6 @@ onMounted(() => {
 
 onBeforeMount(() => {
   isFromIntegrationPage.value = false
-
-  hideSidebar.value = false
 })
 </script>
 
@@ -68,11 +60,9 @@ onBeforeMount(() => {
       </div>
     </div>
 
-    <DashboardBackToBaseBreadcrumbVariant />
-
     <NcTabs v-model:active-key="activeViewTab">
       <template #leftExtra>
-        <div class="w-3"></div>
+        <div class="w-3" />
       </template>
       <template v-if="isUIAllowed('workspaceIntegrations')">
         <a-tab-pane key="integrations" class="w-full">
@@ -82,7 +72,7 @@ onBeforeMount(() => {
               {{ $t('general.integrations') }}
             </div>
           </template>
-          <div :class="btbShouldShow ? 'h-[calc(100vh-128px)]' : 'h-[calc(100vh-92px)]'">
+          <div class="h-[calc(100vh-92px)]">
             <WorkspaceIntegrationsTab show-filter />
           </div>
         </a-tab-pane>
@@ -105,13 +95,13 @@ onBeforeMount(() => {
               </div>
             </div>
           </template>
-          <div class="p-6" :class="[btbShouldShow ? 'h-[calc(100vh-128px)]' : 'h-[calc(100vh-92px)]']">
+          <div class="p-6 h-[calc(100vh-92px)]">
             <WorkspaceIntegrationsConnectionsTab />
           </div>
         </a-tab-pane>
       </template>
     </NcTabs>
-    <WorkspaceIntegrationsEditOrAdd></WorkspaceIntegrationsEditOrAdd>
+    <WorkspaceIntegrationsEditOrAdd />
   </div>
 </template>
 
@@ -129,7 +119,7 @@ onBeforeMount(() => {
   @apply !pl-0;
 }
 :deep(.ant-tabs-tab) {
-  @apply pt-2 pb-3;
+  @apply pt-1.5 pb-2;
 }
 
 .ant-tabs-content-top {

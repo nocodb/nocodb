@@ -24,15 +24,18 @@ export const LinksCellRenderer: CellRenderer = {
     let text = ''
     if (!parsedValue) {
       text = t('msg.noRecordsLinked')
-    } else if (parsedValue === 1) {
+    }
+    else if (parsedValue === 1) {
       text = `1 ${column?.meta?.singular || t('general.link')}`
-    } else {
+    }
+    else {
       text = `${parsedValue} ${column?.meta?.plural || t('general.links')}`
     }
 
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })
-    } else {
+    }
+    else {
       const { y: textYOffset, width: textWidth } = renderSingleLineText(ctx, {
         x: x + padding,
         y,
@@ -88,8 +91,8 @@ export const LinksCellRenderer: CellRenderer = {
     const padding = 10
     const buttonSize = 16
     if (
-      isBoxHovered({ x: x + width - 16 - padding, y: y + 7, height: buttonSize, width: buttonSize }, mousePosition) ||
-      isBoxHovered({ x: x + padding, y, height, width: width - padding * 2 }, mousePosition)
+      isBoxHovered({ x: x + width - 16 - padding, y: y + 7, height: buttonSize, width: buttonSize }, mousePosition)
+      || isBoxHovered({ x: x + padding, y, height, width: width - padding * 2 }, mousePosition)
     ) {
       makeCellEditable(row, column)
       return true

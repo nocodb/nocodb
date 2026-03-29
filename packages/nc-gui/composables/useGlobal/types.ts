@@ -1,7 +1,10 @@
-import type { ComputedRef, Ref, ToRefs } from 'vue'
 import type { WritableComputedRef } from '@vue/reactivity'
-import type { JwtPayload } from 'jwt-decode'
 import type { AxiosInstance } from 'axios'
+import type { JwtPayload } from 'jwt-decode'
+import type { MapProvider } from 'nocodb-sdk'
+import type { ComputedRef, Ref, ToRefs } from 'vue'
+import type { NcBreakpoint } from '~/lib/constants'
+
 export interface AppInfo {
   ncSiteUrl: string
   authType: 'jwt' | 'none'
@@ -29,6 +32,7 @@ export interface AppInfo {
   ee?: boolean
   ncAttachmentFieldSize: number
   ncMaxAttachmentsAllowed: number
+  ncMaxTextLength: number
   isCloud: boolean
   automationLogLevel: 'OFF' | 'ERROR' | 'ALL'
   baseHostName?: string
@@ -43,6 +47,13 @@ export interface AppInfo {
   feedEnabled: boolean
   sentryDSN: string
   isOnPrem: boolean
+  isPostgres: boolean
+  isAirgapped: boolean
+  seatLimit: number | null
+  isTrial: boolean
+  isTrialExpired: boolean
+  licenseExpiryTime: number
+  defaultWorkspaceId: string | null
   stripePublishableKey?: string
   marketingRootUrl?: string
   templatesRootUrl?: string
@@ -52,6 +63,7 @@ export interface AppInfo {
   iframeWhitelistDomains?: Array<string>
   disableGroupByAggregation?: boolean
   sendRecordMaxRecipients?: number
+  mapProvider?: MapProvider
 }
 
 export interface StoredState {
@@ -65,6 +77,7 @@ export interface StoredState {
   latestRelease: string | null
   hiddenRelease: string | null
   isMobileMode: boolean | null
+  activeBreakpoint: NcBreakpoint | null
   lastOpenedWorkspaceId: string | null
   gridViewPageSize: number
   leftSidebarSize: {
@@ -87,12 +100,14 @@ export type State = ToRefs<Omit<StoredState, 'token'>> & {
   runningRequests: ReturnType<typeof useCounter>
   error: Ref<any>
   appInfo: Ref<AppInfo>
+  appInfoStatus: Ref<'idle' | 'loading' | 'loaded' | 'error'>
 }
 
 export interface Getters {
   signedIn: ComputedRef<boolean>
   isSsoUser: ComputedRef<boolean>
   isLoading: WritableComputedRef<boolean>
+  getResponsiveValue: <T>(mobile: T, desktop: T) => T
 }
 
 export interface SignOutParams {
@@ -112,7 +127,8 @@ export interface Actions {
   }) => Promise<string | null | void>
   loadAppInfo: () => void
   setIsMobileMode: (isMobileMode: boolean) => void
-  navigateToProject: (params: { workspaceId?: string; baseId?: string; query?: any }) => void
+  setActiveBreakpoint: (breakpoint: NcBreakpoint) => void
+  navigateToProject: (params: { workspaceId?: string, baseId?: string, query?: any }) => void
   /**
    * params `tableTitle, viewTitle, scriptTitle ,dashboardTitle,workflowTitle` will be used for readable url slug
    */
@@ -136,7 +152,7 @@ export interface Actions {
   getBaseUrl: (workspaceId: string) => string | undefined
   getMainUrl: (workspaceId: string) => string | undefined
   setGridViewPageSize: (pageSize: number) => void
-  setLeftSidebarSize: (params: { old?: number; current?: number }) => void
+  setLeftSidebarSize: (params: { old?: number, current?: number }) => void
   setAddNewRecordGridMode: (isGridMode: boolean) => void
   updateSyncDataUpvotes: (upvotes: string[]) => void
 }

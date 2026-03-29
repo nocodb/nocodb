@@ -1,12 +1,12 @@
-import { ViewTypes } from 'nocodb-sdk'
 import type { RowColoringInfo, ViewSettingOverrideOptions } from 'nocodb-sdk'
-import { iconMap } from './iconUtils'
 import type { Language } from '~/lib/types'
-import UsersIcon from '~icons/nc-icons/users'
+import { ViewTypes } from 'nocodb-sdk'
 import LockIcon from '~icons/nc-icons-v2/lock'
 import PersonalIcon from '~icons/nc-icons/personal'
+import UsersIcon from '~icons/nc-icons/users'
+import { iconMap } from './iconUtils'
 
-export const viewIcons: Record<number | string, { icon: any; color: string; darkColor?: string }> = {
+export const viewIcons: Record<number | string, { icon: any, color: string, darkColor?: string }> = {
   [ViewTypes.GRID]: { icon: iconMap.grid, color: 'var(--color-view-icon-grid)' },
   [ViewTypes.FORM]: { icon: iconMap.form, color: 'var(--color-view-icon-form)' },
   [ViewTypes.CALENDAR]: { icon: iconMap.calendar, color: 'var(--color-view-icon-calendar)' },
@@ -14,6 +14,7 @@ export const viewIcons: Record<number | string, { icon: any; color: string; dark
   [ViewTypes.MAP]: { icon: iconMap.map, color: 'var(--color-view-icon-map)' },
   [ViewTypes.KANBAN]: { icon: iconMap.kanban, color: 'var(--color-view-icon-kanban)' },
   [ViewTypes.LIST]: { icon: iconMap.ncList, color: 'var(--color-view-icon-list)' },
+  [ViewTypes.TIMELINE]: { icon: iconMap.timeline, color: 'var(--color-view-icon-timeline)' },
   view: { icon: iconMap.view, color: 'var(--color-view-icon-view)' },
 }
 
@@ -30,7 +31,7 @@ export function applyLanguageDirection(dir: typeof rtl | typeof ltr) {
   document.body.style.direction = dir
 }
 
-export const getViewIcon = (key?: string | number) => {
+export function getViewIcon(key?: string | number) {
   if (!key) return
 
   return viewIcons[key]
@@ -66,7 +67,7 @@ export const defaultRowColorInfo: RowColoringInfo = {
   is_set_as_background: null,
 }
 
-export const getDefaultViewMetas = (viewType: ViewTypes) => {
+export function getDefaultViewMetas(viewType: ViewTypes) {
   switch (viewType) {
     case ViewTypes.FORM:
       return {
@@ -82,16 +83,12 @@ export const getDefaultViewMetas = (viewType: ViewTypes) => {
   return {}
 }
 
-export const validateViewConfigOverrideEvent = (
-  event: SmartsheetStoreEvents | string,
-  optionToValidate: ViewSettingOverrideOptions,
-  params?: { viewId: string; copiedOptions: ViewSettingOverrideOptions[] },
-) => {
+export function validateViewConfigOverrideEvent(event: SmartsheetStoreEvents | string, optionToValidate: ViewSettingOverrideOptions, params?: { viewId: string, copiedOptions: ViewSettingOverrideOptions[] }) {
   if (
-    event !== SmartsheetStoreEvents.COPIED_VIEW_CONFIG ||
-    !optionToValidate ||
-    !ncIsObject(params) ||
-    !ncIsArray(params?.copiedOptions)
+    event !== SmartsheetStoreEvents.COPIED_VIEW_CONFIG
+    || !optionToValidate
+    || !ncIsObject(params)
+    || !ncIsArray(params?.copiedOptions)
   ) {
     return false
   }

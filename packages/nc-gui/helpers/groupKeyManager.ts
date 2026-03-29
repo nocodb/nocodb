@@ -1,5 +1,5 @@
-import { useStorage } from '@vueuse/core'
 import type { GroupKeysStorage } from '#imports'
+import { useStorage } from '@vueuse/core'
 
 export class GroupKeysManager {
   private storage: Ref<GroupKeysStorage>
@@ -86,7 +86,8 @@ export class GroupKeysManager {
   toggleKey(viewId: string, key: string, shouldAdd: boolean): void {
     if (shouldAdd) {
       this.addKey(viewId, key)
-    } else {
+    }
+    else {
       this.removeKey(viewId, key)
     }
   }

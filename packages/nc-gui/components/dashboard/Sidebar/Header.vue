@@ -23,7 +23,7 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
     <div v-if="!isWorkspacesLoading" class="flex flex-row items-center w-full">
       <div>Bases</div>
 
-      <div class="flex flex-grow min-w-1"></div>
+      <div class="flex flex-grow min-w-1" />
 
       <NcTooltip
         class="flex"

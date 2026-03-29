@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { useDetachedLongText } from '../composables/useDetachedLongText'
 import ExpandedText from '../components/ExpandedText.vue'
+import { useDetachedLongText } from '../composables/useDetachedLongText'
 
 const { states } = useDetachedLongText()
 </script>

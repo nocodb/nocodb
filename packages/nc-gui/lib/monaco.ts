@@ -6,7 +6,7 @@ import TypeScriptWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker
 
 let initialized = false
 
-export const initializeMonaco = async () => {
+export async function initializeMonaco() {
   if (initialized) {
     return
   }
@@ -45,7 +45,7 @@ export const initializeMonaco = async () => {
   /**
    * Adding monaco editor to Vite
    *
-   **/
+   */
   self.MonacoEnvironment = window.MonacoEnvironment = {
     async getWorker(_: any, label: string) {
       switch (label) {

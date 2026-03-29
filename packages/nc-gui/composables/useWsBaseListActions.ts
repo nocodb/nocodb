@@ -5,7 +5,8 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
   const basesStore = useBases()
   const { workspaceBasesMap, bases, isProjectsLoaded } = storeToRefs(basesStore)
 
-  const { activeWorkspaceId } = storeToRefs(useWorkspace())
+  const workspaceStore = useWorkspace()
+  const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
   const { navigateToProject, getBaseUrl } = useGlobal()
   const { $api, $e } = useNuxtApp()
@@ -48,7 +49,8 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
       updateBaseInWorkspace(base, { title })
       await $api.base.update(base.id!, { title })
       $e('a:base:rename')
-    } catch (e: any) {
+    }
+    catch (e: any) {
       updateBaseInWorkspace(base, { title: base.title })
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -66,7 +68,8 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
         },
       )
       $e('a:base:star:toggle')
-    } catch (e: any) {
+    }
+    catch (e: any) {
       updateBaseInWorkspace(base, { starred: base.starred })
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -99,7 +102,7 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
   const onOpenSettings = async (base: NcProject) => {
     closeModal()
     const workspaceId = base.fk_workspace_id || route.params.typeOrId
-    await navigateTo(`/${workspaceId}/${base.id}?page=base-settings`)
+    await navigateTo(`/${workspaceId}/${base.id}/settings/settings`)
   }
 
   const onDelete = (base: NcProject) => {
@@ -116,7 +119,8 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
       updateBaseInWorkspace(base, { meta: newMeta as any })
       await $api.base.update(base.id!, { meta: JSON.stringify(newMeta) })
       $e('a:base:icon:color:modal', { iconColor: color })
-    } catch (e: any) {
+    }
+    catch (e: any) {
       updateBaseInWorkspace(base, { meta: base.meta })
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -127,13 +131,17 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
       updateBaseInWorkspace(base, { order: newOrder })
       await $api.base.update(base.id!, { order: newOrder })
       $e('a:base:reorder')
-    } catch (e: any) {
+    }
+    catch (e: any) {
       updateBaseInWorkspace(base, { order: base.order })
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
 
   const onSelect = async (base: NcProject) => {
+    // Prevent selecting bases in locked workspaces (CE mode, non-default)
+    if (workspaceStore.isWorkspaceCeLocked(base.fk_workspace_id)) return
+
     $e('a:workspace:base:select')
     closeModal()
 
@@ -149,6 +157,9 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
 
   const switchWorkspace = async (workspaceId?: string) => {
     if (!workspaceId || activeWorkspaceId.value === workspaceId) return
+
+    // Prevent navigating to locked workspaces (CE mode, non-default)
+    if (workspaceStore.isWorkspaceCeLocked(workspaceId)) return
 
     $e('a:workspace:switch')
 

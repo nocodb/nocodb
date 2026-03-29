@@ -54,12 +54,13 @@ const headerList = ref<Option[]>([
   { value: 'X-CSRF-Token' },
 ])
 
-const addHeaderRow = () =>
-  vModel.value.push({
+function addHeaderRow() {
+  return vModel.value.push({
     enabled: false,
     name: '',
     value: '',
   })
+}
 
 const deleteHeaderRow = (i: number) => vModel.value.splice(i, 1)
 
@@ -107,7 +108,9 @@ const filterOption = (input: string, option: Option) => option.value.toUpperCase
       <NcButton size="small" type="secondary" class="nc-btn-focus" :disabled="disabled" @click="addHeaderRow">
         <div class="flex flex-row items-center gap-x-2">
           <component :is="iconMap.plus" class="flex-none" />
-          <div data-rec="true">{{ $t('general.add') }}</div>
+          <div data-rec="true">
+            {{ $t('general.add') }}
+          </div>
         </div>
       </NcButton>
     </div>

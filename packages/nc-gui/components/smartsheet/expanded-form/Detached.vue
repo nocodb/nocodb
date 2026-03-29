@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 const { states, close } = useExpandedFormDetached()
 
-const shouldClose = (isVisible: boolean, i: number) => {
+function shouldClose(isVisible: boolean, i: number) {
   if (!isVisible) close(i)
 }
 </script>

@@ -4,6 +4,7 @@ import isEmpty from 'lodash/isEmpty';
 import mapKeys from 'lodash/mapKeys';
 import find from 'lodash/find';
 import { ncIsNullOrUndefined, UITypes } from 'nocodb-sdk';
+import debug from 'debug';
 import KnexClient from '~/db/sql-client/lib/KnexClient';
 import Debug from '~/db/util/Debug';
 import Result from '~/db/util/Result';
@@ -16,6 +17,7 @@ import pgQueries from '~/db/sql-client/lib/pg/pg.queries';
 import deepClone from '~/helpers/deepClone';
 
 const log = new Debug('PGClient');
+const debugTableUpdateQuery = debug('nc:db:query:PGClient:tableUpdate');
 
 class PGClient extends KnexClient {
   constructor(connectionConfig) {
@@ -2601,8 +2603,10 @@ class PGClient extends KnexClient {
         //upQuery = `ALTER TABLE "${args.columns[0].tn}" ${upQuery};`;
         //downQuery = `ALTER TABLE "${args.columns[0].tn}" ${downQuery};`;
       }
-
-      if (upQuery !== '') await this.sqlClient.raw(upQuery);
+      if (upQuery && upQuery !== '') {
+        debugTableUpdateQuery(upQuery);
+        await this.sqlClient.raw(upQuery);
+      }
 
       // console.log(upQuery);
 
@@ -3085,14 +3089,28 @@ class PGClient extends KnexClient {
         }
       }
     } else if (change === 1) {
-      // Add column first (without UNIQUE constraint)
-      query += this.genQuery(
-        ` ADD ?? ${this.sanitiseDataType(n.dt)}`,
-        [n.cn],
-        shouldSanitize,
-      );
-      query += n.rqd ? ' NOT NULL' : ' NULL';
-      query += defaultValue ? ` DEFAULT ${defaultValue}` : '';
+      if (n.ai) {
+        // AutoNumber / auto-increment: use serial types so PG creates
+        // a sequence + DEFAULT nextval() automatically.
+        let serialType: string;
+        if (n.dt === 'int8' || n.dt.indexOf('bigint') > -1) {
+          serialType = 'bigserial';
+        } else if (n.dt === 'int2' || n.dt.indexOf('smallint') > -1) {
+          serialType = 'smallserial';
+        } else {
+          serialType = 'serial';
+        }
+        query += this.genQuery(` ADD ?? ${serialType}`, [n.cn], shouldSanitize);
+      } else {
+        // Add column first (without UNIQUE constraint)
+        query += this.genQuery(
+          ` ADD ?? ${this.sanitiseDataType(n.dt)}`,
+          [n.cn],
+          shouldSanitize,
+        );
+        query += n.rqd ? ' NOT NULL' : ' NULL';
+        query += defaultValue ? ` DEFAULT ${defaultValue}` : '';
+      }
       query = this.genQuery(
         `ALTER TABLE ?? ?;`,
         [t, this.sqlClient.raw(query)],
@@ -3157,20 +3175,25 @@ class PGClient extends KnexClient {
           shouldSanitize,
         );
 
-        const castedColumn = formatColumn(
-          this.genQuery('??', [n.cn], shouldSanitize),
-          o.uidt,
-        );
-        const limit = typeof n.dtxp === 'number' ? n.dtxp : null;
-        const castQuery = generateCastQuery(
-          n.uidt,
-          n.dt,
-          castedColumn,
-          limit,
-          n.meta?.date_format || 'YYYY-MM-DD',
-        );
+        // AutoNumber: backfill overwrites all values, so just cast to 0
+        if (n.uidt === UITypes.AutoNumber && n.ai && !o.ai) {
+          query += this.genQuery(`0::bigint;\n`, [], shouldSanitize);
+        } else {
+          const castedColumn = formatColumn(
+            this.genQuery('??', [n.cn], shouldSanitize),
+            o.uidt,
+          );
+          const limit = typeof n.dtxp === 'number' ? n.dtxp : null;
+          const castQuery = generateCastQuery(
+            n.uidt,
+            n.dt,
+            castedColumn,
+            limit,
+            n.meta?.date_format || 'YYYY-MM-DD',
+          );
 
-        query += this.genQuery(castQuery, [], shouldSanitize);
+          query += this.genQuery(castQuery, [], shouldSanitize);
+        }
       }
 
       if (n.rqd !== o.rqd) {
@@ -3189,6 +3212,37 @@ class PGClient extends KnexClient {
           shouldSanitize,
         );
         query += n.cdf ? ` SET DEFAULT ${defaultValue};\n` : ` DROP DEFAULT;\n`;
+      }
+
+      // Handle auto-increment change (e.g. converting text/number → AutoNumber)
+      if (n.ai && !o.ai) {
+        const schema = t.includes('.') ? t.split('.')[0] : null;
+        const tableNameOnly = t.includes('.') ? t.split('.').pop() : t;
+        const seqNameOnly = `${tableNameOnly}_${n.cn}_seq`;
+        const seqName = schema ? `${schema}.${seqNameOnly}` : seqNameOnly;
+        // Regclass string for nextval() — double quotes inside single quotes
+        // so PG preserves case and separates schema from name
+        const seqRegclass = schema
+          ? `"${schema}"."${seqNameOnly}"`
+          : `"${seqNameOnly}"`;
+
+        query += this.genQuery(
+          `\nCREATE SEQUENCE IF NOT EXISTS ?? OWNED BY ??.??;\n`,
+          [seqName, t, n.cn],
+          shouldSanitize,
+        );
+        query += this.genQuery(
+          `\nALTER TABLE ?? ALTER COLUMN ?? SET DEFAULT nextval(?);\n`,
+          [t, n.cn, seqRegclass],
+          shouldSanitize,
+        );
+      } else if (!n.ai && o.ai) {
+        // Removing auto-increment — drop the sequence default
+        query += this.genQuery(
+          `\nALTER TABLE ?? ALTER COLUMN ?? DROP DEFAULT;\n`,
+          [t, n.cn],
+          shouldSanitize,
+        );
       }
 
       // Handle unique constraint changes

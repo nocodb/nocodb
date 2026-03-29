@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import { type TableType, ViewLockType, type ViewType, type ViewTypes } from 'nocodb-sdk'
-import type { WritableComputedRef } from '@vue/reactivity'
-import { LockType, isDefaultBase } from '#imports'
+import type { TableType, ViewType, ViewTypes } from 'nocodb-sdk'
+import type { WritableComputedRef } from 'vue'
+import { isDefaultBase, LockType } from '#imports'
+import { ViewLockType } from 'nocodb-sdk'
 
 interface Props {
   view: ViewType
@@ -24,7 +25,7 @@ interface Emits {
 
   (
     event: 'openModal',
-    data: { type: ViewTypes; title?: string; copyViewId?: string; groupingFieldColumnId?: string; coverImageColumnId?: string },
+    data: { type: ViewTypes, title?: string, copyViewId?: string, groupingFieldColumnId?: string, coverImageColumnId?: string },
   ): void
 }
 
@@ -32,7 +33,7 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const vModel = useVModel(props, 'view', emits) as WritableComputedRef<ViewType & { alias?: string; created_by?: string }>
+const vModel = useVModel(props, 'view', emits) as WritableComputedRef<ViewType & { alias?: string, created_by?: string }>
 
 const { $e } = useNuxtApp()
 
@@ -63,7 +64,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 const isDefaultBaseLocal = computed(() => {
   if (base.value?.sources?.length === 1) return true
 
-  const source = base.value?.sources?.find((b) => b.id === vModel.value.source_id)
+  const source = base.value?.sources?.find(b => b.id === vModel.value.source_id)
   if (!source) return false
 
   return isDefaultBase(source)
@@ -72,6 +73,8 @@ const isDefaultBaseLocal = computed(() => {
 const { openViewDescriptionDialog: _openViewDescriptionDialog } = inject(TreeViewInj)!
 
 const input = ref<HTMLInputElement>()
+
+const emojiPickerRef = ref<HTMLElement>()
 
 const isDropdownOpen = ref(false)
 
@@ -103,19 +106,20 @@ const onClick = useDebounceFn(() => {
   emits('changeView', vModel.value)
 }, 250)
 
-const handleOnClick = () => {
+function handleOnClick() {
   if (isEditing.value || isStopped.value) return
 
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
   if (cmdOrCtrl) {
     emits('changeView', vModel.value)
-  } else {
+  }
+  else {
     onClick()
   }
 }
 
-const focusInput = () => {
+function focusInput() {
   setTimeout(() => {
     input.value?.focus()
     input.value?.select()
@@ -141,7 +145,8 @@ function onDblClick() {
 function onKeyDown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
     onKeyEsc(event)
-  } else if (event.key === 'Enter') {
+  }
+  else if (event.key === 'Enter') {
     onKeyEnter(event)
   }
 }
@@ -168,7 +173,7 @@ onKeyStroke('Enter', (event) => {
   }
 })
 
-const onRenameMenuClick = () => {
+function onRenameMenuClick() {
   if (isMobileMode.value || !isUIAllowed('viewCreateOrEdit')) return
 
   if (!isEditing.value) {
@@ -183,6 +188,13 @@ const onRenameMenuClick = () => {
       focusInput()
     })
   }
+}
+
+function onChangeIcon() {
+  isDropdownOpen.value = false
+  nextTick(() => {
+    emojiPickerRef.value?.querySelector<HTMLElement>('.nc-emoji')?.click()
+  })
 }
 
 /** Rename a view */
@@ -217,7 +229,7 @@ async function onRename() {
   onStopEdit()
 }
 
-const openViewDescriptionDialog = (view: ViewType) => {
+function openViewDescriptionDialog(view: ViewType) {
   isDropdownOpen.value = false
 
   _openViewDescriptionDialog(view)
@@ -242,7 +254,7 @@ function onStopEdit() {
   }, 250)
 }
 
-const onDelete = () => {
+function onDelete() {
   isDropdownOpen.value = false
 
   emits('delete', vModel.value)
@@ -257,8 +269,8 @@ const viewModeInfo = computed(() => {
         isViewOwner.value
           ? `(${t('general.you')})`
           : vModel.value?.owned_by && idUserMap.value[vModel.value.owned_by]
-          ? `(${idUserMap.value[vModel.value.owned_by]?.display_name || idUserMap.value[vModel.value.owned_by]?.email})`
-          : ''
+            ? `(${idUserMap.value[vModel.value.owned_by]?.display_name || idUserMap.value[vModel.value.owned_by]?.email})`
+            : ''
       }`
     case ViewLockType.Locked:
       if (!vModel.value?.meta?.lockedByUserId || !idUserMap.value[vModel.value?.meta?.lockedByUserId]) {
@@ -269,8 +281,8 @@ const viewModeInfo = computed(() => {
         user:
           idUserMap.value[vModel.value?.meta?.lockedByUserId]?.id === user.value?.id
             ? t('general.you')
-            : idUserMap.value[vModel.value?.meta?.lockedByUserId]?.display_name ||
-              idUserMap.value[vModel.value?.meta?.lockedByUserId]?.email,
+            : idUserMap.value[vModel.value?.meta?.lockedByUserId]?.display_name
+              || idUserMap.value[vModel.value?.meta?.lockedByUserId]?.email,
       })
 
     default:
@@ -287,12 +299,12 @@ watch(isDropdownOpen, async () => {
 
 <template>
   <div
-    class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
+    class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle text-bodyDefaultSm !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray) cursor-pointer"
     :class="{
-      '!pl-7.5 !xs:(pl-6.5)': isDefaultBaseLocal && !isInSection,
+      '!pl-7.5': isDefaultBaseLocal && !isInSection,
       '!pl-14': !isDefaultBaseLocal && !isInSection,
-      '!pl-13.5 !xs:(!pl-13.5)': isDefaultBaseLocal && isInSection,
-      '!pl-20.5 !xs:(!pl-20.5)': !isDefaultBaseLocal && isInSection,
+      '!pl-13.5': isDefaultBaseLocal && isInSection,
+      '!pl-20.5': !isDefaultBaseLocal && isInSection,
     }"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @click.prevent="handleOnClick"
@@ -312,8 +324,12 @@ watch(isDropdownOpen, async () => {
             <div class="text-[10px] leading-[14px] text-nc-content-brand-hover dark:text-nc-content-gray-muted uppercase mb-1">
               {{ $t('labels.viewName') }}
             </div>
-            <div class="text-small leading-[18px]">{{ vModel.alias || vModel.title }}</div>
-            <div class="mt-1 text-xs whitespace-pre-wrap break-words">{{ vModel.description }}</div>
+            <div class="text-small leading-[18px]">
+              {{ vModel.alias || vModel.title }}
+            </div>
+            <div class="mt-1 text-xs whitespace-pre-wrap break-words">
+              {{ vModel.description }}
+            </div>
           </div>
 
           <div v-if="vModel?.created_by && idUserMap[vModel?.created_by]">
@@ -338,10 +354,17 @@ watch(isDropdownOpen, async () => {
           </div>
         </div>
       </template>
-      <div v-e="['a:view:open', { view: vModel.type }]" class="text-sm flex items-center w-full gap-1" data-testid="view-item">
+      <div
+        v-e="['a:view:open', { view: vModel.type }]"
+        class="text-bodyDefaultSm font-medium flex items-center w-full gap-1"
+        data-testid="view-item"
+      >
+        <!-- pointer-events-none is intentional — icon changes are triggered via the
+             "Change Icon" context menu item which programmatically opens the picker. -->
         <div
+          ref="emojiPickerRef"
           v-e="['c:view:emoji-picker']"
-          class="flex min-w-6"
+          class="flex min-w-6 pointer-events-none"
           :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`"
           @mouseenter="showViewNodeTooltip = false"
           @mouseleave="showViewNodeTooltip = true"
@@ -351,11 +374,11 @@ watch(isDropdownOpen, async () => {
             :emoji="props.view?.meta?.icon"
             size="small"
             :clearable="true"
-            :readonly="isMobileMode || !isUIAllowed('viewCreateOrEdit')"
+            :readonly="isLocked || isMobileMode || !isUIAllowed('viewCreateOrEdit')"
             @emoji-selected="emits('selectIcon', $event)"
           >
             <template #default>
-              <GeneralViewIcon :meta="props.view" class="nc-view-icon w-4 !text-[16px]"></GeneralViewIcon>
+              <GeneralViewIcon :meta="props.view" class="nc-view-icon w-4 !text-[16px]" />
             </template>
           </LazyGeneralEmojiPicker>
         </div>
@@ -366,7 +389,7 @@ watch(isDropdownOpen, async () => {
           v-model:value="_title"
           class="!bg-transparent !pr-1.5 !flex-1 mr-4 !rounded-md !h-6 animate-sidebar-node-input-padding"
           :class="{
-            '!font-semibold !text-nc-content-brand-disabled': activeView?.id === vModel.id,
+            '!font-medium !text-nc-content-brand-disabled': activeView?.id === vModel.id,
           }"
           :style="{
             fontWeight: 'inherit',
@@ -378,16 +401,18 @@ watch(isDropdownOpen, async () => {
           v-else
           class="nc-sidebar-node-title text-ellipsis overflow-hidden select-none max-w-full"
           :class="{
-            'w-full': ![ViewLockType.Locked, ViewLockType.Personal].includes(vModel?.lock_type!)
+            'w-full': ![ViewLockType.Locked, ViewLockType.Personal].includes(vModel?.lock_type!),
           }"
           show-on-truncate-only
           disabled
         >
-          <template #title> {{ vModel.alias || vModel.title }}</template>
+          <template #title>
+            {{ vModel.alias || vModel.title }}
+          </template>
           <div
             data-testid="sidebar-view-title"
             :class="{
-              'font-semibold text-nc-content-brand-disabled': activeView?.id === vModel.id,
+              'font-medium text-nc-content-brand-disabled': activeView?.id === vModel.id,
             }"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             @dblclick.stop="onDblClick"
@@ -431,7 +456,9 @@ watch(isDropdownOpen, async () => {
             @mouseleave="showViewNodeTooltip = true"
           >
             <template #title>
-              <div class="whitespace-pre-wrap break-words">{{ vModel.description }}</div>
+              <div class="whitespace-pre-wrap break-words">
+                {{ vModel.description }}
+              </div>
             </template>
             <NcButton type="text" class="!hover:bg-transparent" size="xsmall">
               <GeneralIcon
@@ -465,6 +492,7 @@ watch(isDropdownOpen, async () => {
                 in-sidebar
                 @close-modal="isDropdownOpen = false"
                 @rename="onRenameMenuClick"
+                @change-icon="onChangeIcon"
                 @delete="onDelete"
                 @description-update="openViewDescriptionDialog(vModel)"
               />

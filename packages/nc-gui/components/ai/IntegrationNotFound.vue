@@ -3,7 +3,7 @@ const emits = defineEmits(['onNavigate'])
 
 const workspaceStore = useWorkspace()
 
-const navigateToAiIntegrations = () => {
+function navigateToAiIntegrations() {
   workspaceStore.navigateToIntegrations(undefined, undefined, {
     categories: 'ai',
   })
@@ -25,9 +25,11 @@ const navigateToAiIntegrations = () => {
     </slot>
     <div class="flex-1 flex flex-col gap-1">
       <slot name="title">
-        <div class="text-sm text-nc-content-gray-subtle flex-1">No AI Integrations added.</div>
+        <div class="text-sm text-nc-content-gray-subtle flex-1">
+          No AI Integrations added.
+        </div>
       </slot>
-      <slot name="description"></slot>
+      <slot name="description" />
     </div>
     <NcButton size="small" type="text" class="!text-nc-content-brand" @click.stop="navigateToAiIntegrations">
       Add integration

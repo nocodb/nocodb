@@ -3,39 +3,21 @@ definePageMeta({
   hideHeader: true,
 })
 
-const { emailConfigured, storageConfigured, loadSetupApps } = useProvideAccountSetupStore()
-
-const { isUIAllowed } = useRoles()
-
 const $route = useRoute()
 
-const { appInfo, signedIn, signOut } = useGlobal()
+const { signedIn, signOut } = useGlobal()
 
-const selectedKeys = computed(() => [
-  /^\/account\/users\/?$/.test($route.fullPath)
-    ? isUIAllowed('superAdminUserManagement')
-      ? 'list'
-      : 'settings'
-    : $route.params.nestedPage ?? $route.params.page,
-])
+const selectedKeys = computed(() => [$route.params.nestedPage ?? $route.params.page])
 
-const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
+const openKeys = ref([])
 
-const logout = async () => {
+const backRoute = computed(() => ncBackRoute().get())
+
+async function logout() {
   await signOut({
     redirectToSignin: true,
   })
 }
-
-const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && (!isEeUI || appInfo.value.isOnPrem))
-
-watchEffect(() => {
-  if (isSetupPageAllowed.value) {
-    loadSetupApps()
-  }
-})
-
-const isPending = computed(() => !emailConfigured.value || !storageConfigured.value)
 </script>
 
 <template>
@@ -61,43 +43,21 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                   size="small"
                   class="transition-all duration-200 mx-2 cursor-pointer transform hover:bg-nc-bg-gray-light nc-noco-brand-icon"
                   data-testid="nc-noco-brand-icon"
-                  @click="navigateTo('/')"
+                  @click="navigateTo(backRoute)"
                 >
                   <div class="flex flex-row gap-x-2 items-center">
                     <GeneralIcon icon="ncArrowLeft" />
-                    <div class="flex text-small leading-[18px] font-semibold">{{ $t('labels.back') }}</div>
+                    <div class="flex text-small leading-[18px] font-semibold">
+                      {{ $t('labels.back') }}
+                    </div>
                   </div>
                 </NcButton>
               </div>
               <NcDivider class="!mt-0" />
 
-              <div class="text-sm text-nc-content-gray-muted font-semibold ml-4 py-1.5 mt-2">{{ $t('labels.account') }}</div>
-              <NcMenuItem
-                v-if="isSetupPageAllowed"
-                key="profile"
-                class="item"
-                :class="{
-                  active: $route.path?.startsWith('/account/setup'),
-                }"
-                @click="navigateTo('/account/setup')"
-              >
-                <div class="flex items-center space-x-2 w-full">
-                  <GeneralIcon icon="ncSliders" class="!h-4 !w-4" />
-
-                  <div class="select-none">
-                    {{ $t('labels.setup') }}
-                  </div>
-                  <span class="flex-grow" />
-                  <NcTooltip v-if="isPending">
-                    <template #title>
-                      <span>
-                        {{ $t('activity.pending') }}
-                      </span>
-                    </template>
-                    <GeneralIcon icon="ncAlertCircle" class="text-nc-content-orange-medium w-4 h-4 nc-pending" />
-                  </NcTooltip>
-                </div>
-              </NcMenuItem>
+              <div class="text-sm text-nc-content-gray-muted font-semibold ml-4 py-1.5 mt-2">
+                {{ $t('labels.account') }}
+              </div>
 
               <NcMenuItem
                 key="profile"
@@ -110,7 +70,9 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                 <div class="flex items-center space-x-2">
                   <GeneralIcon icon="ncUser" class="!h-4 !w-4" />
 
-                  <div class="select-none">{{ $t('labels.profile') }}</div>
+                  <div class="select-none">
+                    {{ $t('labels.profile') }}
+                  </div>
                 </div>
               </NcMenuItem>
               <NcMenuItem
@@ -124,11 +86,13 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                 <div class="flex items-center space-x-2">
                   <GeneralIcon icon="ncKey2" class="h-4 w-4 flex-none" />
 
-                  <div class="select-none">{{ $t('title.apiTokens') }}</div>
+                  <div class="select-none">
+                    {{ $t('title.apiTokens') }}
+                  </div>
                 </div>
               </NcMenuItem>
               <NcMenuItem
-                key="tokens"
+                key="mcp"
                 :class="{
                   active: $route.params.page === 'mcp',
                 }"
@@ -138,83 +102,26 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                 <div class="flex items-center space-x-2">
                   <GeneralIcon icon="mcp" class="h-4 w-4 flex-none" />
 
-                  <div class="select-none">{{ $t('title.mcpServer') }}</div>
+                  <div class="select-none">
+                    {{ $t('title.mcpServer') }}
+                  </div>
                 </div>
               </NcMenuItem>
               <NcMenuItem
-                v-if="isUIAllowed('superAdminAppStore') && !isEeUI"
-                key="apps"
-                class="item w-full"
+                key="password-reset"
+                class="item"
                 :class="{
-                  active: $route.params.page === 'apps',
+                  active: $route.params.nestedPage === 'password-reset',
                 }"
-                @click="navigateTo('/account/apps')"
+                @click="navigateTo('/account/users/password-reset')"
               >
-                <div class="flex items-center gap-2 w-full">
-                  <component :is="iconMap.appStore" />
-
-                  <div class="select-none text-sm">{{ $t('title.appStore') }}</div>
-                  <span class="flex-grow" />
-                  <NcTooltip>
-                    <template #title>
-                      <span>
-                        App store will soon be removed. Email & Storage plugins are now available in Accounts/Setup page. Rest of
-                        the plugins here will be moved to integrations.
-                      </span>
-                    </template>
-                    <GeneralIcon icon="ncAlertCircle" class="text-nc-content-orange-medium w-4 h-4 nc-pending" />
-                  </NcTooltip>
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon icon="ncLock" class="!h-4 !w-4" />
+                  <div class="select-none">
+                    {{ $t('title.resetPasswordMenu') }}
+                  </div>
                 </div>
               </NcMenuItem>
-              <a-sub-menu key="users" class="!bg-nc-bg-gray-sidebar !my-0">
-                <template #icon>
-                  <GeneralIcon icon="ncUsers" class="!h- !w-4" />
-                </template>
-                <template #title>{{ $t('objects.users') }}</template>
-
-                <template #expandIcon="{ isOpen }">
-                  <NcButton type="text" size="xxsmall" class="">
-                    <GeneralIcon
-                      icon="chevronRight"
-                      class="flex-none cursor-pointer transform transition-transform duration-200 text-[20px]"
-                      :class="{ '!rotate-90': isOpen }"
-                    />
-                  </NcButton>
-                </template>
-
-                <NcMenuItem
-                  v-if="isUIAllowed('superAdminUserManagement') && !isEeUI"
-                  key="list"
-                  class="text-xs item"
-                  :class="{
-                    active: $route.params.nestedPage === 'list',
-                  }"
-                  @click="navigateTo('/account/users/list')"
-                >
-                  <span class="ml-4">{{ $t('title.userManagement') }}</span>
-                </NcMenuItem>
-                <NcMenuItem
-                  key="password-reset"
-                  class="text-xs item"
-                  :class="{
-                    active: $route.params.nestedPage === 'password-reset',
-                  }"
-                  @click="navigateTo('/account/users/password-reset')"
-                >
-                  <span class="ml-4">{{ $t('title.resetPasswordMenu') }}</span>
-                </NcMenuItem>
-                <NcMenuItem
-                  v-if="isUIAllowed('superAdminAppSettings') && !isEeUI"
-                  key="settings"
-                  class="text-xs item"
-                  :class="{
-                    active: $route.params.nestedPage === 'settings',
-                  }"
-                  @click="navigateTo('/account/users/settings')"
-                >
-                  <span class="ml-4">{{ $t('activity.settings') }}</span>
-                </NcMenuItem>
-              </a-sub-menu>
             </NcMenu>
           </div>
 
@@ -229,7 +136,9 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
               <GeneralReleaseInfo />
 
               <NcTooltip placement="bottom" class="mr-4">
-                <template #title>{{ $t('labels.community.communityTranslated') }}</template>
+                <template #title>
+                  {{ $t('labels.community.communityTranslated') }}
+                </template>
 
                 <div class="flex items-center">
                   <GeneralLanguage button class="cursor-pointer text-2xl hover:text-nc-content-gray" />
@@ -284,7 +193,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
 
 :deep(.nc-user-sidebar .ant-menu-item-only-child),
 :deep(.ant-menu-submenu-title) {
-  @apply !h-[30px] !leading-[30px];
+  @apply !h-[28px] !leading-[28px];
 }
 
 :deep(.ant-menu-submenu-arrow) {
@@ -298,13 +207,19 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
   @apply bg-nc-bg-gray-sidebar;
 
   :deep(.item) {
-    @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 text-nc-content-gray-subtle !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle) font-medium;
+    @apply select-none mx-2 !px-3 !text-bodyDefaultSm font-medium !rounded-md !mb-0.5 text-nc-content-gray-subtle !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle) font-medium;
+
     width: calc(100% - 1rem);
+  }
+
+  :deep(.nc-menu-item-inner),
+  :deep(.nc-submenu-title) {
+    @apply !text-bodyDefaultSm font-medium;
   }
 }
 
 :deep(.ant-menu-submenu-title) {
-  @apply select-none mx-2 !pl-3 !pr-1 !text-sm !rounded-md !mb-1 !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle);
+  @apply select-none mx-2 !pl-3 !pr-1 !text-bodyDefaultSm font-medium !rounded-md !mb-0.5 !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle);
   width: calc(100% - 1rem);
 
   & + ul {

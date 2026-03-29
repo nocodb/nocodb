@@ -1,5 +1,5 @@
-import { ref } from 'vue'
 import { createEventHook } from '@vueuse/core'
+import { ref } from 'vue'
 
 export interface UseDetachedLongTextProps {
   isOpen?: boolean

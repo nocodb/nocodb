@@ -23,14 +23,14 @@ const options = computed(() => {
 })
 
 const anyOptionHasIcon = computed(() => {
-  return options.value.some((option) => option.icons?.length)
+  return options.value.some(option => option.icons?.length)
 })
 
 const anyOptionHasBgColor = computed(() => {
-  return options.value.some((option) => option.icons?.some((icon) => icon.iconColor))
+  return options.value.some(option => option.icons?.some(icon => icon.iconColor))
 })
 
-const isOptionSelected = (option: OnboardingOptionType) => {
+function isOptionSelected(option: OnboardingOptionType) {
   if (question.value.inputType === 'singleSelect') {
     return formState.value[question.value.id] === option.value
   }
@@ -56,7 +56,9 @@ const isOptionSelected = (option: OnboardingOptionType) => {
     ]"
   >
     <div class="flex flex-col gap-3">
-      <h3 class="my-0 text-heading3 text-nc-content-gray-emphasis">{{ question.question }}</h3>
+      <h3 class="my-0 text-heading3 text-nc-content-gray-emphasis">
+        {{ question.question }}
+      </h3>
       <p v-if="question.description" class="my-0 text-body text-nc-content-gray-subtle2">
         {{ question.description }}
       </p>

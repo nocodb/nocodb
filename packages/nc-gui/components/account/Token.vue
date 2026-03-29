@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { VNodeRef } from '@vue/runtime-core'
 import type { ApiTokenType, RequestParams } from 'nocodb-sdk'
+import type { VNodeRef } from 'vue'
 import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 
 const { api, isLoading } = useApi()
@@ -53,26 +53,27 @@ const tokenToCopy = ref('')
 
 const isValidTokenName = ref(false)
 
-const setDefaultTokenName = () => {
+function setDefaultTokenName() {
   selectedTokenData.value.description = extractNextDefaultName(
-    [...allTokens.value.map((el) => el?.description || '')],
+    [...allTokens.value.map(el => el?.description || '')],
     defaultTokenName,
   )
   isValidTokenName.value = true
 }
 
-const hideOrShowToken = (tokenId: string) => {
+function hideOrShowToken(tokenId: string) {
   if (selectedToken.isShow && selectedToken.id === tokenId) {
     selectedToken.isShow = false
     selectedToken.id = ''
-  } else {
+  }
+  else {
     selectedToken.isShow = true
     selectedToken.id = tokenId
   }
 }
 
 // To set default next token name we should need to fetch all token first
-const loadAllTokens = async (limit = pagination.total) => {
+async function loadAllTokens(limit = pagination.total) {
   try {
     const response: any = await api.orgTokens.list({
       query: {
@@ -83,27 +84,28 @@ const loadAllTokens = async (limit = pagination.total) => {
 
     allTokens.value = response.list as IApiTokenInfo[]
     setDefaultTokenName()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
 // This will update allTokens local value instead of fetching all tokens on each operation (add|delete)
-const updateAllTokens = (type: 'delete' | 'add', token: IApiTokenInfo) => {
+function updateAllTokens(type: 'delete' | 'add', token: IApiTokenInfo) {
   switch (type) {
     case 'add': {
       allTokens.value = [...allTokens.value, token]
       break
     }
     case 'delete': {
-      allTokens.value = [...allTokens.value.filter((t) => t.token !== token.token)]
+      allTokens.value = [...allTokens.value.filter(t => t.token !== token.token)]
       break
     }
   }
   setDefaultTokenName()
 }
 
-const loadTokens = async (page = currentPage.value, limit = currentLimit.value, hideShowNewToken = false) => {
+async function loadTokens(page = currentPage.value, limit = currentLimit.value, hideShowNewToken = false) {
   currentPage.value = page
   try {
     const response: any = await api.orgTokens.list({
@@ -130,9 +132,11 @@ const loadTokens = async (page = currentPage.value, limit = currentLimit.value, 
     if (!allTokens.value.length) {
       await loadAllTokens(pagination.total)
     }
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     if (isLoadingAllTokens.value) {
       isLoadingAllTokens.value = false
     }
@@ -141,22 +145,25 @@ const loadTokens = async (page = currentPage.value, limit = currentLimit.value, 
 
 loadTokens()
 
-const deleteToken = async (token: string): Promise<void> => {
+async function deleteToken(token: string): Promise<void> {
   try {
-    const id = allTokens.value.find((t) => t.token === token)?.id
+    const id = allTokens.value.find(t => t.token === token)?.id
     await api.orgTokens.delete(id)
     // message.success(t('msg.success.tokenDeleted'))
-    await loadTokens()
 
     updateAllTokens('delete', {
       token,
     } as IApiTokenInfo)
 
-    if (!tokens.value.length && currentPage.value !== 1) {
+    // If the current page would be empty after deletion, go back to previous page
+    const newTotal = pagination.total - 1
+    if (currentPage.value > 1 && (currentPage.value - 1) * currentLimit.value >= newTotal) {
       currentPage.value--
-      loadTokens(currentPage.value)
     }
-  } catch (e: any) {
+
+    await loadTokens(currentPage.value)
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
   $e('a:account:token:delete')
@@ -165,12 +172,12 @@ const deleteToken = async (token: string): Promise<void> => {
   tokenDesc.value = ''
 }
 
-const validateTokenName = (tokenName: string | undefined) => {
+function validateTokenName(tokenName: string | undefined) {
   if (!tokenName) return false
   return tokenName.length < 255
 }
 
-const generateToken = async () => {
+async function generateToken() {
   const isValid = validateTokenName(selectedTokenData.value.description)
   isValidTokenName.value = isValid
 
@@ -183,14 +190,16 @@ const generateToken = async () => {
     await loadTokens(currentPage.value, currentLimit.value, true)
 
     updateAllTokens('add', token as IApiTokenInfo)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     $e('a:api-token:generate')
   }
 }
 
-const copyToken = async (token: string | undefined) => {
+async function copyToken(token: string | undefined) {
   if (!token) return
 
   try {
@@ -199,30 +208,32 @@ const copyToken = async (token: string | undefined) => {
     message.info(t('msg.info.copiedToClipboard'))
 
     $e('c:api-token:copy')
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(e.message)
   }
 }
 
-const triggerDeleteModal = (tokenToDelete: string, tokenDescription: string) => {
+function triggerDeleteModal(tokenToDelete: string, tokenDescription: string) {
   tokenToCopy.value = tokenToDelete
   tokenDesc.value = tokenDescription
   isModalOpen.value = true
 }
 
-const selectInputOnMount: VNodeRef = (el) =>
+const selectInputOnMount: VNodeRef = el =>
   selectedTokenData.value.description === defaultTokenName && (el as HTMLInputElement)?.select()
 
 const errorMessage = computed(() => {
   const tokenLength = selectedTokenData.value.description?.length
   if (!tokenLength) {
     return t('msg.info.tokenNameNotEmpty')
-  } else if (tokenLength > 255) {
+  }
+  else if (tokenLength > 255) {
     return t('msg.info.tokenNameMaxLength')
   }
 })
 
-const handleCancel = () => {
+function handleCancel() {
   showNewTokenModal.value = false
   isValidTokenName.value = false
 }
@@ -243,7 +254,9 @@ const handleCancel = () => {
     <div class="nc-content-max-w p-6 h-[calc(100vh_-_100px)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
       <div class="max-w-202 mx-auto h-full w-full" data-testid="nc-token-list">
         <div class="flex gap-4 items-baseline justify-between">
-          <h6 class="text-xl text-left font-bold my-0 text-nc-content-gray" data-rec="true">{{ $t('title.apiTokens') }}</h6>
+          <h6 class="text-xl text-left font-bold my-0 text-nc-content-gray" data-rec="true">
+            {{ $t('title.apiTokens') }}
+          </h6>
           <NcButton
             :disabled="showNewTokenModal"
             class="!rounded-md"
@@ -262,7 +275,14 @@ const handleCancel = () => {
           </NcButton>
         </div>
         <span data-rec="true">{{ $t('msg.apiTokenCreate') }}</span>
-        <div v-if="!isLoadingAllTokens && (tokens.length || showNewTokenModal)" class="mt-6 h-full max-h-[calc(100%-80px)]">
+        <div
+          v-if="!isLoadingAllTokens && (tokens.length || showNewTokenModal)"
+          class="mt-6 h-full max-h-[calc(100%-80px)]"
+          :class="{
+            'max-h-[calc(100%-120px)]': pagination.total > 10,
+            'max-h-[calc(100%-80px)]': pagination.total <= 10,
+          }"
+        >
           <div class="h-full w-full overflow-y-auto rounded-md">
             <div class="flex w-full pl-5 bg-nc-bg-gray-extralight border-1 rounded-t-md">
               <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-2/9" data-rec="true">{{
@@ -303,7 +323,7 @@ const handleCancel = () => {
                       v-if="!isValidTokenName"
                       class="text-nc-content-red-medium text-xs font-light mt-1.5 ml-1"
                       data-rec="true"
-                      >{{ errorMessage }}
+                    >{{ errorMessage }}
                     </span>
                   </div>
                   <div class="flex gap-2 justify-start">
@@ -360,7 +380,9 @@ const handleCancel = () => {
                 <!-- ACTIONS -->
                 <div class="flex justify-end items-center gap-3 pr-5 text-nc-content-gray-muted font-medium text-3.5 w-2/9">
                   <NcTooltip placement="top">
-                    <template #title>{{ $t('labels.showOrHide') }}</template>
+                    <template #title>
+                      {{ $t('labels.showOrHide') }}
+                    </template>
                     <component
                       :is="iconMap.eye"
                       class="nc-toggle-token-visibility hover::cursor-pointer w-h-4 mb-[1.8px]"
@@ -368,7 +390,9 @@ const handleCancel = () => {
                     />
                   </NcTooltip>
                   <NcTooltip placement="top">
-                    <template #title>{{ $t('general.copy') }}</template>
+                    <template #title>
+                      {{ $t('general.copy') }}
+                    </template>
                     <component
                       :is="iconMap.copy"
                       class="hover::cursor-pointer w-4 h-4 text-nc-content-gray-subtle2"
@@ -376,7 +400,9 @@ const handleCancel = () => {
                     />
                   </NcTooltip>
                   <NcTooltip placement="top">
-                    <template #title>{{ $t('general.delete') }}</template>
+                    <template #title>
+                      {{ $t('general.delete') }}
+                    </template>
                     <component
                       :is="iconMap.delete"
                       data-testid="nc-token-row-action-icon"
@@ -393,9 +419,11 @@ const handleCancel = () => {
           v-else-if="!isLoadingAllTokens && !tokens.length && !showNewTokenModal"
           class="max-w-[40rem] border px-3 py-6 flex flex-col items-center justify-center gap-6 text-center"
         >
-          <img src="~assets/img/placeholder/api-tokens.png" class="!w-[22rem] flex-none" />
+          <img src="~assets/img/placeholder/api-tokens.png" class="!w-[22rem] flex-none">
 
-          <div class="text-2xl text-nc-content-gray font-bold">{{ $t('placeholder.noTokenCreated') }}</div>
+          <div class="text-2xl text-nc-content-gray font-bold">
+            {{ $t('placeholder.noTokenCreated') }}
+          </div>
           <div class="text-sm text-nc-content-gray-subtle">
             {{ $t('placeholder.noTokenCreatedLabel') }}
           </div>
@@ -434,7 +462,7 @@ const handleCancel = () => {
             <div
               class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle mb-4"
             >
-              <GeneralIcon icon="key" class="nc-view-icon"></GeneralIcon>
+              <GeneralIcon icon="key" class="nc-view-icon" />
               <div
                 class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
                 :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"

@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import Draggable from 'vuedraggable'
-import { type FilterType, UITypes, parseProp } from 'nocodb-sdk'
-import { type GroupEmits, type GroupProps } from './types'
+import type { FilterType } from 'nocodb-sdk'
+import type { GroupEmits, GroupProps } from './types'
 import { SmartsheetToolbarFilterGroupRow } from '#components'
+import { parseProp, UITypes } from 'nocodb-sdk'
+import Draggable from 'vuedraggable'
 
 const props = defineProps<GroupProps>()
 const emits = defineEmits<GroupEmits>()
 const vModel = useVModel(props, 'modelValue', emits)
 
 const { $e } = useNuxtApp()
+
+const { appInfo } = useGlobal()
 
 const wrapperDomRef = ref<HTMLElement>()
 const addFiltersRowDomRef = ref<HTMLElement>()
@@ -17,14 +20,14 @@ const filterPrevComparisonOp = ref<Record<string, string>>({})
 // #region utils & computed
 const slots = useSlots()
 
-const slotHasChildren = (name?: string) => {
+function slotHasChildren(name?: string) {
   return (slots[name ?? 'default']?.()?.length ?? 0) > 0
 }
 
 const nested = computed(() => props.nestedLevel > 0)
-const visibleFilters = computed(() => vModel.value.filter((filter) => filter.status !== 'delete'))
+const visibleFilters = computed(() => vModel.value.filter(filter => filter.status !== 'delete'))
 
-const scrollToBottom = () => {
+function scrollToBottom() {
   const wrapperDomRefEl = wrapperDomRef.value?.$el as HTMLDivElement
 
   wrapperDomRefEl?.scrollTo({
@@ -33,12 +36,12 @@ const scrollToBottom = () => {
   })
 }
 
-const scrollDownIfNeeded = () => {
+function scrollDownIfNeeded() {
   if (nested.value || props.isColourFilter) {
     nextTick(() => {
       if (
-        !addFiltersRowDomRef?.value ||
-        (props.isColourFilter && addFiltersRowDomRef?.value?.getBoundingClientRect()?.top < 200)
+        !addFiltersRowDomRef?.value
+        || (props.isColourFilter && addFiltersRowDomRef?.value?.getBoundingClientRect()?.top < 200)
       ) {
         return
       }
@@ -52,40 +55,43 @@ const scrollDownIfNeeded = () => {
   }
 }
 
-const getColumn = (filter: FilterType) => {
+function getColumn(filter: FilterType) {
   // extract looked up column if available
   return props.columns?.find((col: ColumnTypeForFilter) => col.id === filter.fk_column_id)
 }
 
-const handleFilterChange = async (filter) => {
+async function handleFilterChange(filter) {
   const col = getColumn(filter)
   if (!col) return
   if (
-    col.uidt === UITypes.SingleSelect &&
-    ['anyof', 'nanyof'].includes(filterPrevComparisonOp.value[filter.id!]) &&
-    ['eq', 'neq'].includes(filter.comparison_op!)
+    col.uidt === UITypes.SingleSelect
+    && ['anyof', 'nanyof'].includes(filterPrevComparisonOp.value[filter.id!])
+    && ['eq', 'neq'].includes(filter.comparison_op!)
   ) {
     // anyof and nanyof can allow multiple selections,
     // while `eq` and `neq` only allow one selection
     filter.value = null
-  } else if (['blank', 'notblank', 'empty', 'notempty', 'null', 'notnull'].includes(filter.comparison_op!)) {
+  }
+  else if (['blank', 'notblank', 'empty', 'notempty', 'null', 'notnull'].includes(filter.comparison_op!)) {
     // since `blank`, `empty`, `null` doesn't require value,
     // hence remove the previous value
     filter.value = null
     filter.comparison_sub_op = null
-  } else if (isDateType((col.filterUidt ?? col.uidt) as UITypes)) {
+  }
+  else if (isDateType((col.filterUidt ?? col.uidt) as UITypes)) {
     // for date / datetime,
     // the input type could be decimal or datepicker / datetime picker
     // hence remove the previous value
     filter.value = null
     if (
       !comparisonSubOpList(filter.comparison_op!, col?.meta?.date_format)
-        .map((op) => op.value)
+        .map(op => op.value)
         .includes(filter.comparison_sub_op!)
     ) {
       if (filter.comparison_op === 'isWithin') {
         filter.comparison_sub_op = 'pastNumberOfDays'
-      } else {
+      }
+      else {
         filter.comparison_sub_op = 'exactDate'
       }
     }
@@ -112,7 +118,7 @@ const handleFilterChange = async (filter) => {
 // #endregion
 
 // #region event handling
-const onFilterRowChange = (event: FilterRowChangeEvent, index: number) => {
+function onFilterRowChange(event: FilterRowChangeEvent, index: number) {
   handleFilterChange(event.filter, index)
   emits('rowChange', event)
   emits('change', {
@@ -123,9 +129,9 @@ const onFilterRowChange = (event: FilterRowChangeEvent, index: number) => {
     type: 'row_changed',
   })
 }
-const onLockedViewFooterOpen = () => {}
+function onLockedViewFooterOpen() {}
 
-const innerAdd = async (isGroup: boolean) => {
+async function innerAdd(isGroup: boolean) {
   const prevValue = [...vModel.value]
 
   const tmp_id = generateUniqueRandomUUID(vModel.value || [], ['id', 'tmp_id'])
@@ -142,7 +148,8 @@ const innerAdd = async (isGroup: boolean) => {
       fk_parent_id: props.fkParentId,
       prevValue,
     })
-  } else if (!isGroup && props.handler?.addFilter) {
+  }
+  else if (!isGroup && props.handler?.addFilter) {
     await props.handler.addFilter({
       tmp_id,
       type: 'add',
@@ -154,7 +161,8 @@ const innerAdd = async (isGroup: boolean) => {
       fk_parent_id: props.fkParentId,
       prevValue,
     })
-  } else {
+  }
+  else {
     const newFilter = isGroup
       ? {
           tmp_id,
@@ -180,7 +188,7 @@ const innerAdd = async (isGroup: boolean) => {
     if (!newFilter.is_group) {
       const evalColumn = getColumn(newFilter)
       const evalUidt = (evalColumn?.filterUidt ?? evalColumn?.uidt) as UITypes
-      newFilter.comparison_op = comparisonOpList(evalUidt, parseProp(evalColumn?.meta)?.date_format).filter((compOp) =>
+      newFilter.comparison_op = comparisonOpList(evalUidt, parseProp(evalColumn?.meta)?.date_format).filter(compOp =>
         isComparisonOpAllowed(newFilter, compOp, evalUidt, props.showNullAndEmptyInFilter),
       )[0]?.value
     }
@@ -203,25 +211,23 @@ const innerAdd = async (isGroup: boolean) => {
     // if nested, scroll to bottom
     scrollToBottom()
     scrollDownIfNeeded()
-  } else {
+  }
+  else {
     scrollDownIfNeeded()
   }
 }
-const addFilter = async () => {
+async function addFilter() {
   return innerAdd(false)
 }
 
-const addFilterGroup = async () => {
+async function addFilterGroup() {
   return innerAdd(true)
 }
 
-const onFilterDelete = async (
-  event: {
-    filter: ColumnFilterType
-    index: number
-  },
-  index: number,
-) => {
+async function onFilterDelete(event: {
+  filter: ColumnFilterType
+  index: number
+}, index: number) {
   const prevValue = [...vModel.value]
 
   if (props.handler?.deleteFilter) {
@@ -235,7 +241,8 @@ const onFilterDelete = async (
       fk_parent_id: props.fkParentId,
       prevValue,
     })
-  } else {
+  }
+  else {
     const deletedFilter = vModel.value.splice(index, 1)
 
     emits('change', {
@@ -251,13 +258,10 @@ const onFilterDelete = async (
   }
 }
 
-const onFilterCopy = async (
-  event: {
-    filter: ColumnFilterType
-    index: number
-  },
-  index: number,
-) => {
+async function onFilterCopy(event: {
+  filter: ColumnFilterType
+  index: number
+}, index: number) {
   const prevValue = [...vModel.value]
 
   if (props.handler?.copyFilter) {
@@ -271,7 +275,8 @@ const onFilterCopy = async (
       fk_parent_id: props.fkParentId,
       prevValue,
     })
-  } else {
+  }
+  else {
     const copiedFilter = vModel.value.splice(index, 1)
 
     emits('change', {
@@ -294,7 +299,7 @@ function onMoveCallback(event: any) {
   }
 }
 
-const onMove = async (event: { moved: { newIndex: number; oldIndex: number; element: ColumnFilterType } }) => {
+async function onMove(event: { moved: { newIndex: number, oldIndex: number, element: ColumnFilterType } }) {
   /**
    * If event has moved property that means reorder is on same level
    */
@@ -312,24 +317,26 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
     // set new order value based on the new order of the items
     if (visibleFilters.value.length - 1 === newIndex) {
       // If moving to the end, set nextOrder greater than the maximum order in the list
-      nextOrder = Math.max(...visibleFilters.value.map((item) => item?.order ?? 0)) + 1
-    } else if (newIndex === 0) {
+      nextOrder = Math.max(...visibleFilters.value.map(item => item?.order ?? 0)) + 1
+    }
+    else if (newIndex === 0) {
       // If moving to the beginning, set nextOrder smaller than the minimum order in the list
-      nextOrder = Math.min(...visibleFilters.value.map((item) => item?.order ?? 0)) / 2
-    } else {
-      nextOrder =
-        (parseFloat(String(visibleFilters.value[newIndex - 1]?.order ?? 0)) +
-          parseFloat(String(visibleFilters.value[newIndex + 1]?.order ?? 0))) /
-        2
+      nextOrder = Math.min(...visibleFilters.value.map(item => item?.order ?? 0)) / 2
+    }
+    else {
+      nextOrder
+        = (Number.parseFloat(String(visibleFilters.value[newIndex - 1]?.order ?? 0))
+          + Number.parseFloat(String(visibleFilters.value[newIndex + 1]?.order ?? 0)))
+        / 2
     }
 
     const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
 
     element.order = _nextOrder
 
-    const elementIndex =
-      vModel.value.findIndex((item) => item?.id === element?.id) ||
-      vModel.value.findIndex((item) => item?.tmp_id === element?.tmp_id)
+    const elementIndex
+      = vModel.value.findIndex(item => item?.id === element?.id)
+        || vModel.value.findIndex(item => item?.tmp_id === element?.tmp_id)
 
     if (props.handler?.rowChange) {
       props.handler.rowChange({
@@ -357,12 +364,12 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
     }"
   >
     <div v-if="nested" class="flex min-w-full w-min items-center gap-1 mb-2">
-      <slot name="nestedRow"></slot>
+      <slot name="nestedRow" />
       <template v-if="!slotHasChildren('nestedRow')">
         <div :class="[`nc-filter-logical-op-level-${nestedLevel}`]">
-          <slot name="nestedRowStart"></slot>
+          <slot name="nestedRowStart" />
         </div>
-        <div class="flex-grow"></div>
+        <div class="flex-grow" />
         <NcDropdown
           :trigger="['hover']"
           overlay-class-name="nc-dropdown-filter-group-sub-menu"
@@ -418,12 +425,12 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
           </template>
         </NcDropdown>
         <div>
-          <slot name="nestedRowEnd"></slot>
+          <slot name="nestedRowEnd" />
         </div>
       </template>
     </div>
     <template v-else>
-      <slot name="root-header"></slot>
+      <slot name="root-header" />
     </template>
     <!-- #region filter group rows -->
     <Draggable
@@ -447,7 +454,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
       <template #item="{ element: filter, index: i }">
         <div v-if="filter.status !== 'delete'" :key="i" class="nc-filter-group-row min-w-full w-min max-w-full">
           <template v-if="filter.is_group">
-            <slot name="filterGroupRow"> </slot>
+            <slot name="filterGroupRow" />
             <template v-if="!slotHasChildren('filterGroupRow')">
               <SmartsheetToolbarFilterGroupRow
                 :model-value="filter"
@@ -480,7 +487,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
             </template>
           </template>
           <template v-else>
-            <slot name="filterRow"> </slot>
+            <slot name="filterRow" />
             <template v-if="!slotHasChildren('filterRow')">
               <SmartsheetToolbarFilterRow
                 :model-value="filter"
@@ -510,7 +517,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
     </Draggable>
     <!-- #endregion filter group rows -->
     <template v-if="!nested">
-      <template v-if="isEeUI && !isPublic">
+      <template v-if="appInfo.ee && !isPublic">
         <div
           v-if="!disabled && filtersCount < filterPerViewLimit"
           ref="addFiltersRowDomRef"
@@ -552,7 +559,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
               {{ isForm && !webHook ? $t('activity.addConditionGroup') : $t('activity.addFilterGroup') }}
             </div>
           </NcButton>
-          <slot name="root-add-filter-row"></slot>
+          <slot name="root-add-filter-row" />
         </div>
       </template>
 
@@ -597,7 +604,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
               {{ isForm && !webHook ? $t('activity.addConditionGroup') : $t('activity.addFilterGroup') }}
             </div>
           </NcButton>
-          <slot name="root-add-filter-row"></slot>
+          <slot name="root-add-filter-row" />
         </div>
       </template>
     </template>

@@ -12,7 +12,7 @@ import type { TableType } from '~/lib/Api';
 export function getMetaWithCompositeKey(
   metas: Record<string, TableType>,
   baseId: string | undefined,
-  tableId: string,
+  tableId: string
 ): TableType | undefined {
   if (baseId) {
     return metas[`${baseId}:${tableId}`] || metas[tableId];

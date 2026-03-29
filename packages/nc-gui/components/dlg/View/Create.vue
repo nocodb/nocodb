@@ -1,24 +1,20 @@
 <script lang="ts" setup>
-import type { ComponentPublicInstance } from '@vue/runtime-core'
 import type { Form as AntForm, SelectProps } from 'ant-design-vue'
+import type { CalendarType, ColumnType, FormType, GalleryType, GridType, KanbanType, LookupType, MapType, SerializedAiViewType, TableType, TimelineType } from 'nocodb-sdk'
+import type { ComponentPublicInstance } from 'vue'
+import { AiWizardTabsType } from '#imports'
 import {
-  type CalendarType,
-  type ColumnType,
-  type FormType,
+
   FormulaDataTypes,
-  type GalleryType,
-  type GridType,
-  type KanbanType,
-  type LookupType,
-  type MapType,
+
   PlanFeatureTypes,
-  type SerializedAiViewType,
-  type TableType,
+
+  PlanTitles,
   stringToViewTypeMap,
+  UITypes,
+  ViewTypes,
   viewTypeToStringMap,
 } from 'nocodb-sdk'
-import { PlanTitles, UITypes, ViewTypes } from 'nocodb-sdk'
-import { AiWizardTabsType } from '#imports'
 
 const props = withDefaults(defineProps<Props>(), {
   selectedViewId: undefined,
@@ -53,7 +49,7 @@ interface Props {
 interface Emits {
   (event: 'update:modelValue', value: boolean): void
 
-  (event: 'created', value: GridType | KanbanType | GalleryType | FormType | MapType | CalendarType): void
+  (event: 'created', value: GridType | KanbanType | GalleryType | FormType | MapType | CalendarType | TimelineType): void
 }
 
 interface Form {
@@ -70,6 +66,13 @@ interface Form {
     fk_from_column_id: string
     fk_to_column_id: string | null // for ee only
   }>
+
+  // for timeline view only
+  timeline_range: Array<{
+    fk_from_column_id: string
+    fk_to_column_id: string | null
+  }>
+
   fk_cover_image_col_id: string | null | undefined
 }
 
@@ -89,7 +92,7 @@ const workspaceStore = useWorkspace()
 const baseStore = useBase()
 const { baseId: activeBaseId } = storeToRefs(baseStore)
 
-const { blockCalendarRange, getPlanTitle } = useEeConfig()
+const { blockCalendarRange, getPlanTitle, showEEFeatures } = useEeConfig()
 
 const viewStore = useViewsStore()
 
@@ -128,6 +131,7 @@ const errorMessages = {
   [ViewTypes.KANBAN]: t('msg.warning.kanbanNoFields'),
   [ViewTypes.MAP]: t('msg.warning.mapNoFields'),
   [ViewTypes.CALENDAR]: t('msg.warning.calendarNoFields'),
+  [ViewTypes.TIMELINE]: t('msg.warning.timelineNoFields'),
 }
 
 const form = reactive<Form>({
@@ -137,6 +141,7 @@ const form = reactive<Form>({
   fk_grp_col_id: null,
   fk_geo_data_col_id: null,
   calendar_range: props.calendarRange || [],
+  timeline_range: [],
   fk_cover_image_col_id: undefined,
   description: props.description || '',
 })
@@ -150,7 +155,7 @@ const viewNameRules = [
   {
     validator: (_: unknown, v: string) =>
       new Promise((resolve, reject) => {
-        views.value.every((v1) => v1.title?.trim() !== v?.trim())
+        views.value.every(v1 => v1.title?.trim() !== v?.trim())
           ? resolve(true)
           : reject(new Error(`View name should be unique`))
       }),
@@ -172,6 +177,7 @@ const typeAlias = computed(
       [ViewTypes.MAP]: 'map',
       [ViewTypes.CALENDAR]: 'calendar',
       [ViewTypes.LIST]: 'list',
+      [ViewTypes.TIMELINE]: 'timeline',
       // Todo: add ai view docs route
       AI: '',
     }[props.type]),
@@ -225,14 +231,14 @@ const activeAiTab = computed({
 
 const predictedViews = ref<AiSuggestedViewType[]>([])
 
-const activeTabPredictedViews = computed(() => predictedViews.value.filter((t) => t.tab === activeAiTab.value))
+const activeTabPredictedViews = computed(() => predictedViews.value.filter(t => t.tab === activeAiTab.value))
 
 const predictHistory = ref<AiSuggestedViewType[]>([])
 
-const activeTabPredictHistory = computed(() => predictHistory.value.filter((t) => t.tab === activeAiTab.value))
+const activeTabPredictHistory = computed(() => predictHistory.value.filter(t => t.tab === activeAiTab.value))
 
 const activeTabSelectedViews = computed(() => {
-  return predictedViews.value.filter((v) => !!v.selected && v.tab === activeAiTab.value)
+  return predictedViews.value.filter(v => !!v.selected && v.tab === activeAiTab.value)
 })
 
 onBeforeMount(init)
@@ -244,7 +250,7 @@ watch(
   },
 )
 
-const onAiEnter = async () => {
+async function onAiEnter() {
   calledFunction.value = 'createViews'
 
   $e('a:view:ai:create')
@@ -254,9 +260,11 @@ const onAiEnter = async () => {
       const data = await createViews(activeTabSelectedViews.value, baseId.value, props.sourceId)
 
       emits('created', ncIsArray(data) && data.length ? data[0] : undefined)
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
+    }
+    finally {
       await refreshCommandPalette()
     }
 
@@ -273,7 +281,8 @@ async function onSubmit() {
 
   try {
     isValid = await formValidator.value?.validateFields()
-  } catch (e) {
+  }
+  catch (e) {
     console.error(e)
   }
 
@@ -292,9 +301,11 @@ async function onSubmit() {
       if (data) {
         emits('created', data)
       }
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.error(e)
-    } finally {
+    }
+    finally {
       setTimeout(() => {
         isViewCreating.value = false
       }, 500)
@@ -315,15 +326,16 @@ const addCalendarRange = async () => {
 
 const enableDescription = ref(false)
 
-const removeDescription = () => {
+function removeDescription() {
   form.description = ''
   enableDescription.value = false
 }
 
-const toggleDescription = () => {
+function toggleDescription() {
   if (enableDescription.value) {
     enableDescription.value = false
-  } else {
+  }
+  else {
     enableDescription.value = true
     setTimeout(() => {
       descriptionInputEl.value?.focus()
@@ -339,8 +351,8 @@ onMounted(async () => {
   }
 
   if (
-    [ViewTypes.GALLERY, ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR].includes(props.type) ||
-    aiIntegrationAvailable.value
+    [ViewTypes.GALLERY, ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR, ViewTypes.TIMELINE].includes(props.type)
+    || aiIntegrationAvailable.value
   ) {
     isMetaLoading.value = true
     try {
@@ -348,7 +360,9 @@ onMounted(async () => {
 
       if (props.type === ViewTypes.MAP) {
         viewSelectFieldOptions.value = meta
-          .value!.columns!.filter((el) => el.uidt === UITypes.GeoData)
+          .value!
+          .columns!
+          .filter(el => el.uidt === UITypes.GeoData)
           .map((field) => {
             return {
               value: field.id,
@@ -361,10 +375,12 @@ onMounted(async () => {
         if (geoDataFieldColumnId.value) {
           // take from the one from copy view
           form.fk_geo_data_col_id = geoDataFieldColumnId.value
-        } else if (viewSelectFieldOptions.value?.length) {
+        }
+        else if (viewSelectFieldOptions.value?.length) {
           // if there is geo data column take the first option
           form.fk_geo_data_col_id = viewSelectFieldOptions.value?.[0]?.value as string
-        } else {
+        }
+        else {
           // if there is no geo data column, disable the create button
           isNecessaryColumnsPresent.value = false
         }
@@ -375,7 +391,7 @@ onMounted(async () => {
         viewSelectFieldOptions.value = [
           { value: null, label: t('labels.noImage') },
           ...(meta.value.columns || [])
-            .filter((el) => el.uidt === UITypes.Attachment)
+            .filter(el => el.uidt === UITypes.Attachment)
             .map((field) => {
               return {
                 value: field.id,
@@ -385,13 +401,13 @@ onMounted(async () => {
               }
             }),
         ]
-        const lookupColumns = (meta.value.columns || [])?.filter((c) => c.uidt === UITypes.Lookup)
+        const lookupColumns = (meta.value.columns || [])?.filter(c => c.uidt === UITypes.Lookup)
 
         const attLookupColumnIds: Set<string> = new Set()
 
         const loadLookupMeta = async (originalCol: ColumnType, column: ColumnType, metaId?: string): Promise<void> => {
-          const relationColumn =
-            metaId || meta.value?.id
+          const relationColumn
+            = metaId || meta.value?.id
               ? getMetaByKey(baseId.value, metaId || meta.value?.id)?.columns?.find(
                   (c: ColumnType) => c.id === (column?.colOptions as LookupType)?.fk_relation_column_id,
                 )
@@ -406,16 +422,17 @@ onMounted(async () => {
 
             if (lookupColumn && isAttachment(lookupColumn)) {
               attLookupColumnIds.add(originalCol.id)
-            } else if (lookupColumn && lookupColumn?.uidt === UITypes.Lookup) {
+            }
+            else if (lookupColumn && lookupColumn?.uidt === UITypes.Lookup) {
               await loadLookupMeta(originalCol, lookupColumn, relationColumn.colOptions.fk_related_model_id)
             }
           }
         }
 
-        await Promise.allSettled(lookupColumns.map((col) => loadLookupMeta(col, col)))
+        await Promise.allSettled(lookupColumns.map(col => loadLookupMeta(col, col)))
 
         const lookupAttColumns = lookupColumns
-          .filter((column) => attLookupColumnIds.has(column?.id))
+          .filter(column => attLookupColumnIds.has(column?.id))
           .map((c) => {
             return {
               value: c.id,
@@ -429,9 +446,11 @@ onMounted(async () => {
 
         if (coverImageColumnId.value) {
           form.fk_cover_image_col_id = coverImageColumnId.value
-        } else if (viewSelectFieldOptions.value.length > 1 && !form.copy_from_id) {
+        }
+        else if (viewSelectFieldOptions.value.length > 1 && !form.copy_from_id) {
           form.fk_cover_image_col_id = viewSelectFieldOptions.value[1].value as string
-        } else {
+        }
+        else {
           form.fk_cover_image_col_id = undefined
         }
       }
@@ -439,7 +458,8 @@ onMounted(async () => {
       // preset the grouping field column
       if (props.type === ViewTypes.KANBAN) {
         viewSelectFieldOptions.value = meta.value
-          .columns!.filter((el) => el.uidt === UITypes.SingleSelect)
+          .columns!
+          .filter(el => el.uidt === UITypes.SingleSelect)
           .map((field) => {
             return {
               value: field.id,
@@ -452,29 +472,35 @@ onMounted(async () => {
         if (groupingFieldColumnId.value) {
           // take from the one from copy view
           form.fk_grp_col_id = groupingFieldColumnId.value
-        } else if (viewSelectFieldOptions.value?.length) {
+        }
+        else if (viewSelectFieldOptions.value?.length) {
           // take the first option
           form.fk_grp_col_id = viewSelectFieldOptions.value[0].value as string
-        } else {
+        }
+        else {
           // if there is no grouping field column, disable the create button
           isNecessaryColumnsPresent.value = false
         }
 
         if (coverImageColumnId.value) {
           form.fk_cover_image_col_id = coverImageColumnId.value
-        } else if (viewSelectFieldOptions.value.length > 1 && !form.copy_from_id) {
+        }
+        else if (viewSelectFieldOptions.value.length > 1 && !form.copy_from_id) {
           form.fk_cover_image_col_id = viewSelectFieldOptions.value[1].value as string
-        } else {
+        }
+        else {
           form.fk_cover_image_col_id = undefined
         }
       }
 
       if (props.type === ViewTypes.CALENDAR) {
         viewSelectFieldOptions.value = meta
-          .value!.columns!.filter(
-            (el) =>
-              [UITypes.DateTime, UITypes.Date, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(el.uidt) ||
-              (el.uidt === UITypes.Formula && (el.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE),
+          .value!
+          .columns!
+          .filter(
+            el =>
+              [UITypes.DateTime, UITypes.Date, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(el.uidt)
+              || (el.uidt === UITypes.Formula && (el.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE),
           )
           .map((field) => {
             return {
@@ -506,28 +532,77 @@ onMounted(async () => {
               },
             ]
           }
-        } else {
+        }
+        else {
           // if there is no grouping field column, disable the create button
           isNecessaryColumnsPresent.value = false
         }
       }
-    } catch (e) {
+
+      if (props.type === ViewTypes.TIMELINE) {
+        viewSelectFieldOptions.value = meta
+          .value!
+          .columns!
+          .filter(
+            el =>
+              [UITypes.DateTime, UITypes.Date, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(el.uidt)
+              || (el.uidt === UITypes.Formula && (el.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE),
+          )
+          .map((field) => {
+            return {
+              value: field.id,
+              label: field.title,
+              uidt: field.uidt,
+              col: field,
+            }
+          })
+          .sort((a, b) => {
+            const priority = {
+              [UITypes.DateTime]: 1,
+              [UITypes.Date]: 2,
+              [UITypes.Formula]: 3,
+              [UITypes.CreatedTime]: 4,
+              [UITypes.LastModifiedTime]: 5,
+            }
+
+            return (priority[a.uidt] || 6) - (priority[b.uidt] || 6)
+          })
+
+        if (viewSelectFieldOptions.value?.length) {
+          // take the first option
+          if (form.timeline_range.length === 0) {
+            form.timeline_range = [
+              {
+                fk_from_column_id: viewSelectFieldOptions.value[0].value as string,
+                fk_to_column_id: null,
+              },
+            ]
+          }
+        }
+        else {
+          // if there is no date field column, disable the create button
+          isNecessaryColumnsPresent.value = false
+        }
+      }
+    }
+    catch (e) {
       console.error(e)
-    } finally {
+    }
+    finally {
       isMetaLoading.value = false
     }
   }
 })
 
-const isCalendarReadonly = (calendarRange?: Array<{ fk_from_column_id: string; fk_to_column_id: string | null }>) => {
+function isCalendarReadonly(calendarRange?: Array<{ fk_from_column_id: string, fk_to_column_id: string | null }>) {
   if (!calendarRange) return false
   return calendarRange.some((range) => {
-    const column = viewSelectFieldOptions.value?.find((c) => c.value === range?.fk_from_column_id)
+    const column = viewSelectFieldOptions.value?.find(c => c.value === range?.fk_from_column_id)
     return !column || ![UITypes.DateTime, UITypes.Date].includes(column.uidt)
   })
 }
 
-const onValueChange = async () => {
+async function onValueChange() {
   form.calendar_range = form.calendar_range.map((range, i) => {
     if (i === 0) {
       return {
@@ -539,9 +614,9 @@ const onValueChange = async () => {
   })
 }
 
-const predictViews = async (): Promise<AiSuggestedViewType[]> => {
-  const viewType =
-    !isAIViewCreateMode.value && form.type && viewTypeToStringMap[form.type] ? viewTypeToStringMap[form.type] : undefined
+async function predictViews(): Promise<AiSuggestedViewType[]> {
+  const viewType
+    = !isAIViewCreateMode.value && form.type && viewTypeToStringMap[form.type] ? viewTypeToStringMap[form.type] : undefined
 
   return (
     await _predictViews(
@@ -563,7 +638,7 @@ const predictViews = async (): Promise<AiSuggestedViewType[]> => {
     })
 }
 
-const predictMore = async () => {
+async function predictMore() {
   calledFunction.value = 'predictMore'
 
   const predictions = await predictViews()
@@ -571,35 +646,38 @@ const predictMore = async () => {
   if (predictions.length) {
     predictedViews.value.push(...predictions)
     predictHistory.value.push(...predictions)
-  } else if (!aiError.value) {
+  }
+  else if (!aiError.value) {
     message.info(`No more auto suggestions were found for ${meta.value?.title || 'the current table'}`)
   }
 }
 
-const predictRefresh = async () => {
+async function predictRefresh() {
   calledFunction.value = 'predictRefresh'
 
   const predictions = await predictViews()
 
   if (predictions.length) {
-    predictedViews.value = [...predictedViews.value.filter((t) => t.tab !== activeAiTab.value), ...predictions]
+    predictedViews.value = [...predictedViews.value.filter(t => t.tab !== activeAiTab.value), ...predictions]
     predictHistory.value.push(...predictions)
-  } else if (!aiError.value) {
+  }
+  else if (!aiError.value) {
     message.info(`No auto suggestions were found for ${meta.value?.title || 'the current table'}`)
   }
   aiModeStep.value = AiStep.pick
 }
 
-const predictFromPrompt = async () => {
+async function predictFromPrompt() {
   calledFunction.value = 'predictFromPrompt'
 
   const predictions = await predictViews()
 
   if (predictions.length) {
-    predictedViews.value = [...predictedViews.value.filter((t) => t.tab !== activeAiTab.value), ...predictions]
+    predictedViews.value = [...predictedViews.value.filter(t => t.tab !== activeAiTab.value), ...predictions]
     predictHistory.value.push(...predictions)
     oldPrompt.value = prompt.value
-  } else if (!aiError.value) {
+  }
+  else if (!aiError.value) {
     message.info('No suggestions were found with the given prompt. Try again after modifying the prompt.')
   }
 
@@ -607,12 +685,12 @@ const predictFromPrompt = async () => {
   isPromtAlreadyGenerated.value = true
 }
 
-const onToggleTag = (view: AiSuggestedViewType) => {
+function onToggleTag(view: AiSuggestedViewType) {
   if (
-    isAiSaving.value ||
-    (!view.selected &&
-      (activeTabSelectedViews.value.length >= maxSelectionCount ||
-        ncIsArrayIncludes(activeTabSelectedViews.value, view.title, 'title')))
+    isAiSaving.value
+    || (!view.selected
+      && (activeTabSelectedViews.value.length >= maxSelectionCount
+        || ncIsArrayIncludes(activeTabSelectedViews.value, view.title, 'title')))
   ) {
     return
   }
@@ -625,7 +703,7 @@ const onToggleTag = (view: AiSuggestedViewType) => {
   })
 }
 
-const onSelectAll = () => {
+function onSelectAll() {
   if (activeTabSelectedViews.value.length >= maxSelectionCount) return
 
   let count = activeTabSelectedViews.value.length
@@ -640,7 +718,7 @@ const onSelectAll = () => {
   })
 }
 
-const toggleAiMode = async (from = false) => {
+async function toggleAiMode(from = false) {
   if (aiMode.value) return
 
   if (from) {
@@ -663,7 +741,7 @@ const toggleAiMode = async (from = false) => {
   }
 }
 
-const disableAiMode = () => {
+function disableAiMode() {
   if (isAIViewCreateMode.value) return
 
   $e('c:view:ai:toggle:false')
@@ -683,26 +761,28 @@ const disableAiMode = () => {
   })
 }
 
-const fullAuto = async (e) => {
+async function fullAuto(e) {
   // Disable full auto mode in mobile mode to avoid unexpected behavior
   if (isMobileMode.value) return
 
   const target = e.target as HTMLElement
   if (
-    !aiIntegrationAvailable.value ||
-    !isNecessaryColumnsPresent.value ||
-    aiLoading.value ||
-    aiError.value ||
-    target.closest('button, input, .nc-button, textarea')
+    !aiIntegrationAvailable.value
+    || !isNecessaryColumnsPresent.value
+    || aiLoading.value
+    || aiError.value
+    || target.closest('button, input, .nc-button, textarea')
   ) {
     return
   }
 
   if (!aiModeStep.value) {
     await toggleAiMode(true)
-  } else if (aiModeStep.value === AiStep.pick && activeTabSelectedViews.value.length === 0) {
+  }
+  else if (aiModeStep.value === AiStep.pick && activeTabSelectedViews.value.length === 0) {
     await onSelectAll()
-  } else if (aiModeStep.value === AiStep.pick && activeTabSelectedViews.value.length > 0) {
+  }
+  else if (aiModeStep.value === AiStep.pick && activeTabSelectedViews.value.length > 0) {
     await onAiEnter()
   }
 }
@@ -711,7 +791,7 @@ const isPredictFromPromptLoading = computed(() => {
   return aiLoading.value && calledFunction.value === 'predictFromPrompt'
 })
 
-const handleNavigateToIntegrations = () => {
+function handleNavigateToIntegrations() {
   vModel.value = false
 
   workspaceStore.navigateToIntegrations(undefined, undefined, {
@@ -719,7 +799,7 @@ const handleNavigateToIntegrations = () => {
   })
 }
 
-const handleRefreshOnError = () => {
+function handleRefreshOnError() {
   switch (calledFunction.value) {
     case 'predictMore':
       return predictMore()
@@ -744,16 +824,18 @@ watch(
 function init() {
   if (props.type === 'AI') {
     toggleAiMode()
-  } else {
+  }
+  else {
     form.title = t(`objects.viewType.${typeAlias.value}`)
 
     if (selectedViewId.value) {
       form.copy_from_id = selectedViewId?.value
-      const selectedViewName = views.value.find((v) => v.id === selectedViewId.value)?.title || form.title
+      const selectedViewName = views.value.find(v => v.id === selectedViewId.value)?.title || form.title
 
       form.title = generateUniqueTitle(`${selectedViewName} copy`, views.value, 'title', '_', true)
-    } else {
-      const repeatCount = views.value.filter((v) => v.title.startsWith(form.title)).length
+    }
+    else {
+      const repeatCount = views.value.filter(v => v.title.startsWith(form.title)).length
 
       if (repeatCount) {
         form.title = `${form.title}-${repeatCount}`
@@ -771,7 +853,7 @@ function init() {
   }
 }
 
-const getPluralName = (name: string) => {
+function getPluralName(name: string) {
   if (aiMode.value) {
     return `${name}Plural`
   }
@@ -849,15 +931,31 @@ watch(activeBaseId, () => {
               {{ $t(`labels.${getPluralName('createListView')}`) }}
             </template>
           </template>
+          <template v-else-if="form.type === ViewTypes.MAP">
+            <template v-if="form.copy_from_id">
+              {{ $t('labels.duplicateMapView') }}
+            </template>
+            <template v-else>
+              {{ $t(`labels.${getPluralName('createMapView')}`) }}
+            </template>
+          </template>
+          <template v-else-if="form.type === ViewTypes.TIMELINE">
+            <template v-if="form.copy_from_id">
+              {{ $t('labels.duplicateTimelineView') }}
+            </template>
+            <template v-else>
+              {{ $t(`labels.${getPluralName('createTimelineView')}`) }}
+            </template>
+          </template>
           <template v-else-if="form.type === 'AI'">
             {{ $t('labels.createViewUsingAi') }}
           </template>
           <template v-else>
             <template v-if="form.copy_from_id">
-              {{ $t('labels.duplicateMapView') }}
+              {{ $t('labels.duplicateView') }}
             </template>
             <template v-else>
-              {{ $t('labels.duplicateView') }}
+              {{ $t('labels.createView') }}
             </template>
           </template>
         </div>
@@ -915,7 +1013,9 @@ watch(activeBaseId, () => {
                       <template #title>
                         {{ option.label }}
                       </template>
-                      <template #default>{{ option.label }}</template>
+                      <template #default>
+                        {{ option.label }}
+                      </template>
                     </NcTooltip>
                   </div>
                   <GeneralIcon
@@ -953,7 +1053,9 @@ watch(activeBaseId, () => {
                       <template #title>
                         {{ option.label }}
                       </template>
-                      <template #default>{{ option.label }}</template>
+                      <template #default>
+                        {{ option.label }}
+                      </template>
                     </NcTooltip>
                   </div>
                   <GeneralIcon
@@ -1006,15 +1108,17 @@ watch(activeBaseId, () => {
                   @click.stop
                   @change="onValueChange"
                 >
-                  <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
+                  <template #suffixIcon>
+                    <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+                  </template>
                   <a-select-option
                     v-for="(option, id) in [...viewSelectFieldOptions!].filter((f) => {
-                  // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
-                  // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
-                  if (index === 0) return true
-                  const firstRange = viewSelectFieldOptions!.find((f) => f.value === form.calendar_range[0].fk_from_column_id)
-                  return firstRange?.uidt === f.uidt
-                })"
+                      // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
+                      // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
+                      if (index === 0) return true
+                      const firstRange = viewSelectFieldOptions!.find((f) => f.value === form.calendar_range[0].fk_from_column_id)
+                      return firstRange?.uidt === f.uidt
+                    })"
                     :key="id"
                     :value="option.value"
                   >
@@ -1026,7 +1130,9 @@ watch(activeBaseId, () => {
                           <template #title>
                             {{ option.label }}
                           </template>
-                          <template #default>{{ option.label }}</template>
+                          <template #default>
+                            {{ option.label }}
+                          </template>
                         </NcTooltip>
                       </div>
                       <GeneralIcon
@@ -1039,7 +1145,7 @@ watch(activeBaseId, () => {
                   </a-select-option>
                 </a-select>
               </div>
-              <PaymentUpgradeBadgeProvider v-if="isEeUI" :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
+              <PaymentUpgradeBadgeProvider v-if="isEeUI && showEEFeatures" :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
                 <template #default="{ click }">
                   <div class="w-full space-y-2">
                     <NcButton
@@ -1091,7 +1197,9 @@ watch(activeBaseId, () => {
                           dropdown-class-name="!rounded-lg"
                           @click.stop
                         >
-                          <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
+                          <template #suffixIcon>
+                            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+                          </template>
 
                           <a-select-option
                             v-for="(option, id) in [...viewSelectFieldOptions].filter((f) => {
@@ -1124,7 +1232,9 @@ watch(activeBaseId, () => {
                                   <template #title>
                                     {{ option.label }}
                                   </template>
-                                  <template #default>{{ option.label }}</template>
+                                  <template #default>
+                                    {{ option.label }}
+                                  </template>
                                 </NcTooltip>
                               </div>
                               <GeneralIcon
@@ -1167,9 +1277,167 @@ watch(activeBaseId, () => {
               <div class="text-nc-content-gray-muted flex gap-4">
                 <GeneralIcon class="min-w-6 h-6 !text-nc-content-orange-medium" icon="info" />
                 <div class="flex flex-col gap-1">
-                  <h2 class="font-semibold text-sm mb-0 text-nc-content-gray">Calendar is readonly</h2>
+                  <h2 class="font-semibold text-sm mb-0 text-nc-content-gray">
+                    Calendar is readonly
+                  </h2>
                   <span class="text-nc-content-gray-muted font-default text-sm"> {{ $t('msg.info.calendarReadOnly') }}</span>
                 </div>
+              </div>
+            </div>
+          </template>
+          <template v-if="form.type === ViewTypes.TIMELINE && !form.copy_from_id">
+            <div
+              v-for="(range, index) in form.timeline_range"
+              :key="`timeline-range-${index}`"
+              :class="{
+                '!gap-2': range.fk_to_column_id === null,
+              }"
+              class="flex flex-col w-full gap-6"
+            >
+              <div class="w-full space-y-2">
+                <div class="text-nc-content-gray">
+                  {{ $t('labels.organiseBy') }}
+                </div>
+
+                <a-select
+                  v-model:value="range.fk_from_column_id"
+                  class="nc-select-shadow w-full nc-from-select !rounded-lg"
+                  dropdown-class-name="!rounded-lg"
+                  show-search
+                  :placeholder="$t('placeholder.notSelected')"
+                  data-testid="nc-timeline-range-from-field-select"
+                  @click.stop
+                  @change="onValueChange"
+                >
+                  <template #suffixIcon>
+                    <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+                  </template>
+                  <a-select-option
+                    v-for="(option, id) in [...viewSelectFieldOptions!].filter((f) => {
+                      // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
+                      // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
+                      if (index === 0) return true
+                      const firstRange = viewSelectFieldOptions!.find((f) => f.value === form.timeline_range[0].fk_from_column_id)
+                      return firstRange?.uidt === f.uidt
+                    })"
+                    :key="id"
+                    :value="option.value"
+                  >
+                    <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                      <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
+                        <SmartsheetHeaderIcon v-if="option.col" :column="option.col" />
+
+                        <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                          <template #title>
+                            {{ option.label }}
+                          </template>
+                          <template #default>
+                            {{ option.label }}
+                          </template>
+                        </NcTooltip>
+                      </div>
+                      <GeneralIcon
+                        v-if="option.value === range.fk_from_column_id"
+                        id="nc-selected-item-icon"
+                        icon="check"
+                        class="flex-none text-primary w-4 h-4"
+                      />
+                    </div>
+                  </a-select-option>
+                </a-select>
+              </div>
+              <div class="w-full space-y-2">
+                <NcButton
+                  v-if="range.fk_to_column_id === null"
+                  size="small"
+                  type="text"
+                  @click="range.fk_to_column_id = undefined"
+                >
+                  <div class="flex items-center gap-1">
+                    <component :is="iconMap.plus" class="h-4 w-4" />
+                    {{ $t('activity.endDate') }}
+                  </div>
+                </NcButton>
+
+                <template v-else>
+                  <div class="flex gap-2 items-center text-nc-content-gray-subtle">
+                    {{ $t('activity.withEndDate') }}
+                  </div>
+
+                  <div class="flex">
+                    <a-select
+                      v-model:value="range.fk_to_column_id"
+                      class="nc-select-shadow w-full flex-1"
+                      allow-clear
+                      show-search
+                      :disabled="isMetaLoading"
+                      :loading="isMetaLoading"
+                      :placeholder="$t('placeholder.notSelected')"
+                      data-testid="nc-timeline-range-to-field-select"
+                      dropdown-class-name="!rounded-lg"
+                      @click.stop
+                    >
+                      <template #suffixIcon>
+                        <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+                      </template>
+
+                      <a-select-option
+                        v-for="(option, id) in [...viewSelectFieldOptions].filter((f) => {
+                          // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
+                          // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
+                          const firstRange = viewSelectFieldOptions.find(
+                            (f) => f.value === form.timeline_range[0].fk_from_column_id,
+                          )
+                          // First ensure the data type matches
+                          const dataTypeMatches = firstRange?.uidt === f.uidt && f.value !== range.fk_from_column_id
+
+                          // If no match in data type, return false
+                          if (!dataTypeMatches) return false
+
+                          // If first range has a timezone configured, ensure this option has the same timezone
+                          const firstRangeColumn = meta?.columns?.find((c) => c.id === form.timeline_range[0].fk_from_column_id)
+                          const optionColumn = meta?.columns?.find((c) => c.id === f.value)
+                          return optionColumn?.meta?.timezone === firstRangeColumn.meta.timezone
+                        })"
+                        :key="id"
+                        :value="option.value"
+                      >
+                        <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                          <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
+                            <SmartsheetHeaderIcon v-if="option.col" :column="option.col" />
+
+                            <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                              <template #title>
+                                {{ option.label }}
+                              </template>
+                              <template #default>
+                                {{ option.label }}
+                              </template>
+                            </NcTooltip>
+                          </div>
+                          <GeneralIcon
+                            v-if="option.value === range.fk_from_column_id"
+                            id="nc-selected-item-icon"
+                            icon="check"
+                            class="flex-none text-primary w-4 h-4"
+                          />
+                        </div>
+                      </a-select-option>
+                    </a-select>
+                  </div>
+                  <NcButton
+                    v-if="index !== 0"
+                    size="small"
+                    type="secondary"
+                    @click="
+                      () => {
+                        form.timeline_range = form.timeline_range.filter((_, i) => i !== index)
+                      }
+                    "
+                  >
+                    <component :is="iconMap.close" />
+                  </NcButton>
+                </template>
               </div>
             </div>
           </template>
@@ -1178,7 +1446,9 @@ watch(activeBaseId, () => {
           <!-- Ai view wizard  -->
           <div v-if="!aiIntegrationAvailable" class="flex items-center gap-3 px-5 pt-2.5 pb-4.5">
             <GeneralIcon icon="alertTriangleSolid" class="!text-nc-content-orange-medium w-4 h-4" />
-            <div class="text-sm text-nc-content-gray-subtle flex-1">{{ $t('title.noAiIntegrationAvailable') }}</div>
+            <div class="text-sm text-nc-content-gray-subtle flex-1">
+              {{ $t('title.noAiIntegrationAvailable') }}
+            </div>
           </div>
           <AiWizardTabs v-else v-model:active-tab="activeAiTab">
             <template #AutoSuggestedContent>
@@ -1202,7 +1472,9 @@ watch(activeBaseId, () => {
                   <div class="text-nc-content-purple-light text-sm h-7 flex items-center gap-2">
                     <GeneralLoader size="regular" class="!text-nc-content-purple-dark" />
 
-                    <div class="nc-animate-dots">Auto suggesting views for {{ meta?.title }}</div>
+                    <div class="nc-animate-dots">
+                      Auto suggesting views for {{ meta?.title }}
+                    </div>
                   </div>
                 </div>
                 <div v-else-if="aiModeStep === 'pick'" class="flex gap-3 items-start w-full">
@@ -1217,7 +1489,9 @@ watch(activeBaseId, () => {
                             <div v-if="activeTabSelectedViews.length >= maxSelectionCount" class="w-[150px]">
                               You can only select {{ maxSelectionCount }} views to create at a time.
                             </div>
-                            <div v-else>{{ v?.description }}</div>
+                            <div v-else>
+                              {{ v?.description }}
+                            </div>
                           </template>
 
                           <a-tag
@@ -1244,13 +1518,17 @@ watch(activeBaseId, () => {
                                 }"
                               />
 
-                              <div class="truncate">{{ v.title }}</div>
+                              <div class="truncate">
+                                {{ v.title }}
+                              </div>
                             </div>
                           </a-tag>
                         </NcTooltip>
                       </template>
                     </template>
-                    <div v-else class="text-nc-content-gray-subtle2">{{ $t('labels.noData') }}</div>
+                    <div v-else class="text-nc-content-gray-subtle2">
+                      {{ $t('labels.noData') }}
+                    </div>
                   </div>
                   <div class="flex items-center gap-1">
                     <NcTooltip
@@ -1293,7 +1571,7 @@ watch(activeBaseId, () => {
                       >
                         <template #loadingIcon>
                           <!-- eslint-disable vue/no-lone-template -->
-                          <template></template>
+                          <template />
                         </template>
                         <GeneralIcon
                           icon="refresh"
@@ -1318,8 +1596,7 @@ watch(activeBaseId, () => {
                     placeholder="Enter your prompt to get view suggestions.."
                     class="nc-ai-input nc-input-shadow !px-3 !pt-2 !pb-3 !text-sm !min-h-[120px] !rounded-lg"
                     @keydown.enter.stop
-                  >
-                  </a-textarea>
+                  />
 
                   <NcButton
                     size="xs"
@@ -1327,10 +1604,10 @@ watch(activeBaseId, () => {
                     theme="ai"
                     class="!px-1 !absolute bottom-2 right-2"
                     :disabled="
-                      !prompt.trim() ||
-                      isPredictFromPromptLoading ||
-                      (!!prompt.trim() && prompt.trim() === oldPrompt.trim()) ||
-                      isAiSaving
+                      !prompt.trim()
+                        || isPredictFromPromptLoading
+                        || (!!prompt.trim() && prompt.trim() === oldPrompt.trim())
+                        || isAiSaving
                     "
                     :loading="isPredictFromPromptLoading"
                     icon-only
@@ -1366,7 +1643,9 @@ watch(activeBaseId, () => {
                 </div>
 
                 <div v-else-if="isPromtAlreadyGenerated" class="flex flex-col gap-3">
-                  <div class="text-nc-content-purple-dark font-semibold text-xs">Generated Views(s)</div>
+                  <div class="text-nc-content-purple-dark font-semibold text-xs">
+                    Generated Views(s)
+                  </div>
                   <div class="flex gap-2 flex-wrap">
                     <template v-if="activeTabPredictedViews.length">
                       <template v-for="v of activeTabPredictedViews" :key="v.title">
@@ -1375,7 +1654,9 @@ watch(activeBaseId, () => {
                             <div v-if="activeTabSelectedViews.length >= maxSelectionCount" class="w-[150px]">
                               You can only select {{ maxSelectionCount }} views to create at a time.
                             </div>
-                            <div v-else>{{ v?.description }}</div>
+                            <div v-else>
+                              {{ v?.description }}
+                            </div>
                           </template>
 
                           <a-tag
@@ -1408,7 +1689,9 @@ watch(activeBaseId, () => {
                         </NcTooltip>
                       </template>
                     </template>
-                    <div v-else class="text-nc-content-gray-subtle2">{{ $t('labels.noData') }}</div>
+                    <div v-else class="text-nc-content-gray-subtle2">
+                      {{ $t('labels.noData') }}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1421,7 +1704,9 @@ watch(activeBaseId, () => {
           <div class="text-nc-content-gray-subtle flex gap-4">
             <GeneralIcon class="min-w-6 h-6 text-nc-content-orange-medium" icon="alertTriangle" />
             <div class="flex flex-col gap-1">
-              <h2 class="font-semibold text-sm mb-0 text-nc-content-gray">Suitable fields not present</h2>
+              <h2 class="font-semibold text-sm mb-0 text-nc-content-gray">
+                Suitable fields not present
+              </h2>
               <span class="text-nc-content-gray-muted font-default text-sm"> {{ errorMessages[form.type] }}</span>
             </div>
           </div>
@@ -1464,12 +1749,15 @@ watch(activeBaseId, () => {
           <div class="flex !text-nc-content-gray-subtle items-center gap-2">
             <GeneralIcon icon="plus" class="h-4 w-4" />
 
-            <span class="first-letter:capitalize">
+            <span class="first-letter:capitalize hidden sm:inline">
               {{ $t('labels.addDescription') }}
+            </span>
+            <span class="first-letter:capitalize sm:hidden">
+              {{ $t('labels.description') }}
             </span>
           </div>
         </NcButton>
-        <div v-else></div>
+        <div v-else />
         <div class="flex gap-2 items-center">
           <NcButton type="secondary" size="small" :disabled="isAiSaving" @click="vModel = false">
             {{ $t('general.cancel') }}
@@ -1485,7 +1773,9 @@ watch(activeBaseId, () => {
             @click="onSubmit"
           >
             {{ $t('labels.createView') }}
-            <template #loading> {{ $t('labels.creatingView') }}</template>
+            <template #loading>
+              {{ $t('labels.creatingView') }}
+            </template>
           </NcButton>
           <NcButton
             v-else-if="aiIntegrationAvailable"
@@ -1501,18 +1791,22 @@ watch(activeBaseId, () => {
                 activeTabSelectedViews.length
                   ? activeTabSelectedViews.length > 1
                     ? $t('labels.createViews_plural', {
-                        count: activeTabSelectedViews.length,
-                      })
+                      count: activeTabSelectedViews.length,
+                    })
                     : $t('labels.createViews', {
-                        count: activeTabSelectedViews.length,
-                      })
+                      count: activeTabSelectedViews.length,
+                    })
                   : $t('labels.createView')
               }}
             </div>
-            <template #loading> {{ $t('labels.creatingView') }} </template>
+            <template #loading>
+              {{ $t('labels.creatingView') }}
+            </template>
           </NcButton>
           <NcTooltip v-else :disabled="!isMobileMode">
-            <template #title> AI integration is not available in mobile mode. </template>
+            <template #title>
+              AI integration is not available in mobile mode.
+            </template>
             <NcButton type="primary" size="small" :disabled="!!isMobileMode" @click="handleNavigateToIntegrations">
               Add AI integration
             </NcButton>

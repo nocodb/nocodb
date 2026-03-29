@@ -12,7 +12,7 @@ export const isExpandedCellInputExist = () => document.querySelector('.expanded-
 export const isNcListSearchInputActive = () => document.activeElement?.closest('.nc-list-search-input')
 export const isExtensionPaneActive = () => document.querySelector('.nc-extension-pane')
 export const isGeneralOverlayActive = () => document.querySelector('.nc-general-overlay')
-export const isSelectActive = () => {
+export function isSelectActive() {
   const els = document.querySelectorAll<HTMLElement>('.ant-select-dropdown')
   return Array.from(els).some((el) => {
     const style = window.getComputedStyle(el)
@@ -22,12 +22,13 @@ export const isSelectActive = () => {
 
 export const isViewSearchActive = () => document.querySelector('.nc-view-search-data') === document.activeElement
 export const isCreateViewActive = () => document.querySelector('.nc-view-create-modal')
-export const isActiveElementInsideExtension = () =>
-  ['.extension-modal', '.nc-extension-pane', '.nc-modal-extension-market', '.nc-modal-share-collaborate'].some((selector) =>
+export function isActiveElementInsideExtension() {
+  return ['.extension-modal', '.nc-extension-pane', '.nc-modal-extension-market', '.nc-modal-share-collaborate'].some(selector =>
     document.querySelector(selector)?.contains(document.activeElement),
   )
+}
 export const isActiveElementInsideScriptPane = () => document.querySelector('.nc-action-pane')?.contains(document.activeElement)
-export const isTiptapDropdownExistInsideEditor = () => {
+export function isTiptapDropdownExistInsideEditor() {
   return document.querySelector('.tippy-box')
 }
 
@@ -37,34 +38,34 @@ export const isSidebarNodeRenameActive = () => document.querySelector('input.ani
 export function hasAncestorWithClass(element: HTMLElement, className: string | Array<string>): boolean {
   const classNames = ncIsArray(className) ? className : [className]
 
-  return classNames.some((c) => !!element.closest(`.${c}`))
+  return classNames.some(c => !!element.closest(`.${c}`))
 }
 export const cmdKActive = () => document.querySelector('.cmdk-modal-active')
 export const isCmdJActive = () => document.querySelector('.DocSearch--active')
-export const isActiveInputElementExist = (e?: Event) => {
+export function isActiveInputElementExist(e?: Event) {
   const activeElement = document.activeElement
   const target = e?.target
 
   // A rich text editor is a div with the contenteditable attribute set to true.
   return (
-    activeElement instanceof HTMLInputElement ||
-    activeElement instanceof HTMLTextAreaElement ||
-    (activeElement instanceof HTMLElement && activeElement.isContentEditable) ||
-    target instanceof HTMLInputElement ||
-    target instanceof HTMLTextAreaElement ||
-    (target instanceof HTMLElement && target.isContentEditable)
+    activeElement instanceof HTMLInputElement
+    || activeElement instanceof HTMLTextAreaElement
+    || (activeElement instanceof HTMLElement && activeElement.isContentEditable)
+    || target instanceof HTMLInputElement
+    || target instanceof HTMLTextAreaElement
+    || (target instanceof HTMLElement && target.isContentEditable)
   )
 }
-export const isActiveButtonOrLinkElementExist = (e?: Event) => {
+export function isActiveButtonOrLinkElementExist(e?: Event) {
   const activeElement = document.activeElement
   const target = e?.target
 
   // A rich text editor is a div with the contenteditable attribute set to true.
   return (
-    activeElement instanceof HTMLButtonElement ||
-    activeElement instanceof HTMLAnchorElement ||
-    target instanceof HTMLButtonElement ||
-    target instanceof HTMLAnchorElement
+    activeElement instanceof HTMLButtonElement
+    || activeElement instanceof HTMLAnchorElement
+    || target instanceof HTMLButtonElement
+    || target instanceof HTMLAnchorElement
   )
 }
 
@@ -72,7 +73,7 @@ export const isNcDropdownOpen = () => document.querySelector('.nc-dropdown.activ
 export const isDropdownActive = () => document.querySelector('.nc-dropdown')
 
 export const isFieldEditOrAddDropdownOpen = () => document.querySelector('.nc-dropdown-edit-column.active')
-export const getScrollbarWidth = () => {
+export function getScrollbarWidth() {
   const outer = document.createElement('div')
   outer.style.visibility = 'hidden'
   outer.style.width = '100px'
@@ -90,8 +91,8 @@ export const getScrollbarWidth = () => {
   return widthNoScroll - widthWithScroll
 }
 
-export function getElementAtMouse<T>(cssSelector: string, { clientX, clientY }: { clientX: number; clientY: number }) {
-  return document.elementsFromPoint(clientX, clientY).find((el) => el.matches(cssSelector)) as T | undefined
+export function getElementAtMouse<T>(cssSelector: string, { clientX, clientY }: { clientX: number, clientY: number }) {
+  return document.elementsFromPoint(clientX, clientY).find(el => el.matches(cssSelector)) as T | undefined
 }
 
 export function forcedNextTick(cb: () => void) {
@@ -108,28 +109,28 @@ export function isSinglePrintableKey(key: string) {
   return [...key].length === 1
 }
 
-export const isMousePointerType = (event: Event) => {
+export function isMousePointerType(event: Event) {
   return (
     // PointerEvent style with mouse
-    ('pointerType' in event && (event as PointerEvent).pointerType === 'mouse') ||
+    ('pointerType' in event && (event as PointerEvent).pointerType === 'mouse')
     // Safari fallback to MouseEvent
-    event instanceof MouseEvent
+    || event instanceof MouseEvent
   )
 }
 
 export const isTouchEvent = (event: Event | TouchEvent) => !isMousePointerType(event)
 
-export const focusInputEl = (querySelector: string, target?: HTMLElement) => {
+export function focusInputEl(querySelector: string, target?: HTMLElement) {
   if (typeof window === 'undefined') return
 
   querySelector = querySelector ? `${querySelector} ` : ''
 
   const targetEl = target || document
-  const inputEl =
-    (targetEl.querySelector(`${querySelector}input`) as HTMLInputElement) ||
-    (targetEl.querySelector(`${querySelector}textarea`) as HTMLTextAreaElement) ||
-    (targetEl.querySelector(`${querySelector}[contenteditable="true"]`) as HTMLElement) ||
-    (targetEl.querySelector(`${querySelector}[tabindex="0"]`) as HTMLElement)
+  const inputEl
+    = (targetEl.querySelector(`${querySelector}input`) as HTMLInputElement)
+      || (targetEl.querySelector(`${querySelector}textarea`) as HTMLTextAreaElement)
+      || (targetEl.querySelector(`${querySelector}[contenteditable="true"]`) as HTMLElement)
+      || (targetEl.querySelector(`${querySelector}[tabindex="0"]`) as HTMLElement)
 
   if (inputEl) {
     inputEl?.select?.()
@@ -139,7 +140,7 @@ export const focusInputEl = (querySelector: string, target?: HTMLElement) => {
   return inputEl
 }
 
-export const isExpandCellKey = (event: Event) => {
+export function isExpandCellKey(event: Event) {
   if (event instanceof KeyboardEvent) {
     return event.key === ' ' && event.shiftKey
   }
@@ -157,7 +158,7 @@ export const isExpandCellKey = (event: Event) => {
  * @param el - The element to check
  * @returns True if the element is line-clamped, false otherwise
  */
-export const isLineClamped = (el: HTMLElement): boolean => {
+export function isLineClamped(el: HTMLElement): boolean {
   if (!el) return false
 
   const range = document.createRange()
@@ -169,7 +170,7 @@ export const isLineClamped = (el: HTMLElement): boolean => {
   return fullHeight > actualHeight
 }
 
-export const handleOnEscRichTextEditor = (event: KeyboardEvent, editor?: Editor) => {
+export function handleOnEscRichTextEditor(event: KeyboardEvent, editor?: Editor) {
   if (isTiptapDropdownExistInsideEditor()) {
     event.stopPropagation()
 
@@ -181,7 +182,7 @@ export const handleOnEscRichTextEditor = (event: KeyboardEvent, editor?: Editor)
   }
 }
 
-export const estimateTagWidth = ({
+export function estimateTagWidth({
   text,
   fontSize = 14,
   fontWeight = 600,
@@ -195,7 +196,7 @@ export const estimateTagWidth = ({
   paddingX?: number
   iconWidth?: number
   border?: number
-}) => {
+}) {
   // Dummy average char width per font-weight/font-size
   const avgCharWidth = fontWeight >= 600 ? fontSize * 0.6 : fontSize * 0.5
 
@@ -210,23 +211,23 @@ export const estimateTagWidth = ({
  * Remove query params from the URL
  * @param keysToRemove - The keys to remove from the URL
  */
-export const removeQueryParamsFromURL = (keysToRemove: string[]) => {
+export function removeQueryParamsFromURL(keysToRemove: string[]) {
   const url = new URL(window.location.href)
-  keysToRemove.forEach((key) => url.searchParams.delete(key))
+  keysToRemove.forEach(key => url.searchParams.delete(key))
   window.history.replaceState({}, '', url.toString())
 }
 
 // Feature detection.
 export const supportsKeyboardLock = 'keyboard' in navigator && navigator.keyboard && 'lock' in (navigator.keyboard as any)
 
-export const openContactSalesEmail = (email: string = 'support@nocodb.com') => {
+export function openContactSalesEmail(email: string = 'support@nocodb.com') {
   const a = document.createElement('a')
   a.href = `mailto:${email}`
   a.target = '_blank'
   a.click()
 }
 
-export const getValidSlotName = (name: string, prefix?: string, suffix?: string): string => {
+export function getValidSlotName(name: string, prefix?: string, suffix?: string): string {
   let slotName = name.replace(/\./g, '__')
 
   if (prefix) {

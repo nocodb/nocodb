@@ -10,7 +10,6 @@ const { api, isLoading, error } = useApi()
 const { t } = useI18n()
 
 const route = useRoute()
-const navigator = useRouter()
 
 const form = reactive({
   password: '',
@@ -37,8 +36,9 @@ async function resetPassword() {
     await api.auth.passwordReset(route.params.id as string, {
       password: form.password,
     })
-    navigator.push(`/#/sigin`)
-  } catch (e: any) {
+    navigateTo('/signin')
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -60,13 +60,17 @@ function resetError() {
           <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent ring-opacity-100)" :animate="isLoading" />
 
           <div class="self-center flex flex-col justify-center items-center text-center gap-2">
-            <h1 class="prose-2xl font-bold my-4 w-full">{{ $t('title.resetPassword') }}</h1>
+            <h1 class="prose-2xl font-bold my-4 w-full">
+              {{ $t('title.resetPassword') }}
+            </h1>
 
             <div class="prose-sm text-success flex items-center leading-8 gap-2">
               {{ $t('msg.info.passwordRecovery.success') }} <ClaritySuccessLine />
             </div>
 
-            <nuxt-link to="/signin">{{ $t('general.signIn') }}</nuxt-link>
+            <nuxt-link to="/signin">
+              {{ $t('general.signIn') }}
+            </nuxt-link>
           </div>
 
           <a-form ref="formValidator" layout="vertical" :model="form" no-style @finish="resetPassword">
@@ -74,7 +78,9 @@ function resetError() {
               <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
                 <div class="flex items-center gap-2 justify-center">
                   <MaterialSymbolsWarning />
-                  <div class="break-words">{{ error }}</div>
+                  <div class="break-words">
+                    {{ error }}
+                  </div>
                 </div>
               </div>
             </Transition>

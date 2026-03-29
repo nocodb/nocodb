@@ -1,8 +1,8 @@
-import { isBoxHovered, renderIconButton, roundedRect } from '../utils/canvas'
-import { pxToRowHeight } from '../../../../../utils/cell'
 import type { RenderRectangleProps } from '../utils/types'
-import { isAudio, isExcel, isPdf, isPresentation, isVideo, isWord, isZip } from '../../../../../utils/fileUtils'
 import useAttachment from '../../../../../composables/useAttachment'
+import { pxToRowHeight } from '../../../../../utils/cell'
+import { isAudio, isExcel, isPdf, isPresentation, isVideo, isWord, isZip } from '../../../../../utils/fileUtils'
+import { isBoxHovered, renderIconButton, roundedRect } from '../utils/canvas'
 
 interface Attachment {
   mimetype?: string
@@ -129,7 +129,8 @@ export const AttachmentCellRenderer: CellRenderer = {
       if (!ncIsArray(attachments)) {
         attachments = []
       }
-    } catch {
+    }
+    catch {
       attachments = []
     }
 
@@ -197,8 +198,8 @@ export const AttachmentCellRenderer: CellRenderer = {
       const itemsInCurrentRow = isLastRow ? itemsInLastRow : itemsPerRow
 
       const currentRowWidth = itemsInCurrentRow * itemSize + (itemsInCurrentRow - 1) * gap
-      const rowStartX =
-        isUnderLookup && textAlign !== 'center'
+      const rowStartX
+        = isUnderLookup && textAlign !== 'center'
           ? x + horizontalPadding
           : x + horizontalPadding + Math.max(0, (width - horizontalPadding * 2 - currentRowWidth) / 2)
       const itemX = rowStartX + col * (itemSize + gap)
@@ -309,7 +310,8 @@ export const AttachmentCellRenderer: CellRenderer = {
     let attachments: Attachment[] = []
     try {
       attachments = (typeof value === 'string' ? JSON.parse(value) : value) || []
-    } catch {
+    }
+    catch {
       attachments = []
     }
     if (selected && (!ncIsArray(attachments) || !attachments.length)) {
@@ -375,7 +377,7 @@ export const AttachmentCellRenderer: CellRenderer = {
     const maxRows = Math.floor((height - verticalPadding * 2 + gap) / (itemSize + gap))
     const maxVisibleItems = maxRows * itemsPerRow
 
-    const imageBoxes: (RenderRectangleProps & { title: string; size?: number; mimetype?: string })[] = []
+    const imageBoxes: (RenderRectangleProps & { title: string, size?: number, mimetype?: string })[] = []
 
     attachments.slice(0, maxVisibleItems).forEach((item, index) => {
       if (!item) return
@@ -413,7 +415,8 @@ export const AttachmentCellRenderer: CellRenderer = {
             mimetype: item.mimetype ?? '',
           })
         }
-      } else if (item.title) {
+      }
+      else if (item.title) {
         imageBoxes.push({
           x: itemX,
           y: itemY,
@@ -426,7 +429,7 @@ export const AttachmentCellRenderer: CellRenderer = {
       }
     })
 
-    const hoveredPreview = imageBoxes.find((box) => isBoxHovered(box, mousePosition))
+    const hoveredPreview = imageBoxes.find(box => isBoxHovered(box, mousePosition))
     tryShowTooltip({
       rect: hoveredPreview,
       text: h('div', [
@@ -460,7 +463,8 @@ export const AttachmentCellRenderer: CellRenderer = {
     let attachments: Attachment[] = []
     try {
       attachments = (typeof value === 'string' ? JSON.parse(value) : value) || []
-    } catch {
+    }
+    catch {
       attachments = []
     }
     if (selected && (!ncIsArray(attachments) || !attachments.length)) {
@@ -529,7 +533,8 @@ export const AttachmentCellRenderer: CellRenderer = {
             title: item.title ?? url,
           })
         }
-      } else if (item.title) {
+      }
+      else if (item.title) {
         imageBoxes.push({
           x: itemX,
           y: itemY,
@@ -540,7 +545,7 @@ export const AttachmentCellRenderer: CellRenderer = {
       }
     })
 
-    const hoveredPreview = imageBoxes.find((box) => isBoxHovered(box, mousePosition))
+    const hoveredPreview = imageBoxes.find(box => isBoxHovered(box, mousePosition))
     if (hoveredPreview) {
       enableEdit()
       return true

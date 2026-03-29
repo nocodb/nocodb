@@ -1,8 +1,9 @@
 <script lang="ts" setup>
-import { IconType, type WorkspaceType } from 'nocodb-sdk'
-import 'emoji-mart-vue-fast/css/emoji-mart.css'
-import { Icon } from '@iconify/vue'
+import type { WorkspaceType } from 'nocodb-sdk'
 import { isColorDark, stringToColor } from '#imports'
+import { Icon } from '@iconify/vue'
+import { IconType } from 'nocodb-sdk'
+import 'emoji-mart-vue-fast/css/emoji-mart.css'
 
 const props = withDefaults(
   defineProps<{
@@ -16,10 +17,13 @@ const props = withDefaults(
     isRounded?: boolean
     iconBgColor?: string
     showNocodbIcon?: boolean
+    hideBgColor?: boolean
+    initialsLength?: 1 | 2
   }>(),
   {
     iconBgColor: 'var(--nc-bg-gray-light)',
     showNocodbIcon: false,
+    initialsLength: 2,
   },
 )
 
@@ -54,7 +58,9 @@ const workspaceIcon = computed(() => {
 })
 
 const workspaceColor = computed(() => {
-  const color = workspace.value ? workspace.value.meta?.color || stringToColor(workspace.value.id!) : undefined
+  const color = workspace.value
+    ? workspace.value.meta?.color || (workspace.value.id ? stringToColor(workspace.value.id) : undefined)
+    : undefined
 
   if (!props.hideLabel && workspaceIcon.value.icon) {
     switch (workspaceIcon.value.iconType) {
@@ -69,12 +75,18 @@ const workspaceColor = computed(() => {
       }
 
       default: {
-        return props.showNocodbIcon && blockWsImageLogoUpload.value ? undefined : color || '#0A1433'
+        return props.showNocodbIcon && (blockWsImageLogoUpload.value || !workspace.value) ? undefined : color || '#0A1433'
       }
     }
   }
 
-  return props.showNocodbIcon && blockWsImageLogoUpload.value ? undefined : color || '#0A1433'
+  return props.showNocodbIcon && (blockWsImageLogoUpload.value || !workspace.value) ? undefined : color || '#0A1433'
+})
+
+const isRenderingInitials = computed(() => {
+  if (props.hideLabel) return false
+  if (props.showNocodbIcon && (blockWsImageLogoUpload.value || !workspace.value)) return false
+  return !workspaceIcon.value.icon
 })
 
 const size = computed(() => props.size || 'medium')
@@ -97,9 +109,11 @@ const isMiniSidebarSize = computed(() => size.value === 'mini-sidebar')
     }"
     :style="{
       backgroundColor:
-        !props.hideLabel && workspaceIcon.icon && workspaceIcon.iconType === IconType.IMAGE && !isMiniSidebarSize
+        props.hideBgColor && !isRenderingInitials
           ? undefined
-          : workspaceColor,
+          : !props.hideLabel && workspaceIcon.icon && workspaceIcon.iconType === IconType.IMAGE && !isMiniSidebarSize
+            ? undefined
+            : workspaceColor,
     }"
   >
     <template v-if="!props.hideLabel">
@@ -135,7 +149,7 @@ const isMiniSidebarSize = computed(() => size.value === 'mini-sidebar')
               'w-10 h-10': size === 'xlarge',
             }"
             :icon="workspaceIcon.icon"
-          ></Icon>
+          />
         </template>
       </div>
       <GeneralIcon
@@ -152,7 +166,7 @@ const isMiniSidebarSize = computed(() => size.value === 'mini-sidebar')
         }"
       />
       <template v-else>
-        <div v-if="props.showNocodbIcon && blockWsImageLogoUpload" class="h-full w-full p-0.25">
+        <div v-if="props.showNocodbIcon && (blockWsImageLogoUpload || !workspace)" class="h-full w-full p-0.25">
           <GeneralIcon icon="nocodb1" class="!h-full !w-full" />
         </div>
         <div
@@ -165,7 +179,7 @@ const isMiniSidebarSize = computed(() => size.value === 'mini-sidebar')
             'text-sm': size === 'account-sidebar' || isMiniSidebarSize,
           }"
         >
-          {{ getSafeInitials(workspace?.title, size === 'account-sidebar' || isMiniSidebarSize ? 1 : 2, true) }}
+          {{ getSafeInitials(workspace?.title, size === 'account-sidebar' || isMiniSidebarSize ? 1 : initialsLength, true) }}
         </div>
       </template>
     </template>

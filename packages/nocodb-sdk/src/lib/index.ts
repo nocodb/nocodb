@@ -1,6 +1,7 @@
 export * from '~/lib/XcUIBuilder';
 export * from '~/lib/XcNotification';
 export * from '~/lib/Api';
+export * from '~/lib/timelineTypes';
 export * from '~/lib/columnRules';
 export * from '~/lib/sqlUi';
 export * from '~/lib/globals';
@@ -30,6 +31,7 @@ export {
   isLTARType,
   isLinkV2,
   isMMOrMMLike,
+  isBtLikeV2Junction,
   isSelfLinkCol,
   isCreatedOrLastModifiedTimeCol,
   isCreatedOrLastModifiedByCol,
@@ -49,6 +51,7 @@ export {
   ratingIconListMap,
   durationOptions,
   isReadOnlyColumn,
+  isAutoNumber,
   isDateOrDateTimeCol,
   customLinkSupportedTypes,
   UITypesSearchTerms,
@@ -94,3 +97,8 @@ export * from '~/lib/workflow';
 export * from '~/lib/uniqueConstraintHelpers';
 export * from '~/lib/recordTemplate';
 export * from '~/lib/viewSection';
+export * from '~/lib/chat';
+export * from '~/lib/v3';
+export * from '~/lib/Document';
+export * from '~/lib/DocumentComment';
+export * from '~/lib/docs';

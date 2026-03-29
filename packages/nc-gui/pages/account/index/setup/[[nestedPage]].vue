@@ -8,7 +8,7 @@ onMounted(async () => {
 })
 
 const activeAppId = computed(
-  () => categorizeApps.value?.[route.params.nestedPage?.toLowerCase()]?.find((app) => app.title === route.params.app)?.id,
+  () => categorizeApps.value?.[route.params.nestedPage?.toLowerCase()]?.find(app => app.title === route.params.app)?.id,
 )
 </script>
 

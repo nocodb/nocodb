@@ -4,8 +4,8 @@ import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
 import { defineAsyncComponent } from 'vue'
 
-import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 import { jsonThemeDark, jsonThemeLight } from '~/components/monaco/json'
+import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 
 const props = defineProps<Props>()
 
@@ -259,7 +259,8 @@ const validators = computed(() => {
 
                 // Check if the hostname matches exactly
                 matched = webhookUrl.hostname === siteUrlObj.hostname
-              } catch (e) {
+              }
+              catch (e) {
                 // If URL parsing fails, fall back to simple includes check
                 matched = path.includes(siteUrl)
               }
@@ -267,7 +268,8 @@ const validators = computed(() => {
               if (matched) {
                 if (appInfo.value?.isCloud) {
                   reject(new Error(t('msg.internalUrlsNotAllowed')))
-                } else {
+                }
+                else {
                   showCyclicCallsWarning.value = true
                 }
               }
@@ -295,11 +297,12 @@ const validators = computed(() => {
 })
 const { validateInfos } = useForm(hookRef, validators)
 
-const getChannelsArray = (val: unknown) => {
+function getChannelsArray(val: unknown) {
   if (val) {
     if (Array.isArray(val)) {
       return val
-    } else if (typeof val === 'object' && Object.keys(val)) {
+    }
+    else if (typeof val === 'object' && Object.keys(val)) {
       return [val]
     }
   }
@@ -383,12 +386,12 @@ function onEventChange() {
       break
   }
 
-  if (channels) {
-    hookRef.notification.payload.webhook_url =
-      hookRef.notification.payload.webhook_url &&
-      hookRef.notification.payload.webhook_url.map((v: { webhook_url: string }) =>
-        channels.value?.find((s) => v.webhook_url === s.webhook_url),
-      )
+  if (channels.value) {
+    hookRef.notification.payload.webhook_url
+      = hookRef.notification.payload.webhook_url
+        && hookRef.notification.payload.webhook_url.map((v: { webhook_url: string }) =>
+          channels.value?.find(s => v.webhook_url === s.webhook_url),
+        )
   }
 
   if (hookRef.notification.type === 'URL') {
@@ -411,7 +414,7 @@ async function loadPluginList() {
     ).list!
 
     apps.value = plugins.reduce((o, p) => {
-      const plugin: { title: string; tags: string[]; parsedInput: Record<string, any> } = {
+      const plugin: { title: string, tags: string[], parsedInput: Record<string, any> } = {
         title: '',
         tags: [],
         parsedInput: {},
@@ -423,7 +426,8 @@ async function loadPluginList() {
 
       return o
     }, {} as Record<string, any>)
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -432,7 +436,7 @@ const isConditionSupport = computed(() => {
   return hookRef.eventOperation && !(hookRef.eventOperation.includes('bulk') || hookRef.eventOperation.includes('manual'))
 })
 
-const closeModal = () => {
+function closeModal() {
   emits('close', hookRef)
 }
 
@@ -444,7 +448,7 @@ const activeTab = ref<HookTab>(HookTab.Configuration)
 
 const [isVisible, toggleVisibility] = useToggle()
 
-const toggleSamplePayload = () => {
+function toggleSamplePayload() {
   toggleVisibility()
   nextTick(() => {
     if (isVisible.value) {
@@ -489,11 +493,11 @@ async function loadSampleData() {
   })
 }
 
-const getDefaultHookName = (hooks: HookType[]) => {
-  return extractNextDefaultName([...hooks.map((el) => el?.title || '')], defaultHookName)
+function getDefaultHookName(hooks: HookType[]) {
+  return extractNextDefaultName([...hooks.map(el => el?.title || '')], defaultHookName)
 }
 
-const getNotificationIconName = (type: string): keyof typeof iconMap => {
+function getNotificationIconName(type: string): keyof typeof iconMap {
   switch (type) {
     case 'URL':
       return 'link2'
@@ -540,7 +544,8 @@ watch(
     if (props.hook) {
       setHook(props.hook)
       onEventChange()
-    } else {
+    }
+    else {
       // Set the default hook title only when creating a new hook.
       hookRef.title = getDefaultHookName(hooks.value)
     }
@@ -553,7 +558,8 @@ onMounted(async () => {
 
   if (hookRef.event && hookRef.operation) {
     hookRef.eventOperation = `${hookRef.event} ${hookRef.operation}`
-  } else {
+  }
+  else {
     hookRef.eventOperation = eventList.value[0].value.join(' ')
   }
 
@@ -567,7 +573,7 @@ onMounted(async () => {
     })
 })
 
-const toggleIncludeUser = async () => {
+async function toggleIncludeUser() {
   hookRef.notification.include_user = !hookRef.notification.include_user
   await loadSampleData()
 }
@@ -595,7 +601,7 @@ const toggleIncludeUser = async () => {
           </span>
         </div>
 
-        <div v-if="hook && isEeUI" class="flex flex-row p-1 bg-nc-bg-gray-medium rounded-lg gap-x-0.5 nc-view-sidebar-tab">
+        <div v-if="hook && appInfo.ee" class="flex flex-row p-1 bg-nc-bg-gray-medium rounded-lg gap-x-0.5 nc-view-sidebar-tab">
           <div
             v-e="['c:webhook:edit']"
             class="tab"
@@ -604,7 +610,9 @@ const toggleIncludeUser = async () => {
             }"
             @click="activeTab = HookTab.Configuration"
           >
-            <div class="tab-title nc-tab">{{ $t('general.details') }}</div>
+            <div class="tab-title nc-tab">
+              {{ $t('general.details') }}
+            </div>
           </div>
           <div
             v-e="['c:webhook:log']"
@@ -614,7 +622,9 @@ const toggleIncludeUser = async () => {
             }"
             @click="activeTab = HookTab.Log"
           >
-            <div class="tab-title nc-tab">{{ $t('general.logs') }}</div>
+            <div class="tab-title nc-tab">
+              {{ $t('general.logs') }}
+            </div>
           </div>
         </div>
 
@@ -644,7 +654,7 @@ const toggleIncludeUser = async () => {
                 :contenteditable="true"
                 disabled
                 @keydown.enter="titleDomRef?.blur()"
-              />
+              >
               <GeneralIcon icon="rename" class="cursor-text" @click="titleDomRef?.focus()" />
             </div>
           </a-form-item>
@@ -723,7 +733,9 @@ const toggleIncludeUser = async () => {
                       <div class="flex items-center w-full gap-2">
                         <GeneralIcon :icon="getNotificationIconName(notificationOption.type)" class="mr-2 stroke-transparent" />
 
-                        <div class="flex-1">{{ notificationOption.text }}</div>
+                        <div class="flex-1">
+                          {{ notificationOption.text }}
+                        </div>
                         <component
                           :is="iconMap.check"
                           v-if="hookRef.notification.type === notificationOption.type"
@@ -921,7 +933,7 @@ const toggleIncludeUser = async () => {
               />
             </div>
 
-            <div v-if="isEeUI">
+            <div v-if="appInfo.ee">
               <div>
                 <div class="w-full cursor-pointer flex items-center" @click.prevent="toggleIncludeUser">
                   <NcSwitch :checked="Boolean(hookRef.notification.include_user)" class="nc-check-box-include-user">
@@ -1027,7 +1039,7 @@ const toggleIncludeUser = async () => {
       </div>
 
       <NcModalSupportedDocsSidebar>
-        <NcModalSupportedDocs :docs="supportedDocs"> </NcModalSupportedDocs>
+        <NcModalSupportedDocs :docs="supportedDocs" />
       </NcModalSupportedDocsSidebar>
     </div>
     <div v-else-if="activeTab === HookTab.Log" class="h-[calc(100%_-_66px)]">

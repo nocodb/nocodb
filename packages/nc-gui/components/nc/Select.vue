@@ -38,11 +38,11 @@ const { showSearch, filterOption, dropdownMatchSelectWidth, loading, mode } = to
 
 const vModel = useVModel(props, 'value', emits)
 
-const onChange = (value: string) => {
+function onChange(value: string) {
   emits('change', value)
 }
 
-const onSearch = (value: string) => {
+function onSearch(value: string) {
   emits('search', value)
 }
 </script>

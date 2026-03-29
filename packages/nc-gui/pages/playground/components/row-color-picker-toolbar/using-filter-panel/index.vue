@@ -9,7 +9,7 @@ const columns = computedAsync(async () => {
   if (!metas.value || Object.keys(metas.value).length === 0) return []
   return await composeColumnsForFilter({
     rootMeta: rootMeta.value,
-    getMeta: async (id) => metas.value[`${rootMeta.value?.base_id}:${id}`],
+    getMeta: async id => metas.value[`${rootMeta.value?.base_id}:${id}`],
   })
 }, [])
 const options1 = ref({
@@ -33,18 +33,36 @@ onMounted(async () => {
         <h4>Simple</h4>
         <div class="flex gap-4">
           <div class="flex flex-col gap-2">
-            <div><NcSwitch v-model:checked="options1.disabled">disabled</NcSwitch></div>
-            <div><NcSwitch v-model:checked="options1.isLockedView">isLockedView</NcSwitch></div>
-            <div><NcSwitch v-model:checked="options1.disableAddNewFilter">disableAddNewFilter</NcSwitch></div>
+            <div>
+              <NcSwitch v-model:checked="options1.disabled">
+                disabled
+              </NcSwitch>
+            </div>
+            <div>
+              <NcSwitch v-model:checked="options1.isLockedView">
+                isLockedView
+              </NcSwitch>
+            </div>
+            <div>
+              <NcSwitch v-model:checked="options1.disableAddNewFilter">
+                disableAddNewFilter
+              </NcSwitch>
+            </div>
           </div>
           <div class="flex-col gap-2">
             <div class="flex-col space-y-2">
               <div>
                 dbClientType:
                 <NcSelect v-model:value="options1.dbClientType">
-                  <a-select-option value="PG">PG</a-select-option>
-                  <a-select-option value="MYSQL">mysql</a-select-option>
-                  <a-select-option value="SQLITE">sqlite</a-select-option>
+                  <a-select-option value="PG">
+                    PG
+                  </a-select-option>
+                  <a-select-option value="MYSQL">
+                    mysql
+                  </a-select-option>
+                  <a-select-option value="SQLITE">
+                    sqlite
+                  </a-select-option>
                 </NcSelect>
               </div>
               <div>
@@ -53,11 +71,11 @@ onMounted(async () => {
                   v-model="options1.filterPerViewLimit"
                   type="number"
                   class="text-xs p-1 border-nc-border-gray-medium"
-                /><br />
+                ><br>
               </div>
               <div>
                 filtersCount:
-                <input v-model="options1.filtersCount" type="number" class="text-xs p-1 border-nc-border-gray-medium" /><br />
+                <input v-model="options1.filtersCount" type="number" class="text-xs p-1 border-nc-border-gray-medium"><br>
               </div>
             </div>
           </div>

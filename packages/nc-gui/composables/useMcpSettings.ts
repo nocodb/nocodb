@@ -1,4 +1,4 @@
-import { type MCPTokenType } from 'nocodb-sdk'
+import type { MCPTokenType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
 export type MCPTokenExtendedType = MCPTokenType & {
@@ -33,7 +33,7 @@ export const useMcpSettings = createSharedComposable(() => {
 
   const isCreatingMcpToken = ref(false)
 
-  const isUnsavedMCPTokenPending = computed(() => mcpTokens.value.some((t) => t.isNew))
+  const isUnsavedMCPTokenPending = computed(() => mcpTokens.value.some(t => t.isNew))
 
   const listMcpTokens = async () => {
     try {
@@ -43,7 +43,7 @@ export const useMcpSettings = createSharedComposable(() => {
 
       if (response && Array.isArray(response)) {
         mcpTokens.value = response.map((token: MCPTokenType) => {
-          const user = baseUsers.value.find((u) => u.id === token.fk_user_id)
+          const user = baseUsers.value.find(u => u.id === token.fk_user_id)
           return {
             ...token,
             isNew: false,
@@ -51,14 +51,15 @@ export const useMcpSettings = createSharedComposable(() => {
           }
         })
       }
-    } catch (error: any) {
+    }
+    catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
       console.error(error)
     }
   }
 
   const cancelNewMcpToken = () => {
-    mcpTokens.value = mcpTokens.value.filter((t) => !t.isNew)
+    mcpTokens.value = mcpTokens.value.filter(t => !t.isNew)
   }
 
   const createMcpToken = async (token: Partial<MCPTokenExtendedType>) => {
@@ -86,10 +87,10 @@ export const useMcpSettings = createSharedComposable(() => {
 
       if (response) {
         // Replace the new token placeholder with the created token
-        const index = mcpTokens.value.findIndex((t) => t.isNew)
+        const index = mcpTokens.value.findIndex(t => t.isNew)
         if (index !== -1) {
           const createdToken = response
-          const user = baseUsers.value.find((u) => u.id === createdToken.fk_user_id)
+          const user = baseUsers.value.find(u => u.id === createdToken.fk_user_id)
           mcpTokens.value[index] = {
             ...createdToken,
             isNew: false,
@@ -101,7 +102,8 @@ export const useMcpSettings = createSharedComposable(() => {
       message.success(t('msg.success.mcpTokenCreated'))
       isCreatingMcpToken.value = false
       return response
-    } catch (error: any) {
+    }
+    catch (error: any) {
       isCreatingMcpToken.value = false
       message.error(await extractSdkResponseErrorMsg(error))
       console.error(error)
@@ -135,14 +137,15 @@ export const useMcpSettings = createSharedComposable(() => {
 
       // Update the token in the appropriate list
       if (isAccountLevel) {
-        const index = tokenList.value.findIndex((t) => t.id === token.id)
+        const index = tokenList.value.findIndex(t => t.id === token.id)
         if (index !== -1 && res) {
           tokenList.value[index] = { ...tokenList.value[index], ...res }
         }
       }
 
       return res
-    } catch (error: any) {
+    }
+    catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
       token.loading = false
       console.error(error)
@@ -159,7 +162,7 @@ export const useMcpSettings = createSharedComposable(() => {
       const tokenList = isAccountLevel ? accountMcpTokens : mcpTokens
 
       // Add loading state
-      const tokenToDelete = tokenList.value.find((t) => t.id === token.id)
+      const tokenToDelete = tokenList.value.find(t => t.id === token.id)
       if (tokenToDelete) {
         tokenToDelete.loading = true
       }
@@ -177,17 +180,19 @@ export const useMcpSettings = createSharedComposable(() => {
 
       // Only remove from the list if successful
       if (response) {
-        tokenList.value = tokenList.value.filter((t) => t.id !== token.id)
+        tokenList.value = tokenList.value.filter(t => t.id !== token.id)
         message.success(t('msg.success.mcpTokenDeleted'))
-      } else {
+      }
+      else {
         if (tokenToDelete) {
           tokenToDelete.loading = false
         }
         message.error(t('msg.error.failedToDeleteMcpToken'))
       }
-    } catch (error: any) {
+    }
+    catch (error: any) {
       const tokenList = isAccountLevel ? accountMcpTokens.value : mcpTokens.value
-      const tokenToDelete = tokenList.find((t) => t.id === token.id)
+      const tokenToDelete = tokenList.find(t => t.id === token.id)
       if (tokenToDelete) {
         tokenToDelete.loading = false
       }
@@ -224,7 +229,8 @@ export const useMcpSettings = createSharedComposable(() => {
         }))
       }
       return accountMcpTokens.value
-    } catch (error: any) {
+    }
+    catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
       console.error(error)
       return []

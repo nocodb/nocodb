@@ -15,6 +15,7 @@ export class CachesController {
     scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async cacheGet(_, res) {
     const data = await this.cachesService.cacheGet();
@@ -30,6 +31,7 @@ export class CachesController {
     scope: 'org',
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async cacheDelete() {
     return await this.cachesService.cacheDelete();

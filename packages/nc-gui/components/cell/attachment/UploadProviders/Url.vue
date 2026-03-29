@@ -9,7 +9,7 @@ const { openAttachment } = useAttachment()
 
 const { uploadViaUrl, updateModelValue, attachments } = useAttachmentCell()!
 
-const closeMenu = () => {
+function closeMenu() {
   emits('update:visible', false)
 }
 
@@ -25,7 +25,7 @@ const tempAttachments = ref<
   }[]
 >([])
 
-const onSave = async () => {
+async function onSave() {
   updateModelValue([...attachments.value, ...tempAttachments.value])
   closeMenu()
 }
@@ -34,7 +34,7 @@ const url = ref('')
 
 const isParsing = ref(false)
 
-const deleteAttachment = (index: number) => {
+function deleteAttachment(index: number) {
   tempAttachments.value.splice(index, 1)
 }
 
@@ -42,7 +42,7 @@ const isValidUrl = ref(false)
 
 const errorMessage = ref('')
 
-const uploadAndParseUrl = async () => {
+async function uploadAndParseUrl() {
   if (!isValidURL(url.value)) {
     isValidUrl.value = false
     return
@@ -56,11 +56,13 @@ const uploadAndParseUrl = async () => {
     if (typeof data !== 'string' && data?.length) {
       tempAttachments.value = [...data, ...tempAttachments.value]
       url.value = ''
-    } else {
+    }
+    else {
       isValidUrl.value = false
       errorMessage.value = data
     }
-  } finally {
+  }
+  finally {
     isParsing.value = false
   }
 
@@ -86,7 +88,9 @@ watch(url, () => {
           <GeneralIcon icon="close" />
         </NcButton>
 
-        <template #title> {{ $t('general.close') }} </template>
+        <template #title>
+          {{ $t('general.close') }}
+        </template>
       </NcTooltip>
     </div>
 
@@ -132,14 +136,18 @@ watch(url, () => {
                   <component :is="iconMap.externalLink" class="w-3.5 h-3.5 text-nc-content-gray-muted" />
                 </NuxtLink>
 
-                <template #title> {{ $t('labels.openFile') }} </template>
+                <template #title>
+                  {{ $t('labels.openFile') }}
+                </template>
               </NcTooltip>
             </div>
 
-            <div class="flex-grow-1"></div>
+            <div class="flex-grow-1" />
 
             <NcTooltip>
-              <template #title> {{ $t('title.removeFile') }} </template>
+              <template #title>
+                {{ $t('title.removeFile') }}
+              </template>
 
               <NcButton type="text" size="xsmall" @click="deleteAttachment(index)">
                 <GeneralIcon icon="close" />
@@ -151,10 +159,12 @@ watch(url, () => {
     </div>
 
     <div class="flex gap-2 items-center justify-end">
-      <NcButton :disabled="isParsing" type="secondary" size="small" @click="closeMenu"> {{ $t('labels.cancel') }} </NcButton>
+      <NcButton :disabled="isParsing" type="secondary" size="small" @click="closeMenu">
+        {{ $t('labels.cancel') }}
+      </NcButton>
       <NcButton :disabled="isParsing || tempAttachments.length === 0" size="small" @click="onSave">
-        {{ $t('activity.addFiles') }}</NcButton
-      >
+        {{ $t('activity.addFiles') }}
+      </NcButton>
     </div>
   </div>
 </template>

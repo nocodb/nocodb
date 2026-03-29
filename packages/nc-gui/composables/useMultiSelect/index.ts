@@ -1,16 +1,16 @@
 import type { MaybeRef } from '@vueuse/core'
 import type { AttachmentType, ColumnType, LinkToAnotherRecordType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
-import { ColumnHelper, UITypes, isSystemColumn, isVirtualCol, populateUniqueFileName } from 'nocodb-sdk'
-import { parse } from 'papaparse'
 import type { Ref } from 'vue'
+import type { SuppressedError } from '../../error/suppressed.error'
+import type { Row } from '../../lib/types'
+import type { Cell } from './cellRange'
+import { ColumnHelper, isSystemColumn, isVirtualCol, populateUniqueFileName, UITypes } from 'nocodb-sdk'
+import { parse } from 'papaparse'
 import { computed } from 'vue'
 import { ComputedTypePasteError } from '../../error/computed-type-paste.error'
 import { SelectTypeConversionError } from '../../error/select-type-conversion.error'
-import type { SuppressedError } from '../../error/suppressed.error'
 import { TypeConversionError } from '../../error/type-conversion.error'
 import { generateUniqueColumnName } from '../../helpers/parsers/parserHelpers'
-import type { Row } from '../../lib/types'
-import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
 import convertCellData from './convertCellData'
 
@@ -51,14 +51,14 @@ export function useMultiSelect(
   bulkUpdateRows?: (
     rows: Row[],
     props: string[],
-    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    metas?: { metaValue?: TableType, viewMetaValue?: ViewType },
     undo?: boolean,
   ) => Promise<void>,
   bulkUpsertRows?: (
     insertRows: Row[],
     updateRows: Row[],
     props: string[],
-    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    metas?: { metaValue?: TableType, viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
   ) => Promise<void>,
   fillHandle?: MaybeRef<HTMLElement | undefined>,
@@ -92,6 +92,8 @@ export function useMultiSelect(
 
   const { $api } = useNuxtApp()
 
+  const { fillRows } = useNocoAi()
+
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 
   const { isDataReadOnly } = useRoles()
@@ -102,8 +104,8 @@ export function useMultiSelect(
 
   const { isSqlView, isExternalSource } = useSmartsheetStoreOrThrow()
 
-  const { blockExternalSourceRecordVisibility, showUpgradeToAddMoreAttachmentsInCell, maxAttachmentsAllowedInCell } =
-    useEeConfig()
+  const { blockExternalSourceRecordVisibility, showUpgradeToAddMoreAttachmentsInCell, maxAttachmentsAllowedInCell }
+    = useEeConfig()
 
   const { batchUploadFiles } = useAttachment()
 
@@ -202,7 +204,8 @@ export function useMultiSelect(
         let cprows
         if (isArrayStructure) {
           cprows = unref(data as Row[]).slice(selectedRange.start.row, selectedRange.end.row + 1) // slice the selected rows for copy
-        } else {
+        }
+        else {
           const startChunkId = Math.floor(selectedRange.start.row / CHUNK_SIZE)
           const endChunkId = Math.floor(selectedRange.end.row / CHUNK_SIZE)
 
@@ -223,7 +226,8 @@ export function useMultiSelect(
             n: cprows.length * cpcols.length,
           }),
         )
-      } else {
+      }
+      else {
         // if copy was called with context (right click position) - copy value from context
         // else if there is just one selected cell, copy it's value
         const cpRow = ctx?.row ?? activeCell.row
@@ -262,7 +266,8 @@ export function useMultiSelect(
           )
         }
       }
-    } catch {
+    }
+    catch {
       message.error(t('msg.error.copyToClipboardError'))
     }
   }
@@ -347,8 +352,8 @@ export function useMultiSelect(
   function handleMouseDown(event: MouseEvent, row: number, col: number) {
     // if there was a right click on selected range, don't restart the selection
     if (
-      (event?.button !== MAIN_MOUSE_PRESSED || (event?.button === MAIN_MOUSE_PRESSED && event.ctrlKey)) &&
-      selectRangeMap.value[`${row}-${col}`]
+      (event?.button !== MAIN_MOUSE_PRESSED || (event?.button === MAIN_MOUSE_PRESSED && event.ctrlKey))
+      && selectRangeMap.value[`${row}-${col}`]
     ) {
       return
     }
@@ -436,7 +441,7 @@ export function useMultiSelect(
     cpCols: (ColumnType & {
       extra?: any | never
     })[]
-    rowToPaste: { start: number; end: number }
+    rowToPaste: { start: number, end: number }
     data: Row[]
   }) => {
     if (rawMatrix.length === 0) return
@@ -445,7 +450,7 @@ export function useMultiSelect(
     const rawMatrixFromDirection = direction === -1 ? rawMatrix.reverse() : rawMatrix
     // we transform from rows to cols based
     const rawMatrixTransposed = rawMatrixFromDirection[0]!.map((_, colIndex) =>
-      rawMatrixFromDirection.map((row) => row[colIndex]),
+      rawMatrixFromDirection.map(row => row[colIndex]),
     )
     const fillValuesByCols: any[][] = []
     const numberOfRows = Math.abs(rowToPaste.end - rowToPaste.start) + 1
@@ -504,7 +509,7 @@ export function useMultiSelect(
     // If not in AI fill mode, perform a regular bulk update
     await bulkUpdateRows?.(
       rowsToPaste,
-      cpCols.map((k) => k.title!),
+      cpCols.map(k => k.title!),
     )
   }
 
@@ -527,7 +532,8 @@ export function useMultiSelect(
 
           if (isArrayStructure) {
             cprows = (unref(data) as Row[]).slice(selectedRange.start.row, selectedRange.end.row + 1)
-          } else {
+          }
+          else {
             cprows = Array.from(unref(data) as Map<number, Row>)
               .filter(([index]) => index >= selectedRange.start.row && index <= selectedRange.end.row)
               .map(([, row]) => row)
@@ -560,8 +566,8 @@ export function useMultiSelect(
             const dataArray: Row[] = isArrayStructure
               ? (unref(data) as Row[])
               : unref(data) instanceof Map
-              ? Array.from(unref(data) as Map<number, Row>, ([_name, value]) => value)
-              : (unref(data) as Row[])
+                ? Array.from(unref(data) as Map<number, Row>, ([_name, value]) => value)
+                : (unref(data) as Row[])
             return v2HandleFillValue({
               data: dataArray,
               rawMatrix,
@@ -613,12 +619,12 @@ export function useMultiSelect(
 
               // if the column is added only for the fill operation, don't paste the value
               if (
-                selectedRange._start &&
-                selectedRange._end &&
-                selectedRange._start.col <= col &&
-                col <= selectedRange._end.col
+                selectedRange._start
+                && selectedRange._end
+                && selectedRange._start.col <= col
+                && col <= selectedRange._end.col
               ) {
-                if (cpcols.findIndex((c) => c.id === colObj.id) === -1) {
+                if (cpcols.findIndex(c => c.id === colObj.id) === -1) {
                   if (!propsToFill.includes(colObj.title!)) propsToPaste.push(colObj.title!)
                 }
 
@@ -644,7 +650,8 @@ export function useMultiSelect(
                     isMysql(meta.value?.source_id),
                     true,
                   )
-                } catch (ex) {
+                }
+                catch (ex) {
                   if (ex instanceof ComputedTypePasteError) {
                     throw ex
                   }
@@ -655,16 +662,17 @@ export function useMultiSelect(
                 if (pasteValue !== undefined) {
                   if (!localAiMode) rowObj.row[colObj.title!] = pasteValue
                 }
-              } else {
+              }
+              else {
                 if (localAiMode) {
                   propsToFill.push(colObj.title!)
 
                   // add rows to fill if they are not already in the list
                   if (
                     !rowsToFill.find(
-                      (r) =>
-                        extractPkFromRow(r.row, meta.value?.columns as ColumnType[]) ===
-                        extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]),
+                      r =>
+                        extractPkFromRow(r.row, meta.value?.columns as ColumnType[])
+                        === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]),
                     )
                   ) {
                     rowsToFill.push(rowObj)
@@ -677,7 +685,8 @@ export function useMultiSelect(
 
             if (fillDirection === 1) {
               fillIndex = fillIndex < rawMatrix.length - 1 ? fillIndex + 1 : 0
-            } else {
+            }
+            else {
               fillIndex = fillIndex >= 1 ? fillIndex - 1 : rawMatrix.length - 1
             }
           }
@@ -700,42 +709,48 @@ export function useMultiSelect(
             })
 
             // string[] of Ids of rows to paste
-            const generateIds = rowsToPaste.map((row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]))
+            const generateIds = rowsToPaste.map(row => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]))
 
-            $api.ai
-              .dataFill(meta.value?.id, {
+            fillRows(
+              meta.value?.id as string,
+              {
                 rows: sampleRows,
                 generateIds,
                 numRows: generateIds.length,
-              })
-              .then((r: Record<string, any>[]) => {
-                if (fillRange._start === null || fillRange._end === null) return
-                // update cells with the generated data
+              },
+              {
+                workspaceId: (meta.value as any)?.fk_workspace_id ?? base.value!.fk_workspace_id!,
+                baseId: meta.value!.base_id!,
+              },
+            ).then((r?: Record<string, any>[]) => {
+              if (!r) return
+              if (fillRange._start === null || fillRange._end === null) return
+              // update cells with the generated data
 
-                for (const row of rowsToPaste.concat(rowsToFill)) {
-                  const generatedRow = r.find(
-                    (genRow) =>
-                      extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) ===
-                      extractPkFromRow(genRow, meta.value?.columns as ColumnType[]),
-                  )
+              for (const row of rowsToPaste.concat(rowsToFill)) {
+                const generatedRow = r.find(
+                  genRow =>
+                    extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                    === extractPkFromRow(genRow, meta.value?.columns as ColumnType[]),
+                )
 
-                  if (!generatedRow) {
-                    continue
-                  }
-
-                  for (const prop of propsToPaste.concat(propsToFill)) {
-                    row.row[prop] = generatedRow[prop]
-                  }
+                if (!generatedRow) {
+                  continue
                 }
 
-                bulkUpdateRows?.(rowsToPaste.concat(rowsToFill), propsToPaste.concat(propsToFill)).then(() => {
-                  if (fillRange._start === null || fillRange._end === null) return
-                  selectedRange.startRange(tempActiveCell)
-                  selectedRange.endRange(fillRange._end)
-                  makeActive(tempActiveCell.row, tempActiveCell.col)
-                  fillRange.clear()
-                })
+                for (const prop of propsToPaste.concat(propsToFill)) {
+                  row.row[prop] = generatedRow[prop]
+                }
+              }
+
+              bulkUpdateRows?.(rowsToPaste.concat(rowsToFill), propsToPaste.concat(propsToFill)).then(() => {
+                if (fillRange._start === null || fillRange._end === null) return
+                selectedRange.startRange(tempActiveCell)
+                selectedRange.endRange(fillRange._end)
+                makeActive(tempActiveCell.row, tempActiveCell.col)
+                fillRange.clear()
               })
+            })
             return
           }
 
@@ -746,11 +761,13 @@ export function useMultiSelect(
             makeActive(tempActiveCell.row, tempActiveCell.col)
             fillRange.clear()
           })
-        } else {
+        }
+        else {
           fillRange.clear()
         }
         return
-      } catch (error) {
+      }
+      catch (error) {
         if (error instanceof TypeConversionError !== true || !(error as SuppressedError).isErrorSuppressed) {
           console.error(error, (error as SuppressedError).isErrorSuppressed)
           message.error(error?.message || 'Something went wrong')
@@ -784,16 +801,19 @@ export function useMultiSelect(
           if (activeCell.col > 0) {
             activeCell.col--
             editEnabled.value = false
-          } else if (activeCell.row > 0) {
+          }
+          else if (activeCell.row > 0) {
             activeCell.row--
             activeCell.col = unref(columnLength.value) - 1
             editEnabled.value = false
           }
-        } else {
+        }
+        else {
           if (activeCell.col < unref(columnLength.value) - 1) {
             activeCell.col++
             editEnabled.value = false
-          } else if (activeCell.row < (isArrayStructure ? (unref(data) as Row[]).length : unref(_totalRows!)) - 1) {
+          }
+          else if (activeCell.row < (isArrayStructure ? (unref(data) as Row[]).length : unref(_totalRows!)) - 1) {
             activeCell.row++
             activeCell.col = 0
             editEnabled.value = false
@@ -810,7 +830,8 @@ export function useMultiSelect(
               col: unref(columnLength.value) - 1,
             })
             scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
-          } else if ((selectedRange._end?.col ?? activeCell.col) < unref(columnLength.value) - 1) {
+          }
+          else if ((selectedRange._end?.col ?? activeCell.col) < unref(columnLength.value) - 1) {
             editEnabled.value = false
             selectedRange.endRange({
               row: selectedRange._end?.row ?? activeCell.row,
@@ -818,7 +839,8 @@ export function useMultiSelect(
             })
             scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
           }
-        } else {
+        }
+        else {
           selectedRange.clear()
 
           if (activeCell.col < unref(columnLength.value) - 1) {
@@ -838,7 +860,8 @@ export function useMultiSelect(
               col: 0,
             })
             scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
-          } else if ((selectedRange._end?.col ?? activeCell.col) > 0) {
+          }
+          else if ((selectedRange._end?.col ?? activeCell.col) > 0) {
             editEnabled.value = false
             selectedRange.endRange({
               row: selectedRange._end?.row ?? activeCell.row,
@@ -846,7 +869,8 @@ export function useMultiSelect(
             })
             scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
           }
-        } else {
+        }
+        else {
           selectedRange.clear()
 
           if (activeCell.col > 0) {
@@ -864,7 +888,8 @@ export function useMultiSelect(
 
           if (cmdOrCtrl) {
             newEnd = { row: 0, col: selectedRange._end?.col ?? activeCell.col }
-          } else {
+          }
+          else {
             newEnd = {
               row: (selectedRange._end?.row ?? activeCell.row) - 1,
               col: selectedRange._end?.col ?? activeCell.col,
@@ -875,7 +900,8 @@ export function useMultiSelect(
           editEnabled.value = false
           selectedRange.endRange(limitedEnd)
           scrollToCell?.(limitedEnd.row, limitedEnd.col, 'instant')
-        } else {
+        }
+        else {
           selectedRange.clear()
 
           if (activeCell.row > 0) {
@@ -897,7 +923,8 @@ export function useMultiSelect(
               row: (isArrayStructure ? (unref(data) as Row[]).length : unref(_totalRows!)) - 1,
               col: selectedRange._end?.col ?? activeCell.col,
             }
-          } else {
+          }
+          else {
             newEnd = {
               row: (selectedRange._end?.row ?? activeCell.row) + 1,
               col: selectedRange._end?.col ?? activeCell.col,
@@ -908,7 +935,8 @@ export function useMultiSelect(
           editEnabled.value = false
           selectedRange.endRange(limitedEnd)
           scrollToCell?.(limitedEnd.row, limitedEnd.col, 'instant')
-        } else {
+        }
+        else {
           selectedRange.clear()
 
           if (activeCell.row < (isArrayStructure ? (unref(data) as Row[]).length : unref(_totalRows!))) {
@@ -929,7 +957,8 @@ export function useMultiSelect(
 
         if (isArrayStructure) {
           row = (unref(data) as Row[])[activeCell.row]
-        } else {
+        }
+        else {
           row = (unref(data) as Map<number, Row>).get(activeCell.row)
         }
 
@@ -944,8 +973,9 @@ export function useMultiSelect(
         if (selectedRange.isSingleCell()) {
           selectedRange.clear()
 
-          await clearCell(activeCell as { row: number; col: number })
-        } else {
+          await clearCell(activeCell as { row: number, col: number })
+        }
+        else {
           await clearSelectedRangeOfCells()
         }
         break
@@ -990,9 +1020,9 @@ export function useMultiSelect(
           const columnObj = unref(fields)[activeCell.col]
 
           if (
-            (!unref(editEnabled) || !isTypableInputColumn(columnObj)) &&
-            !isDrawerOrModalExist() &&
-            (isMac() ? e.metaKey : e.ctrlKey)
+            (!unref(editEnabled) || !isTypableInputColumn(columnObj))
+            && !isDrawerOrModalExist()
+            && (isMac() ? e.metaKey : e.ctrlKey)
           ) {
             switch (e.keyCode) {
               // copy - ctrl/cmd +c
@@ -1023,10 +1053,12 @@ export function useMultiSelect(
               if (columnObj.uidt === UITypes.LongText) {
                 if (rowObj.row[columnObj.title] === '<br />' || rowObj.row[columnObj.title] === '<br>') {
                   rowObj.row[columnObj.title] = e.key
-                } else if (parseProp(columnObj.meta).richMode) {
+                }
+                else if (parseProp(columnObj.meta).richMode) {
                   rowObj.row[columnObj.title] = rowObj.row[columnObj.title] ? rowObj.row[columnObj.title] + e.key : e.key
                 }
-              } else {
+              }
+              else {
                 rowObj.row[columnObj.title] = ''
               }
             }
@@ -1095,7 +1127,7 @@ export function useMultiSelect(
 
         // Special handling for "null" values - convert literal "null" strings to empty strings
         // This ensures that empty cells from numeric fields don't appear as "null" text
-        clipboardMatrix = clipboardMatrix.map((row) => row.map((cell) => (cell === 'null' ? '' : cell)))
+        clipboardMatrix = clipboardMatrix.map(row => row.map(cell => (cell === 'null' ? '' : cell)))
 
         const selectionRowCount = Math.max(clipboardMatrix.length, selectedRange.end.row - selectedRange.start.row + 1)
 
@@ -1116,14 +1148,16 @@ export function useMultiSelect(
           if (isInfiniteScroll) {
             tempTotalRows = _tempTr as number
             totalRowsBeforeActiveCell = (page - 1) * pageSize + activeCell.row
-          } else {
+          }
+          else {
             tempTotalRows = Math.max(0, (_tempTr ?? 0) - (page - 1) * pageSize)
             totalRowsBeforeActiveCell = activeCell.row
           }
 
           availableRowsToUpdate = Math.max(0, tempTotalRows - totalRowsBeforeActiveCell)
           rowsToAdd = Math.max(0, selectionRowCount - availableRowsToUpdate)
-        } else {
+        }
+        else {
           tempTotalRows = (unref(_totalRows) as number) ?? 0
           totalRowsBeforeActiveCell = activeCell.row
           availableRowsToUpdate = Math.max(0, tempTotalRows - totalRowsBeforeActiveCell)
@@ -1206,7 +1240,8 @@ export function useMultiSelect(
             colsToPaste = [...colsToPaste, ...bulkOpsCols.map(({ column }) => column)]
           }
           // #endregion handle expanded newline paste
-        } else {
+        }
+        else {
           colsToPaste = unref(fields).slice(activeCell.col, activeCell.col + pasteMatrixCols)
         }
 
@@ -1226,8 +1261,8 @@ export function useMultiSelect(
           if (i < availableRowsToUpdate) {
             const absoluteRowIndex = totalRowsBeforeActiveCell + i
             if (isArrayStructure) {
-              targetRow =
-                i < (dataRef as Row[]).length
+              targetRow
+                = i < (dataRef as Row[]).length
                   ? (dataRef as Row[])[absoluteRowIndex]
                   : {
                       row: {},
@@ -1237,7 +1272,8 @@ export function useMultiSelect(
                         rowIndex: absoluteRowIndex,
                       },
                     }
-            } else {
+            }
+            else {
               targetRow = (dataRef as Map<number, Row>).get(absoluteRowIndex) || {
                 row: {},
                 oldRow: {},
@@ -1248,7 +1284,8 @@ export function useMultiSelect(
               }
             }
             updatedRows.push(targetRow)
-          } else {
+          }
+          else {
             targetRow = {
               row: {},
               oldRow: {},
@@ -1285,25 +1322,32 @@ export function useMultiSelect(
                   true,
                 )
                 validateColumnValue(column, pasteValue)
-              } catch (ex) {
+              }
+              catch (ex) {
                 if (ex instanceof ComputedTypePasteError) {
                   throw ex
-                } else if (ex instanceof SelectTypeConversionError) {
+                }
+                else if (ex instanceof SelectTypeConversionError) {
                   await appendSelectOptions({
                     api: $api,
                     col: column!,
                     addOptions: ex.missingOptions,
                   })
                   pasteValue = ex.value.join(',')
-                } else if (ex instanceof TypeConversionError) {
+                }
+                else if (ex instanceof TypeConversionError) {
                   pasteValue = null
-                } else throw ex
+                }
+                else {
+                  throw ex
+                }
               }
 
               if (pasteValue !== undefined) {
                 targetRow.row[column.title!] = pasteValue
               }
-            } else if ((isBt(column) || isOo(column) || isMm(column)) && !isInfoShown) {
+            }
+            else if ((isBt(column) || isOo(column) || isMm(column)) && !isInfoShown) {
               message.toast(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
               isInfoShown = true
             }
@@ -1319,11 +1363,13 @@ export function useMultiSelect(
             bulkOpsCols.map(({ column }) => column),
           )
           scrollToCell?.()
-        } else {
+        }
+        else {
           await bulkUpdateRows?.(updatedRows, propsToPaste)
         }
         // #endregion handle tabbed newline data
-      } else {
+      }
+      else {
         if (selectedRange.isSingleCell()) {
           // #region handle single cell paste
           const rowObj = isArrayStructure
@@ -1421,7 +1467,8 @@ export function useMultiSelect(
                   },
                 ],
               )
-            } catch {
+            }
+            catch {
               rowObj.row[columnObj.title!] = oldCellValue
               return
             }
@@ -1441,7 +1488,7 @@ export function useMultiSelect(
                       row: Row,
                       pg: PaginatedType,
                       value: number,
-                      result: { link: any[]; unlink: any[] },
+                      result: { link: any[], unlink: any[] },
                     ) => {
                       if (paginationDataRef.value?.pageSize === pg?.pageSize) {
                         if (paginationDataRef.value?.page !== pg?.page) {
@@ -1451,45 +1498,47 @@ export function useMultiSelect(
                         const rowObj = (unref(data) as Row[])[activeCell.row]
                         const columnObj = unref(fields)[activeCell.col]
                         if (
-                          pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
-                          columnObj.id === col.id
+                          pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
+                          && columnObj.id === col.id
                         ) {
                           await Promise.all([
-                            result.link.length &&
-                              api.internal.postOperation(
-                                meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
-                                meta.value?.base_id ?? base.value.id,
-                                {
-                                  operation: 'nestedDataLink',
-                                  tableId: meta.value?.id as string,
-                                  columnId: columnObj.id as string,
-                                  rowId: encodeURIComponent(pasteRowPk),
-                                  viewId: activeView?.value?.id,
-                                },
-                                result.link,
-                              ),
-                            result.unlink.length &&
-                              api.internal.postOperation(
-                                meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
-                                meta.value?.base_id ?? base.value.id,
-                                {
-                                  operation: 'nestedDataUnlink',
-                                  tableId: meta.value?.id as string,
-                                  columnId: columnObj.id as string,
-                                  rowId: encodeURIComponent(pasteRowPk),
-                                  viewId: activeView?.value?.id,
-                                },
-                                result.unlink,
-                              ),
+                            result.link.length
+                            && api.internal.postOperation(
+                              meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+                              meta.value?.base_id ?? base.value.id,
+                              {
+                                operation: 'nestedDataLink',
+                                tableId: meta.value?.id as string,
+                                columnId: columnObj.id as string,
+                                rowId: encodeURIComponent(pasteRowPk),
+                                viewId: activeView?.value?.id,
+                              },
+                              result.link,
+                            ),
+                            result.unlink.length
+                            && api.internal.postOperation(
+                              meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+                              meta.value?.base_id ?? base.value.id,
+                              {
+                                operation: 'nestedDataUnlink',
+                                tableId: meta.value?.id as string,
+                                columnId: columnObj.id as string,
+                                rowId: encodeURIComponent(pasteRowPk),
+                                viewId: activeView?.value?.id,
+                              },
+                              result.unlink,
+                            ),
                           ])
 
                           rowObj.row[columnObj.title!] = value
 
                           await syncCellData?.(activeCell)
-                        } else {
+                        }
+                        else {
                           throw new Error(t('msg.recordCouldNotBeFound'))
                         }
-                      } else {
+                      }
+                      else {
                         throw new Error(t('msg.pageSizeChanged'))
                       }
                     },
@@ -1509,7 +1558,7 @@ export function useMultiSelect(
                       row: Row,
                       pg: PaginatedType,
                       value: number,
-                      result: { link: any[]; unlink: any[] },
+                      result: { link: any[], unlink: any[] },
                     ) => {
                       if (paginationDataRef.value?.pageSize === pg.pageSize) {
                         if (paginationDataRef.value?.page !== pg.page) {
@@ -1521,43 +1570,45 @@ export function useMultiSelect(
                         const columnObj = unref(fields)[activeCell.col]
 
                         if (
-                          pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
-                          columnObj.id === col.id
+                          pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
+                          && columnObj.id === col.id
                         ) {
                           await Promise.all([
-                            result.unlink.length &&
-                              api.internal.postOperation(
-                                meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
-                                meta.value?.base_id ?? base.value.id,
-                                {
-                                  operation: 'nestedDataLink',
-                                  tableId: meta.value?.id as string,
-                                  columnId: columnObj.id as string,
-                                  rowId: encodeURIComponent(pasteRowPk),
-                                },
-                                result.unlink,
-                              ),
-                            result.link.length &&
-                              api.internal.postOperation(
-                                meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
-                                meta.value?.base_id ?? base.value.id,
-                                {
-                                  operation: 'nestedDataUnlink',
-                                  tableId: meta.value?.id as string,
-                                  columnId: columnObj.id as string,
-                                  rowId: encodeURIComponent(pasteRowPk),
-                                },
-                                result.link,
-                              ),
+                            result.unlink.length
+                            && api.internal.postOperation(
+                              meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+                              meta.value?.base_id ?? base.value.id,
+                              {
+                                operation: 'nestedDataLink',
+                                tableId: meta.value?.id as string,
+                                columnId: columnObj.id as string,
+                                rowId: encodeURIComponent(pasteRowPk),
+                              },
+                              result.unlink,
+                            ),
+                            result.link.length
+                            && api.internal.postOperation(
+                              meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+                              meta.value?.base_id ?? base.value.id,
+                              {
+                                operation: 'nestedDataUnlink',
+                                tableId: meta.value?.id as string,
+                                columnId: columnObj.id as string,
+                                rowId: encodeURIComponent(pasteRowPk),
+                              },
+                              result.link,
+                            ),
                           ])
 
                           rowObj.row[columnObj.title!] = value
 
                           await syncCellData?.(activeCell)
-                        } else {
+                        }
+                        else {
                           throw new Error(t('msg.recordCouldNotBeFound'))
                         }
-                      } else {
+                      }
+                      else {
                         throw new Error(t('msg.pageSizeChanged'))
                       }
                     },
@@ -1572,7 +1623,8 @@ export function useMultiSelect(
                   },
                   scope: defineViewScope({ view: activeView?.value }),
                 })
-              } else {
+              }
+              else {
                 addUndo({
                   redo: {
                     fn: async (
@@ -1580,43 +1632,43 @@ export function useMultiSelect(
                       col: ColumnType,
                       row: Row,
                       value: number,
-                      result: { link: any[]; unlink: any[] },
+                      result: { link: any[], unlink: any[] },
                     ) => {
                       const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
                       const rowObj = (unref(data) as Map<number, Row>).get(activeCell.row)
                       if (!rowObj) return
                       const columnObj = unref(fields)[activeCell.col]
                       if (
-                        pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
-                        columnObj.id === col.id
+                        pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
+                        && columnObj.id === col.id
                       ) {
                         await Promise.all([
-                          result.link.length &&
-                            api.internal.postOperation(
-                              meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
-                              meta.value?.base_id ?? base.value.id,
-                              {
-                                operation: 'nestedDataLink',
-                                tableId: meta.value?.id as string,
-                                columnId: columnObj.id as string,
-                                rowId: encodeURIComponent(pasteRowPk),
-                                viewId: activeView?.value?.id,
-                              },
-                              result.link,
-                            ),
-                          result.unlink.length &&
-                            api.internal.postOperation(
-                              meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
-                              meta.value?.base_id ?? base.value.id,
-                              {
-                                operation: 'nestedDataUnlink',
-                                tableId: meta.value?.id as string,
-                                columnId: columnObj.id as string,
-                                rowId: encodeURIComponent(pasteRowPk),
-                                viewId: activeView?.value?.id,
-                              },
-                              result.unlink,
-                            ),
+                          result.link.length
+                          && api.internal.postOperation(
+                            meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+                            meta.value?.base_id ?? base.value.id,
+                            {
+                              operation: 'nestedDataLink',
+                              tableId: meta.value?.id as string,
+                              columnId: columnObj.id as string,
+                              rowId: encodeURIComponent(pasteRowPk),
+                              viewId: activeView?.value?.id,
+                            },
+                            result.link,
+                          ),
+                          result.unlink.length
+                          && api.internal.postOperation(
+                            meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+                            meta.value?.base_id ?? base.value.id,
+                            {
+                              operation: 'nestedDataUnlink',
+                              tableId: meta.value?.id as string,
+                              columnId: columnObj.id as string,
+                              rowId: encodeURIComponent(pasteRowPk),
+                              viewId: activeView?.value?.id,
+                            },
+                            result.unlink,
+                          ),
                         ])
 
                         rowObj.row[columnObj.title!] = value
@@ -1632,7 +1684,7 @@ export function useMultiSelect(
                       col: ColumnType,
                       row: Row,
                       value: number,
-                      result: { link: any[]; unlink: any[] },
+                      result: { link: any[], unlink: any[] },
                     ) => {
                       const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
                       const rowObj = (unref(data) as Map<number, Row>).get(activeCell.row)
@@ -1640,34 +1692,34 @@ export function useMultiSelect(
                       const columnObj = unref(fields)[activeCell.col]
 
                       if (
-                        pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
-                        columnObj.id === col.id
+                        pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
+                        && columnObj.id === col.id
                       ) {
                         await Promise.all([
-                          result.unlink.length &&
-                            api.internal.postOperation(
-                              meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
-                              meta.value?.base_id ?? base.value.id,
-                              {
-                                operation: 'nestedDataLink',
-                                tableId: meta.value?.id as string,
-                                columnId: columnObj.id as string,
-                                rowId: encodeURIComponent(pasteRowPk),
-                              },
-                              result.unlink,
-                            ),
-                          result.link.length &&
-                            api.internal.postOperation(
-                              meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
-                              meta.value?.base_id ?? base.value.id,
-                              {
-                                operation: 'nestedDataUnlink',
-                                tableId: meta.value?.id as string,
-                                columnId: columnObj.id as string,
-                                rowId: encodeURIComponent(pasteRowPk),
-                              },
-                              result.link,
-                            ),
+                          result.unlink.length
+                          && api.internal.postOperation(
+                            meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+                            meta.value?.base_id ?? base.value.id,
+                            {
+                              operation: 'nestedDataLink',
+                              tableId: meta.value?.id as string,
+                              columnId: columnObj.id as string,
+                              rowId: encodeURIComponent(pasteRowPk),
+                            },
+                            result.unlink,
+                          ),
+                          result.link.length
+                          && api.internal.postOperation(
+                            meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+                            meta.value?.base_id ?? base.value.id,
+                            {
+                              operation: 'nestedDataUnlink',
+                              tableId: meta.value?.id as string,
+                              columnId: columnObj.id as string,
+                              rowId: encodeURIComponent(pasteRowPk),
+                            },
+                            result.link,
+                          ),
                         ])
 
                         rowObj.row[columnObj.title!] = value
@@ -1707,35 +1759,43 @@ export function useMultiSelect(
               isMysql(meta.value?.source_id),
             )
             validateColumnValue(columnObj, pasteValue)
-          } catch (ex) {
+          }
+          catch (ex) {
             if (ex instanceof ComputedTypePasteError) {
               throw ex
-            } else if (ex instanceof SelectTypeConversionError) {
+            }
+            else if (ex instanceof SelectTypeConversionError) {
               await appendSelectOptions({
                 api: $api,
                 col: columnObj!,
                 addOptions: ex.missingOptions,
               })
               pasteValue = ex.value.join(',')
-            } else if (ex instanceof TypeConversionError) {
+            }
+            else if (ex instanceof TypeConversionError) {
               pasteValue = null
-            } else throw ex
+            }
+            else {
+              throw ex
+            }
           }
           if (columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length && pasteValue?.length) {
-            const newAttachments =
-              (await handleFileUploadAndGetCellValue(pasteValue, columnObj.id!, rowObj.row[columnObj.title!])) || []
+            const newAttachments
+              = (await handleFileUploadAndGetCellValue(pasteValue, columnObj.id!, rowObj.row[columnObj.title!])) || []
 
             const oldAttachments = ncIsArray(rowObj.row[columnObj.title!]) ? rowObj.row[columnObj.title!] : []
 
-            rowObj.row[columnObj.title!] =
-              newAttachments.length || oldAttachments.length ? JSON.stringify(oldAttachments.concat(newAttachments)) : null
-          } else if (pasteValue !== undefined) {
+            rowObj.row[columnObj.title!]
+              = newAttachments.length || oldAttachments.length ? JSON.stringify(oldAttachments.concat(newAttachments)) : null
+          }
+          else if (pasteValue !== undefined) {
             rowObj.row[columnObj.title!] = pasteValue
           }
 
           await syncCellData?.(activeCell)
           // #endregion handle single cell paste
-        } else {
+        }
+        else {
           // #region handle multi cell paste
           const start = selectedRange.start
           const end = selectedRange.end
@@ -1750,7 +1810,8 @@ export function useMultiSelect(
 
           if (isArrayStructure) {
             rows = (unref(data) as Row[]).slice(startRow, endRow + 1)
-          } else {
+          }
+          else {
             rows = Array.from(unref(data) as Map<number, Row>)
               .filter(([index]) => index >= startRow && index <= endRow)
               .map(([, row]) => row)
@@ -1809,7 +1870,8 @@ export function useMultiSelect(
                     pasteValue = newAttachments ? JSON.stringify(newAttachments) : null
                   }
                 }
-              } else {
+              }
+              else {
                 try {
                   pasteValue = convertCellData(
                     {
@@ -1830,19 +1892,25 @@ export function useMultiSelect(
                     true,
                   )
                   validateColumnValue(col, pasteValue)
-                } catch (ex) {
+                }
+                catch (ex) {
                   if (ex instanceof ComputedTypePasteError) {
                     throw ex
-                  } else if (ex instanceof SelectTypeConversionError) {
+                  }
+                  else if (ex instanceof SelectTypeConversionError) {
                     await appendSelectOptions({
                       api: $api,
                       col,
                       addOptions: ex.missingOptions,
                     })
                     pasteValue = ex.value.join(',')
-                  } else if (ex instanceof TypeConversionError) {
+                  }
+                  else if (ex instanceof TypeConversionError) {
                     pasteValue = null
-                  } else throw ex
+                  }
+                  else {
+                    throw ex
+                  }
                 }
               }
 
@@ -1859,15 +1927,17 @@ export function useMultiSelect(
           // #endregion handle multi cell paste
         }
       }
-    } catch (error: any) {
+    }
+    catch (error: any) {
       if (error instanceof TypeConversionError !== true || !(error as SuppressedError).isErrorSuppressed) {
         console.error(error, (error as SuppressedError).isErrorSuppressed)
         message.error(await extractSdkResponseErrorMsg(error))
       }
-    } finally {
+    }
+    finally {
       // After paste operation is completed, remove the waiting clipboard data id so that on setClipboardDateItem can remove the item from the clipboard data
       if (storedCopiedData && waitingCellClipboardDataIds.value.includes(storedCopiedData.id)) {
-        waitingCellClipboardDataIds.value = waitingCellClipboardDataIds.value.filter((id) => id !== storedCopiedData.id)
+        waitingCellClipboardDataIds.value = waitingCellClipboardDataIds.value.filter(id => id !== storedCopiedData.id)
       }
     }
   }
@@ -1902,13 +1972,14 @@ export function useMultiSelect(
           ...uploadedFile,
           title: populateUniqueFileName(
             uploadedFile?.title,
-            [...handleParseAttachmentCellData(oldValue), ...newAttachments].map((fn) => fn?.title || fn?.fileName),
+            [...handleParseAttachmentCellData(oldValue), ...newAttachments].map(fn => fn?.title || fn?.fileName),
             uploadedFile?.mimetype,
           ),
         })
       }
       return newAttachments
-    } catch (e: any) {
+    }
+    catch (e: any) {
       message.error((await extractSdkResponseErrorMsg(e)) || t('msg.error.internalError'))
     }
   }
@@ -1918,7 +1989,8 @@ export function useMultiSelect(
 
     if (parsedVal && Array.isArray(parsedVal)) {
       return parsedVal as T
-    } else {
+    }
+    else {
       return [] as T
     }
   }

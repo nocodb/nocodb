@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ButtonActionsType, type ButtonType, type ColumnType, type FilterType } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, FilterType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { ButtonActionsType } from 'nocodb-sdk'
 import { validateRowFilters } from '~/utils/dataUtils'
 
 const column = inject(ColumnInj) as Ref<
@@ -16,6 +17,8 @@ const { currentRow, displayValue, changedColumns } = useSmartsheetRowStoreOrThro
 const { generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
 
 const { appInfo } = useGlobal()
+
+const { getColor } = useTheme()
 
 const meta = inject(MetaInj, ref())
 
@@ -60,16 +63,16 @@ const isFieldAiIntegrationAvailable = computed(() => {
   return !!fkIntegrationId
 })
 
-const generate = async () => {
+async function generate() {
   if (!meta?.value?.id || !meta.value.columns || !column?.value?.id) return
 
   if (!pk.value) return
 
-  const outputColumnIds =
-    ncIsString(column.value.colOptions?.output_column_ids) && column.value.colOptions.output_column_ids.split(',').length > 0
+  const outputColumnIds
+    = ncIsString(column.value.colOptions?.output_column_ids) && column.value.colOptions.output_column_ids.split(',').length > 0
       ? column.value.colOptions.output_column_ids.split(',')
       : []
-  const outputColumns = outputColumnIds.map((id) => meta.value?.columnsById[id])
+  const outputColumns = outputColumnIds.map(id => meta.value?.columnsById[id])
 
   generatingRows.value.push(pk.value)
   generatingColumnRows.value.push(column.value.id)
@@ -93,17 +96,17 @@ const generate = async () => {
     }
   }
 
-  generatingRows.value = generatingRows.value.filter((v) => v !== pk.value)
-  generatingColumnRows.value = generatingColumnRows.value.filter((v) => v !== column.value.id)
-  generatingColumns.value = generatingColumns.value.filter((v) => !outputColumnIds?.includes(v))
+  generatingRows.value = generatingRows.value.filter(v => v !== pk.value)
+  generatingColumnRows.value = generatingColumnRows.value.filter(v => v !== column.value.id)
+  generatingColumns.value = generatingColumns.value.filter(v => !outputColumnIds?.includes(v))
 }
 
 const isExecutingId = ref('')
 
 const isExecuting = computed(
   () =>
-    activeExecutions.value.get(isExecutingId.value)?.status === 'running' ||
-    fieldIDRowMapping.value.get(`${pk.value}:${column.value.id}`) === 'running',
+    activeExecutions.value.get(isExecutingId.value)?.status === 'running'
+    || fieldIDRowMapping.value.get(`${pk.value}:${column.value.id}`) === 'running',
 )
 
 const invalidUrlTooltip = ref('')
@@ -142,7 +145,8 @@ const componentProps = computed(() => {
     // if url params not encoded, encode them using encodeURI
     try {
       url = decodeURI(url) === url ? encodeURI(url) : url
-    } catch {
+    }
+    catch {
       url = encodeURI(url)
     }
 
@@ -155,32 +159,35 @@ const componentProps = computed(() => {
       target: '_blank',
       ...(column.value?.colOptions.error || !isValidUrl || filterDisabled ? { disabled: true } : {}),
     }
-  } else if (column.value.colOptions.type === ButtonActionsType.Webhook) {
+  }
+  else if (column.value.colOptions.type === ButtonActionsType.Webhook) {
     return {
       disabled:
-        filterDisabled ||
-        isPublic.value ||
-        !isUIAllowed('hookTrigger') ||
-        isLoading.value ||
-        !column.value.colOptions.fk_webhook_id ||
-        !cellValue.value?.fk_webhook_id,
+        filterDisabled
+        || isPublic.value
+        || !isUIAllowed('hookTrigger')
+        || isLoading.value
+        || !column.value.colOptions.fk_webhook_id
+        || !cellValue.value?.fk_webhook_id,
     }
-  } else if (column.value.colOptions.type === ButtonActionsType.Script) {
+  }
+  else if (column.value.colOptions.type === ButtonActionsType.Script) {
     return {
       disabled: filterDisabled || isPublic.value || isExecuting.value || !isUIAllowed('dataEdit') || isLoading.value,
     }
-  } else if (column.value.colOptions.type === ButtonActionsType.Ai) {
+  }
+  else if (column.value.colOptions.type === ButtonActionsType.Ai) {
     return {
       disabled:
-        filterDisabled ||
-        isPublic.value ||
-        !isUIAllowed('dataEdit') ||
-        !isFieldAiIntegrationAvailable.value ||
-        isLoading.value ||
-        (pk.value &&
-          generatingRows.value.includes(pk.value) &&
-          column.value?.id &&
-          generatingColumnRows.value.includes(column.value.id)),
+        filterDisabled
+        || isPublic.value
+        || !isUIAllowed('dataEdit')
+        || !isFieldAiIntegrationAvailable.value
+        || isLoading.value
+        || (pk.value
+          && generatingRows.value.includes(pk.value)
+          && column.value?.id
+          && generatingColumnRows.value.includes(column.value.id)),
     }
   }
 
@@ -194,12 +201,16 @@ const componentProps = computed(() => {
   return filterDisabled ? { disabled: true } : {}
 })
 
+const buttonColors = computed(() => {
+  return getButtonColorsCssVariables(column.value.colOptions.theme ?? 'solid', column.value.colOptions.color ?? 'brand', getColor)
+})
+
 const afterActionStatus = ref<{
   status: 'success' | 'error'
   tooltip?: string
 } | null>(null)
 
-const triggerAction = async () => {
+async function triggerAction() {
   const colOptions = column.value.colOptions
   afterActionStatus.value = null
 
@@ -207,7 +218,8 @@ const triggerAction = async () => {
 
   if (colOptions.type === ButtonActionsType.Url) {
     confirmPageLeavingRedirect(componentProps.value?.href, componentProps.value?.target, appInfo.value?.allowLocalUrl)
-  } else if (colOptions.type === ButtonActionsType.Webhook) {
+  }
+  else if (colOptions.type === ButtonActionsType.Webhook) {
     try {
       isLoading.value = true
 
@@ -226,7 +238,8 @@ const triggerAction = async () => {
       ncDelay(2000).then(() => {
         afterActionStatus.value = null
       })
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.log(e)
 
       const errorMsg = await extractSdkResponseErrorMsg(e)
@@ -236,12 +249,15 @@ const triggerAction = async () => {
       ncDelay(3000).then(() => {
         afterActionStatus.value = null
       })
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
-  } else if (colOptions.type === ButtonActionsType.Ai) {
+  }
+  else if (colOptions.type === ButtonActionsType.Ai) {
     await generate()
-  } else if (colOptions.type === ButtonActionsType.Script) {
+  }
+  else if (colOptions.type === ButtonActionsType.Script) {
     try {
       isLoading.value = true
 
@@ -273,7 +289,8 @@ const triggerAction = async () => {
       ncDelay(2000).then(() => {
         afterActionStatus.value = null
       })
-    } catch (e: any) {
+    }
+    catch (e: any) {
       console.log(e)
 
       const errorMsg = await extractSdkResponseErrorMsg(e)
@@ -283,7 +300,8 @@ const triggerAction = async () => {
       ncDelay(3000).then(() => {
         afterActionStatus.value = null
       })
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
@@ -310,10 +328,10 @@ const triggerAction = async () => {
           filterDisabledTooltip
             ? filterDisabledTooltip
             : isAiButtonType
-            ? aiIntegrations.length
-              ? $t('tooltip.aiIntegrationReConfigure')
-              : $t('tooltip.aiIntegrationAddAndReConfigure')
-            : afterActionStatus?.tooltip || invalidUrlTooltip
+              ? aiIntegrations.length
+                ? $t('tooltip.aiIntegrationReConfigure')
+                : $t('tooltip.aiIntegrationAddAndReConfigure')
+              : afterActionStatus?.tooltip || invalidUrlTooltip
         }}
       </template>
       <component
@@ -325,6 +343,7 @@ const triggerAction = async () => {
           { '!w-6': !column.colOptions.label, 'disabled': componentProps.disabled, 'is-expanded-form': isExpandedForm },
         ]"
         class="nc-cell-button nc-button-cell-link btn-cell-colors truncate flex items-center"
+        :style="buttonColors"
         @click.prevent="triggerAction"
       >
         <GeneralIcon
@@ -334,9 +353,9 @@ const triggerAction = async () => {
         />
         <GeneralLoader
           v-else-if="
-            isLoading ||
-            isExecuting ||
-            (pk && generatingRows.includes(pk) && column?.id && generatingColumnRows.includes(column.id))
+            isLoading
+              || isExecuting
+              || (pk && generatingRows.includes(pk) && column?.id && generatingColumnRows.includes(column.id))
           "
           class="flex w-4 h-4 !text-current"
           size="medium"
@@ -403,141 +422,24 @@ const triggerAction = async () => {
 }
 
 .btn-cell-colors {
-  &.solid {
-    @apply text-white;
+  color: var(--btn-cell-text);
+  background: var(--btn-cell-bg);
 
-    &.brand {
-      @apply bg-brand-500 hover:not(.disabled):bg-brand-600;
-    }
+  &:hover {
+    background: var(--btn-cell-bg-hover);
+    color: var(--btn-cell-text-hover);
+  }
 
-    &.red {
-      @apply bg-red-600 hover:not(.disabled):bg-red-700;
-    }
+  &.disabled,
+  &[disabled] {
+    @apply cursor-not-allowed opacity-60;
 
-    &.green {
-      @apply bg-green-600 hover:not(.disabled):bg-green-700;
-    }
-
-    &.maroon {
-      @apply bg-maroon-600 hover:not(.disabled):bg-maroon-700;
-    }
-
-    &.blue {
-      @apply bg-blue-600 hover:not(.disabled):bg-blue-700;
-    }
-
-    &.orange {
-      @apply bg-orange-600 hover:not(.disabled):bg-orange-700;
-    }
-
-    &.pink {
-      @apply bg-pink-600 hover:not(.disabled):bg-pink-700;
-    }
-
-    &.purple {
-      @apply bg-purple-500 hover:not(.disabled):bg-purple-700;
-    }
-
-    &.yellow {
-      @apply bg-yellow-600 hover:not(.disabled):bg-yellow-700;
-    }
-
-    &.gray {
-      @apply bg-gray-600 hover:not(.disabled):bg-gray-700;
-    }
+    background: var(--btn-cell-disabled-bg);
+    color: var(--btn-cell-disabled-text);
   }
 
   &.light {
     box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
-
-    &.brand {
-      @apply bg-brand-50 hover:not(.disabled):bg-brand-100 !text-brand-600;
-    }
-
-    &.red {
-      @apply bg-red-50 hover:not(.disabled):bg-red-100 !text-red-600;
-    }
-
-    &.green {
-      @apply bg-green-50 hover:not(.disabled):bg-green-100 !text-green-600;
-    }
-
-    &.maroon {
-      @apply bg-maroon-50 hover:not(.disabled):bg-maroon-100 !text-maroon-600;
-    }
-
-    &.blue {
-      @apply bg-blue-50 hover:not(.disabled):bg-blue-100 !text-blue-600;
-    }
-
-    &.orange {
-      @apply bg-orange-50 hover:not(.disabled):bg-orange-100 !text-orange-600;
-    }
-
-    &.pink {
-      @apply bg-pink-50 hover:not(.disabled):bg-pink-100 !text-pink-600;
-    }
-
-    &.purple {
-      @apply bg-purple-50 hover:not(.disabled):bg-purple-100 !text-purple-600;
-    }
-
-    &.yellow {
-      @apply bg-yellow-50 hover:not(.disabled):bg-yellow-100 !text-yellow-600;
-    }
-
-    &.gray {
-      @apply bg-gray-50 hover:not(.disabled):bg-gray-100 !text-gray-600;
-    }
-  }
-
-  &.text {
-    &:hover:not(.disabled) {
-      @apply bg-gray-200;
-    }
-    &:focus {
-      @apply shadow-focus;
-    }
-
-    &.brand {
-      @apply text-brand-500;
-    }
-
-    &.red {
-      @apply text-red-600;
-    }
-
-    &.green {
-      @apply text-green-600;
-    }
-
-    &.maroon {
-      @apply text-maroon-600;
-    }
-
-    &.blue {
-      @apply text-blue-600;
-    }
-
-    &.orange {
-      @apply text-orange-600;
-    }
-
-    &.pink {
-      @apply text-pink-600;
-    }
-
-    &.purple {
-      @apply text-purple-500;
-    }
-
-    &.yellow {
-      @apply text-yellow-600;
-    }
-
-    &.gray {
-      @apply text-gray-600;
-    }
   }
 }
 </style>

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import { isVirtualCol, UITypes } from 'nocodb-sdk'
 
 interface Props {
   value: string | number | boolean
@@ -97,7 +97,8 @@ function openBlueprintEditor() {
         if (idx !== -1) {
           ltarState[colTitle].splice(idx, 1, updatedBlueprint)
         }
-      } else {
+      }
+      else {
         // BT/OO — single value, just replace
         ltarState[colTitle] = updatedBlueprint
       }
@@ -175,9 +176,9 @@ export default {
               :class="{
                 'px-1 rounded-full flex-1': !isAttachment(column),
                 'border-nc-border-gray-medium rounded border-1 blue-chip':
-                  !isBlueprint &&
-                  border &&
-                  ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(column.uidt),
+                  !isBlueprint
+                  && border
+                  && ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(column.uidt),
                 'rounded border-1 border-dashed blueprint-chip':
                   isBlueprint && border && ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(column.uidt),
               }"

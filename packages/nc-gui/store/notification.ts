@@ -1,6 +1,7 @@
-import { defineStore } from 'pinia'
+import type { CancelTokenSource } from 'axios'
 import type { NotificationType } from 'nocodb-sdk'
-import axios, { type CancelTokenSource } from 'axios'
+import axios from 'axios'
+import { defineStore } from 'pinia'
 
 const CancelToken = axios.CancelToken
 
@@ -53,7 +54,8 @@ export const useNotification = defineStore('notificationStore', () => {
       }
 
       timeOutId = setTimeout(pollNotifications, 0)
-    } catch (e) {
+    }
+    catch (e) {
       // If request is cancelled, do nothing
       if (axios.isCancel(e)) return
       // If network error, retry after 2 seconds
@@ -71,14 +73,16 @@ export const useNotification = defineStore('notificationStore', () => {
 
       if (loadMore) {
         readNotifications.value = [...readNotifications.value, ...response.list]
-      } else {
+      }
+      else {
         readNotifications.value = response.list
       }
 
       readPageInfo.value = response.pageInfo
 
       unreadCount.value = Number(response.unreadCount)
-    } catch (e) {
+    }
+    catch (e) {
       console.log(e)
     }
   }
@@ -93,33 +97,36 @@ export const useNotification = defineStore('notificationStore', () => {
 
       if (loadMore) {
         unreadNotifications.value = [...unreadNotifications.value, ...response.list]
-      } else {
+      }
+      else {
         unreadNotifications.value = response.list
       }
 
       unreadPageInfo.value = response.pageInfo
 
       unreadCount.value = Number(response.unreadCount)
-    } catch (e) {
+    }
+    catch (e) {
       console.log(e)
     }
   }
 
   const insertAndSort = (notification: NotificationType, oldState?: boolean) => {
     if (oldState) {
-      readNotifications.value = readNotifications.value.filter((n) => n.id !== notification.id)
+      readNotifications.value = readNotifications.value.filter(n => n.id !== notification.id)
 
       unreadNotifications.value = [notification, ...unreadNotifications.value].sort((a, b) => {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       })
 
       unreadCount.value = unreadCount.value + 1
-    } else {
+    }
+    else {
       readNotifications.value = [notification, ...readNotifications.value].sort((a, b) => {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       })
 
-      unreadNotifications.value = unreadNotifications.value.filter((n) => n.id !== notification.id)
+      unreadNotifications.value = unreadNotifications.value.filter(n => n.id !== notification.id)
 
       unreadCount.value = unreadCount.value - 1
     }
@@ -137,7 +144,8 @@ export const useNotification = defineStore('notificationStore', () => {
       notification.is_read = !currState
 
       insertAndSort(notification, currState)
-    } catch (e) {
+    }
+    catch (e) {
       message.error(
         `Failed to update Notification: ${await extractSdkResponseErrorMsgv2(e as Error & { response: { data: string } })}`,
       )
@@ -154,10 +162,11 @@ export const useNotification = defineStore('notificationStore', () => {
 
   const deleteNotification = async (notification: NotificationType) => {
     try {
-      readNotifications.value = readNotifications.value.filter((n) => n.id !== notification.id)
+      readNotifications.value = readNotifications.value.filter(n => n.id !== notification.id)
 
       await api.notification.delete(notification.id!)
-    } catch (e) {
+    }
+    catch (e) {
       readNotifications.value = [notification, ...readNotifications.value]
 
       message.error(
@@ -175,7 +184,8 @@ export const useNotification = defineStore('notificationStore', () => {
   watch(notificationTab, async (tab) => {
     if (tab === 'read') {
       await loadReadNotifications()
-    } else {
+    }
+    else {
       await loadUnReadNotifications()
     }
   })
@@ -200,8 +210,8 @@ export const useNotification = defineStore('notificationStore', () => {
     // For playwright, polling will cause the test to hang indefinitely
     // as we wait for the networkidle event. So, we disable polling for playwright
     if (!ncIsPlaywright()) {
-      clearPolling().catch((e) => console.log(e))
-      pollNotifications().catch((e) => console.log(e))
+      clearPolling().catch(e => console.log(e))
+      pollNotifications().catch(e => console.log(e))
     }
   }
 
@@ -212,10 +222,12 @@ export const useNotification = defineStore('notificationStore', () => {
       try {
         if (newToken && newToken !== oldToken) {
           await init()
-        } else if (!newToken) {
-          clearPolling().catch((e) => console.log(e))
         }
-      } catch (e) {
+        else if (!newToken) {
+          clearPolling().catch(e => console.log(e))
+        }
+      }
+      catch (e) {
         console.error(e)
       }
     },

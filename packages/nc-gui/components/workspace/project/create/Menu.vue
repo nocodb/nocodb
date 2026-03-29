@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { NcMenu } from '#components'
+
 interface Props {
   visible: boolean
   variant: 'modal' | 'dropdown'
@@ -22,7 +23,7 @@ const baseCreateMode = useVModel(props, 'baseCreateMode', emits)
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
-const onClickOption = (mode: NcBaseCreateMode) => {
+function onClickOption(mode: NcBaseCreateMode) {
   baseCreateMode.value = mode
 }
 
@@ -43,7 +44,9 @@ onMounted(() => {
     data-testid="nc-home-create-new-menu"
     @click="vVisible = false"
   >
-    <NcMenuItemLabel v-if="variant === 'modal'" class="!py-2" @click.stop> CREATE BASE </NcMenuItemLabel>
+    <NcMenuItemLabel v-if="variant === 'modal'" class="!py-2" @click.stop>
+      CREATE BASE
+    </NcMenuItemLabel>
     <WorkspaceProjectCreateMenuItem
       v-e="['c:base:create:scratch']"
       :variant="variant"

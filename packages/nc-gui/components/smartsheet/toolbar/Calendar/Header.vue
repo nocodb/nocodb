@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { computed } from '#imports'
 
-const { selectedDate, selectedMonth, selectedDateRange, activeCalendarView, activeDates, timezone, pageDate, timezoneDayjs } =
-  useCalendarViewStoreOrThrow()
+const { selectedDate, selectedMonth, selectedDateRange, activeCalendarView, activeDates, timezone, pageDate, timezoneDayjs }
+  = useCalendarViewStoreOrThrow()
 
 const calendarRangeDropdown = ref(false)
 
@@ -15,9 +15,11 @@ const headerText = computed(() => {
       const endDate = timezoneDayjs.timezonize(selectedDateRange.value.end)
       if (startDate.isSame(endDate, 'month')) {
         return `${startDate.format('D')} - ${endDate.format('D MMM YY')}`
-      } else if (startDate.isSame(endDate, 'year')) {
+      }
+      else if (startDate.isSame(endDate, 'year')) {
         return `${startDate.format('D MMM')} - ${endDate.format('D MMM YY')}`
-      } else {
+      }
+      else {
         return `${startDate.format('D MMM YY')} - ${endDate.format('D MMM YY')}`
       }
     }
@@ -53,8 +55,7 @@ const headerText = computed(() => {
             }"
             class="font-bold text-[13px] text-center text-nc-content-gray"
             data-testid="nc-calendar-active-date"
-            >{{ headerText }}</span
-          >
+          >{{ headerText }}</span>
           <div class="flex-1" />
           <component :is="iconMap.arrowDown" class="h-4 min-w-4 text-nc-content-gray-subtle" />
         </div>

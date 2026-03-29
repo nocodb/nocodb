@@ -14,29 +14,29 @@ import {
   ncIsUndefined,
 } from 'nocodb-sdk'
 
-const ncIsPlaywright = () => {
+function ncIsPlaywright() {
   return !!(window as any)?.isPlaywright
 }
 
-const ncIsSharedViewOrBase = () => {
+function ncIsSharedViewOrBase() {
   // Use sessionStorage instead of localStorage to make it tab-specific
   return sessionStorage.getItem('ncIsSharedViewOrBase') === 'true'
 }
 
 export {
-  ncIsObject,
-  ncIsEmptyObject,
   ncIsArray,
-  ncIsEmptyArray,
-  ncIsString,
-  ncIsNumber,
-  ncIsBoolean,
-  ncIsUndefined,
-  ncIsNull,
-  ncIsFunction,
-  ncIsPromise,
   ncIsArrayIncludes,
-  ncIsPlaywright,
-  ncIsSharedViewOrBase,
+  ncIsBoolean,
+  ncIsEmptyArray,
+  ncIsEmptyObject,
+  ncIsFunction,
+  ncIsNull,
   ncIsNullOrUndefined,
+  ncIsNumber,
+  ncIsObject,
+  ncIsPlaywright,
+  ncIsPromise,
+  ncIsSharedViewOrBase,
+  ncIsString,
+  ncIsUndefined,
 }

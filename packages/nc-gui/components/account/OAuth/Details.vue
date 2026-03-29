@@ -61,7 +61,7 @@ const validators = computed(() => ({
 
         const uris = value
           .split('\n')
-          .map((uri) => uri.trim())
+          .map(uri => uri.trim())
           .filter(Boolean)
 
         if (uris.length === 0) {
@@ -90,7 +90,8 @@ watch(
 watch(modalVisible, async (newVal) => {
   if (newVal && props.clientId) {
     await loadClientData(props.clientId)
-  } else if (!newVal) {
+  }
+  else if (!newVal) {
     showSecret.value = false
     secretJustRegenerated.value = false
   }
@@ -113,9 +114,11 @@ async function loadClientData(clientId: string) {
         created_at: client.created_at || '',
       }
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error loading client:', error)
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -127,7 +130,7 @@ async function handleSave() {
 
     const redirect_uris = clientRef.value.redirect_uris
       .split('\n')
-      .map((uri) => uri.trim())
+      .map(uri => uri.trim())
       .filter(Boolean)
 
     const payload = {
@@ -141,11 +144,13 @@ async function handleSave() {
     await updateOAuthClient(props.clientId!, payload)
     message.success('OAuth client updated successfully!')
     modalVisible.value = false
-  } catch (error: any) {
+  }
+  catch (error: any) {
     if (error.errorFields) {
       return
     }
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -196,9 +201,7 @@ function copyToClipboard(text: string, label: string) {
             <!-- Application Name -->
             <a-form-item v-bind="validateInfos.client_name" class="!mb-0 flex-1">
               <template #label>
-                <span class="text-nc-content-gray-subtle font-medium"
-                  >Application Name <span class="text-nc-content-red-medium">*</span></span
-                >
+                <span class="text-nc-content-gray-subtle font-medium">Application Name <span class="text-nc-content-red-medium">*</span></span>
               </template>
               <template #extra>
                 <span class="text-xs text-nc-content-gray-muted">Shown to users during authorization</span>
@@ -271,17 +274,19 @@ function copyToClipboard(text: string, label: string) {
                 </span>
               </template>
               <a-radio-group v-model:value="clientRef.client_type" disabled class="nc-input-shadow">
-                <a-radio value="public">Public</a-radio>
-                <a-radio value="confidential">Confidential</a-radio>
+                <a-radio value="public">
+                  Public
+                </a-radio>
+                <a-radio value="confidential">
+                  Confidential
+                </a-radio>
               </a-radio-group>
             </a-form-item>
 
             <!-- Authorization Callback URLs -->
             <a-form-item label="Authorization Callback URLs" v-bind="validateInfos.redirect_uris" class="mb-0">
               <template #label>
-                <span class="text-nc-content-gray-subtle font-medium"
-                  >Authorization Callback URLs <span class="text-nc-content-red-medium">*</span></span
-                >
+                <span class="text-nc-content-gray-subtle font-medium">Authorization Callback URLs <span class="text-nc-content-red-medium">*</span></span>
               </template>
               <template #extra>
                 <span class="text-xs text-nc-content-gray-muted">
@@ -348,7 +353,9 @@ function copyToClipboard(text: string, label: string) {
       </div>
       <div class="h-full bg-nc-bg-gray-extralight border-l-1 w-80 p-5 rounded-br-2xl border-nc-border-gray-medium">
         <div class="w-full flex flex-col gap-3">
-          <h2 class="text-sm text-nc-content-gray-subtle font-semibold !my-0">{{ $t('labels.supportDocs') }}</h2>
+          <h2 class="text-sm text-nc-content-gray-subtle font-semibold !my-0">
+            {{ $t('labels.supportDocs') }}
+          </h2>
           <div>
             <div class="flex items-center gap-1">
               <div class="h-7 w-7 flex items-center justify-center">
@@ -380,7 +387,9 @@ function copyToClipboard(text: string, label: string) {
           <NcDivider />
 
           <div v-if="clientRef.client_id" class="flex flex-col gap-2">
-            <h3 class="text-sm text-nc-content-gray-subtle font-semibold !my-0">Client Information</h3>
+            <h3 class="text-sm text-nc-content-gray-subtle font-semibold !my-0">
+              Client Information
+            </h3>
             <div class="text-xs text-nc-content-gray-muted space-y-1">
               <div>
                 <span class="font-medium">Type:</span> {{ clientRef.client_type === 'public' ? 'Public' : 'Confidential' }}

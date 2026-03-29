@@ -27,7 +27,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     const displayValue = computed(() => {
       const row = unref(currentRow)
 
-      const column = meta.value?.columns.find((col) => col.pv) || meta.value?.columns.find((col) => col.pk)
+      const column = meta.value?.columns.find(col => col.pv) || meta.value?.columns.find(col => col.pk)
 
       return row.row[column?.title]
     })
@@ -42,8 +42,15 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
       isNew,
       displayValue,
       // todo: use better name
-      addLTARRef: (...args: any) => addLTARRef(currentRow.value, ...args),
-      removeLTARRef: (...args: any) => removeLTARRef(currentRow.value, ...args),
+      addLTARRef: async (...args: any) => {
+        await addLTARRef(currentRow.value, ...args)
+        // Force reactivity trigger — nested mutations on row.row may not auto-trigger
+        triggerRef(currentRow as Ref)
+      },
+      removeLTARRef: async (...args: any) => {
+        await removeLTARRef(currentRow.value, ...args)
+        triggerRef(currentRow as Ref)
+      },
       syncLTARRefs: (...args: any) => syncLTARRefs(currentRow.value, ...args),
       loadRow: (...args: any) => loadRow(currentRow.value, ...args),
       currentRow,

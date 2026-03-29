@@ -15,6 +15,8 @@ const { row } = useSmartsheetRowStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
+const { getColor } = useTheme()
+
 const isPublic = inject(IsPublicInj, ref(false))
 
 const meta = inject(MetaInj, ref())
@@ -30,10 +32,6 @@ const editEnabled = inject(EditModeInj, ref(false))
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
-
-const isGallery = inject(IsGalleryInj, ref(false))
-
-const isKanban = inject(IsKanbanInj, ref(false))
 
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
@@ -52,15 +50,15 @@ const pk = computed(() => {
   return extractPkFromRow(unref(row).row, meta.value.columns)
 })
 
-const generate = async () => {
+async function generate() {
   if (!meta?.value?.id || !meta.value.columns || !column?.value?.id) return
 
   if (!pk.value) return
-  const outputColumnIds =
-    ncIsString(column.value.colOptions?.output_column_ids) && column.value.colOptions.output_column_ids.split(',').length > 1
+  const outputColumnIds
+    = ncIsString(column.value.colOptions?.output_column_ids) && column.value.colOptions.output_column_ids.split(',').length > 1
       ? column.value.colOptions.output_column_ids.split(',')
       : []
-  const outputColumns = outputColumnIds.map((id) => meta.value?.columnsById?.[id]).filter(Boolean)
+  const outputColumns = outputColumnIds.map(id => meta.value?.columnsById?.[id]).filter(Boolean)
 
   generatingRows.value.push(pk.value)
   generatingColumnRows.value.push(column.value.id)
@@ -76,7 +74,8 @@ const generate = async () => {
           unref(row).row[col.title!] = resRow[col.title!]
         }
       }
-    } else {
+    }
+    else {
       const obj: AIRecordType = resRow[column.value.title!]
 
       if (ncIsObject(obj)) {
@@ -84,7 +83,8 @@ const generate = async () => {
           ...obj,
           isAiEdited: true,
         }
-      } else {
+      }
+      else {
         vModel.value = {
           ...(ncIsObject(vModel.value) ? vModel.value : {}),
           isStale: false,
@@ -103,20 +103,20 @@ const generate = async () => {
     emits('save')
   }
 
-  generatingRows.value = generatingRows.value.filter((v) => v !== pk.value)
-  generatingColumnRows.value = generatingColumnRows.value.filter((v) => v !== column.value.id)
+  generatingRows.value = generatingRows.value.filter(v => v !== pk.value)
+  generatingColumnRows.value = generatingColumnRows.value.filter(v => v !== column.value.id)
 }
 
 const isLoading = computed(() => {
   return !!(
-    pk.value &&
-    generatingRows.value.includes(pk.value) &&
-    column.value?.id &&
-    generatingColumnRows.value.includes(column.value.id)
+    pk.value
+    && generatingRows.value.includes(pk.value)
+    && column.value?.id
+    && generatingColumnRows.value.includes(column.value.id)
   )
 })
 
-const handleSave = () => {
+function handleSave() {
   vModel.value = { ...vModel.value }
 
   emits('save')
@@ -124,7 +124,7 @@ const handleSave = () => {
 
 const debouncedSave = useDebounceFn(handleSave, 1000)
 
-const handleDebouncedSave = () => {
+function handleDebouncedSave() {
   vModel.value!.isAiEdited = false
   isAiEdited.value = true
 
@@ -132,19 +132,23 @@ const handleDebouncedSave = () => {
 }
 
 const isDisabledAiButton = computed(() => {
-  return !isFieldAiIntegrationAvailable.value || isLoading.value || isPublic.value || !isUIAllowed('dataEdit')
+  return !isFieldAiIntegrationAvailable.value || isLoading.value || isPublic.value || !isUIAllowed('dataEdit') || readOnly.value
+})
+
+const buttonColors = computed(() => {
+  return getButtonColorsCssVariables('light', 'purple', getColor)
 })
 </script>
 
 <template>
   <div
-    v-if="(!readOnly || isGallery || isKanban) && !vModel"
+    v-if="!vModel"
     class="flex items-center w-full"
     :class="{
       'justify-center': isGrid && !isExpandedForm,
     }"
   >
-    <NcTooltip :disabled="isFieldAiIntegrationAvailable || isPublic || isUIAllowed('dataEdit')" class="flex">
+    <NcTooltip :disabled="isFieldAiIntegrationAvailable || isPublic || isUIAllowed('dataEdit') || readOnly" class="flex">
       <template #title>
         {{ aiIntegrations.length ? $t('tooltip.aiIntegrationReConfigure') : $t('tooltip.aiIntegrationAddAndReConfigure') }}
       </template>
@@ -154,6 +158,7 @@ const isDisabledAiButton = computed(() => {
           'is-expanded-form': isExpandedForm,
         }"
         size="small"
+        :style="buttonColors"
         :disabled="isDisabledAiButton"
         @click.stop="generate"
       >
@@ -183,12 +188,30 @@ const isDisabledAiButton = computed(() => {
 
 <style scoped lang="scss">
 .nc-cell-button {
-  @apply px-2 flex items-center gap-2 transition-all justify-center bg-nc-bg-purple-light hover:bg-nc-bg-purple-dark text-nc-content-purple-medium;
+  @apply px-2 flex items-center gap-2 transition-all justify-center;
 
-  box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+  color: var(--btn-cell-text);
+  background: var(--btn-cell-bg);
+
+  &:hover {
+    background: var(--btn-cell-bg-hover);
+    color: var(--btn-cell-text-hover);
+  }
+
+  &.disabled,
+  &[disabled] {
+    @apply cursor-not-allowed opacity-60;
+
+    background: var(--btn-cell-disabled-bg);
+    color: var(--btn-cell-disabled-text);
+  }
+
+  &.light {
+    box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+  }
 
   .nc-loader {
-    @apply !text-nc-content-purple-dark;
+    @apply !text-current;
   }
 
   &.is-expanded-form {
@@ -201,10 +224,6 @@ const isDisabledAiButton = computed(() => {
 
   &:focus-within {
     @apply outline-none ring-0 shadow-focus;
-  }
-
-  &[disabled] {
-    @apply !bg-nc-bg-gray-light opacity-50;
   }
 }
 </style>

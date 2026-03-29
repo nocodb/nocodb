@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { type Ref, ref } from 'vue'
+import type { Ref } from 'vue'
+import { ref } from 'vue'
 import { forcedNextTick } from '../../utils/browserUtils'
 
 const column = inject(ColumnInj)!
@@ -44,8 +45,8 @@ const isOpen = ref(false)
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
-const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, relatedTableDisplayValuePropId, unlink } =
-  useProvideLTARStore(column as Ref<Required<ColumnType>>, row, isNew, reloadRowTrigger.trigger)
+const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, relatedTableDisplayValuePropId, unlink }
+  = useProvideLTARStore(column as Ref<Required<ColumnType>>, row, isNew, reloadRowTrigger.trigger)
 
 await loadRelatedTableMeta()
 
@@ -58,7 +59,8 @@ const addIcon = computed(() => (cellValue?.value ? 'maximize' : 'plus'))
 const value = computed(() => {
   if (cellValue?.value) {
     return cellValue?.value
-  } else if (isNew.value) {
+  }
+  else if (isNew.value) {
     const columnTitle = column?.value.title as string
     const columnValue = state?.value?.[columnTitle]
     return Array.isArray(columnValue) ? columnValue[0] : columnValue
@@ -66,10 +68,11 @@ const value = computed(() => {
   return null
 })
 
-const unlinkRef = async (rec: Record<string, any>) => {
+async function unlinkRef(rec: Record<string, any>) {
   if (isNew.value) {
     await removeLTARRef(rec, column?.value as ColumnType)
-  } else {
+  }
+  else {
     await unlink(rec)
   }
 }
@@ -110,13 +113,14 @@ function onCellClick(e: Event) {
   }
 }
 
-const onCellEvent = (event?: Event) => {
+function onCellEvent(event?: Event) {
   if (!(event instanceof KeyboardEvent) || !event.target || isActiveInputElementExist(event) || !hasEditPermission.value) return
 
   if (isExpandCellKey(event)) {
     if (listItemsDlg.value) {
       listItemsDlg.value = false
-    } else {
+    }
+    else {
       listItemsDlg.value = true
     }
 
@@ -136,9 +140,11 @@ onMounted(() => {
 
     if (getElementAtMouse('.unlink-icon', clientMousePosition)) {
       unlinkRef(value.value)
-    } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-plus.nc-action-icon', clientMousePosition)) {
+    }
+    else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-plus.nc-action-icon', clientMousePosition)) {
       listItemsDlg.value = true
-    } else {
+    }
+    else {
       listItemsDlg.value = true
     }
   })

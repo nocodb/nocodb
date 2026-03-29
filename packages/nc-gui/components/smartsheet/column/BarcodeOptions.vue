@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ColumnHelper, type ColumnType, UITypes } from 'nocodb-sdk'
-import { AllowedColumnTypesForQrAndBarcodes } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { AllowedColumnTypesForQrAndBarcodes, ColumnHelper, UITypes } from 'nocodb-sdk'
 import { supportedBarcodeFormats } from '~/helpers/columnDefaultMeta'
 
 const props = defineProps<{
@@ -13,8 +13,8 @@ const { fields, metaColumnById } = useViewColumnsOrThrow()
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { setAdditionalValidations, setAvoidShowingToastMsgForValidations, validateInfos, column, isEdit } =
-  useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, setAvoidShowingToastMsgForValidations, validateInfos, column, isEdit }
+  = useColumnCreateStoreOrThrow()
 
 const { t } = useI18n()
 
@@ -22,7 +22,7 @@ const columnsAllowedAsBarcodeValue = computed<ColumnType[]>(() => {
   return (
     fields.value
       ?.filter(
-        (el) =>
+        el =>
           el.fk_column_id && AllowedColumnTypesForQrAndBarcodes.includes(metaColumnById.value[el.fk_column_id].uidt as UITypes),
       )
       .map((field) => {
@@ -37,9 +37,9 @@ onMounted(() => {
     ...ColumnHelper.getColumnDefaultMeta(UITypes.Barcode),
     ...(vModel.value.meta || {}),
   }
-  vModel.value.fk_barcode_value_column_id =
-    (column?.value?.colOptions as Record<string, any>)?.fk_barcode_value_column_id ||
-    (!isEdit.value ? columnsAllowedAsBarcodeValue.value?.[0]?.id : null)
+  vModel.value.fk_barcode_value_column_id
+    = (column?.value?.colOptions as Record<string, any>)?.fk_barcode_value_column_id
+      || (!isEdit.value ? columnsAllowedAsBarcodeValue.value?.[0]?.id : null)
 })
 
 watch(columnsAllowedAsBarcodeValue, (newColumnsAllowedAsBarcodeValue) => {
@@ -75,14 +75,18 @@ const showBarcodeValueColumnInfoIcon = computed(() => !columnsAllowedAsBarcodeVa
           :not-found-content="$t('placeholder.notFoundContent')"
           @click.stop
         >
-          <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /> </template>
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+          </template>
 
           <a-select-option v-for="(option, index) of columnsAllowedAsBarcodeValue" :key="index" :value="option.id">
             <div class="w-full flex gap-2 truncate items-center justify-between" :data-testid="`nc-barcode-${option.title}`">
               <div class="inline-flex items-center gap-2 flex-1 truncate">
                 <SmartsheetHeaderIcon :column="option" class="!mx-0" color="text-nc-content-gray-subtle2" />
 
-                <div class="truncate flex-1">{{ option.title }}</div>
+                <div class="truncate flex-1">
+                  {{ option.title }}
+                </div>
               </div>
 
               <component
@@ -113,8 +117,10 @@ const showBarcodeValueColumnInfoIcon = computed(() => !columnsAllowedAsBarcodeVa
         :placeholder="$t('placeholder.selectBarcodeFormat')"
         @click.stop
       >
-        <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /> </template
-      ></a-select>
+        <template #suffixIcon>
+          <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+        </template>
+      </a-select>
     </a-form-item>
   </div>
 </template>

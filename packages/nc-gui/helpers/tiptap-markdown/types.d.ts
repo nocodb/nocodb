@@ -17,7 +17,7 @@ export interface MarkdownOptions {
 
 export interface MarkdownStorage {
   options: MarkdownOptions
-  getMarkdown(): string
+  getMarkdown: () => string
 }
 
 interface SpecContext<Options> {
@@ -26,10 +26,10 @@ interface SpecContext<Options> {
 }
 
 export interface MarkdownNodeSpec<O = any> {
-  serialize(this: SpecContext<O>, state: MarkdownSerializerState, node: Node, parent: Node, index: number): void
+  serialize: (this: SpecContext<O>, state: MarkdownSerializerState, node: Node, parent: Node, index: number) => void
   parse?: {
-    setup?(this: SpecContext<O>, markdownit: MarkdownIt): void
-    updateDOM?(this: SpecContext<O>, element: HTMLElement): void
+    setup?: (this: SpecContext<O>, markdownit: MarkdownIt) => void
+    updateDOM?: (this: SpecContext<O>, element: HTMLElement) => void
   }
 }
 
@@ -39,7 +39,7 @@ export interface MarkdownMarkSpec<O = any> {
     close: string | ((this: SpecContext<O>, state: MarkdownSerializerState, mark: Mark, parent: Node, index: number) => string)
   }
   parse?: {
-    setup?(this: SpecContext<O>, markdownit: MarkdownIt): void
-    updateDOM?(this: SpecContext<O>, element: HTMLElement): void
+    setup?: (this: SpecContext<O>, markdownit: MarkdownIt) => void
+    updateDOM?: (this: SpecContext<O>, element: HTMLElement) => void
   }
 }

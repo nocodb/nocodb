@@ -18,7 +18,7 @@ const panelRef = ref<HTMLElement | null>(null)
 
 const collapsed = ref(props.collapsible ? props.collapsed : false)
 
-const toggleCollapse = () => {
+function toggleCollapse() {
   if (!props.collapsible) return
   collapsed.value = !collapsed.value
 }
@@ -34,9 +34,11 @@ const toggleCollapse = () => {
       <div class="panel-label" :class="{ 'cursor-pointer': props.collapsible, 'cursor-default': !props.collapsible }">
         {{ props.title }}
       </div>
-      <slot name="header-info"></slot>
+      <slot name="header-info" />
     </div>
-    <div v-if="!collapsed" class="panel-body"><slot></slot></div>
+    <div v-if="!collapsed" class="panel-body">
+      <slot />
+    </div>
   </div>
 </template>
 

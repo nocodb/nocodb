@@ -31,12 +31,14 @@ watch(
   },
 )
 
-const selectMode = (mode: CreateMode) => {
+function selectMode(mode: CreateMode) {
   if (mode === 'ai') {
     aiMode.value = true
-  } else if (mode === 'scratch') {
+  }
+  else if (mode === 'scratch') {
     aiMode.value = false
-  } else if (mode === 'market') {
+  }
+  else if (mode === 'market') {
     if (!props.workspaceId) {
       console.error('Cannot open market without workspaceId')
       message.error('Workspace not available')
@@ -48,12 +50,12 @@ const selectMode = (mode: CreateMode) => {
   emit('update:mode', mode)
 }
 
-const onManagedAppInstalled = (managedApp: any) => {
+function onManagedAppInstalled(managedApp: any) {
   showAppMarket.value = false
   emit('managedAppInstalled', managedApp)
 }
 
-const onAppMarketClose = () => {
+function onAppMarketClose() {
   showAppMarket.value = false
   emit('close')
 }
@@ -77,7 +79,9 @@ onMounted(() => {
             <GeneralIcon icon="plus" class="h-4 w-4 !text-nc-content-gray-subtle" />
             Start from scratch
           </div>
-          <div class="nc-create-base-content-subtitle">Build your Base according to your specific requirements.</div>
+          <div class="nc-create-base-content-subtitle">
+            Build your Base according to your specific requirements.
+          </div>
         </div>
       </div>
       <div v-e="['c:base:ai:create']" class="nc-create-base-ai" @click="selectMode('ai')">
@@ -89,7 +93,9 @@ onMounted(() => {
             <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4 !text-nc-fill-purple-dark" />
             Build Base with AI
           </div>
-          <div class="nc-create-base-content-subtitle">Quickly build your ideal Base with all tables, views and fields.</div>
+          <div class="nc-create-base-content-subtitle">
+            Quickly build your ideal Base with all tables, views and fields.
+          </div>
         </div>
       </div>
       <div
@@ -106,7 +112,9 @@ onMounted(() => {
             <GeneralIcon icon="ncBox" class="h-4 w-4 !text-nc-content-gray-subtle" />
             Install from App Market
           </div>
-          <div class="nc-create-base-content-subtitle">Browse and install pre-built Bases from the App Market.</div>
+          <div class="nc-create-base-content-subtitle">
+            Browse and install pre-built Bases from the App Market.
+          </div>
         </div>
       </div>
     </div>

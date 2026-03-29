@@ -1,5 +1,5 @@
-import { useStorage } from '@vueuse/core'
 import { isEeUI } from '#imports'
+import { useStorage } from '@vueuse/core'
 
 export interface WorkspaceSettings {
   data: {
@@ -62,7 +62,8 @@ export class UserLocalStorageInfoManager {
     Object.keys(userWorkspaces).forEach((wsId) => {
       if (!workspaceIds.includes(wsId)) {
         delete userWorkspaces[wsId]
-      } else {
+      }
+      else {
         this.touch(userId, wsId)
       }
     })
@@ -95,7 +96,8 @@ export class UserLocalStorageInfoManager {
 
     if (this.storage.value[userId]?.[workspaceId]) {
       this.storage.value[userId][workspaceId].lastAccessed = Date.now()
-    } else {
+    }
+    else {
       this.storage.value[userId] = {
         ...(this.storage.value[userId] || {}),
         [workspaceId]: {

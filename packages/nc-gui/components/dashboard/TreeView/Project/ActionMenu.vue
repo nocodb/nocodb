@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { type SourceType, stringifyRolesObj } from 'nocodb-sdk'
+import type { SourceType } from 'nocodb-sdk'
+import { stringifyRolesObj } from 'nocodb-sdk'
 
 interface Props {
   showBaseOption: (source: SourceType) => boolean
@@ -35,8 +36,8 @@ const isOptionVisible = computed(() => {
     rename: isUIAllowed('baseRename'),
     baseDuplicate: isUIAllowed('baseDuplicate', { roles: [stringifyRolesObj(orgRoles.value), baseRole.value].join() }),
     baseOptions:
-      (base.value?.sources?.[0]?.enabled || (base.value?.sources || []).length > 1) &&
-      props.showBaseOption(base.value.sources[0]),
+      (base.value?.sources?.[0]?.enabled || (base.value?.sources || []).length > 1)
+      && props.showBaseOption(base.value.sources[0]),
     apiDocs: isUIAllowed('apiDocs'),
     baseMiscSettings: isUIAllowed('baseMiscSettings'),
     baseDelete: isUIAllowed('baseDelete', { roles: [stringifyRolesObj(orgRoles.value), baseRole.value].join() }),

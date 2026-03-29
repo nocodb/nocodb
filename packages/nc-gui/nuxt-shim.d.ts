@@ -1,8 +1,8 @@
-import type { Api as BaseAPI } from 'nocodb-sdk'
 import type { UseEventBusReturn } from '@vueuse/core'
+import type { Api as BaseAPI } from 'nocodb-sdk'
+import type { TabType } from './composables'
 import type { UseGlobalReturn } from './composables/useGlobal/types'
 import type { NocoI18n } from './lib'
-import type { TabType } from './composables'
 
 declare module '#app' {
   interface NuxtApp {

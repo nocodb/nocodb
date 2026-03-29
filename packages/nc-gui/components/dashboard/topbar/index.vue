@@ -3,7 +3,7 @@ const props = defineProps<{
   workspaceId?: string
 }>()
 
-const navigateToWorkspace = () => {
+function navigateToWorkspace() {
   if (props.workspaceId) {
     navigateTo(`/${props.workspaceId}/settings`)
   }

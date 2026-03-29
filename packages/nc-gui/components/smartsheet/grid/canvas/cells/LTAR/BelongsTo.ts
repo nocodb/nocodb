@@ -1,7 +1,7 @@
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { isBoxHovered } from '../../utils/canvas'
-import { PlainCellRenderer } from '../Plain'
 import { renderAsCellLookupOrLtarValue } from '../../utils/cell'
+import { PlainCellRenderer } from '../Plain'
 
 export const BelongsToCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -22,11 +22,11 @@ export const BelongsToCellRenderer: CellRenderer = {
       getColor,
     } = props
 
-    const relatedTableDisplayValueProp =
-      (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.title || ''
+    const relatedTableDisplayValueProp
+      = (relatedTableMeta?.columns?.find(c => c.pv) || relatedTableMeta?.columns?.[0])?.title || ''
 
-    const relatedTableDisplayValuePropId =
-      (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.id || ''
+    const relatedTableDisplayValuePropId
+      = (relatedTableMeta?.columns?.find(c => c.pv) || relatedTableMeta?.columns?.[0])?.id || ''
 
     const btColumn = relatedTableMeta?.columns?.find((c: any) => c.title === relatedTableDisplayValueProp) as
       | ColumnType
@@ -38,8 +38,8 @@ export const BelongsToCellRenderer: CellRenderer = {
     if (isValidValue(value)) {
       const cellWidth = width - (!readonly && selected ? 34 : 0)
 
-      const cellValue =
-        value && !Array.isArray(value) && typeof value === 'object'
+      const cellValue
+        = value && !Array.isArray(value) && typeof value === 'object'
           ? value[relatedTableDisplayValueProp] ?? value[relatedTableDisplayValuePropId]
           : value
 
@@ -84,9 +84,9 @@ export const BelongsToCellRenderer: CellRenderer = {
 
       // Show cursor pointer on hover over chip item
       if (
-        !readonly &&
-        selected &&
-        isBoxHovered(
+        !readonly
+        && selected
+        && isBoxHovered(
           {
             x: x + 4,
             y: y + (rowHeightInPx['1'] === height ? 0 : 2),
@@ -173,10 +173,10 @@ export const BelongsToCellRenderer: CellRenderer = {
      */
     const isClickedOnPlusIcon = isBoxHovered({ x: x + width - 26, y: y + 8, height: size, width: size }, mousePosition)
 
-    const isClickedOnXCircleIcon =
-      cellRenderStore?.x &&
-      selected &&
-      isBoxHovered({ x: cellRenderStore.x + 2, y: y + 7, height: size, width: size }, mousePosition)
+    const isClickedOnXCircleIcon
+      = cellRenderStore?.x
+        && selected
+        && isBoxHovered({ x: cellRenderStore.x + 2, y: y + 7, height: size, width: size }, mousePosition)
 
     if (isClickedOnPlusIcon || isClickedOnXCircleIcon) {
       makeCellEditable(row, column)
@@ -187,11 +187,11 @@ export const BelongsToCellRenderer: CellRenderer = {
      * Expand record on click chip item if cell is selected and user has permission to edit data (e.g, not readonly)
      */
     if (
-      (selected || isDoubleClick) &&
-      ncIsObject(value) &&
-      cellRenderStore?.height &&
-      cellRenderStore?.width &&
-      isBoxHovered(
+      (selected || isDoubleClick)
+      && ncIsObject(value)
+      && cellRenderStore?.height
+      && cellRenderStore?.width
+      && isBoxHovered(
         {
           x: x + 4,
           y: y + (rowHeightInPx['1'] === height ? 0 : 2),

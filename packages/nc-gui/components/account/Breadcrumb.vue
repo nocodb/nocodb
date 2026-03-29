@@ -120,7 +120,8 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
         active: true,
       })
     }
-  } else if ((route.params.page === undefined && route.params.nestedPage === '') || route.params.nestedPage === 'list') {
+  }
+  else if ((route.params.page === undefined && route.params.nestedPage === '') || route.params.nestedPage === 'list') {
     payload.push(
       ...[
         {
@@ -137,7 +138,7 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
   return payload
 })
 
-const onClick = async (item: BreadcrumbType) => {
+async function onClick(item: BreadcrumbType) {
   if (item.path && !item.active) {
     await navigateTo(item.path)
   }

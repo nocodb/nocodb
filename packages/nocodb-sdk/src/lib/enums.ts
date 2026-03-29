@@ -1,6 +1,8 @@
 export enum OrgUserRoles {
   SUPER_ADMIN = 'super',
+  /** @deprecated Noop for permissions — use workspace roles instead. Kept only for DB storage backward compat. */
   CREATOR = 'org-level-creator',
+  /** @deprecated Noop for permissions — use workspace roles instead. Kept only for DB storage backward compat. */
   VIEWER = 'org-level-viewer',
 }
 
@@ -68,6 +70,7 @@ export enum AppEvents {
 
   USER_SIGNUP = 'user.signup',
   USER_SIGNIN = 'user.signin',
+  USER_SIGNIN_FAILED = 'user.signin.failed',
   USER_INVITE = 'user.invite',
   USER_UPDATE = 'user.update',
   USER_PASSWORD_RESET = 'user.password.reset',
@@ -82,6 +85,7 @@ export enum AppEvents {
   TEAM_MEMBER_ADD = 'team.member.add',
   TEAM_MEMBER_UPDATE = 'team.member.update',
   TEAM_MEMBER_DELETE = 'team.member.delete',
+  TEAM_MOVE = 'team.move',
 
   TABLE_CREATE = 'table.create',
   TABLE_DELETE = 'table.delete',
@@ -187,9 +191,12 @@ export enum AppEvents {
 
   ROW_USER_MENTION = 'row.user.mention',
   CALENDAR_CREATE = 'calendar.create',
+  TIMELINE_CREATE = 'timeline.create',
   FORM_DUPLICATE = 'form.duplicate',
   CALENDAR_UPDATE = 'calendar.update',
+  TIMELINE_UPDATE = 'timeline.update',
   CALENDAR_DELETE = 'calendar.delete',
+  TIMELINE_DELETE = 'timeline.delete',
   FORM_DELETE = 'form.delete',
 
   SOURCE_CREATE = 'source.create',
@@ -283,6 +290,26 @@ export enum AppEvents {
   VIEW_SECTION_CREATE = 'viewSection.create',
   VIEW_SECTION_UPDATE = 'viewSection.update',
   VIEW_SECTION_DELETE = 'viewSection.delete',
+
+  CHAT_SESSION_CREATE = 'chat.session.create',
+  CHAT_SESSION_UPDATE = 'chat.session.update',
+  CHAT_SESSION_DELETE = 'chat.session.delete',
+  CHAT_MESSAGE_CREATE = 'chat.message.create',
+  CHAT_TOOL_EXECUTE = 'chat.tool.execute',
+
+  DOC_AI_COMPLETION = 'doc.ai.completion',
+
+  DOCUMENT_CREATE = 'document.create',
+  DOCUMENT_UPDATE = 'document.update',
+  DOCUMENT_DELETE = 'document.delete',
+  DOCUMENT_USER_MENTION = 'document.user.mention',
+
+  DOCUMENT_COMMENT_CREATE = 'document.comment.create',
+  DOCUMENT_COMMENT_UPDATE = 'document.comment.update',
+  DOCUMENT_COMMENT_DELETE = 'document.comment.delete',
+
+  DATE_DEPENDENCY_UPDATE = 'date_dependency.update',
+  DATE_DEPENDENCY_DELETE = 'date_dependency.delete',
 }
 
 export enum ClickhouseTables {
@@ -483,7 +510,6 @@ export enum SyncDataType {
   NOCODB = 'nocodb',
   MICROSOFT_ACCESS = 'microsoft-access',
   TABLEAU = 'tableau',
-  ORACLE = 'oracle',
   // AI
   OPENAI = 'openai',
   CLAUDE = 'claude',
@@ -630,4 +656,10 @@ export enum MetaEntityType {
   FILTER = 'FILTER',
   SORT = 'SORT',
   VIEW_ROW_COLOR = 'VIEW_ROW_COLOR',
+}
+
+export enum MapProvider {
+  OPENSTREETMAP = 'openstreetmap',
+  STADIAMAP = 'stadiamap',
+  STADIAMAP_APIKEY = 'stadiamap_apikey',
 }

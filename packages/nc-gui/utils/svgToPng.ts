@@ -61,7 +61,8 @@ function downloadSvg(svg: SVGGraphicsElement, fileName: string) {
     if (typeof navigator !== 'undefined' && navigator.msSaveOrOpenBlob) {
       const blob = canvas.msToBlob()
       navigator.msSaveOrOpenBlob(blob, fileName)
-    } else {
+    }
+    else {
       const imgURI = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream')
       triggerDownload(imgURI, fileName)
     }
@@ -81,7 +82,8 @@ function copyPNGToClipboard(blob: Blob | null) {
         }),
       ])
       resolve(true)
-    } catch {
+    }
+    catch {
       resolve(false)
     }
   })
@@ -98,8 +100,8 @@ function copySVGToClipboard(svg: SVGGraphicsElement) {
 }
 
 async function base64ToBlob(base64String: string): Promise<Blob> {
-  const blob = await fetch(base64String).then((res) => res.blob())
+  const blob = await fetch(base64String).then(res => res.blob())
   return blob
 }
 
-export { downloadSvg, copySVGToClipboard, copyPNGToClipboard, base64ToBlob }
+export { base64ToBlob, copyPNGToClipboard, copySVGToClipboard, downloadSvg }

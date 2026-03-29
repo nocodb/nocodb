@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import tippy from 'tippy.js'
-import { ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
 import type { CommentType, WorkspaceUserRoles } from 'nocodb-sdk'
+import { ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
+import tippy from 'tippy.js'
 
 const { user, appInfo } = useGlobal()
 
@@ -64,13 +64,14 @@ function scrollComments() {
   }
 }
 
-const saveComment = async () => {
+async function saveComment() {
   if (!comment.value.trim()) return
 
   while (comment.value.endsWith('<br />') || comment.value.endsWith('\n')) {
     if (comment.value.endsWith('<br />')) {
       comment.value = comment.value.slice(0, -6)
-    } else {
+    }
+    else {
       comment.value = comment.value.slice(0, -2)
     }
   }
@@ -106,15 +107,16 @@ const saveComment = async () => {
       isExpandedFormCommentMode.value = true
     })
     scrollComments()
-  } catch (e) {
+  }
+  catch (e) {
     console.error(e)
   }
 }
 
-const copyComment = async (comment: CommentType) => {
+async function copyComment(comment: CommentType) {
   await copy(
     encodeURI(
-      `${dashboardUrl?.value}#/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}?rowId=${primaryKey.value}&commentId=${comment.id}`,
+      `${dashboardUrl?.value}/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}?rowId=${primaryKey.value}&commentId=${comment.id}`,
     ),
   )
 }
@@ -165,7 +167,8 @@ async function onEditComment() {
   while (editCommentValue.value.comment.endsWith('<br />') || editCommentValue.value.comment.endsWith('\n')) {
     if (editCommentValue.value.comment.endsWith('<br />')) {
       editCommentValue.value.comment = editCommentValue.value.comment.slice(0, -6)
-    } else {
+    }
+    else {
       editCommentValue.value.comment = editCommentValue.value.comment.slice(0, -2)
     }
   }
@@ -185,18 +188,19 @@ async function onEditComment() {
   loadComments()
 }
 
-const createdBy = (
-  comment: CommentType & {
-    created_display_name_short?: string
-  },
-) => {
+function createdBy(comment: CommentType & {
+  created_display_name_short?: string
+}) {
   if (comment.created_by === user.value?.id) {
     return 'You'
-  } else if (comment.created_display_name_short?.trim()) {
+  }
+  else if (comment.created_display_name_short?.trim()) {
     return comment.created_display_name_short || 'Shared source'
-  } else if (comment.created_by_email) {
+  }
+  else if (comment.created_by_email) {
     return comment.created_by_email
-  } else {
+  }
+  else {
     return 'Shared source'
   }
 }
@@ -223,20 +227,21 @@ watch(commentsWrapperEl, () => {
         hoveredCommentId.value = commentId as string
 
         onClickOutside(document.querySelector(`.${hoveredCommentId.value}`)! as HTMLDivElement, handleResetHoverEffect)
-      } else {
+      }
+      else {
         scrollComments()
       }
     })
   }, 100)
 })
 
-const getUserRole = (email: string) => {
-  const user = baseUsers.value.find((user) => user.email === email)
+function getUserRole(email: string) {
+  const user = baseUsers.value.find(user => user.email === email)
   if (!user) return ProjectRoles.NO_ACCESS
 
   return (
-    user.roles ??
-    (user.workspace_roles
+    user.roles
+    ?? (user.workspace_roles
       ? WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
       : ProjectRoles.NO_ACCESS)
   )
@@ -248,7 +253,7 @@ function loadCommentEditedTooltip() {
   resetTooltipInstances()
 
   document.querySelectorAll('.nc-rich-link-tooltip').forEach((el) => {
-    const tooltip = Object.values(el.attributes).find((attr) => attr.name === 'data-tooltip')
+    const tooltip = Object.values(el.attributes).find(attr => attr.name === 'data-tooltip')
     if (!tooltip) return
 
     const instance = tippy(el, {
@@ -265,11 +270,11 @@ function loadCommentEditedTooltip() {
 }
 
 function resetTooltipInstances() {
-  tooltipInstances.forEach((instance) => instance?.destroy())
+  tooltipInstances.forEach(instance => instance?.destroy())
   tooltipInstances.length = 0
 }
 
-const handleKeyPress = (event: KeyboardEvent) => {
+function handleKeyPress(event: KeyboardEvent) {
   if (event.key !== 'Escape') {
     event.stopPropagation()
   }
@@ -332,8 +337,8 @@ onBeforeUnmount(() => {
           <div
             :class="{
               'hover:bg-nc-bg-gray-light': editCommentValue?.id !== commentItem!.id,
-              'nc-hovered-comment bg-nc-bg-gray-light': hoveredCommentId === commentItem!.id
-        }"
+              'nc-hovered-comment bg-nc-bg-gray-light': hoveredCommentId === commentItem!.id,
+            }"
             class="group gap-3 overflow-hidden px-3 py-2 transition-colors"
           >
             <div class="flex items-start justify-between">
@@ -454,11 +459,15 @@ onBeforeUnmount(() => {
                       <GeneralIcon class="text-md" icon="checkCircle" />
                     </NcButton>
 
-                    <template #title>{{ $t('activity.clickToResolve') }}</template>
+                    <template #title>
+                      {{ $t('activity.clickToResolve') }}
+                    </template>
                   </NcTooltip>
 
                   <NcTooltip v-else-if="commentItem.resolved_by">
-                    <template #title>{{ `${$t('activity.resolvedBy')} ${commentItem.resolved_display_name_short}` }}</template>
+                    <template #title>
+                      {{ `${$t('activity.resolvedBy')} ${commentItem.resolved_display_name_short}` }}
+                    </template>
                     <NcButton
                       class="!h-7 !w-7 !bg-transparent !hover:bg-nc-bg-gray-medium text-semibold"
                       size="xsmall"
@@ -502,7 +511,7 @@ onBeforeUnmount(() => {
                   v-dompurify-html="parsedHtmlComments[commentItem.id]"
                   class="nc-rich-text-content !text-small !leading-18px !text-nc-content-gray"
                   @click="handleDompurifyLinkClick"
-                ></div>
+                />
               </div>
             </div>
           </div>

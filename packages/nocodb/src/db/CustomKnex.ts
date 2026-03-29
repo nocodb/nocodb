@@ -1225,7 +1225,9 @@ function CustomKnex(
               const result = await trxCommit(...cArgs);
 
               try {
-                await Promise.all((trx.ops || []).map((op) => op()));
+                for (const op of trx.ops || []) {
+                  await op();
+                }
               } finally {
                 trx.ops = [];
               }

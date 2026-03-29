@@ -1,9 +1,9 @@
-import { PermissionOptionValue, PermissionOptions, getPermissionIcon, getPermissionLabel, getPermissionOption } from 'nocodb-sdk'
+import { getPermissionIcon, getPermissionLabel, getPermissionOption, PermissionOptions, PermissionOptionValue } from 'nocodb-sdk'
 
 // Re-export the interface from SDK for backward compatibility
 export type { PermissionOption } from 'nocodb-sdk'
 
-export const usePermissions = () => {
+export function usePermissions() {
   // Use centralized permission options from SDK
   const permissionOptions = PermissionOptions
 

@@ -9,14 +9,14 @@ const isTab = computed(() => props.tab)
 
 const highlightStyle = ref({ left: '0px' })
 
-const setActiveCalendarMode = (mode: 'day' | 'week' | 'month' | 'year', event: MouseEvent) => {
+function setActiveCalendarMode(mode: 'day' | 'week' | 'month' | 'year', event: MouseEvent) {
   changeCalendarView(mode)
   const tabElement = event.target as HTMLElement
   highlightStyle.value.left = `${tabElement.offsetLeft}px`
   highlightStyle.value.width = `${tabElement.offsetWidth}px`
 }
 
-const updateHighlightPosition = () => {
+function updateHighlightPosition() {
   nextTick(() => {
     const activeTab = document.querySelector('.nc-calendar-mode-tab .tab.active') as HTMLElement
     if (activeTab) {
@@ -46,7 +46,7 @@ watch(activeCalendarView, () => {
         <div
           :style="highlightStyle"
           class="highlight h-0.5 rounded-t-md absolute transition-all -bottom-0.7 bg-nc-content-brand"
-        ></div>
+        />
 
         <div
           v-for="mode in ['day', 'week', 'month', 'year']"
@@ -76,7 +76,9 @@ watch(activeCalendarView, () => {
     data-testid="nc-calendar-view-mode"
     @click.stop
   >
-    <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
+    <template #suffixIcon>
+      <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+    </template>
 
     <a-select-option v-for="option in ['day', 'week', 'month', 'year']" :key="option" :value="option">
       <div class="w-full flex gap-2 items-center justify-between" :title="option">
@@ -85,7 +87,9 @@ watch(activeCalendarView, () => {
             <template #title>
               {{ option }}
             </template>
-            <template #default>{{ option }}</template>
+            <template #default>
+              {{ option }}
+            </template>
           </NcTooltip>
         </div>
         <GeneralIcon

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { type ButtonType, type ColumnType, isSystemColumn } from 'nocodb-sdk'
+import type { ButtonType, ColumnType } from 'nocodb-sdk'
+import { isSystemColumn } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -29,8 +30,8 @@ const { t } = useI18n()
 
 const options = computed(() =>
   (props.options || [])
-    .filter((c) => (isLocalMode.value && c?.id && fieldsMap.value[c.id] ? fieldsMap.value[c.id]?.initialShow : true))
-    .map((c) => c)
+    .filter(c => (isLocalMode.value && c?.id && fieldsMap.value[c.id] ? fieldsMap.value[c.id]?.initialShow : true))
+    .map(c => c)
     .sort((field1, field2) => {
       // sort by view column order and keep system columns at the end
       let orderVal1 = 0
@@ -45,10 +46,10 @@ const options = computed(() =>
       }
 
       if (
-        field1?.id &&
-        field2?.id &&
-        fieldsMap.value[field1.id]?.order !== undefined &&
-        fieldsMap.value[field2.id]?.order !== undefined
+        field1?.id
+        && field2?.id
+        && fieldsMap.value[field1.id]?.order !== undefined
+        && fieldsMap.value[field2.id]?.order !== undefined
       ) {
         sortByOrder = fieldsMap.value[field1.id].order - fieldsMap.value[field2.id].order
       }
@@ -82,7 +83,7 @@ const configByToolbarMenu = computed(() => {
   }
 })
 
-const handleSelect = (c: ColumnType) => {
+function handleSelect(c: ColumnType) {
   emits('selected', c)
   if (configByToolbarMenu.value.selectOptionEvent) {
     $e(configByToolbarMenu.value.selectOptionEvent)

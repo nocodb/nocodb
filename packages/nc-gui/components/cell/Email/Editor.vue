@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { VNodeRef } from '@vue/runtime-core'
+import type { VNodeRef } from 'vue'
 import { extractEmail } from '~/helpers/parsers/parserHelpers'
 
 interface Props {
@@ -40,22 +40,23 @@ const focus: VNodeRef = (el) => {
   }
 }
 
-const onPaste = (e: ClipboardEvent) => {
+function onPaste(e: ClipboardEvent) {
   const pastedText = e.clipboardData?.getData('text') ?? ''
   if (parseProp(column.value.meta).validate) {
     vModel.value = extractEmail(pastedText) || pastedText
-  } else {
+  }
+  else {
     vModel.value = pastedText
   }
 }
 
 onBeforeUnmount(() => {
   if (
-    !isForm.value &&
-    parseProp(column.value.meta)?.validate &&
-    (!editEnabled.value || isCanvasInjected) &&
-    localState.value &&
-    !validateEmail(localState.value)
+    !isForm.value
+    && parseProp(column.value.meta)?.validate
+    && (!editEnabled.value || isCanvasInjected)
+    && localState.value
+    && !validateEmail(localState.value)
   ) {
     if (!isEditColumn.value) {
       message.error(t('msg.error.invalidEmail'))
@@ -73,7 +74,7 @@ onMounted(() => {
   }
 })
 
-const onBlur = () => {
+function onBlur() {
   editEnabled.value = false
   isFocused.value = false
 }
@@ -108,7 +109,7 @@ const showClicableLink = computed(() => {
     @selectstart.capture.stop
     @mousedown.stop
     @paste.prevent="onPaste"
-  />
+  >
   <div
     v-if="showClicableLink"
     class="nc-cell-field nc-cell-link-preview absolute inset-0 flex items-center max-w-full overflow-hidden pointer-events-none"

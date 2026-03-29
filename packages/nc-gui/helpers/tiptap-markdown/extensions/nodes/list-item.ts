@@ -1,6 +1,6 @@
+import type { MarkdownNodeSpec } from '../../types'
 import { Node } from '@tiptap/core'
 import { defaultMarkdownSerializer } from '@tiptap/pm/markdown'
-import type { MarkdownNodeSpec } from '../../types'
 
 // TODO: Extend from tiptap extension
 export const ListItem = Node.create<any, { markdown: MarkdownNodeSpec }>({

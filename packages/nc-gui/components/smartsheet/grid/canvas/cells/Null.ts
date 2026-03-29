@@ -1,13 +1,13 @@
-import { FormulaDataTypes, UITypes, isNumericFieldType } from 'nocodb-sdk'
+import { FormulaDataTypes, isNumericFieldType, UITypes } from 'nocodb-sdk'
 import { getAbstractType, renderSingleLineText } from '../utils/canvas'
 
 export const NullCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { column, sqlUis, x, y, width, height, padding, textColor = themeV4Colors.gray['300'], getColor } = props
 
-    const isNumericField =
-      isNumericFieldType(column, getAbstractType(column, sqlUis)) ||
-      (column.uidt === UITypes.Formula && (column.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.NUMERIC)
+    const isNumericField
+      = isNumericFieldType(column, getAbstractType(column, sqlUis))
+        || (column.uidt === UITypes.Formula && (column.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.NUMERIC)
 
     const { x: xOffset, y: yOffset } = renderSingleLineText(ctx, {
       x: isNumericField ? x + width - padding : x + padding,

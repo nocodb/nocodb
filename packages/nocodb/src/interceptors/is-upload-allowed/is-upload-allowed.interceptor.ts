@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { extractRolesObj, OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
+import {
+  extractRolesObj,
+  OrgUserRoles,
+  ProjectRoles,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import type { Observable } from 'rxjs';
 import type {
   CallHandler,
@@ -25,10 +30,15 @@ export class UploadAllowedInterceptor implements NestInterceptor {
     }
 
     try {
+      const userRoles = extractRolesObj(request['user'].roles);
+      const wsRoles = request['user'].workspace_roles || {};
+
       if (
-        extractRolesObj(request['user'].roles)[OrgUserRoles.SUPER_ADMIN] ||
-        extractRolesObj(request['user'].roles)[OrgUserRoles.CREATOR] ||
-        extractRolesObj(request['user'].roles)[ProjectRoles.EDITOR] ||
+        userRoles[OrgUserRoles.SUPER_ADMIN] ||
+        userRoles[OrgUserRoles.CREATOR] ||
+        userRoles[ProjectRoles.EDITOR] ||
+        wsRoles[WorkspaceUserRoles.CREATOR] ||
+        wsRoles[WorkspaceUserRoles.OWNER] ||
         !!(await Noco.ncMeta
           .knex(MetaTable.PROJECT_USERS)
           .where(function () {

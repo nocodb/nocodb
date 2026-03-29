@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { type LocalSelectOptionType, getOptions } from './utils'
+import type { LocalSelectOptionType } from './utils'
+import { getOptions } from './utils'
 
 interface Props {
   modelValue?: string | undefined

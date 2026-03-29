@@ -1,9 +1,9 @@
 import {
   HEX_COLOUR_REGEX,
   HEX_COLOUR_WITH_ALPHA_REGEX,
+  isValidHexColour,
   normalizeHexColour,
   normalizeHexColourWithAlpha,
-  isValidHexColour,
 } from './colour';
 
 describe('colour utilities', () => {

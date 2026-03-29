@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
-import type { VNodeRef } from '@vue/runtime-core'
+import type { RuleObject } from 'ant-design-vue/es/form'
+import type { VNodeRef } from 'vue'
 
 const props = defineProps<{
   modelValue: boolean
@@ -45,7 +45,7 @@ const creating = ref(false)
 
 const input: VNodeRef = ref<typeof Input>()
 
-const createProject = async () => {
+async function createProject() {
   if (formState.value.title) {
     formState.value.title = formState.value.title.trim()
   }
@@ -67,9 +67,11 @@ const createProject = async () => {
     }
 
     dialogShow.value = false
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     setTimeout(() => {
       creating.value = false
     }, 500)
@@ -77,7 +79,7 @@ const createProject = async () => {
   }
 }
 
-const onInit = () => {
+function onInit() {
   // Clear errors
   setTimeout(async () => {
     form.value?.resetFields()
@@ -140,9 +142,11 @@ watch(dialogShow, (n) => {
       </a-form>
 
       <div class="flex flex-row justify-end mt-5 gap-x-2">
-        <NcButton type="secondary" size="small" :disabled="creating" @click="dialogShow = false">{{
-          $t('general.cancel')
-        }}</NcButton>
+        <NcButton type="secondary" size="small" :disabled="creating" @click="dialogShow = false">
+          {{
+            $t('general.cancel')
+          }}
+        </NcButton>
         <NcButton
           v-e="['a:base:create']"
           data-testid="docs-create-proj-dlg-create-btn"

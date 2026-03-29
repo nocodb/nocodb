@@ -28,14 +28,16 @@ export class QueueService {
     @Inject(forwardRef(() => JobsMap)) protected readonly jobsMap: JobsMap,
   ) {
     this.emitter.on(JobStatus.ACTIVE, (data: { job: Job }) => {
-      const job = this.queueMemory.find((job) => job.id === data.job.id);
+      const job = this.queueMemory.find((j) => j.id === data.job.id);
+      if (!job) return;
       job.status = JobStatus.ACTIVE;
       this.jobsEventService.onActive.apply(this.jobsEventService, [job as any]);
     });
     this.emitter.on(
       JobStatus.COMPLETED,
       (data: { job: Job; result: any; skipEvent?: boolean }) => {
-        const job = this.queueMemory.find((job) => job.id === data.job.id);
+        const job = this.queueMemory.find((j) => j.id === data.job.id);
+        if (!job) return;
         job.status = JobStatus.COMPLETED;
 
         if (!data.skipEvent) {
@@ -52,7 +54,8 @@ export class QueueService {
     this.emitter.on(
       JobStatus.FAILED,
       (data: { job: Job; error: Error; skipEvent?: boolean }) => {
-        const job = this.queueMemory.find((job) => job.id === data.job.id);
+        const job = this.queueMemory.find((j) => j.id === data.job.id);
+        if (!job) return;
         job.status = JobStatus.FAILED;
 
         if (!data.skipEvent) {
@@ -228,8 +231,18 @@ export class QueueService {
   // remove job from memory
   private removeJob(job: Job) {
     const fIndex = this.queueMemory.findIndex((q) => q.id === job.id);
-    if (fIndex) {
+    if (fIndex !== -1) {
       this.queueMemory.splice(fIndex, 1);
     }
+  }
+
+  // Reset queue state — used by test cleanup to prevent memory leaks.
+  // Does NOT clear emitter listeners — they are registered once in the
+  // constructor and must survive across test runs.
+  static reset() {
+    QueueService.queue.clear();
+    QueueService.queueMemory.length = 0;
+    QueueService.queueIdCounter = 1;
+    QueueService.processed = 0;
   }
 }

@@ -1,4 +1,5 @@
-import { type ColumnType, FormulaDataTypes, UITypes, handleTZ } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { FormulaDataTypes, handleTZ, UITypes } from 'nocodb-sdk'
 import {
   defaultOffscreen2DContext,
   isBoxHovered,
@@ -7,27 +8,27 @@ import {
   renderSingleLineText,
 } from '../utils/canvas'
 import { showFieldEditWarning } from '../utils/cell'
+import { AttachmentCellRenderer } from './Attachment'
+import { BarcodeCellRenderer } from './Barcode'
 import { CheckboxCellRenderer } from './Checkbox'
 import { CurrencyRenderer } from './Currency'
 import { DateCellRenderer } from './Date'
 import { DateTimeCellRenderer } from './DateTime'
 import { DecimalCellRenderer } from './Decimal'
 import { EmailCellRenderer } from './Email'
+import { LongTextCellRenderer } from './LongText'
+import { LookupCellRenderer } from './Lookup'
+import { MultiSelectCellRenderer } from './MultiSelect'
+import { FloatCellRenderer } from './Number'
 import { PercentCellRenderer } from './Percent'
 import { PhoneNumberCellRenderer } from './PhoneNumber'
+import { QRCodeCellRenderer } from './QRCode'
 import { RatingCellRenderer } from './Rating'
 import { SingleLineTextCellRenderer } from './SingleLineText'
+import { SingleSelectCellRenderer } from './SingleSelect'
 import { TimeCellRenderer } from './Time'
 import { UrlCellRenderer } from './Url'
-import { FloatCellRenderer } from './Number'
-import { LongTextCellRenderer } from './LongText'
-import { SingleSelectCellRenderer } from './SingleSelect'
-import { MultiSelectCellRenderer } from './MultiSelect'
-import { LookupCellRenderer } from './Lookup'
 import { UserFieldCellRenderer } from './User'
-import { BarcodeCellRenderer } from './Barcode'
-import { QRCodeCellRenderer } from './QRCode'
-import { AttachmentCellRenderer } from './Attachment'
 
 function getDisplayValueCellRenderer(column: ColumnType) {
   const colExtra = column.extra
@@ -137,11 +138,12 @@ export const FormulaCellRenderer: CellRenderer = {
           lineHeight: 16,
           getColor,
         })
-        const hoveredBox = boxes.find((box) => isBoxHovered(box, mousePosition))
+        const hoveredBox = boxes.find(box => isBoxHovered(box, mousePosition))
         if (hoveredBox && selected) {
           setCursor('pointer')
         }
-      } else {
+      }
+      else {
         // If it does not contaisn urls, render as a SingleLineText
         SingleLineTextCellRenderer.render(ctx, {
           ...props,
@@ -171,7 +173,8 @@ export const FormulaCellRenderer: CellRenderer = {
           setCursor,
         })
       }
-    } else {
+    }
+    else {
       // If not of type string render as a SingleLineText
       SingleLineTextCellRenderer.render(ctx, {
         ...props,
@@ -243,10 +246,11 @@ export const FormulaCellRenderer: CellRenderer = {
         // If clicked on url or other texts
         // If clicked on URL, open the URL in a new tab
         // If selected and clicked, open the detached long text
-        const hoveredBox = boxes.find((box) => isBoxHovered(box, props.mousePosition))
+        const hoveredBox = boxes.find(box => isBoxHovered(box, props.mousePosition))
         if (hoveredBox) {
           confirmPageLeavingRedirect(hoveredBox.url, '_blank')
-        } else if (selected) {
+        }
+        else if (selected) {
           openDetachedLongText({ column: colObj, vModel: value })
         }
       }

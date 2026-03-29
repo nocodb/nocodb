@@ -1,7 +1,7 @@
+import type { WritableComputedRef } from '@vue/reactivity'
+import type { ButtonType, ColumnType, FormulaType, TableType, UserType, ViewType } from 'nocodb-sdk'
+import type { CanvasGridColumn } from '../../../../../lib/types'
 import {
-  PermissionEntity,
-  PermissionKey,
-  UITypes,
   isAIPromptCol,
   isLinksOrLTAR,
   isOrderCol,
@@ -10,14 +10,20 @@ import {
   isUUID,
   isVirtualCol,
   ncHasProperties,
+  PermissionEntity,
+  PermissionKey,
+  UITypes,
 } from 'nocodb-sdk'
-import type { ButtonType, ColumnType, FormulaType, TableType, UserType, ViewType } from 'nocodb-sdk'
-import type { WritableComputedRef } from '@vue/reactivity'
-import { SpriteLoader } from '../loaders/SpriteLoader'
+import { useGridCellHandler } from '../cells'
+import { ActionManager } from '../loaders/ActionManager'
+import { BaseRoleLoader } from '../loaders/BaseRoleLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { MarkdownLoader } from '../loaders/markdownLoader'
+import { SpriteLoader } from '../loaders/SpriteLoader'
+import { TableMetaLoader } from '../loaders/TableMetaLoader'
+import { clearTextCache } from '../utils/canvas'
+import { CanvasElement } from '../utils/CanvasElement'
 import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '../utils/cell'
-import { clearRowColouringCache, clearTextCache } from '../utils/canvas'
 import {
   CELL_BOTTOM_BORDER_IN_PX,
   COLUMN_HEADER_HEIGHT_IN_PX,
@@ -25,22 +31,16 @@ import {
   ROW_COLOR_BORDER_WIDTH,
   ROW_META_COLUMN_WIDTH,
 } from '../utils/constants'
-import { ActionManager } from '../loaders/ActionManager'
-import { useGridCellHandler } from '../cells'
-import { TableMetaLoader } from '../loaders/TableMetaLoader'
-import type { CanvasGridColumn } from '../../../../../lib/types'
-import { CanvasElement } from '../utils/CanvasElement'
 import { calculateGroupRowTop, isGroupExpanded } from '../utils/groupby'
-import { BaseRoleLoader } from '../loaders/BaseRoleLoader'
-import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
 import { useColumnReorder } from './useColumnReorder'
 import { normalizeWidth, useColumnResize } from './useColumnResize'
+import { useCopyPaste } from './useCopyPaste'
+import { useDataFetch } from './useDataFetch'
+import { useFillHandler } from './useFillHandler'
 import { useKeyboardNavigation } from './useKeyboardNavigation'
 import { useMouseSelection } from './useMouseSelection'
-import { useFillHandler } from './useFillHandler'
 import { useRowReorder } from './useRowReOrder'
-import { useCopyPaste } from './useCopyPaste'
 
 export function useCanvasTable({
   rowHeightEnum,
@@ -95,7 +95,7 @@ export function useCanvasTable({
   vSelectedAllRecords: WritableComputedRef<boolean>
   vSelectedAllRecordsSkipPks: WritableComputedRef<Record<string, string>>
   selectedRows: Ref<Row[]>
-  mousePosition: { x: number; y: number }
+  mousePosition: { x: number, y: number }
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path?: Array<number>) => void
   updateRecordOrder: (
     originalIndex: number,
@@ -122,7 +122,7 @@ export function useCanvasTable({
     row: Row,
     property?: string,
     ltarState?: Record<string, any>,
-    args?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    args?: { metaValue?: TableType, viewMetaValue?: ViewType },
     beforeRow?: string,
     path?: Array<number>,
   ) => Promise<any>
@@ -130,7 +130,7 @@ export function useCanvasTable({
     insertRows: Row[],
     updateRows: Row[],
     props: string[],
-    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    metas?: { metaValue?: TableType, viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
     undo?: boolean,
     path?: Array<number>,
@@ -138,7 +138,7 @@ export function useCanvasTable({
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
-    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    metas?: { metaValue?: TableType, viewMetaValue?: ViewType },
     undo?: boolean,
     path?: Array<number>,
   ) => Promise<void>
@@ -194,7 +194,7 @@ export function useCanvasTable({
   })
   const editEnabled = ref<CanvasEditEnabledType>(null)
   const isFillMode = ref(false)
-  const dragOver = ref<{ id: string; index: number } | null>(null)
+  const dragOver = ref<{ id: string, index: number } | null>(null)
   const attachmentCellDropOver = ref<AttachmentCellDropOverType | null>(null)
   const spriteLoader = new SpriteLoader(() => triggerRefreshCanvas())
   const imageLoader = new ImageWindowLoader(() => triggerRefreshCanvas())
@@ -213,7 +213,7 @@ export function useCanvasTable({
     isHoveredUpgrade: false,
   })
 
-  const { isMobileMode } = useGlobal()
+  const { appInfo, isMobileMode } = useGlobal()
   const { $api } = useNuxtApp()
   const { t } = useI18n()
   const { currentUser } = useUserSync()
@@ -234,8 +234,8 @@ export function useCanvasTable({
   } = useSmartsheetStoreOrThrow()
 
   // Initialize loaders that need meta.base_id after meta is available
-  const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas, (meta.value as TableType)?.base_id)
-  const baseRoleLoader = new BaseRoleLoader(getBaseRoles, () => triggerRefreshCanvas)
+  const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas(), (meta.value as TableType)?.base_id)
+  const baseRoleLoader = new BaseRoleLoader(getBaseRoles, () => triggerRefreshCanvas())
   const { addUndo, defineViewScope } = useUndoRedo()
   const { activeView } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
@@ -302,13 +302,13 @@ export function useCanvasTable({
 
   const removeInlineAddRecord = computed(() => {
     return (
-      !isGroupBy.value &&
-      blockExternalSourceRecordVisibility(isExternalSource.value) &&
-      totalRows.value >= EXTERNAL_SOURCE_VISIBLE_ROWS
+      !isGroupBy.value
+      && blockExternalSourceRecordVisibility(isExternalSource.value)
+      && totalRows.value >= EXTERNAL_SOURCE_VISIBLE_ROWS
     )
   })
 
-  const isOrderColumnExists = computed(() => (meta.value?.columns ?? []).some((col) => isOrderCol(col)))
+  const isOrderColumnExists = computed(() => (meta.value?.columns ?? []).some(col => isOrderCol(col)))
 
   const isInsertBelowDisabled = computed(() => !!allFilters.value?.length || !!sorts.value?.length || isPublicView.value)
 
@@ -341,7 +341,11 @@ export function useCanvasTable({
   const fetchMetaIds = ref<string[][]>([])
   const isLoadingMetas = ref(false)
 
-  const columns = computed<CanvasGridColumn[]>(() => {
+  // Override applied during column resize to avoid recomputing the heavy _columnsBase.
+  // Set on each resize frame, cleared on mouseup.
+  const resizeWidthOverride = ref<{ columnId: string, width: string } | null>(null)
+
+  const _columnsBase = computed<CanvasGridColumn[]>(() => {
     // Early return if meta is not available yet
     if (!meta.value?.base_id) {
       return []
@@ -364,7 +368,7 @@ export function useCanvasTable({
         if ([UITypes.Lookup, UITypes.Rollup].includes(f.uidt)) {
           const lookupMetaKey = `${baseId}:${f.fk_model_id!}`
           relatedColObj = metas.value?.[lookupMetaKey]?.columns?.find(
-            (c) => c.id === f?.colOptions?.fk_relation_column_id,
+            c => c.id === f?.colOptions?.fk_relation_column_id,
           ) as ColumnType
 
           if (relatedColObj && relatedColObj.colOptions?.fk_related_model_id) {
@@ -373,18 +377,21 @@ export function useCanvasTable({
             const relatedMetaKey = `${relatedBaseId}:${relatedColObj.colOptions.fk_related_model_id}`
             if (!metas.value?.[relatedMetaKey]) {
               fetchMetaIdsLocal.push([relatedColObj.id, relatedColObj.colOptions.fk_related_model_id, relatedBaseId])
-            } else {
+            }
+            else {
               relatedTableMeta = metas.value?.[relatedMetaKey]
             }
           }
-        } else if (isLTAR(f.uidt, f.colOptions)) {
+        }
+        else if (isLTAR(f.uidt, f.colOptions)) {
           if (f.colOptions?.fk_related_model_id) {
             // For cross-base links, use fk_related_base_id, otherwise use current baseId
             const relatedBaseId = (f.colOptions as any)?.fk_related_base_id || baseId
             const ltarMetaKey = `${relatedBaseId}:${f.colOptions.fk_related_model_id}`
             if (!metas.value?.[ltarMetaKey]) {
               fetchMetaIdsLocal.push([f.id, f.colOptions.fk_related_model_id, relatedBaseId])
-            } else {
+            }
+            else {
               relatedTableMeta = metas.value?.[ltarMetaKey]
             }
           }
@@ -392,14 +399,15 @@ export function useCanvasTable({
 
         if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(f.uidt)) {
           f.extra = getSingleMultiselectColOptions(f)
-        } else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(f.uidt)) {
+        }
+        else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(f.uidt)) {
           f.extra = getUserColOptions(f, baseUsers.value)
         }
 
         if ([UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.DateTime].includes(f.uidt)) {
           const meta = parseProp(f.meta)
-          f.extra.timezone = isEeUI ? getTimeZoneFromName(meta?.timezone) : undefined
-          f.extra.isDisplayTimezone = isEeUI ? meta?.isDisplayTimezone : undefined
+          f.extra.timezone = appInfo.value.ee ? getTimeZoneFromName(meta?.timezone) : undefined
+          f.extra.isDisplayTimezone = appInfo.value.ee ? meta?.isDisplayTimezone : undefined
         }
         if ([UITypes.Formula].includes(f.uidt)) {
           const referencedColumn = (f.colOptions as FormulaType)?.parsed_tree?.referencedColumn
@@ -407,8 +415,8 @@ export function useCanvasTable({
           const displayColumnConfig = (f.meta as any)?.display_type
             ? ((f.meta as any)?.display_column_meta as any)
             : referencedColumn
-            ? meta.value?.columns?.find((c) => c.id === referencedColumn.id)
-            : undefined
+              ? meta.value?.columns?.find(c => c.id === referencedColumn.id)
+              : undefined
 
           if ([UITypes.DateTime].includes(displayType)) {
             if (displayColumnConfig?.meta) {
@@ -416,10 +424,10 @@ export function useCanvasTable({
 
               const extra = {
                 timezone:
-                  isEeUI && displayColumnConfigMeta.isDisplayTimezone
+                  appInfo.value.ee && displayColumnConfigMeta.isDisplayTimezone
                     ? getTimeZoneFromName(displayColumnConfigMeta.timezone)
                     : undefined,
-                isDisplayTimezone: isEeUI ? displayColumnConfigMeta.isDisplayTimezone : undefined,
+                isDisplayTimezone: appInfo.value.ee ? displayColumnConfigMeta.isDisplayTimezone : undefined,
               }
               displayColumnConfig.extra = extra
             }
@@ -437,10 +445,10 @@ export function useCanvasTable({
         })
         const sqlUi = sqlUis.value[f.source_id] ?? Object.values(sqlUis.value)[0]
 
-        const isCellEditable =
-          showReadonlyColumnTooltip(f) ||
-          !showEditRestrictedColumnTooltip(f) ||
-          isAllowed(PermissionEntity.FIELD, f.id, PermissionKey.RECORD_FIELD_EDIT)
+        const isCellEditable
+          = showReadonlyColumnTooltip(f)
+            || !showEditRestrictedColumnTooltip(f)
+            || isAllowed(PermissionEntity.FIELD, f.id, PermissionKey.RECORD_FIELD_EDIT)
 
         const isSyncedCol = meta.value?.synced && f.readonly
 
@@ -458,21 +466,20 @@ export function useCanvasTable({
           title: f.title,
           uidt: f.uidt,
           width: gridViewCol.width,
-          fixed:
-            isMobileMode.value && !isGroupBy.value
-              ? false
-              : isGroupBy.value
+          fixed: isMobileMode.value
+            ? false
+            : isGroupBy.value
               ? !!f.pv
               : parseCellWidth(gridViewCol.width) > width.value * (3 / 4)
-              ? false
-              : !!f.pv,
+                ? false
+                : !!f.pv,
           readonly:
-            f.readonly ||
-            isDataReadOnly.value ||
-            !isDataEditAllowed.value ||
-            isPublicView.value ||
-            !isCellEditable ||
-            isSyncedCol,
+            f.readonly
+            || isDataReadOnly.value
+            || !isDataEditAllowed.value
+            || isPublicView.value
+            || !isCellEditable
+            || isSyncedCol,
           isCellEditable,
           pv: !!f.pv,
           virtual: isVirtualCol(f),
@@ -487,10 +494,11 @@ export function useCanvasTable({
             ...isInvalid,
             tooltip: isInvalid.ignoreTooltip ? null : isInvalid.tooltip && t(isInvalid.tooltip),
           },
+          isDateDependencyField: isColumnDateDependencyField(meta.value, f.id),
           abstractType: sqlUi?.getAbstractType(f),
         }
       })
-      .filter((c) => !!c)
+      .filter(c => !!c)
       .sort((a, b) => !!b.fixed - !!a.fixed)
 
     fetchMetaIds.value.push(...fetchMetaIdsLocal)
@@ -508,6 +516,16 @@ export function useCanvasTable({
       },
     })
     return cols as unknown as CanvasGridColumn[]
+  })
+
+  // Lightweight wrapper: during resize, patches only the resizing column's width
+  // without recomputing _columnsBase (which does heavy meta/aggregation/permission work).
+  const columns = computed<CanvasGridColumn[]>(() => {
+    const base = _columnsBase.value
+    const override = resizeWidthOverride.value
+    if (!override) return base
+
+    return base.map(col => (col.id === override.columnId ? { ...col, width: override.width } : col))
   })
 
   const columnWidths = computed(() =>
@@ -563,12 +581,12 @@ export function useCanvasTable({
     // if all the selected columns are not readonly
 
     return (
-      (selection.value.isEmpty() && activeCell.value.column && columns.value[activeCell.value.column]?.virtual) ||
-      (!selection.value.isEmpty() &&
-        Array.from({ length: selection.value.end.col - selection.value.start.col + 1 }).every(
+      (selection.value.isEmpty() && activeCell.value.column && columns.value[activeCell.value.column]?.virtual)
+      || (!selection.value.isEmpty()
+        && Array.from({ length: selection.value.end.col - selection.value.start.col + 1 }).every(
           (_, i) =>
-            !columns.value[selection.value.start.col + i]?.isCellEditable ||
-            columns.value[selection.value.start.col + i]?.isSyncedColumn,
+            !columns.value[selection.value.start.col + i]?.isCellEditable
+            || columns.value[selection.value.start.col + i]?.isSyncedColumn,
         ))
     )
   })
@@ -577,17 +595,18 @@ export function useCanvasTable({
     const dataCache = getDataCache(activeCell?.value?.path)
 
     return !(
-      !isDataReadOnly.value &&
-      !readOnly.value &&
-      (!editEnabled.value || EDIT_INTERACTABLE.includes(editEnabled.value?.column?.uidt)) &&
-      (!selection.value.isEmpty() || (activeCell.value.row !== null && activeCell.value.column !== null)) &&
-      !dataCache.cachedRows.value.get((isNaN(selection.value.end.row) ? activeCell.value.row : selection.value.end.row) ?? -1)
-        ?.rowMeta?.new &&
-      activeCell.value.column !== null &&
-      fields.value[activeCell.value.column - 1] &&
-      dataCache.totalRows.value &&
-      !isSelectionReadOnly.value &&
-      !isSqlView.value
+      !isDataReadOnly.value
+      && !readOnly.value
+      && (!editEnabled.value || EDIT_INTERACTABLE.includes(editEnabled.value?.column?.uidt))
+      && (!selection.value.isEmpty() || (activeCell.value.row !== null && activeCell.value.column !== null))
+      && !dataCache.cachedRows.value.get((isNaN(selection.value.end.row) ? activeCell.value.row : selection.value.end.row) ?? -1)
+        ?.rowMeta
+        ?.new
+        && activeCell.value.column !== null
+        && fields.value[activeCell.value.column - 1]
+        && dataCache.totalRows.value
+        && !isSelectionReadOnly.value
+        && !isSqlView.value
     )
   })
 
@@ -629,11 +648,11 @@ export function useCanvasTable({
     return end - 1
   }
 
-  function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColumn; xOffset: number } {
+  function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColumn, xOffset: number } {
     // First check fixed columns
     let xOffset = 0
 
-    const fixedCols = columns.value.filter((col) => col.fixed)
+    const fixedCols = columns.value.filter(col => col.fixed)
 
     for (const column of fixedCols) {
       const width = columnWidths.value[columns.value.indexOf(column)] ?? 180
@@ -672,11 +691,11 @@ export function useCanvasTable({
   function findColumnPosition(
     columnId: string,
     scrollLeft = 0,
-  ): { column?: CanvasGridColumn | null; xOffset: number; width: string } {
+  ): { column?: CanvasGridColumn | null, xOffset: number, width: string } {
     // First check fixed columns
     let xOffset = 0
 
-    const fixedCols = columns.value.filter((col) => col.fixed)
+    const fixedCols = columns.value.filter(col => col.fixed)
 
     for (const column of fixedCols) {
       const width = columnWidths.value[columns.value.indexOf(column)] ?? 180
@@ -713,17 +732,17 @@ export function useCanvasTable({
   }
 
   function getCellPosition(targetColumn: CanvasGridColumn, rowIndex: number, path: Array<number> = []) {
-    const yOffset =
-      calculateGroupRowTop(
+    const yOffset
+      = calculateGroupRowTop(
         cachedGroups.value,
         path,
         rowIndex,
         rowHeight.value,
         headerRowHeight.value,
         isAddingEmptyRowAllowed.value,
-      ) -
-      scrollTop.value +
-      headerRowHeight.value
+      )
+      - scrollTop.value
+      + headerRowHeight.value
     if (targetColumn.fixed) {
       let xOffset = 0
       for (let i = 0; i < columns.value.length; i++) {
@@ -793,18 +812,19 @@ export function useCanvasTable({
       const selectedColumn = columns.value[selection.value.end.col]
       // If the cell is virtual, system column, AI prompt, or UUID (read-only auto-generated), hide the fill handler
       if (
-        selectedColumn?.virtual ||
-        isSystemColumn(selectedColumn?.columnObj) ||
-        (selectedColumn?.columnObj && isAIPromptCol(selectedColumn?.columnObj)) ||
-        (selectedColumn?.columnObj && isUUID(selectedColumn?.columnObj))
+        selectedColumn?.virtual
+        || isSystemColumn(selectedColumn?.columnObj)
+        || (selectedColumn?.columnObj && isAIPromptCol(selectedColumn?.columnObj))
+        || (selectedColumn?.columnObj && isUUID(selectedColumn?.columnObj))
       ) {
         return null
       }
-    } else {
+    }
+    else {
       // If selection is not single cell and atleast one column is not virtual, show handler
       // Check if all selected columns are virtual
       const selectedColumns = columns.value.slice(selection.value.start.col, selection.value.end.col + 1)
-      const allColumnsVirtual = selectedColumns.every((col) => col?.virtual)
+      const allColumnsVirtual = selectedColumns.every(col => col?.virtual)
 
       if (allColumnsVirtual) {
         return null
@@ -812,7 +832,7 @@ export function useCanvasTable({
     }
 
     let xPos = 0
-    const fixedCols = columns.value.filter((col) => col.fixed)
+    const fixedCols = columns.value.filter(col => col.fixed)
 
     for (let i = 0; i <= Math.min(selection.value.end.col, fixedCols.length - 1); i++) {
       if (columns.value[i]?.fixed) {
@@ -828,18 +848,18 @@ export function useCanvasTable({
       xPos -= scrollLeft.value
     }
 
-    const startY =
-      calculateGroupRowTop(
+    const startY
+      = calculateGroupRowTop(
         cachedGroups.value,
         groupPath,
         selection.value.end.row,
         rowHeight.value,
         headerRowHeight.value,
         isAddingEmptyRowAllowed.value,
-      ) -
-      scrollTop.value +
-      headerRowHeight.value +
-      rowHeight.value
+      )
+      - scrollTop.value
+      + headerRowHeight.value
+      + rowHeight.value
 
     // const startY = -partialRowHeight.value + 33 + (selection.value.end.row - rowSlice.value.start + 1) * rowHeight.value
 
@@ -851,7 +871,7 @@ export function useCanvasTable({
     }
   }
 
-  const { handleCellClick, renderCell, handleCellHover, handleCellKeyDown } = useGridCellHandler({
+  const { handleCellClick, renderCell, updateFrameTimestamp, handleCellHover, handleCellKeyDown } = useGridCellHandler({
     getCellPosition,
     actionManager,
     markdownLoader,
@@ -901,6 +921,7 @@ export function useCanvasTable({
     targetRowIndex,
     actionManager,
     renderCell,
+    updateFrameTimestamp,
     meta,
     editEnabled,
     totalWidth,
@@ -968,7 +989,7 @@ export function useCanvasTable({
     expandRows,
     view: view!,
     meta: meta as Ref<TableType>,
-    syncCellData: async (ctx: { row: number; column?: number; updatedColumnTitle?: string }, path: Array<number> = []) => {
+    syncCellData: async (ctx: { row: number, column?: number, updatedColumnTitle?: string }, path: Array<number> = []) => {
       const dataCache = getDataCache(path)
       const rowObj = dataCache.cachedRows.value.get(ctx.row)
       const columnObj = ctx.column !== undefined ? fields.value[ctx.column - 1] : null
@@ -1035,7 +1056,7 @@ export function useCanvasTable({
   })
 
   const handleColumnWidth = (columnId: string, width: number, updateFn: (normalizedWidth: string) => void) => {
-    const columnIndex = columns.value.findIndex((col) => col.id === columnId)
+    const columnIndex = columns.value.findIndex(col => col.id === columnId)
     if (columnIndex === -1) return
 
     const metaCol = metaColumnById.value[columnId]
@@ -1072,10 +1093,24 @@ export function useCanvasTable({
     colSlice,
     scrollLeft,
     isViewOperationsAllowed,
-    (columnId, width) =>
-      handleColumnWidth(columnId, width, (normalizedWidth) => (gridViewCols.value[columnId]!.width = normalizedWidth)),
-    (columnId, width) =>
-      handleColumnWidth(columnId, width, (normalizedWidth) => updateGridViewColumn(columnId, { width: normalizedWidth })),
+    // onResize (per-frame): set lightweight override instead of mutating gridViewCols,
+    // which would trigger the heavy _columnsBase recomputation.
+    (columnId, width) => {
+      const metaCol = metaColumnById.value[columnId]
+      if (!metaCol) return
+
+      const normalizedWidth = normalizeWidth(metaCol, width)
+      resizeWidthOverride.value = { columnId, width: `${normalizedWidth}px` }
+      reloadVisibleDataHook?.trigger()
+    },
+    // onResizeEnd (mouseup): clear override, flush final width to gridViewCols + persist.
+    (columnId, width) => {
+      resizeWidthOverride.value = null
+      handleColumnWidth(columnId, width, (normalizedWidth) => {
+        gridViewCols.value[columnId]!.width = normalizedWidth
+        updateGridViewColumn(columnId, { width: normalizedWidth })
+      })
+    },
   )
   const {
     isDragging: isColumnReordering,
@@ -1284,8 +1319,8 @@ export function useCanvasTable({
 
     if (isGroupBy.value && !path && !path?.legth) return
 
-    const yOffset =
-      calculateGroupRowTop(
+    const yOffset
+      = calculateGroupRowTop(
         cachedGroups.value,
         path,
         rowIndex,
@@ -1295,10 +1330,10 @@ export function useCanvasTable({
       ) + headerRowHeight.value
 
     let xOffset = (groupByColumns.value?.length ?? 0) * 13
-    const columnIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
+    const columnIndex = columns.value.findIndex(col => col.id === clickedColumn.id)
 
     if (clickedColumn.fixed) {
-      const fixedCols = columns.value.filter((col) => col.fixed)
+      const fixedCols = columns.value.filter(col => col.fixed)
       for (const col of fixedCols) {
         const width = columnWidths.value[columns.value.indexOf(col)] ?? 10
         if (col.id === clickedColumn.id) {
@@ -1306,7 +1341,8 @@ export function useCanvasTable({
         }
         xOffset += width
       }
-    } else {
+    }
+    else {
       const visibleStart = colSlice.value.start
       const startOffset = columnWidths.value.slice(0, visibleStart).reduce((sum, width) => sum + width, 0)
 
@@ -1424,7 +1460,27 @@ export function useCanvasTable({
     return !!row.rowMeta.selected
   }
 
+  let _renderRafId: number | null = null
+
   function triggerRefreshCanvas() {
+    // Coalesce multiple render requests into a single frame.
+    // Many code paths call triggerRefreshCanvas multiple times per frame
+    // (scroll handler, updateVisibleRows, data fetch completion, etc.).
+    // Without batching, each call synchronously re-renders the entire canvas.
+    if (_renderRafId) return
+    _renderRafId = requestAnimationFrame(() => {
+      _renderRafId = null
+      renderCanvas()
+    })
+  }
+
+  // Wrapper that renders immediately and cancels any pending deferred render.
+  // Used by the scroll handler to avoid the 2-frame lag that triggerRefreshCanvas causes.
+  const renderCanvasDirect = () => {
+    if (_renderRafId) {
+      cancelAnimationFrame(_renderRafId)
+      _renderRafId = null
+    }
     renderCanvas()
   }
 
@@ -1440,7 +1496,6 @@ export function useCanvasTable({
   const smartsheetEventHandler = (event) => {
     if ([SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
       forcedNextTick(() => {
-        clearRowColouringCache()
         triggerRefreshCanvas()
       })
     }
@@ -1477,7 +1532,8 @@ export function useCanvasTable({
             // the linked column metadata needed to render the LTAR cell.
             try {
               await getMeta(relatedBaseId, tableId, false, false, true)
-            } catch {}
+            }
+            catch {}
             const metaKey = `${relatedBaseId}:${tableId}`
             if (!metas.value[metaKey]) {
               await getPartialMeta(relatedBaseId, colId, tableId)
@@ -1485,7 +1541,8 @@ export function useCanvasTable({
           }),
         )
         triggerRefreshCanvas()
-      } finally {
+      }
+      finally {
         isLoadingMetas.value = false
       }
     },
@@ -1521,6 +1578,7 @@ export function useCanvasTable({
     updateVisibleRows,
     findColumnIndex,
     triggerRefreshCanvas,
+    renderCanvasDirect,
     startDrag,
     findColumnAtPosition,
     findClickedColumn,

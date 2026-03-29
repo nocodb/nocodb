@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import { type ColumnType, PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
+import type { ColumnType } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 
 const { $e } = useNuxtApp()
 
@@ -66,7 +67,7 @@ const expandedFormRow = ref<RowType>()
 
 const expandedFormRowState = ref<Record<string, any>>()
 
-const expandRecord = (row: RowType, state?: Record<string, any>) => {
+function expandRecord(row: RowType, state?: Record<string, any>) {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
 
   expandedFormRowState.value = state
@@ -78,13 +79,14 @@ const expandRecord = (row: RowType, state?: Record<string, any>) => {
         rowId,
       },
     })
-  } else {
+  }
+  else {
     expandedFormRow.value = row
     expandedFormDlg.value = true
   }
 }
 
-const newRecord = (row: RowType) => {
+function newRecord(row: RowType) {
   if (isPublic.value || (meta.value?.id && !isAllowed(PermissionEntity.TABLE, meta.value?.id, PermissionKey.TABLE_RECORD_ADD))) {
     return
   }
@@ -147,7 +149,7 @@ watch(
   <template v-if="isMobileMode">
     <div class="pl-6 pr-[120px] py-6 bg-nc-bg-default flex-col justify-start items-start gap-2.5 inline-flex">
       <div class="text-nc-content-gray-muted text-5xl font-semibold leading-16">
-        {{ $t('general.available') }}<br />{{ $t('title.inDesktop') }}
+        {{ $t('general.available') }}<br>{{ $t('title.inDesktop') }}
       </div>
       <div class="text-nc-content-gray-muted text-base font-medium leading-normal">
         {{ $t('msg.calendarViewNotSupportedOnMobile') }}
@@ -173,8 +175,8 @@ watch(
             />
             <LazySmartsheetCalendarWeekViewDateTimeField
               v-else-if="
-                activeCalendarView === 'week' &&
-                [UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.Formula].includes(calDataType)
+                activeCalendarView === 'week'
+                  && [UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.Formula].includes(calDataType)
               "
               @expand-record="expandRecord"
               @new-record="newRecord"
@@ -186,8 +188,8 @@ watch(
             />
             <LazySmartsheetCalendarDayViewDateTimeField
               v-else-if="
-                activeCalendarView === 'day' &&
-                [UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.Formula].includes(calDataType)
+                activeCalendarView === 'day'
+                  && [UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.Formula].includes(calDataType)
               "
               @expand-record="expandRecord"
               @new-record="newRecord"

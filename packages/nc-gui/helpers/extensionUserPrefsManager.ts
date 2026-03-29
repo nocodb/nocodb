@@ -143,7 +143,7 @@ export class ExtensionUserPrefsManager {
     const userData = this.storage.value[userId]
     if (!userData) return []
 
-    return Object.keys(userData).filter((key) => key !== 'lastAccessed')
+    return Object.keys(userData).filter(key => key !== 'lastAccessed')
   }
 }
 

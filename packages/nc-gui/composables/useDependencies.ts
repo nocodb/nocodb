@@ -1,4 +1,4 @@
-import type { DashboardType, DependencyTableType, WorkflowType } from 'nocodb-sdk'
+import type { DashboardType, DependencyTableType, TableType, WorkflowType } from 'nocodb-sdk'
 
 export function useDependencies() {
   const { api } = useApi()
@@ -13,7 +13,7 @@ export function useDependencies() {
     hasBreakingChanges: boolean
     entities: Array<{
       type: DependencyTableType
-      entity: DashboardType | WorkflowType
+      entity: DashboardType | WorkflowType | TableType
     }>
   }>({
     hasBreakingChanges: false,
@@ -39,7 +39,8 @@ export function useDependencies() {
       )
 
       status.value = 'done'
-    } catch (e) {
+    }
+    catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
       status.value = 'error'

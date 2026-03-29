@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnType } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
 
 const props = defineProps<{
   fields: ColumnType[]

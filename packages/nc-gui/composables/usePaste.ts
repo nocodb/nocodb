@@ -1,4 +1,4 @@
-export const usePaste = () => {
+export function usePaste() {
   const { t } = useI18n()
 
   const paste = async (): Promise<boolean> => {
@@ -24,7 +24,8 @@ export const usePaste = () => {
       // Dispatch the event on the document
       document.dispatchEvent(pasteEvent)
       return true
-    } catch (e) {
+    }
+    catch (e) {
       message.error(t('msg.error.pasteFromClipboardError'))
 
       return false

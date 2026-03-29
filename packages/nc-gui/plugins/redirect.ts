@@ -1,9 +1,9 @@
-const isFullUrl = (url: string) => {
+function isFullUrl(url: string) {
   return /^(https?:)?\/\//.test(url)
 }
 
 // this plugin is used to redirect user to the page they were trying to access before they were redirected to the login page
-export default defineNuxtPlugin(function (nuxtApp) {
+export default defineNuxtPlugin((nuxtApp) => {
   const isTokenUpdatedTab = useState('isTokenUpdatedTab', () => false)
   const router = useRouter()
 
@@ -39,23 +39,29 @@ export default defineNuxtPlugin(function (nuxtApp) {
                 return isFullUrl(continueAfterSignIn) ? '/' : continueAfterSignIn
               }
               if (route.value.query?.continueAfterSignIn) {
-                await navigateTo(getNavigateTo(route.value.query.continueAfterSignIn as string), {
+                const target = getNavigateTo(route.value.query.continueAfterSignIn as string)
+                await navigateTo(target, {
                   external: false,
+                  replace: true,
                 })
-              } else {
+              }
+              else {
                 const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
                 if (continueAfterSignIn) {
                   await navigateTo(getNavigateTo(continueAfterSignIn), {
                     external: false,
+                    replace: true,
                   })
                 }
               }
-            } finally {
+            }
+            finally {
               localStorage.removeItem('continueAfterSignIn')
               isTokenUpdatedTab.value = false
             }
           }
-        } catch (e) {
+        }
+        catch (e) {
           console.error(e)
         }
       },

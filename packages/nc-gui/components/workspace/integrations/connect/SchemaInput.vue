@@ -17,7 +17,7 @@ const { t } = useI18n()
 
 const copied = ref(false)
 
-const copyValue = async () => {
+async function copyValue() {
   await copy(vModel.value ?? '')
   message.info(t('msg.info.copiedToClipboard'))
   copied.value = true
@@ -75,8 +75,7 @@ onMounted(() => {
                   }"
                   size="xsmall"
                   readonly
-                >
-                </GeneralBaseIconColorPicker>
+                />
                 <div class="truncate text-nc-content-gray">
                   {{ option.id }}
                 </div>

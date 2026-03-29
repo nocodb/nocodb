@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { OrgUserRoles } from 'nocodb-sdk'
-import type { OrgUserReqType, RequestParams, UserType } from 'nocodb-sdk'
+import type { RequestParams, UserType } from 'nocodb-sdk'
 
 const { api, isLoading } = useApi()
 
@@ -61,7 +60,8 @@ const loadUsers = useDebounceFn(async (page = currentPage.value, limit = current
     pagination.pageSize = 10
 
     users.value = response.list as UserType[]
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }, 500)
@@ -71,28 +71,9 @@ onMounted(() => {
   loadSorts()
 })
 
-const updateRole = async (userId: string, roles: string) => {
-  try {
-    await api.orgUsers.update(userId, {
-      roles,
-    } as OrgUserReqType)
-    message.success(t('msg.success.roleUpdated'))
-
-    users.value.forEach((user) => {
-      if (user.id === userId) {
-        user.roles = roles
-      }
-    })
-
-    $e('a:org-user:role-updated', { role: roles })
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
 const deleteModalInfo = ref<UserType | null>(null)
 
-const deleteUser = async () => {
+async function deleteUser() {
   try {
     await api.orgUsers.delete(deleteModalInfo.value?.id as string)
     message.success(t('msg.success.userDeleted'))
@@ -104,43 +85,47 @@ const deleteUser = async () => {
       loadUsers(currentPage.value)
     }
     $e('a:org-user:user-deleted')
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     // closing the modal
     isOpen.value = false
     deleteModalInfo.value = null
   }
 }
 
-const resendInvite = async (user: UserType) => {
+async function resendInvite(user: UserType) {
   try {
     await api.orgUsers.resendInvite(user.id)
 
     // Invite email sent successfully
     message.success(t('msg.success.inviteEmailSent'))
     await loadUsers()
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 
   $e('a:org-user:resend-invite')
 }
 
-const copyInviteUrl = async (user: User) => {
+async function copyInviteUrl(user: User) {
   if (!user.invite_token) return
   try {
-    await copy(`${dashboardUrl.value}#/signup/${user.invite_token}`)
+    await copy(`${dashboardUrl.value}/signup/${user.invite_token}`)
 
     // Invite URL copied to clipboard
     message.success(t('msg.success.inviteURLCopied'))
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(e.message)
   }
   $e('c:user:copy-url')
 }
 
-const copyPasswordResetUrl = async (user: UserType) => {
+async function copyPasswordResetUrl(user: UserType) {
   try {
     const { reset_password_url } = await api.orgUsers.generatePasswordResetToken(user.id)
 
@@ -149,17 +134,18 @@ const copyPasswordResetUrl = async (user: UserType) => {
     // Invite URL copied to clipboard
     message.success(t('msg.success.passwordResetURLCopied'))
     $e('c:user:copy-url')
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
-const openInviteModal = () => {
+function openInviteModal() {
   showUserModal.value = true
   userMadalKey.value++
 }
 
-const openDeleteModal = (user: UserType) => {
+function openDeleteModal(user: UserType) {
   deleteModalInfo.value = user
   isOpen.value = true
 }
@@ -193,14 +179,6 @@ const columns = [
     showOrderBy: true,
   },
   {
-    key: 'role',
-    title: t('general.access'),
-    basis: '30%',
-    minWidth: 272,
-    dataIndex: 'roles',
-    showOrderBy: true,
-  },
-  {
     key: 'action',
     title: t('labels.actions'),
     width: 110,
@@ -208,19 +186,6 @@ const columns = [
     justify: 'justify-end',
   },
 ] as NcTableColumnProps[]
-
-const userRoleOptions = [
-  {
-    title: 'objects.roleType.orgLevelCreator',
-    subtitle: 'msg.info.roles.orgCreator',
-    value: OrgUserRoles.CREATOR,
-  },
-  {
-    title: 'objects.roleType.orgLevelViewer',
-    subtitle: 'msg.info.roles.orgViewer',
-    value: OrgUserRoles.VIEWER,
-  },
-]
 </script>
 
 <template>
@@ -267,7 +232,7 @@ const userRoleOptions = [
             class="h-[calc(100%-58px)] max-w-250 mt-6"
           >
             <template #bodyCell="{ column, record: el }">
-              <div v-if="column.key === 'email'" class="w-full">
+              <div v-if="column.key === 'email'" class="w-full flex items-center gap-2">
                 <NcTooltip v-if="el.display_name" class="truncate max-w-full">
                   <template #title>
                     {{ el.email }}
@@ -281,53 +246,17 @@ const userRoleOptions = [
                   </template>
                   {{ el.email }}
                 </NcTooltip>
-              </div>
-              <template v-if="column.key === 'role'">
-                <div v-if="el?.roles?.includes('super')" class="font-weight-bold" data-rec="true">
-                  {{ $t('labels.superAdmin') }}
-                </div>
-                <NcSelect
-                  v-else-if="el.id !== loggedInUser?.id"
-                  v-show="!isEeUI"
-                  v-model:value="el.roles"
-                  class="w-55 nc-user-roles"
-                  :dropdown-match-select-width="false"
-                  dropdown-class-name="max-w-64"
-                  @change="updateRole(el.id, el.roles as string)"
+
+                <NcBadge
+                  v-if="el.roles?.includes('super')"
+                  :border="false"
+                  color="purple"
+                  class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+                  data-rec="true"
                 >
-                  <a-select-option
-                    v-for="(option, idx) of userRoleOptions"
-                    :key="idx"
-                    class="nc-users-list-role-option"
-                    :value="option.value"
-                  >
-                    <div class="w-full flex items-start gap-1">
-                      <div class="flex-1">
-                        <NcTooltip show-on-truncate-only class="truncate" data-rec="true">
-                          <template #title>
-                            {{ $t(option.title) }}
-                          </template>
-                          {{ $t(option.title) }}
-                        </NcTooltip>
-
-                        <div class="nc-select-hide-item text-nc-content-gray-muted text-xs whitespace-normal" data-rec="true">
-                          {{ $t(option.subtitle) }}
-                        </div>
-                      </div>
-
-                      <GeneralIcon
-                        v-if="el.roles === option.value"
-                        id="nc-selected-item-icon"
-                        icon="check"
-                        class="w-4 h-4 text-primary"
-                      />
-                    </div>
-                  </a-select-option>
-                </NcSelect>
-                <div v-else class="font-weight-bold" data-rec="true">
-                  {{ $t(`objects.roleType.orgLevelCreator`) }}
-                </div>
-              </template>
+                  {{ $t('objects.roleType.admin') }}
+                </NcBadge>
+              </div>
               <div v-if="column.key === 'action'" class="flex items-center gap-2">
                 <NcDropdown :trigger="['click']" placement="bottomRight">
                   <NcButton size="xsmall" type="ghost">
@@ -354,11 +283,15 @@ const userRoleOptions = [
                         <!-- Resend invite Email -->
                         <NcMenuItem @click="resendInvite(el)">
                           <component :is="iconMap.email" class="flex text-nc-content-gray-subtle2" />
-                          <div data-rec="true">{{ $t('activity.resendInvite') }}</div>
+                          <div data-rec="true">
+                            {{ $t('activity.resendInvite') }}
+                          </div>
                         </NcMenuItem>
                         <NcMenuItem @click="copyInviteUrl(el)">
                           <component :is="iconMap.copy" class="flex text-nc-content-gray-subtle2" />
-                          <div data-rec="true">{{ $t('activity.copyInviteURL') }}</div>
+                          <div data-rec="true">
+                            {{ $t('activity.copyInviteURL') }}
+                          </div>
                         </NcMenuItem>
                         <NcMenuItem @click="copyPasswordResetUrl(el)">
                           <component :is="iconMap.copy" class="flex text-nc-content-gray-subtle2" />
@@ -388,7 +321,7 @@ const userRoleOptions = [
                 <div class="text-sm text-nc-content-gray-subtle">
                   {{ $t('placeholder.inviteYourTeamLabel') }}
                 </div>
-                <img src="~assets/img/placeholder/invite-team.png" class="!w-[30rem] flex-none" />
+                <img src="~assets/img/placeholder/invite-team.png" class="!w-[30rem] flex-none">
               </div>
             </template>
 
@@ -410,7 +343,7 @@ const userRoleOptions = [
                 <div
                   class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle mb-4"
                 >
-                  <GeneralIcon icon="account" class="nc-view-icon"></GeneralIcon>
+                  <GeneralIcon icon="account" class="nc-view-icon" />
                   <div
                     class="text-ellipsis overflow-hidden select-none w-full pl-1.75"
                     :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"

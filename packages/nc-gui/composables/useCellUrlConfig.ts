@@ -7,12 +7,13 @@ export interface CellUrlOptions {
 
 type ParsedRules = [RegExp, CellUrlOptions]
 
-const parseUrlRules = (serialized?: string): ParsedRules[] | undefined => {
+function parseUrlRules(serialized?: string): ParsedRules[] | undefined {
   if (!serialized) return undefined
 
   try {
     return Object.entries(JSON.parse(serialized)).map(([key, value]) => [new RegExp(key), value] as ParsedRules)
-  } catch (err) {
+  }
+  catch (err) {
     console.error(err)
 
     return undefined

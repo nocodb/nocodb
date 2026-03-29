@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import MdiPdfBox from '~icons/nc-icons-v2/file-type-pdf'
-import MdiFileWordOutline from '~icons/nc-icons-v2/file-type-word'
-import MdiFilePowerpointBox from '~icons/nc-icons-v2/file-type-presentation'
 import MdiFileExcelOutline from '~icons/nc-icons-v2/file-type-csv'
+import MdiPdfBox from '~icons/nc-icons-v2/file-type-pdf'
+import MdiFilePowerpointBox from '~icons/nc-icons-v2/file-type-presentation'
 import IcOutlineInsertDriveFile from '~icons/nc-icons-v2/file-type-unknown'
+import MdiFileWordOutline from '~icons/nc-icons-v2/file-type-word'
 
 interface Props {
   alt?: string
@@ -27,7 +27,7 @@ const emit = defineEmits(['error'])
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
-const FileIcon = (icon: string) => {
+function FileIcon(icon: string) {
   switch (icon) {
     case 'mdi-pdf-box':
       return MdiPdfBox
@@ -48,7 +48,7 @@ const srcs = computed(() => {
 
 const index = ref(0)
 
-const onError = async () => {
+async function onError() {
   index.value++
   if (index.value >= srcs.value.length) {
     const isURLExp = await isURLExpired(srcs.value[0])
@@ -77,7 +77,7 @@ const onError = async () => {
         class="m-auto h-full max-h-full w-auto nc-attachment-image object-cover origin-center"
         loading="lazy"
         @error="onError"
-      />
+      >
 
       <component
         :is="FileIcon(attachment.icon)"

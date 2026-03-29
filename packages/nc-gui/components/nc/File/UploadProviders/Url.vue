@@ -24,7 +24,7 @@ const url = ref('')
 
 const isParsing = ref(false)
 
-const deleteAttachment = (index: number) => {
+function deleteAttachment(index: number) {
   tempAttachments.value.splice(index, 1)
 }
 
@@ -32,7 +32,7 @@ const isValidUrl = ref(false)
 
 const errorMessage = ref('')
 
-const uploadAndParseUrl = async () => {
+async function uploadAndParseUrl() {
   if (!isValidURL(url.value)) {
     isValidUrl.value = false
     return
@@ -52,14 +52,17 @@ const uploadAndParseUrl = async () => {
     if (data && Array.isArray(data)) {
       tempAttachments.value = [...data, ...tempAttachments.value]
       url.value = ''
-    } else {
+    }
+    else {
       isValidUrl.value = false
       errorMessage.value = 'Failed to upload URL'
     }
-  } catch (error: any) {
+  }
+  catch (error: any) {
     isValidUrl.value = false
     errorMessage.value = error.message || 'Failed to upload URL'
-  } finally {
+  }
+  finally {
     isParsing.value = false
   }
 
@@ -68,7 +71,7 @@ const uploadAndParseUrl = async () => {
   })
 }
 
-const handleUpload = async () => {
+async function handleUpload() {
   await uploadAttachments(tempAttachments.value)
   tempAttachments.value = []
 }
@@ -90,7 +93,9 @@ watch(url, () => {
           <GeneralIcon icon="close" />
         </NcButton>
 
-        <template #title> {{ $t('general.close') }} </template>
+        <template #title>
+          {{ $t('general.close') }}
+        </template>
       </NcTooltip>
     </div>
 
@@ -136,14 +141,18 @@ watch(url, () => {
                   <component :is="iconMap.externalLink" class="w-3.5 h-3.5 text-nc-content-gray-muted" />
                 </NuxtLink>
 
-                <template #title> {{ $t('labels.openFile') }} </template>
+                <template #title>
+                  {{ $t('labels.openFile') }}
+                </template>
               </NcTooltip>
             </div>
 
-            <div class="flex-grow-1"></div>
+            <div class="flex-grow-1" />
 
             <NcTooltip>
-              <template #title> {{ $t('title.removeFile') }} </template>
+              <template #title>
+                {{ $t('title.removeFile') }}
+              </template>
 
               <NcButton type="text" size="xsmall" @click="deleteAttachment(index)">
                 <GeneralIcon icon="close" />

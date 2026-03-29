@@ -1,15 +1,16 @@
-import { PermissionEntity, PermissionKey, ViewTypes } from 'nocodb-sdk'
-import axios from 'axios'
 import type { Api, ColumnType, FormColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { NavigateDir } from '#imports'
+import axios from 'axios'
+import { PermissionEntity, PermissionKey, ViewTypes } from 'nocodb-sdk'
 
-const formatData = (list: Record<string, any>[]) =>
-  list.map((row) => ({
+function formatData(list: Record<string, any>[]) {
+  return list.map(row => ({
     row: { ...row },
     oldRow: { ...row },
     rowMeta: {},
   }))
+}
 
 export function useViewData(
   _meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
@@ -41,7 +42,7 @@ export function useViewData(
 
   const _paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
 
-  const aggCommentCount = ref<{ row_id: string; count: string }[]>([])
+  const aggCommentCount = ref<{ row_id: string, count: string }[]>([])
 
   const galleryData = ref<GalleryType>()
 
@@ -86,7 +87,8 @@ export function useViewData(
     set: (value) => {
       if (isPublic.value) {
         sharedPaginationData.value = value
-      } else {
+      }
+      else {
         _paginationData.value = value
       }
     },
@@ -135,7 +137,8 @@ export function useViewData(
     if (currentPage > targetPage) {
       // change to target page and load data of that page
       changePage?.(targetPage)
-    } else {
+    }
+    else {
       // the current page is same as target page
       // reload it to avoid empty row in this page
       await loadData({
@@ -157,7 +160,7 @@ export function useViewData(
         return extractPkFromRow(row, meta?.value?.columns as ColumnType[])
       })
 
-    if (!ids?.length || ids?.some((id) => !id)) return
+    if (!ids?.length || ids?.some(id => !id)) return
 
     try {
       aggCommentCount.value = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
@@ -170,7 +173,8 @@ export function useViewData(
         const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
         row.rowMeta.commentCount = +(aggCommentCount.value?.find((c: Record<string, any>) => c.row_id === id)?.count || 0)
       }
-    } catch (e) {
+    }
+    catch (e) {
       console.error(e)
     }
   }
@@ -229,7 +233,8 @@ export function useViewData(
           })
 
       totalRowsWithoutSearchQuery.value = response.pageInfo?.totalRows ?? 0
-    } catch (e: any) {
+    }
+    catch (e: any) {
       // if the request is canceled, then do nothing
       if (e.code === 'ERR_CANCELED') {
         return
@@ -287,7 +292,8 @@ export function useViewData(
         : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, where: where?.value })
 
       syncViewSearchCount(params)
-    } catch (error) {
+    }
+    catch (error) {
       // if the request is canceled, then do nothing
       if (error.code === 'ERR_CANCELED') {
         return
@@ -413,7 +419,8 @@ export function useViewData(
           },
         }))
         .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order) as Record<string, any>[]
-    } catch (e: any) {
+    }
+    catch (e: any) {
       return message.error(`${t('msg.error.setFormDataFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
   }
@@ -423,7 +430,8 @@ export function useViewData(
 
     try {
       await updateViewMeta(viewMeta.value.id, ViewTypes.FORM, view)
-    } catch (e: any) {
+    }
+    catch (e: any) {
       return message.error(`${t('msg.error.formViewUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
   }
@@ -458,7 +466,8 @@ export function useViewData(
 
       // if next row index is greater than total rows in current view
       // then load next page of formattedData and set next row index to 0
-    } else if (siblingRowIndex >= formattedData.value.length) {
+    }
+    else if (siblingRowIndex >= formattedData.value.length) {
       if (paginationData?.value?.isLastPage) return message.info(t('msg.info.noMoreRecords'))
 
       await changePage(currentPage + 1)

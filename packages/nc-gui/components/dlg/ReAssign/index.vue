@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import { ProjectRoles, ViewLockType, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
+import { extractBaseRoleFromWorkspaceRole, ProjectRoles, ViewLockType } from 'nocodb-sdk'
 import UserItem from './UserItem.vue'
+
 const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
@@ -39,7 +40,7 @@ const isPersonalView = computed(() => props.view?.lock_type === ViewLockType.Per
 
 const currentOwner = computed(() => {
   return (
-    (props.view && basesUser.value.get(props.view.base_id)?.find((u) => u.id === props.view.owned_by)) || {
+    (props.view && basesUser.value.get(props.view.base_id)?.find(u => u.id === props.view.owned_by)) || {
       id: props.view.owned_by,
       display_name: 'Unknown User',
     }
@@ -73,7 +74,7 @@ const filterdBaseUsers = computed(() => {
 
 const { isLoading } = useApi()
 
-const assignView = async () => {
+async function assignView() {
   try {
     if (!selectedUser.value) return
 
@@ -103,17 +104,18 @@ const assignView = async () => {
       .catch(() => {
         // ignore
       })
-  } catch (e) {
+  }
+  catch (e) {
     await message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
-const selectUser = (user) => {
+function selectUser(user) {
   selectedUser.value = user
   userSelectMenu.value = false
 }
 
-const inputEl = (el: HTMLInputElement) => {
+function inputEl(el: HTMLInputElement) {
   setTimeout(() => el?.focus(), 100)
 }
 </script>
@@ -130,11 +132,15 @@ const inputEl = (el: HTMLInputElement) => {
     </div>
 
     <div v-if="isPersonalView" class="mb-5">
-      <div class="mb-2 text-nc-content-gray">{{ $t('labels.currentOwner') }}</div>
+      <div class="mb-2 text-nc-content-gray">
+        {{ $t('labels.currentOwner') }}
+      </div>
       <UserItem :user="currentOwner" class="bg-nc-bg-gray-light rounded-lg px-4" />
     </div>
     <div class="mb-5">
-      <div class="mb-2 text-nc-content-gray">{{ isPersonalView ? $t('labels.newOwner') : $t('labels.selectOwner') }}</div>
+      <div class="mb-2 text-nc-content-gray">
+        {{ isPersonalView ? $t('labels.newOwner') : $t('labels.selectOwner') }}
+      </div>
       <div
         class="rounded-lg border-1"
         :class="{
@@ -159,7 +165,7 @@ const inputEl = (el: HTMLInputElement) => {
             v-model="searchQuery"
             placeholder="Search User to assign..."
             class="border-0 px-2 outline-none nc-search-input flex-1"
-          />
+          >
         </div>
 
         <div v-if="!selectedUser || userSelectMenu" class="max-h-65 overflow-auto nc-scrollbar-thin">
@@ -170,8 +176,7 @@ const inputEl = (el: HTMLInputElement) => {
             :class="{ 'bg-nc-bg-gray-light': selectedUser === user }"
             :user="user"
             @click="selectUser(user)"
-          >
-          </UserItem>
+          />
         </div>
 
         <div v-if="!filterdBaseUsers?.length" class="h-25 p-2 text-gray-400 text-sm flex items-center justify-center">
@@ -182,7 +187,9 @@ const inputEl = (el: HTMLInputElement) => {
 
     <div class="flex justify-end">
       <div class="flex gap-2">
-        <NcButton size="small" type="secondary" @click="vModel = false"> {{ $t('labels.cancel') }} </NcButton>
+        <NcButton size="small" type="secondary" @click="vModel = false">
+          {{ $t('labels.cancel') }}
+        </NcButton>
         <NcButton
           size="small"
           type="primary"

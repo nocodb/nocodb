@@ -14,11 +14,32 @@
  * console.log(lastVisited); // Output: 'my-base'
  * ```
  */
-export const ncLastVisitedBase = (): {
+export function ncBackRoute(): {
+  get: () => string
+  set: (value: string) => void
+} {
+  const key = 'ncBackRoute'
+
+  return {
+    get: () => {
+      return sessionStorage.getItem(key) || '/'
+    },
+    set: (value: string) => {
+      if (!value) {
+        sessionStorage.removeItem(key)
+        return
+      }
+
+      sessionStorage.setItem(key, value)
+    },
+  }
+}
+
+export function ncLastVisitedBase(): {
   key: string
   get: () => string | null
   set: (value: string | null | undefined) => void
-} => {
+} {
   const key = 'ncLastVisitedBase'
 
   return {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
 
 /* interface */
 

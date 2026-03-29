@@ -9,7 +9,8 @@ const { type, name, view } = route.query
 
 if (type && name) {
   router.replace(`/base/${route.params.sourceId}/${type}/${name}${view ? `/${view}` : ''}`)
-} else {
+}
+else {
   router.replace(`/base/${route.params.sourceId}`)
 }
 </script>

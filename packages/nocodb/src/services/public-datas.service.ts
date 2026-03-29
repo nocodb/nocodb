@@ -1,11 +1,17 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { NcBaseError, ncIsArray, UITypes, ViewTypes } from 'nocodb-sdk';
+import {
+  extractFilterFromXwhere,
+  NcBaseError,
+  ncIsArray,
+  UITypes,
+  ViewTypes,
+} from 'nocodb-sdk';
 import type { NcRequest } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { DependantFields } from '~/helpers/getAst';
 import { nocoExecute } from '~/utils';
-import { Base, Column, Model, Source, View } from '~/models';
+import { Base, Column, FormView, Model, Source, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -18,9 +24,32 @@ import { DatasService } from '~/services/datas.service';
 import { AttachmentsService } from '~/services/attachments.service';
 import { PublicMetasService } from '~/services/public-metas.service';
 
+interface VisibleColumnInfo {
+  /** Set of Column.id values that are visible in the view */
+  visibleColumnIds: Set<string>;
+  /** Set of Column.title values that are visible */
+  visibleColumnTitles: Set<string>;
+  /** Set of Column.column_name values that are visible */
+  visibleColumnNames: Set<string>;
+  /** The actual Column objects for visible columns */
+  visibleColumns: Column[];
+}
+
 // todo: move to utils
 export function sanitizeUrlPath(paths) {
   return paths.map((url) => url.replace(/[/.?#]+/g, '_'));
+}
+
+// Keys that must never be controllable by public/shared-view callers
+const PUBLIC_QUERY_BLOCKED_KEYS = ['getHiddenColumn', 'nested'];
+
+function sanitizePublicQuery<T extends Record<string, any>>(query: T): T {
+  if (!query) return query;
+  const sanitized = { ...query };
+  for (const key of PUBLIC_QUERY_BLOCKED_KEYS) {
+    delete sanitized[key];
+  }
+  return sanitized;
 }
 
 @Injectable()
@@ -32,6 +61,240 @@ export class PublicDatasService {
     protected readonly attachmentsService: AttachmentsService,
     protected readonly publicMetasService: PublicMetasService,
   ) {}
+
+  /**
+   * Returns the set of visible column IDs, titles, and column_names for a
+   * shared view.  Used to enforce column-level access control on all public
+   * endpoints so that hidden columns cannot be leaked via groupBy, filters,
+   * sorts, aggregations, or WHERE clauses.
+   */
+  protected async getVisibleColumnInfo(
+    context: NcContext,
+    view: View,
+    model: Model,
+  ): Promise<VisibleColumnInfo> {
+    const viewColumns = await View.getColumns(context, view.id);
+    const visibleColumnIds = new Set<string>();
+
+    for (const vc of viewColumns) {
+      if (vc.show) {
+        visibleColumnIds.add(vc.fk_column_id);
+      }
+    }
+
+    await model.getColumns(context);
+
+    const visibleColumnTitles = new Set<string>();
+    const visibleColumnNames = new Set<string>();
+    const visibleColumns: Column[] = [];
+
+    for (const col of model.columns) {
+      if (visibleColumnIds.has(col.id)) {
+        if (col.title) visibleColumnTitles.add(col.title);
+        if (col.column_name) visibleColumnNames.add(col.column_name);
+        visibleColumns.push(col);
+      }
+    }
+
+    return {
+      visibleColumnIds,
+      visibleColumnTitles,
+      visibleColumnNames,
+      visibleColumns,
+    };
+  }
+
+  /**
+   * Recursively removes filter entries that reference hidden columns.
+   */
+  protected stripHiddenColumnsFromFilters(
+    filters: any[],
+    visibleColumnIds: Set<string>,
+  ): any[] {
+    if (!ncIsArray(filters) || !filters.length) return filters;
+
+    return filters
+      .map((f) => {
+        if (f.is_group && ncIsArray(f.children)) {
+          return {
+            ...f,
+            children: this.stripHiddenColumnsFromFilters(
+              f.children,
+              visibleColumnIds,
+            ),
+          };
+        }
+        return f;
+      })
+      .filter((f) => {
+        if (f.is_group && ncIsArray(f.children)) {
+          return f.children.length > 0;
+        }
+        return !f.fk_column_id || visibleColumnIds.has(f.fk_column_id);
+      });
+  }
+
+  /**
+   * Removes sort entries that reference hidden columns.
+   */
+  protected stripHiddenColumnsFromSorts(
+    sorts: any[],
+    visibleColumnIds: Set<string>,
+  ): any[] {
+    if (!ncIsArray(sorts) || !sorts.length) return sorts;
+    return sorts.filter(
+      (s) => !s.fk_column_id || visibleColumnIds.has(s.fk_column_id),
+    );
+  }
+
+  /**
+   * Removes aggregation entries that reference hidden columns.
+   */
+  protected stripHiddenColumnsFromAggregation(
+    aggregation: any[],
+    visibleColumnIds: Set<string>,
+  ): any[] {
+    if (!ncIsArray(aggregation) || !aggregation.length) return aggregation;
+    return aggregation.filter((a) => !a.field || visibleColumnIds.has(a.field));
+  }
+
+  /**
+   * Validates that every column name in a comma-separated `column_name`
+   * string is visible in the shared view.  Throws badRequest if any name
+   * references a hidden column.
+   */
+  protected validateGroupByColumnNames(
+    context: NcContext,
+    columnNameCsv: string,
+    visibleInfo: VisibleColumnInfo,
+  ): void {
+    if (!columnNameCsv) return;
+    const names = columnNameCsv.split(',').map((n) => n.trim());
+    for (const name of names) {
+      if (
+        !visibleInfo.visibleColumnTitles.has(name) &&
+        !visibleInfo.visibleColumnNames.has(name)
+      ) {
+        NcError.get(context).badRequest(
+          'Column not accessible in this shared view',
+        );
+      }
+    }
+  }
+
+  /**
+   * Validates that a groupColumnId is visible in the shared view.
+   */
+  protected validateGroupColumnId(
+    context: NcContext,
+    groupColumnId: string,
+    visibleColumnIds: Set<string>,
+  ): void {
+    if (!groupColumnId) return;
+    if (!visibleColumnIds.has(groupColumnId)) {
+      NcError.get(context).badRequest(
+        'Column not accessible in this shared view',
+      );
+    }
+  }
+
+  /**
+   * Builds an alias-to-column map containing only visible columns.
+   * Same logic as Model.getAliasColObjMap but restricted to the given set.
+   */
+  protected buildRestrictedAliasColObjMap(
+    visibleColumns: Column[],
+  ): Record<string, Column> {
+    const idReduce = visibleColumns.reduce(
+      (agg, c) => ({ ...agg, [c.id]: c }),
+      {} as Record<string, Column>,
+    );
+    const colNameReduce = visibleColumns.reduce(
+      (agg, c) => ({ ...agg, [c.column_name]: c }),
+      idReduce,
+    );
+    return visibleColumns.reduce(
+      (agg, c) => ({ ...agg, [c.title]: c }),
+      colNameReduce,
+    );
+  }
+
+  /**
+   * Sanitizes all user-controlled query parameters for a public/shared-view
+   * request, stripping references to hidden columns.
+   *
+   * - `where` is parsed with a restricted column map (visible only), merged
+   *   into `filterArr`, then removed so BaseModel doesn't re-parse it
+   * - `filterArr` entries referencing hidden columns are stripped
+   * - `sortArr` entries referencing hidden columns are stripped
+   */
+  protected sanitizeListArgsForPublicView(
+    context: NcContext,
+    listArgs: any,
+    visibleInfo: VisibleColumnInfo,
+  ): void {
+    // Strip keys that must never be controlled by public/shared-view callers
+    // (e.g. getHiddenColumn, nested) — applies to both top-level listArgs and
+    // inner bulkFilterList entries so the full attack surface is covered.
+    for (const key of PUBLIC_QUERY_BLOCKED_KEYS) {
+      delete listArgs[key];
+    }
+
+    // Parse `where` with a restricted alias map so only visible columns are
+    // accepted.  The parsed filters are merged into filterArr and the raw
+    // `where` string is deleted so BaseModel won't re-parse it with the
+    // full (unrestricted) column set.
+    if (listArgs.where) {
+      const restrictedMap = this.buildRestrictedAliasColObjMap(
+        visibleInfo.visibleColumns,
+      );
+      const { filters: parsedWhereFilters } = extractFilterFromXwhere(
+        context,
+        listArgs.where,
+        restrictedMap,
+        true,
+      );
+      if (parsedWhereFilters?.length) {
+        listArgs.filterArr = [
+          ...(listArgs.filterArr || []),
+          ...parsedWhereFilters,
+        ];
+      }
+      delete listArgs.where;
+    }
+
+    if (ncIsArray(listArgs.filterArr)) {
+      listArgs.filterArr = this.stripHiddenColumnsFromFilters(
+        listArgs.filterArr,
+        visibleInfo.visibleColumnIds,
+      );
+    }
+
+    if (ncIsArray(listArgs.sortArr)) {
+      listArgs.sortArr = this.stripHiddenColumnsFromSorts(
+        listArgs.sortArr,
+        visibleInfo.visibleColumnIds,
+      );
+    }
+
+    // Strip hidden columns from `fields` / `f` (comma-separated string or array)
+    for (const key of ['fields', 'f']) {
+      if (listArgs[key]) {
+        const fieldsArr: string[] = Array.isArray(listArgs[key])
+          ? listArgs[key]
+          : listArgs[key].split(',');
+        const sanitized = fieldsArr.filter(
+          (f) =>
+            visibleInfo.visibleColumnIds.has(f) ||
+            visibleInfo.visibleColumnTitles.has(f) ||
+            visibleInfo.visibleColumnNames.has(f),
+        );
+        listArgs[key] = Array.isArray(listArgs[key])
+          ? sanitized
+          : sanitized.join(',') || undefined;
+      }
+    }
+  }
 
   async dataList(
     context: NcContext,
@@ -51,7 +314,8 @@ export class PublicDatasService {
       view.type !== ViewTypes.KANBAN &&
       view.type !== ViewTypes.GALLERY &&
       view.type !== ViewTypes.MAP &&
-      view.type !== ViewTypes.CALENDAR
+      view.type !== ViewTypes.CALENDAR &&
+      view.type !== ViewTypes.TIMELINE
     ) {
       NcError.get(context).notFound('Not found');
     }
@@ -84,6 +348,8 @@ export class PublicDatasService {
       includeRowColorColumns: query.include_row_color === 'true',
     });
 
+    const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
+
     const listArgs: any = { ...query, ...dependencyFields };
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
@@ -91,6 +357,9 @@ export class PublicDatasService {
     try {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
+
+    this.sanitizeListArgsForPublicView(context, listArgs, visibleInfo);
+
     let data = [];
     let count = 0;
 
@@ -131,7 +400,8 @@ export class PublicDatasService {
       view.type !== ViewTypes.KANBAN &&
       view.type !== ViewTypes.GALLERY &&
       view.type !== ViewTypes.MAP &&
-      view.type !== ViewTypes.CALENDAR
+      view.type !== ViewTypes.CALENDAR &&
+      view.type !== ViewTypes.TIMELINE
     ) {
       NcError.notFound('Not found');
     }
@@ -157,10 +427,14 @@ export class PublicDatasService {
       source,
     });
 
+    const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
+
     const countArgs: any = { ...param.query, throwErrorIfInvalidParams: true };
     try {
       countArgs.filterArr = JSON.parse(countArgs.filterArrJson);
     } catch (e) {}
+
+    this.sanitizeListArgsForPublicView(context, countArgs, visibleInfo);
 
     const count: number = await baseModel.count(countArgs);
 
@@ -204,6 +478,8 @@ export class PublicDatasService {
       source,
     });
 
+    const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
+
     const listArgs: any = { ...param.query };
 
     try {
@@ -213,6 +489,15 @@ export class PublicDatasService {
     try {
       listArgs.aggregation = JSON.parse(listArgs.aggregation);
     } catch (e) {}
+
+    this.sanitizeListArgsForPublicView(context, listArgs, visibleInfo);
+
+    if (ncIsArray(listArgs.aggregation)) {
+      listArgs.aggregation = this.stripHiddenColumnsFromAggregation(
+        listArgs.aggregation,
+        visibleInfo.visibleColumnIds,
+      );
+    }
 
     return await baseModel.aggregate(listArgs, view);
   }
@@ -275,6 +560,14 @@ export class PublicDatasService {
 
     this.publicMetasService.checkViewBaseType(view, base);
 
+    const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
+
+    this.validateGroupColumnId(
+      context,
+      groupColumnId,
+      visibleInfo.visibleColumnIds,
+    );
+
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
@@ -284,7 +577,7 @@ export class PublicDatasService {
 
     const { ast } = await getAst(context, {
       model,
-      query: param.query,
+      query: sanitizePublicQuery(param.query),
       view,
       includeRowColorColumns: query.include_row_color === 'true',
     });
@@ -299,6 +592,8 @@ export class PublicDatasService {
     try {
       listArgs.options = JSON.parse(listArgs.optionsArrJson);
     } catch (e) {}
+
+    this.sanitizeListArgsForPublicView(context, listArgs, visibleInfo);
 
     let data = [];
 
@@ -412,6 +707,12 @@ export class PublicDatasService {
 
     this.publicMetasService.checkViewBaseType(view, base);
 
+    const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
+
+    if (query.column_name) {
+      this.validateGroupByColumnNames(context, query.column_name, visibleInfo);
+    }
+
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
@@ -431,6 +732,8 @@ export class PublicDatasService {
         : null;
     }
 
+    this.sanitizeListArgsForPublicView(context, listArgs, visibleInfo);
+
     return await baseModel.groupByCount(listArgs);
   }
 
@@ -444,6 +747,16 @@ export class PublicDatasService {
       const base = await Base.get(context, view.base_id);
 
       this.publicMetasService.checkViewBaseType(view, base);
+
+      const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
+
+      if (query.column_name) {
+        this.validateGroupByColumnNames(
+          context,
+          query.column_name,
+          visibleInfo,
+        );
+      }
 
       const source = await Source.get(context, model.source_id);
 
@@ -470,6 +783,8 @@ export class PublicDatasService {
           ? listArgs?.sortArrJson
           : null;
       }
+
+      this.sanitizeListArgsForPublicView(context, listArgs, visibleInfo);
 
       const data = await baseModel.groupBy(listArgs);
       const count = await baseModel.groupByCount(listArgs);
@@ -507,6 +822,9 @@ export class PublicDatasService {
     if (!(await View.verifyPassword(view, param.password))) {
       return NcError.invalidSharedViewPassword();
     }
+
+    // Check if form has started / expired
+    await FormView.validateFormScheduling(context, view.id);
 
     const model = await Model.getByIdOrName(context, {
       id: view?.fk_model_id,
@@ -635,6 +953,10 @@ export class PublicDatasService {
 
     const column = await Column.get(context, { colId: param.columnId });
     const currentModel = await view.getModel(context);
+
+    if (column.fk_model_id !== currentModel.id)
+      NcError.badRequest("Column doesn't belongs to the model");
+
     await currentModel.getColumns(context);
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
       context,
@@ -652,7 +974,7 @@ export class PublicDatasService {
     });
 
     const { ast, dependencyFields } = await getAst(context, {
-      query: param.query,
+      query: sanitizePublicQuery(param.query),
       model,
       extractOnlyPrimaries: true,
     });
@@ -671,8 +993,13 @@ export class PublicDatasService {
       param.query.fields.forEach(listArgs.fieldsSet.add, listArgs.fieldsSet);
 
       param.query.fields.forEach((f) => {
-        if (ast[f] === undefined) {
-          ast[f] = 1;
+        // fields can be column IDs or titles, but AST uses titles as keys
+        // (getAst with extractOnlyPrimaries returns early with title-keyed AST).
+        // Resolve to title so nocoExecute can match against data objects.
+        const col = model.columns.find((c) => c.id === f || c.title === f);
+        const key = col?.title ?? f;
+        if (ast[key] === undefined) {
+          ast[key] = 1;
         }
       });
     }
@@ -729,14 +1056,8 @@ export class PublicDatasService {
     const view = await View.getByUUID(context, param.sharedViewUuid);
 
     if (!view) NcError.viewNotFound(param.sharedViewUuid);
-    if (
-      view.type !== ViewTypes.GRID &&
-      view.type !== ViewTypes.KANBAN &&
-      view.type !== ViewTypes.GALLERY &&
-      view.type !== ViewTypes.CALENDAR
-    ) {
-      NcError.notFound('Not found');
-    }
+
+    if (view.type === ViewTypes.FORM) NcError.notFound('Not found');
 
     const base = await Base.get(context, view.base_id);
 
@@ -812,14 +1133,8 @@ export class PublicDatasService {
     const view = await View.getByUUID(context, param.sharedViewUuid);
 
     if (!view) NcError.viewNotFound(param.sharedViewUuid);
-    if (
-      view.type !== ViewTypes.GRID &&
-      view.type !== ViewTypes.KANBAN &&
-      view.type !== ViewTypes.GALLERY &&
-      view.type !== ViewTypes.CALENDAR
-    ) {
-      NcError.notFound('Not found');
-    }
+
+    if (view.type === ViewTypes.FORM) NcError.notFound('Not found');
 
     const base = await Base.get(context, view.base_id);
 
@@ -894,15 +1209,8 @@ export class PublicDatasService {
     const view = await View.getByUUID(context, sharedViewUuid);
 
     if (!view) NcError.viewNotFound(sharedViewUuid);
-    if (
-      view.type !== ViewTypes.GRID &&
-      view.type !== ViewTypes.KANBAN &&
-      view.type !== ViewTypes.GALLERY &&
-      view.type !== ViewTypes.MAP &&
-      view.type !== ViewTypes.CALENDAR
-    ) {
-      NcError.notFound('Not found');
-    }
+
+    if (view.type === ViewTypes.FORM) NcError.notFound('Not found');
 
     const base = await Base.get(context, view.base_id);
 
@@ -961,6 +1269,8 @@ export class PublicDatasService {
       id: view?.fk_model_id,
     });
 
+    const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
+
     const listArgs: any = { ...param.query };
 
     let bulkFilterList = param.body;
@@ -977,6 +1287,8 @@ export class PublicDatasService {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
     } catch (e) {}
 
+    this.sanitizeListArgsForPublicView(context, listArgs, visibleInfo);
+
     if (!bulkFilterList?.length) {
       NcError.badRequest('Invalid bulkFilterList');
     }
@@ -984,10 +1296,12 @@ export class PublicDatasService {
     const dataListResults = await bulkFilterList.reduce(
       async (accPromise, dF: any) => {
         const acc = await accPromise;
+
+        const sanitizedDf = { ...sanitizePublicQuery(dF) };
+        this.sanitizeListArgsForPublicView(context, sanitizedDf, visibleInfo);
+
         const result = await this.datasService.dataList(context, {
-          query: {
-            ...dF,
-          },
+          query: sanitizedDf,
           model,
           view,
         });
@@ -1024,6 +1338,17 @@ export class PublicDatasService {
       id: view?.fk_model_id,
     });
 
+    const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
+
+    // Validate column_name in query-level args
+    if (param.query?.column_name) {
+      this.validateGroupByColumnNames(
+        context,
+        param.query.column_name,
+        visibleInfo,
+      );
+    }
+
     const source = await Source.get(context, model.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
@@ -1044,6 +1369,22 @@ export class PublicDatasService {
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
     } catch (e) {}
+
+    this.sanitizeListArgsForPublicView(context, listArgs, visibleInfo);
+
+    // Validate column_name in each bulk filter entry
+    if (ncIsArray(bulkFilterList)) {
+      for (const entry of bulkFilterList) {
+        if (entry?.column_name) {
+          this.validateGroupByColumnNames(
+            context,
+            entry.column_name,
+            visibleInfo,
+          );
+        }
+        this.sanitizeListArgsForPublicView(context, entry, visibleInfo);
+      }
+    }
 
     if (!bulkFilterList?.length) {
       NcError.badRequest('Invalid bulkFilterList');
@@ -1106,6 +1447,8 @@ export class PublicDatasService {
       id: view?.fk_model_id,
     });
 
+    const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
+
     let bulkFilterList = param.body;
 
     const listArgs: any = { ...param.query };
@@ -1121,6 +1464,22 @@ export class PublicDatasService {
     try {
       bulkFilterList = JSON.parse(bulkFilterList);
     } catch (e) {}
+
+    this.sanitizeListArgsForPublicView(context, listArgs, visibleInfo);
+
+    if (ncIsArray(listArgs.aggregation)) {
+      listArgs.aggregation = this.stripHiddenColumnsFromAggregation(
+        listArgs.aggregation,
+        visibleInfo.visibleColumnIds,
+      );
+    }
+
+    // Sanitize where from each bulk filter entry
+    if (ncIsArray(bulkFilterList)) {
+      for (const entry of bulkFilterList) {
+        this.sanitizeListArgsForPublicView(context, entry, visibleInfo);
+      }
+    }
 
     const source = await Source.get(context, model.source_id);
 

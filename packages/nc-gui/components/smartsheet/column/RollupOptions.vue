@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, RollupType, TableType } from 'nocodb-sdk'
 import {
   ColumnHelper,
-  PlanFeatureTypes,
-  PlanTitles,
-  UITypes,
   getAvailableRollupForColumn,
   getRenderAsTextFunForUiType,
+  PlanFeatureTypes,
+  PlanTitles,
   rollupAllFunctions,
+  UITypes,
 } from 'nocodb-sdk'
+import { onMounted } from 'vue'
 
 const props = defineProps<{
   value: any
@@ -40,7 +40,7 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
-const { getPlanTitle } = useEeConfig()
+const { getPlanTitle, showEEFeatures } = useEeConfig()
 
 const filterRef = ref()
 
@@ -70,18 +70,18 @@ const refTables = computed(() => {
     .map((c: ColumnType) => {
       const relTableId = (c.colOptions as any)?.fk_related_model_id
       const relatedBaseId = (c.colOptions as any)?.fk_related_base_id || meta.value?.base_id
-      const table = getMetaByKey(relatedBaseId, relTableId) ?? tables.value.find((t) => t.id === relTableId)
+      const table = getMetaByKey(relatedBaseId, relTableId) ?? tables.value.find(t => t.id === relTableId)
       return {
         col: c.colOptions,
         column: c,
         ...table,
       }
     })
-  return _refTables as Required<TableType & { column: ColumnType; col: Required<LinkToAnotherRecordType> }>[]
+  return _refTables as Required<TableType & { column: ColumnType, col: Required<LinkToAnotherRecordType> }>[]
 })
 
 const selectedTable = computed(() => {
-  return refTables.value.find((t) => t.column.id === vModel.value.fk_relation_column_id)
+  return refTables.value.find(t => t.column.id === vModel.value.fk_relation_column_id)
 })
 
 const columns = computed<ColumnType[]>(() => {
@@ -115,6 +115,19 @@ provide(
   }),
 )
 
+// Eagerly load the related table meta so the filter column dropdown is populated.
+// `getMetaByKey` returns undefined until getMeta is called; this watch fires immediately
+// (and again if the user changes the relation) to ensure the cache is populated.
+watch(
+  selectedTable,
+  async (table) => {
+    if (table?.base_id && table?.id) {
+      await getMeta(table.base_id, table.id)
+    }
+  },
+  { immediate: true },
+)
+
 onMounted(() => {
   if (isEdit.value) {
     vModel.value.fk_relation_column_id = vModel.value.colOptions?.fk_relation_column_id
@@ -131,15 +144,15 @@ onUnmounted(() => {
   setPostSaveOrUpdateCbk(null)
 })
 
-const getNextColumnId = () => {
+function getNextColumnId() {
   const usedLookupColumnIds = (meta.value?.columns || [])
-    .filter((c) => c.uidt === UITypes.Rollup)
-    .map((c) => (c.colOptions as RollupType)?.fk_rollup_column_id)
+    .filter(c => c.uidt === UITypes.Rollup)
+    .map(c => (c.colOptions as RollupType)?.fk_rollup_column_id)
 
-  return columns.value.find((c) => !usedLookupColumnIds.includes(c.id))?.id
+  return columns.value.find(c => !usedLookupColumnIds.includes(c.id))?.id
 }
 
-const onRelationColChange = async () => {
+async function onRelationColChange() {
   if (selectedTable.value) {
     await getMeta(selectedTable.value.base_id, selectedTable.value.id)
   }
@@ -150,7 +163,7 @@ const onRelationColChange = async () => {
 const aggFunctionsList: Ref<Record<string, string>[]> = ref([])
 
 const availableRollupPerColumn = computed(() => {
-  const fnMap: Record<string, { text: string; value: string }[]> = {}
+  const fnMap: Record<string, { text: string, value: string }[]> = {}
   columns.value?.forEach((column) => {
     if (!column?.id) return
     fnMap[column.id] = rollupAllFunctions
@@ -160,7 +173,7 @@ const availableRollupPerColumn = computed(() => {
           text: t(obj.text),
         }
       })
-      .filter((func) => getAvailableRollupForColumn(column).includes(func.value))
+      .filter(func => getAvailableRollupForColumn(column).includes(func.value))
   })
   return fnMap
 })
@@ -171,8 +184,8 @@ const filteredColumns = computed(() => {
   })
 })
 
-const onRollupFunctionChange = () => {
-  const rollupFun = aggFunctionsList.value.find((func) => func.value === vModel.value.rollup_function)
+function onRollupFunctionChange() {
+  const rollupFun = aggFunctionsList.value.find(func => func.value === vModel.value.rollup_function)
   if (rollupFun && rollupFun?.text) {
     vModel.value.rollup_function_name = rollupFun.text
   }
@@ -188,7 +201,7 @@ watch(
 
     aggFunctionsList.value = availableRollupPerColumn.value[childFieldColumn?.id as string] || []
 
-    if (aggFunctionsList.value.length && !aggFunctionsList.value.find((func) => func.value === vModel.value.rollup_function)) {
+    if (aggFunctionsList.value.length && !aggFunctionsList.value.find(func => func.value === vModel.value.rollup_function)) {
       // when the previous roll up function was numeric type and the current child field is non-numeric
       // reset rollup function with a non-numeric type
       vModel.value.rollup_function = aggFunctionsList.value[0].value
@@ -207,7 +220,8 @@ watch(
 watchEffect(() => {
   if (!refTables.value.length) {
     disableSubmitBtn.value = true
-  } else if (refTables.value.length && disableSubmitBtn.value) {
+  }
+  else if (refTables.value.length && disableSubmitBtn.value) {
     disableSubmitBtn.value = false
   }
 })
@@ -217,7 +231,7 @@ watch(
   (newValue) => {
     if (!newValue) return
 
-    const selectedTable = refTables.value.find((t) => t.col.fk_column_id === newValue)
+    const selectedTable = refTables.value.find(t => t.col.fk_column_id === newValue)
     if (selectedTable) {
       vModel.value.rollupTableTitle = selectedTable?.title || selectedTable.table_name
     }
@@ -227,7 +241,7 @@ watch(
 // update datatype precision when precision is less than the new value
 // avoid downgrading precision if the new value is less than the current precision
 // to avoid fractional part data loss(eg. 1.2345 -> 1.23)
-const onPrecisionChange = (value: number) => {
+function onPrecisionChange(value: number) {
   vModel.value.dtxs = Math.max(value, vModel.value.dtxs)
 }
 
@@ -237,12 +251,10 @@ vModel.value.meta = {
   ...(vModel.value.meta || {}),
 }
 
-const { isMetaReadOnly } = useRoles()
-
 const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
 
 const enableFormattingOptions = computed(() => {
-  const relatedCol = filteredColumns.value?.find((col) => col.id === vModel.value.fk_rollup_column_id)
+  const relatedCol = filteredColumns.value?.find(col => col.id === vModel.value.fk_rollup_column_id)
 
   if (!relatedCol) return false
 
@@ -260,13 +272,13 @@ const enableFormattingOptions = computed(() => {
   return validFunctions.includes(vModel.value.rollup_function)
 })
 
-const onFilterLabelClick = () => {
+function onFilterLabelClick() {
   if (!selectedTable.value) return
 
   limitRecToCond.value = !limitRecToCond.value
 }
 
-const handleScrollIntoView = () => {
+function handleScrollIntoView() {
   filterRef.value?.$el?.scrollIntoView({
     behavior: 'smooth',
     block: 'start',
@@ -298,14 +310,18 @@ const handleScrollIntoView = () => {
                 <SmartsheetHeaderIcon :column="table.column" class="!mx-0" color="text-nc-content-gray-subtle2" />
 
                 <NcTooltip class="truncate min-w-[calc(100%_-_24px)]" show-on-truncate-only>
-                  <template #title>{{ table.column.title }}</template>
+                  <template #title>
+                    {{ table.column.title }}
+                  </template>
                   {{ table.column.title }}
                 </NcTooltip>
               </div>
               <div class="inline-flex items-center truncate gap-2">
                 <div class="text-[0.65rem] leading-4 flex-1 truncate text-nc-content-gray-subtle2 nc-relation-details">
                   <NcTooltip class="truncate" show-on-truncate-only>
-                    <template #title>{{ table.title || table.table_name }}</template>
+                    <template #title>
+                      {{ table.title || table.table_name }}
+                    </template>
                     {{ table.title || table.table_name }}
                   </NcTooltip>
                 </div>
@@ -345,7 +361,9 @@ const handleScrollIntoView = () => {
               <div class="flex items-center gap-2 flex-1 truncate">
                 <SmartsheetHeaderIcon :column="column" class="!mx-0" color="text-nc-content-gray-subtle2" />
 
-                <div class="truncate flex-1">{{ column.title }}</div>
+                <div class="truncate flex-1">
+                  {{ column.title }}
+                </div>
               </div>
               <component
                 :is="iconMap.check"
@@ -391,7 +409,6 @@ const handleScrollIntoView = () => {
       <a-select
         v-if="vModel.meta?.precision || vModel.meta?.precision === 0"
         v-model:value="vModel.meta.precision"
-        :disabled="isMetaReadOnly"
         dropdown-class-name="nc-dropdown-rollup-precision-format"
         @change="onPrecisionChange"
       >
@@ -414,12 +431,14 @@ const handleScrollIntoView = () => {
     <a-form-item v-if="enableFormattingOptions">
       <div class="flex items-center gap-1">
         <NcSwitch v-if="vModel.meta" v-model:checked="vModel.meta.isLocaleString">
-          <div class="text-sm text-nc-content-gray select-none">{{ $t('labels.showThousandsSeparator') }}</div>
+          <div class="text-sm text-nc-content-gray select-none">
+            {{ $t('labels.showThousandsSeparator') }}
+          </div>
         </NcSwitch>
       </div>
     </a-form-item>
 
-    <div v-if="isEeUI" class="w-full flex flex-col gap-4">
+    <div v-if="isEeUI && showEEFeatures" class="w-full flex flex-col gap-4">
       <div class="flex flex-col gap-2">
         <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER">
           <template #default="{ click }">
@@ -456,7 +475,6 @@ const handleScrollIntoView = () => {
         <div v-if="limitRecToCond" class="overflow-auto nc-scrollbar-thin">
           <LazySmartsheetToolbarColumnFilter
             ref="filterRef"
-            v-model="vModel.filters"
             class="!pl-10 !p-0 max-w-620px"
             :auto-save="false"
             :show-loading="false"
@@ -473,8 +491,12 @@ const handleScrollIntoView = () => {
   </div>
   <div v-else>
     <a-alert type="warning" show-icon>
-      <template #icon><GeneralIcon icon="alertTriangle" class="h-6 w-6" width="24" height="24" /></template>
-      <template #message> Alert </template>
+      <template #icon>
+        <GeneralIcon icon="alertTriangle" class="h-6 w-6" width="24" height="24" />
+      </template>
+      <template #message>
+        Alert
+      </template>
       <template #description>
         {{
           $t('msg.linkColumnClearNotSupportedYet', {

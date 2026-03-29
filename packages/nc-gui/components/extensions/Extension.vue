@@ -20,7 +20,7 @@ const extensionModalRef = ref<HTMLElement>()
 const isMouseDown = ref(false)
 
 const extension = computed(() => {
-  const ext = extensionList.value.find((ext) => ext.id === props.extensionId)
+  const ext = extensionList.value.find(ext => ext.id === props.extensionId)
   if (!ext) {
     throw new Error('Extension not found')
   }
@@ -28,7 +28,7 @@ const extension = computed(() => {
 })
 
 const extensionManifest = computed<ExtensionManifest | undefined>(() => {
-  return availableExtensions.value.find((ext) => ext.id === extension.value?.extensionId)
+  return availableExtensions.value.find(ext => ext.id === extension.value?.extensionId)
 })
 
 const activeExtensionId = computed(() => extensionManifest.value?.id ?? '')
@@ -50,7 +50,7 @@ const { height } = useElementSize(extensionRef)
 const component = ref<any>(null)
 
 const extensionHeight = computed(() => {
-  const heigthInInt = parseInt(extensionManifest.value?.config?.contentMinHeight || '') || undefined
+  const heigthInInt = Number.parseInt(extensionManifest.value?.config?.contentMinHeight || '') || undefined
 
   if (!heigthInInt || height.value > heigthInInt) return `${height.value}px`
 
@@ -62,13 +62,13 @@ const fullscreenModalSize = computed(() => {
 })
 
 // close fullscreen on clicking extensionModalRef directly
-const closeFullscreen = (e: MouseEvent) => {
+function closeFullscreen(e: MouseEvent) {
   if (e.target === extensionModalRef.value) {
     fullscreen.value = false
   }
 }
 
-const onClearData = () => {
+function onClearData() {
   if (extensionAccess.value.update) {
     extension.value.clear()
   }
@@ -78,7 +78,7 @@ const onClearData = () => {
 
 onMounted(() => {
   until(extensionsLoaded)
-    .toMatch((v) => v)
+    .toMatch(v => v)
     .then(() => {
       if (!extensionManifest.value) {
         return
@@ -150,9 +150,9 @@ watch(
       :style="
         !collapsed
           ? {
-              height: isNoExplicitHeightExtension ? '100%' : extensionHeight,
-              minHeight: extensionManifest?.config?.contentMinHeight,
-            }
+            height: isNoExplicitHeightExtension ? '100%' : extensionHeight,
+            minHeight: extensionManifest?.config?.contentMinHeight,
+          }
           : {}
       "
       @mousedown="isMouseDown = true"
@@ -211,9 +211,9 @@ watch(
               :style="
                 fullscreen
                   ? {
-                      maxWidth: fullscreenModalSize.width,
-                      maxHeight: fullscreenModalSize.height,
-                    }
+                    maxWidth: fullscreenModalSize.width,
+                    maxHeight: fullscreenModalSize.height,
+                  }
                   : {}
               "
             >

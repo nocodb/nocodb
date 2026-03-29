@@ -11,7 +11,7 @@ const open = ref(false)
 
 useMenuCloseOnEsc(open)
 
-const handleSubmit = async () => {
+async function handleSubmit() {
   open.value = false
 }
 

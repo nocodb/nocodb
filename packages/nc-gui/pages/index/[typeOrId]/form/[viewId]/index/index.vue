@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
+import { isVirtualCol, RelationTypes, UITypes } from 'nocodb-sdk'
 import { ref } from 'vue'
 import { StreamBarcodeReader } from 'vue-barcode-reader'
 
@@ -24,11 +24,11 @@ const { isMobileMode } = storeToRefs(useConfigStore())
 function isRequired(_columnObj: Record<string, any>, required = false) {
   let columnObj = _columnObj
   if (
-    columnObj.uidt === UITypes.LinkToAnotherRecord &&
-    columnObj.colOptions &&
-    columnObj.colOptions.type === RelationTypes.BELONGS_TO
+    columnObj.uidt === UITypes.LinkToAnotherRecord
+    && columnObj.colOptions
+    && columnObj.colOptions.type === RelationTypes.BELONGS_TO
   ) {
-    columnObj = formColumns.value?.find((c) => c.id === columnObj.colOptions.fk_child_column_id) as Record<string, any>
+    columnObj = formColumns.value?.find(c => c.id === columnObj.colOptions.fk_child_column_id) as Record<string, any>
   }
 
   return !!(required || (columnObj && columnObj.rqd && !columnObj.cdf))
@@ -40,27 +40,27 @@ const scannerIsReady = ref(false)
 
 const showCodeScannerOverlay = ref(false)
 
-const onLoaded = async () => {
+async function onLoaded() {
   scannerIsReady.value = true
 }
 
-const showCodeScannerForFieldTitle = (fieldTitle: string) => {
+function showCodeScannerForFieldTitle(fieldTitle: string) {
   showCodeScannerOverlay.value = true
   fieldTitleForCurrentScan.value = fieldTitle
 }
 
 const findColumnByTitle = (title: string) => formColumns.value?.find((el: ColumnType) => el.title === title)
 
-const getScannedValueTransformerByFieldType = (fieldType: UITypes) => {
+function getScannedValueTransformerByFieldType(fieldType: UITypes) {
   switch (fieldType) {
     case UITypes.Number:
-      return (originalVal: string) => parseInt(originalVal)
+      return (originalVal: string) => Number.parseInt(originalVal)
     default:
       return (originalVal: string) => originalVal
   }
 }
 
-const onDecode = async (scannedCodeValue: string) => {
+async function onDecode(scannedCodeValue: string) {
   if (!showCodeScannerOverlay.value) {
     return
   }
@@ -69,17 +69,18 @@ const onDecode = async (scannedCodeValue: string) => {
     if (fieldForCurrentScan == null) {
       throw new Error(`Field with title ${fieldTitleForCurrentScan.value} not found`)
     }
-    const transformedVal =
-      getScannedValueTransformerByFieldType(fieldForCurrentScan.uidt as UITypes)(scannedCodeValue) || scannedCodeValue
+    const transformedVal
+      = getScannedValueTransformerByFieldType(fieldForCurrentScan.uidt as UITypes)(scannedCodeValue) || scannedCodeValue
     formState.value[fieldTitleForCurrentScan.value] = transformedVal
     fieldTitleForCurrentScan.value = ''
     showCodeScannerOverlay.value = false
-  } catch (error) {
+  }
+  catch (error) {
     console.error(error)
   }
 }
 
-const validateField = async (title: string) => {
+async function validateField(title: string) {
   if (fieldMappings.value[title] === undefined) {
     console.warn('Missing mapping field for:', title)
     return false
@@ -89,7 +90,8 @@ const validateField = async (title: string) => {
     await validate(fieldMappings.value[title])
 
     return true
-  } catch (_e: any) {
+  }
+  catch (_e: any) {
     return false
   }
 }
@@ -149,8 +151,8 @@ const { message: templatedMessage } = useTemplatedMessage(
 
               <div
                 v-if="
-                  typeof sharedFormView?.redirect_url !== 'string' &&
-                  (sharedFormView.show_blank_form || sharedFormView.submit_another_form)
+                  typeof sharedFormView?.redirect_url !== 'string'
+                    && (sharedFormView.show_blank_form || sharedFormView.submit_another_form)
                 "
                 class="mt-16 w-full flex justify-between items-center flex-wrap gap-3"
               >
@@ -185,7 +187,7 @@ const { message: templatedMessage } = useTemplatedMessage(
             @cancel="scannerIsReady = false"
           >
             <div class="relative flex flex-col h-full">
-              <StreamBarcodeReader v-show="scannerIsReady" @decode="onDecode" @loaded="onLoaded"> </StreamBarcodeReader>
+              <StreamBarcodeReader v-show="scannerIsReady" @decode="onDecode" @loaded="onLoaded" />
             </div>
           </a-modal>
           <GeneralOverlay class="bg-nc-bg-gray-extralight/75 rounded-3xl" :model-value="isLoading" inline transition>
@@ -208,9 +210,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                       <span>
                         {{ field.label || field.title }}
                       </span>
-                      <span v-if="isRequired(field, field.required)" class="text-nc-content-red-medium text-base leading-[18px]"
-                        >&nbsp;*</span
-                      >
+                      <span v-if="isRequired(field, field.required)" class="text-nc-content-red-medium text-base leading-[18px]">&nbsp;*</span>
                     </div>
                     <div v-if="field?.description" class="nc-form-column-description text-nc-content-gray-muted text-sm">
                       <LazyCellRichText
@@ -224,7 +224,9 @@ const { message: templatedMessage } = useTemplatedMessage(
 
                     <div>
                       <NcTooltip :disabled="!field?.read_only">
-                        <template #title> {{ $t('activity.preFilledFields.lockedFieldTooltip') }} </template>
+                        <template #title>
+                          {{ $t('activity.preFilledFields.lockedFieldTooltip') }}
+                        </template>
                         <a-form-item
                           v-if="field.title && fieldMappings[field.title]"
                           :name="fieldMappings[field.title]"
@@ -278,7 +280,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                 </div>
 
                 <div class="flex justify-between items-center mt-6">
-                  <div></div>
+                  <div />
 
                   <NcButton
                     :disabled="progress"

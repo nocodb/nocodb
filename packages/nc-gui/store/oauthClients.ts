@@ -20,7 +20,8 @@ export const useOAuthClients = defineStore('oauthClientsStore', () => {
 
       oauthClients.value = response
       return response
-    } catch (e) {
+    }
+    catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
       return []
@@ -33,7 +34,7 @@ export const useOAuthClients = defineStore('oauthClientsStore', () => {
     let client: null | OAuthClient = null
 
     // Check if client exists in cache
-    client = oauthClients.value.find((c) => c.client_id === clientId) || null
+    client = oauthClients.value.find(c => c.client_id === clientId) || null
 
     try {
       if (!client) {
@@ -42,13 +43,14 @@ export const useOAuthClients = defineStore('oauthClientsStore', () => {
           clientId,
         })) as unknown as OAuthClient
 
-        const filtered = oauthClients.value.filter((c) => c.client_id !== clientId)
+        const filtered = oauthClients.value.filter(c => c.client_id !== clientId)
         filtered.push(client)
         oauthClients.value = filtered
       }
 
       return client
-    } catch (e) {
+    }
+    catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
       return null
@@ -71,7 +73,8 @@ export const useOAuthClients = defineStore('oauthClientsStore', () => {
       $e('a:oauth-client:create')
 
       return created
-    } catch (e) {
+    }
+    catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
       throw e
@@ -86,7 +89,7 @@ export const useOAuthClients = defineStore('oauthClientsStore', () => {
     },
   ) => {
     try {
-      const client = oauthClients.value.find((c) => c.client_id === clientId)
+      const client = oauthClients.value.find(c => c.client_id === clientId)
       const updated = options?.skipNetworkCall
         ? {
             ...client,
@@ -102,7 +105,7 @@ export const useOAuthClients = defineStore('oauthClientsStore', () => {
             updates,
           )
 
-      const index = oauthClients.value.findIndex((c) => c.client_id === clientId)
+      const index = oauthClients.value.findIndex(c => c.client_id === clientId)
 
       if (index !== -1) {
         oauthClients.value[index] = updated as any
@@ -111,7 +114,8 @@ export const useOAuthClients = defineStore('oauthClientsStore', () => {
       $e('a:oauth-client:update')
 
       return updated
-    } catch (e) {
+    }
+    catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
       return null
@@ -131,12 +135,13 @@ export const useOAuthClients = defineStore('oauthClientsStore', () => {
       )
 
       // Update local state
-      oauthClients.value = oauthClients.value.filter((c) => c.client_id !== clientId)
+      oauthClients.value = oauthClients.value.filter(c => c.client_id !== clientId)
 
       $e('a:oauth-client:delete')
 
       return true
-    } catch (e) {
+    }
+    catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
       return false
@@ -155,7 +160,7 @@ export const useOAuthClients = defineStore('oauthClientsStore', () => {
         {},
       )
 
-      const index = oauthClients.value.findIndex((c) => c.client_id === clientId)
+      const index = oauthClients.value.findIndex(c => c.client_id === clientId)
 
       if (index !== -1) {
         oauthClients.value[index] = updated as any
@@ -164,7 +169,8 @@ export const useOAuthClients = defineStore('oauthClientsStore', () => {
       $e('a:oauth-client:regenerate-secret')
 
       return updated
-    } catch (e) {
+    }
+    catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
       return null

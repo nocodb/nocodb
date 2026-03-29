@@ -63,17 +63,17 @@ const selectedDate = useVModel(props, 'selectedDate', emit)
 const activeDates = useVModel(props, 'activeDates', emit)
 
 // Cache key generator for date comparisons
-const getDateComparisonCacheKey = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
+function getDateComparisonCacheKey(date1: dayjs.Dayjs, date2: dayjs.Dayjs) {
   return `${date1?.format('YYYY-MM-DD')}_${date2?.format('YYYY-MM-DD')}`
 }
 
 // Cache key generator for month comparison
-const getMonthComparisonCacheKey = (date: dayjs.Dayjs) => {
+function getMonthComparisonCacheKey(date: dayjs.Dayjs) {
   return `${date?.format('YYYY-MM')}_${pageDate.value?.format('YYYY-MM')}`
 }
 
 // Cache key for the dates array
-const getDatesCacheKey = () => {
+function getDatesCacheKey() {
   return `${pageDate.value?.format('YYYY-MM')}_${selectedDate.value?.format('YYYY-MM-DD')}_${activeDates.value.length}-${
     maxVisibleDays.value
   }`
@@ -83,12 +83,13 @@ const days = computed(() => {
   let days = []
   if (props.isMondayFirst) {
     days = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
-  } else {
+  }
+  else {
     days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
   }
 
   if (maxVisibleDays.value === 5) {
-    days = days.filter((day) => day !== 'Sa' && day !== 'Su')
+    days = days.filter(day => day !== 'Sa' && day !== 'Su')
   }
 
   return days
@@ -99,7 +100,7 @@ const currentMonthYear = computed(() => {
 })
 
 // Used to check if two dates are the same - with shared caching
-const isSameDate = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
+function isSameDate(date1: dayjs.Dayjs, date2: dayjs.Dayjs) {
   if (!date1 || !date2) return false
 
   const cacheKey = getDateComparisonCacheKey(date1, date2)
@@ -112,13 +113,13 @@ const isSameDate = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
   return result
 }
 
-const isSelectedDate = (dObj: dayjs.Dayjs) => {
+function isSelectedDate(dObj: dayjs.Dayjs) {
   if (!selectedDate.value) return false
   const propDate = timezoneDayjs.dayjsTz(selectedDate.value)
   return props.selectedDate ? isSameDate(propDate, dObj) : false
 }
 
-const isDayInPagedMonth = (date: dayjs.Dayjs) => {
+function isDayInPagedMonth(date: dayjs.Dayjs) {
   const cacheKey = getMonthComparisonCacheKey(date)
   if (sharedCalendarCache.monthComparisonCache.has(cacheKey)) {
     return sharedCalendarCache.monthComparisonCache.get(cacheKey)
@@ -130,7 +131,7 @@ const isDayInPagedMonth = (date: dayjs.Dayjs) => {
 }
 
 // Used to check if a date is in the current month
-const isDateInCurrentMonth = (date: dayjs.Dayjs) => {
+function isDateInCurrentMonth(date: dayjs.Dayjs) {
   const cacheKey = getMonthComparisonCacheKey(date)
   if (sharedCalendarCache.monthComparisonCache.has(cacheKey)) {
     return sharedCalendarCache.monthComparisonCache.get(cacheKey)
@@ -142,7 +143,7 @@ const isDateInCurrentMonth = (date: dayjs.Dayjs) => {
 }
 
 // Used to Check if an event is in the date - using month-based grouping for efficiency
-const isActiveDate = (date: dayjs.Dayjs) => {
+function isActiveDate(date: dayjs.Dayjs) {
   // Use the optimized month-based grouping lookup
   return sharedCalendarCache.isActiveDateInMonth(date)
 }
@@ -199,7 +200,7 @@ const dates = computed(() => {
 })
 
 // Since we are using the same component for week picker and date picker we need to handle the date selection differently
-const handleSelectDate = (date: dayjs.Dayjs) => {
+function handleSelectDate(date: dayjs.Dayjs) {
   if (!isDayInPagedMonth(date)) {
     pageDate.value = date
     emit('update:pageDate', date)
@@ -208,7 +209,7 @@ const handleSelectDate = (date: dayjs.Dayjs) => {
   emit('update:selectedDate', date)
 }
 
-const emitDblClick = (date: dayjs.Dayjs) => {
+function emitDblClick(date: dayjs.Dayjs) {
   emit('dblClick', date)
 }
 
@@ -249,8 +250,7 @@ watch(activeDates, (newActiveDates) => {
               'text-xs w-6 h-6': size === 'small',
             }"
             class="flex items-center uppercase py-1 font-medium justify-center text-nc-content-gray-muted"
-            >{{ day[0] }}</span
-          >
+          >{{ day[0] }}</span>
         </div>
       </div>
       <div
@@ -287,7 +287,7 @@ watch(activeDates, (newActiveDates) => {
               '!border-nc-brand-50': date.isToday,
             }"
             class="absolute z-2 transition border-1 rounded-full border-nc-base-white bg-nc-brand-500"
-          ></span>
+          />
           <span class="z-2">
             {{ date.dayVal }}
           </span>

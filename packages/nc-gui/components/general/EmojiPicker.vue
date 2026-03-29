@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import data from 'emoji-mart-vue-fast/data/apple.json'
-import 'emoji-mart-vue-fast/css/emoji-mart.css'
 import { Icon } from '@iconify/vue'
+import data from 'emoji-mart-vue-fast/data/apple.json'
 import { EmojiIndex, Picker } from 'emoji-mart-vue-fast/src'
+import 'emoji-mart-vue-fast/css/emoji-mart.css'
 
 const props = defineProps<{
   emoji?: string | undefined
@@ -40,7 +40,7 @@ function selectEmoji(_emoji: any) {
   isOpen.value = false
 }
 
-const onClick = (e: Event) => {
+function onClick(e: Event) {
   if (readonly) return
 
   e.stopPropagation()
@@ -48,7 +48,7 @@ const onClick = (e: Event) => {
   isOpen.value = !isOpen.value
 }
 
-const clearEmoji = () => {
+function clearEmoji() {
   emojiRef.value = ''
   emit('emojiSelected', '')
 
@@ -97,7 +97,7 @@ watch(isOpen, (val) => {
         {{ emojiRef }}
       </template>
       <template v-else>
-        <Icon :data-testid="`nc-icon-${emojiRef}`" class="text-lg" :icon="emojiRef"></Icon>
+        <Icon :data-testid="`nc-icon-${emojiRef}`" class="text-lg" :icon="emojiRef" />
       </template>
     </div>
     <template #overlay>
@@ -116,8 +116,7 @@ watch(isOpen, (val) => {
           class="nc-emoji-picker"
           @select="selectEmoji"
           @click.stop="() => {}"
-        >
-        </Picker>
+        />
         <div v-if="showClearButton" class="absolute top-10 right-1.5">
           <div
             role="button"

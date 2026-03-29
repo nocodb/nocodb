@@ -3,6 +3,7 @@ import { RelationTypes, UITypes } from '~/lib';
 enum AuditV1OperationTypes {
   USER_SIGNUP = 'USER_SIGNUP',
   USER_SIGNIN = 'USER_SIGNIN',
+  USER_SIGNIN_FAILED = 'USER_SIGNIN_FAILED',
   USER_INVITE = 'USER_INVITE',
 
   WORKSPACE_USER_INVITE = 'WORKSPACE_USER_INVITE',
@@ -50,6 +51,8 @@ enum AuditV1OperationTypes {
   DATA_BULK_DELETE = 'DATA_BULK_DELETE',
   DATA_BULK_ALL_DELETE = 'DATA_BULK_ALL_DELETE',
   DATA_BULK_ALL_UPDATE = 'DATA_BULK_ALL_UPDATE',
+
+  DATA_CASCADE_UPDATE = 'DATA_CASCADE_UPDATE',
 
   DATA_LINK = 'DATA_LINK',
   DATA_UNLINK = 'DATA_UNLINK',
@@ -124,6 +127,7 @@ enum AuditV1OperationTypes {
   USER_SIGNOUT = 'USER_SIGNOUT',
   TABLE_UPDATE = 'TABLE_UPDATE',
   TABLE_RENAME = 'TABLE_RENAME',
+  VIEW_COLUMN_CREATE = 'VIEW_FIELD_CREATE',
   VIEW_COLUMN_UPDATE = 'VIEW_FIELD_UPDATE',
   UI_ACL = 'UI_ACL',
   AIRTABLE_IMPORT = 'AIRTABLE_IMPORT',
@@ -170,6 +174,7 @@ enum AuditV1OperationTypes {
   TEAM_CREATE = 'TEAM_CREATE',
   TEAM_UPDATE = 'TEAM_UPDATE',
   TEAM_DELETE = 'TEAM_DELETE',
+  TEAM_MOVE = 'TEAM_MOVE',
   TEAM_MEMBER_ADD = 'TEAM_MEMBER_ADD',
   TEAM_MEMBER_UPDATE = 'TEAM_MEMBER_UPDATE',
   TEAM_MEMBER_DELETE = 'TEAM_MEMBER_DELETE',
@@ -188,6 +193,19 @@ enum AuditV1OperationTypes {
   RLS_POLICY_CREATE = 'RLS_POLICY_CREATE',
   RLS_POLICY_UPDATE = 'RLS_POLICY_UPDATE',
   RLS_POLICY_DELETE = 'RLS_POLICY_DELETE',
+
+  DOC_AI_COMPLETION = 'DOC_AI_COMPLETION',
+
+  DOCUMENT_CREATE = 'DOCUMENT_CREATE',
+  DOCUMENT_UPDATE = 'DOCUMENT_UPDATE',
+  DOCUMENT_DELETE = 'DOCUMENT_DELETE',
+
+  DOCUMENT_COMMENT_CREATE = 'DOCUMENT_COMMENT_CREATE',
+  DOCUMENT_COMMENT_UPDATE = 'DOCUMENT_COMMENT_UPDATE',
+  DOCUMENT_COMMENT_DELETE = 'DOCUMENT_COMMENT_DELETE',
+
+  DATE_DEPENDENCY_UPDATE = 'DATE_DEPENDENCY_UPDATE',
+  DATE_DEPENDENCY_DELETE = 'DATE_DEPENDENCY_DELETE',
 }
 
 export const auditV1OperationTypesAlias = Object.values(
@@ -344,6 +362,13 @@ export const auditV1OperationsCategory: Record<
       key.startsWith('WORKFLOW_')
     ),
   },
+  DOCUMENT: {
+    label: 'objects.document',
+    value: 'DOCUMENT',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('DOCUMENT_')
+    ),
+  },
 };
 
 export type BulkAuditV1OperationTypes =
@@ -351,7 +376,16 @@ export type BulkAuditV1OperationTypes =
   | AuditV1OperationTypes.DATA_BULK_UPDATE
   | AuditV1OperationTypes.DATA_BULK_DELETE;
 
-export interface UserSigninPayload {}
+export interface UserSigninPayload {
+  provider?: string;
+  sso_client_type?: string;
+}
+
+export interface UserSigninFailedPayload {
+  email?: string;
+  provider?: string;
+  reason?: string;
+}
 
 export interface UserSignupPayload {}
 
@@ -455,6 +489,15 @@ export interface ColumnRenamePayload {
   new_field_title: string;
 }
 
+export interface ViewColumnCreatePayload {
+  view_type: string;
+  field_id: string;
+  view_id: string;
+  view_title: string;
+  field_title: string;
+  show: boolean;
+}
+
 export interface ViewColumnUpdatePayload extends UpdatePayload {
   view_type: string;
   field_id: string;
@@ -513,6 +556,10 @@ export interface DataBulkDeletePayload {}
 export interface DataBulkDeletePayloadRecord {
   data: Record<string, unknown>;
   column_meta: Record<string, ColumnMeta>;
+}
+
+export interface DataCascadeUpdatePayload {
+  source?: 'date_dependency';
 }
 
 /*
@@ -1031,7 +1078,7 @@ export interface DataExportPayload {
   view_title: string;
   table_id: string;
   table_title: string;
-  export_type: 'excel' | 'csv';
+  export_type: 'excel' | 'csv' | 'json';
 }
 
 export interface DataImportPayload {
@@ -1183,6 +1230,63 @@ export interface RlsPolicyDeletePayload {
   table_id: string;
 }
 
+export interface DateDependencyUpdatePayload {
+  table_id: string;
+  table_title: string;
+  date_dependency_id: string;
+  is_new: boolean;
+  start_date_field?: { id: string; title: string };
+  end_date_field?: { id: string; title: string };
+  duration_field?: { id: string; title: string };
+  dependency_link_field?: { id: string; title: string };
+  dependency_linkrow_role?: string;
+  dependency_connection_type?: string;
+  dependency_buffer_type?: string;
+  dependency_buffer_days?: number;
+  include_weekends?: boolean;
+  is_active?: boolean;
+}
+
+export interface DateDependencyDeletePayload {
+  table_id: string;
+  table_title: string;
+}
+
+export interface DocAiCompletionPayload {
+  operation: 'write' | 'continue' | 'improve' | 'summarize' | 'translate';
+}
+
+export interface DocumentCreatePayload {
+  document_title: string;
+  document_id: string;
+  parent_id?: string | null;
+}
+
+export interface DocumentUpdatePayload {
+  document_title: string;
+  document_id: string;
+}
+
+export interface DocumentDeletePayload {
+  document_title: string;
+  document_id: string;
+}
+
+export interface DocumentCommentCreatePayload {
+  document_id: string;
+  comment_id: string;
+}
+
+export interface DocumentCommentUpdatePayload {
+  document_id: string;
+  comment_id: string;
+}
+
+export interface DocumentCommentDeletePayload {
+  document_id: string;
+  comment_id: string;
+}
+
 export interface TeamCreatePayload {
   team_id: string;
   team_title: string;
@@ -1205,6 +1309,16 @@ export interface TeamDeletePayload {
   workspace_title?: string;
   base_title?: string;
   meta?: any;
+}
+
+export interface TeamMovePayload {
+  team_id: string;
+  team_title: string;
+  old_parent_team_id?: string | null;
+  old_parent_team_title?: string | null;
+  new_parent_team_id?: string | null;
+  new_parent_team_title?: string | null;
+  workspace_title?: string;
 }
 
 export interface TeamMemberAddPayload {
@@ -1315,7 +1429,17 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.USER_SIGNUP]: (audit: AuditV1<UserSignupPayload>) =>
     `User '${audit.user}' signed up`,
   [AuditV1OperationTypes.USER_SIGNIN]: (audit: AuditV1<UserSigninPayload>) =>
-    `User '${audit.user}' signed in`,
+    `User '${audit.user}' signed in${
+      audit.details.provider ? ` via ${audit.details.provider}` : ''
+    }`,
+  [AuditV1OperationTypes.USER_SIGNIN_FAILED]: (
+    audit: AuditV1<UserSigninFailedPayload>
+  ) =>
+    `Failed sign-in attempt${
+      audit.details.email ? ` for '${audit.details.email}'` : ''
+    }${audit.details.provider ? ` via ${audit.details.provider}` : ''}${
+      audit.details.reason ? ` - ${audit.details.reason}` : ''
+    }`,
   [AuditV1OperationTypes.USER_INVITE]: (audit: AuditV1<UserInvitePayload>) =>
     `User '${audit.user}' invited '${audit.details.user_email}'`,
   [AuditV1OperationTypes.USER_PASSWORD_CHANGE]: (
@@ -1355,6 +1479,9 @@ const descriptionTemplates = {
     `Record with ID [${audit.row_id}] has been updated`,
   [AuditV1OperationTypes.DATA_DELETE]: (audit: AuditV1<DataDeletePayload>) =>
     `Record with ID [${audit.row_id}] has been deleted`,
+  [AuditV1OperationTypes.DATA_CASCADE_UPDATE]: (
+    _audit: AuditV1<DataCascadeUpdatePayload>
+  ) => `Record was rescheduled to avoid overlap with a conflicting record`,
 
   /*  [AuditV1OperationTypes.DATA_BULK_INSERT]: (
     audit: AuditV1<DataBulkInsertPayload>
@@ -1539,6 +1666,44 @@ const descriptionTemplates = {
     audit: AuditV1<RlsPolicyDeletePayload>
   ) =>
     `RLS policy '${audit.details.policy_id}' has been deleted from table '${audit.details.table_id}'`,
+  [AuditV1OperationTypes.VIEW_COLUMN_CREATE]: (
+    audit: AuditV1<ViewColumnCreatePayload>
+  ) =>
+    `Field '${audit.details.field_title}' added to ${audit.details.view_type} '${audit.details.view_title}'`,
+  [AuditV1OperationTypes.DATA_EXPORT]: (audit: AuditV1<DataExportPayload>) =>
+    `User '${audit.user}' exported ${audit.details.export_type} from table '${audit.details.table_title}'`,
+  [AuditV1OperationTypes.DATA_IMPORT]: (audit: AuditV1<DataImportPayload>) =>
+    `User '${audit.user}' imported ${audit.details.import_type} into table '${audit.details.table_title}'`,
+  [AuditV1OperationTypes.DOC_AI_COMPLETION]: (
+    audit: AuditV1<DocAiCompletionPayload>
+  ) => `AI '${audit.details.operation}' operation completed on document`,
+  [AuditV1OperationTypes.DOCUMENT_CREATE]: (
+    audit: AuditV1<DocumentCreatePayload>
+  ) => `Document '${audit.details.document_title}' has been created`,
+  [AuditV1OperationTypes.DOCUMENT_UPDATE]: (
+    audit: AuditV1<DocumentUpdatePayload>
+  ) => `Document '${audit.details.document_title}' has been updated`,
+  [AuditV1OperationTypes.DOCUMENT_DELETE]: (
+    audit: AuditV1<DocumentDeletePayload>
+  ) => `Document '${audit.details.document_title}' has been deleted`,
+  [AuditV1OperationTypes.DOCUMENT_COMMENT_CREATE]: (
+    audit: AuditV1<DocumentCommentCreatePayload>
+  ) => `Comment added to document '${audit.details.document_id}'`,
+  [AuditV1OperationTypes.DOCUMENT_COMMENT_UPDATE]: (
+    audit: AuditV1<DocumentCommentUpdatePayload>
+  ) => `Comment updated on document '${audit.details.document_id}'`,
+  [AuditV1OperationTypes.DOCUMENT_COMMENT_DELETE]: (
+    audit: AuditV1<DocumentCommentDeletePayload>
+  ) => `Comment deleted from document '${audit.details.document_id}'`,
+  [AuditV1OperationTypes.DATE_DEPENDENCY_UPDATE]: (
+    audit: AuditV1<DateDependencyUpdatePayload>
+  ) =>
+    `Date dependency ${
+      audit.details.is_new ? 'created' : 'updated'
+    } for table '${audit.details.table_title}'`,
+  [AuditV1OperationTypes.DATE_DEPENDENCY_DELETE]: (
+    audit: AuditV1<DateDependencyDeletePayload>
+  ) => `Date dependency deleted from table '${audit.details.table_title}'`,
 };
 
 function auditDescription(audit: AuditV1) {

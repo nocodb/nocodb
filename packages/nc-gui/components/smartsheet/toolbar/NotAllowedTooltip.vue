@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TooltipPlacement } from 'ant-design-vue/es/tooltip'
-import type { CSSProperties } from '@vue/runtime-dom'
+import type { CSSProperties } from 'vue'
 
 withDefaults(
   defineProps<{

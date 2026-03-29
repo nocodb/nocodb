@@ -36,7 +36,7 @@ const { isDark } = useTheme()
 
 const picked = ref<string>(props.modelValue || enumColor.light[0])
 
-const selectColor = (color: string, closeModal = false) => {
+function selectColor(color: string, closeModal = false) {
   picked.value = color
   if (props.pickButton) vModel.value = color
   if (closeModal) {
@@ -46,8 +46,9 @@ const selectColor = (color: string, closeModal = false) => {
 
 const isPickerOn = ref(false)
 
-const compare = (colorA: string, colorB: string) =>
-  colorA.toLowerCase() === colorB.toLowerCase() || colorA.toLowerCase() === tinycolor(colorB).toHex8String().toLowerCase()
+function compare(colorA: string, colorB: string) {
+  return colorA.toLowerCase() === colorB.toLowerCase() || colorA.toLowerCase() === tinycolor(colorB).toHex8String().toLowerCase()
+}
 
 watch(picked, (n, _o) => {
   vModel.value = n
@@ -76,17 +77,17 @@ watch(picked, (n, _o) => {
           class="color-selector"
           :class="{ 'selected': compare(picked, color), 'new-design': isNewDesign }"
           :style="{
-            backgroundColor: `${getSelectTypeFieldOptionBgColor({
+            backgroundColor: `${getDarkModeCompatibleBgColor({
               color: color || '#ccc',
               isDark: invertInDarkMode && isDark,
               shade: 0,
             })}`,
             border: colorBoxBorder
               ? `1px solid ${tinycolor(
-                  getSelectTypeFieldOptionBgColor({ color: color || '#ccc', isDark: invertInDarkMode && isDark, shade: 0 }),
-                )
-                  .darken(invertInDarkMode && isDark ? -30 : 30)
-                  .toString()}`
+                getDarkModeCompatibleBgColor({ color: color || '#ccc', isDark: invertInDarkMode && isDark, shade: 0 }),
+              )
+                .darken(invertInDarkMode && isDark ? -30 : 30)
+                .toString()}`
               : undefined,
           }"
           @click="selectColor(color, true)"
@@ -105,7 +106,9 @@ watch(picked, (n, _o) => {
           @click="isPickerOn = !isPickerOn"
         >
           <NcTooltip>
-            <template #title>{{ $t('activity.moreColors') }}</template>
+            <template #title>
+              {{ $t('activity.moreColors') }}
+            </template>
             <div class="flex items-center justify-center">
               <GeneralIcon :icon="isPickerOn ? 'minus' : 'plus'" class="w-4 h-4" />
             </div>

@@ -1,10 +1,10 @@
-import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
-import dagre from 'dagre'
 import type { Edge, EdgeMarker, Elements, Node } from '@vue-flow/core'
-import { MarkerType, Position, isEdge, isNode } from '@vue-flow/core'
 import type { MaybeRef } from '@vueuse/core'
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import { isEdge, isNode, MarkerType, Position } from '@vue-flow/core'
 import { scaleLinear as d3ScaleLinear } from 'd3-scale'
+import dagre from 'dagre'
+import { isLinksOrLTAR, RelationTypes, UITypes } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 
 export interface ERDConfig {
@@ -83,8 +83,8 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
         const source = column.fk_model_id
         const target = colOptions.fk_related_model_id
 
-        const sourceExists = erdTables.value.find((t) => t.id === source)
-        const targetExists = erdTables.value.find((t) => t.id === target)
+        const sourceExists = erdTables.value.find(t => t.id === source)
+        const targetExists = erdTables.value.find(t => t.id === target)
 
         if (source && target && sourceExists && targetExists) {
           const relation: Relation = {
@@ -115,10 +115,10 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
           if (colOptions.type === RelationTypes.MANY_TO_MANY) {
             // Avoid duplicate mm connections
             const correspondingColumn = acc.find(
-              (relation) =>
-                relation.type === RelationTypes.MANY_TO_MANY &&
-                relation.parentColId === colOptions.fk_child_column_id &&
-                relation.childColId === colOptions.fk_parent_column_id,
+              relation =>
+                relation.type === RelationTypes.MANY_TO_MANY
+                && relation.parentColId === colOptions.fk_child_column_id
+                && relation.childColId === colOptions.fk_parent_column_id,
             )
 
             if (!correspondingColumn) {
@@ -147,9 +147,9 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
       if (!colOptions) return false
 
       return (
-        colOptions.fk_child_column_id === childColId &&
-        colOptions.fk_parent_column_id === parentColId &&
-        colOptions.fk_mm_model_id === modelId
+        colOptions.fk_child_column_id === childColId
+        && colOptions.fk_parent_column_id === parentColId
+        && colOptions.fk_mm_model_id === modelId
       )
     })
 
@@ -190,17 +190,17 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
     return erdTables.value.reduce<Node<NodeData>[]>((acc, table) => {
       if (!table.id) return acc
 
-      const columns =
-        metasWithIdAsKey.value[table.id]?.columns?.filter((col) => {
+      const columns
+        = metasWithIdAsKey.value[table.id]?.columns?.filter((col) => {
           if ([UITypes.CreatedBy, UITypes.LastModifiedBy].includes(col.uidt as UITypes) && col.system) return false
           return config.value.showAllColumns || (!config.value.showAllColumns && isLinksOrLTAR(col))
         }) || []
 
       const pkAndFkColumns = columns
         .filter(() => config.value.showPkAndFk)
-        .filter((col) => col.pk || col.uidt === UITypes.ForeignKey)
+        .filter(col => col.pk || col.uidt === UITypes.ForeignKey)
 
-      const nonPkColumns = columns.filter((col) => !col.pk && col.uidt !== UITypes.ForeignKey)
+      const nonPkColumns = columns.filter(col => !col.pk && col.uidt !== UITypes.ForeignKey)
 
       acc.push({
         id: table.id,
@@ -286,7 +286,8 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
             width,
             height,
           })
-        } else if (isEdge(el)) {
+        }
+        else if (isEdge(el)) {
           dagreGraph.setEdge(el.source, el.target)
         }
       }
@@ -303,13 +304,13 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
         if (isNode(el)) {
           const nodeWithPosition = dagreGraph.node(el.id)
           const width = skeleton ? nodeWidth * 3 : nodeWidth
-          const height =
-            nodeHeight.value +
-            (skeleton
-              ? 250
-              : (el as Node<NodeData>).data!.columnLength > 0
-              ? nodeHeight.value * (el as Node<NodeData>).data!.columnLength
-              : nodeHeight.value)
+          const height
+            = nodeHeight.value
+              + (skeleton
+                ? 250
+                : (el as Node<NodeData>).data!.columnLength > 0
+                    ? nodeHeight.value * (el as Node<NodeData>).data!.columnLength
+                    : nodeHeight.value)
 
           minX = Math.min(minX, nodeWithPosition.x - width / 2)
           minY = Math.min(minY, nodeWithPosition.y - height / 2)
@@ -345,8 +346,9 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
 
             return boxShadow(skeleton, '#64748B')
           }
-        } else if (isEdge(el)) {
-          const node = elements.value.find((nodes) => nodes.id === el.source)
+        }
+        else if (isEdge(el)) {
+          const node = elements.value.find(nodes => nodes.id === el.source)
           if (node) {
             const color = node.data!.color
 

@@ -17,7 +17,7 @@ const baseId = computed(() => _projectId?.value ?? base.value?.id)
 const isLoading = ref(false)
 const isModalVisible = ref(false)
 
-const migrateToV3 = async () => {
+async function migrateToV3() {
   if (!baseId.value) return
 
   isLoading.value = true
@@ -42,9 +42,11 @@ const migrateToV3 = async () => {
         page: 'overview',
       },
     })
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 }
@@ -52,7 +54,9 @@ const migrateToV3 = async () => {
 
 <template>
   <div data-testid="nc-settings-subtab-migrate-to-v3" class="item-card flex flex-col w-full">
-    <div class="text-nc-content-gray-emphasis font-semibold text-lg">Migrate to v3</div>
+    <div class="text-nc-content-gray-emphasis font-semibold text-lg">
+      Migrate to v3
+    </div>
 
     <div class="text-nc-content-gray-subtle2 mt-2 leading-5">
       Upgrade this base to v3 to unlock the latest platform capabilities and future-ready APIs.
@@ -60,7 +64,9 @@ const migrateToV3 = async () => {
     </div>
 
     <div class="mt-6">
-      <div class="text-nc-content-gray-emphasis font-semibold mb-3">What changes after migration</div>
+      <div class="text-nc-content-gray-emphasis font-semibold mb-3">
+        What changes after migration
+      </div>
       <div class="flex flex-col gap-2 mb-6">
         <div class="flex items-start gap-2">
           <span class="text-nc-content-gray text-sm">•</span>
@@ -80,7 +86,9 @@ const migrateToV3 = async () => {
         </div>
       </div>
 
-      <div class="text-nc-content-gray-emphasis font-semibold mb-3">Important considerations</div>
+      <div class="text-nc-content-gray-emphasis font-semibold mb-3">
+        Important considerations
+      </div>
       <div class="flex flex-col gap-2 mb-4">
         <div class="flex items-start gap-2">
           <span class="text-nc-content-gray text-sm">•</span>
@@ -110,17 +118,23 @@ const migrateToV3 = async () => {
     </div>
 
     <GeneralModal v-model:visible="isModalVisible" size="small" centered>
-      <div class="flex flex-col p-6">
-        <div class="flex flex-row pb-2 mb-4 font-semibold text-lg text-nc-content-gray-emphasis">Migrate to V3</div>
+      <div class="flex flex-col p-4 md:p-6">
+        <div class="flex flex-row pb-2 mb-4 font-semibold text-lg text-nc-content-gray-emphasis">
+          Migrate to V3
+        </div>
 
-        <div class="mb-2 text-nc-content-gray-emphasis font-medium">Are you sure you want to migrate this base to v3?</div>
+        <div class="mb-2 text-nc-content-gray-emphasis font-medium">
+          Are you sure you want to migrate this base to v3?
+        </div>
 
         <div class="mb-4 text-nc-content-gray text-sm">
           This change upgrades the base to the latest architecture and API version.
         </div>
 
         <div v-if="base" class="mb-4">
-          <div class="text-nc-content-gray-emphasis font-medium mb-2 text-sm">Before you continue</div>
+          <div class="text-nc-content-gray-emphasis font-medium mb-2 text-sm">
+            Before you continue
+          </div>
           <div class="flex flex-col gap-2">
             <div class="flex items-start gap-2">
               <GeneralIcon icon="alertTriangle" class="flex-none text-orange-500 mt-0.5 w-4 h-4" />
@@ -138,7 +152,9 @@ const migrateToV3 = async () => {
         </div>
 
         <div class="flex flex-row gap-x-2 mt-2 pt-4 border-t border-nc-border-gray-medium justify-end">
-          <NcButton type="secondary" size="small" @click="isModalVisible = false"> Cancel </NcButton>
+          <NcButton type="secondary" size="small" @click="isModalVisible = false">
+            Cancel
+          </NcButton>
 
           <NcButton
             key="submit"
@@ -150,7 +166,9 @@ const migrateToV3 = async () => {
             @click="migrateToV3"
           >
             Confirm migration to v3
-            <template #loading> Migrating... </template>
+            <template #loading>
+              Migrating...
+            </template>
           </NcButton>
         </div>
       </div>

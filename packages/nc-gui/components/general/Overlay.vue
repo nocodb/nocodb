@@ -1,6 +1,6 @@
 <script lang="ts" setup>
+import type { TeleportProps } from 'vue'
 import { onKeyDown } from '@vueuse/core'
-import type { TeleportProps } from '@vue/runtime-core'
 
 interface Props {
   modelValue?: any

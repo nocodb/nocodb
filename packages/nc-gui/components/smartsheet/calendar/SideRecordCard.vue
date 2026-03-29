@@ -46,51 +46,40 @@ const toDate = computed(() => {
 // Validation logic
 const missingFromDate = computed(() => fromCol.value && !fromDateRaw.value)
 const missingToDate = computed(() => toCol.value && !toDateRaw.value)
+const missingBothDates = computed(() => missingFromDate.value && missingToDate.value)
 const dateOrderError = computed(() => {
   if (!fromCol.value || !toCol.value || !fromDateRaw.value || !toDateRaw.value) return false
   return timezoneDayjs.timezonize(fromDateRaw.value).isAfter(timezoneDayjs.timezonize(toDateRaw.value))
 })
 
-const invalid = computed(() => missingFromDate.value || missingToDate.value || dateOrderError.value)
+// Only invalid if both dates are missing or dates are in wrong order
+// Having only one date (start or end) is valid — treated as single-day event
+const invalid = computed(() => missingBothDates.value || dateOrderError.value)
 
 const errorInfo = computed(() => {
   const missingFromDate = fromCol.value && !fromDateRaw.value
 
   const missingToDate = toCol.value && !toDateRaw.value
 
-  const dateOrderError =
-    fromCol.value &&
-    toCol.value &&
-    fromDateRaw.value &&
-    toDateRaw.value &&
-    timezoneDayjs.timezonize(fromDateRaw.value).isAfter(timezoneDayjs.timezonize(toDateRaw.value))
+  const dateOrderError
+    = fromCol.value
+      && toCol.value
+      && fromDateRaw.value
+      && toDateRaw.value
+      && timezoneDayjs.timezonize(fromDateRaw.value).isAfter(timezoneDayjs.timezonize(toDateRaw.value))
 
   if (dateOrderError) {
     return {
       message: 'Date Error',
       tooltip:
-        "Record with end date before the start date won't be displayed in the calendar. Update the end date to display the record.",
+        'Record with end date before the start date won\'t be displayed in the calendar. Update the end date to display the record.',
     }
   }
 
   if (missingFromDate && missingToDate) {
     return {
       message: 'Missing Dates',
-      tooltip: 'Both start date and end date are required for this record to be displayed in the calendar.',
-    }
-  }
-
-  if (missingFromDate) {
-    return {
-      message: 'Missing Start Date',
-      tooltip: 'Start date is required for this record to be displayed in the calendar.',
-    }
-  }
-
-  if (missingToDate) {
-    return {
-      message: 'Missing End Date',
-      tooltip: 'End date is required for this record to be displayed properly in the calendar.',
+      tooltip: 'At least one date (start or end) is required for this record to be displayed in the calendar.',
     }
   }
 
@@ -119,7 +108,7 @@ const errorInfo = computed(() => {
         }"
         class="block h-12 w-1"
         :style="rowColorInfo.rowLeftBorderColor"
-      ></span>
+      />
       <slot name="image" />
       <div class="flex gap-1 py-1 flex-col">
         <span
@@ -146,8 +135,26 @@ const errorInfo = computed(() => {
           show-on-truncate-only
           class="text-xs font-medium truncate max-w-58 leading-4 text-nc-content-gray-subtle2"
         >
-          {{ fromDate }} {{ toDate ? ` - ${toDate}` : '' }}
-          <template #title> {{ fromDate }} {{ toDate ? ` - ${toDate}` : '' }} </template>
+          {{
+            fromDate && toDate
+              ? `${fromDate} - ${toDate}`
+              : fromDate && toCol
+                ? `${fromDate} -`
+                : toDate && fromCol
+                  ? `- ${toDate}`
+                  : fromDate || toDate || ''
+          }}
+          <template #title>
+            {{
+              fromDate && toDate
+                ? `${fromDate} - ${toDate}`
+                : fromDate && toCol
+                  ? `${fromDate} -`
+                  : toDate && fromCol
+                    ? `- ${toDate}`
+                    : fromDate || toDate || ''
+            }}
+          </template>
         </NcTooltip>
       </div>
     </div>

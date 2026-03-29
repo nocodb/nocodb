@@ -8,8 +8,8 @@ import type {
   TableType,
   ViewType,
 } from 'nocodb-sdk'
-import { CommonAggregations, ViewTypes, getFirstNonPersonalView, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
+import { CommonAggregations, getFirstNonPersonalView, isHiddenCol, isSystemColumn, ViewTypes } from 'nocodb-sdk'
 
 const [useProvideViewColumns, useViewColumns] = useInjectionState(
   (
@@ -112,8 +112,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
       let order = 1
 
-      const data =
-        ((isPublic
+      const data
+        = ((isPublic
           ? meta.value?.columns
           : (
               await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
@@ -140,7 +140,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           if (level.fk_model_id && level.fk_model_id !== meta.value?.id) {
             try {
               await _getMeta(meta.value!.base_id!, level.fk_model_id)
-            } catch (e) {
+            }
+            catch (e) {
               // silently ignore — level table meta may not be accessible
             }
           }
@@ -148,7 +149,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       }
 
       // Build combined columns: root table + level tables (for list views)
-      const allTableColumns: { column: ColumnType; tableMeta: TableType }[] = (meta.value?.columns || []).map(
+      const allTableColumns: { column: ColumnType, tableMeta: TableType }[] = (meta.value?.columns || []).map(
         (col: ColumnType) => ({
           column: col,
           tableMeta: meta.value!,
@@ -194,16 +195,16 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
             system: isSystemColumn(metaColumnById?.value?.[currentColumnField.fk_column_id!]),
             isViewEssentialField: isColumnViewEssential(column),
             initialShow:
-              currentColumnField.show ||
-              isColumnViewEssential(currentColumnField) ||
-              (currentColumnField as GridColumnType)?.group_by,
+              currentColumnField.show
+              || isColumnViewEssential(currentColumnField)
+              || (currentColumnField as GridColumnType)?.group_by,
           }
         })
         .sort((a: Field, b: Field) => a.order - b.order)
 
       if (isLocalMode.value && fields.value) {
         for (const key in localChanges.value) {
-          const fieldIndex = fields.value.findIndex((f) => f.fk_column_id === key)
+          const fieldIndex = fields.value.findIndex(f => f.fk_column_id === key)
           if (fieldIndex !== undefined && fieldIndex > -1) {
             fields.value[fieldIndex] = localChanges.value[key]
             fields.value = fields.value.sort((a: Field, b: Field) => a.order - b.order)
@@ -211,9 +212,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         }
       }
 
-      const colsData: GridColumnType[] = (isPublic.value ? view.value?.columns : fields.value) ?? []
-
-      gridViewCols.value = colsData.reduce<Record<string, GridColumnType>>(
+      // Use fields columns to populate gridViewCols
+      gridViewCols.value = fields.value.reduce<Record<string, GridColumnType>>(
         (o, col) => ({
           ...o,
           [col.fk_column_id as string]: col,
@@ -224,7 +224,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const updateDefaultViewColumnMeta = async (
       columnId?: string,
-      colMeta: { defaultViewColOrder?: number; defaultViewColVisibility?: boolean } = {},
+      colMeta: { defaultViewColOrder?: number, defaultViewColVisibility?: boolean } = {},
       allFields = false,
     ) => {
       if (!meta.value?.columns) return
@@ -393,7 +393,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
               defaultViewColVisibility: field.show,
             })
           }
-        } else if (view.value?.id) {
+        }
+        else if (view.value?.id) {
           const insertedField = (await $api.internal.postOperation(
             meta.value!.fk_workspace_id!,
             meta.value!.base_id!,
@@ -543,7 +544,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
           return true
         })
-        .filter((field) => !field.show)?.length
+        .filter(field => !field.show)
+        ?.length
     })
 
     const sortedAndFilteredFields = computed<ColumnType[]>(() => {
@@ -551,11 +553,11 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         ?.filter((field: Field) => {
           // hide system columns if not enabled
           if (
-            !showSystemFields.value &&
-            metaColumnById.value &&
-            metaColumnById?.value?.[field.fk_column_id!] &&
-            isSystemColumn(metaColumnById.value?.[field.fk_column_id!]) &&
-            !metaColumnById.value?.[field.fk_column_id!]?.pv
+            !showSystemFields.value
+            && metaColumnById.value
+            && metaColumnById?.value?.[field.fk_column_id!]
+            && isSystemColumn(metaColumnById.value?.[field.fk_column_id!])
+            && !metaColumnById.value?.[field.fk_column_id!]?.pv
           ) {
             return false
           }
@@ -566,7 +568,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     })
 
     const toggleFieldVisibility = (checked: boolean, field: any) => {
-      const fieldIndex = fields.value?.findIndex((f) => f.fk_column_id === field.fk_column_id)
+      const fieldIndex = fields.value?.findIndex(f => f.fk_column_id === field.fk_column_id)
 
       if (!fieldIndex && fieldIndex !== 0) return
       addUndo({
@@ -590,7 +592,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     }
 
     const toggleFieldStyles = (field: any, style: 'underline' | 'bold' | 'italic', status: boolean) => {
-      const fieldIndex = fields.value?.findIndex((f) => f.fk_column_id === field.fk_column_id)
+      const fieldIndex = fields.value?.findIndex(f => f.fk_column_id === field.fk_column_id)
       if (!fieldIndex && fieldIndex !== 0) return
       field[style] = status
       $e('a:fields:style', { style, status })
@@ -607,14 +609,15 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           hidingViewColumnsMap.value = {}
         }
 
-        if (!ncIsEmptyArray(hidingViewColumnsMap.value) && Object.values(hidingViewColumnsMap.value).some((v) => v)) return
+        if (!ncIsEmptyArray(hidingViewColumnsMap.value) && Object.values(hidingViewColumnsMap.value).some(v => v)) return
 
         // reload only if view belongs to current table
         if (newViewId && view.value?.fk_model_id === meta.value?.id) {
           isViewColumnsLoading.value = true
           try {
             await loadViewColumns()
-          } catch (e) {
+          }
+          catch (e) {
             console.error(e)
           }
           isViewColumnsLoading.value = false
@@ -648,16 +651,18 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       }
       try {
         // sync with server if allowed
-        if (!isPublic.value && canEditViewFields.value && gridViewCols.value[id]?.id) {
-          await $api.internal.postOperation(
-            view.value!.fk_workspace_id!,
-            view.value!.base_id!,
-            {
-              operation: 'gridColumnUpdate',
-              gridViewColumnId: gridViewCols.value[id].id,
-            },
-            props,
-          )
+        if (!isPublic && canEditViewFields.value && gridViewCols.value[id]?.id) {
+          const colId = gridViewCols.value[id].id
+
+          // Route to the correct backend operation based on view type
+          const operationParams
+            = view.value?.type === ViewTypes.TIMELINE
+              ? { operation: 'timelineColumnUpdate' as const, timelineViewColumnId: colId }
+              : view.value?.type === ViewTypes.LIST
+                ? { operation: 'listColumnUpdate' as const, listViewColumnId: colId }
+                : { operation: 'gridColumnUpdate' as const, gridViewColumnId: colId }
+
+          await $api.internal.postOperation(view.value!.fk_workspace_id!, view.value!.base_id!, operationParams, props)
         }
 
         if (gridViewCols.value?.[id]) {
@@ -665,11 +670,13 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
             ...gridViewCols.value[id],
             ...props,
           })
-        } else {
+        }
+        else {
           // fallback to reload
           await loadViewColumns()
         }
-      } catch (e) {
+      }
+      catch (e) {
         // this could happen if user doesn't have permission to update view columns
         // todo: find out root cause and handle with isUIAllowed
         console.error(e)
@@ -694,7 +701,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
           Object.assign(col, payload)
 
-          const field = fields.value?.find((f) => f.fk_column_id === payload.fk_column_id)
+          const field = fields.value?.find(f => f.fk_column_id === payload.fk_column_id)
           if (field) {
             const currentColumnField = col || {}
             Object.assign(field, {
@@ -712,7 +719,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
           $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
         }
-      } else if (evt === 'view_column_refresh') {
+      }
+      else if (evt === 'view_column_refresh') {
         loadViewColumns()
         nextTick(() => reloadData?.({ shouldShowLoading: false }))
       }

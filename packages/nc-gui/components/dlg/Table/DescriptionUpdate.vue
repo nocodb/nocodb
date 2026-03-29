@@ -67,7 +67,7 @@ watchEffect(
   { flush: 'post' },
 )
 
-const updateDescription = async (undo = false) => {
+async function updateDescription(undo = false) {
   if (!tableMeta) return
 
   if (formState.description) {
@@ -125,7 +125,8 @@ const updateDescription = async (undo = false) => {
     $e('a:table:description:update')
 
     dialogShow.value = false
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 
@@ -158,7 +159,9 @@ const updateDescription = async (undo = false) => {
         </a-form-item>
       </a-form>
       <div class="flex flex-row justify-end gap-x-2 mt-5">
-        <NcButton type="secondary" size="small" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
+        <NcButton type="secondary" size="small" @click="dialogShow = false">
+          {{ $t('general.cancel') }}
+        </NcButton>
 
         <NcButton
           key="submit"

@@ -42,12 +42,12 @@ const emits = defineEmits<{
   (e: 'mouseover'): void
 }>()
 
-const handleClick = (event: MouseEvent) => {
+function handleClick(event: MouseEvent) {
   if (props.option.ncGroupHeader || props.option.ncItemDisabled || props.isLocked) return
   emits('click', props.option, props.index, event)
 }
 
-const handleMouseover = () => {
+function handleMouseover() {
   if (props.option.ncGroupHeader) return
   emits('mouseover')
 }
@@ -87,7 +87,9 @@ const handleMouseover = () => {
     }"
     @click="handleClick"
   >
-    <template #title>{{ option.ncItemTooltip }}</template>
+    <template #title>
+      {{ option.ncItemTooltip }}
+    </template>
 
     <!-- Group header row -->
     <slot v-if="option.ncGroupHeader" name="listItemGroupHeader" :option="option">
@@ -100,7 +102,9 @@ const handleMouseover = () => {
 
       <slot name="listItemContent" :option="option" :is-selected="isSelected" :search-basis-info="searchBasisInfo">
         <NcTooltip class="truncate" :class="{ 'flex-1': !searchBasisInfo }" show-on-truncate-only>
-          <template #title>{{ option[optionLabelKey] }}</template>
+          <template #title>
+            {{ option[optionLabelKey] }}
+          </template>
           {{ option[optionLabelKey] }}
         </NcTooltip>
         <div v-if="searchBasisInfo" class="flex-1 flex">

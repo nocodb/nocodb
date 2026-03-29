@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { YoutubeVue3 } from 'youtube-vue3'
 import type { ProductFeedItem } from '../../../lib/types'
+import { YoutubeVue3 } from 'youtube-vue3'
 import { extractYoutubeVideoId } from '../../../utils/urlUtils'
 
 const props = defineProps<{
@@ -15,7 +15,7 @@ const { width } = useWindowSize()
 
 const { $e } = useNuxtApp()
 
-const watchVideo = () => {
+function watchVideo() {
   $e('c:nocodb:feed:youtube:watch', {
     title: Title,
     description: Description,

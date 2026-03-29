@@ -5,7 +5,7 @@ const { activeIntegration, categories, activeCategory } = useIntegrationStore()
 
 const { copy } = useCopy()
 
-const copyIp = async () => {
+async function copyIp() {
   await copy('52.15.226.51')
   message.success('Copied to clipboard')
 }
@@ -30,7 +30,7 @@ onMounted(() => {
   })
 })
 
-const onInputFocus = () => {
+function onInputFocus() {
   const target = document.activeElement
   const panel = target?.closest('.panel')
   if (panel) {
@@ -104,10 +104,18 @@ const onInputFocus = () => {
         <div class="input-item">
           <label class="!text-xs font-weight-normal pb-1">SSL Mode</label>
           <a-select v-model:value="activeIntegration.payload.sslMode" class="input-text" @focus="onInputFocus">
-            <a-select-option value="disable">Disable</a-select-option>
-            <a-select-option value="require">Require</a-select-option>
-            <a-select-option value="verify-ca">Verify CA</a-select-option>
-            <a-select-option value="verify-full">Verify Full</a-select-option>
+            <a-select-option value="disable">
+              Disable
+            </a-select-option>
+            <a-select-option value="require">
+              Require
+            </a-select-option>
+            <a-select-option value="verify-ca">
+              Verify CA
+            </a-select-option>
+            <a-select-option value="verify-full">
+              Verify Full
+            </a-select-option>
           </a-select>
         </div>
         <div class="input-item">
@@ -123,7 +131,7 @@ const onInputFocus = () => {
           <a-input v-model:value="activeIntegration.payload.sslKey" class="input-text" @focus="onInputFocus" />
         </div>
       </div>
-      <div class="w-full border-t-1 mt-2 mb-4"></div>
+      <div class="w-full border-t-1 mt-2 mb-4" />
       <div class="input-group">
         <div class="input-item">
           <label class="!text-xs font-weight-normal pb-1">Extra Connection Parameters</label>
@@ -131,7 +139,9 @@ const onInputFocus = () => {
         </div>
       </div>
     </WorkspaceIntegrationsPanel>
-    <WorkspaceIntegrationsPanel title="Connection JSON" icon="code">DUMMY</WorkspaceIntegrationsPanel>
+    <WorkspaceIntegrationsPanel title="Connection JSON" icon="code">
+      DUMMY
+    </WorkspaceIntegrationsPanel>
   </div>
 </template>
 

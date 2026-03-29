@@ -1,8 +1,8 @@
-import type { FunctionalComponent, SVGAttributes } from 'vue'
+import type { IntegrationStoreEvents as IntegrationStoreEventsTypes } from '#imports'
 import type { FormDefinition, IntegrationType, PaginatedType } from 'nocodb-sdk'
+import type { FunctionalComponent, SVGAttributes } from 'vue'
 import { ClientType, IntegrationsType, SyncDataType } from 'nocodb-sdk'
 import GeneralBaseLogo from '~/components/general/BaseLogo.vue'
-import type { IntegrationStoreEvents as IntegrationStoreEventsTypes } from '#imports'
 
 enum IntegrationsPageMode {
   LIST,
@@ -159,12 +159,14 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       }
 
       isLoadedIntegrations.value = true
-    } catch (e) {
+    }
+    catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))
       integrations.value = []
       integrationPaginationData.value.totalRows = 0
       integrationPaginationData.value.page = 1
-    } finally {
+    }
+    finally {
       isLoadingIntegrations.value = false
     }
   }
@@ -181,7 +183,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
         activeIntegrationItem.value.form = integrationInfo.form
       }
-    } else if (integration.dynamic === true) {
+    }
+    else if (integration.dynamic === true) {
       activeIntegrationItem.value.form = integrationForms[integration.sub_type]
     }
 
@@ -200,7 +203,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       })
 
       if (integration.type === IntegrationsType.Ai) {
-        aiIntegrations.value = aiIntegrations.value.filter((i) => i.id !== integration.id)
+        aiIntegrations.value = aiIntegrations.value.filter(i => i.id !== integration.id)
       }
 
       await loadIntegrations()
@@ -208,7 +211,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       // await message.success(`Connection ${integration.title} deleted successfully`)
 
       return true
-    } catch (e) {
+    }
+    catch (e) {
       const error = await extractSdkResponseErrorMsgv2(e)
 
       if (error.error === NcErrorType.ERR_INTEGRATION_NOT_FOUND) {
@@ -251,7 +255,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       activeIntegration.value = null
 
       await message.success(`Connection "${integration.title}" updated successfully`)
-    } catch (e) {
+    }
+    catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))
     }
   }
@@ -268,7 +273,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         aiIntegrations.value = aiIntegrations.value.map((i) => {
           if (i.id === integration.id) {
             i.is_default = true
-          } else {
+          }
+          else {
             i.is_default = false
           }
 
@@ -282,7 +288,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       activeIntegration.value = null
 
       await message.success(`Connection "${integration.title}" set as default successfully`)
-    } catch (e) {
+    }
+    catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))
     }
   }
@@ -295,7 +302,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   ) => {
     if (mode === 'create') {
       $e('a:integration:create')
-    } else {
+    }
+    else {
       $e('a:integration:duplicate')
     }
 
@@ -305,7 +313,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         integration.title = integration.title.trim()
       }
 
-      const response = await api.integration.create(integration)
+      const response = await api.integration.create(activeWorkspaceId.value, integration)
 
       if (response && response?.id) {
         if (!loadDatasourceInfo) {
@@ -340,11 +348,13 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
             successConfirmModal.value.connectionTitle = response.title ?? ''
             successConfirmModal.value.isOpen = true
           }
-        } else {
+        }
+        else {
           await message.success(`Connection "${response.title}" created successfully`)
         }
       }
-    } catch (e) {
+    }
+    catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))
     }
   }
@@ -364,9 +374,11 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         },
         'duplicate',
       )
-    } catch (e) {
+    }
+    catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
+    }
+    finally {
       isLoadingIntegrations.value = false
     }
   }
@@ -385,7 +397,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         ...(options || {}),
       })
       return integrationWithConfig
-    } catch (e) {
+    }
+    catch (e) {
       const error = await extractSdkResponseErrorMsgv2(e)
 
       if (error.error === NcErrorType.ERR_INTEGRATION_NOT_FOUND) {
@@ -405,7 +418,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       activeIntegration.value = integrationWithConfig
 
       const integrationItem = allIntegrations.find(
-        (item) => item.type === integration.type && item.sub_type === integration.sub_type,
+        item => item.type === integration.type && item.sub_type === integration.sub_type,
       )!
 
       activeIntegrationItem.value = integrationItem
@@ -418,14 +431,16 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
           activeIntegrationItem.value.form = integrationInfo.form
         }
-      } else if (integrationItem.dynamic === true) {
+      }
+      else if (integrationItem.dynamic === true) {
         activeIntegrationItem.value.form = integrationForms[integrationItem.sub_type]
       }
 
       pageMode.value = IntegrationsPageMode.EDIT
 
       $e('c:integration:edit')
-    } catch {}
+    }
+    catch {}
   }
 
   const saveIntegrationRequest = async (msg: string) => {
@@ -442,7 +457,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       requestIntegration.value.msg = ''
 
       await message.success('Your request has been successfully submitted')
-    } catch (e) {
+    }
+    catch (e) {
       requestIntegration.value.isLoading = false
       await message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -451,7 +467,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   const listIntegrationByType = async (type: IntegrationsType) => {
     if (!activeWorkspaceId.value) return
 
-    const { list } = await api.integration.list({
+    const { list } = await api.integration.list(activeWorkspaceId.value, {
       type,
     })
 
@@ -483,7 +499,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       if (di.manifest.icon) {
         if (di.manifest.icon in iconMap) {
           icon = iconMap[di.manifest.icon as keyof typeof iconMap]
-        } else {
+        }
+        else {
           if (isValidURL(di.manifest.icon)) {
             icon = h('img', {
               src: di.manifest.icon,
@@ -491,7 +508,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
             })
           }
         }
-      } else {
+      }
+      else {
         icon = iconMap.puzzle
       }
 
@@ -512,7 +530,6 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   }
 
   const integrationsIconMap = computed(() => {
-    // eslint-disable-next-line no-unused-expressions
     integrationsRefreshKey.value
 
     const map: Record<string, any> = {}

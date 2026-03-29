@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   isLinksOrLTAR,
+  LinksVersion,
   NcApiVersion,
   UITypes,
   WebhookActions,
@@ -179,9 +180,13 @@ export class ColumnsV3Service {
       dtxp?: string;
     };
 
-    // if LTAR column then define tablr id as parent id in request
-    if (isLinksOrLTAR(column) && !column.parentId) {
-      column.parentId = param.tableId;
+    // if LTAR column then define table id as parent id in request
+    // and set version to V2 so all relation types use junction tables
+    if (isLinksOrLTAR(column)) {
+      if (!column.parentId) {
+        column.parentId = param.tableId;
+      }
+      (column as any).version = LinksVersion.V2;
     }
 
     if (

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
+import type { VNodeRef } from 'vue'
 
 interface Props {
   modelValue?: string | number | null
@@ -25,12 +25,12 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const isForm = inject(IsFormInj)!
 
-const focus: VNodeRef = (el) =>
+const focus: VNodeRef = el =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 
 const textareaValue = computed({
   get: () => vModel.value ?? '',
-  set: (val) => (vModel.value = val),
+  set: val => (vModel.value = val),
 })
 </script>
 
@@ -51,7 +51,7 @@ const textareaValue = computed({
       @keydown.alt.stop
       @selectstart.capture.stop
       @mousedown.stop
-    />
+    >
 
     <NcAutoSizeTextarea
       v-else

@@ -1,5 +1,5 @@
-import { isClient } from '@vueuse/core'
 import type { Ref } from 'vue'
+import { isClient } from '@vueuse/core'
 
 export function useMenuCloseOnEsc(open: Ref<boolean>) {
   const handler = (e: KeyboardEvent) => {
@@ -15,7 +15,8 @@ export function useMenuCloseOnEsc(open: Ref<boolean>) {
       if (nextVal) {
         document.addEventListener('keydown', handler, true)
         // if `open` is falsy then remove the event handler
-      } else {
+      }
+      else {
         document.removeEventListener('keydown', handler, true)
       }
 

@@ -9,8 +9,8 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
-const durationOptionList =
-  durationOptions.map((o) => ({
+const durationOptionList
+  = durationOptions.map(o => ({
     ...o,
     // h:mm:ss (e.g. 3:45, 1:23:40)
     title: `${o.title}`,
@@ -28,12 +28,16 @@ vModel.value.meta = {
     <a-col :span="24">
       <a-form-item :label="$t('general.format')">
         <a-select v-model:value="vModel.meta.duration" class="w-52" dropdown-class-name="nc-dropdown-duration-option">
-          <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /> </template>
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+          </template>
 
           <a-select-option v-for="(duration, i) of durationOptionList" :key="i" :value="duration.id">
             <div class="flex gap-2 w-full truncate items-center" :data-testid="duration.title">
               <NcTooltip show-on-truncate-only class="flex-1 truncate">
-                <template #title> {{ duration.title }}</template>
+                <template #title>
+                  {{ duration.title }}
+                </template>
                 {{ duration.title }}
               </NcTooltip>
 

@@ -101,12 +101,12 @@ const availableOperators = computed(() => {
 
   // Filter by allowed types
   if (props.element.allowedTypes?.length) {
-    operators = operators.filter((op) => props.element.allowedTypes!.includes(op.type) || op.type === 'any')
+    operators = operators.filter(op => props.element.allowedTypes!.includes(op.type) || op.type === 'any')
   }
 
   // Filter by supported operators
   if (props.element.supportedOperators?.length) {
-    operators = operators.filter((op) => props.element.supportedOperators!.includes(op.operation))
+    operators = operators.filter(op => props.element.supportedOperators!.includes(op.operation))
   }
 
   return operators
@@ -126,7 +126,7 @@ const operatorsByType = computed(() => {
 
 // Get operator by ID
 function getOperator(type: FilterDataType, operation: FilterOperatorType): FilterOperator | undefined {
-  return availableOperators.value.find((op) => op.type === type && op.operation === operation)
+  return availableOperators.value.find(op => op.type === type && op.operation === operation)
 }
 
 // Initialize conditions
@@ -145,7 +145,7 @@ function initializeConditions() {
   }
 
   combinator.value = vModel.value.combinator || 'and'
-  conditions.value = (vModel.value.conditions || []).map((c) => ({
+  conditions.value = (vModel.value.conditions || []).map(c => ({
     ...c,
     id: c.id || generateRandomUUID(),
   }))
@@ -200,7 +200,7 @@ function addCondition() {
 
   const defaultType = props.element.allowedTypes?.[0] || 'string'
   const defaultOperatorId = DEFAULT_OPERATOR_BY_TYPE[defaultType]
-  const defaultOperator = availableOperators.value.find((op) => op.id === defaultOperatorId) || availableOperators.value[0]
+  const defaultOperator = availableOperators.value.find(op => op.id === defaultOperatorId) || availableOperators.value[0]
 
   conditions.value.push({
     id: generateRandomUUID(),
@@ -224,14 +224,15 @@ function updateCondition(index: number, field: keyof FilterConditionValue, value
     // Parse operator ID (e.g., 'string:equals')
     const [type, operation] = value.split(':') as [FilterDataType, FilterOperatorType]
     conditions.value[index].operator = { type, operation }
-  } else {
+  }
+  else {
     ;(conditions.value[index] as Record<string, unknown>)[field] = value
   }
 }
 
 // Get operator select options
 const operatorOptions = computed(() => {
-  const options: Array<{ label: string; value: string; group?: string }> = []
+  const options: Array<{ label: string, value: string, group?: string }> = []
 
   Object.entries(operatorsByType.value).forEach(([type, ops]) => {
     ops.forEach((op) => {
@@ -348,7 +349,9 @@ onMounted(() => {
               </template>
               Add condition
             </NcButton>
-            <div class="text-nc-content-gray-muted mt-2 ml-0.5">No conditions added</div>
+            <div class="text-nc-content-gray-muted mt-2 ml-0.5">
+              No conditions added
+            </div>
           </div>
 
           <!-- Conditions list -->
@@ -358,7 +361,9 @@ onMounted(() => {
                 <!-- Single connected row like If node -->
                 <div class="flex flex-nowrap gap-0 nc-filter-wrapper">
                   <!-- Where / AND / OR -->
-                  <div v-if="index === 0" class="flex items-center !min-w-18 !max-w-18 nc-filter-where-label">Where</div>
+                  <div v-if="index === 0" class="flex items-center !min-w-18 !max-w-18 nc-filter-where-label">
+                    Where
+                  </div>
                   <NcSelect
                     v-else
                     :value="combinator"
@@ -479,7 +484,7 @@ onMounted(() => {
                       @update:model-value="updateCondition(index, 'rightValue', $event)"
                     />
                   </div>
-                  <div v-else class="flex-grow"></div>
+                  <div v-else class="flex-grow" />
 
                   <!-- Remove Button -->
                   <NcButton

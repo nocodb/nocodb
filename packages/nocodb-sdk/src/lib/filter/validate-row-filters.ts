@@ -302,7 +302,7 @@ export class RowFilterValidator {
               return result;
             });
 
-            switch (filter.comparison_op) {
+            switch (filter.comparison_op as any) {
               case 'anyof':
                 res = userIds.some((id) => filterValues.includes(id));
                 break;
@@ -314,6 +314,11 @@ export class RowFilterValidator {
                 break;
               case 'nallof':
                 res = !filterValues.every((id) => userIds.includes(id));
+                break;
+              case 'gb_eq':
+                res =
+                  userIds.length === filterValues.length &&
+                  filterValues.every((id) => userIds.includes(id));
                 break;
               case 'empty':
               case 'blank':

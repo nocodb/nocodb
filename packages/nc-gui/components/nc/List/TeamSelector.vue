@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { type TeamV3V3Type } from 'nocodb-sdk'
 import type { SelectValue } from 'ant-design-vue/es/select'
+import type { TeamV3V3Type } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -73,7 +73,8 @@ const selectedTeams = computed(() => {
   return teamSelectorOptions.value.filter((team) => {
     if (props.isMultiSelect) {
       return team.value && (value.value as MultiSelectRawValueType)?.includes(team.value as string)
-    } else {
+    }
+    else {
       return team.value && team.value === (value.value as string)
     }
   }) as NcListItemType[]

@@ -1,7 +1,7 @@
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { isBoxHovered, renderIconButton, renderSingleLineText } from '../../utils/canvas'
-import { PlainCellRenderer } from '../Plain'
 import { renderAsCellLookupOrLtarValue } from '../../utils/cell'
+import { PlainCellRenderer } from '../Plain'
 
 const ellipsisWidth = 15
 const buttonSize = 20
@@ -26,8 +26,8 @@ export const HasManyCellRenderer: CellRenderer = {
       getColor,
     } = props
 
-    const relatedTableDisplayValueProp =
-      (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.title || ''
+    const relatedTableDisplayValueProp
+      = (relatedTableMeta?.columns?.find(c => c.pv) || relatedTableMeta?.columns?.[0])?.title || ''
 
     const hmColumn = relatedTableMeta?.columns?.find((c: any) => c.title === relatedTableDisplayValueProp) as
       | ColumnType
@@ -43,7 +43,7 @@ export const HasManyCellRenderer: CellRenderer = {
       acc.push({ value, item: curr })
 
       return acc
-    }, []) as { value: any; item: Record<string, any> }[]
+    }, []) as { value: any, item: Record<string, any> }[]
 
     const initialX = x + 4
     const initialWidth = width - 8
@@ -109,9 +109,9 @@ export const HasManyCellRenderer: CellRenderer = {
 
         // Show cursor pointer on hover over chip item
         if (
-          !readonly &&
-          selected &&
-          isBoxHovered(
+          !readonly
+          && selected
+          && isBoxHovered(
             { x: currentX, y: currentY, width: point.x - currentX, height: point.y ? point.y - currentY : 24 },
             mousePosition,
           )
@@ -130,11 +130,13 @@ export const HasManyCellRenderer: CellRenderer = {
           currentWidth = initialWidth
           currentY = point?.y && y !== point?.y && point?.y - y >= 28 ? point?.y : currentY + 28
           line += 1
-        } else {
+        }
+        else {
           currentWidth = currentX + currentWidth - point?.x
           currentX = point?.x
         }
-      } else {
+      }
+      else {
         // Add rendered chip info in return data
         returnData.push({
           oldX: currentX + 4,
@@ -255,8 +257,8 @@ export const HasManyCellRenderer: CellRenderer = {
      * Open linked/unlinked record dropdown will handled in editable cell component
      */
     if (
-      isBoxHovered({ x: x + width - 57, y: y + 4, height: buttonSize, width: buttonSize }, mousePosition) ||
-      isBoxHovered({ x: x + width - 30, y: y + 4, height: buttonSize, width: buttonSize }, mousePosition)
+      isBoxHovered({ x: x + width - 57, y: y + 4, height: buttonSize, width: buttonSize }, mousePosition)
+      || isBoxHovered({ x: x + width - 30, y: y + 4, height: buttonSize, width: buttonSize }, mousePosition)
     ) {
       makeCellEditable(row, column)
       return true
@@ -269,10 +271,10 @@ export const HasManyCellRenderer: CellRenderer = {
          * Expand record on click chip item if cell is selected and user has permission to edit data (e.g, not readonly)
          */
         if (
-          ncIsObject(cellItem.value) &&
-          cellItem.width &&
-          cellItem.height &&
-          isBoxHovered(
+          ncIsObject(cellItem.value)
+          && cellItem.width
+          && cellItem.height
+          && isBoxHovered(
             {
               x: cellItem.oldX!,
               y: cellItem.oldY!,

@@ -35,7 +35,7 @@ const currentMode = computed(() => modes.value[currentModeIndex.value] || modes.
 const hasMultipleModes = computed(() => modes.value.length > 1)
 
 // Get list mode config (for fetching options)
-const listModeConfig = computed(() => modes.value.find((m) => m.type === 'list'))
+const listModeConfig = computed(() => modes.value.find(m => m.type === 'list'))
 
 // Get options for dropdown mode
 const listOptions = computed<FormBuilderSelectOption[]>(() => {
@@ -96,7 +96,7 @@ function toggleMode() {
   // or if it doesn't exist in the options
   if (newMode?.type === 'list' && vModel.value) {
     const isExpression = isVariableExpression(vModel.value)
-    const existsInOptions = listOptions.value.some((opt) => opt.value === vModel.value)
+    const existsInOptions = listOptions.value.some(opt => opt.value === vModel.value)
 
     if (isExpression || !existsInOptions) {
       vModel.value = ''

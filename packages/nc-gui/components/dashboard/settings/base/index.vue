@@ -5,16 +5,14 @@ const { isUIAllowed } = useRoles()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
+const { showEEFeatures } = useEeConfig()
+
 const baseStore = useBase()
 const { base } = storeToRefs(baseStore)
 
-const hasPermissionForBaseAccess = computed(() => isEeUI && isUIAllowed('manageBaseType'))
+const hasPermissionForBaseAccess = computed(() => isEeUI && isUIAllowed('manageBaseType') && showEEFeatures.value)
 
-const hasPermissionForMCP = computed(() => isUIAllowed('manageMCP'))
-
-const hasPermissionForSnapshots = computed(() => isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot'))
-
-const hasPermissionForMigrate = computed(() => !isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('migrateBase'))
+const hasPermissionForMigrate = computed(() => isUIAllowed('baseMiscSettings') && isUIAllowed('migrateBase'))
 
 const hasPermissionForVisibility = computed(() => isUIAllowed('baseMiscSettings'))
 
@@ -24,24 +22,19 @@ const hasPermissionForMigrateToV3 = computed(
 
 const router = useRouter()
 
-const allTabs = ['baseType', 'snapshots', 'visibility', 'migrateToV3', 'mcp', 'migrate']
+const allTabs = ['baseType', 'snapshots', 'visibility', 'migrateToV3', 'migrate']
 
-const getDefaultTab = () => {
+function getDefaultTab() {
   if (hasPermissionForBaseAccess.value) return 'baseType'
-  if (hasPermissionForSnapshots.value) return 'snapshots'
   if (hasPermissionForVisibility.value) return 'visibility'
   if (hasPermissionForMigrateToV3.value) return 'migrateToV3'
   if (hasPermissionForMigrate.value) return 'migrate'
-  return 'mcp'
+  return 'baseType'
 }
 
 const activeMenu = ref('')
 
-const selectMenu = (option: string, updateQuery = true) => {
-  if (!hasPermissionForSnapshots.value && option === 'snapshots') {
-    return
-  }
-
+function selectMenu(option: string, updateQuery = true) {
   if (!hasPermissionForBaseAccess.value && option === 'baseType') {
     return
   }
@@ -75,7 +68,8 @@ onMounted(() => {
 
   if (query && query.tab && allTabs.includes(query.tab as string)) {
     selectMenu(query.tab as string)
-  } else {
+  }
+  else {
     selectMenu(defaultTab, true)
   }
 })
@@ -110,21 +104,6 @@ watch(
             {{ $t('general.baseType') }}
           </span>
         </div>
-        <div
-          v-if="hasPermissionForSnapshots"
-          data-testid="snapshots-tab"
-          :class="{
-            'active-menu': activeMenu === 'snapshots',
-          }"
-          class="gap-3 hover:bg-nc-bg-gray-light transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
-          @click="selectMenu('snapshots')"
-        >
-          <GeneralIcon icon="camera" />
-
-          <span>
-            {{ $t('general.snapshots') }}
-          </span>
-        </div>
 
         <div
           v-if="isUIAllowed('baseMiscSettings')"
@@ -155,21 +134,6 @@ watch(
           </span>
         </div>
         <div
-          v-if="hasPermissionForMCP"
-          :class="{
-            'active-menu': activeMenu === 'mcp',
-          }"
-          class="gap-3 hover:bg-nc-bg-gray-light transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
-          data-testid="mcp-tab"
-          @click="selectMenu('mcp')"
-        >
-          <GeneralIcon icon="mcp" />
-          <span>
-            {{ $t('title.mcpServer') }}
-          </span>
-        </div>
-
-        <div
           v-if="hasPermissionForMigrate"
           :class="{
             'active-menu': activeMenu === 'migrate',
@@ -187,11 +151,9 @@ watch(
 
     <div class="flex flex-col flex-1 max-w-[760px]">
       <DashboardSettingsBaseAccess v-if="activeMenu === 'baseType'" />
-      <DashboardSettingsBaseSnapshots v-if="activeMenu === 'snapshots'" />
       <DashboardSettingsBaseVisibility v-if="activeMenu === 'visibility'" />
       <DashboardSettingsBaseMigrateToV3 v-if="activeMenu === 'migrateToV3'" />
       <DashboardSettingsBaseMigrate v-if="activeMenu === 'migrate'" />
-      <DashboardSettingsBaseMCP v-if="activeMenu === 'mcp'" />
     </div>
   </div>
 </template>

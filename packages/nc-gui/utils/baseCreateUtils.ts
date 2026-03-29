@@ -1,4 +1,5 @@
-import { type BoolType, SSLUsage } from 'nocodb-sdk'
+import type { BoolType } from 'nocodb-sdk'
+import { SSLUsage } from 'nocodb-sdk'
 import { ClientType } from '~/lib/enums'
 
 // todo: move to noco-sdk
@@ -18,7 +19,7 @@ interface ProjectCreateForm {
     inflectionTable?: string
   }
   sslUse?: SSLUsage
-  extraParameters: { key: string; value: string }[]
+  extraParameters: { key: string, value: string }[]
   is_private?: BoolType
   is_schema_readonly?: BoolType
   is_data_readonly?: BoolType
@@ -94,14 +95,13 @@ export const clientTypesMap = clientTypes.reduce((acc, curr) => {
 
 const homeDir = ''
 
-type ConnectionClientType =
-  | Exclude<ClientType, ClientType.SQLITE | ClientType.SNOWFLAKE | ClientType.DATABRICKS>
-  | 'tidb'
-  | 'yugabyte'
-  | 'citusdb'
-  | 'cockroachdb'
-  | 'oracledb'
-  | 'greenplum'
+type ConnectionClientType
+  = | Exclude<ClientType, ClientType.SQLITE | ClientType.SNOWFLAKE | ClientType.DATABRICKS>
+    | 'tidb'
+    | 'yugabyte'
+    | 'citusdb'
+    | 'cockroachdb'
+    | 'greenplum'
 
 const sampleConnectionData: { [key in ConnectionClientType]: DefaultConnection } & { [ClientType.SQLITE]: SQLiteConnection } & {
   [ClientType.SNOWFLAKE]: SnowflakeConnection
@@ -185,16 +185,9 @@ const sampleConnectionData: { [key in ConnectionClientType]: DefaultConnection }
     password: '',
     database: '_test',
   },
-  oracledb: {
-    host: defaultHost,
-    port: '1521',
-    user: 'system',
-    password: 'Oracle18',
-    database: '_test',
-  },
 }
 
-export const getDefaultConnectionConfig = (client: ClientType): ProjectCreateForm['dataSource'] => {
+export function getDefaultConnectionConfig(client: ClientType): ProjectCreateForm['dataSource'] {
   return {
     client,
     connection: sampleConnectionData[client],
@@ -247,8 +240,8 @@ function generateConfigFix(e: any) {
 
     if (!errorMessage && !errorCode) return
 
-    const messageMatches =
-      errorMessage && handler.messages.some((msg) => errorMessage?.toLowerCase()?.includes?.(msg?.toLowerCase()))
+    const messageMatches
+      = errorMessage && handler.messages.some(msg => errorMessage?.toLowerCase()?.includes?.(msg?.toLowerCase()))
     const codeMatches = errorCode && handler.codes.includes(errorCode)
 
     if (messageMatches || codeMatches) {
@@ -258,12 +251,12 @@ function generateConfigFix(e: any) {
 }
 
 export {
-  generateConfigFix,
-  SSLUsage,
   CertTypes,
-  ProjectCreateForm,
-  DefaultConnection,
-  SQLiteConnection,
-  SnowflakeConnection,
   DatabricksConnection,
+  DefaultConnection,
+  generateConfigFix,
+  ProjectCreateForm,
+  SnowflakeConnection,
+  SQLiteConnection,
+  SSLUsage,
 }

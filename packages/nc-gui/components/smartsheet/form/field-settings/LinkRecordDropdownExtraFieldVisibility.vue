@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { hideExtraFieldsMetaKey, isLinksOrLTAR } from 'nocodb-sdk'
+
 const { activeField, updateColMeta } = useFormViewStoreOrThrow()
 
 const vShowExtraFields = computed({

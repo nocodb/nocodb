@@ -25,7 +25,8 @@ const relationMeta = computed(() => {
       tooltip_desc: t('msg.hm.tooltip_desc'),
       tooltip_desc2: t('msg.hm.tooltip_desc2'),
     }
-  } else if (relation === RelationTypes.MANY_TO_MANY) {
+  }
+  else if (relation === RelationTypes.MANY_TO_MANY) {
     return {
       title: t('msg.mm.title'),
       icon: iconMap.mm,
@@ -33,14 +34,16 @@ const relationMeta = computed(() => {
       tooltip_desc: t('msg.mm.tooltip_desc'),
       tooltip_desc2: t('msg.mm.tooltip_desc2'),
     }
-  } else if (relation === RelationTypes.MANY_TO_ONE || relation === RelationTypes.BELONGS_TO) {
+  }
+  else if (relation === RelationTypes.MANY_TO_ONE || relation === RelationTypes.BELONGS_TO) {
     return {
       title: t('msg.bt.title'),
       icon: iconMap.bt,
       tooltip_desc: t('msg.bt.tooltip_desc'),
       tooltip_desc2: t('msg.bt.tooltip_desc2'),
     }
-  } else {
+  }
+  else {
     return {
       title: t('msg.oo.title'),
       icon: iconMap.oneToOneSolid,
@@ -65,7 +68,9 @@ const relationMeta = computed(() => {
     <NcTooltip class="z-10 flex" placement="bottom">
       <template #title>
         <div class="p-1">
-          <h1 class="text-white font-bold">{{ relationMeta.title }}</h1>
+          <h1 class="text-white font-bold">
+            {{ relationMeta.title }}
+          </h1>
           <div class="text-white">
             {{ relationMeta.tooltip_desc }}
             <span class="bg-gray-700 px-2 rounded-md">

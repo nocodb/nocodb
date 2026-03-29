@@ -34,8 +34,8 @@ const onClick = useThrottleFn(() => {
         :height="size"
         alt="NocoDB"
         src="~/assets/img/icons/256x256-trans.png"
-      />
-      <img v-else :width="size" :height="size" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
+      >
+      <img v-else :width="size" :height="size" alt="NocoDB" src="~/assets/img/icons/256x256.png">
 
       <TransitionGroup name="layout" :duration="500">
         <template v-if="animate || ping">

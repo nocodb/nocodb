@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { Panel, PanelPosition } from '@vue-flow/additional-components'
 import type { ERDConfig } from './utils'
+import { Panel, PanelPosition } from '@vue-flow/additional-components'
 
 const props = defineProps<{
   config: ERDConfig

@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import type { BaseType } from 'nocodb-sdk'
+import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
-import { type BaseType, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: boolean
@@ -11,7 +12,9 @@ const emit = defineEmits(['update:modelValue'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const { navigateToProject, user } = useGlobal()
+const { navigateToProject, user, appInfo } = useGlobal()
+
+const isEeActive = computed(() => isEeUI && appInfo.value?.ee)
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -37,11 +40,11 @@ const options = ref({
   includeViews: true,
   includeHooks: true,
   includeComments: true,
-  includeScripts: isEeUI,
-  includeDashboards: isEeUI,
-  includeWorkflows: isEeUI,
+  includeScripts: isEeUI && !!appInfo.value?.ee,
+  includeDashboards: isEeUI && !!appInfo.value?.ee,
+  includeWorkflows: isEeUI && !!appInfo.value?.ee,
 })
-const targetWorkspace = ref(workspacesList.find((ws) => ws.id === props.base.fk_workspace_id) ?? activeWorkspace)
+const targetWorkspace = ref(workspacesList.find(ws => ws.id === props.base.fk_workspace_id) ?? activeWorkspace)
 
 const errorMessage = ref()
 
@@ -67,8 +70,8 @@ const optionsToExclude = computed(() => {
 })
 
 const workspaceOptions = computed(() => {
-  if (!isEeUI) return []
-  return workspacesList.filter((ws) =>
+  if (!isEeActive.value) return []
+  return workspacesList.filter(ws =>
     [WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(ws.roles as WorkspaceUserRoles),
   )
 })
@@ -77,7 +80,7 @@ const isLoading = computed(() => status.value === 'loading')
 
 const targetBase = ref()
 
-const _duplicate = async () => {
+async function _duplicate() {
   try {
     status.value = 'loading'
     // pick a random color from array and assign to base
@@ -89,7 +92,11 @@ const _duplicate = async () => {
     const jobData = await api.base.duplicate(props.base.id as string, {
       options: optionsToExclude.value,
       base: {
-        fk_workspace_id: isEeUI ? (targetWorkspace.value?.id ? targetWorkspace.value.id : props.base.fk_workspace_id) : null,
+        fk_workspace_id: isEeActive.value
+          ? targetWorkspace.value?.id
+            ? targetWorkspace.value.id
+            : props.base.fk_workspace_id
+          : null,
         type: props.base.type,
         color,
         meta: JSON.stringify({
@@ -119,19 +126,22 @@ const _duplicate = async () => {
           if (data.status === JobStatus.COMPLETED) {
             try {
               const resBases = await loadProjects('workspace', targetWorkspace?.value?.id)
-              targetBase.value = resBases.find((b) => b.id === jobData.base_id)
-            } catch (_e: any) {
+              targetBase.value = resBases.find(b => b.id === jobData.base_id)
+            }
+            catch (_e: any) {
               // ignore
             }
 
             status.value = 'success'
             refreshCommandPalette()
-          } else if (data.status === JobStatus.FAILED) {
+          }
+          else if (data.status === JobStatus.FAILED) {
             status.value = 'error'
             errorMessage.value = data?.data?.error?.message || 'Some error occurred'
             try {
               await loadProjects('workspace', targetWorkspace?.value?.id ?? props.base.fk_workspace_id)
-            } catch (_e: any) {
+            }
+            catch (_e: any) {
               // ignore
             }
 
@@ -142,7 +152,8 @@ const _duplicate = async () => {
     )
 
     $e('a:base:duplicate')
-  } catch (e: any) {
+  }
+  catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
     errorMessage.value = await extractSdkResponseErrorMsg(e)
     status.value = 'error'
@@ -150,12 +161,12 @@ const _duplicate = async () => {
   }
 }
 
-const selectOption = (option: WorkspaceType) => {
+function selectOption(option: WorkspaceType) {
   targetWorkspace.value = option
   dropdownOpen.value = false
 }
 
-const handleActionClick = () => {
+function handleActionClick() {
   switch (status.value) {
     case 'pending': {
       _duplicate()
@@ -174,7 +185,7 @@ const handleActionClick = () => {
 
       const base = targetBase.value
       navigateToProject({
-        workspaceId: isEeUI ? base.fk_workspace_id : undefined,
+        workspaceId: isEeActive.value ? base.fk_workspace_id : undefined,
         baseId: base.id,
         type: base.type,
       })
@@ -270,7 +281,7 @@ onKeyStroke('Enter', () => {
           </div>
 
           <div
-            v-if="isEeUI"
+            v-if="isEeActive"
             class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
             @click="options.includeScripts = !options.includeScripts"
           >
@@ -279,7 +290,7 @@ onKeyStroke('Enter', () => {
           </div>
 
           <div
-            v-if="isEeUI"
+            v-if="isEeActive"
             class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
             @click="options.includeDashboards = !options.includeDashboards"
           >
@@ -288,7 +299,7 @@ onKeyStroke('Enter', () => {
           </div>
 
           <div
-            v-if="isEeUI"
+            v-if="isEeActive"
             class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
             @click="options.includeWorkflows = !options.includeWorkflows"
           >
@@ -299,15 +310,17 @@ onKeyStroke('Enter', () => {
 
         <div
           :class="{
-            'mb-5': !isEeUI,
+            'mb-5': !isEeActive,
           }"
           class="mt-5 text-nc-content-gray-subtle2 font-medium"
         >
           {{ $t('labels.baseDuplicateMessage') }}
-          <template v-if="!isBaseOwner">{{ $t('labels.baseDuplicateMessage2') }}</template>
+          <template v-if="!isBaseOwner">
+            {{ $t('labels.baseDuplicateMessage2') }}
+          </template>
         </div>
 
-        <div v-if="isEeUI" class="mb-5">
+        <div v-if="isEeActive" class="mb-5">
           <NcDivider divider-class="!my-5" />
 
           <div class="text-nc-content-gray font-medium leading-5">
@@ -394,7 +407,9 @@ onKeyStroke('Enter', () => {
       </template>
 
       <template v-else-if="status === 'error'">
-        <div class="text-nc-content-gray-emphasis my-5 font-medium">{{ $t('labels.errorMessage') }} {{ errorMessage }}</div>
+        <div class="text-nc-content-gray-emphasis my-5 font-medium">
+          {{ $t('labels.errorMessage') }} {{ errorMessage }}
+        </div>
       </template>
     </div>
     <div class="flex flex-row gap-x-2 justify-end">
@@ -409,10 +424,18 @@ onKeyStroke('Enter', () => {
         :disabled="isLoading"
         @click="handleActionClick"
       >
-        <template v-if="status === 'pending'"> {{ $t('general.duplicate') }} {{ $t('objects.project') }} </template>
-        <template v-else-if="status === 'loading'"> Duplicating {{ $t('objects.project') }} </template>
-        <template v-else-if="status === 'success'"> {{ $t('labels.goToBase') }} </template>
-        <template v-else-if="status === 'error'"> {{ $t('labels.tryAgain') }} </template>
+        <template v-if="status === 'pending'">
+          {{ $t('general.duplicate') }} {{ $t('objects.project') }}
+        </template>
+        <template v-else-if="status === 'loading'">
+          Duplicating {{ $t('objects.project') }}
+        </template>
+        <template v-else-if="status === 'success'">
+          {{ $t('labels.goToBase') }}
+        </template>
+        <template v-else-if="status === 'error'">
+          {{ $t('labels.tryAgain') }}
+        </template>
       </NcButton>
     </div>
   </GeneralModal>

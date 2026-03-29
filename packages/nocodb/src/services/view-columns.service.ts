@@ -60,9 +60,10 @@ export class ViewColumnsService {
       param.column,
     );
 
+    const view = await View.get(context, param.viewId, ncMeta);
+
     let viewWebhookManager: ViewWebhookManager;
     if (!param.viewWebhookManager) {
-      const view = await View.get(context, param.viewId, ncMeta);
       viewWebhookManager =
         param.viewWebhookManager ??
         (
@@ -83,11 +84,22 @@ export class ViewColumnsService {
         show: param.column.show,
       },
     );
-    // this.appHooksService.emit(AppEvents.VIEW_COLUMN_CREATE, {
-    //   viewColumn,
-    //   req: param.req,
-    //   context,
-    // });
+
+    const column = await Column.get(
+      context,
+      { colId: param.column.fk_column_id },
+      ncMeta,
+    );
+
+    if (view && column) {
+      this.appHooksService.emit(AppEvents.VIEW_COLUMN_CREATE, {
+        viewColumn,
+        view,
+        column,
+        req: param.req,
+        context,
+      });
+    }
 
     if (viewWebhookManager) {
       (

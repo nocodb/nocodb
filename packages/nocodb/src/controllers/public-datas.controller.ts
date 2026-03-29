@@ -14,7 +14,7 @@ import { PublicDatasService } from '~/services/public-datas.service';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
-import { Column } from '~/models';
+import { Column, View } from '~/models';
 import { AttachmentsService } from '~/services/attachments.service';
 import { NcError } from '~/helpers/catchError';
 
@@ -238,6 +238,20 @@ export class PublicDatasController {
     @Param('rowId') rowId: string,
     @Query('urlOrPath') urlOrPath: string,
   ) {
+    const view = await View.getByUUID(context, sharedViewUuid);
+
+    if (!view) NcError.viewNotFound(sharedViewUuid);
+
+    await view.getColumns(context);
+
+    const isColumnVisible = view.columns.some(
+      (c) => c.fk_column_id === columnId && c.show,
+    );
+
+    if (!isColumnVisible) {
+      NcError.fieldNotFound(columnId);
+    }
+
     const column = await Column.get(context, {
       colId: columnId,
     });

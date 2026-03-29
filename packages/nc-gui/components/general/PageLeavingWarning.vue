@@ -3,25 +3,37 @@ const route = useRoute()
 
 const router = useRouter()
 
+function isHttpUrl(url: string) {
+  if (!url) return false
+  const trimmed = url.trim()
+  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) {
+    return /^https?:\/\//i.test(trimmed)
+  }
+  return true
+}
+
 const redirectUrl = computed(() => {
-  return (route.query.ncRedirectUrl as string) ?? ''
+  const url = (route.query.ncRedirectUrl as string) ?? ''
+  return isHttpUrl(url) ? url : ''
 })
 
 const backUrl = computed(() => {
-  return (route.query.ncBackUrl as string) ?? ''
+  const url = (route.query.ncBackUrl as string) ?? ''
+  return isHttpUrl(url) && isSameOriginUrl(url, true) ? url : ''
 })
 
 if (!redirectUrl.value || !backUrl.value) {
   router.replace('/error/404')
 }
 
-const handleRedirect = (proceedToLink = false) => {
+function handleRedirect(proceedToLink = false) {
   const url = proceedToLink ? redirectUrl.value : backUrl.value
 
   if (isSameOriginUrl(url, true)) {
     window.history.pushState('object', document.title, url)
     window.location.reload()
-  } else {
+  }
+  else {
     window.location.href = url
   }
 }
@@ -30,10 +42,14 @@ const handleRedirect = (proceedToLink = false) => {
 <template>
   <div class="flex flex-col items-center justify-center gap-3 max-w-[420px] mx-auto text-center">
     <div>
-      <img class="dark:hidden" width="56px" height="56px" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
+      <img class="dark:hidden" width="56px" height="56px" alt="NocoDB" src="~/assets/img/icons/256x256.png">
     </div>
-    <div class="text-xl font-bold text-nc-content-gray">{{ $t('title.youAreLeavingNocoDB') }}</div>
-    <div class="text-sm font-weight-500 text-nc-content-gray-subtle2">{{ $t('title.onlyProceedIfYouTrustThisLink') }}</div>
+    <div class="text-xl font-bold text-nc-content-gray">
+      {{ $t('title.youAreLeavingNocoDB') }}
+    </div>
+    <div class="text-sm font-weight-500 text-nc-content-gray-subtle2">
+      {{ $t('title.onlyProceedIfYouTrustThisLink') }}
+    </div>
     <a class="text-sm font-weight-500 text-nc-content-gray-subtle" :href="redirectUrl">{{ redirectUrl }}</a>
     <div class="flex items-center gap-3 mt-3">
       <NcButton type="secondary" size="small" @click="handleRedirect(false)">

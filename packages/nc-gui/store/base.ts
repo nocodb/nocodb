@@ -1,6 +1,6 @@
-import type { BaseType, OracleUi, SourceType, TableType } from 'nocodb-sdk'
-import { SqlUiFactory } from 'nocodb-sdk'
+import type { BaseType, SourceType, TableType } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
+import { SqlUiFactory } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
 export const useBase = defineStore('baseStore', () => {
@@ -72,7 +72,8 @@ export const useBase = defineStore('baseStore', () => {
     }
     try {
       return (isString(base.value.meta) ? JSON.parse(base.value.meta) : base.value.meta) ?? defaultMeta
-    } catch (e) {
+    }
+    catch (e) {
       return defaultMeta
     }
   })
@@ -85,10 +86,7 @@ export const useBase = defineStore('baseStore', () => {
     const temp: Record<string, any> = {}
     for (const source of sources.value) {
       if (source.id) {
-        temp[source.id] = SqlUiFactory.create({ client: source.type }) as Exclude<
-          ReturnType<(typeof SqlUiFactory)['create']>,
-          typeof OracleUi
-        >
+        temp[source.id] = SqlUiFactory.create({ client: source.type })
       }
     }
     return temp
@@ -106,7 +104,7 @@ export const useBase = defineStore('baseStore', () => {
   }
 
   function getBaseType(sourceId?: string) {
-    return sources.value.find((source) => source.id === sourceId)?.type || ClientType.MYSQL
+    return sources.value.find(source => source.id === sourceId)?.type || ClientType.MYSQL
   }
 
   function isMysql(sourceId?: string) {
@@ -130,7 +128,7 @@ export const useBase = defineStore('baseStore', () => {
   }
 
   function isXcdbBase(sourceId?: string) {
-    const source = sources.value.find((source) => source.id === sourceId)
+    const source = sources.value.find(source => source.id === sourceId)
     return (source?.is_meta as boolean) || (source?.is_local as boolean) || false
   }
 
@@ -167,16 +165,19 @@ export const useBase = defineStore('baseStore', () => {
 
         forcedProjectId.value = baseData.base_id
         sharedProject.value = await api.base.read(baseData.base_id!)
-      } catch (e: any) {
+      }
+      catch (e: any) {
         if (e?.response?.status === 404) {
           return router.push('/error/404')
         }
         throw e
       }
-    } else if (baseId.value) {
+    }
+    else if (baseId.value) {
       await basesStore.loadProject(baseId.value)
       // base.value = basesStore.bases[baseId.value] // await api.base.read(baseId.value)
-    } else {
+    }
+    else {
       console.warn('Base id not found')
       return
     }
@@ -186,12 +187,14 @@ export const useBase = defineStore('baseStore', () => {
         isSharedBase: isSharedBase.value,
         sharedBaseId: route.value.params.baseId as string,
       })
-    } else if (isSharedErd.value) {
+    }
+    else if (isSharedErd.value) {
       await loadRoles(base.value.id || baseId.value, {
         isSharedErd: isSharedErd.value,
         sharedErdId: route.value.params.erdUuid as string,
       })
-    } else {
+    }
+    else {
       await loadRoles(base.value.id || baseId.value)
     }
 
@@ -212,7 +215,8 @@ export const useBase = defineStore('baseStore', () => {
     }
     if (data.meta && typeof data.meta === 'string') {
       await api.base.update(baseId.value, data)
-    } else {
+    }
+    else {
       await api.base.update(baseId.value, { ...data, meta: stringifyProp(data.meta) })
     }
 
@@ -273,7 +277,11 @@ export const useBase = defineStore('baseStore', () => {
 
     const basUrl = `/nc/${id}`
 
-    return `${basUrl}${projectPage ? `?page=${projectPage}` : ''}`
+    if (projectPage) {
+      return `${basUrl}/settings/${baseSettingsTabToSlug[projectPage] || projectPage}`
+    }
+
+    return basUrl
   }
 
   const loadManagedApp = async () => {}
@@ -306,17 +314,12 @@ export const useBase = defineStore('baseStore', () => {
     page: 'overview' | 'collaborator' | 'data-source'
     action?: string
   }) => {
-    await router.push({
-      name: 'index-typeOrId-baseId-index-index',
-      params: {
-        typeOrId: route.value.params.typeOrId,
-        baseId: route.value.params.baseId,
-      },
-      query: {
-        page,
-        ...(action ? { action } : {}),
-      },
-    })
+    const wsId = route.value.params.typeOrId
+    const bId = route.value.params.baseId
+    const slug = baseSettingsTabToSlug[page] || page
+    const query = action ? { action } : undefined
+
+    navigateTo({ path: `/${wsId}/${bId}/settings/${slug}`, query })
   }
 
   return {

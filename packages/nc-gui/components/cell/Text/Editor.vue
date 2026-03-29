@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
+import type { VNodeRef } from 'vue'
 
 interface Props {
   modelValue?: string | number | null
@@ -33,7 +33,7 @@ const focus: VNodeRef = (el) => {
 
 const textareaValue = computed({
   get: () => vModel.value ?? '',
-  set: (val) => (vModel.value = val),
+  set: val => (vModel.value = val),
 })
 
 onMounted(() => {
@@ -67,7 +67,7 @@ function updateInput(e: any) {
     @keydown.alt.stop
     @selectstart.capture.stop
     @mousedown.stop
-  />
+  >
   <NcAutoSizeTextarea
     v-else
     :ref="focus"

@@ -19,6 +19,7 @@ import type { AppConfig } from '~/interface/config';
 
 import { UsersService } from '~/services/users/users.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { clearAuthCookie, setAuthCookie } from '~/services/users/helpers';
 
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { NcError } from '~/helpers/catchError';
@@ -47,13 +48,13 @@ export class AuthController {
     if (this.config.get('auth', { infer: true }).disableEmailAuth) {
       NcError.forbidden('Email authentication is disabled');
     }
-    res.json(
-      await this.usersService.signup({
-        body: req.body,
-        req,
-        res,
-      }),
-    );
+    const result = await this.usersService.signup({
+      body: req.body,
+      req,
+      res,
+    });
+    if (result?.token) setAuthCookie(res, result.token);
+    res.json(result);
   }
 
   @Post([
@@ -68,13 +69,13 @@ export class AuthController {
     @Req() req: NcRequest,
     @Res() res: Response,
   ): Promise<any> {
-    res.json(
-      await this.usersService.refreshToken({
-        body: req.body,
-        req,
-        res,
-      }),
-    );
+    const result = await this.usersService.refreshToken({
+      body: req.body,
+      req,
+      res,
+    });
+    if (result?.token) setAuthCookie(res, result.token);
+    res.json(result);
   }
 
   @Post([
@@ -90,7 +91,9 @@ export class AuthController {
       NcError.forbidden('Email authentication is disabled');
     }
     await this.setRefreshToken({ req, res });
-    res.json(await this.usersService.login(req.user, req));
+    const result = await this.usersService.login(req.user, req);
+    setAuthCookie(res, result.token);
+    res.json(result);
   }
 
   @UseGuards(GlobalGuard)
@@ -100,6 +103,7 @@ export class AuthController {
     if (!(req as any).isAuthenticated?.()) {
       NcError.forbidden('Not allowed');
     }
+    clearAuthCookie(res);
     res.json(
       await this.usersService.signOut({
         req,
@@ -113,7 +117,9 @@ export class AuthController {
   @UseGuards(PublicApiLimiterGuard, AuthGuard('google'))
   async googleSignin(@Req() req: NcRequest, @Res() res: Response) {
     await this.setRefreshToken({ req, res });
-    res.json(await this.usersService.login(req.user, req));
+    const result = await this.usersService.login(req.user, req);
+    setAuthCookie(res, result.token);
+    res.json(result);
   }
 
   @Get('/auth/google')
@@ -166,6 +172,9 @@ export class AuthController {
 
     // set new refresh token
     await this.setRefreshToken({ req, res });
+
+    const loginResult = await this.usersService.login(req.user, req);
+    setAuthCookie(res, loginResult.token);
 
     res.json({ msg: 'Password has been updated successfully' });
   }

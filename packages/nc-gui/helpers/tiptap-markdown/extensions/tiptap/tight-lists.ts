@@ -22,8 +22,8 @@ export const MarkdownTightLists = Extension.create<MarkdownTightListsOptions, Ma
         attributes: {
           tight: {
             default: this.options.tight,
-            parseHTML: (element) => element.getAttribute('data-tight') === 'true' || !element.querySelector('p'),
-            renderHTML: (attributes) => ({
+            parseHTML: element => element.getAttribute('data-tight') === 'true' || !element.querySelector('p'),
+            renderHTML: attributes => ({
               'class': attributes.tight ? this.options.tightClass : null,
               'data-tight': attributes.tight ? 'true' : null,
             }),
@@ -36,18 +36,18 @@ export const MarkdownTightLists = Extension.create<MarkdownTightListsOptions, Ma
     return {
       toggleTight:
         (tight = null) =>
-        ({ editor, commands }) => {
-          function toggleTight(name) {
-            if (!editor.isActive(name)) {
-              return false
+          ({ editor, commands }) => {
+            function toggleTight(name) {
+              if (!editor.isActive(name)) {
+                return false
+              }
+              const attrs = editor.getAttributes(name)
+              return commands.updateAttributes(name, {
+                tight: tight ?? !attrs?.tight,
+              })
             }
-            const attrs = editor.getAttributes(name)
-            return commands.updateAttributes(name, {
-              tight: tight ?? !attrs?.tight,
-            })
-          }
-          return this.options.listTypes.some((name) => toggleTight(name))
-        },
+            return this.options.listTypes.some(name => toggleTight(name))
+          },
     }
   },
 })

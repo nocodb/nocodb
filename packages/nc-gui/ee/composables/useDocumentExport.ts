@@ -253,11 +253,10 @@ ${safeContent}
   ul[data-type="taskList"] li[data-checked="true"]::before { background: #3b82f6; border-color: #3b82f6; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E"); background-size: 12px; background-position: center; background-repeat: no-repeat; }
   ul[data-type="taskList"] li[data-checked="true"] > div { text-decoration: line-through; color: #9ca3af; }
 
-  /* Tabs — show all tabs stacked with labels */
-  .nc-doc-tabs { margin: 0.75em 0; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
-  .nc-doc-tab { padding: 12px 16px; }
-  .nc-doc-tab::before { content: attr(data-tab-title); display: block; font-weight: 600; font-size: 0.85em; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #e5e7eb; }
-  .nc-doc-tab + .nc-doc-tab { border-top: 1px solid #e5e7eb; }
+  /* Tabs — show all tabs stacked with title + underline (Notion style) */
+  .nc-doc-tabs { margin: 0.75em 0; padding-left: 1em; }
+  .nc-doc-tab { padding: 0.25em 0; }
+  .nc-doc-tab::before { content: attr(data-tab-title); display: block; font-weight: 600; font-size: 1em; color: #1f2937; padding-bottom: 4px; border-bottom: 1px solid #e5e7eb; margin-bottom: 4px; }
 
   /* Math — show LaTeX source as fallback */
   .nc-inline-math::before { content: attr(data-latex); font-family: 'Courier New', monospace; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }

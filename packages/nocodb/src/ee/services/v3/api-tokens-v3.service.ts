@@ -236,8 +236,9 @@ export class ApiTokensV3Service {
 
     const list = [];
     for (const apiT of result.list) {
-      (apiT as Record<string, any>).scopes = scopesByTokenId[apiT.id] || [];
-      const v3Token = await this.transformToV3(apiT);
+      const token = apiT as Record<string, any>;
+      token.scopes = scopesByTokenId[token.id] || [];
+      const v3Token = await this.transformToV3(token);
       delete v3Token.token;
       list.push(v3Token);
     }

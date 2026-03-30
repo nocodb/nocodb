@@ -82,6 +82,11 @@ export class ApiTokensV3Service {
         }
         return scope;
       });
+    } else if (apiToken.token_hash) {
+      // Fine-grained token with zero scope rows = "All resources" (org-wide)
+      result.scopes = [
+        { id: '', resource_type: 'all', resource_id: '*' } as any,
+      ];
     }
 
     if (apiToken.token_prefix) {

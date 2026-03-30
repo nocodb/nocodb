@@ -264,15 +264,38 @@ export class SoftDeleteColumnMigration {
     const needsDeletedCol = !model.columns.find((c) => isDeletedCol(c));
     const needsOoUniqueDrop = v1OoFkColIds.size > 0;
 
-    if (!needsDeletedCol && !needsOoUniqueDrop) {
+    // Check if any user-set unique columns need to be converted to partial unique indexes
+    // This handles tables that already have __nc_deleted but still have regular unique constraints
+    // Exclude PK and auto-increment columns — their unique constraints must stay unconditional
+    const hasUniqueColumns = model.columns.some(
+      (c) =>
+        (c as any).unique &&
+        !v1OoFkColIds.has(c.id) &&
+        !(c as any).pk &&
+        !(c as any).ai,
+    );
+    const needsUniqueConversion = hasUniqueColumns && !needsDeletedCol;
+
+    if (!needsDeletedCol && !needsOoUniqueDrop && !needsUniqueConversion) {
       await this.updateModelStatus(Noco.ncMeta, modelId, true);
       return;
     }
 
     let newDeletedColumn: any;
+    // For columns whose unique constraint needs to be recreated as a partial index,
+    // set unique: false on the original so PgClient sees a false→true transition.
+    // Exclude PK and auto-increment columns — their unique constraints must stay unconditional.
+    const needsUniqueRecreate = (c) =>
+      (needsDeletedCol || needsUniqueConversion) &&
+      (c as any).unique &&
+      !v1OoFkColIds.has(c.id) &&
+      !(c as any).pk &&
+      !(c as any).ai;
+
     const originalColumns = model.columns.map((c) => ({
       ...c,
       cn: c.column_name,
+      ...(needsUniqueRecreate(c) ? { unique: false } : {}),
     }));
 
     const columns = model.columns.map((c) => ({
@@ -280,6 +303,10 @@ export class SoftDeleteColumnMigration {
       cn: c.column_name,
       ...(v1OoFkColIds.has(c.id)
         ? { altered: Altered.UPDATE_COLUMN, unique: false }
+        : // Re-process existing unique columns so PgClient recreates them as
+        // partial unique indexes that exclude soft-deleted rows
+        needsUniqueRecreate(c)
+        ? { altered: Altered.UPDATE_COLUMN }
         : {}),
     }));
 

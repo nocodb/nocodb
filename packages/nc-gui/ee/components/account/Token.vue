@@ -99,12 +99,7 @@ const deleteToken = async (token: string): Promise<void> => {
     const id = tokenInfo?.id
 
     if (id) {
-      // Try V3 API first (supports fine-grained tokens), fall back to V1 for legacy tokens
-      try {
-        await api.request({ path: `/api/v3/meta/tokens/${id}`, method: 'DELETE' })
-      } catch {
-        await api.orgTokens.delete(id)
-      }
+      await api.orgTokens.delete(id)
     }
 
     allTokens.value = allTokens.value.filter((t) => t.token !== token && t.id !== token)

@@ -85,6 +85,7 @@ export const API_TOKEN_PERMISSION_MAP: Record<string, TokenPermissionMapping> = 
   // Fields / Columns (read)
   // ──────────────────────────────────
   columnList: { category: 'fields', level: 'read' },
+  columnGet: { category: 'fields', level: 'read' },
   relationList: { category: 'fields', level: 'read' },
   relationListAll: { category: 'fields', level: 'read' },
   indexList: { category: 'fields', level: 'read' },
@@ -99,6 +100,7 @@ export const API_TOKEN_PERMISSION_MAP: Record<string, TokenPermissionMapping> = 
   // Views (read) — includes sorts, filters, view columns
   // ──────────────────────────────────
   viewList: { category: 'views', level: 'read' },
+  viewGet: { category: 'views', level: 'read' },
   viewColumnList: { category: 'views', level: 'read' },
   formViewGet: { category: 'views', level: 'read' },
   galleryViewGet: { category: 'views', level: 'read' },
@@ -152,6 +154,8 @@ export const API_TOKEN_PERMISSION_MAP: Record<string, TokenPermissionMapping> = 
   sourceGet: { category: 'base', level: 'read' },
 
   // Base (write)
+  baseCreate: { category: 'base', level: 'write' },
+  baseUpdate: { category: 'base', level: 'write' },
   sourceCreate: { category: 'base', level: 'write' },
   baseDelete: { category: 'base', level: 'write' },
 

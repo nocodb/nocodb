@@ -985,12 +985,12 @@ function apiTokenPermissionTests() {
         write: ['tableCreate', 'tableUpdate', 'tableDelete'],
       },
       fields: {
-        read: ['columnList', 'relationList', 'relationListAll', 'indexList'],
+        read: ['columnList', 'columnGet', 'relationList', 'relationListAll', 'indexList'],
         write: ['columnAdd', 'columnUpdate', 'columnDelete', 'duplicateColumn'],
       },
       views: {
         read: [
-          'viewList', 'viewColumnList', 'formViewGet', 'galleryViewGet',
+          'viewList', 'viewGet', 'viewColumnList', 'formViewGet', 'galleryViewGet',
           'kanbanViewGet', 'calendarViewGet', 'sortList', 'filterList',
           'filterGet', 'filterChildrenList',
         ],
@@ -1008,7 +1008,7 @@ function apiTokenPermissionTests() {
       },
       base: {
         read: ['baseList', 'baseGet', 'baseInfoGet', 'baseCost', 'swaggerJson', 'jobList', 'sourceList', 'sourceGet'],
-        write: ['sourceCreate', 'baseDelete'],
+        write: ['baseCreate', 'baseUpdate', 'sourceCreate', 'baseDelete'],
       },
       comments: {
         read: ['commentList', 'commentCount'],

@@ -272,8 +272,8 @@ const handleCancel = () => {
             'max-h-[calc(100%-80px)]': pagination.total <= 10,
           }"
         >
-          <div class="h-full w-full overflow-y-auto rounded-md">
-            <div class="flex w-full pl-5 bg-nc-bg-gray-extralight border-1 rounded-t-md">
+          <div class="h-full w-full overflow-y-auto overflow-x-auto rounded-md">
+            <div class="flex w-full min-w-[920px] pl-5 bg-nc-bg-gray-extralight border-1 rounded-t-md">
               <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-2/9" data-rec="true">{{
                 $t('title.tokenName')
               }}</span>
@@ -290,7 +290,7 @@ const handleCancel = () => {
             <div class="nc-scrollbar-md !overflow-y-auto flex flex-col h-[calc(100%-52px)]">
               <div v-if="showNewTokenModal">
                 <div
-                  class="flex gap-5 px-3 py-2.5 text-nc-content-gray-muted font-medium text-3.5 w-full nc-token-generate border-b-1 border-l-1 border-r-1"
+                  class="flex gap-5 px-3 py-2.5 text-nc-content-gray-muted font-medium text-3.5 w-full min-w-[920px] nc-token-generate border-b-1 border-l-1 border-r-1"
                   :class="{
                     'rounded-b-md': !tokens.length,
                   }"
@@ -342,7 +342,7 @@ const handleCancel = () => {
                 v-for="el of tokens"
                 :key="el.id"
                 data-testid="nc-token-list"
-                class="flex pl-5 py-3 justify-between token items-center border-l-1 border-r-1 border-b-1"
+                class="flex pl-5 py-3 justify-between token items-center border-l-1 border-r-1 border-b-1 min-w-[920px]"
               >
                 <span class="text-nc-content-gray-extreme font-bold text-3.5 text-start w-2/9">
                   <div class="flex items-center gap-2">
@@ -355,12 +355,12 @@ const handleCancel = () => {
                     </NcTooltip>
                   </div>
                 </span>
-                <span class="text-nc-content-gray-muted font-medium text-3.5 text-start w-2/9">
+                <span class="text-nc-content-gray-muted font-medium text-3.5 text-start w-2/9 min-w-0">
                   <GeneralTruncateText placement="top" :length="20">
                     {{ el.created_by }}
                   </GeneralTruncateText>
                 </span>
-                <span class="text-nc-content-gray-muted font-medium text-3.5 text-start w-3/9 truncate">
+                <span class="text-nc-content-gray-muted font-medium text-3.5 text-start w-3/9 min-w-0 truncate">
                   <GeneralTruncateText v-if="el.token === selectedToken.id && selectedToken.isShow" placement="top" :length="29">
                     {{ el.token }}
                   </GeneralTruncateText>

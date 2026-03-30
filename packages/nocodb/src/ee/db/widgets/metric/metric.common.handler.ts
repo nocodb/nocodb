@@ -128,6 +128,11 @@ export class MetricCommonHandler extends BaseWidgetHandler<MetricWidgetType> {
       where: '',
     });
 
+    const softDeleteFilter = await baseModel.getSoftDeleteFilter();
+    if (softDeleteFilter) {
+      qb.where(softDeleteFilter);
+    }
+
     let query;
     let aggregationColumn;
 

@@ -9,6 +9,7 @@ import {
   negatedMapping,
 } from '~/db/field-handler/utils/handlerUtils';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
+import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 
 export class LtarGeneralHandler extends GenericFieldHandler {
   override async filter(
@@ -81,6 +82,14 @@ export class LtarGeneralHandler extends GenericFieldHandler {
           .count(childColumn.column_name)
           .whereRaw('?? = ??', [childColumnRef, parentColumnRef]);
 
+        const hmCountSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+          childBaseModel,
+          childTableAlias,
+        );
+        if (hmCountSoftDeleteFilter) {
+          selectHmCount.where(hmCountSoftDeleteFilter);
+        }
+
         return {
           rootApply,
           clause: (qb) => {
@@ -95,6 +104,15 @@ export class LtarGeneralHandler extends GenericFieldHandler {
       const selectQb = knex(
         childBaseModel.getTnPath(childModel.table_name, childTableAlias),
       ).select(childColumnRef);
+
+      const hmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+        childBaseModel,
+        childTableAlias,
+      );
+      if (hmSoftDeleteFilter) {
+        selectQb.where(hmSoftDeleteFilter);
+      }
+
       const parseOperationResult = await parseConditionV2(
         childBaseModel,
         new Filter({
@@ -156,6 +174,14 @@ export class LtarGeneralHandler extends GenericFieldHandler {
           .count(parentColumnRef)
           .where(parentColumnRef, childColumnRef);
 
+        const btCountSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+          parentBaseModel,
+          parentTableAlias,
+        );
+        if (btCountSoftDeleteFilter) {
+          selectBtCount.where(btCountSoftDeleteFilter);
+        }
+
         return {
           rootApply,
           clause: (qb) => {
@@ -171,6 +197,14 @@ export class LtarGeneralHandler extends GenericFieldHandler {
       const selectQb = knex(
         parentBaseModel.getTnPath(parentModel.table_name, parentTableAlias),
       ).select(parentColumn.column_name);
+
+      const btSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+        parentBaseModel,
+        parentTableAlias,
+      );
+      if (btSoftDeleteFilter) {
+        selectQb.where(btSoftDeleteFilter);
+      }
 
       const parseOperationResult = await parseConditionV2(
         parentBaseModel,
@@ -275,6 +309,25 @@ export class LtarGeneralHandler extends GenericFieldHandler {
           .count(mmChildColumnRef)
           .where(mmChildColumnRef, childColumnRef);
 
+        // For MM blank/notblank, also check that the referenced parent records aren't deleted
+        // We need a join to the parent table to check soft delete
+        const mmCountSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+          parentBaseModel,
+          parentTableAlias,
+        );
+        if (mmCountSoftDeleteFilter) {
+          selectMmCount
+            .join(
+              parentBaseModel.getTnPath(
+                parentModel.table_name,
+                parentTableAlias,
+              ),
+              mmParentColumnRef,
+              parentColumnRef,
+            )
+            .where(mmCountSoftDeleteFilter);
+        }
+
         return {
           rootApply,
           clause: (qb) => {
@@ -296,6 +349,14 @@ export class LtarGeneralHandler extends GenericFieldHandler {
           mmParentColumnRef,
           parentColumnRef,
         );
+
+      const mmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+        parentBaseModel,
+        parentTableAlias,
+      );
+      if (mmSoftDeleteFilter) {
+        selectQb.where(mmSoftDeleteFilter);
+      }
 
       const parseOperationResult = await parseConditionV2(
         parentBaseModel,

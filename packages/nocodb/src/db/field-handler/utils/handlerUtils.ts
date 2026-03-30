@@ -17,6 +17,7 @@ import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
 import { Filter, Model } from '~/models';
 import { recursiveCTEFromLookupColumn } from '~/helpers/lookupHelpers';
+import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/ncError';
 
 export function ncIsStringHasValue(val: string | undefined | null) {
@@ -129,6 +130,10 @@ export async function nestedConditionJoin({
                 );
               });
             } else {
+              const hmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+                childBaseModel,
+                relAlias,
+              );
               clauses.push((qb) => {
                 qb.join(
                   knex.raw(`?? as ??`, [
@@ -138,6 +143,9 @@ export async function nestedConditionJoin({
                   `${alias}.${parentColumn.column_name}`,
                   `${relAlias}.${childColumn.column_name}`,
                 );
+                if (hmSoftDeleteFilter) {
+                  qb.where(hmSoftDeleteFilter);
+                }
               });
             }
           }
@@ -165,6 +173,10 @@ export async function nestedConditionJoin({
                 );
               });
             } else {
+              const btSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+                parentBaseModel,
+                relAlias,
+              );
               clauses.push((qb) => {
                 qb.join(
                   knex.raw(`?? as ??`, [
@@ -174,6 +186,9 @@ export async function nestedConditionJoin({
                   `${alias}.${childColumn.column_name}`,
                   `${relAlias}.${parentColumn.column_name}`,
                 );
+                if (btSoftDeleteFilter) {
+                  qb.where(btSoftDeleteFilter);
+                }
               });
             }
           }
@@ -195,6 +210,10 @@ export async function nestedConditionJoin({
 
             const assocAlias = `__nc${aliasCount.count++}`;
 
+            const mmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+              parentBaseModel,
+              relAlias,
+            );
             clauses.push((qb) => {
               qb.join(
                 knex.raw(`?? as ??`, [
@@ -211,6 +230,9 @@ export async function nestedConditionJoin({
                 `${relAlias}.${parentColumn.column_name}`,
                 `${assocAlias}.${mmParentColumn.column_name}`,
               );
+              if (mmSoftDeleteFilter) {
+                qb.where(mmSoftDeleteFilter);
+              }
             });
           }
           break;

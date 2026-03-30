@@ -91,6 +91,11 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
       where: '',
     });
 
+    const softDeleteFilter = await baseModel.getSoftDeleteFilter();
+    if (softDeleteFilter) {
+      subQuery.where(softDeleteFilter);
+    }
+
     const isCheckbox = categoryColumn.uidt === UITypes.Checkbox;
 
     if (!chartData.category?.includeEmptyRecords && !isCheckbox) {

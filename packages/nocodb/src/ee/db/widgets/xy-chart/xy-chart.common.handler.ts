@@ -285,6 +285,11 @@ export class XyChartCommonHandler extends BaseWidgetHandler<ChartWidgetType> {
         where: '',
       });
 
+      const softDeleteFilter = await baseModel.getSoftDeleteFilter();
+      if (softDeleteFilter) {
+        query.where(softDeleteFilter);
+      }
+
       // Filter empty records if not checkbox and not including empties
       if (
         !chartData.xAxis?.includeEmptyRecords &&

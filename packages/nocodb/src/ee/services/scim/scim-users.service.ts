@@ -75,7 +75,8 @@ export class ScimUsersService {
     },
   ) {
     const startIndex = param.startIndex || 1;
-    const count = Math.min(param.count || 100, 100);
+    const count =
+      param.count !== undefined ? Math.min(param.count, 100) : 100;
     const ascending =
       !param.sortOrder || param.sortOrder.toLowerCase() === 'ascending';
 
@@ -84,11 +85,23 @@ export class ScimUsersService {
     let filterExternalId: string | undefined;
     if (param.filter) {
       const userNameMatch = param.filter.match(/userName\s+eq\s+"([^"]+)"/i);
-      if (userNameMatch) filterUserName = userNameMatch[1];
-
       const externalIdMatch = param.filter.match(
         /externalId\s+eq\s+"([^"]+)"/i,
       );
+
+      if (!userNameMatch && !externalIdMatch) {
+        throw new HttpException(
+          {
+            schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
+            detail: `Invalid or unsupported filter: ${param.filter}. Supported filters: userName eq "value", externalId eq "value"`,
+            status: '400',
+            scimType: 'invalidFilter',
+          },
+          400,
+        );
+      }
+
+      if (userNameMatch) filterUserName = userNameMatch[1];
       if (externalIdMatch) filterExternalId = externalIdMatch[1];
     }
 
@@ -98,13 +111,24 @@ export class ScimUsersService {
         fk_workspace_id: param.workspaceId,
         include_deleted: true,
         offset: startIndex - 1,
-        limit: count,
+        limit: count || 1, // fetch at least 1 to get totalResults
         filterUserName,
         filterExternalId,
         sortBy: param.sortBy,
         sortAscending: ascending,
       },
     );
+
+    // RFC 7644 §3.4.2.4: count=0 returns metadata only (no resources)
+    if (count === 0) {
+      return {
+        schemas: ['urn:ietf:params:scim:api:messages:2.0:ListResponse'],
+        totalResults,
+        startIndex,
+        itemsPerPage: 0,
+        Resources: [],
+      };
+    }
 
     const resources = await Promise.all(
       paginatedUsers.map((wu) => this.toScimUser(wu)),
@@ -628,11 +652,17 @@ export class ScimUsersService {
 
     // Handle emails patched via path like emails[type eq "work"].value
     if (patchData['emails[type eq "work"].value'] !== undefined) {
+      const emailValue = patchData['emails[type eq "work"].value'];
+      if (!emailValue || (typeof emailValue === 'string' && !emailValue.trim())) {
+        NcError.badRequest('Email value cannot be empty');
+      }
+      if (typeof emailValue === 'string' && !isEmail(emailValue)) {
+        NcError.badRequest('Invalid email format');
+      }
       if (!meta.emails) meta.emails = [{ type: 'work', primary: true }];
       const workEmail =
         meta.emails.find((e: any) => e.type === 'work') || meta.emails[0];
-      if (workEmail)
-        workEmail.value = patchData['emails[type eq "work"].value'];
+      if (workEmail) workEmail.value = emailValue;
     }
     if (patchData['emails[type eq "work"].primary'] !== undefined) {
       if (!meta.emails) meta.emails = [{ type: 'work' }];

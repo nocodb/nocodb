@@ -1616,13 +1616,13 @@ export function generateBaseObject(baseSchema: any): string {
     `;
 }
 
-export function generateApiProxy(req: NocoSDK.NcRequest): string {
+const TUNNEL_PORT = 8585;
+
+export function generateApiProxy(): string {
   return `
   const api = (new InternalApi({
-    baseURL: "${req.ncSiteUrl}",
-    headers: {
-      "xc-auth": "${req.headers?.['xc-auth'] || ''}"
-    }
+    baseURL: "http://localhost:${TUNNEL_PORT}",
+    headers: {}
   })).api
 `;
 }
@@ -1663,18 +1663,11 @@ export function generateOutputAPI(): string {
  * Generate API proxy with service user authentication
  * Uses automation service user pattern similar to workflow execution
  */
-export function generateApiProxyForScript(params: {
-  ncSiteUrl: string;
-  token: string;
-}): string {
-  const { ncSiteUrl, token } = params;
-
+export function generateApiProxyForScript(): string {
   return `
   const api = (new InternalApi({
-    baseURL: "${ncSiteUrl}",
-    headers: {
-      'xc-auth': '${token}',
-    },
+    baseURL: "http://localhost:${TUNNEL_PORT}",
+    headers: {},
   })).api;
   `;
 }
@@ -1712,9 +1705,7 @@ export function createScriptExecutionCode(
   userCode: string,
   variableContext: Record<string, any> = {},
   context?: {
-    ncSiteUrl: string;
     baseSchema: any;
-    token: string;
   },
 ): string {
   return `
@@ -1722,14 +1713,7 @@ export function createScriptExecutionCode(
     await (async () => {
       ${generateConsoleOutput()}
       ${generateV3ToV2Converter()}
-      ${
-        context?.ncSiteUrl
-          ? generateApiProxyForScript({
-              ncSiteUrl: context.ncSiteUrl,
-              token: context.token,
-            })
-          : '// API proxy not configured'
-      }
+      ${generateApiProxyForScript()}
       ${generateRemoteFetch()}
       ${generalHelpers()}
       ${generateBaseModels()}

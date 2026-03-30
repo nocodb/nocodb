@@ -755,8 +755,6 @@ function generateStepAPI(req: NcRequest, context: NcContext) {
     // Get workspace and base context
     const workspaceId = '${context.workspace_id}';
     const baseId = '${context.base_id}';
-    const authToken = "${req.headers['xc-auth']}"
- 
     const payload = {
       to: to,
       subject: subject.trim(),
@@ -766,13 +764,12 @@ function generateStepAPI(req: NcRequest, context: NcContext) {
       bcc: bcc,
       attachments: processedAttachments
     };
- 
-    const requestUrl = \`${req.ncSiteUrl}/api/v2/internal/\${workspaceId}/\${baseId}?operation=sendEmail\`
+
+    const requestUrl = \`http://localhost:${TUNNEL_PORT}/api/v2/internal/\${workspaceId}/\${baseId}?operation=sendEmail\`
     const response = await fetch(requestUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'xc-auth': authToken
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload)
     });
@@ -2240,13 +2237,13 @@ function generateSessionApi(user: any): string {
   `;
 }
 
-function generateApiProxy(req: NcRequest): string {
+const TUNNEL_PORT = 8585;
+
+function generateApiProxy(): string {
   return `
   const api = (new InternalApi({
-    baseURL: "${req.ncSiteUrl}",
-    headers: {
-      "xc-auth": "${req.headers['xc-auth']}"
-    }
+    baseURL: "http://localhost:${TUNNEL_PORT}",
+    headers: {}
   })).api
 `;
 }
@@ -2291,7 +2288,7 @@ export function createSandboxCode(
     ${generateConsoleOutput()}
     ${generateStepAPI(req, context)}
     ${generateV3ToV2Converter()}
-    ${generateApiProxy(req)}
+    ${generateApiProxy()}
     ${generateRemoteFetch()}
     ${generalHelpers()}
     ${generateBaseModels()}

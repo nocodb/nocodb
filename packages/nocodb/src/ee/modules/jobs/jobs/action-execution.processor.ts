@@ -10,6 +10,7 @@ import { getBaseSchema } from '~/helpers/scriptHelper';
 import { createSandboxCode } from '~/helpers/generateCode';
 import { parseSandboxOutputToWorkerMessage } from '~/helpers/sandboxParser';
 import { DataV3Service } from '~/services/v3/data-v3.service';
+import { TUNNEL_PORT, TunnelClient } from '~/helpers/tunnel-client';
 
 const BATCH_SIZE = 100;
 const CONCURRENCY_LIMIT = 5;
@@ -166,8 +167,12 @@ export class ActionExecutionProcessor {
     }
 
     const sandbox = await this.createSandbox();
+    let tunnel: TunnelClient | null = null;
 
     try {
+      // Start tunnel server inside sandbox and connect tunnel client
+      tunnel = await this.setupTunnel(sandbox, req);
+
       if (options.records?.length) {
         await this.executeForRecords({
           context,
@@ -199,6 +204,9 @@ export class ActionExecutionProcessor {
         });
       }
     } finally {
+      if (tunnel) {
+        await tunnel.close();
+      }
       await this.cleanupSandbox(sandbox);
     }
   }
@@ -504,6 +512,29 @@ export class ActionExecutionProcessor {
       });
       throw error;
     }
+  }
+
+  private async setupTunnel(sandbox: Sandbox, req: any): Promise<TunnelClient> {
+    // Upload and start tunnel server inside sandbox
+    await sandbox.commands.run('bun /home/user/tunnel-server.ts', {
+      background: true,
+    });
+
+    // Wait for the tunnel server to be ready
+    const tunnelHost = sandbox.getHost(TUNNEL_PORT);
+    const healthUrl = `https://${tunnelHost}/__health`;
+    await TunnelClient.waitForServer(healthUrl, this.logger);
+
+    // Connect tunnel client
+    const wsUrl = `wss://${tunnelHost}/__tunnel__`;
+    const authToken = req.headers['xc-auth'];
+    const localBaseUrl = `http://127.0.0.1:${process.env.PORT || 8080}`;
+
+    const tunnel = new TunnelClient(wsUrl, authToken, localBaseUrl);
+    await tunnel.connect();
+
+    this.logger.log('Tunnel established to sandbox');
+    return tunnel;
   }
 
   private async createSandbox(): Promise<Sandbox> {

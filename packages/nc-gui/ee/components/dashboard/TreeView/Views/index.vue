@@ -142,6 +142,9 @@ const sortedSections = computed(() => {
   return [...sections.value].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 })
 
+/** Whether sections are still loading for the first time for this table */
+const sectionsLoading = ref(false)
+
 /** Whether a section is currently being dragged */
 const sectionsDragging = ref(false)
 
@@ -308,6 +311,15 @@ watch(
   () => table.value.id,
   async (newTableId) => {
     if (newTableId) {
+      const key = `${table.value.base_id}:${newTableId}`
+      const hasCachedSections = viewSectionsStore.sectionsByTable.has(key)
+      const hasViewsWithSections = views.value.some((v) => v.fk_view_section_id)
+
+      // Only show skeleton on first load when views indicate sections exist
+      if (!hasCachedSections && hasViewsWithSections) {
+        sectionsLoading.value = true
+      }
+
       await viewSectionsStore.loadSections({
         tableId: newTableId,
         baseId: table.value.base_id!,
@@ -317,6 +329,7 @@ watch(
         expandedSections.value[DEFAULT_SECTION_ID] = true
         saveExpandedSections()
       }
+      sectionsLoading.value = false
     }
   },
   { immediate: true },
@@ -325,8 +338,20 @@ watch(
 
 <template>
   <div>
+    <!-- Loading skeleton while sections are being fetched -->
+    <template v-if="sectionsLoading">
+      <DashboardTreeViewProjectListSkeletonEntity
+        :rows="views.length || 3"
+        class="!pr-2.5 !mt-2"
+        :class="{
+          '!pl-8.5 xs:(!pl-9)': isDefaultSource,
+          '!pl-15': !isDefaultSource,
+        }"
+      />
+    </template>
+
     <!-- Sections exist: section sortable + per-section view lists -->
-    <template v-if="showDefaultFolder">
+    <template v-else-if="showDefaultFolder">
       <!-- Real sections sortable container (only real sections, not default) -->
       <div ref="sectionsRef" class="nc-views-sections flex flex-col w-full">
         <div

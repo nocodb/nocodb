@@ -188,6 +188,10 @@ export default class ApiTokenScope implements ApiTokenScopeEntry {
 
     if (!scopes.length) return null;
 
+    // 0. "All resources" scope matches everything
+    const allScope = scopes.find((s) => (s.resource_type as string) === 'all');
+    if (allScope) return allScope;
+
     // 1. Try exact base match — verify base still exists
     if (baseId) {
       const baseScope = scopes.find(

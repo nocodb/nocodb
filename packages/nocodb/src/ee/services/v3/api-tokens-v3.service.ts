@@ -82,11 +82,6 @@ export class ApiTokensV3Service {
         }
         return scope;
       });
-    } else if (apiToken.token_hash) {
-      // Fine-grained token with zero scope rows = "All resources" (org-wide)
-      result.scopes = [
-        { id: '', resource_type: 'all', resource_id: '*' } as any,
-      ];
     }
 
     if (apiToken.token_prefix) {
@@ -251,13 +246,14 @@ export class ApiTokensV3Service {
       );
     }
 
-    // resource_type: 'all' is a sentinel from the UI meaning "org-wide access" —
-    // filter it out before validation/insertion (no scope rows = org-wide in the auth strategy)
-    const scopesForStorage = (param.body.scopes || []).filter(
+    // resource_type: 'all' scopes are stored as-is (org-wide sentinel).
+    // Only validate non-'all' scopes (base/workspace existence + access).
+    const scopesForStorage = param.body.scopes || [];
+    const scopesToValidate = scopesForStorage.filter(
       (s) => (s.resource_type as string) !== 'all',
     );
 
-    await this.validateScopes(scopesForStorage, param.cookie['user']?.id);
+    await this.validateScopes(scopesToValidate, param.cookie['user']?.id);
     this.validateExpiry(param.body.expiry);
 
     const ssoClientId = (param.cookie.user as Record<string, any>)?.extra
@@ -327,10 +323,11 @@ export class ApiTokensV3Service {
     // Validate scopes before transaction
     let scopesForUpdate: typeof param.body.scopes | undefined;
     if (param.body.scopes !== undefined) {
-      scopesForUpdate = param.body.scopes.filter(
+      scopesForUpdate = param.body.scopes;
+      const scopesToValidate = scopesForUpdate.filter(
         (s) => (s.resource_type as string) !== 'all',
       );
-      await this.validateScopes(scopesForUpdate, user?.id);
+      await this.validateScopes(scopesToValidate, user?.id);
     }
 
     // Wrap metadata update + scope replacement in one transaction

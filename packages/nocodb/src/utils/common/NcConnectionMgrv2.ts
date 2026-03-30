@@ -39,36 +39,13 @@ export default class NcConnectionMgrv2 {
 
   public static async deleteAwait(source: Source) {
     // todo: ignore meta bases
-    const conn = this.connectionRefs.get(source.id);
-    if (conn) {
-      try {
-        this.connectionRefs.delete(source.id);
-        await conn.destroy();
-      } catch (e) {
-        this.logger.error({
-          error: e,
-          details: 'Error deleting connection ref',
-        });
-      }
-    }
+    // delete() triggers onEvict which destroys the connection pool
+    this.connectionRefs.delete(source.id);
   }
 
   public static async deleteConnectionRef(sourceId: string) {
-    const conn = this.connectionRefs.get(sourceId);
-    if (!conn) return false;
-    try {
-      // Remove reference first so concurrent get() creates a fresh
-      // connection instead of receiving a pool that is being destroyed.
-      this.connectionRefs.delete(sourceId);
-      await conn.destroy();
-      return true;
-    } catch (e) {
-      this.logger.error({
-        error: e,
-        details: 'Error deleting connection ref',
-      });
-      return false;
-    }
+    // delete() triggers onEvict which destroys the connection pool
+    return this.connectionRefs.delete(sourceId);
   }
 
   /**

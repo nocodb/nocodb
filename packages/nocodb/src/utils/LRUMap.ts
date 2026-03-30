@@ -39,6 +39,12 @@ export class LRUMap<V> {
   }
 
   delete(key: string): boolean {
+    if (this.onEvict) {
+      const value = this.map.get(key);
+      if (value !== undefined) {
+        this.onEvict(value);
+      }
+    }
     return this.map.delete(key);
   }
 

@@ -6,7 +6,6 @@ const {
   isOpen,
   isLoading,
   deletedRecords,
-  trashCount,
   currentPage,
   pageSize,
   totalCount,
@@ -146,10 +145,7 @@ watch(isOpen, (val) => {
       data-testid="nc-toolbar-record-trash-btn"
       @click="openTrash"
     >
-      <div class="flex items-center gap-1">
-        <GeneralIcon icon="ncTrash" class="h-4 w-4" />
-        <span v-if="trashCount > 0" class="text-captionSm text-nc-content-red-dark">{{ trashCount }}</span>
-      </div>
+      <GeneralIcon icon="ncTrash" class="h-4 w-4" />
     </NcButton>
   </NcTooltip>
 
@@ -161,7 +157,6 @@ watch(isOpen, (val) => {
           <span class="text-nc-content-gray-emphasis font-semibold text-xl">
             {{ $t('trash.title') }}
           </span>
-          <NcBadge v-if="trashCount > 0" color-scheme="red" size="sm">{{ trashCount }}</NcBadge>
         </div>
         <div class="flex justify-end items-center gap-3 flex-1">
           <NcButton type="text" size="small" data-testid="nc-trash-close-btn" @click="isOpen = false">

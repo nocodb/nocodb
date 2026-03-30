@@ -41,6 +41,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { $e, $api, $ncSocket } = useNuxtApp()
 
+    const { restoreFromTrash } = useRecordTrash()
+
     const { sorts, nestedFilters, eventBus, xWhere, allFilters, validFiltersFromUrlParams } = useSmartsheetStoreOrThrow()
 
     const { sharedView, fetchSharedViewData, fetchSharedViewGroupedData } = useSharedView()
@@ -761,13 +763,9 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
               ? {
                   fn: async function undo(this: UndoRedoAction, row: Row) {
                     const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-                    await $api.internal.postOperation(
-                      (meta.value as TableType)?.fk_workspace_id ?? 'nc__',
-                      (meta.value as TableType)?.base_id!,
-                      { operation: 'recordTrashRestore' as any } as any,
-                      { tableId: meta.value?.id, rowIds: [id] },
-                    )
-                    addOrEditStackRow(row, true)
+                    await restoreFromTrash(meta.value as TableType, [id], {
+                      onSuccess: () => addOrEditStackRow(row, true),
+                    })
                   },
                   args: [clone(row)],
                 }

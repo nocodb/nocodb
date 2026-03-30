@@ -51,11 +51,11 @@ export const useRecordTrash = createSharedComposable(() => {
   const pkColumn = computed(() => columns.value.find((c) => c.pk)?.title ?? 'Id')
 
   async function loadTrashCount() {
-    if (!tableId.value) return
+    if (!tableId.value || !(meta.value as TableType)?.fk_workspace_id) return
     try {
       const result = await $api.internal.getOperation(
-        (meta.value as TableType)?.fk_workspace_id ?? 'nc__',
-        (meta.value as TableType)?.base_id!,
+        (meta.value as TableType).fk_workspace_id!,
+        (meta.value as TableType)?.base_id,
         {
           operation: 'recordTrashCount' as RecordTrashOperation,
           tableId: tableId.value,
@@ -69,12 +69,12 @@ export const useRecordTrash = createSharedComposable(() => {
   }
 
   async function loadDeletedRecords() {
-    if (!tableId.value) return
+    if (!tableId.value || !(meta.value as TableType)?.fk_workspace_id) return
     isLoading.value = true
     try {
       const offset = (currentPage.value - 1) * pageSize
       const result = (await $api.internal.getOperation(
-        (meta.value as TableType)?.fk_workspace_id ?? 'nc__',
+        (meta.value as TableType).fk_workspace_id!,
         (meta.value as TableType)?.base_id!,
         {
           operation: 'recordTrashList' as RecordTrashOperation,
@@ -101,22 +101,31 @@ export const useRecordTrash = createSharedComposable(() => {
     totalCount.value = Math.max(0, totalCount.value - rowIds.length)
   }
 
-  async function _doRestoreRecords(rowIds: string[], force = false) {
+  async function doRestore(tableMeta: TableType, rowIds: string[], force = false) {
     await $api.internal.postOperation(
-      (meta.value as TableType)?.fk_workspace_id ?? 'nc__',
-      (meta.value as TableType)?.base_id!,
+      tableMeta.fk_workspace_id!,
+      tableMeta.base_id!,
       { operation: 'recordTrashRestore' as RecordTrashOperation } as any,
-      { tableId: tableId.value, rowIds, force },
+      { tableId: tableMeta.id, rowIds, force },
     )
-    message.success(t('trash.recordsRestored', { count: rowIds.length }))
-    await loadTrashCount()
   }
 
-  async function restoreRecords(rowIds: string[]) {
-    if (!tableId.value || !rowIds.length) return
+  /**
+   * Generic conflict-aware restore. Used by both the trash drawer and undo handlers.
+   */
+  async function restoreFromTrash(
+    tableMeta: TableType | undefined,
+    rowIds: string[],
+    callbacks?: {
+      onSuccess?: () => Promise<void> | void
+      onError?: () => Promise<void> | void
+    },
+  ): Promise<void> {
+    if (!tableMeta?.id || !tableMeta.fk_workspace_id || !rowIds.length) return
+
     try {
-      await _doRestoreRecords(rowIds)
-      removeRowsLocally(rowIds)
+      await doRestore(tableMeta, rowIds)
+      await callbacks?.onSuccess?.()
     } catch (e: any) {
       const { error } = await extractSdkResponseErrorMsgv2(e)
       if (error === NcErrorType.ERR_RECORD_RESTORE_CONFLICT) {
@@ -126,29 +135,42 @@ export const useRecordTrash = createSharedComposable(() => {
           okText: t('trash.restoreAnyway'),
           okCallback: async () => {
             try {
-              await _doRestoreRecords(rowIds, true)
-              removeRowsLocally(rowIds)
+              await doRestore(tableMeta, rowIds, true)
+              await callbacks?.onSuccess?.()
             } catch (e2: any) {
               message.error(await extractSdkResponseErrorMsg(e2))
-              await loadDeletedRecords()
-              await loadTrashCount()
+              await callbacks?.onError?.()
             }
           },
         })
       } else {
         message.error(await extractSdkResponseErrorMsg(e))
-        await loadDeletedRecords()
-        await loadTrashCount()
+        await callbacks?.onError?.()
       }
     }
   }
 
-  async function permanentDeleteRecords(rowIds: string[]) {
+  async function restoreRecords(rowIds: string[]) {
     if (!tableId.value || !rowIds.length) return
+    await restoreFromTrash(meta.value as TableType, rowIds, {
+      onSuccess: async () => {
+        message.success(t('trash.recordsRestored', { count: rowIds.length }))
+        removeRowsLocally(rowIds)
+        await loadTrashCount()
+      },
+      onError: async () => {
+        await loadDeletedRecords()
+        await loadTrashCount()
+      },
+    })
+  }
+
+  async function permanentDeleteRecords(rowIds: string[]) {
+    if (!tableId.value || !rowIds.length || !(meta.value as TableType)?.fk_workspace_id) return
     removeRowsLocally(rowIds)
     try {
       await $api.internal.postOperation(
-        (meta.value as TableType)?.fk_workspace_id ?? 'nc__',
+        (meta.value as TableType).fk_workspace_id!,
         (meta.value as TableType)?.base_id!,
         { operation: 'recordTrashPermanentDelete' as RecordTrashOperation } as any,
         { tableId: tableId.value, rowIds },
@@ -162,11 +184,11 @@ export const useRecordTrash = createSharedComposable(() => {
   }
 
   async function emptyTrash() {
-    if (!tableId.value) return
+    if (!tableId.value || !(meta.value as TableType)?.fk_workspace_id) return
     try {
       await $api.internal.postOperation(
-        (meta.value as TableType)?.fk_workspace_id ?? 'nc__',
-        (meta.value as TableType)?.base_id,
+        (meta.value as TableType).fk_workspace_id!,
+        (meta.value as TableType)?.base_id!,
         { operation: 'recordTrashEmpty' as RecordTrashOperation } as any,
         { tableId: tableId.value },
       )
@@ -252,6 +274,7 @@ export const useRecordTrash = createSharedComposable(() => {
     pkColumn,
     retentionDays,
     loadDeletedRecords,
+    restoreFromTrash,
     restoreRecords,
     permanentDeleteRecords,
     emptyTrash,

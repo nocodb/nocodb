@@ -42,6 +42,8 @@ export function useGridViewData(
 
   const { $api } = useNuxtApp()
 
+  const { restoreFromTrash } = useRecordTrash()
+
   const isBulkOperationInProgress = ref(false)
 
   const {
@@ -333,16 +335,12 @@ export function useGridViewData(
               .map((row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]))
               .filter(Boolean)
 
-            if (rowIds.length) {
-              await $api.internal.postOperation(
-                (meta.value as TableType)?.fk_workspace_id ?? 'nc__',
-                (meta.value as TableType)?.base_id!,
-                { operation: 'recordTrashRestore' as any } as any,
-                { tableId: meta.value?.id, rowIds },
-              )
-            }
-            clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, path)
-            await loadData(undefined, path)
+            await restoreFromTrash(meta.value as TableType, rowIds, {
+              onSuccess: async () => {
+                clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, path)
+                await loadData(undefined, path)
+              },
+            })
           } else {
             const rowsToInsert = removedRowsData.reverse()
 
@@ -951,16 +949,12 @@ export function useGridViewData(
               .map((row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]))
               .filter(Boolean)
 
-            if (rowIds.length) {
-              await $api.internal.postOperation(
-                (meta.value as TableType)?.fk_workspace_id ?? 'nc__',
-                (meta.value as TableType)?.base_id!,
-                { operation: 'recordTrashRestore' as any } as any,
-                { tableId: meta.value?.id, rowIds },
-              )
-            }
-            clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, path)
-            await loadData(undefined, path)
+            await restoreFromTrash(meta.value as TableType, rowIds, {
+              onSuccess: async () => {
+                clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, path)
+                await loadData(undefined, path)
+              },
+            })
           } else {
             const rowsToInsert = deletedRows.reverse()
 

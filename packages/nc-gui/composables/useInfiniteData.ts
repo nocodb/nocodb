@@ -100,6 +100,8 @@ export function useInfiniteData(args: {
 
   const { t } = useI18n()
 
+  const { restoreFromTrash } = useRecordTrash()
+
   const router = useRouter()
 
   const { isUIAllowed } = useRoles()
@@ -1385,16 +1387,14 @@ export function useInfiniteData(args: {
             undo: hasSoftDelete
               ? {
                   fn: async (id: string, _path: Array<number>) => {
-                    await $api.internal.postOperation(
-                      (meta.value as TableType)?.fk_workspace_id,
-                      (meta.value as TableType).base_id!,
-                      { operation: 'recordTrashRestore' as any } as any,
-                      { tableId: meta.value?.id, rowIds: [id] },
-                    )
-                    const dc = getDataCache(_path)
-                    dc.cachedRows.value.clear()
-                    dc.chunkStates.value = []
-                    await syncCount(path, false, false)
+                    await restoreFromTrash(meta.value as TableType, [id], {
+                      onSuccess: async () => {
+                        const dc = getDataCache(_path)
+                        dc.cachedRows.value.clear()
+                        dc.chunkStates.value = []
+                        await syncCount(path, false, false)
+                      },
+                    })
                   },
                   args: [id as string, clone(path)],
                 }

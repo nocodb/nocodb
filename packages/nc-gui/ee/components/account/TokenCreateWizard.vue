@@ -305,13 +305,12 @@ const onResultDone = () => {
     </div>
 
     <!-- Token Created Modal -->
-    <a-modal
+    <NcModal
       v-model:visible="showResultModal"
       :closable="false"
       :mask-closable="false"
       :keyboard="false"
-      :footer="null"
-      width="480px"
+      size="sm"
       centered
     >
       <div class="flex flex-col gap-4 p-1" data-testid="nc-token-result-modal">
@@ -378,7 +377,7 @@ const onResultDone = () => {
           </NcButton>
         </div>
       </div>
-    </a-modal>
+    </NcModal>
   </div>
 </template>
 

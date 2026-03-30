@@ -241,7 +241,7 @@ export class ApiTokensV3Service {
 
     // resource_type: 'all' is a sentinel from the UI meaning "org-wide access" —
     // filter it out before validation/insertion (no scope rows = org-wide in the auth strategy)
-    const scopesForStorage = param.body.scopes.filter(
+    const scopesForStorage = (param.body.scopes || []).filter(
       (s) => s.resource_type !== 'all',
     );
 

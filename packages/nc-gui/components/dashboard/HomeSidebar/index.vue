@@ -11,8 +11,6 @@ const notificationStore = useNotification()
 
 const { unreadCount } = toRefs(notificationStore)
 
-const { isDark } = useTheme()
-
 const name = computed(() => user.value?.display_name?.trim())
 
 const isUserMenuOpen = ref(false)
@@ -35,8 +33,7 @@ const navigateToWorkspace = () => {
     <!-- Brand header -->
     <div class="w-full px-2 py-1.5 flex items-center justify-between gap-2 h-[var(--topbar-height)] flex-none">
       <div class="pl-1">
-        <img v-if="isDark" alt="NocoDB" src="~/assets/img/brand/text.png" class="h-4" />
-        <img v-else alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="h-4" />
+        <img alt="NocoDB" src="~/assets/img/brand/nocodb-full.png" class="h-4" />
       </div>
 
       <GeneralHideLeftSidebarBtn show-always />

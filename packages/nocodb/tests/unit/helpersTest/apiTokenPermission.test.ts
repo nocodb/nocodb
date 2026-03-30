@@ -969,6 +969,7 @@ function apiTokenPermissionTests() {
           'linkDataList', 'groupedDataList', 'mmList', 'hmList',
           'nestedDataList', 'mmExcludedList', 'hmExcludedList',
           'btExcludedList', 'ooExcludedList', 'dataExport', 'exportCsv', 'exportExcel',
+          'presignedUrl',
         ],
         write: [
           'dataInsert', 'dataUpdate', 'dataDelete', 'bulkDataInsert',
@@ -976,10 +977,11 @@ function apiTokenPermissionTests() {
           'bulkDataDeleteAll', 'bulkDataUpsert', 'relationDataAdd',
           'relationDataRemove', 'nestedDataLink', 'nestedDataUnlink',
           'nestedDataListCopyPasteOrDeleteAll',
+          'upload', 'uploadViaURL',
         ],
       },
       tables: {
-        read: ['tableList', 'tableGet'],
+        read: ['tableList', 'tableGet', 'tableInfoGet'],
         write: ['tableCreate', 'tableUpdate', 'tableDelete'],
       },
       fields: {
@@ -1005,7 +1007,7 @@ function apiTokenPermissionTests() {
         ],
       },
       base: {
-        read: ['baseGet', 'baseInfoGet', 'baseCost', 'swaggerJson', 'jobList'],
+        read: ['baseList', 'baseGet', 'baseInfoGet', 'baseCost', 'swaggerJson', 'jobList', 'sourceList', 'sourceGet'],
         write: ['sourceCreate', 'baseDelete'],
       },
       comments: {

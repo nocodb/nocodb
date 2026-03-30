@@ -228,8 +228,15 @@ export class ApiTokensV3Service {
       user: param.cookie['user'],
     });
 
+    // Batch-load scopes for all tokens in one query to avoid N+1
+    const tokenIds = result.list.map((t: Record<string, any>) => t.id).filter(Boolean);
+    const scopesByTokenId = tokenIds.length
+      ? await ApiTokenScope.listByTokenIds(tokenIds)
+      : {};
+
     const list = [];
     for (const apiT of result.list) {
+      (apiT as Record<string, any>).scopes = scopesByTokenId[apiT.id] || [];
       const v3Token = await this.transformToV3(apiT);
       delete v3Token.token;
       list.push(v3Token);
@@ -325,24 +332,30 @@ export class ApiTokensV3Service {
       updateData.enabled = param.body.enabled;
     }
 
-    if (Object.keys(updateData).length) {
-      await ApiToken.update(param.id, updateData);
-    }
-
-    // Update scopes if provided — wrapped in transaction for atomicity
+    // Validate scopes before transaction
+    let scopesForUpdate: typeof param.body.scopes | undefined;
     if (param.body.scopes !== undefined) {
-      // Filter out "all resources" sentinel before validation/storage
-      const scopesForUpdate = param.body.scopes.filter(
+      scopesForUpdate = param.body.scopes.filter(
         (s) => (s.resource_type as string) !== 'all',
       );
       await this.validateScopes(scopesForUpdate, user?.id);
+    }
 
+    // Wrap metadata update + scope replacement in one transaction
+    const hasMetadataUpdate = Object.keys(updateData).length > 0;
+    const hasScopeUpdate = scopesForUpdate !== undefined;
+
+    if (hasMetadataUpdate || hasScopeUpdate) {
       const trx = await Noco.ncMeta.startTransaction();
       try {
-        // Replace all scopes — delete existing, insert new
-        await ApiTokenScope.deleteByTokenId(param.id, trx);
-        if (scopesForUpdate.length) {
-          await ApiTokenScope.bulkInsert(param.id, scopesForUpdate, trx);
+        if (hasMetadataUpdate) {
+          await ApiToken.update(param.id, updateData, trx);
+        }
+        if (hasScopeUpdate) {
+          await ApiTokenScope.deleteByTokenId(param.id, trx);
+          if (scopesForUpdate.length) {
+            await ApiTokenScope.bulkInsert(param.id, scopesForUpdate, trx);
+          }
         }
         await trx.commit();
       } catch (e) {

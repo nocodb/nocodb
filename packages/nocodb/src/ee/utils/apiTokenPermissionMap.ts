@@ -64,11 +64,17 @@ export const API_TOKEN_PERMISSION_MAP: Record<string, TokenPermissionMapping> = 
   nestedDataUnlink: { category: 'records', level: 'write' },
   nestedDataListCopyPasteOrDeleteAll: { category: 'records', level: 'write' },
 
+  // Attachments (tied to record data)
+  upload: { category: 'records', level: 'write' },
+  uploadViaURL: { category: 'records', level: 'write' },
+  presignedUrl: { category: 'records', level: 'read' },
+
   // ──────────────────────────────────
   // Tables (read)
   // ──────────────────────────────────
   tableList: { category: 'tables', level: 'read' },
   tableGet: { category: 'tables', level: 'read' },
+  tableInfoGet: { category: 'tables', level: 'read' },
 
   // Tables (write)
   tableCreate: { category: 'tables', level: 'write' },
@@ -136,11 +142,14 @@ export const API_TOKEN_PERMISSION_MAP: Record<string, TokenPermissionMapping> = 
   // ──────────────────────────────────
   // Base — settings, sources, jobs
   // ──────────────────────────────────
+  baseList: { category: 'base', level: 'read' },
   baseGet: { category: 'base', level: 'read' },
   baseInfoGet: { category: 'base', level: 'read' },
   baseCost: { category: 'base', level: 'read' },
   swaggerJson: { category: 'base', level: 'read' },
   jobList: { category: 'base', level: 'read' },
+  sourceList: { category: 'base', level: 'read' },
+  sourceGet: { category: 'base', level: 'read' },
 
   // Base (write)
   sourceCreate: { category: 'base', level: 'write' },

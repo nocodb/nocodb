@@ -117,6 +117,29 @@ export default class ApiTokenScope implements ApiTokenScopeEntry {
     return data && new ApiTokenScope(data);
   }
 
+  /**
+   * Batch-load scopes for multiple tokens in a single query.
+   * Returns a map of tokenId → ApiTokenScope[].
+   */
+  public static async listByTokenIds(
+    tokenIds: string[],
+    ncMeta = Noco.ncMeta,
+  ): Promise<Record<string, ApiTokenScope[]>> {
+    if (!tokenIds.length) return {};
+
+    const rows = await ncMeta
+      .knex(MetaTable.API_TOKEN_SCOPES)
+      .whereIn('fk_api_token_id', tokenIds);
+
+    const result: Record<string, ApiTokenScope[]> = {};
+    for (const row of rows) {
+      const id = row.fk_api_token_id;
+      if (!result[id]) result[id] = [];
+      result[id].push(new ApiTokenScope(row));
+    }
+    return result;
+  }
+
   public static async listByTokenId(
     tokenId: string,
     ncMeta = Noco.ncMeta,

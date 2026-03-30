@@ -62,6 +62,11 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
             // resource is being accessed. Context-free endpoints (e.g., /users/me,
             // /projects/) are allowed through — ACL + blockApiTokenAccess in
             // extract-ids middleware handles gating for those.
+            //
+            // INVARIANT: Every sensitive context-free endpoint MUST have
+            // blockApiTokenAccess: true in its ACL definition. Without it,
+            // fine-grained tokens can access the endpoint regardless of scope.
+            // When adding new org-level endpoints, always set blockApiTokenAccess.
             if (!matchedScope && scopes.length > 0 && (requestBaseId || requestWorkspaceId)) {
               return callback({ msg: 'Token scope mismatch' });
             }

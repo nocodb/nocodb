@@ -44,6 +44,8 @@ export class OrgTokensController {
     });
   }
 
+  // TODO: Once fine-grained tokens are stable, gate or deprecate V1 token
+  // creation to allow orgs to enforce fine-grained-only policy.
   @Post('/api/v1/tokens')
   @HttpCode(200)
   @Acl('apiTokenCreate', {

@@ -136,6 +136,7 @@ const removeAllResources = () => {
 
 const addBase = (baseId: string) => {
   if (selectedBaseIds.value.includes(baseId)) return
+  hasAllResources.value = false
   selectedBaseIds.value = [...selectedBaseIds.value, baseId]
   showBaseDropdown.value = false
   searchQuery.value = ''
@@ -221,6 +222,7 @@ const toggleBaseDropdown = () => {
       </NcButton>
 
       <NcDropdown
+        v-if="!hasAllResources"
         v-model:visible="showBaseDropdown"
         :trigger="['click']"
         placement="bottomLeft"

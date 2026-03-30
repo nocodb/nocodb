@@ -34,7 +34,7 @@ export interface ApiTokensV3 {
 
 export interface ApiTokensV3ListResponse {
   list: ApiTokensV3[];
-  pageInfo?: {
+  pageInfo: {
     totalRows: number;
     page: number;
     pageSize: number;

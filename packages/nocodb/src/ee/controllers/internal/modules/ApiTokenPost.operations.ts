@@ -41,7 +41,7 @@ export class ApiTokenPostOperations
         });
       case 'apiTokenUpdateWithScopes':
         return await this.apiTokensV3Service.update({
-          id: payload.tokenId,
+          id: req.query.tokenId as string,
           body: payload,
           cookie: req,
         });

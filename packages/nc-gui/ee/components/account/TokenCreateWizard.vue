@@ -146,8 +146,7 @@ const submitToken = async () => {
       await $api.internal.postOperation(NO_SCOPE, NO_SCOPE, {
         operation: 'apiTokenUpdateWithScopes',
         tokenId: props.editToken!.id,
-        ...payload,
-      })
+      }, payload)
 
       // Telemetry: token updated — log scope/permission counts, never token values
       $e('a:api-token:update', {
@@ -171,8 +170,7 @@ const submitToken = async () => {
 
       const result: any = await $api.internal.postOperation(NO_SCOPE, NO_SCOPE, {
         operation: 'apiTokenCreateWithScopes',
-        ...payload,
-      })
+      }, payload)
       createdTokenValue.value = result.token
       showResultModal.value = true
 

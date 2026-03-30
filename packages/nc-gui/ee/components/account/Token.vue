@@ -148,8 +148,7 @@ const toggleEnabled = async (token: IApiTokenInfo) => {
     await $api.internal.postOperation(NO_SCOPE, NO_SCOPE, {
       operation: 'apiTokenUpdateWithScopes',
       tokenId: token.id,
-      enabled: newEnabled,
-    })
+    }, { enabled: newEnabled })
     await loadTokens()
     $e('a:api-token:toggle-enabled', { enabled: newEnabled })
   } catch (e: any) {

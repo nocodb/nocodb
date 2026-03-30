@@ -24,7 +24,7 @@ export default class NcConnectionMgrv2 {
   protected static connectionRefs = new LRUMap<XKnex>(
     CONNECTION_CACHE_MAX_SIZE,
     (conn) => {
-      conn.destroy().catch((e) => {
+      return conn.destroy().catch((e) => {
         NcConnectionMgrv2.logger.error({
           error: e,
           details: 'Error destroying evicted connection',
@@ -34,18 +34,16 @@ export default class NcConnectionMgrv2 {
   );
 
   public static async destroyAll() {
-    this.connectionRefs.clear();
+    await this.connectionRefs.asyncClear();
   }
 
   public static async deleteAwait(source: Source) {
     // todo: ignore meta bases
-    // delete() triggers onEvict which destroys the connection pool
-    this.connectionRefs.delete(source.id);
+    await this.connectionRefs.asyncDelete(source.id);
   }
 
   public static async deleteConnectionRef(sourceId: string) {
-    // delete() triggers onEvict which destroys the connection pool
-    return this.connectionRefs.delete(sourceId);
+    await this.connectionRefs.asyncDelete(sourceId);
   }
 
   /**

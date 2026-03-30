@@ -9,7 +9,10 @@
 export class LRUMap<V> {
   private map = new Map<string, V>();
 
-  constructor(private maxSize: number, private onEvict?: (value: V) => void) {}
+  constructor(
+    private maxSize: number,
+    private onEvict?: (value: V) => void | Promise<void>,
+  ) {}
 
   get(key: string): V | undefined {
     const value = this.map.get(key);
@@ -55,6 +58,34 @@ export class LRUMap<V> {
     if (this.onEvict) {
       for (const value of this.map.values()) {
         this.onEvict(value);
+      }
+    }
+    this.map.clear();
+  }
+
+  /**
+   * Like delete(), but awaits onEvict if it returns a Promise.
+   * Use for intentional teardown where callers need to wait for cleanup.
+   */
+  async asyncDelete(key: string): Promise<boolean> {
+    if (this.onEvict) {
+      const value = this.map.get(key);
+      if (value !== undefined) {
+        await this.onEvict(value);
+      }
+    }
+    return this.map.delete(key);
+  }
+
+  /**
+   * Like clear(), but awaits onEvict for every entry if it returns a Promise.
+   * Use for intentional teardown (shutdown, cleanup) where callers
+   * need all resources fully released before proceeding.
+   */
+  async asyncClear(): Promise<void> {
+    if (this.onEvict) {
+      for (const value of this.map.values()) {
+        await this.onEvict(value);
       }
     }
     this.map.clear();

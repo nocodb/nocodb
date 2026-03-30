@@ -38,7 +38,7 @@ import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class NotificationsService extends NotificationsServiceCE {
-  private unsubscribers: (() => void)[] = [];
+  protected listenerUnsubs: (() => void)[] = [];
 
   constructor(
     protected readonly appHooks: AppHooksService,
@@ -55,7 +55,7 @@ export class NotificationsService extends NotificationsServiceCE {
     // would only create duplicates.
 
     const on = (event: AppEvents, listener: (data: any) => void) => {
-      this.unsubscribers.push(this.appHooks.on(event, listener));
+      this.listenerUnsubs.push(this.appHooks.on(event, listener));
     };
 
     on(AppEvents.PROJECT_INVITE, (data) =>
@@ -114,10 +114,10 @@ export class NotificationsService extends NotificationsServiceCE {
 
   @EEOnly()
   onModuleDestroy() {
-    for (const unsub of this.unsubscribers) {
+    for (const unsub of this.listenerUnsubs) {
       unsub();
     }
-    this.unsubscribers = [];
+    this.listenerUnsubs = [];
   }
 
   /**

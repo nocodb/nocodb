@@ -58,10 +58,11 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
               requestWorkspaceId,
             );
 
-            // If token has scopes defined but none match the current request,
-            // deny access. For org-level endpoints (no base/workspace context),
-            // scoped tokens should not have unrestricted access.
-            if (!matchedScope && scopes.length > 0) {
+            // If token has scopes but none match, deny only when a specific
+            // resource is being accessed. Context-free endpoints (e.g., /users/me,
+            // /projects/) are allowed through — ACL + blockApiTokenAccess in
+            // extract-ids middleware handles gating for those.
+            if (!matchedScope && scopes.length > 0 && (requestBaseId || requestWorkspaceId)) {
               return callback({ msg: 'Token scope mismatch' });
             }
           }

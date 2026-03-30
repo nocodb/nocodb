@@ -1,4 +1,4 @@
-import { NcErrorType, UITypes, isDeletedCol, isVirtualCol } from 'nocodb-sdk'
+import { NcErrorType } from 'nocodb-sdk'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 
 type RecordTrashOperation =
@@ -9,11 +9,17 @@ type RecordTrashOperation =
   | 'recordTrashEmpty'
 
 export const useRecordTrash = createSharedComposable(() => {
-  const { $api } = useNuxtApp()
+  const { $api, $eventBus } = useNuxtApp()
 
   const { t } = useI18n()
 
-  const { meta, eventBus } = useSmartsheetStoreOrThrow()
+  const tablesStore = useTablesStore()
+
+  const { activeTableId: tableId, activeTable } = storeToRefs(tablesStore)
+
+  const { activeProjectId } = storeToRefs(useBases())
+
+  const { getMetaByKey } = useMetas()
 
   const { showWarningModal } = useNcConfirmModal()
 
@@ -35,28 +41,14 @@ export const useRecordTrash = createSharedComposable(() => {
 
   const retentionDays = ref(30)
 
-  const tableId = computed(() => meta.value?.id)
+  const meta = computed(() => {
+    if (!activeProjectId.value || !tableId.value) return undefined
+    return getMetaByKey(activeProjectId.value, tableId.value) ?? activeTable.value
+  })
 
-  // Derive column info from table meta — no need for backend to return it
   const columns = computed(() => (meta.value?.columns ?? []) as ColumnType[])
 
   const pkColumn = computed(() => columns.value.find((c) => c.pk)?.title ?? 'Id')
-
-  const pvColumn = computed(() => columns.value.find((c) => c.pv))
-
-  const deletedAtColumn = computed(
-    () => columns.value.find((c) => c.uidt === UITypes.LastModifiedTime && c.system)?.title ?? null,
-  )
-
-  const deletedByColumnObj = computed(() => columns.value.find((c) => c.uidt === UITypes.LastModifiedBy && c.system) ?? null)
-
-  const deletedByColumn = computed(() => deletedByColumnObj.value?.title ?? null)
-
-  const displayColumns = computed(() =>
-    columns.value.filter((c) => !isDeletedCol(c) && !c.pk && !c.pv && !c.system && !isVirtualCol(c)),
-  )
-
-  const previewColumns = computed(() => displayColumns.value.slice(0, 6))
 
   async function loadTrashCount() {
     if (!tableId.value) return
@@ -192,13 +184,19 @@ export const useRecordTrash = createSharedComposable(() => {
 
   function openTrash() {
     isOpen.value = true
-    loadDeletedRecords()
   }
 
   watch(
     tableId,
     () => {
+      currentPage.value = 1
+      selectedRowIds.value = []
+      deletedRecords.value = []
       loadTrashCount()
+
+      if (isOpen.value) {
+        loadDeletedRecords()
+      }
     },
     { immediate: true },
   )
@@ -214,7 +212,7 @@ export const useRecordTrash = createSharedComposable(() => {
     }
   }
 
-  eventBus.on(smartsheetEventHandler)
+  $eventBus.smartsheetStoreEventBus.on(smartsheetEventHandler)
 
   // Periodic refresh when the drawer is open (catches changes not signaled via eventBus)
   let refreshInterval: ReturnType<typeof setInterval> | null = null
@@ -234,7 +232,7 @@ export const useRecordTrash = createSharedComposable(() => {
   })
 
   onScopeDispose(() => {
-    eventBus.off(smartsheetEventHandler)
+    $eventBus.smartsheetStoreEventBus.off(smartsheetEventHandler)
 
     if (refreshInterval) {
       clearInterval(refreshInterval)
@@ -252,14 +250,8 @@ export const useRecordTrash = createSharedComposable(() => {
     totalCount,
     selectedRowIds,
     pkColumn,
-    pvColumn,
-    deletedAtColumn,
-    deletedByColumn,
-    deletedByColumnObj,
-    previewColumns,
     retentionDays,
     loadDeletedRecords,
-    loadTrashCount,
     restoreRecords,
     permanentDeleteRecords,
     emptyTrash,

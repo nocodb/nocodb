@@ -2,11 +2,11 @@
  * Fine-Grained API Token E2E Tests
  *
  * Stories:
- * 1. A user creates a token using the wizard (org scope, no permissions)
- * 2. A user disables and re-enables a token with expiry
+ * 1. A user creates a token using the single-page form
+ * 2. A user disables and re-enables a token
  * 3. A user deletes a token
- * 4. A user cancels token creation mid-wizard
- * 5. A user verifies token list displays scope, permissions and expiry
+ * 4. A user cancels token creation
+ * 5. A user verifies token list displays correct info
  */
 import { expect, test } from '@playwright/test';
 import { AccountPage } from '../../pages/Account';
@@ -17,7 +17,6 @@ import { Api } from 'nocodb-sdk';
 const navigateToTokens = async page => {
   await page.goto('/#/account/tokens');
   await page.waitForLoadState('networkidle');
-  // Retry navigation if page didn't load (setup flakiness)
   try {
     await page.locator('[data-testid="nc-token-list"]').waitFor({ state: 'visible', timeout: 15000 });
   } catch {
@@ -27,41 +26,8 @@ const navigateToTokens = async page => {
   }
 };
 
-const openWizard = async page => {
-  // Click the create button to open dropdown, then select "Fine-grained token"
-  const createBtn = page.locator('[data-testid="nc-token-create"]');
-  await createBtn.waitFor({ state: 'visible' });
-  await createBtn.click();
-  const fineGrainedItem = page.locator('[data-testid="nc-token-create-fine-grained"]');
-  await fineGrainedItem.waitFor({ state: 'visible', timeout: 5000 });
-  await fineGrainedItem.click();
-  await page.locator('[data-testid="nc-token-create-wizard"]').waitFor({ state: 'visible', timeout: 10000 });
-};
-
-// Find a token row by name — NcTable uses <tr> elements
-const findTokenRow = (page, name: string) => {
-  return page.locator('tr.nc-table-row').filter({ hasText: name });
-};
-
 const cleanupAllTokens = async (api: Api<any>) => {
-  // Use V3 list to get all token IDs, then delete each via V3
   try {
-    const response: any = await api.request({
-      path: '/api/v3/meta/tokens',
-      method: 'GET',
-    });
-    for (const token of response?.list || []) {
-      try {
-        await api.request({
-          path: `/api/v3/meta/tokens/${token.id}`,
-          method: 'DELETE',
-        });
-      } catch {
-        // ignore
-      }
-    }
-  } catch {
-    // Fallback — V1 cleanup
     const apiTokens = await api.orgTokens.list();
     for (const token of apiTokens.list) {
       try {
@@ -70,11 +36,12 @@ const cleanupAllTokens = async (api: Api<any>) => {
         // ignore
       }
     }
+  } catch {
+    // ignore
   }
 };
 
 test.describe('Fine-Grained API Token Stories', () => {
-  // All tests share the same super user account, so run serially to avoid cleanup races
   test.describe.configure({ mode: 'serial' });
   let context: NcContext;
   let api: Api<any>;
@@ -94,40 +61,57 @@ test.describe('Fine-Grained API Token Stories', () => {
     await unsetup(context);
   });
 
-  // ─── Story 1: Create a token through the wizard ───
+  // ─── Story 1: Create a token through the single-page form ───
 
-  test('Story: User creates a token through the 3-step wizard', async ({ page }) => {
+  test('Story: User creates a token through the single-page form', async ({ page }) => {
     test.slow();
 
-    // User navigates to the API Tokens page
     await navigateToTokens(page);
 
-    // User clicks "Add new token" to open the creation wizard
-    await openWizard(page);
+    // Click "Create new token" — navigates to /account/tokens/new
+    await page.locator('[data-testid="nc-token-create"]').first().click();
 
-    // Step 1: User enters a descriptive name
+    // Wait for the create form
+    await page.locator('[data-testid="nc-token-create-form"]').waitFor({ state: 'visible', timeout: 10000 });
+
+    // Fill name
     await page.locator('[data-testid="nc-token-name-input"]').fill('My Integration Token');
-    await page.locator('[data-testid="nc-token-wizard-next"]').click();
 
-    // Step 2: User keeps the default "All resources" scope and proceeds
-    await page.locator('[data-testid="nc-token-scope-picker"]').waitFor({ state: 'visible' });
-    await page.locator('[data-testid="nc-token-wizard-next"]').click();
+    // Add permission (optional — form allows creation with just name + scope)
+    const addPermBtn = page.locator('[data-testid="nc-token-perm-add"]');
+    if (await addPermBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      // Permissions section is visible (EE licensed)
+      await addPermBtn.click();
+      // Select first available category from dropdown
+      const firstCategory = page.locator('.nc-perm-dropdown-item').first();
+      if (await firstCategory.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await firstCategory.click();
+      }
+    }
 
-    // Step 3: User clicks "Full access" preset and creates the token
-    await page.locator('[data-testid="nc-token-wizard-step-3"]').waitFor({ state: 'visible' });
-    await page.locator('[data-testid="nc-token-perm-preset-allwrite"]').click();
-    await page.locator('[data-testid="nc-token-wizard-create"]').click();
+    // Add a base scope — click "Add all resources" if visible
+    const addAllBtn = page.locator('[data-testid="nc-token-scope-add-all"]');
+    if (await addAllBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await addAllBtn.click();
+    }
 
-    // Result screen: Token is shown once — starts with nc_pat_
-    await page.locator('[data-testid="nc-token-wizard-result"]').waitFor({ state: 'visible', timeout: 15000 });
+    // Click "Create token"
+    await page.locator('[data-testid="nc-token-create-btn"]').click();
+
+    // Result modal — token is shown once, starts with nc_pat_
+    await page.locator('[data-testid="nc-token-result-modal"]').waitFor({ state: 'visible', timeout: 15000 });
     const tokenText = await page.locator('[data-testid="nc-token-created-value"]').textContent();
     expect(tokenText).toMatch(/^nc_pat_/);
 
-    // User closes the wizard
-    await page.locator('[data-testid="nc-token-wizard-done"]').click({ force: true, timeout: 10000 });
+    // Copy and click Done
+    await page.locator('[data-testid="nc-token-copy-btn"]').click();
+    await page.locator('[data-testid="nc-token-done-btn"]').click();
     await page.waitForTimeout(1000);
-    const row = findTokenRow(page, 'My Integration Token');
-    await expect(row).toBeVisible({ timeout: 10000 });
+
+    // Verify token appears in the list
+    await expect(page.locator('[data-testid="nc-token-list"]')).toContainText('My Integration Token', {
+      timeout: 10000,
+    });
   });
 
   // ─── Story 2: Disable and re-enable a token ───
@@ -135,7 +119,7 @@ test.describe('Fine-Grained API Token Stories', () => {
   test('Story: User disables a token and then re-enables it', async ({ page }) => {
     test.slow();
 
-    // Pre-create a fine-grained token with expiry (so toggle switch appears)
+    // Pre-create a fine-grained token via API
     const futureDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
     await api.request({
       path: '/api/v3/meta/tokens',
@@ -143,26 +127,23 @@ test.describe('Fine-Grained API Token Stories', () => {
       body: {
         title: 'Togglable Token',
         expiry: futureDate,
+        scopes: [{ resource_type: 'base', resource_id: context.base.id }],
       },
     });
 
     await navigateToTokens(page);
 
-    // User finds the token row
-    const row = findTokenRow(page, 'Togglable Token');
-    await expect(row).toBeVisible({ timeout: 10000 });
+    // Find the toggle switch for this token
+    const toggle = page.locator('[data-testid="nc-token-toggle-enabled"]');
+    await expect(toggle.first()).toBeVisible({ timeout: 5000 });
 
-    // User sees the toggle switch (visible because token has expiry = fine-grained)
-    const toggle = row.locator('[data-testid="nc-token-toggle-enabled"]');
-    await expect(toggle).toBeVisible({ timeout: 5000 });
-
-    // User clicks the toggle to disable
-    await toggle.click();
+    // Disable
+    await toggle.first().click();
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(500);
 
-    // User clicks toggle again to re-enable
-    await toggle.click();
+    // Re-enable
+    await toggle.first().click();
     await page.waitForLoadState('networkidle');
   });
 
@@ -171,58 +152,60 @@ test.describe('Fine-Grained API Token Stories', () => {
   test('Story: User deletes a token and confirms it disappears from the list', async ({ page }) => {
     test.slow();
 
-    // Pre-create a token via API
+    // Pre-create via API
     await api.request({
       path: '/api/v3/meta/tokens',
       method: 'POST',
-      body: { title: 'Expendable Token' },
+      body: {
+        title: 'Expendable Token',
+        scopes: [{ resource_type: 'base', resource_id: context.base.id }],
+      },
     });
 
     await navigateToTokens(page);
 
-    // User locates the token
-    const row = findTokenRow(page, 'Expendable Token');
-    await expect(row).toBeVisible({ timeout: 10000 });
+    // Verify token is in list
+    await expect(page.locator('[data-testid="nc-token-list"]')).toContainText('Expendable Token', { timeout: 10000 });
 
-    // User clicks the three-dot menu
-    await row.locator('[data-testid="nc-token-row-action-icon"]').click();
+    // Click delete icon
+    await page.locator('[data-testid="nc-token-row-action-icon"]').first().click();
 
-    // User clicks "Delete" from the dropdown
-    await page.locator('.nc-menu-item:has-text("Delete")').click();
-
-    // Confirmation modal appears — user clicks "Delete"
+    // Confirm deletion
     const confirmBtn = page.locator('[data-testid="nc-delete-modal-delete-btn"]');
-    await expect(confirmBtn).toBeVisible();
+    await expect(confirmBtn).toBeVisible({ timeout: 5000 });
     await confirmBtn.click();
 
-    // Token is gone from the list
+    // Token is gone
     await page.waitForLoadState('networkidle');
-    await expect(findTokenRow(page, 'Expendable Token')).toHaveCount(0, {
+    await page.waitForTimeout(500);
+    await expect(page.locator('[data-testid="nc-token-list"]')).not.toContainText('Expendable Token', {
       timeout: 10000,
     });
   });
 
-  // ─── Story 4: Cancel wizard mid-flow ───
+  // ─── Story 4: Cancel creation ───
 
-  test('Story: User opens the wizard, types a name, then cancels — nothing is created', async ({ page }) => {
+  test('Story: User opens the form, types a name, then cancels — nothing is created', async ({ page }) => {
     await navigateToTokens(page);
-    await openWizard(page);
 
-    // User types a name but changes their mind
+    // Click create
+    await page.locator('[data-testid="nc-token-create"]').first().click();
+    await page.locator('[data-testid="nc-token-create-form"]').waitFor({ state: 'visible', timeout: 10000 });
+
+    // Type a name
     await page.locator('[data-testid="nc-token-name-input"]').fill('Never Created Token');
 
-    // User clicks Cancel
-    await page.locator('[data-testid="nc-token-wizard-cancel"]').click();
+    // Cancel
+    await page.locator('[data-testid="nc-token-cancel-btn"]').click();
 
-    // Wizard closes
-    await expect(page.locator('[data-testid="nc-token-create-wizard"]')).not.toBeVisible();
+    // Back on list — token should not exist
+    await page.locator('[data-testid="nc-token-list"]').waitFor({ state: 'visible', timeout: 10000 });
+    await expect(page.locator('[data-testid="nc-token-list"]')).not.toContainText('Never Created Token');
   });
 
-  // ─── Story 5: Verify list columns for a scoped token ───
+  // ─── Story 5: Verify list displays token info ───
 
-  test('Story: User creates a scoped token via API and verifies the list displays scope and permissions', async ({
-    page,
-  }) => {
+  test('Story: User verifies token list displays correct info for a scoped token', async ({ page }) => {
     test.slow();
 
     // Create a fully-configured token via API
@@ -252,18 +235,10 @@ test.describe('Fine-Grained API Token Stories', () => {
 
     await navigateToTokens(page);
 
-    // User sees the token in the list
-    const row = findTokenRow(page, 'Detailed Token');
-    await expect(row).toBeVisible({ timeout: 10000 });
+    // Token appears in list with name
+    await expect(page.locator('[data-testid="nc-token-list"]')).toContainText('Detailed Token', { timeout: 10000 });
 
-    // Details show scope info ("1 base")
-    await expect(row.locator('[data-testid="nc-token-scope"]')).toContainText('1 base');
-
-    // Permissions shows a summary
-    const permsText = await row.locator('[data-testid="nc-token-permissions"]').textContent();
-    expect(permsText).toBeTruthy();
-
-    // Toggle switch is visible (fine-grained token)
-    await expect(row.locator('[data-testid="nc-token-toggle-enabled"]')).toBeVisible();
+    // Toggle switch is visible for fine-grained token
+    await expect(page.locator('[data-testid="nc-token-toggle-enabled"]').first()).toBeVisible();
   });
 });

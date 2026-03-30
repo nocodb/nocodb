@@ -30,7 +30,7 @@ interface IApiTokenInfo extends ApiTokenType {
 const route = useRoute()
 
 const viewMode = ref<'list' | 'create'>(
-  route.path.endsWith('/new') ? 'create' : 'list',
+  route.path.replace(/\/$/, '').endsWith('/new') ? 'create' : 'list',
 )
 
 const tokens = ref<IApiTokenInfo[]>([])

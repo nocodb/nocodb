@@ -301,6 +301,9 @@ watch(isActive, () => {
 
 watch(isCreateTeamModalVisible, (val) => {
   if (!val) {
+    if (createTeamParentId.value) {
+      expandedTeams.value.add(createTeamParentId.value)
+    }
     createTeamParentId.value = null
   }
 })
@@ -527,26 +530,33 @@ onMounted(async () => {
                     <GeneralIcon icon="ncEdit" class="h-4 w-4" />
                     {{ $t('general.edit') }}
                   </NcMenuItem>
-                  <NcMenuItem
-                    v-if="(record.is_owner || isWsOwner) && (record.depth ?? 0) < 3"
-                    v-e="['c:team:add-sub-team', { teamId: record.id }]"
-                    @click="
-                      showUpgradeToUseTeamHierarchy({
-                        successCallback: () => handleCreateSubTeam(record as TeamV3V3Type),
-                      })
-                    "
+                  <NcTooltip
+                    v-if="(record.depth ?? 0) < 3"
+                    :disabled="record.is_owner || isWsOwner"
+                    :title="t('msg.info.onlyTeamManagerCanAddSubTeam')"
+                    placement="left"
                   >
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon icon="plus" class="h-4 w-4" />
-                      {{ $t('labels.addSubTeam') }}
-                      <PaymentUpgradeBadge
-                        v-if="blockTeamHierarchy"
-                        :feature="PlanFeatureTypes.FEATURE_TEAM_HIERARCHY"
-                        :title="$t('upgrade.upgradeToUseTeamHierarchy')"
-                        :content="$t('upgrade.upgradeToUseTeamHierarchySubtitle', { plan: PlanTitles.ENTERPRISE })"
-                      />
-                    </div>
-                  </NcMenuItem>
+                    <NcMenuItem
+                      v-e="['c:team:add-sub-team', { teamId: record.id }]"
+                      :disabled="!record.is_owner && !isWsOwner"
+                      @click="
+                        showUpgradeToUseTeamHierarchy({
+                          successCallback: () => handleCreateSubTeam(record as TeamV3V3Type),
+                        })
+                      "
+                    >
+                      <div class="flex items-center gap-2">
+                        <GeneralIcon icon="plus" class="h-4 w-4" />
+                        {{ $t('labels.addSubTeam') }}
+                        <PaymentUpgradeBadge
+                          v-if="blockTeamHierarchy"
+                          :feature="PlanFeatureTypes.FEATURE_TEAM_HIERARCHY"
+                          :title="$t('upgrade.upgradeToUseTeamHierarchy')"
+                          :content="$t('upgrade.upgradeToUseTeamHierarchySubtitle', { plan: PlanTitles.ENTERPRISE })"
+                        />
+                      </div>
+                    </NcMenuItem>
+                  </NcTooltip>
                   <NcMenuItem
                     v-if="(record.is_owner || isWsOwner) && !blockTeamHierarchy"
                     v-e="['c:team:move', { teamId: record.id }]"

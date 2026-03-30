@@ -95,7 +95,7 @@ onBeforeMount(() => {
               </div>
             </div>
           </template>
-          <div class="p-6 h-[calc(100vh-92px)]">
+          <div class="px-6 h-[calc(100vh-92px)]">
             <WorkspaceIntegrationsConnectionsTab />
           </div>
         </a-tab-pane>

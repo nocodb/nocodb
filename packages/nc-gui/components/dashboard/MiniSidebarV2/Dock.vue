@@ -357,7 +357,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       <!-- Help -->
       <div :ref="(el: any) => setItemRef('help', el)" class="nc-dock-magnify-wrapper" :style="getMagnifyStyle('help')">
         <DashboardMiniSidebarHelp>
-          <DashboardMiniSidebarV2DockItem icon="ncHelp" label="Help" panel-key="help" :scale="1" />
+          <DashboardMiniSidebarV2DockItem icon="ncHelp" :label="$t('general.help')" panel-key="help" :scale="1" />
         </DashboardMiniSidebarHelp>
       </div>
     </div>

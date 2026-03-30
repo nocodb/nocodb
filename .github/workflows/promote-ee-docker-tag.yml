@@ -1,0 +1,27 @@
+name: "Enterprise : Promote Docker tag"
+
+on:
+  workflow_dispatch:
+    inputs:
+      sourceTag:
+        description: "Existing tag to promote (e.g. 2026.03.1)"
+        required: true
+      targetTag:
+        description: "Target tag to create"
+        required: true
+        default: "latest"
+
+jobs:
+  promote:
+    runs-on: ubicloud-standard-2
+    steps:
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Promote ${{ inputs.sourceTag }} → ${{ inputs.targetTag }}
+        run: |
+          docker buildx imagetools create \
+            nocodb/nocodb-ee:${{ inputs.sourceTag }} \
+            --tag nocodb/nocodb-ee:${{ inputs.targetTag }}

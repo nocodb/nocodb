@@ -74,10 +74,25 @@ const selectedLangName = ref(langs[0].name)
 
 const apiUrl = computed(() => {
   try {
-    return new URL(`/api/v2/tables/${meta.value?.id}/records`, (appInfo.value && appInfo.value.ncSiteUrl) || '/').href
+    return new URL(
+      `/api/v3/data/${base.value?.id}/${meta.value?.id}/records`,
+      (appInfo.value && appInfo.value.ncSiteUrl) || '/',
+    ).href
   } catch (e: any) {
     console.log('Failed to construct API URL', e)
     return ''
+  }
+})
+
+const v3QueryParams = computed(() => {
+  const params = queryParams.value || {}
+  const page = params.offset != null && params.limit ? Math.floor(params.offset / params.limit) + 1 : 1
+  const pageSize = params.limit
+
+  return {
+    ...(page > 1 ? { page } : {}),
+    ...(pageSize ? { pageSize } : {}),
+    ...(params.where ? { where: params.where } : {}),
   }
 })
 
@@ -94,7 +109,7 @@ const snippet = computed(
       ],
       url: apiUrl.value,
       queryString: [
-        ...Object.entries(queryParams.value || {}).map(([name, value]) => {
+        ...Object.entries(v3QueryParams.value).map(([name, value]) => {
           return {
             name,
             value: String(value),
@@ -118,11 +133,16 @@ const api = new Api({
     }
 })
 
-api.dbViewRow.list(
-    "noco",
+api.dbDataTableRow.list(
     ${JSON.stringify(base.value?.id)},
-    ${JSON.stringify(meta.value?.id)},
-    ${JSON.stringify(view.value?.id)}, ${JSON.stringify(queryParams.value, null, 4)}).then(function (data) {
+    ${JSON.stringify(meta.value?.id)}, ${JSON.stringify(
+      {
+        ...v3QueryParams.value,
+        ...(view.value?.id ? { viewId: view.value.id } : {}),
+      },
+      null,
+      4,
+    )}).then(function (data) {
     console.log(data);
 }).catch(function (error) {
     console.error(error);
@@ -163,11 +183,11 @@ watch(activeLang, (newLang) => {
 const supportedDocs = [
   {
     title: 'Data APIs',
-    href: 'https://nocodb.com/apis/v2/data',
+    href: 'https://nocodb.com/apis/v3/data',
   },
   {
     title: 'Meta APIs',
-    href: 'https://nocodb.com/apis/v2/meta',
+    href: 'https://nocodb.com/apis/v3/meta',
   },
   {
     title: 'Create API Token',

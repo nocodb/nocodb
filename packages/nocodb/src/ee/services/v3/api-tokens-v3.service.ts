@@ -314,8 +314,12 @@ export class ApiTokensV3Service {
       updateData.description = param.body.title;
     }
     if (param.body.expiry !== undefined) {
-      this.validateExpiry(param.body.expiry || undefined);
-      updateData.expiry = param.body.expiry;
+      if (param.body.expiry === null) {
+        updateData.expiry = null;
+      } else {
+        this.validateExpiry(param.body.expiry);
+        updateData.expiry = param.body.expiry;
+      }
     }
     if (param.body.enabled !== undefined) {
       updateData.enabled = param.body.enabled;

@@ -206,7 +206,13 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
     // RLS filters — always throw on missing columns to prevent row leaks
     if (rlsFilterGroup.length) {
       await conditionV2(baseModel, rlsFilterGroup, rootQb, undefined, true);
-      await conditionV2(baseModel, rlsFilterGroup, countQb, undefined, true);
+      await conditionV2(
+        baseModel,
+        rlsFilterGroup,
+        countQbBase,
+        undefined,
+        true,
+      );
     }
 
     // apply remaining filters on root query and count query
@@ -220,7 +226,7 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
     await conditionV2(
       baseModel,
       aggrConditionObj,
-      countQb,
+      countQbBase,
       undefined,
       ctx.throwErrorIfInvalidParams,
     );

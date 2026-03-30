@@ -2,6 +2,11 @@ import { OPERATION_SCOPES as OPERATION_SCOPES_CE } from 'src/controllers/interna
 export const OPERATION_SCOPES = {
   ...OPERATION_SCOPES_CE,
 
+  // API tokens (fine-grained)
+  apiTokenListWithScopes: 'org',
+  apiTokenCreateWithScopes: 'org',
+  apiTokenUpdateWithScopes: 'org',
+
   createDataReflection: 'workspace',
   getDataReflection: 'workspace',
   deleteDataReflection: 'workspace',

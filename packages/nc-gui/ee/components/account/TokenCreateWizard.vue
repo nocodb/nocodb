@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ApiTokenPermissionLevel } from 'nocodb-sdk'
+import { ApiTokenPermissionLevel, NO_SCOPE } from 'nocodb-sdk'
 import type { ApiTokenScopeEntry } from 'nocodb-sdk'
 
 interface EditTokenType {
@@ -27,6 +27,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(['created', 'saved', 'cancel'])
 
 const { api } = useApi()
+const { $api } = useNuxtApp()
 const { copy } = useCopy()
 const { t } = useI18n()
 const { $e } = useNuxtApp()
@@ -142,10 +143,10 @@ const submitToken = async () => {
         payload.scopes = scopesWithPermissions
       }
 
-      await api.request({
-        path: `/api/v3/meta/tokens/${props.editToken!.id}`,
-        method: 'PATCH',
-        body: payload,
+      await $api.internal.postOperation(NO_SCOPE, NO_SCOPE, {
+        operation: 'apiTokenUpdateWithScopes',
+        tokenId: props.editToken!.id,
+        ...payload,
       })
 
       // Telemetry: token updated — log scope/permission counts, never token values
@@ -168,10 +169,9 @@ const submitToken = async () => {
         ...(computedExpiry.value !== undefined ? { expiry: computedExpiry.value } : {}),
       }
 
-      const result = await api.request({
-        path: '/api/v3/meta/tokens',
-        method: 'POST',
-        body: payload,
+      const result: any = await $api.internal.postOperation(NO_SCOPE, NO_SCOPE, {
+        operation: 'apiTokenCreateWithScopes',
+        ...payload,
       })
       createdTokenValue.value = result.token
       showResultModal.value = true

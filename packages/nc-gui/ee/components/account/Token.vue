@@ -1,7 +1,9 @@
 <script lang="ts" setup>
+import { NO_SCOPE } from 'nocodb-sdk'
 import type { ApiTokenType, RequestParams } from 'nocodb-sdk'
 
 const { api } = useApi()
+const { $api } = useNuxtApp()
 const { $e } = useNuxtApp()
 const { copy } = useCopy()
 const { t } = useI18n()
@@ -143,10 +145,10 @@ const toggleEnabled = async (token: IApiTokenInfo) => {
 
   try {
     const newEnabled = !token.enabled
-    await api.request({
-      path: `/api/v3/meta/tokens/${token.id}`,
-      method: 'PATCH',
-      body: { enabled: newEnabled },
+    await $api.internal.postOperation(NO_SCOPE, NO_SCOPE, {
+      operation: 'apiTokenUpdateWithScopes',
+      tokenId: token.id,
+      enabled: newEnabled,
     })
     await loadTokens()
     $e('a:api-token:toggle-enabled', { enabled: newEnabled })
@@ -206,12 +208,10 @@ const onCreateCancel = () => {
 
 const openEditToken = async (token: IApiTokenInfo) => {
   try {
-    // Fetch full token detail from V3 API (includes scopes + permissions)
-    const response: any = await api.request({
-      path: '/api/v3/meta/tokens',
-      method: 'GET',
+    // Fetch token list with scopes via internal API
+    const response: any = await $api.internal.getOperation(NO_SCOPE, NO_SCOPE, {
+      operation: 'apiTokenListWithScopes',
     })
-    // V1 returns integer IDs, V3 may return string — compare loosely
     const detail = response?.list?.find((t: any) => String(t.id) === String(token.id))
     editingToken.value = detail ? { ...token, ...detail } : token
   } catch {

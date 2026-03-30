@@ -311,7 +311,7 @@ const openEditToken = async (token: IApiTokenInfo) => {
               <div
                 v-for="el of tokens"
                 :key="el.id"
-                data-testid="nc-token-list"
+                data-testid="nc-token-row"
                 class="flex pl-5 py-3 justify-between token items-center border-l-1 border-r-1 border-b-1"
               >
                 <!-- Active toggle (fine-grained tokens only) -->

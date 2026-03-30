@@ -64,7 +64,7 @@ export class ApiTokensV3Service {
   }
 
   private async transformToV3(
-    apiToken: ApiToken & { scopes?: ApiTokenScope[] },
+    apiToken: Record<string, any>,
   ): Promise<Partial<ApiTokensV3WithToken>> {
     const result: Partial<ApiTokensV3WithToken> = {
       id: apiToken.id,
@@ -242,7 +242,7 @@ export class ApiTokensV3Service {
     // resource_type: 'all' is a sentinel from the UI meaning "org-wide access" —
     // filter it out before validation/insertion (no scope rows = org-wide in the auth strategy)
     const scopesForStorage = (param.body.scopes || []).filter(
-      (s) => s.resource_type !== 'all',
+      (s) => (s.resource_type as string) !== 'all',
     );
 
     await this.validateScopes(scopesForStorage, param.cookie['user']?.id);
@@ -255,7 +255,7 @@ export class ApiTokensV3Service {
       description: param.body.title,
       fk_user_id: param.cookie['user'].id,
       fk_sso_client_id: ssoClientId || null,
-      scopes: scopesForStorage,
+      scopes: scopesForStorage as any,
       expiry: param.body.expiry || null,
       fineGrained: true,
     });
@@ -316,7 +316,7 @@ export class ApiTokensV3Service {
     if (param.body.scopes !== undefined) {
       // Filter out "all resources" sentinel before validation/storage
       const scopesForUpdate = param.body.scopes.filter(
-        (s) => s.resource_type !== 'all',
+        (s) => (s.resource_type as string) !== 'all',
       );
       await this.validateScopes(scopesForUpdate, user?.id);
 

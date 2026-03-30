@@ -35,8 +35,8 @@ const navigateToWorkspace = () => {
     <!-- Brand header -->
     <div class="w-full px-2 py-1.5 flex items-center justify-between gap-2 h-[var(--topbar-height)] flex-none">
       <div class="pl-1">
-        <img v-if="isDark" alt="NocoDB" src="~/assets/img/brand/text.png" class="h-4" />
-        <img v-else alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="h-4" />
+        <img v-if="isDark" alt="NocoDB" src="~/assets/img/brand/full-logo.png" class="h-9" />
+        <img v-else alt="NocoDB" src="~/assets/img/brand/nocodb-full-color.png" class="h-9" />
       </div>
 
       <GeneralHideLeftSidebarBtn show-always />
@@ -65,13 +65,13 @@ const navigateToWorkspace = () => {
       <div class="flex-1 overflow-y-auto nc-scrollbar-thin px-1">
         <NcSidebarMenuItem
           v-if="activeWorkspaceId"
-          class="group !my-1"
+          class="group !my-1 !h-11 !gap-3 !text-sm"
           :active="true"
           data-testid="nc-home-sidebar-ws-nc"
           @click="navigateToWorkspace()"
         >
           <template #icon>
-            <GeneralIcon icon="ncWorkspace" class="flex-none h-4 w-4" />
+            <GeneralIcon icon="ncWorkspace" class="flex-none h-5 w-5" />
           </template>
           <span class="capitalize">Default Workspace</span>
         </NcSidebarMenuItem>

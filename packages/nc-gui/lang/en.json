@@ -3101,6 +3101,7 @@
       "pasteNotSupportedInSyncedCells": "Paste operation is not supported in synced fields",
       "permissionsNotAvailableForSyncedTable": "Permissions not available for synced table",
       "onlyBaseOwnersCanConfigureTableVisibility": "Only base owners can configure table visibility permissions",
+      "onlyTeamManagerCanAddSubTeam": "Only team managers can add sub-teams",
       "onlyCreatorsCanConfigureDocPermissions": "Only base owners and creators can configure document permissions",
       "resetAllDocPermissionsConfirm": "This will remove all custom document permissions and revert every page to default access. This action cannot be undone.",
       "resetDocPermissionsConfirm": "This will remove custom permissions for this page and revert it to inherited access. This action cannot be undone.",

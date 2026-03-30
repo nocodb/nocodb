@@ -49,9 +49,6 @@ const tabItems = computed<TabItem[]>(() => {
       key: 'teams',
       icon: 'ncBuilding',
       label: t('general.teams'),
-      upgradeBadge: {
-        feature: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
-      },
     })
   }
 
@@ -69,8 +66,7 @@ const tabItems = computed<TabItem[]>(() => {
         key: 'audits',
         icon: 'audit',
         label: t('title.audits'),
-        upgradeBadge: { feature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE },
-      })
+        })
     }
 
     if (isWorkspaceSsoAvail.value && isUIAllowed('workspaceSSO') && showEEFeatures.value) {

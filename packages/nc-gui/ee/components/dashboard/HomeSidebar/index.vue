@@ -123,15 +123,15 @@ const hasNoResults = computed(() => {
     <!-- Brand header — same pattern as SidebarHeaderWrapper -->
     <div class="w-full px-2 py-1.5 flex items-center justify-between gap-2 h-[var(--topbar-height)] flex-none">
       <div class="pl-1">
-        <img v-if="isDark" alt="NocoDB" src="~/assets/img/brand/text.png" class="h-4" />
-        <img v-else alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="h-4" />
+        <img v-if="isDark" alt="NocoDB" src="~/assets/img/brand/full-logo.png" class="h-9" />
+        <img v-else alt="NocoDB" src="~/assets/img/brand/nocodb-full-color.png" class="h-9" />
       </div>
 
       <GeneralHideLeftSidebarBtn show-always />
     </div>
 
     <!-- Search input -->
-    <div class="px-2 h-[var(--toolbar-height)] flex items-center">
+    <div class="px-3 py-1 flex items-center">
       <a-input
         v-model:value="searchQuery"
         :placeholder="showEEFeatures ? $t('placeholder.searchWorkspacesAndBases') : $t('activity.searchProject')"
@@ -174,16 +174,14 @@ const hasNoResults = computed(() => {
           <template v-for="ws in filteredWorkspaceList" :key="ws.id">
             <!-- Workspace item -->
             <NcSidebarMenuItem
-              class="group !my-1"
+              class="group !my-1 !h-11 !gap-3 !text-sm"
               :class="{ 'nc-ws-node-active': activeWorkspaceId === ws.id }"
               :active="activeWorkspaceId === ws.id"
               :data-testid="`nc-home-sidebar-ws-${ws.id}`"
               @click="navigateToWorkspace(ws.id!)"
             >
               <template #icon>
-                <div class="h-4 w-4 flex-none flex items-center justify-center">
-                  <GeneralWorkspaceIcon :workspace="ws" hide-bg-color :initials-length="1" size="small" class="flex-none" />
-                </div>
+                <GeneralWorkspaceIcon :workspace="ws" :initials-length="1" size="medium" class="flex-none" />
               </template>
               <span class="capitalize">{{ ws.title }}</span>
               <template #extraRight>
@@ -301,7 +299,7 @@ const hasNoResults = computed(() => {
 }
 
 .nc-ws-section-header {
-  @apply px-2 pt-1.5 pb-1 font-semibold text-nc-content-brand uppercase tracking-wide;
+  @apply pl-4 pr-2 pt-1.5 pb-1 font-semibold text-nc-content-brand uppercase tracking-wide;
   font-size: 13px;
 }
 

@@ -22,6 +22,12 @@ const { teams, activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const { moveTeam, getTeamDescendantIds, getTeamBreadcrumb } = workspaceStore
 
+const { workspaceRoles } = useRoles()
+
+const isWsOwner = computed(() => !!workspaceRoles.value?.['workspace-level-owner'])
+
+const canAddSubTeam = (t: any) => t.is_owner || isWsOwner.value
+
 const isMoving = ref(false)
 
 const selectedParentId = ref<string | null>(null)
@@ -156,20 +162,36 @@ watch(vVisible, (newValue) => {
             data-testid="move-team-parent-select"
             dropdown-class-name="nc-dropdown-move-team-parent"
           >
-            <a-select-option v-for="pt in parentTeamOptions" :key="pt.id" :value="pt.id" :data-label="pt.title">
-              <div class="flex items-center gap-2" :style="{ paddingLeft: `${(pt.depth ?? 0) * 16}px` }">
-                <GeneralTeamIcon :team="pt" class="!w-5 !h-5 !min-w-5 flex-none !rounded-md" />
-                <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                  <template #title>{{ pt.title }}</template>
-                  {{ pt.title }}
-                </NcTooltip>
-                <component
-                  :is="iconMap.check"
-                  v-if="selectedParentId === pt.id"
-                  id="nc-selected-item-icon"
-                  class="text-primary w-4 h-4 flex-none"
-                />
-              </div>
+            <a-select-option
+              v-for="pt in parentTeamOptions"
+              :key="pt.id"
+              :value="pt.id"
+              :data-label="pt.title"
+              :disabled="!canAddSubTeam(pt)"
+            >
+              <NcTooltip
+                :disabled="canAddSubTeam(pt)"
+                :title="t('msg.info.onlyTeamManagerCanAddSubTeam')"
+                placement="left"
+              >
+                <div
+                  class="flex items-center gap-2"
+                  :class="{ 'opacity-60': !canAddSubTeam(pt) }"
+                  :style="{ paddingLeft: `${(pt.depth ?? 0) * 16}px` }"
+                >
+                  <GeneralTeamIcon :team="pt" class="!w-5 !h-5 !min-w-5 flex-none !rounded-md" />
+                  <NcTooltip class="truncate flex-1" show-on-truncate-only :disabled="!canAddSubTeam(pt)">
+                    <template #title>{{ pt.title }}</template>
+                    {{ pt.title }}
+                  </NcTooltip>
+                  <component
+                    :is="iconMap.check"
+                    v-if="selectedParentId === pt.id"
+                    id="nc-selected-item-icon"
+                    class="text-primary w-4 h-4 flex-none"
+                  />
+                </div>
+              </NcTooltip>
             </a-select-option>
           </NcSelect>
         </div>

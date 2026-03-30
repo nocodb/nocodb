@@ -192,6 +192,19 @@ export class ApiTokensV3Service {
             NcError.badRequest('Invalid or inaccessible resource in scope');
           }
         }
+      } else if (scope.resource_type === 'workspace') {
+        if (userId) {
+          const userWithRoles = await User.getWithRoles(
+            { workspace_id: scope.resource_id, base_id: null },
+            userId,
+            {},
+          );
+          if (!userWithRoles?.workspace_roles) {
+            NcError.badRequest('Invalid or inaccessible resource in scope');
+          }
+        }
+      } else {
+        NcError.badRequest('Invalid resource type in scope');
       }
     }
   }

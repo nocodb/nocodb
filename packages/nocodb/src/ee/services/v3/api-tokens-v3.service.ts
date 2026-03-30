@@ -17,7 +17,6 @@ import type {
 } from '~/services/v3/api-tokens-v3.type';
 import { OrgTokensService } from '~/services/org-tokens.service';
 import { OrgTokensEeService } from '~/services/org-tokens-ee.service';
-import { WorkspacesService } from '~/services/workspaces.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { ApiToken, ApiTokenScope, Base, User } from '~/models';
 import { NcError } from '~/helpers/catchError';
@@ -30,23 +29,10 @@ export class ApiTokensV3Service {
   constructor(
     private readonly orgTokensService: OrgTokensService,
     private readonly orgTokensEeService: OrgTokensEeService,
-    private readonly workspaceService: WorkspacesService,
+
     private readonly appHooksService: AppHooksService,
   ) {}
 
-  async validateRequestor(param: { cookie: NcRequest }) {
-    // On cloud, require enterprise plan (workspace must belong to an org)
-    if (process.env.NC_CLOUD === 'true') {
-      const result = await this.workspaceService.list({
-        user: param.cookie.user,
-      });
-      if (!result.list.some((ws) => !!(ws as Record<string, any>).fk_org_id)) {
-        NcError.get({ api_version: NcApiVersion.V3 }).forbidden(
-          `Accessing api token api require enterprise plan`,
-        );
-      }
-    }
-  }
 
   /**
    * Extract non-none permission category names from scopes for audit/telemetry.
@@ -222,7 +208,7 @@ export class ApiTokensV3Service {
   }
 
   async list(param: { cookie: NcRequest }) {
-    await this.validateRequestor(param);
+
     const result = await this.orgTokensEeService.apiTokenListEE({
       query: param.cookie.query,
       user: param.cookie['user'],
@@ -247,7 +233,7 @@ export class ApiTokensV3Service {
   }
 
   async create(param: { cookie: NcRequest; body: ApiTokensV3CreateRequest }) {
-    await this.validateRequestor(param);
+
 
     this.validateTitle(param.body.title);
 
@@ -299,7 +285,7 @@ export class ApiTokensV3Service {
     cookie: NcRequest;
     body: ApiTokensV3UpdateRequest;
   }) {
-    await this.validateRequestor(param);
+
 
     const user = param.cookie['user'];
     const apiToken = await ApiToken.get(param.id);
@@ -384,7 +370,7 @@ export class ApiTokensV3Service {
   }
 
   async delete(param: { id: string; cookie: NcRequest }) {
-    await this.validateRequestor(param);
+
 
     const user = param.cookie['user'];
     const token = await ApiToken.get(param.id);

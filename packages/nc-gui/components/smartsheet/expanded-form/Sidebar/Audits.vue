@@ -293,6 +293,12 @@ function isV0Audit(audit: AuditType) {
                 <SmartsheetExpandedFormSidebarAuditMiniItem :audit="audit" />
               </div>
             </template>
+            <template v-else-if="['DATA_SOFT_DELETE', 'DATA_BULK_SOFT_DELETE'].includes(audit?.op_type)">
+              <div class="pl-9">moved the record to trash.</div>
+            </template>
+            <template v-else-if="['DATA_RESTORE', 'DATA_BULK_RESTORE'].includes(audit?.op_type)">
+              <div class="pl-9">restored the record from trash.</div>
+            </template>
           </div>
         </div>
       </template>

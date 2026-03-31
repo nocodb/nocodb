@@ -132,6 +132,12 @@ export async function populateInsertObject({
       o[col.title as string] = row?.[col.title as string]
     }
 
+    // For checkbox columns that are required (NOT NULL), default to false
+    // when no value is provided, so the DB doesn't reject the insert
+    if (col.uidt === UITypes.Checkbox && col.rqd && (o[col.title as string] === undefined || o[col.title as string] === null)) {
+      o[col.title as string] = false
+    }
+
     return o
   }, Promise.resolve({}))
 

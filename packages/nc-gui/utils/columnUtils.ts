@@ -247,6 +247,10 @@ const isVirtualColRequired = (col: ColumnType, columns: ColumnType[]) =>
   isColumnRequired(columns.find((c) => c.id === (<LinkToAnotherRecordType>col.colOptions).fk_child_column_id))
 
 const isColumnRequiredAndNull = (col: ColumnType, row: Record<string, any>) => {
+  // Checkbox columns have an implicit default of false (unchecked),
+  // so a missing value should not be treated as a required field violation
+  if (col.uidt === UITypes.Checkbox) return false
+
   return isColumnRequired(col) && (row[col.title!] === undefined || row[col.title!] === null)
 }
 

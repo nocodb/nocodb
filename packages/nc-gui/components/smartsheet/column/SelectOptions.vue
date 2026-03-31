@@ -64,10 +64,10 @@ const defaultOption = ref<Option[]>([])
 const isColorCodeEnabled = computed({
   get: () => {
     const metaObj = parseProp(vModel.value.meta)
-    return metaObj?.isColorCodeEnabled !== false
+    return metaObj.isColorCodeEnabled !== false
   },
   set: (val: boolean) => {
-    const metaObj = parseProp(vModel.value.meta) || {}
+    const metaObj = parseProp(vModel.value.meta)
     vModel.value.meta = { ...metaObj, isColorCodeEnabled: val }
   },
 })
@@ -549,7 +549,7 @@ if (!isKanbanStack.value) {
 
       <NcButton type="text" size="small" @click.stop="alphabetizeOptions">
         <template #icon>
-          <GeneralIcon icon="sortAsc" class="h-4 w-4" />
+          <GeneralIcon icon="ncArrowUpDown" class="h-4 w-4 opacity-80" />
         </template>
         {{ $t('labels.alphabetize') }}
       </NcButton>

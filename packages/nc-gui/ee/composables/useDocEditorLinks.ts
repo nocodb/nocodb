@@ -545,7 +545,8 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
   const showRichTextMenu = ({ editor: e }: { editor: any }) => {
     if (!isEditable.value) return false
     const { selection } = e.state
-    if (selection instanceof CellSelection) return false
+    // Show bubble menu for CellSelection — Editor.vue renders a cell color picker
+    if (selection instanceof CellSelection) return true
     // Hide for image / file attachment / math selections — they have their own UI
     if (
       selection.node?.type.name === 'image' ||

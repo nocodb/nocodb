@@ -1302,6 +1302,7 @@
     "replaceAll": "Replace all",
     "noResults": "No results",
     "deleteTable": "Delete table",
+    "distributeColumnsEvenly": "Distribute columns evenly",
     "insertColumnLeft": "Insert column left",
     "insertColumnRight": "Insert column right",
     "moveColumnLeft": "Move column left",

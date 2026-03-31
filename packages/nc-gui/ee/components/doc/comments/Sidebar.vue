@@ -136,6 +136,15 @@ function createOptimisticComment(text: string, extra: Partial<DocCommentExtended
 const onReply = (commentItem: DocCommentExtended) => {
   setReplyingTo(commentItem)
   replyText.value = ''
+
+  // Scroll the reply box into view after it fully renders.
+  // setTimeout gives the rich text editor component time to mount.
+  setTimeout(() => {
+    const container = commentsWrapperEl.value
+    if (container) {
+      container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' })
+    }
+  }, 150)
 }
 
 const onCancelReply = () => {
@@ -494,7 +503,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
     <div
       v-else
       ref="commentsWrapperEl"
-      class="flex flex-col flex-1 py-3 sm:py-1 nc-scrollbar-thin overflow-y-auto nc-scroll-fade-bottom"
+      class="flex flex-col flex-1 py-3 sm:py-1 nc-scrollbar-thin overflow-y-auto"
     >
       <template v-for="(threadItem, index) of filteredThreadedComments" :key="threadItem.id">
         <div

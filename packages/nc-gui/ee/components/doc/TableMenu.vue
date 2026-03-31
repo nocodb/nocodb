@@ -11,6 +11,7 @@
  */
 import type { Editor } from '@tiptap/vue-3'
 import { TextSelection } from '@tiptap/pm/state'
+import { TEXT_COLORS, CELL_BG_COLORS } from './DocColorConstants'
 
 // px — gap between adjacent handles
 
@@ -303,6 +304,35 @@ const onColumnAlign = (colIndex: number, align: 'left' | 'center' | 'right') => 
   nextTick(() => recalcPositions())
 }
 
+// --- Column colors ---
+const onColumnCellAttr = (colIndex: number, attr: string, value: string | null) => {
+  const table = tableEl.value
+  if (!table || !table.isConnected || !editor.value) return
+
+  const { state, dispatch } = editor.value.view
+  const tr = state.tr
+
+  const rows = table.querySelectorAll('tr')
+  rows.forEach((row) => {
+    const cell = row.querySelectorAll('td, th')[colIndex]
+    if (!cell) return
+    const pos = editor.value!.view.posAtDOM(cell, 0)
+    const resolved = tr.doc.resolve(pos)
+    for (let d = resolved.depth; d > 0; d--) {
+      const node = resolved.node(d)
+      if (node.type.name === 'tableCell' || node.type.name === 'tableHeader') {
+        tr.setNodeMarkup(resolved.before(d), undefined, { ...node.attrs, [attr]: value })
+        break
+      }
+    }
+  })
+
+  dispatch(tr)
+
+  menuOpen.value = null
+  nextTick(() => recalcPositions())
+}
+
 // --- Row vertical alignment ---
 // Updates verticalAlign for every cell in the row using a single transaction.
 const onRowVerticalAlign = (rowIndex: number, align: 'top' | 'middle' | 'bottom') => {
@@ -337,6 +367,139 @@ const onRowVerticalAlign = (rowIndex: number, align: 'top' | 'middle' | 'bottom'
 
   menuOpen.value = null
   focusCell(rowIndex, 0)
+  nextTick(() => recalcPositions())
+}
+
+// --- Column resize (drag between columns) ---
+const MIN_COL_WIDTH = 60 // px
+const resizeDrag = ref<{ colIndex: number; startX: number; startWidths: number[] } | null>(null)
+
+const onResizeMouseDown = (colIndex: number, e: MouseEvent) => {
+  e.preventDefault()
+  e.stopPropagation()
+
+  const table = tableEl.value
+  if (!table || !editor.value) return
+
+  const headerRow = table.querySelector('tr')
+  if (!headerRow) return
+
+  const cells = Array.from(headerRow.children) as HTMLElement[]
+  const startWidths = cells.map((cell) => cell.getBoundingClientRect().width)
+  const tableWidth = startWidths.reduce((sum, w) => sum + w, 0)
+
+  // Set explicit percentage widths on ALL header cells so table-layout:fixed respects them
+  cells.forEach((cell, i) => {
+    cell.style.width = `${(startWidths[i] / tableWidth) * 100}%`
+  })
+
+  resizeDrag.value = { colIndex, startX: e.clientX, startWidths }
+
+  // Track the latest computed widths for persistence on mouseup
+  let finalLeftPct = (startWidths[colIndex] / tableWidth) * 100
+  let finalRightPct = (startWidths[colIndex + 1] / tableWidth) * 100
+
+  const onMouseMove = (ev: MouseEvent) => {
+    if (!resizeDrag.value) return
+
+    const dx = ev.clientX - resizeDrag.value.startX
+    const leftWidth = Math.max(MIN_COL_WIDTH, resizeDrag.value.startWidths[colIndex] + dx)
+    const rightWidth = Math.max(MIN_COL_WIDTH, resizeDrag.value.startWidths[colIndex + 1] - dx)
+
+    finalLeftPct = (leftWidth / tableWidth) * 100
+    finalRightPct = (rightWidth / tableWidth) * 100
+
+    // Live visual feedback via DOM
+    cells[colIndex].style.width = `${finalLeftPct}%`
+    cells[colIndex + 1].style.width = `${finalRightPct}%`
+
+    recalcPositions()
+  }
+
+  const onMouseUp = () => {
+    document.removeEventListener('mousemove', onMouseMove)
+    document.removeEventListener('mouseup', onMouseUp)
+    document.body.style.cursor = ''
+    document.body.style.userSelect = ''
+
+    // Persist final widths into ProseMirror via colwidth attrs so they survive re-renders.
+    // colwidth stores pixel widths as arrays — compute from final percentages.
+    if (resizeDrag.value && tableEl.value && editor.value) {
+      const finalWidths = startWidths.map((_, i) => {
+        if (i === colIndex) return Math.round((finalLeftPct / 100) * tableWidth)
+        if (i === colIndex + 1) return Math.round((finalRightPct / 100) * tableWidth)
+        return Math.round(startWidths[i])
+      })
+
+      // Build a single transaction to update colwidth on ALL columns so
+      // table-layout:fixed distributes them consistently at 100% width.
+      const { state, dispatch } = editor.value.view
+      const tr = state.tr
+
+      const rows = tableEl.value.querySelectorAll('tr')
+      rows.forEach((row) => {
+        const rowCells = row.querySelectorAll('td, th')
+        for (let ci = 0; ci < rowCells.length; ci++) {
+          const cell = rowCells[ci]
+          if (!cell) return
+          const pos = editor.value!.view.posAtDOM(cell, 0)
+          const resolved = tr.doc.resolve(pos)
+          for (let d = resolved.depth; d > 0; d--) {
+            const node = resolved.node(d)
+            if (node.type.name === 'tableCell' || node.type.name === 'tableHeader') {
+              tr.setNodeMarkup(resolved.before(d), undefined, {
+                ...node.attrs,
+                colwidth: [finalWidths[ci]],
+              })
+              break
+            }
+          }
+        }
+      })
+
+      dispatch(tr)
+    }
+
+    resizeDrag.value = null
+    nextTick(() => recalcPositions())
+  }
+
+  document.addEventListener('mousemove', onMouseMove)
+  document.addEventListener('mouseup', onMouseUp)
+  document.body.style.cursor = 'col-resize'
+  document.body.style.userSelect = 'none'
+}
+
+// --- Distribute columns evenly ---
+const onDistributeColumns = () => {
+  menuOpen.value = null
+
+  const table = tableEl.value
+  if (!table || !editor.value) return
+
+  const { state, dispatch } = editor.value.view
+  const tr = state.tr
+
+  // Clear colwidth on every cell → table-layout:fixed distributes equally
+  const rows = table.querySelectorAll('tr')
+  rows.forEach((row) => {
+    const cells = row.querySelectorAll('td, th')
+    cells.forEach((cell) => {
+      const pos = editor.value!.view.posAtDOM(cell, 0)
+      const resolved = tr.doc.resolve(pos)
+      for (let d = resolved.depth; d > 0; d--) {
+        const node = resolved.node(d)
+        if (node.type.name === 'tableCell' || node.type.name === 'tableHeader') {
+          if (node.attrs.colwidth) {
+            tr.setNodeMarkup(resolved.before(d), undefined, { ...node.attrs, colwidth: null })
+          }
+          break
+        }
+      }
+    })
+  })
+
+  dispatch(tr)
   nextTick(() => recalcPositions())
 }
 
@@ -491,6 +654,11 @@ onBeforeUnmount(() => {
         />
         <template #overlay>
           <NcMenu variant="small">
+            <NcMenuItem @click="onDistributeColumns">
+              <GeneralIcon icon="ncColumns" />
+              {{ $t('labels.distributeColumnsEvenly') }}
+            </NcMenuItem>
+            <NcDivider />
             <NcMenuItem danger @click="onDeleteTable">
               <GeneralIcon icon="delete" />
               {{ $t('labels.deleteTable') }}
@@ -597,6 +765,23 @@ onBeforeUnmount(() => {
 
               <div class="nc-table-col-toolbar-divider" />
 
+              <!-- Color -->
+              <NcDropdown :trigger="['click']" placement="bottomLeft" overlay-class-name="nc-table-col-color-overlay">
+                <NcButton icon-only size="xsmall" type="text">
+                  <template #icon><GeneralIcon icon="ncPalette" /></template>
+                </NcButton>
+                <template #overlay>
+                  <DocColorPicker
+                    :text-colors="TEXT_COLORS"
+                    :bg-colors="CELL_BG_COLORS"
+                    @text-color="(c) => onColumnCellAttr(cIdx, 'cellTextColor', c)"
+                    @bg-color="(c) => onColumnCellAttr(cIdx, 'bgColor', c)"
+                  />
+                </template>
+              </NcDropdown>
+
+              <div class="nc-table-col-toolbar-divider" />
+
               <!-- Delete -->
               <NcTooltip :title="$t('labels.deleteColumn')">
                 <NcButton
@@ -613,6 +798,19 @@ onBeforeUnmount(() => {
             </div>
           </template>
         </NcDropdown>
+      </template>
+
+      <!-- ═══ Column resize grips (between adjacent columns) ═══ -->
+      <template v-for="(col, cIdx) in colHandles.slice(0, -1)" :key="`resize-${cIdx}`">
+        <div
+          class="nc-table-col-resize-grip"
+          :style="{
+            top: `${GUTTER}px`,
+            left: `${col.left + col.width - tableRect.left + GUTTER - 3}px`,
+            height: `${tableRect.height}px`,
+          }"
+          @mousedown.stop="onResizeMouseDown(cIdx, $event)"
+        />
       </template>
 
       <!-- ═══ Row handles ═══ -->
@@ -743,8 +941,34 @@ onBeforeUnmount(() => {
 // All interactive children receive pointer-events
 .nc-table-corner-handle,
 .nc-table-col-handle,
-.nc-table-row-handle {
+.nc-table-row-handle,
+.nc-table-col-resize-grip {
   pointer-events: auto;
+}
+
+// Column resize grip — invisible drag zone between columns
+.nc-table-col-resize-grip {
+  position: absolute;
+  width: 7px;
+  cursor: col-resize;
+  z-index: 15;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    border-radius: 1.5px;
+    background: transparent;
+    transition: background 0.15s ease;
+  }
+
+  &:hover::after,
+  &:active::after {
+    background: var(--nc-fill-primary);
+  }
 }
 
 // Filled circle at top-left corner — proportionate to 8px handle bars
@@ -895,5 +1119,15 @@ onBeforeUnmount(() => {
   background: var(--nc-border-gray-medium);
   margin: 2px 0;
   flex-shrink: 0;
+}
+
+// Color picker overlay — fit content
+:global(.nc-table-col-color-overlay) {
+  width: auto !important;
+  min-width: 0 !important;
+
+  .ant-dropdown-menu {
+    padding: 0;
+  }
 }
 </style>

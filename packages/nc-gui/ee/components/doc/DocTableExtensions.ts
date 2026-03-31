@@ -147,13 +147,48 @@ const cellVerticalAlignAttr = {
   },
 }
 
+const isHex = (v: string) => v.startsWith('#')
+
+const cellBgColorAttr = {
+  default: null,
+  parseHTML: (el: HTMLElement) => el.getAttribute('data-bg-color') || null,
+  renderHTML: (attrs: Record<string, any>) => {
+    if (!attrs.bgColor) return {}
+    // Support legacy hex values and new semantic keys
+    const style = isHex(attrs.bgColor)
+      ? `background-color: ${attrs.bgColor}`
+      : `background-color: var(--nc-doc-bg-${attrs.bgColor})`
+    return { 'data-bg-color': attrs.bgColor, style }
+  },
+}
+
+const cellTextColorAttr = {
+  default: null,
+  parseHTML: (el: HTMLElement) => el.getAttribute('data-cell-text-color') || null,
+  renderHTML: (attrs: Record<string, any>) => {
+    if (!attrs.cellTextColor) return {}
+    const style = isHex(attrs.cellTextColor)
+      ? `color: ${attrs.cellTextColor}`
+      : `color: var(--nc-doc-text-${attrs.cellTextColor})`
+    return { 'data-cell-text-color': attrs.cellTextColor, style }
+  },
+}
+
 export const DocTableCell = TableCell.extend({
   addAttributes() {
     return {
       ...TableCell.config.addAttributes?.call(this),
-      colwidth: { default: null, renderHTML: () => ({}) },
+      colwidth: {
+        default: null,
+        renderHTML: (attrs: Record<string, any>) => {
+          if (!attrs.colwidth || !attrs.colwidth[0]) return {}
+          return { style: `width: ${attrs.colwidth[0]}px` }
+        },
+      },
       textAlign: cellTextAlignAttr,
       verticalAlign: cellVerticalAlignAttr,
+      bgColor: cellBgColorAttr,
+      cellTextColor: cellTextColorAttr,
     }
   },
 })
@@ -162,9 +197,17 @@ export const DocTableHeader = TableHeader.extend({
   addAttributes() {
     return {
       ...TableHeader.config.addAttributes?.call(this),
-      colwidth: { default: null, renderHTML: () => ({}) },
+      colwidth: {
+        default: null,
+        renderHTML: (attrs: Record<string, any>) => {
+          if (!attrs.colwidth || !attrs.colwidth[0]) return {}
+          return { style: `width: ${attrs.colwidth[0]}px` }
+        },
+      },
       textAlign: cellTextAlignAttr,
       verticalAlign: cellVerticalAlignAttr,
+      bgColor: cellBgColorAttr,
+      cellTextColor: cellTextColorAttr,
     }
   },
 })

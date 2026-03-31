@@ -9,6 +9,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import TaskList from '@tiptap/extension-task-list'
 import TableRow from '@tiptap/extension-table-row'
 import { Plugin, PluginKey, Selection, TextSelection } from '@tiptap/pm/state'
+import { CellSelection } from '@tiptap/pm/tables'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
 import { marked } from 'marked'
 import DOMPurify from 'isomorphic-dompurify'
@@ -32,6 +33,7 @@ import { DocHeadingAnchorExtension } from './DocHeadingAnchorExtension'
 import { DocDragHandleExtension } from './DocDragHandlePlugin'
 import { DocSearchExtension } from './DocSearchExtension'
 import { DocAiExtension, insertMarkdownContent } from './DocAiExtension'
+import { TEXT_COLORS, CELL_BG_COLORS, buildColorCssVars } from './DocColorConstants'
 import { getEmbedURL } from '~/extensions/url-preview-ee/utils'
 import { TaskItem } from '~/helpers/tiptap-markdown/extensions/nodes/task-item'
 import { UserMention, UserMentionList } from '~/helpers/tiptap-markdown/extensions/nodes/mention'
@@ -53,6 +55,10 @@ const { createDocument, deleteDocument, loadDocument, updateDocument } = documen
 
 const { $e } = useNuxtApp()
 const { user, appInfo, isMobileMode, isLeftSidebarOpen } = useGlobal()
+
+const { isDark } = useTheme()
+
+const docColorVars = computed(() => buildColorCssVars(isDark.value))
 const { t } = useI18n()
 const { isUIAllowed } = useRoles()
 const { isAllowed: isPermissionAllowed } = usePermissions()
@@ -181,7 +187,16 @@ const {
   onSelectionUpdate,
 } = useDocEditorLinks({ editor, isEditable })
 
-const { downloadMarkdown, downloadHTML, downloadPDF } = useDocumentExport({ editor, title })
+const { downloadMarkdown, downloadHTML, downloadPDF } = useDocumentExport({
+  editor,
+  title,
+  imageUrlBuilder: (fileRefId: string) => {
+    const baseId = base.value?.id
+    const docIdVal = doc.value?.id
+    if (!baseId || !docIdVal) return ''
+    return `${appInfo.value.ncSiteUrl}/api/v2/data/bases/${baseId}/docs/${docIdVal}/attachment/${encodeURIComponent(fileRefId)}`
+  },
+})
 
 const { scrollToHeading } = useDocHeadingAnchors(editor, scrollContainerRef, isLoaded)
 
@@ -826,6 +841,58 @@ const onAiSummarizeSelection = () => {
 // DocSearchExtension (ProseMirror plugin) for match finding + decorations.
 const isSearchOpen = ref(false)
 const searchBarRef = ref<{ focusSearch: () => void } | null>(null)
+
+// --- Cell selection color (bubble menu shows palette instead of text formatting) ---
+const isCellSelection = computed(() => editor.value?.state.selection instanceof CellSelection)
+
+const applyCellColor = (attr: 'bgColor' | 'cellTextColor', color: string | null) => {
+  if (!editor.value) return
+  const sel = editor.value.state.selection
+  if (!(sel instanceof CellSelection)) return
+
+  // Update cell DOM directly, then set content from DOM to sync ProseMirror state.
+  // This avoids the CellSelection decoration crash that occurs when dispatching
+  // setNodeMarkup while cell decorations are active.
+  const view = editor.value.view
+
+  const domAttr = attr === 'bgColor' ? 'data-bg-color' : 'data-cell-text-color'
+  const cssProp = attr === 'bgColor' ? 'background-color' : 'color'
+  const varPrefix = attr === 'bgColor' ? '--nc-doc-bg-' : '--nc-doc-text-'
+
+  sel.forEachCell((_node, pos) => {
+    const dom = view.nodeDOM(pos) as HTMLElement | null
+    if (!dom) return
+
+    if (color) {
+      dom.setAttribute(domAttr, color)
+      dom.style.setProperty(cssProp, `var(${varPrefix}${color})`)
+    } else {
+      dom.removeAttribute(domAttr)
+      dom.style.removeProperty(cssProp)
+    }
+  })
+
+  // Sync DOM back to ProseMirror state so changes persist on save
+  // Use a short delay to let the view settle, then dispatch from clean state
+  nextTick(() => {
+    if (!editor.value) return
+    const { state: s, dispatch } = editor.value.view
+    const tr = s.tr
+
+    sel.forEachCell((_node, pos) => {
+      if (pos < s.doc.content.size) {
+        const node = s.doc.nodeAt(pos)
+        if (node) {
+          tr.setNodeMarkup(pos, undefined, { ...node.attrs, [attr]: color || null })
+        }
+      }
+    })
+
+    // Collapse selection before dispatch to avoid decoration crash
+    tr.setSelection(TextSelection.create(tr.doc, sel.$anchorCell.start()))
+    dispatch(tr)
+  })
+}
 
 // --- Comments sidebar state ---
 const isCommentsPanelOpen = ref(false)
@@ -1988,14 +2055,11 @@ onBeforeUnmount(() => {
           </NcButton>
           <template #overlay>
             <NcMenu variant="small" class="!min-w-52">
-              <NcMenuItemCopyId
-                v-if="doc"
-                :id="doc.id"
-                v-e="['c:document:copy-id']"
-                :tooltip="$t('labels.copyDocumentId')"
-                :label="`DOCUMENT ID: ${doc.id}`"
-                data-testid="nc-doc-page-copy-id"
-              />
+              <NcMenuItem v-e="['c:doc:copy-link']" @click="onCopyPageLink">
+                <GeneralIcon class="text-nc-content-gray-subtle" :icon="isLinkCopied ? 'check' : 'link'" />
+                {{ isLinkCopied ? $t('general.copied') : $t('activity.copyLink') }}
+              </NcMenuItem>
+              <NcDivider />
               <div :key="activeFont" class="nc-doc-font-selector" data-testid="nc-doc-font-selector" @click.stop>
                 <button
                   v-for="f in (['default', 'serif', 'mono'] as const)"
@@ -2010,10 +2074,6 @@ onBeforeUnmount(() => {
                 </button>
               </div>
               <NcDivider />
-              <NcMenuItem v-e="['c:doc:copy-link']" @click="onCopyPageLink">
-                <GeneralIcon class="text-nc-content-gray-subtle" :icon="isLinkCopied ? 'check' : 'link'" />
-                {{ isLinkCopied ? $t('general.copied') : $t('activity.copyLink') }}
-              </NcMenuItem>
               <NcMenuItem v-if="isUIAllowed('documentCreate')" @click="onDuplicatePage">
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="duplicate" />
                 {{ $t('general.duplicate') }}
@@ -2068,6 +2128,14 @@ onBeforeUnmount(() => {
                 <span v-if="updatedByLabel">{{ $t('labels.lastEditedBy', { user: updatedByLabel }) }}</span>
                 <span v-if="updatedAgo">{{ updatedAgo }}</span>
               </div>
+              <NcMenuItemCopyId
+                v-if="doc"
+                :id="doc.id"
+                v-e="['c:document:copy-id']"
+                :tooltip="$t('labels.copyDocumentId')"
+                :label="`DOCUMENT ID: ${doc.id}`"
+                data-testid="nc-doc-page-copy-id"
+              />
             </NcMenu>
           </template>
         </NcDropdown>
@@ -2201,7 +2269,7 @@ onBeforeUnmount(() => {
           </div>
 
           <!-- Editor — always mounted so ProseMirror view stays attached -->
-          <div class="nc-doc-editor-body pb-48 relative" data-testid="docs-page-content" @click="onEditorBodyClick">
+          <div class="nc-doc-editor-body pb-48 relative" :style="docColorVars" data-testid="docs-page-content" @click="onEditorBodyClick">
             <template v-if="editor">
               <!-- Bubble menu: appears on text selection (including inside table cells) -->
               <BubbleMenu
@@ -2211,8 +2279,25 @@ onBeforeUnmount(() => {
                 :tippy-options="{ duration: 100, maxWidth: 'none' }"
                 :should-show="showRichTextMenu"
               >
-                <!-- Formatting toolbar + custom link button -->
-                <div class="nc-doc-bubble-toolbar flex items-center">
+                <!-- Cell selection: show cell color picker instead of text formatting -->
+                <div v-if="isCellSelection" class="nc-doc-bubble-toolbar flex items-center">
+                  <NcDropdown :trigger="['click']" placement="bottomLeft">
+                    <NcButton size="small" type="text">
+                      <GeneralIcon icon="ncPalette" />
+                    </NcButton>
+                    <template #overlay>
+                      <DocColorPicker
+                        :text-colors="TEXT_COLORS"
+                        :bg-colors="CELL_BG_COLORS"
+                        @text-color="(c) => applyCellColor('cellTextColor', c)"
+                        @bg-color="(c) => applyCellColor('bgColor', c)"
+                      />
+                    </template>
+                  </NcDropdown>
+                </div>
+
+                <!-- Text selection: formatting toolbar + custom link button -->
+                <div v-else class="nc-doc-bubble-toolbar flex items-center">
                   <CellRichTextSelectedBubbleMenu
                     :editor="editor"
                     embed-mode
@@ -3768,6 +3853,7 @@ onBeforeUnmount(() => {
       pointer-events: none;
       z-index: 2;
     }
+
   }
 
   // File attachment cards

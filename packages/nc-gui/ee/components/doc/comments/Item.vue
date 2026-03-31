@@ -142,7 +142,9 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
                     :data-testid="`nc-doc-comment-react-${emoji}`"
                     @click="emit('react', emoji)"
                   >
-                    {{ emoji }}
+                    <span class="transform transition-all duration-150 hover:scale-125 hover:-rotate-12 inline-flex">
+                      {{ emoji }}
+                    </span>
                   </button>
                 </div>
               </template>

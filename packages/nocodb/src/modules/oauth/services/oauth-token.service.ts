@@ -33,6 +33,27 @@ export class OauthTokenService {
   private readonly ACCESS_TOKEN_EXPIRES_IN = 60 * 60; // 1 hour in seconds
   private readonly REFRESH_TOKEN_EXPIRES_IN = 60 * 24 * 60 * 60; // 60 days in seconds
 
+  private throwOAuthError(
+    type: 'invalid_client' | 'invalid_grant' | 'invalid_request',
+    message: string,
+    api_version?: number,
+  ): never {
+    if (api_version >= 3) {
+      switch (type) {
+        case 'invalid_client':
+          NcError._.oauthInvalidClient(message);
+          break;
+        case 'invalid_grant':
+          NcError._.oauthInvalidGrant(message);
+          break;
+        case 'invalid_request':
+          NcError._.oauthInvalidRequest(message);
+          break;
+      }
+    }
+    throw new Error(`${type}: ${message}`);
+  }
+
   validatePKCE(params: PKCEValidationParams): boolean {
     const { codeVerifier, codeChallenge, codeChallengeMethod } = params;
 
@@ -90,13 +111,14 @@ export class OauthTokenService {
     clientId: string;
     clientSecret?: string;
     isPKCEFlow?: boolean;
+    api_version?: number;
   }): Promise<OAuthClient> {
-    const { clientId, clientSecret, isPKCEFlow = false } = params;
+    const { clientId, clientSecret, isPKCEFlow = false, api_version } = params;
 
     const client = await OAuthClient.getByClientId(clientId);
 
     if (!client) {
-      NcError._.oauthInvalidClient('Client not found');
+      this.throwOAuthError('invalid_client', 'Client not found', api_version);
     }
 
     // Confidential clients: require client_secret OR valid PKCE
@@ -110,15 +132,21 @@ export class OauthTokenService {
             client.client_secret,
           );
           if (!isValidSecret) {
-            NcError._.oauthInvalidClient('Invalid client credentials');
+            this.throwOAuthError(
+              'invalid_client',
+              'Invalid client credentials',
+              api_version,
+            );
           }
         }
         // PKCE validation will happen separately, so we're good here
       } else {
         // Non-PKCE flow: client_secret is required
         if (!clientSecret) {
-          NcError._.oauthInvalidClient(
+          this.throwOAuthError(
+            'invalid_client',
             'Client secret required for confidential clients without PKCE',
+            api_version,
           );
         }
 
@@ -128,15 +156,21 @@ export class OauthTokenService {
           client.client_secret,
         );
         if (!isValidSecret) {
-          NcError._.oauthInvalidClient('Invalid client credentials');
+          this.throwOAuthError(
+            'invalid_client',
+            'Invalid client credentials',
+            api_version,
+          );
         }
       }
     } else {
       // Public clients (no client_secret)
       // PKCE is required for public clients, but they don't need a secret
       if (clientSecret) {
-        NcError._.oauthInvalidClient(
+        this.throwOAuthError(
+          'invalid_client',
           'Client secret not expected for public clients',
+          api_version,
         );
       }
     }
@@ -150,13 +184,18 @@ export class OauthTokenService {
     codeVerifier?: string;
     clientSecret?: string;
     resource?: string;
+    api_version?: number;
   }): Promise<TokenResponse> {
-    const { code, redirectUri, codeVerifier, clientSecret } = params;
+    const { code, redirectUri, codeVerifier, clientSecret, api_version } = params;
 
     // Get authorization code
     const authCode = await OAuthAuthorizationCode.getByCode(code);
     if (!authCode) {
-      NcError._.oauthInvalidGrant('Invalid or expired authorization code');
+      this.throwOAuthError(
+        'invalid_grant',
+        'Invalid or expired authorization code',
+        api_version,
+      );
     }
 
     if (
@@ -164,24 +203,34 @@ export class OauthTokenService {
       authCode.resource &&
       params.resource !== authCode.resource
     ) {
-      NcError._.oauthInvalidGrant(
+      this.throwOAuthError(
+        'invalid_grant',
         'resource parameter does not match authorized resource',
+        api_version,
       );
     }
 
     // Check if code is already used
     if (authCode.is_used) {
-      NcError._.oauthInvalidGrant('Authorization code has already been used');
+      this.throwOAuthError(
+        'invalid_grant',
+        'Authorization code has already been used',
+        api_version,
+      );
     }
 
     // Check if code is expired
     if (new Date(authCode.expires_at) < new Date()) {
-      NcError._.oauthInvalidGrant('Authorization code has expired');
+      this.throwOAuthError(
+        'invalid_grant',
+        'Authorization code has expired',
+        api_version,
+      );
     }
 
     // Validate redirect URI
     if (authCode.redirect_uri !== redirectUri) {
-      NcError._.oauthInvalidGrant('Invalid redirect_uri');
+      this.throwOAuthError('invalid_grant', 'Invalid redirect_uri', api_version);
     }
 
     // Determine if this is a PKCE flow
@@ -190,8 +239,10 @@ export class OauthTokenService {
     // Validate PKCE if code challenge was provided during authorization
     if (isPKCEFlow) {
       if (!codeVerifier) {
-        NcError._.oauthInvalidRequest(
+        this.throwOAuthError(
+          'invalid_request',
           'code_verifier is required for PKCE flow',
+          api_version,
         );
       }
 
@@ -202,7 +253,7 @@ export class OauthTokenService {
       });
 
       if (!isValidPKCE) {
-        NcError._.oauthInvalidGrant('Invalid code_verifier');
+        this.throwOAuthError('invalid_grant', 'Invalid code_verifier', api_version);
       }
     }
 
@@ -211,6 +262,7 @@ export class OauthTokenService {
       clientId: authCode.fk_client_id,
       clientSecret,
       isPKCEFlow,
+      api_version,
     });
 
     const now = Date.now();
@@ -264,18 +316,23 @@ export class OauthTokenService {
     clientId: string;
     clientSecret?: string;
     resource?: string;
+    api_version?: number;
   }): Promise<TokenResponse> {
-    const { refreshToken, clientId, clientSecret } = params;
+    const { refreshToken, clientId, clientSecret, api_version } = params;
 
     // Get token by refresh token
     const tokenRecord = await OAuthToken.getByRefreshToken(refreshToken);
     if (!tokenRecord) {
-      NcError._.oauthInvalidGrant('Invalid refresh token');
+      this.throwOAuthError('invalid_grant', 'Invalid refresh token', api_version);
     }
 
     // Check if token is revoked
     if (tokenRecord.is_revoked) {
-      NcError._.oauthInvalidGrant('Refresh token has been revoked');
+      this.throwOAuthError(
+        'invalid_grant',
+        'Refresh token has been revoked',
+        api_version,
+      );
     }
 
     // Check if refresh token is expired
@@ -283,7 +340,11 @@ export class OauthTokenService {
       tokenRecord.refresh_token_expires_at &&
       new Date(tokenRecord.refresh_token_expires_at) < new Date()
     ) {
-      NcError._.oauthInvalidGrant('Refresh token has expired');
+      this.throwOAuthError(
+        'invalid_grant',
+        'Refresh token has expired',
+        api_version,
+      );
     }
 
     // For refresh token flow, require client authentication
@@ -292,11 +353,12 @@ export class OauthTokenService {
       clientId,
       clientSecret,
       isPKCEFlow: false, // Refresh token flow doesn't use PKCE
+      api_version,
     });
 
     // Validate client ID
     if (tokenRecord.fk_client_id !== clientId) {
-      NcError._.oauthInvalidClient('Client ID mismatch');
+      this.throwOAuthError('invalid_client', 'Client ID mismatch', api_version);
     }
 
     const now = Date.now();
@@ -349,8 +411,9 @@ export class OauthTokenService {
     clientId: string;
     clientSecret?: string;
     tokenTypeHint?: 'access_token' | 'refresh_token';
+    api_version?: number;
   }): Promise<boolean> {
-    const { token, clientId, clientSecret, tokenTypeHint } = params;
+    const { token, clientId, clientSecret, tokenTypeHint, api_version } = params;
 
     // For token revocation, require client authentication
     // Note: Revocation doesn't use PKCE, so client_secret is required for confidential clients
@@ -358,6 +421,7 @@ export class OauthTokenService {
       clientId,
       clientSecret,
       isPKCEFlow: false, // Revocation doesn't use PKCE
+      api_version,
     });
 
     let tokenRecord: OAuthToken | null = null;
@@ -380,7 +444,7 @@ export class OauthTokenService {
 
     // Validate client ID
     if (tokenRecord.fk_client_id !== clientId) {
-      NcError._.oauthInvalidClient('Client ID mismatch');
+      this.throwOAuthError('invalid_client', 'Client ID mismatch', api_version);
     }
 
     // Revoke the token

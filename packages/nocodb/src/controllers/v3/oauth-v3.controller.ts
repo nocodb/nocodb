@@ -186,6 +186,7 @@ export class OAuthV3Controller {
             codeVerifier: code_verifier,
             clientSecret,
             resource,
+            api_version: 3,
           });
           return res.status(200).json(result);
 
@@ -209,6 +210,7 @@ export class OAuthV3Controller {
             clientId,
             clientSecret,
             resource,
+            api_version: 3,
           });
           return res.status(200).json(result);
 
@@ -273,6 +275,7 @@ export class OAuthV3Controller {
         clientId,
         clientSecret,
         tokenTypeHint: token_type_hint,
+        api_version: 3,
       });
 
       return res.status(200).json({ success: true });

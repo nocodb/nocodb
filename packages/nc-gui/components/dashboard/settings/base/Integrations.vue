@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import { IntegrationCategoryType } from 'nocodb-sdk'
-import type { IntegrationItemType, NcTableColumnProps } from '#imports'
+import type { IntegrationItemType, IntegrationType, NcTableColumnProps } from '#imports'
 
 interface Props {
   baseId: string
@@ -27,7 +27,7 @@ const canManage = computed(() => isUIAllowed('sourceCreate'))
 // Integration store (provided by View.vue)
 const { addIntegration, editIntegration, eventBus, isFromIntegrationPage, loadDynamicIntegrations } = useIntegrationStore()
 
-const canEditIntegration = (integration: any) => {
+const canEditIntegration = (integration: IntegrationType) => {
   return canManage.value && integration.created_by === user.value?.id
 }
 

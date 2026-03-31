@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import type { IntegrationType } from 'nocodb-sdk'
 
+interface IntegrationLinkedBaseListResponse {
+  all_bases: boolean
+  bases: { id: string; title: string }[]
+}
+
 interface Props {
   visible: boolean
   integration: IntegrationType
@@ -67,14 +72,14 @@ async function loadCurrentState() {
     const result = (await $api.internal.getOperation(activeWorkspaceId.value, NO_SCOPE, {
       operation: 'integrationLinkedBaseList',
       integrationId: integration.value.id,
-    })) as any
+    })) as IntegrationLinkedBaseListResponse
 
-    if (result?.all_bases) {
+    if (result.all_bases) {
       allBases.value = true
       selectedBaseIds.value = new Set()
     } else {
       allBases.value = false
-      selectedBaseIds.value = new Set((result?.bases || []).map((b: any) => b.id))
+      selectedBaseIds.value = new Set((result.bases || []).map((b) => b.id))
     }
 
     initialAllBases.value = allBases.value

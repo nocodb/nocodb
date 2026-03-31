@@ -122,14 +122,15 @@ export default class IntegrationLink implements IntegrationLinkType {
       return true;
     }
 
-    // For restricted integrations, check explicit link
-    const links = await this.listByIntegration(
-      context,
-      param.fk_integration_id,
-      ncMeta,
-    );
+    const knex = this.getKnex(ncMeta);
+    const link = await knex(MetaTable.INTEGRATION_LINKS)
+      .where({
+        fk_integration_id: param.fk_integration_id,
+        base_id: param.base_id,
+      })
+      .first();
 
-    return links.some((link) => link.base_id === param.base_id);
+    return !!link;
   }
 
   /**

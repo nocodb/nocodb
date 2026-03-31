@@ -460,7 +460,6 @@ export enum CacheScope {
   SSO_CLIENT = 'ssoClient',
   EXTENSION = 'uiExtension',
   INTEGRATION = 'integration',
-  INTEGRATION_LINK = 'integrationLink',
   COL_BUTTON = 'colButton',
   CMD_PALETTE = 'cmdPalette',
   PRODUCT_FEED = 'productFeed',

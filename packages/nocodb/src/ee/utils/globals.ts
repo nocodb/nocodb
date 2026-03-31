@@ -428,7 +428,6 @@ export enum CacheScope {
   ORG_WORKSPACE = 'orgWorkspace',
   EXTENSION = 'uiExtension',
   INTEGRATION = 'integration',
-  INTEGRATION_LINK = 'integrationLink',
   INTEGRATION_GLOBAL = 'integrationGlobal',
   COL_BUTTON = 'colButton',
   CMD_PALETTE = 'cmdPalette',

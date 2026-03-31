@@ -243,6 +243,7 @@ export class IntegrationsService extends IntegrationsServiceCE {
       logger?: (message: string) => void;
       req: any;
     },
+    ncMeta = Noco.ncMeta,
   ) {
     validatePayload(
       'swagger.json#/components/schemas/IntegrationReq',
@@ -255,6 +256,8 @@ export class IntegrationsService extends IntegrationsServiceCE {
       integrationBody = await Integration.get(
         context,
         param.integration.copy_from_id,
+        false,
+        ncMeta,
       );
 
       if (!integrationBody?.id) {
@@ -265,7 +268,7 @@ export class IntegrationsService extends IntegrationsServiceCE {
     } else {
       integrationBody = param.integration;
     }
-    const workspace = await Workspace.get(param.workspaceId);
+    const workspace = await Workspace.get(param.workspaceId, false, ncMeta);
 
     param.logger?.('Creating the integration');
 
@@ -274,10 +277,13 @@ export class IntegrationsService extends IntegrationsServiceCE {
     if (param.integration.copy_from_id) {
       const integrations =
         (
-          await Integration.list({
-            workspaceId: param.workspaceId,
-            userId: param.req.user?.id,
-          })
+          await Integration.list(
+            {
+              workspaceId: param.workspaceId,
+              userId: param.req.user?.id,
+            },
+            ncMeta,
+          )
         ).list || [];
 
       uniqueTitle = generateUniqueName(
@@ -286,12 +292,15 @@ export class IntegrationsService extends IntegrationsServiceCE {
       );
     }
 
-    const integration = await Integration.createIntegration({
-      ...integrationBody,
-      ...(param.integration.copy_from_id ? { title: uniqueTitle } : {}),
-      workspaceId: workspace.id,
-      created_by: param.req.user.id,
-    });
+    const integration = await Integration.createIntegration(
+      {
+        ...integrationBody,
+        ...(param.integration.copy_from_id ? { title: uniqueTitle } : {}),
+        workspaceId: workspace.id,
+        created_by: param.req.user.id,
+      },
+      ncMeta,
+    );
 
     await integration.authenticateOAuth();
 

@@ -37,6 +37,7 @@ export default class Integration extends IntegrationCE {
   is_private?: BoolType;
   is_default?: BoolType;
   is_global?: BoolType;
+  is_restricted?: BoolType;
   meta?: any;
   created_by?: string;
   sources?: Partial<SourceType>[];
@@ -92,6 +93,8 @@ export default class Integration extends IntegrationCE {
       'created_by',
       'is_private',
       'is_encrypted',
+      'fk_workspace_id',
+      'is_restricted',
     ]);
 
     this.encryptConfigIfRequired(insertObj);
@@ -149,6 +152,7 @@ export default class Integration extends IntegrationCE {
       meta?: any;
       deleted?: boolean;
       is_encrypted?: boolean;
+      is_restricted?: BoolType;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -173,6 +177,7 @@ export default class Integration extends IntegrationCE {
       'is_private',
       'is_encrypted',
       'is_default',
+      'is_restricted',
     ]);
 
     if (updateObj.config) {

@@ -164,4 +164,15 @@ export const OPERATION_SCOPES = {
 
   // LTAR V2 conversion
   convertLinkToV2: 'base',
+
+  // Base-scoped integrations
+  baseIntegrationList: 'base',
+  baseIntegrationCreate: 'base',
+  baseIntegrationUpdate: 'base',
+  baseIntegrationLink: 'base',
+  baseIntegrationUnlink: 'base',
+
+  // Workspace integration link management
+  integrationLinkedBaseList: 'workspace',
+  integrationUpdateLinkedBases: 'workspace',
 } as const;

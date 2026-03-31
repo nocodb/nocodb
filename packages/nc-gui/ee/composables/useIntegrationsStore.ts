@@ -71,7 +71,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   const workspaceStore = useWorkspace()
   const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
-  const { basesList } = storeToRefs(useBases())
+  const basesStore = useBases()
+  const { basesList, activeProjectId } = storeToRefs(basesStore)
 
   const { isSyncFeatureEnabled, isSyncAdvancedFeaturesEnabled } = storeToRefs(useSyncStore())
 
@@ -150,31 +151,48 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       if (!activeWorkspaceId.value) return
       isLoadingIntegrations.value = true
 
-      const { list } = await api.integration.list(
-        activeWorkspaceId.value,
-        type
-          ? {
-              type,
-              includeDatabaseInfo: type === IntegrationsType.Database,
-              baseId,
-            }
-          : {
-              ...(searchQuery.value.trim() ? { query: searchQuery.value } : {}),
-            },
-      )
+      let list: IntegrationType[]
+
+      // Only use base-scoped API when baseId is explicitly passed
+      const effectiveBaseId = baseId
+      if (effectiveBaseId) {
+        try {
+          list = ((await $api.internal.getOperation(activeWorkspaceId.value, effectiveBaseId, {
+            operation: 'baseIntegrationList',
+            ...(type ? { type } : {}),
+          })) || []) as IntegrationType[]
+        } catch {
+          // Fallback to empty if base API also fails
+          list = []
+        }
+      } else {
+        const result = await api.integration.list(
+          activeWorkspaceId.value,
+          type
+            ? {
+                type,
+                includeDatabaseInfo: type === IntegrationsType.Database,
+                baseId,
+              }
+            : {
+                ...(searchQuery.value.trim() ? { query: searchQuery.value } : {}),
+              },
+        )
+        list = result.list
+
+        if (searchCompare('nocodb', searchQuery.value)) {
+          list.unshift({
+            id: 'nc-data-reflection',
+            title: 'NocoDB',
+            sub_type: SyncDataType.NOCODB,
+            type: IntegrationsType.Database,
+            fk_workspace_id: activeWorkspaceId.value,
+            source_count: basesList.value.length,
+          })
+        }
+      }
 
       integrations.value = list
-
-      if (searchCompare('nocodb', searchQuery.value)) {
-        integrations.value.unshift({
-          id: 'nc-data-reflection',
-          title: 'NocoDB',
-          sub_type: SyncDataType.NOCODB,
-          type: IntegrationsType.Database,
-          fk_workspace_id: activeWorkspaceId.value,
-          source_count: basesList.value.length,
-        })
-      }
 
       if (!type) {
         integrationPaginationData.value.totalRows = list.filter((i) => ![IntegrationsType.Sync].includes(i.type)).length || 0
@@ -262,13 +280,25 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     deleteConfirmText.value = null
   }
 
-  const updateIntegration = async (integration: IntegrationType) => {
+  const updateIntegration = async (integration: IntegrationType, baseId?: string) => {
     if (!integration.id) return
 
     $e('a:integration:update')
 
     try {
-      await api.integration.update(integration.id, integration)
+      // Only use base-scoped API when baseId is explicitly passed
+      const effectiveBaseId = baseId
+
+      if (effectiveBaseId && activeWorkspaceId.value) {
+        await $api.internal.postOperation(
+          activeWorkspaceId.value,
+          effectiveBaseId,
+          { operation: 'baseIntegrationUpdate', integrationId: integration.id },
+          integration,
+        )
+      } else {
+        await api.integration.update(integration.id, integration)
+      }
 
       if (integration.type === IntegrationsType.Ai) {
         aiIntegrations.value = aiIntegrations.value.map((i) => {
@@ -335,7 +365,19 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     }
 
     try {
-      const response = await api.integration.create(activeWorkspaceId.value, integration)
+      let response: IntegrationType | undefined
+
+      const effectiveBaseId = baseId || activeProjectId.value
+      if (effectiveBaseId && activeWorkspaceId.value) {
+        response = (await $api.internal.postOperation(
+          activeWorkspaceId.value,
+          effectiveBaseId,
+          { operation: 'baseIntegrationCreate' },
+          integration,
+        )) as IntegrationType
+      } else {
+        response = await api.integration.create(activeWorkspaceId.value, integration)
+      }
 
       if (response && response?.id) {
         if (!loadDatasourceInfo) {
@@ -353,7 +395,10 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         }
       }
 
-      await loadIntegrations(loadDatasourceInfo ? IntegrationsType.Database : null, baseId)
+      // Skip workspace-level reload when creating from base context (user may not have workspace role)
+      if (!activeProjectId.value) {
+        await loadIntegrations(loadDatasourceInfo ? IntegrationsType.Database : null, baseId)
+      }
 
       if (mode === 'create') {
         eventBus.emit(IntegrationStoreEvents.INTEGRATION_ADD, response)
@@ -586,11 +631,12 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
   const testConnection = async (integration: IntegrationType) => {
     try {
+      const effectiveBaseId = activeProjectId.value
       const res = await $api.internal.postOperation(
         activeWorkspaceId.value,
-        NO_SCOPE,
+        effectiveBaseId || NO_SCOPE,
         {
-          operation: 'authIntegrationTestConnection',
+          operation: effectiveBaseId ? 'baseAuthIntegrationTestConnection' : 'authIntegrationTestConnection',
         },
         integration,
       )

@@ -81,6 +81,7 @@ export enum MetaTable {
   COL_BUTTON = 'nc_col_button_v2',
   INTEGRATIONS = 'nc_integrations_v2',
   INTEGRATIONS_STORE = 'nc_integrations_store_v2',
+  INTEGRATION_LINKS = 'nc_integration_links_v2',
   FILE_REFERENCES = 'nc_file_references',
   SNAPSHOT = 'nc_snapshots',
   DATA_REFLECTION = 'nc_data_reflection',
@@ -308,6 +309,7 @@ export const orderedMetaTables = [
   MetaTable.SYNC_MAPPINGS,
 
   // Integrations / Sources / Project
+  MetaTable.INTEGRATION_LINKS,
   MetaTable.INTEGRATIONS_STORE,
   MetaTable.INTEGRATIONS,
   MetaTable.DATA_REFLECTION,

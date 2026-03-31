@@ -23,7 +23,7 @@ import type { AIColumn, ButtonColumn, Column } from '~/models';
 import Model from '~/models/Model';
 
 import { TablesService } from '~/services/tables.service';
-import { Integration, Source } from '~/models';
+import { Integration, IntegrationLink, Source } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -471,6 +471,19 @@ export class AiDataService {
       NcError.get(context).integrationNotFound('AI');
     }
 
+    if (!integration.is_global && integration.is_restricted) {
+      const isLinked = await IntegrationLink.isAvailable(context, {
+        fk_integration_id: ai.fk_integration_id,
+        base_id: context.base_id,
+        is_restricted: true,
+      });
+      if (!isLinked) {
+        NcError.get(context).badRequest(
+          'AI integration is not connected to this base.',
+        );
+      }
+    }
+
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
 
     const referencedColumns: Column[] = [];
@@ -734,6 +747,19 @@ export class AiDataService {
 
     if (!integration) {
       NcError.get(context).integrationNotFound('AI');
+    }
+
+    if (!integration.is_global && integration.is_restricted) {
+      const isLinked = await IntegrationLink.isAvailable(context, {
+        fk_integration_id: aiButton.fk_integration_id,
+        base_id: context.base_id,
+        is_restricted: true,
+      });
+      if (!isLinked) {
+        NcError.get(context).badRequest(
+          'AI integration is not connected to this base.',
+        );
+      }
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
@@ -1272,6 +1298,19 @@ Please generate ${
 
     if (!integration) {
       NcError.get(context).integrationNotFound('AI');
+    }
+
+    if (!integration.is_global && integration.is_restricted) {
+      const isLinked = await IntegrationLink.isAvailable(context, {
+        fk_integration_id: aiButton.fk_integration_id,
+        base_id: context.base_id,
+        is_restricted: true,
+      });
+      if (!isLinked) {
+        NcError.get(context).badRequest(
+          'AI integration is not connected to this base.',
+        );
+      }
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();

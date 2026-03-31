@@ -122,6 +122,16 @@ onMounted(() => {
       {{ $t('labels.addDataSource') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
+      v-if="isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode"
+      v-e="['c:settings:base:integrations']"
+      icon="integration"
+      data-testid="base-integrations"
+      :active="activeBaseSettingsTab === 'integrations'"
+      @click="navigateToBaseSettings('integrations')"
+    >
+      {{ $t('labels.baseIntegrations') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
       v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode && showEEFeatures"
       v-e="['c:settings:base:syncs']"
       icon="ncZap"

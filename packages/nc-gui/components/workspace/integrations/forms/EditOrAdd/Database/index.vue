@@ -305,14 +305,17 @@ const createOrUpdateIntegration = async () => {
         props.baseId,
       )
     } else {
-      await updateIntegration({
-        id: activeIntegration.value.id,
-        title: formState.value.title,
-        type: IntegrationsType.Database,
-        sub_type: formState.value.dataSource.client,
-        config,
-        is_private: formState.value.is_private,
-      })
+      await updateIntegration(
+        {
+          id: activeIntegration.value.id,
+          title: formState.value.title,
+          type: IntegrationsType.Database,
+          sub_type: formState.value.dataSource.client,
+          config,
+          is_private: formState.value.is_private,
+        },
+        props.baseId,
+      )
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

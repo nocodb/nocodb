@@ -143,6 +143,7 @@ import { DataTableService } from '~/services/data-table.service';
 import { DatasService } from '~/services/datas.service';
 import { FormulaColumnTypeChanger } from '~/services/formula-column-type-changer.service';
 import { IntegrationsService } from '~/services/integrations.service';
+import { BaseIntegrationsService } from '~/services/base-integrations.service';
 import { PublicDatasExportService } from '~/services/public-datas-export.service';
 import { PublicDatasService } from '~/services/public-datas.service';
 import { BasesV3Service } from '~/services/v3/bases-v3.service';
@@ -320,6 +321,7 @@ export const nocoModuleMetadata = {
     ExtensionsService,
     JobsMetaService,
     IntegrationsService,
+    BaseIntegrationsService,
     BasesV3Service,
     TablesV3Service,
     ColumnsV3Service,

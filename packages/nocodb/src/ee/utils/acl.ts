@@ -165,6 +165,8 @@ const permissionScopes = {
     'integrationList',
     'integrationStore',
     'integrationEndpointGet',
+    'integrationLinkedBaseList',
+    'integrationUpdateLinkedBases',
     'aiSchema',
     'createDataReflection',
     'deleteDataReflection',
@@ -513,6 +515,14 @@ const permissionScopes = {
     'rlsPolicySetSubjects',
     'rlsPolicyFilterList',
     'rlsPolicyFilterCreate',
+
+    // Base-scoped integrations
+    'baseAuthIntegrationTestConnection',
+    'baseIntegrationList',
+    'baseIntegrationCreate',
+    'baseIntegrationUpdate',
+    'baseIntegrationLink',
+    'baseIntegrationUnlink',
   ],
 } as const;
 
@@ -855,6 +865,9 @@ const rolePermissions:
       triggerAction: true,
 
       integrationRemoteFetch: true,
+
+      // Base integrations (read only)
+      baseIntegrationList: true,
 
       // Sync
       triggerSync: true,
@@ -1233,6 +1246,17 @@ const permissionDescriptions: Record<string, string> = {
   integrationList: 'view list of integrations',
   integrationStore: "get data from an integration's store",
   integrationEndpointGet: 'call get request to an exposed integration endpoint',
+  integrationLinkedBaseList: 'view bases linked to an integration',
+  integrationUpdateLinkedBases: 'update base assignments for an integration',
+
+  // base-scoped integration permissions
+  baseAuthIntegrationTestConnection: 'test an auth integration connection from a base',
+  baseIntegrationList: 'view integrations linked to a base',
+
+  baseIntegrationCreate: 'create an integration from a base',
+  baseIntegrationUpdate: 'update an integration from a base',
+  baseIntegrationLink: 'link an integration to a base',
+  baseIntegrationUnlink: 'unlink an integration from a base',
 
   // Teams permissions
   teamList: 'view list of teams in the workspace',

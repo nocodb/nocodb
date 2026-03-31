@@ -5,7 +5,7 @@ import type { IntegrationReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
-import { Base, Integration } from '~/models';
+import { Base, Integration, IntegrationLink } from '~/models';
 import { NcBaseError, NcError } from '~/helpers/catchError';
 import { Source } from '~/models';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
@@ -156,6 +156,13 @@ export class IntegrationsService {
         NcError.get(context).integrationLinkedWithMultiple(bases, sources);
       }
 
+      // Delete integration links
+      await IntegrationLink.deleteByIntegration(
+        { ...context, base_id: null },
+        param.integrationId,
+        ncMeta,
+      );
+
       await integration.delete(ncMeta);
       this.appHooksService.emit(AppEvents.INTEGRATION_DELETE, {
         integration,
@@ -220,6 +227,13 @@ export class IntegrationsService {
           );
         }
 
+        // Delete integration links
+        await IntegrationLink.deleteByIntegration(
+          { ...context, base_id: null },
+          param.integrationId,
+          ncMeta,
+        );
+
         await integration.softDelete(ncMeta);
         this.appHooksService.emit(AppEvents.INTEGRATION_DELETE, {
           integration,
@@ -246,10 +260,12 @@ export class IntegrationsService {
   async integrationCreate(
     context: NcContext,
     param: {
+      workspaceId?: string;
       integration: IntegrationReqType;
       logger?: (message: string) => void;
       req: any;
     },
+    ncMeta = Noco.ncMeta,
   ) {
     validatePayload(
       'swagger.json#/components/schemas/IntegrationReq',
@@ -262,6 +278,8 @@ export class IntegrationsService {
       integrationBody = await Integration.get(
         context,
         param.integration.copy_from_id,
+        false,
+        ncMeta,
       );
 
       if (!integrationBody?.id) {
@@ -279,14 +297,17 @@ export class IntegrationsService {
     // for SQLite check for existing integration which refers to the same file
     if (integrationBody.sub_type === 'sqlite3') {
       // get all integrations of type sqlite3
-      const integrations = await Integration.list({
-        userId: param.req.user?.id,
-        includeDatabaseInfo: true,
-        type: IntegrationsType.Database,
-        sub_type: ClientType.SQLITE,
-        includeSourceCount: false,
-        query: '',
-      });
+      const integrations = await Integration.list(
+        {
+          userId: param.req.user?.id,
+          includeDatabaseInfo: true,
+          type: IntegrationsType.Database,
+          sub_type: ClientType.SQLITE,
+          includeSourceCount: false,
+          query: '',
+        },
+        ncMeta,
+      );
 
       if (integrations.list && integrations.list.length > 0) {
         for (const integration of integrations.list) {
@@ -310,11 +331,14 @@ export class IntegrationsService {
     if (param.integration.copy_from_id) {
       const integrations =
         (
-          await Integration.list({
-            userId: param.req.user?.id,
-            includeSourceCount: false,
-            query: '',
-          })
+          await Integration.list(
+            {
+              userId: param.req.user?.id,
+              includeSourceCount: false,
+              query: '',
+            },
+            ncMeta,
+          )
         ).list || [];
 
       uniqueTitle = generateUniqueName(
@@ -323,12 +347,15 @@ export class IntegrationsService {
       );
     }
 
-    const integration = await Integration.createIntegration({
-      ...integrationBody,
-      ...(param.integration.copy_from_id ? { title: uniqueTitle } : {}),
-      workspaceId: context.workspace_id,
-      created_by: param.req.user.id,
-    });
+    const integration = await Integration.createIntegration(
+      {
+        ...integrationBody,
+        ...(param.integration.copy_from_id ? { title: uniqueTitle } : {}),
+        workspaceId: context.workspace_id,
+        created_by: param.req.user.id,
+      },
+      ncMeta,
+    );
 
     integration.config = undefined;
 

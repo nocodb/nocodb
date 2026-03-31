@@ -98,6 +98,7 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE]: 'cnp',
       [MetaTable.JOBS]: 'job',
       [MetaTable.INTEGRATIONS]: 'int',
+      [MetaTable.INTEGRATION_LINKS]: 'il',
       [MetaTable.FILE_REFERENCES]: 'at',
       [MetaTable.COL_BUTTON]: 'btn',
       [MetaTable.SNAPSHOT]: 'snap',

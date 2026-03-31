@@ -508,6 +508,8 @@
     "ipAddress": "IP Address",
     "integration": "Integration",
     "integrations": "Integrations",
+    "unlink": "Unlink",
+    "global": "Global",
     "connection": "Connection",
     "connections": "Connections",
     "activeConnections": "Active connections",
@@ -2296,7 +2298,15 @@
     "navigate": "Navigate",
     "select": "Select",
     "managed": "Managed",
-    "otherWorkspaces": "Other Workspaces"
+    "otherWorkspaces": "Other Workspaces",
+    "availableToLink": "Available to link",
+    "baseIntegrations": "Base Integrations",
+    "newConnection": "New Connection",
+    "manageBaseAccess": "Manage integration access",
+    "baseAccess": "Base access",
+    "restricted": "Restricted",
+    "grantAccessToAllBases": "Grant access to all current and future bases",
+    "selectBases": "Select bases"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -2875,6 +2885,9 @@
   },
   "msg": {
     "noActionsAvailable": "No actions available",
+    "manageBaseIntegrations": "Manage integrations available to this base",
+    "noIntegrationsLinked": "No integrations linked to this base",
+    "noIntegrationsAvailable": "No integrations available to link",
     "chat": {
       "starterDescribe": "Help me build a CRM from scratch",
       "starterRecords": "Organize my data with views and filters",

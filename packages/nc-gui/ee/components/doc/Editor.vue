@@ -33,7 +33,7 @@ import { DocHeadingAnchorExtension } from './DocHeadingAnchorExtension'
 import { DocDragHandleExtension } from './DocDragHandlePlugin'
 import { DocSearchExtension } from './DocSearchExtension'
 import { DocAiExtension, insertMarkdownContent } from './DocAiExtension'
-import { TEXT_COLORS, CELL_BG_COLORS } from './DocColorConstants'
+import { TEXT_COLORS, CELL_BG_COLORS, buildColorCssVars } from './DocColorConstants'
 import { getEmbedURL } from '~/extensions/url-preview-ee/utils'
 import { TaskItem } from '~/helpers/tiptap-markdown/extensions/nodes/task-item'
 import { UserMention, UserMentionList } from '~/helpers/tiptap-markdown/extensions/nodes/mention'
@@ -55,6 +55,10 @@ const { createDocument, deleteDocument, loadDocument, updateDocument } = documen
 
 const { $e } = useNuxtApp()
 const { user, appInfo, isMobileMode, isLeftSidebarOpen } = useGlobal()
+
+const { isDark } = useTheme()
+
+const docColorVars = computed(() => buildColorCssVars(isDark.value))
 const { t } = useI18n()
 const { isUIAllowed } = useRoles()
 const { isAllowed: isPermissionAllowed } = usePermissions()
@@ -851,26 +855,20 @@ const applyCellColor = (attr: 'bgColor' | 'cellTextColor', color: string | null)
   // setNodeMarkup while cell decorations are active.
   const view = editor.value.view
 
+  const domAttr = attr === 'bgColor' ? 'data-bg-color' : 'data-cell-text-color'
+  const cssProp = attr === 'bgColor' ? 'background-color' : 'color'
+  const varPrefix = attr === 'bgColor' ? '--nc-doc-bg-' : '--nc-doc-text-'
+
   sel.forEachCell((_node, pos) => {
     const dom = view.nodeDOM(pos) as HTMLElement | null
     if (!dom) return
 
-    if (attr === 'bgColor') {
-      if (color) {
-        dom.style.backgroundColor = color
-        dom.setAttribute('data-bg-color', color)
-      } else {
-        dom.style.backgroundColor = ''
-        dom.removeAttribute('data-bg-color')
-      }
-    } else if (attr === 'cellTextColor') {
-      if (color) {
-        dom.style.color = color
-        dom.setAttribute('data-cell-text-color', color)
-      } else {
-        dom.style.color = ''
-        dom.removeAttribute('data-cell-text-color')
-      }
+    if (color) {
+      dom.setAttribute(domAttr, color)
+      dom.style.setProperty(cssProp, `var(${varPrefix}${color})`)
+    } else {
+      dom.removeAttribute(domAttr)
+      dom.style.removeProperty(cssProp)
     }
   })
 
@@ -2271,7 +2269,7 @@ onBeforeUnmount(() => {
           </div>
 
           <!-- Editor — always mounted so ProseMirror view stays attached -->
-          <div class="nc-doc-editor-body pb-48 relative" data-testid="docs-page-content" @click="onEditorBodyClick">
+          <div class="nc-doc-editor-body pb-48 relative" :style="docColorVars" data-testid="docs-page-content" @click="onEditorBodyClick">
             <template v-if="editor">
               <!-- Bubble menu: appears on text selection (including inside table cells) -->
               <BubbleMenu
@@ -3855,6 +3853,7 @@ onBeforeUnmount(() => {
       pointer-events: none;
       z-index: 2;
     }
+
   }
 
   // File attachment cards

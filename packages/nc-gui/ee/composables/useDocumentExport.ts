@@ -1,5 +1,6 @@
 import type { Editor } from '@tiptap/vue-3'
 import DOMPurify from 'isomorphic-dompurify'
+import { buildColorCssVars } from '~/components/doc/DocColorConstants'
 
 /**
  * Download helpers for exporting document content as Markdown, HTML, or PDF.
@@ -138,6 +139,14 @@ export function useDocumentExport({
     downloadFile(md, 'md', 'text/markdown;charset=utf-8')
   }
 
+  /** Generate :root CSS block with doc color variables (light mode for exports) */
+  const colorVarsCss = () => {
+    const vars = buildColorCssVars(false)
+    return `:root { ${Object.entries(vars)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join('; ')} }`
+  }
+
   const downloadHTML = () => {
     if (!editor.value) return
     const safeTitle = escapeHtml(title.value || 'Untitled')
@@ -148,6 +157,7 @@ export function useDocumentExport({
 <meta charset="UTF-8">
 <title>${safeTitle}</title>
 <style>
+  ${colorVarsCss()}
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #1f2937; line-height: 1.7; }
   h1 { font-size: 2em; margin-bottom: 0.5em; }
   table { border-collapse: collapse; width: 100%; margin: 1em 0; }
@@ -184,8 +194,9 @@ ${safeContent}
 <meta charset="UTF-8">
 <title>${safeTitle}</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" onerror="this.remove()">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" onerror="window.__katexFailed=true"><\/script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" onload="window.__katexReady=true" onerror="window.__katexFailed=true"><\/script>
 <style>
+  ${colorVarsCss()}
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 700px; margin: 0 auto; padding: 40px 20px; color: #1f2937; line-height: 1.7; font-size: 14px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
   /* Headings — clear size hierarchy */
@@ -301,12 +312,14 @@ function renderMath() {
     }
   });
 }
-// Wait for KaTeX script + images, then print
+// Wait for images, render math, then print after two animation frames (let layout settle)
 window.onload = function() {
-  if (!window.__katexFailed) renderMath();
+  if (!window.__katexFailed && window.__katexReady) renderMath();
   Promise.all(Array.from(document.images).filter(function(img) { return !img.complete; }).map(function(img) {
     return new Promise(function(resolve) { img.onload = img.onerror = resolve; });
-  })).then(function() { window.print(); });
+  })).then(function() {
+    requestAnimationFrame(function() { requestAnimationFrame(function() { window.print(); }); });
+  });
 };
 <\/script>
 </body>

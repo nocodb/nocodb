@@ -9,11 +9,18 @@ interface Props {
 defineProps<Props>()
 
 const emit = defineEmits<{
-  (e: 'textColor', color: string | null): void
-  (e: 'bgColor', color: string | null): void
+  (e: 'textColor', key: string | null): void
+  (e: 'bgColor', key: string | null): void
 }>()
 
 const { t } = useI18n()
+
+const { isDark } = useTheme()
+
+const displayColor = (opt: DocColorOption) => {
+  if (!opt.key) return ''
+  return isDark.value ? opt.dark : opt.light
+}
 </script>
 
 <template>
@@ -22,24 +29,24 @@ const { t } = useI18n()
     <div class="nc-doc-color-picker-grid">
       <button
         v-for="tc in textColors"
-        :key="tc.color || 'default'"
+        :key="tc.key || 'default'"
         class="nc-doc-color-picker-swatch"
-        :style="{ borderColor: tc.color ? `color-mix(in srgb, ${tc.color} 30%, transparent)` : undefined }"
+        :style="{ borderColor: displayColor(tc) ? `color-mix(in srgb, ${displayColor(tc)} 30%, transparent)` : undefined }"
         :title="tc.name"
-        @click="emit('textColor', tc.color || null)"
+        @click="emit('textColor', tc.key || null)"
       >
-        <span class="nc-doc-color-picker-letter" :style="{ color: tc.color || '#1f2937' }">A</span>
+        <span class="nc-doc-color-picker-letter" :style="{ color: displayColor(tc) || undefined }">A</span>
       </button>
     </div>
     <div class="nc-doc-color-picker-label">{{ t('labels.backgroundColor') }}</div>
     <div class="nc-doc-color-picker-grid">
       <button
         v-for="b in bgColors"
-        :key="b.color || 'none'"
+        :key="b.key || 'none'"
         class="nc-doc-color-picker-swatch"
-        :style="b.color ? { backgroundColor: b.color, borderColor: b.color } : {}"
+        :style="displayColor(b) ? { backgroundColor: displayColor(b), borderColor: displayColor(b) } : {}"
         :title="b.name"
-        @click="emit('bgColor', b.color || null)"
+        @click="emit('bgColor', b.key || null)"
       />
     </div>
   </div>

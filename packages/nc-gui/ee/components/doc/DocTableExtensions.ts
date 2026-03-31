@@ -147,14 +147,18 @@ const cellVerticalAlignAttr = {
   },
 }
 
-const safeColor = /^(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|[a-zA-Z]+)$/
+const isHex = (v: string) => v.startsWith('#')
 
 const cellBgColorAttr = {
   default: null,
   parseHTML: (el: HTMLElement) => el.getAttribute('data-bg-color') || null,
   renderHTML: (attrs: Record<string, any>) => {
-    if (!attrs.bgColor || !safeColor.test(attrs.bgColor)) return {}
-    return { 'data-bg-color': attrs.bgColor, 'style': `background-color: ${attrs.bgColor}` }
+    if (!attrs.bgColor) return {}
+    // Support legacy hex values and new semantic keys
+    const style = isHex(attrs.bgColor)
+      ? `background-color: ${attrs.bgColor}`
+      : `background-color: var(--nc-doc-bg-${attrs.bgColor})`
+    return { 'data-bg-color': attrs.bgColor, style }
   },
 }
 
@@ -162,8 +166,11 @@ const cellTextColorAttr = {
   default: null,
   parseHTML: (el: HTMLElement) => el.getAttribute('data-cell-text-color') || null,
   renderHTML: (attrs: Record<string, any>) => {
-    if (!attrs.cellTextColor || !safeColor.test(attrs.cellTextColor)) return {}
-    return { 'data-cell-text-color': attrs.cellTextColor, 'style': `color: ${attrs.cellTextColor}` }
+    if (!attrs.cellTextColor) return {}
+    const style = isHex(attrs.cellTextColor)
+      ? `color: ${attrs.cellTextColor}`
+      : `color: var(--nc-doc-text-${attrs.cellTextColor})`
+    return { 'data-cell-text-color': attrs.cellTextColor, style }
   },
 }
 

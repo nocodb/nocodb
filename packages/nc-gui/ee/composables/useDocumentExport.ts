@@ -183,8 +183,8 @@ ${safeContent}
 <head>
 <meta charset="UTF-8">
 <title>${safeTitle}</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"><\/script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" onerror="this.remove()">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" onerror="window.__katexFailed=true"><\/script>
 <style>
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 700px; margin: 0 auto; padding: 40px 20px; color: #1f2937; line-height: 1.7; font-size: 14px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
@@ -303,7 +303,7 @@ function renderMath() {
 }
 // Wait for KaTeX script + images, then print
 window.onload = function() {
-  renderMath();
+  if (!window.__katexFailed) renderMath();
   Promise.all(Array.from(document.images).filter(function(img) { return !img.complete; }).map(function(img) {
     return new Promise(function(resolve) { img.onload = img.onerror = resolve; });
   })).then(function() { window.print(); });

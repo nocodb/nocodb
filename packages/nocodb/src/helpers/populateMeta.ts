@@ -10,6 +10,7 @@ import type Source from '~/models/Source';
 import type Base from '~/models/Base';
 import type PGClient from '~/db/sql-client/lib/pg/PgClient';
 import type { NcContext } from '~/interface/config';
+import { META_COL_NAME } from '~/constants';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import getColumnUiType from '~/helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
@@ -313,6 +314,32 @@ export async function populateMeta(
           ? []
           : tableRelations.filter((r) => r.tn === table.tn);
 
+      // Detect NocoDB-created tables by presence of all 6 system columns.
+      // If all are found together, remap them to their proper UITypes and mark as system.
+      const NC_SYSTEM_COL_UIDT: Record<string, UITypes> = {
+        created_at: UITypes.CreatedTime,
+        updated_at: UITypes.LastModifiedTime,
+        created_by: UITypes.CreatedBy,
+        updated_by: UITypes.LastModifiedBy,
+        nc_order: UITypes.Order,
+        [META_COL_NAME]: UITypes.Meta,
+      };
+      const columnNameSet = new Set(columns.map((c) => c.cn?.toLowerCase()));
+      const isNcCreatedTable = Object.keys(NC_SYSTEM_COL_UIDT).every((name) =>
+        columnNameSet.has(name),
+      );
+
+      // Mark NocoDB system columns before mapDefaultDisplayValue so pv selection skips them
+      if (isNcCreatedTable) {
+        for (const column of columns) {
+          const ncUidt = NC_SYSTEM_COL_UIDT[column.cn?.toLowerCase()];
+          if (ncUidt) {
+            column.uidt = ncUidt;
+            column.system = true;
+          }
+        }
+      }
+
       mapDefaultDisplayValue(columns);
 
       // add vitual columns
@@ -373,6 +400,15 @@ export async function populateMeta(
             column.meta = {
               ag: 'nc',
             };
+          }
+        }
+
+        // If this is a NocoDB-created table, remap system columns to their proper UITypes
+        if (isNcCreatedTable) {
+          const ncUidt = NC_SYSTEM_COL_UIDT[column.cn?.toLowerCase()];
+          if (ncUidt) {
+            column.uidt = ncUidt;
+            column.system = true;
           }
         }
 

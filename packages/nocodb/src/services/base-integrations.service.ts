@@ -26,6 +26,7 @@ export class BaseIntegrationsService {
       baseId: string;
       type?: IntegrationsType;
       subType?: string;
+      userId?: string;
     },
   ) {
     const base = await Base.get(context, param.baseId);
@@ -66,7 +67,15 @@ export class BaseIntegrationsService {
       .then((rows) => new Set(rows.map((r) => r.fk_integration_id)));
 
     // Filter: available if unrestricted OR explicitly linked OR global
+    // Also exclude private integrations not created by the current user
     return integrations.filter((integration) => {
+      if (
+        integration.is_private &&
+        param.userId &&
+        integration.created_by !== param.userId
+      ) {
+        return false;
+      }
       if (integration.is_global) return true;
       if (!integration.is_restricted) return true;
       return linkedIntegrationIds.has(integration.id);

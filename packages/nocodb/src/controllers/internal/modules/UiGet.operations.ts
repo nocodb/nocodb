@@ -270,6 +270,7 @@ export class UiGetOperations
           baseId: context.base_id,
           type: req.query.type as any,
           subType: req.query.subType as string,
+          userId: req.user?.id,
         });
       case 'integrationLinkedBaseList':
         return (await this.baseIntegrationsService.linkedBaseList(context, {

@@ -54,61 +54,78 @@ export class NotificationsService extends NotificationsServiceCE {
     // events (including WELCOME and PROJECT_INVITE) so the CE listeners
     // would only create duplicates.
 
-    const on = (event: AppEvents, listener: (data: any) => void) => {
-      this.listenerUnsubs.push(this.appHooks.on(event, listener));
-    };
-
-    on(AppEvents.PROJECT_INVITE, (data) =>
-      this.hookHandler({ event: AppEvents.PROJECT_INVITE, data }),
+    this.listenerUnsubs.push(
+      this.appHooks.on(AppEvents.PROJECT_INVITE, (data) =>
+        this.hookHandler({ event: AppEvents.PROJECT_INVITE, data }),
+      ),
     );
-    on(AppEvents.WELCOME, (data) =>
-      this.hookHandler({ event: AppEvents.WELCOME, data }),
+    this.listenerUnsubs.push(
+      this.appHooks.on(AppEvents.WELCOME, (data) =>
+        this.hookHandler({ event: AppEvents.WELCOME, data }),
+      ),
     );
-    on(AppEvents.WORKSPACE_USER_INVITE, (data) =>
-      this.hookHandler({ event: AppEvents.WORKSPACE_USER_INVITE, data }),
+    this.listenerUnsubs.push(
+      this.appHooks.on(AppEvents.WORKSPACE_USER_INVITE, (data) =>
+        this.hookHandler({ event: AppEvents.WORKSPACE_USER_INVITE, data }),
+      ),
     );
-    on(AppEvents.COMMENT_CREATE, (data) =>
-      this.hookHandler({ event: AppEvents.COMMENT_CREATE, data }),
+    this.listenerUnsubs.push(
+      this.appHooks.on(AppEvents.COMMENT_CREATE, (data) =>
+        this.hookHandler({ event: AppEvents.COMMENT_CREATE, data }),
+      ),
     );
-    on(AppEvents.COMMENT_UPDATE, (data) =>
-      this.hookHandler({ event: AppEvents.COMMENT_UPDATE, data }),
+    this.listenerUnsubs.push(
+      this.appHooks.on(AppEvents.COMMENT_UPDATE, (data) =>
+        this.hookHandler({ event: AppEvents.COMMENT_UPDATE, data }),
+      ),
     );
-    on(AppEvents.DOCUMENT_COMMENT_CREATE, (data) =>
-      this.hookHandler({ event: AppEvents.DOCUMENT_COMMENT_CREATE, data }),
+    this.listenerUnsubs.push(
+      this.appHooks.on(AppEvents.DOCUMENT_COMMENT_CREATE, (data) =>
+        this.hookHandler({ event: AppEvents.DOCUMENT_COMMENT_CREATE, data }),
+      ),
     );
-    on(AppEvents.DOCUMENT_COMMENT_UPDATE, (data) =>
-      this.hookHandler({ event: AppEvents.DOCUMENT_COMMENT_UPDATE, data }),
+    this.listenerUnsubs.push(
+      this.appHooks.on(AppEvents.DOCUMENT_COMMENT_UPDATE, (data) =>
+        this.hookHandler({ event: AppEvents.DOCUMENT_COMMENT_UPDATE, data }),
+      ),
     );
-    on(AppEvents.DOCUMENT_USER_MENTION, (data) =>
-      this.hookHandler({ event: AppEvents.DOCUMENT_USER_MENTION, data }),
+    this.listenerUnsubs.push(
+      this.appHooks.on(AppEvents.DOCUMENT_USER_MENTION, (data) =>
+        this.hookHandler({ event: AppEvents.DOCUMENT_USER_MENTION, data }),
+      ),
     );
-
-    on(AppEvents.ROW_USER_MENTION, (data) => {
-      this.hookHandler({ event: AppEvents.ROW_USER_MENTION, data });
-      this.mailService.sendMail({
-        mailEvent: MailEvent.ROW_USER_MENTION,
-        payload: data,
-      });
-    });
-
-    on(AppEvents.WORKSPACE_UPGRADE_REQUEST, (data) => {
-      this.hookHandler({ event: AppEvents.WORKSPACE_UPGRADE_REQUEST, data });
-      this.mailService.sendMail({
-        mailEvent: MailEvent.WORKSPACE_REQUEST_UPGRADE,
-        payload: data,
-      });
-    });
-
-    on(AppEvents.WORKSPACE_TEAM_INVITE, (data) =>
-      this.hookHandler({ event: AppEvents.WORKSPACE_TEAM_INVITE, data }),
+    this.listenerUnsubs.push(
+      this.appHooks.on(AppEvents.ROW_USER_MENTION, (data) => {
+        this.hookHandler({ event: AppEvents.ROW_USER_MENTION, data });
+        this.mailService.sendMail({
+          mailEvent: MailEvent.ROW_USER_MENTION,
+          payload: data,
+        });
+      }),
     );
-
-    on(AppEvents.PROJECT_TEAM_INVITE, (data) =>
-      this.hookHandler({ event: AppEvents.PROJECT_TEAM_INVITE, data }),
+    this.listenerUnsubs.push(
+      this.appHooks.on(AppEvents.WORKSPACE_UPGRADE_REQUEST, (data) => {
+        this.hookHandler({ event: AppEvents.WORKSPACE_UPGRADE_REQUEST, data });
+        this.mailService.sendMail({
+          mailEvent: MailEvent.WORKSPACE_REQUEST_UPGRADE,
+          payload: data,
+        });
+      }),
     );
-
-    on(AppEvents.TEAM_MEMBER_ADD, (data) =>
-      this.hookHandler({ event: AppEvents.TEAM_MEMBER_ADD, data }),
+    this.listenerUnsubs.push(
+      this.appHooks.on(AppEvents.WORKSPACE_TEAM_INVITE, (data) =>
+        this.hookHandler({ event: AppEvents.WORKSPACE_TEAM_INVITE, data }),
+      ),
+    );
+    this.listenerUnsubs.push(
+      this.appHooks.on(AppEvents.PROJECT_TEAM_INVITE, (data) =>
+        this.hookHandler({ event: AppEvents.PROJECT_TEAM_INVITE, data }),
+      ),
+    );
+    this.listenerUnsubs.push(
+      this.appHooks.on(AppEvents.TEAM_MEMBER_ADD, (data) =>
+        this.hookHandler({ event: AppEvents.TEAM_MEMBER_ADD, data }),
+      ),
     );
   }
 

@@ -38,6 +38,8 @@ import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class NotificationsService extends NotificationsServiceCE {
+  protected listenerUnsubs: (() => void)[] = [];
+
   constructor(
     protected readonly appHooks: AppHooksService,
     protected readonly datasService: DatasService,
@@ -48,67 +50,74 @@ export class NotificationsService extends NotificationsServiceCE {
 
   @EEOnly()
   onModuleInit() {
-    super.onModuleInit();
-    // Explicitly set up PROJECT_INVITE to ensure it uses EE's hookHandler
-    this.appHooks.on(AppEvents.PROJECT_INVITE, (data) =>
+    // Do NOT call super.onModuleInit() — the EE hookHandler handles all
+    // events (including WELCOME and PROJECT_INVITE) so the CE listeners
+    // would only create duplicates.
+
+    const on = (event: AppEvents, listener: (data: any) => void) => {
+      this.listenerUnsubs.push(this.appHooks.on(event, listener));
+    };
+
+    on(AppEvents.PROJECT_INVITE, (data) =>
       this.hookHandler({ event: AppEvents.PROJECT_INVITE, data }),
     );
-    this.appHooks.on(AppEvents.WORKSPACE_USER_INVITE, (data) =>
+    on(AppEvents.WELCOME, (data) =>
+      this.hookHandler({ event: AppEvents.WELCOME, data }),
+    );
+    on(AppEvents.WORKSPACE_USER_INVITE, (data) =>
       this.hookHandler({ event: AppEvents.WORKSPACE_USER_INVITE, data }),
     );
-    this.appHooks.on(AppEvents.COMMENT_CREATE, (data) =>
+    on(AppEvents.COMMENT_CREATE, (data) =>
       this.hookHandler({ event: AppEvents.COMMENT_CREATE, data }),
     );
-    this.appHooks.on(AppEvents.COMMENT_UPDATE, (data) =>
+    on(AppEvents.COMMENT_UPDATE, (data) =>
       this.hookHandler({ event: AppEvents.COMMENT_UPDATE, data }),
     );
-    this.appHooks.on(AppEvents.DOCUMENT_COMMENT_CREATE, (data) =>
+    on(AppEvents.DOCUMENT_COMMENT_CREATE, (data) =>
       this.hookHandler({ event: AppEvents.DOCUMENT_COMMENT_CREATE, data }),
     );
-    this.appHooks.on(AppEvents.DOCUMENT_COMMENT_UPDATE, (data) =>
+    on(AppEvents.DOCUMENT_COMMENT_UPDATE, (data) =>
       this.hookHandler({ event: AppEvents.DOCUMENT_COMMENT_UPDATE, data }),
     );
-    this.appHooks.on(AppEvents.DOCUMENT_USER_MENTION, (data) =>
+    on(AppEvents.DOCUMENT_USER_MENTION, (data) =>
       this.hookHandler({ event: AppEvents.DOCUMENT_USER_MENTION, data }),
     );
 
-    this.appHooks.on(AppEvents.ROW_USER_MENTION, (data) => {
+    on(AppEvents.ROW_USER_MENTION, (data) => {
       this.hookHandler({ event: AppEvents.ROW_USER_MENTION, data });
-      // I cant call this in BaseModelSqlV2. So for now, I am keeping it here.
       this.mailService.sendMail({
         mailEvent: MailEvent.ROW_USER_MENTION,
         payload: data,
       });
     });
 
-    this.appHooks.on(AppEvents.WORKSPACE_UPGRADE_REQUEST, (data) => {
+    on(AppEvents.WORKSPACE_UPGRADE_REQUEST, (data) => {
       this.hookHandler({ event: AppEvents.WORKSPACE_UPGRADE_REQUEST, data });
-
-      /*
-        workspace: WorkspaceType;
-        user: UserType;
-        requester: UserType;
-        req: NcRequest;
-        limitOrFeature: string;
-      */
-
       this.mailService.sendMail({
         mailEvent: MailEvent.WORKSPACE_REQUEST_UPGRADE,
         payload: data,
       });
     });
 
-    this.appHooks.on(AppEvents.WORKSPACE_TEAM_INVITE, (data) =>
+    on(AppEvents.WORKSPACE_TEAM_INVITE, (data) =>
       this.hookHandler({ event: AppEvents.WORKSPACE_TEAM_INVITE, data }),
     );
 
-    this.appHooks.on(AppEvents.PROJECT_TEAM_INVITE, (data) =>
+    on(AppEvents.PROJECT_TEAM_INVITE, (data) =>
       this.hookHandler({ event: AppEvents.PROJECT_TEAM_INVITE, data }),
     );
 
-    this.appHooks.on(AppEvents.TEAM_MEMBER_ADD, (data) =>
+    on(AppEvents.TEAM_MEMBER_ADD, (data) =>
       this.hookHandler({ event: AppEvents.TEAM_MEMBER_ADD, data }),
     );
+  }
+
+  @EEOnly()
+  onModuleDestroy() {
+    for (const unsub of this.listenerUnsubs) {
+      unsub();
+    }
+    this.listenerUnsubs = [];
   }
 
   /**

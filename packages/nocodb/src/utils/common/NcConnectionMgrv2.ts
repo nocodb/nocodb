@@ -8,6 +8,11 @@ import SqlClientFactory from '~/db/sql-client/lib/SqlClientFactory';
 import { XKnex } from '~/db/CustomKnex';
 import Noco from '~/Noco';
 import { RedisVersionTracker } from '~/utils/RedisVersionTracker';
+import { LRUMap } from '~/utils/LRUMap';
+
+const CONNECTION_CACHE_MAX_SIZE = +(
+  process.env.NC_CONNECTION_CACHE_MAX_SIZE || 500
+);
 
 export default class NcConnectionMgrv2 {
   protected static logger = new Logger('NcConnectionMgrv2');
@@ -16,57 +21,29 @@ export default class NcConnectionMgrv2 {
     'SOURCE_CONN_VER',
   );
 
-  protected static connectionRefs: {
-    [baseId: string]: {
-      [sourceId: string]: XKnex;
-    };
-  } = {};
+  protected static connectionRefs = new LRUMap<XKnex>(
+    CONNECTION_CACHE_MAX_SIZE,
+    (conn) => {
+      return conn.destroy().catch((e) => {
+        NcConnectionMgrv2.logger.error({
+          error: e,
+          details: 'Error destroying evicted connection',
+        });
+      });
+    },
+  );
 
   public static async destroyAll() {
-    for (const baseId in this.connectionRefs) {
-      for (const sourceId in this.connectionRefs[baseId]) {
-        await this.connectionRefs[baseId][sourceId].destroy();
-      }
-    }
-    this.connectionRefs = {};
+    await this.connectionRefs.asyncClear();
   }
 
   public static async deleteAwait(source: Source) {
     // todo: ignore meta bases
-    if (this.connectionRefs?.[source.base_id]?.[source.id]) {
-      try {
-        const conn = this.connectionRefs[source.base_id][source.id];
-        delete this.connectionRefs[source.base_id][source.id];
-        await conn.destroy();
-      } catch (e) {
-        this.logger.error({
-          error: e,
-          details: 'Error deleting connection ref',
-        });
-      }
-    }
+    await this.connectionRefs.asyncDelete(source.id);
   }
 
   public static async deleteConnectionRef(sourceId: string) {
-    let deleted = false;
-    for (const baseId in this.connectionRefs) {
-      try {
-        const knex = this.connectionRefs[baseId][sourceId];
-        if (knex) {
-          // Remove reference first so concurrent get() creates a fresh
-          // connection instead of receiving a pool that is being destroyed.
-          delete this.connectionRefs[baseId][sourceId];
-          deleted = true;
-          await knex.destroy();
-        }
-      } catch (e) {
-        this.logger.error({
-          error: e,
-          details: 'Error deleting connection ref',
-        });
-      }
-    }
-    return deleted;
+    await this.connectionRefs.asyncDelete(sourceId);
   }
 
   /**
@@ -104,15 +81,14 @@ export default class NcConnectionMgrv2 {
     // Cross-server staleness check via Redis version key
     await this.checkSourceStaleness(source.id);
 
-    if (this.connectionRefs?.[source.base_id]?.[source.id]) {
-      return this.connectionRefs?.[source.base_id]?.[source.id];
+    const cached = this.connectionRefs.get(source.id);
+    if (cached) {
+      return cached;
     }
-    this.connectionRefs[source.base_id] =
-      this.connectionRefs?.[source.base_id] || {};
 
     const connectionConfig = await source.getConnectionConfig();
 
-    this.connectionRefs[source.base_id][source.id] = XKnex({
+    const knex = XKnex({
       ...defaultConnectionOptions,
       ...connectionConfig,
       connection: {
@@ -142,7 +118,9 @@ export default class NcConnectionMgrv2 {
         },
       },
     } as any);
-    return this.connectionRefs[source.base_id][source.id];
+
+    this.connectionRefs.set(source.id, knex);
+    return knex;
   }
 
   public static async getSqlClient(source: Source, _knex = null) {

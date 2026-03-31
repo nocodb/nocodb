@@ -376,7 +376,7 @@ class DatabricksClient extends KnexClient {
       ]);
 
       if (databases.length === 0) {
-        await this.sqlClient.raw(`CREATE DATABASE ${args.schema}`);
+        await this.sqlClient.raw('CREATE DATABASE ??', [args.schema]);
       }
     } catch (e) {
       log.ppe(e, _func);

@@ -22,6 +22,7 @@ import { internalTests } from './tests/internal/index.test';
 import tableTests from './tests/meta-apis/table.test';
 import { paymentTest } from './tests/payment/payment.test';
 import { planGatingTests } from './tests/payment/planGating.test';
+import convertDateFormatTests from './tests/convertDateFormat.test';
 
 let workspaceTest = () => {};
 let ssoTest = () => {};
@@ -66,6 +67,7 @@ function restTests() {
     scimTest();
   }
   if (willRunOnSet(2)) {
+    convertDateFormatTests();
     filterTest();
     groupByTest();
     scimComplianceTest();

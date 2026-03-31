@@ -260,6 +260,7 @@ export class IntegrationsService {
   async integrationCreate(
     context: NcContext,
     param: {
+      workspaceId?: string;
       integration: IntegrationReqType;
       logger?: (message: string) => void;
       req: any;

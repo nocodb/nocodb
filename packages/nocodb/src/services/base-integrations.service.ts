@@ -119,6 +119,7 @@ export class BaseIntegrationsService {
       const integration = await this.integrationsService.integrationCreate(
         context,
         {
+          workspaceId,
           integration: {
             ...param.integration,
             is_restricted: true,

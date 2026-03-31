@@ -152,6 +152,7 @@ export default class Integration extends IntegrationCE {
       meta?: any;
       deleted?: boolean;
       is_encrypted?: boolean;
+      is_restricted?: BoolType;
     },
     ncMeta = Noco.ncMeta,
   ) {

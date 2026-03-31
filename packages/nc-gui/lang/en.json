@@ -116,6 +116,7 @@
     "updateToAddRecordFormViewSubtitle": "You’ve reached the limit for number of records on your {activePlan} plan. Upgrade to increase your record limit.",
     "updateToExtendRecordHistory": "Upgrade to extend your history",
     "updateToExtendRecordHistorySubtitle": "The {activePlan} plan allows up to {period} of audit history. Upgrade to the {plan} plan to increase your audit history period.",
+    "ceAuditRetentionNotice": "Only the last 30 days of revision history is shown. Upgrade to view the full history.",
     "planLimitReached": "Limit reached: Upgrade Plan",
     "planLimitReachedSubtitle": "Upgrade to add more records",
     "upgradeToAddLimitRecordSelection": "To limit record selection using filters, please upgrade to the {plan} plan.",

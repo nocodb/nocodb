@@ -6,7 +6,7 @@ const tagHeight = 22
 const topPadding = 4
 
 export const SingleSelectCellRenderer: CellRenderer = {
-  render: (ctx, { column, value, x, y, width, pv, padding, isDark }) => {
+  render: (ctx, { column, value, x, y, width, pv, padding, isDark, getColor }) => {
     const text = value?.toString()?.trim() ?? ''
 
     // If it is empty text then no need to render
@@ -23,14 +23,18 @@ export const SingleSelectCellRenderer: CellRenderer = {
       render: false,
     })
 
-    const isColorCodeEnabled = (column.extra as any)?.isColorCodeEnabled !== false
-    const opColor = isColorCodeEnabled
-      ? ((column.extra as ReturnType<typeof getSingleMultiselectColOptions>)?.optionsMap?.[text]?.color ?? '#e7e7e9')
-      : '#e7e7e9'
+    const extra = column.extra as ReturnType<typeof getSingleMultiselectColOptions>
+    const isColorCodeEnabled = extra?.isColorCodeEnabled !== false
 
-    const opBgColor = !isDark
-      ? getAdaptiveTint(opColor, { saturationMod: 5, isDarkMode: isDark, shade: 20 })
-      : getAdaptiveTint(opColor, { isDarkMode: isDark, shade: -10 })
+    const opColor = isColorCodeEnabled ? (extra?.optionsMap?.[text]?.color ?? '#e7e7e9') : undefined
+    const opBgColor = isColorCodeEnabled
+      ? !isDark
+        ? getAdaptiveTint(opColor!, { saturationMod: 5, isDarkMode: isDark, shade: 20 })
+        : getAdaptiveTint(opColor!, { isDarkMode: isDark, shade: -10 })
+      : getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')
+    const opTextColor = isColorCodeEnabled
+      ? getOppositeColorOfBackground(opBgColor, opColor)
+      : getColor('var(--nc-content-gray)')
 
     renderTag(ctx, {
       x: x + padding,
@@ -49,7 +53,7 @@ export const SingleSelectCellRenderer: CellRenderer = {
       textAlign: 'left',
       verticalAlign: 'middle',
       fontFamily: `${pv ? 600 : 500} 13px Inter`,
-      fillStyle: getOppositeColorOfBackground(opBgColor, opColor),
+      fillStyle: opTextColor,
     })
 
     return {

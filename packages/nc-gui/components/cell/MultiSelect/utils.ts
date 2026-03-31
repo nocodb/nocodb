@@ -50,16 +50,24 @@ export const getOptions = (
           ...o,
           value: o.title,
           order: o.id && limitOptionsById[o.id] ? limitOptionsById[o.id]?.order : order++,
-          bgColor: isColorCodeEnabled ? getSelectTypeFieldOptionBgColor({ color: o.color, isDark }) : undefined,
-          textColor: isColorCodeEnabled ? getSelectTypeFieldOptionTextColor({ color: o.color, isDark, getColor }) : undefined,
+          bgColor: isColorCodeEnabled
+            ? getSelectTypeFieldOptionBgColor({ color: o.color, isDark })
+            : getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)'),
+          textColor: isColorCodeEnabled
+            ? getSelectTypeFieldOptionTextColor({ color: o.color, isDark, getColor })
+            : getColor('var(--nc-content-gray)'),
         }))
         .sort((a, b) => a.order - b.order)
     } else {
       return opts.map((o: SelectOptionType) => ({
         ...o,
         value: o.title,
-        bgColor: isColorCodeEnabled ? getSelectTypeFieldOptionBgColor({ color: o.color, isDark }) : undefined,
-        textColor: isColorCodeEnabled ? getSelectTypeFieldOptionTextColor({ color: o.color, isDark, getColor }) : undefined,
+        bgColor: isColorCodeEnabled
+          ? getSelectTypeFieldOptionBgColor({ color: o.color, isDark })
+          : getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)'),
+        textColor: isColorCodeEnabled
+          ? getSelectTypeFieldOptionTextColor({ color: o.color, isDark, getColor })
+          : getColor('var(--nc-content-gray)'),
       }))
     }
   }

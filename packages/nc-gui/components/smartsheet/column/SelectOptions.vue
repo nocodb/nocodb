@@ -542,14 +542,13 @@ if (!isKanbanStack.value) {
 <template>
   <div class="w-full">
     <div v-if="!isKanbanStack" class="flex items-center justify-between mb-2">
-      <div class="flex items-center gap-2">
-        <NcSwitch v-model:checked="isColorCodeEnabled" size="xsmall" />
-        <span class="text-sm text-nc-content-gray select-none cursor-pointer" @click="isColorCodeEnabled = !isColorCodeEnabled">
+      <div class="flex items-center select-none">
+        <NcSwitch v-model:checked="isColorCodeEnabled" v-e="['c:field:select:color-code:toggle']" size="xsmall">
           {{ $t('labels.colorCodeOptions') }}
-        </span>
+        </NcSwitch>
       </div>
 
-      <NcButton type="text" size="small" @click.stop="alphabetizeOptions">
+      <NcButton v-e="['c:field:select:alphabetize']" type="text" size="small" @click.stop="alphabetizeOptions">
         <template #icon>
           <GeneralIcon icon="ncArrowUpDown" class="h-4 w-4 opacity-80" />
         </template>
@@ -573,6 +572,7 @@ if (!isKanbanStack.value) {
         <div v-if="kanbanStackOption" class="flex items-center nc-select-option">
           <div class="flex items-center w-full">
             <NcDropdown
+              v-if="isColorCodeEnabled"
               v-model:visible="colorMenus[kanbanStackOption.index!]"
               :auto-close="false"
               overlay-class-name="nc-select-option-color-picker"

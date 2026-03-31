@@ -44,8 +44,6 @@ const { getPossibleAttachmentSrc } = useAttachment()
 
 const { blockAddNewRecord } = useEeConfig()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const isTransitioning = ref(false)
 
 const transitionName = ref<TransitionDirection>(TransitionDirection.Left)

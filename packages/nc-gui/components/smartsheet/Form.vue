@@ -46,8 +46,6 @@ const enum NcForm {
 
 const { isMobileMode, user, appInfo } = useGlobal()
 
-const { isFeatureEnabled: isBetaFeatureEnabled } = useBetaFeatureToggle()
-
 const { $api, $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()

@@ -153,8 +153,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
       let list: IntegrationType[]
 
-      // When on a base page, use base-scoped API (no workspace role needed)
-      const effectiveBaseId = baseId || activeProjectId.value
+c      // Only use base-scoped API when baseId is explicitly passed
+      const effectiveBaseId = baseId
       if (effectiveBaseId) {
         try {
           list = ((await $api.internal.getOperation(activeWorkspaceId.value, effectiveBaseId, {

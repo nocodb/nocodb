@@ -2,9 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { Base, Integration, IntegrationLink } from '~/models';
-import { NcError } from '~/helpers/catchError';
+import { NcError, NcBaseError } from '~/helpers/catchError';
 import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
+import type { MetaService } from '~/meta/meta.service';
 import { IntegrationsService } from '~/services/integrations.service';
 
 @Injectable()
@@ -303,30 +304,54 @@ export class BaseIntegrationsService {
       NcError.get(context).integrationNotFound(param.integrationId);
     }
 
-    if (param.allBases) {
-      // Delete all links + set unrestricted
-      await IntegrationLink.deleteByIntegration(
-        context,
-        param.integrationId,
-      );
-      await Integration.updateIntegration(context, param.integrationId, {
-        is_restricted: false,
-      } as any);
-      return { all_bases: true };
-    }
+    const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
 
-    if (param.baseIds) {
-      // Set restricted + replace links
-      await Integration.updateIntegration(context, param.integrationId, {
-        is_restricted: true,
-      } as any);
-      await IntegrationLink.replaceLinksForIntegration(context, {
-        integrationId: param.integrationId,
-        baseIds: param.baseIds,
-        workspaceId: integration.fk_workspace_id,
-        userId: param.userId,
-      });
-      return { all_bases: false, base_ids: param.baseIds };
+    try {
+      if (param.allBases) {
+        // Delete all links + set unrestricted
+        await IntegrationLink.deleteByIntegration(
+          context,
+          param.integrationId,
+          ncMeta,
+        );
+        await Integration.updateIntegration(
+          context,
+          param.integrationId,
+          { is_restricted: false } as any,
+          ncMeta,
+        );
+        await ncMeta.commit();
+        return { all_bases: true };
+      }
+
+      if (param.baseIds) {
+        // Set restricted + replace links
+        await Integration.updateIntegration(
+          context,
+          param.integrationId,
+          { is_restricted: true } as any,
+          ncMeta,
+        );
+        await IntegrationLink.replaceLinksForIntegration(
+          context,
+          {
+            integrationId: param.integrationId,
+            baseIds: param.baseIds,
+            workspaceId: integration.fk_workspace_id,
+            userId: param.userId,
+          },
+          ncMeta,
+        );
+        await ncMeta.commit();
+        return { all_bases: false, base_ids: param.baseIds };
+      }
+    } catch (e) {
+      await ncMeta.rollback(e);
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Error updating linked bases', e);
+      NcError.get(context).internalServerError(
+        'Failed to update linked bases',
+      );
     }
 
     NcError.get(context).badRequest(

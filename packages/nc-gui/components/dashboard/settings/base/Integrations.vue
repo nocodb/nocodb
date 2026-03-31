@@ -22,7 +22,7 @@ const { basesUser } = storeToRefs(basesStore)
 
 const { linkedIntegrations, isLoading, loadLinkedIntegrations, linkIntegration, unlinkIntegration } = useBaseIntegrations()
 
-const canManage = computed(() => isUIAllowed('sourceCreate'))
+const canManage = computed(() => isUIAllowed('baseIntegrationCreate'))
 
 // Integration store (provided by View.vue)
 const { addIntegration, editIntegration, eventBus, isFromIntegrationPage, loadDynamicIntegrations } = useIntegrationStore()
@@ -89,56 +89,59 @@ const getUserName = (userId: string) => {
   return user.display_name || user.email?.split('@')[0] || userId
 }
 
-const linkedColumns = computed<NcTableColumnProps[]>(() => [
-  {
-    key: 'title',
-    title: t('general.name'),
-    minWidth: 250,
-    dataIndex: 'title',
-    showOrderBy: true,
-  },
-  {
-    key: 'sub_type',
-    title: t('general.type'),
-    minWidth: 98,
-    width: 120,
-    dataIndex: 'sub_type',
-    showOrderBy: true,
-  },
-  {
-    key: 'created_at',
-    title: t('labels.dateAdded'),
-    basis: '20%',
-    minWidth: 200,
-    dataIndex: 'created_at',
-    showOrderBy: true,
-  },
-  {
-    key: 'created_by',
-    title: t('labels.addedBy'),
-    minWidth: 200,
-    basis: '20%',
-    dataIndex: 'created_by',
-    showOrderBy: true,
-  },
-  {
-    key: 'base_access',
-    title: t('labels.baseAccess'),
-    minWidth: 140,
-    width: 160,
-  },
-  ...(canManage.value
-    ? [
-        {
-          key: 'action',
-          title: t('labels.actions'),
-          minWidth: 100,
-          width: 100,
-          justify: 'justify-end',
-        },
-      ]
-    : []),
-] as NcTableColumnProps[])
+const linkedColumns = computed<NcTableColumnProps[]>(
+  () =>
+    [
+      {
+        key: 'title',
+        title: t('general.name'),
+        minWidth: 250,
+        dataIndex: 'title',
+        showOrderBy: true,
+      },
+      {
+        key: 'sub_type',
+        title: t('general.type'),
+        minWidth: 98,
+        width: 120,
+        dataIndex: 'sub_type',
+        showOrderBy: true,
+      },
+      {
+        key: 'created_at',
+        title: t('labels.dateAdded'),
+        basis: '20%',
+        minWidth: 200,
+        dataIndex: 'created_at',
+        showOrderBy: true,
+      },
+      {
+        key: 'created_by',
+        title: t('labels.addedBy'),
+        minWidth: 200,
+        basis: '20%',
+        dataIndex: 'created_by',
+        showOrderBy: true,
+      },
+      {
+        key: 'base_access',
+        title: t('labels.baseAccess'),
+        minWidth: 140,
+        width: 160,
+      },
+      ...(canManage.value
+        ? [
+            {
+              key: 'action',
+              title: t('labels.actions'),
+              minWidth: 100,
+              width: 100,
+              justify: 'justify-end',
+            },
+          ]
+        : []),
+    ] as NcTableColumnProps[],
+)
 
 const orderBy = ref<Record<string, 'asc' | 'desc' | undefined>>({})
 
@@ -172,19 +175,11 @@ watch(baseId, reload)
   <div class="flex w-full flex-col h-full nc-base-integrations">
     <!-- Custom tab bar — not using NcTabs to avoid parent's hide-tabs interference -->
     <div class="nc-base-integrations-tab-bar flex items-center border-b-1 border-nc-border-gray-medium pl-3">
-      <div
-        class="nc-base-integrations-tab"
-        :class="{ active: activeTab === 'integrations' }"
-        @click="activeTab = 'integrations'"
-      >
+      <div class="nc-base-integrations-tab" :class="{ active: activeTab === 'integrations' }" @click="activeTab = 'integrations'">
         <GeneralIcon icon="integration" />
         {{ $t('general.integrations') }}
       </div>
-      <div
-        class="nc-base-integrations-tab"
-        :class="{ active: activeTab === 'connections' }"
-        @click="activeTab = 'connections'"
-      >
+      <div class="nc-base-integrations-tab" :class="{ active: activeTab === 'connections' }" @click="activeTab = 'connections'">
         <GeneralIcon icon="gitCommit" />
         {{ $t('general.connections') }}
         <div
@@ -215,11 +210,7 @@ watch(baseId, reload)
                 <div class="category-type-title">{{ $t(category.title) }}</div>
                 <div class="integration-type-list">
                   <template v-for="integration of category.list" :key="integration.sub_type">
-                    <div
-                      class="source-card is-available"
-                      tabindex="0"
-                      @click="handleAddIntegration(integration)"
-                    >
+                    <div class="source-card is-available" tabindex="0" @click="handleAddIntegration(integration)">
                       <div class="integration-icon-wrapper">
                         <component :is="integration.icon" class="integration-icon" :style="integration.iconStyle" />
                       </div>

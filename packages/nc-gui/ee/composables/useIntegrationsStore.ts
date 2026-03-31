@@ -367,8 +367,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     try {
       let response: IntegrationType | undefined
 
-      // When on a base page, use base-scoped creation (no workspace role needed)
-      const effectiveBaseId = baseId || activeProjectId.value
+      const effectiveBaseId = baseId
       if (effectiveBaseId && activeWorkspaceId.value) {
         response = (await $api.internal.postOperation(
           activeWorkspaceId.value,

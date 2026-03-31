@@ -52,7 +52,11 @@ export class BaseIntegrationsService {
         `${MetaTable.INTEGRATIONS}.created_at`,
       )
       .where(`${MetaTable.INTEGRATIONS}.fk_workspace_id`, workspaceId)
-      .where(`${MetaTable.INTEGRATIONS}.deleted`, false)
+      .where((qb) => {
+        qb.where(`${MetaTable.INTEGRATIONS}.deleted`, false).orWhereNull(
+          `${MetaTable.INTEGRATIONS}.deleted`,
+        );
+      })
       .modify((qb) => {
         if (param.type) {
           qb.where(`${MetaTable.INTEGRATIONS}.type`, param.type);
@@ -356,7 +360,7 @@ export class BaseIntegrationsService {
         return { all_bases: true };
       }
 
-      if (param.baseIds) {
+      if (param.baseIds?.length) {
         // Set restricted + replace links
         await Integration.updateIntegration(
           context,

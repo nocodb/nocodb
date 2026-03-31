@@ -759,6 +759,35 @@ export default class Model implements TableType {
           fk_related_model_id: this.id,
         },
       );
+
+      // Also clean up MM columns that reference this model as their junction table
+      const leftOverMmColumns = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COL_RELATIONS,
+        {
+          condition: {
+            fk_mm_model_id: this.id,
+          },
+        },
+      );
+
+      for (const col of leftOverMmColumns) {
+        await NocoCache.deepDel(
+          context,
+          `${CacheScope.COL_RELATION}:${col.fk_column_id}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
+      }
+
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COL_RELATIONS,
+        {
+          fk_mm_model_id: this.id,
+        },
+      );
     }
 
     await NocoCache.deepDel(

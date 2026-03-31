@@ -3887,7 +3887,7 @@ export class ColumnsService implements IColumnsService {
                   ncMeta,
                 );
 
-                if (!custom) {
+                if (!custom && mmTable && mmParentCol && mmChildCol) {
                   await this.deleteHmOrBtRelation(
                     context,
                     {
@@ -4100,7 +4100,7 @@ export class ColumnsService implements IColumnsService {
                           : source;
                       (mmTable as any).tn = mmTable.table_name;
                       await sqlMgr.sqlOpPlus(mmSource, 'tableDelete', mmTable);
-                      await mmTable.delete(mmContext, ncMeta);
+                      await mmTable.delete(mmContext, ncMeta, true);
                     }
                   }
                 }
@@ -6620,18 +6620,14 @@ export class ColumnsService implements IColumnsService {
         // Update cached fk_relation_column_id for dependent lookup/rollup columns
         // that were retargeted from hmColumn → newLtarCol during the transaction.
         for (const colId of dependentLookupColIds) {
-          await NocoCache.update(
-            context,
-            `${CacheScope.COL_LOOKUP}:${colId}`,
-            { fk_relation_column_id: newLtarCol.id },
-          );
+          await NocoCache.update(context, `${CacheScope.COL_LOOKUP}:${colId}`, {
+            fk_relation_column_id: newLtarCol.id,
+          });
         }
         for (const colId of dependentRollupColIds) {
-          await NocoCache.update(
-            context,
-            `${CacheScope.COL_ROLLUP}:${colId}`,
-            { fk_relation_column_id: newLtarCol.id },
-          );
+          await NocoCache.update(context, `${CacheScope.COL_ROLLUP}:${colId}`, {
+            fk_relation_column_id: newLtarCol.id,
+          });
         }
       }
 

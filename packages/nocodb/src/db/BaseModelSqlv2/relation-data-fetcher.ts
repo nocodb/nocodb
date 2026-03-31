@@ -209,6 +209,12 @@ export const relationDataFetcher = (param: {
       // const tn = baseModel.model.tn;
       // const cn = (await relColOptions.getChildColumn()).title;
       const mmTable = await relColOptions.getMMModel(context);
+
+      // if mm table is not present then return
+      if (!mmTable) {
+        return [];
+      }
+
       const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
         model: mmTable,
         dbDriver: baseModel.dbDriver,
@@ -337,6 +343,12 @@ export const relationDataFetcher = (param: {
       const { refContext, mmContext } = relColOptions.getRelContext(context);
 
       const mmTable = await relColOptions.getMMModel(context);
+
+      // if mm table is not present then return
+      if (!mmTable) {
+        return null;
+      }
+
       const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
         model: mmTable,
         dbDriver: baseModel.dbDriver,
@@ -814,6 +826,12 @@ export const relationDataFetcher = (param: {
       )) as LinkToAnotherRecordColumn;
 
       const mmTable = await relColOptions.getMMModel(baseModel.context);
+
+      // if mm table is not present then return
+      if (!mmTable) {
+        return parentIds.map(() => 0);
+      }
+
       const vtn = baseModel.getTnPath(mmTable);
       const vcn = (await relColOptions.getMMChildColumn(baseModel.context))
         .column_name;
@@ -888,6 +906,11 @@ export const relationDataFetcher = (param: {
       const { mmContext, refContext } = relColOptions.getRelContext(context);
 
       const mmTable = await relColOptions.getMMModel(context);
+
+      // if mm table is not present then return
+      if (!mmTable) {
+        return 0;
+      }
 
       const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
         model: mmTable,
@@ -976,6 +999,12 @@ export const relationDataFetcher = (param: {
       );
 
       const mmTable = await relColOptions.getMMModel(baseModel.context);
+
+      // if mm table is not present then return
+      if (!mmTable) {
+        return 0;
+      }
+
       const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
         id: mmTable.id,
         dbDriver: baseModel.dbDriver,
@@ -1092,6 +1121,11 @@ export const relationDataFetcher = (param: {
       )) as LinkToAnotherRecordColumn;
 
       const mmTable = await relColOptions.getMMModel(baseModel.context);
+
+      // if mm table is not present then return
+      if (!mmTable) {
+        return [];
+      }
 
       const context = baseModel.context;
       const { refContext, mmContext } = relColOptions.getRelContext(

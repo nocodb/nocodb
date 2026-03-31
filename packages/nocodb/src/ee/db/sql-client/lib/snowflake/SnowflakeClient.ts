@@ -1251,7 +1251,7 @@ class SnowflakeClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      await this.sqlClient.raw(`create schema ${args.database_name}`);
+      await this.sqlClient.raw('create schema ??', [args.database_name]);
     } catch (e) {
       log.ppe(e, _func);
       throw e;
@@ -1268,7 +1268,7 @@ class SnowflakeClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      await this.sqlClient.raw(`drop schema ${args.database_name}`);
+      await this.sqlClient.raw('drop schema ??', [args.database_name]);
     } catch (e) {
       log.ppe(e, _func);
       throw e;

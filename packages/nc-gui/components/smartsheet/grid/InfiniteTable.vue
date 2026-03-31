@@ -1933,6 +1933,7 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
 
   if (
     isKeyDown.value &&
+    !e.isComposing &&
     !isRichModalOpen &&
     !activeDropdownEl &&
     !isDrawerOrModalExist() &&

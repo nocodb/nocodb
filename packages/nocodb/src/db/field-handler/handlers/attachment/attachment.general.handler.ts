@@ -73,6 +73,9 @@ export class AttachmentGeneralHandler extends ComputedFieldHandler {
         // if id exists, persist old value
         Object.assign(attachment, oldAttachmentRow);
       } else {
+        if (!attachment.url) {
+          throwError('New attachment must include a url');
+        }
         attachment.id = 'temp_' + tempIndex++;
       }
     }

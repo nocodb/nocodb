@@ -50,6 +50,11 @@ export class AttachmentUrlUploadPreparator {
       } catch {
         continue;
       }
+      // filter out malformed temp attachments (temp_ id without url)
+      attachmentData = attachmentData.filter(
+        (attr) => !attr.id?.startsWith('temp_') || attr.url,
+      );
+
       // only process when temp id exists
       if (attachmentData.some((attr) => attr.id?.startsWith('temp_'))) {
         const storageAdapter = await NcPluginMgrv2.storageAdapter();

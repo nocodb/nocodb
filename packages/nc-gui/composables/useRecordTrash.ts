@@ -127,6 +127,19 @@ export const useRecordTrash = createSharedComposable(() => {
       await doRestore(tableMeta, rowIds)
       await callbacks?.onSuccess?.()
     } catch (e: any) {
+      if (isUniqueConstraintViolationError(e)) {
+        const errorData = e.response?.data
+        const field = errorData?.fieldName
+        const value = errorData?.value
+
+        showWarningModal({
+          title: t('trash.uniqueConflictTitle'),
+          content: field && value ? t('trash.uniqueConflict', { field, value }) : t('trash.uniqueConflictGeneric'),
+        })
+        await callbacks?.onError?.()
+        return
+      }
+
       const { error } = await extractSdkResponseErrorMsgv2(e)
       if (error === NcErrorType.ERR_RECORD_RESTORE_CONFLICT) {
         showWarningModal({
@@ -154,7 +167,7 @@ export const useRecordTrash = createSharedComposable(() => {
     if (!tableId.value || !rowIds.length) return
     await restoreFromTrash(meta.value as TableType, rowIds, {
       onSuccess: async () => {
-        message.success(t('trash.recordsRestored', { count: rowIds.length }))
+        message.toast(t('trash.recordsRestored', { count: rowIds.length }))
         removeRowsLocally(rowIds)
         await loadTrashCount()
       },

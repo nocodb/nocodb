@@ -13,6 +13,7 @@ import type { LinkToAnotherRecordColumn } from '~/models';
 import { Column, FileReference, Filter, Model, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { _wherePk, getCompositePkValue } from '~/helpers/dbHelpers';
+import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
 import conditionV2 from '~/db/conditionV2';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -285,41 +286,49 @@ export class RecordTrashService {
       allPreRestoreRows.push(...preRestoreRows);
 
       // Restore: set __nc_deleted = false + LMT/LMB (with V1 OO conflict FK nulling if needed)
-      if (conflictMap?.size) {
-        const cleanIds = batchIds.filter((id) => !conflictMap.has(id));
-        if (cleanIds.length) {
+      try {
+        if (conflictMap?.size) {
+          const cleanIds = batchIds.filter((id) => !conflictMap.has(id));
+          if (cleanIds.length) {
+            await _whereInPks(
+              baseModel.dbDriver(baseModel.tnPath),
+              primaryKeys,
+              cleanIds,
+            )
+              .where(deletedColumn.column_name, true)
+              .update(restorePayload);
+          }
+
+          for (const id of batchIds) {
+            const fkCols = conflictMap.get(id);
+            if (!fkCols) continue;
+
+            const update: Record<string, any> = {
+              ...restorePayload,
+            };
+            for (const col of fkCols) update[col] = null;
+
+            await baseModel
+              .dbDriver(baseModel.tnPath)
+              .where(_wherePk(primaryKeys, id, true))
+              .where(deletedColumn.column_name, true)
+              .update(update);
+          }
+        } else {
           await _whereInPks(
             baseModel.dbDriver(baseModel.tnPath),
             primaryKeys,
-            cleanIds,
+            batchIds,
           )
             .where(deletedColumn.column_name, true)
             .update(restorePayload);
         }
-
-        for (const id of batchIds) {
-          const fkCols = conflictMap.get(id);
-          if (!fkCols) continue;
-
-          const update: Record<string, any> = {
-            ...restorePayload,
-          };
-          for (const col of fkCols) update[col] = null;
-
-          await baseModel
-            .dbDriver(baseModel.tnPath)
-            .where(_wherePk(primaryKeys, id, true))
-            .where(deletedColumn.column_name, true)
-            .update(update);
-        }
-      } else {
-        await _whereInPks(
-          baseModel.dbDriver(baseModel.tnPath),
-          primaryKeys,
-          batchIds,
-        )
-          .where(deletedColumn.column_name, true)
-          .update(restorePayload);
+      } catch (e: any) {
+        await handleUniqueConstraintError({
+          error: e,
+          baseModel,
+        });
+        throw e;
       }
 
       // Restore soft-deleted file references by extracting attachment IDs from row data

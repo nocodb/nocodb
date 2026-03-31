@@ -277,16 +277,20 @@ export class OAuthV3Controller {
   @Post('/api/v3/oauth/revoke')
   @HttpCode(200)
   @UseGuards(PublicApiLimiterGuard)
-  async revoke(@Body() body, @Headers('content-type') contentType: string) {
+  async revoke(
+    @Body() body,
+    @Headers('content-type') contentType: string,
+    @Res() res: Response,
+  ) {
     if (
       !contentType ||
       !contentType.includes('application/x-www-form-urlencoded')
     ) {
-      return {
+      return res.status(400).json({
         error: 'invalid_request',
         error_description:
           'Content-Type must be application/x-www-form-urlencoded',
-      };
+      });
     }
 
     const {
@@ -297,10 +301,10 @@ export class OAuthV3Controller {
     } = body;
 
     if (!token || !clientId) {
-      return {
+      return res.status(400).json({
         error: 'invalid_request',
         error_description: 'Missing required parameters: token, client_id',
-      };
+      });
     }
 
     try {
@@ -311,18 +315,18 @@ export class OAuthV3Controller {
         tokenTypeHint: token_type_hint,
       });
 
-      return { success: true };
+      return res.status(200).json({ success: true });
     } catch (error) {
       if (error.message === 'invalid_client') {
-        return {
+        return res.status(200).json({
           error: 'invalid_client',
           error_description: 'Client authentication failed',
-        };
+        });
       }
-      return {
+      return res.status(200).json({
         error: 'invalid_request',
         error_description: error.message || 'Token revocation failed',
-      };
+      });
     }
   }
 

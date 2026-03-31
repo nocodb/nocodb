@@ -170,16 +170,10 @@ watch(allBases, () => {
           <span class="text-captionSm text-nc-content-gray-subtle2 uppercase tracking-wide">
             {{ t('labels.selectBases') }}
           </span>
-          <span class="text-bodySm text-nc-content-gray-subtle">
-            {{ selectedBaseIds.size }} / {{ basesList.length }}
-          </span>
+          <span class="text-bodySm text-nc-content-gray-subtle"> {{ selectedBaseIds.size }} / {{ basesList.length }} </span>
         </div>
         <div class="relative flex-1 min-h-0">
-          <div
-            ref="listRef"
-            class="flex flex-col gap-1 h-full overflow-auto nc-scrollbar-thin"
-            @scroll="checkScrollable"
-          >
+          <div ref="listRef" class="flex flex-col gap-1 h-full overflow-auto nc-scrollbar-thin" @scroll="checkScrollable">
             <div
               v-for="base in basesList"
               :key="base.id"

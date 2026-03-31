@@ -13,12 +13,14 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { expiresAt, showAlways } = toRefs(props)
 
-const remaining = ref({ hours: 0, minutes: 0, seconds: 0, totalSeconds: 0 })
+const { showEEFeatures } = useEeConfig()
+
+const remaining = ref({ days: 0, hours: 0, minutes: 0, seconds: 0, totalSeconds: 0 })
 
 let intervalId: ReturnType<typeof setInterval> | null = null
 
 const isActive = computed(() => {
-  if (!expiresAt.value) return false
+  if (!showEEFeatures.value || !expiresAt.value) return false
   return dayjs.utc(expiresAt.value).isAfter(dayjs.utc())
 })
 
@@ -32,7 +34,7 @@ function updateRemaining() {
   const diff = dayjs.utc(expiresAt.value).diff(dayjs.utc(), 'second')
 
   if (diff <= 0) {
-    remaining.value = { hours: 0, minutes: 0, seconds: 0, totalSeconds: 0 }
+    remaining.value = { days: 0, hours: 0, minutes: 0, seconds: 0, totalSeconds: 0 }
     if (intervalId) {
       clearInterval(intervalId)
       intervalId = null
@@ -42,7 +44,8 @@ function updateRemaining() {
   }
 
   remaining.value = {
-    hours: Math.floor(diff / 3600),
+    days: Math.floor(diff / 86400),
+    hours: Math.floor((diff % 86400) / 3600),
     minutes: Math.floor((diff % 3600) / 60),
     seconds: diff % 60,
     totalSeconds: diff,
@@ -53,10 +56,34 @@ function pad(n: number): string {
   return n.toString().padStart(2, '0')
 }
 
+const { t } = useI18n()
+
 const countdownText = computed(() => {
-  const { hours, minutes, seconds } = remaining.value
+  const { days, hours, minutes, seconds } = remaining.value
+  const years = Math.floor(days / 365)
+  const months = Math.floor((days % 365) / 30)
+  const remainingDays = days % 30
+
+  if (years > 0) return `${years}y ${months}mo`
+  if (months > 0) return `${months}mo ${remainingDays}d`
+  if (days > 0) return `${days}d ${pad(hours)}h`
   if (hours > 0) return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
   return `${pad(minutes)}:${pad(seconds)}`
+})
+
+const tooltipText = computed(() => {
+  const { days, hours, minutes } = remaining.value
+  const years = Math.floor(days / 365)
+  const months = Math.floor((days % 365) / 30)
+  const remainingDays = days % 30
+
+  const parts: string[] = []
+  if (years > 0) parts.push(`${years}y`)
+  if (months > 0) parts.push(`${months}mo`)
+  if (remainingDays > 0 && years === 0) parts.push(`${remainingDays}d`)
+  if (hours > 0 && years === 0 && months === 0) parts.push(`${hours}h`)
+  if (minutes > 0 && days === 0) parts.push(`${minutes}m`)
+  return t('labels.formExpiryCountdownTooltip', { time: parts.join(' ') || '< 1m' })
 })
 
 onMounted(() => {
@@ -74,14 +101,12 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <span
-    v-if="isActive && remaining.totalSeconds > 0 && (showAlways || isUrgent)"
-    class="nc-expiry-inline"
-    :class="{ 'nc-urgent': isUrgent, 'nc-critical': isCritical }"
-  >
-    <GeneralIcon icon="ncClock" class="nc-expiry-inline-icon" />
-    <span class="nc-expiry-inline-time">{{ countdownText }}</span>
-  </span>
+  <NcTooltip v-if="isActive && remaining.totalSeconds > 0 && (showAlways || isUrgent)" :title="tooltipText">
+    <span class="nc-expiry-inline" :class="{ 'nc-urgent': isUrgent, 'nc-critical': isCritical }">
+      <GeneralIcon icon="ncClock" class="nc-expiry-inline-icon" />
+      <span class="nc-expiry-inline-time">{{ countdownText }}</span>
+    </span>
+  </NcTooltip>
 </template>
 
 <style lang="scss" scoped>

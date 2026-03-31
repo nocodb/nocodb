@@ -87,9 +87,7 @@ const isAuditsTabVisible = computed(
   () => isEeUI && !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('baseAuditList') && showEEFeatures.value,
 )
 
-const isIntegrationsTabVisible = computed(
-  () => !isMobileMode.value && isUIAllowed('sourceCreate'),
-)
+const isIntegrationsTabVisible = computed(() => !isMobileMode.value && isUIAllowed('sourceCreate'))
 
 const isWorkflowsTabVisible = computed(
   () =>
@@ -277,7 +275,6 @@ watch(
      * properly when opening the create/edit source modal with the updated base.
      */
     integrations.value = []
-
   },
   { immediate: true },
 )

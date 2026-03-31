@@ -9,10 +9,7 @@ export function useBaseIntegrations() {
   const linkedIntegrations = ref<IntegrationType[]>([])
   const isLoading = ref(false)
 
-  const loadLinkedIntegrations = async (
-    baseId: string,
-    opts?: { type?: string; subType?: string },
-  ) => {
+  const loadLinkedIntegrations = async (baseId: string, opts?: { type?: string; subType?: string }) => {
     if (!activeWorkspaceId.value || !baseId) return
 
     try {
@@ -35,12 +32,7 @@ export function useBaseIntegrations() {
     if (!activeWorkspaceId.value || !baseId) return
 
     try {
-      await $api.internal.postOperation(
-        activeWorkspaceId.value,
-        baseId,
-        { operation: 'baseIntegrationLink', integrationId },
-        {},
-      )
+      await $api.internal.postOperation(activeWorkspaceId.value, baseId, { operation: 'baseIntegrationLink', integrationId }, {})
 
       await loadLinkedIntegrations(baseId)
     } catch (e: any) {

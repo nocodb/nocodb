@@ -2176,6 +2176,7 @@
     "formEndDateBeforeStart": "Expiration date must be after the start date",
     "formShowExpiryTimer": "Show expiry countdown",
     "formShowExpiryTimerTooltip": "Even if disabled, the countdown will automatically appear when less than 10 minutes remain",
+    "formExpiryCountdownTooltip": "This form closes in {time}",
     "formExpired": "This form is no longer accepting responses",
     "formExpiredSubtext": "The form has passed its expiration date and is now closed.",
     "days": "days",

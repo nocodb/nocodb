@@ -446,15 +446,10 @@ const { message: templatedMessage } = useTemplatedMessage(
                 :key="field?.title"
                 class="flex flex-col gap-4 w-full m-auto rounded-xl border-1 border-nc-border-gray-medium bg-nc-bg-default p-6 lg:p-12"
               >
-                <div class="flex items-center justify-between mb-4 md:mb-2">
+                <div class="flex items-center mb-4 md:mb-2">
                   <div class="select-none text-nc-content-gray-muted" data-testid="nc-survey-form__footer">
                     {{ index + 1 }} / {{ formColumns?.length }}
                   </div>
-                  <SmartsheetFormExpiryIndicator
-                    v-if="isFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING)"
-                    :expires-at="sharedFormView?.expires_at"
-                    :show-always="!!parseProp(sharedFormView?.meta)?.show_expiry_timer"
-                  />
                 </div>
 
                 <div v-if="field" class="flex flex-col gap-2">
@@ -528,7 +523,12 @@ const { message: templatedMessage } = useTemplatedMessage(
                   </NcTooltip>
                 </div>
 
-                <div class="ml-1 mt-4 flex w-full text-lg">
+                <div class="ml-1 mt-4 flex w-full items-center text-lg">
+                  <SmartsheetFormExpiryIndicator
+                    v-if="isFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING)"
+                    :expires-at="sharedFormView?.expires_at"
+                    :show-always="!!parseProp(sharedFormView?.meta)?.show_expiry_timer"
+                  />
                   <div class="flex-1 flex justify-end">
                     <div v-if="isLast">
                       <NcButton

@@ -167,6 +167,7 @@ const permissionScopes = {
     'hideAllColumns',
     'showAllColumns',
     'recordAuditList',
+    'v3AuditRecordList',
     'dataUpdate',
     'dataDelete',
     'dataInsert',
@@ -398,6 +399,7 @@ const rolePermissions:
       commentList: true,
       commentCount: true,
       recordAuditList: true,
+      v3AuditRecordList: true,
 
       userInvite: true,
 
@@ -798,6 +800,7 @@ const permissionDescriptions: Record<string, string> = {
   hideAllColumns: 'hide all columns',
   showAllColumns: 'show all columns',
   recordAuditList: 'view audit log for a row',
+  v3AuditRecordList: 'view audit log for a row via v3 API',
   dataUpdate: 'update data',
   dataDelete: 'delete data',
   dataInsert: 'insert new data',

@@ -131,6 +131,7 @@ import { PublicDatasController } from '~/controllers/public-datas.controller';
 import { BasesV3Controller } from '~/controllers/v3/bases-v3.controller';
 import { ColumnsV3Controller } from '~/controllers/v3/columns-v3.controller';
 import { Datav3Controller } from '~/controllers/v3/data-v3.controller';
+import { AuditsV3Controller } from '~/controllers/v3/audits-v3.controller';
 import { FiltersV3Controller } from '~/controllers/v3/filters-v3.controller';
 import { SortsV3Controller } from '~/controllers/v3/sorts-v3.controller';
 import { TablesV3Controller } from '~/controllers/v3/tables-v3.controller';
@@ -148,6 +149,7 @@ import { PublicDatasService } from '~/services/public-datas.service';
 import { BasesV3Service } from '~/services/v3/bases-v3.service';
 import { ColumnsV3Service } from '~/services/v3/columns-v3.service';
 import { DataV3Service } from '~/services/v3/data-v3.service';
+import { AuditsV3Service } from '~/services/v3/audits-v3.service';
 import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
@@ -241,6 +243,7 @@ export const nocoModuleMetadata = {
           ViewRowColorController,
 
           /* V3 APIs */
+          AuditsV3Controller,
           BasesV3Controller,
           TablesV3Controller,
           ColumnsV3Controller,
@@ -320,6 +323,7 @@ export const nocoModuleMetadata = {
     ExtensionsService,
     JobsMetaService,
     IntegrationsService,
+    AuditsV3Service,
     BasesV3Service,
     TablesV3Service,
     ColumnsV3Service,

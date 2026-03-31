@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import { Base, Integration, IntegrationLink } from '~/models';
-import { NcError, NcBaseError } from '~/helpers/catchError';
+import { NcBaseError, NcError } from '~/helpers/catchError';
 import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
-import type { MetaService } from '~/meta/meta.service';
 import { IntegrationsService } from '~/services/integrations.service';
 
 @Injectable()
@@ -84,7 +84,6 @@ export class BaseIntegrationsService {
     });
   }
 
-
   /**
    * Create an integration from a base context.
    * The integration is workspace-level but marked as restricted
@@ -105,23 +104,49 @@ export class BaseIntegrationsService {
       NcError.get(context).badRequest('Workspace ID is required');
     }
 
-    // Create integration at workspace level with is_restricted = true
-    const integration = await Integration.createIntegration({
-      ...param.integration,
-      fk_workspace_id: workspaceId,
-      created_by: userId,
-      is_restricted: true,
-    });
+    const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
 
-    // Auto-link to this base
-    await IntegrationLink.insert(context, {
-      fk_integration_id: integration.id,
-      base_id: param.baseId,
-      fk_workspace_id: workspaceId,
-      created_by: userId,
-    });
+    try {
+      // Delegate to integrationsService.integrationCreate which handles:
+      // - validatePayload (swagger schema validation)
+      // - SQLite duplicate file check
+      // - Title trimming
+      // - AppEvents.INTEGRATION_CREATE (audit trail)
+      const integration = await this.integrationsService.integrationCreate(
+        context,
+        {
+          integration: {
+            ...param.integration,
+            is_restricted: true,
+          },
+          req: param.req,
+        },
+        ncMeta,
+      );
 
-    return integration;
+      // Auto-link to this base
+      await IntegrationLink.insert(
+        context,
+        {
+          fk_integration_id: integration.id,
+          base_id: param.baseId,
+          fk_workspace_id: workspaceId,
+          created_by: userId,
+        },
+        ncMeta,
+      );
+
+      await ncMeta.commit();
+
+      return integration;
+    } catch (e) {
+      await ncMeta.rollback(e);
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error(e.message, e.stack);
+      NcError.get(context).internalServerError(
+        'Failed to create integration from base',
+      );
+    }
   }
 
   /**
@@ -355,10 +380,8 @@ export class BaseIntegrationsService {
     } catch (e) {
       await ncMeta.rollback(e);
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
-      this.logger.error('Error updating linked bases', e);
-      NcError.get(context).internalServerError(
-        'Failed to update linked bases',
-      );
+      this.logger.error(e.message, e.stack);
+      NcError.get(context).internalServerError('Failed to update linked bases');
     }
 
     NcError.get(context).badRequest(

@@ -264,6 +264,7 @@ export class IntegrationsService {
       logger?: (message: string) => void;
       req: any;
     },
+    ncMeta = Noco.ncMeta,
   ) {
     validatePayload(
       'swagger.json#/components/schemas/IntegrationReq',
@@ -276,6 +277,8 @@ export class IntegrationsService {
       integrationBody = await Integration.get(
         context,
         param.integration.copy_from_id,
+        false,
+        ncMeta,
       );
 
       if (!integrationBody?.id) {
@@ -293,14 +296,17 @@ export class IntegrationsService {
     // for SQLite check for existing integration which refers to the same file
     if (integrationBody.sub_type === 'sqlite3') {
       // get all integrations of type sqlite3
-      const integrations = await Integration.list({
-        userId: param.req.user?.id,
-        includeDatabaseInfo: true,
-        type: IntegrationsType.Database,
-        sub_type: ClientType.SQLITE,
-        includeSourceCount: false,
-        query: '',
-      });
+      const integrations = await Integration.list(
+        {
+          userId: param.req.user?.id,
+          includeDatabaseInfo: true,
+          type: IntegrationsType.Database,
+          sub_type: ClientType.SQLITE,
+          includeSourceCount: false,
+          query: '',
+        },
+        ncMeta,
+      );
 
       if (integrations.list && integrations.list.length > 0) {
         for (const integration of integrations.list) {
@@ -324,11 +330,14 @@ export class IntegrationsService {
     if (param.integration.copy_from_id) {
       const integrations =
         (
-          await Integration.list({
-            userId: param.req.user?.id,
-            includeSourceCount: false,
-            query: '',
-          })
+          await Integration.list(
+            {
+              userId: param.req.user?.id,
+              includeSourceCount: false,
+              query: '',
+            },
+            ncMeta,
+          )
         ).list || [];
 
       uniqueTitle = generateUniqueName(
@@ -337,12 +346,15 @@ export class IntegrationsService {
       );
     }
 
-    const integration = await Integration.createIntegration({
-      ...integrationBody,
-      ...(param.integration.copy_from_id ? { title: uniqueTitle } : {}),
-      workspaceId: context.workspace_id,
-      created_by: param.req.user.id,
-    });
+    const integration = await Integration.createIntegration(
+      {
+        ...integrationBody,
+        ...(param.integration.copy_from_id ? { title: uniqueTitle } : {}),
+        workspaceId: context.workspace_id,
+        created_by: param.req.user.id,
+      },
+      ncMeta,
+    );
 
     integration.config = undefined;
 

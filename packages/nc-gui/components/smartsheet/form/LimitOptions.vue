@@ -25,6 +25,8 @@ const { basesUser } = storeToRefs(basesStore)
 
 const baseUsers = computed(() => (meta.value.base_id ? basesUser.value.get(meta.value.base_id) || [] : []))
 
+const isColorCodeEnabled = computed(() => parseProp(column.value?.meta)?.isColorCodeEnabled !== false)
+
 const searchQuery = ref('')
 
 const drag = ref(false)
@@ -297,11 +299,11 @@ const showOrHideAll = (showAll: boolean) => {
           <a-tag
             v-else
             class="rounded-tag max-w-[calc(100%_-_70px)]"
-            :color="getSelectTypeFieldOptionBgColor({ color: element.color, isDark })"
+            :color="getSelectTypeFieldOptionBgColor({ color: element.color, isDark, getColor, isColorCodeEnabled })"
           >
             <span
               :style="{
-                'color': getSelectTypeFieldOptionTextColor({ color: element.color, isDark, getColor }),
+                'color': getSelectTypeFieldOptionTextColor({ color: element.color, isDark, getColor, isColorCodeEnabled }),
                 'font-size': '13px',
               }"
             >

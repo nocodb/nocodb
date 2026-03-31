@@ -74,10 +74,8 @@ const selectedLangName = ref(langs[0].name)
 
 const apiUrl = computed(() => {
   try {
-    return new URL(
-      `/api/v3/data/${base.value?.id}/${meta.value?.id}/records`,
-      (appInfo.value && appInfo.value.ncSiteUrl) || '/',
-    ).href
+    return new URL(`/api/v3/data/${base.value?.id}/${meta.value?.id}/records`, (appInfo.value && appInfo.value.ncSiteUrl) || '/')
+      .href
   } catch (e: any) {
     console.log('Failed to construct API URL', e)
     return ''

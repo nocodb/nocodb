@@ -1997,6 +1997,8 @@
     "created": "Created",
     "sqlOutput": "SQL Output",
     "addOption": "Add option",
+    "colorCodeOptions": "Color-code options",
+    "alphabetize": "Alphabetize",
     "interfaceColor": "Interface Color",
     "qrCodeValueColumn": "Field with QR code value",
     "barcodeValueColumn": "Field with Barcode value",

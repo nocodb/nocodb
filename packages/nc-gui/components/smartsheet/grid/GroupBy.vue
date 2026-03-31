@@ -416,6 +416,8 @@ async function openNewRecordHandler() {
                             getSelectTypeFieldOptionBgColor({
                               isDark,
                               color: grp.color?.split(',')[+tagIndex] || '#ccc',
+                              getColor,
+                              isColorCodeEnabled: parseProp(grp.column?.meta)?.isColorCodeEnabled !== false,
                             })
                           "
                         >
@@ -426,6 +428,7 @@ async function openNewRecordHandler() {
                                 isDark,
                                 color: grp.color?.split(',')[+tagIndex] || '#ccc',
                                 getColor,
+                                isColorCodeEnabled: parseProp(grp.column?.meta)?.isColorCodeEnabled !== false,
                               }),
                               'font-size': '14px',
                               'font-weight': 500,
@@ -453,6 +456,8 @@ async function openNewRecordHandler() {
                           getSelectTypeFieldOptionBgColor({
                             isDark,
                             color: grp.color || '#ccc',
+                            getColor,
+                            isColorCodeEnabled: parseProp(grp.column?.meta)?.isColorCodeEnabled !== false,
                           })
                         "
                       >
@@ -463,6 +468,7 @@ async function openNewRecordHandler() {
                               isDark,
                               color: grp.color || '#ccc',
                               getColor,
+                              isColorCodeEnabled: parseProp(grp.column?.meta)?.isColorCodeEnabled !== false,
                             }),
                           }"
                         >

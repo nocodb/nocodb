@@ -169,11 +169,7 @@ watch(vVisible, (newValue) => {
               :data-label="pt.title"
               :disabled="!canAddSubTeam(pt)"
             >
-              <NcTooltip
-                :disabled="canAddSubTeam(pt)"
-                :title="t('msg.info.onlyTeamManagerCanAddSubTeam')"
-                placement="left"
-              >
+              <NcTooltip :disabled="canAddSubTeam(pt)" :title="t('msg.info.onlyTeamManagerCanAddSubTeam')" placement="left">
                 <div
                   class="flex items-center gap-2"
                   :class="{ 'opacity-60': !canAddSubTeam(pt) }"

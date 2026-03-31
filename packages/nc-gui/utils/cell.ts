@@ -125,11 +125,19 @@ export const getSelectTypeFieldOptionBgColor = ({
   color,
   isDark,
   shade,
+  getColor,
+  isColorCodeEnabled = true,
 }: {
   color?: string
   isDark: boolean
   shade?: number
+  getColor?: GetColorType
+  isColorCodeEnabled?: boolean
 }) => {
+  if (!isColorCodeEnabled && getColor) {
+    return getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')
+  }
+
   return !isDark
     ? getAdaptiveTint(color || '#e7e7e9', { saturationMod: 5, isDarkMode: isDark, shade: shade ?? 20 })
     : getAdaptiveTint(color || '#e7e7e9', { isDarkMode: isDark, shade: shade ?? -10 })
@@ -142,12 +150,18 @@ export const getDarkModeCompatibleBgColor = ({ color, isDark, shade }: { color?:
 export const getSelectTypeFieldOptionTextColor = ({
   color,
   isDark,
-  getColor: _getColor,
+  getColor,
+  isColorCodeEnabled = true,
 }: {
   color?: string
   isDark: boolean
   getColor: GetColorType
+  isColorCodeEnabled?: boolean
 }) => {
+  if (!isColorCodeEnabled) {
+    return getColor('var(--nc-content-gray)')
+  }
+
   return getOppositeColorOfBackground(getSelectTypeFieldOptionBgColor({ color, isDark }), color)
 }
 

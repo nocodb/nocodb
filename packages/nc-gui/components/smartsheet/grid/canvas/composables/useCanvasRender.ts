@@ -3457,6 +3457,7 @@ export function useCanvasRender({
       const parsedValue = group?.column?.uidt === UITypes.LinkToAnotherRecord ? parseKey(group) : group.value
       const tags = Array.isArray(parsedValue) ? parsedValue : parsedValue.split(',')
       const colors = group.color.split(',')
+      const isColorCodeEnabled = parseProp(group?.column?.meta)?.isColorCodeEnabled !== false
       let xPosition = x
       let tagsRendered = 0
 
@@ -3464,13 +3465,17 @@ export function useCanvasRender({
         const tag = tags[i] || ''
         const color = colors[i] || '#ccc'
 
-        const opBgColor = !isDark.value
+        const opBgColor = !isColorCodeEnabled
+          ? getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')
+          : !isDark.value
           ? getAdaptiveTint(color, { saturationMod: 5, isDarkMode: isDark.value, shade: 20 })
           : getAdaptiveTint(color, { isDarkMode: isDark.value, shade: -10 })
 
         const displayText = tag in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[tag] : tag
 
-        const textColor = getOppositeColorOfBackground(opBgColor, color)
+        const textColor = !isColorCodeEnabled
+          ? getColor('var(--nc-content-gray)')
+          : getOppositeColorOfBackground(opBgColor, color)
 
         ctx.save()
         ctx.font = '700 13px Inter'

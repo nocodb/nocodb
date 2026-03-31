@@ -408,13 +408,9 @@ async function contextClearCell() {
 
   try {
     const property = target.column.title
-    await $api.dbTableRow.update(
-      NOCO,
-      depthMeta.base_id as string,
-      depthMeta.id as string,
-      encodeURIComponent(rowId),
-      { [property]: null },
-    )
+    await $api.dbTableRow.update(NOCO, depthMeta.base_id as string, depthMeta.id as string, encodeURIComponent(rowId), {
+      [property]: null,
+    })
 
     const cached = cachedRows.value.get(target.rowIndex)
     if (cached) {
@@ -439,12 +435,7 @@ async function contextDeleteRow() {
   if (!rowId) return
 
   try {
-    await $api.dbTableRow.delete(
-      NOCO,
-      depthMeta.base_id as string,
-      depthMeta.id as string,
-      encodeURIComponent(rowId),
-    )
+    await $api.dbTableRow.delete(NOCO, depthMeta.base_id as string, depthMeta.id as string, encodeURIComponent(rowId))
 
     // Socket event handles proper cache removal + parent pruning.
     // Force a reload for instant feedback.

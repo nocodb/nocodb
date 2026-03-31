@@ -33,7 +33,7 @@ import { DocHeadingAnchorExtension } from './DocHeadingAnchorExtension'
 import { DocDragHandleExtension } from './DocDragHandlePlugin'
 import { DocSearchExtension } from './DocSearchExtension'
 import { DocAiExtension, insertMarkdownContent } from './DocAiExtension'
-import { TEXT_COLORS, CELL_BG_COLORS, buildColorCssVars } from './DocColorConstants'
+import { CELL_BG_COLORS, TEXT_COLORS, buildColorCssVars } from './DocColorConstants'
 import { getEmbedURL } from '~/extensions/url-preview-ee/utils'
 import { TaskItem } from '~/helpers/tiptap-markdown/extensions/nodes/task-item'
 import { UserMention, UserMentionList } from '~/helpers/tiptap-markdown/extensions/nodes/mention'
@@ -2272,7 +2272,12 @@ onBeforeUnmount(() => {
           </div>
 
           <!-- Editor — always mounted so ProseMirror view stays attached -->
-          <div class="nc-doc-editor-body pb-48 relative" :style="docColorVars" data-testid="docs-page-content" @click="onEditorBodyClick">
+          <div
+            class="nc-doc-editor-body pb-48 relative"
+            :style="docColorVars"
+            data-testid="docs-page-content"
+            @click="onEditorBodyClick"
+          >
             <template v-if="editor">
               <!-- Bubble menu: appears on text selection (including inside table cells) -->
               <BubbleMenu
@@ -3856,7 +3861,6 @@ onBeforeUnmount(() => {
       pointer-events: none;
       z-index: 2;
     }
-
   }
 
   // File attachment cards

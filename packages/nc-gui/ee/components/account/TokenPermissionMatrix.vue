@@ -1,8 +1,5 @@
 <script lang="ts" setup>
-import {
-  ApiTokenPermissionCategory,
-  ApiTokenPermissionLevel,
-} from 'nocodb-sdk'
+import { ApiTokenPermissionCategory, ApiTokenPermissionLevel } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: Record<string, string>
@@ -40,9 +37,7 @@ const addedCategories = computed(() => {
 
 // Categories available to add
 const availableCategories = computed(() => {
-  return Object.values(ApiTokenPermissionCategory).filter(
-    (cat) => !addedCategories.value.includes(cat),
-  )
+  return Object.values(ApiTokenPermissionCategory).filter((cat) => !addedCategories.value.includes(cat))
 })
 
 const addCategory = (category: string) => {
@@ -83,79 +78,74 @@ const getLevelLabel = (level: string) => {
         class="nc-perm-row"
         :class="{ 'border-t-1 border-nc-border-gray-light': idx > 0 }"
       >
-      <div class="flex-1 min-w-0">
-        <div class="text-sm font-medium text-nc-content-gray-extreme">{{ categoryInfo[cat]?.label || cat }}</div>
-        <div class="text-xs text-nc-content-gray-subtle2">{{ categoryInfo[cat]?.desc }}</div>
-      </div>
-      <NcDropdown
-        :visible="openLevelDropdown === cat"
-        :trigger="['click']"
-        placement="bottomRight"
-        @update:visible="(v: boolean) => { openLevelDropdown = v ? cat : null }"
-      >
-        <button class="nc-perm-level-pill" @click="openLevelDropdown = openLevelDropdown === cat ? null : cat">
-          <span class="text-xs text-nc-content-gray-muted">{{ $t('general.access') }}:</span>
-          <span class="text-xs font-semibold text-nc-content-gray-extreme">{{ getLevelLabel(modelValue[cat]) }}</span>
-          <GeneralIcon icon="arrowDown" class="w-3 h-3 text-nc-content-gray-muted ml-auto" />
-        </button>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium text-nc-content-gray-extreme">{{ categoryInfo[cat]?.label || cat }}</div>
+          <div class="text-xs text-nc-content-gray-subtle2">{{ categoryInfo[cat]?.desc }}</div>
+        </div>
+        <NcDropdown
+          :visible="openLevelDropdown === cat"
+          :trigger="['click']"
+          placement="bottomRight"
+          @update:visible="(v: boolean) => { openLevelDropdown = v ? cat : null }"
+        >
+          <button class="nc-perm-level-pill" @click="openLevelDropdown = openLevelDropdown === cat ? null : cat">
+            <span class="text-xs text-nc-content-gray-muted">{{ $t('general.access') }}:</span>
+            <span class="text-xs font-semibold text-nc-content-gray-extreme">{{ getLevelLabel(modelValue[cat]) }}</span>
+            <GeneralIcon icon="arrowDown" class="w-3 h-3 text-nc-content-gray-muted ml-auto" />
+          </button>
 
-        <template #overlay>
-          <NcMenu variant="small" class="!min-w-36">
-            <NcMenuItem
-              v-for="lvl in accessLevels"
-              :key="lvl.value"
-              :class="{ '!bg-nc-bg-gray-light': modelValue[cat] === lvl.value }"
-              @click="setLevel(cat, lvl.value)"
-            >
-              {{ lvl.label }}
-            </NcMenuItem>
-          </NcMenu>
-        </template>
-      </NcDropdown>
-      <NcButton type="text" size="xxsmall" class="!p-0.5 flex-none" @click="removeCategory(cat)">
-        <GeneralIcon icon="close" class="w-4 h-4 text-nc-content-gray-muted" />
-      </NcButton>
-    </div>
+          <template #overlay>
+            <NcMenu variant="small" class="!min-w-36">
+              <NcMenuItem
+                v-for="lvl in accessLevels"
+                :key="lvl.value"
+                :class="{ '!bg-nc-bg-gray-light': modelValue[cat] === lvl.value }"
+                @click="setLevel(cat, lvl.value)"
+              >
+                {{ lvl.label }}
+              </NcMenuItem>
+            </NcMenu>
+          </template>
+        </NcDropdown>
+        <NcButton type="text" size="xxsmall" class="!p-0.5 flex-none" @click="removeCategory(cat)">
+          <GeneralIcon icon="close" class="w-4 h-4 text-nc-content-gray-muted" />
+        </NcButton>
+      </div>
     </div>
 
     <!-- Add permission -->
     <div class="flex">
-    <NcDropdown
-      v-if="availableCategories.length"
-      v-model:visible="showAddDropdown"
-      :trigger="['click']"
-      placement="bottomLeft"
-      overlay-class-name="nc-perm-add-dropdown"
-    >
-      <NcButton
-        v-e="['c:api-token:add-permission']"
-        type="text"
-        size="small"
-        class="!text-brand-500 !px-2 !font-medium"
-        data-testid="nc-token-perm-add"
+      <NcDropdown
+        v-if="availableCategories.length"
+        v-model:visible="showAddDropdown"
+        :trigger="['click']"
+        placement="bottomLeft"
+        overlay-class-name="nc-perm-add-dropdown"
       >
-        <div class="flex items-center gap-1">
-          <component :is="iconMap.plus" class="w-4 h-4" />
-          {{ $t('labels.addPermission') }}
-        </div>
-      </NcButton>
+        <NcButton
+          v-e="['c:api-token:add-permission']"
+          type="text"
+          size="small"
+          class="!text-brand-500 !px-2 !font-medium"
+          data-testid="nc-token-perm-add"
+        >
+          <div class="flex items-center gap-1">
+            <component :is="iconMap.plus" class="w-4 h-4" />
+            {{ $t('labels.addPermission') }}
+          </div>
+        </NcButton>
 
-      <template #overlay>
-        <div class="nc-perm-dropdown-content">
-          <div
-            v-for="cat in availableCategories"
-            :key="cat"
-            class="nc-perm-dropdown-item"
-            @click="addCategory(cat)"
-          >
-            <div>
-              <div class="text-sm font-medium text-nc-content-gray-extreme">{{ categoryInfo[cat]?.label || cat }}</div>
-              <div class="text-xs text-nc-content-gray-subtle2">{{ categoryInfo[cat]?.desc }}</div>
+        <template #overlay>
+          <div class="nc-perm-dropdown-content">
+            <div v-for="cat in availableCategories" :key="cat" class="nc-perm-dropdown-item" @click="addCategory(cat)">
+              <div>
+                <div class="text-sm font-medium text-nc-content-gray-extreme">{{ categoryInfo[cat]?.label || cat }}</div>
+                <div class="text-xs text-nc-content-gray-subtle2">{{ categoryInfo[cat]?.desc }}</div>
+              </div>
             </div>
           </div>
-        </div>
-      </template>
-    </NcDropdown>
+        </template>
+      </NcDropdown>
     </div>
   </div>
 </template>

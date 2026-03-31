@@ -13,9 +13,8 @@
  * - Throttled API calls
  */
 
-import type { ListViewRow } from '~/composables/useListViewStore'
 import { CHUNK_SIZE } from './constants'
-
+import type { ListViewRow } from '~/composables/useListViewStore'
 
 const INITIAL_LOAD_SIZE = 100
 const BUFFER_SIZE = 100

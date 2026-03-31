@@ -29,9 +29,7 @@ interface IApiTokenInfo extends ApiTokenType {
 // View mode: 'list' (token list), 'create' (inline create/edit form)
 const route = useRoute()
 
-const viewMode = ref<'list' | 'create'>(
-  route.path.replace(/\/$/, '').endsWith('/new') ? 'create' : 'list',
-)
+const viewMode = ref<'list' | 'create'>(route.path.replace(/\/$/, '').endsWith('/new') ? 'create' : 'list')
 
 const tokens = ref<IApiTokenInfo[]>([])
 const allTokens = ref<IApiTokenInfo[]>([])
@@ -145,10 +143,15 @@ const toggleEnabled = async (token: IApiTokenInfo) => {
 
   try {
     const newEnabled = !token.enabled
-    await $api.internal.postOperation(NO_SCOPE, NO_SCOPE, {
-      operation: 'apiTokenUpdateWithScopes',
-      tokenId: token.id,
-    }, { enabled: newEnabled })
+    await $api.internal.postOperation(
+      NO_SCOPE,
+      NO_SCOPE,
+      {
+        operation: 'apiTokenUpdateWithScopes',
+        tokenId: token.id,
+      },
+      { enabled: newEnabled },
+    )
     await loadTokens()
     $e('a:api-token:toggle-enabled', { enabled: newEnabled })
   } catch (e: any) {
@@ -162,7 +165,7 @@ const isExpired = (token: IApiTokenInfo) => {
 }
 
 const isFineGrained = (token: IApiTokenInfo) => {
-  return !!(token.scopes?.length) || !!token.expiry || !!token.token_prefix
+  return !!token.scopes?.length || !!token.expiry || !!token.token_prefix
 }
 
 const formatExpiryDate = (expiry: string) => {
@@ -230,7 +233,13 @@ const openEditToken = async (token: IApiTokenInfo) => {
       </template>
       <template #title>
         <span data-rec="true">
-          {{ viewMode === 'list' ? $t('title.tokens') : editingToken ? $t('general.edit') + ' ' + $t('labels.token') : $t('title.createNewToken') }}
+          {{
+            viewMode === 'list'
+              ? $t('title.tokens')
+              : editingToken
+              ? `${$t('general.edit')} ${$t('labels.token')}`
+              : $t('title.createNewToken')
+          }}
         </span>
       </template>
     </NcPageHeader>
@@ -300,10 +309,7 @@ const openEditToken = async (token: IApiTokenInfo) => {
 
             <!-- Rows -->
             <div class="nc-scrollbar-md !overflow-y-auto flex flex-col h-[calc(100%-52px)]">
-              <div
-                v-if="!tokens.length"
-                class="border-l-1 border-r-1 border-b-1 rounded-b-md justify-center flex items-center"
-              >
+              <div v-if="!tokens.length" class="border-l-1 border-r-1 border-b-1 rounded-b-md justify-center flex items-center">
                 <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noToken')" />
               </div>
 
@@ -364,7 +370,9 @@ const openEditToken = async (token: IApiTokenInfo) => {
                 </span>
 
                 <!-- Actions -->
-                <div class="flex justify-center items-center gap-3 text-nc-content-gray-muted font-medium text-3.5 w-20 flex-none">
+                <div
+                  class="flex justify-center items-center gap-3 text-nc-content-gray-muted font-medium text-3.5 w-20 flex-none"
+                >
                   <NcTooltip v-if="isFineGrained(el)" placement="top">
                     <template #title>{{ $t('general.edit') }}</template>
                     <component
@@ -390,7 +398,13 @@ const openEditToken = async (token: IApiTokenInfo) => {
                       v-e="['c:api-token:delete:open']"
                       data-testid="nc-token-row-action-icon"
                       class="nc-delete-icon cursor-pointer w-4 h-4 hover:text-nc-content-red-medium"
-                      @click="triggerDeleteModal(el.token as string || el.id as string, (el.description || el.title) as string, el.id)"
+                      @click="
+                        triggerDeleteModal(
+                          (el.token as string) || (el.id as string),
+                          (el.description || el.title) as string,
+                          el.id,
+                        )
+                      "
                     />
                   </NcTooltip>
                 </div>

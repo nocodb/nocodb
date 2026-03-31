@@ -48,9 +48,11 @@ export const getSingleMultiselectColOptions = (column: ColumnType) => {
   const colOptions: {
     options: (SelectOptionType & { value: string })[]
     optionsMap: Record<string, SelectOptionType & { value: string }>
+    isColorCodeEnabled: boolean
   } = {
     options: [],
     optionsMap: {},
+    isColorCodeEnabled: parseProp(column.meta)?.isColorCodeEnabled !== false,
   }
 
   const selectColOptions = column.colOptions as SelectOptionsType

@@ -47,7 +47,7 @@ onMounted(() => {
 
 <template>
   <GeneralModal v-model:visible="visible" class="nc-attachment-rename-modal" size="small">
-    <div class="flex flex-col items-center justify-center h-full p-6">
+    <div class="flex flex-col items-center justify-center h-full p-4 md:p-6">
       <div class="text-lg font-semibold self-start mb-5">{{ $t('title.renameFile') }}</div>
 
       <a-form class="w-full h-full" no-style :model="form" @finish="renameFile(form.title)">

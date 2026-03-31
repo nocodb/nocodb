@@ -3,6 +3,15 @@ import { IntegrationsType, integrationCategoryNeedDefault } from 'nocodb-sdk'
 import type { IntegrationType, UserType, WorkspaceUserType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
+withDefaults(
+  defineProps<{
+    showTitle?: boolean
+  }>(),
+  {
+    showTitle: false,
+  },
+)
+
 type SortFields = 'title' | 'sub_type' | 'created_at' | 'created_by' | 'source_count'
 
 const { t } = useI18n()
@@ -45,6 +54,19 @@ const toBeDeletedIntegration = ref<
 >(null)
 
 const isLoadingGetLinkedSources = ref(false)
+
+// Base assignment dialog state
+const isBaseAssignmentOpen = ref(false)
+const baseAssignmentIntegration = ref<IntegrationType | null>(null)
+
+function openBaseAssignment(integration: IntegrationType) {
+  baseAssignmentIntegration.value = integration
+  isBaseAssignmentOpen.value = true
+}
+
+function onBaseAssignmentUpdated() {
+  loadIntegrations()
+}
 
 const tableWrapper = ref<HTMLDivElement>()
 
@@ -279,6 +301,16 @@ const columns = [
     dataIndex: 'source_count',
     showOrderBy: true,
   },
+  ...(isEeUI
+    ? [
+        {
+          key: 'base_access',
+          title: t('labels.baseAccess'),
+          minWidth: 140,
+          width: 160,
+        },
+      ]
+    : []),
   {
     key: 'action',
     title: t('labels.actions'),
@@ -298,6 +330,10 @@ const customRow = (record: Record<string, any>) => ({
 <template>
   <div class="h-full flex flex-col gap-6 nc-workspace-connections nc-content-max-w mx-auto">
     <div class="flex flex-col justify-between gap-2 mx-1">
+      <h2 v-if="showTitle" class="text-lg font-semibold text-nc-content-gray mb-0">
+        {{ $t('general.activeConnections') }}
+      </h2>
+
       <div class="text-sm font-normal text-nc-content-gray-subtle2">
         <div>
           {{ $t('msg.manageConnections') }}
@@ -310,7 +346,12 @@ const customRow = (record: Record<string, any>) => ({
           </a>
         </div>
       </div>
-      <div class="flex items-center gap-3">
+      <div
+        class="flex items-center gap-3"
+        :class="{
+          'mt-2': showTitle,
+        }"
+      >
         <a-input
           v-model:value="searchQuery"
           type="text"
@@ -432,6 +473,29 @@ const customRow = (record: Record<string, any>) => ({
           </NcTooltip>
         </template>
 
+        <div v-if="column.key === 'base_access'" class="text-sm">
+          <NcBadge
+            v-if="!integration.is_restricted"
+            size="xs"
+            color="green"
+            :border="false"
+            class="cursor-pointer"
+            @click.stop="openBaseAssignment(integration)"
+          >
+            {{ $t('activity.allBases') }}
+          </NcBadge>
+          <NcBadge
+            v-else
+            size="xs"
+            color="gray"
+            :border="false"
+            class="cursor-pointer"
+            @click.stop="openBaseAssignment(integration)"
+          >
+            {{ $t('labels.restricted') }}
+          </NcBadge>
+        </div>
+
         <div v-if="column.key === 'action'" @click.stop>
           <NcDropdown placement="bottomRight">
             <NcButton size="small" type="secondary">
@@ -445,6 +509,10 @@ const customRow = (record: Record<string, any>) => ({
                 >
                   <GeneralIcon class="text-current opacity-80" icon="star" />
                   <span>Set as default</span>
+                </NcMenuItem>
+                <NcMenuItem v-if="isEeUI" @click="openBaseAssignment(integration)">
+                  <GeneralIcon class="text-current opacity-80" icon="ncDatabase" />
+                  <span>{{ $t('labels.manageBaseAccess') }}</span>
                 </NcMenuItem>
                 <NcMenuItem
                   :disabled="!isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) && integration.sub_type === SyncDataType.NOCODB"
@@ -626,6 +694,14 @@ const customRow = (record: Record<string, any>) => ({
         </div>
       </div>
     </NcModal>
+
+    <!-- Base Assignment Dialog -->
+    <WorkspaceIntegrationsBaseAssignment
+      v-if="isEeUI && baseAssignmentIntegration"
+      v-model:visible="isBaseAssignmentOpen"
+      :integration="baseAssignmentIntegration"
+      @updated="onBaseAssignmentUpdated"
+    />
   </div>
 </template>
 

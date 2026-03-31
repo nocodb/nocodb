@@ -382,6 +382,8 @@ export function useInfiniteData(args: {
           row.rowMeta.commentCount = +commentData.count || 0
         }
       })
+
+      eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
     } catch (e) {
       console.error('Failed to load bulk aggregate comment count:', e)
     }
@@ -494,7 +496,9 @@ export function useInfiniteData(args: {
         }
       }
 
-      await loadBulkAggCommentsCount(allFormattedRows)
+      // Fire-and-forget — comment counts are cosmetic and shouldn't block row rendering.
+      // loadBulkAggCommentsCount mutates through the reactive cache and emits TRIGGER_RE_RENDER.
+      loadBulkAggCommentsCount(allFormattedRows).catch(() => {})
 
       for (const { request, rows, dataCache } of processedChunks) {
         try {
@@ -1697,7 +1701,11 @@ export function useInfiniteData(args: {
         })
       }
 
-      // Update specific columns based on their types
+      // Update specific columns based on their types.
+      // Only sync back types that can be changed server-side as a side effect
+      // (computed fields, triggers, on-update defaults).
+      // Free-text input types are excluded to avoid overwriting local state
+      // while the user may still be typing in another cell.
       const columnsToUpdate = new Set([
         UITypes.Formula,
         UITypes.QrCode,
@@ -1710,9 +1718,16 @@ export function useInfiniteData(args: {
         UITypes.Lookup,
         UITypes.Button,
         UITypes.Attachment,
-        UITypes.DateTime,
-        UITypes.Date,
       ])
+
+      // When date dependency is configured, the server may recompute date/duration/number
+      // fields as a side effect — sync those back too.
+      if (metaValue?.date_dependency?.is_active) {
+        columnsToUpdate.add(UITypes.DateTime)
+        columnsToUpdate.add(UITypes.Date)
+        columnsToUpdate.add(UITypes.Duration)
+        columnsToUpdate.add(UITypes.Number)
+      }
 
       Object.assign(
         toUpdate.row,
@@ -1899,7 +1914,7 @@ export function useInfiniteData(args: {
         .map((c) => c.title!) || []),
     )
 
-    if (isSortRelevantChange(changedFields, sorts.value, columnsById.value) || newRow) {
+    if (isSortRelevantChange(changedFields, sorts.value, columnsById.value) || row.rowMeta.new) {
       const needsResorting = willSortOrderChange({
         row,
         newData: data,
@@ -2135,22 +2150,20 @@ export function useInfiniteData(args: {
       return
     }
 
+    const updateRowColorInfo = (row: Row) => {
+      Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
+      row.rowMeta.buttonDisabled = evaluateButtonVisibility(row.row)
+    }
+
     // If it is group by, we need to update the rowMeta color info for each row in the group
     if (isGroupBy.value) {
       groupDataCache.value.forEach((group) => {
-        group.cachedRows.value.forEach((row) => {
-          Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
-          row.rowMeta.buttonDisabled = evaluateButtonVisibility(row.row)
-        })
+        group.cachedRows.value.forEach(updateRowColorInfo)
       })
     } else {
       // If it is not group by, we need to update the rowMeta color info for each row in cachedRows
       const { cachedRows } = getDataCache()
-
-      cachedRows.value.forEach((row) => {
-        Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
-        row.rowMeta.buttonDisabled = evaluateButtonVisibility(row.row)
-      })
+      cachedRows.value.forEach(updateRowColorInfo)
     }
   }
 
@@ -2207,7 +2220,7 @@ export function useInfiniteData(args: {
                 dataCache.cachedRows.value.set(newRowIndex, {
                   row: payload,
                   oldRow: {},
-                  rowMeta: { new: false, rowIndex: newRowIndex, path: [] },
+                  rowMeta: { new: false, rowIndex: newRowIndex, path: [], ...getEvaluatedRowMetaRowColorInfo(payload) },
                 })
 
                 dataCache.totalRows.value++
@@ -2226,7 +2239,7 @@ export function useInfiniteData(args: {
           dataCache.cachedRows.value.set(newRowIndex, {
             row: payload,
             oldRow: {},
-            rowMeta: { new: false, rowIndex: newRowIndex, path: [] },
+            rowMeta: { new: false, rowIndex: newRowIndex, path: [], ...getEvaluatedRowMetaRowColorInfo(payload) },
           })
           dataCache.totalRows.value++
           dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
@@ -2262,6 +2275,7 @@ export function useInfiniteData(args: {
 
             cachedRow.rowMeta.isValidationFailed = isValidationFailed
             cachedRow.rowMeta.changed = false
+            Object.assign(cachedRow.rowMeta, getEvaluatedRowMetaRowColorInfo(payload))
             updated = true
             break
           }
@@ -2460,6 +2474,7 @@ export function useInfiniteData(args: {
         if (payload && typeof payload === 'object') {
           Object.assign(rowToMove.row, payload)
           Object.assign(rowToMove.oldRow, payload)
+          Object.assign(rowToMove.rowMeta, getEvaluatedRowMetaRowColorInfo(rowToMove.row))
         }
         rowToMove.rowMeta.changed = false
 

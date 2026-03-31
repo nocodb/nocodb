@@ -38,20 +38,24 @@ export const RollupCellRenderer: CellRenderer = {
     if (!childColumn) return
 
     let renderProps: CellRendererOptions | undefined
+    let isFormulaWithDisplayType = false
 
     if (childColumn.uidt === UITypes.Formula) {
       const colMeta = parseProp(childColumn.meta)
 
       if (colMeta?.display_type) {
+        isFormulaWithDisplayType = true
+        const displayColumnMeta = parseProp(colMeta.display_column_meta)
+
         renderProps = {
           ...props,
           column: {
             ...childColumn,
             uidt: colMeta?.display_type,
-            ...colMeta.display_column_meta,
+            ...displayColumnMeta,
             meta: {
-              ...parseProp(colMeta.display_column_meta),
               ...parseProp(column?.meta),
+              ...parseProp(displayColumnMeta?.meta),
             },
           },
           readonly: true,
@@ -72,9 +76,13 @@ export const RollupCellRenderer: CellRenderer = {
 
     const renderAsTextFun = getRenderAsTextFunForUiType((renderProps.column?.uidt as UITypes) || UITypes.SingleLineText)
 
-    renderProps.column.meta = {
-      ...parseProp(childColumn?.meta),
-      ...parseProp(column?.meta),
+    // Only overwrite meta for non-formula display types — formula display types
+    // already have the correct meta (e.g., currency_code) set above
+    if (!isFormulaWithDisplayType) {
+      renderProps.column.meta = {
+        ...parseProp(childColumn?.meta),
+        ...parseProp(column?.meta),
+      }
     }
 
     if (colOptions?.rollup_function && renderAsTextFun.includes(colOptions?.rollup_function)) {

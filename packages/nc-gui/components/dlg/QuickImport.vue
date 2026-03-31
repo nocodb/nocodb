@@ -151,7 +151,7 @@ const importMeta = computed(() => {
       uploadHint: '',
       urlInputLabel: t('msg.info.csvURL'),
       loadUrlDirective: ['c:quick-import:csv:load-url'],
-      acceptTypes: '.csv',
+      acceptTypes: '.csv, text/csv, text/comma-separated-values, application/csv',
     }
   } else if (isImportTypeJson.value) {
     return {
@@ -1024,11 +1024,7 @@ watch(
         description-class="!text-small !leading-[18px]"
         :copy-text="importError"
         :message="$t('msg.error.importError')"
-        :description="
-          $t('msg.error.anErrorOccuredWhileImporting', {
-            type: getBtnText(true),
-          })
-        "
+        :description="importError"
         @close="handleResetImportError"
       />
 
@@ -1135,6 +1131,10 @@ watch(
   border: none;
   padding: 0 !important;
 }
+.nc-modal-quick-import .ant-modal-content {
+  @apply xs:!p-4;
+}
+
 .nc-modal-quick-import .ant-collapse-content-box {
   @apply !pb-0;
   padding-top: 0 !important;

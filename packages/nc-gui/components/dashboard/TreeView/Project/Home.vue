@@ -57,12 +57,16 @@ const hasTableCreatePermission = computed(() => {
         <DashboardTreeViewProjectNode v-else ref="projectNodeRef" is-project-header />
       </DashboardSidebarHeaderWrapper>
 
-      <div v-if="!isSharedBase && activeSidebarTab !== 'settings'" class="nc-project-home-section !pt-1 !pb-0.5 flex flex-col">
-        <div v-if="hasTableCreatePermission" class="flex items-center w-full xs:hidden">
+      <div
+        v-if="hasTableCreatePermission && !isSharedBase && activeSidebarTab !== 'settings'"
+        class="nc-project-home-section !py-0 xs:mt-1 flex items-center min-h-[var(--toolbar-height)]"
+      >
+        <div class="flex items-center w-full">
           <NcDropdown v-model:visible="isVisibleCreateNew">
             <NcButton
               type="text"
               size="small"
+              mobile-size="medium"
               full-width
               class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-nc-content-gray-subtle !hover:(text-nc-content-gray) !xs:hidden !w-full !px-3"
               :class="isVisibleCreateNew ? 'active' : ''"
@@ -84,24 +88,27 @@ const hasTableCreatePermission = computed(() => {
           </NcDropdown>
         </div>
       </div>
+      <div v-else class="h-1">&nbsp;</div>
     </div>
 
     <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
       <!-- Data tab -->
       <template v-if="activeSidebarTab === 'data'">
-        <Table :base-id="base.id" @create-table="addNewProjectChildEntity()" hide-header />
+        <Table :base-id="base.id" hide-header @create-table="addNewProjectChildEntity()" />
       </template>
 
       <!-- Settings panel -->
       <template v-else-if="activeSidebarTab === 'settings'">
         <DashboardTreeViewProjectBaseSettingsMenu v-if="!isSharedBase" />
-        <div v-if="!isSharedBase && !isMobileMode" class="mx-3 border-t border-nc-border-gray-medium"></div>
-        <DashboardTreeViewProjectWsSettingsMenu />
+        <template v-if="showWsSettingsInBase">
+          <div v-if="!isSharedBase && !isMobileMode" class="mx-3 border-t border-nc-border-gray-medium"></div>
+          <DashboardTreeViewProjectWsSettingsMenu />
+        </template>
       </template>
 
       <!-- Fallback to data -->
       <template v-else>
-        <Table :base-id="base.id" @create-table="addNewProjectChildEntity()" hide-header />
+        <Table :base-id="base.id" hide-header @create-table="addNewProjectChildEntity()" />
       </template>
     </div>
 

@@ -1,9 +1,14 @@
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
+import ajvErrors from 'ajv-errors';
 import type { ErrorObject } from 'ajv';
 import type { NextFunction, Request, Response } from 'express';
 import type { NcApiVersion, NcRequest } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
+import {
+  formatAjvErrorMessage,
+  formatAjvErrors,
+} from '~/helpers/ajvErrorFormatter';
 import swagger, { swaggerV3Validation } from '~/schema';
 
 export function parseHrtimeToMilliSeconds(hrtime) {
@@ -15,6 +20,7 @@ const ajv = new Ajv({ strictSchema: false, strict: false, allErrors: true }); //
 ajv.addSchema(swagger, 'swagger.json');
 ajv.addSchema(swaggerV3Validation, 'swagger-v3.json');
 addFormats(ajv);
+ajvErrors(ajv);
 
 // A middleware generator to validate the request body
 export const getAjvValidatorMw = (schema: string) => {
@@ -27,12 +33,12 @@ export const getAjvValidatorMw = (schema: string) => {
     if (valid) {
       next();
     } else {
-      const errors: ErrorObject[] | null | undefined = ajv.errors;
+      const errors: ErrorObject[] = ajv.errors || [];
+      const formatted = formatAjvErrors(errors);
 
-      // If the request body is invalid, send a response with an error message
       res.status(400).json({
-        message: 'Invalid request body',
-        errors,
+        message: formatAjvErrorMessage(errors),
+        errors: formatted,
       });
     }
   };
@@ -49,34 +55,16 @@ export const validatePayload = (
   if (!validate) {
     NcError.get(context).genericNotFound('Validation schema', schema);
   }
-  // Validate the request body against the schema
+
   const valid = validate(payload);
 
-  // If the request body is not valid, throw error
   if (!valid) {
-    const errors: ErrorObject[] | null | undefined =
-      ajv.errors || validate.errors;
+    const errors: ErrorObject[] = ajv.errors || validate.errors || [];
+    const formatted = formatAjvErrors(errors);
 
-    if (humanReadableError) {
-      // let extractedSchema;
-      // // extract schema from swagger json
-      // if (schema.startsWith('swagger-v3.json#/components/schemas/')) {
-      //   extractedSchema =
-      //     swaggerV3.components.schemas[
-      //       schema.split('swagger-v3.json#/components/schemas/')[1]
-      //     ];
-      // }
-      // errors = betterAjvErrors({
-      //   schema: validate.schema,
-      //   data: payload,
-      //   errors,
-      // });
-    }
-
-    // If the request body is invalid, throw error with error message  and errors
     NcError.get(context).ajvValidationError({
-      message: 'Invalid request body',
-      errors,
+      message: formatAjvErrorMessage(errors),
+      errors: formatted,
       humanReadableError,
     });
   }

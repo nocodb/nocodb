@@ -18,6 +18,8 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
 
     const { t } = useI18n()
 
+    const { appInfo } = useGlobal()
+
     const baseStore = useBase()
 
     const { isMysql } = useBase()
@@ -116,7 +118,11 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
           },
         ]
 
-        const additionalRules = extractFieldValidator(parseProp(column.meta).validators ?? [], column)
+        const additionalRules = extractFieldValidator(
+          parseProp(column.meta).validators ?? [],
+          column,
+          appInfo.value.ncMaxTextLength,
+        )
         rules = [...rules, ...additionalRules]
 
         if (rules.length) {

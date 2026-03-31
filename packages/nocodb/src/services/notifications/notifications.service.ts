@@ -236,16 +236,25 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  protected listenerUnsubs: (() => void)[] = [];
+
   onModuleDestroy() {
-    this.appHooks.removeAllListener(this.hookHandler);
+    for (const unsub of this.listenerUnsubs) {
+      unsub();
+    }
+    this.listenerUnsubs = [];
   }
 
   onModuleInit() {
-    this.appHooks.on(AppEvents.PROJECT_INVITE, (data) =>
-      this.hookHandler({ event: AppEvents.PROJECT_INVITE, data }),
+    this.listenerUnsubs.push(
+      this.appHooks.on(AppEvents.PROJECT_INVITE, (data) =>
+        this.hookHandler({ event: AppEvents.PROJECT_INVITE, data }),
+      ),
     );
-    this.appHooks.on(AppEvents.WELCOME, (data) =>
-      this.hookHandler({ event: AppEvents.WELCOME, data }),
+    this.listenerUnsubs.push(
+      this.appHooks.on(AppEvents.WELCOME, (data) =>
+        this.hookHandler({ event: AppEvents.WELCOME, data }),
+      ),
     );
   }
 }

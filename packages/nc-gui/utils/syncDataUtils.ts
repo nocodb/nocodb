@@ -143,24 +143,19 @@ export const allIntegrations: IntegrationItemType[] = [
     isAvailable: true,
     isOssOnly: true,
   },
-  {
-    title: 'objects.syncData.snowflake',
-    sub_type: ClientType.SNOWFLAKE,
-    icon: iconMap.snowflake,
-    type: IntegrationCategoryType.DATABASE,
-  },
-  {
-    title: 'objects.syncData.dataBricks',
-    sub_type: ClientType.DATABRICKS,
-    icon: iconMap.dataBricks,
-    type: IntegrationCategoryType.DATABASE,
-  },
-  {
-    title: 'objects.syncData.oracle',
-    sub_type: SyncDataType.ORACLE,
-    icon: iconMap.oracle,
-    type: IntegrationCategoryType.DATABASE,
-  },
+  // Temp removed
+  // {
+  //   title: 'objects.syncData.snowflake',
+  //   sub_type: ClientType.SNOWFLAKE,
+  //   icon: iconMap.snowflake,
+  //   type: IntegrationCategoryType.DATABASE,
+  // },
+  // {
+  //   title: 'objects.syncData.dataBricks',
+  //   sub_type: ClientType.DATABRICKS,
+  //   icon: iconMap.dataBricks,
+  //   type: IntegrationCategoryType.DATABASE,
+  // },
 
   // Communication
   {

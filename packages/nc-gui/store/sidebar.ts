@@ -1,10 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import {
-  INITIAL_LEFT_SIDEBAR_WIDTH,
-  MAX_WIDTH_FOR_MOBILE_MODE,
-  MINI_SIDEBAR_WIDTH,
-  NEW_MINI_SIDEBAR_WIDTH,
-} from '~/lib/constants'
+import { INITIAL_LEFT_SIDEBAR_WIDTH, MINI_SIDEBAR_WIDTH, NC_BREAKPOINTS, NEW_MINI_SIDEBAR_WIDTH } from '~/lib/constants'
 
 export const useSidebarStore = defineStore('sidebarStore', () => {
   const router = useRouter()
@@ -13,7 +8,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const { width } = useWindowSize()
 
   const isViewPortMobile = () => {
-    return width.value < MAX_WIDTH_FOR_MOBILE_MODE
+    return width.value < NC_BREAKPOINTS.sm
   }
 
   const { isMobileMode, leftSidebarSize: _leftSidebarSize, isLeftSidebarOpen: _isLeftSidebarOpen } = useGlobal()
@@ -31,11 +26,15 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const { activeViewTitleOrId } = storeToRefs(viewsStore)
 
   const allowHideLeftSidebarForCurrentRoute = computed(() => {
-    return [
-      'index-typeOrId-baseId-index-index',
-      'index-typeOrId-settings-page',
-      'index-typeOrId-baseId-index-settings-page',
-    ].includes(route.value.name as string)
+    return (
+      [
+        'index-typeOrId-baseId-index-index',
+        'index-typeOrId-settings-page',
+        'index-typeOrId-baseId-index-settings-page',
+        'index-typeOrId-baseId-index-docs',
+        'index-typeOrId-baseId-index-docs-docId-slugs',
+      ].includes(route.value.name as string) || isWsHomeRoute(route.value)
+    )
   })
 
   const isLeftSidebarOpen = computed({
@@ -121,8 +120,8 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const routeDerivedTab = computed<SidebarTab | null>(() => {
     const name = route.value.name?.toString() ?? ''
 
-    // Workspace-level settings
-    if (name === 'index-typeOrId-settings-page') return 'settings'
+    // Workspace-level settings (old and new flat routes)
+    if (wsSettingsRouteNames.has(name)) return 'settings'
 
     // Base routes — only derive tab when a baseId is present
     if (name.startsWith('index-typeOrId-baseId-')) {

@@ -33,7 +33,7 @@ const { appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFiltered
 
 const showCreateSort = ref(false)
 
-const { isMobileMode } = useGlobal()
+const { appInfo, isMobileMode } = useGlobal()
 
 const { getPlanLimit } = useWorkspace()
 
@@ -182,7 +182,6 @@ watch(
   <NcDropdown
     v-model:visible="open"
     :trigger="['click']"
-    class="!xs:hidden"
     overlay-class-name="nc-dropdown-sort-menu nc-toolbar-dropdown overflow-hidden"
   >
     <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode" :class="{ 'nc-active-btn': sorts?.length }">
@@ -244,7 +243,11 @@ watch(
           :is-parent-open="open"
           @created="addSort"
         />
-        <div v-else class="pt-2 pb-2 pl-4 nc-filter-list max-h-[max(80vh,30rem)] min-w-102" data-testid="nc-sorts-menu">
+        <div
+          v-else
+          class="pt-2 pb-2 pl-4 nc-filter-list max-h-[max(80vh,30rem)] xs:nc-min-w-screen-95 sm:min-w-102"
+          data-testid="nc-sorts-menu"
+        >
           <div class="sort-grid max-h-120 nc-scrollbar-thin pr-4 my-2 py-1" @click.stop>
             <template v-if="!isRestrictedEditor">
               <div
@@ -431,7 +434,7 @@ watch(
               :disabled="false"
               overlay-class-name="nc-toolbar-dropdown"
             >
-              <template v-if="isEeUI && !isPublic">
+              <template v-if="appInfo.ee && !isPublic">
                 <NcButton
                   v-if="
                     (isRestrictedEditor ? displayedLocalSorts.length : displayedSorts.length) <

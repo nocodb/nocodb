@@ -4,6 +4,8 @@ import { Plugin, TextSelection } from '@tiptap/pm/state'
 import type { AddMarkStep, Step } from '@tiptap/pm/transform'
 import { defaultMarkdownSerializer } from '@tiptap/pm/markdown'
 
+const DANGEROUS_URL_RE = /^\s*(javascript|vbscript|data):/i
+
 export const Link = TiptapLink.extend<LinkOptions>({
   addOptions() {
     return {
@@ -17,7 +19,7 @@ export const Link = TiptapLink.extend<LinkOptions>({
         rel: 'noopener noreferrer nofollow',
         class: null,
       },
-      validate: (_url) => true,
+      validate: (url: string) => !DANGEROUS_URL_RE.test(url),
       internal: false,
     }
   },
@@ -38,13 +40,18 @@ export const Link = TiptapLink.extend<LinkOptions>({
   renderHTML({ HTMLAttributes }) {
     const attr = mergeAttributes(this.options.HTMLAttributes, HTMLAttributes)
 
+    // Block dangerous URL protocols
+    if (attr.href && DANGEROUS_URL_RE.test(attr.href)) {
+      return ['span', {}, 0]
+    }
+
     if (isValidURL(attr.href)) {
       return ['a', attr, 0]
     }
 
     // We use this as a workaround to show a tooltip on the content
     // We use the href to store the tooltip content
-    if (!attr.href.includes('~~~###~~~')) {
+    if (!attr.href?.includes('~~~###~~~')) {
       return ['a', attr, 0]
     }
 

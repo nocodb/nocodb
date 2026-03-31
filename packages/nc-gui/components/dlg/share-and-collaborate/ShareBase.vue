@@ -17,6 +17,8 @@ const { dashboardUrl } = useDashboard()
 
 const { $api, $e } = useNuxtApp()
 
+const { showEEFeatures } = useEeConfig()
+
 const { copy } = useCopy()
 
 const sharedBase = ref<null | ShareBase>(null)
@@ -157,7 +159,7 @@ const copyCustomUrl = async (custUrl = '') => {
       <div v-if="isSharedBaseEnabled" class="flex flex-col gap-3 w-full mt-3 border-t-1 pt-3 border-nc-border-gray-light">
         <GeneralCopyUrl v-model:url="url" />
         <DlgShareAndCollaborateCustomUrl
-          v-if="sharedBase?.uuid"
+          v-if="sharedBase?.uuid && showEEFeatures"
           :id="sharedBase.fk_custom_url_id"
           :backend-url="appInfo.ncSiteUrl"
           :copy-custom-url="copyCustomUrl"

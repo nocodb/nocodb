@@ -31,6 +31,7 @@ export class MetaSyncController {
   @HttpCode(200)
   @Acl('metaDiffSync', {
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async metaDiffSync(
     @TenantContext() context: NcContext,
@@ -64,6 +65,7 @@ export class MetaSyncController {
   @HttpCode(200)
   @Acl('baseMetaDiffSync', {
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async baseMetaDiffSync(
     @TenantContext() context: NcContext,
@@ -100,6 +102,7 @@ export class MetaSyncController {
   ])
   @Acl('metaDiff', {
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async metaDiff(
     @TenantContext() context: NcContext,
@@ -132,6 +135,7 @@ export class MetaSyncController {
   ])
   @Acl('metaDiff', {
     blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
   })
   async baseMetaDiff(
     @TenantContext() context: NcContext,

@@ -50,12 +50,12 @@ const uiTypes: UiTypesType[] = [
     name: UITypes.Links,
     icon: iconMap.cellLinks,
     virtual: 1,
+    deprecated: 1,
   },
   {
     name: UITypes.LinkToAnotherRecord,
     icon: iconMap.cellLinks,
     virtual: 1,
-    deprecated: 0,
   },
   {
     name: UITypes.Lookup,
@@ -324,8 +324,16 @@ const isColumnInvalid = ({
       if (isAiButton(col) && isReadOnly) {
         result.isInvalid = true
         result.ignoreTooltip = true
+      } else if (colOptions.type === ButtonActionsType.Script && isReadOnly) {
+        result.isInvalid = true
+        result.ignoreTooltip = true
       } else if (colOptions.type === ButtonActionsType.Webhook) {
-        result.isInvalid = !colOptions.fk_webhook_id
+        if (isReadOnly) {
+          result.isInvalid = true
+          result.ignoreTooltip = true
+        } else {
+          result.isInvalid = !colOptions.fk_webhook_id
+        }
       } else if (colOptions.type === ButtonActionsType.Url) {
         result.isInvalid = !!colOptions.error
       } else if (colOptions.type === ButtonActionsType.Ai) {

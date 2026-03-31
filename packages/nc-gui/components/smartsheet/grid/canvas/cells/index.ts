@@ -83,7 +83,7 @@ export function useGridCellHandler(params: {
 
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
-  const { isRowColouringEnabled, isCellColouringEnabled, getEvaluatedCellColorInfo } = useViewRowColorRender()
+  const { isRowColouringEnabled, isCellColouringEnabled } = useViewRowColorRender()
 
   const { getColor, isDark } = useTheme()
 
@@ -151,15 +151,21 @@ export function useGridCellHandler(params: {
   cellTypesRegistry.set(UITypes.ForeignKey, GenericReadOnlyRenderer)
   cellTypesRegistry.set(UITypes.ID, GenericReadOnlyRenderer)
 
+  // Frame-level timestamp — updated once per render frame, avoids ~425 Date.now() calls/frame.
+  let _frameNow = Date.now()
+
   const getCellRenderStore = (key: string) => {
     if (!cellRenderStoreMap.has(key)) {
       cellRenderStoreMap.set(key, {})
-      expirationTimes.set(key, Date.now() + CLEANUP_INTERVAL)
-    } else {
-      expirationTimes.set(key, Date.now() + CLEANUP_INTERVAL)
     }
+    expirationTimes.set(key, _frameNow + CLEANUP_INTERVAL)
 
     return cellRenderStoreMap.get(key)!
+  }
+
+  /** Call once at the start of each render frame to update the shared timestamp. */
+  const updateFrameTimestamp = () => {
+    _frameNow = Date.now()
   }
 
   const renderCell = (
@@ -202,6 +208,7 @@ export function useGridCellHandler(params: {
       isGroupHeader = false,
       rowMeta = {},
       isRootCell = false,
+      rowBgAlreadyApplied = false,
     }: Omit<CellRendererOptions, 'metas' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
   ) => {
     if (skipRender) return
@@ -230,16 +237,20 @@ export function useGridCellHandler(params: {
           },
         })
       } else if (!rowMeta?.isValidationFailed && isRootCell) {
-        // First check for cell-specific coloring
-        const cellColorInfo = isCellColouringEnabled.value ? getEvaluatedCellColorInfo(row, column.id) : null
+        // Read pre-computed cell colors from rowMeta (populated by getEvaluatedRowMetaRowColorInfo on data load/change)
+        const cellColorInfo = isCellColouringEnabled.value ? rowMeta?.cellColors?.[column.id] : null
 
         let backgroundColorToRender: string | null = null
         let hoverColorToRender: string | null = null
+
+        // Track whether we're using a cell-specific color (not just row fallback)
+        let isCellSpecificColor = false
 
         if (cellColorInfo?.cellBgColor) {
           // Cell-specific background color takes precedence
           backgroundColorToRender = cellColorInfo.cellBgColor
           hoverColorToRender = cellColorInfo.cellHoverColor
+          isCellSpecificColor = true
         } else if (!cellColorInfo?.cellLeftBorderColor) {
           // Fall back to row coloring only if no cell-specific color at all
           const rowColor =
@@ -257,8 +268,11 @@ export function useGridCellHandler(params: {
             : backgroundColorToRender
 
         if (finalColor) {
+          // When row-level fill already painted the row color, skip redundant per-cell fill
+          // (only applies to row-color fallback; cell-specific colors always need their own fill)
+          const skipBgFill = rowBgAlreadyApplied && !isCellSpecificColor
           roundedRect(ctx, x, y, width, height, 0, {
-            backgroundColor: finalColor,
+            backgroundColor: skipBgFill ? undefined : finalColor,
             borderColor: getColor(themeV4Colors.gray['200']),
             borderWidth: 0.4,
             borders: {
@@ -578,6 +592,7 @@ export function useGridCellHandler(params: {
   return {
     cellTypesRegistry,
     renderCell,
+    updateFrameTimestamp,
     handleCellClick,
     handleCellKeyDown,
     handleCellHover,

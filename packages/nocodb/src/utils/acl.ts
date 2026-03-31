@@ -30,6 +30,7 @@ const permissionScopes = {
     // API Tokens
     'apiTokenList',
     'apiTokenCreate',
+    'apiTokenUpdate',
     'apiTokenDelete',
 
     'oAuthAuthorizationList',
@@ -96,20 +97,16 @@ const permissionScopes = {
     'integrationStore',
     'integrationEndpointGet',
 
+    // Integration link management (workspace scope)
+    'integrationLinkedBaseList',
+    'integrationUpdateLinkedBases',
+
     // Misc
     'duplicateSharedBase',
     'webhookPluginList',
 
     // AI
     'aiSchema',
-
-    // Chat
-    'chatSessionCreate',
-    'chatSessionList',
-    'chatSessionGet',
-    'chatSessionDelete',
-    'chatMessageList',
-    'chatMessageSend',
 
     // Workspace user ops (internal, not exposed as CE API)
     'workspaceUserList',
@@ -195,6 +192,7 @@ const permissionScopes = {
     'btExcludedList',
     'ooExcludedList',
     'gridColumnUpdate',
+    'listColumnUpdate',
     'bulkDataInsert',
     'bulkDataUpdate',
     'bulkDataUpdateAll',
@@ -209,6 +207,7 @@ const permissionScopes = {
     'nestedListCopyPasteOrDeleteAll',
     'baseUserList',
     'sourceCreate',
+    'columnAdd',
 
     // Base API Tokens
     'baseApiTokenList',
@@ -237,6 +236,9 @@ const permissionScopes = {
     'aiUtils',
     'aiData',
     'aiBaseSchema',
+    'aiDataGenerateRows',
+    'aiDataFillRows',
+    'aiDataExtractRows',
 
     // MCP
     'mcpList',
@@ -246,6 +248,14 @@ const permissionScopes = {
 
     // etc
     'fetchViaUrl',
+
+    // Base-scoped integrations
+    'baseIntegrationList',
+
+    'baseIntegrationCreate',
+    'baseIntegrationUpdate',
+    'baseIntegrationLink',
+    'baseIntegrationUnlink',
   ],
 };
 
@@ -266,6 +276,7 @@ const rolePermissions:
     include: {
       apiTokenList: true,
       apiTokenCreate: true,
+      apiTokenUpdate: true,
       apiTokenDelete: true,
       passwordChange: true,
       commandPalette: true,
@@ -306,14 +317,6 @@ const rolePermissions:
     include: {
       workspaceUserList: true,
       workspaceInvite: true,
-
-      // Chat
-      chatSessionCreate: true,
-      chatSessionList: true,
-      chatSessionGet: true,
-      chatSessionDelete: true,
-      chatMessageList: true,
-      chatMessageSend: true,
     },
   },
   [WorkspaceUserRoles.COMMENTER]: {
@@ -334,6 +337,8 @@ const rolePermissions:
       integrationList: true,
       integrationStore: true,
       integrationEndpointGet: true,
+      integrationLinkedBaseList: true,
+      integrationUpdateLinkedBases: true,
       aiSchema: true,
       workspaceUserUpdate: true,
       workspaceUserDelete: true,
@@ -458,6 +463,12 @@ const rolePermissions:
       // AI
       aiUtils: true,
       aiData: true,
+      aiDataGenerateRows: true,
+      aiDataFillRows: true,
+      aiDataExtractRows: true,
+
+      // Base integrations (read only)
+      baseIntegrationList: true,
 
       // Extensions
       extensionUpdate: true,
@@ -478,6 +489,7 @@ const rolePermissions:
       hideAllColumns: true,
       showAllColumns: true,
       gridColumnUpdate: true,
+      listColumnUpdate: true,
       gridViewUpdate: true,
       galleryViewUpdate: true,
       kanbanViewUpdate: true,
@@ -713,6 +725,7 @@ const permissionDescriptions: Record<string, string> = {
 
   apiTokenList: 'view list of API tokens',
   apiTokenCreate: 'create a new API token',
+  apiTokenUpdate: 'update an API token',
   apiTokenDelete: 'delete an API token',
 
   passwordChange: 'change your password',
@@ -751,6 +764,16 @@ const permissionDescriptions: Record<string, string> = {
   integrationList: 'view list of integrations',
   integrationStore: "get data from an integration's store",
   integrationEndpointGet: 'call get request to an exposed integration endpoint',
+  integrationLinkedBaseList: 'view bases linked to an integration',
+  integrationUpdateLinkedBases: 'update base assignments for an integration',
+
+  // base-scoped integration permissions
+  baseIntegrationList: 'view integrations linked to a base',
+
+  baseIntegrationCreate: 'create an integration from a base',
+  baseIntegrationUpdate: 'update an integration from a base',
+  baseIntegrationLink: 'link an integration to a base',
+  baseIntegrationUnlink: 'unlink an integration from a base',
 
   // base permissions
   formViewGet: 'view forms',
@@ -824,6 +847,7 @@ const permissionDescriptions: Record<string, string> = {
   btExcludedList: 'view excluded relationships',
   ooExcludedList: 'view excluded one-to-one relationships',
   gridColumnUpdate: 'update grid columns',
+  listColumnUpdate: 'update list columns',
   bulkDataInsert: 'bulk insert data',
   bulkDataUpdate: 'bulk update data',
   bulkDataUpdateAll: 'bulk update all data',
@@ -851,14 +875,6 @@ const permissionDescriptions: Record<string, string> = {
   mcpCreate: 'create a new MCP token',
   mcpUpdate: 'update an MCP token',
   mcpDelete: 'delete an MCP token',
-
-  // Chat
-  chatSessionCreate: 'create a chat session',
-  chatSessionList: 'list chat sessions',
-  chatSessionGet: 'view a chat session',
-  chatSessionDelete: 'delete a chat session',
-  chatMessageList: 'list chat messages',
-  chatMessageSend: 'send a chat message',
 };
 
 // Human-readable descriptions for roles

@@ -83,12 +83,20 @@ watch(
   },
 )
 
+const meta = inject(MetaInj, ref())
+
 function safeJsonParse(json: string) {
   try {
     return JSON.parse(json)
   } catch (e) {
     return {}
   }
+}
+
+function getLinkColumnType(audit: AuditType) {
+  const details = safeJsonParse(audit.details as string)
+  const col = meta.value?.columns?.find((c: any) => c.id === details.link_field_id)
+  return (col?.colOptions as any)?.type || details.type
 }
 
 function isV0Audit(audit: AuditType) {
@@ -124,8 +132,42 @@ function isV0Audit(audit: AuditType) {
       </template>
       <template v-else>
         <div class="mt-auto" />
-        <div v-if="auditRetentionLimit" class="text-center text-nc-content-gray-subtle2 my-2">
-          You have <span class="font-bold">{{ auditRetentionLimit }}</span> of revision history.
+        <div v-if="isCeRetentionLimited" class="flex flex-col items-center gap-2 my-2 mx-3">
+          <div class="text-center text-nc-content-gray-subtle2 text-xs">
+            {{ $t('upgrade.ceAuditRetentionNotice') }}
+          </div>
+          <a
+            v-e="['c:audit:retention:upgrade']"
+            href="https://app.nocodb.com/signin?utm_source=OSS&utm_medium=OSS&utm_campaign=OSS&utm_content=audit_retention"
+            target="_blank"
+            rel="noopener"
+            class="!no-underline"
+          >
+            <NcButton type="secondary" size="xs">
+              <div class="flex items-center gap-1">
+                <GeneralIcon icon="ncArrowUpCircle" class="h-3 w-3" />
+                {{ $t('general.upgrade') }}
+              </div>
+            </NcButton>
+          </a>
+        </div>
+        <div v-else-if="auditRetentionLimit" class="flex flex-col items-center gap-2 my-2 mx-3">
+          <div class="text-center text-nc-content-gray-subtle2 text-xs">
+            You have <span class="font-bold">{{ auditRetentionLimit }}</span> of revision history. Upgrade to view the full
+            history.
+          </div>
+          <NcButton
+            v-if="isPaymentEnabled"
+            v-e="['c:audit:retention:upgrade']"
+            type="secondary"
+            size="xs"
+            @click="showAuditUpgradeModal"
+          >
+            <div class="flex items-center gap-1">
+              <GeneralIcon icon="ncArrowUpCircle" class="h-3 w-3" />
+              {{ $t('general.upgrade') }}
+            </div>
+          </NcButton>
         </div>
         <div v-if="hasMoreAudits" class="p-3 text-center">
           <NcButton size="small" type="secondary" @click="initLoadMoreAudits()"> Load earlier </NcButton>
@@ -180,7 +222,7 @@ function isV0Audit(audit: AuditType) {
               <div class="rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y py-2 px-3">
                 <div class="flex items-center gap-2 !text-nc-content-gray-subtle2 text-xs nc-audit-mini-item-header mb-3">
                   <SmartsheetHeaderVirtualCellIcon
-                    :column-meta="{ uidt: 'Links', colOptions: { type: safeJsonParse(audit.details).type } }"
+                    :column-meta="{ uidt: 'Links', colOptions: { type: getLinkColumnType(audit) } }"
                     class="!m-0"
                   />
                   {{ safeJsonParse(audit.details).link_field_title }}
@@ -213,7 +255,14 @@ function isV0Audit(audit: AuditType) {
                 </div>
               </div>
             </div>
-            <template v-else-if="['DATA_UPDATE', 'DATA_BULK_UPDATE', 'DATA_BULK_ALL_UPDATE'].includes(audit?.op_type)">
+            <template
+              v-else-if="
+                ['DATA_UPDATE', 'DATA_BULK_UPDATE', 'DATA_BULK_ALL_UPDATE', 'DATA_CASCADE_UPDATE'].includes(audit?.op_type)
+              "
+            >
+              <div v-if="audit?.op_type === 'DATA_CASCADE_UPDATE'" class="pl-9 text-xs text-nc-content-gray-muted mb-1">
+                {{ $t('labels.dateDependency.cascadeUpdateDescription') }}
+              </div>
               <div class="ml-9 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y">
                 <SmartsheetExpandedFormSidebarAuditMiniItem :audit="audit" />
               </div>

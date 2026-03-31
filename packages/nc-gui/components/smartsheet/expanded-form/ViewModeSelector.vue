@@ -15,7 +15,7 @@ const props = defineProps<{
 
 const modelValue = defineModel<string>()
 
-const { isMobileMode } = useGlobal()
+const { appInfo, isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
@@ -29,7 +29,7 @@ const viewsStore = useViewsStore()
 
 const isViewModeEnabled = computed(() => {
   return (
-    isEeUI &&
+    appInfo.value.ee &&
     !isNew.value &&
     commentsDrawer.value &&
     isUIAllowed('commentList', baseRoles.value) &&

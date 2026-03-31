@@ -5,6 +5,7 @@ import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 const props = defineProps<{
   workspaceId?: string
   tab?: string
+  hideTopbar?: boolean
 }>()
 
 const router = useRouter()
@@ -34,6 +35,7 @@ const {
   blockTeamsManagement,
   showUpgradeToUseTeams,
   isEEFeatureBlocked,
+  showEEFeatures,
 } = useEeConfig()
 
 const { isFromIntegrationPage, integrationPaginationData, loadIntegrations } = useProvideIntegrationViewStore()
@@ -100,12 +102,12 @@ const tab = computed({
       loadCollaborators({}, props.workspaceId)
     }
 
-    // Navigate via route path
+    // Navigate via route path — use flat URL structure (/{wsId}/{tabSlug})
     const wsTab = ncTabKeyToWsTab[newTab]
     if (wsTab) {
       const wsId = route.value.params.typeOrId
       const slug = wsSettingsTabToSlug[wsTab] || wsTab
-      navigateTo(`/${wsId}/settings/${slug}`)
+      navigateTo(`/${wsId}/${slug}`)
     }
   },
 })
@@ -167,7 +169,7 @@ watch(
 
     await until(() => isBaseRolesLoaded.value).toBeTruthy()
 
-    if (!isUIAllowed('workspaceCollaborators') && !isEEFeatureBlocked.value) {
+    if (!isUIAllowed('workspaceCollaborators') && showEEFeatures.value) {
       tab.value = 'settings'
     } else if (
       (!isWsAuditEnabled.value && newTab === 'audits') ||
@@ -180,8 +182,6 @@ watch(
     immediate: true,
   },
 )
-
-const { shouldShow: btbShouldShow } = useBackToBase()
 
 // When in settings sidebar mode, load data for specific tabs on navigation
 watch(
@@ -225,7 +225,7 @@ onBeforeUnmount(() => {
   >
     <!-- Settings sidebar mode: simple topbar with page title -->
     <div
-      v-if="isSettingsSidebar"
+      v-if="isSettingsSidebar && !props.hideTopbar"
       class="flex flex-row px-2 py-2 gap-3 justify-between w-full border-b-1 border-nc-border-gray-medium h-[var(--topbar-height)]"
     >
       <div class="flex-1 flex flex-row items-center gap-x-3">
@@ -240,7 +240,7 @@ onBeforeUnmount(() => {
 
     <!-- Original breadcrumb mode -->
     <div
-      v-else-if="!props.workspaceId"
+      v-else-if="!props.workspaceId && !props.hideTopbar"
       class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-nc-border-gray-medium flex items-center gap-2"
     >
       <GeneralOpenLeftSidebarBtn v-if="isMobileMode && !isLeftSidebarOpen" />
@@ -297,9 +297,6 @@ onBeforeUnmount(() => {
       </NcPageHeader>
     </template>
 
-    <!-- Back-to-base full-width bar: shown between breadcrumb and tabs (breadcrumb variant only) -->
-    <DashboardBackToBaseBreadcrumbVariant v-if="!isSettingsSidebar" />
-
     <NcTabs v-model:active-key="tab" class="flex-1 min-h-0" :tab-bar-style="isSettingsSidebar ? { display: 'none' } : undefined">
       <template #leftExtra>
         <div class="w-3"></div>
@@ -316,7 +313,7 @@ onBeforeUnmount(() => {
           <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" :is-active="tab === 'collaborators'" />
         </a-tab-pane>
 
-        <a-tab-pane v-if="isEeUI && hasTeamsEditPermission" key="teams" class="w-full h-full">
+        <a-tab-pane v-if="isEeUI && hasTeamsEditPermission && showEEFeatures" key="teams" class="w-full h-full">
           <template #tab>
             <div class="tab-title">
               <GeneralIcon icon="ncBuilding" class="h-4 w-4" />
@@ -331,7 +328,12 @@ onBeforeUnmount(() => {
       <template v-if="!isMobileMode">
         <template
           v-if="
-            isEeUI && !props.workspaceId && !currentWorkspace?.fk_org_id && isPaymentEnabled && isUIAllowed('workspaceBilling')
+            isEeUI &&
+            !props.workspaceId &&
+            !currentWorkspace?.fk_org_id &&
+            isPaymentEnabled &&
+            isUIAllowed('workspaceBilling') &&
+            showEEFeatures
           "
         >
           <a-tab-pane key="billing" class="w-full">
@@ -346,7 +348,7 @@ onBeforeUnmount(() => {
           </a-tab-pane>
         </template>
 
-        <template v-if="isEeUI && !props.workspaceId && isUIAllowed('workspaceAuditList')">
+        <template v-if="isEeUI && !props.workspaceId && isUIAllowed('workspaceAuditList') && showEEFeatures">
           <a-tab-pane key="audits" class="w-full">
             <template #tab>
               <div class="tab-title" data-testid="nc-workspace-settings-tab-audits">
@@ -369,15 +371,7 @@ onBeforeUnmount(() => {
               </div>
             </template>
 
-            <WorkspaceSso
-              :class="
-                isSettingsSidebar
-                  ? '!h-[calc(100vh-var(--topbar-height))]'
-                  : btbShouldShow
-                  ? '!h-[calc(100vh-128px)]'
-                  : '!h-[calc(100vh-92px)]'
-              "
-            />
+            <WorkspaceSso :class="isSettingsSidebar ? '!h-[calc(100vh-var(--topbar-height))]' : '!h-[calc(100vh-92px)]'" />
           </a-tab-pane>
         </template>
       </template>

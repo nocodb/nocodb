@@ -26,12 +26,20 @@ const fieldsChanged = computed(() => {
   }
 })
 
+const meta = inject(MetaInj, ref())
+
 function safeGetFromAuditDetails(audit: AuditType, key: string) {
   try {
     return JSON.parse(audit.details || '')[key]
   } catch {
     return '-'
   }
+}
+
+function getLinkColumnType(audit: AuditType) {
+  const fieldId = safeGetFromAuditDetails(audit, 'link_field_id')
+  const col = meta.value?.columns?.find((c: any) => c.id === fieldId)
+  return (col?.colOptions as any)?.type || safeGetFromAuditDetails(audit, 'type')
 }
 
 /* formatting */
@@ -74,6 +82,12 @@ const createdBy = computed(() => {
         <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_UPDATE'" class="font-weight-500 text-nc-content-gray-subtle2">
           updated {{ fieldsChanged }} fields
         </span>
+        <span
+          v-else-if="props.auditGroup.audit?.op_type === 'DATA_CASCADE_UPDATE'"
+          class="font-weight-500 text-nc-content-gray-subtle2"
+        >
+          {{ $t('labels.dateDependency.cascadeUpdateDescription') }}
+        </span>
         <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_LINK'" class="font-weight-500 text-nc-content-gray-subtle2">
           updated 1 field
         </span>
@@ -94,7 +108,7 @@ const createdBy = computed(() => {
         <p class="text-sm font-weight-500 mb-1 ml-6.5">Record was created.</p>
       </div>
     </template>
-    <template v-else-if="props.auditGroup.audit?.op_type === 'DATA_UPDATE'">
+    <template v-else-if="['DATA_UPDATE', 'DATA_CASCADE_UPDATE'].includes(props.auditGroup.audit?.op_type)">
       <SmartsheetExpandedFormPresentorsDiscussionAuditInfoExpressive :audit="props.auditGroup.audit" />
     </template>
     <template v-else-if="['DATA_LINK', 'DATA_UNLINK'].includes(props.auditGroup.audit?.op_type)">
@@ -109,7 +123,7 @@ const createdBy = computed(() => {
             class="rounded-md px-1 !h-[20px] inline-flex items-center gap-1 text-nc-content-gray-emphasis border-1 border-nc-border-gray-medium"
           >
             <SmartsheetHeaderVirtualCellIcon
-              :column-meta="{ uidt: 'Links', colOptions: { type: safeGetFromAuditDetails(props.auditGroup.audit, 'type') } }"
+              :column-meta="{ uidt: 'Links', colOptions: { type: getLinkColumnType(props.auditGroup.audit) } }"
               class="!w-[16px] !h-[16px] !m-0"
             />
             <span class="text-small1 font-weight-500">

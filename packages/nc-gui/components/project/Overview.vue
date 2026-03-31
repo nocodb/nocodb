@@ -16,7 +16,7 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { showExternalSourcePlanLimitExceededModal } = useEeConfig()
+const { showEEFeatures, showExternalSourcePlanLimitExceededModal } = useEeConfig()
 
 const { activeSidebarTab } = storeToRefs(useSidebarStore())
 
@@ -78,10 +78,8 @@ const onCreateBaseClick = () => {
 </script>
 
 <template>
-  <div class="nc-all-tables-view p-6 nc-scrollbar-thin h-full overflow-y-auto">
-    <div class="text-subHeading2 text-nc-content-gray mb-5">
-      {{ tabActionLabel }} {{ $t('labels.actions') }}
-    </div>
+  <div class="nc-all-tables-view py-4 px-6 nc-scrollbar-thin h-full overflow-y-auto">
+    <div class="text-subHeading2 text-nc-content-gray mb-5 -mt-1.5">{{ tabActionLabel }} {{ $t('labels.actions') }}</div>
 
     <div
       class="nc-overview-actions flex flex-row gap-6 flex-wrap max-w-[1000px]"
@@ -108,7 +106,7 @@ const onCreateBaseClick = () => {
           </ProjectActionItem>
 
           <ProjectActionItem
-            v-if="!isMobileMode && isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
+            v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
             v-e="['c:table:import']"
             data-testid="proj-view-btn__import-data"
             :label="`${$t('activity.import')} ${$t('general.data')}`"
@@ -120,9 +118,9 @@ const onCreateBaseClick = () => {
             </template>
           </ProjectActionItem>
 
-          <ProjectActionCreateEmptyDashboard v-if="!isMobileMode" />
+          <ProjectActionCreateEmptyDashboard v-if="!isMobileMode && showEEFeatures" />
 
-          <ProjectActionCreateNewSync v-if="!isMobileMode" :base-id="base?.id" />
+          <ProjectActionCreateNewSync v-if="!isMobileMode && showEEFeatures" :base-id="base?.id" />
 
           <NcTooltip
             v-if="!isMobileMode && isUIAllowed('sourceCreate')"
@@ -161,12 +159,12 @@ const onCreateBaseClick = () => {
         </template>
 
         <!-- Docs tab actions -->
-        <template v-if="activeSidebarTab === 'docs' && !isMobileMode">
+        <template v-if="activeSidebarTab === 'docs' && showEEFeatures">
           <ProjectActionCreateNewDocument :base-id="base?.id" />
         </template>
 
         <!-- Automation actions (shown on Automation tab) -->
-        <template v-if="activeSidebarTab === 'workflows' && !isMobileMode">
+        <template v-if="activeSidebarTab === 'workflows' && !isMobileMode && showEEFeatures">
           <ProjectActionCreateEmptyWorkflow />
           <ProjectActionCreateEmptyScript />
           <ProjectActionScriptsByNocoDB />

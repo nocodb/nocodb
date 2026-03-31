@@ -1,4 +1,4 @@
-import type { BaseType, OracleUi, SourceType, TableType } from 'nocodb-sdk'
+import type { BaseType, SourceType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { acceptHMRUpdate, defineStore } from 'pinia'
@@ -85,10 +85,7 @@ export const useBase = defineStore('baseStore', () => {
     const temp: Record<string, any> = {}
     for (const source of sources.value) {
       if (source.id) {
-        temp[source.id] = SqlUiFactory.create({ client: source.type }) as Exclude<
-          ReturnType<(typeof SqlUiFactory)['create']>,
-          typeof OracleUi
-        >
+        temp[source.id] = SqlUiFactory.create({ client: source.type })
       }
     }
     return temp

@@ -87,6 +87,7 @@ export class DependencySlotMapper {
       [DependencyTableType.Column]: {},
       [DependencyTableType.Model]: {},
       [DependencyTableType.View]: {},
+      [DependencyTableType.DateDependency]: {},
     };
   }
 

@@ -49,7 +49,7 @@ const { loadViews: _loadViews } = useViewsStore()
 const { activeView } = storeToRefs(useViewsStore())
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
-const { showRecordPlanLimitExceededModal } = useEeConfig()
+const { showEEFeatures, showRecordPlanLimitExceededModal } = useEeConfig()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -66,6 +66,7 @@ const source = computed(() => {
 const isTableDeleteDialogVisible = ref(false)
 const isTablePermissionsDialogVisible = ref(false)
 const isTableRlsDialogVisible = ref(false)
+const isTableDateDependencyDialogVisible = ref(false)
 
 const isOptionsOpen = ref(false)
 
@@ -299,6 +300,11 @@ function onRowLevelSecurity() {
   isTableRlsDialogVisible.value = true
 }
 
+function onDateDependency() {
+  isOptionsOpen.value = false
+  isTableDateDependencyDialogVisible.value = true
+}
+
 /** Cancel renaming view */
 function onCancel() {
   if (!isEditing.value) return
@@ -404,12 +410,21 @@ const enabledOptions = computed(() => {
       }) &&
       (source.value?.is_meta || source.value?.is_local),
     tablePermission:
-      isEeUI && table.value?.type === 'table' && isUIAllowed('tablePermission', { roles: baseRole?.value, source: source.value }),
+      isEeUI &&
+      table.value?.type === 'table' &&
+      isUIAllowed('tablePermission', { roles: baseRole?.value, source: source.value }) &&
+      showEEFeatures.value,
     tableRowLevelSecurity:
       isEeUI &&
       isFeatureEnabled(FEATURE_FLAG.ROW_LEVEL_SECURITY) &&
       table.value?.type === 'table' &&
-      isUIAllowed('rlsManage', { roles: baseRole?.value, source: source.value }),
+      isUIAllowed('rlsManage', { roles: baseRole?.value, source: source.value }) &&
+      showEEFeatures.value,
+    tableDateDependency:
+      isEeUI &&
+      table.value?.type === 'table' &&
+      isUIAllowed('dateDependencyManage', { roles: baseRole?.value, source: source.value }) &&
+      showEEFeatures.value,
     tableDelete: isUIAllowed('tableDelete', { roles: baseRole?.value, source: source.value }),
   }
 })
@@ -443,7 +458,7 @@ const enabledOptions = computed(() => {
             <!-- Mobile: plain chevron before icon -->
             <div
               v-if="!table.isViewsLoading"
-              class="hidden !xs:(flex items-center justify-center) w-6 h-6 flex-none cursor-pointer"
+              class="hidden !xs:(flex items-center justify-center) -ml-1 w-6 h-6 flex-none cursor-pointer"
               @click.stop="onExpand"
             >
               <GeneralIcon
@@ -671,9 +686,31 @@ const enabledOptions = computed(() => {
                   >
                     <div v-e="['c:table:rls']" class="flex gap-2 items-center w-full">
                       <GeneralIcon icon="ncShield" class="opacity-80" />
-                      <div class="flex-1">Row-level security</div>
+                      <div class="flex-1">{{ $t('objects.permissions.rlsPolicy.rowLevelSecurity') }}</div>
                     </div>
                   </NcMenuItem>
+                  <PaymentUpgradeBadgeProvider
+                    v-if="enabledOptions.tableDateDependency"
+                    :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY"
+                  >
+                    <template #default="{ click }">
+                      <NcMenuItem
+                        :data-testid="`sidebar-table-date-dependency-${table.title}`"
+                        class="nc-table-date-dependency"
+                        @click="click(PlanFeatureTypes.FEATURE_DATE_DEPENDENCY, onDateDependency)"
+                      >
+                        <div v-e="['c:table:date-dependency']" class="flex gap-2 items-center w-full">
+                          <GeneralIcon icon="ncCalendar" class="opacity-80" />
+                          <div class="flex-1">{{ $t('labels.dateDependency.title') }}</div>
+                          <LazyPaymentUpgradeBadge
+                            :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY"
+                            :title="$t('upgrade.upgradeToUseDateDependency')"
+                            :content="$t('upgrade.upgradeToUseDateDependencySubtitle')"
+                          />
+                        </div>
+                      </NcMenuItem>
+                    </template>
+                  </PaymentUpgradeBadgeProvider>
                 </template>
                 <template v-if="enabledOptions.tableDelete">
                   <NcDivider />
@@ -711,7 +748,7 @@ const enabledOptions = computed(() => {
               data-testid="nc-sidebar-table-create-view-btn"
               @click.stop
             >
-              <NcTooltip :title="$t('activity.createView')" hide-on-click>
+              <NcTooltip :title="$t('activity.createView')" hide-on-click :placement="isMobileMode ? 'topRight' : undefined">
                 <GeneralIcon icon="plus" class="!text-current text-[16px]" />
               </NcTooltip>
             </NcButton>
@@ -734,6 +771,12 @@ const enabledOptions = computed(() => {
     <DlgTableRowLevelSecurity
       v-if="table.id && isEeUI"
       v-model:visible="isTableRlsDialogVisible"
+      :table-id="table.id"
+      :title="table.title"
+    />
+    <DlgTableDateDependency
+      v-if="table.id && isEeUI"
+      v-model:visible="isTableDateDependencyDialogVisible"
       :table-id="table.id"
       :title="table.title"
     />

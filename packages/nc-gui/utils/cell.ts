@@ -1,4 +1,4 @@
-import type { ColumnType } from 'nocodb-sdk'
+import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, ncIsNaN, roundUpToPrecision } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import type { HTMLAttributes } from 'vue'
@@ -125,11 +125,25 @@ export const getSelectTypeFieldOptionBgColor = ({
   color,
   isDark,
   shade,
+  getColor,
+  isColorCodeEnabled = true,
 }: {
   color?: string
   isDark: boolean
   shade?: number
+  getColor?: GetColorType
+  isColorCodeEnabled?: boolean
 }) => {
+  if (!isColorCodeEnabled && getColor) {
+    return getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')
+  }
+
+  return !isDark
+    ? getAdaptiveTint(color || '#e7e7e9', { saturationMod: 5, isDarkMode: isDark, shade: shade ?? 20 })
+    : getAdaptiveTint(color || '#e7e7e9', { isDarkMode: isDark, shade: shade ?? -10 })
+}
+
+export const getDarkModeCompatibleBgColor = ({ color, isDark, shade }: { color?: string; isDark: boolean; shade?: number }) => {
   return !isDark ? color : getAdaptiveTint(color || '#e7e7e9', { isDarkMode: isDark, shade: shade ?? -10 })
 }
 
@@ -137,14 +151,18 @@ export const getSelectTypeFieldOptionTextColor = ({
   color,
   isDark,
   getColor,
+  isColorCodeEnabled = true,
 }: {
   color?: string
   isDark: boolean
   getColor: GetColorType
+  isColorCodeEnabled?: boolean
 }) => {
-  return !isDark
-    ? getSelectTypeOptionTextColor(color, getColor, true)
-    : getOppositeColorOfBackground(getSelectTypeFieldOptionBgColor({ color, isDark }), color)
+  if (!isColorCodeEnabled) {
+    return getColor('var(--nc-content-gray)')
+  }
+
+  return getOppositeColorOfBackground(getSelectTypeFieldOptionBgColor({ color, isDark }), color)
 }
 
 export const getInputModeFromUITypes = (uidt: UITypes): HTMLAttributes['inputmode'] => {
@@ -167,6 +185,22 @@ export const getInputModeFromUITypes = (uidt: UITypes): HTMLAttributes['inputmod
   if (uidt === UITypes.URL) {
     return 'url'
   }
+}
+
+/**
+ * Check if a column is part of an active date dependency rule on the table.
+ */
+export const isColumnDateDependencyField = (meta: TableType | undefined, columnId?: string): boolean => {
+  if (!columnId) return false
+  const rule = meta?.date_dependency
+  if (!rule?.is_active) return false
+
+  return [
+    rule.fk_start_date_field_id,
+    rule.fk_end_date_field_id,
+    rule.fk_duration_field_id,
+    rule.fk_dependency_linkrow_field_id,
+  ].includes(columnId)
 }
 
 export const formatPercentage = (n: number, precision = 2) => {

@@ -11,12 +11,14 @@ const props = withDefaults(
     filterCategory?: (c: IntegrationCategoryItemType) => boolean
     filterIntegration?: (i: IntegrationItemType) => boolean
     showFilter?: boolean
+    showTitle?: boolean
   }>(),
   {
     isModal: false,
     filterCategory: () => true,
     filterIntegration: () => true,
     showFilter: false,
+    showTitle: false,
   },
 )
 
@@ -65,15 +67,17 @@ const integrationListRef = ref<HTMLDivElement>()
 const { width: integrationListContainerWidth } = useElementSize(integrationListRef)
 
 const listWrapperMaxWidth = computed(() => {
-  if (integrationListContainerWidth.value <= 328 || integrationListContainerWidth.value < 624) {
-    return '328px'
+  const w = integrationListContainerWidth.value
+
+  if (w < 580) {
+    return '280px'
   }
 
-  if (integrationListContainerWidth.value < 920) {
+  if (w < 870) {
     return '576px'
   }
 
-  if (integrationListContainerWidth.value < 1216) {
+  if (w < 1160) {
     return '872px'
   }
 
@@ -303,13 +307,23 @@ watch(activeViewTab, (value) => {
         >
           <div v-if="integrationListContainerWidth" class="px-6 pt-6">
             <div
-              class="flex items-end justify-end flex-wrap gap-3 m-auto"
-              :style="{
-                maxWidth: listWrapperMaxWidth,
+              class="flex justify-end flex-wrap gap-3 m-auto nc-content-max-w"
+              :class="{
+                'items-start': showTitle,
+                'items-end': !showTitle,
               }"
             >
               <div class="flex-1">
-                <div class="text-sm font-normal text-nc-content-gray-subtle2 mb-2">
+                <h2 v-if="showTitle" class="text-lg font-semibold text-nc-content-gray mb-2">
+                  {{ $t('general.integrations') }}
+                </h2>
+
+                <div
+                  class="text-sm font-normal text-nc-content-gray-subtle2 mb-2"
+                  :class="{
+                    '!mb-4': showTitle,
+                  }"
+                >
                   <div>
                     {{ $t('msg.connectIntegrations') }}
                     <a href="https://nocodb.com/docs/product-docs/integrations" target="_blank" rel="noopener noreferrer">{{
@@ -397,12 +411,7 @@ watch(activeViewTab, (value) => {
                 'flex-1': isEmptyList,
               }"
             >
-              <div
-                class="flex flex-col space-y-6 w-full"
-                :style="{
-                  maxWidth: listWrapperMaxWidth,
-                }"
-              >
+              <div class="flex flex-col space-y-6 w-full nc-content-max-w">
                 <template v-for="(category, key) in integrationsMapByCategory">
                   <div
                     v-if="

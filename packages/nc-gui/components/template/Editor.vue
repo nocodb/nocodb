@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import type { ColumnType, OracleUi, TableType } from 'nocodb-sdk'
+import type { ColumnType, TableType } from 'nocodb-sdk'
 import {
   PermissionEntity,
   PermissionKey,
@@ -12,6 +12,7 @@ import {
   isSystemColumn,
   isVirtualCol,
   parseStringDate,
+  validateDateWithUnknownFormat,
 } from 'nocodb-sdk'
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
@@ -46,6 +47,8 @@ const { t } = useI18n()
 const { getMeta } = useMetas()
 
 const { isAllowed } = usePermissions()
+
+const { appInfo } = useGlobal()
 
 const meta = inject(MetaInj, ref())
 
@@ -109,10 +112,7 @@ const sqlUis = computed(() => {
 
   for (const source of base.value.sources ?? []) {
     if (source.id) {
-      temp[source.id] = SqlUiFactory.create({ client: source.type }) as Exclude<
-        ReturnType<(typeof SqlUiFactory)['create']>,
-        typeof OracleUi
-      >
+      temp[source.id] = SqlUiFactory.create({ client: source.type })
     }
   }
 
@@ -605,8 +605,33 @@ async function importTemplate() {
                         input = null
                       }
                     } else if (v.uidt === UITypes.Date) {
-                      if (input) {
-                        input = parseStringDate(input, v.meta.date_format)
+                      if (input === '' || input === null || input === undefined) {
+                        input = null
+                      } else if (input instanceof Date) {
+                        // Handle JS Date objects from Excel parser
+                        const d = dayjs(input)
+                        input = d.isValid() ? d.format('YYYY-MM-DD') : null
+                      } else {
+                        const originalInput = String(input)
+
+                        if (validateDateWithUnknownFormat(originalInput)) {
+                          // Known format matched with strict parsing — parse it
+                          input = parseStringDate(originalInput, v.meta.date_format)
+                          if (input === 'Invalid Date') {
+                            const detectedFormat = getDateFormat(originalInput)
+                            input = dayjs(originalInput, detectedFormat, true).format('YYYY-MM-DD')
+                          }
+                        } else if (/\d/.test(originalInput) && dayjs(originalInput).isValid()) {
+                          // Fallback: contains digits and dayjs native parsing accepts it
+                          // Handles formats like 2024-01-15T10:30:00, 15-Jan-24, etc.
+                          input = dayjs(originalInput).format('YYYY-MM-DD')
+                        } else {
+                          throw new Error(
+                            `Invalid date value "${originalInput}" provided for field "${col.destCn}" in row ${
+                              data.indexOf(row) + 1
+                            }`,
+                          )
+                        }
                       }
                     }
                     res[col.destCn] = input
@@ -1116,7 +1141,7 @@ function getErrorByTableName(tableName: string) {
         </a-collapse-panel>
       </a-collapse>
 
-      <div v-if="isEeUI" class="pt-4 pr-2">
+      <div v-if="appInfo.ee" class="pt-4 pr-2">
         <label class="flex">
           <NcCheckbox v-model:checked="autoInsertOption" :disabled="isImporting" />
           <span class="ml-2">{{ $t('labels.autoCreateMissingSelectionOptions') }}</span>

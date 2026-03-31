@@ -147,6 +147,17 @@ const vModel = computed({
       }
 
       emit('update:modelValue', val)
+
+      // For Date/DateTime cells, directly update the row data so it's in sync
+      // even if the parent can't process the emit (e.g. during canvas unmount when editEnabled is null)
+      if (
+        (isDate(column.value, abstractType.value) || isDateTime(column.value, abstractType.value)) &&
+        currentRow.value.row &&
+        column.value.title
+      ) {
+        currentRow.value.row[column.value.title] = val
+      }
+
       if (column.value.pk || column.value.unique) {
         updateWhenEditCompleted()
       } else if (isAutoSaved(column.value) && isRlsEnabled.value) {

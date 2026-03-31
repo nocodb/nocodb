@@ -11,7 +11,7 @@ const meta = inject(MetaInj, ref())
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, undefined)!
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, getResponsiveValue } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
@@ -60,7 +60,9 @@ const isFieldsMenuReadOnly = computed(() => {
   return isLocked.value || !isViewOperationsAllowed.value || (isLocalMode.value && hasViewFieldDataEditPermission.value)
 })
 
-const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value)
+const isAddingColumnAllowed = computed(
+  () => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value && !isMobileMode.value,
+)
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -440,6 +442,9 @@ watch(open, (value) => {
   if (!value) return
 
   filterQuery.value = ''
+
+  if (isMobileMode.value) return
+
   setTimeout(() => {
     fieldsMenuSearchRef.value?.focus()
   }, 100)
@@ -639,66 +644,75 @@ const onAddColumnDropdownVisibilityChange = () => {
 </script>
 
 <template>
-  <NcDropdown
+  <NcDropDrawer
     v-model:visible="open"
     :trigger="['click']"
-    class="!xs:hidden"
     overlay-class-name="nc-dropdown-fields-menu nc-toolbar-dropdown overflow-hidden"
+    drawer-body-class-name="nc-dropdown-fields-menu !px-0 !pb-0 h-full"
+    :scrollable-body="false"
     :auto-close="openSubmenusCount === 0"
     @visible-change="onFieldsMenuDropdownVisibilityChange"
   >
-    <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode" :class="{ 'nc-active-btn': numberOfHiddenFields }">
-      <template #title>
-        {{
-          activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY
-            ? $t('title.editCards')
-            : $t('objects.fields')
-        }}
-      </template>
+    <template #default="{ onClick }">
+      <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode" :class="{ 'nc-active-btn': numberOfHiddenFields }">
+        <template #title>
+          {{
+            activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY
+              ? $t('title.editCards')
+              : $t('objects.fields')
+          }}
+        </template>
 
-      <NcButton
-        v-e="['c:fields']"
-        class="nc-fields-menu-btn nc-toolbar-btn !h-7 !border-0"
-        size="small"
-        type="secondary"
-        :show-as-disabled="isFieldsMenuReadOnly"
-      >
-        <div class="flex items-center gap-1">
-          <div class="flex items-center gap-2 min-h-5">
-            <GeneralIcon
-              v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY"
-              class="h-4 w-4"
-              icon="creditCard"
-            />
-            <component :is="iconMap.fields" v-else class="h-4 w-4" />
+        <NcButton
+          v-e="['c:fields']"
+          class="nc-fields-menu-btn nc-toolbar-btn !h-7 !border-0"
+          size="small"
+          type="secondary"
+          :show-as-disabled="isFieldsMenuReadOnly"
+          @click="onClick"
+        >
+          <div class="flex items-center gap-1">
+            <div class="flex items-center gap-2 min-h-5">
+              <GeneralIcon
+                v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY"
+                class="h-4 w-4"
+                icon="creditCard"
+              />
+              <component :is="iconMap.fields" v-else class="h-4 w-4" />
 
-            <!-- Fields -->
-            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-small1 font-medium">
-              <template v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY">
-                {{ $t('title.editCards') }}
-              </template>
-              <template v-else>
-                {{ $t('objects.fields') }}
-              </template>
+              <!-- Fields -->
+              <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-small1 font-medium">
+                <template v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY">
+                  {{ $t('title.editCards') }}
+                </template>
+                <template v-else>
+                  {{ $t('objects.fields') }}
+                </template>
+              </span>
+            </div>
+            <span v-if="numberOfHiddenFields" class="bg-nc-bg-brand text-nc-content-brand nc-toolbar-btn-chip">
+              {{ numberOfHiddenFields }}
             </span>
           </div>
-          <span v-if="numberOfHiddenFields" class="bg-nc-bg-brand text-nc-content-brand nc-toolbar-btn-chip">
-            {{ numberOfHiddenFields }}
-          </span>
-        </div>
-      </NcButton>
-    </NcTooltip>
-
+        </NcButton>
+      </NcTooltip>
+    </template>
     <template #overlay>
-      <div class="w-[320px] rounded-lg nc-table-toolbar-menu" data-testid="nc-fields-menu" @click.stop>
+      <div
+        class="w-full xs:(h-full flex flex-col) sm:w-[320px] rounded-lg nc-table-toolbar-menu"
+        data-testid="nc-fields-menu"
+        @click.stop
+      >
         <div
           v-if="!isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
-          class="flex items-center gap-2 p-2 w-80 border-b-1 border-nc-border-gray-light"
+          class="flex items-center gap-2 p-2 sm:w-80 border-b-1 border-nc-border-gray-light"
         >
-          <div class="pl-2 flex text-sm select-none text-nc-content-gray-subtle2">{{ $t('labels.coverImageField') }}</div>
+          <div class="pl-2 flex text-sm select-none text-nc-content-gray-subtle2 xs:flex-1">
+            {{ $t('labels.coverImageField') }}
+          </div>
 
           <div
-            class="flex-1 nc-dropdown-cover-image-wrapper flex items-stretch border-1 border-nc-border-gray-medium rounded-lg transition-all duration-0.3s max-w-[206px]"
+            class="flex-1 nc-dropdown-cover-image-wrapper flex items-stretch border-1 border-nc-border-gray-medium rounded-lg transition-all duration-0.3s max-w-[206px] mr-2"
             :class="{
               'nc-disabled': isFieldsMenuReadOnly,
             }"
@@ -714,7 +728,7 @@ const onAddColumnDropdownVisibilityChange = () => {
               <template #suffixIcon><GeneralIcon class="text-nc-content-gray-subtle" icon="arrowDown" /></template>
 
               <a-select-option v-for="option of coverOptions" :key="option.value" :value="option.value">
-                <div class="w-full flex gap-2 items-center justify-between max-w-[400px]">
+                <div class="w-full h-full flex gap-2 items-center justify-between max-w-[400px]">
                   <div
                     class="flex-1 flex items-center gap-1"
                     :class="{
@@ -865,7 +879,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                   v-model:checked="showAllColumns"
                   :disabled="isDisabledShowAllColumns"
                   :loading="isLoadingShowAllColumns"
-                  size="xsmall"
+                  :size="getResponsiveValue('small', 'xsmall')"
                   class="!mr-1 nc-fields-toggle-show-all-fields"
                 />
               </div>
@@ -874,7 +888,7 @@ const onAddColumnDropdownVisibilityChange = () => {
         </div>
 
         <div
-          class="flex flex-col nc-scrollbar-thin max-h-[315px] min-h-[240px] p-2 overflow-y-auto border-t-1 border-nc-border-gray-medium"
+          class="flex flex-col nc-scrollbar-thin xs:flex-1 sm:(max-h-[315px] min-h-[240px]) p-2 overflow-y-auto border-t-1 border-nc-border-gray-medium"
           style="scrollbar-gutter: stable !important"
         >
           <div class="nc-fields-list">
@@ -895,7 +909,8 @@ const onAddColumnDropdownVisibilityChange = () => {
               v-model="fields"
               item-key="id"
               ghost-class="nc-fields-menu-items-ghost"
-              :disabled="isFieldsMenuReadOnly"
+              :disabled="isFieldsMenuReadOnly || isMobileMode"
+              :filter="isTouchEvent"
               @change="onMove($event)"
               @start="isDragging = true"
               @end="isDragging = false"
@@ -913,6 +928,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                 >
                   <component
                     :is="iconMap.drag"
+                    v-if="!isMobileMode"
                     class="!h-3.75 text-nc-content-gray-subtle2 mr-1"
                     :class="{
                       'cursor-not-allowed': isFieldsMenuReadOnly,
@@ -930,7 +946,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                     <template #default="{ isOpened }">
                       <div
                         v-e="['a:fields:show-hide']"
-                        class="flex flex-row items-center w-full truncate ml-1 py-[5px] pr-2"
+                        class="flex flex-row items-center w-full truncate ml-1 py-2 sm:py-[5px] pr-2"
                         :class="{
                           'cursor-pointer': !isFieldsMenuReadOnly,
                           'is-opened-add-lookup': isOpened,
@@ -1041,7 +1057,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                           <NcSwitch
                             :checked="field.show"
                             :disabled="field.isViewEssentialField || isFieldsMenuReadOnly || isLoadingShowAllColumns"
-                            size="xxsmall"
+                            :size="getResponsiveValue('xsmall', 'xxsmall')"
                             @change="$e('a:fields:show-hide')"
                             @click="handleFieldVisibilityClick(field)"
                           />
@@ -1111,7 +1127,7 @@ const onAddColumnDropdownVisibilityChange = () => {
         </GeneralLockedViewFooter>
       </div>
     </template>
-  </NcDropdown>
+  </NcDropDrawer>
 </template>
 
 <style lang="scss" scoped>

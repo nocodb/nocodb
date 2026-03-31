@@ -19,9 +19,9 @@ const { activeViewTitleOrId } = storeToRefs(useViewsStore())
 
 const { activeTableId } = storeToRefs(useTablesStore())
 
-const { isMobileMode } = useGlobal()
+const { appInfo, isMobileMode } = useGlobal()
 
-const { setActiveCmdView } = useCommand()
+const { openCommandPalette } = useCommandPalette()
 
 const showSidebarBtn = computed(() => {
   if (isMobileMode.value) {
@@ -40,7 +40,9 @@ const showSidebarBtn = computed(() => {
       </div>
 
       <div class="flex items-center gap-0.5">
-        <DashboardSidebarViewOptions v-if="isEeUI && !isMobileMode && !isSharedBase && activeSidebarTab === 'data'" />
+        <DashboardSidebarViewOptions
+          v-if="isEeUI && appInfo.ee && !isMobileMode && !isSharedBase && activeSidebarTab === 'data'"
+        />
         <NcTooltip v-if="!isMobileMode && !isSharedBase" class="flex" placement="bottom" hide-on-click>
           <template #title>
             <div class="flex items-center gap-1">{{ $t('labels.quickSearch') }} {{ renderCmdOrCtrlKey(true) }} K</div>
@@ -51,7 +53,7 @@ const showSidebarBtn = computed(() => {
             size="small"
             class="!text-nc-content-gray-muted !md:(hover:bg-nc-bg-gray-medium) !rounded-md"
             data-testid="nc-sidebar-search-btn"
-            @click="setActiveCmdView('cmd-k')"
+            @click="openCommandPalette"
           >
             <GeneralIcon icon="search" class="!text-current" />
           </NcButton>

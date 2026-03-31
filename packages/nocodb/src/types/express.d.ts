@@ -9,6 +9,7 @@ declare module 'express-serve-static-core' {
       base_roles?: Record<string, boolean>;
       workspace_roles?: Record<string, boolean>;
       provider?: string;
+      direct_teams?: { team_id: string; path: string }[];
     };
     ncSiteUrl: string;
     clientIp: string;

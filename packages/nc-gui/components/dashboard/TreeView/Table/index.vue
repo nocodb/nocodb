@@ -3,9 +3,10 @@ import type { SourceType, TableType } from 'nocodb-sdk'
 
 defineProps<{
   baseId: string
+  hideHeader?: boolean
 }>()
 
-const emits = defineEmits(['createTable'])
+defineEmits(['createTable'])
 
 const { $e } = useNuxtApp()
 
@@ -19,7 +20,7 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { refreshViewTabTitle } = useViewsStore()
 
-const { activeTable } = storeToRefs(useTablesStore())
+const { activeTable, baseTables } = storeToRefs(useTablesStore())
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -52,10 +53,6 @@ const [searchActive] = useToggle()
 const base = inject(ProjectInj)!
 
 const baseRole = computed(() => base.value.project_role || base.value.workspace_role)
-
-const hasTableCreatePermission = computed(() => {
-  return isUIAllowed('tableCreate', { roles: base.value.project_role, source: base.value?.sources?.[0] })
-})
 
 const enableEditModeForSource = (sourceId: string) => {
   if (!isUIAllowed('baseRename')) return
@@ -226,7 +223,7 @@ onKeyStroke('Escape', () => {
 
 <template>
   <div class="nc-project-home-section">
-    <div class="nc-project-home-section-header !cursor-pointer" @click.stop="isExpanded = !isExpanded">
+    <div v-if="!hideHeader" class="nc-project-home-section-header !cursor-pointer" @click.stop="isExpanded = !isExpanded">
       <div class="flex-1">{{ $t('objects.tables') }}</div>
 
       <GeneralIcon
@@ -236,7 +233,10 @@ onKeyStroke('Escape', () => {
       />
     </div>
     <div key="g1" class="overflow-x-hidden transition-max-height" :class="{ 'max-h-0': !isExpanded }">
-      <template v-if="base && base?.sources">
+      <!-- Loading skeleton for initial load -->
+      <DashboardTreeViewProjectListSkeletonEntity v-if="!baseTables.get(base?.id!)" class="!px-2.5 mt-2" />
+
+      <template v-else-if="base && base?.sources">
         <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
           <div v-if="base?.sources?.[0]?.enabled" class="flex-1">
             <div class="transition-height duration-200">

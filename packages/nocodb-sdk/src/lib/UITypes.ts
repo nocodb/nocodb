@@ -494,7 +494,7 @@ export function isLinkV2(
   if (col.colOptions) {
     return (
       isLinksOrLTAR(col) &&
-      (col.colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2
+      (col.colOptions as LinkToAnotherRecordType)?.version == LinksVersion.V2
     );
   }
 
@@ -516,7 +516,8 @@ export function isMMOrMMLike(
     if (col.colOptions) {
       const opts = col.colOptions as LinkToAnotherRecordType;
       // V2 relations are all junction-table-based (MM-like)
-      if (opts.version === LinksVersion.V2) {
+      // Use == for version check since DB may store as string "2" not number 2
+      if (opts.version == LinksVersion.V2) {
         return true;
       }
       // Traditional MANY_TO_MANY
@@ -545,7 +546,8 @@ export function isBtLikeV2Junction(
 ): boolean {
   if (typeof col === 'object' && isLinksOrLTAR(col) && col.colOptions) {
     const opts = col.colOptions as LinkToAnotherRecordType;
-    if (opts.version !== LinksVersion.V2) return false;
+    // Use != for version check since DB may store as string "2" not number 2
+    if (opts.version != LinksVersion.V2) return false;
     return [
       RelationTypes.MANY_TO_ONE,
       RelationTypes.ONE_TO_ONE,
@@ -805,6 +807,36 @@ export const durationOptions = [
     title: 'h:mm:ss.sss',
     example: '(e.g. 3.45.678, 1:23:40.000)',
     regex: /(\d+)?(?::(\d+))?(?::(\d+))?(?:.(\d{0,4})?)?/,
+  },
+  {
+    id: 5,
+    title: 'd h',
+    example: '(e.g. 1d 2h, 2h)',
+    regex: /^(?:(\d+)d\s*)?(?:(\d+)h?)?$/i,
+  },
+  {
+    id: 6,
+    title: 'd h:mm',
+    example: '(e.g. 1d 2:30, 2:30)',
+    regex: /^(?:(\d+)d\s*)?(?:(\d+)(?::(\d+))?)?$/,
+  },
+  {
+    id: 7,
+    title: 'd h:mm:ss',
+    example: '(e.g. 1d 2:30:45, 2:30:45)',
+    regex: /^(?:(\d+)d\s*)?(?:(\d+)(?::(\d+))?(?::(\d+))?)?$/,
+  },
+  {
+    id: 8,
+    title: 'd h m',
+    example: '(e.g. 1d 2h 30m, 2h 30m)',
+    regex: /^(?:(\d+)d\s*)?(?:(\d+)h\s*)?(?:(\d+)m?)?$/i,
+  },
+  {
+    id: 9,
+    title: 'd h m s',
+    example: '(e.g. 1d 2h 30m 45s, 2h 30m 45s)',
+    regex: /^(?:(\d+)d\s*)?(?:(\d+)h\s*)?(?:(\d+)m\s*)?(?:(\d+)s?)?$/i,
   },
 ];
 

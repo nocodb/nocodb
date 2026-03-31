@@ -61,6 +61,17 @@ const colors = ref(enumColor.light)
 
 const defaultOption = ref<Option[]>([])
 
+const isColorCodeEnabled = computed({
+  get: () => {
+    const metaObj = parseProp(vModel.value.meta)
+    return metaObj.isColorCodeEnabled !== false
+  },
+  set: (val: boolean) => {
+    const metaObj = parseProp(vModel.value.meta)
+    vModel.value.meta = { ...metaObj, isColorCodeEnabled: val }
+  },
+})
+
 const isKanban = inject(IsKanbanInj, ref(false))
 
 const { t } = useI18n()
@@ -402,6 +413,38 @@ const predictOptions = async () => {
   }
 }
 
+const alphabetizeOptions = () => {
+  const activeOptions = renderedOptions.value.filter((op) => op.status !== 'remove')
+
+  const alreadySorted = activeOptions.every(
+    (op, i, arr) => i === 0 || (arr[i - 1].title ?? '').localeCompare(op.title ?? '') <= 0,
+  )
+  if (alreadySorted) return
+
+  const removed = options.value.filter((op) => op.status === 'remove')
+  const sorted = [...activeOptions].sort((a, b) => (a.title ?? '').localeCompare(b.title ?? ''))
+
+  let idx = 0
+  sorted.forEach((op) => {
+    op.index = idx++
+  })
+  removed.forEach((op) => {
+    op.index = idx++
+  })
+
+  options.value = [...sorted, ...removed]
+
+  if (isKanbanStack.value) {
+    renderedOptions.value = options.value
+  } else {
+    isReverseLazyLoad.value = false
+    loadedOptionAnchor.value = Math.min(OPTIONS_PAGE_COUNT, options.value.length)
+    renderedOptions.value = options.value.slice(0, loadedOptionAnchor.value)
+  }
+
+  syncOptions()
+}
+
 onMounted(() => {
   if (!vModel.value.colOptions?.options) {
     vModel.value.colOptions = {
@@ -498,6 +541,21 @@ if (!isKanbanStack.value) {
 
 <template>
   <div class="w-full">
+    <div v-if="!isKanbanStack" class="flex items-center justify-between mb-2">
+      <div class="flex items-center select-none">
+        <NcSwitch v-model:checked="isColorCodeEnabled" v-e="['c:field:select:color-code:toggle']" size="xsmall">
+          {{ $t('labels.colorCodeOptions') }}
+        </NcSwitch>
+      </div>
+
+      <NcButton v-e="['c:field:select:alphabetize']" type="text" size="small" @click.stop="alphabetizeOptions">
+        <template #icon>
+          <GeneralIcon icon="ncArrowUpDown" class="h-4 w-4 opacity-80" />
+        </template>
+        {{ $t('labels.alphabetize') }}
+      </NcButton>
+    </div>
+
     <div
       ref="optionsWrapperDomRef"
       class="nc-col-option-select-option"
@@ -514,6 +572,7 @@ if (!isKanbanStack.value) {
         <div v-if="kanbanStackOption" class="flex items-center nc-select-option">
           <div class="flex items-center w-full">
             <NcDropdown
+              v-if="isColorCodeEnabled"
               v-model:visible="colorMenus[kanbanStackOption.index!]"
               :auto-close="false"
               overlay-class-name="nc-select-option-color-picker"
@@ -614,7 +673,7 @@ if (!isKanbanStack.value) {
                   <component :is="iconMap.dragVertical" small class="handle" />
                 </div>
 
-                <NcDropdown v-model:visible="colorMenus[index]" :auto-close="false">
+                <NcDropdown v-if="isColorCodeEnabled" v-model:visible="colorMenus[index]" :auto-close="false">
                   <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
                     <div
                       class="h-6 w-6 rounded flex items-center"

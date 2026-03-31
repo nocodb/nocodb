@@ -24,12 +24,11 @@ const { createDocument } = useDocumentsStore()
 const viewsStore = useViewsStore()
 const { loadViews, onOpenViewCreateModal } = viewsStore
 const { activeView, isListViewEnabled } = storeToRefs(viewsStore)
+const { showUpgradeToUseListView } = viewsStore
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
-const { isEEFeatureBlocked, showUpgradeToUseTimelineView, showUpgradeToUseMapView } = useEeConfig()
+const { isEEFeatureBlocked, showEEFeatures, showUpgradeToUseTimelineView, showUpgradeToUseMapView } = useEeConfig()
 
 const { activeSidebarTab } = storeToRefs(useSidebarStore())
 
@@ -189,7 +188,7 @@ const hasDocumentCreateAccess = computed(() => {
               {{ $t('labels.createNew') }}
             </span>
           </NcMenuItemLabel>
-          <template v-if="isEeUI">
+          <template v-if="isEeUI && showEEFeatures">
             <NcTooltip
               :title="
                 !isWorkflowsTab
@@ -317,27 +316,32 @@ const hasDocumentCreateAccess = computed(() => {
                 <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.calendar') }}</div>
               </NcMenuItem>
-              <template v-if="isListViewEnabled">
-                <NcMenuItem data-testid="mini-sidebar-view-create-list" @click="onOpenModal({ type: ViewTypes.LIST })">
-                  <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
-                  <div>{{ $t('objects.viewType.list') }}</div>
-                </NcMenuItem>
-              </template>
               <NcMenuItem
-                v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.MAP_VIEW)"
+                v-if="isListViewEnabled"
+                data-testid="mini-sidebar-view-create-list"
+                @click="showUpgradeToUseListView({ successCallback: () => onOpenModal({ type: ViewTypes.LIST }) })"
+              >
+                <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
+                <div>{{ $t('objects.viewType.list') }}</div>
+                <NcBadgeBeta />
+              </NcMenuItem>
+              <NcMenuItem
+                v-if="isEeUI && showEEFeatures"
                 data-testid="mini-sidebar-view-create-map"
                 @click="showUpgradeToUseMapView({ successCallback: () => onOpenModal({ type: ViewTypes.MAP }) })"
               >
                 <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.map') }}</div>
+                <NcBadgeBeta />
               </NcMenuItem>
               <NcMenuItem
-                v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.TIMELINE)"
+                v-if="isEeUI && showEEFeatures"
                 data-testid="mini-sidebar-view-create-timeline"
                 @click="showUpgradeToUseTimelineView({ successCallback: () => onOpenModal({ type: ViewTypes.TIMELINE }) })"
               >
                 <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.timeline') }}</div>
+                <NcBadgeBeta />
               </NcMenuItem>
               <template v-if="isAiFeaturesEnabled">
                 <NcDivider />
@@ -349,7 +353,7 @@ const hasDocumentCreateAccess = computed(() => {
             </NcSubMenu>
           </NcTooltip>
 
-          <template v-if="isEeUI">
+          <template v-if="isEeUI && showEEFeatures">
             <NcTooltip
               :title="
                 !isDataTab

@@ -17,7 +17,7 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
-const { getPlanTitle } = useEeConfig()
+const { getPlanTitle, showEEFeatures } = useEeConfig()
 
 const {
   setAdditionalValidations,
@@ -139,6 +139,17 @@ provide(
 
     return getMetaByKey(selectedTable.value.base_id, selectedTable.value.id) || {}
   }),
+)
+
+// Eagerly load the related table meta so the filter column dropdown is populated.
+watch(
+  selectedTable,
+  async (table) => {
+    if (table?.base_id && table?.id) {
+      await getMeta(table.base_id, table.id)
+    }
+  },
+  { immediate: true },
 )
 
 onMounted(() => {
@@ -319,7 +330,7 @@ const handleScrollIntoView = () => {
         </div>
       </a-form-item>
     </div>
-    <div v-if="isEeUI" class="w-full flex flex-col gap-4">
+    <div v-if="isEeUI && showEEFeatures" class="w-full flex flex-col gap-4">
       <div class="flex flex-col gap-2">
         <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER">
           <template #default="{ click }">
@@ -356,7 +367,6 @@ const handleScrollIntoView = () => {
         <div v-if="limitRecToCond" class="overflow-auto nc-scrollbar-thin">
           <LazySmartsheetToolbarColumnFilter
             ref="filterRef"
-            v-model="vModel.filters"
             class="!pl-10 !p-0 max-w-620px"
             :auto-save="false"
             :show-loading="false"

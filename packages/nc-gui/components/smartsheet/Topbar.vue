@@ -26,7 +26,7 @@ const { isPanelExpanded: isChatPanelExpanded } = useChatPanel()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { isEEFeatureBlocked } = useEeConfig()
+const { showEEFeatures } = useEeConfig()
 
 const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
@@ -88,7 +88,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
 
         <NcButton
           v-if="
-            ((isEeUI && !isEEFeatureBlocked) || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
+            ((isEeUI && showEEFeatures) || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
             !isSharedBase &&
             !activeScriptId &&
             !activeDashboardId &&
@@ -130,7 +130,8 @@ const topbarBreadcrumbItemWidth = computed(() => {
             !activeWorkflowId &&
             openedViewsTab === 'view' &&
             !isMobileMode &&
-            isViewActionsEnabled
+            isViewActionsEnabled &&
+            showEEFeatures
           "
           v-e="['c:action-toggle']"
           type="secondary"

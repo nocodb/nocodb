@@ -10,6 +10,8 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
+const { appInfo } = useGlobal()
+
 const timezones = getTimeZones({ includeUtc: true }).sort((a, b) => a.name.localeCompare(b.name))
 const browserTzName = Intl.DateTimeFormat().resolvedOptions().timeZone
 const browserTz = timezones.find((tz) => isSameTimezone(tz.name, browserTzName))
@@ -35,7 +37,6 @@ vModel.value.meta = {
   ...(vModel.value.meta || {}),
 }
 
-const { isSystem } = useColumnCreateStoreOrThrow()
 const isDisplayTimezone = computed({
   get: () => !!vModel.value.meta?.isDisplayTimezone,
   set: (value) => {
@@ -65,7 +66,6 @@ const useSameTimezoneForAll = computed({
           v-model:value="vModel.meta.date_format"
           class="nc-date-select"
           dropdown-class-name="nc-dropdown-date-format"
-          :disabled="isSystem"
           show-search
         >
           <template #suffixIcon>
@@ -86,12 +86,7 @@ const useSameTimezoneForAll = computed({
         </a-select>
       </a-form-item>
       <a-form-item>
-        <a-select
-          v-model:value="vModel.meta.time_format"
-          class="nc-time-select"
-          dropdown-class-name="nc-dropdown-time-format"
-          :disabled="isSystem"
-        >
+        <a-select v-model:value="vModel.meta.time_format" class="nc-time-select" dropdown-class-name="nc-dropdown-time-format">
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
@@ -111,13 +106,13 @@ const useSameTimezoneForAll = computed({
       </a-form-item>
     </div>
     <a-form-item>
-      <a-radio-group v-if="vModel.meta" v-model:value="vModel.meta.is12hrFormat" class="nc-time-form-layout" :disabled="isSystem">
+      <a-radio-group v-if="vModel.meta" v-model:value="vModel.meta.is12hrFormat" class="nc-time-form-layout">
         <a-radio :value="true">12 Hrs</a-radio>
         <a-radio :value="false">24 Hrs</a-radio>
       </a-radio-group>
     </a-form-item>
 
-    <template v-if="isEeUI">
+    <template v-if="appInfo.ee">
       <a-form-item>
         <NcTooltip :disabled="true">
           <div class="flex items-center gap-1">
@@ -149,7 +144,6 @@ const useSameTimezoneForAll = computed({
           dropdown-class-name="nc-dropdown-timezone"
           placeholder="Use same timezone for all collaborator"
           class="nc-search-timezone"
-          :disabled="isSystem"
         >
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />

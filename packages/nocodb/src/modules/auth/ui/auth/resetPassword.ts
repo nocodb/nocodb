@@ -9,7 +9,7 @@ export default `<!DOCTYPE html>
     <script src="<%= ncPublicUrl %>/js/vue.2.6.14.min.js"></script>
 </head>
 <body>
-<div id="app">
+<div id="app" data-token="<%= token %>">
     <v-app>
         <v-container>
             <v-row class="justify-center">
@@ -68,7 +68,7 @@ export default `<!DOCTYPE html>
     data: {
       valid: null,
       validForm: false,
-      token: '<%= token %>',
+      token: document.getElementById('app').dataset.token,
       greeting: 'Password Reset',
       formdata: {
         password: '',

@@ -65,12 +65,10 @@ export class AppModule {
       )
       .forRoutes({ path: '*', method: RequestMethod.GET });
 
-    consumer
-      .apply(RawBodyMiddleware)
-      .forRoutes({
-        path: '/api/payment/webhook',
-        method: RequestMethod.POST,
-      });
+    consumer.apply(RawBodyMiddleware).forRoutes({
+      path: '/api/payment/webhook',
+      method: RequestMethod.POST,
+    });
 
     consumer.apply(JsonBodyMiddleware).forRoutes('*');
 

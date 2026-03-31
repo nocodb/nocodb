@@ -97,7 +97,7 @@ const workspaceStore = useWorkspace()
 const baseStore = useBase()
 const { baseId: activeBaseId } = storeToRefs(baseStore)
 
-const { blockCalendarRange, getPlanTitle } = useEeConfig()
+const { blockCalendarRange, getPlanTitle, showEEFeatures } = useEeConfig()
 
 const viewStore = useViewsStore()
 
@@ -1109,7 +1109,7 @@ watch(activeBaseId, () => {
                   </a-select-option>
                 </a-select>
               </div>
-              <PaymentUpgradeBadgeProvider v-if="isEeUI" :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
+              <PaymentUpgradeBadgeProvider v-if="isEeUI && showEEFeatures" :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
                 <template #default="{ click }">
                   <div class="w-full space-y-2">
                     <NcButton
@@ -1682,8 +1682,11 @@ watch(activeBaseId, () => {
           <div class="flex !text-nc-content-gray-subtle items-center gap-2">
             <GeneralIcon icon="plus" class="h-4 w-4" />
 
-            <span class="first-letter:capitalize">
+            <span class="first-letter:capitalize hidden sm:inline">
               {{ $t('labels.addDescription') }}
+            </span>
+            <span class="first-letter:capitalize sm:hidden">
+              {{ $t('labels.description') }}
             </span>
           </div>
         </NcButton>

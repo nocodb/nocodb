@@ -19,6 +19,8 @@ export const getOptions = (
       op.title = op.title.replace(/^'/, '').replace(/'$/, '')
     }
 
+    const isColorCodeEnabled = parseProp(column.meta)?.isColorCodeEnabled !== false
+
     let order = 1
 
     const limitOptionsById =
@@ -47,16 +49,16 @@ export const getOptions = (
           ...o,
           value: o.title,
           order: o.id && limitOptionsById[o.id] ? limitOptionsById[o.id]?.order : order++,
-          bgColor: getSelectTypeFieldOptionBgColor({ color: o.color, isDark }),
-          textColor: getSelectTypeFieldOptionTextColor({ color: o.color, isDark, getColor }),
+          bgColor: getSelectTypeFieldOptionBgColor({ color: o.color, isDark, getColor, isColorCodeEnabled }),
+          textColor: getSelectTypeFieldOptionTextColor({ color: o.color, isDark, getColor, isColorCodeEnabled }),
         }))
         .sort((a, b) => a.order - b.order)
     } else {
       return opts.map((o: any) => ({
         ...o,
         value: o.title,
-        bgColor: getSelectTypeFieldOptionBgColor({ color: o.color, isDark }),
-        textColor: getSelectTypeFieldOptionTextColor({ color: o.color, isDark, getColor }),
+        bgColor: getSelectTypeFieldOptionBgColor({ color: o.color, isDark, getColor, isColorCodeEnabled }),
+        textColor: getSelectTypeFieldOptionTextColor({ color: o.color, isDark, getColor, isColorCodeEnabled }),
       }))
     }
   }

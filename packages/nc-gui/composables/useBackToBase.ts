@@ -1,4 +1,4 @@
-export const useBackToBase = () => {
+export const useBackToBase = ({ useFallback = true }: { useFallback?: boolean } = {}) => {
   const router = useRouter()
   const route = router.currentRoute
 
@@ -7,22 +7,25 @@ export const useBackToBase = () => {
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
   const { isMobileMode } = useGlobal()
 
-  // hideMiniSidebar is true on full-screen flows (payment, checkout, pricing, upgrade)
   // — we don't want back-to-base intruding on those pages
-  const { hideMiniSidebar, isBaseSettingsFullPage } = storeToRefs(useSidebarStore())
+  const { isBaseSettingsFullPage } = storeToRefs(useSidebarStore())
 
   const isOnBasePage = computed(() => route.value.name?.toString().startsWith('index-typeOrId-baseId-') ?? false)
 
   const lastVisitedBase = computed(() => {
     const lastId = ncLastVisitedBase().get()
-    return lastId ? basesList.value?.find((b) => b.id === lastId) ?? basesList.value?.[0] : basesList.value?.[0]
+    if (useFallback) {
+      return lastId ? basesList.value?.find((b) => b.id === lastId) ?? basesList.value?.[0] : basesList.value?.[0]
+    }
+
+    return lastId ? basesList.value?.find((b) => b.id === lastId) : undefined
   })
 
   const shouldShow = computed(() => {
     // Show on base settings full-page mode (even though technically on a base page)
     if (isBaseSettingsFullPage.value) return !!lastVisitedBase.value
 
-    return !isOnBasePage.value && !hideMiniSidebar.value && !!lastVisitedBase.value
+    return !isOnBasePage.value && !!lastVisitedBase.value
   })
 
   const navigateToBase = () => {

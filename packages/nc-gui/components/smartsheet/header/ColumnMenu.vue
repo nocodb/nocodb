@@ -9,6 +9,7 @@ import {
   ViewTypes,
   columnTypeName,
   getFirstNonPersonalView,
+  isCreatedOrLastModifiedTimeCol,
   isCrossBaseLink,
   isLinksOrLTAR,
   isSupportedDisplayValueColumn,
@@ -25,6 +26,8 @@ const emit = defineEmits(['edit', 'addColumn', 'update:isOpen'])
 const virtual = toRef(props, 'virtual')
 
 const isOpen = useVModel(props, 'isOpen', emit)
+
+const { isMobileMode } = useGlobal()
 
 const column = toRef(props, 'column')
 provide(ColumnInj, column)
@@ -69,7 +72,7 @@ const { fieldsToGroupBy, groupByLimit, groupBy, localGroupBy } = useViewGroupByO
 
 const { isUIAllowed, isMetaReadOnly, isDataReadOnly } = useRoles()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
+const { showEEFeatures } = useEeConfig()
 
 const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
 
@@ -630,7 +633,7 @@ const onDeleteColumn = () => {
 <template>
   <NcMenu
     variant="small"
-    class="flex flex-col gap-1 border-nc-border-gray-medium nc-column-options !min-w-55"
+    class="flex flex-col gap-1 border-nc-border-gray-medium nc-column-options !min-w-55 nc-max-h-screen nc-scrollbar-thin"
     :class="{
       'min-w-[256px]': isExpandedForm,
     }"
@@ -661,7 +664,13 @@ const onDeleteColumn = () => {
       </template>
 
       <NcMenuItem
-        :disabled="column?.pk || isSystemColumn(column) || !isColumnEditAllowed || linksAssociated?.length"
+        v-if="!isMobileMode"
+        :disabled="
+          column?.pk ||
+          (isSystemColumn(column) && !isCreatedOrLastModifiedTimeCol(column)) ||
+          !isColumnEditAllowed ||
+          linksAssociated?.length
+        "
         :title="linksAssociated?.length ? 'Field is associated with a link column' : undefined"
         @click="onEditPress($event, false)"
       >
@@ -674,9 +683,9 @@ const onDeleteColumn = () => {
     </GeneralSourceRestrictionTooltip>
     <NcMenuItem
       v-if="
-        isFeatureEnabled(FEATURE_FLAG.LTAR_V2) &&
+        !isMobileMode &&
         isLinksOrLTAR(column) &&
-        (column.colOptions?.version !== 2 || column.uidt === UITypes.Links) &&
+        (column.uidt === UITypes.Links || column.colOptions?.version !== 2) &&
         isUIAllowed('fieldAlter') &&
         !isSqlView
       "
@@ -728,13 +737,13 @@ const onDeleteColumn = () => {
       title="Select a new field as display value"
       @click="changeTitleField"
     >
-      <div class="nc-column-edit nc-header-menu-item">
+      <div class="nc-column-change-display-value-field nc-header-menu-item">
         <GeneralIcon icon="star" class="opacity-80 !w-4.25 !h-4.25" />
         {{ $t('labels.changeDisplayValueField') }}
       </div>
     </NcMenuItem>
     <NcMenuItem
-      v-if="isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey"
+      v-if="!isMobileMode && isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey"
       title="Add field description"
       @click="onEditPress($event, true)"
     >
@@ -745,7 +754,7 @@ const onDeleteColumn = () => {
     </NcMenuItem>
 
     <NcTooltip
-      v-if="isEeUI && isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey"
+      v-if="isEeUI && isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey && showEEFeatures"
       :disabled="showEditRestrictedColumnTooltip(column) && !(column?.readonly && meta?.synced)"
       placement="right"
       :arrow="false"
@@ -797,7 +806,7 @@ const onDeleteColumn = () => {
     </NcTooltip>
 
     <NcMenuItem
-      v-if="canUseForLookupLinkField(column, meta?.source_id)"
+      v-if="!isMobileMode && canUseForLookupLinkField(column, meta?.source_id)"
       :disabled="isSqlView"
       @click="openLookupOrRollupMenuDialog(UITypes.Lookup)"
     >
@@ -816,7 +825,7 @@ const onDeleteColumn = () => {
       </div>
     </NcMenuItem>
     <NcMenuItem
-      v-if="canUseForRollupLinkField(column)"
+      v-if="!isMobileMode && canUseForRollupLinkField(column)"
       :disabled="isSqlView"
       @click="openLookupOrRollupMenuDialog(UITypes.Rollup)"
     >
@@ -898,7 +907,7 @@ const onDeleteColumn = () => {
 
       <NcDivider />
 
-      <NcTooltip :disabled="isFilterSupported && !isFilterLimitExceeded">
+      <NcTooltip v-if="!isMobileMode" :disabled="isFilterSupported && !isFilterLimitExceeded">
         <template #title>
           {{
             !isFilterSupported
@@ -947,7 +956,7 @@ const onDeleteColumn = () => {
           </div>
         </NcMenuItem>
       </NcTooltip>
-      <template v-if="!isSqlView">
+      <template v-if="!isSqlView && !isMobileMode">
         <NcDivider />
         <NcMenuItem @click="onInsertAfter">
           <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">

@@ -450,6 +450,9 @@ export default class Filter implements FilterType {
   static async delete(context: NcContext, id: string, ncMeta = Noco.ncMeta) {
     const filter = await this.get(context, id, ncMeta);
 
+    // Guard against deleting an already-removed filter
+    if (!filter) return;
+
     const deleteRecursively = async (filter: Filter) => {
       if (!filter || filter.id === filter.fk_parent_id) return;
       for (const f of (await filter?.getChildren(context, ncMeta)) || [])

@@ -118,7 +118,6 @@ const disableTooltipForNewSidebar = true
     .nc-rail-item-indicator {
       opacity: 1;
     }
-
   }
 
   // Plain active: no background, no indicator — text color preserved from slot content

@@ -28,14 +28,16 @@ export class QueueService {
     @Inject(forwardRef(() => JobsMap)) protected readonly jobsMap: JobsMap,
   ) {
     this.emitter.on(JobStatus.ACTIVE, (data: { job: Job }) => {
-      const job = this.queueMemory.find((job) => job.id === data.job.id);
+      const job = this.queueMemory.find((j) => j.id === data.job.id);
+      if (!job) return;
       job.status = JobStatus.ACTIVE;
       this.jobsEventService.onActive.apply(this.jobsEventService, [job as any]);
     });
     this.emitter.on(
       JobStatus.COMPLETED,
       (data: { job: Job; result: any; skipEvent?: boolean }) => {
-        const job = this.queueMemory.find((job) => job.id === data.job.id);
+        const job = this.queueMemory.find((j) => j.id === data.job.id);
+        if (!job) return;
         job.status = JobStatus.COMPLETED;
 
         if (!data.skipEvent) {
@@ -52,7 +54,8 @@ export class QueueService {
     this.emitter.on(
       JobStatus.FAILED,
       (data: { job: Job; error: Error; skipEvent?: boolean }) => {
-        const job = this.queueMemory.find((job) => job.id === data.job.id);
+        const job = this.queueMemory.find((j) => j.id === data.job.id);
+        if (!job) return;
         job.status = JobStatus.FAILED;
 
         if (!data.skipEvent) {

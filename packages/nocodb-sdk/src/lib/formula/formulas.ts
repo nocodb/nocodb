@@ -803,7 +803,7 @@ export const formulas: Record<string, FormulaMeta> = {
       }
 
       // if none of the above conditions are met, return the first return argument type
-      return argTypes[1];
+      return argTypes[1] ?? FormulaDataTypes.STRING;
     },
   },
   SWITCH: {
@@ -848,7 +848,7 @@ export const formulas: Record<string, FormulaMeta> = {
       }
 
       // if none of the above conditions are met, return the first return argument type
-      return argTypes[1];
+      return argTypes[1] ?? FormulaDataTypes.STRING;
     },
   },
   URL: {

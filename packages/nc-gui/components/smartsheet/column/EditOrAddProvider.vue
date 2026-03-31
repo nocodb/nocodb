@@ -23,7 +23,7 @@ const { column, preload, tableExplorerColumns, fromTableExplorer, isColumnValid,
 
 const { isSaving } = useProvideColumnCreateStore(meta, column, tableExplorerColumns, fromTableExplorer, isColumnValid)
 
-const { isWebhookCreateModalOpen, isAiButtonConfigModalOpen } = useColumnCreateStoreOrThrow()
+const { isWebhookCreateModalOpen, isAiButtonConfigModalOpen, triggerPostSaveOrUpdateCbk } = useColumnCreateStoreOrThrow()
 
 /**
  * Determines whether the root dropdown should remain open.
@@ -40,6 +40,7 @@ const shouldKeepModalOpen = (): boolean => {
 
 defineExpose({
   shouldKeepModalOpen,
+  triggerPostSaveOrUpdateCbk,
 })
 </script>
 

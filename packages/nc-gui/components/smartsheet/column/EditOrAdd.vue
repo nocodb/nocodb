@@ -12,6 +12,7 @@ import {
   ButtonActionsType,
   UITypes,
   UITypesName,
+  isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isSelfReferencingTableColumn,
   isSystemColumn,
@@ -119,6 +120,7 @@ const {
   blockUnique,
   blockColourField,
   showUpgradeToUseColourField,
+  showEEFeatures,
 } = useEeConfig()
 
 const { eventBus } = useSmartsheetStoreOrThrow()
@@ -128,8 +130,6 @@ const columnLabel = computed(() => props.columnLabel || t('objects.field'))
 const { $e } = useNuxtApp()
 
 const { appInfo } = useGlobal()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const workspaceStore = useWorkspace()
 
@@ -160,7 +160,13 @@ const showHoverEffectOnSelectedType = ref(true)
 const onMouseOverUniqueValuesInfoIcon = ref(false)
 
 const columnUidt = computed({
-  get: () => formState.value.uidt,
+  get: () => {
+    // Show legacy LTAR v1 columns as "Links" in the type dropdown
+    if (isEdit.value && formState.value.uidt === UITypes.LinkToAnotherRecord && formState.value.colOptions?.version !== 2) {
+      return UITypes.Links
+    }
+    return formState.value.uidt
+  },
   set: (value: UITypes) => {
     if (value === AIPrompt && showUpgradeToUseAiPromptField()) {
       return
@@ -213,14 +219,6 @@ const onlyNameUpdateOnEditColumns = [
 // close modal only when the type popup is close
 const isColumnTypeOpen = ref(false)
 
-const geoDataToggleCondition = (t: { name: UITypes }) => {
-  if (!appInfo.value.ee) return true
-
-  const isColEnabled = isFeatureEnabled(FEATURE_FLAG.GEODATA_COLUMN)
-
-  return isColEnabled || !t.name.includes(UITypes.GeoData)
-}
-
 const showDeprecated = ref(false)
 
 const isSystemField = (t: { name: UITypes }) =>
@@ -232,16 +230,17 @@ const uiFilters = (t: UiTypesType) => {
     return true
   }
   const systemFiledNotEdited = !isSystemField(t) || formState.value.uidt === t.name || !isEdit.value
-  const geoDataToggle = geoDataToggleCondition(t) && (!isEdit.value || !t.virtual || t.name === formState.value.uidt)
+  const isVirtualEditAllowed = !isEdit.value || !t.virtual || t.name === formState.value.uidt
   const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)
   const showDeprecatedField = !t.deprecated || showDeprecated.value
 
-  const showAiFields = [AIPrompt, AIButton].includes(t.name) ? isAiBetaFeaturesEnabled.value && !isEdit.value && isEeUI : true
-  const showColourField = t.name === UITypes.Colour ? isEeUI : true
+  const showAiFields = [AIPrompt, AIButton].includes(t.name)
+    ? isAiBetaFeaturesEnabled.value && !isEdit.value && isEeUI && showEEFeatures.value
+    : true
+  const showColourField = t.name === UITypes.Colour ? isEeUI && showEEFeatures.value : true
   const isAllowToAddInFormView = isForm.value ? !isFormViewHiddenCol(t.name as UITypes) : true
 
-  const showLTAR =
-    t.name === UITypes.LinkToAnotherRecord ? isFeatureEnabled(FEATURE_FLAG.LINK_TO_ANOTHER_RECORD) && !isEdit.value : true
+  const showLTAR = t.name === UITypes.LinkToAnotherRecord ? !isEdit.value : true
 
   let formulaColumnTypeValid = true
   if (column?.value?.uidt === UITypes.Formula) {
@@ -249,14 +248,14 @@ const uiFilters = (t: UiTypesType) => {
   }
 
   // UUID is only supported for PostgreSQL databases
-  const showUUID = t.name !== UITypes.UUID || (isPg(meta.value?.source_id) && isEeUI)
+  const showUUID = t.name !== UITypes.UUID || (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value)
 
   // AutoNumber is only supported for PostgreSQL databases
-  const showAutoNumber = t.name !== UITypes.AutoNumber || (isPg(meta.value?.source_id) && isEeUI)
+  const showAutoNumber = t.name !== UITypes.AutoNumber || (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value)
 
   return (
     systemFiledNotEdited &&
-    geoDataToggle &&
+    isVirtualEditAllowed &&
     !specificDBType &&
     showDeprecatedField &&
     isAllowToAddInFormView &&
@@ -499,7 +498,11 @@ onMounted(() => {
     if (formState.value.pk) {
       message.info(t('msg.info.editingPKnotSupported'))
       emit('cancel')
-    } else if (isSystemColumn(formState.value) && !isSelfReferencingTableColumn(formState.value)) {
+    } else if (
+      isSystemColumn(formState.value) &&
+      !isSelfReferencingTableColumn(formState.value) &&
+      !isCreatedOrLastModifiedTimeCol(formState.value)
+    ) {
       message.info(t('msg.info.editingSystemKeyNotSupported'))
       emit('cancel')
     }
@@ -1186,7 +1189,7 @@ const unique = computed({
               'nc-ai-input': isAiMode,
             }"
             :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
-            :disabled="isKanban || readOnly || !isFullUpdateAllowed || isSyncedField"
+            :disabled="isKanban || readOnly || !isFullUpdateAllowed || isSystem || isSyncedField"
             @change="debouncedOnPredictFieldType"
             @input="onAlter(8)"
           />
@@ -1277,14 +1280,14 @@ const unique = computed({
                       class="nc-field-type-icon w-4 h-4 !opacity-90 text-current"
                     />
                     <div
+                      class="flex items-center gap-1"
                       :class="{
-                        'flex-1': !searchBasisInfoMap[opt.name],
+                        'flex-1 min-w-0': !searchBasisInfoMap[opt.name],
                       }"
                     >
-                      {{ UITypesName[opt.name] }}
+                      <span class="truncate">{{ UITypesName[opt.name] }}</span>
                       <NcTooltip
                         v-if="
-                          isFeatureEnabled(FEATURE_FLAG.LTAR_V2) &&
                           isEdit &&
                           column &&
                           column.uidt === UITypes.LinkToAnotherRecord &&
@@ -1295,7 +1298,7 @@ const unique = computed({
                         :title="$t('labels.convertToNewLink')"
                       >
                         <span
-                          class="!text-xs !text-nc-content-brand-hover cursor-pointer hover:underline"
+                          class="!text-xs !text-nc-content-brand-hover cursor-pointer hover:underline flex-none"
                           @click.stop="showConvertLinkV2Modal = true"
                           >(Legacy)</span
                         >
@@ -1389,6 +1392,7 @@ const unique = computed({
           :key="`${formState.uidt}-${formState.id || 'new'}`"
           v-model:value="formState"
           :is-edit="isEdit"
+          @upgrade="showConvertLinkV2Modal = true"
         />
         <SmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" v-model:value="formState" />
         <SmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
@@ -1439,7 +1443,8 @@ const unique = computed({
                 isUniqueConstraintSupportedType(formState.uidt, formState.meta) &&
                 !isUUID(formState) &&
                 !isAutoNumber(formState) &&
-                isEeUI
+                isEeUI &&
+                showEEFeatures
               "
               class="flex"
             >

@@ -57,4 +57,8 @@ export default class Document implements DocumentType {
   public static async move(..._args) {
     return null;
   }
+
+  public static async countForBase(..._args): Promise<number> {
+    return 0;
+  }
 }

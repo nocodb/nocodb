@@ -217,3 +217,19 @@ export const getAttachmentIcon = (
 
   return 'ncFileTypeUnknown'
 }
+
+export const getFileTypeLabel = (fileName: string, mimeType?: string): string => {
+  if (isPdf(fileName, mimeType)) return 'PDF'
+  if (isExcel(fileName, mimeType)) return 'Excel'
+  if (isWord(fileName, mimeType)) return 'Word'
+  if (isPresentation(fileName, mimeType)) return 'Presentation'
+  if (isImage(fileName, mimeType)) return 'Image'
+  if (isVideo(fileName, mimeType)) return 'Video'
+  if (isAudio(fileName, mimeType)) return 'Audio'
+  if (isZip(fileName, mimeType)) return 'Archive'
+  if (mimeType === 'text/csv' || fileName.endsWith('.csv')) return 'CSV'
+  if (mimeType === 'application/json' || fileName.endsWith('.json')) return 'JSON'
+  if (mimeType === 'text/markdown' || fileName.endsWith('.md')) return 'Markdown'
+  if (mimeType === 'text/plain' || fileName.endsWith('.txt')) return 'Text'
+  return 'File'
+}

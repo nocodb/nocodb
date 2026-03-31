@@ -83,6 +83,9 @@ const itemStyle = computed(() => ({
     padding: 4px 10px;
     border-radius: 6px;
     white-space: nowrap;
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
     pointer-events: none;
     z-index: 60;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);

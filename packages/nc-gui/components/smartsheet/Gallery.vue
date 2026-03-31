@@ -13,7 +13,7 @@ const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook()
 const isPublic = inject(IsPublicInj, ref(false))
 const fields = inject(FieldsInj, ref([]))
 
-const { user } = useGlobal()
+const { appInfo, user } = useGlobal()
 const { isViewDataLoading, isActiveViewFieldHeaderVisible } = storeToRefs(useViewsStore())
 const { isSqlView, xWhere, isExternalSource, isSyncedTable, allFilters, validFiltersFromUrlParams, eventBus } =
   useSmartsheetStoreOrThrow()
@@ -447,7 +447,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
   <div
     ref="scrollContainer"
     data-testid="nc-gallery-wrapper"
-    class="flex flex-col w-full nc-gallery select-none relative nc-scrollbar-md bg-nc-bg-gray-extralight h-[calc(100svh-var(--toolbar-height)-var(--topbar-height))]"
+    class="flex flex-col w-full nc-gallery select-none relative nc-view-scrollbar-y bg-nc-bg-gray-extralight h-[calc(100svh-var(--toolbar-height)-var(--topbar-height))]"
   >
     <NcDropdown
       v-model:visible="contextMenu"
@@ -463,7 +463,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
               {{ $t('activity.expandRecord') }}
             </div>
           </NcMenuItem>
-          <NcMenuItem v-if="contextMenuTarget && contextMenuRowId && !isPublic && isEeUI" @click="showSendRecordModal = true">
+          <NcMenuItem v-if="contextMenuTarget && contextMenuRowId && !isPublic && appInfo.ee" @click="showSendRecordModal = true">
             <div class="flex items-center gap-2">
               <GeneralIcon icon="mail" class="flex" />
               {{ $t('activity.sendRecord') }}

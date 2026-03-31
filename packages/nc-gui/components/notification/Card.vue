@@ -23,7 +23,7 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
     :style="!isMobileMode ? 'width: min(80svw, 520px);' : ''"
     :class="{
       'max-h-[70vh] h-[620px]': !isMobileMode,
-      'h-[100svh] w-[100svw]': isMobileMode,
+      'nc-h-screen nc-w-screen': isMobileMode,
     }"
     class="!rounded-lg pt-4"
   >

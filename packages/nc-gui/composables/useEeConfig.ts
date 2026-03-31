@@ -88,9 +88,13 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockAiChat = computed(() => true)
 
+  const blockDocAi = computed(() => true)
+
   const blockButtonVisibility = computed(() => true)
 
   const blockColourField = computed(() => true)
+
+  const blockTeamHierarchy = computed(() => true)
 
   const blockTeamsManagement = computed(() => true)
 
@@ -106,6 +110,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   // UUID field is EE-only — always blocked in CE
   const blockUuidField = computed(() => true)
+
+  const blockListView = computed(() => true)
 
   const blockMapView = computed(() => true)
 
@@ -168,15 +174,29 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseTableAndFieldPermissions = (..._args: any[]) => {}
 
+  const blockDocumentPermissions = computed(() => true)
+
+  const showUpgradeToUseDocumentPermissions = (..._args: any[]) => {}
+
   const showUpgradeToUsePrivateBases = (..._args: any[]) => {}
 
   const showUpgradeToAddMoreAttachmentsInCell = (..._args: any[]) => {}
 
-  const blockAddNewDocumentPage = computed(() => true)
+  const blockDocsInlineComments = computed(() => true)
+
+  const blockDocsResolveComments = computed(() => true)
+
+  const blockDocsExportPdf = computed(() => true)
 
   const showDashboardPlanLimitExceededModal = (..._args: any[]) => {}
 
   const showDocumentPagePlanLimitExceededModal = (..._args: any[]) => {}
+
+  const showUpgradeToUseDocsInlineComments = (..._args: any[]) => {}
+
+  const showUpgradeToUseDocsResolveComments = (..._args: any[]) => {}
+
+  const showUpgradeToUseDocsExportPdf = (..._args: any[]) => {}
 
   const showScriptPlanLimitExceededModal = (..._args: any[]) => {}
 
@@ -190,9 +210,13 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseAiChat = (..._args: any[]) => {}
 
+  const showUpgradeToUseDocAi = (..._args: any[]) => {}
+
   const showUpgradeToUseButtonVisibility = (..._args: any[]) => {}
 
   const showUpgradeToUseColourField = (..._args: any[]) => {}
+
+  const showUpgradeToUseTeamHierarchy = (..._args: any[]) => {}
 
   const showUpgradeToUseTeams = (..._args: any[]) => {}
 
@@ -210,14 +234,26 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseRecordTemplates = (..._args: any[]) => {}
 
+  const blockFormScheduling = computed(() => true)
+
+  const showUpgradeToUseFormScheduling = (..._args: any[]) => {}
+
   const blockViewSections = computed(() => true)
 
   const showUpgradeToUseViewSections = (..._args: any[]) => {}
 
   const showSandboxPlanLimitExceededModal = (..._args: any[]) => {}
+  const showUpgradeToUseListView = (..._args: any[]) => {}
+
   const showUpgradeToUseMapView = (..._args: any[]) => {}
 
+  const blockDateDependency = computed(() => true)
+
+  const showUpgradeToUseDateDependency = (..._args: any[]) => {}
+
   const isEEFeatureBlocked = computed(() => true)
+
+  const showEEFeatures = computed(() => false)
 
   const blockWorkspaceMembers = computed(() => false)
 
@@ -279,14 +315,21 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseCellColoring,
     blockTableAndFieldPermissions,
     showUpgradeToUseTableAndFieldPermissions,
+    blockDocumentPermissions,
+    showUpgradeToUseDocumentPermissions,
     blockPrivateBases,
     showUpgradeToUsePrivateBases,
     showUserMayChargeAlert,
     maxAttachmentsAllowedInCell,
     showUpgradeToAddMoreAttachmentsInCell,
-    blockAddNewDocumentPage,
+    blockDocsInlineComments,
+    blockDocsResolveComments,
+    blockDocsExportPdf,
     showDashboardPlanLimitExceededModal,
     showDocumentPagePlanLimitExceededModal,
+    showUpgradeToUseDocsInlineComments,
+    showUpgradeToUseDocsResolveComments,
+    showUpgradeToUseDocsExportPdf,
     showScriptPlanLimitExceededModal,
     blockAddNewScript,
     blockAddNewDashboard,
@@ -301,10 +344,14 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseAiButtonField,
     blockAiChat,
     showUpgradeToUseAiChat,
+    blockDocAi,
+    showUpgradeToUseDocAi,
     blockButtonVisibility,
     showUpgradeToUseButtonVisibility,
     blockColourField,
     showUpgradeToUseColourField,
+    blockTeamHierarchy,
+    showUpgradeToUseTeamHierarchy,
     blockTeamsManagement,
     showUpgradeToUseTeams,
     blockAddNewTeamToWs,
@@ -323,11 +370,18 @@ export const useEeConfig = createSharedComposable(() => {
     showSandboxPlanLimitExceededModal,
     blockRecordTemplates,
     showUpgradeToUseRecordTemplates,
+    blockFormScheduling,
+    showUpgradeToUseFormScheduling,
     blockViewSections,
     showUpgradeToUseViewSections,
+    blockListView,
+    showUpgradeToUseListView,
     blockMapView,
     showUpgradeToUseMapView,
+    blockDateDependency,
+    showUpgradeToUseDateDependency,
     isEEFeatureBlocked,
+    showEEFeatures,
     blockWorkspaceMembers,
     showUpgradeToManageWorkspaceMembers,
     showUpgradeToUseSSO,

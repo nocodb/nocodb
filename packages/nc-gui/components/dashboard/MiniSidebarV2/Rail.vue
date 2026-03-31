@@ -15,11 +15,11 @@ const route = router.currentRoute
 
 const { navigateToProject, isMobileMode } = useGlobal()
 
-const { $e } = useNuxtApp()
+const { $e: _$e } = useNuxtApp()
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspaceId } = storeToRefs(workspaceStore)
+const { activeWorkspaceId, activeWorkspace } = storeToRefs(workspaceStore)
 
 const basesStore = useBases()
 
@@ -37,9 +37,15 @@ const { unreadCount } = toRefs(notificationStore)
 
 const isNotificationOpen = ref(false)
 
-const { isPanelExpanded: isChatPanelExpanded, hasWorkspaceContext: hasChatWorkspaceContext, toggleChatPanel } = useChatPanel()
+const {
+  isPanelExpanded: isChatPanelExpanded,
+  isFullScreen: isChatFullScreen,
+  hasWorkspaceContext: hasChatWorkspaceContext,
+  hasBaseContext: hasChatBaseContext,
+  toggleChatPanel,
+} = useChatPanel()
 
-const { blockAiChat } = useEeConfig()
+const { isEEFeatureBlocked, showEEFeatures } = useEeConfig()
 
 const handleChatToggle = () => {
   toggleChatPanel()
@@ -48,6 +54,14 @@ const handleChatToggle = () => {
 const isBaseOpen = computed(() => {
   return route.value.name?.toString().startsWith('index-typeOrId-baseId-')
 })
+
+watch(
+  isBaseOpen,
+  (val) => {
+    if (val && ncBackRoute().get() !== '/') ncBackRoute().set('')
+  },
+  { immediate: true },
+)
 
 const isBaseListModalOpen = ref(false)
 
@@ -76,6 +90,8 @@ const getBasePath = () => {
 }
 
 const onTabClick = async (tabKey: string) => {
+  if (isChatFullScreen.value) isChatFullScreen.value = false
+
   if (tabKey === 'settings') {
     activeSidebarTab.value = 'settings'
     // If a base is open, navigate to base settings; otherwise ws-level settings
@@ -83,7 +99,7 @@ const onTabClick = async (tabKey: string) => {
       navigateTo(`${getBasePath()}/settings`)
     } else {
       const wsId = route.value.params.typeOrId || activeWorkspaceId.value
-      navigateTo(`/${wsId}/settings/ws-members`)
+      navigateTo(`/${wsId}/members`)
     }
     return
   }
@@ -132,7 +148,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 // Cmd/Ctrl + Shift + A — toggle AI chat
 useEventListener(document, 'keydown', (e: KeyboardEvent) => {
-  if (!isEeUI || blockAiChat.value) return
+  if (!isEeUI || isEEFeatureBlocked.value) return
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (
     cmdOrCtrl &&
@@ -158,17 +174,8 @@ const mainItems = computed<NavItem[]>(() => [
       onTabClick('data')
     },
   },
-  ...(isEeUI && !isMobileMode.value
+  ...(isEeUI && !isMobileMode.value && showEEFeatures.value
     ? [
-        {
-          key: 'docs',
-          icon: 'ncFileText',
-          label: 'Docs',
-          disabled: !hasAvailableBases.value,
-          onClick: () => {
-            onTabClick('docs')
-          },
-        },
         {
           key: 'workflows',
           icon: 'ncAutomation',
@@ -184,29 +191,56 @@ const mainItems = computed<NavItem[]>(() => [
         },
       ]
     : []),
+  ...(isEeUI && showEEFeatures.value
+    ? [
+        {
+          key: 'docs',
+          icon: 'ncFileText',
+          label: 'Docs',
+          disabled: !hasAvailableBases.value,
+          onClick: () => {
+            onTabClick('docs')
+          },
+        },
+      ]
+    : []),
 ])
 </script>
 
 <template>
   <nav class="nc-rail" data-testid="nc-mini-sidebar-v2-rail">
-    <!-- Logo -->
-    <div class="nc-rail-logo" title="Home" data-testid="nc-mini-sidebar-v2-logo" @click="isBaseListModalOpen = true">
-      <GeneralProjectIcon
-        class="!h-7 !w-7"
-        :color="parseProp(resolvedProject?.meta).iconColor"
-        :type="resolvedProject?.type"
-        :managed-app="
-          resolvedProject
-            ? {
-                managed_app_master: resolvedProject?.managed_app_master,
-                managed_app_id: resolvedProject?.managed_app_id,
-              }
-            : undefined
-        "
-      />
+    <div class="flex-none h-[var(--topbar-height)] w-full relative flex items-center justify-center">
+      <!-- Logo — hover shows back arrow, click navigates to workspace -->
+      <NcTooltip placement="right" :arrow="false">
+        <template #title>{{ $t('labels.backToWorkspace') }}: {{ activeWorkspace?.title }}</template>
+        <div
+          class="nc-rail-logo nc-rail-logo-hover"
+          data-testid="nc-mini-sidebar-v2-logo"
+          :data-workspace-title="activeWorkspace?.title"
+          @click="navigateTo(`/${activeWorkspaceId}`)"
+        >
+          <GeneralProjectIcon
+            class="!h-7 !w-7 nc-logo-icon"
+            :color="parseProp(resolvedProject?.meta).iconColor"
+            :type="resolvedProject?.type"
+            :managed-app="
+              resolvedProject
+                ? {
+                    managed_app_master: resolvedProject?.managed_app_master,
+                    managed_app_id: resolvedProject?.managed_app_id,
+                  }
+                : undefined
+            "
+          />
+          <div class="nc-back-icon">
+            <GeneralIcon icon="ncArrowLeft" class="!h-4.5 !w-4.5 text-nc-content-gray" />
+          </div>
+        </div>
+      </NcTooltip>
+      <div class="absolute bottom-0 left-0 right-0 flex justify-center">
+        <NcDivider class="!w-8 !min-w-8 !my-0 !border-nc-border-gray-medium" />
+      </div>
     </div>
-
-    <NcDivider class="!w-8 !min-w-8 mt-1.5 mb-1 !border-nc-border-gray-medium" />
 
     <!-- Main nav items -->
     <DashboardMiniSidebarV2RailItem
@@ -215,7 +249,7 @@ const mainItems = computed<NavItem[]>(() => [
       :icon="item.icon"
       :label="item.label"
       :panel-key="item.key"
-      :active="activeSidebarTab === item.key"
+      :active="activeSidebarTab === item.key && !isChatFullScreen"
       :disabled="item.disabled"
       :disable-tooltip="true"
       @click="item.onClick?.()"
@@ -223,14 +257,14 @@ const mainItems = computed<NavItem[]>(() => [
 
     <!-- AI Chat -->
     <DashboardMiniSidebarV2RailItem
-      v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext && !isMobileMode"
+      v-if="isEeUI && !isEEFeatureBlocked && hasChatWorkspaceContext && hasChatBaseContext && !isMobileMode"
       v-e="['c:chat:toggle']"
       label="Chat"
       panel-key="chat"
       data-testid="nc-sidebar-chat-btn"
       :active="isChatPanelExpanded"
       :disable-tooltip="true"
-      plain-active
+      :plain-active="!isChatFullScreen"
       @click="handleChatToggle"
     >
       <template #icon>
@@ -238,26 +272,30 @@ const mainItems = computed<NavItem[]>(() => [
       </template>
     </DashboardMiniSidebarV2RailItem>
 
+    <!-- Settings -->
+    <DashboardMiniSidebarV2RailItem
+      icon="ncSettings"
+      label="Settings"
+      panel-key="settings"
+      :active="activeSidebarTab === 'settings' && !isChatFullScreen"
+      :disable-tooltip="true"
+      @click="onTabClick('settings')"
+    />
+
     <!-- Bottom group -->
     <div class="nc-rail-bottom-group">
-      <!-- Settings -->
-      <DashboardMiniSidebarV2RailItem
-        icon="ncSettings"
-        label="Settings"
-        panel-key="settings"
-        :active="activeSidebarTab === 'settings'"
-        :disable-tooltip="true"
-        @click="onTabClick('settings')"
-      />
+      <!-- Help -->
+      <DashboardMiniSidebarHelp>
+        <DashboardMiniSidebarV2RailItem icon="ncHelp" label="Help" panel-key="help" is-dropdown />
+      </DashboardMiniSidebarHelp>
     </div>
 
-    <NcDivider class="!w-8 !min-w-8 !max-w-8 pt-1.5 pb-1 !border-nc-border-gray-medium" />
+    <NcDivider class="!w-8 !min-w-8 !max-w-8 !my-0 !border-nc-border-gray-medium" />
 
     <DashboardMiniSidebarCreateNewActionMenu v-if="!isMobileMode" />
 
     <!-- Activity / Notifications -->
     <NcDropdown
-      v-if="!isMobileMode"
       v-model:visible="isNotificationOpen"
       placement="right"
       overlay-class-name="!shadow-none"
@@ -298,15 +336,11 @@ const mainItems = computed<NavItem[]>(() => [
 
 <style lang="scss" scoped>
 .nc-rail {
-  @apply flex flex-col gap-1.5 items-center h-full w-full pt-1.5;
+  @apply flex flex-col gap-1.5 items-center h-full w-full;
 }
 
 .nc-rail-logo {
-  @apply flex items-center justify-center cursor-pointer pt-1 opacity-90 hover:opacity-100 transform transition-all duration-150;
-
-  &:hover {
-    scale: 1.1;
-  }
+  @apply flex items-center justify-center cursor-pointer opacity-90 hover:opacity-100 transition-all duration-150 p-1.5 rounded-lg;
 }
 
 .nc-rail-bottom-group {
@@ -330,6 +364,41 @@ const mainItems = computed<NavItem[]>(() => [
 
     :root[theme='dark'] & {
       border-color: #161616;
+    }
+  }
+}
+
+.nc-rail-logo-hover {
+  @apply relative;
+  // Fixed size so layout never shifts
+  width: 40px;
+  height: 40px;
+
+  .nc-logo-icon,
+  .nc-back-icon {
+    @apply absolute inset-0 m-auto;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .nc-logo-icon {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .nc-back-icon {
+    @apply flex items-center justify-center;
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  &:hover {
+    .nc-logo-icon {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    .nc-back-icon {
+      opacity: 1;
+      transform: scale(1);
     }
   }
 }

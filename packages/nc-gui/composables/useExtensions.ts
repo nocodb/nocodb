@@ -70,11 +70,13 @@ export const useExtensions = createSharedComposable(() => {
 
   const { updateStatLimit } = useEeConfig()
 
+  const { isSharedBase } = storeToRefs(useWorkspace())
+
   const eventBus = useEventBus<ExtensionsEvents>(Symbol('useExtensions'))
 
   const extensionAccess = computed(() => {
     return {
-      list: isUIAllowed('extensionList'),
+      list: isUIAllowed('extensionList') && !isSharedBase.value,
       create: isUIAllowed('extensionCreate'),
       delete: isUIAllowed('extensionDelete'),
       update: isUIAllowed('extensionUpdate'),

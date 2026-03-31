@@ -92,7 +92,7 @@ export class SharedBasesService {
       NcError.baseNotFound(param.baseId);
     }
 
-    if (roles === 'editor' && process.env.NC_CLOUD === 'true') {
+    if (roles === 'editor') {
       NcError.badRequest('Only viewer role is supported');
     }
 
@@ -227,8 +227,7 @@ export class SharedBasesService {
       roles: base.roles,
       fk_custom_url_id: base.fk_custom_url_id,
     };
-    if (data.uuid)
-      data.url = `${param.siteUrl}/base/${data.uuid}`;
+    if (data.uuid) data.url = `${param.siteUrl}/base/${data.uuid}`;
 
     return data;
   }

@@ -43,7 +43,15 @@ onBeforeMount(async () => {
       router.replace('/')
       return
     }
-    message.error(await extractSdkResponseErrorMsg(e))
+
+    const error = await extractSdkResponseErrorMsgv2(e)
+
+    message.error(error.message)
+
+    if (error.error === NcErrorType.ERR_BASE_NOT_FOUND) {
+      navigateTo({ name: 'index-typeOrId', params: { typeOrId: 'nc' } })
+      return
+    }
   }
 
   // if (route.name.toString().includes('baseType-baseId-index-index') && isUIAllowed('teamAndAuth')) {

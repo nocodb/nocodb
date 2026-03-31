@@ -18,11 +18,21 @@ const props = defineProps<{
   isEdit: boolean
 }>()
 
-const emit = defineEmits(['update:value'])
+const emit = defineEmits(['update:value', 'upgrade'])
 
 const vModel = useVModel(props, 'value', emit)
 
 const isEdit = toRef(props, 'isEdit')
+
+const isUpgradeable = computed(() => {
+  if (!isEdit.value) return false
+  const col = vModel.value
+  const colOpts = col?.colOptions as LinkToAnotherRecordType | undefined
+  // All Links columns (deprecated) can be upgraded — even v2 (splits into Rollup + LTAR)
+  if (col?.uidt === UITypes.Links) return true
+  // LTAR v1 can be upgraded; LTAR v2 is already fully upgraded
+  return col?.uidt === UITypes.LinkToAnotherRecord && colOpts?.version !== LinksVersion.V2
+})
 
 const meta = inject(MetaInj, ref())
 
@@ -55,7 +65,7 @@ const { viewsByTable } = storeToRefs(viewsStore)
 
 const { t } = useI18n()
 
-const { getPlanTitle } = useEeConfig()
+const { getPlanTitle, showEEFeatures } = useEeConfig()
 
 const { getMeta, getMetaByKey } = useMetas()
 
@@ -227,16 +237,21 @@ const refViews = computed(() => {
 
 const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.value.type !== RelationTypes.ONE_TO_ONE)
 
-const isLtarV2Enabled = computed(() => isFeatureEnabled(FEATURE_FLAG.LTAR_V2))
-
-// Set version based on feature flag and uidt
-// Links (V1 UI) always sends version=1; LinkToAnotherRecord (V2 UI) sends version=2
+// Set version based on relation type and uidt
+// hm/bt are V1-only relation types; om/mo are V2 relation types
+// For mm/oo, version follows the uidt (LinkToAnotherRecord → V2, Links → V1)
 watch(
-  [() => vModel.value.type, () => vModel.value.uidt, isLtarV2Enabled],
+  [() => vModel.value.type, () => vModel.value.uidt],
   () => {
     if (isEdit.value) return
 
-    if (isLtarV2Enabled.value && vModel.value.uidt === UITypes.LinkToAnotherRecord) {
+    const type = vModel.value.type
+
+    if (type === RelationTypes.HAS_MANY || type === RelationTypes.BELONGS_TO) {
+      vModel.value.version = LinksVersion.V1
+    } else if (type === RelationTypes.ONE_TO_MANY || type === RelationTypes.MANY_TO_ONE) {
+      vModel.value.version = LinksVersion.V2
+    } else if (vModel.value.uidt === UITypes.LinkToAnotherRecord) {
       vModel.value.version = LinksVersion.V2
     } else if (vModel.value.uidt === UITypes.Links) {
       vModel.value.version = LinksVersion.V1
@@ -342,7 +357,13 @@ const isLinkedTablePrivate = computed(() => {
 })
 
 const linkType = computed({
-  get: () => (isEdit.value ? vModel.value?.colOptions?.type : vModel.value?.type) ?? null,
+  get: () => {
+    const type = (isEdit.value ? vModel.value?.colOptions?.type : vModel.value?.type) ?? null
+    // Remap legacy relation types to V2 radio values (om/mo)
+    if (type === RelationTypes.BELONGS_TO) return RelationTypes.MANY_TO_ONE
+    if (type === RelationTypes.HAS_MANY) return RelationTypes.ONE_TO_MANY
+    return type
+  },
   set: (value) => {
     if (!isEdit.value && value) {
       vModel.value.type = value
@@ -471,9 +492,11 @@ const handleScrollIntoView = () => {
 <template>
   <div class="w-full flex flex-col gap-4">
     <div class="flex flex-col gap-4">
-      <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type">
+      <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type !mb-0">
         <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit" class="w-full">
-          <template v-if="vModel.uidt === UITypes.LinkToAnotherRecord && isLtarV2Enabled">
+          <template
+            v-if="vModel.uidt === UITypes.LinkToAnotherRecord || isUpgradeable || (vModel.colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2"
+          >
             <a-row :gutter="[8, 8]">
               <a-col :span="12">
                 <a-radio value="mm" data-testid="Many to Many">
@@ -539,6 +562,28 @@ const handleScrollIntoView = () => {
           </template>
         </a-radio-group>
       </a-form-item>
+    </div>
+    <div
+      v-if="isUpgradeable"
+      class="flex items-center justify-between bg-orange-50 rounded-lg px-3 py-2 -mt-2"
+      data-testid="nc-ltar-upgrade-banner"
+    >
+      <div class="flex items-center gap-2">
+        <GeneralIcon icon="alertTriangle" class="flex-none h-4 w-4 text-orange-500" />
+        <span class="text-sm text-nc-content-gray">
+          {{ $t('msg.info.upgradeLinkFieldAvailable') }}
+          <a
+            href="https://nocodb.com/docs/product-docs/fields/field-types/links-based/link-to-another-record#upgrade-from-links-v1"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-nc-content-brand underline ml-1"
+            >{{ $t('msg.learnMore') }}</a
+          >
+        </span>
+      </div>
+      <NcButton size="xs" type="primary" @click="emit('upgrade')">
+        {{ $t('general.upgrade') }}
+      </NcButton>
     </div>
     <div v-if="isFeatureEnabled(FEATURE_FLAG.CUSTOM_LINK) && isEeUI">
       <a-switch
@@ -773,7 +818,7 @@ const handleScrollIntoView = () => {
       </a-form-item>
     </div>
 
-    <template v-if="isEeUI">
+    <template v-if="isEeUI && showEEFeatures">
       <div class="flex flex-col gap-2">
         <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER">
           <template #default="{ click }">
@@ -830,7 +875,6 @@ const handleScrollIntoView = () => {
         <div v-if="limitRecToCond && !isLinkedTablePrivate" class="overflow-auto nc-scrollbar-thin">
           <LazySmartsheetToolbarColumnFilter
             ref="filterRef"
-            v-model="vModel.filters"
             class="!pl-8 !p-0 max-w-620px"
             :auto-save="false"
             :show-loading="false"

@@ -75,7 +75,8 @@ export function useColumnFilteredOrSorted() {
       'toolbarChipBgClass': 'bg-nc-bg-green-dark group-hover:bg-nc-green-200',
       'toolbarTextClass': 'text-nc-green-700',
       'headerBgColor': '#27D66510',
-      'headerBgClass': "relative !bg-[#ffffff] after:(content-[''] absolute block inset-0 !bg-[#27D66510] pointer-events-none)",
+      'headerBgClass':
+        "relative !bg-[var(--color-base-white)] after:(content-[''] absolute block inset-0 !bg-[#27D66510] pointer-events-none)",
       'canvas': {
         'cellBgColor': themeV4Colors.green['50'],
         'cellBgColor.hovered': themeV4Colors.green['100'],
@@ -98,7 +99,8 @@ export function useColumnFilteredOrSorted() {
       'toolbarChipBgClass': 'bg-nc-bg-orange-dark group-hover:bg-nc-orange-200',
       'toolbarTextClass': 'text-nc-orange-700',
       'headerBgColor': '#FA823110',
-      'headerBgClass': "relative !bg-[#ffffff] after:(content-[''] absolute block inset-0 !bg-[#FA823110] pointer-events-none)",
+      'headerBgClass':
+        "relative !bg-[var(--color-base-white)] after:(content-[''] absolute block inset-0 !bg-[#FA823110] pointer-events-none)",
       'canvas': {
         'cellBgColor': themeV4Colors.orange['50'],
         'cellBgColor.hovered': themeV4Colors.orange['100'],

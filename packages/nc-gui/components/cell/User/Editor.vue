@@ -77,13 +77,13 @@ const searchVal = ref<string | null>()
 
 const { isUIAllowed } = useRoles()
 
-const { showUpgradeToUseCurrentUserFilter } = useEeConfig()
+const { showEEFeatures, showUpgradeToUseCurrentUserFilter } = useEeConfig()
 
 const isFormListView = computed(() => !isEditColumn.value && isForm.value && parseProp(column.value.meta)?.isList)
 
 const options = computed(() => {
   const currentUserField: any[] = []
-  if (isEeUI && isInFilter.value) {
+  if (isEeUI && isInFilter.value && showEEFeatures.value) {
     currentUserField.push({
       id: CURRENT_USER_TOKEN,
       display_name: t('title.currentUser'),

@@ -27,6 +27,9 @@ export default async function (force = false, ncMeta = Noco.ncMeta) {
         .then((c) => c.count);
       const impacted = await ncMeta
         .knex(MetaTable.USERS)
+        .where(function () {
+          this.where('is_deleted', false).orWhereNull('is_deleted');
+        })
         .count('id as count')
         .first()
         .then((c) => c.count);

@@ -124,6 +124,8 @@ const isRequiredGroupingFieldColumn = computed(() => {
   return !!groupingFieldColumn.value?.rqd
 })
 
+const isColorCodeEnabled = computed(() => parseProp(groupingFieldColumn.value?.meta)?.isColorCodeEnabled !== false)
+
 const {
   isRowColouringEnabled,
   getCellColorStyle: _getCellColorStyle,
@@ -353,6 +355,13 @@ const contextMenu = computed({
 })
 
 const contextMenuTarget = ref<RowType | null>(null)
+
+const showSendRecordModal = ref(false)
+
+const contextMenuRowId = computed(() => {
+  if (!contextMenuTarget.value) return null
+  return extractPkFromRow(contextMenuTarget.value.row, meta.value?.columns)
+})
 
 const showContextMenu = (e: MouseEvent, target?: RowType) => {
   e.preventDefault()
@@ -1288,7 +1297,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
   >
     <div
       ref="kanbanContainerRef"
-      class="nc-kanban-container flex p-3 overflow-y-hidden w-full nc-scrollbar-x-lg min-h-[calc(100%_-_0.4rem)] max-h-[calc(100%_-_0.4rem)]"
+      class="nc-kanban-container flex p-3 overflow-y-hidden w-full nc-view-scrollbar-x min-h-[calc(100%_-_0.4rem)] max-h-[calc(100%_-_0.4rem)]"
     >
       <div v-if="isViewDataLoading" class="flex flex-row min-h-full gap-x-2">
         <a-skeleton-input v-for="index of Array(20)" :key="index" class="!min-w-80 !min-h-full !rounded-xl overflow-hidden" />
@@ -1400,7 +1409,14 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                             <a-tag
                               v-else
                               class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none !mt-0.5"
-                              :color="getSelectTypeFieldOptionBgColor({ color: stack.color || '#ccc', isDark })"
+                              :color="
+                                getSelectTypeFieldOptionBgColor({
+                                  color: stack.color || '#ccc',
+                                  isDark,
+                                  getColor,
+                                  isColorCodeEnabled,
+                                })
+                              "
                               @dblclick="
                                 () => {
                                   if (stack.title !== null && hasEditPermission && !isPublic && !isLocked) {
@@ -1415,6 +1431,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                     color: stack.color || '#ccc',
                                     isDark,
                                     getColor,
+                                    isColorCodeEnabled,
                                   }),
                                 }"
                                 class="text-sm font-semibold"
@@ -1959,7 +1976,14 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                         <div class="flex-1 flex max-w-[115px]">
                           <a-tag
                             class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none"
-                            :color="getSelectTypeFieldOptionBgColor({ color: stack.color || '#ccc', isDark })"
+                            :color="
+                              getSelectTypeFieldOptionBgColor({
+                                color: stack.color || '#ccc',
+                                isDark,
+                                getColor,
+                                isColorCodeEnabled,
+                              })
+                            "
                           >
                             <span
                               :style="{
@@ -1967,6 +1991,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                   color: stack.color || '#ccc',
                                   isDark,
                                   getColor,
+                                  isColorCodeEnabled,
                                 }),
                               }"
                               class="text-sm font-semibold"
@@ -2116,6 +2141,15 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                 {{ $t('activity.expandRecord') }}
               </div>
             </NcMenuItem>
+            <NcMenuItem
+              v-if="contextMenuTarget && contextMenuRowId && !isPublic && appInfo.ee"
+              @click="showSendRecordModal = true"
+            >
+              <div class="flex items-center gap-2 nc-kanban-context-menu-item">
+                <GeneralIcon icon="mail" class="flex" />
+                {{ $t('activity.sendRecord') }}
+              </div>
+            </NcMenuItem>
             <NcDivider />
             <PermissionsTooltip
               v-if="contextMenuTarget"
@@ -2184,6 +2218,8 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
       </div>
     </template>
   </GeneralDeleteModal>
+
+  <DlgSendRecordEmail v-model="showSendRecordModal" :meta="meta" :view="view" :row-id="contextMenuRowId" />
 </template>
 
 <style lang="scss" scoped>

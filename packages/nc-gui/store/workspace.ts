@@ -32,7 +32,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const workspaces = ref<Map<string, any>>(new Map())
   const workspacesList = computed<any[]>(() => Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at))
 
-  const isWorkspaceSettingsPageOpened = computed(() => route.value.name === 'index-typeOrId-settings-page')
+  const isWorkspaceSettingsPageOpened = computed(() => wsSettingsRouteNames.has(route.value.name as string))
 
   const isIntegrationsPageOpened = computed(
     () =>
@@ -46,12 +46,16 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isFeedPageOpened = computed(() => route.value.name === 'index-typeOrId-feed')
 
+  const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
+
   const isWorkspaceLoading = ref(true)
   const isWorkspacesLoading = ref(false)
   const isCollaboratorsLoading = ref(true)
   const isInvitingCollaborators = ref(false)
   const workspaceUserCount = ref<number | undefined>(undefined)
   const workspaceOwnerCount = ref<number | undefined>(undefined)
+
+  const ssoLoginRequiredDlg = ref(false)
 
   const upgradeWsDlg = ref(false)
   const upgradeWsJobId = ref<string | null>(null)
@@ -286,7 +290,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const navigateToWorkspaceSettings = async (_?: string, cmdOrCtrl?: boolean) => {
     const workspaceId = activeWorkspaceId.value
-    const path = `/${workspaceId}/settings/ws-settings`
+    const path = `/${workspaceId}/more`
     if (cmdOrCtrl) {
       await navigateTo(path, {
         open: navigateToBlankTargetOpenOption,
@@ -333,13 +337,15 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     return Infinity
   }
 
+  const toggleSsoLoginRequiredDlg = (_show = !ssoLoginRequiredDlg.value) => {
+    ssoLoginRequiredDlg.value = _show
+  }
+
   /**
    * Teams section start here
    */
 
   const isTeamsEnabled = computed(() => false)
-
-  const isTeamsHierarchyEnabled = computed(() => false)
 
   const teams = ref([])
 
@@ -358,6 +364,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const loadTeams = async (..._args: any[]) => {}
 
   const getTeamById = async (..._args: any[]) => {}
+
+  const getTeamBreadcrumb = (_teamId: string) => {
+    return [] as any[]
+  }
 
   const addTeamMembers = async (..._args: any[]) => {}
 
@@ -421,6 +431,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     setLoadingState,
     navigateToWorkspaceSettings,
     lastPopulatedWorkspaceId,
+    isSharedBase,
     isWorkspaceSettingsPageOpened,
     workspaceUserCount,
     workspaceOwnerCount,
@@ -433,6 +444,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isFeedPageOpened,
     deletingWorkspace,
     isWorkspacesLoading,
+    ssoLoginRequiredDlg,
+    toggleSsoLoginRequiredDlg,
     upgradeWsDlg,
     upgradeWsJobId,
     removingCollaboratorMap,
@@ -448,10 +461,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     updateTeam,
     loadTeams,
     getTeamById,
+    getTeamBreadcrumb,
     addTeamMembers,
     removeTeamMembers,
     updateTeamMembers,
-    isTeamsHierarchyEnabled,
 
     // Workspace Teams
     isLoadingWorkspaceTeams,

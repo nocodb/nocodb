@@ -119,7 +119,7 @@ const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook()
 
 const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
 
-const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
+const { appInfo, isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
 
 const { isPkAvail, isSqlView, eventBus, allFilters, sorts, isExternalSource, isViewOperationsAllowed } =
   useSmartsheetStoreOrThrow()
@@ -2975,7 +2975,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
           <NcMenu class="!rounded !py-0" variant="small" @click="contextMenu = false">
             <template v-if="!vSelectedAllRecords">
               <NcMenuItem
-                v-if="isEeUI && !contextMenuClosing && !contextMenuTarget && !isDataReadOnly && selectedRows.length"
+                v-if="appInfo.ee && !contextMenuClosing && !contextMenuTarget && !isDataReadOnly && selectedRows.length"
                 @click="emits('bulkUpdateDlg')"
               >
                 <div v-e="['a:row:update-bulk']" class="flex gap-2 items-center">
@@ -3147,7 +3147,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                 </div>
               </NcMenuItem>
               <NcMenuItem
-                v-if="contextMenuRowId && !isPublicView && isEeUI"
+                v-if="contextMenuRowId && !isPublicView && appInfo.ee"
                 class="nc-base-menu-item"
                 @click="showSendRecordModal = true"
               >

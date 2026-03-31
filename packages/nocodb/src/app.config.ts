@@ -1,5 +1,4 @@
 import type { AppConfig } from './interface/config';
-import { isEE } from '~/utils';
 
 const config: AppConfig = {
   throttler: {

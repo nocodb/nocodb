@@ -9,6 +9,8 @@ const { appInfo } = useGlobal()
 
 const { dashboardUrl } = useDashboard()
 
+const { showEEFeatures } = useEeConfig()
+
 const viewStore = useViewsStore()
 
 const { getMetaByKey } = useMetas()
@@ -482,7 +484,7 @@ const copyCustomUrl = async (custUrl = '') => {
         </div>
 
         <DlgShareAndCollaborateCustomUrl
-          v-if="activeView"
+          v-if="activeView && showEEFeatures"
           :id="activeView.fk_custom_url_id"
           :backend-url="appInfo.ncSiteUrl"
           :copy-custom-url="copyCustomUrl"

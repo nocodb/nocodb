@@ -24,6 +24,7 @@ import { JobTypes } from '~/interface/Jobs';
 import { RootScopes } from '~/utils/globals';
 import { validateAndNormaliseLocalPath } from '~/helpers/attachmentHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
+import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 import Noco from '~/Noco';
 import { UseWorker } from '~/decorators/use-worker.decorator';
 
@@ -297,6 +298,16 @@ export class AttachmentsService {
             });
             mimeType = response.headers['content-type']?.split(';')[0];
             size = response.headers['content-length'];
+
+            if (size && +size > NC_ATTACHMENT_FIELD_SIZE) {
+              NcError.badRequest(
+                `File is too large. Maximum allowed size is ${(
+                  NC_ATTACHMENT_FIELD_SIZE /
+                  (1024 * 1024)
+                ).toFixed(2)} MB`,
+              );
+            }
+
             finalUrl = response.request.res.responseUrl;
           } else {
             if (!url.startsWith('data')) {

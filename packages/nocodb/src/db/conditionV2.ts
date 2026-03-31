@@ -189,6 +189,13 @@ const parseConditionV2 = async (
         await filter.getColumn(context),
       );
 
+      if (!column) {
+        if (throwErrorIfInvalid) {
+          NcError.get(context).fieldNotFound(filter.fk_column_id);
+        }
+        return { clause: () => {}, rootApply: () => {} };
+      }
+
       if (
         column.uidt === UITypes.Lookup ||
         column.uidt === UITypes.LinkToAnotherRecord
@@ -229,12 +236,14 @@ const parseConditionV2 = async (
       if (throwErrorIfInvalid) {
         NcError.get(context).fieldNotFound(filter.fk_column_id);
       }
+      return { clause: () => {}, rootApply: () => {} };
     }
     const column = await getRefColumnIfAlias(context, filterColumn);
     if (!column) {
       if (throwErrorIfInvalid) {
         NcError.get(context).fieldNotFound(filter.fk_column_id);
       }
+      return { clause: () => {}, rootApply: () => {} };
     }
 
     if (

@@ -33,6 +33,7 @@ const {
   showUpgradeToUseSync,
   isWsAuditEnabled,
   isEEFeatureBlocked,
+  showEEFeatures,
 } = useEeConfig()
 
 const currentBase = computedAsync(async () => {
@@ -82,7 +83,11 @@ const userCount = computed(() => {
 
 const isOverviewTabVisible = computed(() => isUIAllowed('projectOverviewTab'))
 
-const isAuditsTabVisible = computed(() => isEeUI && !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('baseAuditList'))
+const isAuditsTabVisible = computed(
+  () => isEeUI && !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('baseAuditList') && showEEFeatures.value,
+)
+
+const isIntegrationsTabVisible = computed(() => !isMobileMode.value && isUIAllowed('sourceCreate'))
 
 const isWorkflowsTabVisible = computed(
   () =>
@@ -90,7 +95,8 @@ const isWorkflowsTabVisible = computed(
     appInfo.value?.ee &&
     isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB) &&
     isUIAllowed('workflowCreateOrEdit') &&
-    !isMobileMode.value,
+    !isMobileMode.value &&
+    showEEFeatures.value,
 )
 
 // Get actual workflow count
@@ -108,11 +114,11 @@ const projectPageTab = computed({
     return _projectPageTab.value
   },
   set(value) {
-    if (value === 'permissions' && showUpgradeToUseTableAndFieldPermissions()) {
+    if (value === 'permissions' && showEEFeatures.value && showUpgradeToUseTableAndFieldPermissions()) {
       return
     }
 
-    if (value === 'syncs' && showUpgradeToUseSync()) {
+    if (value === 'syncs' && showEEFeatures.value && showUpgradeToUseSync()) {
       return
     }
 
@@ -159,6 +165,8 @@ watch(
         projectPageTab.value = 'syncs'
       } else if (newVal === 'data-source') {
         projectPageTab.value = 'data-source'
+      } else if (newVal === 'integrations' && isIntegrationsTabVisible.value) {
+        projectPageTab.value = 'integrations'
       } else if (newVal === 'overview' && isOverviewTabVisible.value) {
         projectPageTab.value = 'overview'
       } else if (newVal === 'permissions' && !blockTableAndFieldPermissions.value && isEeUI) {
@@ -196,10 +204,12 @@ const settingsPageTitle = computed(() => {
   const tabTitles: Record<string, string> = {
     'collaborator': t('labels.addUserToBase'),
     'permissions': t('labels.dataPermissions'),
+    'docs-permissions': t('labels.docsPermissions'),
     'mcp': t('title.mcpServer'),
     'syncs': t('labels.manageSyncs'),
     'snapshots': t('labels.manageSnapshots'),
     'data-source': t('labels.addDataSource'),
+    'integrations': t('labels.baseIntegrations'),
     'base-settings': t('general.general'),
     'audits': t('title.audits'),
     'workflows': t('objects.workflows'),
@@ -266,6 +276,7 @@ watch(
      */
     integrations.value = []
   },
+  { immediate: true },
 )
 
 const isSettingsSidebar = computed(() => !!props.tab)
@@ -320,7 +331,6 @@ watch(
           </h1>
         </div>
       </div>
-      <DashboardBackToBaseBreadcrumbVariant />
     </template>
 
     <!-- Normal topbar -->
@@ -445,7 +455,7 @@ watch(
           </template>
           <ProjectWorkflowsList :base-id="base.id" />
         </a-tab-pane>
-        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode" key="permissions">
+        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && showEEFeatures" key="permissions">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__permissions">
               <GeneralIcon icon="ncLock" />
@@ -458,6 +468,23 @@ watch(
             </div>
           </template>
           <DashboardSettingsPermissions v-model:state="baseSettingsState" :base-id="base.id" />
+        </a-tab-pane>
+        <a-tab-pane
+          v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode && showEEFeatures"
+          key="docs-permissions"
+        >
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__docs-permissions">
+              <GeneralIcon icon="ncFileText" />
+              <div>{{ $t('labels.docsPermissions') }}</div>
+              <LazyPaymentUpgradeBadge
+                :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS"
+                :feature-enabled-callback="() => !isEEFeatureBlocked"
+                remove-click
+              />
+            </div>
+          </template>
+          <DashboardSettingsDocsPermissions v-model:state="baseSettingsState" :base-id="base.id" />
         </a-tab-pane>
         <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && !isMobileMode" key="data-source">
           <template #tab>
@@ -478,7 +505,16 @@ watch(
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
         </a-tab-pane>
-        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode" key="syncs">
+        <a-tab-pane v-if="isIntegrationsTabVisible && base.id" key="integrations">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__integrations">
+              <GeneralIcon icon="integration" />
+              <div>{{ $t('labels.baseIntegrations') }}</div>
+            </div>
+          </template>
+          <DashboardSettingsBaseIntegrations :base-id="base.id" />
+        </a-tab-pane>
+        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode && showEEFeatures" key="syncs">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__syncs">
               <GeneralIcon icon="ncZap" />
@@ -514,7 +550,14 @@ watch(
           </div>
         </a-tab-pane>
         <a-tab-pane
-          v-if="isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot') && base.id && !isMobileMode"
+          v-if="
+            isEeUI &&
+            isUIAllowed('baseMiscSettings') &&
+            isUIAllowed('manageSnapshot') &&
+            base.id &&
+            !isMobileMode &&
+            showEEFeatures
+          "
           key="snapshots"
         >
           <template #tab>

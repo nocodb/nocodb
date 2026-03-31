@@ -15,11 +15,11 @@ const route = router.currentRoute
 
 const { navigateToProject, isMobileMode } = useGlobal()
 
-const { $e } = useNuxtApp()
+const { $e: _$e } = useNuxtApp()
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspaceId } = storeToRefs(workspaceStore)
+const { activeWorkspaceId, activeWorkspace } = storeToRefs(workspaceStore)
 
 const basesStore = useBases()
 
@@ -37,9 +37,15 @@ const { unreadCount } = toRefs(notificationStore)
 
 const isNotificationOpen = ref(false)
 
-const { isPanelExpanded: isChatPanelExpanded, hasWorkspaceContext: hasChatWorkspaceContext, toggleChatPanel } = useChatPanel()
+const {
+  isPanelExpanded: isChatPanelExpanded,
+  isFullScreen: isChatFullScreen,
+  hasWorkspaceContext: hasChatWorkspaceContext,
+  hasBaseContext: hasChatBaseContext,
+  toggleChatPanel,
+} = useChatPanel()
 
-const { blockAiChat } = useEeConfig()
+const { isEEFeatureBlocked, showEEFeatures } = useEeConfig()
 
 const handleChatToggle = () => {
   toggleChatPanel()
@@ -48,6 +54,14 @@ const handleChatToggle = () => {
 const isBaseOpen = computed(() => {
   return route.value.name?.toString().startsWith('index-typeOrId-baseId-')
 })
+
+watch(
+  isBaseOpen,
+  (val) => {
+    if (val && ncBackRoute().get() !== '/') ncBackRoute().set('')
+  },
+  { immediate: true },
+)
 
 const isBaseListModalOpen = ref(false)
 
@@ -64,13 +78,15 @@ const getBasePath = () => {
 }
 
 const onTabClick = async (tabKey: string) => {
+  if (isChatFullScreen.value) isChatFullScreen.value = false
+
   if (tabKey === 'settings') {
     activeSidebarTab.value = 'settings'
     if (isBaseOpen.value) {
       navigateTo(`${getBasePath()}/settings`)
     } else {
       const wsId = route.value.params.typeOrId || activeWorkspaceId.value
-      navigateTo(`/${wsId}/settings/ws-members`)
+      navigateTo(`/${wsId}/members`)
     }
     return
   }
@@ -112,15 +128,8 @@ const mainItems = computed<NavItem[]>(() => [
     disabled: !hasAvailableBases.value,
     onClick: () => onTabClick('data'),
   },
-  ...(isEeUI && !isMobileMode.value
+  ...(isEeUI && !isMobileMode.value && showEEFeatures.value
     ? [
-        {
-          key: 'docs',
-          icon: 'ncFileText',
-          label: 'Docs',
-          disabled: !hasAvailableBases.value,
-          onClick: () => onTabClick('docs'),
-        },
         {
           key: 'workflows',
           icon: 'ncAutomation',
@@ -131,6 +140,13 @@ const mainItems = computed<NavItem[]>(() => [
               roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
             }),
           onClick: () => onTabClick('workflows'),
+        },
+        {
+          key: 'docs',
+          icon: 'ncFileText',
+          label: 'Docs',
+          disabled: !hasAvailableBases.value,
+          onClick: () => onTabClick('docs'),
         },
       ]
     : []),
@@ -246,7 +262,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 // Cmd/Ctrl + Shift + A — toggle AI chat
 useEventListener(document, 'keydown', (e: KeyboardEvent) => {
-  if (!isEeUI || blockAiChat.value) return
+  if (!isEeUI || isEEFeatureBlocked.value || !hasChatBaseContext.value) return
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (
     cmdOrCtrl &&
@@ -264,16 +280,19 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
 
 <template>
   <nav ref="dockRef" class="nc-dock" data-testid="nc-mini-sidebar-v2-dock" @mousemove="onMouseMove" @mouseleave="onMouseLeave">
-    <!-- Logo -->
+    <!-- Logo — hover shows back arrow, click navigates to workspace -->
+
     <DashboardMiniSidebarV2DockItem
       :ref="(el: any) => setItemRef('logo', el)"
-      class="nc-dock-logo"
+      class="nc-dock-logo nc-dock-logo-hover"
       data-testid="nc-mini-sidebar-v2-logo"
+      :data-workspace-title="activeWorkspace?.title"
+      :label="`${$t('labels.backToWorkspace')} ${activeWorkspace?.title}`"
       :scale="getScale('logo')"
-      @click="isBaseListModalOpen = true"
+      @click="navigateTo(`/${activeWorkspaceId}`)"
     >
       <GeneralProjectIcon
-        class="!h-7 !w-7"
+        class="!h-7 !w-7 nc-logo-icon"
         :color="parseProp(resolvedProject?.meta).iconColor"
         :type="resolvedProject?.type"
         :managed-app="
@@ -285,9 +304,12 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
             : undefined
         "
       />
+      <div class="nc-back-icon">
+        <GeneralIcon icon="ncArrowLeft" class="!h-4.5 !w-4.5 text-nc-content-gray" />
+      </div>
     </DashboardMiniSidebarV2DockItem>
 
-    <NcDivider class="!w-8 !min-w-8 mt-1.5 mb-1 !border-nc-border-gray-medium" />
+    <NcDivider class="!w-8 !min-w-8 !mb-0 !border-nc-border-gray-medium !-mt-1.5" />
 
     <!-- Main nav items -->
     <DashboardMiniSidebarV2DockItem
@@ -297,7 +319,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       :icon="item.icon"
       :label="item.label"
       :panel-key="item.key"
-      :active="activeSidebarTab === item.key"
+      :active="activeSidebarTab === item.key && !isChatFullScreen"
       :disabled="item.disabled"
       :scale="getScale(item.key)"
       @click="item.onClick?.()"
@@ -305,7 +327,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
 
     <!-- AI Chat -->
     <DashboardMiniSidebarV2DockItem
-      v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext && !isMobileMode"
+      v-if="isEeUI && !isEEFeatureBlocked && hasChatWorkspaceContext && hasChatBaseContext && !isMobileMode"
       :ref="(el: any) => setItemRef('chat', el)"
       v-e="['c:chat:toggle']"
       label="Chat"
@@ -319,21 +341,28 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       <GeneralIcon icon="ncAutoAwesome" class="nc-dock-item-icon !text-nc-content-brand" />
     </DashboardMiniSidebarV2DockItem>
 
+    <!-- Settings -->
+    <DashboardMiniSidebarV2DockItem
+      :ref="(el: any) => setItemRef('settings', el)"
+      icon="ncSettings"
+      label="Settings"
+      panel-key="settings"
+      :active="activeSidebarTab === 'settings' && !isChatFullScreen"
+      :scale="getScale('settings')"
+      @click="onTabClick('settings')"
+    />
+
     <!-- Bottom group -->
     <div class="nc-dock-bottom-group" :class="{ 'is-hovering': isHovering }">
-      <!-- Settings -->
-      <DashboardMiniSidebarV2DockItem
-        :ref="(el: any) => setItemRef('settings', el)"
-        icon="ncSettings"
-        label="Settings"
-        panel-key="settings"
-        :active="activeSidebarTab === 'settings'"
-        :scale="getScale('settings')"
-        @click="onTabClick('settings')"
-      />
+      <!-- Help -->
+      <div :ref="(el: any) => setItemRef('help', el)" class="nc-dock-magnify-wrapper" :style="getMagnifyStyle('help')">
+        <DashboardMiniSidebarHelp>
+          <DashboardMiniSidebarV2DockItem icon="ncHelp" label="Help" panel-key="help" :scale="1" />
+        </DashboardMiniSidebarHelp>
+      </div>
     </div>
 
-    <NcDivider class="!w-8 !min-w-8 mt-1.5 mb-1 !border-nc-border-gray-medium" />
+    <NcDivider class="!w-8 !min-w-8 !my-0 !border-nc-border-gray-medium" />
 
     <div
       v-if="!isMobileMode"
@@ -392,13 +421,14 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
 <style lang="scss" scoped>
 .nc-dock {
   @apply flex flex-col items-center h-full w-full overflow-visible;
-  padding: 14px 0;
   gap: 6px;
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
 }
 
 .nc-dock-logo {
+  @apply h-[var(--topbar-height)];
+
   opacity: 0.7;
   transform-origin: center center;
   color: #555;
@@ -410,6 +440,38 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
   &:hover {
     opacity: 1;
     background: none !important;
+  }
+}
+
+.nc-dock-logo-hover {
+  .nc-logo-icon,
+  .nc-back-icon {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .nc-logo-icon {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .nc-back-icon {
+    @apply flex items-center justify-center;
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  &:hover {
+    .nc-logo-icon {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    .nc-back-icon {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 }
 

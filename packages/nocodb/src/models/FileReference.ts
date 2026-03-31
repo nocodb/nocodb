@@ -20,6 +20,7 @@ export default class FileReference {
   fk_model_id: string;
   fk_column_id: string;
   fk_doc_id: string;
+  fk_session_id: string;
   is_external: boolean;
   deleted: boolean;
   created_at: Date;
@@ -44,6 +45,7 @@ export default class FileReference {
       'fk_model_id',
       'fk_column_id',
       'fk_doc_id',
+      'fk_session_id',
       'is_external',
       'deleted',
     ]);
@@ -78,6 +80,7 @@ export default class FileReference {
       'fk_model_id',
       'fk_column_id',
       'fk_doc_id',
+      'fk_session_id',
       'is_external',
       'deleted',
     ]);
@@ -278,6 +281,66 @@ export default class FileReference {
       .knexConnection(MetaTable.FILE_REFERENCES)
       .where({ base_id: context.base_id, deleted: false })
       .whereIn('fk_doc_id', docIds)
+      .update({ deleted: true });
+
+    await this.updateWorkspaceCache(context, totalSize, true);
+  }
+
+  /**
+   * Return all active FileReferences for a chat session.
+   * Uses nc_fr_session_idx (fk_workspace_id, fk_session_id).
+   */
+  public static async listBySessionId(
+    context: NcContext,
+    sessionId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<FileReference[]> {
+    const rows = await ncMeta
+      .knexConnection(MetaTable.FILE_REFERENCES)
+      .where({
+        fk_workspace_id: context.workspace_id,
+        fk_session_id: sessionId,
+        deleted: false,
+      })
+      .select('*');
+
+    return rows.map((r: any) => new FileReference(r));
+  }
+
+  /**
+   * Soft-delete all FileReferences for a chat session.
+   */
+  public static async bulkDeleteBySessionId(
+    context: NcContext,
+    sessionId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    let totalSize = 0;
+
+    try {
+      const sizeResult = await ncMeta
+        .knexConnection(MetaTable.FILE_REFERENCES)
+        .where({
+          fk_workspace_id: context.workspace_id,
+          fk_session_id: sessionId,
+          deleted: false,
+        })
+        .sum('file_size as totalSize')
+        .first();
+      totalSize = sizeResult?.totalSize ? +sizeResult.totalSize : 0;
+    } catch (error) {
+      totalSize = -1;
+      logger.error('Error while summing file reference size');
+      logger.error(error);
+    }
+
+    await ncMeta
+      .knexConnection(MetaTable.FILE_REFERENCES)
+      .where({
+        fk_workspace_id: context.workspace_id,
+        fk_session_id: sessionId,
+        deleted: false,
+      })
       .update({ deleted: true });
 
     await this.updateWorkspaceCache(context, totalSize, true);

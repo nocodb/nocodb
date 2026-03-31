@@ -30,6 +30,7 @@ export const OPERATION_SCOPES = {
   filterChildrenList: 'base',
   sortList: 'base',
   hookList: 'base',
+  hookRead: 'base',
   hookLogList: 'base',
   hookFilterList: 'base',
   buttonFilterList: 'base',
@@ -63,6 +64,7 @@ export const OPERATION_SCOPES = {
   viewColumnUpdate: 'base',
   gridColumnUpdate: 'base',
   timelineColumnUpdate: 'base',
+  listColumnUpdate: 'base',
   viewColumnCreate: 'base',
   viewRowColorConditionAdd: 'base',
   viewRowColorConditionUpdate: 'base',
@@ -162,4 +164,15 @@ export const OPERATION_SCOPES = {
 
   // LTAR V2 conversion
   convertLinkToV2: 'base',
+
+  // Base-scoped integrations
+  baseIntegrationList: 'base',
+  baseIntegrationCreate: 'base',
+  baseIntegrationUpdate: 'base',
+  baseIntegrationLink: 'base',
+  baseIntegrationUnlink: 'base',
+
+  // Workspace integration link management
+  integrationLinkedBaseList: 'workspace',
+  integrationUpdateLinkedBases: 'workspace',
 } as const;

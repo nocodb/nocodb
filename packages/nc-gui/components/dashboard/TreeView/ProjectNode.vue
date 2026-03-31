@@ -508,7 +508,7 @@ defineExpose({
             <!-- Mobile: plain chevron before icon -->
             <div
               v-if="!isProjectHeader"
-              class="hidden !xs:(flex items-center justify-center) w-6 h-6 flex-none cursor-pointer"
+              class="hidden !xs:(flex items-center justify-center) -ml-1 w-6 h-6 flex-none cursor-pointer"
               @click.stop="onProjectClick(base, true, true)"
             >
               <GeneralIcon
@@ -517,11 +517,7 @@ defineExpose({
                 :class="{ '!rotate-90': base.isExpanded }"
               />
             </div>
-            <div
-              v-if="!isProjectHeader"
-              class="flex items-center mr-1 nc-base-icon-wrapper min-w-6 h-6 relative"
-              @click.stop
-            >
+            <div v-if="!isProjectHeader" class="flex items-center mr-1 nc-base-icon-wrapper min-w-6 h-6 relative" @click.stop>
               <!-- Desktop: combo chevron overlay -->
               <NcButton
                 v-e="['c:base:toggle-expand']"
@@ -664,7 +660,6 @@ defineExpose({
                     <GeneralIcon icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
                   </NcTooltip>
                 </NcButton>
-
               </template>
             </template>
           </div>

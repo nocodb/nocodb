@@ -5,6 +5,8 @@ import {
   isLinksOrLTAR,
   isSystemColumn,
   isVirtualCol,
+  ncHasProperties,
+  ncIsObject,
   ratingIconList,
   UITypes,
 } from 'nocodb-sdk';
@@ -71,13 +73,22 @@ export const removeBlankPropsAndMask = (
   if (obj === null || obj === undefined) return obj;
 
   return fromEntries(
-    Object.entries(obj).filter(
-      ([key, value]) =>
+    Object.entries(obj).filter(([key, value]) => {
+      if (
+        ncIsObject(value) &&
+        Object.keys(value).length === 1 &&
+        ncHasProperties(value, 'isStale')
+      ) {
+        return false;
+      }
+
+      return (
         (includeNull || value !== null) &&
         value !== undefined &&
         (includeBlanks || value !== '') &&
-        (!excludedProps || !excludedProps.includes(key)),
-    ),
+        (!excludedProps || !excludedProps.includes(key))
+      );
+    }),
   );
 };
 

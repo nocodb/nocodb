@@ -13,7 +13,8 @@ const { $e } = useNuxtApp()
 
 const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
-const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions, isEEFeatureBlocked } = useEeConfig()
+const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions, isEEFeatureBlocked, showEEFeatures } =
+  useEeConfig()
 
 const { base } = storeToRefs(useBase())
 const meta = inject(MetaInj, ref())
@@ -31,7 +32,7 @@ const indicator = h(LoadingOutlined, {
 const shouldShowTab = computed(() => {
   return {
     field: isUIAllowed('fieldAdd') && !isSqlView.value,
-    permissions: isEeUI && isUIAllowed('fieldAdd') && !isSqlView.value,
+    permissions: isEeUI && isUIAllowed('fieldAdd') && !isSqlView.value && showEEFeatures.value,
     webhook: isUIAllowed('hookList') && !isSqlView.value,
   }
 })

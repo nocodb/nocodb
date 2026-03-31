@@ -20,6 +20,7 @@ import { MapsService } from '~/services/maps.service';
 import { CommentsService } from '~/services/comments.service';
 import { SyncService } from '~/services/sync.service';
 import { ExtensionsService } from '~/services/extensions.service';
+import { BaseIntegrationsService } from '~/services/base-integrations.service';
 @Injectable()
 export class UiGetOperations
   implements InternalApiModule<InternalGETResponseType>
@@ -39,6 +40,7 @@ export class UiGetOperations
     protected commentsService: CommentsService,
     protected syncService: SyncService,
     protected extensionsService: ExtensionsService,
+    protected baseIntegrationsService: BaseIntegrationsService,
   ) {}
   operations = [
     'nestedDataList' as const,
@@ -70,6 +72,8 @@ export class UiGetOperations
     'extensionRead' as const,
     'listViewDataList' as const,
     'listViewDataCount' as const,
+    'baseIntegrationList' as const,
+    'integrationLinkedBaseList' as const,
   ];
   httpMethod = 'GET' as const;
 
@@ -211,11 +215,21 @@ export class UiGetOperations
             },
           }),
         );
-      case 'commentCount':
+      case 'commentCount': {
+        // qs parses ids[]=a&ids[]=b as an array, but when >20 elements
+        // (qs arrayLimit default) it produces a plain object instead.
+        let ids = req.query.ids;
+        if (!Array.isArray(ids)) {
+          ids =
+            typeof ids === 'object' && ids !== null
+              ? Object.values(ids)
+              : [ids];
+        }
         return await this.commentsService.commentsCount(context, {
           fk_model_id: req.query.fk_model_id as string,
-          ids: Array.isArray(req.query.ids) ? req.query.ids : [req.query.ids],
+          ids,
         });
+      }
       case 'dataList':
         context.cache = true;
         return await this.dataTableService.dataList(context, {
@@ -249,6 +263,19 @@ export class UiGetOperations
         return await this.extensionsService.extensionRead(context, {
           extensionId: req.query.extensionId as string,
         });
+
+      // Base-scoped integrations
+      case 'baseIntegrationList':
+        return await this.baseIntegrationsService.listForBase(context, {
+          baseId: context.base_id,
+          type: req.query.type as any,
+          subType: req.query.subType as string,
+          userId: req.user?.id,
+        });
+      case 'integrationLinkedBaseList':
+        return (await this.baseIntegrationsService.linkedBaseList(context, {
+          integrationId: req.query.integrationId as string,
+        })) as any;
     }
   }
 }

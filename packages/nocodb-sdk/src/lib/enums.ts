@@ -297,6 +297,8 @@ export enum AppEvents {
   CHAT_MESSAGE_CREATE = 'chat.message.create',
   CHAT_TOOL_EXECUTE = 'chat.tool.execute',
 
+  DOC_AI_COMPLETION = 'doc.ai.completion',
+
   DOCUMENT_CREATE = 'document.create',
   DOCUMENT_UPDATE = 'document.update',
   DOCUMENT_DELETE = 'document.delete',
@@ -305,6 +307,9 @@ export enum AppEvents {
   DOCUMENT_COMMENT_CREATE = 'document.comment.create',
   DOCUMENT_COMMENT_UPDATE = 'document.comment.update',
   DOCUMENT_COMMENT_DELETE = 'document.comment.delete',
+
+  DATE_DEPENDENCY_UPDATE = 'date_dependency.update',
+  DATE_DEPENDENCY_DELETE = 'date_dependency.delete',
 }
 
 export enum ClickhouseTables {
@@ -505,7 +510,6 @@ export enum SyncDataType {
   NOCODB = 'nocodb',
   MICROSOFT_ACCESS = 'microsoft-access',
   TABLEAU = 'tableau',
-  ORACLE = 'oracle',
   // AI
   OPENAI = 'openai',
   CLAUDE = 'claude',

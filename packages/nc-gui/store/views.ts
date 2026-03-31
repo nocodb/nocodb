@@ -42,7 +42,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const { t } = useI18n()
 
-  const { ncNavigateTo, user } = useGlobal()
+  const { appInfo, ncNavigateTo, user } = useGlobal()
 
   const router = useRouter()
 
@@ -70,7 +70,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  const { blockCardFieldHeaderVisibility } = useEeConfig()
+  const { blockCardFieldHeaderVisibility, blockListView, showUpgradeToUseListView, showEEFeatures } = useEeConfig()
 
   const route = router.currentRoute
 
@@ -213,18 +213,18 @@ export const useViewsStore = defineStore('viewsStore', () => {
     return parseProp((activeView.value?.view as GalleryType | KanbanType)?.meta)?.is_field_header_visible ?? true
   })
 
-  const isListViewEnabled = computed(() => isEeUI && isFeatureEnabled(FEATURE_FLAG.LIST_VIEW))
+  const isListViewEnabled = computed(() => isEeUI && showEEFeatures.value)
 
   const isShowEveryonePersonalViewsEnabled = computed({
     get: () => {
-      if (!isEeUI || !isFeatureEnabled(FEATURE_FLAG.SHOW_EVERYONES_PERSONAL_VIEWS)) {
+      if (!appInfo.value.ee || !isFeatureEnabled(FEATURE_FLAG.SHOW_EVERYONES_PERSONAL_VIEWS)) {
         return true
       }
 
       return !!userLocalStorageInfoManager.get(user.value?.id, activeWorkspaceId.value, 'showOtherUserPersonalViews', true)
     },
     set: (value: boolean) => {
-      if (!isEeUI || !isFeatureEnabled(FEATURE_FLAG.SHOW_EVERYONES_PERSONAL_VIEWS)) {
+      if (!appInfo.value.ee || !isFeatureEnabled(FEATURE_FLAG.SHOW_EVERYONES_PERSONAL_VIEWS)) {
         return
       }
 
@@ -1112,6 +1112,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
     return (
       view?.owned_by === _user?.id ||
+      !!(view?.created_by && view.created_by === _user?.id) ||
       !!(!view?.owned_by && (_user?.base_roles?.[ProjectRoles.OWNER] || _user?.workspace_roles?.[WorkspaceUserRoles.OWNER]))
     )
   }
@@ -1120,7 +1121,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     const result = {
       isDisabled: false,
       tooltip: '',
-      isVisible: isEeUI && isUIAllowed('viewCreateOrEdit'),
+      isVisible: isEeUI && isUIAllowed('viewCreateOrEdit') && showEEFeatures.value,
     }
 
     if (!view) return result
@@ -1300,13 +1301,16 @@ export const useViewsStore = defineStore('viewsStore', () => {
   }
 
   watch(
-    () => tablesStore.activeTableId,
-    async (newId, oldId) => {
-      if (newId === oldId) return
+    [() => tablesStore.activeTableId, () => activeProjectId.value],
+    async ([newId, newProjectId], [oldId, oldProjectId]) => {
       if (isPublic.value) {
         isViewsLoading.value = false
         return
       }
+
+      if (!newId || !newProjectId) return
+
+      if (newId === oldId && newProjectId === oldProjectId) return
 
       isViewDataLoading.value = true
 
@@ -1444,6 +1448,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
     getCopyViewConfigBtnAccessStatus,
     isShowEveryonePersonalViewsEnabled,
     isListViewEnabled,
+    blockListView,
+    showUpgradeToUseListView,
   }
 })
 

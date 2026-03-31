@@ -10,7 +10,6 @@ const { api, isLoading, error } = useApi()
 const { t } = useI18n()
 
 const route = useRoute()
-const navigator = useRouter()
 
 const form = reactive({
   password: '',

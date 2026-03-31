@@ -23,13 +23,16 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 const {
   isWsAuditEnabled,
   showUpgradeToUseTableAndFieldPermissions,
+  showUpgradeToUseDocumentPermissions,
   showUpgradeToUseSync,
   showUpgradeToUseSnapshots,
   isEEFeatureBlocked,
+  showEEFeatures,
 } = useEeConfig()
 
 const navigateToBaseSettings = (page: string) => {
   if (page === 'permissions' && showUpgradeToUseTableAndFieldPermissions()) return
+  if (page === 'docs-permissions' && showUpgradeToUseDocumentPermissions()) return
   if (page === 'syncs' && showUpgradeToUseSync()) return
   if (page === 'snapshots' && isEEFeatureBlocked.value) {
     showUpgradeToUseSnapshots()
@@ -83,7 +86,7 @@ onMounted(() => {
       {{ $t('labels.addUserToBase') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode"
+      v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles }) && showEEFeatures"
       v-e="['c:settings:base:permissions']"
       icon="ncLock"
       data-testid="base-permissions"
@@ -93,6 +96,19 @@ onMounted(() => {
       {{ $t('labels.dataPermissions') }}
       <template #extraRight>
         <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS" remove-click />
+      </template>
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode && showEEFeatures"
+      v-e="['c:settings:base:docs-permissions']"
+      icon="ncFileText"
+      data-testid="base-docs-permissions"
+      :active="activeBaseSettingsTab === 'docs-permissions'"
+      @click="navigateToBaseSettings('docs-permissions')"
+    >
+      {{ $t('labels.docsPermissions') }}
+      <template #extraRight>
+        <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS" remove-click />
       </template>
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
@@ -106,7 +122,17 @@ onMounted(() => {
       {{ $t('labels.addDataSource') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode"
+      v-if="isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode"
+      v-e="['c:settings:base:integrations']"
+      icon="integration"
+      data-testid="base-integrations"
+      :active="activeBaseSettingsTab === 'integrations'"
+      @click="navigateToBaseSettings('integrations')"
+    >
+      {{ $t('labels.baseIntegrations') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode && showEEFeatures"
       v-e="['c:settings:base:syncs']"
       icon="ncZap"
       data-testid="base-syncs"
@@ -119,7 +145,9 @@ onMounted(() => {
       </template>
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="isEeUI && isUIAllowed('baseAuditList', { roles: effectiveRoles }) && isWsAuditEnabled && !isMobileMode"
+      v-if="
+        isEeUI && isUIAllowed('baseAuditList', { roles: effectiveRoles }) && isWsAuditEnabled && !isMobileMode && showEEFeatures
+      "
       v-e="['c:settings:base:audits']"
       icon="audit"
       data-testid="base-audit"
@@ -132,6 +160,7 @@ onMounted(() => {
       v-if="
         isEeUI &&
         appInfo?.ee &&
+        showEEFeatures &&
         isUIAllowed('workflowCreateOrEdit', { roles: effectiveRoles }) &&
         isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB) &&
         !isMobileMode
@@ -157,6 +186,7 @@ onMounted(() => {
     <NcSidebarMenuItem
       v-if="
         isEeUI &&
+        showEEFeatures &&
         isUIAllowed('baseMiscSettings', { roles: effectiveRoles }) &&
         isUIAllowed('manageSnapshot', { roles: effectiveRoles }) &&
         !isMobileMode

@@ -285,7 +285,6 @@ import NcPostgreSql from '~icons/nc-icons/postgresql'
 import NcSqlServer from '~icons/nc-icons/sql-server'
 import NcDataBricks from '~icons/nc-icons/data-bricks'
 import NcMssqlServer from '~icons/nc-icons/mssql-server'
-import NcOracle from '~icons/nc-icons/oracle'
 import NcGmail from '~icons/nc-icons/gmail'
 import NcTelegram from '~icons/nc-icons/telegram'
 import NcMicrosoftDynamics365 from '~icons/nc-icons/microsoft-dynamics-365'
@@ -323,6 +322,8 @@ import NcArrowDownIcon from '~icons/nc-icons-v2/arrow-down.svg'
 import NcCornerRightUpIcon from '~icons/nc-icons-v2/corner-right-up.svg'
 import NcChevronsRightIcon from '~icons/nc-icons-v2/chevrons-right.svg'
 import NcListIcon from '~icons/nc-icons-v2/list.svg'
+import NcListEndIcon from '~icons/nc-icons-v2/list-end.svg'
+import NcWandSparklesIcon from '~icons/nc-icons-v2/wand-sparkles.svg'
 import NcNumberListIcon from '~icons/nc-icons-v2/number-list.svg'
 import NcCheckListIcon from '~icons/nc-icons-v2/check-list.svg'
 import NcChevronsDownIcon from '~icons/nc-icons-v2/chevrons-down.svg'
@@ -521,6 +522,7 @@ import NcMoreVerticalIcon from '~icons/nc-icons-v2/more-vertical.svg'
 import NcMicOffIcon from '~icons/nc-icons-v2/mic-off.svg'
 import NcShareIcon from '~icons/nc-icons-v2/share.svg'
 import NcArrowUpIcon from '~icons/nc-icons-v2/arrow-up.svg'
+import NcArrowUpDownIcon from '~icons/nc-icons-v2/arrow-up-down.svg'
 import NcBellOffIcon from '~icons/nc-icons-v2/bell-off.svg'
 import NcLinkedinIcon from '~icons/nc-icons-v2/linkedin.svg'
 import NcVideoIcon from '~icons/nc-icons-v2/video.svg'
@@ -1359,7 +1361,6 @@ export const iconMap = {
   'sqlServer': NcSqlServer,
   'dataBricks': NcDataBricks,
   'mssqlServer': NcMssqlServer,
-  'oracle': NcOracle,
   'gmail': NcGmail,
   'telegram': NcTelegram,
   'microsoftDynamics365': NcMicrosoftDynamics365,
@@ -1401,6 +1402,8 @@ export const iconMap = {
   'ncCornerRightUp': NcCornerRightUpIcon,
   'ncChevronsRight': NcChevronsRightIcon,
   'ncList': NcListIcon,
+  'ncListEnd': NcListEndIcon,
+  'ncWandSparkles': NcWandSparklesIcon,
   'ncNumberList': NcNumberListIcon,
   'ncCheckList': NcCheckListIcon,
   'ncChevronsDown': NcChevronsDownIcon,
@@ -1599,6 +1602,7 @@ export const iconMap = {
   'ncMicOff': NcMicOffIcon,
   'ncShare': NcShareIcon,
   'ncArrowUp2': NcArrowUpIcon,
+  'ncArrowUpDown': NcArrowUpDownIcon,
   'ncBellOff': NcBellOffIcon,
   'ncLinkedin': NcLinkedinIcon,
   'ncVideo': NcVideoIcon,
@@ -4078,6 +4082,10 @@ export const searchableMap = {
   ncArrowUp: {
     icon: NcArrowUpIcon,
     keywords: ['Up', 'Direction', 'Navigation', 'Ascending', 'Increase'],
+  },
+  ncArrowUpDown: {
+    icon: NcArrowUpDownIcon,
+    keywords: ['Sort', 'Up', 'Down', 'Arrow', 'Reorder', 'Swap'],
   },
   ncBellOff: {
     icon: NcBellOffIcon,

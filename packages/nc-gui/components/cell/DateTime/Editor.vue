@@ -15,7 +15,7 @@ interface Props {
 
 const { isXcdbBase } = useBase()
 
-const { showNull, isMobileMode } = useGlobal()
+const { appInfo, showNull, isMobileMode } = useGlobal()
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
@@ -127,7 +127,7 @@ const localState = computed({
 })
 
 const timeZoneDisplay = computed(() => {
-  if (!isEeUI) {
+  if (!appInfo.value?.ee) {
     return undefined
   }
   if (!localState.value) {
@@ -312,6 +312,12 @@ const cellClickHandler = () => {
   if (readOnly.value || open.value) return
   open.value = active.value || editable.value
 }
+onBeforeUnmount(() => {
+  if (tempDate.value && tempDate.value.isValid() && !localState.value?.isSame(tempDate.value)) {
+    saveChanges(tempDate.value)
+  }
+})
+
 onUnmounted(() => {
   cellClickHook?.off(cellClickHandler)
 })

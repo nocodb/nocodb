@@ -58,7 +58,7 @@ const { dashboardUrl } = useDashboard()
 
 const { copy } = useCopy()
 
-const { isMobileMode } = useGlobal()
+const { appInfo, isMobileMode } = useGlobal()
 
 const { t } = useI18n()
 
@@ -210,7 +210,7 @@ const onTemplateTableChange = async (tableId: string) => {
 }
 
 const activeViewMode = ref(
-  !isPublic.value && isEeUI && !isNew.value && !isMobileMode.value
+  !isPublic.value && appInfo.value.ee && !isNew.value && !isMobileMode.value
     ? props.view?.expanded_record_mode ?? ExpandedFormMode.FIELD
     : ExpandedFormMode.FIELD,
 )
@@ -262,6 +262,22 @@ onBeforeUnmount(() => {
 const duplicatingRowInProgress = ref(false)
 
 const { isSqlView } = useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)
+
+// Mobile: toggle between Fields and Discussion (Comments/Activity) view
+const mobileDiscussionMode = ref(false)
+
+const showMobileDiscussionToggle = computed(() => {
+  return (
+    isMobileMode.value &&
+    !isNew.value &&
+    !props.templateMode &&
+    !props.blueprintMode &&
+    commentsDrawer.value &&
+    isUIAllowed('commentList', baseRoles.value) &&
+    !isPublic.value &&
+    !isSqlView.value
+  )
+})
 
 useProvideSmartsheetLtarHelpers(meta)
 
@@ -711,6 +727,7 @@ const onConfirmDeleteRowClick = async () => {
 }
 
 watch(rowId, async (nRow) => {
+  mobileDiscussionMode.value = false
   await triggerRowLoad(nRow)
 })
 
@@ -868,6 +885,7 @@ const visibleMoreOptions = computed(() => {
       sendRecord: false,
       duplicateRecord: false,
       deleteRecord: false,
+      showDeleteDivider: false,
       showMoreOptionsMenu: false,
       allHiddenExceptCopyRecordUrl: true,
     }
@@ -875,14 +893,16 @@ const visibleMoreOptions = computed(() => {
   const result = {
     reloadRecord: !isEeUI,
     copyRecordUrl: !isNew.value && !!rowId.value,
-    sendRecord: isEeUI && !isNew.value && !!rowId.value && !isPublic.value,
+    sendRecord: appInfo.value.ee && !isNew.value && !!rowId.value && !isPublic.value,
     duplicateRecord: isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value && !isMobileMode.value,
-    deleteRecord: isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value,
+    deleteRecord: !isNew.value && isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value,
   }
+  const hasItemsAboveDelete = Object.entries(result).some(([key, value]) => key !== 'deleteRecord' && value)
+
   return {
     ...result,
-    showMoreOptionsMenu:
-      result.reloadRecord || result.copyRecordUrl || result.sendRecord || result.duplicateRecord || result.deleteRecord,
+    showDeleteDivider: result.deleteRecord && hasItemsAboveDelete,
+    showMoreOptionsMenu: hasItemsAboveDelete || result.deleteRecord,
     allHiddenExceptCopyRecordUrl: !result.reloadRecord && !result.sendRecord && !result.duplicateRecord && !result.deleteRecord,
   }
 })
@@ -1028,6 +1048,19 @@ export default {
         </div>
         <div v-else class="ml-auto" />
         <div class="flex gap-2">
+          <NcButton
+            v-if="showMobileDiscussionToggle"
+            v-e="['c:row-expand:mobile-discussion-toggle']"
+            class="!w-7 !h-7"
+            type="secondary"
+            size="xsmall"
+            @click="mobileDiscussionMode = !mobileDiscussionMode"
+          >
+            <GeneralIcon
+              :icon="mobileDiscussionMode ? 'menu' : 'ncMessageSquare1Outline'"
+              class="text-md text-nc-content-inverted-secondary"
+            />
+          </NcButton>
           <PermissionsTooltip
             v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
             :entity="PermissionEntity.TABLE"
@@ -1160,8 +1193,8 @@ export default {
                     </NcMenuItem>
                   </template>
                 </PermissionsTooltip>
-                <NcDivider v-if="visibleMoreOptions.deleteRecord" />
-                <NcTooltip v-if="meta?.synced" placement="left">
+                <NcDivider v-if="visibleMoreOptions.showDeleteDivider" />
+                <NcTooltip v-if="visibleMoreOptions.deleteRecord && meta?.synced" placement="left">
                   <template #title>
                     {{ $t('msg.info.deleteNotAvailableForSyncedTable') }}
                   </template>
@@ -1218,7 +1251,11 @@ export default {
       </div>
       <div ref="wrapper" class="flex-grow h-[calc(100%_-_4rem)] w-full">
         <template v-if="activeViewMode === ExpandedFormMode.FIELD">
+          <div v-if="isMobileMode && mobileDiscussionMode && showMobileDiscussionToggle" class="h-full">
+            <SmartsheetExpandedFormSidebar />
+          </div>
           <SmartsheetExpandedFormPresentorsFields
+            v-else
             :row-id="rowId"
             :fields="fields ?? []"
             :hidden-fields="hiddenFields"

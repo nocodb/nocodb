@@ -367,7 +367,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     try {
       let response: IntegrationType | undefined
 
-      const effectiveBaseId = baseId
+      const effectiveBaseId = baseId || activeProjectId.value
       if (effectiveBaseId && activeWorkspaceId.value) {
         response = (await $api.internal.postOperation(
           activeWorkspaceId.value,

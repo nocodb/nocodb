@@ -277,13 +277,13 @@ const handleCancel = () => {
               <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-2/9" data-rec="true">{{
                 $t('title.tokenName')
               }}</span>
-              <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-2/9 text-start" data-rec="true">{{
+              <span class="py-3.5 pl-2 text-nc-content-gray-muted font-medium text-3.5 w-2/9 text-start" data-rec="true">{{
                 $t('title.creator')
               }}</span>
-              <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-3/9 text-start" data-rec="true">{{
+              <span class="py-3.5 pl-2 text-nc-content-gray-muted font-medium text-3.5 w-3/9 text-start" data-rec="true">{{
                 $t('labels.token')
               }}</span>
-              <span class="py-3.5 pl-19 text-nc-content-gray-muted font-medium text-3.5 w-2/9 text-start" data-rec="true">{{
+              <span class="py-3.5 pl-5 lg:pl-19 text-nc-content-gray-muted font-medium text-3.5 w-2/9 text-start" data-rec="true">{{
                 $t('labels.actions')
               }}</span>
             </div>
@@ -346,24 +346,33 @@ const handleCancel = () => {
               >
                 <span class="text-nc-content-gray-extreme font-bold text-3.5 text-start w-2/9">
                   <div class="flex items-center gap-2">
-                    <GeneralTruncateText placement="top" :length="20">
+                    <NcTooltip class="truncate" show-on-truncate-only>
+                    <template #title>
                       {{ el.description }}
-                    </GeneralTruncateText>
+                    </template>
+                      {{ el.description }}
+                    </NcTooltip>
                     <NcTooltip v-if="el.fk_sso_client_id" placement="top">
                       <template #title>{{ $t('msg.ssoTokenTooltip') }}</template>
                       <NcBadge color="orange" class="!text-xs !py-0.5 !px-1.5 mr-4"> SSO </NcBadge>
                     </NcTooltip>
                   </div>
                 </span>
-                <span class="text-nc-content-gray-muted font-medium text-3.5 text-start w-2/9">
-                  <GeneralTruncateText placement="top" :length="20">
-                    {{ el.created_by }}
-                  </GeneralTruncateText>
+                <span class="pl-2 text-nc-content-gray-muted font-medium text-3.5 text-start w-2/9">
+                  <NcTooltip class="truncate" show-on-truncate-only>
+                    <template #title>
+                      {{ el.created_by }}
+                    </template>
+                      {{ el.created_by }}
+                  </NcTooltip>
                 </span>
-                <span class="text-nc-content-gray-muted font-medium text-3.5 text-start w-3/9 truncate">
-                  <GeneralTruncateText v-if="el.token === selectedToken.id && selectedToken.isShow" placement="top" :length="29">
+                <span class="pl-2 text-nc-content-gray-muted font-medium text-3.5 text-start w-3/9 truncate">
+                  <NcTooltip v-if="el.token === selectedToken.id && selectedToken.isShow" class="truncate" show-on-truncate-only>
+                    <template #title>
+                      {{ el.token }}
+                    </template>
                     {{ el.token }}
-                  </GeneralTruncateText>
+                  </NcTooltip>
                   <span v-else>************************************</span>
                 </span>
                 <!-- ACTIONS -->

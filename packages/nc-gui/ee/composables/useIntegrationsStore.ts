@@ -153,7 +153,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
       let list: IntegrationType[]
 
-c      // Only use base-scoped API when baseId is explicitly passed
+      // Only use base-scoped API when baseId is explicitly passed
       const effectiveBaseId = baseId
       if (effectiveBaseId) {
         try {

@@ -272,11 +272,18 @@ export class BaseIntegrationsService {
       param.integrationId,
     );
 
-    const bases = [];
-    for (const link of links) {
-      const base = await Base.get(context, link.base_id);
-      if (base) {
-        bases.push({ id: base.id, title: base.title });
+    const baseIds = links.map((l) => l.base_id).filter(Boolean) as string[];
+
+    const bases: { id: string; title: string }[] = [];
+
+    if (baseIds.length) {
+      const knex = Noco.ncMeta.knex;
+      const rows = await knex(MetaTable.PROJECT)
+        .select('id', 'title')
+        .whereIn('id', baseIds);
+
+      for (const row of rows) {
+        bases.push({ id: row.id, title: row.title });
       }
     }
 

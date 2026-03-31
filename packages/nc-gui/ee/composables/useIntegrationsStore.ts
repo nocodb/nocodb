@@ -280,13 +280,14 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     deleteConfirmText.value = null
   }
 
-  const updateIntegration = async (integration: IntegrationType) => {
+  const updateIntegration = async (integration: IntegrationType, baseId?: string) => {
     if (!integration.id) return
 
     $e('a:integration:update')
 
     try {
-      const effectiveBaseId = activeProjectId.value
+      // Only use base-scoped API when baseId is explicitly passed
+      const effectiveBaseId = baseId
 
       if (effectiveBaseId && activeWorkspaceId.value) {
         await $api.internal.postOperation(

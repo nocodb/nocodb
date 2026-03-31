@@ -343,7 +343,7 @@ export class ApiTokensV3Service {
         if (hasScopeUpdate) {
           await ApiTokenScope.deleteByTokenId(param.id, trx);
           if (scopesForUpdate.length) {
-            await ApiTokenScope.bulkInsert(param.id, scopesForUpdate, trx);
+            await ApiTokenScope.bulkInsert(param.id, scopesForUpdate, trx, { skipCache: true });
           }
         }
         await trx.commit();

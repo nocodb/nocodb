@@ -31,6 +31,7 @@ export default class ApiTokenScope implements ApiTokenScopeEntry {
   public static async insert(
     scope: Partial<ApiTokenScope>,
     ncMeta = Noco.ncMeta,
+    { skipCache = false } = {},
   ) {
     const insertData: Record<string, any> = {
       fk_api_token_id: scope.fk_api_token_id,
@@ -53,23 +54,27 @@ export default class ApiTokenScope implements ApiTokenScopeEntry {
       insertData,
     );
 
-    return this.get(result.id, ncMeta).then(async (res) => {
-      if (res) {
-        await NocoCache.appendToList(
-          'root',
-          CacheScope.API_TOKEN_SCOPE,
-          [scope.fk_api_token_id],
-          `${CacheScope.API_TOKEN_SCOPE}:${res.id}`,
-        );
-      }
-      return res;
-    });
+    const res = await this.get(result.id, ncMeta);
+
+    // Only populate cache if not inside a transaction (skipCache=true when
+    // called within a transaction — caller handles cache after commit)
+    if (res && !skipCache) {
+      await NocoCache.appendToList(
+        'root',
+        CacheScope.API_TOKEN_SCOPE,
+        [scope.fk_api_token_id],
+        `${CacheScope.API_TOKEN_SCOPE}:${res.id}`,
+      );
+    }
+
+    return res;
   }
 
   public static async bulkInsert(
     tokenId: string,
     scopes: ApiTokenScopeEntry[],
     ncMeta = Noco.ncMeta,
+    { skipCache = false } = {},
   ) {
     const results: ApiTokenScope[] = [];
     for (const scope of scopes) {
@@ -81,6 +86,7 @@ export default class ApiTokenScope implements ApiTokenScopeEntry {
           permissions: scope.permissions,
         },
         ncMeta,
+        { skipCache },
       );
       if (inserted) results.push(inserted);
     }

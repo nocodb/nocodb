@@ -97,6 +97,7 @@ export default class ApiToken extends ApiTokenCE {
               created.id,
               apiToken.scopes,
               trx,
+              { skipCache: true },
             );
           }
         }

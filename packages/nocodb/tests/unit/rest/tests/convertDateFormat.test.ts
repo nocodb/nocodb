@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { convertDateFormat } from '../../../../src/helpers/convertDateFormat';
 
 function convertDateFormatTests() {
-  describe.only('convertDateFormat', () => {
+  describe('convertDateFormat', () => {
     describe('allowlist validation', () => {
       it('should return correct format for known date formats (pg)', () => {
         expect(convertDateFormat('YYYY-MM-DD', 'pg')).to.equal('YYYY-MM-DD');

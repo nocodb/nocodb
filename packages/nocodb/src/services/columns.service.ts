@@ -464,7 +464,7 @@ export class ColumnsService implements IColumnsService {
     const column = await Column.get(context, { colId: param.columnId });
     const oldColumn = deepClone(column);
 
-    validateDateFormatMeta(context, param.column.meta);
+    validateDateFormatMeta(context, (param.column as any)?.meta);
 
     const table = await reuseOrSave('table', reuse, async () =>
       Model.getWithInfo(context, {
@@ -2605,7 +2605,7 @@ export class ColumnsService implements IColumnsService {
       context,
     );
 
-    validateDateFormatMeta(context, param.column.meta);
+    validateDateFormatMeta(context, (param.column as any)?.meta ?? {});
 
     const reuse = param.reuse || {};
 
@@ -6641,18 +6641,14 @@ export class ColumnsService implements IColumnsService {
         // Update cached fk_relation_column_id for dependent lookup/rollup columns
         // that were retargeted from hmColumn → newLtarCol during the transaction.
         for (const colId of dependentLookupColIds) {
-          await NocoCache.update(
-            context,
-            `${CacheScope.COL_LOOKUP}:${colId}`,
-            { fk_relation_column_id: newLtarCol.id },
-          );
+          await NocoCache.update(context, `${CacheScope.COL_LOOKUP}:${colId}`, {
+            fk_relation_column_id: newLtarCol.id,
+          });
         }
         for (const colId of dependentRollupColIds) {
-          await NocoCache.update(
-            context,
-            `${CacheScope.COL_ROLLUP}:${colId}`,
-            { fk_relation_column_id: newLtarCol.id },
-          );
+          await NocoCache.update(context, `${CacheScope.COL_ROLLUP}:${colId}`, {
+            fk_relation_column_id: newLtarCol.id,
+          });
         }
       }
 

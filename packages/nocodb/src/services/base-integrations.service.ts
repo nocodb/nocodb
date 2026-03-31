@@ -48,6 +48,7 @@ export class BaseIntegrationsService {
         `${MetaTable.INTEGRATIONS}.is_restricted`,
         `${MetaTable.INTEGRATIONS}.created_by`,
         `${MetaTable.INTEGRATIONS}.meta`,
+        `${MetaTable.INTEGRATIONS}.created_at`,
       )
       .where(`${MetaTable.INTEGRATIONS}.fk_workspace_id`, workspaceId)
       .where(`${MetaTable.INTEGRATIONS}.deleted`, false)

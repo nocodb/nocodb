@@ -1231,7 +1231,10 @@ const _tiptapEditor = useEditor({
 
         // First empty block in document: delete it when there are siblings below.
         // ProseMirror's default joinBackward can't remove the very first block.
-        if ($from.index(0) === 0 && $from.parent.content.size === 0 && state.doc.childCount > 1) {
+        // Only apply when the paragraph is a direct child of the doc (depth === 1),
+        // not when nested inside a list or other wrapper — otherwise the entire
+        // wrapper (e.g. bulletList) gets deleted instead of just the empty item.
+        if ($from.depth === 1 && $from.index(0) === 0 && $from.parent.content.size === 0 && state.doc.childCount > 1) {
           const topPos = $from.before(1)
           const topNode = state.doc.child(0)
           const tr = state.tr.delete(topPos, topPos + topNode.nodeSize)

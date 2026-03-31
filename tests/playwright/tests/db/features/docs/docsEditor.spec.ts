@@ -256,6 +256,47 @@ test.describe('Docs — Editor Content', () => {
     await expect(tiptap.get().locator('.nc-callout')).toContainText('Warning message');
   });
 
+  test('Backspace on empty first list item should not delete entire list', async ({ page }) => {
+    const tiptap = dashboard.docs.openedPage.tiptap;
+
+    // Insert a bullet list with 3 items
+    await tiptap.addNewNode({ type: 'Bullet List' });
+    await page.keyboard.type('First item');
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('Second item');
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('Third item');
+
+    // Exit the list by pressing Enter twice (creates empty item, then exits list)
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Enter');
+
+    // Add a paragraph after the list — the bug requires multiple top-level nodes
+    await page.keyboard.type('Some text after the list');
+
+    // Verify 3 list items exist and the trailing paragraph
+    await expect(tiptap.get().locator('ul li')).toHaveCount(3);
+    await expect(tiptap.get().locator('p')).toContainText(['Some text after the list']);
+
+    // Triple-click the first list item's paragraph to select all its text
+    const firstLiParagraph = tiptap.get().locator('ul li').first().locator('p');
+    await firstLiParagraph.click({ clickCount: 3 });
+
+    // Delete the selected text — first item is now empty
+    await page.keyboard.press('Backspace');
+    await expect(tiptap.get().locator('ul li')).toHaveCount(3);
+
+    // Press Backspace on the empty first list item — this should lift it
+    // out of the list, NOT delete the entire list
+    await page.keyboard.press('Backspace');
+
+    // The list should still exist with the remaining items
+    await expect(tiptap.get().locator('ul')).toBeVisible();
+    await expect(tiptap.get().locator('ul li')).toHaveCount(2);
+    await expect(tiptap.get().locator('ul')).toContainText('Second item');
+    await expect(tiptap.get().locator('ul')).toContainText('Third item');
+  });
+
   test('Text formatting — bold, italic, underline via keyboard shortcuts', async ({ page }) => {
     const tiptap = dashboard.docs.openedPage.tiptap;
 

@@ -63,12 +63,16 @@ const handleAddIntegration = async (integration: IntegrationItemType) => {
 }
 
 // Auto-link newly created integrations to this base
-eventBus.on(async (event: string, payload: any) => {
+const unsubscribeEventBus = eventBus.on(async (event: string, payload: any) => {
   if (event === IntegrationStoreEvents.INTEGRATION_ADD && payload?.id) {
     await linkIntegration(baseId.value, payload.id)
     activeTab.value = 'connections'
     await reload()
   }
+})
+
+onBeforeUnmount(() => {
+  unsubscribeEventBus()
 })
 
 const collaboratorsMap = computed<Map<string, any>>(() => {

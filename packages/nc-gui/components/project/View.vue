@@ -270,7 +270,7 @@ watch(
 
 watch(
   () => currentBase.value?.id,
-  (newBaseId) => {
+  () => {
     /**
      * When the current base ID changes, reset the integrations array.
      * This ensures that the integration data is cleared, allowing it to be reloaded

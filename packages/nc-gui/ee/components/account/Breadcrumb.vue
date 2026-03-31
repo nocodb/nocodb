@@ -43,6 +43,26 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
     return payload
   }
 
+  // Handle /account/tokens and /account/tokens/new (specific routes)
+  if (route.path.startsWith('/account/tokens')) {
+    if (route.path.endsWith('/new')) {
+      payload.push({
+        title: t('title.tokens'),
+        path: '/account/tokens',
+      })
+      payload.push({
+        title: t('general.create'),
+        active: true,
+      })
+    } else {
+      payload.push({
+        title: t('title.tokens'),
+        active: true,
+      })
+    }
+    return payload
+  }
+
   switch (route.params.page) {
     case 'profile': {
       payload.push({

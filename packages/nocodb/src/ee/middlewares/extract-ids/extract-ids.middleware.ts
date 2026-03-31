@@ -67,6 +67,7 @@ import { NcError } from '~/helpers/catchError';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { beforeAclValidationHook } from '~/middlewares/extract-ids/extract-ids.helpers';
+import { checkTokenPermission } from '~/utils/apiTokenPermissionMap';
 import { RootScopes } from '~/utils/globals';
 import SSOClient from '~/models/SSOClient';
 import {
@@ -1541,6 +1542,19 @@ export class AclMiddleware implements NestInterceptor {
       //     Object.keys(roles).filter((k) => roles[k]),
       //   )} : Not allowed`,
       // );
+    }
+
+    // Fine-grained API token permission check (intersection model)
+    // After role-based ACL passes, further restrict based on token permissions
+    if (req?.user?.is_api_token && req.user?.api_token_meta?.permissions) {
+      const tokenCategories =
+        req.user.api_token_meta.permissions.categories;
+
+      if (!checkTokenPermission(tokenCategories, permissionName)) {
+        NcError.forbidden(
+          `API token does not have permission to ${permissionName}. Required permission not granted.`,
+        );
+      }
     }
 
     // Check table visibility permission after default ACL check

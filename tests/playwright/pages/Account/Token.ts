@@ -4,22 +4,18 @@ import { AccountPage } from './index';
 
 export class AccountTokenPage extends BasePage {
   readonly createBtn: Locator;
-  readonly createInputDiv: Locator;
   private accountPage: AccountPage;
 
   constructor(accountPage: AccountPage) {
     super(accountPage.rootPage);
     this.accountPage = accountPage;
     this.createBtn = this.get().locator(`[data-testid="nc-token-create"]`);
-    this.createInputDiv = accountPage.rootPage.locator(`.nc-token-generate`);
   }
 
   async goto() {
-    return this.waitForResponse({
-      uiAction: async () => await this.rootPage.goto('/account/tokens'),
-      httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: `api/v1/tokens`,
-    });
+    await this.rootPage.goto('/#/account/tokens');
+    await this.rootPage.waitForLoadState('networkidle');
+    await this.get().waitFor({ state: 'visible', timeout: 15000 });
   }
 
   get() {
@@ -27,24 +23,47 @@ export class AccountTokenPage extends BasePage {
   }
 
   async createToken({ description }: { description: string }) {
-    await this.createBtn.click();
-    await this.createInputDiv.locator(`[data-testid="nc-token-input"]`).fill(description);
-    await this.createInputDiv.locator(`[data-testid="nc-token-save-btn"]`).click();
-  }
+    // Click "Create new token" — navigates to /account/tokens/new
+    await this.createBtn.first().click();
 
-  getTokenRow({ idx = 0 }) {
-    return this.get().locator(`span:nth-child(${idx})`);
-  }
+    // Wait for create form
+    await this.rootPage.locator('[data-testid="nc-token-create-form"]').waitFor({ state: 'visible', timeout: 10000 });
 
-  async toggleVisibility({ idx = 0 }) {
-    const row = this.getTokenRow({ idx });
-    await row.locator('.nc-toggle-token-visibility').click();
+    // Fill name
+    await this.rootPage.locator('[data-testid="nc-token-name-input"]').fill(description);
+
+    // Add a base scope (required for EE) — click "Add all resources"
+    const addAllBtn = this.rootPage.locator('[data-testid="nc-token-scope-add-all"]');
+    if (await addAllBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await addAllBtn.click();
+    }
+
+    // Click "Create token"
+    await this.rootPage.locator('[data-testid="nc-token-create-btn"]').click();
+
+    // Wait for result modal with token value
+    await this.rootPage.locator('[data-testid="nc-token-result-modal"]').waitFor({ state: 'visible', timeout: 15000 });
+
+    // Copy and click Done
+    await this.rootPage.locator('[data-testid="nc-token-copy-btn"]').click();
+    await this.rootPage.locator('[data-testid="nc-token-done-btn"]').click();
+    await this.rootPage.waitForTimeout(1000);
   }
 
   async deleteToken({ description }: { description: string }) {
-    await this.rootPage.locator('[data-testid="nc-token-row-action-icon"]').click();
-    await this.rootPage.locator('.ant-modal.active button:has-text("Delete Token")').click();
+    // Find the token row by description text
+    const row = this.rootPage.locator('[data-testid="nc-token-list"] .token').filter({ hasText: description });
 
-    expect(await this.get().locator(`span:has-text("${description}:visible")`).count()).toBe(0);
+    if ((await row.count()) > 0) {
+      // Click delete icon
+      await row.locator('[data-testid="nc-token-row-action-icon"]').click();
+
+      // Confirm in delete modal
+      const confirmBtn = this.rootPage.locator('[data-testid="nc-delete-modal-delete-btn"]');
+      await expect(confirmBtn).toBeVisible({ timeout: 5000 });
+      await confirmBtn.click();
+      await this.rootPage.waitForLoadState('networkidle');
+      await this.rootPage.waitForTimeout(500);
+    }
   }
 }

@@ -6,6 +6,7 @@ import type {
   ApiCreatedEvent,
   ApiTokenCreateEvent,
   ApiTokenDeleteEvent,
+  ApiTokenUpdateEvent,
   AttachmentEvent,
   BaseDuplicateEvent,
   CalendarViewUpdateEvent,
@@ -319,6 +320,7 @@ export class AppHooksService {
   emit(event: AppEvents.META_DIFF_SYNC, data: MetaDiffEvent): void;
   emit(event: AppEvents.UI_ACL, data: UIAclEvent): void;
   emit(event: AppEvents.ORG_API_TOKEN_CREATE, data: ApiTokenCreateEvent): void;
+  emit(event: AppEvents.ORG_API_TOKEN_UPDATE, data: ApiTokenUpdateEvent): void;
   emit(event: AppEvents.ORG_API_TOKEN_DELETE, data: ApiTokenDeleteEvent): void;
   emit(
     event: AppEvents.USER_EMAIL_VERIFICATION,

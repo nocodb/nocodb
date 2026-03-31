@@ -69,6 +69,7 @@ import type {
   ApiCreatedEvent,
   ApiTokenCreateEvent,
   ApiTokenDeleteEvent,
+  ApiTokenUpdateEvent,
   AttachmentEvent,
   BaseDuplicateEvent,
   CalendarViewUpdateEvent,
@@ -658,6 +659,7 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.GRID_COLUMN_UPDATE, data: GridColumnEvent): void;
   emit(event: AppEvents.META_DIFF_SYNC, data: MetaDiffEvent): void;
   emit(event: AppEvents.ORG_API_TOKEN_CREATE, data: ApiTokenCreateEvent): void;
+  emit(event: AppEvents.ORG_API_TOKEN_UPDATE, data: ApiTokenUpdateEvent): void;
   emit(event: AppEvents.ORG_API_TOKEN_DELETE, data: ApiTokenDeleteEvent): void;
   emit(
     event: AppEvents.USER_EMAIL_VERIFICATION,

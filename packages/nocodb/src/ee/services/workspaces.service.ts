@@ -167,7 +167,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
       roles?: string;
       extra?: Record<string, any>;
     };
-    req: NcRequest;
+    req?: NcRequest;
   }) {
     let workspaces = await WorkspaceUser.workspaceList({
       fk_user_id: param.user.id,
@@ -175,7 +175,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
       // fk_workspace_id: param.user.extra?.woorkspace_id,
     });
 
-    if (!workspaces.length && param.req.user?.id) {
+    if (!workspaces.length && param.req?.user?.id) {
       // create a default workspace if empty
       await this.createDefaultWorkspace(param.req.user, param.req);
 

@@ -9,6 +9,7 @@ import { AppHooksListenerService as AppHooksListenerServiceCE } from 'src/servic
 import type {
   APITokenCreatePayload,
   APITokenDeletePayload,
+  APITokenUpdatePayload,
   BaseCreatePayload,
   BaseDeletePayload,
   BaseDuplicatePayload,
@@ -135,6 +136,7 @@ import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type {
   ApiTokenCreateEvent,
   ApiTokenDeleteEvent,
+  ApiTokenUpdateEvent,
   BaseDuplicateEvent,
   BaseTeamDeleteEvent,
   BaseTeamInviteEvent,
@@ -3062,6 +3064,30 @@ export class AppHooksListenerService
                 details: {
                   token_title: param.tokenTitle,
                   token_id: param.tokenId + '',
+                },
+                context: param.context,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+
+      case AppEvents.API_TOKEN_UPDATE:
+      case AppEvents.ORG_API_TOKEN_UPDATE:
+        {
+          const param = data as ApiTokenUpdateEvent;
+
+          await this.auditInsert(
+            await generateAuditV1Payload<APITokenUpdatePayload>(
+              AuditV1OperationTypes.API_TOKEN_UPDATE,
+              {
+                details: {
+                  token_title: param.tokenTitle,
+                  token_id: param.tokenId + '',
+                  scope_count: param.scopeCount,
+                  permission_categories: param.permissionCategories,
+                  has_expiry: param.hasExpiry,
                 },
                 context: param.context,
                 req: param.req,

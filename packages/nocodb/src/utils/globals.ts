@@ -126,6 +126,7 @@ export enum MetaTable {
   CHAT_MESSAGES = 'nc_chat_messages',
   DOCS = 'nc_docs_v2',
   DOC_CONTENT = 'nc_doc_content_v2',
+  API_TOKEN_SCOPES = 'nc_api_token_scopes',
 }
 
 export const BaseRelatedMetaTables = [
@@ -231,6 +232,7 @@ export const orderedMetaTables = [
   MetaTable.ORGS_OLD,
 
   // User-related
+  MetaTable.API_TOKEN_SCOPES,
   MetaTable.API_TOKENS,
   MetaTable.PROJECT_USERS,
   MetaTable.WORKSPACE_USER,
@@ -502,6 +504,7 @@ export enum CacheScope {
   CHAT_SESSION = 'chatSession',
   DOCUMENT = 'document',
   DOC_CONTENT = 'docContent',
+  API_TOKEN_SCOPE = 'apiTokenScope',
 }
 
 export enum CacheGetType {
@@ -540,6 +543,7 @@ export const RootScopeTables = {
     MetaTable.USERS,
     MetaTable.USER_REFRESH_TOKENS,
     MetaTable.API_TOKENS,
+    MetaTable.API_TOKEN_SCOPES,
     MetaTable.FOLLOWER,
     MetaTable.PLUGIN,
     MetaTable.DB_MUX,

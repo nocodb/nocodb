@@ -273,17 +273,17 @@ const handleCancel = () => {
           }"
         >
           <div class="h-full w-full overflow-y-auto rounded-md">
-            <div class="flex w-full pl-5 bg-nc-bg-gray-extralight border-1 rounded-t-md">
+            <div class="flex justify-between w-full pl-5 bg-nc-bg-gray-extralight border-1 rounded-t-md">
               <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-2/9" data-rec="true">{{
                 $t('title.tokenName')
               }}</span>
-              <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-2/9 text-start" data-rec="true">{{
+              <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-1/9 lg:w-2/9 text-start" data-rec="true">{{
                 $t('title.creator')
               }}</span>
               <span class="py-3.5 text-nc-content-gray-muted font-medium text-3.5 w-3/9 text-start" data-rec="true">{{
                 $t('labels.token')
               }}</span>
-              <span class="py-3.5 pl-19 text-nc-content-gray-muted font-medium text-3.5 w-2/9 text-start" data-rec="true">{{
+              <span class="py-3.5 pl-5 lg:pl-19 text-nc-content-gray-muted font-medium text-3.5 w-2/9 text-start" data-rec="true">{{
                 $t('labels.actions')
               }}</span>
             </div>
@@ -355,7 +355,7 @@ const handleCancel = () => {
                     </NcTooltip>
                   </div>
                 </span>
-                <span class="text-nc-content-gray-muted font-medium text-3.5 text-start w-2/9">
+                <span class="text-nc-content-gray-muted font-medium text-3.5 text-start lg:w-2/9 w-1/9 truncate">
                   <GeneralTruncateText placement="top" :length="20">
                     {{ el.created_by }}
                   </GeneralTruncateText>

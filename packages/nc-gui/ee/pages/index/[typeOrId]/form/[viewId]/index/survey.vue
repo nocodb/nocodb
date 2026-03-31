@@ -287,7 +287,7 @@ const { message: templatedMessage } = useTemplatedMessage(
   <div class="h-full">
     <div class="survey md:p-0 w-full h-full flex flex-col max-w-[max(33%,688px)] mx-auto mb-4rem lg:mb-10rem">
       <div v-if="sharedFormView" class="my-auto z-2">
-        <template v-if="isFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING) && (isFormNotStarted || isFormExpired)">
+        <template v-if="isFormNotStarted || isFormExpired">
           <GeneralFormBanner
             v-if="sharedFormView && !parseProp(sharedFormView?.meta).hide_banner"
             :banner-image-url="sharedFormView.banner_image_url"
@@ -525,7 +525,6 @@ const { message: templatedMessage } = useTemplatedMessage(
 
                 <div class="ml-1 mt-4 flex w-full items-center text-lg">
                   <SmartsheetFormExpiryIndicator
-                    v-if="isFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING)"
                     :expires-at="sharedFormView?.expires_at"
                     :show-always="!!parseProp(sharedFormView?.meta)?.show_expiry_timer"
                   />

@@ -13,12 +13,14 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { expiresAt, showAlways } = toRefs(props)
 
+const { showEEFeatures } = useEeConfig()
+
 const remaining = ref({ days: 0, hours: 0, minutes: 0, seconds: 0, totalSeconds: 0 })
 
 let intervalId: ReturnType<typeof setInterval> | null = null
 
 const isActive = computed(() => {
-  if (!expiresAt.value) return false
+  if (!showEEFeatures.value || !expiresAt.value) return false
   return dayjs.utc(expiresAt.value).isAfter(dayjs.utc())
 })
 

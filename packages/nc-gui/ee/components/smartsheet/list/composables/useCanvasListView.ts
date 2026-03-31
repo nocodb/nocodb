@@ -1,5 +1,22 @@
-import type { ColumnType, DataPayload, FilterType, FormulaType, GridColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { EventType, PermissionEntity, PermissionKey, RelationTypes, UITypes, isLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import type {
+  ColumnType,
+  DataPayload,
+  FilterType,
+  FormulaType,
+  GridColumnType,
+  LinkToAnotherRecordType,
+  TableType,
+} from 'nocodb-sdk'
+import {
+  EventType,
+  PermissionEntity,
+  PermissionKey,
+  RelationTypes,
+  UITypes,
+  isLTAR,
+  isSystemColumn,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import type { ListActiveCell, ListCanvasElement } from './types'
 import {
   ADD_ROW_HEIGHT,
@@ -188,7 +205,14 @@ export function useCanvasListView({
           }
 
           if (cachedRow.__nc_parent_id && depth > 0) {
-            pruneEmptyParents(cachedRows.value, chunkStates.value, totalRows, levelCounts.value, cachedRow.__nc_parent_id, depth - 1)
+            pruneEmptyParents(
+              cachedRows.value,
+              chunkStates.value,
+              totalRows,
+              levelCounts.value,
+              cachedRow.__nc_parent_id,
+              depth - 1,
+            )
           }
         } else if (isSortAffected({ [property]: newVal }, depth)) {
           cachedRow.__nc_sort_moved = true
@@ -293,9 +317,18 @@ export function useCanvasListView({
       removeRowsAndShift(cachedRows.value, chunkStates.value, subtreeIndices)
 
       const parentPk = current.row.__nc_parent_id
-      const parentIndex = depth > 0 && parentPk ? findCachedRowByPk(cachedRows.value, String(parentPk), depth - 1)?.index ?? null : null
+      const parentIndex =
+        depth > 0 && parentPk ? findCachedRowByPk(cachedRows.value, String(parentPk), depth - 1)?.index ?? null : null
 
-      const newInsertAt = findSortedInsertIndex(cachedRows.value, totalRows.value, current.row, depth, parentIndex, getSortFieldsForDepth(depth), getColumnsByIdForDepth(depth))
+      const newInsertAt = findSortedInsertIndex(
+        cachedRows.value,
+        totalRows.value,
+        current.row,
+        depth,
+        parentIndex,
+        getSortFieldsForDepth(depth),
+        getColumnsByIdForDepth(depth),
+      )
       insertRowsAt(cachedRows.value, chunkStates.value, newInsertAt, subtreeRows)
       changed = true
     }
@@ -1129,8 +1162,7 @@ export function useCanvasListView({
   function getFiltersForLevel(levelId: string): FilterType[] {
     const saved = (allFilters.value ?? []).filter((f: any) => f.fk_level_id === levelId)
 
-    const draft = (nestedFilters.value ?? [])
-      .filter((f: any) => !f.id && f.fk_level_id === levelId)
+    const draft = (nestedFilters.value ?? []).filter((f: any) => !f.id && f.fk_level_id === levelId)
 
     return [...saved, ...draft] as FilterType[]
   }
@@ -1282,7 +1314,15 @@ export function useCanvasListView({
 
         if (depth === 0) {
           // Root level: find sorted position among depth-0 siblings
-          insertAt = findSortedInsertIndex(cachedRows.value, totalRows.value, newRow, depth, null, getSortFieldsForDepth(depth), getColumnsByIdForDepth(depth))
+          insertAt = findSortedInsertIndex(
+            cachedRows.value,
+            totalRows.value,
+            newRow,
+            depth,
+            null,
+            getSortFieldsForDepth(depth),
+            getColumnsByIdForDepth(depth),
+          )
         } else {
           // Non-root: resolve parent PK from the payload's FK column
           const parentPk = resolveParentPkFromPayload(depth, payload)
@@ -1321,7 +1361,15 @@ export function useCanvasListView({
           }
 
           // Find sorted position among siblings under this parent
-          insertAt = findSortedInsertIndex(cachedRows.value, totalRows.value, newRow, depth, parent.index, getSortFieldsForDepth(depth), getColumnsByIdForDepth(depth))
+          insertAt = findSortedInsertIndex(
+            cachedRows.value,
+            totalRows.value,
+            newRow,
+            depth,
+            parent.index,
+            getSortFieldsForDepth(depth),
+            getColumnsByIdForDepth(depth),
+          )
         }
 
         // Check if insertion point falls within the cached window
@@ -1401,7 +1449,14 @@ export function useCanvasListView({
 
               // Check if this row's parent is now childless → prune cascade
               if (cachedRow.__nc_parent_id && depth > 0) {
-                pruneEmptyParents(cachedRows.value, chunkStates.value, totalRows, levelCounts.value, cachedRow.__nc_parent_id, depth - 1)
+                pruneEmptyParents(
+                  cachedRows.value,
+                  chunkStates.value,
+                  totalRows,
+                  levelCounts.value,
+                  cachedRow.__nc_parent_id,
+                  depth - 1,
+                )
               }
             } else if (levelId && payload) {
               // Row still passes filters — check if sort position needs to change
@@ -1413,10 +1468,19 @@ export function useCanvasListView({
 
                 // Find the parent index (may have shifted after removal)
                 const parentPk = cachedRow.__nc_parent_id
-                const parentIndex = depth > 0 && parentPk ? findCachedRowByPk(cachedRows.value, parentPk, depth - 1)?.index ?? null : null
+                const parentIndex =
+                  depth > 0 && parentPk ? findCachedRowByPk(cachedRows.value, parentPk, depth - 1)?.index ?? null : null
 
                 // Find new sorted position and re-insert the entire subtree
-                const newInsertAt = findSortedInsertIndex(cachedRows.value, totalRows.value, cachedRow, depth, parentIndex, getSortFieldsForDepth(depth), getColumnsByIdForDepth(depth))
+                const newInsertAt = findSortedInsertIndex(
+                  cachedRows.value,
+                  totalRows.value,
+                  cachedRow,
+                  depth,
+                  parentIndex,
+                  getSortFieldsForDepth(depth),
+                  getColumnsByIdForDepth(depth),
+                )
                 insertRowsAt(cachedRows.value, chunkStates.value, newInsertAt, subtreeRows)
               }
             }
@@ -1454,7 +1518,15 @@ export function useCanvasListView({
             return
           }
 
-          const insertAt = findSortedInsertIndex(cachedRows.value, totalRows.value, payload, depth, parentIndex, getSortFieldsForDepth(depth), getColumnsByIdForDepth(depth))
+          const insertAt = findSortedInsertIndex(
+            cachedRows.value,
+            totalRows.value,
+            payload,
+            depth,
+            parentIndex,
+            getSortFieldsForDepth(depth),
+            getColumnsByIdForDepth(depth),
+          )
 
           // Determine the currently cached index range
           const cachedKeys = Array.from(cachedRows.value.keys())
@@ -1556,8 +1628,17 @@ export function useCanvasListView({
               targetIndex = beforeRow ? beforeRow.index : totalRows.value
             } else {
               const parentPk = cachedRow.__nc_parent_id
-              const parentIndex = depth > 0 && parentPk ? findCachedRowByPk(cachedRows.value, parentPk, depth - 1)?.index ?? null : null
-              targetIndex = findSortedInsertIndex(cachedRows.value, totalRows.value, cachedRow, depth, parentIndex, getSortFieldsForDepth(depth), getColumnsByIdForDepth(depth))
+              const parentIndex =
+                depth > 0 && parentPk ? findCachedRowByPk(cachedRows.value, parentPk, depth - 1)?.index ?? null : null
+              targetIndex = findSortedInsertIndex(
+                cachedRows.value,
+                totalRows.value,
+                cachedRow,
+                depth,
+                parentIndex,
+                getSortFieldsForDepth(depth),
+                getColumnsByIdForDepth(depth),
+              )
             }
 
             insertRowsAt(cachedRows.value, chunkStates.value, targetIndex, subtreeRows)

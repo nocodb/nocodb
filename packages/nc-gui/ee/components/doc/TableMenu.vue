@@ -11,7 +11,7 @@
  */
 import type { Editor } from '@tiptap/vue-3'
 import { TextSelection } from '@tiptap/pm/state'
-import { TEXT_COLORS, CELL_BG_COLORS } from './DocColorConstants'
+import { CELL_BG_COLORS, TEXT_COLORS } from './DocColorConstants'
 
 // px — gap between adjacent handles
 

@@ -62,7 +62,11 @@ describe('removeRowsAndShift', () => {
 
     removeRowsAndShift(cache, chunks, [1])
 
-    expect(cacheEntries(cache)).toEqual([[0, 'A'], [1, 'C'], [2, 'D']])
+    expect(cacheEntries(cache)).toEqual([
+      [0, 'A'],
+      [1, 'C'],
+      [2, 'D'],
+    ])
     expect(chunks[0]).toBeUndefined()
   })
 
@@ -77,7 +81,11 @@ describe('removeRowsAndShift', () => {
 
     removeRowsAndShift(cache, chunks, [1, 3])
 
-    expect(cacheEntries(cache)).toEqual([[0, 'A'], [1, 'C'], [2, 'E']])
+    expect(cacheEntries(cache)).toEqual([
+      [0, 'A'],
+      [1, 'C'],
+      [2, 'E'],
+    ])
   })
 
   it('handles sparse cache (windowed)', () => {
@@ -91,7 +99,12 @@ describe('removeRowsAndShift', () => {
 
     removeRowsAndShift(cache, chunks, [52])
 
-    expect(cacheEntries(cache)).toEqual([[50, 'A'], [51, 'B'], [52, 'D'], [53, 'E']])
+    expect(cacheEntries(cache)).toEqual([
+      [50, 'A'],
+      [51, 'B'],
+      [52, 'D'],
+      [53, 'E'],
+    ])
   })
 
   it('removes contiguous subtree', () => {
@@ -106,7 +119,11 @@ describe('removeRowsAndShift', () => {
 
     removeRowsAndShift(cache, chunks, [2, 3, 4])
 
-    expect(cacheEntries(cache)).toEqual([[0, 'P1'], [1, 'C1'], [2, 'P3']])
+    expect(cacheEntries(cache)).toEqual([
+      [0, 'P1'],
+      [1, 'C1'],
+      [2, 'P3'],
+    ])
   })
 })
 
@@ -119,7 +136,11 @@ describe('insertRowsAt', () => {
 
     insertRowsAt(cache, chunks, 0, [makeRow(0, 'A', null, 't1')])
 
-    expect(cacheEntries(cache)).toEqual([[0, 'A'], [1, 'B'], [2, 'C']])
+    expect(cacheEntries(cache)).toEqual([
+      [0, 'A'],
+      [1, 'B'],
+      [2, 'C'],
+    ])
   })
 
   it('inserts in middle', () => {
@@ -130,7 +151,11 @@ describe('insertRowsAt', () => {
 
     insertRowsAt(cache, chunks, 1, [makeRow(0, 'B', null, 't1')])
 
-    expect(cacheEntries(cache)).toEqual([[0, 'A'], [1, 'B'], [2, 'C']])
+    expect(cacheEntries(cache)).toEqual([
+      [0, 'A'],
+      [1, 'B'],
+      [2, 'C'],
+    ])
   })
 
   it('inserts at end', () => {
@@ -141,7 +166,11 @@ describe('insertRowsAt', () => {
 
     insertRowsAt(cache, chunks, 2, [makeRow(0, 'C', null, 't1')])
 
-    expect(cacheEntries(cache)).toEqual([[0, 'A'], [1, 'B'], [2, 'C']])
+    expect(cacheEntries(cache)).toEqual([
+      [0, 'A'],
+      [1, 'B'],
+      [2, 'C'],
+    ])
   })
 
   it('inserts multiple rows (subtree)', () => {
@@ -152,7 +181,12 @@ describe('insertRowsAt', () => {
 
     insertRowsAt(cache, chunks, 1, [makeRow(1, 'C1', 'P1', 't2'), makeRow(1, 'C2', 'P1', 't2')])
 
-    expect(cacheEntries(cache)).toEqual([[0, 'P1'], [1, 'C1'], [2, 'C2'], [3, 'P2']])
+    expect(cacheEntries(cache)).toEqual([
+      [0, 'P1'],
+      [1, 'C1'],
+      [2, 'C2'],
+      [3, 'P2'],
+    ])
   })
 
   it('handles sparse cache', () => {
@@ -164,7 +198,12 @@ describe('insertRowsAt', () => {
 
     insertRowsAt(cache, chunks, 51, [makeRow(0, 'X', null, 't1')])
 
-    expect(cacheEntries(cache)).toEqual([[50, 'A'], [51, 'X'], [52, 'B'], [53, 'C']])
+    expect(cacheEntries(cache)).toEqual([
+      [50, 'A'],
+      [51, 'X'],
+      [52, 'B'],
+      [53, 'C'],
+    ])
     expect(chunks[1]).toBeUndefined()
   })
 })
@@ -228,7 +267,17 @@ describe('findSortedInsertIndex', () => {
     cache.set(1, makeRow(0, 'B', null, 't1', { name: 'Charlie' }))
     cache.set(2, makeRow(0, 'C', null, 't1', { name: 'Echo' }))
 
-    expect(findSortedInsertIndex(cache, 3, { name: 'Beta' }, 0, null, [{ title: 'name', fk_column_id: 'col_name', direction: 'asc' }], cols)).toBe(1)
+    expect(
+      findSortedInsertIndex(
+        cache,
+        3,
+        { name: 'Beta' },
+        0,
+        null,
+        [{ title: 'name', fk_column_id: 'col_name', direction: 'asc' }],
+        cols,
+      ),
+    ).toBe(1)
   })
 
   it('DESC sort — inserts in correct position', () => {
@@ -237,7 +286,17 @@ describe('findSortedInsertIndex', () => {
     cache.set(1, makeRow(0, 'B', null, 't1', { name: 'Charlie' }))
     cache.set(2, makeRow(0, 'C', null, 't1', { name: 'Alpha' }))
 
-    expect(findSortedInsertIndex(cache, 3, { name: 'Delta' }, 0, null, [{ title: 'name', fk_column_id: 'col_name', direction: 'desc' }], cols)).toBe(1)
+    expect(
+      findSortedInsertIndex(
+        cache,
+        3,
+        { name: 'Delta' },
+        0,
+        null,
+        [{ title: 'name', fk_column_id: 'col_name', direction: 'desc' }],
+        cols,
+      ),
+    ).toBe(1)
   })
 
   it('multi-column sort', () => {
@@ -261,7 +320,17 @@ describe('findSortedInsertIndex', () => {
     cache.set(2, makeRow(1, 'C2', 'P1', 't2', { name: 'Charlie' }))
     cache.set(3, makeRow(0, 'P2', null, 't1'))
 
-    expect(findSortedInsertIndex(cache, 4, { name: 'Beta' }, 1, 0, [{ title: 'name', fk_column_id: 'col_name', direction: 'asc' }], cols)).toBe(2)
+    expect(
+      findSortedInsertIndex(
+        cache,
+        4,
+        { name: 'Beta' },
+        1,
+        0,
+        [{ title: 'name', fk_column_id: 'col_name', direction: 'asc' }],
+        cols,
+      ),
+    ).toBe(2)
   })
 
   it('insert first child of parent (no existing siblings)', () => {
@@ -269,7 +338,17 @@ describe('findSortedInsertIndex', () => {
     cache.set(0, makeRow(0, 'P1', null, 't1'))
     cache.set(1, makeRow(0, 'P2', null, 't1'))
 
-    expect(findSortedInsertIndex(cache, 2, { name: 'Child' }, 1, 0, [{ title: 'name', fk_column_id: 'col_name', direction: 'asc' }], cols)).toBe(1)
+    expect(
+      findSortedInsertIndex(
+        cache,
+        2,
+        { name: 'Child' },
+        1,
+        0,
+        [{ title: 'name', fk_column_id: 'col_name', direction: 'asc' }],
+        cols,
+      ),
+    ).toBe(1)
   })
 
   it('numeric sort', () => {
@@ -278,7 +357,17 @@ describe('findSortedInsertIndex', () => {
     cache.set(1, makeRow(0, 'B', null, 't1', { score: 30 }))
     cache.set(2, makeRow(0, 'C', null, 't1', { score: 50 }))
 
-    expect(findSortedInsertIndex(cache, 3, { score: 25 }, 0, null, [{ title: 'score', fk_column_id: 'col_score', direction: 'asc' }], colsNum)).toBe(1)
+    expect(
+      findSortedInsertIndex(
+        cache,
+        3,
+        { score: 25 },
+        0,
+        null,
+        [{ title: 'score', fk_column_id: 'col_score', direction: 'asc' }],
+        colsNum,
+      ),
+    ).toBe(1)
   })
 })
 
@@ -380,7 +469,15 @@ describe('integration: ADD cache window handling', () => {
     cache.set(1, makeRow(0, 'C', null, 't1', { name: 'Charlie' }))
 
     const newRow = makeRow(0, 'B', null, 't1', { name: 'Beta' })
-    const insertAt = findSortedInsertIndex(cache, 2, newRow, 0, null, [{ title: 'name', fk_column_id: 'col_name', direction: 'asc' }], cols)
+    const insertAt = findSortedInsertIndex(
+      cache,
+      2,
+      newRow,
+      0,
+      null,
+      [{ title: 'name', fk_column_id: 'col_name', direction: 'asc' }],
+      cols,
+    )
 
     insertRowsAt(cache, ['loaded'], insertAt, [newRow])
 
@@ -394,7 +491,15 @@ describe('integration: ADD cache window handling', () => {
     let totalRows = 2
 
     const newRow = makeRow(0, 'A', null, 't1', { name: 'Alpha' })
-    const insertAt = findSortedInsertIndex(cache, totalRows, newRow, 0, null, [{ title: 'name', fk_column_id: 'col_name', direction: 'asc' }], cols)
+    const insertAt = findSortedInsertIndex(
+      cache,
+      totalRows,
+      newRow,
+      0,
+      null,
+      [{ title: 'name', fk_column_id: 'col_name', direction: 'asc' }],
+      cols,
+    )
 
     expect(insertAt).toBe(0)
 
@@ -425,7 +530,11 @@ describe('integration: ADD cache window handling', () => {
       cache.set(idx + 1, row)
     }
 
-    expect(cacheEntries(cache)).toEqual([[51, 'X'], [52, 'Y'], [53, 'Z']])
+    expect(cacheEntries(cache)).toEqual([
+      [51, 'X'],
+      [52, 'Y'],
+      [53, 'Z'],
+    ])
   })
 })
 
@@ -445,7 +554,15 @@ describe('integration: UPDATE sort reposition', () => {
     const subtreeRows = indices.map((i) => cache.get(i)!).filter(Boolean)
     removeRowsAndShift(cache, chunks, indices)
 
-    const newInsertAt = findSortedInsertIndex(cache, cache.size, cachedRow, 0, null, [{ title: 'score', fk_column_id: 'col_score', direction: 'asc' }], colsNum)
+    const newInsertAt = findSortedInsertIndex(
+      cache,
+      cache.size,
+      cachedRow,
+      0,
+      null,
+      [{ title: 'score', fk_column_id: 'col_score', direction: 'asc' }],
+      colsNum,
+    )
     insertRowsAt(cache, chunks, newInsertAt, subtreeRows)
 
     expect(cacheToArray(cache)).toEqual(['B', 'A', 'C'])
@@ -483,8 +600,13 @@ describe('integration: UPDATE sort reposition', () => {
 
     // Find sorted position among P1's children (C2=20, C3=30) — C1(25) goes between them
     const newInsertAt = findSortedInsertIndex(
-      cache, totalRows, cachedRow, 1, parent!.index,
-      [{ title: 'score', fk_column_id: 'col_score', direction: 'asc' }], colsNum,
+      cache,
+      totalRows,
+      cachedRow,
+      1,
+      parent!.index,
+      [{ title: 'score', fk_column_id: 'col_score', direction: 'asc' }],
+      colsNum,
     )
     expect(newInsertAt).toBe(2) // between C2(index 1) and C3(index 2)
 
@@ -515,8 +637,13 @@ describe('integration: UPDATE sort reposition', () => {
     const parent = findCachedRowByPk(cache, 'P1', 0)
 
     const newInsertAt = findSortedInsertIndex(
-      cache, 4, cachedRow, 1, parent!.index,
-      [{ title: 'score', fk_column_id: 'col_score', direction: 'desc' }], colsNum,
+      cache,
+      4,
+      cachedRow,
+      1,
+      parent!.index,
+      [{ title: 'score', fk_column_id: 'col_score', direction: 'desc' }],
+      colsNum,
     )
     expect(newInsertAt).toBe(1) // before C1(30)
 

@@ -73,7 +73,11 @@ const formatDate = (days: number) => {
 
 const keepLabel = computed(() => {
   if (!props.editToken?.expiry) return t('labels.noExpiration')
-  return `Keep (${new Date(props.editToken.expiry).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })})`
+  return `Keep (${new Date(props.editToken.expiry).toLocaleDateString('en-US', {
+    month: 'short',
+    day: '2-digit',
+    year: 'numeric',
+  })})`
 })
 
 const expiryOptions = computed(() => [
@@ -115,13 +119,10 @@ const isFormValid = computed(() => {
   return tokenName.value.length > 0 && tokenName.value.length <= 255 && (isFineGrainedEnabled.value ? hasAccessScope.value : true)
 })
 
-
 const submitToken = async () => {
   isCreating.value = true
   try {
-    const hasPermissions = Object.values(permissions.value).some(
-      (v) => v !== ApiTokenPermissionLevel.NONE,
-    )
+    const hasPermissions = Object.values(permissions.value).some((v) => v !== ApiTokenPermissionLevel.NONE)
 
     const scopesWithPermissions = scopes.value.map((s) => ({
       ...s,
@@ -143,10 +144,15 @@ const submitToken = async () => {
         payload.scopes = scopesWithPermissions
       }
 
-      await $api.internal.postOperation(NO_SCOPE, NO_SCOPE, {
-        operation: 'apiTokenUpdateWithScopes',
-        tokenId: props.editToken!.id,
-      }, payload)
+      await $api.internal.postOperation(
+        NO_SCOPE,
+        NO_SCOPE,
+        {
+          operation: 'apiTokenUpdateWithScopes',
+          tokenId: props.editToken!.id,
+        },
+        payload,
+      )
 
       // Telemetry: token updated — log scope/permission counts, never token values
       $e('a:api-token:update', {
@@ -163,14 +169,21 @@ const submitToken = async () => {
         title: tokenName.value,
         // Only include scopes/permissions when fine-grained is enabled (Cloud / licensed on-prem)
         ...(isFineGrainedEnabled.value && scopesWithPermissions.length ? { scopes: scopesWithPermissions } : {}),
-        ...(isFineGrainedEnabled.value && hasPermissions && !scopesWithPermissions.length ? { permissions: permissions.value } : {}),
+        ...(isFineGrainedEnabled.value && hasPermissions && !scopesWithPermissions.length
+          ? { permissions: permissions.value }
+          : {}),
         // null = no expiration (explicitly clear), undefined = not set (keep default)
         ...(computedExpiry.value !== undefined ? { expiry: computedExpiry.value } : {}),
       }
 
-      const result: any = await $api.internal.postOperation(NO_SCOPE, NO_SCOPE, {
-        operation: 'apiTokenCreateWithScopes',
-      }, payload)
+      const result: any = await $api.internal.postOperation(
+        NO_SCOPE,
+        NO_SCOPE,
+        {
+          operation: 'apiTokenCreateWithScopes',
+        },
+        payload,
+      )
       createdTokenValue.value = result.token
       showResultModal.value = true
 
@@ -221,12 +234,7 @@ const onResultDone = () => {
       <div class="flex flex-col gap-1.5">
         <label class="text-sm font-bold text-nc-content-gray">{{ $t('general.name') }}</label>
         <span class="text-sm text-nc-content-gray-muted">{{ $t('msg.info.tokenNameVisibleInHistory') }}</span>
-        <a-input
-          v-model:value="tokenName"
-          class="!rounded-lg max-w-150"
-          :maxlength="255"
-          data-testid="nc-token-name-input"
-        />
+        <a-input v-model:value="tokenName" class="!rounded-lg max-w-150" :maxlength="255" data-testid="nc-token-name-input" />
       </div>
 
       <!-- Scopes (permissions) — hidden on CE / unlicensed on-prem -->
@@ -251,11 +259,7 @@ const onResultDone = () => {
       <div class="flex flex-col gap-2">
         <label class="text-sm font-bold text-nc-content-gray">{{ $t('labels.expiration') }}</label>
         <div class="flex items-center gap-2">
-          <NcDropdown
-            v-model:visible="showExpiryDropdown"
-            :trigger="['click']"
-            placement="bottomLeft"
-          >
+          <NcDropdown v-model:visible="showExpiryDropdown" :trigger="['click']" placement="bottomLeft">
             <button class="nc-expiry-pill" data-testid="nc-token-expiry-select">
               <span class="text-xs font-semibold text-nc-content-gray-extreme">{{ selectedExpiryLabel }}</span>
               <GeneralIcon icon="arrowDown" class="w-3 h-3 text-nc-content-gray-muted ml-auto" />
@@ -267,7 +271,10 @@ const onResultDone = () => {
                   v-for="opt in expiryOptions"
                   :key="opt.value"
                   :class="{ '!bg-nc-bg-gray-light': expiryOption === opt.value }"
-                  @click="expiryOption = opt.value; showExpiryDropdown = false"
+                  @click="
+                    expiryOption = opt.value
+                    showExpiryDropdown = false
+                  "
                 >
                   {{ opt.label }}
                 </NcMenuItem>
@@ -303,14 +310,7 @@ const onResultDone = () => {
     </div>
 
     <!-- Token Created Modal -->
-    <NcModal
-      v-model:visible="showResultModal"
-      :closable="false"
-      :mask-closable="false"
-      :keyboard="false"
-      size="sm"
-      centered
-    >
+    <NcModal v-model:visible="showResultModal" :closable="false" :mask-closable="false" :keyboard="false" size="sm" centered>
       <div class="flex flex-col gap-4 p-1" data-testid="nc-token-result-modal">
         <!-- Header -->
         <div class="flex items-center gap-2">
@@ -327,7 +327,9 @@ const onResultDone = () => {
         </p>
 
         <!-- Token value -->
-        <div class="flex items-center gap-2 bg-nc-bg-gray-extralight border-1 border-nc-border-gray-medium rounded-lg px-3 py-2.5">
+        <div
+          class="flex items-center gap-2 bg-nc-bg-gray-extralight border-1 border-nc-border-gray-medium rounded-lg px-3 py-2.5"
+        >
           <code
             class="text-xs text-nc-content-gray-extreme select-all leading-5 flex-1 min-w-0 truncate"
             style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"

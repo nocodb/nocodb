@@ -168,9 +168,16 @@ function isV0Audit(audit: AuditType) {
         </div>
         <div v-else-if="auditRetentionLimit" class="flex flex-col items-center gap-2 my-2 mx-3">
           <div class="text-center text-nc-content-gray-subtle2 text-xs">
-            You have <span class="font-bold">{{ auditRetentionLimit }}</span> of revision history. Upgrade to view the full history.
+            You have <span class="font-bold">{{ auditRetentionLimit }}</span> of revision history. Upgrade to view the full
+            history.
           </div>
-          <NcButton v-if="isPaymentEnabled" v-e="['c:audit:retention:upgrade']" type="secondary" size="xs" @click="showAuditUpgradeModal">
+          <NcButton
+            v-if="isPaymentEnabled"
+            v-e="['c:audit:retention:upgrade']"
+            type="secondary"
+            size="xs"
+            @click="showAuditUpgradeModal"
+          >
             <div class="flex items-center gap-1">
               <GeneralIcon icon="ncArrowUpCircle" class="h-3 w-3" />
               {{ $t('general.upgrade') }}

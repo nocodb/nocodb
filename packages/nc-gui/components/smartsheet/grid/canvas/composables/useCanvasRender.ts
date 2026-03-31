@@ -3468,8 +3468,8 @@ export function useCanvasRender({
         const opBgColor = !isColorCodeEnabled
           ? getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')
           : !isDark.value
-            ? getAdaptiveTint(color, { saturationMod: 5, isDarkMode: isDark.value, shade: 20 })
-            : getAdaptiveTint(color, { isDarkMode: isDark.value, shade: -10 })
+          ? getAdaptiveTint(color, { saturationMod: 5, isDarkMode: isDark.value, shade: 20 })
+          : getAdaptiveTint(color, { isDarkMode: isDark.value, shade: -10 })
 
         const displayText = tag in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[tag] : tag
 

@@ -115,8 +115,18 @@ const getSelectOptions = (filter: FilterType) => {
     .map((o: any) => ({
       ...o,
       value: o.title,
-      bgColor: getSelectTypeFieldOptionBgColor({ color: o.color, isDark: isDark.value, getColor, isColorCodeEnabled: parseProp(col?.meta)?.isColorCodeEnabled !== false }),
-      textColor: getSelectTypeFieldOptionTextColor({ color: o.color, isDark: isDark.value, getColor, isColorCodeEnabled: parseProp(col?.meta)?.isColorCodeEnabled !== false }),
+      bgColor: getSelectTypeFieldOptionBgColor({
+        color: o.color,
+        isDark: isDark.value,
+        getColor,
+        isColorCodeEnabled: parseProp(col?.meta)?.isColorCodeEnabled !== false,
+      }),
+      textColor: getSelectTypeFieldOptionTextColor({
+        color: o.color,
+        isDark: isDark.value,
+        getColor,
+        isColorCodeEnabled: parseProp(col?.meta)?.isColorCodeEnabled !== false,
+      }),
     }))
     .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
 }

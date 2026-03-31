@@ -36,14 +36,12 @@ const searchQuery = ref('')
 // Initialize from props: sentinel present, or editing with no base scopes = org-wide
 const hasAllResources = ref(
   props.scopes.some((s) => s.resource_type === 'all') ||
-  (props.scopes.length > 0 && !props.scopes.some((s) => s.resource_type === ApiTokenScopeResourceType.BASE)),
+    (props.scopes.length > 0 && !props.scopes.some((s) => s.resource_type === ApiTokenScopeResourceType.BASE)),
 )
 
 // Track selected base IDs
 const selectedBaseIds = ref<string[]>(
-  props.scopes
-    .filter((s) => s.resource_type === ApiTokenScopeResourceType.BASE)
-    .map((s) => s.resource_id),
+  props.scopes.filter((s) => s.resource_type === ApiTokenScopeResourceType.BASE).map((s) => s.resource_id),
 )
 
 // Initialize from props — if no scopes, nothing is selected
@@ -159,10 +157,7 @@ const toggleBaseDropdown = () => {
 <template>
   <div class="nc-token-scope-picker flex flex-col gap-2" data-testid="nc-token-scope-picker">
     <!-- Added resources in single bordered container -->
-    <div
-      v-if="hasAllResources || selectedByWorkspace.length"
-      class="nc-scope-container"
-    >
+    <div v-if="hasAllResources || selectedByWorkspace.length" class="nc-scope-container">
       <!-- All Resources section -->
       <template v-if="hasAllResources">
         <div class="nc-scope-group-header">
@@ -181,10 +176,7 @@ const toggleBaseDropdown = () => {
 
       <!-- Selected bases grouped by workspace -->
       <template v-for="(group, gIdx) in selectedByWorkspace" :key="group.workspace.id">
-        <div
-          class="nc-scope-group-header"
-          :class="{ '!border-t-1': gIdx > 0 || hasAllResources }"
-        >
+        <div class="nc-scope-group-header" :class="{ '!border-t-1': gIdx > 0 || hasAllResources }">
           {{ group.workspace.title }}
         </div>
         <div
@@ -267,12 +259,7 @@ const toggleBaseDropdown = () => {
                   <div class="px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-nc-content-gray-muted">
                     {{ ws.title }}
                   </div>
-                  <div
-                    v-for="base in ws.bases"
-                    :key="base.id"
-                    class="nc-scope-dropdown-item"
-                    @click="addBase(base.id)"
-                  >
+                  <div v-for="base in ws.bases" :key="base.id" class="nc-scope-dropdown-item" @click="addBase(base.id)">
                     <div class="min-w-5 flex items-center justify-center flex-none">
                       <GeneralProjectIcon :color="parseProp(base.meta).iconColor" size="small" />
                     </div>

@@ -66,7 +66,7 @@ const tabItems = computed<TabItem[]>(() => {
         key: 'audits',
         icon: 'audit',
         label: t('title.audits'),
-        })
+      })
     }
 
     if (isWorkspaceSsoAvail.value && isUIAllowed('workspaceSSO') && showEEFeatures.value) {

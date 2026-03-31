@@ -411,9 +411,7 @@ watch(activeViewTab, (value) => {
                 'flex-1': isEmptyList,
               }"
             >
-              <div
-                class="flex flex-col space-y-6 w-full nc-content-max-w"
-              >
+              <div class="flex flex-col space-y-6 w-full nc-content-max-w">
                 <template v-for="(category, key) in integrationsMapByCategory">
                   <div
                     v-if="

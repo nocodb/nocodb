@@ -414,13 +414,15 @@ const predictOptions = async () => {
 }
 
 const alphabetizeOptions = () => {
-  const activeOptions = options.value.filter((op) => op.status !== 'remove')
+  const activeOptions = renderedOptions.value.filter((op) => op.status !== 'remove')
 
-  const alreadySorted = activeOptions.every((op, i, arr) => i === 0 || arr[i - 1].title.localeCompare(op.title) <= 0)
+  const alreadySorted = activeOptions.every(
+    (op, i, arr) => i === 0 || (arr[i - 1].title ?? '').localeCompare(op.title ?? '') <= 0,
+  )
   if (alreadySorted) return
 
   const removed = options.value.filter((op) => op.status === 'remove')
-  const sorted = [...activeOptions].sort((a, b) => a.title.localeCompare(b.title))
+  const sorted = [...activeOptions].sort((a, b) => (a.title ?? '').localeCompare(b.title ?? ''))
 
   let idx = 0
   sorted.forEach((op) => {

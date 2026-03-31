@@ -12,7 +12,7 @@ export const oAuthModuleMetadata = {
     ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [OAuthController] : []),
   ],
   providers: [OauthClientService, OauthAuthorizationService, OauthTokenService],
-  exports: [OauthClientService, OauthTokenService],
+  exports: [OauthClientService, OauthAuthorizationService, OauthTokenService],
 };
 
 @Module(oAuthModuleMetadata)

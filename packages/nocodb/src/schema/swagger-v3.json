@@ -32,6 +32,15 @@
         "Workspace Members",
         "Base Members"
       ]
+    },
+    {
+      "name": "OAuth APIs",
+      "tags": [
+        "OAuth Protocol",
+        "OAuth Clients",
+        "OAuth Authorizations",
+        "OAuth Discovery"
+      ]
     }
   ],
   "servers": [
@@ -7982,10 +7991,638 @@
           }
         }
       }
+    },
+    "/api/v3/oauth/authorize": {
+      "get": {
+        "summary": "Authorize (redirect)",
+        "operationId": "oauth-authorize-redirect",
+        "description": "Initiates the OAuth 2.0 authorization flow. Redirects the user's browser to the NocoDB consent screen.",
+        "tags": ["OAuth Protocol"],
+        "parameters": [
+          {
+            "name": "response_type",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "enum": ["code"] },
+            "description": "Must be `code`"
+          },
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "OAuth client ID"
+          },
+          {
+            "name": "redirect_uri",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "format": "uri" },
+            "description": "Must exactly match a registered redirect URI"
+          },
+          {
+            "name": "code_challenge",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Base64url-encoded SHA256 of code_verifier"
+          },
+          {
+            "name": "code_challenge_method",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "enum": ["S256"] },
+            "description": "Must be `S256`"
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Opaque value for CSRF protection"
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Space-separated scopes"
+          },
+          {
+            "name": "resource",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Target resource identifier (for MCP)"
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirects to the NocoDB consent screen"
+          }
+        },
+        "security": []
+      },
+      "post": {
+        "summary": "Authorize (consent submit)",
+        "operationId": "oauth-authorize-consent",
+        "description": "Called by the NocoDB frontend after the user approves or denies the authorization request. Requires an authenticated session.",
+        "tags": ["OAuth Protocol"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OAuthAuthorizeRequestV3"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Returns a redirect URL with authorization code or error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "redirect_url": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/oauth/token": {
+      "post": {
+        "summary": "Token exchange",
+        "operationId": "oauth-token",
+        "description": "Exchange an authorization code for tokens, or refresh an expired access token.",
+        "tags": ["OAuth Protocol"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": ["grant_type"],
+                "properties": {
+                  "grant_type": {
+                    "type": "string",
+                    "enum": ["authorization_code", "refresh_token"]
+                  },
+                  "code": {
+                    "type": "string",
+                    "description": "Authorization code (for authorization_code grant)"
+                  },
+                  "redirect_uri": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Must match the authorize request"
+                  },
+                  "client_id": {
+                    "type": "string"
+                  },
+                  "client_secret": {
+                    "type": "string"
+                  },
+                  "code_verifier": {
+                    "type": "string",
+                    "description": "PKCE verifier (43-128 chars)"
+                  },
+                  "refresh_token": {
+                    "type": "string",
+                    "description": "Refresh token (for refresh_token grant)"
+                  },
+                  "resource": {
+                    "type": "string",
+                    "description": "Target resource identifier"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthTokenResponseV3"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "OAuth error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthTokenErrorV3"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v3/oauth/revoke": {
+      "post": {
+        "summary": "Token revocation",
+        "operationId": "oauth-revoke",
+        "description": "Revoke an access token or refresh token (RFC 7009). Returns 200 even if the token doesn't exist.",
+        "tags": ["OAuth Protocol"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": ["token", "client_id"],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "description": "The token to revoke"
+                  },
+                  "client_id": {
+                    "type": "string"
+                  },
+                  "client_secret": {
+                    "type": "string"
+                  },
+                  "token_type_hint": {
+                    "type": "string",
+                    "enum": ["access_token", "refresh_token"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token revoked successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v3/oauth/clients": {
+      "get": {
+        "summary": "List clients",
+        "operationId": "oauth-client-list",
+        "description": "List all OAuth clients owned by the current user.",
+        "tags": ["OAuth Clients"],
+        "responses": {
+          "200": {
+            "description": "List of OAuth clients",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OAuthClientV3"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create client",
+        "operationId": "oauth-client-create",
+        "description": "Create a new OAuth client. The `client_secret` is returned in plaintext only on creation.",
+        "tags": ["OAuth Clients"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OAuthClientCreateV3"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Client created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWithSecretV3"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/oauth/clients/{clientId}": {
+      "parameters": [
+        {
+          "name": "clientId",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string" },
+          "description": "OAuth client ID"
+        }
+      ],
+      "get": {
+        "summary": "Get client",
+        "operationId": "oauth-client-get",
+        "description": "Retrieve a specific OAuth client by ID.",
+        "tags": ["OAuth Clients"],
+        "responses": {
+          "200": {
+            "description": "OAuth client details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientV3"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update client",
+        "operationId": "oauth-client-update",
+        "description": "Update an OAuth client. Only provided fields are updated. `client_type`, `allowed_grant_types`, and `response_types` cannot be changed after creation.",
+        "tags": ["OAuth Clients"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OAuthClientUpdateV3"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Client updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientV3"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete client",
+        "operationId": "oauth-client-delete",
+        "description": "Delete an OAuth client. All associated authorization codes and tokens are also deleted.",
+        "tags": ["OAuth Clients"],
+        "responses": {
+          "200": {
+            "description": "Client deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/oauth/clients/{clientId}/regenerate-secret": {
+      "post": {
+        "summary": "Regenerate client secret",
+        "operationId": "oauth-client-regenerate-secret",
+        "description": "Rotate the client secret. Only for confidential clients. The old secret is immediately invalidated.",
+        "tags": ["OAuth Clients"],
+        "parameters": [
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "OAuth client ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "New client secret",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWithSecretV3"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/oauth/authorizations": {
+      "get": {
+        "summary": "List my authorizations",
+        "operationId": "oauth-authorization-list",
+        "description": "List all OAuth applications the current user has granted access to.",
+        "tags": ["OAuth Authorizations"],
+        "responses": {
+          "200": {
+            "description": "List of user authorizations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/UserAuthorizationV3"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/oauth/authorizations/{tokenId}": {
+      "delete": {
+        "summary": "Revoke my authorization",
+        "operationId": "oauth-authorization-revoke",
+        "description": "Revoke access for a specific OAuth application. This is user-initiated.",
+        "tags": ["OAuth Authorizations"],
+        "parameters": [
+          {
+            "name": "tokenId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Authorization/token ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorization revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/oauth/register": {
+      "post": {
+        "summary": "Dynamic client registration (EE)",
+        "operationId": "oauth-dcr-register",
+        "description": "Register a new OAuth client dynamically (RFC 7591). EE only.",
+        "tags": ["OAuth Discovery"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OAuthDcrRequestV3"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Client registered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthDcrResponseV3"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
     }
   },
   "components": {
     "schemas": {
+      "OAuthClientV3": {
+        "type": "object",
+        "description": "OAuth client (without secret)",
+        "properties": {
+          "client_id": { "type": "string" },
+          "client_type": { "type": "string", "enum": ["public", "confidential"] },
+          "client_name": { "type": "string" },
+          "client_description": { "type": "string" },
+          "client_uri": { "type": "string", "format": "uri" },
+          "logo_uri": { "type": "string" },
+          "redirect_uris": { "type": "array", "items": { "type": "string", "format": "uri" } },
+          "allowed_grant_types": { "type": "array", "items": { "type": "string" } },
+          "response_types": { "type": "array", "items": { "type": "string" } },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "OAuthClientCreateV3": {
+        "type": "object",
+        "description": "Create OAuth client request",
+        "required": ["client_name", "redirect_uris"],
+        "properties": {
+          "client_name": { "type": "string", "minLength": 1, "maxLength": 255 },
+          "client_type": { "type": "string", "enum": ["public", "confidential"], "default": "public" },
+          "client_description": { "type": "string", "maxLength": 500 },
+          "client_uri": { "type": "string", "format": "uri" },
+          "logo_uri": { "type": "object", "description": "Attachment object" },
+          "redirect_uris": { "type": "array", "items": { "type": "string", "format": "uri" }, "minItems": 1 },
+          "allowed_grant_types": { "type": "array", "items": { "type": "string", "enum": ["authorization_code", "refresh_token"] }, "default": ["authorization_code"] },
+          "response_types": { "type": "array", "items": { "type": "string", "enum": ["code"] }, "default": ["code"] }
+        }
+      },
+      "OAuthClientUpdateV3": {
+        "type": "object",
+        "description": "Update OAuth client request (partial)",
+        "properties": {
+          "client_name": { "type": "string", "minLength": 1, "maxLength": 255 },
+          "client_description": { "type": "string", "maxLength": 500 },
+          "client_uri": { "type": "string", "format": "uri" },
+          "logo_uri": { "type": "object", "description": "Attachment object" },
+          "redirect_uris": { "type": "array", "items": { "type": "string", "format": "uri" }, "minItems": 1 }
+        }
+      },
+      "OAuthClientWithSecretV3": {
+        "type": "object",
+        "description": "OAuth client with secret (returned on create/regenerate only)",
+        "properties": {
+          "client_id": { "type": "string" },
+          "client_secret": { "type": "string", "description": "Plaintext secret — shown only once" },
+          "client_type": { "type": "string", "enum": ["public", "confidential"] },
+          "client_name": { "type": "string" },
+          "redirect_uris": { "type": "array", "items": { "type": "string", "format": "uri" } },
+          "allowed_grant_types": { "type": "array", "items": { "type": "string" } },
+          "response_types": { "type": "array", "items": { "type": "string" } },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "OAuthTokenResponseV3": {
+        "type": "object",
+        "description": "OAuth token response",
+        "properties": {
+          "access_token": { "type": "string", "description": "JWT access token" },
+          "token_type": { "type": "string", "enum": ["Bearer"] },
+          "expires_in": { "type": "integer", "description": "Seconds until expiry (3600)" },
+          "refresh_token": { "type": "string", "description": "Opaque refresh token" },
+          "scope": { "type": "string", "description": "Granted scopes (space-separated)" }
+        }
+      },
+      "OAuthTokenErrorV3": {
+        "type": "object",
+        "description": "OAuth error response (RFC 6749 §5.2)",
+        "required": ["error"],
+        "properties": {
+          "error": { "type": "string", "enum": ["invalid_request", "invalid_client", "invalid_grant", "unsupported_grant_type", "invalid_scope"] },
+          "error_description": { "type": "string" }
+        }
+      },
+      "OAuthAuthorizeRequestV3": {
+        "type": "object",
+        "description": "Consent submit request",
+        "required": ["client_id", "redirect_uri", "response_type", "code_challenge", "code_challenge_method", "approve"],
+        "properties": {
+          "client_id": { "type": "string" },
+          "redirect_uri": { "type": "string", "format": "uri" },
+          "response_type": { "type": "string", "enum": ["code"] },
+          "code_challenge": { "type": "string" },
+          "code_challenge_method": { "type": "string", "enum": ["S256"] },
+          "state": { "type": "string" },
+          "scope": { "type": "string" },
+          "approve": { "type": "boolean" },
+          "workspace_id": { "type": "string" },
+          "base_id": { "type": "string" },
+          "resource": { "type": "string" }
+        }
+      },
+      "UserAuthorizationV3": {
+        "type": "object",
+        "description": "User's OAuth authorization",
+        "properties": {
+          "id": { "type": "string", "description": "Token ID" },
+          "client": {
+            "type": "object",
+            "properties": {
+              "client_id": { "type": "string" },
+              "client_name": { "type": "string" },
+              "client_uri": { "type": "string", "format": "uri" },
+              "logo_uri": { "type": "string" }
+            }
+          },
+          "scope": { "type": "string" },
+          "granted_resources": {
+            "type": "object",
+            "properties": {
+              "workspace_id": { "type": "string" },
+              "base_id": { "type": "string" }
+            }
+          },
+          "created_at": { "type": "string", "format": "date-time" },
+          "last_used_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "OAuthDcrRequestV3": {
+        "type": "object",
+        "description": "Dynamic client registration request (RFC 7591, EE only)",
+        "required": ["redirect_uris"],
+        "properties": {
+          "redirect_uris": { "type": "array", "items": { "type": "string", "format": "uri" }, "minItems": 1 },
+          "client_name": { "type": "string" },
+          "client_uri": { "type": "string", "format": "uri" },
+          "logo_uri": { "type": "string", "format": "uri" },
+          "grant_types": { "type": "array", "items": { "type": "string", "enum": ["authorization_code", "refresh_token"] } },
+          "response_types": { "type": "array", "items": { "type": "string", "enum": ["code"] } },
+          "client_type": { "type": "string", "enum": ["public", "confidential"], "default": "confidential" }
+        }
+      },
+      "OAuthDcrResponseV3": {
+        "type": "object",
+        "description": "Dynamic client registration response",
+        "properties": {
+          "client_id": { "type": "string" },
+          "client_secret": { "type": "string" },
+          "client_type": { "type": "string", "enum": ["public", "confidential"] },
+          "client_name": { "type": "string" },
+          "redirect_uris": { "type": "array", "items": { "type": "string", "format": "uri" } },
+          "allowed_grant_types": { "type": "array", "items": { "type": "string" } },
+          "response_types": { "type": "array", "items": { "type": "string" } },
+          "client_id_issued_at": { "type": "integer" },
+          "client_secret_expires_at": { "type": "integer" },
+          "registration_client_uri": { "type": "string", "format": "uri" }
+        }
+      },
       "Base": {
         "type": "object",
         "properties": {

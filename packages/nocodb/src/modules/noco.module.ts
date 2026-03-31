@@ -134,6 +134,7 @@ import { Datav3Controller } from '~/controllers/v3/data-v3.controller';
 import { FiltersV3Controller } from '~/controllers/v3/filters-v3.controller';
 import { SortsV3Controller } from '~/controllers/v3/sorts-v3.controller';
 import { TablesV3Controller } from '~/controllers/v3/tables-v3.controller';
+import { OAuthV3Controller } from '~/controllers/v3/oauth-v3.controller';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { CalendarDatasService } from '~/services/calendar-datas.service';
 import { BaseMembersV3Service } from '~/services/v3/base-members-v3.service';
@@ -246,6 +247,7 @@ export const nocoModuleMetadata = {
           ColumnsV3Controller,
           SortsV3Controller,
           FiltersV3Controller,
+          OAuthV3Controller,
           /* Datas */
           DataTableController,
           DatasController,

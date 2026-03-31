@@ -72,6 +72,16 @@ const permissionScopes = {
     'oAuthClientDelete',
     'oAuthClientGet',
 
+    // oAuth v3
+    'v3OAuthClientList',
+    'v3OAuthClientGet',
+    'v3OAuthClientCreate',
+    'v3OAuthClientUpdate',
+    'v3OAuthClientDelete',
+    'v3OAuthClientRegenerateSecret',
+    'v3OAuthAuthorizationList',
+    'v3OAuthAuthorizationRevoke',
+
     'mcpRootList',
 
     'getUserProfile',
@@ -279,6 +289,16 @@ const rolePermissions:
       oAuthAuthorizationList: true,
       oAuthAuthorizationRevoke: true,
       oAuthClientRegenerateSecret: true,
+
+      // oAuth v3
+      v3OAuthClientList: true,
+      v3OAuthClientGet: true,
+      v3OAuthClientCreate: true,
+      v3OAuthClientUpdate: true,
+      v3OAuthClientDelete: true,
+      v3OAuthClientRegenerateSecret: true,
+      v3OAuthAuthorizationList: true,
+      v3OAuthAuthorizationRevoke: true,
 
       mcpRootList: true,
       getUserProfile: true,
@@ -731,6 +751,26 @@ const permissionDescriptions: Record<string, string> = {
   uploadViaURL: 'upload files via URL',
 
   notification: 'send notifications',
+
+  // oAuth
+  oAuthClientList: 'list OAuth clients',
+  oAuthClientGet: 'view OAuth client details',
+  oAuthClientCreate: 'create OAuth client',
+  oAuthClientUpdate: 'update OAuth client',
+  oAuthClientDelete: 'delete OAuth client',
+  oAuthClientRegenerateSecret: 'regenerate OAuth client secret',
+  oAuthAuthorizationList: 'list OAuth authorizations',
+  oAuthAuthorizationRevoke: 'revoke OAuth authorization',
+
+  // oAuth v3
+  v3OAuthClientList: 'list OAuth clients',
+  v3OAuthClientGet: 'view OAuth client details',
+  v3OAuthClientCreate: 'create OAuth client',
+  v3OAuthClientUpdate: 'update OAuth client',
+  v3OAuthClientDelete: 'delete OAuth client',
+  v3OAuthClientRegenerateSecret: 'regenerate OAuth client secret',
+  v3OAuthAuthorizationList: 'list OAuth authorizations',
+  v3OAuthAuthorizationRevoke: 'revoke OAuth authorization',
 
   // workspace permissions
   workspaceUserList: 'view list of users in the workspace',

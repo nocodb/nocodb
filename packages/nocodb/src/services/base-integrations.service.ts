@@ -111,7 +111,7 @@ export class BaseIntegrationsService {
       fk_workspace_id: workspaceId,
       created_by: userId,
       is_restricted: true,
-    } as any);
+    });
 
     // Auto-link to this base
     await IntegrationLink.insert(context, {
@@ -317,7 +317,7 @@ export class BaseIntegrationsService {
         await Integration.updateIntegration(
           context,
           param.integrationId,
-          { is_restricted: false } as any,
+          { is_restricted: false },
           ncMeta,
         );
         await ncMeta.commit();
@@ -329,7 +329,7 @@ export class BaseIntegrationsService {
         await Integration.updateIntegration(
           context,
           param.integrationId,
-          { is_restricted: true } as any,
+          { is_restricted: true },
           ncMeta,
         );
         await IntegrationLink.replaceLinksForIntegration(

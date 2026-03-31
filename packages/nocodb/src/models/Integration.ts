@@ -74,6 +74,7 @@ export default class Integration implements IntegrationType {
       meta?: any;
       is_default?: BoolType;
       is_encrypted?: BoolType;
+      is_restricted?: BoolType;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -155,6 +156,7 @@ export default class Integration implements IntegrationType {
       meta?: any;
       deleted?: boolean;
       is_encrypted?: boolean;
+      is_restricted?: BoolType;
     },
     ncMeta = Noco.ncMeta,
   ) {

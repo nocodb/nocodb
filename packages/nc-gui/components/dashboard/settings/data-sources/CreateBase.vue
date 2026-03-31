@@ -325,8 +325,9 @@ watch(
 onMounted(async () => {
   isLoading.value = true
 
-  if (!integrations.value.length) {
-    await loadIntegrations(true, base.value?.id)
+  // Load integrations if not loaded or if any integration is missing config
+  if (!integrations.value.length || integrations.value.some((i) => i.type === IntegrationsType.Database && !i.config)) {
+    await loadIntegrations(IntegrationsType.Database, base.value?.id)
   }
 
   formState.value.title = await generateUniqueName()

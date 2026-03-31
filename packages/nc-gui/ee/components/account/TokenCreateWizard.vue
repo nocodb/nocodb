@@ -272,8 +272,10 @@ const onResultDone = () => {
                   :key="opt.value"
                   :class="{ '!bg-nc-bg-gray-light': expiryOption === opt.value }"
                   @click="
-                    expiryOption = opt.value
-                    showExpiryDropdown = false
+                    () => {
+                      expiryOption = opt.value
+                      showExpiryDropdown = false
+                    }
                   "
                 >
                   {{ opt.label }}

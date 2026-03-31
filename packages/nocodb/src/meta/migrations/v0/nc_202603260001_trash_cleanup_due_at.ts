@@ -4,6 +4,7 @@ import { MetaTable } from '~/utils/globals';
 const up = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.MODELS, (table) => {
     table.timestamp('trash_cleanup_due_at').defaultTo(null);
+    table.index('trash_cleanup_due_at', 'idx_nc_models_trash_cleanup_due_at');
   });
 
   await knex.schema.alterTable(MetaTable.FILE_REFERENCES, (table) => {
@@ -13,6 +14,10 @@ const up = async (knex: Knex) => {
 
 const down = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.MODELS, (table) => {
+    table.dropIndex(
+      'trash_cleanup_due_at',
+      'idx_nc_models_trash_cleanup_due_at',
+    );
     table.dropColumn('trash_cleanup_due_at');
   });
 

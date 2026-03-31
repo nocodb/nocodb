@@ -711,6 +711,36 @@ export class NcErrorBase {
     });
   }
 
+  oauthInvalidClient(description: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_OAUTH_INVALID_CLIENT,
+      {
+        params: description,
+        ...args,
+      }
+    );
+  }
+
+  oauthInvalidGrant(description: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_OAUTH_INVALID_GRANT,
+      {
+        params: description,
+        ...args,
+      }
+    );
+  }
+
+  oauthInvalidRequest(description: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_OAUTH_INVALID_REQUEST,
+      {
+        params: description,
+        ...args,
+      }
+    );
+  }
+
   unprocessableEntity(message = 'Unprocessable entity'): never {
     throw new UnprocessableEntity(message);
   }

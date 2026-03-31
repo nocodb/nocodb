@@ -14,7 +14,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { NcRequest } from 'nocodb-sdk';
+import { NcBaseErrorv2, NcErrorType, NcRequest } from 'nocodb-sdk';
 import { NcError } from '~/helpers/ncError';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -27,6 +27,12 @@ import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service'
 import { OauthClientService } from '~/modules/oauth/services/oauth-client.service';
 
 const logger = new Logger('OAuthV3Controller');
+
+const OAUTH_ERROR_CODE_MAP: Partial<Record<NcErrorType, string>> = {
+  [NcErrorType.ERR_OAUTH_INVALID_CLIENT]: 'invalid_client',
+  [NcErrorType.ERR_OAUTH_INVALID_GRANT]: 'invalid_grant',
+  [NcErrorType.ERR_OAUTH_INVALID_REQUEST]: 'invalid_request',
+};
 
 @Controller()
 export class OAuthV3Controller {
@@ -213,56 +219,10 @@ export class OAuthV3Controller {
           });
       }
     } catch (error) {
-      if (error.message?.startsWith('invalid_client:')) {
-        return res.status(401).json({
-          error: 'invalid_client',
-          error_description: error.message.replace('invalid_client: ', ''),
-        });
-      }
-      if (error.message?.startsWith('invalid_grant:')) {
-        return res.status(400).json({
-          error: 'invalid_grant',
-          error_description: error.message.replace('invalid_grant: ', ''),
-        });
-      }
-      if (error.message?.startsWith('invalid_request:')) {
-        return res.status(400).json({
-          error: 'invalid_request',
-          error_description: error.message.replace('invalid_request: ', ''),
-        });
-      }
-      if (error.message === 'invalid_client') {
-        return res.status(401).json({
-          error: 'invalid_client',
-          error_description: 'Client authentication failed',
-        });
-      }
-      if (error.message === 'invalid_grant') {
-        return res.status(400).json({
-          error: 'invalid_grant',
-          error_description: 'The provided authorization grant is invalid',
-        });
-      }
-      if (
-        error.message?.includes('revoked') ||
-        error.message?.includes('expired') ||
-        error.message?.includes('Invalid refresh token') ||
-        error.message?.includes('Invalid authorization code') ||
-        error.message?.includes('PKCE')
-      ) {
-        return res.status(400).json({
-          error: 'invalid_grant',
-          error_description:
-            error.message || 'The provided authorization grant is invalid',
-        });
-      }
-      if (
-        error.message?.includes('client_id') ||
-        error.message?.includes('redirect_uri')
-      ) {
-        return res.status(400).json({
-          error: 'invalid_request',
-          error_description: error.message || 'Invalid request parameters',
+      if (error instanceof NcBaseErrorv2 && OAUTH_ERROR_CODE_MAP[error.error]) {
+        return res.status(error.code).json({
+          error: OAUTH_ERROR_CODE_MAP[error.error],
+          error_description: error.message,
         });
       }
 
@@ -317,15 +277,15 @@ export class OAuthV3Controller {
 
       return res.status(200).json({ success: true });
     } catch (error) {
-      if (error.message === 'invalid_client') {
+      if (error instanceof NcBaseErrorv2 && OAUTH_ERROR_CODE_MAP[error.error]) {
         return res.status(200).json({
-          error: 'invalid_client',
-          error_description: 'Client authentication failed',
+          error: OAUTH_ERROR_CODE_MAP[error.error],
+          error_description: error.message,
         });
       }
       return res.status(200).json({
         error: 'invalid_request',
-        error_description: error.message || 'Token revocation failed',
+        error_description: 'Token revocation failed',
       });
     }
   }

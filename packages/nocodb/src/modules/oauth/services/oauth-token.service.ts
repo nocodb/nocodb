@@ -96,7 +96,7 @@ export class OauthTokenService {
     const client = await OAuthClient.getByClientId(clientId);
 
     if (!client) {
-      throw new Error('invalid_client: Client not found');
+      NcError._.oauthInvalidClient('Client not found');
     }
 
     // Confidential clients: require client_secret OR valid PKCE
@@ -110,15 +110,15 @@ export class OauthTokenService {
             client.client_secret,
           );
           if (!isValidSecret) {
-            throw new Error('invalid_client: Invalid client credentials');
+            NcError._.oauthInvalidClient('Invalid client credentials');
           }
         }
         // PKCE validation will happen separately, so we're good here
       } else {
         // Non-PKCE flow: client_secret is required
         if (!clientSecret) {
-          throw new Error(
-            'invalid_client: Client secret required for confidential clients without PKCE',
+          NcError._.oauthInvalidClient(
+            'Client secret required for confidential clients without PKCE',
           );
         }
 
@@ -128,15 +128,15 @@ export class OauthTokenService {
           client.client_secret,
         );
         if (!isValidSecret) {
-          throw new Error('invalid_client: Invalid client credentials');
+          NcError._.oauthInvalidClient('Invalid client credentials');
         }
       }
     } else {
       // Public clients (no client_secret)
       // PKCE is required for public clients, but they don't need a secret
       if (clientSecret) {
-        throw new Error(
-          'invalid_client: Client secret not expected for public clients',
+        NcError._.oauthInvalidClient(
+          'Client secret not expected for public clients',
         );
       }
     }
@@ -156,7 +156,7 @@ export class OauthTokenService {
     // Get authorization code
     const authCode = await OAuthAuthorizationCode.getByCode(code);
     if (!authCode) {
-      throw new Error('invalid_grant: Invalid or expired authorization code');
+      NcError._.oauthInvalidGrant('Invalid or expired authorization code');
     }
 
     if (
@@ -164,26 +164,24 @@ export class OauthTokenService {
       authCode.resource &&
       params.resource !== authCode.resource
     ) {
-      throw new Error(
-        'invalid_grant: resource parameter does not match authorized resource',
+      NcError._.oauthInvalidGrant(
+        'resource parameter does not match authorized resource',
       );
     }
 
     // Check if code is already used
     if (authCode.is_used) {
-      throw new Error(
-        'invalid_grant: Authorization code has already been used',
-      );
+      NcError._.oauthInvalidGrant('Authorization code has already been used');
     }
 
     // Check if code is expired
     if (new Date(authCode.expires_at) < new Date()) {
-      throw new Error('invalid_grant: Authorization code has expired');
+      NcError._.oauthInvalidGrant('Authorization code has expired');
     }
 
     // Validate redirect URI
     if (authCode.redirect_uri !== redirectUri) {
-      throw new Error('invalid_grant: Invalid redirect_uri');
+      NcError._.oauthInvalidGrant('Invalid redirect_uri');
     }
 
     // Determine if this is a PKCE flow
@@ -192,8 +190,8 @@ export class OauthTokenService {
     // Validate PKCE if code challenge was provided during authorization
     if (isPKCEFlow) {
       if (!codeVerifier) {
-        throw new Error(
-          'invalid_request: code_verifier is required for PKCE flow',
+        NcError._.oauthInvalidRequest(
+          'code_verifier is required for PKCE flow',
         );
       }
 
@@ -204,7 +202,7 @@ export class OauthTokenService {
       });
 
       if (!isValidPKCE) {
-        throw new Error('invalid_grant: Invalid code_verifier');
+        NcError._.oauthInvalidGrant('Invalid code_verifier');
       }
     }
 
@@ -272,12 +270,12 @@ export class OauthTokenService {
     // Get token by refresh token
     const tokenRecord = await OAuthToken.getByRefreshToken(refreshToken);
     if (!tokenRecord) {
-      NcError.badRequest('Invalid refresh token');
+      NcError._.oauthInvalidGrant('Invalid refresh token');
     }
 
     // Check if token is revoked
     if (tokenRecord.is_revoked) {
-      NcError.badRequest('Refresh token has been revoked');
+      NcError._.oauthInvalidGrant('Refresh token has been revoked');
     }
 
     // Check if refresh token is expired
@@ -285,7 +283,7 @@ export class OauthTokenService {
       tokenRecord.refresh_token_expires_at &&
       new Date(tokenRecord.refresh_token_expires_at) < new Date()
     ) {
-      NcError.badRequest('Refresh token has expired');
+      NcError._.oauthInvalidGrant('Refresh token has expired');
     }
 
     // For refresh token flow, require client authentication
@@ -298,7 +296,7 @@ export class OauthTokenService {
 
     // Validate client ID
     if (tokenRecord.fk_client_id !== clientId) {
-      NcError.badRequest('Invalid client_id');
+      NcError._.oauthInvalidClient('Client ID mismatch');
     }
 
     const now = Date.now();
@@ -382,7 +380,7 @@ export class OauthTokenService {
 
     // Validate client ID
     if (tokenRecord.fk_client_id !== clientId) {
-      NcError.badRequest('Invalid client_id');
+      NcError._.oauthInvalidClient('Client ID mismatch');
     }
 
     // Revoke the token

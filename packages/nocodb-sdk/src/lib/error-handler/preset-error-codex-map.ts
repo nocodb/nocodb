@@ -435,4 +435,19 @@ export const presetErrorCodexMap: Partial<
     message: 'System field cannot be modified',
     code: 422,
   },
+  [NcErrorType.ERR_OAUTH_INVALID_CLIENT]: {
+    message: (description: string) =>
+      description || 'Client authentication failed',
+    code: 401,
+  },
+  [NcErrorType.ERR_OAUTH_INVALID_GRANT]: {
+    message: (description: string) =>
+      description || 'The provided authorization grant is invalid',
+    code: 400,
+  },
+  [NcErrorType.ERR_OAUTH_INVALID_REQUEST]: {
+    message: (description: string) =>
+      description || 'Invalid request parameters',
+    code: 400,
+  },
 };

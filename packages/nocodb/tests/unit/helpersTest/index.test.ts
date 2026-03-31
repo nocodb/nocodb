@@ -3,6 +3,7 @@ import { NcConcurrentTest } from './NcConcurrent.test';
 import { publicDatasSanitizeTest } from './publicDatasSanitize.test';
 import { stringHelperTest } from './stringHelpers.test';
 import { planResolutionTests } from './planResolution.test';
+import { attachmentHelpersTest } from './attachmentHelpers.test';
 
 let dashboardV3ConfigTransformTest = () => {};
 let dateDependencyHelperTests = () => {};
@@ -16,6 +17,7 @@ if (process.env.EE === 'true') {
 function _helperTests() {
   stringHelperTest();
   NcConcurrentTest();
+  attachmentHelpersTest();
   dashboardV3ConfigTransformTest();
   dateDependencyHelperTests();
   planResolutionTests();

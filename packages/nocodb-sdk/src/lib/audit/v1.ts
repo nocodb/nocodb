@@ -1591,6 +1591,15 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.DATA_PERMANENT_DELETE]: (
     audit: AuditV1<DataDeletePayload>
   ) => `Record with ID [${audit.row_id}] has been permanently deleted`,
+  [AuditV1OperationTypes.DATA_BULK_SOFT_DELETE]: (
+    _audit: AuditV1<DataDeletePayload>
+  ) => `Records have been moved to trash`,
+  [AuditV1OperationTypes.DATA_BULK_RESTORE]: (
+    _audit: AuditV1<DataDeletePayload>
+  ) => `Records have been restored from trash`,
+  [AuditV1OperationTypes.DATA_BULK_PERMANENT_DELETE]: (
+    _audit: AuditV1<DataDeletePayload>
+  ) => `Records have been permanently deleted`,
 
   /*  [AuditV1OperationTypes.DATA_BULK_INSERT]: (
     audit: AuditV1<DataBulkInsertPayload>

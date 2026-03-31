@@ -44,7 +44,7 @@ const displayColumns = computed(() =>
 const previewColumns = computed(() => displayColumns.value.slice(0, 6))
 
 function getRowId(record: Record<string, any>) {
-  return String(record[pkColumn.value] ?? '')
+  return extractPkFromRow(record, columns.value) ?? ''
 }
 
 function getPvValue(record: Record<string, any>) {
@@ -103,7 +103,7 @@ function handleEmptyTrash() {
     title: t('trash.emptyTrash'),
     content: t('trash.confirmEmpty'),
     okCallback: async () => {
-      emptyTrash()
+      await emptyTrash()
     },
   })
 }
@@ -113,7 +113,7 @@ function handlePermanentDelete(rowIds: string[]) {
     title: t('trash.deleteForever'),
     content: t('trash.confirmDeleteForever', { count: rowIds.length }),
     okCallback: async () => {
-      permanentDeleteRecords(rowIds)
+      await permanentDeleteRecords(rowIds)
     },
   })
 }

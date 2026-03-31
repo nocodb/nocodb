@@ -95,7 +95,7 @@ export const useRecordTrash = createSharedComposable(() => {
 
   function removeRowsLocally(rowIds: string[]) {
     const idSet = new Set(rowIds)
-    deletedRecords.value = deletedRecords.value.filter((r) => !idSet.has(String(r[pkColumn.value])))
+    deletedRecords.value = deletedRecords.value.filter((r) => !idSet.has(extractPkFromRow(r, columns.value) ?? ''))
     selectedRowIds.value = selectedRowIds.value.filter((id) => !idSet.has(id))
     trashCount.value = Math.max(0, trashCount.value - rowIds.length)
     totalCount.value = Math.max(0, totalCount.value - rowIds.length)

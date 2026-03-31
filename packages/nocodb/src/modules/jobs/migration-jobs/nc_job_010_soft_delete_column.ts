@@ -269,10 +269,10 @@ export class SoftDeleteColumnMigration {
     // Exclude PK and auto-increment columns — their unique constraints must stay unconditional
     const hasUniqueColumns = model.columns.some(
       (c) =>
-        (c as any).unique &&
+        c.unique &&
         !v1OoFkColIds.has(c.id) &&
-        !(c as any).pk &&
-        !(c as any).ai,
+        !c.pk &&
+        !c.ai,
     );
     const needsUniqueConversion = hasUniqueColumns && !needsDeletedCol;
 
@@ -285,12 +285,12 @@ export class SoftDeleteColumnMigration {
     // For columns whose unique constraint needs to be recreated as a partial index,
     // set unique: false on the original so PgClient sees a false→true transition.
     // Exclude PK and auto-increment columns — their unique constraints must stay unconditional.
-    const needsUniqueRecreate = (c) =>
+    const needsUniqueRecreate = (c: Column) =>
       (needsDeletedCol || needsUniqueConversion) &&
-      (c as any).unique &&
+      c.unique &&
       !v1OoFkColIds.has(c.id) &&
-      !(c as any).pk &&
-      !(c as any).ai;
+      !c.pk &&
+      !c.ai;
 
     const originalColumns = model.columns.map((c) => ({
       ...c,

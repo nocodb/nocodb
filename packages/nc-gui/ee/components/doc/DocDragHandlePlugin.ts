@@ -24,6 +24,7 @@ import { NodeSelection, Plugin, PluginKey } from '@tiptap/pm/state'
 import type { EditorView } from '@tiptap/pm/view'
 import { Extension } from '@tiptap/core'
 import type { Node as PmNode } from '@tiptap/pm/model'
+import { CellSelection } from '@tiptap/pm/tables'
 
 // --- Types ---
 
@@ -359,6 +360,10 @@ function createDragHandlePlugin(): Plugin<DragHandleState> {
         // Skip when a mouse button is held (e.g. text selection in progress)
         // to avoid dispatching transactions that cause scroll jumps.
         if (event.buttons !== 0) return
+        // Skip during CellSelection — dispatching meta-only transactions
+        // while the table editing plugin has cell decorations active causes
+        // a DecorationGroup.eq crash (stale decoration references).
+        if (editorView.state.selection instanceof CellSelection) return
 
         const pmRect = editorView.dom.getBoundingClientRect()
 

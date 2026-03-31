@@ -846,14 +846,54 @@ const applyCellColor = (attr: 'bgColor' | 'cellTextColor', color: string | null)
   const sel = editor.value.state.selection
   if (!(sel instanceof CellSelection)) return
 
-  const { state, dispatch } = editor.value.view
-  const tr = state.tr
+  // Update cell DOM directly, then set content from DOM to sync ProseMirror state.
+  // This avoids the CellSelection decoration crash that occurs when dispatching
+  // setNodeMarkup while cell decorations are active.
+  const view = editor.value.view
 
-  sel.forEachCell((node, pos) => {
-    tr.setNodeMarkup(pos, undefined, { ...node.attrs, [attr]: color || null })
+  sel.forEachCell((_node, pos) => {
+    const dom = view.nodeDOM(pos) as HTMLElement | null
+    if (!dom) return
+
+    if (attr === 'bgColor') {
+      if (color) {
+        dom.style.backgroundColor = color
+        dom.setAttribute('data-bg-color', color)
+      } else {
+        dom.style.backgroundColor = ''
+        dom.removeAttribute('data-bg-color')
+      }
+    } else if (attr === 'cellTextColor') {
+      if (color) {
+        dom.style.color = color
+        dom.setAttribute('data-cell-text-color', color)
+      } else {
+        dom.style.color = ''
+        dom.removeAttribute('data-cell-text-color')
+      }
+    }
   })
 
-  dispatch(tr)
+  // Sync DOM back to ProseMirror state so changes persist on save
+  // Use a short delay to let the view settle, then dispatch from clean state
+  nextTick(() => {
+    if (!editor.value) return
+    const { state: s, dispatch } = editor.value.view
+    const tr = s.tr
+
+    sel.forEachCell((_node, pos) => {
+      if (pos < s.doc.content.size) {
+        const node = s.doc.nodeAt(pos)
+        if (node) {
+          tr.setNodeMarkup(pos, undefined, { ...node.attrs, [attr]: color || null })
+        }
+      }
+    })
+
+    // Collapse selection before dispatch to avoid decoration crash
+    tr.setSelection(TextSelection.create(tr.doc, sel.$anchorCell.start()))
+    dispatch(tr)
+  })
 }
 
 // --- Comments sidebar state ---

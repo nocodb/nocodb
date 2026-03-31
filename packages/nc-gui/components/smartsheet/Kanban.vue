@@ -124,6 +124,8 @@ const isRequiredGroupingFieldColumn = computed(() => {
   return !!groupingFieldColumn.value?.rqd
 })
 
+const isColorCodeEnabled = computed(() => parseProp(groupingFieldColumn.value?.meta)?.isColorCodeEnabled !== false)
+
 const {
   isRowColouringEnabled,
   getCellColorStyle: _getCellColorStyle,
@@ -675,7 +677,14 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                             <a-tag
                               v-else
                               class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none !mt-0.5"
-                              :color="getSelectTypeFieldOptionBgColor({ color: stack.color || '#ccc', isDark })"
+                              :color="
+                                getSelectTypeFieldOptionBgColor({
+                                  color: stack.color || '#ccc',
+                                  isDark,
+                                  getColor,
+                                  isColorCodeEnabled,
+                                })
+                              "
                               @dblclick="
                                 () => {
                                   if (stack.title !== null && hasEditPermission && !isPublic && !isLocked) {
@@ -690,6 +699,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                     color: stack.color || '#ccc',
                                     isDark,
                                     getColor,
+                                    isColorCodeEnabled,
                                   }),
                                 }"
                                 class="text-sm font-semibold"
@@ -1204,7 +1214,14 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                         <div class="flex-1 flex max-w-[115px]">
                           <a-tag
                             class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none"
-                            :color="getSelectTypeFieldOptionBgColor({ color: stack.color || '#ccc', isDark })"
+                            :color="
+                              getSelectTypeFieldOptionBgColor({
+                                color: stack.color || '#ccc',
+                                isDark,
+                                getColor,
+                                isColorCodeEnabled,
+                              })
+                            "
                           >
                             <span
                               :style="{
@@ -1212,6 +1229,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                   color: stack.color || '#ccc',
                                   isDark,
                                   getColor,
+                                  isColorCodeEnabled,
                                 }),
                               }"
                               class="text-sm font-semibold"

@@ -214,6 +214,8 @@ onMounted(async () => {
                         getSelectTypeFieldOptionBgColor({
                           isDark,
                           color: grp.color?.split(',')[+tagIndex] || '#ccc',
+                          getColor,
+                          isColorCodeEnabled: parseProp(grp.column?.meta)?.isColorCodeEnabled !== false,
                         })
                       "
                     >
@@ -223,6 +225,7 @@ onMounted(async () => {
                             isDark,
                             color: grp.color?.split(',')[+tagIndex] || '#ccc',
                             getColor,
+                            isColorCodeEnabled: parseProp(grp.column?.meta)?.isColorCodeEnabled !== false,
                           }),
                           fontSize: '12px',
                           fontWeight: 500,
@@ -252,6 +255,8 @@ onMounted(async () => {
                     getSelectTypeFieldOptionBgColor({
                       isDark,
                       color: grp.color || '#ccc',
+                      getColor,
+                      isColorCodeEnabled: parseProp(grp.column?.meta)?.isColorCodeEnabled !== false,
                     })
                   "
                 >
@@ -262,6 +267,7 @@ onMounted(async () => {
                         isDark,
                         color: grp.color || '#ccc',
                         getColor,
+                        isColorCodeEnabled: parseProp(grp.column?.meta)?.isColorCodeEnabled !== false,
                       }),
                     }"
                   >

@@ -187,6 +187,7 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
       skipSortBasedOnOrderCol: ctx.skipSortBasedOnOrderCol,
       ignoreViewFilterAndSort: ctx.ignoreViewFilterAndSort,
       ignoreRls: ctx.ignoreRls,
+      deletedOnly: ctx.deletedOnly,
       skipCache,
       listArgs,
       limitOffsetPlaceholder: skipCache ? undefined : limitOffsetPlaceholder,

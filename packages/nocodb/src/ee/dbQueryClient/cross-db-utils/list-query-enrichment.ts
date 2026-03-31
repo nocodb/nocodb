@@ -1,4 +1,9 @@
-import { extractFilterFromXwhere, isOrderCol, UITypes } from 'nocodb-sdk';
+import {
+  extractFilterFromXwhere,
+  isDeletedCol,
+  isOrderCol,
+  UITypes,
+} from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type { NcApiVersion } from 'nocodb-sdk';
@@ -46,6 +51,7 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
       skipCache?: boolean;
       listArgs?: XcFilter;
       ignoreRls?: boolean;
+      deletedOnly?: boolean;
       limitOffsetPlaceholder?: number;
       /**
        * Optional raw inner query BEFORE source_qb wrapping. When provided,
@@ -231,8 +237,27 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
     }
 
     // Apply remaining filters on baseQb (inner qb when provided,
-    // otherwise rootQb). This keeps formula-based conditions in scope
+    // otherwise baseQb). This keeps formula-based conditions in scope
     // of the original table name.
+    // Soft-delete filter: exclude deleted records normally, or select ONLY deleted for trash listing
+    if (ctx.deletedOnly) {
+      const deletedCol = columns.find((c) => isDeletedCol(c));
+      if (deletedCol) {
+        baseQb.where(deletedCol.column_name, true);
+        countConditionQb.where(deletedCol.column_name, true);
+      } else {
+        baseQb.whereRaw('1 = 0');
+        countConditionQb.whereRaw('1 = 0');
+      }
+    } else {
+      const softDeleteFilter = await baseModel.getSoftDeleteFilter();
+      if (softDeleteFilter) {
+        baseQb.where(softDeleteFilter);
+        countConditionQb.where(softDeleteFilter);
+      }
+    }
+
+    // apply remaining filters on root query and count query
     await conditionV2(
       baseModel,
       aggrConditionObj,

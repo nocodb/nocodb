@@ -69,11 +69,11 @@ export class InitMigrationJobs {
       job: MigrationJobTypes.AuditMigration,
       service: this.auditMigration,
     },
-    {
+    /*{
       version: '10',
       job: MigrationJobTypes.SoftDeleteColumnMigration,
       service: this.softDeleteColumnMigration,
-    },
+    },*/
   ];
 
   private readonly debugLog = debug('nc:migration-jobs:init');

@@ -1748,7 +1748,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await table.getColumns(this.context);
       }
       const pvColumn = table.columns?.find((col) => col.pv);
-      if (pvColumn?.column_name) {
+      // TODO: support virtual PV columns (Formula, Lookup, Rollup) by building
+      // the formula/rollup SQL via formulaQueryBuilderv2 and using it in the CASE WHEN
+      if (pvColumn?.column_name && !isVirtualCol(pvColumn)) {
         // Use the structured filter array from extractFilterFromXwhere
         // instead of re-parsing the raw where string
         const { filters: parsedFilters } = extractFilterFromXwhere(

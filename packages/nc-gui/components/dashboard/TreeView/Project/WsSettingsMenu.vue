@@ -156,7 +156,7 @@ const activeWsSettingsTab = computed(() => {
       :active="activeWsSettingsTab === 'ws-scim'"
       @click="navigateToWsSettings('ws-scim')"
     >
-      SCIM Provisioning
+      {{ $t('labels.scimProvisioning') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
       v-if="!isEEFeatureBlocked && (isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators'))"

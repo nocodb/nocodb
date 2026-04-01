@@ -75,7 +75,7 @@ const tabItems = computed<TabItem[]>(() => {
     }
 
     if (isEeUI && !blockScim.value && showEEFeatures.value) {
-      items.push({ key: 'scim', icon: 'ncShield', label: 'SCIM' })
+      items.push({ key: 'scim', icon: 'ncShield', label: t('labels.scimProvisioning') })
     }
   }
 

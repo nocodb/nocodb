@@ -130,7 +130,13 @@ export class OrgUsersService {
       }
 
       // Block deletion if user is SCIM-managed in any workspace
-      try {
+      const hasScimColumn = await ncMeta
+        .knexConnection('nc_workspace_users')
+        .columnInfo()
+        .then((cols) => 'scim_managed' in cols)
+        .catch(() => false);
+
+      if (hasScimColumn) {
         const scimCount = await ncMeta
           .knexConnection('nc_workspace_users')
           .where('fk_user_id', param.userId)
@@ -146,8 +152,6 @@ export class OrgUsersService {
             'This user is managed via SCIM in one or more workspaces. Removal must be done from the identity provider.',
           );
         }
-      } catch {
-        // scim_managed column may not exist in CE — ignore
       }
 
       // delete base user entry and assign to super admin

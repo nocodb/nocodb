@@ -73,18 +73,22 @@ function tableHelpersTests() {
           (col: any) => col.title === createdByColumn.title + '1',
         ),
       ).to.eq(false, createdByColumn.title + '1 exists');
-      // if only column name is same, append
+      // if only column name is same, remove (column_name match is enough)
       expect(
         nonSystemResult.some(
-          (col: any) => col.column_name === createdByColumn2.column_name + '1',
+          (col: any) =>
+            col.column_name === createdByColumn2.column_name ||
+            col.column_name === createdByColumn2.column_name + '1',
         ),
-      ).to.eq(true, createdByColumn2.column_name + '1 not exists');
-      // if only column title is same, append
+      ).to.eq(false, createdByColumn2.column_name + ' should be removed');
+      // if only column title is same, remove (title match is enough)
       expect(
         nonSystemResult.some(
-          (col: any) => col.title === updatedByColumn3.title + '1',
+          (col: any) =>
+            col.title === updatedByColumn3.title ||
+            col.title === updatedByColumn3.title + '1',
         ),
-      ).to.eq(true, updatedByColumn3.title + '1 not exists');
+      ).to.eq(false, updatedByColumn3.title + ' should be removed');
       // rename for id field
       expect(
         nonSystemResult.some(

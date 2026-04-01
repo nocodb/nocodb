@@ -5,6 +5,7 @@ import {
   PermissionKey,
   UITypes,
   UITypesName,
+  isAutoNumber,
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
@@ -270,7 +271,7 @@ const onClick = (e: Event) => {
         <GeneralIcon icon="viewGannt" class="flex-none !w-3.5 !h-3.5 !text-nc-content-gray-muted" />
       </NcTooltip>
       <NcTooltip
-        v-if="column.readonly && meta?.synced && isExpandedForm && !isPublic"
+        v-if="column.readonly && !isAutoNumber(column) && meta?.synced && isExpandedForm && !isPublic"
         class="flex items-center"
         placement="bottom"
       >
@@ -290,7 +291,7 @@ const onClick = (e: Event) => {
     <template v-if="!hideMenu || meta?.synced">
       <div v-if="!isExpandedForm" class="flex-1" />
 
-      <div v-if="!isExpandedForm && meta?.synced && column.readonly">
+      <div v-if="!isExpandedForm && meta?.synced && column.readonly && !isAutoNumber(column)">
         <NcTooltip class="flex items-center" placement="bottom">
           <template #title> {{ $t('tooltip.fieldIsExternallySynced') }} </template>
           <GeneralIcon icon="ncZap" class="flex-none !w-4 !h-4 !text-nc-content-gray-disabled" />

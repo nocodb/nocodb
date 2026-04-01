@@ -618,7 +618,7 @@ export function useCanvasListView({
           !showEditRestrictedColumnTooltip(col) ||
           isAllowed(PermissionEntity.FIELD, col.id, PermissionKey.RECORD_FIELD_EDIT)
 
-        const isSyncedCol = !!(levelMeta?.synced && col.readonly)
+        const isSyncedCol = !!(levelMeta?.synced && col.readonly && !isAutoNumber(col))
 
         const isReadonly =
           col.readonly || isDataReadOnly.value || !isDataEditAllowed.value || isPublicView.value || !isCellEditable || isSyncedCol

@@ -6,6 +6,7 @@ import {
   UITypes,
   hiddenColumnTypes,
   isAIPromptCol,
+  isAutoNumber,
   isLinksOrLTAR,
   isSystemColumn,
   partialUpdateAllowedTypes,
@@ -2088,7 +2089,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                             <NcMenuItem
                               key="table-explorer-duplicate"
                               data-testid="nc-field-item-action-duplicate"
-                              :disabled="isSystemColumn(field)"
+                              :disabled="isSystemColumn(field) || isAutoNumber(field)"
                               @click="duplicateField(field)"
                             >
                               <GeneralIcon icon="duplicate" />

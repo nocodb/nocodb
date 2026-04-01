@@ -401,7 +401,7 @@ export function useCanvasRender({
 
       let rightOffset = xOffset + width - rightPadding
 
-      if (isFieldEditAllowed.value && !colObj?.readonly) {
+      if (isFieldEditAllowed.value && (!colObj?.readonly || isAutoNumber(colObj))) {
         rightOffset -= 16
         spriteLoader.renderIcon(ctx, {
           icon: 'chevronDown',
@@ -410,7 +410,7 @@ export function useCanvasRender({
           x: rightOffset - scrollLeft.value,
           y: headerRowHeight.value / 2 - 7,
         })
-      } else if (meta.value?.synced && colObj?.readonly && !isPublic.value) {
+      } else if (meta.value?.synced && colObj?.readonly && !isAutoNumber(colObj) && !isPublic.value) {
         rightOffset -= 16
         spriteLoader.renderIcon(ctx, {
           icon: 'ncZap',
@@ -687,7 +687,7 @@ export function useCanvasRender({
 
         let rightOffset = xOffset + width - rightPadding
 
-        if (column.uidt && isFieldEditAllowed.value && !colObj?.readonly) {
+        if (column.uidt && isFieldEditAllowed.value && (!colObj?.readonly || isAutoNumber(colObj))) {
           // Chevron down
           rightOffset -= 16
           spriteLoader.renderIcon(ctx, {
@@ -697,7 +697,7 @@ export function useCanvasRender({
             x: rightOffset,
             y: y - 7,
           })
-        } else if (meta.value?.synced && colObj?.readonly && !isPublic.value) {
+        } else if (meta.value?.synced && colObj?.readonly && !isAutoNumber(colObj) && !isPublic.value) {
           rightOffset -= 16
           spriteLoader.renderIcon(ctx, {
             icon: 'ncZap',

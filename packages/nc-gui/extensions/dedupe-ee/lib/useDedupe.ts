@@ -778,7 +778,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
     const isAllowToEdit = isAllowed(PermissionEntity.FIELD, col.id!, PermissionKey.RECORD_FIELD_EDIT)
 
-    if (col.readonly && meta.value?.synced) {
+    if (col.readonly && meta.value?.synced && !isAutoNumber(col)) {
       result.supported = false
       result.tooltip = "Synced fields can't be merged"
 

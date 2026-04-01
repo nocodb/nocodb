@@ -327,7 +327,7 @@ onBeforeUnmount(() => {
         :doc="node.doc"
         :depth="node.depth"
         :has-children="node.hasChildren"
-        class="nc-document-item nc-tree-item !rounded-md !pr-0.75 !py-0.5 w-full transition-all ease-in duration-100"
+        class="nc-document-item nc-tree-item !rounded-md !py-0.5 w-full transition-all ease-in duration-100"
         :class="{
           active: activeDocumentId === node.doc.id,
         }"

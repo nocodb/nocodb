@@ -14,7 +14,7 @@ import type { INcAxios } from './ncAxios';
 
 const API_VERSION = 'v3';
 
-describe.only('dataApiV3', () => {
+describe('dataApiV3', () => {
   describe('self-referencing BelongsTo blank filter', () => {
     let testContext: {
       context: any;

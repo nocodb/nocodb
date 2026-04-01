@@ -512,7 +512,7 @@ const filteredViews = computed(() => {
         :on-validate="validate"
         :table="table"
         :view="view"
-        class="nc-view-item !rounded-md !pr-0.75 !py-0.5 w-full transition-all ease-in duration-100"
+        class="nc-view-item !rounded-md !pr-0.75 rtl:!pl-0.75 !py-0.5 w-full transition-all ease-in duration-100"
         @delete="openDeleteDialog"
         @rename="onRename"
         @change-view="changeView"

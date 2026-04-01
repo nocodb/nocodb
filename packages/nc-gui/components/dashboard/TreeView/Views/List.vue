@@ -490,8 +490,8 @@ const filteredViews = computed(() => {
         v-if="!!sectionId && !filteredViews.length && !dragging"
         class="flex items-center py-1 text-nc-content-gray-muted text-body sm:text-bodyDefaultSm"
         :class="{
-          'pl-14.5 xs:(pl-16)': isDefaultSource,
-          'pl-21.5 xs:(pl-23)': !isDefaultSource,
+          'pl-14.5 xs:(pl-16) rtl:(pr-14.5 pl-0) rtl:xs:(pr-16 pl-0)': isDefaultSource,
+          'pl-21.5 xs:(pl-23) rtl:(pr-21.5 pl-0) rtl:xs:(pr-23 pl-0)': !isDefaultSource,
         }"
       >
         {{ $t('general.empty') }}

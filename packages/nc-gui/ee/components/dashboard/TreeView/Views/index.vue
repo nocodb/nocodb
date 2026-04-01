@@ -344,8 +344,8 @@ watch(
         :rows="views.length || 3"
         class="!pr-2.5 !mt-2"
         :class="{
-          '!pl-8.5 xs:(!pl-9)': isDefaultSource,
-          '!pl-15': !isDefaultSource,
+          '!pl-8.5 xs:(!pl-9) rtl:(!pr-8.5 !pl-0) rtl:xs:(!pr-9 !pl-0)': isDefaultSource,
+          '!pl-15 rtl:(!pr-15 !pl-0)': !isDefaultSource,
         }"
       />
     </template>

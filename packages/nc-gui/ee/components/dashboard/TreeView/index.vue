@@ -355,7 +355,7 @@ const onMove = async (
 </script>
 
 <template>
-  <div class="nc-treeview-container flex flex-col justify-between select-none pl-0.5">
+  <div class="nc-treeview-container flex flex-col justify-between select-none pl-0.5 rtl:(pr-0.5 pl-0)">
     <div ref="treeViewDom" mode="inline" class="nc-treeview pb-0.5 flex-grow h-full overflow-hidden h-full">
       <template v-if="starredProjectList?.length">
         <div v-if="!isSharedBase" class="nc-treeview-subheading mt-1">
@@ -429,5 +429,12 @@ const onMove = async (
 }
 .ghost {
   @apply bg-primary-selected;
+}
+</style>
+
+<style lang="scss">
+.rtl .nc-treeview-subheading {
+  padding-left: 2px;
+  padding-right: 14px;
 }
 </style>

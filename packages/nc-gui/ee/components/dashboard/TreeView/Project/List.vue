@@ -435,3 +435,10 @@ useEventListener(document, 'contextmenu', handleContext, true)
   @apply hover:bg-nc-bg-brand pl-[15px];
 }
 </style>
+
+<style lang="scss">
+.rtl .nc-treeview-subheading {
+  padding-left: 2px;
+  padding-right: 14px;
+}
+</style>

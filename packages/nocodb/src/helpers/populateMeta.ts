@@ -325,7 +325,7 @@ export async function populateMeta(
           ? []
           : tableRelations.filter((r) => r.tn === table.tn);
 
-      const columnNameSet = new Set(columns.map((c) => c.cn?.toLowerCase()));
+      const columnNameSet = new Set(columns.map((c) => c.cn));
       const isNcCreatedTable = Object.keys(NC_SYSTEM_COL_UIDT).every((name) =>
         columnNameSet.has(name),
       );
@@ -333,7 +333,7 @@ export async function populateMeta(
       // Mark NocoDB system columns before mapDefaultDisplayValue so pv selection skips them
       if (isNcCreatedTable) {
         for (const column of columns) {
-          const ncUidt = NC_SYSTEM_COL_UIDT[column.cn?.toLowerCase()];
+          const ncUidt = NC_SYSTEM_COL_UIDT[column.cn];
           if (ncUidt) {
             column.uidt = ncUidt;
             column.system = true;

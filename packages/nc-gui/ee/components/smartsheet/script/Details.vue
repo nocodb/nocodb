@@ -22,6 +22,8 @@ let editor: monaco.editor.IStandaloneCodeEditor
 
 const { isDark } = useTheme()
 
+const { isRtl } = useRtl()
+
 const { activeScript, activeBaseSchema } = storeToRefs(useScriptStore())
 
 const { appInfo } = useGlobal()
@@ -208,7 +210,7 @@ onBeforeUnmount(async () => {
       'is-editor-open': isEditorOpen && isCreateEditScriptAllowed,
     }"
   >
-    <Splitpanes>
+    <Splitpanes :rtl="isRtl">
       <Pane v-show="isCreateEditScriptAllowed" min-size="20" :size="isEditorOpen ? 70 : 0" class="flex flex-col h-full min-w-0">
         <div v-if="isEditorOpen" class="w-full flex-1">
           <div ref="editorRef" data-testid="nc-scripts-editor" :data-code="activeScript?.script" class="h-full" />

@@ -279,6 +279,7 @@ watch(isChatPanelExpanded, () => {
           'sidebar-closed': !isLeftSidebarOpen,
           'hide-resize-bar': !isLeftSidebarOpen || sidebarState === 'openStart' || hideSidebar,
         }"
+        :rtl="isRtl"
         @ready="() => onWindowResize()"
         @resize="(event: any) => onResize(event[0].size)"
       >

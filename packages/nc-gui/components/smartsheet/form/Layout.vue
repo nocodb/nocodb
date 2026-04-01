@@ -12,6 +12,8 @@ const { isSidebarVisible } = toRefs(props)
 
 const { leftSidebarWidth, windowSize, formRightSidebarState, formRightSidebarWidthPercent } = storeToRefs(useSidebarStore())
 
+const { isRtl } = useRtl()
+
 const formPreviewSize = computed(() => 100 - formRightSidebarWidthPercent.value)
 
 function onResize(widthPercent: any) {
@@ -40,6 +42,7 @@ const normalizeSidebarWidth = computed(() => {
 <template>
   <Splitpanes
     class="nc-form-right-sidebar-content-resizable-wrapper w-full h-full"
+    :rtl="isRtl"
     @resize="(event: any) => onResize(event[1].size)"
   >
     <Pane :size="formPreviewSize" class="flex-1 h-full">

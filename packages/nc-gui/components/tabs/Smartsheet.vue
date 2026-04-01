@@ -16,6 +16,8 @@ useSidebar('nc-right-sidebar')
 
 const { isUIAllowed } = useRoles()
 
+const { isRtl } = useRtl()
+
 const { getMeta, getMetaByKey } = useMetas()
 
 const { ncNavigateTo } = useGlobal()
@@ -292,6 +294,7 @@ watch(isViewsLoading, async () => {
         <!-- Splitpanes is conditionally rendered only after mount to avoid race conditions with its internal async resize logic. -->
         <Splitpanes
           v-if="isMounted"
+          :rtl="isRtl"
           class="nc-extensions-content-resizable-wrapper"
           :class="{
             'nc-is-open-extensions': isPanelExpanded,

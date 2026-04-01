@@ -22,7 +22,7 @@ const workspaceTitle = computed(() => {
 </script>
 
 <template>
-  <div class="flex items-center px-3 h-[var(--topbar-height)] flex-none border-b-1 border-nc-border-gray-medium">
+  <div class="flex items-center gap-2 px-3 h-[var(--topbar-height)] flex-none border-b-1 border-nc-border-gray-medium">
     <GeneralOpenLeftSidebarBtn />
     <h1 class="text-bodyLgBold text-nc-content-gray capitalize truncate mb-0" data-testid="nc-ws-home-topbar-title">
       {{ workspaceTitle }}
@@ -30,7 +30,7 @@ const workspaceTitle = computed(() => {
     <div
       v-if="isEeUI && showEEFeatures"
       dir="ltr"
-      class="hidden md:flex items-center justify-center gap-1.5 px-2 py-1 ml-2 rtl:(mr-2 ml-0) rounded-full text-[11px] font-medium leading-none bg-nc-bg-gray-light text-nc-content-gray-subtle flex-shrink-0"
+      class="hidden md:flex items-center justify-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-medium leading-none bg-nc-bg-gray-light text-nc-content-gray-subtle flex-shrink-0"
     >
       <span class="uppercase">{{ getPlanTitle(activePlanTitle) }} {{ $t('general.plan') }}</span>
       <template v-if="isFreePlan && isPaymentEnabled && showEEFeatures">

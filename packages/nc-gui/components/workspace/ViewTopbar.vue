@@ -3,7 +3,7 @@ const workspaceStore = useWorkspace()
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
 
-const { activePlanTitle, isPaymentEnabled, showEEFeatures, handleUpgradePlan } = useEeConfig()
+const { activePlanTitle, isPaymentEnabled, showEEFeatures, handleUpgradePlan, getPlanTitle } = useEeConfig()
 
 const isFreePlan = computed(() => activePlanTitle.value === 'Free')
 
@@ -29,9 +29,10 @@ const workspaceTitle = computed(() => {
     </h1>
     <div
       v-if="isEeUI && showEEFeatures"
-      class="hidden md:flex items-center justify-center gap-1.5 px-2 py-1 ml-2 rounded-full text-[11px] font-medium leading-none bg-nc-bg-gray-light text-nc-content-gray-subtle flex-shrink-0"
+      dir="ltr"
+      class="hidden md:flex items-center justify-center gap-1.5 px-2 py-1 ml-2 rtl:(mr-2 ml-0) rounded-full text-[11px] font-medium leading-none bg-nc-bg-gray-light text-nc-content-gray-subtle flex-shrink-0"
     >
-      <span class="uppercase">{{ activePlanTitle }} {{ $t('general.plan') }}</span>
+      <span class="uppercase">{{ getPlanTitle(activePlanTitle) }} {{ $t('general.plan') }}</span>
       <template v-if="isFreePlan && isPaymentEnabled && showEEFeatures">
         <span class="text-nc-content-gray-muted">&middot;</span>
         <span class="text-primary cursor-pointer hover:underline" @click="showUpgrade">{{ $t('general.upgrade') }}</span>

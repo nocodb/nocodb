@@ -29,6 +29,7 @@ export function applyLanguageDirection(dir: typeof rtl | typeof ltr) {
   document.body.classList.remove(oppositeDirection)
   document.body.classList.add(dir)
   document.body.style.direction = dir
+  document.documentElement.setAttribute('dir', dir)
 }
 
 export const getViewIcon = (key?: string | number) => {

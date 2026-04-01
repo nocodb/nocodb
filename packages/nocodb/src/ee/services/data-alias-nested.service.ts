@@ -25,14 +25,55 @@ import {
 import { _wherePk } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/ncError';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
-import { Model, Source } from '~/models';
+import { Filter, Model, Source } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import conditionV2 from '~/db/conditionV2';
 
 const debugDataAliasNested = debug('nc:db:query:DataAliasNested');
 
 @Injectable()
 export class DataAliasNestedService extends DataAliasNestedServiceCE {
   logger = new Logger(DataAliasNestedService.name);
+
+  /**
+   * Apply view filters and link-column filters on the inner qb BEFORE
+   * wrapping as source_qb subquery. Formula-based conditions reference
+   * the original table name which becomes inaccessible after wrapping.
+   */
+  private async applyInnerViewAndLinkFilters(params: {
+    view?: View;
+    column: Column;
+    baseModel: IBaseModelSqlV2;
+    context: NcContext;
+    qb: any;
+  }) {
+    const { view, column, baseModel, context, qb } = params;
+    const filters: Filter[] = [];
+
+    if (view?.id) {
+      const viewFilters = await Filter.rootFilterList(context, {
+        viewId: view.id,
+      });
+      if (viewFilters?.length) {
+        filters.push(new Filter({ children: viewFilters, is_group: true }));
+      }
+    }
+
+    if (column.meta?.enableConditions) {
+      const linkFilters = await Filter.rootFilterListByLink(
+        { ...context, base_id: column.base_id },
+        { columnId: column.id },
+      );
+      if (linkFilters?.length) {
+        filters.push(new Filter({ children: linkFilters, is_group: true }));
+      }
+    }
+
+    if (filters.length) {
+      await conditionV2(baseModel, filters, qb);
+    }
+  }
+
   async whetherUseOptimizedQuery(
     context: NcContext,
     param: PathParams & { query: any; columnName: string; rowId: string },
@@ -186,12 +227,19 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
               (v) => v.id === relColumn.colOptions?.fk_target_view_id,
             )) ??
           refTable.views?.[0];
+
+        await this.applyInnerViewAndLinkFilters({
+          view: useView,
+          column: relColumn,
+          baseModel: refBaseModel,
+          context: refContext,
+          qb,
+        });
+
         const enriched = await listQueryEnrichment(
           dbQueryClient,
           this.logger,
         ).enrich(refContext, {
-          // we need to wrap it with alias
-          // otherwise ambiguous field can happen due to join
           sourceQb: baseModel.dbDriver.from(qb.as('source_qb')),
           model: refTable,
           baseModel: refBaseModel,
@@ -205,6 +253,7 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
           skipSortBasedOnOrderCol: true,
           listArgs,
           throwErrorIfInvalidParams,
+          ignoreViewFilterAndSort: true,
         });
 
         const finalQb = enriched.finalQb;
@@ -340,6 +389,14 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
               .orWhereNull(rcn),
           );
 
+        await this.applyInnerViewAndLinkFilters({
+          view: useView,
+          column: relColumn,
+          baseModel: refBaseModel,
+          context: refContext,
+          qb,
+        });
+
         const hasLimitedAccess = !(await hasTableVisibilityAccess(
           refBaseModel.context,
           refTable.id,
@@ -365,6 +422,7 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
           skipSortBasedOnOrderCol: true,
           listArgs,
           throwErrorIfInvalidParams,
+          ignoreViewFilterAndSort: true,
         });
 
         const finalQb = enriched.finalQb;
@@ -481,12 +539,19 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
               (v) => v.id === relColumn.colOptions?.fk_target_view_id,
             )) ??
           childTable.views?.[0];
+
+        await this.applyInnerViewAndLinkFilters({
+          view: useView,
+          column: relColumn,
+          baseModel: childBaseModel,
+          context: refContext,
+          qb,
+        });
+
         const enriched = await listQueryEnrichment(
           dbQueryClient,
           this.logger,
         ).enrich(refContext, {
-          // we need to wrap it with alias
-          // otherwise ambiguous field can happen due to join
           sourceQb: baseModel.dbDriver.from(qb.as('source_qb')),
           model: childTable,
           baseModel: childBaseModel,
@@ -500,6 +565,7 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
           validateFormula: false,
           listArgs,
           throwErrorIfInvalidParams,
+          ignoreViewFilterAndSort: true,
         });
 
         const finalQb = enriched.finalQb;
@@ -616,6 +682,14 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
             ).orWhereNull(cn);
           });
 
+        await this.applyInnerViewAndLinkFilters({
+          view: useView,
+          column: relColumn,
+          baseModel: refBaseModel,
+          context: refContext,
+          qb,
+        });
+
         const hasLimitedAccess = !(await hasTableVisibilityAccess(
           refBaseModel.context,
           refTable.id,
@@ -641,6 +715,7 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
           skipSortBasedOnOrderCol: true,
           listArgs,
           throwErrorIfInvalidParams,
+          ignoreViewFilterAndSort: true,
         });
 
         const finalQb = enriched.finalQb;

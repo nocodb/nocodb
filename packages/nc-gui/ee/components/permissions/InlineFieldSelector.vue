@@ -20,7 +20,7 @@ const permissionConfig = computed<PermissionConfig>(() => ({
   entityId: props.fieldId,
   entityTitle: props.fieldTitle,
   permission: props.permissionType,
-  disabled: (props.field?.readonly && props.table.synced) as boolean,
+  disabled: (props.field?.readonly && props.table.synced && !isAutoNumber(props.field)) as boolean,
   tooltip: t('tooltip.fieldPermissionsNotAvailableForSyncedColumns'),
 }))
 </script>

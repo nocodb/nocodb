@@ -11,6 +11,7 @@ import {
   getFirstNonPersonalView,
   isCreatedOrLastModifiedTimeCol,
   isCrossBaseLink,
+  isAutoNumber,
   isLinksOrLTAR,
   isSupportedDisplayValueColumn,
   isSystemColumn,
@@ -498,8 +499,12 @@ const onInsertAfter = () => {
   addColumn()
 }
 
+const isSyncedReadonlyField = computed(() => {
+  return meta.value?.synced && column.value?.readonly && !isAutoNumber(column.value)
+})
+
 const isDeleteAllowed = computed(() => {
-  return column?.value && !isSystemColumn(column.value) && (!meta.value?.synced || !column.value?.readonly)
+  return column?.value && !isSystemColumn(column.value) && !isSyncedReadonlyField.value
 })
 const isDuplicateAllowed = computed(() => {
   return (
@@ -508,6 +513,7 @@ const isDuplicateAllowed = computed(() => {
     ((!isMetaReadOnly.value && !isDataReadOnly.value) || readonlyMetaAllowedTypes.includes(column.value?.uidt)) &&
     !column.value.meta?.custom &&
     column.value.uidt !== UITypes.ForeignKey &&
+    !isAutoNumber(column.value) &&
     !isCrossBaseLink(column.value)
   )
 })
@@ -561,7 +567,7 @@ const isColumnUpdateAllowed = computed(() => {
   if (
     (isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(column.value?.uidt)) ||
     isSqlView.value ||
-    (meta.value?.synced && column.value?.readonly)
+    isSyncedReadonlyField.value
   ) {
     return false
   }
@@ -575,7 +581,7 @@ const isColumnEditAllowed = computed(() => {
       !readonlyMetaAllowedTypes.includes(column.value?.uidt) &&
       !partialUpdateAllowedTypes.includes(column.value?.uidt)) ||
     isSqlView.value ||
-    (meta.value?.synced && column.value?.readonly)
+    isSyncedReadonlyField.value
   ) {
     return false
   }
@@ -657,7 +663,7 @@ const onDeleteColumn = () => {
       :enabled="!isColumnEditAllowed"
       :is-sql-view="isSqlView"
     >
-      <template v-if="column?.readonly && meta?.synced" #title>
+      <template v-if="isSyncedReadonlyField" #title>
         <div class="max-w-50">
           {{ $t('tooltip.schemaChangeDisabledFormSyncedTableField') }}
         </div>
@@ -755,12 +761,12 @@ const onDeleteColumn = () => {
 
     <NcTooltip
       v-if="isEeUI && isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey && showEEFeatures"
-      :disabled="showEditRestrictedColumnTooltip(column) && !(column?.readonly && meta?.synced)"
+      :disabled="showEditRestrictedColumnTooltip(column) && !isSyncedReadonlyField"
       placement="right"
       :arrow="false"
     >
       <template #title>
-        <template v-if="column?.readonly && meta?.synced">
+        <template v-if="isSyncedReadonlyField">
           {{ $t('tooltip.fieldPermissionsNotAvailableForSyncedColumns') }}
         </template>
         <template v-else>
@@ -771,7 +777,7 @@ const onDeleteColumn = () => {
       <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS">
         <template #default="{ click }">
           <NcMenuItem
-            :disabled="!showEditRestrictedColumnTooltip(column) || (column?.readonly && meta?.synced) || isUUID(column)"
+            :disabled="!showEditRestrictedColumnTooltip(column) || isSyncedReadonlyField || isUUID(column)"
             @click="
               click(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS, () => {
                 onFieldPermissions()
@@ -981,7 +987,7 @@ const onDeleteColumn = () => {
       :enabled="!isColumnUpdateAllowed"
       :is-sql-view="isSqlView"
     >
-      <template v-if="column?.readonly && meta?.synced" #title>
+      <template v-if="isSyncedReadonlyField" #title>
         <div class="max-w-50">
           {{ $t('tooltip.deleteFieldIsRestrictedForSyncedTableField') }}
         </div>

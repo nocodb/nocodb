@@ -330,14 +330,13 @@ export async function populateMeta(
         columnNameSet.has(name),
       );
 
-      // Mark NocoDB system columns before mapDefaultDisplayValue so pv selection skips them
-      if (isNcCreatedTable) {
-        for (const column of columns) {
-          const ncUidt = NC_SYSTEM_COL_UIDT[column.cn];
-          if (ncUidt) {
-            column.uidt = ncUidt;
-            column.system = true;
-          }
+      for (const column of columns) {
+        // Remap NocoDB system columns to their proper UITypes
+        if (isNcCreatedTable && NC_SYSTEM_COL_UIDT[column.cn]) {
+          column.uidt = NC_SYSTEM_COL_UIDT[column.cn];
+          column.system = true;
+        } else if (!column.uidt) {
+          column.uidt = getColumnUiType(source, column);
         }
       }
 

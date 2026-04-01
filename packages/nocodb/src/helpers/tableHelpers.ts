@@ -61,8 +61,8 @@ export const repopulateCreateTableSystemColumns = (
     for (const sysCol of intersectingSystemCols) {
       if (
         sysCol.uidt === col.uidt &&
-        // Match by column_name alone (title may differ due to user customization or locale),
-        // or fall back to matching by title when column_name is absent
+        // Match by column_name, or when column_name is absent,
+        // or fall back to title match as a last resort
         (sysCol.column_name === col.column_name ||
           col.column_name === undefined ||
           (sysCol.title === col.title && col.title !== undefined))

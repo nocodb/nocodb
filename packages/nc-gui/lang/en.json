@@ -1752,7 +1752,7 @@
     "provisioningToken": "Bearer Token",
     "enableScim": "Enable SCIM",
     "disableScim": "Disable SCIM",
-    "scimManaged": "Managed via SCIM",
+    "scimManaged": "SCIM",
     "scimManagedUserTooltip": "This user is provisioned via SCIM from your identity provider.",
     "scimManagedTeamTooltip": "This team is provisioned via SCIM from your identity provider.",
     "scimManagedTeamRemovalTooltip": "This team is managed via SCIM. Deletion must be done from your identity provider.",

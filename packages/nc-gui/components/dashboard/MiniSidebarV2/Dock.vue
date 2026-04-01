@@ -183,12 +183,14 @@ const getScale = (key: string) => {
   return itemScales.value.get(key) ?? MIN_SCALE
 }
 
+const { isRtl } = useRtl()
+
 const getMagnifyStyle = (key: string) => {
   const scale = getScale(key)
   const margin = ((scale - 1) * 48) / 2
   return {
     transform: `scale(${scale})`,
-    transformOrigin: 'left center',
+    transformOrigin: isRtl.value ? 'right center' : 'left center',
     marginTop: `${margin}px`,
     marginBottom: `${margin}px`,
   }
@@ -377,9 +379,9 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
     <NcDropdown
       v-if="!isMobileMode"
       v-model:visible="isNotificationOpen"
-      placement="right"
+      :placement="isRtl ? 'left' : 'right'"
       overlay-class-name="!shadow-none"
-      :overlay-style="{ marginLeft: '8px' }"
+      :overlay-style="isRtl ? { marginRight: '8px' } : { marginLeft: '8px' }"
       :trigger="['click']"
     >
       <div

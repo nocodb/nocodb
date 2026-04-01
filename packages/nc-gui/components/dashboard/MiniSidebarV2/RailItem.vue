@@ -166,4 +166,10 @@ const disableTooltipForNewSidebar = true
 [theme='dark'] .nc-rail-item:not(.active) .nc-rail-item-icon {
   color: rgba(255, 255, 255, 0.95);
 }
+
+.rtl .nc-rail-item .nc-rail-item-indicator {
+  left: auto;
+  right: 0;
+  border-radius: 2px 0 0 2px;
+}
 </style>

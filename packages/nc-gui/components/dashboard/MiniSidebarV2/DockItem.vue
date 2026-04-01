@@ -138,3 +138,20 @@ const itemStyle = computed(() => ({
   }
 }
 </style>
+
+<style lang="scss">
+.rtl .nc-dock-item {
+  transform-origin: right center;
+
+  &[data-label]:hover::before {
+    left: auto;
+    right: calc(100% + 10px);
+  }
+
+  .nc-dock-item-indicator {
+    left: auto;
+    right: -12px;
+    border-radius: 3px 0 0 3px;
+  }
+}
+</style>

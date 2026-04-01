@@ -1754,6 +1754,7 @@
     "disableScim": "Disable SCIM",
     "scimManaged": "Managed via SCIM",
     "scimManagedUserTooltip": "This user is provisioned via SCIM from your identity provider.",
+    "scimManagedTeamTooltip": "This team is provisioned via SCIM from your identity provider.",
     "scimManagedRemovalTooltip": "This user is managed via SCIM. Removal must be done from your identity provider.",
     "regenerate": "Regenerate",
     "addDomain": "Add Domain",

@@ -129,9 +129,14 @@ describe('dataApiV3', () => {
       const sources = await testContext.base.getSources();
       const knex = await NcConnectionMgrv2.get(sources[0]!);
 
+      const schema = sources[0]!.getConfig()?.schema;
+      const tablePath = schema
+        ? `${schema}.${tblEmployee.table_name}`
+        : tblEmployee.table_name;
+
       // Disable FK constraints so we can delete without cascade
       await knex.raw('SET session_replication_role = replica;');
-      await knex(tblEmployee.table_name).where('id', 1).delete();
+      await knex(tablePath).where('id', 1).delete();
       await knex.raw('SET session_replication_role = DEFAULT;');
 
       // blank should match 4: Employees 4,5 (NULL FK) + 2,3 (dangling FK)
@@ -149,8 +154,13 @@ describe('dataApiV3', () => {
       const sources = await testContext.base.getSources();
       const knex = await NcConnectionMgrv2.get(sources[0]!);
 
+      const schema = sources[0]!.getConfig()?.schema;
+      const tablePath = schema
+        ? `${schema}.${tblEmployee.table_name}`
+        : tblEmployee.table_name;
+
       await knex.raw('SET session_replication_role = replica;');
-      await knex(tblEmployee.table_name).where('id', 1).delete();
+      await knex(tablePath).where('id', 1).delete();
       await knex.raw('SET session_replication_role = DEFAULT;');
 
       // notblank should match 0: no valid FK references remain

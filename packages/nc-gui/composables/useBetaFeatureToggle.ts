@@ -192,8 +192,6 @@ const FEATURES = [
     description: 'Enable SCIM v2.0 for automatic user and group provisioning from identity providers.',
     enabled: false,
     version: 1,
-    isEngineering: true,
-    isAdvanced: true,
     isEE: true,
   },
   {

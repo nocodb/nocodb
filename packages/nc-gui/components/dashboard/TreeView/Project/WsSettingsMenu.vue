@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
-import { FEATURE_FLAG } from '~/composables/useBetaFeatureToggle'
 
 const router = useRouter()
 const route = router.currentRoute
@@ -28,11 +27,10 @@ const {
   blockScim,
 } = useEeConfig()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const isScimAvail = computed(() => {
   if (!isEeUI) return false
-  return isFeatureEnabled(FEATURE_FLAG.SCIM) && !blockScim.value
+  return !blockScim.value
 })
 
 const isWorkspaceSsoAvail = computed(() => {

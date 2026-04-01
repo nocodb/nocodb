@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
-import { FEATURE_FLAG } from '~/composables/useBetaFeatureToggle'
 
 const router = useRouter()
 const route = router.currentRoute
@@ -18,7 +17,6 @@ const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
 const { isWsAuditEnabled, isPaymentEnabled, getFeature, handleUpgradePlan, showUpgradeToUseTeams, showEEFeatures, blockScim } =
   useEeConfig()
-const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const hasTeamsEditPermission = computed(() => {
   return isEeUI && isTeamsEnabled.value && isUIAllowed('teamCreate')
@@ -76,7 +74,7 @@ const tabItems = computed<TabItem[]>(() => {
       items.push({ key: 'sso', icon: 'sso', label: t('title.sso') })
     }
 
-    if (isEeUI && isFeatureEnabled(FEATURE_FLAG.SCIM) && !blockScim.value && showEEFeatures.value) {
+    if (isEeUI && !blockScim.value && showEEFeatures.value) {
       items.push({ key: 'scim', icon: 'ncShield', label: 'SCIM' })
     }
   }

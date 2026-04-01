@@ -207,7 +207,7 @@ export class RelationManager {
 
     const vTn = assocBaseModel.getTnPath(vTable);
 
-    // F4: Select only PK columns instead of parentTn.*
+    // Select only PK columns instead of parentTn.*
     const pkColumns = parentTable.primaryKeys.map(
       (pk) => `${parentTn}.${pk.column_name}`,
     );
@@ -298,22 +298,31 @@ export class RelationManager {
       vParentCol: Column;
       filterColName: string;
       filterSubquery: Knex.QueryBuilder;
+      execQb?: (qb: Knex.QueryBuilder | string, opts?: { first?: boolean }) => Promise<any>;
     },
   ): Promise<Array<{ childFk: any; parentFk: any }>> {
-    const { vTn, vChildCol, vParentCol, filterColName, filterSubquery } =
+    const { vTn, vChildCol, vParentCol, filterColName, filterSubquery, execQb } =
       params;
 
     // 1. SELECT existing junction rows (just FK columns)
-    const existingRows = await trx(vTn)
+    const selectQb = trx(vTn)
       .select(vChildCol.column_name, vParentCol.column_name)
       .where(filterColName, filterSubquery);
+    const existingRows = execQb
+      ? await execQb(selectQb)
+      : await selectQb;
 
     if (existingRows.length === 0) {
       return [];
     }
 
     // 2. Batch DELETE all matching junction rows
-    await trx(vTn).where(filterColName, filterSubquery).delete();
+    const deleteQb = trx(vTn).where(filterColName, filterSubquery).delete();
+    if (execQb) {
+      await execQb(deleteQb);
+    } else {
+      await deleteQb;
+    }
 
     return existingRows.map((row) => ({
       childFk: row[vChildCol.column_name],
@@ -375,9 +384,8 @@ export class RelationManager {
 
   /**
    * Enforce v2 cardinality constraints and insert the new link atomically.
-   * F1/F2 fix: wraps everything in a single DB transaction.
-   * F3/F5 fix: batch delete instead of per-row removeChild.
-   * F10 fix: no dummy childId needed.
+   * Wraps everything in a single DB transaction (skipped for external mux sources).
+   * Batch delete instead of per-row removeChild.
    * F14 fix: single broadcast after all operations.
    */
   private async enforceV2CardinalityAndInsert(params: {
@@ -412,8 +420,19 @@ export class RelationManager {
     let moRemovedPairs: Array<{ childFk: any; parentFk: any }> = [];
     let omRemovedPairs: Array<{ childFk: any; parentFk: any }> = [];
 
-    // F1/F2: Wrap cardinality enforcement + insert in a single transaction
-    const trx = await baseModel.dbDriver.transaction();
+    // Helper: execute a query builder through execAndParse (routes via mux
+    // for external sources) instead of direct Knex Runner execution.
+    const execQb = async (qb: any, opts?: { first?: boolean }) => {
+      return baseModel.execAndParse(qb, null, { raw: true, ...opts });
+    };
+
+    // Wrap cardinality enforcement + insert in a single transaction.
+    // External mux sources don't support PG transactions over HTTP — skip
+    // the transaction wrapper but still execute queries through execAndParse.
+    const isExternal = (baseModel.dbDriver as any).isExternal;
+    const trx: any = isExternal
+      ? baseModel.dbDriver
+      : await baseModel.dbDriver.transaction();
     try {
       // ManyToOne / OneToOne: this child can only link to one parent
       // → remove all existing junction rows for this child
@@ -429,6 +448,7 @@ export class RelationManager {
           vParentCol,
           filterColName: vChildCol.column_name,
           filterSubquery: childFkSubquery,
+          execQb: isExternal ? execQb : undefined,
         });
 
         for (const pair of moRemovedPairs) {
@@ -457,6 +477,7 @@ export class RelationManager {
           vParentCol,
           filterColName: vParentCol.column_name,
           filterSubquery: parentFkSubquery,
+          execQb: isExternal ? execQb : undefined,
         });
 
         for (const pair of omRemovedPairs) {
@@ -471,7 +492,7 @@ export class RelationManager {
         }
       }
 
-      // Insert the new junction row within the same transaction
+      // Insert the new junction row
       if (baseModel.isSnowflake || baseModel.isDatabricks) {
         const parentPK = trx(parentTn)
           .select(parentColumn.column_name)
@@ -483,10 +504,15 @@ export class RelationManager {
           .where(_wherePk(childTable.primaryKeys, childId))
           .first();
 
-        await trx.raw(
+        const insertQb = trx.raw(
           `INSERT INTO ?? (??, ??) SELECT (${parentPK.toQuery()}), (${childPK.toQuery()})`,
           [vTn, vParentCol.column_name, vChildCol.column_name],
         );
+        if (isExternal) {
+          await execQb(insertQb);
+        } else {
+          await insertQb;
+        }
       } else {
         const insertObj = {
           [vParentCol.column_name]: trx(parentTn)
@@ -498,12 +524,17 @@ export class RelationManager {
             .where(_wherePk(childTable.primaryKeys, childId))
             .first(),
         };
-        await trx(vTn).insert(insertObj);
+        const insertQb = trx(vTn).insert(insertObj);
+        if (isExternal) {
+          await execQb(insertQb);
+        } else {
+          await insertQb;
+        }
       }
 
-      await trx.commit();
+      if (!isExternal) await trx.commit();
     } catch (e) {
-      await trx.rollback();
+      if (!isExternal) await trx.rollback();
       throw e;
     }
 
@@ -525,7 +556,7 @@ export class RelationManager {
       );
     }
 
-    // F14: Single batch of updateLastModified and broadcast after transaction
+    // Single batch of updateLastModified and broadcast after transaction
     // Include evicted row IDs so their updated_at is refreshed too
     const allParentRowIds = [
       parentId,
@@ -598,7 +629,7 @@ export class RelationManager {
       return await this.handleOnlyUpdateAudit(params);
     }
 
-    // F12: Create webhook handler before any mutations (captures pre-state)
+    // Create webhook handler before any mutations (captures pre-state)
     const webhookHandler = await RelationUpdateWebhookHandler.beginUpdate(
       {
         childBaseModel,

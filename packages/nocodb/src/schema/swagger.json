@@ -26751,7 +26751,7 @@
             "type": "number"
           },
           "pageSize": {
-            "description": "The number of pages",
+            "description": "The number of records per page",
             "example": 10,
             "type": "number"
           },

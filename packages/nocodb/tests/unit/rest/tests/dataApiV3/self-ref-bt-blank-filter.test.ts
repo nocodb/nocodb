@@ -8,6 +8,7 @@ import { createLtarColumn, customColumns } from '../../../factory/column';
 import { createBulkRows } from '../../../factory/row';
 import { createTable } from '../../../factory/table';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import TestDbMngr from '../../../TestDbMngr';
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk';
 import type { Model } from '../../../../../src/models';
 import type { INcAxios } from './ncAxios';
@@ -135,9 +136,9 @@ describe('dataApiV3', () => {
         : tblEmployee.table_name;
 
       // Disable FK constraints so we can delete without cascade
-      await knex.raw('SET session_replication_role = replica;');
+      await TestDbMngr.disableForeignKeyChecks(knex);
       await knex(tablePath).where('id', 1).delete();
-      await knex.raw('SET session_replication_role = DEFAULT;');
+      await TestDbMngr.enableForeignKeyChecks(knex);
 
       // blank should match 4: Employees 4,5 (NULL FK) + 2,3 (dangling FK)
       const rsp = await ncAxiosGet({
@@ -159,9 +160,9 @@ describe('dataApiV3', () => {
         ? `${schema}.${tblEmployee.table_name}`
         : tblEmployee.table_name;
 
-      await knex.raw('SET session_replication_role = replica;');
+      await TestDbMngr.disableForeignKeyChecks(knex);
       await knex(tablePath).where('id', 1).delete();
-      await knex.raw('SET session_replication_role = DEFAULT;');
+      await TestDbMngr.enableForeignKeyChecks(knex);
 
       // notblank should match 0: no valid FK references remain
       const rsp = await ncAxiosGet({

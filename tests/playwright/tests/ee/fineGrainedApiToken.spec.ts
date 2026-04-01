@@ -15,12 +15,12 @@ import { Api } from 'nocodb-sdk';
 
 // Helpers
 const navigateToTokens = async page => {
-  await page.goto('/#/account/tokens');
+  await page.goto('/account/tokens');
   await page.waitForLoadState('networkidle');
   try {
     await page.locator('[data-testid="nc-token-list"]').waitFor({ state: 'visible', timeout: 15000 });
   } catch {
-    await page.goto('/#/account/tokens');
+    await page.goto('/account/tokens');
     await page.waitForLoadState('networkidle');
     await page.locator('[data-testid="nc-token-list"]').waitFor({ state: 'visible', timeout: 15000 });
   }

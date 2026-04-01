@@ -13,7 +13,7 @@ export class AccountTokenPage extends BasePage {
   }
 
   async goto() {
-    await this.rootPage.goto('/#/account/tokens');
+    await this.rootPage.goto('/account/tokens');
     await this.rootPage.waitForLoadState('networkidle');
     await this.get().waitFor({ state: 'visible', timeout: 15000 });
   }
@@ -23,18 +23,18 @@ export class AccountTokenPage extends BasePage {
   }
 
   async createToken({ description }: { description: string }) {
-    // Click "Create new token" — navigates to /account/tokens/new
+    // Click "Create new token" — navigates to /account/tokens/new (both CE and EE)
     await this.createBtn.first().click();
 
-    // Wait for create form
+    // Wait for the wizard form to appear
     await this.rootPage.locator('[data-testid="nc-token-create-form"]').waitFor({ state: 'visible', timeout: 10000 });
 
     // Fill name
     await this.rootPage.locator('[data-testid="nc-token-name-input"]').fill(description);
 
-    // Add a base scope (required for EE) — click "Add all resources"
+    // Add all scopes if available (EE only)
     const addAllBtn = this.rootPage.locator('[data-testid="nc-token-scope-add-all"]');
-    if (await addAllBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+    if (await addAllBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
       await addAllBtn.click();
     }
 
@@ -51,8 +51,16 @@ export class AccountTokenPage extends BasePage {
   }
 
   async deleteToken({ description }: { description: string }) {
+    // Navigate back to list if needed
+    const tokenList = this.rootPage.locator('[data-testid="nc-token-list"]');
+    if (!(await tokenList.isVisible({ timeout: 1000 }).catch(() => false))) {
+      await this.rootPage.goto('/account/tokens');
+      await this.rootPage.waitForLoadState('networkidle');
+      await tokenList.waitFor({ state: 'visible', timeout: 10000 });
+    }
+
     // Find the token row by description text
-    const row = this.rootPage.locator('[data-testid="nc-token-list"] .token').filter({ hasText: description });
+    const row = this.rootPage.locator('[data-testid="nc-token-row"]').filter({ hasText: description });
 
     if ((await row.count()) > 0) {
       // Click delete icon

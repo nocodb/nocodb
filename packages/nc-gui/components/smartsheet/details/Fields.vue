@@ -2404,6 +2404,7 @@ onBeforeRouteUpdate((_to, from, next) => {
 .rtl .nc-fields-add-new-field-btn-wrapper {
   .nc-field-add-new {
     border-radius: 0 8px 8px 0 !important;
+    border-right-color: var(--nc-border-gray-medium) !important;
     border-left-color: transparent !important;
   }
 

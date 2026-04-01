@@ -210,7 +210,7 @@ const supportedDocs = [
     }"
   >
     <div class="flex gap-4 max-w-[1000px] mx-auto h-full">
-      <NcMenu class="nc-api-snippets-menu !h-full w-[252px] min-w-[252px] nc-scrollbar-thin !pr-3">
+      <NcMenu class="nc-api-snippets-menu !h-full w-[252px] min-w-[252px] nc-scrollbar-thin !pr-3 rtl:(!pl-3 !pr-0)">
         <div
           class="p-2 text-xs text-nc-content-gray-muted uppercase font-semibold"
           :style="{
@@ -261,7 +261,7 @@ const supportedDocs = [
           </div>
         </div>
       </NcMenu>
-      <div class="w-[calc(100%_-_264px)] flex flex-col gap-6 h-full max-h-full">
+      <div dir="ltr" class="w-[calc(100%_-_264px)] flex flex-col gap-6 h-full max-h-full">
         <div class="nc-api-clents-tab-wrapper h-[calc(100%_-_56px)] flex flex-col mt-2">
           <NcTabs v-model:active-key="selectedClient" class="nc-api-clents-tab">
             <template #rightExtra>
@@ -399,6 +399,11 @@ const supportedDocs = [
 </style>
 
 <style lang="scss">
+.rtl .nc-api-snippets-menu {
+  border-right: 0;
+  border-left: 0;
+}
+
 .nc-api-clents-tab-wrapper {
   @apply bg-nc-bg-gray-extralight border-1 border-nc-border-gray-medium rounded-lg flex-1 overflow-hidden;
 

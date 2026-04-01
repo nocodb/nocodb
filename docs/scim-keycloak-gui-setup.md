@@ -114,7 +114,10 @@ docker compose up -d --build
    - **Auth pass**: paste the Bearer Token from step 3
    - **Propagation user**: `ON`
    - **Propagation group**: `ON`
+   - **Sync refresh**: `ON` (required for "Sync all users" to push existing users to NocoDB)
 4. Click **Save**
+
+> To sync pre-existing Keycloak users to NocoDB: go to **User federation** → **nocodb-scim** → click **Sync all users**.
 
 ## 5. Test: Create a User
 

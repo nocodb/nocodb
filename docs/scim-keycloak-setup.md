@@ -146,7 +146,7 @@ curl -s -X POST "http://localhost:8180/admin/realms/master/components" \
       \"propagation-user\": [\"true\"],
       \"propagation-group\": [\"true\"],
       \"sync-import\": [\"false\"],
-      \"sync-refresh\": [\"false\"],
+      \"sync-refresh\": [\"true\"],
       \"enabled\": [\"true\"],
       \"priority\": [\"0\"]
     }

@@ -47,6 +47,13 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
       listArgs?: XcFilter;
       ignoreRls?: boolean;
       limitOffsetPlaceholder?: number;
+      /**
+       * Optional raw inner query BEFORE source_qb wrapping. When provided,
+       * conditionV2 filters are applied here (where the original table name
+       * is in scope) instead of on the outer sourceQb wrapper. This prevents
+       * formula-based conditions from referencing out-of-scope table names.
+       */
+      innerQb?: Knex.QueryBuilder;
     },
   ): Promise<{
     finalQb: Knex.QueryBuilder;
@@ -99,8 +106,14 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
     // Use sourceQb as the root/inner query
     const rootQb = ctx.sourceQb;
 
-    // Clone before conditions are applied so countQb starts from the same base
-    const countQbBase = rootQb.clone();
+    // When innerQb is provided, apply conditions there (table name in scope)
+    // instead of on the outer rootQb wrapper.
+    const baseQb = ctx.innerQb || rootQb;
+
+    // Clone the condition target BEFORE sorts are applied — count queries
+    // don't need ORDER BY. When innerQb is used, clone it so the count
+    // path gets conditions but not sorts.
+    let countConditionQb: Knex.QueryBuilder | null = null;
 
     // handle shuffle if query param preset
     if (+listArgs?.shuffle) {
@@ -205,40 +218,51 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
 
     // RLS filters — always throw on missing columns to prevent row leaks
     if (rlsFilterGroup.length) {
-      await conditionV2(baseModel, rlsFilterGroup, rootQb, undefined, true);
+      await conditionV2(baseModel, rlsFilterGroup, baseQb, undefined, true);
+      if (countConditionQb) {
+        await conditionV2(
+          baseModel,
+          rlsFilterGroup,
+          countConditionQb,
+          undefined,
+          true,
+        );
+      }
+    }
+
+    // Apply remaining filters on baseQb (inner qb when provided,
+    // otherwise rootQb). This keeps formula-based conditions in scope
+    // of the original table name.
+    await conditionV2(
+      baseModel,
+      aggrConditionObj,
+      baseQb,
+      undefined,
+      ctx.throwErrorIfInvalidParams,
+    );
+    if (countConditionQb) {
       await conditionV2(
         baseModel,
-        rlsFilterGroup,
-        countQbBase,
+        aggrConditionObj,
+        countConditionQb,
         undefined,
-        true,
+        ctx.throwErrorIfInvalidParams,
       );
     }
 
-    // apply remaining filters on root query and count query
-    await conditionV2(
-      baseModel,
-      aggrConditionObj,
-      rootQb,
-      undefined,
-      ctx.throwErrorIfInvalidParams,
-    );
-    await conditionV2(
-      baseModel,
-      aggrConditionObj,
-      countQbBase,
-      undefined,
-      ctx.throwErrorIfInvalidParams,
-    );
+    // Clone baseQb for count AFTER conditions but BEFORE sorts —
+    // count queries don't need ORDER BY.
+    countConditionQb = ctx.innerQb ? rootQb.clone() : baseQb.clone();
 
     const orderColumn = columns.find((c) => isOrderCol(c));
 
-    // apply sort on root query
-    if (sorts?.length) await sortV2(baseModel, sorts, rootQb);
+    // apply sort on baseQb (innerQb when provided) so formula-based
+    // sorts reference the original table name which is in scope
+    if (sorts?.length) await sortV2(baseModel, sorts, baseQb);
 
     if (!skipSortBasedOnOrderCol) {
       if (orderColumn) {
-        rootQb.orderBy(orderColumn.column_name);
+        baseQb.orderBy(orderColumn.column_name);
       }
     }
 
@@ -249,13 +273,13 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
       // - Otherwise, fallback to system CreatedTime
       // This avoids issues when order column has duplicates
       if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
-        rootQb.orderBy(ctx.model.primaryKey.column_name);
+        baseQb.orderBy(ctx.model.primaryKey.column_name);
       } else {
         const createdAtColumn = ctx.model.columns.find(
           (c) => c.uidt === UITypes.CreatedTime && c.system,
         );
         if (createdAtColumn) {
-          rootQb.orderBy(createdAtColumn.column_name);
+          baseQb.orderBy(createdAtColumn.column_name);
         }
       }
     }
@@ -263,9 +287,9 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
     // Wrap rootQb with ROOT_ALIAS for column extraction
     const qb = knex.from(rootQb.as(ROOT_ALIAS));
 
-    // Build count query wrapping the conditioned base
+    // Build count query from the clone taken after conditions but before sorts
     const countQb = knex
-      .from(countQbBase.as('count_qb'))
+      .from(countConditionQb.as('count_qb'))
       .count({ count: ctx.model.primaryKey?.column_name || '*' });
 
     profiler.log('get ast');

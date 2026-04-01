@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
+import { FEATURE_FLAG } from '~/composables/useBetaFeatureToggle'
 
 const router = useRouter()
 const route = router.currentRoute
@@ -24,7 +25,15 @@ const {
   getFeature,
   showUpgradeToUseTeams,
   handleUpgradePlan,
+  blockScim,
 } = useEeConfig()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const isScimAvail = computed(() => {
+  if (!isEeUI) return false
+  return isFeatureEnabled(FEATURE_FLAG.SCIM) && !blockScim.value
+})
 
 const isWorkspaceSsoAvail = computed(() => {
   if (isEeUI && appInfo.value?.isCloud && getFeature(PlanFeatureTypes.FEATURE_SSO)) {
@@ -140,6 +149,16 @@ const activeWsSettingsTab = computed(() => {
       @click="navigateToWsSettings('ws-sso')"
     >
       {{ $t('title.sso') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="isScimAvail && !isMobileMode && showEEFeatures"
+      v-e="['c:settings:ws:scim']"
+      icon="ncShield"
+      data-testid="ws-scim"
+      :active="activeWsSettingsTab === 'ws-scim'"
+      @click="navigateToWsSettings('ws-scim')"
+    >
+      SCIM Provisioning
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
       v-if="!isEEFeatureBlocked && (isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators'))"

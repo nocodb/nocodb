@@ -261,6 +261,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseSSO = (..._args: any[]) => {}
 
+  const blockScim = computed(() => true)
+
+  const showUpgradeToUseScim = (..._args: any[]) => {}
+
   return {
     calculatePrice,
     getLimit,
@@ -385,5 +389,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockWorkspaceMembers,
     showUpgradeToManageWorkspaceMembers,
     showUpgradeToUseSSO,
+    blockScim,
+    showUpgradeToUseScim,
   }
 })

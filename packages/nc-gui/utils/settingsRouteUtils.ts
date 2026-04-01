@@ -31,6 +31,7 @@ export const wsSettingsTabToSlug: Record<string, string> = {
   'ws-billing': 'billing',
   'ws-audits': 'audits',
   'ws-sso': 'sso',
+  'ws-scim': 'scim',
   'ws-settings': 'more',
 }
 

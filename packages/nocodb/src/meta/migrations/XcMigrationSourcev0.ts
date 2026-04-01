@@ -44,6 +44,7 @@ import * as nc_202603090002_date_dependency from './v0/nc_202603090002_date_depe
 import * as nc_202603230000_subscription_last_paid_seat_count from './v0/nc_202603230000_subscription_last_paid_seat_count';
 import * as nc_202603301109_fine_grained_api_tokens from './v0/nc_202603301109_fine_grained_api_tokens';
 import * as nc_202603310000_integration_links from './v0/nc_202603310000_integration_links';
+import * as nc_202603310000_scim_config_default_role from './v0/nc_202603310000_scim_config_default_role';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -99,6 +100,7 @@ export default class XcMigrationSourcev0 {
       'nc_202603230000_subscription_last_paid_seat_count',
       'nc_202603301109_fine_grained_api_tokens',
       'nc_202603310000_integration_links',
+      'nc_202603310000_scim_config_default_role',
     ]);
   }
 
@@ -200,6 +202,8 @@ export default class XcMigrationSourcev0 {
         return nc_202603301109_fine_grained_api_tokens;
       case 'nc_202603310000_integration_links':
         return nc_202603310000_integration_links;
+      case 'nc_202603310000_scim_config_default_role':
+        return nc_202603310000_scim_config_default_role;
     }
   }
 }

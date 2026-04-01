@@ -599,7 +599,7 @@ async function openNewRecordHandler() {
     :selected-cell-count="groupByTableRef?.selectedCellCount ?? 0"
   ></LazySmartsheetPagination>
 
-  <div v-if="depth !== 0" class="absolute bottom-12 z-5 left-2" @click.stop>
+  <div v-if="depth !== 0" class="absolute bottom-12 z-5 left-2 rtl:(right-2 left-auto)" @click.stop>
     <NcButton
       v-e="['c:row:add:grid']"
       class="nc-group-grid-add-new-row"

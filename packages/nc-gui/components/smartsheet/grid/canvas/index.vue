@@ -3152,7 +3152,7 @@ watch(
         </template>
       </NcDropdown>
     </template>
-    <div class="absolute bottom-12 z-5 left-2" @click.stop>
+    <div class="absolute bottom-12 z-5 left-2 rtl:(right-2 left-auto)" @click.stop>
       <NcTooltip v-if="meta?.synced" placement="right" :disabled="!meta?.synced">
         <NcButton class="nc-grid-add-new-row" size="small" disabled type="secondary" :shadow="false">
           <div class="flex items-center gap-2">
@@ -3203,7 +3203,7 @@ watch(
                 class="nc-grid-add-new-row"
                 size="small"
                 :class="{
-                  '!rounded-r-none !border-r-0': !isGroupBy,
+                  '!rounded-r-none !border-r-0 rtl:(!rounded-r-lg !border-r-1 !rounded-l-none !border-l-0)': !isGroupBy,
                 }"
                 type="secondary"
                 :shadow="false"
@@ -3229,7 +3229,7 @@ watch(
               <NcButton
                 v-if="!isMobileMode && !isGroupBy"
                 size="small"
-                class="!rounded-l-none nc-add-record-more-info"
+                class="!rounded-l-none rtl:(!rounded-l-lg !rounded-r-none) nc-add-record-more-info"
                 type="secondary"
                 :shadow="false"
               >

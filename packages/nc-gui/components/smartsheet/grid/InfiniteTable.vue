@@ -3225,7 +3225,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
       </div>
     </div>
 
-    <div class="absolute bottom-12 z-5 left-2" @click.stop>
+    <div class="absolute bottom-12 z-5 left-2 rtl:(right-2 left-auto)" @click.stop>
       <NcDropdown v-if="isAddingEmptyRowAllowed && !removeInlineAddRecord">
         <div class="flex shadow-nc-sm rounded-lg">
           <NcButton
@@ -3245,7 +3245,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
           <NcButton
             v-else
             v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
-            class="!rounded-r-none !border-r-0 nc-grid-add-new-row"
+            class="!rounded-r-none !border-r-0 rtl:(!rounded-r-lg !border-r-1 !rounded-l-none !border-l-0) nc-grid-add-new-row"
             size="small"
             type="secondary"
             :shadow="false"
@@ -3262,7 +3262,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
           <NcButton
             v-if="!isMobileMode"
             size="small"
-            class="!rounded-l-none nc-add-record-more-info"
+            class="!rounded-l-none rtl:(!rounded-l-lg !rounded-r-none) nc-add-record-more-info"
             type="secondary"
             :shadow="false"
           >

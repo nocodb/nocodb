@@ -1,0 +1,14 @@
+services:
+  keycloak:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: start-dev
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HTTP_PORT: 8180
+    ports:
+      - "8180:8180"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

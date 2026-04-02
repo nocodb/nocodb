@@ -416,9 +416,20 @@ const onResizeMouseDown = (colIndex: number, e: MouseEvent) => {
     recalcPositions()
   }
 
-  const onMouseUp = () => {
+  // Suppress the click event that follows mouseup — prevents onEditorBodyClick from
+  // calling focus('end') when the mouse releases over the editor body padding area.
+  const suppressNextClick = (ev: MouseEvent) => {
+    ev.stopPropagation()
+    ev.preventDefault()
+    document.removeEventListener('click', suppressNextClick, true)
+  }
+
+  const onMouseUp = (e: MouseEvent) => {
+    e.preventDefault()
     document.removeEventListener('mousemove', onMouseMove)
     document.removeEventListener('mouseup', onMouseUp)
+    // Capture the click that fires after this mouseup so it doesn't reach the editor body
+    document.addEventListener('click', suppressNextClick, true)
     document.body.style.cursor = ''
     document.body.style.userSelect = ''
 

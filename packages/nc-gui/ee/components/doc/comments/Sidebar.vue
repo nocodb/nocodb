@@ -153,6 +153,35 @@ const onCancelReply = () => {
   isReplyFocused.value = false
 }
 
+// Remove inline comment mark from editor and then delete the comment
+const handleDeleteComment = async (commentId: string) => {
+  const commentItem = comments.value.find((c) => c.id === commentId)
+
+  // If the comment has an anchor_id, remove the docComment mark from the editor
+  if (commentItem?.anchor_id && props.editor) {
+    const { tr, doc } = props.editor.state
+    let modified = false
+
+    doc.descendants((node, pos) => {
+      if (!node.isText || !node.marks.length) return
+      for (const mark of node.marks) {
+        if (mark.type.name === 'docComment' && mark.attrs.commentId === commentItem.anchor_id) {
+          tr.removeMark(pos, pos + node.nodeSize, mark)
+          modified = true
+        }
+      }
+    })
+
+    if (modified) {
+      // Exclude from undo history — comment is deleted, mark should not be restorable
+      tr.setMeta('addToHistory', false)
+      props.editor.view.dispatch(tr)
+    }
+  }
+
+  await deleteComment(commentId)
+}
+
 const onSaveReply = async () => {
   if (!replyText.value.trim() || !replyingTo.value?.id) return
 
@@ -221,6 +250,39 @@ const anchorTextMap = computed<Record<string, string>>(() => {
     }
   })
   return map
+})
+
+// Clean up orphaned docComment marks (e.g. restored by redo after comment was deleted).
+const validAnchorIds = computed(() => new Set(comments.value.filter((c: any) => c.anchor_id).map((c: any) => c.anchor_id)))
+let isCleaningUpMarks = false
+
+watch(anchorTextMap, () => {
+  if (!props.editor || isCleaningUpMarks) return
+
+  const orphanedIds = Object.keys(anchorTextMap.value).filter((id) => !validAnchorIds.value.has(id))
+  if (!orphanedIds.length) return
+
+  const { tr, doc } = props.editor.state
+  let modified = false
+
+  doc.descendants((node, pos) => {
+    if (!node.isText || !node.marks.length) return
+    for (const mark of node.marks) {
+      if (mark.type.name === 'docComment' && orphanedIds.includes(mark.attrs.commentId)) {
+        tr.removeMark(pos, pos + node.nodeSize, mark)
+        modified = true
+      }
+    }
+  })
+
+  if (modified) {
+    isCleaningUpMarks = true
+    tr.setMeta('addToHistory', false)
+    props.editor.view.dispatch(tr)
+    nextTick(() => {
+      isCleaningUpMarks = false
+    })
+  }
 })
 
 // Auto-focus comment input when sidebar opens with a pending inline selection
@@ -555,7 +617,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
             :anchor-text="threadItem.anchor_id ? anchorTextMap[threadItem.anchor_id] : undefined"
             :reaction-summary="getReactionSummary(threadItem.id!)"
             @edit="editComment(threadItem)"
-            @delete="deleteComment(threadItem.id!)"
+            @delete="handleDeleteComment(threadItem.id!)"
             @resolve="resolveComment(threadItem.id!)"
             @activate="activeCommentId === threadItem.id ? clearActiveComment() : scrollToComment(threadItem.id!)"
             @reply="onReply(threadItem)"
@@ -622,7 +684,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
               :is-reply="true"
               :reaction-summary="getReactionSummary(replyItem.id!)"
               @edit="editComment(replyItem)"
-              @delete="deleteComment(replyItem.id!)"
+              @delete="handleDeleteComment(replyItem.id!)"
               @resolve="resolveComment(replyItem.id!)"
               @activate="activeCommentId === replyItem.id ? clearActiveComment() : scrollToComment(replyItem.id!)"
               @reply="onReply(replyItem)"

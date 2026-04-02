@@ -14,4 +14,5 @@ export const dataApiV3Test = runOnSet(3, async () => {
   await import('./attachment.test');
   await import('./audit-log.test');
   await import('./filter.test');
+  await import('./self-ref-bt-blank-filter.test');
 });

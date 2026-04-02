@@ -16,10 +16,14 @@ export default class OrgUser {
     Object.assign(this, props);
   }
 
+  /**
+   * List org users directly from nc_org_users.
+   * Previously derived from workspace joins (PG-only ARRAY_AGG).
+   * Now that nc_org_users is properly populated, read directly.
+   */
   static async list(orgId: string, ncMeta = Noco.ncMeta) {
-    //TODO: Add caching
     const queryBuilder = ncMeta
-      .knex(MetaTable.USERS)
+      .knex(MetaTable.ORG_USERS)
       .select(
         `${MetaTable.USERS}.id`,
         `${MetaTable.USERS}.email`,
@@ -28,63 +32,25 @@ export default class OrgUser {
         `${MetaTable.USERS}.created_at as created_at`,
         `${MetaTable.USERS}.meta`,
         `${MetaTable.ORG_USERS}.roles as cloud_org_roles`,
-        ncMeta.knex.raw(
-          "ARRAY_AGG(DISTINCT JSON_BUILD_OBJECT('id', ??, 'created_at', ??, 'roles', ??, 'title', ??)::text) as workspaces",
-          [
-            `${MetaTable.WORKSPACE}.id`,
-            `${MetaTable.WORKSPACE_USER}.created_at`,
-            `${MetaTable.WORKSPACE_USER}.roles`,
-            `${MetaTable.WORKSPACE}.title`,
-          ],
-        ),
       )
       .innerJoin(
-        MetaTable.WORKSPACE_USER,
-        `${MetaTable.WORKSPACE_USER}.fk_user_id`,
-        `${MetaTable.USERS}.id`,
-      )
-      .innerJoin(
-        MetaTable.WORKSPACE,
-        `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
-        `${MetaTable.WORKSPACE}.id`,
-      )
-      .innerJoin(
-        MetaTable.ORG,
-        `${MetaTable.WORKSPACE}.fk_org_id`,
-        `${MetaTable.ORG}.id`,
-      )
-      .leftJoin(
-        MetaTable.ORG_USERS,
+        MetaTable.USERS,
         `${MetaTable.ORG_USERS}.fk_user_id`,
         `${MetaTable.USERS}.id`,
       )
-      .where({
-        [`${MetaTable.WORKSPACE}.fk_org_id`]: orgId,
-      })
-      .where((kn) => {
-        kn.where(`${MetaTable.WORKSPACE_USER}.deleted`, false).orWhereNull(
-          `${MetaTable.WORKSPACE_USER}.deleted`,
-        );
-      })
+      .where(`${MetaTable.ORG_USERS}.fk_org_id`, orgId)
       .where(function () {
         this.where(`${MetaTable.USERS}.is_deleted`, false).orWhereNull(
           `${MetaTable.USERS}.is_deleted`,
         );
-      })
-      .groupBy(
-        `${MetaTable.USERS}.id`,
-        `${MetaTable.USERS}.email`,
-        `${MetaTable.ORG_USERS}.roles`,
-      );
+      });
 
-    let res = await queryBuilder;
+    const res = await queryBuilder;
 
-    res = res.map((r) => {
-      r.workspaces = r.workspaces.map((w) => JSON.parse(w));
+    return res.map((r) => {
       r.meta = parseMetaProp(r);
       return r;
     });
-    return res;
   }
 
   static async get(orgId: string, userId: string, ncMeta = Noco.ncMeta) {

@@ -84,6 +84,8 @@ const wordToComplete = ref<string | undefined>('')
 
 const selected = ref(0)
 
+const isMounted = ref(false)
+
 const sortOrder: Record<string, number> = {
   column: 0,
   function: 1,
@@ -255,6 +257,18 @@ onMounted(async () => {
     editor.layout({
       width: 339,
       height: 120,
+    })
+
+    // Prevent stale Enter keypress (from field type search) from inserting a newline on mount
+    editor.onKeyDown((e) => {
+      if (!isMounted.value && e.keyCode === KeyCode.Enter) {
+        e.preventDefault()
+        e.stopPropagation()
+      }
+    })
+
+    nextTick(() => {
+      isMounted.value = true
     })
 
     editor.onDidChangeModelContent(async () => {

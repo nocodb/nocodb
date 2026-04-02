@@ -966,6 +966,48 @@ function filterDateBased() {
       },
     ];
 
+    // "in" filter — used by BelongsTo/OneToOne DataLoader for batch loading
+    {
+      const dateCol = columns.find((c) => c.title === 'Date');
+      // pick 3 known date values from the generated data
+      const nonNullRecords = unfilteredRecords.filter(
+        (r) => r['Date'] !== null && r['Date'] !== '',
+      );
+      const sampleDates = [
+        nonNullRecords[0]['Date'],
+        nonNullRecords[1]['Date'],
+        nonNullRecords[2]['Date'],
+      ];
+      const uniqueSampleDates = [...new Set(sampleDates)];
+      const expectedInCount = unfilteredRecords.filter((r) =>
+        uniqueSampleDates.includes(r['Date']),
+      ).length;
+
+      // test with comma-separated string value
+      const filterIn = {
+        fk_column_id: dateCol.id,
+        status: 'create',
+        logical_op: 'and',
+        comparison_op: 'in',
+        value: uniqueSampleDates.join(','),
+      };
+      await applyDateFilter(filterIn, expectedInCount);
+
+      // test with single date value
+      const singleDate = uniqueSampleDates[0];
+      const expectedSingleCount = unfilteredRecords.filter(
+        (r) => r['Date'] === singleDate,
+      ).length;
+      const filterInSingle = {
+        fk_column_id: dateCol.id,
+        status: 'create',
+        logical_op: 'and',
+        comparison_op: 'in',
+        value: singleDate,
+      };
+      await applyDateFilter(filterInSingle, expectedSingleCount);
+    }
+
     // rest of the filters (without subop type)
     const filterList = [
       {
@@ -1087,9 +1129,103 @@ function filterDateBased() {
   });
 }
 
+function filterDateTimeInBased() {
+  beforeEach(async function () {
+    context = await init();
+    base = await createProject(context);
+
+    ctx = {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    };
+
+    table = await createTable(context, base, {
+      table_name: 'dateTimeInBased',
+      title: 'dateTimeInBased',
+      columns: [
+        {
+          column_name: 'Id',
+          title: 'Id',
+          uidt: UITypes.ID,
+        },
+        {
+          column_name: 'DateTime',
+          title: 'DateTime',
+          uidt: UITypes.DateTime,
+        },
+      ],
+    });
+
+    columns = await table.getColumns(ctx);
+
+    const rowAttributes: any[] = [];
+    for (let i = 0; i < 800; i++) {
+      const row = {
+        DateTime: rowMixedValue(
+          columns.find((c) => c.title === 'DateTime'),
+          i,
+        ),
+      };
+      rowAttributes.push(row);
+    }
+
+    await createBulkRows(context, {
+      base,
+      table,
+      values: rowAttributes,
+    });
+    unfilteredRecords = await listRow({ base, table });
+
+    expect(unfilteredRecords.length).to.equal(800);
+  });
+
+  it('Type: DateTime with in operator', async () => {
+    const dateTimeCol = columns.find((c) => c.title === 'DateTime');
+    const nonNullRecords = unfilteredRecords.filter(
+      (r) => r['DateTime'] !== null && r['DateTime'] !== '',
+    );
+    const sampleValues = [
+      nonNullRecords[0]['DateTime'],
+      nonNullRecords[1]['DateTime'],
+      nonNullRecords[2]['DateTime'],
+    ];
+    const uniqueSampleValues = [...new Set(sampleValues)];
+    const expectedCount = unfilteredRecords.filter((r) =>
+      uniqueSampleValues.includes(r['DateTime']),
+    ).length;
+
+    // test with comma-separated string value
+    const filterIn = {
+      fk_column_id: dateTimeCol.id,
+      status: 'create',
+      logical_op: 'and',
+      comparison_op: 'in',
+      value: uniqueSampleValues.join(','),
+    };
+    await applyDateFilter(filterIn, expectedCount);
+
+    // test with single datetime value
+    const singleValue = uniqueSampleValues[0];
+    const expectedSingleCount = unfilteredRecords.filter(
+      (r) => r['DateTime'] === singleValue,
+    ).length;
+    const filterInSingle = {
+      fk_column_id: dateTimeCol.id,
+      status: 'create',
+      logical_op: 'and',
+      comparison_op: 'in',
+      value: singleValue,
+    };
+    await applyDateFilter(filterInSingle, expectedSingleCount);
+  });
+}
+
 export default function () {
-  describe('Filter: Text based', filterTextBased);
-  describe('Filter: Numerical', filterNumberBased);
-  describe('Filter: Select based', filterSelectBased);
-  describe('Filter: Date based', filterDateBased);
+  describe(`Filter`, () => {
+    describe('Filter: Text based', filterTextBased);
+    describe('Filter: Numerical', filterNumberBased);
+    describe('Filter: Select based', filterSelectBased);
+    describe('Filter: Date based', filterDateBased);
+    describe('Filter: DateTime in operator', filterDateTimeInBased);
+  })
 }

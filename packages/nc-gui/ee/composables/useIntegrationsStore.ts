@@ -397,8 +397,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
       // Reload integrations: use base-scoped API when in base context (user may not have workspace role),
       // otherwise use workspace-level reload
-      const effectiveReloadBaseId = activeProjectId.value || baseId
-      await loadIntegrations(loadDatasourceInfo ? IntegrationsType.Database : null, effectiveReloadBaseId)
+      await loadIntegrations(loadDatasourceInfo ? IntegrationsType.Database : null, effectiveBaseId)
 
       if (mode === 'create') {
         eventBus.emit(IntegrationStoreEvents.INTEGRATION_ADD, response)

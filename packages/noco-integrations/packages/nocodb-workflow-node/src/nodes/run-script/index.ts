@@ -5,7 +5,7 @@ import {
 } from '@noco-integrations/core';
 import { Sandbox } from '@e2b/code-interpreter';
 import { createScriptExecutionCode, ScriptActionType } from './codeGenerator';
-import { TunnelClient, TUNNEL_PORT } from './tunnel-client';
+import { TUNNEL_PORT, TunnelClient } from './tunnel-client';
 import type {
   WorkflowNodeConfig,
   WorkflowNodeDefinition,
@@ -86,7 +86,6 @@ export class RunScriptNode extends WorkflowNodeIntegration<RunScriptNodeConfig> 
         ts: Date.now(),
       });
 
-      // Start tunnel server and connect tunnel client
       await sandbox.commands.run('node /home/user/tunnel-server.js', {
         background: true,
       });

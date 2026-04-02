@@ -515,17 +515,13 @@ export class ActionExecutionProcessor {
   }
 
   private async setupTunnel(sandbox: Sandbox, req: any): Promise<TunnelClient> {
-    // Upload and start tunnel server inside sandbox
     await sandbox.commands.run('node /home/user/tunnel-server.js', {
       background: true,
     });
 
-    // Wait for the tunnel server to be ready
     const tunnelHost = sandbox.getHost(TUNNEL_PORT);
-    const healthUrl = `https://${tunnelHost}/__health`;
-    await TunnelClient.waitForServer(healthUrl, this.logger);
+    await TunnelClient.waitForServer(`https://${tunnelHost}/__health`);
 
-    // Connect tunnel client
     const wsUrl = `wss://${tunnelHost}/__tunnel__`;
     const authToken = req.headers['xc-auth'];
     const localBaseUrl = `http://127.0.0.1:${process.env.PORT || 8080}`;

@@ -1,10 +1,16 @@
+/**
+ * Tunnel client for E2B sandbox WebSocket proxy.
+ *
+ * SYNC NOTE: This file is a copy of packages/nocodb/src/ee/helpers/tunnel-client.ts
+ * (without NestJS Logger). Any changes here must be mirrored there and vice versa.
+ */
 import WebSocket from 'ws';
-
-export const TUNNEL_PORT = 8585;
 
 const REQUEST_TIMEOUT_MS = 30_000;
 const HEALTH_CHECK_INTERVAL_MS = 500;
-const HEALTH_CHECK_MAX_RETRIES = 20;
+const HEALTH_CHECK_MAX_RETRIES = 20; // 10 seconds total
+
+export const TUNNEL_PORT = 8585;
 
 interface TunnelRequest {
   id: string;
@@ -15,13 +21,10 @@ interface TunnelRequest {
   body: string | null;
 }
 
-interface TunnelResponse {
-  id: string;
-  type: 'response';
-  status: number;
-  statusText: string;
-  headers: Record<string, string>;
-  body: string | null;
+const ALLOWED_PATH_PREFIXES = ['/api/v1/db/data/', '/api/v2/', '/api/v3/'];
+
+function isPathAllowed(path: string): boolean {
+  return ALLOWED_PATH_PREFIXES.some((prefix) => path.startsWith(prefix));
 }
 
 export class TunnelClient {
@@ -59,24 +62,16 @@ export class TunnelClient {
         reject(new Error('Tunnel connection timed out'));
       }, REQUEST_TIMEOUT_MS);
 
-      ws.on('open', () => {
-        ws.send(JSON.stringify({ type: 'ready', authToken: this.authToken }));
-      });
-
       ws.on('message', (data: WebSocket.Data) => {
         const msg = JSON.parse(data.toString());
 
-        if (msg.type === 'ready_ack') {
+        if (msg.type === 'connected') {
           clearTimeout(timeout);
           this.ws = ws;
           ws.removeAllListeners('message');
           ws.on('message', (d: WebSocket.Data) => this.onMessage(d));
           resolve();
           return;
-        }
-
-        if (msg.type === 'request') {
-          this.handleRequest(msg as TunnelRequest);
         }
       });
 
@@ -111,11 +106,24 @@ export class TunnelClient {
 
   private async handleRequest(req: TunnelRequest) {
     try {
-      const url = `${this.localBaseUrl}${req.path}`;
-      const headers: Record<string, string> = { ...req.headers };
-      if (this.authToken) {
-        headers['xc-auth'] = this.authToken;
+      const pathOnly = req.path.split('?')[0];
+      if (!isPathAllowed(pathOnly)) {
+        this.sendResponse(req.id, 403, 'Forbidden', {
+          error: 'Path not allowed',
+        });
+        return;
       }
+
+      const url = `${this.localBaseUrl}${req.path}`;
+
+      const headers: Record<string, string> = {};
+      const safeHeaders = ['content-type', 'accept', 'content-length'];
+      for (const key of safeHeaders) {
+        if (req.headers[key]) {
+          headers[key] = req.headers[key];
+        }
+      }
+      headers['xc-auth'] = this.authToken;
 
       let body: Buffer | undefined;
       if (req.body) {
@@ -136,33 +144,45 @@ export class TunnelClient {
           : null;
 
       const responseHeaders: Record<string, string> = {};
+      const sensitiveHeaders = new Set(['set-cookie', 'xc-auth']);
       response.headers.forEach((value, key) => {
-        responseHeaders[key] = value;
+        if (!sensitiveHeaders.has(key.toLowerCase())) {
+          responseHeaders[key] = value;
+        }
       });
 
-      const tunnelRes: TunnelResponse = {
-        id: req.id,
-        type: 'response',
-        status: response.status,
-        statusText: response.statusText,
-        headers: responseHeaders,
-        body: bodyBase64,
-      };
-
-      this.ws?.send(JSON.stringify(tunnelRes));
-    } catch (err: any) {
-      const tunnelRes: TunnelResponse = {
-        id: req.id,
-        type: 'response',
-        status: 502,
-        statusText: 'Bad Gateway',
-        headers: { 'content-type': 'application/json' },
-        body: Buffer.from(
-          JSON.stringify({ error: err.message }),
-        ).toString('base64'),
-      };
-
-      this.ws?.send(JSON.stringify(tunnelRes));
+      this.ws?.send(
+        JSON.stringify({
+          id: req.id,
+          type: 'response',
+          status: response.status,
+          statusText: response.statusText,
+          headers: responseHeaders,
+          body: bodyBase64,
+        }),
+      );
+    } catch {
+      this.sendResponse(req.id, 502, 'Bad Gateway', {
+        error: 'Request failed',
+      });
     }
+  }
+
+  private sendResponse(
+    id: string,
+    status: number,
+    statusText: string,
+    body: Record<string, string>,
+  ) {
+    this.ws?.send(
+      JSON.stringify({
+        id,
+        type: 'response',
+        status,
+        statusText,
+        headers: { 'content-type': 'application/json' },
+        body: Buffer.from(JSON.stringify(body)).toString('base64'),
+      }),
+    );
   }
 }

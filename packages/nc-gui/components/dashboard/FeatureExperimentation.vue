@@ -7,6 +7,8 @@ const props = defineProps<Props>()
 
 const { toggleFeature, features, isEngineeringModeOn, isAdvancedModeOn } = useBetaFeatureToggle()
 
+const { isRtl } = useRtl()
+
 const value = useVModel(props, 'value')
 
 const { appInfo, isMobileMode } = useGlobal()
@@ -165,15 +167,18 @@ onUnmounted(() => {
     class="nc-features-drawer"
     :mask-style="{ background: 'transparent' }"
     :width="isMobileMode ? 'min(95vw, 458px)' : 'min(32vw, 458px)'"
+    :placement="isRtl ? 'left' : 'right'"
     :closable="false"
   >
     <div class="flex flex-col h-full">
-      <div class="flex items-center gap-3 px-2 !pl-4 border-b-1 h-[var(--toolbar-height)] flex-none border-nc-border-gray-medium">
+      <div
+        class="flex items-center gap-3 px-2 !pl-4 rtl:(!pr-4 !pl-2) border-b-1 h-[var(--toolbar-height)] flex-none border-nc-border-gray-medium"
+      >
         <component :is="iconMap.bulb" class="text-nc-content-inverted-secondary opacity-85 h-5 w-5" @click="handleClick" />
         <h1 class="text-base !text-nc-content-inverted-secondary font-weight-700 p-0 m-0">
           {{ $t('general.featurePreview') }}
         </h1>
-        <nc-button type="text" class="!w-8 !h-8 !min-w-0 ml-auto" @click="value = false">
+        <nc-button type="text" class="!w-8 !h-8 !min-w-0 ml-auto rtl:(ml-0 mr-auto)" @click="value = false">
           <GeneralIcon icon="close" class="!text-nc-content-inverted-secondary" />
         </nc-button>
       </div>
@@ -264,6 +269,12 @@ onUnmounted(() => {
     .ant-drawer-body {
       @apply p-0;
     }
+  }
+}
+
+.rtl .nc-features-drawer {
+  .ant-drawer-content-wrapper {
+    @apply !rounded-l-none !rounded-r-xl !border-l-0 !border-r-1;
   }
 }
 

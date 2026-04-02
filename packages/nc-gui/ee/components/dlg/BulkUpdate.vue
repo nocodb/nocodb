@@ -14,6 +14,8 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const { isRtl } = useRtl()
+
 const emits = defineEmits(['update:modelValue', 'cancel'])
 
 const meta = toRef(props, 'meta')
@@ -175,6 +177,7 @@ onMounted(() => {
     v-model:visible="isExpanded"
     :footer="null"
     width="min(90vw,900px)"
+    :placement="isRtl ? 'left' : 'right'"
     :body-style="{ 'padding': 0, 'display': 'flex', 'flex-direction': 'column' }"
     :closable="false"
     class="nc-drawer-bulk-update"

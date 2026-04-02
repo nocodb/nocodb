@@ -130,7 +130,7 @@ const onKeyDown = (e: KeyboardEvent) => {
 </script>
 
 <template>
-  <div class="nc-chat-session-sidebar flex flex-col h-full border-r-1 border-nc-border-gray-medium bg-nc-bg-gray-sidebar">
+  <div class="nc-chat-session-sidebar flex flex-col h-full border-r-1 rtl:border-r-0 rtl:border-l-1 border-nc-border-gray-medium bg-nc-bg-gray-sidebar">
     <!-- Header -->
     <div
       class="flex items-center justify-between gap-2 px-3 h-[var(--topbar-height)] border-b-1 border-nc-border-gray-medium flex-none"

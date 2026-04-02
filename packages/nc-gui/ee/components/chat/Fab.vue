@@ -5,6 +5,8 @@ const { isPanelExpanded, hasBaseContext, toggleChatPanel } = useChatPanel()
 
 const { blockAiChat } = useEeConfig()
 
+const { isRtl } = useRtl()
+
 const showFab = computed(() => isEeUI && !blockAiChat.value && !isPanelExpanded.value && hasBaseContext.value)
 
 const isPressed = ref(false)
@@ -94,7 +96,7 @@ const handleClick = () => {
         class="nc-chat-fab fixed z-99 flex items-center h-8 rounded-full bg-nc-bg-purple-dark text-nc-content-purple-dark cursor-pointer select-none shadow-lg"
         :class="[
           isPressed ? 'scale-90' : isDragging ? 'cursor-grabbing' : 'hover:shadow-xl hover:-translate-y-0.5 active:scale-95',
-          { 'bottom-6 right-6': fabPosition.x < 0 },
+          { 'bottom-6': fabPosition.x < 0, 'right-6': fabPosition.x < 0 && !isRtl, 'left-6': fabPosition.x < 0 && isRtl },
         ]"
         :style="fabStyle"
         @pointerdown="onPointerDown"

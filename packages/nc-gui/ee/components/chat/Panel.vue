@@ -572,3 +572,29 @@ const handlePanelDrop = async (e: DragEvent) => {
   @apply flex flex-col items-center p-6 rounded-xl border-2 border-dashed border-nc-border-brand;
 }
 </style>
+
+<style lang="scss">
+.rtl {
+  .nc-chat-panel {
+    right: auto;
+    left: 0;
+    border-left: none;
+    border-right: 1px solid var(--nc-border-gray-medium);
+    transition: width 250ms ease, box-shadow 250ms ease, border-right-color 250ms ease;
+
+    &.nc-chat-panel-fullscreen {
+      border-right-color: transparent;
+    }
+  }
+
+  .nc-chat-resize-handle {
+    left: auto;
+    right: -4px;
+
+    &::before {
+      left: auto;
+      right: 4px;
+    }
+  }
+}
+</style>

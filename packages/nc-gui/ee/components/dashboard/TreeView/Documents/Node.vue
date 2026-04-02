@@ -63,11 +63,14 @@ const showNodeTooltip = ref(true)
 const { meta: metaKey, control } = useMagicKeys()
 const isMacOs = isMac()
 
+const { isRtl } = useRtl()
+
 const MAX_INDENT_DEPTH = 8
 
-const indentStyle = computed(() => ({
-  paddingLeft: `${8 + Math.min(props.depth, MAX_INDENT_DEPTH) * 8}px`,
-}))
+const indentStyle = computed(() => {
+  const padding = `${8 + Math.min(props.depth, MAX_INDENT_DEPTH) * 8}px`
+  return isRtl.value ? { paddingRight: padding } : { paddingLeft: padding }
+})
 
 // Show chevron if either the tree node has loaded children OR the API says children exist
 const showChevron = computed(() => props.hasChildren || !!props.doc.has_children)
@@ -306,7 +309,11 @@ function onStopEdit() {
 
 <template>
   <div
-    class="nc-sidebar-node !rounded-md !pr-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle text-bodyDefaultSm font-medium !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
+    class="nc-sidebar-node !rounded-md !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle text-bodyDefaultSm font-medium !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
+    :class="{
+      '!pr-0.75': !isRtl,
+      '!pl-0.75': isRtl,
+    }"
     :style="indentStyle"
     :data-testid="`view-sidebar-doc-${doc.title}`"
     @dblclick.stop="onDblClick"
@@ -578,7 +585,7 @@ function onStopEdit() {
         <div class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle">
           <GeneralIcon icon="ncFileText" class="text-nc-content-gray-subtle" />
           <div
-            class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
+            class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75 rtl:(pr-1.75 pl-0)"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
           >
             {{ doc.title || $t('general.untitled') }}

@@ -8,6 +8,8 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {})
 
+const { isRtl } = useRtl()
+
 const useForm = Form.useForm
 
 const { team, readOnly } = toRefs(props)
@@ -320,7 +322,7 @@ watch(
                   <div
                     class="flex items-center gap-2"
                     :class="{ 'opacity-60': !canAddSubTeam(pt) }"
-                    :style="{ paddingLeft: `${(pt.depth ?? 0) * 16}px` }"
+                    :style="isRtl ? { paddingRight: `${(pt.depth ?? 0) * 16}px` } : { paddingLeft: `${(pt.depth ?? 0) * 16}px` }"
                   >
                     <GeneralTeamIcon :team="pt" class="!w-5 !h-5 !min-w-5 flex-none !rounded-md" />
                     <NcTooltip class="truncate flex-1" show-on-truncate-only :disabled="!canAddSubTeam(pt)">

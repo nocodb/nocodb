@@ -195,8 +195,8 @@ const onChangeColor = (color: string) => {
   <div
     class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle text-bodyDefaultSm !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer rounded-md pr-[3px]"
     :class="{
-      '!pl-7.5': !!isDefaultSource,
-      '!pl-14': !isDefaultSource,
+      '!pl-7.5 rtl:(!pr-7.5 !pl-0.75)': !!isDefaultSource,
+      '!pl-14 rtl:(!pr-14 !pl-0.75)': !isDefaultSource,
     }"
     :data-testid="`view-sidebar-section-${section.title}`"
     @click.prevent="handleOnClick"

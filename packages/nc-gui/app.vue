@@ -23,6 +23,10 @@ useAntDvTheme()
 
 useTheme()
 
+const { isRtl } = useRtl()
+
+const antDirection = computed(() => (isRtl.value ? 'rtl' : 'ltr'))
+
 const { commandPalette, cmdData, cmdPlaceholder, activeScope, loadTemporaryScope } = useCommandPalette()
 
 const { cmdK, cmdL, cmdJ, setActiveCmdView } = useCommand()
@@ -125,7 +129,7 @@ const _ = (window as any).ResizeObserver
 </script>
 
 <template>
-  <a-config-provider>
+  <a-config-provider :direction="antDirection">
     <NuxtLayout :name="disableBaseLayout ? false : 'base'">
       <ErrorBoundary>
         <NuxtPage :key="key" :transition="false" />

@@ -2850,7 +2850,7 @@ onKeyStroke('ArrowDown', onDown)
         :selected-cell-count="selectedRange.cellCount"
       />
     </div>
-    <div v-if="headerOnly !== true && paginationDataRef && !isGroupBy" class="absolute bottom-12 left-2" @click.stop>
+    <div v-if="headerOnly !== true && paginationDataRef && !isGroupBy" class="absolute bottom-12 left-2 rtl:(right-2 left-auto)" @click.stop>
       <NcDropdown v-if="isAddingEmptyRowAllowed && !showSkeleton">
         <div class="flex shadow-nc-sm rounded-lg">
           <NcButton
@@ -2872,7 +2872,7 @@ onKeyStroke('ArrowDown', onDown)
             v-else
             v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
             :disabled="isPaginationLoading"
-            class="!rounded-r-none !border-r-0 nc-grid-add-new-row"
+            class="!rounded-r-none !border-r-0 rtl:(!rounded-r-lg !border-r-1 !rounded-l-none !border-l-0) nc-grid-add-new-row"
             size="small"
             type="secondary"
             :shadow="false"
@@ -2889,7 +2889,7 @@ onKeyStroke('ArrowDown', onDown)
           <NcButton
             v-if="!isMobileMode"
             size="small"
-            class="!rounded-l-none nc-add-record-more-info"
+            class="!rounded-l-none rtl:(!rounded-l-lg !rounded-r-none) nc-add-record-more-info"
             type="secondary"
             :shadow="false"
           >

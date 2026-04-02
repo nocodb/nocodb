@@ -83,9 +83,9 @@ const showSidebarBtn = computed(() => {
               <GeneralIcon
                 v-else
                 icon="doubleLeftArrow"
-                class="duration-150 transition-all !text-lg -mt-0.5 !text-nc-content-gray-muted bg-opacity-50"
+                class="duration-150 transition-all !text-lg -mt-0.5 !text-nc-content-gray-muted bg-opacity-50 transform rtl:rotate-180"
                 :class="{
-                  'transform rotate-180': !isLeftSidebarOpen,
+                  'rotate-180 rtl:rotate-0': !isLeftSidebarOpen,
                 }"
               />
             </div>

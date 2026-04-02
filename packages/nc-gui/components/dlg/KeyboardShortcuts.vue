@@ -227,7 +227,7 @@ const shortcutList = [
       <!-- Header -->
       <div class="p-2 w-full flex items-center gap-2 border-b-1 border-nc-border-gray-medium flex-none">
         <GeneralIcon icon="ncKeyboard" class="text-xl text-nc-content-gray-subtle ml-1" />
-        <h3 class="flex-1 text-base font-semibold text-nc-content-gray m-0">
+        <h3 class="flex-1 text-base font-semibold text-nc-content-gray m-0 rtl:text-right">
           {{ $t('title.keyboardShortcut') }}
         </h3>
         <NcButton size="small" type="text" @click="dialogShow = false">
@@ -238,7 +238,7 @@ const shortcutList = [
       <!-- Content -->
       <div class="flex-1 overflow-y-auto nc-scrollbar-thin p-4">
         <div v-for="(section, sectionIdx) of shortcutList" :key="sectionIdx" class="mb-4 last:mb-0">
-          <div class="text-bodyBold font-semibold text-nc-content-gray-subtle mb-2 tracking-wide">
+          <div class="text-bodyBold font-semibold text-nc-content-gray-subtle mb-2 tracking-wide rtl:text-right">
             {{ section.title }}
           </div>
           <div class="flex flex-col rounded-lg border-1 border-nc-border-gray-medium overflow-hidden">

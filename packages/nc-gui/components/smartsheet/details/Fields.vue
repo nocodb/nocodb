@@ -1921,7 +1921,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                 <template #item="{ element: field }">
                   <div
                     v-if="field.title.toLowerCase().includes(searchQuery.toLowerCase()) && !field.pv"
-                    class="flex px-2 border-b-1 border-nc-border-gray-medium pl-5 group"
+                    class="flex px-2 border-b-1 border-nc-border-gray-medium pl-5 rtl:(pr-5 pl-2) group"
                     :class="{
                       'selected': compareCols(field, activeField),
                       'cursor-not-allowed': !isColumnUpdateAllowed(field),
@@ -1933,7 +1933,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                     <div class="flex items-center flex-1 py-2.5 gap-1 w-2/6">
                       <component
                         :is="iconMap.drag"
-                        class="cursor-move !h-3.75 text-nc-content-gray-subtle2 mr-1"
+                        class="cursor-move !h-3.75 text-nc-content-gray-subtle2 mr-1 rtl:(ml-1 mr-0)"
                         :class="{
                           'opacity-0 !cursor-default': isLocked,
                         }"
@@ -2129,7 +2129,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                         </template>
                       </NcDropdown>
                       <MdiChevronRight
-                        class="text-nc-content-brand opacity-0"
+                        class="text-nc-content-brand opacity-0 rtl:rotate-180"
                         :class="{
                           'opacity-100': compareCols(field, activeField),
                         }"
@@ -2144,10 +2144,10 @@ onBeforeRouteUpdate((_to, from, next) => {
                   #header
                 >
                   <div
-                    class="flex px-2 bg-nc-bg-default hover:bg-nc-bg-gray-light border-b-1 border-nc-border-gray-medium last:border-b-1 pl-5 group"
+                    class="flex px-2 bg-nc-bg-default hover:bg-nc-bg-gray-light border-b-1 border-nc-border-gray-medium last:border-b-1 pl-5 rtl:(pr-5 pl-2) group"
                     :class="{
                       'selected': compareCols(displayColumn, activeField),
-                      'first:rounded-tl-lg': !aiMode,
+                      'first:rounded-tl-lg rtl:(first:rounded-tl-none first:rounded-tr-lg)': !aiMode,
                     }"
                     :data-testid="`nc-field-item-${fieldState(displayColumn)?.title || displayColumn.title}`"
                     @click="changeField(displayColumn, $event)"
@@ -2155,7 +2155,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                     <div class="flex items-center flex-1 py-2.5 gap-1 w-2/6">
                       <component
                         :is="iconMap.drag"
-                        class="cursor-move !h-3.75 text-nc-gray-200 mr-1"
+                        class="cursor-move !h-3.75 text-nc-gray-200 mr-1 rtl:(ml-1 mr-0)"
                         :class="{
                           'opacity-0 !cursor-default': isLocked,
                         }"
@@ -2257,7 +2257,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                         </template>
                       </NcDropdown>
                       <MdiChevronRight
-                        class="text-nc-content-brand opacity-0"
+                        class="text-nc-content-brand opacity-0 transform rtl:rotate-180"
                         :class="{
                           'opacity-100': compareCols(displayColumn, activeField),
                         }"
@@ -2272,7 +2272,7 @@ onBeforeRouteUpdate((_to, from, next) => {
             <div
               v-if="!changingField"
               ref="rightPanelRef"
-              class="flex-none border-nc-border-gray-medium border-l-1 nc-scrollbar-md h-full !overflow-y-auto"
+              class="flex-none border-nc-border-gray-medium border-l-1 rtl:(border-l-0 border-r-1) nc-scrollbar-md h-full !overflow-y-auto"
               @keydown.up.stop
               @keydown.down.stop
             >
@@ -2367,6 +2367,10 @@ onBeforeRouteUpdate((_to, from, next) => {
   opacity: 0;
 }
 
+.rtl .slide-fade-enter-from {
+  transform: translateX(-20px);
+}
+
 .slide-fade-leave-to {
   opacity: 0;
 }
@@ -2393,6 +2397,22 @@ onBeforeRouteUpdate((_to, from, next) => {
     &:not(.nc-ai-mode) {
       @apply !border-nc-purple-100;
     }
+  }
+}
+</style>
+
+<style lang="scss">
+.rtl .nc-fields-add-new-field-btn-wrapper {
+  .nc-field-add-new {
+    border-radius: 0 8px 8px 0 !important;
+    border-right-color: var(--nc-border-gray-medium) !important;
+    border-left-color: transparent !important;
+  }
+
+  .nc-field-ai-toggle-btn {
+    border-radius: 8px 0 0 8px !important;
+    margin-left: 0;
+    margin-right: -1px;
   }
 }
 </style>

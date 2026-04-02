@@ -1169,6 +1169,14 @@ svg.nc-virtual-cell-icon {
   }
 }
 
+.rtl {
+  .ant-input-prefix > svg,
+  .ant-input-prefix > span {
+    margin-right: 0 !important;
+    margin-left: 4px;
+  }
+}
+
 // switch - on tab focus show outline
 .ant-switch:focus-visible,
 .ant-switch-checked:focus-visible {

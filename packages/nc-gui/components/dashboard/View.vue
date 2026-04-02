@@ -40,6 +40,8 @@ const viewportWidth = ref(window.innerWidth)
 
 const { isPanelExpanded: isChatPanelExpanded, isFullScreen: isChatFullScreen } = useChatPanel()
 
+const { isRtl } = useRtl()
+
 const isChatToggling = ref(false)
 
 const currentSidebarSize = computed({
@@ -129,13 +131,21 @@ function handleMouseMove(e: MouseEvent) {
   if (isFullScreen.value) return
   if (sidebarState.value === 'openEnd') return
 
-  if (e.clientX < 4 + normalizedMiniSidebarWidth.value && ['hiddenEnd', 'peekCloseEnd'].includes(sidebarState.value)) {
+  const isNearSidebarEdge = isRtl.value
+    ? e.clientX > window.innerWidth - 4 - normalizedMiniSidebarWidth.value
+    : e.clientX < 4 + normalizedMiniSidebarWidth.value
+
+  const isAwayFromSidebar = isRtl.value
+    ? e.clientX < window.innerWidth - sidebarWidth.value - 10 - normalizedMiniSidebarWidth.value
+    : e.clientX > sidebarWidth.value + 10 + normalizedMiniSidebarWidth.value
+
+  if (isNearSidebarEdge && ['hiddenEnd', 'peekCloseEnd'].includes(sidebarState.value)) {
     sidebarState.value = 'peekOpenStart'
 
     setTimeout(() => {
       sidebarState.value = 'peekOpenEnd'
     }, animationDuration)
-  } else if (e.clientX > sidebarWidth.value + 10 + normalizedMiniSidebarWidth.value && sidebarState.value === 'peekOpenEnd') {
+  } else if (isAwayFromSidebar && sidebarState.value === 'peekOpenEnd') {
     if ((e.target as HTMLElement).closest('.nc-dropdown.active') || isNcDropdownOpen()) {
       return
     }
@@ -269,6 +279,7 @@ watch(isChatPanelExpanded, () => {
           'sidebar-closed': !isLeftSidebarOpen,
           'hide-resize-bar': !isLeftSidebarOpen || sidebarState === 'openStart' || hideSidebar,
         }"
+        :rtl="isRtl"
         @ready="() => onWindowResize()"
         @resize="(event: any) => onResize(event[0].size)"
       >
@@ -349,44 +360,42 @@ watch(isChatPanelExpanded, () => {
 /** Split pane CSS */
 
 .nc-sidebar-content-resizable-wrapper {
-  .splitpanes__splitter {
+  > .splitpanes__splitter {
     @apply !w-0 relative overflow-visible;
   }
 
-  .splitpanes__splitter:before {
+  > .splitpanes__splitter:before {
     @apply bg-nc-bg-gray-medium w-0.25 absolute left-0 top-0 h-full z-40;
     content: '';
   }
 
-  .splitpanes__splitter:hover:before {
+  > .splitpanes__splitter:hover:before {
     @apply bg-nc-border-gray-medium;
     width: 3px !important;
     left: 0px;
   }
 
-  .splitpanes--dragging .splitpanes__splitter:before {
+  &.splitpanes--dragging > .splitpanes__splitter:before {
     @apply bg-nc-border-gray-medium;
     width: 3px !important;
     left: 0px;
   }
 
-  .splitpanes--dragging .splitpanes__splitter {
+  &.splitpanes--dragging > .splitpanes__splitter {
     @apply w-1 mr-0;
   }
 
-  &.sidebar-closed {
-    .splitpanes__splitter {
-      display: none !important;
+  &.sidebar-closed > .splitpanes__splitter {
+    display: none !important;
 
-      &:before {
-        display: none !important;
-      }
+    &:before {
+      display: none !important;
     }
   }
 }
 
 .nc-sidebar-content-resizable-wrapper.hide-resize-bar {
-  .splitpanes__splitter {
+  > .splitpanes__splitter {
     cursor: default !important;
     opacity: 0 !important;
     background-color: transparent !important;
@@ -416,5 +425,44 @@ watch(isChatPanelExpanded, () => {
 .nc-view-content-hidden {
   opacity: 0;
   pointer-events: none;
+}
+
+/** RTL overrides */
+.rtl {
+  .nc-sidebar-wrapper.minimized-height {
+    & > * {
+      @apply !rounded-r-none !rounded-l-lg;
+    }
+
+    &.nc-new-sidebar > * {
+      @apply !border-l-1 !border-r-0;
+    }
+  }
+
+  .nc-sidebar-wrapper.hide-sidebar {
+    > * {
+      transform: translateX(100%);
+    }
+  }
+
+  .nc-sidebar-content-resizable-wrapper {
+    > .splitpanes__splitter:before {
+      @apply left-auto right-0;
+    }
+
+    > .splitpanes__splitter:hover:before {
+      left: auto;
+      right: 0px;
+    }
+
+    &.splitpanes--dragging > .splitpanes__splitter:before {
+      left: auto;
+      right: 0px;
+    }
+
+    &.splitpanes--dragging > .splitpanes__splitter {
+      @apply mr-auto ml-0;
+    }
+  }
 }
 </style>

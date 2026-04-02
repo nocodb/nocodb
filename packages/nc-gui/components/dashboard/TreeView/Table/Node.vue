@@ -439,11 +439,11 @@ const enabledOptions = computed(() => {
     <div class="flex items-center py-0.5">
       <div
         v-e="['a:table:open']"
-        class="flex-none flex-1 table-context flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pr-0.75 mb-0.25 rounded-md h-7 w-full group cursor-pointer hover:bg-nc-bg-gray-medium text-bodyDefaultSm font-medium"
+        class="flex-none flex-1 table-context flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pr-0.75 rtl:pl-0.75 mb-0.25 rounded-md h-7 w-full group cursor-pointer hover:bg-nc-bg-gray-medium text-bodyDefaultSm font-medium"
         :class="{
           'hover:bg-nc-bg-gray-medium': openedTableId !== table.id,
-          'pl-8': sourceIndex !== 0,
-          'pl-2 xs:(pl-2)': sourceIndex === 0,
+          'pl-8 rtl:(pr-8 pl-0)': sourceIndex !== 0,
+          'pl-2 xs:(pl-2) rtl:(pr-2 pl-0) rtl:xs:(pr-2 pl-0)': sourceIndex === 0,
         }"
         :data-testid="`nc-tbl-side-node-${table.title}`"
         @contextmenu="setMenuContext('table', table)"

@@ -10,6 +10,8 @@ export const useChatPanel = createSharedComposable(() => {
 
   const { blockAiChat } = useEeConfig()
 
+  const { isRtl } = useRtl()
+
   const { $e } = useNuxtApp()
 
   const panelPreference = useLocalStorage('nc-chat-panel-expanded', false)
@@ -55,7 +57,7 @@ export const useChatPanel = createSharedComposable(() => {
     const startWidth = chatPanelWidth.value
 
     const onMouseMove = (moveEvent: MouseEvent) => {
-      const delta = startX - moveEvent.clientX
+      const delta = isRtl.value ? moveEvent.clientX - startX : startX - moveEvent.clientX
       chatPanelWidth.value = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, startWidth + delta))
     }
 

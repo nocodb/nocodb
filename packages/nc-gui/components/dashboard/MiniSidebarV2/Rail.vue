@@ -47,6 +47,8 @@ const {
 
 const { blockAiChat, showEEFeatures } = useEeConfig()
 
+const { isRtl } = useRtl()
+
 const handleChatToggle = () => {
   toggleChatPanel()
 }
@@ -297,9 +299,9 @@ const mainItems = computed<NavItem[]>(() => [
     <!-- Activity / Notifications -->
     <NcDropdown
       v-model:visible="isNotificationOpen"
-      placement="right"
+      :placement="isRtl ? 'left' : 'right'"
       overlay-class-name="!shadow-none"
-      :overlay-style="{ marginLeft: '8px' }"
+      :overlay-style="isRtl ? { marginRight: '8px' } : { marginLeft: '8px' }"
       :trigger="['click']"
     >
       <DashboardMiniSidebarV2RailItem

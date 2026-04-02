@@ -541,7 +541,7 @@ function selectText() {
 }
 
 function suggestionListUp() {
-  if (suggestion.value) {
+  if (suggestion.value?.length) {
     selected.value = --selected.value > -1 ? selected.value : suggestion.value.length - 1
 
     // Update suggestionPreviewed for both formula and field items
@@ -557,7 +557,7 @@ function suggestionListUp() {
 }
 
 function suggestionListDown() {
-  if (suggestion.value) {
+  if (suggestion.value?.length) {
     selected.value = ++selected.value % suggestion.value.length
 
     // Update suggestionPreviewed for both formula and field items
@@ -867,6 +867,15 @@ const validationErrorDisplay = computed(() => {
     </template>
   </template>
 
+  <div class="flex items-center gap-1 mt-4 mb-1 text-bodySm text-nc-content-gray-subtle2">
+    <GeneralIcon icon="info" class="w-3.5 h-3.5 flex-none" />
+    <i18n-t keypath="msg.formula.navigateSuggestionsHint" tag="span">
+      <template #key>
+        <kbd class="px-1 py-0.5 rounded bg-nc-bg-gray-medium">{{ renderAltOrOptlKey(true) }} + ↑↓</kbd>
+      </template>
+    </i18n-t>
+  </div>
+
   <div
     :class="{
       'h-[250px]': suggestionHeight === 'large',
@@ -874,7 +883,7 @@ const validationErrorDisplay = computed(() => {
       'h-[125px]': suggestionHeight === 'small',
       'bg-nc-bg-default': isAiModeFieldModal,
     }"
-    class="overflow-auto flex flex-col nc-suggestion-list nc-scrollbar-thin border-1 border-nc-border-gray-medium rounded-lg mt-4"
+    class="overflow-auto flex flex-col nc-suggestion-list nc-scrollbar-thin border-1 border-nc-border-gray-medium rounded-lg"
   >
     <div v-if="suggestedFormulas && showFunctionList" :style="{ order: priority === -1 ? 2 : 1 }">
       <div
@@ -973,15 +982,6 @@ const validationErrorDisplay = computed(() => {
         </template>
       </a-list>
     </div>
-  </div>
-  <div class="flex items-center gap-1 py-1 text-bodySm text-nc-content-gray-subtle2">
-    <GeneralIcon icon="info" class="w-3.5 h-3.5" />
-    <span>
-      {{ $t('msg.formula.useKeyToNavigate') }}
-      <kbd class="px-1 py-0.5 rounded bg-nc-bg-gray-medium">{{ renderAltOrOptlKey(true) }} + ↑↓</kbd>
-
-      {{ $t('msg.formula.toNavigateSuggestions') }}
-    </span>
   </div>
 </template>
 

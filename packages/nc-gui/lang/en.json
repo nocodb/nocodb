@@ -3021,8 +3021,7 @@
       "columnNotMatchedWithType": "{columnName} is not matched with {columnType}",
       "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\"",
       "firstParamArray": "First parameter need to be array. Either it is a link with Has Many / Many to Many relation, or either a Formula or Lookup that reference the link",
-      "useKeyToNavigate": "Use",
-      "toNavigateSuggestions": "to navigate suggestions"
+      "navigateSuggestionsHint": "Use {key} to navigate suggestions"
     },
     "selectOption": {
       "cantBeNull": "Select options can't be null",

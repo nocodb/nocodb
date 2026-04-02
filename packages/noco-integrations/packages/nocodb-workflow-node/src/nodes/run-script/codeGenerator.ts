@@ -1616,12 +1616,12 @@ export function generateBaseObject(baseSchema: any): string {
     `;
 }
 
-const TUNNEL_PORT = 8585;
+const TUNNEL_PROXY_PORT = 3000;
 
 export function generateApiProxy(): string {
   return `
   const api = (new InternalApi({
-    baseURL: "http://localhost:${TUNNEL_PORT}",
+    baseURL: "http://localhost:${TUNNEL_PROXY_PORT}",
     headers: {}
   })).api
 `;
@@ -1666,7 +1666,7 @@ export function generateOutputAPI(): string {
 export function generateApiProxyForScript(): string {
   return `
   const api = (new InternalApi({
-    baseURL: "http://localhost:${TUNNEL_PORT}",
+    baseURL: "http://localhost:${TUNNEL_PROXY_PORT}",
     headers: {},
   })).api;
   `;

@@ -765,7 +765,7 @@ function generateStepAPI(req: NcRequest, context: NcContext) {
       attachments: processedAttachments
     };
 
-    const requestUrl = \`http://localhost:${TUNNEL_PORT}/api/v2/internal/\${workspaceId}/\${baseId}?operation=sendEmail\`
+    const requestUrl = \`http://localhost:${TUNNEL_PROXY_PORT}/api/v2/internal/\${workspaceId}/\${baseId}?operation=sendEmail\`
     const response = await fetch(requestUrl, {
       method: 'POST',
       headers: {
@@ -2237,12 +2237,12 @@ function generateSessionApi(user: any): string {
   `;
 }
 
-const TUNNEL_PORT = 8585;
+const TUNNEL_PROXY_PORT = 3000;
 
 function generateApiProxy(): string {
   return `
   const api = (new InternalApi({
-    baseURL: "http://localhost:${TUNNEL_PORT}",
+    baseURL: "http://localhost:${TUNNEL_PROXY_PORT}",
     headers: {}
   })).api
 `;

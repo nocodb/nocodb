@@ -458,8 +458,8 @@ export class ColumnsService implements IColumnsService {
     const isSyncedColumn =
       table.synced && column.readonly && column.uidt !== UITypes.AutoNumber;
 
-    const payloadHasNonMetaProps = Object.keys(param.column).some(
-      (k) => !META_ONLY_COLUMN_PROPS.has(k),
+    const payloadHasNonMetaProps = Object.entries(param.column).some(
+      ([k, v]) => !ncIsUndefined(v) && !META_ONLY_COLUMN_PROPS.has(k),
     );
 
     const allowUpdateSystemField =

@@ -133,24 +133,54 @@ function createOptimisticComment(text: string, extra: Partial<DocCommentExtended
   }
 }
 
+/** Activate a thread — if a different thread's reply input is open and empty, discard it. */
+function activateThread(threadId: string) {
+  const currentReplyThread = replyingTo.value?.id
+  if (currentReplyThread && currentReplyThread !== threadId && !replyText.value.trim()) {
+    clearReplyingTo()
+    replyText.value = ''
+    isReplyFocused.value = false
+  }
+  activeCommentId.value = threadId
+}
+
 const onReply = (commentItem: DocCommentExtended) => {
+  const threadId = commentItem.parent_comment_id || commentItem.id
+  if (threadId) activateThread(threadId)
+
   setReplyingTo(commentItem)
   replyText.value = ''
 
-  // Scroll the reply box into view after it fully renders.
-  // setTimeout gives the rich text editor component time to mount.
-  setTimeout(() => {
-    const container = commentsWrapperEl.value
-    if (container) {
-      container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' })
-    }
-  }, 150)
+  // Scroll the reply box into view once the rich text editor mounts.
+  // Watch the ref — it becomes truthy after the component renders.
+  const stopWatch = watch(replyInputRef, (el) => {
+    if (!el) return
+    stopWatch()
+
+    nextTick(() => {
+      const replyBox = el.$el?.closest?.('.nc-doc-reply-box') as HTMLElement | null
+      if (!replyBox || !commentsWrapperEl.value) return
+
+      const container = commentsWrapperEl.value
+      const containerRect = container.getBoundingClientRect()
+      const replyRect = replyBox.getBoundingClientRect()
+
+      // Only scroll if the reply box bottom is clipped below the visible area
+      if (replyRect.bottom > containerRect.bottom) {
+        container.scrollTo({
+          top: container.scrollTop + (replyRect.bottom - containerRect.bottom) + 8,
+          behavior: 'smooth',
+        })
+      }
+    })
+  })
 }
 
 const onCancelReply = () => {
   clearReplyingTo()
   replyText.value = ''
   isReplyFocused.value = false
+  clearActiveComment()
 }
 
 // Remove inline comment mark from editor and then delete the comment
@@ -192,14 +222,9 @@ const onSaveReply = async () => {
 
   replyText.value = ''
   clearReplyingTo()
-
-  await nextTick()
-  scrollComments()
+  clearActiveComment()
 
   await saveComment(val, null, parentCommentId)
-
-  await nextTick()
-  scrollComments()
 }
 
 // Track editor doc version to force anchorTextMap recompute when content changes.
@@ -368,6 +393,7 @@ async function onEditComment() {
   const tempComment = { ...editCommentValue.value, comment: val }
   isEditing.value = false
   editCommentValue.value = undefined
+  clearActiveComment()
 
   await updateComment(tempComment.id!, tempComment.comment!)
 }
@@ -376,6 +402,7 @@ function cancelEdit() {
   if (!isEditing.value) return
   editCommentValue.value = undefined
   isEditing.value = false
+  clearActiveComment()
 }
 
 function onCancelEdit(e: KeyboardEvent) {
@@ -391,9 +418,9 @@ const handleKeyPress = (event: KeyboardEvent) => {
   }
 }
 
-// Auto-scroll to bottom when new comments are added
+// Auto-scroll to bottom when new top-level comments are added (not replies)
 watch(
-  () => comments.value?.length,
+  () => threadedComments.value?.length,
   () => {
     nextTick(() => scrollComments())
   },
@@ -616,13 +643,13 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
             :is-owner="threadItem.created_by === user?.id"
             :anchor-text="threadItem.anchor_id ? anchorTextMap[threadItem.anchor_id] : undefined"
             :reaction-summary="getReactionSummary(threadItem.id!)"
-            @edit="editComment(threadItem)"
-            @delete="handleDeleteComment(threadItem.id!)"
-            @resolve="resolveComment(threadItem.id!)"
+            @edit="() => { activateThread(threadItem.id!); editComment(threadItem) }"
+            @delete="() => { activateThread(threadItem.id!); handleDeleteComment(threadItem.id!) }"
+            @resolve="() => { activateThread(threadItem.id!); resolveComment(threadItem.id!) }"
             @activate="activeCommentId === threadItem.id ? clearActiveComment() : scrollToComment(threadItem.id!)"
             @reply="onReply(threadItem)"
             @scroll-to-anchor="scrollEditorToAnchor"
-            @react="(emoji: string) => toggleReaction(threadItem.id!, emoji)"
+            @react="(emoji: string) => { activateThread(threadItem.id!); toggleReaction(threadItem.id!, emoji) }"
           />
 
           <!-- Replies (single-level — nested under their parent thread) -->
@@ -683,12 +710,12 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
               :is-owner="replyItem.created_by === user?.id"
               :is-reply="true"
               :reaction-summary="getReactionSummary(replyItem.id!)"
-              @edit="editComment(replyItem)"
-              @delete="handleDeleteComment(replyItem.id!)"
-              @resolve="resolveComment(replyItem.id!)"
+              @edit="() => { activateThread(threadItem.id!); editComment(replyItem) }"
+              @delete="() => { activateThread(threadItem.id!); handleDeleteComment(replyItem.id!) }"
+              @resolve="() => { activateThread(threadItem.id!); resolveComment(replyItem.id!) }"
               @activate="activeCommentId === replyItem.id ? clearActiveComment() : scrollToComment(replyItem.id!)"
               @reply="onReply(replyItem)"
-              @react="(emoji: string) => toggleReaction(replyItem.id!, emoji)"
+              @react="(emoji: string) => { activateThread(threadItem.id!); toggleReaction(replyItem.id!, emoji) }"
             />
           </template>
 

@@ -220,6 +220,9 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
 
 <style lang="scss" scoped>
 .nc-doc-comment-body {
+  overflow-wrap: break-word;
+  word-break: break-word;
+
   :deep(p) {
     @apply !m-0 !leading-5;
   }

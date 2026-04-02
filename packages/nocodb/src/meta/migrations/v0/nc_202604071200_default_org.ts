@@ -1,6 +1,10 @@
 import type { Knex } from 'knex';
 import { CloudOrgUserRoles } from 'nocodb-sdk';
-import { MetaTable, NC_DEFAULT_ORG_ID } from '~/utils/globals';
+import {
+  MetaTable,
+  NC_DEFAULT_ORG_ID,
+  NC_STORE_DEFAULT_ORG_ID_KEY,
+} from '~/utils/globals';
 
 export async function up(knex: Knex) {
   // Step 1: Fix nc_org_users PK — change from fk_org_id only to composite (fk_org_id, fk_user_id)
@@ -133,7 +137,7 @@ export async function up(knex: Knex) {
 
   // Store default org ID in nc_store
   await knex(MetaTable.STORE).insert({
-    key: 'NC_DEFAULT_ORG_ID',
+    key: NC_STORE_DEFAULT_ORG_ID_KEY,
     value: NC_DEFAULT_ORG_ID,
   });
 

@@ -55,7 +55,9 @@ export class TunnelClient {
       await new Promise((r) => setTimeout(r, HEALTH_CHECK_INTERVAL_MS));
     }
     throw new Error(
-      `Tunnel server not ready after ${(HEALTH_CHECK_INTERVAL_MS * HEALTH_CHECK_MAX_RETRIES) / 1000}s`,
+      `Tunnel server not ready after ${
+        (HEALTH_CHECK_INTERVAL_MS * HEALTH_CHECK_MAX_RETRIES) / 1000
+      }s`,
     );
   }
 
@@ -187,9 +189,9 @@ export class TunnelClient {
         status: 502,
         statusText: 'Bad Gateway',
         headers: { 'content-type': 'application/json' },
-        body: Buffer.from(
-          JSON.stringify({ error: err.message }),
-        ).toString('base64'),
+        body: Buffer.from(JSON.stringify({ error: err.message })).toString(
+          'base64',
+        ),
       };
 
       this.ws?.send(JSON.stringify(tunnelRes));

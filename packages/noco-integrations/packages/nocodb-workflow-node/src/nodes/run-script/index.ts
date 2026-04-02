@@ -87,10 +87,9 @@ export class RunScriptNode extends WorkflowNodeIntegration<RunScriptNodeConfig> 
       });
 
       // Start tunnel server and connect tunnel client
-      await sandbox.commands.run(
-        'bun /home/user/tunnel-server.ts',
-        { background: true },
-      );
+      await sandbox.commands.run('node /home/user/tunnel-server.js', {
+        background: true,
+      });
 
       const tunnelHost = sandbox.getHost(TUNNEL_PORT);
       await TunnelClient.waitForServer(`https://${tunnelHost}/__health`);

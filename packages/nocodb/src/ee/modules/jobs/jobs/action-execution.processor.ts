@@ -516,7 +516,7 @@ export class ActionExecutionProcessor {
 
   private async setupTunnel(sandbox: Sandbox, req: any): Promise<TunnelClient> {
     // Upload and start tunnel server inside sandbox
-    await sandbox.commands.run('bun /home/user/tunnel-server.ts', {
+    await sandbox.commands.run('node /home/user/tunnel-server.js', {
       background: true,
     });
 

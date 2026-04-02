@@ -166,6 +166,11 @@ const monacoRoot = ref<HTMLDivElement>()
 let editor: MonacoEditor.IStandaloneCodeEditor
 let model: MonacoEditor.ITextModel
 
+onBeforeUnmount(() => {
+  editor?.dispose()
+  model?.dispose()
+})
+
 function getCurrentKeyword() {
   const model = editor.getModel()
   const position = editor.getPosition()
@@ -259,18 +264,6 @@ onMounted(async () => {
       height: 120,
     })
 
-    // Prevent stale Enter keypress (from field type search) from inserting a newline on mount
-    editor.onKeyDown((e) => {
-      if (!isMounted.value && e.keyCode === KeyCode.Enter) {
-        e.preventDefault()
-        e.stopPropagation()
-      }
-    })
-
-    nextTick(() => {
-      isMounted.value = true
-    })
-
     editor.onDidChangeModelContent(async () => {
       value.value = editor.getValue()
       await handleInputDeb()
@@ -280,7 +273,7 @@ onMounted(async () => {
       const position = editor.getPosition()
       const model = editor.getModel()
 
-      if (!position || !model) return
+      if (!position || !model || !isMounted.value) return
 
       const text = model.getValue()
       const offset = model.getOffsetAt(position)
@@ -385,7 +378,11 @@ onMounted(async () => {
       suggestionPreviewed.value =
         (suggestionsList.value.find((s) => s.text === `${lastFunction}()`) as Record<any, string>) || undefined
     })
-    editor.focus()
+
+    forcedNextTick(() => {
+      isMounted.value = true
+      editor.focus()
+    })
   }
 })
 

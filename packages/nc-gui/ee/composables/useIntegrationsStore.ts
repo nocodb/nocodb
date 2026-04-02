@@ -395,10 +395,10 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         }
       }
 
-      // Skip workspace-level reload when creating from base context (user may not have workspace role)
-      if (!activeProjectId.value) {
-        await loadIntegrations(loadDatasourceInfo ? IntegrationsType.Database : null, baseId)
-      }
+      // Reload integrations: use base-scoped API when in base context (user may not have workspace role),
+      // otherwise use workspace-level reload
+      const effectiveReloadBaseId = activeProjectId.value || baseId
+      await loadIntegrations(loadDatasourceInfo ? IntegrationsType.Database : null, effectiveReloadBaseId)
 
       if (mode === 'create') {
         eventBus.emit(IntegrationStoreEvents.INTEGRATION_ADD, response)

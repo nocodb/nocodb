@@ -67,6 +67,7 @@ export default class Noco {
   protected requestContext: any;
 
   public static ncDefaultWorkspaceId: string;
+  public static ncDefaultOrgId: string;
 
   public static sharp: typeof Sharp;
 

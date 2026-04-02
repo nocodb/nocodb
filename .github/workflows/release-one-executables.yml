@@ -219,7 +219,7 @@ jobs:
           mv ./Noco-win-arm64.exe ./dist/
 
       - name: Upload Linux and Windows executables to draft release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN1 }}
         with:
@@ -295,7 +295,7 @@ jobs:
           echo "CHECKSUM=$(shasum -a 256 ./mac-dist/nocodb.tar.gz | awk '{print $1}')" >> $GITHUB_OUTPUT
 
       - name: Upload macOS executables and tarball to draft release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN1 }}
         with:

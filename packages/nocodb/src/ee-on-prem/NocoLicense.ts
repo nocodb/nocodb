@@ -1,12 +1,7 @@
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { Logger } from '@nestjs/common';
-import {
-  CloudOrgUserRoles,
-  NON_SEAT_ROLES,
-  ProjectRoles,
-  WorkspaceUserRoles,
-} from 'nocodb-sdk';
+import { NON_SEAT_ROLES, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { getArrayAggExpression } from '~/helpers/dbHelpers';
@@ -795,22 +790,6 @@ export default class NocoLicense {
         if (!seatUsersMap.has(userId) && !nonSeatUsersMap.has(userId)) {
           nonSeatUsersMap.set(userId, true);
         }
-      }
-    }
-
-    // Org admins/owners are always billable seats
-    const orgAdmins = await ncMeta
-      .knexConnection(MetaTable.ORG_USERS)
-      .whereIn('roles', [
-        CloudOrgUserRoles.OWNER,
-        CloudOrgUserRoles.ADMIN,
-      ])
-      .select('fk_user_id');
-
-    for (const orgAdmin of orgAdmins) {
-      if (!seatUsersMap.has(orgAdmin.fk_user_id)) {
-        seatUsersMap.set(orgAdmin.fk_user_id, true);
-        nonSeatUsersMap.delete(orgAdmin.fk_user_id);
       }
     }
 

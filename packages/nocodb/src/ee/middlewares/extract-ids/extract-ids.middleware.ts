@@ -1283,16 +1283,6 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 // todo: refactor and move scope name to enum
 function getUserRoleForScope(user: any, scope: string) {
   if (scope === 'workspace') {
-    // Org admin/owner gets workspace-level-owner permissions in all workspaces
-    if (
-      user?.org_roles?.[CloudOrgUserRoles.OWNER] ||
-      user?.org_roles?.[CloudOrgUserRoles.ADMIN]
-    ) {
-      return {
-        ...user?.workspace_roles,
-        [WorkspaceUserRoles.OWNER]: true,
-      };
-    }
     return user?.workspace_roles;
   } else if (scope === 'base') {
     return user?.base_roles;
@@ -1505,8 +1495,7 @@ export class AclMiddleware implements NestInterceptor {
             roles?.[OrgUserRoles.VIEWER] ||
             roles?.[CloudOrgUserRoles.CREATOR] ||
             roles?.[CloudOrgUserRoles.VIEWER] ||
-            roles?.[CloudOrgUserRoles.OWNER] ||
-            roles?.[CloudOrgUserRoles.ADMIN]),
+            roles?.[CloudOrgUserRoles.OWNER]),
       )
     ) {
       NcError.unauthorized('Unauthorized access');

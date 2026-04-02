@@ -478,6 +478,7 @@ function contextAddComment() {
         @scroll="handleScroll"
       >
         <div
+          dir="ltr"
           class="sticky top-0 left-0"
           :style="{
             height: `${totalHeight}px`,

@@ -57,10 +57,10 @@ const createdBy = computed(() => {
 </script>
 
 <template>
-  <div class="py-4 ml-15.8 border-l border-nc-border-gray-dark">
+  <div class="py-4 ml-15.8 rtl:(mr-15.8 ml-0 border-l-0 border-r) border-l border-nc-border-gray-dark">
     <div class="flex items-center h-[32px] gap-2 mb-2">
       <div
-        class="w-[28px] h-[28px] bg-nc-bg-default flex items-center justify-center bg-nc-bg-default rounded-full border border-1 !border-nc-border-gray-medium shadow-sm -ml-3.5"
+        class="w-[28px] h-[28px] bg-nc-bg-default flex items-center justify-center bg-nc-bg-default rounded-full border border-1 !border-nc-border-gray-medium shadow-sm -ml-3.5 rtl:(-mr-3.5 ml-0)"
       >
         <GeneralIcon icon="ncPenLine" class="w-[16px] h-[16px] text-nc-content-gray-muted" />
       </div>
@@ -103,7 +103,7 @@ const createdBy = computed(() => {
       <div class="relative mb-2">
         <GeneralIcon
           icon="ncNode"
-          class="w-[16px] h-[16px] text-nc-content-gray-muted bg-nc-bg-default absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
+          class="w-[16px] h-[16px] text-nc-content-gray-muted bg-nc-bg-default absolute top-1/2 left-0 rtl:(left-auto right-0 translate-x-1/2) transform -translate-y-1/2 -translate-x-1/2"
         />
         <p class="text-sm font-weight-500 mb-1 ml-6.5">Record was created.</p>
       </div>
@@ -115,7 +115,7 @@ const createdBy = computed(() => {
       <div class="relative mb-2">
         <GeneralIcon
           icon="ncNode"
-          class="w-[16px] h-[16px] text-nc-content-gray-muted bg-nc-bg-default absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
+          class="w-[16px] h-[16px] text-nc-content-gray-muted bg-nc-bg-default absolute top-1/2 left-0 rtl:(left-auto right-0 translate-x-1/2) transform -translate-y-1/2 -translate-x-1/2"
         />
         <div class="text-sm ml-6.5 inline-flex items-center flex-wrap gap-1">
           <span class="text-small1 text-nc-content-gray-subtle2 font-weight-500"> changed </span>

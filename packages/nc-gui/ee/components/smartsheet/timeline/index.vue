@@ -253,7 +253,8 @@ const recordCountLabel = computed(() => {
     </div>
   </template>
   <template v-else>
-    <div class="relative flex flex-col h-full w-full bg-nc-bg-default" data-testid="nc-timeline-wrapper">
+    <!-- Lets not support rtl for now as its not handled in the component -->
+    <div dir="ltr" class="relative flex flex-col h-full w-full bg-nc-bg-default" data-testid="nc-timeline-wrapper">
       <!-- Toolbar -->
       <div
         class="nc-timeline-toolbar flex items-center gap-1 px-3 border-b border-nc-border-gray-medium bg-nc-bg-default min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)]"

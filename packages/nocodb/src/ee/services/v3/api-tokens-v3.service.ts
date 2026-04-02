@@ -208,9 +208,11 @@ export class ApiTokensV3Service {
   }
 
   async list(param: { cookie: NcRequest }) {
+    // Pass SSO client ID from JWT so listWithCreatedBy includes SSO tokens
+    const ssoClientId = (param.cookie.user as any)?.extra?.sso_client_id;
 
     const result = await this.orgTokensEeService.apiTokenListEE({
-      query: param.cookie.query,
+      query: { ...param.cookie.query, ...(ssoClientId ? { ssoClientId } : {}) },
       user: param.cookie['user'],
     });
 

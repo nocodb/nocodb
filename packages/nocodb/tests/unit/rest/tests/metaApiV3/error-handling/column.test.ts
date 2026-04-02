@@ -156,6 +156,62 @@ export default function () {
       });
     });
 
+    describe('system/pk column meta-only update', () => {
+      let pkColumn: any;
+      let systemColumns: any[];
+
+      beforeEach(async () => {
+        // Fetch table columns via v2 API to find PK and system fields
+        const tableInfoResult = await request(context.app)
+          .get(`/api/v2/meta/tables/${table.id}`)
+          .set('xc-auth', context.token)
+          .expect(200);
+
+        const columns = tableInfoResult.body.columns;
+        pkColumn = columns.find((c: any) => c.pk);
+        systemColumns = columns.filter((c: any) => c.system);
+      });
+
+      it('should allow meta-only update (description) on pk column', async () => {
+        await request(context.app)
+          .patch(`${API_PREFIX}/fields/${pkColumn.id}`)
+          .set('xc-token', context.xc_token)
+          .send({ description: 'Primary key description' })
+          .expect(200);
+      });
+
+      it('should block structural update on pk column', async () => {
+        const result = await request(context.app)
+          .patch(`${API_PREFIX}/fields/${pkColumn.id}`)
+          .set('xc-token', context.xc_token)
+          .send({ title: 'RenamedPK', type: 'SingleLineText' })
+          .expect(422);
+        expect(result.body.error).to.eq('ERR_SYSTEM_FIELD_NON_MODIFIABLE');
+      });
+
+      it('should block structural update on system fields', async () => {
+        for (const col of systemColumns) {
+          const result = await request(context.app)
+            .patch(`${API_PREFIX}/fields/${col.id}`)
+            .set('xc-token', context.xc_token)
+            .send({ title: 'RenamedSystem', type: 'SingleLineText' })
+            .expect(422);
+          expect(result.body.error).to.eq('ERR_SYSTEM_FIELD_NON_MODIFIABLE');
+        }
+      });
+
+      it('should allow meta-only update (description) on CreatedTime system field', async () => {
+        const createdTimeCol = systemColumns.find(
+          (c: any) => c.uidt === 'CreatedTime',
+        );
+        await request(context.app)
+          .patch(`${API_PREFIX}/fields/${createdTimeCol.id}`)
+          .set('xc-token', context.xc_token)
+          .send({ description: 'Created timestamp' })
+          .expect(200);
+      });
+    });
+
     describe('column delete', () => {
       it('will handle column not found', async () => {
         const result = await request(context.app)

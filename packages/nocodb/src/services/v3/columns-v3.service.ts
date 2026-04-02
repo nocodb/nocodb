@@ -76,38 +76,56 @@ export class ColumnsV3Service {
       )
         .addColumn(column)
         .forUpdate();
-    const type = (param.column?.type ?? column.uidt) as FieldV3Type['type'];
 
-    const processedColumnReq = columnV3ToV2Builder().build({
-      ...param.column,
-      type,
-    } as FieldV3Type) as ColumnReqType & {
+    // Check if this is a meta-only update (description, meta) — if so,
+    // skip v3-to-v2 transformation to avoid injecting title/column_name
+    // which would make the payload appear structural
+    const META_ONLY_PROPS = new Set(['description']);
+    const isMetaOnlyUpdate = Object.keys(param.column).every((k) =>
+      META_ONLY_PROPS.has(k),
+    );
+
+    let processedColumnReq: ColumnReqType & {
       meta?: any;
       colOptions?: any;
       dtxp?: string;
     };
 
-    if (!processedColumnReq.column_name) {
-      processedColumnReq.column_name = column.column_name;
-    }
-    if (!processedColumnReq.title) {
-      processedColumnReq.title = column.title;
-    }
+    if (isMetaOnlyUpdate) {
+      processedColumnReq = { ...param.column } as any;
+    } else {
+      const type = (param.column?.type ?? column.uidt) as FieldV3Type['type'];
 
-    if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(column.uidt)) {
-      if (column.meta) {
-        column.meta.choices = undefined;
+      processedColumnReq = columnV3ToV2Builder().build({
+        ...param.column,
+        type,
+      } as FieldV3Type) as ColumnReqType & {
+        meta?: any;
+        colOptions?: any;
+        dtxp?: string;
+      };
+
+      if (!processedColumnReq.column_name) {
+        processedColumnReq.column_name = column.column_name;
       }
-      column.dtxp = (
-        column.colOptions as unknown as { options: any[] }
-      )?.options
-        ?.map((o: any) => `'${o.value}'`)
-        .join('');
+      if (!processedColumnReq.title) {
+        processedColumnReq.title = column.title;
+      }
+
+      if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(column.uidt)) {
+        if (column.meta) {
+          column.meta.choices = undefined;
+        }
+        column.dtxp = (
+          column.colOptions as unknown as { options: any[] }
+        )?.options
+          ?.map((o: any) => `'${o.value}'`)
+          .join('');
+      }
     }
 
     // in payload id is required in existing implementation
     column.id = param.columnId;
-
     await this.columnsService.columnUpdate(
       context,
       {

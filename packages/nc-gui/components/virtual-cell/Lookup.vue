@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { type ColumnType, type LinkToAnotherRecordType, type LookupType, isMMOrMMLike } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isVirtualCol, FormulaDataTypes } from 'nocodb-sdk'
 
 const { getMeta, getMetaByKey } = useMetas()
 
@@ -311,6 +311,25 @@ const handleCloseDropdown = (e: MouseEvent) => {
 const badgedVirtualColumns = [UITypes.Rollup, UITypes.Formula]
 const isBadgedVirtualColumn = computed(() => badgedVirtualColumns.includes(lookupColumn.value?.uidt as UITypes))
 
+// Detect formula URL lookups:
+// 1. Formula using URL() function — value contains URI::() pattern (detected via replaceUrlsWithLink)
+// 2. Formula referencing a URL field like {URL} — parsed_tree.referencedColumn.uidt is URL
+const isFormulaUrlLookup = computed(() => {
+  if (lookupColumn.value?.uidt !== UITypes.Formula) return false
+
+  const colOptions = lookupColumn.value?.colOptions as Record<string, any>
+
+  // Case 2: formula references a URL column (e.g. {URL_field})
+  if (colOptions?.parsed_tree?.referencedColumn?.uidt === UITypes.URL) return true
+
+  // Case 1: formula uses URL() function — values contain URI::() pattern
+  if (colOptions?.parsed_tree?.dataType === FormulaDataTypes.STRING) {
+    return arrValue.value.some((v: any) => ncIsString(v) && typeof replaceUrlsWithLink(v) === 'string')
+  }
+
+  return false
+})
+
 const extensionConfig = inject(ExtensionConfigInj, ref({ isPageDesignerPreviewPanel: false }))
 const { getPossibleAttachmentSrc } = useAttachment()
 const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])?.[0] ?? '')
@@ -419,12 +438,12 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
                     }"
                   >
                     <LazySmartsheetVirtualCell
-                      v-if="lookupColumn.uidt === UITypes.Rollup"
+                      v-if="lookupColumn.uidt === UITypes.Rollup || isFormulaUrlLookup"
                       :edit-enabled="false"
                       :read-only="true"
                       :model-value="v"
                       :column="lookupColumn"
-                      class="px-2"
+                      :class="isFormulaUrlLookup ? 'px-2 nc-formula-url-lookup' : 'px-2'"
                     />
                     <LazySmartsheetCell
                       v-else
@@ -524,12 +543,12 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
                 @click="handleCloseDropdown"
               >
                 <LazySmartsheetVirtualCell
-                  v-if="lookupColumn.uidt === UITypes.Rollup"
+                  v-if="lookupColumn.uidt === UITypes.Rollup || isFormulaUrlLookup"
                   :edit-enabled="false"
                   :read-only="true"
                   :model-value="v"
                   :column="lookupColumn"
-                  class="px-2"
+                  :class="isFormulaUrlLookup ? 'px-2 nc-formula-url-lookup' : 'px-2'"
                 />
                 <LazySmartsheetCell
                   v-else
@@ -563,6 +582,11 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
 }
 .nc-lookup-cell .nc-text-area-clamped-text {
   @apply !mr-1;
+}
+
+.nc-formula-url-lookup .nc-cell-field,
+.nc-formula-url-lookup .nc-cell-field-link {
+  @apply !py-0;
 }
 
 .nc-lookup-cell {

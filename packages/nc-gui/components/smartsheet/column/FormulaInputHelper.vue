@@ -4,6 +4,7 @@ import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue/lib/list'
 import {
   KeyCode,
+  KeyMod,
   MarkerSeverity,
   type editor as MonacoEditor,
   Position,
@@ -197,13 +198,16 @@ onMounted(async () => {
 
     languages.setLanguageConfiguration(formulaLanguage.name, formulaLanguage.languageConfiguration)
 
+    // Unbind Alt+Arrow from Monaco's "move line up/down" so we can use it for suggestion navigation
     monacoEditor.addKeybindingRules([
       {
-        keybinding: KeyCode.DownArrow,
+        keybinding: KeyMod.Alt | KeyCode.UpArrow,
+        command: null,
         when: 'editorTextFocus',
       },
       {
-        keybinding: KeyCode.UpArrow,
+        keybinding: KeyMod.Alt | KeyCode.DownArrow,
+        command: null,
         when: 'editorTextFocus',
       },
     ])
@@ -606,20 +610,29 @@ onMounted(() => {
 
 const handleKeydown = (e: KeyboardEvent) => {
   e.stopPropagation()
+
+  // Alt+Arrow for suggestion navigation, plain Arrow for cursor movement
+  if (e.altKey) {
+    switch (e.key) {
+      case 'ArrowUp': {
+        e.preventDefault()
+        suggestionListUp()
+        break
+      }
+      case 'ArrowDown': {
+        e.preventDefault()
+        suggestionListDown()
+        break
+      }
+    }
+  }
+
   switch (e.key) {
-    case 'ArrowUp': {
-      e.preventDefault()
-      suggestionListUp()
-      break
-    }
-    case 'ArrowDown': {
-      e.preventDefault()
-      suggestionListDown()
-      break
-    }
     case 'Enter': {
-      e.preventDefault()
-      selectText()
+      if (!e.shiftKey && suggestion.value?.length && selected.value > -1 && selected.value < suggestion.value.length) {
+        e.preventDefault()
+        selectText()
+      }
       break
     }
   }
@@ -960,6 +973,15 @@ const validationErrorDisplay = computed(() => {
         </template>
       </a-list>
     </div>
+  </div>
+  <div class="flex items-center gap-1 py-1 text-bodySm text-nc-content-gray-subtle2">
+    <GeneralIcon icon="info" class="w-3.5 h-3.5" />
+    <span>
+      {{ $t('msg.formula.useKeyToNavigate') }}
+      <kbd class="px-1 py-0.5 rounded bg-nc-bg-gray-medium">{{ renderAltOrOptlKey(true) }} + ↑↓</kbd>
+
+      {{ $t('msg.formula.toNavigateSuggestions') }}
+    </span>
   </div>
 </template>
 

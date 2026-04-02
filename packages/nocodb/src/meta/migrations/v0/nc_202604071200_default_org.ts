@@ -136,6 +136,38 @@ export async function up(knex: Knex) {
     key: 'NC_DEFAULT_ORG_ID',
     value: NC_DEFAULT_ORG_ID,
   });
+
+  // Step 3: Backfill cloud orgs — add workspace users to nc_org_users
+  // On cloud, orgs already exist but only the owner is in nc_org_users.
+  // This adds all workspace members to their org.
+  const cloudOrgs = await knex(MetaTable.ORG)
+    .whereNot('id', NC_DEFAULT_ORG_ID)
+    .select('id');
+
+  for (const org of cloudOrgs) {
+    // Find all users in workspaces belonging to this org
+    const orgWorkspaceUsers = await knex(MetaTable.WORKSPACE_USER)
+      .distinct(`${MetaTable.WORKSPACE_USER}.fk_user_id`)
+      .innerJoin(
+        MetaTable.WORKSPACE,
+        `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+        `${MetaTable.WORKSPACE}.id`,
+      )
+      .where(`${MetaTable.WORKSPACE}.fk_org_id`, org.id)
+      .whereNotNull(`${MetaTable.WORKSPACE_USER}.fk_user_id`);
+
+    for (const wu of orgWorkspaceUsers) {
+      try {
+        await knex(MetaTable.ORG_USERS).insert({
+          fk_org_id: org.id,
+          fk_user_id: wu.fk_user_id,
+          roles: CloudOrgUserRoles.VIEWER,
+        });
+      } catch {
+        // Already exists (e.g., owner) — skip
+      }
+    }
+  }
 }
 
 export async function down(knex: Knex) {

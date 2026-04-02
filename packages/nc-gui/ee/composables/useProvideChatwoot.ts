@@ -118,7 +118,7 @@ export const useProvideChatwoot = createSharedComposable(() => {
   }
 
   const chatwootInit = async () => {
-    if (ncIsIframe()) return
+    if (ncIsIframe() || appInfo.value.disableSupportChat) return
     chatwootReady.value = true
     initUserCustomerAttributes()
   }

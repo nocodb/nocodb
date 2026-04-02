@@ -259,7 +259,10 @@ export class WorkspacesService implements OnApplicationBootstrap {
         fk_user_id: param.user.id,
         status: WorkspaceStatus.CREATED,
         plan: WorkspacePlan.FREE,
-        fk_org_id: workspacePayload.fk_org_id || param.user.extra?.org_id,
+        fk_org_id:
+          workspacePayload.fk_org_id ||
+          param.user.extra?.org_id ||
+          Noco.ncDefaultOrgId,
       });
 
       // todo: error handling

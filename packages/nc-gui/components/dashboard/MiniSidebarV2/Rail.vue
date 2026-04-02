@@ -288,7 +288,7 @@ const mainItems = computed<NavItem[]>(() => [
     <div class="nc-rail-bottom-group">
       <!-- Help -->
       <DashboardMiniSidebarHelp>
-        <DashboardMiniSidebarV2RailItem icon="ncHelp" label="Help" panel-key="help" is-dropdown />
+        <DashboardMiniSidebarV2RailItem icon="ncHelp" :label="$t('general.help')" panel-key="help" is-dropdown />
       </DashboardMiniSidebarHelp>
     </div>
 
@@ -305,8 +305,8 @@ const mainItems = computed<NavItem[]>(() => [
       :trigger="['click']"
     >
       <DashboardMiniSidebarV2RailItem
-        label="Activity"
-        tooltip="Activity"
+        :label="$t('general.activity')"
+        :tooltip="$t('general.activity')"
         panel-key="notification"
         data-testid="nc-sidebar-notification-btn"
         :active="isNotificationOpen"

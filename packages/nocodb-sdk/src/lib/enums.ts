@@ -68,6 +68,11 @@ export enum AppEvents {
   SCIM_USER_REACTIVATE = 'scim.user.reactivate',
   SCIM_USER_DELETE = 'scim.user.delete',
 
+  SCIM_GROUP_PROVISION = 'scim.group.provision',
+  SCIM_GROUP_UPDATE = 'scim.group.update',
+  SCIM_GROUP_REPLACE = 'scim.group.replace',
+  SCIM_GROUP_DELETE = 'scim.group.delete',
+
   USER_SIGNUP = 'user.signup',
   USER_SIGNIN = 'user.signin',
   USER_SIGNIN_FAILED = 'user.signin.failed',

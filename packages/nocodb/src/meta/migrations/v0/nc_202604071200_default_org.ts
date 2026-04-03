@@ -81,67 +81,63 @@ export async function up(knex: Knex) {
     .where('id', NC_DEFAULT_ORG_ID)
     .first();
 
-  if (existingOrg) {
-    // Default org already exists — skip
-    return;
-  }
+  const superUser = !existingOrg
+    ? await knex(MetaTable.USERS)
+        .where('roles', 'like', '%super%')
+        .first()
+    : null;
 
-  // Find super user
-  const superUser = await knex(MetaTable.USERS)
-    .where('roles', 'like', '%super%')
-    .first();
+  // Only create default org if it doesn't exist and we have a super user
+  // (on cloud there's no super user — this block is skipped)
+  if (!existingOrg && superUser) {
+    // Create default org with fixed ID "nc"
+    await knex(MetaTable.ORG).insert({
+      id: NC_DEFAULT_ORG_ID,
+      title: 'Default Organization',
+      fk_user_id: superUser.id,
+      deleted: false,
+    });
 
-  // No users yet (fresh install) — verifyDefaultOrg() will handle at runtime
-  if (!superUser) {
-    return;
-  }
+    // Add super user as org owner
+    await knex(MetaTable.ORG_USERS).insert({
+      fk_org_id: NC_DEFAULT_ORG_ID,
+      fk_user_id: superUser.id,
+      roles: EnterpriseOrgUserRoles.OWNER,
+    });
 
-  // Create default org with fixed ID "nc"
-  await knex(MetaTable.ORG).insert({
-    id: NC_DEFAULT_ORG_ID,
-    title: 'Default Organization',
-    fk_user_id: superUser.id,
-    deleted: false,
-  });
+    // Link all workspaces with no org to the default org
+    await knex(MetaTable.WORKSPACE)
+      .whereNull('fk_org_id')
+      .update({ fk_org_id: NC_DEFAULT_ORG_ID });
 
-  // Add super user as org owner
-  await knex(MetaTable.ORG_USERS).insert({
-    fk_org_id: NC_DEFAULT_ORG_ID,
-    fk_user_id: superUser.id,
-    roles: EnterpriseOrgUserRoles.OWNER,
-  });
+    // Backfill: add all workspace users to org_users (deduplicated)
+    const workspaceUsers = await knex(MetaTable.WORKSPACE_USER)
+      .distinct('fk_user_id')
+      .whereNotNull('fk_user_id');
 
-  // Link all workspaces with no org to the default org
-  await knex(MetaTable.WORKSPACE)
-    .whereNull('fk_org_id')
-    .update({ fk_org_id: NC_DEFAULT_ORG_ID });
+    for (const wu of workspaceUsers) {
+      if (wu.fk_user_id === superUser.id) continue; // Already added as owner
 
-  // Backfill: add all workspace users to org_users (deduplicated)
-  const workspaceUsers = await knex(MetaTable.WORKSPACE_USER)
-    .distinct('fk_user_id')
-    .whereNotNull('fk_user_id');
-
-  for (const wu of workspaceUsers) {
-    if (wu.fk_user_id === superUser.id) continue; // Already added as owner
-
-    try {
-      await knex(MetaTable.ORG_USERS).insert({
-        fk_org_id: NC_DEFAULT_ORG_ID,
-        fk_user_id: wu.fk_user_id,
-        roles: EnterpriseOrgUserRoles.CREATOR,
-      });
-    } catch {
-      // Duplicate — skip
+      try {
+        await knex(MetaTable.ORG_USERS).insert({
+          fk_org_id: NC_DEFAULT_ORG_ID,
+          fk_user_id: wu.fk_user_id,
+          roles: EnterpriseOrgUserRoles.CREATOR,
+        });
+      } catch {
+        // Duplicate — skip
+      }
     }
-  }
 
-  // Store default org ID in nc_store
-  await knex(MetaTable.STORE).insert({
-    key: NC_STORE_DEFAULT_ORG_ID_KEY,
-    value: NC_DEFAULT_ORG_ID,
-  });
+    // Store default org ID in nc_store
+    await knex(MetaTable.STORE).insert({
+      key: NC_STORE_DEFAULT_ORG_ID_KEY,
+      value: NC_DEFAULT_ORG_ID,
+    });
+  }
 
   // Step 3: Backfill cloud orgs — add workspace users to nc_org_users
+  // Runs on ALL deployments (including cloud) independently of Step 2
   // On cloud, orgs already exist but only the owner is in nc_org_users.
   // This adds all workspace members to their org.
   const cloudOrgs = await knex(MetaTable.ORG)

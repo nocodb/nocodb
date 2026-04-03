@@ -138,10 +138,15 @@ const isSaveDisabled = computed(() => {
   return changedColumns.value.size === 0
 })
 
+const isInitialLoad = ref(true)
+
 const triggerRowLoad = async (rowId?: string) => {
-  isLoading.value = true
+  if (isInitialLoad.value) {
+    isLoading.value = true
+  }
   await Promise.allSettled([loadComments(rowId, false), _loadRow(rowId)])
   isLoading.value = false
+  isInitialLoad.value = false
 }
 
 watch(

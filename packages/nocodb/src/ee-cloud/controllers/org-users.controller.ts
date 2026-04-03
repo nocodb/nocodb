@@ -78,12 +78,15 @@ export class OrgUsersController {
   @Acl('orgUserRoleUpdate')
   async updateUserRoleInOrg(
     @Req() req: NcRequest,
-    @Body() body: { orgId: string; userId: string },
+    @Param('orgId') orgId: string,
+    @Param('userId') userId: string,
+    @Body() body: { org_role: string },
   ) {
     return this.orgUsersService.updateUserRoleInOrg({
-      orgId: body.orgId,
+      orgId,
+      userId,
+      orgRole: body.org_role as any,
       req,
-      user: req.user,
     });
   }
 }

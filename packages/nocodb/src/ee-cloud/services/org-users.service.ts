@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { OrgUserReqType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
@@ -8,42 +9,34 @@ import { OrgUser, PresignedUrl, User } from '~/models';
 export class OrgUsersService {
   constructor() {}
 
-  // add user to org
   async addUserToOrg(param: {
     userId: string;
     orgId: string;
     userProps: OrgUserReqType;
     req: NcRequest;
   }) {
-    // check user already exists in org
     const orgUser = await OrgUser.get(param.orgId, param.userId);
 
     if (orgUser) {
       NcError.badRequest('User already exists in the organization');
     }
 
-    // check if user exists
     const user = await User.get(param.userId);
 
     if (!user) {
       NcError.notFound('User not found');
     }
 
-    // add user to org
     await OrgUser.insert({
       fk_org_id: param.orgId,
       fk_user_id: param.userId,
       roles: param.userProps.roles,
     });
 
-    // return success
-
-    return Promise.resolve(undefined);
+    return { msg: 'User added to organization' };
   }
 
   async getOrgUsers(param: { orgId: string; req: NcRequest; user: User }) {
-    // get all users in org
-
     const orgUsers = await OrgUser.list(param.orgId);
 
     await PresignedUrl.signMetaIconImage(orgUsers);
@@ -51,21 +44,38 @@ export class OrgUsersService {
     return orgUsers;
   }
 
-  // remove user from org
-  async removeUserFromOrg(_param: {
+  async removeUserFromOrg(param: {
     userId: string;
     orgId: string;
     req: NcRequest;
   }) {
-    return Promise.resolve(undefined);
+    const orgUser = await OrgUser.get(param.orgId, param.userId);
+
+    if (!orgUser) {
+      NcError.notFound('User not found in organization');
+    }
+
+    await OrgUser.softDelete(param.orgId, param.userId);
+
+    return { msg: 'User removed from organization' };
   }
 
-  // update user role in org
-  async updateUserRoleInOrg(_param: {
-    user: any;
+  async updateUserRoleInOrg(param: {
+    userId: string;
     orgId: string;
+    orgRole: EnterpriseOrgUserRoles;
     req: NcRequest;
   }) {
-    return Promise.resolve(undefined);
+    const orgUser = await OrgUser.get(param.orgId, param.userId);
+
+    if (!orgUser) {
+      NcError.notFound('User not found in organization');
+    }
+
+    await OrgUser.update(param.userId, param.orgId, {
+      roles: param.orgRole,
+    } as any);
+
+    return { msg: 'User role updated' };
   }
 }

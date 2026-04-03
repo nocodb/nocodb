@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TableType, ViewType } from 'nocodb-sdk'
+import { ExpandedFormMode } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 
 const panelStore = useExpandedFormPanelOrThrow()
@@ -22,6 +23,8 @@ const { closePanel, setFullscreen, navigatePrev, navigateNext, toggleActivity } 
 
 const meta = inject(MetaInj, ref())
 
+const view = inject(ActiveViewInj, ref())
+
 const isPublic = inject(IsPublicInj, ref(false))
 
 const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
@@ -33,6 +36,8 @@ const { t } = useI18n()
 const { isMobileMode } = useGlobal()
 
 const panelRef = ref<HTMLElement>()
+
+const activeViewMode = ref(ExpandedFormMode.FIELD)
 
 const isResizing = ref(false)
 const resizeStartX = ref(0)
@@ -227,6 +232,7 @@ const onKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
     if (isFullscreen.value) {
       setFullscreen(false)
+      activeViewMode.value = ExpandedFormMode.FIELD
     } else {
       onClose()
     }
@@ -318,6 +324,13 @@ const showActivity = computed(() => {
 
         <div class="flex-1" />
 
+        <SmartsheetExpandedFormViewModeSelector
+          v-if="isFullscreen"
+          v-model="activeViewMode"
+          :view="view"
+          class="mr-2"
+        />
+
         <!-- Save -->
         <NcTooltip v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView" :title="isNew ? $t('general.create') : $t('general.save')">
           <NcButton
@@ -362,7 +375,7 @@ const showActivity = computed(() => {
         </div>
 
         <div
-          v-if="showActivity"
+          v-if="showActivity && !isFullscreen"
           class="nc-panel-mode-selector flex flex-row rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default h-7 overflow-hidden"
         >
           <NcTooltip :title="$t('objects.fields')">
@@ -424,23 +437,58 @@ const showActivity = computed(() => {
         </div>
       </div>
 
-      <div class="flex-1 min-h-0 overflow-y-auto nc-scrollbar-thin">
+      <div class="flex-1 min-h-0 overflow-hidden">
         <div v-if="isLoading" class="flex items-center justify-center h-full">
           <GeneralLoader />
         </div>
-        <template v-else-if="activityExpanded && activeActivityTab === 'comments'">
-          <SmartsheetExpandedFormSidebarComments />
+
+        <!-- Fullscreen: use expanded form presentors (Fields/Attachments/Discussion) -->
+        <template v-else-if="isFullscreen">
+          <SmartsheetExpandedFormPresentorsFields
+            v-if="activeViewMode === ExpandedFormMode.FIELD"
+            :row-id="primaryKey"
+            :fields="fields ?? []"
+            :hidden-fields="hiddenFields"
+            :is-unsaved-duplicated-record-exist="false"
+            :is-unsaved-form-exist="false"
+            :is-loading="isLoading"
+            :is-saving="isSaving"
+          />
+          <SmartsheetExpandedFormPresentorsAttachments
+            v-else-if="activeViewMode === ExpandedFormMode.ATTACHMENT"
+            :row-id="primaryKey"
+            :view="view"
+            :fields="fields ?? []"
+            :hidden-fields="hiddenFields"
+            :is-unsaved-duplicated-record-exist="false"
+            :is-unsaved-form-exist="false"
+            :is-loading="isLoading"
+            :is-saving="isSaving"
+          />
+          <SmartsheetExpandedFormPresentorsDiscussion
+            v-else-if="activeViewMode === ExpandedFormMode.DISCUSSION"
+            :is-unsaved-duplicated-record-exist="false"
+          />
         </template>
-        <template v-else-if="activityExpanded && activeActivityTab === 'audits'">
-          <SmartsheetExpandedFormSidebarAudits />
+
+        <!-- Panel mode: fields / comments / audits -->
+        <template v-else>
+          <div class="h-full overflow-y-auto nc-scrollbar-thin">
+            <template v-if="activityExpanded && activeActivityTab === 'comments'">
+              <SmartsheetExpandedFormSidebarComments />
+            </template>
+            <template v-else-if="activityExpanded && activeActivityTab === 'audits'">
+              <SmartsheetExpandedFormSidebarAudits />
+            </template>
+            <SmartsheetExpandedFormPresentorsFieldsColumns
+              v-else
+              :fields="fields ?? []"
+              :hidden-fields="hiddenFields"
+              :is-loading="isLoading"
+              force-vertical-mode
+            />
+          </div>
         </template>
-        <SmartsheetExpandedFormPresentorsFieldsColumns
-          v-else
-          :fields="fields ?? []"
-          :hidden-fields="hiddenFields"
-          :is-loading="isLoading"
-          force-vertical-mode
-        />
       </div>
     </div>
   </Transition>
@@ -634,6 +682,28 @@ const showActivity = computed(() => {
   .nc-virtual-cell input {
     font-size: 13px !important;
     font-weight: 500 !important;
+  }
+}
+
+/* ViewModeSelector — match header icon size (14px) and reduce weight */
+.nc-expanded-form-panel .tab-wrapper .tab .tab-icon {
+  font-size: 0.875rem !important;
+  width: 0.875rem !important;
+  height: 0.875rem !important;
+}
+
+.nc-expanded-form-panel .tab-wrapper {
+  @apply !h-6;
+}
+
+/* Sidebar tabs — smaller font for Comments / Revision History */
+.nc-expanded-form-panel .nc-comments-drawer .ant-tabs-tab {
+  .flex.items-center {
+    @apply !text-xs;
+
+    svg {
+      @apply !w-3.5 !h-3.5;
+    }
   }
 }
 

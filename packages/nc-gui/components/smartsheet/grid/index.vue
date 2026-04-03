@@ -283,6 +283,22 @@ watch(
   },
 )
 
+// Clear route rowId when panel closes
+watch(
+  isExpandedFormPanelOpen,
+  (open) => {
+    if (!open && routeQuery.value.rowId) {
+      router.push({
+        query: {
+          ...routeQuery.value,
+          path: undefined,
+          rowId: undefined,
+        },
+      })
+    }
+  },
+)
+
 // Sync route when panel navigates to a different row
 watch(
   () => expandedFormPanelStore?.activeRowId.value,

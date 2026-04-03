@@ -14,6 +14,15 @@ export const tableColumns: NcTableColumnProps[] = [
     minWidth: 200,
     padding: '0px 12px 0 9px',
   },
+  {
+    title: 'Field Type',
+    name: 'Field Type',
+    dataIndex: 'uidt',
+    key: 'uidt',
+    width: 200,
+    minWidth: 150,
+    padding: '0px 12px 0 0px',
+  },
 ]
 
 export const srcDestMappingColumns: NcTableColumnProps[] = [

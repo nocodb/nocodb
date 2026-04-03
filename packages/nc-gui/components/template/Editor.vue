@@ -28,6 +28,7 @@ interface Props {
   sourceId: string
   importWorker: Worker
   tableIcon?: string
+  autoDetectFieldTypes?: boolean
 }
 
 interface Option {
@@ -35,10 +36,21 @@ interface Option {
   value: string
 }
 
-const { quickImportType, baseTemplate, importData, importColumns, importDataOnly, maxRowsToParse, baseId, sourceId } =
-  defineProps<Props>()
+const {
+  quickImportType,
+  baseTemplate,
+  importData,
+  importColumns,
+  importDataOnly,
+  maxRowsToParse,
+  baseId,
+  sourceId,
+  autoDetectFieldTypes,
+} = defineProps<Props>()
 
 const emit = defineEmits(['import', 'error', 'change'])
+
+const activeTableColumns = computed(() => (autoDetectFieldTypes ? tableColumns : tableColumns.filter((c) => c.key !== 'uidt')))
 
 dayjs.extend(utc)
 
@@ -120,6 +132,21 @@ const sqlUis = computed(() => {
 })
 
 const sqlUi = computed(() => sqlUis.value[sourceId] || Object.values(sqlUis.value)[0])
+
+const importFieldTypeOptions = [
+  UITypes.SingleLineText,
+  UITypes.LongText,
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.DateTime,
+  UITypes.Date,
+  UITypes.Checkbox,
+  UITypes.Email,
+  UITypes.URL,
+  UITypes.SingleSelect,
+  UITypes.MultiSelect,
+  UITypes.JSON,
+]
 
 const hasSelectColumn = ref<boolean[]>([])
 
@@ -1243,7 +1270,7 @@ function getErrorByTableName(tableName: string) {
                 body-row-class-name="template-form-row"
                 header-row-class-name="relative"
                 :data="table.columns"
-                :columns="tableColumns"
+                :columns="activeTableColumns"
                 :bordered="false"
                 header-row-height="40px"
                 row-height="40px"
@@ -1270,6 +1297,11 @@ function getErrorByTableName(tableName: string) {
                       }}
                     </span>
                     <div class="absolute h-1 border-b bottom-0 border-nc-border-gray-medium left-3 right-3" />
+                  </template>
+                  <template v-if="column.key === 'uidt'">
+                    <span class="font-weight-700 text-small text-nc-content-gray-subtle2">
+                      {{ $t('labels.columnType') }}
+                    </span>
                   </template>
                 </template>
                 <template #bodyCell="{ column, record, recordIndex }">
@@ -1326,6 +1358,24 @@ function getErrorByTableName(tableName: string) {
                       <GeneralIcon icon="info" class="h-4 w-4 text-nc-content-red-medium flex-none ml-2" />
                     </NcTooltip>
                     <div v-if="recordIndex" class="absolute h-1 border-t border-nc-border-gray-medium top-0 left-3 right-3" />
+                  </template>
+                  <template v-if="column.key === 'uidt'">
+                    <NcSelect
+                      v-model:value="record.uidt"
+                      class="nc-field-type-select-input w-full nc-select-shadow !border-none"
+                      :disabled="!record.selected"
+                      dropdown-class-name="nc-dropdown-filter-field"
+                    >
+                      <template #suffixIcon>
+                        <GeneralIcon icon="arrowDown" class="text-current" />
+                      </template>
+                      <a-select-option v-for="opt of importFieldTypeOptions" :key="opt" :value="opt">
+                        <div class="flex items-center gap-2 w-full">
+                          <SmartsheetHeaderIcon :column="{ uidt: opt }" class="flex-none w-3.5 h-3.5 !mx-0" />
+                          <span class="truncate flex-1 text-sm">{{ opt }}</span>
+                        </div>
+                      </a-select-option>
+                    </NcSelect>
                   </template>
                 </template>
               </NcTable>
@@ -1391,6 +1441,36 @@ function getErrorByTableName(tableName: string) {
 
 :deep(.ant-progress-text) {
   @apply text-nc-content-gray-muted;
+}
+
+:deep(.nc-field-type-select-input.ant-select) {
+  .ant-select-selector {
+    @apply !bg-transparent rounded-lg;
+
+    .ant-select-selection-item {
+      @apply text-nc-content-gray text-sm font-weight-500;
+    }
+  }
+
+  &:not(.ant-select-focused):hover .ant-select-selector {
+    @apply !bg-nc-bg-gray-medium;
+  }
+
+  &:not(.ant-select-disabled):not(:hover):not(.ant-select-focused) .ant-select-selector,
+  &:not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
+    @apply !shadow-none;
+  }
+
+  &:hover:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
+    @apply shadow-none;
+  }
+  &:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
+    @apply !border-transparent;
+  }
+
+  &:not(.ant-select-focused):hover .ant-select-clear {
+    @apply !bg-nc-bg-gray-medium;
+  }
 }
 
 :deep(.nc-field-select-input.ant-select) {

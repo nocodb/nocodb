@@ -22,8 +22,8 @@ export function verifyDefaultOrgTests() {
       expect(EnterpriseOrgUserRoles.OWNER).to.equal('cloud-org-level-owner');
     });
 
-    it('should have CREATOR role', () => {
-      expect(EnterpriseOrgUserRoles.CREATOR).to.equal('cloud-org-level-creator');
+    it('should have ADMIN role', () => {
+      expect(EnterpriseOrgUserRoles.ADMIN).to.equal('cloud-org-level-creator');
     });
 
     it('should have VIEWER role', () => {
@@ -37,7 +37,7 @@ export function verifyDefaultOrgTests() {
 
     it('CloudOrgUserRoles should be an alias for EnterpriseOrgUserRoles', () => {
       expect(CloudOrgUserRoles.OWNER).to.equal(EnterpriseOrgUserRoles.OWNER);
-      expect(CloudOrgUserRoles.CREATOR).to.equal(EnterpriseOrgUserRoles.CREATOR);
+      expect(CloudOrgUserRoles.CREATOR).to.equal(EnterpriseOrgUserRoles.ADMIN);
       expect(CloudOrgUserRoles.VIEWER).to.equal(EnterpriseOrgUserRoles.VIEWER);
     });
   });

@@ -8,6 +8,7 @@ export enum OrgUserRoles {
 
 export enum EnterpriseOrgUserRoles {
   OWNER = 'cloud-org-level-owner',
+  ADMIN = 'cloud-org-level-creator',
   CREATOR = 'cloud-org-level-creator',
   VIEWER = 'cloud-org-level-viewer',
 }

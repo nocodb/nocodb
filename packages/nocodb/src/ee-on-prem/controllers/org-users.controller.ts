@@ -30,7 +30,7 @@ export class OrgUsersController extends OrgUsersControllerCE {
     });
   }
 
-  @Patch('/api/v1/users/:userId/org-role')
+  @Patch('/api/v1/users/:userId/org/:orgId')
   @Acl('userUpdate', {
     scope: 'org',
     allowedRoles: [
@@ -41,6 +41,7 @@ export class OrgUsersController extends OrgUsersControllerCE {
   })
   async updateOrgRole(
     @Param('userId') userId: string,
+    @Param('orgId') _orgId: string,
     @Body() body: { org_role: EnterpriseOrgUserRoles },
   ) {
     await (this.orgUsersService as any).updateOrgRole({
@@ -50,7 +51,7 @@ export class OrgUsersController extends OrgUsersControllerCE {
     return { msg: 'Org role updated' };
   }
 
-  @Delete('/api/v1/users/:userId/org')
+  @Delete('/api/v1/users/:userId/org/:orgId')
   @Acl('userDelete', {
     scope: 'org',
     allowedRoles: [
@@ -59,7 +60,10 @@ export class OrgUsersController extends OrgUsersControllerCE {
     ],
     blockApiTokenAccess: true,
   })
-  async removeFromOrg(@Param('userId') userId: string) {
+  async removeFromOrg(
+    @Param('userId') userId: string,
+    @Param('orgId') _orgId: string,
+  ) {
     await (this.orgUsersService as any).removeFromOrg({ userId });
     return { msg: 'User removed from organization' };
   }

@@ -46,7 +46,7 @@ export class AccountTokenPage extends BasePage {
 
     // Copy and click Done
     await this.rootPage.locator('[data-testid="nc-token-copy-btn"]').click();
-    await this.rootPage.locator('[data-testid="nc-token-done-btn"]').click();
+    await this.rootPage.locator('[data-testid="nc-token-result-modal"] .nc-modal-confirm-ok-btn').click();
     await this.rootPage.waitForTimeout(1000);
   }
 

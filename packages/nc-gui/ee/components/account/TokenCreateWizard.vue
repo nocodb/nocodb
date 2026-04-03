@@ -323,7 +323,7 @@ const onResultDone = () => {
       :keyboard="false"
       :closable="false"
       size="sm"
-      data-testid="nc-token-result-modal"
+      :wrapper-props="{ 'data-testid': 'nc-token-result-modal' }"
       @ok="onResultDone"
     >
       <template #extraContent>

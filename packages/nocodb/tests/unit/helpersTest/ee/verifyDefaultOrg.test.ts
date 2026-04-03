@@ -18,8 +18,8 @@ export function verifyDefaultOrgTests() {
   });
 
   describe('EnterpriseOrgUserRoles enum', () => {
-    it('should have ADMIN role', () => {
-      expect(EnterpriseOrgUserRoles.ADMIN).to.equal('cloud-org-level-admin');
+    it('should have OWNER role', () => {
+      expect(EnterpriseOrgUserRoles.OWNER).to.equal('cloud-org-level-owner');
     });
 
     it('should have CREATOR role', () => {
@@ -30,8 +30,13 @@ export function verifyDefaultOrgTests() {
       expect(EnterpriseOrgUserRoles.VIEWER).to.equal('cloud-org-level-viewer');
     });
 
+    it('should have exactly 3 roles', () => {
+      const roleValues = Object.values(EnterpriseOrgUserRoles);
+      expect(roleValues).to.have.length(3);
+    });
+
     it('CloudOrgUserRoles should be an alias for EnterpriseOrgUserRoles', () => {
-      expect(CloudOrgUserRoles.ADMIN).to.equal(EnterpriseOrgUserRoles.ADMIN);
+      expect(CloudOrgUserRoles.OWNER).to.equal(EnterpriseOrgUserRoles.OWNER);
       expect(CloudOrgUserRoles.CREATOR).to.equal(EnterpriseOrgUserRoles.CREATOR);
       expect(CloudOrgUserRoles.VIEWER).to.equal(EnterpriseOrgUserRoles.VIEWER);
     });

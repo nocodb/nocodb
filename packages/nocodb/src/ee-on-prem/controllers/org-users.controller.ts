@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Req, UseGuards } from '@nestjs/common';
-import { CloudOrgUserRoles, OrgUserRoles } from 'nocodb-sdk';
+import { EnterpriseOrgUserRoles, OrgUserRoles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { OrgUsersController as OrgUsersControllerCE } from 'src/controllers/org-users.controller';
 import { OrgUsersService } from '~/services/org-users.service';
@@ -19,8 +19,7 @@ export class OrgUsersController extends OrgUsersControllerCE {
     scope: 'org',
     allowedRoles: [
       OrgUserRoles.SUPER_ADMIN,
-      CloudOrgUserRoles.OWNER,
-      CloudOrgUserRoles.ADMIN,
+      EnterpriseOrgUserRoles.OWNER,
     ],
     blockApiTokenAccess: true,
     blockOAuthTokenAccess: true,
@@ -36,14 +35,13 @@ export class OrgUsersController extends OrgUsersControllerCE {
     scope: 'org',
     allowedRoles: [
       OrgUserRoles.SUPER_ADMIN,
-      CloudOrgUserRoles.OWNER,
-      CloudOrgUserRoles.ADMIN,
+      EnterpriseOrgUserRoles.OWNER,
     ],
     blockApiTokenAccess: true,
   })
   async updateOrgRole(
     @Param('userId') userId: string,
-    @Body() body: { org_role: CloudOrgUserRoles },
+    @Body() body: { org_role: EnterpriseOrgUserRoles },
   ) {
     await (this.orgUsersService as any).updateOrgRole({
       userId,

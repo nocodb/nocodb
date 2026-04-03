@@ -286,14 +286,14 @@ const columns = computed(() => {
                     color="purple"
                     class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
                   >
-                    {{ el.roles?.includes('super') ? $t('objects.roleType.admin') : $t('objects.roleType.owner') }}
+                    {{ $t('objects.roleType.owner') }}
                   </NcBadge>
                 </template>
                 <NcSelect
                   v-else
                   :value="el.org_roles || 'cloud-org-level-viewer'"
                   :options="[
-                    { label: $t('objects.roleType.admin'), value: 'cloud-org-level-admin' },
+                    { label: $t('objects.roleType.owner'), value: 'cloud-org-level-owner' },
                     { label: $t('objects.roleType.creator'), value: 'cloud-org-level-creator' },
                     { label: $t('objects.roleType.viewer'), value: 'cloud-org-level-viewer' },
                   ]"

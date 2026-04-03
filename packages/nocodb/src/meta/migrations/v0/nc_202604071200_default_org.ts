@@ -108,7 +108,7 @@ export async function up(knex: Knex) {
   await knex(MetaTable.ORG_USERS).insert({
     fk_org_id: NC_DEFAULT_ORG_ID,
     fk_user_id: superUser.id,
-    roles: EnterpriseOrgUserRoles.ADMIN,
+    roles: EnterpriseOrgUserRoles.OWNER,
   });
 
   // Link all workspaces with no org to the default org
@@ -178,7 +178,7 @@ export async function down(knex: Knex) {
   // Remove backfilled org users (except owner)
   await knex(MetaTable.ORG_USERS)
     .where('fk_org_id', NC_DEFAULT_ORG_ID)
-    .whereNot('roles', EnterpriseOrgUserRoles.ADMIN)
+    .whereNot('roles', EnterpriseOrgUserRoles.OWNER)
     .del();
 
   // Unlink workspaces

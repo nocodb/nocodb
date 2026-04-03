@@ -107,7 +107,7 @@ export class OrgUsersService extends OrgUsersServiceCE {
     const orgId = Noco.ncDefaultOrgId || NC_DEFAULT_ORG_ID;
 
     const allowedRoles = [
-      EnterpriseOrgUserRoles.ADMIN,
+      EnterpriseOrgUserRoles.OWNER,
       EnterpriseOrgUserRoles.CREATOR,
       EnterpriseOrgUserRoles.VIEWER,
     ];

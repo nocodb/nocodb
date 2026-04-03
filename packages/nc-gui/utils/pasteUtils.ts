@@ -57,7 +57,7 @@ export const valueToCopy = (
     isPg,
     meta,
     metas,
-    rowId: isMm(columnObj) ? result.rowId : null,
+    rowId: isMm(columnObj) || isBtLikeV2Junction(columnObj) ? result.rowId : null,
   })
 
   return result

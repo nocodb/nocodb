@@ -116,6 +116,7 @@ const permissionScopes = {
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
+    'nestedDataBulkCopyPasteOrDeleteAll',
     'formViewGet',
     'baseGet',
     'tableGet',
@@ -439,6 +440,7 @@ const rolePermissions:
       dataInsert: true,
       bulkDataUpsert: true,
       nestedDataListCopyPasteOrDeleteAll: true,
+      nestedDataBulkCopyPasteOrDeleteAll: true,
       filterGet: true,
       filterChildrenList: true,
       mmExcludedList: true,
@@ -687,6 +689,7 @@ export const sourceRestrictions = {
     relationDataRemove: true,
     relationDataAdd: true,
     nestedDataListCopyPasteOrDeleteAll: true,
+    nestedDataBulkCopyPasteOrDeleteAll: true,
     nestedDataUnlink: true,
     nestedDataLink: true,
   },

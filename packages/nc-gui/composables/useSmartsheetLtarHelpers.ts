@@ -198,7 +198,7 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
         if (row.rowMeta.new) {
           getRowLtarHelpers(row)[column.title!] = null
         } else {
-          if ((<LinkToAnotherRecordType>column.colOptions)?.type === RelationTypes.MANY_TO_MANY) {
+          if ((<LinkToAnotherRecordType>column.colOptions)?.type === RelationTypes.MANY_TO_MANY || isBtLikeV2Junction(column)) {
             if (!row.row[column.title!]) return
 
             const result = await $api.internal.postOperation(

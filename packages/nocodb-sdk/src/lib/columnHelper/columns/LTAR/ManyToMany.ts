@@ -5,13 +5,14 @@ import AbstractColumnHelper, {
 import { LinkToAnotherRecordType } from '~/lib/Api';
 import { ncHasProperties } from '~/lib/is';
 import { isMm } from '../../utils';
+import { isBtLikeV2Junction } from '~/lib/UITypes';
 import { LookupHelper } from '../Lookup';
 
 export class ManyToManyHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
 
   serializeValue(value: any, params: SerializerOrParserFnProps['params']) {
-    if (!isMm(params.col)) throw new SilentTypeConversionError();
+    if (!isMm(params.col) && !isBtLikeV2Junction(params.col)) throw new SilentTypeConversionError();
 
     let parsedVal = value;
 

@@ -64,6 +64,7 @@ export const API_TOKEN_PERMISSION_MAP: Record<string, TokenPermissionMapping> =
     nestedDataLink: { category: 'records', level: 'write' },
     nestedDataUnlink: { category: 'records', level: 'write' },
     nestedDataListCopyPasteOrDeleteAll: { category: 'records', level: 'write' },
+    nestedDataBulkCopyPasteOrDeleteAll: { category: 'records', level: 'write' },
 
     // Attachments (tied to record data)
     upload: { category: 'records', level: 'write' },

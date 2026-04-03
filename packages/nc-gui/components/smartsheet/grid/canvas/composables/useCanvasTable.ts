@@ -11,7 +11,7 @@ import {
   isVirtualCol,
   ncHasProperties,
 } from 'nocodb-sdk'
-import type { ButtonType, ColumnType, FormulaType, TableType, UserType, ViewType } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, FormulaType, LinkToAnotherRecordType, TableType, UserType, ViewType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
@@ -1239,20 +1239,69 @@ export function useCanvasTable({
     const cols = columns.value.slice(startCol, endCol + 1)
     const rows = await getRows(start.row, end.row, path)
     const props = []
-    let isInfoShown = false
+
+    // Collect LTAR cells for bulk delete via single API call
+    const bulkLtarDeleteOps: {
+      columnId: string
+      columnTitle: string
+      rowRef: Row
+      oldValue: any
+      data: { operation: 'deleteAll'; rowId: string; columnId: string; fk_related_model_id: string }[]
+    }[] = []
+
+    for (const row of rows) {
+      for (const col of cols) {
+        const colObj = col?.columnObj
+        if (!row || !colObj || !isVirtualCol(colObj) || !isLinksOrLTAR(colObj)) continue
+        if (!col.isCellEditable || col.isSyncedColumn) continue
+        if (!row.row[colObj.title!]) continue
+
+        const rowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+        if (!rowPk) continue
+
+        const oldValue = row.row[colObj.title!]
+
+        bulkLtarDeleteOps.push({
+          columnId: colObj.id as string,
+          columnTitle: colObj.title!,
+          rowRef: row,
+          oldValue,
+          data: [
+            {
+              operation: 'deleteAll',
+              rowId: rowPk,
+              columnId: colObj.id as string,
+              fk_related_model_id: (colObj.colOptions as LinkToAnotherRecordType)?.fk_related_model_id as string,
+            },
+          ],
+        })
+        row.row[colObj.title!] = null
+      }
+    }
+    if (bulkLtarDeleteOps.length) {
+      try {
+        await $api.internal.postOperation(
+          meta.value?.fk_workspace_id as string,
+          meta.value?.base_id as string,
+          {
+            operation: 'nestedDataBulkCopyPasteOrDeleteAll',
+            tableId: meta.value?.id as string,
+          },
+          bulkLtarDeleteOps.map(({ columnId, data }) => ({ columnId, data })),
+        )
+      } catch {
+        for (const op of bulkLtarDeleteOps) {
+          op.rowRef.row[op.columnTitle] = op.oldValue
+        }
+      }
+    }
 
     for (const row of rows) {
       for (const col of cols) {
         const colObj = col.columnObj
         if (!row || !colObj || !colObj.title || !col.isCellEditable || col.isSyncedColumn) continue
 
-        if (isVirtualCol(colObj)) {
-          if ((isBt(colObj) || isOo(colObj) || isMm(colObj)) && !isInfoShown) {
-            message.info(t('msg.info.groupClearIsNotSupportedOnLinksColumn'))
-            isInfoShown = true
-          }
-          continue
-        }
+        if (isVirtualCol(colObj)) continue
 
         // skip readonly columns
         if (isReadonlyVirtualColumn(colObj)) continue
@@ -1265,7 +1314,9 @@ export function useCanvasTable({
     }
 
     if (props.length === 0) {
-      message.info(t('msg.info.noEditableCellsToClear'))
+      if (!bulkLtarDeleteOps.length) {
+        message.info(t('msg.info.noEditableCellsToClear'))
+      }
       return
     }
 

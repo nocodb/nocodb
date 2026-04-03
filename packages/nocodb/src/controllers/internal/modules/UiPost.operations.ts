@@ -117,6 +117,7 @@ export class UiPostOperations
     'nestedDataLink' as const,
     'nestedDataUnlink' as const,
     'nestedDataListCopyPasteOrDeleteAll' as const,
+    'nestedDataBulkCopyPasteOrDeleteAll' as const,
     'linkFilterCreate' as const,
     'widgetFilterCreate' as const,
     'rowColorConditionsFilterCreate' as const,
@@ -510,6 +511,18 @@ export class UiPostOperations
             query: req.query,
             viewId: req.query.viewId as string,
             columnId: req.query.columnId as string,
+            data: payload,
+            cookie: req,
+            user: req.user,
+          },
+        );
+      case 'nestedDataBulkCopyPasteOrDeleteAll':
+        return await this.dataTableService.nestedListBulkCopyPasteOrDeleteAll(
+          context,
+          {
+            modelId: req.query.tableId as string,
+            query: req.query,
+            viewId: req.query.viewId as string,
             data: payload,
             cookie: req,
             user: req.user,

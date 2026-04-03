@@ -78,19 +78,28 @@ export const verifyDefaultOrg = async (ncMeta = Noco.ncMeta) => {
   }
 
   // Create default org with fixed ID "nc"
-  await ncMeta.knexConnection(MetaTable.ORG).insert({
-    id: NC_DEFAULT_ORG_ID,
-    title: 'Default Organization',
-    fk_user_id: superUser.id,
-    deleted: false,
-  });
+  // try/catch handles race condition on multi-process boot
+  try {
+    await ncMeta.knexConnection(MetaTable.ORG).insert({
+      id: NC_DEFAULT_ORG_ID,
+      title: 'Default Organization',
+      fk_user_id: superUser.id,
+      deleted: false,
+    });
+  } catch {
+    // Already created by another process — continue
+  }
 
-  // Add super user as org owner
-  await ncMeta.knexConnection(MetaTable.ORG_USERS).insert({
-    fk_org_id: NC_DEFAULT_ORG_ID,
-    fk_user_id: superUser.id,
-    roles: EnterpriseOrgUserRoles.ADMIN,
-  });
+  // Add super user as org admin
+  try {
+    await ncMeta.knexConnection(MetaTable.ORG_USERS).insert({
+      fk_org_id: NC_DEFAULT_ORG_ID,
+      fk_user_id: superUser.id,
+      roles: EnterpriseOrgUserRoles.ADMIN,
+    });
+  } catch {
+    // Already exists — continue
+  }
 
   // Link default workspace to this org (if it exists and isn't already linked)
   if (Noco.ncDefaultWorkspaceId) {

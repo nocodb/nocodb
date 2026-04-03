@@ -17,6 +17,7 @@ import { OrgUsersService } from '~/services/org-users.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import Noco from '~/Noco';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -36,6 +37,10 @@ export class OrgUsersController extends OrgUsersControllerCE {
     blockOAuthTokenAccess: true,
   })
   async userList(@Req() req: NcRequest) {
+    // Unlicensed — delegate to CE controller (PagedResponseImpl wrapped)
+    if (!Noco.isEE() || !Noco.ncDefaultOrgId) {
+      return super.userList(req);
+    }
     return this.orgUsersService.userList({
       query: req.query,
     });

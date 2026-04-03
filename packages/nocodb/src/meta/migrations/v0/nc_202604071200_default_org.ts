@@ -16,27 +16,38 @@ export async function up(knex: Knex) {
     const client = knex.client.config.client;
 
     if (client === 'pg' || client === 'postgresql') {
-      // Check if PK exists before dropping
-      const pkResult = await knex.raw(`
-        SELECT constraint_name FROM information_schema.table_constraints
-        WHERE table_name = 'nc_org_users' AND constraint_type = 'PRIMARY KEY'
+      // Check how many columns the PK has — skip if already composite
+      const pkColCount = await knex.raw(`
+        SELECT COUNT(*) as cnt FROM information_schema.key_column_usage
+        WHERE table_name = 'nc_org_users'
+          AND constraint_name IN (
+            SELECT constraint_name FROM information_schema.table_constraints
+            WHERE table_name = 'nc_org_users' AND constraint_type = 'PRIMARY KEY'
+          )
       `);
 
-      if (pkResult.rows?.length) {
+      if (Number(pkColCount.rows?.[0]?.cnt) < 2) {
+        // PK is single-column — drop and recreate as composite
+        const pkResult = await knex.raw(`
+          SELECT constraint_name FROM information_schema.table_constraints
+          WHERE table_name = 'nc_org_users' AND constraint_type = 'PRIMARY KEY'
+        `);
+
+        if (pkResult.rows?.length) {
+          await knex.raw(
+            `ALTER TABLE ${MetaTable.ORG_USERS} DROP CONSTRAINT ${pkResult.rows[0].constraint_name}`,
+          );
+        }
+
         await knex.raw(
-          `ALTER TABLE ${MetaTable.ORG_USERS} DROP CONSTRAINT ${pkResult.rows[0].constraint_name}`,
+          `ALTER TABLE ${MetaTable.ORG_USERS} ADD PRIMARY KEY (fk_org_id, fk_user_id)`,
         );
       }
-
-      // Add composite PK
-      await knex.raw(
-        `ALTER TABLE ${MetaTable.ORG_USERS} ADD PRIMARY KEY (fk_org_id, fk_user_id)`,
-      );
     } else if (client === 'sqlite3') {
       // SQLite doesn't support ALTER TABLE for PK changes
       // Recreate the table with correct PK
       await knex.raw(`
-        CREATE TABLE nc_org_users_new (
+        CREATE TABLE IF NOT EXISTS nc_org_users_new (
           fk_org_id VARCHAR(20) NOT NULL,
           fk_user_id VARCHAR(20) NOT NULL,
           roles VARCHAR(255),
@@ -46,18 +57,27 @@ export async function up(knex: Knex) {
         )
       `);
       await knex.raw(
-        `INSERT OR IGNORE INTO nc_org_users_new SELECT * FROM ${MetaTable.ORG_USERS}`,
+        `INSERT OR IGNORE INTO nc_org_users_new SELECT fk_org_id, fk_user_id, roles, created_at, updated_at FROM ${MetaTable.ORG_USERS}`,
       );
       await knex.raw(`DROP TABLE ${MetaTable.ORG_USERS}`);
       await knex.raw(
         `ALTER TABLE nc_org_users_new RENAME TO ${MetaTable.ORG_USERS}`,
       );
     } else {
-      // MySQL / MariaDB
-      await knex.raw(`ALTER TABLE ${MetaTable.ORG_USERS} DROP PRIMARY KEY`);
-      await knex.raw(
-        `ALTER TABLE ${MetaTable.ORG_USERS} ADD PRIMARY KEY (fk_org_id, fk_user_id)`,
-      );
+      // MySQL / MariaDB — check if already composite
+      const pkColCount = await knex.raw(`
+        SELECT COUNT(*) as cnt FROM information_schema.key_column_usage
+        WHERE table_name = 'nc_org_users' AND constraint_name = 'PRIMARY'
+      `);
+
+      if (Number(pkColCount[0]?.[0]?.cnt) < 2) {
+        await knex.raw(
+          `ALTER TABLE ${MetaTable.ORG_USERS} DROP PRIMARY KEY`,
+        );
+        await knex.raw(
+          `ALTER TABLE ${MetaTable.ORG_USERS} ADD PRIMARY KEY (fk_org_id, fk_user_id)`,
+        );
+      }
     }
 
     // Add index on fk_user_id for reverse lookups

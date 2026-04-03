@@ -76,6 +76,7 @@ const onResizeEnd = () => {
 onBeforeUnmount(() => {
   window.removeEventListener('mousemove', onResizeMove)
   window.removeEventListener('mouseup', onResizeEnd)
+  document.body.style.cursor = ''
 })
 
 const rowRef = computed(() => activeRow.value ?? { row: {}, oldRow: {}, rowMeta: {} } as Row)
@@ -107,7 +108,7 @@ const {
   hiddenFields,
 } = expandedFormStore
 
-const { isSqlView } = useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)
+const { isSqlView } = useProvideSmartsheetStore(view as Ref<ViewType>, meta)
 
 useProvideSmartsheetLtarHelpers(meta)
 
@@ -164,6 +165,8 @@ watch(
   async (newRowId) => {
     if (!newRowId || !isOpen.value) return
 
+    clearColumns()
+
     if (activeRowState.value) {
       rowState.value = activeRowState.value
     } else {
@@ -206,25 +209,47 @@ const showDiscardModal = ref(false)
 
 const onClose = () => {
   if (changedColumns.value.size > 0) {
+    pendingNavDirection.value = null
     showDiscardModal.value = true
   } else {
     closePanel()
   }
 }
 
-const discardAndClose = () => {
-  clearColumns()
-  showDiscardModal.value = false
-  closePanel()
+
+const pendingNavDirection = ref<'prev' | 'next' | null>(null)
+
+const guardedNavigate = (direction: 'prev' | 'next') => {
+  if (changedColumns.value.size > 0) {
+    pendingNavDirection.value = direction
+    showDiscardModal.value = true
+    return
+  }
+  if (direction === 'prev') navigatePrev()
+  else navigateNext()
 }
 
-const saveAndClose = async () => {
+const discardAndNavigate = () => {
+  clearColumns()
+  showDiscardModal.value = false
+  const dir = pendingNavDirection.value
+  pendingNavDirection.value = null
+  if (dir === 'prev') navigatePrev()
+  else if (dir === 'next') navigateNext()
+  else closePanel()
+}
+
+const saveAndContinue = async () => {
   try {
     await save()
     showDiscardModal.value = false
-    closePanel()
+    const dir = pendingNavDirection.value
+    pendingNavDirection.value = null
+    if (dir === 'prev') navigatePrev()
+    else if (dir === 'next') navigateNext()
+    else closePanel()
   } catch {
-    // Save failed — keep panel open so user can retry
+    // Save failed — stay on current row
   }
 }
 
@@ -242,10 +267,10 @@ const onKeydown = (e: KeyboardEvent) => {
 
   if (e.key === 'ArrowUp') {
     e.preventDefault()
-    navigatePrev()
+    guardedNavigate('prev')
   } else if (e.key === 'ArrowDown') {
     e.preventDefault()
-    navigateNext()
+    guardedNavigate('next')
   } else if (e.code === 'KeyS') {
     e.preventDefault()
     if (!isSaveDisabled.value) save()
@@ -355,7 +380,7 @@ const showActivity = computed(() => {
               :disabled="!hasPrev"
               class="!border-0"
               data-testid="nc-expanded-form-panel-prev"
-              @click="navigatePrev"
+              @click="guardedNavigate('prev')"
             >
               <GeneralIcon icon="arrowUp" class="w-3.5 h-3.5" />
             </NcButton>
@@ -367,7 +392,7 @@ const showActivity = computed(() => {
               :disabled="!hasNext"
               class="!border-0"
               data-testid="nc-expanded-form-panel-next"
-              @click="navigateNext"
+              @click="guardedNavigate('next')"
             >
               <GeneralIcon icon="arrowDown" class="w-3.5 h-3.5" />
             </NcButton>
@@ -513,8 +538,8 @@ const showActivity = computed(() => {
         {{ $t('activity.doYouWantToSaveTheChanges') }}
       </div>
       <div class="flex flex-row justify-end gap-x-2 mt-5">
-        <NcButton type="secondary" size="small" @click="discardAndClose">{{ $t('labels.discard') }}</NcButton>
-        <NcButton type="primary" size="small" :loading="isSaving" @click="saveAndClose">
+        <NcButton type="secondary" size="small" @click="discardAndNavigate">{{ $t('labels.discard') }}</NcButton>
+        <NcButton type="primary" size="small" :loading="isSaving" @click="saveAndContinue">
           {{ $t('tooltip.saveChanges') }}
         </NcButton>
       </div>

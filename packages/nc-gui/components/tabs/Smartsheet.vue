@@ -50,6 +50,15 @@ const expandedFormPanelStore = useProvideExpandedFormPanel()
 
 const isExpandedFormPanelOpen = computed(() => expandedFormPanelStore.isOpen.value)
 
+watch(
+  () => isGrid.value,
+  (gridActive) => {
+    if (!gridActive && isExpandedFormPanelOpen.value) {
+      expandedFormPanelStore.closePanel()
+    }
+  },
+)
+
 const reloadViewDataEventHook = createEventHook()
 
 const reloadViewMetaEventHook = createEventHook<void | boolean>()

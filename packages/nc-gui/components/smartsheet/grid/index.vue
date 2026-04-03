@@ -273,42 +273,48 @@ const expandedFormOnRowIdDlg = computed({
   },
 })
 
-// Close panel when route rowId is cleared (e.g. browser back)
+const isSyncingPanelRoute = ref(false)
+
 watch(
   () => routeQuery.value.rowId,
   (newRowId) => {
+    if (isSyncingPanelRoute.value) return
     if (!newRowId && isExpandedFormPanelOpen.value) {
-      expandedFormPanelStore.closePanel()
+      expandedFormPanelStore?.closePanel()
     }
   },
 )
 
-// Clear route rowId when panel closes
 watch(
   isExpandedFormPanelOpen,
   (open) => {
     if (!open && routeQuery.value.rowId) {
+      isSyncingPanelRoute.value = true
       router.push({
         query: {
           ...routeQuery.value,
           path: undefined,
           rowId: undefined,
         },
+      }).finally(() => {
+        nextTick(() => { isSyncingPanelRoute.value = false })
       })
     }
   },
 )
 
-// Sync route when panel navigates to a different row
 watch(
   () => expandedFormPanelStore?.activeRowId.value,
   (newRowId) => {
     if (newRowId && isExpandedFormPanelOpen.value && routeQuery.value.rowId !== newRowId) {
+      isSyncingPanelRoute.value = true
       router.push({
         query: {
           ...routeQuery.value,
           rowId: newRowId,
         },
+      }).finally(() => {
+        nextTick(() => { isSyncingPanelRoute.value = false })
       })
     }
   },

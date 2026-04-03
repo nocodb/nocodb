@@ -594,7 +594,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
         await OrgUser.insert({
           fk_org_id: client.fk_org_id,
           fk_user_id: user.id,
-          roles: CloudOrgUserRoles.VIEWER,
+          roles: CloudOrgUserRoles.CREATOR,
         });
       }
     } else if (client.fk_workspace_id) {

@@ -22795,7 +22795,7 @@
           {
             "properties": {
               "column_name": {
-                "type": "string"
+                "$ref": "#/components/schemas/StringOrNull"
               },
               "description": {
                 "$ref": "#/components/schemas/TextOrNull"

@@ -565,6 +565,7 @@ const rolePermissions:
       passwordChange: true,
 
       workspaceList: true,
+      workspaceCreate: true,
       commandPalette: true,
       baseListAll: true,
       // allow only in cloud
@@ -604,7 +605,6 @@ const rolePermissions:
   },
   [OrgUserRoles.CREATOR]: {
     include: {
-      workspaceCreate: true,
       upload: true,
       uploadViaURL: true,
       isPluginActive: true,
@@ -1161,20 +1161,8 @@ Object.values(rolePermissions).forEach((role) => {
   }
 });
 
-// Viewer inherits Creator permissions except workspaceCreate
-// On cloud: OrgUserRoles are supplementary (CloudOrgUserRoles controls org perms)
-// On on-prem: Viewer can't create workspaces, Creator can
-{
-  const creatorPerms = (rolePermissions[OrgUserRoles.CREATOR] as any)?.include || {};
-  const viewerPerms = (rolePermissions[OrgUserRoles.VIEWER] as any)?.include || {};
-  const { workspaceCreate: _, ...creatorPermsWithoutCreate } = creatorPerms;
-  rolePermissions[OrgUserRoles.VIEWER] = {
-    include: {
-      ...creatorPermsWithoutCreate,
-      ...viewerPerms,
-    },
-  };
-}
+// In cloud everyone have same org permissions other than super admin
+rolePermissions[OrgUserRoles.VIEWER] = rolePermissions[OrgUserRoles.CREATOR];
 
 export default rolePermissions;
 

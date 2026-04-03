@@ -5,6 +5,7 @@ export {
   isBt,
   isOo,
   isBtLikeV2Junction,
+  isMMOrMMLike,
   isLookup,
   isRollup,
   isFormula,

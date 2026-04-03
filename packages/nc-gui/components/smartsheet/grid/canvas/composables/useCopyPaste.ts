@@ -5,6 +5,7 @@ import {
   type LinkToAnotherRecordType,
   PermissionEntity,
   PermissionKey,
+  RelationTypes,
   type TableType,
   UITypes,
   type ViewType,
@@ -421,8 +422,8 @@ export function useCopyPaste({
             const column = colsToPaste[j]
             if (!column) continue
 
-            // Collect V2 BT-like junction columns (mo) for bulk API
-            if ((isMm(column) || isBtLikeV2Junction(column)) && isLinksOrLTAR(column)) {
+            // Collect junction-table-based LTAR columns (V1 MM, V2 om/mo/oo/mm) for bulk API
+            if (isMMOrMMLike(column)) {
               if (!isPasteable(targetRow, column, false, true)) continue
 
               const pasteVal = convertCellData(
@@ -603,8 +604,8 @@ export function useCopyPaste({
             return await syncCellData?.({ ...activeCell.value, updatedColumnTitle: foreignKeyColumn.title }, groupPath)
           }
 
-          // Handle many-to-many and V2 BT-like junction column paste
-          if (isMm(columnObj) || isBtLikeV2Junction(columnObj)) {
+          // Handle junction-table-based LTAR column paste (V1 MM, V2 om/mo/oo/mm)
+          if (isMMOrMMLike(columnObj)) {
             if (!isPasteable(rowObj, columnObj, true, true)) return
 
             const pasteVal = convertCellData(
@@ -660,9 +661,12 @@ export function useCopyPaste({
               return
             }
 
-            // For OO columns, pasting is a "move" — the backend enforces 1:1 by unlinking
-            // the record from its previous row. Refresh view to reflect changes across all rows.
-            if (isOo(columnObj)) {
+            // For OO and OM columns, pasting is a "move" — the backend enforces that each
+            // child/record can only belong to one parent. Refresh view to reflect changes across all rows.
+            if (
+              isOo(columnObj) ||
+              (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.ONE_TO_MANY
+            ) {
               reloadViewDataHook?.trigger({ shouldShowLoading: false })
             }
 
@@ -866,8 +870,8 @@ export function useCopyPaste({
             if (!row || row.rowMeta.new) continue
 
             for (const col of cols) {
-              // Collect V2 BT-like junction columns (mo) for bulk API
-              if ((isMm(col) || isBtLikeV2Junction(col)) && isLinksOrLTAR(col)) {
+              // Collect junction-table-based LTAR columns (V1 MM, V2 om/mo/oo/mm) for bulk API
+              if (isMMOrMMLike(col)) {
                 if (!isPasteable(row, col, false, true)) continue
 
                 const ltarPasteVal = convertCellData(
@@ -1147,7 +1151,7 @@ export function useCopyPaste({
       // This will used to reload view data if it is self link column
       const isSelfLinkColumn = columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id
 
-      if ((isMm(columnObj) || isBtLikeV2Junction(columnObj)) && rowObj) {
+      if ((isMMOrMMLike(columnObj)) && rowObj) {
         mmClearResult = await cleaMMCell(rowObj, columnObj)
       }
 
@@ -1176,7 +1180,7 @@ export function useCopyPaste({
 
                 await addLTARRef(rowObj, rowObj.row[columnObj.title], columnObj)
                 await syncLTARRefs(rowObj, rowObj.row)
-              } else if (isMm(columnObj) || isBtLikeV2Junction(columnObj)) {
+              } else if (isMMOrMMLike(columnObj)) {
                 await $api.internal.postOperation(
                   meta.value?.fk_workspace_id as string,
                   meta.value?.base_id as string,
@@ -1219,7 +1223,7 @@ export function useCopyPaste({
             ) {
               if (isBt(columnObj) || isOo(columnObj)) {
                 await clearLTARCell(rowObj, columnObj)
-              } else if (isMm(columnObj) || isBtLikeV2Junction(columnObj)) {
+              } else if (isMMOrMMLike(columnObj)) {
                 await cleaMMCell(rowObj, columnObj)
               }
               activeCell.value.column = ctx.col
@@ -1239,7 +1243,7 @@ export function useCopyPaste({
         },
         scope: defineViewScope({ view: view.value }),
       })
-      if ((isBt(columnObj) || isOo(columnObj)) && !isBtLikeV2Junction(columnObj)) await clearLTARCell(rowObj, columnObj)
+      if ((isBt(columnObj) || isOo(columnObj)) && !isMMOrMMLike(columnObj)) await clearLTARCell(rowObj, columnObj)
 
       if (isSelfLinkColumn) {
         reloadViewDataHook.trigger({ shouldShowLoading: false })

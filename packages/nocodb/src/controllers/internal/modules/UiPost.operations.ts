@@ -517,7 +517,7 @@ export class UiPostOperations
           },
         );
       case 'nestedDataBulkCopyPasteOrDeleteAll':
-        return await this.dataTableService.nestedListBulkCopyPasteOrDeleteAll(
+        return (await this.dataTableService.nestedListBulkCopyPasteOrDeleteAll(
           context,
           {
             modelId: req.query.tableId as string,
@@ -527,7 +527,7 @@ export class UiPostOperations
             cookie: req,
             user: req.user,
           },
-        );
+        )) as any;
       case 'bulkAggregate':
         context.cache = true;
         return await this.dataTableService.bulkAggregate(context, {

@@ -290,27 +290,28 @@ const columns = computed(() => {
                 </NcBadge>
               </div>
               <div v-if="column.key === 'org_roles'" class="flex items-center">
+                <template v-if="el.roles?.includes('super') || el.org_roles === 'cloud-org-level-owner'">
+                  <NcBadge
+                    :border="false"
+                    color="purple"
+                    class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+                  >
+                    {{ el.roles?.includes('super') ? $t('objects.roleType.admin') : $t('objects.roleType.owner') }}
+                  </NcBadge>
+                </template>
                 <NcSelect
+                  v-else
                   :value="el.org_roles || 'cloud-org-level-viewer'"
                   :options="[
                     { label: $t('objects.roleType.admin'), value: 'cloud-org-level-admin' },
                     { label: $t('objects.roleType.creator'), value: 'cloud-org-level-creator' },
                     { label: $t('objects.roleType.viewer'), value: 'cloud-org-level-viewer' },
                   ]"
-                  :disabled="el.roles?.includes('super') || el.org_roles === 'cloud-org-level-owner'"
                   class="w-32"
                   size="small"
                   data-testid="nc-org-role-select"
                   @change="updateOrgRole(el, $event)"
                 />
-                <NcBadge
-                  v-if="el.org_roles === 'cloud-org-level-owner'"
-                  :border="false"
-                  color="purple"
-                  class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none ml-2"
-                >
-                  {{ $t('objects.roleType.owner') }}
-                </NcBadge>
               </div>
               <div v-if="column.key === 'action'" class="flex items-center gap-2">
                 <NcDropdown :trigger="['click']" placement="bottomRight">

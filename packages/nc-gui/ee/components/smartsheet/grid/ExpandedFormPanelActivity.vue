@@ -25,7 +25,7 @@ const { t } = useI18n()
 <template>
   <div class="nc-expanded-form-panel-activity flex flex-col flex-shrink-0 border-t border-nc-border-gray-medium">
     <!-- Toggle bar -->
-    <div class="flex items-center h-10 px-3 gap-1">
+    <div class="flex items-center h-9 px-3 gap-1">
       <NcButton
         size="xs"
         :type="activityExpanded && activeActivityTab === 'comments' ? 'secondary' : 'text'"

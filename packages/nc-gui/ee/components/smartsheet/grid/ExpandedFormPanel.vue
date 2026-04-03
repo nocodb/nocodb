@@ -292,7 +292,7 @@ const showActivity = computed(() => {
 
       <!-- Header -->
       <div
-        class="flex items-center h-[var(--topbar-height)] gap-2 px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0"
+        class="flex items-center h-[var(--toolbar-height)] gap-2 px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0"
       >
         <!-- Display value -->
         <NcTooltip v-if="displayValue && !isNew" show-on-truncate-only class="truncate min-w-0 flex-1">
@@ -496,13 +496,13 @@ const showActivity = computed(() => {
 </style>
 
 <style lang="scss">
-/* Thinner, subtler grid scrollbar when panel is open */
-.nc-grid-wrapper:has(.nc-expanded-form-panel) .custom-scrollbar-track.vertical {
+/* Thinner, subtler grid scrollbar when panel is open (panel is sibling of grid's parent) */
+:has(> .nc-expanded-form-panel) .custom-scrollbar-track.vertical {
   width: 4px;
   background: transparent;
 }
 
-.nc-grid-wrapper:has(.nc-expanded-form-panel) .custom-scrollbar-thumb.vertical {
+:has(> .nc-expanded-form-panel) .custom-scrollbar-thumb.vertical {
   background: rgba(var(--rgb-base), 0.2);
 
   &:hover {
@@ -510,12 +510,12 @@ const showActivity = computed(() => {
   }
 }
 
-.nc-grid-wrapper:has(.nc-expanded-form-panel) .custom-scrollbar-track.horizontal {
+:has(> .nc-expanded-form-panel) .custom-scrollbar-track.horizontal {
   height: 4px;
   background: transparent;
 }
 
-.nc-grid-wrapper:has(.nc-expanded-form-panel) .custom-scrollbar-thumb.horizontal {
+:has(> .nc-expanded-form-panel) .custom-scrollbar-thumb.horizontal {
   background: rgba(var(--rgb-base), 0.2);
 
   &:hover {
@@ -547,9 +547,12 @@ const showActivity = computed(() => {
 }
 
 /* Match grid canvas font size (13px) for cell values */
-.nc-expanded-form-panel .nc-data-cell .nc-cell,
-.nc-expanded-form-panel .nc-data-cell .nc-virtual-cell {
+.nc-expanded-form-panel .nc-data-cell {
   font-size: 13px !important;
+
+  * {
+    font-size: inherit !important;
+  }
 }
 
 /* No shadow at rest, subtle shadow on hover */

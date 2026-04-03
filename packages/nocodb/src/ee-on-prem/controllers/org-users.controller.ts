@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, Param, Patch, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { EnterpriseOrgUserRoles, OrgUserRoles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { OrgUsersController as OrgUsersControllerCE } from 'src/controllers/org-users.controller';
@@ -30,7 +41,29 @@ export class OrgUsersController extends OrgUsersControllerCE {
     });
   }
 
-  @Patch('/api/v1/users/:userId/org/:orgId')
+  @Post('/api/v1/orgs/:orgId/users')
+  @HttpCode(200)
+  @Acl('userAdd', {
+    scope: 'org',
+    allowedRoles: [
+      OrgUserRoles.SUPER_ADMIN,
+      EnterpriseOrgUserRoles.ADMIN,
+    ],
+    blockApiTokenAccess: true,
+  })
+  async addToOrg(
+    @Param('orgId') _orgId: string,
+    @Body() body: { email: string; org_role?: EnterpriseOrgUserRoles },
+    @Req() req: NcRequest,
+  ) {
+    return (this.orgUsersService as any).addToOrg({
+      email: body.email,
+      orgRole: body.org_role,
+      req,
+    });
+  }
+
+  @Patch('/api/v1/orgs/:orgId/users/:userId')
   @Acl('userUpdate', {
     scope: 'org',
     allowedRoles: [
@@ -40,8 +73,8 @@ export class OrgUsersController extends OrgUsersControllerCE {
     blockApiTokenAccess: true,
   })
   async updateOrgRole(
-    @Param('userId') userId: string,
     @Param('orgId') _orgId: string,
+    @Param('userId') userId: string,
     @Body() body: { org_role: EnterpriseOrgUserRoles },
   ) {
     await (this.orgUsersService as any).updateOrgRole({
@@ -51,7 +84,7 @@ export class OrgUsersController extends OrgUsersControllerCE {
     return { msg: 'Org role updated' };
   }
 
-  @Delete('/api/v1/users/:userId/org/:orgId')
+  @Delete('/api/v1/orgs/:orgId/users/:userId')
   @Acl('userDelete', {
     scope: 'org',
     allowedRoles: [
@@ -61,8 +94,8 @@ export class OrgUsersController extends OrgUsersControllerCE {
     blockApiTokenAccess: true,
   })
   async removeFromOrg(
-    @Param('userId') userId: string,
     @Param('orgId') _orgId: string,
+    @Param('userId') userId: string,
   ) {
     await (this.orgUsersService as any).removeFromOrg({ userId });
     return { msg: 'User removed from organization' };

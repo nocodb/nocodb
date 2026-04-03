@@ -113,6 +113,73 @@ export class OrgUsersService extends OrgUsersServiceCE {
   }
 
   /**
+   * Add an existing user to the org. User must already exist in nc_users.
+   */
+  async addToOrg(param: {
+    email: string;
+    orgRole?: EnterpriseOrgUserRoles;
+    req: any;
+  }) {
+    const orgId = Noco.ncDefaultOrgId || NC_DEFAULT_ORG_ID;
+    const ncMeta = Noco.ncMeta;
+
+    // Find user by email
+    const user = await ncMeta
+      .knexConnection(MetaTable.USERS)
+      .where('email', param.email.toLowerCase().trim())
+      .where(function () {
+        this.where('is_deleted', false).orWhereNull('is_deleted');
+      })
+      .first();
+
+    if (!user) {
+      NcError.badRequest('User not found');
+    }
+
+    // Check if already in org
+    const existing = await ncMeta
+      .knexConnection(MetaTable.ORG_USERS)
+      .where('fk_org_id', orgId)
+      .where('fk_user_id', user.id)
+      .where(function () {
+        this.where('deleted', false).orWhereNull('deleted');
+      })
+      .first();
+
+    if (existing) {
+      NcError.badRequest('User already in organization');
+    }
+
+    // Check if soft-deleted — reactivate
+    const softDeleted = await ncMeta
+      .knexConnection(MetaTable.ORG_USERS)
+      .where('fk_org_id', orgId)
+      .where('fk_user_id', user.id)
+      .where('deleted', true)
+      .first();
+
+    if (softDeleted) {
+      await ncMeta
+        .knexConnection(MetaTable.ORG_USERS)
+        .where('fk_org_id', orgId)
+        .where('fk_user_id', user.id)
+        .update({
+          deleted: false,
+          deleted_at: null,
+          roles: param.orgRole || EnterpriseOrgUserRoles.CREATOR,
+        });
+    } else {
+      await ncMeta.knexConnection(MetaTable.ORG_USERS).insert({
+        fk_org_id: orgId,
+        fk_user_id: user.id,
+        roles: param.orgRole || EnterpriseOrgUserRoles.CREATOR,
+      });
+    }
+
+    return { msg: 'User added to organization' };
+  }
+
+  /**
    * Update org role for a user in the default org.
    */
   async updateOrgRole(param: { userId: string; orgRole: EnterpriseOrgUserRoles }) {

@@ -384,55 +384,81 @@ const onResizeMouseDown = (colIndex: number, e: MouseEvent) => {
   const headerRow = table.querySelector('tr')
   if (!headerRow) return
 
-  const cells = Array.from(headerRow.children) as HTMLElement[]
-  const startWidths = cells.map((cell) => cell.getBoundingClientRect().width)
-  const tableWidth = startWidths.reduce((sum, w) => sum + w, 0)
-
-  // Set explicit percentage widths on ALL header cells so table-layout:fixed respects them
-  cells.forEach((cell, i) => {
-    cell.style.width = `${(startWidths[i] / tableWidth) * 100}%`
-  })
+  const startWidths = Array.from(headerRow.children).map((cell) => (cell as HTMLElement).getBoundingClientRect().width)
 
   resizeDrag.value = { colIndex, startX: e.clientX, startWidths }
 
   // Track the latest computed widths for persistence on mouseup
-  let finalLeftPct = (startWidths[colIndex] / tableWidth) * 100
-  let finalRightPct = (startWidths[colIndex + 1] / tableWidth) * 100
+  let finalWidths = [...startWidths]
+
+  // Update colwidth attrs via ProseMirror transaction for live visual feedback.
+  // Direct DOM style changes get reverted by ProseMirror's MutationObserver.
+  const dispatchColwidths = () => {
+    if (!editor.value || !tableEl.value) return
+
+    const { state, dispatch } = editor.value.view
+    const tr = state.tr
+
+    const rows = tableEl.value.querySelectorAll('tr')
+    rows.forEach((row) => {
+      const rowCells = row.querySelectorAll('td, th')
+      for (let ci = 0; ci < rowCells.length; ci++) {
+        const cell = rowCells[ci]
+        if (!cell) continue
+        const pos = editor.value!.view.posAtDOM(cell, 0)
+        const resolved = tr.doc.resolve(pos)
+        for (let d = resolved.depth; d > 0; d--) {
+          const node = resolved.node(d)
+          if (node.type.name === 'tableCell' || node.type.name === 'tableHeader') {
+            tr.setNodeMarkup(resolved.before(d), undefined, {
+              ...node.attrs,
+              colwidth: [finalWidths[ci]],
+            })
+            break
+          }
+        }
+      }
+    })
+
+    tr.setMeta('addToHistory', false)
+    dispatch(tr)
+  }
 
   const onMouseMove = (ev: MouseEvent) => {
     if (!resizeDrag.value) return
 
     const dx = ev.clientX - resizeDrag.value.startX
-    const leftWidth = Math.max(MIN_COL_WIDTH, resizeDrag.value.startWidths[colIndex] + dx)
-    const rightWidth = Math.max(MIN_COL_WIDTH, resizeDrag.value.startWidths[colIndex + 1] - dx)
 
-    finalLeftPct = (leftWidth / tableWidth) * 100
-    finalRightPct = (rightWidth / tableWidth) * 100
+    finalWidths = startWidths.map((w, i) => {
+      if (i === colIndex) return Math.max(MIN_COL_WIDTH, w + dx)
+      if (i === colIndex + 1) return Math.max(MIN_COL_WIDTH, w - dx)
+      return w
+    })
 
-    // Live visual feedback via DOM
-    cells[colIndex].style.width = `${finalLeftPct}%`
-    cells[colIndex + 1].style.width = `${finalRightPct}%`
-
+    dispatchColwidths()
     recalcPositions()
   }
 
-  const onMouseUp = () => {
+  // Suppress the click event that follows mouseup — prevents onEditorBodyClick from
+  // calling focus('end') when the mouse releases over the editor body padding area.
+  const suppressNextClick = (ev: MouseEvent) => {
+    ev.stopPropagation()
+    ev.preventDefault()
+    document.removeEventListener('click', suppressNextClick, true)
+  }
+
+  const onMouseUp = (e: MouseEvent) => {
+    e.preventDefault()
     document.removeEventListener('mousemove', onMouseMove)
     document.removeEventListener('mouseup', onMouseUp)
+    // Capture the click that fires after this mouseup so it doesn't reach the editor body
+    document.addEventListener('click', suppressNextClick, true)
     document.body.style.cursor = ''
     document.body.style.userSelect = ''
 
-    // Persist final widths into ProseMirror via colwidth attrs so they survive re-renders.
-    // colwidth stores pixel widths as arrays — compute from final percentages.
+    // Final dispatch with undo history so the resize is undoable.
+    // During drag, dispatches used addToHistory:false to avoid flooding undo stack.
     if (resizeDrag.value && tableEl.value && editor.value) {
-      const finalWidths = startWidths.map((_, i) => {
-        if (i === colIndex) return Math.round((finalLeftPct / 100) * tableWidth)
-        if (i === colIndex + 1) return Math.round((finalRightPct / 100) * tableWidth)
-        return Math.round(startWidths[i])
-      })
-
-      // Build a single transaction to update colwidth on ALL columns so
-      // table-layout:fixed distributes them consistently at 100% width.
       const { state, dispatch } = editor.value.view
       const tr = state.tr
 
@@ -441,7 +467,7 @@ const onResizeMouseDown = (colIndex: number, e: MouseEvent) => {
         const rowCells = row.querySelectorAll('td, th')
         for (let ci = 0; ci < rowCells.length; ci++) {
           const cell = rowCells[ci]
-          if (!cell) return
+          if (!cell) continue
           const pos = editor.value!.view.posAtDOM(cell, 0)
           const resolved = tr.doc.resolve(pos)
           for (let d = resolved.depth; d > 0; d--) {
@@ -449,7 +475,7 @@ const onResizeMouseDown = (colIndex: number, e: MouseEvent) => {
             if (node.type.name === 'tableCell' || node.type.name === 'tableHeader') {
               tr.setNodeMarkup(resolved.before(d), undefined, {
                 ...node.attrs,
-                colwidth: [finalWidths[ci]],
+                colwidth: [Math.round(finalWidths[ci])],
               })
               break
             }

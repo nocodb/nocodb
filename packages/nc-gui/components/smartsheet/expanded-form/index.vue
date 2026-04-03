@@ -1369,20 +1369,28 @@ export default {
 }
 
 .nc-expanded-cell-header {
-  @apply w-full text-nc-content-gray-muted !font-weight-500 !text-sm xs:(text-nc-content-gray-subtle2 mb-2 !text-small) pr-3;
+  @apply w-full text-nc-content-gray-muted !font-weight-500 xs:(text-nc-content-gray-subtle2 mb-2 !text-small) pr-3;
+  font-size: 13px !important;
 
   svg.nc-cell-icon,
   svg.nc-virtual-cell-icon {
     @apply !w-3.5 !h-3.5;
   }
+
+  .nc-cell-name-wrapper,
+  .nc-cell-name-wrapper span,
+  .nc-cell-name-wrapper .truncate {
+    font-size: 13px !important;
+  }
 }
 
 .nc-expanded-cell-header > :nth-child(2) {
-  @apply !text-sm xs:!text-small;
+  font-size: 13px !important;
 }
 
 .nc-expanded-cell-header > :first-child {
-  @apply !text-md pl-2 xs:(pl-0 -ml-0.5);
+  font-size: 13px !important;
+  @apply pl-2 xs:(pl-0 -ml-0.5);
 }
 
 .nc-expanded-cell-header:not(.nc-cell-expanded-form-header) > :first-child {
@@ -1391,5 +1399,15 @@ export default {
 
 .nc-drawer-expanded-form .nc-modal {
   @apply !p-0;
+}
+
+.nc-drawer-expanded-form .nc-data-cell .nc-cell .nc-cell-field,
+.nc-drawer-expanded-form .nc-data-cell .nc-cell .nc-cell-field-link,
+.nc-drawer-expanded-form .nc-data-cell .nc-cell input,
+.nc-drawer-expanded-form .nc-data-cell .nc-cell textarea,
+.nc-drawer-expanded-form .nc-data-cell .nc-cell select,
+.nc-drawer-expanded-form .nc-data-cell .nc-virtual-cell .nc-cell-field,
+.nc-drawer-expanded-form .nc-data-cell .nc-virtual-cell input {
+  font-size: 13px !important;
 }
 </style>

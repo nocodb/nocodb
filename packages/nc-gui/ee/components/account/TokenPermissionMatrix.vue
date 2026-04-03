@@ -79,7 +79,7 @@ const getLevelLabel = (level: string) => {
         :class="{ 'border-t-1 border-nc-border-gray-light': idx > 0 }"
       >
         <div class="flex-1 min-w-0">
-          <div class="text-sm font-medium text-nc-content-gray-extreme">{{ categoryInfo[cat]?.label || cat }}</div>
+          <div class="text-sm font-medium text-nc-content-gray">{{ categoryInfo[cat]?.label || cat }}</div>
           <div class="text-xs text-nc-content-gray-subtle2">{{ categoryInfo[cat]?.desc }}</div>
         </div>
         <NcDropdown
@@ -90,7 +90,7 @@ const getLevelLabel = (level: string) => {
         >
           <button class="nc-perm-level-pill" @click="openLevelDropdown = openLevelDropdown === cat ? null : cat">
             <span class="text-xs text-nc-content-gray-muted">{{ $t('general.access') }}:</span>
-            <span class="text-xs font-semibold text-nc-content-gray-extreme">{{ getLevelLabel(modelValue[cat]) }}</span>
+            <span class="text-xs font-semibold text-nc-content-gray">{{ getLevelLabel(modelValue[cat]) }}</span>
             <GeneralIcon icon="arrowDown" class="w-3 h-3 text-nc-content-gray-muted ml-auto" />
           </button>
 
@@ -107,7 +107,7 @@ const getLevelLabel = (level: string) => {
             </NcMenu>
           </template>
         </NcDropdown>
-        <NcButton type="text" size="xxsmall" class="!p-0.5 flex-none" @click="removeCategory(cat)">
+        <NcButton type="text" size="xsmall" class="!h-7.5 !w-7.5 flex-none -ml-1" @click="removeCategory(cat)">
           <GeneralIcon icon="close" class="w-4 h-4 text-nc-content-gray-muted" />
         </NcButton>
       </div>
@@ -139,7 +139,7 @@ const getLevelLabel = (level: string) => {
           <div class="nc-perm-dropdown-content">
             <div v-for="cat in availableCategories" :key="cat" class="nc-perm-dropdown-item" @click="addCategory(cat)">
               <div>
-                <div class="text-sm font-medium text-nc-content-gray-extreme">{{ categoryInfo[cat]?.label || cat }}</div>
+                <div class="text-sm font-medium text-nc-content-gray">{{ categoryInfo[cat]?.label || cat }}</div>
                 <div class="text-xs text-nc-content-gray-subtle2">{{ categoryInfo[cat]?.desc }}</div>
               </div>
             </div>

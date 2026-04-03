@@ -333,7 +333,7 @@ const openEditToken = async (token: IApiTokenInfo) => {
 
                 <!-- Token name + badges -->
                 <div class="flex items-center gap-1.5 flex-1 min-w-0">
-                  <NcTooltip class="truncate text-nc-content-gray-extreme font-bold text-3.5" show-on-truncate-only>
+                  <NcTooltip class="truncate text-nc-content-gray font-bold text-3.5" show-on-truncate-only>
                     <template #title>{{ el.description || el.title }}</template>
                     {{ el.description || el.title }}
                   </NcTooltip>
@@ -355,7 +355,7 @@ const openEditToken = async (token: IApiTokenInfo) => {
                 <div class="flex items-center gap-3 w-3/8">
                   <GeneralUserIcon :user="{ email: el.created_by }" size="medium" />
                   <div class="flex flex-col min-w-0">
-                    <span class="text-nc-content-gray-extreme font-medium text-3.5 truncate">
+                    <span class="text-nc-content-gray font-medium text-3.5 truncate">
                       {{ el.created_by?.split('@')[0] || '' }}
                     </span>
                     <span class="text-nc-content-gray-muted text-xs truncate">

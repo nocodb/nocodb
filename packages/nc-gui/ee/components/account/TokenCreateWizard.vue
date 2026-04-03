@@ -261,7 +261,7 @@ const onResultDone = () => {
         <div class="flex items-center gap-2">
           <NcDropdown v-model:visible="showExpiryDropdown" :trigger="['click']" placement="bottomLeft">
             <button class="nc-expiry-pill" data-testid="nc-token-expiry-select">
-              <span class="text-xs font-semibold text-nc-content-gray-extreme">{{ selectedExpiryLabel }}</span>
+              <span class="text-xs font-semibold text-nc-content-gray">{{ selectedExpiryLabel }}</span>
               <GeneralIcon icon="arrowDown" class="w-3 h-3 text-nc-content-gray-muted ml-auto" />
             </button>
 
@@ -337,7 +337,7 @@ const onResultDone = () => {
           class="flex items-center gap-2 bg-nc-bg-gray-extralight border-1 border-nc-border-gray-medium rounded-lg px-3 py-2.5"
         >
           <code
-            class="text-xs text-nc-content-gray-extreme select-all leading-5 flex-1 min-w-0 truncate"
+            class="text-xs text-nc-content-gray select-all leading-5 flex-1 min-w-0 truncate"
             style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
             data-testid="nc-token-created-value"
           >

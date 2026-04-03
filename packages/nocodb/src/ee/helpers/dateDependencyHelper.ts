@@ -434,16 +434,16 @@ export function buildDateDependencyPropagationSQL(
   //     Forward:  j.parent_col = p.pk AND j.child_col = t.pk  (find children via junction)
   //     Backward: j.child_col = p.pk AND j.parent_col = t.pk  (find parents via junction)
   const recursiveJoin = useJunction
-    ? (isBackward
-        ? `${castText(`j.${jChild}`)} = p.pk`
-        : `${castText(`j.${jParent}`)} = p.pk`)
-    : (isBackward
-        ? `${castText(`t.${pk}`)} = p.fk_val`
-        : `${castText(`t.${fk}`)} = p.pk`);
+    ? isBackward
+      ? `${castText(`j.${jChild}`)} = p.pk`
+      : `${castText(`j.${jParent}`)} = p.pk`
+    : isBackward
+    ? `${castText(`t.${pk}`)} = p.fk_val`
+    : `${castText(`t.${fk}`)} = p.pk`;
   const junctionJoinOnT = useJunction
-    ? (isBackward
-        ? `${castText(`t.${pk}`)} = ${castText(`j.${jParent}`)}`
-        : `${castText(`t.${pk}`)} = ${castText(`j.${jChild}`)}`)
+    ? isBackward
+      ? `${castText(`t.${pk}`)} = ${castText(`j.${jParent}`)}`
+      : `${castText(`t.${pk}`)} = ${castText(`j.${jChild}`)}`
     : '';
 
   // CTE column list
@@ -515,7 +515,9 @@ WITH RECURSIVE propagated(${cteColumns}) AS (
     p.level + 1,
     ${recursivePath}
   FROM ${quotedTn} t
-  ${useJunction ? `JOIN ${quotedJtn} j ON ${junctionJoinOnT}\n  ` : ''}JOIN propagated p ON ${recursiveJoin}
+  ${
+    useJunction ? `JOIN ${quotedJtn} j ON ${junctionJoinOnT}\n  ` : ''
+  }JOIN propagated p ON ${recursiveJoin}
   WHERE ${cycleCheck}
     AND t.${sc} IS NOT NULL
     AND t.${ec} IS NOT NULL

@@ -14,8 +14,10 @@ export enum InstallationStatus {
  */
 export enum LicenseType {
   ENTERPRISE_TRIAL = 'enterprise_trial',
-  ENTERPRISE_STARTER = 'enterprise_starter',
   ENTERPRISE = 'enterprise',
+  SELF_HOSTED_STARTER = 'self_hosted_starter',
+  SELF_HOSTED_SCALE = 'self_hosted_scale',
+  SELF_HOSTED_ENTERPRISE = 'self_hosted_enterprise',
 }
 
 /**

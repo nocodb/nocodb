@@ -131,10 +131,7 @@ const settingsPageTitle = computed(() => {
 })
 
 const isWorkspaceSsoAvail = computed(() => {
-  if (isEeUI && appInfo.value?.isCloud && getFeature(PlanFeatureTypes.FEATURE_SSO)) {
-    return true
-  }
-  return false
+  return isEeUI && (appInfo.value?.isCloud || appInfo.value?.isOnPrem) && getFeature(PlanFeatureTypes.FEATURE_SSO)
 })
 
 watch(

@@ -34,6 +34,7 @@ interface LicenseData {
     limit_seat?: number;
   };
   instance_id?: string;
+  db_fingerprint?: string;
   airgapped?: boolean;
   iat?: number; // JWT issued-at timestamp (seconds)
 }
@@ -295,7 +296,9 @@ export default class NocoLicense {
             }
           }
         } catch (error) {
-          console.warn(`Failed to parse cached license data: ${error.message}`);
+          this.logger.warn(
+            `Failed to parse cached license data: ${error.message}`,
+          );
         }
       }
 
@@ -1464,6 +1467,10 @@ export default class NocoLicense {
   public static getWorkspaceLimit(): number | undefined {
     if (!this.licenseData) return undefined;
     return this.licenseData.config?.limit_workspace;
+  }
+
+  public static getConfig(): Record<string, any> | undefined {
+    return this.licenseData?.config;
   }
 
   public static getOneWorkspace(): boolean {

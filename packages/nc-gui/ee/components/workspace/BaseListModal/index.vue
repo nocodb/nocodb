@@ -24,7 +24,7 @@ const { loadProjects } = basesStore
 const { navigateToTable } = useTablesStore()
 const { activeBreakpoint, appInfo } = useGlobal()
 const { $api, $e } = useNuxtApp()
-const { isEEFeatureBlocked, showEEFeatures, showUpgradeToCreateWorkspace } = useEeConfig()
+const { isEEFeatureBlocked, showEEFeatures, blockWorkspaceCreate, showUpgradeToCreateWorkspace } = useEeConfig()
 
 const { orgRoles } = useRoles()
 
@@ -381,7 +381,7 @@ watch(
 const createDlg = ref(false)
 
 const onCreateWorkspace = () => {
-  if (isEEFeatureBlocked.value) {
+  if (blockWorkspaceCreate.value) {
     showUpgradeToCreateWorkspace()
     return
   }

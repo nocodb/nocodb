@@ -3,7 +3,7 @@
  * PaymentUpgradeBadge component - will only visible if feature is not available in current plan
  */
 import type { PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk'
-import { PlanFeatureTypesToPlanTitles, PlanMeta, PlanTitles } from 'nocodb-sdk'
+import { OnPremFeatureToMinPlan, OnPremPlanMeta, PlanFeatureTypesToPlanTitles, PlanMeta, PlanTitles } from 'nocodb-sdk'
 interface Props {
   /** Required plan to access new feature */
   planTitle?: PlanTitles
@@ -57,10 +57,18 @@ const effectivePlanTitle = computed(() => {
 
   if (props.planTitle) return props.planTitle
 
+  // On-prem uses a different feature→plan mapping than cloud
+  if (isOnPrem.value) {
+    return OnPremFeatureToMinPlan[props.feature as PlanFeatureTypes] || PlanTitles.ENTERPRISE
+  }
+
   return PlanFeatureTypesToPlanTitles[props.feature as PlanFeatureTypes] || PlanTitles.PLUS
 })
 
-const activePlanMeta = computed(() => PlanMeta[effectivePlanTitle.value])
+const activePlanMeta = computed(() => {
+  const title = effectivePlanTitle.value
+  return OnPremPlanMeta[title] || PlanMeta[title]
+})
 
 const showUpgradeModal = (e?: MouseEvent) => {
   if (e) {

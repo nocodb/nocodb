@@ -1,11 +1,15 @@
 import { WorkspacesService as WorkspacesServiceEE } from 'src/ee/services/workspaces.service';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { extractRolesObj, OrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import {
+  extractRolesObj,
+  OrgUserRoles,
+  PlanLimitTypes,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import type { BaseType, UserType, WorkspaceType } from 'nocodb-sdk';
 import type { User } from '~/models';
-import NocoLicense from '~/NocoLicense';
 import { TablesService } from '~/services/tables.service';
 import { BasesService } from '~/services/bases.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -18,6 +22,7 @@ import {
   verifyDefaultWorkspace,
   verifyDefaultWsOwner,
 } from '~/helpers/verifyDefaultWorkspace';
+import { getOnPremPlan } from '~/helpers/paymentHelpers';
 
 @Injectable()
 export class WorkspacesService extends WorkspacesServiceEE {
@@ -181,23 +186,17 @@ export class WorkspacesService extends WorkspacesServiceEE {
       );
     } */
 
-    if (NocoLicense.getWorkspaceLimit()) {
-      // get total non-deleted workspaces
-      const workspacesCount = await Workspace.count({
-        deleted: false,
-      });
+    // Enforce workspace limit from plan meta (unified with other limits)
+    const plan = getOnPremPlan();
+    const wsLimit = plan?.meta?.[PlanLimitTypes.LIMIT_WORKSPACE];
 
-      if (workspacesCount >= NocoLicense.getWorkspaceLimit()) {
+    if (wsLimit !== undefined && wsLimit !== -1) {
+      const workspacesCount = await Workspace.count({ deleted: false });
+
+      if (workspacesCount >= wsLimit) {
         NcError.notAllowed(
           `Maximum workspace limit reached. Please upgrade license to create more workspaces.`,
         );
-      }
-    }
-
-    if (NocoLicense.getOneWorkspace()) {
-      const firstWorkspace = await Workspace.getFirstWorkspace();
-      if (firstWorkspace) {
-        NcError.notAllowed('One workspace license allows only one workspace.');
       }
     }
 
@@ -205,21 +204,14 @@ export class WorkspacesService extends WorkspacesServiceEE {
   }
 
   public async createDefaultWorkspace(user: User, req: any) {
-    // check if oneWorkspace enabled and if enabled then allow only one workspace create
-    if (NocoLicense.getOneWorkspace()) {
-      const firstWorkspace = await Workspace.getFirstWorkspace();
-      if (firstWorkspace) {
-        return;
-      }
-    }
+    // Enforce workspace limit from plan meta (unified with other limits)
+    const plan = getOnPremPlan();
+    const wsLimit = plan?.meta?.[PlanLimitTypes.LIMIT_WORKSPACE];
 
-    if (NocoLicense.getWorkspaceLimit()) {
-      // get total non-deleted workspaces
-      const workspacesCount = await Workspace.count({
-        deleted: false,
-      });
+    if (wsLimit !== undefined && wsLimit !== -1) {
+      const workspacesCount = await Workspace.count({ deleted: false });
 
-      if (workspacesCount >= NocoLicense.getWorkspaceLimit()) {
+      if (workspacesCount >= wsLimit) {
         NcError.maxWorkspaceLimitReached();
       }
     }

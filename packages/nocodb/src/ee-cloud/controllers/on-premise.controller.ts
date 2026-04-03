@@ -14,6 +14,7 @@ import Installation from '~/models/Installation';
 import Noco from '~/Noco';
 import { LICENSE_CONFIG, LICENSE_SERVER_OLD_PUBLIC_KEY } from '~/utils/license';
 import { InstallationStatus, LicenseType } from '~/utils/license';
+import { OnPremLicenseService } from '~/services/on-prem-license.service';
 
 // Request envelope types
 enum AgentRequestType {
@@ -91,7 +92,7 @@ export class OnPremiseController {
   private readonly HEARTBEAT_INTERVAL_FAILURE_MS =
     LICENSE_CONFIG.HEARTBEAT_INTERVAL_FAILURE_MS;
 
-  constructor() {}
+  constructor(private readonly onPremLicenseService: OnPremLicenseService) {}
 
   @Post('/api/v1/on-premise/agent')
   @HttpCode(200)
@@ -383,6 +384,13 @@ export class OnPremiseController {
       body.seat_count,
       ncMeta,
     );
+
+    // Reseat if reported usage exceeds minimum commitment (or if overcharge needs reverting)
+    await this.onPremLicenseService
+      .reseatInstallation(body.installation_id, body.seat_count, ncMeta)
+      .catch(() => {
+        // Non-fatal — don't fail heartbeat if reseat encounters a Stripe error
+      });
 
     // Refresh installation data after update
     const updatedInstallation = await Installation.get(

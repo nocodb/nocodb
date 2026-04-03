@@ -12,6 +12,7 @@ const { appInfo } = useGlobal()
     <AccountLicense v-else-if="$route.params.page === 'license'" />
     <AccountAuthentication v-else-if="$route.params.page === 'authentication'" />
     <AccountOAuthClients v-else-if="$route.params.page === 'oauth-clients'" />
+    <AccountSelfHosted v-else-if="$route.params.page === 'self-hosted'" />
     <span v-else></span>
   </div>
 </template>

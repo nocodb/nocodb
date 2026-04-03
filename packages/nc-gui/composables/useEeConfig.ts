@@ -255,9 +255,15 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showEEFeatures = computed(() => false)
 
+  const blockWorkspaceCreate = computed(() => true)
+
   const blockWorkspaceMembers = computed(() => false)
 
+  const showUpgradeToCreateWorkspace = (..._args: any[]) => {}
+
   const showUpgradeToManageWorkspaceMembers = (..._args: any[]) => {}
+
+  const showUpgradeForEEFeature = (..._args: any[]) => {}
 
   const showUpgradeToUseSSO = (..._args: any[]) => {}
 
@@ -382,8 +388,11 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseDateDependency,
     isEEFeatureBlocked,
     showEEFeatures,
+    blockWorkspaceCreate,
     blockWorkspaceMembers,
+    showUpgradeToCreateWorkspace,
     showUpgradeToManageWorkspaceMembers,
+    showUpgradeForEEFeature,
     showUpgradeToUseSSO,
   }
 })

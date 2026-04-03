@@ -49,6 +49,7 @@ export interface AppInfo {
   isOnPrem: boolean
   isPostgres: boolean
   isAirgapped: boolean
+  onPremPlan: Record<string, any> | null
   seatLimit: number | null
   isTrial: boolean
   isTrialExpired: boolean

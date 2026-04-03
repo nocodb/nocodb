@@ -9,12 +9,26 @@ const $route = useRoute()
 
 const { appInfo, signedIn, signOut } = useGlobal()
 
+const { isUIAllowed } = useRoles()
+
+const { isPaymentEnabled, isEEFeatureBlocked, showEEFeatures } = useEeConfig()
+
 const workspaceStore = useWorkspace()
 
 const { workspacesList } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
-const { isPaymentEnabled, showEEFeatures } = useEeConfig()
+const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && (!isEeUI || !appInfo.value.isCloud))
+
+const { emailConfigured, storageConfigured, loadSetupApps } = useProvideAccountSetupStore()
+
+watchEffect(() => {
+  if (isSetupPageAllowed.value) {
+    loadSetupApps()
+  }
+})
+
+const isPending = computed(() => !emailConfigured.value || !storageConfigured.value)
 
 const filteredWorkspaces = computed(() => workspacesList.value.filter((w) => w.roles === WorkspaceUserRoles.OWNER))
 
@@ -133,6 +147,67 @@ onMounted(() => {
                   <div class="select-none">{{ $t('title.externalIntegrations') }}</div>
                 </div>
               </NcMenuItem>
+              <NcMenuItem
+                v-if="isSetupPageAllowed && appInfo.isCloud"
+                key="profile"
+                class="item"
+                :class="{
+                  active: $route.path?.startsWith('/account/setup'),
+                }"
+                @click="navigateTo('/account/setup')"
+              >
+                <div class="flex items-center space-x-2 w-full">
+                  <GeneralIcon icon="ncSliders" class="!h-4 !w-4" />
+
+                  <div class="select-none">
+                    {{ $t('labels.setup') }}
+                  </div>
+                  <span class="flex-grow" />
+                  <NcTooltip v-if="isPending">
+                    <template #title>
+                      <span>
+                        {{ $t('activity.pending') }}
+                      </span>
+                    </template>
+                    <GeneralIcon icon="ncAlertCircle" class="text-nc-content-orange-medium w-4 h-4 nc-pending" />
+                  </NcTooltip>
+                </div>
+              </NcMenuItem>
+
+              <NcMenuItem
+                v-if="isUIAllowed('ssoSettings') && !isEEFeatureBlocked"
+                key="authentication"
+                :class="{
+                  active: $route.params.page === 'authentication',
+                }"
+                class="item"
+                @click="navigateTo('/account/authentication')"
+              >
+                <div class="flex items-center space-x-2">
+                  <component :is="iconMap.ncLock" />
+
+                  <div class="select-none text-sm">{{ $t('title.sso') }}</div>
+                  <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click />
+                </div>
+              </NcMenuItem>
+
+              <NcMenuItem
+                v-if="appInfo.isCloud"
+                key="self-hosted"
+                v-e="['c:account:self-hosted']"
+                :class="{
+                  active: $route.params.page === 'self-hosted',
+                }"
+                class="item"
+                @click="navigateTo('/account/self-hosted')"
+              >
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon icon="ncServer" class="!h-4 !w-4" />
+
+                  <div class="select-none">{{ $t('title.selfHostedLicenses') }}</div>
+                </div>
+              </NcMenuItem>
+
               <NcMenuItem
                 v-if="!appInfo.isCloud && !appInfo.disableEmailAuth"
                 key="password-reset"

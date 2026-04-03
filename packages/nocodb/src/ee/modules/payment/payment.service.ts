@@ -2412,6 +2412,14 @@ export class PaymentService {
 
           if (!subRec) NcError.genericNotFound('Subscription', subscriptionId);
 
+          // Skip workspace/org logic for on-prem subscriptions (no workspace/org)
+          if (!subRec.fk_org_id && !subRec.fk_workspace_id) {
+            this.logger.log(
+              `Invoice paid for on-prem subscription ${subRec.id} — skipping workspace logic`,
+            );
+            break;
+          }
+
           const workspaceOrOrgId = subRec.fk_org_id || subRec.fk_workspace_id;
           const workspaceOrOrg = await getWorkspaceOrOrg(
             workspaceOrOrgId,
@@ -2472,6 +2480,14 @@ export class PaymentService {
           );
           if (!subRec) NcError.genericNotFound('Subscription', subscriptionId);
 
+          // Skip workspace/org logic for on-prem subscriptions (no workspace/org)
+          if (!subRec.fk_org_id && !subRec.fk_workspace_id) {
+            this.logger.log(
+              `Invoice payment failed for on-prem subscription ${subRec.id} — skipping workspace logic`,
+            );
+            break;
+          }
+
           const wid = subRec.fk_org_id || subRec.fk_workspace_id;
           const workspaceOrOrg = await getWorkspaceOrOrg(wid, Noco.ncMeta);
 
@@ -2499,6 +2515,13 @@ export class PaymentService {
 
         case 'customer.subscription.created': {
           const stripeSub = obj as Stripe.Subscription;
+
+          // Delegate on-prem subscriptions to the cloud handler
+          if (stripeSub.metadata.on_prem === 'true') {
+            await this.handleOnPremSubscriptionCreated(stripeSub);
+            break;
+          }
+
           const planId = stripeSub.metadata.fk_plan_id;
 
           const workspaceOrOrgId =
@@ -2598,6 +2621,13 @@ export class PaymentService {
         case 'customer.subscription.updated':
         case 'customer.subscription.deleted': {
           const stripeSub = obj as Stripe.Subscription;
+
+          // Delegate on-prem subscriptions to the cloud handler
+          if (stripeSub.metadata.on_prem === 'true') {
+            await this.handleOnPremSubscriptionUpdated(stripeSub);
+            break;
+          }
+
           const subRec = await Subscription.getByStripeSubscriptionId(
             stripeSub.id,
           );
@@ -2693,6 +2723,9 @@ export class PaymentService {
             break;
           }
 
+          // Skip for on-prem subscriptions (no workspace/org)
+          if (!subRec.fk_org_id && !subRec.fk_workspace_id) break;
+
           const now = dayjs().unix();
           const nextPhase =
             sched.phases.find((p) => p.start_date > now) ||
@@ -2730,6 +2763,9 @@ export class PaymentService {
             this.logger.warn(`No Subscription found for schedule ${sched.id}`);
             break;
           }
+          // Skip for on-prem subscriptions (no workspace/org)
+          if (!subRec.fk_org_id && !subRec.fk_workspace_id) break;
+
           await this.clearScheduledDowngrade(
             subRec.fk_org_id || subRec.fk_workspace_id,
             false,
@@ -2745,5 +2781,29 @@ export class PaymentService {
       console.error(err);
       throw err;
     }
+  }
+
+  /**
+   * Handle on-prem subscription creation from webhook.
+   * No-op in base EE — overridden in ee-cloud to create Installation records.
+   */
+  protected async handleOnPremSubscriptionCreated(
+    _stripeSub: Stripe.Subscription,
+  ): Promise<void> {
+    this.logger.warn(
+      'On-prem subscription webhook received but handler not available (not running in cloud mode)',
+    );
+  }
+
+  /**
+   * Handle on-prem subscription update/deletion from webhook.
+   * No-op in base EE — overridden in ee-cloud to update Installation status.
+   */
+  protected async handleOnPremSubscriptionUpdated(
+    _stripeSub: Stripe.Subscription,
+  ): Promise<void> {
+    this.logger.warn(
+      'On-prem subscription update webhook received but handler not available (not running in cloud mode)',
+    );
   }
 }

@@ -8,9 +8,10 @@ import {
   PlanOrder,
   PlanTitles,
   resolvePlanMeta,
-  PlanFeatureDefinitions,
-  PlanLimitDefinitions,
+  CloudPlanDefinitions,
   PlanFeatureTypesToPlanTitles,
+  CommonLimits,
+  CommonPaidLimits,
 } from 'nocodb-sdk';
 
 const allPlans = [
@@ -67,22 +68,29 @@ function planResolutionTests() {
   });
 
   describe('Feature tier gating', () => {
-    it('every PlanFeatureTypes enum value should appear in exactly one tier of PlanFeatureDefinitions', () => {
-      const allDefinedFeatures = Object.values(PlanFeatureDefinitions).flat();
-
-      for (const feature of allFeatures) {
-        const count = allDefinedFeatures.filter((f) => f === feature).length;
-        expect(count).to.eq(
-          1,
-          `${feature} should appear in exactly one tier, found ${count}`,
-        );
-      }
-    });
-
     it('PlanFeatureTypesToPlanTitles should map every feature to a plan', () => {
       for (const feature of allFeatures) {
         expect(PlanFeatureTypesToPlanTitles).to.have.property(feature);
         expect(allPlans).to.include(PlanFeatureTypesToPlanTitles[feature]);
+      }
+    });
+
+    it('features disabled at a plan should also be disabled at all lower plans', () => {
+      for (const [plan, def] of Object.entries(CloudPlanDefinitions)) {
+        const planOrder = PlanOrder[plan as PlanTitles];
+        for (const [feature, value] of Object.entries(def.features)) {
+          if (value === false) {
+            for (const lowerPlan of allPlans) {
+              if (PlanOrder[lowerPlan] < planOrder) {
+                const lowerDef = CloudPlanDefinitions[lowerPlan];
+                expect(lowerDef.features[feature as PlanFeatureTypes]).to.eq(
+                  false,
+                  `${feature} disabled at ${plan} must also be disabled at lower ${lowerPlan}`,
+                );
+              }
+            }
+          }
+        }
       }
     });
 
@@ -110,9 +118,6 @@ function planResolutionTests() {
         });
 
         it('should disable features above its tier', () => {
-          // FREE gets everything enabled (dev/CI fallback)
-          if (plan === PlanTitles.FREE) return;
-
           for (const feature of allFeatures) {
             const minPlan = PlanFeatureTypesToPlanTitles[feature];
             const minOrder = PlanOrder[minPlan];
@@ -138,8 +143,8 @@ function planResolutionTests() {
           meta = resolvePlanMeta(plan);
         });
 
-        it('should apply PlanLimitDefinitions values', () => {
-          const planLimits = PlanLimitDefinitions[plan];
+        it('should apply CloudPlanDefinitions limit values', () => {
+          const planLimits = CloudPlanDefinitions[plan]?.limits;
           if (!planLimits) return;
 
           for (const [limit, value] of Object.entries(planLimits)) {
@@ -150,11 +155,18 @@ function planResolutionTests() {
           }
         });
 
-        it('should default undefined limits to -1 (unlimited)', () => {
-          const planLimits = PlanLimitDefinitions[plan] ?? {};
+        it('should default limits not covered by any layer to -1 (unlimited)', () => {
+          const planLimits = CloudPlanDefinitions[plan]?.limits ?? {};
 
           for (const limit of allLimits) {
-            if (!(limit in planLimits)) {
+            // A limit is explicitly set if it appears in any applicable layer:
+            // CommonLimits (all plans), CommonPaidLimits (non-Free), or plan-specific
+            const inCommon = limit in CommonLimits;
+            const inPaid =
+              plan !== PlanTitles.FREE && limit in CommonPaidLimits;
+            const inPlanSpecific = limit in planLimits;
+
+            if (!inCommon && !inPaid && !inPlanSpecific) {
               expect(meta[limit]).to.eq(
                 -1,
                 `${plan} limit ${limit} should default to -1 (unlimited)`,
@@ -165,9 +177,58 @@ function planResolutionTests() {
       });
     }
 
-    it('PlanLimitDefinitions should only reference valid PlanLimitTypes', () => {
+    it('CommonLimits should be applied to all plans', () => {
       for (const plan of allPlans) {
-        const planLimits = PlanLimitDefinitions[plan];
+        const meta = resolvePlanMeta(plan);
+        for (const [limit, value] of Object.entries(CommonLimits)) {
+          // CommonLimits may be overridden by CommonPaidLimits or plan-specific
+          const planLimits = CloudPlanDefinitions[plan]?.limits ?? {};
+          const paidOverride =
+            plan !== PlanTitles.FREE
+              ? CommonPaidLimits[limit as PlanLimitTypes]
+              : undefined;
+          const planOverride = planLimits[limit as PlanLimitTypes];
+
+          const expected = planOverride ?? paidOverride ?? value;
+          expect(meta[limit]).to.eq(
+            expected,
+            `${plan} should have CommonLimits ${limit} = ${expected}`,
+          );
+        }
+      }
+    });
+
+    it('CommonPaidLimits should be applied to paid plans only', () => {
+      for (const plan of allPlans) {
+        const meta = resolvePlanMeta(plan);
+        for (const [limit, value] of Object.entries(CommonPaidLimits)) {
+          if (plan === PlanTitles.FREE) {
+            // Free plan should NOT have CommonPaidLimits — should use CommonLimits value
+            const commonValue = CommonLimits[limit as PlanLimitTypes];
+            const freeOverride =
+              CloudPlanDefinitions[PlanTitles.FREE]?.limits?.[
+                limit as PlanLimitTypes
+              ];
+            expect(meta[limit]).to.eq(
+              freeOverride ?? commonValue ?? -1,
+              `Free plan should not apply CommonPaidLimits for ${limit}`,
+            );
+          } else {
+            // Paid plans should have CommonPaidLimits (unless plan-specific override)
+            const planOverride =
+              CloudPlanDefinitions[plan]?.limits?.[limit as PlanLimitTypes];
+            expect(meta[limit]).to.eq(
+              planOverride ?? value,
+              `${plan} should apply CommonPaidLimits ${limit} = ${planOverride ?? value}`,
+            );
+          }
+        }
+      }
+    });
+
+    it('CloudPlanDefinitions limits should only reference valid PlanLimitTypes', () => {
+      for (const plan of allPlans) {
+        const planLimits = CloudPlanDefinitions[plan]?.limits;
         if (!planLimits) continue;
 
         for (const key of Object.keys(planLimits)) {
@@ -211,19 +272,17 @@ function planResolutionTests() {
       );
     });
 
-    it('higher plans should have all features of lower plans (excluding FREE dev fallback)', () => {
-      // Skip FREE as the "lower" plan — it enables everything as a dev/CI fallback
-      const paidPlans = allPlans.filter((p) => p !== PlanTitles.FREE);
-      for (let i = 1; i < paidPlans.length; i++) {
-        const lowerMeta = resolvePlanMeta(paidPlans[i - 1]);
-        const higherMeta = resolvePlanMeta(paidPlans[i]);
+    it('higher plans should have all features of lower plans', () => {
+      for (let i = 1; i < allPlans.length; i++) {
+        const lowerMeta = resolvePlanMeta(allPlans[i - 1]);
+        const higherMeta = resolvePlanMeta(allPlans[i]);
 
         for (const feature of allFeatures) {
           if (lowerMeta[feature] === true) {
             expect(higherMeta[feature]).to.eq(
               true,
-              `${paidPlans[i]} should have ${feature} enabled since ${
-                paidPlans[i - 1]
+              `${allPlans[i]} should have ${feature} enabled since ${
+                allPlans[i - 1]
               } does`,
             );
           }
@@ -243,33 +302,30 @@ function planResolutionTests() {
   });
 
   describe('Per-feature tier verification', () => {
-    // Verify each feature is gated at the exact tier defined in PlanFeatureDefinitions
-    for (const [plan, features] of Object.entries(PlanFeatureDefinitions)) {
-      for (const feature of features) {
-        it(`${feature} should unlock at ${plan}`, () => {
-          const featureOrder = PlanOrder[plan as PlanTitles];
+    // Verify each feature is gated at the exact tier defined in PlanFeatureTypesToPlanTitles
+    for (const [feature, minPlan] of Object.entries(
+      PlanFeatureTypesToPlanTitles,
+    )) {
+      it(`${feature} should unlock at ${minPlan}`, () => {
+        const minOrder = PlanOrder[minPlan as PlanTitles];
 
-          for (const checkPlan of allPlans) {
-            // Skip FREE — it's the dev/CI fallback with everything enabled
-            if (checkPlan === PlanTitles.FREE) continue;
+        for (const checkPlan of allPlans) {
+          const checkOrder = PlanOrder[checkPlan];
+          const meta = resolvePlanMeta(checkPlan);
 
-            const checkOrder = PlanOrder[checkPlan];
-            const meta = resolvePlanMeta(checkPlan);
-
-            if (checkOrder >= featureOrder) {
-              expect(meta[feature]).to.eq(
-                true,
-                `${feature} should be enabled for ${checkPlan}`,
-              );
-            } else {
-              expect(meta[feature]).to.eq(
-                false,
-                `${feature} should be disabled for ${checkPlan}`,
-              );
-            }
+          if (checkOrder >= minOrder) {
+            expect(meta[feature]).to.eq(
+              true,
+              `${feature} should be enabled for ${checkPlan}`,
+            );
+          } else {
+            expect(meta[feature]).to.eq(
+              false,
+              `${feature} should be disabled for ${checkPlan}`,
+            );
           }
-        });
-      }
+        }
+      });
     }
   });
 }

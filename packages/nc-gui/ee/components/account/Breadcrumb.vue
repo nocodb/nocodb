@@ -127,6 +127,13 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
       })
       break
     }
+    case 'self-hosted': {
+      payload.push({
+        title: t('title.selfHostedLicenses'),
+        active: true,
+      })
+      break
+    }
   }
 
   switch (route.params.nestedPage) {

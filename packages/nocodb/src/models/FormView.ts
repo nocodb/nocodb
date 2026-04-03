@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import type {
   AttachmentResType,
   BoolType,
@@ -8,8 +10,6 @@ import type { NcContext } from '~/interface/config';
 import { PresignedUrl } from '~/models';
 import FormViewColumn from '~/models/FormViewColumn';
 import View from '~/models/View';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
 import { isEE } from '~/utils';

@@ -1,33 +1,82 @@
-import { NON_SEAT_ROLES, OnPremPlanTitles, PlanLimitTypes } from 'nocodb-sdk';
+import {
+  NON_SEAT_ROLES,
+  OnPremPlanDefinitions,
+  OnPremPlanTitles,
+  PlanFeatureTypes,
+  PlanLimitTypes,
+} from 'nocodb-sdk';
 import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import NocoLicense from '~/NocoLicense';
-import { EnterprisePlan, EnterpriseStarterPlan, FreePlan } from '~/models/Plan';
+import Plan, { EnterprisePlan, FreePlan } from '~/models/Plan';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
 
 export * from 'src/ee/helpers/paymentHelpers';
 
+// ── On-prem SSO overrides ────────────────────────────────────────────────────
+// The EE base functions block all on-prem SSO (`if (!isCloud) throw`).
+// On-prem plans gate SSO via FEATURE_SSO — override to use plan-based checks.
+
+export async function checkIfWorkspaceSSOAvail(
+  _workspaceId: string,
+  throwError = true,
+) {
+  const plan = getOnPremPlan();
+  const isSSOEnabled = plan?.meta?.[PlanFeatureTypes.FEATURE_SSO] ?? false;
+
+  if (!isSSOEnabled) {
+    if (throwError)
+      NcError.forbidden('SSO is not available on your current plan');
+    else return false;
+  }
+
+  return true;
+}
+
+export async function checkIfOrgSSOAvail(_orgId: string, throwError = true) {
+  return checkIfWorkspaceSSOAvail('', throwError);
+}
+
 export const getOnPremPlan = () => {
   try {
-    const basePlan =
-      NocoLicense.getWorkspaceLimit() === 1
-        ? EnterpriseStarterPlan
-        : EnterprisePlan;
+    const config = NocoLicense.getConfig();
+    const planTitle = config?.plan_title;
+
+    // JWTs carry plan_title — apply SDK plan definitions as the base
+    // restrictions, then overlay JWT config for per-subscription overrides.
+    if (planTitle && Object.values(OnPremPlanTitles).includes(planTitle)) {
+      const planDef = OnPremPlanDefinitions[planTitle];
+      return Plan.prepare({
+        title: planTitle,
+        description: `On-premise ${planTitle} plan`,
+        meta: {
+          ...Plan.limitPairs(-1, false),
+          ...Plan.featurePairs(true),
+          ...(planDef?.features ?? {}),
+          ...(planDef?.limits ?? {}),
+          ...config,
+        },
+        free: false,
+      });
+    }
 
     // If limit_seat is set, inject it as LIMIT_EDITOR so that
     // preInviteValidate and other plan-based checks enforce it.
     const seatLimit = NocoLicense.getSeatLimit();
-    if (seatLimit !== null && seatLimit > 0) {
-      return {
-        ...basePlan,
-        meta: {
-          ...basePlan.meta,
-          [PlanLimitTypes.LIMIT_EDITOR]: seatLimit,
-        },
-      };
+    if (NocoLicense.isEE) {
+      if (seatLimit !== null && seatLimit > 0) {
+        return {
+          ...EnterprisePlan,
+          meta: {
+            ...EnterprisePlan.meta,
+            [PlanLimitTypes.LIMIT_EDITOR]: seatLimit,
+          },
+        };
+      }
+      return EnterprisePlan;
     }
 
-    return basePlan;
+    return FreePlan;
   } catch {
     return FreePlan;
   }
@@ -60,7 +109,7 @@ export async function checkGlobalSeatHeadroom(
     NcError.planLimitExceeded(
       `Maximum seat limit of ${seatLimit} reached. Contact your administrator to increase the licensed seat count.`,
       {
-        plan: OnPremPlanTitles.ENTERPRISE,
+        plan: OnPremPlanTitles.SELF_HOSTED_ENTERPRISE,
         limit: seatLimit,
         current: currentCount,
       },
@@ -93,7 +142,7 @@ export async function checkSeatLimit(
       NcError.planLimitExceeded(
         `Maximum seat limit of ${seatLimit} reached. Contact your administrator to increase the licensed seat count.`,
         {
-          plan: OnPremPlanTitles.ENTERPRISE,
+          plan: OnPremPlanTitles.SELF_HOSTED_ENTERPRISE,
           limit: seatLimit,
           current: currentCount,
         },

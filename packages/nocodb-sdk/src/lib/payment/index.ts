@@ -32,6 +32,7 @@ export enum PlanLimitTypes {
   LIMIT_RLS_POLICIES_PER_TABLE = 'limit_rls_policies_per_table',
   LIMIT_DOCUMENT_PAGE_PER_BASE = 'limit_document_page_per_base',
   LIMIT_DOCS_PAGE_SIZE_KB = 'limit_docs_page_size_kb',
+  LIMIT_WORKSPACE = 'limit_workspace',
 }
 
 export enum PlanFeatureTypes {
@@ -112,8 +113,9 @@ export enum PlanTitles {
 }
 
 export enum OnPremPlanTitles {
-  ENTERPRISE_STARTER = 'EnterpriseStarter',
-  ENTERPRISE = 'Enterprise',
+  SELF_HOSTED_STARTER = 'Self-hosted Starter',
+  SELF_HOSTED_SCALE = 'Self-hosted Scale',
+  SELF_HOSTED_ENTERPRISE = 'Self-hosted Enterprise',
 }
 
 export enum PlanPriceLookupKeys {
@@ -259,6 +261,7 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 'to add more teams in a workspace.',
   [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]:
     'to add more row-level security policies per table.',
+  [PlanLimitTypes.LIMIT_WORKSPACE]: 'to create more workspaces.',
   [PlanLimitTypes.LIMIT_WORKFLOW_RUN]: 'to run more workflows.',
   [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]:
     'to increase workflow logs retention.',
@@ -381,6 +384,7 @@ export enum ReturnToBillingPage {
   ORG = 'org',
   ACCOUNT = 'account',
   WS = 'ws',
+  SELF_HOSTED = 'self_hosted',
 }
 
 export const PlanFeatureTypesToPlanTitles = {} as Record<

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UtilsService as UtilsServiceEE } from 'src/ee/services/utils.service';
 import type { AppConfig } from '~/interface/config';
+import { getOnPremPlan } from '~/helpers/paymentHelpers';
 import Noco from '~/Noco';
 import NocoLicense from '~/NocoLicense';
 import { NC_IFRAME_WHITELIST_DOMAINS } from '~/utils/nc-config';
@@ -28,6 +29,12 @@ export class UtilsService extends UtilsServiceEE {
     result.isAirgapped = NocoLicense.isAirgapped;
     result.seatLimit = NocoLicense.getSeatLimit();
     result.isPostgres = Noco.getConfig()?.meta?.db?.client === 'pg';
+
+    // Instance-wide plan for on-prem — used by frontend when no workspace context (e.g. admin page)
+    if (NocoLicense.isEE) {
+      const plan = getOnPremPlan();
+      result.onPremPlan = plan?.meta ?? null;
+    }
 
     return result;
   }

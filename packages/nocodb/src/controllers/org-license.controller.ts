@@ -8,14 +8,14 @@ import {
 } from '@nestjs/common';
 import { OrgUserRoles } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
-import { OrgLcenseService } from '~/services/org-lcense.service';
+import { OrgLicenseService } from '~/services/org-license.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-export class OrgLcenseController {
-  constructor(private readonly orgLcenseService: OrgLcenseService) {}
+export class OrgLicenseController {
+  constructor(private readonly orgLicenseService: OrgLicenseService) {}
 
   @Get('/api/v1/license')
   @Acl('licenseGet', {
@@ -25,7 +25,7 @@ export class OrgLcenseController {
     blockOAuthTokenAccess: true,
   })
   async licenseGet() {
-    return await this.orgLcenseService.licenseGet();
+    return await this.orgLicenseService.licenseGet();
   }
 
   @Post('/api/v1/license')
@@ -37,7 +37,7 @@ export class OrgLcenseController {
     blockOAuthTokenAccess: true,
   })
   async licenseSet(@Body() body) {
-    await this.orgLcenseService.licenseSet({ key: body.key });
+    await this.orgLicenseService.licenseSet({ key: body.key });
     return { msg: 'The license key has been saved' };
   }
 
@@ -49,6 +49,17 @@ export class OrgLcenseController {
     blockOAuthTokenAccess: true,
   })
   async licenseStatus() {
-    return await this.orgLcenseService.licenseStatus();
+    return await this.orgLicenseService.licenseStatus();
+  }
+
+  @Post('/api/v1/license/refresh')
+  @HttpCode(200)
+  @Acl('licenseSet', {
+    scope: 'org',
+    allowedRoles: [OrgUserRoles.SUPER_ADMIN],
+    blockApiTokenAccess: true,
+  })
+  async licenseRefresh() {
+    return await this.orgLicenseService.licenseRefresh();
   }
 }

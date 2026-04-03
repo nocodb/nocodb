@@ -337,9 +337,7 @@ export default class SqlMgr {
    * @returns
    * @memberof SqlMgr
    */
-  public async baseGetSqlClient(
-    args,
-  ) {
+  public async baseGetSqlClient(args) {
     const func = this.baseGetSqlClient.name;
     log.api(`${func}:args:`, args);
 

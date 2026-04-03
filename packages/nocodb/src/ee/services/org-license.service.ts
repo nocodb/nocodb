@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { OrgLcenseService as OrgLcenseServiceCE } from 'src/services/org-lcense.service';
+import { OrgLicenseService as OrgLicenseServiceCE } from 'src/services/org-license.service';
 import NocoLicense from '~/NocoLicense';
 
 @Injectable()
-export class OrgLcenseService extends OrgLcenseServiceCE {
+export class OrgLicenseService extends OrgLicenseServiceCE {
   async licenseStatus() {
     const base = await super.licenseStatus();
     return {

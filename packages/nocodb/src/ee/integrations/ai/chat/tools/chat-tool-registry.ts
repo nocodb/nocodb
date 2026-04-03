@@ -253,7 +253,10 @@ export class ChatToolRegistry {
               : JSON.stringify(result, null, 2);
           } catch (e) {
             if (e instanceof Error) throw e;
-            this.logger.error(`Tool ${t.name} unexpected error`, (e as any)?.stack);
+            this.logger.error(
+              `Tool ${t.name} unexpected error`,
+              (e as any)?.stack,
+            );
             throw new Error(buildToolErrorHint(t.name, e));
           }
         },

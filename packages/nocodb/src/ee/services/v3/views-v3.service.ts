@@ -64,7 +64,12 @@ interface FormFieldByIdConfig {
   allow_scanner_input?: boolean;
   is_list?: boolean;
   is_limit_option?: boolean;
-  validators?: { type: string; value?: string | number | null; message?: string; regex?: string }[];
+  validators?: {
+    type: string;
+    value?: string | number | null;
+    message?: string;
+    regex?: string;
+  }[];
 }
 
 const viewTypeMap = {
@@ -348,7 +353,9 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
 
         // convert redirect_after_secs from string to integer (V2 stores as varchar)
         if (formattedData.form_redirect_after_secs != null) {
-          formattedData.form_redirect_after_secs = Number(formattedData.form_redirect_after_secs);
+          formattedData.form_redirect_after_secs = Number(
+            formattedData.form_redirect_after_secs,
+          );
         }
 
         // if description empty then set it to undefined
@@ -454,7 +461,10 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         };
 
         // convert redirect_after_secs from integer to string (V2 expects StringOrNull)
-        if (result.redirect_after_secs !== undefined && result.redirect_after_secs !== null) {
+        if (
+          result.redirect_after_secs !== undefined &&
+          result.redirect_after_secs !== null
+        ) {
           result.redirect_after_secs = String(result.redirect_after_secs);
         }
 

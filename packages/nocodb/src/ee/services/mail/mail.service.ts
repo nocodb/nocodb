@@ -437,14 +437,8 @@ export class MailService extends MailServiceCE {
           break;
         }
         case MailEvent.WORKFLOW_DRAFT_REMINDER: {
-          const {
-            user,
-            workflow,
-            workspace,
-            base,
-            draftAgeDays,
-            req,
-          } = params.payload as WorkflowDraftReminderPayload;
+          const { user, workflow, workspace, base, draftAgeDays, req } =
+            params.payload as WorkflowDraftReminderPayload;
 
           const link = this.buildUrl(req, {
             workspaceId: workspace.id,

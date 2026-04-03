@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
+import { Logger } from '@nestjs/common';
 
 import {
   CacheGetType,
@@ -53,10 +54,15 @@ const META_CONFIG: Record<string, MetaFieldConfig> = {
  * - Server-controlled license state
  */
 export default class Installation {
+  private static logger = new Logger('Installation');
+
   id: string;
 
   // Subscription relationship (optional for Stripe-based billing)
   fk_subscription_id?: string;
+
+  // User who purchased this license (cloud user ID)
+  fk_user_id?: string;
 
   // License information
   licensed_to: string; // Organization/company name
@@ -78,6 +84,7 @@ export default class Installation {
 
   // Seat management
   seat_count: number; // Current active users
+  min_seats: number; // Minimum seat commitment (billing floor)
 
   // License configuration
   config?: Record<string, any>; // JSON string representing limits, features, etc.
@@ -211,12 +218,36 @@ export default class Installation {
     return new Installation(installation);
   }
 
+  public static async listByUserId(
+    userId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Installation[]> {
+    const installations = await ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.INSTALLATIONS,
+      {
+        condition: {
+          fk_user_id: userId,
+        },
+        orderBy: {
+          created_at: 'desc',
+        },
+      },
+    );
+
+    return installations.map(
+      (i) => new Installation(prepareForResponse(i, ['meta', 'config'])),
+    );
+  }
+
   public static async insert(
     installation: Partial<Installation>,
     ncMeta = Noco.ncMeta,
   ): Promise<Installation> {
     const insertObj: Record<string, any> = extractProps(installation, [
       'fk_subscription_id',
+      'fk_user_id',
       'licensed_to',
       'license_key',
       'installed_at',
@@ -225,6 +256,7 @@ export default class Installation {
       'license_type',
       'status',
       'seat_count',
+      'min_seats',
       'meta',
       'config',
     ]);
@@ -273,6 +305,7 @@ export default class Installation {
       'expires_at',
       'status',
       'seat_count',
+      'min_seats',
       'license_type',
       'meta',
       'config',
@@ -383,7 +416,7 @@ export default class Installation {
       }
     } catch (error) {
       // Log error if needed
-      console.error('Error comparing metadata:', error);
+      Installation.logger.error('Error comparing metadata', error?.stack);
     }
 
     // add last_environment_update timestamp if environment is updated
@@ -730,13 +763,16 @@ export default class Installation {
   ): Promise<string> {
     const privateKey = await this.getServerPrivateKey();
 
+    const minSeats = installation.min_seats || 1;
+
     return jwt.sign(
       {
         installation_id: installation.id,
         license_key: installation.license_key,
         license_type: installation.license_type,
         status: installation.status,
-        seat_count: installation.seat_count,
+        seat_count: Math.max(minSeats, installation.seat_count),
+        min_seats: minSeats,
         expires_at: installation.expires_at,
         config: installation.config,
         instance_id: installation.meta?.instance_id ?? undefined,

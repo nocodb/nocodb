@@ -48,6 +48,10 @@ export default class NocoLicense {
     return undefined;
   }
 
+  static getConfig(): undefined {
+    return undefined;
+  }
+
   static shouldBlockAccess(): boolean {
     return false;
   }

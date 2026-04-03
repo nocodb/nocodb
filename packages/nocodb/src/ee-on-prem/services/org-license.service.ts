@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { OrgLcenseService as OrgLcenseServiceEE } from 'src/ee/services/org-lcense.service';
+import { OrgLicenseService as OrgLicenseServiceEE } from 'src/ee/services/org-license.service';
 import { NC_LICENSE_KEY } from '~/constants';
 import { NcError } from '~/helpers/catchError';
 import { getInstanceId } from '~/helpers/instanceId';
@@ -10,8 +10,9 @@ import NocoLicense from '~/NocoLicense';
 import { LICENSE_CONFIG, LICENSE_ENV_VARS } from '~/utils/license/constants';
 
 @Injectable()
-export class OrgLcenseService extends OrgLcenseServiceEE {
-  private readonly logger = new Logger(OrgLcenseService.name);
+export class OrgLicenseService extends OrgLicenseServiceEE {
+  private readonly onPremLogger = new Logger(OrgLicenseService.name);
+
   async licenseSet(param: { key: string }) {
     validatePayload('swagger.json#/components/schemas/LicenseReq', param);
 
@@ -19,6 +20,7 @@ export class OrgLcenseService extends OrgLcenseServiceEE {
     if (!param.key) {
       await Store.saveOrUpdate({ value: '', key: NC_LICENSE_KEY });
       NocoLicense.reset();
+      Noco.syncEEState();
       return true;
     }
 
@@ -52,7 +54,8 @@ export class OrgLcenseService extends OrgLcenseServiceEE {
           // Previous key also failed — stay in CE mode
         }
       }
-      this.logger.error(e.message, e.stack);
+      Noco.syncEEState();
+      this.onPremLogger.error(e.message, e.stack);
       NcError.badRequest(
         'License activation failed. Please verify your license key and try again.',
       );
@@ -60,6 +63,7 @@ export class OrgLcenseService extends OrgLcenseServiceEE {
 
     // Activation succeeded — save first, then attempt best-effort refresh
     await Store.saveOrUpdate({ value: param.key, key: NC_LICENSE_KEY });
+    Noco.syncEEState();
 
     // For airgapped nc_ag_ keys: attempt online refresh to pull the
     // latest expires_at from the server (covers the case where the
@@ -73,6 +77,30 @@ export class OrgLcenseService extends OrgLcenseServiceEE {
     }
 
     return true;
+  }
+
+  async licenseRefresh(): Promise<{ success: boolean; status?: string }> {
+    if (!NocoLicense.isInitialized()) {
+      return { success: false, status: 'not_initialized' };
+    }
+
+    try {
+      const refreshed = await NocoLicense.refreshLicenseFromServer(Noco.ncMeta);
+
+      if (!refreshed) {
+        this.onPremLogger.warn('License refresh failed via API');
+        return { success: false, status: NocoLicense.licenseStatus };
+      }
+
+      // Sync Noco.ee flag without the heavy reset/init cycle of loadEEState()
+      Noco.syncEEState();
+
+      this.onPremLogger.log('License refreshed successfully via API');
+      return { success: true, status: NocoLicense.licenseStatus };
+    } catch (e) {
+      this.onPremLogger.error(`License refresh error: ${e.message}`, e.stack);
+      return { success: false, status: NocoLicense.licenseStatus };
+    }
   }
 
   async licenseStatus() {

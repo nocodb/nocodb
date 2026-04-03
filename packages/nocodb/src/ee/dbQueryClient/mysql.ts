@@ -1036,7 +1036,7 @@ export class MySqlDBQueryClient
         break;
       case UITypes.Links:
         if (
-          params?.linksAsLtar === 'true' && apiVersion === NcApiVersion.V3 ||
+          (params?.linksAsLtar === 'true' && apiVersion === NcApiVersion.V3) ||
           isBtLikeV2Junction(column)
         ) {
           try {

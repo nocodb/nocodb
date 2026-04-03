@@ -70,7 +70,7 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
           filter.value === null ||
           typeof filter.value === 'undefined' ||
           filter.value === '' ||
-          filter.comparison_op === 'in'
+          filter.comparison_op === 'in' && Array.isArray(filter.value)
         )
       ) {
         const dateTimeValue = await parseDateTimeValue(filter.value, {

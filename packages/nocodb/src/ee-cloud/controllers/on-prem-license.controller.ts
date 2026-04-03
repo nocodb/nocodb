@@ -54,6 +54,7 @@ export class OnPremLicenseController {
     payload: {
       plan_id: string;
       price_id: string;
+      quantity?: number;
       instance_url?: string;
     },
     @Req() req: NcRequest,

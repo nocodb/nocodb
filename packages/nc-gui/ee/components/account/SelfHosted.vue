@@ -57,7 +57,7 @@ const successLicense = ref<(typeof licenses.value)[0] | null>(null)
 
 const instanceUrl = computed(() => (route.query.instance_url as string) || '')
 
-const copiedKey = ref(false)
+const copiedKeyId = ref<string | null>(null)
 
 const revealedKeys = ref<Set<string>>(new Set())
 
@@ -108,14 +108,14 @@ const toggleRevealKey = (licenseId: string) => {
   }
 }
 
-const copyKey = async (key: string) => {
+const copyKey = async (key: string, id: string) => {
   try {
     await navigator.clipboard.writeText(key)
-    copiedKey.value = true
+    copiedKeyId.value = id
     message.toast(t('general.copied'))
     $e('c:on-prem:license:copy-key')
     setTimeout(() => {
-      copiedKey.value = false
+      copiedKeyId.value = null
     }, 2000)
   } catch {
     message.toast(t('msg.error.copyToClipboardError'))
@@ -346,9 +346,9 @@ onBeforeUnmount(async () => {
                     size="xs"
                     class="!rounded-md !hover:bg-nc-bg-gray-medium"
                     :tooltip="$t('general.copy')"
-                    @click="copyKey(license.license_key)"
+                    @click="copyKey(license.license_key, license.id)"
                   >
-                    <GeneralIcon :icon="copiedKey ? 'ncCheck' : 'ncCopy'" class="h-4 w-4" />
+                    <GeneralIcon :icon="copiedKeyId === license.id ? 'ncCheck' : 'ncCopy'" class="h-4 w-4" />
                   </NcButton>
                 </div>
               </div>
@@ -446,14 +446,14 @@ onBeforeUnmount(async () => {
 
               <div class="flex items-center gap-3 w-full">
                 <NcButton
-                  :type="copiedKey ? 'secondary' : 'primary'"
+                  :type="copiedKeyId === 'success' ? 'secondary' : 'primary'"
                   size="small"
                   class="!flex-1"
-                  @click="copyKey(successLicense.license_key)"
+                  @click="copyKey(successLicense.license_key, 'success')"
                 >
                   <div class="flex items-center gap-1">
-                    <GeneralIcon :icon="copiedKey ? 'ncCheck' : 'ncCopy'" class="h-4 w-4" />
-                    {{ copiedKey ? $t('general.copied') : $t('labels.copyLicenseKey') }}
+                    <GeneralIcon :icon="copiedKeyId === 'success' ? 'ncCheck' : 'ncCopy'" class="h-4 w-4" />
+                    {{ copiedKeyId === 'success' ? $t('general.copied') : $t('labels.copyLicenseKey') }}
                   </div>
                 </NcButton>
                 <NcButton type="secondary" size="small" class="!flex-1" @click="backToList">

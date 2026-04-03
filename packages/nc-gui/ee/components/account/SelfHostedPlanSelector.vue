@@ -29,13 +29,13 @@ const planMeta = (title: OnPremPlanTitles) => OnPremPlanMeta[title] || null
 
 const enterpriseMeta = OnPremPlanMeta[OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]
 
-const enterpriseDescriptions = [
-  'Everything in Scale',
-  'SCIM & Row-Level Security',
-  'Airgapped (offline) deployment',
-  'Unlimited workspaces',
-  'Priority support',
-]
+const enterpriseDescriptions = computed(() => [
+  t('labels.enterpriseDescEverythingInScale'),
+  t('labels.enterpriseDescScimRls'),
+  t('labels.enterpriseDescAirgapped'),
+  t('labels.enterpriseDescUnlimitedWorkspaces'),
+  t('labels.enterpriseDescPrioritySupport'),
+])
 
 const selectPlan = (plan: (typeof plans.value)[0]) => {
   const price = getPlanPrice(plan, paymentMode.value)

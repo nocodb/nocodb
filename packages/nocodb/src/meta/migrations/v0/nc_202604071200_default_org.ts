@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import { CloudOrgUserRoles } from 'nocodb-sdk';
+import { EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import {
   MetaTable,
   NC_DEFAULT_ORG_ID,
@@ -108,7 +108,7 @@ export async function up(knex: Knex) {
   await knex(MetaTable.ORG_USERS).insert({
     fk_org_id: NC_DEFAULT_ORG_ID,
     fk_user_id: superUser.id,
-    roles: CloudOrgUserRoles.OWNER,
+    roles: EnterpriseOrgUserRoles.ADMIN,
   });
 
   // Link all workspaces with no org to the default org
@@ -128,7 +128,7 @@ export async function up(knex: Knex) {
       await knex(MetaTable.ORG_USERS).insert({
         fk_org_id: NC_DEFAULT_ORG_ID,
         fk_user_id: wu.fk_user_id,
-        roles: CloudOrgUserRoles.VIEWER,
+        roles: EnterpriseOrgUserRoles.VIEWER,
       });
     } catch {
       // Duplicate — skip
@@ -165,7 +165,7 @@ export async function up(knex: Knex) {
         await knex(MetaTable.ORG_USERS).insert({
           fk_org_id: org.id,
           fk_user_id: wu.fk_user_id,
-          roles: CloudOrgUserRoles.VIEWER,
+          roles: EnterpriseOrgUserRoles.VIEWER,
         });
       } catch {
         // Already exists (e.g., owner) — skip
@@ -178,7 +178,7 @@ export async function down(knex: Knex) {
   // Remove backfilled org users (except owner)
   await knex(MetaTable.ORG_USERS)
     .where('fk_org_id', NC_DEFAULT_ORG_ID)
-    .whereNot('roles', CloudOrgUserRoles.OWNER)
+    .whereNot('roles', EnterpriseOrgUserRoles.ADMIN)
     .del();
 
   // Unlink workspaces

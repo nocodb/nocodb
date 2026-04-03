@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CloudOrgUserRoles } from 'nocodb-sdk';
+import { EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import { OrgUsersService as OrgUsersServiceCE } from 'src/services/org-users.service';
 import { MetaTable, NC_DEFAULT_ORG_ID } from '~/utils/globals';
 import Noco from '~/Noco';
@@ -103,14 +103,13 @@ export class OrgUsersService extends OrgUsersServiceCE {
   /**
    * Update org role for a user in the default org.
    */
-  async updateOrgRole(param: { userId: string; orgRole: CloudOrgUserRoles }) {
+  async updateOrgRole(param: { userId: string; orgRole: EnterpriseOrgUserRoles }) {
     const orgId = Noco.ncDefaultOrgId || NC_DEFAULT_ORG_ID;
 
     const allowedRoles = [
-      CloudOrgUserRoles.OWNER,
-      CloudOrgUserRoles.ADMIN,
-      CloudOrgUserRoles.CREATOR,
-      CloudOrgUserRoles.VIEWER,
+      EnterpriseOrgUserRoles.ADMIN,
+      EnterpriseOrgUserRoles.CREATOR,
+      EnterpriseOrgUserRoles.VIEWER,
     ];
 
     if (!allowedRoles.includes(param.orgRole)) {

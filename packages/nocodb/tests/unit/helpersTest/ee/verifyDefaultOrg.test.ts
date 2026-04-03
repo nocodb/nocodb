@@ -1,6 +1,6 @@
 import 'mocha';
 import { expect } from 'chai';
-import { CloudOrgUserRoles } from 'nocodb-sdk';
+import { EnterpriseOrgUserRoles, CloudOrgUserRoles } from 'nocodb-sdk';
 import {
   NC_DEFAULT_ORG_ID,
   NC_STORE_DEFAULT_ORG_ID_KEY,
@@ -17,30 +17,23 @@ export function verifyDefaultOrgTests() {
     });
   });
 
-  describe('CloudOrgUserRoles enum', () => {
-    it('should have OWNER role', () => {
-      expect(CloudOrgUserRoles.OWNER).to.equal('cloud-org-level-owner');
-    });
-
+  describe('EnterpriseOrgUserRoles enum', () => {
     it('should have ADMIN role', () => {
-      expect(CloudOrgUserRoles.ADMIN).to.equal('cloud-org-level-admin');
+      expect(EnterpriseOrgUserRoles.ADMIN).to.equal('cloud-org-level-admin');
     });
 
     it('should have CREATOR role', () => {
-      expect(CloudOrgUserRoles.CREATOR).to.equal('cloud-org-level-creator');
+      expect(EnterpriseOrgUserRoles.CREATOR).to.equal('cloud-org-level-creator');
     });
 
     it('should have VIEWER role', () => {
-      expect(CloudOrgUserRoles.VIEWER).to.equal('cloud-org-level-viewer');
+      expect(EnterpriseOrgUserRoles.VIEWER).to.equal('cloud-org-level-viewer');
     });
 
-    it('should have exactly 4 roles', () => {
-      const roleValues = Object.values(CloudOrgUserRoles);
-      expect(roleValues).to.have.length(4);
-    });
-
-    it('OWNER and ADMIN should be distinct values', () => {
-      expect(CloudOrgUserRoles.OWNER).to.not.equal(CloudOrgUserRoles.ADMIN);
+    it('CloudOrgUserRoles should be an alias for EnterpriseOrgUserRoles', () => {
+      expect(CloudOrgUserRoles.ADMIN).to.equal(EnterpriseOrgUserRoles.ADMIN);
+      expect(CloudOrgUserRoles.CREATOR).to.equal(EnterpriseOrgUserRoles.CREATOR);
+      expect(CloudOrgUserRoles.VIEWER).to.equal(EnterpriseOrgUserRoles.VIEWER);
     });
   });
 }

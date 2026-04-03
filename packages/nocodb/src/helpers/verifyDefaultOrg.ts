@@ -1,4 +1,4 @@
-import { CloudOrgUserRoles } from 'nocodb-sdk';
+import { EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import {
   MetaTable,
@@ -88,7 +88,7 @@ export const verifyDefaultOrg = async (ncMeta = Noco.ncMeta) => {
   await ncMeta.knexConnection(MetaTable.ORG_USERS).insert({
     fk_org_id: NC_DEFAULT_ORG_ID,
     fk_user_id: superUser.id,
-    roles: CloudOrgUserRoles.OWNER,
+    roles: EnterpriseOrgUserRoles.ADMIN,
   });
 
   // Link default workspace to this org (if it exists and isn't already linked)
@@ -129,7 +129,7 @@ export const verifyDefaultOrg = async (ncMeta = Noco.ncMeta) => {
  */
 export const ensureUserInDefaultOrg = async (
   userId: string,
-  role: CloudOrgUserRoles = CloudOrgUserRoles.VIEWER,
+  role: EnterpriseOrgUserRoles = EnterpriseOrgUserRoles.VIEWER,
   ncMeta = Noco.ncMeta,
 ) => {
   // Cloud EE manages org membership via its own service

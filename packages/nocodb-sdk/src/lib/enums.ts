@@ -6,12 +6,17 @@ export enum OrgUserRoles {
   VIEWER = 'org-level-viewer',
 }
 
-export enum CloudOrgUserRoles {
+export enum EnterpriseOrgUserRoles {
   OWNER = 'cloud-org-level-owner',
   ADMIN = 'cloud-org-level-admin',
   CREATOR = 'cloud-org-level-creator',
   VIEWER = 'cloud-org-level-viewer',
 }
+
+/** @deprecated Use EnterpriseOrgUserRoles instead */
+export const CloudOrgUserRoles = EnterpriseOrgUserRoles;
+/** @deprecated Use EnterpriseOrgUserRoles instead */
+export type CloudOrgUserRoles = EnterpriseOrgUserRoles;
 
 export enum ProjectRoles {
   OWNER = 'owner',

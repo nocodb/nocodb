@@ -239,7 +239,7 @@ export const getColumnUIDTAndMetas = (colData: [], defaultType: string) => {
     } else if (isDateTimeType(colData)) {
       colProps.uidt = UITypes.DateTime
       const { date_format, time_format } = detectDateTimeFormat(colData)
-      colProps.meta = { date_format, time_format }
+      colProps.meta = { date_format, time_format, is12hrFormat: false }
     } else if (isDateType(colData)) {
       colProps.uidt = UITypes.Date
       colProps.meta = { date_format: detectDateFormat(colData) }

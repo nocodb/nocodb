@@ -1,7 +1,9 @@
 import { parse } from 'papaparse'
 import type { UploadFile } from 'ant-design-vue'
-import { type ColumnType, UITypes, getDateFormat, parseProp, validateDateWithUnknownFormat, workerWithTimezone } from 'nocodb-sdk'
+import { type ColumnType, UITypes, parseProp, validateDateWithUnknownFormat, workerWithTimezone } from 'nocodb-sdk'
 import {
+  detectDateFormat,
+  detectDateTimeFormat,
   extractMultiOrSingleSelectProps,
   getCheckboxValue,
   isCheckboxType,
@@ -192,25 +194,20 @@ export default class CSVTemplateAdapter {
 
       if (this.columnValues[columnIdx].length > 0) {
         if (uidt === UITypes.DateTime) {
-          const dateFormat: Record<string, number> = {}
           if (
             this.columnValues[columnIdx].slice(1, this.config.maxRowsToDetect).every((v: any) => {
-              const isDate = v.split(' ').length === 1
-              if (isDate) {
-                dateFormat[getDateFormat(v)] = (dateFormat[getDateFormat(v)] || 0) + 1
-              }
-              return isDate
+              return v.split(' ').length === 1
             })
           ) {
             this.tables[tableIdx].columns[columnIdx].uidt = UITypes.Date
-            // take the date format with the max occurrence
-            const objKeys = Object.keys(dateFormat)
-            this.tables[tableIdx].columns[columnIdx].meta.date_format = objKeys.length
-              ? objKeys.reduce((x, y) => (dateFormat[x] > dateFormat[y] ? x : y))
-              : 'YYYY/MM/DD'
+            this.tables[tableIdx].columns[columnIdx].meta.date_format = detectDateFormat(this.columnValues[columnIdx])
           } else {
-            // Datetime
+            // Datetime — detect date and time formats
             this.tables[tableIdx].columns[columnIdx].uidt = uidt
+            const { date_format, time_format } = detectDateTimeFormat(this.columnValues[columnIdx])
+            this.tables[tableIdx].columns[columnIdx].meta.date_format = date_format
+            this.tables[tableIdx].columns[columnIdx].meta.time_format = time_format
+            this.tables[tableIdx].columns[columnIdx].meta.is12hrFormat = false
           }
         } else if (uidt === UITypes.SingleSelect || uidt === UITypes.MultiSelect) {
           // assume it is a SingleLineText first

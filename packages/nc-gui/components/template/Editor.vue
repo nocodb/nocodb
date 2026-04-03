@@ -1413,7 +1413,7 @@ function getErrorByTableName(tableName: string) {
                         </div>
                         <div class="flex items-center gap-2">
                           <span class="text-xs text-nc-content-gray-subtle2 flex-none w-20">
-                            {{ $t('labels.format') }}
+                            {{ $t('general.format') }}
                           </span>
                           <a-radio-group
                             v-model:value="record.meta.is12hrFormat"

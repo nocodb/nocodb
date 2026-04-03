@@ -1,6 +1,8 @@
-import { type ColumnType, UITypes, getDateFormat, parseProp, workerWithTimezone } from 'nocodb-sdk'
+import { type ColumnType, UITypes, parseProp, workerWithTimezone } from 'nocodb-sdk'
 import TemplateGenerator, { type ProgressMessageType } from './TemplateGenerator'
 import {
+  detectDateFormat,
+  detectDateTimeFormat,
   extractMultiOrSingleSelectProps,
   getCheckboxValue,
   isCheckboxType,
@@ -254,28 +256,26 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                     column.uidt = UITypes.SingleLineText
                   }
                 } else if (column.uidt === UITypes.DateTime) {
-                  // TODO(import): centralise
-                  // hold the possible date format found in the date
-                  const dateFormat: Record<string, number> = {}
-                  if (
-                    rows.slice(1, this.config.maxRowsToDetect).every((v: any, i: any) => {
-                      const cellId = this.xlsx.utils.encode_cell({
-                        c: range.s.c + col,
-                        r: i + +this.config.firstRowAsHeaders,
-                      })
-
-                      const cellObj = ws[cellId]
-                      const isDate = !cellObj || (cellObj.w && cellObj.w.split(' ').length === 1)
-                      if (isDate && cellObj) {
-                        dateFormat[getDateFormat(cellObj.w)] = (dateFormat[getDateFormat(cellObj.w)] || 0) + 1
-                      }
-                      return isDate
+                  const cellValues = rows.slice(1, this.config.maxRowsToDetect).map((v: any, i: any) => {
+                    const cellId = this.xlsx.utils.encode_cell({
+                      c: range.s.c + col,
+                      r: i + +this.config.firstRowAsHeaders,
                     })
-                  ) {
+                    const cellObj = ws[cellId]
+                    return cellObj?.w || ''
+                  }).filter((v: string) => v) as []
+
+                  const isDateOnly = cellValues.every((v: string) => v.split(' ').length === 1)
+
+                  if (isDateOnly) {
                     column.uidt = UITypes.Date
-                    // take the date format with the max occurrence
-                    column.meta.date_format =
-                      Object.keys(dateFormat).reduce((x, y) => (dateFormat[x] > dateFormat[y] ? x : y)) || 'YYYY/MM/DD'
+                    column.meta.date_format = detectDateFormat(cellValues)
+                  } else {
+                    // DateTime — detect date and time formats
+                    const { date_format, time_format } = detectDateTimeFormat(cellValues)
+                    column.meta.date_format = date_format
+                    column.meta.time_format = time_format
+                    column.meta.is12hrFormat = false
                   }
                 }
               }

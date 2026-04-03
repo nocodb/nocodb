@@ -111,6 +111,7 @@ const defaultImportState = {
   jsonEditor: {},
   parserConfig: {
     maxRowsToParse: 500,
+    maxRowsToDetect: 50,
     normalizeNested: true,
     autoSelectFieldTypes: true,
     firstRowAsHeaders: true,
@@ -1074,6 +1075,19 @@ watch(
 
             <a-form-item v-if="!importDataOnly" class="!my-2 nc-dense-checkbox-container">
               <NcCheckbox v-model:checked="importState.parserConfig.shouldImportData">{{ $t('labels.importData') }} </NcCheckbox>
+            </a-form-item>
+
+            <a-form-item v-if="importState.parserConfig.autoSelectFieldTypes" class="!my-2">
+              <div class="flex items-center gap-2">
+                <span class="caption text-nc-content-gray">{{ $t('labels.maxRowsToParse') }}</span>
+                <a-input-number
+                  v-model:value="importState.parserConfig.maxRowsToDetect"
+                  :min="1"
+                  :max="5000"
+                  size="small"
+                  class="!w-24"
+                />
+              </div>
             </a-form-item>
           </a-collapse-panel>
         </a-collapse>

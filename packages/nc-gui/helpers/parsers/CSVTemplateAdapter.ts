@@ -130,7 +130,7 @@ export default class CSVTemplateAdapter {
         } else if (isCheckboxType(colData)) {
           colProps.uidt = UITypes.Checkbox
         } else {
-          if (data[columnIdx] && columnIdx < this.config.maxRowsToParse) {
+          if (data[columnIdx] && columnIdx < this.config.maxRowsToDetect) {
             this.columnValues[columnIdx].push(data[columnIdx])
             colProps.uidt = UITypes.SingleSelect
           }
@@ -140,7 +140,7 @@ export default class CSVTemplateAdapter {
           colProps.uidt = UITypes.Decimal
         }
       } else if (colProps.uidt === UITypes.DateTime) {
-        if (data[columnIdx] && columnIdx < this.config.maxRowsToParse) {
+        if (data[columnIdx] && columnIdx < this.config.maxRowsToDetect) {
           this.columnValues[columnIdx].push(data[columnIdx])
         }
       }
@@ -194,7 +194,7 @@ export default class CSVTemplateAdapter {
         if (uidt === UITypes.DateTime) {
           const dateFormat: Record<string, number> = {}
           if (
-            this.columnValues[columnIdx].slice(1, this.config.maxRowsToParse).every((v: any) => {
+            this.columnValues[columnIdx].slice(1, this.config.maxRowsToDetect).every((v: any) => {
               const isDate = v.split(' ').length === 1
               if (isDate) {
                 dateFormat[getDateFormat(v)] = (dateFormat[getDateFormat(v)] || 0) + 1

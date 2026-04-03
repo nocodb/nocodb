@@ -101,7 +101,7 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
       }
       if (this.config.autoSelectFieldTypes) {
         column.uidt = jsonTypeToUidt[typeof firstRowVal] || UITypes.SingleLineText
-        const colData = jsonData.map((r: any) => extractNestedData(r, path))
+        const colData = jsonData.slice(0, this.config.maxRowsToDetect).map((r: any) => extractNestedData(r, path))
         Object.assign(column, getColumnUIDTAndMetas(colData, column.uidt))
       }
       columns.push(column)

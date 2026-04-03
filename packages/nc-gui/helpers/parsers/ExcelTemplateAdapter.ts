@@ -219,14 +219,14 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                   }
                 } else if (column.uidt === UITypes.Number) {
                   if (
-                    rows.slice(1, this.config.maxRowsToParse).some((v: any) => {
+                    rows.slice(1, this.config.maxRowsToDetect).some((v: any) => {
                       return v && v[col] && parseInt(v[col]) !== +v[col]
                     })
                   ) {
                     column.uidt = UITypes.Decimal
                   }
                   if (
-                    rows.slice(1, this.config.maxRowsToParse).every((v: any, i: any) => {
+                    rows.slice(1, this.config.maxRowsToDetect).every((v: any, i: any) => {
                       const cellId = this.xlsx.utils.encode_cell({
                         c: range.s.c + col,
                         r: i + +this.config.firstRowAsHeaders,
@@ -240,7 +240,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                     column.uidt = UITypes.Currency
                   }
                   if (
-                    rows.slice(1, this.config.maxRowsToParse).some((v: any, i: any) => {
+                    rows.slice(1, this.config.maxRowsToDetect).some((v: any, i: any) => {
                       const cellId = this.xlsx.utils.encode_cell({
                         c: range.s.c + col,
                         r: i + +this.config.firstRowAsHeaders,
@@ -258,7 +258,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                   // hold the possible date format found in the date
                   const dateFormat: Record<string, number> = {}
                   if (
-                    rows.slice(1, this.config.maxRowsToParse).every((v: any, i: any) => {
+                    rows.slice(1, this.config.maxRowsToDetect).every((v: any, i: any) => {
                       const cellId = this.xlsx.utils.encode_cell({
                         c: range.s.c + col,
                         r: i + +this.config.firstRowAsHeaders,

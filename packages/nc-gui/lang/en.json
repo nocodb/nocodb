@@ -2087,6 +2087,7 @@
     "autoSelectFieldTypes": "Auto-Select Field Types",
     "firstRowAsHeaders": "Use first record as header",
     "flattenNested": "Flatten nested",
+    "maxRowsToParse": "# Rows to parse for type detection",
     "downloadAllowed": "Download allowed",
     "weAreHiring": "We are Hiring!",
     "primaryKey": "Primary key",

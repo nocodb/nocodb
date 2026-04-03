@@ -161,9 +161,9 @@ const triggerRowLoad = async (rowId?: string) => {
 }
 
 watch(
-  activeRowId,
-  async (newRowId) => {
-    if (!newRowId || !isOpen.value) return
+  [activeRowId, () => panelStore.activeRowIndex.value],
+  async ([newRowId]) => {
+    if (!isOpen.value) return
 
     clearColumns()
 
@@ -173,10 +173,11 @@ watch(
       rowState.value = {}
     }
 
-    await triggerRowLoad(newRowId)
+    // Use rowId if available, otherwise let _loadRow extract PK from the row data
+    await triggerRowLoad(newRowId ?? undefined)
 
     if (activityExpanded.value && activeActivityTab.value === 'audits') {
-      await loadAudits(newRowId, false)
+      await loadAudits(primaryKey.value ?? undefined, false)
     }
   },
   { immediate: true },

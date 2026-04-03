@@ -221,7 +221,7 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, 
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
 
   if (isEeUI && !isMobileMode.value && !isPublic.value && rowId) {
-    expandedFormPanelStore.openPanel(row, row.rowMeta?.rowIndex, state)
+    expandedFormPanelStore.openPanel(row, row.rowMeta?.rowIndex, state, rowId)
     updateRowIdRoute(rowId, path)
     return
   }

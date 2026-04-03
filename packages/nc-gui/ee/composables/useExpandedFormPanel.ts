@@ -33,22 +33,19 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
     return activeRowIndex.value < rowNavigator.value.totalRows() - 1
   })
 
-  const openPanel = (row: Row, rowIndex?: number, state?: Record<string, any>) => {
-    // Don't open panel on mobile — fall through to modal
+  const openPanel = (row: Row, rowIndex?: number, state?: Record<string, any>, rowId?: string) => {
     if (isMobileMode.value) return
 
-    const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+    const resolvedRowId = rowId || extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) || null
 
-    // Already showing this exact row
-    if (isOpen.value && activeRowId.value === rowId) {
-      return
-    }
+    if (isOpen.value && resolvedRowId && activeRowId.value === resolvedRowId) return
+    if (isOpen.value && !resolvedRowId && rowIndex != null && activeRowIndex.value === rowIndex) return
 
     activeRow.value = { row: { ...row.row }, oldRow: { ...row.row }, rowMeta: { ...row.rowMeta } }
-    activeRowId.value = rowId || null
     if (rowIndex != null) activeRowIndex.value = rowIndex
     activeRowState.value = state || null
     isOpen.value = true
+    activeRowId.value = resolvedRowId
   }
 
   const closePanel = () => {

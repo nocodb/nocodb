@@ -315,7 +315,7 @@ onBeforeUnmount(() => {
     </div>
     <div v-else class="flex flex-col h-full">
       <div v-if="comments.length === 0" class="flex flex-col my-1 text-center justify-center h-full nc-scrollbar-thin">
-        <div class="text-center text-3xl text-nc-content-gray-subtle">
+        <div class="text-center text-3xl text-nc-content-gray-subtle opacity-40">
           <GeneralIcon icon="commentHere" />
         </div>
         <div class="font-medium text-center my-6 text-nc-content-gray-muted">

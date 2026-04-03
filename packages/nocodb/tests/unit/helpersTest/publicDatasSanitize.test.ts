@@ -45,12 +45,18 @@ class TestablePublicDatasService extends PublicDatasService {
     context: NcContext,
     groupColumnId: string,
     visibleColumnIds: Set<string>,
+    groupByColumnIds: Set<string> = new Set(),
   ) {
-    return this.validateGroupColumnId(context, groupColumnId, visibleColumnIds);
+    return this.validateGroupColumnId(
+      context,
+      groupColumnId,
+      visibleColumnIds,
+      groupByColumnIds,
+    );
   }
 
-  public testBuildRestrictedAliasColObjMap(visibleColumns: Column[]) {
-    return this.buildRestrictedAliasColObjMap(visibleColumns);
+  public testBuildRestrictedAliasColObjMap(visibleInfo: any) {
+    return this.buildRestrictedAliasColObjMap(visibleInfo);
   }
 
   public testSanitizeListArgsForPublicView(
@@ -92,6 +98,10 @@ export function publicDatasSanitizeTest() {
     visibleColumnTitles: new Set(['Name', 'Email']),
     visibleColumnNames: new Set(['name', 'email']),
     visibleColumns,
+    groupByColumnIds: new Set<string>(),
+    groupByColumnTitles: new Set<string>(),
+    groupByColumnNames: new Set<string>(),
+    groupByColumns: [] as Column[],
   };
 
   beforeEach(() => {
@@ -300,6 +310,51 @@ export function publicDatasSanitizeTest() {
         service.testValidateGroupByColumnNames(mockContext, '', visibleInfo),
       ).to.not.throw();
     });
+
+    it('should pass for hidden column title used in group-by', () => {
+      const infoWithGroupBy = {
+        ...visibleInfo,
+        groupByColumnTitles: new Set(['SSN']),
+        groupByColumnNames: new Set(['ssn']),
+      };
+      expect(() =>
+        service.testValidateGroupByColumnNames(
+          mockContext,
+          'SSN',
+          infoWithGroupBy,
+        ),
+      ).to.not.throw();
+    });
+
+    it('should pass for hidden column_name used in group-by', () => {
+      const infoWithGroupBy = {
+        ...visibleInfo,
+        groupByColumnTitles: new Set(['SSN']),
+        groupByColumnNames: new Set(['ssn']),
+      };
+      expect(() =>
+        service.testValidateGroupByColumnNames(
+          mockContext,
+          'ssn',
+          infoWithGroupBy,
+        ),
+      ).to.not.throw();
+    });
+
+    it('should throw for hidden column not in group-by', () => {
+      const infoWithGroupBy = {
+        ...visibleInfo,
+        groupByColumnTitles: new Set(['SSN']),
+        groupByColumnNames: new Set(['ssn']),
+      };
+      expect(() =>
+        service.testValidateGroupByColumnNames(
+          mockContext,
+          'Salary',
+          infoWithGroupBy,
+        ),
+      ).to.throw();
+    });
   });
 
   describe('validateGroupColumnId', () => {
@@ -328,11 +383,35 @@ export function publicDatasSanitizeTest() {
         service.testValidateGroupColumnId(mockContext, '', visibleColumnIds),
       ).to.not.throw();
     });
+
+    it('should pass for hidden column used in group-by', () => {
+      const groupByIds = new Set(['col_c']);
+      expect(() =>
+        service.testValidateGroupColumnId(
+          mockContext,
+          'col_c',
+          visibleColumnIds,
+          groupByIds,
+        ),
+      ).to.not.throw();
+    });
+
+    it('should throw for hidden column not in group-by', () => {
+      const groupByIds = new Set(['col_c']);
+      expect(() =>
+        service.testValidateGroupColumnId(
+          mockContext,
+          'col_d',
+          visibleColumnIds,
+          groupByIds,
+        ),
+      ).to.throw();
+    });
   });
 
   describe('buildRestrictedAliasColObjMap', () => {
     it('should include visible columns by both id and title', () => {
-      const map = service.testBuildRestrictedAliasColObjMap(visibleColumns);
+      const map = service.testBuildRestrictedAliasColObjMap(visibleInfo);
       expect(map).to.have.property('col_a');
       expect(map).to.have.property('col_b');
       expect(map).to.have.property('Name');
@@ -340,10 +419,24 @@ export function publicDatasSanitizeTest() {
     });
 
     it('should not include hidden columns', () => {
-      const map = service.testBuildRestrictedAliasColObjMap(visibleColumns);
+      const map = service.testBuildRestrictedAliasColObjMap(visibleInfo);
       expect(map).to.not.have.property('col_c');
       expect(map).to.not.have.property('col_d');
       expect(map).to.not.have.property('SSN');
+      expect(map).to.not.have.property('Salary');
+    });
+
+    it('should include group-by columns', () => {
+      const infoWithGroupBy = {
+        ...visibleInfo,
+        groupByColumns: [hiddenColC],
+      };
+      const map = service.testBuildRestrictedAliasColObjMap(infoWithGroupBy);
+      expect(map).to.have.property('col_c');
+      expect(map).to.have.property('SSN');
+      expect(map).to.have.property('ssn');
+      // non-group-by hidden column still excluded
+      expect(map).to.not.have.property('col_d');
       expect(map).to.not.have.property('Salary');
     });
   });

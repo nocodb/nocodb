@@ -47,6 +47,8 @@ interface VisibleColumnInfo {
   groupByColumnTitles: Set<string>;
   /** Set of Column.column_name values used in group-by (grid views only) */
   groupByColumnNames: Set<string>;
+  /** The actual Column objects for group-by columns (grid views only) */
+  groupByColumns: Column[];
 }
 
 // todo: move to utils
@@ -108,6 +110,7 @@ export class PublicDatasService {
     const visibleColumns: Column[] = [];
     const groupByColumnTitles = new Set<string>();
     const groupByColumnNames = new Set<string>();
+    const groupByColumns: Column[] = [];
 
     for (const col of model.columns) {
       if (visibleColumnIds.has(col.id)) {
@@ -119,6 +122,7 @@ export class PublicDatasService {
       if (groupByColumnIds.has(col.id)) {
         if (col.title) groupByColumnTitles.add(col.title);
         if (col.column_name) groupByColumnNames.add(col.column_name);
+        groupByColumns.push(col);
       }
     }
 
@@ -130,6 +134,7 @@ export class PublicDatasService {
       groupByColumnIds,
       groupByColumnTitles,
       groupByColumnNames,
+      groupByColumns,
     };
   }
 
@@ -235,21 +240,26 @@ export class PublicDatasService {
   }
 
   /**
-   * Builds an alias-to-column map containing only visible columns.
-   * Same logic as Model.getAliasColObjMap but restricted to the given set.
+   * Builds an alias-to-column map containing visible and group-by columns.
+   * Same logic as Model.getAliasColObjMap but restricted to the given sets.
    */
   protected buildRestrictedAliasColObjMap(
-    visibleColumns: Column[],
+    visibleInfo: VisibleColumnInfo,
   ): Record<string, Column> {
-    const idReduce = visibleColumns.reduce(
+    const columns = [
+      ...visibleInfo.visibleColumns,
+      ...visibleInfo.groupByColumns,
+    ];
+
+    const idReduce = columns.reduce(
       (agg, c) => ({ ...agg, [c.id]: c }),
       {} as Record<string, Column>,
     );
-    const colNameReduce = visibleColumns.reduce(
+    const colNameReduce = columns.reduce(
       (agg, c) => ({ ...agg, [c.column_name]: c }),
       idReduce,
     );
-    return visibleColumns.reduce(
+    return columns.reduce(
       (agg, c) => ({ ...agg, [c.title]: c }),
       colNameReduce,
     );
@@ -281,9 +291,7 @@ export class PublicDatasService {
     // `where` string is deleted so BaseModel won't re-parse it with the
     // full (unrestricted) column set.
     if (listArgs.where) {
-      const restrictedMap = this.buildRestrictedAliasColObjMap(
-        visibleInfo.visibleColumns,
-      );
+      const restrictedMap = this.buildRestrictedAliasColObjMap(visibleInfo);
       const { filters: parsedWhereFilters } = extractFilterFromXwhere(
         context,
         listArgs.where,

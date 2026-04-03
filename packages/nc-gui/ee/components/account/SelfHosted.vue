@@ -16,8 +16,16 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
-const { licenses, isLoading, listLicenses, syncLicenses, createCheckoutSession, getCheckoutSession, getCustomerPortal } =
-  useOnPremLicense()
+const {
+  isSelfServeLicensePurchaseEnabled,
+  licenses,
+  isLoading,
+  listLicenses,
+  syncLicenses,
+  createCheckoutSession,
+  getCheckoutSession,
+  getCustomerPortal,
+} = useOnPremLicense()
 
 const isSyncing = ref(false)
 
@@ -211,7 +219,7 @@ const backToList = async () => {
 }
 
 onMounted(async () => {
-  if (afterPayment.value && sessionId.value) {
+  if (isSelfServeLicensePurchaseEnabled.value && afterPayment.value && sessionId.value) {
     await handleAfterPayment()
   } else {
     await listLicenses()
@@ -246,7 +254,7 @@ onBeforeUnmount(async () => {
             <div class="text-sm text-nc-content-gray-subtle text-center">
               {{ $t('labels.noSelfHostedLicenses') }}
             </div>
-            <div class="flex items-center gap-3">
+            <div v-if="isSelfServeLicensePurchaseEnabled" class="flex items-center gap-3">
               <NcButton type="primary" size="small" @click="onBuyLicense">
                 {{ $t('labels.buyYourFirstLicense') }}
               </NcButton>
@@ -265,14 +273,11 @@ onBeforeUnmount(async () => {
               >
                 <GeneralIcon icon="refresh" class="h-4 w-4" />
               </NcButton>
-              <NcButton
-                type="secondary"
-                size="small"
-                @click="onManageBilling"
-              >
+              <NcButton type="secondary" size="small" @click="onManageBilling">
                 {{ $t('labels.manageBilling') }}
               </NcButton>
               <NcButton
+                v-if="isSelfServeLicensePurchaseEnabled"
                 type="primary"
                 size="small"
                 data-testid="nc-self-hosted-buy-btn"
@@ -301,7 +306,10 @@ onBeforeUnmount(async () => {
                   <span class="opacity-70 font-normal">{{ $t('general.plan') }}:</span>
                   {{ $t(`objects.paymentPlan.${license.plan.title}`) }}
                 </div>
-                <div class="flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border-1" :class="statusClassNormalized(license.status)">
+                <div
+                  class="flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border-1"
+                  :class="statusClassNormalized(license.status)"
+                >
                   <span class="opacity-70 font-normal">{{ $t('labels.status') }}:</span>
                   {{ statusLabel(license.status) }}
                 </div>
@@ -315,7 +323,9 @@ onBeforeUnmount(async () => {
               </div>
 
               <div class="flex items-center bg-nc-bg-gray-light rounded-lg mb-3 h-10">
-                <div class="flex-none px-3 py-2 text-xs font-medium text-nc-content-gray-subtle border-r-1 border-nc-border-gray-medium">
+                <div
+                  class="flex-none px-3 py-2 text-xs font-medium text-nc-content-gray-subtle border-r-1 border-nc-border-gray-medium"
+                >
                   {{ $t('title.licenseKey') }}
                 </div>
                 <code class="nc-license-key-code flex-1 text-xs select-all break-all leading-5 px-3 py-2">
@@ -359,7 +369,7 @@ onBeforeUnmount(async () => {
         </template>
 
         <!-- Plan Select View -->
-        <template v-if="viewState === 'plan-select'">
+        <template v-if="isSelfServeLicensePurchaseEnabled && viewState === 'plan-select'">
           <div class="mb-6">
             <NcButton type="text" size="small" class="!-ml-2" @click="backToList">
               <div class="flex items-center gap-1">
@@ -378,7 +388,7 @@ onBeforeUnmount(async () => {
         </template>
 
         <!-- Checkout View -->
-        <template v-if="viewState === 'checkout'">
+        <template v-if="isSelfServeLicensePurchaseEnabled && viewState === 'checkout'">
           <div class="mb-6">
             <NcButton type="text" size="small" class="!-ml-2" @click="backToPlanSelect">
               <div class="flex items-center gap-1">
@@ -398,9 +408,11 @@ onBeforeUnmount(async () => {
         </template>
 
         <!-- Success View -->
-        <template v-if="viewState === 'success' && successLicense">
+        <template v-if="isSelfServeLicensePurchaseEnabled && viewState === 'success' && successLicense">
           <div class="flex flex-col items-center gap-6 py-10">
-            <div class="w-full max-w-[560px] border-1 border-nc-border-gray-medium rounded-2xl p-8 flex flex-col items-center gap-5">
+            <div
+              class="w-full max-w-[560px] border-1 border-nc-border-gray-medium rounded-2xl p-8 flex flex-col items-center gap-5"
+            >
               <div class="w-16 h-16 rounded-full bg-nc-bg-green-light flex items-center justify-center">
                 <GeneralIcon icon="ncCheck" class="h-8 w-8 text-nc-content-green-dark" />
               </div>
@@ -419,7 +431,9 @@ onBeforeUnmount(async () => {
               </div>
 
               <div class="flex items-center w-full bg-nc-bg-gray-light rounded-lg h-10">
-                <div class="flex-none px-3 py-2 text-xs font-medium text-nc-content-gray-subtle border-r-1 border-nc-border-gray-medium">
+                <div
+                  class="flex-none px-3 py-2 text-xs font-medium text-nc-content-gray-subtle border-r-1 border-nc-border-gray-medium"
+                >
                   {{ $t('title.licenseKey') }}
                 </div>
                 <code

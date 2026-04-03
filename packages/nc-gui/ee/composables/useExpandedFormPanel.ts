@@ -18,12 +18,7 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
   const activityExpanded = ref(false)
   const activeActivityTab = ref<'comments' | 'audits'>('comments')
 
-  const panelWidthCollapsed = useStorage('nc-expanded-form-panel-width', 420)
-  const panelWidthExpanded = useStorage('nc-expanded-form-panel-width-activity', 560)
-
-  const panelWidth = computed(() => {
-    return activityExpanded.value ? panelWidthExpanded.value : panelWidthCollapsed.value
-  })
+  const panelWidth = useStorage('nc-expanded-form-panel-width', 420)
 
   // Navigation callback set by the grid
   const rowNavigator = ref<{
@@ -116,8 +111,6 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
     activeRowState,
     isFullscreen,
     panelWidth,
-    panelWidthCollapsed,
-    panelWidthExpanded,
     isLoading,
     activityExpanded,
     activeActivityTab,

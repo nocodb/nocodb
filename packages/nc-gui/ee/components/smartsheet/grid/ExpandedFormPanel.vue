@@ -10,8 +10,6 @@ const {
   activeRowId,
   activeRowState,
   panelWidth,
-  panelWidthCollapsed,
-  panelWidthExpanded,
   isLoading,
   isFullscreen,
   activityExpanded,
@@ -60,13 +58,7 @@ const onResizeStart = (e: MouseEvent) => {
 const onResizeMove = (e: MouseEvent) => {
   if (!isResizing.value) return
   const delta = resizeStartX.value - e.clientX
-  const newWidth = Math.max(MIN_WIDTH, Math.min(getMaxWidth(), resizeStartWidth.value + delta))
-
-  if (activityExpanded.value) {
-    panelWidthExpanded.value = newWidth
-  } else {
-    panelWidthCollapsed.value = newWidth
-  }
+  panelWidth.value = Math.max(MIN_WIDTH, Math.min(getMaxWidth(), resizeStartWidth.value + delta))
 }
 
 const onResizeEnd = () => {
@@ -133,10 +125,14 @@ provide(ReloadRowDataHookInj, reloadHook)
 commentsDrawer.value = true
 
 watch(
-  () => activityExpanded.value && activeActivityTab.value === 'audits',
-  async (shouldLoadAudits) => {
-    if (shouldLoadAudits && activeRowId.value) {
-      await loadAudits(activeRowId.value, false)
+  [() => activityExpanded.value, () => activeActivityTab.value],
+  async ([expanded, tab]) => {
+    if (!expanded || !primaryKey.value) return
+
+    if (tab === 'comments') {
+      await loadComments(primaryKey.value, false)
+    } else if (tab === 'audits') {
+      await loadAudits(primaryKey.value, false)
     }
   },
 )

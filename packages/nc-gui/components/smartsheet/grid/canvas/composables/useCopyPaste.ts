@@ -422,8 +422,20 @@ export function useCopyPaste({
             const column = colsToPaste[j]
             if (!column) continue
 
-            // Collect junction-table-based LTAR columns (V1 MM, V2 om/mo/oo/mm) for bulk API
+            // Collect junction-table-based LTAR columns for bulk API
             if (isMMOrMMLike(column)) {
+              // Block bulk paste for OO and OM — paste moves records between rows, not suitable for bulk
+              if (
+                isOo(column) ||
+                (column.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.ONE_TO_MANY
+              ) {
+                if (!isInfoShown) {
+                  message.toast(t('msg.info.groupPasteIsNotSupportedOnOoOmColumn'))
+                  isInfoShown = true
+                }
+                continue
+              }
+
               if (!isPasteable(targetRow, column, false, true)) continue
 
               const pasteVal = convertCellData(
@@ -859,6 +871,7 @@ export function useCopyPaste({
           const props = []
 
           let pasteValue
+          let rangeBulkLtarOpsInfoShown = false
           // We can use this if we want to avoid same info multiple times per column
           const isColInfoShown = {} as Record<string, boolean>
           const rangeBulkLtarOps: { columnId: string; columnTitle: string; rowRef: any; oldValue: any; data: { operation: string; rowId: string; columnId: string; fk_related_model_id: string }[] }[] = []
@@ -870,8 +883,20 @@ export function useCopyPaste({
             if (!row || row.rowMeta.new) continue
 
             for (const col of cols) {
-              // Collect junction-table-based LTAR columns (V1 MM, V2 om/mo/oo/mm) for bulk API
+              // Collect junction-table-based LTAR columns for bulk API
               if (isMMOrMMLike(col)) {
+                // Block bulk paste for OO and OM — paste moves records between rows, not suitable for bulk
+                if (
+                  isOo(col) ||
+                  (col.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.ONE_TO_MANY
+                ) {
+                  if (!rangeBulkLtarOpsInfoShown) {
+                    message.toast(t('msg.info.groupPasteIsNotSupportedOnOoOmColumn'))
+                    rangeBulkLtarOpsInfoShown = true
+                  }
+                  continue
+                }
+
                 if (!isPasteable(row, col, false, true)) continue
 
                 const ltarPasteVal = convertCellData(

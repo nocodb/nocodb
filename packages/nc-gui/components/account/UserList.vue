@@ -18,19 +18,9 @@ const { copy } = useCopy()
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateUserSort } = useUserSorts('Org')
 
-const { $fetch: ncFetch } = useNuxtApp()
-
 const updateOrgRole = async (user: UserType, newRole: string) => {
   try {
-    const baseURL = api.instance.defaults.baseURL
-    await ncFetch(`${baseURL}/api/v1/users/${user.id}/org-role`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'xc-auth': (loggedInUser.value as any)?.token,
-      },
-      body: { org_role: newRole },
-    })
+    await api.instance.patch(`/api/v1/users/${user.id}/org-role`, { org_role: newRole })
     ;(user as any).org_roles = newRole
     message.success(t('msg.success.roleUpdated'))
   } catch (e: any) {

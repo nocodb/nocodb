@@ -312,19 +312,23 @@ const onResultDone = () => {
     </div>
 
     <!-- Token Created Modal -->
-    <NcModal v-model:visible="showResultModal" :closable="false" :mask-closable="false" :keyboard="false" size="sm" centered>
-      <div class="flex flex-col gap-4 p-1" data-testid="nc-token-result-modal">
-        <!-- Header -->
-        <div class="flex items-center gap-2">
-          <GeneralIcon icon="ncKey2" class="w-5 h-5 text-nc-content-gray flex-none" />
-          <span class="text-base font-bold text-nc-content-gray-extreme flex-1">
-            {{ $t('msg.info.tokenCreatedSuccessfully') }}
-          </span>
-          <GeneralIcon icon="circleCheck" class="w-5 h-5 text-green-600 flex-none" />
-        </div>
-
+    <NcModalConfirm
+      v-model:visible="showResultModal"
+      type="success"
+      :title="$t('msg.info.tokenCreatedSuccessfully')"
+      :ok-text="$t('general.done')"
+      :ok-props="{ disabled: !tokenCopied }"
+      :show-cancel-btn="false"
+      :mask-closable="false"
+      :keyboard="false"
+      :closable="false"
+      size="sm"
+      data-testid="nc-token-result-modal"
+      @ok="onResultDone"
+    >
+      <template #extraContent>
         <!-- Help text -->
-        <p class="text-sm text-nc-content-gray-muted mb-0 leading-5">
+        <p class="text-sm text-nc-content-gray-subtle2 mb-0 leading-5">
           {{ $t('msg.info.tokenResultHelpText') }}
         </p>
 
@@ -358,28 +362,9 @@ const onResultDone = () => {
         </div>
 
         <!-- Warning -->
-        <div class="flex items-start gap-2 bg-orange-50 border-1 border-orange-200 rounded-lg px-3 py-2.5">
-          <GeneralIcon icon="alertTriangle" class="w-4 h-4 text-orange-500 flex-none mt-0.5" />
-          <span class="text-xs text-orange-700 leading-4">
-            {{ $t('msg.info.tokenWontBeDisplayedAgain') }}
-          </span>
-        </div>
-
-        <!-- Footer -->
-        <div class="flex justify-end">
-          <NcButton
-            v-e="['c:api-token:done']"
-            type="primary"
-            size="small"
-            :disabled="!tokenCopied"
-            data-testid="nc-token-done-btn"
-            @click="onResultDone"
-          >
-            {{ $t('general.done') }}
-          </NcButton>
-        </div>
-      </div>
-    </NcModal>
+        <NcAlert type="warning" :description="$t('msg.info.tokenWontBeDisplayedAgain')" />
+      </template>
+    </NcModalConfirm>
   </div>
 </template>
 

@@ -7,11 +7,13 @@ import {
   PermissionKey,
   SqlUiFactory,
   UITypes,
+  dateFormats,
   getDateFormat,
   getDateTimeFormat,
   isSystemColumn,
   isVirtualCol,
   parseStringDate,
+  timeFormats,
   validateDateWithUnknownFormat,
 } from 'nocodb-sdk'
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
@@ -153,6 +155,26 @@ const hasSelectColumn = ref<boolean[]>([])
 const expansionPanel = ref<number[]>([])
 
 const autoInsertOption = ref<boolean>(false)
+
+function onFieldTypeChange(record: Record<string, any>) {
+  if (!record.meta) record.meta = {}
+
+  if (record.uidt === UITypes.Date) {
+    if (!record.meta.date_format) {
+      record.meta.date_format = 'YYYY-MM-DD'
+    }
+  } else if (record.uidt === UITypes.DateTime) {
+    if (!record.meta.date_format) {
+      record.meta.date_format = 'YYYY-MM-DD'
+    }
+    if (!record.meta.time_format) {
+      record.meta.time_format = 'HH:mm'
+    }
+    if (record.meta.is12hrFormat === undefined) {
+      record.meta.is12hrFormat = false
+    }
+  }
+}
 
 const inputRefs = ref<HTMLInputElement[]>([])
 
@@ -436,7 +458,12 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
         }
         d = parseStringDate(d, dateFormat)
       } else if (col.uidt === UITypes.DateTime && d) {
-        const dateTimeFormat = getDateTimeFormat(data[key])
+        let dateTimeFormat: string
+        if (col?.meta?.date_format && col?.meta?.time_format) {
+          dateTimeFormat = `${col.meta.date_format} ${col.meta.time_format}`
+        } else {
+          dateTimeFormat = getDateTimeFormat(data[key])
+        }
         d = dayjs(data[key], dateTimeFormat).format('YYYY-MM-DD HH:mm')
       }
       return {
@@ -1345,6 +1372,60 @@ function getErrorByTableName(tableName: string) {
                         </NcButton>
                       </div>
                     </template>
+                    <!-- Date/Time format options -->
+                    <div
+                      v-if="autoDetectFieldTypes && (record.uidt === UITypes.Date || record.uidt === UITypes.DateTime)"
+                      class="nc-import-field-format-options w-full mt-2 flex flex-col gap-2"
+                    >
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs text-nc-content-gray-subtle2 flex-none w-20">
+                          {{ $t('labels.dateFormat') }}
+                        </span>
+                        <NcSelect
+                          v-model:value="record.meta.date_format"
+                          class="nc-date-format-select flex-1 nc-select-shadow !border-none"
+                          :disabled="!record.selected"
+                          dropdown-class-name="nc-dropdown-date-format"
+                          show-search
+                          size="small"
+                        >
+                          <a-select-option v-for="format of dateFormats" :key="format" :value="format">
+                            <span class="text-sm">{{ format }}</span>
+                          </a-select-option>
+                        </NcSelect>
+                      </div>
+                      <template v-if="record.uidt === UITypes.DateTime">
+                        <div class="flex items-center gap-2">
+                          <span class="text-xs text-nc-content-gray-subtle2 flex-none w-20">
+                            {{ $t('labels.timeFormat') }}
+                          </span>
+                          <NcSelect
+                            v-model:value="record.meta.time_format"
+                            class="nc-time-format-select flex-1 nc-select-shadow !border-none"
+                            :disabled="!record.selected"
+                            dropdown-class-name="nc-dropdown-time-format"
+                            size="small"
+                          >
+                            <a-select-option v-for="format of timeFormats" :key="format" :value="format">
+                              <span class="text-sm">{{ format }}</span>
+                            </a-select-option>
+                          </NcSelect>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span class="text-xs text-nc-content-gray-subtle2 flex-none w-20">
+                            {{ $t('labels.format') }}
+                          </span>
+                          <a-radio-group
+                            v-model:value="record.meta.is12hrFormat"
+                            class="nc-import-time-format-toggle"
+                            size="small"
+                          >
+                            <a-radio :value="true">12 Hrs</a-radio>
+                            <a-radio :value="false">24 Hrs</a-radio>
+                          </a-radio-group>
+                        </div>
+                      </template>
+                    </div>
                     <NcTooltip v-if="formError?.[`tables.${tableIdx}.columns.${record.key}.title`]" class="flex">
                       <template #title>
                         <div
@@ -1365,6 +1446,7 @@ function getErrorByTableName(tableName: string) {
                       class="nc-field-type-select-input w-full nc-select-shadow !border-none"
                       :disabled="!record.selected"
                       dropdown-class-name="nc-dropdown-filter-field"
+                      @change="onFieldTypeChange(record)"
                     >
                       <template #suffixIcon>
                         <GeneralIcon icon="arrowDown" class="text-current" />
@@ -1415,6 +1497,14 @@ function getErrorByTableName(tableName: string) {
   .nc-table-header-row,
   .nc-table-row {
     @apply !border-none relative;
+  }
+
+  .nc-table-row:has(.nc-import-field-format-options) {
+    @apply !h-auto !min-h-[54px];
+  }
+
+  .nc-table-row:has(.nc-import-field-format-options) .nc-table-cell-column_name > div {
+    @apply flex-wrap py-2;
   }
 }
 
@@ -1500,6 +1590,29 @@ function getErrorByTableName(tableName: string) {
 
   &:not(.ant-select-focused):hover .ant-select-clear {
     @apply !bg-nc-bg-gray-medium;
+  }
+}
+
+:deep(.nc-date-format-select.ant-select),
+:deep(.nc-time-format-select.ant-select) {
+  .ant-select-selector {
+    @apply !bg-transparent rounded-lg !min-h-7;
+
+    .ant-select-selection-item {
+      @apply text-nc-content-gray text-xs font-weight-500;
+    }
+  }
+
+  &:not(.ant-select-focused):hover .ant-select-selector {
+    @apply !bg-nc-bg-gray-medium;
+  }
+}
+
+:deep(.nc-import-time-format-toggle) {
+  @apply flex gap-2;
+
+  .ant-radio-wrapper {
+    @apply text-xs text-nc-content-gray;
   }
 }
 </style>

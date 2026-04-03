@@ -1,4 +1,13 @@
-import { ButtonActionsType, type ColumnType, FieldNameFromUITypes, UITypes, UITypesName } from 'nocodb-sdk'
+import {
+  ButtonActionsType,
+  type ColumnType,
+  FieldNameFromUITypes,
+  UITypes,
+  UITypesName,
+  getDateFormat,
+  getDateTimeFormat,
+  validateDateWithUnknownFormat,
+} from 'nocodb-sdk'
 import isURL from 'validator/lib/isURL'
 import { pluralize } from 'inflection'
 
@@ -156,18 +165,87 @@ export const isUrlType = (colData: [], col?: number) =>
     return v && isURL(v.toString())
   })
 
+const dateTimeRegex = /[T ]\d{2}:\d{2}/
+
+export const isDateTimeType = (colData: [], col?: number) => {
+  const nonEmpty = colData.filter((r: any) => {
+    const v = getColVal(r, col)
+    return v !== null && v !== undefined && v !== ''
+  })
+  if (!nonEmpty.length) return false
+
+  return nonEmpty.every((r: any) => {
+    const v = String(getColVal(r, col))
+    return validateDateWithUnknownFormat(v) && dateTimeRegex.test(v)
+  })
+}
+
+export const isDateType = (colData: [], col?: number) => {
+  const nonEmpty = colData.filter((r: any) => {
+    const v = getColVal(r, col)
+    return v !== null && v !== undefined && v !== ''
+  })
+  if (!nonEmpty.length) return false
+
+  return nonEmpty.every((r: any) => {
+    const v = String(getColVal(r, col))
+    return validateDateWithUnknownFormat(v)
+  })
+}
+
+export const detectDateFormat = (colData: [], col?: number): string => {
+  const formatCounts: Record<string, number> = {}
+
+  for (const r of colData) {
+    const v = getColVal(r, col)
+    if (v === null || v === undefined || String(v).trim() === '') continue
+    const fmt = getDateFormat(String(v))
+    formatCounts[fmt] = (formatCounts[fmt] || 0) + 1
+  }
+
+  const keys = Object.keys(formatCounts)
+  if (!keys.length) return 'YYYY-MM-DD'
+  return keys.reduce((a, b) => (formatCounts[a] >= formatCounts[b] ? a : b))
+}
+
+export const detectDateTimeFormat = (colData: [], col?: number): { date_format: string; time_format: string } => {
+  const formatCounts: Record<string, number> = {}
+
+  for (const r of colData) {
+    const v = getColVal(r, col)
+    if (v === null || v === undefined || String(v).trim() === '') continue
+    const fmt = getDateTimeFormat(String(v))
+    formatCounts[fmt] = (formatCounts[fmt] || 0) + 1
+  }
+
+  const keys = Object.keys(formatCounts)
+  const topFormat = keys.length ? keys.reduce((a, b) => (formatCounts[a] >= formatCounts[b] ? a : b)) : 'YYYY/MM/DD HH:mm'
+
+  // Split combined format "YYYY-MM-DD HH:mm" into date and time parts
+  const parts = topFormat.split(/[T ](?=HH:)/)
+  return {
+    date_format: parts[0] || 'YYYY-MM-DD',
+    time_format: parts[1] || 'HH:mm',
+  }
+}
+
 export const getColumnUIDTAndMetas = (colData: [], defaultType: string) => {
-  const colProps = { uidt: defaultType }
+  const colProps: { uidt: string; meta?: Record<string, any> } = { uidt: defaultType }
 
   if (colProps.uidt === UITypes.SingleLineText) {
     // check for long text
     if (isMultiLineTextType(colData)) {
       colProps.uidt = UITypes.LongText
-    }
-    if (isEmailType(colData)) {
+    } else if (isDateTimeType(colData)) {
+      colProps.uidt = UITypes.DateTime
+      const { date_format, time_format } = detectDateTimeFormat(colData)
+      colProps.meta = { date_format, time_format }
+    } else if (isDateType(colData)) {
+      colProps.uidt = UITypes.Date
+      colProps.meta = { date_format: detectDateFormat(colData) }
+    } else if (isEmailType(colData)) {
       colProps.uidt = UITypes.Email
-    }
-    if (isUrlType(colData)) {
+    } else if (isUrlType(colData)) {
       colProps.uidt = UITypes.URL
     } else {
       if (isCheckboxType(colData)) {
@@ -182,7 +260,6 @@ export const getColumnUIDTAndMetas = (colData: [], defaultType: string) => {
     }
   }
   // TODO(import): currency
-  // TODO(import): date / datetime
   return colProps
 }
 

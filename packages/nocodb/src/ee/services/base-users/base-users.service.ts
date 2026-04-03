@@ -522,13 +522,11 @@ export class BaseUsersService extends BaseUsersServiceCE {
 
       // Ensure user is in org_users for this workspace's org
       if (base.fk_workspace_id) {
-        WorkspaceUser.ensureOrgUser(
+        await WorkspaceUser.ensureOrgUser(
           base.fk_workspace_id,
           user.id,
           ncMeta,
-        ).catch((e) => {
-          this.logger.error('Failed to ensure org user', e?.message);
-        });
+        );
       }
 
       const newBaseUser = await BaseUser.insert(

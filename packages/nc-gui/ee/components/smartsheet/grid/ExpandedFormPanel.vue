@@ -546,12 +546,25 @@ const showActivity = computed(() => {
   @apply !mb-0.5;
 }
 
-/* Match grid canvas font size (13px) for cell values */
-.nc-expanded-form-panel .nc-data-cell {
+/* Match grid canvas font (500 13px Inter) — needs high specificity to
+ * override scoped Cell.vue styles that use [data-v-*] + !important */
+.nc-expanded-form-panel .nc-expanded-form-row .nc-expanded-cell .nc-data-cell {
   font-size: 13px !important;
+  font-weight: 500 !important;
 
-  * {
-    font-size: inherit !important;
+  .nc-cell .nc-cell-field,
+  .nc-cell .nc-cell-field-link,
+  .nc-cell input,
+  .nc-cell textarea,
+  .nc-cell select,
+  .nc-cell .ant-tag,
+  .nc-cell .ant-select-selection-item,
+  .nc-virtual-cell .nc-cell-field,
+  .nc-virtual-cell .ant-tag,
+  .nc-virtual-cell .ant-select-selection-item,
+  .nc-virtual-cell input {
+    font-size: 13px !important;
+    font-weight: 500 !important;
   }
 }
 

@@ -6,10 +6,20 @@ export enum OrgUserRoles {
   VIEWER = 'org-level-viewer',
 }
 
+/**
+ * Enterprise org-level roles.
+ *
+ * ADMIN was originally named OWNER in cloud (stored as 'cloud-org-level-owner'
+ * in the DB). Renamed to ADMIN because "Admin" better describes the role —
+ * it's not a billing/subscription owner, it's an org administrator.
+ *
+ * OWNER is kept as a deprecated alias because cloud code references
+ * CloudOrgUserRoles.OWNER in ~20 places. Both map to the same DB value.
+ * New code should use ADMIN.
+ */
 export enum EnterpriseOrgUserRoles {
-  /** Org admin — displayed as "Admin" in UI. Same DB value as OWNER (alias). */
   ADMIN = 'cloud-org-level-owner',
-  /** @deprecated Alias for ADMIN — kept for cloud backward compat */
+  /** @deprecated Use ADMIN — kept for cloud backward compat only */
   OWNER = 'cloud-org-level-owner',
   CREATOR = 'cloud-org-level-creator',
   VIEWER = 'cloud-org-level-viewer',

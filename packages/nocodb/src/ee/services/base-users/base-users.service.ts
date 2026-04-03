@@ -526,7 +526,9 @@ export class BaseUsersService extends BaseUsersServiceCE {
           base.fk_workspace_id,
           user.id,
           ncMeta,
-        ).catch(() => {});
+        ).catch((e) => {
+          this.logger.error('Failed to ensure org user', e?.message);
+        });
       }
 
       const newBaseUser = await BaseUser.insert(

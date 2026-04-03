@@ -44,7 +44,6 @@ import {
 import Workspace from '~/models/Workspace';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { Team } from '~/ee/models';
-import OrgUser from '~/ee/models/OrgUser';
 import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
 import { extractUserTeamRoles } from '~/ee/utils/team-role-extractor';
 import { PrincipalType, ResourceType } from '~/utils/globals';
@@ -921,25 +920,7 @@ export class WorkspaceUsersService {
 
     await this.paymentService.reseatSubscription(workspace.id, ncMeta);
 
-    // Ensure invited users exist in nc_org_users
-    if (workspace.fk_org_id) {
-      for (const email of emails) {
-        const user = emailUserMap.get(email);
-        if (!user) continue;
-        try {
-          const existing = await OrgUser.get(workspace.fk_org_id, user.id);
-          if (!existing?.fk_user_id) {
-            await OrgUser.insert({
-              fk_org_id: workspace.fk_org_id,
-              fk_user_id: user.id,
-              roles: CloudOrgUserRoles.VIEWER,
-            });
-          }
-        } catch {
-          // Already exists — skip
-        }
-      }
-    }
+    // Org user sync is handled by WorkspaceUser.insert() automatically
 
     for (const postOperation of postOperations) {
       await postOperation();

@@ -22,6 +22,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { Base, BaseUser, User, WorkflowSubscriber, Workspace } from '~/models';
+import WorkspaceUser from '~/ee/models/WorkspaceUser';
 import { getProjectRole, getProjectRolePower } from '~/utils/roleHelper';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
@@ -518,6 +519,15 @@ export class BaseUsersService extends BaseUsersServiceCE {
       );
 
       emailUserMap?.set(email, user);
+
+      // Ensure user is in org_users for this workspace's org
+      if (base.fk_workspace_id) {
+        WorkspaceUser.ensureOrgUser(
+          base.fk_workspace_id,
+          user.id,
+          ncMeta,
+        ).catch(() => {});
+      }
 
       const newBaseUser = await BaseUser.insert(
         context,

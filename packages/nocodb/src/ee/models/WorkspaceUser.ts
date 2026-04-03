@@ -1077,7 +1077,7 @@ export default class WorkspaceUser {
    * Called after WorkspaceUser.insert() to keep org membership in sync.
    * Fire-and-forget — failures are logged but don't block the invite.
    */
-  private static async ensureOrgUser(
+  public static async ensureOrgUser(
     workspaceId: string,
     userId: string,
     ncMeta = Noco.ncMeta,
@@ -1101,13 +1101,16 @@ export default class WorkspaceUser {
 
     if (existing) return;
 
-    // Add as viewer
-    await ncMeta
-      .knexConnection(MetaTable.ORG_USERS)
-      .insert({
-        fk_org_id: orgId,
-        fk_user_id: userId,
-        roles: EnterpriseOrgUserRoles.CREATOR,
-      });
+    try {
+      await ncMeta
+        .knexConnection(MetaTable.ORG_USERS)
+        .insert({
+          fk_org_id: orgId,
+          fk_user_id: userId,
+          roles: EnterpriseOrgUserRoles.CREATOR,
+        });
+    } catch {
+      // Duplicate from race condition — safe to ignore
+    }
   }
 }

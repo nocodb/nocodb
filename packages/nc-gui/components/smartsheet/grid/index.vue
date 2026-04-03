@@ -196,52 +196,39 @@ provide(ReloadRowDataHookInj, reloadViewDataHook)
 
 const skipRowRemovalOnCancel = ref(false)
 
+function updateRowIdRoute(rowId: string, path: Array<number> = []) {
+  const routeParams = {
+    query: {
+      ...routeQuery.value,
+      rowId,
+      // Clear cell deep-link params — explicit expand always wins over the
+      // SmartText panel claim.
+      colId: undefined,
+      cellMode: undefined,
+      path: ncIsEmptyArray(path) ? undefined : path.join('-'),
+      expand: undefined,
+    },
+  }
+  if (routeQuery.value.expand) {
+    router.replace(routeParams)
+  } else {
+    router.push(routeParams)
+  }
+}
+
 function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, path: Array<number> = []) {
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
 
-  // EE desktop: open the right-side panel instead of modal
   if (isEeUI && !isMobileMode.value && !isPublic.value && rowId) {
     expandedFormPanelStore.openPanel(row, undefined, state)
-
-    // Update route for deep-linking
-    const routeParams = {
-      query: {
-        ...routeQuery.value,
-        rowId,
-        path: ncIsEmptyArray(path) ? undefined : path.join('-'),
-        expand: undefined,
-      },
-    }
-    if (routeQuery.value.expand) {
-      router.replace(routeParams)
-    } else {
-      router.push(routeParams)
-    }
+    updateRowIdRoute(rowId, path)
     return
   }
 
-  // Fallback: existing modal behavior (CE, mobile, public, new rows)
   expandedFormRowState.value = state
   if (rowId && !isPublic.value) {
     expandedFormRow.value = undefined
-
-    const routeParams = {
-      query: {
-        ...routeQuery.value,
-        rowId,
-        // Clear cell deep-link params — explicit expand always wins over the
-        // SmartText panel claim.
-        colId: undefined,
-        cellMode: undefined,
-        path: ncIsEmptyArray(path) ? undefined : path.join('-'),
-        expand: undefined,
-      },
-    }
-    if (routeQuery.value.expand) {
-      router.replace(routeParams)
-    } else {
-      router.push(routeParams)
-    }
+    updateRowIdRoute(rowId, path)
   } else {
     expandedFormRow.value = row
     expandedFormDlg.value = true
@@ -274,10 +261,6 @@ const expandedFormOnRowIdDlg = computed({
   },
   set(val) {
     if (!val) {
-      // Close panel if it's open
-      if (isExpandedFormPanelOpen.value) {
-        expandedFormPanelStore.closePanel()
-      }
       router.push({
         query: {
           ...routeQuery.value,
@@ -351,29 +334,15 @@ const updateViewWidth = () => {
 
 const isInfiniteScrollingEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING))
 
-// Wire row navigator for the expanded form panel
 expandedFormPanelRowNavigator.value = {
   getRow: (index: number) => {
-    if (isInfiniteScrollingEnabled.value) {
-      const row = cachedRows.value.get(index)
-      if (!row) return null
-      const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-      if (!rowId) return null
-      return { rowId, row }
-    } else {
-      const row = pData.value[index]
-      if (!row) return null
-      const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-      if (!rowId) return null
-      return { rowId, row }
-    }
+    const row = isInfiniteScrollingEnabled.value ? cachedRows.value.get(index) : pData.value[index]
+    if (!row) return null
+    const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+    if (!rowId) return null
+    return { rowId, row }
   },
-  totalRows: () => {
-    if (isInfiniteScrollingEnabled.value) {
-      return totalRows.value ?? 0
-    }
-    return pData.value.length
-  },
+  totalRows: () => (isInfiniteScrollingEnabled.value ? totalRows.value ?? 0 : pData.value.length),
 }
 
 const isCanvasTableEnabled = computed(() => !ncIsPlaywright())
@@ -694,7 +663,7 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
     <SmartsheetGridSmartTextPanel />
 
     <!-- Right-side expanded form panel -->
-    <SmartsheetGridExpandedFormPanel />
+    <SmartsheetGridExpandedFormPanel v-if="isExpandedFormPanelOpen" />
   </div>
 </template>
 

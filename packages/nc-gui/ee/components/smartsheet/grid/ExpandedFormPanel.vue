@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
+import type { TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 
 const panelStore = useExpandedFormPanelOrThrow()
@@ -18,14 +18,11 @@ const {
   activeActivityTab,
   hasPrev,
   hasNext,
-  activeDisplayValue,
 } = panelStore
 
 const { closePanel, setFullscreen, navigatePrev, navigateNext, toggleActivity } = panelStore
 
 const meta = inject(MetaInj, ref())
-
-const view = inject(ActiveViewInj, ref())
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -38,8 +35,6 @@ const { t } = useI18n()
 const { isMobileMode } = useGlobal()
 
 const panelRef = ref<HTMLElement>()
-
-// --- Resize handle ---
 
 const isResizing = ref(false)
 const resizeStartX = ref(0)
@@ -64,7 +59,6 @@ const onResizeStart = (e: MouseEvent) => {
 
 const onResizeMove = (e: MouseEvent) => {
   if (!isResizing.value) return
-  // Drag left = wider (handle is on left edge)
   const delta = resizeStartX.value - e.clientX
   const newWidth = Math.max(MIN_WIDTH, Math.min(getMaxWidth(), resizeStartWidth.value + delta))
 
@@ -86,8 +80,6 @@ onBeforeUnmount(() => {
   window.removeEventListener('mousemove', onResizeMove)
   window.removeEventListener('mouseup', onResizeEnd)
 })
-
-// --- Expanded form store (re-provided per row) ---
 
 const rowRef = computed(() => activeRow.value ?? { row: {}, oldRow: {}, rowMeta: {} } as Row)
 
@@ -122,7 +114,6 @@ const { isSqlView } = useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)
 
 useProvideSmartsheetLtarHelpers(meta)
 
-// Override cell click hook to avoid unexpected behavior
 provide(CellClickHookInj, undefined)
 provide(CanvasSelectCellInj, undefined)
 
@@ -130,7 +121,6 @@ const isExpanded = computed(() => isOpen.value)
 
 provide(IsExpandedFormOpenInj, isExpanded)
 
-// Reload hook for nested record updates
 const reloadHook = createEventHook()
 
 reloadHook.on(() => {
@@ -140,7 +130,6 @@ reloadHook.on(() => {
 
 provide(ReloadRowDataHookInj, reloadHook)
 
-// Force comments drawer open for sidebar access
 commentsDrawer.value = true
 
 const isSaving = ref(false)
@@ -149,21 +138,17 @@ const isSaveDisabled = computed(() => {
   return changedColumns.value.size === 0
 })
 
-// --- Row loading ---
-
 const triggerRowLoad = async (rowId?: string) => {
   isLoading.value = true
   await Promise.allSettled([loadComments(rowId, false), _loadRow(rowId)])
   isLoading.value = false
 }
 
-// Load row data when active row changes
 watch(
   activeRowId,
   async (newRowId) => {
     if (!newRowId || !isOpen.value) return
 
-    // Sync rowState from panel store
     if (activeRowState.value) {
       rowState.value = activeRowState.value
     } else {
@@ -178,8 +163,6 @@ watch(
   },
   { immediate: true },
 )
-
-// --- Save ---
 
 const save = async () => {
   isSaving.value = true
@@ -204,8 +187,6 @@ const save = async () => {
   isSaving.value = false
 }
 
-// --- Close with unsaved changes check ---
-
 const showDiscardModal = ref(false)
 
 const onClose = () => {
@@ -223,12 +204,14 @@ const discardAndClose = () => {
 }
 
 const saveAndClose = async () => {
-  await save()
-  showDiscardModal.value = false
-  closePanel()
+  try {
+    await save()
+    showDiscardModal.value = false
+    closePanel()
+  } catch {
+    // Save failed — keep panel open so user can retry
+  }
 }
-
-// --- Keyboard ---
 
 const onKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
@@ -252,8 +235,6 @@ const onKeydown = (e: KeyboardEvent) => {
     if (!isSaveDisabled.value) save()
   }
 }
-
-// --- Panel styles ---
 
 const panelStyle = computed(() => {
   if (isFullscreen.value) {
@@ -314,10 +295,10 @@ const showActivity = computed(() => {
         class="flex items-center h-[var(--topbar-height)] gap-2 px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0"
       >
         <!-- Display value -->
-        <NcTooltip v-if="activeDisplayValue && !isNew" show-on-truncate-only class="truncate min-w-0 flex-1">
-          <template #title>{{ activeDisplayValue }}</template>
+        <NcTooltip v-if="displayValue && !isNew" show-on-truncate-only class="truncate min-w-0 flex-1">
+          <template #title>{{ displayValue }}</template>
           <span class="nc-expanded-form-panel-display-value truncate font-bold text-body text-nc-content-gray">
-            {{ activeDisplayValue }}
+            {{ displayValue }}
           </span>
         </NcTooltip>
         <span v-else-if="isNew" class="truncate font-bold text-body text-nc-content-gray">

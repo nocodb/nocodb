@@ -7,15 +7,18 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
   const isOpen = ref(false)
   const activeRowId = ref<string | null>(null)
   const activeRowIndex = ref<number | null>(null)
+  const activeRow = ref<Row | null>(null)
+  const activeRowState = ref<Record<string, any> | null>(null)
   const isFullscreen = ref(false)
   const panelWidth = ref(420)
+  const panelWidthCollapsed = ref(420)
+  const panelWidthExpanded = ref(560)
   const isLoading = ref(false)
   const activityExpanded = ref(false)
   const activeActivityTab = ref<'comments' | 'audits'>('comments')
 
   const hasPrev = computed(() => false)
   const hasNext = computed(() => false)
-  const activeDisplayValue = computed(() => null)
 
   const rowNavigator = ref(null)
 
@@ -24,26 +27,31 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
   const setFullscreen = (_val: boolean) => {}
   const navigatePrev = () => {}
   const navigateNext = () => {}
+  const navigateToRow = (_index: number) => {}
   const toggleActivity = (_tab?: 'comments' | 'audits') => {}
 
   return {
     isOpen,
     activeRowId,
     activeRowIndex,
+    activeRow,
+    activeRowState,
     isFullscreen,
     panelWidth,
+    panelWidthCollapsed,
+    panelWidthExpanded,
     isLoading,
     activityExpanded,
     activeActivityTab,
     hasPrev,
     hasNext,
-    activeDisplayValue,
     rowNavigator,
     openPanel,
     closePanel,
     setFullscreen,
     navigatePrev,
     navigateNext,
+    navigateToRow,
     toggleActivity,
   }
 }, 'expanded-form-panel-store')

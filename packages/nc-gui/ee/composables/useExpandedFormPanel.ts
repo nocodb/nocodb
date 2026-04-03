@@ -6,6 +6,7 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
 
   const { isMobileMode } = useGlobal()
 
+
   const isOpen = ref(false)
   const activeRowId = ref<string | null>(null)
   const activeRowIndex = ref<number | null>(null)
@@ -35,14 +36,6 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
   const hasNext = computed(() => {
     if (activeRowIndex.value == null || !rowNavigator.value) return false
     return activeRowIndex.value < rowNavigator.value.totalRows() - 1
-  })
-
-  const activeDisplayValue = computed(() => {
-    if (!activeRow.value || !meta.value?.columns) return null
-    const pvCol = meta.value.columns.find((c: ColumnType) => c.pv)
-    if (!pvCol?.title) return null
-    const val = activeRow.value.row[pvCol.title]
-    return val != null && val !== '' ? String(val) : null
   })
 
   const openPanel = (row: Row, rowIndex?: number, state?: Record<string, any>) => {
@@ -133,7 +126,6 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
     activeActivityTab,
     hasPrev,
     hasNext,
-    activeDisplayValue,
     rowNavigator,
     openPanel,
     closePanel,

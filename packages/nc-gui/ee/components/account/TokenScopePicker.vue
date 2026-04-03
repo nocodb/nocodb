@@ -218,7 +218,7 @@ const toggleBaseDropdown = () => {
         v-model:visible="showBaseDropdown"
         :trigger="['click']"
         placement="bottomLeft"
-        overlay-class-name="nc-scope-base-dropdown"
+        overlay-class-name="nc-scope-base-dropdown overflow-hidden"
       >
         <NcButton
           v-e="['c:api-token:add-base']"
@@ -294,7 +294,7 @@ const toggleBaseDropdown = () => {
 }
 
 .nc-scope-dropdown-content {
-  @apply w-80 bg-nc-bg-default rounded-lg shadow-lg border-1 border-nc-border-gray-medium;
+  @apply w-80;
 }
 
 .nc-scope-dropdown-item {

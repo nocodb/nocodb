@@ -120,7 +120,7 @@ const getLevelLabel = (level: string) => {
         v-model:visible="showAddDropdown"
         :trigger="['click']"
         placement="bottomLeft"
-        overlay-class-name="nc-perm-add-dropdown"
+        overlay-class-name="nc-perm-add-dropdown overflow-hidden"
       >
         <NcButton
           v-e="['c:api-token:add-permission']"
@@ -170,7 +170,7 @@ const getLevelLabel = (level: string) => {
 }
 
 .nc-perm-dropdown-content {
-  @apply w-72 bg-nc-bg-default rounded-lg shadow-lg border-1 border-nc-border-gray-medium py-1 max-h-64 overflow-y-auto nc-scrollbar-thin;
+  @apply w-72 py-1 max-h-64 overflow-y-auto nc-scrollbar-thin;
 }
 
 .nc-perm-dropdown-item {

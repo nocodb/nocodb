@@ -133,6 +133,43 @@ export default class OrgUser {
   }
 
   static async insert(param: OrgUserType, ncMeta = Noco.ncMeta) {
+    // Reactivate if soft-deleted row exists
+    const existing = await ncMeta.metaGet2(
+      RootScopes.ORG,
+      RootScopes.ORG,
+      MetaTable.ORG_USERS,
+      {
+        fk_org_id: param.fk_org_id,
+        fk_user_id: param.fk_user_id,
+      },
+    );
+
+    if (existing?.deleted) {
+      await ncMeta.metaUpdate(
+        RootScopes.ORG,
+        RootScopes.ORG,
+        MetaTable.ORG_USERS,
+        {
+          deleted: false,
+          deleted_at: null,
+          roles: param.roles || existing.roles,
+        },
+        {
+          fk_org_id: param.fk_org_id,
+          fk_user_id: param.fk_user_id,
+        },
+      );
+
+      await NocoCache.del('root', `orgOwners`);
+
+      return new OrgUser({
+        ...existing,
+        deleted: false,
+        deleted_at: null,
+        roles: param.roles || existing.roles,
+      });
+    }
+
     const user = await ncMeta.metaInsert2(
       RootScopes.ORG,
       RootScopes.ORG,

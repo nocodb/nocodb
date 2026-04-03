@@ -1099,7 +1099,17 @@ export default class WorkspaceUser {
       .where('fk_user_id', userId)
       .first();
 
-    if (existing) return;
+    if (existing) {
+      // Reactivate if soft-deleted (user was removed from org, now re-invited to a workspace)
+      if (existing.deleted) {
+        await ncMeta
+          .knexConnection(MetaTable.ORG_USERS)
+          .where('fk_org_id', orgId)
+          .where('fk_user_id', userId)
+          .update({ deleted: false, deleted_at: null });
+      }
+      return;
+    }
 
     try {
       await ncMeta

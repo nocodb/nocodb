@@ -3,7 +3,10 @@ import { EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { OrgUserReqType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
-import { OrgUser, PresignedUrl, User } from '~/models';
+import { OrgUser, PresignedUrl, User, Workspace } from '~/models';
+import WorkspaceUser from '~/ee/models/WorkspaceUser';
+import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
 
 @Injectable()
 export class OrgUsersService {
@@ -15,6 +18,7 @@ export class OrgUsersService {
     userProps: OrgUserReqType;
     req: NcRequest;
   }) {
+    // OrgUser.get() returns null for soft-deleted rows
     const orgUser = await OrgUser.get(param.orgId, param.userId);
 
     if (orgUser) {
@@ -27,11 +31,32 @@ export class OrgUsersService {
       NcError.notFound('User not found');
     }
 
-    await OrgUser.insert({
-      fk_org_id: param.orgId,
-      fk_user_id: param.userId,
-      roles: param.userProps.roles,
-    });
+    // Check for soft-deleted row and reactivate
+    const ncMeta = Noco.ncMeta;
+    const softDeleted = await ncMeta
+      .knexConnection(MetaTable.ORG_USERS)
+      .where('fk_org_id', param.orgId)
+      .where('fk_user_id', param.userId)
+      .where('deleted', true)
+      .first();
+
+    if (softDeleted) {
+      await ncMeta
+        .knexConnection(MetaTable.ORG_USERS)
+        .where('fk_org_id', param.orgId)
+        .where('fk_user_id', param.userId)
+        .update({
+          deleted: false,
+          deleted_at: null,
+          roles: param.userProps.roles || EnterpriseOrgUserRoles.CREATOR,
+        });
+    } else {
+      await OrgUser.insert({
+        fk_org_id: param.orgId,
+        fk_user_id: param.userId,
+        roles: param.userProps.roles,
+      });
+    }
 
     return { msg: 'User added to organization' };
   }
@@ -55,7 +80,22 @@ export class OrgUsersService {
       NcError.notFound('User not found in organization');
     }
 
+    // Soft-delete from org
     await OrgUser.softDelete(param.orgId, param.userId);
+
+    // Remove from all workspaces in this org
+    const ncMeta = Noco.ncMeta;
+    const orgWorkspaces = await ncMeta
+      .knexConnection(MetaTable.WORKSPACE)
+      .where('fk_org_id', param.orgId)
+      .where(function () {
+        this.where('deleted', false).orWhereNull('deleted');
+      })
+      .select('id');
+
+    for (const ws of orgWorkspaces) {
+      await WorkspaceUser.softDelete(ws.id, param.userId, ncMeta);
+    }
 
     return { msg: 'User removed from organization' };
   }

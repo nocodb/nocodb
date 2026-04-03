@@ -29,7 +29,10 @@ export default class OrgUser {
   }
 
   /**
-   * List org users directly from nc_org_users.
+   * List org users from nc_org_users with workspace data.
+   * Reads membership from nc_org_users (not derived from workspace joins).
+   * Workspace data joined back for cloud admin panel display.
+   * ARRAY_AGG is PG-only — cloud is always PG.
    */
   static async list(orgId: string, ncMeta = Noco.ncMeta) {
     const queryBuilder = ncMeta
@@ -42,27 +45,74 @@ export default class OrgUser {
         `${MetaTable.USERS}.created_at as created_at`,
         `${MetaTable.USERS}.meta`,
         `${MetaTable.ORG_USERS}.roles as cloud_org_roles`,
+        ncMeta.knex.raw(
+          `COALESCE(ARRAY_AGG(DISTINCT JSON_BUILD_OBJECT('id', ??, 'created_at', ??, 'roles', ??, 'title', ??)::text) FILTER (WHERE ?? IS NOT NULL), '{}') as workspaces`,
+          [
+            `${MetaTable.WORKSPACE}.id`,
+            `${MetaTable.WORKSPACE_USER}.created_at`,
+            `${MetaTable.WORKSPACE_USER}.roles`,
+            `${MetaTable.WORKSPACE}.title`,
+            `${MetaTable.WORKSPACE}.id`,
+          ],
+        ),
       )
       .innerJoin(
         MetaTable.USERS,
         `${MetaTable.ORG_USERS}.fk_user_id`,
         `${MetaTable.USERS}.id`,
       )
+      .leftJoin(MetaTable.WORKSPACE_USER, function () {
+        this.on(
+          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+          '=',
+          `${MetaTable.ORG_USERS}.fk_user_id`,
+        ).andOn(
+          ncMeta.knex.raw(
+            `COALESCE(??, false) = false`,
+            [`${MetaTable.WORKSPACE_USER}.deleted`],
+          ),
+        );
+      })
+      .leftJoin(MetaTable.WORKSPACE, function () {
+        this.on(
+          `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+          '=',
+          `${MetaTable.WORKSPACE}.id`,
+        ).andOn(
+          `${MetaTable.WORKSPACE}.fk_org_id`,
+          '=',
+          ncMeta.knex.raw('?', [orgId]),
+        );
+      })
       .where(`${MetaTable.ORG_USERS}.fk_org_id`, orgId)
       .where(function () {
         this.where(`${MetaTable.USERS}.is_deleted`, false).orWhereNull(
           `${MetaTable.USERS}.is_deleted`,
         );
-      });
+      })
+      .groupBy(
+        `${MetaTable.USERS}.id`,
+        `${MetaTable.USERS}.email`,
+        `${MetaTable.USERS}.display_name`,
+        `${MetaTable.USERS}.roles`,
+        `${MetaTable.USERS}.created_at`,
+        `${MetaTable.USERS}.meta`,
+        `${MetaTable.ORG_USERS}.roles`,
+      );
 
     OrgUser.notDeleted(queryBuilder);
 
-    const res = await queryBuilder;
+    let res = await queryBuilder;
 
-    return res.map((r) => {
+    res = res.map((r) => {
+      r.workspaces = (r.workspaces || []).map((w) =>
+        typeof w === 'string' ? JSON.parse(w) : w,
+      );
       r.meta = parseMetaProp(r);
       return r;
     });
+
+    return res;
   }
 
   static async get(orgId: string, userId: string, ncMeta = Noco.ncMeta) {

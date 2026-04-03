@@ -113,7 +113,7 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
             data-testid="create-new-sync"
             @click="
               () => {
-                if (!appInfo.value?.ee) {
+                if (!appInfo?.ee) {
                   showUpgradeToUseSync()
                   return
                 }

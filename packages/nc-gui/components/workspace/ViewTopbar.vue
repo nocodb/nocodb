@@ -22,7 +22,7 @@ const workspaceTitle = computed(() => {
 </script>
 
 <template>
-  <div class="flex items-center gap-2 px-3 h-[var(--topbar-height)] flex-none border-b-1 border-nc-border-gray-medium">
+  <div class="flex items-center gap-2 px-2 sm:px-4 h-[var(--topbar-height)] flex-none border-b-1 border-nc-border-gray-medium">
     <GeneralOpenLeftSidebarBtn />
     <h1 class="text-bodyLgBold text-nc-content-gray capitalize truncate mb-0" data-testid="nc-ws-home-topbar-title">
       {{ workspaceTitle }}

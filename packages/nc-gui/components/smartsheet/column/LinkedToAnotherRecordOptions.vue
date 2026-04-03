@@ -565,7 +565,7 @@ const handleScrollIntoView = () => {
     </div>
     <div
       v-if="isUpgradeable"
-      class="flex items-center justify-between bg-orange-50 rounded-lg px-3 py-2 -mt-2"
+      class="flex items-center justify-between bg-nc-orange-50 dark:bg-nc-orange-20 rounded-lg px-3 py-2 -mt-2"
       data-testid="nc-ltar-upgrade-banner"
     >
       <div class="flex items-center gap-2">

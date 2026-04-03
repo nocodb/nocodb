@@ -147,7 +147,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="bases.length || isFilterApplied" class="nc-bases-section mb-6">
+  <div v-if="bases.length || isFilterApplied" class="nc-bases-section mb-6" style="container-type: inline-size">
     <div class="flex items-center gap-2 mb-4 text-xs font-medium text-nc-content-gray-muted capitalize tracking-wide">
       <GeneralIcon
         :icon="sectionConfig.icon"
@@ -156,12 +156,7 @@ onBeforeUnmount(() => {
       />
       <span>{{ sectionConfig.label }}</span>
     </div>
-    <div
-      v-if="bases.length"
-      ref="gridRef"
-      class="nc-bases-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3"
-      :class="{ dragging }"
-    >
+    <div v-if="bases.length" ref="gridRef" class="nc-bases-grid grid grid-cols-1 gap-3" :class="{ dragging }">
       <WorkspaceBaseListModalBaseNode
         v-for="base in bases"
         :key="base.id"
@@ -184,6 +179,33 @@ onBeforeUnmount(() => {
 }
 
 .nc-bases-grid {
+  // Fallback for browsers without container query support
+  @supports not (container-type: inline-size) {
+    @media (min-width: 540px) {
+      @apply grid-cols-2;
+    }
+
+    @media (min-width: 1024px) {
+      @apply grid-cols-3;
+    }
+
+    @media (min-width: 1440px) {
+      @apply grid-cols-4;
+    }
+  }
+
+  @container (min-width: 540px) {
+    @apply grid-cols-2;
+  }
+
+  @container (min-width: 820px) {
+    @apply grid-cols-3;
+  }
+
+  @container (min-width: 1140px) {
+    @apply grid-cols-4;
+  }
+
   .ghost,
   .ghost > * {
     @apply !pointer-events-none;

@@ -31,6 +31,7 @@ import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { MailEvent } from '~/interface/Mail';
 import { ensureUserInDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
+import { ensureUserInDefaultOrg } from '~/helpers/verifyDefaultOrg';
 
 @Injectable()
 export class OrgUsersService {
@@ -232,6 +233,8 @@ export class OrgUsersService {
             user.id,
             WorkspaceUserRoles.NO_ACCESS,
           );
+
+          await ensureUserInDefaultOrg(user.id);
 
           const count = await User.count();
 

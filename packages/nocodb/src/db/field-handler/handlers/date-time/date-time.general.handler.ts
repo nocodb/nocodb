@@ -53,6 +53,7 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
       'isnot',
       'is',
       'isWithin',
+      'in',
     ];
     if (!supportedOperations.includes(filter.comparison_op)) {
       return {
@@ -69,7 +70,7 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
           filter.value === null ||
           typeof filter.value === 'undefined' ||
           filter.value === '' ||
-          (filter.comparison_op === 'in' && Array.isArray(filter.value))
+          filter.comparison_op === 'in'
         )
       ) {
         const dateTimeValue = await parseDateTimeValue(filter.value, {
@@ -378,6 +379,15 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
         anchorDate = now.add(Number(filter.value), 'day');
         break;
     }
+    // for 'in' operator, bypass date-specific parsing and delegate to generic handler
+    if (filter.comparison_op === 'in') {
+      return await this.handleFilter(
+        { val: filter.value, sourceField: field },
+        { knex, filter, column },
+        options,
+      );
+    }
+
     // for straight date value without sub op
     if (!filter.comparison_sub_op && filter.value) {
       anchorDate = this.parseFilterValue(

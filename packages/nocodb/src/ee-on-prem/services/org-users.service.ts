@@ -5,6 +5,8 @@ import { MetaTable, NC_DEFAULT_ORG_ID } from '~/utils/globals';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
 import { PresignedUrl } from '~/models';
+import OrgUser from '~/ee/models/OrgUser';
+import WorkspaceUser from '~/ee/models/WorkspaceUser';
 
 @Injectable()
 export class OrgUsersService extends OrgUsersServiceCE {
@@ -39,6 +41,11 @@ export class OrgUsersService extends OrgUsersServiceCE {
       )
       .where(`${MetaTable.ORG_USERS}.fk_org_id`, orgId)
       .where(function () {
+        this.where(`${MetaTable.ORG_USERS}.deleted`, false).orWhereNull(
+          `${MetaTable.ORG_USERS}.deleted`,
+        );
+      })
+      .where(function () {
         this.where(`${MetaTable.USERS}.is_deleted`, false).orWhereNull(
           `${MetaTable.USERS}.is_deleted`,
         );
@@ -63,6 +70,11 @@ export class OrgUsersService extends OrgUsersServiceCE {
         `${MetaTable.USERS}.id`,
       )
       .where(`${MetaTable.ORG_USERS}.fk_org_id`, orgId)
+      .where(function () {
+        this.where(`${MetaTable.ORG_USERS}.deleted`, false).orWhereNull(
+          `${MetaTable.ORG_USERS}.deleted`,
+        );
+      })
       .where(function () {
         this.where(`${MetaTable.USERS}.is_deleted`, false).orWhereNull(
           `${MetaTable.USERS}.is_deleted`,
@@ -123,5 +135,46 @@ export class OrgUsersService extends OrgUsersServiceCE {
       .where('fk_org_id', orgId)
       .where('fk_user_id', param.userId)
       .update({ roles: param.orgRole });
+  }
+
+  /**
+   * Remove user from org: soft-delete org membership + remove from
+   * all workspaces and bases in the org.
+   */
+  async removeFromOrg(param: { userId: string }) {
+    const orgId = Noco.ncDefaultOrgId || NC_DEFAULT_ORG_ID;
+    const ncMeta = Noco.ncMeta;
+
+    // Prevent removing the last owner
+    const owners = await ncMeta
+      .knexConnection(MetaTable.ORG_USERS)
+      .where('fk_org_id', orgId)
+      .where('roles', EnterpriseOrgUserRoles.OWNER)
+      .where(function () {
+        this.where('deleted', false).orWhereNull('deleted');
+      });
+
+    if (
+      owners.length <= 1 &&
+      owners[0]?.fk_user_id === param.userId
+    ) {
+      NcError.badRequest('Cannot remove the last org owner');
+    }
+
+    // Soft-delete from org
+    await OrgUser.softDelete(orgId, param.userId, ncMeta);
+
+    // Remove from all workspaces in this org
+    const orgWorkspaces = await ncMeta
+      .knexConnection(MetaTable.WORKSPACE)
+      .where('fk_org_id', orgId)
+      .where(function () {
+        this.where('deleted', false).orWhereNull('deleted');
+      })
+      .select('id');
+
+    for (const ws of orgWorkspaces) {
+      await WorkspaceUser.softDelete(ws.id, param.userId, ncMeta);
+    }
   }
 }

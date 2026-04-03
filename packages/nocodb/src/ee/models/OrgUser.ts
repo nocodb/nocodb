@@ -11,15 +11,25 @@ export default class OrgUser {
   fk_user_id: string;
   fk_org_id: string;
   roles: string;
+  deleted?: boolean;
+  deleted_at?: string;
 
   constructor(props) {
     Object.assign(this, props);
   }
 
   /**
+   * Filter condition to exclude soft-deleted org users.
+   * Reusable across all queries.
+   */
+  private static notDeleted(qb: any, alias = MetaTable.ORG_USERS) {
+    qb.where(function () {
+      this.where(`${alias}.deleted`, false).orWhereNull(`${alias}.deleted`);
+    });
+  }
+
+  /**
    * List org users directly from nc_org_users.
-   * Previously derived from workspace joins (PG-only ARRAY_AGG).
-   * Now that nc_org_users is properly populated, read directly.
    */
   static async list(orgId: string, ncMeta = Noco.ncMeta) {
     const queryBuilder = ncMeta
@@ -45,6 +55,8 @@ export default class OrgUser {
         );
       });
 
+    OrgUser.notDeleted(queryBuilder);
+
     const res = await queryBuilder;
 
     return res.map((r) => {
@@ -64,7 +76,10 @@ export default class OrgUser {
       },
     );
 
-    return new OrgUser(user);
+    // Return null if soft-deleted
+    if (user?.deleted) return null;
+
+    return user ? new OrgUser(user) : null;
   }
 
   static async insert(param: OrgUserType, ncMeta = Noco.ncMeta) {
@@ -76,6 +91,7 @@ export default class OrgUser {
         fk_org_id: param.fk_org_id,
         fk_user_id: param.fk_user_id,
         roles: param.roles,
+        deleted: false,
       },
       true,
     );
@@ -91,7 +107,7 @@ export default class OrgUser {
     updateBody: Partial<OrgUser>,
     ncMeta = Noco.ncMeta,
   ) {
-    const updateObj = extractProps(updateBody, ['role']);
+    const updateObj = extractProps(updateBody, ['roles', 'deleted', 'deleted_at']);
 
     await ncMeta.metaUpdate(
       RootScopes.ORG,
@@ -103,6 +119,16 @@ export default class OrgUser {
         fk_org_id: orgId,
       },
     );
+  }
+
+  /**
+   * Soft-delete a user from an org.
+   */
+  static async softDelete(orgId: string, userId: string, ncMeta = Noco.ncMeta) {
+    await this.update(userId, orgId, {
+      deleted: true,
+      deleted_at: new Date().toISOString(),
+    } as any, ncMeta);
   }
 
   static async getOwnedOrgs(userId: string, ncMeta = Noco.ncMeta) {
@@ -118,6 +144,6 @@ export default class OrgUser {
       },
     );
 
-    return orgs;
+    return orgs.filter((o) => !o.deleted);
   }
 }

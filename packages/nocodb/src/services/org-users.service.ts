@@ -154,11 +154,11 @@ export class OrgUsersService {
       // delete workspace user entries (with cache invalidation)
       await WorkspaceUser.softDeleteByUser(param.userId, ncMeta);
 
-      // remove from org_users
+      // soft-delete from org_users
       await ncMeta
         .knexConnection(MetaTable.ORG_USERS)
         .where('fk_user_id', param.userId)
-        .del();
+        .update({ deleted: true, deleted_at: new Date().toISOString() });
 
       // delete refresh tokens
       await UserRefreshToken.deleteAllUserToken(param.userId, ncMeta);

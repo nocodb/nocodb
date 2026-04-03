@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Req, UseGuards } from '@nestjs/common';
 import { EnterpriseOrgUserRoles, OrgUserRoles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { OrgUsersController as OrgUsersControllerCE } from 'src/controllers/org-users.controller';
@@ -48,5 +48,19 @@ export class OrgUsersController extends OrgUsersControllerCE {
       orgRole: body.org_role,
     });
     return { msg: 'Org role updated' };
+  }
+
+  @Delete('/api/v1/users/:userId/org')
+  @Acl('userDelete', {
+    scope: 'org',
+    allowedRoles: [
+      OrgUserRoles.SUPER_ADMIN,
+      EnterpriseOrgUserRoles.OWNER,
+    ],
+    blockApiTokenAccess: true,
+  })
+  async removeFromOrg(@Param('userId') userId: string) {
+    await (this.orgUsersService as any).removeFromOrg({ userId });
+    return { msg: 'User removed from organization' };
   }
 }

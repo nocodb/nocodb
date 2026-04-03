@@ -74,6 +74,18 @@ export async function up(knex: Knex) {
         // Index might already exist
       }
     }
+
+    // Add deleted/deleted_at columns for soft-delete support
+    const hasDeleted = await knex.schema.hasColumn(
+      MetaTable.ORG_USERS,
+      'deleted',
+    );
+    if (!hasDeleted) {
+      await knex.schema.alterTable(MetaTable.ORG_USERS, (table) => {
+        table.boolean('deleted').defaultTo(false);
+        table.timestamp('deleted_at').nullable();
+      });
+    }
   }
 
   // Step 2: Create default org for on-prem / CE (idempotent)

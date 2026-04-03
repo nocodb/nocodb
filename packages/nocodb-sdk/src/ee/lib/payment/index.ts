@@ -41,6 +41,10 @@ export const CloudPlanDefinitions: Record<
   // -------------------------------------------------------------------------
   [PlanTitles.FREE]: {
     features: {
+      // Free-tier features that are gated (disabled on Free, enabled on all paid plans)
+      [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]: false,
+      [PlanFeatureTypes.FEATURE_DISCUSSION_MODE]: false,
+      [PlanFeatureTypes.FEATURE_GROUP_BY_AGGREGATIONS]: false,
       // Plus+ features (disabled at Free)
       [PlanFeatureTypes.FEATURE_AI]: false,
       [PlanFeatureTypes.FEATURE_AT_MENTION]: false,
@@ -201,8 +205,6 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 50000,
       [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 2,
       [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 20000,
-      [PlanLimitTypes.LIMIT_TABLE_PER_BASE]: 500,
-      [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]: 5120,
       [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 60,
       [PlanLimitTypes.LIMIT_WORKFLOW_RUN]: 75000,
     },
@@ -234,8 +236,6 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 5,
       [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 100000,
       [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 5,
-      [PlanLimitTypes.LIMIT_TABLE_PER_BASE]: 500,
-      [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]: 5120,
       [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 180,
       [PlanLimitTypes.LIMIT_WORKFLOW_RUN]: 150000,
     },
@@ -256,8 +256,6 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 1000000,
       [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 25,
       [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 500000,
-      [PlanLimitTypes.LIMIT_TABLE_PER_BASE]: 500,
-      [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]: 5120,
       [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 365,
       [PlanLimitTypes.LIMIT_WORKFLOW_RUN]: 750000,
     },

@@ -125,7 +125,10 @@ export async function up(knex: Knex) {
     // Backfill: add all workspace users to org_users (deduplicated)
     const workspaceUsers = await knex(MetaTable.WORKSPACE_USER)
       .distinct('fk_user_id')
-      .whereNotNull('fk_user_id');
+      .whereNotNull('fk_user_id')
+      .where(function () {
+        this.where('deleted', false).orWhereNull('deleted');
+      });
 
     for (const wu of workspaceUsers) {
       if (wu.fk_user_id === superUser.id) continue; // Already added as owner
@@ -166,7 +169,12 @@ export async function up(knex: Knex) {
         `${MetaTable.WORKSPACE}.id`,
       )
       .where(`${MetaTable.WORKSPACE}.fk_org_id`, org.id)
-      .whereNotNull(`${MetaTable.WORKSPACE_USER}.fk_user_id`);
+      .whereNotNull(`${MetaTable.WORKSPACE_USER}.fk_user_id`)
+      .where(function () {
+        this.where(`${MetaTable.WORKSPACE_USER}.deleted`, false).orWhereNull(
+          `${MetaTable.WORKSPACE_USER}.deleted`,
+        );
+      });
 
     for (const wu of orgWorkspaceUsers) {
       try {

@@ -49,7 +49,7 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
       return
     }
 
-    activeRow.value = row
+    activeRow.value = { row: { ...row.row }, oldRow: { ...row.row }, rowMeta: { ...row.rowMeta } }
     activeRowId.value = rowId || null
     if (rowIndex != null) activeRowIndex.value = rowIndex
     activeRowState.value = state || null
@@ -79,7 +79,7 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
 
     activeRowId.value = rowInfo.rowId
     activeRowIndex.value = rowIndex
-    activeRow.value = rowInfo.row
+    activeRow.value = { row: { ...rowInfo.row.row }, oldRow: { ...rowInfo.row.row }, rowMeta: { ...rowInfo.row.rowMeta } }
     activeRowState.value = null
   }
 

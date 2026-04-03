@@ -309,19 +309,20 @@ const showActivity = computed(() => {
         <div class="flex-1" />
 
         <!-- Save -->
-        <NcButton
-          v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
-          v-e="['c:row-expand:save']"
-          :disabled="isSaveDisabled"
-          :loading="isSaving"
-          class="!h-7 !px-2"
-          data-testid="nc-expanded-form-panel-save"
-          type="primary"
-          size="xsmall"
-          @click="save"
-        >
-          {{ isNew ? $t('general.create') : $t('general.save') }}
-        </NcButton>
+        <NcTooltip v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView" :title="isNew ? $t('general.create') : $t('general.save')">
+          <NcButton
+            v-e="['c:row-expand:save']"
+            :disabled="isSaveDisabled"
+            :loading="isSaving"
+            class="!w-7 !h-7"
+            data-testid="nc-expanded-form-panel-save"
+            type="primary"
+            size="xsmall"
+            @click="save"
+          >
+            <GeneralIcon icon="save" class="w-4 h-4" />
+          </NcButton>
+        </NcTooltip>
 
         <!-- Row navigation -->
         <div v-if="!isNew" class="flex items-center gap-0.5">

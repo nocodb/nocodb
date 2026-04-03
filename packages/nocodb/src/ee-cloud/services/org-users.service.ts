@@ -98,7 +98,6 @@ export class OrgUsersService {
     await OrgUser.softDelete(param.orgId, param.userId);
 
     // Remove from all workspaces in this org
-    const ncMeta = Noco.ncMeta;
     const orgWorkspaces = await ncMeta
       .knexConnection(MetaTable.WORKSPACE)
       .where('fk_org_id', param.orgId)

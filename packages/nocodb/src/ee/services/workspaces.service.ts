@@ -207,20 +207,27 @@ export class WorkspacesService implements OnApplicationBootstrap {
     for (const workspacePayload of workspacePayloads) {
       validateParams(['title'], workspacePayload);
 
-      if (workspacePayload.fk_org_id) {
-        const org = await Org.get(workspacePayload.fk_org_id);
+      const orgId =
+        workspacePayload.fk_org_id || param.user.extra?.org_id;
+
+      if (orgId) {
+        const org = await Org.get(orgId);
         if (!org) {
           NcError.notFound('Org not found');
         }
 
         // check org user table and validate the permission
-        const orgUser = await OrgUser.get(
-          workspacePayload.fk_org_id,
-          param.user.id,
-        );
+        const orgUser = await OrgUser.get(orgId, param.user.id);
 
-        if (orgUser.roles !== CloudOrgUserRoles.OWNER) {
-          NcError.forbidden('You are not the owner of the organization');
+        if (!orgUser) {
+          NcError.forbidden('You are not a member of the organization');
+        }
+
+        // Viewer cannot create workspaces — only Admin/Owner and Creator
+        if (orgUser.roles === CloudOrgUserRoles.VIEWER) {
+          NcError.forbidden(
+            'Workspace creation is not allowed for viewer role.',
+          );
         }
       }
     }

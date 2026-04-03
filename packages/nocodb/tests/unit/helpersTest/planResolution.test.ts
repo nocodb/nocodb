@@ -10,6 +10,8 @@ import {
   resolvePlanMeta,
   CloudPlanDefinitions,
   PlanFeatureTypesToPlanTitles,
+  CommonLimits,
+  CommonPaidLimits,
 } from 'nocodb-sdk';
 
 const allPlans = [
@@ -153,11 +155,18 @@ function planResolutionTests() {
           }
         });
 
-        it('should default undefined limits to -1 (unlimited)', () => {
+        it('should default limits not covered by any layer to -1 (unlimited)', () => {
           const planLimits = CloudPlanDefinitions[plan]?.limits ?? {};
 
           for (const limit of allLimits) {
-            if (!(limit in planLimits)) {
+            // A limit is explicitly set if it appears in any applicable layer:
+            // CommonLimits (all plans), CommonPaidLimits (non-Free), or plan-specific
+            const inCommon = limit in CommonLimits;
+            const inPaid =
+              plan !== PlanTitles.FREE && limit in CommonPaidLimits;
+            const inPlanSpecific = limit in planLimits;
+
+            if (!inCommon && !inPaid && !inPlanSpecific) {
               expect(meta[limit]).to.eq(
                 -1,
                 `${plan} limit ${limit} should default to -1 (unlimited)`,
@@ -167,6 +176,55 @@ function planResolutionTests() {
         });
       });
     }
+
+    it('CommonLimits should be applied to all plans', () => {
+      for (const plan of allPlans) {
+        const meta = resolvePlanMeta(plan);
+        for (const [limit, value] of Object.entries(CommonLimits)) {
+          // CommonLimits may be overridden by CommonPaidLimits or plan-specific
+          const planLimits = CloudPlanDefinitions[plan]?.limits ?? {};
+          const paidOverride =
+            plan !== PlanTitles.FREE
+              ? CommonPaidLimits[limit as PlanLimitTypes]
+              : undefined;
+          const planOverride = planLimits[limit as PlanLimitTypes];
+
+          const expected = planOverride ?? paidOverride ?? value;
+          expect(meta[limit]).to.eq(
+            expected,
+            `${plan} should have CommonLimits ${limit} = ${expected}`,
+          );
+        }
+      }
+    });
+
+    it('CommonPaidLimits should be applied to paid plans only', () => {
+      for (const plan of allPlans) {
+        const meta = resolvePlanMeta(plan);
+        for (const [limit, value] of Object.entries(CommonPaidLimits)) {
+          if (plan === PlanTitles.FREE) {
+            // Free plan should NOT have CommonPaidLimits — should use CommonLimits value
+            const commonValue = CommonLimits[limit as PlanLimitTypes];
+            const freeOverride =
+              CloudPlanDefinitions[PlanTitles.FREE]?.limits?.[
+                limit as PlanLimitTypes
+              ];
+            expect(meta[limit]).to.eq(
+              freeOverride ?? commonValue ?? -1,
+              `Free plan should not apply CommonPaidLimits for ${limit}`,
+            );
+          } else {
+            // Paid plans should have CommonPaidLimits (unless plan-specific override)
+            const planOverride =
+              CloudPlanDefinitions[plan]?.limits?.[limit as PlanLimitTypes];
+            expect(meta[limit]).to.eq(
+              planOverride ?? value,
+              `${plan} should apply CommonPaidLimits ${limit} = ${planOverride ?? value}`,
+            );
+          }
+        }
+      }
+    });
 
     it('CloudPlanDefinitions limits should only reference valid PlanLimitTypes', () => {
       for (const plan of allPlans) {

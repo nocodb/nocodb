@@ -340,7 +340,7 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockRls = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_RLS)
+    return isEEFeatureBlocked.value || ((isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_RLS))
   })
 
   const blockUnique = computed(() => {

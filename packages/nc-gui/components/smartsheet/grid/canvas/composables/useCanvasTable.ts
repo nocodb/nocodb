@@ -1252,7 +1252,7 @@ export function useCanvasTable({
     for (const row of rows) {
       for (const col of cols) {
         const colObj = col?.columnObj
-        if (!row || !colObj || !isVirtualCol(colObj) || !isLinksOrLTAR(colObj)) continue
+        if (!row || !colObj || !isVirtualCol(colObj) || !isMMOrMMLike(colObj)) continue
         if (!col.isCellEditable || col.isSyncedColumn) continue
         if (!row.row[colObj.title!]) continue
 

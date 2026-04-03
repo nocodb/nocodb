@@ -661,19 +661,19 @@ export function useCopyPaste({
               return
             }
 
-            // For OO and OM columns, pasting is a "move" — the backend enforces that each
-            // child/record can only belong to one parent. Refresh view to reflect changes across all rows.
-            if (
-              isOo(columnObj) ||
-              (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.ONE_TO_MANY
-            ) {
-              reloadViewDataHook?.trigger({ shouldShowLoading: false })
-            }
-
             if (result && result?.link && result?.unlink && Array.isArray(result.link) && Array.isArray(result.unlink)) {
               if (!result.link.length && !result.unlink.length) {
                 rowObj.row[columnObj.title!] = oldCellValue
                 return
+              }
+
+              // For OO and OM columns, pasting is a "move" — the backend enforces that each
+              // child/record can only belong to one parent. Refresh view to reflect changes across all rows.
+              if (
+                isOo(columnObj) ||
+                (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.ONE_TO_MANY
+              ) {
+                reloadViewDataHook?.trigger({ shouldShowLoading: false })
               }
 
               addUndo({

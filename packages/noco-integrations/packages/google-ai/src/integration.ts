@@ -16,6 +16,29 @@ export class GeminiIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
 
   protected supportedModels = [
+    // Gemini 3.1 series
+    {
+      value: 'gemini-3.1-pro-preview',
+      label: 'Gemini 3.1 Pro Preview',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'gemini-3.1-flash-lite-preview',
+      label: 'Gemini 3.1 Flash Lite Preview',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    // Gemini 3 series
+    {
+      value: 'gemini-3-flash-preview',
+      label: 'Gemini 3 Flash Preview',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'gemini-3-flash',
+      label: 'Gemini 3 Flash',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    // Gemini 2.5 series
     {
       value: 'gemini-2.5-pro',
       label: 'Gemini 2.5 Pro',
@@ -31,11 +54,7 @@ export class GeminiIntegration extends AiIntegration {
       label: 'Gemini 2.5 Flash Lite',
       capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
     },
-    {
-      value: 'gemini-3-flash',
-      label: 'Gemini 3 Flash',
-      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
-    },
+    // Gemini 2.0 series
     {
       value: 'gemini-2.0-flash',
       label: 'Gemini 2.0 Flash',

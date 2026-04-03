@@ -413,14 +413,13 @@ const showActivity = computed(() => {
           <NcTooltip :title="isFullscreen ? $t('labels.exitFullscreen') : $t('labels.enterFullscreen')">
             <NcButton
               size="xs"
-              type="text"
+              :type="isFullscreen ? 'primary' : 'text'"
               data-testid="nc-expanded-form-panel-fullscreen"
               @click="setFullscreen(!isFullscreen)"
             >
               <GeneralIcon
                 :icon="isFullscreen ? 'ncMinimize' : 'ncMaximize'"
                 class="w-3.5 h-3.5"
-                :class="{ 'text-nc-content-brand': isFullscreen }"
               />
             </NcButton>
           </NcTooltip>

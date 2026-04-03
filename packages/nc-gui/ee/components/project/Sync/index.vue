@@ -20,6 +20,8 @@ const basesStore = useBases()
 
 const syncStore = useSyncStore()
 
+const { showInfoModal } = useNcConfirmModal()
+
 const { loadTables } = baseStore
 
 const { bases, activeProjectId } = storeToRefs(basesStore)

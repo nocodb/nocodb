@@ -633,9 +633,11 @@ const onChange = () => {
   isError.value = false
 }
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 onMounted(() => {
   importState.parserConfig.importDataOnly = importDataOnly
-  importState.parserConfig.autoSelectFieldTypes = importDataOnly
+  importState.parserConfig.autoSelectFieldTypes = isFeatureEnabled(FEATURE_FLAG.AUTO_DETECT_FIELD_TYPES)
 })
 
 const onCancelImport = () => {

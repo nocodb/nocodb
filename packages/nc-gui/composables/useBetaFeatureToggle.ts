@@ -205,6 +205,13 @@ const FEATURES = [
     isEngineering: true,
     isEE: true,
   },
+  {
+    id: 'auto_detect_field_types',
+    title: 'Auto Detect Field Types on Import',
+    description: 'Automatically detect and assign field types when importing data from CSV/Excel files.',
+    enabled: true,
+    version: 1,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

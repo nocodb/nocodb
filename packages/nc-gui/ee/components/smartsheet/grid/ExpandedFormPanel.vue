@@ -297,7 +297,7 @@ const showActivity = computed(() => {
 
       <!-- Header -->
       <div
-        class="flex items-center h-[var(--toolbar-height)] gap-2 px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0"
+        class="flex items-center h-[var(--toolbar-height)] gap-0 px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0"
       >
         <!-- Display value -->
         <NcTooltip v-if="displayValue && !isNew" show-on-truncate-only class="truncate min-w-0 flex-1">
@@ -329,17 +329,17 @@ const showActivity = computed(() => {
           </NcButton>
         </NcTooltip>
 
-        <!-- Row navigation -->
-        <div v-if="!isNew" class="flex items-center gap-0.5">
+        <div v-if="!isNew" class="flex items-center">
           <NcTooltip :title="$t('labels.prevRow')">
             <NcButton
               size="xs"
               type="text"
               :disabled="!hasPrev"
+              class="!border-0"
               data-testid="nc-expanded-form-panel-prev"
               @click="navigatePrev"
             >
-              <GeneralIcon icon="arrowUp" class="w-4 h-4" />
+              <GeneralIcon icon="arrowUp" class="w-3.5 h-3.5" />
             </NcButton>
           </NcTooltip>
           <NcTooltip :title="$t('labels.nextRow')">
@@ -347,41 +347,68 @@ const showActivity = computed(() => {
               size="xs"
               type="text"
               :disabled="!hasNext"
+              class="!border-0"
               data-testid="nc-expanded-form-panel-next"
               @click="navigateNext"
             >
-              <GeneralIcon icon="arrowDown" class="w-4 h-4" />
+              <GeneralIcon icon="arrowDown" class="w-3.5 h-3.5" />
             </NcButton>
           </NcTooltip>
         </div>
 
-        <!-- Fullscreen toggle -->
-        <NcTooltip :title="isFullscreen ? $t('labels.exitFullscreen') : $t('labels.enterFullscreen')">
-          <NcButton
-            size="xs"
-            type="text"
-            data-testid="nc-expanded-form-panel-fullscreen"
-            @click="setFullscreen(!isFullscreen)"
-          >
-            <GeneralIcon
-              :icon="isFullscreen ? 'ncMinimize' : 'ncMaximize'"
-              class="w-4 h-4"
-              :class="{ 'text-nc-content-brand': isFullscreen }"
-            />
-          </NcButton>
-        </NcTooltip>
+        <template v-if="showActivity">
+          <div class="flex items-center">
+            <NcTooltip :title="$t('general.comments')">
+              <NcButton
+                size="xs"
+                :type="activityExpanded && activeActivityTab === 'comments' ? 'secondary' : 'text'"
+                class="!border-0"
+                data-testid="nc-expanded-form-panel-comments-toggle"
+                @click="toggleActivity('comments')"
+              >
+                <GeneralIcon icon="messageCircle" class="w-3.5 h-3.5" />
+              </NcButton>
+            </NcTooltip>
+            <NcTooltip :title="$t('labels.revisionHistory')">
+              <NcButton
+                size="xs"
+                :type="activityExpanded && activeActivityTab === 'audits' ? 'secondary' : 'text'"
+                class="!border-0"
+                data-testid="nc-expanded-form-panel-audits-toggle"
+                @click="toggleActivity('audits')"
+              >
+                <GeneralIcon icon="audit" class="w-3.5 h-3.5" />
+              </NcButton>
+            </NcTooltip>
+          </div>
+        </template>
 
-        <!-- Close -->
-        <NcTooltip :title="$t('general.close')">
-          <NcButton
-            size="xs"
-            type="text"
-            data-testid="nc-expanded-form-panel-close"
-            @click="onClose"
-          >
-            <GeneralIcon icon="close" class="w-4 h-4" />
-          </NcButton>
-        </NcTooltip>
+        <div class="flex items-center">
+          <NcTooltip :title="isFullscreen ? $t('labels.exitFullscreen') : $t('labels.enterFullscreen')">
+            <NcButton
+              size="xs"
+              type="text"
+              data-testid="nc-expanded-form-panel-fullscreen"
+              @click="setFullscreen(!isFullscreen)"
+            >
+              <GeneralIcon
+                :icon="isFullscreen ? 'ncMinimize' : 'ncMaximize'"
+                class="w-3.5 h-3.5"
+                :class="{ 'text-nc-content-brand': isFullscreen }"
+              />
+            </NcButton>
+          </NcTooltip>
+          <NcTooltip :title="$t('general.close')">
+            <NcButton
+              size="xs"
+              type="text"
+              data-testid="nc-expanded-form-panel-close"
+              @click="onClose"
+            >
+              <GeneralIcon icon="close" class="w-4 h-4" />
+            </NcButton>
+          </NcTooltip>
+        </div>
       </div>
 
       <!-- Fields (scrollable) -->

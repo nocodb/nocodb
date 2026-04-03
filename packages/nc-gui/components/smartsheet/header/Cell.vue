@@ -225,7 +225,7 @@ const onClick = (e: Event) => {
           'cursor-default': isForm || !isUIAllowed('fieldEdit') || hideMenu,
           'truncate': !isForm,
         }"
-        class="name pl-1 max-w-full"
+        class="name pl-1 max-w-full rtl:(pr-1 pl-0)"
         placement="bottom"
         show-on-truncate-only
         :disabled="isExpandedForm && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false"

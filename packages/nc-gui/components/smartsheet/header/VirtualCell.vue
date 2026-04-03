@@ -271,7 +271,7 @@ const onClick = (e: Event) => {
         </NcTooltip>
         <LazySmartsheetHeaderVirtualCellIcon v-else />
       </template>
-      <NcTooltip placement="bottom" class="truncate name pl-1" :show-on-truncate-only="!showTooltipAlways">
+      <NcTooltip placement="bottom" class="truncate name pl-1 rtl:(pr-1 pl-0)" :show-on-truncate-only="!showTooltipAlways">
         <template #title>
           <template v-for="(msg, i) in tooltipMsg.split('\n')" :key="i">
             <div>{{ msg }}</div>

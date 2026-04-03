@@ -106,16 +106,19 @@ export default defineConfig({
       default: ['Inter', 'Manrope', 'sans-serif'],
     },
     extend: {
+      // Use simple string values (min-width) so that `<lg:`, `<md:` etc. variants work correctly.
+      // Object syntax `{ min: '...' }` breaks the `<` prefix variant in WindiCSS.
+      // Only `xs` uses object syntax since it's a max-width breakpoint.
       screens: {
         'xs': { max: '480px' },
-        'sm': { min: '480px' },
-        'md': { min: '820px' },
-        'lg': { min: '1024px' },
-        'xl': { min: '1280px' },
-        '2xl': { min: '1780px' },
-        '3xl': { min: '1920px' },
-        '4xl': { min: '2560px' },
-        '5xl': { min: '3200px' },
+        'sm': '480px',
+        'md': '820px',
+        'lg': '1024px',
+        'xl': '1280px',
+        '2xl': '1780px',
+        '3xl': '1920px',
+        '4xl': '2560px',
+        '5xl': '3200px',
       },
       fontSize: {
         tiny: ['11px', '14px'],

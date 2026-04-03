@@ -130,7 +130,7 @@ async function copyComment(comment: CommentType) {
 
 <template>
   <div class="relative my-4 nc-audit-comment-block">
-    <div class="absolute left-0">
+    <div class="absolute left-0 rtl:(left-auto right-0)">
       <GeneralUserIcon
         :user="{
           email: props.comment.user,
@@ -142,7 +142,7 @@ async function copyComment(comment: CommentType) {
       />
     </div>
     <div
-      class="flex-1 bg-nc-bg-default rounded-lg border-1 group ml-11.5"
+      class="flex-1 bg-nc-bg-default rounded-lg border-1 group ml-11.5 rtl:(mr-11.5 ml-0)"
       :class="{
         'border-nc-brand-200/70 dark:!border-[#388bfd4b]': isCreatedByYou,
         'border-nc-border-gray-medium': !isCreatedByYou,
@@ -277,6 +277,18 @@ async function copyComment(comment: CommentType) {
   &::after {
     content: '';
     @apply absolute -bottom-4 left-15.8 h-4 border-l-1 border-nc-border-gray-dark;
+  }
+}
+</style>
+
+<style lang="scss">
+.rtl .nc-audit-comment-block {
+  &::before,
+  &::after {
+    left: auto;
+    right: 63.2px;
+    border-left: 0;
+    border-right: 1px solid var(--nc-border-gray-dark);
   }
 }
 </style>

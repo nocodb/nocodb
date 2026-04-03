@@ -80,6 +80,20 @@ export class OrgUsersService {
       NcError.notFound('User not found in organization');
     }
 
+    // Prevent removing the last admin/owner
+    const ncMeta = Noco.ncMeta;
+    const admins = await ncMeta
+      .knexConnection(MetaTable.ORG_USERS)
+      .where('fk_org_id', param.orgId)
+      .where('roles', EnterpriseOrgUserRoles.ADMIN)
+      .where(function () {
+        this.where('deleted', false).orWhereNull('deleted');
+      });
+
+    if (admins.length <= 1 && admins[0]?.fk_user_id === param.userId) {
+      NcError.badRequest('Cannot remove the last org admin');
+    }
+
     // Soft-delete from org
     await OrgUser.softDelete(param.orgId, param.userId);
 

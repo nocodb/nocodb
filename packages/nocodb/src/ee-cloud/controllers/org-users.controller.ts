@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
@@ -54,13 +55,12 @@ export class OrgUsersController {
   }
 
   // api for removing user from org
-  @Post('/api/v2/orgs/:orgId/user/:userId')
+  @Delete('/api/v2/orgs/:orgId/user/:userId')
   @HttpCode(200)
   @UseGuards(GlobalGuard, MetaApiLimiterGuard)
   @Acl('orgUserRemove')
   async removeUserFromOrg(
     @Req() req: NcRequest,
-    @Body() body: { orgId: string; userId: string },
     @Param('orgId') orgId: string,
     @Param('userId') userId: string,
   ) {

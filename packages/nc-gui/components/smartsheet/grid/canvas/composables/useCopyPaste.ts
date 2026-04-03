@@ -27,6 +27,19 @@ import type { ActionManager } from '../loaders/ActionManager'
 
 const MAX_ROWS = 5000
 
+interface BulkLtarOp {
+  columnId: string
+  columnTitle: string
+  rowRef: any
+  oldValue: any
+  data: { operation: string; rowId: string; columnId: string; fk_related_model_id: string }[]
+}
+
+/** OO and OM paste moves records between rows — not suitable for bulk paste */
+function isOoOrOm(col: ColumnType): boolean {
+  return isOo(col) || (col.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.ONE_TO_MANY
+}
+
 export function useCopyPaste({
   activeCell,
   columns,
@@ -381,7 +394,7 @@ export function useCopyPaste({
         const updatedRows: Row[] = [] as Row[]
         const newRows: Row[] = []
         const propsToPaste: string[] = []
-        const bulkLtarOps: { columnId: string; columnTitle: string; rowRef: any; oldValue: any; data: { operation: string; rowId: string; columnId: string; fk_related_model_id: string }[] }[] = []
+        const bulkLtarOps: BulkLtarOp[] = []
         let isInfoShown = false
         // We can use this if we want to avoid same info multiple times per column
         const isColInfoShown = {} as Record<string, boolean>
@@ -426,8 +439,7 @@ export function useCopyPaste({
             if (isMMOrMMLike(column)) {
               // Block bulk paste for OO and OM — paste moves records between rows, not suitable for bulk
               if (
-                isOo(column) ||
-                (column.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.ONE_TO_MANY
+                isOoOrOm(column)
               ) {
                 if (!isInfoShown) {
                   message.toast(t('msg.info.groupPasteIsNotSupportedOnOoOmColumn'))
@@ -681,10 +693,7 @@ export function useCopyPaste({
 
               // For OO and OM columns, pasting is a "move" — the backend enforces that each
               // child/record can only belong to one parent. Refresh view to reflect changes across all rows.
-              if (
-                isOo(columnObj) ||
-                (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.ONE_TO_MANY
-              ) {
+              if (isOoOrOm(columnObj)) {
                 reloadViewDataHook?.trigger({ shouldShowLoading: false })
               }
 
@@ -874,7 +883,7 @@ export function useCopyPaste({
           let rangeBulkLtarOpsInfoShown = false
           // We can use this if we want to avoid same info multiple times per column
           const isColInfoShown = {} as Record<string, boolean>
-          const rangeBulkLtarOps: { columnId: string; columnTitle: string; rowRef: any; oldValue: any; data: { operation: string; rowId: string; columnId: string; fk_related_model_id: string }[] }[] = []
+          const rangeBulkLtarOps: BulkLtarOp[] = []
 
           const files = e.clipboardData?.files
 
@@ -887,8 +896,7 @@ export function useCopyPaste({
               if (isMMOrMMLike(col)) {
                 // Block bulk paste for OO and OM — paste moves records between rows, not suitable for bulk
                 if (
-                  isOo(col) ||
-                  (col.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.ONE_TO_MANY
+                  isOoOrOm(col)
                 ) {
                   if (!rangeBulkLtarOpsInfoShown) {
                     message.toast(t('msg.info.groupPasteIsNotSupportedOnOoOmColumn'))

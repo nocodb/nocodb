@@ -165,10 +165,10 @@ const toggleBaseDropdown = () => {
         </div>
         <div class="nc-scope-row">
           <GeneralIcon icon="globe" class="w-5 h-5 text-nc-content-gray-subtle2 flex-none" />
-          <span class="flex-1 text-sm text-nc-content-gray-extreme">
+          <span class="flex-1 text-sm text-nc-content-gray">
             {{ $t('msg.info.allCurrentAndFutureBasesInAllWorkspaces') }}
           </span>
-          <NcButton type="text" size="xxsmall" class="!p-0.5 flex-none" @click="removeAllResources">
+          <NcButton type="text" size="xs" class="!p-0.5 -my-1 -mr-1 flex-none" @click="removeAllResources">
             <GeneralIcon icon="close" class="w-4 h-4 text-nc-content-gray-muted" />
           </NcButton>
         </div>
@@ -188,8 +188,8 @@ const toggleBaseDropdown = () => {
           <div class="min-w-5 flex items-center justify-center flex-none">
             <GeneralProjectIcon :color="parseProp(base.meta).iconColor" size="small" />
           </div>
-          <span class="flex-1 text-sm text-nc-content-gray-extreme truncate">{{ base.title }}</span>
-          <NcButton type="text" size="xxsmall" class="!p-0.5 flex-none" @click="removeBase(base.id)">
+          <span class="flex-1 text-sm text-nc-content-gray truncate">{{ base.title }}</span>
+          <NcButton type="text" size="xs" class="!p-0.5 -my-1 -mr-1 flex-none" @click="removeBase(base.id)">
             <GeneralIcon icon="close" class="w-4 h-4 text-nc-content-gray-muted" />
           </NcButton>
         </div>
@@ -218,7 +218,7 @@ const toggleBaseDropdown = () => {
         v-model:visible="showBaseDropdown"
         :trigger="['click']"
         placement="bottomLeft"
-        overlay-class-name="nc-scope-base-dropdown"
+        overlay-class-name="nc-scope-base-dropdown overflow-hidden"
       >
         <NcButton
           v-e="['c:api-token:add-base']"
@@ -294,11 +294,11 @@ const toggleBaseDropdown = () => {
 }
 
 .nc-scope-dropdown-content {
-  @apply w-80 bg-nc-bg-default rounded-lg shadow-lg border-1 border-nc-border-gray-medium;
+  @apply w-80;
 }
 
 .nc-scope-dropdown-item {
-  @apply flex items-center gap-2 px-3 py-2 cursor-pointer text-sm text-nc-content-gray-extreme;
+  @apply flex items-center gap-2 px-3 py-2 cursor-pointer text-sm text-nc-content-gray;
 
   &:hover {
     @apply bg-nc-bg-gray-light;

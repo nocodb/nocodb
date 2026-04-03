@@ -74,6 +74,9 @@ export interface NcConfirmModalProps extends NcModalProps {
 
   cancelProps?: Partial<NcButtonProps>
 
+  /** Extra HTML attributes for the `.nc-modal-confirm` wrapper div */
+  wrapperProps?: Record<string, any>
+
   /** Determines which button gets focus on open */
   focusBtn?: 'ok' | 'cancel' | null
 }
@@ -218,7 +221,7 @@ useSelectedCellKeydownListener(
 
 <template>
   <NcModal v-bind="restProps" v-model:visible="vModel" title="" wrap-class-name="nc-modal-confirm-wrapper">
-    <div class="nc-modal-confirm flex flex-col gap-5" :class="[`nc-modal-confirm-type-${type}`]">
+    <div class="nc-modal-confirm flex flex-col gap-5" :class="[`nc-modal-confirm-type-${type}`]" v-bind="wrapperProps">
       <div class="flex gap-4">
         <div v-if="showIcon" class="nc-modal-confirm-icon-wrapper">
           <slot name="icon">

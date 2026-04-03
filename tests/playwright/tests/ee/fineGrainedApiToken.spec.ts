@@ -105,7 +105,7 @@ test.describe('Fine-Grained API Token Stories', () => {
 
     // Copy and click Done
     await page.locator('[data-testid="nc-token-copy-btn"]').click();
-    await page.locator('[data-testid="nc-token-done-btn"]').click();
+    await page.locator('[data-testid="nc-token-result-modal"] .nc-modal-confirm-ok-btn').click();
     await page.waitForTimeout(1000);
 
     // Verify token appears in the list

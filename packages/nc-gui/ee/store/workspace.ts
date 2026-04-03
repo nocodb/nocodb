@@ -452,7 +452,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     if (force || !wsState || !(wsState as any)?.payment) {
       await loadWorkspace(workspaceId)
-      await loadRoles(route.value.params.baseId)
+      await loadRoles(route.value.params.baseId as string, {}, workspaceId)
     }
 
     if (activeWorkspace.value?.status === WorkspaceStatus.CREATED) {

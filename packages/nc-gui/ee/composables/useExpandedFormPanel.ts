@@ -41,7 +41,17 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
     if (isOpen.value && resolvedRowId && activeRowId.value === resolvedRowId) return
     if (isOpen.value && !resolvedRowId && rowIndex != null && activeRowIndex.value === rowIndex) return
 
-    activeRow.value = { row: { ...row.row }, oldRow: { ...row.row }, rowMeta: { ...row.rowMeta } }
+    const clonedRow = { ...row.row }
+
+    // Ensure PK columns are present in the cloned row so primaryKey computed works immediately
+    if (resolvedRowId && meta.value?.columns) {
+      const pkCols = meta.value.columns.filter((c: ColumnType) => c.pk)
+      if (pkCols.length === 1 && pkCols[0].title && !(pkCols[0].title in clonedRow)) {
+        clonedRow[pkCols[0].title] = resolvedRowId
+      }
+    }
+
+    activeRow.value = { row: clonedRow, oldRow: { ...clonedRow }, rowMeta: { ...row.rowMeta } }
     if (rowIndex != null) activeRowIndex.value = rowIndex
     activeRowState.value = state || null
     isOpen.value = true
@@ -69,9 +79,18 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
     const rowInfo = nav.getRow(rowIndex)
     if (!rowInfo) return
 
+    const clonedNavRow = { ...rowInfo.row.row }
+
+    if (rowInfo.rowId && meta.value?.columns) {
+      const pkCols = meta.value.columns.filter((c: ColumnType) => c.pk)
+      if (pkCols.length === 1 && pkCols[0].title && !(pkCols[0].title in clonedNavRow)) {
+        clonedNavRow[pkCols[0].title] = rowInfo.rowId
+      }
+    }
+
     activeRowId.value = rowInfo.rowId
     activeRowIndex.value = rowIndex
-    activeRow.value = { row: { ...rowInfo.row.row }, oldRow: { ...rowInfo.row.row }, rowMeta: { ...rowInfo.row.rowMeta } }
+    activeRow.value = { row: clonedNavRow, oldRow: { ...clonedNavRow }, rowMeta: { ...rowInfo.row.rowMeta } }
     activeRowState.value = null
   }
 

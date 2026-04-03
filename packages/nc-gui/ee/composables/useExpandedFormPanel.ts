@@ -100,10 +100,7 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
   }
 
   const toggleActivity = (tab?: 'comments' | 'audits') => {
-    if (tab && activityExpanded.value && activeActivityTab.value === tab) {
-      // Clicking the same tab again collapses
-      activityExpanded.value = false
-    } else if (tab) {
+    if (tab) {
       activeActivityTab.value = tab
       activityExpanded.value = true
     } else {

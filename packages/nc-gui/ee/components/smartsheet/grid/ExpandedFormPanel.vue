@@ -132,6 +132,15 @@ provide(ReloadRowDataHookInj, reloadHook)
 
 commentsDrawer.value = true
 
+watch(
+  () => activityExpanded.value && activeActivityTab.value === 'audits',
+  async (shouldLoadAudits) => {
+    if (shouldLoadAudits && activeRowId.value) {
+      await loadAudits(activeRowId.value, false)
+    }
+  },
+)
+
 const isSaving = ref(false)
 
 const isSaveDisabled = computed(() => {
@@ -356,32 +365,40 @@ const showActivity = computed(() => {
           </NcTooltip>
         </div>
 
-        <template v-if="showActivity">
-          <div class="flex items-center">
-            <NcTooltip :title="$t('general.comments')">
-              <NcButton
-                size="xs"
-                :type="activityExpanded && activeActivityTab === 'comments' ? 'secondary' : 'text'"
-                class="!border-0"
-                data-testid="nc-expanded-form-panel-comments-toggle"
-                @click="toggleActivity('comments')"
-              >
-                <GeneralIcon icon="messageCircle" class="w-3.5 h-3.5" />
-              </NcButton>
-            </NcTooltip>
-            <NcTooltip :title="$t('labels.revisionHistory')">
-              <NcButton
-                size="xs"
-                :type="activityExpanded && activeActivityTab === 'audits' ? 'secondary' : 'text'"
-                class="!border-0"
-                data-testid="nc-expanded-form-panel-audits-toggle"
-                @click="toggleActivity('audits')"
-              >
-                <GeneralIcon icon="audit" class="w-3.5 h-3.5" />
-              </NcButton>
-            </NcTooltip>
-          </div>
-        </template>
+        <div
+          v-if="showActivity"
+          class="nc-panel-mode-selector flex flex-row rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default h-7 overflow-hidden"
+        >
+          <NcTooltip :title="$t('objects.fields')">
+            <div
+              class="nc-panel-mode-tab"
+              :class="{ active: !activityExpanded }"
+              @click="activityExpanded = false"
+            >
+              <GeneralIcon icon="menu" class="nc-panel-mode-tab-icon" />
+            </div>
+          </NcTooltip>
+          <NcTooltip :title="$t('general.comments')">
+            <div
+              class="nc-panel-mode-tab"
+              :class="{ active: activityExpanded && activeActivityTab === 'comments' }"
+              data-testid="nc-expanded-form-panel-comments-toggle"
+              @click="toggleActivity('comments')"
+            >
+              <GeneralIcon icon="messageCircle" class="nc-panel-mode-tab-icon" />
+            </div>
+          </NcTooltip>
+          <NcTooltip :title="$t('labels.revisionHistory')">
+            <div
+              class="nc-panel-mode-tab"
+              :class="{ active: activityExpanded && activeActivityTab === 'audits' }"
+              data-testid="nc-expanded-form-panel-audits-toggle"
+              @click="toggleActivity('audits')"
+            >
+              <GeneralIcon icon="audit" class="nc-panel-mode-tab-icon" />
+            </div>
+          </NcTooltip>
+        </div>
 
         <div class="flex items-center">
           <NcTooltip :title="isFullscreen ? $t('labels.exitFullscreen') : $t('labels.enterFullscreen')">
@@ -411,11 +428,16 @@ const showActivity = computed(() => {
         </div>
       </div>
 
-      <!-- Fields (scrollable) -->
       <div class="flex-1 min-h-0 overflow-y-auto nc-scrollbar-thin">
         <div v-if="isLoading" class="flex items-center justify-center h-full">
           <GeneralLoader />
         </div>
+        <template v-else-if="activityExpanded && activeActivityTab === 'comments'">
+          <SmartsheetExpandedFormSidebarComments />
+        </template>
+        <template v-else-if="activityExpanded && activeActivityTab === 'audits'">
+          <SmartsheetExpandedFormSidebarAudits />
+        </template>
         <SmartsheetExpandedFormPresentorsFieldsColumns
           v-else
           :fields="fields ?? []"
@@ -424,11 +446,6 @@ const showActivity = computed(() => {
           force-vertical-mode
         />
       </div>
-
-      <!-- Activity section (collapsible, pinned to bottom) -->
-      <SmartsheetGridExpandedFormPanelActivity
-        v-if="showActivity"
-      />
     </div>
   </Transition>
 
@@ -462,6 +479,29 @@ const showActivity = computed(() => {
 </template>
 
 <style lang="scss" scoped>
+.nc-panel-mode-tab {
+  @apply flex flex-row items-center h-full justify-center px-2 border-1 border-t-0 border-b-0 border-nc-border-gray-medium text-nc-content-gray-subtle2 cursor-pointer transition-all duration-300 select-none;
+
+  &:first-child,
+  &:last-child {
+    @apply border-0;
+  }
+
+  &.active {
+    @apply bg-nc-bg-brand-inverted text-nc-content-brand-disabled;
+    box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+  }
+
+  &:not(.active) {
+    @apply hover:text-nc-content-gray-extreme;
+  }
+}
+
+.nc-panel-mode-tab-icon {
+  font-size: 0.875rem !important;
+  @apply w-3.5;
+}
+
 .nc-expanded-form-panel {
   outline: none;
   transition: width 0.2s ease;

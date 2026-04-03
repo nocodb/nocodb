@@ -485,6 +485,7 @@ const showActivity = computed(() => {
               :hidden-fields="hiddenFields"
               :is-loading="isLoading"
               force-vertical-mode
+              class="nc-panel-fields-compact"
             />
           </div>
         </template>
@@ -639,27 +640,33 @@ const showActivity = computed(() => {
   }
 }
 
-/* Field label overrides — unscoped to beat the global !important styles in expanded-form/index.vue */
-.nc-expanded-form-panel .nc-expanded-cell-header {
-  @apply !text-xs !text-nc-content-gray-subtle2 !font-weight-500;
+/* Compact field labels — matching MiniColumnsWrapper pattern */
+.nc-panel-fields-compact {
+  .nc-expanded-cell-header {
+    @apply !bg-transparent;
 
-  svg.nc-cell-icon,
-  svg.nc-virtual-cell-icon {
-    @apply !w-3 !h-3;
+    .nc-cell-name-wrapper,
+    .nc-virtual-cell-name-wrapper {
+      @apply !px-0;
+
+      .name.truncate {
+        @apply flex items-center pl-1;
+
+        span {
+          @apply !text-xs font-weight-500 !leading-[14px];
+        }
+      }
+
+      svg.nc-icon:not(.invisible):not(.nc-column-context-menu):not(.nc-column-lock-icon) {
+        @apply !w-3.5 !h-3.5 !mx-0;
+      }
+    }
   }
-}
 
-.nc-expanded-form-panel .nc-expanded-cell-header > :nth-child(2) {
-  @apply !text-xs;
-}
 
-.nc-expanded-form-panel .nc-expanded-cell-header > :first-child {
-  @apply !text-xs !pl-1;
-}
-
-/* Reduce gap between field label and value */
-.nc-expanded-form-panel .nc-expanded-cell .flex-none {
-  @apply !mb-0.5;
+  .nc-expanded-cell .flex-none {
+    @apply !mb-0;
+  }
 }
 
 /* Match grid canvas font (500 13px Inter) — needs high specificity to

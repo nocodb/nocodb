@@ -119,7 +119,7 @@ export class OrgUsersService extends OrgUsersServiceCE {
     const orgId = Noco.ncDefaultOrgId || NC_DEFAULT_ORG_ID;
 
     const allowedRoles = [
-      EnterpriseOrgUserRoles.OWNER,
+      EnterpriseOrgUserRoles.ADMIN,
       EnterpriseOrgUserRoles.CREATOR,
       EnterpriseOrgUserRoles.VIEWER,
     ];
@@ -149,7 +149,7 @@ export class OrgUsersService extends OrgUsersServiceCE {
     const owners = await ncMeta
       .knexConnection(MetaTable.ORG_USERS)
       .where('fk_org_id', orgId)
-      .where('roles', EnterpriseOrgUserRoles.OWNER)
+      .where('roles', EnterpriseOrgUserRoles.ADMIN)
       .where(function () {
         this.where('deleted', false).orWhereNull('deleted');
       });

@@ -18,27 +18,24 @@ export function verifyDefaultOrgTests() {
   });
 
   describe('EnterpriseOrgUserRoles enum', () => {
-    it('should have OWNER role', () => {
-      expect(EnterpriseOrgUserRoles.OWNER).to.equal('cloud-org-level-owner');
+    it('ADMIN should map to cloud-org-level-owner DB value', () => {
+      expect(EnterpriseOrgUserRoles.ADMIN).to.equal('cloud-org-level-owner');
     });
 
-    it('should have ADMIN role', () => {
-      expect(EnterpriseOrgUserRoles.ADMIN).to.equal('cloud-org-level-creator');
+    it('CREATOR should map to cloud-org-level-creator DB value', () => {
+      expect(EnterpriseOrgUserRoles.CREATOR).to.equal('cloud-org-level-creator');
     });
 
-    it('should have VIEWER role', () => {
+    it('VIEWER should map to cloud-org-level-viewer DB value', () => {
       expect(EnterpriseOrgUserRoles.VIEWER).to.equal('cloud-org-level-viewer');
     });
 
-    it('should have exactly 3 roles', () => {
-      const roleValues = Object.values(EnterpriseOrgUserRoles);
-      expect(roleValues).to.have.length(3);
+    it('CloudOrgUserRoles backward compat — OWNER equals ADMIN', () => {
+      expect(CloudOrgUserRoles.OWNER).to.equal(EnterpriseOrgUserRoles.ADMIN);
     });
 
-    it('CloudOrgUserRoles should be an alias for EnterpriseOrgUserRoles', () => {
-      expect(CloudOrgUserRoles.OWNER).to.equal(EnterpriseOrgUserRoles.OWNER);
-      expect(CloudOrgUserRoles.CREATOR).to.equal(EnterpriseOrgUserRoles.ADMIN);
-      expect(CloudOrgUserRoles.VIEWER).to.equal(EnterpriseOrgUserRoles.VIEWER);
+    it('CloudOrgUserRoles backward compat — CREATOR preserved', () => {
+      expect(CloudOrgUserRoles.CREATOR).to.equal(EnterpriseOrgUserRoles.CREATOR);
     });
   });
 }

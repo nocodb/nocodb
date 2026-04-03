@@ -88,7 +88,7 @@ export const verifyDefaultOrg = async (ncMeta = Noco.ncMeta) => {
   await ncMeta.knexConnection(MetaTable.ORG_USERS).insert({
     fk_org_id: NC_DEFAULT_ORG_ID,
     fk_user_id: superUser.id,
-    roles: EnterpriseOrgUserRoles.OWNER,
+    roles: EnterpriseOrgUserRoles.ADMIN,
   });
 
   // Link default workspace to this org (if it exists and isn't already linked)

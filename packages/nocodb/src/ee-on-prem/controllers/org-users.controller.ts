@@ -19,7 +19,7 @@ export class OrgUsersController extends OrgUsersControllerCE {
     scope: 'org',
     allowedRoles: [
       OrgUserRoles.SUPER_ADMIN,
-      EnterpriseOrgUserRoles.OWNER,
+      EnterpriseOrgUserRoles.ADMIN,
     ],
     blockApiTokenAccess: true,
     blockOAuthTokenAccess: true,
@@ -35,7 +35,7 @@ export class OrgUsersController extends OrgUsersControllerCE {
     scope: 'org',
     allowedRoles: [
       OrgUserRoles.SUPER_ADMIN,
-      EnterpriseOrgUserRoles.OWNER,
+      EnterpriseOrgUserRoles.ADMIN,
     ],
     blockApiTokenAccess: true,
   })
@@ -55,7 +55,7 @@ export class OrgUsersController extends OrgUsersControllerCE {
     scope: 'org',
     allowedRoles: [
       OrgUserRoles.SUPER_ADMIN,
-      EnterpriseOrgUserRoles.OWNER,
+      EnterpriseOrgUserRoles.ADMIN,
     ],
     blockApiTokenAccess: true,
   })

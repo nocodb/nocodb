@@ -7,8 +7,10 @@ export enum OrgUserRoles {
 }
 
 export enum EnterpriseOrgUserRoles {
+  /** Org admin — displayed as "Admin" in UI. Same DB value as OWNER (alias). */
+  ADMIN = 'cloud-org-level-owner',
+  /** @deprecated Alias for ADMIN — kept for cloud backward compat */
   OWNER = 'cloud-org-level-owner',
-  ADMIN = 'cloud-org-level-creator',
   CREATOR = 'cloud-org-level-creator',
   VIEWER = 'cloud-org-level-viewer',
 }

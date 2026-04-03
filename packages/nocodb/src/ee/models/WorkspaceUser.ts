@@ -1101,12 +1101,17 @@ export default class WorkspaceUser {
 
     if (existing) {
       // Reactivate if soft-deleted (user was removed from org, now re-invited to a workspace)
+      // Reset to default role — the old role was revoked on removal
       if (existing.deleted) {
         await ncMeta
           .knexConnection(MetaTable.ORG_USERS)
           .where('fk_org_id', orgId)
           .where('fk_user_id', userId)
-          .update({ deleted: false, deleted_at: null });
+          .update({
+            deleted: false,
+            deleted_at: null,
+            roles: EnterpriseOrgUserRoles.CREATOR,
+          });
       }
       return;
     }

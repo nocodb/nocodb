@@ -225,6 +225,17 @@ export async function up(knex: Knex) {
       EnterpriseOrgUserRoles.CREATOR,
     );
   }
+
+  // Step 4: Upgrade existing VIEWER org users to CREATOR
+  // Previously SSO added users as VIEWER, which was fine when all org roles
+  // had identical permissions. Now VIEWER blocks workspace creation, so
+  // existing viewers need to be promoted to maintain existing behavior.
+  await knex(MetaTable.ORG_USERS)
+    .where('roles', EnterpriseOrgUserRoles.VIEWER)
+    .where(function () {
+      this.where('deleted', false).orWhereNull('deleted');
+    })
+    .update({ roles: EnterpriseOrgUserRoles.CREATOR });
 }
 
 export async function down(knex: Knex) {

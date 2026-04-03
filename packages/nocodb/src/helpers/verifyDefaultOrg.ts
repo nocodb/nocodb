@@ -18,8 +18,9 @@ const logger = new Logger('verifyDefaultOrg');
  * Follows the same pattern as verifyDefaultWorkspace().
  */
 export const verifyDefaultOrg = async (ncMeta = Noco.ncMeta) => {
-  // Cloud EE manages orgs explicitly — skip
-  if (Noco.isEE() && !isOnPrem) {
+  // Only create default org on licensed on-prem
+  // Cloud manages orgs explicitly, CE/unlicensed don't need it
+  if (!isOnPrem || !Noco.isEE()) {
     return;
   }
 
@@ -132,8 +133,8 @@ export const ensureUserInDefaultOrg = async (
   role: EnterpriseOrgUserRoles = EnterpriseOrgUserRoles.CREATOR,
   ncMeta = Noco.ncMeta,
 ) => {
-  // Cloud EE manages org membership via its own service
-  if (Noco.isEE() && !isOnPrem) return;
+  // Only on licensed on-prem
+  if (!isOnPrem || !Noco.isEE()) return;
 
   if (!Noco.ncDefaultOrgId) {
     await verifyDefaultOrg(ncMeta);

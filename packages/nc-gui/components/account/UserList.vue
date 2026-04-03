@@ -177,7 +177,7 @@ const orderBy = computed<Record<string, SordDirectionType>>({
 
 const { appInfo } = useGlobal()
 
-const hasOrgRoles = computed(() => appInfo.value?.isOnPrem)
+const hasOrgRoles = computed(() => appInfo.value?.isOnPrem && appInfo.value?.ee)
 
 const columns = computed(() => {
   const cols: NcTableColumnProps[] = [

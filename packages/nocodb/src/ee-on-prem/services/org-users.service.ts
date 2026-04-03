@@ -12,10 +12,15 @@ import WorkspaceUser from '~/ee/models/WorkspaceUser';
 export class OrgUsersService extends OrgUsersServiceCE {
   /**
    * On-prem override: read users from nc_org_users for the default org.
-   * Returns org role alongside user info.
+   * Falls back to CE user list when unlicensed (no org exists).
    */
   async userList(param: { query: Record<string, any> }) {
-    const orgId = Noco.ncDefaultOrgId || NC_DEFAULT_ORG_ID;
+    // Unlicensed — fall through to CE user list from nc_users
+    if (!Noco.isEE() || !Noco.ncDefaultOrgId) {
+      return super.userList(param);
+    }
+
+    const orgId = Noco.ncDefaultOrgId;
     const { limit = 25, offset = 0, query: searchQuery } = param.query;
 
     const ncMeta = Noco.ncMeta;

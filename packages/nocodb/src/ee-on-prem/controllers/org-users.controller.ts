@@ -1,23 +1,44 @@
-import { Body, Controller, Param, Patch, UseGuards } from '@nestjs/common';
-import type { CloudOrgUserRoles } from 'nocodb-sdk';
+import { Body, Controller, Get, Param, Patch, Req, UseGuards } from '@nestjs/common';
+import { CloudOrgUserRoles, OrgUserRoles } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { OrgUsersController as OrgUsersControllerCE } from 'src/controllers/org-users.controller';
 import { OrgUsersService } from '~/services/org-users.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { OrgUserRoles } from 'nocodb-sdk';
 
 @Controller()
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class OrgUsersController extends OrgUsersControllerCE {
   constructor(protected readonly orgUsersService: OrgUsersService) {
     super(orgUsersService);
   }
 
-  @Patch('/api/v1/users/:userId/org-role')
-  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @Get('/api/v1/users')
   @Acl('userList', {
     scope: 'org',
-    allowedRoles: [OrgUserRoles.SUPER_ADMIN],
+    allowedRoles: [
+      OrgUserRoles.SUPER_ADMIN,
+      CloudOrgUserRoles.OWNER,
+      CloudOrgUserRoles.ADMIN,
+    ],
+    blockApiTokenAccess: true,
+    blockOAuthTokenAccess: true,
+  })
+  async userList(@Req() req: NcRequest) {
+    return this.orgUsersService.userList({
+      query: req.query,
+    });
+  }
+
+  @Patch('/api/v1/users/:userId/org-role')
+  @Acl('userUpdate', {
+    scope: 'org',
+    allowedRoles: [
+      OrgUserRoles.SUPER_ADMIN,
+      CloudOrgUserRoles.OWNER,
+      CloudOrgUserRoles.ADMIN,
+    ],
     blockApiTokenAccess: true,
   })
   async updateOrgRole(

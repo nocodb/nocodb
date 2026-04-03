@@ -18,6 +18,26 @@ const { copy } = useCopy()
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateUserSort } = useUserSorts('Org')
 
+const { $fetch: ncFetch } = useNuxtApp()
+
+const updateOrgRole = async (user: UserType, newRole: string) => {
+  try {
+    const baseURL = api.instance.defaults.baseURL
+    await ncFetch(`${baseURL}/api/v1/users/${user.id}/org-role`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'xc-auth': (loggedInUser.value as any)?.token,
+      },
+      body: { org_role: newRole },
+    })
+    ;(user as any).org_roles = newRole
+    message.success(t('msg.success.roleUpdated'))
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 const users = ref<UserType[]>([])
 
 const sortedUsers = computed(() => {
@@ -164,22 +184,40 @@ const orderBy = computed<Record<string, SordDirectionType>>({
   },
 })
 
-const columns = [
-  {
-    key: 'email',
-    title: t('objects.users'),
-    minWidth: 220,
-    dataIndex: 'email',
-    showOrderBy: true,
-  },
-  {
+const { appInfo } = useGlobal()
+
+const hasOrgRoles = computed(() => appInfo.value?.isOnPrem)
+
+const columns = computed(() => {
+  const cols: NcTableColumnProps[] = [
+    {
+      key: 'email',
+      title: t('objects.users'),
+      minWidth: 220,
+      dataIndex: 'email',
+      showOrderBy: true,
+    },
+  ]
+
+  if (hasOrgRoles.value) {
+    cols.push({
+      key: 'org_roles',
+      title: t('labels.orgRole'),
+      width: 180,
+      minWidth: 150,
+    })
+  }
+
+  cols.push({
     key: 'action',
     title: t('labels.actions'),
     width: 110,
     minWidth: 110,
     justify: 'justify-end',
-  },
-] as NcTableColumnProps[]
+  })
+
+  return cols
+})
 </script>
 
 <template>
@@ -249,6 +287,29 @@ const columns = [
                   data-rec="true"
                 >
                   {{ $t('objects.roleType.admin') }}
+                </NcBadge>
+              </div>
+              <div v-if="column.key === 'org_roles'" class="flex items-center">
+                <NcSelect
+                  :value="el.org_roles || 'cloud-org-level-viewer'"
+                  :options="[
+                    { label: $t('objects.roleType.admin'), value: 'cloud-org-level-admin' },
+                    { label: $t('objects.roleType.creator'), value: 'cloud-org-level-creator' },
+                    { label: $t('objects.roleType.viewer'), value: 'cloud-org-level-viewer' },
+                  ]"
+                  :disabled="el.roles?.includes('super') || el.org_roles === 'cloud-org-level-owner'"
+                  class="w-32"
+                  size="small"
+                  data-testid="nc-org-role-select"
+                  @change="updateOrgRole(el, $event)"
+                />
+                <NcBadge
+                  v-if="el.org_roles === 'cloud-org-level-owner'"
+                  :border="false"
+                  color="purple"
+                  class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none ml-2"
+                >
+                  {{ $t('objects.roleType.owner') }}
                 </NcBadge>
               </div>
               <div v-if="column.key === 'action'" class="flex items-center gap-2">

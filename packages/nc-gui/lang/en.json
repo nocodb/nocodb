@@ -1796,6 +1796,7 @@
     "newProvider": "New Provider",
     "generalSettings": "General Settings",
     "adminPanel": "Admin Panel",
+    "orgRole": "Org Role",
     "moveWorkspaceToOrg": "Move Workspace To Organisation",
     "ssoSettings": "SSO Settings",
     "scimProvisioning": "SCIM Provisioning",

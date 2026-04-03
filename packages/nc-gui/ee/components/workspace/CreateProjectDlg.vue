@@ -175,7 +175,10 @@ const handleResetInitialValue = () => {
 watch(dialogShow, async (n, o) => {
   if (n === o && !n) return
 
-  if (n && baseCreateMode.value === NcBaseCreateMode.FROM_SCRATCH) {
+  if (
+    n &&
+    (baseCreateMode.value === NcBaseCreateMode.FROM_SCRATCH || defaultBaseCreateMode.value === NcBaseCreateMode.FROM_SCRATCH)
+  ) {
     onInit()
   }
 
@@ -264,6 +267,12 @@ if (props.isCreateNewActionMenu) {
     },
   )
 }
+
+const onBaseCreateModeSelected = (value: NcBaseCreateMode | null) => {
+  if (value === NcBaseCreateMode.FROM_SCRATCH) {
+    onInit()
+  }
+}
 </script>
 
 <template>
@@ -281,7 +290,12 @@ if (props.isCreateNewActionMenu) {
       <!-- <WorkspaceProjectCreateMode v-model:ai-mode="aiMode" :workspace-id="activeWorkspaceId"
         @managed-app-installed="onManagedAppInstalled" @close="dialogShow = false" /> -->
 
-      <WorkspaceProjectCreateMenu v-model:visible="dialogShow" v-model:base-create-mode="baseCreateMode" variant="modal" />
+      <WorkspaceProjectCreateMenu
+        v-model:visible="dialogShow"
+        v-model:base-create-mode="baseCreateMode"
+        variant="modal"
+        @update:base-create-mode="onBaseCreateModeSelected"
+      />
     </template>
     <template v-if="baseCreateMode === NcBaseCreateMode.FROM_SCRATCH">
       <div>

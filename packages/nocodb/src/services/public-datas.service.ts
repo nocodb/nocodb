@@ -11,7 +11,15 @@ import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { DependantFields } from '~/helpers/getAst';
 import { nocoExecute } from '~/utils';
-import { Base, Column, FormView, Model, Source, View } from '~/models';
+import {
+  Base,
+  Column,
+  FormView,
+  GridViewColumn,
+  Model,
+  Source,
+  View,
+} from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -33,6 +41,12 @@ interface VisibleColumnInfo {
   visibleColumnNames: Set<string>;
   /** The actual Column objects for visible columns */
   visibleColumns: Column[];
+  /** Set of Column.id values used in group-by (grid views only) */
+  groupByColumnIds: Set<string>;
+  /** Set of Column.title values used in group-by (grid views only) */
+  groupByColumnTitles: Set<string>;
+  /** Set of Column.column_name values used in group-by (grid views only) */
+  groupByColumnNames: Set<string>;
 }
 
 // todo: move to utils
@@ -75,10 +89,15 @@ export class PublicDatasService {
   ): Promise<VisibleColumnInfo> {
     const viewColumns = await View.getColumns(context, view.id);
     const visibleColumnIds = new Set<string>();
+    const groupByColumnIds = new Set<string>();
 
     for (const vc of viewColumns) {
       if (vc.show) {
         visibleColumnIds.add(vc.fk_column_id);
+      }
+
+      if (view.type === ViewTypes.GRID && (vc as GridViewColumn).group_by) {
+        groupByColumnIds.add(vc.fk_column_id);
       }
     }
 
@@ -87,12 +106,19 @@ export class PublicDatasService {
     const visibleColumnTitles = new Set<string>();
     const visibleColumnNames = new Set<string>();
     const visibleColumns: Column[] = [];
+    const groupByColumnTitles = new Set<string>();
+    const groupByColumnNames = new Set<string>();
 
     for (const col of model.columns) {
       if (visibleColumnIds.has(col.id)) {
         if (col.title) visibleColumnTitles.add(col.title);
         if (col.column_name) visibleColumnNames.add(col.column_name);
         visibleColumns.push(col);
+      }
+
+      if (groupByColumnIds.has(col.id)) {
+        if (col.title) groupByColumnTitles.add(col.title);
+        if (col.column_name) groupByColumnNames.add(col.column_name);
       }
     }
 
@@ -101,6 +127,9 @@ export class PublicDatasService {
       visibleColumnTitles,
       visibleColumnNames,
       visibleColumns,
+      groupByColumnIds,
+      groupByColumnTitles,
+      groupByColumnNames,
     };
   }
 
@@ -160,8 +189,8 @@ export class PublicDatasService {
 
   /**
    * Validates that every column name in a comma-separated `column_name`
-   * string is visible in the shared view.  Throws badRequest if any name
-   * references a hidden column.
+   * string is visible or used in group-by in the shared view.
+   * Throws badRequest if any name references a hidden column.
    */
   protected validateGroupByColumnNames(
     context: NcContext,
@@ -173,7 +202,9 @@ export class PublicDatasService {
     for (const name of names) {
       if (
         !visibleInfo.visibleColumnTitles.has(name) &&
-        !visibleInfo.visibleColumnNames.has(name)
+        !visibleInfo.visibleColumnNames.has(name) &&
+        !visibleInfo.groupByColumnTitles.has(name) &&
+        !visibleInfo.groupByColumnNames.has(name)
       ) {
         NcError.get(context).badRequest(
           'Column not accessible in this shared view',
@@ -183,15 +214,20 @@ export class PublicDatasService {
   }
 
   /**
-   * Validates that a groupColumnId is visible in the shared view.
+   * Validates that a groupColumnId is visible or used in group-by
+   * in the shared view.
    */
   protected validateGroupColumnId(
     context: NcContext,
     groupColumnId: string,
     visibleColumnIds: Set<string>,
+    groupByColumnIds: Set<string>,
   ): void {
     if (!groupColumnId) return;
-    if (!visibleColumnIds.has(groupColumnId)) {
+    if (
+      !visibleColumnIds.has(groupColumnId) &&
+      !groupByColumnIds.has(groupColumnId)
+    ) {
       NcError.get(context).badRequest(
         'Column not accessible in this shared view',
       );
@@ -566,6 +602,7 @@ export class PublicDatasService {
       context,
       groupColumnId,
       visibleInfo.visibleColumnIds,
+      visibleInfo.groupByColumnIds,
     );
 
     const baseModel = await Model.getBaseModelSQL(context, {

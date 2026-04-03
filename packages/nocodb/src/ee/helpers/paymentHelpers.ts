@@ -15,12 +15,7 @@ import type Stripe from 'stripe';
 import { NcError } from '~/helpers/catchError';
 import { Domain, Org, Subscription, Workspace } from '~/models';
 import Noco from '~/Noco';
-import Plan, {
-  CommonLimits,
-  CommonPaidLimits,
-  FreePlan,
-  GraceLimits,
-} from '~/models/Plan';
+import Plan, { CommonLimits, FreePlan, GraceLimits } from '~/models/Plan';
 import { isCloud, isOnPrem } from '~/utils';
 
 async function getLimit(
@@ -58,10 +53,8 @@ async function getLimit(
 
   const plan = workspace?.payment?.plan;
 
-  const limit =
-    plan?.meta?.[type] ??
-    (plan?.free ? CommonLimits[type] : CommonPaidLimits[type]) ??
-    Infinity;
+  // plan.meta is fully populated by resolvePlanMeta (CommonLimits + CommonPaidLimits + plan-specific)
+  const limit = plan?.meta?.[type] ?? Infinity;
 
   if (limit === -1) {
     return {
@@ -111,10 +104,8 @@ async function checkLimit(args: {
 
     const plan = workspace?.payment?.plan;
 
-    const limit =
-      plan?.meta?.[type] ??
-      (plan?.free ? CommonLimits[type] : CommonPaidLimits[type]) ??
-      Infinity;
+    // plan.meta is fully populated by resolvePlanMeta (CommonLimits + CommonPaidLimits + plan-specific)
+    const limit = plan?.meta?.[type] ?? Infinity;
 
     const statName =
       type === PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE ? 'row_count' : type;

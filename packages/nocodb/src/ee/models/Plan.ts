@@ -1,4 +1,6 @@
 import {
+  CommonLimits,
+  CommonPaidLimits,
   ncIsBoolean,
   PlanFeatureTypes,
   PlanLimitTypes,
@@ -224,24 +226,8 @@ export default class Plan {
   }
 }
 
-export const CommonLimits = {
-  [PlanLimitTypes.LIMIT_FREE_WORKSPACE]: 8,
-  [PlanLimitTypes.LIMIT_TABLE_PER_BASE]: 200,
-  [PlanLimitTypes.LIMIT_COLUMN_PER_TABLE]: 500,
-  [PlanLimitTypes.LIMIT_WEBHOOK_PER_TABLE]: 25,
-  [PlanLimitTypes.LIMIT_VIEW_PER_TABLE]: 200,
-  [PlanLimitTypes.LIMIT_FILTER_PER_VIEW]: 50,
-  [PlanLimitTypes.LIMIT_SORT_PER_VIEW]: 10,
-  [PlanLimitTypes.LIMIT_BASE_PER_WORKSPACE]: 500,
-  [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]: 10,
-  [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE]: 3,
-  [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]: 256,
-} as const;
-
-export const CommonPaidLimits = {
-  [PlanLimitTypes.LIMIT_TABLE_PER_BASE]: 500,
-  [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]: 5120,
-} as const;
+// Re-export from SDK — canonical definitions live in nocodb-sdk/ee/lib/payment
+export { CommonLimits, CommonPaidLimits };
 
 export const GraceLimits = {
   [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 100000,

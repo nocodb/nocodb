@@ -9,16 +9,47 @@ import {
 export * from 'src/lib/payment';
 
 // ---------------------------------------------------------------------------
+// Common limits — structural constraints applied as base layers
+// ---------------------------------------------------------------------------
+// CommonLimits:     Floor for ALL plans (structural constraints like max columns, views).
+// CommonPaidLimits: Upgrades for paid plans (overrides CommonLimits where paid tiers differ).
+//
+// Layering order in resolvePlanMeta:
+//   1. Base (all limits -1/unlimited, all features true)
+//   2. CommonLimits (structural floor for every plan)
+//   3. CommonPaidLimits (paid-tier upgrades, skipped for Free)
+//   4. CloudPlanDefinitions (plan-specific overrides)
+//
+// To add a new structural limit:  add to CommonLimits (all plans) or CommonPaidLimits (paid only).
+// To override for a specific plan: add to that plan's limits in CloudPlanDefinitions.
+// ---------------------------------------------------------------------------
+
+export const CommonLimits: Partial<Record<PlanLimitTypes, number>> = {
+  [PlanLimitTypes.LIMIT_FREE_WORKSPACE]: 8,
+  [PlanLimitTypes.LIMIT_TABLE_PER_BASE]: 200,
+  [PlanLimitTypes.LIMIT_COLUMN_PER_TABLE]: 500,
+  [PlanLimitTypes.LIMIT_WEBHOOK_PER_TABLE]: 25,
+  [PlanLimitTypes.LIMIT_VIEW_PER_TABLE]: 200,
+  [PlanLimitTypes.LIMIT_FILTER_PER_VIEW]: 50,
+  [PlanLimitTypes.LIMIT_SORT_PER_VIEW]: 10,
+  [PlanLimitTypes.LIMIT_BASE_PER_WORKSPACE]: 500,
+  [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]: 10,
+  [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE]: 3,
+  [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]: 256,
+};
+
+export const CommonPaidLimits: Partial<Record<PlanLimitTypes, number>> = {
+  [PlanLimitTypes.LIMIT_TABLE_PER_BASE]: 500,
+  [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]: 5120,
+};
+
+// ---------------------------------------------------------------------------
 // Cloud plan definitions — single source of truth for cloud plan gating
 // ---------------------------------------------------------------------------
 // Override model: base = all features enabled (true), all limits unlimited (-1).
-// Each plan lists OVERRIDES — disabled features (false) and restricted limits.
-//
-// FREE:       Only a handful of features stay enabled; all others are explicitly disabled.
-//             All limits are set here (single source of truth for cloud Free).
-// PLUS:       Business+ and Enterprise-only features disabled.
-// BUSINESS:   Enterprise-only features disabled.
-// ENTERPRISE: Nothing disabled — all features available.
+// CommonLimits and CommonPaidLimits are applied first (see resolvePlanMeta).
+// Each plan only lists plan-SPECIFIC overrides — disabled features and restricted limits
+// beyond what the common layers already provide.
 //
 // To add a new paid feature:
 //   1. Add enum to PlanFeatureTypes (in src/lib/payment)
@@ -123,19 +154,7 @@ export const CloudPlanDefinitions: Record<
       // Data limits
       [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 1000,
       [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 1000,
-      [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]: 10,
       [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 1,
-      // Structure limits (consistent across all plans)
-      [PlanLimitTypes.LIMIT_FREE_WORKSPACE]: 8,
-      [PlanLimitTypes.LIMIT_BASE_PER_WORKSPACE]: 500,
-      [PlanLimitTypes.LIMIT_TABLE_PER_BASE]: 200,
-      [PlanLimitTypes.LIMIT_COLUMN_PER_TABLE]: 500,
-      [PlanLimitTypes.LIMIT_WEBHOOK_PER_TABLE]: 25,
-      [PlanLimitTypes.LIMIT_VIEW_PER_TABLE]: 200,
-      [PlanLimitTypes.LIMIT_FILTER_PER_VIEW]: 50,
-      [PlanLimitTypes.LIMIT_SORT_PER_VIEW]: 10,
-      [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE]: 3,
-      [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]: 256,
       // Automation & workflow
       [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 100,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 0,
@@ -283,8 +302,11 @@ export const PlanFeatureTypesToPlanTitles = (() => {
 // ---------------------------------------------------------------------------
 // resolvePlanMeta — computes the full feature/limit meta for a plan
 // ---------------------------------------------------------------------------
-// Override model: start with base (all features true, all limits -1),
-// then apply the plan's feature/limit overrides from CloudPlanDefinitions.
+// Layered override model:
+//   1. Base         — all limits -1 (unlimited), all features true
+//   2. CommonLimits — structural floor applied to every plan
+//   3. CommonPaidLimits — upgraded structural limits for paid plans (skipped for Free)
+//   4. CloudPlanDefinitions — plan-specific feature/limit overrides
 // ---------------------------------------------------------------------------
 
 export function resolvePlanMeta(
@@ -292,7 +314,7 @@ export function resolvePlanMeta(
 ): Record<string, number | boolean> {
   const meta: Record<string, number | boolean> = {};
 
-  // Base: all limits unlimited, all features enabled
+  // 1. Base: all limits unlimited, all features enabled
   for (const limit of Object.values(PlanLimitTypes)) {
     meta[limit] = -1;
   }
@@ -300,7 +322,15 @@ export function resolvePlanMeta(
     meta[feature] = true;
   }
 
-  // Apply plan overrides (disabled features + restricted limits)
+  // 2. Structural floor (all plans)
+  Object.assign(meta, CommonLimits);
+
+  // 3. Paid-tier upgrades (skip for Free)
+  if (title !== PlanTitles.FREE) {
+    Object.assign(meta, CommonPaidLimits);
+  }
+
+  // 4. Plan-specific overrides (disabled features + restricted limits)
   const def = CloudPlanDefinitions[title as PlanTitles];
   if (def) {
     Object.assign(meta, def.features);

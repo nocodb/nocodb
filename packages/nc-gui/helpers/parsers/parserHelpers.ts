@@ -148,7 +148,9 @@ export const extractSelectOptions = (colData: [], type: UITypes.SingleSelect | U
 
 export const isDecimalType = (colData: []) =>
   colData.some((v: any) => {
-    return v && parseInt(v) !== +v
+    if (!v) return false
+    const num = Number(v)
+    return !isNaN(num) && !Number.isInteger(num)
   })
 
 export const isEmailType = (colData: [], col?: number) =>
@@ -255,7 +257,14 @@ export const getColumnUIDTAndMetas = (colData: [], defaultType: string) => {
       }
     }
   } else if (colProps.uidt === UITypes.Number) {
-    if (isDecimalType(colData)) {
+    // Check if all non-empty values are valid numbers
+    const hasNonNumeric = colData.some((v: any) => {
+      if (v === null || v === undefined || String(v).trim() === '') return false
+      return isNaN(Number(v))
+    })
+    if (hasNonNumeric) {
+      colProps.uidt = UITypes.SingleLineText
+    } else if (isDecimalType(colData)) {
       colProps.uidt = UITypes.Decimal
     }
   }

@@ -110,7 +110,7 @@ const activeTab = computed({
 <template>
   <NcTabs :key="`${tabItems.length}`" v-model:active-key="activeTab" class="nc-ws-view-tabs">
     <template #leftExtra>
-      <div class="w-3"></div>
+      <div class="w-2 sm:w-4"></div>
     </template>
 
     <a-tab-pane v-for="item in tabItems" :key="item.key">

@@ -129,7 +129,7 @@ export const verifyDefaultOrg = async (ncMeta = Noco.ncMeta) => {
  */
 export const ensureUserInDefaultOrg = async (
   userId: string,
-  role: EnterpriseOrgUserRoles = EnterpriseOrgUserRoles.VIEWER,
+  role: EnterpriseOrgUserRoles = EnterpriseOrgUserRoles.CREATOR,
   ncMeta = Noco.ncMeta,
 ) => {
   // Cloud EE manages org membership via its own service

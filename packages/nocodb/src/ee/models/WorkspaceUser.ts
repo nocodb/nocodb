@@ -1107,7 +1107,7 @@ export default class WorkspaceUser {
       .insert({
         fk_org_id: orgId,
         fk_user_id: userId,
-        roles: EnterpriseOrgUserRoles.VIEWER,
+        roles: EnterpriseOrgUserRoles.CREATOR,
       });
   }
 }

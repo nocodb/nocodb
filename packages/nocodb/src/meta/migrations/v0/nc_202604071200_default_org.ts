@@ -128,7 +128,7 @@ export async function up(knex: Knex) {
       await knex(MetaTable.ORG_USERS).insert({
         fk_org_id: NC_DEFAULT_ORG_ID,
         fk_user_id: wu.fk_user_id,
-        roles: EnterpriseOrgUserRoles.VIEWER,
+        roles: EnterpriseOrgUserRoles.CREATOR,
       });
     } catch {
       // Duplicate — skip
@@ -165,7 +165,7 @@ export async function up(knex: Knex) {
         await knex(MetaTable.ORG_USERS).insert({
           fk_org_id: org.id,
           fk_user_id: wu.fk_user_id,
-          roles: EnterpriseOrgUserRoles.VIEWER,
+          roles: EnterpriseOrgUserRoles.CREATOR,
         });
       } catch {
         // Already exists (e.g., owner) — skip

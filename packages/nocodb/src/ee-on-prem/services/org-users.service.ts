@@ -108,7 +108,7 @@ export class OrgUsersService extends OrgUsersServiceCE {
 
     const allowedRoles = [
       EnterpriseOrgUserRoles.OWNER,
-      EnterpriseOrgUserRoles.ADMIN,
+      EnterpriseOrgUserRoles.CREATOR,
       EnterpriseOrgUserRoles.VIEWER,
     ];
 

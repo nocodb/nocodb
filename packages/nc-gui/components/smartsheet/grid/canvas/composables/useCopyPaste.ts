@@ -660,6 +660,12 @@ export function useCopyPaste({
               return
             }
 
+            // For OO columns, pasting is a "move" — the backend enforces 1:1 by unlinking
+            // the record from its previous row. Refresh view to reflect changes across all rows.
+            if (isOo(columnObj)) {
+              reloadViewDataHook?.trigger({ shouldShowLoading: false })
+            }
+
             if (result && result?.link && result?.unlink && Array.isArray(result.link) && Array.isArray(result.unlink)) {
               if (!result.link.length && !result.unlink.length) {
                 rowObj.row[columnObj.title!] = oldCellValue
@@ -1233,7 +1239,7 @@ export function useCopyPaste({
         },
         scope: defineViewScope({ view: view.value }),
       })
-      if (isBt(columnObj) || isOo(columnObj)) await clearLTARCell(rowObj, columnObj)
+      if ((isBt(columnObj) || isOo(columnObj)) && !isBtLikeV2Junction(columnObj)) await clearLTARCell(rowObj, columnObj)
 
       if (isSelfLinkColumn) {
         reloadViewDataHook.trigger({ shouldShowLoading: false })

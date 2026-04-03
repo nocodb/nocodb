@@ -46,6 +46,10 @@ const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, isList
 
 useViewRowColorProvider({ view: activeView, eventBus })
 
+const expandedFormPanelStore = useProvideExpandedFormPanel()
+
+const isExpandedFormPanelOpen = computed(() => expandedFormPanelStore.isOpen.value)
+
 const reloadViewDataEventHook = createEventHook()
 
 const reloadViewMetaEventHook = createEventHook<void | boolean>()
@@ -304,36 +308,39 @@ watch(isViewsLoading, async () => {
           @resize="onResize"
           @resized="onResized"
         >
-          <Pane class="flex flex-col h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
-            <SmartsheetToolbar v-if="!isForm" show-full-screen-toggle />
-            <div
-              :style="{ height: isForm || isTimeline ? '100%' : 'calc(100% - var(--toolbar-height))' }"
-              class="flex flex-row w-full"
-            >
-              <Transition name="layout" mode="out-in">
-                <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
-                  <div class="h-full flex-1 min-w-0 min-h-0 bg-nc-bg-default">
-                    <SmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
+          <Pane class="flex flex-row h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
+            <div class="flex flex-col flex-1 min-w-0 h-full">
+              <SmartsheetToolbar v-if="!isForm" show-full-screen-toggle />
+              <div
+                :style="{ height: isForm || isTimeline ? '100%' : 'calc(100% - var(--toolbar-height))' }"
+                class="flex flex-row w-full"
+              >
+                <Transition name="layout" mode="out-in">
+                  <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
+                    <div class="h-full flex-1 min-w-0 min-h-0 bg-nc-bg-default">
+                      <SmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
 
-                    <template v-if="activeView && meta">
-                      <SmartsheetGallery v-if="isGallery" />
+                      <template v-if="activeView && meta">
+                        <SmartsheetGallery v-if="isGallery" />
 
-                      <SmartsheetForm v-else-if="isForm && !$route.query.reload" />
+                        <SmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
-                      <SmartsheetKanbanWrapper v-else-if="isKanban" />
+                        <SmartsheetKanbanWrapper v-else-if="isKanban" />
 
-                      <SmartsheetCalendar v-else-if="isCalendar" />
+                        <SmartsheetCalendar v-else-if="isCalendar" />
 
-                      <SmartsheetTimeline v-else-if="isTimeline" />
+                        <SmartsheetTimeline v-else-if="isTimeline" />
 
-                      <SmartsheetMap v-else-if="isMap" />
+                        <SmartsheetMap v-else-if="isMap" />
 
-                      <SmartsheetList v-else-if="isList" />
-                    </template>
+                        <SmartsheetList v-else-if="isList" />
+                      </template>
+                    </div>
                   </div>
-                </div>
-              </Transition>
+                </Transition>
+              </div>
             </div>
+            <SmartsheetGridExpandedFormPanel v-if="isExpandedFormPanelOpen && isGrid" />
           </Pane>
           <LazyExtensionsPane v-if="isPanelExpanded" ref="extensionPaneRef" />
           <LazyActionsPane v-if="isActionPanelExpanded" ref="actionPaneRef" />

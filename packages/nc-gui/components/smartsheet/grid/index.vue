@@ -26,10 +26,11 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
 
-// --- Expanded form panel (right-side slide-in) ---
-const expandedFormPanelStore = useProvideExpandedFormPanel()
+const expandedFormPanelStore = useExpandedFormPanel()
 
-const { isOpen: isExpandedFormPanelOpen, rowNavigator: expandedFormPanelRowNavigator } = expandedFormPanelStore
+const isExpandedFormPanelOpen = computed(() => expandedFormPanelStore?.isOpen.value ?? false)
+
+const expandedFormPanelRowNavigator = expandedFormPanelStore?.rowNavigator ?? ref(null)
 
 const bulkUpdateDlg = ref(false)
 
@@ -495,7 +496,7 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
 
 <template>
   <div
-    class="relative flex flex-row h-full min-h-0 w-full overflow-hidden nc-grid-wrapper"
+    class="relative flex flex-col h-full min-h-0 w-full nc-grid-wrapper"
     data-testid="nc-grid-wrapper"
     :style="`background-color: ${isGroupBy && !isCanvasGroupByTableEnabled ? `${baseColor}` : 'var(--nc-bg-gray-extralight)'};`"
   >
@@ -661,9 +662,6 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
     </div>
 
     <SmartsheetGridSmartTextPanel />
-
-    <!-- Right-side expanded form panel -->
-    <SmartsheetGridExpandedFormPanel v-if="isExpandedFormPanelOpen" />
   </div>
 </template>
 

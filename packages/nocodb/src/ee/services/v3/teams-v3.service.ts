@@ -211,12 +211,27 @@ export class TeamsV3Service {
       param.workspaceOrOrgId,
     );
 
-    const filterParam =
-      scope === 'org'
-        ? { fk_org_id: orgId }
-        : { fk_workspace_id: workspaceId };
+    let teams;
 
-    const teams = await Team.list(context, filterParam);
+    if (scope === 'org') {
+      teams = await Team.list(context, { fk_org_id: orgId });
+    } else {
+      // Fetch workspace teams
+      const wsTeams = await Team.list(context, {
+        fk_workspace_id: workspaceId,
+      });
+
+      // Also fetch org teams if workspace belongs to an org
+      const workspace = await Workspace.get(workspaceId);
+      if (workspace?.fk_org_id) {
+        const orgTeams = await Team.list(context, {
+          fk_org_id: workspace.fk_org_id,
+        });
+        teams = [...wsTeams, ...orgTeams];
+      } else {
+        teams = wsTeams;
+      }
+    }
 
     // Get the current user ID from context
     const currentUserId = context.user?.id;

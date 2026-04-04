@@ -397,6 +397,7 @@ export class DataImportProcessor {
     const maxErrors = 1000;
     let batch: Record<string, any>[] = [];
     let headerSkipped = false;
+    let aborted = false;
 
     await new Promise<void>((resolve, reject) => {
       parse(readStream, {
@@ -441,6 +442,7 @@ export class DataImportProcessor {
               );
             } catch (e) {
               this.logger.error(`Batch flush error: ${e.message}`, e.stack);
+              aborted = true;
               parser.abort();
               reject(e);
               return;
@@ -449,6 +451,8 @@ export class DataImportProcessor {
           }
         },
         complete: async () => {
+          if (aborted) return;
+
           try {
             await this.flushBatch(
               context,
@@ -463,6 +467,14 @@ export class DataImportProcessor {
               maxErrors,
             );
             batch = [];
+            logDetailed(
+              JSON.stringify({
+                status: 'progress',
+                rowsInserted: counters.insertedCount,
+                rowsFailed: counters.failedCount,
+                totalProcessed: rowCount,
+              }),
+            );
             resolve();
           } catch (e) {
             reject(e);

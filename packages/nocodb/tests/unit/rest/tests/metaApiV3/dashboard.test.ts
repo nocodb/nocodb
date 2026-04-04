@@ -1,17 +1,17 @@
 import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
-import { PlanFeatureTypes } from 'nocodb-sdk';
+import { PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk';
 import { isEE } from '../../../utils/helpers';
 import init from '../../../init';
-import { overrideFeature } from '../../../utils/plan.utils';
+import { overrideFeature, overridePlan } from '../../../utils/plan.utils';
 
 export default function () {
   if (!isEE()) {
     return true;
   }
 
-  describe(`Dashboards v3`, () => {
+  describe.only(`Dashboards v3`, () => {
     let context: Awaited<ReturnType<typeof init>>;
     let initBase: any;
     let API_PREFIX: string;
@@ -54,10 +54,14 @@ export default function () {
       context = await init(false, 'editor', { skipSakila: true });
       const workspaceId = context.fk_workspace_id;
 
-      featureMock = await overrideFeature({
-        workspace_id: context.fk_workspace_id,
-        feature: `${PlanFeatureTypes.FEATURE_API_DASHBOARD_V3}`,
-        allowed: true,
+      featureMock = await overridePlan({
+        workspace_id: context.fk_workspace_id!,
+        features: {
+          [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: true
+        },
+        limits: {
+          [PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE]: 100
+        }
       });
 
       const baseResult = await request(context.app)
@@ -305,10 +309,11 @@ export default function () {
     });
 
     it('Forbidden due to plan not sufficient', async () => {
-      featureMock = await overrideFeature({
-        workspace_id: context.fk_workspace_id,
-        feature: `${PlanFeatureTypes.FEATURE_API_DASHBOARD_V3}`,
-        allowed: false,
+      featureMock = await overridePlan({
+        workspace_id: context.fk_workspace_id!,
+        features: {
+          [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: false
+        }
       });
 
       const listResponse = await request(context.app)

@@ -15,6 +15,75 @@ export class OpenAIIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
 
   protected supportedModels = [
+    // GPT-5.4 series
+    {
+      value: 'gpt-5.4',
+      label: 'GPT-5.4',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'gpt-5.4-thinking',
+      label: 'GPT-5.4 Thinking',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'gpt-5.4-pro',
+      label: 'GPT-5.4 Pro',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'gpt-5.4-mini',
+      label: 'GPT-5.4 Mini',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'gpt-5.4-nano',
+      label: 'GPT-5.4 Nano',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    // GPT-5.3 series
+    {
+      value: 'gpt-5.3',
+      label: 'GPT-5.3',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'gpt-5.3-codex',
+      label: 'GPT-5.3 Codex',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    // GPT-5.2 series
+    {
+      value: 'gpt-5.2',
+      label: 'GPT-5.2',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'gpt-5.2-instant',
+      label: 'GPT-5.2 Instant',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'gpt-5.2-thinking',
+      label: 'GPT-5.2 Thinking',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'gpt-5.2-pro',
+      label: 'GPT-5.2 Pro',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'gpt-5.2-codex',
+      label: 'GPT-5.2 Codex',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    // GPT-5 series
+    {
+      value: 'gpt-5-mini',
+      label: 'GPT-5 Mini',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
     // GPT-4o series
     {
       value: 'gpt-4o',
@@ -46,6 +115,16 @@ export class OpenAIIntegration extends AiIntegration {
     {
       value: 'o3',
       label: 'o3',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'o3-pro',
+      label: 'o3 Pro',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'o3-deep-research',
+      label: 'o3 Deep Research',
       capabilities: ['text', 'tools'] as ModelCapability[],
     },
     {

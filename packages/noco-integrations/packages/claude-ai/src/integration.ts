@@ -16,6 +16,17 @@ export class ClaudeIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
 
   protected supportedModels = [
+    // Claude 4.6 series
+    {
+      value: 'claude-opus-4-6',
+      label: 'Claude Opus 4.6',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'claude-sonnet-4-6',
+      label: 'Claude Sonnet 4.6',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
     // Claude 4.5 series
     {
       value: 'claude-opus-4-5',

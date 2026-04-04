@@ -117,6 +117,8 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.LIST_VIEW_LEVELS]: 'lvl',
       [MetaTable.DEPENDENCY_TRACKER]: 'dt',
       [MetaTable.INSTALLATIONS]: 'inst',
+      [MetaTable.GCP_MARKETPLACE_ACCOUNTS]: 'gcpa',
+      [MetaTable.GCP_MARKETPLACE_ENTITLEMENTS]: 'gcpe',
       [MetaTable.AUTOMATIONS]: 'aut',
       [MetaTable.AUTOMATION_EXECUTIONS]: 'auex',
       [MetaTable.MANAGED_APPS]: 'ma',

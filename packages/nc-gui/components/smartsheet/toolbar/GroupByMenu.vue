@@ -502,11 +502,11 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
           </div>
 
           <!-- Hide empty groups toggle -->
-          <div class="flex items-center gap-2 px-0 pt-2 border-t-1 border-nc-border-gray-medium mt-2">
+          <div class="flex items-center gap-1 px-0 pt-2 border-t-1 border-nc-border-gray-medium mt-2">
             <NcSwitch
               v-model:checked="hideEmptyGroupsToggle"
               v-e="['c:group-by:hide-empty-groups']"
-              size="small"
+              size="xsmall"
               class="nc-switch"
               :loading="isHideEmptyGroupsLoading"
               :disabled="isLocked"

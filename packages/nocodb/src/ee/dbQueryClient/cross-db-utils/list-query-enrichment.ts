@@ -225,15 +225,6 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
     // RLS filters — always throw on missing columns to prevent row leaks
     if (rlsFilterGroup.length) {
       await conditionV2(baseModel, rlsFilterGroup, baseQb, undefined, true);
-      if (countConditionQb) {
-        await conditionV2(
-          baseModel,
-          rlsFilterGroup,
-          countConditionQb,
-          undefined,
-          true,
-        );
-      }
     }
 
     // Apply remaining filters on baseQb (inner qb when provided,
@@ -244,16 +235,13 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
       const deletedCol = columns.find((c) => isDeletedCol(c));
       if (deletedCol) {
         baseQb.where(deletedCol.column_name, true);
-        countConditionQb.where(deletedCol.column_name, true);
       } else {
         baseQb.whereRaw('1 = 0');
-        countConditionQb.whereRaw('1 = 0');
       }
     } else {
       const softDeleteFilter = await baseModel.getSoftDeleteFilter();
       if (softDeleteFilter) {
         baseQb.where(softDeleteFilter);
-        countConditionQb.where(softDeleteFilter);
       }
     }
 
@@ -265,15 +253,6 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
       undefined,
       ctx.throwErrorIfInvalidParams,
     );
-    if (countConditionQb) {
-      await conditionV2(
-        baseModel,
-        aggrConditionObj,
-        countConditionQb,
-        undefined,
-        ctx.throwErrorIfInvalidParams,
-      );
-    }
 
     // Clone baseQb for count AFTER conditions but BEFORE sorts —
     // count queries don't need ORDER BY.

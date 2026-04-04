@@ -189,6 +189,36 @@ export class ViewSettingsOverrideService {
     }
     // #endregion update view columns
 
+    // #region update view group meta (hide_empty_groups)
+    if (inSettingToOverride(ViewSettingOverrideOptions.GROUP)) {
+      const destGridView = await destinationView.getView<GridView>(
+        context,
+        ncMeta,
+      );
+      const sourceGridView = await sourceView.getView<GridView>(
+        context,
+        ncMeta,
+      );
+      const sourceMeta =
+        typeof sourceGridView.meta === 'string'
+          ? JSON.parse(sourceGridView.meta || '{}')
+          : sourceGridView.meta || {};
+      const destMeta =
+        typeof destGridView.meta === 'string'
+          ? JSON.parse(destGridView.meta || '{}')
+          : destGridView.meta || {};
+
+      destMeta.hide_empty_groups = sourceMeta.hide_empty_groups || false;
+
+      await GridView.update(
+        context,
+        destinationView.id,
+        { meta: destMeta } as any,
+        ncMeta,
+      );
+    }
+    // #endregion update view group meta
+
     // #region update view row height
     if (inSettingToOverride(ViewSettingOverrideOptions.ROW_HEIGHT)) {
       const destGridView = await destinationView.getView<GridView>(

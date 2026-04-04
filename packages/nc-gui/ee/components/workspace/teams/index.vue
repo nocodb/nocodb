@@ -476,6 +476,14 @@ onMounted(async () => {
             </button>
             <div v-else-if="viewMode === 'tree'" class="flex-none w-5" />
             <GeneralTeamInfo :team="record" :icon-props="{ size: 'base', wrapperClass: '!rounded-lg' }" />
+            <NcBadge
+              v-if="record.scope === 'org'"
+              :border="false"
+              color="blue"
+              class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+            >
+              ORG
+            </NcBadge>
           </div>
 
           <div v-if="column.key === 'badge'">
@@ -520,10 +528,10 @@ onMounted(async () => {
                     :label="$t(`labels.teamIdColon`, { teamId: record.id })"
                   />
 
-                  <NcDivider v-if="record.is_member || isWsOwner || hasEditPermission" />
+                  <NcDivider v-if="record.scope !== 'org' && (record.is_member || isWsOwner || hasEditPermission)" />
 
                   <NcMenuItem
-                    v-if="record.is_member || isWsOwner"
+                    v-if="record.scope !== 'org' && (record.is_member || isWsOwner)"
                     v-e="['c:team:edit', { teamId: record.id }]"
                     @click="handleEditTeam(record as TeamV3V3Type)"
                   >
@@ -531,7 +539,7 @@ onMounted(async () => {
                     {{ $t('general.edit') }}
                   </NcMenuItem>
                   <NcTooltip
-                    v-if="(record.depth ?? 0) < 3"
+                    v-if="record.scope !== 'org' && (record.depth ?? 0) < 3"
                     :disabled="record.is_owner || isWsOwner"
                     :title="t('msg.info.onlyTeamManagerCanAddSubTeam')"
                     placement="left"
@@ -566,7 +574,7 @@ onMounted(async () => {
                     {{ $t('labels.moveTeam') }}
                   </NcMenuItem>
                   <NcTooltip
-                    v-if="record.is_member"
+                    v-if="record.scope !== 'org' && record.is_member"
                     :disabled="!hasSoleTeamOwner(record as TeamV3V3Type)"
                     :title="t('objects.teams.thisTeamHasOnlyOneOwnerTooltip')"
                     placement="left"
@@ -581,7 +589,7 @@ onMounted(async () => {
                     </NcMenuItem>
                   </NcTooltip>
                   <NcMenuItem
-                    v-if="hasEditPermission || isWsOwner"
+                    v-if="record.scope !== 'org' && (hasEditPermission || isWsOwner)"
                     v-e="['c:team:delete', { teamId: record.id }]"
                     danger
                     @click="handleDeleteTeam(record as TeamV3V3Type)"

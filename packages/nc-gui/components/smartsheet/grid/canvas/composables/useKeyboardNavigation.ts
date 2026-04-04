@@ -85,6 +85,9 @@ export function useKeyboardNavigation({
   const meta = inject(MetaInj, ref())
 
   const _handleKeyDown = async (e: KeyboardEvent) => {
+    // Skip keyboard handling during IME composition (e.g. Japanese, Chinese, Korean input)
+    if (e.isComposing) return
+
     if (isViewSearchActive() || isCreateViewActive() || isActiveElementInsideScriptPane() || isActiveElementInsideExtension())
       return
     const activeDropdownEl = document.querySelector(

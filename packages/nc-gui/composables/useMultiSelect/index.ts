@@ -963,6 +963,9 @@ export function useMultiSelect(
   const handleThrottledKeyDownAction = useThrottleFn(handleKeyDownAction, 60)
 
   const handleKeyDown = async (e: KeyboardEvent) => {
+    // Skip keyboard handling during IME composition (e.g. Japanese, Chinese, Korean input)
+    if (e.isComposing) return
+
     // invoke the keyEventHandler if provided and return if it returns true
 
     if (isArrayStructure ? await keyEventHandler?.(e) : keyEventHandler?.(e)) {

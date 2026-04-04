@@ -310,7 +310,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         })
       }
 
-      await loadIntegrations()
+      await loadIntegrations(null, effectiveBaseId)
 
       pageMode.value = null
       activeIntegration.value = null
@@ -449,11 +449,21 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     options?: {
       includeConfig?: boolean
       includeSources?: boolean
+      baseId?: string
     },
   ) => {
     if (!integration?.id) return
 
     try {
+      // Use base-scoped read when baseId is provided (base creator without workspace role)
+      if (options?.baseId && activeWorkspaceId.value) {
+        return (await $api.internal.getOperation(activeWorkspaceId.value, options.baseId, {
+          operation: 'baseIntegrationRead',
+          integrationId: integration.id,
+          includeConfig: options?.includeConfig ? 'true' : undefined,
+        })) as IntegrationType
+      }
+
       return await api.integration.read(integration.id, {
         ...(options || {}),
       })
@@ -470,7 +480,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     }
   }
 
-  const editIntegration = async (integration: IntegrationType, showBackBtn = true) => {
+  const editIntegration = async (integration: IntegrationType, showBackBtn = true, baseId?: string) => {
     if (!integration?.id) return
 
     showBackButton.value = showBackBtn
@@ -489,8 +499,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         return
       }
 
-      const integrationWithConfig = await getIntegration(integration, { includeConfig: true })
-      activeIntegration.value = integrationWithConfig
+      activeIntegration.value = await getIntegration(integration, { includeConfig: true, baseId })
 
       const integrationItem = allIntegrations.find(
         (item) => item.type === integration.type && item.sub_type === integration.sub_type,

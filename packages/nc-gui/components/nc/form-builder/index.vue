@@ -49,6 +49,8 @@ const {
 const { loadIntegrations, addIntegration, integrations, eventBus, pageMode, IntegrationsPageMode } =
   useProvideIntegrationViewStore()
 
+const { activeProjectId } = storeToRefs(useBases())
+
 const selectMode = (field: FormBuilderElement) => {
   return field.selectMode === 'multipleWithInput' || field.selectMode === 'singleWithInput'
     ? 'tags'
@@ -238,7 +240,7 @@ watch(
   async (hasIntegration) => {
     // if integration field is available, load the integration state
     if (hasIntegration) {
-      await loadIntegrations()
+      await loadIntegrations(null, activeProjectId.value)
     }
   },
   { immediate: true },

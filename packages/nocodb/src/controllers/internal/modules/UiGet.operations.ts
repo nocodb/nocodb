@@ -73,6 +73,7 @@ export class UiGetOperations
     'listViewDataList' as const,
     'listViewDataCount' as const,
     'baseIntegrationList' as const,
+    'baseIntegrationRead' as const,
     'integrationLinkedBaseList' as const,
   ];
   httpMethod = 'GET' as const;
@@ -271,6 +272,13 @@ export class UiGetOperations
           type: req.query.type as any,
           subType: req.query.subType as string,
           userId: req.user?.id,
+        });
+      case 'baseIntegrationRead':
+        return await this.baseIntegrationsService.readFromBase(context, {
+          baseId: context.base_id,
+          integrationId: req.query.integrationId as string,
+          userId: req.user?.id,
+          includeConfig: req.query.includeConfig === 'true',
         });
       case 'integrationLinkedBaseList':
         return (await this.baseIntegrationsService.linkedBaseList(context, {

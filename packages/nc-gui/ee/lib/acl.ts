@@ -176,6 +176,9 @@ const rolePermissions = {
       baseDuplicate: true,
       sourceCreate: true,
       reAssignViewOwner: true,
+
+      // Base-scoped integrations
+      baseIntegrationCreate: true,
       // Scripts
       scriptCreateOrEdit: true,
 

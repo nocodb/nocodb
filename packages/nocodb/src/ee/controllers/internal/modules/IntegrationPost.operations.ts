@@ -12,7 +12,10 @@ export class IntegrationPostOperations
   implements InternalApiModule<InternalPOSTResponseType>
 {
   constructor(private readonly integrationsService: IntegrationsService) {}
-  operations = ['integrationFetchOptions' as const];
+  operations = [
+    'integrationFetchOptions' as const,
+    'baseIntegrationFetchOptions' as const,
+  ];
   httpMethod = 'POST' as const;
 
   async handle(
@@ -30,6 +33,12 @@ export class IntegrationPostOperations
   ): InternalPOSTResponseType {
     switch (operation) {
       case 'integrationFetchOptions':
+        return await this.integrationsService.integrationFetchOptions(context, {
+          integration: payload.integration,
+          key: payload.key,
+          params: payload.params,
+        });
+      case 'baseIntegrationFetchOptions':
         return await this.integrationsService.integrationFetchOptions(context, {
           integration: payload.integration,
           key: payload.key,

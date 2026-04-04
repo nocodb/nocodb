@@ -49,7 +49,7 @@ watch(
     const promises = [loadDynamicIntegrations()]
 
     if (!isLoadedIntegrations.value) {
-      promises.push(loadIntegrations())
+      promises.push(loadIntegrations(null, props.baseId || activeProjectId.value))
     }
 
     await Promise.all(promises)

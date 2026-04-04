@@ -124,6 +124,35 @@ export class TeamsV3Service {
     NcError.notFound('Workspace or Organization not found');
   }
 
+  /**
+   * Get team and verify it belongs to the given workspace/org scope.
+   * Returns { team, workspace (null for org teams) }.
+   */
+  private async getTeamInScope(
+    context: NcContext,
+    workspaceOrOrgId: string,
+    teamId: string,
+  ) {
+    const team = await Team.get(context, teamId);
+    if (!team) {
+      NcError.get(context).teamNotFound(teamId);
+    }
+
+    const belongsToScope =
+      team.fk_workspace_id === workspaceOrOrgId ||
+      team.fk_org_id === workspaceOrOrgId;
+
+    if (!belongsToScope) {
+      NcError.get(context).teamNotFound(teamId);
+    }
+
+    const workspace = team.fk_workspace_id
+      ? await Workspace.get(team.fk_workspace_id)
+      : null;
+
+    return { team, workspace };
+  }
+
   async getTeamMembersCount(
     context: NcContext,
     teamId: string,
@@ -639,6 +668,10 @@ export class TeamsV3Service {
       fk_parent_team_id: team.fk_parent_team_id || null,
       depth: team.depth ?? 0,
       path: team.path || undefined,
+      fk_org_id: team.fk_org_id || undefined,
+      fk_workspace_id: team.fk_workspace_id || undefined,
+      scope: team.fk_org_id && !team.fk_workspace_id ? 'org' : 'workspace',
+      scim_managed: team.scim_managed || false,
     };
 
     // Emit team create event
@@ -684,25 +717,26 @@ export class TeamsV3Service {
       param.team,
     );
 
-    // Fetch workspace
-    const workspace = await Workspace.get(param.workspaceOrOrgId);
-    if (!workspace) {
-      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
-    }
-
     // Check if team exists and belongs to workspace/org
     const oldTeam = await Team.get(context, param.teamId);
     if (!oldTeam) {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
-    const belongsToScope = oldTeam.fk_workspace_id === param.workspaceOrOrgId;
+    const belongsToScope =
+      oldTeam.fk_workspace_id === param.workspaceOrOrgId ||
+      oldTeam.fk_org_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
-    // Check if user is team manager
+    // Fetch workspace for payment reseat (null for org teams)
+    const workspace = oldTeam.fk_workspace_id
+      ? await Workspace.get(oldTeam.fk_workspace_id)
+      : null;
+
+    // Check if user is team manager (org teams: any org admin can manage)
     const userId = param.req.user?.id;
     if (userId) {
       // Check if user is assigned as manager to this team
@@ -774,8 +808,10 @@ export class TeamsV3Service {
       workspace,
     } as TeamUpdateEvent);
 
-    // Recalculate seat count after team update
-    await this.paymentService.reseatSubscription(workspace.id);
+    // Recalculate seat count after team update (workspace teams only)
+    if (workspace?.id) {
+      await this.paymentService.reseatSubscription(workspace.id);
+    }
 
     NocoSocket.broadcastEvent(
       context,
@@ -804,23 +840,24 @@ export class TeamsV3Service {
   ) {
     await this.validateFeatureAccess(context);
 
-    // Fetch workspace
-    const workspace = await Workspace.get(param.workspaceOrOrgId);
-    if (!workspace) {
-      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
-    }
-
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
-    const belongsToScope = team.fk_workspace_id === param.workspaceOrOrgId;
+    const belongsToScope =
+      team.fk_workspace_id === param.workspaceOrOrgId ||
+      team.fk_org_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
     }
+
+    // Fetch workspace for payment reseat (null for org teams)
+    const workspace = team.fk_workspace_id
+      ? await Workspace.get(team.fk_workspace_id)
+      : null;
 
     // Check if user is team manager or org owner
     const userId = param.req.user?.id;
@@ -896,8 +933,10 @@ export class TeamsV3Service {
       workspace,
     } as TeamDeleteEvent);
 
-    // Recalculate seat count after team deletion
-    await this.paymentService.reseatSubscription(workspace.id);
+    // Recalculate seat count after team deletion (workspace teams only)
+    if (workspace?.id) {
+      await this.paymentService.reseatSubscription(workspace.id);
+    }
 
     NocoSocket.broadcastEvent(
       context,

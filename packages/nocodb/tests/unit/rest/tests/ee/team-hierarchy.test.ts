@@ -2,8 +2,6 @@ import 'mocha';
 import request from 'supertest';
 import { expect } from 'chai';
 import {
-  PlanFeatureTypes,
-  PlanLimitTypes,
   PlanTitles,
   ProjectRoles,
   TeamUserRoles,
@@ -2068,14 +2066,7 @@ export default function () {
           // Enable RLS feature on plan
           rlsFeatureMock = await overridePlan({
             workspace_id: workspaceId,
-            features: {
-              [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
-              [PlanFeatureTypes.FEATURE_RLS]: true,
-            },
-            limits: {
-              [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100,
-              [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]: 100,
-            },
+            planTitle: PlanTitles.ENTERPRISE
           });
         });
 
@@ -2513,8 +2504,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         engineeringId = await createTeam('RoleRes-Engineering');
@@ -2634,8 +2624,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         legalDeptId      = await createTeam('Legal-LegalDept');
@@ -2792,8 +2781,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         hrDeptId    = await createTeam('HR-HRDept');
@@ -2931,8 +2919,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         const companyId = await createTeam('Visibility-Company');
@@ -3070,14 +3057,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: {
-            [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
-            [PlanFeatureTypes.FEATURE_RLS]: true,
-          },
-          limits: {
-            [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100,
-            [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]: 100,
-          },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         salesId     = await createTeam('RLS-Sales');
@@ -3249,14 +3229,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: {
-            [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
-            [PlanFeatureTypes.FEATURE_RLS]: true,
-          },
-          limits: {
-            [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100,
-            [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]: 100,
-          },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         salesOrgId  = await createTeam('SDR-SalesOrg');
@@ -3380,8 +3353,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         const edR = await createUser(context, { email: 'editorial-editor@test.com' });
@@ -3450,8 +3422,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
       });
 
@@ -3581,14 +3552,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: {
-            [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
-            [PlanFeatureTypes.FEATURE_RLS]: true,
-          },
-          limits: {
-            [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100,
-            [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]: 100,
-          },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         salesId = await createTeam('G7-Sales');
@@ -3716,14 +3680,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: {
-            [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
-            [PlanFeatureTypes.FEATURE_RLS]: true,
-          },
-          limits: {
-            [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100,
-            [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]: 100,
-          },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         const hospitalId = await createTeam('G8-Hospital');
@@ -3915,8 +3872,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         devopsId = await createTeam('G9-DevOps');
@@ -4016,14 +3972,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: {
-            [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
-            [PlanFeatureTypes.FEATURE_RLS]: true,
-          },
-          limits: {
-            [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100,
-            [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]: 100,
-          },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         const aliceR = await createUser(context, { email: 'g11-alice@test.com' });
@@ -4118,8 +4067,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         supportTeamId = await createTeam('G12-Support');
@@ -4207,8 +4155,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         contractorsId = await createTeam('G13-Contractors');
@@ -4285,14 +4232,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: {
-            [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
-            [PlanFeatureTypes.FEATURE_RLS]: true,
-          },
-          limits: {
-            [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100,
-            [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]: 100,
-          },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         salesId = await createTeam('G14-Sales');
@@ -4387,14 +4327,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: {
-            [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
-            [PlanFeatureTypes.FEATURE_RLS]: true,
-          },
-          limits: {
-            [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100,
-            [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]: 100,
-          },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         const t1R = await createUser(context, { email: 'g15-tier1@test.com' });
@@ -4501,8 +4434,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         const engineeringId = await createTeam('G18A-Engineering');
@@ -4606,8 +4538,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         engineeringId = await createTeam('G18B-Engineering');
@@ -4716,8 +4647,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         engineeringId = await createTeam('G18C-Engineering');
@@ -4807,8 +4737,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         devopsId = await createTeam('G18D-DevOps');
@@ -4891,8 +4820,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         const earlyAccessId = await createTeam('G19-EarlyAccess');
@@ -4963,8 +4891,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         const devopsId = await createTeam('G19-DevOps');
@@ -5039,8 +4966,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         evan = await createUser({ app: context.app }, { email: 'evan@example.com' });
@@ -5128,8 +5054,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         waltUser = await createUser({ app: context.app }, { email: 'walt@example.com' });
@@ -5192,8 +5117,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         brad = await createUser({ app: context.app }, { email: 'brad@example.com' });
@@ -5247,8 +5171,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         quinn = await createUser({ app: context.app }, { email: 'quinn@example.com' });
@@ -5299,8 +5222,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         fiona = await createUser({ app: context.app }, { email: 'fiona@example.com' });
@@ -5353,11 +5275,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: {
-            [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
-            [PlanFeatureTypes.FEATURE_RLS]: true,
-          },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         nancy = await createUser({ app: context.app }, { email: 'nancy@example.com' });
@@ -5443,8 +5361,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         oscar = await createUser({ app: context.app }, { email: 'oscar@example.com' });
@@ -5499,11 +5416,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: {
-            [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
-            [PlanFeatureTypes.FEATURE_RLS]: true,
-          },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         aliceUser = await createUser({ app: context.app }, { email: 'alice-roles@example.com' });
@@ -5604,11 +5517,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: {
-            [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
-            [PlanFeatureTypes.FEATURE_RLS]: true,
-          },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         aliceUser = await createUser({ app: context.app }, { email: 'alice-board@example.com' });
@@ -5706,8 +5615,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         sophie = await createUser({ app: context.app }, { email: 'sophie-diamond@example.com' });
@@ -5779,8 +5687,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         brad = await createUser({ app: context.app }, { email: 'brad-inherit@example.com' });
@@ -5831,11 +5738,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: {
-            [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
-            [PlanFeatureTypes.FEATURE_RLS]: true,
-          },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         pia = await createUser({ app: context.app }, { email: 'pia-pilot@example.com' });
@@ -5913,8 +5816,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         alex = await createUser({ app: context.app }, { email: 'alex-noaccess@example.com' });
@@ -5988,11 +5890,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: {
-            [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
-            [PlanFeatureTypes.FEATURE_RLS]: true,
-          },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         financeUser = await createUser({ app: context.app }, { email: 'finance-conf@example.com' });
@@ -6093,11 +5991,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: {
-            [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
-            [PlanFeatureTypes.FEATURE_RLS]: true,
-          },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         connor = await createUser({ app: context.app }, { email: 'connor-sprint@example.com' });
@@ -6192,8 +6086,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         emma = await createUser({ app: context.app }, { email: 'emma-launch@example.com' });
@@ -6293,11 +6186,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: {
-            [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
-            [PlanFeatureTypes.FEATURE_RLS]: true,
-          },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         aliceUser = await createUser({ app: context.app }, { email: 'alice-agency@example.com' });

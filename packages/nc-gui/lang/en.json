@@ -2503,6 +2503,7 @@
     "share": "Share",
     "groupBy": "Group By",
     "addSubGroup": "New Subgroup",
+    "hideEmptyGroups": "Hide empty groups",
     "shareBase": {
       "label": "Share Base",
       "disable": "Disable shared base",

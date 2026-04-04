@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import type { ColumnType, GridType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import {
   RelationTypes,
   UITypes,
@@ -25,11 +25,13 @@ const isToolbarIconMode = inject(
 
 const { gridViewCols, updateGridViewColumn, metaColumnById, showSystemFields } = useViewColumnsOrThrow()
 
-const { fieldsToGroupBy, groupByLimit, localGroupBy, canSyncGroupBy } = useViewGroupByOrThrow()
+const { fieldsToGroupBy, groupByLimit, localGroupBy, canSyncGroupBy, hideEmptyGroups } = useViewGroupByOrThrow()
 
 const { $e } = useNuxtApp()
 
-const { isUserViewOwner } = useViewsStore()
+const { isUserViewOwner, updateViewMeta } = useViewsStore()
+
+const { addUndo, defineViewScope } = useUndoRedo()
 
 const isRestrictedEditor = computed(() => isLocked.value || !canSyncGroupBy.value)
 
@@ -255,6 +257,44 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
   await saveGroupBy()
 }
 
+const isHideEmptyGroupsLoading = ref(false)
+
+const updateHideEmptyGroups = async (v: boolean) => {
+  if (!view.value?.id) return
+
+  hideEmptyGroups.value = v
+
+  const currentMeta = parseProp((view.value?.view as GridType)?.meta)
+  const payload = { ...currentMeta, hide_empty_groups: v }
+
+  await updateViewMeta(view.value.id, ViewTypes.GRID, { meta: payload })
+
+  eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
+}
+
+const hideEmptyGroupsToggle = computed({
+  get: () => hideEmptyGroups.value,
+  set: async (val: boolean) => {
+    isHideEmptyGroupsLoading.value = true
+
+    addUndo({
+      undo: {
+        fn: updateHideEmptyGroups,
+        args: [hideEmptyGroups.value],
+      },
+      redo: {
+        fn: updateHideEmptyGroups,
+        args: [val],
+      },
+      scope: defineViewScope({ view: view.value }),
+    })
+
+    await updateHideEmptyGroups(val)
+
+    isHideEmptyGroupsLoading.value = false
+  },
+})
+
 // exclude columns which are already grouped by
 const getFieldsToGroupBy = (currentGroup: Group) => {
   return fieldsToGroupBy.value.filter((column) => {
@@ -459,6 +499,22 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
               :default-options="[ViewSettingOverrideOptions.GROUP]"
               @open="open = false"
             />
+          </div>
+
+          <!-- Hide empty groups toggle -->
+          <div class="flex items-center gap-2 px-0 pt-2 border-t-1 border-nc-border-gray-medium mt-2">
+            <NcSwitch
+              v-model:checked="hideEmptyGroupsToggle"
+              v-e="['c:group-by:hide-empty-groups']"
+              size="small"
+              class="nc-switch"
+              :loading="isHideEmptyGroupsLoading"
+              :disabled="isLocked"
+            >
+              <div class="text-sm text-nc-content-gray">
+                {{ $t('activity.hideEmptyGroups') }}
+              </div>
+            </NcSwitch>
           </div>
         </div>
         <GeneralLockedViewFooter

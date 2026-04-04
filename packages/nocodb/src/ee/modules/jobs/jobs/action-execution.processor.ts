@@ -527,7 +527,7 @@ export class ActionExecutionProcessor {
     await TunnelClient.waitForServer(`https://${tunnelHost}/__health`);
 
     const wsUrl = `wss://${tunnelHost}/__tunnel__`;
-    const authToken = req.headers['xc-auth'];
+    const authToken = req.headers['xc-auth'] as string;
     const localBaseUrl = `http://127.0.0.1:${process.env.PORT || 8080}`;
 
     const tunnel = new TunnelClient(wsUrl, authToken, localBaseUrl);

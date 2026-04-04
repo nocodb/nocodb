@@ -7,6 +7,48 @@ import { ATImportEngine } from '../engine';
 
 const logger = new Logger('FetchAT');
 
+function parseJsonStream(
+  source: NodeJS.ReadableStream,
+  ignoreFilter: string,
+): Promise<Record<string, any>> {
+  return new Promise((resolve, reject) => {
+    let rejected = false;
+
+    const parserStream = parser();
+    const ignoreStream = ignore({ filter: ignoreFilter });
+    const objectStream = (source as any)
+      .pipe(parserStream)
+      .pipe(ignoreStream)
+      .pipe(streamObject());
+
+    const rejectOnce = (err) => {
+      if (rejected) return;
+      rejected = true;
+      (source as any).destroy();
+      parserStream.destroy();
+      ignoreStream.destroy();
+      objectStream.destroy();
+      reject(err);
+    };
+
+    const result = {};
+
+    objectStream.on('data', (chunk) => {
+      if (chunk.key) result[chunk.key] = chunk.value;
+    });
+
+    // .pipe() does not propagate errors — attach handlers to every stream
+    source.on('error', rejectOnce);
+    parserStream.on('error', rejectOnce);
+    ignoreStream.on('error', rejectOnce);
+    objectStream.on('error', rejectOnce);
+
+    objectStream.on('end', () => {
+      resolve(result);
+    });
+  });
+}
+
 const info: any = {
   initialized: false,
 };
@@ -88,26 +130,7 @@ async function read() {
     try {
       const resreq = await ATImportEngine.get().read(info);
 
-      const data: any = await new Promise((resolve, reject) => {
-        const jsonStream = resreq.data
-          .pipe(parser())
-          .pipe(ignore({ filter: 'data.tableDatas' }))
-          .pipe(streamObject());
-
-        const fullObject = {};
-
-        jsonStream.on('data', (chunk) => {
-          if (chunk.key) fullObject[chunk.key] = chunk.value;
-        });
-
-        jsonStream.on('error', (err) => {
-          reject(err);
-        });
-
-        jsonStream.on('end', () => {
-          resolve(fullObject);
-        });
-      });
+      const data: any = await parseJsonStream(resreq.data, 'data.tableDatas');
 
       if (data?.data) {
         return {
@@ -137,26 +160,7 @@ async function readView(viewId) {
     try {
       const resreq = await ATImportEngine.get().readView(viewId, info);
 
-      const data: any = await new Promise((resolve, reject) => {
-        const jsonStream = resreq.data
-          .pipe(parser())
-          .pipe(ignore({ filter: 'data.rowOrder' }))
-          .pipe(streamObject());
-
-        const fullObject = {};
-
-        jsonStream.on('data', (chunk) => {
-          if (chunk.key) fullObject[chunk.key] = chunk.value;
-        });
-
-        jsonStream.on('error', (err) => {
-          reject(err);
-        });
-
-        jsonStream.on('end', () => {
-          resolve(fullObject);
-        });
-      });
+      const data: any = await parseJsonStream(resreq.data, 'data.rowOrder');
 
       if (data?.data) {
         return { view: data.data };

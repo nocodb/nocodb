@@ -34,13 +34,13 @@ export const CommonLimits: Partial<Record<PlanLimitTypes, number>> = {
   [PlanLimitTypes.LIMIT_SORT_PER_VIEW]: 10,
   [PlanLimitTypes.LIMIT_BASE_PER_WORKSPACE]: 500,
   [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]: 10,
-  [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE]: 3,
   [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]: 256,
 };
 
 export const CommonPaidLimits: Partial<Record<PlanLimitTypes, number>> = {
   [PlanLimitTypes.LIMIT_TABLE_PER_BASE]: 500,
   [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]: 5120,
+  [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]: 1000,
 };
 
 // ---------------------------------------------------------------------------
@@ -155,6 +155,7 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 1000,
       [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 1000,
       [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 1,
+      [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE]: 3,
       // Automation & workflow
       [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 100,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 0,
@@ -216,12 +217,12 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
       [PlanLimitTypes.LIMIT_API_CALL]: 100000,
       [PlanLimitTypes.LIMIT_API_PER_SECOND]: 5,
-      [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]: 1000,
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 60,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 7,
       [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 10000,
       [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 1,
       [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 50000,
+      [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 0,
       [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 2,
       [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 20000,
       [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 60,
@@ -246,12 +247,12 @@ export const CloudPlanDefinitions: Record<
     limits: {
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
       [PlanLimitTypes.LIMIT_API_PER_SECOND]: 10,
-      [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]: 1000,
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 180,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 90,
       [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 50000,
       [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 10,
       [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 300000,
+      [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 1,
       [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 5,
       [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 100000,
       [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 5,
@@ -268,11 +269,11 @@ export const CloudPlanDefinitions: Record<
     limits: {
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
       [PlanLimitTypes.LIMIT_API_PER_SECOND]: 10,
-      [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]: 1000,
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 365,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 365,
       [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 10,
       [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 1000000,
+      [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 1,
       [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 25,
       [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 500000,
       [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 365,

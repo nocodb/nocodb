@@ -789,7 +789,7 @@ async function importTemplate() {
               )
 
               operationId = res.headers?.['nc-operation-id']
-              updateImportTips(baseId, tableId!, progress, total)
+              updateImportTips(base.value.title as string, k, progress, total)
               progress += batchData.length
               if (autoInsertOption.value) {
                 await getMeta(baseId, tableId, true)
@@ -905,12 +905,12 @@ async function importTemplate() {
               if (data) {
                 total += data.length
                 for (let i = 0; i < data.length; i += offset) {
-                  updateImportTips(baseName, tableMeta.title, progress, total)
+                  updateImportTips(baseName, tableMeta.table_name, progress, total)
                   const batchData = remapColNames(data.slice(i, i + offset), tableMeta.columns)
                   await $api.dbTableRow.bulkCreate('noco', base.value.id, tableMeta.id, batchData)
                   progress += batchData.length
                 }
-                updateImportTips(baseName, tableMeta.title, total, total)
+                updateImportTips(baseName, tableMeta.table_name, total, total)
               }
             })(table),
           ),

@@ -18,6 +18,7 @@ import {
   GridViewColumn,
   KanbanViewColumn,
   Sort,
+  TimelineViewColumn,
   View,
 } from '~/models';
 import Noco from '~/Noco';
@@ -297,6 +298,9 @@ export class ViewSettingsOverrideService {
       case ViewTypes.FORM: {
         return FormViewColumn.list(context, view.id, ncMeta);
       }
+      case ViewTypes.TIMELINE: {
+        return TimelineViewColumn.list(context, view.id, ncMeta);
+      }
     }
   }
 
@@ -346,6 +350,14 @@ export class ViewSettingsOverrideService {
       }
       case ViewTypes.FORM: {
         return await FormViewColumn.update(context, column.id, column, ncMeta);
+      }
+      case ViewTypes.TIMELINE: {
+        return await TimelineViewColumn.update(
+          context,
+          column.id,
+          column,
+          ncMeta,
+        );
       }
     }
   }

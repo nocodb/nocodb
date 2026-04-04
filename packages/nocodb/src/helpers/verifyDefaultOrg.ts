@@ -109,6 +109,14 @@ export const verifyDefaultOrg = async (ncMeta = Noco.ncMeta) => {
       .update({ fk_org_id: NC_DEFAULT_ORG_ID });
 
     // Backfill existing workspace users (for free→licensed transition)
+    // Get existing org users first to avoid duplicates
+    const existingOrgUsers = await ncMeta
+      .knexConnection(MetaTable.ORG_USERS)
+      .where('fk_org_id', NC_DEFAULT_ORG_ID)
+      .select('fk_user_id');
+
+    const existingSet = new Set(existingOrgUsers.map((u) => u.fk_user_id));
+
     const wsUsers = await ncMeta
       .knexConnection(MetaTable.WORKSPACE_USER)
       .distinct('fk_user_id')
@@ -119,6 +127,7 @@ export const verifyDefaultOrg = async (ncMeta = Noco.ncMeta) => {
 
     for (const wu of wsUsers) {
       if (wu.fk_user_id === superUser.id) continue;
+      if (existingSet.has(wu.fk_user_id)) continue;
       try {
         await ncMeta.knexConnection(MetaTable.ORG_USERS).insert({
           fk_org_id: NC_DEFAULT_ORG_ID,

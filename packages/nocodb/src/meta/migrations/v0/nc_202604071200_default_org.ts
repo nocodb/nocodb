@@ -18,23 +18,33 @@ async function batchInsertOrgUsers(
 ) {
   if (!userIds.length) return;
 
+  // Filter out users already in the org to avoid duplicates
+  const existingUsers = await knex(MetaTable.ORG_USERS)
+    .where('fk_org_id', orgId)
+    .select('fk_user_id');
+
+  const existingSet = new Set(existingUsers.map((u) => u.fk_user_id));
+  const newUserIds = userIds.filter((uid) => !existingSet.has(uid));
+
+  if (!newUserIds.length) return;
+
   const client = knex.client.config.client;
 
   if (client === 'pg' || client === 'postgresql') {
     // PG: INSERT ... ON CONFLICT DO NOTHING
-    const values = userIds.map((uid) => `('${orgId}', '${uid}', '${role}')`).join(',');
+    const values = newUserIds.map((uid) => `('${orgId}', '${uid}', '${role}')`).join(',');
     await knex.raw(
       `INSERT INTO ${MetaTable.ORG_USERS} (fk_org_id, fk_user_id, roles) VALUES ${values} ON CONFLICT (fk_org_id, fk_user_id) DO NOTHING`,
     );
   } else if (client === 'sqlite3') {
     // SQLite: INSERT OR IGNORE
-    const values = userIds.map((uid) => `('${orgId}', '${uid}', '${role}')`).join(',');
+    const values = newUserIds.map((uid) => `('${orgId}', '${uid}', '${role}')`).join(',');
     await knex.raw(
       `INSERT OR IGNORE INTO ${MetaTable.ORG_USERS} (fk_org_id, fk_user_id, roles) VALUES ${values}`,
     );
   } else {
     // MySQL: INSERT IGNORE
-    const values = userIds.map((uid) => `('${orgId}', '${uid}', '${role}')`).join(',');
+    const values = newUserIds.map((uid) => `('${orgId}', '${uid}', '${role}')`).join(',');
     await knex.raw(
       `INSERT IGNORE INTO ${MetaTable.ORG_USERS} (fk_org_id, fk_user_id, roles) VALUES ${values}`,
     );

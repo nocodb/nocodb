@@ -35,6 +35,8 @@ import { NcError } from '~/helpers/catchError';
 import { PrincipalAssignment, Team } from '~/models';
 import { User, Workspace } from '~/models';
 import Org from '~/models/Org';
+import OrgUser from '~/ee/models/OrgUser';
+import { EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
@@ -151,6 +153,23 @@ export class TeamsV3Service {
       : null;
 
     return { team, workspace };
+  }
+
+  /**
+   * Check if user is an org admin (ADMIN/OWNER role in nc_org_users).
+   * Used for org-level team management authorization.
+   */
+  private async isUserOrgAdmin(
+    orgId: string,
+    userId: string,
+  ): Promise<boolean> {
+    if (!orgId || !userId) return false;
+    const orgUser = await OrgUser.get(orgId, userId);
+    if (!orgUser) return false;
+    return (
+      orgUser.roles === EnterpriseOrgUserRoles.ADMIN ||
+      orgUser.roles === EnterpriseOrgUserRoles.OWNER
+    );
   }
 
   async getTeamMembersCount(
@@ -473,7 +492,17 @@ export class TeamsV3Service {
       param.workspaceOrOrgId,
     );
 
-    // Fetch workspace for limit check (org teams use the context workspace or skip)
+    // Org teams: only org admin can create
+    if (scope === 'org') {
+      const userId = param.req.user?.id;
+      if (!userId || !(await this.isUserOrgAdmin(orgId, userId))) {
+        NcError.get(context).forbidden(
+          'Only org admins can create org-level teams',
+        );
+      }
+    }
+
+    // Fetch workspace for limit check (org teams skip)
     if (scope === 'workspace') {
       const workspace = await Workspace.get(workspaceId);
       if (!workspace) {
@@ -754,18 +783,37 @@ export class TeamsV3Service {
     // Check if user is team manager (org teams: any org admin can manage)
     const userId = param.req.user?.id;
     if (userId) {
-      // Check if user is assigned as manager to this team
-      const assignment = await PrincipalAssignment.get(
-        context,
-        ResourceType.TEAM,
-        param.teamId,
-        PrincipalType.USER,
-        userId,
-      );
-      if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
-        NcError.get(context).forbidden(
-          'Only team managers can update team information',
+      const isOrgTeam = !!oldTeam.fk_org_id && !oldTeam.fk_workspace_id;
+
+      if (isOrgTeam) {
+        // Org teams: only org admins can update
+        if (!(await this.isUserOrgAdmin(oldTeam.fk_org_id, userId))) {
+          NcError.get(context).forbidden(
+            'Only org admins can update org-level teams',
+          );
+        }
+      } else {
+        // Workspace teams: only team managers or workspace owners
+        const isWsOwner = await this.isUserWorkspaceOwner(
+          context,
+          userId,
+          param.workspaceOrOrgId,
         );
+
+        if (!isWsOwner) {
+          const assignment = await PrincipalAssignment.get(
+            context,
+            ResourceType.TEAM,
+            param.teamId,
+            PrincipalType.USER,
+            userId,
+          );
+          if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
+            NcError.get(context).forbidden(
+              'Only team managers can update team information',
+            );
+          }
+        }
       }
     }
 

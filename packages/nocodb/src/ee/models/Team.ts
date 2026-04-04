@@ -20,7 +20,7 @@ import Base from '~/models/Base';
 
 const logger = new Logger('Team');
 
-// Todo: handle cache key when adding support for org level teams
+// Cache key uses context.workspace_id ?? context.org_id — supports both scopes
 export default class Team {
   id: string;
   title: string;
@@ -88,15 +88,17 @@ export default class Team {
       prepareForDb(insertObj, ['meta', 'scim_meta']),
     );
 
-    await NocoCache.incrHashField(
-      'root',
-      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
-      PlanLimitTypes.LIMIT_TEAM_MANAGEMENT,
-      1,
-    );
-
-    // get() → appendToList() pattern (same as Dashboard.insert)
+    // Use workspace or org scope for cache key
     const baseCacheKey = context.workspace_id ?? context.org_id;
+
+    if (context.workspace_id) {
+      await NocoCache.incrHashField(
+        'root',
+        `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+        PlanLimitTypes.LIMIT_TEAM_MANAGEMENT,
+        1,
+      );
+    }
 
     return this.get(context, id, ncMeta).then(async (team) => {
       await NocoCache.appendToList(
@@ -271,12 +273,14 @@ export default class Team {
     // Clear all dependent caches when team is soft deleted
     await this.clearDependentCaches(context, teamId, ncMeta);
 
-    await NocoCache.incrHashField(
-      'root',
-      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
-      PlanLimitTypes.LIMIT_TEAM_MANAGEMENT,
-      -1,
-    );
+    if (context.workspace_id) {
+      await NocoCache.incrHashField(
+        'root',
+        `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+        PlanLimitTypes.LIMIT_TEAM_MANAGEMENT,
+        -1,
+      );
+    }
   }
 
   public static async delete(
@@ -317,12 +321,14 @@ export default class Team {
     // Clear all dependent caches when team is restored
     await this.clearDependentCaches(context, teamId, ncMeta);
 
-    await NocoCache.incrHashField(
-      'root',
-      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
-      PlanLimitTypes.LIMIT_TEAM_MANAGEMENT,
-      1,
-    );
+    if (context.workspace_id) {
+      await NocoCache.incrHashField(
+        'root',
+        `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+        PlanLimitTypes.LIMIT_TEAM_MANAGEMENT,
+        1,
+      );
+    }
   }
 
   public static async hardDelete(
@@ -349,12 +355,14 @@ export default class Team {
       `${CacheScope.TEAM}:${teamId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
-    await NocoCache.incrHashField(
-      'root',
-      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
-      PlanLimitTypes.LIMIT_TEAM_MANAGEMENT,
-      -1,
-    );
+    if (context.workspace_id) {
+      await NocoCache.incrHashField(
+        'root',
+        `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+        PlanLimitTypes.LIMIT_TEAM_MANAGEMENT,
+        -1,
+      );
+    }
   }
 
   // ── Hierarchy methods ──────────────────────────────────────────────

@@ -34,7 +34,7 @@ import { PaymentService } from '~/modules/payment/payment.service';
 import { NcError } from '~/helpers/catchError';
 import { PrincipalAssignment, Team } from '~/models';
 import { User, Workspace } from '~/models';
-import Org from '~/ee/models/Org';
+import Org from '~/models/Org';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';

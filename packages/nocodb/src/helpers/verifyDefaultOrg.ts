@@ -84,37 +84,51 @@ export const verifyDefaultOrg = async (ncMeta = Noco.ncMeta) => {
     .where('id', NC_DEFAULT_ORG_ID)
     .first();
 
-  if (!orgExists) {
+  // Only do full setup when org is newly created (not on every boot)
+  const isNewOrg = !orgExists;
+
+  if (isNewOrg) {
     await ncMeta.knexConnection(MetaTable.ORG).insert({
       id: NC_DEFAULT_ORG_ID,
       title: 'Default Organization',
       fk_user_id: superUser.id,
       deleted: false,
     });
-  }
 
-  // Add super user as org admin
-  const orgUserExists = await ncMeta
-    .knexConnection(MetaTable.ORG_USERS)
-    .where('fk_org_id', NC_DEFAULT_ORG_ID)
-    .where('fk_user_id', superUser.id)
-    .first();
-
-  if (!orgUserExists) {
+    // Add super user as org admin
     await ncMeta.knexConnection(MetaTable.ORG_USERS).insert({
       fk_org_id: NC_DEFAULT_ORG_ID,
       fk_user_id: superUser.id,
       roles: EnterpriseOrgUserRoles.ADMIN,
     });
-  }
 
-  // Link default workspace to this org (if it exists and isn't already linked)
-  if (Noco.ncDefaultWorkspaceId) {
+    // Link all workspaces to this org
     await ncMeta
       .knexConnection(MetaTable.WORKSPACE)
-      .where('id', Noco.ncDefaultWorkspaceId)
       .whereNull('fk_org_id')
       .update({ fk_org_id: NC_DEFAULT_ORG_ID });
+
+    // Backfill existing workspace users (for free→licensed transition)
+    const wsUsers = await ncMeta
+      .knexConnection(MetaTable.WORKSPACE_USER)
+      .distinct('fk_user_id')
+      .whereNotNull('fk_user_id')
+      .where(function () {
+        this.where('deleted', false).orWhereNull('deleted');
+      });
+
+    for (const wu of wsUsers) {
+      if (wu.fk_user_id === superUser.id) continue;
+      try {
+        await ncMeta.knexConnection(MetaTable.ORG_USERS).insert({
+          fk_org_id: NC_DEFAULT_ORG_ID,
+          fk_user_id: wu.fk_user_id,
+          roles: EnterpriseOrgUserRoles.VIEWER,
+        });
+      } catch {
+        // Already exists — skip
+      }
+    }
   }
 
   // Link any other workspaces with no org

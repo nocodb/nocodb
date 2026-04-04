@@ -34,6 +34,7 @@ import { PaymentService } from '~/modules/payment/payment.service';
 import { NcError } from '~/helpers/catchError';
 import { PrincipalAssignment, Team } from '~/models';
 import { User, Workspace } from '~/models';
+import Org from '~/ee/models/Org';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
@@ -97,6 +98,32 @@ export class TeamsV3Service {
     }
   }
 
+  /**
+   * Detect whether workspaceOrOrgId is a workspace or org.
+   * Returns { scope, orgId?, workspaceId? }.
+   */
+  private async resolveScope(
+    workspaceOrOrgId: string,
+  ): Promise<{
+    scope: 'org' | 'workspace';
+    orgId?: string;
+    workspaceId?: string;
+  }> {
+    // Check workspace first (more common)
+    const workspace = await Workspace.get(workspaceOrOrgId);
+    if (workspace) {
+      return { scope: 'workspace', workspaceId: workspaceOrOrgId };
+    }
+
+    // Check org
+    const org = await Org.get(workspaceOrOrgId);
+    if (org) {
+      return { scope: 'org', orgId: workspaceOrOrgId };
+    }
+
+    NcError.notFound('Workspace or Organization not found');
+  }
+
   async getTeamMembersCount(
     context: NcContext,
     teamId: string,
@@ -151,8 +178,14 @@ export class TeamsV3Service {
   ): Promise<{ list: TeamV3ResponseType[] }> {
     await this.validateFeatureAccess(context);
 
-    // For now, assume it's a workspace ID (can be enhanced later to detect org vs workspace)
-    const filterParam = { fk_workspace_id: param.workspaceOrOrgId };
+    const { scope, orgId, workspaceId } = await this.resolveScope(
+      param.workspaceOrOrgId,
+    );
+
+    const filterParam =
+      scope === 'org'
+        ? { fk_org_id: orgId }
+        : { fk_workspace_id: workspaceId };
 
     const teams = await Team.list(context, filterParam);
 
@@ -227,6 +260,10 @@ export class TeamsV3Service {
         fk_parent_team_id: team.fk_parent_team_id || null,
         depth: team.depth ?? 0,
         path: team.path || undefined,
+        fk_org_id: team.fk_org_id || undefined,
+        fk_workspace_id: team.fk_workspace_id || undefined,
+        scope: team.fk_org_id && !team.fk_workspace_id ? 'org' : 'workspace',
+        scim_managed: team.scim_managed || false,
       };
     });
 
@@ -249,7 +286,9 @@ export class TeamsV3Service {
     }
 
     // Verify team belongs to the workspace/org
-    const belongsToScope = team.fk_workspace_id === param.workspaceOrOrgId;
+    const belongsToScope =
+      team.fk_workspace_id === param.workspaceOrOrgId ||
+      team.fk_org_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
@@ -386,24 +425,33 @@ export class TeamsV3Service {
       true,
     );
 
-    // Fetch workspace
-    const workspace = await Workspace.get(param.workspaceOrOrgId);
-    if (!workspace) {
-      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
+    const { scope, orgId, workspaceId } = await this.resolveScope(
+      param.workspaceOrOrgId,
+    );
+
+    // Fetch workspace for limit check (org teams use the context workspace or skip)
+    if (scope === 'workspace') {
+      const workspace = await Workspace.get(workspaceId);
+      if (!workspace) {
+        NcError.get(context).workspaceNotFound(workspaceId);
+      }
+
+      await checkLimit({
+        workspace,
+        delta: 1,
+        type: PlanLimitTypes.LIMIT_TEAM_MANAGEMENT,
+        message: ({ limit }) =>
+          `You have reached the limit of ${limit} teams for your plan.`,
+      });
     }
 
-    await checkLimit({
-      workspace: workspace,
-      delta: 1, // increase count by 1 for the new team
-      type: PlanLimitTypes.LIMIT_TEAM_MANAGEMENT,
-      message: ({ limit }) =>
-        `You have reached the limit of ${limit} teams for your plan.`,
-    });
-
-    // Check for duplicate team name in the same workspace
-    const existingTeams = await Team.list(context, {
-      fk_workspace_id: param.workspaceOrOrgId,
-    });
+    // Check for duplicate team name within the same scope
+    const existingTeams = await Team.list(
+      context,
+      scope === 'org'
+        ? { fk_org_id: orgId }
+        : { fk_workspace_id: workspaceId },
+    );
 
     const duplicateTeam = existingTeams.find(
       (team) => team.title?.trim() === param.team.title?.trim(),
@@ -429,10 +477,15 @@ export class TeamsV3Service {
         NcError.get(context).teamNotFound(param.team.parent_team_id);
       }
 
-      // Verify parent belongs to the same workspace
-      if (parentTeam.fk_workspace_id !== param.workspaceOrOrgId) {
+      // Verify parent belongs to the same scope
+      const parentBelongsToScope =
+        scope === 'org'
+          ? parentTeam.fk_org_id === orgId
+          : parentTeam.fk_workspace_id === workspaceId;
+
+      if (!parentBelongsToScope) {
         NcError.get(context).invalidRequestBody(
-          'Parent team must belong to the same workspace',
+          `Parent team must belong to the same ${scope}`,
         );
       }
 
@@ -485,7 +538,9 @@ export class TeamsV3Service {
         icon_type: param.team.icon_type,
         badge_color: param.team.badge_color,
       },
-      fk_workspace_id: param.workspaceOrOrgId,
+      ...(scope === 'org'
+        ? { fk_org_id: orgId }
+        : { fk_workspace_id: workspaceId }),
       fk_parent_team_id: param.team.parent_team_id || null,
       depth,
       path,

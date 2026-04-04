@@ -141,6 +141,12 @@ export function useCanvasListView({
 
   const contextMenuTarget = ref<{ rowIndex: number; depth: number; row: ListViewRow; column?: CanvasGridColumn } | null>(null)
 
+  /**
+   * Cache of subtree shapes — saved on collapse, used on expand to inject skeleton rows.
+   * Key: `${depth}:${pk}`, Value: array of descendant rows (shallow copies for structure only).
+   */
+  const subtreeShapeCache = new Map<string, ListViewRow[]>()
+
   function getMetaForDepth(depth: number): TableType | undefined {
     const level = displayLevels.value[depth]
     if (!level?.fk_model_id) return undefined
@@ -515,6 +521,138 @@ export function useCanvasListView({
     triggerRefreshCanvas: () => triggerRefreshCanvas(),
   })
 
+  /** Flag to skip the collapsedJson watcher when handleToggleCollapse drives the reload itself. */
+  let skipCollapsedWatcher = false
+
+  /** Generation counter for background reloads — prevents stale responses from overwriting newer state. */
+  let toggleGeneration = 0
+
+
+  /**
+   * Optimistic collapse/expand handler.
+   *
+   * Collapse: cache subtree shape, remove children from cachedRows immediately, re-render.
+   * Expand: inject skeleton rows from cached shape, re-render with shimmer.
+   * Both do a targeted background reload instead of full resetAndReload.
+   */
+  function handleToggleCollapse(depth: number, pk: string) {
+    const isCurrentlyCollapsed = isCollapsed(depth, pk)
+    const cacheKey = `${depth}:${pk}`
+    const isExpanding = isCurrentlyCollapsed
+
+    if (!isCurrentlyCollapsed) {
+      // --- COLLAPSING: remove children optimistically ---
+      const parentResult = findCachedRowByPk(cachedRows.value, pk, depth)
+      if (parentResult) {
+        const { index: parentIndex } = parentResult
+
+        // Collect all descendants (rows after parent with depth > parent's depth)
+        const descendantRows: ListViewRow[] = []
+        let i = parentIndex + 1
+        while (i < totalRows.value) {
+          const row = cachedRows.value.get(i)
+          if (!row || row.__nc_depth <= depth) break
+          descendantRows.push({ ...row })
+          i++
+        }
+
+        // Cache the subtree shape for later expand
+        if (descendantRows.length > 0) {
+          subtreeShapeCache.set(cacheKey, descendantRows)
+
+          // Build indices to remove
+          const indices = descendantRows.map((_, idx) => parentIndex + 1 + idx)
+          removeRowsAndShift(cachedRows.value, chunkStates.value, indices)
+          totalRows.value = Math.max(0, totalRows.value - indices.length)
+        }
+      }
+    } else {
+      // --- EXPANDING: inject skeleton rows optimistically ---
+      const parentResult = findCachedRowByPk(cachedRows.value, pk, depth)
+      const cachedShape = subtreeShapeCache.get(cacheKey)
+
+      if (parentResult && cachedShape && cachedShape.length > 0) {
+        const { index: parentIndex } = parentResult
+
+        // Create skeleton rows from cached shape
+        const skeletonRows: ListViewRow[] = cachedShape.map((shape) => ({
+          __nc_depth: shape.__nc_depth,
+          __nc_pk: shape.__nc_pk,
+          __nc_parent_id: shape.__nc_parent_id,
+          __nc_row_type: shape.__nc_row_type,
+          __nc_descendant_count: 0,
+          __nc_loading: true,
+        }))
+
+        insertRowsAt(cachedRows.value, chunkStates.value, parentIndex + 1, skeletonRows)
+        totalRows.value += skeletonRows.length
+
+        // Clean up the shape cache entry — it's been consumed
+        subtreeShapeCache.delete(cacheKey)
+      }
+    }
+
+    // Skip the collapsedJson watcher — we handle the reload ourselves
+    skipCollapsedWatcher = true
+    toggleCollapse(depth, pk)
+    nextTick(() => {
+      skipCollapsedWatcher = false
+    })
+
+    // Re-render immediately with the optimistic state
+    triggerRefreshCanvas()
+
+    // Background reload: fetch server data to replace skeletons / sync counts.
+    backgroundReloadAfterToggle(isExpanding, ++toggleGeneration)
+  }
+
+  /**
+   * Targeted background reload after an optimistic toggle.
+   * - On expand: re-fetches all visible data to replace skeleton rows with real data.
+   * - On collapse: syncs count with server (rows are already correct from optimistic removal).
+   * Generation counter discards stale responses when user toggles rapidly.
+   */
+  async function backgroundReloadAfterToggle(isExpanding: boolean, gen: number) {
+    try {
+      const result = await loadCount({ collapsed: collapsedJson.value })
+
+      if (gen !== toggleGeneration) return
+
+      totalRows.value = result.totalRows
+      levelCounts.value = result.counts
+
+      if (isExpanding && totalRows.value > 0) {
+        chunkStates.value = []
+        const limit = Math.min(totalRows.value, 100)
+        const rows = await loadPage({ offset: 0, limit, collapsed: collapsedJson.value })
+
+        if (gen !== toggleGeneration) return
+
+        cachedRows.value.clear()
+        rows.forEach((row, idx) => {
+          cachedRows.value.set(idx, row)
+        })
+        chunkStates.value[0] = 'loaded'
+        if (limit > CHUNK_SIZE) {
+          chunkStates.value[1] = 'loaded'
+        }
+      } else if (!isExpanding) {
+        for (const [idx] of cachedRows.value) {
+          if (idx >= totalRows.value) {
+            cachedRows.value.delete(idx)
+          }
+        }
+      }
+    } catch (_e) {
+      // Network error — optimistic state remains
+      return
+    }
+
+    if (gen === toggleGeneration) {
+      triggerRefreshCanvas()
+    }
+  }
+
   const columnsPerLevel = computed<Record<string, CanvasGridColumn[]>>(() => {
     const result: Record<string, CanvasGridColumn[]> = {}
 
@@ -820,7 +958,12 @@ export function useCanvasListView({
   watch([scrollTop, scrollLeft, width, height, rowHeight, () => totalRows.value, columnsPerLevel], () => triggerRefreshCanvas())
 
   watch(rowSlice, (slice) => updateVisibleRows(slice))
-  watch(collapsedJson, () => resetAndReload())
+  // Only run resetAndReload when collapsedJson changes externally (not from handleToggleCollapse).
+  // handleToggleCollapse does its own targeted background reload.
+  watch(collapsedJson, () => {
+    if (skipCollapsedWatcher) return
+    resetAndReload()
+  })
 
   // Re-evaluate row colors when coloring config changes
   watch(
@@ -1008,7 +1151,7 @@ export function useCanvasListView({
 
     const chevron = findElementAt(x, y, 'chevron')
     if (chevron && chevron.pk !== undefined) {
-      toggleCollapse(chevron.depth, String(chevron.pk))
+      handleToggleCollapse(chevron.depth, String(chevron.pk))
     }
   }
 

@@ -16,6 +16,7 @@ export interface ListViewRow {
   __nc_parent_id: string | null
   __nc_row_type: string
   __nc_descendant_count: number
+  __nc_loading?: boolean
   __nc_color?: any
   [key: string]: any
 }

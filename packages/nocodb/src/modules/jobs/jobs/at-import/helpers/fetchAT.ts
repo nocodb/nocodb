@@ -92,6 +92,12 @@ async function initialize(shareId, appId?: string) {
       '%22mayExcludeCellDataForLargeViews%22%3Atrue',
     );
 
+    // Airtable now defaults to MessagePack responses — force JSON
+    info.link = info.link.replace(
+      '%22allowMsgpackOfResult%22%3Atrue',
+      '%22allowMsgpackOfResult%22%3Afalse',
+    );
+
     info.baseInfo = decodeURIComponent(info.link)
       .match(/{(.*)}/g)[0]
       .split('&')
@@ -126,57 +132,57 @@ async function initialize(shareId, appId?: string) {
 }
 
 async function read() {
-  if (info.initialized) {
-    try {
-      const resreq = await ATImportEngine.get().read(info);
-
-      const data: any = await parseJsonStream(resreq.data, 'data.tableDatas');
-
-      if (data?.data) {
-        return {
-          schema: data?.data,
-          baseId: info.baseId,
-          baseInfo: info.baseInfo,
-        };
-      } else {
-        throw new Error('Error Reading :: Data missing');
-      }
-    } catch (e) {
-      logger.log(e);
-      throw {
-        message:
-          'Error Reading :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://dub.sh/import-airtable-to-nocodb for details',
-      };
-    }
-  } else {
+  if (!info.initialized) {
     throw {
       message: 'Error Initializing :: please try again !!',
+    };
+  }
+
+  try {
+    const resreq = await ATImportEngine.get().read(info);
+
+    const data: any = await parseJsonStream(resreq.data, 'data.tableDatas');
+
+    if (data?.data) {
+      return {
+        schema: data?.data,
+        baseId: info.baseId,
+        baseInfo: info.baseInfo,
+      };
+    } else {
+      throw new Error('Error reading Airtable schema: empty response');
+    }
+  } catch (e) {
+    logger.log(e);
+    throw {
+      message:
+        'Error reading Airtable schema: received an unexpected response format from Airtable',
     };
   }
 }
 
 async function readView(viewId) {
-  if (info.initialized) {
-    try {
-      const resreq = await ATImportEngine.get().readView(viewId, info);
-
-      const data: any = await parseJsonStream(resreq.data, 'data.rowOrder');
-
-      if (data?.data) {
-        return { view: data.data };
-      } else {
-        throw new Error('Error Reading :: Data missing');
-      }
-    } catch (e) {
-      logger.log(e);
-      throw {
-        message:
-          'Error Reading View :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://dub.sh/import-airtable-to-nocodb for details',
-      };
-    }
-  } else {
+  if (!info.initialized) {
     throw {
       message: 'Error Initializing :: please try again !!',
+    };
+  }
+
+  try {
+    const resreq = await ATImportEngine.get().readView(viewId, info);
+
+    const data: any = await parseJsonStream(resreq.data, 'data.rowOrder');
+
+    if (data?.data) {
+      return { view: data.data };
+    } else {
+      throw new Error('Error reading Airtable view: empty response');
+    }
+  } catch (e) {
+    logger.log(e);
+    throw {
+      message:
+        'Error reading Airtable view: received an unexpected response format from Airtable',
     };
   }
 }

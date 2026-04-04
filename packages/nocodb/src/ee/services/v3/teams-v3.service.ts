@@ -978,6 +978,10 @@ export class TeamsV3Service {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
+    const workspace = team.fk_workspace_id
+      ? await Workspace.get(team.fk_workspace_id)
+      : null;
+
     // Check if user is team manager
     const userId = param.req.user?.id;
     if (userId) {
@@ -1137,6 +1141,10 @@ export class TeamsV3Service {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
+    const workspace = team.fk_workspace_id
+      ? await Workspace.get(team.fk_workspace_id)
+      : null;
+
     const userId = param.req.user?.id;
     if (!Array.isArray(param.members)) {
       NcError.get(context).invalidRequestBody(
@@ -1280,6 +1288,10 @@ export class TeamsV3Service {
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
     }
+
+    const workspace = team.fk_workspace_id
+      ? await Workspace.get(team.fk_workspace_id)
+      : null;
 
     // Check if user is team manager
     const userId = param.req.user?.id;

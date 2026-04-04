@@ -699,6 +699,11 @@ const showActivity = computed(() => {
   @apply !h-6;
 }
 
+/* Disable grey hover on audit items in panel */
+.nc-expanded-form-panel .group.hover\:bg-nc-bg-gray-light:hover {
+  background-color: transparent !important;
+}
+
 /* Sidebar tabs — smaller font for Comments / Revision History */
 .nc-expanded-form-panel .nc-comments-drawer .ant-tabs-tab {
   .flex.items-center {

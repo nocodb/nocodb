@@ -318,8 +318,13 @@ onBeforeUnmount(() => {
         <div class="text-center text-3xl text-nc-content-gray-subtle opacity-40">
           <GeneralIcon icon="commentHere" />
         </div>
-        <div class="font-medium text-center my-6 text-nc-content-gray-muted">
-          {{ hasEditPermission ? $t('activity.startCommenting') : $t('activity.noCommentsYet') }}
+        <div class="text-center my-4 px-6">
+          <div class="font-medium text-nc-content-gray-muted">
+            {{ hasEditPermission ? $t('activity.startCommenting') : $t('activity.noCommentsYet') }}
+          </div>
+          <div v-if="hasEditPermission" class="text-xs text-nc-content-gray-subtle2 mt-2">
+            {{ $t('activity.startCommentingDescription') }}
+          </div>
         </div>
       </div>
       <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">

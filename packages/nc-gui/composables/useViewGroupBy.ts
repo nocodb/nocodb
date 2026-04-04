@@ -1,6 +1,7 @@
 import {
   type ColumnType,
   CommonAggregations,
+  type GridType,
   type LinkToAnotherRecordType,
   type LookupType,
   type TableType,
@@ -79,6 +80,15 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     })
 
     const isGroupBy = computed(() => !!groupBy.value.length)
+
+    const hideEmptyGroups = ref(parseProp((view.value?.view as GridType)?.meta).hide_empty_groups || false)
+
+    watch(
+      () => (view.value?.view as GridType)?.meta,
+      (newMeta) => {
+        hideEmptyGroups.value = parseProp(newMeta).hide_empty_groups || false
+      },
+    )
 
     const { isUIAllowed } = useRoles()
 
@@ -251,7 +261,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           })
         }
         return acc
-      }, [])
+      }, []).filter((g: Group) => !hideEmptyGroups.value || g.key !== GROUP_BY_VARS.NULL)
 
       if (!group.children) group.children = []
 
@@ -313,6 +323,10 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         const groupby = groupBy.value[group.nestedIn.length]
 
         const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
+        const effectiveWhere =
+          hideEmptyGroups.value && groupby?.column?.title
+            ? `${nestedWhere}${nestedWhere ? '~and' : ''}(${groupby.column.title},notblank)`
+            : nestedWhere
         if (!groupby || !groupby.column.title) return
 
         if (isPublic && !sharedView.value?.uuid) {
@@ -336,7 +350,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
               ...params,
               ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-              where: `${nestedWhere}`,
+              where: `${effectiveWhere}`,
               sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
               column_name: groupby.column.title,
             } as any)
@@ -346,7 +360,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                 offset: ((group.paginationData.page ?? 0) - 1) * groupByGroupLimit.value,
                 limit: groupByGroupLimit.value,
                 ...params,
-                where: nestedWhere,
+                where: effectiveWhere,
                 sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
                 column_name: groupby.column.title,
                 sortsArr: sorts.value,
@@ -746,6 +760,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       localGroupBy,
       canSyncGroupBy,
       isGroupBy,
+      hideEmptyGroups,
       fieldsToGroupBy,
       groupByLimit,
       loadGroups,

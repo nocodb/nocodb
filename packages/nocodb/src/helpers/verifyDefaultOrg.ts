@@ -146,7 +146,7 @@ export const verifyDefaultOrg = async (ncMeta = Noco.ncMeta) => {
  */
 export const ensureUserInDefaultOrg = async (
   userId: string,
-  role: EnterpriseOrgUserRoles = EnterpriseOrgUserRoles.CREATOR,
+  role: EnterpriseOrgUserRoles = EnterpriseOrgUserRoles.VIEWER,
   ncMeta = Noco.ncMeta,
 ) => {
   // Only on licensed on-prem

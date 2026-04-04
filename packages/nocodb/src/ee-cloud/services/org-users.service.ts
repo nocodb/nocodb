@@ -48,7 +48,7 @@ export class OrgUsersService {
         .update({
           deleted: false,
           deleted_at: null,
-          roles: param.userProps.roles || EnterpriseOrgUserRoles.CREATOR,
+          roles: param.userProps.roles || EnterpriseOrgUserRoles.VIEWER,
         });
     } else {
       await OrgUser.insert({

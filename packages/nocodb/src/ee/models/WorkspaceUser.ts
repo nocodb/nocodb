@@ -1110,7 +1110,7 @@ export default class WorkspaceUser {
           .update({
             deleted: false,
             deleted_at: null,
-            roles: EnterpriseOrgUserRoles.CREATOR,
+            roles: EnterpriseOrgUserRoles.VIEWER,
           });
       }
       return;
@@ -1122,7 +1122,7 @@ export default class WorkspaceUser {
         .insert({
           fk_org_id: orgId,
           fk_user_id: userId,
-          roles: EnterpriseOrgUserRoles.CREATOR,
+          roles: EnterpriseOrgUserRoles.VIEWER,
         });
     } catch {
       // Duplicate from race condition — safe to ignore

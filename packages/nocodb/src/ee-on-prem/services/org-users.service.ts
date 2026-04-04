@@ -171,13 +171,13 @@ export class OrgUsersService extends OrgUsersServiceCE {
         .update({
           deleted: false,
           deleted_at: null,
-          roles: param.orgRole || EnterpriseOrgUserRoles.CREATOR,
+          roles: param.orgRole || EnterpriseOrgUserRoles.VIEWER,
         });
     } else {
       await ncMeta.knexConnection(MetaTable.ORG_USERS).insert({
         fk_org_id: orgId,
         fk_user_id: user.id,
-        roles: param.orgRole || EnterpriseOrgUserRoles.CREATOR,
+        roles: param.orgRole || EnterpriseOrgUserRoles.VIEWER,
       });
     }
 

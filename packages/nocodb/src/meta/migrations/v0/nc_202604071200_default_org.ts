@@ -180,7 +180,7 @@ export async function up(knex: Knex) {
       knex,
       NC_DEFAULT_ORG_ID,
       userIds,
-      EnterpriseOrgUserRoles.CREATOR,
+      EnterpriseOrgUserRoles.VIEWER,
     );
 
     // Store default org ID
@@ -222,20 +222,14 @@ export async function up(knex: Knex) {
       knex,
       org.id,
       userIds,
-      EnterpriseOrgUserRoles.CREATOR,
+      EnterpriseOrgUserRoles.VIEWER,
     );
   }
 
-  // Step 4: Upgrade existing VIEWER org users to CREATOR
-  // Previously SSO added users as VIEWER, which was fine when all org roles
-  // had identical permissions. Now VIEWER blocks workspace creation, so
-  // existing viewers need to be promoted to maintain existing behavior.
-  await knex(MetaTable.ORG_USERS)
-    .where('roles', EnterpriseOrgUserRoles.VIEWER)
-    .where(function () {
-      this.where('deleted', false).orWhereNull('deleted');
-    })
-    .update({ roles: EnterpriseOrgUserRoles.CREATOR });
+  // All users default to VIEWER — workspace creation requires org admin
+  // to explicitly promote users to CREATOR. This prevents guests from
+  // accumulating seat counts by creating workspaces.
+  // TODO: make default org role configurable by org admin
 }
 
 export async function down(knex: Knex) {

@@ -700,7 +700,14 @@ export function useCanvasRender({
    * Draw a shimmer/skeleton placeholder for a loading cell.
    * Renders a gray-200 rounded rectangle with alternating width for a natural look.
    */
-  function drawShimmerEffect(ctx: CanvasRenderingContext2D, x: number, y: number, colWidth: number, rowH: number, rowIdx: number) {
+  function drawShimmerEffect(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    colWidth: number,
+    rowH: number,
+    rowIdx: number,
+  ) {
     ctx.save()
 
     const shimmerWidth = Math.min(colWidth - 24, rowIdx % 2 === 0 ? 124 : 144)

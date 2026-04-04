@@ -14,9 +14,9 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const { isRtl } = useRtl()
-
 const emits = defineEmits(['update:modelValue', 'cancel'])
+
+const { isRtl } = useRtl()
 
 const meta = toRef(props, 'meta')
 

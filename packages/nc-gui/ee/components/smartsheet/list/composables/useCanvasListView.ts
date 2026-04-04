@@ -527,7 +527,6 @@ export function useCanvasListView({
   /** Generation counter for background reloads — prevents stale responses from overwriting newer state. */
   let toggleGeneration = 0
 
-
   /**
    * Optimistic collapse/expand handler.
    *

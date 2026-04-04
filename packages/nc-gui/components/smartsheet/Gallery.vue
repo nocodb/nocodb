@@ -739,7 +739,13 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
         :permission="PermissionKey.TABLE_RECORD_ADD"
       >
         <template #default="{ isAllowed }">
-          <NcButton size="xs" type="secondary" class="ml-4 rtl:(mr-4 ml-0)" :disabled="!isAllowed" @click="handleOpenNewRecordForm">
+          <NcButton
+            size="xs"
+            type="secondary"
+            class="ml-4 rtl:(mr-4 ml-0)"
+            :disabled="!isAllowed"
+            @click="handleOpenNewRecordForm"
+          >
             <div class="flex items-center gap-2">
               <component :is="iconMap.plus" class="" />
               {{ $t('activity.newRecord') }}

@@ -964,19 +964,15 @@ export class TeamsV3Service {
   ): Promise<TeamMemberV3ResponseType[]> {
     await this.validateFeatureAccess(context);
 
-    // Fetch workspace
-    const workspace = await Workspace.get(param.workspaceOrOrgId);
-    if (!workspace) {
-      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
-    }
-
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
-    const belongsToScope = team.fk_workspace_id === param.workspaceOrOrgId;
+    const belongsToScope =
+      team.fk_workspace_id === param.workspaceOrOrgId ||
+      team.fk_org_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
@@ -1088,7 +1084,7 @@ export class TeamsV3Service {
     }
 
     // Recalculate seat count after adding team members
-    await this.paymentService.reseatSubscription(workspace.id);
+    if (team.fk_workspace_id) { await this.paymentService.reseatSubscription(team.fk_workspace_id); }
 
     // Transform to v3 response format — reuse already-loaded users
     const members = addedMembers.map((assignment) => {
@@ -1127,19 +1123,15 @@ export class TeamsV3Service {
   ) {
     await this.validateFeatureAccess(context);
 
-    // Fetch workspace
-    const workspace = await Workspace.get(param.workspaceOrOrgId);
-    if (!workspace) {
-      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
-    }
-
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
-    const belongsToScope = team.fk_workspace_id === param.workspaceOrOrgId;
+    const belongsToScope =
+      team.fk_workspace_id === param.workspaceOrOrgId ||
+      team.fk_org_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
@@ -1246,7 +1238,7 @@ export class TeamsV3Service {
     }
 
     // Recalculate seat count after removing team members
-    await this.paymentService.reseatSubscription(workspace.id);
+    if (team.fk_workspace_id) { await this.paymentService.reseatSubscription(team.fk_workspace_id); }
 
     NocoSocket.broadcastEvent(
       context,
@@ -1275,19 +1267,15 @@ export class TeamsV3Service {
   ): Promise<TeamMemberV3ResponseType[]> {
     await this.validateFeatureAccess(context);
 
-    // Fetch workspace
-    const workspace = await Workspace.get(param.workspaceOrOrgId);
-    if (!workspace) {
-      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
-    }
-
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
-    const belongsToScope = team.fk_workspace_id === param.workspaceOrOrgId;
+    const belongsToScope =
+      team.fk_workspace_id === param.workspaceOrOrgId ||
+      team.fk_org_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
@@ -1388,7 +1376,7 @@ export class TeamsV3Service {
     }
 
     // Recalculate seat count after updating team member roles
-    await this.paymentService.reseatSubscription(workspace.id);
+    if (team.fk_workspace_id) { await this.paymentService.reseatSubscription(team.fk_workspace_id); }
 
     // Transform to v3 response format — reuse already-loaded users
     const members = updatedMembers.map((assignment) => {
@@ -1538,7 +1526,10 @@ export class TeamsV3Service {
     if (!team) {
       NcError.get(context).teamNotFound(param.teamId);
     }
-    if (team.fk_workspace_id !== param.workspaceOrOrgId) {
+    const teamBelongsToScope =
+      team.fk_workspace_id === param.workspaceOrOrgId ||
+      team.fk_org_id === param.workspaceOrOrgId;
+    if (!teamBelongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
@@ -1558,9 +1549,12 @@ export class TeamsV3Service {
       if (!newParent) {
         NcError.get(context).teamNotFound(newParentId);
       }
-      if (newParent.fk_workspace_id !== param.workspaceOrOrgId) {
+      const parentBelongsToScope =
+        newParent.fk_workspace_id === param.workspaceOrOrgId ||
+        newParent.fk_org_id === param.workspaceOrOrgId;
+      if (!parentBelongsToScope) {
         NcError.get(context).invalidRequestBody(
-          'Parent team must belong to the same workspace',
+          'Parent team must belong to the same scope',
         );
       }
 

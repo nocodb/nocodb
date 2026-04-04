@@ -1,10 +1,10 @@
 import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
-import { PlanFeatureTypes } from 'nocodb-sdk';
+import { PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk';
 import { isEE } from '../../../utils/helpers';
 import init from '../../../init';
-import { overrideFeature } from '../../../utils/plan.utils';
+import { overridePlan } from '../../../utils/plan.utils';
 
 interface CreateScriptArgs {
   title: string;
@@ -70,10 +70,14 @@ export default function () {
       context = await init();
       const workspaceId = context.fk_workspace_id;
 
-      featureMock = await overrideFeature({
-        workspace_id: context.fk_workspace_id,
-        feature: `${PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT}`,
-        allowed: true,
+      featureMock = await overridePlan({
+        workspace_id: context.fk_workspace_id!,
+        features: {
+          [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: true
+        },
+        limits: {
+          [PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE]: 1000
+        }
       });
 
       const baseResult = await request(context.app)
@@ -333,10 +337,11 @@ export default function () {
     });
 
     it('Forbidden due to plan not sufficient', async () => {
-      featureMock = await overrideFeature({
-        workspace_id: context.fk_workspace_id,
-        feature: `${PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT}`,
-        allowed: false,
+      featureMock = await overridePlan({
+        workspace_id: context.fk_workspace_id!,
+        features: {
+          [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: false
+        }
       });
 
       // Try to list scripts

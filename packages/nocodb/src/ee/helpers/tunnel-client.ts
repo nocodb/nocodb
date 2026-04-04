@@ -26,7 +26,10 @@ interface TunnelRequest {
 const ALLOWED_PATH_PREFIXES = ['/api/v1/db/data/', '/api/v2/', '/api/v3/'];
 
 function isPathAllowed(path: string): boolean {
-  return ALLOWED_PATH_PREFIXES.some((prefix) => path.startsWith(prefix));
+  const normalized = decodeURIComponent(
+    new URL(path, 'http://localhost').pathname,
+  );
+  return ALLOWED_PATH_PREFIXES.some((prefix) => normalized.startsWith(prefix));
 }
 
 export class TunnelClient {
@@ -66,7 +69,14 @@ export class TunnelClient {
       }, REQUEST_TIMEOUT_MS);
 
       ws.on('message', (data: WebSocket.Data) => {
-        const msg = JSON.parse(data.toString());
+        let msg: { type: string };
+        try {
+          msg = JSON.parse(data.toString());
+        } catch {
+          clearTimeout(timeout);
+          reject(new Error('Invalid handshake message from tunnel server'));
+          return;
+        }
 
         if (msg.type === 'connected') {
           clearTimeout(timeout);

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Sandbox } from '@e2b/code-interpreter';
-import type { HookLogType, NcContext } from 'nocodb-sdk';
+import type { HookLogType, NcContext, NcRequest } from 'nocodb-sdk';
 import type { Job } from 'bull';
 import type { ExecuteActionJobData } from '~/interface/Jobs';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
@@ -205,7 +205,11 @@ export class ActionExecutionProcessor {
       }
     } finally {
       if (tunnel) {
-        await tunnel.close();
+        try {
+          await tunnel.close();
+        } catch {
+          // ignore close errors to ensure sandbox cleanup runs
+        }
       }
       await this.cleanupSandbox(sandbox);
     }
@@ -514,7 +518,7 @@ export class ActionExecutionProcessor {
     }
   }
 
-  private async setupTunnel(sandbox: Sandbox, req: any): Promise<TunnelClient> {
+  private async setupTunnel(sandbox: Sandbox, req: NcRequest): Promise<TunnelClient> {
     await sandbox.commands.run('node /home/user/tunnel-server.js', {
       background: true,
     });

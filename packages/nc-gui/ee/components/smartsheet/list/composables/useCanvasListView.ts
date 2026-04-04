@@ -569,26 +569,50 @@ export function useCanvasListView({
     } else {
       // --- EXPANDING: inject skeleton rows optimistically ---
       const parentResult = findCachedRowByPk(cachedRows.value, pk, depth)
-      const cachedShape = subtreeShapeCache.get(cacheKey)
 
-      if (parentResult && cachedShape && cachedShape.length > 0) {
+      if (parentResult) {
         const { index: parentIndex } = parentResult
+        const cachedShape = subtreeShapeCache.get(cacheKey)
 
-        // Create skeleton rows from cached shape
-        const skeletonRows: ListViewRow[] = cachedShape.map((shape) => ({
-          __nc_depth: shape.__nc_depth,
-          __nc_pk: shape.__nc_pk,
-          __nc_parent_id: shape.__nc_parent_id,
-          __nc_row_type: shape.__nc_row_type,
-          __nc_descendant_count: 0,
-          __nc_loading: true,
-        }))
+        let skeletonRows: ListViewRow[]
 
-        insertRowsAt(cachedRows.value, chunkStates.value, parentIndex + 1, skeletonRows)
-        totalRows.value += skeletonRows.length
+        if (cachedShape && cachedShape.length > 0) {
+          // Use cached subtree shape from a previous collapse
+          skeletonRows = cachedShape.map((shape) => ({
+            __nc_depth: shape.__nc_depth,
+            __nc_pk: shape.__nc_pk,
+            __nc_parent_id: shape.__nc_parent_id,
+            __nc_row_type: shape.__nc_row_type,
+            __nc_descendant_count: 0,
+            __nc_loading: true,
+          }))
+          subtreeShapeCache.delete(cacheKey)
+        } else {
+          // First expand — no cached shape. Generate default skeletons
+          // using the level structure. Show 3 placeholder rows per child level.
+          const DEFAULT_SKELETON_COUNT = 3
+          const maxDepth = displayLevels.value.length - 1
+          skeletonRows = []
 
-        // Clean up the shape cache entry — it's been consumed
-        subtreeShapeCache.delete(cacheKey)
+          for (let d = depth + 1; d <= maxDepth; d++) {
+            const level = displayLevels.value[d]
+            for (let n = 0; n < DEFAULT_SKELETON_COUNT; n++) {
+              skeletonRows.push({
+                __nc_depth: d,
+                __nc_pk: `__skeleton_${d}_${n}`,
+                __nc_parent_id: d === depth + 1 ? pk : `__skeleton_${d - 1}_0`,
+                __nc_row_type: level?.fk_model_id || '',
+                __nc_descendant_count: 0,
+                __nc_loading: true,
+              })
+            }
+          }
+        }
+
+        if (skeletonRows.length > 0) {
+          insertRowsAt(cachedRows.value, chunkStates.value, parentIndex + 1, skeletonRows)
+          totalRows.value += skeletonRows.length
+        }
       }
     }
 

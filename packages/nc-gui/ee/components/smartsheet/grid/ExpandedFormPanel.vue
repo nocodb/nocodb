@@ -343,13 +343,6 @@ const showActivity = computed(() => {
 
         <div class="flex-1" />
 
-        <SmartsheetExpandedFormViewModeSelector
-          v-if="isFullscreen"
-          v-model="activeViewMode"
-          :view="view"
-          class="mr-2"
-        />
-
         <!-- Save -->
         <NcTooltip v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView" :title="isNew ? $t('general.create') : $t('general.save')">
           <NcButton
@@ -392,6 +385,13 @@ const showActivity = computed(() => {
             </NcButton>
           </NcTooltip>
         </div>
+
+        <SmartsheetExpandedFormViewModeSelector
+          v-if="isFullscreen"
+          v-model="activeViewMode"
+          :view="view"
+          class="mr-2"
+        />
 
         <div
           v-if="showActivity && !isFullscreen"
@@ -513,7 +513,7 @@ const showActivity = computed(() => {
   </Transition>
 
   <!-- Discard changes modal -->
-  <NcModal v-model:visible="showDiscardModal" size="xs">
+  <NcModal v-model:visible="showDiscardModal" size="small">
     <div>
       <div class="flex flex-row items-center gap-x-2 text-base font-bold">
         {{ $t('tooltip.saveChanges') }}

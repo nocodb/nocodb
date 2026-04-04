@@ -251,6 +251,28 @@ const expandedFormOnRowIdDlg = computed({
     if (!routeQuery.value.rowId) return false
     // When the side panel is open, don't trigger the modal
     if (isExpandedFormPanelOpen.value) return false
+    // EE desktop: open the side panel on page reload with rowId instead of the modal
+    if (
+      isEeUI &&
+      !isMobileMode.value &&
+      !isPublic.value &&
+      expandedFormPanelStore &&
+      meta.value?.id &&
+      !isSyncingPanelRoute.value
+    ) {
+      nextTick(() => {
+        const rowId = routeQuery.value.rowId
+        if (rowId && !isExpandedFormPanelOpen.value && !isSyncingPanelRoute.value) {
+          expandedFormPanelStore.openPanel(
+            { row: {}, oldRow: {}, rowMeta: {} } as Row,
+            undefined,
+            undefined,
+            rowId,
+          )
+        }
+      })
+      return false
+    }
     // When ?colId points at a SmartText column the SmartText panel claims
     // the URL — expanded record dialog stays closed.
     const colId = routeQuery.value.colId

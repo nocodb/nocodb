@@ -2611,6 +2611,7 @@
     "linkRecord": "Link record",
     "addNewRecord": "Add new record",
     "newRecord": "New record",
+    "openInTable": "Open in table",
     "tableNameCreateNewRecord": "{tableName}: Create new record",
     "gotSavedLinkedSuccessfully": "{tableName} '{recordTitle}' got saved & linked successfully",
     "recordCreatedLinked": "Record Created & Linked",

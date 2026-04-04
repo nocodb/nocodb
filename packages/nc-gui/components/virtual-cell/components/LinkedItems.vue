@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnType, type LinkToAnotherRecordType, isDateOrDateTimeCol } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, type TableType, isDateOrDateTimeCol } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey, RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
 
 interface Prop {
@@ -13,7 +13,7 @@ interface Prop {
 
 const props = defineProps<Prop>()
 
-const emit = defineEmits(['update:modelValue', 'attachRecord', 'escape'])
+const emit = defineEmits(['update:modelValue', 'attachRecord', 'escape', 'openInTable'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
@@ -81,6 +81,8 @@ const {
 } = useLTARStoreOrThrow()
 
 const { withLoading } = useLoadingTrigger()
+
+const { openTable } = useTablesStore()
 
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
 
@@ -178,6 +180,12 @@ const addNewRecord = () => {
   isExpandedFormCloseAfterSave.value = true
   isNewRecord.value = true
   isBlueprintMode.value = false
+}
+
+const openLinkedTableInView = () => {
+  if (!relatedTableMeta.value?.id) return
+  vModel.value = false
+  openTable(relatedTableMeta.value as TableType)
 }
 
 const reloadViewDataListener = withLoading((params) => {
@@ -568,6 +576,20 @@ const handleKeyDown = (e: KeyboardEvent) => {
             <div class="flex items-center gap-1">
               <GeneralIcon icon="link2" class="!xs:hidden h-4 w-4" />
               {{ isMobileMode ? $t('title.linkMore') : $t('title.linkMoreRecords') }}
+            </div>
+          </NcButton>
+          <NcButton
+            v-if="!isPublic && !isForm && !isNew && isLinkedTableAccessible"
+            v-e="['c:links:open-in-table']"
+            data-testid="nc-child-list-button-open-in-table"
+            class="!hover:(bg-nc-bg-default text-nc-content-brand) !h-7 !text-small"
+            size="small"
+            type="secondary"
+            @click="openLinkedTableInView"
+          >
+            <div class="flex items-center gap-1">
+              <GeneralIcon icon="externalLink" class="!xs:hidden h-4 w-4" />
+              {{ $t('activity.openInTable') }}
             </div>
           </NcButton>
         </div>

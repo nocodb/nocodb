@@ -56,6 +56,18 @@ const inviteUserToWorkspace = (email: string) => {
   bulkAddMemberDlg.value = true
 }
 
+const { $api } = useNuxtApp()
+
+const updateOrgRole = async (member: any, newRole: string) => {
+  try {
+    await $api.instance.patch(`/api/v2/orgs/${org.value?.id}/user/${member.id}`, { org_role: newRole })
+    member.cloud_org_roles = newRole
+    message.success(t('msg.success.roleUpdated'))
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 const orderBy = computed<Record<string, SordDirectionType>>({
   get: () => {
     return sortDirection.value
@@ -97,6 +109,12 @@ const columns = [
     minWidth: 180,
     dataIndex: 'workspaceCount',
     showOrderBy: true,
+  },
+  {
+    key: 'org_role',
+    title: t('labels.orgRole'),
+    width: 160,
+    minWidth: 140,
   },
   {
     key: 'dateAdded',
@@ -239,15 +257,7 @@ watch(selected, () => {
                   </template>
                   {{ member.display_name || member.email.split('@')[0] }}
                 </NcTooltip>
-                <!-- Todo: badge size  -->
-                <RolesBadge
-                  v-if="member.cloud_org_roles"
-                  :border="false"
-                  :role="member.cloud_org_roles"
-                  size="xs"
-                  :show-icon="false"
-                  class="!px-1"
-                />
+                <!-- Org role badge moved to separate column -->
               </div>
               <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-subtle2" show-on-truncate-only>
                 <template #title>
@@ -288,6 +298,24 @@ watch(selected, () => {
                 </div>
               </template>
             </NcDropdown>
+          </div>
+          <div v-if="column.key === 'org_role'" class="flex items-center">
+            <template v-if="member.cloud_org_roles === 'cloud-org-level-owner'">
+              <RolesBadge :border="false" :role="member.cloud_org_roles" size="xs" :show-icon="false" class="!px-1" />
+            </template>
+            <NcSelect
+              v-else
+              :value="member.cloud_org_roles || 'cloud-org-level-viewer'"
+              :options="[
+                { label: $t('objects.roleType.admin'), value: 'cloud-org-level-owner' },
+                { label: $t('objects.roleType.creator'), value: 'cloud-org-level-creator' },
+                { label: $t('objects.roleType.viewer'), value: 'cloud-org-level-viewer' },
+              ]"
+              class="w-28"
+              size="small"
+              data-testid="nc-cloud-org-role-select"
+              @change="updateOrgRole(member, $event)"
+            />
           </div>
           <div v-if="column.key === 'dateAdded'">
             <NcTooltip class="max-w-full">

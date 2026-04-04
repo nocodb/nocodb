@@ -68,8 +68,13 @@ export default class Noco extends NocoEE {
    * fetched a fresh JWT and updated NocoLicense internal state.
    * Only syncs the Noco.ee flag — no DB reads, no reset/init.
    */
-  public static syncEEState(): void {
+  public static async syncEEState(): Promise<void> {
     this.ee = NocoLicense.isEE;
+
+    // Ensure default org exists when transitioning to licensed state
+    if (this.ee) {
+      await verifyDefaultOrg();
+    }
   }
 
   /**

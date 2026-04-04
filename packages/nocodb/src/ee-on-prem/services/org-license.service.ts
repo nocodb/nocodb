@@ -20,7 +20,7 @@ export class OrgLicenseService extends OrgLicenseServiceEE {
     if (!param.key) {
       await Store.saveOrUpdate({ value: '', key: NC_LICENSE_KEY });
       NocoLicense.reset();
-      Noco.syncEEState();
+      await Noco.syncEEState();
       return true;
     }
 
@@ -54,7 +54,7 @@ export class OrgLicenseService extends OrgLicenseServiceEE {
           // Previous key also failed — stay in CE mode
         }
       }
-      Noco.syncEEState();
+      await Noco.syncEEState();
       this.onPremLogger.error(e.message, e.stack);
       NcError.badRequest(
         'License activation failed. Please verify your license key and try again.',
@@ -93,7 +93,7 @@ export class OrgLicenseService extends OrgLicenseServiceEE {
       }
 
       // Sync Noco.ee flag without the heavy reset/init cycle of loadEEState()
-      Noco.syncEEState();
+      await Noco.syncEEState();
 
       this.onPremLogger.log('License refreshed successfully via API');
       return { success: true, status: NocoLicense.licenseStatus };

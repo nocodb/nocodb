@@ -198,7 +198,7 @@ onMounted(async () => {
             <div class="flex items-center gap-1.5 w-full">
               <GeneralIcon
                 icon="chevronDown"
-                class="flex-shrink-0 text-nc-content-gray-muted transition-transform"
+                class="flex-shrink-0 text-nc-content-gray-muted transform transition-transform duration-200"
                 :class="{ '-rotate-90': !isExpanded(String(grp.key)) }"
               />
 

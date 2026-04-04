@@ -644,6 +644,14 @@ const hasFullyOffScreenAfter = computed(() => {
 const hasRecordsBefore = computed(() => hasFullyOffScreenBefore.value && !swimlanes.value.length)
 const hasRecordsAfter = computed(() => hasFullyOffScreenAfter.value && !swimlanes.value.length)
 
+// When embedded in a group (hideHeader), the grid must size to its content
+// so the CSS Grid row in GroupBy expands to show all swimlane rows
+const groupedGridHeight = computed(() => {
+  if (!props.hideHeader) return undefined
+  const lanes = Math.max(swimlanes.value.length, 1)
+  return `${lanes * ROW_HEIGHT}px`
+})
+
 const navigateToPrev = () => {
   const firstVisibleDate = props.visibleDates[0]
   if (!firstVisibleDate) return
@@ -798,17 +806,16 @@ const onHeaderMouseMove = (event: MouseEvent) => {
 const onGridMouseLeave = () => {
   hoverColIndex.value = null
 }
-
-const hoverLineLeft = computed(() => {
-  if (hoverColIndex.value === null) return 0
-  return hoverColIndex.value * colWidth.value + colWidth.value / 2
-})
 </script>
 
 <template>
   <div
-    class="relative flex flex-col h-full overflow-hidden"
-    :style="{ minHeight: (hasRecordsBefore || hasRecordsAfter) && !swimlanes.length ? `${ROW_HEIGHT}px` : undefined }"
+    class="relative flex flex-col overflow-hidden"
+    :class="{ 'h-full': !hideHeader }"
+    :style="{
+      minHeight: (hasRecordsBefore || hasRecordsAfter) && !swimlanes.length ? `${ROW_HEIGHT}px` : undefined,
+      height: groupedGridHeight,
+    }"
   >
     <!-- Date column headers (hidden when parent provides a shared header) -->
     <div v-if="!hideHeader" ref="gridContainerRef" class="flex-shrink-0 overflow-hidden">
@@ -864,7 +871,7 @@ const hoverLineLeft = computed(() => {
     <!-- Scrollable grid body (#4: both axes scroll) -->
     <div
       ref="bodyScrollRef"
-      :class="hideHeader ? 'flex-1 min-h-0 overflow-hidden' : 'flex-1 min-h-0 overflow-auto'"
+      :class="hideHeader ? 'overflow-hidden' : 'flex-1 min-h-0 overflow-auto'"
       @scroll="onBodyScroll"
       @mousemove="onGridMouseMove"
       @mouseleave="onGridMouseLeave"
@@ -897,11 +904,11 @@ const hoverLineLeft = computed(() => {
             style="width: 1px"
             :style="{ left: `${todayPosition}px` }"
           />
-          <!-- Hover date hairline -->
+          <!-- Hover date column highlight -->
           <div
             v-if="hoverColIndex !== null && !dragCreateActive"
-            class="absolute top-0 bottom-0 nc-timeline-hover-hairline"
-            :style="{ left: `${hoverLineLeft}px` }"
+            class="absolute top-0 bottom-0 nc-timeline-content-hover pointer-events-none"
+            :style="{ left: `${hoverColIndex * colWidth}px`, width: `${colWidth}px` }"
           />
         </div>
 
@@ -915,7 +922,7 @@ const hoverLineLeft = computed(() => {
             :style="{ height: `${ROW_HEIGHT}px` }"
           >
             <!-- Hover background -->
-            <div class="absolute inset-0 hover:bg-nc-bg-gray-extralight transition-colors" />
+            <div class="absolute inset-0 nc-timeline-row-hover transition-colors" />
 
             <!-- Bars in this lane -->
             <NcTooltip
@@ -1044,7 +1051,7 @@ const hoverLineLeft = computed(() => {
             class="nc-timeline-add-row relative border-b border-nc-border-gray-light flex items-center cursor-cell transition-colors group"
             :style="{ height: `${ROW_HEIGHT}px` }"
           >
-            <div class="flex items-center gap-2 pl-3 text-nc-content-gray-muted">
+            <div class="flex items-center gap-2 pl-3 text-nc-content-gray-subtle2 group-hover:text-nc-content-gray">
               <GeneralIcon icon="plus" class="w-4 h-4" />
             </div>
           </div>
@@ -1122,17 +1129,19 @@ const hoverLineLeft = computed(() => {
   box-shadow: 0px 12px 16px -4px rgba(0, 0, 0, 0.1), 0px 4px 6px -2px rgba(0, 0, 0, 0.06);
 }
 
-/* Hover date hairline — thin vertical line following mouse column */
-.nc-timeline-hover-hairline {
-  width: 1px;
-  background-color: var(--nc-border-gray-medium);
-  pointer-events: none;
-  z-index: 2;
+/* Content area column & row highlight on hover — lighter than header */
+.nc-timeline-content-hover {
+  @apply bg-nc-bg-gray-light/60;
+  z-index: 0;
 }
 
-/* Header cell highlight on hover */
+.nc-timeline-row-hover:hover {
+  @apply bg-nc-bg-gray-light/60;
+}
+
+/* Header column highlight on hover */
 .nc-timeline-header-hover {
-  background-color: var(--nc-bg-gray-light);
+  @apply bg-nc-bg-gray-light/50;
 }
 
 /* Add-row: translucent wash so it reads as a placeholder, not a data row */
@@ -1141,7 +1150,7 @@ const hoverLineLeft = computed(() => {
   position: absolute;
   inset: 0;
   background-color: var(--nc-bg-default);
-  opacity: 0.6;
+  opacity: 0.2;
   pointer-events: none;
   transition: opacity 0.15s ease;
 }

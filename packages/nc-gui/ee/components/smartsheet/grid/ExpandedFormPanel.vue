@@ -165,7 +165,10 @@ watch(
   async ([newRowId]) => {
     if (!isOpen.value) return
 
-    clearColumns()
+    if (panelStore.isUserNavigating.value) {
+      clearColumns()
+      panelStore.isUserNavigating.value = false
+    }
 
     if (activeRowState.value) {
       rowState.value = activeRowState.value

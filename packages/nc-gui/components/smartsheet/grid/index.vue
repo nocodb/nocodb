@@ -251,28 +251,8 @@ const expandedFormOnRowIdDlg = computed({
     if (!routeQuery.value.rowId) return false
     // When the side panel is open, don't trigger the modal
     if (isExpandedFormPanelOpen.value) return false
-    // EE desktop: open the side panel on page reload with rowId instead of the modal
-    if (
-      isEeUI &&
-      !isMobileMode.value &&
-      !isPublic.value &&
-      expandedFormPanelStore &&
-      meta.value?.id &&
-      !isSyncingPanelRoute.value
-    ) {
-      nextTick(() => {
-        const rowId = routeQuery.value.rowId
-        if (rowId && !isExpandedFormPanelOpen.value && !isSyncingPanelRoute.value) {
-          expandedFormPanelStore.openPanel(
-            { row: {}, oldRow: {}, rowMeta: {} } as Row,
-            undefined,
-            undefined,
-            rowId,
-          )
-        }
-      })
-      return false
-    }
+    // EE desktop uses the side panel — modal stays closed (a separate watcher syncs the panel from the route).
+    if (isEeUI && !isMobileMode.value && !isPublic.value) return false
     // When ?colId points at a SmartText column the SmartText panel claims
     // the URL — expanded record dialog stays closed.
     const colId = routeQuery.value.colId
@@ -295,7 +275,42 @@ const expandedFormOnRowIdDlg = computed({
   },
 })
 
+// EE desktop: open panel from route rowId (page reload, direct link)
+watch(
+  () => routeQuery.value.rowId,
+  (rowId) => {
+    if (!rowId || !isEeUI || isMobileMode.value || isPublic.value || !expandedFormPanelStore || !meta.value?.id) return
+    if (isExpandedFormPanelOpen.value || isSyncingPanelRoute.value) return
+
+    expandedFormPanelStore.openPanel(
+      { row: {}, oldRow: {}, rowMeta: {} } as Row,
+      undefined,
+      undefined,
+      rowId,
+    )
+  },
+  { immediate: true },
+)
+
 const isSyncingPanelRoute = ref(false)
+let syncRouteTimeout: ReturnType<typeof setTimeout> | null = null
+
+const setSyncingRoute = () => {
+  isSyncingPanelRoute.value = true
+  if (syncRouteTimeout) clearTimeout(syncRouteTimeout)
+  syncRouteTimeout = setTimeout(() => { isSyncingPanelRoute.value = false }, 500)
+}
+
+const clearSyncingRoute = () => {
+  if (syncRouteTimeout) clearTimeout(syncRouteTimeout)
+  syncRouteTimeout = null
+  nextTick(() => { isSyncingPanelRoute.value = false })
+}
+
+onBeforeUnmount(() => {
+  if (syncRouteTimeout) clearTimeout(syncRouteTimeout)
+  isSyncingPanelRoute.value = false
+})
 
 watch(
   () => routeQuery.value.rowId,
@@ -311,16 +326,14 @@ watch(
   isExpandedFormPanelOpen,
   (open) => {
     if (!open && routeQuery.value.rowId) {
-      isSyncingPanelRoute.value = true
+      setSyncingRoute()
       router.push({
         query: {
           ...routeQuery.value,
           path: undefined,
           rowId: undefined,
         },
-      }).finally(() => {
-        nextTick(() => { isSyncingPanelRoute.value = false })
-      })
+      }).finally(clearSyncingRoute)
     }
   },
 )
@@ -329,15 +342,13 @@ watch(
   () => expandedFormPanelStore?.activeRowId.value,
   (newRowId) => {
     if (newRowId && isExpandedFormPanelOpen.value && routeQuery.value.rowId !== newRowId) {
-      isSyncingPanelRoute.value = true
+      setSyncingRoute()
       router.push({
         query: {
           ...routeQuery.value,
           rowId: newRowId,
         },
-      }).finally(() => {
-        nextTick(() => { isSyncingPanelRoute.value = false })
-      })
+      }).finally(clearSyncingRoute)
     }
   },
 )

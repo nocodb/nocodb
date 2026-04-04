@@ -57,6 +57,15 @@ watch(
   (gridActive) => {
     if (!gridActive && isExpandedFormPanelOpen.value) {
       expandedFormPanelStore.closePanel()
+      if (route.query.rowId) {
+        navigateTo({
+          query: {
+            ...route.query,
+            path: undefined,
+            rowId: undefined,
+          },
+        })
+      }
     }
   },
 )

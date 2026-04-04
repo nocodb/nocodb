@@ -12,6 +12,7 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
   const isFullscreen = ref(false)
   const panelWidth = ref(420)
   const isLoading = ref(false)
+  const isUserNavigating = ref(false)
   const activityExpanded = ref(false)
   const activeActivityTab = ref<'comments' | 'audits'>('comments')
 
@@ -37,6 +38,7 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
     isFullscreen,
     panelWidth,
     isLoading,
+    isUserNavigating,
     activityExpanded,
     activeActivityTab,
     hasPrev,

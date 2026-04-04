@@ -14,6 +14,7 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
   const activeRowState = ref<Record<string, any> | null>(null)
   const isLoading = ref(false)
   const isFullscreen = ref(false)
+  const isUserNavigating = ref(false)
 
   const activityExpanded = ref(false)
   const activeActivityTab = ref<'comments' | 'audits'>('comments')
@@ -33,6 +34,26 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
     return activeRowIndex.value < rowNavigator.value.totalRows() - 1
   })
 
+  const injectPkIntoRow = (rowData: Record<string, any>, pkId: string) => {
+    if (!pkId || !meta.value?.columns) return
+    const pkCols = meta.value.columns.filter((c: ColumnType) => c.pk)
+    if (!pkCols.length) return
+
+    if (pkCols.length === 1) {
+      if (pkCols[0].title && !(pkCols[0].title in rowData)) {
+        rowData[pkCols[0].title] = pkId
+      }
+    } else {
+      // Composite PK: rowId format is "val1___val2" with escaped underscores
+      const parts = pkId.split(/(?<!\\)___/).map((p) => p.replaceAll('\\_', '_'))
+      pkCols.forEach((col, i) => {
+        if (col.title && !(col.title in rowData) && i < parts.length) {
+          rowData[col.title] = parts[i]
+        }
+      })
+    }
+  }
+
   const openPanel = (row: Row, rowIndex?: number, state?: Record<string, any>, rowId?: string) => {
     if (isMobileMode.value) return
 
@@ -42,15 +63,9 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
     if (isOpen.value && !resolvedRowId && rowIndex != null && activeRowIndex.value === rowIndex) return
 
     const clonedRow = { ...row.row }
+    if (resolvedRowId) injectPkIntoRow(clonedRow, resolvedRowId)
 
-    // Ensure PK columns are present in the cloned row so primaryKey computed works immediately
-    if (resolvedRowId && meta.value?.columns) {
-      const pkCols = meta.value.columns.filter((c: ColumnType) => c.pk)
-      if (pkCols.length === 1 && pkCols[0].title && !(pkCols[0].title in clonedRow)) {
-        clonedRow[pkCols[0].title] = resolvedRowId
-      }
-    }
-
+    isUserNavigating.value = true
     activeRow.value = { row: clonedRow, oldRow: { ...clonedRow }, rowMeta: { ...row.rowMeta } }
     if (rowIndex != null) activeRowIndex.value = rowIndex
     activeRowState.value = state || null
@@ -80,14 +95,9 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
     if (!rowInfo) return
 
     const clonedNavRow = { ...rowInfo.row.row }
+    if (rowInfo.rowId) injectPkIntoRow(clonedNavRow, rowInfo.rowId)
 
-    if (rowInfo.rowId && meta.value?.columns) {
-      const pkCols = meta.value.columns.filter((c: ColumnType) => c.pk)
-      if (pkCols.length === 1 && pkCols[0].title && !(pkCols[0].title in clonedNavRow)) {
-        clonedNavRow[pkCols[0].title] = rowInfo.rowId
-      }
-    }
-
+    isUserNavigating.value = true
     activeRowId.value = rowInfo.rowId
     activeRowIndex.value = rowIndex
     activeRow.value = { row: clonedNavRow, oldRow: { ...clonedNavRow }, rowMeta: { ...rowInfo.row.rowMeta } }
@@ -128,6 +138,7 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
     isFullscreen,
     panelWidth,
     isLoading,
+    isUserNavigating,
     activityExpanded,
     activeActivityTab,
     hasPrev,

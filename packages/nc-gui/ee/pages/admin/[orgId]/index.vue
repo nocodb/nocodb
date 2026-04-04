@@ -135,6 +135,21 @@ onMounted(async () => {
             </NcMenuItem>
 
             <NcMenuItem
+              key="teams"
+              :class="{
+                active: $route.params.page === 'teams',
+              }"
+              class="item"
+              data-testid="nc-org-teams"
+              @click="navigateTo(`/admin/${$route.params.orgId}/teams`)"
+            >
+              <div class="flex items-center space-x-2">
+                <GeneralIcon class="!h-4 !w-4" icon="ncUsers" />
+                <div class="select-none">{{ $t('objects.teams.label') }}</div>
+              </div>
+            </NcMenuItem>
+
+            <NcMenuItem
               key="sso"
               :class="{
                 active: $route.params.page === 'sso',

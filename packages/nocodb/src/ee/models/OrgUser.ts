@@ -1,4 +1,4 @@
-import { CloudOrgUserRoles } from 'nocodb-sdk';
+import { CloudOrgUserRoles, EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import type { OrgUserType } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
@@ -152,7 +152,7 @@ export default class OrgUser {
         {
           deleted: false,
           deleted_at: null,
-          roles: param.roles || existing.roles,
+          roles: param.roles || EnterpriseOrgUserRoles.VIEWER,
         },
         {
           fk_org_id: param.fk_org_id,

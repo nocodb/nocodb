@@ -279,14 +279,7 @@ const onKeydown = (e: KeyboardEvent) => {
 }
 
 const panelStyle = computed(() => {
-  if (isFullscreen.value) {
-    return {
-      left: 'var(--mini-sidebar-width)',
-      right: '0',
-      top: '0',
-      bottom: '0',
-    }
-  }
+  if (isFullscreen.value) return {}
   return { width: `${panelWidth.value}px` }
 })
 
@@ -301,7 +294,7 @@ const panelClasses = computed(() => {
   ]
   if (isResizing.value) base.push('is-resizing')
   if (isFullscreen.value) {
-    base.push('fixed', 'top-0', 'z-50')
+    base.push('flex-1', 'h-full', 'z-50')
   } else {
     base.push('flex-shrink-0', 'h-full')
   }
@@ -519,16 +512,6 @@ const showActivity = computed(() => {
     </div>
   </Transition>
 
-  <!-- Fullscreen backdrop -->
-  <Transition name="nc-fade">
-    <div
-      v-if="isOpen && isFullscreen && !isMobileMode"
-      class="fixed top-0 bottom-0 right-0 bg-black/20 z-49 cursor-pointer"
-      :style="{ left: 'var(--mini-sidebar-width)' }"
-      @click="setFullscreen(false)"
-    />
-  </Transition>
-
   <!-- Discard changes modal -->
   <NcModal v-model:visible="showDiscardModal" size="xs">
     <div>
@@ -624,18 +607,6 @@ const showActivity = computed(() => {
   opacity: 0;
 }
 
-/* Field label overrides for panel's stacked layout */
-
-/* Backdrop fade */
-.nc-fade-enter-active,
-.nc-fade-leave-active {
-  transition: opacity 0.25s ease;
-}
-
-.nc-fade-enter-from,
-.nc-fade-leave-to {
-  opacity: 0;
-}
 </style>
 
 <style lang="scss">

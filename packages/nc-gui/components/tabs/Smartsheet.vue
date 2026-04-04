@@ -50,6 +50,8 @@ const expandedFormPanelStore = useProvideExpandedFormPanel()
 
 const isExpandedFormPanelOpen = computed(() => expandedFormPanelStore.isOpen.value)
 
+const isExpandedFormPanelFullscreen = computed(() => expandedFormPanelStore.isOpen.value && expandedFormPanelStore.isFullscreen.value)
+
 watch(
   () => isGrid.value,
   (gridActive) => {
@@ -318,7 +320,7 @@ watch(isViewsLoading, async () => {
           @resized="onResized"
         >
           <Pane class="flex flex-row h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
-            <div class="flex flex-col flex-1 min-w-0 h-full">
+            <div v-show="!isExpandedFormPanelFullscreen" class="flex flex-col flex-1 min-w-0 h-full">
               <SmartsheetToolbar v-if="!isForm" show-full-screen-toggle />
               <div
                 :style="{ height: isForm || isTimeline ? '100%' : 'calc(100% - var(--toolbar-height))' }"

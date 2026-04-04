@@ -192,7 +192,7 @@ onMounted(async () => {
         <template v-for="grp of vGroup?.children ?? []" :key="grp.key">
           <!-- #13: Left cell: group label — min-h matches right cell when collapsed -->
           <div
-            class="nc-timeline-group-label border-b border-r border-nc-border-gray-medium px-3 py-2 bg-nc-bg-default cursor-pointer select-none hover:bg-nc-bg-gray-extralight transition-colors"
+            class="nc-timeline-group-label border-b border-r border-nc-border-gray-medium px-3 py-2 bg-nc-bg-default cursor-pointer select-none hover:bg-nc-bg-gray-extralight transition-colors overflow-hidden"
             @click="toggleGroup(grp)"
           >
             <div class="flex items-center gap-1.5 w-full">
@@ -202,7 +202,7 @@ onMounted(async () => {
                 :class="{ '-rotate-90': !isExpanded(String(grp.key)) }"
               />
 
-              <div class="flex items-center min-w-0 flex-1 gap-2">
+              <div class="flex items-center min-w-0 flex-1 gap-2 overflow-hidden">
                 <!-- Group value rendering -->
                 <template v-if="grp.column?.uidt === 'MultiSelect'">
                   <div class="flex flex-wrap gap-1 min-w-0">
@@ -239,7 +239,7 @@ onMounted(async () => {
 
                 <div
                   v-else-if="!(grp.key in GROUP_BY_VARS.VAR_TITLES) && shouldRenderCell(grp.column)"
-                  class="flex min-w-0 flex-wrap"
+                  class="flex min-w-0 truncate"
                 >
                   <template v-for="(val, ind) of parseKey(grp)" :key="ind">
                     <SmartsheetGridGroupByLabel v-if="val" :column="grp.column" :model-value="val" />
@@ -249,7 +249,7 @@ onMounted(async () => {
 
                 <a-tag
                   v-else
-                  class="!py-0 !px-[10px] !m-0"
+                  class="!py-0 !px-[10px] !m-0 !max-w-[calc(100%-2rem)] truncate"
                   :class="grp.column?.uidt === 'SingleSelect' ? '!rounded-full' : '!rounded-md'"
                   :color="
                     getSelectTypeFieldOptionBgColor({

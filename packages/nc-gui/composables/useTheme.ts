@@ -241,8 +241,8 @@ export const useTheme = createSharedComposable(() => {
     const themeParam = route.value.query?.['nc-theme'] || route.value.query?.theme
     if (isSharedViewRoute(route.value) && themeParam) {
       const queryTheme = themeParam as string
-      if (['light', 'dark'].includes(queryTheme)) {
-        selectedTheme.value = queryTheme as 'light' | 'dark'
+      if (['light', 'dark', 'system'].includes(queryTheme)) {
+        selectedTheme.value = queryTheme as ThemeMode
       }
     }
 

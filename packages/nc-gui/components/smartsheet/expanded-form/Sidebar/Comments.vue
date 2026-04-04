@@ -310,11 +310,11 @@ onBeforeUnmount(() => {
       'pb-1': !hasEditPermission,
     }"
   >
-    <div v-if="isCommentsLoading" class="flex flex-col items-center justify-center w-full h-full">
-      <GeneralLoader size="xlarge" />
-    </div>
-    <div v-else class="flex flex-col h-full">
-      <div v-if="comments.length === 0" class="flex flex-col my-1 text-center justify-center h-full nc-scrollbar-thin">
+    <div class="flex flex-col h-full">
+      <div v-if="isCommentsLoading" class="flex flex-col items-center justify-center w-full flex-1">
+        <GeneralLoader size="xlarge" />
+      </div>
+      <div v-else-if="comments.length === 0" class="flex flex-col my-1 text-center justify-center flex-1 nc-scrollbar-thin">
         <div class="text-center text-3xl text-nc-content-gray-subtle opacity-40">
           <GeneralIcon icon="commentHere" />
         </div>

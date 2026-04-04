@@ -136,7 +136,7 @@ watch(
     if (!expanded || !primaryKey.value) return
 
     if (tab === 'comments') {
-      await loadComments(primaryKey.value, false)
+      await loadComments(primaryKey.value)
     } else if (tab === 'audits') {
       await loadAudits(primaryKey.value, false)
     }

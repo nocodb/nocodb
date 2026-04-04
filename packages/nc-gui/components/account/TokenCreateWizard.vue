@@ -184,13 +184,7 @@ const onResultDone = () => {
             {{ createdTokenValue }}
           </code>
           <NcTooltip :title="tokenCopied ? $t('general.copied') : $t('general.copy')">
-            <NcButton
-              size="xs"
-              type="secondary"
-              class="flex-none !px-1.5"
-              data-testid="nc-token-copy-btn"
-              @click="copyToken"
-            >
+            <NcButton size="xs" type="secondary" class="flex-none !px-1.5" data-testid="nc-token-copy-btn" @click="copyToken">
               <GeneralIcon
                 :icon="tokenCopied ? 'check' : 'copy'"
                 class="w-4 h-4"

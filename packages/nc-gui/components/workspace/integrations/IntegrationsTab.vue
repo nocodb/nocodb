@@ -66,24 +66,6 @@ const integrationListRef = ref<HTMLDivElement>()
 
 const { width: integrationListContainerWidth } = useElementSize(integrationListRef)
 
-const listWrapperMaxWidth = computed(() => {
-  const w = integrationListContainerWidth.value
-
-  if (w < 580) {
-    return '280px'
-  }
-
-  if (w < 870) {
-    return '576px'
-  }
-
-  if (w < 1160) {
-    return '872px'
-  }
-
-  return '1168px'
-})
-
 const upvotesData = computed(() => {
   return new Set(syncDataUpvotes.value)
 })

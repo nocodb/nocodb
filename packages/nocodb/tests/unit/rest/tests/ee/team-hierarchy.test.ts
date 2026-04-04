@@ -4,6 +4,7 @@ import { expect } from 'chai';
 import {
   PlanFeatureTypes,
   PlanLimitTypes,
+  PlanTitles,
   ProjectRoles,
   TeamUserRoles,
   WorkspaceUserRoles,
@@ -493,12 +494,7 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: workspaceId,
-          features: {
-            [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
-          },
-          limits: {
-            [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100,
-          },
+          planTitle: PlanTitles.ENTERPRISE
         });
 
         // Build hierarchy: Engineering → Frontend → Web Team, Engineering → Backend, Sales

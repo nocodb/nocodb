@@ -63,7 +63,7 @@ export class OrgLicenseService extends OrgLicenseServiceEE {
 
     // Activation succeeded — save first, then attempt best-effort refresh
     await Store.saveOrUpdate({ value: param.key, key: NC_LICENSE_KEY });
-    Noco.syncEEState();
+    await Noco.syncEEState();
 
     // For airgapped nc_ag_ keys: attempt online refresh to pull the
     // latest expires_at from the server (covers the case where the

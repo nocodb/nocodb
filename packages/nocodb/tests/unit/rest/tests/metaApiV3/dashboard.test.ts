@@ -11,7 +11,7 @@ export default function () {
     return true;
   }
 
-  describe.only(`Dashboards v3`, () => {
+  describe(`Dashboards v3`, () => {
     let context: Awaited<ReturnType<typeof init>>;
     let initBase: any;
     let API_PREFIX: string;

@@ -8,6 +8,9 @@ export const useChatPanel = createSharedComposable(() => {
   const basesStore = useBases()
   const { activeProjectId: activeBaseId } = storeToRefs(basesStore)
 
+  const baseStore = useBase()
+  const { isSharedBase } = storeToRefs(baseStore)
+
   const { blockAiChat } = useEeConfig()
 
   const { isRtl } = useRtl()
@@ -22,7 +25,7 @@ export const useChatPanel = createSharedComposable(() => {
 
   const hasWorkspaceContext = computed(() => !!activeWorkspaceId.value)
 
-  const hasBaseContext = computed(() => !!activeBaseId.value)
+  const hasBaseContext = computed(() => !!activeBaseId.value && !isSharedBase.value)
 
   const isPanelExpanded = computed({
     get: () => panelPreference.value && hasWorkspaceContext.value && hasBaseContext.value && !blockAiChat.value,

@@ -638,6 +638,18 @@ const rolePermissions:
 
       manageSubscription: true,
       paymentSeatCount: true,
+
+      // Org-level team management
+      teamList: true,
+      teamTree: true,
+      teamCreate: true,
+      teamGet: true,
+      teamUpdate: true,
+      teamDelete: true,
+      teamMembersAdd: true,
+      teamMembersRemove: true,
+      teamMembersUpdate: true,
+      teamMove: true,
     },
   },
   [CloudOrgUserRoles.CREATOR]: {

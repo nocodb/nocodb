@@ -61,8 +61,9 @@ const { $api } = useNuxtApp()
 const updateOrgRole = async (member: any, newRole: string) => {
   try {
     await $api.instance.patch(`/api/v2/orgs/${org.value?.id}/user/${member.id}`, { org_role: newRole })
-    member.cloud_org_roles = newRole
     message.success(t('msg.success.roleUpdated'))
+    // Refetch to reflect the change
+    await fetchOrganizationMembers()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

@@ -125,6 +125,25 @@ export class OrgUsersService {
       NcError.notFound('User not found in organization');
     }
 
+    // Block demoting the last admin
+    if (
+      orgUser.roles === EnterpriseOrgUserRoles.ADMIN &&
+      param.orgRole !== EnterpriseOrgUserRoles.ADMIN
+    ) {
+      const ncMeta = Noco.ncMeta;
+      const admins = await ncMeta
+        .knexConnection(MetaTable.ORG_USERS)
+        .where('fk_org_id', param.orgId)
+        .where('roles', EnterpriseOrgUserRoles.ADMIN)
+        .where(function () {
+          this.where('deleted', false).orWhereNull('deleted');
+        });
+
+      if (admins.length <= 1) {
+        NcError.badRequest('Cannot demote the last org admin');
+      }
+    }
+
     await OrgUser.update(param.userId, param.orgId, {
       roles: param.orgRole,
     } as any);

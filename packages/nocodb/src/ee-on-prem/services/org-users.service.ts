@@ -202,6 +202,30 @@ export class OrgUsersService extends OrgUsersServiceCE {
 
     const ncMeta = Noco.ncMeta;
 
+    // Block demoting the last admin
+    const currentRole = await ncMeta
+      .knexConnection(MetaTable.ORG_USERS)
+      .where('fk_org_id', orgId)
+      .where('fk_user_id', param.userId)
+      .first();
+
+    if (
+      currentRole?.roles === EnterpriseOrgUserRoles.ADMIN &&
+      param.orgRole !== EnterpriseOrgUserRoles.ADMIN
+    ) {
+      const admins = await ncMeta
+        .knexConnection(MetaTable.ORG_USERS)
+        .where('fk_org_id', orgId)
+        .where('roles', EnterpriseOrgUserRoles.ADMIN)
+        .where(function () {
+          this.where('deleted', false).orWhereNull('deleted');
+        });
+
+      if (admins.length <= 1) {
+        NcError.badRequest('Cannot demote the last org admin');
+      }
+    }
+
     await ncMeta
       .knexConnection(MetaTable.ORG_USERS)
       .where('fk_org_id', orgId)

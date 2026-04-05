@@ -310,7 +310,7 @@ watch(selected, () => {
               </template>
             </NcDropdown>
           </div>
-          <div v-if="column.key === 'org_role'" class="flex items-center">
+          <div v-if="column.key === 'org_role'" class="flex items-center gap-2">
             <NcSelect
               :value="member.cloud_org_roles || 'cloud-org-level-viewer'"
               :options="[
@@ -323,6 +323,14 @@ watch(selected, () => {
               data-testid="nc-cloud-org-role-select"
               @change="updateOrgRole(member, $event)"
             />
+            <NcBadge
+              v-if="member.cloud_org_roles === 'cloud-org-level-owner'"
+              :border="false"
+              color="purple"
+              class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+            >
+              {{ $t('objects.roleType.admin') }}
+            </NcBadge>
           </div>
           <div v-if="column.key === 'dateAdded'">
             <NcTooltip class="max-w-full">

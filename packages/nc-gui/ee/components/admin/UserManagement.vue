@@ -58,6 +58,14 @@ const inviteUserToWorkspace = (email: string) => {
 
 const { $api } = useNuxtApp()
 
+const isLastAdmin = (member: any) => {
+  if (member.cloud_org_roles !== 'cloud-org-level-owner') return false
+  const adminCount = members.value.filter(
+    (m: any) => m.cloud_org_roles === 'cloud-org-level-owner',
+  ).length
+  return adminCount <= 1
+}
+
 const updateOrgRole = async (member: any, newRole: string) => {
   const oldRole = member.cloud_org_roles
 
@@ -268,7 +276,14 @@ watch(selected, () => {
                   </template>
                   {{ member.display_name || member.email.split('@')[0] }}
                 </NcTooltip>
-                <!-- Org role badge moved to separate column -->
+                <NcBadge
+                  v-if="member.cloud_org_roles === 'cloud-org-level-owner'"
+                  :border="false"
+                  color="purple"
+                  class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+                >
+                  {{ $t('objects.roleType.admin') }}
+                </NcBadge>
               </div>
               <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-subtle2" show-on-truncate-only>
                 <template #title>
@@ -310,27 +325,25 @@ watch(selected, () => {
               </template>
             </NcDropdown>
           </div>
-          <div v-if="column.key === 'org_role'" class="flex items-center gap-2">
-            <NcSelect
-              :value="member.cloud_org_roles || 'cloud-org-level-viewer'"
-              :options="[
-                { label: $t('objects.roleType.admin'), value: 'cloud-org-level-owner' },
-                { label: $t('objects.roleType.creator'), value: 'cloud-org-level-creator' },
-                { label: $t('objects.roleType.viewer'), value: 'cloud-org-level-viewer' },
-              ]"
-              class="w-28"
-              size="small"
-              data-testid="nc-cloud-org-role-select"
-              @change="updateOrgRole(member, $event)"
-            />
-            <NcBadge
-              v-if="member.cloud_org_roles === 'cloud-org-level-owner'"
-              :border="false"
-              color="purple"
-              class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+          <div v-if="column.key === 'org_role'" class="flex items-center">
+            <NcTooltip
+              :disabled="!isLastAdmin(member)"
+              :title="$t('msg.info.lastOrgAdmin')"
             >
-              {{ $t('objects.roleType.admin') }}
-            </NcBadge>
+              <NcSelect
+                :value="member.cloud_org_roles || 'cloud-org-level-viewer'"
+                :options="[
+                  { label: $t('objects.roleType.admin'), value: 'cloud-org-level-owner' },
+                  { label: $t('objects.roleType.creator'), value: 'cloud-org-level-creator' },
+                  { label: $t('objects.roleType.viewer'), value: 'cloud-org-level-viewer' },
+                ]"
+                :disabled="isLastAdmin(member)"
+                class="w-28"
+                size="small"
+                data-testid="nc-cloud-org-role-select"
+                @change="updateOrgRole(member, $event)"
+              />
+            </NcTooltip>
           </div>
           <div v-if="column.key === 'dateAdded'">
             <NcTooltip class="max-w-full">

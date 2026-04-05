@@ -59,12 +59,13 @@ const inviteUserToWorkspace = (email: string) => {
 const { $api } = useNuxtApp()
 
 const updateOrgRole = async (member: any, newRole: string) => {
+  const oldRole = member.cloud_org_roles
+  member.cloud_org_roles = newRole
   try {
     await $api.instance.patch(`/api/v2/orgs/${org.value?.id}/user/${member.id}`, { org_role: newRole })
     message.success(t('msg.success.roleUpdated'))
-    // Refetch to reflect the change
-    await fetchOrganizationMembers()
   } catch (e: any) {
+    member.cloud_org_roles = oldRole
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }

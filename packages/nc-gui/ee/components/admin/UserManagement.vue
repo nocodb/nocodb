@@ -311,11 +311,7 @@ watch(selected, () => {
             </NcDropdown>
           </div>
           <div v-if="column.key === 'org_role'" class="flex items-center">
-            <template v-if="member.cloud_org_roles === 'cloud-org-level-owner'">
-              <RolesBadge :border="false" :role="member.cloud_org_roles" size="xs" :show-icon="false" class="!px-1" />
-            </template>
             <NcSelect
-              v-else
               :value="member.cloud_org_roles || 'cloud-org-level-viewer'"
               :options="[
                 { label: $t('objects.roleType.admin'), value: 'cloud-org-level-owner' },

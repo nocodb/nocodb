@@ -60,12 +60,21 @@ const { $api } = useNuxtApp()
 
 const updateOrgRole = async (member: any, newRole: string) => {
   const oldRole = member.cloud_org_roles
-  member.cloud_org_roles = newRole
+
+  // Optimistic update — force reactivity by replacing in the array
+  const idx = members.value.findIndex((m: any) => m.id === member.id)
+  if (idx !== -1) {
+    members.value[idx] = { ...members.value[idx], cloud_org_roles: newRole }
+  }
+
   try {
     await $api.instance.patch(`/api/v2/orgs/${org.value?.id}/user/${member.id}`, { org_role: newRole })
     message.success(t('msg.success.roleUpdated'))
   } catch (e: any) {
-    member.cloud_org_roles = oldRole
+    // Revert on error
+    if (idx !== -1) {
+      members.value[idx] = { ...members.value[idx], cloud_org_roles: oldRole }
+    }
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }

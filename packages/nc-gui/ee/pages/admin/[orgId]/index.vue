@@ -145,7 +145,7 @@ onMounted(async () => {
             >
               <div class="flex items-center space-x-2">
                 <GeneralIcon class="!h-4 !w-4" icon="ncUsers" />
-                <div class="select-none">{{ $t('objects.teams.label') }}</div>
+                <div class="select-none">{{ $t('title.teams') }}</div>
               </div>
             </NcMenuItem>
 

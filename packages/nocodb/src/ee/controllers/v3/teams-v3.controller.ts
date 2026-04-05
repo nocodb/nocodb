@@ -39,7 +39,7 @@ export class TeamsV3Controller {
   constructor(protected readonly teamsV3Service: TeamsV3Service) {}
 
   @Get('/api/v3/meta/workspaces/:workspaceOrOrgId/teams')
-  @Acl('teamList', { scope: 'workspace' })
+  @Acl('teamList', { scope: 'workspace', extendedScope: 'cloud-org' })
   async teamList(
     @TenantContext() context: NcContext,
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,

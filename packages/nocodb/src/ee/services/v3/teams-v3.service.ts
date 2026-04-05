@@ -65,6 +65,9 @@ export class TeamsV3Service {
    * If not, it throws an error indicating that the feature is only available on paid plans.
    */
   private async validateFeatureAccess(context: NcContext) {
+    // Skip plan check for org-scoped requests (no workspace_id)
+    if (!context.workspace_id) return;
+
     if (
       !(await getFeature(
         PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,

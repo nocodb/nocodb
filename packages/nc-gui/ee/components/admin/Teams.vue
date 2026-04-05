@@ -45,14 +45,14 @@ onMounted(() => {
     <div class="flex-1 flex flex-col items-center gap-6 p-6">
       <div class="flex flex-col gap-6 w-200">
         <div class="flex justify-between items-center">
-          <span class="font-bold text-xl">{{ $t('objects.teams.label') }}</span>
+          <span class="font-bold text-xl">{{ $t('title.teams') }}</span>
         </div>
 
         <div class="flex gap-4 items-center">
           <a-input
             v-model:value="searchQuery"
             class="!max-w-90 !rounded-md"
-            :placeholder="$t('placeholder.searchTeams')"
+            :placeholder="$t('title.searchMembers')"
           >
             <template #prefix>
               <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
@@ -67,7 +67,7 @@ onMounted(() => {
         </div>
 
         <div v-else-if="filteredTeams.length === 0" class="text-nc-content-gray-muted text-sm py-8 text-center">
-          {{ searchQuery ? $t('msg.noResultsFound') : $t('objects.teams.noTeams') }}
+          {{ searchQuery ? $t('msg.noResultsFound') : $t('msg.info.noTeamsFound') }}
         </div>
 
         <div v-else class="flex flex-col gap-2">

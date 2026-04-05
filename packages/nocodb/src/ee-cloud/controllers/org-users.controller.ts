@@ -39,7 +39,7 @@ export class OrgUsersController {
   @Post('/api/v2/orgs/:orgId/user/:userId')
   @HttpCode(200)
   @UseGuards(GlobalGuard, MetaApiLimiterGuard)
-  @Acl('orgUserAdd')
+  @Acl('orgUserAdd', { scope: 'cloud-org' })
   async addUserToOrg(
     @Req() req: NcRequest,
     @Body() body: OrgUserReqType,
@@ -58,7 +58,7 @@ export class OrgUsersController {
   @Delete('/api/v2/orgs/:orgId/user/:userId')
   @HttpCode(200)
   @UseGuards(GlobalGuard, MetaApiLimiterGuard)
-  @Acl('orgUserRemove')
+  @Acl('orgUserRemove', { scope: 'cloud-org' })
   async removeUserFromOrg(
     @Req() req: NcRequest,
     @Param('orgId') orgId: string,
@@ -75,7 +75,7 @@ export class OrgUsersController {
   @Patch('/api/v2/orgs/:orgId/user/:userId')
   @HttpCode(200)
   @UseGuards(GlobalGuard, MetaApiLimiterGuard)
-  @Acl('orgUserRoleUpdate')
+  @Acl('orgUserRoleUpdate', { scope: 'cloud-org' })
   async updateUserRoleInOrg(
     @Req() req: NcRequest,
     @Param('orgId') orgId: string,

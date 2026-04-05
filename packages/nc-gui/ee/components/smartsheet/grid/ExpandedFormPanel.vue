@@ -33,6 +33,8 @@ const { isUIAllowed } = useRoles()
 
 const { t } = useI18n()
 
+const { $e } = useNuxtApp()
+
 const { isMobileMode } = useGlobal()
 
 const panelRef = ref<HTMLElement>()
@@ -71,6 +73,7 @@ const onResizeEnd = () => {
   document.body.style.cursor = ''
   window.removeEventListener('mousemove', onResizeMove)
   window.removeEventListener('mouseup', onResizeEnd)
+  $e('c:row-expand-panel:resize', { width: panelWidth.value })
 }
 
 onBeforeUnmount(() => {
@@ -212,6 +215,7 @@ const save = async () => {
 const showDiscardModal = ref(false)
 
 const onClose = () => {
+  $e('c:row-expand-panel:close')
   if (changedColumns.value.size > 0) {
     pendingNavDirection.value = null
     showDiscardModal.value = true
@@ -224,6 +228,7 @@ const onClose = () => {
 const pendingNavDirection = ref<'prev' | 'next' | null>(null)
 
 const guardedNavigate = (direction: 'prev' | 'next') => {
+  $e(`c:row-expand-panel:nav:${direction}`)
   if (changedColumns.value.size > 0) {
     pendingNavDirection.value = direction
     showDiscardModal.value = true
@@ -234,6 +239,7 @@ const guardedNavigate = (direction: 'prev' | 'next') => {
 }
 
 const discardAndNavigate = () => {
+  $e('c:row-expand-panel:discard')
   clearColumns()
   showDiscardModal.value = false
   const dir = pendingNavDirection.value
@@ -244,6 +250,7 @@ const discardAndNavigate = () => {
 }
 
 const saveAndContinue = async () => {
+  $e('c:row-expand-panel:save-and-continue')
   try {
     await save()
     showDiscardModal.value = false
@@ -403,6 +410,7 @@ const showActivity = computed(() => {
           <NcTooltip :title="$t('objects.fields')">
             <div
               class="nc-panel-mode-tab"
+              v-e="['c:row-expand-panel:mode:fields']"
               :class="{ active: !activityExpanded }"
               @click="activityExpanded = false"
             >
@@ -412,6 +420,7 @@ const showActivity = computed(() => {
           <NcTooltip :title="$t('general.comments')">
             <div
               class="nc-panel-mode-tab"
+              v-e="['c:row-expand-panel:mode:comments']"
               :class="{ active: activityExpanded && activeActivityTab === 'comments' }"
               data-testid="nc-expanded-form-panel-comments-toggle"
               @click="toggleActivity('comments')"
@@ -422,6 +431,7 @@ const showActivity = computed(() => {
           <NcTooltip :title="$t('labels.revisionHistory')">
             <div
               class="nc-panel-mode-tab"
+              v-e="['c:row-expand-panel:mode:audits']"
               :class="{ active: activityExpanded && activeActivityTab === 'audits' }"
               data-testid="nc-expanded-form-panel-audits-toggle"
               @click="toggleActivity('audits')"
@@ -436,6 +446,7 @@ const showActivity = computed(() => {
             <NcButton
               size="xs"
               :type="isFullscreen ? 'primary' : 'text'"
+              v-e="[`c:row-expand-panel:${isFullscreen ? 'exit' : 'enter'}-fullscreen`]"
               data-testid="nc-expanded-form-panel-fullscreen"
               @click="setFullscreen(!isFullscreen)"
             >
@@ -449,6 +460,7 @@ const showActivity = computed(() => {
             <NcButton
               size="xs"
               type="text"
+              v-e="['c:row-expand-panel:close']"
               data-testid="nc-expanded-form-panel-close"
               @click="onClose"
             >

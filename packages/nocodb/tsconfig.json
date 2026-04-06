@@ -29,6 +29,9 @@
       "@noco-local-integrations/*": ["../noco-integrations/packages/*"],
       "@noco-local-integrations/core": ["../noco-integrations/core"]
     },
+    "typeRoots": ["src/types", "node_modules/@types"],
+    "types": []
+
     "typeRoots": ["node_modules/@types"]
   },
   "include": ["src/**/*"],

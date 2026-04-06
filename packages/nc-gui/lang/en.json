@@ -1540,6 +1540,12 @@
     "variablesSyncedFromMaster": "Variables inherited from master. Changes here won't affect the master base.",
     "requiredVariablesMissing": "required variables need configuration",
     "setupRequired": "Setup Required",
+    "inheritanceFixed": "Fixed",
+    "inheritanceFixedDesc": "Inherited as-is, cannot be changed",
+    "inheritanceEditable": "Editable",
+    "inheritanceEditableDesc": "Inherited with default, can be overridden",
+    "inheritanceRequired": "Required",
+    "inheritanceRequiredDesc": "Must be set by the child",
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
@@ -2712,6 +2718,7 @@
     "scopeReadWrite": "Create, read, update, and delete records and comments. Other resources are read-only.",
     "scopeFullAccess": "Full read and write access to all resources including tables, fields, views, webhooks, and users.",
     "scopeCustom": "Pick individual permissions per category for fine-grained control.",
+    "variableInheritance": "Controls how this variable behaves in managed apps and sandboxes derived from this base",
     "inheritedMembersInfo": "These members belong to a parent team and inherit access to resources assigned to this team.",
     "teamScopeThisOnly": "This team only — click to include sub-teams",
     "teamScopeIncludesSubTeams": "Includes sub-teams — click to match this team only",
@@ -3169,7 +3176,9 @@
       },
       "reachedUploadLimit": "Reached upload limit",
       "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
-      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time",
+      "variableKeyRequired": "Variable key is required",
+      "variableKeyFormat": "Key must be uppercase letters, numbers and underscores (e.g. WEBHOOK_URL)"
     },
     "info": {
       "variableKeyImmutable": "Key cannot be changed after creation",
@@ -3450,6 +3459,8 @@
       "workspaceTeamRoleUpdateNotice": "Changing a team’s workspace role will also update its access to bases where it doesn’t have an explicit role."
     },
     "error": {
+      "variableKeyRequired": "Variable key is required",
+      "variableKeyFormat": "Key must be uppercase letters, numbers and underscores (e.g. WEBHOOK_URL)",
       "latitudeRange": "Latitude must be between -90 and 90",
       "longitudeRange": "Longitude must be between -180 and 180",
       "passwordChangeFailed": "Failed to change password",

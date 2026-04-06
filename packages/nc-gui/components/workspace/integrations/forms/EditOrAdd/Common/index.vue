@@ -36,7 +36,6 @@ const testConnectionLoading = ref(false)
 
 // Inheritable toggle state — only relevant when creating from base integrations page
 const isInheritable = ref(false)
-const inheritableKey = ref('')
 
 const showInheritableOption = computed(
   () => isEeUI && !isEditMode.value && isFromIntegrationPage.value && props.integrationType !== IntegrationCategoryType.DATABASE,
@@ -60,8 +59,8 @@ const { form, formState, isLoading, initialState, submit } = useProvideFormBuild
       if (pageMode.value === IntegrationsPageMode.ADD) {
         const response = await saveIntegration(formState.value)
 
-        if (isInheritable.value && inheritableKey.value && response?.id) {
-          await makeInheritable(response.id, inheritableKey.value)
+        if (isInheritable.value && response?.id) {
+          await makeInheritable(response.id)
         }
       } else {
         await updateIntegration({
@@ -91,27 +90,6 @@ const { form, formState, isLoading, initialState, submit } = useProvideFormBuild
       },
     )
   },
-})
-
-// Auto-suggest inheritable key from the integration title
-watch(
-  () => formState.value.title,
-  (title) => {
-    if (!isInheritable.value || !title) return
-    inheritableKey.value = title
-      .toUpperCase()
-      .replace(/[^A-Z0-9]+/g, '_')
-      .replace(/^_|_$/g, '')
-  },
-)
-
-watch(isInheritable, (val) => {
-  if (val && formState.value.title) {
-    inheritableKey.value = formState.value.title
-      .toUpperCase()
-      .replace(/[^A-Z0-9]+/g, '_')
-      .replace(/^_|_$/g, '')
-  }
 })
 
 // select and focus title field on load
@@ -181,11 +159,7 @@ const onTestConnection = async () => {
       <NcButton
         size="small"
         type="primary"
-        :disabled="
-          isLoading ||
-          (!testConnectionResult?.success && activeIntegrationItem.type === 'auth') ||
-          (isInheritable && !inheritableKey)
-        "
+        :disabled="isLoading || (!testConnectionResult?.success && activeIntegrationItem.type === 'auth')"
         :loading="isLoading"
         class="nc-extdb-btn-submit"
         @click="submit"
@@ -210,17 +184,6 @@ const onTestConnection = async () => {
               </NcTooltip>
             </div>
             <NcSwitch v-model:checked="isInheritable" size="small" data-testid="nc-integration-inheritable-toggle" />
-          </div>
-          <div v-if="isInheritable" class="flex flex-col gap-1 mt-3">
-            <label class="text-bodySm text-nc-content-gray-subtle2 font-medium">
-              {{ $t('labels.variableKey') }} <span class="text-nc-content-red-dark">*</span>
-            </label>
-            <a-input
-              v-model:value="inheritableKey"
-              class="!rounded-lg nc-input-sm nc-input-shadow"
-              placeholder="e.g., OPENAI_KEY"
-              data-testid="nc-integration-inheritable-key-input"
-            />
           </div>
         </div>
 

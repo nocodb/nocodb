@@ -16,7 +16,7 @@ export const useBaseVariables = createSharedComposable(() => {
   const deleteVariable = async (_variableId: string) => {}
   const revertToDefault = async (_variableId: string) => {}
   const bulkUpdateValues = async (_baseId: string, _updates: { id: string; value: string }[], _workspaceId?: string) => {}
-  const makeInheritable = async (_integrationId: string, _key: string, _description?: string) => {}
+  const makeInheritable = async (_integrationId: string, _description?: string) => {}
   const removeInheritable = async (_integrationId: string) => {}
 
   return {

@@ -48,31 +48,19 @@ const activeTab = ref<'integrations' | 'connections'>('integrations')
 // Make inheritable dialog state
 const makeInheritableDialogVisible = ref(false)
 const makeInheritableIntegration = ref<IntegrationType | null>(null)
-const makeInheritableKey = ref('')
-const makeInheritableDescription = ref('')
 const makeInheritableLoading = ref(false)
 
 const openMakeInheritableDialog = (integration: IntegrationType) => {
   makeInheritableIntegration.value = integration
-  // Auto-suggest key from title: "HubSpot Auth" → "HUBSPOT_AUTH"
-  makeInheritableKey.value = (integration.title || integration.sub_type || '')
-    .toUpperCase()
-    .replace(/[^A-Z0-9]+/g, '_')
-    .replace(/^_|_$/g, '')
-  makeInheritableDescription.value = ''
   makeInheritableDialogVisible.value = true
 }
 
 const handleMakeInheritable = async () => {
-  if (!makeInheritableIntegration.value?.id || !makeInheritableKey.value) return
+  if (!makeInheritableIntegration.value?.id) return
 
   makeInheritableLoading.value = true
   try {
-    await makeInheritable(
-      makeInheritableIntegration.value.id,
-      makeInheritableKey.value,
-      makeInheritableDescription.value || undefined,
-    )
+    await makeInheritable(makeInheritableIntegration.value.id)
     makeInheritableDialogVisible.value = false
   } finally {
     makeInheritableLoading.value = false
@@ -461,35 +449,8 @@ watch(baseId, reload)
         </div>
       </template>
 
-      <div class="flex flex-col gap-4 mt-2">
-        <div class="text-sm text-nc-content-gray-subtle2">
-          {{ $t('msg.info.inheritableIntegrationHint') }}
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <label class="text-bodySm text-nc-content-gray-subtle2 font-medium">
-            {{ $t('labels.variableKey') }} <span class="text-nc-content-red-dark">*</span>
-          </label>
-          <a-input
-            v-model:value="makeInheritableKey"
-            class="!rounded-lg nc-input-sm nc-input-shadow"
-            placeholder="e.g., SLACK_INTEGRATION"
-            data-testid="nc-make-inheritable-key-input"
-          />
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <label class="text-bodySm text-nc-content-gray-subtle2 font-medium">
-            {{ $t('general.description') }}
-          </label>
-          <a-textarea
-            v-model:value="makeInheritableDescription"
-            class="!rounded-lg nc-input-sm nc-input-shadow"
-            :placeholder="$t('placeholder.description')"
-            :rows="2"
-            data-testid="nc-make-inheritable-description-input"
-          />
-        </div>
+      <div class="mt-2 text-sm text-nc-content-gray-subtle2">
+        {{ $t('msg.info.inheritableIntegrationHint') }}
       </div>
 
       <div class="flex mt-6 justify-end gap-2">
@@ -500,7 +461,6 @@ watch(baseId, reload)
           type="primary"
           size="small"
           :loading="makeInheritableLoading"
-          :disabled="!makeInheritableKey"
           data-testid="nc-make-inheritable-confirm-btn"
           @click="handleMakeInheritable"
         >

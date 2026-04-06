@@ -36,10 +36,11 @@ RUN apt-get update && apt-get install -y \
 RUN python3 --version && python --version
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
+RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 
 # Copy application dependency manifests to the container image.
 COPY --link ./package.json ./package.json
+COPY --link ./pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --link ./docker/main.js ./docker/main.js
 COPY --link ./docker/start-litestream.sh /usr/src/appEntry/start.sh
 COPY --link src/public/ ./docker/public/

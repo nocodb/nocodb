@@ -37,7 +37,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v5
         with:
-          version: 9
+          version: 10
       - name: Get pnpm store directory
         shell: bash
         timeout-minutes: 1

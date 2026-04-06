@@ -1,0 +1,5 @@
+# Standalone workspace config for Docker builds.
+# Dockerfiles copy only packages/nocodb into the build context,
+# so pnpm 10 needs this to read onlyBuiltDependencies from package.json.
+packages:
+  - '.'

@@ -8,10 +8,11 @@ WORKDIR /usr/src/app
 RUN apk add --no-cache python3 make g++ py3-setuptools
 
 # install pnpm
-RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
+RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 
 # Copy application dependency manifests to the container image.
 COPY ./package.json ./package.json
+COPY ./pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY ./docker/nc-gui/ ./docker/nc-gui/
 COPY ./docker/main.js ./docker/index.js
 COPY ./docker/configure.sh /usr/src/appEntry/configure.sh

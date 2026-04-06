@@ -495,8 +495,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         return buildFieldWhereClause(selectedSearchField.value, searchQuery) || undefined
       }
 
-      // All fields search — use strict numeric to prevent "station 1" → eq,1 on numeric fields
+      // All fields search — skip date columns (need date picker) and use strict numeric
       const fieldQuery = searchableColumns.value
+        .filter((field) => !isDateOrDateTimeCol(field))
         .map((field) => buildFieldWhereClause(field, searchQuery, true))
         .filter(Boolean)
         .join('~or')

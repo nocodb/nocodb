@@ -17,6 +17,7 @@ import { isEE } from '../../../utils/helpers';
 // import teamsTestV3 from './teams.test';
 // import workspaceTeamsV3 from './workspace-teams.test';
 // import baseTeamsV3 from './base-teams.test';
+import orgTeamsTestV3 from './org-teams.test';
 
 export default runOnSet(3, function () {
   baseTestV3();
@@ -55,4 +56,7 @@ export default runOnSet(3, function () {
   // teamsTestV3();
   // workspaceTeamsV3();
   // baseTeamsV3();
+  if (isEE()) {
+    orgTeamsTestV3();
+  }
 });

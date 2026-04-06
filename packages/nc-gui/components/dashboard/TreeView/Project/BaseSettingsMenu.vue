@@ -10,7 +10,7 @@ const { resolvedProject } = storeToRefs(basesStore)
 const sidebarStore = useSidebarStore()
 const { activeSidebarTab, isLeftSidebarOpen } = storeToRefs(sidebarStore)
 
-const { isSharedBase } = storeToRefs(useBase())
+const { isSharedBase, isManagedAppMaster, isManagedAppInstaller } = storeToRefs(useBase())
 
 const baseRole = inject(ProjectRoleInj)!
 
@@ -182,6 +182,16 @@ onMounted(() => {
       @click="navigateToBaseSettings('mcp')"
     >
       {{ $t('title.mcpServer') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="isEeUI && !isMobileMode"
+      v-e="['c:settings:base:variables']"
+      icon="ncSettings"
+      data-testid="base-variables"
+      :active="activeBaseSettingsTab === 'variables'"
+      @click="navigateToBaseSettings('variables')"
+    >
+      {{ $t('title.baseVariables') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
       v-if="

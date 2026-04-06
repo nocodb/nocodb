@@ -1,9 +1,6 @@
 import CryptoJS from 'crypto-js';
-import type {
-  BaseVariableMode,
-  BaseVariableType,
-  BaseVariableValueType,
-} from 'nocodb-sdk';
+import { BaseVariableValueType } from 'nocodb-sdk';
+import type { BaseVariableInheritance, BaseVariableType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
@@ -18,6 +15,7 @@ import NocoCache from '~/cache/NocoCache';
 import { getCredentialEncryptSecret } from '~/utils/encryptDecrypt';
 
 const KEY_REGEX = /^[A-Z][A-Z0-9_]*$/;
+const MAX_VALUE_LENGTH = 65536; // 64KB
 
 export default class BaseVariable implements BaseVariableType {
   id?: string;
@@ -26,13 +24,20 @@ export default class BaseVariable implements BaseVariableType {
   key?: string;
   value?: string;
   description?: string;
-  mode?: BaseVariableMode;
+  inheritance?: BaseVariableInheritance;
   type?: BaseVariableValueType;
-  is_sensitive?: boolean;
   order?: number;
 
   constructor(data: Partial<BaseVariable>) {
     Object.assign(this, data);
+  }
+
+  get isSecret(): boolean {
+    return this.type === BaseVariableValueType.SECRET;
+  }
+
+  private static isSecretType(data: Record<string, any>): boolean {
+    return data.type === BaseVariableValueType.SECRET;
   }
 
   private static encryptValue(value: string): string {
@@ -55,7 +60,7 @@ export default class BaseVariable implements BaseVariableType {
     data: Partial<BaseVariable>,
   ): Record<string, any> {
     const obj = { ...data };
-    if (obj.is_sensitive && obj.value) {
+    if (BaseVariable.isSecretType(obj) && obj.value) {
       obj.value = BaseVariable.encryptValue(obj.value);
     }
     return obj;
@@ -64,7 +69,7 @@ export default class BaseVariable implements BaseVariableType {
   private static prepareForRead(
     data: Record<string, any>,
   ): Record<string, any> {
-    if (data.is_sensitive && data.value) {
+    if (BaseVariable.isSecretType(data) && data.value) {
       data.value = BaseVariable.decryptValue(data.value);
     }
     return data;
@@ -144,7 +149,7 @@ export default class BaseVariable implements BaseVariableType {
 
   /**
    * Returns a flat key→value map for webhook template resolution.
-   * Sensitive values are decrypted. Empty values are skipped.
+   * Secret values are decrypted. Empty values are skipped.
    */
   public static async listAsMap(
     context: NcContext,
@@ -172,9 +177,8 @@ export default class BaseVariable implements BaseVariableType {
       'key',
       'value',
       'description',
-      'mode',
+      'inheritance',
       'type',
-      'is_sensitive',
       'order',
     ]);
 
@@ -183,6 +187,10 @@ export default class BaseVariable implements BaseVariableType {
       NcError.badRequest(
         'Variable key must be UPPER_SNAKE_CASE (e.g., MY_VARIABLE)',
       );
+    }
+
+    if (insertObj.value && insertObj.value.length > MAX_VALUE_LENGTH) {
+      NcError.badRequest('Variable value exceeds 64KB limit');
     }
 
     if (insertObj.order === null || insertObj.order === undefined) {
@@ -219,22 +227,21 @@ export default class BaseVariable implements BaseVariableType {
     const updateObj = extractProps(data, [
       'value',
       'description',
-      'mode',
+      'inheritance',
       'type',
-      'is_sensitive',
       'order',
     ]);
 
-    // If updating a sensitive variable's value, encrypt it
-    if (updateObj.value !== undefined) {
-      // Need to check current is_sensitive or the incoming one
-      const current = await BaseVariable.get(context, variableId, ncMeta);
-      const isSensitive =
-        updateObj.is_sensitive !== undefined
-          ? updateObj.is_sensitive
-          : current?.is_sensitive;
+    if (updateObj.value && updateObj.value.length > MAX_VALUE_LENGTH) {
+      NcError.badRequest('Variable value exceeds 64KB limit');
+    }
 
-      if (isSensitive && updateObj.value) {
+    // If updating value, check if it needs encryption
+    if (updateObj.value !== undefined) {
+      const current = await BaseVariable.get(context, variableId, ncMeta);
+      const type = updateObj.type || current?.type;
+
+      if (type === BaseVariableValueType.SECRET && updateObj.value) {
         updateObj.value = BaseVariable.encryptValue(updateObj.value);
       }
     }

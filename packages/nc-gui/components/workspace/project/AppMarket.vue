@@ -28,6 +28,12 @@ const installing = ref<string | null>(null)
 const searchQuery = ref('')
 const selectedCategory = ref<string | undefined>(undefined)
 
+// Variable setup state
+const isVariableSetupVisible = ref(false)
+const setupVariables = ref<any[]>([])
+const setupBaseId = ref('')
+const setupBaseTitle = ref('')
+
 const categories = computed(() => {
   const cats = new Set<string>()
   managedApps.value.forEach((ma) => {
@@ -92,7 +98,7 @@ const loadManagedApps = async () => {
 const installManagedApp = async (managedApp: ManagedAppType) => {
   installing.value = managedApp.id
   try {
-    await $api.internal.postOperation(
+    const response = (await $api.internal.postOperation(
       props.workspaceId,
       NO_SCOPE,
       {
@@ -102,11 +108,19 @@ const installManagedApp = async (managedApp: ManagedAppType) => {
         managedAppId: managedApp.id,
         target_workspace_id: props.workspaceId,
       },
-    )
+    )) as any
 
     message.success(t('msg.success.baseInstalled'))
     emit('installed', managedApp)
     visible.value = false
+
+    // If setup is required, show variable configuration modal
+    if (response?.setupRequired && response?.setupVariables?.length) {
+      setupVariables.value = response.setupVariables
+      setupBaseId.value = response.installedBaseId
+      setupBaseTitle.value = managedApp.title
+      isVariableSetupVisible.value = true
+    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -297,6 +311,16 @@ watch(
         </div>
       </div>
     </div>
+
+    <DlgManagedAppVariableSetup
+      v-if="isVariableSetupVisible"
+      v-model:visible="isVariableSetupVisible"
+      :variables="setupVariables"
+      :base-id="setupBaseId"
+      :base-title="setupBaseTitle"
+      :workspace-id="props.workspaceId"
+      @configured="isVariableSetupVisible = false"
+    />
   </div>
 </template>
 

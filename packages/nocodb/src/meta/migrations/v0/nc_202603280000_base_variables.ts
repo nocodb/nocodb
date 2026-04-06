@@ -9,9 +9,8 @@ const up = async (knex: Knex) => {
     table.string('key', 255);
     table.text('value');
     table.text('description');
-    table.string('mode', 20).defaultTo('required');
-    table.string('type', 20).defaultTo('string');
-    table.boolean('is_sensitive').defaultTo(false);
+    table.string('inheritance', 20).defaultTo('fixed');
+    table.string('type', 20).defaultTo('text');
     table.float('order');
     table.timestamps(true, true);
     table.primary(['base_id', 'id']);

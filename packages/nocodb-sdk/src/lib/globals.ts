@@ -424,15 +424,13 @@ export enum DeploymentType {
   UPDATE = 'update',
 }
 
-export enum BaseVariableMode {
+export enum BaseVariableInheritance {
   FIXED = 'fixed',
-  OVERRIDEABLE = 'overrideable',
+  EDITABLE = 'editable',
   REQUIRED = 'required',
 }
 
 export enum BaseVariableValueType {
-  STRING = 'string',
-  URL = 'url',
-  NUMBER = 'number',
-  BOOLEAN = 'boolean',
+  TEXT = 'text',
+  SECRET = 'secret',
 }

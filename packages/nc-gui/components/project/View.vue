@@ -22,7 +22,7 @@ const { activeWorkspace, isTeamsEnabled } = storeToRefs(workspaceStore)
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
+const { isSharedBase, isPrivateBase, isManagedAppMaster, isManagedAppInstaller } = storeToRefs(useBase())
 
 const { $e, $api } = useNuxtApp()
 
@@ -179,6 +179,8 @@ watch(
         projectPageTab.value = 'workflows'
       } else if (newVal === 'mcp') {
         projectPageTab.value = 'mcp'
+      } else if (newVal === 'variables') {
+        projectPageTab.value = 'variables'
       } else if (newVal === 'snapshots' && isEeUI) {
         projectPageTab.value = 'snapshots'
       } else {
@@ -206,6 +208,7 @@ const settingsPageTitle = computed(() => {
     'permissions': t('labels.dataPermissions'),
     'docs-permissions': t('labels.docsPermissions'),
     'mcp': t('title.mcpServer'),
+    'variables': t('title.baseVariables'),
     'syncs': t('labels.manageSyncs'),
     'snapshots': t('labels.manageSnapshots'),
     'data-source': t('labels.addDataSource'),
@@ -547,6 +550,17 @@ watch(
           </template>
           <div class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
             <DashboardSettingsBaseMCP />
+          </div>
+        </a-tab-pane>
+        <a-tab-pane v-if="isEeUI && base.id && !isMobileMode" key="variables">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__variables">
+              <GeneralIcon icon="ncSettings" />
+              <div>{{ $t('title.baseVariables') }}</div>
+            </div>
+          </template>
+          <div class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
+            <DashboardSettingsBaseVariables />
           </div>
         </a-tab-pane>
         <a-tab-pane

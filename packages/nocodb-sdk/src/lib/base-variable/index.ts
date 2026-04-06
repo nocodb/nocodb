@@ -1,4 +1,7 @@
-import type { BaseVariableMode, BaseVariableValueType } from '~/lib/globals';
+import type {
+  BaseVariableInheritance,
+  BaseVariableValueType,
+} from '~/lib/globals';
 
 export interface BaseVariableType {
   id?: string;
@@ -7,9 +10,8 @@ export interface BaseVariableType {
   key?: string;
   value?: string;
   description?: string;
-  mode?: BaseVariableMode;
+  inheritance?: BaseVariableInheritance;
   type?: BaseVariableValueType;
-  is_sensitive?: boolean;
   order?: number;
 }
 
@@ -17,7 +19,6 @@ export interface BaseVariableReqType {
   key: string;
   value?: string;
   description?: string;
-  mode: BaseVariableMode;
+  inheritance: BaseVariableInheritance;
   type?: BaseVariableValueType;
-  is_sensitive?: boolean;
 }

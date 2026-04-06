@@ -681,3 +681,6 @@ export enum MapProvider {
   STADIAMAP = 'stadiamap',
   STADIAMAP_APIKEY = 'stadiamap_apikey',
 }
+
+/** Default org ID for on-prem deployments */
+export const NC_DEFAULT_ORG_ID = 'org_default';

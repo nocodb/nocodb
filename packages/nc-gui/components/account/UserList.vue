@@ -20,7 +20,7 @@ const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: save
 
 const updateOrgRole = async (user: UserType, newRole: string) => {
   try {
-    const orgId = (appInfo.value as any)?.defaultOrgId || 'nc'
+    const orgId = (appInfo.value as any)?.defaultOrgId || NC_DEFAULT_ORG_ID
     await api.instance.patch(`/api/v1/orgs/${orgId}/users/${user.id}`, { org_role: newRole })
     ;(user as any).org_roles = newRole
     message.success(t('msg.success.roleUpdated'))

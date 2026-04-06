@@ -108,13 +108,16 @@ export default class BaseVariable implements BaseVariableType {
       );
 
       if (data) {
-        data = BaseVariable.prepareForRead(data);
         NocoCache.set(
           context,
           `${CacheScope.BASE_VARIABLE}:${variableId}`,
           data,
         );
       }
+    }
+
+    if (data) {
+      data = BaseVariable.prepareForRead(data);
     }
 
     return data && new BaseVariable(data);
@@ -145,7 +148,6 @@ export default class BaseVariable implements BaseVariableType {
       );
 
       if (list) {
-        list = list.map((item) => BaseVariable.prepareForRead(item));
         await NocoCache.setList(
           context,
           CacheScope.BASE_VARIABLE,
@@ -157,7 +159,7 @@ export default class BaseVariable implements BaseVariableType {
 
     return (list || [])
       .sort((a, b) => (a?.order ?? Infinity) - (b?.order ?? Infinity))
-      .map((item) => new BaseVariable(item));
+      .map((item) => new BaseVariable(BaseVariable.prepareForRead(item)));
   }
 
   /**
@@ -273,6 +275,8 @@ export default class BaseVariable implements BaseVariableType {
       variableId,
     );
 
+    // Cache stores encrypted values (same as DB). Reads always
+    // decrypt via prepareForRead, so this is safe.
     await NocoCache.update(
       context,
       `${CacheScope.BASE_VARIABLE}:${variableId}`,

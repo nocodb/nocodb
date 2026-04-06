@@ -66,6 +66,7 @@ export enum JobTypes {
   WorkflowDraftReminder = 'workflow-draft-reminder',
   ChatMessage = 'chat-message',
   ChatApproval = 'chat-approval',
+  SandboxMerge = 'sandbox-merge',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -209,6 +210,13 @@ export interface DuplicateDashboardJobData extends JobData {
   dashboardId: string;
   req: NcRequest;
   options: never;
+}
+
+export interface SandboxMergeJobData extends JobData {
+  sandboxBaseId: string;
+  masterBaseId: string;
+  sandboxId: string;
+  req: NcRequest;
 }
 
 export interface HandleWebhookJobData extends JobData {

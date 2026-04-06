@@ -12,6 +12,9 @@ const up = async (knex: Knex) => {
     table.string('inheritance', 20).defaultTo('fixed');
     table.string('type', 20).defaultTo('text');
     table.float('order');
+    table.text('default_value');
+    table.boolean('is_overridden').defaultTo(false);
+    table.boolean('is_inherited').defaultTo(false);
     table.timestamps(true, true);
     table.primary(['base_id', 'id']);
   });

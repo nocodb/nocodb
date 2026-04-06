@@ -13,6 +13,8 @@ export interface BaseVariableType {
   inheritance?: BaseVariableInheritance;
   type?: BaseVariableValueType;
   order?: number;
+  is_overridden?: boolean;
+  is_inherited?: boolean;
 }
 
 export interface BaseVariableReqType {

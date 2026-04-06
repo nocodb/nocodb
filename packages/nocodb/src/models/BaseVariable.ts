@@ -27,6 +27,9 @@ export default class BaseVariable implements BaseVariableType {
   inheritance?: BaseVariableInheritance;
   type?: BaseVariableValueType;
   order?: number;
+  default_value?: string;
+  is_overridden?: boolean;
+  is_inherited?: boolean;
 
   constructor(data: Partial<BaseVariable>) {
     Object.assign(this, data);
@@ -60,8 +63,13 @@ export default class BaseVariable implements BaseVariableType {
     data: Partial<BaseVariable>,
   ): Record<string, any> {
     const obj = { ...data };
-    if (BaseVariable.isSecretType(obj) && obj.value) {
-      obj.value = BaseVariable.encryptValue(obj.value);
+    if (BaseVariable.isSecretType(obj)) {
+      if (obj.value) {
+        obj.value = BaseVariable.encryptValue(obj.value);
+      }
+      if (obj.default_value) {
+        obj.default_value = BaseVariable.encryptValue(obj.default_value);
+      }
     }
     return obj;
   }
@@ -69,8 +77,13 @@ export default class BaseVariable implements BaseVariableType {
   private static prepareForRead(
     data: Record<string, any>,
   ): Record<string, any> {
-    if (BaseVariable.isSecretType(data) && data.value) {
-      data.value = BaseVariable.decryptValue(data.value);
+    if (BaseVariable.isSecretType(data)) {
+      if (data.value) {
+        data.value = BaseVariable.decryptValue(data.value);
+      }
+      if (data.default_value) {
+        data.default_value = BaseVariable.decryptValue(data.default_value);
+      }
     }
     return data;
   }
@@ -180,6 +193,9 @@ export default class BaseVariable implements BaseVariableType {
       'inheritance',
       'type',
       'order',
+      'default_value',
+      'is_overridden',
+      'is_inherited',
     ]);
 
     // Validate key format
@@ -230,6 +246,9 @@ export default class BaseVariable implements BaseVariableType {
       'inheritance',
       'type',
       'order',
+      'default_value',
+      'is_overridden',
+      'is_inherited',
     ]);
 
     if (updateObj.value && updateObj.value.length > MAX_VALUE_LENGTH) {

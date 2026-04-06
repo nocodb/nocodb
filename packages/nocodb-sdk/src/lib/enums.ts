@@ -314,6 +314,15 @@ export enum AppEvents {
   BASE_VARIABLE_CREATE = 'baseVariable.create',
   BASE_VARIABLE_UPDATE = 'baseVariable.update',
   BASE_VARIABLE_DELETE = 'baseVariable.delete',
+
+  MANAGED_APP_CREATE = 'managedApp.create',
+  MANAGED_APP_UPDATE = 'managedApp.update',
+  MANAGED_APP_DELETE = 'managedApp.delete',
+  MANAGED_APP_PUBLISH = 'managedApp.publish',
+  MANAGED_APP_INSTALL = 'managedApp.install',
+  MANAGED_APP_UPDATE_START = 'managedApp.update.start',
+  MANAGED_APP_UPDATE_COMPLETE = 'managedApp.update.complete',
+  MANAGED_APP_UPDATE_FAIL = 'managedApp.update.fail',
 }
 
 export enum ClickhouseTables {

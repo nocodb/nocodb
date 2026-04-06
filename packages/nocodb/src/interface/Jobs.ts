@@ -67,6 +67,7 @@ export enum JobTypes {
   ChatMessage = 'chat-message',
   ChatApproval = 'chat-approval',
   SandboxMerge = 'sandbox-merge',
+  ManagedAppUpdate = 'managed-app-update',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -216,6 +217,16 @@ export interface SandboxMergeJobData extends JobData {
   sandboxBaseId: string;
   masterBaseId: string;
   sandboxId: string;
+  req: NcRequest;
+}
+
+export interface ManagedAppUpdateJobData extends JobData {
+  managedAppId: string;
+  managedAppTitle: string;
+  masterBaseId: string;
+  masterWorkspaceId: string;
+  newVersionId: string;
+  newVersion: string;
   req: NcRequest;
 }
 

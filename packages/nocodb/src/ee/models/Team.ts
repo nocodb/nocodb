@@ -470,7 +470,7 @@ export default class Team {
    */
   public static async getDescendantsForMultiple(
     context: NcContext,
-    teams: { id: string; path: string; fk_workspace_id: string }[],
+    teams: { id: string; path: string; fk_workspace_id?: string; fk_org_id?: string }[],
     ncMeta = Noco.ncMeta,
   ): Promise<Map<string, Team[]>> {
     const result = new Map<string, Team[]>();
@@ -741,9 +741,12 @@ export default class Team {
         throw NcError.badRequest('Cannot move team under a deleted parent');
       }
 
-      // Validate same workspace
-      if (team.fk_workspace_id !== parent.fk_workspace_id) {
-        throw NcError.badRequest('Teams must be in the same workspace');
+      // Validate same scope (workspace or org)
+      const sameScope = team.fk_workspace_id
+        ? team.fk_workspace_id === parent.fk_workspace_id
+        : team.fk_org_id === parent.fk_org_id;
+      if (!sameScope) {
+        throw NcError.badRequest('Teams must be in the same scope');
       }
 
       newPath = `${parent.path}/${teamId}`;
@@ -972,7 +975,10 @@ export default class Team {
     const baseQuery = () => {
       const qb = ncMeta
         .knex(MetaTable.TEAMS)
-        .where('fk_workspace_id', fk_workspace_id)
+        .where(
+          fk_org_id ? 'fk_org_id' : 'fk_workspace_id',
+          fk_org_id || fk_workspace_id,
+        )
         .where('scim_managed', true)
         .where(function () {
           this.where('deleted', false).orWhereNull('deleted');

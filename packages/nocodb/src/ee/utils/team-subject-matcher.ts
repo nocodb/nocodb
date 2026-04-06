@@ -120,7 +120,8 @@ export async function matchTeamSubjectsBatch(
     const teamsMap = await Team.getByIds(context, expandIds);
 
     const teamsWithPaths = [...teamsMap.values()].filter(
-      (t): t is Team & { path: string; fk_workspace_id: string } => !!t.path,
+      (t): t is Team & { path: string } =>
+        !!t.path && !!(t.fk_workspace_id || t.fk_org_id),
     );
 
     if (teamsWithPaths.length) {
@@ -211,7 +212,8 @@ export async function getMemberUserIdsForTeamsAndDescendants(
 
   // Batch-expand descendants for all teams in one query
   const teamsWithPaths = [...teamsMap.values()].filter(
-    (t): t is Team & { path: string; fk_workspace_id: string } => !!t.path,
+    (t): t is Team & { path: string } =>
+      !!t.path && !!(t.fk_workspace_id || t.fk_org_id),
   );
 
   if (teamsWithPaths.length) {

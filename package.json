@@ -102,7 +102,7 @@
       "linkifyjs@<4.3.2": ">=4.3.2",
       "qs@<6.14.1": ">=6.14.1",
       "h3@<=1.15.4": ">=1.15.5",
-      "@asamuzakjp/css-color": "^2.8.2"
+      "cssstyle": "4.1.0"
     },
     "supportedArchitectures": {
       "os": [

@@ -20,7 +20,8 @@ COPY ./docker/start-cloud.sh /usr/src/appEntry/start.sh
 COPY ./src/public/ ./docker/public/
 
 # Override sharp version to 0.32.6 to avoid build issues
-RUN jq '.pnpm.overrides.sharp = "0.32.6"' package.json > package.json.tmp && mv package.json.tmp package.json
+# Pin cssstyle to 4.1.0 to avoid @asamuzakjp/css-color ESM top-level await (Node 24 compat)
+RUN jq '.pnpm.overrides.sharp = "0.32.6" | .pnpm.overrides.cssstyle = "4.1.0"' package.json > package.json.tmp && mv package.json.tmp package.json
 
 # for pnpm to generate a flat node_modules without symlinks
 # so that modclean could work as expected

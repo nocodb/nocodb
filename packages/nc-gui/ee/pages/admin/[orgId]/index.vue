@@ -144,7 +144,7 @@ onMounted(async () => {
               @click="navigateTo(`/admin/${$route.params.orgId}/teams`)"
             >
               <div class="flex items-center space-x-2">
-                <GeneralIcon class="!h-4 !w-4" icon="ncUsers" />
+                <GeneralIcon class="!h-4 !w-4" icon="ncBuilding" />
                 <div class="select-none">{{ $t('title.teams') }}</div>
               </div>
             </NcMenuItem>

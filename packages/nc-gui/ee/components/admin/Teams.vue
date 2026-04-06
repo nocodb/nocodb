@@ -136,8 +136,13 @@ const handleCreateTeam = (parentId?: string | null) => {
   })
 }
 
+const isDuplicateTeamName = computed(() => {
+  if (!newTeamTitle.value?.trim()) return false
+  return teams.value.some((t) => t.title?.toLowerCase() === newTeamTitle.value.trim().toLowerCase())
+})
+
 const createTeam = async () => {
-  if (!newTeamTitle.value.trim() || !orgId.value || isCreating.value) return
+  if (!newTeamTitle.value.trim() || !orgId.value || isCreating.value || isDuplicateTeamName.value) return
 
   try {
     isCreating.value = true
@@ -621,6 +626,9 @@ onMounted(() => {
               data-testid="nc-admin-teams-create-input"
               :placeholder="$t('placeholder.enterTeamName')"
             />
+            <div v-if="isDuplicateTeamName" class="text-nc-content-red-medium text-xs mt-1">
+              {{ $t('msg.error.duplicateTeamName') }}
+            </div>
           </a-form-item>
 
           <!-- Parent team selector -->
@@ -670,7 +678,7 @@ onMounted(() => {
               v-e="['a:org-team:create']"
               type="primary"
               size="small"
-              :disabled="!newTeamTitle.trim() || isCreating"
+              :disabled="!newTeamTitle.trim() || isCreating || isDuplicateTeamName"
               :loading="isCreating"
               class="capitalize"
               data-testid="nc-admin-teams-create-submit"

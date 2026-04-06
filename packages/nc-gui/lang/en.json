@@ -1639,7 +1639,7 @@
     "publishSandboxChanges": "Publish Sandbox Changes",
     "sandboxChangesPublished": "Sandbox Changes Published",
     "failedToPublishChanges": "Failed to Publish Changes",
-    "mergeSchemaChangesWarning": "This will apply all structure changes (tables, fields, views) from this sandbox to the master base. Row data and variable values will not be transferred.",
+    "mergeSchemaChangesWarning": "This will apply all structure changes from this sandbox to the master base. Row data and variable values will not be transferred.",
     "sandboxChangesPublishedSuccess": "Sandbox changes have been published successfully.",
     "viewChangesOnMaster": "You can now go to the master base to view the changes.",
     "publishChangesAction": "Publish Changes",

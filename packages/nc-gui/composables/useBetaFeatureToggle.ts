@@ -3,14 +3,6 @@ import rfdc from 'rfdc'
 const deepClone = rfdc()
 const FEATURES = [
   {
-    id: 'sandbox',
-    title: 'Sandbox',
-    description: 'Allow users to create sandbox environments for testing schema changes before merging.',
-    enabled: false,
-    isEngineering: true,
-    isAdvanced: true,
-  },
-  {
     id: 'managed_apps',
     title: 'Managed Apps',
     description: 'Allow users to create replicable managed app environments',

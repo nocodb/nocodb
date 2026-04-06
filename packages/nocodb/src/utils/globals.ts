@@ -186,6 +186,7 @@ export const BaseRelatedMetaTables = [
   MetaTable.SYNC_SOURCE,
   MetaTable.VIEWS,
   MetaTable.WIDGETS,
+  MetaTable.BASE_VARIABLES,
   MetaTable.MODEL_STAT,
   MetaTable.AUTOMATIONS,
   MetaTable.AUTOMATION_EXECUTIONS,

@@ -386,7 +386,10 @@ export default class Team {
       {
         xcCondition: {
           _and: [
-            { fk_workspace_id: { eq: team.fk_workspace_id } },
+            // Use the team's own scope — workspace or org
+            team.fk_workspace_id
+              ? { fk_workspace_id: { eq: team.fk_workspace_id } }
+              : { fk_org_id: { eq: team.fk_org_id } },
             { path: { like: `${team.path}/%` } },
             { _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }] },
           ],
@@ -435,7 +438,8 @@ export default class Team {
         {
           xcCondition: {
             _and: [
-              { fk_workspace_id: { eq: context.workspace_id } },
+              // No workspace filter — IDs are globally unique. Scoping is
+              // enforced upstream by PrincipalAssignment, not here.
               { id: { in: uncachedIds } },
               { _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }] },
             ],
@@ -476,22 +480,71 @@ export default class Team {
       result.set(team.id, []);
     }
 
-    const workspaceId = teams[0].fk_workspace_id;
-
-    const descendants = await ncMeta.metaList2(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.TEAMS,
-      {
-        xcCondition: {
-          _and: [
-            { fk_workspace_id: { eq: workspaceId } },
-            { _or: teams.map((t) => ({ path: { like: `${t.path}/%` } })) },
-            { _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }] },
-          ],
-        },
-      },
+    // Split teams by scope — workspace vs org
+    const wsTeams = teams.filter((t) => t.fk_workspace_id);
+    const orgTeams = teams.filter(
+      (t) => t.fk_org_id && !t.fk_workspace_id,
     );
+
+    const allDescendants: any[] = [];
+
+    // Fetch workspace-scoped descendants
+    if (wsTeams.length) {
+      const wsDescendants = await ncMeta.metaList2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.TEAMS,
+        {
+          xcCondition: {
+            _and: [
+              { fk_workspace_id: { eq: wsTeams[0].fk_workspace_id } },
+              {
+                _or: wsTeams.map((t) => ({
+                  path: { like: `${t.path}/%` },
+                })),
+              },
+              {
+                _or: [
+                  { deleted: { eq: false } },
+                  { deleted: { eq: null } },
+                ],
+              },
+            ],
+          },
+        },
+      );
+      allDescendants.push(...wsDescendants);
+    }
+
+    // Fetch org-scoped descendants
+    if (orgTeams.length) {
+      const orgDescendants = await ncMeta.metaList2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.TEAMS,
+        {
+          xcCondition: {
+            _and: [
+              { fk_org_id: { eq: orgTeams[0].fk_org_id } },
+              {
+                _or: orgTeams.map((t) => ({
+                  path: { like: `${t.path}/%` },
+                })),
+              },
+              {
+                _or: [
+                  { deleted: { eq: false } },
+                  { deleted: { eq: null } },
+                ],
+              },
+            ],
+          },
+        },
+      );
+      allDescendants.push(...orgDescendants);
+    }
+
+    const descendants = allDescendants;
 
     // O(1) lookup for input teams by path
     const teamByPath = new Map(teams.map((t) => [t.path, t]));

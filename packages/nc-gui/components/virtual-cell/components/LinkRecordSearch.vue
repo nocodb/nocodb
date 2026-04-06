@@ -16,7 +16,11 @@ const {
   relatedTableDisplayValueColumn,
   relatedTableDisplayValueProp,
   relatedTableMeta,
+  showExtraFields,
 } = useLTARStoreOrThrow()
+
+// Hide field selector when only PV is shown (no extra fields)
+const showFieldSelector = computed(() => showExtraFields.value && searchableColumns.value.length > 1)
 
 const { getValidSearchQueryForColumn } = useFieldQuery()
 
@@ -77,6 +81,7 @@ defineExpose({
       <GeneralIcon icon="search" class="h-3.5 w-3.5 text-nc-content-gray-muted flex-none" />
     </div>
     <NcDropdown
+      v-if="showFieldSelector"
       v-model:visible="isDropdownOpen"
       placement="bottomLeft"
       overlay-class-name="nc-dropdown-toolbar-search-field-option"

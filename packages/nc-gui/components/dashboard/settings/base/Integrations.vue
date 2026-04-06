@@ -43,9 +43,8 @@ const canEditIntegration = (integration: IntegrationType) => {
   return canManage.value && integration.created_by === user.value?.id
 }
 
-const activeTab = ref<'integrations' | 'connections'>('integrations')
+const activeTab = ref<'integrations' | 'connections'>(isManagedAppInstaller.value ? 'connections' : 'integrations')
 
-// Make inheritable dialog state
 const makeInheritableDialogVisible = ref(false)
 const makeInheritableIntegration = ref<IntegrationType | null>(null)
 const makeInheritableLoading = ref(false)
@@ -215,7 +214,10 @@ watch(baseId, reload)
 <template>
   <div class="flex w-full flex-col h-full nc-base-integrations">
     <!-- Custom tab bar — not using NcTabs to avoid parent's hide-tabs interference -->
-    <div class="nc-base-integrations-tab-bar flex items-center border-b-1 border-nc-border-gray-medium pl-3">
+    <div
+      v-if="!isManagedAppInstaller"
+      class="nc-base-integrations-tab-bar flex items-center border-b-1 border-nc-border-gray-medium pl-3"
+    >
       <div class="nc-base-integrations-tab" :class="{ active: activeTab === 'integrations' }" @click="activeTab = 'integrations'">
         <GeneralIcon icon="integration" />
         {{ $t('general.integrations') }}
@@ -376,10 +378,10 @@ watch(baseId, reload)
                         <GeneralIcon class="text-current opacity-80" icon="edit" />
                         <span>{{ $t('general.edit') }}</span>
                       </NcMenuItem>
-                      <!-- Make inheritable — sandbox only (safe staging for the one-time remap) -->
+                      <!-- Make inheritable — any base except managed app instances -->
                       <NcMenuItem
                         v-if="
-                          isSandbox &&
+                          !isManagedAppInstaller &&
                           integration.is_restricted &&
                           !integration.is_global &&
                           integration.type !== 'database' &&
@@ -437,7 +439,7 @@ watch(baseId, reload)
     </div>
 
     <!-- Make Inheritable dialog -->
-    <NcModal v-model:visible="makeInheritableDialogVisible" size="xs" :mask-closable="false">
+    <NcModal v-model:visible="makeInheritableDialogVisible" size="xs" height="auto" :mask-closable="false">
       <template #header>
         <div class="flex items-center gap-2">
           <GeneralIntegrationIcon

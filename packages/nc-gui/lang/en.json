@@ -3017,6 +3017,7 @@
     "publishingWillMakeAvailable": "Publishing version {version} will make it available in the App Store and automatically update all installations.",
     "createDraftDescription": "Create a new draft version to work on updates. Current published version {version} will remain unchanged.",
     "createVersionToMakeChanges": "Create {version} to make changes",
+    "updatingInstallations": "Updating installations...",
     "allInstallationsUpdated": "All installations updated successfully",
     "installationUpdatePartial": "{success} installations updated, {failed} failed",
     "installationUpdateFailed": "Failed to update installations",

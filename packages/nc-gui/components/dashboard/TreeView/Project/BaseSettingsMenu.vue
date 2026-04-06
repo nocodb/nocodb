@@ -122,7 +122,7 @@ onMounted(() => {
       {{ $t('labels.addDataSource') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode"
+      v-if="(isUIAllowed('sourceCreate', { roles: effectiveRoles }) || isManagedAppInstaller) && !isMobileMode"
       v-e="['c:settings:base:integrations']"
       icon="integration"
       data-testid="base-integrations"

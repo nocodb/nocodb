@@ -277,7 +277,19 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         return (relatedTableMeta.value.columns ?? [])
           .filter((col) => {
             // Hiding lookup field from dropdown as we don't send lookup field info in list response due to performance reasons
-            return !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col) && !isLookup(col)
+            if (isSystemColumn(col) || isPrimary(col) || isLinksOrLTAR(col) || isAttachment(col) || isLookup(col)) {
+              return false
+            }
+
+            // Only include columns visible in the target view
+            if (isPublic.value) {
+              if (!(parseProp(col.meta)?.defaultViewColVisibility ?? true)) return false
+            } else {
+              const viewCol = targetViewColumnsById.value[col.id!] as Record<string, any> | undefined
+              if (!viewCol || !viewCol.show) return false
+            }
+
+            return true
           })
           .sort((a, b) => {
             if (isPublic.value) {
@@ -419,7 +431,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           const isDateOrDateTime = isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) && isDateOrDateTimeCol(field)
 
           if (!isDateOrDateTime) {
-            query = getValidSearchQueryForColumn(field, query, relatedTableMeta.value) as string
+            query = getValidSearchQueryForColumn(field, query, relatedTableMeta.value, {
+              serializeLinkRecordSearchQuery: true,
+            }) as string
           }
 
           if (!isValidValue(query)) return ''

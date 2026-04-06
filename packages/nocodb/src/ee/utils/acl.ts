@@ -58,6 +58,18 @@ const permissionScopes = {
     'paymentSeatCount',
     'manageSubscription',
 
+    // Teams (workspace-scope permissions accessible via extendedScope: 'cloud-org')
+    'workspace_teamList',
+    'workspace_teamTree',
+    'workspace_teamCreate',
+    'workspace_teamGet',
+    'workspace_teamUpdate',
+    'workspace_teamDelete',
+    'workspace_teamMove',
+    'workspace_teamMembersAdd',
+    'workspace_teamMembersRemove',
+    'workspace_teamMembersUpdate',
+
     // etc
     'fetchViaUrl',
   ],
@@ -639,17 +651,17 @@ const rolePermissions:
       manageSubscription: true,
       paymentSeatCount: true,
 
-      // Org-level team management
-      teamList: true,
-      teamTree: true,
-      teamCreate: true,
-      teamGet: true,
-      teamUpdate: true,
-      teamDelete: true,
-      teamMembersAdd: true,
-      teamMembersRemove: true,
-      teamMembersUpdate: true,
-      teamMove: true,
+      // Org-level team management (workspace-scope permissions via extendedScope)
+      workspace_teamList: true,
+      workspace_teamTree: true,
+      workspace_teamCreate: true,
+      workspace_teamGet: true,
+      workspace_teamUpdate: true,
+      workspace_teamDelete: true,
+      workspace_teamMembersAdd: true,
+      workspace_teamMembersRemove: true,
+      workspace_teamMembersUpdate: true,
+      workspace_teamMove: true,
     },
   },
   [CloudOrgUserRoles.CREATOR]: {

@@ -328,7 +328,7 @@ export class TeamsV3Service {
         path: team.path || undefined,
         fk_org_id: team.fk_org_id || undefined,
         fk_workspace_id: team.fk_workspace_id || undefined,
-        scope: team.fk_org_id && !team.fk_workspace_id ? 'org' : 'workspace',
+        scope: (team.fk_org_id && !team.fk_workspace_id ? 'org' : 'workspace') as 'org' | 'workspace',
         scim_managed: team.scim_managed || false,
       };
     });
@@ -505,9 +505,10 @@ export class TeamsV3Service {
       }
     }
 
-    // Fetch workspace for limit check (org teams skip)
+    // Fetch workspace for limit check and payment reseat (null for org teams)
+    const workspace = workspaceId ? await Workspace.get(workspaceId) : null;
+
     if (scope === 'workspace') {
-      const workspace = await Workspace.get(workspaceId);
       if (!workspace) {
         NcError.get(context).workspaceNotFound(workspaceId);
       }
@@ -717,7 +718,7 @@ export class TeamsV3Service {
       path: team.path || undefined,
       fk_org_id: team.fk_org_id || undefined,
       fk_workspace_id: team.fk_workspace_id || undefined,
-      scope: team.fk_org_id && !team.fk_workspace_id ? 'org' : 'workspace',
+      scope: (team.fk_org_id && !team.fk_workspace_id ? 'org' : 'workspace') as 'org' | 'workspace',
       scim_managed: team.scim_managed || false,
     };
 
@@ -729,8 +730,10 @@ export class TeamsV3Service {
       workspace,
     });
 
-    // Recalculate seat count after team creation
-    await this.paymentService.reseatSubscription(workspace.id);
+    // Recalculate seat count after team creation (workspace teams only)
+    if (workspace?.id) {
+      await this.paymentService.reseatSubscription(workspace.id);
+    }
 
     NocoSocket.broadcastEvent(
       context,

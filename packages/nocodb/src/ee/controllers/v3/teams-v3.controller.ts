@@ -50,7 +50,7 @@ export class TeamsV3Controller {
   }
 
   @Get('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/tree')
-  @Acl('teamTree', { scope: 'workspace' })
+  @Acl('teamTree', { scope: 'workspace', extendedScope: 'cloud-org' })
   async teamTree(
     @TenantContext() context: NcContext,
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
@@ -61,7 +61,7 @@ export class TeamsV3Controller {
   }
 
   @Get('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId')
-  @Acl('teamGet', { scope: 'workspace' })
+  @Acl('teamGet', { scope: 'workspace', extendedScope: 'cloud-org' })
   async teamGet(
     @TenantContext() context: NcContext,
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
@@ -75,7 +75,7 @@ export class TeamsV3Controller {
 
   @Post('/api/v3/meta/workspaces/:workspaceOrOrgId/teams')
   @HttpCode(200)
-  @Acl('teamCreate', { scope: 'workspace' })
+  @Acl('teamCreate', { scope: 'workspace', extendedScope: 'cloud-org' })
   async teamCreate(
     @TenantContext() context: NcContext,
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
@@ -90,7 +90,7 @@ export class TeamsV3Controller {
   }
 
   @Patch('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId')
-  @Acl('teamUpdate', { scope: 'workspace' })
+  @Acl('teamUpdate', { scope: 'workspace', extendedScope: 'cloud-org' })
   async teamUpdate(
     @TenantContext() context: NcContext,
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
@@ -107,7 +107,7 @@ export class TeamsV3Controller {
   }
 
   @Patch('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId/move')
-  @Acl('teamMove', { scope: 'workspace' })
+  @Acl('teamMove', { scope: 'workspace', extendedScope: 'cloud-org' })
   async teamMove(
     @TenantContext() context: NcContext,
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
@@ -124,7 +124,7 @@ export class TeamsV3Controller {
   }
 
   @Delete('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId')
-  @Acl('teamDelete', { scope: 'workspace' })
+  @Acl('teamDelete', { scope: 'workspace', extendedScope: 'cloud-org' })
   async teamDelete(
     @TenantContext() context: NcContext,
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
@@ -142,7 +142,7 @@ export class TeamsV3Controller {
 
   @Post('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId/members')
   @HttpCode(200)
-  @Acl('teamMembersAdd', { scope: 'workspace' })
+  @Acl('teamMembersAdd', { scope: 'workspace', extendedScope: 'cloud-org' })
   async teamMembersAdd(
     @TenantContext() context: NcContext,
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
@@ -159,7 +159,7 @@ export class TeamsV3Controller {
   }
 
   @Delete('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId/members')
-  @Acl('teamMembersRemove', { scope: 'workspace' })
+  @Acl('teamMembersRemove', { scope: 'workspace', extendedScope: 'cloud-org' })
   async teamMembersRemove(
     @TenantContext() context: NcContext,
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
@@ -180,7 +180,7 @@ export class TeamsV3Controller {
   }
 
   @Patch('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId/members')
-  @Acl('teamMembersUpdate', { scope: 'workspace' })
+  @Acl('teamMembersUpdate', { scope: 'workspace', extendedScope: 'cloud-org' })
   async teamMembersUpdate(
     @TenantContext() context: NcContext,
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,

@@ -296,6 +296,11 @@
         "musl",
         "glibc"
       ]
-    }
+    },
+    "onlyBuiltDependencies": [
+      "sqlite3",
+      "sharp",
+      "esbuild"
+    ]
   }
 }

@@ -192,7 +192,7 @@ interface SharedViewMeta extends Record<string, any> {
   transitionDuration?: number // in ms
   withTheme?: boolean
   theme?: Partial<ThemeConfig>
-  defaultTheme?: 'light' | 'dark'
+  defaultTheme?: 'light' | 'dark' | 'system'
   allowCSVDownload?: boolean
   rtl?: boolean
   preFillEnabled?: boolean

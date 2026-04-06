@@ -417,13 +417,15 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     }
 
     // Searchable columns for the field selector: PV + visible fields
+    // Uses isSearchableColumn but also allows Date/DateTime (supported via date picker)
     const searchableColumns = computed(() => {
       const cols: ColumnType[] = []
       if (relatedTableDisplayValueColumn.value) {
         cols.push(relatedTableDisplayValueColumn.value)
       }
       for (const col of fields.value || []) {
-        if (!isPrimary(col)) {
+        if (isPrimary(col)) continue
+        if (isSearchableColumn(col) || isDateOrDateTimeCol(col)) {
           cols.push(col)
         }
       }

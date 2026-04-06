@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { ColumnType } from 'nocodb-sdk'
-
 const query = defineModel<string>('query', { default: '' })
 
 const emit = defineEmits<{
@@ -17,11 +15,10 @@ const {
   isSearchFieldDateOrDateTime,
   relatedTableDisplayValueColumn,
   relatedTableDisplayValueProp,
+  relatedTableMeta,
 } = useLTARStoreOrThrow()
 
 const { getValidSearchQueryForColumn } = useFieldQuery()
-
-const { relatedTableMeta } = useLTARStoreOrThrow()
 
 const isSearchInputFocused = ref(false)
 
@@ -38,10 +35,9 @@ const isValidSearchQuery = computed(() => {
 
 const ALL_FIELDS_ID = 'all'
 
-const allFieldsOption = computed<ColumnType>(() => ({
+const allFieldsOption = computed(() => ({
   id: ALL_FIELDS_ID,
-  title: t('general.allVisibleFields'),
-  uidt: 'SingleLineText' as any,
+  title: t('general.allDisplayedFields'),
 }))
 
 const fieldOptions = computed(() => [allFieldsOption.value, ...searchableColumns.value])
@@ -91,10 +87,10 @@ defineExpose({
             <GeneralIcon icon="ncList" class="!w-3.5 !h-3.5 !mx-0" />
             <NcTooltip
               class="min-w-0 text-bodyDefaultSm font-medium truncate max-w-16"
-              :title="$t('general.allVisibleFields')"
+              :title="$t('general.allDisplayedFields')"
               show-on-truncate-only
             >
-              {{ $t('general.allVisibleFields') }}
+              {{ $t('general.allDisplayedFields') }}
             </NcTooltip>
           </template>
           <template v-else-if="selectedSearchField">

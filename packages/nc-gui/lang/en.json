@@ -541,7 +541,7 @@
     "shared": "Shared",
     "organization": "Organization",
     "all": "All",
-    "allVisibleFields": "All visible fields",
+    "allDisplayedFields": "All displayed fields",
     "billing": "Billing",
     "choose": "Choose",
     "plan": "Plan",

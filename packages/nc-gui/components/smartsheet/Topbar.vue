@@ -89,7 +89,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
           v-if="!isPublic && !isSharedBase && !isMobileMode && openedViewsTab === 'view' && appInfo.ee"
         />
 
-        <NcButton
+        <NcTooltip
           v-if="
             ((isEeUI && showEEFeatures) || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
             !isSharedBase &&
@@ -99,31 +99,23 @@ const topbarBreadcrumbItemWidth = computed(() => {
             openedViewsTab === 'view' &&
             !isMobileMode
           "
-          v-e="['c:extension-toggle']"
-          type="secondary"
-          size="small"
-          class="nc-topbar-extension-btn !font-normal"
-          :class="{ '!bg-nc-bg-brand !hover:bg-nc-brand-100/70 !text-nc-content-brand': isPanelExpanded }"
-          data-testid="nc-topbar-extension-btn"
-          @click="toggleExtensionPanel"
         >
-          <div class="flex items-center justify-center min-w-[28.69px]">
+          <template #title>{{ isPanelExpanded ? $t('tooltip.hideExtensions') : $t('tooltip.showExtensions') }}</template>
+          <NcButton
+            v-e="['c:extension-toggle']"
+            type="secondary"
+            size="small"
+            class="nc-topbar-extension-btn !font-normal"
+            :class="{ '!bg-nc-bg-brand !hover:bg-nc-brand-100/70 !text-nc-content-brand': isPanelExpanded }"
+            data-testid="nc-topbar-extension-btn"
+            @click="toggleExtensionPanel"
+          >
             <GeneralIcon
               :icon="isPanelExpanded ? 'ncPuzzleSolid' : 'ncPuzzleOutline'"
               class="w-4 h-4 !stroke-transparent"
-              :class="{ 'border-l-1 border-transparent': isPanelExpanded }"
             />
-            <span
-              class="overflow-hidden transition-all duration-200"
-              :class="{
-                'w-[0px] invisible': isPanelExpanded || isChatPanelExpanded,
-                'ml-1 w-[74px]': !isPanelExpanded && !isChatPanelExpanded,
-              }"
-            >
-              {{ $t('general.extensions') }}
-            </span>
-          </div>
-        </NcButton>
+          </NcButton>
+        </NcTooltip>
 
         <NcButton
           v-if="

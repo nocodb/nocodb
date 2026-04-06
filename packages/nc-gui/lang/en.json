@@ -2724,6 +2724,8 @@
     "goBackHome": "Go back home"
   },
   "tooltip": {
+    "showExtensions": "Show extensions",
+    "hideExtensions": "Hide extensions",
     "sandboxRequiresV3": "Sandbox requires a V3 base. Please migrate this base to V3 first.",
     "sandboxLimitReached": "This base already has a sandbox. Only one sandbox per base is allowed.",
     "noSchemaChanges": "No schema changes to publish",

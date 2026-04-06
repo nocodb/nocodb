@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import type { TeamV3ResponseType } from 'nocodb-sdk'
 
+interface Props {
+  orgId?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  orgId: undefined,
+})
+
 const { $api, $e } = useNuxtApp()
 
 const router = useRouter()
@@ -11,7 +19,8 @@ const { t } = useI18n()
 
 const { isMobileMode } = useGlobal()
 
-const orgId = computed(() => route.value.params.orgId as string)
+// Use prop if provided (on-prem account page), fallback to route param (cloud org admin)
+const orgId = computed(() => props.orgId || (route.value.params.orgId as string))
 
 const teams = ref<TeamV3ResponseType[]>([])
 

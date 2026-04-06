@@ -1342,7 +1342,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       if (!planMeta || !activeWorkspace.value?.id) return
 
       const { blockTeamsManagement } = useEeConfig()
-      if (blockTeamsManagement.value) return
+      const hasOrg = !!activeWorkspace.value?.fk_org_id
+
+      // Allow loading if team management is available OR workspace belongs to an org
+      // (org teams are always accessible regardless of workspace plan)
+      if (blockTeamsManagement.value && !hasOrg) return
 
       loadTeams({ workspaceId: activeWorkspace.value?.id as string }).catch(() => {
         // ignore

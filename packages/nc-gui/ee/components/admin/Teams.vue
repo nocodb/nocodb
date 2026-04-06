@@ -162,14 +162,18 @@ const createTeam = async () => {
   }
 }
 
-const updateTeamTitle = async (teamId: string, title: string) => {
+const _updateTeamTitle = async (teamId: string, title: string) => {
+  if (!title?.trim()) return
+
   try {
-    await $api.instance.patch(`/api/v3/meta/workspaces/${orgId.value}/teams/${teamId}`, { title })
+    await $api.instance.patch(`/api/v3/meta/workspaces/${orgId.value}/teams/${teamId}`, { title: title.trim() })
     await loadTeams()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+const updateTeamTitle = useDebounceFn(_updateTeamTitle, 1000)
 
 const handleEditTeam = (team: TeamV3ResponseType) => {
   if (!team?.id) return
@@ -714,9 +718,9 @@ onMounted(() => {
             <div class="flex items-center gap-3">
               <GeneralTeamIcon :team="editTeam" class="!w-10 !h-10 flex-none !rounded-lg" />
               <a-input
-                :value="editTeam.title"
+                v-model:value="editTeam.title"
                 class="nc-input-sm nc-input-shadow flex-1"
-                @change="(e: any) => updateTeamTitle(editTeamId!, e.target.value)"
+                @input="() => updateTeamTitle(editTeamId!, editTeam.title)"
               />
             </div>
           </div>

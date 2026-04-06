@@ -59,7 +59,7 @@ export class SharedFormPage extends BasePage {
     expect(await linkRecord.locator(`button:has-text("Link more records")`).isVisible()).toBeFalsy();
 
     // placeholder: Filter query
-    expect(await linkRecord.locator('.nc-excluded-search').isVisible()).toBeTruthy();
+    expect(await linkRecord.locator('.nc-link-record-search-input').isVisible()).toBeTruthy();
 
     {
       const childList = linkRecord.locator(`.ant-card`);

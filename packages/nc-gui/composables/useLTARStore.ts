@@ -416,54 +416,90 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return sanitizedRow
     }
 
+    // Searchable columns for the field selector: PV + visible fields
+    const searchableColumns = computed(() => {
+      const cols: ColumnType[] = []
+      if (relatedTableDisplayValueColumn.value) {
+        cols.push(relatedTableDisplayValueColumn.value)
+      }
+      for (const col of fields.value || []) {
+        if (!isPrimary(col)) {
+          cols.push(col)
+        }
+      }
+      return cols
+    })
+
+    // Selected search field id — default to PV column, 'all' means search all displayed fields
+    const searchField = computed({
+      get: () => _searchField.value || relatedTableDisplayValueColumn.value?.id || 'all',
+      set: (val: string) => { _searchField.value = val },
+    })
+    const _searchField = ref<string>('')
+
+    const selectedSearchField = computed(() => {
+      if (searchField.value === 'all') return null
+      return searchableColumns.value.find((col) => col.id === searchField.value) ?? null
+    })
+
+    const isSearchFieldDateOrDateTime = computed(() => {
+      if (!selectedSearchField.value) {
+        // 'all' mode: use date input only if PV is date
+        return relatedTableDisplayValueColumn.value ? isDateOrDateTimeCol(relatedTableDisplayValueColumn.value) : false
+      }
+      return isDateOrDateTimeCol(selectedSearchField.value)
+    })
+
+    const buildFieldWhereClause = (field: ColumnType, searchQuery: string): string => {
+      let operator = 'like'
+      let query = searchQuery.trim()
+
+      if (!isDateOrDateTimeCol(field)) {
+        query = getValidSearchQueryForColumn(field, query, relatedTableMeta.value, {
+          serializeLinkRecordSearchQuery: true,
+        }) as string
+      }
+
+      if (!isValidValue(query)) return ''
+
+      if (isDateOrDateTimeCol(field)) {
+        operator = 'eq,exactDate'
+      } else if (
+        (field.uidt !== UITypes.Formula || getFormulaColDataType(field) !== FormulaDataTypes.NUMERIC) &&
+        !isNumericCol(field) &&
+        sqlUi.value &&
+        ['text', 'string'].includes(sqlUi.value.getAbstractType(field)) &&
+        field.dt !== 'bigint'
+      ) {
+        operator = 'like'
+        if (!query) return ''
+
+        query = `%${query}%`
+      } else {
+        operator = 'eq'
+        query = !ncIsNaN(query) ? query : ''
+      }
+
+      if (!query) return ''
+
+      return `(${field.title},${operator},${query})`
+    }
+
     const getWhereClause = (searchQuery?: string) => {
       if (!searchQuery) return
 
-      const fieldQuery = [
-        ...(relatedTableDisplayValueColumn.value ? [relatedTableDisplayValueColumn.value] : []),
-        ...(fields.value || []),
-      ]
-        .filter((col) => isSearchableColumn(col))
-        .map((field: ColumnType): string => {
-          let operator = 'like'
-          let query = searchQuery.trim()
+      // Single field search
+      if (selectedSearchField.value) {
+        return buildFieldWhereClause(selectedSearchField.value, searchQuery) || undefined
+      }
 
-          const isDateOrDateTime = isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) && isDateOrDateTimeCol(field)
-
-          if (!isDateOrDateTime) {
-            query = getValidSearchQueryForColumn(field, query, relatedTableMeta.value, {
-              serializeLinkRecordSearchQuery: true,
-            }) as string
-          }
-
-          if (!isValidValue(query)) return ''
-
-          if (isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) && isDateOrDateTimeCol(field)) {
-            operator = 'eq,exactDate'
-          } else if (
-            (field.uidt !== UITypes.Formula || getFormulaColDataType(field) !== FormulaDataTypes.NUMERIC) &&
-            !isNumericCol(field) &&
-            sqlUi.value &&
-            ['text', 'string'].includes(sqlUi.value.getAbstractType(field)) &&
-            field.dt !== 'bigint'
-          ) {
-            operator = 'like'
-            if (!query) return ''
-
-            query = `%${query}%`
-          } else {
-            operator = 'eq'
-            query = !ncIsNaN(query) ? query : ''
-          }
-
-          if (!query) return ''
-
-          return `(${field.title},${operator},${query})`
-        })
+      // All fields search
+      const fieldQuery = searchableColumns.value
+        .map((field) => buildFieldWhereClause(field, searchQuery))
         .filter(Boolean)
         .join('~or')
 
-      return fieldQuery
+      return fieldQuery || undefined
     }
 
     const loadChildrenExcludedList = async (activeState?: any, resetOffset = false) => {
@@ -977,6 +1013,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       resetChildrenListOffsetCount,
       attachmentCol,
       fields,
+      searchableColumns,
+      searchField,
+      selectedSearchField,
+      isSearchFieldDateOrDateTime,
       refreshCurrentRow,
       externalBaseUserRoles,
       showExtraFields,

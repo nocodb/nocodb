@@ -20,7 +20,7 @@ export class LinkRecord extends BasePage {
     //    icon: reload
     expect(await linkRecord.locator(`button:has-text("New record")`).isVisible()).toBeTruthy();
     // placeholder: Filter query
-    expect(await linkRecord.locator('.nc-excluded-search').isVisible()).toBeTruthy();
+    expect(await linkRecord.locator('.nc-link-record-search-input').isVisible()).toBeTruthy();
 
     {
       const childList = linkRecord.getByTestId(`nc-excluded-list-item`);

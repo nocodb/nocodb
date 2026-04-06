@@ -8,9 +8,9 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {})
 
-const { isRtl } = useRtl()
-
 const emits = defineEmits(['update:visible'])
+
+const { isRtl } = useRtl()
 
 const vVisible = useVModel(props, 'visible', emits)
 

@@ -211,9 +211,11 @@ const onCreateCancel = () => {
               <span class="py-3.5 pl-2 text-nc-content-gray-muted font-medium text-3.5 w-3/9 text-start" data-rec="true">{{
                 $t('labels.token')
               }}</span>
-              <span class="py-3.5 pl-5 lg:pl-19 text-nc-content-gray-muted font-medium text-3.5 w-2/9 text-start" data-rec="true">{{
-                $t('labels.actions')
-              }}</span>
+              <span
+                class="py-3.5 pl-5 lg:pl-19 text-nc-content-gray-muted font-medium text-3.5 w-2/9 text-start"
+                data-rec="true"
+                >{{ $t('labels.actions') }}</span
+              >
             </div>
             <div class="nc-scrollbar-md !overflow-y-auto flex flex-col h-[calc(100%-52px)]">
               <div
@@ -225,9 +227,9 @@ const onCreateCancel = () => {
                 <span class="text-nc-content-gray-extreme font-bold text-3.5 text-start w-2/9">
                   <div class="flex items-center gap-2">
                     <NcTooltip class="truncate" show-on-truncate-only>
-                    <template #title>
-                      {{ el.description }}
-                    </template>
+                      <template #title>
+                        {{ el.description }}
+                      </template>
                       {{ el.description }}
                     </NcTooltip>
                     <NcTooltip v-if="el.fk_sso_client_id" placement="top">
@@ -241,7 +243,7 @@ const onCreateCancel = () => {
                     <template #title>
                       {{ el.created_by }}
                     </template>
-                      {{ el.created_by }}
+                    {{ el.created_by }}
                   </NcTooltip>
                 </span>
                 <span class="pl-2 text-nc-content-gray-muted font-medium text-3.5 text-start w-3/9 truncate">
@@ -295,12 +297,7 @@ const onCreateCancel = () => {
           <div class="text-sm text-nc-content-gray-subtle">
             {{ $t('placeholder.noTokenCreatedLabel') }}
           </div>
-          <NcButton
-            class="!rounded-lg !py-3 !h-10"
-            data-testid="nc-token-create"
-            type="primary"
-            @click="openCreateForm"
-          >
+          <NcButton class="!rounded-lg !py-3 !h-10" data-testid="nc-token-create" type="primary" @click="openCreateForm">
             <span class="hidden md:block" data-rec="true">
               {{ $t('title.createNewToken') }}
             </span>

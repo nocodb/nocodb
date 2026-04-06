@@ -2851,7 +2851,11 @@ onKeyStroke('ArrowDown', onDown)
         :selected-cell-count="selectedRange.cellCount"
       />
     </div>
-    <div v-if="headerOnly !== true && paginationDataRef && !isGroupBy" class="absolute bottom-12 left-2 rtl:(right-2 left-auto)" @click.stop>
+    <div
+      v-if="headerOnly !== true && paginationDataRef && !isGroupBy"
+      class="absolute bottom-12 left-2 rtl:(right-2 left-auto)"
+      @click.stop
+    >
       <NcDropdown v-if="isAddingEmptyRowAllowed && !showSkeleton">
         <div class="flex shadow-nc-sm rounded-lg">
           <NcButton

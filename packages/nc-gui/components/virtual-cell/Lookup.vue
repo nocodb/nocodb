@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { type ColumnType, type LinkToAnotherRecordType, type LookupType, isMMOrMMLike } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isVirtualCol, FormulaDataTypes } from 'nocodb-sdk'
+import { FormulaDataTypes, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 
 const { getMeta, getMetaByKey } = useMetas()
 

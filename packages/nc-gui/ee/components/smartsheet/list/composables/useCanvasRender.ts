@@ -492,6 +492,22 @@ export function useCanvasRender({
       ctx.fill()
     }
 
+    // Skeleton / shimmer row — draw placeholders instead of real cell data.
+    // Row background + border are already drawn above. Skip all interactive elements.
+    if (row.__nc_loading) {
+      const cols = getColumnsForDepth(depth)
+      let x = indent - scrollLeft.value
+
+      for (let ci = 0; ci < cols.length; ci++) {
+        const col = cols[ci]
+        const w = parseCellWidth(col.width)
+
+        drawShimmerEffect(ctx, x, screenY, w, rh, rowIndex)
+        x += w
+      }
+      return
+    }
+
     // Track warning row — rendered after the loop so label isn't painted over
     if (row.__nc_sort_moved) {
       warningRow = { screenY, rh, text: 'Row moved' }
@@ -678,6 +694,33 @@ export function useCanvasRender({
         })
       }
     }
+  }
+
+  /**
+   * Draw a shimmer/skeleton placeholder for a loading cell.
+   * Renders a gray-200 rounded rectangle with alternating width for a natural look.
+   */
+  function drawShimmerEffect(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    colWidth: number,
+    rowH: number,
+    rowIdx: number,
+  ) {
+    ctx.save()
+
+    const shimmerWidth = Math.min(colWidth - 24, rowIdx % 2 === 0 ? 124 : 144)
+    const shimmerHeight = 16
+    const shimmerX = x + 12
+    const shimmerY = y + (rowH - shimmerHeight) / 2
+
+    ctx.beginPath()
+    ctx.roundRect(shimmerX, shimmerY, shimmerWidth, shimmerHeight, 10)
+    ctx.fillStyle = getColor(themeV4Colors.gray['200'])
+    ctx.fill()
+
+    ctx.restore()
   }
 
   function renderHeaderPill(ctx: CanvasRenderingContext2D, pillX: number, headerY: number, headerH: number) {

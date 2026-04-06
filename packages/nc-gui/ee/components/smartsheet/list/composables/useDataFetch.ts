@@ -53,14 +53,19 @@ export function useListDataFetch({
 }) {
   const previousRowSlice = ref({ start: 0, end: 0 })
 
+  /** Generation counter — incremented on each resetAndReload to discard stale responses. */
+  let reloadGeneration = 0
+
   // -------------------------------------------------------------------
   // Fetch count
   // -------------------------------------------------------------------
-  async function fetchCount() {
+  async function fetchCount(generation?: number) {
     if (!viewId.value) return
 
     try {
       const result = await loadCount({ collapsed: collapsedJson.value })
+      // Discard if a newer reload has started
+      if (generation !== undefined && generation !== reloadGeneration) return
       totalRows.value = result.totalRows
       levelCounts.value = result.counts
     } catch (e) {
@@ -71,7 +76,7 @@ export function useListDataFetch({
   // -------------------------------------------------------------------
   // Fetch a single chunk
   // -------------------------------------------------------------------
-  async function fetchChunk(chunkId: number, isInitialLoad = false) {
+  async function fetchChunk(chunkId: number, isInitialLoad = false, generation?: number) {
     if (chunkStates.value[chunkId]) return
 
     const offset = chunkId * CHUNK_SIZE
@@ -90,6 +95,9 @@ export function useListDataFetch({
         limit,
         collapsed: collapsedJson.value,
       })
+
+      // Discard if a newer reload has started
+      if (generation !== undefined && generation !== reloadGeneration) return
 
       rows.forEach((row, idx) => {
         cachedRows.value.set(offset + idx, row)
@@ -257,13 +265,29 @@ export function useListDataFetch({
   // updateVisibleRows and overwritten by new fetches, avoiding flicker.
   // -------------------------------------------------------------------
   async function resetAndReload() {
+    const gen = ++reloadGeneration
     chunkStates.value = []
 
-    await fetchCount()
+    await fetchCount(gen)
+
+    // Stale — a newer reload was triggered while we were waiting
+    if (gen !== reloadGeneration) return
+
+    // Clear stale skeleton or old rows beyond the new total
+    for (const [idx] of cachedRows.value) {
+      if (idx >= totalRows.value) {
+        cachedRows.value.delete(idx)
+      }
+    }
 
     if (totalRows.value > 0) {
-      await fetchChunk(0, true)
+      await fetchChunk(0, true, gen)
+    } else {
+      cachedRows.value.clear()
     }
+
+    // Stale check again after fetch
+    if (gen !== reloadGeneration) return
 
     nextTick(triggerRefreshCanvas)
   }

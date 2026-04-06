@@ -4,6 +4,7 @@ import {
   ClientType,
   isAIPromptCol,
   isLinksOrLTAR,
+  isMMOrMMLike,
   isVirtualCol,
   ModelTypes,
   RelationTypes,
@@ -387,8 +388,8 @@ export class MetaDiffsService {
         continue;
       }
 
-      // many to many relation
-      if (colOpt.type === RelationTypes.MANY_TO_MANY) {
+      // many to many relation (or any v2 junction-table-based relation)
+      if (isMMOrMMLike(relationCol)) {
         const m2mModel = await colOpt.getMMModel(context);
 
         if (!m2mModel) {

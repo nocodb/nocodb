@@ -252,11 +252,12 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
+      scope?: 'workspace' | 'org';
     },
   ): Promise<{ list: TeamV3ResponseType[] }> {
-    const { scope, orgId, workspaceId } = await this.resolveScope(
-      param.workspaceOrOrgId,
-    );
+    const scope = param.scope || (await this.resolveScope(param.workspaceOrOrgId)).scope;
+    const workspaceId = scope === 'workspace' ? param.workspaceOrOrgId : undefined;
+    const orgId = scope === 'org' ? param.workspaceOrOrgId : undefined;
 
     // For org scope, skip feature check entirely
     // For workspace scope, check if team management is available
@@ -386,6 +387,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
+      scope?: \'workspace\' | \'org\';
       teamId: string;
     },
   ): Promise<TeamDetailV3Type> {
@@ -525,6 +527,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
+      scope?: \'workspace\' | \'org\';
       team: TeamCreateV3ReqType;
       req: NcRequest;
     },
@@ -537,9 +540,9 @@ export class TeamsV3Service {
       true,
     );
 
-    const { scope, orgId, workspaceId } = await this.resolveScope(
-      param.workspaceOrOrgId,
-    );
+    const scope = param.scope || (await this.resolveScope(param.workspaceOrOrgId)).scope;
+    const workspaceId = scope === 'workspace' ? param.workspaceOrOrgId : undefined;
+    const orgId = scope === 'org' ? param.workspaceOrOrgId : undefined;
 
     // Org teams: only org admin can create
     if (scope === 'org') {
@@ -799,6 +802,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
+      scope?: \'workspace\' | \'org\';
       teamId: string;
       team: TeamUpdateV3ReqType;
       req: NcRequest;
@@ -944,6 +948,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
+      scope?: \'workspace\' | \'org\';
       teamId: string;
       force?: boolean;
       req: NcRequest;
@@ -1073,6 +1078,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
+      scope?: \'workspace\' | \'org\';
       teamId: string;
       members: TeamMembersAddV3ReqType[];
       req: NcRequest;
@@ -1243,6 +1249,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
+      scope?: \'workspace\' | \'org\';
       teamId: string;
       members: TeamMembersRemoveV3ReqType[];
       req: NcRequest;
@@ -1394,6 +1401,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
+      scope?: \'workspace\' | \'org\';
       teamId: string;
       members: TeamMembersUpdateV3ReqType[];
       req: NcRequest;
@@ -1642,6 +1650,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
+      scope?: \'workspace\' | \'org\';
       teamId: string;
       body: TeamMoveV3ReqType;
       req: NcRequest;

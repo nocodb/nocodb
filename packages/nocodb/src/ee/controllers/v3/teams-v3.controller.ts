@@ -48,6 +48,7 @@ export class TeamsV3Controller {
   ): Promise<{ list: TeamV3ResponseType[] }> {
     return await this.teamsV3Service.teamList(context, {
       workspaceOrOrgId,
+      scope: 'workspace',
     });
   }
 
@@ -59,6 +60,7 @@ export class TeamsV3Controller {
   ): Promise<{ list: TeamV3ResponseType[] }> {
     return await this.teamsV3Service.teamList(context, {
       workspaceOrOrgId,
+      scope: 'org',
     });
   }
 
@@ -72,6 +74,7 @@ export class TeamsV3Controller {
   ): Promise<{ list: TeamTreeNodeV3Type[] }> {
     return await this.teamsV3Service.teamTree(context, {
       workspaceOrOrgId,
+      scope: 'workspace',
     });
   }
 
@@ -83,6 +86,7 @@ export class TeamsV3Controller {
   ): Promise<{ list: TeamTreeNodeV3Type[] }> {
     return await this.teamsV3Service.teamTree(context, {
       workspaceOrOrgId,
+      scope: 'org',
     });
   }
 
@@ -97,6 +101,7 @@ export class TeamsV3Controller {
   ): Promise<TeamDetailV3Type> {
     return await this.teamsV3Service.teamGet(context, {
       workspaceOrOrgId,
+      scope: 'workspace',
       teamId,
     });
   }
@@ -110,6 +115,7 @@ export class TeamsV3Controller {
   ): Promise<TeamDetailV3Type> {
     return await this.teamsV3Service.teamGet(context, {
       workspaceOrOrgId,
+      scope: 'org',
       teamId,
     });
   }
@@ -127,6 +133,7 @@ export class TeamsV3Controller {
   ): Promise<TeamV3ResponseType> {
     return await this.teamsV3Service.teamCreate(context, {
       workspaceOrOrgId,
+      scope: 'workspace',
       team: body,
       req,
     });
@@ -143,6 +150,7 @@ export class TeamsV3Controller {
   ): Promise<TeamV3ResponseType> {
     return await this.teamsV3Service.teamCreate(context, {
       workspaceOrOrgId,
+      scope: 'org',
       team: body,
       req,
     });
@@ -161,6 +169,7 @@ export class TeamsV3Controller {
   ): Promise<TeamV3ResponseType> {
     return await this.teamsV3Service.teamUpdate(context, {
       workspaceOrOrgId,
+      scope: 'workspace',
       teamId,
       team: body,
       req,
@@ -178,6 +187,7 @@ export class TeamsV3Controller {
   ): Promise<TeamV3ResponseType> {
     return await this.teamsV3Service.teamUpdate(context, {
       workspaceOrOrgId,
+      scope: 'org',
       teamId,
       team: body,
       req,
@@ -197,6 +207,7 @@ export class TeamsV3Controller {
   ): Promise<TeamV3ResponseType> {
     return await this.teamsV3Service.teamMove(context, {
       workspaceOrOrgId,
+      scope: 'workspace',
       teamId,
       body,
       req,
@@ -214,6 +225,7 @@ export class TeamsV3Controller {
   ): Promise<TeamV3ResponseType> {
     return await this.teamsV3Service.teamMove(context, {
       workspaceOrOrgId,
+      scope: 'org',
       teamId,
       body,
       req,
@@ -233,6 +245,7 @@ export class TeamsV3Controller {
   ) {
     return await this.teamsV3Service.teamDelete(context, {
       workspaceOrOrgId,
+      scope: 'workspace',
       teamId,
       force: force === 'true',
       req,
@@ -250,6 +263,7 @@ export class TeamsV3Controller {
   ) {
     return await this.teamsV3Service.teamDelete(context, {
       workspaceOrOrgId,
+      scope: 'org',
       teamId,
       force: force === 'true',
       req,
@@ -270,6 +284,7 @@ export class TeamsV3Controller {
   ) {
     return await this.teamsV3Service.teamMembersAdd(context, {
       workspaceOrOrgId,
+      scope: 'workspace',
       teamId,
       members: body,
       req,
@@ -288,6 +303,7 @@ export class TeamsV3Controller {
   ) {
     return await this.teamsV3Service.teamMembersAdd(context, {
       workspaceOrOrgId,
+      scope: 'org',
       teamId,
       members: body,
       req,
@@ -307,6 +323,7 @@ export class TeamsV3Controller {
   ) {
     await this.teamsV3Service.teamMembersRemove(context, {
       workspaceOrOrgId,
+      scope: 'workspace',
       teamId,
       members: body,
       req,
@@ -328,6 +345,7 @@ export class TeamsV3Controller {
   ) {
     await this.teamsV3Service.teamMembersRemove(context, {
       workspaceOrOrgId,
+      scope: 'org',
       teamId,
       members: body,
       req,
@@ -351,6 +369,7 @@ export class TeamsV3Controller {
   ) {
     return await this.teamsV3Service.teamMembersUpdate(context, {
       workspaceOrOrgId,
+      scope: 'workspace',
       teamId,
       members: body,
       req,
@@ -368,6 +387,7 @@ export class TeamsV3Controller {
   ) {
     return await this.teamsV3Service.teamMembersUpdate(context, {
       workspaceOrOrgId,
+      scope: 'org',
       teamId,
       members: body,
       req,

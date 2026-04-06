@@ -253,14 +253,9 @@ export class TeamsV3Service {
         ? await Team.list(context, { fk_workspace_id: workspaceId })
         : [];
 
-      // Always fetch org teams if workspace belongs to an org.
-      // Query fk_org_id directly via knex — Workspace.get() cache may be stale
-      // or missing fk_org_id due to encryption errors on eager-loaded relations.
-      const wsRow = await Noco.ncMeta.knexConnection(MetaTable.WORKSPACE)
-        .select('fk_org_id')
-        .where('id', workspaceId)
-        .first();
-      const wsOrgId = wsRow?.fk_org_id;
+      // Always fetch org teams if workspace belongs to an org
+      const workspace = await Workspace.get(workspaceId);
+      const wsOrgId = workspace?.fk_org_id;
 
       if (wsOrgId) {
         // Use a context with org_id (not workspace_id) for the org teams query

@@ -22,7 +22,7 @@ const {
   testConnection,
 } = useIntegrationStore()
 
-const { makePortable } = useBaseVariables()
+const { makeInheritable } = useBaseVariables()
 
 const { $api } = useNuxtApp()
 
@@ -36,11 +36,11 @@ const testConnectionResult = ref<{ success: boolean; message?: string } | null>(
 
 const testConnectionLoading = ref(false)
 
-// Portable toggle state — only relevant when creating from base integrations page
-const isPortable = ref(false)
-const portableKey = ref('')
+// Inheritable toggle state — only relevant when creating from base integrations page
+const isInheritable = ref(false)
+const inheritableKey = ref('')
 
-const showPortableOption = computed(
+const showInheritableOption = computed(
   () => isEeUI && !isEditMode.value && isFromIntegrationPage.value && props.integrationType !== IntegrationCategoryType.DATABASE,
 )
 
@@ -62,8 +62,8 @@ const { form, formState, isLoading, initialState, submit } = useProvideFormBuild
       if (pageMode.value === IntegrationsPageMode.ADD) {
         const response = await saveIntegration(formState.value)
 
-        if (isPortable.value && portableKey.value && response?.id) {
-          await makePortable(response.id, portableKey.value)
+        if (isInheritable.value && inheritableKey.value && response?.id) {
+          await makeInheritable(response.id, inheritableKey.value)
         }
       } else {
         await updateIntegration({
@@ -95,21 +95,21 @@ const { form, formState, isLoading, initialState, submit } = useProvideFormBuild
   },
 })
 
-// Auto-suggest portable key from the integration title
+// Auto-suggest inheritable key from the integration title
 watch(
   () => formState.value.title,
   (title) => {
-    if (!isPortable.value || !title) return
-    portableKey.value = title
+    if (!isInheritable.value || !title) return
+    inheritableKey.value = title
       .toUpperCase()
       .replace(/[^A-Z0-9]+/g, '_')
       .replace(/^_|_$/g, '')
   },
 )
 
-watch(isPortable, (val) => {
+watch(isInheritable, (val) => {
   if (val && formState.value.title) {
-    portableKey.value = formState.value.title
+    inheritableKey.value = formState.value.title
       .toUpperCase()
       .replace(/[^A-Z0-9]+/g, '_')
       .replace(/^_|_$/g, '')
@@ -184,7 +184,9 @@ const onTestConnection = async () => {
         size="small"
         type="primary"
         :disabled="
-          isLoading || (!testConnectionResult?.success && activeIntegrationItem.type === 'auth') || (isPortable && !portableKey)
+          isLoading ||
+          (!testConnectionResult?.success && activeIntegrationItem.type === 'auth') ||
+          (isInheritable && !inheritableKey)
         "
         :loading="isLoading"
         class="nc-extdb-btn-submit"
@@ -198,28 +200,28 @@ const onTestConnection = async () => {
         <NcFormBuilder class="px-2" />
         <WorkspaceIntegrationsSyncPanel v-if="activeIntegrationItem.type === 'sync'" class="px-2" />
 
-        <!-- Portable toggle — shown only when creating from base integrations page -->
-        <div v-if="showPortableOption" class="px-2 mt-4">
+        <!-- Inheritable toggle — shown only when creating from base integrations page -->
+        <div v-if="showInheritableOption" class="px-2 mt-4">
           <NcDivider />
           <div class="flex items-center justify-between mt-4">
             <div class="flex items-center gap-2">
-              <span class="text-sm font-semibold text-nc-content-gray">{{ $t('labels.makePortable') }}</span>
+              <span class="text-sm font-semibold text-nc-content-gray">{{ $t('labels.makeInheritable') }}</span>
               <NcTooltip placement="top">
-                <template #title>{{ $t('msg.info.portableIntegrationHint') }}</template>
+                <template #title>{{ $t('msg.info.inheritableIntegrationHint') }}</template>
                 <GeneralIcon icon="info" class="h-4 w-4 text-nc-content-gray-muted" />
               </NcTooltip>
             </div>
-            <NcSwitch v-model:checked="isPortable" size="small" data-testid="nc-integration-portable-toggle" />
+            <NcSwitch v-model:checked="isInheritable" size="small" data-testid="nc-integration-inheritable-toggle" />
           </div>
-          <div v-if="isPortable" class="flex flex-col gap-1 mt-3">
+          <div v-if="isInheritable" class="flex flex-col gap-1 mt-3">
             <label class="text-bodySm text-nc-content-gray-subtle2 font-medium">
               {{ $t('labels.variableKey') }} <span class="text-nc-content-red-dark">*</span>
             </label>
             <a-input
-              v-model:value="portableKey"
+              v-model:value="inheritableKey"
               class="!rounded-lg nc-input-sm nc-input-shadow"
               placeholder="e.g., OPENAI_KEY"
-              data-testid="nc-integration-portable-key-input"
+              data-testid="nc-integration-inheritable-key-input"
             />
           </div>
         </div>

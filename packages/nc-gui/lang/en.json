@@ -2717,6 +2717,7 @@
   },
   "tooltip": {
     "sandboxRequiresV3": "Sandbox requires a V3 base. Please migrate this base to V3 first.",
+    "noSchemaChanges": "No schema changes to publish",
     "scopeReadOnly": "View records, tables, fields, views, and comments. No modifications allowed.",
     "scopeReadWrite": "Create, read, update, and delete records and comments. Other resources are read-only.",
     "scopeFullAccess": "Full read and write access to all resources including tables, fields, views, webhooks, and users.",

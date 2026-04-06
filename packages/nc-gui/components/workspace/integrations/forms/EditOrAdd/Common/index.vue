@@ -26,8 +26,6 @@ const { makeInheritable } = useBaseVariables()
 
 const { $api } = useNuxtApp()
 
-const { t } = useI18n()
-
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const isEditMode = computed(() => pageMode.value === IntegrationsPageMode.EDIT)

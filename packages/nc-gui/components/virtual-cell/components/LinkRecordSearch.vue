@@ -77,7 +77,12 @@ defineExpose({
 
 <template>
   <div class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center rounded-md">
-    <div class="flex items-center gap-1 flex-none">
+    <div
+      class="flex items-center gap-1 flex-none"
+      :class="{
+        'pr-1': !showFieldSelector,
+      }"
+    >
       <GeneralIcon icon="search" class="h-3.5 w-3.5 text-nc-content-gray-muted flex-none" />
     </div>
     <NcDropdown

@@ -128,15 +128,15 @@ export const verifyDefaultOrg = async (ncMeta = Noco.ncMeta) => {
     for (const wu of wsUsers) {
       if (wu.fk_user_id === superUser.id) continue;
       if (existingSet.has(wu.fk_user_id)) continue;
-      try {
-        await ncMeta.knexConnection(MetaTable.ORG_USERS).insert({
-          fk_org_id: NC_DEFAULT_ORG_ID,
-          fk_user_id: wu.fk_user_id,
-          roles: EnterpriseOrgUserRoles.VIEWER,
-        });
-      } catch {
-        // Already exists — skip
-      }
+      await ncMeta.knexConnection(MetaTable.ORG_USERS).insert({
+        fk_org_id: NC_DEFAULT_ORG_ID,
+        fk_user_id: wu.fk_user_id,
+        roles: EnterpriseOrgUserRoles.VIEWER,
+      }).catch((e: any) => {
+        // Ignore duplicate key (PG: 23505, MySQL: ER_DUP_ENTRY, SQLite: SQLITE_CONSTRAINT)
+        if (e?.code === '23505' || e?.code === 'ER_DUP_ENTRY' || e?.code === 'SQLITE_CONSTRAINT') return;
+        throw e;
+      });
     }
   }
 
@@ -180,23 +180,25 @@ export const ensureUserInDefaultOrg = async (
   }
   if (!Noco.ncDefaultOrgId) return;
 
-  try {
-    // Check if already exists
-    const existing = await ncMeta
-      .knexConnection(MetaTable.ORG_USERS)
-      .where('fk_org_id', Noco.ncDefaultOrgId)
-      .where('fk_user_id', userId)
-      .first();
+  // Check if already exists
+  const existing = await ncMeta
+    .knexConnection(MetaTable.ORG_USERS)
+    .where('fk_org_id', Noco.ncDefaultOrgId)
+    .where('fk_user_id', userId)
+    .first();
 
-    if (existing) return;
+  if (existing) return;
 
-    await ncMeta.knexConnection(MetaTable.ORG_USERS).insert({
-      fk_org_id: Noco.ncDefaultOrgId,
-      fk_user_id: userId,
-      roles: role,
-    });
-  } catch {
-    // Already in org — ignore duplicate
-    logger.debug(`User ${userId} already in default org`);
-  }
+  await ncMeta.knexConnection(MetaTable.ORG_USERS).insert({
+    fk_org_id: Noco.ncDefaultOrgId,
+    fk_user_id: userId,
+    roles: role,
+  }).catch((e: any) => {
+    // Ignore duplicate key from race condition
+    if (e?.code === '23505' || e?.code === 'ER_DUP_ENTRY' || e?.code === 'SQLITE_CONSTRAINT') {
+      logger.debug(`User ${userId} already in default org`);
+      return;
+    }
+    throw e;
+  });
 };

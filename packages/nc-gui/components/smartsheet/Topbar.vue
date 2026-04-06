@@ -102,7 +102,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
           v-e="['c:extension-toggle']"
           type="secondary"
           size="small"
-          class="nc-topbar-extension-btn"
+          class="nc-topbar-extension-btn !font-normal"
           :class="{ '!bg-nc-bg-brand !hover:bg-nc-brand-100/70 !text-nc-content-brand': isPanelExpanded }"
           data-testid="nc-topbar-extension-btn"
           @click="toggleExtensionPanel"

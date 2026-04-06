@@ -328,7 +328,7 @@ export default function () {
             },
             {
               user_id: member2User.id,
-              team_role: TeamUserRoles.OWNER,
+              team_role: TeamUserRoles.MEMBER,
             },
           ])
           .expect(200);
@@ -382,23 +382,38 @@ export default function () {
           .expect(400);
       });
 
-      it('promotes member to owner', async () => {
+      it('org admin can manage team — all members are equal (no team-owner concept)', async () => {
+        // Add both members as regular members (not owners)
         await addMember(teamId, memberUser.id);
+        await addMember(teamId, member2User.id);
 
-        const res = await request(context.app)
-          .patch(
+        const detail = await getTeam(teamId);
+        // Only the creator is OWNER, both added members are MEMBER
+        const members = detail.members.filter(
+          (m: any) => m.team_role === TeamUserRoles.MEMBER,
+        );
+        expect(members).to.have.length(2);
+
+        // Org admin (context.user) can remove any member regardless of team role
+        await request(context.app)
+          .delete(
             `/api/v3/meta/orgs/${orgId}/teams/${teamId}/members`,
           )
           .set('xc-auth', context.token)
-          .send([
-            {
-              user_id: memberUser.id,
-              team_role: TeamUserRoles.OWNER,
-            },
-          ])
+          .send([{ user_id: memberUser.id }])
           .expect(200);
 
-        expect(res.body[0].team_role).to.equal(TeamUserRoles.OWNER);
+        // Org admin can update team without being team owner
+        await request(context.app)
+          .patch(`/api/v3/meta/orgs/${orgId}/teams/${teamId}`)
+          .set('xc-auth', context.token)
+          .send({ title: 'Managed By Org Admin' })
+          .expect(200);
+
+        const updated = await listTeams();
+        expect(updated.find((t: any) => t.id === teamId)?.title).to.equal(
+          'Managed By Org Admin',
+        );
       });
     });
 
@@ -452,6 +467,36 @@ export default function () {
           (t: any) => t.scope === 'org',
         );
         expect(orgTeams).to.have.length(0);
+      });
+
+      it('org team cannot be set as parent of workspace team', async () => {
+        const orgTeamId = await createTeam('Org Parent');
+
+        // Enable team management for workspace
+        const { overrideFeature } = await import(
+          '../../../utils/plan.utils'
+        );
+        const mock = await overrideFeature({
+          workspace_id: context.fk_workspace_id,
+          feature: 'feature_team_management',
+          allowed: true,
+        });
+
+        // Try to create a workspace team with org team as parent
+        const res = await request(context.app)
+          .post(
+            `/api/v3/meta/workspaces/${context.fk_workspace_id}/teams`,
+          )
+          .set('xc-auth', context.token)
+          .send({
+            title: 'WS Child of Org',
+            parent_team_id: orgTeamId,
+          });
+
+        // Should fail — cross-scope parent not allowed (400/422 for validation, 403 for ACL)
+        expect(res.status).to.be.oneOf([400, 403, 422]);
+
+        await mock?.restore?.();
       });
     });
   });

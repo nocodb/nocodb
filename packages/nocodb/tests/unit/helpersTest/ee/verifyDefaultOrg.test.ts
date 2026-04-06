@@ -12,8 +12,8 @@ import {
 
 export function verifyDefaultOrgTests() {
   describe('verifyDefaultOrg — constants', () => {
-    it('NC_DEFAULT_ORG_ID should be "nc"', () => {
-      expect(NC_DEFAULT_ORG_ID).to.equal('nc');
+    it('NC_DEFAULT_ORG_ID should be "org_default"', () => {
+      expect(NC_DEFAULT_ORG_ID).to.equal('org_default');
     });
 
     it('NC_STORE_DEFAULT_ORG_ID_KEY should be "NC_DEFAULT_ORG_ID"', () => {

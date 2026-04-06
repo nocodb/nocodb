@@ -17,7 +17,7 @@ test.describe('Default Organization', () => {
 
     if (appInfo.isOnPrem && appInfo.ee) {
       expect(appInfo.defaultOrgId).toBeTruthy();
-      expect(appInfo.defaultOrgId).toBe('nc');
+      expect(appInfo.defaultOrgId).toBe('org_default');
     } else if (appInfo.isOnPrem && !appInfo.ee) {
       expect(appInfo.defaultOrgId).toBeFalsy();
     }

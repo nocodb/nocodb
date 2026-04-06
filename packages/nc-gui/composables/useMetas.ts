@@ -165,6 +165,16 @@ export const useMetas = createSharedComposable(() => {
     deletedTableIds.clear()
   }
 
+  /** Clear cached meta for a single base and reset deleted-table tracking. */
+  const clearBaseMeta = (baseId: string) => {
+    deletedTableIds.clear()
+    for (const key of Object.keys(metas.value)) {
+      if (key.startsWith(`${baseId}:`)) {
+        delete metas.value[key]
+      }
+    }
+  }
+
   const removeMeta = (baseId: string, idOrTitle: string, deleted = false) => {
     const metaKey = getMetaKey(baseId, idOrTitle)
     const meta = metas.value[metaKey]
@@ -215,6 +225,7 @@ export const useMetas = createSharedComposable(() => {
   return {
     getMeta,
     clearAllMeta,
+    clearBaseMeta,
     metas,
     metasWithIdAsKey,
     removeMeta,

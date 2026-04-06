@@ -138,10 +138,10 @@ defineExpose({
         value: query,
       }"
       @update-filter-value="query = $event"
-      @click.stop
+      @click="isDropdownOpen = false"
     />
     <!-- Text search input -->
-    <div v-if="!isSearchFieldDateOrDateTime" class="flex-1 flex relative">
+    <div v-if="!isSearchFieldDateOrDateTime" class="flex-1 flex relative" @click="isDropdownOpen = false">
       <a-input
         ref="filterQueryRef"
         v-model:value="query"

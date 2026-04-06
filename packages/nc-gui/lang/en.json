@@ -1535,6 +1535,8 @@
     "variableSensitive": "Sensitive",
     "configureVariables": "Configure Variables",
     "fixedByMaster": "Fixed by master — cannot be changed",
+    "fixedVariableReadonly": "This is a fixed variable set by the master base. Its value cannot be changed in the sandbox.",
+    "deleteVariableConfirmation": "This variable will be permanently deleted. This action cannot be undone.",
     "usingDefault": "Using default",
     "revertToDefault": "Revert to default",
     "variablesSyncedFromMaster": "Variables inherited from master. Changes here won't affect the master base.",

@@ -48,6 +48,7 @@ const parentTeamOptions = computed(() => {
     if (t.id === team.value!.id) return false
     if (descendantIds.has(t.id)) return false
     if ((t.depth ?? 0) >= 3) return false
+    if (t.scope === 'org') return false // Org teams cannot be parents of workspace teams
     return true
   })
 

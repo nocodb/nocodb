@@ -58,17 +58,17 @@ const permissionScopes = {
     'paymentSeatCount',
     'manageSubscription',
 
-    // Teams (workspace-scope permissions accessible via extendedScope: 'cloud-org')
-    'workspace_teamList',
-    'workspace_teamTree',
-    'workspace_teamCreate',
-    'workspace_teamGet',
-    'workspace_teamUpdate',
-    'workspace_teamDelete',
-    'workspace_teamMove',
-    'workspace_teamMembersAdd',
-    'workspace_teamMembersRemove',
-    'workspace_teamMembersUpdate',
+    // Org-level team management
+    'orgTeamList',
+    'orgTeamTree',
+    'orgTeamCreate',
+    'orgTeamGet',
+    'orgTeamUpdate',
+    'orgTeamDelete',
+    'orgTeamMove',
+    'orgTeamMembersAdd',
+    'orgTeamMembersRemove',
+    'orgTeamMembersUpdate',
 
     // etc
     'fetchViaUrl',
@@ -651,17 +651,17 @@ const rolePermissions:
       manageSubscription: true,
       paymentSeatCount: true,
 
-      // Org-level team management (workspace-scope permissions via extendedScope)
-      workspace_teamList: true,
-      workspace_teamTree: true,
-      workspace_teamCreate: true,
-      workspace_teamGet: true,
-      workspace_teamUpdate: true,
-      workspace_teamDelete: true,
-      workspace_teamMembersAdd: true,
-      workspace_teamMembersRemove: true,
-      workspace_teamMembersUpdate: true,
-      workspace_teamMove: true,
+      // Org-level team management
+      orgTeamList: true,
+      orgTeamTree: true,
+      orgTeamCreate: true,
+      orgTeamGet: true,
+      orgTeamUpdate: true,
+      orgTeamDelete: true,
+      orgTeamMembersAdd: true,
+      orgTeamMembersRemove: true,
+      orgTeamMembersUpdate: true,
+      orgTeamMove: true,
     },
   },
   [CloudOrgUserRoles.CREATOR]: {
@@ -1316,6 +1316,18 @@ const permissionDescriptions: Record<string, string> = {
   teamMembersAdd: 'add members to a team',
   teamMembersRemove: 'remove members from a team',
   teamMembersUpdate: 'update member roles in a team',
+
+  // Org-level team permissions
+  orgTeamList: 'view list of teams in the organization',
+  orgTeamTree: 'view team hierarchy tree in the organization',
+  orgTeamCreate: 'create a new team in the organization',
+  orgTeamGet: 'view org team details',
+  orgTeamUpdate: 'update org team details',
+  orgTeamDelete: 'delete a team from the organization',
+  orgTeamMove: 'move an org team to a different parent',
+  orgTeamMembersAdd: 'add members to an org team',
+  orgTeamMembersRemove: 'remove members from an org team',
+  orgTeamMembersUpdate: 'update member roles in an org team',
 
   // SCIM Config permissions
   scimConfigGet: 'view SCIM configuration',

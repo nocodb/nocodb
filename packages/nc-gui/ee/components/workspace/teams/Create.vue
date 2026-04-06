@@ -54,7 +54,8 @@ const formState = reactive<{
  * by title. Teams at depth >= 3 are excluded (cannot become a parent).
  */
 const parentTeamOptions = computed(() => {
-  const eligible = (teams.value || []).filter((t: any) => (t.depth ?? 0) < 3)
+  // Only workspace-scoped teams can be parents (exclude org teams)
+  const eligible = (teams.value || []).filter((t: any) => (t.depth ?? 0) < 3 && t.scope !== 'org')
 
   // Build parentId → children map
   const childrenMap = new Map<string | null, typeof eligible>()

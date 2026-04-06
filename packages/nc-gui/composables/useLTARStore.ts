@@ -405,51 +405,39 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     }
 
     const getWhereClause = (searchQuery?: string) => {
-      if (!searchQuery) return
+      if (!searchQuery || !relatedTableDisplayValueColumn.value) return
 
-      const fieldQuery = [
-        ...(relatedTableDisplayValueColumn.value ? [relatedTableDisplayValueColumn.value] : []),
-        ...(fields.value || []),
-      ]
-        .filter((col) => isSearchableColumn(col))
-        .map((field: ColumnType): string => {
-          let operator = 'like'
-          let query = searchQuery.trim()
+      const field = relatedTableDisplayValueColumn.value
+      let operator = 'like'
+      let query = searchQuery.trim()
 
-          const isDateOrDateTime = isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) && isDateOrDateTimeCol(field)
+      if (isDateOrDateTimeCol(field)) {
+        operator = 'eq,exactDate'
+      } else {
+        query = getValidSearchQueryForColumn(field, query, relatedTableMeta.value) as string
 
-          if (!isDateOrDateTime) {
-            query = getValidSearchQueryForColumn(field, query, relatedTableMeta.value) as string
-          }
+        if (!isValidValue(query)) return
 
-          if (!isValidValue(query)) return ''
+        if (
+          (field.uidt !== UITypes.Formula || getFormulaColDataType(field) !== FormulaDataTypes.NUMERIC) &&
+          !isNumericCol(field) &&
+          sqlUi.value &&
+          ['text', 'string'].includes(sqlUi.value.getAbstractType(field)) &&
+          field.dt !== 'bigint'
+        ) {
+          operator = 'like'
+          if (!query) return
 
-          if (isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) && isDateOrDateTimeCol(field)) {
-            operator = 'eq,exactDate'
-          } else if (
-            (field.uidt !== UITypes.Formula || getFormulaColDataType(field) !== FormulaDataTypes.NUMERIC) &&
-            !isNumericCol(field) &&
-            sqlUi.value &&
-            ['text', 'string'].includes(sqlUi.value.getAbstractType(field)) &&
-            field.dt !== 'bigint'
-          ) {
-            operator = 'like'
-            if (!query) return ''
+          query = `%${query}%`
+        } else {
+          operator = 'eq'
+          query = !ncIsNaN(query) ? query : ''
+        }
+      }
 
-            query = `%${query}%`
-          } else {
-            operator = 'eq'
-            query = !ncIsNaN(query) ? query : ''
-          }
+      if (!query) return
 
-          if (!query) return ''
-
-          return `(${field.title},${operator},${query})`
-        })
-        .filter(Boolean)
-        .join('~or')
-
-      return fieldQuery
+      return `(${field.title},${operator},${query})`
     }
 
     const loadChildrenExcludedList = async (activeState?: any, resetOffset = false) => {

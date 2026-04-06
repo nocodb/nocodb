@@ -1335,17 +1335,21 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     await loadRoles(undefined, {}, activeWorkspaceId.value)
   })
 
-  // When plan data loads, trigger team loading if teams are available
+  // When plan data or workspace changes, trigger team loading if teams are available
   watch(
-    () => activeWorkspace.value?.payment?.plan?.meta,
-    (planMeta) => {
-      if (!planMeta || !activeWorkspace.value?.id) return
+    () => [activeWorkspace.value?.payment?.plan?.meta, activeWorkspace.value?.id, activeWorkspace.value?.fk_org_id],
+    () => {
+      if (!activeWorkspace.value?.id) return
 
-      const { blockTeamsManagement } = useEeConfig()
+      const planMeta = activeWorkspace.value?.payment?.plan?.meta
       const hasOrg = !!activeWorkspace.value?.fk_org_id
 
-      // Allow loading if team management is available OR workspace belongs to an org
-      // (org teams are always accessible regardless of workspace plan)
+      // Skip if no plan data AND no org (nothing to load)
+      if (!planMeta && !hasOrg) return
+
+      const { blockTeamsManagement } = useEeConfig()
+
+      // Skip if team management is blocked AND workspace has no org
       if (blockTeamsManagement.value && !hasOrg) return
 
       loadTeams({ workspaceId: activeWorkspace.value?.id as string }).catch(() => {

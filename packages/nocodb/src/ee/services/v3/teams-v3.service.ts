@@ -175,6 +175,33 @@ export class TeamsV3Service {
     );
   }
 
+  /**
+   * Broadcast a team event. For workspace teams, broadcasts to the workspace.
+   * For org teams, broadcasts to ALL workspaces in the org so their team lists refresh.
+   */
+  private async broadcastTeamEvent(
+    context: NcContext,
+    team: { fk_workspace_id?: string; fk_org_id?: string },
+    eventPayload: any,
+  ) {
+    if (context.workspace_id) {
+      // Workspace team — single broadcast
+      NocoSocket.broadcastEvent(context, eventPayload, context.socket_id);
+    } else if (team.fk_org_id) {
+      // Org team — broadcast to all workspaces in the org
+      const orgWorkspaces = await Noco.ncMeta
+        .knexConnection(MetaTable.WORKSPACE)
+        .where('fk_org_id', team.fk_org_id)
+        .whereNot('deleted', true)
+        .select('id');
+
+      for (const ws of orgWorkspaces) {
+        const wsContext = { ...context, workspace_id: ws.id } as NcContext;
+        NocoSocket.broadcastEvent(wsContext, eventPayload, context.socket_id);
+      }
+    }
+  }
+
   async getTeamMembersCount(
     context: NcContext,
     teamId: string,
@@ -754,9 +781,7 @@ export class TeamsV3Service {
       await this.paymentService.reseatSubscription(workspace.id);
     }
 
-    // Skip broadcast for org teams (no workspace_id = no socket subscription)
-    if (context.workspace_id) NocoSocket.broadcastEvent(
-      context,
+    await this.broadcastTeamEvent(context, team || response,
       {
         event: EventType.TEAM_EVENT,
         payload: {
@@ -765,7 +790,6 @@ export class TeamsV3Service {
           payload: response as TeamV3ResponseType,
         },
       },
-      context.socket_id,
     );
 
     return response;
@@ -902,9 +926,7 @@ export class TeamsV3Service {
       await this.paymentService.reseatSubscription(workspace.id);
     }
 
-    // Skip broadcast for org teams (no workspace_id = no socket subscription)
-    if (context.workspace_id) NocoSocket.broadcastEvent(
-      context,
+    await this.broadcastTeamEvent(context, team || response,
       {
         event: EventType.TEAM_EVENT,
         payload: {
@@ -913,7 +935,6 @@ export class TeamsV3Service {
           payload: response as TeamV3ResponseType,
         },
       },
-      context.socket_id,
     );
 
     return response;
@@ -1035,9 +1056,7 @@ export class TeamsV3Service {
       await this.paymentService.reseatSubscription(workspace.id);
     }
 
-    // Skip broadcast for org teams (no workspace_id = no socket subscription)
-    if (context.workspace_id) NocoSocket.broadcastEvent(
-      context,
+    await this.broadcastTeamEvent(context, team || response,
       {
         event: EventType.TEAM_EVENT,
         payload: {
@@ -1045,7 +1064,6 @@ export class TeamsV3Service {
           action: 'teamDelete',
         },
       },
-      context.socket_id,
     );
 
     return { msg: 'Team has been deleted successfully' };
@@ -1207,9 +1225,7 @@ export class TeamsV3Service {
       };
     });
 
-    // Skip broadcast for org teams (no workspace_id = no socket subscription)
-    if (context.workspace_id) NocoSocket.broadcastEvent(
-      context,
+    await this.broadcastTeamEvent(context, team || response,
       {
         event: EventType.TEAM_EVENT,
         payload: {
@@ -1218,7 +1234,6 @@ export class TeamsV3Service {
           payload: members as TeamMemberV3ResponseType[],
         },
       },
-      context.socket_id,
     );
 
     return members;
@@ -1361,9 +1376,7 @@ export class TeamsV3Service {
     // Recalculate seat count after removing team members
     if (team.fk_workspace_id) { await this.paymentService.reseatSubscription(team.fk_workspace_id); }
 
-    // Skip broadcast for org teams (no workspace_id = no socket subscription)
-    if (context.workspace_id) NocoSocket.broadcastEvent(
-      context,
+    await this.broadcastTeamEvent(context, team || response,
       {
         event: EventType.TEAM_EVENT,
         payload: {
@@ -1372,7 +1385,6 @@ export class TeamsV3Service {
           payload: removedMembers as TeamMembersRemoveV3ReqType[],
         },
       },
-      context.socket_id,
     );
 
     return removedMembers;
@@ -1523,9 +1535,7 @@ export class TeamsV3Service {
       };
     });
 
-    // Skip broadcast for org teams (no workspace_id = no socket subscription)
-    if (context.workspace_id) NocoSocket.broadcastEvent(
-      context,
+    await this.broadcastTeamEvent(context, team || response,
       {
         event: EventType.TEAM_EVENT,
         payload: {
@@ -1534,7 +1544,6 @@ export class TeamsV3Service {
           payload: members as TeamMemberV3ResponseType[],
         },
       },
-      context.socket_id,
     );
 
     return members;
@@ -1794,9 +1803,7 @@ export class TeamsV3Service {
       workspace,
     });
 
-    // Skip broadcast for org teams (no workspace_id = no socket subscription)
-    if (context.workspace_id) NocoSocket.broadcastEvent(
-      context,
+    await this.broadcastTeamEvent(context, team || response,
       {
         event: EventType.TEAM_EVENT,
         payload: {
@@ -1805,7 +1812,6 @@ export class TeamsV3Service {
           payload: response,
         },
       },
-      context.socket_id,
     );
 
     return response;

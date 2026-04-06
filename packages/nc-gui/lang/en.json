@@ -2408,6 +2408,7 @@
     "searchWorkspaceBases": "Search",
     "addDomain": "Add Domain",
     "addMembers": "Add Members",
+    "membersAdded": "Members added successfully",
     "enterEmail": "Enter email addresses",
     "inviteToBase": "Invite to Base",
     "inviteToWorkspace": "Invite to Workspace",

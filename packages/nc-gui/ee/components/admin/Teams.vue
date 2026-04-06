@@ -253,6 +253,80 @@ const handleDeleteTeam = (team: TeamV3ResponseType) => {
   })
 }
 
+// Add members state
+const isAddMembersOpen = ref(false)
+
+const orgUsers = ref<any[]>([])
+
+const selectedUserIds = ref<string[]>([])
+
+const isAddingMembers = ref(false)
+
+const loadOrgUsers = async () => {
+  try {
+    const response = await $api.instance.get(`/api/v2/orgs/${orgId.value}/users`)
+    // Response is an array directly
+    const data = response.data
+    orgUsers.value = Array.isArray(data) ? data : data?.list || data?.users || []
+  } catch (_e) {
+    orgUsers.value = []
+  }
+}
+
+const openAddMembers = async () => {
+  selectedUserIds.value = editTeamMembers.value.map((m: any) => m.user_id)
+  await loadOrgUsers()
+  isAddMembersOpen.value = true
+}
+
+const ncListData = computed(() => {
+  const existingIds = new Set(editTeamMembers.value.map((m: any) => m.user_id))
+  return (orgUsers.value || []).map((u: any) => ({
+    ...u,
+    id: u.id,
+    fk_user_id: u.id,
+    email: u.email,
+    display_name: u.display_name,
+    ncItemDisabled: existingIds.has(u.id),
+    ncItemTooltip: existingIds.has(u.id) ? t('objects.teams.alreadyPartOfTeam') : '',
+  }))
+})
+
+const selectedNewUsers = computed(() => {
+  const existingIds = new Set(editTeamMembers.value.map((m: any) => m.user_id))
+  return ncListData.value.filter((u: any) => selectedUserIds.value.includes(u.id) && !existingIds.has(u.id))
+})
+
+const handleAddMembers = async () => {
+  if (!editTeamId.value || selectedNewUsers.value.length === 0) return
+
+  try {
+    isAddingMembers.value = true
+    await $api.instance.post(`/api/v3/meta/workspaces/${orgId.value}/teams/${editTeamId.value}/members`,
+      selectedNewUsers.value.map((u: any) => ({
+        user_id: u.id,
+        team_role: 'team-level-member',
+      })),
+    )
+    isAddMembersOpen.value = false
+    await loadTeamDetail(editTeamId.value)
+    await loadTeams()
+    message.success(t('activity.membersAdded'))
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isAddingMembers.value = false
+  }
+}
+
+const toggleUser = (userId: string) => {
+  if (selectedUserIds.value.includes(userId)) {
+    selectedUserIds.value = selectedUserIds.value.filter((id) => id !== userId)
+  } else {
+    selectedUserIds.value.push(userId)
+  }
+}
+
 const handleRemoveMember = async (userId: string) => {
   if (!editTeamId.value) return
 
@@ -654,6 +728,12 @@ onMounted(() => {
                 {{ $t('objects.members') }}
                 <span class="text-nc-content-gray-muted font-normal ml-1">({{ editTeamMembers.length }})</span>
               </div>
+              <NcButton size="small" type="secondary" inner-class="!gap-2" @click="openAddMembers">
+                <template #icon>
+                  <GeneralIcon icon="plus" class="h-4 w-4" />
+                </template>
+                {{ $t('labels.addMember') }}
+              </NcButton>
             </div>
 
             <div v-if="editTeamMembers.length === 0" class="text-sm text-nc-content-gray-muted py-4 text-center">
@@ -702,6 +782,81 @@ onMounted(() => {
         </div>
       </div>
     </NcModal>
+
+    <!-- Add Members Modal -->
+    <GeneralModal
+      v-model:visible="isAddMembersOpen"
+      :mask-closable="false"
+      :keyboard="!isAddingMembers"
+      :mask-style="{ 'background-color': 'rgba(0, 0, 0, 0.08)' }"
+      wrap-class-name="nc-modal-org-teams-add-members"
+      :footer="null"
+      class="!w-[448px]"
+      :closable="false"
+      @keydown.esc="isAddMembersOpen = false"
+    >
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-subHeading2 text-nc-content-gray-emphasis">
+            {{ $t('objects.teams.addMembersToTeam') }}
+          </div>
+        </div>
+
+        <div class="text-body text-nc-content-gray-subtle mb-5">
+          <span
+            v-dompurify-html="$t('objects.teams.selectMembersToAddIntoTeam', { team: `<strong>${editTeam?.title}</strong>` })"
+          ></span>
+        </div>
+
+        <NcList
+          :open="isAddMembersOpen"
+          :value="selectedUserIds"
+          :list="ncListData"
+          option-label-key="email"
+          option-value-key="fk_user_id"
+          :item-height="52"
+          :search-input-placeholder="$t('title.searchMembers')"
+          is-multi-select
+          class="!w-auto border-1 border-nc-border-gray-medium rounded-lg"
+          :filter-option="(input: string, option: any) => antSelectFilterOption(input, option, ['email', 'display_name'])"
+          :empty-description="$t('title.noMembersFound')"
+          item-tooltip-placement="left"
+          @change="toggleUser($event.id)"
+        >
+          <template #listItemExtraLeft="{ isSelected, option }">
+            <NcCheckbox :checked="isSelected" :disabled="option.ncItemDisabled" />
+          </template>
+          <template #listItemContent="{ option }">
+            <div class="flex flex-col flex-1 min-w-0" :class="{ 'opacity-60': option.ncItemDisabled }">
+              <div class="text-sm truncate">{{ option.display_name || option.email }}</div>
+              <div v-if="option.display_name" class="text-xs text-nc-content-gray-muted truncate">{{ option.email }}</div>
+            </div>
+          </template>
+          <template #listItemSelectedIcon><NcSpanHidden /></template>
+        </NcList>
+
+        <div class="flex items-center justify-between pt-4">
+          <div v-if="selectedNewUsers.length" class="text-nc-content-gray-muted">
+            {{ selectedNewUsers.length }} {{ selectedNewUsers.length === 1 ? $t('objects.member') : $t('objects.members') }} selected
+          </div>
+          <div v-else>&nbsp;</div>
+          <div class="flex gap-2">
+            <NcButton type="secondary" size="small" :disabled="isAddingMembers" @click="isAddMembersOpen = false">
+              {{ $t('general.cancel') }}
+            </NcButton>
+            <NcButton
+              type="primary"
+              size="small"
+              :loading="isAddingMembers"
+              :disabled="isAddingMembers || selectedNewUsers.length === 0"
+              @click="handleAddMembers"
+            >
+              {{ selectedNewUsers.length > 1 ? $t('activity.addMembers') : $t('labels.addMember') }}
+            </NcButton>
+          </div>
+        </div>
+      </div>
+    </GeneralModal>
   </div>
 </template>
 

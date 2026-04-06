@@ -17,7 +17,7 @@ export class NumberHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): number | null {
-    value = serializeIntValue(value, params);
+    value = serializeIntValue(value);
 
     if (value === null) {
       if (params.isMultipleCellPaste || params.serializeSearchQuery) {

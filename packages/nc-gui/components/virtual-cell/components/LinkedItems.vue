@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnType, type LinkToAnotherRecordType } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, isDateOrDateTimeCol } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey, RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
 
 interface Prop {
@@ -46,9 +46,7 @@ const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
-const linkRecordSearchRef = ref<InstanceType<typeof VirtualCellComponentsLinkRecordSearch>>()
-
-const filterQueryRef = computed(() => linkRecordSearchRef.value?.filterQueryRef as HTMLInputElement | undefined)
+const filterQueryRef = ref<HTMLInputElement>()
 
 const { isDataReadOnly } = useRoles()
 
@@ -389,7 +387,7 @@ const onFilterChange = () => {
   resetChildrenListOffsetCount()
 }
 
-const isSearchInputFocused = computed(() => linkRecordSearchRef.value?.isSearchInputFocused ?? false)
+const isSearchInputFocused = ref(false)
 
 const handleKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
@@ -409,12 +407,39 @@ const handleKeyDown = (e: KeyboardEvent) => {
   <div class="nc-modal-child-list h-full w-full" :class="{ active: vModel }" @keydown.enter.stop>
     <div class="flex flex-col h-full">
       <div class="nc-dropdown-link-record-header bg-nc-bg-gray-light py-2 rounded-t-xl flex justify-between pl-3 pr-2 gap-2">
-        <VirtualCellComponentsLinkRecordSearch
-          ref="linkRecordSearchRef"
-          v-model:query="childrenListPagination.query"
-          @filter-change="onFilterChange"
-          @keydown="handleKeyDown"
-        />
+        <div class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center rounded-md">
+          <!-- Utilize SmartsheetToolbarFilterInput component to filter the records for Date or DateTime column -->
+          <SmartsheetToolbarFilterInput
+            v-if="relatedTableDisplayValueColumn && isDateOrDateTimeCol(relatedTableDisplayValueColumn)"
+            class="nc-filter-value-select rounded-md min-w-34"
+            :column="relatedTableDisplayValueColumn"
+            :filter="{
+              comparison_op: 'eq',
+              comparison_sub_op: 'exactDate',
+              value: childrenListPagination.query,
+            }"
+            @update-filter-value="childrenListPagination.query = $event"
+            @click.stop
+          />
+          <a-input
+            v-else
+            ref="filterQueryRef"
+            v-model:value="childrenListPagination.query"
+            :bordered="false"
+            placeholder="Search linked records..."
+            class="w-full min-h-4 !pl-0"
+            size="small"
+            autocomplete="off"
+            @focus="isSearchInputFocused = true"
+            @blur="isSearchInputFocused = false"
+            @change="onFilterChange"
+            @keydown.capture.stop="handleKeyDown"
+          >
+            <template #prefix>
+              <GeneralIcon icon="search" class="nc-search-icon mr-2 h-4 w-4 text-nc-content-gray-muted" />
+            </template>
+          </a-input>
+        </div>
         <LazyVirtualCellComponentsHeader
           data-testid="nc-link-count-info"
           :linked-records="totalItemsToShow"
@@ -617,6 +642,15 @@ const handleKeyDown = (e: KeyboardEvent) => {
 
 <style lang="scss">
 .nc-dropdown-link-record-search-wrapper {
+  .nc-search-icon {
+    @apply flex-none text-nc-content-gray-muted;
+  }
+
+  &:focus-within {
+    .nc-search-icon {
+      @apply text-nc-content-gray-subtle2;
+    }
+  }
   input {
     &::placeholder {
       @apply text-nc-content-gray-muted;

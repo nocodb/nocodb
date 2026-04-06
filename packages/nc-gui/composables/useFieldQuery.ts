@@ -59,7 +59,7 @@ export function useFieldQuery() {
     col: ColumnType,
     query?: string,
     tableMeta?: TableType,
-    params: { getWhereQueryAs?: 'string' | 'object'; serializeLinkRecordSearchQuery?: boolean } = {},
+    params: { getWhereQueryAs?: 'string' | 'object' } = {},
   ): string | ValidSearchQueryForColumnReturnType => {
     if (!isValidValue(query)) return ''
 
@@ -76,7 +76,6 @@ export function useFieldQuery() {
         meta: tableMeta,
         metas: metas.value,
         serializeSearchQuery: true,
-        serializeLinkRecordSearchQuery: params.serializeLinkRecordSearchQuery,
       })
     } catch (_err: any) {
       /**

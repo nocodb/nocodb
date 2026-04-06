@@ -51,12 +51,6 @@ export const serializeDecimalValue = (
 
   // If it's a string, remove commas and check if it's a valid number
   if (ncIsString(value)) {
-    // For LTAR link record search, don't strip non-numeric characters — only accept
-    // the value if it's already a valid number (e.g. "42" yes, "station 1" no)
-    if (params?.serializeLinkRecordSearchQuery) {
-      return ncIsNaN(value) ? null : Number(value);
-    }
-
     const cleanedValue = ncIsFunction(callback)
       ? callback(value)
       : value
@@ -77,11 +71,8 @@ export const serializeDecimalValue = (
   return null;
 };
 
-export const serializeIntValue = (
-  value: string | null | number,
-  params?: SerializerOrParserFnProps['params']
-) => {
-  value = serializeDecimalValue(value, undefined, params);
+export const serializeIntValue = (value: string | null | number) => {
+  value = serializeDecimalValue(value);
 
   if (ncIsNumber(value)) {
     return parseInt(value.toString(), 10);
@@ -144,36 +135,32 @@ export const serializeCurrencyValue = (
     return params.clipboardItem.dbCellValue;
   }
 
-  return serializeDecimalValue(
-    value,
-    (value) => {
-      const columnMeta = parseProp(params.col.meta);
-      // Create a number formatter for the target locale (e.g., 'de-DE', 'en-US')
-      const formatter = new Intl.NumberFormat(
-        columnMeta?.currency_locale || 'en-US'
-      );
+  return serializeDecimalValue(value, (value) => {
+    const columnMeta = parseProp(params.col.meta);
+    // Create a number formatter for the target locale (e.g., 'de-DE', 'en-US')
+    const formatter = new Intl.NumberFormat(
+      columnMeta?.currency_locale || 'en-US'
+    );
 
-      // If the locale is not set or is 'en-US', or the formatter does not support formatToParts, use the default behavior
-      if (
-        !columnMeta?.currency_locale ||
-        columnMeta.currency_locale === 'en-US' ||
-        typeof (formatter as any).formatToParts !== 'function'
-      ) {
-        return value?.replace(/[^0-9.]/g, '')?.trim();
-      }
+    // If the locale is not set or is 'en-US', or the formatter does not support formatToParts, use the default behavior
+    if (
+      !columnMeta?.currency_locale ||
+      columnMeta.currency_locale === 'en-US' ||
+      typeof (formatter as any).formatToParts !== 'function'
+    ) {
+      return value?.replace(/[^0-9.]/g, '')?.trim();
+    }
 
-      const { group, decimal } = getGroupDecimalSymbolFromLocale(
-        columnMeta?.currency_locale
-      );
+    const { group, decimal } = getGroupDecimalSymbolFromLocale(
+      columnMeta?.currency_locale
+    );
 
-      return value
-        .replace(new RegExp('\\' + group, 'g'), '') // 1. Remove all group (thousands) separators
-        .replace(new RegExp('\\' + decimal), '.') // 2. Replace the locale-specific decimal separator with a dot (.)
-        .replace(/[^\d.-]/g, '') // 3. Remove any non-digit, non-dot, non-minus characters (e.g., currency symbols, spaces)
-        .trim(); // 4. Trim whitespace from both ends of the string
-    },
-    params
-  );
+    return value
+      .replace(new RegExp('\\' + group, 'g'), '') // 1. Remove all group (thousands) separators
+      .replace(new RegExp('\\' + decimal), '.') // 2. Replace the locale-specific decimal separator with a dot (.)
+      .replace(/[^\d.-]/g, '') // 3. Remove any non-digit, non-dot, non-minus characters (e.g., currency symbols, spaces)
+      .trim(); // 4. Trim whitespace from both ends of the string
+  });
 };
 
 export const serializeTimeValue = (

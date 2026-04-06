@@ -277,19 +277,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         return (relatedTableMeta.value.columns ?? [])
           .filter((col) => {
             // Hiding lookup field from dropdown as we don't send lookup field info in list response due to performance reasons
-            if (isSystemColumn(col) || isPrimary(col) || isLinksOrLTAR(col) || isAttachment(col) || isLookup(col)) {
-              return false
-            }
-
-            // Only include columns visible in the target view
-            if (isPublic.value) {
-              if (!(parseProp(col.meta)?.defaultViewColVisibility ?? true)) return false
-            } else {
-              const viewCol = targetViewColumnsById.value[col.id!] as Record<string, any> | undefined
-              if (!viewCol || !viewCol.show) return false
-            }
-
-            return true
+            return !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col) && !isLookup(col)
           })
           .sort((a, b) => {
             if (isPublic.value) {
@@ -416,93 +404,40 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return sanitizedRow
     }
 
-    // Searchable columns for the field selector: PV + visible fields
-    // Uses isSearchableColumn but also allows Date/DateTime (supported via date picker)
-    const searchableColumns = computed(() => {
-      const cols: ColumnType[] = []
-      if (relatedTableDisplayValueColumn.value) {
-        cols.push(relatedTableDisplayValueColumn.value)
-      }
-      for (const col of fields.value || []) {
-        if (isPrimary(col)) continue
-        if (isSearchableColumn(col) || isDateOrDateTimeCol(col)) {
-          cols.push(col)
-        }
-      }
-      return cols
-    })
+    const getWhereClause = (searchQuery?: string) => {
+      if (!searchQuery || !relatedTableDisplayValueColumn.value) return
 
-    // Selected search field id — default to PV column, 'all' means search all displayed fields
-    const searchField = computed({
-      get: () => _searchField.value || relatedTableDisplayValueColumn.value?.id || 'all',
-      set: (val: string) => { _searchField.value = val },
-    })
-    const _searchField = ref<string>('')
-
-    const selectedSearchField = computed(() => {
-      if (searchField.value === 'all') return null
-      return searchableColumns.value.find((col) => col.id === searchField.value) ?? null
-    })
-
-    const isSearchFieldDateOrDateTime = computed(() => {
-      if (!selectedSearchField.value) {
-        // 'all' mode: use date input only if PV is date
-        return relatedTableDisplayValueColumn.value ? isDateOrDateTimeCol(relatedTableDisplayValueColumn.value) : false
-      }
-      return isDateOrDateTimeCol(selectedSearchField.value)
-    })
-
-    const buildFieldWhereClause = (field: ColumnType, searchQuery: string, strictNumeric = false): string => {
+      const field = relatedTableDisplayValueColumn.value
       let operator = 'like'
       let query = searchQuery.trim()
 
-      if (!isDateOrDateTimeCol(field)) {
-        query = getValidSearchQueryForColumn(field, query, relatedTableMeta.value, {
-          ...(strictNumeric ? { serializeLinkRecordSearchQuery: true } : {}),
-        }) as string
-      }
-
-      if (!isValidValue(query)) return ''
-
       if (isDateOrDateTimeCol(field)) {
         operator = 'eq,exactDate'
-      } else if (
-        (field.uidt !== UITypes.Formula || getFormulaColDataType(field) !== FormulaDataTypes.NUMERIC) &&
-        !isNumericCol(field) &&
-        sqlUi.value &&
-        ['text', 'string'].includes(sqlUi.value.getAbstractType(field)) &&
-        field.dt !== 'bigint'
-      ) {
-        operator = 'like'
-        if (!query) return ''
-
-        query = `%${query}%`
       } else {
-        operator = 'eq'
-        query = !ncIsNaN(query) ? query : ''
+        query = getValidSearchQueryForColumn(field, query, relatedTableMeta.value) as string
+
+        if (!isValidValue(query)) return
+
+        if (
+          (field.uidt !== UITypes.Formula || getFormulaColDataType(field) !== FormulaDataTypes.NUMERIC) &&
+          !isNumericCol(field) &&
+          sqlUi.value &&
+          ['text', 'string'].includes(sqlUi.value.getAbstractType(field)) &&
+          field.dt !== 'bigint'
+        ) {
+          operator = 'like'
+          if (!query) return
+
+          query = `%${query}%`
+        } else {
+          operator = 'eq'
+          query = !ncIsNaN(query) ? query : ''
+        }
       }
 
-      if (!query) return ''
+      if (!query) return
 
       return `(${field.title},${operator},${query})`
-    }
-
-    const getWhereClause = (searchQuery?: string) => {
-      if (!searchQuery) return
-
-      // Single field search
-      if (selectedSearchField.value) {
-        return buildFieldWhereClause(selectedSearchField.value, searchQuery) || undefined
-      }
-
-      // All fields search — skip date columns (need date picker) and use strict numeric
-      const fieldQuery = searchableColumns.value
-        .filter((field) => !isDateOrDateTimeCol(field))
-        .map((field) => buildFieldWhereClause(field, searchQuery, true))
-        .filter(Boolean)
-        .join('~or')
-
-      return fieldQuery || undefined
     }
 
     const loadChildrenExcludedList = async (activeState?: any, resetOffset = false) => {
@@ -1016,10 +951,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       resetChildrenListOffsetCount,
       attachmentCol,
       fields,
-      searchableColumns,
-      searchField,
-      selectedSearchField,
-      isSearchFieldDateOrDateTime,
       refreshCurrentRow,
       externalBaseUserRoles,
       showExtraFields,

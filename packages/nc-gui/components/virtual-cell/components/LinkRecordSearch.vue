@@ -19,11 +19,22 @@ const {
   relatedTableDisplayValueProp,
 } = useLTARStoreOrThrow()
 
+const { getValidSearchQueryForColumn } = useFieldQuery()
+
+const { relatedTableMeta } = useLTARStoreOrThrow()
+
 const isSearchInputFocused = ref(false)
 
 const filterQueryRef = ref<HTMLInputElement>()
 
 const isDropdownOpen = ref(false)
+
+const isValidSearchQuery = computed(() => {
+  if (!query.value?.trim() || !selectedSearchField.value) return true
+
+  const result = getValidSearchQueryForColumn(selectedSearchField.value, query.value.trim(), relatedTableMeta.value)
+  return !!result
+})
 
 const ALL_FIELDS_ID = 'all'
 
@@ -41,10 +52,17 @@ const displayColumnLabel = computed(() => {
 })
 
 const onSelectOption = (option: Record<string, any>) => {
+  const wasDateField = isSearchFieldDateOrDateTime.value
+
   searchField.value = option.id === ALL_FIELDS_ID ? ALL_FIELDS_ID : (option.id as string)
   isDropdownOpen.value = false
 
-  query.value = ''
+  // Clear query when switching between date and non-date fields (incompatible formats)
+  if (wasDateField !== isSearchFieldDateOrDateTime.value) {
+    query.value = ''
+  } else if (query.value?.length) {
+    emit('filterChange')
+  }
 
   nextTick(() => {
     filterQueryRef.value?.focus()
@@ -68,7 +86,7 @@ defineExpose({
       overlay-class-name="nc-dropdown-toolbar-search-field-option"
     >
       <div class="flex items-center cursor-pointer flex-none px-1" @click="isDropdownOpen = !isDropdownOpen">
-        <div class="h-7 flex items-center gap-1 px-1 rounded-md text-nc-content-brand bg-nc-bg-brand-inverted select-none">
+        <div class="h-5 flex items-center gap-1 px-1 rounded-md text-nc-content-brand bg-nc-bg-brand-inverted select-none">
           <template v-if="searchField === ALL_FIELDS_ID">
             <GeneralIcon icon="ncList" class="!w-3.5 !h-3.5 !mx-0" />
             <span class="text-bodyDefaultSm font-medium truncate max-w-16">{{ $t('general.allVisibleFields') }}</span>
@@ -112,7 +130,7 @@ defineExpose({
     <!-- Date/DateTime search input -->
     <SmartsheetToolbarFilterInput
       v-if="isSearchFieldDateOrDateTime"
-      class="nc-filter-value-select rounded-md min-w-34 flex-1"
+      class="nc-link-record-date-input nc-filter-value-select rounded-md min-w-34 flex-1"
       :column="selectedSearchField || relatedTableDisplayValueColumn!"
       :filter="{
         comparison_op: 'eq',
@@ -123,19 +141,37 @@ defineExpose({
       @click.stop
     />
     <!-- Text search input -->
-    <a-input
-      v-else
-      ref="filterQueryRef"
-      v-model:value="query"
-      :bordered="false"
-      :placeholder="`${t('general.searchIn')} ${displayColumnLabel}...`"
-      class="w-full nc-link-record-search-input min-h-4 !pl-0"
-      size="small"
-      autocomplete="off"
-      @focus="isSearchInputFocused = true"
-      @blur="isSearchInputFocused = false"
-      @change="emit('filterChange')"
-      @keydown.capture.stop="emit('keydown', $event)"
-    />
+    <div v-if="!isSearchFieldDateOrDateTime" class="flex-1 flex relative">
+      <a-input
+        ref="filterQueryRef"
+        v-model:value="query"
+        :bordered="false"
+        :placeholder="`${t('general.searchIn')} ${displayColumnLabel}...`"
+        class="w-full nc-link-record-search-input min-h-4 !pl-0"
+        :class="{ '!pr-7': !isValidSearchQuery }"
+        size="small"
+        autocomplete="off"
+        @focus="isSearchInputFocused = true"
+        @blur="isSearchInputFocused = false"
+        @change="emit('filterChange')"
+        @keydown.capture.stop="emit('keydown', $event)"
+      />
+      <NcTooltip
+        v-if="!isValidSearchQuery"
+        :title="$t('msg.error.invalidSearchQuery')"
+        class="absolute right-1 top-[50%] transform -translate-y-[50%] flex items-center pr-1"
+        placement="topRight"
+      >
+        <GeneralIcon icon="ncInfo" class="flex-none h-3.5 w-3.5 text-nc-content-red-medium" />
+      </NcTooltip>
+    </div>
   </div>
 </template>
+
+<style lang="scss">
+.nc-link-record-date-input.nc-filter-input-wrapper {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+</style>

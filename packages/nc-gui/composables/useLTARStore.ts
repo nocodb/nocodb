@@ -450,13 +450,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return isDateOrDateTimeCol(selectedSearchField.value)
     })
 
-    const buildFieldWhereClause = (field: ColumnType, searchQuery: string): string => {
+    const buildFieldWhereClause = (field: ColumnType, searchQuery: string, strictNumeric = false): string => {
       let operator = 'like'
       let query = searchQuery.trim()
 
       if (!isDateOrDateTimeCol(field)) {
         query = getValidSearchQueryForColumn(field, query, relatedTableMeta.value, {
-          serializeLinkRecordSearchQuery: true,
+          ...(strictNumeric ? { serializeLinkRecordSearchQuery: true } : {}),
         }) as string
       }
 
@@ -493,9 +493,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         return buildFieldWhereClause(selectedSearchField.value, searchQuery) || undefined
       }
 
-      // All fields search
+      // All fields search — use strict numeric to prevent "station 1" → eq,1 on numeric fields
       const fieldQuery = searchableColumns.value
-        .map((field) => buildFieldWhereClause(field, searchQuery))
+        .map((field) => buildFieldWhereClause(field, searchQuery, true))
         .filter(Boolean)
         .join('~or')
 

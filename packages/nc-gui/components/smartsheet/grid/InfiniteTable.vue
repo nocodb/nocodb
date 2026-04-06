@@ -950,6 +950,7 @@ const {
         return true
       }
     } else if (e.key === 'Enter') {
+      if (e.isComposing) return
       if (e.shiftKey) {
         // add a line break for types like LongText / JSON
         return true

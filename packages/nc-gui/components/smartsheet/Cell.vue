@@ -173,6 +173,8 @@ const vModel = computed({
 })
 
 const navigate = (dir: NavigateDir, e: KeyboardEvent) => {
+  if (e.isComposing) return
+
   if (isJSON(column.value)) return
 
   if (currentRow.value.rowMeta.changed || currentRow.value.rowMeta.new) {

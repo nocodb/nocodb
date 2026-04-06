@@ -17,6 +17,8 @@ const route = useRoute()
 
 const meta = inject(MetaInj, ref())
 
+const activeView = inject(ActiveViewInj, ref())
+
 /* stores */
 
 const { loadComments, resolveComment, updateComment, deleteComment, primaryKey } = useRowCommentsOrThrow()
@@ -120,9 +122,13 @@ function onCommentBlur() {
 }
 
 async function copyComment(comment: CommentType) {
+  const viewId = activeView.value?.fk_model_id === meta.value?.id ? activeView.value?.id : undefined
+
   await copy(
     encodeURI(
-      `${dashboardUrl?.value}/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}?rowId=${primaryKey.value}&commentId=${comment.id}`,
+      `${dashboardUrl?.value}/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}${
+        viewId ? `/${viewId}` : ''
+      }?rowId=${primaryKey.value}&commentId=${comment.id}`,
     ),
   )
 }

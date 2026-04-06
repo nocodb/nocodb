@@ -227,23 +227,33 @@ export class TeamsV3Service {
       workspaceOrOrgId: string;
     },
   ): Promise<{ list: TeamV3ResponseType[] }> {
-    await this.validateFeatureAccess(context);
-
     const { scope, orgId, workspaceId } = await this.resolveScope(
       param.workspaceOrOrgId,
     );
+
+    // For org scope, skip feature check entirely
+    // For workspace scope, check if team management is available
+    // but still allow loading org teams even when it's not
+    let hasTeamFeature = true;
+
+    if (scope === 'workspace' && context.workspace_id) {
+      hasTeamFeature = await getFeature(
+        PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+        context.workspace_id,
+      );
+    }
 
     let teams;
 
     if (scope === 'org') {
       teams = await Team.list(context, { fk_org_id: orgId });
     } else {
-      // Fetch workspace teams
-      const wsTeams = await Team.list(context, {
-        fk_workspace_id: workspaceId,
-      });
+      // Fetch workspace teams only if plan supports team management
+      const wsTeams = hasTeamFeature
+        ? await Team.list(context, { fk_workspace_id: workspaceId })
+        : [];
 
-      // Also fetch org teams if workspace belongs to an org
+      // Always fetch org teams if workspace belongs to an org
       const workspace = await Workspace.get(workspaceId);
       if (workspace?.fk_org_id) {
         const orgTeams = await Team.list(context, {
@@ -251,6 +261,10 @@ export class TeamsV3Service {
         });
         teams = [...wsTeams, ...orgTeams];
       } else {
+        // No org — if team feature is blocked, return empty
+        if (!hasTeamFeature) {
+          return { list: [] };
+        }
         teams = wsTeams;
       }
     }

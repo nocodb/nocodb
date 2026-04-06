@@ -25,16 +25,69 @@ const { linkedIntegrations, isLoading, loadLinkedIntegrations, linkIntegration, 
 const canManage = computed(() => isUIAllowed('baseIntegrationCreate'))
 
 // Integration store (provided by View.vue)
-const { addIntegration, editIntegration, eventBus, isFromIntegrationPage, loadDynamicIntegrations } = useIntegrationStore()
+const { addIntegration, editIntegration, eventBus, isFromIntegrationPage, loadDynamicIntegrations, integrationsRefreshKey } =
+  useIntegrationStore()
+
+const { isIntegrationInheritable, makeInheritable, removeInheritable, listVariables } = useBaseVariables()
+
+const baseStore = useBase()
+
+const { isManagedAppInstaller, isSandbox } = storeToRefs(baseStore)
+
+const isDerivedBase = computed(() => isManagedAppInstaller.value || isSandbox.value)
 
 const canEditIntegration = (integration: IntegrationType) => {
+  // On derived bases (sandbox/managed app), allow editing if user can manage
+  // (cloned integrations keep original created_by, so the strict check would block the owner)
+  if (isDerivedBase.value) return canManage.value
   return canManage.value && integration.created_by === user.value?.id
 }
 
 const activeTab = ref<'integrations' | 'connections'>('integrations')
 
+// Make inheritable dialog state
+const makeInheritableDialogVisible = ref(false)
+const makeInheritableIntegration = ref<IntegrationType | null>(null)
+const makeInheritableKey = ref('')
+const makeInheritableDescription = ref('')
+const makeInheritableLoading = ref(false)
+
+const openMakeInheritableDialog = (integration: IntegrationType) => {
+  makeInheritableIntegration.value = integration
+  // Auto-suggest key from title: "HubSpot Auth" → "HUBSPOT_AUTH"
+  makeInheritableKey.value = (integration.title || integration.sub_type || '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '_')
+    .replace(/^_|_$/g, '')
+  makeInheritableDescription.value = ''
+  makeInheritableDialogVisible.value = true
+}
+
+const handleMakeInheritable = async () => {
+  if (!makeInheritableIntegration.value?.id || !makeInheritableKey.value) return
+
+  makeInheritableLoading.value = true
+  try {
+    await makeInheritable(
+      makeInheritableIntegration.value.id,
+      makeInheritableKey.value,
+      makeInheritableDescription.value || undefined,
+    )
+    makeInheritableDialogVisible.value = false
+  } finally {
+    makeInheritableLoading.value = false
+  }
+}
+
+const handleRemoveInheritable = async (integrationId: string) => {
+  await removeInheritable(integrationId)
+}
+
 // Build category map for the card grid
 const integrationsMap = computed(() => {
+  // eslint-disable-next-line no-unused-expressions
+  integrationsRefreshKey.value
+
   const map: Record<string, { title: string; value: string; list: IntegrationItemType[] }> = {}
 
   for (const cat of integrationCategories) {
@@ -161,7 +214,7 @@ onMounted(async () => {
     basesStore.getBaseUsers({ baseId: baseId.value }).catch(() => {})
   }
 
-  await Promise.all([reload(), loadDynamicIntegrations()])
+  await Promise.all([reload(), loadDynamicIntegrations(), listVariables()])
 })
 
 onBeforeUnmount(() => {
@@ -255,6 +308,15 @@ watch(baseId, reload)
                 <NcBadge v-if="integration.is_private" :border="false" class="text-primary !h-4.5 bg-nc-bg-brand text-xs">
                   {{ $t('general.private') }}
                 </NcBadge>
+                <NcBadge
+                  v-if="isIntegrationInheritable(integration.id)"
+                  :border="false"
+                  class="!h-4.5 text-xs"
+                  color="purple"
+                  size="xs"
+                >
+                  {{ $t('labels.inheritable') }}
+                </NcBadge>
               </div>
 
               <NcTooltip
@@ -326,7 +388,39 @@ watch(baseId, reload)
                         <GeneralIcon class="text-current opacity-80" icon="edit" />
                         <span>{{ $t('general.edit') }}</span>
                       </NcMenuItem>
-                      <template v-if="integration.is_restricted && !integration.is_global">
+                      <!-- Make inheritable — sandbox only (safe staging for the one-time remap) -->
+                      <NcMenuItem
+                        v-if="
+                          isSandbox &&
+                          integration.is_restricted &&
+                          !integration.is_global &&
+                          integration.type !== 'database' &&
+                          !isIntegrationInheritable(integration.id)
+                        "
+                        data-testid="nc-base-integration-make-inheritable-btn"
+                        @click="openMakeInheritableDialog(integration)"
+                      >
+                        <GeneralIcon class="text-current opacity-80" icon="ncArrowUpCircle" />
+                        <span>{{ $t('labels.makeInheritable') }}</span>
+                      </NcMenuItem>
+                      <!-- Remove inheritance — sandbox (before merge) or master (after merge), not managed app -->
+                      <NcMenuItem
+                        v-if="
+                          !isManagedAppInstaller &&
+                          integration.is_restricted &&
+                          !integration.is_global &&
+                          integration.type !== 'database' &&
+                          isIntegrationInheritable(integration.id)
+                        "
+                        class="!text-nc-content-red-dark"
+                        data-testid="nc-base-integration-remove-inheritable-btn"
+                        @click="handleRemoveInheritable(integration.id)"
+                      >
+                        <GeneralIcon class="text-current" icon="ncCircleClose" />
+                        <span>{{ $t('labels.removeInheritance') }}</span>
+                      </NcMenuItem>
+                      <!-- Unlink — only on author bases, and not for inheritable integrations on derived bases -->
+                      <template v-if="!isDerivedBase && integration.is_restricted && !integration.is_global">
                         <NcDivider v-if="canEditIntegration(integration)" />
                         <NcMenuItem
                           class="!text-nc-content-red-dark"
@@ -353,6 +447,67 @@ watch(baseId, reload)
         </div>
       </div>
     </div>
+
+    <!-- Make Inheritable dialog -->
+    <NcModal v-model:visible="makeInheritableDialogVisible" size="xs" :mask-closable="false">
+      <template #header>
+        <div class="flex items-center gap-2">
+          <GeneralIntegrationIcon
+            v-if="makeInheritableIntegration?.sub_type"
+            :type="makeInheritableIntegration.sub_type"
+            size="lg"
+          />
+          <span class="text-nc-content-gray-emphasis font-bold">{{ $t('labels.makeInheritable') }}</span>
+        </div>
+      </template>
+
+      <div class="flex flex-col gap-4 mt-2">
+        <div class="text-sm text-nc-content-gray-subtle2">
+          {{ $t('msg.info.inheritableIntegrationHint') }}
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-bodySm text-nc-content-gray-subtle2 font-medium">
+            {{ $t('labels.variableKey') }} <span class="text-nc-content-red-dark">*</span>
+          </label>
+          <a-input
+            v-model:value="makeInheritableKey"
+            class="!rounded-lg nc-input-sm nc-input-shadow"
+            placeholder="e.g., SLACK_INTEGRATION"
+            data-testid="nc-make-inheritable-key-input"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-bodySm text-nc-content-gray-subtle2 font-medium">
+            {{ $t('general.description') }}
+          </label>
+          <a-textarea
+            v-model:value="makeInheritableDescription"
+            class="!rounded-lg nc-input-sm nc-input-shadow"
+            :placeholder="$t('placeholder.description')"
+            :rows="2"
+            data-testid="nc-make-inheritable-description-input"
+          />
+        </div>
+      </div>
+
+      <div class="flex mt-6 justify-end gap-2">
+        <NcButton type="secondary" size="small" @click="makeInheritableDialogVisible = false">
+          {{ $t('general.cancel') }}
+        </NcButton>
+        <NcButton
+          type="primary"
+          size="small"
+          :loading="makeInheritableLoading"
+          :disabled="!makeInheritableKey"
+          data-testid="nc-make-inheritable-confirm-btn"
+          @click="handleMakeInheritable"
+        >
+          {{ $t('labels.makeInheritable') }}
+        </NcButton>
+      </div>
+    </NcModal>
 
     <!-- Integration config form modal -->
     <WorkspaceIntegrationsEditOrAdd :base-id="baseId" />

@@ -15,6 +15,9 @@ export interface BaseVariableType {
   order?: number;
   is_overridden?: boolean;
   is_inherited?: boolean;
+  fk_integration_id?: string;
+  integration_type?: string;
+  integration_sub_type?: string;
 }
 
 export interface BaseVariableReqType {
@@ -23,4 +26,5 @@ export interface BaseVariableReqType {
   description?: string;
   inheritance: BaseVariableInheritance;
   type?: BaseVariableValueType;
+  fk_integration_id?: string;
 }

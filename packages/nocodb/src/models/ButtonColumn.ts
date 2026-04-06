@@ -7,6 +7,7 @@ import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 import { isEE } from '~/utils';
 import Filter from '~/models/Filter';
+import BaseVariable from '~/models/BaseVariable';
 
 export default class ButtonColumn {
   type: ButtonActionsType;
@@ -56,6 +57,17 @@ export default class ButtonColumn {
       'model',
       'output_column_ids',
     ];
+
+    if (
+      buttonColumn.type === ButtonActionsType.Ai &&
+      buttonColumn.fk_integration_id
+    ) {
+      buttonColumn.fk_integration_id = await BaseVariable.resolveInheritableId(
+        context,
+        buttonColumn.fk_integration_id,
+        ncMeta,
+      );
+    }
 
     const insertObj = extractProps(buttonColumn, [
       ...(buttonColumn.type === ButtonActionsType.Url
@@ -157,6 +169,14 @@ export default class ButtonColumn {
       'model',
       'output_column_ids',
     ];
+
+    if (button.type === ButtonActionsType.Ai && button.fk_integration_id) {
+      button.fk_integration_id = await BaseVariable.resolveInheritableId(
+        context,
+        button.fk_integration_id,
+        ncMeta,
+      );
+    }
 
     const updateObj = extractProps(button, [
       ...(button.type === ButtonActionsType.Url

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type IntegrationCategoryType, SyncDataType, type clientTypes as _clientTypes } from '#imports'
+import { IntegrationCategoryType, SyncDataType, type clientTypes as _clientTypes } from '#imports'
 
 const props = defineProps<{
   open: boolean
@@ -16,12 +16,17 @@ const {
   IntegrationsPageMode,
   activeIntegration,
   activeIntegrationItem,
+  isFromIntegrationPage,
   saveIntegration,
   updateIntegration,
   testConnection,
 } = useIntegrationStore()
 
+const { makePortable } = useBaseVariables()
+
 const { $api } = useNuxtApp()
+
+const { t } = useI18n()
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
@@ -30,6 +35,14 @@ const isEditMode = computed(() => pageMode.value === IntegrationsPageMode.EDIT)
 const testConnectionResult = ref<{ success: boolean; message?: string } | null>(null)
 
 const testConnectionLoading = ref(false)
+
+// Portable toggle state — only relevant when creating from base integrations page
+const isPortable = ref(false)
+const portableKey = ref('')
+
+const showPortableOption = computed(
+  () => isEeUI && !isEditMode.value && isFromIntegrationPage.value && props.integrationType !== IntegrationCategoryType.DATABASE,
+)
 
 const initState = ref({
   type: props.integrationType,
@@ -47,7 +60,11 @@ const { form, formState, isLoading, initialState, submit } = useProvideFormBuild
 
     try {
       if (pageMode.value === IntegrationsPageMode.ADD) {
-        await saveIntegration(formState.value)
+        const response = await saveIntegration(formState.value)
+
+        if (isPortable.value && portableKey.value && response?.id) {
+          await makePortable(response.id, portableKey.value)
+        }
       } else {
         await updateIntegration({
           id: activeIntegration.value?.id,
@@ -76,6 +93,27 @@ const { form, formState, isLoading, initialState, submit } = useProvideFormBuild
       },
     )
   },
+})
+
+// Auto-suggest portable key from the integration title
+watch(
+  () => formState.value.title,
+  (title) => {
+    if (!isPortable.value || !title) return
+    portableKey.value = title
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, '_')
+      .replace(/^_|_$/g, '')
+  },
+)
+
+watch(isPortable, (val) => {
+  if (val && formState.value.title) {
+    portableKey.value = formState.value.title
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, '_')
+      .replace(/^_|_$/g, '')
+  }
 })
 
 // select and focus title field on load
@@ -145,7 +183,9 @@ const onTestConnection = async () => {
       <NcButton
         size="small"
         type="primary"
-        :disabled="isLoading || (!testConnectionResult?.success && activeIntegrationItem.type === 'auth')"
+        :disabled="
+          isLoading || (!testConnectionResult?.success && activeIntegrationItem.type === 'auth') || (isPortable && !portableKey)
+        "
         :loading="isLoading"
         class="nc-extdb-btn-submit"
         @click="submit"
@@ -157,6 +197,33 @@ const onTestConnection = async () => {
       <div :class="leftPanelClass">
         <NcFormBuilder class="px-2" />
         <WorkspaceIntegrationsSyncPanel v-if="activeIntegrationItem.type === 'sync'" class="px-2" />
+
+        <!-- Portable toggle — shown only when creating from base integrations page -->
+        <div v-if="showPortableOption" class="px-2 mt-4">
+          <NcDivider />
+          <div class="flex items-center justify-between mt-4">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-semibold text-nc-content-gray">{{ $t('labels.makePortable') }}</span>
+              <NcTooltip placement="top">
+                <template #title>{{ $t('msg.info.portableIntegrationHint') }}</template>
+                <GeneralIcon icon="info" class="h-4 w-4 text-nc-content-gray-muted" />
+              </NcTooltip>
+            </div>
+            <NcSwitch v-model:checked="isPortable" size="small" data-testid="nc-integration-portable-toggle" />
+          </div>
+          <div v-if="isPortable" class="flex flex-col gap-1 mt-3">
+            <label class="text-bodySm text-nc-content-gray-subtle2 font-medium">
+              {{ $t('labels.variableKey') }} <span class="text-nc-content-red-dark">*</span>
+            </label>
+            <a-input
+              v-model:value="portableKey"
+              class="!rounded-lg nc-input-sm nc-input-shadow"
+              placeholder="e.g., OPENAI_KEY"
+              data-testid="nc-integration-portable-key-input"
+            />
+          </div>
+        </div>
+
         <div class="mt-10"></div>
       </div>
     </template>

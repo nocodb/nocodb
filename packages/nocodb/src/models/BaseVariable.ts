@@ -10,6 +10,7 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  RootScopes,
 } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { getCredentialEncryptSecret } from '~/utils/encryptDecrypt';
@@ -30,6 +31,9 @@ export default class BaseVariable implements BaseVariableType {
   default_value?: string;
   is_overridden?: boolean;
   is_inherited?: boolean;
+  fk_integration_id?: string;
+  integration_type?: string;
+  integration_sub_type?: string;
 
   constructor(data: Partial<BaseVariable>) {
     Object.assign(this, data);
@@ -198,6 +202,9 @@ export default class BaseVariable implements BaseVariableType {
       'default_value',
       'is_overridden',
       'is_inherited',
+      'fk_integration_id',
+      'integration_type',
+      'integration_sub_type',
     ]);
 
     // Validate key format
@@ -225,15 +232,16 @@ export default class BaseVariable implements BaseVariableType {
       BaseVariable.prepareForDb(insertObj),
     );
 
-    return this.get(context, id, ncMeta).then(async (res) => {
-      await NocoCache.appendToList(
-        context,
-        CacheScope.BASE_VARIABLE,
-        [data.base_id],
-        `${CacheScope.BASE_VARIABLE}:${id}`,
-      );
-      return res;
-    });
+    const res = await this.get(context, id, ncMeta);
+
+    await NocoCache.appendToList(
+      context,
+      CacheScope.BASE_VARIABLE,
+      [data.base_id],
+      `${CacheScope.BASE_VARIABLE}:${id}`,
+    );
+
+    return res;
   }
 
   public static async update(
@@ -251,6 +259,9 @@ export default class BaseVariable implements BaseVariableType {
       'default_value',
       'is_overridden',
       'is_inherited',
+      'fk_integration_id',
+      'integration_type',
+      'integration_sub_type',
     ]);
 
     if (updateObj.value && updateObj.value.length > MAX_VALUE_LENGTH) {
@@ -324,5 +335,180 @@ export default class BaseVariable implements BaseVariableType {
       `${CacheScope.BASE_VARIABLE}:${baseId}:list`,
       CacheDelDirection.PARENT_TO_CHILD,
     );
+  }
+
+  /**
+   * Clean up auto-created integrations for INTEGRATION variables on a base.
+   * Called during base soft-delete to remove orphaned workspace integrations.
+   * Only deletes integrations on inherited (child) bases — not the author's original.
+   */
+  public static async cleanupInheritableIntegrations(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    const variables = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.BASE_VARIABLES,
+      {
+        condition: {
+          base_id: baseId,
+          type: BaseVariableValueType.INTEGRATION,
+          is_inherited: true,
+        },
+      },
+    );
+
+    for (const v of variables || []) {
+      if (!v.fk_integration_id) continue;
+
+      // Hard-delete the auto-created integration — it's an empty stub
+      // restricted to this base only, no user data to preserve
+      try {
+        await ncMeta.metaDelete(
+          context.workspace_id,
+          RootScopes.WORKSPACE,
+          MetaTable.INTEGRATIONS,
+          v.fk_integration_id,
+        );
+      } catch {
+        // Integration may already be deleted — ignore
+      }
+    }
+  }
+
+  /**
+   * Find a variable by its linked integration ID within a base.
+   */
+  public static async getByIntegrationId(
+    context: NcContext,
+    baseId: string,
+    integrationId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<BaseVariable | null> {
+    const variables = await BaseVariable.list(context, baseId, ncMeta);
+    const match = variables.find(
+      (v) =>
+        v.type === BaseVariableValueType.INTEGRATION &&
+        v.fk_integration_id === integrationId,
+    );
+    return match || null;
+  }
+
+  /**
+   * Given an integration ID, return the inheritable variable ID if one exists
+   * for the current base, otherwise return the original ID unchanged.
+   * Use this at write time to ensure references always store the variable ID.
+   */
+  public static async resolveInheritableId(
+    context: NcContext,
+    integrationId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<string> {
+    if (!integrationId || !context.base_id) return integrationId;
+
+    // Already a variable ID — nothing to resolve
+    if (integrationId.startsWith('bv')) return integrationId;
+
+    const variable = await BaseVariable.getByIntegrationId(
+      context,
+      context.base_id,
+      integrationId,
+      ncMeta,
+    );
+    return variable?.id ?? integrationId;
+  }
+
+  /**
+   * Remap integration IDs across all referencing tables within a base.
+   * Called after an installer sets their integration on an inheritable variable.
+   */
+  public static async remapIntegrationId(
+    context: NcContext,
+    baseId: string,
+    oldIntegrationId: string,
+    newIntegrationId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    if (!oldIntegrationId || !newIntegrationId) return;
+    if (oldIntegrationId === newIntegrationId) return;
+
+    const condition = {
+      base_id: baseId,
+      fk_integration_id: oldIntegrationId,
+    };
+    const update = { fk_integration_id: newIntegrationId };
+
+    // Direct FK columns: COL_BUTTON, COL_LONG_TEXT, SYNC_CONFIGS
+    for (const table of [
+      MetaTable.COL_BUTTON,
+      MetaTable.COL_LONG_TEXT,
+      MetaTable.SYNC_CONFIGS,
+    ]) {
+      await ncMeta.metaUpdate(
+        context.workspace_id,
+        context.base_id,
+        table,
+        update,
+        condition,
+      );
+    }
+
+    // JSON fields in AUTOMATIONS: nodes and draft contain config objects
+    // with authIntegrationId / aiIntegrationId
+    const automations = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.AUTOMATIONS,
+      { condition: { base_id: baseId } },
+    );
+
+    for (const automation of automations || []) {
+      let changed = false;
+
+      const remapNodes = (raw: string | any[] | null): any => {
+        if (!raw) return raw;
+        let nodes: any[];
+        try {
+          nodes = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        } catch {
+          return raw;
+        }
+        if (!Array.isArray(nodes)) return raw;
+
+        for (const node of nodes) {
+          const config = node?.data?.config;
+          if (!config) continue;
+          for (const key of [
+            'authIntegrationId',
+            'aiIntegrationId',
+            'integrationId',
+          ]) {
+            if (config[key] === oldIntegrationId) {
+              config[key] = newIntegrationId;
+              changed = true;
+            }
+          }
+        }
+        return typeof raw === 'string' ? JSON.stringify(nodes) : nodes;
+      };
+
+      const updatedNodes = remapNodes(automation.nodes);
+      const updatedDraft = remapNodes(automation.draft);
+
+      if (changed) {
+        await ncMeta.metaUpdate(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.AUTOMATIONS,
+          {
+            nodes: updatedNodes,
+            draft: updatedDraft,
+          },
+          automation.id,
+        );
+      }
+    }
   }
 }

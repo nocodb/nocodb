@@ -15,6 +15,9 @@ const up = async (knex: Knex) => {
     table.text('default_value');
     table.boolean('is_overridden').defaultTo(false);
     table.boolean('is_inherited').defaultTo(false);
+    table.string('fk_integration_id', 20);
+    table.string('integration_type', 20);
+    table.string('integration_sub_type', 255);
     table.timestamps(true, true);
     table.primary(['base_id', 'id']);
   });

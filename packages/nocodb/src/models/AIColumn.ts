@@ -1,6 +1,7 @@
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import LongTextColumn from '~/models/LongTextColumn';
+import BaseVariable from '~/models/BaseVariable';
 
 export default class AIColumn extends LongTextColumn {
   id: string;
@@ -23,6 +24,13 @@ export default class AIColumn extends LongTextColumn {
     },
     ncMeta = Noco.ncMeta,
   ) {
+    if (aiColumn.fk_integration_id) {
+      aiColumn.fk_integration_id = await BaseVariable.resolveInheritableId(
+        context,
+        aiColumn.fk_integration_id,
+        ncMeta,
+      );
+    }
     return this._insert(
       context,
       aiColumn,
@@ -37,6 +45,13 @@ export default class AIColumn extends LongTextColumn {
     aiColumn: Partial<AIColumn>,
     ncMeta = Noco.ncMeta,
   ) {
+    if (aiColumn.fk_integration_id) {
+      aiColumn.fk_integration_id = await BaseVariable.resolveInheritableId(
+        context,
+        aiColumn.fk_integration_id,
+        ncMeta,
+      );
+    }
     return this._update(
       context,
       columnId,

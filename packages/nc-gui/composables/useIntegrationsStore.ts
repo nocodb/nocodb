@@ -292,7 +292,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     mode: 'create' | 'duplicate' = 'create',
     loadDatasourceInfo = false,
     baseId: string | undefined = undefined,
-  ) => {
+  ): Promise<IntegrationType | undefined> => {
     if (mode === 'create') {
       $e('a:integration:create')
     } else {
@@ -344,6 +344,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
           await message.success(`Connection "${response.title}" created successfully`)
         }
       }
+
+      return response
     } catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))
     }

@@ -433,4 +433,5 @@ export enum BaseVariableInheritance {
 export enum BaseVariableValueType {
   TEXT = 'text',
   SECRET = 'secret',
+  INTEGRATION = 'integration',
 }

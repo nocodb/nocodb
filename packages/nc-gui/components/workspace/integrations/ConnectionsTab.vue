@@ -88,6 +88,7 @@ const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string 
 const filteredIntegrations = computed(() =>
   (integrations.value || [])
     .filter((i) => IntegrationsType.Sync !== i.type)
+    .filter((i) => !(i as any).meta?.base_only)
     .sort((a, b) => {
       if (orderBy.value.title) {
         if (a.title && b.title) {

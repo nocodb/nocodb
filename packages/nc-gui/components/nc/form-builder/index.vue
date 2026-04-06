@@ -49,6 +49,8 @@ const {
 const { loadIntegrations, addIntegration, integrations, eventBus, pageMode, IntegrationsPageMode } =
   useProvideIntegrationViewStore()
 
+const { integrationVariables, listVariables } = useBaseVariables()
+
 const selectMode = (field: FormBuilderElement) => {
   return field.selectMode === 'multipleWithInput' || field.selectMode === 'singleWithInput'
     ? 'tags'
@@ -64,10 +66,21 @@ const haveIntegrationInput = computed(() => {
 const filteredIntegrations = computed(() => {
   if (!haveIntegrationInput.value) return {}
 
+  // Build maps for inheritable variable resolution:
+  // bvId → realIntegrationId, and realIntegrationId → bvId
+  const inheritableRealIds = new Set<string>()
+  const variableToIntegration = new Map<string, string>()
+  for (const v of integrationVariables.value) {
+    if (v.id && v.fk_integration_id) {
+      variableToIntegration.set(v.id, v.fk_integration_id)
+      inheritableRealIds.add(v.fk_integration_id)
+    }
+  }
+
   return (unref(formSchema) || [])
     .filter((field) => field.type === FormBuilderInputType.SelectIntegration && field.model)
     .reduce((acc, field) => {
-      acc[field.model!] = integrations.value.filter((integration) => {
+      const matched = integrations.value.filter((integration) => {
         if (field.integrationFilter) {
           return (
             (!field.integrationFilter.type || field.integrationFilter.type === integration.type) &&
@@ -76,20 +89,28 @@ const filteredIntegrations = computed(() => {
         }
         return true
       })
+
+      // Replace real integrations behind inheritable variables with virtual entries
+      // that carry the bv ID but display the real integration's title/icon
+      const result: IntegrationType[] = []
+      const resolvedBvIds = new Set<string>()
+
+      for (const integration of matched) {
+        if (inheritableRealIds.has(integration.id as string)) {
+          for (const [bvId, realId] of variableToIntegration) {
+            if (realId === integration.id) {
+              result.push({ ...integration, id: bvId })
+              resolvedBvIds.add(bvId)
+            }
+          }
+        } else {
+          result.push(integration)
+        }
+      }
+
+      acc[field.model!] = result
       return acc
     }, {} as Record<string, IntegrationType[]>)
-})
-
-const integrationOptions = computed(() => {
-  if (!haveIntegrationInput.value) return {}
-
-  return Object.keys(filteredIntegrations.value).reduce((acc, key) => {
-    acc[key] = filteredIntegrations.value[key]!.map((integration) => ({
-      label: integration.title as string,
-      value: integration.id as string,
-    }))
-    return acc
-  }, {} as Record<string, { label: string; value: string }[]>)
 })
 
 const activeModel = ref<string | null>(null)
@@ -238,7 +259,7 @@ watch(
   async (hasIntegration) => {
     // if integration field is available, load the integration state
     if (hasIntegration) {
-      await loadIntegrations()
+      await Promise.all([loadIntegrations(), listVariables()])
     }
   },
   { immediate: true },
@@ -473,7 +494,6 @@ watch(
                   <template v-else-if="field.type === FormBuilderInputType.SelectIntegration">
                     <a-select
                       :value="deepReference(field.model)"
-                      :options="integrationOptions[field.model]"
                       dropdown-match-select-width
                       class="nc-select nc-select-shadow"
                       placeholder="Select Integration"

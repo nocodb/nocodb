@@ -7,6 +7,8 @@ const $route = useRoute()
 
 const { t } = useI18n()
 
+const { isMobileMode } = useGlobal()
+
 const orgId = computed(() => $route.params.orgId as string)
 
 const teams = ref<TeamV3ResponseType[]>([])
@@ -15,11 +17,15 @@ const isLoading = ref(false)
 
 const searchQuery = ref('')
 
-const showCreateDlg = ref(false)
+const isCreateModalVisible = ref(false)
 
 const newTeamTitle = ref('')
 
 const isCreating = ref(false)
+
+const inputEl = ref<HTMLInputElement>()
+
+const { showConfirmModal } = useNcConfirmModal()
 
 const loadTeams = async () => {
   if (!orgId.value) return
@@ -37,39 +43,75 @@ const loadTeams = async () => {
 
 const filteredTeams = computed(() => {
   if (!searchQuery.value) return teams.value
-  const q = searchQuery.value.toLowerCase()
-  return teams.value.filter((t) => t.title?.toLowerCase().includes(q))
+  return teams.value.filter((t) => searchCompare([t.title], searchQuery.value))
 })
 
+const columns = computed(() => [
+  {
+    key: 'teamName',
+    title: t('objects.team'),
+    width: 400,
+    showOrderBy: false,
+  },
+  {
+    key: 'members',
+    title: t('objects.members'),
+    width: 120,
+    showOrderBy: false,
+  },
+  {
+    key: 'actions',
+    title: '',
+    width: 64,
+    showOrderBy: false,
+    align: 'right',
+  },
+])
+
+const handleCreateTeam = () => {
+  newTeamTitle.value = generateUniqueTitle('Team', teams.value ?? [], 'title', '-', true)
+  isCreateModalVisible.value = true
+  nextTick(() => {
+    inputEl.value?.focus()
+    inputEl.value?.select()
+  })
+}
+
 const createTeam = async () => {
-  if (!newTeamTitle.value.trim() || !orgId.value) return
+  if (!newTeamTitle.value.trim() || !orgId.value || isCreating.value) return
 
   try {
     isCreating.value = true
     await $api.instance.post(`/api/v3/meta/workspaces/${orgId.value}/teams`, {
       title: newTeamTitle.value.trim(),
     })
-    showCreateDlg.value = false
+    isCreateModalVisible.value = false
     newTeamTitle.value = ''
     await loadTeams()
     message.success(t('msg.success.teamCreated'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    isCreating.value = false
+    setTimeout(() => {
+      isCreating.value = false
+    }, 500)
   }
 }
 
-const deleteTeam = async (teamId: string) => {
-  if (!orgId.value) return
-
-  try {
-    await $api.instance.delete(`/api/v3/meta/workspaces/${orgId.value}/teams/${teamId}`)
-    await loadTeams()
-    message.success(t('msg.success.teamDeleted'))
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
+const confirmDeleteTeam = (team: TeamV3ResponseType) => {
+  showConfirmModal({
+    title: t('objects.teams.confirmDeleteTeamTitle'),
+    content: t('objects.teams.confirmDeleteTeamSubtitle'),
+    okCallback: async () => {
+      try {
+        await $api.instance.delete(`/api/v3/meta/workspaces/${orgId.value}/teams/${team.id}`)
+        await loadTeams()
+        message.success(t('msg.success.teamDeleted'))
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
+    },
+  })
 }
 
 onMounted(() => {
@@ -78,76 +120,111 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col" data-testid="nc-admin-teams">
-    <div class="flex-1 flex flex-col items-center gap-6 p-6">
-      <div class="flex flex-col gap-6 w-200">
-        <div class="flex justify-between items-center">
-          <span class="font-bold text-xl">{{ $t('title.teams') }}</span>
-        </div>
-
-        <div class="flex gap-4 items-center">
+  <div
+    class="nc-teams-container overflow-auto nc-scrollbar-thin relative h-[calc(100vh-144px)]"
+    data-testid="nc-admin-teams"
+  >
+    <div class="nc-teams-wrapper h-full max-w-[1200px] mx-auto p-4 md:p-6 flex flex-col gap-6 sticky top-0">
+      <div class="w-full flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
           <a-input
             v-model:value="searchQuery"
-            class="!max-w-90 !rounded-md"
+            allow-clear
+            :disabled="isLoading"
+            class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
             :placeholder="$t('title.searchTeams')"
           >
             <template #prefix>
-              <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
+              <GeneralIcon
+                icon="search"
+                class="mr-2 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme"
+              />
             </template>
           </a-input>
-          <div class="flex-1" />
-          <component :is="iconMap.reload" class="cursor-pointer" @click="loadTeams" />
-          <NcButton size="small" type="primary" data-testid="nc-admin-teams-create" @click="showCreateDlg = true">
-            <div class="flex items-center gap-2">
-              <GeneralIcon icon="plus" />
-              {{ $t('labels.createTeam') }}
-            </div>
-          </NcButton>
         </div>
 
-        <div v-if="isLoading" class="flex items-center justify-center py-12">
-          <a-spin />
-        </div>
+        <NcButton
+          size="small"
+          inner-class="!gap-2"
+          :disabled="isLoading"
+          data-testid="nc-admin-teams-create"
+          class="capitalize"
+          :icon-only="isMobileMode"
+          @click="handleCreateTeam()"
+        >
+          <template #icon>
+            <GeneralIcon icon="plus" class="h-4 w-4" />
+          </template>
+          <span class="xs:hidden">
+            {{ $t('labels.newTeam') }}
+          </span>
+        </NcButton>
+      </div>
 
-        <div v-else-if="filteredTeams.length === 0" class="text-nc-content-gray-muted text-sm py-8 text-center">
-          {{ searchQuery ? $t('labels.noResults') : $t('msg.info.noTeamsFound') }}
-        </div>
-
-        <div v-else class="flex flex-col gap-2">
-          <div
-            v-for="team in filteredTeams"
-            :key="team.id"
-            class="flex items-center gap-3 p-3 rounded-lg border border-nc-border-gray-medium hover:bg-nc-bg-gray-light transition-colors"
+      <NcTable
+        :columns="columns"
+        :data="filteredTeams"
+        :is-data-loading="isLoading"
+        :bordered="false"
+        class="flex-1 nc-teams-list"
+        :pagination="true"
+        :pagination-offset="25"
+      >
+        <template #emptyText>
+          <NcEmptyPlaceholder
+            :title="teams.length ? '' : $t('msg.info.noTeamsFound')"
+            :subtitle="teams.length ? $t('title.noResultsMatchedYourSearch') : ''"
           >
-            <GeneralTeamIcon v-if="team.icon" :team="team" class="!w-8 !h-8 flex-none" />
-            <div v-else class="w-8 h-8 rounded-md bg-nc-bg-brand flex items-center justify-center text-white text-sm font-semibold flex-none">
-              {{ team.title?.charAt(0)?.toUpperCase() }}
-            </div>
+            <template #icon>
+              <img
+                v-if="!teams.length"
+                src="~assets/img/placeholder/moscot-collaborators.png"
+                alt="New Team"
+                class="!w-[320px] flex-none"
+              />
+              <img
+                v-else
+                src="~assets/img/placeholder/no-search-result-found.png"
+                alt="No search results found"
+                class="!w-[320px] flex-none"
+              />
+            </template>
+            <template #action>
+              <NcButton size="small" inner-class="!gap-2" class="capitalize" @click="handleCreateTeam()">
+                <template #icon>
+                  <GeneralIcon icon="plus" class="h-4 w-4" />
+                </template>
+                {{ $t('labels.newTeam') }}
+              </NcButton>
+            </template>
+          </NcEmptyPlaceholder>
+        </template>
 
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2">
-                <span class="font-medium truncate">{{ team.title }}</span>
-                <NcBadge
-                  v-if="team.scim_managed"
-                  :border="false"
-                  color="green"
-                  class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
-                >
-                  SCIM
-                </NcBadge>
-              </div>
-              <div class="text-xs text-nc-content-gray-muted">
-                {{ team.members_count }} {{ team.members_count === 1 ? $t('objects.member') : $t('objects.members') }}
-              </div>
-            </div>
+        <template #bodyCell="{ column, record }">
+          <div v-if="column.key === 'teamName'" class="flex items-center gap-1">
+            <GeneralTeamInfo :team="record" :icon-props="{ size: 'base', wrapperClass: '!rounded-lg' }" />
+            <NcBadge
+              v-if="record.scim_managed"
+              :border="false"
+              color="green"
+              class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+            >
+              SCIM
+            </NcBadge>
+          </div>
 
-            <NcDropdown v-if="!team.scim_managed">
-              <NcButton size="xsmall" type="text">
-                <GeneralIcon icon="threeDotVertical" />
+          <div v-if="column.key === 'members'" class="text-nc-content-gray-muted">
+            {{ record.members_count ?? 0 }}
+          </div>
+
+          <div v-if="column.key === 'actions'" class="flex items-center justify-end">
+            <NcDropdown v-if="!record.scim_managed">
+              <NcButton size="xsmall" type="text" class="!px-1">
+                <GeneralIcon icon="threeDotVertical" class="text-nc-content-gray-muted" />
               </NcButton>
               <template #overlay>
                 <NcMenu>
-                  <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="deleteTeam(team.id)">
+                  <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="confirmDeleteTeam(record)">
                     <GeneralIcon icon="delete" />
                     {{ $t('general.delete') }}
                   </NcMenuItem>
@@ -155,35 +232,74 @@ onMounted(() => {
               </template>
             </NcDropdown>
           </div>
-        </div>
-      </div>
+        </template>
+      </NcTable>
     </div>
 
-    <NcModal v-model:visible="showCreateDlg" size="sm" :mask-closable="false">
-      <div class="p-6">
-        <div class="font-bold text-lg mb-4">{{ $t('labels.createTeam') }}</div>
-        <a-input
-          v-model:value="newTeamTitle"
-          :placeholder="$t('labels.teamName')"
-          data-testid="nc-admin-teams-create-input"
-          @keydown.enter="createTeam"
-        />
-        <div class="flex justify-end gap-2 mt-4">
-          <NcButton type="secondary" size="small" @click="showCreateDlg = false">
-            {{ $t('general.cancel') }}
-          </NcButton>
-          <NcButton
-            type="primary"
-            size="small"
-            :loading="isCreating"
-            :disabled="!newTeamTitle.trim()"
-            data-testid="nc-admin-teams-create-submit"
-            @click="createTeam"
-          >
-            {{ $t('general.create') }}
-          </NcButton>
+    <!-- Create Team Modal — matches workspace-level Create.vue style -->
+    <NcModal
+      v-model:visible="isCreateModalVisible"
+      :header="$t('labels.newTeam')"
+      size="xs"
+      height="auto"
+      :centered="false"
+      nc-modal-class-name="!p-0"
+      class="!top-[25vh]"
+      :mask-closable="!isCreating"
+      wrap-class-name="nc-modal-team-create-wrapper"
+    >
+      <div class="py-4 md:py-5 flex flex-col gap-5">
+        <div class="px-4 md:px-5 flex justify-between w-full items-center">
+          <div class="flex flex-row items-center gap-x-2 text-base font-semibold text-nc-content-gray capitalize">
+            <GeneralIcon icon="ncBuilding" class="!text-nc-content-gray-subtle2 w-5 h-5" />
+            {{ $t('labels.newTeam') }}
+          </div>
         </div>
+
+        <a-form
+          layout="vertical"
+          name="create-new-org-team-form"
+          class="flex flex-col gap-5 !px-4 md:!px-5"
+          @keydown.enter="createTeam"
+          @keydown.esc="isCreateModalVisible = false"
+        >
+          <a-form-item class="!mb-0">
+            <a-input
+              ref="inputEl"
+              v-model:value="newTeamTitle"
+              class="nc-team-input nc-input-sm nc-input-shadow"
+              hide-details
+              data-testid="nc-admin-teams-create-input"
+              :placeholder="$t('placeholder.enterTeamName')"
+            />
+          </a-form-item>
+
+          <div class="flex flex-row items-center justify-end gap-x-2">
+            <NcButton type="secondary" size="small" :disabled="isCreating" @click="isCreateModalVisible = false">
+              {{ $t('general.cancel') }}
+            </NcButton>
+            <NcButton
+              v-e="['a:org-team:create']"
+              type="primary"
+              size="small"
+              :disabled="!newTeamTitle.trim() || isCreating"
+              :loading="isCreating"
+              class="capitalize"
+              data-testid="nc-admin-teams-create-submit"
+              @click="createTeam"
+            >
+              {{ $t('labels.createTeam') }}
+              <template #loading> {{ $t('labels.creatingTeam') }} </template>
+            </NcButton>
+          </div>
+        </a-form>
       </div>
     </NcModal>
   </div>
 </template>
+
+<style scoped lang="scss">
+.ant-form-item {
+  @apply mb-0;
+}
+</style>

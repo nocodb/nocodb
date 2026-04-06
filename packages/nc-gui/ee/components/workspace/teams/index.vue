@@ -39,7 +39,10 @@ const hasEditPermission = computed(() => {
 
 const workspaceStore = useWorkspace()
 
-const { teams, isTeamsLoading, collaboratorsMap, activeWorkspace, isTeamsEnabled } = storeToRefs(workspaceStore)
+const { teams: allTeams, isTeamsLoading, collaboratorsMap, activeWorkspace, isTeamsEnabled } = storeToRefs(workspaceStore)
+
+// Filter out org-scoped teams — they are managed at the org admin level
+const teams = computed(() => (allTeams.value || []).filter((t: any) => t.scope !== 'org'))
 
 const { blockTeamHierarchy, showUpgradeToUseTeamHierarchy } = useEeConfig()
 

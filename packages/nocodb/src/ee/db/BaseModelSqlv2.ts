@@ -1875,7 +1875,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const execQueries: ((trx: CustomKnex) => Knex.QueryBuilder)[] = [];
 
       for (const column of this.model.columns) {
-        if (column.uidt !== UITypes.LinkToAnotherRecord) continue;
+        if (!isLinksOrLTAR(column)) continue;
 
         const colOptions =
           await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
@@ -3540,7 +3540,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const base = await this.getSource();
 
       for (const column of this.model.columns) {
-        if (column.uidt !== UITypes.LinkToAnotherRecord) continue;
+        if (!isLinksOrLTAR(column)) continue;
 
         const colOptions =
           await column.getColOptions<LinkToAnotherRecordColumn>(this.context);

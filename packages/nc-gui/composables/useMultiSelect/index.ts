@@ -929,6 +929,9 @@ export function useMultiSelect(
         onActiveCellChanged?.()
         break
       case 'Enter': {
+        // Skip if IME composition is in progress (e.g. Japanese/Chinese input)
+        if (e.isComposing) break
+
         selectedRange.clear()
 
         if (removeInlineAddRecord.value && activeCell.row >= EXTERNAL_SOURCE_VISIBLE_ROWS - 1) return

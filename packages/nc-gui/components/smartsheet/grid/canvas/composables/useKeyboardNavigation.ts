@@ -246,7 +246,7 @@ export function useKeyboardNavigation({
         return
 
       case 'Enter':
-        if (e.shiftKey) return
+        if (e.shiftKey || e.isComposing) return
         if (!editEnabled.value) {
           e.preventDefault()
           const column = columns.value[activeCell.value.column]

@@ -89,11 +89,23 @@ defineExpose({
         <div class="h-5 flex items-center gap-1 px-1 rounded-md text-nc-content-brand bg-nc-bg-brand-inverted select-none">
           <template v-if="searchField === ALL_FIELDS_ID">
             <GeneralIcon icon="ncList" class="!w-3.5 !h-3.5 !mx-0" />
-            <span class="text-bodyDefaultSm font-medium truncate max-w-16">{{ $t('general.allVisibleFields') }}</span>
+            <NcTooltip
+              class="min-w-0 text-bodyDefaultSm font-medium truncate max-w-16"
+              :title="$t('general.allVisibleFields')"
+              show-on-truncate-only
+            >
+              {{ $t('general.allVisibleFields') }}
+            </NcTooltip>
           </template>
           <template v-else-if="selectedSearchField">
             <SmartsheetHeaderIcon :column="selectedSearchField" class="!w-3.5 !h-3.5 !mx-0" />
-            <span class="text-bodyDefaultSm font-medium truncate max-w-16">{{ selectedSearchField.title }}</span>
+            <NcTooltip
+              class="min-w-0 text-bodyDefaultSm font-medium truncate max-w-16"
+              :title="selectedSearchField.title"
+              show-on-truncate-only
+            >
+              {{ selectedSearchField.title }}
+            </NcTooltip>
           </template>
           <GeneralIcon
             icon="chevronDown"

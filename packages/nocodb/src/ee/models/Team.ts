@@ -672,12 +672,18 @@ export default class Team {
    */
   public static async getTree(
     context: NcContext,
-    workspaceId: string,
+    workspaceOrOrgId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<(Team & { children: Team[] })[]> {
+    // Detect scope: if context has org_id matching the param, use org scope
+    const isOrgScope =
+      context.org_id === workspaceOrOrgId ||
+      (!context.workspace_id && !!workspaceOrOrgId);
     const allTeams = await this.list(
       context,
-      { fk_workspace_id: workspaceId },
+      isOrgScope
+        ? { fk_org_id: workspaceOrOrgId }
+        : { fk_workspace_id: workspaceOrOrgId },
       ncMeta,
     );
 

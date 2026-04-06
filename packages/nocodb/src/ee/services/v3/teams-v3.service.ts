@@ -754,7 +754,8 @@ export class TeamsV3Service {
       await this.paymentService.reseatSubscription(workspace.id);
     }
 
-    NocoSocket.broadcastEvent(
+    // Skip broadcast for org teams (no workspace_id = no socket subscription)
+    if (context.workspace_id) NocoSocket.broadcastEvent(
       context,
       {
         event: EventType.TEAM_EVENT,
@@ -901,7 +902,8 @@ export class TeamsV3Service {
       await this.paymentService.reseatSubscription(workspace.id);
     }
 
-    NocoSocket.broadcastEvent(
+    // Skip broadcast for org teams (no workspace_id = no socket subscription)
+    if (context.workspace_id) NocoSocket.broadcastEvent(
       context,
       {
         event: EventType.TEAM_EVENT,
@@ -947,23 +949,30 @@ export class TeamsV3Service {
       ? await Workspace.get(team.fk_workspace_id)
       : null;
 
-    // Check if user is team manager or org owner
+    // Check if user is team manager or org admin
     const userId = param.req.user?.id;
     if (userId) {
-      // Check if user is assigned as manager to this team
-      const assignment = await PrincipalAssignment.get(
-        context,
-        ResourceType.TEAM,
-        param.teamId,
-        PrincipalType.USER,
-        userId,
-      );
-      const isTeamManager =
-        assignment && assignment.roles === TeamUserRoles.OWNER;
+      const isOrgTeam = !!team.fk_org_id && !team.fk_workspace_id;
 
-      // TODO: Add org owner check when org ownership is implemented
-      if (!isTeamManager) {
-        NcError.get(context).forbidden('Only team managers can delete teams');
+      if (isOrgTeam) {
+        // Org teams: only org admins can delete
+        if (!(await this.isUserOrgAdmin(team.fk_org_id, userId))) {
+          NcError.get(context).forbidden(
+            'Only org admins can delete org-level teams',
+          );
+        }
+      } else {
+        // Workspace teams: only team managers can delete
+        const assignment = await PrincipalAssignment.get(
+          context,
+          ResourceType.TEAM,
+          param.teamId,
+          PrincipalType.USER,
+          userId,
+        );
+        if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
+          NcError.get(context).forbidden('Only team managers can delete teams');
+        }
       }
     }
 
@@ -1026,7 +1035,8 @@ export class TeamsV3Service {
       await this.paymentService.reseatSubscription(workspace.id);
     }
 
-    NocoSocket.broadcastEvent(
+    // Skip broadcast for org teams (no workspace_id = no socket subscription)
+    if (context.workspace_id) NocoSocket.broadcastEvent(
       context,
       {
         event: EventType.TEAM_EVENT,
@@ -1070,19 +1080,28 @@ export class TeamsV3Service {
       ? await Workspace.get(team.fk_workspace_id)
       : null;
 
-    // Check if user is team manager
+    // Check if user is team manager or org admin
     const userId = param.req.user?.id;
     if (userId) {
-      // Check if user is assigned as manager to this team
-      const assignment = await PrincipalAssignment.get(
-        context,
-        ResourceType.TEAM,
-        param.teamId,
-        PrincipalType.USER,
-        userId,
-      );
-      if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
-        NcError.get(context).forbidden('Only team managers can add members');
+      const isOrgTeam = !!team.fk_org_id && !team.fk_workspace_id;
+
+      if (isOrgTeam) {
+        if (!(await this.isUserOrgAdmin(team.fk_org_id, userId))) {
+          NcError.get(context).forbidden(
+            'Only org admins can manage org-level team members',
+          );
+        }
+      } else {
+        const assignment = await PrincipalAssignment.get(
+          context,
+          ResourceType.TEAM,
+          param.teamId,
+          PrincipalType.USER,
+          userId,
+        );
+        if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
+          NcError.get(context).forbidden('Only team managers can add members');
+        }
       }
     }
 
@@ -1188,7 +1207,8 @@ export class TeamsV3Service {
       };
     });
 
-    NocoSocket.broadcastEvent(
+    // Skip broadcast for org teams (no workspace_id = no socket subscription)
+    if (context.workspace_id) NocoSocket.broadcastEvent(
       context,
       {
         event: EventType.TEAM_EVENT,
@@ -1256,10 +1276,15 @@ export class TeamsV3Service {
       currentAssignments.map((a) => [a.principal_ref_id, a]),
     );
 
-    // Hoist manager check outside the loop — only need to check once
-    const isTeamManager = userId
+    // Hoist permission check outside the loop
+    const isOrgTeam = !!team.fk_org_id && !team.fk_workspace_id;
+    const isOrgAdmin = isOrgTeam && userId
+      ? await this.isUserOrgAdmin(team.fk_org_id, userId)
+      : false;
+    const isTeamManager = !isOrgTeam && userId
       ? assignmentsByUserId.get(userId)?.roles === TeamUserRoles.OWNER
       : false;
+    const canManage = isOrgAdmin || isTeamManager;
 
     // Count current managers for last-manager protection
     let managersCount = currentAssignments.filter(
@@ -1274,9 +1299,9 @@ export class TeamsV3Service {
       }
 
       const isSelfRemoval = userId === member.user_id;
-      if (!isTeamManager && !isSelfRemoval) {
+      if (!canManage && !isSelfRemoval) {
         NcError.get(context).forbidden(
-          'Only team managers can remove members or users can remove themselves',
+          'Only team managers or org admins can remove members',
         );
       }
 
@@ -1336,7 +1361,8 @@ export class TeamsV3Service {
     // Recalculate seat count after removing team members
     if (team.fk_workspace_id) { await this.paymentService.reseatSubscription(team.fk_workspace_id); }
 
-    NocoSocket.broadcastEvent(
+    // Skip broadcast for org teams (no workspace_id = no socket subscription)
+    if (context.workspace_id) NocoSocket.broadcastEvent(
       context,
       {
         event: EventType.TEAM_EVENT,
@@ -1381,21 +1407,30 @@ export class TeamsV3Service {
       ? await Workspace.get(team.fk_workspace_id)
       : null;
 
-    // Check if user is team manager
+    // Check if user is team manager or org admin
     const userId = param.req.user?.id;
     if (userId) {
-      // Check if user is assigned as manager to this team
-      const assignment = await PrincipalAssignment.get(
-        context,
-        ResourceType.TEAM,
-        param.teamId,
-        PrincipalType.USER,
-        userId,
-      );
-      if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
-        NcError.get(context).forbidden(
-          'Only team managers can update member roles',
+      const isOrgTeam = !!team.fk_org_id && !team.fk_workspace_id;
+
+      if (isOrgTeam) {
+        if (!(await this.isUserOrgAdmin(team.fk_org_id, userId))) {
+          NcError.get(context).forbidden(
+            'Only org admins can update org-level team member roles',
+          );
+        }
+      } else {
+        const assignment = await PrincipalAssignment.get(
+          context,
+          ResourceType.TEAM,
+          param.teamId,
+          PrincipalType.USER,
+          userId,
         );
+        if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
+          NcError.get(context).forbidden(
+            'Only team managers can update member roles',
+          );
+        }
       }
     }
 
@@ -1488,7 +1523,8 @@ export class TeamsV3Service {
       };
     });
 
-    NocoSocket.broadcastEvent(
+    // Skip broadcast for org teams (no workspace_id = no socket subscription)
+    if (context.workspace_id) NocoSocket.broadcastEvent(
       context,
       {
         event: EventType.TEAM_EVENT,
@@ -1758,7 +1794,8 @@ export class TeamsV3Service {
       workspace,
     });
 
-    NocoSocket.broadcastEvent(
+    // Skip broadcast for org teams (no workspace_id = no socket subscription)
+    if (context.workspace_id) NocoSocket.broadcastEvent(
       context,
       {
         event: EventType.TEAM_EVENT,

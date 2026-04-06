@@ -104,7 +104,7 @@ const loadTeams = async () => {
 
   try {
     isLoading.value = true
-    const response = await $api.instance.get(`/api/v3/meta/workspaces/${orgId.value}/teams`)
+    const response = await $api.instance.get(`/api/v3/meta/orgs/${orgId.value}/teams`)
     teams.value = (response.data?.list || []).filter((t: TeamV3ResponseType) => t.scope === 'org')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -116,7 +116,7 @@ const loadTeams = async () => {
 const loadTeamDetail = async (teamId: string) => {
   try {
     isEditLoading.value = true
-    const response = await $api.instance.get(`/api/v3/meta/workspaces/${orgId.value}/teams/${teamId}`)
+    const response = await $api.instance.get(`/api/v3/meta/orgs/${orgId.value}/teams/${teamId}`)
     editTeam.value = response.data
     editTeamMembers.value = response.data?.members || []
   } catch (e: any) {
@@ -146,7 +146,7 @@ const createTeam = async () => {
 
   try {
     isCreating.value = true
-    await $api.instance.post(`/api/v3/meta/workspaces/${orgId.value}/teams`, {
+    await $api.instance.post(`/api/v3/meta/orgs/${orgId.value}/teams`, {
       title: newTeamTitle.value.trim(),
       ...(createTeamParentId.value ? { parent_team_id: createTeamParentId.value } : {}),
     })
@@ -171,7 +171,7 @@ const _updateTeamTitle = async (teamId: string, title: string) => {
   if (!title?.trim()) return
 
   try {
-    await $api.instance.patch(`/api/v3/meta/workspaces/${orgId.value}/teams/${teamId}`, { title: title.trim() })
+    await $api.instance.patch(`/api/v3/meta/orgs/${orgId.value}/teams/${teamId}`, { title: title.trim() })
     await loadTeams()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -251,7 +251,7 @@ const handleDeleteTeam = (team: TeamV3ResponseType) => {
     okCallback: async () => {
       try {
         await $api.instance.delete(
-          `/api/v3/meta/workspaces/${orgId.value}/teams/${team.id}${teamHasChildren ? '?force=true' : ''}`,
+          `/api/v3/meta/orgs/${orgId.value}/teams/${team.id}${teamHasChildren ? '?force=true' : ''}`,
         )
         await loadTeams()
         message.success(t('msg.success.teamDeleted'))
@@ -311,7 +311,7 @@ const handleAddMembers = async () => {
 
   try {
     isAddingMembers.value = true
-    await $api.instance.post(`/api/v3/meta/workspaces/${orgId.value}/teams/${editTeamId.value}/members`,
+    await $api.instance.post(`/api/v3/meta/orgs/${orgId.value}/teams/${editTeamId.value}/members`,
       selectedNewUsers.value.map((u: any) => ({
         user_id: u.id,
         team_role: 'team-level-member',
@@ -340,7 +340,7 @@ const handleRemoveMember = async (userId: string) => {
   if (!editTeamId.value) return
 
   try {
-    await $api.instance.delete(`/api/v3/meta/workspaces/${orgId.value}/teams/${editTeamId.value}/members`, {
+    await $api.instance.delete(`/api/v3/meta/orgs/${orgId.value}/teams/${editTeamId.value}/members`, {
       data: [{ user_id: userId }],
     })
     editTeamMembers.value = editTeamMembers.value.filter((m: any) => m.user_id !== userId)

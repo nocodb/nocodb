@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import type { TeamV3ResponseType } from 'nocodb-sdk'
 
-const { $api } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
-const $route = useRoute()
+const router = useRouter()
+
+const route = router.currentRoute
 
 const { t } = useI18n()
 
 const { isMobileMode } = useGlobal()
 
-const orgId = computed(() => $route.params.orgId as string)
+const orgId = computed(() => route.value.params.orgId as string)
 
 const teams = ref<TeamV3ResponseType[]>([])
 
@@ -19,14 +21,84 @@ const searchQuery = ref('')
 
 const isCreateModalVisible = ref(false)
 
+const createTeamParentId = ref<string | null>(null)
+
 const newTeamTitle = ref('')
 
 const isCreating = ref(false)
 
 const inputEl = ref<HTMLInputElement>()
 
-const { showConfirmModal } = useNcConfirmModal()
+// Edit modal state
+const editTeamId = ref<string | null>(null)
 
+const editTeam = ref<any>(null)
+
+const editTeamMembers = ref<any[]>([])
+
+const isEditModalOpen = ref(false)
+
+const isEditLoading = ref(false)
+
+// Tree view
+const viewMode = ref<'flat' | 'tree'>('tree')
+
+const expandedTeams = ref(new Set<string>())
+
+const toggleExpand = (teamId: string) => {
+  if (expandedTeams.value.has(teamId)) {
+    expandedTeams.value.delete(teamId)
+  } else {
+    expandedTeams.value.add(teamId)
+  }
+}
+
+const hasChildren = (teamId: string) => {
+  return teams.value.some((t: any) => t.fk_parent_team_id === teamId)
+}
+
+const flattenedTreeTeams = computed(() => {
+  if (viewMode.value !== 'tree') return []
+
+  const result: (TeamV3ResponseType & { _treeDepth: number })[] = []
+
+  if (searchQuery.value) {
+    return teams.value
+      .filter((team) => searchCompare([team.title], searchQuery.value))
+      .map((team) => ({ ...team, _treeDepth: 0 }))
+  }
+
+  const childrenMap = new Map<string | null, TeamV3ResponseType[]>()
+  for (const team of teams.value) {
+    const parentId = (team as any).fk_parent_team_id || null
+    if (!childrenMap.has(parentId)) childrenMap.set(parentId, [])
+    childrenMap.get(parentId)!.push(team)
+  }
+
+  const walk = (parentId: string | null, depth: number) => {
+    const children = childrenMap.get(parentId) || []
+    for (const child of children) {
+      result.push({ ...child, _treeDepth: depth } as any)
+      if (expandedTeams.value.has(child.id)) {
+        walk(child.id, depth + 1)
+      }
+    }
+  }
+
+  walk(null, 0)
+  return result
+})
+
+const filteredTeams = computed(() => {
+  if (!searchQuery.value) return teams.value
+  return teams.value.filter((t) => searchCompare([t.title], searchQuery.value))
+})
+
+const tableData = computed(() => {
+  return viewMode.value === 'tree' ? flattenedTreeTeams.value : filteredTeams.value
+})
+
+// API methods
 const loadTeams = async () => {
   if (!orgId.value) return
 
@@ -41,34 +113,21 @@ const loadTeams = async () => {
   }
 }
 
-const filteredTeams = computed(() => {
-  if (!searchQuery.value) return teams.value
-  return teams.value.filter((t) => searchCompare([t.title], searchQuery.value))
-})
+const loadTeamDetail = async (teamId: string) => {
+  try {
+    isEditLoading.value = true
+    const response = await $api.instance.get(`/api/v3/meta/workspaces/${orgId.value}/teams/${teamId}`)
+    editTeam.value = response.data
+    editTeamMembers.value = response.data?.members || []
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isEditLoading.value = false
+  }
+}
 
-const columns = computed(() => [
-  {
-    key: 'teamName',
-    title: t('objects.team'),
-    width: 400,
-    showOrderBy: false,
-  },
-  {
-    key: 'members',
-    title: t('objects.members'),
-    width: 120,
-    showOrderBy: false,
-  },
-  {
-    key: 'actions',
-    title: '',
-    width: 64,
-    showOrderBy: false,
-    align: 'right',
-  },
-])
-
-const handleCreateTeam = () => {
+const handleCreateTeam = (parentId?: string | null) => {
+  createTeamParentId.value = parentId || null
   newTeamTitle.value = generateUniqueTitle('Team', teams.value ?? [], 'title', '-', true)
   isCreateModalVisible.value = true
   nextTick(() => {
@@ -84,9 +143,14 @@ const createTeam = async () => {
     isCreating.value = true
     await $api.instance.post(`/api/v3/meta/workspaces/${orgId.value}/teams`, {
       title: newTeamTitle.value.trim(),
+      ...(createTeamParentId.value ? { parent_team_id: createTeamParentId.value } : {}),
     })
     isCreateModalVisible.value = false
     newTeamTitle.value = ''
+    if (createTeamParentId.value) {
+      expandedTeams.value.add(createTeamParentId.value)
+    }
+    createTeamParentId.value = null
     await loadTeams()
     message.success(t('msg.success.teamCreated'))
   } catch (e: any) {
@@ -98,13 +162,88 @@ const createTeam = async () => {
   }
 }
 
-const confirmDeleteTeam = (team: TeamV3ResponseType) => {
-  showConfirmModal({
-    title: t('objects.teams.confirmDeleteTeamTitle'),
-    content: t('objects.teams.confirmDeleteTeamSubtitle'),
+const updateTeamTitle = async (teamId: string, title: string) => {
+  try {
+    await $api.instance.patch(`/api/v3/meta/workspaces/${orgId.value}/teams/${teamId}`, { title })
+    await loadTeams()
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+const handleEditTeam = (team: TeamV3ResponseType) => {
+  if (!team?.id) return
+
+  editTeamId.value = team.id
+  isEditModalOpen.value = true
+  loadTeamDetail(team.id)
+
+  $e('c:org-team:edit', { teamId: team.id })
+}
+
+const closeEditModal = () => {
+  isEditModalOpen.value = false
+  editTeamId.value = null
+  editTeam.value = null
+  editTeamMembers.value = []
+}
+
+const handleConfirm = ({
+  title,
+  content,
+  okText,
+  cancelText,
+  okCallback = () => Promise.resolve(),
+}: {
+  title: string
+  content: string
+  okText?: string
+  cancelText?: string
+  okCallback?: () => Promise<void>
+}) => {
+  const isOpen = ref(true)
+  const okProps = ref({ loading: false, type: 'danger' })
+
+  const { close } = useDialog(resolveComponent('NcModalConfirm'), {
+    'visible': isOpen,
+    'title': title,
+    'content': content,
+    'okText': okText,
+    'cancelText': cancelText,
+    'onCancel': closeDialog,
+    'onOk': async () => {
+      okProps.value.loading = true
+      await okCallback()
+      okProps.value.loading = false
+      closeDialog()
+    },
+    'okProps': okProps,
+    'update:visible': closeDialog,
+    'showIcon': false,
+    'maskClosable': true,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+    close(1000)
+  }
+}
+
+const handleDeleteTeam = (team: TeamV3ResponseType) => {
+  const teamHasChildren = hasChildren(team.id)
+
+  handleConfirm({
+    title: teamHasChildren ? t('objects.teams.confirmDeleteTeamWithChildrenTitle') : t('objects.teams.confirmDeleteTeamTitle'),
+    content: teamHasChildren
+      ? t('objects.teams.confirmDeleteTeamWithChildrenSubtitle')
+      : t('objects.teams.confirmDeleteTeamSubtitle'),
+    okText: t('activity.deleteTeam'),
+    cancelText: t('labels.cancel'),
     okCallback: async () => {
       try {
-        await $api.instance.delete(`/api/v3/meta/workspaces/${orgId.value}/teams/${team.id}`)
+        await $api.instance.delete(
+          `/api/v3/meta/workspaces/${orgId.value}/teams/${team.id}${teamHasChildren ? '?force=true' : ''}`,
+        )
         await loadTeams()
         message.success(t('msg.success.teamDeleted'))
       } catch (e: any) {
@@ -113,6 +252,69 @@ const confirmDeleteTeam = (team: TeamV3ResponseType) => {
     },
   })
 }
+
+const handleRemoveMember = async (userId: string) => {
+  if (!editTeamId.value) return
+
+  try {
+    await $api.instance.delete(`/api/v3/meta/workspaces/${orgId.value}/teams/${editTeamId.value}/members`, {
+      data: [{ user_id: userId }],
+    })
+    editTeamMembers.value = editTeamMembers.value.filter((m: any) => m.user_id !== userId)
+    await loadTeams()
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+// Table columns
+const columns = computed(() => [
+  {
+    key: 'teamName',
+    title: t('labels.teamName'),
+    minWidth: 220,
+    showOrderBy: false,
+  },
+  {
+    key: 'members',
+    title: t('objects.members'),
+    width: 120,
+    showOrderBy: false,
+  },
+  {
+    key: 'action',
+    title: t('labels.actions'),
+    width: 110,
+    minWidth: 110,
+    justify: 'justify-end',
+  },
+])
+
+const customRow = (record: Record<string, any>) => ({
+  onClick: () => handleEditTeam(record as TeamV3ResponseType),
+})
+
+// Parent team options for create dialog
+const parentTeamOptions = computed(() => {
+  return (teams.value || []).filter((t: any) => (t.depth ?? 0) < 3)
+})
+
+// Expand parent teams by default
+watch(
+  teams,
+  (newTeams) => {
+    if (newTeams?.length) {
+      const parentIds = new Set<string>()
+      for (const t of newTeams as any[]) {
+        if (t.fk_parent_team_id) {
+          parentIds.add(t.fk_parent_team_id)
+        }
+      }
+      expandedTeams.value = parentIds
+    }
+  },
+  { immediate: true },
+)
 
 onMounted(() => {
   loadTeams()
@@ -125,6 +327,7 @@ onMounted(() => {
     data-testid="nc-admin-teams"
   >
     <div class="nc-teams-wrapper h-full max-w-[1200px] mx-auto p-4 md:p-6 flex flex-col gap-6 sticky top-0">
+      <!-- Header -->
       <div class="w-full flex items-center justify-between gap-3">
         <div class="flex items-center gap-3">
           <a-input
@@ -141,6 +344,29 @@ onMounted(() => {
               />
             </template>
           </a-input>
+
+          <div class="flex items-center gap-0.5 border-1 border-nc-border-gray-medium rounded-lg p-0.5 min-h-8">
+            <NcTooltip :title="$t('labels.flatView')" class="flex">
+              <NcButton
+                size="xsmall"
+                :type="viewMode === 'flat' ? 'secondary' : 'text'"
+                class="!px-0"
+                @click="viewMode = 'flat'"
+              >
+                <GeneralIcon icon="ncList" class="h-4 w-4" />
+              </NcButton>
+            </NcTooltip>
+            <NcTooltip :title="$t('labels.treeView')" class="flex">
+              <NcButton
+                size="xsmall"
+                :type="viewMode === 'tree' ? 'secondary' : 'text'"
+                class="!px-0"
+                @click="viewMode = 'tree'"
+              >
+                <GeneralIcon icon="ncLayers" class="h-4 w-4" />
+              </NcButton>
+            </NcTooltip>
+          </div>
         </div>
 
         <NcButton
@@ -161,14 +387,16 @@ onMounted(() => {
         </NcButton>
       </div>
 
+      <!-- Teams table -->
       <NcTable
         :columns="columns"
-        :data="filteredTeams"
+        :data="tableData"
         :is-data-loading="isLoading"
         :bordered="false"
         class="flex-1 nc-teams-list"
-        :pagination="true"
+        :pagination="viewMode === 'flat'"
         :pagination-offset="25"
+        :custom-row="customRow"
       >
         <template #emptyText>
           <NcEmptyPlaceholder
@@ -201,7 +429,25 @@ onMounted(() => {
         </template>
 
         <template #bodyCell="{ column, record }">
+          <!-- Team name column -->
           <div v-if="column.key === 'teamName'" class="flex items-center gap-1">
+            <div
+              v-if="viewMode === 'tree'"
+              :style="{ width: `${((record as any)._treeDepth || 0) * (isMobileMode ? 16 : 24)}px` }"
+              class="flex-none"
+            />
+            <button
+              v-if="viewMode === 'tree' && hasChildren(record.id)"
+              class="flex-none w-5 h-5 flex items-center justify-center rounded hover:bg-nc-bg-gray-light cursor-pointer"
+              @click.stop="toggleExpand(record.id)"
+            >
+              <GeneralIcon
+                :icon="expandedTeams.has(record.id) ? 'ncChevronDown' : 'ncChevronRight'"
+                class="h-4 w-4 text-nc-content-gray-muted"
+              />
+            </button>
+            <div v-else-if="viewMode === 'tree'" class="flex-none w-5" />
+
             <GeneralTeamInfo :team="record" :icon-props="{ size: 'base', wrapperClass: '!rounded-lg' }" />
             <NcBadge
               v-if="record.scim_managed"
@@ -213,20 +459,45 @@ onMounted(() => {
             </NcBadge>
           </div>
 
+          <!-- Members column -->
           <div v-if="column.key === 'members'" class="text-nc-content-gray-muted">
             {{ record.members_count ?? 0 }}
           </div>
 
-          <div v-if="column.key === 'actions'" class="flex items-center justify-end">
-            <NcDropdown v-if="!record.scim_managed">
-              <NcButton size="xsmall" type="text" class="!px-1">
-                <GeneralIcon icon="threeDotVertical" class="text-nc-content-gray-muted" />
+          <!-- Actions column -->
+          <div v-if="column.key === 'action'" @click.stop>
+            <NcDropdown placement="bottomRight">
+              <NcButton size="small" type="secondary">
+                <component :is="iconMap.ncMoreVertical" />
               </NcButton>
               <template #overlay>
-                <NcMenu>
-                  <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="confirmDeleteTeam(record)">
+                <NcMenu variant="medium">
+                  <NcMenuItem
+                    v-e="['c:org-team:edit', { teamId: record.id }]"
+                    @click="handleEditTeam(record as TeamV3ResponseType)"
+                  >
+                    <GeneralIcon icon="ncEdit" class="h-4 w-4" />
+                    {{ $t('general.edit') }}
+                  </NcMenuItem>
+
+                  <NcMenuItem
+                    v-if="(record.depth ?? 0) < 3"
+                    v-e="['c:org-team:add-sub-team', { teamId: record.id }]"
+                    @click="handleCreateTeam(record.id)"
+                  >
+                    <GeneralIcon icon="plus" class="h-4 w-4" />
+                    {{ $t('labels.addSubTeam') }}
+                  </NcMenuItem>
+
+                  <NcDivider />
+
+                  <NcMenuItem
+                    v-e="['c:org-team:delete', { teamId: record.id }]"
+                    danger
+                    @click="handleDeleteTeam(record as TeamV3ResponseType)"
+                  >
                     <GeneralIcon icon="delete" />
-                    {{ $t('general.delete') }}
+                    {{ $t('activity.deleteTeam') }}
                   </NcMenuItem>
                 </NcMenu>
               </template>
@@ -236,7 +507,7 @@ onMounted(() => {
       </NcTable>
     </div>
 
-    <!-- Create Team Modal — matches workspace-level Create.vue style -->
+    <!-- Create Team Modal -->
     <NcModal
       v-model:visible="isCreateModalVisible"
       :header="$t('labels.newTeam')"
@@ -274,6 +545,45 @@ onMounted(() => {
             />
           </a-form-item>
 
+          <!-- Parent team selector -->
+          <a-form-item v-if="parentTeamOptions.length" class="!mb-0">
+            <div class="flex gap-3 text-nc-content-gray h-7 mb-1 items-center">
+              <span class="text-bodyDefaultSm">{{ $t('labels.parentTeam') }}</span>
+            </div>
+            <NcSelect
+              v-model:value="createTeamParentId"
+              :placeholder="$t('general.none')"
+              allow-clear
+              show-search
+              :filter-option="(input: string, option: any) => option['data-label']?.toLowerCase().includes(input.toLowerCase())"
+              class="w-full nc-select-shadow"
+            >
+              <a-select-option
+                v-for="team in parentTeamOptions"
+                :key="team.id"
+                :value="team.id"
+                :data-label="team.title"
+              >
+                <div
+                  class="flex items-center gap-2"
+                  :style="{ paddingLeft: `${(team.depth ?? 0) * 16}px` }"
+                >
+                  <GeneralTeamIcon :team="team" class="!w-5 !h-5 !min-w-5 flex-none !rounded-md" />
+                  <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                    <template #title>{{ team.title }}</template>
+                    {{ team.title }}
+                  </NcTooltip>
+                  <component
+                    :is="iconMap.check"
+                    v-if="createTeamParentId === team.id"
+                    id="nc-selected-item-icon"
+                    class="text-primary w-4 h-4 flex-none"
+                  />
+                </div>
+              </a-select-option>
+            </NcSelect>
+          </a-form-item>
+
           <div class="flex flex-row items-center justify-end gap-x-2">
             <NcButton type="secondary" size="small" :disabled="isCreating" @click="isCreateModalVisible = false">
               {{ $t('general.cancel') }}
@@ -293,6 +603,103 @@ onMounted(() => {
             </NcButton>
           </div>
         </a-form>
+      </div>
+    </NcModal>
+
+    <!-- Edit Team Modal -->
+    <NcModal
+      v-model:visible="isEditModalOpen"
+      size="lg"
+      :body-style="{ 'max-height': 'min(calc(100vh - 100px), 864px)', 'height': 'min(calc(100vh - 100px), 864px)' }"
+      nc-modal-class-name="!p-0 h-full"
+      wrap-class-name="nc-modal-team-edit-wrapper"
+      @update:visible="(val: boolean) => { if (!val) closeEditModal() }"
+    >
+      <div class="h-full flex flex-col">
+        <!-- Header -->
+        <div class="p-2 w-full flex items-center gap-3 border-b-1 border-nc-border-gray-medium">
+          <div class="flex items-center">
+            <GeneralIcon icon="ncBuilding" class="!h-6 !w-6 pl-1" />
+          </div>
+          <div class="flex-1 text-lg font-bold text-nc-content-gray-emphasis">
+            {{ editTeam?.title }}
+          </div>
+          <NcButton type="text" size="xsmall" @click="closeEditModal()">
+            <GeneralIcon icon="close" />
+          </NcButton>
+        </div>
+
+        <!-- Content -->
+        <div v-if="isEditLoading" class="flex-1 flex items-center justify-center">
+          <a-spin />
+        </div>
+        <div v-else-if="editTeam" class="flex-1 overflow-auto nc-scrollbar-thin p-6 flex flex-col gap-6">
+          <!-- General section -->
+          <div class="flex flex-col gap-4">
+            <div class="text-sm font-semibold text-nc-content-gray-emphasis">{{ $t('general.general') }}</div>
+            <div class="flex items-center gap-3">
+              <GeneralTeamIcon :team="editTeam" class="!w-10 !h-10 flex-none !rounded-lg" />
+              <a-input
+                :value="editTeam.title"
+                class="nc-input-sm nc-input-shadow flex-1"
+                @change="(e: any) => updateTeamTitle(editTeamId!, e.target.value)"
+              />
+            </div>
+          </div>
+
+          <!-- Members section -->
+          <div class="flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+              <div class="text-sm font-semibold text-nc-content-gray-emphasis">
+                {{ $t('objects.members') }}
+                <span class="text-nc-content-gray-muted font-normal ml-1">({{ editTeamMembers.length }})</span>
+              </div>
+            </div>
+
+            <div v-if="editTeamMembers.length === 0" class="text-sm text-nc-content-gray-muted py-4 text-center">
+              {{ $t('title.noMembersFound') }}
+            </div>
+
+            <div v-else class="flex flex-col gap-2">
+              <div
+                v-for="member in editTeamMembers"
+                :key="member.user_id"
+                class="flex items-center gap-3 p-2 rounded-lg hover:bg-nc-bg-gray-light"
+              >
+                <GeneralUserIcon size="base" :email="member.user_email" class="flex-none" />
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-medium truncate">{{ member.user_email }}</div>
+                  <div class="text-xs text-nc-content-gray-muted capitalize">{{ member.team_role }}</div>
+                </div>
+                <NcButton size="xsmall" type="text" class="!text-red-500" @click="handleRemoveMember(member.user_id)">
+                  <GeneralIcon icon="delete" class="h-4 w-4" />
+                </NcButton>
+              </div>
+            </div>
+
+            <!-- Inherited members -->
+            <template v-if="editTeam.inherited_members?.length">
+              <NcDivider />
+              <div class="text-xs font-semibold text-nc-content-gray-muted uppercase">
+                {{ $t('labels.inheritedMembers') }}
+                <span class="font-normal ml-1">({{ editTeam.inherited_members.length }})</span>
+              </div>
+              <div
+                v-for="member in editTeam.inherited_members"
+                :key="member.user_id"
+                class="flex items-center gap-3 p-2 rounded-lg opacity-60"
+              >
+                <GeneralUserIcon size="base" :email="member.user_email" class="flex-none" />
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-medium truncate">{{ member.user_email }}</div>
+                  <div class="text-xs text-nc-content-gray-muted">
+                    {{ $t('labels.inheritedFrom') }} {{ member.inherited_from_team_title }}
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
       </div>
     </NcModal>
   </div>

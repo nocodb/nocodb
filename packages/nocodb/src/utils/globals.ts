@@ -58,6 +58,7 @@ export enum MetaTable {
   NOTIFICATION = 'notification',
   USER_REFRESH_TOKENS = 'nc_user_refresh_tokens',
   EXTENSIONS = 'nc_extensions',
+  BASE_VARIABLES = 'nc_base_variables',
   COMMENTS = 'nc_comments',
   USER_COMMENTS_NOTIFICATIONS_PREFERENCE = 'nc_user_comment_notifications_preference',
   COMMENTS_REACTIONS = 'nc_comment_reactions',
@@ -353,6 +354,7 @@ export const orderedMetaTables = [
 
   // Misc standalone
   MetaTable.EXTENSIONS,
+  MetaTable.BASE_VARIABLES,
   MetaTable.JOBS,
   MetaTable.FILE_REFERENCES,
   MetaTable.SNAPSHOT,
@@ -459,6 +461,7 @@ export enum CacheScope {
   VIEW_ALIAS = 'viewAlias',
   SSO_CLIENT = 'ssoClient',
   EXTENSION = 'uiExtension',
+  BASE_VARIABLE = 'baseVariable',
   INTEGRATION = 'integration',
   COL_BUTTON = 'colButton',
   CMD_PALETTE = 'cmdPalette',

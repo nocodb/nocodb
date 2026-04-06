@@ -24,6 +24,7 @@ import {
 } from '~/helpers/webhookHelpers';
 import { JobTypes } from '~/interface/Jobs';
 import {
+  BaseVariable,
   type Hook,
   HookLog,
   type Model,
@@ -62,6 +63,7 @@ export class WebhookInvoker {
     prevData,
     newData,
     user,
+    vars,
   }: {
     apiMeta: any;
     user: UserType;
@@ -70,6 +72,7 @@ export class WebhookInvoker {
     view?: ViewType;
     prevData: Record<string, unknown>;
     newData: Record<string, unknown>;
+    vars?: Record<string, string>;
   }) {
     if (!_apiMeta) {
       _apiMeta = {};
@@ -112,13 +115,13 @@ export class WebhookInvoker {
             : JSON.stringify(apiMeta.body),
           (_key, value) => {
             return typeof value === 'string'
-              ? parseBody(value, webhookData)
+              ? parseBody(value, webhookData, vars)
               : value;
           },
         );
       } catch (e) {
         // if string parsing failed then directly apply the handlebar
-        apiMeta.body = parseBody(apiMeta.body, webhookData);
+        apiMeta.body = parseBody(apiMeta.body, webhookData, vars);
       }
     }
     if (apiMeta.auth) {
@@ -129,22 +132,22 @@ export class WebhookInvoker {
             : JSON.stringify(apiMeta.auth),
           (_key, value) => {
             return typeof value === 'string'
-              ? parseBody(value, webhookData)
+              ? parseBody(value, webhookData, vars)
               : value;
           },
         );
       } catch (e) {
-        apiMeta.auth = parseBody(apiMeta.auth, webhookData);
+        apiMeta.auth = parseBody(apiMeta.auth, webhookData, vars);
       }
     }
     apiMeta.response = {};
-    const url = parseBody(apiMeta.path, webhookData);
+    const url = parseBody(apiMeta.path, webhookData, vars);
 
     const reqPayload = {
       params: apiMeta.parameters
         ? apiMeta.parameters.reduce((paramsObj, param) => {
             if (param.name && param.enabled) {
-              paramsObj[param.name] = parseBody(param.value, webhookData);
+              paramsObj[param.name] = parseBody(param.value, webhookData, vars);
             }
             return paramsObj;
           }, {})
@@ -155,7 +158,11 @@ export class WebhookInvoker {
       headers: apiMeta.headers
         ? apiMeta.headers.reduce((headersObj, header) => {
             if (header.name && header.enabled) {
-              headersObj[header.name] = parseBody(header.value, webhookData);
+              headersObj[header.name] = parseBody(
+                header.value,
+                webhookData,
+                vars,
+              );
             }
             return headersObj;
           }, {})
@@ -357,6 +364,10 @@ export class WebhookInvoker {
     let hookLog: HookLogType;
     const startTime = process.hrtime();
     const source = await Source.get(context, model.source_id);
+
+    // Load base variables for template resolution
+    const vars = await BaseVariable.listAsMap(context, model.base_id);
+
     let notification, filters;
     let reqPayload;
     try {
@@ -462,9 +473,13 @@ export class WebhookInvoker {
             });
 
             const parsedPayload = {
-              to: parseBody(notification?.payload?.to, webhookData),
-              subject: parseBody(notification?.payload?.subject, webhookData),
-              html: parseBody(notification?.payload?.body, webhookData),
+              to: parseBody(notification?.payload?.to, webhookData, vars),
+              subject: parseBody(
+                notification?.payload?.subject,
+                webhookData,
+                vars,
+              ),
+              html: parseBody(notification?.payload?.body, webhookData, vars),
             };
             const res = await (
               await NcPluginMgrv2.emailAdapter(false)
@@ -493,6 +508,7 @@ export class WebhookInvoker {
               view,
               prevData,
               newData,
+              vars,
             });
 
             const { requestPayload, responsePayload } = await handleHttpWebHook(
@@ -608,12 +624,12 @@ export class WebhookInvoker {
             const res = await (
               await NcPluginMgrv2.webhookNotificationAdapters(notification.type)
             ).sendMessage(
-              parseBody(notification?.payload?.body, webhookData),
+              parseBody(notification?.payload?.body, webhookData, vars),
               JSON.parse(
                 JSON.stringify(notification?.payload),
                 (_key, value) => {
                   return typeof value === 'string'
-                    ? parseBody(value, webhookData)
+                    ? parseBody(value, webhookData, vars)
                     : value;
                 },
               ),

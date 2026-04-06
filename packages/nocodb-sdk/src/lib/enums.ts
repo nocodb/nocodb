@@ -310,6 +310,10 @@ export enum AppEvents {
 
   DATE_DEPENDENCY_UPDATE = 'date_dependency.update',
   DATE_DEPENDENCY_DELETE = 'date_dependency.delete',
+
+  BASE_VARIABLE_CREATE = 'baseVariable.create',
+  BASE_VARIABLE_UPDATE = 'baseVariable.update',
+  BASE_VARIABLE_DELETE = 'baseVariable.delete',
 }
 
 export enum ClickhouseTables {

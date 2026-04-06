@@ -423,3 +423,16 @@ export enum DeploymentType {
   INSTALL = 'install',
   UPDATE = 'update',
 }
+
+export enum BaseVariableMode {
+  FIXED = 'fixed',
+  OVERRIDEABLE = 'overrideable',
+  REQUIRED = 'required',
+}
+
+export enum BaseVariableValueType {
+  STRING = 'string',
+  URL = 'url',
+  NUMBER = 'number',
+  BOOLEAN = 'boolean',
+}

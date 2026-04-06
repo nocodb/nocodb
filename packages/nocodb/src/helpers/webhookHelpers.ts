@@ -42,7 +42,11 @@ Handlebars.registerHelper('json', function (context, pretty = false) {
 
 const logger = new Logger('webhookHelpers');
 
-export function parseBody(template: string, data: any): string {
+export function parseBody(
+  template: string,
+  data: any,
+  vars?: Record<string, string>,
+): string {
   if (!template) {
     return template;
   }
@@ -51,6 +55,7 @@ export function parseBody(template: string, data: any): string {
     return Handlebars.compile(template, { noEscape: true })({
       data,
       event: data,
+      vars: vars || {},
     });
   } catch (e) {
     // if parsing fails then return the original template

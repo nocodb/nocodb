@@ -1,4 +1,9 @@
-import type { DependencyTableType, NcContext, NcRequest } from 'nocodb-sdk';
+import type {
+  BaseVariableType,
+  DependencyTableType,
+  NcContext,
+  NcRequest,
+} from 'nocodb-sdk';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import type { Dashboard, Workflow } from '~/models';
@@ -77,6 +82,8 @@ export type InternalPOSTResponseType = Promise<
   | Sort
   | Hook
   | Extension
+  | BaseVariableType
+  | BaseVariableType[]
   | { added: boolean; reaction: any }
 >;
 

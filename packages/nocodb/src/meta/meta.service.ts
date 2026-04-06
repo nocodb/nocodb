@@ -115,6 +115,7 @@ export class MetaService {
       [MetaTable.HOOK_LOGS]: 'hkl',
       [MetaTable.API_TOKENS]: 'tkn',
       [MetaTable.EXTENSIONS]: 'ext',
+      [MetaTable.BASE_VARIABLES]: 'bv',
       [MetaTable.COMMENTS]: 'com',
       [MetaTable.COMMENTS_REACTIONS]: 'cre',
       [MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE]: 'cnp',

@@ -726,14 +726,20 @@ onMounted(() => {
                     {{ $t('general.edit') }}
                   </NcMenuItem>
 
-                  <NcMenuItem
-                    v-if="(record.depth ?? 0) < 3"
-                    v-e="['c:org-team:add-sub-team', { teamId: record.id }]"
-                    @click="handleCreateTeam(record.id)"
+                  <NcTooltip
+                    :disabled="(record.depth ?? 0) < 3"
+                    :title="$t('msg.info.maxTeamNestingReached')"
+                    placement="left"
                   >
-                    <GeneralIcon icon="plus" class="h-4 w-4" />
-                    {{ $t('labels.addSubTeam') }}
-                  </NcMenuItem>
+                    <NcMenuItem
+                      v-e="['c:org-team:add-sub-team', { teamId: record.id }]"
+                      :disabled="(record.depth ?? 0) >= 3"
+                      @click="(record.depth ?? 0) < 3 && handleCreateTeam(record.id)"
+                    >
+                      <GeneralIcon icon="plus" class="h-4 w-4" />
+                      {{ $t('labels.addSubTeam') }}
+                    </NcMenuItem>
+                  </NcTooltip>
 
                   <NcDivider />
 

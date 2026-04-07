@@ -3,7 +3,7 @@ import type { OrgUserType } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
-import { parseMetaProp } from '~/utils/modelUtils';
+import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
 
 // todo: caching
@@ -14,7 +14,13 @@ export default class OrgUser {
   deleted?: boolean;
   deleted_at?: string;
 
-  constructor(props) {
+  // SCIM fields (org-specific)
+  scim_external_id?: string;
+  scim_managed?: boolean;
+  scim_user_name?: string;
+  scim_meta?: Record<string, any> | string;
+
+  constructor(props: Partial<OrgUser>) {
     Object.assign(this, props);
   }
 
@@ -67,9 +73,10 @@ export default class OrgUser {
           '=',
           `${MetaTable.ORG_USERS}.fk_user_id`,
         ).andOn(
-          ncMeta.knex.raw(`COALESCE(??, false) = false`, [
-            `${MetaTable.WORKSPACE_USER}.deleted`,
-          ]),
+          ncMeta.knex.raw(
+            `COALESCE(??, false) = false`,
+            [`${MetaTable.WORKSPACE_USER}.deleted`],
+          ),
         );
       })
       .leftJoin(MetaTable.WORKSPACE, function () {
@@ -114,24 +121,57 @@ export default class OrgUser {
     return res;
   }
 
-  static async get(orgId: string, userId: string, ncMeta = Noco.ncMeta) {
-    const user = await ncMeta.metaGet2(
-      RootScopes.ORG,
-      RootScopes.ORG,
-      MetaTable.ORG_USERS,
-      {
-        fk_org_id: orgId,
-        fk_user_id: userId,
-      },
-    );
+  static async get(
+    orgId: string,
+    userId: string,
+    {
+      include_deleted = false,
+    }: {
+      include_deleted?: boolean;
+    } = {},
+    ncMeta = Noco.ncMeta,
+  ) {
+    const queryBuilder = ncMeta
+      .knex(MetaTable.USERS)
+      .select(
+        `${MetaTable.USERS}.id`,
+        `${MetaTable.USERS}.email`,
+        `${MetaTable.USERS}.display_name`,
+        `${MetaTable.USERS}.roles as main_roles`,
+        `${MetaTable.USERS}.meta`,
+        `${MetaTable.ORG_USERS}.*`,
+      )
+      .innerJoin(MetaTable.ORG_USERS, function () {
+        this.on(
+          `${MetaTable.ORG_USERS}.fk_user_id`,
+          '=',
+          `${MetaTable.USERS}.id`,
+        ).andOn(
+          `${MetaTable.ORG_USERS}.fk_org_id`,
+          '=',
+          ncMeta.knex.raw('?', [orgId]),
+        );
+      })
+      .where(`${MetaTable.ORG_USERS}.fk_user_id`, userId);
 
-    // Return null if soft-deleted
-    if (user?.deleted) return null;
+    if (!include_deleted) {
+      OrgUser.notDeleted(queryBuilder);
+    }
 
-    return user ? new OrgUser(user) : null;
+    const row = await queryBuilder.first();
+
+    if (!row) return null;
+
+    row.meta = parseMetaProp(row);
+    row.scim_meta = parseMetaProp(row, 'scim_meta');
+
+    return row;
   }
 
-  static async insert(param: OrgUserType, ncMeta = Noco.ncMeta) {
+  static async insert(
+    param: OrgUserType & Partial<OrgUser>,
+    ncMeta = Noco.ncMeta,
+  ) {
     // Reactivate if soft-deleted row exists
     const existing = await ncMeta.metaGet2(
       RootScopes.ORG,
@@ -144,15 +184,31 @@ export default class OrgUser {
     );
 
     if (existing?.deleted) {
+      const updateData: Record<string, any> = {
+        deleted: false,
+        deleted_at: null,
+        roles: param.roles || EnterpriseOrgUserRoles.VIEWER,
+      };
+
+      // Restore SCIM fields if provided
+      if (param.scim_external_id !== undefined)
+        updateData.scim_external_id = param.scim_external_id;
+      if (param.scim_managed !== undefined)
+        updateData.scim_managed = param.scim_managed;
+      if (param.scim_user_name !== undefined)
+        updateData.scim_user_name = param.scim_user_name;
+      if (param.scim_meta !== undefined)
+        updateData.scim_meta = stringifyMetaProp(
+          { scim_meta: param.scim_meta },
+          'scim_meta',
+          null,
+        );
+
       await ncMeta.metaUpdate(
         RootScopes.ORG,
         RootScopes.ORG,
         MetaTable.ORG_USERS,
-        {
-          deleted: false,
-          deleted_at: null,
-          roles: param.roles || EnterpriseOrgUserRoles.VIEWER,
-        },
+        updateData,
         {
           fk_org_id: param.fk_org_id,
           fk_user_id: param.fk_user_id,
@@ -163,22 +219,36 @@ export default class OrgUser {
 
       return new OrgUser({
         ...existing,
-        deleted: false,
-        deleted_at: null,
+        ...updateData,
         roles: param.roles || existing.roles,
       });
+    }
+
+    const insertObj = extractProps(param as Record<string, any>, [
+      'fk_org_id',
+      'fk_user_id',
+      'roles',
+      'deleted',
+      'scim_external_id',
+      'scim_managed',
+      'scim_user_name',
+      'scim_meta',
+    ]);
+
+    // Stringify scim_meta (TEXT column) before insert
+    if ('scim_meta' in insertObj) {
+      insertObj.scim_meta = stringifyMetaProp(insertObj, 'scim_meta', null);
+    }
+
+    if (insertObj.deleted === undefined) {
+      insertObj.deleted = false;
     }
 
     const user = await ncMeta.metaInsert2(
       RootScopes.ORG,
       RootScopes.ORG,
       MetaTable.ORG_USERS,
-      {
-        fk_org_id: param.fk_org_id,
-        fk_user_id: param.fk_user_id,
-        roles: param.roles,
-        deleted: false,
-      },
+      insertObj,
       true,
     );
 
@@ -197,7 +267,16 @@ export default class OrgUser {
       'roles',
       'deleted',
       'deleted_at',
+      'scim_external_id',
+      'scim_managed',
+      'scim_user_name',
+      'scim_meta',
     ]);
+
+    // Stringify scim_meta (TEXT column) before update
+    if ('scim_meta' in updateObj) {
+      updateObj.scim_meta = stringifyMetaProp(updateObj, 'scim_meta', null);
+    }
 
     await ncMeta.metaUpdate(
       RootScopes.ORG,
@@ -209,6 +288,9 @@ export default class OrgUser {
         fk_org_id: orgId,
       },
     );
+
+    // Re-fetch the updated record with user data joined
+    return OrgUser.get(orgId, userId, { include_deleted: true }, ncMeta);
   }
 
   /**
@@ -221,7 +303,7 @@ export default class OrgUser {
       {
         deleted: true,
         deleted_at: new Date().toISOString(),
-      },
+      } as Partial<OrgUser>,
       ncMeta,
     );
   }
@@ -240,5 +322,171 @@ export default class OrgUser {
     );
 
     return orgs.filter((o) => !o.deleted);
+  }
+
+  /**
+   * Direct DB lookup by SCIM external ID using the indexed column.
+   * Avoids loading all org users into memory.
+   */
+  static async getByScimExternalId(
+    orgId: string,
+    scimExternalId: string,
+    {
+      include_deleted = false,
+    }: {
+      include_deleted?: boolean;
+    } = {},
+    ncMeta = Noco.ncMeta,
+  ): Promise<any | null> {
+    const queryBuilder = ncMeta
+      .knex(MetaTable.USERS)
+      .select(
+        `${MetaTable.USERS}.id`,
+        `${MetaTable.USERS}.email`,
+        `${MetaTable.USERS}.display_name`,
+        `${MetaTable.USERS}.roles as main_roles`,
+        `${MetaTable.USERS}.meta`,
+        `${MetaTable.ORG_USERS}.*`,
+      )
+      .innerJoin(MetaTable.ORG_USERS, function () {
+        this.on(
+          `${MetaTable.ORG_USERS}.fk_user_id`,
+          '=',
+          `${MetaTable.USERS}.id`,
+        ).andOn(
+          `${MetaTable.ORG_USERS}.fk_org_id`,
+          '=',
+          ncMeta.knex.raw('?', [orgId]),
+        );
+      })
+      .where(`${MetaTable.ORG_USERS}.scim_external_id`, scimExternalId);
+
+    if (!include_deleted) {
+      OrgUser.notDeleted(queryBuilder);
+    }
+
+    const row = await queryBuilder.first();
+
+    if (!row) return null;
+
+    row.meta = parseMetaProp(row);
+    row.scim_meta = parseMetaProp(row, 'scim_meta');
+
+    return row;
+  }
+
+  /**
+   * SQL-level paginated list for SCIM endpoints.
+   * Filters scim_managed=true at the DB level with LIMIT/OFFSET.
+   * Returns { list, totalResults } for SCIM ListResponse.
+   */
+  static async scimList(
+    {
+      fk_org_id,
+      include_deleted = false,
+      offset = 0,
+      limit = 100,
+      filterUserName,
+      filterExternalId,
+      sortBy,
+      sortAscending = true,
+    }: {
+      fk_org_id: string;
+      include_deleted?: boolean;
+      offset?: number;
+      limit?: number;
+      filterUserName?: string;
+      filterExternalId?: string;
+      sortBy?: string;
+      sortAscending?: boolean;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<{ list: any[]; totalResults: number }> {
+    const baseQuery = () => {
+      const qb = ncMeta
+        .knex(MetaTable.USERS)
+        .innerJoin(MetaTable.ORG_USERS, function () {
+          this.on(
+            `${MetaTable.ORG_USERS}.fk_user_id`,
+            '=',
+            `${MetaTable.USERS}.id`,
+          ).andOn(
+            `${MetaTable.ORG_USERS}.fk_org_id`,
+            '=',
+            ncMeta.knex.raw('?', [fk_org_id]),
+          );
+        })
+        .where(`${MetaTable.ORG_USERS}.scim_managed`, true);
+
+      if (!include_deleted) {
+        qb.where(function () {
+          this.where(`${MetaTable.ORG_USERS}.deleted`, false).orWhereNull(
+            `${MetaTable.ORG_USERS}.deleted`,
+          );
+        });
+      }
+
+      if (filterUserName) {
+        qb.where(function () {
+          this.whereRaw(
+            `LOWER(${MetaTable.ORG_USERS}.scim_user_name) = ?`,
+            [filterUserName.toLowerCase()],
+          ).orWhereRaw(`LOWER(${MetaTable.USERS}.email) = ?`, [
+            filterUserName.toLowerCase(),
+          ]);
+        });
+      }
+
+      if (filterExternalId) {
+        qb.whereRaw(
+          `LOWER(${MetaTable.ORG_USERS}.scim_external_id) = ?`,
+          [filterExternalId.toLowerCase()],
+        );
+      }
+
+      return qb;
+    };
+
+    // Count query
+    const countResult = await baseQuery().count('* as count').first();
+    const totalResults = Number(countResult?.count || 0);
+
+    // Data query with pagination and sorting
+    const dataQuery = baseQuery()
+      .select(
+        `${MetaTable.USERS}.id`,
+        `${MetaTable.USERS}.email`,
+        `${MetaTable.USERS}.display_name`,
+        `${MetaTable.USERS}.roles as main_roles`,
+        `${MetaTable.USERS}.meta`,
+        `${MetaTable.ORG_USERS}.*`,
+      )
+      .offset(offset)
+      .limit(limit);
+
+    // Apply sorting
+    if (sortBy) {
+      const sortCol =
+        sortBy === 'userName'
+          ? `${MetaTable.ORG_USERS}.scim_user_name`
+          : sortBy === 'displayName'
+          ? `${MetaTable.USERS}.display_name`
+          : sortBy === 'externalId'
+          ? `${MetaTable.ORG_USERS}.scim_external_id`
+          : `${MetaTable.ORG_USERS}.scim_user_name`;
+      dataQuery.orderBy(sortCol, sortAscending ? 'asc' : 'desc');
+    } else {
+      dataQuery.orderBy(`${MetaTable.ORG_USERS}.created_at`, 'asc');
+    }
+
+    const rows = await dataQuery;
+
+    const list = rows.map((row) => {
+      row.meta = parseMetaProp(row);
+      row.scim_meta = parseMetaProp(row, 'scim_meta');
+      return row;
+    });
+
+    return { list, totalResults };
   }
 }

@@ -8,6 +8,7 @@ import type {
   DashboardType,
   DocumentType,
   IntegrationType,
+  OrgType,
   PlanFeatureTypes,
   PlanLimitTypes,
   ScriptType,
@@ -45,9 +46,15 @@ export interface WorkspaceUserDeleteEvent
 }
 
 export interface ScimUserEvent extends Optional<NcBaseEvent, 'context'> {
-  workspace: WorkspaceType;
+  org: OrgType;
   user: UserType;
-  workspaceUser: any;
+  orgUser: any;
+  scimId: string;
+}
+
+export interface ScimGroupEvent extends Optional<NcBaseEvent, 'context'> {
+  org: OrgType;
+  team: any;
   scimId: string;
 }
 

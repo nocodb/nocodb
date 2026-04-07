@@ -300,6 +300,15 @@ const columns = computed(() => {
                     >
                       {{ $t('objects.roleType.superAdmin') }}
                     </NcBadge>
+                    <NcTooltip v-if="el.scim_managed" :title="$t('labels.scimManagedUserTooltip')" class="flex items-center">
+                      <NcBadge
+                        :border="false"
+                        color="blue"
+                        class="text-nc-content-blue-dark text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+                      >
+                        {{ $t('labels.scimManaged') }}
+                      </NcBadge>
+                    </NcTooltip>
                   </div>
                   <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-subtle2" show-on-truncate-only>
                     <template #title>
@@ -366,10 +375,16 @@ const columns = computed(() => {
                         </NcMenuItem>
                         <template v-if="el.id !== loggedInUser?.id">
                           <NcDivider v-if="!el.roles?.includes('super')" />
-                          <NcMenuItem data-rec="true" danger @click="openDeleteModal(el)">
-                            <MaterialSymbolsDeleteOutlineRounded />
-                            {{ $t('general.remove') }} {{ $t('objects.user') }}
-                          </NcMenuItem>
+                          <NcTooltip
+                            :disabled="!el.scim_managed"
+                            :title="$t('labels.scimManagedRemovalTooltip')"
+                            placement="left"
+                          >
+                            <NcMenuItem :disabled="el.scim_managed" data-rec="true" danger @click="openDeleteModal(el)">
+                              <MaterialSymbolsDeleteOutlineRounded />
+                              {{ $t('general.remove') }} {{ $t('objects.user') }}
+                            </NcMenuItem>
+                          </NcTooltip>
                         </template>
                       </template>
                     </NcMenu>

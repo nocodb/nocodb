@@ -16,20 +16,22 @@ import NocoCache from '~/cache/NocoCache';
 
 export interface ScimConfigType {
   id: string;
-  fk_workspace_id: string;
+  fk_org_id: string;
   enabled: boolean;
   provisioning_token: string; // encrypted
   role_mapping?: Record<string, any>; // map IdP group names to NocoDB roles
+  default_role?: string; // default workspace role for SCIM-provisioned users
   created_at?: Date;
   updated_at?: Date;
 }
 
 export default class ScimConfig implements ScimConfigType {
   id: string;
-  fk_workspace_id: string;
+  fk_org_id: string;
   enabled: boolean;
   provisioning_token: string;
   role_mapping?: Record<string, any>;
+  default_role?: string;
   created_at?: Date;
   updated_at?: Date;
 
@@ -39,19 +41,19 @@ export default class ScimConfig implements ScimConfigType {
 
   public static async get(
     context: NcContext,
-    workspaceId: string,
+    orgId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<ScimConfig | null> {
-    const key = `${CacheScope.SCIM_CONFIG}:${workspaceId}`;
+    const key = `${CacheScope.SCIM_CONFIG}:${orgId}`;
     let config = await NocoCache.get(context, key, CacheGetType.TYPE_OBJECT);
 
     if (!config) {
       config = await ncMeta.metaGet2(
-        RootScopes.WORKSPACE,
-        RootScopes.WORKSPACE,
+        RootScopes.ROOT,
+        RootScopes.ROOT,
         MetaTable.SCIM_CONFIG,
         {
-          fk_workspace_id: workspaceId,
+          fk_org_id: orgId,
         },
       );
 
@@ -70,29 +72,30 @@ export default class ScimConfig implements ScimConfigType {
     ncMeta = Noco.ncMeta,
   ): Promise<ScimConfig> {
     const insertObj: Record<string, any> = extractProps(config, [
-      'fk_workspace_id',
+      'fk_org_id',
       'enabled',
       'provisioning_token',
       'role_mapping',
+      'default_role',
     ]);
 
     // prepareForDb handles stringification of role_mapping internally
     await ncMeta.metaInsert2(
-      RootScopes.WORKSPACE,
-      RootScopes.WORKSPACE,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.SCIM_CONFIG,
       prepareForDb(insertObj, 'role_mapping'),
     );
 
-    const key = `${CacheScope.SCIM_CONFIG}:${config.fk_workspace_id}`;
+    const key = `${CacheScope.SCIM_CONFIG}:${config.fk_org_id}`;
     await NocoCache.del(context, key);
 
-    return this.get(context, config.fk_workspace_id!, ncMeta);
+    return this.get(context, config.fk_org_id!, ncMeta);
   }
 
   public static async update(
     context: NcContext,
-    workspaceId: string,
+    orgId: string,
     config: Partial<ScimConfigType>,
     ncMeta = Noco.ncMeta,
   ): Promise<boolean> {
@@ -100,19 +103,20 @@ export default class ScimConfig implements ScimConfigType {
       'enabled',
       'provisioning_token',
       'role_mapping',
+      'default_role',
     ]);
 
     await ncMeta.metaUpdate(
-      RootScopes.WORKSPACE,
-      RootScopes.WORKSPACE,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.SCIM_CONFIG,
       prepareForDb(updateObj, 'role_mapping'),
       {
-        fk_workspace_id: workspaceId,
+        fk_org_id: orgId,
       },
     );
 
-    const key = `${CacheScope.SCIM_CONFIG}:${workspaceId}`;
+    const key = `${CacheScope.SCIM_CONFIG}:${orgId}`;
     await NocoCache.update(
       context,
       key,
@@ -124,19 +128,19 @@ export default class ScimConfig implements ScimConfigType {
 
   public static async delete(
     context: NcContext,
-    workspaceId: string,
+    orgId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<boolean> {
     await ncMeta.metaDelete(
-      RootScopes.WORKSPACE,
-      RootScopes.WORKSPACE,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.SCIM_CONFIG,
       {
-        fk_workspace_id: workspaceId,
+        fk_org_id: orgId,
       },
     );
 
-    const key = `${CacheScope.SCIM_CONFIG}:${workspaceId}`;
+    const key = `${CacheScope.SCIM_CONFIG}:${orgId}`;
     await NocoCache.del(context, key);
 
     return true;

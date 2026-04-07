@@ -70,6 +70,12 @@ const permissionScopes = {
     'orgTeamMembersRemove',
     'orgTeamMembersUpdate',
 
+    // SCIM Config (org-level)
+    'scimConfigGet',
+    'scimConfigCreate',
+    'scimConfigUpdate',
+    'scimConfigDelete',
+
     // etc
     'fetchViaUrl',
   ],
@@ -225,10 +231,6 @@ const permissionScopes = {
     'managedAppCreate',
 
     // SCIM Config
-    'scimConfigGet',
-    'scimConfigCreate',
-    'scimConfigUpdate',
-    'scimConfigDelete',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
@@ -663,6 +665,12 @@ const rolePermissions:
       orgTeamMembersRemove: true,
       orgTeamMembersUpdate: true,
       orgTeamMove: true,
+
+      // SCIM Config
+      scimConfigGet: true,
+      scimConfigCreate: true,
+      scimConfigUpdate: true,
+      scimConfigDelete: true,
     },
   },
   [CloudOrgUserRoles.CREATOR]: {
@@ -714,10 +722,6 @@ const rolePermissions:
     exclude: {
       workspaceDelete: true,
       'cloud-org_manageSubscription': true,
-      scimConfigGet: true,
-      scimConfigCreate: true,
-      scimConfigUpdate: true,
-      scimConfigDelete: true,
     },
   },
   [WorkspaceUserRoles.OWNER]: {

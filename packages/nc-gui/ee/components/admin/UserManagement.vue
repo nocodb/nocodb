@@ -314,6 +314,15 @@ watch(selected, () => {
                 >
                   {{ $t('objects.roleType.orgAdmin') }}
                 </NcBadge>
+                <NcTooltip v-if="member.scim_managed" :title="$t('labels.scimManagedUserTooltip')" class="flex items-center">
+                  <NcBadge
+                    :border="false"
+                    color="blue"
+                    class="text-nc-content-blue-dark text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+                  >
+                    {{ $t('labels.scimManaged') }}
+                  </NcBadge>
+                </NcTooltip>
               </div>
               <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-subtle2" show-on-truncate-only>
                 <template #title>
@@ -406,10 +415,21 @@ watch(selected, () => {
                   <template v-if="member.cloud_org_roles !== EnterpriseOrgUserRoles.ADMIN">
                     <NcDivider />
 
-                    <NcMenuItem danger data-testid="nc-admin-org-user-remove" @click="removeOrgMember(member)">
-                      <GeneralIcon icon="delete" />
-                      {{ $t('activity.removeMember') }}
-                    </NcMenuItem>
+                    <NcTooltip
+                      :disabled="!member.scim_managed"
+                      :title="$t('labels.scimManagedRemovalTooltip')"
+                      placement="left"
+                    >
+                      <NcMenuItem
+                        :disabled="member.scim_managed"
+                        danger
+                        data-testid="nc-admin-org-user-remove"
+                        @click="removeOrgMember(member)"
+                      >
+                        <GeneralIcon icon="delete" />
+                        {{ $t('activity.removeMember') }}
+                      </NcMenuItem>
+                    </NcTooltip>
                   </template>
                 </NcMenu>
               </template>

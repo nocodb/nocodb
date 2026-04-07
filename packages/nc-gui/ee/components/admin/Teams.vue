@@ -748,14 +748,15 @@ onMounted(() => {
             <div v-else-if="viewMode === 'tree'" class="flex-none w-5" />
 
             <GeneralTeamInfo :team="record" :icon-props="{ size: 'base', wrapperClass: '!rounded-lg' }" />
-            <NcBadge
-              v-if="record.scim_managed"
-              :border="false"
-              color="green"
-              class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
-            >
-              SCIM
-            </NcBadge>
+            <NcTooltip v-if="record.scim_managed" :title="$t('labels.scimManagedTeamTooltip')" class="flex items-center">
+              <NcBadge
+                :border="false"
+                color="blue"
+                class="text-nc-content-blue-dark text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+              >
+                {{ $t('labels.scimManaged') }}
+              </NcBadge>
+            </NcTooltip>
           </div>
 
           <!-- Badge column -->
@@ -806,14 +807,14 @@ onMounted(() => {
                   </NcMenuItem>
 
                   <NcTooltip
-                    :disabled="(record.depth ?? 0) < 3"
-                    :title="$t('msg.info.maxTeamNestingReached')"
+                    :disabled="!record.scim_managed && (record.depth ?? 0) < 3"
+                    :title="record.scim_managed ? $t('labels.scimManagedTeamSubTeamTooltip') : $t('msg.info.maxTeamNestingReached')"
                     placement="left"
                   >
                     <NcMenuItem
                       v-e="['c:org-team:add-sub-team', { teamId: record.id }]"
-                      :disabled="(record.depth ?? 0) >= 3"
-                      @click="(record.depth ?? 0) < 3 && handleCreateTeam(record.id)"
+                      :disabled="record.scim_managed || (record.depth ?? 0) >= 3"
+                      @click="!record.scim_managed && (record.depth ?? 0) < 3 && handleCreateTeam(record.id)"
                     >
                       <GeneralIcon icon="plus" class="h-4 w-4" />
                       {{ $t('labels.addSubTeam') }}
@@ -830,14 +831,21 @@ onMounted(() => {
 
                   <NcDivider />
 
-                  <NcMenuItem
-                    v-e="['c:org-team:delete', { teamId: record.id }]"
-                    danger
-                    @click="handleDeleteTeam(record as TeamV3ResponseType)"
+                  <NcTooltip
+                    :disabled="!record.scim_managed"
+                    :title="$t('labels.scimManagedTeamRemovalTooltip')"
+                    placement="left"
                   >
-                    <GeneralIcon icon="delete" />
-                    {{ $t('activity.deleteTeam') }}
-                  </NcMenuItem>
+                    <NcMenuItem
+                      v-e="['c:org-team:delete', { teamId: record.id }]"
+                      :disabled="record.scim_managed"
+                      danger
+                      @click="handleDeleteTeam(record as TeamV3ResponseType)"
+                    >
+                      <GeneralIcon icon="delete" />
+                      {{ $t('activity.deleteTeam') }}
+                    </NcMenuItem>
+                  </NcTooltip>
                 </NcMenu>
               </template>
             </NcDropdown>
@@ -1076,12 +1084,21 @@ onMounted(() => {
                       </template>
                     </a-input>
 
-                    <NcButton size="small" type="secondary" text-color="primary" inner-class="!gap-2" @click="openAddMembers">
-                      <template #icon>
-                        <GeneralIcon icon="ncUserPlus" class="h-4 w-4" />
-                      </template>
-                      {{ $t('activity.addMembers') }}
-                    </NcButton>
+                    <NcTooltip :disabled="!editTeam?.scim_managed" :title="$t('labels.scimManagedTeamAddMemberTooltip')">
+                      <NcButton
+                        size="small"
+                        type="secondary"
+                        text-color="primary"
+                        inner-class="!gap-2"
+                        :disabled="editTeam?.scim_managed"
+                        @click="openAddMembers"
+                      >
+                        <template #icon>
+                          <GeneralIcon icon="ncUserPlus" class="h-4 w-4" />
+                        </template>
+                        {{ $t('activity.addMembers') }}
+                      </NcButton>
+                    </NcTooltip>
                   </div>
                 </div>
 
@@ -1104,11 +1121,14 @@ onMounted(() => {
                     <NcUserInfo :user="{ email: member.user_email, display_name: member.user_display_name }" class="flex-1 min-w-0" />
 
                     <div class="w-24 flex justify-end">
-                      <NcTooltip :title="$t('activity.removeFromOrgTeam')">
+                      <NcTooltip
+                        :title="editTeam?.scim_managed ? $t('labels.scimManagedTeamAddMemberTooltip') : $t('activity.removeFromOrgTeam')"
+                      >
                         <NcButton
                           size="small"
                           type="secondary"
                           class="md:invisible group-hover:visible !text-red-500"
+                          :disabled="editTeam?.scim_managed"
                           @click="handleRemoveMember(member.user_id)"
                         >
                           <GeneralIcon icon="ncXSquare" class="h-4 w-4" />

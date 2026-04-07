@@ -150,6 +150,21 @@ onMounted(async () => {
             </NcMenuItem>
 
             <NcMenuItem
+              key="scim"
+              :class="{
+                active: $route.params.page === 'scim',
+              }"
+              class="item"
+              data-testid="nc-org-scim"
+              @click="navigateTo(`/admin/${$route.params.orgId}/scim`)"
+            >
+              <div class="flex items-center space-x-2">
+                <GeneralIcon class="!h-4 !w-4" icon="sync" />
+                <div class="select-none">SCIM</div>
+              </div>
+            </NcMenuItem>
+
+            <NcMenuItem
               key="sso"
               :class="{
                 active: $route.params.page === 'sso',

@@ -386,6 +386,11 @@ export const useEeConfig = createSharedComposable(() => {
 
   /** EE-only feature blocks — gated by license on self-hosted, plan-gated for licensed on-prem */
   const blockSSO = computed(() => isEEFeatureBlocked.value || (isOnPrem.value && !getFeature(PlanFeatureTypes.FEATURE_SSO)))
+  const blockScim = computed(() => {
+    // SCIM is on-prem enterprise only — always blocked on cloud
+    if (isPaymentEnabled.value) return true
+    return isEEFeatureBlocked.value
+  })
   const blockSnapshots = computed(
     () => isEEFeatureBlocked.value || (isOnPrem.value && getLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE) === 0),
   )
@@ -1943,6 +1948,16 @@ export const useEeConfig = createSharedComposable(() => {
     return showUpgradeForEEFeature(t('upgrade.features.sso'), PlanFeatureTypes.FEATURE_SSO)
   }
 
+  const showUpgradeToUseScim = () => {
+    if (!blockScim.value) return
+
+    handleUpgradePlan({
+      limitOrFeature: PlanFeatureTypes.FEATURE_SCIM,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseSnapshots = () => {
     if (!blockSnapshots.value) return
     return showUpgradeForEEFeature(t('upgrade.features.snapshots'), PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE)
@@ -2111,6 +2126,8 @@ export const useEeConfig = createSharedComposable(() => {
     isEEFeatureBlocked,
     showEEFeatures,
     blockSSO,
+    blockScim,
+    showUpgradeToUseScim,
     blockSnapshots,
     blockCustomUrls,
     blockScripts,

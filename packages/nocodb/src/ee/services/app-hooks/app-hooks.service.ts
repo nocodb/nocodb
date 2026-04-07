@@ -34,6 +34,7 @@ import type {
   SandboxDeleteEvent,
   SandboxDiscardEvent,
   SandboxMergeEvent,
+  ScimGroupEvent,
   ScimUserEvent,
   SortEvent,
   TableEvent,
@@ -465,7 +466,7 @@ export class AppHooksService extends ApppHookServiceCE {
     listener: (data: PermissionDeleteEvent) => void,
   ): () => void;
 
-  // SCIM Events
+  // SCIM User Events
   on(
     event:
       | AppEvents.SCIM_USER_PROVISION
@@ -474,6 +475,16 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.SCIM_USER_REACTIVATE
       | AppEvents.SCIM_USER_DELETE,
     listener: (data: ScimUserEvent) => void,
+  ): () => void;
+
+  // SCIM Group Events
+  on(
+    event:
+      | AppEvents.SCIM_GROUP_PROVISION
+      | AppEvents.SCIM_GROUP_UPDATE
+      | AppEvents.SCIM_GROUP_REPLACE
+      | AppEvents.SCIM_GROUP_DELETE,
+    listener: (data: ScimGroupEvent) => void,
   ): () => void;
 
   // Doc AI Events
@@ -897,7 +908,7 @@ export class AppHooksService extends ApppHookServiceCE {
     data: RecordTemplateUseEvent,
   ): void;
 
-  // SCIM Events
+  // SCIM User Events
   emit(
     event:
       | AppEvents.SCIM_USER_PROVISION
@@ -906,6 +917,16 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.SCIM_USER_REACTIVATE
       | AppEvents.SCIM_USER_DELETE,
     data: ScimUserEvent,
+  ): void;
+
+  // SCIM Group Events
+  emit(
+    event:
+      | AppEvents.SCIM_GROUP_PROVISION
+      | AppEvents.SCIM_GROUP_UPDATE
+      | AppEvents.SCIM_GROUP_REPLACE
+      | AppEvents.SCIM_GROUP_DELETE,
+    data: ScimGroupEvent,
   ): void;
 
   emit(

@@ -7,7 +7,6 @@ import {
   TeamUserRoles,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
-import { EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   TeamCreateV3ReqType,
@@ -36,8 +35,10 @@ import { NcError } from '~/helpers/catchError';
 import { isOnPrem } from '~/utils';
 import { PrincipalAssignment, Team } from '~/models';
 import { User, Workspace } from '~/models';
+import Org from '~/models/Org';
 import OrgUser from '~/ee/models/OrgUser';
 import WorkspaceUser from '~/models/WorkspaceUser';
+import { EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
@@ -66,8 +67,7 @@ export class TeamsV3Service {
    * If not, it throws an error indicating that the feature is only available on paid plans.
    */
   private async validateFeatureAccess(context: NcContext) {
-    // Org teams are not gated by workspace plans — they are available to all
-    // org admins regardless of workspace subscription tier.
+    // Skip plan check for org-scoped requests (no workspace_id)
     if (!context.workspace_id) return;
 
     if (
@@ -97,6 +97,61 @@ export class TeamsV3Service {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Detect whether workspaceOrOrgId is a workspace or org.
+   * Returns { scope, orgId?, workspaceId? }.
+   */
+  private async resolveScope(
+    workspaceOrOrgId: string,
+  ): Promise<{
+    scope: 'org' | 'workspace';
+    orgId?: string;
+    workspaceId?: string;
+  }> {
+    // Check workspace first (more common)
+    const workspace = await Workspace.get(workspaceOrOrgId);
+    if (workspace) {
+      return { scope: 'workspace', workspaceId: workspaceOrOrgId };
+    }
+
+    // Check org
+    const org = await Org.get(workspaceOrOrgId);
+    if (org) {
+      return { scope: 'org', orgId: workspaceOrOrgId };
+    }
+
+    NcError.notFound('Workspace or Organization not found');
+  }
+
+  /**
+   * Get team and verify it belongs to the given workspace/org scope.
+   * Returns { team, workspace (null for org teams) }.
+   */
+  private async getTeamInScope(
+    context: NcContext,
+    workspaceOrOrgId: string,
+    teamId: string,
+  ) {
+    const team = await Team.get(context, teamId);
+    if (!team) {
+      NcError.get(context).teamNotFound(teamId);
+    }
+
+    const belongsToScope =
+      team.fk_workspace_id === workspaceOrOrgId ||
+      team.fk_org_id === workspaceOrOrgId;
+
+    if (!belongsToScope) {
+      NcError.get(context).teamNotFound(teamId);
+    }
+
+    const workspace = team.fk_workspace_id
+      ? await Workspace.get(team.fk_workspace_id)
+      : null;
+
+    return { team, workspace };
   }
 
   /**
@@ -193,12 +248,11 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
-      scope: 'workspace' | 'org';
+      scope?: 'workspace' | 'org';
     },
   ): Promise<{ list: TeamV3ResponseType[] }> {
-    const scope = param.scope;
-    const workspaceId =
-      scope === 'workspace' ? param.workspaceOrOrgId : undefined;
+    const scope = param.scope || (await this.resolveScope(param.workspaceOrOrgId)).scope;
+    const workspaceId = scope === 'workspace' ? param.workspaceOrOrgId : undefined;
     const orgId = scope === 'org' ? param.workspaceOrOrgId : undefined;
 
     // For org scope, skip feature check entirely
@@ -230,11 +284,7 @@ export class TeamsV3Service {
       if (wsOrgId) {
         // Use a context with org_id (not workspace_id) for the org teams query
         // to avoid cache key collision — Team.list cache key uses context.workspace_id ?? context.org_id
-        const orgContext = {
-          ...context,
-          workspace_id: undefined,
-          org_id: wsOrgId,
-        } as NcContext;
+        const orgContext = { ...context, workspace_id: undefined, org_id: wsOrgId } as NcContext;
         const orgTeams = await Team.list(orgContext, {
           fk_org_id: wsOrgId,
         });
@@ -321,10 +371,8 @@ export class TeamsV3Service {
         path: team.path || undefined,
         fk_org_id: team.fk_org_id || undefined,
         fk_workspace_id: team.fk_workspace_id || undefined,
-        scope: (team.fk_org_id && !team.fk_workspace_id
-          ? 'org'
-          : 'workspace') as 'org' | 'workspace',
-        scim_managed: team.scim_managed || false,
+        scope: (team.fk_org_id && !team.fk_workspace_id ? 'org' : 'workspace') as 'org' | 'workspace',
+        scim_managed: team.scim_managed ?? false,
       };
     });
 
@@ -335,7 +383,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
-      scope: 'workspace' | 'org';
+      scope?: 'workspace' | 'org';
       teamId: string;
     },
   ): Promise<TeamDetailV3Type> {
@@ -488,7 +536,6 @@ export class TeamsV3Service {
       icon: meta.icon || null,
       icon_type: meta.icon_type || null,
       badge_color: meta.badge_color || null,
-      fk_parent_team_id: team.fk_parent_team_id || null,
       members,
       inherited_members: inheritedMembers.length ? inheritedMembers : undefined,
     };
@@ -500,7 +547,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
-      scope: 'workspace' | 'org';
+      scope?: 'workspace' | 'org';
       team: TeamCreateV3ReqType;
       req: NcRequest;
     },
@@ -513,9 +560,8 @@ export class TeamsV3Service {
       true,
     );
 
-    const scope = param.scope;
-    const workspaceId =
-      scope === 'workspace' ? param.workspaceOrOrgId : undefined;
+    const scope = param.scope || (await this.resolveScope(param.workspaceOrOrgId)).scope;
+    const workspaceId = scope === 'workspace' ? param.workspaceOrOrgId : undefined;
     const orgId = scope === 'org' ? param.workspaceOrOrgId : undefined;
 
     // Org teams: only org admin can create
@@ -566,7 +612,9 @@ export class TeamsV3Service {
     // Check for duplicate team name within the same scope
     const existingTeams = await Team.list(
       context,
-      scope === 'org' ? { fk_org_id: orgId } : { fk_workspace_id: workspaceId },
+      scope === 'org'
+        ? { fk_org_id: orgId }
+        : { fk_workspace_id: workspaceId },
     );
 
     const duplicateTeam = existingTeams.find(
@@ -757,9 +805,7 @@ export class TeamsV3Service {
       path: team.path || undefined,
       fk_org_id: team.fk_org_id || undefined,
       fk_workspace_id: team.fk_workspace_id || undefined,
-      scope: (team.fk_org_id && !team.fk_workspace_id ? 'org' : 'workspace') as
-        | 'org'
-        | 'workspace',
+      scope: (team.fk_org_id && !team.fk_workspace_id ? 'org' : 'workspace') as 'org' | 'workspace',
       scim_managed: team.scim_managed || false,
     };
 
@@ -776,14 +822,16 @@ export class TeamsV3Service {
       await this.paymentService.reseatSubscription(workspace.id);
     }
 
-    await this.broadcastTeamEvent(context, team, {
-      event: EventType.TEAM_EVENT,
-      payload: {
-        id: response.id,
-        action: 'teamCreate',
-        payload: response as TeamV3ResponseType,
+    await this.broadcastTeamEvent(context, team,
+      {
+        event: EventType.TEAM_EVENT,
+        payload: {
+          id: response.id,
+          action: 'teamCreate',
+          payload: response as TeamV3ResponseType,
+        },
       },
-    });
+    );
 
     return response;
   }
@@ -792,7 +840,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
-      scope: 'workspace' | 'org';
+      scope?: 'workspace' | 'org';
       teamId: string;
       team: TeamUpdateV3ReqType;
       req: NcRequest;
@@ -812,9 +860,8 @@ export class TeamsV3Service {
     }
 
     const belongsToScope =
-      param.scope === 'org'
-        ? oldTeam.fk_org_id === param.workspaceOrOrgId
-        : oldTeam.fk_workspace_id === param.workspaceOrOrgId;
+      oldTeam.fk_workspace_id === param.workspaceOrOrgId ||
+      oldTeam.fk_org_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
@@ -921,14 +968,16 @@ export class TeamsV3Service {
       await this.paymentService.reseatSubscription(workspace.id);
     }
 
-    await this.broadcastTeamEvent(context, oldTeam, {
-      event: EventType.TEAM_EVENT,
-      payload: {
-        id: response.id,
-        action: 'teamUpdate',
-        payload: response as TeamV3ResponseType,
+    await this.broadcastTeamEvent(context, oldTeam,
+      {
+        event: EventType.TEAM_EVENT,
+        payload: {
+          id: response.id,
+          action: 'teamUpdate',
+          payload: response as TeamV3ResponseType,
+        },
       },
-    });
+    );
 
     return response;
   }
@@ -937,7 +986,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
-      scope: 'workspace' | 'org';
+      scope?: 'workspace' | 'org';
       teamId: string;
       force?: boolean;
       req: NcRequest;
@@ -952,9 +1001,8 @@ export class TeamsV3Service {
     }
 
     const belongsToScope =
-      param.scope === 'org'
-        ? team.fk_org_id === param.workspaceOrOrgId
-        : team.fk_workspace_id === param.workspaceOrOrgId;
+      team.fk_workspace_id === param.workspaceOrOrgId ||
+      team.fk_org_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
@@ -1051,13 +1099,15 @@ export class TeamsV3Service {
       await this.paymentService.reseatSubscription(workspace.id);
     }
 
-    await this.broadcastTeamEvent(context, team, {
-      event: EventType.TEAM_EVENT,
-      payload: {
-        id: team.id,
-        action: 'teamDelete',
+    await this.broadcastTeamEvent(context, team,
+      {
+        event: EventType.TEAM_EVENT,
+        payload: {
+          id: team.id,
+          action: 'teamDelete',
+        },
       },
-    });
+    );
 
     return { msg: 'Team has been deleted successfully' };
   }
@@ -1066,7 +1116,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
-      scope: 'workspace' | 'org';
+      scope?: 'workspace' | 'org';
       teamId: string;
       members: TeamMembersAddV3ReqType[];
       req: NcRequest;
@@ -1081,9 +1131,8 @@ export class TeamsV3Service {
     }
 
     const belongsToScope =
-      param.scope === 'org'
-        ? team.fk_org_id === param.workspaceOrOrgId
-        : team.fk_workspace_id === param.workspaceOrOrgId;
+      team.fk_workspace_id === param.workspaceOrOrgId ||
+      team.fk_org_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
@@ -1220,9 +1269,7 @@ export class TeamsV3Service {
     }
 
     // Recalculate seat count after adding team members
-    if (team.fk_workspace_id) {
-      await this.paymentService.reseatSubscription(team.fk_workspace_id);
-    }
+    if (team.fk_workspace_id) { await this.paymentService.reseatSubscription(team.fk_workspace_id); }
 
     // Transform to v3 response format — reuse already-loaded users
     const members = addedMembers.map((assignment) => {
@@ -1234,14 +1281,16 @@ export class TeamsV3Service {
       };
     });
 
-    await this.broadcastTeamEvent(context, team, {
-      event: EventType.TEAM_EVENT,
-      payload: {
-        id: team.id,
-        action: 'teamMembersAdd',
-        payload: members as TeamMemberV3ResponseType[],
+    await this.broadcastTeamEvent(context, team,
+      {
+        event: EventType.TEAM_EVENT,
+        payload: {
+          id: team.id,
+          action: 'teamMembersAdd',
+          payload: members as TeamMemberV3ResponseType[],
+        },
       },
-    });
+    );
 
     return members;
   }
@@ -1250,7 +1299,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
-      scope: 'workspace' | 'org';
+      scope?: 'workspace' | 'org';
       teamId: string;
       members: TeamMembersRemoveV3ReqType[];
       req: NcRequest;
@@ -1265,9 +1314,8 @@ export class TeamsV3Service {
     }
 
     const belongsToScope =
-      param.scope === 'org'
-        ? team.fk_org_id === param.workspaceOrOrgId
-        : team.fk_workspace_id === param.workspaceOrOrgId;
+      team.fk_workspace_id === param.workspaceOrOrgId ||
+      team.fk_org_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
@@ -1302,14 +1350,12 @@ export class TeamsV3Service {
 
     // Hoist permission check outside the loop
     const isOrgTeam = !!team.fk_org_id && !team.fk_workspace_id;
-    const isOrgAdmin =
-      isOrgTeam && userId
-        ? await this.isUserOrgAdmin(team.fk_org_id, userId)
-        : false;
-    const isTeamManager =
-      !isOrgTeam && userId
-        ? assignmentsByUserId.get(userId)?.roles === TeamUserRoles.OWNER
-        : false;
+    const isOrgAdmin = isOrgTeam && userId
+      ? await this.isUserOrgAdmin(team.fk_org_id, userId)
+      : false;
+    const isTeamManager = !isOrgTeam && userId
+      ? assignmentsByUserId.get(userId)?.roles === TeamUserRoles.OWNER
+      : false;
     const canManage = isOrgAdmin || isTeamManager;
 
     // Count current managers for last-manager protection
@@ -1386,18 +1432,18 @@ export class TeamsV3Service {
     }
 
     // Recalculate seat count after removing team members
-    if (team.fk_workspace_id) {
-      await this.paymentService.reseatSubscription(team.fk_workspace_id);
-    }
+    if (team.fk_workspace_id) { await this.paymentService.reseatSubscription(team.fk_workspace_id); }
 
-    await this.broadcastTeamEvent(context, team, {
-      event: EventType.TEAM_EVENT,
-      payload: {
-        id: team.id,
-        action: 'teamMembersRemove',
-        payload: removedMembers as TeamMembersRemoveV3ReqType[],
+    await this.broadcastTeamEvent(context, team,
+      {
+        event: EventType.TEAM_EVENT,
+        payload: {
+          id: team.id,
+          action: 'teamMembersRemove',
+          payload: removedMembers as TeamMembersRemoveV3ReqType[],
+        },
       },
-    });
+    );
 
     return removedMembers;
   }
@@ -1406,7 +1452,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
-      scope: 'workspace' | 'org';
+      scope?: 'workspace' | 'org';
       teamId: string;
       members: TeamMembersUpdateV3ReqType[];
       req: NcRequest;
@@ -1421,9 +1467,8 @@ export class TeamsV3Service {
     }
 
     const belongsToScope =
-      param.scope === 'org'
-        ? team.fk_org_id === param.workspaceOrOrgId
-        : team.fk_workspace_id === param.workspaceOrOrgId;
+      team.fk_workspace_id === param.workspaceOrOrgId ||
+      team.fk_org_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
@@ -1537,9 +1582,7 @@ export class TeamsV3Service {
     }
 
     // Recalculate seat count after updating team member roles
-    if (team.fk_workspace_id) {
-      await this.paymentService.reseatSubscription(team.fk_workspace_id);
-    }
+    if (team.fk_workspace_id) { await this.paymentService.reseatSubscription(team.fk_workspace_id); }
 
     // Transform to v3 response format — reuse already-loaded users
     const members = updatedMembers.map((assignment) => {
@@ -1551,14 +1594,16 @@ export class TeamsV3Service {
       };
     });
 
-    await this.broadcastTeamEvent(context, team, {
-      event: EventType.TEAM_EVENT,
-      payload: {
-        id: team.id,
-        action: 'teamMembersUpdate',
-        payload: members as TeamMemberV3ResponseType[],
+    await this.broadcastTeamEvent(context, team,
+      {
+        event: EventType.TEAM_EVENT,
+        payload: {
+          id: team.id,
+          action: 'teamMembersUpdate',
+          payload: members as TeamMemberV3ResponseType[],
+        },
       },
-    });
+    );
 
     return members;
   }
@@ -1569,13 +1614,12 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
-      scope: 'workspace' | 'org';
+      scope?: 'workspace' | 'org';
     },
   ): Promise<{ list: TeamTreeNodeV3Type[] }> {
     await this.validateFeatureAccess(context);
 
-    const scope = param.scope;
-    const treeRoots = await Team.getTree(context, param.workspaceOrOrgId, scope);
+    const treeRoots = await Team.getTree(context, param.workspaceOrOrgId);
     const currentUserId = context.user?.id;
 
     // Collect all team IDs from the tree
@@ -1658,7 +1702,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
-      scope: 'workspace' | 'org';
+      scope?: 'workspace' | 'org';
       teamId: string;
       body: TeamMoveV3ReqType;
       req: NcRequest;
@@ -1677,27 +1721,20 @@ export class TeamsV3Service {
       );
     }
 
-    const scope = param.scope;
-    const workspaceId =
-      scope === 'workspace' ? param.workspaceOrOrgId : undefined;
-    const orgId = scope === 'org' ? param.workspaceOrOrgId : undefined;
-
-    // Fetch workspace (skip for org scope)
-    const workspace = workspaceId ? await Workspace.get(workspaceId) : null;
-
-    if (scope === 'workspace' && !workspace) {
-      NcError.get(context).workspaceNotFound(workspaceId);
+    // Fetch workspace
+    const workspace = await Workspace.get(param.workspaceOrOrgId);
+    if (!workspace) {
+      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
     }
 
-    // Check if team exists and belongs to scope
+    // Check if team exists and belongs to workspace
     const team = await Team.get(context, param.teamId);
     if (!team) {
       NcError.get(context).teamNotFound(param.teamId);
     }
     const teamBelongsToScope =
-      scope === 'org'
-        ? team.fk_org_id === orgId
-        : team.fk_workspace_id === workspaceId;
+      team.fk_workspace_id === param.workspaceOrOrgId ||
+      team.fk_org_id === param.workspaceOrOrgId;
     if (!teamBelongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
     }
@@ -1719,25 +1756,21 @@ export class TeamsV3Service {
         NcError.get(context).teamNotFound(newParentId);
       }
       const parentBelongsToScope =
-        scope === 'org'
-          ? newParent.fk_org_id === orgId
-          : newParent.fk_workspace_id === workspaceId;
+        newParent.fk_workspace_id === param.workspaceOrOrgId ||
+        newParent.fk_org_id === param.workspaceOrOrgId;
       if (!parentBelongsToScope) {
         NcError.get(context).invalidRequestBody(
           'Parent team must belong to the same scope',
         );
       }
 
-      // Only managers of the new parent team can move teams under it (unless user is workspace/org owner)
+      // Only managers of the new parent team can move teams under it (unless user is workspace owner)
       if (userId) {
-        const isOwner =
-          scope === 'org'
-            ? await this.isUserOrgAdmin(orgId, userId)
-            : await this.isUserWorkspaceOwner(
-                context,
-                userId,
-                param.workspaceOrOrgId,
-              );
+        const isOwner = await this.isUserWorkspaceOwner(
+          context,
+          userId,
+          param.workspaceOrOrgId,
+        );
 
         if (!isOwner) {
           const parentAssignment = await PrincipalAssignment.get(
@@ -1828,17 +1861,19 @@ export class TeamsV3Service {
       team: updatedTeam,
       oldParentTeam: oldParentTeam ?? null,
       newParentTeam: newParentId ? await Team.get(context, newParentId) : null,
-      workspace: workspace ?? null,
+      workspace,
     });
 
-    await this.broadcastTeamEvent(context, team, {
-      event: EventType.TEAM_EVENT,
-      payload: {
-        id: response.id,
-        action: 'teamMove',
-        payload: response,
+    await this.broadcastTeamEvent(context, team,
+      {
+        event: EventType.TEAM_EVENT,
+        payload: {
+          id: response.id,
+          action: 'teamMove',
+          payload: response,
+        },
       },
-    });
+    );
 
     return response;
   }

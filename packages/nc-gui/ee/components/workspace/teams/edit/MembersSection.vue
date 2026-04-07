@@ -330,19 +330,22 @@ onMounted(() => {
 
             <div v-if="!readOnly" class="relative children:flex-none min-w-[150px] min-h-8 flex items-center justify-end">
               <div v-if="!selectedRowConfig.selectedRowCount">
-                <NcButton
-                  size="small"
-                  type="secondary"
-                  class="absolute"
-                  text-color="primary"
-                  inner-class="!gap-2"
-                  @click="isAddMembersModalVisible = true"
-                >
-                  <template #icon>
-                    <GeneralIcon icon="ncUserPlus" class="h-4 w-4" />
-                  </template>
-                  {{ $t('activity.addMembers') }}
-                </NcButton>
+                <NcTooltip :disabled="!team.scim_managed" :title="$t('labels.scimManagedTeamAddMemberTooltip')" placement="top">
+                  <NcButton
+                    size="small"
+                    type="secondary"
+                    class="absolute"
+                    text-color="primary"
+                    inner-class="!gap-2"
+                    :disabled="team.scim_managed"
+                    @click="isAddMembersModalVisible = true"
+                  >
+                    <template #icon>
+                      <GeneralIcon icon="ncUserPlus" class="h-4 w-4" />
+                    </template>
+                    {{ $t('activity.addMembers') }}
+                  </NcButton>
+                </NcTooltip>
               </div>
               <div v-else>
                 <NcDropdown placement="bottomRight">
@@ -355,11 +358,11 @@ onMounted(() => {
                   <template #overlay>
                     <NcMenu variant="medium">
                       <NcTooltip
-                        :title="t('objects.teams.removeFromTeamRestrictionTooltip')"
+                        :title="team.scim_managed ? t('labels.scimManagedTeamAddMemberTooltip') : t('objects.teams.removeFromTeamRestrictionTooltip')"
                         placement="right"
-                        :disabled="!hasSelectedAllOwners"
+                        :disabled="!team.scim_managed && !hasSelectedAllOwners"
                       >
-                        <NcMenuItem :disabled="hasSelectedAllOwners" danger @click="handleRemoveSelectedMembersFromTeam">
+                        <NcMenuItem :disabled="team.scim_managed || hasSelectedAllOwners" danger @click="handleRemoveSelectedMembersFromTeam">
                           <GeneralIcon icon="ncXSquare" />
                           {{ $t('activity.removeFromTeam') }}
                         </NcMenuItem>
@@ -465,12 +468,12 @@ onMounted(() => {
                   <NcTooltip
                     v-else
                     v-e="['c:team:member-remove', { teamId: team.id, userId: record.fk_user_id }]"
-                    :disabled="!(hasSoleTeamOwner && isTeamOwner(record as TeamMember)) || readOnly"
-                    :title="t('objects.teams.thisIsTheOnlyTeamOwnerTooltip')"
+                    :disabled="!team.scim_managed && (!(hasSoleTeamOwner && isTeamOwner(record as TeamMember)) || readOnly)"
+                    :title="team.scim_managed ? t('labels.scimManagedTeamAddMemberTooltip') : t('objects.teams.thisIsTheOnlyTeamOwnerTooltip')"
                     placement="left"
                   >
                     <NcMenuItem
-                      :disabled="(hasSoleTeamOwner && isTeamOwner(record as TeamMember)) || readOnly"
+                      :disabled="team.scim_managed || (hasSoleTeamOwner && isTeamOwner(record as TeamMember)) || readOnly"
                       danger
                       @click="handleRemoveMemberFromTeam([record as TeamMember])"
                     >

@@ -138,6 +138,31 @@ export class OrgUsersService {
         NcError.badRequest('Cannot delete super admin');
       }
 
+      // Block deletion if user is SCIM-managed in any workspace
+      const hasScimColumn = await ncMeta
+        .knexConnection('nc_workspace_users')
+        .columnInfo()
+        .then((cols) => 'scim_managed' in cols)
+        .catch(() => false);
+
+      if (hasScimColumn) {
+        const scimCount = await ncMeta
+          .knexConnection('nc_workspace_users')
+          .where('fk_user_id', param.userId)
+          .where('scim_managed', true)
+          .where(function () {
+            this.where('deleted', false).orWhereNull('deleted');
+          })
+          .count('* as count')
+          .first();
+
+        if (scimCount && Number(scimCount.count) > 0) {
+          NcError.badRequest(
+            'This user is managed via SCIM in one or more workspaces. Removal must be done from the identity provider.',
+          );
+        }
+      }
+
       // delete base user entry and assign to super admin
       const baseUsers = await BaseUser.getProjectsIdList(param.userId, ncMeta);
 

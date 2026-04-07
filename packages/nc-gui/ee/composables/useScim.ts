@@ -1,17 +1,19 @@
 import { message } from 'ant-design-vue'
+import { WorkspaceUserRoles } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 
 export interface ScimConfig {
   id?: string
-  fk_workspace_id?: string
+  fk_org_id?: string
   enabled: boolean
   provisioning_token?: string
   base_url?: string
   role_mapping?: Record<string, any>
+  default_role?: string
   token_exists?: boolean
 }
 
-export const useScim = (workspaceId: ComputedRef<string> | Ref<string>) => {
+export const useScim = (orgId: ComputedRef<string> | Ref<string>) => {
   const { $state, $api } = useNuxtApp()
   const { t } = useI18n()
 
@@ -21,23 +23,28 @@ export const useScim = (workspaceId: ComputedRef<string> | Ref<string>) => {
   const isLoading = ref(false)
   const tokenVisible = ref(false) // Controls token visibility after generation
 
+  const scimFetch = <T = any>(path: string, opts: Record<string, any> = {}) => {
+    return $fetch<T>(path, {
+      baseURL,
+      headers: {
+        'Content-Type': 'application/json',
+        'xc-auth': $state.token.value as string,
+      },
+      ...opts,
+    })
+  }
+
+  const configPath = () => `/api/v3/meta/orgs/${orgId.value}/scim/config`
+
   // Fetch SCIM configuration
   const fetchScimConfig = async () => {
-    if (!workspaceId.value) return
+    if (!orgId.value) return
 
     try {
       isLoading.value = true
-      const response = await $fetch<ScimConfig>(`${baseURL}/api/v3/meta/workspaces/${workspaceId.value}/scim/config`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'xc-auth': $state.token.value as string,
-        },
-      })
-      scimConfig.value = response
-      tokenVisible.value = false // Mask token by default
-    } catch (e: any) {
-      // SCIM not configured yet - 404 is expected; ignore other errors silently
+      scimConfig.value = await scimFetch<ScimConfig>(configPath())
+      tokenVisible.value = false
+    } catch {
       scimConfig.value = null
     } finally {
       isLoading.value = false
@@ -46,19 +53,13 @@ export const useScim = (workspaceId: ComputedRef<string> | Ref<string>) => {
 
   // Initialize SCIM configuration
   const initializeScim = async () => {
-    if (!workspaceId.value) return
+    if (!orgId.value) return
 
     try {
       isLoading.value = true
-      const response = await $fetch<ScimConfig>(`${baseURL}/api/v3/meta/workspaces/${workspaceId.value}/scim/config`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'xc-auth': $state.token.value as string,
-        },
-      })
+      const response = await scimFetch<ScimConfig>(configPath(), { method: 'POST' })
       scimConfig.value = response
-      tokenVisible.value = true // Show token on first generation
+      tokenVisible.value = true
       message.success(t('msg.success.scimInitialized'))
       return response
     } catch (e: any) {
@@ -71,25 +72,16 @@ export const useScim = (workspaceId: ComputedRef<string> | Ref<string>) => {
 
   // Regenerate provisioning token
   const regenerateToken = async () => {
-    if (!workspaceId.value) return
+    if (!orgId.value) return
 
     try {
       isLoading.value = true
-      const response = await $fetch<ScimConfig>(
-        `${baseURL}/api/v3/meta/workspaces/${workspaceId.value}/scim/config/token/regenerate`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'xc-auth': $state.token.value as string,
-          },
-        },
-      )
+      const response = await scimFetch<ScimConfig>(`${configPath()}/token/regenerate`, { method: 'POST' })
       if (scimConfig.value && response.provisioning_token) {
         scimConfig.value.provisioning_token = response.provisioning_token
         scimConfig.value.token_exists = true
       }
-      tokenVisible.value = true // Show new token
+      tokenVisible.value = true
       message.success(t('msg.success.tokenRegenerated'))
       return response
     } catch (e: any) {
@@ -102,18 +94,11 @@ export const useScim = (workspaceId: ComputedRef<string> | Ref<string>) => {
 
   // Toggle SCIM enabled/disabled
   const toggleScim = async (enabled: boolean) => {
-    if (!workspaceId.value) return
+    if (!orgId.value) return
 
     try {
       isLoading.value = true
-      await $fetch(`${baseURL}/api/v3/meta/workspaces/${workspaceId.value}/scim/config`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'xc-auth': $state.token.value as string,
-        },
-        body: { enabled },
-      })
+      await scimFetch(configPath(), { method: 'PATCH', body: { enabled } })
       if (scimConfig.value) {
         scimConfig.value.enabled = enabled
       }
@@ -126,19 +111,29 @@ export const useScim = (workspaceId: ComputedRef<string> | Ref<string>) => {
     }
   }
 
+  // Update default role
+  const updateDefaultRole = async (role: string) => {
+    if (!orgId.value) return
+
+    try {
+      await scimFetch(configPath(), { method: 'PATCH', body: { default_role: role } })
+      if (scimConfig.value) {
+        scimConfig.value.default_role = role
+      }
+      message.success(t('msg.success.defaultRoleUpdated'))
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+      throw e
+    }
+  }
+
   // Delete SCIM configuration
   const deleteScimConfig = async () => {
-    if (!workspaceId.value) return
+    if (!orgId.value) return
 
     try {
       isLoading.value = true
-      await $fetch(`${baseURL}/api/v3/meta/workspaces/${workspaceId.value}/scim/config`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'xc-auth': $state.token.value as string,
-        },
-      })
+      await scimFetch(configPath(), { method: 'DELETE' })
       scimConfig.value = null
       message.success(t('msg.success.scimDeleted'))
     } catch (e: any) {
@@ -157,6 +152,7 @@ export const useScim = (workspaceId: ComputedRef<string> | Ref<string>) => {
     initializeScim,
     regenerateToken,
     toggleScim,
+    updateDefaultRole,
     deleteScimConfig,
   }
 }

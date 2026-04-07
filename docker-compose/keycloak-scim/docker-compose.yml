@@ -1,0 +1,16 @@
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:20.0
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HTTP_PORT: 8180
+    ports:
+      - "8180:8180"
+    volumes:
+      - /tmp/scim-for-keycloak.jar:/opt/keycloak/providers/scim-for-keycloak.jar
+      - keycloak_data:/opt/keycloak/data
+
+volumes:
+  keycloak_data:

@@ -15,7 +15,8 @@ const { appInfo, isMobileMode } = useGlobal()
 
 const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
-const { isWsAuditEnabled, isPaymentEnabled, getFeature, handleUpgradePlan, showUpgradeToUseTeams, showEEFeatures } = useEeConfig()
+const { isWsAuditEnabled, isPaymentEnabled, getFeature, handleUpgradePlan, showUpgradeToUseTeams, showEEFeatures, blockScim } =
+  useEeConfig()
 
 const hasTeamsEditPermission = computed(() => {
   return isEeUI && isTeamsEnabled.value && isUIAllowed('teamCreate')
@@ -72,6 +73,12 @@ const tabItems = computed<TabItem[]>(() => {
       icon: 'sso',
       label: t('title.sso'),
       hidden: isMobileMode.value || !(isWorkspaceSsoAvail.value && isUIAllowed('workspaceSSO') && showEEFeatures.value),
+    },
+    {
+      key: 'scim',
+      icon: 'ncShield',
+      label: t('labels.scimProvisioning'),
+      hidden: isMobileMode.value || !(!blockScim.value && isEeUI && showEEFeatures.value),
     },
     { key: 'settings', icon: 'ncSettings', label: t('labels.settings'), hidden: !showEEFeatures.value },
   ].filter((item) => !item.hidden)

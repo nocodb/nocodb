@@ -20,6 +20,7 @@ import Base from '~/models/Base';
 
 const logger = new Logger('Team');
 
+// Cache key uses context.workspace_id ?? context.org_id — supports both scopes
 export default class Team {
   id: string;
   title: string;
@@ -672,14 +673,12 @@ export default class Team {
   public static async getTree(
     context: NcContext,
     workspaceOrOrgId: string,
-    scope?: 'workspace' | 'org',
     ncMeta = Noco.ncMeta,
   ): Promise<(Team & { children: Team[] })[]> {
-    // Use explicit scope if provided, otherwise detect from context
-    const isOrgScope = scope
-      ? scope === 'org'
-      : context.org_id === workspaceOrOrgId ||
-        (!context.workspace_id && !!workspaceOrOrgId);
+    // Detect scope: if context has org_id matching the param, use org scope
+    const isOrgScope =
+      context.org_id === workspaceOrOrgId ||
+      (!context.workspace_id && !!workspaceOrOrgId);
     const allTeams = await this.list(
       context,
       isOrgScope
@@ -924,7 +923,7 @@ export default class Team {
    */
   public static async getByScimExternalId(
     context: NcContext,
-    workspaceId: string,
+    orgId: string,
     scimExternalId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<Team | null> {
@@ -935,7 +934,7 @@ export default class Team {
       {
         xcCondition: {
           _and: [
-            { fk_workspace_id: { eq: workspaceId } },
+            { fk_org_id: { eq: orgId } },
             { scim_external_id: { eq: scimExternalId } },
             { _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }] },
           ],
@@ -955,7 +954,7 @@ export default class Team {
   public static async scimList(
     context: NcContext,
     {
-      fk_workspace_id,
+      fk_org_id,
       offset = 0,
       limit = 100,
       filterDisplayName,
@@ -963,7 +962,7 @@ export default class Team {
       sortBy,
       sortAscending = true,
     }: {
-      fk_workspace_id: string;
+      fk_org_id: string;
       offset?: number;
       limit?: number;
       filterDisplayName?: string;
@@ -976,7 +975,7 @@ export default class Team {
     const baseQuery = () => {
       const qb = ncMeta
         .knex(MetaTable.TEAMS)
-        .where('fk_workspace_id', fk_workspace_id)
+        .where('fk_org_id', fk_org_id)
         .where('scim_managed', true)
         .where(function () {
           this.where('deleted', false).orWhereNull('deleted');

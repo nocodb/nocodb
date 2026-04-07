@@ -1,29 +1,43 @@
 import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
+import { EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import init from '../../../init';
+import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
+
+async function createTestOrg(context: any): Promise<string> {
+  const orgId = `ot${Date.now().toString(36)}`;
+  await Noco.ncMeta.knexConnection(MetaTable.ORG).insert({ id: orgId, title: 'SCIM Test Org' });
+  await Noco.ncMeta.knexConnection(MetaTable.ORG_USERS).insert({
+    fk_org_id: orgId,
+    fk_user_id: context.user.id,
+    roles: EnterpriseOrgUserRoles.ADMIN,
+  });
+  return orgId;
+}
 
 // ─── SCIM Config API Tests ───────────────────────────────────────────
 // These endpoints are protected by GlobalGuard (xc-auth header).
-// Route prefix: /api/v3/meta/workspaces/:workspaceId/scim/config
+// Route prefix: /api/v3/meta/orgs/:orgId/scim/config
 
 function scimConfigTests() {
   let context: Awaited<ReturnType<typeof init>>;
-  let workspaceId: string;
+  let orgId: string;
 
   const SCIM_CONFIG_PREFIX = () =>
-    `/api/v3/meta/workspaces/${workspaceId}/scim/config`;
+    `/api/v3/meta/orgs/${orgId}/scim/config`;
 
   beforeEach(async function () {
     console.time('#### scimConfigTests');
     context = await init();
-    workspaceId = context.fk_workspace_id;
+    orgId = await createTestOrg(context);
     console.timeEnd('#### scimConfigTests');
   });
 
   // ── Initialize Config ───────────────────────────────────────────
 
-  it('Initialize SCIM config for workspace', async () => {
+  it('Initialize SCIM config for org', async () => {
     const response = await request(context.app)
       .post(SCIM_CONFIG_PREFIX())
       .set('xc-auth', context.token)
@@ -35,7 +49,7 @@ function scimConfigTests() {
     expect(config).to.have.property('enabled', false);
     expect(config).to.have.property('base_url');
     expect(config).to.have.property('provisioning_token');
-    expect(config.base_url).to.include(workspaceId);
+    expect(config.base_url).to.include(orgId);
     expect(config.base_url).to.include('/scim/v2');
     // Token should be returned in cleartext on first create
     expect(config.provisioning_token).to.not.equal('******');
@@ -76,14 +90,14 @@ function scimConfigTests() {
       .expect(200);
 
     const config = response.body;
-    expect(config).to.have.property('fk_workspace_id', workspaceId);
+    expect(config).to.have.property('fk_org_id', orgId);
     expect(config).to.have.property('provisioning_token', '******');
     expect(config).to.have.property('token_exists', true);
     expect(config).to.have.property('enabled', false);
     expect(config).to.have.property('base_url');
   });
 
-  it('Get config returns error for workspace without config', async () => {
+  it('Get config returns error for org without config', async () => {
     const response = await request(context.app)
       .get(SCIM_CONFIG_PREFIX())
       .set('xc-auth', context.token);
@@ -231,23 +245,23 @@ function scimConfigTests() {
 
 // ─── SCIM v2 User Provisioning API Tests ─────────────────────────────
 // These endpoints are protected by ScimAuthGuard (Bearer token).
-// Route prefix: /api/v3/meta/workspaces/:workspaceId/scim/v2/Users
+// Route prefix: /api/v3/meta/orgs/:orgId/scim/v2/Users
 //
 // NOTE: These tests require SCIM config to be initialized and enabled
 // with a valid bearer token. Due to the known bug in ScimBearerStrategy
-// (reads `this.workspaceId` instead of `req.workspaceId`), some tests
+// (reads `this.orgId` instead of `req.orgId`), some tests
 // may fail until the strategy is fixed.
 
 function scimUsersTests() {
   let context: Awaited<ReturnType<typeof init>>;
-  let workspaceId: string;
+  let orgId: string;
   let scimToken: string;
 
   const SCIM_USERS_PREFIX = () =>
-    `/api/v3/meta/workspaces/${workspaceId}/scim/v2/Users`;
+    `/api/v3/meta/orgs/${orgId}/scim/v2/Users`;
 
   const SCIM_CONFIG_PREFIX = () =>
-    `/api/v3/meta/workspaces/${workspaceId}/scim/config`;
+    `/api/v3/meta/orgs/${orgId}/scim/config`;
 
   // Helper: Create a valid SCIM user payload
   function makeScimUserPayload(overrides: Record<string, any> = {}) {
@@ -277,7 +291,7 @@ function scimUsersTests() {
   beforeEach(async function () {
     console.time('#### scimUsersTests');
     context = await init();
-    workspaceId = context.fk_workspace_id;
+    orgId = await createTestOrg(context);
 
     // Initialize SCIM config
     const initRes = await request(context.app)
@@ -770,7 +784,7 @@ function scimUsersTests() {
     expect(user[NOCODB_USER_EXT]).to.have.property('workspaceRole', 'editor');
   });
 
-  it('Create user without workspaceRole — defaults to viewer', async () => {
+  it('Create user without workspaceRole — org-level SCIM does not include workspace extension', async () => {
     const payload = makeScimUserPayload();
 
     const response = await request(context.app)
@@ -780,9 +794,8 @@ function scimUsersTests() {
       .expect(201);
 
     const user = response.body;
-    // Default role is viewer, so extension should be present
-    expect(user.schemas).to.include(NOCODB_USER_EXT);
-    expect(user[NOCODB_USER_EXT]).to.have.property('workspaceRole', 'viewer');
+    // Org-level SCIM users have org roles, not workspace roles — extension not present
+    expect(user.schemas).to.not.include(NOCODB_USER_EXT);
   });
 
   it('Update workspaceRole via PATCH Replace (path-targeted)', async () => {
@@ -940,7 +953,7 @@ function scimUsersTests() {
 
   it('NocoDB User extension schema is advertised in /Schemas', async () => {
     const response = await request(context.app)
-      .get(`/api/v3/meta/workspaces/${workspaceId}/scim/v2/Schemas`)
+      .get(`/api/v3/meta/orgs/${orgId}/scim/v2/Schemas`)
       .set('Authorization', `Bearer ${scimToken}`)
       .expect(200);
 
@@ -992,21 +1005,21 @@ function scimUsersTests() {
 }
 
 // ─── SCIM v2 Group Provisioning API Tests ────────────────────────────
-// Route prefix: /api/v3/meta/workspaces/:workspaceId/scim/v2/Groups
+// Route prefix: /api/v3/meta/orgs/:orgId/scim/v2/Groups
 
 function scimGroupsTests() {
   let context: Awaited<ReturnType<typeof init>>;
-  let workspaceId: string;
+  let orgId: string;
   let scimToken: string;
 
   const SCIM_GROUPS_PREFIX = () =>
-    `/api/v3/meta/workspaces/${workspaceId}/scim/v2/Groups`;
+    `/api/v3/meta/orgs/${orgId}/scim/v2/Groups`;
 
   const SCIM_USERS_PREFIX = () =>
-    `/api/v3/meta/workspaces/${workspaceId}/scim/v2/Users`;
+    `/api/v3/meta/orgs/${orgId}/scim/v2/Users`;
 
   const SCIM_CONFIG_PREFIX = () =>
-    `/api/v3/meta/workspaces/${workspaceId}/scim/config`;
+    `/api/v3/meta/orgs/${orgId}/scim/config`;
 
   function makeScimGroupPayload(overrides: Record<string, any> = {}) {
     const uniqueId = Date.now() + Math.random().toString(36).slice(2, 8);
@@ -1064,7 +1077,7 @@ function scimGroupsTests() {
   beforeEach(async function () {
     console.time('#### scimGroupsTests');
     context = await init();
-    workspaceId = context.fk_workspace_id;
+    orgId = await createTestOrg(context);
 
     // Initialize SCIM config
     const initRes = await request(context.app)
@@ -1808,7 +1821,7 @@ function scimGroupsTests() {
 
   it('NocoDB Group extension schema is advertised in /Schemas', async () => {
     const response = await request(context.app)
-      .get(`/api/v3/meta/workspaces/${workspaceId}/scim/v2/Schemas`)
+      .get(`/api/v3/meta/orgs/${orgId}/scim/v2/Schemas`)
       .set('Authorization', `Bearer ${scimToken}`)
       .expect(200);
 
@@ -1860,16 +1873,16 @@ function scimGroupsTests() {
 
 function scimDiscoveryTests() {
   let context: Awaited<ReturnType<typeof init>>;
-  let workspaceId: string;
+  let orgId: string;
   let scimToken: string;
 
   const SCIM_CONFIG_PREFIX = () =>
-    `/api/v3/meta/workspaces/${workspaceId}/scim/config`;
+    `/api/v3/meta/orgs/${orgId}/scim/config`;
 
   beforeEach(async function () {
     console.time('#### scimDiscoveryTests');
     context = await init();
-    workspaceId = context.fk_workspace_id;
+    orgId = await createTestOrg(context);
 
     // Initialize SCIM config
     const initRes = await request(context.app)
@@ -1892,7 +1905,7 @@ function scimDiscoveryTests() {
 
   it('Get SCIM Schemas', async () => {
     const response = await request(context.app)
-      .get(`/api/v3/meta/workspaces/${workspaceId}/scim/v2/Schemas`)
+      .get(`/api/v3/meta/orgs/${orgId}/scim/v2/Schemas`)
       .set('Authorization', `Bearer ${scimToken}`)
       .expect(200);
 
@@ -1922,7 +1935,7 @@ function scimDiscoveryTests() {
   it('Get ServiceProviderConfig', async () => {
     const response = await request(context.app)
       .get(
-        `/api/v3/meta/workspaces/${workspaceId}/scim/v2/ServiceProviderConfig`,
+        `/api/v3/meta/orgs/${orgId}/scim/v2/ServiceProviderConfig`,
       )
       .set('Authorization', `Bearer ${scimToken}`)
       .expect(200);
@@ -1952,20 +1965,20 @@ function scimDiscoveryTests() {
 
 function scimE2EWorkflowTests() {
   let context: Awaited<ReturnType<typeof init>>;
-  let workspaceId: string;
+  let orgId: string;
   let scimToken: string;
 
   const SCIM_CONFIG_PREFIX = () =>
-    `/api/v3/meta/workspaces/${workspaceId}/scim/config`;
+    `/api/v3/meta/orgs/${orgId}/scim/config`;
   const SCIM_USERS_PREFIX = () =>
-    `/api/v3/meta/workspaces/${workspaceId}/scim/v2/Users`;
+    `/api/v3/meta/orgs/${orgId}/scim/v2/Users`;
   const SCIM_GROUPS_PREFIX = () =>
-    `/api/v3/meta/workspaces/${workspaceId}/scim/v2/Groups`;
+    `/api/v3/meta/orgs/${orgId}/scim/v2/Groups`;
 
   beforeEach(async function () {
     console.time('#### scimE2EWorkflow');
     context = await init();
-    workspaceId = context.fk_workspace_id;
+    orgId = await createTestOrg(context);
     console.timeEnd('#### scimE2EWorkflow');
   });
 

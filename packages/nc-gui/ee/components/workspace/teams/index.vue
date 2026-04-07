@@ -479,6 +479,21 @@ onMounted(async () => {
             </button>
             <div v-else-if="viewMode === 'tree'" class="flex-none w-5" />
             <GeneralTeamInfo :team="record" :icon-props="{ size: 'base', wrapperClass: '!rounded-lg' }" />
+            <NcTooltip
+              v-if="record.scim_managed"
+              :title="$t('labels.scimManagedTeamTooltip')"
+              class="flex items-center"
+              :tooltip-style="{ width: '230px' }"
+              :overlay-inner-style="{ width: '230px' }"
+            >
+              <NcBadge
+                :border="false"
+                color="blue"
+                class="text-nc-content-blue-dark dark:!bg-nc-bg-blue-light text-[10px] leading-[14px] !h-[18px] font-semibold"
+              >
+                {{ $t('labels.scimManaged') }}
+              </NcBadge>
+            </NcTooltip>
           </div>
 
           <div v-if="column.key === 'badge'">
@@ -535,13 +550,13 @@ onMounted(async () => {
                   </NcMenuItem>
                   <NcTooltip
                     v-if="record.scope !== 'org' && (record.depth ?? 0) < 3"
-                    :disabled="record.is_owner || isWsOwner"
-                    :title="t('msg.info.onlyTeamManagerCanAddSubTeam')"
+                    :disabled="!record.scim_managed && (record.is_owner || isWsOwner)"
+                    :title="record.scim_managed ? t('labels.scimManagedTeamSubTeamTooltip') : t('msg.info.onlyTeamManagerCanAddSubTeam')"
                     placement="left"
                   >
                     <NcMenuItem
                       v-e="['c:team:add-sub-team', { teamId: record.id }]"
-                      :disabled="!record.is_owner && !isWsOwner"
+                      :disabled="record.scim_managed || (!record.is_owner && !isWsOwner)"
                       @click="
                         showUpgradeToUseTeamHierarchy({
                           successCallback: () => handleCreateSubTeam(record as TeamV3V3Type),
@@ -583,15 +598,22 @@ onMounted(async () => {
                       {{ $t('activity.leaveTeam') }}
                     </NcMenuItem>
                   </NcTooltip>
-                  <NcMenuItem
+                  <NcTooltip
                     v-if="record.scope !== 'org' && (hasEditPermission || isWsOwner)"
-                    v-e="['c:team:delete', { teamId: record.id }]"
-                    danger
-                    @click="handleDeleteTeam(record as TeamV3V3Type)"
+                    :disabled="!record.scim_managed"
+                    :title="$t('labels.scimManagedTeamRemovalTooltip')"
+                    placement="left"
                   >
-                    <GeneralIcon icon="delete" />
-                    {{ $t('activity.deleteTeam') }}
-                  </NcMenuItem>
+                    <NcMenuItem
+                      v-e="['c:team:delete', { teamId: record.id }]"
+                      :disabled="record.scim_managed"
+                      danger
+                      @click="handleDeleteTeam(record as TeamV3V3Type)"
+                    >
+                      <GeneralIcon icon="delete" />
+                      {{ $t('activity.deleteTeam') }}
+                    </NcMenuItem>
+                  </NcTooltip>
                 </NcMenu>
               </template>
             </NcDropdown>

@@ -57,6 +57,7 @@ export const wsHomeRouteNames = new Set([
   'index-typeOrId-billing',
   'index-typeOrId-audits',
   'index-typeOrId-sso',
+  'index-typeOrId-scim',
   'index-typeOrId-settings',
   'index-typeOrId-integrations',
 ])
@@ -83,6 +84,7 @@ export const routeNameToWsTab: Record<string, string> = {
   'index-typeOrId-audits': 'audits',
   'index-typeOrId-billing': 'billing',
   'index-typeOrId-sso': 'sso',
+  'index-typeOrId-scim': 'scim',
   'index-typeOrId-settings': 'settings',
 }
 
@@ -104,6 +106,7 @@ export const wsSettingsRouteNames = new Set([
   'index-typeOrId-billing',
   'index-typeOrId-audits',
   'index-typeOrId-sso',
+  'index-typeOrId-scim',
   'index-typeOrId-ws-settings',
   'index-typeOrId-general',
   'index-typeOrId-more',

@@ -301,7 +301,6 @@ const columns = computed(() => {
                   :on-role-change="onOrgRoleChange(el)"
                   :role="el.org_roles || EnterpriseOrgUserRoles.VIEWER"
                   :roles="orgAllowedRoles"
-                  :description="false"
                   class="cursor-pointer"
                   data-testid="nc-org-role-select"
                 />

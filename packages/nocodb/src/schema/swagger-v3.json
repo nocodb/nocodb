@@ -10844,10 +10844,7 @@
             "type": "boolean",
             "description": "Enable unique constraint for the field. When enabled, the field will only accept unique values (no duplicates allowed). Note: Unique constraint is only supported for NC-DB (not external databases) and is mutually exclusive with default values. Supported field types: SingleLineText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Date, DateTime and Time"
           }
-        },
-        "required": [
-          "title"
-        ]
+        }
       },
       "FieldBaseCreate": {
         "allOf": [
@@ -12203,7 +12200,8 @@
               "oneOf": "Invalid field type or options. Ensure 'type' is a valid field type and 'options' matches the schema for that type."
             }
           }
-        ]
+        ],
+        "minProperties": 1
       },
       "Filter": {
         "type": "object",

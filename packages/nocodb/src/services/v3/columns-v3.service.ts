@@ -28,6 +28,14 @@ import {
 } from '~/utils/api-v3-data-transformation.builder';
 import { validatePayload } from '~/helpers';
 
+type ColumnReqWithMeta = ColumnReqType & {
+  meta?: any;
+  colOptions?: any;
+  dtxp?: string;
+};
+
+const META_ONLY_PROPS = new Set(['description']);
+
 @Injectable()
 export class ColumnsV3Service {
   constructor(protected readonly columnsService: ColumnsService) {}
@@ -76,38 +84,47 @@ export class ColumnsV3Service {
       )
         .addColumn(column)
         .forUpdate();
-    const type = (param.column?.type ?? column.uidt) as FieldV3Type['type'];
 
-    const processedColumnReq = columnV3ToV2Builder().build({
-      ...param.column,
-      type,
-    } as FieldV3Type) as ColumnReqType & {
-      meta?: any;
-      colOptions?: any;
-      dtxp?: string;
-    };
+    // Check if this is a meta-only update (description, meta) — if so,
+    // skip v3-to-v2 transformation to avoid injecting title/column_name
+    // which would make the payload appear structural
+    const isMetaOnlyUpdate = Object.keys(param.column).every((k) =>
+      META_ONLY_PROPS.has(k),
+    );
 
-    if (!processedColumnReq.column_name) {
-      processedColumnReq.column_name = column.column_name;
-    }
-    if (!processedColumnReq.title) {
-      processedColumnReq.title = column.title;
-    }
+    let processedColumnReq: ColumnReqWithMeta;
 
-    if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(column.uidt)) {
-      if (column.meta) {
-        column.meta.choices = undefined;
+    if (isMetaOnlyUpdate) {
+      processedColumnReq = { ...param.column } as ColumnReqWithMeta;
+    } else {
+      const type = (param.column?.type ?? column.uidt) as FieldV3Type['type'];
+
+      processedColumnReq = columnV3ToV2Builder().build({
+        ...param.column,
+        type,
+      } as FieldV3Type) as ColumnReqWithMeta;
+
+      if (!processedColumnReq.column_name) {
+        processedColumnReq.column_name = column.column_name;
       }
-      column.dtxp = (
-        column.colOptions as unknown as { options: any[] }
-      )?.options
-        ?.map((o: any) => `'${o.value}'`)
-        .join('');
+      if (!processedColumnReq.title) {
+        processedColumnReq.title = column.title;
+      }
+
+      if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(column.uidt)) {
+        if (column.meta) {
+          column.meta.choices = undefined;
+        }
+        column.dtxp = (
+          column.colOptions as unknown as { options: any[] }
+        )?.options
+          ?.map((o: any) => `'${o.value}'`)
+          .join('');
+      }
     }
 
     // in payload id is required in existing implementation
     column.id = param.columnId;
-
     await this.columnsService.columnUpdate(
       context,
       {
@@ -173,11 +190,8 @@ export class ColumnsV3Service {
       ).forCreate();
     const column = columnV3ToV2Builder().build(
       param.column,
-    ) as ColumnReqType & {
+    ) as ColumnReqWithMeta & {
       parentId?: string;
-      meta?: any;
-      colOptions?: any;
-      dtxp?: string;
     };
 
     // if LTAR column then define table id as parent id in request

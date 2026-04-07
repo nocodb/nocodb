@@ -32,8 +32,10 @@ const allowedRoles = computed(() => {
 const inviteData = reactive({
   email: '',
   role: hasOrgRoles.value ? EnterpriseOrgUserRoles.VIEWER : OrgUserRoles.VIEWER,
-  invitationToken: undefined as string | undefined,
 })
+
+// Collected invite results — populated when SMTP is not configured
+const inviteResults = ref<{ email: string; token: string }[]>([])
 
 const emailBadges = ref<string[]>([])
 
@@ -136,6 +138,8 @@ const saveUser = async () => {
   try {
     const orgId = hasOrgRoles.value ? (appInfo.value.defaultOrgId || NC_DEFAULT_ORG_ID) : undefined
 
+    const results: { email: string; token: string }[] = []
+
     for (const email of payloadEmails) {
       // CE endpoint creates user + adds to default org as viewer
       const res = await $api.orgUsers.add({
@@ -143,7 +147,10 @@ const saveUser = async () => {
         email,
       } as unknown as OrgUserReqType)
 
-      inviteData.invitationToken = res.invite_token
+      // Collect invite token (present when SMTP is not configured)
+      if (res.invite_token) {
+        results.push({ email, token: res.invite_token })
+      }
 
       // On-prem: update org role if different from default viewer
       if (orgId && inviteData.role !== EnterpriseOrgUserRoles.VIEWER) {
@@ -162,6 +169,8 @@ const saveUser = async () => {
       }
     }
 
+    inviteResults.value = results
+
     emit('reload')
     message.success(t('msg.success.userAdded'))
     clearBasesUser()
@@ -173,13 +182,17 @@ const saveUser = async () => {
   }
 }
 
-const inviteUrl = computed(() =>
-  inviteData.invitationToken ? `${dashboardUrl.value}/signup/${inviteData.invitationToken}` : null,
+const hasInviteResults = computed(() => inviteResults.value.length > 0)
+
+const isSingleInvite = computed(() => inviteResults.value.length === 1)
+
+const singleInviteUrl = computed(() =>
+  isSingleInvite.value ? `${dashboardUrl.value}/signup/${inviteResults.value[0].token}` : null,
 )
 
 const clickInviteMore = () => {
   $e('c:user:invite-more')
-  inviteData.invitationToken = undefined
+  inviteResults.value = []
   inviteData.role = hasOrgRoles.value ? EnterpriseOrgUserRoles.VIEWER : OrgUserRoles.VIEWER
   emailBadges.value = []
   inviteData.email = ''
@@ -202,20 +215,34 @@ const clickInviteMore = () => {
 
     <div class="flex items-center justify-between gap-3 mt-2">
       <div class="flex w-full gap-4 flex-col">
-        <template v-if="inviteData.invitationToken">
+        <template v-if="hasInviteResults">
           <div class="flex flex-col gap-3 pb-4">
-            <NcAlert
-              type="success"
-              :message="inviteUrl"
-              message-class="!text-green-700 !text-bodyDefaultSm"
-              background
-              :copy-text="inviteUrl"
-              :copy-text-toast-message="$t('msg.toast.inviteUrlCopy')"
-              class="!p-3"
-            />
-            <div class="text-xs text-nc-content-gray-muted ml-1">
-              {{ $t('msg.info.userInviteNoSMTP') }}
-            </div>
+            <!-- Single user: show invite URL inline -->
+            <template v-if="isSingleInvite">
+              <NcAlert
+                type="success"
+                :message="singleInviteUrl"
+                message-class="!text-green-700 !text-bodyDefaultSm"
+                background
+                :copy-text="singleInviteUrl"
+                :copy-text-toast-message="$t('msg.toast.inviteUrlCopy')"
+                class="!p-3"
+              />
+              <div class="text-xs text-nc-content-gray-muted ml-1">
+                {{ $t('msg.info.userInviteNoSMTP') }}
+              </div>
+            </template>
+
+            <!-- Multiple users: note to use actions menu -->
+            <template v-else>
+              <NcAlert
+                type="warning"
+                :message="$t('msg.info.userInviteNoSMTPBulk')"
+                message-class="!text-bodyDefaultSm"
+                class="!p-3"
+              />
+            </template>
+
             <div class="flex justify-end">
               <NcButton size="small" type="secondary" @click="clickInviteMore">
                 {{ $t('activity.inviteMore') }}
@@ -280,7 +307,7 @@ const clickInviteMore = () => {
       </div>
     </div>
 
-    <div v-if="!inviteData.invitationToken" class="flex mt-8 justify-end">
+    <div v-if="!hasInviteResults" class="flex mt-8 justify-end">
       <div class="flex gap-2">
         <NcButton type="secondary" @click="emit('closed')">
           {{ $t('labels.cancel') }}

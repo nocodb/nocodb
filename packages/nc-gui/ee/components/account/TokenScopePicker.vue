@@ -25,7 +25,6 @@ const props = defineProps<{
 const emit = defineEmits(['update:scopes'])
 
 const { $api } = useNuxtApp()
-const { t } = useI18n()
 
 const allData = ref<BaseListAllData | null>(null)
 const isLoading = ref(false)
@@ -44,20 +43,24 @@ const selectedBaseIds = ref<string[]>(
   props.scopes.filter((s) => s.resource_type === ApiTokenScopeResourceType.BASE).map((s) => s.resource_id),
 )
 
+const loadAll = async () => {
+  if (allData.value) return
+  isLoading.value = true
+  try {
+    allData.value = (await $api.internal.getOperation(NO_SCOPE, NO_SCOPE, {
+      operation: 'baseListAll',
+    })) as BaseListAllData
+  } catch {
+    // ignore
+  } finally {
+    isLoading.value = false
+  }
+}
+
 // Initialize from props — if no scopes, nothing is selected
 // (unlike radio cards, the user starts from scratch)
 onMounted(() => {
   loadAll()
-})
-
-const baseInfoMap = computed(() => {
-  const map: Record<string, { title: string; meta?: Record<string, any>; workspaceTitle: string }> = {}
-  for (const ws of allData.value?.workspaces || []) {
-    for (const base of ws.bases) {
-      map[base.id] = { title: base.title, meta: base.meta, workspaceTitle: ws.title }
-    }
-  }
-  return map
 })
 
 // Group selected bases by workspace for display
@@ -90,20 +93,6 @@ const filteredWorkspaces = computed(() => {
     }))
     .filter((ws) => ws.bases.length > 0)
 })
-
-const loadAll = async () => {
-  if (allData.value) return
-  isLoading.value = true
-  try {
-    allData.value = (await $api.internal.getOperation(NO_SCOPE, NO_SCOPE, {
-      operation: 'baseListAll',
-    })) as BaseListAllData
-  } catch {
-    // ignore
-  } finally {
-    isLoading.value = false
-  }
-}
 
 const emitScopes = () => {
   if (hasAllResources.value) {

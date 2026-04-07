@@ -24,7 +24,7 @@ const { loadProjects } = basesStore
 const { navigateToTable } = useTablesStore()
 const { activeBreakpoint, appInfo } = useGlobal()
 const { $api, $e } = useNuxtApp()
-const { isEEFeatureBlocked, showEEFeatures, blockWorkspaceCreate, showUpgradeToCreateWorkspace } = useEeConfig()
+const { showEEFeatures, blockWorkspaceCreate, showUpgradeToCreateWorkspace } = useEeConfig()
 
 const { orgRoles } = useRoles()
 

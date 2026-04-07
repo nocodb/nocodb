@@ -10,8 +10,6 @@ const { getPlanLimit } = useWorkspace()
 
 const { handleUpgradePlan, isPaymentEnabled } = useEeConfig()
 
-const { t } = useI18n()
-
 const isCeRetentionLimited = computed(() => !appInfo.value?.ee)
 
 function showAuditUpgradeModal() {

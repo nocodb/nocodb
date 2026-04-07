@@ -138,6 +138,15 @@ const triggerDeleteModal = (tokenToDelete: string, tokenDescription: string, tok
   isModalOpen.value = true
 }
 
+const isExpired = (token: IApiTokenInfo) => {
+  if (!token.expiry) return false
+  return new Date(token.expiry) < new Date()
+}
+
+const isFineGrained = (token: IApiTokenInfo) => {
+  return !!token.scopes?.length || !!token.expiry || !!token.token_prefix
+}
+
 const toggleEnabled = async (token: IApiTokenInfo) => {
   if (!isFineGrained(token)) return
 
@@ -157,15 +166,6 @@ const toggleEnabled = async (token: IApiTokenInfo) => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
-}
-
-const isExpired = (token: IApiTokenInfo) => {
-  if (!token.expiry) return false
-  return new Date(token.expiry) < new Date()
-}
-
-const isFineGrained = (token: IApiTokenInfo) => {
-  return !!token.scopes?.length || !!token.expiry || !!token.token_prefix
 }
 
 const formatExpiryDate = (expiry: string) => {

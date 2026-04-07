@@ -76,7 +76,6 @@ const { isConfigured } = useListViewStoreOrThrow()
 
 const {
   canvasRef,
-  triggerRefreshCanvas,
   resetAndReload,
   totalHeight,
   totalWidth,
@@ -113,6 +112,8 @@ reloadViewDataHook.on(() => {
 })
 
 const { displayLevels } = useListViewStoreOrThrow()
+
+const { isDataReadOnly, isUIAllowed } = useRoles()
 
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
@@ -367,8 +368,6 @@ async function savePendingCell() {
   await saveRowProperty(save.cell!, save.row, save.cell!.column.title)
 }
 
-const { isDataReadOnly, isUIAllowed } = useRoles()
-const { isAllowed: isFieldAllowed } = usePermissions()
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 const { copy } = useCopy()
 

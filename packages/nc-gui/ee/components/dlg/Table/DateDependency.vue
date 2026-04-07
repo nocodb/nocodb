@@ -122,10 +122,6 @@ const connectionTypeOptions = computed(() => [
   },
 ])
 
-const selectedConnectionTypeDescription = computed(
-  () => connectionTypeOptions.value.find((o) => o.value === form.dependency_connection_type)?.description ?? '',
-)
-
 const schedulingModeOptions = computed(() => [
   {
     value: 'none',
@@ -143,10 +139,6 @@ const schedulingModeOptions = computed(() => [
     description: t('labels.dateDependency.schedulingModeDescriptions.fixed'),
   },
 ])
-
-const selectedSchedulingModeDescription = computed(
-  () => schedulingModeOptions.value.find((o) => o.value === form.dependency_buffer_type)?.description ?? '',
-)
 
 // Inline validation
 const startEndSameFieldError = computed(() => {

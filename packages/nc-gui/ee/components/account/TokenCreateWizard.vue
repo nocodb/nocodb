@@ -26,7 +26,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(['created', 'saved', 'cancel'])
 
-const { api } = useApi()
 const { $api } = useNuxtApp()
 const { copy } = useCopy()
 const { t } = useI18n()
@@ -58,10 +57,6 @@ const permissions = ref<Record<string, string>>(existingPerms ? { ...existingPer
 
 const showExpiryDropdown = ref(false)
 
-const selectedExpiryLabel = computed(() => {
-  return expiryOptions.value.find((o) => o.value === expiryOption.value)?.label || expiryOption.value
-})
-
 // Result
 const tokenCopied = ref(false)
 
@@ -90,6 +85,10 @@ const expiryOptions = computed(() => [
   { value: 'custom', label: t('labels.custom') },
   { value: 'none', label: t('labels.noExpiration') },
 ])
+
+const selectedExpiryLabel = computed(() => {
+  return expiryOptions.value.find((o) => o.value === expiryOption.value)?.label || expiryOption.value
+})
 
 const computedExpiry = computed(() => {
   if (expiryOption.value === 'keep') return undefined

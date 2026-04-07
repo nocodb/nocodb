@@ -7,7 +7,6 @@ const { fetchProviders, providers, deleteProvider, updateProvider, addProvider, 
   useAuthentication(false, true)
 
 const { getFeature, handleUpgradePlan } = useEeConfig()
-const { appInfo } = useGlobal()
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 // Feature flag controls visibility of the entire SCIM section

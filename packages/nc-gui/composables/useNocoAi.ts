@@ -3,7 +3,7 @@ import { BaseVersion, type IntegrationType, type SerializedAiViewType, type Tabl
 const aiIntegrationNotFound = 'AI integration not found'
 
 export const useNocoAi = createSharedComposable(() => {
-  const { $api } = useNuxtApp()
+  const { $api, $poller } = useNuxtApp()
 
   const workspaceStore = useWorkspace()
 
@@ -429,6 +429,45 @@ export const useNocoAi = createSharedComposable(() => {
   const predictSchema = async (input: any, skipMsgToast = true) => {
     const res = await callAiSchemaCreateApi('predictSchema', input, skipMsgToast)
 
+    if (!res) return
+
+    // If response has an `id` but no `tables`, it's a job ID — poll for result
+    if (res.id && !res.tables) {
+      // Keep loading state active during polling (callAiSchemaCreateApi resets it in finally)
+      aiLoading.value = true
+
+      return new Promise<any>((resolve, reject) => {
+        $poller.subscribe(
+          { id: res.id },
+          (data: {
+            id: string
+            status?: string
+            data?: {
+              error?: { message: string }
+              message?: string
+              result?: any
+            }
+          }) => {
+            if (data.status !== 'close') {
+              if (data.status === JobStatus.COMPLETED) {
+                aiLoading.value = false
+                resolve(data.data?.result)
+              } else if (data.status === JobStatus.FAILED) {
+                aiLoading.value = false
+                const errorMsg = data.data?.error?.message || 'AI schema prediction failed'
+                if (!skipMsgToast) {
+                  message.error(errorMsg)
+                }
+                aiError.value = errorMsg
+                reject(new Error(errorMsg))
+              }
+            }
+          },
+        )
+      })
+    }
+
+    // Direct result (no Redis fallback) — return as-is
     return res
   }
 

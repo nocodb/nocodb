@@ -30,6 +30,7 @@ import { JOBS_QUEUE } from '~/interface/Jobs';
 import { JobsService } from '~/modules/jobs/redis/jobs.service';
 import { JobsProcessor } from '~/modules/jobs/jobs.processor';
 import { UseWorkerProcessor } from '~/modules/jobs/jobs/use-worker/use-worker.processor';
+import { NocoAiModule } from '~/integrations/ai/module/ai.module';
 import { JobsController } from '~/modules/jobs/jobs.controller';
 import { CACHE_PREFIX } from '~/utils/globals';
 
@@ -57,6 +58,7 @@ import { CACHE_PREFIX } from '~/utils/globals';
       : []),
     forwardRef(() => NocoSyncModule),
     forwardRef(() => PaymentModule),
+    forwardRef(() => NocoAiModule),
   ],
   controllers: [
     ...(process.env.NC_WORKER_CONTAINER !== 'true'

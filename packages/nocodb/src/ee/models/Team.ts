@@ -20,7 +20,6 @@ import Base from '~/models/Base';
 
 const logger = new Logger('Team');
 
-// Cache key uses context.workspace_id ?? context.org_id — supports both scopes
 export default class Team {
   id: string;
   title: string;

@@ -303,15 +303,18 @@ export class InternalController extends InternalControllerCE {
       case 'teamList':
         return await this.teamsV3Service.teamList(context, {
           workspaceOrOrgId: workspaceId,
+          scope: 'workspace',
         });
       case 'teamTree':
         return await this.teamsV3Service.teamTree(context, {
           workspaceOrOrgId: workspaceId,
+          scope: 'workspace',
         });
       case 'teamGet':
         context.user = req.user;
         return await this.teamsV3Service.teamGet(context, {
           workspaceOrOrgId: workspaceId,
+          scope: 'workspace',
           teamId: req.query.teamId as string,
         });
       case 'workspaceTeamList':
@@ -549,12 +552,14 @@ export class InternalController extends InternalControllerCE {
       case 'teamCreate':
         return await this.teamsV3Service.teamCreate(context, {
           workspaceOrOrgId: workspaceId,
+          scope: 'workspace',
           team: payload,
           req,
         });
       case 'teamUpdate':
         return await this.teamsV3Service.teamUpdate(context, {
           workspaceOrOrgId: workspaceId,
+          scope: 'workspace',
           teamId: payload.teamId,
           team: payload,
           req,
@@ -562,6 +567,7 @@ export class InternalController extends InternalControllerCE {
       case 'teamDelete':
         return await this.teamsV3Service.teamDelete(context, {
           workspaceOrOrgId: workspaceId,
+          scope: 'workspace',
           teamId: payload.teamId,
           force: payload.force,
           req,
@@ -569,6 +575,7 @@ export class InternalController extends InternalControllerCE {
       case 'teamMove':
         return await this.teamsV3Service.teamMove(context, {
           workspaceOrOrgId: workspaceId,
+          scope: 'workspace',
           teamId: payload.teamId,
           body: { parent_team_id: payload.parent_team_id },
           req,
@@ -576,6 +583,7 @@ export class InternalController extends InternalControllerCE {
       case 'teamMembersAdd':
         return await this.teamsV3Service.teamMembersAdd(context, {
           workspaceOrOrgId: workspaceId,
+          scope: 'workspace',
           teamId: payload.teamId,
           members: payload.members,
           req,
@@ -583,6 +591,7 @@ export class InternalController extends InternalControllerCE {
       case 'teamMembersRemove':
         return await this.teamsV3Service.teamMembersRemove(context, {
           workspaceOrOrgId: workspaceId,
+          scope: 'workspace',
           teamId: payload.teamId,
           members: payload.members,
           req,
@@ -590,6 +599,7 @@ export class InternalController extends InternalControllerCE {
       case 'teamMembersUpdate':
         return await this.teamsV3Service.teamMembersUpdate(context, {
           workspaceOrOrgId: workspaceId,
+          scope: 'workspace',
           teamId: payload.teamId,
           members: payload.members,
           req,

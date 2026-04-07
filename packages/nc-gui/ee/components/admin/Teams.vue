@@ -177,7 +177,6 @@ const createTeam = async () => {
     }
     createTeamParentId.value = null
     await loadTeams()
-    message.success(t('msg.success.teamCreated'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {

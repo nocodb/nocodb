@@ -18,7 +18,7 @@ const route = router.currentRoute
 
 const { t } = useI18n()
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, appInfo } = useGlobal()
 
 // Use prop if provided (on-prem account page), fallback to route param (cloud org admin)
 const orgId = computed(() => props.orgId || (route.value.params.orgId as string))
@@ -359,17 +359,16 @@ const isAddingMembers = ref(false)
 
 const loadOrgUsers = async () => {
   try {
-    // Try org users endpoint first, fall back to CE user list
-    let data: any[]
-    try {
+    let data: any
+    if (appInfo.value?.isCloud) {
       const response = await $api.instance.get(`/api/v2/orgs/${orgId.value}/users`)
-      const raw = response.data
-      data = Array.isArray(raw) ? raw : raw?.list || raw?.users || []
-    } catch {
+      data = response.data
+    } else {
+      // On-prem uses /api/v1/users which returns { list, pageInfo }
       const response = await $api.orgUsers.list({ query: { limit: 1000 } } as any)
-      data = (response as any)?.list || []
+      data = response?.list || []
     }
-    orgUsers.value = data
+    orgUsers.value = Array.isArray(data) ? data : data?.list || data?.users || []
   } catch (_e) {
     orgUsers.value = []
   }

@@ -65,6 +65,8 @@ const afterPayment = ref(!!route.query.afterPayment)
 
 const sessionId = computed(() => route.query.session_id as string)
 
+const hasOnlyGcpLicenses = computed(() => licenses.value.length > 0 && licenses.value.every((l) => l.config?.gcp_marketplace))
+
 const planMeta = (title: OnPremPlanTitles) => OnPremPlanMeta[title] || null
 
 const statusLabel = (status: string) => {
@@ -263,19 +265,21 @@ onBeforeUnmount(async () => {
 
           <div v-else class="flex flex-col gap-5">
             <div class="flex items-center justify-end gap-2">
-              <NcButton
-                type="text"
-                size="small"
-                :loading="isSyncing"
-                :tooltip="$t('labels.syncFromStripe')"
-                data-testid="nc-self-hosted-sync-btn"
-                @click="onSyncLicenses"
-              >
-                <GeneralIcon icon="refresh" class="h-4 w-4" />
-              </NcButton>
-              <NcButton type="secondary" size="small" @click="onManageBilling">
-                {{ $t('labels.manageBilling') }}
-              </NcButton>
+              <template v-if="!hasOnlyGcpLicenses">
+                <NcButton
+                  type="text"
+                  size="small"
+                  :loading="isSyncing"
+                  :tooltip="$t('labels.syncFromStripe')"
+                  data-testid="nc-self-hosted-sync-btn"
+                  @click="onSyncLicenses"
+                >
+                  <GeneralIcon icon="refresh" class="h-4 w-4" />
+                </NcButton>
+                <NcButton type="secondary" size="small" @click="onManageBilling">
+                  {{ $t('labels.manageBilling') }}
+                </NcButton>
+              </template>
               <NcButton
                 v-if="isSelfServeLicensePurchaseEnabled"
                 type="primary"
@@ -314,7 +318,13 @@ onBeforeUnmount(async () => {
                   {{ statusLabel(license.status) }}
                 </div>
                 <div
-                  v-if="license.subscription"
+                  v-if="license.config?.gcp_marketplace"
+                  class="flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border-1 border-nc-border-blue text-nc-content-blue-dark bg-nc-bg-blue-light"
+                >
+                  GCP Marketplace
+                </div>
+                <div
+                  v-else-if="license.subscription"
                   class="flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border-1 border-nc-border-purple text-nc-content-purple-dark bg-nc-bg-purple-light"
                 >
                   <span class="opacity-70">{{ $t('general.billing') }}:</span>

@@ -36,6 +36,7 @@ interface OnPremLicense {
   expires_at: string | null
   created_at: string
   meta: Record<string, any>
+  config: Record<string, any>
   plan: {
     id: string
     title: OnPremPlanTitles

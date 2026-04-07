@@ -387,7 +387,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
-      scope?: \'workspace\' | \'org\';
+      scope?: 'workspace' | 'org';
       teamId: string;
     },
   ): Promise<TeamDetailV3Type> {
@@ -527,7 +527,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
-      scope?: \'workspace\' | \'org\';
+      scope?: 'workspace' | 'org';
       team: TeamCreateV3ReqType;
       req: NcRequest;
     },
@@ -802,7 +802,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
-      scope?: \'workspace\' | \'org\';
+      scope?: 'workspace' | 'org';
       teamId: string;
       team: TeamUpdateV3ReqType;
       req: NcRequest;
@@ -948,7 +948,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
-      scope?: \'workspace\' | \'org\';
+      scope?: 'workspace' | 'org';
       teamId: string;
       force?: boolean;
       req: NcRequest;
@@ -1078,7 +1078,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
-      scope?: \'workspace\' | \'org\';
+      scope?: 'workspace' | 'org';
       teamId: string;
       members: TeamMembersAddV3ReqType[];
       req: NcRequest;
@@ -1249,7 +1249,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
-      scope?: \'workspace\' | \'org\';
+      scope?: 'workspace' | 'org';
       teamId: string;
       members: TeamMembersRemoveV3ReqType[];
       req: NcRequest;
@@ -1401,7 +1401,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
-      scope?: \'workspace\' | \'org\';
+      scope?: 'workspace' | 'org';
       teamId: string;
       members: TeamMembersUpdateV3ReqType[];
       req: NcRequest;
@@ -1650,7 +1650,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
-      scope?: \'workspace\' | \'org\';
+      scope?: 'workspace' | 'org';
       teamId: string;
       body: TeamMoveV3ReqType;
       req: NcRequest;

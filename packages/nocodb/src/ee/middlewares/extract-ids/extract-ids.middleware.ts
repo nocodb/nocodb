@@ -79,7 +79,7 @@ import {
 } from '~/helpers/paymentHelpers';
 import MCPToken from '~/models/MCPToken';
 import Widget from '~/models/Widget';
-import { isOnPrem } from '~/utils';
+import { isCloud, isOnPrem } from '~/utils';
 import { isMuxEnabled } from '~/utils/envs';
 import Noco from '~/Noco';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
@@ -545,7 +545,27 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       await this.legacyExtractIds(req);
     }
 
-    // On-prem CE: block API access to non-default workspaces
+    // Legacy 'nc' workspace value: resolve to default workspace (non-cloud only).
+    // External clients (e.g. Make.com) and older integrations send 'nc' as a
+    // placeholder — map it to the real default workspace regardless of license.
+    if (!isCloud && Noco.ncDefaultWorkspaceId && req.ncWorkspaceId === 'nc') {
+      const defaultWsId = Noco.ncDefaultWorkspaceId;
+      req.ncWorkspaceId = defaultWsId;
+      if (req.context) {
+        req.context.workspace_id = defaultWsId;
+      }
+      if (req.params?.workspaceId) {
+        req.params.workspaceId = defaultWsId;
+      }
+      if (req.query?.workspace_id) {
+        req.query.workspace_id = defaultWsId;
+      }
+      if (req.body?.fk_workspace_id) {
+        req.body.fk_workspace_id = defaultWsId;
+      }
+    }
+
+    // On-prem unlicensed: block access to non-default workspaces
     if (
       isOnPrem &&
       !Noco.isEE() &&

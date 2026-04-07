@@ -1129,6 +1129,12 @@ export class PublicDatasService {
       source,
     });
 
+    // Verify parent row is visible in the shared view before fetching relations
+    const parentRow = await baseModel.readByPk(param.rowId);
+    if (!parentRow) {
+      NcError.recordNotFound(param.rowId);
+    }
+
     const key = `List`;
     const requestObj: any = {
       [key]: 1,
@@ -1205,6 +1211,12 @@ export class PublicDatasService {
       dbDriver: await NcConnectionMgrv2.get(source),
       source,
     });
+
+    // Verify parent row is visible in the shared view before fetching relations
+    const parentRow = await baseModel.readByPk(param.rowId);
+    if (!parentRow) {
+      NcError.recordNotFound(param.rowId);
+    }
 
     const key = `List`;
     const requestObj: any = {

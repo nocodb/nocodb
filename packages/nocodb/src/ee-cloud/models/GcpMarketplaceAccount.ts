@@ -14,6 +14,8 @@ export default class GcpMarketplaceAccount {
   procurement_account_id: string;
   fk_user_id?: string;
   state: string; // pending | active | deleted
+  link_token?: string;
+  link_token_expires_at?: string;
   meta?: Record<string, any>;
   created_at: Date;
   updated_at: Date;
@@ -94,6 +96,24 @@ export default class GcpMarketplaceAccount {
     return new GcpMarketplaceAccount(record);
   }
 
+  public static async getByLinkToken(
+    linkToken: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<GcpMarketplaceAccount | null> {
+    const record = await ncMeta.metaGet2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.GCP_MARKETPLACE_ACCOUNTS,
+      {},
+      null,
+      { link_token: { eq: linkToken } },
+    );
+
+    if (!record) return null;
+
+    return new GcpMarketplaceAccount(prepareForResponse(record, ['meta']));
+  }
+
   public static async getByUserId(
     userId: string,
     ncMeta = Noco.ncMeta,
@@ -120,6 +140,8 @@ export default class GcpMarketplaceAccount {
       'procurement_account_id',
       'fk_user_id',
       'state',
+      'link_token',
+      'link_token_expires_at',
       'meta',
     ]);
 
@@ -156,6 +178,8 @@ export default class GcpMarketplaceAccount {
     const updateObj: Record<string, any> = extractProps(data, [
       'fk_user_id',
       'state',
+      'link_token',
+      'link_token_expires_at',
       'meta',
     ]);
 

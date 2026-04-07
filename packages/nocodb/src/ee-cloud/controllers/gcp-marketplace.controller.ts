@@ -36,14 +36,14 @@ export class GcpMarketplaceController {
     }
 
     try {
-      const { procurementAccountId, googleUserIdentity } =
+      const { linkToken, googleUserIdentity } =
         await this.gcpMarketplaceService.handleSignup(token);
 
-      // Redirect to NocoDB login page with the procurement account ID
+      // Redirect to NocoDB login page with a short-lived link token
       // so the frontend can link the account after authentication.
       // Pass login_hint so Google SSO pre-selects the correct account.
       const params = new URLSearchParams({
-        gcp_account: procurementAccountId,
+        gcp_link_token: linkToken,
       });
 
       if (googleUserIdentity) {
@@ -67,13 +67,13 @@ export class GcpMarketplaceController {
   @Post('/api/v1/gcp-marketplace/link-account')
   @HttpCode(200)
   async linkAccount(
-    @Body() body: { procurement_account_id: string },
+    @Body() body: { link_token: string },
     @Req() req: NcRequest,
   ): Promise<{ success: boolean }> {
-    const { procurement_account_id } = body;
+    const { link_token } = body;
 
-    if (!procurement_account_id) {
-      NcError._.badRequest('procurement_account_id is required');
+    if (!link_token) {
+      NcError._.badRequest('link_token is required');
     }
 
     const userId = req.user?.id;
@@ -82,10 +82,7 @@ export class GcpMarketplaceController {
     }
 
     try {
-      await this.gcpMarketplaceService.linkAccount(
-        procurement_account_id,
-        userId,
-      );
+      await this.gcpMarketplaceService.linkAccount(link_token, userId);
 
       return { success: true };
     } catch (e) {

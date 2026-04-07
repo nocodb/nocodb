@@ -8,11 +8,14 @@ const up = async (knex: Knex) => {
     table.string('procurement_account_id', 255).notNullable().unique();
     table.string('fk_user_id', 20);
     table.string('state', 50).notNullable().defaultTo('pending');
+    table.string('link_token', 64);
+    table.timestamp('link_token_expires_at');
     table.text('meta');
 
     table.timestamps(true, true);
 
     table.index(['fk_user_id'], 'nc_gcp_mp_accounts_user_idx');
+    table.index(['link_token'], 'nc_gcp_mp_accounts_link_token_idx');
   });
 
   // GCP Marketplace entitlements — maps GCP entitlements to installations (licenses)

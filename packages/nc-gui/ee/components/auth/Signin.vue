@@ -90,12 +90,6 @@ const queryToPass = computed(() =>
 
 const toggleLoginForm = ref(false)
 
-// GCP Marketplace: store procurement account ID for post-login linking
-const gcpAccount = route.query.gcp_account as string | undefined
-if (gcpAccount) {
-  localStorage.setItem('gcp_marketplace_account', gcpAccount)
-}
-
 const googleAuthUrl = computed(() => {
   const base = `${appInfo.value.ncSiteUrl}/auth/google`
   const loginHint = route.query.login_hint as string | undefined

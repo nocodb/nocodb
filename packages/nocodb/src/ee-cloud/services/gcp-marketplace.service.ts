@@ -138,14 +138,14 @@ export class GcpMarketplaceService {
 
   /**
    * Handle the initial signup POST from GCP Marketplace.
-   * Verifies JWT, creates a pending GcpMarketplaceAccount, returns the
-   * procurement_account_id so the frontend can redirect to login + linking.
+   * Verifies JWT, creates a pending GcpMarketplaceAccount, returns a
+   * short-lived link token so the frontend can link after login.
    */
   async handleSignup(
     token: string,
     ncMeta = Noco.ncMeta,
   ): Promise<{
-    procurementAccountId: string;
+    linkToken: string;
     googleUserIdentity?: string;
   }> {
     const payload = await this.verifyMarketplaceToken(token);
@@ -154,6 +154,12 @@ export class GcpMarketplaceService {
     if (!procAccountId) {
       throw new Error('Token missing procurement account ID (sub)');
     }
+
+    // Generate a single-use link token (15 min TTL)
+    const linkToken = nanoid(32);
+    const linkTokenExpiresAt = new Date(
+      Date.now() + 15 * 60 * 1000,
+    ).toISOString();
 
     // Idempotent: check if account already exists
     let account = await GcpMarketplaceAccount.getByProcurementAccountId(
@@ -166,6 +172,8 @@ export class GcpMarketplaceService {
         {
           procurement_account_id: procAccountId,
           state: 'pending',
+          link_token: linkToken,
+          link_token_expires_at: linkTokenExpiresAt,
           meta: {
             google_user_identity: payload.google?.user_identity,
             google_roles: payload.google?.roles,
@@ -177,32 +185,48 @@ export class GcpMarketplaceService {
       this.logger.log(
         `GCP Marketplace account created: ${account.id} (proc: ${procAccountId})`,
       );
+    } else {
+      // Refresh link token on re-signup
+      await GcpMarketplaceAccount.update(
+        account.id,
+        {
+          link_token: linkToken,
+          link_token_expires_at: linkTokenExpiresAt,
+        },
+        ncMeta,
+      );
     }
 
     return {
-      procurementAccountId: procAccountId,
+      linkToken,
       googleUserIdentity: payload.google?.user_identity,
     };
   }
 
   /**
    * Link a pending GCP Marketplace account to a NocoDB user and approve it.
-   * Called after the user logs in / signs up on NocoDB.
+   * Validates a short-lived link token generated during signup.
    */
   async linkAccount(
-    procurementAccountId: string,
+    linkToken: string,
     userId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
-    const account = await GcpMarketplaceAccount.getByProcurementAccountId(
-      procurementAccountId,
+    const account = await GcpMarketplaceAccount.getByLinkToken(
+      linkToken,
       ncMeta,
     );
 
     if (!account) {
-      throw new Error(
-        `GCP Marketplace account not found: ${procurementAccountId}`,
-      );
+      throw new Error('Invalid or expired link token');
+    }
+
+    // Validate token expiry
+    if (
+      account.link_token_expires_at &&
+      new Date(account.link_token_expires_at) < new Date()
+    ) {
+      throw new Error('Link token has expired');
     }
 
     // Already linked to this user
@@ -210,14 +234,32 @@ export class GcpMarketplaceService {
       return;
     }
 
-    // Link user and activate
+    // Reject if already linked to a different user
+    if (account.fk_user_id && account.fk_user_id !== userId) {
+      throw new Error(
+        'GCP Marketplace account is already linked to another user',
+      );
+    }
+
+    // Reject if account was deleted
+    if (account.state === 'deleted') {
+      throw new Error('GCP Marketplace account has been deleted');
+    }
+
+    // Consume the link token and link user
     await GcpMarketplaceAccount.update(
       account.id,
-      { fk_user_id: userId, state: 'active' },
+      {
+        fk_user_id: userId,
+        state: 'active',
+        link_token: null,
+        link_token_expires_at: null,
+      },
       ncMeta,
     );
 
     // Approve the account in GCP
+    const procurementAccountId = account.procurement_account_id;
     try {
       await this.gcpProcurementClient.approveAccount(procurementAccountId);
     } catch (e) {

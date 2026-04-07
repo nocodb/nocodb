@@ -33,9 +33,11 @@ import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
 import { PaymentService } from '~/modules/payment/payment.service';
 import { NcError } from '~/helpers/catchError';
+import { isOnPrem } from '~/utils';
 import { PrincipalAssignment, Team } from '~/models';
 import { User, Workspace } from '~/models';
 import OrgUser from '~/ee/models/OrgUser';
+import WorkspaceUser from '~/models/WorkspaceUser';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
@@ -81,23 +83,17 @@ export class TeamsV3Service {
   }
 
   /**
-   * Check if a user is a workspace owner (can bypass team hierarchy ACL)
+   * Check if a user is a workspace owner (can bypass team hierarchy ACL).
    */
   private async isUserWorkspaceOwner(
-    context: NcContext,
+    _context: NcContext,
     userId: string,
     workspaceId: string,
   ): Promise<boolean> {
     if (!userId) return false;
     try {
-      const assignment = await PrincipalAssignment.get(
-        context,
-        ResourceType.WORKSPACE,
-        workspaceId,
-        PrincipalType.USER,
-        userId,
-      );
-      return assignment?.roles === WorkspaceUserRoles.OWNER;
+      const wsUser = await WorkspaceUser.get(workspaceId, userId);
+      return wsUser?.roles === WorkspaceUserRoles.OWNER;
     } catch {
       return false;
     }
@@ -538,6 +534,24 @@ export class TeamsV3Service {
     if (scope === 'workspace') {
       if (!workspace) {
         NcError.get(context).workspaceNotFound(workspaceId);
+      }
+
+      // On-prem: block workspace team creation for users who aren't actual workspace members
+      // (super admins are treated as workspace owners by ACL but aren't real members —
+      // team creation auto-assigns creator as team owner, which requires real membership)
+      if (isOnPrem) {
+        const userId = param.req.user?.id;
+        if (userId) {
+          const wsUser = await WorkspaceUser.get(workspaceId, userId);
+          if (
+            !wsUser ||
+            [WorkspaceUserRoles.NO_ACCESS, WorkspaceUserRoles.COMMENTER, WorkspaceUserRoles.VIEWER].includes(wsUser.roles as WorkspaceUserRoles)
+          ) {
+            NcError.get(context).forbidden(
+              'You must be a workspace member with editor or higher role to create teams',
+            );
+          }
+        }
       }
 
       await checkLimit({

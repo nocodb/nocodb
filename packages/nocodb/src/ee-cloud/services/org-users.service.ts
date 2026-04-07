@@ -104,76 +104,85 @@ export class OrgUsersService {
       NcError.badRequest('Cannot remove the last org admin');
     }
 
-    // Soft-delete from org
-    await OrgUser.softDelete(param.orgId, param.userId);
+    const transaction = await ncMeta.startTransaction();
 
-    // Remove from all workspaces in this org
-    const orgWorkspaces = await ncMeta
-      .knexConnection(MetaTable.WORKSPACE)
-      .where('fk_org_id', param.orgId)
-      .where(function () {
-        this.where('deleted', false).orWhereNull('deleted');
-      })
-      .select('id');
+    try {
+      // Soft-delete from org
+      await OrgUser.softDelete(param.orgId, param.userId, transaction);
 
-    for (const ws of orgWorkspaces) {
-      await WorkspaceUser.softDelete(ws.id, param.userId, ncMeta);
+      // Remove from all workspaces in this org
+      const orgWorkspaces = await transaction
+        .knexConnection(MetaTable.WORKSPACE)
+        .where('fk_org_id', param.orgId)
+        .where(function () {
+          this.where('deleted', false).orWhereNull('deleted');
+        })
+        .select('id');
 
-      // Remove from all teams in this workspace
-      const wsTeams = await Team.list(
-        { workspace_id: ws.id, base_id: null },
-        { fk_workspace_id: ws.id },
-        ncMeta,
-      );
+      for (const ws of orgWorkspaces) {
+        await WorkspaceUser.softDelete(ws.id, param.userId, transaction);
 
-      for (const team of wsTeams) {
-        const assignment = await PrincipalAssignment.get(
+        // Remove from all teams in this workspace
+        const wsTeams = await Team.list(
           { workspace_id: ws.id, base_id: null },
-          ResourceType.TEAM,
-          team.id,
-          PrincipalType.USER,
-          param.userId,
-          ncMeta,
+          { fk_workspace_id: ws.id },
+          transaction,
         );
-        if (assignment) {
-          await PrincipalAssignment.delete(
+
+        for (const team of wsTeams) {
+          const assignment = await PrincipalAssignment.get(
             { workspace_id: ws.id, base_id: null },
             ResourceType.TEAM,
             team.id,
             PrincipalType.USER,
             param.userId,
-            ncMeta,
+            transaction,
           );
+          if (assignment) {
+            await PrincipalAssignment.delete(
+              { workspace_id: ws.id, base_id: null },
+              ResourceType.TEAM,
+              team.id,
+              PrincipalType.USER,
+              param.userId,
+              transaction,
+            );
+          }
         }
       }
-    }
 
-    // Remove from org-level teams
-    const orgTeams = await Team.list(
-      { workspace_id: null, base_id: null },
-      { fk_org_id: param.orgId },
-      ncMeta,
-    );
-
-    for (const team of orgTeams) {
-      const assignment = await PrincipalAssignment.get(
+      // Remove from org-level teams
+      const orgTeams = await Team.list(
         { workspace_id: null, base_id: null },
-        ResourceType.TEAM,
-        team.id,
-        PrincipalType.USER,
-        param.userId,
-        ncMeta,
+        { fk_org_id: param.orgId },
+        transaction,
       );
-      if (assignment) {
-        await PrincipalAssignment.delete(
+
+      for (const team of orgTeams) {
+        const assignment = await PrincipalAssignment.get(
           { workspace_id: null, base_id: null },
           ResourceType.TEAM,
           team.id,
           PrincipalType.USER,
           param.userId,
-          ncMeta,
+          transaction,
         );
+        if (assignment) {
+          await PrincipalAssignment.delete(
+            { workspace_id: null, base_id: null },
+            ResourceType.TEAM,
+            team.id,
+            PrincipalType.USER,
+            param.userId,
+            transaction,
+          );
+        }
       }
+
+      await transaction.commit();
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
     }
 
     this.appHooksService.emit(AppEvents.ORG_USER_REMOVE, {

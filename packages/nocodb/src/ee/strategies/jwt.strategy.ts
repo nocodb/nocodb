@@ -6,7 +6,7 @@ import { User } from '~/models';
 import { UsersService } from '~/services/users/users.service';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
-import { isOnPrem } from '~/utils/constants';
+import { isOnPrem } from '~/utils';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {

@@ -347,6 +347,73 @@ const handleDeleteTeam = (team: TeamV3ResponseType) => {
   })
 }
 
+// Move team state
+const isMoveModalVisible = ref(false)
+const moveTeamTarget = ref<TeamV3ResponseType | null>(null)
+
+const handleOpenMoveTeam = (team: TeamV3ResponseType) => {
+  moveTeamTarget.value = team
+  isMoveModalVisible.value = true
+}
+
+const moveSelectedParentId = ref<string | null>(null)
+const isMoveLoading = ref(false)
+
+const moveParentOptions = computed(() => {
+  if (!moveTeamTarget.value) return []
+  const target = moveTeamTarget.value
+  const descendantIds = new Set<string>()
+
+  // Collect all descendants to prevent circular moves
+  const collectDescendants = (parentId: string) => {
+    for (const t of teams.value) {
+      if ((t as any).fk_parent_team_id === parentId) {
+        descendantIds.add(t.id!)
+        collectDescendants(t.id!)
+      }
+    }
+  }
+  collectDescendants(target.id!)
+
+  return (teams.value || []).filter((t: any) => {
+    if (t.id === target.id) return false
+    if (descendantIds.has(t.id)) return false
+    if ((t.depth ?? 0) >= 3) return false
+    return true
+  })
+})
+
+const moveHasChanged = computed(() => {
+  if (!moveTeamTarget.value) return false
+  const currentParent = (moveTeamTarget.value as any).fk_parent_team_id || null
+  return moveSelectedParentId.value !== currentParent
+})
+
+const handleMoveTeamSubmit = async () => {
+  if (isMoveLoading.value || !moveTeamTarget.value || !moveHasChanged.value) return
+
+  try {
+    isMoveLoading.value = true
+    await $api.instance.patch(
+      `/api/v3/meta/orgs/${orgId.value}/teams/${moveTeamTarget.value.id}/move`,
+      { parent_team_id: moveSelectedParentId.value },
+    )
+    await loadTeams()
+    message.success(t('msg.success.teamMoved'))
+    isMoveModalVisible.value = false
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isMoveLoading.value = false
+  }
+}
+
+watch(isMoveModalVisible, (val) => {
+  if (val && moveTeamTarget.value) {
+    moveSelectedParentId.value = (moveTeamTarget.value as any).fk_parent_team_id || null
+  }
+})
+
 // Add members state
 const isAddMembersOpen = ref(false)
 
@@ -741,6 +808,14 @@ onMounted(() => {
                     </NcMenuItem>
                   </NcTooltip>
 
+                  <NcMenuItem
+                    v-e="['c:org-team:move', { teamId: record.id }]"
+                    @click="handleOpenMoveTeam(record as TeamV3ResponseType)"
+                  >
+                    <GeneralIcon icon="ncMove" class="h-4 w-4" />
+                    {{ $t('labels.moveTeam') }}
+                  </NcMenuItem>
+
                   <NcDivider />
 
                   <NcMenuItem
@@ -1065,6 +1140,92 @@ onMounted(() => {
               <GeneralIcon icon="ncInfo" class="h-4 w-4 flex-none" />
               <span>{{ $t('msg.info.orgTeamAdminNote') }}</span>
             </div>
+          </div>
+        </div>
+      </div>
+    </NcModal>
+
+    <!-- Move Team Modal -->
+    <NcModal
+      v-model:visible="isMoveModalVisible"
+      :header="$t('labels.moveTeam')"
+      size="xs"
+      height="auto"
+      :centered="false"
+      nc-modal-class-name="!p-0"
+      class="!top-[25vh]"
+      :mask-closable="!isMoveLoading"
+      wrap-class-name="nc-modal-team-move-wrapper"
+    >
+      <div class="py-4 md:py-5 flex flex-col gap-5">
+        <div class="px-4 md:px-5 flex justify-between w-full items-center">
+          <div class="flex flex-row items-center gap-x-2 text-base font-semibold text-nc-content-gray capitalize">
+            <GeneralIcon icon="ncMove" class="!text-nc-content-gray-subtle2 w-5 h-5" />
+            {{ $t('labels.moveTeam') }}
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-5 !px-4 md:!px-5">
+          <!-- Current team info -->
+          <div>
+            <div class="text-bodyDefaultSm text-nc-content-gray-subtle mb-1">{{ $t('objects.team') }}</div>
+            <div class="flex items-center gap-2">
+              <GeneralTeamIcon :team="moveTeamTarget" class="!w-6 !h-6 !min-w-6 flex-none !rounded-md" />
+              <span class="text-sm font-medium text-nc-content-gray">{{ moveTeamTarget?.title }}</span>
+            </div>
+          </div>
+
+          <!-- Parent team selector -->
+          <div>
+            <div class="text-bodyDefaultSm text-nc-content-gray mb-1">
+              {{ $t('labels.parentTeam') }}
+            </div>
+            <NcSelect
+              v-model:value="moveSelectedParentId"
+              :placeholder="$t('general.none')"
+              allow-clear
+              show-search
+              :disabled="isMoveLoading"
+              :filter-option="(input: string, option: any) => option['data-label']?.toLowerCase().includes(input.toLowerCase())"
+              class="w-full nc-select-shadow"
+            >
+              <a-select-option
+                v-for="pt in moveParentOptions"
+                :key="pt.id"
+                :value="pt.id"
+                :data-label="pt.title"
+              >
+                <div class="flex items-center gap-2" :style="{ paddingLeft: `${((pt as any).depth ?? 0) * 16}px` }">
+                  <GeneralTeamIcon :team="pt" class="!w-5 !h-5 !min-w-5 flex-none !rounded-md" />
+                  <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                    <template #title>{{ pt.title }}</template>
+                    {{ pt.title }}
+                  </NcTooltip>
+                  <component
+                    :is="iconMap.check"
+                    v-if="moveSelectedParentId === pt.id"
+                    class="text-primary w-4 h-4 flex-none"
+                  />
+                </div>
+              </a-select-option>
+            </NcSelect>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex flex-row items-center justify-end gap-2">
+            <NcButton type="secondary" size="small" :disabled="isMoveLoading" @click="isMoveModalVisible = false">
+              {{ $t('general.cancel') }}
+            </NcButton>
+            <NcButton
+              v-e="['a:org-team:move']"
+              type="primary"
+              size="small"
+              :disabled="!moveHasChanged || isMoveLoading"
+              :loading="isMoveLoading"
+              @click="handleMoveTeamSubmit"
+            >
+              {{ $t('labels.moveTeam') }}
+            </NcButton>
           </div>
         </div>
       </div>

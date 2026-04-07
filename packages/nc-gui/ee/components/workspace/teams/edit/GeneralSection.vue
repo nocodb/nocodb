@@ -113,7 +113,7 @@ const validators = computed(() => {
       {
         validator: (_: any, value: any) => {
           return new Promise((resolve, reject) => {
-            if (teams.value?.some((t) => t.id !== team.value.id && t.title?.toLowerCase() === value?.toLowerCase())) {
+            if (teams.value?.some((t) => (t as any).scope !== 'org' && t.id !== team.value.id && t.title?.toLowerCase() === value?.toLowerCase())) {
               return reject(new Error(t('msg.error.duplicateTeamName')))
             }
 

@@ -79,16 +79,16 @@ export function verifyDefaultOrgTests() {
   });
 
   describe('RoleLabels for org roles', () => {
-    it('cloud-org-level-owner should label as admin (not owner)', () => {
-      expect(RoleLabels[CloudOrgUserRoles.OWNER]).to.equal('admin');
+    it('cloud-org-level-owner should label as orgAdmin', () => {
+      expect(RoleLabels[CloudOrgUserRoles.OWNER]).to.equal('orgAdmin');
     });
 
-    it('cloud-org-level-creator should label as creator', () => {
-      expect(RoleLabels[CloudOrgUserRoles.CREATOR]).to.equal('creator');
+    it('cloud-org-level-creator should label as orgCreator', () => {
+      expect(RoleLabels[CloudOrgUserRoles.CREATOR]).to.equal('orgCreator');
     });
 
-    it('cloud-org-level-viewer should label as viewer', () => {
-      expect(RoleLabels[CloudOrgUserRoles.VIEWER]).to.equal('viewer');
+    it('cloud-org-level-viewer should label as orgViewer', () => {
+      expect(RoleLabels[CloudOrgUserRoles.VIEWER]).to.equal('orgViewer');
     });
   });
 }

@@ -85,6 +85,7 @@ export interface TeamDetailV3Type {
   icon?: string;
   icon_type?: IconType;
   badge_color?: string;
+  fk_parent_team_id?: string | null;
   members: TeamMemberV3ResponseType[];
   inherited_members?: InheritedTeamMemberV3Type[];
 }

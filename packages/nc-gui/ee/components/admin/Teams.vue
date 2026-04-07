@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { TeamUserRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import type { TeamV3ResponseType } from 'nocodb-sdk'
 
 interface Props {
@@ -128,6 +129,7 @@ const loadTeamDetail = async (teamId: string) => {
     const response = await $api.instance.get(`/api/v3/meta/orgs/${orgId.value}/teams/${teamId}`)
     editTeam.value = response.data
     editTeamMembers.value = response.data?.members || []
+    selectedParentId.value = response.data?.fk_parent_team_id || null
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -204,6 +206,73 @@ const closeEditModal = () => {
   editTeamId.value = null
   editTeam.value = null
   editTeamMembers.value = []
+  selectedParentId.value = null
+}
+
+// Parent team editing
+const selectedParentId = ref<string | null>(null)
+const isMoving = ref(false)
+
+const getTeamDescendantIds = (teamId: string): string[] => {
+  const ids: string[] = []
+  const children = teams.value.filter((t: any) => t.fk_parent_team_id === teamId)
+  for (const child of children) {
+    ids.push(child.id)
+    ids.push(...getTeamDescendantIds(child.id))
+  }
+  return ids
+}
+
+const editParentTeamOptions = computed(() => {
+  if (!editTeamId.value) return []
+
+  const descendantIds = new Set(getTeamDescendantIds(editTeamId.value))
+
+  const eligible = (teams.value || []).filter((t: any) => {
+    if (t.id === editTeamId.value) return false
+    if (descendantIds.has(t.id)) return false
+    if ((t.depth ?? 0) >= 3) return false
+    return true
+  })
+
+  const childrenMap = new Map<string | null, typeof eligible>()
+  for (const t of eligible) {
+    const parentId = (t as any).fk_parent_team_id || null
+    if (!childrenMap.has(parentId)) childrenMap.set(parentId, [])
+    childrenMap.get(parentId)!.push(t)
+  }
+
+  for (const siblings of childrenMap.values()) {
+    siblings.sort((a, b) => (a.title ?? '').localeCompare(b.title ?? ''))
+  }
+
+  const ordered: typeof eligible = []
+  const walk = (parentId: string | null) => {
+    for (const child of childrenMap.get(parentId) ?? []) {
+      ordered.push(child)
+      walk(child.id)
+    }
+  }
+  walk(null)
+  return ordered
+})
+
+const handleMoveTeam = async () => {
+  if (isMoving.value || !editTeamId.value) return
+
+  try {
+    isMoving.value = true
+    await $api.instance.patch(`/api/v3/meta/orgs/${orgId.value}/teams/${editTeamId.value}/move`, {
+      parent_team_id: selectedParentId.value,
+    })
+    message.success(t('msg.success.teamMoved'))
+    await loadTeams()
+    await loadTeamDetail(editTeamId.value)
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isMoving.value = false
+  }
 }
 
 const handleConfirm = ({
@@ -322,7 +391,7 @@ const handleAddMembers = async () => {
       `/api/v3/meta/orgs/${orgId.value}/teams/${editTeamId.value}/members`,
       selectedNewUsers.value.map((u: any) => ({
         user_id: u.id,
-        team_role: 'team-level-member',
+        team_role: TeamUserRoles.MEMBER,
       })),
     )
     isAddMembersOpen.value = false
@@ -342,6 +411,18 @@ const toggleUser = (userId: string) => {
   } else {
     selectedUserIds.value.push(userId)
   }
+}
+
+const teamOwners = computed(() => {
+  return editTeamMembers.value.filter((m: any) => m.team_role === TeamUserRoles.OWNER)
+})
+
+const isSoleOwner = (userId: string) => {
+  return teamOwners.value.length <= 1 && teamOwners.value.some((m: any) => m.user_id === userId)
+}
+
+const isTeamOwner = (member: any) => {
+  return member.team_role === TeamUserRoles.OWNER
 }
 
 const handleRemoveMember = async (userId: string) => {
@@ -718,6 +799,58 @@ onMounted(() => {
                 @input="() => updateTeamTitle(editTeamId!, editTeam.title)"
               />
             </div>
+
+            <!-- Parent team -->
+            <div class="flex flex-col gap-2">
+              <div class="text-bodyDefaultSm text-nc-content-gray">
+                {{ $t('labels.parentTeam') }}
+              </div>
+              <div class="flex items-center gap-2">
+                <NcSelect
+                  v-model:value="selectedParentId"
+                  :placeholder="$t('general.none')"
+                  allow-clear
+                  show-search
+                  :filter-option="(input: string, option: any) => option['data-label']?.toLowerCase().includes(input.toLowerCase())"
+                  class="flex-1 nc-select-shadow"
+                  :disabled="isMoving"
+                  @change="(val: any) => { selectedParentId = val ?? null }"
+                >
+                  <a-select-option
+                    v-for="pt in editParentTeamOptions"
+                    :key="pt.id"
+                    :value="pt.id"
+                    :data-label="pt.title"
+                  >
+                    <div
+                      class="flex items-center gap-2"
+                      :style="{ paddingLeft: `${((pt as any).depth ?? 0) * 16}px` }"
+                    >
+                      <GeneralTeamIcon :team="pt" class="!w-5 !h-5 !min-w-5 flex-none !rounded-md" />
+                      <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                        <template #title>{{ pt.title }}</template>
+                        {{ pt.title }}
+                      </NcTooltip>
+                      <component
+                        :is="iconMap.check"
+                        v-if="selectedParentId === pt.id"
+                        class="text-primary w-4 h-4 flex-none"
+                      />
+                    </div>
+                  </a-select-option>
+                </NcSelect>
+                <NcButton
+                  v-if="selectedParentId !== ((editTeam as any).fk_parent_team_id || null)"
+                  size="small"
+                  type="primary"
+                  :loading="isMoving"
+                  :disabled="isMoving"
+                  @click="handleMoveTeam"
+                >
+                  {{ $t('labels.moveTeam') }}
+                </NcButton>
+              </div>
+            </div>
           </div>
 
           <!-- Members section -->
@@ -739,18 +872,40 @@ onMounted(() => {
               {{ $t('title.noMembersFound') }}
             </div>
 
-            <div v-else class="flex flex-col gap-2">
+            <div v-else class="flex flex-col divide-y divide-nc-border-gray-light">
               <div
                 v-for="member in editTeamMembers"
                 :key="member.user_id"
-                class="flex items-center gap-3 p-2 rounded-lg hover:bg-nc-bg-gray-light"
+                class="flex items-center gap-3 py-3 px-1 group"
               >
-                <GeneralUserIcon size="base" :email="member.user_email" class="flex-none" />
-                <div class="flex-1 min-w-0">
-                  <div class="text-sm font-medium truncate">{{ member.user_email }}</div>
-                  <div class="text-xs text-nc-content-gray-muted capitalize">{{ member.team_role }}</div>
-                </div>
-                <NcButton size="xsmall" type="text" class="!text-red-500" @click="handleRemoveMember(member.user_id)">
+                <NcUserInfo :user="{ email: member.user_email, display_name: member.user_display_name }" class="flex-1 min-w-0" />
+
+                <RolesBadge
+                  v-if="isTeamOwner(member)"
+                  :border="false"
+                  :role="WorkspaceUserRoles.OWNER"
+                  class="cursor-default flex-none"
+                  :show-icon="false"
+                >
+                  <template #label>
+                    <span class="text-bodySm">
+                      {{ $t('objects.teams.teamOwner') }}
+                    </span>
+                  </template>
+                </RolesBadge>
+
+                <NcTooltip v-if="isSoleOwner(member.user_id)" :title="t('objects.teams.thisIsTheOnlyTeamOwnerTooltip')">
+                  <NcButton size="xsmall" type="text" disabled class="flex-none">
+                    <GeneralIcon icon="delete" class="h-4 w-4" />
+                  </NcButton>
+                </NcTooltip>
+                <NcButton
+                  v-else
+                  size="xsmall"
+                  type="text"
+                  class="flex-none !text-red-500 invisible group-hover:visible"
+                  @click="handleRemoveMember(member.user_id)"
+                >
                   <GeneralIcon icon="delete" class="h-4 w-4" />
                 </NcButton>
               </div>
@@ -766,15 +921,12 @@ onMounted(() => {
               <div
                 v-for="member in editTeam.inherited_members"
                 :key="member.user_id"
-                class="flex items-center gap-3 p-2 rounded-lg opacity-60"
+                class="flex items-center justify-between py-3 px-1"
               >
-                <GeneralUserIcon size="base" :email="member.user_email" class="flex-none" />
-                <div class="flex-1 min-w-0">
-                  <div class="text-sm font-medium truncate">{{ member.user_email }}</div>
-                  <div class="text-xs text-nc-content-gray-muted">
-                    {{ $t('labels.inheritedFrom') }} {{ member.inherited_from_team_title }}
-                  </div>
-                </div>
+                <NcUserInfo :user="{ email: member.user_email, display_name: member.user_display_name }" class="min-w-20 flex-1 overflow-hidden" />
+                <span class="text-captionSm text-nc-content-gray-muted flex-none ml-3">
+                  {{ $t('labels.inheritedFrom', { team: member.inherited_from_team_title }) }}
+                </span>
               </div>
             </template>
           </div>
@@ -838,8 +990,8 @@ onMounted(() => {
           <div v-if="selectedNewUsers.length" class="text-nc-content-gray-muted">
             {{
               selectedNewUsers.length === 1
-                ? $t('labels.teams.nMemberSelected', { n: selectedNewUsers.length })
-                : $t('labels.teams.nMembersSelected', { n: selectedNewUsers.length })
+                ? $t('objects.teams.nMemberSelected', { n: selectedNewUsers.length })
+                : $t('objects.teams.nMembersSelected', { n: selectedNewUsers.length })
             }}
           </div>
           <div v-else>&nbsp;</div>

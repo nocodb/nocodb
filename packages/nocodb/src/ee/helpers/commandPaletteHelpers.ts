@@ -92,8 +92,12 @@ export async function getCommandPaletteForUserWorkspace(
         this.where('ws.deleted', false).orWhereNull('ws.deleted');
       })
       .andWhere(function () {
-        this.where('b.deleted', false).orWhereNull('b.deleted');
-        this.andWhere('b.is_snapshot', false).orWhereNull('b.is_snapshot');
+        this.where(function () {
+          this.where('b.deleted', false).orWhereNull('b.deleted');
+        });
+        this.where(function () {
+          this.where('b.is_snapshot', false).orWhereNull('b.is_snapshot');
+        });
       })
       .orderBy([
         { column: 'ws.title', order: 'asc' },

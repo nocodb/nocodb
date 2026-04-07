@@ -152,7 +152,7 @@ export default class WorkspaceUser {
       await ncMetaTrans.commit();
 
       // Ensure user exists in org_users for the workspace's org
-      this.ensureOrgUser(fk_workspace_id, fk_user_id, ncMeta).catch((e) => {
+      this.ensureOrgUser(fk_workspace_id, fk_user_id).catch((e) => {
         logger.error(`Failed to ensure org user: ${e?.message}`, e?.stack);
       });
 

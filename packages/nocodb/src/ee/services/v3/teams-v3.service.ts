@@ -353,34 +353,58 @@ export class TeamsV3Service {
 
     // Verify team belongs to the workspace/org
     const belongsToScope =
-      team.fk_workspace_id === param.workspaceOrOrgId ||
-      team.fk_org_id === param.workspaceOrOrgId;
+      param.scope === 'org'
+        ? team.fk_org_id === param.workspaceOrOrgId
+        : team.fk_workspace_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
     // check if the current user have access to this team
-    // user should be member of the team or workspace owner
     const currentUserId = context.user?.id;
     if (currentUserId) {
-      const isWsOwner = !!extractRolesObj(context.user?.workspace_roles)?.[
-        WorkspaceUserRoles.OWNER
-      ];
+      const isOrgTeam = param.scope === 'org';
 
-      if (!isWsOwner) {
-        const assignment = await PrincipalAssignment.get(
-          context,
-          ResourceType.TEAM,
-          param.teamId,
-          PrincipalType.USER,
-          currentUserId,
-        );
-
-        if (!assignment) {
-          NcError.get(context).forbidden(
-            'You do not have access to view this team details',
+      if (isOrgTeam) {
+        // Org teams: org admins can view any team, otherwise must be a member
+        if (
+          !(await this.isUserOrgAdmin(param.workspaceOrOrgId, currentUserId))
+        ) {
+          const assignment = await PrincipalAssignment.get(
+            context,
+            ResourceType.TEAM,
+            param.teamId,
+            PrincipalType.USER,
+            currentUserId,
           );
+
+          if (!assignment) {
+            NcError.get(context).forbidden(
+              'You do not have access to view this team details',
+            );
+          }
+        }
+      } else {
+        // Workspace teams: workspace owner or team member
+        const isWsOwner = !!extractRolesObj(context.user?.workspace_roles)?.[
+          WorkspaceUserRoles.OWNER
+        ];
+
+        if (!isWsOwner) {
+          const assignment = await PrincipalAssignment.get(
+            context,
+            ResourceType.TEAM,
+            param.teamId,
+            PrincipalType.USER,
+            currentUserId,
+          );
+
+          if (!assignment) {
+            NcError.get(context).forbidden(
+              'You do not have access to view this team details',
+            );
+          }
         }
       }
     }
@@ -468,6 +492,7 @@ export class TeamsV3Service {
       icon: meta.icon || null,
       icon_type: meta.icon_type || null,
       badge_color: meta.badge_color || null,
+      fk_parent_team_id: team.fk_parent_team_id || null,
       members,
       inherited_members: inheritedMembers.length ? inheritedMembers : undefined,
     };
@@ -773,8 +798,9 @@ export class TeamsV3Service {
     }
 
     const belongsToScope =
-      oldTeam.fk_workspace_id === param.workspaceOrOrgId ||
-      oldTeam.fk_org_id === param.workspaceOrOrgId;
+      param.scope === 'org'
+        ? oldTeam.fk_org_id === param.workspaceOrOrgId
+        : oldTeam.fk_workspace_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
@@ -912,8 +938,9 @@ export class TeamsV3Service {
     }
 
     const belongsToScope =
-      team.fk_workspace_id === param.workspaceOrOrgId ||
-      team.fk_org_id === param.workspaceOrOrgId;
+      param.scope === 'org'
+        ? team.fk_org_id === param.workspaceOrOrgId
+        : team.fk_workspace_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
@@ -1040,8 +1067,9 @@ export class TeamsV3Service {
     }
 
     const belongsToScope =
-      team.fk_workspace_id === param.workspaceOrOrgId ||
-      team.fk_org_id === param.workspaceOrOrgId;
+      param.scope === 'org'
+        ? team.fk_org_id === param.workspaceOrOrgId
+        : team.fk_workspace_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
@@ -1211,8 +1239,9 @@ export class TeamsV3Service {
     }
 
     const belongsToScope =
-      team.fk_workspace_id === param.workspaceOrOrgId ||
-      team.fk_org_id === param.workspaceOrOrgId;
+      param.scope === 'org'
+        ? team.fk_org_id === param.workspaceOrOrgId
+        : team.fk_workspace_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
@@ -1365,8 +1394,9 @@ export class TeamsV3Service {
     }
 
     const belongsToScope =
-      team.fk_workspace_id === param.workspaceOrOrgId ||
-      team.fk_org_id === param.workspaceOrOrgId;
+      param.scope === 'org'
+        ? team.fk_org_id === param.workspaceOrOrgId
+        : team.fk_workspace_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
@@ -1517,7 +1547,8 @@ export class TeamsV3Service {
   ): Promise<{ list: TeamTreeNodeV3Type[] }> {
     await this.validateFeatureAccess(context);
 
-    const treeRoots = await Team.getTree(context, param.workspaceOrOrgId);
+    const scope = param.scope;
+    const treeRoots = await Team.getTree(context, param.workspaceOrOrgId, scope);
     const currentUserId = context.user?.id;
 
     // Collect all team IDs from the tree
@@ -1619,20 +1650,27 @@ export class TeamsV3Service {
       );
     }
 
-    // Fetch workspace
-    const workspace = await Workspace.get(param.workspaceOrOrgId);
-    if (!workspace) {
-      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
+    const scope = param.scope;
+    const workspaceId =
+      scope === 'workspace' ? param.workspaceOrOrgId : undefined;
+    const orgId = scope === 'org' ? param.workspaceOrOrgId : undefined;
+
+    // Fetch workspace (skip for org scope)
+    const workspace = workspaceId ? await Workspace.get(workspaceId) : null;
+
+    if (scope === 'workspace' && !workspace) {
+      NcError.get(context).workspaceNotFound(workspaceId);
     }
 
-    // Check if team exists and belongs to workspace
+    // Check if team exists and belongs to scope
     const team = await Team.get(context, param.teamId);
     if (!team) {
       NcError.get(context).teamNotFound(param.teamId);
     }
     const teamBelongsToScope =
-      team.fk_workspace_id === param.workspaceOrOrgId ||
-      team.fk_org_id === param.workspaceOrOrgId;
+      scope === 'org'
+        ? team.fk_org_id === orgId
+        : team.fk_workspace_id === workspaceId;
     if (!teamBelongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
     }
@@ -1654,21 +1692,25 @@ export class TeamsV3Service {
         NcError.get(context).teamNotFound(newParentId);
       }
       const parentBelongsToScope =
-        newParent.fk_workspace_id === param.workspaceOrOrgId ||
-        newParent.fk_org_id === param.workspaceOrOrgId;
+        scope === 'org'
+          ? newParent.fk_org_id === orgId
+          : newParent.fk_workspace_id === workspaceId;
       if (!parentBelongsToScope) {
         NcError.get(context).invalidRequestBody(
           'Parent team must belong to the same scope',
         );
       }
 
-      // Only managers of the new parent team can move teams under it (unless user is workspace owner)
+      // Only managers of the new parent team can move teams under it (unless user is workspace/org owner)
       if (userId) {
-        const isOwner = await this.isUserWorkspaceOwner(
-          context,
-          userId,
-          param.workspaceOrOrgId,
-        );
+        const isOwner =
+          scope === 'org'
+            ? await this.isUserOrgAdmin(orgId, userId)
+            : await this.isUserWorkspaceOwner(
+                context,
+                userId,
+                param.workspaceOrOrgId,
+              );
 
         if (!isOwner) {
           const parentAssignment = await PrincipalAssignment.get(
@@ -1759,7 +1801,7 @@ export class TeamsV3Service {
       team: updatedTeam,
       oldParentTeam: oldParentTeam ?? null,
       newParentTeam: newParentId ? await Team.get(context, newParentId) : null,
-      workspace,
+      workspace: workspace ?? null,
     });
 
     await this.broadcastTeamEvent(context, team, {

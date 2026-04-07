@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  AppEvents,
   CloudOrgUserRoles,
   ncIsArray,
   parseProp,
@@ -203,6 +204,12 @@ export class OrgWorkspacesService {
       orgId: org.id,
     });
 
+    this.appHooksService.emit(AppEvents.ORG_WORKSPACE_ADD, {
+      workspaceId: param.workspaceId,
+      orgId: org.id,
+      req: param.req,
+    });
+
     return true;
   }
 
@@ -239,6 +246,12 @@ export class OrgWorkspacesService {
     await Workspace.updateOrgId({
       id: param.workspaceId,
       orgId: null,
+    });
+
+    this.appHooksService.emit(AppEvents.ORG_WORKSPACE_REMOVE, {
+      workspaceId: param.workspaceId,
+      orgId: org.id,
+      req: param.req as any,
     });
 
     return true;

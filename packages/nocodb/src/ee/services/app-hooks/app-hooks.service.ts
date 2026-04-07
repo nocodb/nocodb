@@ -94,7 +94,12 @@ import type {
   MapViewUpdateEvent,
   MetaDiffEvent,
   ModelRoleVisibilityEvent,
+  OrgUserAddEvent,
+  OrgUserDeleteEvent,
   OrgUserInviteEvent,
+  OrgUserRemoveEvent,
+  OrgUserUpdateEvent,
+  OrgWorkspaceEvent,
   PermissionCreateEvent,
   PermissionDeleteEvent,
   PermissionUpdateEvent,
@@ -633,6 +638,14 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.API_TOKEN_DELETE, data: ApiTokenDeleteEvent): void;
   emit(event: AppEvents.ORG_USER_INVITE, data: OrgUserInviteEvent): void;
   emit(event: AppEvents.ORG_USER_RESEND_INVITE, data: OrgUserInviteEvent): void;
+  emit(event: AppEvents.ORG_USER_UPDATE, data: OrgUserUpdateEvent): void;
+  emit(event: AppEvents.ORG_USER_DELETE, data: OrgUserDeleteEvent): void;
+  emit(event: AppEvents.ORG_USER_ADD, data: OrgUserAddEvent): void;
+  emit(event: AppEvents.ORG_USER_REMOVE, data: OrgUserRemoveEvent): void;
+  emit(
+    event: AppEvents.ORG_WORKSPACE_ADD | AppEvents.ORG_WORKSPACE_REMOVE,
+    data: OrgWorkspaceEvent,
+  ): void;
   emit(event: AppEvents.VIEW_COLUMN_CREATE, data: ViewColumnEvent): void;
   emit(event: AppEvents.VIEW_COLUMN_UPDATE, data: ViewColumnUpdateEvent): void;
   emit(

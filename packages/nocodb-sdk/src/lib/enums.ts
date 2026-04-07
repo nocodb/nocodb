@@ -135,6 +135,12 @@ export enum AppEvents {
 
   ORG_USER_INVITE = 'org.user.invite',
   ORG_USER_RESEND_INVITE = 'org.user.resend.invite',
+  ORG_USER_UPDATE = 'org.user.update',
+  ORG_USER_DELETE = 'org.user.delete',
+  ORG_USER_ADD = 'org.user.add',
+  ORG_USER_REMOVE = 'org.user.remove',
+  ORG_WORKSPACE_ADD = 'org.workspace.add',
+  ORG_WORKSPACE_REMOVE = 'org.workspace.remove',
 
   VIEW_COLUMN_CREATE = 'view.column.create',
   VIEW_COLUMN_UPDATE = 'view.column.update',

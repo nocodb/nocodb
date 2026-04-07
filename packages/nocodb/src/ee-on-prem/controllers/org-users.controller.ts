@@ -72,10 +72,12 @@ export class OrgUsersController extends OrgUsersControllerCE {
     @Param('orgId') _orgId: string,
     @Param('userId') userId: string,
     @Body() body: { org_role: EnterpriseOrgUserRoles },
+    @Req() req: NcRequest,
   ) {
     await this.orgUsersService.updateOrgRole({
       userId,
       orgRole: body.org_role,
+      req,
     });
     return { msg: 'Org role updated' };
   }
@@ -89,8 +91,9 @@ export class OrgUsersController extends OrgUsersControllerCE {
   async removeFromOrg(
     @Param('orgId') _orgId: string,
     @Param('userId') userId: string,
+    @Req() req: NcRequest,
   ) {
-    await this.orgUsersService.removeFromOrg({ userId });
+    await this.orgUsersService.removeFromOrg({ userId, req });
     return { msg: 'User removed from organization' };
   }
 }

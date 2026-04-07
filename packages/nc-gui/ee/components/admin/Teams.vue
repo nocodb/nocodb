@@ -177,6 +177,7 @@ const createTeam = async () => {
     }
     createTeamParentId.value = null
     await loadTeams()
+    $e('a:org-team:create')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -192,6 +193,7 @@ const _updateTeamTitle = async (teamId: string, title: string) => {
   try {
     await $api.instance.patch(`/api/v3/meta/orgs/${orgId.value}/teams/${teamId}`, { title: title.trim() })
     await loadTeams()
+    $e('a:org-team:update-title', { teamId })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -480,6 +482,7 @@ const handleAddMembers = async () => {
     await loadTeamDetail(editTeamId.value)
     await loadTeams()
     message.success(t('activity.membersAdded'))
+    $e('a:org-team:members-add', { teamId: editTeamId.value, count: selectedNewUsers.value.length })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -516,6 +519,7 @@ const handleRemoveMember = async (userId: string) => {
     })
     editTeamMembers.value = editTeamMembers.value.filter((m: any) => m.user_id !== userId)
     await loadTeams()
+    $e('a:org-team:member-remove', { teamId: editTeamId.value })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -530,6 +534,7 @@ const handlePromoteToOwner = async (userId: string) => {
     ])
     const member = editTeamMembers.value.find((m: any) => m.user_id === userId)
     if (member) member.team_role = TeamUserRoles.OWNER
+    $e('a:org-team:member-promote', { teamId: editTeamId.value })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -544,6 +549,7 @@ const handleDemoteFromOwner = async (userId: string) => {
     ])
     const member = editTeamMembers.value.find((m: any) => m.user_id === userId)
     if (member) member.team_role = TeamUserRoles.MEMBER
+    $e('a:org-team:member-demote', { teamId: editTeamId.value })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

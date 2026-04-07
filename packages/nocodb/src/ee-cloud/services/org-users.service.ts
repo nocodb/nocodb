@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { EnterpriseOrgUserRoles } from 'nocodb-sdk';
+import { AppEvents, EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { OrgUserReqType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
@@ -9,10 +9,11 @@ import { Team } from '~/ee/models';
 import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
 import Noco from '~/Noco';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 @Injectable()
 export class OrgUsersService {
-  constructor() {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   async addUserToOrg(param: {
     userId: string;
@@ -59,6 +60,13 @@ export class OrgUsersService {
         roles: param.userProps.roles,
       });
     }
+
+    this.appHooksService.emit(AppEvents.ORG_USER_ADD, {
+      userId: param.userId,
+      orgId: param.orgId,
+      role: param.userProps.roles || EnterpriseOrgUserRoles.VIEWER,
+      req: param.req,
+    });
 
     return { msg: 'User added to organization' };
   }
@@ -168,6 +176,12 @@ export class OrgUsersService {
       }
     }
 
+    this.appHooksService.emit(AppEvents.ORG_USER_REMOVE, {
+      userId: param.userId,
+      orgId: param.orgId,
+      req: param.req,
+    });
+
     return { msg: 'User removed from organization' };
   }
 
@@ -202,9 +216,19 @@ export class OrgUsersService {
       }
     }
 
+    const oldRole = orgUser.roles;
+
     await OrgUser.update(param.userId, param.orgId, {
       roles: param.orgRole,
     } as any);
+
+    this.appHooksService.emit(AppEvents.ORG_USER_UPDATE, {
+      userId: param.userId,
+      orgId: param.orgId,
+      oldRole,
+      newRole: param.orgRole,
+      req: param.req,
+    });
 
     return { msg: 'User role updated' };
   }

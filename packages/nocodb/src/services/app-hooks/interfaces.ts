@@ -300,6 +300,38 @@ export interface OrgUserInviteEvent extends Omit<NcBaseEvent, 'context'> {
   context?: NcContext;
 }
 
+export interface OrgUserUpdateEvent extends Omit<NcBaseEvent, 'context'> {
+  userId: string;
+  orgId: string;
+  oldRole?: string;
+  newRole: string;
+  context?: NcContext;
+}
+
+export interface OrgUserDeleteEvent extends Omit<NcBaseEvent, 'context'> {
+  userId: string;
+  context?: NcContext;
+}
+
+export interface OrgUserAddEvent extends Omit<NcBaseEvent, 'context'> {
+  userId: string;
+  orgId: string;
+  role: string;
+  context?: NcContext;
+}
+
+export interface OrgUserRemoveEvent extends Omit<NcBaseEvent, 'context'> {
+  userId: string;
+  orgId: string;
+  context?: NcContext;
+}
+
+export interface OrgWorkspaceEvent extends Omit<NcBaseEvent, 'context'> {
+  workspaceId: string;
+  orgId: string;
+  context?: NcContext;
+}
+
 export interface ViewColumnEvent extends NcBaseEvent {
   viewColumn: any;
   view: ViewType;

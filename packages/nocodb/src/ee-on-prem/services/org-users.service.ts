@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { EnterpriseOrgUserRoles } from 'nocodb-sdk';
+import { AppEvents, EnterpriseOrgUserRoles } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { OrgUsersService as OrgUsersServiceCE } from 'src/services/org-users.service';
 import { MetaTable, NC_DEFAULT_ORG_ID, PrincipalType, ResourceType } from '~/utils/globals';
 import Noco from '~/Noco';
@@ -125,7 +126,7 @@ export class OrgUsersService extends OrgUsersServiceCE {
   async addToOrg(param: {
     email: string;
     orgRole?: EnterpriseOrgUserRoles;
-    req: any;
+    req: NcRequest;
   }) {
     const orgId = Noco.ncDefaultOrgId || NC_DEFAULT_ORG_ID;
     const ncMeta = Noco.ncMeta;
@@ -183,13 +184,20 @@ export class OrgUsersService extends OrgUsersServiceCE {
       });
     }
 
+    this.appHooksService.emit(AppEvents.ORG_USER_ADD, {
+      userId: user.id,
+      orgId,
+      role: param.orgRole || EnterpriseOrgUserRoles.VIEWER,
+      req: param.req,
+    });
+
     return { msg: 'User added to organization' };
   }
 
   /**
    * Update org role for a user in the default org.
    */
-  async updateOrgRole(param: { userId: string; orgRole: EnterpriseOrgUserRoles }) {
+  async updateOrgRole(param: { userId: string; orgRole: EnterpriseOrgUserRoles; req?: NcRequest }) {
     const orgId = Noco.ncDefaultOrgId || NC_DEFAULT_ORG_ID;
 
     const allowedRoles = [
@@ -228,18 +236,28 @@ export class OrgUsersService extends OrgUsersServiceCE {
       }
     }
 
+    const oldRole = currentRole?.roles;
+
     await ncMeta
       .knexConnection(MetaTable.ORG_USERS)
       .where('fk_org_id', orgId)
       .where('fk_user_id', param.userId)
       .update({ roles: param.orgRole });
+
+    this.appHooksService.emit(AppEvents.ORG_USER_UPDATE, {
+      userId: param.userId,
+      orgId,
+      oldRole,
+      newRole: param.orgRole,
+      req: param.req,
+    });
   }
 
   /**
    * Remove user from org: soft-delete org membership + remove from
    * all workspaces and bases in the org.
    */
-  async removeFromOrg(param: { userId: string }) {
+  async removeFromOrg(param: { userId: string; req?: NcRequest }) {
     const orgId = Noco.ncDefaultOrgId || NC_DEFAULT_ORG_ID;
     const ncMeta = Noco.ncMeta;
 
@@ -330,5 +348,11 @@ export class OrgUsersService extends OrgUsersServiceCE {
         );
       }
     }
+
+    this.appHooksService.emit(AppEvents.ORG_USER_REMOVE, {
+      userId: param.userId,
+      orgId,
+      req: param.req,
+    });
   }
 }

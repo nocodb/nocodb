@@ -11,6 +11,7 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
+
 const { dashboardUrl } = useDashboard()
 
 const { appInfo, user: loggedInUser } = useGlobal()
@@ -31,6 +32,7 @@ const updateOrgRole = async (user: UserType, newRole: string) => {
     }
 
     message.success(t('msg.success.roleUpdated'))
+    $e('a:org-user:role-update', { role: newRole })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

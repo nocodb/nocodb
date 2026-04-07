@@ -103,6 +103,14 @@ export class OrgUsersService {
       ...updateBody,
     });
 
+    this.appHooksService.emit(AppEvents.ORG_USER_UPDATE, {
+      userId: param.userId,
+      orgId: 'default',
+      oldRole: user.roles,
+      newRole: updateBody.roles,
+      req: param.req,
+    });
+
     // Also update workspace role in the default workspace
     if (Noco.ncDefaultWorkspaceId && updateBody.roles) {
       const wsRole =
@@ -121,7 +129,7 @@ export class OrgUsersService {
     return result;
   }
 
-  async userDelete(param: { userId: string }) {
+  async userDelete(param: { userId: string; req?: NcRequest }) {
     const ncMeta = await Noco.ncMeta.startTransaction();
     try {
       const user = await User.get(param.userId, ncMeta);
@@ -169,6 +177,11 @@ export class OrgUsersService {
       // soft-delete user (preserves record for audit/cell data)
       await User.softDelete(param.userId, ncMeta);
       await ncMeta.commit();
+
+      this.appHooksService.emit(AppEvents.ORG_USER_DELETE, {
+        userId: param.userId,
+        req: param.req,
+      });
     } catch (e) {
       await ncMeta.rollback(e);
       if (e instanceof NcError || e instanceof NcBaseError) throw e;

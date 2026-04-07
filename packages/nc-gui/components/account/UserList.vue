@@ -178,11 +178,19 @@ const orderBy = computed<Record<string, SordDirectionType>>({
 
 const hasOrgRoles = computed(() => appInfo.value?.isOnPrem && appInfo.value?.ee)
 
+const orgAllowedRoles = computed(() => {
+  return [EnterpriseOrgUserRoles.VIEWER, EnterpriseOrgUserRoles.CREATOR, EnterpriseOrgUserRoles.ADMIN]
+})
+
+const onOrgRoleChange = (user: UserType) => async (role: string) => {
+  await updateOrgRole(user, role)
+}
+
 const columns = computed(() => {
   const cols: NcTableColumnProps[] = [
     {
       key: 'email',
-      title: t('objects.users'),
+      title: t('objects.members'),
       minWidth: 220,
       dataIndex: 'email',
       showOrderBy: true,
@@ -193,10 +201,17 @@ const columns = computed(() => {
     cols.push({
       key: 'org_roles',
       title: t('labels.orgRole'),
-      width: 180,
-      minWidth: 150,
+      basis: '25%',
+      minWidth: 200,
     })
   }
+
+  cols.push({
+    key: 'created_at',
+    title: t('title.dateJoined'),
+    basis: '25%',
+    minWidth: 200,
+  })
 
   cols.push({
     key: 'action',
@@ -224,7 +239,7 @@ const columns = computed(() => {
     </NcPageHeader>
     <div class="nc-content-max-w p-6 h-[calc(100vh_-_100px)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
       <div class="h-full">
-        <div class="max-w-195 mx-auto h-full">
+        <div class="h-full">
           <div class="flex gap-4 items-center justify-between">
             <a-input
               v-model:value="searchText"
@@ -251,53 +266,55 @@ const columns = computed(() => {
             :columns="columns"
             :data="sortedUsers"
             :is-data-loading="isLoading"
-            class="h-[calc(100%-58px)] max-w-250 mt-6"
+            class="h-[calc(100%-58px)] mt-6"
           >
             <template #bodyCell="{ column, record: el }">
-              <div v-if="column.key === 'email'" class="w-full flex items-center gap-2">
-                <NcTooltip v-if="el.display_name" class="truncate max-w-full">
-                  <template #title>
+              <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center">
+                <GeneralUserIcon size="base" :user="el" class="flex-none" />
+                <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
+                  <div class="flex items-center gap-1">
+                    <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize font-semibold" show-on-truncate-only>
+                      <template #title>
+                        {{ el.display_name || el.email.slice(0, el.email.indexOf('@')) }}
+                      </template>
+                      {{ el.display_name || el.email.slice(0, el.email.indexOf('@')) }}
+                    </NcTooltip>
+                    <NcBadge
+                      v-if="el.roles?.includes('super')"
+                      :border="false"
+                      color="purple"
+                      class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+                    >
+                      {{ $t('objects.roleType.superAdmin') }}
+                    </NcBadge>
+                  </div>
+                  <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-subtle2" show-on-truncate-only>
+                    <template #title>
+                      {{ el.email }}
+                    </template>
                     {{ el.email }}
-                  </template>
-                  {{ el.display_name }}
-                </NcTooltip>
-
-                <NcTooltip v-else class="truncate max-w-full" show-on-truncate-only>
-                  <template #title>
-                    {{ el.email }}
-                  </template>
-                  {{ el.email }}
-                </NcTooltip>
-
-                <NcBadge
-                  v-if="el.roles?.includes('super')"
-                  :border="false"
-                  color="purple"
-                  class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
-                  data-rec="true"
-                >
-                  {{ $t('objects.roleType.admin') }}
-                </NcBadge>
+                  </NcTooltip>
+                </div>
               </div>
               <div v-if="column.key === 'org_roles'" class="flex items-center">
-                <template v-if="el.roles?.includes('super') || el.org_roles === EnterpriseOrgUserRoles.ADMIN">
-                  <NcBadge :border="false" color="purple" class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none">
-                    {{ $t('objects.roleType.orgAdmin') }}
-                  </NcBadge>
-                </template>
-                <NcSelect
-                  v-else
-                  :value="el.org_roles || EnterpriseOrgUserRoles.VIEWER"
-                  :options="[
-                    { label: $t('objects.roleType.orgAdmin'), value: EnterpriseOrgUserRoles.ADMIN },
-                    { label: $t('objects.roleType.orgCreator'), value: EnterpriseOrgUserRoles.CREATOR },
-                    { label: $t('objects.roleType.orgViewer'), value: EnterpriseOrgUserRoles.VIEWER },
-                  ]"
-                  class="w-32"
-                  size="small"
+                <RolesSelectorV2
+                  :on-role-change="onOrgRoleChange(el)"
+                  :role="el.org_roles || EnterpriseOrgUserRoles.VIEWER"
+                  :roles="orgAllowedRoles"
+                  :description="false"
+                  class="cursor-pointer"
                   data-testid="nc-org-role-select"
-                  @change="updateOrgRole(el, $event)"
                 />
+              </div>
+              <div v-if="column.key === 'created_at'">
+                <NcTooltip class="max-w-full">
+                  <template #title>
+                    {{ parseStringDateTime(el.created_at) }}
+                  </template>
+                  <span>
+                    {{ timeAgo(el.created_at) }}
+                  </span>
+                </NcTooltip>
               </div>
               <div v-if="column.key === 'action'" class="flex items-center gap-2">
                 <NcDropdown :trigger="['click']" placement="bottomRight">

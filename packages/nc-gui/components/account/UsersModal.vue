@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
 import type { OrgUserReqType } from 'nocodb-sdk'
-import { OrgUserRoles } from 'nocodb-sdk'
+import { EnterpriseOrgUserRoles, OrgUserRoles } from 'nocodb-sdk'
 import { extractEmail } from '~/helpers/parsers/parserHelpers'
 
 interface Props {
@@ -17,11 +17,38 @@ const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 
+const { appInfo } = useGlobal()
+
 const { dashboardUrl } = useDashboard()
 
 const { clearBasesUser } = useBases()
 
-const usersData = ref<Users>({ emails: '', role: OrgUserRoles.VIEWER, invitationToken: undefined })
+const hasOrgRoles = computed(() => appInfo.value.isOnPrem && appInfo.value.ee)
+
+const orgRoleOptions = computed(() => {
+  if (!hasOrgRoles.value) return []
+  return [
+    { value: EnterpriseOrgUserRoles.VIEWER, label: t('objects.roleType.viewer') },
+    { value: EnterpriseOrgUserRoles.CREATOR, label: t('objects.roleType.creator') },
+    { value: EnterpriseOrgUserRoles.ADMIN, label: t('objects.roleType.admin') },
+  ]
+})
+
+const usersData = ref<Users>({
+  emails: '',
+  role: hasOrgRoles.value ? EnterpriseOrgUserRoles.VIEWER : OrgUserRoles.VIEWER,
+  invitationToken: undefined,
+})
+
+const emailBadges = ref<string[]>([])
+
+const singleEmailValue = ref('')
+
+const isDivFocused = ref(false)
+
+const divRef = ref<HTMLDivElement>()
+
+const focusRef = ref<HTMLInputElement>()
 
 const formRef = ref()
 
@@ -35,23 +62,59 @@ const validators = computed(() => {
 
 const { validateInfos } = useForm(usersData.value, validators)
 
+const focusOnDiv = () => {
+  isDivFocused.value = true
+  focusRef.value?.focus()
+}
+
+const handleEnter = () => {
+  const email = singleEmailValue.value?.trim()
+  if (email && email.includes('@') && !emailBadges.value.includes(email)) {
+    emailBadges.value.push(email)
+    singleEmailValue.value = ''
+  }
+}
+
+const removeEmail = (index: number) => {
+  emailBadges.value.splice(index, 1)
+}
+
+const onPaste = (e: ClipboardEvent) => {
+  e.preventDefault()
+  const pastedText = e.clipboardData?.getData('text') ?? ''
+  const emails = pastedText.split(/[,;\s]+/).filter((e) => e.includes('@'))
+  for (const email of emails) {
+    if (!emailBadges.value.includes(email.trim())) {
+      emailBadges.value.push(email.trim())
+    }
+  }
+}
+
+const isInviteDisabled = computed(() => emailBadges.value.length === 0 && !singleEmailValue.value.trim())
+
 const saveUser = async () => {
+  // Add any remaining typed email
+  if (singleEmailValue.value?.trim() && singleEmailValue.value.includes('@')) {
+    emailBadges.value.push(singleEmailValue.value.trim())
+    singleEmailValue.value = ''
+  }
+
+  if (emailBadges.value.length === 0) return
+
   $e('a:org-user:invite', { role: usersData.value.role })
 
-  await formRef.value?.validateFields()
-
   try {
-    const res = await $api.orgUsers.add({
-      roles: usersData.value.role,
-      email: usersData.value.emails,
-    } as unknown as OrgUserReqType)
+    for (const email of emailBadges.value) {
+      const res = await $api.orgUsers.add({
+        roles: usersData.value.role,
+        email,
+      } as unknown as OrgUserReqType)
 
-    usersData.value.invitationToken = res.invite_token
+      usersData.value.invitationToken = res.invite_token
+    }
+
     emit('reload')
-
-    // Successfully updated the user details
     message.success(t('msg.success.userAdded'))
-
     clearBasesUser()
   } catch (e: any) {
     console.error(e)
@@ -66,128 +129,118 @@ const inviteUrl = computed(() =>
 const clickInviteMore = () => {
   $e('c:user:invite-more')
   usersData.value.invitationToken = undefined
-  usersData.value.role = OrgUserRoles.VIEWER
-  usersData.value.emails = ''
+  usersData.value.role = hasOrgRoles.value ? EnterpriseOrgUserRoles.VIEWER : OrgUserRoles.VIEWER
+  emailBadges.value = []
+  singleEmailValue.value = ''
 }
 
-const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
-
-const onPaste = (e: ClipboardEvent) => {
-  const pastedText = e.clipboardData?.getData('text') ?? ''
-
-  usersData.value.emails = extractEmail(pastedText) || pastedText
+const onRoleChange = (role: string) => {
+  usersData.value.role = role
 }
 </script>
 
 <template>
-  <a-modal
-    :class="{ active: show }"
-    :footer="null"
-    centered
+  <NcModal
     :visible="show"
-    :closable="false"
-    width="max(50vw, 44rem)"
-    wrap-class-name="nc-modal-invite-user"
-    @cancel="emit('closed')"
+    size="medium"
+    :show-separator="false"
+    @update:visible="(val) => { if (!val) emit('closed') }"
   >
-    <div class="flex flex-col">
-      <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
-        <h4 class="select-none text-nc-content-gray text-subHeading1" data-rec="true">
-          {{ $t('activity.inviteUser') }}
-        </h4>
-
-        <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="emit('closed')">
-          <template #icon>
-            <MaterialSymbolsCloseRounded data-testid="nc-root-user-invite-modal-close" class="flex mx-auto" />
-          </template>
-        </a-button>
+    <template #header>
+      <div class="flex flex-row text-2xl font-bold items-center gap-x-2">
+        {{ $t('activity.inviteUser') }}
       </div>
+    </template>
 
-      <div class="px-2 mt-1.5">
-        <template v-if="usersData.invitationToken">
-          <div class="flex flex-col mt-1 pb-5">
-            <div class="flex flex-row items-center pl-1.5 pb-1 h-[1.1rem]">
-              <component :is="iconMap.account" />
-              <div class="text-xs ml-0.5 mt-0.5" data-rec="true">{{ $t('activity.copyInviteURL') }}</div>
-            </div>
-
-            <NcAlert
-              type="success"
-              :message="inviteUrl"
-              message-class="!text-green-700 !text-bodyDefaultSm"
-              background
-              :copy-text="inviteUrl"
-              :copy-text-toast-message="$t('msg.toast.inviteUrlCopy')"
-              class="mt-2 !p-3"
-            />
-
-            <div class="flex text-xs text-nc-content-gray-muted mt-2 justify-start ml-2" data-rec="true">
-              {{ $t('msg.info.userInviteNoSMTP') }}
-              {{ usersData.invitationToken && usersData.emails }}
-            </div>
-
-            <div class="flex flex-row justify-end mt-4 ml-2">
-              <NcButton size="small" type="secondary" text-color="primary" @click="clickInviteMore">
-                <div class="flex flex-row justify-center items-center space-x-0.5">
-                  <MaterialSymbolsSendOutline class="flex mx-auto h-[0.8rem]" />
-
-                  <div class="text-xs" data-rec="true">{{ $t('activity.inviteMore') }}</div>
-                </div>
-              </NcButton>
-            </div>
+    <div class="flex flex-col gap-4 mt-2">
+      <template v-if="usersData.invitationToken">
+        <div class="flex flex-col gap-3 pb-4">
+          <NcAlert
+            type="success"
+            :message="inviteUrl"
+            message-class="!text-green-700 !text-bodyDefaultSm"
+            background
+            :copy-text="inviteUrl"
+            :copy-text-toast-message="$t('msg.toast.inviteUrlCopy')"
+            class="!p-3"
+          />
+          <div class="text-xs text-nc-content-gray-muted ml-1">
+            {{ $t('msg.info.userInviteNoSMTP') }}
           </div>
-        </template>
-
-        <div v-else class="flex flex-col pb-4">
-          <div class="border-1 py-3 px-4 rounded-md mt-1">
-            <a-form
-              ref="formRef"
-              :validate-on-rule-change="false"
-              :model="usersData"
-              validate-trigger="onBlur"
-              @finish="saveUser"
-            >
-              <div class="flex flex-row space-x-4">
-                <div class="flex flex-col w-full">
-                  <a-form-item
-                    v-bind="validateInfos.emails"
-                    validate-trigger="onBlur"
-                    name="emails"
-                    :rules="[{ required: true, message: $t('msg.plsInputEmail') }]"
-                  >
-                    <div class="ml-1 mb-1 text-xs text-nc-content-gray-muted" data-rec="true">{{ $t('datatype.Email') }}:</div>
-
-                    <a-input
-                      :ref="emailInput"
-                      v-model:value="usersData.emails"
-                      size="middle"
-                      class="nc-input-sm"
-                      validate-trigger="onBlur"
-                      :placeholder="$t('labels.email')"
-                      @paste.prevent="onPaste"
-                    />
-                  </a-form-item>
-                </div>
-              </div>
-
-              <div class="flex flex-row justify-end">
-                <NcButton type="primary" size="small" html-type="submit">
-                  <div class="flex flex-row justify-center items-center space-x-1.5">
-                    <MaterialSymbolsSendOutline class="flex h-[0.8rem]" />
-                    <div data-rec="true">{{ $t('activity.invite') }}</div>
-                  </div>
-                </NcButton>
-              </div>
-            </a-form>
+          <div class="flex justify-end">
+            <NcButton size="small" type="secondary" @click="clickInviteMore">
+              {{ $t('activity.inviteMore') }}
+            </NcButton>
           </div>
         </div>
-      </div>
-    </div>
-  </a-modal>
-</template>
+      </template>
 
-<style lang="scss" scoped>
-.nc-input-sm {
-  @apply !rounded-md;
-}
-</style>
+      <template v-else>
+        <div class="flex flex-col gap-4">
+          <div class="flex gap-3 items-start">
+            <!-- Email input with badges -->
+            <div
+              ref="divRef"
+              :class="{
+                'border-primary/100 shadow-selected': isDivFocused,
+                'p-1': emailBadges.length > 0,
+              }"
+              class="flex items-center flex-wrap border-1 gap-1 w-full overflow-x-auto nc-scrollbar-x-md min-h-10 rounded-lg flex-1"
+              tabindex="0"
+              @blur="isDivFocused = false"
+              @click="focusOnDiv"
+            >
+              <span
+                v-for="(email, index) in emailBadges"
+                :key="email"
+                class="border-1 text-nc-content-gray bg-nc-bg-gray-light rounded-md flex items-center px-1 whitespace-nowrap"
+              >
+                {{ email }}
+                <component
+                  :is="iconMap.close"
+                  class="ml-0.5 hover:cursor-pointer w-4 h-4 text-nc-content-gray-subtle2"
+                  @click="removeEmail(index)"
+                />
+              </span>
+              <input
+                ref="focusRef"
+                v-model="singleEmailValue"
+                inputmode="email"
+                :placeholder="$t('activity.enterEmail')"
+                class="flex-1 min-w-36 outline-none px-2"
+                @blur="isDivFocused = false"
+                @keyup.enter="handleEnter"
+                @paste="onPaste"
+              />
+            </div>
+
+            <!-- Role selector -->
+            <NcSelect
+              v-if="hasOrgRoles"
+              :value="usersData.role"
+              class="!min-w-[140px]"
+              @update:value="onRoleChange"
+            >
+              <a-select-option
+                v-for="opt in orgRoleOptions"
+                :key="opt.value"
+                :value="opt.value"
+              >
+                {{ opt.label }}
+              </a-select-option>
+            </NcSelect>
+          </div>
+
+          <div class="flex justify-end gap-2">
+            <NcButton size="small" type="secondary" @click="emit('closed')">
+              {{ $t('general.cancel') }}
+            </NcButton>
+            <NcButton size="small" type="primary" :disabled="isInviteDisabled" @click="saveUser">
+              {{ $t('activity.invite') }}
+            </NcButton>
+          </div>
+        </div>
+      </template>
+    </div>
+  </NcModal>
+</template>

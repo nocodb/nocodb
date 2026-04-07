@@ -50,6 +50,15 @@ const isEditModalOpen = ref(false)
 
 const isEditLoading = ref(false)
 
+const memberSearchQuery = ref('')
+
+const filteredEditMembers = computed(() => {
+  if (!memberSearchQuery.value) return editTeamMembers.value
+  return editTeamMembers.value.filter((m: any) =>
+    searchCompare([m.user_display_name, m.user_email], memberSearchQuery.value),
+  )
+})
+
 // Tree view
 const viewMode = ref<'flat' | 'tree'>('tree')
 
@@ -207,6 +216,7 @@ const closeEditModal = () => {
   editTeam.value = null
   editTeamMembers.value = []
   selectedParentId.value = null
+  memberSearchQuery.value = ''
 }
 
 // Parent team editing
@@ -441,6 +451,34 @@ const handleRemoveMember = async (userId: string) => {
     })
     editTeamMembers.value = editTeamMembers.value.filter((m: any) => m.user_id !== userId)
     await loadTeams()
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+const handlePromoteToOwner = async (userId: string) => {
+  if (!editTeamId.value) return
+
+  try {
+    await $api.instance.patch(`/api/v3/meta/orgs/${orgId.value}/teams/${editTeamId.value}/members`, [
+      { user_id: userId, team_role: TeamUserRoles.OWNER },
+    ])
+    const member = editTeamMembers.value.find((m: any) => m.user_id === userId)
+    if (member) member.team_role = TeamUserRoles.OWNER
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+const handleDemoteFromOwner = async (userId: string) => {
+  if (!editTeamId.value) return
+
+  try {
+    await $api.instance.patch(`/api/v3/meta/orgs/${orgId.value}/teams/${editTeamId.value}/members`, [
+      { user_id: userId, team_role: TeamUserRoles.MEMBER },
+    ])
+    const member = editTeamMembers.value.find((m: any) => m.user_id === userId)
+    if (member) member.team_role = TeamUserRoles.MEMBER
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -814,13 +852,13 @@ onMounted(() => {
     <!-- Edit Team Modal -->
     <NcModal
       v-model:visible="isEditModalOpen"
-      size="lg"
-      :body-style="{ 'max-height': 'min(calc(100vh - 100px), 864px)', 'height': 'min(calc(100vh - 100px), 864px)' }"
-      nc-modal-class-name="!p-0 h-full"
-      wrap-class-name="nc-modal-team-edit-wrapper"
+      :header="false"
+      size="md"
+      :show-separator="false"
+      wrap-class-name="nc-modal-teams"
       @update:visible="(val: boolean) => { if (!val) closeEditModal() }"
     >
-      <div class="h-full flex flex-col">
+      <div class="flex flex-col h-full">
         <!-- Header -->
         <div class="p-2 w-full flex items-center gap-3 border-b-1 border-nc-border-gray-medium">
           <div class="flex items-center">
@@ -829,157 +867,198 @@ onMounted(() => {
           <div class="flex-1 text-lg font-bold text-nc-content-gray-emphasis">
             {{ editTeam?.title }}
           </div>
-          <NcButton type="text" size="xsmall" @click="closeEditModal()">
+          <NcButton size="small" type="text" @click="closeEditModal()">
             <GeneralIcon icon="close" />
           </NcButton>
         </div>
 
-        <!-- Content -->
-        <div v-if="isEditLoading" class="flex-1 flex items-center justify-center">
-          <a-spin />
-        </div>
-        <div v-else-if="editTeam" class="flex-1 overflow-auto nc-scrollbar-thin p-6 flex flex-col gap-6">
-          <!-- General section -->
-          <div class="flex flex-col gap-4">
-            <div class="text-sm font-semibold text-nc-content-gray-emphasis">{{ $t('general.general') }}</div>
-            <div class="flex items-center gap-3">
-              <GeneralTeamIcon :team="editTeam" class="!w-10 !h-10 flex-none !rounded-lg" />
-              <a-input
-                v-model:value="editTeam.title"
-                class="nc-input-sm nc-input-shadow flex-1"
-                @input="() => updateTeamTitle(editTeamId!, editTeam.title)"
-              />
+        <div class="h-[calc(100%_-_50px)] flex flex-col">
+          <!-- Content -->
+          <div class="flex-1 nc-modal-teams-edit-content overflow-auto">
+            <div v-if="isEditLoading" class="flex-1 flex items-center justify-center h-full">
+              <a-spin />
             </div>
-
-            <!-- Parent team -->
-            <div class="flex flex-col gap-2">
-              <div class="text-bodyDefaultSm text-nc-content-gray">
-                {{ $t('labels.parentTeam') }}
-              </div>
-              <div class="flex items-center gap-2">
-                <NcSelect
-                  v-model:value="selectedParentId"
-                  :placeholder="$t('general.none')"
-                  allow-clear
-                  show-search
-                  :filter-option="(input: string, option: any) => option['data-label']?.toLowerCase().includes(input.toLowerCase())"
-                  class="flex-1 nc-select-shadow"
-                  :disabled="isMoving"
-                  @change="(val: any) => { selectedParentId = val ?? null }"
-                >
-                  <a-select-option
-                    v-for="pt in editParentTeamOptions"
-                    :key="pt.id"
-                    :value="pt.id"
-                    :data-label="pt.title"
-                  >
-                    <div
-                      class="flex items-center gap-2"
-                      :style="{ paddingLeft: `${((pt as any).depth ?? 0) * 16}px` }"
-                    >
-                      <GeneralTeamIcon :team="pt" class="!w-5 !h-5 !min-w-5 flex-none !rounded-md" />
-                      <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                        <template #title>{{ pt.title }}</template>
-                        {{ pt.title }}
-                      </NcTooltip>
-                      <component
-                        :is="iconMap.check"
-                        v-if="selectedParentId === pt.id"
-                        class="text-primary w-4 h-4 flex-none"
-                      />
+            <template v-else-if="editTeam">
+              <!-- Name section -->
+              <div class="nc-modal-teams-edit-content-section mt-6">
+                <a-form layout="vertical" class="flex flex-col gap-4">
+                  <a-form-item class="!mb-0">
+                    <template #label>
+                      {{ $t('general.name') }}
+                    </template>
+                    <div class="relative">
+                      <a-input
+                        v-model:value="editTeam.title"
+                        class="nc-team-input nc-input-sm nc-input-shadow !pl-38"
+                        :placeholder="$t('placeholder.enterTeamName')"
+                        @input="() => updateTeamTitle(editTeamId!, editTeam.title)"
+                      >
+                        <template #prefix>
+                          <div class="w-6">&nbsp;</div>
+                        </template>
+                      </a-input>
+                      <div class="absolute left-0 top-0 z-10">
+                        <div class="border-1 w-8 h-8 flex-none rounded-lg overflow-hidden border-transparent !rounded-r-none border-r-nc-border-gray-medium">
+                          <GeneralTeamIcon
+                            :team="editTeam"
+                            show-placeholder-icon
+                            class="!w-full !h-full !min-w-full select-none !rounded-none"
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </a-select-option>
-                </NcSelect>
-                <NcButton
-                  v-if="selectedParentId !== ((editTeam as any).fk_parent_team_id || null)"
-                  size="small"
-                  type="primary"
-                  :loading="isMoving"
-                  :disabled="isMoving"
-                  @click="handleMoveTeam"
-                >
-                  {{ $t('labels.moveTeam') }}
-                </NcButton>
-              </div>
-            </div>
-          </div>
+                  </a-form-item>
+                </a-form>
 
-          <!-- Members section -->
-          <div class="flex flex-col gap-4">
-            <div class="flex items-center justify-between">
-              <div class="text-sm font-semibold text-nc-content-gray-emphasis">
-                {{ $t('objects.members') }}
-                <span class="text-nc-content-gray-muted font-normal ml-1">({{ editTeamMembers.length }})</span>
+                <!-- Parent team -->
+                <div class="mt-4">
+                  <div class="text-bodyDefaultSm text-nc-content-gray mb-2">
+                    {{ $t('labels.parentTeam') }}
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <NcSelect
+                      v-model:value="selectedParentId"
+                      :placeholder="$t('general.none')"
+                      allow-clear
+                      show-search
+                      :filter-option="(input: string, option: any) => option['data-label']?.toLowerCase().includes(input.toLowerCase())"
+                      class="flex-1 nc-select-shadow"
+                      :disabled="isMoving"
+                      @change="(val: any) => { selectedParentId = val ?? null }"
+                    >
+                      <a-select-option
+                        v-for="pt in editParentTeamOptions"
+                        :key="pt.id"
+                        :value="pt.id"
+                        :data-label="pt.title"
+                      >
+                        <div
+                          class="flex items-center gap-2"
+                          :style="{ paddingLeft: `${((pt as any).depth ?? 0) * 16}px` }"
+                        >
+                          <GeneralTeamIcon :team="pt" class="!w-5 !h-5 !min-w-5 flex-none !rounded-md" />
+                          <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                            <template #title>{{ pt.title }}</template>
+                            {{ pt.title }}
+                          </NcTooltip>
+                          <component
+                            :is="iconMap.check"
+                            v-if="selectedParentId === pt.id"
+                            class="text-primary w-4 h-4 flex-none"
+                          />
+                        </div>
+                      </a-select-option>
+                    </NcSelect>
+                    <NcButton
+                      v-if="selectedParentId !== ((editTeam as any).fk_parent_team_id || null)"
+                      size="small"
+                      type="primary"
+                      :loading="isMoving"
+                      :disabled="isMoving"
+                      @click="handleMoveTeam"
+                    >
+                      {{ $t('labels.moveTeam') }}
+                    </NcButton>
+                  </div>
+                </div>
               </div>
-              <NcButton size="small" type="secondary" inner-class="!gap-2" @click="openAddMembers">
-                <template #icon>
-                  <GeneralIcon icon="plus" class="h-4 w-4" />
+
+              <!-- Members section -->
+              <div class="nc-modal-teams-edit-content-section">
+                <div class="flex flex-col gap-4">
+                  <div class="text-bodyBold flex items-center gap-2">
+                    {{ $t('labels.members') }}
+                    <NcBadge v-if="!isEditLoading" size="xs" color="brand" :border="false" class="text-captionBold">
+                      {{ editTeamMembers.length }}
+                    </NcBadge>
+                  </div>
+
+                  <div class="flex items-center justify-between min-h-8">
+                    <a-input
+                      v-model:value="memberSearchQuery"
+                      allow-clear
+                      class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
+                      :placeholder="`${$t('general.search')}...`"
+                    >
+                      <template #prefix>
+                        <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
+                      </template>
+                    </a-input>
+
+                    <NcButton size="small" type="secondary" text-color="primary" inner-class="!gap-2" @click="openAddMembers">
+                      <template #icon>
+                        <GeneralIcon icon="ncUserPlus" class="h-4 w-4" />
+                      </template>
+                      {{ $t('activity.addMembers') }}
+                    </NcButton>
+                  </div>
+                </div>
+
+                <!-- Members table header -->
+                <div class="flex items-center px-1 py-2 border-b border-nc-border-gray-medium text-captionSm text-nc-content-gray-muted">
+                  <div class="flex-1">{{ $t('objects.member') }}</div>
+                  <div class="w-24 text-right">{{ $t('labels.actions') }}</div>
+                </div>
+
+                <div v-if="filteredEditMembers.length === 0" class="text-sm text-nc-content-gray-muted py-4 text-center">
+                  {{ $t('title.noMembersFound') }}
+                </div>
+
+                <div v-else class="flex flex-col divide-y divide-nc-border-gray-light">
+                  <div
+                    v-for="member in filteredEditMembers"
+                    :key="member.user_id"
+                    class="flex items-center gap-3 py-3 px-1 group"
+                  >
+                    <NcUserInfo :user="{ email: member.user_email, display_name: member.user_display_name }" class="flex-1 min-w-0" />
+
+                    <div class="w-24 flex justify-end">
+                      <NcButton
+                        size="small"
+                        type="secondary"
+                        class="md:invisible group-hover:visible !text-red-500"
+                        @click="handleRemoveMember(member.user_id)"
+                      >
+                        <GeneralIcon icon="ncXSquare" class="h-4 w-4" />
+                      </NcButton>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Inherited members -->
+                <template v-if="editTeam.inherited_members?.length">
+                  <div class="mt-6">
+                    <div class="text-bodyBold flex items-center gap-2 mb-4">
+                      {{ $t('labels.inheritedMembers') }}
+                      <NcBadge size="xs" color="gray" :border="false" class="text-captionBold">
+                        {{ editTeam.inherited_members.length }}
+                      </NcBadge>
+                    </div>
+
+                    <div class="flex flex-col divide-y divide-nc-border-gray-light">
+                      <div
+                        v-for="member in editTeam.inherited_members"
+                        :key="member.user_id"
+                        class="flex items-center justify-between py-3 px-1"
+                      >
+                        <NcUserInfo :user="{ email: member.user_email, display_name: member.user_display_name }" class="min-w-20 flex-1 overflow-hidden" />
+                        <span class="text-captionSm text-nc-content-gray-muted flex-none ml-3">
+                          {{ $t('labels.inheritedFrom', { team: member.inherited_from_team_title }) }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </template>
-                {{ $t('labels.addMember') }}
-              </NcButton>
-            </div>
-
-            <div v-if="editTeamMembers.length === 0" class="text-sm text-nc-content-gray-muted py-4 text-center">
-              {{ $t('title.noMembersFound') }}
-            </div>
-
-            <div v-else class="flex flex-col divide-y divide-nc-border-gray-light">
-              <div
-                v-for="member in editTeamMembers"
-                :key="member.user_id"
-                class="flex items-center gap-3 py-3 px-1 group"
-              >
-                <NcUserInfo :user="{ email: member.user_email, display_name: member.user_display_name }" class="flex-1 min-w-0" />
-
-                <RolesBadge
-                  v-if="isTeamOwner(member)"
-                  :border="false"
-                  :role="WorkspaceUserRoles.OWNER"
-                  class="cursor-default flex-none"
-                  :show-icon="false"
-                >
-                  <template #label>
-                    <span class="text-bodySm">
-                      {{ $t('objects.teams.teamOwner') }}
-                    </span>
-                  </template>
-                </RolesBadge>
-
-                <NcTooltip v-if="isSoleOwner(member.user_id)" :title="t('objects.teams.thisIsTheOnlyTeamOwnerTooltip')">
-                  <NcButton size="xsmall" type="text" disabled class="flex-none">
-                    <GeneralIcon icon="delete" class="h-4 w-4" />
-                  </NcButton>
-                </NcTooltip>
-                <NcButton
-                  v-else
-                  size="xsmall"
-                  type="text"
-                  class="flex-none !text-red-500 invisible group-hover:visible"
-                  @click="handleRemoveMember(member.user_id)"
-                >
-                  <GeneralIcon icon="delete" class="h-4 w-4" />
-                </NcButton>
-              </div>
-            </div>
-
-            <!-- Inherited members -->
-            <template v-if="editTeam.inherited_members?.length">
-              <NcDivider />
-              <div class="text-xs font-semibold text-nc-content-gray-muted uppercase">
-                {{ $t('labels.inheritedMembers') }}
-                <span class="font-normal ml-1">({{ editTeam.inherited_members.length }})</span>
-              </div>
-              <div
-                v-for="member in editTeam.inherited_members"
-                :key="member.user_id"
-                class="flex items-center justify-between py-3 px-1"
-              >
-                <NcUserInfo :user="{ email: member.user_email, display_name: member.user_display_name }" class="min-w-20 flex-1 overflow-hidden" />
-                <span class="text-captionSm text-nc-content-gray-muted flex-none ml-3">
-                  {{ $t('labels.inheritedFrom', { team: member.inherited_from_team_title }) }}
-                </span>
               </div>
             </template>
+          </div>
+
+          <!-- Info note -->
+          <div class="mt-auto pt-2 px-6 pb-2 border-t border-nc-border-gray-medium bg-nc-bg-gray-light">
+            <div class="flex items-center gap-2 text-captionSm text-nc-content-gray-muted">
+              <GeneralIcon icon="ncInfo" class="h-4 w-4 flex-none" />
+              <span>{{ $t('msg.info.orgTeamAdminNote') }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -1065,6 +1144,24 @@ onMounted(() => {
     </GeneralModal>
   </div>
 </template>
+
+<style lang="scss">
+.nc-modal-teams {
+  .nc-modal {
+    @apply !p-0;
+    height: min(calc(100vh - 100px), 1024px);
+    max-height: min(calc(100vh - 100px), 1024px) !important;
+  }
+
+  .nc-modal-teams-edit-content {
+    @apply px-6 pb-6 nc-scrollbar-thin relative w-full h-full flex flex-col gap-2 overflow-auto;
+
+    .nc-modal-teams-edit-content-section {
+      @apply flex flex-col gap-4 w-full;
+    }
+  }
+}
+</style>
 
 <style scoped lang="scss">
 .ant-form-item {

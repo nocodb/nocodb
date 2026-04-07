@@ -3281,6 +3281,7 @@
       "noManagedAppsFound": "No apps found in the marketplace",
       "userInviteNoSMTP": "Looks like you have not configured mailer yet! Please copy above invite link and send it to",
       "userInviteNoSMTPBulk": "Email delivery is not configured. To share access, copy each user's invite URL from the actions menu in the user list.",
+      "orgTeamAdminNote": "Organization teams do not have individual team owners. All organization administrators have full management access to every team.",
       "dragDropHide": "Drag and drop fields here to hide",
       "formInput": "Enter form input label",
       "formHelpText": "Add some help text",

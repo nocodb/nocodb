@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { OrgUserReqType } from 'nocodb-sdk'
-import { EnterpriseOrgUserRoles, OrgUserRoles } from 'nocodb-sdk'
+import { EnterpriseOrgUserRoles, NC_DEFAULT_ORG_ID, OrgUserRoles } from 'nocodb-sdk'
 import { extractEmail } from '~/helpers/parsers/parserHelpers'
 
 interface Props {
@@ -50,17 +50,55 @@ const focusOnDiv = () => {
   focusRef.value?.focus()
 }
 
+const singleEmailValue = ref('')
+
 const handleEnter = () => {
-  const email = inviteData.email?.trim()
-  if (email && email.includes('@') && !emailBadges.value.includes(email)) {
-    emailBadges.value.push(email)
-    inviteData.email = ''
-  }
+  if (!inviteData.email?.trim() || !validateEmail(inviteData.email.trim())) return
+  // Append space to trigger the watcher which converts to pill
+  inviteData.email += ' '
 }
 
 const removeEmail = (index: number) => {
   emailBadges.value.splice(index, 1)
 }
+
+// Convert email to pill on space or comma — matches workspace InviteDlg behavior
+watch(
+  () => inviteData.email,
+  (val) => {
+    // When user types a single valid email without pressing space/comma,
+    // keep it as text (not a pill) — it will be picked up on submit
+    const isSingleEmailValid = validateEmail(val)
+    if (isSingleEmailValid && !emailBadges.value.length) {
+      singleEmailValue.value = val
+      return
+    }
+    singleEmailValue.value = ''
+
+    // When last char is space or comma, convert to pill
+    const lastChar = val.charAt(val.length - 1)
+    if ((lastChar === ' ' || lastChar === ',') && val.trim().length) {
+      const emailToAdd = val.split(',')[0].trim() || val.split(' ')[0].trim()
+      if (!validateEmail(emailToAdd)) return
+
+      // Deduplicate — if already exists, move to end
+      const existingIdx = emailBadges.value.indexOf(emailToAdd)
+      if (existingIdx !== -1) {
+        emailBadges.value.splice(existingIdx, 1)
+      }
+      emailBadges.value.push(emailToAdd)
+      inviteData.email = ''
+      singleEmailValue.value = ''
+    }
+  },
+)
+
+// Remove last email badge on backspace when input is empty
+onKeyStroke('Backspace', () => {
+  if (isDivFocused.value && !inviteData.email?.length) {
+    emailBadges.value.pop()
+  }
+})
 
 const onPaste = (e: ClipboardEvent) => {
   e.preventDefault()
@@ -73,31 +111,55 @@ const onPaste = (e: ClipboardEvent) => {
   }
 }
 
-const isInviteDisabled = computed(() => emailBadges.value.length === 0 && !inviteData.email?.trim())
+const isInviteDisabled = computed(() => emailBadges.value.length === 0 && !singleEmailValue.value.length)
 
 const onRoleChange = (role: string) => {
   inviteData.role = role
 }
 
 const saveUser = async () => {
-  if (inviteData.email?.trim() && inviteData.email.includes('@')) {
-    emailBadges.value.push(inviteData.email.trim())
-    inviteData.email = ''
+  // Collect emails: pills + single typed email
+  const payloadEmails = singleEmailValue.value
+    ? [singleEmailValue.value]
+    : [...emailBadges.value]
+
+  // Also pick up any remaining text in the input
+  if (!singleEmailValue.value && inviteData.email?.trim() && validateEmail(inviteData.email.trim())) {
+    payloadEmails.push(inviteData.email.trim())
   }
 
-  if (emailBadges.value.length === 0) return
+  if (payloadEmails.length === 0) return
 
   isLoading.value = true
   $e('a:org-user:invite', { role: inviteData.role })
 
   try {
-    for (const email of emailBadges.value) {
+    const orgId = hasOrgRoles.value ? (appInfo.value.defaultOrgId || NC_DEFAULT_ORG_ID) : undefined
+
+    for (const email of payloadEmails) {
+      // CE endpoint creates user + adds to default org as viewer
       const res = await $api.orgUsers.add({
-        roles: inviteData.role,
+        roles: OrgUserRoles.VIEWER,
         email,
       } as unknown as OrgUserReqType)
 
       inviteData.invitationToken = res.invite_token
+
+      // On-prem: update org role if different from default viewer
+      if (orgId && inviteData.role !== EnterpriseOrgUserRoles.VIEWER) {
+        // Look up the newly created user by email to get their ID
+        const usersRes = await $api.instance.get('/api/v1/users', {
+          params: { query: email },
+        })
+        const user = usersRes.data?.list?.find(
+          (u: any) => u.email?.toLowerCase() === email.toLowerCase(),
+        )
+        if (user?.id) {
+          await $api.instance.patch(`/api/v1/orgs/${orgId}/users/${user.id}`, {
+            org_role: inviteData.role,
+          })
+        }
+      }
     }
 
     emit('reload')
@@ -121,6 +183,7 @@ const clickInviteMore = () => {
   inviteData.role = hasOrgRoles.value ? EnterpriseOrgUserRoles.VIEWER : OrgUserRoles.VIEWER
   emailBadges.value = []
   inviteData.email = ''
+  singleEmailValue.value = ''
 }
 </script>
 

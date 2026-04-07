@@ -560,7 +560,7 @@ onMounted(() => {
         <template #emptyText>
           <NcEmptyPlaceholder
             :title="teams.length ? '' : $t('msg.info.noTeamsFound')"
-            :subtitle="teams.length ? $t('title.noResultsMatchedYourSearch') : ''"
+            :subtitle="teams.length ? $t('title.noResultsMatchedYourSearch') : $t('msg.info.noTeamsFoundSubtitle')"
           >
             <template #icon>
               <img

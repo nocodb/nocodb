@@ -439,19 +439,35 @@ const handleRemoveMember = async (userId: string) => {
   }
 }
 
-// Table columns
+// Build user map for Creator column
+const collaboratorsMap = computed<Record<string, any>>(() => {
+  const map: Record<string, any> = {}
+  for (const u of orgUsers.value) {
+    map[u.id] = u
+  }
+  return map
+})
+
+// Table columns — matches workspace teams layout
 const columns = computed(() => [
   {
     key: 'teamName',
     title: t('labels.teamName'),
     minWidth: 220,
-    showOrderBy: false,
+    showOrderBy: true,
   },
   {
-    key: 'members',
-    title: t('objects.members'),
-    width: 120,
-    showOrderBy: false,
+    key: 'badge',
+    title: t('labels.badge'),
+    basis: '25%',
+    minWidth: 252,
+  },
+  {
+    key: 'owner',
+    title: t('title.creator'),
+    basis: '25%',
+    minWidth: 252,
+    showOrderBy: true,
   },
   {
     key: 'action',
@@ -490,6 +506,7 @@ watch(
 
 onMounted(() => {
   loadTeams()
+  loadOrgUsers()
 })
 </script>
 
@@ -618,9 +635,35 @@ onMounted(() => {
             </NcBadge>
           </div>
 
-          <!-- Members column -->
-          <div v-if="column.key === 'members'" class="text-nc-content-gray-muted">
-            {{ record.members_count ?? 0 }}
+          <!-- Badge column -->
+          <div v-if="column.key === 'badge'">
+            <NcBadge class="uppercase">
+              <GeneralTeamIcon v-if="record.icon" :team="record" icon-bg-color="transparent" />
+              {{ getSafeInitials(record.title, 3) }}
+            </NcBadge>
+          </div>
+
+          <!-- Creator column -->
+          <div v-if="column.key === 'owner'" class="w-full flex gap-3 items-center">
+            <template v-if="collaboratorsMap[record.created_by]">
+              <GeneralUserIcon size="base" :user="collaboratorsMap[record.created_by]" class="flex-none" />
+              <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
+                <div class="flex items-center gap-1">
+                  <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize text-captionBold" show-on-truncate-only>
+                    <template #title>
+                      {{ extractUserDisplayNameOrEmail(collaboratorsMap[record.created_by]) }}
+                    </template>
+                    {{ extractUserDisplayNameOrEmail(collaboratorsMap[record.created_by]) }}
+                  </NcTooltip>
+                </div>
+                <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-muted" show-on-truncate-only>
+                  <template #title>
+                    {{ collaboratorsMap[record.created_by]?.email }}
+                  </template>
+                  {{ collaboratorsMap[record.created_by]?.email }}
+                </NcTooltip>
+              </div>
+            </template>
           </div>
 
           <!-- Actions column -->

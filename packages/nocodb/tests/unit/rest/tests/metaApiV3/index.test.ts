@@ -30,6 +30,7 @@ export default runOnSet(3, function () {
 
     try {
       require('../ee/team-hierarchy.test').default();
+      require('../ee/org-team-cross-scope.test').default();
     } catch (e) {
       // EE test files not available in CE
     }

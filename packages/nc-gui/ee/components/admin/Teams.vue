@@ -322,8 +322,8 @@ const handleDeleteTeam = (team: TeamV3ResponseType) => {
   handleConfirm({
     title: teamHasChildren ? t('objects.teams.confirmDeleteTeamWithChildrenTitle') : t('objects.teams.confirmDeleteTeamTitle'),
     content: teamHasChildren
-      ? t('objects.teams.confirmDeleteTeamWithChildrenSubtitle')
-      : t('objects.teams.confirmDeleteTeamSubtitle'),
+      ? t('objects.teams.confirmDeleteOrgTeamWithChildrenSubtitle')
+      : t('objects.teams.confirmDeleteOrgTeamSubtitle'),
     okText: t('activity.deleteTeam'),
     cancelText: t('labels.cancel'),
     okCallback: async () => {

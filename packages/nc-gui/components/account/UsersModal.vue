@@ -26,7 +26,7 @@ const hasOrgRoles = computed(() => appInfo.value.isOnPrem && appInfo.value.ee)
 
 const allowedRoles = computed(() => {
   if (!hasOrgRoles.value) return [OrgUserRoles.VIEWER]
-  return [EnterpriseOrgUserRoles.VIEWER, EnterpriseOrgUserRoles.CREATOR, EnterpriseOrgUserRoles.ADMIN]
+  return [EnterpriseOrgUserRoles.VIEWER, EnterpriseOrgUserRoles.CREATOR]
 })
 
 const inviteData = reactive({

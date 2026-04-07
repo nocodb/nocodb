@@ -697,7 +697,7 @@
       "org-level-creator": "Can fully configure and edit bases",
       "org-level-viewer": "Can only view records in bases",
       "cloud-org-level-owner": "Full access to organization and workspaces",
-      "cloud-org-level-creator": "Can create and manage domains, users and workspaces",
+      "cloud-org-level-creator": "Can create workspaces and access assigned bases",
       "cloud-org-level-viewer": "Can only view organization and workspaces"
     },
     "sqlView": "SQL View",

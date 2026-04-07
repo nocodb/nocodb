@@ -259,9 +259,7 @@ const handleDeleteTeam = (team: TeamV3ResponseType) => {
     cancelText: t('labels.cancel'),
     okCallback: async () => {
       try {
-        await $api.instance.delete(
-          `/api/v3/meta/orgs/${orgId.value}/teams/${team.id}${teamHasChildren ? '?force=true' : ''}`,
-        )
+        await $api.instance.delete(`/api/v3/meta/orgs/${orgId.value}/teams/${team.id}${teamHasChildren ? '?force=true' : ''}`)
         await loadTeams()
         message.success(t('msg.success.teamDeleted'))
       } catch (e: any) {
@@ -320,7 +318,8 @@ const handleAddMembers = async () => {
 
   try {
     isAddingMembers.value = true
-    await $api.instance.post(`/api/v3/meta/orgs/${orgId.value}/teams/${editTeamId.value}/members`,
+    await $api.instance.post(
+      `/api/v3/meta/orgs/${orgId.value}/teams/${editTeamId.value}/members`,
       selectedNewUsers.value.map((u: any) => ({
         user_id: u.id,
         team_role: 'team-level-member',
@@ -414,10 +413,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div
-    class="nc-teams-container overflow-auto nc-scrollbar-thin relative h-[calc(100vh-144px)]"
-    data-testid="nc-admin-teams"
-  >
+  <div class="nc-teams-container overflow-auto nc-scrollbar-thin relative h-[calc(100vh-144px)]" data-testid="nc-admin-teams">
     <div class="nc-teams-wrapper h-full max-w-[1200px] mx-auto p-4 md:p-6 flex flex-col gap-6 sticky top-0">
       <!-- Header -->
       <div class="w-full flex items-center justify-between gap-3">
@@ -439,22 +435,12 @@ onMounted(() => {
 
           <div class="flex items-center gap-0.5 border-1 border-nc-border-gray-medium rounded-lg p-0.5 min-h-8">
             <NcTooltip :title="$t('labels.flatView')" class="flex">
-              <NcButton
-                size="xsmall"
-                :type="viewMode === 'flat' ? 'secondary' : 'text'"
-                class="!px-0"
-                @click="viewMode = 'flat'"
-              >
+              <NcButton size="xsmall" :type="viewMode === 'flat' ? 'secondary' : 'text'" class="!px-0" @click="viewMode = 'flat'">
                 <GeneralIcon icon="ncList" class="h-4 w-4" />
               </NcButton>
             </NcTooltip>
             <NcTooltip :title="$t('labels.treeView')" class="flex">
-              <NcButton
-                size="xsmall"
-                :type="viewMode === 'tree' ? 'secondary' : 'text'"
-                class="!px-0"
-                @click="viewMode = 'tree'"
-              >
+              <NcButton size="xsmall" :type="viewMode === 'tree' ? 'secondary' : 'text'" class="!px-0" @click="viewMode = 'tree'">
                 <GeneralIcon icon="ncLayers" class="h-4 w-4" />
               </NcButton>
             </NcTooltip>
@@ -653,16 +639,8 @@ onMounted(() => {
               :filter-option="(input: string, option: any) => option['data-label']?.toLowerCase().includes(input.toLowerCase())"
               class="w-full nc-select-shadow"
             >
-              <a-select-option
-                v-for="team in parentTeamOptions"
-                :key="team.id"
-                :value="team.id"
-                :data-label="team.title"
-              >
-                <div
-                  class="flex items-center gap-2"
-                  :style="{ paddingLeft: `${(team.depth ?? 0) * 16}px` }"
-                >
+              <a-select-option v-for="team in parentTeamOptions" :key="team.id" :value="team.id" :data-label="team.title">
+                <div class="flex items-center gap-2" :style="{ paddingLeft: `${(team.depth ?? 0) * 16}px` }">
                   <GeneralTeamIcon :team="team" class="!w-5 !h-5 !min-w-5 flex-none !rounded-md" />
                   <NcTooltip class="truncate flex-1" show-on-truncate-only>
                     <template #title>{{ team.title }}</template>
@@ -858,7 +836,11 @@ onMounted(() => {
 
         <div class="flex items-center justify-between pt-4">
           <div v-if="selectedNewUsers.length" class="text-nc-content-gray-muted">
-            {{ selectedNewUsers.length }} {{ selectedNewUsers.length === 1 ? $t('objects.member') : $t('objects.members') }} selected
+            {{
+              selectedNewUsers.length === 1
+                ? $t('labels.teams.nMemberSelected', { n: selectedNewUsers.length })
+                : $t('labels.teams.nMembersSelected', { n: selectedNewUsers.length })
+            }}
           </div>
           <div v-else>&nbsp;</div>
           <div class="flex gap-2">

@@ -1,5 +1,5 @@
-import type { Knex } from 'knex';
 import { EnterpriseOrgUserRoles } from 'nocodb-sdk';
+import type { Knex } from 'knex';
 import {
   MetaTable,
   NC_DEFAULT_ORG_ID,
@@ -29,25 +29,29 @@ async function batchInsertOrgUsers(
   if (!newUserIds.length) return;
 
   const client = knex.client.config.client;
+  const BATCH_SIZE = 500;
 
-  if (client === 'pg' || client === 'postgresql') {
-    // PG: INSERT ... ON CONFLICT DO NOTHING
-    const values = newUserIds.map((uid) => `('${orgId}', '${uid}', '${role}')`).join(',');
-    await knex.raw(
-      `INSERT INTO ${MetaTable.ORG_USERS} (fk_org_id, fk_user_id, roles) VALUES ${values} ON CONFLICT (fk_org_id, fk_user_id) DO NOTHING`,
-    );
-  } else if (client === 'sqlite3') {
-    // SQLite: INSERT OR IGNORE
-    const values = newUserIds.map((uid) => `('${orgId}', '${uid}', '${role}')`).join(',');
-    await knex.raw(
-      `INSERT OR IGNORE INTO ${MetaTable.ORG_USERS} (fk_org_id, fk_user_id, roles) VALUES ${values}`,
-    );
-  } else {
-    // MySQL: INSERT IGNORE
-    const values = newUserIds.map((uid) => `('${orgId}', '${uid}', '${role}')`).join(',');
-    await knex.raw(
-      `INSERT IGNORE INTO ${MetaTable.ORG_USERS} (fk_org_id, fk_user_id, roles) VALUES ${values}`,
-    );
+  for (let i = 0; i < newUserIds.length; i += BATCH_SIZE) {
+    const batch = newUserIds.slice(i, i + BATCH_SIZE);
+    const placeholders = batch.map(() => '(?, ?, ?)').join(',');
+    const bindings = batch.flatMap((uid) => [orgId, uid, role]);
+
+    if (client === 'pg' || client === 'postgresql') {
+      await knex.raw(
+        `INSERT INTO ${MetaTable.ORG_USERS} (fk_org_id, fk_user_id, roles) VALUES ${placeholders} ON CONFLICT (fk_org_id, fk_user_id) DO NOTHING`,
+        bindings,
+      );
+    } else if (client === 'sqlite3') {
+      await knex.raw(
+        `INSERT OR IGNORE INTO ${MetaTable.ORG_USERS} (fk_org_id, fk_user_id, roles) VALUES ${placeholders}`,
+        bindings,
+      );
+    } else {
+      await knex.raw(
+        `INSERT IGNORE INTO ${MetaTable.ORG_USERS} (fk_org_id, fk_user_id, roles) VALUES ${placeholders}`,
+        bindings,
+      );
+    }
   }
 }
 
@@ -111,9 +115,7 @@ export async function up(knex: Knex) {
       `);
 
       if (Number(pkColCount[0]?.[0]?.cnt) < 2) {
-        await knex.raw(
-          `ALTER TABLE ${MetaTable.ORG_USERS} DROP PRIMARY KEY`,
-        );
+        await knex.raw(`ALTER TABLE ${MetaTable.ORG_USERS} DROP PRIMARY KEY`);
         await knex.raw(
           `ALTER TABLE ${MetaTable.ORG_USERS} ADD PRIMARY KEY (fk_org_id, fk_user_id)`,
         );
@@ -148,9 +150,7 @@ export async function up(knex: Knex) {
     .first();
 
   const superUser = !existingOrg
-    ? await knex(MetaTable.USERS)
-        .where('roles', 'like', '%super%')
-        .first()
+    ? await knex(MetaTable.USERS).where('roles', 'like', '%super%').first()
     : null;
 
   // Only create default org if it doesn't exist and we have a super user
@@ -239,7 +239,6 @@ export async function up(knex: Knex) {
   // All users default to VIEWER — workspace creation requires org admin
   // to explicitly promote users to CREATOR. This prevents guests from
   // accumulating seat counts by creating workspaces.
-  // TODO: make default org role configurable by org admin
 }
 
 export async function down(knex: Knex) {

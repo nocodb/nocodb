@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { EnterpriseOrgUserRoles } from 'nocodb-sdk'
+
 const { t } = useI18n()
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateSort } = useUserSorts('Organization')
@@ -59,10 +61,8 @@ const inviteUserToWorkspace = (email: string) => {
 const { $api } = useNuxtApp()
 
 const isLastAdmin = (member: any) => {
-  if (member.cloud_org_roles !== 'cloud-org-level-owner') return false
-  const adminCount = members.value.filter(
-    (m: any) => m.cloud_org_roles === 'cloud-org-level-owner',
-  ).length
+  if (member.cloud_org_roles !== EnterpriseOrgUserRoles.ADMIN) return false
+  const adminCount = members.value.filter((m: any) => m.cloud_org_roles === EnterpriseOrgUserRoles.ADMIN).length
   return adminCount <= 1
 }
 
@@ -277,7 +277,7 @@ watch(selected, () => {
                   {{ member.display_name || member.email.split('@')[0] }}
                 </NcTooltip>
                 <NcBadge
-                  v-if="member.cloud_org_roles === 'cloud-org-level-owner'"
+                  v-if="member.cloud_org_roles === EnterpriseOrgUserRoles.ADMIN"
                   :border="false"
                   color="purple"
                   class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
@@ -326,16 +326,13 @@ watch(selected, () => {
             </NcDropdown>
           </div>
           <div v-if="column.key === 'org_role'" class="flex items-center">
-            <NcTooltip
-              :disabled="!isLastAdmin(member)"
-              :title="$t('msg.info.lastOrgAdmin')"
-            >
+            <NcTooltip :disabled="!isLastAdmin(member)" :title="$t('msg.info.lastOrgAdmin')">
               <NcSelect
-                :value="member.cloud_org_roles || 'cloud-org-level-viewer'"
+                :value="member.cloud_org_roles || EnterpriseOrgUserRoles.VIEWER"
                 :options="[
-                  { label: $t('objects.roleType.admin'), value: 'cloud-org-level-owner' },
-                  { label: $t('objects.roleType.creator'), value: 'cloud-org-level-creator' },
-                  { label: $t('objects.roleType.viewer'), value: 'cloud-org-level-viewer' },
+                  { label: $t('objects.roleType.admin'), value: EnterpriseOrgUserRoles.ADMIN },
+                  { label: $t('objects.roleType.creator'), value: EnterpriseOrgUserRoles.CREATOR },
+                  { label: $t('objects.roleType.viewer'), value: EnterpriseOrgUserRoles.VIEWER },
                 ]"
                 :disabled="isLastAdmin(member)"
                 class="w-28"

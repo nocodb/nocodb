@@ -67,10 +67,9 @@ export default class OrgUser {
           '=',
           `${MetaTable.ORG_USERS}.fk_user_id`,
         ).andOn(
-          ncMeta.knex.raw(
-            `COALESCE(??, false) = false`,
-            [`${MetaTable.WORKSPACE_USER}.deleted`],
-          ),
+          ncMeta.knex.raw(`COALESCE(??, false) = false`, [
+            `${MetaTable.WORKSPACE_USER}.deleted`,
+          ]),
         );
       })
       .leftJoin(MetaTable.WORKSPACE, function () {
@@ -194,7 +193,11 @@ export default class OrgUser {
     updateBody: Partial<OrgUser>,
     ncMeta = Noco.ncMeta,
   ) {
-    const updateObj = extractProps(updateBody, ['roles', 'deleted', 'deleted_at']);
+    const updateObj = extractProps(updateBody, [
+      'roles',
+      'deleted',
+      'deleted_at',
+    ]);
 
     await ncMeta.metaUpdate(
       RootScopes.ORG,
@@ -212,10 +215,15 @@ export default class OrgUser {
    * Soft-delete a user from an org.
    */
   static async softDelete(orgId: string, userId: string, ncMeta = Noco.ncMeta) {
-    await this.update(userId, orgId, {
-      deleted: true,
-      deleted_at: new Date().toISOString(),
-    } as any, ncMeta);
+    await this.update(
+      userId,
+      orgId,
+      {
+        deleted: true,
+        deleted_at: new Date().toISOString(),
+      },
+      ncMeta,
+    );
   }
 
   static async getOwnedOrgs(userId: string, ncMeta = Noco.ncMeta) {

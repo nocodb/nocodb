@@ -11,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { OrgUserReqType } from 'nocodb-sdk';
+import type { EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -80,12 +81,12 @@ export class OrgUsersController {
     @Req() req: NcRequest,
     @Param('orgId') orgId: string,
     @Param('userId') userId: string,
-    @Body() body: { org_role: string },
+    @Body() body: { org_role: EnterpriseOrgUserRoles },
   ) {
     return this.orgUsersService.updateUserRoleInOrg({
       orgId,
       userId,
-      orgRole: body.org_role as any,
+      orgRole: body.org_role,
       req,
     });
   }

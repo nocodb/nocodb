@@ -140,7 +140,7 @@ const selectedTeams = computed(() => {
                 color="blue"
                 class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
               >
-                ORG
+                {{ $t('general.orgBadge') }}
               </NcBadge>
               <GeneralLoader v-if="compareValue(option.value, newTeam)" size="medium" />
               <GeneralIcon v-else-if="!newTeam && compareValue(option.value)" icon="check" class="text-primary h-4 w-4" />

@@ -711,7 +711,7 @@ onBeforeUnmount(() => {
                 color="blue"
                 class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
               >
-                ORG
+                {{ $t('general.orgBadge') }}
               </NcBadge>
             </template>
 

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { EnterpriseOrgUserRoles } from 'nocodb-sdk'
 import type { RequestParams, UserType } from 'nocodb-sdk'
 
 const { api, isLoading } = useApi()
@@ -12,7 +13,7 @@ const { t } = useI18n()
 
 const { dashboardUrl } = useDashboard()
 
-const { user: loggedInUser } = useGlobal()
+const { appInfo, user: loggedInUser } = useGlobal()
 
 const { copy } = useCopy()
 
@@ -20,7 +21,7 @@ const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: save
 
 const updateOrgRole = async (user: UserType, newRole: string) => {
   try {
-    const orgId = (appInfo.value as any)?.defaultOrgId || NC_DEFAULT_ORG_ID
+    const orgId = appInfo.value?.defaultOrgId || NC_DEFAULT_ORG_ID
     await api.instance.patch(`/api/v1/orgs/${orgId}/users/${user.id}`, { org_role: newRole })
     ;(user as any).org_roles = newRole
     message.success(t('msg.success.roleUpdated'))
@@ -175,8 +176,6 @@ const orderBy = computed<Record<string, SordDirectionType>>({
   },
 })
 
-const { appInfo } = useGlobal()
-
 const hasOrgRoles = computed(() => appInfo.value?.isOnPrem && appInfo.value?.ee)
 
 const columns = computed(() => {
@@ -281,22 +280,18 @@ const columns = computed(() => {
                 </NcBadge>
               </div>
               <div v-if="column.key === 'org_roles'" class="flex items-center">
-                <template v-if="el.roles?.includes('super') || el.org_roles === 'cloud-org-level-owner'">
-                  <NcBadge
-                    :border="false"
-                    color="purple"
-                    class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
-                  >
+                <template v-if="el.roles?.includes('super') || el.org_roles === EnterpriseOrgUserRoles.ADMIN">
+                  <NcBadge :border="false" color="purple" class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none">
                     {{ $t('objects.roleType.admin') }}
                   </NcBadge>
                 </template>
                 <NcSelect
                   v-else
-                  :value="el.org_roles || 'cloud-org-level-viewer'"
+                  :value="el.org_roles || EnterpriseOrgUserRoles.VIEWER"
                   :options="[
-                    { label: $t('objects.roleType.admin'), value: 'cloud-org-level-owner' },
-                    { label: $t('objects.roleType.creator'), value: 'cloud-org-level-creator' },
-                    { label: $t('objects.roleType.viewer'), value: 'cloud-org-level-viewer' },
+                    { label: $t('objects.roleType.admin'), value: EnterpriseOrgUserRoles.ADMIN },
+                    { label: $t('objects.roleType.creator'), value: EnterpriseOrgUserRoles.CREATOR },
+                    { label: $t('objects.roleType.viewer'), value: EnterpriseOrgUserRoles.VIEWER },
                   ]"
                   class="w-32"
                   size="small"

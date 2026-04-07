@@ -1,4 +1,9 @@
-import { EnterpriseOrgUserRoles, IconType, NcBaseError, ProjectRoles } from 'nocodb-sdk';
+import {
+  EnterpriseOrgUserRoles,
+  IconType,
+  NcBaseError,
+  ProjectRoles,
+} from 'nocodb-sdk';
 import { User } from 'src/models';
 import { Logger } from '@nestjs/common';
 import { WorkspaceUserRoles } from 'nocodb-sdk';
@@ -148,7 +153,7 @@ export default class WorkspaceUser {
 
       // Ensure user exists in org_users for the workspace's org
       this.ensureOrgUser(fk_workspace_id, fk_user_id, ncMeta).catch((e) => {
-        logger.error('Failed to ensure org user', e?.message);
+        logger.error(`Failed to ensure org user: ${e?.message}`, e?.stack);
       });
 
       return res;
@@ -1117,13 +1122,11 @@ export default class WorkspaceUser {
     }
 
     try {
-      await ncMeta
-        .knexConnection(MetaTable.ORG_USERS)
-        .insert({
-          fk_org_id: orgId,
-          fk_user_id: userId,
-          roles: EnterpriseOrgUserRoles.VIEWER,
-        });
+      await ncMeta.knexConnection(MetaTable.ORG_USERS).insert({
+        fk_org_id: orgId,
+        fk_user_id: userId,
+        roles: EnterpriseOrgUserRoles.VIEWER,
+      });
     } catch {
       // Duplicate from race condition — safe to ignore
     }

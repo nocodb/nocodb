@@ -23,7 +23,7 @@ test.describe('Default Organization', () => {
     }
 
     if (!appInfo.ee || appInfo.isOnPrem) {
-      expect(appInfo.defaultWorkspaceId).toBeTruthy();
+      expect(appInfo.defaultOrgId).toBeTruthy();
     }
   });
 

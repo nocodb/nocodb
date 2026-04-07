@@ -1207,6 +1207,18 @@ export class ColumnsService implements IColumnsService {
                 ).colOptions.fk_target_view_id,
               });
             }
+
+            // update custom display value column
+            if (
+              (colBody as any).fk_display_value_column_id === null ||
+              (colBody as any).fk_display_value_column_id
+            ) {
+              await Column.updateDisplayValueColumn(context, {
+                colId: param.columnId,
+                fk_display_value_column_id: (colBody as any)
+                  .fk_display_value_column_id,
+              });
+            }
           }
           // handle reorder column
           if (
@@ -5877,6 +5889,8 @@ export class ColumnsService implements IColumnsService {
         fk_child_column_id: primaryKey.id,
         fk_parent_column_id: refPrimaryKey.id,
         fk_target_view_id: childView?.id,
+        fk_display_value_column_id:
+          ltarReq.fk_display_value_column_id || null,
 
         fk_mm_model_id: assocModel.id,
         fk_mm_child_column_id: parentCol.id,
@@ -6983,6 +6997,8 @@ export class ColumnsService implements IColumnsService {
               fk_mm_parent_column_id: childCol.id,
               fk_related_model_id: hmColOptions.fk_related_model_id,
               fk_target_view_id: hmColOptions.fk_target_view_id,
+              fk_display_value_column_id:
+                hmColOptions.fk_display_value_column_id,
               virtual: isVirtual,
               version: LinksVersion.V2,
               ...crossBaseLinkProps,
@@ -7023,6 +7039,8 @@ export class ColumnsService implements IColumnsService {
             fk_mm_parent_column_id: parentCol.id,
             fk_related_model_id: btColOptions.fk_related_model_id,
             fk_target_view_id: btColOptions.fk_target_view_id,
+            fk_display_value_column_id:
+              btColOptions.fk_display_value_column_id,
             virtual: isVirtual,
             version: LinksVersion.V2,
             ...refCrossBaseLinkProps,
@@ -7057,6 +7075,8 @@ export class ColumnsService implements IColumnsService {
               fk_mm_parent_column_id: childCol.id,
               fk_related_model_id: hmColOptions.fk_related_model_id,
               fk_target_view_id: hmColOptions.fk_target_view_id,
+              fk_display_value_column_id:
+                hmColOptions.fk_display_value_column_id,
               virtual: isVirtual,
               column_order: columnOrder,
               ...crossBaseLinkProps,
@@ -7454,6 +7474,8 @@ export class ColumnsService implements IColumnsService {
             fk_mm_parent_column_id: colOptions.fk_mm_parent_column_id,
             fk_related_model_id: colOptions.fk_related_model_id,
             fk_target_view_id: colOptions.fk_target_view_id,
+            fk_display_value_column_id:
+              colOptions.fk_display_value_column_id,
             virtual: colOptions.virtual,
             column_order: mmColumnOrder,
             // Cross-base properties — needed for cross-base relations

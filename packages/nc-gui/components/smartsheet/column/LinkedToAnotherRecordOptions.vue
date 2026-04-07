@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   type LinkToAnotherRecordType,
+  type TableType,
   LinksVersion,
   ModelTypes,
   PlanFeatureTypes,
@@ -129,6 +130,20 @@ if (!vModel.value.childId) vModel.value.childId = vModel.value?.colOptions?.fk_r
 if (!vModel.value.childViewId) vModel.value.childViewId = vModel.value?.colOptions?.fk_target_view_id || null
 if (!vModel.value.type) vModel.value.type = vModel.value?.colOptions?.type || 'mm'
 
+// Initialize custom display value field from colOptions
+if (vModel.value.fk_display_value_column_id === undefined) {
+  vModel.value.fk_display_value_column_id =
+    (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_display_value_column_id || null
+}
+
+const useCustomDisplayField = ref(!!vModel.value.fk_display_value_column_id)
+
+watch(useCustomDisplayField, (val) => {
+  if (!val) {
+    vModel.value.fk_display_value_column_id = null
+  }
+})
+
 const advancedOptions = ref(false)
 
 const tablesStore = useTablesStore()
@@ -145,6 +160,24 @@ const isLinkedViewPrivate = computed(() => {
   const tableMeta = getMetaByKey(baseId, childId)
   // Check is_private flag from API response
   return !!(tableMeta && (tableMeta as any).is_private)
+})
+
+// Fields eligible for custom display value — same filter as useLTARStore's `fields`
+const eligibleDisplayFields = computed(() => {
+  const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
+  if (!childId) return []
+
+  const relatedBaseId = crossBase.value
+    ? (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id
+    : meta.value?.base_id
+
+  if (!relatedBaseId) return []
+
+  const tableMeta = getMetaByKey(relatedBaseId, childId)
+
+  return ((tableMeta as TableType)?.columns ?? []).filter(
+    (col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col) && !isLookup(col),
+  )
 })
 
 const refTables = computed(() => {
@@ -857,6 +890,55 @@ const handleScrollIntoView = () => {
             }}
           </template>
         </NcTooltip>
+      </a-form-item>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <div class="flex gap-2 items-center">
+        <a-switch
+          v-model:checked="useCustomDisplayField"
+          v-e="['c:link:custom-display-field', { status: useCustomDisplayField }]"
+          size="small"
+          :disabled="!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)"
+        />
+        <span
+          class="cursor-pointer"
+          data-testid="nc-use-custom-display-field"
+          @click="
+            () => {
+              if (!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)) return
+              useCustomDisplayField = !useCustomDisplayField
+            }
+          "
+        >
+          {{ $t('labels.useCustomDisplayField') }}
+        </span>
+      </div>
+      <a-form-item v-if="useCustomDisplayField" class="!pl-8 flex w-full pb-2 mt-4 space-y-2">
+        <NcSelect
+          v-model:value="vModel.fk_display_value_column_id"
+          :placeholder="$t('labels.selectFieldAsDisplayName')"
+          show-search
+          :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
+          dropdown-class-name="nc-dropdown-ltar-display-value-field"
+        >
+          <a-select-option
+            v-for="field of eligibleDisplayFields"
+            :key="field.id"
+            :value="field.id"
+            :data-label="field.title"
+          >
+            <div class="flex w-full items-center gap-2">
+              <div class="min-w-5 flex items-center justify-center">
+                <SmartsheetHeaderIcon :column="field" class="text-nc-content-gray-muted" />
+              </div>
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <template #title>{{ field.title }}</template>
+                <span>{{ field.title }}</span>
+              </NcTooltip>
+            </div>
+          </a-select-option>
+        </NcSelect>
       </a-form-item>
     </div>
 

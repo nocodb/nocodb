@@ -1067,6 +1067,32 @@ export default class Column<T = any> implements ColumnType {
       }
     }
 
+    // Clear fk_display_value_column_id on LTAR columns referencing the deleted column
+    {
+      const links = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COL_RELATIONS,
+        {
+          condition: {
+            fk_display_value_column_id: id,
+          },
+        },
+      );
+
+      for (const link of links) {
+        await Column.updateDisplayValueColumn(
+          context,
+          {
+            colId: link.fk_column_id,
+            fk_display_value_column_id: null,
+          },
+          ncMeta,
+        );
+      }
+    }
+
+
     // Delete from view columns
     let colOptionTableName = null;
     let cacheScopeName = null;
@@ -1968,6 +1994,35 @@ export default class Column<T = any> implements ColumnType {
     await NocoCache.update(context, `${CacheScope.COL_RELATION}:${colId}`, {
       fk_target_view_id,
     });
+  }
+
+  static async updateDisplayValueColumn(
+    context: NcContext,
+    {
+      colId,
+      fk_display_value_column_id,
+    }: { colId: string; fk_display_value_column_id: string | null },
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COL_RELATIONS,
+      {
+        fk_display_value_column_id,
+      },
+      {
+        fk_column_id: colId,
+      },
+    );
+
+    await NocoCache.update(
+      context,
+      `${CacheScope.COL_RELATION}:${colId}`,
+      {
+        fk_display_value_column_id,
+      },
+    );
   }
 
   static async bulkInsert(

@@ -206,6 +206,15 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     }
 
     const relatedTableDisplayValueColumn = computed(() => {
+      const colOptions = (column.value?.colOptions as LinkToAnotherRecordType) || {}
+
+      if (colOptions.fk_display_value_column_id) {
+        const overrideCol = relatedTableMeta.value?.columns?.find(
+          (c) => c.id === colOptions.fk_display_value_column_id,
+        )
+        if (overrideCol) return overrideCol
+      }
+
       return relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0]
     })
 
@@ -227,7 +236,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         type: '',
         format: '',
       }
-      const currentColumn = relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0]
+      const currentColumn = relatedTableDisplayValueColumn.value
 
       if (currentColumn) {
         if (currentColumn?.uidt === UITypes.DateTime) {
@@ -274,8 +283,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const fields = computedInject(
       FieldsInj,
       (_fields) => {
+        const colOptions = (column.value?.colOptions as LinkToAnotherRecordType) || {}
+
         return (relatedTableMeta.value.columns ?? [])
           .filter((col) => {
+            // Hide the custom display value column from extra fields since it's already shown as the primary display
+            if (colOptions.fk_display_value_column_id && col.id === colOptions.fk_display_value_column_id) return false
             // Hiding lookup field from dropdown as we don't send lookup field info in list response due to performance reasons
             return !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col) && !isLookup(col)
           })

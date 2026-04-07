@@ -51,6 +51,7 @@ import * as nc_202604071200_default_org from './v0/nc_202604071200_default_org';
 import * as nc_202604071201_scim_config_default_role from './v0/nc_202604071201_scim_config_default_role';
 import * as nc_202604100000_audit_org_id from './v0/nc_202604100000_audit_org_id';
 import * as nc_202604160000_docs_in_data from './v0/nc_202604160000_docs_in_data';
+import * as nc_202604180000_ltar_display_value_column from './v0/nc_202604180000_ltar_display_value_column';
 import * as nc_202604200002_trash_cleanup_due_at from './v0/nc_202604200002_trash_cleanup_due_at';
 import * as nc_202604220000_uuid_readonly from './v0/nc_202604220000_uuid_readonly';
 import * as nc_202604270000_base_trash from './v0/nc_202604270000_base_trash';
@@ -117,6 +118,7 @@ export default class XcMigrationSourcev0 {
       'nc_202604071201_scim_config_default_role',
       'nc_202604100000_audit_org_id',
       'nc_202604160000_docs_in_data',
+      'nc_202604180000_ltar_display_value_column',
       'nc_202604200002_trash_cleanup_due_at',
       'nc_202603180000_user_mfa',
       'nc_202604220000_uuid_readonly',
@@ -236,6 +238,8 @@ export default class XcMigrationSourcev0 {
         return nc_202604100000_audit_org_id;
       case 'nc_202604160000_docs_in_data':
         return nc_202604160000_docs_in_data;
+      case 'nc_202604180000_ltar_display_value_column':
+        return nc_202604180000_ltar_display_value_column;
       case 'nc_202604200002_trash_cleanup_due_at':
         return nc_202604200002_trash_cleanup_due_at;
       case 'nc_202603180000_user_mfa':

@@ -20,6 +20,7 @@ export default class LinkToAnotherRecordColumn extends LinkToAnotherRecordColumn
   fk_related_model_id?: string;
 
   fk_target_view_id?: string | null;
+  fk_display_value_column_id?: string | null;
 
   dr?: string;
   ur?: string;
@@ -56,7 +57,10 @@ export default class LinkToAnotherRecordColumn extends LinkToAnotherRecordColumn
     ncMeta = Noco.ncMeta,
   ) {
     if (!columnId) return;
-    const updateProps = extractProps(updateBody, ['fk_target_view_id']);
+    const updateProps = extractProps(updateBody, [
+      'fk_target_view_id',
+      'fk_display_value_column_id',
+    ]);
     const res = await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,

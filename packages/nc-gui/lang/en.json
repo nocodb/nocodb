@@ -1859,6 +1859,8 @@
     "allowMetaWrite": "Allow Schema Change",
     "allowDataWrite": "Allow Data Write/Edit",
     "selectView": "Select a View",
+    "useCustomDisplayField": "Use custom display field",
+    "selectFieldAsDisplayName": "Select a field to use as the display name",
     "privateTable": "Private table",
     "privateView": "Private view",
     "connectionDetails": "Source Connection Details",

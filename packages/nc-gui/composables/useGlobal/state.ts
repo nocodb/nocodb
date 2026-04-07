@@ -158,6 +158,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     defaultWorkspaceId: null,
     disableGroupByAggregation: false,
     mapProvider: MapProvider.OPENSTREETMAP,
+    defaultOrgId: NC_DEFAULT_ORG_ID,
   })
 
   /** reactive token payload */

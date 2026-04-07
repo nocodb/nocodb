@@ -65,6 +65,7 @@ export interface AppInfo {
   disableGroupByAggregation?: boolean
   sendRecordMaxRecipients?: number
   mapProvider?: MapProvider
+  defaultOrgId?: string
 }
 
 export interface StoredState {

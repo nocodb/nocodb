@@ -26,7 +26,7 @@ vModel.value.meta = {
   ...(vModel.value.meta || {}),
 }
 
-const { setAdditionalValidations, setAvoidShowingToastMsgForValidations, sqlUi, column, validateInfos } =
+const { setAdditionalValidations, setAvoidShowingToastMsgForValidations, sqlUi, column, validateInfos, disableSubmitBtn } =
   useColumnCreateStoreOrThrow()
 
 const { t } = useI18n()
@@ -184,6 +184,15 @@ setAdditionalValidations({
 setAvoidShowingToastMsgForValidations({
   formula_raw: true,
 })
+
+// Disable submit button when formula has validation error or is empty
+watch(
+  () => validateInfos.formula_raw?.validateStatus,
+  (status) => {
+    disableSubmitBtn.value = status === 'error'
+  },
+  { immediate: true },
+)
 
 const activeKey = ref('formula')
 

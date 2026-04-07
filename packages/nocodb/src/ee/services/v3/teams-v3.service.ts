@@ -784,7 +784,7 @@ export class TeamsV3Service {
       await this.paymentService.reseatSubscription(workspace.id);
     }
 
-    await this.broadcastTeamEvent(context, team || response,
+    await this.broadcastTeamEvent(context, team,
       {
         event: EventType.TEAM_EVENT,
         payload: {
@@ -930,7 +930,7 @@ export class TeamsV3Service {
       await this.paymentService.reseatSubscription(workspace.id);
     }
 
-    await this.broadcastTeamEvent(context, team || response,
+    await this.broadcastTeamEvent(context, oldTeam,
       {
         event: EventType.TEAM_EVENT,
         payload: {
@@ -1061,7 +1061,7 @@ export class TeamsV3Service {
       await this.paymentService.reseatSubscription(workspace.id);
     }
 
-    await this.broadcastTeamEvent(context, team || response,
+    await this.broadcastTeamEvent(context, team,
       {
         event: EventType.TEAM_EVENT,
         payload: {
@@ -1231,7 +1231,7 @@ export class TeamsV3Service {
       };
     });
 
-    await this.broadcastTeamEvent(context, team || response,
+    await this.broadcastTeamEvent(context, team,
       {
         event: EventType.TEAM_EVENT,
         payload: {
@@ -1383,7 +1383,7 @@ export class TeamsV3Service {
     // Recalculate seat count after removing team members
     if (team.fk_workspace_id) { await this.paymentService.reseatSubscription(team.fk_workspace_id); }
 
-    await this.broadcastTeamEvent(context, team || response,
+    await this.broadcastTeamEvent(context, team,
       {
         event: EventType.TEAM_EVENT,
         payload: {
@@ -1543,7 +1543,7 @@ export class TeamsV3Service {
       };
     });
 
-    await this.broadcastTeamEvent(context, team || response,
+    await this.broadcastTeamEvent(context, team,
       {
         event: EventType.TEAM_EVENT,
         payload: {
@@ -1563,6 +1563,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
+      scope?: 'workspace' | 'org';
     },
   ): Promise<{ list: TeamTreeNodeV3Type[] }> {
     await this.validateFeatureAccess(context);
@@ -1812,7 +1813,7 @@ export class TeamsV3Service {
       workspace,
     });
 
-    await this.broadcastTeamEvent(context, team || response,
+    await this.broadcastTeamEvent(context, team,
       {
         event: EventType.TEAM_EVENT,
         payload: {

@@ -975,10 +975,7 @@ export default class Team {
     const baseQuery = () => {
       const qb = ncMeta
         .knex(MetaTable.TEAMS)
-        .where(
-          fk_org_id ? 'fk_org_id' : 'fk_workspace_id',
-          fk_org_id || fk_workspace_id,
-        )
+        .where('fk_workspace_id', fk_workspace_id)
         .where('scim_managed', true)
         .where(function () {
           this.where('deleted', false).orWhereNull('deleted');

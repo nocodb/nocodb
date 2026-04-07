@@ -80,6 +80,10 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       params.state = options.state;
     }
 
+    if (options.login_hint) {
+      params.login_hint = options.login_hint;
+    }
+
     return params;
   }
 
@@ -109,6 +113,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       passReqToCallback: true,
       scope: ['profile', 'email'],
       state: req.query.state,
+      login_hint: req.query.login_hint,
     });
   }
 }

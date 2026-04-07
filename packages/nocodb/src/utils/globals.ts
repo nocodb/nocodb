@@ -110,6 +110,8 @@ export enum MetaTable {
   AUTOMATION_EXECUTIONS = 'nc_automation_executions',
   DEPENDENCY_TRACKER = 'nc_dependency_tracker',
   INSTALLATIONS = 'nc_installations',
+  GCP_MARKETPLACE_ACCOUNTS = 'nc_gcp_marketplace_accounts',
+  GCP_MARKETPLACE_ENTITLEMENTS = 'nc_gcp_marketplace_entitlements',
   SANDBOXES_OLD = 'nc_sandboxes',
   SANDBOX_VERSIONS_OLD = 'nc_sandbox_versions',
   SANDBOX_DEPLOYMENT_LOGS_OLD = 'nc_sandbox_deployment_logs',
@@ -350,6 +352,8 @@ export const orderedMetaTables = [
   MetaTable.SANDBOXES_OLD,
   MetaTable.SANDBOXES,
   MetaTable.INSTALLATIONS,
+  MetaTable.GCP_MARKETPLACE_ACCOUNTS,
+  MetaTable.GCP_MARKETPLACE_ENTITLEMENTS,
 
   // Misc standalone
   MetaTable.EXTENSIONS,
@@ -492,6 +496,10 @@ export enum CacheScope {
   DEPENDENCY_TRACKER = 'nc_dependency_tracker',
   INSTALLATION = 'installation',
   INSTALLATION_ALIAS = 'installationAlias',
+  GCP_MARKETPLACE_ACCOUNT = 'gcpMarketplaceAccount',
+  GCP_MARKETPLACE_ACCOUNT_ALIAS = 'gcpMarketplaceAccountAlias',
+  GCP_MARKETPLACE_ENTITLEMENT = 'gcpMarketplaceEntitlement',
+  GCP_MARKETPLACE_ENTITLEMENT_ALIAS = 'gcpMarketplaceEntitlementAlias',
   MANAGED_APP = 'managedApp',
   MANAGED_APP_VERSION = 'managedAppVersion',
   MANAGED_APP_DEPLOYMENT_LOG = 'managedAppDeploymentLog',

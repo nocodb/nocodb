@@ -519,6 +519,7 @@ export class OnPremLicenseService {
           expires_at: inst.expires_at,
           created_at: inst.created_at,
           meta: inst.meta,
+          config: inst.config,
           plan: plan
             ? {
                 id: plan.id,

@@ -83,6 +83,7 @@
     "@databricks/sql": "^1.13.0",
     "@e2b/code-interpreter": "^1.5.1",
     "@gitbeaker/rest": "^43.8.0",
+    "@google-cloud/pubsub": "^5.3.0",
     "@google-cloud/storage": "^7.15.0",
     "@govtechsg/passport-openidconnect": "^1.0.3",
     "@linear/sdk": "^40.0.0",
@@ -234,12 +235,12 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@rspack/cli": "^1.7.6",
-    "@rspack/core": "^1.7.6",
     "@nestjs/cli": "^11.0.7",
     "@nestjs/schematics": "^10.2.3",
     "@nestjs/testing": "^10.4.15",
     "@nestjsplus/dyn-schematics": "^1.0.12",
+    "@rspack/cli": "^1.7.6",
+    "@rspack/core": "^1.7.6",
     "@swc-node/register": "^1.10.10",
     "@types/content-disposition": "^0.5.8",
     "@types/ejs": "^3.1.5",

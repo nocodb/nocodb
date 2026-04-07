@@ -32,7 +32,7 @@ const canEditIntegration = (integration: IntegrationType) => {
 }
 
 const canUnlinkIntegration = (integration: IntegrationType) => {
-  return integration.is_restricted && !integration.is_global
+  return isUIAllowed('baseIntegrationUnlink') && integration.is_restricted && !integration.is_global
 }
 
 const hasAnyAction = (integration: IntegrationType) => {

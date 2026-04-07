@@ -771,6 +771,7 @@ const permissionDescriptions: Record<string, string> = {
   // base-scoped integration permissions
   baseIntegrationList: 'view integrations linked to a base',
   baseIntegrationRead: 'view a single integration from a base',
+  baseIntegrationFetchOptions: 'fetch options for a base-scoped integration',
 
   baseIntegrationCreate: 'create an integration from a base',
   baseIntegrationUpdate: 'update an integration from a base',

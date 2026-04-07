@@ -5,6 +5,8 @@ import { NOCO_SERVICE_USERS, ProjectRoles, ServiceUserType } from 'nocodb-sdk';
 import { User } from '~/models';
 import { UsersService } from '~/services/users/users.service';
 import { NcError } from '~/helpers/catchError';
+import Noco from '~/Noco';
+import { isOnPrem } from '~/utils/constants';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -80,7 +82,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         user,
         baseId: req.ncBaseId,
         workspaceId: req.ncWorkspaceId,
-        orgId: req.ncOrgId,
+        orgId: req.ncOrgId || (isOnPrem ? Noco.ncDefaultOrgId : undefined),
       })),
       provider: jwtPayload.provider ?? undefined,
       isAuthorized: true,

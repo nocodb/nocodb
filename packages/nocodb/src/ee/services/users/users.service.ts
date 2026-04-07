@@ -428,7 +428,11 @@ export class UsersService extends UsersServiceCE {
     });
 
     if (workspaces.length === 0) {
-      await this.workspaceService.createDefaultWorkspace(user, req);
+      try {
+        await this.workspaceService.createDefaultWorkspace(user, req);
+      } catch {
+        // Org viewers and other restricted roles can't create workspaces — don't block login
+      }
     }
 
     return await super.login(user, req);

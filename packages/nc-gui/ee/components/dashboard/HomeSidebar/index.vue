@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { OrgUserRoles } from 'nocodb-sdk'
+import { EnterpriseOrgUserRoles, OrgUserRoles } from 'nocodb-sdk'
 
 const { user, isMobileMode, appInfo } = useGlobal()
 
@@ -24,11 +24,22 @@ const isCreateWsDlgOpen = ref(false)
 const isSuper = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
 const canCreateWorkspace = computed(() => {
-  if (appInfo.value.restrictWorkspaceCreation !== true) {
-    return true
+  if (isSuper.value) return true
+
+  if (appInfo.value.restrictWorkspaceCreation) return false
+
+  // On-prem: org viewers cannot create workspaces
+  const orgUserRoles = user.value?.org_roles
+  if (
+    appInfo.value.isOnPrem &&
+    orgUserRoles &&
+    !orgUserRoles[EnterpriseOrgUserRoles.CREATOR] &&
+    !orgUserRoles[EnterpriseOrgUserRoles.ADMIN]
+  ) {
+    return false
   }
 
-  return !!isSuper.value
+  return true
 })
 
 const navigateToWorkspace = (wsId: string) => {

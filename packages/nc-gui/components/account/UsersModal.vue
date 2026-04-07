@@ -205,6 +205,7 @@ const clickInviteMore = () => {
     :visible="show"
     :show-separator="false"
     size="medium"
+    class="nc-modal-invite-user"
     @update:visible="(val) => { if (!val) emit('closed') }"
   >
     <template #header>
@@ -281,7 +282,8 @@ const clickInviteMore = () => {
                 v-model="inviteData.email"
                 inputmode="email"
                 :disabled="isLoading"
-                :placeholder="$t('activity.enterEmail')"
+                placeholder="E-mail"
+                data-testid="nc-invite-email-input"
                 class="flex-1 md:min-w-36 outline-none px-2"
                 @blur="isDivFocused = false"
                 @keyup.enter="handleEnter"

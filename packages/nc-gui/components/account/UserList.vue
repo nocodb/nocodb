@@ -23,7 +23,13 @@ const updateOrgRole = async (user: UserType, newRole: string) => {
   try {
     const orgId = appInfo.value?.defaultOrgId || NC_DEFAULT_ORG_ID
     await api.instance.patch(`/api/v1/orgs/${orgId}/users/${user.id}`, { org_role: newRole })
-    ;(user as any).org_roles = newRole
+
+    // Update reactively by replacing the user object in the array
+    const idx = users.value.findIndex((u) => u.id === user.id)
+    if (idx !== -1) {
+      users.value[idx] = { ...users.value[idx], org_roles: newRole } as any
+    }
+
     message.success(t('msg.success.roleUpdated'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

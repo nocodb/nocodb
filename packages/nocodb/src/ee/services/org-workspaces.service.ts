@@ -138,14 +138,13 @@ export class OrgWorkspacesService {
 
     for (const wu of wsUsers) {
       if (!wu.fk_user_id) continue;
-      try {
+      const existing = await OrgUser.get(org.id, wu.fk_user_id);
+      if (!existing) {
         await OrgUser.insert({
           fk_org_id: org.id,
           fk_user_id: wu.fk_user_id,
           roles: CloudOrgUserRoles.VIEWER,
         });
-      } catch {
-        // Already in org — skip
       }
     }
 
@@ -203,6 +202,23 @@ export class OrgWorkspacesService {
       id: param.workspaceId,
       orgId: org.id,
     });
+
+    // Sync workspace users to org (add as viewer if not already members)
+    const wsUsers = await WorkspaceUser.userList({
+      fk_workspace_id: param.workspaceId,
+    });
+
+    for (const wu of wsUsers) {
+      if (!wu.fk_user_id) continue;
+      const existing = await OrgUser.get(org.id, wu.fk_user_id);
+      if (!existing) {
+        await OrgUser.insert({
+          fk_org_id: org.id,
+          fk_user_id: wu.fk_user_id,
+          roles: CloudOrgUserRoles.VIEWER,
+        });
+      }
+    }
 
     this.appHooksService.emit(AppEvents.ORG_WORKSPACE_ADD, {
       workspaceId: param.workspaceId,

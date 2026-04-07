@@ -299,10 +299,7 @@ export default class ApiTokenScope implements ApiTokenScopeEntry {
       .delete();
   }
 
-  public static async deleteByTokenId(
-    tokenId: string,
-    ncMeta = Noco.ncMeta,
-  ) {
+  public static async deleteByTokenId(tokenId: string, ncMeta = Noco.ncMeta) {
     const scopes = await this.listByTokenId(tokenId, ncMeta);
 
     for (const scope of scopes) {

@@ -15,7 +15,7 @@ function instancePathToFieldName(instancePath: string): string {
   return instancePath
     .slice(1) // remove leading "/"
     .split('/')
-    .map((segment, i, arr) => {
+    .map((segment, i, _arr) => {
       // If this segment is a numeric index, wrap in brackets and attach to previous
       if (/^\d+$/.test(segment)) {
         return `[${segment}]`;

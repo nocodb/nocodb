@@ -52,7 +52,7 @@ import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { XcFilter } from '~/db/sql-data-mapper/lib/BaseModel';
 // import type { SelectOption } from '~/models';
-import { PrincipalAssignment, RlsPolicy, Source, View } from '~/models';
+import { PrincipalAssignment, Source, View } from '~/models';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
 import {
   batchUpdate,

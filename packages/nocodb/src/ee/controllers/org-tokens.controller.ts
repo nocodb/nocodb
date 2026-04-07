@@ -71,7 +71,9 @@ export class OrgTokensController {
     @Body() _body: any,
   ) {
     // V1 token update is not supported — use V3 PATCH /api/v3/meta/tokens/:tokenId
-    NcError.notImplemented('Token update via V1 API is not supported. Use V3 API.');
+    NcError.notImplemented(
+      'Token update via V1 API is not supported. Use V3 API.',
+    );
   }
 
   @Delete('/api/v1/tokens/:tokenId')

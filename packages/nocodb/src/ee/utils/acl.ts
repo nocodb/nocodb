@@ -1268,7 +1268,8 @@ const permissionDescriptions: Record<string, string> = {
   integrationUpdateLinkedBases: 'update base assignments for an integration',
 
   // base-scoped integration permissions
-  baseAuthIntegrationTestConnection: 'test an auth integration connection from a base',
+  baseAuthIntegrationTestConnection:
+    'test an auth integration connection from a base',
   baseIntegrationList: 'view integrations linked to a base',
 
   baseIntegrationCreate: 'create an integration from a base',

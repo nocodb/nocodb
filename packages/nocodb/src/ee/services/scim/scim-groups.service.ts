@@ -675,8 +675,7 @@ export class ScimGroupsService {
           if (op.path === 'externalId' && op.value) {
             // externalId is client-assigned — store in scim_meta
             const currentMeta =
-              latestTeam.scim_meta &&
-              typeof latestTeam.scim_meta === 'object'
+              latestTeam.scim_meta && typeof latestTeam.scim_meta === 'object'
                 ? latestTeam.scim_meta
                 : {};
             updateData.scim_meta = {
@@ -709,8 +708,7 @@ export class ScimGroupsService {
           }
           if (op.value.externalId) {
             const currentMeta =
-              latestTeam.scim_meta &&
-              typeof latestTeam.scim_meta === 'object'
+              latestTeam.scim_meta && typeof latestTeam.scim_meta === 'object'
                 ? latestTeam.scim_meta
                 : {};
             updateData.scim_meta = {

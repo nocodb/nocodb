@@ -1547,8 +1547,7 @@ export class AclMiddleware implements NestInterceptor {
     // Fine-grained API token permission check (intersection model)
     // After role-based ACL passes, further restrict based on token permissions
     if (req?.user?.is_api_token && req.user?.api_token_meta?.permissions) {
-      const tokenCategories =
-        req.user.api_token_meta.permissions.categories;
+      const tokenCategories = req.user.api_token_meta.permissions.categories;
 
       if (!checkTokenPermission(tokenCategories, permissionName)) {
         NcError.forbidden(

@@ -23,11 +23,11 @@ import {
 import Noco from '~/Noco';
 
 import {
+  ApiTokenScope,
   BaseUser,
   CustomUrl,
   Dashboard,
   DataReflection,
-  ApiTokenScope,
   Extension,
   FileReference,
   ManagedAppVersion,

@@ -4,7 +4,6 @@ import {
   ApiTokenPermissionLevel,
   AppEvents,
   extractRolesObj,
-  NcApiVersion,
   OrgUserRoles,
 } from 'nocodb-sdk';
 import type { NcRequest } from 'nocodb-sdk';
@@ -32,7 +31,6 @@ export class ApiTokensV3Service {
 
     private readonly appHooksService: AppHooksService,
   ) {}
-
 
   /**
    * Extract non-none permission category names from scopes for audit/telemetry.
@@ -126,12 +124,22 @@ export class ApiTokensV3Service {
     if (!permissions) return;
 
     for (const [category, level] of Object.entries(permissions)) {
-      if (!ApiTokensV3Service.VALID_PERMISSION_CATEGORIES.has(category as ApiTokenPermissionCategory)) {
+      if (
+        !ApiTokensV3Service.VALID_PERMISSION_CATEGORIES.has(
+          category as ApiTokenPermissionCategory,
+        )
+      ) {
         NcError.badRequest(
-          `Invalid permission category: '${category}'. Valid categories: ${[...ApiTokensV3Service.VALID_PERMISSION_CATEGORIES].join(', ')}`,
+          `Invalid permission category: '${category}'. Valid categories: ${[
+            ...ApiTokensV3Service.VALID_PERMISSION_CATEGORIES,
+          ].join(', ')}`,
         );
       }
-      if (!ApiTokensV3Service.VALID_PERMISSION_LEVELS.has(level as ApiTokenPermissionLevel)) {
+      if (
+        !ApiTokensV3Service.VALID_PERMISSION_LEVELS.has(
+          level as ApiTokenPermissionLevel,
+        )
+      ) {
         NcError.badRequest(
           `Invalid permission level: '${level}' for category '${category}'. Valid levels: none, read, write`,
         );
@@ -217,7 +225,9 @@ export class ApiTokensV3Service {
     });
 
     // Batch-load scopes for all tokens in one query to avoid N+1
-    const tokenIds = result.list.map((t: Record<string, any>) => t.id).filter(Boolean);
+    const tokenIds = result.list
+      .map((t: Record<string, any>) => t.id)
+      .filter(Boolean);
     const scopesByTokenId = tokenIds.length
       ? await ApiTokenScope.listByTokenIds(tokenIds)
       : {};
@@ -235,8 +245,6 @@ export class ApiTokensV3Service {
   }
 
   async create(param: { cookie: NcRequest; body: ApiTokensV3CreateRequest }) {
-
-
     this.validateTitle(param.body.title);
 
     // On licensed EE (Cloud + on-prem licensed), fine-grained tokens require
@@ -288,8 +296,6 @@ export class ApiTokensV3Service {
     cookie: NcRequest;
     body: ApiTokensV3UpdateRequest;
   }) {
-
-
     const user = param.cookie['user'];
     const apiToken = await ApiToken.get(param.id);
 
@@ -345,7 +351,9 @@ export class ApiTokensV3Service {
         if (hasScopeUpdate) {
           await ApiTokenScope.deleteByTokenId(param.id, trx);
           if (scopesForUpdate.length) {
-            await ApiTokenScope.bulkInsert(param.id, scopesForUpdate, trx, { skipCache: true });
+            await ApiTokenScope.bulkInsert(param.id, scopesForUpdate, trx, {
+              skipCache: true,
+            });
           }
         }
         await trx.commit();
@@ -374,8 +382,6 @@ export class ApiTokensV3Service {
   }
 
   async delete(param: { id: string; cookie: NcRequest }) {
-
-
     const user = param.cookie['user'];
     const token = await ApiToken.get(param.id);
 

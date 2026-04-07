@@ -19,7 +19,7 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
 
       if (token) {
         // getByToken handles both nc_pat_ (hash-based) and legacy (plaintext) lookup
-        const apiToken = await ApiToken.getByToken(token) as ApiToken;
+        const apiToken = (await ApiToken.getByToken(token)) as ApiToken;
         if (!apiToken) {
           return callback({ msg: 'Invalid token' });
         }
@@ -67,7 +67,11 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
             // blockApiTokenAccess: true in its ACL definition. Without it,
             // fine-grained tokens can access the endpoint regardless of scope.
             // When adding new org-level endpoints, always set blockApiTokenAccess.
-            if (!matchedScope && scopes.length > 0 && (requestBaseId || requestWorkspaceId)) {
+            if (
+              !matchedScope &&
+              scopes.length > 0 &&
+              (requestBaseId || requestWorkspaceId)
+            ) {
               return callback({ msg: 'Token scope mismatch' });
             }
           }

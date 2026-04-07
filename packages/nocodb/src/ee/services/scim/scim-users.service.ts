@@ -75,8 +75,7 @@ export class ScimUsersService {
     },
   ) {
     const startIndex = param.startIndex || 1;
-    const count =
-      param.count !== undefined ? Math.min(param.count, 100) : 100;
+    const count = param.count !== undefined ? Math.min(param.count, 100) : 100;
     const ascending =
       !param.sortOrder || param.sortOrder.toLowerCase() === 'ascending';
 
@@ -653,7 +652,10 @@ export class ScimUsersService {
     // Handle emails patched via path like emails[type eq "work"].value
     if (patchData['emails[type eq "work"].value'] !== undefined) {
       const emailValue = patchData['emails[type eq "work"].value'];
-      if (!emailValue || (typeof emailValue === 'string' && !emailValue.trim())) {
+      if (
+        !emailValue ||
+        (typeof emailValue === 'string' && !emailValue.trim())
+      ) {
         NcError.badRequest('Email value cannot be empty');
       }
       if (typeof emailValue === 'string' && !isEmail(emailValue)) {

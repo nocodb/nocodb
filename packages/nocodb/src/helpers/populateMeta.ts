@@ -1,5 +1,5 @@
 import { isLTARType, ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
-import { isVirtualCol, RelationTypes } from 'nocodb-sdk';
+import { isMMOrMMLike, isVirtualCol, RelationTypes } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import { getUniqueColumnAliasName, getUniqueColumnName } from './getUniqueName';
@@ -64,7 +64,7 @@ async function isMMRelationExist(
       );
       if (
         colOpt &&
-        colOpt.type === RelationTypes.MANY_TO_MANY &&
+        isMMOrMMLike(col) &&
         colOpt.fk_mm_model_id === assocModel.id &&
         colOpt.fk_child_column_id === colChildOpt.fk_parent_column_id &&
         colOpt.fk_mm_child_column_id === colChildOpt.fk_child_column_id

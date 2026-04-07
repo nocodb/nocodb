@@ -5,6 +5,7 @@ import { WorkflowGetOperations } from '~/controllers/internal/modules/WorkflowGe
 import { UiPostOperations } from '~/controllers/internal/modules/UiPost.operations';
 import { UiGetOperations } from '~/controllers/internal/modules/UiGet.operations';
 import { IntegrationPostOperations } from '~/controllers/internal/modules/IntegrationPost.operations';
+import { IntegrationGetOperations } from '~/controllers/internal/modules/IntegrationGet.operations';
 import { ManagedAppGetOperations } from '~/controllers/internal/modules/ManagedAppGet.operations';
 import { ManagedAppPostOperations } from '~/controllers/internal/modules/ManagedAppPost.operations';
 import { SendRecordEmailOperations } from '~/controllers/internal/modules/SendRecordEmail.operations';
@@ -34,6 +35,7 @@ export const InternalApiModules = [
   UiPostOperations,
   UiGetOperations,
   IntegrationPostOperations,
+  IntegrationGetOperations,
   ManagedAppGetOperations,
   ManagedAppPostOperations,
   SendRecordEmailOperations,

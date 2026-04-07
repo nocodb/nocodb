@@ -167,10 +167,12 @@ export const OPERATION_SCOPES = {
 
   // Base-scoped integrations
   baseIntegrationList: 'base',
+  baseIntegrationRead: 'base',
   baseIntegrationCreate: 'base',
   baseIntegrationUpdate: 'base',
   baseIntegrationLink: 'base',
   baseIntegrationUnlink: 'base',
+  baseIntegrationFetchOptions: 'base',
 
   // Workspace integration link management
   integrationLinkedBaseList: 'workspace',

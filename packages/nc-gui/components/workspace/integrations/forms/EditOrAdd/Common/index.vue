@@ -5,6 +5,7 @@ const props = defineProps<{
   open: boolean
   integrationType: IntegrationCategoryType
   integrationSubType: SyncDataType
+  baseId?: string
 }>()
 
 const emit = defineEmits(['update:open'])
@@ -24,6 +25,8 @@ const {
 const { $api } = useNuxtApp()
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
+const { activeProjectId } = storeToRefs(useBases())
 
 const isEditMode = computed(() => pageMode.value === IntegrationsPageMode.EDIT)
 
@@ -47,12 +50,15 @@ const { form, formState, isLoading, initialState, submit } = useProvideFormBuild
 
     try {
       if (pageMode.value === IntegrationsPageMode.ADD) {
-        await saveIntegration(formState.value)
+        await saveIntegration(formState.value, 'create', false, props.baseId)
       } else {
-        await updateIntegration({
-          id: activeIntegration.value?.id,
-          ...formState.value,
-        })
+        await updateIntegration(
+          {
+            id: activeIntegration.value?.id,
+            ...formState.value,
+          },
+          props.baseId,
+        )
       }
     } catch (e) {
       console.error(e)
@@ -68,8 +74,8 @@ const { form, formState, isLoading, initialState, submit } = useProvideFormBuild
     if (!wsId) return []
     return await $api.internal.postOperation(
       wsId,
-      NO_SCOPE,
-      { operation: 'integrationFetchOptions' },
+      activeProjectId.value || NO_SCOPE,
+      { operation: activeProjectId.value ? 'baseIntegrationFetchOptions'  : 'integrationFetchOptions' },
       {
         integration: formState.value,
         key,

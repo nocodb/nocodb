@@ -122,6 +122,9 @@ const rolePermissions = {
       baseDuplicate: true,
       sourceCreate: true,
 
+      // Base-scoped integrations
+      baseIntegrationCreate: true,
+
       // Row colouring
       rowColourUpdate: true,
 

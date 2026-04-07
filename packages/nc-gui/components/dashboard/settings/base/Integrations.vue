@@ -31,6 +31,14 @@ const canEditIntegration = (integration: IntegrationType) => {
   return canManage.value && integration.created_by === user.value?.id
 }
 
+const canUnlinkIntegration = (integration: IntegrationType) => {
+  return isUIAllowed('baseIntegrationUnlink') && integration.is_restricted && !integration.is_global
+}
+
+const hasAnyAction = (integration: IntegrationType) => {
+  return canEditIntegration(integration) || canUnlinkIntegration(integration)
+}
+
 const activeTab = ref<'integrations' | 'connections'>('integrations')
 
 // Build category map for the card grid
@@ -312,7 +320,7 @@ watch(baseId, reload)
               </div>
 
               <div v-if="column.key === 'action'" @click.stop>
-                <NcDropdown placement="bottomRight">
+                <NcDropdown v-if="hasAnyAction(integration)" placement="bottomRight">
                   <NcButton size="small" type="secondary" data-testid="nc-base-integration-action-btn">
                     <GeneralIcon icon="threeDotVertical" />
                   </NcButton>
@@ -321,12 +329,12 @@ watch(baseId, reload)
                       <NcMenuItem
                         v-if="canEditIntegration(integration)"
                         data-testid="nc-base-integration-edit-btn"
-                        @click="editIntegration(integration)"
+                        @click="editIntegration(integration, true, baseId)"
                       >
                         <GeneralIcon class="text-current opacity-80" icon="edit" />
                         <span>{{ $t('general.edit') }}</span>
                       </NcMenuItem>
-                      <template v-if="integration.is_restricted && !integration.is_global">
+                      <template v-if="canUnlinkIntegration(integration)">
                         <NcDivider v-if="canEditIntegration(integration)" />
                         <NcMenuItem
                           class="!text-nc-content-red-dark"

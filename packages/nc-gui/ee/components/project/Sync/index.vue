@@ -157,7 +157,7 @@ const getIntegration = (id: string) => {
 }
 
 onMounted(async () => {
-  await Promise.all([loadDynamicIntegrations(), loadIntegrations()])
+  await Promise.all([loadDynamicIntegrations(), loadIntegrations(null, props.baseId || activeProjectId.value)])
 
   await waitForValueExists(
     () => currentBase.value?.id,

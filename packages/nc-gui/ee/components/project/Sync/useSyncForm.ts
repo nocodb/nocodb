@@ -173,7 +173,7 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       try {
         const res = await createSync(bsId, syncConfig)
 
-        await loadIntegrations()
+        await loadIntegrations(null, unref(baseId))
 
         return res?.job.id
       } finally {
@@ -235,7 +235,7 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
           }
         }
 
-        await loadIntegrations()
+        await loadIntegrations(null, unref(baseId))
 
         message.success('Sync updated successfully')
 
@@ -317,6 +317,7 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
 
                 const int = await getIntegration(integration, {
                   includeConfig: true,
+                  baseId: unref(baseId),
                 })
 
                 if (!int) {

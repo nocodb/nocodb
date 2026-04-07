@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
+import { IntegrationsType as IntegrationsTypeEnum } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import { Base, Integration, IntegrationLink } from '~/models';
@@ -7,6 +8,7 @@ import { NcBaseError, NcError } from '~/helpers/catchError';
 import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { IntegrationsService } from '~/services/integrations.service';
+import { maskKnexConfig } from '~/helpers/responseHelpers';
 
 @Injectable()
 export class BaseIntegrationsService {
@@ -86,6 +88,56 @@ export class BaseIntegrationsService {
       if (!integration.is_restricted) return true;
       return linkedIntegrationIds.has(integration.id);
     });
+  }
+
+  /**
+   * Read a single integration from a base context (with config).
+   * Only the creator can see the config; verifies the integration is available to the base.
+   */
+  async readFromBase(
+    context: NcContext,
+    param: {
+      baseId: string;
+      integrationId: string;
+      userId?: string;
+      includeConfig?: boolean;
+    },
+  ) {
+    const integration = await Integration.get(context, param.integrationId);
+    if (!integration) {
+      NcError.get(context).integrationNotFound(param.integrationId);
+    }
+
+    // Verify integration is available to this base
+    const isAvailable = await IntegrationLink.isAvailable(context, {
+      fk_integration_id: param.integrationId,
+      base_id: param.baseId,
+      is_restricted: !!integration.is_restricted,
+    });
+
+    if (!isAvailable) {
+      NcError.get(context).badRequest(
+        'Integration is not available to this base.',
+      );
+    }
+
+    if (param.includeConfig) {
+      // Only the creator can see config
+      if (
+        integration.is_private &&
+        param.userId !== integration.created_by
+      ) {
+        integration.config = undefined;
+      } else {
+        integration.config = await integration.getConnectionConfig();
+      }
+    }
+
+    if (integration.type === IntegrationsTypeEnum.Database) {
+      maskKnexConfig(integration);
+    }
+
+    return integration;
   }
 
   /**

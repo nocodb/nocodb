@@ -27,7 +27,6 @@ import { NcContext, NcRequest } from '~/interface/config';
 import { ScriptsService } from '~/services/scripts.service';
 import { getBaseSchema } from '~/helpers/scriptHelper';
 import { NcError } from '~/helpers/catchError';
-import { IntegrationsService } from '~/services/integrations.service';
 import {
   InternalGETResponseType,
   InternalPOSTResponseType,
@@ -182,7 +181,6 @@ export class InternalController extends InternalControllerCE {
     private readonly syncService: SyncModuleService,
     private readonly scriptsService: ScriptsService,
     private readonly columnsService: ColumnsService,
-    private readonly integrationsService: IntegrationsService,
     private readonly permissionsService: PermissionsService,
     protected readonly dashboardsService: DashboardsService,
     protected readonly actionsService: ActionsService,
@@ -421,11 +419,6 @@ export class InternalController extends InternalControllerCE {
         }
 
         return await this.syncService.migrateSync(context, payload.id, req);
-      case 'syncIntegrationFetchOptions':
-        return await this.syncService.integrationFetchOptions(context, {
-          integration: payload.integration,
-          key: payload.key,
-        });
       case 'syncIntegrationFetchDestinationSchema':
         return (await this.syncService.integrationFetchDestinationSchema(
           context,
@@ -433,11 +426,6 @@ export class InternalController extends InternalControllerCE {
             integration: payload.integration,
           },
         )) as any;
-      case 'authIntegrationTestConnection':
-      case 'baseAuthIntegrationTestConnection':
-        return await this.integrationsService.authIntegrationTestConnection(
-          payload,
-        );
 
       case 'createScript':
         return await this.scriptsService.createScript(context, payload, req);
@@ -548,9 +536,6 @@ export class InternalController extends InternalControllerCE {
           NcError.notFound('Operation');
         }
         return await this.mailService.sendMailRaw(payload);
-      case 'integrationRemoteFetch': {
-        return await this.integrationsService.remoteFetch(context, payload);
-      }
       case 'viewSettingOverride':
         return await this.viewSettingsOverrideService.overrideViewSetting(
           context,

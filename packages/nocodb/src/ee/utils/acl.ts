@@ -525,6 +525,8 @@ const permissionScopes = {
     // Base-scoped integrations
     'baseAuthIntegrationTestConnection',
     'baseIntegrationList',
+    'baseIntegrationRead',
+    'baseIntegrationFetchOptions',
     'baseIntegrationCreate',
     'baseIntegrationUpdate',
     'baseIntegrationLink',
@@ -1271,6 +1273,8 @@ const permissionDescriptions: Record<string, string> = {
   baseAuthIntegrationTestConnection:
     'test an auth integration connection from a base',
   baseIntegrationList: 'view integrations linked to a base',
+  baseIntegrationRead: 'view a single integration from a base',
+  baseIntegrationFetchOptions: 'fetch options for a base-scoped integration',
 
   baseIntegrationCreate: 'create an integration from a base',
   baseIntegrationUpdate: 'update an integration from a base',

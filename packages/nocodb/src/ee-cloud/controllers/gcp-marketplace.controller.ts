@@ -50,7 +50,7 @@ export class GcpMarketplaceController {
         params.set('login_hint', googleUserIdentity);
       }
 
-      const redirectUrl = `${req.ncSiteUrl}/#/signin?${params.toString()}`;
+      const redirectUrl = `${req.ncSiteUrl}/signin?${params.toString()}`;
 
       res.redirect(302, redirectUrl);
     } catch (e) {

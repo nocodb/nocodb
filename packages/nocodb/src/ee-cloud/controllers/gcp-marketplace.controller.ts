@@ -11,6 +11,7 @@ import {
 import { Response } from 'express';
 import { NcRequest } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
+import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { GcpMarketplaceService } from '~/services/gcp-marketplace.service';
 import { NcError } from '~/helpers/ncError';
 
@@ -25,6 +26,7 @@ export class GcpMarketplaceController {
    * Google POSTs here with `x-gcp-marketplace-token` when a customer subscribes.
    * Verifies the JWT, creates a pending account, and redirects to NocoDB login.
    */
+  @UseGuards(PublicApiLimiterGuard)
   @Post('/api/v1/gcp-marketplace/signup')
   async handleSignup(
     @Body('x-gcp-marketplace-token') token: string,
@@ -63,7 +65,7 @@ export class GcpMarketplaceController {
    * Link a pending GCP Marketplace account to the logged-in NocoDB user.
    * Called from the frontend after the user authenticates.
    */
-  @UseGuards(GlobalGuard)
+  @UseGuards(PublicApiLimiterGuard, GlobalGuard)
   @Post('/api/v1/gcp-marketplace/link-account')
   @HttpCode(200)
   async linkAccount(

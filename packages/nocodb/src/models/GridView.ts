@@ -62,6 +62,7 @@ export default class GridView implements GridType {
       'base_id',
       'source_id',
       'row_height',
+      'meta',
     ]);
 
     const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);

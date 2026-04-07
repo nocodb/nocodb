@@ -1,6 +1,7 @@
 import {
   type ColumnType,
   CommonAggregations,
+  type GridType,
   type LinkToAnotherRecordType,
   type LookupType,
   type TableType,
@@ -79,6 +80,15 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     })
 
     const isGroupBy = computed(() => !!groupBy.value.length)
+
+    const hideEmptyGroups = ref(parseProp((view.value?.view as GridType)?.meta).hide_empty_groups || false)
+
+    watch(
+      () => (view.value?.view as GridType)?.meta,
+      (newMeta) => {
+        hideEmptyGroups.value = parseProp(newMeta).hide_empty_groups || false
+      },
+    )
 
     const { isUIAllowed } = useRoles()
 
@@ -209,49 +219,51 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
       if (!groupby) return group
 
-      const tempList: Group[] = response.list.reduce((acc: Group[], curr: Record<string, any>) => {
-        const keyExists = acc.find(
-          (a) => a.key === valueToTitle(curr[groupby.column.column_name!] ?? curr[groupby.column.title!], groupby.column),
-        )
-        if (keyExists) {
-          keyExists.count += +curr.count
-          keyExists.paginationData = {
-            page: 1,
-            pageSize: group.paginationData.pageSize || groupByGroupLimit.value,
-            totalRows: keyExists.count,
+      const tempList: Group[] = response.list
+        .reduce((acc: Group[], curr: Record<string, any>) => {
+          const keyExists = acc.find(
+            (a) => a.key === valueToTitle(curr[groupby.column.column_name!] ?? curr[groupby.column.title!], groupby.column),
+          )
+          if (keyExists) {
+            keyExists.count += +curr.count
+            keyExists.paginationData = {
+              page: 1,
+              pageSize: group.paginationData.pageSize || groupByGroupLimit.value,
+              totalRows: keyExists.count,
+            }
+            return acc
+          }
+          if (groupby.column.title && groupby.column.uidt) {
+            acc.push({
+              key: valueToTitle(curr[groupby.column.title!], groupby.column),
+              column: groupby.column,
+              count: +curr.count,
+              color: findKeyColor(curr[groupby.column.title!], groupby.column, getNextColor),
+              nestedIn: [
+                ...group!.nestedIn,
+                {
+                  title: groupby.column.title,
+                  column_name: groupby.column.title!,
+                  key: valueToTitle(curr[groupby.column.title!], groupby.column),
+                  column_uidt: groupby.column.uidt,
+                  column_id: groupby.column.id,
+                },
+              ],
+              aggregations: curr.aggregations ?? {},
+              paginationData: {
+                page: 1,
+                pageSize:
+                  group!.nestedIn.length < groupBy.value.length - 1
+                    ? group.paginationData.pageSize || groupByGroupLimit.value
+                    : groupByRecordLimit.value,
+                totalRows: +curr.count,
+              },
+              nested: group!.nestedIn.length < groupBy.value.length - 1,
+            })
           }
           return acc
-        }
-        if (groupby.column.title && groupby.column.uidt) {
-          acc.push({
-            key: valueToTitle(curr[groupby.column.title!], groupby.column),
-            column: groupby.column,
-            count: +curr.count,
-            color: findKeyColor(curr[groupby.column.title!], groupby.column, getNextColor),
-            nestedIn: [
-              ...group!.nestedIn,
-              {
-                title: groupby.column.title,
-                column_name: groupby.column.title!,
-                key: valueToTitle(curr[groupby.column.title!], groupby.column),
-                column_uidt: groupby.column.uidt,
-                column_id: groupby.column.id,
-              },
-            ],
-            aggregations: curr.aggregations ?? {},
-            paginationData: {
-              page: 1,
-              pageSize:
-                group!.nestedIn.length < groupBy.value.length - 1
-                  ? group.paginationData.pageSize || groupByGroupLimit.value
-                  : groupByRecordLimit.value,
-              totalRows: +curr.count,
-            },
-            nested: group!.nestedIn.length < groupBy.value.length - 1,
-          })
-        }
-        return acc
-      }, [])
+        }, [])
+        .filter((g: Group) => !hideEmptyGroups.value || g.key !== GROUP_BY_VARS.NULL)
 
       if (!group.children) group.children = []
 
@@ -313,6 +325,10 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         const groupby = groupBy.value[group.nestedIn.length]
 
         const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
+        const effectiveWhere =
+          hideEmptyGroups.value && groupby?.column?.title
+            ? `${nestedWhere}${nestedWhere ? '~and' : ''}(${groupby.column.title},notblank)`
+            : nestedWhere
         if (!groupby || !groupby.column.title) return
 
         if (isPublic && !sharedView.value?.uuid) {
@@ -336,7 +352,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
               ...params,
               ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-              where: `${nestedWhere}`,
+              where: `${effectiveWhere}`,
               sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
               column_name: groupby.column.title,
             } as any)
@@ -346,7 +362,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                 offset: ((group.paginationData.page ?? 0) - 1) * groupByGroupLimit.value,
                 limit: groupByGroupLimit.value,
                 ...params,
-                where: nestedWhere,
+                where: effectiveWhere,
                 sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
                 column_name: groupby.column.title,
                 sortsArr: sorts.value,
@@ -746,6 +762,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       localGroupBy,
       canSyncGroupBy,
       isGroupBy,
+      hideEmptyGroups,
       fieldsToGroupBy,
       groupByLimit,
       loadGroups,

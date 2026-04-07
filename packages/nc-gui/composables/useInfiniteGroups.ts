@@ -61,9 +61,15 @@ export const useInfiniteGroups = (
     }, {})
   })
 
-  const { groupBy: injectedGroupBy } = useViewGroupByOrThrow()
+  const { groupBy: injectedGroupBy, hideEmptyGroups } = useViewGroupByOrThrow()
 
   const groupByColumns = computed(() => injectedGroupBy.value)
+
+  const appendHideEmptyWhere = (colTitle: string | undefined, existingWhere?: string) => {
+    if (!hideEmptyGroups?.value || !colTitle) return existingWhere
+    const hideFilter = `(${colTitle},notblank)`
+    return existingWhere ? `${existingWhere}~and${hideFilter}` : hideFilter
+  }
 
   const cachedGroups = ref<Map<number, CanvasGroup>>(new Map())
   const totalGroups = ref(0)
@@ -101,13 +107,15 @@ export const useInfiniteGroups = (
     try {
       const nestedGrpWhereArr = buildNestedFilterArr(parentGroup) ?? []
 
+      const effectiveWhere = appendHideEmptyWhere(groupCol.column.title, where.value)
+
       const response = isPublic.value
         ? await $api.public.dataGroupBy(
             sharedView.value!.uuid!,
             {
               offset,
               limit: GROUP_CHUNK_SIZE,
-              where: where.value,
+              where: effectiveWhere,
               sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any,
               column_name: groupCol.column.title,
               subGroupColumnName: groupByColumns.value[level + 1]?.column.title,
@@ -123,7 +131,7 @@ export const useInfiniteGroups = (
         : await $api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
             offset,
             limit: GROUP_CHUNK_SIZE,
-            where: where.value,
+            where: effectiveWhere,
             sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any,
             column_name: groupCol.column.title,
             sortArrJson: JSON.stringify(sorts.value),
@@ -505,11 +513,13 @@ export const useInfiniteGroups = (
         const groupCol = groupByColumns.value?.[0]
         if (!groupCol) return
 
+        const effectiveWhere = appendHideEmptyWhere(groupCol.column.title, where?.value)
+
         totalGroups.value = isPublic.value
           ? await $api.public.dataGroupByCount(
               sharedView.value!.uuid!,
               {
-                where: where?.value,
+                where: effectiveWhere,
                 column_name: groupCol.column.title,
                 filterArrJson: JSON.stringify(nestedFilters.value),
               },
@@ -520,7 +530,7 @@ export const useInfiniteGroups = (
               },
             )
           : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
-              where: where?.value,
+              where: effectiveWhere,
               column_name: groupCol.column.title,
             })
       } else {
@@ -529,12 +539,13 @@ export const useInfiniteGroups = (
         if (!groupCol) return
 
         const groupFilterArr = buildNestedFilterArr(group) ?? []
+        const effectiveWhere = appendHideEmptyWhere(groupCol.column.title, where?.value)
 
         group.groupCount = isPublic.value
           ? await $api.public.dataGroupByCount(
               sharedView.value!.uuid!,
               {
-                where: where?.value,
+                where: effectiveWhere,
                 column_name: groupCol.column.title,
                 filterArrJson: JSON.stringify([...(nestedFilters.value || []), ...groupFilterArr]),
               },
@@ -545,7 +556,7 @@ export const useInfiniteGroups = (
               },
             )
           : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
-              where: where?.value,
+              where: effectiveWhere,
               column_name: groupCol.column.title,
               filterArrJson: JSON.stringify(groupFilterArr),
             })

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
 import type { OrgUserReqType } from 'nocodb-sdk'
 import { EnterpriseOrgUserRoles, OrgUserRoles } from 'nocodb-sdk'
 import { extractEmail } from '~/helpers/parsers/parserHelpers'
@@ -25,24 +24,20 @@ const { clearBasesUser } = useBases()
 
 const hasOrgRoles = computed(() => appInfo.value.isOnPrem && appInfo.value.ee)
 
-const orgRoleOptions = computed(() => {
-  if (!hasOrgRoles.value) return []
-  return [
-    { value: EnterpriseOrgUserRoles.VIEWER, label: t('objects.roleType.viewer') },
-    { value: EnterpriseOrgUserRoles.CREATOR, label: t('objects.roleType.creator') },
-    { value: EnterpriseOrgUserRoles.ADMIN, label: t('objects.roleType.admin') },
-  ]
+const allowedRoles = computed(() => {
+  if (!hasOrgRoles.value) return [OrgUserRoles.VIEWER]
+  return [EnterpriseOrgUserRoles.VIEWER, EnterpriseOrgUserRoles.CREATOR, EnterpriseOrgUserRoles.ADMIN]
 })
 
-const usersData = ref<Users>({
-  emails: '',
+const inviteData = reactive({
+  email: '',
   role: hasOrgRoles.value ? EnterpriseOrgUserRoles.VIEWER : OrgUserRoles.VIEWER,
-  invitationToken: undefined,
+  invitationToken: undefined as string | undefined,
 })
 
 const emailBadges = ref<string[]>([])
 
-const singleEmailValue = ref('')
+const isLoading = ref(false)
 
 const isDivFocused = ref(false)
 
@@ -50,28 +45,16 @@ const divRef = ref<HTMLDivElement>()
 
 const focusRef = ref<HTMLInputElement>()
 
-const formRef = ref()
-
-const useForm = Form.useForm
-
-const validators = computed(() => {
-  return {
-    emails: [emailValidator],
-  }
-})
-
-const { validateInfos } = useForm(usersData.value, validators)
-
 const focusOnDiv = () => {
   isDivFocused.value = true
   focusRef.value?.focus()
 }
 
 const handleEnter = () => {
-  const email = singleEmailValue.value?.trim()
+  const email = inviteData.email?.trim()
   if (email && email.includes('@') && !emailBadges.value.includes(email)) {
     emailBadges.value.push(email)
-    singleEmailValue.value = ''
+    inviteData.email = ''
   }
 }
 
@@ -82,7 +65,7 @@ const removeEmail = (index: number) => {
 const onPaste = (e: ClipboardEvent) => {
   e.preventDefault()
   const pastedText = e.clipboardData?.getData('text') ?? ''
-  const emails = pastedText.split(/[,;\s]+/).filter((e) => e.includes('@'))
+  const emails = pastedText.split(/[,;\s]+/).filter((em) => em.includes('@'))
   for (const email of emails) {
     if (!emailBadges.value.includes(email.trim())) {
       emailBadges.value.push(email.trim())
@@ -90,27 +73,31 @@ const onPaste = (e: ClipboardEvent) => {
   }
 }
 
-const isInviteDisabled = computed(() => emailBadges.value.length === 0 && !singleEmailValue.value.trim())
+const isInviteDisabled = computed(() => emailBadges.value.length === 0 && !inviteData.email?.trim())
+
+const onRoleChange = (role: string) => {
+  inviteData.role = role
+}
 
 const saveUser = async () => {
-  // Add any remaining typed email
-  if (singleEmailValue.value?.trim() && singleEmailValue.value.includes('@')) {
-    emailBadges.value.push(singleEmailValue.value.trim())
-    singleEmailValue.value = ''
+  if (inviteData.email?.trim() && inviteData.email.includes('@')) {
+    emailBadges.value.push(inviteData.email.trim())
+    inviteData.email = ''
   }
 
   if (emailBadges.value.length === 0) return
 
-  $e('a:org-user:invite', { role: usersData.value.role })
+  isLoading.value = true
+  $e('a:org-user:invite', { role: inviteData.role })
 
   try {
     for (const email of emailBadges.value) {
       const res = await $api.orgUsers.add({
-        roles: usersData.value.role,
+        roles: inviteData.role,
         email,
       } as unknown as OrgUserReqType)
 
-      usersData.value.invitationToken = res.invite_token
+      inviteData.invitationToken = res.invite_token
     }
 
     emit('reload')
@@ -119,31 +106,29 @@ const saveUser = async () => {
   } catch (e: any) {
     console.error(e)
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isLoading.value = false
   }
 }
 
 const inviteUrl = computed(() =>
-  usersData.value.invitationToken ? `${dashboardUrl.value}/signup/${usersData.value.invitationToken}` : null,
+  inviteData.invitationToken ? `${dashboardUrl.value}/signup/${inviteData.invitationToken}` : null,
 )
 
 const clickInviteMore = () => {
   $e('c:user:invite-more')
-  usersData.value.invitationToken = undefined
-  usersData.value.role = hasOrgRoles.value ? EnterpriseOrgUserRoles.VIEWER : OrgUserRoles.VIEWER
+  inviteData.invitationToken = undefined
+  inviteData.role = hasOrgRoles.value ? EnterpriseOrgUserRoles.VIEWER : OrgUserRoles.VIEWER
   emailBadges.value = []
-  singleEmailValue.value = ''
-}
-
-const onRoleChange = (role: string) => {
-  usersData.value.role = role
+  inviteData.email = ''
 }
 </script>
 
 <template>
   <NcModal
     :visible="show"
-    size="medium"
     :show-separator="false"
+    size="medium"
     @update:visible="(val) => { if (!val) emit('closed') }"
   >
     <template #header>
@@ -152,32 +137,32 @@ const onRoleChange = (role: string) => {
       </div>
     </template>
 
-    <div class="flex flex-col gap-4 mt-2">
-      <template v-if="usersData.invitationToken">
-        <div class="flex flex-col gap-3 pb-4">
-          <NcAlert
-            type="success"
-            :message="inviteUrl"
-            message-class="!text-green-700 !text-bodyDefaultSm"
-            background
-            :copy-text="inviteUrl"
-            :copy-text-toast-message="$t('msg.toast.inviteUrlCopy')"
-            class="!p-3"
-          />
-          <div class="text-xs text-nc-content-gray-muted ml-1">
-            {{ $t('msg.info.userInviteNoSMTP') }}
+    <div class="flex items-center justify-between gap-3 mt-2">
+      <div class="flex w-full gap-4 flex-col">
+        <template v-if="inviteData.invitationToken">
+          <div class="flex flex-col gap-3 pb-4">
+            <NcAlert
+              type="success"
+              :message="inviteUrl"
+              message-class="!text-green-700 !text-bodyDefaultSm"
+              background
+              :copy-text="inviteUrl"
+              :copy-text-toast-message="$t('msg.toast.inviteUrlCopy')"
+              class="!p-3"
+            />
+            <div class="text-xs text-nc-content-gray-muted ml-1">
+              {{ $t('msg.info.userInviteNoSMTP') }}
+            </div>
+            <div class="flex justify-end">
+              <NcButton size="small" type="secondary" @click="clickInviteMore">
+                {{ $t('activity.inviteMore') }}
+              </NcButton>
+            </div>
           </div>
-          <div class="flex justify-end">
-            <NcButton size="small" type="secondary" @click="clickInviteMore">
-              {{ $t('activity.inviteMore') }}
-            </NcButton>
-          </div>
-        </div>
-      </template>
+        </template>
 
-      <template v-else>
-        <div class="flex flex-col gap-3">
-          <div class="flex flex-row gap-3 justify-between items-center w-full">
+        <template v-else>
+          <div class="flex flex-col gap-6 md:(flex-row gap-3 justify-between) w-full">
             <div
               ref="divRef"
               :class="{
@@ -203,39 +188,50 @@ const onRoleChange = (role: string) => {
               </span>
               <input
                 ref="focusRef"
-                v-model="singleEmailValue"
+                v-model="inviteData.email"
                 inputmode="email"
+                :disabled="isLoading"
                 :placeholder="$t('activity.enterEmail')"
                 class="flex-1 md:min-w-36 outline-none px-2"
                 @blur="isDivFocused = false"
                 @keyup.enter="handleEnter"
-                @paste="onPaste"
+                @paste.prevent="onPaste"
               />
             </div>
 
-            <div class="flex items-center">
-              <RolesSelectorV2
-                v-if="hasOrgRoles"
-                :on-role-change="onRoleChange"
-                :role="usersData.role"
-                :roles="orgRoleOptions.map(r => r.value)"
-                class="!min-w-[152px] nc-invite-role-selector"
-                size="lg"
-                placement="bottomRight"
-              />
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex items-center">
+                <RolesSelectorV2
+                  v-if="hasOrgRoles"
+                  :on-role-change="onRoleChange"
+                  :role="inviteData.role"
+                  :roles="allowedRoles"
+                  class="!min-w-[152px] nc-invite-role-selector"
+                  size="lg"
+                  placement="bottomRight"
+                />
+              </div>
             </div>
           </div>
+        </template>
+      </div>
+    </div>
 
-          <div class="flex flex-row justify-end gap-2">
-            <NcButton size="small" type="secondary" @click="emit('closed')">
-              {{ $t('general.cancel') }}
-            </NcButton>
-            <NcButton size="small" type="primary" :disabled="isInviteDisabled" @click="saveUser">
-              {{ $t('activity.invite') }}
-            </NcButton>
-          </div>
-        </div>
-      </template>
+    <div v-if="!inviteData.invitationToken" class="flex mt-8 justify-end">
+      <div class="flex gap-2">
+        <NcButton type="secondary" @click="emit('closed')">
+          {{ $t('labels.cancel') }}
+        </NcButton>
+        <NcButton
+          :disabled="isInviteDisabled || isLoading"
+          :loading="isLoading"
+          size="medium"
+          type="primary"
+          @click="saveUser"
+        >
+          {{ $t('activity.invite') }}
+        </NcButton>
+      </div>
     </div>
   </NcModal>
 </template>

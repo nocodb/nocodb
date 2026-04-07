@@ -493,7 +493,7 @@ watch(inviteDlg, (newVal) => {
 
           <div class="flex items-center gap-2">
             <NcButton
-              v-if="isTeamsEnabled && !isAdminPanel && showEEFeatures"
+              v-if="isTeamsEnabled && showEEFeatures"
               v-e="['c:workspace:team-add']"
               size="small"
               type="secondary"

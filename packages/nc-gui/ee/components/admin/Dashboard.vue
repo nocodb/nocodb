@@ -62,7 +62,7 @@ onMounted(async () => {
             <div class="w-1/3 px-4 py-3">
               <div class="text-[40px] font-semibold">{{ bases.length }}</div>
               <div class="text-nc-content-gray-subtle2 mt-2">
-                Total {{ bases.length > 1 ? $t('objects.projects') : $t('labels.project') }}
+                Total {{ bases.length > 1 ? $t('objects.projects') : $t('objects.project') }}
               </div>
             </div>
           </div>

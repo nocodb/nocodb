@@ -31,10 +31,10 @@ const { isUIAllowed, workspaceRoles } = useRoles()
 
 const { showUpgradeToAddMoreTeams } = useEeConfig()
 
-const isWsOwner = computed(() => !!workspaceRoles.value?.['workspace-level-owner'])
+const isWsOwner = computed(() => isAdminPanel.value || !!workspaceRoles.value?.['workspace-level-owner'])
 
 const hasEditPermission = computed(() => {
-  return isUIAllowed('teamCreate')
+  return isAdminPanel.value || isUIAllowed('teamCreate')
 })
 
 const workspaceStore = useWorkspace()

@@ -120,7 +120,14 @@ export class UtilsController extends UtilsControllerCE {
         const host = config.connection.host;
         const port = config.connection.port;
         if (host && port) {
-          const url = `${host.includes('://') ? '' : 'http://'}${host}:${port}`;
+          // Detect IPv6 addresses (e.g. ::1, fe80::1) which contain colons
+          // but exclude full URLs (e.g. https://host) that also contain colons via '://'
+          const isIPv6 = host.includes(':') && !host.includes('://');
+          // IPv6 addresses must be wrapped in brackets for valid URL format (e.g. http://[::1]:5432)
+          const formattedHost = isIPv6 ? `[${host}]` : host;
+          const url = `${
+            host.includes('://') ? '' : 'http://'
+          }${formattedHost}:${port}`;
           await axios(url, {
             httpAgent: useAgent(url),
             httpsAgent: useAgent(url),

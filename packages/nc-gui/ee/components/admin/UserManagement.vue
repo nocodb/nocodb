@@ -282,7 +282,7 @@ watch(selected, () => {
                   color="purple"
                   class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
                 >
-                  {{ $t('objects.roleType.admin') }}
+                  {{ $t('objects.roleType.orgAdmin') }}
                 </NcBadge>
               </div>
               <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-subtle2" show-on-truncate-only>
@@ -330,9 +330,9 @@ watch(selected, () => {
               <NcSelect
                 :value="member.cloud_org_roles || EnterpriseOrgUserRoles.VIEWER"
                 :options="[
-                  { label: $t('objects.roleType.admin'), value: EnterpriseOrgUserRoles.ADMIN },
-                  { label: $t('objects.roleType.creator'), value: EnterpriseOrgUserRoles.CREATOR },
-                  { label: $t('objects.roleType.viewer'), value: EnterpriseOrgUserRoles.VIEWER },
+                  { label: $t('objects.roleType.orgAdmin'), value: EnterpriseOrgUserRoles.ADMIN },
+                  { label: $t('objects.roleType.orgCreator'), value: EnterpriseOrgUserRoles.CREATOR },
+                  { label: $t('objects.roleType.orgViewer'), value: EnterpriseOrgUserRoles.VIEWER },
                 ]"
                 :disabled="isLastAdmin(member)"
                 class="w-28"

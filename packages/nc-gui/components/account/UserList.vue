@@ -282,16 +282,16 @@ const columns = computed(() => {
               <div v-if="column.key === 'org_roles'" class="flex items-center">
                 <template v-if="el.roles?.includes('super') || el.org_roles === EnterpriseOrgUserRoles.ADMIN">
                   <NcBadge :border="false" color="purple" class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none">
-                    {{ $t('objects.roleType.admin') }}
+                    {{ $t('objects.roleType.orgAdmin') }}
                   </NcBadge>
                 </template>
                 <NcSelect
                   v-else
                   :value="el.org_roles || EnterpriseOrgUserRoles.VIEWER"
                   :options="[
-                    { label: $t('objects.roleType.admin'), value: EnterpriseOrgUserRoles.ADMIN },
-                    { label: $t('objects.roleType.creator'), value: EnterpriseOrgUserRoles.CREATOR },
-                    { label: $t('objects.roleType.viewer'), value: EnterpriseOrgUserRoles.VIEWER },
+                    { label: $t('objects.roleType.orgAdmin'), value: EnterpriseOrgUserRoles.ADMIN },
+                    { label: $t('objects.roleType.orgCreator'), value: EnterpriseOrgUserRoles.CREATOR },
+                    { label: $t('objects.roleType.orgViewer'), value: EnterpriseOrgUserRoles.VIEWER },
                   ]"
                   class="w-32"
                   size="small"

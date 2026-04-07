@@ -371,9 +371,9 @@ export const RoleLabels = {
   [OrgUserRoles.SUPER_ADMIN]: 'superAdmin',
   [OrgUserRoles.CREATOR]: 'creator',
   [OrgUserRoles.VIEWER]: 'viewer',
-  [CloudOrgUserRoles.OWNER]: 'admin',
-  [CloudOrgUserRoles.CREATOR]: 'creator',
-  [CloudOrgUserRoles.VIEWER]: 'viewer',
+  [CloudOrgUserRoles.OWNER]: 'orgAdmin',
+  [CloudOrgUserRoles.CREATOR]: 'orgCreator',
+  [CloudOrgUserRoles.VIEWER]: 'orgViewer',
 };
 
 export const RoleColors = {
@@ -453,7 +453,7 @@ export const RoleIcons = {
   [OrgUserRoles.CREATOR]: 'role_creator',
   [OrgUserRoles.VIEWER]: 'role_viewer',
 
-  [CloudOrgUserRoles.OWNER]: 'role_admin',
+  [CloudOrgUserRoles.OWNER]: 'role_owner',
   [CloudOrgUserRoles.CREATOR]: 'role_creator',
   [CloudOrgUserRoles.VIEWER]: 'role_viewer',
 };

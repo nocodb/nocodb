@@ -349,10 +349,17 @@ const isAddingMembers = ref(false)
 
 const loadOrgUsers = async () => {
   try {
-    const response = await $api.instance.get(`/api/v2/orgs/${orgId.value}/users`)
-    // Response is an array directly
-    const data = response.data
-    orgUsers.value = Array.isArray(data) ? data : data?.list || data?.users || []
+    // Try org users endpoint first, fall back to CE user list
+    let data: any[]
+    try {
+      const response = await $api.instance.get(`/api/v2/orgs/${orgId.value}/users`)
+      const raw = response.data
+      data = Array.isArray(raw) ? raw : raw?.list || raw?.users || []
+    } catch {
+      const response = await $api.orgUsers.list({ query: { limit: 1000 } } as any)
+      data = (response as any)?.list || []
+    }
+    orgUsers.value = data
   } catch (_e) {
     orgUsers.value = []
   }
@@ -439,11 +446,12 @@ const handleRemoveMember = async (userId: string) => {
   }
 }
 
-// Build user map for Creator column
+// Build user map for Creator column — key by both id and fk_user_id
 const collaboratorsMap = computed<Record<string, any>>(() => {
   const map: Record<string, any> = {}
   for (const u of orgUsers.value) {
-    map[u.id] = u
+    if (u.id) map[u.id] = u
+    if (u.fk_user_id) map[u.fk_user_id] = u
   }
   return map
 })

@@ -1113,7 +1113,7 @@ export class MetaDiffsService {
         );
         if (
           colOpt &&
-          colOpt.type === RelationTypes.MANY_TO_MANY &&
+          isMMOrMMLike(col) &&
           colOpt.fk_mm_model_id === assocModel.id &&
           colOpt.fk_child_column_id === colChildOpt.fk_parent_column_id &&
           colOpt.fk_mm_child_column_id === colChildOpt.fk_child_column_id

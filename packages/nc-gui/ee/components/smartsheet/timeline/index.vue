@@ -204,10 +204,7 @@ const groupColWidth = computed(() => {
 const groupByFieldLabel = computed(() => {
   if (!groupBy.value?.length) return ''
   if (groupBy.value.length > 1) return t('msg.timelineGroupByFields', { count: groupBy.value.length })
-  const colId = groupBy.value[0]?.fk_column_id
-  if (!colId) return ''
-  const col = meta.value?.columns?.find((c) => c.id === colId)
-  return col?.title || ''
+  return groupBy.value[0]?.column?.title || ''
 })
 
 // #18: Reactive today

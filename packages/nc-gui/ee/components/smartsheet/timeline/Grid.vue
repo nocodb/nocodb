@@ -736,7 +736,7 @@ const getLaneIndexFromEvent = (event: MouseEvent): number => {
 }
 
 const onGridBodyMouseDown = (event: MouseEvent) => {
-  if (!canDrag.value) return
+  if (!isUIAllowed('dataEdit')) return
   if (!gridBodyRef.value) return
   // Only left mouse button
   if (event.button !== 0) return

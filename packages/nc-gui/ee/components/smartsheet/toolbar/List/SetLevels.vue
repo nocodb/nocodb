@@ -255,7 +255,7 @@ watch(
 
         <!-- Compact level rows -->
         <div class="flex flex-col gap-1.5">
-          <template v-for="(arrIdx, _displayIdx) in displayOrder" :key="arrIdx">
+          <template v-for="arrIdx in displayOrder" :key="arrIdx">
             <div
               class="nc-level-row flex items-center gap-2 rounded-lg px-2 py-1.5"
               :class="arrIdx === 0 ? 'bg-nc-bg-gray-light' : 'hover:bg-nc-bg-gray-light'"

@@ -10,7 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import type {
+import {
   ApiTokensV3CreateRequest,
   ApiTokensV3UpdateRequest,
 } from '~/services/v3/api-tokens-v3.type';

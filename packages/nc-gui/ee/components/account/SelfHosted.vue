@@ -80,8 +80,6 @@ const statusLabel = (status: string) => {
   }
 }
 
-const statusClassNormalized = (status: string) => statusClass(status?.toUpperCase())
-
 const statusClass = (status: string) => {
   switch (status) {
     case 'ACTIVE':
@@ -94,6 +92,8 @@ const statusClass = (status: string) => {
       return 'bg-nc-bg-gray-light text-nc-content-gray border-nc-border-gray-medium'
   }
 }
+
+const statusClassNormalized = (status: string) => statusClass(status?.toUpperCase())
 
 const maskKey = (key: string) => {
   if (!key) return ''
@@ -164,11 +164,6 @@ const initCheckout = async (planId: string, priceId: string, quantity: number = 
   }
 }
 
-const backToPlanSelect = async () => {
-  await destroyCheckout()
-  viewState.value = 'plan-select'
-}
-
 const destroyCheckout = async () => {
   if (!checkoutRef.value) return
 
@@ -181,6 +176,11 @@ const destroyCheckout = async () => {
   } catch {
     checkoutRef.value = null
   }
+}
+
+const backToPlanSelect = async () => {
+  await destroyCheckout()
+  viewState.value = 'plan-select'
 }
 
 const handleAfterPayment = async () => {

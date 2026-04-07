@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes } from 'nocodb-sdk'
 
 interface Props {
   visible?: boolean
@@ -31,21 +30,9 @@ const isConverting = ref(false)
 
 const colOptions = computed(() => props.column?.colOptions as LinkToAnotherRecordType | undefined)
 
-const isMM = computed(() => colOptions.value?.type === RelationTypes.MANY_TO_MANY)
-
 // Links columns (showing count) need a Rollup + new LTAR on conversion
 // LinkToAnotherRecord (LTAR v1) columns upgrade in-place — no rollup
 const isLinksColumn = computed(() => (props.column ? isLink(props.column) : false))
-
-const isParentSide = computed(() => {
-  if (!colOptions.value?.type) return false
-  return (
-    colOptions.value.type === RelationTypes.HAS_MANY ||
-    colOptions.value.type === RelationTypes.MANY_TO_MANY ||
-    colOptions.value.type === RelationTypes.ONE_TO_MANY ||
-    (colOptions.value.type === RelationTypes.ONE_TO_ONE && !props.column?.meta?.bt)
-  )
-})
 
 async function handleConvert() {
   if (!props.column?.id || !meta.value) return

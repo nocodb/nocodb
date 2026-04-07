@@ -38,8 +38,6 @@ const { disabled, removeClick } = toRefs(props)
 
 const planUpgraderClick = inject(PlanUpgraderClickHookInj, createEventHook())
 
-const { appInfo } = useGlobal()
-
 const { handleUpgradePlan, getFeature, getPlanTitle, isPaymentEnabled, isOnPrem, isEEFeatureBlocked } = useEeConfig()
 
 const isFeatureEnabled = computed(() => {

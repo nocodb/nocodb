@@ -1,9 +1,9 @@
 import crypto from 'crypto';
 import { nanoid } from 'nanoid';
 import { API_TOKEN_PREFIX } from 'nocodb-sdk';
-import type { ApiTokenPermissionsJson, ApiTokenScopeEntry } from 'nocodb-sdk';
 import ApiTokenCE from 'src/models/ApiToken';
 import ApiTokenScope from './ApiTokenScope';
+import type { ApiTokenPermissionsJson, ApiTokenScopeEntry } from 'nocodb-sdk';
 import SSOClient from '~/models/SSOClient';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -149,11 +149,7 @@ export default class ApiToken extends ApiTokenCE {
       );
 
       if (data) {
-        await NocoCache.set(
-          'root',
-          `${CacheScope.API_TOKEN}:${hash}`,
-          data,
-        );
+        await NocoCache.set('root', `${CacheScope.API_TOKEN}:${hash}`, data);
       }
     }
 
@@ -166,10 +162,7 @@ export default class ApiToken extends ApiTokenCE {
    */
   static async getByToken(token: string, ncMeta = Noco.ncMeta) {
     if (token && token.startsWith(API_TOKEN_PREFIX)) {
-      const hash = crypto
-        .createHash('sha256')
-        .update(token)
-        .digest('hex');
+      const hash = crypto.createHash('sha256').update(token).digest('hex');
       return this.getByTokenHash(hash, ncMeta);
     }
 
@@ -283,10 +276,7 @@ export default class ApiToken extends ApiTokenCE {
       );
     }
     if (tokenData?.token) {
-      await NocoCache.del(
-        'root',
-        `${CacheScope.API_TOKEN}:${tokenData.token}`,
-      );
+      await NocoCache.del('root', `${CacheScope.API_TOKEN}:${tokenData.token}`);
     }
 
     return this.get(tokenId, ncMeta);

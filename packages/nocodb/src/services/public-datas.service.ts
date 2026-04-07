@@ -7,19 +7,11 @@ import {
   ViewTypes,
 } from 'nocodb-sdk';
 import type { NcRequest } from 'nocodb-sdk';
-import type { LinkToAnotherRecordColumn } from '~/models';
+import type { GridViewColumn, LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { DependantFields } from '~/helpers/getAst';
 import { nocoExecute } from '~/utils';
-import {
-  Base,
-  Column,
-  FormView,
-  GridViewColumn,
-  Model,
-  Source,
-  View,
-} from '~/models';
+import { Base, Column, FormView, Model, Source, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';

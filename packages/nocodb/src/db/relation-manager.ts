@@ -298,19 +298,26 @@ export class RelationManager {
       vParentCol: Column;
       filterColName: string;
       filterSubquery: Knex.QueryBuilder;
-      execQb?: (qb: Knex.QueryBuilder | string, opts?: { first?: boolean }) => Promise<any>;
+      execQb?: (
+        qb: Knex.QueryBuilder | string,
+        opts?: { first?: boolean },
+      ) => Promise<any>;
     },
   ): Promise<Array<{ childFk: any; parentFk: any }>> {
-    const { vTn, vChildCol, vParentCol, filterColName, filterSubquery, execQb } =
-      params;
+    const {
+      vTn,
+      vChildCol,
+      vParentCol,
+      filterColName,
+      filterSubquery,
+      execQb,
+    } = params;
 
     // 1. SELECT existing junction rows (just FK columns)
     const selectQb = trx(vTn)
       .select(vChildCol.column_name, vParentCol.column_name)
       .where(filterColName, filterSubquery);
-    const existingRows = execQb
-      ? await execQb(selectQb)
-      : await selectQb;
+    const existingRows = execQb ? await execQb(selectQb) : await selectQb;
 
     if (existingRows.length === 0) {
       return [];

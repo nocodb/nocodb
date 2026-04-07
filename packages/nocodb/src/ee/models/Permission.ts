@@ -1,5 +1,4 @@
 import {
-  DOCUMENT_PERMISSION_KEYS,
   getPermissionOptionValue,
   isMoreRestrictive,
   parseProp,

@@ -706,6 +706,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       })
     }
 
+    const { addLTARRef, removeLTARRef, currentRow: rowStoreCurrentRow } = useSmartsheetRowStoreOrThrow()
+
     const unlink = async (
       row: Record<string, any>,
       { metaValue = meta.value }: { metaValue?: TableType } = {},
@@ -785,8 +787,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
       $e('a:links:unlink')
     }
-
-    const { addLTARRef, removeLTARRef, currentRow: rowStoreCurrentRow } = useSmartsheetRowStoreOrThrow()
 
     const link = async (
       row: Record<string, any>,

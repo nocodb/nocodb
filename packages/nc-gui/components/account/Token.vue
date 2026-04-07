@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ApiTokenType, RequestParams } from 'nocodb-sdk'
 
-const { api, isLoading } = useApi()
+const { api } = useApi()
 const { $e } = useNuxtApp()
 const { copy } = useCopy()
 const { t } = useI18n()

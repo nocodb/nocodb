@@ -60,6 +60,10 @@ const inviteUserToWorkspace = (email: string) => {
 
 const { $api } = useNuxtApp()
 
+const orgAllowedRoles = computed(() => {
+  return [EnterpriseOrgUserRoles.VIEWER, EnterpriseOrgUserRoles.CREATOR]
+})
+
 const isLastAdmin = (member: any) => {
   if (member.cloud_org_roles !== EnterpriseOrgUserRoles.ADMIN) return false
   const adminCount = members.value.filter((m: any) => m.cloud_org_roles === EnterpriseOrgUserRoles.ADMIN).length
@@ -85,6 +89,10 @@ const updateOrgRole = async (member: any, newRole: string) => {
     }
     message.error(await extractSdkResponseErrorMsg(e))
   }
+}
+
+const onOrgRoleChange = (member: any) => async (role: string) => {
+  await updateOrgRole(member, role)
 }
 
 const orderBy = computed<Record<string, SordDirectionType>>({
@@ -326,21 +334,19 @@ watch(selected, () => {
             </NcDropdown>
           </div>
           <div v-if="column.key === 'org_role'" class="flex items-center">
-            <NcTooltip :disabled="!isLastAdmin(member)" :title="$t('msg.info.lastOrgAdmin')">
-              <NcSelect
-                :value="member.cloud_org_roles || EnterpriseOrgUserRoles.VIEWER"
-                :options="[
-                  { label: $t('objects.roleType.orgAdmin'), value: EnterpriseOrgUserRoles.ADMIN },
-                  { label: $t('objects.roleType.orgCreator'), value: EnterpriseOrgUserRoles.CREATOR },
-                  { label: $t('objects.roleType.orgViewer'), value: EnterpriseOrgUserRoles.VIEWER },
-                ]"
-                :disabled="isLastAdmin(member)"
-                class="w-28"
-                size="small"
-                data-testid="nc-cloud-org-role-select"
-                @change="updateOrgRole(member, $event)"
-              />
-            </NcTooltip>
+            <template v-if="member.cloud_org_roles === EnterpriseOrgUserRoles.ADMIN">
+              <NcBadge :border="false" color="purple" class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none">
+                {{ $t('objects.roleType.orgAdmin') }}
+              </NcBadge>
+            </template>
+            <RolesSelectorV2
+              v-else
+              :on-role-change="onOrgRoleChange(member)"
+              :role="member.cloud_org_roles || EnterpriseOrgUserRoles.VIEWER"
+              :roles="orgAllowedRoles"
+              class="cursor-pointer"
+              data-testid="nc-cloud-org-role-select"
+            />
           </div>
           <div v-if="column.key === 'dateAdded'">
             <NcTooltip class="max-w-full">

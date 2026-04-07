@@ -148,7 +148,7 @@ const onRoleChange = (role: string) => {
   >
     <template #header>
       <div class="flex flex-row text-2xl font-bold items-center gap-x-2">
-        {{ $t('activity.inviteUser') }}
+        {{ hasOrgRoles ? $t('activity.inviteToOrg') : $t('activity.inviteUser') }}
       </div>
     </template>
 
@@ -176,16 +176,15 @@ const onRoleChange = (role: string) => {
       </template>
 
       <template v-else>
-        <div class="flex flex-col gap-4">
-          <div class="flex gap-3 items-start">
-            <!-- Email input with badges -->
+        <div class="flex flex-col gap-6 md:(gap-3)">
+          <div class="flex flex-col gap-6 md:(flex-row gap-3 justify-between) w-full">
             <div
               ref="divRef"
               :class="{
                 'border-primary/100 shadow-selected': isDivFocused,
                 'p-1': emailBadges.length > 0,
               }"
-              class="flex items-center flex-wrap border-1 gap-1 w-full overflow-x-auto nc-scrollbar-x-md min-h-10 rounded-lg flex-1"
+              class="flex items-center flex-wrap border-1 gap-1 w-full overflow-x-scroll nc-scrollbar-x-md min-h-10 rounded-lg md:!min-w-96"
               tabindex="0"
               @blur="isDivFocused = false"
               @click="focusOnDiv"
@@ -198,7 +197,7 @@ const onRoleChange = (role: string) => {
                 {{ email }}
                 <component
                   :is="iconMap.close"
-                  class="ml-0.5 hover:cursor-pointer w-4 h-4 text-nc-content-gray-subtle2"
+                  class="ml-0.5 hover:(cursor-pointer text-nc-content-gray-subtle) mt-0.5 w-4 h-4 text-nc-content-gray-subtle2"
                   @click="removeEmail(index)"
                 />
               </span>
@@ -207,31 +206,27 @@ const onRoleChange = (role: string) => {
                 v-model="singleEmailValue"
                 inputmode="email"
                 :placeholder="$t('activity.enterEmail')"
-                class="flex-1 min-w-36 outline-none px-2"
+                class="flex-1 md:min-w-36 outline-none px-2"
                 @blur="isDivFocused = false"
                 @keyup.enter="handleEnter"
                 @paste="onPaste"
               />
             </div>
 
-            <!-- Role selector -->
-            <NcSelect
-              v-if="hasOrgRoles"
-              :value="usersData.role"
-              class="!min-w-[140px]"
-              @update:value="onRoleChange"
-            >
-              <a-select-option
-                v-for="opt in orgRoleOptions"
-                :key="opt.value"
-                :value="opt.value"
-              >
-                {{ opt.label }}
-              </a-select-option>
-            </NcSelect>
+            <div class="flex items-center">
+              <RolesSelectorV2
+                v-if="hasOrgRoles"
+                :on-role-change="onRoleChange"
+                :role="usersData.role"
+                :roles="orgRoleOptions.map(r => r.value)"
+                class="!min-w-[152px] nc-invite-role-selector"
+                size="lg"
+                placement="bottomRight"
+              />
+            </div>
           </div>
 
-          <div class="flex justify-end gap-2">
+          <div class="flex flex-row justify-end gap-2">
             <NcButton size="small" type="secondary" @click="emit('closed')">
               {{ $t('general.cancel') }}
             </NcButton>

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
 
 const props = defineProps<{
@@ -24,6 +24,8 @@ const emit = defineEmits<{
 }>()
 
 const { isUIAllowed } = useRoles()
+
+const { isAllowed } = usePermissions()
 
 const { $e } = useNuxtApp()
 
@@ -217,8 +219,8 @@ const onResizeEnd = () => {
 }
 
 const onResizeStart = (direction: 'left' | 'right', event: MouseEvent, record: RowType) => {
-  if (!isUIAllowed('dataEdit')) return
-  if (record.rowMeta?.range?.is_readonly) return
+  if (direction === 'left' && !canResizeLeft.value) return
+  if (direction === 'right' && !canResizeRight.value) return
 
   resizeInProgress.value = true
   resizeDirection.value = direction
@@ -301,8 +303,7 @@ const onDragEnd = () => {
 }
 
 const onDragStart = (event: MouseEvent, record: RowType) => {
-  if (!isUIAllowed('dataEdit')) return
-  if (record.rowMeta?.range?.is_readonly) return
+  if (!canDrag.value) return
 
   // Use a short hold delay (200ms) to distinguish drag from click
   const startDayIdx = getDayIndexFromEvent(event)
@@ -517,10 +518,44 @@ const getBarStyle = (row: RowType) => {
   }
 }
 
-// Check if editing is allowed and range is not readonly
-const canResize = computed(() => {
+// Check if editing is allowed and range is not readonly (system column type)
+const isRangeEditable = computed(() => {
   return isUIAllowed('dataEdit') && !props.timelineRange[0]?.is_readonly
 })
+
+// Field-level edit permission for start date column
+const canEditFromCol = computed(() => {
+  const col = props.timelineRange[0]?.fk_from_col
+  if (!col?.id) return true
+  return isAllowed(PermissionEntity.FIELD, col.id, PermissionKey.RECORD_FIELD_EDIT)
+})
+
+// Field-level edit permission for end date column
+const canEditToCol = computed(() => {
+  const col = props.timelineRange[0]?.fk_to_col
+  if (!col?.id) return true
+  return isAllowed(PermissionEntity.FIELD, col.id, PermissionKey.RECORD_FIELD_EDIT)
+})
+
+// Can drag (move) a bar — requires edit permission on ALL date columns used
+const canDrag = computed(() => {
+  if (!isRangeEditable.value) return false
+  if (!canEditFromCol.value) return false
+  if (props.timelineRange[0]?.fk_to_col && !canEditToCol.value) return false
+  return true
+})
+
+// Can resize left handle (start date)
+const canResizeLeft = computed(() => isRangeEditable.value && canEditFromCol.value)
+
+// Can resize right handle (end date)
+const canResizeRight = computed(() => {
+  if (!isRangeEditable.value) return false
+  return props.timelineRange[0]?.fk_to_col ? canEditToCol.value : canEditFromCol.value
+})
+
+// Legacy: can resize at all (used for cursor classes)
+const canResize = computed(() => canResizeLeft.value || canResizeRight.value)
 
 // #11: Build tooltip text for a record bar — improved format with em-dash and year
 const getBarTooltip = (row: RowType) => {
@@ -701,7 +736,7 @@ const getLaneIndexFromEvent = (event: MouseEvent): number => {
 }
 
 const onGridBodyMouseDown = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit')) return
+  if (!canDrag.value) return
   if (!gridBodyRef.value) return
   // Only left mouse button
   if (event.button !== 0) return
@@ -939,9 +974,9 @@ const onGridMouseLeave = () => {
               <div
                 class="nc-timeline-bar border-1 flex items-center text-xs font-normal transition-shadow select-none group w-full relative overflow-hidden"
                 :class="{
-                  'cursor-pointer hover:shadow-md': !isInteracting,
-                  'cursor-grabbing': dragInProgress && dragRecord === record,
-                  'cursor-grab': !isInteracting && canResize,
+                  'cursor-grabbing': dragInProgress && dragRecord === record && canDrag,
+                  'cursor-grab': !isInteracting && canDrag,
+                  'cursor-pointer hover:shadow-md': !isInteracting && !canDrag,
                   'pointer-events-none opacity-30': isInteracting && interactionRecord !== record,
                   'z-100 shadow-lg': isInteracting && interactionRecord === record,
                   'bg-nc-bg-default border-nc-border-gray-dark text-nc-content-gray':
@@ -975,7 +1010,7 @@ const onGridMouseLeave = () => {
                 />
                 <!-- Left resize handle (start date) — offset past the accent -->
                 <div
-                  v-if="canResize"
+                  v-if="canResizeLeft"
                   class="nc-timeline-resize-handle nc-timeline-resize-handle--left absolute left-0 top-0 w-3 h-full z-10 flex items-center justify-center"
                   @mousedown.stop="onResizeStart('left', $event, record)"
                 >
@@ -1020,7 +1055,7 @@ const onGridMouseLeave = () => {
 
                 <!-- Right resize handle (end date) — only when end date column exists -->
                 <div
-                  v-if="canResize && timelineRange[0]?.fk_to_col"
+                  v-if="canResizeRight && timelineRange[0]?.fk_to_col"
                   class="nc-timeline-resize-handle nc-timeline-resize-handle--right absolute right-0 top-0 w-3 h-full z-10 flex items-center justify-center"
                   @mousedown.stop="onResizeStart('right', $event, record)"
                 >

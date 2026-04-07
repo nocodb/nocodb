@@ -535,7 +535,11 @@ const recordCountLabel = computed(() => {
       </template>
 
       <!-- Floating new record button -->
-      <NcTooltip v-if="timelineRange?.length && !isPublic" class="!absolute bottom-3 left-3 z-20">
+      <NcTooltip
+        v-if="timelineRange?.length && !isPublic"
+        class="!absolute left-3 z-20"
+        :class="isGroupBy ? 'bottom-13' : 'bottom-3'"
+      >
         <template #title>{{ $t('activity.newRecord') }}</template>
         <NcButton
           v-e="['c:timeline:new-record-btn']"

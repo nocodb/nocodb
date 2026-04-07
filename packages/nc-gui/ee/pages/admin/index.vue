@@ -26,6 +26,7 @@ type AdminTab =
   | 'setup'
   | 'external-integrations'
   | 'authentication'
+  | 'teams'
   | 'license'
   | 'users-list'
   | 'settings'
@@ -37,6 +38,7 @@ const validTabs: AdminTab[] = [
   'setup',
   'external-integrations',
   'authentication',
+  'teams',
   'license',
   'users-list',
   'settings',
@@ -179,6 +181,19 @@ watch(
               </div>
             </NcMenuItem>
 
+            <NcMenuItem
+              v-if="appInfo.ee"
+              key="teams"
+              :class="{ active: activeTab === 'teams' }"
+              class="item"
+              @click="activeTab = 'teams'"
+            >
+              <div class="flex items-center space-x-2">
+                <GeneralIcon icon="ncBuilding" class="!h-4 !w-4" />
+                <div class="select-none">{{ $t('title.teams') }}</div>
+              </div>
+            </NcMenuItem>
+
             <!-- Configuration -->
             <NcMenuItem
               v-if="isSetupPageAllowed"
@@ -246,6 +261,7 @@ watch(
               <AccountSetup v-else-if="activeTab === 'setup'" />
               <AccountExternalIntegrations v-else-if="activeTab === 'external-integrations'" />
               <AccountAuthentication v-else-if="activeTab === 'authentication'" />
+              <AccountTeams v-else-if="activeTab === 'teams'" />
               <AccountLicense v-else-if="activeTab === 'license'" />
               <AccountUserList v-else-if="activeTab === 'users-list'" />
               <AccountSignupSettings v-else-if="activeTab === 'settings'" />

@@ -176,8 +176,8 @@ const onRoleChange = (role: string) => {
       </template>
 
       <template v-else>
-        <div class="flex flex-col gap-6 md:(gap-3)">
-          <div class="flex flex-col gap-6 md:(flex-row gap-3 justify-between) w-full">
+        <div class="flex flex-col gap-3">
+          <div class="flex flex-row gap-3 justify-between items-center w-full">
             <div
               ref="divRef"
               :class="{

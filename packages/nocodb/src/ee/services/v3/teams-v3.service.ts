@@ -1305,11 +1305,12 @@ export class TeamsV3Service {
         );
       }
 
-      // If removing the last manager, prevent it
-      if (assignment!.roles === TeamUserRoles.OWNER) {
+      // Workspace teams: prevent removing the last manager
+      // Org teams: no team-owner concept, skip this check
+      if (!isOrgTeam && assignment!.roles === TeamUserRoles.OWNER) {
         if (managersCount === 1) {
           NcError.get(context).invalidRequestBody(
-            'Cannot remove the last manager',
+            'Cannot remove the last member',
           );
         }
         managersCount--;

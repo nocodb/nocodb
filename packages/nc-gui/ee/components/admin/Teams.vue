@@ -1013,14 +1013,16 @@ onMounted(() => {
                     <NcUserInfo :user="{ email: member.user_email, display_name: member.user_display_name }" class="flex-1 min-w-0" />
 
                     <div class="w-24 flex justify-end">
-                      <NcButton
-                        size="small"
-                        type="secondary"
-                        class="md:invisible group-hover:visible !text-red-500"
-                        @click="handleRemoveMember(member.user_id)"
-                      >
-                        <GeneralIcon icon="ncXSquare" class="h-4 w-4" />
-                      </NcButton>
+                      <NcTooltip :title="$t('activity.removeFromOrgTeam')">
+                        <NcButton
+                          size="small"
+                          type="secondary"
+                          class="md:invisible group-hover:visible !text-red-500"
+                          @click="handleRemoveMember(member.user_id)"
+                        >
+                          <GeneralIcon icon="ncXSquare" class="h-4 w-4" />
+                        </NcButton>
+                      </NcTooltip>
                     </div>
                   </div>
                 </div>

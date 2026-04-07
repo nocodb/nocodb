@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import { OrgUsersService as OrgUsersServiceCE } from 'src/services/org-users.service';
-import { MetaTable, NC_DEFAULT_ORG_ID } from '~/utils/globals';
+import { MetaTable, NC_DEFAULT_ORG_ID, PrincipalType, ResourceType } from '~/utils/globals';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
 import { PresignedUrl } from '~/models';
 import OrgUser from '~/ee/models/OrgUser';
 import WorkspaceUser from '~/ee/models/WorkspaceUser';
+import { Team } from '~/ee/models';
+import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
 
 @Injectable()
 export class OrgUsersService extends OrgUsersServiceCE {
@@ -271,6 +273,62 @@ export class OrgUsersService extends OrgUsersServiceCE {
 
     for (const ws of orgWorkspaces) {
       await WorkspaceUser.softDelete(ws.id, param.userId, ncMeta);
+
+      // Remove from all teams in this workspace
+      const wsTeams = await Team.list(
+        { workspace_id: ws.id, base_id: null },
+        { fk_workspace_id: ws.id },
+        ncMeta,
+      );
+
+      for (const team of wsTeams) {
+        const assignment = await PrincipalAssignment.get(
+          { workspace_id: ws.id, base_id: null },
+          ResourceType.TEAM,
+          team.id,
+          PrincipalType.USER,
+          param.userId,
+          ncMeta,
+        );
+        if (assignment) {
+          await PrincipalAssignment.delete(
+            { workspace_id: ws.id, base_id: null },
+            ResourceType.TEAM,
+            team.id,
+            PrincipalType.USER,
+            param.userId,
+            ncMeta,
+          );
+        }
+      }
+    }
+
+    // Remove from org-level teams
+    const orgTeams = await Team.list(
+      { workspace_id: null, base_id: null },
+      { fk_org_id: orgId },
+      ncMeta,
+    );
+
+    for (const team of orgTeams) {
+      const assignment = await PrincipalAssignment.get(
+        { workspace_id: null, base_id: null },
+        ResourceType.TEAM,
+        team.id,
+        PrincipalType.USER,
+        param.userId,
+        ncMeta,
+      );
+      if (assignment) {
+        await PrincipalAssignment.delete(
+          { workspace_id: null, base_id: null },
+          ResourceType.TEAM,
+          team.id,
+          PrincipalType.USER,
+          param.userId,
+          ncMeta,
+        );
+      }
     }
   }
 }

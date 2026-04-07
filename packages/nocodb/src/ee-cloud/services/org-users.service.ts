@@ -5,8 +5,10 @@ import type { OrgUserReqType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import { OrgUser, PresignedUrl, User, Workspace } from '~/models';
 import WorkspaceUser from '~/ee/models/WorkspaceUser';
+import { Team } from '~/ee/models';
+import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
 import Noco from '~/Noco';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
 
 @Injectable()
 export class OrgUsersService {
@@ -108,6 +110,62 @@ export class OrgUsersService {
 
     for (const ws of orgWorkspaces) {
       await WorkspaceUser.softDelete(ws.id, param.userId, ncMeta);
+
+      // Remove from all teams in this workspace
+      const wsTeams = await Team.list(
+        { workspace_id: ws.id, base_id: null },
+        { fk_workspace_id: ws.id },
+        ncMeta,
+      );
+
+      for (const team of wsTeams) {
+        const assignment = await PrincipalAssignment.get(
+          { workspace_id: ws.id, base_id: null },
+          ResourceType.TEAM,
+          team.id,
+          PrincipalType.USER,
+          param.userId,
+          ncMeta,
+        );
+        if (assignment) {
+          await PrincipalAssignment.delete(
+            { workspace_id: ws.id, base_id: null },
+            ResourceType.TEAM,
+            team.id,
+            PrincipalType.USER,
+            param.userId,
+            ncMeta,
+          );
+        }
+      }
+    }
+
+    // Remove from org-level teams
+    const orgTeams = await Team.list(
+      { workspace_id: null, base_id: null },
+      { fk_org_id: param.orgId },
+      ncMeta,
+    );
+
+    for (const team of orgTeams) {
+      const assignment = await PrincipalAssignment.get(
+        { workspace_id: null, base_id: null },
+        ResourceType.TEAM,
+        team.id,
+        PrincipalType.USER,
+        param.userId,
+        ncMeta,
+      );
+      if (assignment) {
+        await PrincipalAssignment.delete(
+          { workspace_id: null, base_id: null },
+          ResourceType.TEAM,
+          team.id,
+          PrincipalType.USER,
+          param.userId,
+          ncMeta,
+        );
+      }
     }
 
     return { msg: 'User removed from organization' };

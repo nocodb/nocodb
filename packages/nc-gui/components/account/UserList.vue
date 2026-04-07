@@ -86,7 +86,12 @@ const deleteModalInfo = ref<UserType | null>(null)
 
 const deleteUser = async () => {
   try {
-    await api.orgUsers.delete(deleteModalInfo.value?.id as string)
+    if (hasOrgRoles.value) {
+      const orgId = appInfo.value?.defaultOrgId || NC_DEFAULT_ORG_ID
+      await api.instance.delete(`/api/v1/orgs/${orgId}/users/${deleteModalInfo.value?.id}`)
+    } else {
+      await api.orgUsers.delete(deleteModalInfo.value?.id as string)
+    }
     message.success(t('msg.success.userDeleted'))
 
     await loadUsers()

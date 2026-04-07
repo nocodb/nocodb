@@ -3,6 +3,10 @@ import { EnterpriseOrgUserRoles } from 'nocodb-sdk'
 
 const { t } = useI18n()
 
+const { $api } = useNuxtApp()
+
+const { showInfoModal } = useNcConfirmModal()
+
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateSort } = useUserSorts('Organization')
 
 const { org } = storeToRefs(useOrg())
@@ -58,8 +62,6 @@ const inviteUserToWorkspace = (email: string) => {
   bulkAddMemberDlg.value = true
 }
 
-const { $api } = useNuxtApp()
-
 const orgAllowedRoles = computed(() => {
   return [EnterpriseOrgUserRoles.VIEWER, EnterpriseOrgUserRoles.CREATOR]
 })
@@ -93,6 +95,26 @@ const updateOrgRole = async (member: any, newRole: string) => {
 
 const onOrgRoleChange = (member: any) => async (role: string) => {
   await updateOrgRole(member, role)
+}
+
+const removeOrgMember = (member: any) => {
+  showInfoModal({
+    title: t('title.confirmRemoveMemberFromOrgTitle'),
+    content: t('title.confirmRemoveMemberFromOrgSubtitle'),
+    showCancelBtn: true,
+    showIcon: false,
+    okProps: { type: 'danger' },
+    okText: t('general.remove'),
+    okCallback: async () => {
+      try {
+        await $api.instance.delete(`/api/v2/orgs/${org.value?.id}/user/${member.id}`)
+        message.success(t('msg.success.memberRemovedFromOrg'))
+        await fetchOrganizationMembers()
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
+    },
+  })
 }
 
 const orderBy = computed<Record<string, SordDirectionType>>({
@@ -381,17 +403,14 @@ watch(selected, () => {
                     <span>{{ $t('activity.inviteToWorkspace') }}</span>
                   </NcMenuItem>
 
-                  <!-- <NcMenuItem data-testid="nc-admin-org-user-delete">
-                    <GeneralIcon icon="signout" />
-                    <span>{{ $t('labels.signOutUser') }}</span>
-                  </NcMenuItem>
+                  <template v-if="member.cloud_org_roles !== EnterpriseOrgUserRoles.ADMIN">
+                    <NcDivider />
 
-                  <NcDivider />
-
-                  <NcMenuItem danger data-testid="nc-admin-org-user-delete">
-                    <GeneralIcon icon="delete" />
-                    {{ $t('labels.deactivateUser') }}
-                  </NcMenuItem> -->
+                    <NcMenuItem danger data-testid="nc-admin-org-user-remove" @click="removeOrgMember(member)">
+                      <GeneralIcon icon="delete" />
+                      {{ $t('activity.removeMember') }}
+                    </NcMenuItem>
+                  </template>
                 </NcMenu>
               </template>
             </NcDropdown>

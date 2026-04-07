@@ -262,14 +262,21 @@ const isHideEmptyGroupsLoading = ref(false)
 const updateHideEmptyGroups = async (v: boolean) => {
   if (!view.value?.id) return
 
+  const previousValue = hideEmptyGroups.value
+
   hideEmptyGroups.value = v
 
-  const currentMeta = parseProp((view.value?.view as GridType)?.meta)
-  const payload = { ...currentMeta, hide_empty_groups: v }
+  try {
+    const currentMeta = parseProp((view.value?.view as GridType)?.meta)
+    const payload = { ...currentMeta, hide_empty_groups: v }
 
-  await updateViewMeta(view.value.id, ViewTypes.GRID, { meta: payload })
+    await updateViewMeta(view.value.id, ViewTypes.GRID, { meta: payload })
 
-  eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
+    eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
+  } catch (e) {
+    hideEmptyGroups.value = previousValue
+    message.error('There was an error while updating view!')
+  }
 }
 
 const hideEmptyGroupsToggle = computed({

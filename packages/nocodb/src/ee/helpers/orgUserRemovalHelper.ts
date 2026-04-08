@@ -1,8 +1,13 @@
+import { EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import { OrgUser } from '~/models';
 import WorkspaceUser from '~/ee/models/WorkspaceUser';
 import { Team } from '~/ee/models';
 import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
+import {
+  handleOrphanBases,
+  handleOrphanWorkspace,
+} from '~/ee/utils/orphanBaseHandler';
 import Noco from '~/Noco';
 
 /**
@@ -16,6 +21,17 @@ export async function removeUserFromOrgCascade(
   userId: string,
   ncMeta = Noco.ncMeta,
 ) {
+  // Find the org admin to transfer ownership if needed
+  const orgAdmin = await ncMeta
+    .knexConnection(MetaTable.ORG_USERS)
+    .where('fk_org_id', orgId)
+    .where('roles', EnterpriseOrgUserRoles.ADMIN)
+    .whereNot('fk_user_id', userId)
+    .where(function () {
+      this.where('deleted', false).orWhereNull('deleted');
+    })
+    .first();
+
   const transaction = await ncMeta.startTransaction();
 
   try {
@@ -32,7 +48,20 @@ export async function removeUserFromOrgCascade(
       .select('id');
 
     for (const ws of orgWorkspaces) {
+      // Transfer workspace ownership to org admin if user is sole owner
+      if (orgAdmin) {
+        await handleOrphanWorkspace(
+          ws.id,
+          userId,
+          orgAdmin.fk_user_id,
+          transaction,
+        );
+      }
+
       await WorkspaceUser.softDelete(ws.id, userId, transaction);
+
+      // Reassign orphan bases to the next workspace owner
+      await handleOrphanBases(ws.id, userId, transaction);
 
       // Remove from all teams in this workspace
       const wsTeams = await Team.list(

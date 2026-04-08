@@ -5,6 +5,54 @@ import BaseUser from '~/models/BaseUser';
 import WorkspaceUser from '~/models/WorkspaceUser';
 
 /**
+ * Handles orphan workspaces by transferring ownership to a fallback user
+ * when the sole workspace owner is being removed.
+ *
+ * @param workspaceId - The workspace to check
+ * @param deletedUserId - The user being removed
+ * @param fallbackUserId - The user to promote (typically org admin)
+ * @param ncMeta - The metadata service instance
+ * @returns true if ownership was transferred, false if not needed
+ */
+export async function handleOrphanWorkspace(
+  workspaceId: string,
+  deletedUserId: string,
+  fallbackUserId: string,
+  ncMeta: MetaService,
+): Promise<boolean> {
+  const wsUser = await WorkspaceUser.get(workspaceId, deletedUserId, {}, ncMeta);
+  if (wsUser?.roles !== WorkspaceUserRoles.OWNER) return false;
+
+  const owners = await WorkspaceUser.userList(
+    { fk_workspace_id: workspaceId, roles: WorkspaceUserRoles.OWNER },
+    ncMeta,
+  );
+  if (owners.length > 1) return false;
+
+  // Sole owner — promote fallback user
+  const existing = await WorkspaceUser.get(workspaceId, fallbackUserId, {}, ncMeta);
+  if (existing) {
+    await WorkspaceUser.update(
+      workspaceId,
+      fallbackUserId,
+      { roles: WorkspaceUserRoles.OWNER },
+      ncMeta,
+    );
+  } else {
+    await WorkspaceUser.insert(
+      {
+        fk_workspace_id: workspaceId,
+        fk_user_id: fallbackUserId,
+        roles: WorkspaceUserRoles.OWNER,
+      },
+      ncMeta,
+    );
+  }
+
+  return true;
+}
+
+/**
  * Handles orphan bases by reassigning ownership to the first workspace owner
  * when a user is removed from the workspace and their bases become orphaned
  *

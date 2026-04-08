@@ -487,14 +487,14 @@ export default function () {
        * Validates: team hierarchy traversal works cross-scope (org team descendants
        * are found even when the context has a workspace_id).
        */
-      it.skip('1.2 — upward cascade: user in org team child inherits workspace role; unrelated team does not', async () => {
+      it('1.2 — no downward cascade: child team member does NOT inherit parent workspace role', async () => {
+        // Frontend is child of Engineering — but no downward cascade
+        // feUser should NOT get Editor from parent team assignment
         const feRoles = await getUserRoles(feToken, base.id);
         const feWsRoles = feRoles.workspace_roles || {};
-        expect(
-          feWsRoles['workspace-level-editor'] || feWsRoles.editor,
-        ).to.be.true;
+        expect(feWsRoles['workspace-level-editor']).to.not.be.true;
 
-        // Design is unrelated — no inheritance
+        // Design is also unrelated — no role
         const designRoles = await getUserRoles(designToken, base.id);
         const dWsRoles = designRoles.workspace_roles || {};
         expect(dWsRoles['workspace-level-editor']).to.not.be.true;
@@ -595,14 +595,13 @@ export default function () {
        * Validates: Team.getByIds returns org teams when called from
        * extractUserBaseTeamRoles with workspace context.
        */
-      it.skip('2.2 — descendant inherits base role via upward cascade; unrelated org team gets 403', async () => {
-        // Frontend is child of Engineering — feUser should inherit Editor
-        const feRoles = await getUserRoles(feToken, base.id);
-        const baseRoles = feRoles.base_roles || {};
-        expect(baseRoles['editor'] || baseRoles[ProjectRoles.EDITOR]).to
-          .be.true;
+      it('2.2 — no downward cascade: child team member does NOT inherit parent base role', async () => {
+        // Frontend is child of Engineering — but no downward cascade
+        // feUser should NOT get Editor from parent team assignment
+        const feRes = await listTables(base.id, feToken);
+        expect(feRes.status).to.be.oneOf([403, 401]);
 
-        // Reverse: design user — unrelated org team
+        // Design is also unrelated — no role
         const designRes = await listTables(base.id, designToken);
         expect(designRes.status).to.be.oneOf([403, 401]);
       });

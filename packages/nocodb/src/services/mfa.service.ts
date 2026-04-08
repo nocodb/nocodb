@@ -11,16 +11,60 @@ import { NcError } from '~/helpers/catchError';
 import { User } from '~/models';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
-import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
+import {
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+  RootScopes,
+} from '~/utils/globals';
 import { normalizeEmail } from '~/utils/emailUtils';
 import { genJwt } from '~/services/users/helpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import {
+  decryptPropIfRequired,
+  encryptPropIfRequired,
+} from '~/utils/encryptDecrypt';
 
 @Injectable()
 export class MfaService {
   protected logger = new Logger(MfaService.name);
 
+  private readonly MFA_MAX_ATTEMPTS = 5;
+  private readonly MFA_LOCKOUT_SECONDS = 15 * 60; // 15 minutes
+
   constructor(protected appHooksService: AppHooksService) {}
+
+  private async checkMfaLockout(userId: string): Promise<void> {
+    const attempts = await NocoCache.get(
+      'root',
+      `mfa_lockout:${userId}`,
+      CacheGetType.TYPE_STRING,
+    );
+
+    if (attempts !== null && parseInt(attempts, 10) >= this.MFA_MAX_ATTEMPTS) {
+      NcError.badRequest('Too many failed attempts. Please try again later.');
+    }
+  }
+
+  // Note: get+set is not atomic — concurrent failures may lose one increment.
+  // Acceptable for a 5-attempt limit; NocoCache.incrby doesn't support TTL.
+  private async incrementMfaFailure(userId: string): Promise<void> {
+    const key = `mfa_lockout:${userId}`;
+    const current = await NocoCache.get('root', key, CacheGetType.TYPE_STRING);
+
+    const count = current !== null ? parseInt(current, 10) + 1 : 1;
+
+    await NocoCache.setExpiring(
+      'root',
+      key,
+      count.toString(),
+      this.MFA_LOCKOUT_SECONDS,
+    );
+  }
+
+  private async clearMfaLockout(userId: string): Promise<void> {
+    await NocoCache.del('root', `mfa_lockout:${userId}`);
+  }
 
   private async updateMfaFields(
     userId: string,
@@ -83,10 +127,11 @@ export class MfaService {
 
     const backupCodes = this.generateBackupCodes();
 
-    // Store secret and backup codes temporarily (not yet enabled)
+    // Store secret (encrypted) and backup codes (hashed) — not yet enabled
+    const hashedCodes = await this.hashBackupCodes(backupCodes);
     await this.updateMfaFields(userId, {
-      totp_secret: secret,
-      totp_backup_codes: JSON.stringify(backupCodes),
+      totp_secret: this.encryptSecret(secret),
+      totp_backup_codes: JSON.stringify(hashedCodes),
     });
 
     this.appHooksService.emit(AppEvents.USER_MFA_SETUP, {
@@ -113,7 +158,10 @@ export class MfaService {
       NcError.badRequest('Please initiate 2FA setup first');
     }
 
-    const isValid = await this.verifyTotp(user.totp_secret, code);
+    const isValid = await this.verifyTotp(
+      this.decryptSecret(user.totp_secret),
+      code,
+    );
 
     if (!isValid) {
       NcError.badRequest('Invalid verification code');
@@ -176,6 +224,9 @@ export class MfaService {
       NcError.badRequest('Invalid token purpose');
     }
 
+    // Check brute-force lockout
+    await this.checkMfaLockout(payload.id);
+
     const user = await User.get(payload.id);
     if (!user) NcError.userNotFound(payload.id);
 
@@ -183,8 +234,13 @@ export class MfaService {
       NcError.badRequest('Two-factor authentication is not configured');
     }
 
-    const method = await this.verifyCode(user.totp_secret, code, user);
+    const method = await this.verifyCode(
+      this.decryptSecret(user.totp_secret),
+      code,
+      user,
+    );
     if (!method) {
+      await this.incrementMfaFailure(payload.id);
       NcError.badRequest('Invalid verification code');
     }
 
@@ -200,6 +256,9 @@ export class MfaService {
         req,
       });
     }
+
+    // Clear lockout on success
+    await this.clearMfaLockout(payload.id);
 
     // Generate full JWT
     return {
@@ -248,12 +307,12 @@ export class MfaService {
     if (isValidTotp) return 'totp';
 
     // Try backup code
-    if (this.consumeBackupCode(user, code)) return 'backup_code';
+    if (await this.consumeBackupCode(user, code)) return 'backup_code';
 
     return null;
   }
 
-  private consumeBackupCode(user: User, code: string): boolean {
+  private async consumeBackupCode(user: User, code: string): Promise<boolean> {
     if (!user.totp_backup_codes) return false;
 
     let backupCodes: string[];
@@ -263,24 +322,81 @@ export class MfaService {
       return false;
     }
 
+    if (!backupCodes.length) return false;
+
     const normalizedCode = code.replace(/[-\s]/g, '').toLowerCase();
+
+    // Try bcrypt comparison (hashed codes)
+    for (let i = 0; i < backupCodes.length; i++) {
+      try {
+        const match = await bcrypt.compare(normalizedCode, backupCodes[i]);
+        if (match) {
+          backupCodes.splice(i, 1);
+          this.updateMfaFields(user.id, {
+            totp_backup_codes: JSON.stringify(backupCodes),
+          }).catch((e) => {
+            this.logger.error('Failed to consume backup code', e.stack);
+          });
+          return true;
+        }
+      } catch {
+        // Not a bcrypt hash — fall through to plaintext check below
+      }
+    }
+
+    // Fallback: plaintext comparison (pre-hashing data)
     const idx = backupCodes.findIndex(
       (c) => c.replace(/[-\s]/g, '').toLowerCase() === normalizedCode,
     );
 
     if (idx === -1) return false;
 
-    // Remove used backup code
+    // Consume the matched code and re-hash remaining codes for gradual migration
     backupCodes.splice(idx, 1);
-
-    // Update asynchronously — don't block verification
-    this.updateMfaFields(user.id, {
-      totp_backup_codes: JSON.stringify(backupCodes),
-    }).catch((e) => {
-      this.logger.error('Failed to consume backup code', e.stack);
-    });
+    this.hashBackupCodes(backupCodes)
+      .then((hashedRemaining) => {
+        return this.updateMfaFields(user.id, {
+          totp_backup_codes: JSON.stringify(hashedRemaining),
+        });
+      })
+      .catch((e) => {
+        this.logger.error('Failed to migrate backup codes', e.stack);
+      });
 
     return true;
+  }
+
+  private async hashBackupCodes(codes: string[]): Promise<string[]> {
+    const hashes: string[] = [];
+    for (const code of codes) {
+      const normalized = code.replace(/[-\s]/g, '').toLowerCase();
+      const hash = await bcrypt.hash(normalized, 10);
+      hashes.push(hash);
+    }
+    return hashes;
+  }
+
+  private encryptSecret(secret: string): string {
+    const wrapper = { secret };
+    const encrypted = encryptPropIfRequired({
+      data: wrapper,
+      prop: 'secret',
+    });
+    return encrypted ?? secret;
+  }
+
+  private decryptSecret(encrypted: string): string {
+    try {
+      const wrapper = { secret: encrypted };
+      const decrypted = decryptPropIfRequired({
+        data: wrapper,
+        prop: 'secret',
+      });
+      return typeof decrypted === 'string' ? decrypted : encrypted;
+    } catch {
+      // Fallback: value is likely plaintext (pre-encryption data)
+      return encrypted;
+    }
   }
 
   private generateBackupCodes(count = 10): string[] {
@@ -302,16 +418,20 @@ export class MfaService {
     }
 
     // Verify current TOTP code before regenerating
-    const isValid = await this.verifyTotp(user.totp_secret, code);
+    const isValid = await this.verifyTotp(
+      this.decryptSecret(user.totp_secret),
+      code,
+    );
 
     if (!isValid) {
       NcError.badRequest('Invalid verification code');
     }
 
     const backupCodes = this.generateBackupCodes();
+    const hashedCodes = await this.hashBackupCodes(backupCodes);
 
     await this.updateMfaFields(userId, {
-      totp_backup_codes: JSON.stringify(backupCodes),
+      totp_backup_codes: JSON.stringify(hashedCodes),
     });
 
     return { backupCodes };

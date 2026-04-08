@@ -2,6 +2,8 @@
 import { TeamUserRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import type { TeamV3ResponseType } from 'nocodb-sdk'
 
+type TeamRow = TeamV3ResponseType & { _treeDepth?: number }
+
 interface Props {
   orgId?: string
 }
@@ -73,7 +75,7 @@ const toggleExpand = (teamId: string) => {
 }
 
 const hasChildren = (teamId: string) => {
-  return teams.value.some((t: any) => t.fk_parent_team_id === teamId)
+  return teams.value.some((t) => t.fk_parent_team_id === teamId)
 }
 
 const flattenedTreeTeams = computed(() => {
@@ -89,7 +91,7 @@ const flattenedTreeTeams = computed(() => {
 
   const childrenMap = new Map<string | null, TeamV3ResponseType[]>()
   for (const team of teams.value) {
-    const parentId = (team as any).fk_parent_team_id || null
+    const parentId = team.fk_parent_team_id || null
     if (!childrenMap.has(parentId)) childrenMap.set(parentId, [])
     childrenMap.get(parentId)!.push(team)
   }
@@ -97,7 +99,7 @@ const flattenedTreeTeams = computed(() => {
   const walk = (parentId: string | null, depth: number) => {
     const children = childrenMap.get(parentId) || []
     for (const child of children) {
-      result.push({ ...child, _treeDepth: depth } as any)
+      result.push({ ...child, _treeDepth: depth } as TeamRow)
       if (expandedTeams.value.has(child.id)) {
         walk(child.id, depth + 1)
       }
@@ -226,7 +228,7 @@ const isMoving = ref(false)
 
 const getTeamDescendantIds = (teamId: string): string[] => {
   const ids: string[] = []
-  const children = teams.value.filter((t: any) => t.fk_parent_team_id === teamId)
+  const children = teams.value.filter((t) => t.fk_parent_team_id === teamId)
   for (const child of children) {
     ids.push(child.id)
     ids.push(...getTeamDescendantIds(child.id))
@@ -239,7 +241,7 @@ const editParentTeamOptions = computed(() => {
 
   const descendantIds = new Set(getTeamDescendantIds(editTeamId.value))
 
-  const eligible = (teams.value || []).filter((t: any) => {
+  const eligible = (teams.value || []).filter((t) => {
     if (t.id === editTeamId.value) return false
     if (descendantIds.has(t.id)) return false
     if ((t.depth ?? 0) >= 3) return false
@@ -248,7 +250,7 @@ const editParentTeamOptions = computed(() => {
 
   const childrenMap = new Map<string | null, typeof eligible>()
   for (const t of eligible) {
-    const parentId = (t as any).fk_parent_team_id || null
+    const parentId = t.fk_parent_team_id || null
     if (!childrenMap.has(parentId)) childrenMap.set(parentId, [])
     childrenMap.get(parentId)!.push(t)
   }
@@ -369,7 +371,7 @@ const moveParentOptions = computed(() => {
   // Collect all descendants to prevent circular moves
   const collectDescendants = (parentId: string) => {
     for (const t of teams.value) {
-      if ((t as any).fk_parent_team_id === parentId) {
+      if (t.fk_parent_team_id === parentId) {
         descendantIds.add(t.id!)
         collectDescendants(t.id!)
       }
@@ -377,7 +379,7 @@ const moveParentOptions = computed(() => {
   }
   collectDescendants(target.id!)
 
-  return (teams.value || []).filter((t: any) => {
+  return (teams.value || []).filter((t) => {
     if (t.id === target.id) return false
     if (descendantIds.has(t.id)) return false
     if ((t.depth ?? 0) >= 3) return false
@@ -387,7 +389,7 @@ const moveParentOptions = computed(() => {
 
 const moveHasChanged = computed(() => {
   if (!moveTeamTarget.value) return false
-  const currentParent = (moveTeamTarget.value as any).fk_parent_team_id || null
+  const currentParent = moveTeamTarget.value?.fk_parent_team_id || null
   return moveSelectedParentId.value !== currentParent
 })
 
@@ -412,7 +414,7 @@ const handleMoveTeamSubmit = async () => {
 
 watch(isMoveModalVisible, (val) => {
   if (val && moveTeamTarget.value) {
-    moveSelectedParentId.value = (moveTeamTarget.value as any).fk_parent_team_id || null
+    moveSelectedParentId.value = moveTeamTarget.value?.fk_parent_team_id || null
   }
 })
 
@@ -601,7 +603,7 @@ const customRow = (record: Record<string, any>) => ({
 
 // Parent team options for create dialog
 const parentTeamOptions = computed(() => {
-  return (teams.value || []).filter((t: any) => (t.depth ?? 0) < 3)
+  return (teams.value || []).filter((t) => (t.depth ?? 0) < 3)
 })
 
 // Expand parent teams by default
@@ -610,7 +612,7 @@ watch(
   (newTeams) => {
     if (newTeams?.length) {
       const parentIds = new Set<string>()
-      for (const t of newTeams as any[]) {
+      for (const t of newTeams as TeamV3ResponseType[]) {
         if (t.fk_parent_team_id) {
           parentIds.add(t.fk_parent_team_id)
         }
@@ -726,7 +728,7 @@ onMounted(() => {
           <div v-if="column.key === 'teamName'" class="flex items-center gap-1">
             <div
               v-if="viewMode === 'tree'"
-              :style="{ width: `${((record as any)._treeDepth || 0) * (isMobileMode ? 16 : 24)}px` }"
+              :style="{ width: `${((record as TeamRow)._treeDepth || 0) * (isMobileMode ? 16 : 24)}px` }"
               class="flex-none"
             />
             <button
@@ -1019,7 +1021,7 @@ onMounted(() => {
                       >
                         <div
                           class="flex items-center gap-2"
-                          :style="{ paddingLeft: `${((pt as any).depth ?? 0) * 16}px` }"
+                          :style="{ paddingLeft: `${(pt.depth ?? 0) * 16}px` }"
                         >
                           <GeneralTeamIcon :team="pt" class="!w-5 !h-5 !min-w-5 flex-none !rounded-md" />
                           <NcTooltip class="truncate flex-1" show-on-truncate-only>
@@ -1035,7 +1037,7 @@ onMounted(() => {
                       </a-select-option>
                     </NcSelect>
                     <NcButton
-                      v-if="selectedParentId !== ((editTeam as any).fk_parent_team_id || null)"
+                      v-if="selectedParentId !== (editTeam.value?.fk_parent_team_id || null)"
                       size="small"
                       type="primary"
                       :loading="isMoving"
@@ -1201,7 +1203,7 @@ onMounted(() => {
                 :value="pt.id"
                 :data-label="pt.title"
               >
-                <div class="flex items-center gap-2" :style="{ paddingLeft: `${((pt as any).depth ?? 0) * 16}px` }">
+                <div class="flex items-center gap-2" :style="{ paddingLeft: `${(pt.depth ?? 0) * 16}px` }">
                   <GeneralTeamIcon :team="pt" class="!w-5 !h-5 !min-w-5 flex-none !rounded-md" />
                   <NcTooltip class="truncate flex-1" show-on-truncate-only>
                     <template #title>{{ pt.title }}</template>

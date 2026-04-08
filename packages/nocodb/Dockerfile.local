@@ -22,7 +22,8 @@ RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 # Copy application dependency manifests to the container image.
 COPY --link ./package.json ./package.json
 COPY --link ./pnpm-workspace.yaml ./pnpm-workspace.yaml
-COPY --link ./docker/main.js ./docker/index.js
+COPY --link ./docker/*.main.js ./docker/
+RUN mv ./docker/main.js ./docker/index.js
 COPY --link ./docker/start-local.sh /usr/src/appEntry/start.sh
 COPY --link src/public/ ./docker/public/
 COPY --link ./docker/nc-gui/ ./docker/nc-gui/

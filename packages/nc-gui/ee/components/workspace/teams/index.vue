@@ -478,22 +478,24 @@ onMounted(async () => {
               />
             </button>
             <div v-else-if="viewMode === 'tree'" class="flex-none w-5" />
-            <GeneralTeamInfo :team="record" :icon-props="{ size: 'base', wrapperClass: '!rounded-lg' }" />
-            <NcTooltip
-              v-if="record.scim_managed"
-              :title="$t('labels.scimManagedTeamTooltip')"
-              class="flex items-center"
-              :tooltip-style="{ width: '230px' }"
-              :overlay-inner-style="{ width: '230px' }"
-            >
-              <NcBadge
-                :border="false"
-                color="blue"
-                class="text-nc-content-blue-dark dark:!bg-nc-bg-blue-light text-[10px] leading-[14px] !h-[18px] font-semibold"
-              >
-                {{ $t('labels.scimManaged') }}
-              </NcBadge>
-            </NcTooltip>
+            <GeneralTeamInfo :team="record" :icon-props="{ size: 'base', wrapperClass: '!rounded-lg' }">
+              <template v-if="record.scim_managed" #title-append>
+                <NcTooltip
+                  :title="$t('labels.scimManagedTeamTooltip')"
+                  class="flex items-center"
+                  :tooltip-style="{ width: '230px' }"
+                  :overlay-inner-style="{ width: '230px' }"
+                >
+                  <NcBadge
+                    :border="false"
+                    color="blue"
+                    class="text-nc-content-blue-dark dark:!bg-nc-bg-blue-light text-[10px] leading-[14px] !h-[18px] font-semibold"
+                  >
+                    {{ $t('labels.scimManaged') }}
+                  </NcBadge>
+                </NcTooltip>
+              </template>
+            </GeneralTeamInfo>
           </div>
 
           <div v-if="column.key === 'badge'">

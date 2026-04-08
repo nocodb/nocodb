@@ -27,9 +27,27 @@ export class UseWorkerProcessor {
     }>,
   ) {
     const { service, method, args } = job.data;
+
     const processor = this.serviceMap[service];
-    // Use __original to bypass @Pollable decorator and call the real method
-    const fn = processor[method].__original || processor[method];
+
+    if (!processor) {
+      const msg = `UseWorkerProcessor: service "${service}" not found in serviceMap. Available: [${Object.keys(
+        this.serviceMap,
+      ).join(', ')}]`;
+      this.logger.error(msg);
+      throw new Error(msg);
+    }
+
+    const target = processor[method];
+
+    if (!target) {
+      const msg = `UseWorkerProcessor: method "${method}" not found on service "${service}"`;
+      this.logger.error(msg);
+      throw new Error(msg);
+    }
+
+    // Use __original to bypass @Pollable/@UseWorker decorator and call the real method
+    const fn = target.__original || target;
     return fn.apply(processor, args);
   }
 }

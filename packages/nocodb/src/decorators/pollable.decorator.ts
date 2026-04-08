@@ -1,8 +1,8 @@
 import { Inject, Logger } from '@nestjs/common';
-import { getCircularReplacer } from 'nocodb-sdk';
 import { customAlphabet } from 'nanoid';
 import { JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
+import { serializeWorkerArgs } from '~/helpers/serialize-worker-args';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -36,28 +36,13 @@ export function Pollable(): MethodDecorator {
       const nocoJobsService: NocoJobsService = this._nocoJobsService;
 
       if (!nocoJobsService) {
+        logger.warn(
+          `NocoJobsService not available for ${service}.${method} — executing synchronously (this should not happen in production)`,
+        );
         return originalMethod.apply(this, args);
       }
 
-      const serializedArgs = args.map((arg) => {
-        if (typeof arg === 'function') {
-          logger.error(
-            'Function passed as argument to Pollable decorator, only JSON serializable data is allowed',
-          );
-          return;
-        }
-
-        if (typeof arg === 'object') {
-          try {
-            return JSON.parse(JSON.stringify(arg, getCircularReplacer()));
-          } catch (e) {
-            logger.error(e);
-            return;
-          }
-        }
-
-        return arg;
-      });
+      const serializedArgs = serializeWorkerArgs(args, method, service);
 
       const jobId = `job${nanoidv2()}`;
 

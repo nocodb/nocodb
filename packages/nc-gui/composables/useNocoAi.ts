@@ -436,9 +436,27 @@ export const useNocoAi = createSharedComposable(() => {
       // Keep loading state active during polling (callAiSchemaCreateApi resets it in finally)
       aiLoading.value = true
 
+      const POLL_TIMEOUT_MS = 3 * 60 * 1000 // 3 minutes
+      const topic = { id: res.id }
+
       return new Promise<any>((resolve, reject) => {
+        let settled = false
+
+        const timeoutId = setTimeout(() => {
+          if (settled) return
+          settled = true
+          $poller.unsubscribe(topic)
+          aiLoading.value = false
+          const errorMsg = 'AI schema prediction timed out. Please try again.'
+          aiError.value = errorMsg
+          if (!skipMsgToast) {
+            message.error(errorMsg)
+          }
+          reject(new Error(errorMsg))
+        }, POLL_TIMEOUT_MS)
+
         $poller.subscribe(
-          { id: res.id },
+          topic,
           (data: {
             id: string
             status?: string
@@ -450,9 +468,15 @@ export const useNocoAi = createSharedComposable(() => {
           }) => {
             if (data.status !== 'close') {
               if (data.status === JobStatus.COMPLETED) {
+                if (settled) return
+                settled = true
+                clearTimeout(timeoutId)
                 aiLoading.value = false
                 resolve(data.data?.result)
               } else if (data.status === JobStatus.FAILED) {
+                if (settled) return
+                settled = true
+                clearTimeout(timeoutId)
                 aiLoading.value = false
                 const errorMsg = data.data?.error?.message || 'AI schema prediction failed'
                 if (!skipMsgToast) {

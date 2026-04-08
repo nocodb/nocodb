@@ -46,9 +46,47 @@ const up = async (knex: Knex) => {
     });
 
     await knex.schema.alterTable(MetaTable.ORG_USERS, (table) => {
-      table.index('scim_external_id', 'nc_org_users_scim_external_id_idx');
+      table.unique(
+        ['fk_org_id', 'scim_external_id'],
+        'nc_org_users_org_scim_ext_id_unique',
+      );
       table.index('scim_managed', 'nc_org_users_scim_managed_idx');
     });
+  }
+
+  // Fix nc_teams: replace global unique on scim_external_id with composite per-org unique
+  const hasTeamsScimCol = await knex.schema.hasColumn(
+    MetaTable.TEAMS,
+    'scim_external_id',
+  );
+  if (hasTeamsScimCol) {
+    // Drop global unique (created in nc_021_scim_support)
+    try {
+      await knex.schema.alterTable(MetaTable.TEAMS, (table) => {
+        table.dropUnique(['scim_external_id']);
+      });
+    } catch {
+      // May not exist if migration ran differently
+    }
+
+    // Add composite unique per org
+    const client = knex.client.config.client;
+    if (client === 'pg' || client === 'postgresql') {
+      await knex.raw(
+        `CREATE UNIQUE INDEX IF NOT EXISTS nc_teams_org_scim_ext_id_unique ON ${MetaTable.TEAMS} (fk_org_id, scim_external_id) WHERE scim_external_id IS NOT NULL`,
+      );
+    } else {
+      try {
+        await knex.schema.alterTable(MetaTable.TEAMS, (table) => {
+          table.unique(
+            ['fk_org_id', 'scim_external_id'],
+            'nc_teams_org_scim_ext_id_unique',
+          );
+        });
+      } catch {
+        // Already exists
+      }
+    }
   }
 };
 
@@ -60,9 +98,9 @@ const down = async (knex: Knex) => {
   );
   if (hasScimCol) {
     await knex.schema.alterTable(MetaTable.ORG_USERS, (table) => {
-      table.dropIndex(
-        'scim_external_id',
-        'nc_org_users_scim_external_id_idx',
+      table.dropUnique(
+        ['fk_org_id', 'scim_external_id'],
+        'nc_org_users_org_scim_ext_id_unique',
       );
       table.dropIndex('scim_managed', 'nc_org_users_scim_managed_idx');
       table.dropColumn('scim_external_id');
@@ -87,6 +125,19 @@ const down = async (knex: Knex) => {
       table.string('fk_workspace_id', 20).notNullable().unique();
       table.index('fk_workspace_id', 'nc_scim_config_workspace_idx');
     });
+  }
+
+  // Restore global unique on nc_teams scim_external_id
+  try {
+    await knex.schema.alterTable(MetaTable.TEAMS, (table) => {
+      table.dropUnique(
+        ['fk_org_id', 'scim_external_id'],
+        'nc_teams_org_scim_ext_id_unique',
+      );
+      table.unique(['scim_external_id']);
+    });
+  } catch {
+    // Ignore if constraints don't exist
   }
 
   // Drop default_role

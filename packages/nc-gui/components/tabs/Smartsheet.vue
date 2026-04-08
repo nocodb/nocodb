@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
-import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, MetaPayload, TableType, UserEventPayload } from 'nocodb-sdk'
+import { EventType, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import { UseDetachedLongTextProvider } from '../smartsheet/grid/canvas/composables/useDetachedLongText'
 import DetachedExpandedText from '../smartsheet/grid/canvas/components/DetachedExpandedText.vue'
 
@@ -94,6 +94,51 @@ useProvideViewColumns(activeView, meta, () => reloadViewDataEventHook?.trigger()
 useProvideViewGroupBy(activeView, meta, xWhere)
 
 useProvideSmartsheetLtarHelpers(meta)
+
+// Bridge socket META_EVENT and USER_EVENT to the EventBus for realtime collaboration
+{
+  const { $ncSocket, $eventBus } = useNuxtApp()
+  let metaListenerId: string | null = null
+  let userListenerId: string | null = null
+
+  watch(
+    () => meta.value,
+    (newMeta, oldMeta) => {
+      // Clean up previous listeners
+      if (metaListenerId) $ncSocket.offMessage(metaListenerId)
+      if (userListenerId) $ncSocket.offMessage(userListenerId)
+      metaListenerId = null
+      userListenerId = null
+
+      if (!newMeta?.fk_workspace_id || !newMeta?.base_id) return
+
+      const wsId = (newMeta as any).fk_workspace_id
+      const baseId = newMeta.base_id
+
+      // Subscribe to META_EVENT for this base and bridge to realtimeViewMetaEventBus
+      metaListenerId = $ncSocket.onMessage(
+        `${EventType.META_EVENT}:${wsId}:${baseId}`,
+        (data: MetaPayload) => {
+          $eventBus.realtimeViewMetaEventBus.emit(data.action, data.payload)
+        },
+      )
+
+      // Subscribe to USER_EVENT for this base and bridge to realtimeBaseUserEventBus
+      userListenerId = $ncSocket.onMessage(
+        `${EventType.USER_EVENT}:${wsId}:${baseId}`,
+        (data: UserEventPayload) => {
+          $eventBus.realtimeBaseUserEventBus.emit(data.action, data.payload)
+        },
+      )
+    },
+    { immediate: true },
+  )
+
+  onBeforeUnmount(() => {
+    if (metaListenerId) $ncSocket.offMessage(metaListenerId)
+    if (userListenerId) $ncSocket.offMessage(userListenerId)
+  })
+}
 
 const grid = ref()
 

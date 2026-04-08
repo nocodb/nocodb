@@ -121,14 +121,16 @@ export class GcpMarketplaceService {
   }
 
   private verifyWithCert(token: string, cert: string): GcpJwtPayload {
-    const audience =
-      process.env.NC_GCP_MARKETPLACE_SERVICE_DOMAIN ||
-      'nocodb-enterprise.endpoints.nocodb-public.cloud.goog';
+    // First decode without verification to log the actual audience
+    const decoded = jwt.decode(token, { json: true });
+    this.logger.log(`GCP JWT audience: ${decoded?.aud}, sub: ${decoded?.sub}`);
+
+    const audience = process.env.NC_GCP_MARKETPLACE_SERVICE_DOMAIN;
 
     return jwt.verify(token, cert, {
       algorithms: ['RS256'],
       issuer: GCP_JWT_ISSUER,
-      audience,
+      ...(audience ? { audience } : {}),
     }) as GcpJwtPayload;
   }
 

@@ -226,7 +226,7 @@ export class ScimGroupsService {
       if (!existingTeam.scim_managed) {
         // Team.update returns the full updated record (via metaGet)
         const updatedTeam = await Team.update(context, existingTeam.id, {
-          scim_external_id: uuidv4(), // Server-assigned SCIM id (immutable)
+          scim_external_id: scimGroup.externalId || uuidv4(),
           scim_managed: true,
           scim_display_name: scimGroup.displayName,
           ...(scimGroup.externalId
@@ -276,12 +276,12 @@ export class ScimGroupsService {
       );
     }
 
-    // Create new team — scim_external_id is server-assigned (immutable per RFC 7643)
+    // Create new team — use IdP externalId if provided, otherwise server UUID
     // (Team.insert returns the full record via metaGet)
     const team = await Team.insert(context, {
       title: scimGroup.displayName,
       fk_org_id: orgId,
-      scim_external_id: uuidv4(),
+      scim_external_id: scimGroup.externalId || uuidv4(),
       scim_managed: true,
       scim_display_name: scimGroup.displayName,
       ...(scimGroup.externalId

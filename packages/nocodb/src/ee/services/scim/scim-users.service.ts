@@ -206,8 +206,9 @@ export class ScimUsersService {
       include_deleted: true,
     });
 
-    // Always generate a fresh SCIM ID (RFC 7643 §3.1: id is server-assigned)
-    const scimId = uuidv4();
+    // SCIM ID: use IdP's externalId if provided (stable across email changes),
+    // otherwise generate a server UUID (RFC 7643 §3.1)
+    const scimId = scimUser.externalId || uuidv4();
 
     // Build comprehensive scim_meta to round-trip all attributes
     const scimMeta = this.buildScimMeta(scimUser);
@@ -791,36 +792,35 @@ export class ScimUsersService {
   }
 
   /**
-   * Find an org user by the IdP's externalId (stored in scim_meta JSON).
-   * This is the stable IdP-assigned identifier, different from our scim_external_id.
+   * Find an org user by the IdP's externalId.
+   * First checks scim_external_id (indexed), then falls back to scim_meta
+   * for users created before externalId was stored in the column.
    */
   private async findOrgUserByIdpExternalId(
     orgId: string,
     idpExternalId: string,
   ): Promise<any | null> {
+    // Primary: indexed column lookup
+    const byCol = await OrgUser.getByScimExternalId(orgId, idpExternalId);
+    if (byCol) return byCol;
+
+    // Fallback: search scim_meta JSON for legacy users
     const ncMeta = Noco.ncMeta;
     const client = ncMeta.knexConnection.client.config.client;
+    const likeVal = `%"externalId":"${idpExternalId.replace(/%/g, '\\%').replace(/_/g, '\\_')}"%`;
 
-    let row;
-    if (client === 'pg' || client === 'postgresql') {
-      row = await ncMeta
-        .knexConnection(MetaTable.ORG_USERS)
-        .where('fk_org_id', orgId)
-        .whereRaw(`scim_meta::text LIKE ?`, [`%"externalId":"${idpExternalId}"%`])
-        .where(function () {
-          this.where('deleted', false).orWhereNull('deleted');
-        })
-        .first();
-    } else {
-      row = await ncMeta
-        .knexConnection(MetaTable.ORG_USERS)
-        .where('fk_org_id', orgId)
-        .where('scim_meta', 'like', `%"externalId":"${idpExternalId}"%`)
-        .where(function () {
-          this.where('deleted', false).orWhereNull('deleted');
-        })
-        .first();
-    }
+    const row = await ncMeta
+      .knexConnection(MetaTable.ORG_USERS)
+      .where('fk_org_id', orgId)
+      .where(
+        client === 'pg' || client === 'postgresql'
+          ? ncMeta.knexConnection.raw('scim_meta::text LIKE ?', [likeVal])
+          : ncMeta.knexConnection.raw('scim_meta LIKE ?', [likeVal]),
+      )
+      .where(function () {
+        this.where('deleted', false).orWhereNull('deleted');
+      })
+      .first();
 
     return row || null;
   }

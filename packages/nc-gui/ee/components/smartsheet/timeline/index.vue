@@ -204,10 +204,7 @@ const groupColWidth = computed(() => {
 const groupByFieldLabel = computed(() => {
   if (!groupBy.value?.length) return ''
   if (groupBy.value.length > 1) return t('msg.timelineGroupByFields', { count: groupBy.value.length })
-  const colId = groupBy.value[0]?.fk_column_id
-  if (!colId) return ''
-  const col = meta.value?.columns?.find((c) => c.id === colId)
-  return col?.title || ''
+  return groupBy.value[0]?.column?.title || ''
 })
 
 // #18: Reactive today
@@ -419,8 +416,8 @@ const recordCountLabel = computed(() => {
         <!-- #8: Sort -->
         <LazySmartsheetToolbarSortListMenu v-if="!isPublic" />
 
-        <!-- TODO: Enable group-by for timeline view after further verification -->
-        <!-- <SmartsheetToolbarGroupByMenu v-if="!isPublic" /> -->
+        <!-- Group By -->
+        <SmartsheetToolbarGroupByMenu v-if="!isPublic" hide-reorder />
 
         <!-- Colour -->
         <SmartsheetToolbarRowColorFilterDropdown v-if="!isPublic" />
@@ -535,7 +532,11 @@ const recordCountLabel = computed(() => {
       </template>
 
       <!-- Floating new record button -->
-      <NcTooltip v-if="timelineRange?.length && !isPublic" class="!absolute bottom-3 left-3 z-20">
+      <NcTooltip
+        v-if="timelineRange?.length && !isPublic"
+        class="!absolute left-3 z-20"
+        :class="isGroupBy ? 'bottom-13' : 'bottom-3'"
+      >
         <template #title>{{ $t('activity.newRecord') }}</template>
         <NcButton
           v-e="['c:timeline:new-record-btn']"

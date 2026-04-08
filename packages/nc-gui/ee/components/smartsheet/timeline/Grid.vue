@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
 
 const props = defineProps<{
@@ -24,6 +24,8 @@ const emit = defineEmits<{
 }>()
 
 const { isUIAllowed } = useRoles()
+
+const { isAllowed } = usePermissions()
 
 const { $e } = useNuxtApp()
 
@@ -217,8 +219,8 @@ const onResizeEnd = () => {
 }
 
 const onResizeStart = (direction: 'left' | 'right', event: MouseEvent, record: RowType) => {
-  if (!isUIAllowed('dataEdit')) return
-  if (record.rowMeta?.range?.is_readonly) return
+  if (direction === 'left' && !canResizeLeft.value) return
+  if (direction === 'right' && !canResizeRight.value) return
 
   resizeInProgress.value = true
   resizeDirection.value = direction
@@ -301,8 +303,7 @@ const onDragEnd = () => {
 }
 
 const onDragStart = (event: MouseEvent, record: RowType) => {
-  if (!isUIAllowed('dataEdit')) return
-  if (record.rowMeta?.range?.is_readonly) return
+  if (!canDrag.value) return
 
   // Use a short hold delay (200ms) to distinguish drag from click
   const startDayIdx = getDayIndexFromEvent(event)
@@ -517,10 +518,44 @@ const getBarStyle = (row: RowType) => {
   }
 }
 
-// Check if editing is allowed and range is not readonly
-const canResize = computed(() => {
+// Check if editing is allowed and range is not readonly (system column type)
+const isRangeEditable = computed(() => {
   return isUIAllowed('dataEdit') && !props.timelineRange[0]?.is_readonly
 })
+
+// Field-level edit permission for start date column
+const canEditFromCol = computed(() => {
+  const col = props.timelineRange[0]?.fk_from_col
+  if (!col?.id) return true
+  return isAllowed(PermissionEntity.FIELD, col.id, PermissionKey.RECORD_FIELD_EDIT)
+})
+
+// Field-level edit permission for end date column
+const canEditToCol = computed(() => {
+  const col = props.timelineRange[0]?.fk_to_col
+  if (!col?.id) return true
+  return isAllowed(PermissionEntity.FIELD, col.id, PermissionKey.RECORD_FIELD_EDIT)
+})
+
+// Can drag (move) a bar — requires edit permission on ALL date columns used
+const canDrag = computed(() => {
+  if (!isRangeEditable.value) return false
+  if (!canEditFromCol.value) return false
+  if (props.timelineRange[0]?.fk_to_col && !canEditToCol.value) return false
+  return true
+})
+
+// Can resize left handle (start date)
+const canResizeLeft = computed(() => isRangeEditable.value && canEditFromCol.value)
+
+// Can resize right handle (end date)
+const canResizeRight = computed(() => {
+  if (!isRangeEditable.value) return false
+  return props.timelineRange[0]?.fk_to_col ? canEditToCol.value : canEditFromCol.value
+})
+
+// Legacy: can resize at all (used for cursor classes)
+const canResize = computed(() => canResizeLeft.value || canResizeRight.value)
 
 // #11: Build tooltip text for a record bar — improved format with em-dash and year
 const getBarTooltip = (row: RowType) => {
@@ -643,6 +678,14 @@ const hasFullyOffScreenAfter = computed(() => {
 // (when bars are visible, per-bar arrows handle navigation instead)
 const hasRecordsBefore = computed(() => hasFullyOffScreenBefore.value && !swimlanes.value.length)
 const hasRecordsAfter = computed(() => hasFullyOffScreenAfter.value && !swimlanes.value.length)
+
+// When embedded in a group (hideHeader), the grid must size to its content
+// so the CSS Grid row in GroupBy expands to show all swimlane rows
+const groupedGridHeight = computed(() => {
+  if (!props.hideHeader) return undefined
+  const lanes = Math.max(swimlanes.value.length, 1)
+  return `${lanes * ROW_HEIGHT}px`
+})
 
 const navigateToPrev = () => {
   const firstVisibleDate = props.visibleDates[0]
@@ -798,17 +841,16 @@ const onHeaderMouseMove = (event: MouseEvent) => {
 const onGridMouseLeave = () => {
   hoverColIndex.value = null
 }
-
-const hoverLineLeft = computed(() => {
-  if (hoverColIndex.value === null) return 0
-  return hoverColIndex.value * colWidth.value + colWidth.value / 2
-})
 </script>
 
 <template>
   <div
-    class="relative flex flex-col h-full overflow-hidden"
-    :style="{ minHeight: (hasRecordsBefore || hasRecordsAfter) && !swimlanes.length ? `${ROW_HEIGHT}px` : undefined }"
+    class="relative flex flex-col overflow-hidden"
+    :class="{ 'h-full': !hideHeader }"
+    :style="{
+      minHeight: (hasRecordsBefore || hasRecordsAfter) && !swimlanes.length ? `${ROW_HEIGHT}px` : undefined,
+      height: groupedGridHeight,
+    }"
   >
     <!-- Date column headers (hidden when parent provides a shared header) -->
     <div v-if="!hideHeader" ref="gridContainerRef" class="flex-shrink-0 overflow-hidden">
@@ -864,7 +906,7 @@ const hoverLineLeft = computed(() => {
     <!-- Scrollable grid body (#4: both axes scroll) -->
     <div
       ref="bodyScrollRef"
-      :class="hideHeader ? 'flex-1 min-h-0 overflow-hidden' : 'flex-1 min-h-0 overflow-auto'"
+      :class="hideHeader ? 'overflow-hidden' : 'flex-1 min-h-0 overflow-auto'"
       @scroll="onBodyScroll"
       @mousemove="onGridMouseMove"
       @mouseleave="onGridMouseLeave"
@@ -897,11 +939,11 @@ const hoverLineLeft = computed(() => {
             style="width: 1px"
             :style="{ left: `${todayPosition}px` }"
           />
-          <!-- Hover date hairline -->
+          <!-- Hover date column highlight -->
           <div
             v-if="hoverColIndex !== null && !dragCreateActive"
-            class="absolute top-0 bottom-0 nc-timeline-hover-hairline"
-            :style="{ left: `${hoverLineLeft}px` }"
+            class="absolute top-0 bottom-0 nc-timeline-content-hover pointer-events-none"
+            :style="{ left: `${hoverColIndex * colWidth}px`, width: `${colWidth}px` }"
           />
         </div>
 
@@ -915,7 +957,7 @@ const hoverLineLeft = computed(() => {
             :style="{ height: `${ROW_HEIGHT}px` }"
           >
             <!-- Hover background -->
-            <div class="absolute inset-0 hover:bg-nc-bg-gray-extralight transition-colors" />
+            <div class="absolute inset-0 nc-timeline-row-hover transition-colors" />
 
             <!-- Bars in this lane -->
             <NcTooltip
@@ -932,9 +974,9 @@ const hoverLineLeft = computed(() => {
               <div
                 class="nc-timeline-bar border-1 flex items-center text-xs font-normal transition-shadow select-none group w-full relative overflow-hidden"
                 :class="{
-                  'cursor-pointer hover:shadow-md': !isInteracting,
-                  'cursor-grabbing': dragInProgress && dragRecord === record,
-                  'cursor-grab': !isInteracting && canResize,
+                  'cursor-grabbing': dragInProgress && dragRecord === record && canDrag,
+                  'cursor-grab': !isInteracting && canDrag,
+                  'cursor-pointer hover:shadow-md': !isInteracting && !canDrag,
                   'pointer-events-none opacity-30': isInteracting && interactionRecord !== record,
                   'z-100 shadow-lg': isInteracting && interactionRecord === record,
                   'bg-nc-bg-default border-nc-border-gray-dark text-nc-content-gray':
@@ -968,7 +1010,7 @@ const hoverLineLeft = computed(() => {
                 />
                 <!-- Left resize handle (start date) — offset past the accent -->
                 <div
-                  v-if="canResize"
+                  v-if="canResizeLeft"
                   class="nc-timeline-resize-handle nc-timeline-resize-handle--left absolute left-0 top-0 w-3 h-full z-10 flex items-center justify-center"
                   @mousedown.stop="onResizeStart('left', $event, record)"
                 >
@@ -1013,7 +1055,7 @@ const hoverLineLeft = computed(() => {
 
                 <!-- Right resize handle (end date) — only when end date column exists -->
                 <div
-                  v-if="canResize && timelineRange[0]?.fk_to_col"
+                  v-if="canResizeRight && timelineRange[0]?.fk_to_col"
                   class="nc-timeline-resize-handle nc-timeline-resize-handle--right absolute right-0 top-0 w-3 h-full z-10 flex items-center justify-center"
                   @mousedown.stop="onResizeStart('right', $event, record)"
                 >
@@ -1044,7 +1086,7 @@ const hoverLineLeft = computed(() => {
             class="nc-timeline-add-row relative border-b border-nc-border-gray-light flex items-center cursor-cell transition-colors group"
             :style="{ height: `${ROW_HEIGHT}px` }"
           >
-            <div class="flex items-center gap-2 pl-3 text-nc-content-gray-muted">
+            <div class="flex items-center gap-2 pl-3 text-nc-content-gray-subtle2 group-hover:text-nc-content-gray">
               <GeneralIcon icon="plus" class="w-4 h-4" />
             </div>
           </div>
@@ -1122,17 +1164,19 @@ const hoverLineLeft = computed(() => {
   box-shadow: 0px 12px 16px -4px rgba(0, 0, 0, 0.1), 0px 4px 6px -2px rgba(0, 0, 0, 0.06);
 }
 
-/* Hover date hairline — thin vertical line following mouse column */
-.nc-timeline-hover-hairline {
-  width: 1px;
-  background-color: var(--nc-border-gray-medium);
-  pointer-events: none;
-  z-index: 2;
+/* Content area column & row highlight on hover — lighter than header */
+.nc-timeline-content-hover {
+  @apply bg-nc-bg-gray-light/60;
+  z-index: 0;
 }
 
-/* Header cell highlight on hover */
+.nc-timeline-row-hover:hover {
+  @apply bg-nc-bg-gray-light/60;
+}
+
+/* Header column highlight on hover */
 .nc-timeline-header-hover {
-  background-color: var(--nc-bg-gray-light);
+  @apply bg-nc-bg-gray-light/50;
 }
 
 /* Add-row: translucent wash so it reads as a placeholder, not a data row */
@@ -1141,7 +1185,7 @@ const hoverLineLeft = computed(() => {
   position: absolute;
   inset: 0;
   background-color: var(--nc-bg-default);
-  opacity: 0.6;
+  opacity: 0.2;
   pointer-events: none;
   transition: opacity 0.15s ease;
 }

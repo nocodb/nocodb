@@ -3422,7 +3422,7 @@ export function useCanvasRender({
 
         ctx.restore()
 
-        renderGroupContent(ctx, group, contentX, contentY + 22, availableWidth - contentWidth - countWidth, i)
+        renderGroupContent(ctx, group, contentX, contentY + 22, availableWidth - contentWidth - countWidth - 20, i)
 
         currentOffset = tempCurrentOffset
       }

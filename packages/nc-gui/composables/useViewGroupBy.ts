@@ -456,6 +456,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
               ...query,
               ...params,
               include_row_color: true,
+              getHiddenColumns: true,
               ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             } as any)

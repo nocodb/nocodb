@@ -12,6 +12,14 @@ import {
 import Draggable from 'vuedraggable'
 import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
 
+interface Props {
+  hideReorder?: boolean
+}
+
+const props = defineProps<Props>()
+
+const { hideReorder } = toRefs(props)
+
 const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
@@ -374,13 +382,13 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
               :model-value="_groupBy"
               item-key="fk_column_id"
               ghost-class="bg-nc-bg-gray-extralight"
-              :disabled="isLocked || !appInfo.ee"
+              :disabled="isLocked || !appInfo.ee || hideReorder"
               @change="onMove($event)"
             >
               <template #item="{ element: group }">
                 <div :key="group.fk_column_id" class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center">
                   <NcButton
-                    v-if="appInfo.ee"
+                    v-if="appInfo.ee && !hideReorder"
                     type="secondary"
                     size="small"
                     class="!border-r-transparent !rounded-r-none"
@@ -392,7 +400,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                   <LazySmartsheetToolbarFieldListAutoCompleteDropdown
                     v-model="group.fk_column_id"
                     class="caption nc-group-field-select !w-36"
-                    :class="!appInfo.ee ? 'nc-disable-reorder' : ''"
+                    :class="!appInfo.ee || hideReorder ? 'nc-disable-reorder' : ''"
                     :columns="getFieldsToGroupBy(group)"
                     :allow-empty="true"
                     :meta="meta"

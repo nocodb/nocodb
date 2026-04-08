@@ -80,7 +80,6 @@ import {
 } from '~/helpers/paymentHelpers';
 import MCPToken from '~/models/MCPToken';
 import Widget from '~/models/Widget';
-import Workspace from '~/models/Workspace';
 import { isCloud, isOnPrem } from '~/utils';
 import { isMuxEnabled } from '~/utils/envs';
 import Noco from '~/Noco';
@@ -1432,10 +1431,7 @@ export class AclMiddleware implements NestInterceptor {
       !req.user?.workspace_roles?.[WorkspaceUserRoles.OWNER] &&
       !isServiceUser(req.user) &&
       !req.user?.is_api_token &&
-      (await getFeature(
-        PlanFeatureTypes.FEATURE_FORCE_2FA,
-        req.ncWorkspaceId,
-      ))
+      (await getFeature(PlanFeatureTypes.FEATURE_FORCE_2FA, req.ncWorkspaceId))
     ) {
       const workspace = await Workspace.get(req.ncWorkspaceId);
       const meta =

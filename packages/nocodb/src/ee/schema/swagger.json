@@ -3110,7 +3110,6 @@
         ]
       }
     },
-    "/api/v2/meta/integrations": {},
     "/api/v2/meta/workspaces/{workspaceId}/integrations": {
       "get": {
         "summary": "List integrations",

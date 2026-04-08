@@ -60,6 +60,7 @@ export class IntegrationsController {
 
     return integration;
   }
+  // TODO: remove '/api/v2/meta/integrations' once CE fully migrates to workspace-scoped endpoints
   @Post([
     '/api/v2/meta/workspaces/:workspaceId/integrations',
     '/api/v2/meta/integrations',
@@ -117,6 +118,7 @@ export class IntegrationsController {
     return integration;
   }
 
+  // TODO: remove '/api/v2/meta/integrations' once CE fully migrates to workspace-scoped endpoints
   @Get([
     '/api/v2/meta/workspaces/:workspaceId/integrations',
     '/api/v2/meta/integrations',

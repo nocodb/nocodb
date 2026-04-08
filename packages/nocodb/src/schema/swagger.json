@@ -20293,101 +20293,6 @@
         ]
       }
     },
-    "/api/v2/meta/integrations": {
-      "get": {
-        "summary": "List integrations",
-        "operationId": "integration-list",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/IntegrationList"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Integration"
-        ],
-        "description": "List integrations",
-        "parameters": [
-          {
-            "schema": {
-              "$ref": "#/components/schemas/Integrations"
-            },
-            "name": "type",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "boolean"
-            },
-            "name": "includeDatabaseInfo",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "number"
-            },
-            "name": "limit",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "number"
-            },
-            "name": "offset",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "name": "baseId",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "name": "query",
-            "in": "query"
-          }
-        ]
-      },
-      "post": {
-        "summary": "Create integration",
-        "operationId": "integration-create",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Integration"
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/IntegrationReq"
-              }
-            }
-          }
-        },
-        "tags": [
-          "Integration"
-        ],
-        "description": "Create integration"
-      }
-    },
     "/api/v2/meta/integrations/{integrationId}": {
       "get": {
         "summary": "Read integration",
@@ -21326,7 +21231,7 @@
     "/api/v2/meta/workspaces/{workspaceId}/integrations": {
       "get": {
         "summary": "List integrations",
-        "operationId": "workspace-integration-list",
+        "operationId": "integration-list",
         "responses": {
           "200": {
             "description": "OK",
@@ -21390,7 +21295,7 @@
       },
       "post": {
         "summary": "Create integration",
-        "operationId": "workspace-integration-create",
+        "operationId": "integration-create",
         "responses": {
           "200": {
             "description": "OK",

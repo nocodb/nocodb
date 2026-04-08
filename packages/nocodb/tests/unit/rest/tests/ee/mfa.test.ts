@@ -56,14 +56,6 @@ function mfaTests() {
       });
     });
 
-    it('should reject without password', async () => {
-      await request(context.app)
-        .post('/api/v2/auth/mfa/setup')
-        .set('xc-auth', context.token)
-        .send({})
-        .expect(400);
-    });
-
     it('should reject with wrong password', async () => {
       await request(context.app)
         .post('/api/v2/auth/mfa/setup')

@@ -446,6 +446,7 @@ export class OnPremiseController {
       licensed_to: string;
       license_type: LicenseType;
       seat_count?: number;
+      min_seats?: number;
       expires_at?: string;
       config?: {
         limit_workspace?: number;
@@ -483,6 +484,7 @@ export class OnPremiseController {
         licensed_to: payload.licensed_to,
         license_type: payload.license_type,
         seat_count: payload.seat_count || 0,
+        min_seats: payload.min_seats,
         status: InstallationStatus.PENDING,
         expires_at: payload.expires_at
           ? new Date(payload.expires_at)
@@ -499,6 +501,7 @@ export class OnPremiseController {
       license_type: installation.license_type,
       status: installation.status,
       seat_count: installation.seat_count,
+      min_seats: installation.min_seats,
       expires_at: installation.expires_at,
       config: installation.config,
     };
@@ -527,6 +530,7 @@ export class OnPremiseController {
       !payload.license_type &&
       !payload.status &&
       payload.expires_at === undefined &&
+      payload.min_seats === undefined &&
       !payload.config
     ) {
       NcError._.badRequest('At least one field must be provided for update');

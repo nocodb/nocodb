@@ -670,6 +670,9 @@
       "noaccess": "No Access",
       "admin": "Admin",
       "superAdmin": "Super Admin",
+      "orgAdmin": "Org-Admin",
+      "orgCreator": "Org-Creator",
+      "orgViewer": "Org-Viewer",
       "orgLevelOwner": "Organization Level Owner",
       "orgLevelCreator": "Organization Level Creator",
       "orgLevelViewer": "Organization Level Viewer"

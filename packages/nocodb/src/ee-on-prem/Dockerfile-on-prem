@@ -59,8 +59,8 @@ RUN TARGET_ARCH=$(echo $TARGETPLATFORM | cut -d'/' -f2 | sed 's/amd64/x64/' | se
 
 # Copy application files
 COPY ./docker/nc-gui/ ./docker/nc-gui/
+COPY ./docker/main.js ./docker/index.js
 COPY ./docker/*.main.js ./docker/
-RUN mv ./docker/main.js ./docker/index.js
 COPY ./docker/configure.sh /usr/src/appEntry/configure.sh
 COPY ./docker/start-cloud.sh /usr/src/appEntry/start.sh
 COPY ./src/public/ ./docker/public/

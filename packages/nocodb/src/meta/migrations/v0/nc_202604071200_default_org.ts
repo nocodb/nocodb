@@ -85,6 +85,14 @@ export async function up(knex: Knex) {
           );
         }
 
+        // Clean up orphan rows and enforce NOT NULL before adding composite PK
+        await knex.raw(
+          `DELETE FROM ${MetaTable.ORG_USERS} WHERE fk_user_id IS NULL`,
+        );
+        await knex.raw(
+          `ALTER TABLE ${MetaTable.ORG_USERS} ALTER COLUMN fk_user_id SET NOT NULL`,
+        );
+
         await knex.raw(
           `ALTER TABLE ${MetaTable.ORG_USERS} ADD PRIMARY KEY (fk_org_id, fk_user_id)`,
         );
@@ -117,18 +125,40 @@ export async function up(knex: Knex) {
       if (Number(pkColCount[0]?.[0]?.cnt) < 2) {
         await knex.raw(`ALTER TABLE ${MetaTable.ORG_USERS} DROP PRIMARY KEY`);
         await knex.raw(
+          `DELETE FROM ${MetaTable.ORG_USERS} WHERE fk_user_id IS NULL`,
+        );
+        await knex.raw(
+          `ALTER TABLE ${MetaTable.ORG_USERS} MODIFY COLUMN fk_user_id VARCHAR(20) NOT NULL`,
+        );
+        await knex.raw(
           `ALTER TABLE ${MetaTable.ORG_USERS} ADD PRIMARY KEY (fk_org_id, fk_user_id)`,
         );
       }
     }
 
     // Add index on fk_user_id for reverse lookups
-    try {
-      await knex.schema.alterTable(MetaTable.ORG_USERS, (table) => {
-        table.index(['fk_user_id'], 'nc_org_users_fk_user_id_index');
-      });
-    } catch {
-      // Index might already exist
+    if (client === 'pg' || client === 'postgresql') {
+      await knex.raw(
+        `CREATE INDEX IF NOT EXISTS nc_org_users_fk_user_id_index ON ${MetaTable.ORG_USERS} (fk_user_id)`,
+      );
+    } else if (client === 'sqlite3') {
+      const idx = await knex.raw(
+        `SELECT name FROM sqlite_master WHERE type='index' AND name='nc_org_users_fk_user_id_index'`,
+      );
+      if (!idx?.length) {
+        await knex.schema.alterTable(MetaTable.ORG_USERS, (table) => {
+          table.index(['fk_user_id'], 'nc_org_users_fk_user_id_index');
+        });
+      }
+    } else {
+      const idx = await knex.raw(
+        `SHOW INDEX FROM ${MetaTable.ORG_USERS} WHERE Key_name = 'nc_org_users_fk_user_id_index'`,
+      );
+      if (!idx?.[0]?.length) {
+        await knex.schema.alterTable(MetaTable.ORG_USERS, (table) => {
+          table.index(['fk_user_id'], 'nc_org_users_fk_user_id_index');
+        });
+      }
     }
 
     // Add deleted/deleted_at columns for soft-delete support

@@ -293,7 +293,7 @@ export class OrgUsersService {
             });
           }
         } catch (e) {
-          console.log(e);
+          this.logger.error(e.message, e.stack);
           if (emails.length === 1) {
             NcError.orgUserError('Bad Request');
           } else {

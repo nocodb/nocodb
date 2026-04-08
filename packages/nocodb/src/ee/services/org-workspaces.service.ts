@@ -253,11 +253,6 @@ export class OrgWorkspacesService {
       NcError.notFound('Workspace not found in the organization');
     }
 
-    // check org user table and validate the permission
-    if (org.fk_user_id !== param.user.id) {
-      NcError.unauthorized('You are not authorized to perform this action');
-    }
-
     // update the organization id in the workspace
     await Workspace.updateOrgId({
       id: param.workspaceId,

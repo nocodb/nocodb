@@ -213,7 +213,11 @@ const handleEditTeam = (team: TeamV3ResponseType) => {
   $e('c:org-team:edit', { teamId: team.id })
 }
 
-const closeEditModal = () => {
+const closeEditModal = async () => {
+  // Flush any pending debounced title update before closing
+  if (editTeamId.value && editTeam.value?.title) {
+    updateTeamTitle.flush()
+  }
   isEditModalOpen.value = false
   editTeamId.value = null
   editTeam.value = null

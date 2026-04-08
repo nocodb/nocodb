@@ -130,7 +130,6 @@ const createTeam = async () => {
     emits('created', team as TeamType)
     vVisible.value = false
   } catch (e: any) {
-    console.error(e)
     e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
     if (e.errorFields.length) return
   } finally {

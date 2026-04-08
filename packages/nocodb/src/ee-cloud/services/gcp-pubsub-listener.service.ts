@@ -96,12 +96,12 @@ export class GcpPubsubListenerService implements OnModuleInit, OnModuleDestroy {
         e.stack,
       );
 
-      // ACK 400 errors — they won't succeed on retry (bad request, not transient)
-      // NACK others (500, network errors) so Pub/Sub retries with backoff
+      // ACK only 409 (conflict / already processed) — truly non-retryable
+      // NACK everything else — Pub/Sub applies its own exponential backoff on repeated NACKs
       const status = e?.response?.status;
-      if (status && status >= 400 && status < 500) {
+      if (status === 409) {
         this.logger.warn(
-          `ACKing non-retryable ${status} error for event ${eventType}`,
+          `ACKing conflict (409) for event ${eventType} — already processed`,
         );
         message.ack();
       } else {

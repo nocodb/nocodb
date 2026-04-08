@@ -276,6 +276,29 @@ export class GcpMarketplaceService {
       `GCP Marketplace account ${procurementAccountId} linked to user ${userId}`,
     );
 
+    // Proactively approve any pending entitlements that arrived before the account was approved
+    const pendingEntitlements = await GcpMarketplaceEntitlement.listByAccountId(
+      account.id,
+      ncMeta,
+    );
+
+    for (const ent of pendingEntitlements) {
+      if (ent.state === 'pending' && !ent.fk_installation_id) {
+        try {
+          await this.gcpProcurementClient.approveEntitlement(
+            ent.entitlement_id,
+          );
+          this.logger.log(
+            `Approved pending entitlement ${ent.entitlement_id} after account link`,
+          );
+        } catch (e) {
+          this.logger.warn(
+            `Failed to approve pending entitlement ${ent.entitlement_id}: ${e.message}`,
+          );
+        }
+      }
+    }
+
     await this.telemetryService.sendSystemEvent({
       event_type: 'payment_alert',
       payment_type: 'gcp_marketplace_account_linked',
@@ -346,14 +369,38 @@ export class GcpMarketplaceService {
     }
 
     // Approve the entitlement in GCP
+    // This may fail if the account hasn't been approved yet (user hasn't
+    // completed signup). In that case, throw so Pub/Sub retries later.
     try {
       await this.gcpProcurementClient.approveEntitlement(entitlementId);
+      this.logger.log(`Approved entitlement: ${entitlementId}`);
     } catch (e) {
+      const status = e?.response?.status;
+      const errorBody = e?.response?.data;
+
+      if (status === 400) {
+        // Check if this is because the account isn't approved yet
+        const gcpAccount =
+          await GcpMarketplaceAccount.getByProcurementAccountId(
+            accountId,
+            ncMeta,
+          );
+
+        if (!gcpAccount || gcpAccount.state !== 'active') {
+          this.logger.warn(
+            `Entitlement ${entitlementId} waiting for account ${accountId} to be approved — will retry`,
+          );
+          throw new Error('Account not yet approved');
+        }
+      }
+
       this.logger.error(
-        `Failed to approve entitlement ${entitlementId}: ${e.message}`,
+        `Failed to approve entitlement ${entitlementId}: ${
+          e.message
+        } ${JSON.stringify(errorBody || '')}`,
         e.stack,
       );
-      throw e; // Let Pub/Sub retry
+      throw e;
     }
   }
 

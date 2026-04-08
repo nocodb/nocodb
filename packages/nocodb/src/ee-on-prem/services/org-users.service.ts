@@ -17,7 +17,7 @@ export class OrgUsersService extends OrgUsersServiceCE {
    * On-prem override: read users from nc_org_users for the default org.
    * Falls back to CE user list when unlicensed (no org exists).
    */
-  async userList(param: { query: Record<string, any> }) {
+  async userList(param: { query: Record<string, any>; reqUser?: any }) {
     // Unlicensed — fall through to CE user list from nc_users
     if (!Noco.isEE() || !Noco.ncDefaultOrgId) {
       return super.userList(param);
@@ -25,23 +25,29 @@ export class OrgUsersService extends OrgUsersServiceCE {
 
     const orgId = Noco.ncDefaultOrgId;
     const { limit = 25, offset = 0, query: searchQuery } = param.query;
+    const isSuperAdmin = param.reqUser?.roles?.includes?.('super');
 
     const ncMeta = Noco.ncMeta;
 
-    let qb = ncMeta
-      .knexConnection(MetaTable.ORG_USERS)
-      .select(
-        `${MetaTable.USERS}.id`,
-        `${MetaTable.USERS}.email`,
-        `${MetaTable.USERS}.email_verified`,
-        `${MetaTable.USERS}.invite_token`,
-        `${MetaTable.USERS}.created_at`,
+    const selectCols = [
+      `${MetaTable.USERS}.id`,
+      `${MetaTable.USERS}.email`,
+      `${MetaTable.USERS}.email_verified`,
+      `${MetaTable.USERS}.created_at`,
         `${MetaTable.USERS}.updated_at`,
         `${MetaTable.USERS}.roles`,
         `${MetaTable.USERS}.display_name`,
         `${MetaTable.USERS}.meta`,
         `${MetaTable.ORG_USERS}.roles as org_roles`,
-      )
+    ];
+
+    if (isSuperAdmin) {
+      selectCols.push(`${MetaTable.USERS}.invite_token`);
+    }
+
+    let qb = ncMeta
+      .knexConnection(MetaTable.ORG_USERS)
+      .select(...selectCols)
       .innerJoin(
         MetaTable.USERS,
         `${MetaTable.ORG_USERS}.fk_user_id`,
@@ -60,11 +66,12 @@ export class OrgUsersService extends OrgUsersServiceCE {
       });
 
     if (searchQuery) {
+      const likeVal = `%${searchQuery.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`;
       qb = qb.where(function () {
-        this.where(`${MetaTable.USERS}.email`, 'like', `%${searchQuery}%`).orWhere(
+        this.where(`${MetaTable.USERS}.email`, 'like', likeVal).orWhere(
           `${MetaTable.USERS}.display_name`,
           'like',
-          `%${searchQuery}%`,
+          likeVal,
         );
       });
     }
@@ -92,11 +99,12 @@ export class OrgUsersService extends OrgUsersServiceCE {
       .first();
 
     if (searchQuery) {
+      const likeVal = `%${searchQuery.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`;
       countQb.where(function () {
-        this.where(`${MetaTable.USERS}.email`, 'like', `%${searchQuery}%`).orWhere(
+        this.where(`${MetaTable.USERS}.email`, 'like', likeVal).orWhere(
           `${MetaTable.USERS}.display_name`,
           'like',
-          `%${searchQuery}%`,
+          likeVal,
         );
       });
     }

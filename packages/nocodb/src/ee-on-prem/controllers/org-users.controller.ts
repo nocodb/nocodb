@@ -40,6 +40,7 @@ export class OrgUsersController extends OrgUsersControllerCE {
     }
     return this.orgUsersService.userList({
       query: req.query,
+      reqUser: req.user,
     });
   }
 

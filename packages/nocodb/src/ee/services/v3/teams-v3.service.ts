@@ -1141,6 +1141,18 @@ export class TeamsV3Service {
       }
     }
 
+    // For org teams: validate all users are active org members
+    if (param.scope === 'org' && team.fk_org_id) {
+      for (const member of param.members) {
+        const orgUser = await OrgUser.get(team.fk_org_id, member.user_id);
+        if (!orgUser) {
+          NcError.get(context).badRequest(
+            `User ${member.user_id} is not a member of this organization`,
+          );
+        }
+      }
+    }
+
     // check: no user is already a member
     const existingAssignments = await PrincipalAssignment.listByResourceIds(
       context,

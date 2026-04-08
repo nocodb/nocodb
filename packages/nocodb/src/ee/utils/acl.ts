@@ -613,7 +613,11 @@ const rolePermissions:
     },
   },
   [CloudOrgUserRoles.VIEWER]: {
-    include: {},
+    include: {
+      orgTeamList: true,
+      orgTeamTree: true,
+      orgTeamGet: true,
+    },
   },
   [OrgUserRoles.CREATOR]: {
     include: {
@@ -674,6 +678,9 @@ const rolePermissions:
       orgUserList: true,
       orgBaseList: true,
       orgSsoClientList: true,
+      orgTeamList: true,
+      orgTeamTree: true,
+      orgTeamGet: true,
     },
   },
 

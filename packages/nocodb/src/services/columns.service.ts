@@ -5313,6 +5313,7 @@ export class ColumnsService implements IColumnsService {
       // Sandbox-replay — pre-injected by `idField: 'column'` so each
       // back-link/oo/mm `Column.insert` can honor the recorded id.
       id?: string;
+      fk_display_value_column_id?: string | null;
     };
 
     if (!ltarReq.parentId) {

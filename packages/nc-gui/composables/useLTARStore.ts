@@ -289,6 +289,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           .filter((col) => {
             // Hide the custom display value column from extra fields since it's already shown as the primary display
             if (colOptions.fk_display_value_column_id && col.id === colOptions.fk_display_value_column_id) return false
+
+            // When a custom display field is set, show the original PV as an extra field
+            if (colOptions.fk_display_value_column_id && isPrimary(col)) return true
+
             // Hiding lookup field from dropdown as we don't send lookup field info in list response due to performance reasons
             return !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col) && !isLookup(col)
           })

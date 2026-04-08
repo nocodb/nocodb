@@ -331,6 +331,16 @@ const getAst = async (
           throwErrorIfInvalidParams,
         })
       ).ast;
+
+      // Include custom display value column if set on the LTAR relation
+      if (colOpt.fk_display_value_column_id && value) {
+        const customDisplayCol = model.columns?.find(
+          (c) => c.id === colOpt.fk_display_value_column_id,
+        );
+        if (customDisplayCol) {
+          value[getFieldKey(customDisplayCol)] = 1;
+        }
+      }
     }
     let isRequested;
 

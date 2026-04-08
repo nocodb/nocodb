@@ -12,6 +12,8 @@ import {
   UITypes,
   ViewTypes,
   WorkspaceUserRoles,
+  isSystemColumn,
+  isLinksOrLTAR,
 } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -922,12 +924,7 @@ const handleScrollIntoView = () => {
           :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
           dropdown-class-name="nc-dropdown-ltar-display-value-field"
         >
-          <a-select-option
-            v-for="field of eligibleDisplayFields"
-            :key="field.id"
-            :value="field.id"
-            :data-label="field.title"
-          >
+          <a-select-option v-for="field of eligibleDisplayFields" :key="field.id" :value="field.id" :data-label="field.title">
             <div class="flex w-full items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
                 <SmartsheetHeaderIcon :column="field" class="text-nc-content-gray-muted" />

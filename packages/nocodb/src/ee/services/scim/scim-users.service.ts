@@ -160,6 +160,24 @@ export class ScimUsersService {
       NcError.badRequest('Email is required');
     }
 
+    // If externalId is provided, check if an existing org user has the same
+    // externalId but a different email — this means the IdP changed the email.
+    // Email is the primary identifier in NocoDB and cannot be changed, so
+    // soft-delete the old user and create a fresh one with the new email.
+    if (scimUser.externalId) {
+      const existingByExtId = await OrgUser.getByScimExternalId(
+        orgId,
+        scimUser.externalId,
+      );
+      if (existingByExtId) {
+        const existingUser = await User.get(existingByExtId.fk_user_id);
+        if (existingUser && existingUser.email !== primaryEmail) {
+          // Soft-delete the old org user (cascade to workspaces/teams)
+          await OrgUser.softDelete(orgId, existingUser.id);
+        }
+      }
+    }
+
     // Check if user already exists by email
     let user = await User.getByEmail(primaryEmail);
 

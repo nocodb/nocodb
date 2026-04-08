@@ -51,6 +51,7 @@ export default class OrgUser {
         `${MetaTable.USERS}.created_at as created_at`,
         `${MetaTable.USERS}.meta`,
         `${MetaTable.ORG_USERS}.roles as cloud_org_roles`,
+        `${MetaTable.ORG_USERS}.scim_managed`,
         ncMeta.knex.raw(
           `COALESCE(ARRAY_AGG(DISTINCT JSON_BUILD_OBJECT('id', ??, 'created_at', ??, 'roles', ??, 'title', ??)::text) FILTER (WHERE ?? IS NOT NULL), '{}') as workspaces`,
           [
@@ -104,6 +105,7 @@ export default class OrgUser {
         `${MetaTable.USERS}.created_at`,
         `${MetaTable.USERS}.meta`,
         `${MetaTable.ORG_USERS}.roles`,
+        `${MetaTable.ORG_USERS}.scim_managed`,
       );
 
     OrgUser.notDeleted(queryBuilder);

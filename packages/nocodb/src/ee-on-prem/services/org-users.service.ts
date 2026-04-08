@@ -37,6 +37,7 @@ export class OrgUsersService extends OrgUsersServiceCE {
         `${MetaTable.USERS}.display_name`,
         `${MetaTable.USERS}.meta`,
         `${MetaTable.ORG_USERS}.roles as org_roles`,
+        `${MetaTable.ORG_USERS}.scim_managed`,
     ];
 
     if (isSuperAdmin) {

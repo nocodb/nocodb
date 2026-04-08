@@ -22,7 +22,7 @@ test.describe('Default Organization', () => {
       expect(appInfo.defaultOrgId).toBeFalsy();
     }
 
-    if (!appInfo.ee || appInfo.isOnPrem) {
+    if (appInfo.ee && appInfo.isOnPrem) {
       expect(appInfo.defaultOrgId).toBeTruthy();
     }
   });

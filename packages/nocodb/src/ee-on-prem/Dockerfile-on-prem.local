@@ -14,7 +14,7 @@ RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 COPY ./package.json ./package.json
 COPY ./pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY ./docker/nc-gui/ ./docker/nc-gui/
-COPY ./docker/*.js ./docker/
+COPY ./docker/*.main.js ./docker/
 RUN mv ./docker/main.js ./docker/index.js
 COPY ./docker/configure.sh /usr/src/appEntry/configure.sh
 # COPY ./docker/start.sh /usr/src/appEntry/start.sh

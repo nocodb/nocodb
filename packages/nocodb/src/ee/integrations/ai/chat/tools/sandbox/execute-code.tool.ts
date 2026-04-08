@@ -18,9 +18,11 @@ export function isE2bEnabled(): boolean {
 export const executeCodeTool = defineChatTool({
   name: ChatToolName.EXECUTE_CODE,
   description:
-    'Execute JavaScript or Python code in a sandboxed environment to analyze files uploaded by the user. ' +
-    'Use this tool when the user asks you to analyze, parse, transform, or extract data from uploaded files ' +
-    '(CSV, JSON, PDF, Excel, etc.). The sandbox has access to the uploaded files. ' +
+    'Execute JavaScript or Python code in a sandboxed environment. ' +
+    'Use for: file analysis (CSV, JSON, PDF, Excel), data transformation, math/statistics, ' +
+    'formatting, data cleaning, and general computation. ' +
+    'When files are uploaded, they are available at /home/user/<filename>. ' +
+    'Works without files too — use for any computation that benefits from code execution. ' +
     'Return results as structured data or text.',
   schema: z.object({
     code: z
@@ -49,10 +51,7 @@ export const executeCodeTool = defineChatTool({
       };
     }
 
-    const sessionFiles = (req as any).__sessionFiles;
-    if (!sessionFiles?.length) {
-      return { error: 'No files available in this session.' };
-    }
+    const sessionFiles = (req as any).__sessionFiles || [];
 
     let sandbox: InstanceType<typeof Sandbox> | null = null;
 
@@ -62,45 +61,47 @@ export const executeCodeTool = defineChatTool({
       });
 
       // Stream session files into the sandbox via storage adapter (no buffering)
-      const storageAdapter = await NcPluginMgrv2.storageAdapter();
+      if (sessionFiles.length) {
+        const storageAdapter = await NcPluginMgrv2.storageAdapter();
 
-      for (const file of sessionFiles) {
-        const fileName = file.title || 'file';
-        try {
-          let relativePath: string | undefined;
+        for (const file of sessionFiles) {
+          const fileName = file.title || 'file';
+          try {
+            let relativePath: string | undefined;
 
-          if (file.path) {
-            relativePath = path.join(
-              'nc',
-              'uploads',
-              file.path.replace(/^download[/\\]/i, ''),
+            if (file.path) {
+              relativePath = path.join(
+                'nc',
+                'uploads',
+                file.path.replace(/^download[/\\]/i, ''),
+              );
+            } else if (file.url) {
+              relativePath = getPathFromUrl(file.url).replace(/^\/+/, '');
+            }
+
+            if (!relativePath) continue;
+
+            const nodeStream = await storageAdapter.fileReadByStream(
+              relativePath,
             );
-          } else if (file.url) {
-            relativePath = getPathFromUrl(file.url).replace(/^\/+/, '');
+            if (!nodeStream) continue;
+
+            const webStream = Readable.toWeb(nodeStream) as ReadableStream;
+            await sandbox.files.write(`/home/user/${fileName}`, webStream);
+          } catch (e) {
+            logger.warn(
+              `Failed to upload file ${fileName} to sandbox: ${
+                (e as Error).message
+              }`,
+            );
           }
-
-          if (!relativePath) continue;
-
-          const nodeStream = await storageAdapter.fileReadByStream(
-            relativePath,
-          );
-          if (!nodeStream) continue;
-
-          const webStream = Readable.toWeb(nodeStream) as ReadableStream;
-          await sandbox.files.write(`/home/user/${fileName}`, webStream);
-        } catch (e) {
-          logger.warn(
-            `Failed to upload file ${fileName} to sandbox: ${
-              (e as Error).message
-            }`,
-          );
         }
       }
 
-      // Build file listing preamble so the code knows what's available
-      const fileList = sessionFiles
-        .map((f: any) => f.title || 'file')
-        .join(', ');
+      // Build file listing so the code knows what's available
+      const fileList = sessionFiles.length
+        ? sessionFiles.map((f: any) => f.title || 'file').join(', ')
+        : null;
 
       const stdout: string[] = [];
       const stderr: string[] = [];
@@ -111,9 +112,11 @@ export const executeCodeTool = defineChatTool({
         onStderr: (output) => stderr.push(output.line),
       });
 
-      const result: Record<string, any> = {
-        files_available: fileList,
-      };
+      const result: Record<string, any> = {};
+
+      if (fileList) {
+        result.files_available = fileList;
+      }
 
       if (stdout.length) {
         result.stdout = stdout.join('');

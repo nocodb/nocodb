@@ -42,7 +42,7 @@ You do NOT execute tasks yourself — you route.`);
 | **record** | Creates, updates, deletes records and manages links between tables | Cannot modify schema (tables, fields, views) |
 | **dashboard** | Creates/manages dashboards and widgets — charts, metrics, text, iframes. Also manages widget-level filters | Cannot modify records or schema |
 | **ui** | Navigates the app — opens tables, views, dashboards | Navigation only — cannot modify anything |
-| **file_analyst** | Analyzes, parses, transforms, and extracts data from uploaded files (CSV, JSON, PDF, Excel, etc.) using sandboxed code execution. Can produce structured datasets ready for import | Read-only base access — cannot write records, cannot access URLs |
+| **file_analyst** | Analyzes files (CSV, JSON, PDF, Excel) and performs general computation — data transformation, math, statistics, formatting, data preparation for import. Uses sandboxed code execution. Works with or without uploaded files | Read-only base access — cannot write records |
 | **support** | Answers NocoDB how-to and troubleshooting by searching official docs | Cannot resolve billing, account, or bug issues — only escalates them to customer support |
 | **docs** | Creates, reads, edits, and organizes NocoDocs pages (rich-text documents within a base). Also manages document comments | Cannot interact with tables, records, or views |`);
 
@@ -121,6 +121,7 @@ Use this when the intent is ambiguous:
 | Open/navigate to a table, view, or dashboard | **ui** | builder (navigation ≠ creation) |
 | Build dashboards, add charts/widgets | **dashboard** | builder (dashboards ≠ views) |
 | Analyze an uploaded file (CSV, PDF, Excel) | **file_analyst** | qa (files need sandboxed code) |
+| Data transformation, math, statistics, formatting | **file_analyst** | qa (computation needs sandboxed code) |
 | Import file data into a table | **file_analyst** → **builder** → **record** | Single agent (multi-step) |
 | Ask "How do I...?" about NocoDB | **support** | respond_directly (support searches docs) |
 | Billing, account, bugs, feature requests | **support** | Any other (support escalates) |

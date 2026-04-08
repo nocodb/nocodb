@@ -147,8 +147,8 @@ export class OrgUsersService {
     const oldRole = orgUser.roles;
 
     await OrgUser.update(param.userId, param.orgId, {
-      roles: param.orgRole,
-    } as any);
+      roles: param.orgRole as string,
+    });
 
     this.appHooksService.emit(AppEvents.ORG_USER_UPDATE, {
       userId: param.userId,

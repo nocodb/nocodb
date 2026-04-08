@@ -1,14 +1,65 @@
 import { EnterpriseOrgUserRoles } from 'nocodb-sdk';
+import type { Knex } from 'knex';
 import { OrgUser } from '~/models';
 import WorkspaceUser from '~/ee/models/WorkspaceUser';
-import { Team } from '~/ee/models';
-import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
-import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
+import {
+  CacheDelDirection,
+  CacheScope,
+  MetaTable,
+  PrincipalType,
+  ResourceType,
+} from '~/utils/globals';
 import {
   handleOrphanBases,
   handleOrphanWorkspace,
 } from '~/ee/utils/orphanBaseHandler';
 import Noco from '~/Noco';
+
+/**
+ * Batch soft-delete all team assignments for a user and invalidate cache.
+ *
+ * Uses a single UPDATE for the DB write, then loops over the affected
+ * teams for cache invalidation (in-memory, no extra DB round-trips).
+ *
+ * Each team carries its workspace_id so cache keys are prefixed correctly
+ * (NocoCache keys include workspace_id in the prefix).
+ */
+async function batchRemoveUserFromTeams(
+  teams: { id: string; fk_workspace_id: string | null }[],
+  userId: string,
+  ncMeta: any,
+) {
+  if (!teams.length) return;
+
+  const teamIds = teams.map((t) => t.id);
+
+  // Single DB update — soft-delete all matching assignments in one query
+  await ncMeta
+    .knexConnection(MetaTable.PRINCIPAL_ASSIGNMENTS)
+    .where('principal_type', PrincipalType.USER)
+    .where('principal_ref_id', userId)
+    .where('resource_type', ResourceType.TEAM)
+    .whereIn('resource_id', teamIds)
+    .where(function (this: Knex.QueryBuilder) {
+      this.where('deleted', false).orWhereNull('deleted');
+    })
+    .update({ deleted: true });
+
+  // Cache invalidation per team — context must match the prefix used when caching
+  for (const team of teams) {
+    const ctx = { workspace_id: team.fk_workspace_id, base_id: null };
+    await NocoCache.deepDel(
+      ctx,
+      `${CacheScope.PRINCIPAL_ASSIGNMENT}:${ResourceType.TEAM}:${team.id}:${PrincipalType.USER}:${userId}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+    await NocoCache.del(
+      ctx,
+      `${CacheScope.PRINCIPAL_ASSIGNMENT}:count:${ResourceType.TEAM}:${team.id}`,
+    );
+  }
+}
 
 /**
  * Transactionally remove a user from an org and cascade to all
@@ -27,7 +78,7 @@ export async function removeUserFromOrgCascade(
     .where('fk_org_id', orgId)
     .where('roles', EnterpriseOrgUserRoles.ADMIN)
     .whereNot('fk_user_id', userId)
-    .where(function () {
+    .where(function (this: Knex.QueryBuilder) {
       this.where('deleted', false).orWhereNull('deleted');
     })
     .first();
@@ -42,7 +93,7 @@ export async function removeUserFromOrgCascade(
     const orgWorkspaces = await transaction
       .knexConnection(MetaTable.WORKSPACE)
       .where('fk_org_id', orgId)
-      .where(function () {
+      .where(function (this: Knex.QueryBuilder) {
         this.where('deleted', false).orWhereNull('deleted');
       })
       .select('id');
@@ -62,63 +113,35 @@ export async function removeUserFromOrgCascade(
 
       // Reassign orphan bases to the next workspace owner
       await handleOrphanBases(ws.id, userId, transaction);
-
-      // Remove from all teams in this workspace
-      const wsTeams = await Team.list(
-        { workspace_id: ws.id, base_id: null },
-        { fk_workspace_id: ws.id },
-        transaction,
-      );
-
-      for (const team of wsTeams) {
-        const assignment = await PrincipalAssignment.get(
-          { workspace_id: ws.id, base_id: null },
-          ResourceType.TEAM,
-          team.id,
-          PrincipalType.USER,
-          userId,
-          transaction,
-        );
-        if (assignment) {
-          await PrincipalAssignment.delete(
-            { workspace_id: ws.id, base_id: null },
-            ResourceType.TEAM,
-            team.id,
-            PrincipalType.USER,
-            userId,
-            transaction,
-          );
-        }
-      }
     }
 
-    // Remove from org-level teams
-    const orgTeams = await Team.list(
-      { workspace_id: null, base_id: null },
-      { fk_org_id: orgId },
-      transaction,
-    );
+    // Batch-remove from all workspace teams + org teams in two queries
+    const wsIds = orgWorkspaces.map((ws) => ws.id);
 
-    for (const team of orgTeams) {
-      const assignment = await PrincipalAssignment.get(
-        { workspace_id: null, base_id: null },
-        ResourceType.TEAM,
-        team.id,
-        PrincipalType.USER,
-        userId,
-        transaction,
-      );
-      if (assignment) {
-        await PrincipalAssignment.delete(
-          { workspace_id: null, base_id: null },
-          ResourceType.TEAM,
-          team.id,
-          PrincipalType.USER,
-          userId,
-          transaction,
-        );
-      }
-    }
+    // Collect workspace team IDs in one query
+    const wsTeamRows = wsIds.length
+      ? await transaction
+          .knexConnection(MetaTable.TEAMS)
+          .whereIn('fk_workspace_id', wsIds)
+          .where(function (this: Knex.QueryBuilder) {
+            this.where('deleted', false).orWhereNull('deleted');
+          })
+          .select('id', 'fk_workspace_id')
+      : [];
+
+    // Collect org-level team IDs in one query
+    const orgTeamRows = await transaction
+      .knexConnection(MetaTable.TEAMS)
+      .where('fk_org_id', orgId)
+      .whereNull('fk_workspace_id')
+      .where(function (this: Knex.QueryBuilder) {
+        this.where('deleted', false).orWhereNull('deleted');
+      })
+      .select('id', 'fk_workspace_id');
+
+    const allTeams = [...wsTeamRows, ...orgTeamRows];
+
+    await batchRemoveUserFromTeams(allTeams, userId, transaction);
 
     await transaction.commit();
   } catch (e) {

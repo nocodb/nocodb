@@ -15,7 +15,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import type { NcRequest } from '~/interface/config';
-import { PlanFeatureTypes } from 'nocodb-sdk';
 import { NcContext } from '~/interface/config';
 import { ScimGroupsService } from '~/ee/services/scim/scim-groups.service';
 import { ScimAuthGuard } from '~/ee/guards/scim-auth.guard';
@@ -23,8 +22,6 @@ import { ScimExceptionFilter } from '~/ee/filters/scim-exception/scim-exception.
 import { ScimContentTypeInterceptor } from '~/ee/interceptors/scim-content-type/scim-content-type.interceptor';
 import { ScimApiLimiterGuard } from '~/ee/guards/scim-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
-import { checkForFeature } from '~/ee/helpers/paymentHelpers';
-import { isCloud, isOnPrem } from '~/utils';
 import { NcError } from '~/helpers/catchError';
 
 @Controller()

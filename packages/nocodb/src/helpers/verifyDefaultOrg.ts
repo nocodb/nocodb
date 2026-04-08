@@ -89,7 +89,7 @@ export const verifyDefaultOrg = async (ncMeta = Noco.ncMeta) => {
     return;
   }
 
-  // Create default org with fixed ID "nc"
+  // Create default org with fixed ID
   // Check-then-insert handles race condition on multi-process boot
   const orgExists = await ncMeta
     .knexConnection(MetaTable.ORG)
@@ -240,16 +240,19 @@ export const ensureUserInDefaultOrg = async (
 
   if (existing) return;
 
-  await ncMeta.knexConnection(MetaTable.ORG_USERS).insert({
-    fk_org_id: Noco.ncDefaultOrgId,
-    fk_user_id: userId,
-    roles: role,
-  }).catch((e: any) => {
-    // Ignore duplicate key from race condition
-    if (isDuplicateKeyError(e)) {
-      logger.debug(`User ${userId} already in default org`);
-      return;
-    }
-    throw e;
-  });
+  await ncMeta
+    .knexConnection(MetaTable.ORG_USERS)
+    .insert({
+      fk_org_id: Noco.ncDefaultOrgId,
+      fk_user_id: userId,
+      roles: role,
+    })
+    .catch((e: any) => {
+      // Ignore duplicate key from race condition
+      if (isDuplicateKeyError(e)) {
+        logger.debug(`User ${userId} already in default org`);
+        return;
+      }
+      throw e;
+    });
 };

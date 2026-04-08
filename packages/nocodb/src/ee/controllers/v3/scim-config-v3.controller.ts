@@ -10,16 +10,12 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { PlanFeatureTypes } from 'nocodb-sdk';
 import { NcContext } from '~/interface/config';
 import { ScimConfigService } from '~/ee/services/scim/scim-config.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
-import { checkForFeature } from '~/ee/helpers/paymentHelpers';
-import { NcError } from '~/helpers/catchError';
-import { isCloud, isOnPrem } from '~/utils';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)

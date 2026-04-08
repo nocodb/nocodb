@@ -1721,13 +1721,16 @@ export class TeamsV3Service {
       );
     }
 
-    // Fetch workspace
-    const workspace = await Workspace.get(param.workspaceOrOrgId);
-    if (!workspace) {
+    // Fetch workspace (null for org-scoped moves)
+    const workspace =
+      param.scope === 'org'
+        ? null
+        : await Workspace.get(param.workspaceOrOrgId);
+    if (param.scope !== 'org' && !workspace) {
       NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
     }
 
-    // Check if team exists and belongs to workspace
+    // Check if team exists and belongs to the scope
     const team = await Team.get(context, param.teamId);
     if (!team) {
       NcError.get(context).teamNotFound(param.teamId);
@@ -1764,15 +1767,19 @@ export class TeamsV3Service {
         );
       }
 
-      // Only managers of the new parent team can move teams under it (unless user is workspace owner)
+      // Only managers of the new parent team can move teams under it
+      // (unless user is workspace owner or org admin)
       if (userId) {
-        const isOwner = await this.isUserWorkspaceOwner(
-          context,
-          userId,
-          param.workspaceOrOrgId,
-        );
+        const isOwnerOrAdmin =
+          param.scope === 'org'
+            ? await this.isUserOrgAdmin(param.workspaceOrOrgId, userId)
+            : await this.isUserWorkspaceOwner(
+                context,
+                userId,
+                param.workspaceOrOrgId,
+              );
 
-        if (!isOwner) {
+        if (!isOwnerOrAdmin) {
           const parentAssignment = await PrincipalAssignment.get(
             context,
             ResourceType.TEAM,

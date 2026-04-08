@@ -82,7 +82,7 @@ export class GcpPubsubListenerService implements OnModuleInit, OnModuleDestroy {
       if (data.entitlement) {
         await this.handleEntitlementEvent(eventType, data.entitlement.id);
       } else if (data.account) {
-        await this.handleAccountEvent(data.account.id);
+        await this.handleAccountEvent(eventType, data.account.id);
       } else {
         this.logger.warn(
           `Unknown GCP Marketplace message format: ${JSON.stringify(data)}`,
@@ -95,8 +95,18 @@ export class GcpPubsubListenerService implements OnModuleInit, OnModuleDestroy {
         `Failed to handle GCP event ${eventType}: ${e.message}`,
         e.stack,
       );
-      // NACK so Pub/Sub retries delivery
-      message.nack();
+
+      // ACK 400 errors — they won't succeed on retry (bad request, not transient)
+      // NACK others (500, network errors) so Pub/Sub retries with backoff
+      const status = e?.response?.status;
+      if (status && status >= 400 && status < 500) {
+        this.logger.warn(
+          `ACKing non-retryable ${status} error for event ${eventType}`,
+        );
+        message.ack();
+      } else {
+        message.nack();
+      }
     }
   }
 
@@ -144,6 +154,7 @@ export class GcpPubsubListenerService implements OnModuleInit, OnModuleDestroy {
       case 'ENTITLEMENT_PLAN_CHANGE_CANCELLED':
       case 'ENTITLEMENT_RENEWED':
       case 'ENTITLEMENT_OFFER_ENDED':
+      case 'ENTITLEMENT_OFFER_ACCEPTED':
         // No action needed for these events
         this.logger.log(
           `No-op for event ${eventType} on entitlement ${entitlementId}`,
@@ -155,14 +166,28 @@ export class GcpPubsubListenerService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private async handleAccountEvent(accountId: string): Promise<void> {
+  private async handleAccountEvent(
+    eventType: string,
+    accountId: string,
+  ): Promise<void> {
     if (!accountId) {
       this.logger.warn('Account event missing ID');
       return;
     }
 
-    // Account events are always deletions
-    await this.gcpMarketplaceService.handleAccountDeleted(accountId);
+    switch (eventType) {
+      case 'ACCOUNT_ACTIVE':
+        // Account was approved — no action needed on our side
+        this.logger.log(`Account ${accountId} is now active`);
+        break;
+
+      case 'ACCOUNT_DELETED':
+        await this.gcpMarketplaceService.handleAccountDeleted(accountId);
+        break;
+
+      default:
+        this.logger.log(`No-op for account event ${eventType} on ${accountId}`);
+    }
   }
 
   private handleError(error: Error): void {

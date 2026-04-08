@@ -284,6 +284,7 @@ export class GcpMarketplaceService {
 
     for (const ent of pendingEntitlements) {
       if (ent.state === 'pending' && !ent.fk_installation_id) {
+        // Approve entitlements that arrived before account was approved
         try {
           await this.gcpProcurementClient.approveEntitlement(
             ent.entitlement_id,
@@ -294,6 +295,25 @@ export class GcpMarketplaceService {
         } catch (e) {
           this.logger.warn(
             `Failed to approve pending entitlement ${ent.entitlement_id}: ${e.message}`,
+          );
+        }
+      }
+
+      // Fix up installations that were created before the user was linked
+      if (ent.fk_installation_id) {
+        const inst = await Installation.get(ent.fk_installation_id, ncMeta);
+        if (inst && !inst.fk_user_id) {
+          const user = await User.get(userId, ncMeta);
+          await Installation.update(
+            ent.fk_installation_id,
+            {
+              fk_user_id: userId,
+              licensed_to: user?.email || inst.licensed_to,
+            },
+            ncMeta,
+          );
+          this.logger.log(
+            `Linked installation ${ent.fk_installation_id} to user ${userId}`,
           );
         }
       }
@@ -453,9 +473,9 @@ export class GcpMarketplaceService {
       return;
     }
 
-    // Provision license
-    const gcpAccount = await GcpMarketplaceAccount.get(
-      entRecord.fk_gcp_account_id,
+    // Provision license — read account fresh from DB to get the latest fk_user_id
+    const gcpAccount = await GcpMarketplaceAccount.getByProcurementAccountId(
+      accountId,
       ncMeta,
     );
 
@@ -467,9 +487,11 @@ export class GcpMarketplaceService {
 
     const config = buildConfigForGcpPlan(gcpEnt.plan);
     let licensedTo = 'GCP Marketplace';
+    let userId: string | undefined;
 
     if (gcpAccount?.fk_user_id) {
-      const user = await User.get(gcpAccount.fk_user_id, ncMeta);
+      userId = gcpAccount.fk_user_id;
+      const user = await User.get(userId, ncMeta);
       if (user?.email) licensedTo = user.email;
     }
 
@@ -481,7 +503,7 @@ export class GcpMarketplaceService {
 
     const installation = await Installation.insert(
       {
-        fk_user_id: gcpAccount?.fk_user_id,
+        fk_user_id: userId,
         licensed_to: licensedTo,
         license_key: licenseKey,
         license_type: licenseType,

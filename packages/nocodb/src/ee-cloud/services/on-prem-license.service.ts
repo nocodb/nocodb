@@ -267,6 +267,10 @@ export class OnPremLicenseService {
       : stripeSub.items.data[0].quantity || 1;
 
     // Create Subscription record (no workspace/org, just user)
+    const stripeQuantity = Math.max(
+      minSeats,
+      stripeSub.items.data[0].quantity || 1,
+    );
     const subRec = await Subscription.insert({
       fk_user_id: userId,
       fk_workspace_id: null,
@@ -274,10 +278,14 @@ export class OnPremLicenseService {
       fk_plan_id: planId,
       stripe_subscription_id: stripeSub.id,
       stripe_price_id: price.id,
-      seat_count: minSeats,
+      seat_count: stripeQuantity,
+      last_paid_seat_count: stripeQuantity,
       status: stripeSub.status,
       start_at: new Date(stripeSub.start_date * 1000).toISOString(),
       period,
+      billing_cycle_anchor: new Date(
+        stripeSub.billing_cycle_anchor * 1000,
+      ).toISOString(),
     });
 
     // Generate license key and create Installation
@@ -440,6 +448,187 @@ export class OnPremLicenseService {
   }
 
   /**
+   * Link an existing Installation to a Stripe subscription by creating the
+   * missing Subscription DB record.  Use when the webhook that normally
+   * creates the Subscription was missed or the Installation was provisioned
+   * outside the self-serve checkout flow.
+   */
+  async linkInstallationToSubscription(
+    installationId: string,
+    stripeSubscriptionId: string,
+    userIdOverride?: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<{ subscription_id: string; installation_id: string }> {
+    const installation = await Installation.get(installationId, ncMeta);
+    if (!installation) {
+      NcError.genericNotFound('Installation', installationId);
+    }
+
+    if (installation.fk_subscription_id) {
+      NcError.badRequest(
+        `Installation ${installationId} is already linked to subscription ${installation.fk_subscription_id}`,
+      );
+    }
+
+    // If a Subscription record already exists for this Stripe sub
+    // (e.g. from a previous partial failure), just link it and return
+    const existingSub = await Subscription.getByStripeSubscriptionId(
+      stripeSubscriptionId,
+      ncMeta,
+    );
+    if (existingSub) {
+      await Installation.update(
+        installation.id,
+        { fk_subscription_id: existingSub.id },
+        ncMeta,
+      );
+
+      this.logger.log(
+        `Linked installation ${installationId} to existing subscription record ${existingSub.id} (stripe: ${stripeSubscriptionId})`,
+      );
+
+      return {
+        subscription_id: existingSub.id,
+        installation_id: installation.id,
+      };
+    }
+
+    // Fetch from Stripe
+    const stripeSub = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+    if (!stripeSub) {
+      NcError.genericNotFound('Stripe subscription', stripeSubscriptionId);
+    }
+
+    if (!['active', 'trialing', 'incomplete'].includes(stripeSub.status)) {
+      NcError.badRequest(
+        `Stripe subscription status is "${stripeSub.status}" — expected active, trialing, or incomplete`,
+      );
+    }
+
+    const price = stripeSub.items.data[0]?.price;
+    if (!price) {
+      NcError.badRequest('Stripe subscription has no price item');
+    }
+
+    // Plan is optional — custom/external plans may not exist in nc_plans.
+    // Seat billing works regardless; plan is only needed for feature gating
+    // which comes from the Installation config/license JWT on-prem.
+    const planId = stripeSub.metadata?.fk_plan_id || null;
+    let plan: Plan | null = null;
+    if (planId) {
+      plan = await Plan.get(planId, ncMeta, true);
+    }
+
+    const userId =
+      userIdOverride ||
+      installation.fk_user_id ||
+      stripeSub.metadata?.fk_user_id;
+    if (!userId) {
+      NcError.badRequest(
+        'Cannot determine user: pass user_id in the request, or ensure Installation.fk_user_id or Stripe metadata.fk_user_id is set',
+      );
+    }
+
+    // min_seats is the billing floor (per-installation commitment).
+    // seat_count / last_paid_seat_count reflect the actual billed quantity
+    // which is at least min_seats, but may be higher if already reseated.
+    const minSeats = stripeSub.metadata.min_seats
+      ? parseInt(stripeSub.metadata.min_seats, 10)
+      : stripeSub.items.data[0].quantity || 1;
+    const stripeQuantity = Math.max(
+      minSeats,
+      stripeSub.items.data[0].quantity || 1,
+    );
+
+    // Ensure Stripe subscription metadata is complete for webhook routing
+    // and future syncLicenses calls
+    const metadataUpdates: Record<string, string> = {};
+    if (stripeSub.metadata.on_prem !== 'true') {
+      metadataUpdates.on_prem = 'true';
+    }
+    if (stripeSub.metadata.fk_user_id !== userId) {
+      metadataUpdates.fk_user_id = userId;
+    }
+    if (!stripeSub.metadata.plan_title && plan?.title) {
+      metadataUpdates.plan_title = plan.title;
+    }
+    if (!stripeSub.metadata.period) {
+      metadataUpdates.period = price.recurring.interval;
+    }
+    if (!stripeSub.metadata.min_seats) {
+      metadataUpdates.min_seats = String(minSeats);
+    }
+
+    if (Object.keys(metadataUpdates).length > 0) {
+      await stripe.subscriptions.update(stripeSub.id, {
+        metadata: {
+          ...stripeSub.metadata,
+          ...metadataUpdates,
+        },
+      });
+
+      this.logger.log(
+        `Updated Stripe subscription ${stripeSub.id} metadata: ${JSON.stringify(
+          metadataUpdates,
+        )}`,
+      );
+    }
+
+    // Create the Subscription record — seat_count and last_paid_seat_count
+    // use the actual Stripe quantity, not min_seats
+    const subRec = await Subscription.insert({
+      fk_user_id: userId,
+      fk_workspace_id: null,
+      fk_org_id: null,
+      fk_plan_id: planId,
+      stripe_subscription_id: stripeSub.id,
+      stripe_price_id: price.id,
+      seat_count: stripeQuantity,
+      last_paid_seat_count: stripeQuantity,
+      status: stripeSub.status,
+      start_at: new Date(stripeSub.start_date * 1000).toISOString(),
+      period: price.recurring.interval,
+      billing_cycle_anchor: new Date(
+        stripeSub.billing_cycle_anchor * 1000,
+      ).toISOString(),
+    });
+
+    // Link the Installation to the new Subscription
+    await Installation.update(
+      installation.id,
+      {
+        fk_subscription_id: subRec.id,
+        min_seats: minSeats,
+      },
+      ncMeta,
+    );
+
+    await this.telemetryService.sendSystemEvent({
+      event_type: 'payment_alert',
+      payment_type: 'on_prem_subscription_linked',
+      message: `On-prem installation ${installationId} linked to stripe subscription ${stripeSubscriptionId}`,
+      user: { id: userId },
+      extra: {
+        installation_id: installationId,
+        subscription_id: subRec.id,
+        stripe_subscription_id: stripeSubscriptionId,
+        plan_title: plan?.title || 'custom',
+        stripe_quantity: stripeQuantity,
+        min_seats: minSeats,
+      },
+    });
+
+    this.logger.log(
+      `Linked installation ${installationId} to stripe subscription ${stripeSubscriptionId} via subscription record ${subRec.id} (stripe_quantity=${stripeQuantity}, min_seats=${minSeats})`,
+    );
+
+    return {
+      subscription_id: subRec.id,
+      installation_id: installation.id,
+    };
+  }
+
+  /**
    * Reseat an installation based on reported usage vs minimum commitment.
    * If reported seats > min_seats, update Stripe to reported (prorated overage).
    * If reported seats < min_seats, ensure Stripe stays at min_seats (billing floor).
@@ -468,11 +657,36 @@ export class OnPremLicenseService {
     const item = stripeSub.items.data[0];
     if (!item || billedSeats === (item.quantity || 1)) return;
 
-    // Update Stripe subscription quantity with proration
-    await stripe.subscriptions.update(subscription.stripe_subscription_id, {
-      items: [{ id: item.id, quantity: billedSeats }],
-      proration_behavior: 'always_invoice',
-    });
+    // Yearly: always_invoice creates a separate proration invoice immediately,
+    // so we must consolidate any unpaid proration invoices first.
+    // Monthly: default proration (prorations roll into the next invoice),
+    // no separate invoices are created, so no consolidation needed.
+    const isYearly = subscription.period === 'year';
+
+    if (isYearly) {
+      const customerId =
+        typeof stripeSub.customer === 'string'
+          ? stripeSub.customer
+          : stripeSub.customer.id;
+
+      await this.consolidateUnpaidProrationInvoices(
+        stripeSub,
+        subscription,
+        customerId,
+        billedSeats,
+      );
+    } else {
+      // Monthly — prorate to next invoice (no separate invoice)
+      await stripe.subscriptions.update(stripeSub.id, {
+        items: [
+          {
+            id: item.id,
+            price: subscription.stripe_price_id,
+            quantity: billedSeats,
+          },
+        ],
+      });
+    }
 
     // Update local records
     await Subscription.update(
@@ -484,6 +698,136 @@ export class OnPremLicenseService {
     this.logger.log(
       `Reseated installation ${installationId}: reported=${reportedSeats}, min=${minSeats}, billed=${billedSeats}`,
     );
+  }
+
+  /**
+   * Void open/uncollectible proration invoices and reset the subscription to
+   * last_paid_seat_count before applying the new quantity.
+   * Only needed for yearly subscriptions where always_invoice creates separate
+   * proration invoices that can go unpaid.
+   */
+  private async consolidateUnpaidProrationInvoices(
+    stripeSub: Stripe.Subscription,
+    subscription: Subscription,
+    customerId: string,
+    newSeatCount: number,
+  ) {
+    const [openInvoices, uncollectibleInvoices] = await Promise.all([
+      stripe.invoices.list({
+        customer: customerId,
+        status: 'open',
+        subscription: subscription.stripe_subscription_id,
+        limit: 100,
+      }),
+      stripe.invoices.list({
+        customer: customerId,
+        status: 'uncollectible',
+        subscription: subscription.stripe_subscription_id,
+        limit: 100,
+      }),
+    ]);
+
+    const problematicInvoices = [
+      ...openInvoices.data,
+      ...uncollectibleInvoices.data,
+    ];
+
+    if (problematicInvoices.length === 0) {
+      await stripe.subscriptions.update(stripeSub.id, {
+        items: [
+          {
+            id: stripeSub.items.data[0].id,
+            price: subscription.stripe_price_id,
+            quantity: newSeatCount,
+          },
+        ],
+        proration_behavior: 'always_invoice',
+      });
+      return;
+    }
+
+    // Only void proration invoices — not renewal invoices
+    const prorationInvoices = problematicInvoices.filter((inv) =>
+      inv.lines.data.some(
+        (line) =>
+          line.parent?.invoice_item_details?.proration ||
+          line.parent?.subscription_item_details?.proration,
+      ),
+    );
+
+    if (prorationInvoices.length === 0) {
+      await stripe.subscriptions.update(stripeSub.id, {
+        items: [
+          {
+            id: stripeSub.items.data[0].id,
+            price: subscription.stripe_price_id,
+            quantity: newSeatCount,
+          },
+        ],
+        proration_behavior: 'always_invoice',
+      });
+      return;
+    }
+
+    const lastPaidSeatCount =
+      subscription.last_paid_seat_count ?? subscription.seat_count;
+
+    this.logger.warn(
+      `Consolidating ${prorationInvoices.length} unpaid proration invoices for installation subscription ${subscription.id}. ` +
+        `Resetting from ${stripeSub.items.data[0].quantity} seats to last paid state (${lastPaidSeatCount}), ` +
+        `then updating to ${newSeatCount} seats.`,
+    );
+
+    // Step 1: Void all unpaid proration invoices
+    for (const inv of prorationInvoices) {
+      try {
+        await stripe.invoices.voidInvoice(inv.id);
+      } catch (e) {
+        this.logger.warn(`Failed to void invoice ${inv.id}: ${e.message}`);
+      }
+    }
+
+    // Step 2: Reset subscription to last paid seat count (no proration)
+    await stripe.subscriptions.update(stripeSub.id, {
+      items: [
+        {
+          id: stripeSub.items.data[0].id,
+          price: subscription.stripe_price_id,
+          quantity: lastPaidSeatCount,
+        },
+      ],
+      proration_behavior: 'none',
+    });
+
+    // Step 3: Update to the new desired seat count (with proration)
+    if (newSeatCount !== lastPaidSeatCount) {
+      await stripe.subscriptions.update(stripeSub.id, {
+        items: [
+          {
+            id: stripeSub.items.data[0].id,
+            price: subscription.stripe_price_id,
+            quantity: newSeatCount,
+          },
+        ],
+        proration_behavior: 'always_invoice',
+      });
+    }
+
+    await this.telemetryService.sendSystemEvent({
+      event_type: 'payment_alert',
+      payment_type: 'proration_consolidated',
+      message:
+        `Consolidated ${prorationInvoices.length} unpaid proration invoices for on-prem subscription ${subscription.id}. ` +
+        `Reset from ${stripeSub.items.data[0].quantity} to ${lastPaidSeatCount} (last paid), ` +
+        `then updated to ${newSeatCount} seats.`,
+      extra: {
+        voided_invoice_ids: prorationInvoices.map((i) => i.id),
+        voided_invoice_amounts: prorationInvoices.map((i) => i.amount_due),
+        last_paid_seat_count: lastPaidSeatCount,
+        new_seat_count: newSeatCount,
+        subscription_id: subscription.id,
+      },
+    });
   }
 
   /**

@@ -543,6 +543,39 @@ export class OnPremiseController {
   }
 
   /**
+   * Link an existing Installation to a Stripe subscription.
+   * Creates the missing Subscription DB record and wires it to the Installation
+   * so that heartbeat-driven reseats flow through to Stripe.
+   *
+   * Use when the Installation was created outside the self-serve checkout flow
+   * (or the webhook was missed) and no Subscription record exists yet.
+   */
+  @UseGuards(AuthGuard('basic'))
+  @Post('/api/internal/on-premise/license/link-subscription')
+  @HttpCode(200)
+  async linkSubscription(
+    @Body()
+    payload: {
+      installation_id: string;
+      stripe_subscription_id: string;
+      user_id?: string;
+    },
+  ) {
+    if (!payload.installation_id) {
+      NcError._.badRequest('Installation ID is required');
+    }
+    if (!payload.stripe_subscription_id) {
+      NcError._.badRequest('Stripe subscription ID is required');
+    }
+
+    return this.onPremLicenseService.linkInstallationToSubscription(
+      payload.installation_id,
+      payload.stripe_subscription_id,
+      payload.user_id,
+    );
+  }
+
+  /**
    * Generate a signed JWT for pure airgapped deployment.
    * Flow:
    *  1. Admin creates license via POST /api/internal/on-premise/license

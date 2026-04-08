@@ -3,6 +3,10 @@ import type { NcContext } from '~/interface/config';
 import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
 import Team from '~/ee/models/Team';
 import { PrincipalType, ResourceType } from '~/utils/globals';
+import {
+  getWorkspaceOrgId,
+  isTeamVisibleInWorkspace,
+} from '~/utils/team-subject-matcher';
 
 /**
  * Extract base-team roles for a user in a base.
@@ -67,6 +71,14 @@ export async function extractUserBaseTeamRoles(
     const assignedTeamIds = teamAssignments.map((a) => a.principal_ref_id);
     const allTeamIds = [...new Set([...userTeamIds, ...assignedTeamIds])];
     const teamsMap = await Team.getByIds(teamCtx, allTeamIds);
+
+    // Filter out org teams whose org doesn't match the workspace's org
+    const wsOrgId = await getWorkspaceOrgId(context.workspace_id);
+    for (const [id, team] of teamsMap) {
+      if (!isTeamVisibleInWorkspace(team, wsOrgId)) {
+        teamsMap.delete(id);
+      }
+    }
 
     // Build user's teams list from batch result
     const userTeams: { id: string; path: string; teamRole: string }[] = [];

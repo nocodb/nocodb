@@ -2191,7 +2191,7 @@ export default function () {
        * Validates: workspace-org linkage is the gate for org team visibility.
        * Unlinking immediately severs all org team permissions.
        */
-      it.skip('10.1 — unlinking workspace from org revokes org team access; re-link restores (TODO: RLS/role eval must check workspace-org link)', async function () {
+      it('10.1 — unlinking workspace from org revokes org team access; re-link restores', async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;

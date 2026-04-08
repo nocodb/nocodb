@@ -2,7 +2,37 @@ import type { SubjectHierarchyScope } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
 import Team from '~/ee/models/Team';
+import Workspace from '~/ee/models/Workspace';
 import { PrincipalType, ResourceType } from '~/utils/globals';
+
+/**
+ * Get the org ID linked to a workspace. Returns null if workspace has no org.
+ * Used to filter out org teams when the workspace isn't linked to their org.
+ */
+export async function getWorkspaceOrgId(
+  workspaceId: string | undefined,
+): Promise<string | null> {
+  if (!workspaceId) return null;
+  const workspace = await Workspace.get(workspaceId, false, undefined, false);
+  return workspace?.fk_org_id || null;
+}
+
+/**
+ * Check if an org team is visible from the given workspace context.
+ * A team is visible if:
+ *   - It's a workspace team (fk_workspace_id set) — always visible
+ *   - It's an org team AND the workspace is linked to the same org
+ */
+export function isTeamVisibleInWorkspace(
+  team: { fk_org_id?: string; fk_workspace_id?: string },
+  workspaceOrgId: string | null,
+): boolean {
+  // Workspace-scoped teams are always visible
+  if (team.fk_workspace_id) return true;
+  // Org team: visible only if workspace is linked to the same org
+  if (team.fk_org_id) return team.fk_org_id === workspaceOrgId;
+  return true;
+}
 
 /**
  * Check if a user is a member of a team, optionally including descendant teams.
@@ -27,6 +57,14 @@ export async function isUserInTeamOrDescendants(
   teamId: string,
   hierarchyScope?: SubjectHierarchyScope,
 ): Promise<boolean> {
+  // Verify the team is visible from this workspace context
+  // (org teams are only visible when workspace is linked to their org)
+  const team = await Team.get(context, teamId);
+  if (team?.fk_org_id) {
+    const wsOrgId = await getWorkspaceOrgId(context.workspace_id);
+    if (team.fk_org_id !== wsOrgId) return false;
+  }
+
   // Check direct membership first
   const directAssignment = await PrincipalAssignment.get(
     context,
@@ -80,6 +118,16 @@ export async function matchTeamSubjectsBatch(
   const matched = new Set<string>();
   if (!teamSubjects.length) return matched;
 
+  // Filter out org teams whose org doesn't match the workspace's org
+  const wsOrgId = await getWorkspaceOrgId(context.workspace_id);
+  const allSubjectIds = teamSubjects.map((s) => s.id);
+  const subjectTeamsMap = await Team.getByIds(context, allSubjectIds);
+  const visibleSubjects = teamSubjects.filter((s) => {
+    const team = subjectTeamsMap.get(s.id);
+    return !team || isTeamVisibleInWorkspace(team, wsOrgId);
+  });
+  if (!visibleSubjects.length) return matched;
+
   const userTeamSet = new Set(userDirectTeamIds);
 
   // Fast path: check direct membership via pre-loaded team IDs
@@ -87,7 +135,7 @@ export async function matchTeamSubjectsBatch(
     id: string;
     hierarchy_scope?: SubjectHierarchyScope;
   }[] = [];
-  for (const subject of teamSubjects) {
+  for (const subject of visibleSubjects) {
     if (userTeamSet.has(subject.id)) {
       matched.add(subject.id);
     } else {

@@ -20,10 +20,13 @@ export const announceTool = defineChatTool({
     message: z
       .string()
       .describe(
-        'One-sentence status in present continuous tense, plain text. ' +
-          'Examples: "Searching Orders where Status is Active", ' +
-          '"Creating table Projects with 5 fields", ' +
-          '"Updating 3 records in Tasks".',
+        'One-sentence status in present continuous tense, plain text. Max ~60 characters. ' +
+          "Use the USER'S language (not always English). " +
+          'Describe the ACTION, not the routing or internal plan. ' +
+          'GOOD: "Creating table Projects", "Searching Orders", "Adding 5 fields to Tasks". ' +
+          'BAD: "Routing to builder", "Analyzing schema changes and outlining a plan", ' +
+          '"Creating a new department link field on Questions to reference Departments". ' +
+          'Keep it short and user-facing — no technical jargon (field types, IDs, internal details).',
       ),
   }),
   scope: 'common',

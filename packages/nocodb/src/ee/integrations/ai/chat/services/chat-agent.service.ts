@@ -864,6 +864,7 @@ export class ChatAgentService {
               : []),
           ],
           tools: routerTools,
+          maxOutputTokens: 2048,
           stopWhen: stepCountIs(ROUTER_MAX_TURNS),
           abortSignal: params.abortSignal,
         });
@@ -1435,11 +1436,19 @@ export class ChatAgentService {
         inputSchema: z.object({
           agent: z
             .enum(availableAgents as [string, ...string[]])
-            .describe('The specialist agent to dispatch to'),
+            .describe(
+              'The specialist agent to dispatch to. ' +
+                'CRITICAL: The agent value must match the task — ' +
+                'ui is ONLY for navigation (opening tables/views/dashboards), ' +
+                'builder is for creating/modifying schema, ' +
+                'record is for creating/updating/deleting data. ' +
+                'Do NOT put one agent name here and a different one in the instruction.',
+            ),
           instruction: z
             .string()
             .describe(
-              'Focused instruction for the specialist — include table names, field names, and what to do',
+              'Focused instruction for the specialist — include table names, field names, and what to do. ' +
+                'Do NOT prefix with "Route to X:" — just describe the task directly.',
             ),
         }),
         execute: async (input) => {

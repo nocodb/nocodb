@@ -98,8 +98,8 @@ export class ChatSuggestionsService {
 
       schema = JSON.stringify({ ...baseSchema, tables });
 
-      // Guard against oversized schemas — keep start and end, truncate the middle
-      const MAX_SCHEMA_SIZE = 100_000; // ~100KB
+      // Suggestions only need enough schema to reference real data — cap aggressively
+      const MAX_SCHEMA_SIZE = 30_000; // ~30KB — enough for table names + sample records
       if (schema.length > MAX_SCHEMA_SIZE) {
         const half = Math.floor(MAX_SCHEMA_SIZE / 2);
         schema =
@@ -136,7 +136,7 @@ export class ChatSuggestionsService {
             },
             tags: ['chat', 'suggestions', suggestionType],
           });
-          return chatAi.generateText({ model, messages, maxOutputTokens: 500 });
+          return chatAi.generateText({ model, messages, maxOutputTokens: 1024 });
         },
       );
 
@@ -264,7 +264,7 @@ export class ChatSuggestionsService {
 
     let schema = JSON.stringify({ ...baseSchema, tables });
 
-    const MAX_SCHEMA_SIZE = 100_000;
+    const MAX_SCHEMA_SIZE = 30_000;
     if (schema.length > MAX_SCHEMA_SIZE) {
       schema = schema.slice(0, MAX_SCHEMA_SIZE) + '...(truncated)';
     }
@@ -287,7 +287,7 @@ export class ChatSuggestionsService {
         },
         tags: ['chat', 'suggestions', 'follow-up'],
       });
-      return chatAi.generateText({ model, messages, maxOutputTokens: 300 });
+      return chatAi.generateText({ model, messages, maxOutputTokens: 1024 });
     });
 
     const followUps = result.text

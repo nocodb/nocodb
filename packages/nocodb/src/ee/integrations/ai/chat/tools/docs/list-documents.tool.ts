@@ -33,21 +33,36 @@ export const listDocumentsTool = defineChatTool({
 
     let parentId: string | null = null;
     if (args.parent_document_name) {
-      const parent = await resolveDocumentByName(
-        context,
-        args.parent_document_name,
-      );
-      parentId = parent.id!;
+      try {
+        const parent = await resolveDocumentByName(
+          context,
+          args.parent_document_name,
+        );
+        parentId = parent.id!;
+      } catch {
+        // Parent not found — fall back to listing root documents
+        // rather than failing. The LLM often guesses sidebar/navigation
+        // labels (e.g. "Docs", "Scripts") that aren't actual document titles.
+      }
     }
 
     const docs = await service.list(context, context.base_id, parentId);
 
-    return docs.map((d: any) => ({
+    const result = docs.map((d: any) => ({
       id: d.id,
       title: d.title,
       parent_id: d.parent_id || null,
       has_children: !!d.has_children,
       comment_count: d.comment_count || 0,
     }));
+
+    if (args.parent_document_name && !parentId) {
+      return {
+        note: `Document "${args.parent_document_name}" not found. Showing root-level documents instead.`,
+        documents: result,
+      };
+    }
+
+    return result;
   },
 });

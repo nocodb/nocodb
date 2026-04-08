@@ -62,10 +62,12 @@ export const addWidgetFilterTool = defineChatTool({
       .optional()
       .describe(
         'Sub-operator for date fields. Required when operator is "is", "isnot", or "isWithin". ' +
-          'Values: "today", "tomorrow", "yesterday", "oneWeekAgo", "oneWeekFromNow", ' +
+          'ONLY these exact values are accepted: ' +
+          '"today", "tomorrow", "yesterday", "oneWeekAgo", "oneWeekFromNow", ' +
           '"oneMonthAgo", "oneMonthFromNow", "daysAgo", "daysFromNow", ' +
           '"exactDate", "pastWeek", "pastMonth", "pastYear", "nextWeek", "nextMonth", "nextYear", ' +
           '"pastNumberOfDays", "nextNumberOfDays". ' +
+          'NOTE: "thisMonth", "thisWeek", "thisYear" do NOT exist — use "pastMonth", "pastWeek", "pastYear" instead. ' +
           'For "daysAgo", "daysFromNow", "pastNumberOfDays", "nextNumberOfDays" and "exactDate": provide the number or date in the value parameter.',
       ),
     logical_op: z

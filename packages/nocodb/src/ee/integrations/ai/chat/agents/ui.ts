@@ -12,7 +12,10 @@ import type {
   SpecialistPromptParams,
 } from '~/integrations/ai/chat/agents/types';
 import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
-import { appendDynamicSections } from '~/integrations/ai/chat/agents/helpers';
+import {
+  appendDynamicSections,
+  buildSpecialistSuffix,
+} from '~/integrations/ai/chat/agents/helpers';
 
 export const uiAgent: AgentDefinition = {
   name: 'ui',
@@ -63,6 +66,17 @@ This is required even if you believe the full request is complete — the router
 - **announce:** Call \`announce\` as your very first action. Write 1 sentence in plain text, \
 present continuous tense. Example: \`"Opening Orders table"\`, \`"Opening Sales dashboard"\`. \
 Call it once only — do not repeat between steps.`);
+
+    // ─── UI-specific discipline ──────────────────────────────────────────
+    parts.push(`
+### Navigation Confirmation
+
+- **When navigation succeeds, explicitly state what was opened or changed.** Do not silently succeed.
+- **If the requested view/table cannot be found, do not guess** — list nearest matches or route to the router.
+- **Only use UI actions when the user's request is actually navigational.** If they want data or schema changes, route instead.`);
+
+    // ─── Shared completion contract + operational rules ──────────────────
+    parts.push(buildSpecialistSuffix());
 
     // ─── Dynamic sections ──────────────────────────────────────────────────
     appendDynamicSections(parts, p, {

@@ -11,12 +11,15 @@ import type {
   SpecialistPromptParams,
 } from '~/integrations/ai/chat/agents/types';
 import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
-import { appendDynamicSections } from '~/integrations/ai/chat/agents/helpers';
+import {
+  appendDynamicSections,
+  buildSpecialistSuffix,
+} from '~/integrations/ai/chat/agents/helpers';
 
 export const qaAgent: AgentDefinition = {
   name: 'qa',
   description:
-    'Searches, queries, counts, and analyzes existing data in tables',
+    'Searches, queries, counts, and analyzes existing data. Can also search the web and scrape webpages for external research. Read-only — cannot create, update, or delete records',
   tools: [
     ChatToolName.QUERY_RECORDS,
     ChatToolName.AGGREGATE,
@@ -286,6 +289,9 @@ Examples:
 - "Found 5 results in <nc-table name="Customers" id="tbl_xxx" />:"
 - "The <nc-field name="Status" type="SingleSelect" id="fld_xxx" tableId="tbl_xxx" /> field has 3 options."
 - "<nc-table name="Orders" id="tbl_yyy" /> contains 142 entries."`);
+
+    // ─── Shared completion contract + operational rules ──────────────────
+    parts.push(buildSpecialistSuffix());
 
     // ─── Dynamic sections ──────────────────────────────────────────────────
     appendDynamicSections(parts, p);

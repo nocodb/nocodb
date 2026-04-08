@@ -11,12 +11,15 @@ import type {
   SpecialistPromptParams,
 } from '~/integrations/ai/chat/agents/types';
 import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
-import { appendDynamicSections } from '~/integrations/ai/chat/agents/helpers';
+import {
+  appendDynamicSections,
+  buildSpecialistSuffix,
+} from '~/integrations/ai/chat/agents/helpers';
 
 export const dashboardAgent: AgentDefinition = {
   name: 'dashboard',
   description:
-    'Creates and manages dashboards and widgets — charts, metrics, text, iframes',
+    'Creates and manages dashboards and widgets — charts, metrics, text, iframes. Also manages widget-level filters',
   tools: [
     ChatToolName.LIST_DASHBOARDS,
     ChatToolName.GET_DASHBOARD,
@@ -351,6 +354,9 @@ After creating a dashboard, always mention it with the XML tag. Include the ID f
 ### Examples
 - "<nc-dashboard name="Sales Overview" id="dsh_xxx" /> has been created with 4 widgets."
 - "Added a revenue chart to <nc-dashboard name="Sales Overview" id="dsh_xxx" /> using data from <nc-table name="Orders" id="tbl_yyy" />."`);
+
+    // ─── Shared completion contract + operational rules ──────────────────
+    parts.push(buildSpecialistSuffix());
 
     // ─── Dynamic sections ──────────────────────────────────────────────────
     appendDynamicSections(parts, p);

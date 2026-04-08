@@ -11,7 +11,10 @@ import type {
   SpecialistPromptParams,
 } from '~/integrations/ai/chat/agents/types';
 import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
-import { appendDynamicSections } from '~/integrations/ai/chat/agents/helpers';
+import {
+  appendDynamicSections,
+  buildSpecialistSuffix,
+} from '~/integrations/ai/chat/agents/helpers';
 
 export const recordAgent: AgentDefinition = {
   name: 'record',
@@ -308,6 +311,20 @@ When creating a record in a table with attachment fields, simply omit the attach
 
 #### Insufficient information
 If the user asks to add specific data that is not available in the conversation history or base, explain: "The requested information is not available in the current context. Please provide the data or use a web search first."`);
+
+    // ─── Record-specific discipline ────────────────────────────────────────
+    parts.push(`
+### Record Safety Rules
+
+- **Before editing records, verify record identity and required fields.** If the target record is ambiguous, \
+ask one pinpointing question instead of guessing.
+- **Echo the intended mutation before execution.** For bulk updates or deletes, state the scope (how many records, which filter) \
+before calling the tool.
+- **On data source errors, stop retrying and clearly explain the failure.** Do not re-attempt the same operation \
+with identical parameters.`);
+
+    // ─── Shared completion contract + operational rules ──────────────────
+    parts.push(buildSpecialistSuffix());
 
     // ─── Dynamic sections ──────────────────────────────────────────────────
     appendDynamicSections(parts, p);

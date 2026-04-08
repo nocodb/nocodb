@@ -51,6 +51,8 @@ import ChatSession from '~/models/ChatSession';
 import ChatMessage from '~/models/ChatMessage';
 import Integration from '~/models/Integration';
 import Base from '~/models/Base';
+import Model from '~/models/Model';
+import { Dashboard, Document } from '~/models';
 import User from '~/models/User';
 import { NcError } from '~/helpers/catchError';
 import NocoSocket from '~/socket/NocoSocket';
@@ -120,10 +122,22 @@ export class ChatAgentService {
       req: NcRequest;
       approvals?: Record<string, 'approved' | 'denied'>;
       firstUserMessage?: string;
+      uiContext?: {
+        tableId?: string;
+        viewId?: string;
+        dashboardId?: string;
+        documentId?: string;
+      };
     },
     callbacks?: ChatCallbacks,
   ): Promise<void> {
-    const { sessionId, req, approvals = {}, firstUserMessage } = params;
+    const {
+      sessionId,
+      req,
+      approvals = {},
+      firstUserMessage,
+      uiContext,
+    } = params;
 
     const session = await ChatSession.get(context, sessionId);
     if (!session) {
@@ -227,6 +241,48 @@ export class ChatAgentService {
       baseName = base?.title;
     }
 
+    // ── 3b. Resolve UI context — build a context message ────────────────
+    const activeTableId = uiContext?.tableId;
+    let uiContextMessage: string | undefined;
+    if (uiContext) {
+      const parts: string[] = [];
+      try {
+        if (uiContext.tableId) {
+          const table = await Model.get(toolContext, uiContext.tableId);
+          if (table) {
+            parts.push(`Table: "${table.title}"`);
+            if (uiContext.viewId) {
+              const views = await table.getViews(toolContext);
+              const view = views.find((v) => v.id === uiContext.viewId);
+              if (view) {
+                parts.push(`View: "${view.title}" (${view.type})`);
+              }
+            }
+          }
+        }
+        if (uiContext.dashboardId) {
+          const dashboard = await Dashboard.get(
+            toolContext,
+            uiContext.dashboardId,
+          );
+          if (dashboard) {
+            parts.push(`Dashboard: "${dashboard.title}"`);
+          }
+        }
+        if (uiContext.documentId) {
+          const doc = await Document.getMeta(toolContext, uiContext.documentId);
+          if (doc) {
+            parts.push(`Document: "${doc.title}"`);
+          }
+        }
+      } catch {
+        // Silently ignore — context is best-effort
+      }
+      if (parts.length) {
+        uiContextMessage = `[User is currently viewing: ${parts.join(', ')}]`;
+      }
+    }
+
     // ── 4. Abort management ─────────────────────────────────────────────
     this.abortStream(sessionId);
     const abortController = new AbortController();
@@ -291,6 +347,8 @@ export class ChatAgentService {
                 newUserMessage: firstUserMessage || '',
                 turnSummaries,
                 agentHistory,
+                activeTableId,
+                uiContextMessage,
                 req,
                 abortSignal: abortController.signal,
               });
@@ -370,6 +428,8 @@ export class ChatAgentService {
                 newUserMessage: firstUserMessage || '',
                 turnSummaries,
                 routerInstruction,
+                activeTableId,
+                uiContextMessage,
                 req,
                 approvals,
                 abortSignal: abortController.signal,
@@ -739,6 +799,8 @@ export class ChatAgentService {
     newUserMessage: string;
     turnSummaries: TurnSummary[];
     agentHistory: string[];
+    activeTableId?: string;
+    uiContextMessage?: string;
     req: NcRequest;
     abortSignal?: AbortSignal;
   }): Promise<{
@@ -755,7 +817,7 @@ export class ChatAgentService {
           'router',
           params.context,
           params.baseId,
-          undefined,
+          params.activeTableId,
           params.req,
         )
       : '';
@@ -788,6 +850,15 @@ export class ChatAgentService {
           system: routerPrompt,
           messages: [
             ...params.messages,
+            // Inject UI context as a system message so the router knows what the user is looking at
+            ...(params.uiContextMessage
+              ? [
+                  {
+                    role: 'system' as const,
+                    content: params.uiContextMessage,
+                  },
+                ]
+              : []),
             ...(params.newUserMessage
               ? [{ role: 'user' as const, content: params.newUserMessage }]
               : []),
@@ -886,6 +957,8 @@ export class ChatAgentService {
     newUserMessage: string;
     turnSummaries: TurnSummary[];
     routerInstruction?: string;
+    activeTableId?: string;
+    uiContextMessage?: string;
     req: NcRequest;
     approvals: Record<string, 'approved' | 'denied'>;
     abortSignal?: AbortSignal;
@@ -911,6 +984,8 @@ export class ChatAgentService {
       newUserMessage,
       turnSummaries,
       routerInstruction,
+      activeTableId,
+      uiContextMessage,
       req,
       approvals,
       abortSignal,
@@ -924,7 +999,7 @@ export class ChatAgentService {
           agentName,
           context,
           baseId,
-          undefined,
+          activeTableId,
           req,
         )
       : '';
@@ -957,7 +1032,9 @@ export class ChatAgentService {
       description:
         'Return control to the router when your part of the task is done ' +
         'or when the remaining work requires a different specialist. ' +
-        'Provide a structured summary of what you accomplished.',
+        'Provide a structured summary of what you accomplished. ' +
+        'IMPORTANT: Always call this tool as the very last action — never call other tools after it. ' +
+        'If you are running low on turns, call this immediately with whatever progress you have made.',
       inputSchema: z.object({
         summary: z.string().describe('Brief summary of what was accomplished'),
         completed: z.array(z.string()).describe('List of completed sub-tasks'),
@@ -996,12 +1073,54 @@ export class ChatAgentService {
             system: specialistPrompt,
             messages: [
               ...messages,
+              ...(uiContextMessage
+                ? [
+                    {
+                      role: 'system' as const,
+                      content: uiContextMessage,
+                    },
+                  ]
+                : []),
               ...(newUserMessage
                 ? [{ role: 'user' as const, content: newUserMessage }]
                 : []),
             ],
             tools: vercelTools,
             abortSignal,
+            prepareStep: ({ stepNumber }) => {
+              const turnsLeft = agentDef.maxTurns - stepNumber;
+
+              // Already called return_to_router — no need to nag
+              if (returnToRouterResult) return {};
+
+              // Penultimate turn: warn the specialist to wrap up
+              if (turnsLeft === 2) {
+                return {
+                  system:
+                    specialistPrompt +
+                    '\n\n## URGENT: You are running low on turns. ' +
+                    'Finish your current operation and call `return_to_router` on your next step. ' +
+                    'Do not start new operations.',
+                };
+              }
+
+              // Last turn: force return_to_router tool call
+              if (turnsLeft <= 1) {
+                return {
+                  system:
+                    specialistPrompt +
+                    '\n\n## CRITICAL: This is your LAST turn. ' +
+                    'You MUST call `return_to_router` NOW with a summary of what you accomplished. ' +
+                    'Do not call any other tools.',
+                  toolChoice: {
+                    type: 'tool' as const,
+                    toolName: 'return_to_router',
+                  },
+                };
+              }
+
+              return {};
+            },
             stopWhen: [
               stepCountIs(agentDef.maxTurns),
               ({ steps }) =>

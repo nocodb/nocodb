@@ -320,6 +320,13 @@ export interface ChatMessageJobData extends JobData {
   sessionId: string;
   firstUserMessage?: string;
   approvals?: Record<string, 'approved' | 'denied'>;
+  /** User's current UI navigation context (active table/view/dashboard/document). */
+  uiContext?: {
+    tableId?: string;
+    viewId?: string;
+    dashboardId?: string;
+    documentId?: string;
+  };
 }
 
 export interface ChatApprovalJobData extends JobData {

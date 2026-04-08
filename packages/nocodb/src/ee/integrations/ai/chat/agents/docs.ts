@@ -12,7 +12,10 @@ import type {
   SpecialistPromptParams,
 } from '~/integrations/ai/chat/agents/types';
 import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
-import { appendDynamicSections } from '~/integrations/ai/chat/agents/helpers';
+import {
+  appendDynamicSections,
+  buildSpecialistSuffix,
+} from '~/integrations/ai/chat/agents/helpers';
 
 export const docsAgent: AgentDefinition = {
   name: 'docs',
@@ -147,6 +150,9 @@ Call it once only — do not repeat between steps.
 before calling a tool. Call the tool directly.
 - Respond using markdown for prose (headings, bold, lists).
 - When creating documents with substantial content, organize with clear headings and sections.`);
+
+    // ─── Shared completion contract + operational rules ──────────────────
+    parts.push(buildSpecialistSuffix());
 
     // ─── Dynamic sections ──────────────────────────────────────────────────
     appendDynamicSections(parts, p);

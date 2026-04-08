@@ -15,12 +15,15 @@ import type {
   SpecialistPromptParams,
 } from '~/integrations/ai/chat/agents/types';
 import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
-import { appendDynamicSections } from '~/integrations/ai/chat/agents/helpers';
+import {
+  appendDynamicSections,
+  buildSpecialistSuffix,
+} from '~/integrations/ai/chat/agents/helpers';
 
 export const fileAnalystAgent: AgentDefinition = {
   name: 'file_analyst',
   description:
-    'Analyzes, parses, transforms, and extracts data from uploaded files (CSV, JSON, PDF, Excel, etc.) using sandboxed code execution',
+    'Analyzes, parses, transforms, and extracts data from uploaded files (CSV, JSON, PDF, Excel, etc.) using sandboxed code execution. Can produce structured datasets ready for base import. Read-only access to the base — cannot write records directly',
   tools: [
     ChatToolName.EXECUTE_CODE,
     ChatToolName.LIST_TABLES,
@@ -174,6 +177,9 @@ When referencing base tables/fields, use XML tags:
 - **Computed/extracted data:** \`<nc-data data='[{"Column":"value"}]' />\` — displays a styled read-only table
 - **Never use markdown tables.** Always use \`<nc-data>\`.
 - Include **all extracted records** in \`<nc-data>\` — do not summarize or cherry-pick.`);
+
+    // ─── Shared completion contract + operational rules ──────────────────
+    parts.push(buildSpecialistSuffix());
 
     // ─── Dynamic sections ──────────────────────────────────────────────────
     appendDynamicSections(parts, p);

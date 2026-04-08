@@ -102,6 +102,7 @@ export class ChatService implements OnModuleInit {
       sessionId,
       firstUserMessage: body.content,
       approvals: body.approvals || {},
+      uiContext: body.uiContext,
     };
 
     await this.jobsService.add(JobTypes.ChatMessage, jobData, {

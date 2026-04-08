@@ -11,12 +11,15 @@ import type {
   SpecialistPromptParams,
 } from '~/integrations/ai/chat/agents/types';
 import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
-import { appendDynamicSections } from '~/integrations/ai/chat/agents/helpers';
+import {
+  appendDynamicSections,
+  buildSpecialistSuffix,
+} from '~/integrations/ai/chat/agents/helpers';
 
 export const supportAgent: AgentDefinition = {
   name: 'support',
   description:
-    'Handles NocoDB how-to, troubleshooting, docs, billing, account, bug reports, and feature request queries',
+    'Answers NocoDB how-to questions, troubleshooting, and feature guidance by searching official docs. Escalates billing, account, bug reports, and feature requests to customer support — cannot resolve those itself',
   tools: [
     ChatToolName.WEB_SEARCH,
     ChatToolName.WEB_SCRAPE,
@@ -225,6 +228,18 @@ The only \`<nc-*>\` tag you may output is \`<nc-contact-support>\`.
 If a user asks "How do I cancel my plan?", they are asking about NocoDB billing, NOT about updating records in a table. \
 Never reference the user's tables, fields, or records in your answer.
 - **NEVER fabricate IDs.** Do not invent table IDs, field IDs, or record IDs.`);
+
+    // ─── Support-specific discipline ────────────────────────────────────
+    parts.push(`
+### Response Efficiency
+
+- **Decide quickly: answer vs route.** If the request requires only product explanation, answer directly. \
+If it requires concrete edits to the user's base, route early via \`return_to_router\`.
+- **Do not produce hybrid half-solutions.** Avoid partial design plus vague handoff unless the user explicitly asked for options.
+- **Shorten answers before routing.** Do not write long exploratory explanations if the task clearly belongs to another specialist.`);
+
+    // ─── Shared completion contract + operational rules ──────────────────
+    parts.push(buildSpecialistSuffix());
 
     // ─── Dynamic sections ──────────────────────────────────────────────────
     appendDynamicSections(parts, p, { skipRoles: true });

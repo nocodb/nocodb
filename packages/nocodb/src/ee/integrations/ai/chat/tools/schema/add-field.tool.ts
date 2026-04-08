@@ -1,111 +1,117 @@
 import { z } from 'zod';
-import { ProjectRoles } from 'nocodb-sdk';
+import { ProjectRoles, UITypes } from 'nocodb-sdk';
+import type { LinkToAnotherRecordColumn } from '~/models';
 import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
 import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import {
   resolveColumnByName,
   resolveTableByName,
+  stripIrrelevantOptions,
 } from '~/integrations/ai/chat/tools/helpers';
 import { fieldOptionsSchema } from '~/integrations/ai/chat/tools/schema/field-options.schema';
 import { ColumnsV3Service } from '~/services/v3/columns-v3.service';
 import Model from '~/models/Model';
 import Noco from '~/Noco';
 
-const CREATABLE_FIELD_TYPES = [
-  // Basic text & contact
-  'SingleLineText',
-  'LongText',
-  'PhoneNumber',
-  'URL',
-  'Email',
+// ── Allowed field types for add_field ───────────────────────────────────────
+// Excludes system fields (CreatedBy, LastModifiedBy) — those are auto-created.
+
+const AddFieldTypes = [
+  // Text & contact
+  UITypes.SingleLineText,
+  UITypes.LongText,
+  UITypes.Email,
+  UITypes.URL,
+  UITypes.PhoneNumber,
+  UITypes.JSON,
   // Numeric
-  'Number',
-  'Decimal',
-  'Currency',
-  'Percent',
-  'Duration',
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Currency,
+  UITypes.Percent,
+  UITypes.Rating,
+  UITypes.Duration,
   // Date & time
-  'Date',
-  'DateTime',
-  'Time',
-  'Year',
+  UITypes.Date,
+  UITypes.DateTime,
+  UITypes.Time,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+  UITypes.Year,
   // Selection
-  'SingleSelect',
-  'MultiSelect',
-  'Rating',
-  'Checkbox',
-  // Media & data
-  'Attachment',
-  'JSON',
-  'Geometry',
-  // Users
-  'User',
+  UITypes.SingleSelect,
+  UITypes.MultiSelect,
+  UITypes.Checkbox,
+  // Files
+  UITypes.Attachment,
+  // Auto
+  UITypes.AutoNumber,
+  // User
+  UITypes.User,
   // Relationships
-  'Links',
-  'LinkToAnotherRecord',
-  // Derived / computed
-  'Lookup',
-  'Rollup',
-  'Formula',
+  UITypes.Links,
+  UITypes.LinkToAnotherRecord,
+  // Computed
+  UITypes.Lookup,
+  UITypes.Rollup,
+  UITypes.Formula,
   // Visual
-  'Barcode',
-  'QrCode',
-  'Button',
-  // System / auto
-  'CreatedTime',
-  'LastModifiedTime',
-  'CreatedBy',
-  'LastModifiedBy',
+  UITypes.Barcode,
+  UITypes.QrCode,
+  // Button
+  UITypes.Button,
 ] as const;
+
+const addFieldSchema = z.object({
+  table_name: z
+    .string()
+    .describe('The title of the table to add the field to (case-insensitive).'),
+  title: z
+    .string()
+    .describe(
+      'Display name for the new field. Must be unique within the table.',
+    ),
+  type: z
+    .enum(AddFieldTypes)
+    .describe('Field type. See builder prompt for the full reference.'),
+  description: z
+    .string()
+    .optional()
+    .describe('Optional description of the field.'),
+  default_value: z
+    .union([z.string(), z.boolean(), z.number()])
+    .optional()
+    .describe('Default value for the field.'),
+  unique: z
+    .boolean()
+    .optional()
+    .describe('Enable unique constraint — no duplicate values allowed.'),
+  options: fieldOptionsSchema
+    .optional()
+    .describe(
+      'Type-specific options. Only provide properties relevant to the chosen field type — ' +
+        'irrelevant keys are stripped at runtime.',
+    ),
+});
 
 export const addFieldTool = defineChatTool({
   name: ChatToolName.ADD_FIELD,
   description:
     'Add a new field (column) to an existing table. Returns the created field in V3 format.\n\n' +
-    'The `options` object holds type-specific configuration — see its property descriptions for which field types each option applies to. ' +
+    'The `options` object holds type-specific configuration — only provide options relevant to the chosen type. ' +
     'Call describe_table first to see existing fields and avoid duplicate names.\n\n' +
-    'Name resolution helpers (use names, not IDs):\n' +
-    '• Links/LTAR: set related_table_name (resolved to related_table_id)\n' +
-    '• Lookup: set related_field_name + lookup_field_name (resolved to IDs)\n' +
-    '• Rollup: set related_field_name + rollup_field_name + rollup_function\n' +
-    '• Barcode: set barcode_value_field_name (resolved to barcode_value_field_id)\n' +
-    '• QrCode: set qrcode_value_field_name (resolved to qrcode_value_field_id)\n\n' +
-    'No options needed for: SingleLineText, Attachment, JSON, Year, Geometry, CreatedBy, LastModifiedBy.',
-  schema: z.object({
-    table_name: z
-      .string()
-      .describe(
-        'The title of the table to add the field to (case-insensitive).',
-      ),
-    title: z
-      .string()
-      .describe(
-        'Display name for the new field. Must be unique within the table.',
-      ),
-    type: z.enum(CREATABLE_FIELD_TYPES).describe('Field data type.'),
-    description: z
-      .string()
-      .optional()
-      .describe('Optional description of the field.'),
-    options: fieldOptionsSchema
-      .optional()
-      .describe(
-        'Type-specific options. Only provide options relevant to the chosen field type.',
-      ),
-    default_value: z
-      .union([z.string(), z.boolean(), z.number()])
-      .optional()
-      .describe(
-        'Default value for the field. Applicable for text, number, date, select, checkbox, and JSON fields.',
-      ),
-    unique: z
-      .boolean()
-      .optional()
-      .describe(
-        'Enable unique constraint — no duplicate values allowed. ' +
-          'Supported for: SingleLineText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Date, DateTime, Time.',
-      ),
-  }),
+    'Common options by field type:\n' +
+    '• SingleSelect/MultiSelect: options.choices = [{title, color?}] — REQUIRED, always include choices with colors\n' +
+    '• Links/LTAR: options.relation_type ("om"|"mo"|"mm"|"oo") + options.related_table_name — NO other values accepted\n' +
+    '• Formula: options.formula = "expression" — use {FieldName} to reference fields\n' +
+    '• Lookup: options.related_field_name + options.lookup_field_name (resolved to IDs)\n' +
+    '• Rollup: options.related_field_name + options.rollup_field_name + options.rollup_function\n' +
+    '• Currency: options.code ("USD","EUR",etc) + options.locale ("en-US",etc)\n' +
+    '• Barcode: options.barcode_value_field_name (resolved to barcode_value_field_id)\n' +
+    '• QrCode: options.qrcode_value_field_name (resolved to qrcode_value_field_id)\n\n' +
+    'No options needed for: SingleLineText, LongText, Attachment, JSON, Year, AutoNumber, ' +
+    'Checkbox, Email, URL, PhoneNumber, Number.',
+  schema: addFieldSchema,
   permission: 'columnAdd',
   scope: 'base',
   requiredRole: ProjectRoles.CREATOR,
@@ -163,7 +169,12 @@ export const addFieldTool = defineChatTool({
 
           // Resolve lookup_field_name in the linked table
           if (options.lookup_field_name) {
-            const relatedModelId = linkColumn.colOptions?.fk_related_model_id;
+            const colOpts =
+              linkColumn.colOptions ||
+              (await linkColumn.getColOptions<LinkToAnotherRecordColumn>(
+                context,
+              ));
+            const relatedModelId = colOpts?.fk_related_model_id;
             if (relatedModelId) {
               const relatedModel = await Model.get(context, relatedModelId);
               const lookupColumn = await resolveColumnByName(
@@ -191,7 +202,12 @@ export const addFieldTool = defineChatTool({
 
           // Resolve rollup_field_name in the linked table
           if (options.rollup_field_name) {
-            const relatedModelId = linkColumn.colOptions?.fk_related_model_id;
+            const colOpts =
+              linkColumn.colOptions ||
+              (await linkColumn.getColOptions<LinkToAnotherRecordColumn>(
+                context,
+              ));
+            const relatedModelId = colOpts?.fk_related_model_id;
             if (relatedModelId) {
               const relatedModel = await Model.get(context, relatedModelId);
               const rollupColumn = await resolveColumnByName(
@@ -229,7 +245,7 @@ export const addFieldTool = defineChatTool({
         delete options.qrcode_value_field_name;
       }
 
-      columnPayload.options = options;
+      columnPayload.options = stripIrrelevantOptions(args.type, options);
     }
 
     return await columnsV3Service.columnAdd(context, {

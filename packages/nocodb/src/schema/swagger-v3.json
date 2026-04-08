@@ -11697,7 +11697,7 @@
         "properties": {
           "relation_type": {
             "type": "string",
-            "description": "Type of relationship.\n\nSupported options are listed below\n- `mm` many-to-many\n- `hm` has-many\n- `oo` one-to-one"
+            "description": "Type of relationship.\n\nSupported options are listed below\n- `om` one-to-many\n- `mo` many-to-one\n- `mm` many-to-many\n- `oo` one-to-one"
           },
           "related_table_id": {
             "type": "string",
@@ -11716,7 +11716,7 @@
         "properties": {
           "relation_type": {
             "type": "string",
-            "description": "Type of relationship.\n\nSupported options are listed below\n- `mm` many-to-many\n- `hm` has-many\n- `oo` one-to-one"
+            "description": "Type of relationship.\n\nSupported options are listed below\n- `om` one-to-many\n- `mo` many-to-one\n- `mm` many-to-many\n- `oo` one-to-one"
           },
           "related_table_id": {
             "type": "string",

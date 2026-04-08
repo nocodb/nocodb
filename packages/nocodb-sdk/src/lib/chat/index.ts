@@ -124,11 +124,21 @@ export interface ChatMessageType {
 
 export const NC_NEW_SESSION = 'NC_SESSION';
 
+/** UI navigation context sent with each chat message. */
+export interface ChatUIContext {
+  tableId?: string;
+  viewId?: string;
+  dashboardId?: string;
+  documentId?: string;
+}
+
 export interface ChatSendMessageType {
   content: string;
   files?: ChatAttachmentType[];
   approvals?: Record<string, 'approved' | 'denied'>;
   title?: string;
+  /** The user's current UI navigation context (active table/view/dashboard/document). */
+  uiContext?: ChatUIContext;
 }
 
 export interface ChatSendMessageResponseType {

@@ -24,14 +24,7 @@ const {
   getFeature,
   showUpgradeToUseTeams,
   handleUpgradePlan,
-  blockScim,
 } = useEeConfig()
-
-
-const isScimAvail = computed(() => {
-  if (!isEeUI) return false
-  return !blockScim.value
-})
 
 const isWorkspaceSsoAvail = computed(() => {
   return isEeUI && (appInfo.value?.isCloud || appInfo.value?.isOnPrem) && getFeature(PlanFeatureTypes.FEATURE_SSO)
@@ -144,16 +137,6 @@ const activeWsSettingsTab = computed(() => {
       @click="navigateToWsSettings('ws-sso')"
     >
       {{ $t('title.sso') }}
-    </NcSidebarMenuItem>
-    <NcSidebarMenuItem
-      v-if="isScimAvail && !isMobileMode && showEEFeatures"
-      v-e="['c:settings:ws:scim']"
-      icon="ncShield"
-      data-testid="ws-scim"
-      :active="activeWsSettingsTab === 'ws-scim'"
-      @click="navigateToWsSettings('ws-scim')"
-    >
-      {{ $t('labels.scimProvisioning') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
       v-if="!isEEFeatureBlocked && (isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators'))"

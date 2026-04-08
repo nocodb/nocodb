@@ -386,17 +386,6 @@ if (!props.isNewWsPage) {
         </template>
       </template>
 
-      <a-tab-pane key="scim" class="w-full">
-        <template #tab>
-          <div class="tab-title">
-            <GeneralIcon icon="ncShield" class="flex-none h-4 w-4" />
-            SCIM
-          </div>
-        </template>
-
-        <WorkspaceScim class="!h-[calc(100vh-92px)]" />
-      </a-tab-pane>
-
       <a-tab-pane v-if="showEEFeatures" key="settings" class="w-full">
         <template #tab>
           <div class="tab-title" data-testid="nc-workspace-settings-tab-settings">

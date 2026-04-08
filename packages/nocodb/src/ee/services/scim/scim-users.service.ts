@@ -432,6 +432,26 @@ export class ScimUsersService {
       NcError.notFound('User not found');
     }
 
+    // Detect email change — email is immutable in NocoDB.
+    // If the IdP changed the email, soft-delete the old user and create a new one.
+    const newEmail = this.extractEmail(scimUser) || scimUser.userName;
+    if (newEmail) {
+      const currentUser = await User.get(orgUser.fk_user_id);
+      if (currentUser && currentUser.email !== newEmail) {
+        // Soft-delete old org user
+        await OrgUser.softDelete(orgId, currentUser.id);
+        // Create fresh user with new email via the createUser flow
+        return this.createUser(_context, {
+          orgId,
+          scimUser: {
+            ...scimUser,
+            externalId: scimId,
+          },
+          req: param.req,
+        });
+      }
+    }
+
     // Build update object
     const existingMeta = (orgUser.scim_meta as Record<string, any>) || {};
     const updateData: Partial<OrgUser> = {

@@ -155,6 +155,10 @@ onMounted(async () => {
               <span>{{ $t('labels.scimConfiguration') }}</span>
             </div>
 
+            <span class="text-xs text-nc-content-gray-muted -mt-2">
+              {{ $t('labels.scimNextSteps') }}
+            </span>
+
             <div class="flex flex-col gap-y-4">
               <!-- Enable/Disable Toggle -->
               <div class="flex items-center justify-between p-3 rounded-lg bg-nc-bg-gray-light">
@@ -171,14 +175,6 @@ onMounted(async () => {
                   data-testid="nc-scim-toggle"
                   @change="toggleScim"
                 />
-              </div>
-
-              <!-- Next steps help text -->
-              <div class="flex items-start gap-2 p-3 rounded-lg bg-nc-bg-brand-soft">
-                <component :is="iconMap.info" class="w-4 h-4 text-nc-content-brand flex-shrink-0 mt-0.5" />
-                <span class="text-xs text-nc-content-gray">
-                  {{ $t('labels.scimNextSteps') }}
-                </span>
               </div>
 
               <!-- Default Role -->
@@ -271,30 +267,31 @@ onMounted(async () => {
                 </div>
               </div>
 
-              <!-- Danger Zone: Remove SCIM Config -->
-              <div class="mt-2 pt-4 border-t border-red-200 rounded-b-lg">
-                <div class="flex items-center justify-between">
-                  <div class="flex flex-col">
-                    <span class="text-sm font-medium text-nc-content-gray">{{ $t('labels.disableScim') }}</span>
-                    <span class="text-xs text-nc-content-gray-muted">{{ $t('labels.scimDeleteWarning') }}</span>
-                  </div>
-                  <NcButton
-                    v-e="['c:scim:delete']"
-                    class="!text-red-600 !hover:bg-red-50"
-                    data-testid="nc-scim-delete"
-                    size="small"
-                    type="text"
-                    @click="handleDeleteScim"
-                  >
-                    <template #icon>
-                      <component :is="iconMap.delete" />
-                    </template>
-                    {{ $t('general.remove') }}
-                  </NcButton>
-                </div>
-              </div>
             </div>
           </template>
+        </div>
+
+        <!-- Danger Zone: Remove SCIM Config (separate card) -->
+        <div v-if="scimConfig" class="flex flex-col border-1 rounded-2xl border-red-200 p-6">
+          <div class="flex items-center justify-between">
+            <div class="flex flex-col gap-1">
+              <span class="text-sm font-medium text-nc-content-gray">{{ $t('labels.disableScim') }}</span>
+              <span class="text-xs text-nc-content-gray-muted">{{ $t('labels.scimDeleteWarning') }}</span>
+            </div>
+            <NcButton
+              v-e="['c:scim:delete']"
+              class="!text-red-600 !hover:bg-red-50 flex-shrink-0"
+              data-testid="nc-scim-delete"
+              size="small"
+              type="text"
+              @click="handleDeleteScim"
+            >
+              <template #icon>
+                <component :is="iconMap.delete" />
+              </template>
+              {{ $t('general.remove') }}
+            </NcButton>
+          </div>
         </div>
       </div>
 

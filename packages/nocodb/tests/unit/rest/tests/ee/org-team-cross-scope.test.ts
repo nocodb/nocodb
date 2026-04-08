@@ -58,6 +58,21 @@ export default function () {
       return id;
     }
 
+    async function addUserToOrg(userId: string) {
+      const existing = await Noco.ncMeta
+        .knexConnection(MetaTable.ORG_USERS)
+        .where('fk_org_id', orgId)
+        .where('fk_user_id', userId)
+        .first();
+      if (!existing) {
+        await Noco.ncMeta.knexConnection(MetaTable.ORG_USERS).insert({
+          fk_org_id: orgId,
+          fk_user_id: userId,
+          roles: EnterpriseOrgUserRoles.VIEWER,
+        });
+      }
+    }
+
     async function linkWorkspaceToOrg(wsId: string, oId: string) {
       await Noco.ncMeta
         .knexConnection(MetaTable.WORKSPACE)
@@ -111,6 +126,8 @@ export default function () {
     }
 
     async function addOrgMember(teamId: string, userId: string) {
+      // Ensure user is an org member first (required by org team member validation)
+      await addUserToOrg(userId);
       await request(context.app)
         .post(`/api/v3/meta/orgs/${orgId}/teams/${teamId}/members`)
         .set('xc-token', context.xc_token)

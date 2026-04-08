@@ -62,7 +62,23 @@ export default function () {
       return res.body.id;
     }
 
+    async function addUserToOrg(userId: string) {
+      const existing = await Noco.ncMeta
+        .knexConnection(MetaTable.ORG_USERS)
+        .where('fk_org_id', orgId)
+        .where('fk_user_id', userId)
+        .first();
+      if (!existing) {
+        await Noco.ncMeta.knexConnection(MetaTable.ORG_USERS).insert({
+          fk_org_id: orgId,
+          fk_user_id: userId,
+          roles: EnterpriseOrgUserRoles.VIEWER,
+        });
+      }
+    }
+
     async function addMember(teamId: string, userId: string) {
+      await addUserToOrg(userId);
       await request(context.app)
         .post(`/api/v3/meta/orgs/${orgId}/teams/${teamId}/members`)
         .set('xc-auth', context.token)
@@ -293,11 +309,13 @@ export default function () {
           email: 'org-mem1@test.com',
         });
         memberUser = m1.user;
+        await addUserToOrg(memberUser.id);
 
         const m2 = await createUser(context, {
           email: 'org-mem2@test.com',
         });
         member2User = m2.user;
+        await addUserToOrg(member2User.id);
       });
 
       it('adds a single member', async () => {

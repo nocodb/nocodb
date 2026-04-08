@@ -38,23 +38,26 @@ export class GcpMarketplaceController {
     }
 
     try {
-      const { linkToken, googleUserIdentity } =
-        await this.gcpMarketplaceService.handleSignup(token);
+      const result = await this.gcpMarketplaceService.handleSignup(token);
 
-      // Redirect to NocoDB login page with a short-lived link token
+      // Already linked — send straight to license page
+      if (result.alreadyLinked) {
+        res.redirect(302, `${req.ncSiteUrl}/account/self-hosted`);
+        return;
+      }
+
+      // New account — redirect to login page with link token
       // so the frontend can link the account after authentication.
       // Pass login_hint so Google SSO pre-selects the correct account.
       const params = new URLSearchParams({
-        gcp_link_token: linkToken,
+        gcp_link_token: result.linkToken,
       });
 
-      if (googleUserIdentity) {
-        params.set('login_hint', googleUserIdentity);
+      if (result.googleUserIdentity) {
+        params.set('login_hint', result.googleUserIdentity);
       }
 
-      const redirectUrl = `${req.ncSiteUrl}/signin?${params.toString()}`;
-
-      res.redirect(302, redirectUrl);
+      res.redirect(302, `${req.ncSiteUrl}/signin?${params.toString()}`);
     } catch (e) {
       this.logger.error(`GCP Marketplace signup failed: ${e.message}`, e.stack);
       NcError._.badRequest('Invalid or expired marketplace token');

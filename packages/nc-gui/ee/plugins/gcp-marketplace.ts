@@ -41,8 +41,17 @@ export default defineNuxtPlugin(function (nuxtApp) {
           await api.instance.post('/api/v1/gcp-marketplace/link-account', {
             link_token: linkToken,
           })
-        } catch (e: any) {
-          console.error('GCP Marketplace account linking failed:', e?.message)
+
+          // GCP signup opens a popup — close it after linking.
+          // "Manage on provider" is a full redirect — navigate to license page.
+          if (window.opener) {
+            window.close()
+          }
+
+          // Falls through if window.close() was blocked by the browser
+          await navigateTo('/account/self-hosted', { replace: true })
+        } catch {
+          message.error('Failed to link GCP Marketplace account')
         } finally {
           localStorage.removeItem('gcp_link_token')
         }

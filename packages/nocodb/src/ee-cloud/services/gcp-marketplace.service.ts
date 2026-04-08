@@ -147,7 +147,8 @@ export class GcpMarketplaceService {
     token: string,
     ncMeta = Noco.ncMeta,
   ): Promise<{
-    linkToken: string;
+    alreadyLinked: boolean;
+    linkToken?: string;
     googleUserIdentity?: string;
   }> {
     const payload = await this.verifyMarketplaceToken(token);
@@ -157,20 +158,25 @@ export class GcpMarketplaceService {
       throw new Error('Token missing procurement account ID (sub)');
     }
 
+    // Check if account already exists and is linked
+    const account = await GcpMarketplaceAccount.getByProcurementAccountId(
+      procAccountId,
+      ncMeta,
+    );
+
+    // Already linked — skip link token, redirect to license page
+    if (account?.fk_user_id && account.state === 'active') {
+      return { alreadyLinked: true };
+    }
+
     // Generate a single-use link token (15 min TTL)
     const linkToken = nanoid(32);
     const linkTokenExpiresAt = new Date(
       Date.now() + 15 * 60 * 1000,
     ).toISOString();
 
-    // Idempotent: check if account already exists
-    let account = await GcpMarketplaceAccount.getByProcurementAccountId(
-      procAccountId,
-      ncMeta,
-    );
-
     if (!account) {
-      account = await GcpMarketplaceAccount.insert(
+      const newAccount = await GcpMarketplaceAccount.insert(
         {
           procurement_account_id: procAccountId,
           state: 'pending',
@@ -185,15 +191,16 @@ export class GcpMarketplaceService {
       );
 
       this.logger.log(
-        `GCP Marketplace account created: ${account.id} (proc: ${procAccountId})`,
+        `GCP Marketplace account created: ${newAccount.id} (proc: ${procAccountId})`,
       );
     } else {
-      // Refresh link token on re-signup
+      // Refresh link token on re-signup, also reset state if previously deleted
       await GcpMarketplaceAccount.update(
         account.id,
         {
           link_token: linkToken,
           link_token_expires_at: linkTokenExpiresAt,
+          ...(account.state === 'deleted' ? { state: 'pending' } : {}),
         },
         ncMeta,
       );
@@ -202,6 +209,7 @@ export class GcpMarketplaceService {
     return {
       linkToken,
       googleUserIdentity: payload.google?.user_identity,
+      alreadyLinked: false,
     };
   }
 

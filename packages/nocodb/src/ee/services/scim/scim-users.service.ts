@@ -10,6 +10,8 @@ import { User } from '~/ee/models';
 import OrgUser from '~/ee/models/OrgUser';
 import Org from '~/ee/models/Org';
 import ScimConfig from '~/ee/models/ScimConfig';
+import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import {
   extractWorkspaceRoleFromExtension,
@@ -161,18 +163,17 @@ export class ScimUsersService {
     }
 
     // If externalId is provided, check if an existing org user has the same
-    // externalId but a different email — this means the IdP changed the email.
+    // IdP externalId but a different email — this means the IdP changed the email.
     // Email is the primary identifier in NocoDB and cannot be changed, so
     // soft-delete the old user and create a fresh one with the new email.
     if (scimUser.externalId) {
-      const existingByExtId = await OrgUser.getByScimExternalId(
+      const existingByExtId = await this.findOrgUserByIdpExternalId(
         orgId,
         scimUser.externalId,
       );
       if (existingByExtId) {
         const existingUser = await User.get(existingByExtId.fk_user_id);
         if (existingUser && existingUser.email !== primaryEmail) {
-          // Soft-delete the old org user (cascade to workspaces/teams)
           await OrgUser.softDelete(orgId, existingUser.id);
         }
       }
@@ -440,12 +441,15 @@ export class ScimUsersService {
       if (currentUser && currentUser.email !== newEmail) {
         // Soft-delete old org user
         await OrgUser.softDelete(orgId, currentUser.id);
+        // Preserve IdP externalId from scim_meta for the new user
+        const existingMeta = (orgUser.scim_meta as Record<string, any>) || {};
+        const idpExternalId = scimUser.externalId || existingMeta.externalId;
         // Create fresh user with new email via the createUser flow
         return this.createUser(_context, {
           orgId,
           scimUser: {
             ...scimUser,
-            externalId: scimId,
+            ...(idpExternalId ? { externalId: idpExternalId } : {}),
           },
           req: param.req,
         });
@@ -784,6 +788,41 @@ export class ScimUsersService {
         item[field] = patchData[pathKey];
       }
     }
+  }
+
+  /**
+   * Find an org user by the IdP's externalId (stored in scim_meta JSON).
+   * This is the stable IdP-assigned identifier, different from our scim_external_id.
+   */
+  private async findOrgUserByIdpExternalId(
+    orgId: string,
+    idpExternalId: string,
+  ): Promise<any | null> {
+    const ncMeta = Noco.ncMeta;
+    const client = ncMeta.knexConnection.client.config.client;
+
+    let row;
+    if (client === 'pg' || client === 'postgresql') {
+      row = await ncMeta
+        .knexConnection(MetaTable.ORG_USERS)
+        .where('fk_org_id', orgId)
+        .whereRaw(`scim_meta::text LIKE ?`, [`%"externalId":"${idpExternalId}"%`])
+        .where(function () {
+          this.where('deleted', false).orWhereNull('deleted');
+        })
+        .first();
+    } else {
+      row = await ncMeta
+        .knexConnection(MetaTable.ORG_USERS)
+        .where('fk_org_id', orgId)
+        .where('scim_meta', 'like', `%"externalId":"${idpExternalId}"%`)
+        .where(function () {
+          this.where('deleted', false).orWhereNull('deleted');
+        })
+        .first();
+    }
+
+    return row || null;
   }
 
   /**

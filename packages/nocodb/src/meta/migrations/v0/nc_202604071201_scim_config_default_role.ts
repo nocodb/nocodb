@@ -44,14 +44,57 @@ const up = async (knex: Knex) => {
       table.string('scim_user_name', 255).nullable();
       table.text('scim_meta').nullable();
     });
+  }
 
-    await knex.schema.alterTable(MetaTable.ORG_USERS, (table) => {
-      table.unique(
-        ['fk_org_id', 'scim_external_id'],
-        'nc_org_users_org_scim_ext_id_unique',
+  // 4. Add composite unique constraint on (fk_org_id, scim_external_id)
+  //    Runs regardless of whether columns were just created or already existed
+  const client = knex.client.config.client;
+  const hasOrgUsersTable = await knex.schema.hasTable(MetaTable.ORG_USERS);
+  if (hasOrgUsersTable && await knex.schema.hasColumn(MetaTable.ORG_USERS, 'scim_external_id')) {
+    if (client === 'pg' || client === 'postgresql') {
+      // Drop old plain index if exists, create composite unique
+      await knex.raw(`DROP INDEX IF EXISTS nc_org_users_scim_external_id_idx`);
+      await knex.raw(
+        `CREATE UNIQUE INDEX IF NOT EXISTS nc_org_users_org_scim_ext_id_unique ON ${MetaTable.ORG_USERS} (fk_org_id, scim_external_id) WHERE scim_external_id IS NOT NULL AND (deleted = false OR deleted IS NULL)`,
       );
-      table.index('scim_managed', 'nc_org_users_scim_managed_idx');
-    });
+      // Ensure scim_managed index exists
+      await knex.raw(
+        `CREATE INDEX IF NOT EXISTS nc_org_users_scim_managed_idx ON ${MetaTable.ORG_USERS} (scim_managed)`,
+      );
+    } else if (client === 'sqlite3') {
+      await knex.raw(`DROP INDEX IF EXISTS nc_org_users_scim_external_id_idx`);
+      // SQLite: can't add unique constraint to existing table, use unique index
+      await knex.raw(
+        `CREATE UNIQUE INDEX IF NOT EXISTS nc_org_users_org_scim_ext_id_unique ON ${MetaTable.ORG_USERS} (fk_org_id, scim_external_id)`,
+      );
+      await knex.raw(
+        `CREATE INDEX IF NOT EXISTS nc_org_users_scim_managed_idx ON ${MetaTable.ORG_USERS} (scim_managed)`,
+      );
+    } else {
+      // MySQL: check and replace
+      const oldIdx = await knex.raw(
+        `SHOW INDEX FROM ${MetaTable.ORG_USERS} WHERE Key_name = 'nc_org_users_scim_external_id_idx'`,
+      );
+      if (oldIdx?.[0]?.length) {
+        await knex.raw(`DROP INDEX nc_org_users_scim_external_id_idx ON ${MetaTable.ORG_USERS}`);
+      }
+      const newIdx = await knex.raw(
+        `SHOW INDEX FROM ${MetaTable.ORG_USERS} WHERE Key_name = 'nc_org_users_org_scim_ext_id_unique'`,
+      );
+      if (!newIdx?.[0]?.length) {
+        await knex.schema.alterTable(MetaTable.ORG_USERS, (table) => {
+          table.unique(['fk_org_id', 'scim_external_id'], 'nc_org_users_org_scim_ext_id_unique');
+        });
+      }
+      const managedIdx = await knex.raw(
+        `SHOW INDEX FROM ${MetaTable.ORG_USERS} WHERE Key_name = 'nc_org_users_scim_managed_idx'`,
+      );
+      if (!managedIdx?.[0]?.length) {
+        await knex.schema.alterTable(MetaTable.ORG_USERS, (table) => {
+          table.index('scim_managed', 'nc_org_users_scim_managed_idx');
+        });
+      }
+    }
   }
 
   // Fix nc_teams: replace global unique on scim_external_id with composite per-org unique

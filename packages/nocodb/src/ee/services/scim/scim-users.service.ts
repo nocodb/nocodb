@@ -174,6 +174,11 @@ export class ScimUsersService {
       if (existingByExtId) {
         const existingUser = await User.get(existingByExtId.fk_user_id);
         if (existingUser && existingUser.email !== primaryEmail) {
+          // Clear scim_external_id on old row so the new user can reuse it
+          // (unique constraint is per org + scim_external_id)
+          await OrgUser.update(existingUser.id, orgId, {
+            scim_external_id: null,
+          } as any);
           await OrgUser.softDelete(orgId, existingUser.id);
         }
       }
@@ -440,6 +445,10 @@ export class ScimUsersService {
     if (newEmail) {
       const currentUser = await User.get(orgUser.fk_user_id);
       if (currentUser && currentUser.email !== newEmail) {
+        // Clear scim_external_id before soft-delete (unique constraint)
+        await OrgUser.update(currentUser.id, orgId, {
+          scim_external_id: null,
+        } as any);
         // Soft-delete old org user
         await OrgUser.softDelete(orgId, currentUser.id);
         // Preserve IdP externalId from scim_meta for the new user

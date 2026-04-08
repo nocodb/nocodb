@@ -791,6 +791,14 @@ onMounted(() => {
                 </NcTooltip>
               </div>
             </template>
+            <template v-else-if="record.scim_managed">
+              <NcTooltip :title="$t('labels.scimManagedTeamTooltip')">
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="ncShield" class="flex-none h-4 w-4 text-nc-content-brand" />
+                  <span class="text-sm text-nc-content-gray-muted">{{ $t('labels.identityProvider') }}</span>
+                </div>
+              </NcTooltip>
+            </template>
           </div>
 
           <!-- Actions column -->

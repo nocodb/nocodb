@@ -1829,6 +1829,7 @@
     "scimDeleteWarning": "This will delete the SCIM configuration and stop all provisioning. SCIM-managed users will remain but will no longer sync.",
     "scimRegenerateWarning": "This will invalidate the current token. IdP connections using the old token will stop working.",
     "scimManaged": "SCIM",
+    "identityProvider": "Identity Provider",
     "scimManagedUserTooltip": "This user is provisioned via SCIM from your identity provider.",
     "scimManagedTeamTooltip": "This team is provisioned via SCIM from your identity provider.",
     "scimManagedTeamRemovalTooltip": "This team is managed via SCIM. Deletion must be done from your identity provider.",

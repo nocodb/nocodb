@@ -27,10 +27,7 @@ const {
   deleteScimConfig,
 } = useScim(orgId)
 
-const roleOptions = [
-  { label: t('objects.roleType.viewer'), value: EnterpriseOrgUserRoles.VIEWER },
-  { label: t('objects.roleType.creator'), value: EnterpriseOrgUserRoles.CREATOR },
-]
+const scimAllowedRoles = computed(() => [EnterpriseOrgUserRoles.VIEWER, EnterpriseOrgUserRoles.CREATOR])
 
 const { copy } = useCopy()
 
@@ -53,8 +50,23 @@ const copyScimToken = async () => {
   setTimeout(() => { isCopied.value.scimToken = false }, 2000)
 }
 
-const showRegenerateTokenModal = ref(false)
 const showDeleteScimModal = ref(false)
+
+const { showWarningModal } = useNcConfirmModal()
+
+const handleRegenerateToken = () => {
+  showWarningModal({
+    title: t('labels.scimRegenerateTokenHeader'),
+    content: t('labels.scimRegenerateWarning'),
+    okText: t('labels.regenerate'),
+    okProps: { type: 'danger' },
+    showCancelBtn: true,
+    showOkLoading: true,
+    okCallback: async () => {
+      await regenerateToken()
+    },
+  })
+}
 
 onMounted(async () => {
   await fetchScimConfig()
@@ -70,25 +82,50 @@ onMounted(async () => {
         </div>
 
         <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-y-4">
-          <div class="flex font-bold justify-between text-base items-center">
-            <span>{{ $t('labels.scimConfiguration') }}</span>
-            <NcButton
-              v-if="!scimConfig"
-              v-e="['c:scim:enable']"
-              :loading="isScimLoading"
-              data-testid="nc-scim-init"
-              size="small"
-              type="secondary"
-              @click="initializeScim"
-            >
-              <template #icon>
-                <component :is="iconMap.plus" />
-              </template>
-              {{ $t('labels.enableScim') }}
-            </NcButton>
+          <!-- Empty state: Configure card -->
+          <template v-if="!scimConfig && !isScimLoading">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex flex-col gap-2">
+                <span class="font-bold text-base">{{ $t('labels.enableScim') }}</span>
+                <span class="text-sm text-nc-content-gray-muted">
+                  {{ $t('labels.scimNotConfigured') }}
+                </span>
+                <a
+                  href="https://docs.nocodb.com/views/view-types/form/#scim-provisioning"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-sm text-nc-content-gray flex items-center gap-1 hover:text-nc-content-brand mt-1"
+                >
+                  {{ $t('activity.goToDocs') }}
+                  <component :is="iconMap.ncExternalLink" class="w-3.5 h-3.5" />
+                </a>
+              </div>
+              <NcButton
+                v-e="['c:scim:enable']"
+                :loading="isScimLoading"
+                class="flex-shrink-0"
+                data-testid="nc-scim-init"
+                type="primary"
+                size="small"
+                @click="initializeScim"
+              >
+                {{ $t('general.configure') }}
+              </NcButton>
+            </div>
+          </template>
+
+          <!-- Loading spinner -->
+          <div v-else-if="isScimLoading && !scimConfig" class="flex items-center justify-center py-8">
+            <a-spin />
           </div>
 
-          <div v-if="scimConfig" class="flex flex-col gap-y-4">
+          <!-- Configured state -->
+          <template v-else-if="scimConfig">
+            <div class="flex font-bold justify-between text-base items-center">
+              <span>{{ $t('labels.scimConfiguration') }}</span>
+            </div>
+
+          <div class="flex flex-col gap-y-4">
             <!-- Enable/Disable Toggle -->
             <div class="flex items-center justify-between p-3 rounded-lg bg-nc-bg-gray-light">
               <div class="flex flex-col">
@@ -106,16 +143,32 @@ onMounted(async () => {
               />
             </div>
 
+            <!-- Next steps help text -->
+            <div class="flex items-start gap-2 p-3 rounded-lg bg-nc-bg-brand-soft">
+              <component :is="iconMap.info" class="w-4 h-4 text-nc-content-brand flex-shrink-0 mt-0.5" />
+              <span class="text-xs text-nc-content-gray">
+                {{ $t('labels.scimNextSteps') }}
+              </span>
+            </div>
+
             <!-- Default Role -->
             <div>
-              <h1 class="text-sm font-medium text-nc-content-gray mb-2">{{ $t('labels.scimDefaultRole') }}</h1>
-              <NcSelect
-                :value="scimConfig.default_role || EnterpriseOrgUserRoles.VIEWER"
-                :options="roleOptions"
-                class="w-60"
-                data-testid="nc-scim-default-role"
-                @change="updateDefaultRole($event)"
-              />
+              <div class="flex items-center gap-1.5 mb-2">
+                <span class="text-sm font-medium text-nc-content-gray leading-none">{{ $t('labels.scimDefaultRole') }}</span>
+                <NcTooltip :title="$t('labels.scimDefaultRoleHint')" placement="right">
+                  <component :is="iconMap.info" class="w-3.5 h-3.5 text-nc-content-gray-muted cursor-help leading-none" />
+                </NcTooltip>
+              </div>
+              <div class="nc-scim-role-selector">
+                <RolesSelectorV2
+                  :role="scimConfig.default_role || EnterpriseOrgUserRoles.VIEWER"
+                  :roles="scimAllowedRoles"
+                  :on-role-change="(role) => updateDefaultRole(role)"
+                  size="md"
+                  class="cursor-pointer"
+                  data-testid="nc-scim-default-role"
+                />
+              </div>
             </div>
 
             <!-- SCIM Endpoint URL -->
@@ -169,7 +222,7 @@ onMounted(async () => {
                       size="xsmall"
                       type="secondary"
                       data-testid="nc-scim-regenerate-token"
-                      @click="showRegenerateTokenModal = true"
+                      @click="handleRegenerateToken"
                     >
                       <component :is="iconMap.reload" />
                     </NcButton>
@@ -185,38 +238,37 @@ onMounted(async () => {
               </div>
             </div>
 
-            <!-- Delete SCIM Config -->
-            <div class="pt-2 border-t border-nc-border-gray-light">
-              <NcButton
-                v-e="['c:scim:delete']"
-                danger
-                data-testid="nc-scim-delete"
-                size="small"
-                type="text"
-                @click="showDeleteScimModal = true"
-              >
-                <template #icon>
-                  <component :is="iconMap.delete" />
-                </template>
-                {{ $t('labels.disableScim') }}
-              </NcButton>
+            <!-- Danger Zone: Remove SCIM Config -->
+            <div class="mt-2 pt-4 border-t border-red-200 rounded-b-lg">
+              <div class="flex items-center justify-between">
+                <div class="flex flex-col">
+                  <span class="text-sm font-medium text-nc-content-gray">{{ $t('labels.disableScim') }}</span>
+                  <span class="text-xs text-nc-content-gray-muted">{{ $t('labels.scimDeleteWarning') }}</span>
+                </div>
+                <NcButton
+                  v-e="['c:scim:delete']"
+                  class="!text-red-600 !hover:bg-red-50"
+                  data-testid="nc-scim-delete"
+                  size="small"
+                  type="text"
+                  @click="showDeleteScimModal = true"
+                >
+                  <template #icon>
+                    <component :is="iconMap.delete" />
+                  </template>
+                  {{ $t('general.remove') }}
+                </NcButton>
+              </div>
             </div>
           </div>
-
-          <span v-if="!scimConfig && !isScimLoading" class="text-nc-content-gray-muted text-sm">
-            {{ $t('labels.scimNotConfigured', { action: $t('labels.enableScim') }) }}
-          </span>
-
-          <div v-if="isScimLoading && !scimConfig" class="flex items-center justify-center py-8">
-            <a-spin />
-          </div>
+          </template>
         </div>
       </div>
 
       <GeneralDeleteModal
         v-model:visible="showDeleteScimModal"
         entity-name="SCIM configuration"
-        delete-label="Disable"
+        delete-label="Remove"
         :on-delete="async () => { await deleteScimConfig() }"
       >
         <template #entity-preview>
@@ -226,18 +278,21 @@ onMounted(async () => {
         </template>
       </GeneralDeleteModal>
 
-      <GeneralDeleteModal
-        v-model:visible="showRegenerateTokenModal"
-        entity-name="provisioning token"
-        delete-label="Regenerate"
-        :on-delete="async () => { await regenerateToken() }"
-      >
-        <template #entity-preview>
-          <div class="text-nc-content-gray">
-            {{ $t('labels.scimRegenerateWarning') }}
-          </div>
-        </template>
-      </GeneralDeleteModal>
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.nc-scim-role-selector {
+  width: fit-content;
+}
+</style>
+
+<style lang="scss">
+// Override the popover dropdown width for SCIM role selector.
+// The popover renders in a portal so scoped styles can't reach it.
+.nc-scim-role-selector .nc-roles-selector .nc-list-root {
+  min-width: unset !important;
+  max-width: 20rem !important;
+}
+</style>

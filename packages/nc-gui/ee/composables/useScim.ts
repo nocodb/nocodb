@@ -51,7 +51,7 @@ export const useScim = (orgId: ComputedRef<string> | Ref<string>) => {
     }
   }
 
-  // Initialize SCIM configuration
+  // Initialize SCIM configuration and auto-activate
   const initializeScim = async () => {
     if (!orgId.value) return
 
@@ -60,10 +60,19 @@ export const useScim = (orgId: ComputedRef<string> | Ref<string>) => {
       const response = await scimFetch<ScimConfig>(configPath(), { method: 'POST' })
       scimConfig.value = response
       tokenVisible.value = true
-      message.success(t('msg.success.scimInitialized'))
+
+      // Auto-activate provisioning so the endpoint is ready for IdP setup
+      try {
+        await scimFetch(configPath(), { method: 'PATCH', body: { enabled: true } })
+        if (scimConfig.value) {
+          scimConfig.value.enabled = true
+        }
+      } catch {
+        // Activation failed silently — user can toggle manually
+      }
       return response
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      message.toast(await extractSdkResponseErrorMsg(e))
       throw e
     } finally {
       isLoading.value = false
@@ -82,10 +91,10 @@ export const useScim = (orgId: ComputedRef<string> | Ref<string>) => {
         scimConfig.value.token_exists = true
       }
       tokenVisible.value = true
-      message.success(t('msg.success.tokenRegenerated'))
+      message.toast(t('msg.success.tokenRegenerated'))
       return response
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      message.toast(await extractSdkResponseErrorMsg(e))
       throw e
     } finally {
       isLoading.value = false
@@ -102,9 +111,9 @@ export const useScim = (orgId: ComputedRef<string> | Ref<string>) => {
       if (scimConfig.value) {
         scimConfig.value.enabled = enabled
       }
-      message.success(enabled ? t('msg.success.scimEnabled') : t('msg.success.scimDisabled'))
+      message.toast(enabled ? t('msg.success.scimEnabled') : t('msg.success.scimDisabled'))
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      message.toast(await extractSdkResponseErrorMsg(e))
       throw e
     } finally {
       isLoading.value = false
@@ -120,9 +129,9 @@ export const useScim = (orgId: ComputedRef<string> | Ref<string>) => {
       if (scimConfig.value) {
         scimConfig.value.default_role = role
       }
-      message.success(t('msg.success.defaultRoleUpdated'))
+      message.toast(t('msg.success.defaultRoleUpdated'))
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      message.toast(await extractSdkResponseErrorMsg(e))
       throw e
     }
   }
@@ -135,9 +144,9 @@ export const useScim = (orgId: ComputedRef<string> | Ref<string>) => {
       isLoading.value = true
       await scimFetch(configPath(), { method: 'DELETE' })
       scimConfig.value = null
-      message.success(t('msg.success.scimDeleted'))
+      message.toast(t('msg.success.scimDeleted'))
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      message.toast(await extractSdkResponseErrorMsg(e))
       throw e
     } finally {
       isLoading.value = false

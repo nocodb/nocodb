@@ -60,32 +60,57 @@ const up = async (knex: Knex) => {
     'scim_external_id',
   );
   if (hasTeamsScimCol) {
-    // Drop global unique (created in nc_021_scim_support)
-    try {
-      await knex.schema.alterTable(MetaTable.TEAMS, (table) => {
-        table.dropUnique(['scim_external_id']);
-      });
-    } catch {
-      // May not exist if migration ran differently
-    }
-
-    // Add composite unique per org
     const client = knex.client.config.client;
+
+    // Drop global unique on scim_external_id (created in nc_021_scim_support)
+    // Check existence first to avoid aborting PG transaction
     if (client === 'pg' || client === 'postgresql') {
+      const existing = await knex.raw(`
+        SELECT 1 FROM pg_indexes
+        WHERE tablename = 'nc_teams'
+          AND indexname IN ('nc_teams_scim_external_id_unique', 'nc_teams_scim_external_id_idx')
+        LIMIT 1
+      `);
+      if (existing.rows?.length) {
+        await knex.raw(
+          `DROP INDEX IF EXISTS nc_teams_scim_external_id_unique`,
+        );
+        await knex.raw(
+          `DROP INDEX IF EXISTS nc_teams_scim_external_id_idx`,
+        );
+      }
+
+      // Add composite unique per org (partial — allows NULLs for non-SCIM teams)
       await knex.raw(
         `CREATE UNIQUE INDEX IF NOT EXISTS nc_teams_org_scim_ext_id_unique ON ${MetaTable.TEAMS} (fk_org_id, scim_external_id) WHERE scim_external_id IS NOT NULL`,
       );
+    } else if (client === 'sqlite3') {
+      // SQLite: drop old index if exists, create new
+      await knex.raw(
+        `DROP INDEX IF EXISTS nc_teams_scim_external_id_unique`,
+      );
+      await knex.schema.alterTable(MetaTable.TEAMS, (table) => {
+        table.unique(
+          ['fk_org_id', 'scim_external_id'],
+          'nc_teams_org_scim_ext_id_unique',
+        );
+      });
     } else {
-      try {
+      // MySQL: check and drop
+      const idx = await knex.raw(
+        `SHOW INDEX FROM ${MetaTable.TEAMS} WHERE Key_name = 'nc_teams_scim_external_id_unique'`,
+      );
+      if (idx?.[0]?.length) {
         await knex.schema.alterTable(MetaTable.TEAMS, (table) => {
-          table.unique(
-            ['fk_org_id', 'scim_external_id'],
-            'nc_teams_org_scim_ext_id_unique',
-          );
+          table.dropUnique(['scim_external_id']);
         });
-      } catch {
-        // Already exists
       }
+      await knex.schema.alterTable(MetaTable.TEAMS, (table) => {
+        table.unique(
+          ['fk_org_id', 'scim_external_id'],
+          'nc_teams_org_scim_ext_id_unique',
+        );
+      });
     }
   }
 };
@@ -128,16 +153,30 @@ const down = async (knex: Knex) => {
   }
 
   // Restore global unique on nc_teams scim_external_id
-  try {
+  const client = knex.client.config.client;
+  if (client === 'pg' || client === 'postgresql') {
+    await knex.raw(`DROP INDEX IF EXISTS nc_teams_org_scim_ext_id_unique`);
+    await knex.raw(
+      `CREATE UNIQUE INDEX IF NOT EXISTS nc_teams_scim_external_id_unique ON ${MetaTable.TEAMS} (scim_external_id) WHERE scim_external_id IS NOT NULL`,
+    );
+  } else if (client === 'sqlite3') {
+    await knex.raw(`DROP INDEX IF EXISTS nc_teams_org_scim_ext_id_unique`);
     await knex.schema.alterTable(MetaTable.TEAMS, (table) => {
-      table.dropUnique(
-        ['fk_org_id', 'scim_external_id'],
-        'nc_teams_org_scim_ext_id_unique',
-      );
       table.unique(['scim_external_id']);
     });
-  } catch {
-    // Ignore if constraints don't exist
+  } else {
+    const idx = await knex.raw(
+      `SHOW INDEX FROM ${MetaTable.TEAMS} WHERE Key_name = 'nc_teams_org_scim_ext_id_unique'`,
+    );
+    if (idx?.[0]?.length) {
+      await knex.schema.alterTable(MetaTable.TEAMS, (table) => {
+        table.dropUnique(
+          ['fk_org_id', 'scim_external_id'],
+          'nc_teams_org_scim_ext_id_unique',
+        );
+        table.unique(['scim_external_id']);
+      });
+    }
   }
 
   // Drop default_role

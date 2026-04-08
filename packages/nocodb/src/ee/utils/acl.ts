@@ -655,11 +655,8 @@ const rolePermissions:
       manageSubscription: true,
       paymentSeatCount: true,
 
-      // Org-level team management
-      orgTeamList: true,
-      orgTeamTree: true,
+      // Org-level team management (List/Tree/Get inherited from CREATOR)
       orgTeamCreate: true,
-      orgTeamGet: true,
       orgTeamUpdate: true,
       orgTeamDelete: true,
       orgTeamMembersAdd: true,
@@ -678,9 +675,6 @@ const rolePermissions:
       orgUserList: true,
       orgBaseList: true,
       orgSsoClientList: true,
-      orgTeamList: true,
-      orgTeamTree: true,
-      orgTeamGet: true,
     },
   },
 

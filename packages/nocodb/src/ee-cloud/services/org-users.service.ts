@@ -4,12 +4,10 @@ import type { NcRequest } from '~/interface/config';
 import type { OrgUserReqType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import { OrgUser, PresignedUrl, User, Workspace } from '~/models';
-import WorkspaceUser from '~/ee/models/WorkspaceUser';
-import { Team } from '~/ee/models';
-import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
 import Noco from '~/Noco';
-import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
+import { MetaTable } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { removeUserFromOrgCascade } from '~/ee/helpers/orgUserRemovalHelper';
 
 @Injectable()
 export class OrgUsersService {
@@ -104,86 +102,7 @@ export class OrgUsersService {
       NcError.badRequest('Cannot remove the last org admin');
     }
 
-    const transaction = await ncMeta.startTransaction();
-
-    try {
-      // Soft-delete from org
-      await OrgUser.softDelete(param.orgId, param.userId, transaction);
-
-      // Remove from all workspaces in this org
-      const orgWorkspaces = await transaction
-        .knexConnection(MetaTable.WORKSPACE)
-        .where('fk_org_id', param.orgId)
-        .where(function () {
-          this.where('deleted', false).orWhereNull('deleted');
-        })
-        .select('id');
-
-      for (const ws of orgWorkspaces) {
-        await WorkspaceUser.softDelete(ws.id, param.userId, transaction);
-
-        // Remove from all teams in this workspace
-        const wsTeams = await Team.list(
-          { workspace_id: ws.id, base_id: null },
-          { fk_workspace_id: ws.id },
-          transaction,
-        );
-
-        for (const team of wsTeams) {
-          const assignment = await PrincipalAssignment.get(
-            { workspace_id: ws.id, base_id: null },
-            ResourceType.TEAM,
-            team.id,
-            PrincipalType.USER,
-            param.userId,
-            transaction,
-          );
-          if (assignment) {
-            await PrincipalAssignment.delete(
-              { workspace_id: ws.id, base_id: null },
-              ResourceType.TEAM,
-              team.id,
-              PrincipalType.USER,
-              param.userId,
-              transaction,
-            );
-          }
-        }
-      }
-
-      // Remove from org-level teams
-      const orgTeams = await Team.list(
-        { workspace_id: null, base_id: null },
-        { fk_org_id: param.orgId },
-        transaction,
-      );
-
-      for (const team of orgTeams) {
-        const assignment = await PrincipalAssignment.get(
-          { workspace_id: null, base_id: null },
-          ResourceType.TEAM,
-          team.id,
-          PrincipalType.USER,
-          param.userId,
-          transaction,
-        );
-        if (assignment) {
-          await PrincipalAssignment.delete(
-            { workspace_id: null, base_id: null },
-            ResourceType.TEAM,
-            team.id,
-            PrincipalType.USER,
-            param.userId,
-            transaction,
-          );
-        }
-      }
-
-      await transaction.commit();
-    } catch (e) {
-      await transaction.rollback();
-      throw e;
-    }
+    await removeUserFromOrgCascade(param.orgId, param.userId, ncMeta);
 
     this.appHooksService.emit(AppEvents.ORG_USER_REMOVE, {
       userId: param.userId,

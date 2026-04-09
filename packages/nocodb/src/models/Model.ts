@@ -629,7 +629,7 @@ export default class Model implements TableType {
     const model = args?.model || (await this.get(context, args.id, ncMeta));
 
     if (!model) {
-      NcError.tableNotFound(args.id);
+      NcError.get(context).tableNotFound(args.id);
     }
 
     const source =

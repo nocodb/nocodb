@@ -50,12 +50,6 @@ export default function () {
      * Add a user to a team as MEMBER.
      */
     async function addMember(teamId: string, userId: string) {
-      // Ensure user is a workspace member first (idempotent — ignore if already added)
-      await request(context.app)
-        .post(`/api/v3/meta/workspaces/${workspaceId}/members`)
-        .set('xc-token', context.xc_token)
-        .send([{ user_id: userId, workspace_role: 'workspace-level-editor' }]);
-
       await request(context.app)
         .post(`/api/v3/meta/workspaces/${workspaceId}/teams/${teamId}/members`)
         .set('xc-token', context.xc_token)

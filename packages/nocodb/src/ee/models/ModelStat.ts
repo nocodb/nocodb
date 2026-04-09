@@ -153,6 +153,25 @@ export default class ModelStat {
     return true;
   }
 
+  public static async deleteByWorkspaceId(
+    workspaceId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta
+      .knexConnection(MetaTable.MODEL_STAT)
+      .where({
+        fk_workspace_id: workspaceId,
+      })
+      .delete();
+
+    await NocoCache.del(
+      { workspace_id: workspaceId, base_id: null },
+      `${CacheScope.MODEL_STAT}:${workspaceId}:sum`,
+    );
+
+    return true;
+  }
+
   public static async getWorkspaceSum(
     workspaceId: string,
     ncMeta = Noco.ncMeta,

@@ -18,6 +18,7 @@ import type { NcRequest } from '~/interface/config';
 import type { ReseatSubscriptionJobData } from '~/interface/Jobs';
 import { JobTypes } from '~/interface/Jobs';
 import {
+  ModelStat,
   Org,
   Plan,
   Subscription,
@@ -2021,6 +2022,31 @@ export class PaymentService {
     );
 
     return subscription;
+  }
+
+  async recountWorkspace(workspaceId: string) {
+    const workspace = await Workspace.get(workspaceId);
+
+    if (!workspace) {
+      NcError.genericNotFound('Workspace', workspaceId);
+    }
+
+    await ModelStat.deleteByWorkspaceId(workspaceId);
+
+    await this.nocoJobsService.add(
+      JobTypes.UpdateWsStat,
+      {
+        fk_workspace_id: workspaceId,
+        force: true,
+      },
+      {
+        jobId: `update-ws-stat:${workspaceId}`,
+        removeOnComplete: true,
+        removeOnFail: true,
+      },
+    );
+
+    return { queued: true };
   }
 
   async schedulePlanChange(

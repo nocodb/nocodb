@@ -64,7 +64,7 @@ export class UpdateStatsService implements OnModuleInit, OnModuleDestroy {
       );
     }
 
-    if (+updatedCount > COUNTER_THRESHOLD) {
+    if (Math.abs(+updatedCount) > COUNTER_THRESHOLD) {
       await NocoCache.del(
         'root',
         `${CacheScope.WORKSPACE_CREATE_DELETE_COUNTER}:${fk_workspace_id}`,

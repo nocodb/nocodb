@@ -501,6 +501,10 @@ watch(baseId, reload)
     @media (min-width: 820px) {
       @apply grid-cols-3;
     }
+
+    @media (min-width: 1140px) {
+      @apply grid-cols-4;
+    }
   }
 
   @container (min-width: 540px) {
@@ -509,6 +513,10 @@ watch(baseId, reload)
 
   @container (min-width: 820px) {
     @apply grid-cols-3;
+  }
+
+  @container (min-width: 1140px) {
+    @apply grid-cols-4;
   }
 }
 

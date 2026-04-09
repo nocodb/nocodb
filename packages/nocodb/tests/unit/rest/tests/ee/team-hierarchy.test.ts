@@ -3890,16 +3890,16 @@ export default function () {
         const oscarR = await createUser(context, { email: 'g9-oscar@test.com' });
         oscarUser = oscarR.user; oscarToken = oscarR.token;
 
+        prodBase = await createProject(context);
+        stagingBase = await createProject(context);
 
         // Add Oscar with no_access workspace role — access comes ONLY from team assignments
         await addWorkspaceMembers([oscarUser.id], WorkspaceUserRoles.NO_ACCESS);
+        await addWorkspaceMembers([devopsId], WorkspaceUserRoles.INHERIT);
         await assignBaseTeamRole(prodBase.id, devopsId, ProjectRoles.VIEWER);
         await assignBaseTeamRole(stagingBase.id, devopsId, ProjectRoles.CREATOR);
 
         await addMember(devopsId, oscarUser.id);
-
-        prodBase = await createProject(context);
-        stagingBase = await createProject(context);
       });
 
       afterEach(async () => { await featureMock?.restore?.(); });

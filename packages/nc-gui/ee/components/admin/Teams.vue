@@ -56,9 +56,7 @@ const memberSearchQuery = ref('')
 
 const filteredEditMembers = computed(() => {
   if (!memberSearchQuery.value) return editTeamMembers.value
-  return editTeamMembers.value.filter((m: any) =>
-    searchCompare([m.user_display_name, m.user_email], memberSearchQuery.value),
-  )
+  return editTeamMembers.value.filter((m: any) => searchCompare([m.user_display_name, m.user_email], memberSearchQuery.value))
 })
 
 // Tree view
@@ -402,10 +400,9 @@ const handleMoveTeamSubmit = async () => {
 
   try {
     isMoveLoading.value = true
-    await $api.instance.patch(
-      `/api/v3/meta/orgs/${orgId.value}/teams/${moveTeamTarget.value.id}/move`,
-      { parent_team_id: moveSelectedParentId.value },
-    )
+    await $api.instance.patch(`/api/v3/meta/orgs/${orgId.value}/teams/${moveTeamTarget.value.id}/move`, {
+      parent_team_id: moveSelectedParentId.value,
+    })
     await loadTeams()
     message.success(t('msg.success.teamMoved'))
     isMoveModalVisible.value = false
@@ -504,18 +501,6 @@ const toggleUser = (userId: string) => {
   }
 }
 
-const teamOwners = computed(() => {
-  return editTeamMembers.value.filter((m: any) => m.team_role === TeamUserRoles.OWNER)
-})
-
-const isSoleOwner = (userId: string) => {
-  return teamOwners.value.length <= 1 && teamOwners.value.some((m: any) => m.user_id === userId)
-}
-
-const isTeamOwner = (member: any) => {
-  return member.team_role === TeamUserRoles.OWNER
-}
-
 const handleRemoveMember = async (userId: string) => {
   if (!editTeamId.value) return
 
@@ -526,36 +511,6 @@ const handleRemoveMember = async (userId: string) => {
     editTeamMembers.value = editTeamMembers.value.filter((m: any) => m.user_id !== userId)
     await loadTeams()
     $e('a:org-team:member-remove', { teamId: editTeamId.value })
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
-const handlePromoteToOwner = async (userId: string) => {
-  if (!editTeamId.value) return
-
-  try {
-    await $api.instance.patch(`/api/v3/meta/orgs/${orgId.value}/teams/${editTeamId.value}/members`, [
-      { user_id: userId, team_role: TeamUserRoles.OWNER },
-    ])
-    const member = editTeamMembers.value.find((m: any) => m.user_id === userId)
-    if (member) member.team_role = TeamUserRoles.OWNER
-    $e('a:org-team:member-promote', { teamId: editTeamId.value })
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
-const handleDemoteFromOwner = async (userId: string) => {
-  if (!editTeamId.value) return
-
-  try {
-    await $api.instance.patch(`/api/v3/meta/orgs/${orgId.value}/teams/${editTeamId.value}/members`, [
-      { user_id: userId, team_role: TeamUserRoles.MEMBER },
-    ])
-    const member = editTeamMembers.value.find((m: any) => m.user_id === userId)
-    if (member) member.team_role = TeamUserRoles.MEMBER
-    $e('a:org-team:member-demote', { teamId: editTeamId.value })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -819,7 +774,9 @@ onMounted(() => {
 
                   <NcTooltip
                     :disabled="!record.scim_managed && (record.depth ?? 0) < 3"
-                    :title="record.scim_managed ? $t('labels.scimManagedTeamSubTeamTooltip') : $t('msg.info.maxTeamNestingReached')"
+                    :title="
+                      record.scim_managed ? $t('labels.scimManagedTeamSubTeamTooltip') : $t('msg.info.maxTeamNestingReached')
+                    "
                     placement="left"
                   >
                     <NcMenuItem
@@ -832,13 +789,16 @@ onMounted(() => {
                     </NcMenuItem>
                   </NcTooltip>
 
-                  <NcMenuItem
-                    v-e="['c:org-team:move', { teamId: record.id }]"
-                    @click="handleOpenMoveTeam(record as TeamV3ResponseType)"
-                  >
-                    <GeneralIcon icon="ncMove" class="h-4 w-4" />
-                    {{ $t('labels.moveTeam') }}
-                  </NcMenuItem>
+                  <NcTooltip :disabled="!record.scim_managed" :title="$t('labels.scimManagedTeamMoveTooltip')" placement="left">
+                    <NcMenuItem
+                      v-e="['c:org-team:move', { teamId: record.id }]"
+                      :disabled="record.scim_managed"
+                      @click="!record.scim_managed && handleOpenMoveTeam(record as TeamV3ResponseType)"
+                    >
+                      <GeneralIcon icon="ncMove" class="h-4 w-4" />
+                      {{ $t('labels.moveTeam') }}
+                    </NcMenuItem>
+                  </NcTooltip>
 
                   <NcDivider />
 
@@ -1008,7 +968,9 @@ onMounted(() => {
                         </template>
                       </a-input>
                       <div class="absolute left-0 top-0 z-10">
-                        <div class="border-1 w-8 h-8 flex-none rounded-lg overflow-hidden border-transparent !rounded-r-none border-r-nc-border-gray-medium">
+                        <div
+                          class="border-1 w-8 h-8 flex-none rounded-lg overflow-hidden border-transparent !rounded-r-none border-r-nc-border-gray-medium"
+                        >
                           <GeneralTeamIcon
                             :team="editTeam"
                             show-placeholder-icon
@@ -1036,16 +998,8 @@ onMounted(() => {
                       :disabled="isMoving"
                       @change="(val: any) => { selectedParentId = val ?? null }"
                     >
-                      <a-select-option
-                        v-for="pt in editParentTeamOptions"
-                        :key="pt.id"
-                        :value="pt.id"
-                        :data-label="pt.title"
-                      >
-                        <div
-                          class="flex items-center gap-2"
-                          :style="{ paddingLeft: `${(pt.depth ?? 0) * 16}px` }"
-                        >
+                      <a-select-option v-for="pt in editParentTeamOptions" :key="pt.id" :value="pt.id" :data-label="pt.title">
+                        <div class="flex items-center gap-2" :style="{ paddingLeft: `${(pt.depth ?? 0) * 16}px` }">
                           <GeneralTeamIcon :team="pt" class="!w-5 !h-5 !min-w-5 flex-none !rounded-md" />
                           <NcTooltip class="truncate flex-1" show-on-truncate-only>
                             <template #title>{{ pt.title }}</template>
@@ -1114,7 +1068,9 @@ onMounted(() => {
                 </div>
 
                 <!-- Members table header -->
-                <div class="flex items-center px-1 py-2 border-b border-nc-border-gray-medium text-captionSm text-nc-content-gray-muted">
+                <div
+                  class="flex items-center px-1 py-2 border-b border-nc-border-gray-medium text-captionSm text-nc-content-gray-muted"
+                >
                   <div class="flex-1">{{ $t('objects.member') }}</div>
                   <div class="w-24 text-right">{{ $t('labels.actions') }}</div>
                 </div>
@@ -1129,12 +1085,13 @@ onMounted(() => {
                     :key="member.user_id"
                     class="flex items-center gap-3 py-3 px-1 group"
                   >
-                    <NcUserInfo :user="{ email: member.user_email, display_name: member.user_display_name }" class="flex-1 min-w-0" />
+                    <NcUserInfo
+                      :user="{ email: member.user_email, display_name: member.user_display_name }"
+                      class="flex-1 min-w-0"
+                    />
 
                     <div class="w-24 flex justify-end">
-                      <NcTooltip
-                        :title="editTeam?.scim_managed ? $t('labels.scimManagedTeamAddMemberTooltip') : $t('activity.removeFromOrgTeam')"
-                      >
+                      <NcTooltip :disabled="!editTeam?.scim_managed" :title="$t('labels.scimManagedTeamAddMemberTooltip')">
                         <NcButton
                           size="small"
                           type="secondary"
@@ -1165,7 +1122,10 @@ onMounted(() => {
                         :key="member.user_id"
                         class="flex items-center justify-between py-3 px-1"
                       >
-                        <NcUserInfo :user="{ email: member.user_email, display_name: member.user_display_name }" class="min-w-20 flex-1 overflow-hidden" />
+                        <NcUserInfo
+                          :user="{ email: member.user_email, display_name: member.user_display_name }"
+                          class="min-w-20 flex-1 overflow-hidden"
+                        />
                         <span class="text-captionSm text-nc-content-gray-muted flex-none ml-3">
                           {{ $t('labels.inheritedFrom', { team: member.inherited_from_team_title }) }}
                         </span>
@@ -1232,23 +1192,14 @@ onMounted(() => {
               :filter-option="(input: string, option: any) => option['data-label']?.toLowerCase().includes(input.toLowerCase())"
               class="w-full nc-select-shadow"
             >
-              <a-select-option
-                v-for="pt in moveParentOptions"
-                :key="pt.id"
-                :value="pt.id"
-                :data-label="pt.title"
-              >
+              <a-select-option v-for="pt in moveParentOptions" :key="pt.id" :value="pt.id" :data-label="pt.title">
                 <div class="flex items-center gap-2" :style="{ paddingLeft: `${(pt.depth ?? 0) * 16}px` }">
                   <GeneralTeamIcon :team="pt" class="!w-5 !h-5 !min-w-5 flex-none !rounded-md" />
                   <NcTooltip class="truncate flex-1" show-on-truncate-only>
                     <template #title>{{ pt.title }}</template>
                     {{ pt.title }}
                   </NcTooltip>
-                  <component
-                    :is="iconMap.check"
-                    v-if="moveSelectedParentId === pt.id"
-                    class="text-primary w-4 h-4 flex-none"
-                  />
+                  <component :is="iconMap.check" v-if="moveSelectedParentId === pt.id" class="text-primary w-4 h-4 flex-none" />
                 </div>
               </a-select-option>
             </NcSelect>
@@ -1295,7 +1246,11 @@ onMounted(() => {
 
         <div class="text-body text-nc-content-gray-subtle mb-5">
           <span
-            v-dompurify-html="$t('objects.teams.selectMembersToAddIntoTeam', { team: `<strong>${getHTMLEncodedText(editTeam?.title ?? '')}</strong>` })"
+            v-dompurify-html="
+              $t('objects.teams.selectMembersToAddIntoTeam', {
+                team: `<strong>${getHTMLEncodedText(editTeam?.title ?? '')}</strong>`,
+              })
+            "
           ></span>
         </div>
 

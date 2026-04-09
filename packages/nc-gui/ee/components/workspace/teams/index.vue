@@ -553,7 +553,9 @@ onMounted(async () => {
                   <NcTooltip
                     v-if="record.scope !== 'org' && (record.depth ?? 0) < 3"
                     :disabled="!record.scim_managed && (record.is_owner || isWsOwner)"
-                    :title="record.scim_managed ? t('labels.scimManagedTeamSubTeamTooltip') : t('msg.info.onlyTeamManagerCanAddSubTeam')"
+                    :title="
+                      record.scim_managed ? t('labels.scimManagedTeamSubTeamTooltip') : t('msg.info.onlyTeamManagerCanAddSubTeam')
+                    "
                     placement="left"
                   >
                     <NcMenuItem
@@ -586,7 +588,7 @@ onMounted(async () => {
                     {{ $t('labels.moveTeam') }}
                   </NcMenuItem>
                   <NcTooltip
-                    v-if="record.scope !== 'org' && record.is_member"
+                    v-if="record.scope !== 'org' && record.is_member && !record.scim_managed"
                     :disabled="!hasSoleTeamOwner(record as TeamV3V3Type)"
                     :title="t('objects.teams.thisTeamHasOnlyOneOwnerTooltip')"
                     placement="left"

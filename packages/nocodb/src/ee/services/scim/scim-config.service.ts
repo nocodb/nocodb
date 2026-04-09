@@ -101,10 +101,8 @@ export class ScimConfigService {
 
   // Roles that can be assigned via SCIM default_role — never owner
   private static ALLOWED_DEFAULT_ROLES = new Set([
-    
     EnterpriseOrgUserRoles.VIEWER,
-    
-    
+
     EnterpriseOrgUserRoles.CREATOR,
   ]);
 
@@ -134,7 +132,9 @@ export class ScimConfigService {
       )
     ) {
       NcError.badRequest(
-        `Invalid default role: ${param.config.default_role}. Allowed: ${[...ScimConfigService.ALLOWED_DEFAULT_ROLES].join(', ')}`,
+        `Invalid default role: ${param.config.default_role}. Allowed: ${[
+          ...ScimConfigService.ALLOWED_DEFAULT_ROLES,
+        ].join(', ')}`,
       );
     }
 
@@ -172,12 +172,13 @@ export class ScimConfigService {
     // so they become manageable again after SCIM is disconnected.
     const ncMeta = Noco.ncMeta;
 
-    // Clear scim_managed on org users
+    // Clear scim_managed and scim_external_id on org users
+    // so stale IDs from a previous provider don't conflict on reconnect
     await ncMeta
       .knexConnection(MetaTable.ORG_USERS)
       .where('fk_org_id', orgId)
       .where('scim_managed', true)
-      .update({ scim_managed: false });
+      .update({ scim_managed: false, scim_external_id: null });
 
     // Clear scim_managed on org teams
     const scimTeamRows = await Team.list(context, {
@@ -185,7 +186,10 @@ export class ScimConfigService {
     });
 
     for (const team of scimTeamRows.filter((t) => t.scim_managed)) {
-      await Team.update(context, team.id, { scim_managed: false });
+      await Team.update(context, team.id, {
+        scim_managed: false,
+        scim_external_id: null,
+      });
     }
 
     return { message: 'SCIM configuration deleted successfully' };

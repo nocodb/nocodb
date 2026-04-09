@@ -1834,6 +1834,7 @@
     "scimManagedTeamTooltip": "This team is provisioned via SCIM from your identity provider.",
     "scimManagedTeamRemovalTooltip": "This team is managed via SCIM. Deletion must be done from your identity provider.",
     "scimManagedTeamSubTeamTooltip": "Sub-teams cannot be added to SCIM-managed teams. Manage team hierarchy from your identity provider.",
+    "scimManagedTeamMoveTooltip": "SCIM-managed teams cannot be moved. Manage team hierarchy from your identity provider.",
     "scimManagedTeamAddMemberTooltip": "Members of this team are managed via SCIM. Add or remove members from your identity provider.",
     "scimManagedRemovalTooltip": "This user is managed via SCIM. Removal must be done from your identity provider.",
     "regenerate": "Regenerate",

@@ -8,6 +8,7 @@ import type { ScimUserEvent } from '~/services/app-hooks/interfaces';
 import { NcError } from '~/helpers/catchError';
 import { User } from '~/ee/models';
 import OrgUser from '~/ee/models/OrgUser';
+import { removeUserFromOrgCascade } from '~/ee/helpers/orgUserRemovalHelper';
 import Org from '~/ee/models/Org';
 import ScimConfig from '~/ee/models/ScimConfig';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -569,7 +570,8 @@ export class ScimUsersService {
       NcError.notFound('User not found');
     }
 
-    await OrgUser.softDelete(param.orgId, orgUser.fk_user_id);
+    // Full cascade: soft-delete org user + remove from all workspaces, teams
+    await removeUserFromOrgCascade(param.orgId, orgUser.fk_user_id);
 
     this.emitScimEvent(AppEvents.SCIM_USER_DELETE, {
       orgId: param.orgId,

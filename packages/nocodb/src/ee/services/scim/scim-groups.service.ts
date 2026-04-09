@@ -2,6 +2,7 @@ import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { AppEvents } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { ScimGroupEvent } from '~/ee/services/app-hooks/interfaces';
 import { NcError } from '~/helpers/catchError';
 import { Team } from '~/ee/models';
 import OrgUser from '~/ee/models/OrgUser';
@@ -9,7 +10,6 @@ import Org from '~/ee/models/Org';
 import { PrincipalAssignment } from '~/ee/models';
 import { PrincipalType, ResourceType } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import type { ScimGroupEvent } from '~/ee/services/app-hooks/interfaces';
 
 @Injectable()
 export class ScimGroupsService {
@@ -201,12 +201,7 @@ export class ScimGroupsService {
 
     // Add members if provided
     if (scimGroup.members?.length) {
-      await this.updateTeamMembers(
-        context,
-        team.id,
-        orgId,
-        scimGroup.members,
-      );
+      await this.updateTeamMembers(context, team.id, orgId, scimGroup.members);
     }
 
     this.emitGroupEvent(AppEvents.SCIM_GROUP_PROVISION, {
@@ -476,19 +471,25 @@ export class ScimGroupsService {
     scimMembers: any[],
   ) {
     // Get current members
-    const currentMembers = await this.getTeamMembers(
-      context,
-      teamId,
-      orgId,
-    );
+    const currentMembers = await this.getTeamMembers(context, teamId, orgId);
 
     // Lookup target members sequentially (uses indexed scim_external_id column)
     const targetMembers = [];
+    const unresolvedIds = [];
     for (const m of scimMembers) {
       const ou = await OrgUser.getByScimExternalId(orgId, m.value, {
         include_deleted: true,
       });
-      if (ou) targetMembers.push(ou);
+      if (ou) {
+        targetMembers.push(ou);
+      } else {
+        unresolvedIds.push(m.value);
+      }
+    }
+    if (unresolvedIds.length) {
+      this.logger.warn(
+        `SCIM group sync: ${unresolvedIds.length} member(s) not found in org — skipped: ${unresolvedIds.join(', ')}`,
+      );
     }
 
     const targetUserIds = new Set(targetMembers.map((tm) => tm.fk_user_id));
@@ -542,12 +543,7 @@ export class ScimGroupsService {
         } else if (opName === 'replace') {
           // Replace members entirely
           if (Array.isArray(op.value)) {
-            await this.updateTeamMembers(
-              context,
-              team.id,
-              orgId,
-              op.value,
-            );
+            await this.updateTeamMembers(context, team.id, orgId, op.value);
           }
         } else if (opName === 'remove') {
           if (op.path?.startsWith('members[')) {
@@ -561,12 +557,7 @@ export class ScimGroupsService {
               ]);
             }
           } else if (op.value) {
-            await this.removeTeamMembers(
-              context,
-              team.id,
-              orgId,
-              op.value,
-            );
+            await this.removeTeamMembers(context, team.id, orgId, op.value);
           }
         }
       }
@@ -641,11 +632,9 @@ export class ScimGroupsService {
 
     // Lookup and insert members sequentially (uses indexed scim_external_id column)
     for (const member of members) {
-      const ou = await OrgUser.getByScimExternalId(
-        orgId,
-        member.value,
-        { include_deleted: true },
-      );
+      const ou = await OrgUser.getByScimExternalId(orgId, member.value, {
+        include_deleted: true,
+      });
       if (ou && !existingUserIds.has(ou.fk_user_id)) {
         await PrincipalAssignment.insert(context, {
           resource_type: ResourceType.TEAM,
@@ -669,11 +658,9 @@ export class ScimGroupsService {
   ) {
     // Lookup and delete members sequentially (uses indexed scim_external_id column)
     for (const member of members) {
-      const ou = await OrgUser.getByScimExternalId(
-        orgId,
-        member.value,
-        { include_deleted: true },
-      );
+      const ou = await OrgUser.getByScimExternalId(orgId, member.value, {
+        include_deleted: true,
+      });
       if (ou) {
         await PrincipalAssignment.delete(
           context,

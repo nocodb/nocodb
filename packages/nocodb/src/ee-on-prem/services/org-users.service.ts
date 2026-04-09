@@ -169,29 +169,21 @@ export class OrgUsersService extends OrgUsersServiceCE {
       }
     }
 
-    // Check if already in org
-    const existing = await ncMeta
+    // Single query to find any existing row (active or soft-deleted)
+    const existingRow = await ncMeta
       .knexConnection(MetaTable.ORG_USERS)
       .where('fk_org_id', orgId)
       .where('fk_user_id', user.id)
-      .where(function () {
-        this.where('deleted', false).orWhereNull('deleted');
-      })
       .first();
 
-    if (existing) {
+    if (existingRow && !existingRow.deleted) {
       NcError.badRequest('User already in organization');
     }
 
-    // Check if soft-deleted — reactivate
-    const softDeleted = await ncMeta
-      .knexConnection(MetaTable.ORG_USERS)
-      .where('fk_org_id', orgId)
-      .where('fk_user_id', user.id)
-      .where('deleted', true)
-      .first();
+    const role = param.orgRole || EnterpriseOrgUserRoles.VIEWER;
 
-    if (softDeleted) {
+    if (existingRow?.deleted) {
+      // Reactivate soft-deleted row
       await ncMeta
         .knexConnection(MetaTable.ORG_USERS)
         .where('fk_org_id', orgId)
@@ -199,20 +191,20 @@ export class OrgUsersService extends OrgUsersServiceCE {
         .update({
           deleted: false,
           deleted_at: null,
-          roles: param.orgRole || EnterpriseOrgUserRoles.VIEWER,
+          roles: role,
         });
     } else {
       await ncMeta.knexConnection(MetaTable.ORG_USERS).insert({
         fk_org_id: orgId,
         fk_user_id: user.id,
-        roles: param.orgRole || EnterpriseOrgUserRoles.VIEWER,
+        roles: role,
       });
     }
 
     this.appHooksService.emit(AppEvents.ORG_USER_ADD, {
       userId: user.id,
       orgId,
-      role: param.orgRole || EnterpriseOrgUserRoles.VIEWER,
+      role,
       req: param.req,
     });
 

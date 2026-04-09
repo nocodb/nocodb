@@ -454,11 +454,22 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
     (c: ColumnType) => c.id === (colOptions?.fk_lookup_column_id ?? relatedTableMeta?.columns.find((c) => c.pv).id),
   ) as ColumnType | undefined
 
+  // When the value is a record object (from Lookup of LTAR), extract the child column's
+  // field value before recursing — otherwise the object reaches a primitive column parser
+  // and stringifies as [object Object]
+  const resolveRecordValue = (v: any) => {
+    if (v && typeof v === 'object' && !Array.isArray(v) && childColumn?.title) {
+      return v[childColumn.title] ?? v[childColumn.id] ?? v
+    }
+
+    return v
+  }
+
   if (Array.isArray(modelValue)) {
     return modelValue
       .map((v) => {
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        return parsePlainCellValue(v, { ...params, col: childColumn! })
+        return parsePlainCellValue(resolveRecordValue(v), { ...params, col: childColumn! })
       })
       .join(', ')
   }
@@ -473,7 +484,7 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
   }
 
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  return parsePlainCellValue(modelValue, { ...params, col: childColumn })
+  return parsePlainCellValue(resolveRecordValue(modelValue), { ...params, col: childColumn })
 }
 
 export function getLookupColumnType(

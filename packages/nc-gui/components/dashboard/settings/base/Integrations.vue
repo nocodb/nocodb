@@ -199,9 +199,9 @@ watch(baseId, reload)
   <div class="flex w-full flex-col h-full nc-base-integrations">
     <!-- Main page: active connections + integration categories -->
     <template v-if="viewMode === 'main'">
-      <div class="h-full overflow-y-auto nc-scrollbar-thin">
+      <div class="h-full w-full overflow-y-auto nc-scrollbar-thin">
         <!-- Active connections section (if any) -->
-        <div v-if="linkedIntegrations.length" class="px-6 pt-6">
+        <div v-if="linkedIntegrations.length" class="px-6 pt-6 w-full" style="container-type: inline-size">
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
               <h3 class="text-base font-semibold text-nc-content-gray mb-0">
@@ -224,7 +224,7 @@ watch(baseId, reload)
             </NcButton>
           </div>
 
-          <div class="nc-connection-cards-grid">
+          <div class="nc-connection-cards-grid grid grid-cols-1 gap-3">
             <WorkspaceIntegrationsConnectionCard
               v-for="connection in visibleLinkedConnections"
               :key="connection.id"
@@ -255,11 +255,11 @@ watch(baseId, reload)
             {{ $t('msg.manageBaseIntegrations') }}
           </div>
 
-          <div class="flex flex-col space-y-6 w-full" style="max-width: 1168px">
+          <div class="flex flex-col space-y-6 w-full">
             <template v-for="(category, key) in integrationsMap" :key="key">
-              <div v-if="category.list.length" class="integration-type-wrapper">
+              <div v-if="category.list.length" class="integration-type-wrapper" style="container-type: inline-size">
                 <div class="category-type-title">{{ $t(category.title) }}</div>
-                <div class="integration-type-list">
+                <div class="integration-type-list grid grid-cols-1 gap-3">
                   <template v-for="integration of category.list" :key="integration.sub_type">
                     <div class="source-card is-available" tabindex="0" @click="handleAddIntegration(integration)">
                       <div class="integration-icon-wrapper">
@@ -302,10 +302,7 @@ watch(baseId, reload)
           <h2 class="text-lg font-semibold text-nc-content-gray mb-0">
             {{ $t('general.allConnections') }}
           </h2>
-          <NcButton size="small" @click="viewMode = 'main'">
-            <GeneralIcon icon="plus" class="mr-1" />
-            {{ $t('labels.addConnection') }}
-          </NcButton>
+          <WorkspaceIntegrationsAddConnectionDropdown mode="base" />
         </div>
         <div class="text-sm font-normal text-nc-content-gray-subtle2 mb-4">
           {{ $t('msg.manageBaseIntegrations') }}
@@ -418,15 +415,22 @@ watch(baseId, reload)
 
 <style lang="scss" scoped>
 .nc-connection-cards-grid {
-  @apply grid gap-4;
-  grid-template-columns: repeat(3, 1fr);
+  @supports not (container-type: inline-size) {
+    @media (min-width: 540px) {
+      @apply grid-cols-2;
+    }
 
-  @media (max-width: 1024px) {
-    grid-template-columns: repeat(2, 1fr);
+    @media (min-width: 820px) {
+      @apply grid-cols-3;
+    }
   }
 
-  @media (max-width: 640px) {
-    grid-template-columns: 1fr;
+  @container (min-width: 540px) {
+    @apply grid-cols-2;
+  }
+
+  @container (min-width: 820px) {
+    @apply grid-cols-3;
   }
 }
 
@@ -444,10 +448,34 @@ watch(baseId, reload)
     @apply flex flex-col gap-3;
 
     .integration-type-list {
-      @apply flex gap-4 flex-wrap;
+      @supports not (container-type: inline-size) {
+        @media (min-width: 540px) {
+          @apply grid-cols-2;
+        }
+
+        @media (min-width: 1024px) {
+          @apply grid-cols-3;
+        }
+
+        @media (min-width: 1440px) {
+          @apply grid-cols-4;
+        }
+      }
+
+      @container (min-width: 540px) {
+        @apply grid-cols-2;
+      }
+
+      @container (min-width: 820px) {
+        @apply grid-cols-3;
+      }
+
+      @container (min-width: 1140px) {
+        @apply grid-cols-4;
+      }
 
       .source-card {
-        @apply flex items-center gap-4 border-1 border-nc-border-gray-medium rounded-xl p-3 w-[280px] cursor-pointer transition-all duration-300;
+        @apply flex items-center gap-4 border-1 border-nc-border-gray-medium rounded-xl p-3 cursor-pointer transition-all duration-300;
 
         .integration-icon-wrapper {
           @apply flex-none h-[44px] w-[44px] rounded-lg flex items-center justify-center;

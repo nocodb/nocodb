@@ -21,11 +21,7 @@ const { t } = useI18n()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const {
-  editIntegration,
-  duplicateIntegration,
-  setDefaultIntegration,
-} = useIntegrationStore()
+const { editIntegration, duplicateIntegration, setDefaultIntegration } = useIntegrationStore()
 
 const emits = defineEmits<{
   (e: 'delete', integration: IntegrationType): void
@@ -48,21 +44,28 @@ const openEditIntegration = (integration: IntegrationType) => {
 
 <template>
   <NcDropdown placement="bottomRight">
-    <NcButton size="small" type="secondary" @click.stop>
-      <GeneralIcon icon="threeDotVertical" />
-    </NcButton>
+    <slot>
+      <NcButton size="small" type="secondary" @click.stop>
+        <GeneralIcon icon="threeDotVertical" />
+      </NcButton>
+    </slot>
     <template #overlay>
       <NcMenu variant="small">
         <!-- Workspace mode: full actions -->
         <template v-if="mode === 'workspace'">
           <NcMenuItem
-            v-if="props.integration.type && integrationCategoryNeedDefault(props.integration.type) && !props.integration.is_default"
+            v-if="
+              props.integration.type && integrationCategoryNeedDefault(props.integration.type) && !props.integration.is_default
+            "
             @click="setDefaultIntegration(props.integration)"
           >
             <GeneralIcon class="text-current opacity-80" icon="star" />
             <span>Set as default</span>
           </NcMenuItem>
-          <NcMenuItem v-if="isEeUI" @click="emits('base-assignment', props.integration)">
+          <NcMenuItem
+            v-if="isEeUI && props.integration?.sub_type !== SyncDataType.NOCODB"
+            @click="emits('base-assignment', props.integration)"
+          >
             <GeneralIcon class="text-current opacity-80" icon="ncDatabase" />
             <span>{{ t('labels.manageBaseAccess') }}</span>
           </NcMenuItem>
@@ -102,10 +105,7 @@ const openEditIntegration = (integration: IntegrationType) => {
 
         <!-- Base mode: edit + unlink -->
         <template v-else>
-          <NcMenuItem
-            v-if="canEdit"
-            @click="openEditIntegration(props.integration)"
-          >
+          <NcMenuItem v-if="canEdit" @click="openEditIntegration(props.integration)">
             <GeneralIcon class="text-current opacity-80" icon="edit" />
             <span>{{ t('general.edit') }}</span>
           </NcMenuItem>

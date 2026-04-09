@@ -18,14 +18,8 @@ const emits = defineEmits<{
 
 const { t } = useI18n()
 
-const {
-  editIntegration,
-  deleteIntegration,
-  getIntegration,
-  loadIntegrations,
-  deleteConfirmText,
-  successConfirmModal,
-} = useIntegrationStore()
+const { editIntegration, deleteIntegration, getIntegration, loadIntegrations, deleteConfirmText, successConfirmModal } =
+  useIntegrationStore()
 
 const { allCollaborators } = storeToRefs(useWorkspace())
 
@@ -43,9 +37,7 @@ const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string 
   return map
 })
 
-const filteredConnections = computed(() =>
-  (props.connections || []).filter((i) => IntegrationsType.Sync !== i.type),
-)
+const filteredConnections = computed(() => (props.connections || []).filter((i) => IntegrationsType.Sync !== i.type))
 
 const visibleConnections = computed(() => {
   return filteredConnections.value.slice(0, props.maxVisible)
@@ -127,7 +119,7 @@ const handleEdit = (integration: IntegrationType) => {
 </script>
 
 <template>
-  <div class="nc-active-connections-section">
+  <div class="nc-active-connections-section" style="container-type: inline-size">
     <!-- Section header -->
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-2">
@@ -139,14 +131,21 @@ const handleEdit = (integration: IntegrationType) => {
         </NcBadge>
       </div>
 
-      <NcButton v-if="filteredTotalCount > 0" type="text" size="small" class="!text-nc-content-brand" @click="emits('view-all')">
+      <NcButton
+        v-if="filteredTotalCount > 0"
+        type="link"
+        size="small"
+        class="!text-nc-content-brand !p-0 !h-auto !min-h-0"
+        inner-class="hover:underline"
+        @click="emits('view-all')"
+      >
         {{ t('general.viewAllConnections') }}
         <GeneralIcon icon="arrowRight" class="ml-1" />
       </NcButton>
     </div>
 
     <!-- Connection cards grid -->
-    <div class="nc-connection-cards-grid">
+    <div class="nc-connection-cards-grid grid grid-cols-1 gap-3">
       <WorkspaceIntegrationsConnectionCard
         v-for="connection in visibleConnections"
         :key="connection.id"
@@ -158,14 +157,8 @@ const handleEdit = (integration: IntegrationType) => {
       />
 
       <!-- Overflow card -->
-      <div
-        v-if="overflowCount > 0"
-        class="nc-connection-overflow-card"
-        @click="emits('view-all')"
-      >
-        <div class="text-sm font-semibold text-nc-content-gray">
-          +{{ overflowCount }} {{ t('general.more') }}
-        </div>
+      <div v-if="overflowCount > 0" class="nc-connection-overflow-card" @click="emits('view-all')">
+        <div class="text-sm font-semibold text-nc-content-gray">+{{ overflowCount }} {{ t('general.more') }}</div>
         <div class="text-xs text-nc-content-gray-subtle2">
           {{ t('general.viewAllConnections') }}
         </div>
@@ -207,11 +200,7 @@ const handleEdit = (integration: IntegrationType) => {
           >
             <div class="mb-1">Following external data sources using this connection will also be removed</div>
             <ul class="!list-disc ml-6 mb-0">
-              <li
-                v-for="(source, idx) of toBeDeletedIntegration.sources"
-                :key="idx"
-                class="marker:text-nc-content-gray-muted"
-              >
+              <li v-for="(source, idx) of toBeDeletedIntegration.sources" :key="idx" class="marker:text-nc-content-gray-muted">
                 <div class="flex items-center gap-1">
                   <GeneralProjectIcon
                     type="database"
@@ -223,10 +212,7 @@ const handleEdit = (integration: IntegrationType) => {
                     {{ source.project_title }}
                   </NcTooltip>
                   >
-                  <GeneralBaseLogo
-                    class="!grayscale min-w-4 flex-none"
-                    :style="{ filter: 'grayscale(100%) brightness(115%)' }"
-                  />
+                  <GeneralBaseLogo class="!grayscale min-w-4 flex-none" :style="{ filter: 'grayscale(100%) brightness(115%)' }" />
                   <NcTooltip class="truncate !max-w-[45%] capitalize" show-on-truncate-only>
                     <template #title>{{ source.alias }}</template>
                     {{ source.alias }}
@@ -254,7 +240,11 @@ const handleEdit = (integration: IntegrationType) => {
             </NcButton>
           </div>
           <div class="text-sm text-nc-content-inverted-secondary">{{ successConfirmModal.description }}</div>
-          <a target="_blank" href="https://nocodb.com/docs/product-docs/data-sources/connect-to-data-source" rel="noopener noreferrer">
+          <a
+            target="_blank"
+            href="https://nocodb.com/docs/product-docs/data-sources/connect-to-data-source"
+            rel="noopener noreferrer"
+          >
             Learn more
           </a>
         </div>
@@ -274,15 +264,30 @@ const handleEdit = (integration: IntegrationType) => {
 <style lang="scss" scoped>
 .nc-active-connections-section {
   .nc-connection-cards-grid {
-    @apply grid gap-4;
-    grid-template-columns: repeat(3, 1fr);
+    @supports not (container-type: inline-size) {
+      @media (min-width: 540px) {
+        @apply grid-cols-2;
+      }
 
-    @media (max-width: 1024px) {
-      grid-template-columns: repeat(2, 1fr);
+      @media (min-width: 1024px) {
+        @apply grid-cols-3;
+      }
+
+      @media (min-width: 1440px) {
+        @apply grid-cols-4;
+      }
     }
 
-    @media (max-width: 640px) {
-      grid-template-columns: 1fr;
+    @container (min-width: 540px) {
+      @apply grid-cols-2;
+    }
+
+    @container (min-width: 820px) {
+      @apply grid-cols-3;
+    }
+
+    @container (min-width: 1140px) {
+      @apply grid-cols-4;
     }
   }
 

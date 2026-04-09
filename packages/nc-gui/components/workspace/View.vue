@@ -38,13 +38,12 @@ const {
   showEEFeatures,
 } = useEeConfig()
 
-const { isFromIntegrationPage, integrationPaginationData, integrations, loadIntegrations } = useProvideIntegrationViewStore()
+const { isFromIntegrationPage, loadIntegrations } = useProvideIntegrationViewStore()
 
 // Local ref for integrations view mode (main page vs all-connections page).
 // Cannot use activeViewTab (which writes to route.query.tab) because the outer NcTabs
 // also reads route.query.tab — changing it to 'connections' makes the outer pane blank.
 const integrationsViewMode = ref<'main' | 'all-connections'>('main')
-
 
 const hasTeamsEditPermission = computed(() => {
   return isEeUI && isTeamsEnabled.value && (isAdminPanel.value || isUIAllowed('teamCreate'))
@@ -296,28 +295,26 @@ if (!props.isNewWsPage) {
           <div class="nc-integrations-layout h-[calc(100vh-var(--topbar-height)-44px)] nc-content-max-w mx-auto">
             <!-- Main integrations page -->
             <template v-if="integrationsViewMode === 'main'">
-              <div class="h-full flex flex-col overflow-y-auto nc-scrollbar-thin">
-                <!-- Active connections section -->
-                <div v-if="integrations.length" class="px-6 pt-6">
-                  <WorkspaceIntegrationsActiveConnectionsSection
-                    :connections="integrations"
-                    :total-count="integrationPaginationData.totalRows || 0"
-                    @view-all="integrationsViewMode = 'all-connections'"
-                  />
-                  <NcDivider class="!my-6" />
-                </div>
-
-                <!-- Integration categories grid -->
-                <div class="flex-1">
-                  <WorkspaceIntegrationsTab show-filter show-title />
-                </div>
+              <div class="h-full">
+                <WorkspaceIntegrationsTab
+                  show-filter
+                  show-title
+                  show-active-connections
+                  @view-all-connections="integrationsViewMode = 'all-connections'"
+                />
               </div>
             </template>
 
             <!-- All connections page -->
             <template v-else-if="integrationsViewMode === 'all-connections'">
               <div class="h-full flex flex-col p-6">
-                <NcButton type="text" size="small" class="!text-nc-content-brand self-start -ml-1 mb-4" @click="integrationsViewMode = 'main'">
+                <NcButton
+                  type="link"
+                  size="small"
+                  class="!text-nc-content-brand self-start -ml-1 mb-4 !p-0 !h-auto !min-h-0"
+                  inner-class="hover:underline"
+                  @click="integrationsViewMode = 'main'"
+                >
                   <GeneralIcon icon="arrowLeft" class="mr-1" />
                   {{ $t('general.backToIntegrations') }}
                 </NcButton>
@@ -326,14 +323,9 @@ if (!props.isNewWsPage) {
                   <h2 class="text-lg font-semibold text-nc-content-gray mb-0">
                     {{ $t('general.allConnections') }}
                   </h2>
-                  <NcButton size="small" @click="integrationsViewMode = 'main'">
-                    <GeneralIcon icon="plus" class="mr-1" />
-                    {{ $t('labels.addConnection') }}
-                  </NcButton>
+                  <WorkspaceIntegrationsAddConnectionDropdown />
                 </div>
-                <div class="text-sm font-normal text-nc-content-gray-subtle2 mb-4">
-                  {{ $t('msg.manageAllConnections') }}
-                </div>
+             
 
                 <div class="flex-1 min-h-0">
                   <WorkspaceIntegrationsConnectionsTab />

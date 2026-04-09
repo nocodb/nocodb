@@ -12,6 +12,7 @@ const props = withDefaults(
     filterIntegration?: (i: IntegrationItemType) => boolean
     showFilter?: boolean
     showTitle?: boolean
+    showActiveConnections?: boolean
   }>(),
   {
     isModal: false,
@@ -19,8 +20,13 @@ const props = withDefaults(
     filterIntegration: () => true,
     showFilter: false,
     showTitle: false,
+    showActiveConnections: false,
   },
 )
+
+const emits = defineEmits<{
+  (e: 'view-all-connections'): void
+}>()
 
 const { isModal, filterCategory, filterIntegration } = props
 
@@ -50,6 +56,8 @@ const {
   addIntegration,
   saveIntegrationRequest,
   integrationsRefreshKey,
+  integrations,
+  integrationPaginationData,
   integrationsCategoryFilter,
   activeViewTab,
   loadDynamicIntegrations,
@@ -394,6 +402,14 @@ watch(activeViewTab, (value) => {
               }"
             >
               <div class="flex flex-col space-y-6 w-full nc-content-max-w">
+                <!-- Active connections section (shown as first section when not modal) -->
+                <WorkspaceIntegrationsActiveConnectionsSection
+                  v-if="showActiveConnections && !isModal && integrations.length"
+                  :connections="integrations"
+                  :total-count="integrationPaginationData.totalRows || 0"
+                  @view-all="emits('view-all-connections')"
+                />
+
                 <template v-for="(category, key) in integrationsMapByCategory">
                   <div
                     v-if="
@@ -404,6 +420,7 @@ watch(activeViewTab, (value) => {
                     "
                     :key="key"
                     class="integration-type-wrapper"
+                    style="container-type: inline-size"
                   >
                     <div class="category-type-title flex gap-2">
                       {{ $t(category.title) }}
@@ -414,7 +431,7 @@ watch(activeViewTab, (value) => {
                         >{{ $t('msg.toast.futureRelease') }}</NcBadge
                       >
                     </div>
-                    <div v-if="category.list.length" class="integration-type-list">
+                    <div v-if="category.list.length" class="integration-type-list grid grid-cols-1 gap-3">
                       <template v-for="integration of category.list" :key="integration.sub_type">
                         <NcTooltip
                           v-if="isIntegrationVisible(integration, category)"
@@ -608,10 +625,34 @@ watch(activeViewTab, (value) => {
     @apply flex flex-col gap-3;
 
     .integration-type-list {
-      @apply flex gap-4 flex-wrap;
+      @supports not (container-type: inline-size) {
+        @media (min-width: 540px) {
+          @apply grid-cols-2;
+        }
+
+        @media (min-width: 1024px) {
+          @apply grid-cols-3;
+        }
+
+        @media (min-width: 1440px) {
+          @apply grid-cols-4;
+        }
+      }
+
+      @container (min-width: 540px) {
+        @apply grid-cols-2;
+      }
+
+      @container (min-width: 820px) {
+        @apply grid-cols-3;
+      }
+
+      @container (min-width: 1140px) {
+        @apply grid-cols-4;
+      }
 
       .source-card {
-        @apply flex items-center gap-4 border-1 border-nc-border-gray-medium rounded-xl p-3 w-[280px] cursor-pointer transition-all duration-300;
+        @apply flex items-center gap-4 border-1 border-nc-border-gray-medium rounded-xl p-3 cursor-pointer transition-all duration-300;
 
         .integration-icon-wrapper {
           @apply flex-none h-[44px] w-[44px] rounded-lg flex items-center justify-center;

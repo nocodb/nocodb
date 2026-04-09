@@ -71,7 +71,7 @@ export async function removeUserFromOrgCascade(
   orgId: string,
   userId: string,
   ncMeta = Noco.ncMeta,
-): Promise<string[]> {
+): Promise<void> {
   // Find the org admin to transfer ownership if needed
   const orgAdmin = await ncMeta
     .knexConnection(MetaTable.ORG_USERS)
@@ -144,9 +144,6 @@ export async function removeUserFromOrgCascade(
     await batchRemoveUserFromTeams(allTeams, userId, transaction);
 
     await transaction.commit();
-
-    // Return affected workspace IDs so caller can trigger seat recount
-    return wsIds;
   } catch (e) {
     await transaction.rollback();
     throw e;

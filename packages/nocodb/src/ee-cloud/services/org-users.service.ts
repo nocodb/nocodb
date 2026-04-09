@@ -7,11 +7,15 @@ import { OrgUser, PresignedUrl, User } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { PaymentService } from '~/modules/payment/payment.service';
 import { removeUserFromOrgCascade } from '~/ee/helpers/orgUserRemovalHelper';
 
 @Injectable()
 export class OrgUsersService {
-  constructor(protected readonly appHooksService: AppHooksService) {}
+  constructor(
+    protected readonly appHooksService: AppHooksService,
+    protected readonly paymentService: PaymentService,
+  ) {}
 
   async addUserToOrg(param: {
     userId: string;
@@ -117,6 +121,9 @@ export class OrgUsersService {
     }
 
     await removeUserFromOrgCascade(param.orgId, param.userId, ncMeta);
+
+    // Reseat org subscription after user removal
+    await this.paymentService.reseatSubscription(param.orgId);
 
     this.appHooksService.emit(AppEvents.ORG_USER_REMOVE, {
       userId: param.userId,

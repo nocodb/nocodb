@@ -6,10 +6,22 @@ import { MetaTable, NC_DEFAULT_ORG_ID } from '~/utils/globals';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
 import { PresignedUrl } from '~/models';
+import { BaseUsersService } from '~/services/base-users/base-users.service';
+import { MailService } from '~/services/mail/mail.service';
+import { PaymentService } from '~/modules/payment/payment.service';
 import { removeUserFromOrgCascade } from '~/ee/helpers/orgUserRemovalHelper';
 
 @Injectable()
 export class OrgUsersService extends OrgUsersServiceCE {
+  constructor(
+    protected readonly baseUsersService: BaseUsersService,
+    protected readonly appHooksService: AppHooksService,
+    protected readonly mailService: MailService,
+    protected readonly paymentService: PaymentService,
+  ) {
+    super(baseUsersService, appHooksService, mailService);
+  }
+
   /**
    * On-prem override: read users from nc_org_users for the default org.
    * Falls back to CE user list when unlicensed (no org exists).
@@ -296,6 +308,9 @@ export class OrgUsersService extends OrgUsersServiceCE {
     }
 
     await removeUserFromOrgCascade(orgId, param.userId, ncMeta);
+
+    // Reseat org subscription after user removal
+    await this.paymentService.reseatSubscription(orgId);
 
     this.appHooksService.emit(AppEvents.ORG_USER_REMOVE, {
       userId: param.userId,

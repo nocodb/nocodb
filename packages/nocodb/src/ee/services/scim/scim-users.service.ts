@@ -12,6 +12,7 @@ import { removeUserFromOrgCascade } from '~/ee/helpers/orgUserRemovalHelper';
 import Org from '~/ee/models/Org';
 import ScimConfig from '~/ee/models/ScimConfig';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { PaymentService } from '~/modules/payment/payment.service';
 import {
   extractOrgRoleFromExtension,
   NOCODB_USER_EXTENSION,
@@ -28,7 +29,10 @@ const ENTERPRISE_EXTENSION =
 export class ScimUsersService {
   protected logger = new Logger(ScimUsersService.name);
 
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(
+    private readonly appHooksService: AppHooksService,
+    private readonly paymentService: PaymentService,
+  ) {}
 
   /**
    * Extract and validate orgRole from NocoDB extension attribute.
@@ -572,6 +576,9 @@ export class ScimUsersService {
 
     // Full cascade: soft-delete org user + remove from all workspaces, teams
     await removeUserFromOrgCascade(param.orgId, orgUser.fk_user_id);
+
+    // Reseat org subscription after user removal
+    await this.paymentService.reseatSubscription(param.orgId);
 
     this.emitScimEvent(AppEvents.SCIM_USER_DELETE, {
       orgId: param.orgId,

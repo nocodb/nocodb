@@ -808,6 +808,50 @@ const handleScrollIntoView = () => {
     </template>
 
     <div class="flex flex-col gap-2">
+      <div class="flex gap-2 items-center">
+        <a-switch
+          v-model:checked="useCustomDisplayField"
+          v-e="['c:link:custom-display-field', { status: useCustomDisplayField }]"
+          size="small"
+          :disabled="!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)"
+        />
+        <span
+          class="cursor-pointer"
+          data-testid="nc-use-custom-display-field"
+          @click="
+            () => {
+              if (!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)) return
+              useCustomDisplayField = !useCustomDisplayField
+            }
+          "
+        >
+          {{ $t('labels.useCustomDisplayField') }}
+        </span>
+      </div>
+      <a-form-item v-if="useCustomDisplayField" class="!pl-8 flex w-full pb-2 mt-4 space-y-2">
+        <NcSelect
+          v-model:value="vModel.fk_display_value_column_id"
+          :placeholder="$t('labels.selectFieldAsDisplayName')"
+          show-search
+          :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
+          dropdown-class-name="nc-dropdown-ltar-display-value-field"
+        >
+          <a-select-option v-for="field of eligibleDisplayFields" :key="field.id" :value="field.id" :data-label="field.title">
+            <div class="flex w-full items-center gap-2">
+              <div class="min-w-5 flex items-center justify-center">
+                <SmartsheetHeaderIcon :column="field" class="text-nc-content-gray-muted" />
+              </div>
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <template #title>{{ field.title }}</template>
+                <span>{{ field.title }}</span>
+              </NcTooltip>
+            </div>
+          </a-select-option>
+        </NcSelect>
+      </a-form-item>
+    </div>
+
+    <div class="flex flex-col gap-2">
       <NcTooltip :disabled="!isSyncedField && !isLinkedViewPrivate" placement="right">
         <div class="flex gap-2 items-center">
           <a-switch
@@ -892,50 +936,6 @@ const handleScrollIntoView = () => {
             }}
           </template>
         </NcTooltip>
-      </a-form-item>
-    </div>
-
-    <div class="flex flex-col gap-2">
-      <div class="flex gap-2 items-center">
-        <a-switch
-          v-model:checked="useCustomDisplayField"
-          v-e="['c:link:custom-display-field', { status: useCustomDisplayField }]"
-          size="small"
-          :disabled="!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)"
-        />
-        <span
-          class="cursor-pointer"
-          data-testid="nc-use-custom-display-field"
-          @click="
-            () => {
-              if (!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)) return
-              useCustomDisplayField = !useCustomDisplayField
-            }
-          "
-        >
-          {{ $t('labels.useCustomDisplayField') }}
-        </span>
-      </div>
-      <a-form-item v-if="useCustomDisplayField" class="!pl-8 flex w-full pb-2 mt-4 space-y-2">
-        <NcSelect
-          v-model:value="vModel.fk_display_value_column_id"
-          :placeholder="$t('labels.selectFieldAsDisplayName')"
-          show-search
-          :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
-          dropdown-class-name="nc-dropdown-ltar-display-value-field"
-        >
-          <a-select-option v-for="field of eligibleDisplayFields" :key="field.id" :value="field.id" :data-label="field.title">
-            <div class="flex w-full items-center gap-2">
-              <div class="min-w-5 flex items-center justify-center">
-                <SmartsheetHeaderIcon :column="field" class="text-nc-content-gray-muted" />
-              </div>
-              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                <template #title>{{ field.title }}</template>
-                <span>{{ field.title }}</span>
-              </NcTooltip>
-            </div>
-          </a-select-option>
-        </NcSelect>
       </a-form-item>
     </div>
 

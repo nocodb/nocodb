@@ -8,6 +8,7 @@ export function useBaseIntegrations() {
 
   const linkedIntegrations = ref<IntegrationType[]>([])
   const isLoading = ref(false)
+  const isLoaded = ref(false)
 
   const loadLinkedIntegrations = async (baseId: string, opts?: { type?: string; subType?: string }) => {
     if (!activeWorkspaceId.value || !baseId) return
@@ -25,6 +26,7 @@ export function useBaseIntegrations() {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
       isLoading.value = false
+      isLoaded.value = true
     }
   }
 
@@ -60,6 +62,7 @@ export function useBaseIntegrations() {
   return {
     linkedIntegrations,
     isLoading,
+    isLoaded,
     loadLinkedIntegrations,
     linkIntegration,
     unlinkIntegration,

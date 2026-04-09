@@ -20,7 +20,8 @@ const { user } = useGlobal()
 const basesStore = useBases()
 const { basesUser } = storeToRefs(basesStore)
 
-const { linkedIntegrations, isLoading, loadLinkedIntegrations, linkIntegration, unlinkIntegration } = useBaseIntegrations()
+const { linkedIntegrations, isLoading, isLoaded, loadLinkedIntegrations, linkIntegration, unlinkIntegration } =
+  useBaseIntegrations()
 
 const canManage = computed(() => isUIAllowed('baseIntegrationCreate'))
 
@@ -257,87 +258,93 @@ watch(baseId, reload)
           </a-input>
 
           <div class="flex flex-col space-y-6 w-full">
-            <!-- Active connections section (if any) -->
-            <div v-if="filteredLinkedIntegrations.length" style="container-type: inline-size">
-              <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-2">
-                  <h3 class="text-sm font-weight-700 text-nc-content-gray mb-0">
-                    {{ $t('general.activeConnections') }}
-                  </h3>
-                  <NcBadge
-                    :border="false"
-                    class="bg-nc-bg-brand-inverted text-nc-content-gray-subtle2 text-xs min-w-5 !h-5 flex justify-center"
+            <!-- Full-page skeleton during initial load -->
+            <WorkspaceIntegrationsSkeleton v-if="!isLoaded" :connection-count="3" />
+
+            <!-- Real content (shown after first load) -->
+            <template v-else>
+              <!-- Active connections section (if any) -->
+              <div v-if="filteredLinkedIntegrations.length" style="container-type: inline-size">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-sm font-weight-700 text-nc-content-gray mb-0">
+                      {{ $t('general.activeConnections') }}
+                    </h3>
+                    <NcBadge
+                      :border="false"
+                      class="bg-nc-bg-brand-inverted text-nc-content-gray-subtle2 text-xs min-w-5 !h-5 flex justify-center"
+                    >
+                      {{ filteredLinkedIntegrations.length }}
+                    </NcBadge>
+                  </div>
+
+                  <NcButton
+                    type="link"
+                    size="small"
+                    class="!text-nc-content-brand !px-0 !h-auto !min-h-0"
+                    inner-class="hover:underline"
+                    @click="viewMode = 'all-connections'"
                   >
-                    {{ filteredLinkedIntegrations.length }}
-                  </NcBadge>
+                    {{ $t('general.viewAllConnections') }}
+                    <GeneralIcon icon="arrowRight" class="ml-1" />
+                  </NcButton>
                 </div>
 
-                <NcButton
-                  type="link"
-                  size="small"
-                  class="!text-nc-content-brand !px-0 !h-auto !min-h-0"
-                  inner-class="hover:underline"
-                  @click="viewMode = 'all-connections'"
-                >
-                  {{ $t('general.viewAllConnections') }}
-                  <GeneralIcon icon="arrowRight" class="ml-1" />
-                </NcButton>
-              </div>
+                <div class="nc-connection-cards-grid grid grid-cols-1 gap-3">
+                  <WorkspaceIntegrationsConnectionCard
+                    v-for="connection in visibleLinkedConnections"
+                    :key="connection.id"
+                    :integration="connection"
+                    :collaborators-map="collaboratorsMap"
+                    mode="base"
+                    :can-edit="canEditIntegration(connection)"
+                    :can-unlink="canUnlinkIntegration(connection)"
+                    :base-id="baseId"
+                    @edit="handleEdit"
+                    @unlink="handleUnlink"
+                  />
 
-              <div class="nc-connection-cards-grid grid grid-cols-1 gap-3">
-                <WorkspaceIntegrationsConnectionCard
-                  v-for="connection in visibleLinkedConnections"
-                  :key="connection.id"
-                  :integration="connection"
-                  :collaborators-map="collaboratorsMap"
-                  mode="base"
-                  :can-edit="canEditIntegration(connection)"
-                  :can-unlink="canUnlinkIntegration(connection)"
-                  :base-id="baseId"
-                  @edit="handleEdit"
-                  @unlink="handleUnlink"
-                />
-
-                <div v-if="overflowCount > 0" class="nc-connection-overflow-card" @click="viewMode = 'all-connections'">
-                  <div class="text-sm font-semibold text-nc-content-gray">+{{ overflowCount }} {{ $t('general.more') }}</div>
-                  <div class="text-xs text-nc-content-gray-subtle2">
-                    {{ $t('general.viewAllConnections') }}
+                  <div v-if="overflowCount > 0" class="nc-connection-overflow-card" @click="viewMode = 'all-connections'">
+                    <div class="text-sm font-semibold text-nc-content-gray">+{{ overflowCount }} {{ $t('general.more') }}</div>
+                    <div class="text-xs text-nc-content-gray-subtle2">
+                      {{ $t('general.viewAllConnections') }}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <NcDivider v-if="filteredLinkedIntegrations.length" />
+              <NcDivider v-if="filteredLinkedIntegrations.length" />
 
-            <!-- Integration categories -->
-            <template v-for="(category, key) in integrationsMap" :key="key">
-              <div v-if="category.list.length" class="integration-type-wrapper" style="container-type: inline-size">
-                <div class="category-type-title">{{ $t(category.title) }}</div>
-                <div class="integration-type-list grid grid-cols-1 gap-3">
-                  <template v-for="integration of category.list" :key="integration.sub_type">
-                    <div class="source-card is-available" tabindex="0" @click="handleAddIntegration(integration)">
-                      <div class="integration-icon-wrapper">
-                        <component :is="integration.icon" class="integration-icon" :style="integration.iconStyle" />
-                      </div>
-                      <div class="flex-1">
-                        <div class="name">{{ $t(integration.title) }}</div>
-                        <div v-if="integration.subtitle" class="subtitle">{{ $t(integration.subtitle) }}</div>
-                      </div>
-                      <NcButton type="secondary" size="xs" class="action-btn !rounded-lg !px-1 !py-0">
-                        <div class="flex items-center gap-2">
-                          <GeneralIcon icon="ncPlus" class="flex-none" />
+              <!-- Integration categories -->
+              <template v-for="(category, key) in integrationsMap" :key="key">
+                <div v-if="category.list.length" class="integration-type-wrapper" style="container-type: inline-size">
+                  <div class="category-type-title">{{ $t(category.title) }}</div>
+                  <div class="integration-type-list grid grid-cols-1 gap-3">
+                    <template v-for="integration of category.list" :key="integration.sub_type">
+                      <div class="source-card is-available" tabindex="0" @click="handleAddIntegration(integration)">
+                        <div class="integration-icon-wrapper">
+                          <component :is="integration.icon" class="integration-icon" :style="integration.iconStyle" />
                         </div>
-                      </NcButton>
-                    </div>
-                  </template>
+                        <div class="flex-1">
+                          <div class="name">{{ $t(integration.title) }}</div>
+                          <div v-if="integration.subtitle" class="subtitle">{{ $t(integration.subtitle) }}</div>
+                        </div>
+                        <NcButton type="secondary" size="xs" class="action-btn !rounded-lg !px-1 !py-0">
+                          <div class="flex items-center gap-2">
+                            <GeneralIcon icon="ncPlus" class="flex-none" />
+                          </div>
+                        </NcButton>
+                      </div>
+                    </template>
+                  </div>
                 </div>
+              </template>
+
+              <!-- Empty search state -->
+              <div v-if="isSearchEmpty" class="flex-1 flex items-center justify-center py-12">
+                <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
               </div>
             </template>
-
-            <!-- Empty search state -->
-            <div v-if="isSearchEmpty" class="flex-1 flex items-center justify-center py-12">
-              <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
-            </div>
           </div>
         </div>
       </div>

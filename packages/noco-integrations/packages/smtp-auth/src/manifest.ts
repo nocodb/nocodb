@@ -10,4 +10,8 @@ export const manifest: IntegrationManifest = {
   author: 'NocoDB',
   website: 'https://nocodb.com',
   order: 10,
+  iconStyle: {
+    width: '32px',
+    height: '32px',
+  },
 };

@@ -10,4 +10,8 @@ export const manifest: IntegrationManifest = {
   website: 'https://www.google.com/drive',
   order: 5,
   hidden: true,
+  iconStyle: {
+    width: '32px',
+    height: '32px',
+  },
 };

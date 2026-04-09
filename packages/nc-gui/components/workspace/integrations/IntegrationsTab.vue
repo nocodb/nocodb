@@ -57,6 +57,7 @@ const {
   saveIntegrationRequest,
   integrationsRefreshKey,
   integrations,
+  isLoadedIntegrations,
   integrationPaginationData,
   integrationsCategoryFilter,
   activeViewTab,
@@ -413,114 +414,120 @@ watch(activeViewTab, (value) => {
               }"
             >
               <div class="flex flex-col space-y-6 w-full nc-content-max-w">
-                <!-- Active connections section (shown as first section when not modal) -->
-                <WorkspaceIntegrationsActiveConnectionsSection
-                  v-if="showActiveConnections && !isModal && integrations.length"
-                  :connections="integrations"
-                  :total-count="integrationPaginationData.totalRows || 0"
-                  :search-query="searchQuery"
-                  show-divider
-                  @view-all="emits('view-all-connections')"
-                />
+                <!-- Full-page skeleton during initial load (non-modal only) -->
+                <WorkspaceIntegrationsSkeleton v-if="showActiveConnections && !isModal && !isLoadedIntegrations" />
 
-                <template v-for="(category, key) in integrationsMapByCategory">
-                  <div
-                    v-if="
-                      (easterEggToggle ||
-                        category.value === IntegrationCategoryType.DATABASE ||
-                        (isSyncFeatureEnabled && category.value === IntegrationCategoryType.AUTH)) &&
-                      category.list.length
-                    "
-                    :key="key"
-                    class="integration-type-wrapper"
-                    style="container-type: inline-size"
-                  >
-                    <div class="category-type-title flex gap-2">
-                      {{ $t(category.title) }}
-                      <NcBadge
-                        v-if="!category.isAvailable"
-                        :border="false"
-                        class="text-nc-content-brand !h-5 bg-nc-bg-brand text-xs font-normal px-2"
-                        >{{ $t('msg.toast.futureRelease') }}</NcBadge
-                      >
-                    </div>
-                    <div v-if="category.list.length" class="integration-type-list grid grid-cols-1 gap-3">
-                      <template v-for="integration of category.list" :key="integration.sub_type">
-                        <NcTooltip
-                          v-if="isIntegrationVisible(integration, category)"
-                          :disabled="integration?.isAvailable"
-                          placement="bottom"
+                <!-- Real content (shown after load or in modal mode) -->
+                <template v-else>
+                  <!-- Active connections section (shown as first section when not modal) -->
+                  <WorkspaceIntegrationsActiveConnectionsSection
+                    v-if="showActiveConnections && !isModal && isLoadedIntegrations && integrations.length"
+                    :connections="integrations"
+                    :total-count="integrationPaginationData.totalRows || 0"
+                    :search-query="searchQuery"
+                    show-divider
+                    @view-all="emits('view-all-connections')"
+                  />
+
+                  <template v-for="(category, key) in integrationsMapByCategory">
+                    <div
+                      v-if="
+                        (easterEggToggle ||
+                          category.value === IntegrationCategoryType.DATABASE ||
+                          (isSyncFeatureEnabled && category.value === IntegrationCategoryType.AUTH)) &&
+                        category.list.length
+                      "
+                      :key="key"
+                      class="integration-type-wrapper"
+                      style="container-type: inline-size"
+                    >
+                      <div class="category-type-title flex gap-2">
+                        {{ $t(category.title) }}
+                        <NcBadge
+                          v-if="!category.isAvailable"
+                          :border="false"
+                          class="text-nc-content-brand !h-5 bg-nc-bg-brand text-xs font-normal px-2"
+                          >{{ $t('msg.toast.futureRelease') }}</NcBadge
                         >
-                          <template #title>{{ $t('tooltip.comingSoonIntegration') }}</template>
-
-                          <div
-                            :tabindex="0"
-                            class="source-card focus-visible:outline-none outline-none h-full"
-                            :class="{
-                              'is-available': integration?.isAvailable,
-                            }"
-                            @click="handleAddIntegration(key, integration)"
+                      </div>
+                      <div v-if="category.list.length" class="integration-type-list grid grid-cols-1 gap-3">
+                        <template v-for="integration of category.list" :key="integration.sub_type">
+                          <NcTooltip
+                            v-if="isIntegrationVisible(integration, category)"
+                            :disabled="integration?.isAvailable"
+                            placement="bottom"
                           >
-                            <div class="integration-icon-wrapper">
-                              <component :is="integration.icon" class="integration-icon" :style="integration.iconStyle" />
-                            </div>
-                            <div class="flex-1">
-                              <div class="name">{{ $t(integration.title) }}</div>
-                              <div v-if="integration.subtitle" class="subtitle flex-1">{{ $t(integration.subtitle) }}</div>
-                            </div>
-                            <div v-if="!isDataReflectionEnabled && integration?.sub_type === SyncDataType.NOCODB"></div>
-                            <div v-else-if="integration?.sub_type === SyncDataType.NOCODB" class="flex items-center">
+                            <template #title>{{ $t('tooltip.comingSoonIntegration') }}</template>
+
+                            <div
+                              :tabindex="0"
+                              class="source-card focus-visible:outline-none outline-none h-full"
+                              :class="{
+                                'is-available': integration?.isAvailable,
+                              }"
+                              @click="handleAddIntegration(key, integration)"
+                            >
+                              <div class="integration-icon-wrapper">
+                                <component :is="integration.icon" class="integration-icon" :style="integration.iconStyle" />
+                              </div>
+                              <div class="flex-1">
+                                <div class="name">{{ $t(integration.title) }}</div>
+                                <div v-if="integration.subtitle" class="subtitle flex-1">{{ $t(integration.subtitle) }}</div>
+                              </div>
+                              <div v-if="!isDataReflectionEnabled && integration?.sub_type === SyncDataType.NOCODB"></div>
+                              <div v-else-if="integration?.sub_type === SyncDataType.NOCODB" class="flex items-center">
+                                <NcButton
+                                  v-if="dataReflectionEnabled"
+                                  type="secondary"
+                                  size="xs"
+                                  class="integration-upvote-btn !rounded-lg !px-1 !py-0 selected"
+                                >
+                                  <div class="flex items-center gap-2">
+                                    <GeneralIcon icon="ncCheck" class="text-primary flex-none" />
+                                  </div>
+                                </NcButton>
+                                <NcButton v-else type="secondary" size="xs" class="action-btn !rounded-lg !px-1 !py-0">
+                                  <div class="flex items-center gap-2">
+                                    <GeneralIcon icon="ncPlus" class="flex-none" />
+                                  </div>
+                                </NcButton>
+                              </div>
+
                               <NcButton
-                                v-if="dataReflectionEnabled"
+                                v-else-if="integration?.isAvailable"
                                 type="secondary"
                                 size="xs"
-                                class="integration-upvote-btn !rounded-lg !px-1 !py-0 selected"
+                                class="action-btn !rounded-lg !px-1 !py-0"
                               >
-                                <div class="flex items-center gap-2">
-                                  <GeneralIcon icon="ncCheck" class="text-primary flex-none" />
-                                </div>
-                              </NcButton>
-                              <NcButton v-else type="secondary" size="xs" class="action-btn !rounded-lg !px-1 !py-0">
                                 <div class="flex items-center gap-2">
                                   <GeneralIcon icon="ncPlus" class="flex-none" />
                                 </div>
                               </NcButton>
-                            </div>
-
-                            <NcButton
-                              v-else-if="integration?.isAvailable"
-                              type="secondary"
-                              size="xs"
-                              class="action-btn !rounded-lg !px-1 !py-0"
-                            >
-                              <div class="flex items-center gap-2">
-                                <GeneralIcon icon="ncPlus" class="flex-none" />
+                              <div v-else class="">
+                                <NcButton
+                                  type="secondary"
+                                  size="xs"
+                                  class="integration-upvote-btn !rounded-lg !px-1 !py-0"
+                                  :class="{
+                                    selected: upvotesData.has(integration.sub_type),
+                                  }"
+                                >
+                                  <div class="flex items-center gap-2">
+                                    <GeneralIcon icon="ncArrowUp" />
+                                  </div>
+                                </NcButton>
                               </div>
-                            </NcButton>
-                            <div v-else class="">
-                              <NcButton
-                                type="secondary"
-                                size="xs"
-                                class="integration-upvote-btn !rounded-lg !px-1 !py-0"
-                                :class="{
-                                  selected: upvotesData.has(integration.sub_type),
-                                }"
-                              >
-                                <div class="flex items-center gap-2">
-                                  <GeneralIcon icon="ncArrowUp" />
-                                </div>
-                              </NcButton>
                             </div>
-                          </div>
-                        </NcTooltip>
-                      </template>
+                          </NcTooltip>
+                        </template>
+                      </div>
                     </div>
+                  </template>
+
+                  <div v-if="isEmptyList" class="h-full text-center flex items-center justify-center gap-3">
+                    <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
                   </div>
                 </template>
-
-                <div v-if="isEmptyList" class="h-full text-center flex items-center justify-center gap-3">
-                  <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
-                </div>
               </div>
             </div>
             <div v-else class="h-full flex items-center justify-center"><GeneralLoader size="xlarge" /></div>

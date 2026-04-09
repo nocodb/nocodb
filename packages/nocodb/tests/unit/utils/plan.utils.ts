@@ -3,6 +3,7 @@ import { PlanTitles, resolvePlanMeta } from 'nocodb-sdk';
 import { isEE } from './helpers';
 import { CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
+import { Workspace } from '~/models';
 
 export const overrideFeature = async ({
   workspace_id,
@@ -23,11 +24,13 @@ export const overrideFeature = async ({
 
 export const overridePlan = async ({
   workspace_id,
+  org_id,
   planTitle = PlanTitles.FREE,
   features,
   limits,
 }: {
   workspace_id: string;
+  org_id?: string;
   planTitle?: PlanTitles;
   features?: {
     [key: string]: boolean;
@@ -37,7 +40,16 @@ export const overridePlan = async ({
   };
 }) => {
   if (isEE()) {
-    const subscriptionAliasKey = `${CacheScope.SUBSCRIPTIONS_ALIAS}:${workspace_id}`;
+    // Workspace.get resolves payment via (fk_org_id || workspace.id).
+    // Auto-detect org_id from the workspace if not provided.
+    let subscriptionOwner = org_id || workspace_id;
+    if (!org_id) {
+      const ws = await Workspace.get(workspace_id, false);
+      if (ws?.fk_org_id) {
+        subscriptionOwner = ws.fk_org_id;
+      }
+    }
+    const subscriptionAliasKey = `${CacheScope.SUBSCRIPTIONS_ALIAS}:${subscriptionOwner}`;
     const subscriptionCacheKey =
       (await NocoCache.get('root', subscriptionAliasKey)) ?? nanoid();
     await NocoCache.set('root', subscriptionAliasKey, subscriptionCacheKey);

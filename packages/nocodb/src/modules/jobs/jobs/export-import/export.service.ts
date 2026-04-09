@@ -907,8 +907,10 @@ export class ExportService {
     const mmColumns = param._fieldIds
       ? model.columns
           .filter((c) => param._fieldIds?.includes(c.id))
-          .filter((col) => isMMOrMMLike(col))
-      : model.columns.filter((col) => isMMOrMMLike(col));
+          .filter((col) => isMMOrMMLike(col) && !isCrossBaseLink(col))
+      : model.columns.filter(
+          (col) => isMMOrMMLike(col) && !isCrossBaseLink(col),
+        );
 
     const hasLink = !dataExportMode && mmColumns.length > 0;
 

@@ -343,3 +343,111 @@ export async function resolveDocumentByName(
 
   return doc;
 }
+
+/**
+ * Allowed option keys per V3 field type (from swagger-v3.json FieldOptions).
+ * The LLM's Zod schema accepts all options for all types in one object,
+ * but the swagger FieldOptions schemas use additionalProperties: false.
+ * Strip keys that don't belong to the target type to prevent validation errors.
+ */
+const DATETIME_OPTIONS = [
+  'date_format',
+  'time_format',
+  '12hr_format',
+  'display_timezone',
+  'timezone',
+  'use_same_timezone_for_all',
+];
+
+const ALLOWED_OPTIONS_BY_TYPE: Partial<Record<UITypes, string[]>> = {
+  // Text & contact
+  [UITypes.LongText]: ['rich_text', 'generate_text_using_ai'],
+  [UITypes.PhoneNumber]: ['validation'],
+  [UITypes.URL]: ['validation'],
+  [UITypes.Email]: ['validation'],
+  // Numeric
+  [UITypes.Number]: ['locale_string'],
+  [UITypes.Decimal]: ['precision'],
+  [UITypes.Currency]: ['locale', 'code'],
+  [UITypes.Percent]: ['show_as_progress'],
+  [UITypes.Duration]: ['duration_format'],
+  // Date & time
+  [UITypes.Date]: ['date_format'],
+  [UITypes.DateTime]: DATETIME_OPTIONS,
+  [UITypes.Time]: ['12hr_format'],
+  [UITypes.CreatedTime]: DATETIME_OPTIONS,
+  [UITypes.LastModifiedTime]: DATETIME_OPTIONS,
+  // Selection
+  [UITypes.SingleSelect]: ['choices'],
+  [UITypes.MultiSelect]: ['choices'],
+  [UITypes.Rating]: ['icon', 'max_value', 'color'],
+  [UITypes.Checkbox]: ['icon', 'color'],
+  // Relationships (include both LLM-facing name keys and API-facing id keys)
+  [UITypes.Links]: ['relation_type', 'related_table_id', 'related_table_name'],
+  [UITypes.LinkToAnotherRecord]: [
+    'relation_type',
+    'related_table_id',
+    'related_table_name',
+  ],
+  [UITypes.Lookup]: [
+    'related_field_id',
+    'related_table_lookup_field_id',
+    'related_field_name',
+    'lookup_field_name',
+  ],
+  [UITypes.Rollup]: [
+    'related_field_id',
+    'related_table_rollup_field_id',
+    'rollup_function',
+    'related_field_name',
+    'rollup_field_name',
+  ],
+  // Computed
+  [UITypes.Formula]: ['formula'],
+  [UITypes.Barcode]: [
+    'format',
+    'barcode_value_field_id',
+    'barcode_value_field_name',
+  ],
+  [UITypes.QrCode]: ['qrcode_value_field_id', 'qrcode_value_field_name'],
+  // User
+  [UITypes.User]: ['allow_multiple_users'],
+  // Button — uses oneOf internally, allow all possible button props
+  [UITypes.Button]: [
+    'type',
+    'formula',
+    'label',
+    'theme',
+    'color',
+    'icon',
+    'button_hook_id',
+    'prompt',
+    'integration_id',
+    'output_column_ids',
+    'script_id',
+  ],
+};
+
+/**
+ * Remove option keys that are not valid for the given field type.
+ * Returns a new object with only the allowed keys (or empty object).
+ */
+export function stripIrrelevantOptions(
+  fieldType: string,
+  options: Record<string, any>,
+): Record<string, any> {
+  const allowed = ALLOWED_OPTIONS_BY_TYPE[fieldType as UITypes];
+  if (!allowed) {
+    // Types with no options (SingleLineText, Attachment, JSON, etc.)
+    return {};
+  }
+
+  const allowedSet = new Set(allowed);
+  const result: Record<string, any> = {};
+  for (const [key, value] of Object.entries(options)) {
+    if (allowedSet.has(key)) {
+      result[key] = value;
+    }
+  }
+  return result;
+}

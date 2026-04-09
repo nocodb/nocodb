@@ -7,6 +7,7 @@ import type {
   ChatSendMessageResponseType,
   ChatSessionType,
   ChatToolVisibility,
+  ChatUIContext,
 } from 'nocodb-sdk'
 import { ChatEventAction, ChatMessageRole, ChatToolCallStatus, EventType, NC_NEW_SESSION } from 'nocodb-sdk'
 
@@ -23,6 +24,35 @@ export const useChatStore = defineStore('chatStore', () => {
   const { token, user, ncNavigateTo } = useGlobal()
 
   const workspaceStore = useWorkspace()
+
+  const tablesStore = useTablesStore()
+
+  const viewsStore = useViewsStore()
+
+  const dashboardStore = useDashboardStore()
+
+  const documentsStore = useDocumentsStore()
+
+  const { activeDashboardId } = storeToRefs(dashboardStore)
+
+  const { activeDocumentId } = storeToRefs(documentsStore)
+
+  /** Collect the user's current UI navigation context. */
+  const getUIContext = (): ChatUIContext | undefined => {
+    const ctx: ChatUIContext = {}
+
+    const tableId = tablesStore.activeTableId
+    if (tableId) ctx.tableId = tableId
+
+    const viewId = viewsStore.activeView?.id
+    if (viewId) ctx.viewId = viewId
+
+    if (activeDashboardId.value) ctx.dashboardId = activeDashboardId.value
+
+    if (activeDocumentId.value) ctx.documentId = activeDocumentId.value
+
+    return Object.keys(ctx).length ? ctx : undefined
+  }
 
   const sessions = ref<Map<string, ChatSessionType>>(new Map())
   const activeSessionId = ref<string | null>(null)
@@ -267,12 +297,15 @@ export const useChatStore = defineStore('chatStore', () => {
     isSendingMessage.value = true
 
     try {
+      const uiContext = getUIContext()
+
       const { data } = await $api.instance.post<ChatSendMessageResponseType>(
         `/api/v2/internal/${loadedWorkspaceId.value}/${loadedBaseId.value}/chat/sessions/${sessionId}/messages`,
         {
           content,
           ...(files?.length ? { files } : {}),
           ...(isNewSession && title ? { title } : {}),
+          ...(uiContext ? { uiContext } : {}),
         },
       )
 

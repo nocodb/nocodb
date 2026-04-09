@@ -14,9 +14,11 @@ export const setDisplayFieldTool = defineChatTool({
   description:
     'Set the primary display field (title field) for a table. ' +
     'The display field is the main identifier shown in linked record pickers, expanded row headers, ' +
-    'and relationship columns when records from this table are referenced elsewhere. ' +
-    'Only text-compatible fields can be display fields: SingleLineText, Number, Email, URL, ' +
-    'PhoneNumber, Date, DateTime, AutoNumber. ' +
+    'and relationship columns when records from this table are referenced elsewhere.\n\n' +
+    'Any non-system field can be a display field, but text-based fields work best: ' +
+    'SingleLineText, Email, URL, PhoneNumber, Number, Date, DateTime.\n\n' +
+    'IMPORTANT: The field must already exist in the table. Call describe_table first to verify ' +
+    'the exact field name. Field names are case-insensitive. ' +
     'This is a table-level setting — it affects all views of the table.',
   schema: z.object({
     table_name: z

@@ -35,16 +35,16 @@ You do NOT execute tasks yourself — you route.`);
     parts.push(`
 ## Available Specialists
 
-| Agent | Capabilities |
-|-------|-------------|
-| **builder** | Creates/modifies database structure — tables, fields, views, relationships — and configures view settings (filters, sorts, field visibility, grouping) |
-| **qa** | Searches, queries, counts, and analyzes existing data. Can also search the web and scrape webpages for external information |
-| **record** | Creates, updates, deletes records and manages links between tables |
-| **dashboard** | Creates/manages dashboards and widgets — charts, metrics, text, iframes |
-| **ui** | Navigates the app — opens bases, tables, views, dashboards |
-| **file_analyst** | Analyzes, parses, transforms, and extracts data from uploaded files (CSV, JSON, PDF, Excel, etc.) using sandboxed code execution |
-| **support** | Answers NocoDB how-to questions, troubleshooting, and feature guidance by searching docs. For billing, account, bug reports, or feature requests — directs users to customer support |
-| **docs** | Creates, reads, edits, and organizes NocoDocs pages (rich-text documents within a base). Also manages document comments |`);
+| Agent | Capabilities | Cannot do |
+|-------|-------------|-----------|
+| **builder** | Creates/modifies database structure — tables, fields, views, relationships — and configures view settings (filters, sorts, field visibility, grouping) | Cannot create/update/delete records or import data |
+| **qa** | Searches, queries, counts, and analyzes existing data. Can also search the web and scrape webpages for external research | Read-only — cannot create, update, or delete records |
+| **record** | Creates, updates, deletes records and manages links between tables | Cannot modify schema (tables, fields, views) |
+| **dashboard** | Creates/manages dashboards and widgets — charts, metrics, text, iframes. Also manages widget-level filters | Cannot modify records or schema |
+| **ui** | Navigates the app — opens tables, views, dashboards | Navigation only — cannot modify anything |
+| **file_analyst** | Analyzes files (CSV, JSON, PDF, Excel) and performs general computation — data transformation, math, statistics, formatting, data preparation for import. Uses sandboxed code execution. Works with or without uploaded files | Read-only base access — cannot write records |
+| **support** | Answers NocoDB how-to and troubleshooting by searching official docs | Cannot resolve billing, account, or bug issues — only escalates them to customer support |
+| **docs** | Creates, reads, edits, and organizes NocoDocs pages (rich-text documents within a base). Also manages document comments | Cannot interact with tables, records, or views |`);
 
     // ─── Tools ─────────────────────────────────────────────────────────────
     parts.push(`
@@ -98,12 +98,39 @@ or complaints → route to **support** (it will direct them to customer support)
 ### Bias towards action
 - If the user asks "Can you...?" or "Could you...?", treat it as a request for action, not a question.
 
+### Agent/instruction consistency
+- **The \`agent\` field and \`instruction\` must be about the same specialist.** Never put "builder" in agent and then write "Route to support" in instruction, or vice versa.
+- **Do NOT prefix the instruction with "Route to X:"** — just describe the task. The agent field already specifies the target.
+- **\`ui\` is ONLY for navigation** — opening a table, view, or dashboard. Creating tables, adding fields, updating records, searching docs = NOT ui.
+
 ### Never confirm destructive operations yourself
 - **Do NOT use \`ask_user\` to confirm deletions, modifications, or other destructive operations.** \
 The specialist tools have a built-in approval system — the user will see a confirmation UI before any dangerous action executes. \
 Route directly to the specialist and let the tool approval handle confirmation.
 - BAD: ask_user("Do you want to delete Table-1?") → user says "Yes" → builder
 - GOOD: builder("Delete Table-1") → tool approval UI shown automatically`);
+
+    // ─── Quick Decision Matrix ──────────────────────────────────────────
+    parts.push(`
+## Quick Decision Matrix
+
+Use this when the intent is ambiguous:
+
+| User wants to... | Route to | NOT to |
+|-------------------|----------|--------|
+| Query, search, filter, count, list existing data | **qa** | record (read-only ops are qa) |
+| Research external info, web search | **qa** | support (qa has web tools) |
+| Create/update/delete records | **record** | qa (qa is read-only) |
+| Create tables, fields, views, relationships | **builder** | record (schema ≠ data) |
+| Configure filters, sorts, grouping, field visibility | **builder** | qa (view config is builder) |
+| Open/navigate to a table, view, or dashboard | **ui** | builder (navigation ≠ creation) |
+| Build dashboards, add charts/widgets | **dashboard** | builder (dashboards ≠ views) |
+| Analyze an uploaded file (CSV, PDF, Excel) | **file_analyst** | qa (files need sandboxed code) |
+| Data transformation, math, statistics, formatting | **file_analyst** | qa (computation needs sandboxed code) |
+| Import file data into a table | **file_analyst** → **builder** → **record** | Single agent (multi-step) |
+| Ask "How do I...?" about NocoDB | **support** | respond_directly (support searches docs) |
+| Billing, account, bugs, feature requests | **support** | Any other (support escalates) |
+| Create/edit rich-text documents | **docs** | support (docs ≠ help articles) |`);
 
     // ─── Examples ─────────────────────────────────────────────────────────
     parts.push(`
@@ -213,6 +240,20 @@ ${roleLines.join(' | ')}`);
 ${heading}
 
 ${p.schemaContext}`);
+    }
+
+    // ─── Dynamic: Agent History ──────────────────────────────────────────
+    if (p.agentHistory?.length) {
+      const specialists = p.agentHistory.filter((a) => a !== 'router');
+      if (specialists.length) {
+        parts.push(`
+## Agent History (this session)
+
+Routing path so far: ${p.agentHistory.join(' → ')}
+
+**Already dispatched to:** ${[...new Set(specialists)].join(', ')}
+Do NOT re-dispatch to an agent that already completed its task unless the user explicitly requests more work from that specialist.`);
+      }
     }
 
     // ─── Dynamic: Turn Summaries ───────────────────────────────────────────

@@ -14,7 +14,8 @@ export class ChatMessageProcessor {
   constructor(private readonly agentService: ChatAgentService) {}
 
   async job(job: Job<ChatMessageJobData>): Promise<void> {
-    const { context, user, sessionId, firstUserMessage, approvals } = job.data;
+    const { context, user, sessionId, firstUserMessage, approvals, uiContext } =
+      job.data;
 
     const req = { user } as NcRequest;
 
@@ -37,7 +38,7 @@ export class ChatMessageProcessor {
     try {
       await this.agentService.executeTurn(
         context,
-        { sessionId, req, approvals, firstUserMessage },
+        { sessionId, req, approvals, firstUserMessage, uiContext },
         callbacks,
       );
     } catch (e) {

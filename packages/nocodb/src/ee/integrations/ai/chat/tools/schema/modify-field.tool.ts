@@ -1,15 +1,54 @@
 import { z } from 'zod';
-import { ProjectRoles } from 'nocodb-sdk';
+import { ProjectRoles, UITypes } from 'nocodb-sdk';
+import type { LinkToAnotherRecordColumn } from '~/models';
 import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
 import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import {
   resolveColumnByName,
   resolveTableByName,
+  stripIrrelevantOptions,
 } from '~/integrations/ai/chat/tools/helpers';
 import { fieldOptionsSchema } from '~/integrations/ai/chat/tools/schema/field-options.schema';
 import { ColumnsV3Service } from '~/services/v3/columns-v3.service';
 import Model from '~/models/Model';
 import Noco from '~/Noco';
+
+// ── All field types that can be a modify target ─────────────────────────────
+
+const ModifyFieldTypes = [
+  UITypes.SingleLineText,
+  UITypes.LongText,
+  UITypes.Email,
+  UITypes.URL,
+  UITypes.PhoneNumber,
+  UITypes.JSON,
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Currency,
+  UITypes.Percent,
+  UITypes.Rating,
+  UITypes.Duration,
+  UITypes.Date,
+  UITypes.DateTime,
+  UITypes.Time,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+  UITypes.Year,
+  UITypes.SingleSelect,
+  UITypes.MultiSelect,
+  UITypes.Checkbox,
+  UITypes.Attachment,
+  UITypes.AutoNumber,
+  UITypes.User,
+  UITypes.Links,
+  UITypes.LinkToAnotherRecord,
+  UITypes.Lookup,
+  UITypes.Rollup,
+  UITypes.Formula,
+  UITypes.Barcode,
+  UITypes.QrCode,
+  UITypes.Button,
+] as const;
 
 export const modifyFieldTool = defineChatTool({
   name: ChatToolName.MODIFY_FIELD,
@@ -21,7 +60,9 @@ export const modifyFieldTool = defineChatTool({
     'same as add_field. See `options` property descriptions for what applies to each field type.\n\n' +
     'For SingleSelect/MultiSelect, providing options.choices REPLACES the full option list — ' +
     'include ALL desired options (existing + new), not just additions. ' +
-    'Call describe_table first to see current field details.\n\n',
+    'Call describe_table first to see current field details.\n\n' +
+    'When changing type, provide `type` so options are validated against the new type. ' +
+    'When only updating options/name without changing type, omit `type`.',
   schema: z.object({
     table_name: z
       .string()
@@ -36,7 +77,7 @@ export const modifyFieldTool = defineChatTool({
       .optional()
       .describe('New display name for the field. Omit if not renaming.'),
     type: z
-      .string()
+      .enum(ModifyFieldTypes)
       .optional()
       .describe(
         'New field type (e.g. "LongText", "Number", "SingleSelect"). Omit if not changing type. ' +
@@ -54,7 +95,7 @@ export const modifyFieldTool = defineChatTool({
       .describe(
         'Type-specific options to update — includes both structural options (choices, formula) ' +
           'and display formatting (date_format, precision, icon, color, etc.). ' +
-          'See property descriptions for which field types each option applies to.',
+          'Only provide properties relevant to the field type. Irrelevant keys are stripped at runtime.',
       ),
     default_value: z
       .union([z.string(), z.boolean(), z.number()])
@@ -118,7 +159,12 @@ export const modifyFieldTool = defineChatTool({
         options.related_field_id = linkColumn.id;
 
         if (options.lookup_field_name) {
-          const relatedModelId = linkColumn.colOptions?.fk_related_model_id;
+          const colOpts =
+            linkColumn.colOptions ||
+            (await linkColumn.getColOptions<LinkToAnotherRecordColumn>(
+              context,
+            ));
+          const relatedModelId = colOpts?.fk_related_model_id;
           if (relatedModelId) {
             const relatedModel = await Model.get(context, relatedModelId);
             const lookupColumn = await resolveColumnByName(
@@ -143,7 +189,12 @@ export const modifyFieldTool = defineChatTool({
         options.related_field_id = linkColumn.id;
 
         if (options.rollup_field_name) {
-          const relatedModelId = linkColumn.colOptions?.fk_related_model_id;
+          const colOpts =
+            linkColumn.colOptions ||
+            (await linkColumn.getColOptions<LinkToAnotherRecordColumn>(
+              context,
+            ));
+          const relatedModelId = colOpts?.fk_related_model_id;
           if (relatedModelId) {
             const relatedModel = await Model.get(context, relatedModelId);
             const rollupColumn = await resolveColumnByName(
@@ -180,7 +231,8 @@ export const modifyFieldTool = defineChatTool({
         delete options.qrcode_value_field_name;
       }
 
-      updatePayload.options = options;
+      // Strip options that don't belong to this field type
+      updatePayload.options = stripIrrelevantOptions(effectiveType, options);
     }
 
     return await columnsV3Service.columnUpdate(context, {

@@ -1098,16 +1098,24 @@ export class TeamsV3Service {
           );
         }
       } else {
-        // Workspace teams: only team managers can delete
-        const assignment = await PrincipalAssignment.get(
+        // Workspace teams: workspace owners or team managers can delete
+        const isWsOwner = await this.isUserWorkspaceOwner(
           context,
-          ResourceType.TEAM,
-          param.teamId,
-          PrincipalType.USER,
           userId,
+          param.workspaceOrOrgId,
         );
-        if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
-          NcError.get(context).forbidden('Only team managers can delete teams');
+
+        if (!isWsOwner) {
+          const assignment = await PrincipalAssignment.get(
+            context,
+            ResourceType.TEAM,
+            param.teamId,
+            PrincipalType.USER,
+            userId,
+          );
+          if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
+            NcError.get(context).forbidden('Only team managers can delete teams');
+          }
         }
       }
     }
@@ -1226,15 +1234,23 @@ export class TeamsV3Service {
           );
         }
       } else {
-        const assignment = await PrincipalAssignment.get(
+        const isWsOwner = await this.isUserWorkspaceOwner(
           context,
-          ResourceType.TEAM,
-          param.teamId,
-          PrincipalType.USER,
           userId,
+          param.workspaceOrOrgId,
         );
-        if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
-          NcError.get(context).forbidden('Only team managers can add members');
+
+        if (!isWsOwner) {
+          const assignment = await PrincipalAssignment.get(
+            context,
+            ResourceType.TEAM,
+            param.teamId,
+            PrincipalType.USER,
+            userId,
+          );
+          if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
+            NcError.get(context).forbidden('Only team managers can add members');
+          }
         }
       }
     }
@@ -1591,17 +1607,25 @@ export class TeamsV3Service {
           );
         }
       } else {
-        const assignment = await PrincipalAssignment.get(
+        const isWsOwner = await this.isUserWorkspaceOwner(
           context,
-          ResourceType.TEAM,
-          param.teamId,
-          PrincipalType.USER,
           userId,
+          param.workspaceOrOrgId,
         );
-        if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
-          NcError.get(context).forbidden(
-            'Only team managers can update member roles',
+
+        if (!isWsOwner) {
+          const assignment = await PrincipalAssignment.get(
+            context,
+            ResourceType.TEAM,
+            param.teamId,
+            PrincipalType.USER,
+            userId,
           );
+          if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
+            NcError.get(context).forbidden(
+              'Only team managers can update member roles',
+            );
+          }
         }
       }
     }

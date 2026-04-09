@@ -85,10 +85,6 @@ export async function up(knex: Knex) {
           );
         }
 
-        // Clean up orphan rows and enforce NOT NULL before adding composite PK
-        await knex.raw(
-          `DELETE FROM ${MetaTable.ORG_USERS} WHERE fk_user_id IS NULL`,
-        );
         await knex.raw(
           `ALTER TABLE ${MetaTable.ORG_USERS} ALTER COLUMN fk_user_id SET NOT NULL`,
         );

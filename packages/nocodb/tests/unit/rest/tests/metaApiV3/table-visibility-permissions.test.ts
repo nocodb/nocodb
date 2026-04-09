@@ -1057,33 +1057,28 @@ export default function () {
           { email: 'fe-vis@test.com', password: 'A1234abh2@dsad' },
         );
 
-        // Add users to workspace (needed for team member validation)
+        // Add users to workspace as viewers (needed for team member validation;
+        // viewer avoids hitting the editor seat limit from the parent beforeEach)
         for (const u of [engUser, feUser]) {
           await request(context.app)
             .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/members`)
             .set('xc-token', context.xc_token)
-            .send([{ user_id: u.user.id, workspace_role: WorkspaceUserRoles.EDITOR }])
+            .send([{ user_id: u.user.id, workspace_role: WorkspaceUserRoles.VIEWER }])
             .expect(200);
         }
 
         // Add engUser to Engineering, feUser to Frontend
         await request(context.app)
-          .post(
-            `/api/v3/meta/workspaces/${context.fk_workspace_id}/teams/${engineeringId}/members`,
-          )
+          .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/teams/${engineeringId}/members`)
           .set('xc-token', context.xc_token)
           .send([{ user_id: engUser.user.id, team_role: 'member' }])
           .expect(200);
 
-
         await request(context.app)
-          .post(
-            `/api/v3/meta/workspaces/${context.fk_workspace_id}/teams/${frontendId}/members`,
-          )
+          .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/teams/${frontendId}/members`)
           .set('xc-token', context.xc_token)
           .send([{ user_id: feUser.user.id, team_role: 'member' }])
           .expect(200);
-
 
         // Assign Frontend team to the base with Editor role.
         // Engineering member (ancestor) inherits base access via upward cascade.
@@ -1265,7 +1260,7 @@ export default function () {
         await request(context.app)
           .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/members`)
           .set('xc-token', context.xc_token)
-          .send([{ user_id: teamMemberUser.user.id, workspace_role: WorkspaceUserRoles.EDITOR }]);
+          .send([{ user_id: teamMemberUser.user.id, workspace_role: WorkspaceUserRoles.VIEWER }]);
 
         // Add user to team
         await request(context.app)

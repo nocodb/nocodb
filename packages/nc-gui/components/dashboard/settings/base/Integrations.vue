@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { IntegrationCategoryType } from 'nocodb-sdk'
-import type { IntegrationItemType, IntegrationType, NcTableColumnProps } from '#imports'
+import { IntegrationCategoryType, type IntegrationType } from 'nocodb-sdk'
+import type { IntegrationItemType, NcTableColumnProps } from '#imports'
 
 interface Props {
   baseId: string
@@ -25,7 +25,8 @@ const { linkedIntegrations, isLoading, loadLinkedIntegrations, linkIntegration, 
 const canManage = computed(() => isUIAllowed('baseIntegrationCreate'))
 
 // Integration store (provided by View.vue)
-const { addIntegration, editIntegration, eventBus, isFromIntegrationPage, loadDynamicIntegrations } = useIntegrationStore()
+const { addIntegration, editIntegration, eventBus, isFromIntegrationPage, loadDynamicIntegrations, integrationsRefreshKey } =
+  useIntegrationStore()
 
 const canEditIntegration = (integration: IntegrationType) => {
   return canManage.value && integration.created_by === user.value?.id
@@ -44,6 +45,10 @@ const viewMode = ref<'main' | 'all-connections'>('main')
 
 // Build category map for the card grid
 const integrationsMap = computed(() => {
+  // Force re-evaluation when dynamic integrations are loaded
+  // eslint-disable-next-line no-unused-expressions
+  integrationsRefreshKey.value
+
   const map: Record<string, { title: string; value: string; list: IntegrationItemType[] }> = {}
 
   for (const cat of integrationCategories) {
@@ -213,7 +218,10 @@ watch(baseId, reload)
                   <h3 class="text-base font-semibold text-nc-content-gray mb-0">
                     {{ $t('general.activeConnections') }}
                   </h3>
-                  <NcBadge :border="false" class="bg-nc-bg-brand-inverted text-nc-content-gray-subtle2 text-xs min-w-5 !h-5 flex justify-center">
+                  <NcBadge
+                    :border="false"
+                    class="bg-nc-bg-brand-inverted text-nc-content-gray-subtle2 text-xs min-w-5 !h-5 flex justify-center"
+                  >
                     {{ linkedIntegrations.length }}
                   </NcBadge>
                 </div>

@@ -12,7 +12,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { t } = useI18n()
 
-const { addIntegration, integrations } = useIntegrationStore()
+const { addIntegration, integrations, availableSyncAuthIntegrationSubtypes } = useIntegrationStore()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -65,18 +65,25 @@ const isCategoryAllowed = (cat: (typeof integrationCategories)[number]) => {
 }
 
 // Integration filter — mirrors the main page logic for each mode
-const isIntegrationAllowed = (i: (typeof allIntegrations)[number]) => {
+const isIntegrationAllowed = (i: (typeof allIntegrations)[number], category: (typeof integrationCategories)[number]) => {
   if (i.hidden) return false
   if (!i.isAvailable) return false
   if (i.sub_type === SyncDataType.NOCODB) return false
 
   if (props.mode === 'base') {
-    // Base level: same as base/Integrations.vue — exclude ossOnly
     return !i.isOssOnly
   }
 
-  // Workspace level: same as IntegrationsTab
+  // Workspace level: same as IntegrationsTab's isIntegrationVisible
   if (isEeUI && i.isOssOnly) return false
+
+  if (!easterEggToggle.value) {
+    // Auth category: only show integrations in availableSyncAuthIntegrationSubtypes
+    if (isSyncFeatureEnabled.value && category.value === IntegrationCategoryType.AUTH) {
+      return availableSyncAuthIntegrationSubtypes.value.includes(i.sub_type)
+    }
+  }
+
   return true
 }
 
@@ -88,7 +95,7 @@ const integrationListItems = computed(() => {
     if (!isCategoryAllowed(cat)) continue
 
     const categoryIntegrations = allIntegrations.filter(
-      (i) => i.type === cat.value && isIntegrationAllowed(i),
+      (i) => i.type === cat.value && isIntegrationAllowed(i, cat),
     )
 
     if (!categoryIntegrations.length) continue
@@ -105,6 +112,11 @@ const integrationListItems = computed(() => {
   }
 
   return items
+})
+
+// Group order matching integrationCategories array order
+const categoryGroupOrder = computed(() => {
+  return integrationCategories.filter((c) => isCategoryAllowed(c)).map((c) => t(c.title))
 })
 
 const handleSelect = (option: NcListItemType) => {
@@ -125,6 +137,7 @@ const handleSelect = (option: NcListItemType) => {
       <NcList
         v-model:open="isOpen"
         :list="integrationListItems"
+        :group-order="categoryGroupOrder"
         :search-input-placeholder="`${t('general.search')} ${t('general.integrations').toLowerCase()}...`"
         option-value-key="value"
         option-label-key="label"

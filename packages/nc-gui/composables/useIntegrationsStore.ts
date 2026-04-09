@@ -355,7 +355,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     try {
       isLoadingIntegrations.value = true
 
-      saveIntegration(
+      await saveIntegration(
         {
           title: integration.title,
           config: {},

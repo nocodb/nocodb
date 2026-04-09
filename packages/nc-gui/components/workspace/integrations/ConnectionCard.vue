@@ -33,7 +33,7 @@ const getUserName = (userId?: string) => {
   const user = props.collaboratorsMap.get(userId)
   if (!user) return ''
 
-  return (user as any).display_name || user.email?.slice(0, user.email?.indexOf('@')) || ''
+  return extractUserDisplayNameOrEmail(user as any)
 }
 
 const formattedDate = computed(() => {
@@ -69,8 +69,17 @@ const handleCardClick = () => {
             <div class="w-1.5 h-1.5 rounded-full bg-green-500 flex-none" />
             <span>{{ $t('general.connected') }}</span>
           </div>
-          <span v-if="getUserName(integration.created_by)"> &middot; {{ getUserName(integration.created_by) }} </span>
-          <span v-if="formattedDate"> &middot; {{ formattedDate }} </span>
+          <template v-if="getUserName(integration.created_by)">
+            <div class="w-[2.5px] h-[2.5px] rounded-full bg-nc-content-gray-muted flex-none" />
+            <NcTooltip class="truncate max-w-full text-xs nc-user-info-email capitalize" show-on-truncate-only>
+              <template #title>{{ getUserName(integration.created_by) }}</template>
+              {{ getUserName(integration.created_by) }}
+            </NcTooltip>
+          </template>
+          <template v-if="formattedDate">
+            <div class="w-[2.5px] h-[2.5px] rounded-full bg-nc-content-gray-muted flex-none" />
+            <span>{{ formattedDate }}</span>
+          </template>
         </div>
       </div>
     </div>

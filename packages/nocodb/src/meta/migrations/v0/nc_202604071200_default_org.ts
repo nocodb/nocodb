@@ -74,6 +74,11 @@ export async function up(knex: Knex) {
       `);
 
       if (Number(pkColCount.rows?.[0]?.cnt) < 2) {
+        // Clean up orphan rows and enforce NOT NULL before adding composite PK
+        await knex.raw(
+          `DELETE FROM ${MetaTable.ORG_USERS} WHERE fk_user_id IS NULL`,
+        );
+
         const pkResult = await knex.raw(`
           SELECT constraint_name FROM information_schema.table_constraints
           WHERE table_name = 'nc_org_users' AND constraint_type = 'PRIMARY KEY'

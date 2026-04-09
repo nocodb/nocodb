@@ -1,4 +1,4 @@
-import { RelationTypes, UITypes, getMetaWithCompositeKey, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, getMetaWithCompositeKey, isBtLikeV2Junction, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
 import { getRelatedBaseId, getSingleMultiselectColOptions, getUserColOptions, renderAsCellLookupOrLtarValue } from '../utils/cell'
 import { renderSingleLineText } from '../utils/canvas'
@@ -148,6 +148,9 @@ export const LookupCellRenderer: CellRenderer = {
 
       // Load related table meta if not present
       if (!lkRelatedTableMeta) {
+        // Restore canvas context before returning — ctx.save()/ctx.clip() was already called above
+        ctx.restore()
+
         if (tableMetaLoader.isLoading(lkRelatedModelId, lkRelatedBaseId)) return
 
         tableMetaLoader.getTableMeta(lkRelatedModelId, lkRelatedBaseId)
@@ -314,7 +317,8 @@ export const LookupCellRenderer: CellRenderer = {
       if (
         lookupColumn.uidt !== UITypes.LinkToAnotherRecord ||
         (lookupColumn.uidt === UITypes.LinkToAnotherRecord &&
-          [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions?.type))
+          (isBtLikeV2Junction(lookupColumn) ||
+            [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions?.type)))
       ) {
         handleRenderVirtualCol()
       } else {

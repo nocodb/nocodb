@@ -6,6 +6,7 @@ import { MetaTable, NC_DEFAULT_ORG_ID } from '~/utils/globals';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
 import { PresignedUrl } from '~/models';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { MailService } from '~/services/mail/mail.service';
 import { PaymentService } from '~/modules/payment/payment.service';

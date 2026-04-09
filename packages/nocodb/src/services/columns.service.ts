@@ -3913,7 +3913,7 @@ export class ColumnsService implements IColumnsService {
                   ncMeta,
                 );
 
-                if (!custom) {
+                if (!custom && mmTable && mmParentCol && mmChildCol) {
                   await this.deleteHmOrBtRelation(
                     context,
                     {
@@ -4126,7 +4126,7 @@ export class ColumnsService implements IColumnsService {
                           : source;
                       (mmTable as any).tn = mmTable.table_name;
                       await sqlMgr.sqlOpPlus(mmSource, 'tableDelete', mmTable);
-                      await mmTable.delete(mmContext, ncMeta);
+                      await mmTable.delete(mmContext, ncMeta, true);
                     }
                   }
                 }

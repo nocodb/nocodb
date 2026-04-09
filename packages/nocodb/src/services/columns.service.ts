@@ -1213,6 +1213,26 @@ export class ColumnsService implements IColumnsService {
               (colBody as any).fk_display_value_column_id === null ||
               (colBody as any).fk_display_value_column_id
             ) {
+              // Validate that the column belongs to the related table
+              if ((colBody as any).fk_display_value_column_id) {
+                const colOptions =
+                  await column.getColOptions<LinkToAnotherRecordColumn>(
+                    context,
+                  );
+                const relatedModel = await Model.getWithInfo(context, {
+                  id: colOptions.fk_related_model_id,
+                });
+                const displayCol = relatedModel.columns?.find(
+                  (c) =>
+                    c.id === (colBody as any).fk_display_value_column_id,
+                );
+                if (!displayCol) {
+                  NcError.get(context).fieldNotFound(
+                    (colBody as any).fk_display_value_column_id,
+                  );
+                }
+              }
+
               await Column.updateDisplayValueColumn(context, {
                 colId: param.columnId,
                 fk_display_value_column_id: (colBody as any)
@@ -5891,7 +5911,12 @@ export class ColumnsService implements IColumnsService {
         fk_parent_column_id: refPrimaryKey.id,
         fk_target_view_id: childView?.id,
         fk_display_value_column_id:
-          ltarReq.fk_display_value_column_id || null,
+          ltarReq.fk_display_value_column_id &&
+          refTable.columns?.find(
+            (c) => c.id === ltarReq.fk_display_value_column_id,
+          )
+            ? ltarReq.fk_display_value_column_id
+            : null,
 
         fk_mm_model_id: assocModel.id,
         fk_mm_child_column_id: parentCol.id,

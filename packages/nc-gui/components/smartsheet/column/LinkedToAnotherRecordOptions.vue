@@ -170,7 +170,7 @@ const eligibleDisplayFields = computed(() => {
   if (!childId) return []
 
   const relatedBaseId = crossBase.value
-    ? (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id
+    ? (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || vModel.value?.ref_base_id
     : meta.value?.base_id
 
   if (!relatedBaseId) return []

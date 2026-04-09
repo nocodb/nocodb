@@ -206,6 +206,14 @@ export class MySqlDBQueryClient
               ?.split(',')
               .map((f) => aliasColObjMap[f])
               .filter(Boolean);
+
+            // Ensure custom display column is always included
+            if (
+              customDisplayCol &&
+              !fields.find((f) => f?.id === customDisplayCol.id)
+            ) {
+              fields.push(customDisplayCol);
+            }
           }
 
           const sorts = extractSortsObject(

@@ -311,7 +311,7 @@ watch(activeViewTab, (value) => {
               class="flex justify-end flex-wrap gap-3 m-auto nc-content-max-w"
               :class="{
                 'items-start': showTitle,
-                'items-end': !showTitle,
+                'items-center': !showTitle,
               }"
             >
               <div class="flex-1">
@@ -319,12 +319,7 @@ watch(activeViewTab, (value) => {
                   {{ $t('general.integrations') }}
                 </h2>
 
-                <div
-                  class="text-sm font-normal text-nc-content-gray-subtle2 mb-2"
-                  :class="{
-                    '!mb-4': showTitle,
-                  }"
-                >
+                <div class="text-sm font-normal text-nc-content-gray-subtle2">
                   <div>
                     {{ showActiveConnections ? $t('msg.manageConnectionsAndIntegrations') : $t('msg.connectIntegrations') }}
                     <a href="https://nocodb.com/docs/product-docs/integrations" target="_blank" rel="noopener noreferrer">{{
@@ -344,13 +339,17 @@ watch(activeViewTab, (value) => {
               </NcButton>
             </div>
             <!-- Search + filter — full width, outside the header row -->
-            <div class="flex items-center gap-2 nc-content-max-w m-auto">
+            <div class="flex items-center gap-2 nc-content-max-w m-auto !mt-4">
               <a-input
                 v-if="easterEggToggle"
                 v-model:value="searchQuery"
                 type="text"
                 class="flex-1 nc-input-border-on-value nc-search-integration-input !rounded-lg !py-2 !h-9"
-                :placeholder="showActiveConnections ? $t('placeholder.searchConnectionsOrIntegrations') : `${$t('general.search')} ${$t('general.integrations').toLowerCase()}...`"
+                :placeholder="
+                  showActiveConnections
+                    ? $t('placeholder.searchConnectionsOrIntegrations')
+                    : `${$t('general.search')} ${$t('general.integrations').toLowerCase()}...`
+                "
                 allow-clear
               >
                 <template #prefix>

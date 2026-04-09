@@ -200,62 +200,62 @@ watch(baseId, reload)
     <!-- Main page: active connections + integration categories -->
     <template v-if="viewMode === 'main'">
       <div class="h-full w-full overflow-y-auto nc-scrollbar-thin">
-        <!-- Active connections section (if any) -->
-        <div v-if="linkedIntegrations.length" class="px-6 pt-6 w-full" style="container-type: inline-size">
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-2">
-              <h3 class="text-base font-semibold text-nc-content-gray mb-0">
-                {{ $t('general.activeConnections') }}
-              </h3>
-              <NcBadge :border="false" class="bg-nc-bg-gray-extralight text-nc-content-gray-subtle2 text-xs">
-                {{ linkedIntegrations.length }}
-              </NcBadge>
-            </div>
-
-            <NcButton
-              type="link"
-              size="small"
-              class="!text-nc-content-brand !px-0"
-              inner-class="hover:underline"
-              @click="viewMode = 'all-connections'"
-            >
-              {{ $t('general.viewAllConnections') }}
-              <GeneralIcon icon="arrowRight" class="ml-1" />
-            </NcButton>
-          </div>
-
-          <div class="nc-connection-cards-grid grid grid-cols-1 gap-3">
-            <WorkspaceIntegrationsConnectionCard
-              v-for="connection in visibleLinkedConnections"
-              :key="connection.id"
-              :integration="connection"
-              :collaborators-map="collaboratorsMap"
-              mode="base"
-              :can-edit="canEditIntegration(connection)"
-              :can-unlink="canUnlinkIntegration(connection)"
-              :base-id="baseId"
-              @edit="handleEdit"
-              @unlink="handleUnlink"
-            />
-
-            <div v-if="overflowCount > 0" class="nc-connection-overflow-card" @click="viewMode = 'all-connections'">
-              <div class="text-sm font-semibold text-nc-content-gray">+{{ overflowCount }} {{ $t('general.more') }}</div>
-              <div class="text-xs text-nc-content-gray-subtle2">
-                {{ $t('general.viewAllConnections') }}
-              </div>
-            </div>
-          </div>
-
-          <NcDivider class="!my-6" />
-        </div>
-
-        <!-- Integration categories grid -->
         <div class="px-6 py-6 flex flex-col nc-workspace-settings-integrations-list">
           <div class="text-sm font-normal text-nc-content-gray-subtle2 mb-6">
             {{ $t('msg.manageBaseIntegrations') }}
           </div>
 
           <div class="flex flex-col space-y-6 w-full">
+            <!-- Active connections section (if any) -->
+            <div v-if="linkedIntegrations.length" style="container-type: inline-size">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                  <h3 class="text-base font-semibold text-nc-content-gray mb-0">
+                    {{ $t('general.activeConnections') }}
+                  </h3>
+                  <NcBadge :border="false" class="bg-nc-bg-brand-inverted text-nc-content-gray-subtle2 text-xs min-w-5 !h-5 flex justify-center">
+                    {{ linkedIntegrations.length }}
+                  </NcBadge>
+                </div>
+
+                <NcButton
+                  type="link"
+                  size="small"
+                  class="!text-nc-content-brand !px-0 !h-auto !min-h-0"
+                  inner-class="hover:underline"
+                  @click="viewMode = 'all-connections'"
+                >
+                  {{ $t('general.viewAllConnections') }}
+                  <GeneralIcon icon="arrowRight" class="ml-1" />
+                </NcButton>
+              </div>
+
+              <div class="nc-connection-cards-grid grid grid-cols-1 gap-3">
+                <WorkspaceIntegrationsConnectionCard
+                  v-for="connection in visibleLinkedConnections"
+                  :key="connection.id"
+                  :integration="connection"
+                  :collaborators-map="collaboratorsMap"
+                  mode="base"
+                  :can-edit="canEditIntegration(connection)"
+                  :can-unlink="canUnlinkIntegration(connection)"
+                  :base-id="baseId"
+                  @edit="handleEdit"
+                  @unlink="handleUnlink"
+                />
+
+                <div v-if="overflowCount > 0" class="nc-connection-overflow-card" @click="viewMode = 'all-connections'">
+                  <div class="text-sm font-semibold text-nc-content-gray">+{{ overflowCount }} {{ $t('general.more') }}</div>
+                  <div class="text-xs text-nc-content-gray-subtle2">
+                    {{ $t('general.viewAllConnections') }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <NcDivider v-if="linkedIntegrations.length" />
+
+            <!-- Integration categories -->
             <template v-for="(category, key) in integrationsMap" :key="key">
               <div v-if="category.list.length" class="integration-type-wrapper" style="container-type: inline-size">
                 <div class="category-type-title">{{ $t(category.title) }}</div>
@@ -290,7 +290,7 @@ watch(baseId, reload)
         <NcButton
           type="link"
           size="small"
-          class="!text-nc-content-brand self-start -ml-1 mb-4 !px-0"
+          class="!text-nc-content-brand self-start !-ml-1.5 mb-4 !p-0 !h-auto !min-h-0"
           inner-class="hover:underline"
           @click="viewMode = 'main'"
         >

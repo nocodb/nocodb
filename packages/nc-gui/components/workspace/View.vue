@@ -311,7 +311,7 @@ if (!props.isNewWsPage) {
                 <NcButton
                   type="link"
                   size="small"
-                  class="!text-nc-content-brand self-start -ml-1 mb-4 !p-0 !h-auto !min-h-0"
+                  class="!text-nc-content-brand self-start !-ml-1.5 mb-4 !p-0 !h-auto !min-h-0"
                   inner-class="hover:underline"
                   @click="integrationsViewMode = 'main'"
                 >

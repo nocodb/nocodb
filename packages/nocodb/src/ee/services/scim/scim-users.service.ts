@@ -10,8 +10,6 @@ import { User } from '~/ee/models';
 import OrgUser from '~/ee/models/OrgUser';
 import Org from '~/ee/models/Org';
 import ScimConfig from '~/ee/models/ScimConfig';
-import Noco from '~/Noco';
-import { MetaTable } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import {
   extractOrgRoleFromExtension,
@@ -29,9 +27,7 @@ const ENTERPRISE_EXTENSION =
 export class ScimUsersService {
   protected logger = new Logger(ScimUsersService.name);
 
-  constructor(
-    private readonly appHooksService: AppHooksService,
-  ) {}
+  constructor(private readonly appHooksService: AppHooksService) {}
 
   /**
    * Extract and validate orgRole from NocoDB extension attribute.
@@ -46,10 +42,7 @@ export class ScimUsersService {
   /**
    * Get a single user by SCIM ID
    */
-  async getUser(
-    _context: NcContext,
-    param: { orgId: string; scimId: string },
-  ) {
+  async getUser(_context: NcContext, param: { orgId: string; scimId: string }) {
     const orgUser = await OrgUser.getByScimExternalId(
       param.orgId,
       param.scimId,
@@ -186,7 +179,9 @@ export class ScimUsersService {
     const displayName =
       scimUser.displayName ||
       scimUser.name?.formatted ||
-      [scimUser.name?.givenName, scimUser.name?.familyName].filter(Boolean).join(' ') ||
+      [scimUser.name?.givenName, scimUser.name?.familyName]
+        .filter(Boolean)
+        .join(' ') ||
       undefined;
 
     // If user doesn't exist, create new user
@@ -255,7 +250,9 @@ export class ScimUsersService {
 
     // Default role: SCIM extension > config default_role > viewer
     const scimConfig = await ScimConfig.get(context, orgId);
-    const configDefaultRole = scimConfig?.default_role as EnterpriseOrgUserRoles | undefined;
+    const configDefaultRole = scimConfig?.default_role as
+      | EnterpriseOrgUserRoles
+      | undefined;
     const orgRole =
       extensionRole || configDefaultRole || EnterpriseOrgUserRoles.VIEWER;
 
@@ -424,11 +421,9 @@ export class ScimUsersService {
     const { orgId, scimId, scimUser } = param;
 
     // Direct indexed lookup (include deleted so we can reactivate them)
-    const orgUser = await OrgUser.getByScimExternalId(
-      orgId,
-      scimId,
-      { include_deleted: true },
-    );
+    const orgUser = await OrgUser.getByScimExternalId(orgId, scimId, {
+      include_deleted: true,
+    });
 
     if (!orgUser) {
       NcError.notFound('User not found');
@@ -503,11 +498,7 @@ export class ScimUsersService {
     }
 
     // Persist the update
-    await OrgUser.update(
-      orgUser.fk_user_id,
-      orgId,
-      updateData,
-    );
+    await OrgUser.update(orgUser.fk_user_id, orgId, updateData);
 
     // Determine reactivation before cleanup (orgUser.deleted is pre-update state)
     const isReactivating =
@@ -541,11 +532,9 @@ export class ScimUsersService {
 
     // Re-fetch from DB via getByScimExternalId (same code path as GET)
     // to ensure response reflects persisted state and scim_meta is parsed
-    const refreshed = await OrgUser.getByScimExternalId(
-      orgId,
-      scimId,
-      { include_deleted: true },
-    );
+    const refreshed = await OrgUser.getByScimExternalId(orgId, scimId, {
+      include_deleted: true,
+    });
 
     if (refreshed) {
       return this.toScimUser(refreshed);
@@ -831,9 +820,7 @@ export class ScimUsersService {
       userName: orgUser.scim_user_name || orgUser.email,
       name:
         scimMeta.name ||
-        (orgUser.display_name
-          ? { formatted: orgUser.display_name }
-          : {}),
+        (orgUser.display_name ? { formatted: orgUser.display_name } : {}),
       displayName:
         scimMeta.displayName ||
         orgUser.display_name ||

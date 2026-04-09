@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EnterpriseOrgUserRoles } from 'nocodb-sdk';
-import type { NcRequest } from '~/interface/config';
 import { OrgUsersService as OrgUsersServiceCE } from 'src/services/org-users.service';
+import type { NcRequest } from '~/interface/config';
 import { MetaTable, NC_DEFAULT_ORG_ID } from '~/utils/globals';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
 import { PresignedUrl } from '~/models';
-import OrgUser from '~/ee/models/OrgUser';
 import { removeUserFromOrgCascade } from '~/ee/helpers/orgUserRemovalHelper';
 
 @Injectable()
@@ -32,12 +31,12 @@ export class OrgUsersService extends OrgUsersServiceCE {
       `${MetaTable.USERS}.email`,
       `${MetaTable.USERS}.email_verified`,
       `${MetaTable.USERS}.created_at`,
-        `${MetaTable.USERS}.updated_at`,
-        `${MetaTable.USERS}.roles`,
-        `${MetaTable.USERS}.display_name`,
-        `${MetaTable.USERS}.meta`,
-        `${MetaTable.ORG_USERS}.roles as org_roles`,
-        `${MetaTable.ORG_USERS}.scim_managed`,
+      `${MetaTable.USERS}.updated_at`,
+      `${MetaTable.USERS}.roles`,
+      `${MetaTable.USERS}.display_name`,
+      `${MetaTable.USERS}.meta`,
+      `${MetaTable.ORG_USERS}.roles as org_roles`,
+      `${MetaTable.ORG_USERS}.scim_managed`,
     ];
 
     if (isSuperAdmin) {
@@ -65,7 +64,9 @@ export class OrgUsersService extends OrgUsersServiceCE {
       });
 
     if (searchQuery) {
-      const likeVal = `%${searchQuery.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`;
+      const likeVal = `%${searchQuery
+        .replace(/%/g, '\\%')
+        .replace(/_/g, '\\_')}%`;
       qb = qb.where(function () {
         this.where(`${MetaTable.USERS}.email`, 'like', likeVal).orWhere(
           `${MetaTable.USERS}.display_name`,
@@ -98,7 +99,9 @@ export class OrgUsersService extends OrgUsersServiceCE {
       .first();
 
     if (searchQuery) {
-      const likeVal = `%${searchQuery.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`;
+      const likeVal = `%${searchQuery
+        .replace(/%/g, '\\%')
+        .replace(/_/g, '\\_')}%`;
       countQb.where(function () {
         this.where(`${MetaTable.USERS}.email`, 'like', likeVal).orWhere(
           `${MetaTable.USERS}.display_name`,
@@ -109,7 +112,10 @@ export class OrgUsersService extends OrgUsersServiceCE {
     }
 
     const [users, countResult] = await Promise.all([
-      qb.orderBy(`${MetaTable.USERS}.created_at`, 'desc').limit(limit).offset(offset),
+      qb
+        .orderBy(`${MetaTable.USERS}.created_at`, 'desc')
+        .limit(limit)
+        .offset(offset),
       countQb,
     ]);
 
@@ -216,7 +222,11 @@ export class OrgUsersService extends OrgUsersServiceCE {
   /**
    * Update org role for a user in the default org.
    */
-  async updateOrgRole(param: { userId: string; orgRole: EnterpriseOrgUserRoles; req?: NcRequest }) {
+  async updateOrgRole(param: {
+    userId: string;
+    orgRole: EnterpriseOrgUserRoles;
+    req?: NcRequest;
+  }) {
     const orgId = Noco.ncDefaultOrgId || NC_DEFAULT_ORG_ID;
 
     const allowedRoles = [
@@ -289,10 +299,7 @@ export class OrgUsersService extends OrgUsersServiceCE {
         this.where('deleted', false).orWhereNull('deleted');
       });
 
-    if (
-      owners.length <= 1 &&
-      owners[0]?.fk_user_id === param.userId
-    ) {
+    if (owners.length <= 1 && owners[0]?.fk_user_id === param.userId) {
       NcError.badRequest('Cannot remove the last org owner');
     }
 

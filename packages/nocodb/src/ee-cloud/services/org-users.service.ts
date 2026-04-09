@@ -3,7 +3,7 @@ import { AppEvents, EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { OrgUserReqType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
-import { OrgUser, PresignedUrl, User, Workspace } from '~/models';
+import { OrgUser, PresignedUrl, User } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';

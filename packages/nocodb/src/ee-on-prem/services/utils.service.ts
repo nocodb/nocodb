@@ -26,6 +26,7 @@ export class UtilsService extends UtilsServiceEE {
       : undefined;
     result.iframeWhitelistDomains = NC_IFRAME_WHITELIST_DOMAINS.split(',');
     result.defaultWorkspaceId = Noco.ncDefaultWorkspaceId || null;
+    result.defaultOrgId = Noco.ncDefaultOrgId || null;
     result.isAirgapped = NocoLicense.isAirgapped;
     result.seatLimit = NocoLicense.getSeatLimit();
     result.isPostgres = Noco.getConfig()?.meta?.db?.client === 'pg';

@@ -1,49 +1,93 @@
 import { Injectable } from '@nestjs/common';
+import { AppEvents, EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { OrgUserReqType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import { OrgUser, PresignedUrl, User } from '~/models';
+import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { PaymentService } from '~/modules/payment/payment.service';
+import { removeUserFromOrgCascade } from '~/ee/helpers/orgUserRemovalHelper';
 
 @Injectable()
 export class OrgUsersService {
-  constructor() {}
+  constructor(
+    protected readonly appHooksService: AppHooksService,
+    protected readonly paymentService: PaymentService,
+  ) {}
 
-  // add user to org
   async addUserToOrg(param: {
     userId: string;
     orgId: string;
     userProps: OrgUserReqType;
     req: NcRequest;
   }) {
-    // check user already exists in org
+    // Validate org role
+    if (param.userProps.roles) {
+      const allowedRoles = [
+        EnterpriseOrgUserRoles.ADMIN,
+        EnterpriseOrgUserRoles.CREATOR,
+        EnterpriseOrgUserRoles.VIEWER,
+      ];
+      if (
+        !allowedRoles.includes(param.userProps.roles as EnterpriseOrgUserRoles)
+      ) {
+        NcError.badRequest(`Invalid org role: ${param.userProps.roles}`);
+      }
+    }
+
+    // OrgUser.get() returns null for soft-deleted rows
     const orgUser = await OrgUser.get(param.orgId, param.userId);
 
     if (orgUser) {
       NcError.badRequest('User already exists in the organization');
     }
 
-    // check if user exists
     const user = await User.get(param.userId);
 
     if (!user) {
       NcError.notFound('User not found');
     }
 
-    // add user to org
-    await OrgUser.insert({
-      fk_org_id: param.orgId,
-      fk_user_id: param.userId,
-      roles: param.userProps.roles,
+    // Check for soft-deleted row and reactivate
+    const ncMeta = Noco.ncMeta;
+    const softDeleted = await ncMeta
+      .knexConnection(MetaTable.ORG_USERS)
+      .where('fk_org_id', param.orgId)
+      .where('fk_user_id', param.userId)
+      .where('deleted', true)
+      .first();
+
+    if (softDeleted) {
+      await ncMeta
+        .knexConnection(MetaTable.ORG_USERS)
+        .where('fk_org_id', param.orgId)
+        .where('fk_user_id', param.userId)
+        .update({
+          deleted: false,
+          deleted_at: null,
+          roles: param.userProps.roles || EnterpriseOrgUserRoles.VIEWER,
+        });
+    } else {
+      await OrgUser.insert({
+        fk_org_id: param.orgId,
+        fk_user_id: param.userId,
+        roles: param.userProps.roles,
+      });
+    }
+
+    this.appHooksService.emit(AppEvents.ORG_USER_ADD, {
+      userId: param.userId,
+      orgId: param.orgId,
+      role: param.userProps.roles || EnterpriseOrgUserRoles.VIEWER,
+      req: param.req,
     });
 
-    // return success
-
-    return Promise.resolve(undefined);
+    return { msg: 'User added to organization' };
   }
 
   async getOrgUsers(param: { orgId: string; req: NcRequest; user: User }) {
-    // get all users in org
-
     const orgUsers = await OrgUser.list(param.orgId);
 
     await PresignedUrl.signMetaIconImage(orgUsers);
@@ -51,21 +95,90 @@ export class OrgUsersService {
     return orgUsers;
   }
 
-  // remove user from org
-  async removeUserFromOrg(_param: {
+  async removeUserFromOrg(param: {
     userId: string;
     orgId: string;
     req: NcRequest;
   }) {
-    return Promise.resolve(undefined);
+    const orgUser = await OrgUser.get(param.orgId, param.userId);
+
+    if (!orgUser) {
+      NcError.notFound('User not found in organization');
+    }
+
+    // Prevent removing the last admin/owner
+    const ncMeta = Noco.ncMeta;
+    const admins = await ncMeta
+      .knexConnection(MetaTable.ORG_USERS)
+      .where('fk_org_id', param.orgId)
+      .where('roles', EnterpriseOrgUserRoles.ADMIN)
+      .where(function () {
+        this.where('deleted', false).orWhereNull('deleted');
+      });
+
+    if (admins.length <= 1 && admins[0]?.fk_user_id === param.userId) {
+      NcError.badRequest('Cannot remove the last org admin');
+    }
+
+    await removeUserFromOrgCascade(param.orgId, param.userId, ncMeta);
+
+    // Reseat org subscription after user removal
+    await this.paymentService.reseatSubscription(param.orgId);
+
+    this.appHooksService.emit(AppEvents.ORG_USER_REMOVE, {
+      userId: param.userId,
+      orgId: param.orgId,
+      req: param.req,
+    });
+
+    return { msg: 'User removed from organization' };
   }
 
-  // update user role in org
-  async updateUserRoleInOrg(_param: {
-    user: any;
+  async updateUserRoleInOrg(param: {
+    userId: string;
     orgId: string;
+    orgRole: EnterpriseOrgUserRoles;
     req: NcRequest;
   }) {
-    return Promise.resolve(undefined);
+    const orgUser = await OrgUser.get(param.orgId, param.userId);
+
+    if (!orgUser) {
+      NcError.notFound('User not found in organization');
+    }
+
+    // Block demoting the last admin
+    if (
+      orgUser.roles === EnterpriseOrgUserRoles.ADMIN &&
+      param.orgRole !== EnterpriseOrgUserRoles.ADMIN
+    ) {
+      const ncMeta = Noco.ncMeta;
+      const admins = await ncMeta
+        .knexConnection(MetaTable.ORG_USERS)
+        .where('fk_org_id', param.orgId)
+        .where('roles', EnterpriseOrgUserRoles.ADMIN)
+        .where(function () {
+          this.where('deleted', false).orWhereNull('deleted');
+        });
+
+      if (admins.length <= 1) {
+        NcError.badRequest('Cannot demote the last org admin');
+      }
+    }
+
+    const oldRole = orgUser.roles;
+
+    await OrgUser.update(param.userId, param.orgId, {
+      roles: param.orgRole as string,
+    });
+
+    this.appHooksService.emit(AppEvents.ORG_USER_UPDATE, {
+      userId: param.userId,
+      orgId: param.orgId,
+      oldRole,
+      newRole: param.orgRole,
+      req: param.req,
+    });
+
+    return { msg: 'User role updated' };
   }
 }

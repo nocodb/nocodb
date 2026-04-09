@@ -685,11 +685,23 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   async function loadTeams({ workspaceId }: { workspaceId: string }) {
     const { blockTeamsManagement } = useEeConfig()
 
+    // Workspace belongs to an org — org teams are always available regardless of plan
+    const hasOrg = !!activeWorkspace.value?.fk_org_id
+
     if (
-      !activeWorkspace.value?.payment?.plan?.meta ||
       !isTeamsEnabled.value ||
-      blockTeamsManagement.value ||
       isSharedBaseOrErdOrViewRoute(route.value)
+    ) {
+      teams.value = []
+      isTeamsLoading.value = false
+      return
+    }
+
+    // If team management is blocked and workspace has no org, skip loading
+    if (
+      blockTeamsManagement.value &&
+      !hasOrg &&
+      !activeWorkspace.value?.payment?.plan?.meta
     ) {
       teams.value = []
       isTeamsLoading.value = false
@@ -1152,12 +1164,22 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   async function workspaceTeamList(workspaceId: string = activeWorkspaceId.value!, showLoading = true) {
     const { blockTeamsManagement } = useEeConfig()
 
+    const hasOrg = !!activeWorkspace.value?.fk_org_id
+
     if (
-      !activeWorkspace.value?.payment?.plan?.meta ||
       !isTeamsEnabled.value ||
-      blockTeamsManagement.value ||
       !workspaceId ||
       isSharedBaseOrErdOrViewRoute(route.value)
+    ) {
+      workspaceTeams.value = []
+      isLoadingWorkspaceTeams.value = false
+      return
+    }
+
+    if (
+      blockTeamsManagement.value &&
+      !hasOrg &&
+      !activeWorkspace.value?.payment?.plan?.meta
     ) {
       workspaceTeams.value = []
       isLoadingWorkspaceTeams.value = false
@@ -1213,7 +1235,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   ) {
     const { blockTeamsManagement } = useEeConfig()
 
-    if (!isTeamsEnabled.value || blockTeamsManagement.value) return
+    const hasOrg = !!activeWorkspace.value?.fk_org_id
+
+    if (!isTeamsEnabled.value || (blockTeamsManagement.value && !hasOrg)) return
 
     try {
       const res = await $api.internal.postOperation(
@@ -1311,14 +1335,22 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     await loadRoles(undefined, {}, activeWorkspaceId.value)
   })
 
-  // When plan data loads, trigger team loading if teams are available
+  // When plan data or workspace changes, trigger team loading if teams are available
   watch(
-    () => activeWorkspace.value?.payment?.plan?.meta,
-    (planMeta) => {
-      if (!planMeta || !activeWorkspace.value?.id) return
+    () => [activeWorkspace.value?.payment?.plan?.meta, activeWorkspace.value?.id, activeWorkspace.value?.fk_org_id],
+    () => {
+      if (!activeWorkspace.value?.id) return
+
+      const planMeta = activeWorkspace.value?.payment?.plan?.meta
+      const hasOrg = !!activeWorkspace.value?.fk_org_id
+
+      // Skip if no plan data AND no org (nothing to load)
+      if (!planMeta && !hasOrg) return
 
       const { blockTeamsManagement } = useEeConfig()
-      if (blockTeamsManagement.value) return
+
+      // Skip if team management is blocked AND workspace has no org
+      if (blockTeamsManagement.value && !hasOrg) return
 
       loadTeams({ workspaceId: activeWorkspace.value?.id as string }).catch(() => {
         // ignore

@@ -10,99 +10,101 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { PlanFeatureTypes } from 'nocodb-sdk';
 import { NcContext } from '~/interface/config';
 import { ScimConfigService } from '~/ee/services/scim/scim-config.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
-import { checkForFeature } from '~/ee/helpers/paymentHelpers';
-import { isCloud, isOnPrem } from '~/utils';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class ScimConfigController {
   constructor(private readonly scimConfigService: ScimConfigService) {}
 
-  private async checkScimFeature(context: NcContext) {
-    if (isCloud || isOnPrem) {
-      await checkForFeature(context, PlanFeatureTypes.FEATURE_SCIM);
-    }
+  private async checkScimFeature(_context: NcContext) {
+    // SCIM is available on licensed on-prem (license checked by LicenseGuard)
+    // and on cloud enterprise orgs. No workspace-level plan check needed
+    // since SCIM is now org-scoped.
   }
 
-  @Get('/api/v3/meta/workspaces/:workspaceId/scim/config')
+  @Get('/api/v3/meta/orgs/:orgId/scim/config')
   @Acl('scimConfigGet', {
-    scope: 'workspace',
+    scope: 'cloud-org',
   })
   async getConfig(
     @TenantContext() context: NcContext,
-    @Param('workspaceId') workspaceId: string,
+    @Param('orgId') orgId: string,
     @Req() req: any,
   ) {
     await this.checkScimFeature(context);
-    return this.scimConfigService.getConfig(context, workspaceId, {
+    return this.scimConfigService.getConfig(context, orgId, {
       ncSiteUrl: req.ncSiteUrl,
     });
   }
 
-  @Post('/api/v3/meta/workspaces/:workspaceId/scim/config')
+  @Post('/api/v3/meta/orgs/:orgId/scim/config')
   @HttpCode(200)
   @Acl('scimConfigCreate', {
-    scope: 'workspace',
+    scope: 'cloud-org',
   })
   async initializeConfig(
     @TenantContext() context: NcContext,
-    @Param('workspaceId') workspaceId: string,
+    @Param('orgId') orgId: string,
     @Req() req: any,
   ) {
     await this.checkScimFeature(context);
     return this.scimConfigService.initializeConfig(context, {
-      workspaceId,
+      orgId,
       ncSiteUrl: req.ncSiteUrl,
     });
   }
 
-  @Post('/api/v3/meta/workspaces/:workspaceId/scim/config/token/regenerate')
+  @Post('/api/v3/meta/orgs/:orgId/scim/config/token/regenerate')
   @HttpCode(200)
   @Acl('scimConfigUpdate', {
-    scope: 'workspace',
+    scope: 'cloud-org',
   })
   async regenerateToken(
     @TenantContext() context: NcContext,
-    @Param('workspaceId') workspaceId: string,
+    @Param('orgId') orgId: string,
   ) {
     await this.checkScimFeature(context);
-    return this.scimConfigService.regenerateToken(context, workspaceId);
+    return this.scimConfigService.regenerateToken(context, orgId);
   }
 
-  @Patch('/api/v3/meta/workspaces/:workspaceId/scim/config')
+  @Patch('/api/v3/meta/orgs/:orgId/scim/config')
   @Acl('scimConfigUpdate', {
-    scope: 'workspace',
+    scope: 'cloud-org',
   })
   async updateConfig(
     @TenantContext() context: NcContext,
-    @Param('workspaceId') workspaceId: string,
-    @Body() config: { enabled?: boolean; role_mapping?: Record<string, any> },
+    @Param('orgId') orgId: string,
+    @Body()
+    config: {
+      enabled?: boolean;
+      role_mapping?: Record<string, any>;
+      default_role?: string;
+    },
     @Req() req: any,
   ) {
     await this.checkScimFeature(context);
     return this.scimConfigService.updateConfig(context, {
-      workspaceId,
+      orgId,
       ncSiteUrl: req.ncSiteUrl,
       config,
     });
   }
 
-  @Delete('/api/v3/meta/workspaces/:workspaceId/scim/config')
+  @Delete('/api/v3/meta/orgs/:orgId/scim/config')
   @Acl('scimConfigDelete', {
-    scope: 'workspace',
+    scope: 'cloud-org',
   })
   async deleteConfig(
     @TenantContext() context: NcContext,
-    @Param('workspaceId') workspaceId: string,
+    @Param('orgId') orgId: string,
   ) {
     await this.checkScimFeature(context);
-    return this.scimConfigService.deleteConfig(context, workspaceId);
+    return this.scimConfigService.deleteConfig(context, orgId);
   }
 }

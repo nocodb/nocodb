@@ -9,6 +9,7 @@ import {
   PlanLimitTypes,
   ProjectRoles,
   UITypes,
+  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import request from 'supertest';
 import { createProject } from '../../../factory/base';
@@ -1004,7 +1005,10 @@ export default function () {
 
         featureMock = await overridePlan({
           workspace_id: context.fk_workspace_id,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
+          features: {
+            [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
+            [PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT]: true,
+          },
           limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 10 },
         });
 
@@ -1053,19 +1057,25 @@ export default function () {
           { email: 'fe-vis@test.com', password: 'A1234abh2@dsad' },
         );
 
+        // Add users to workspace as viewers (needed for team member validation;
+        // viewer avoids hitting the editor seat limit from the parent beforeEach)
+        for (const u of [engUser, feUser]) {
+          await request(context.app)
+            .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/members`)
+            .set('xc-token', context.xc_token)
+            .send([{ user_id: u.user.id, workspace_role: WorkspaceUserRoles.VIEWER }])
+            .expect(200);
+        }
+
         // Add engUser to Engineering, feUser to Frontend
         await request(context.app)
-          .post(
-            `/api/v3/meta/workspaces/${context.fk_workspace_id}/teams/${engineeringId}/members`,
-          )
+          .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/teams/${engineeringId}/members`)
           .set('xc-token', context.xc_token)
           .send([{ user_id: engUser.user.id, team_role: 'member' }])
           .expect(200);
 
         await request(context.app)
-          .post(
-            `/api/v3/meta/workspaces/${context.fk_workspace_id}/teams/${frontendId}/members`,
-          )
+          .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/teams/${frontendId}/members`)
           .set('xc-token', context.xc_token)
           .send([{ user_id: feUser.user.id, team_role: 'member' }])
           .expect(200);
@@ -1218,7 +1228,10 @@ export default function () {
       beforeEach(async () => {
         featureMock = await overridePlan({
           workspace_id: context.fk_workspace_id,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
+          features: {
+            [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
+            [PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT]: true,
+          },
           limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 10 },
         });
         // Create a team
@@ -1242,6 +1255,12 @@ export default function () {
             password: 'A1234abh2@dsad',
           },
         );
+
+        // Add user to workspace first
+        await request(context.app)
+          .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/members`)
+          .set('xc-token', context.xc_token)
+          .send([{ user_id: teamMemberUser.user.id, workspace_role: WorkspaceUserRoles.VIEWER }]);
 
         // Add user to team
         await request(context.app)

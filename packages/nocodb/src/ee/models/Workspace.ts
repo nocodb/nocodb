@@ -587,12 +587,16 @@ export default class Workspace extends WorkspaceCE implements WorkspaceType {
         `${MetaTable.WORKSPACE}.id`,
       )
       .where((kn) => {
-        kn.where(`${MetaTable.WORKSPACE}.deleted`, false).orWhereNull(
-          `${MetaTable.WORKSPACE}.deleted`,
-        );
-        kn.where(`${MetaTable.WORKSPACE_USER}.deleted`, false).orWhereNull(
-          `${MetaTable.WORKSPACE_USER}.deleted`,
-        );
+        kn.where(function () {
+          this.where(`${MetaTable.WORKSPACE}.deleted`, false).orWhereNull(
+            `${MetaTable.WORKSPACE}.deleted`,
+          );
+        });
+        kn.where(function () {
+          this.where(`${MetaTable.WORKSPACE_USER}.deleted`, false).orWhereNull(
+            `${MetaTable.WORKSPACE_USER}.deleted`,
+          );
+        });
       })
       .andWhere(`${MetaTable.WORKSPACE}.fk_org_id`, param.orgId)
       .groupBy(

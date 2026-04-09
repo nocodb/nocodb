@@ -2,6 +2,10 @@ import type { NcContext } from '~/interface/config';
 import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
 import Team from '~/ee/models/Team';
 import { PrincipalType, ResourceType } from '~/utils/globals';
+import {
+  getWorkspaceOrgId,
+  isTeamVisibleInWorkspace,
+} from '~/utils/team-subject-matcher';
 
 /**
  * Get all teams the user is a DIRECT member of, with their materialized paths.
@@ -109,6 +113,14 @@ export async function extractUserTeamRoles(
     );
     const allTeamIds = [...new Set([...userTeamIds, ...assignedTeamIds])];
     const teamsMap = await Team.getByIds(context, allTeamIds);
+
+    // Filter out org teams whose org doesn't match the workspace's org
+    const wsOrgId = await getWorkspaceOrgId(workspaceId);
+    for (const [id, team] of teamsMap) {
+      if (!isTeamVisibleInWorkspace(team, wsOrgId)) {
+        teamsMap.delete(id);
+      }
+    }
 
     // Build user's teams list from batch result
     const userTeams: { id: string; path: string }[] = [];

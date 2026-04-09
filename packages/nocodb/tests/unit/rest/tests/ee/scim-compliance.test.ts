@@ -15,7 +15,21 @@ import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import { patchBodyValidation } from 'scim-patch';
 import { parse as parseScimFilter } from 'scim2-parse-filter';
+import { EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import init from '../../../init';
+import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
+
+async function createTestOrg(context: any): Promise<string> {
+  const orgId = `ot${Date.now().toString(36)}`;
+  await Noco.ncMeta.knexConnection(MetaTable.ORG).insert({ id: orgId, title: 'SCIM Compliance Org' });
+  await Noco.ncMeta.knexConnection(MetaTable.ORG_USERS).insert({
+    fk_org_id: orgId,
+    fk_user_id: context.user.id,
+    roles: EnterpriseOrgUserRoles.ADMIN,
+  });
+  return orgId;
+}
 
 // ═══════════════════════════════════════════════════════════════════════
 //  SCIM JSON Schemas (RFC 7643)
@@ -305,19 +319,19 @@ function makeGroup(overrides: Record<string, any> = {}) {
 
 function schemaValidationTests() {
   let ctx: Awaited<ReturnType<typeof init>>;
-  let workspaceId: string;
+  let orgId: string;
   let scimToken: string;
   let ajv: Ajv;
 
-  const USERS = () => `/api/v3/meta/workspaces/${workspaceId}/scim/v2/Users`;
-  const GROUPS = () => `/api/v3/meta/workspaces/${workspaceId}/scim/v2/Groups`;
-  const SPC = () => `/api/v3/meta/workspaces/${workspaceId}/scim/v2/ServiceProviderConfig`;
-  const SCHEMAS_EP = () => `/api/v3/meta/workspaces/${workspaceId}/scim/v2/Schemas`;
-  const CONFIG = () => `/api/v3/meta/workspaces/${workspaceId}/scim/config`;
+  const USERS = () => `/api/v3/meta/orgs/${orgId}/scim/v2/Users`;
+  const GROUPS = () => `/api/v3/meta/orgs/${orgId}/scim/v2/Groups`;
+  const SPC = () => `/api/v3/meta/orgs/${orgId}/scim/v2/ServiceProviderConfig`;
+  const SCHEMAS_EP = () => `/api/v3/meta/orgs/${orgId}/scim/v2/Schemas`;
+  const CONFIG = () => `/api/v3/meta/orgs/${orgId}/scim/config`;
 
   beforeEach(async function () {
     ctx = await init();
-    workspaceId = ctx.fk_workspace_id;
+    orgId = await createTestOrg(ctx);
     ajv = createValidator();
 
     // Init + enable SCIM
@@ -472,16 +486,16 @@ function schemaValidationTests() {
 
 function patchValidationTests() {
   let ctx: Awaited<ReturnType<typeof init>>;
-  let workspaceId: string;
+  let orgId: string;
   let scimToken: string;
 
-  const USERS = () => `/api/v3/meta/workspaces/${workspaceId}/scim/v2/Users`;
-  const GROUPS = () => `/api/v3/meta/workspaces/${workspaceId}/scim/v2/Groups`;
-  const CONFIG = () => `/api/v3/meta/workspaces/${workspaceId}/scim/config`;
+  const USERS = () => `/api/v3/meta/orgs/${orgId}/scim/v2/Users`;
+  const GROUPS = () => `/api/v3/meta/orgs/${orgId}/scim/v2/Groups`;
+  const CONFIG = () => `/api/v3/meta/orgs/${orgId}/scim/config`;
 
   beforeEach(async function () {
     ctx = await init();
-    workspaceId = ctx.fk_workspace_id;
+    orgId = await createTestOrg(ctx);
 
     const initRes = await request(ctx.app)
       .post(CONFIG())
@@ -678,16 +692,16 @@ function patchValidationTests() {
 
 function filterParsingTests() {
   let ctx: Awaited<ReturnType<typeof init>>;
-  let workspaceId: string;
+  let orgId: string;
   let scimToken: string;
 
-  const USERS = () => `/api/v3/meta/workspaces/${workspaceId}/scim/v2/Users`;
-  const GROUPS = () => `/api/v3/meta/workspaces/${workspaceId}/scim/v2/Groups`;
-  const CONFIG = () => `/api/v3/meta/workspaces/${workspaceId}/scim/config`;
+  const USERS = () => `/api/v3/meta/orgs/${orgId}/scim/v2/Users`;
+  const GROUPS = () => `/api/v3/meta/orgs/${orgId}/scim/v2/Groups`;
+  const CONFIG = () => `/api/v3/meta/orgs/${orgId}/scim/config`;
 
   beforeEach(async function () {
     ctx = await init();
-    workspaceId = ctx.fk_workspace_id;
+    orgId = await createTestOrg(ctx);
 
     const initRes = await request(ctx.app)
       .post(CONFIG())
@@ -803,16 +817,16 @@ function filterParsingTests() {
 
 function protocolComplianceTests() {
   let ctx: Awaited<ReturnType<typeof init>>;
-  let workspaceId: string;
+  let orgId: string;
   let scimToken: string;
 
-  const USERS = () => `/api/v3/meta/workspaces/${workspaceId}/scim/v2/Users`;
-  const GROUPS = () => `/api/v3/meta/workspaces/${workspaceId}/scim/v2/Groups`;
-  const CONFIG = () => `/api/v3/meta/workspaces/${workspaceId}/scim/config`;
+  const USERS = () => `/api/v3/meta/orgs/${orgId}/scim/v2/Users`;
+  const GROUPS = () => `/api/v3/meta/orgs/${orgId}/scim/v2/Groups`;
+  const CONFIG = () => `/api/v3/meta/orgs/${orgId}/scim/config`;
 
   beforeEach(async function () {
     ctx = await init();
-    workspaceId = ctx.fk_workspace_id;
+    orgId = await createTestOrg(ctx);
 
     const initRes = await request(ctx.app)
       .post(CONFIG())
@@ -1236,15 +1250,15 @@ function protocolComplianceTests() {
 
 function headerComplianceTests() {
   let ctx: Awaited<ReturnType<typeof init>>;
-  let workspaceId: string;
+  let orgId: string;
   let scimToken: string;
 
-  const USERS = () => `/api/v3/meta/workspaces/${workspaceId}/scim/v2/Users`;
-  const CONFIG = () => `/api/v3/meta/workspaces/${workspaceId}/scim/config`;
+  const USERS = () => `/api/v3/meta/orgs/${orgId}/scim/v2/Users`;
+  const CONFIG = () => `/api/v3/meta/orgs/${orgId}/scim/config`;
 
   beforeEach(async function () {
     ctx = await init();
-    workspaceId = ctx.fk_workspace_id;
+    orgId = await createTestOrg(ctx);
 
     const initRes = await request(ctx.app)
       .post(CONFIG())

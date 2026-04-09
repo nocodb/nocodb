@@ -175,6 +175,21 @@ onMounted(() => {
               </NcMenuItem>
 
               <NcMenuItem
+                v-if="appInfo.isOnPrem && appInfo.ee"
+                key="teams"
+                :class="{
+                  active: $route.params.page === 'teams',
+                }"
+                class="item"
+                @click="navigateTo('/account/teams')"
+              >
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon icon="ncBuilding" class="!h-4 !w-4" />
+                  <div class="select-none">{{ $t('title.teams') }}</div>
+                </div>
+              </NcMenuItem>
+
+              <NcMenuItem
                 v-if="isUIAllowed('ssoSettings') && !isEEFeatureBlocked"
                 key="authentication"
                 :class="{

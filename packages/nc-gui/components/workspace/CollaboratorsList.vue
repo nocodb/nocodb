@@ -493,7 +493,7 @@ watch(inviteDlg, (newVal) => {
 
           <div class="flex items-center gap-2">
             <NcButton
-              v-if="isTeamsEnabled && !isAdminPanel && showEEFeatures"
+              v-if="isTeamsEnabled && showEEFeatures"
               v-e="['c:workspace:team-add']"
               size="small"
               type="secondary"
@@ -598,6 +598,14 @@ watch(inviteDlg, (newVal) => {
 
             <template v-if="column.key === 'email' && record.isTeam">
               <GeneralTeamInfo :team="transformToTeamObject(record, teamsMap[record.id])" />
+              <NcBadge
+                v-if="teamsMap[record.id]?.scope === 'org'"
+                :border="false"
+                color="blue"
+                class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+              >
+                {{ $t('general.orgBadge') }}
+              </NcBadge>
             </template>
 
             <div v-else-if="column.key === 'email'" class="w-full flex gap-3 items-center">

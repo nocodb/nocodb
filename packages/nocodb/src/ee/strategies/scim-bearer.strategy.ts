@@ -17,25 +17,26 @@ export class ScimBearerStrategy extends PassportStrategy(
   async validate(req: any, token: string, done: any) {
     try {
       // Extract workspace ID from request (set by ScimAuthGuard)
-      const workspaceId = req.workspaceId;
+      const orgId = req.orgId;
 
-      if (!workspaceId) {
+      if (!orgId) {
         return done(
-          NcError.unauthorized('Workspace ID not found in request'),
+          NcError.unauthorized('Organization ID not found in request'),
           false,
         );
       }
 
       // Create minimal context for validation
       const context: NcContext = {
-        workspace_id: workspaceId,
+        org_id: orgId,
+        workspace_id: null,
         base_id: null,
       };
 
       // Validate the bearer token against SCIM config
       const isValid = await this.scimConfigService.validateToken(
         context,
-        workspaceId,
+        orgId,
         token,
       );
 
@@ -47,7 +48,7 @@ export class ScimBearerStrategy extends PassportStrategy(
       }
 
       // Return workspace context if valid
-      return done(null, { workspaceId, context });
+      return done(null, { orgId, context });
     } catch (error) {
       return done(error, false);
     }

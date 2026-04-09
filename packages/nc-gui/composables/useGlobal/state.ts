@@ -1,6 +1,6 @@
 import { useStorage } from '@vueuse/core'
 import type { JwtPayload } from 'jwt-decode'
-import { MapProvider } from 'nocodb-sdk'
+import { MapProvider, NC_DEFAULT_ORG_ID } from 'nocodb-sdk'
 import type { AppInfo, State, StoredState } from './types'
 import { INITIAL_LEFT_SIDEBAR_WIDTH } from '~/lib/constants'
 
@@ -158,6 +158,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     defaultWorkspaceId: null,
     disableGroupByAggregation: false,
     mapProvider: MapProvider.OPENSTREETMAP,
+    defaultOrgId: NC_DEFAULT_ORG_ID,
   })
 
   /** reactive token payload */

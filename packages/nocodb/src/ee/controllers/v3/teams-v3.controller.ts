@@ -38,6 +38,8 @@ import { License } from '~/decorators/license.decorator';
 export class TeamsV3Controller {
   constructor(protected readonly teamsV3Service: TeamsV3Service) {}
 
+  // ── List ────────────────────────────────────────────────────
+
   @Get('/api/v3/meta/workspaces/:workspaceOrOrgId/teams')
   @Acl('teamList', { scope: 'workspace' })
   async teamList(
@@ -46,8 +48,23 @@ export class TeamsV3Controller {
   ): Promise<{ list: TeamV3ResponseType[] }> {
     return await this.teamsV3Service.teamList(context, {
       workspaceOrOrgId,
+      scope: 'workspace',
     });
   }
+
+  @Get('/api/v3/meta/orgs/:workspaceOrOrgId/teams')
+  @Acl('orgTeamList', { scope: 'cloud-org' })
+  async orgTeamList(
+    @TenantContext() context: NcContext,
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+  ): Promise<{ list: TeamV3ResponseType[] }> {
+    return await this.teamsV3Service.teamList(context, {
+      workspaceOrOrgId,
+      scope: 'org',
+    });
+  }
+
+  // ── Tree ────────────────────────────────────────────────────
 
   @Get('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/tree')
   @Acl('teamTree', { scope: 'workspace' })
@@ -57,8 +74,23 @@ export class TeamsV3Controller {
   ): Promise<{ list: TeamTreeNodeV3Type[] }> {
     return await this.teamsV3Service.teamTree(context, {
       workspaceOrOrgId,
+      scope: 'workspace',
     });
   }
+
+  @Get('/api/v3/meta/orgs/:workspaceOrOrgId/teams/tree')
+  @Acl('orgTeamTree', { scope: 'cloud-org' })
+  async orgTeamTree(
+    @TenantContext() context: NcContext,
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+  ): Promise<{ list: TeamTreeNodeV3Type[] }> {
+    return await this.teamsV3Service.teamTree(context, {
+      workspaceOrOrgId,
+      scope: 'org',
+    });
+  }
+
+  // ── Get ─────────────────────────────────────────────────────
 
   @Get('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId')
   @Acl('teamGet', { scope: 'workspace' })
@@ -69,9 +101,26 @@ export class TeamsV3Controller {
   ): Promise<TeamDetailV3Type> {
     return await this.teamsV3Service.teamGet(context, {
       workspaceOrOrgId,
+      scope: 'workspace',
       teamId,
     });
   }
+
+  @Get('/api/v3/meta/orgs/:workspaceOrOrgId/teams/:teamId')
+  @Acl('orgTeamGet', { scope: 'cloud-org' })
+  async orgTeamGet(
+    @TenantContext() context: NcContext,
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+    @Param('teamId') teamId: string,
+  ): Promise<TeamDetailV3Type> {
+    return await this.teamsV3Service.teamGet(context, {
+      workspaceOrOrgId,
+      scope: 'org',
+      teamId,
+    });
+  }
+
+  // ── Create ──────────────────────────────────────────────────
 
   @Post('/api/v3/meta/workspaces/:workspaceOrOrgId/teams')
   @HttpCode(200)
@@ -84,10 +133,30 @@ export class TeamsV3Controller {
   ): Promise<TeamV3ResponseType> {
     return await this.teamsV3Service.teamCreate(context, {
       workspaceOrOrgId,
+      scope: 'workspace',
       team: body,
       req,
     });
   }
+
+  @Post('/api/v3/meta/orgs/:workspaceOrOrgId/teams')
+  @HttpCode(200)
+  @Acl('orgTeamCreate', { scope: 'cloud-org' })
+  async orgTeamCreate(
+    @TenantContext() context: NcContext,
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+    @Req() req: NcRequest,
+    @Body() body: TeamCreateV3ReqType,
+  ): Promise<TeamV3ResponseType> {
+    return await this.teamsV3Service.teamCreate(context, {
+      workspaceOrOrgId,
+      scope: 'org',
+      team: body,
+      req,
+    });
+  }
+
+  // ── Update ──────────────────────────────────────────────────
 
   @Patch('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId')
   @Acl('teamUpdate', { scope: 'workspace' })
@@ -100,11 +169,32 @@ export class TeamsV3Controller {
   ): Promise<TeamV3ResponseType> {
     return await this.teamsV3Service.teamUpdate(context, {
       workspaceOrOrgId,
+      scope: 'workspace',
       teamId,
       team: body,
       req,
     });
   }
+
+  @Patch('/api/v3/meta/orgs/:workspaceOrOrgId/teams/:teamId')
+  @Acl('orgTeamUpdate', { scope: 'cloud-org' })
+  async orgTeamUpdate(
+    @TenantContext() context: NcContext,
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+    @Param('teamId') teamId: string,
+    @Req() req: NcRequest,
+    @Body() body: TeamUpdateV3ReqType,
+  ): Promise<TeamV3ResponseType> {
+    return await this.teamsV3Service.teamUpdate(context, {
+      workspaceOrOrgId,
+      scope: 'org',
+      teamId,
+      team: body,
+      req,
+    });
+  }
+
+  // ── Move ────────────────────────────────────────────────────
 
   @Patch('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId/move')
   @Acl('teamMove', { scope: 'workspace' })
@@ -117,11 +207,32 @@ export class TeamsV3Controller {
   ): Promise<TeamV3ResponseType> {
     return await this.teamsV3Service.teamMove(context, {
       workspaceOrOrgId,
+      scope: 'workspace',
       teamId,
       body,
       req,
     });
   }
+
+  @Patch('/api/v3/meta/orgs/:workspaceOrOrgId/teams/:teamId/move')
+  @Acl('orgTeamMove', { scope: 'cloud-org' })
+  async orgTeamMove(
+    @TenantContext() context: NcContext,
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+    @Param('teamId') teamId: string,
+    @Req() req: NcRequest,
+    @Body() body: TeamMoveV3ReqType,
+  ): Promise<TeamV3ResponseType> {
+    return await this.teamsV3Service.teamMove(context, {
+      workspaceOrOrgId,
+      scope: 'org',
+      teamId,
+      body,
+      req,
+    });
+  }
+
+  // ── Delete ──────────────────────────────────────────────────
 
   @Delete('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId')
   @Acl('teamDelete', { scope: 'workspace' })
@@ -134,11 +245,32 @@ export class TeamsV3Controller {
   ) {
     return await this.teamsV3Service.teamDelete(context, {
       workspaceOrOrgId,
+      scope: 'workspace',
       teamId,
       force: force === 'true',
       req,
     });
   }
+
+  @Delete('/api/v3/meta/orgs/:workspaceOrOrgId/teams/:teamId')
+  @Acl('orgTeamDelete', { scope: 'cloud-org' })
+  async orgTeamDelete(
+    @TenantContext() context: NcContext,
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+    @Param('teamId') teamId: string,
+    @Req() req: NcRequest,
+    @Query('force') force?: string,
+  ) {
+    return await this.teamsV3Service.teamDelete(context, {
+      workspaceOrOrgId,
+      scope: 'org',
+      teamId,
+      force: force === 'true',
+      req,
+    });
+  }
+
+  // ── Members Add ─────────────────────────────────────────────
 
   @Post('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId/members')
   @HttpCode(200)
@@ -152,11 +284,33 @@ export class TeamsV3Controller {
   ) {
     return await this.teamsV3Service.teamMembersAdd(context, {
       workspaceOrOrgId,
+      scope: 'workspace',
       teamId,
       members: body,
       req,
     });
   }
+
+  @Post('/api/v3/meta/orgs/:workspaceOrOrgId/teams/:teamId/members')
+  @HttpCode(200)
+  @Acl('orgTeamMembersAdd', { scope: 'cloud-org' })
+  async orgTeamMembersAdd(
+    @TenantContext() context: NcContext,
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+    @Param('teamId') teamId: string,
+    @Req() req: NcRequest,
+    @Body() body: TeamMembersAddV3ReqType[],
+  ) {
+    return await this.teamsV3Service.teamMembersAdd(context, {
+      workspaceOrOrgId,
+      scope: 'org',
+      teamId,
+      members: body,
+      req,
+    });
+  }
+
+  // ── Members Remove ──────────────────────────────────────────
 
   @Delete('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId/members')
   @Acl('teamMembersRemove', { scope: 'workspace' })
@@ -169,6 +323,7 @@ export class TeamsV3Controller {
   ) {
     await this.teamsV3Service.teamMembersRemove(context, {
       workspaceOrOrgId,
+      scope: 'workspace',
       teamId,
       members: body,
       req,
@@ -178,6 +333,30 @@ export class TeamsV3Controller {
       msg: 'Members have been removed successfully',
     };
   }
+
+  @Delete('/api/v3/meta/orgs/:workspaceOrOrgId/teams/:teamId/members')
+  @Acl('orgTeamMembersRemove', { scope: 'cloud-org' })
+  async orgTeamMembersRemove(
+    @TenantContext() context: NcContext,
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+    @Param('teamId') teamId: string,
+    @Req() req: NcRequest,
+    @Body() body: TeamMembersRemoveV3ReqType[],
+  ) {
+    await this.teamsV3Service.teamMembersRemove(context, {
+      workspaceOrOrgId,
+      scope: 'org',
+      teamId,
+      members: body,
+      req,
+    });
+
+    return {
+      msg: 'Members have been removed successfully',
+    };
+  }
+
+  // ── Members Update ──────────────────────────────────────────
 
   @Patch('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId/members')
   @Acl('teamMembersUpdate', { scope: 'workspace' })
@@ -190,6 +369,25 @@ export class TeamsV3Controller {
   ) {
     return await this.teamsV3Service.teamMembersUpdate(context, {
       workspaceOrOrgId,
+      scope: 'workspace',
+      teamId,
+      members: body,
+      req,
+    });
+  }
+
+  @Patch('/api/v3/meta/orgs/:workspaceOrOrgId/teams/:teamId/members')
+  @Acl('orgTeamMembersUpdate', { scope: 'cloud-org' })
+  async orgTeamMembersUpdate(
+    @TenantContext() context: NcContext,
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+    @Param('teamId') teamId: string,
+    @Req() req: NcRequest,
+    @Body() body: TeamMembersUpdateV3ReqType[],
+  ) {
+    return await this.teamsV3Service.teamMembersUpdate(context, {
+      workspaceOrOrgId,
+      scope: 'org',
       teamId,
       members: body,
       req,

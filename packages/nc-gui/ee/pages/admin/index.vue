@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { OrgUserRoles, PlanFeatureTypes } from 'nocodb-sdk'
+import { NC_DEFAULT_ORG_ID, OrgUserRoles, PlanFeatureTypes } from 'nocodb-sdk'
 
 definePageMeta({
   hideHeader: true,
@@ -12,6 +12,8 @@ const { appInfo } = useGlobal()
 const { isEEFeatureBlocked, showEEFeatures, blockSSO, showUpgradeToUseSSO } = useEeConfig()
 
 const isSuperAdmin = computed(() => !!orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
+
+const defaultOrgId = computed(() => (appInfo.value as any)?.defaultOrgId || NC_DEFAULT_ORG_ID)
 
 const isNotCloud = computed(() => !appInfo.value.isCloud)
 
@@ -26,6 +28,8 @@ type AdminTab =
   | 'setup'
   | 'external-integrations'
   | 'authentication'
+  | 'teams'
+  | 'scim'
   | 'license'
   | 'users-list'
   | 'settings'
@@ -37,6 +41,8 @@ const validTabs: AdminTab[] = [
   'setup',
   'external-integrations',
   'authentication',
+  'teams',
+  'scim',
   'license',
   'users-list',
   'settings',
@@ -179,6 +185,32 @@ watch(
               </div>
             </NcMenuItem>
 
+            <NcMenuItem
+              v-if="appInfo.ee"
+              key="teams"
+              :class="{ active: activeTab === 'teams' }"
+              class="item"
+              @click="activeTab = 'teams'"
+            >
+              <div class="flex items-center space-x-2">
+                <GeneralIcon icon="ncBuilding" class="!h-4 !w-4" />
+                <div class="select-none">{{ $t('title.teams') }}</div>
+              </div>
+            </NcMenuItem>
+
+            <NcMenuItem
+              v-if="appInfo.ee"
+              key="scim"
+              :class="{ active: activeTab === 'scim' }"
+              class="item"
+              @click="activeTab = 'scim'"
+            >
+              <div class="flex items-center space-x-2">
+                <GeneralIcon icon="sync" class="!h-4 !w-4" />
+                <div class="select-none">SCIM</div>
+              </div>
+            </NcMenuItem>
+
             <!-- Configuration -->
             <NcMenuItem
               v-if="isSetupPageAllowed"
@@ -246,6 +278,8 @@ watch(
               <AccountSetup v-else-if="activeTab === 'setup'" />
               <AccountExternalIntegrations v-else-if="activeTab === 'external-integrations'" />
               <AccountAuthentication v-else-if="activeTab === 'authentication'" />
+              <AdminTeams v-else-if="activeTab === 'teams'" :org-id="defaultOrgId" />
+              <AdminScim v-else-if="activeTab === 'scim'" :org-id="defaultOrgId" />
               <AccountLicense v-else-if="activeTab === 'license'" />
               <AccountUserList v-else-if="activeTab === 'users-list'" />
               <AccountSignupSettings v-else-if="activeTab === 'settings'" />

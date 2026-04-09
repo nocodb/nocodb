@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
@@ -10,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { OrgUserReqType } from 'nocodb-sdk';
+import type { EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -38,7 +40,7 @@ export class OrgUsersController {
   @Post('/api/v2/orgs/:orgId/user/:userId')
   @HttpCode(200)
   @UseGuards(GlobalGuard, MetaApiLimiterGuard)
-  @Acl('orgUserAdd')
+  @Acl('orgUserAdd', { scope: 'cloud-org' })
   async addUserToOrg(
     @Req() req: NcRequest,
     @Body() body: OrgUserReqType,
@@ -54,13 +56,12 @@ export class OrgUsersController {
   }
 
   // api for removing user from org
-  @Post('/api/v2/orgs/:orgId/user/:userId')
+  @Delete('/api/v2/orgs/:orgId/user/:userId')
   @HttpCode(200)
   @UseGuards(GlobalGuard, MetaApiLimiterGuard)
-  @Acl('orgUserRemove')
+  @Acl('orgUserRemove', { scope: 'cloud-org' })
   async removeUserFromOrg(
     @Req() req: NcRequest,
-    @Body() body: { orgId: string; userId: string },
     @Param('orgId') orgId: string,
     @Param('userId') userId: string,
   ) {
@@ -75,15 +76,18 @@ export class OrgUsersController {
   @Patch('/api/v2/orgs/:orgId/user/:userId')
   @HttpCode(200)
   @UseGuards(GlobalGuard, MetaApiLimiterGuard)
-  @Acl('orgUserRoleUpdate')
+  @Acl('orgUserRoleUpdate', { scope: 'cloud-org' })
   async updateUserRoleInOrg(
     @Req() req: NcRequest,
-    @Body() body: { orgId: string; userId: string },
+    @Param('orgId') orgId: string,
+    @Param('userId') userId: string,
+    @Body() body: { org_role: EnterpriseOrgUserRoles },
   ) {
     return this.orgUsersService.updateUserRoleInOrg({
-      orgId: body.orgId,
+      orgId,
+      userId,
+      orgRole: body.org_role,
       req,
-      user: req.user,
     });
   }
 }

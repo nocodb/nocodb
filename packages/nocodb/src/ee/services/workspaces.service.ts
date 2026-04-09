@@ -219,8 +219,15 @@ export class WorkspacesService implements OnApplicationBootstrap {
           param.user.id,
         );
 
-        if (orgUser.roles !== CloudOrgUserRoles.OWNER) {
-          NcError.forbidden('You are not the owner of the organization');
+        if (!orgUser) {
+          NcError.forbidden('You are not a member of the organization');
+        }
+
+        // Viewer cannot create workspaces under an org
+        if (orgUser.roles === CloudOrgUserRoles.VIEWER) {
+          NcError.forbidden(
+            'Workspace creation is not allowed for viewer role.',
+          );
         }
       }
     }
@@ -259,7 +266,10 @@ export class WorkspacesService implements OnApplicationBootstrap {
         fk_user_id: param.user.id,
         status: WorkspaceStatus.CREATED,
         plan: WorkspacePlan.FREE,
-        fk_org_id: workspacePayload.fk_org_id || param.user.extra?.org_id,
+        fk_org_id:
+          workspacePayload.fk_org_id ||
+          param.user.extra?.org_id ||
+          Noco.ncDefaultOrgId,
       });
 
       // todo: error handling

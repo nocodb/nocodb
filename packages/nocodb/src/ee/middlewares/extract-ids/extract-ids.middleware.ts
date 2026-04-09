@@ -153,6 +153,14 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     const isInternalApi = !!req.path?.startsWith('/api/v2/internal');
     const isInternalWorkspaceScope = isInternalApi && params.baseId === 'nc';
 
+    // Extract orgId early for /orgs/:orgId and /orgs/:workspaceOrOrgId routes
+    // (before guards run, so JWT strategy can resolve org roles)
+    if (params.orgId) {
+      req.ncOrgId = params.orgId;
+    } else if (params.workspaceOrOrgId) {
+      req.ncOrgId = params.workspaceOrOrgId;
+    }
+
     const baseId = params.baseId || params.baseName;
 
     if (!isInternalWorkspaceScope && baseId) {
@@ -1455,6 +1463,7 @@ export class AclMiddleware implements NestInterceptor {
     // extendedScope is used to allow access based on extended scope in which permission is prefixed with scope name and separated by underscore
     const extendedScopeRoles =
       extendedScope && getUserRoleForScope(req.user, extendedScope);
+
     if (!userScopeRole && !extendedScopeRoles) {
       NcError.forbidden('Unauthorized access');
     }

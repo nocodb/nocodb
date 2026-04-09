@@ -19,7 +19,7 @@ export class ScimResourceTypesController {
     private readonly scimResourceTypesService: ScimResourceTypesService,
   ) {}
 
-  @Get('/api/v3/meta/workspaces/:workspaceId/scim/v2/ResourceTypes')
+  @Get('/api/v3/meta/orgs/:orgId/scim/v2/ResourceTypes')
   async getResourceTypes() {
     // Discovery endpoints return static resource type definitions — no plan check needed.
     return this.scimResourceTypesService.getResourceTypes();

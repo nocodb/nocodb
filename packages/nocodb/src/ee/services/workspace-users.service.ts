@@ -920,6 +920,8 @@ export class WorkspaceUsersService {
 
     await this.paymentService.reseatSubscription(workspace.id, ncMeta);
 
+    // Org user sync is handled by WorkspaceUser.insert() automatically
+
     for (const postOperation of postOperations) {
       await postOperation();
     }

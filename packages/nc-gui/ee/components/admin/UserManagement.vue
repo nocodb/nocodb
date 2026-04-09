@@ -1,5 +1,11 @@
 <script lang="ts" setup>
+import { EnterpriseOrgUserRoles } from 'nocodb-sdk'
+
 const { t } = useI18n()
+
+const { $api } = useNuxtApp()
+
+const { showInfoModal } = useNcConfirmModal()
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateSort } = useUserSorts('Organization')
 
@@ -56,6 +62,61 @@ const inviteUserToWorkspace = (email: string) => {
   bulkAddMemberDlg.value = true
 }
 
+const orgAllowedRoles = computed(() => {
+  return [EnterpriseOrgUserRoles.VIEWER, EnterpriseOrgUserRoles.CREATOR]
+})
+
+const isLastAdmin = (member: any) => {
+  if (member.cloud_org_roles !== EnterpriseOrgUserRoles.ADMIN) return false
+  const adminCount = members.value.filter((m: any) => m.cloud_org_roles === EnterpriseOrgUserRoles.ADMIN).length
+  return adminCount <= 1
+}
+
+const updateOrgRole = async (member: any, newRole: string) => {
+  const oldRole = member.cloud_org_roles
+
+  // Optimistic update — force reactivity by replacing in the array
+  const idx = members.value.findIndex((m: any) => m.id === member.id)
+  if (idx !== -1) {
+    members.value[idx] = { ...members.value[idx], cloud_org_roles: newRole }
+  }
+
+  try {
+    await $api.instance.patch(`/api/v2/orgs/${org.value?.id}/user/${member.id}`, { org_role: newRole })
+    message.success(t('msg.success.roleUpdated'))
+  } catch (e: any) {
+    // Revert on error
+    if (idx !== -1) {
+      members.value[idx] = { ...members.value[idx], cloud_org_roles: oldRole }
+    }
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+const onOrgRoleChange = (member: any) => async (role: string) => {
+  await updateOrgRole(member, role)
+}
+
+const removeOrgMember = (member: any) => {
+  showInfoModal({
+    title: t('title.confirmRemoveMemberFromOrgTitle'),
+    content: t('title.confirmRemoveMemberFromOrgSubtitle'),
+    showCancelBtn: true,
+    showIcon: false,
+    okProps: { type: 'danger' },
+    okText: t('general.remove'),
+    okCallback: async () => {
+      try {
+        await $api.instance.delete(`/api/v2/orgs/${org.value?.id}/user/${member.id}`)
+        message.success(t('msg.success.memberRemovedFromOrg'))
+        await fetchOrganizationMembers()
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
+    },
+  })
+}
+
 const orderBy = computed<Record<string, SordDirectionType>>({
   get: () => {
     return sortDirection.value
@@ -97,6 +158,12 @@ const columns = [
     minWidth: 180,
     dataIndex: 'workspaceCount',
     showOrderBy: true,
+  },
+  {
+    key: 'org_role',
+    title: t('labels.orgRole'),
+    width: 160,
+    minWidth: 140,
   },
   {
     key: 'dateAdded',
@@ -239,15 +306,23 @@ watch(selected, () => {
                   </template>
                   {{ member.display_name || member.email.split('@')[0] }}
                 </NcTooltip>
-                <!-- Todo: badge size  -->
-                <RolesBadge
-                  v-if="member.cloud_org_roles"
+                <NcBadge
+                  v-if="member.cloud_org_roles === EnterpriseOrgUserRoles.ADMIN"
                   :border="false"
-                  :role="member.cloud_org_roles"
-                  size="xs"
-                  :show-icon="false"
-                  class="!px-1"
-                />
+                  color="purple"
+                  class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+                >
+                  {{ $t('objects.roleType.orgAdmin') }}
+                </NcBadge>
+                <NcTooltip v-if="member.scim_managed" :title="$t('labels.scimManagedUserTooltip')" class="flex items-center">
+                  <NcBadge
+                    :border="false"
+                    color="blue"
+                    class="text-nc-content-blue-dark text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+                  >
+                    {{ $t('labels.scimManaged') }}
+                  </NcBadge>
+                </NcTooltip>
               </div>
               <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-subtle2" show-on-truncate-only>
                 <template #title>
@@ -289,6 +364,21 @@ watch(selected, () => {
               </template>
             </NcDropdown>
           </div>
+          <div v-if="column.key === 'org_role'" class="flex items-center">
+            <template v-if="member.cloud_org_roles === EnterpriseOrgUserRoles.ADMIN">
+              <NcBadge :border="false" color="purple" class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none">
+                {{ $t('objects.roleType.orgAdmin') }}
+              </NcBadge>
+            </template>
+            <RolesSelectorV2
+              v-else
+              :on-role-change="onOrgRoleChange(member)"
+              :role="member.cloud_org_roles || EnterpriseOrgUserRoles.VIEWER"
+              :roles="orgAllowedRoles"
+              class="cursor-pointer"
+              data-testid="nc-cloud-org-role-select"
+            />
+          </div>
           <div v-if="column.key === 'dateAdded'">
             <NcTooltip class="max-w-full">
               <template #title>
@@ -322,17 +412,25 @@ watch(selected, () => {
                     <span>{{ $t('activity.inviteToWorkspace') }}</span>
                   </NcMenuItem>
 
-                  <!-- <NcMenuItem data-testid="nc-admin-org-user-delete">
-                    <GeneralIcon icon="signout" />
-                    <span>{{ $t('labels.signOutUser') }}</span>
-                  </NcMenuItem>
+                  <template v-if="member.cloud_org_roles !== EnterpriseOrgUserRoles.ADMIN">
+                    <NcDivider />
 
-                  <NcDivider />
-
-                  <NcMenuItem danger data-testid="nc-admin-org-user-delete">
-                    <GeneralIcon icon="delete" />
-                    {{ $t('labels.deactivateUser') }}
-                  </NcMenuItem> -->
+                    <NcTooltip
+                      :disabled="!member.scim_managed"
+                      :title="$t('labels.scimManagedRemovalTooltip')"
+                      placement="left"
+                    >
+                      <NcMenuItem
+                        :disabled="member.scim_managed"
+                        danger
+                        data-testid="nc-admin-org-user-remove"
+                        @click="removeOrgMember(member)"
+                      >
+                        <GeneralIcon icon="delete" />
+                        {{ $t('activity.removeMember') }}
+                      </NcMenuItem>
+                    </NcTooltip>
+                  </template>
                 </NcMenu>
               </template>
             </NcDropdown>

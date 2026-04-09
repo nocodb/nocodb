@@ -611,6 +611,8 @@ export enum FilterCacheScope {
 }
 
 export const NC_STORE_DEFAULT_WORKSPACE_ID_KEY = 'NC_DEFAULT_WORKSPACE_ID';
+export const NC_STORE_DEFAULT_ORG_ID_KEY = 'NC_DEFAULT_ORG_ID';
+export { NC_DEFAULT_ORG_ID } from 'nocodb-sdk';
 
 export enum ResourceType {
   ORG = 'org',

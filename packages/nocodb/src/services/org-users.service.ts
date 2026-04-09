@@ -31,6 +31,7 @@ import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { MailEvent } from '~/interface/Mail';
 import { ensureUserInDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
+import { ensureUserInDefaultOrg } from '~/helpers/verifyDefaultOrg';
 
 @Injectable()
 export class OrgUsersService {
@@ -102,6 +103,14 @@ export class OrgUsersService {
       ...updateBody,
     });
 
+    this.appHooksService.emit(AppEvents.ORG_USER_UPDATE, {
+      userId: param.userId,
+      orgId: 'default',
+      oldRole: user.roles,
+      newRole: updateBody.roles,
+      req: param.req,
+    });
+
     // Also update workspace role in the default workspace
     if (Noco.ncDefaultWorkspaceId && updateBody.roles) {
       const wsRole =
@@ -120,13 +129,38 @@ export class OrgUsersService {
     return result;
   }
 
-  async userDelete(param: { userId: string }) {
+  async userDelete(param: { userId: string; req?: NcRequest }) {
     const ncMeta = await Noco.ncMeta.startTransaction();
     try {
       const user = await User.get(param.userId, ncMeta);
 
       if (extractRolesObj(user.roles)[OrgUserRoles.SUPER_ADMIN]) {
         NcError.badRequest('Cannot delete super admin');
+      }
+
+      // Block deletion if user is SCIM-managed in any workspace
+      const hasScimColumn = await ncMeta
+        .knexConnection('nc_workspace_users')
+        .columnInfo()
+        .then((cols) => 'scim_managed' in cols)
+        .catch(() => false);
+
+      if (hasScimColumn) {
+        const scimCount = await ncMeta
+          .knexConnection('nc_workspace_users')
+          .where('fk_user_id', param.userId)
+          .where('scim_managed', true)
+          .where(function () {
+            this.where('deleted', false).orWhereNull('deleted');
+          })
+          .count('* as count')
+          .first();
+
+        if (scimCount && Number(scimCount.count) > 0) {
+          NcError.badRequest(
+            'This user is managed via SCIM in one or more workspaces. Removal must be done from the identity provider.',
+          );
+        }
       }
 
       // delete base user entry and assign to super admin
@@ -153,6 +187,12 @@ export class OrgUsersService {
       // delete workspace user entries (with cache invalidation)
       await WorkspaceUser.softDeleteByUser(param.userId, ncMeta);
 
+      // soft-delete from org_users
+      await ncMeta
+        .knexConnection(MetaTable.ORG_USERS)
+        .where('fk_user_id', param.userId)
+        .update({ deleted: true, deleted_at: new Date().toISOString() });
+
       // delete refresh tokens
       await UserRefreshToken.deleteAllUserToken(param.userId, ncMeta);
 
@@ -162,6 +202,11 @@ export class OrgUsersService {
       // soft-delete user (preserves record for audit/cell data)
       await User.softDelete(param.userId, ncMeta);
       await ncMeta.commit();
+
+      this.appHooksService.emit(AppEvents.ORG_USER_DELETE, {
+        userId: param.userId,
+        req: param.req,
+      });
     } catch (e) {
       await ncMeta.rollback(e);
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
@@ -233,6 +278,8 @@ export class OrgUsersService {
             WorkspaceUserRoles.NO_ACCESS,
           );
 
+          await ensureUserInDefaultOrg(user.id);
+
           const count = await User.count();
 
           this.appHooksService.emit(AppEvents.ORG_USER_INVITE, {
@@ -271,7 +318,7 @@ export class OrgUsersService {
             });
           }
         } catch (e) {
-          console.log(e);
+          this.logger.error(e.message, e.stack);
           if (emails.length === 1) {
             NcError.orgUserError('Bad Request');
           } else {

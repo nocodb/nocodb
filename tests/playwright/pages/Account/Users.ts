@@ -65,8 +65,13 @@ export class AccountUsersPage extends BasePage {
   }
 
   async closeInvite() {
-    // two btn-icon-only in invite modal: close & copy url
-    await this.inviteUserModal.locator(`button.ant-btn-icon-only:visible`).first().click();
+    // After invite, modal shows results view (no Cancel button).
+    // Click "Invite more" to return to form view, then click "Cancel".
+    const inviteMore = this.inviteUserModal.locator(`button:has-text("Invite more")`);
+    if (await inviteMore.isVisible()) {
+      await inviteMore.click();
+    }
+    await this.inviteUserModal.locator(`button:has-text("Cancel")`).click();
   }
 
   async getUserRow({ email }: { email: string }) {

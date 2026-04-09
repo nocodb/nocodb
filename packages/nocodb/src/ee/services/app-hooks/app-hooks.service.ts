@@ -34,6 +34,7 @@ import type {
   SandboxDeleteEvent,
   SandboxDiscardEvent,
   SandboxMergeEvent,
+  ScimGroupEvent,
   ScimUserEvent,
   SortEvent,
   TableEvent,
@@ -94,7 +95,12 @@ import type {
   MapViewUpdateEvent,
   MetaDiffEvent,
   ModelRoleVisibilityEvent,
+  OrgUserAddEvent,
+  OrgUserDeleteEvent,
   OrgUserInviteEvent,
+  OrgUserRemoveEvent,
+  OrgUserUpdateEvent,
+  OrgWorkspaceEvent,
   PermissionCreateEvent,
   PermissionDeleteEvent,
   PermissionUpdateEvent,
@@ -460,7 +466,7 @@ export class AppHooksService extends ApppHookServiceCE {
     listener: (data: PermissionDeleteEvent) => void,
   ): () => void;
 
-  // SCIM Events
+  // SCIM User Events
   on(
     event:
       | AppEvents.SCIM_USER_PROVISION
@@ -469,6 +475,16 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.SCIM_USER_REACTIVATE
       | AppEvents.SCIM_USER_DELETE,
     listener: (data: ScimUserEvent) => void,
+  ): () => void;
+
+  // SCIM Group Events
+  on(
+    event:
+      | AppEvents.SCIM_GROUP_PROVISION
+      | AppEvents.SCIM_GROUP_UPDATE
+      | AppEvents.SCIM_GROUP_REPLACE
+      | AppEvents.SCIM_GROUP_DELETE,
+    listener: (data: ScimGroupEvent) => void,
   ): () => void;
 
   // Doc AI Events
@@ -633,6 +649,14 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.API_TOKEN_DELETE, data: ApiTokenDeleteEvent): void;
   emit(event: AppEvents.ORG_USER_INVITE, data: OrgUserInviteEvent): void;
   emit(event: AppEvents.ORG_USER_RESEND_INVITE, data: OrgUserInviteEvent): void;
+  emit(event: AppEvents.ORG_USER_UPDATE, data: OrgUserUpdateEvent): void;
+  emit(event: AppEvents.ORG_USER_DELETE, data: OrgUserDeleteEvent): void;
+  emit(event: AppEvents.ORG_USER_ADD, data: OrgUserAddEvent): void;
+  emit(event: AppEvents.ORG_USER_REMOVE, data: OrgUserRemoveEvent): void;
+  emit(
+    event: AppEvents.ORG_WORKSPACE_ADD | AppEvents.ORG_WORKSPACE_REMOVE,
+    data: OrgWorkspaceEvent,
+  ): void;
   emit(event: AppEvents.VIEW_COLUMN_CREATE, data: ViewColumnEvent): void;
   emit(event: AppEvents.VIEW_COLUMN_UPDATE, data: ViewColumnUpdateEvent): void;
   emit(
@@ -884,7 +908,7 @@ export class AppHooksService extends ApppHookServiceCE {
     data: RecordTemplateUseEvent,
   ): void;
 
-  // SCIM Events
+  // SCIM User Events
   emit(
     event:
       | AppEvents.SCIM_USER_PROVISION
@@ -893,6 +917,16 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.SCIM_USER_REACTIVATE
       | AppEvents.SCIM_USER_DELETE,
     data: ScimUserEvent,
+  ): void;
+
+  // SCIM Group Events
+  emit(
+    event:
+      | AppEvents.SCIM_GROUP_PROVISION
+      | AppEvents.SCIM_GROUP_UPDATE
+      | AppEvents.SCIM_GROUP_REPLACE
+      | AppEvents.SCIM_GROUP_DELETE,
+    data: ScimGroupEvent,
   ): void;
 
   emit(

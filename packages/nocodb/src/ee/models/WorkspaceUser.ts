@@ -1,4 +1,9 @@
-import { IconType, NcBaseError, ProjectRoles } from 'nocodb-sdk';
+import {
+  EnterpriseOrgUserRoles,
+  IconType,
+  NcBaseError,
+  ProjectRoles,
+} from 'nocodb-sdk';
 import { User } from 'src/models';
 import { Logger } from '@nestjs/common';
 import { WorkspaceUserRoles } from 'nocodb-sdk';
@@ -145,6 +150,13 @@ export default class WorkspaceUser {
       );
 
       await ncMetaTrans.commit();
+
+      // Ensure user exists in org_users for the workspace's org
+      try {
+        await this.ensureOrgUser(fk_workspace_id, fk_user_id);
+      } catch (e) {
+        logger.error(`Failed to ensure org user: ${e?.message}`, e?.stack);
+      }
 
       return res;
     } catch (e) {
@@ -1065,5 +1077,60 @@ export default class WorkspaceUser {
     });
 
     return { list, totalResults };
+  }
+
+  /**
+   * Ensure a user has an entry in nc_org_users for the workspace's org.
+   * Called after WorkspaceUser.insert() to keep org membership in sync.
+   * Fire-and-forget — failures are logged but don't block the invite.
+   */
+  public static async ensureOrgUser(
+    workspaceId: string,
+    userId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    // Find the org for this workspace
+    const workspace = await ncMeta
+      .knexConnection(MetaTable.WORKSPACE)
+      .where('id', workspaceId)
+      .select('fk_org_id')
+      .first();
+
+    const orgId = workspace?.fk_org_id || Noco.ncDefaultOrgId;
+    if (!orgId) return;
+
+    // Check if already in org
+    const existing = await ncMeta
+      .knexConnection(MetaTable.ORG_USERS)
+      .where('fk_org_id', orgId)
+      .where('fk_user_id', userId)
+      .first();
+
+    if (existing) {
+      // Reactivate if soft-deleted (user was removed from org, now re-invited to a workspace)
+      // Reset to default role — the old role was revoked on removal
+      if (existing.deleted) {
+        await ncMeta
+          .knexConnection(MetaTable.ORG_USERS)
+          .where('fk_org_id', orgId)
+          .where('fk_user_id', userId)
+          .update({
+            deleted: false,
+            deleted_at: null,
+            roles: EnterpriseOrgUserRoles.VIEWER,
+          });
+      }
+      return;
+    }
+
+    try {
+      await ncMeta.knexConnection(MetaTable.ORG_USERS).insert({
+        fk_org_id: orgId,
+        fk_user_id: userId,
+        roles: EnterpriseOrgUserRoles.VIEWER,
+      });
+    } catch {
+      // Duplicate from race condition — safe to ignore
+    }
   }
 }

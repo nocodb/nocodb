@@ -73,9 +73,10 @@ export class OrgUsersController {
     blockApiTokenAccess: true,
     blockOAuthTokenAccess: true,
   })
-  async userDelete(@Param('userId') userId: string) {
+  async userDelete(@Param('userId') userId: string, @Req() req: NcRequest) {
     await this.orgUsersService.userDelete({
       userId,
+      req,
     });
     return { msg: 'The user has been deleted successfully' };
   }

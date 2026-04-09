@@ -1,93 +1,21 @@
 import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
-import type { WorkspaceUserRoles } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
+import { AppEvents } from 'nocodb-sdk';
+import type { NcContext, NcRequest } from '~/interface/config';
+import type { ScimGroupEvent } from '~/ee/services/app-hooks/interfaces';
 import { NcError } from '~/helpers/catchError';
-import { Team, WorkspaceUser } from '~/ee/models';
+import { Team } from '~/ee/models';
+import OrgUser from '~/ee/models/OrgUser';
+import Org from '~/ee/models/Org';
 import { PrincipalAssignment } from '~/ee/models';
 import { PrincipalType, ResourceType } from '~/utils/globals';
-import {
-  extractWorkspaceRoleFromExtension,
-  NOCODB_GROUP_EXTENSION,
-  WORKSPACE_ROLE_TO_LABEL,
-} from '~/services/scim/scim-helpers';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 @Injectable()
 export class ScimGroupsService {
   protected logger = new Logger(ScimGroupsService.name);
 
-  constructor() {}
-
-  /**
-   * Extract workspaceRole from SCIM extension attribute.
-   * Returns the WorkspaceUserRoles enum value, or undefined if not present.
-   */
-  private extractWorkspaceRole(
-    scimGroup: Record<string, unknown>,
-  ): WorkspaceUserRoles | undefined {
-    return extractWorkspaceRoleFromExtension(scimGroup, NOCODB_GROUP_EXTENSION);
-  }
-
-  /**
-   * Create or update the workspace-level PrincipalAssignment for a team.
-   * This is what gives the team (and its members) a workspace role.
-   */
-  private async assignWorkspaceRole(
-    context: NcContext,
-    teamId: string,
-    workspaceId: string,
-    role: WorkspaceUserRoles,
-  ) {
-    // Check if assignment already exists
-    const existing = await PrincipalAssignment.get(
-      context,
-      ResourceType.WORKSPACE,
-      workspaceId,
-      PrincipalType.TEAM,
-      teamId,
-    );
-
-    if (existing) {
-      // Update the role if different
-      if (existing.roles !== role) {
-        await PrincipalAssignment.update(
-          context,
-          ResourceType.WORKSPACE,
-          workspaceId,
-          PrincipalType.TEAM,
-          teamId,
-          { roles: role },
-        );
-      }
-    } else {
-      // Create workspace assignment for this team
-      await PrincipalAssignment.insert(context, {
-        resource_type: ResourceType.WORKSPACE,
-        resource_id: workspaceId,
-        principal_type: PrincipalType.TEAM,
-        principal_ref_id: teamId,
-        roles: role,
-      });
-    }
-  }
-
-  /**
-   * Get the current workspace role for a team (if assigned).
-   */
-  private async getWorkspaceRole(
-    context: NcContext,
-    teamId: string,
-    workspaceId: string,
-  ): Promise<string | undefined> {
-    const assignment = await PrincipalAssignment.get(
-      context,
-      ResourceType.WORKSPACE,
-      workspaceId,
-      PrincipalType.TEAM,
-      teamId,
-    );
-    return assignment?.roles;
-  }
+  constructor(private readonly appHooksService: AppHooksService) {}
 
   /**
    * Get a single group (team) by SCIM external ID
@@ -95,14 +23,14 @@ export class ScimGroupsService {
   async getGroup(
     context: NcContext,
     param: {
-      workspaceId: string;
+      orgId: string;
       scimId: string;
       excludedAttributes?: string;
     },
   ) {
     const team = await Team.getByScimExternalId(
       context,
-      param.workspaceId,
+      param.orgId,
       param.scimId,
     );
 
@@ -111,7 +39,7 @@ export class ScimGroupsService {
     }
 
     const excludeMembers = this.shouldExcludeMembers(param.excludedAttributes);
-    return this.toScimGroup(context, team, param.workspaceId, excludeMembers);
+    return this.toScimGroup(context, team, param.orgId, excludeMembers);
   }
 
   /**
@@ -120,7 +48,7 @@ export class ScimGroupsService {
   async listGroups(
     context: NcContext,
     param: {
-      workspaceId: string;
+      orgId: string;
       filter?: string;
       startIndex?: number;
       count?: number;
@@ -153,7 +81,7 @@ export class ScimGroupsService {
     const { list: paginatedTeams, totalResults } = await Team.scimList(
       context,
       {
-        fk_workspace_id: param.workspaceId,
+        fk_org_id: param.orgId,
         offset: startIndex - 1,
         limit: count,
         filterDisplayName,
@@ -166,7 +94,7 @@ export class ScimGroupsService {
     const excludeMembers = this.shouldExcludeMembers(param.excludedAttributes);
     const resources = await Promise.all(
       paginatedTeams.map((t) =>
-        this.toScimGroup(context, t, param.workspaceId, excludeMembers),
+        this.toScimGroup(context, t, param.orgId, excludeMembers),
       ),
     );
 
@@ -185,11 +113,12 @@ export class ScimGroupsService {
   async createGroup(
     context: NcContext,
     param: {
-      workspaceId: string;
+      orgId: string;
       scimGroup: any;
+      req: NcRequest;
     },
   ) {
-    const { scimGroup, workspaceId } = param;
+    const { scimGroup, orgId } = param;
 
     if (!scimGroup.displayName) {
       throw new HttpException(
@@ -205,22 +134,19 @@ export class ScimGroupsService {
 
     // Check if team with same name already exists
     const existingTeams = await Team.list(context, {
-      fk_workspace_id: workspaceId,
+      fk_org_id: orgId,
     });
 
     const existingTeam = existingTeams.find(
       (t) => t.title === scimGroup.displayName && !t.deleted,
     );
 
-    // Extract workspace role from NocoDB extension attribute (if present)
-    const workspaceRole = this.extractWorkspaceRole(scimGroup);
-
     if (existingTeam) {
       // If team exists but not SCIM-managed, convert it to SCIM-managed
       if (!existingTeam.scim_managed) {
         // Team.update returns the full updated record (via metaGet)
         const updatedTeam = await Team.update(context, existingTeam.id, {
-          scim_external_id: uuidv4(), // Server-assigned SCIM id (immutable)
+          scim_external_id: scimGroup.externalId || uuidv4(),
           scim_managed: true,
           scim_display_name: scimGroup.displayName,
           ...(scimGroup.externalId
@@ -228,31 +154,25 @@ export class ScimGroupsService {
             : {}),
         });
 
-        // Update membership to match SCIM
-        if (scimGroup.members) {
-          await this.updateTeamMembers(
-            context,
-            existingTeam.id,
-            workspaceId,
-            scimGroup.members,
-          );
-        }
-
-        // Assign workspace role if provided
-        if (workspaceRole) {
-          await this.assignWorkspaceRole(
-            context,
-            existingTeam.id,
-            workspaceId,
-            workspaceRole,
-          );
-        }
-
-        return this.toScimGroup(
+        // Replace membership with SCIM members (IdP is source of truth)
+        // Empty members list = clear all existing members
+        await this.updateTeamMembers(
           context,
-          updatedTeam || existingTeam,
-          workspaceId,
+          existingTeam.id,
+          orgId,
+          scimGroup.members || [],
         );
+
+        const adoptedTeam = updatedTeam || existingTeam;
+
+        this.emitGroupEvent(AppEvents.SCIM_GROUP_PROVISION, {
+          orgId,
+          team: adoptedTeam,
+          scimId: adoptedTeam.scim_external_id,
+          req: param.req,
+        });
+
+        return this.toScimGroup(context, adoptedTeam, orgId);
       }
 
       // RFC 7644 §3.3: Return 409 Conflict for duplicate resources
@@ -266,12 +186,12 @@ export class ScimGroupsService {
       );
     }
 
-    // Create new team — scim_external_id is server-assigned (immutable per RFC 7643)
+    // Create new team — use IdP externalId if provided, otherwise server UUID
     // (Team.insert returns the full record via metaGet)
     const team = await Team.insert(context, {
       title: scimGroup.displayName,
-      fk_workspace_id: workspaceId,
-      scim_external_id: uuidv4(),
+      fk_org_id: orgId,
+      scim_external_id: scimGroup.externalId || uuidv4(),
       scim_managed: true,
       scim_display_name: scimGroup.displayName,
       ...(scimGroup.externalId
@@ -281,25 +201,17 @@ export class ScimGroupsService {
 
     // Add members if provided
     if (scimGroup.members?.length) {
-      await this.updateTeamMembers(
-        context,
-        team.id,
-        workspaceId,
-        scimGroup.members,
-      );
+      await this.updateTeamMembers(context, team.id, orgId, scimGroup.members);
     }
 
-    // Assign workspace role if provided
-    if (workspaceRole) {
-      await this.assignWorkspaceRole(
-        context,
-        team.id,
-        workspaceId,
-        workspaceRole,
-      );
-    }
+    this.emitGroupEvent(AppEvents.SCIM_GROUP_PROVISION, {
+      orgId,
+      team,
+      scimId: team.scim_external_id,
+      req: param.req,
+    });
 
-    return this.toScimGroup(context, team, workspaceId);
+    return this.toScimGroup(context, team, orgId);
   }
 
   /**
@@ -308,14 +220,15 @@ export class ScimGroupsService {
   async updateGroup(
     context: NcContext,
     param: {
-      workspaceId: string;
+      orgId: string;
       scimId: string;
       scimGroup: any;
+      req: NcRequest;
     },
   ) {
-    const { workspaceId, scimId, scimGroup } = param;
+    const { orgId, scimId, scimGroup } = param;
 
-    const team = await Team.getByScimExternalId(context, workspaceId, scimId);
+    const team = await Team.getByScimExternalId(context, orgId, scimId);
 
     if (!team) {
       NcError.notFound('Group not found');
@@ -326,10 +239,16 @@ export class ScimGroupsService {
       const patchedTeam = await this.applyPatchOperations(
         context,
         team,
-        workspaceId,
+        orgId,
         scimGroup.Operations,
       );
-      return this.toScimGroup(context, patchedTeam || team, workspaceId);
+      this.emitGroupEvent(AppEvents.SCIM_GROUP_UPDATE, {
+        orgId,
+        team: patchedTeam || team,
+        scimId: scimId,
+        req: param.req,
+      });
+      return this.toScimGroup(context, patchedTeam || team, orgId);
     }
 
     // Fallback: handle direct attribute updates (non-standard but some IdPs use it)
@@ -349,23 +268,19 @@ export class ScimGroupsService {
       await this.updateTeamMembers(
         context,
         team.id,
-        workspaceId,
+        orgId,
         scimGroup.members || [],
       );
     }
 
-    // Handle workspace role from extension attribute
-    const workspaceRole = this.extractWorkspaceRole(scimGroup);
-    if (workspaceRole) {
-      await this.assignWorkspaceRole(
-        context,
-        team.id,
-        workspaceId,
-        workspaceRole,
-      );
-    }
+    this.emitGroupEvent(AppEvents.SCIM_GROUP_UPDATE, {
+      orgId,
+      team: updatedTeam,
+      scimId: scimId,
+      req: param.req,
+    });
 
-    return this.toScimGroup(context, updatedTeam, workspaceId);
+    return this.toScimGroup(context, updatedTeam, orgId);
   }
 
   /**
@@ -374,14 +289,15 @@ export class ScimGroupsService {
   async replaceGroup(
     context: NcContext,
     param: {
-      workspaceId: string;
+      orgId: string;
       scimId: string;
       scimGroup: any;
+      req: NcRequest;
     },
   ) {
-    const { workspaceId, scimId, scimGroup } = param;
+    const { orgId, scimId, scimGroup } = param;
 
-    const team = await Team.getByScimExternalId(context, workspaceId, scimId);
+    const team = await Team.getByScimExternalId(context, orgId, scimId);
 
     if (!team) {
       NcError.notFound('Group not found');
@@ -415,22 +331,18 @@ export class ScimGroupsService {
     await this.updateTeamMembers(
       context,
       team.id,
-      workspaceId,
+      orgId,
       scimGroup.members || [],
     );
 
-    // Update workspace role if provided in the extension
-    const workspaceRole = this.extractWorkspaceRole(scimGroup);
-    if (workspaceRole) {
-      await this.assignWorkspaceRole(
-        context,
-        team.id,
-        workspaceId,
-        workspaceRole,
-      );
-    }
+    this.emitGroupEvent(AppEvents.SCIM_GROUP_REPLACE, {
+      orgId,
+      team: updatedTeam,
+      scimId: scimId,
+      req: param.req,
+    });
 
-    return this.toScimGroup(context, updatedTeam, workspaceId);
+    return this.toScimGroup(context, updatedTeam, orgId);
   }
 
   /**
@@ -438,11 +350,11 @@ export class ScimGroupsService {
    */
   async deleteGroup(
     context: NcContext,
-    param: { workspaceId: string; scimId: string },
+    param: { orgId: string; scimId: string; req: NcRequest },
   ) {
     const team = await Team.getByScimExternalId(
       context,
-      param.workspaceId,
+      param.orgId,
       param.scimId,
     );
 
@@ -452,6 +364,13 @@ export class ScimGroupsService {
     }
 
     await Team.softDelete(context, team.id);
+
+    this.emitGroupEvent(AppEvents.SCIM_GROUP_DELETE, {
+      orgId: param.orgId,
+      team,
+      scimId: param.scimId,
+      req: param.req,
+    });
   }
 
   /**
@@ -460,7 +379,7 @@ export class ScimGroupsService {
   private async toScimGroup(
     context: NcContext,
     team: any,
-    workspaceId: string,
+    orgId: string,
     excludeMembers = false,
   ): Promise<any> {
     const scimMeta =
@@ -468,17 +387,8 @@ export class ScimGroupsService {
         ? team.scim_meta
         : {};
 
-    // Check if team has a workspace role assignment
-    const wsRole = await this.getWorkspaceRole(context, team.id, workspaceId);
-    const hasExtension = !!wsRole;
-
     const result: any = {
-      schemas: hasExtension
-        ? [
-            'urn:ietf:params:scim:schemas:core:2.0:Group',
-            NOCODB_GROUP_EXTENSION,
-          ]
-        : ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+      schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
       id: team.scim_external_id, // Server-assigned immutable ID
       ...(scimMeta.externalId ? { externalId: scimMeta.externalId } : {}),
       displayName: team.scim_display_name || team.title,
@@ -496,16 +406,9 @@ export class ScimGroupsService {
       },
     };
 
-    // Include the NocoDB extension with workspace role
-    if (wsRole && WORKSPACE_ROLE_TO_LABEL[wsRole]) {
-      result[NOCODB_GROUP_EXTENSION] = {
-        workspaceRole: WORKSPACE_ROLE_TO_LABEL[wsRole],
-      };
-    }
-
     if (!excludeMembers) {
       // Get team members
-      const members = await this.getTeamMembers(context, team.id, workspaceId);
+      const members = await this.getTeamMembers(context, team.id, orgId);
       result.members = members.map((member) => ({
         value: member.scim_external_id,
         $ref: `/scim/v2/Users/${member.scim_external_id}`,
@@ -529,12 +432,12 @@ export class ScimGroupsService {
   }
 
   /**
-   * Get team members (workspace users who are in the team)
+   * Get team members (org users who are in the team)
    */
   private async getTeamMembers(
     context: NcContext,
     teamId: string,
-    workspaceId: string,
+    orgId: string,
   ): Promise<any[]> {
     // Get team user assignments
     const assignments = await PrincipalAssignment.list(context, {
@@ -549,13 +452,13 @@ export class ScimGroupsService {
     // Include deactivated users — SCIM groups must reflect all assigned members
     const members = [];
     for (const userId of userIds) {
-      const wu = await WorkspaceUser.get(workspaceId, userId, {
+      const ou = await OrgUser.get(orgId, userId, {
         include_deleted: true,
       });
-      members.push(wu);
+      members.push(ou);
     }
 
-    return members.filter((wu) => wu && wu.scim_managed);
+    return members.filter((ou) => ou && ou.scim_managed);
   }
 
   /**
@@ -564,23 +467,29 @@ export class ScimGroupsService {
   private async updateTeamMembers(
     context: NcContext,
     teamId: string,
-    workspaceId: string,
+    orgId: string,
     scimMembers: any[],
   ) {
     // Get current members
-    const currentMembers = await this.getTeamMembers(
-      context,
-      teamId,
-      workspaceId,
-    );
+    const currentMembers = await this.getTeamMembers(context, teamId, orgId);
 
     // Lookup target members sequentially (uses indexed scim_external_id column)
     const targetMembers = [];
+    const unresolvedIds = [];
     for (const m of scimMembers) {
-      const wu = await WorkspaceUser.getByScimExternalId(workspaceId, m.value, {
+      const ou = await OrgUser.getByScimExternalId(orgId, m.value, {
         include_deleted: true,
       });
-      if (wu) targetMembers.push(wu);
+      if (ou) {
+        targetMembers.push(ou);
+      } else {
+        unresolvedIds.push(m.value);
+      }
+    }
+    if (unresolvedIds.length) {
+      this.logger.warn(
+        `SCIM group sync: ${unresolvedIds.length} member(s) not found in org — skipped: ${unresolvedIds.join(', ')}`,
+      );
     }
 
     const targetUserIds = new Set(targetMembers.map((tm) => tm.fk_user_id));
@@ -620,7 +529,7 @@ export class ScimGroupsService {
   private async applyPatchOperations(
     context: NcContext,
     team: any,
-    workspaceId: string,
+    orgId: string,
     operations: any[],
   ): Promise<any> {
     let latestTeam = team;
@@ -630,16 +539,11 @@ export class ScimGroupsService {
       // Handle member operations (path = "members" or "members[value eq ...]")
       if (op.path === 'members' || op.path?.startsWith('members[')) {
         if (opName === 'add') {
-          await this.addTeamMembers(context, team.id, workspaceId, op.value);
+          await this.addTeamMembers(context, team.id, orgId, op.value);
         } else if (opName === 'replace') {
           // Replace members entirely
           if (Array.isArray(op.value)) {
-            await this.updateTeamMembers(
-              context,
-              team.id,
-              workspaceId,
-              op.value,
-            );
+            await this.updateTeamMembers(context, team.id, orgId, op.value);
           }
         } else if (opName === 'remove') {
           if (op.path?.startsWith('members[')) {
@@ -648,17 +552,12 @@ export class ScimGroupsService {
               /members\[value\s+eq\s+"([^"]+)"\]/i,
             );
             if (filterMatch) {
-              await this.removeTeamMembers(context, team.id, workspaceId, [
+              await this.removeTeamMembers(context, team.id, orgId, [
                 { value: filterMatch[1] },
               ]);
             }
           } else if (op.value) {
-            await this.removeTeamMembers(
-              context,
-              team.id,
-              workspaceId,
-              op.value,
-            );
+            await this.removeTeamMembers(context, team.id, orgId, op.value);
           }
         }
       }
@@ -683,23 +582,6 @@ export class ScimGroupsService {
               externalId: op.value,
             };
           }
-          // Handle extension attribute path for workspaceRole
-          if (
-            op.path === `${NOCODB_GROUP_EXTENSION}:workspaceRole` &&
-            op.value
-          ) {
-            const role = this.extractWorkspaceRole({
-              [NOCODB_GROUP_EXTENSION]: { workspaceRole: op.value },
-            });
-            if (role) {
-              await this.assignWorkspaceRole(
-                context,
-                team.id,
-                workspaceId,
-                role,
-              );
-            }
-          }
         } else if (op.value && typeof op.value === 'object') {
           // Bulk replace: { op: "replace", value: { displayName: "...", externalId: "..." } }
           if (op.value.displayName) {
@@ -715,20 +597,6 @@ export class ScimGroupsService {
               ...currentMeta,
               externalId: op.value.externalId,
             };
-          }
-          // Handle extension in bulk replace value
-          if (op.value[NOCODB_GROUP_EXTENSION]?.workspaceRole) {
-            const role = this.extractWorkspaceRole({
-              [NOCODB_GROUP_EXTENSION]: op.value[NOCODB_GROUP_EXTENSION],
-            });
-            if (role) {
-              await this.assignWorkspaceRole(
-                context,
-                team.id,
-                workspaceId,
-                role,
-              );
-            }
           }
         }
 
@@ -747,7 +615,7 @@ export class ScimGroupsService {
   private async addTeamMembers(
     context: NcContext,
     teamId: string,
-    workspaceId: string,
+    orgId: string,
     members: any[],
   ) {
     // Get existing assignments to avoid duplicates
@@ -764,17 +632,15 @@ export class ScimGroupsService {
 
     // Lookup and insert members sequentially (uses indexed scim_external_id column)
     for (const member of members) {
-      const wu = await WorkspaceUser.getByScimExternalId(
-        workspaceId,
-        member.value,
-        { include_deleted: true },
-      );
-      if (wu && !existingUserIds.has(wu.fk_user_id)) {
+      const ou = await OrgUser.getByScimExternalId(orgId, member.value, {
+        include_deleted: true,
+      });
+      if (ou && !existingUserIds.has(ou.fk_user_id)) {
         await PrincipalAssignment.insert(context, {
           resource_type: ResourceType.TEAM,
           resource_id: teamId,
           principal_type: PrincipalType.USER,
-          principal_ref_id: wu.fk_user_id,
+          principal_ref_id: ou.fk_user_id,
           roles: 'member',
         });
       }
@@ -787,25 +653,57 @@ export class ScimGroupsService {
   private async removeTeamMembers(
     context: NcContext,
     teamId: string,
-    workspaceId: string,
+    orgId: string,
     members: any[],
   ) {
     // Lookup and delete members sequentially (uses indexed scim_external_id column)
     for (const member of members) {
-      const wu = await WorkspaceUser.getByScimExternalId(
-        workspaceId,
-        member.value,
-        { include_deleted: true },
-      );
-      if (wu) {
+      const ou = await OrgUser.getByScimExternalId(orgId, member.value, {
+        include_deleted: true,
+      });
+      if (ou) {
         await PrincipalAssignment.delete(
           context,
           ResourceType.TEAM,
           teamId,
           PrincipalType.USER,
-          wu.fk_user_id,
+          ou.fk_user_id,
         );
       }
     }
+  }
+
+  /**
+   * Fire-and-forget SCIM group audit event
+   */
+  private emitGroupEvent(
+    event:
+      | AppEvents.SCIM_GROUP_PROVISION
+      | AppEvents.SCIM_GROUP_UPDATE
+      | AppEvents.SCIM_GROUP_REPLACE
+      | AppEvents.SCIM_GROUP_DELETE,
+    param: {
+      orgId: string;
+      team: any;
+      scimId: string;
+      req: NcRequest;
+    },
+  ) {
+    Org.get(param.orgId)
+      .then((org) => {
+        if (!org) return;
+        this.appHooksService.emit(event, {
+          org,
+          team: param.team,
+          scimId: param.scimId,
+          req: param.req,
+        } as ScimGroupEvent);
+      })
+      .catch((e) => {
+        this.logger.error(
+          `Failed to emit SCIM group audit event: ${event}`,
+          e.stack,
+        );
+      });
   }
 }

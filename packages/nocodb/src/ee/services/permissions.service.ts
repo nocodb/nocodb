@@ -15,6 +15,7 @@ import {
 import type { NcContext, NcRequest } from '~/interface/config';
 import { Column, Model, Permission, WorkspaceUser } from '~/models';
 import { Team } from '~/models';
+import Workspace from '~/ee/models/Workspace';
 import Document from '~/ee/models/Document';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/ncError';
@@ -240,11 +241,27 @@ export class PermissionsService {
               );
             }
 
-            // Verify team belongs to the workspace
+            // Verify team belongs to the workspace or its parent org
             if (team.fk_workspace_id !== context.workspace_id) {
-              NcError.unprocessableEntity(
-                `Team with id '${subject.id}' does not belong to this workspace`,
-              );
+              let belongsToOrg = false;
+
+              if (team.fk_org_id) {
+                const workspace = await Workspace.get(
+                  context.workspace_id,
+                  false,
+                  ncMeta,
+                  false,
+                );
+                belongsToOrg =
+                  !!workspace?.fk_org_id &&
+                  workspace.fk_org_id === team.fk_org_id;
+              }
+
+              if (!belongsToOrg) {
+                NcError.unprocessableEntity(
+                  `Team with id '${subject.id}' does not belong to this workspace`,
+                );
+              }
             }
           }
         }

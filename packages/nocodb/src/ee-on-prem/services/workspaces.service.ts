@@ -2,6 +2,7 @@ import { WorkspacesService as WorkspacesServiceEE } from 'src/ee/services/worksp
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
+  EnterpriseOrgUserRoles,
   extractRolesObj,
   OrgUserRoles,
   PlanLimitTypes,
@@ -17,6 +18,8 @@ import { PaymentService } from '~/modules/payment/payment.service';
 import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Base, Workspace, WorkspaceUser } from '~/models';
+import OrgUser from '~/ee/models/OrgUser';
+import { MetaTable, NC_DEFAULT_ORG_ID } from '~/utils/globals';
 import Noco from '~/Noco';
 import {
   verifyDefaultWorkspace,
@@ -168,6 +171,32 @@ export class WorkspacesService extends WorkspacesServiceEE {
         NcError.forbidden(
           'Workspace creation is restricted. Only instance admin can create workspaces.',
         );
+      }
+    }
+
+    // Org role check: only Admin and Creator can create workspaces
+    // Viewer org role cannot create workspaces
+    if (Noco.isEE() && Noco.ncDefaultOrgId) {
+      const userRoles = extractRolesObj(param.user.roles);
+      if (!userRoles[OrgUserRoles.SUPER_ADMIN]) {
+        const orgId = Noco.ncDefaultOrgId;
+        const orgUser = await Noco.ncMeta
+          .knexConnection(MetaTable.ORG_USERS)
+          .where('fk_org_id', orgId)
+          .where('fk_user_id', param.user.id)
+          .where(function () {
+            this.where('deleted', false).orWhereNull('deleted');
+          })
+          .first();
+
+        if (
+          orgUser &&
+          orgUser.roles === EnterpriseOrgUserRoles.VIEWER
+        ) {
+          NcError.forbidden(
+            'Workspace creation is not allowed for viewer role. Contact your org admin.',
+          );
+        }
       }
     }
 

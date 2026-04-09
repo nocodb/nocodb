@@ -58,6 +58,24 @@ const permissionScopes = {
     'paymentSeatCount',
     'manageSubscription',
 
+    // Org-level team management
+    'orgTeamList',
+    'orgTeamTree',
+    'orgTeamCreate',
+    'orgTeamGet',
+    'orgTeamUpdate',
+    'orgTeamDelete',
+    'orgTeamMove',
+    'orgTeamMembersAdd',
+    'orgTeamMembersRemove',
+    'orgTeamMembersUpdate',
+
+    // SCIM Config (org-level)
+    'scimConfigGet',
+    'scimConfigCreate',
+    'scimConfigUpdate',
+    'scimConfigDelete',
+
     // etc
     'fetchViaUrl',
   ],
@@ -213,10 +231,6 @@ const permissionScopes = {
     'managedAppCreate',
 
     // SCIM Config
-    'scimConfigGet',
-    'scimConfigCreate',
-    'scimConfigUpdate',
-    'scimConfigDelete',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
@@ -601,7 +615,11 @@ const rolePermissions:
     },
   },
   [CloudOrgUserRoles.VIEWER]: {
-    include: {},
+    include: {
+      orgTeamList: true,
+      orgTeamTree: true,
+      orgTeamGet: true,
+    },
   },
   [OrgUserRoles.CREATOR]: {
     include: {
@@ -638,6 +656,21 @@ const rolePermissions:
 
       manageSubscription: true,
       paymentSeatCount: true,
+
+      // Org-level team management (List/Tree/Get inherited from CREATOR)
+      orgTeamCreate: true,
+      orgTeamUpdate: true,
+      orgTeamDelete: true,
+      orgTeamMembersAdd: true,
+      orgTeamMembersRemove: true,
+      orgTeamMembersUpdate: true,
+      orgTeamMove: true,
+
+      // SCIM Config
+      scimConfigGet: true,
+      scimConfigCreate: true,
+      scimConfigUpdate: true,
+      scimConfigDelete: true,
     },
   },
   [CloudOrgUserRoles.CREATOR]: {
@@ -689,10 +722,6 @@ const rolePermissions:
     exclude: {
       workspaceDelete: true,
       'cloud-org_manageSubscription': true,
-      scimConfigGet: true,
-      scimConfigCreate: true,
-      scimConfigUpdate: true,
-      scimConfigDelete: true,
     },
   },
   [WorkspaceUserRoles.OWNER]: {
@@ -1292,6 +1321,18 @@ const permissionDescriptions: Record<string, string> = {
   teamMembersAdd: 'add members to a team',
   teamMembersRemove: 'remove members from a team',
   teamMembersUpdate: 'update member roles in a team',
+
+  // Org-level team permissions
+  orgTeamList: 'view list of teams in the organization',
+  orgTeamTree: 'view team hierarchy tree in the organization',
+  orgTeamCreate: 'create a new team in the organization',
+  orgTeamGet: 'view org team details',
+  orgTeamUpdate: 'update org team details',
+  orgTeamDelete: 'delete a team from the organization',
+  orgTeamMove: 'move an org team to a different parent',
+  orgTeamMembersAdd: 'add members to an org team',
+  orgTeamMembersRemove: 'remove members from an org team',
+  orgTeamMembersUpdate: 'update member roles in an org team',
 
   // SCIM Config permissions
   scimConfigGet: 'view SCIM configuration',

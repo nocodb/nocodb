@@ -15,7 +15,8 @@ const { appInfo, isMobileMode } = useGlobal()
 
 const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
-const { isWsAuditEnabled, isPaymentEnabled, getFeature, handleUpgradePlan, showUpgradeToUseTeams, showEEFeatures } = useEeConfig()
+const { isWsAuditEnabled, isPaymentEnabled, getFeature, handleUpgradePlan, showUpgradeToUseTeams, showEEFeatures } =
+  useEeConfig()
 
 const hasTeamsEditPermission = computed(() => {
   return isEeUI && isTeamsEnabled.value && isUIAllowed('teamCreate')

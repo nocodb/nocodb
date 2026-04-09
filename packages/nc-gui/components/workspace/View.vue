@@ -16,6 +16,8 @@ const { hideSidebar, isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { isUIAllowed, isBaseRolesLoaded, loadRoles } = useRoles()
 
+const isAdminPanel = inject(IsAdminPanelInj, ref(false))
+
 const { appInfo, isMobileMode } = useGlobal()
 
 const workspaceStore = useWorkspace()
@@ -44,7 +46,7 @@ const { isFromIntegrationPage, integrationPaginationData, loadIntegrations } = u
 const integrationsSubTab = ref<string>('integrations')
 
 const hasTeamsEditPermission = computed(() => {
-  return isEeUI && isTeamsEnabled.value && isUIAllowed('teamCreate')
+  return isEeUI && isTeamsEnabled.value && (isAdminPanel.value || isUIAllowed('teamCreate'))
 })
 
 const currentWorkspace = computedAsync(async () => {
@@ -158,7 +160,7 @@ watch(
 
     await until(() => isBaseRolesLoaded.value).toBeTruthy()
 
-    if (!isUIAllowed('workspaceCollaborators') && showEEFeatures.value) {
+    if (!isAdminPanel.value && !isUIAllowed('workspaceCollaborators') && showEEFeatures.value) {
       tab.value = 'settings'
     } else if (
       (!isWsAuditEnabled.value && newTab === 'audits') ||
@@ -254,7 +256,7 @@ if (!props.isNewWsPage) {
       <template #leftExtra>
         <div class="w-3"></div>
       </template>
-      <template v-if="isUIAllowed('workspaceCollaborators')">
+      <template v-if="isAdminPanel || isUIAllowed('workspaceCollaborators')">
         <a-tab-pane key="collaborators" class="w-full h-full">
           <template #tab>
             <div class="tab-title">

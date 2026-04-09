@@ -6,11 +6,29 @@ export enum OrgUserRoles {
   VIEWER = 'org-level-viewer',
 }
 
-export enum CloudOrgUserRoles {
+/**
+ * Enterprise org-level roles.
+ *
+ * ADMIN was originally named OWNER in cloud (stored as 'cloud-org-level-owner'
+ * in the DB). Renamed to ADMIN because "Admin" better describes the role —
+ * it's not a billing/subscription owner, it's an org administrator.
+ *
+ * OWNER is kept as a deprecated alias because cloud code references
+ * CloudOrgUserRoles.OWNER in ~20 places. Both map to the same DB value.
+ * New code should use ADMIN.
+ */
+export enum EnterpriseOrgUserRoles {
+  ADMIN = 'cloud-org-level-owner',
+  /** @deprecated Use ADMIN — kept for cloud backward compat only */
+  OWNER = 'cloud-org-level-owner',
   CREATOR = 'cloud-org-level-creator',
   VIEWER = 'cloud-org-level-viewer',
-  OWNER = 'cloud-org-level-owner',
 }
+
+/** @deprecated Use EnterpriseOrgUserRoles instead */
+export const CloudOrgUserRoles = EnterpriseOrgUserRoles;
+/** @deprecated Use EnterpriseOrgUserRoles instead */
+export type CloudOrgUserRoles = EnterpriseOrgUserRoles;
 
 export enum ProjectRoles {
   OWNER = 'owner',
@@ -67,6 +85,10 @@ export enum AppEvents {
   SCIM_USER_DEACTIVATE = 'scim.user.deactivate',
   SCIM_USER_REACTIVATE = 'scim.user.reactivate',
   SCIM_USER_DELETE = 'scim.user.delete',
+  SCIM_GROUP_PROVISION = 'scim.group.provision',
+  SCIM_GROUP_UPDATE = 'scim.group.update',
+  SCIM_GROUP_REPLACE = 'scim.group.replace',
+  SCIM_GROUP_DELETE = 'scim.group.delete',
 
   USER_SIGNUP = 'user.signup',
   USER_SIGNIN = 'user.signin',
@@ -117,6 +139,12 @@ export enum AppEvents {
 
   ORG_USER_INVITE = 'org.user.invite',
   ORG_USER_RESEND_INVITE = 'org.user.resend.invite',
+  ORG_USER_UPDATE = 'org.user.update',
+  ORG_USER_DELETE = 'org.user.delete',
+  ORG_USER_ADD = 'org.user.add',
+  ORG_USER_REMOVE = 'org.user.remove',
+  ORG_WORKSPACE_ADD = 'org.workspace.add',
+  ORG_WORKSPACE_REMOVE = 'org.workspace.remove',
 
   VIEW_COLUMN_CREATE = 'view.column.create',
   VIEW_COLUMN_UPDATE = 'view.column.update',
@@ -353,9 +381,9 @@ export const RoleLabels = {
   [OrgUserRoles.SUPER_ADMIN]: 'superAdmin',
   [OrgUserRoles.CREATOR]: 'creator',
   [OrgUserRoles.VIEWER]: 'viewer',
-  [CloudOrgUserRoles.OWNER]: 'owner',
-  [CloudOrgUserRoles.CREATOR]: 'creator',
-  [CloudOrgUserRoles.VIEWER]: 'viewer',
+  [CloudOrgUserRoles.OWNER]: 'orgAdmin',
+  [CloudOrgUserRoles.CREATOR]: 'orgCreator',
+  [CloudOrgUserRoles.VIEWER]: 'orgViewer',
 };
 
 export const RoleColors = {
@@ -663,3 +691,6 @@ export enum MapProvider {
   STADIAMAP = 'stadiamap',
   STADIAMAP_APIKEY = 'stadiamap_apikey',
 }
+
+/** Default org ID for on-prem deployments */
+export const NC_DEFAULT_ORG_ID = 'org_default';

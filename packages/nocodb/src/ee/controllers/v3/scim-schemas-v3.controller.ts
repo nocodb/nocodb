@@ -17,7 +17,7 @@ import { ScimContentTypeInterceptor } from '~/ee/interceptors/scim-content-type/
 export class ScimSchemasController {
   constructor(private readonly scimSchemasService: ScimSchemasService) {}
 
-  @Get('/api/v3/meta/workspaces/:workspaceId/scim/v2/Schemas')
+  @Get('/api/v3/meta/orgs/:orgId/scim/v2/Schemas')
   async getSchemas() {
     // Discovery endpoints return static schema definitions — no plan check needed.
     // Authentication via ScimAuthGuard ensures only valid SCIM clients can access.

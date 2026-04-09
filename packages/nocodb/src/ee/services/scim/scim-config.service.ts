@@ -1,9 +1,13 @@
 import { randomBytes } from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
+import { EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import ScimConfig from '~/ee/models/ScimConfig';
+import { MetaTable } from '~/utils/globals';
+import Team from '~/ee/models/Team';
+import Noco from '~/Noco';
 
 const BCRYPT_ROUNDS = 10;
 
@@ -16,25 +20,25 @@ export class ScimConfigService {
   /**
    * Construct SCIM base URL at runtime from the request
    */
-  private getBaseUrl(ncSiteUrl: string, workspaceId: string): string {
-    return `${ncSiteUrl}/api/v3/meta/workspaces/${workspaceId}/scim/v2`;
+  private getBaseUrl(ncSiteUrl: string, orgId: string): string {
+    return `${ncSiteUrl}/api/v3/meta/orgs/${orgId}/scim/v2`;
   }
 
   async getConfig(
     context: NcContext,
-    workspaceId: string,
+    orgId: string,
     { ncSiteUrl }: { ncSiteUrl: string },
   ) {
-    const config = await ScimConfig.get(context, workspaceId);
+    const config = await ScimConfig.get(context, orgId);
 
     if (!config) {
-      NcError.notFound('SCIM configuration not found for this workspace');
+      NcError.notFound('SCIM configuration not found for this organization');
     }
 
     // Don't expose the full provisioning_token in the response
     return {
       ...config,
-      base_url: this.getBaseUrl(ncSiteUrl, workspaceId),
+      base_url: this.getBaseUrl(ncSiteUrl, orgId),
       provisioning_token: config.provisioning_token ? '******' : null,
       token_exists: !!config.provisioning_token,
     };
@@ -43,15 +47,15 @@ export class ScimConfigService {
   async initializeConfig(
     context: NcContext,
     param: {
-      workspaceId: string;
+      orgId: string;
       ncSiteUrl: string;
     },
   ) {
     // Check if config already exists
-    const existingConfig = await ScimConfig.get(context, param.workspaceId);
+    const existingConfig = await ScimConfig.get(context, param.orgId);
 
     if (existingConfig) {
-      NcError.badRequest('SCIM is already configured for this workspace');
+      NcError.badRequest('SCIM is already configured for this organization');
     }
 
     // Generate secure provisioning token and hash before storage
@@ -59,32 +63,34 @@ export class ScimConfigService {
     const hashedToken = await bcrypt.hash(provisioningToken, BCRYPT_ROUNDS);
 
     const config = await ScimConfig.insert(context, {
-      fk_workspace_id: param.workspaceId,
+      fk_org_id: param.orgId,
       enabled: false, // Start disabled until user activates
       provisioning_token: hashedToken,
       role_mapping: {}, // Default empty role mapping
+      default_role: EnterpriseOrgUserRoles.VIEWER,
     });
 
     return {
       id: config.id,
       enabled: config.enabled,
-      base_url: this.getBaseUrl(param.ncSiteUrl, param.workspaceId),
+      base_url: this.getBaseUrl(param.ncSiteUrl, param.orgId),
       provisioning_token: provisioningToken, // Return plaintext only on creation
       role_mapping: config.role_mapping,
+      default_role: config.default_role,
     };
   }
 
-  async regenerateToken(context: NcContext, workspaceId: string) {
-    const config = await ScimConfig.get(context, workspaceId);
+  async regenerateToken(context: NcContext, orgId: string) {
+    const config = await ScimConfig.get(context, orgId);
 
     if (!config) {
-      NcError.notFound('SCIM configuration not found for this workspace');
+      NcError.notFound('SCIM configuration not found for this organization');
     }
 
     const newToken = this.generateProvisioningToken();
     const hashedToken = await bcrypt.hash(newToken, BCRYPT_ROUNDS);
 
-    await ScimConfig.update(context, workspaceId, {
+    await ScimConfig.update(context, orgId, {
       provisioning_token: hashedToken,
     });
 
@@ -93,62 +99,108 @@ export class ScimConfigService {
     };
   }
 
+  // Roles that can be assigned via SCIM default_role — never owner
+  private static ALLOWED_DEFAULT_ROLES = new Set([
+    EnterpriseOrgUserRoles.VIEWER,
+
+    EnterpriseOrgUserRoles.CREATOR,
+  ]);
+
   async updateConfig(
     context: NcContext,
     param: {
-      workspaceId: string;
+      orgId: string;
       ncSiteUrl: string;
       config: {
         enabled?: boolean;
+        default_role?: string;
         role_mapping?: Record<string, any>;
       };
     },
   ) {
-    const existingConfig = await ScimConfig.get(context, param.workspaceId);
+    const existingConfig = await ScimConfig.get(context, param.orgId);
 
     if (!existingConfig) {
-      NcError.notFound('SCIM configuration not found for this workspace');
+      NcError.notFound('SCIM configuration not found for this organization');
     }
 
-    await ScimConfig.update(context, param.workspaceId, param.config);
+    // Validate default_role against allowed roles (#6 — prevent privilege escalation)
+    if (
+      param.config.default_role &&
+      !ScimConfigService.ALLOWED_DEFAULT_ROLES.has(
+        param.config.default_role as EnterpriseOrgUserRoles,
+      )
+    ) {
+      NcError.badRequest(
+        `Invalid default role: ${param.config.default_role}. Allowed: ${[
+          ...ScimConfigService.ALLOWED_DEFAULT_ROLES,
+        ].join(', ')}`,
+      );
+    }
 
-    return this.getConfig(context, param.workspaceId, {
+    await ScimConfig.update(context, param.orgId, param.config);
+
+    return this.getConfig(context, param.orgId, {
       ncSiteUrl: param.ncSiteUrl,
     });
   }
 
-  async disableScim(context: NcContext, workspaceId: string) {
-    const config = await ScimConfig.get(context, workspaceId);
+  async disableScim(context: NcContext, orgId: string) {
+    const config = await ScimConfig.get(context, orgId);
 
     if (!config) {
-      NcError.notFound('SCIM configuration not found for this workspace');
+      NcError.notFound('SCIM configuration not found for this organization');
     }
 
-    await ScimConfig.update(context, workspaceId, {
+    await ScimConfig.update(context, orgId, {
       enabled: false,
     });
 
     return { message: 'SCIM provisioning disabled successfully' };
   }
 
-  async deleteConfig(context: NcContext, workspaceId: string) {
-    const config = await ScimConfig.get(context, workspaceId);
+  async deleteConfig(context: NcContext, orgId: string) {
+    const config = await ScimConfig.get(context, orgId);
 
     if (!config) {
-      NcError.notFound('SCIM configuration not found for this workspace');
+      NcError.notFound('SCIM configuration not found for this organization');
     }
 
-    await ScimConfig.delete(context, workspaceId);
+    await ScimConfig.delete(context, orgId);
+
+    // Clear scim_managed flag on org users and org teams
+    // so they become manageable again after SCIM is disconnected.
+    const ncMeta = Noco.ncMeta;
+
+    // Clear scim_managed and scim_external_id on org users
+    // so stale IDs from a previous provider don't conflict on reconnect
+    await ncMeta
+      .knexConnection(MetaTable.ORG_USERS)
+      .where('fk_org_id', orgId)
+      .where('scim_managed', true)
+      .update({ scim_managed: false, scim_external_id: null });
+
+    // Clear scim_managed on org teams
+    const scimTeamRows = await Team.list(context, {
+      fk_org_id: orgId,
+    });
+
+    for (const team of scimTeamRows.filter((t) => t.scim_managed)) {
+      await Team.update(context, team.id, {
+        scim_managed: false,
+        scim_external_id: null,
+      });
+    }
 
     return { message: 'SCIM configuration deleted successfully' };
   }
 
   async validateToken(
     context: NcContext,
-    workspaceId: string,
+    orgId: string,
     token: string,
   ): Promise<boolean> {
-    const config = await ScimConfig.get(context, workspaceId);
+    const config = await ScimConfig.get(context, orgId);
 
     if (!config || !config.enabled) {
       return false;

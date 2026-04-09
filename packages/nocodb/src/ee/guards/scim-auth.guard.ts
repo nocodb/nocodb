@@ -9,18 +9,19 @@ export class ScimAuthGuard extends AuthGuard('scim-bearer') {
     const request = context.switchToHttp().getRequest();
 
     // Extract workspace ID from route params
-    const workspaceId = request.params.workspaceId;
+    const orgId = request.params.orgId;
 
-    if (!workspaceId) {
-      throw NcError.badRequest('Workspace ID is required');
+    if (!orgId) {
+      throw NcError.badRequest('Organization ID is required');
     }
 
     // Store workspace ID for strategy access
-    request.workspaceId = workspaceId;
+    request.orgId = orgId;
 
     // Set request.context so @TenantContext() decorator works for SCIM controllers
     request.context = {
-      workspace_id: workspaceId,
+      org_id: orgId,
+      workspace_id: null,
       base_id: null,
     };
 

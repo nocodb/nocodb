@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { EnterpriseOrgUserRoles } from 'nocodb-sdk'
 import type { RequestParams, UserType } from 'nocodb-sdk'
 
 const { api, isLoading } = useApi()
@@ -10,13 +11,32 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
+
 const { dashboardUrl } = useDashboard()
 
-const { user: loggedInUser } = useGlobal()
+const { appInfo, user: loggedInUser } = useGlobal()
 
 const { copy } = useCopy()
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateUserSort } = useUserSorts('Org')
+
+const updateOrgRole = async (user: UserType, newRole: string) => {
+  try {
+    const orgId = appInfo.value?.defaultOrgId || NC_DEFAULT_ORG_ID
+    await api.instance.patch(`/api/v1/orgs/${orgId}/users/${user.id}`, { org_role: newRole })
+
+    // Update reactively by replacing the user object in the array
+    const idx = users.value.findIndex((u) => u.id === user.id)
+    if (idx !== -1) {
+      users.value[idx] = { ...users.value[idx], org_roles: newRole } as any
+    }
+
+    message.success(t('msg.success.roleUpdated'))
+    $e('a:org-user:role-update', { role: newRole })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
 
 const users = ref<UserType[]>([])
 
@@ -74,7 +94,12 @@ const deleteModalInfo = ref<UserType | null>(null)
 
 const deleteUser = async () => {
   try {
-    await api.orgUsers.delete(deleteModalInfo.value?.id as string)
+    if (hasOrgRoles.value) {
+      const orgId = appInfo.value?.defaultOrgId || NC_DEFAULT_ORG_ID
+      await api.instance.delete(`/api/v1/orgs/${orgId}/users/${deleteModalInfo.value?.id}`)
+    } else {
+      await api.orgUsers.delete(deleteModalInfo.value?.id as string)
+    }
     message.success(t('msg.success.userDeleted'))
 
     await loadUsers()
@@ -164,22 +189,53 @@ const orderBy = computed<Record<string, SordDirectionType>>({
   },
 })
 
-const columns = [
-  {
-    key: 'email',
-    title: t('objects.users'),
-    minWidth: 220,
-    dataIndex: 'email',
-    showOrderBy: true,
-  },
-  {
+const hasOrgRoles = computed(() => appInfo.value?.isOnPrem && appInfo.value?.ee)
+
+const orgAllowedRoles = computed(() => {
+  return [EnterpriseOrgUserRoles.VIEWER, EnterpriseOrgUserRoles.CREATOR, EnterpriseOrgUserRoles.ADMIN]
+})
+
+const onOrgRoleChange = (user: UserType) => async (role: string) => {
+  await updateOrgRole(user, role)
+}
+
+const columns = computed(() => {
+  const cols: NcTableColumnProps[] = [
+    {
+      key: 'email',
+      title: t('objects.members'),
+      minWidth: 220,
+      dataIndex: 'email',
+      showOrderBy: true,
+    },
+  ]
+
+  if (hasOrgRoles.value) {
+    cols.push({
+      key: 'org_roles',
+      title: t('labels.orgRole'),
+      basis: '25%',
+      minWidth: 200,
+    })
+  }
+
+  cols.push({
+    key: 'created_at',
+    title: t('title.dateJoined'),
+    basis: '25%',
+    minWidth: 200,
+  })
+
+  cols.push({
     key: 'action',
     title: t('labels.actions'),
     width: 110,
     minWidth: 110,
     justify: 'justify-end',
-  },
-] as NcTableColumnProps[]
+  })
+
+  return cols
+})
 </script>
 
 <template>
@@ -196,7 +252,7 @@ const columns = [
     </NcPageHeader>
     <div class="nc-content-max-w p-6 h-[calc(100vh_-_100px)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
       <div class="h-full">
-        <div class="max-w-195 mx-auto h-full">
+        <div class="h-full">
           <div class="flex gap-4 items-center justify-between">
             <a-input
               v-model:value="searchText"
@@ -223,33 +279,63 @@ const columns = [
             :columns="columns"
             :data="sortedUsers"
             :is-data-loading="isLoading"
-            class="h-[calc(100%-58px)] max-w-250 mt-6"
+            class="h-[calc(100%-58px)] mt-6"
           >
             <template #bodyCell="{ column, record: el }">
-              <div v-if="column.key === 'email'" class="w-full flex items-center gap-2">
-                <NcTooltip v-if="el.display_name" class="truncate max-w-full">
-                  <template #title>
+              <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center">
+                <GeneralUserIcon size="base" :user="el" class="flex-none" />
+                <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
+                  <div class="flex items-center gap-1">
+                    <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize font-semibold" show-on-truncate-only>
+                      <template #title>
+                        {{ el.display_name || el.email.slice(0, el.email.indexOf('@')) }}
+                      </template>
+                      {{ el.display_name || el.email.slice(0, el.email.indexOf('@')) }}
+                    </NcTooltip>
+                    <NcBadge
+                      v-if="el.roles?.includes('super')"
+                      :border="false"
+                      color="purple"
+                      class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+                    >
+                      {{ $t('objects.roleType.superAdmin') }}
+                    </NcBadge>
+                    <NcTooltip v-if="el.scim_managed" :title="$t('labels.scimManagedUserTooltip')" class="flex items-center">
+                      <NcBadge
+                        :border="false"
+                        color="blue"
+                        class="text-nc-content-blue-dark text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+                      >
+                        {{ $t('labels.scimManaged') }}
+                      </NcBadge>
+                    </NcTooltip>
+                  </div>
+                  <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-subtle2" show-on-truncate-only>
+                    <template #title>
+                      {{ el.email }}
+                    </template>
                     {{ el.email }}
-                  </template>
-                  {{ el.display_name }}
-                </NcTooltip>
-
-                <NcTooltip v-else class="truncate max-w-full" show-on-truncate-only>
+                  </NcTooltip>
+                </div>
+              </div>
+              <div v-if="column.key === 'org_roles'" class="flex items-center">
+                <RolesSelectorV2
+                  :on-role-change="onOrgRoleChange(el)"
+                  :role="el.org_roles || EnterpriseOrgUserRoles.VIEWER"
+                  :roles="orgAllowedRoles"
+                  class="cursor-pointer"
+                  data-testid="nc-org-role-select"
+                />
+              </div>
+              <div v-if="column.key === 'created_at'">
+                <NcTooltip class="max-w-full">
                   <template #title>
-                    {{ el.email }}
+                    {{ parseStringDateTime(el.created_at) }}
                   </template>
-                  {{ el.email }}
+                  <span>
+                    {{ timeAgo(el.created_at) }}
+                  </span>
                 </NcTooltip>
-
-                <NcBadge
-                  v-if="el.roles?.includes('super')"
-                  :border="false"
-                  color="purple"
-                  class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
-                  data-rec="true"
-                >
-                  {{ $t('objects.roleType.admin') }}
-                </NcBadge>
               </div>
               <div v-if="column.key === 'action'" class="flex items-center gap-2">
                 <NcDropdown :trigger="['click']" placement="bottomRight">
@@ -289,10 +375,16 @@ const columns = [
                         </NcMenuItem>
                         <template v-if="el.id !== loggedInUser?.id">
                           <NcDivider v-if="!el.roles?.includes('super')" />
-                          <NcMenuItem data-rec="true" danger @click="openDeleteModal(el)">
-                            <MaterialSymbolsDeleteOutlineRounded />
-                            {{ $t('general.remove') }} {{ $t('objects.user') }}
-                          </NcMenuItem>
+                          <NcTooltip
+                            :disabled="!el.scim_managed"
+                            :title="$t('labels.scimManagedRemovalTooltip')"
+                            placement="left"
+                          >
+                            <NcMenuItem :disabled="el.scim_managed" data-rec="true" danger @click="openDeleteModal(el)">
+                              <MaterialSymbolsDeleteOutlineRounded />
+                              {{ $t('general.remove') }} {{ $t('objects.user') }}
+                            </NcMenuItem>
+                          </NcTooltip>
                         </template>
                       </template>
                     </NcMenu>

@@ -9,11 +9,12 @@ import {
   Post,
   Put,
   Query,
+  Req,
   UseFilters,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { PlanFeatureTypes } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { NcContext } from '~/interface/config';
 import { ScimGroupsService } from '~/ee/services/scim/scim-groups.service';
 import { ScimAuthGuard } from '~/ee/guards/scim-auth.guard';
@@ -21,8 +22,6 @@ import { ScimExceptionFilter } from '~/ee/filters/scim-exception/scim-exception.
 import { ScimContentTypeInterceptor } from '~/ee/interceptors/scim-content-type/scim-content-type.interceptor';
 import { ScimApiLimiterGuard } from '~/ee/guards/scim-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
-import { checkForFeature } from '~/ee/helpers/paymentHelpers';
-import { isCloud, isOnPrem } from '~/utils';
 import { NcError } from '~/helpers/catchError';
 
 @Controller()
@@ -32,10 +31,10 @@ import { NcError } from '~/helpers/catchError';
 export class ScimGroupsController {
   constructor(private readonly scimGroupsService: ScimGroupsService) {}
 
-  private async checkScimFeature(context: NcContext) {
-    if (isCloud || isOnPrem) {
-      await checkForFeature(context, PlanFeatureTypes.FEATURE_SCIM);
-    }
+  private async checkScimFeature(_context: NcContext) {
+    // SCIM is available on licensed on-prem (license checked by LicenseGuard)
+    // and on cloud enterprise orgs. No workspace-level plan check needed
+    // since SCIM is now org-scoped.
   }
 
   private validateScimPayload(body: any) {
@@ -44,25 +43,25 @@ export class ScimGroupsController {
     }
   }
 
-  @Get('/api/v3/meta/workspaces/:workspaceId/scim/v2/Groups/:groupId')
+  @Get('/api/v3/meta/orgs/:orgId/scim/v2/Groups/:groupId')
   async getGroup(
     @TenantContext() context: NcContext,
-    @Param('workspaceId') workspaceId: string,
+    @Param('orgId') orgId: string,
     @Param('groupId') groupId: string,
     @Query('excludedAttributes') excludedAttributes?: string,
   ) {
     await this.checkScimFeature(context);
     return this.scimGroupsService.getGroup(context, {
-      workspaceId,
+      orgId,
       scimId: groupId,
       excludedAttributes,
     });
   }
 
-  @Get('/api/v3/meta/workspaces/:workspaceId/scim/v2/Groups')
+  @Get('/api/v3/meta/orgs/:orgId/scim/v2/Groups')
   async listGroups(
     @TenantContext() context: NcContext,
-    @Param('workspaceId') workspaceId: string,
+    @Param('orgId') orgId: string,
     @Query('filter') filter?: string,
     @Query('startIndex') startIndex?: string,
     @Query('count') count?: string,
@@ -72,7 +71,7 @@ export class ScimGroupsController {
   ) {
     await this.checkScimFeature(context);
     return this.scimGroupsService.listGroups(context, {
-      workspaceId,
+      orgId,
       filter,
       startIndex: startIndex ? parseInt(startIndex, 10) : 1,
       count: count ? parseInt(count, 10) : 100,
@@ -82,64 +81,72 @@ export class ScimGroupsController {
     });
   }
 
-  @Post('/api/v3/meta/workspaces/:workspaceId/scim/v2/Groups')
+  @Post('/api/v3/meta/orgs/:orgId/scim/v2/Groups')
   @HttpCode(201)
   async createGroup(
     @TenantContext() context: NcContext,
-    @Param('workspaceId') workspaceId: string,
+    @Param('orgId') orgId: string,
     @Body() scimGroup: any,
+    @Req() req: NcRequest,
   ) {
     await this.checkScimFeature(context);
     this.validateScimPayload(scimGroup);
     return this.scimGroupsService.createGroup(context, {
-      workspaceId,
+      orgId,
       scimGroup,
+      req,
     });
   }
 
-  @Put('/api/v3/meta/workspaces/:workspaceId/scim/v2/Groups/:groupId')
+  @Put('/api/v3/meta/orgs/:orgId/scim/v2/Groups/:groupId')
   async replaceGroup(
     @TenantContext() context: NcContext,
-    @Param('workspaceId') workspaceId: string,
+    @Param('orgId') orgId: string,
     @Param('groupId') groupId: string,
     @Body() scimGroup: any,
+    @Req() req: NcRequest,
   ) {
     await this.checkScimFeature(context);
     this.validateScimPayload(scimGroup);
     return this.scimGroupsService.replaceGroup(context, {
-      workspaceId,
+      orgId,
       scimId: groupId,
       scimGroup,
+      req,
     });
   }
 
-  @Patch('/api/v3/meta/workspaces/:workspaceId/scim/v2/Groups/:groupId')
+  @Patch('/api/v3/meta/orgs/:orgId/scim/v2/Groups/:groupId')
   async updateGroup(
     @TenantContext() context: NcContext,
-    @Param('workspaceId') workspaceId: string,
+    @Param('orgId') orgId: string,
     @Param('groupId') groupId: string,
     @Body() scimGroup: any,
+    @Req() req: NcRequest,
   ) {
     await this.checkScimFeature(context);
     this.validateScimPayload(scimGroup);
     return this.scimGroupsService.updateGroup(context, {
-      workspaceId,
+      orgId,
       scimId: groupId,
       scimGroup,
+      req,
     });
   }
 
-  @Delete('/api/v3/meta/workspaces/:workspaceId/scim/v2/Groups/:groupId')
+  @Delete('/api/v3/meta/orgs/:orgId/scim/v2/Groups/:groupId')
   @HttpCode(204)
   async deleteGroup(
     @TenantContext() context: NcContext,
-    @Param('workspaceId') workspaceId: string,
+    @Param('orgId') orgId: string,
     @Param('groupId') groupId: string,
+    @Req() req: NcRequest,
   ) {
     await this.checkScimFeature(context);
     return this.scimGroupsService.deleteGroup(context, {
-      workspaceId,
+      orgId,
       scimId: groupId,
+      req,
     });
   }
 }

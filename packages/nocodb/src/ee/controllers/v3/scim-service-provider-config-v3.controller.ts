@@ -19,7 +19,7 @@ export class ScimServiceProviderConfigController {
     private readonly scimServiceProviderConfigService: ScimServiceProviderConfigService,
   ) {}
 
-  @Get('/api/v3/meta/workspaces/:workspaceId/scim/v2/ServiceProviderConfig')
+  @Get('/api/v3/meta/orgs/:orgId/scim/v2/ServiceProviderConfig')
   async getServiceProviderConfig() {
     // Discovery endpoints return static config — no plan check needed.
     return this.scimServiceProviderConfigService.getServiceProviderConfig();

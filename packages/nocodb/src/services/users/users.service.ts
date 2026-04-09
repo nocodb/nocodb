@@ -17,6 +17,7 @@ import {
   ensureUserInDefaultWorkspace,
   verifyDefaultWorkspace,
 } from '~/helpers/verifyDefaultWorkspace';
+import { ensureUserInDefaultOrg } from '~/helpers/verifyDefaultOrg';
 import { isEE, isOnPrem, T } from '~/utils';
 import {
   clearAuthCookie,
@@ -190,6 +191,7 @@ export class UsersService {
     // so on-prem also needs workspace + base creation here.
     if (isFirstUser && (!isEE || isOnPrem)) {
       await verifyDefaultWorkspace(user, ncMeta);
+      await ensureUserInDefaultOrg(user.id, undefined, ncMeta);
 
       // todo: update swagger type
       (user as any).createdProject = await this.createDefaultProject(
@@ -202,6 +204,7 @@ export class UsersService {
       // Workspace invites set the role explicitly via the invite flow;
       // org invites call ensureUserInDefaultWorkspace separately.
       await ensureUserInDefaultWorkspace(user.id, undefined, ncMeta);
+      await ensureUserInDefaultOrg(user.id, undefined, ncMeta);
     }
 
     // todo: update swagger type

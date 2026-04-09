@@ -8,11 +8,14 @@ import { apiTokenPermissionTest } from './apiTokenPermission.test';
 
 let dashboardV3ConfigTransformTest = () => {};
 let dateDependencyHelperTests = () => {};
+let verifyDefaultOrgTests = () => {};
 if (process.env.EE === 'true') {
   dashboardV3ConfigTransformTest =
     require('./ee/dashboardV3ConfigTransform.test').dashboardV3ConfigTransformTest;
   dateDependencyHelperTests =
     require('./ee/dateDependencyHelper.test').dateDependencyHelperTests;
+  verifyDefaultOrgTests =
+    require('./ee/verifyDefaultOrg.test').verifyDefaultOrgTests;
 }
 
 function _helperTests() {
@@ -24,6 +27,7 @@ function _helperTests() {
   planResolutionTests();
   describe('PublicDatasService - shared view column sanitization', publicDatasSanitizeTest);
   apiTokenPermissionTest();
+  verifyDefaultOrgTests();
 }
 export const helperTests = runOnSet(1, function () {
   describe('helpersTest', _helperTests);

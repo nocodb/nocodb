@@ -504,7 +504,14 @@ export default class User extends UserCE implements UserType {
             ? { [WorkspaceUserRoles.OWNER]: true }
             : null,
         base_roles: args.baseId ? { [ProjectRoles.OWNER]: true } : null,
-        org_roles: args.orgId ? { [OrgUserRoles.SUPER_ADMIN]: true } : null,
+        org_roles: args.orgId
+          ? {
+              [OrgUserRoles.SUPER_ADMIN]: true,
+              ...(await OrgUser.get(args.orgId, user.id, {}, ncMeta)
+                .then((ou) => (ou?.roles ? extractRolesObj(ou.roles) : {}))
+                .catch(() => ({}))),
+            }
+          : null,
         teams: [],
         base_teams: [],
       } as any;
@@ -579,7 +586,7 @@ export default class User extends UserCE implements UserType {
       // extract org level roles
       new Promise((resolve) => {
         if (args.orgId) {
-          OrgUser.get(args.orgId, user.id, ncMeta)
+          OrgUser.get(args.orgId, user.id, {}, ncMeta)
             .then(async (orgUser) => {
               const roles = orgUser?.roles;
               if (roles) {

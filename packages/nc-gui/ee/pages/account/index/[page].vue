@@ -9,6 +9,7 @@ const { appInfo } = useGlobal()
     <AccountMcp v-else-if="$route.params.page === 'mcp'" />
     <AccountExternalIntegrations v-else-if="$route.params.page === 'external-integrations'" />
     <AccountAppStore v-else-if="$route.params.page === 'apps' && !appInfo.isCloud" />
+    <AccountTeams v-else-if="$route.params.page === 'teams'" />
     <AccountLicense v-else-if="$route.params.page === 'license'" />
     <AccountAuthentication v-else-if="$route.params.page === 'authentication'" />
     <AccountOAuthClients v-else-if="$route.params.page === 'oauth-clients'" />

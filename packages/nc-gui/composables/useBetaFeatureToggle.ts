@@ -178,16 +178,6 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'scim',
-    title: 'SCIM Provisioning',
-    description: 'Enable SCIM v2.0 for automatic user and group provisioning from identity providers.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
-    isAdvanced: true,
-    isEE: true,
-  },
-  {
     id: 'presence_visibility_toggle',
     title: 'Presence Visibility Toggle',
     description: 'Allow users to hide their own presence from other collaborators.',

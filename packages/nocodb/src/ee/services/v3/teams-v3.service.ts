@@ -7,6 +7,7 @@ import {
   TeamUserRoles,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
+import { EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   TeamCreateV3ReqType,
@@ -32,8 +33,12 @@ import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
 import { PaymentService } from '~/modules/payment/payment.service';
 import { NcError } from '~/helpers/catchError';
+import { isOnPrem } from '~/utils';
 import { PrincipalAssignment, Team } from '~/models';
 import { User, Workspace } from '~/models';
+import Org from '~/models/Org';
+import OrgUser from '~/ee/models/OrgUser';
+import WorkspaceUser from '~/models/WorkspaceUser';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
@@ -62,6 +67,9 @@ export class TeamsV3Service {
    * If not, it throws an error indicating that the feature is only available on paid plans.
    */
   private async validateFeatureAccess(context: NcContext) {
+    // Skip plan check for org-scoped requests (no workspace_id)
+    if (!context.workspace_id) return;
+
     if (
       !(await getFeature(
         PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
@@ -75,25 +83,116 @@ export class TeamsV3Service {
   }
 
   /**
-   * Check if a user is a workspace owner (can bypass team hierarchy ACL)
+   * Check if a user is a workspace owner (can bypass team hierarchy ACL).
    */
   private async isUserWorkspaceOwner(
-    context: NcContext,
+    _context: NcContext,
     userId: string,
     workspaceId: string,
   ): Promise<boolean> {
     if (!userId) return false;
     try {
-      const assignment = await PrincipalAssignment.get(
-        context,
-        ResourceType.WORKSPACE,
-        workspaceId,
-        PrincipalType.USER,
-        userId,
-      );
-      return assignment?.roles === WorkspaceUserRoles.OWNER;
+      const wsUser = await WorkspaceUser.get(workspaceId, userId);
+      return wsUser?.roles === WorkspaceUserRoles.OWNER;
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Detect whether workspaceOrOrgId is a workspace or org.
+   * Returns { scope, orgId?, workspaceId? }.
+   */
+  private async resolveScope(workspaceOrOrgId: string): Promise<{
+    scope: 'org' | 'workspace';
+    orgId?: string;
+    workspaceId?: string;
+  }> {
+    // Check workspace first (more common)
+    const workspace = await Workspace.get(workspaceOrOrgId);
+    if (workspace) {
+      return { scope: 'workspace', workspaceId: workspaceOrOrgId };
+    }
+
+    // Check org
+    const org = await Org.get(workspaceOrOrgId);
+    if (org) {
+      return { scope: 'org', orgId: workspaceOrOrgId };
+    }
+
+    NcError.notFound('Workspace or Organization not found');
+  }
+
+  /**
+   * Get team and verify it belongs to the given workspace/org scope.
+   * Returns { team, workspace (null for org teams) }.
+   */
+  private async getTeamInScope(
+    context: NcContext,
+    workspaceOrOrgId: string,
+    teamId: string,
+  ) {
+    const team = await Team.get(context, teamId);
+    if (!team) {
+      NcError.get(context).teamNotFound(teamId);
+    }
+
+    const belongsToScope =
+      team.fk_workspace_id === workspaceOrOrgId ||
+      team.fk_org_id === workspaceOrOrgId;
+
+    if (!belongsToScope) {
+      NcError.get(context).teamNotFound(teamId);
+    }
+
+    const workspace = team.fk_workspace_id
+      ? await Workspace.get(team.fk_workspace_id)
+      : null;
+
+    return { team, workspace };
+  }
+
+  /**
+   * Check if user is an org admin (ADMIN/OWNER role in nc_org_users).
+   * Used for org-level team management authorization.
+   */
+  private async isUserOrgAdmin(
+    orgId: string,
+    userId: string,
+  ): Promise<boolean> {
+    if (!orgId || !userId) return false;
+    const orgUser = await OrgUser.get(orgId, userId);
+    if (!orgUser) return false;
+    return (
+      orgUser.roles === EnterpriseOrgUserRoles.ADMIN ||
+      orgUser.roles === EnterpriseOrgUserRoles.OWNER
+    );
+  }
+
+  /**
+   * Broadcast a team event. For workspace teams, broadcasts to the workspace.
+   * For org teams, broadcasts to ALL workspaces in the org so their team lists refresh.
+   */
+  private async broadcastTeamEvent(
+    context: NcContext,
+    team: { fk_workspace_id?: string; fk_org_id?: string },
+    eventPayload: any,
+  ) {
+    if (context.workspace_id) {
+      // Workspace team — single broadcast
+      NocoSocket.broadcastEvent(context, eventPayload, context.socket_id);
+    } else if (team.fk_org_id) {
+      // Org team — broadcast to all workspaces in the org
+      const orgWorkspaces = await Noco.ncMeta
+        .knexConnection(MetaTable.WORKSPACE)
+        .where('fk_org_id', team.fk_org_id)
+        .whereNot('deleted', true)
+        .select('id');
+
+      for (const ws of orgWorkspaces) {
+        const wsContext = { ...context, workspace_id: ws.id } as NcContext;
+        NocoSocket.broadcastEvent(wsContext, eventPayload, context.socket_id);
+      }
     }
   }
 
@@ -147,14 +246,61 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
+      scope?: 'workspace' | 'org';
     },
   ): Promise<{ list: TeamV3ResponseType[] }> {
-    await this.validateFeatureAccess(context);
+    const scope =
+      param.scope || (await this.resolveScope(param.workspaceOrOrgId)).scope;
+    const workspaceId =
+      scope === 'workspace' ? param.workspaceOrOrgId : undefined;
+    const orgId = scope === 'org' ? param.workspaceOrOrgId : undefined;
 
-    // For now, assume it's a workspace ID (can be enhanced later to detect org vs workspace)
-    const filterParam = { fk_workspace_id: param.workspaceOrOrgId };
+    // For org scope, skip feature check entirely
+    // For workspace scope, check if team management is available
+    // but still allow loading org teams even when it's not
+    let hasTeamFeature = true;
 
-    const teams = await Team.list(context, filterParam);
+    if (scope === 'workspace' && context.workspace_id) {
+      hasTeamFeature = await getFeature(
+        PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+        context.workspace_id,
+      );
+    }
+
+    let teams;
+
+    if (scope === 'org') {
+      teams = await Team.list(context, { fk_org_id: orgId });
+    } else {
+      // Fetch workspace teams only if plan supports team management
+      const wsTeams = hasTeamFeature
+        ? await Team.list(context, { fk_workspace_id: workspaceId })
+        : [];
+
+      // Always fetch org teams if workspace belongs to an org
+      const workspace = await Workspace.get(workspaceId);
+      const wsOrgId = workspace?.fk_org_id;
+
+      if (wsOrgId) {
+        // Use a context with org_id (not workspace_id) for the org teams query
+        // to avoid cache key collision — Team.list cache key uses context.workspace_id ?? context.org_id
+        const orgContext = {
+          ...context,
+          workspace_id: undefined,
+          org_id: wsOrgId,
+        } as NcContext;
+        const orgTeams = await Team.list(orgContext, {
+          fk_org_id: wsOrgId,
+        });
+        teams = [...wsTeams, ...orgTeams];
+      } else {
+        // No org — if team feature is blocked, return empty
+        if (!hasTeamFeature) {
+          return { list: [] };
+        }
+        teams = wsTeams;
+      }
+    }
 
     // Get the current user ID from context
     const currentUserId = context.user?.id;
@@ -227,6 +373,12 @@ export class TeamsV3Service {
         fk_parent_team_id: team.fk_parent_team_id || null,
         depth: team.depth ?? 0,
         path: team.path || undefined,
+        fk_org_id: team.fk_org_id || undefined,
+        fk_workspace_id: team.fk_workspace_id || undefined,
+        scope: (team.fk_org_id && !team.fk_workspace_id
+          ? 'org'
+          : 'workspace') as 'org' | 'workspace',
+        scim_managed: team.scim_managed ?? false,
       };
     });
 
@@ -237,6 +389,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
+      scope?: 'workspace' | 'org';
       teamId: string;
     },
   ): Promise<TeamDetailV3Type> {
@@ -249,33 +402,59 @@ export class TeamsV3Service {
     }
 
     // Verify team belongs to the workspace/org
-    const belongsToScope = team.fk_workspace_id === param.workspaceOrOrgId;
+    const belongsToScope =
+      param.scope === 'org'
+        ? team.fk_org_id === param.workspaceOrOrgId
+        : team.fk_workspace_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
     // check if the current user have access to this team
-    // user should be member of the team or workspace owner
     const currentUserId = context.user?.id;
     if (currentUserId) {
-      const isWsOwner = !!extractRolesObj(context.user?.workspace_roles)?.[
-        WorkspaceUserRoles.OWNER
-      ];
+      const isOrgTeam = param.scope === 'org';
 
-      if (!isWsOwner) {
-        const assignment = await PrincipalAssignment.get(
-          context,
-          ResourceType.TEAM,
-          param.teamId,
-          PrincipalType.USER,
-          currentUserId,
-        );
-
-        if (!assignment) {
-          NcError.get(context).forbidden(
-            'You do not have access to view this team details',
+      if (isOrgTeam) {
+        // Org teams: org admins can view any team, otherwise must be a member
+        if (
+          !(await this.isUserOrgAdmin(param.workspaceOrOrgId, currentUserId))
+        ) {
+          const assignment = await PrincipalAssignment.get(
+            context,
+            ResourceType.TEAM,
+            param.teamId,
+            PrincipalType.USER,
+            currentUserId,
           );
+
+          if (!assignment) {
+            NcError.get(context).forbidden(
+              'You do not have access to view this team details',
+            );
+          }
+        }
+      } else {
+        // Workspace teams: workspace owner or team member
+        const isWsOwner = !!extractRolesObj(context.user?.workspace_roles)?.[
+          WorkspaceUserRoles.OWNER
+        ];
+
+        if (!isWsOwner) {
+          const assignment = await PrincipalAssignment.get(
+            context,
+            ResourceType.TEAM,
+            param.teamId,
+            PrincipalType.USER,
+            currentUserId,
+          );
+
+          if (!assignment) {
+            NcError.get(context).forbidden(
+              'You do not have access to view this team details',
+            );
+          }
         }
       }
     }
@@ -374,6 +553,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
+      scope?: 'workspace' | 'org';
       team: TeamCreateV3ReqType;
       req: NcRequest;
     },
@@ -386,27 +566,72 @@ export class TeamsV3Service {
       true,
     );
 
-    // Fetch workspace
-    const workspace = await Workspace.get(param.workspaceOrOrgId);
-    if (!workspace) {
-      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
+    const scope =
+      param.scope || (await this.resolveScope(param.workspaceOrOrgId)).scope;
+    const workspaceId =
+      scope === 'workspace' ? param.workspaceOrOrgId : undefined;
+    const orgId = scope === 'org' ? param.workspaceOrOrgId : undefined;
+
+    // Org teams: only org admin can create
+    if (scope === 'org') {
+      const userId = param.req.user?.id;
+      if (!userId || !(await this.isUserOrgAdmin(orgId, userId))) {
+        NcError.get(context).forbidden(
+          'Only org admins can create org-level teams',
+        );
+      }
     }
 
-    await checkLimit({
-      workspace: workspace,
-      delta: 1, // increase count by 1 for the new team
-      type: PlanLimitTypes.LIMIT_TEAM_MANAGEMENT,
-      message: ({ limit }) =>
-        `You have reached the limit of ${limit} teams for your plan.`,
-    });
+    // Fetch workspace for limit check and payment reseat (null for org teams)
+    const workspace = workspaceId ? await Workspace.get(workspaceId) : null;
 
-    // Check for duplicate team name in the same workspace
-    const existingTeams = await Team.list(context, {
-      fk_workspace_id: param.workspaceOrOrgId,
-    });
+    if (scope === 'workspace') {
+      if (!workspace) {
+        NcError.get(context).workspaceNotFound(workspaceId);
+      }
 
+      // On-prem: block workspace team creation for users who aren't actual workspace members
+      // (super admins are treated as workspace owners by ACL but aren't real members —
+      // team creation auto-assigns creator as team owner, which requires real membership)
+      if (isOnPrem) {
+        const userId = param.req.user?.id;
+        if (userId) {
+          const wsUser = await WorkspaceUser.get(workspaceId, userId);
+          if (
+            !wsUser ||
+            [
+              WorkspaceUserRoles.NO_ACCESS,
+              WorkspaceUserRoles.COMMENTER,
+              WorkspaceUserRoles.VIEWER,
+            ].includes(wsUser.roles as WorkspaceUserRoles)
+          ) {
+            NcError.get(context).forbidden(
+              'You must be a workspace member with editor or higher role to create teams',
+            );
+          }
+        }
+      }
+
+      await checkLimit({
+        workspace,
+        delta: 1,
+        type: PlanLimitTypes.LIMIT_TEAM_MANAGEMENT,
+        message: ({ limit }) =>
+          `You have reached the limit of ${limit} teams for your plan.`,
+      });
+    }
+
+    // Check for duplicate team name among siblings (same parent + same scope)
+    const existingTeams = await Team.list(
+      context,
+      scope === 'org' ? { fk_org_id: orgId } : { fk_workspace_id: workspaceId },
+    );
+
+    const parentId = param.team.parent_team_id || null;
     const duplicateTeam = existingTeams.find(
-      (team) => team.title?.trim() === param.team.title?.trim(),
+      (team) =>
+        (team.fk_parent_team_id || null) === parentId &&
+        team.title?.trim().toLowerCase() === param.team.title?.trim().toLowerCase(),
     );
 
     if (duplicateTeam) {
@@ -429,23 +654,31 @@ export class TeamsV3Service {
         NcError.get(context).teamNotFound(param.team.parent_team_id);
       }
 
-      // Verify parent belongs to the same workspace
-      if (parentTeam.fk_workspace_id !== param.workspaceOrOrgId) {
+      // Verify parent belongs to the same scope
+      const parentBelongsToScope =
+        scope === 'org'
+          ? parentTeam.fk_org_id === orgId
+          : parentTeam.fk_workspace_id === workspaceId;
+
+      if (!parentBelongsToScope) {
         NcError.get(context).invalidRequestBody(
-          'Parent team must belong to the same workspace',
+          `Parent team must belong to the same ${scope}`,
         );
       }
 
-      // Only managers of the parent team can create sub-teams (unless user is workspace owner)
+      // Only managers of the parent team can create sub-teams (unless user is workspace owner / org admin)
       const userId = param.req.user?.id;
       if (userId) {
-        const isOwner = await this.isUserWorkspaceOwner(
-          context,
-          userId,
-          param.workspaceOrOrgId,
-        );
+        const isOwnerOrAdmin =
+          scope === 'org'
+            ? await this.isUserOrgAdmin(orgId, userId)
+            : await this.isUserWorkspaceOwner(
+                context,
+                userId,
+                param.workspaceOrOrgId,
+              );
 
-        if (!isOwner) {
+        if (!isOwnerOrAdmin) {
           const parentAssignment = await PrincipalAssignment.get(
             context,
             ResourceType.TEAM,
@@ -485,7 +718,9 @@ export class TeamsV3Service {
         icon_type: param.team.icon_type,
         badge_color: param.team.badge_color,
       },
-      fk_workspace_id: param.workspaceOrOrgId,
+      ...(scope === 'org'
+        ? { fk_org_id: orgId }
+        : { fk_workspace_id: workspaceId }),
       fk_parent_team_id: param.team.parent_team_id || null,
       depth,
       path,
@@ -502,6 +737,17 @@ export class TeamsV3Service {
             'Each member must have user_id and team_role',
           );
         }
+        if (
+          !Object.values(TeamUserRoles).includes(
+            member.team_role as TeamUserRoles,
+          )
+        ) {
+          NcError.get(context).invalidRequestBody(
+            `Invalid team_role "${member.team_role}". Allowed: ${Object.values(
+              TeamUserRoles,
+            ).join(', ')}`,
+          );
+        }
       }
 
       // Batch-validate all users exist
@@ -510,6 +756,27 @@ export class TeamsV3Service {
       for (const member of param.team.members) {
         if (!usersMap.has(member.user_id)) {
           NcError.get(context).userNotFound(member.user_id);
+        }
+      }
+
+      // Validate membership: org teams require org membership, workspace teams require workspace membership
+      if (orgId) {
+        for (const member of param.team.members) {
+          const orgUser = await OrgUser.get(orgId, member.user_id);
+          if (!orgUser) {
+            NcError.get(context).badRequest(
+              `User ${member.user_id} is not a member of this organization`,
+            );
+          }
+        }
+      } else if (workspaceId) {
+        for (const member of param.team.members) {
+          const wsUser = await WorkspaceUser.get(workspaceId, member.user_id);
+          if (!wsUser) {
+            NcError.get(context).badRequest(
+              `User ${member.user_id} is not a member of this workspace`,
+            );
+          }
         }
       }
 
@@ -584,6 +851,12 @@ export class TeamsV3Service {
       fk_parent_team_id: team.fk_parent_team_id || null,
       depth: team.depth ?? 0,
       path: team.path || undefined,
+      fk_org_id: team.fk_org_id || undefined,
+      fk_workspace_id: team.fk_workspace_id || undefined,
+      scope: (team.fk_org_id && !team.fk_workspace_id ? 'org' : 'workspace') as
+        | 'org'
+        | 'workspace',
+      scim_managed: team.scim_managed || false,
     };
 
     // Emit team create event
@@ -594,21 +867,19 @@ export class TeamsV3Service {
       workspace,
     });
 
-    // Recalculate seat count after team creation
-    await this.paymentService.reseatSubscription(workspace.id);
+    // Recalculate seat count after team creation (workspace teams only)
+    if (workspace?.id) {
+      await this.paymentService.reseatSubscription(workspace.id);
+    }
 
-    NocoSocket.broadcastEvent(
-      context,
-      {
-        event: EventType.TEAM_EVENT,
-        payload: {
-          id: response.id,
-          action: 'teamCreate',
-          payload: response as TeamV3ResponseType,
-        },
+    await this.broadcastTeamEvent(context, team, {
+      event: EventType.TEAM_EVENT,
+      payload: {
+        id: response.id,
+        action: 'teamCreate',
+        payload: response as TeamV3ResponseType,
       },
-      context.socket_id,
-    );
+    });
 
     return response;
   }
@@ -617,6 +888,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
+      scope?: 'workspace' | 'org';
       teamId: string;
       team: TeamUpdateV3ReqType;
       req: NcRequest;
@@ -629,44 +901,86 @@ export class TeamsV3Service {
       param.team,
     );
 
-    // Fetch workspace
-    const workspace = await Workspace.get(param.workspaceOrOrgId);
-    if (!workspace) {
-      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
-    }
-
     // Check if team exists and belongs to workspace/org
     const oldTeam = await Team.get(context, param.teamId);
     if (!oldTeam) {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
-    const belongsToScope = oldTeam.fk_workspace_id === param.workspaceOrOrgId;
+    const belongsToScope =
+      oldTeam.fk_workspace_id === param.workspaceOrOrgId ||
+      oldTeam.fk_org_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
-    // Check if user is team manager
+    // Fetch workspace for payment reseat (null for org teams)
+    const workspace = oldTeam.fk_workspace_id
+      ? await Workspace.get(oldTeam.fk_workspace_id)
+      : null;
+
+    // Check if user is team manager (org teams: any org admin can manage)
     const userId = param.req.user?.id;
     if (userId) {
-      // Check if user is assigned as manager to this team
-      const assignment = await PrincipalAssignment.get(
-        context,
-        ResourceType.TEAM,
-        param.teamId,
-        PrincipalType.USER,
-        userId,
-      );
-      if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
-        NcError.get(context).forbidden(
-          'Only team managers can update team information',
+      const isOrgTeam = !!oldTeam.fk_org_id && !oldTeam.fk_workspace_id;
+
+      if (isOrgTeam) {
+        // Org teams: only org admins can update
+        if (!(await this.isUserOrgAdmin(oldTeam.fk_org_id, userId))) {
+          NcError.get(context).forbidden(
+            'Only org admins can update org-level teams',
+          );
+        }
+      } else {
+        // Workspace teams: only team managers or workspace owners
+        const isWsOwner = await this.isUserWorkspaceOwner(
+          context,
+          userId,
+          param.workspaceOrOrgId,
         );
+
+        if (!isWsOwner) {
+          const assignment = await PrincipalAssignment.get(
+            context,
+            ResourceType.TEAM,
+            param.teamId,
+            PrincipalType.USER,
+            userId,
+          );
+          if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
+            NcError.get(context).forbidden(
+              'Only team managers can update team information',
+            );
+          }
+        }
       }
     }
 
     const updateData: any = {};
-    if (param.team.title !== undefined) updateData.title = param.team.title;
+    if (param.team.title !== undefined) {
+      // Verify title uniqueness among siblings (same parent + same scope)
+      if (param.team.title !== oldTeam.title) {
+        const allTeams = await Team.list(context, {
+          ...(oldTeam.fk_org_id
+            ? { fk_org_id: oldTeam.fk_org_id }
+            : { fk_workspace_id: oldTeam.fk_workspace_id }),
+        });
+        const parentId = oldTeam.fk_parent_team_id || null;
+        const duplicate = allTeams.find(
+          (t) =>
+            t.id !== oldTeam.id &&
+            (t.fk_parent_team_id || null) === parentId &&
+            t.title?.toLowerCase() === param.team.title.toLowerCase(),
+        );
+        if (duplicate) {
+          NcError.get(context).invalidRequestBody(
+            `A team with the name "${param.team.title}" already exists`,
+          );
+        }
+      }
+      updateData.title = param.team.title;
+    }
     if (param.team.icon !== undefined || param.team.badge_color !== undefined) {
       const existingMeta =
         typeof oldTeam.meta === 'string'
@@ -685,6 +999,10 @@ export class TeamsV3Service {
     }
 
     const updatedTeam = await Team.update(context, param.teamId, updateData);
+
+    if (!updatedTeam) {
+      NcError.get(context).teamNotFound(param.teamId);
+    }
 
     // Get member count for the updated team
     const [teamUsers, teamManagersCount, managers] = await Promise.all([
@@ -719,21 +1037,19 @@ export class TeamsV3Service {
       workspace,
     } as TeamUpdateEvent);
 
-    // Recalculate seat count after team update
-    await this.paymentService.reseatSubscription(workspace.id);
+    // Recalculate seat count after team update (workspace teams only)
+    if (workspace?.id) {
+      await this.paymentService.reseatSubscription(workspace.id);
+    }
 
-    NocoSocket.broadcastEvent(
-      context,
-      {
-        event: EventType.TEAM_EVENT,
-        payload: {
-          id: response.id,
-          action: 'teamUpdate',
-          payload: response as TeamV3ResponseType,
-        },
+    await this.broadcastTeamEvent(context, oldTeam, {
+      event: EventType.TEAM_EVENT,
+      payload: {
+        id: response.id,
+        action: 'teamUpdate',
+        payload: response as TeamV3ResponseType,
       },
-      context.socket_id,
-    );
+    });
 
     return response;
   }
@@ -742,6 +1058,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
+      scope?: 'workspace' | 'org';
       teamId: string;
       force?: boolean;
       req: NcRequest;
@@ -749,41 +1066,57 @@ export class TeamsV3Service {
   ) {
     await this.validateFeatureAccess(context);
 
-    // Fetch workspace
-    const workspace = await Workspace.get(param.workspaceOrOrgId);
-    if (!workspace) {
-      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
-    }
-
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
-    const belongsToScope = team.fk_workspace_id === param.workspaceOrOrgId;
+    const belongsToScope =
+      team.fk_workspace_id === param.workspaceOrOrgId ||
+      team.fk_org_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
-    // Check if user is team manager or org owner
+    // Fetch workspace for payment reseat (null for org teams)
+    const workspace = team.fk_workspace_id
+      ? await Workspace.get(team.fk_workspace_id)
+      : null;
+
+    // Check if user is team manager or org admin
     const userId = param.req.user?.id;
     if (userId) {
-      // Check if user is assigned as manager to this team
-      const assignment = await PrincipalAssignment.get(
-        context,
-        ResourceType.TEAM,
-        param.teamId,
-        PrincipalType.USER,
-        userId,
-      );
-      const isTeamManager =
-        assignment && assignment.roles === TeamUserRoles.OWNER;
+      const isOrgTeam = !!team.fk_org_id && !team.fk_workspace_id;
 
-      // TODO: Add org owner check when org ownership is implemented
-      if (!isTeamManager) {
-        NcError.get(context).forbidden('Only team managers can delete teams');
+      if (isOrgTeam) {
+        // Org teams: only org admins can delete
+        if (!(await this.isUserOrgAdmin(team.fk_org_id, userId))) {
+          NcError.get(context).forbidden(
+            'Only org admins can delete org-level teams',
+          );
+        }
+      } else {
+        // Workspace teams: workspace owners or team managers can delete
+        const isWsOwner = await this.isUserWorkspaceOwner(
+          context,
+          userId,
+          param.workspaceOrOrgId,
+        );
+
+        if (!isWsOwner) {
+          const assignment = await PrincipalAssignment.get(
+            context,
+            ResourceType.TEAM,
+            param.teamId,
+            PrincipalType.USER,
+            userId,
+          );
+          if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
+            NcError.get(context).forbidden('Only team managers can delete teams');
+          }
+        }
       }
     }
 
@@ -842,19 +1175,19 @@ export class TeamsV3Service {
     } as TeamDeleteEvent);
 
     // Recalculate seat count after team deletion
-    await this.paymentService.reseatSubscription(workspace.id);
+    if (workspace?.id) {
+      await this.paymentService.reseatSubscription(workspace.id);
+    } else if (team.fk_org_id) {
+      await this.paymentService.reseatSubscription(team.fk_org_id);
+    }
 
-    NocoSocket.broadcastEvent(
-      context,
-      {
-        event: EventType.TEAM_EVENT,
-        payload: {
-          id: team.id,
-          action: 'teamDelete',
-        },
+    await this.broadcastTeamEvent(context, team, {
+      event: EventType.TEAM_EVENT,
+      payload: {
+        id: team.id,
+        action: 'teamDelete',
       },
-      context.socket_id,
-    );
+    });
 
     return { msg: 'Team has been deleted successfully' };
   }
@@ -863,6 +1196,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
+      scope?: 'workspace' | 'org';
       teamId: string;
       members: TeamMembersAddV3ReqType[];
       req: NcRequest;
@@ -870,37 +1204,54 @@ export class TeamsV3Service {
   ): Promise<TeamMemberV3ResponseType[]> {
     await this.validateFeatureAccess(context);
 
-    // Fetch workspace
-    const workspace = await Workspace.get(param.workspaceOrOrgId);
-    if (!workspace) {
-      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
-    }
-
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
-    const belongsToScope = team.fk_workspace_id === param.workspaceOrOrgId;
+    const belongsToScope =
+      team.fk_workspace_id === param.workspaceOrOrgId ||
+      team.fk_org_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
-    // Check if user is team manager
+    const workspace = team.fk_workspace_id
+      ? await Workspace.get(team.fk_workspace_id)
+      : null;
+
+    // Check if user is team manager or org admin
     const userId = param.req.user?.id;
     if (userId) {
-      // Check if user is assigned as manager to this team
-      const assignment = await PrincipalAssignment.get(
-        context,
-        ResourceType.TEAM,
-        param.teamId,
-        PrincipalType.USER,
-        userId,
-      );
-      if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
-        NcError.get(context).forbidden('Only team managers can add members');
+      const isOrgTeam = !!team.fk_org_id && !team.fk_workspace_id;
+
+      if (isOrgTeam) {
+        if (!(await this.isUserOrgAdmin(team.fk_org_id, userId))) {
+          NcError.get(context).forbidden(
+            'Only org admins can manage org-level team members',
+          );
+        }
+      } else {
+        const isWsOwner = await this.isUserWorkspaceOwner(
+          context,
+          userId,
+          param.workspaceOrOrgId,
+        );
+
+        if (!isWsOwner) {
+          const assignment = await PrincipalAssignment.get(
+            context,
+            ResourceType.TEAM,
+            param.teamId,
+            PrincipalType.USER,
+            userId,
+          );
+          if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
+            NcError.get(context).forbidden('Only team managers can add members');
+          }
+        }
       }
     }
 
@@ -916,6 +1267,17 @@ export class TeamsV3Service {
           'Each member must have user_id and team_role',
         );
       }
+      if (
+        !Object.values(TeamUserRoles).includes(
+          member.team_role as TeamUserRoles,
+        )
+      ) {
+        NcError.get(context).invalidRequestBody(
+          `Invalid team_role "${member.team_role}". Allowed: ${Object.values(
+            TeamUserRoles,
+          ).join(', ')}`,
+        );
+      }
     }
 
     // validate: all users exist
@@ -924,6 +1286,33 @@ export class TeamsV3Service {
     for (const member of param.members) {
       if (!usersMap.has(member.user_id)) {
         NcError.get(context).userNotFound(member.user_id);
+      }
+    }
+
+    // For org teams: validate all users are active org members
+    if (param.scope === 'org' && team.fk_org_id) {
+      for (const member of param.members) {
+        const orgUser = await OrgUser.get(team.fk_org_id, member.user_id);
+        if (!orgUser) {
+          NcError.get(context).badRequest(
+            `User ${member.user_id} is not a member of this organization`,
+          );
+        }
+      }
+    }
+
+    // For workspace teams: validate all users are workspace members
+    if (team.fk_workspace_id) {
+      for (const member of param.members) {
+        const wsUser = await WorkspaceUser.get(
+          team.fk_workspace_id,
+          member.user_id,
+        );
+        if (!wsUser) {
+          NcError.get(context).badRequest(
+            `User ${member.user_id} is not a member of this workspace`,
+          );
+        }
       }
     }
 
@@ -959,10 +1348,7 @@ export class TeamsV3Service {
         resource_id: param.teamId,
         principal_type: PrincipalType.USER,
         principal_ref_id: member.user_id,
-        roles:
-          member.team_role === TeamUserRoles.OWNER
-            ? TeamUserRoles.OWNER
-            : member.team_role,
+        roles: member.team_role,
       });
 
       // Emit team member add event
@@ -994,7 +1380,11 @@ export class TeamsV3Service {
     }
 
     // Recalculate seat count after adding team members
-    await this.paymentService.reseatSubscription(workspace.id);
+    if (team.fk_workspace_id) {
+      await this.paymentService.reseatSubscription(team.fk_workspace_id);
+    } else if (team.fk_org_id) {
+      await this.paymentService.reseatSubscription(team.fk_org_id);
+    }
 
     // Transform to v3 response format — reuse already-loaded users
     const members = addedMembers.map((assignment) => {
@@ -1006,18 +1396,14 @@ export class TeamsV3Service {
       };
     });
 
-    NocoSocket.broadcastEvent(
-      context,
-      {
-        event: EventType.TEAM_EVENT,
-        payload: {
-          id: team.id,
-          action: 'teamMembersAdd',
-          payload: members as TeamMemberV3ResponseType[],
-        },
+    await this.broadcastTeamEvent(context, team, {
+      event: EventType.TEAM_EVENT,
+      payload: {
+        id: team.id,
+        action: 'teamMembersAdd',
+        payload: members as TeamMemberV3ResponseType[],
       },
-      context.socket_id,
-    );
+    });
 
     return members;
   }
@@ -1026,6 +1412,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
+      scope?: 'workspace' | 'org';
       teamId: string;
       members: TeamMembersRemoveV3ReqType[];
       req: NcRequest;
@@ -1033,23 +1420,23 @@ export class TeamsV3Service {
   ) {
     await this.validateFeatureAccess(context);
 
-    // Fetch workspace
-    const workspace = await Workspace.get(param.workspaceOrOrgId);
-    if (!workspace) {
-      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
-    }
-
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
-    const belongsToScope = team.fk_workspace_id === param.workspaceOrOrgId;
+    const belongsToScope =
+      team.fk_workspace_id === param.workspaceOrOrgId ||
+      team.fk_org_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
     }
+
+    const workspace = team.fk_workspace_id
+      ? await Workspace.get(team.fk_workspace_id)
+      : null;
 
     const userId = param.req.user?.id;
     if (!Array.isArray(param.members)) {
@@ -1074,10 +1461,17 @@ export class TeamsV3Service {
       currentAssignments.map((a) => [a.principal_ref_id, a]),
     );
 
-    // Hoist manager check outside the loop — only need to check once
-    const isTeamManager = userId
-      ? assignmentsByUserId.get(userId)?.roles === TeamUserRoles.OWNER
-      : false;
+    // Hoist permission check outside the loop
+    const isOrgTeam = !!team.fk_org_id && !team.fk_workspace_id;
+    const isOrgAdmin =
+      isOrgTeam && userId
+        ? await this.isUserOrgAdmin(team.fk_org_id, userId)
+        : false;
+    const isTeamManager =
+      !isOrgTeam && userId
+        ? assignmentsByUserId.get(userId)?.roles === TeamUserRoles.OWNER
+        : false;
+    const canManage = isOrgAdmin || isTeamManager;
 
     // Count current managers for last-manager protection
     let managersCount = currentAssignments.filter(
@@ -1092,17 +1486,18 @@ export class TeamsV3Service {
       }
 
       const isSelfRemoval = userId === member.user_id;
-      if (!isTeamManager && !isSelfRemoval) {
+      if (!canManage && !isSelfRemoval) {
         NcError.get(context).forbidden(
-          'Only team managers can remove members or users can remove themselves',
+          'Only team managers or org admins can remove members',
         );
       }
 
-      // If removing the last manager, prevent it
-      if (assignment!.roles === TeamUserRoles.OWNER) {
+      // Workspace teams: prevent removing the last manager
+      // Org teams: no team-owner concept, skip this check
+      if (!isOrgTeam && assignment!.roles === TeamUserRoles.OWNER) {
         if (managersCount === 1) {
           NcError.get(context).invalidRequestBody(
-            'Cannot remove the last manager',
+            'Cannot remove the last member',
           );
         }
         managersCount--;
@@ -1152,20 +1547,20 @@ export class TeamsV3Service {
     }
 
     // Recalculate seat count after removing team members
-    await this.paymentService.reseatSubscription(workspace.id);
+    if (team.fk_workspace_id) {
+      await this.paymentService.reseatSubscription(team.fk_workspace_id);
+    } else if (team.fk_org_id) {
+      await this.paymentService.reseatSubscription(team.fk_org_id);
+    }
 
-    NocoSocket.broadcastEvent(
-      context,
-      {
-        event: EventType.TEAM_EVENT,
-        payload: {
-          id: team.id,
-          action: 'teamMembersRemove',
-          payload: removedMembers as TeamMembersRemoveV3ReqType[],
-        },
+    await this.broadcastTeamEvent(context, team, {
+      event: EventType.TEAM_EVENT,
+      payload: {
+        id: team.id,
+        action: 'teamMembersRemove',
+        payload: removedMembers as TeamMembersRemoveV3ReqType[],
       },
-      context.socket_id,
-    );
+    });
 
     return removedMembers;
   }
@@ -1174,6 +1569,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
+      scope?: 'workspace' | 'org';
       teamId: string;
       members: TeamMembersUpdateV3ReqType[];
       req: NcRequest;
@@ -1181,39 +1577,56 @@ export class TeamsV3Service {
   ): Promise<TeamMemberV3ResponseType[]> {
     await this.validateFeatureAccess(context);
 
-    // Fetch workspace
-    const workspace = await Workspace.get(param.workspaceOrOrgId);
-    if (!workspace) {
-      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
-    }
-
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
-    const belongsToScope = team.fk_workspace_id === param.workspaceOrOrgId;
+    const belongsToScope =
+      team.fk_workspace_id === param.workspaceOrOrgId ||
+      team.fk_org_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
-    // Check if user is team manager
+    const workspace = team.fk_workspace_id
+      ? await Workspace.get(team.fk_workspace_id)
+      : null;
+
+    // Check if user is team manager or org admin
     const userId = param.req.user?.id;
     if (userId) {
-      // Check if user is assigned as manager to this team
-      const assignment = await PrincipalAssignment.get(
-        context,
-        ResourceType.TEAM,
-        param.teamId,
-        PrincipalType.USER,
-        userId,
-      );
-      if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
-        NcError.get(context).forbidden(
-          'Only team managers can update member roles',
+      const isOrgTeam = !!team.fk_org_id && !team.fk_workspace_id;
+
+      if (isOrgTeam) {
+        if (!(await this.isUserOrgAdmin(team.fk_org_id, userId))) {
+          NcError.get(context).forbidden(
+            'Only org admins can update org-level team member roles',
+          );
+        }
+      } else {
+        const isWsOwner = await this.isUserWorkspaceOwner(
+          context,
+          userId,
+          param.workspaceOrOrgId,
         );
+
+        if (!isWsOwner) {
+          const assignment = await PrincipalAssignment.get(
+            context,
+            ResourceType.TEAM,
+            param.teamId,
+            PrincipalType.USER,
+            userId,
+          );
+          if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
+            NcError.get(context).forbidden(
+              'Only team managers can update member roles',
+            );
+          }
+        }
       }
     }
 
@@ -1221,6 +1634,21 @@ export class TeamsV3Service {
       NcError.get(context).invalidRequestBody(
         'Request body must be an array of {user_id, team_role} objects',
       );
+    }
+
+    for (const member of param.members) {
+      if (
+        member.team_role &&
+        !Object.values(TeamUserRoles).includes(
+          member.team_role as TeamUserRoles,
+        )
+      ) {
+        NcError.get(context).invalidRequestBody(
+          `Invalid team_role "${member.team_role}". Allowed: ${Object.values(
+            TeamUserRoles,
+          ).join(', ')}`,
+        );
+      }
     }
 
     // load all users and current assignments upfront
@@ -1246,6 +1674,41 @@ export class TeamsV3Service {
           `User ${member.user_id} not found in this team`,
         );
       }
+    }
+
+    // Guard: prevent demoting all owners — team must retain at least one owner
+    const currentOwnerIds = new Set(
+      currentAssignments
+        .filter((a) => a.roles === TeamUserRoles.OWNER)
+        .map((a) => a.principal_ref_id),
+    );
+    // Simulate the batch: apply demotions from the request
+    const demotingOwnerIds = new Set(
+      param.members
+        .filter(
+          (m) =>
+            m.team_role === TeamUserRoles.MEMBER &&
+            currentOwnerIds.has(m.user_id),
+        )
+        .map((m) => m.user_id),
+    );
+    const promotingToOwnerIds = new Set(
+      param.members
+        .filter(
+          (m) =>
+            m.team_role === TeamUserRoles.OWNER &&
+            !currentOwnerIds.has(m.user_id),
+        )
+        .map((m) => m.user_id),
+    );
+    const remainingOwners =
+      currentOwnerIds.size -
+      demotingOwnerIds.size +
+      promotingToOwnerIds.size;
+    if (remainingOwners < 1) {
+      NcError.get(context).invalidRequestBody(
+        'Cannot demote all team owners — at least one owner must remain',
+      );
     }
 
     // Execute updates and emit events
@@ -1294,7 +1757,11 @@ export class TeamsV3Service {
     }
 
     // Recalculate seat count after updating team member roles
-    await this.paymentService.reseatSubscription(workspace.id);
+    if (team.fk_workspace_id) {
+      await this.paymentService.reseatSubscription(team.fk_workspace_id);
+    } else if (team.fk_org_id) {
+      await this.paymentService.reseatSubscription(team.fk_org_id);
+    }
 
     // Transform to v3 response format — reuse already-loaded users
     const members = updatedMembers.map((assignment) => {
@@ -1306,18 +1773,14 @@ export class TeamsV3Service {
       };
     });
 
-    NocoSocket.broadcastEvent(
-      context,
-      {
-        event: EventType.TEAM_EVENT,
-        payload: {
-          id: team.id,
-          action: 'teamMembersUpdate',
-          payload: members as TeamMemberV3ResponseType[],
-        },
+    await this.broadcastTeamEvent(context, team, {
+      event: EventType.TEAM_EVENT,
+      payload: {
+        id: team.id,
+        action: 'teamMembersUpdate',
+        payload: members as TeamMemberV3ResponseType[],
       },
-      context.socket_id,
-    );
+    });
 
     return members;
   }
@@ -1328,6 +1791,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
+      scope?: 'workspace' | 'org';
     },
   ): Promise<{ list: TeamTreeNodeV3Type[] }> {
     await this.validateFeatureAccess(context);
@@ -1415,6 +1879,7 @@ export class TeamsV3Service {
     context: NcContext,
     param: {
       workspaceOrOrgId: string;
+      scope?: 'workspace' | 'org';
       teamId: string;
       body: TeamMoveV3ReqType;
       req: NcRequest;
@@ -1433,18 +1898,24 @@ export class TeamsV3Service {
       );
     }
 
-    // Fetch workspace
-    const workspace = await Workspace.get(param.workspaceOrOrgId);
-    if (!workspace) {
+    // Fetch workspace (null for org-scoped moves)
+    const workspace =
+      param.scope === 'org'
+        ? null
+        : await Workspace.get(param.workspaceOrOrgId);
+    if (param.scope !== 'org' && !workspace) {
       NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
     }
 
-    // Check if team exists and belongs to workspace
+    // Check if team exists and belongs to the scope
     const team = await Team.get(context, param.teamId);
     if (!team) {
       NcError.get(context).teamNotFound(param.teamId);
     }
-    if (team.fk_workspace_id !== param.workspaceOrOrgId) {
+    const teamBelongsToScope =
+      team.fk_workspace_id === param.workspaceOrOrgId ||
+      team.fk_org_id === param.workspaceOrOrgId;
+    if (!teamBelongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
@@ -1464,21 +1935,28 @@ export class TeamsV3Service {
       if (!newParent) {
         NcError.get(context).teamNotFound(newParentId);
       }
-      if (newParent.fk_workspace_id !== param.workspaceOrOrgId) {
+      const parentBelongsToScope =
+        newParent.fk_workspace_id === param.workspaceOrOrgId ||
+        newParent.fk_org_id === param.workspaceOrOrgId;
+      if (!parentBelongsToScope) {
         NcError.get(context).invalidRequestBody(
-          'Parent team must belong to the same workspace',
+          'Parent team must belong to the same scope',
         );
       }
 
-      // Only managers of the new parent team can move teams under it (unless user is workspace owner)
+      // Only managers of the new parent team can move teams under it
+      // (unless user is workspace owner or org admin)
       if (userId) {
-        const isOwner = await this.isUserWorkspaceOwner(
-          context,
-          userId,
-          param.workspaceOrOrgId,
-        );
+        const isOwnerOrAdmin =
+          param.scope === 'org'
+            ? await this.isUserOrgAdmin(param.workspaceOrOrgId, userId)
+            : await this.isUserWorkspaceOwner(
+                context,
+                userId,
+                param.workspaceOrOrgId,
+              );
 
-        if (!isOwner) {
+        if (!isOwnerOrAdmin) {
           const parentAssignment = await PrincipalAssignment.get(
             context,
             ResourceType.TEAM,
@@ -1570,18 +2048,14 @@ export class TeamsV3Service {
       workspace,
     });
 
-    NocoSocket.broadcastEvent(
-      context,
-      {
-        event: EventType.TEAM_EVENT,
-        payload: {
-          id: response.id,
-          action: 'teamMove',
-          payload: response,
-        },
+    await this.broadcastTeamEvent(context, team, {
+      event: EventType.TEAM_EVENT,
+      payload: {
+        id: response.id,
+        action: 'teamMove',
+        payload: response,
       },
-      context.socket_id,
-    );
+    });
 
     return response;
   }

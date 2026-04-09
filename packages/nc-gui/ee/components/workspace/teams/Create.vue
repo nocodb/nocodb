@@ -54,7 +54,8 @@ const formState = reactive<{
  * by title. Teams at depth >= 3 are excluded (cannot become a parent).
  */
 const parentTeamOptions = computed(() => {
-  const eligible = (teams.value || []).filter((t: any) => (t.depth ?? 0) < 3)
+  // Only workspace-scoped teams can be parents (exclude org teams)
+  const eligible = (teams.value || []).filter((t: any) => (t.depth ?? 0) < 3 && t.scope !== 'org')
 
   // Build parentId → children map
   const childrenMap = new Map<string | null, typeof eligible>()
@@ -98,7 +99,7 @@ const validators = computed(() => {
       {
         validator: (_: any, value: any) => {
           return new Promise((resolve, reject) => {
-            if (teams.value?.some((team) => team.title?.toLowerCase() === value?.toLowerCase())) {
+            if (teams.value?.some((team) => (team as any).scope !== 'org' && team.title?.toLowerCase() === value?.toLowerCase())) {
               return reject(new Error(t('msg.error.duplicateTeamName')))
             }
 
@@ -129,7 +130,6 @@ const createTeam = async () => {
     emits('created', team as TeamType)
     vVisible.value = false
   } catch (e: any) {
-    console.error(e)
     e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
     if (e.errorFields.length) return
   } finally {

@@ -1,21 +1,25 @@
 import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import isEmail from 'validator/lib/isEmail';
-import { AppEvents, WorkspaceUserRoles } from 'nocodb-sdk';
+import { AppEvents, EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { UserType } from 'nocodb-sdk';
 import type { ScimUserEvent } from '~/services/app-hooks/interfaces';
 import { NcError } from '~/helpers/catchError';
-import { User, WorkspaceUser } from '~/ee/models';
-import Workspace from '~/ee/models/Workspace';
-import { WorkspaceUsersService } from '~/services/workspace-users.service';
+import { User } from '~/ee/models';
+import OrgUser from '~/ee/models/OrgUser';
+import { removeUserFromOrgCascade } from '~/ee/helpers/orgUserRemovalHelper';
+import Org from '~/ee/models/Org';
+import ScimConfig from '~/ee/models/ScimConfig';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { PaymentService } from '~/modules/payment/payment.service';
 import {
-  extractWorkspaceRoleFromExtension,
+  extractOrgRoleFromExtension,
   NOCODB_USER_EXTENSION,
-  WORKSPACE_ROLE_TO_LABEL,
+  ORG_ROLE_TO_LABEL,
 } from '~/services/scim/scim-helpers';
-import { checkSeatLimit } from '~/helpers/paymentHelpers';
+// Seat limits are workspace-scoped; org-level SCIM provisioning
+// does not enforce them (users are added to workspaces separately).
 
 // Enterprise extension schema URI
 const ENTERPRISE_EXTENSION =
@@ -26,47 +30,44 @@ export class ScimUsersService {
   protected logger = new Logger(ScimUsersService.name);
 
   constructor(
-    private readonly workspaceUsersService: WorkspaceUsersService,
     private readonly appHooksService: AppHooksService,
+    private readonly paymentService: PaymentService,
   ) {}
 
   /**
-   * Extract and validate workspaceRole from NocoDB extension attribute.
-   * Returns the WorkspaceUserRoles enum value, or undefined if not present.
+   * Extract and validate orgRole from NocoDB extension attribute.
+   * Returns the EnterpriseOrgUserRoles enum value, or undefined if not present.
    */
-  private extractWorkspaceRole(
+  private extractOrgRole(
     scimUser: Record<string, unknown>,
-  ): WorkspaceUserRoles | undefined {
-    return extractWorkspaceRoleFromExtension(scimUser, NOCODB_USER_EXTENSION);
+  ): EnterpriseOrgUserRoles | undefined {
+    return extractOrgRoleFromExtension(scimUser, NOCODB_USER_EXTENSION);
   }
 
   /**
    * Get a single user by SCIM ID
    */
-  async getUser(
-    context: NcContext,
-    param: { workspaceId: string; scimId: string },
-  ) {
-    const workspaceUser = await WorkspaceUser.getByScimExternalId(
-      param.workspaceId,
+  async getUser(_context: NcContext, param: { orgId: string; scimId: string }) {
+    const orgUser = await OrgUser.getByScimExternalId(
+      param.orgId,
       param.scimId,
       { include_deleted: true },
     );
 
-    if (!workspaceUser) {
+    if (!orgUser) {
       NcError.notFound('User not found');
     }
 
-    return this.toScimUser(workspaceUser);
+    return this.toScimUser(orgUser);
   }
 
   /**
    * List users with optional filtering and pagination
    */
   async listUsers(
-    context: NcContext,
+    _context: NcContext,
     param: {
-      workspaceId: string;
+      orgId: string;
       filter?: string;
       startIndex?: number;
       count?: number;
@@ -105,18 +106,16 @@ export class ScimUsersService {
     }
 
     // SQL-level filtering, sorting, and pagination
-    const { list: paginatedUsers, totalResults } = await WorkspaceUser.scimList(
-      {
-        fk_workspace_id: param.workspaceId,
-        include_deleted: true,
-        offset: startIndex - 1,
-        limit: count || 1, // fetch at least 1 to get totalResults
-        filterUserName,
-        filterExternalId,
-        sortBy: param.sortBy,
-        sortAscending: ascending,
-      },
-    );
+    const { list: paginatedUsers, totalResults } = await OrgUser.scimList({
+      fk_org_id: param.orgId,
+      include_deleted: true,
+      offset: startIndex - 1,
+      limit: count || 1, // fetch at least 1 to get totalResults
+      filterUserName,
+      filterExternalId,
+      sortBy: param.sortBy,
+      sortAscending: ascending,
+    });
 
     // RFC 7644 §3.4.2.4: count=0 returns metadata only (no resources)
     if (count === 0) {
@@ -130,7 +129,7 @@ export class ScimUsersService {
     }
 
     const resources = await Promise.all(
-      paginatedUsers.map((wu) => this.toScimUser(wu)),
+      paginatedUsers.map((ou) => this.toScimUser(ou)),
     );
 
     return {
@@ -148,12 +147,12 @@ export class ScimUsersService {
   async createUser(
     context: NcContext,
     param: {
-      workspaceId: string;
+      orgId: string;
       scimUser: Record<string, any>;
       req: NcRequest;
     },
   ) {
-    const { scimUser, workspaceId } = param;
+    const { scimUser, orgId } = param;
 
     const primaryEmail = this.extractEmail(scimUser);
 
@@ -161,83 +160,129 @@ export class ScimUsersService {
       NcError.badRequest('Email is required');
     }
 
+    // If externalId is provided, check if an existing org user has the same
+    // IdP externalId but a different email — this means the IdP changed the email.
+    // Email is the primary identifier in NocoDB and cannot be changed, so
+    // soft-delete the old user and create a fresh one with the new email.
+    if (scimUser.externalId) {
+      const existingByExtId = await this.findOrgUserByIdpExternalId(
+        orgId,
+        scimUser.externalId,
+      );
+      if (existingByExtId) {
+        const existingUser = await User.get(existingByExtId.fk_user_id);
+        if (existingUser && existingUser.email !== primaryEmail) {
+          await OrgUser.softDelete(orgId, existingUser.id);
+        }
+      }
+    }
+
     // Check if user already exists by email
     let user = await User.getByEmail(primaryEmail);
+
+    // Build display name from SCIM fields
+    const displayName =
+      scimUser.displayName ||
+      scimUser.name?.formatted ||
+      [scimUser.name?.givenName, scimUser.name?.familyName]
+        .filter(Boolean)
+        .join(' ') ||
+      undefined;
 
     // If user doesn't exist, create new user
     if (!user) {
       user = await User.insert({
         email: primaryEmail,
-        display_name: scimUser.displayName || scimUser.name?.formatted,
+        display_name: displayName,
         roles: 'user',
       });
+    } else if (displayName && !user.display_name) {
+      // Update display_name if user exists but has no name set
+      await User.update(user.id, { display_name: displayName });
     }
 
     // Targeted lookup with include_deleted for reactivation support
-    const existingWsUser = await WorkspaceUser.get(workspaceId, user.id, {
+    const existingOrgUser = await OrgUser.get(orgId, user.id, {
       include_deleted: true,
     });
 
-    if (existingWsUser && !existingWsUser.deleted) {
-      // RFC 7644 §3.3: Return 409 Conflict for duplicate resources
-      throw new HttpException(
-        {
-          schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
-          detail: 'User already exists in workspace',
-          status: '409',
-        },
-        409,
-      );
-    }
-
-    // Always generate a fresh SCIM ID (RFC 7643 §3.1: id is server-assigned)
-    // Even for reactivated users, a new ID avoids stale IdP references
-    const scimId = uuidv4();
+    // SCIM ID: use IdP's externalId if provided (stable across email changes),
+    // otherwise generate a server UUID (RFC 7643 §3.1)
+    const scimId = scimUser.externalId || uuidv4();
 
     // Build comprehensive scim_meta to round-trip all attributes
     const scimMeta = this.buildScimMeta(scimUser);
 
-    // Extract workspace role from NocoDB extension (if provided)
-    const workspaceRole =
-      this.extractWorkspaceRole(scimUser) || WorkspaceUserRoles.VIEWER;
+    // Extract org role from NocoDB extension (if provided)
+    const extensionRole = this.extractOrgRole(scimUser);
 
-    // Reactivate soft-deleted user
-    if (existingWsUser?.deleted) {
-      await checkSeatLimit(
-        workspaceId,
-        existingWsUser.fk_user_id,
-        WorkspaceUserRoles.NO_ACCESS,
-        workspaceRole,
-      );
+    // IdP wins on conflict: if user already exists, adopt as SCIM-managed
+    // Keep existing role unless the SCIM extension explicitly provides one
+    if (existingOrgUser && !existingOrgUser.deleted) {
+      if (existingOrgUser.scim_managed) {
+        // Already SCIM-managed — true duplicate, return 409
+        throw new HttpException(
+          {
+            schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
+            detail: 'User already exists in organization',
+            status: '409',
+          },
+          409,
+        );
+      }
 
-      const updateData = {
-        deleted: false,
-        deleted_at: null,
-        roles: workspaceRole,
+      // Convert existing user to SCIM-managed, preserve existing role
+      const updateData: Partial<OrgUser> = {
         scim_external_id: scimId,
         scim_managed: true,
         scim_user_name: scimUser.userName,
         scim_meta: scimMeta,
       };
 
-      // WorkspaceUser.update returns the full record (calls get() internally)
-      const reactivatedUser = await WorkspaceUser.update(
-        workspaceId,
-        existingWsUser.fk_user_id,
+      // Only override role if explicitly provided in SCIM extension
+      if (extensionRole) {
+        updateData.roles = extensionRole;
+      }
+
+      const adoptedUser = await OrgUser.update(
+        existingOrgUser.fk_user_id,
+        orgId,
         updateData,
       );
 
-      // Restore caches and seat count after reactivation
-      await this.workspaceUsersService.restoreWorkspaceUser({
-        context,
-        workspaceId,
-        userId: existingWsUser.fk_user_id,
-      });
+      return this.toScimUser(adoptedUser);
+    }
+
+    // Default role: SCIM extension > config default_role > viewer
+    const scimConfig = await ScimConfig.get(context, orgId);
+    const configDefaultRole = scimConfig?.default_role as
+      | EnterpriseOrgUserRoles
+      | undefined;
+    const orgRole =
+      extensionRole || configDefaultRole || EnterpriseOrgUserRoles.VIEWER;
+
+    // Reactivate soft-deleted user
+    if (existingOrgUser?.deleted) {
+      const updateData: Partial<OrgUser> = {
+        deleted: false,
+        deleted_at: null,
+        roles: orgRole,
+        scim_external_id: scimId,
+        scim_managed: true,
+        scim_user_name: scimUser.userName,
+        scim_meta: scimMeta,
+      };
+
+      const reactivatedUser = await OrgUser.update(
+        existingOrgUser.fk_user_id,
+        orgId,
+        updateData,
+      );
 
       this.emitScimEvent(AppEvents.SCIM_USER_REACTIVATE, {
-        workspaceId,
+        orgId,
         user,
-        workspaceUser: reactivatedUser,
+        orgUser: reactivatedUser,
         scimId,
         req: param.req,
       });
@@ -245,35 +290,31 @@ export class ScimUsersService {
       return this.toScimUser(reactivatedUser);
     }
 
-    // Check seat limit before creating new workspace user
-    await checkSeatLimit(
-      workspaceId,
-      user.id,
-      WorkspaceUserRoles.NO_ACCESS,
-      workspaceRole,
-    );
-
-    // Create new workspace user with SCIM data
-    // (WorkspaceUser.insert calls get() internally and returns the full record)
-    const workspaceUser = await WorkspaceUser.insert({
-      fk_workspace_id: workspaceId,
+    // Create new org user with SCIM data
+    const orgUser = await OrgUser.insert({
+      fk_org_id: orgId,
       fk_user_id: user.id,
-      roles: workspaceRole,
+      roles: orgRole,
       scim_external_id: scimId,
       scim_managed: true,
       scim_user_name: scimUser.userName,
       scim_meta: scimMeta,
     });
 
+    // Re-fetch with user data joined for complete response
+    const fullOrgUser = await OrgUser.get(orgId, user.id, {
+      include_deleted: false,
+    });
+
     this.emitScimEvent(AppEvents.SCIM_USER_PROVISION, {
-      workspaceId,
+      orgId,
       user,
-      workspaceUser,
+      orgUser: fullOrgUser || orgUser,
       scimId,
       req: param.req,
     });
 
-    return this.toScimUser(workspaceUser);
+    return this.toScimUser(fullOrgUser || orgUser);
   }
 
   /**
@@ -282,7 +323,7 @@ export class ScimUsersService {
   async replaceUser(
     context: NcContext,
     param: {
-      workspaceId: string;
+      orgId: string;
       scimId: string;
       scimUser: Record<string, any>;
       req: NcRequest;
@@ -297,7 +338,7 @@ export class ScimUsersService {
   async patchUser(
     context: NcContext,
     param: {
-      workspaceId: string;
+      orgId: string;
       scimId: string;
       scimUser: Record<string, any>;
       req: NcRequest;
@@ -307,7 +348,7 @@ export class ScimUsersService {
 
     // If the body contains Operations array, parse it into a flat user object
     if (scimUser.Operations) {
-      const flatUser: any = {};
+      const flatUser: Record<string, any> = {};
       for (const op of scimUser.Operations) {
         if (op.op?.toLowerCase() === 'replace') {
           if (op.path) {
@@ -318,7 +359,7 @@ export class ScimUsersService {
               if (val.toLowerCase() === 'false') val = false;
               else if (val.toLowerCase() === 'true') val = true;
             }
-            // Handle NocoDB extension path (e.g. "urn:...:User:workspaceRole")
+            // Handle NocoDB extension path (e.g. "urn:...:User:orgRole")
             const nocoExtPrefix = `${NOCODB_USER_EXTENSION}:`;
             if (op.path.startsWith(nocoExtPrefix)) {
               const field = op.path.substring(nocoExtPrefix.length);
@@ -373,31 +414,52 @@ export class ScimUsersService {
    * Internal update logic
    */
   private async updateUser(
-    context: NcContext,
+    _context: NcContext,
     param: {
-      workspaceId: string;
+      orgId: string;
       scimId: string;
       scimUser: Record<string, any>;
       isPatch: boolean;
       req: NcRequest;
     },
   ) {
-    const { workspaceId, scimId, scimUser } = param;
+    const { orgId, scimId, scimUser } = param;
 
     // Direct indexed lookup (include deleted so we can reactivate them)
-    const workspaceUser = await WorkspaceUser.getByScimExternalId(
-      workspaceId,
-      scimId,
-      { include_deleted: true },
-    );
+    const orgUser = await OrgUser.getByScimExternalId(orgId, scimId, {
+      include_deleted: true,
+    });
 
-    if (!workspaceUser) {
+    if (!orgUser) {
       NcError.notFound('User not found');
     }
 
+    // Detect email change — email is immutable in NocoDB.
+    // If the IdP changed the email, soft-delete the old user and create a new one.
+    const newEmail = this.extractEmail(scimUser) || scimUser.userName;
+    if (newEmail) {
+      const currentUser = await User.get(orgUser.fk_user_id);
+      if (currentUser && currentUser.email !== newEmail) {
+        // Soft-delete old org user
+        await OrgUser.softDelete(orgId, currentUser.id);
+        // Preserve IdP externalId from scim_meta for the new user
+        const existingMeta = (orgUser.scim_meta as Record<string, any>) || {};
+        const idpExternalId = scimUser.externalId || existingMeta.externalId;
+        // Create fresh user with new email via the createUser flow
+        return this.createUser(_context, {
+          orgId,
+          scimUser: {
+            ...scimUser,
+            ...(idpExternalId ? { externalId: idpExternalId } : {}),
+          },
+          req: param.req,
+        });
+      }
+    }
+
     // Build update object
-    const existingMeta = (workspaceUser.scim_meta as any) || {};
-    const updateData: any = {
+    const existingMeta = (orgUser.scim_meta as Record<string, any>) || {};
+    const updateData: Partial<OrgUser> = {
       scim_meta: {
         ...existingMeta,
       },
@@ -405,7 +467,8 @@ export class ScimUsersService {
 
     // Update active status in meta
     if (scimUser.active !== undefined) {
-      updateData.scim_meta.active = scimUser.active !== false;
+      (updateData.scim_meta as Record<string, any>).active =
+        scimUser.active !== false;
     }
 
     if (scimUser.userName !== undefined) {
@@ -417,90 +480,56 @@ export class ScimUsersService {
       updateData.scim_meta = this.buildScimMeta(scimUser);
     } else {
       // For PATCH, merge individual fields into existing meta
-      this.mergeScimMetaFromPatch(updateData.scim_meta, scimUser);
+      this.mergeScimMetaFromPatch(
+        updateData.scim_meta as Record<string, any>,
+        scimUser,
+      );
     }
 
-    // Handle workspace role from NocoDB extension attribute
-    const newRole = this.extractWorkspaceRole(scimUser);
+    // Handle org role from NocoDB extension attribute
+    const newRole = this.extractOrgRole(scimUser);
     if (newRole) {
-      await checkSeatLimit(
-        workspaceId,
-        workspaceUser.fk_user_id,
-        workspaceUser.roles as WorkspaceUserRoles,
-        newRole,
-      );
       updateData.roles = newRole;
     }
 
     // Handle active status (deactivation)
-    const isDeactivating = scimUser.active === false && !workspaceUser.deleted;
+    const isDeactivating = scimUser.active === false && !orgUser.deleted;
     if (scimUser.active === false) {
       updateData.deleted = true;
-      updateData.deleted_at = new Date();
-    } else if (scimUser.active === true && workspaceUser.deleted) {
-      // Reactivate user — check seat limit before restoring
-      const effectiveRole =
-        newRole || (workspaceUser.roles as WorkspaceUserRoles);
-      await checkSeatLimit(
-        workspaceId,
-        workspaceUser.fk_user_id,
-        WorkspaceUserRoles.NO_ACCESS,
-        effectiveRole,
-      );
+      updateData.deleted_at = new Date().toISOString();
+    } else if (scimUser.active === true && orgUser.deleted) {
       updateData.deleted = false;
       updateData.deleted_at = null;
     }
 
     // Persist the update
-    await WorkspaceUser.update(
-      workspaceId,
-      workspaceUser.fk_user_id,
-      updateData,
-    );
+    await OrgUser.update(orgUser.fk_user_id, orgId, updateData);
 
-    // Determine reactivation before cleanup (workspaceUser.deleted is pre-update state)
+    // Determine reactivation before cleanup (orgUser.deleted is pre-update state)
     const isReactivating =
-      scimUser.active === true && workspaceUser.deleted && !isDeactivating;
-
-    // Full cleanup on deactivation (base access, teams, orphan bases, seat recount)
-    if (isDeactivating) {
-      await this.workspaceUsersService.cleanupWorkspaceUser({
-        context,
-        workspaceId,
-        userId: workspaceUser.fk_user_id,
-      });
-    }
-
-    // Restore caches and seat count on reactivation
-    if (isReactivating) {
-      await this.workspaceUsersService.restoreWorkspaceUser({
-        context,
-        workspaceId,
-        userId: workspaceUser.fk_user_id,
-      });
-    }
+      scimUser.active === true && orgUser.deleted && !isDeactivating;
 
     if (isDeactivating) {
       this.emitScimEvent(AppEvents.SCIM_USER_DEACTIVATE, {
-        workspaceId,
-        userId: workspaceUser.fk_user_id,
-        workspaceUser,
+        orgId,
+        userId: orgUser.fk_user_id,
+        orgUser,
         scimId,
         req: param.req,
       });
     } else if (isReactivating) {
       this.emitScimEvent(AppEvents.SCIM_USER_REACTIVATE, {
-        workspaceId,
-        userId: workspaceUser.fk_user_id,
-        workspaceUser,
+        orgId,
+        userId: orgUser.fk_user_id,
+        orgUser,
         scimId,
         req: param.req,
       });
     } else {
       this.emitScimEvent(AppEvents.SCIM_USER_UPDATE, {
-        workspaceId,
-        userId: workspaceUser.fk_user_id,
-        workspaceUser,
+        orgId,
+        userId: orgUser.fk_user_id,
+        orgUser,
         scimId,
         req: param.req,
       });
@@ -508,58 +537,53 @@ export class ScimUsersService {
 
     // Re-fetch from DB via getByScimExternalId (same code path as GET)
     // to ensure response reflects persisted state and scim_meta is parsed
-    const refreshed = await WorkspaceUser.getByScimExternalId(
-      workspaceId,
-      scimId,
-      { include_deleted: true },
-    );
+    const refreshed = await OrgUser.getByScimExternalId(orgId, scimId, {
+      include_deleted: true,
+    });
 
     if (refreshed) {
       return this.toScimUser(refreshed);
     }
 
     // Fallback for edge cases (e.g. race condition on deactivation)
-    return this.toScimUser({ ...workspaceUser, ...updateData });
+    return this.toScimUser({ ...orgUser, ...updateData });
   }
 
   /**
    * Deactivate user (SCIM DELETE = soft delete)
    */
   async deactivateUser(
-    context: NcContext,
-    param: { workspaceId: string; scimId: string; req: NcRequest },
+    _context: NcContext,
+    param: { orgId: string; scimId: string; req: NcRequest },
   ) {
     // Direct indexed lookup (include deleted so we can distinguish not-found vs already-deleted)
-    const workspaceUser = await WorkspaceUser.getByScimExternalId(
-      param.workspaceId,
+    const orgUser = await OrgUser.getByScimExternalId(
+      param.orgId,
       param.scimId,
       { include_deleted: true },
     );
 
     // RFC 7644 §3.6: Return 404 if the resource does not exist
-    if (!workspaceUser) {
+    if (!orgUser) {
       NcError.notFound('User not found');
     }
 
     // Already deactivated — return 404 (Microsoft SCIM compliance requires
     // 404 for DELETE on an already-deleted resource)
-    if (workspaceUser.deleted) {
+    if (orgUser.deleted) {
       NcError.notFound('User not found');
     }
 
-    await WorkspaceUser.softDelete(param.workspaceId, workspaceUser.fk_user_id);
+    // Full cascade: soft-delete org user + remove from all workspaces, teams
+    await removeUserFromOrgCascade(param.orgId, orgUser.fk_user_id);
 
-    // Full cleanup: base access, team membership, orphan bases, seat recount, socket notification
-    await this.workspaceUsersService.cleanupWorkspaceUser({
-      context,
-      workspaceId: param.workspaceId,
-      userId: workspaceUser.fk_user_id,
-    });
+    // Reseat org subscription after user removal
+    await this.paymentService.reseatSubscription(param.orgId);
 
     this.emitScimEvent(AppEvents.SCIM_USER_DELETE, {
-      workspaceId: param.workspaceId,
-      userId: workspaceUser.fk_user_id,
-      workspaceUser,
+      orgId: param.orgId,
+      userId: orgUser.fk_user_id,
+      orgUser,
       scimId: param.scimId,
       req: param.req,
     });
@@ -569,7 +593,7 @@ export class ScimUsersService {
    * Build comprehensive scim_meta from incoming SCIM user data.
    * Stores ALL SCIM attributes for round-tripping.
    */
-  private buildScimMeta(scimUser: any): Record<string, any> {
+  private buildScimMeta(scimUser: Record<string, any>): Record<string, any> {
     const meta: Record<string, any> = {
       active: scimUser.active !== false,
     };
@@ -610,7 +634,10 @@ export class ScimUsersService {
    * Handles both flat dotted paths (name.givenName) and
    * full enterprise extension URN paths.
    */
-  private mergeScimMetaFromPatch(meta: any, patchData: any) {
+  private mergeScimMetaFromPatch(
+    meta: Record<string, any>,
+    patchData: Record<string, any>,
+  ) {
     // Simple top-level fields
     const simpleFields = [
       'displayName',
@@ -726,10 +753,10 @@ export class ScimUsersService {
    * Helper: merge multi-valued attribute patches from path-based operations
    */
   private mergeMultiValuedPatch(
-    meta: any,
+    meta: Record<string, any>,
     attrName: string,
     typeValue: string | null,
-    patchData: any,
+    patchData: Record<string, any>,
     fields: string[],
     filterField = 'type',
     filterValue?: string,
@@ -763,11 +790,21 @@ export class ScimUsersService {
   }
 
   /**
-   * Convert WorkspaceUser to SCIM User format with full attribute round-tripping
+   * Find an org user by the IdP's externalId.
    */
-  private async toScimUser(workspaceUser: any): Promise<Record<string, any>> {
-    // Parse scim_meta if it's a JSON string (WorkspaceUser.get() doesn't auto-parse)
-    let rawMeta = workspaceUser.scim_meta;
+  private async findOrgUserByIdpExternalId(
+    orgId: string,
+    idpExternalId: string,
+  ): Promise<any | null> {
+    return OrgUser.getByScimExternalId(orgId, idpExternalId);
+  }
+
+  /**
+   * Convert OrgUser to SCIM User format with full attribute round-tripping
+   */
+  private async toScimUser(orgUser: any): Promise<Record<string, any>> {
+    // Parse scim_meta if it's a JSON string
+    let rawMeta = orgUser.scim_meta;
     if (typeof rawMeta === 'string') {
       try {
         rawMeta = JSON.parse(rawMeta);
@@ -783,41 +820,39 @@ export class ScimUsersService {
       schemas.push(ENTERPRISE_EXTENSION);
     }
 
-    const result: any = {
+    const result: Record<string, any> = {
       schemas,
-      id: workspaceUser.scim_external_id,
+      id: orgUser.scim_external_id,
       // externalId is optional (RFC 7643 §3.1); omit rather than null to
       // satisfy the schema constraint that it must be a string when present
       ...(scimMeta.externalId ? { externalId: scimMeta.externalId } : {}),
-      userName: workspaceUser.scim_user_name || workspaceUser.email,
+      userName: orgUser.scim_user_name || orgUser.email,
       name:
         scimMeta.name ||
-        (workspaceUser.display_name
-          ? { formatted: workspaceUser.display_name }
-          : {}),
+        (orgUser.display_name ? { formatted: orgUser.display_name } : {}),
       displayName:
         scimMeta.displayName ||
-        workspaceUser.display_name ||
-        workspaceUser.scim_user_name ||
-        workspaceUser.email,
+        orgUser.display_name ||
+        orgUser.scim_user_name ||
+        orgUser.email,
       emails: scimMeta.emails || [
         {
-          value: workspaceUser.email,
+          value: orgUser.email,
           type: 'work',
           primary: true,
         },
       ],
-      active: !workspaceUser.deleted && scimMeta.active !== false,
+      active: !orgUser.deleted && scimMeta.active !== false,
       meta: {
         resourceType: 'User',
-        location: `/scim/v2/Users/${workspaceUser.scim_external_id}`,
-        ...(workspaceUser.created_at
-          ? { created: new Date(workspaceUser.created_at).toISOString() }
+        location: `/scim/v2/Users/${orgUser.scim_external_id}`,
+        ...(orgUser.created_at
+          ? { created: new Date(orgUser.created_at).toISOString() }
           : {}),
-        ...(workspaceUser.updated_at
-          ? { lastModified: new Date(workspaceUser.updated_at).toISOString() }
-          : workspaceUser.created_at
-          ? { lastModified: new Date(workspaceUser.created_at).toISOString() }
+        ...(orgUser.updated_at
+          ? { lastModified: new Date(orgUser.updated_at).toISOString() }
+          : orgUser.created_at
+          ? { lastModified: new Date(orgUser.created_at).toISOString() }
           : {}),
       },
     };
@@ -862,11 +897,11 @@ export class ScimUsersService {
       result[ENTERPRISE_EXTENSION] = scimMeta[ENTERPRISE_EXTENSION];
     }
 
-    // Add NocoDB User extension (workspaceRole)
-    const wsRoleLabel = WORKSPACE_ROLE_TO_LABEL[workspaceUser.roles];
-    if (wsRoleLabel) {
+    // Add NocoDB User extension (orgRole)
+    const orgRoleLabel = ORG_ROLE_TO_LABEL[orgUser.roles];
+    if (orgRoleLabel) {
       result.schemas.push(NOCODB_USER_EXTENSION);
-      result[NOCODB_USER_EXTENSION] = { workspaceRole: wsRoleLabel };
+      result[NOCODB_USER_EXTENSION] = { orgRole: orgRoleLabel };
     }
 
     return result;
@@ -874,7 +909,7 @@ export class ScimUsersService {
 
   /**
    * Emit a SCIM audit event asynchronously (fire-and-forget).
-   * Fetches workspace + user objects needed for the audit payload.
+   * Fetches org + user objects needed for the audit payload.
    */
   private emitScimEvent(
     event:
@@ -884,27 +919,27 @@ export class ScimUsersService {
       | AppEvents.SCIM_USER_REACTIVATE
       | AppEvents.SCIM_USER_DELETE,
     param: {
-      workspaceId: string;
+      orgId: string;
       user?: UserType;
       userId?: string;
-      workspaceUser: Partial<WorkspaceUser>;
+      orgUser: Partial<OrgUser>;
       scimId: string;
       req: NcRequest;
     },
   ) {
-    // Fire-and-forget: resolve workspace + user then emit
+    // Fire-and-forget: resolve org + user then emit
     Promise.all([
-      Workspace.get(param.workspaceId),
+      Org.get(param.orgId),
       param.user
         ? Promise.resolve(param.user)
-        : User.get(param.userId || param.workspaceUser.fk_user_id),
+        : User.get(param.userId || param.orgUser.fk_user_id),
     ])
-      .then(([workspace, user]) => {
-        if (!workspace || !user) return;
+      .then(([org, user]) => {
+        if (!org || !user) return;
         this.appHooksService.emit(event, {
-          workspace,
+          org,
           user,
-          workspaceUser: param.workspaceUser,
+          orgUser: param.orgUser,
           scimId: param.scimId,
           req: param.req,
         } as ScimUserEvent);
@@ -930,7 +965,7 @@ export class ScimUsersService {
    *  3. first emails entry
    *  4. userName (if it's a valid email)
    */
-  private extractEmail(scimUser: any): string | null {
+  private extractEmail(scimUser: Record<string, any>): string | null {
     const emails = scimUser.emails;
 
     let candidate: string | null = null;

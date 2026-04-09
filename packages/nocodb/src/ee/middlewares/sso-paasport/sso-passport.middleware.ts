@@ -591,6 +591,10 @@ export class SSOPassportMiddleware implements NestMiddleware {
 
       const orgUser = await OrgUser.get(client.fk_org_id, user.id);
       if (!orgUser) {
+        // Default to VIEWER — workspace creation requires org admin to
+        // explicitly promote to CREATOR. Prevents guests from accumulating
+        // seat counts by creating workspaces.
+        // TODO: make default SSO org role configurable by org admin
         await OrgUser.insert({
           fk_org_id: client.fk_org_id,
           fk_user_id: user.id,

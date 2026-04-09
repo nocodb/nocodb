@@ -518,6 +518,7 @@ export const RootScopeTables = {
     MetaTable.INSTALLATIONS,
     MetaTable.GCP_MARKETPLACE_ACCOUNTS,
     MetaTable.GCP_MARKETPLACE_ENTITLEMENTS,
+    MetaTable.SCIM_CONFIG,
   ],
   [RootScopes.ORG]: [
     MetaTable.ORG,

@@ -5,6 +5,7 @@ import type http from 'http';
 import { NC_LICENSE_KEY } from '~/constants';
 import { getInstanceId } from '~/helpers/instanceId';
 import { verifyDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
+import { verifyDefaultOrg } from '~/helpers/verifyDefaultOrg';
 import NocoLicense from '~/NocoLicense';
 import { Store } from '~/models';
 import { LICENSE_ENV_VARS } from '~/utils/license/constants';
@@ -57,6 +58,7 @@ export default class Noco extends NocoEE {
 
     // Always ensure default workspace exists — on-prem needs it regardless of license state
     await verifyDefaultWorkspace();
+    await verifyDefaultOrg();
 
     return res;
   }
@@ -66,8 +68,13 @@ export default class Noco extends NocoEE {
    * fetched a fresh JWT and updated NocoLicense internal state.
    * Only syncs the Noco.ee flag — no DB reads, no reset/init.
    */
-  public static syncEEState(): void {
+  public static async syncEEState(): Promise<void> {
     this.ee = NocoLicense.isEE;
+
+    // Ensure default org exists when transitioning to licensed state
+    if (this.ee) {
+      await verifyDefaultOrg();
+    }
   }
 
   /**
@@ -83,6 +90,7 @@ export default class Noco extends NocoEE {
       if (!licenseKey) {
         NocoLicense.reset();
         await verifyDefaultWorkspace();
+        await verifyDefaultOrg();
         return false;
       }
 
@@ -100,13 +108,15 @@ export default class Noco extends NocoEE {
           : `License ${NocoLicense.licenseStatus} — running in CE mode`,
       );
 
-      // Ensure default workspace exists (idempotent — no-op if already there)
+      // Ensure default workspace and org exist (idempotent — no-op if already there)
       await verifyDefaultWorkspace();
+      await verifyDefaultOrg();
 
       return NocoLicense.isEE;
     } catch (e) {
       logger.error(`Failed to load EE state: ${e.message}`);
       await verifyDefaultWorkspace();
+      await verifyDefaultOrg();
       return false;
     }
   }

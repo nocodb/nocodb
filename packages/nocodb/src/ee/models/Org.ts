@@ -81,15 +81,22 @@ export default class Org implements OrganizationType {
       )
       .andWhere(`${MetaTable.ORG}.id`, orgId)
       .where((kn) => {
-        kn.where(`${MetaTable.PROJECT}.deleted`, false).orWhereNull(
-          `${MetaTable.PROJECT}.deleted`,
-        );
-        kn.where(`${MetaTable.WORKSPACE}.deleted`, false).orWhereNull(
-          `${MetaTable.WORKSPACE}.deleted`,
-        );
-        kn.where(`${MetaTable.WORKSPACE_USER}.deleted`, false).orWhereNull(
-          `${MetaTable.WORKSPACE_USER}.deleted`,
-        );
+        kn.where(function () {
+          this.where(`${MetaTable.PROJECT}.deleted`, false).orWhereNull(
+            `${MetaTable.PROJECT}.deleted`,
+          );
+        });
+        kn.where(function () {
+          this.where(`${MetaTable.WORKSPACE}.deleted`, false).orWhereNull(
+            `${MetaTable.WORKSPACE}.deleted`,
+          );
+        });
+        kn.where(function () {
+          this.where(
+            `${MetaTable.WORKSPACE_USER}.deleted`,
+            false,
+          ).orWhereNull(`${MetaTable.WORKSPACE_USER}.deleted`);
+        });
       })
       .groupBy(
         `${MetaTable.PROJECT}.id`,

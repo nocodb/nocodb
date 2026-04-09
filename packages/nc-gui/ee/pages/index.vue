@@ -175,8 +175,8 @@ onMounted(async () => {
   if (!['base'].includes(route.value.params.typeOrId as string)) {
     await loadWorkspaces()
 
-    // No workspaces available (e.g. fresh user with NO_ACCESS) — stop skeleton and redirect to index
-    if (!workspaceStore.workspacesList.length && isEEFeatureBlocked.value) {
+    // No workspaces available (e.g. fresh user with NO_ACCESS, or org viewer) — stop loading
+    if (!workspaceStore.workspacesList.length) {
       workspaceStore.setLoadingState(false)
       basesStore.setProjectsLoaded()
 
@@ -219,7 +219,7 @@ watch(
 
           <!-- No workspace access: show empty state -->
           <div
-            v-if="!isWorkspacesLoading && !workspacesList.length && isEEFeatureBlocked"
+            v-if="!isWorkspacesLoading && !workspacesList.length"
             class="flex-1 flex flex-col items-center justify-center gap-3"
           >
             <GeneralIcon icon="ncWorkspace" class="h-10 w-10 text-nc-content-gray-muted" />

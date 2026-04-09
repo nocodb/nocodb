@@ -15,6 +15,8 @@ export interface TeamV3Type {
   updated_at?: string;
 }
 
+export type TeamScope = 'org' | 'workspace';
+
 export interface TeamV3ResponseType {
   id: string;
   title: string;
@@ -32,6 +34,10 @@ export interface TeamV3ResponseType {
   fk_parent_team_id?: string | null;
   depth?: number;
   path?: string;
+  fk_org_id?: string;
+  fk_workspace_id?: string;
+  scope?: TeamScope; // 'org' = org-level team, 'workspace' = workspace-level team
+  scim_managed?: boolean;
 }
 
 export interface TeamTreeNodeV3Type extends TeamV3ResponseType {
@@ -79,6 +85,7 @@ export interface TeamDetailV3Type {
   icon?: string;
   icon_type?: IconType;
   badge_color?: string;
+  fk_parent_team_id?: string | null;
   members: TeamMemberV3ResponseType[];
   inherited_members?: InheritedTeamMemberV3Type[];
 }

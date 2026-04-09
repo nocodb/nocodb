@@ -289,6 +289,14 @@ export class WorkspaceMembersV3Service {
           }
         }
 
+        // Block removal of SCIM-managed users — must be done from IdP
+        const wsUser = await WorkspaceUser.get(param.workspaceId, userId);
+        if (wsUser?.scim_managed) {
+          NcError.badRequest(
+            'This user is managed via SCIM. Removal must be done from your identity provider.',
+          );
+        }
+
         await this.workspaceUsersService.delete(
           {
             workspaceId: param.workspaceId,

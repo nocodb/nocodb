@@ -142,7 +142,7 @@ const handleSelect = (option: NcListItemType) => {
         :show-selected-option="false"
         :close-on-select="true"
         :item-height="36"
-        class="nc-add-connection-list w-72"
+        class="nc-add-connection-list w-72 !h-auto"
         @change="handleSelect"
       >
         <template #listItem="{ option }">

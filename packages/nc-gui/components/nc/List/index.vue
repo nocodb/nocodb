@@ -46,9 +46,10 @@ const vModel = useVModel(props, 'value', emits, {
 
 const vOpen = useVModel(props, 'open', emits)
 
-const { optionValueKey, optionLabelKey, focusSearchOnOpen } = props
+const { optionValueKey, optionLabelKey } = props
 
-const { closeOnSelect, showSelectedOption, containerClassName, itemClassName, groupHeaderClassName } = toRefs(props)
+const { closeOnSelect, showSelectedOption, containerClassName, itemClassName, groupHeaderClassName, focusSearchOnOpen } =
+  toRefs(props)
 
 const itemHeight = computed(() => {
   if (!props.itemHeight) {
@@ -432,7 +433,7 @@ watch(
       activeOptionIndex.value = -1
     }
 
-    if (isSearchEnabled.value && focusSearchOnOpen) {
+    if (isSearchEnabled.value && focusSearchOnOpen.value) {
       focusInputBox()
     } else {
       focusListWrapper()

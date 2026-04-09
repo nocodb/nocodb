@@ -332,7 +332,7 @@ watch(activeViewTab, (value) => {
                 v-if="easterEggToggle"
                 type="ghost"
                 size="small"
-                class="!text-primary"
+                class="!text-nc-content-brand"
                 @click="requestIntegration.isOpen = true"
               >
                 Request Integration

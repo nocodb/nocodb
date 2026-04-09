@@ -831,9 +831,6 @@ interface NcListItemProps {
   searchBasisInfo?: string
   /** Min-height of group header rows in pixels */
   groupHeaderHeight?: number
-
-  /** Focus search input on open */
-  focusSearchOnOpen?: boolean
 }
 
 /**
@@ -978,6 +975,9 @@ interface NcListProps {
   theme?: 'default' | 'ai'
 
   resetHoverEffectOnMouseLeave?: boolean
+
+  /** Focus search input on open */
+  focusSearchOnOpen?: boolean
 }
 
 // NcList type ends here

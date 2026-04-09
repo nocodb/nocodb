@@ -5,6 +5,7 @@ import {
 } from '@noco-integrations/core';
 import { Sandbox } from '@e2b/code-interpreter';
 import { createScriptExecutionCode, ScriptActionType } from './codeGenerator';
+import { TUNNEL_PORT, TunnelClient } from './tunnel-client';
 import type {
   WorkflowNodeConfig,
   WorkflowNodeDefinition,
@@ -62,6 +63,7 @@ export class RunScriptNode extends WorkflowNodeIntegration<RunScriptNodeConfig> 
     const startTime = Date.now();
 
     let sandbox: Sandbox | null = null;
+    let tunnel: TunnelClient | null = null;
 
     try {
       const { script, variables = {} } = ctx.inputs.config;
@@ -84,14 +86,30 @@ export class RunScriptNode extends WorkflowNodeIntegration<RunScriptNodeConfig> 
         ts: Date.now(),
       });
 
+      await sandbox.commands.run('node /home/user/tunnel-server.js', {
+        background: true,
+      });
+
+      const tunnelHost = sandbox.getHost(TUNNEL_PORT);
+      await TunnelClient.waitForServer(`https://${tunnelHost}/__health`);
+
+      tunnel = new TunnelClient(
+        `wss://${tunnelHost}/__tunnel__`,
+        this.nocodb.getAccessToken(),
+        `http://127.0.0.1:${process.env.PORT || 8080}`,
+      );
+      await tunnel.connect();
+
+      logs.push({
+        level: 'info',
+        message: 'Tunnel established',
+        ts: Date.now(),
+      });
+
       const executableCode = createScriptExecutionCode(
         script,
         variableContext,
-        {
-          ncSiteUrl: this.nocodb.context.nc_site_url!,
-          token: this.nocodb.getAccessToken(),
-          baseSchema,
-        },
+        { baseSchema },
       );
 
       const scriptOutputs: Record<string, any> = {};
@@ -188,6 +206,13 @@ export class RunScriptNode extends WorkflowNodeIntegration<RunScriptNodeConfig> 
         },
       };
     } finally {
+      if (tunnel) {
+        try {
+          await tunnel.close();
+        } catch {
+          // ignore
+        }
+      }
       if (sandbox) {
         try {
           await sandbox.kill();

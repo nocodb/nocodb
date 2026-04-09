@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Sandbox } from '@e2b/code-interpreter';
-import type { HookLogType, NcContext } from 'nocodb-sdk';
+import type { HookLogType, NcContext, NcRequest } from 'nocodb-sdk';
 import type { Job } from 'bull';
 import type { ExecuteActionJobData } from '~/interface/Jobs';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
@@ -10,6 +10,7 @@ import { getBaseSchema } from '~/helpers/scriptHelper';
 import { createSandboxCode } from '~/helpers/generateCode';
 import { parseSandboxOutputToWorkerMessage } from '~/helpers/sandboxParser';
 import { DataV3Service } from '~/services/v3/data-v3.service';
+import { TUNNEL_PORT, TunnelClient } from '~/helpers/tunnel-client';
 
 const BATCH_SIZE = 100;
 const CONCURRENCY_LIMIT = 5;
@@ -166,8 +167,12 @@ export class ActionExecutionProcessor {
     }
 
     const sandbox = await this.createSandbox();
+    let tunnel: TunnelClient | null = null;
 
     try {
+      // Start tunnel server inside sandbox and connect tunnel client
+      tunnel = await this.setupTunnel(sandbox, req);
+
       if (options.records?.length) {
         await this.executeForRecords({
           context,
@@ -199,6 +204,13 @@ export class ActionExecutionProcessor {
         });
       }
     } finally {
+      if (tunnel) {
+        try {
+          await tunnel.close();
+        } catch {
+          // ignore close errors to ensure sandbox cleanup runs
+        }
+      }
       await this.cleanupSandbox(sandbox);
     }
   }
@@ -504,6 +516,25 @@ export class ActionExecutionProcessor {
       });
       throw error;
     }
+  }
+
+  private async setupTunnel(sandbox: Sandbox, req: NcRequest): Promise<TunnelClient> {
+    await sandbox.commands.run('node /home/user/tunnel-server.js', {
+      background: true,
+    });
+
+    const tunnelHost = sandbox.getHost(TUNNEL_PORT);
+    await TunnelClient.waitForServer(`https://${tunnelHost}/__health`);
+
+    const wsUrl = `wss://${tunnelHost}/__tunnel__`;
+    const authToken = req.headers['xc-auth'] as string;
+    const localBaseUrl = `http://127.0.0.1:${process.env.PORT || 8080}`;
+
+    const tunnel = new TunnelClient(wsUrl, authToken, localBaseUrl);
+    await tunnel.connect();
+
+    this.logger.log('Tunnel established to sandbox');
+    return tunnel;
   }
 
   private async createSandbox(): Promise<Sandbox> {

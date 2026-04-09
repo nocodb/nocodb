@@ -179,6 +179,12 @@ export class PaymentController {
   }
 
   @UseGuards(AuthGuard('basic'))
+  @Post('/api/internal/payment/:workspaceOrOrgId/recount')
+  async recountWorkspace(@Param('workspaceOrOrgId') workspaceOrOrgId: string) {
+    return this.paymentService.recountWorkspace(workspaceOrOrgId);
+  }
+
+  @UseGuards(AuthGuard('basic'))
   @Get('/api/internal/payment/plan')
   async getAllPlans() {
     return this.paymentService.getPlans();

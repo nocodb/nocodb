@@ -33,7 +33,7 @@ const getUserName = (userId?: string) => {
   const user = props.collaboratorsMap.get(userId)
   if (!user) return ''
 
-  return extractUserDisplayNameOrEmail(user as any)
+  return extractUserDisplayNameOrEmail(user as Record<string, string>)
 }
 
 const formattedDate = computed(() => {
@@ -52,7 +52,7 @@ const handleCardClick = () => {
 </script>
 
 <template>
-  <div class="nc-connection-card" data-testid="nc-connection-card" @click="handleCardClick">
+  <div v-e="['c:integration:connection-card:click']" class="nc-connection-card" data-testid="nc-connection-card" @click="handleCardClick">
     <div class="flex items-center gap-3 min-w-0">
       <div class="nc-connection-card-icon">
         <GeneralIntegrationIcon :type="integration.sub_type" size="lg" />

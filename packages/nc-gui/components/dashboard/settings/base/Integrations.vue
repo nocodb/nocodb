@@ -261,7 +261,7 @@ watch(baseId, reload)
             <div v-if="filteredLinkedIntegrations.length" style="container-type: inline-size">
               <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2">
-                  <h3 class="text-base font-semibold text-nc-content-gray mb-0">
+                  <h3 class="text-sm font-weight-700 text-nc-content-gray mb-0">
                     {{ $t('general.activeConnections') }}
                   </h3>
                   <NcBadge

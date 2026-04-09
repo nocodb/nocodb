@@ -47,10 +47,16 @@ const integrationsViewMode = ref<'main' | 'all-connections'>('main')
 
 // After creating an integration, switch to all-connections view
 // (the store sets activeViewTab='connections' which breaks outer NcTabs, so we handle it here)
-eventBus.on((event: string) => {
+const integrationEventBusHandler = (event: string) => {
   if (event === IntegrationStoreEvents.INTEGRATION_ADD) {
     integrationsViewMode.value = 'all-connections'
   }
+}
+
+eventBus.on(integrationEventBusHandler)
+
+onBeforeUnmount(() => {
+  eventBus.off(integrationEventBusHandler)
 })
 
 const hasTeamsEditPermission = computed(() => {
@@ -333,7 +339,6 @@ if (!props.isNewWsPage) {
                   </h2>
                   <WorkspaceIntegrationsAddConnectionDropdown />
                 </div>
-             
 
                 <div class="flex-1 min-h-0">
                   <WorkspaceIntegrationsConnectionsTab />

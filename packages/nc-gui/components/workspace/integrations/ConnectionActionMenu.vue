@@ -57,10 +57,11 @@ const openEditIntegration = (integration: IntegrationType) => {
             v-if="
               props.integration.type && integrationCategoryNeedDefault(props.integration.type) && !props.integration.is_default
             "
+            v-e="['c:integration:set-default']"
             @click="setDefaultIntegration(props.integration)"
           >
             <GeneralIcon class="text-current opacity-80" icon="star" />
-            <span>Set as default</span>
+            <span>{{ t('general.setAsDefault') }}</span>
           </NcMenuItem>
           <NcMenuItem
             v-if="isEeUI && props.integration?.sub_type !== SyncDataType.NOCODB"
@@ -71,6 +72,7 @@ const openEditIntegration = (integration: IntegrationType) => {
           </NcMenuItem>
           <NcMenuItem
             :disabled="!isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) && props.integration.sub_type === SyncDataType.NOCODB"
+            v-e="['c:integration:edit']"
             @click="openEditIntegration(props.integration)"
           >
             <GeneralIcon class="text-current opacity-80" icon="edit" />
@@ -78,7 +80,7 @@ const openEditIntegration = (integration: IntegrationType) => {
           </NcMenuItem>
           <NcTooltip :disabled="props.integration?.sub_type !== ClientType.SQLITE">
             <template #title>
-              Not allowed for type
+              {{ t('msg.notAllowedForType') }}
               {{
                 props.integration.sub_type && clientTypesMap[props.integration.sub_type]
                   ? clientTypesMap[props.integration.sub_type]?.text
@@ -87,6 +89,7 @@ const openEditIntegration = (integration: IntegrationType) => {
             </template>
 
             <NcMenuItem
+              v-e="['c:integration:duplicate']"
               :disabled="props.integration?.sub_type === ClientType.SQLITE || props.integration?.sub_type === SyncDataType.NOCODB"
               @click="duplicateIntegration(props.integration)"
             >
@@ -96,7 +99,7 @@ const openEditIntegration = (integration: IntegrationType) => {
           </NcTooltip>
           <template v-if="props.integration?.sub_type !== SyncDataType.NOCODB">
             <NcDivider />
-            <NcMenuItem danger @click="emits('delete', props.integration)">
+            <NcMenuItem v-e="['c:integration:delete']" danger @click="emits('delete', props.integration)">
               <GeneralIcon icon="delete" />
               {{ t('general.delete') }}
             </NcMenuItem>

@@ -32,7 +32,7 @@ const { bases } = storeToRefs(useBases())
 const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string }) | UserType>>(() => {
   const map = new Map()
 
-  allCollaborators.value?.forEach((coll: any) => {
+  allCollaborators.value?.forEach((coll) => {
     if (coll?.id) {
       map.set(coll.id, coll)
     }
@@ -137,7 +137,7 @@ const handleEdit = (integration: IntegrationType) => {
     <!-- Section header -->
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-2">
-        <h3 class="text-base font-semibold text-nc-content-gray mb-0">
+        <h3 class="text-sm font-weight-700 text-nc-content-gray-subtle mb-0">
           {{ t('general.activeConnections') }}
         </h3>
         <NcBadge v-if="filteredTotalCount" :border="false" class="bg-nc-bg-brand-inverted text-nc-content-gray-subtle2 text-xs min-w-5 !h-5 flex justify-center">
@@ -151,6 +151,7 @@ const handleEdit = (integration: IntegrationType) => {
         size="small"
         class="!text-nc-content-brand !p-0 !h-auto !min-h-0"
         inner-class="hover:underline"
+        v-e="['c:integration:view-all-connections']"
         @click="emits('view-all')"
       >
         {{ t('general.viewAllConnections') }}
@@ -171,7 +172,7 @@ const handleEdit = (integration: IntegrationType) => {
       />
 
       <!-- Overflow card -->
-      <div v-if="overflowCount > 0" class="nc-connection-overflow-card" @click="emits('view-all')">
+      <div v-if="overflowCount > 0" v-e="['c:integration:view-all-connections']" class="nc-connection-overflow-card" @click="emits('view-all')">
         <div class="text-sm font-semibold text-nc-content-gray">+{{ overflowCount }} {{ t('general.more') }}</div>
         <div class="text-xs text-nc-content-gray-subtle2">
           {{ t('general.viewAllConnections') }}

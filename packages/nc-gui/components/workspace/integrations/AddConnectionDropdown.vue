@@ -129,7 +129,7 @@ const handleSelect = (option: NcListItemType) => {
 
 <template>
   <NcDropdown v-model:visible="isOpen" placement="bottomRight">
-    <NcButton size="small" data-testid="nc-add-connection-btn">
+    <NcButton v-e="['c:integration:add-connection']" size="small" data-testid="nc-add-connection-btn">
       <GeneralIcon icon="plus" class="mr-1" />
       {{ t('labels.addConnection') }}
     </NcButton>

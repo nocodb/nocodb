@@ -621,14 +621,17 @@ export class TeamsV3Service {
       });
     }
 
-    // Check for duplicate team name within the same scope
+    // Check for duplicate team name among siblings (same parent + same scope)
     const existingTeams = await Team.list(
       context,
       scope === 'org' ? { fk_org_id: orgId } : { fk_workspace_id: workspaceId },
     );
 
+    const parentId = param.team.parent_team_id || null;
     const duplicateTeam = existingTeams.find(
-      (team) => team.title?.trim() === param.team.title?.trim(),
+      (team) =>
+        (team.fk_parent_team_id || null) === parentId &&
+        team.title?.trim().toLowerCase() === param.team.title?.trim().toLowerCase(),
     );
 
     if (duplicateTeam) {
@@ -956,16 +959,18 @@ export class TeamsV3Service {
 
     const updateData: any = {};
     if (param.team.title !== undefined) {
-      // Verify title uniqueness within the same scope
+      // Verify title uniqueness among siblings (same parent + same scope)
       if (param.team.title !== oldTeam.title) {
-        const siblings = await Team.list(context, {
+        const allTeams = await Team.list(context, {
           ...(oldTeam.fk_org_id
             ? { fk_org_id: oldTeam.fk_org_id }
             : { fk_workspace_id: oldTeam.fk_workspace_id }),
         });
-        const duplicate = siblings.find(
+        const parentId = oldTeam.fk_parent_team_id || null;
+        const duplicate = allTeams.find(
           (t) =>
             t.id !== oldTeam.id &&
+            (t.fk_parent_team_id || null) === parentId &&
             t.title?.toLowerCase() === param.team.title.toLowerCase(),
         );
         if (duplicate) {

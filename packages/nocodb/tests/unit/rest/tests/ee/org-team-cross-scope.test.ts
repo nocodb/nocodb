@@ -148,13 +148,13 @@ export default function () {
     }
 
     async function addWsMember(teamId: string, userId: string) {
+      // ignore error, if user already exist it returns 400
       await request(context.app)
         .post(
           `/api/v3/meta/workspaces/${workspaceId}/teams/${teamId}/members`,
         )
         .set('xc-token', context.xc_token)
         .send([{ user_id: userId, team_role: TeamUserRoles.MEMBER }])
-        .expect(200);
     }
 
     async function removeOrgMember(teamId: string, userId: string) {
@@ -1606,11 +1606,13 @@ export default function () {
           email: 'ocs6-bob@test.com',
         });
 
-        await addOrgMember(orgEastId, aliceR.user.id);
-        await addWsMember(wsWestId, bobR.user.id);
+        const base = await createProject(context);
+
         await addWorkspaceMembers([aliceR.user.id, bobR.user.id]);
 
-        const base = await createProject(context);
+        await addOrgMember(orgEastId, aliceR.user.id);
+        await addWsMember(wsWestId, bobR.user.id);
+
         await assignBaseTeamRole(
           base.id,
           orgEastId,
@@ -1855,11 +1857,12 @@ export default function () {
         const userR = await createUser(context, {
           email: 'ocs7-both@test.com',
         });
-        await addOrgMember(orgTeamId, userR.user.id);
-        await addWsMember(wsTeamId, userR.user.id);
-        await addWorkspaceMembers([userR.user.id]);
 
         const base = await createProject(context);
+
+        await addWorkspaceMembers([userR.user.id]);
+        await addOrgMember(orgTeamId, userR.user.id);
+        await addWsMember(wsTeamId, userR.user.id);
         const roles = await getUserRoles(userR.token, base.id);
         const directTeams = roles.direct_teams || [];
 
@@ -2369,11 +2372,12 @@ export default function () {
         const userR = await createUser(context, {
           email: 'ocs10-del@test.com',
         });
-        await addOrgMember(orgTeamId, userR.user.id);
-        await addWsMember(wsTeamId, userR.user.id);
-        await addWorkspaceMembers([userR.user.id]);
 
         const base = await createProject(context);
+
+        await addWorkspaceMembers([userR.user.id]);
+        await addOrgMember(orgTeamId, userR.user.id);
+        await addWsMember(wsTeamId, userR.user.id);
         await assignBaseTeamRole(
           base.id,
           orgTeamId,

@@ -321,20 +321,32 @@ watch(activeViewTab, (value) => {
                     }}</a>
                   </div>
                 </div>
-                <div class="flex items-center gap-2 !max-w-[400px]">
-                  <a-input
-                    v-if="easterEggToggle"
-                    v-model:value="searchQuery"
-                    type="text"
-                    class="flex-1 nc-input-border-on-value nc-search-integration-input !min-w-[300px] nc-input-sm flex-none"
-                    placeholder="Search integration"
-                    allow-clear
-                  >
-                    <template #prefix>
-                      <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
-                    </template>
-                  </a-input>
-                  <NcDropdown v-if="easterEggToggle && showFilter" v-model:visible="isOpenFilter" placement="bottomRight">
+              </div>
+              <NcButton
+                v-if="easterEggToggle"
+                type="ghost"
+                size="small"
+                class="!text-primary"
+                @click="requestIntegration.isOpen = true"
+              >
+                Request Integration
+              </NcButton>
+            </div>
+            <!-- Search + filter — full width, outside the header row -->
+            <div class="flex items-center gap-2 nc-content-max-w m-auto">
+              <a-input
+                v-if="easterEggToggle"
+                v-model:value="searchQuery"
+                type="text"
+                class="flex-1 nc-input-border-on-value nc-search-integration-input nc-input-sm"
+                placeholder="Search integration"
+                allow-clear
+              >
+                <template #prefix>
+                  <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
+                </template>
+              </a-input>
+              <NcDropdown v-if="easterEggToggle && showFilter" v-model:visible="isOpenFilter" placement="bottomRight">
                     <NcButton size="small" type="secondary">
                       <div class="flex items-center gap-2">
                         <GeneralIcon icon="filter" />
@@ -376,17 +388,6 @@ watch(activeViewTab, (value) => {
                       >
                     </template>
                   </NcDropdown>
-                </div>
-              </div>
-              <NcButton
-                v-if="easterEggToggle"
-                type="ghost"
-                size="small"
-                class="!text-primary"
-                @click="requestIntegration.isOpen = true"
-              >
-                Request Integration
-              </NcButton>
             </div>
           </div>
 

@@ -344,16 +344,11 @@ const customRow = (record: Record<string, any>) => ({
           </a>
         </div>
       </div>
-      <div
-        class="flex items-center gap-3"
-        :class="{
-          'mt-2': showTitle,
-        }"
-      >
+      <div class="flex items-center gap-3 mt-2">
         <a-input
           v-model:value="searchQuery"
           type="text"
-          class="nc-search-integration-input !min-w-[300px] !max-w-[400px] nc-input-sm flex-none"
+          class="nc-search-integration-input nc-input-sm flex-1"
           :placeholder="`${$t('general.search')} ${$t('general.connections').toLowerCase()}`"
           allow-clear
           @input="handleSearchConnection"

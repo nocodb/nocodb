@@ -873,9 +873,18 @@ export class ExportService {
     const refView =
       view ?? (await View.getFirstCollaborativeView(context, model.id));
 
+    if (!refView) {
+      this.debugLog(
+        `no collaborative view found for model ${model.id} — skipping data export`,
+      );
+      dataStream.push(null);
+      linkStream?.push(null);
+      return;
+    }
+
     const viewCols = await refView.getColumns(context);
     if (dataExportMode) {
-      const hideSystemFields = view.show_system_fields
+      const hideSystemFields = refView.show_system_fields
         ? // at minimum filter mm fields used in Links field
           model.columns
             .filter(

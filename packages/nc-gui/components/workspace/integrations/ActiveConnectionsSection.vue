@@ -85,7 +85,9 @@ const openDeleteIntegration = async (integration: IntegrationType) => {
   const connectionDetails = await getIntegration(integration, {
     includeSources: true,
   })
-  toBeDeletedIntegration.value.sources = connectionDetails?.sources || []
+  if (toBeDeletedIntegration.value) {
+    toBeDeletedIntegration.value.sources = connectionDetails?.sources || []
+  }
   isLoadingGetLinkedSources.value = false
 }
 

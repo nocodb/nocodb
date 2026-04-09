@@ -38,12 +38,20 @@ const {
   showEEFeatures,
 } = useEeConfig()
 
-const { isFromIntegrationPage, loadIntegrations } = useProvideIntegrationViewStore()
+const { isFromIntegrationPage, eventBus, loadIntegrations } = useProvideIntegrationViewStore()
 
 // Local ref for integrations view mode (main page vs all-connections page).
 // Cannot use activeViewTab (which writes to route.query.tab) because the outer NcTabs
 // also reads route.query.tab — changing it to 'connections' makes the outer pane blank.
 const integrationsViewMode = ref<'main' | 'all-connections'>('main')
+
+// After creating an integration, switch to all-connections view
+// (the store sets activeViewTab='connections' which breaks outer NcTabs, so we handle it here)
+eventBus.on((event: string) => {
+  if (event === IntegrationStoreEvents.INTEGRATION_ADD) {
+    integrationsViewMode.value = 'all-connections'
+  }
+})
 
 const hasTeamsEditPermission = computed(() => {
   return isEeUI && isTeamsEnabled.value && (isAdminPanel.value || isUIAllowed('teamCreate'))

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { IntegrationsType, integrationCategoryNeedDefault } from 'nocodb-sdk'
+import { IntegrationsType } from 'nocodb-sdk'
 import type { IntegrationType, UserType, WorkspaceUserType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
@@ -27,9 +27,7 @@ const {
   loadIntegrations,
   deleteIntegration,
   editIntegration,
-  duplicateIntegration,
   getIntegration,
-  setDefaultIntegration,
 } = useIntegrationStore()
 
 const { $api, $e } = useNuxtApp()
@@ -497,58 +495,11 @@ const customRow = (record: Record<string, any>) => ({
         </div>
 
         <div v-if="column.key === 'action'" @click.stop>
-          <NcDropdown placement="bottomRight">
-            <NcButton size="small" type="secondary">
-              <GeneralIcon icon="threeDotVertical" />
-            </NcButton>
-            <template #overlay>
-              <NcMenu variant="small">
-                <NcMenuItem
-                  v-if="integration.type && integrationCategoryNeedDefault(integration.type) && !integration.is_default"
-                  @click="setDefaultIntegration(integration)"
-                >
-                  <GeneralIcon class="text-current opacity-80" icon="star" />
-                  <span>Set as default</span>
-                </NcMenuItem>
-                <NcMenuItem v-if="isEeUI" @click="openBaseAssignment(integration)">
-                  <GeneralIcon class="text-current opacity-80" icon="ncDatabase" />
-                  <span>{{ $t('labels.manageBaseAccess') }}</span>
-                </NcMenuItem>
-                <NcMenuItem
-                  :disabled="!isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) && integration.sub_type === SyncDataType.NOCODB"
-                  @click="openEditIntegration(integration)"
-                >
-                  <GeneralIcon class="text-current opacity-80" icon="edit" />
-                  <span>{{ $t('general.edit') }}</span>
-                </NcMenuItem>
-                <NcTooltip :disabled="integration?.sub_type !== ClientType.SQLITE">
-                  <template #title>
-                    Not allowed for type
-                    {{
-                      integration.sub_type && clientTypesMap[integration.sub_type]
-                        ? clientTypesMap[integration.sub_type]?.text
-                        : integration.sub_type
-                    }}
-                  </template>
-
-                  <NcMenuItem
-                    :disabled="integration?.sub_type === ClientType.SQLITE || integration?.sub_type === SyncDataType.NOCODB"
-                    @click="duplicateIntegration(integration)"
-                  >
-                    <GeneralIcon class="text-current opacity-80" icon="duplicate" />
-                    <span>{{ $t('general.duplicate') }}</span>
-                  </NcMenuItem>
-                </NcTooltip>
-                <template v-if="integration?.sub_type !== SyncDataType.NOCODB">
-                  <NcDivider />
-                  <NcMenuItem danger @click="openDeleteIntegration(integration)">
-                    <GeneralIcon icon="delete" />
-                    {{ $t('general.delete') }}
-                  </NcMenuItem>
-                </template>
-              </NcMenu>
-            </template>
-          </NcDropdown>
+          <WorkspaceIntegrationsConnectionActionMenu
+            :integration="integration"
+            @delete="openDeleteIntegration"
+            @base-assignment="openBaseAssignment"
+          />
         </div>
       </template>
 

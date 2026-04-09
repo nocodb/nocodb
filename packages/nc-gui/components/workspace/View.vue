@@ -38,12 +38,13 @@ const {
   showEEFeatures,
 } = useEeConfig()
 
-const { isFromIntegrationPage, integrationPaginationData, loadIntegrations } = useProvideIntegrationViewStore()
+const { isFromIntegrationPage, integrationPaginationData, integrations, loadIntegrations } = useProvideIntegrationViewStore()
 
-// Local ref for inner integrations sub-tabs in settings sidebar mode.
+// Local ref for integrations view mode (main page vs all-connections page).
 // Cannot use activeViewTab (which writes to route.query.tab) because the outer NcTabs
 // also reads route.query.tab — changing it to 'connections' makes the outer pane blank.
-const integrationsSubTab = ref<string>('integrations')
+const integrationsViewMode = ref<'main' | 'all-connections'>('main')
+
 
 const hasTeamsEditPermission = computed(() => {
   return isEeUI && isTeamsEnabled.value && (isAdminPanel.value || isUIAllowed('teamCreate'))
@@ -155,7 +156,7 @@ watch(
 
     if (oldTab === 'integrations') {
       isFromIntegrationPage.value = false
-      integrationsSubTab.value = 'integrations'
+      integrationsViewMode.value = 'main'
     }
 
     await until(() => isBaseRolesLoaded.value).toBeTruthy()
@@ -292,46 +293,53 @@ if (!props.isNewWsPage) {
               {{ $t('general.integrations') }}
             </div>
           </template>
-          <div class="nc-integrations-layout h-[calc(100vh-var(--topbar-height)-44px)] flex nc-content-max-w mx-auto">
-            <!-- Left: vertical nav -->
-            <div class="nc-integrations-sidebar flex flex-col gap-1 pl-6 pr-2 pt-6 w-48 flex-shrink-0">
-              <div
-                class="nc-integrations-nav-item"
-                :class="{ active: integrationsSubTab === 'integrations' }"
-                @click="integrationsSubTab = 'integrations'"
-              >
-                <GeneralIcon icon="integration" class="h-4 w-4 flex-none" />
-                <span class="flex-1">{{ $t('general.integrations') }}</span>
-              </div>
-              <div
-                class="nc-integrations-nav-item"
-                :class="{ active: integrationsSubTab === 'connections' }"
-                @click="integrationsSubTab = 'connections'"
-              >
-                <GeneralIcon icon="gitCommit" class="h-4 w-4 flex-none" />
-                <span class="flex-1">{{ $t('general.connections') }}</span>
-                <div
-                  v-if="integrationPaginationData?.totalRows"
-                  class="tab-info flex-none"
-                  :class="{
-                    'bg-primary-selected': integrationsSubTab === 'connections',
-                    'bg-nc-bg-gray-extralight': integrationsSubTab !== 'connections',
-                  }"
-                >
-                  {{ integrationPaginationData.totalRows }}
+          <div class="nc-integrations-layout h-[calc(100vh-var(--topbar-height)-44px)] nc-content-max-w mx-auto">
+            <!-- Main integrations page -->
+            <template v-if="integrationsViewMode === 'main'">
+              <div class="h-full flex flex-col overflow-y-auto nc-scrollbar-thin">
+                <!-- Active connections section -->
+                <div v-if="integrations.length" class="px-6 pt-6">
+                  <WorkspaceIntegrationsActiveConnectionsSection
+                    :connections="integrations"
+                    :total-count="integrationPaginationData.totalRows || 0"
+                    @view-all="integrationsViewMode = 'all-connections'"
+                  />
+                  <NcDivider class="!my-6" />
+                </div>
+
+                <!-- Integration categories grid -->
+                <div class="flex-1">
+                  <WorkspaceIntegrationsTab show-filter show-title />
                 </div>
               </div>
-            </div>
+            </template>
 
-            <!-- Right: content -->
-            <div class="flex-1 min-w-0 flex flex-col h-full">
-              <div v-if="integrationsSubTab === 'integrations'" class="h-full">
-                <WorkspaceIntegrationsTab show-filter show-title />
+            <!-- All connections page -->
+            <template v-else-if="integrationsViewMode === 'all-connections'">
+              <div class="h-full flex flex-col p-6">
+                <NcButton type="text" size="small" class="!text-nc-content-brand self-start -ml-1 mb-4" @click="integrationsViewMode = 'main'">
+                  <GeneralIcon icon="arrowLeft" class="mr-1" />
+                  {{ $t('general.backToIntegrations') }}
+                </NcButton>
+
+                <div class="flex items-center justify-between mb-2">
+                  <h2 class="text-lg font-semibold text-nc-content-gray mb-0">
+                    {{ $t('general.allConnections') }}
+                  </h2>
+                  <NcButton size="small" @click="integrationsViewMode = 'main'">
+                    <GeneralIcon icon="plus" class="mr-1" />
+                    {{ $t('labels.addConnection') }}
+                  </NcButton>
+                </div>
+                <div class="text-sm font-normal text-nc-content-gray-subtle2 mb-4">
+                  {{ $t('msg.manageAllConnections') }}
+                </div>
+
+                <div class="flex-1 min-h-0">
+                  <WorkspaceIntegrationsConnectionsTab />
+                </div>
               </div>
-              <div v-else-if="integrationsSubTab === 'connections'" class="p-6 h-full">
-                <WorkspaceIntegrationsConnectionsTab show-title />
-              </div>
-            </div>
+            </template>
 
             <WorkspaceIntegrationsEditOrAdd />
           </div>
@@ -427,20 +435,6 @@ if (!props.isNewWsPage) {
 
 .tab-title {
   @apply flex flex-row items-center gap-x-2 py-[1px];
-}
-
-.nc-integrations-nav-item {
-  @apply flex items-center gap-2 px-3 h-8 rounded-md cursor-pointer
-    text-bodyDefaultSm text-nc-content-gray-subtle
-    transition-colors;
-
-  &:hover {
-    @apply bg-nc-bg-gray-medium;
-  }
-
-  &.active {
-    @apply bg-nc-bg-brand-inverted text-nc-content-brand font-medium;
-  }
 }
 
 .hide-tabs {

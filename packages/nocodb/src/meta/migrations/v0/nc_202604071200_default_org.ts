@@ -56,7 +56,12 @@ async function batchInsertOrgUsers(
 }
 
 export async function up(knex: Knex) {
+  const migrationStart = Date.now();
+  console.log('[nc_202604071200_default_org] Starting migration...');
+
   // Step 1: Fix nc_org_users PK — change from fk_org_id only to composite (fk_org_id, fk_user_id)
+  const step1Start = Date.now();
+  console.log('[nc_202604071200_default_org] Step 1: Fix nc_org_users PK...');
   const hasOrgUsersTable = await knex.schema.hasTable(MetaTable.ORG_USERS);
 
   if (hasOrgUsersTable) {
@@ -175,7 +180,13 @@ export async function up(knex: Knex) {
     }
   }
 
+  console.log(
+    `[nc_202604071200_default_org] Step 1 completed in ${Date.now() - step1Start}ms`,
+  );
+
   // Step 2: Create default org for on-prem / CE (idempotent)
+  const step2Start = Date.now();
+  console.log('[nc_202604071200_default_org] Step 2: Create default org...');
   const existingOrg = await knex(MetaTable.ORG)
     .where('id', NC_DEFAULT_ORG_ID)
     .first();
@@ -235,7 +246,13 @@ export async function up(knex: Knex) {
     }
   }
 
+  console.log(
+    `[nc_202604071200_default_org] Step 2 completed in ${Date.now() - step2Start}ms`,
+  );
+
   // Step 3: Backfill cloud orgs — add workspace users to nc_org_users
+  const step3Start = Date.now();
+  console.log('[nc_202604071200_default_org] Step 3: Backfill cloud orgs...');
   // Runs on ALL deployments (including cloud) independently of Step 2
   const cloudOrgs = await knex(MetaTable.ORG)
     .whereNot('id', NC_DEFAULT_ORG_ID)
@@ -267,9 +284,13 @@ export async function up(knex: Knex) {
     );
   }
 
-  // All users default to VIEWER — workspace creation requires org admin
-  // to explicitly promote users to CREATOR. This prevents guests from
-  // accumulating seat counts by creating workspaces.
+  console.log(
+    `[nc_202604071200_default_org] Step 3 completed in ${Date.now() - step3Start}ms`,
+  );
+
+  console.log(
+    `[nc_202604071200_default_org] Migration completed in ${Date.now() - migrationStart}ms`,
+  );
 }
 
 export async function down(knex: Knex) {

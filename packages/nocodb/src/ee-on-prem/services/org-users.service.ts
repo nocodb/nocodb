@@ -151,6 +151,18 @@ export class OrgUsersService extends OrgUsersServiceCE {
       NcError.badRequest('User not found');
     }
 
+    // Validate org role
+    if (param.orgRole) {
+      const allowedRoles = [
+        EnterpriseOrgUserRoles.ADMIN,
+        EnterpriseOrgUserRoles.CREATOR,
+        EnterpriseOrgUserRoles.VIEWER,
+      ];
+      if (!allowedRoles.includes(param.orgRole)) {
+        NcError.badRequest(`Invalid org role: ${param.orgRole}`);
+      }
+    }
+
     // Check if already in org
     const existing = await ncMeta
       .knexConnection(MetaTable.ORG_USERS)

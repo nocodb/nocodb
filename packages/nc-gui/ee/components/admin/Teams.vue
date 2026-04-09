@@ -1295,7 +1295,7 @@ onMounted(() => {
 
         <div class="text-body text-nc-content-gray-subtle mb-5">
           <span
-            v-dompurify-html="$t('objects.teams.selectMembersToAddIntoTeam', { team: `<strong>${editTeam?.title}</strong>` })"
+            v-dompurify-html="$t('objects.teams.selectMembersToAddIntoTeam', { team: `<strong>${getHTMLEncodedText(editTeam?.title ?? '')}</strong>` })"
           ></span>
         </div>
 

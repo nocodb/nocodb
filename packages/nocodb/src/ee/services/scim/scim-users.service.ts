@@ -1,7 +1,7 @@
 import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import isEmail from 'validator/lib/isEmail';
-import { AppEvents, WorkspaceUserRoles } from 'nocodb-sdk';
+import { AppEvents, EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { UserType } from 'nocodb-sdk';
 import type { ScimUserEvent } from '~/services/app-hooks/interfaces';
@@ -14,9 +14,9 @@ import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import {
-  extractWorkspaceRoleFromExtension,
+  extractOrgRoleFromExtension,
   NOCODB_USER_EXTENSION,
-  WORKSPACE_ROLE_TO_LABEL,
+  ORG_ROLE_TO_LABEL,
 } from '~/services/scim/scim-helpers';
 // Seat limits are workspace-scoped; org-level SCIM provisioning
 // does not enforce them (users are added to workspaces separately).
@@ -34,13 +34,13 @@ export class ScimUsersService {
   ) {}
 
   /**
-   * Extract and validate workspaceRole from NocoDB extension attribute.
-   * Returns the WorkspaceUserRoles enum value, or undefined if not present.
+   * Extract and validate orgRole from NocoDB extension attribute.
+   * Returns the EnterpriseOrgUserRoles enum value, or undefined if not present.
    */
-  private extractWorkspaceRole(
+  private extractOrgRole(
     scimUser: Record<string, unknown>,
-  ): WorkspaceUserRoles | undefined {
-    return extractWorkspaceRoleFromExtension(scimUser, NOCODB_USER_EXTENSION);
+  ): EnterpriseOrgUserRoles | undefined {
+    return extractOrgRoleFromExtension(scimUser, NOCODB_USER_EXTENSION);
   }
 
   /**
@@ -213,8 +213,8 @@ export class ScimUsersService {
     // Build comprehensive scim_meta to round-trip all attributes
     const scimMeta = this.buildScimMeta(scimUser);
 
-    // Extract workspace role from NocoDB extension (if provided)
-    const extensionRole = this.extractWorkspaceRole(scimUser);
+    // Extract org role from NocoDB extension (if provided)
+    const extensionRole = this.extractOrgRole(scimUser);
 
     // IdP wins on conflict: if user already exists, adopt as SCIM-managed
     // Keep existing role unless the SCIM extension explicitly provides one
@@ -253,11 +253,11 @@ export class ScimUsersService {
       return this.toScimUser(adoptedUser);
     }
 
-    // Default role: SCIM extension > config default_role > no-access
+    // Default role: SCIM extension > config default_role > viewer
     const scimConfig = await ScimConfig.get(context, orgId);
-    const configDefaultRole = scimConfig?.default_role as WorkspaceUserRoles | undefined;
+    const configDefaultRole = scimConfig?.default_role as EnterpriseOrgUserRoles | undefined;
     const orgRole =
-      extensionRole || configDefaultRole || WorkspaceUserRoles.NO_ACCESS;
+      extensionRole || configDefaultRole || EnterpriseOrgUserRoles.VIEWER;
 
     // Reactivate soft-deleted user
     if (existingOrgUser?.deleted) {
@@ -357,7 +357,7 @@ export class ScimUsersService {
               if (val.toLowerCase() === 'false') val = false;
               else if (val.toLowerCase() === 'true') val = true;
             }
-            // Handle NocoDB extension path (e.g. "urn:...:User:workspaceRole")
+            // Handle NocoDB extension path (e.g. "urn:...:User:orgRole")
             const nocoExtPrefix = `${NOCODB_USER_EXTENSION}:`;
             if (op.path.startsWith(nocoExtPrefix)) {
               const field = op.path.substring(nocoExtPrefix.length);
@@ -486,8 +486,8 @@ export class ScimUsersService {
       );
     }
 
-    // Handle workspace role from NocoDB extension attribute
-    const newRole = this.extractWorkspaceRole(scimUser);
+    // Handle org role from NocoDB extension attribute
+    const newRole = this.extractOrgRole(scimUser);
     if (newRole) {
       updateData.roles = newRole;
     }
@@ -793,36 +793,12 @@ export class ScimUsersService {
 
   /**
    * Find an org user by the IdP's externalId.
-   * First checks scim_external_id (indexed), then falls back to scim_meta
-   * for users created before externalId was stored in the column.
    */
   private async findOrgUserByIdpExternalId(
     orgId: string,
     idpExternalId: string,
   ): Promise<any | null> {
-    // Primary: indexed column lookup
-    const byCol = await OrgUser.getByScimExternalId(orgId, idpExternalId);
-    if (byCol) return byCol;
-
-    // Fallback: search scim_meta JSON for legacy users
-    const ncMeta = Noco.ncMeta;
-    const client = ncMeta.knexConnection.client.config.client;
-    const likeVal = `%"externalId":"${idpExternalId.replace(/%/g, '\\%').replace(/_/g, '\\_')}"%`;
-
-    const row = await ncMeta
-      .knexConnection(MetaTable.ORG_USERS)
-      .where('fk_org_id', orgId)
-      .where(
-        client === 'pg' || client === 'postgresql'
-          ? ncMeta.knexConnection.raw('scim_meta::text LIKE ?', [likeVal])
-          : ncMeta.knexConnection.raw('scim_meta LIKE ?', [likeVal]),
-      )
-      .where(function () {
-        this.where('deleted', false).orWhereNull('deleted');
-      })
-      .first();
-
-    return row || null;
+    return OrgUser.getByScimExternalId(orgId, idpExternalId);
   }
 
   /**
@@ -925,11 +901,11 @@ export class ScimUsersService {
       result[ENTERPRISE_EXTENSION] = scimMeta[ENTERPRISE_EXTENSION];
     }
 
-    // Add NocoDB User extension (workspaceRole)
-    const wsRoleLabel = WORKSPACE_ROLE_TO_LABEL[orgUser.roles];
-    if (wsRoleLabel) {
+    // Add NocoDB User extension (orgRole)
+    const orgRoleLabel = ORG_ROLE_TO_LABEL[orgUser.roles];
+    if (orgRoleLabel) {
       result.schemas.push(NOCODB_USER_EXTENSION);
-      result[NOCODB_USER_EXTENSION] = { workspaceRole: wsRoleLabel };
+      result[NOCODB_USER_EXTENSION] = { orgRole: orgRoleLabel };
     }
 
     return result;

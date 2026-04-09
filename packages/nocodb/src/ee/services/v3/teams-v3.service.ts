@@ -721,6 +721,15 @@ export class TeamsV3Service {
             'Each member must have user_id and team_role',
           );
         }
+        if (
+          !Object.values(TeamUserRoles).includes(
+            member.team_role as TeamUserRoles,
+          )
+        ) {
+          NcError.get(context).invalidRequestBody(
+            `Invalid team_role "${member.team_role}". Allowed: ${Object.values(TeamUserRoles).join(', ')}`,
+          );
+        }
       }
 
       // Batch-validate all users exist
@@ -729,6 +738,30 @@ export class TeamsV3Service {
       for (const member of param.team.members) {
         if (!usersMap.has(member.user_id)) {
           NcError.get(context).userNotFound(member.user_id);
+        }
+      }
+
+      // Validate membership: org teams require org membership, workspace teams require workspace membership
+      if (orgId) {
+        for (const member of param.team.members) {
+          const orgUser = await OrgUser.get(orgId, member.user_id);
+          if (!orgUser) {
+            NcError.get(context).badRequest(
+              `User ${member.user_id} is not a member of this organization`,
+            );
+          }
+        }
+      } else if (workspaceId) {
+        for (const member of param.team.members) {
+          const wsUser = await WorkspaceUser.get(
+            workspaceId,
+            member.user_id,
+          );
+          if (!wsUser) {
+            NcError.get(context).badRequest(
+              `User ${member.user_id} is not a member of this workspace`,
+            );
+          }
         }
       }
 
@@ -1179,6 +1212,15 @@ export class TeamsV3Service {
           'Each member must have user_id and team_role',
         );
       }
+      if (
+        !Object.values(TeamUserRoles).includes(
+          member.team_role as TeamUserRoles,
+        )
+      ) {
+        NcError.get(context).invalidRequestBody(
+          `Invalid team_role "${member.team_role}". Allowed: ${Object.values(TeamUserRoles).join(', ')}`,
+        );
+      }
     }
 
     // validate: all users exist
@@ -1197,6 +1239,21 @@ export class TeamsV3Service {
         if (!orgUser) {
           NcError.get(context).badRequest(
             `User ${member.user_id} is not a member of this organization`,
+          );
+        }
+      }
+    }
+
+    // For workspace teams: validate all users are workspace members
+    if (team.fk_workspace_id) {
+      for (const member of param.members) {
+        const wsUser = await WorkspaceUser.get(
+          team.fk_workspace_id,
+          member.user_id,
+        );
+        if (!wsUser) {
+          NcError.get(context).badRequest(
+            `User ${member.user_id} is not a member of this workspace`,
           );
         }
       }
@@ -1234,10 +1291,7 @@ export class TeamsV3Service {
         resource_id: param.teamId,
         principal_type: PrincipalType.USER,
         principal_ref_id: member.user_id,
-        roles:
-          member.team_role === TeamUserRoles.OWNER
-            ? TeamUserRoles.OWNER
-            : member.team_role,
+        roles: member.team_role,
       });
 
       // Emit team member add event
@@ -1509,6 +1563,19 @@ export class TeamsV3Service {
       NcError.get(context).invalidRequestBody(
         'Request body must be an array of {user_id, team_role} objects',
       );
+    }
+
+    for (const member of param.members) {
+      if (
+        member.team_role &&
+        !Object.values(TeamUserRoles).includes(
+          member.team_role as TeamUserRoles,
+        )
+      ) {
+        NcError.get(context).invalidRequestBody(
+          `Invalid team_role "${member.team_role}". Allowed: ${Object.values(TeamUserRoles).join(', ')}`,
+        );
+      }
     }
 
     // load all users and current assignments upfront

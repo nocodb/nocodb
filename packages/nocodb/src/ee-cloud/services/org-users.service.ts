@@ -19,6 +19,20 @@ export class OrgUsersService {
     userProps: OrgUserReqType;
     req: NcRequest;
   }) {
+    // Validate org role
+    if (param.userProps.roles) {
+      const allowedRoles = [
+        EnterpriseOrgUserRoles.ADMIN,
+        EnterpriseOrgUserRoles.CREATOR,
+        EnterpriseOrgUserRoles.VIEWER,
+      ];
+      if (
+        !allowedRoles.includes(param.userProps.roles as EnterpriseOrgUserRoles)
+      ) {
+        NcError.badRequest(`Invalid org role: ${param.userProps.roles}`);
+      }
+    }
+
     // OrgUser.get() returns null for soft-deleted rows
     const orgUser = await OrgUser.get(param.orgId, param.userId);
 

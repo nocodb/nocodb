@@ -9,7 +9,6 @@ import type { BaseReqType, IntegrationType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { populateMeta, validatePayload } from '~/helpers';
-import { populateRollupColumnAndHideLTAR } from '~/helpers/populateMeta';
 import { syncBaseMigration } from '~/helpers/syncMigration';
 import { Base, Integration, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
@@ -243,8 +242,6 @@ export class SourcesService {
         logger: param.logger,
         user: param.req.user,
       });
-
-      await populateRollupColumnAndHideLTAR(context, source, base);
 
       this.appHooksService.emit(AppEvents.APIS_CREATED, {
         info,

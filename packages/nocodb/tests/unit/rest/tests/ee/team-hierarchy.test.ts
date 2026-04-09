@@ -1700,7 +1700,7 @@ export default function () {
           const jackResult = await createUser(context, {
             email: 'jack-h@test.com',
           });
-          addWorkspaceMembers([jackResult.user.id], WorkspaceUserRoles.INHERIT);
+          await addWorkspaceMembers([jackResult.user.id]);
           await addMember(apiTeamId, jackResult.user.id);
 
           // Give Jack workspace viewer access
@@ -2523,7 +2523,7 @@ export default function () {
         const waltResult = await createUser(context, { email: 'roleres-walt@test.com' });
         waltUser = waltResult.user; waltToken = waltResult.token;
 
-        await addWorkspaceMembers([fionaUser.id, waltUser.id], WorkspaceUserRoles.INHERIT);
+        await addWorkspaceMembers([fionaUser.id, waltUser.id]);
 
         await addMember(frontendId, fionaUser.id);
         await addMember(webTeamId, waltUser.id);

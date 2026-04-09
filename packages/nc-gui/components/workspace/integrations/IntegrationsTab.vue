@@ -338,7 +338,7 @@ watch(activeViewTab, (value) => {
                 v-if="easterEggToggle"
                 v-model:value="searchQuery"
                 type="text"
-                class="flex-1 nc-input-border-on-value nc-search-integration-input nc-input-sm"
+                class="flex-1 nc-input-border-on-value nc-search-integration-input !rounded-lg !py-2 !h-9"
                 placeholder="Search integration"
                 allow-clear
               >
@@ -347,47 +347,47 @@ watch(activeViewTab, (value) => {
                 </template>
               </a-input>
               <NcDropdown v-if="easterEggToggle && showFilter" v-model:visible="isOpenFilter" placement="bottomRight">
-                    <NcButton size="small" type="secondary">
-                      <div class="flex items-center gap-2">
-                        <GeneralIcon icon="filter" />
-                        <div
-                          v-if="integrationCategoriesRef.length - categoriesQuery.length"
-                          class="bg-nc-bg-brand text-nc-content-brand p-1 text-xs rounded-md min-w-6"
-                        >
-                          {{ integrationCategoriesRef.length - categoriesQuery.length }}
-                        </div>
-                      </div>
-                    </NcButton>
+                <NcButton size="medium" type="secondary" class="!px-1 !min-h-9 !min-w-9 !h-9 !w-9">
+                  <div class="flex items-center gap-2">
+                    <GeneralIcon icon="filter" />
+                    <div
+                      v-if="integrationCategoriesRef.length - categoriesQuery.length"
+                      class="bg-nc-bg-brand text-nc-content-brand p-1 text-xs rounded-md min-w-6"
+                    >
+                      {{ integrationCategoriesRef.length - categoriesQuery.length }}
+                    </div>
+                  </div>
+                </NcButton>
 
-                    <template #overlay>
-                      <NcList
-                        v-model:value="categoriesQuery"
-                        v-model:open="isOpenFilter"
-                        :list="integrationCategoriesRef"
-                        search-input-placeholder="Search category"
-                        :close-on-select="false"
-                        is-multi-select
-                        variant="medium"
-                      >
-                        <template #listFooter>
-                          <NcDivider class="!mt-0 !mb-2" />
-                          <div class="px-2 mb-2">
-                            <div
-                              class="px-2 py-1.5 flex items-center justify-between gap-2 text-sm font-weight-500 !text-nc-content-brand hover:bg-nc-bg-gray-light rounded-md cursor-pointer"
-                              @click="toggleShowOrHideAllCategory"
-                            >
-                              <div class="flex items-center gap-2">
-                                <GeneralIcon :icon="isVisibleAllCategory ? 'eyeSlash' : 'eye'" />
-                                <div>
-                                  {{ isVisibleAllCategory ? $t('general.hideAll') : $t('general.showAll') }}
-                                </div>
-                              </div>
+                <template #overlay>
+                  <NcList
+                    v-model:value="categoriesQuery"
+                    v-model:open="isOpenFilter"
+                    :list="integrationCategoriesRef"
+                    search-input-placeholder="Search category"
+                    :close-on-select="false"
+                    is-multi-select
+                    variant="medium"
+                  >
+                    <template #listFooter>
+                      <NcDivider class="!mt-0 !mb-2" />
+                      <div class="px-2 mb-2">
+                        <div
+                          class="px-2 py-1.5 flex items-center justify-between gap-2 text-sm font-weight-500 !text-nc-content-brand hover:bg-nc-bg-gray-light rounded-md cursor-pointer"
+                          @click="toggleShowOrHideAllCategory"
+                        >
+                          <div class="flex items-center gap-2">
+                            <GeneralIcon :icon="isVisibleAllCategory ? 'eyeSlash' : 'eye'" />
+                            <div>
+                              {{ isVisibleAllCategory ? $t('general.hideAll') : $t('general.showAll') }}
                             </div>
                           </div>
-                        </template></NcList
-                      >
-                    </template>
-                  </NcDropdown>
+                        </div>
+                      </div>
+                    </template></NcList
+                  >
+                </template>
+              </NcDropdown>
             </div>
           </div>
 
@@ -408,6 +408,7 @@ watch(activeViewTab, (value) => {
                   v-if="showActiveConnections && !isModal && integrations.length"
                   :connections="integrations"
                   :total-count="integrationPaginationData.totalRows || 0"
+                  :search-query="searchQuery"
                   @view-all="emits('view-all-connections')"
                 />
                 <NcDivider v-if="showActiveConnections && !isModal && integrations.length" />

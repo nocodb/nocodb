@@ -6,10 +6,12 @@ interface Props {
   connections: IntegrationType[]
   totalCount: number
   maxVisible?: number
+  searchQuery?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   maxVisible: 6,
+  searchQuery: '',
 })
 
 const emits = defineEmits<{
@@ -37,7 +39,15 @@ const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string 
   return map
 })
 
-const filteredConnections = computed(() => (props.connections || []).filter((i) => IntegrationsType.Sync !== i.type))
+const filteredConnections = computed(() => {
+  const query = props.searchQuery.trim().toLowerCase()
+
+  return (props.connections || []).filter((i) => {
+    if (IntegrationsType.Sync === i.type) return false
+    if (query && !i.title?.toLowerCase().includes(query)) return false
+    return true
+  })
+})
 
 const visibleConnections = computed(() => {
   return filteredConnections.value.slice(0, props.maxVisible)

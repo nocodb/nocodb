@@ -2975,7 +2975,7 @@
   },
   "msg": {
     "noActionsAvailable": "No actions available",
-    "manageBaseIntegrations": "Manage integrations available to this base",
+    "manageBaseIntegrations": "Manage connections and discover new integrations for this base",
     "noIntegrationsLinked": "No integrations linked to this base",
     "noIntegrationsAvailable": "No integrations available to link",
     "chat": {
@@ -3032,7 +3032,7 @@
     "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",
     "deleteAccountPermanently": "Delete your account permanently",
     "learnMore": "Learn more",
-    "connectIntegrations": "Connect integrations with NocoDB.",
+    "connectIntegrations": "Manage connections and discover new integrations for this workspace.",
     "manageConnections": "Manage connections for your integrations.",
     "manageAllConnections": "Manage all active and inactive connections across this base.",
     "invalidConfiguration": "Invalid button configuration",

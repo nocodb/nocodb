@@ -43,6 +43,24 @@ const hasAnyAction = (integration: IntegrationType) => {
 // View mode: 'main' (single-page with cards + categories) or 'all-connections' (full table)
 const viewMode = ref<'main' | 'all-connections'>('main')
 
+const searchQuery = ref('')
+const connectionsSearchQuery = ref('')
+
+const filteredAllConnections = computed(() => {
+  if (!connectionsSearchQuery.value.trim()) return linkedIntegrations.value
+
+  const query = connectionsSearchQuery.value.trim().toLowerCase()
+  return linkedIntegrations.value.filter((i) => i.title?.toLowerCase().includes(query))
+})
+
+// Filtered linked integrations based on search
+const filteredLinkedIntegrations = computed(() => {
+  if (!searchQuery.value.trim()) return linkedIntegrations.value
+
+  const query = searchQuery.value.trim().toLowerCase()
+  return linkedIntegrations.value.filter((i) => i.title?.toLowerCase().includes(query))
+})
+
 // Build category map for the card grid
 const integrationsMap = computed(() => {
   // Force re-evaluation when dynamic integrations are loaded
@@ -60,11 +78,18 @@ const integrationsMap = computed(() => {
       continue
     if (!cat.isAvailable) continue
 
+    const query = searchQuery.value.trim().toLowerCase()
+
     map[cat.value] = {
       title: cat.title,
       value: cat.value,
       list: allIntegrations.filter(
-        (i) => i.type === cat.value && i.isAvailable && !i.isOssOnly && i.sub_type !== SyncDataType.NOCODB,
+        (i) =>
+          i.type === cat.value &&
+          i.isAvailable &&
+          !i.isOssOnly &&
+          i.sub_type !== SyncDataType.NOCODB &&
+          (!query || t(i.title).toLowerCase().includes(query)),
       ),
     }
   }
@@ -176,11 +201,11 @@ const handleEdit = (integration: IntegrationType) => {
 const maxVisibleCards = 6
 
 const visibleLinkedConnections = computed(() => {
-  return linkedIntegrations.value.slice(0, maxVisibleCards)
+  return filteredLinkedIntegrations.value.slice(0, maxVisibleCards)
 })
 
 const overflowCount = computed(() => {
-  return Math.max(0, linkedIntegrations.value.length - maxVisibleCards)
+  return Math.max(0, filteredLinkedIntegrations.value.length - maxVisibleCards)
 })
 
 onMounted(async () => {
@@ -206,13 +231,25 @@ watch(baseId, reload)
     <template v-if="viewMode === 'main'">
       <div class="h-full w-full overflow-y-auto nc-scrollbar-thin">
         <div class="px-6 py-6 flex flex-col nc-workspace-settings-integrations-list">
-          <div class="text-sm font-normal text-nc-content-gray-subtle2 mb-6">
+          <div class="text-sm font-normal text-nc-content-gray-subtle2 mb-4">
             {{ $t('msg.manageBaseIntegrations') }}
           </div>
 
+          <a-input
+            v-model:value="searchQuery"
+            type="text"
+            class="nc-input-border-on-value nc-search-integration-input !rounded-lg !py-2 !h-9 mb-4"
+            :placeholder="`${$t('general.search')} ${$t('general.integrations').toLowerCase()}...`"
+            allow-clear
+          >
+            <template #prefix>
+              <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
+            </template>
+          </a-input>
+
           <div class="flex flex-col space-y-6 w-full">
             <!-- Active connections section (if any) -->
-            <div v-if="linkedIntegrations.length" style="container-type: inline-size">
+            <div v-if="filteredLinkedIntegrations.length" style="container-type: inline-size">
               <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2">
                   <h3 class="text-base font-semibold text-nc-content-gray mb-0">
@@ -222,7 +259,7 @@ watch(baseId, reload)
                     :border="false"
                     class="bg-nc-bg-brand-inverted text-nc-content-gray-subtle2 text-xs min-w-5 !h-5 flex justify-center"
                   >
-                    {{ linkedIntegrations.length }}
+                    {{ filteredLinkedIntegrations.length }}
                   </NcBadge>
                 </div>
 
@@ -261,7 +298,7 @@ watch(baseId, reload)
               </div>
             </div>
 
-            <NcDivider v-if="linkedIntegrations.length" />
+            <NcDivider v-if="filteredLinkedIntegrations.length" />
 
             <!-- Integration categories -->
             <template v-for="(category, key) in integrationsMap" :key="key">
@@ -313,15 +350,27 @@ watch(baseId, reload)
           <WorkspaceIntegrationsAddConnectionDropdown mode="base" />
         </div>
         <div class="text-sm font-normal text-nc-content-gray-subtle2 mb-4">
-          {{ $t('msg.manageBaseIntegrations') }}
+          {{ $t('msg.manageAllConnections') }}
         </div>
+
+        <a-input
+          v-model:value="connectionsSearchQuery"
+          type="text"
+          class="nc-input-border-on-value nc-search-integration-input !rounded-lg !py-2 !h-9 mb-4"
+          :placeholder="`${$t('general.search')} ${$t('general.connections').toLowerCase()}...`"
+          allow-clear
+        >
+          <template #prefix>
+            <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
+          </template>
+        </a-input>
 
         <div class="flex-1 min-h-0">
           <div class="h-full flex flex-col gap-6 nc-content-max-w mx-auto">
             <NcTable
               v-model:order-by="orderBy"
               :columns="linkedColumns"
-              :data="linkedIntegrations"
+              :data="filteredAllConnections"
               :is-data-loading="isLoading"
               sticky-first-column
               class="h-full"

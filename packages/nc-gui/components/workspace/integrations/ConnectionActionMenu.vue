@@ -17,17 +17,17 @@ const props = withDefaults(defineProps<Props>(), {
   canUnlink: false,
 })
 
-const { t } = useI18n()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
-const { editIntegration, duplicateIntegration, setDefaultIntegration } = useIntegrationStore()
-
 const emits = defineEmits<{
   (e: 'delete', integration: IntegrationType): void
   (e: 'base-assignment', integration: IntegrationType): void
   (e: 'unlink', integrationId: string): void
 }>()
+
+const { t } = useI18n()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const { editIntegration, duplicateIntegration, setDefaultIntegration } = useIntegrationStore()
 
 const openEditIntegration = (integration: IntegrationType) => {
   if (!isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) && integration.sub_type === SyncDataType.NOCODB) {
@@ -71,8 +71,8 @@ const openEditIntegration = (integration: IntegrationType) => {
             <span>{{ t('labels.manageBaseAccess') }}</span>
           </NcMenuItem>
           <NcMenuItem
-            :disabled="!isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) && props.integration.sub_type === SyncDataType.NOCODB"
             v-e="['c:integration:edit']"
+            :disabled="!isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) && props.integration.sub_type === SyncDataType.NOCODB"
             @click="openEditIntegration(props.integration)"
           >
             <GeneralIcon class="text-current opacity-80" icon="edit" />

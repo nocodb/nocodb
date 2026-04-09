@@ -94,9 +94,7 @@ const integrationListItems = computed(() => {
   for (const cat of integrationCategories) {
     if (!isCategoryAllowed(cat)) continue
 
-    const categoryIntegrations = allIntegrations.filter(
-      (i) => i.type === cat.value && isIntegrationAllowed(i, cat),
-    )
+    const categoryIntegrations = allIntegrations.filter((i) => i.type === cat.value && isIntegrationAllowed(i, cat))
 
     if (!categoryIntegrations.length) continue
 

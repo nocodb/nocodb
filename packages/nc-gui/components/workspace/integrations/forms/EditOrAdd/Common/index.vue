@@ -75,7 +75,7 @@ const { form, formState, isLoading, initialState, submit } = useProvideFormBuild
     return await $api.internal.postOperation(
       wsId,
       activeProjectId.value || NO_SCOPE,
-      { operation: activeProjectId.value ? 'baseIntegrationFetchOptions'  : 'integrationFetchOptions' },
+      { operation: activeProjectId.value ? 'baseIntegrationFetchOptions' : 'integrationFetchOptions' },
       {
         integration: formState.value,
         key,

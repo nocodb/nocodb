@@ -46,6 +46,7 @@ import {
   predictViewsPrompt,
 } from '~/integrations/ai/module/prompts/index';
 import { NcError } from '~/helpers/ncError';
+import { Pollable } from '~/decorators/pollable.decorator';
 
 @Injectable()
 export class AiSchemaService {
@@ -66,6 +67,7 @@ export class AiSchemaService {
 
   private readonly logger = new Logger(AiSchemaService.name);
 
+  @Pollable()
   async predictSchema(
     context: NcContext,
     params: {

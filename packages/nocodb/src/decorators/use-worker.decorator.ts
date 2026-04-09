@@ -1,9 +1,9 @@
 import { Inject, Logger } from '@nestjs/common';
-import { getCircularReplacer } from 'nocodb-sdk';
 import { customAlphabet } from 'nanoid';
 import type { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
 import { PubSubRedis } from '~/redis/pubsub-redis';
+import { serializeWorkerArgs } from '~/helpers/serialize-worker-args';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -23,25 +23,7 @@ export function UseWorker(): MethodDecorator {
     const method = key.toString();
 
     descriptor.value = async function (...args: any[]) {
-      args = args.map((arg) => {
-        if (typeof arg === 'function') {
-          logger.error(
-            'Function passed as argument to UseWorker decorator, only JSON serializable data is allowed',
-          );
-          return;
-        }
-
-        if (typeof arg === 'object') {
-          try {
-            return JSON.parse(JSON.stringify(arg, getCircularReplacer()));
-          } catch (e) {
-            logger.error(e);
-            return;
-          }
-        }
-
-        return arg;
-      });
+      const serializedArgs = serializeWorkerArgs(args, method, service);
 
       const jobService: IJobsService = this.jobsService;
 
@@ -67,7 +49,7 @@ export function UseWorker(): MethodDecorator {
                 {
                   service,
                   method,
-                  args,
+                  args: serializedArgs,
                 },
                 {
                   jobId,

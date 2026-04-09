@@ -84,7 +84,7 @@ const handleCardClick = () => {
       </div>
     </div>
 
-    <div class="nc-connection-card-actions flex-none" @click.stop>
+    <div v-if="mode === 'workspace' || canEdit || canUnlink" class="nc-connection-card-actions flex-none" @click.stop>
       <WorkspaceIntegrationsConnectionActionMenu
         :integration="integration"
         :mode="mode"

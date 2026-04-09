@@ -26,7 +26,11 @@ import type {
   RouterPromptParams,
   SpecialistPromptParams,
 } from '~/integrations/ai/chat/agents';
-import type { ChatContentBlock, ChatEventPayload } from 'nocodb-sdk';
+import type {
+  ChatContentBlock,
+  ChatEventPayload,
+  ChatUIContext,
+} from 'nocodb-sdk';
 import type { ToolSet } from 'ai';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { AiIntegration } from '@noco-local-integrations/core';
@@ -122,12 +126,7 @@ export class ChatAgentService {
       req: NcRequest;
       approvals?: Record<string, 'approved' | 'denied'>;
       firstUserMessage?: string;
-      uiContext?: {
-        tableId?: string;
-        viewId?: string;
-        dashboardId?: string;
-        documentId?: string;
-      };
+      uiContext?: ChatUIContext;
     },
     callbacks?: ChatCallbacks,
   ): Promise<void> {

@@ -33,6 +33,10 @@ export const useChatStore = defineStore('chatStore', () => {
 
   const documentsStore = useDocumentsStore()
 
+  const { activeDashboardId } = storeToRefs(dashboardStore)
+
+  const { activeDocumentId } = storeToRefs(documentsStore)
+
   /** Collect the user's current UI navigation context. */
   const getUIContext = (): ChatUIContext | undefined => {
     const ctx: ChatUIContext = {}
@@ -43,10 +47,8 @@ export const useChatStore = defineStore('chatStore', () => {
     const viewId = viewsStore.activeView?.id
     if (viewId) ctx.viewId = viewId
 
-    const { activeDashboardId } = storeToRefs(dashboardStore)
     if (activeDashboardId.value) ctx.dashboardId = activeDashboardId.value
 
-    const { activeDocumentId } = storeToRefs(documentsStore)
     if (activeDocumentId.value) ctx.documentId = activeDocumentId.value
 
     return Object.keys(ctx).length ? ctx : undefined

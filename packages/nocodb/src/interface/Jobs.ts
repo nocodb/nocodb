@@ -1,6 +1,7 @@
 import type { AttachmentUrlUploadParam } from '~/types/data-columns/attachment';
 import type {
   AttachmentResType,
+  ChatUIContext,
   PublicAttachmentScope,
   SnapshotType,
   SupportedExportCharset,
@@ -321,12 +322,7 @@ export interface ChatMessageJobData extends JobData {
   firstUserMessage?: string;
   approvals?: Record<string, 'approved' | 'denied'>;
   /** User's current UI navigation context (active table/view/dashboard/document). */
-  uiContext?: {
-    tableId?: string;
-    viewId?: string;
-    dashboardId?: string;
-    documentId?: string;
-  };
+  uiContext?: ChatUIContext;
 }
 
 export interface ChatApprovalJobData extends JobData {

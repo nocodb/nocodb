@@ -56,12 +56,21 @@ interface RelatedModelInfo {
 
 const UPSERT_MAX_MERGE_FIELDS = 3;
 const UPSERT_DISALLOWED_UITYPES = new Set([
+  UITypes.ID,
   UITypes.Attachment,
   UITypes.LinkToAnotherRecord,
   UITypes.Lookup,
   UITypes.Rollup,
   UITypes.Formula,
   UITypes.Links,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+  UITypes.CreatedBy,
+  UITypes.LastModifiedBy,
+  UITypes.AutoNumber,
+  UITypes.Barcode,
+  UITypes.QrCode,
+  UITypes.Button,
 ]);
 
 @Injectable()

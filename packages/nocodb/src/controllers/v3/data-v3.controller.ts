@@ -19,8 +19,8 @@ import type {
   DataInsertRequest,
   DataRecord,
   DataUpdateRequest,
-  DataUpsertRequest,
 } from '~/services/v3/data-v3.types';
+import { DataUpsertRequest } from '~/services/v3/data-v3.types';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
@@ -70,7 +70,6 @@ export class Datav3Controller {
   async dataUpsert(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
-    @Param('baseName') baseName: string,
     @Param('modelId') modelId: string,
     @Body() body: DataUpsertRequest,
   ) {

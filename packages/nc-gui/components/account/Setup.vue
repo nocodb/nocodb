@@ -3,9 +3,19 @@ const { t } = useI18n()
 
 const { loadSetupApps, emailConfigured, storageConfigured, listModalDlg } = useAccountSetupStoreOrThrow()
 
-// const { appInfo } = useGlobal()
+const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
 const openedCategory = ref<string | null>(null)
+
+const navigateToSetup = (category: 'email' | 'storage', app?: string) => {
+  if (isAdminPanel.value) {
+    const query: Record<string, string> = { tab: `setup-${category}` }
+    if (app) query.app = app
+    navigateTo({ path: '/admin', query })
+  } else {
+    navigateTo(`/account/setup/${category}${app ? `/${app}` : ''}`)
+  }
+}
 
 const configs = computed(() => [
   {
@@ -15,23 +25,23 @@ const configs = computed(() => [
       'Configure your preferred email service to manage how your application sends alerts, notifications and other essential emails.',
     docsLink: 'https://nocodb.com/docs/product-docs/account-settings/oss-specific-details#configure-email',
     buttonClick: () => {
-      navigateTo(`/account/setup/email${emailConfigured.value ? `/${emailConfigured.value.title}` : ''}`)
+      navigateToSetup('email', emailConfigured.value?.title)
     },
     itemClick: () => {
-      navigateTo(`/account/setup/email`)
+      navigateToSetup('email')
     },
     configured: emailConfigured.value,
   },
   {
     title: t('labels.configLabel', { label: t('labels.storage') }),
     key: 'storage',
-    description: 'Set up and manage your preferred storage solution for securely handling and storing your application’s data.',
+    description: "Set up and manage your preferred storage solution for securely handling and storing your application's data.",
     docsLink: 'https://nocodb.com/docs/product-docs/account-settings/oss-specific-details#configure-storage',
     buttonClick: () => {
-      navigateTo(`/account/setup/storage${storageConfigured.value ? `/${storageConfigured.value.title}` : ''}`)
+      navigateToSetup('storage', storageConfigured.value?.title)
     },
     itemClick: () => {
-      navigateTo(`/account/setup/storage`)
+      navigateToSetup('storage')
     },
     configured: storageConfigured.value,
   },

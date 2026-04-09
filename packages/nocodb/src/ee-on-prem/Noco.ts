@@ -12,8 +12,20 @@ import { isLicenseClientEnabled } from '~/utils/license/env-validator';
 
 const logger = new Logger('Noco');
 
+// Captured at module load — before loadEEState() overwrites process.env
+const initialLicenseKeyFromEnv = !!process.env.NC_LICENSE_KEY;
+
 export default class Noco extends NocoEE {
   public static domains: Set<string> = new Set();
+
+  /**
+   * Whether NC_LICENSE_KEY was present in the environment at process start.
+   * When true, the license is managed externally (docker-compose / k8s)
+   * and should not be editable from the admin UI.
+   */
+  public static get isInitialLicenseKeyFromEnv(): boolean {
+    return initialLicenseKeyFromEnv;
+  }
 
   /**
    * On-prem override: dynamically checks NocoLicense.isEE so that

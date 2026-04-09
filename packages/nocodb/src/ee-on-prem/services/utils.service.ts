@@ -29,6 +29,7 @@ export class UtilsService extends UtilsServiceEE {
     result.isAirgapped = NocoLicense.isAirgapped;
     result.seatLimit = NocoLicense.getSeatLimit();
     result.isPostgres = Noco.getConfig()?.meta?.db?.client === 'pg';
+    result.isLicenseKeySetByEnv = Noco.isInitialLicenseKeyFromEnv;
 
     // Instance-wide plan for on-prem — used by frontend when no workspace context (e.g. admin page)
     if (NocoLicense.isEE) {

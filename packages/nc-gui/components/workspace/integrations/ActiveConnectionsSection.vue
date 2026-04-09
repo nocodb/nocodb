@@ -126,7 +126,7 @@ const handleEdit = (integration: IntegrationType) => {
         <h3 class="text-base font-semibold text-nc-content-gray mb-0">
           {{ t('general.activeConnections') }}
         </h3>
-        <NcBadge v-if="filteredTotalCount" :border="false" class="bg-nc-bg-gray-extralight text-nc-content-gray-subtle2 text-xs">
+        <NcBadge v-if="filteredTotalCount" :border="false" class="bg-nc-bg-brand-inverted text-nc-content-gray-subtle2 text-xs min-w-5 !h-5 flex justify-center">
           {{ filteredTotalCount }}
         </NcBadge>
       </div>

@@ -409,6 +409,7 @@ watch(activeViewTab, (value) => {
                   :total-count="integrationPaginationData.totalRows || 0"
                   @view-all="emits('view-all-connections')"
                 />
+                <NcDivider v-if="showActiveConnections && !isModal && integrations.length" />
 
                 <template v-for="(category, key) in integrationsMapByCategory">
                   <div

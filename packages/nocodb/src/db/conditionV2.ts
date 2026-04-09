@@ -7,7 +7,10 @@ import {
   getEquivalentUIType,
   isAIPromptCol,
   isDateMonthFormat,
+  isLinksOrLTAR,
+  isMMOrMMLike,
   isNumericCol,
+  RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
 import { FieldHandler } from './field-handler';
@@ -21,11 +24,17 @@ import { Column } from '~/models';
 import { replaceDelimitedWithKeyValuePg } from '~/db/aggregations/pg';
 import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
+import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { getRefColumnIfAlias } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { getColumnName } from '~/helpers/dbHelpers';
 import { sanitize } from '~/helpers/sqlSanitize';
-import { type BarcodeColumn, BaseUser, type QrCodeColumn } from '~/models';
+import {
+  type BarcodeColumn,
+  BaseUser,
+  type LinkToAnotherRecordColumn,
+  type QrCodeColumn,
+} from '~/models';
 import Filter from '~/models/Filter';
 import { getAliasGenerator } from '~/utils';
 import { validateAndStringifyJson } from '~/utils/tsUtils';
@@ -198,8 +207,11 @@ const parseConditionV2 = async (
 
       if (
         column.uidt === UITypes.Lookup ||
-        column.uidt === UITypes.LinkToAnotherRecord
+        (column.uidt === UITypes.LinkToAnotherRecord &&
+          (await column.getColOptions<LinkToAnotherRecordColumn>(context))
+            ?.type === RelationTypes.BELONGS_TO)
       ) {
+        // For Lookup and BT LTAR, compare against aggregated/display value
         const model = await column.getModel(context);
         const lkQb = await generateLookupSelectQuery({
           baseModelSqlv2,
@@ -216,7 +228,52 @@ const parseConditionV2 = async (
             else qb.whereNull(knex.raw(lkQb.builder).wrap('(', ')') as any);
           },
         };
-      } else {
+      } else if (
+        isLinksOrLTAR(column) &&
+        !isMMOrMMLike(column) &&
+        (await column.getColOptions<LinkToAnotherRecordColumn>(context))
+          ?.type !== RelationTypes.BELONGS_TO
+      ) {
+        // For HM/MM LTAR (non-Links), compare against COUNT of related
+        // records using genRollupSelectv2 with a count rollup
+        const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>(
+          context,
+        );
+        const relatedTable = await colOpt.getRelatedTable(context);
+        await relatedTable.getColumns(context);
+        const pkCol = relatedTable.primaryKey;
+
+        if (pkCol) {
+          const { builder } = await genRollupSelectv2({
+            baseModelSqlv2,
+            knex,
+            alias,
+            columnOptions: {
+              fk_column_id: column.id,
+              getRelationColumn: async () => column,
+              getRollupColumn: async () => pkCol,
+              rollup_function: 'count',
+            } as any,
+          });
+
+          return {
+            rootApply: undefined,
+            clause: (qb) => {
+              if ((filter.comparison_op as any) === 'gb_eq')
+                qb.where(
+                  knex.raw('?', [
+                    isNaN(+filter.value) ? filter.value : +filter.value,
+                  ]) as any,
+                  builder,
+                );
+              else qb.whereNull(knex.raw(builder).wrap('(', ')') as any);
+            },
+          };
+        }
+      }
+
+      {
+        // For Links and other column types, convert gb_eq→eq / gb_null→blank
         filter.comparison_op =
           (filter.comparison_op as any) === 'gb_eq' ? 'eq' : 'blank';
         // if qrCode or Barcode replace it with value column

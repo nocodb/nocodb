@@ -12,7 +12,14 @@ import type { NcRequest } from '~/interface/config';
 import type { User } from '~/models';
 import { JobTypes } from '~/interface/Jobs';
 import { parseMetaProp } from '~/utils/modelUtils';
-import { OrgUser, PresignedUrl, Workspace, WorkspaceUser } from '~/models';
+import {
+  OrgUser,
+  PresignedUrl,
+  Workspace,
+  WorkspaceUser,
+} from '~/models';
+import { PrincipalAssignment, Team } from '~/ee/models';
+import { PrincipalType, ResourceType } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import Org from '~/models/Org';
@@ -251,6 +258,65 @@ export class OrgWorkspacesService {
 
     if (workspace.fk_org_id !== org.id) {
       NcError.notFound('Workspace not found in the organization');
+    }
+
+    // Remove org team assignments targeting this workspace and its bases
+    const orgTeams = await Team.list(
+      { workspace_id: param.workspaceId, base_id: null },
+      { fk_org_id: param.orgId },
+    );
+    const orgTeamIds = orgTeams.map((t) => t.id);
+
+    if (orgTeamIds.length) {
+      // Delete workspace-level org team assignments
+      const wsAssignments = await PrincipalAssignment.listByResource(
+        { workspace_id: param.workspaceId, base_id: null },
+        ResourceType.WORKSPACE,
+        param.workspaceId,
+      );
+      for (const a of wsAssignments.filter(
+        (a) =>
+          a.principal_type === PrincipalType.TEAM &&
+          orgTeamIds.includes(a.principal_ref_id),
+      )) {
+        await PrincipalAssignment.delete(
+          { workspace_id: param.workspaceId, base_id: null },
+          a.resource_type,
+          a.resource_id,
+          a.principal_type,
+          a.principal_ref_id,
+        );
+      }
+
+      // Delete base-level org team assignments for all bases in this workspace
+      const bases = await Noco.ncMeta
+        .knexConnection(MetaTable.PROJECT)
+        .where('fk_workspace_id', param.workspaceId)
+        .where(function () {
+          this.where('deleted', false).orWhereNull('deleted');
+        })
+        .select('id');
+
+      for (const base of bases) {
+        const baseAssignments = await PrincipalAssignment.listByResource(
+          { workspace_id: param.workspaceId, base_id: base.id },
+          ResourceType.BASE,
+          base.id,
+        );
+        for (const a of baseAssignments.filter(
+          (a) =>
+            a.principal_type === PrincipalType.TEAM &&
+            orgTeamIds.includes(a.principal_ref_id),
+        )) {
+          await PrincipalAssignment.delete(
+            { workspace_id: param.workspaceId, base_id: base.id },
+            a.resource_type,
+            a.resource_id,
+            a.principal_type,
+            a.principal_ref_id,
+          );
+        }
+      }
     }
 
     // update the organization id in the workspace

@@ -72,14 +72,12 @@ export class Datav3Controller {
     @Req() req: NcRequest,
     @Param('baseName') baseName: string,
     @Param('modelId') modelId: string,
-    @Query('view_id') viewId: string,
     @Body() body: DataUpsertRequest,
   ) {
     context.cache = true;
     return await this.dataV3Service.dataUpsert(context, {
       modelId: modelId,
       body: body,
-      viewId,
       cookie: req,
     });
   }

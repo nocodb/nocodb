@@ -50,6 +50,12 @@ export default function () {
      * Add a user to a team as MEMBER.
      */
     async function addMember(teamId: string, userId: string) {
+      // Ensure user is a workspace member first (idempotent — ignore if already added)
+      await request(context.app)
+        .post(`/api/v3/meta/workspaces/${workspaceId}/members`)
+        .set('xc-token', context.xc_token)
+        .send([{ user_id: userId, workspace_role: 'workspace-level-editor' }]);
+
       await request(context.app)
         .post(`/api/v3/meta/workspaces/${workspaceId}/teams/${teamId}/members`)
         .set('xc-token', context.xc_token)
@@ -124,11 +130,13 @@ export default function () {
      * Add one or more users as direct workspace members.
      */
     async function addWorkspaceMembers(userIds: string[], role = 'workspace-level-editor') {
-      await request(context.app)
-        .post(`/api/v3/meta/workspaces/${workspaceId}/members`)
-        .set('xc-token', context.xc_token)
-        .send(userIds.map((user_id) => ({ user_id, workspace_role: role })))
-        .expect(200);
+      // Add each user individually to avoid batch failure when some are already members
+      for (const user_id of userIds) {
+        await request(context.app)
+          .post(`/api/v3/meta/workspaces/${workspaceId}/members`)
+          .set('xc-token', context.xc_token)
+          .send([{ user_id, workspace_role: role }]);
+      }
     }
 
     /**
@@ -533,7 +541,9 @@ export default function () {
         salesUser = salesResult.user;
         salesToken = salesResult.token;
 
-        // Assign users to their respective teams
+        // Add users to workspace first, then assign to teams
+        await addWorkspaceMembers([engUser.id, feUser.id, beUser.id, webUser.id, salesUser.id]);
+
         await addMember(engineeringId, engUser.id);
         await addMember(frontendId, feUser.id);
         await addMember(backendId, beUser.id);
@@ -4449,6 +4459,8 @@ export default function () {
         const samR = await createUser(context, { email: 'g18a-sam@test.com' });
         samUser = samR.user; samToken = samR.token;
 
+        await addWorkspaceMembers([sophieUser.id, samUser.id]);
+
         // Sophie is in BOTH ProductEng and SolEngineering
         await addMember(productEngId, sophieUser.id);
         await addMember(solEngineeringId, sophieUser.id);
@@ -4555,6 +4567,8 @@ export default function () {
         const domR = await createUser(context, { email: 'g18b-dom@test.com' });
         domUser = domR.user;
 
+        await addWorkspaceMembers([evanUser.id, bradUser.id, darUser.id, domUser.id]);
+
         await addMember(engineeringId, evanUser.id);
         await addMember(backendId, bradUser.id);
         await addMember(databaseId, darUser.id);
@@ -4596,7 +4610,6 @@ export default function () {
         const base = await createProject(context);
         const table = await createTable(context, base);
 
-        await addWorkspaceMembers([evanUser.id, bradUser.id, darUser.id, domUser.id]);
         await assignBaseTeamRole(base.id, engineeringId, ProjectRoles.EDITOR);
 
         await setPermission(base.id, table.id, 'TABLE_RECORD_ADD', {
@@ -4662,6 +4675,8 @@ export default function () {
         fionaUser = fionaR.user;
         const waltR = await createUser(context, { email: 'g18c-walt@test.com' });
         waltUser = waltR.user;
+
+        await addWorkspaceMembers([evanUser.id, archieUser.id, fionaUser.id, waltUser.id]);
 
         await addMember(engineeringId, evanUser.id);
         await addMember(engineeringId, archieUser.id);
@@ -4744,9 +4759,9 @@ export default function () {
 
         const domR = await createUser(context, { email: 'g18d-dom@test.com' });
         domUser = domR.user; domToken = domR.token;
-        await addMember(devopsId, domUser.id);
 
         await addWorkspaceMembers([domUser.id]);
+        await addMember(devopsId, domUser.id);
 
         // DevOps → Workspace Editor
         await assignWorkspaceTeamRole(devopsId, WorkspaceUserRoles.EDITOR);
@@ -4828,11 +4843,11 @@ export default function () {
         const aliceR = await createUser(context, { email: 'g19-alice@test.com' });
         const carolR = await createUser(context, { email: 'g19-carol@test.com' });
 
+        await addWorkspaceMembers([aliceR.user.id, carolR.user.id]);
         await addMember(earlyAccessId, aliceR.user.id);
 
         const base = await createProject(context);
         const table = await createTable(context, base);
-        await addWorkspaceMembers([aliceR.user.id, carolR.user.id]);
         await setDirectBaseRole(base.id, aliceR.user.email, 'editor');
         await setDirectBaseRole(base.id, carolR.user.email, 'editor');
 
@@ -4901,12 +4916,12 @@ export default function () {
         const danR = await createUser(context, { email: 'g194-dan@test.com' });  // DevOps
         const islaR = await createUser(context, { email: 'g194-isla@test.com' }); // Cloud Infra
 
+        await addWorkspaceMembers([danR.user.id, islaR.user.id]);
         await addMember(devopsId, danR.user.id);
         await addMember(cloudInfraId, islaR.user.id);
 
         const base = await createProject(context);
         const table = await createTable(context, base);
-        await addWorkspaceMembers([danR.user.id, islaR.user.id]);
         await assignBaseTeamRole(base.id, devopsId, ProjectRoles.EDITOR);
         await assignBaseTeamRole(base.id, platformId, ProjectRoles.EDITOR);
 

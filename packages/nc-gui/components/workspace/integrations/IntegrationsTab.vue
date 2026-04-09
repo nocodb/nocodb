@@ -326,7 +326,7 @@ watch(activeViewTab, (value) => {
                   }"
                 >
                   <div>
-                    {{ $t('msg.connectIntegrations') }}
+                    {{ showActiveConnections ? $t('msg.manageConnectionsAndIntegrations') : $t('msg.connectIntegrations') }}
                     <a href="https://nocodb.com/docs/product-docs/integrations" target="_blank" rel="noopener noreferrer">{{
                       $t('msg.learnMore')
                     }}</a>
@@ -350,7 +350,7 @@ watch(activeViewTab, (value) => {
                 v-model:value="searchQuery"
                 type="text"
                 class="flex-1 nc-input-border-on-value nc-search-integration-input !rounded-lg !py-2 !h-9"
-                :placeholder="$t('placeholder.searchConnectionsOrIntegrations')"
+                :placeholder="showActiveConnections ? $t('placeholder.searchConnectionsOrIntegrations') : `${$t('general.search')} ${$t('general.integrations').toLowerCase()}...`"
                 allow-clear
               >
                 <template #prefix>

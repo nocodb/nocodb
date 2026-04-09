@@ -2881,6 +2881,7 @@
     "docEditorLine": "Type / for commands...",
     "searchDocs": "Search documents",
     "searchMember": "Search member",
+    "searchConnectionsOrIntegrations": "Search connections or integrations...",
     "searchLanguages": "Search languages...",
     "enterUrl": "Enter URL...",
     "enterALink": "Enter a link",

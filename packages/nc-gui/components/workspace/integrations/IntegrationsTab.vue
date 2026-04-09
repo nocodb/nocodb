@@ -183,14 +183,25 @@ const integrationsMapByCategory = computed(() => {
     )
 })
 
-const isEmptyList = computed(() => {
+const hasIntegrationResults = computed(() => {
   const categories = Object.keys(integrationsMapByCategory.value)
+  return categories.some((category) => integrationsMapByCategory.value[category]?.list?.length > 0)
+})
 
-  if (!categories.length) {
-    return true
-  }
+const hasConnectionResults = computed(() => {
+  if (!props.showActiveConnections || isModal || !integrations.value.length) return false
 
-  return !categories.some((category) => integrationsMapByCategory.value[category].list.length > 0)
+  const query = searchQuery.value.trim().toLowerCase()
+  if (!query) return integrations.value.length > 0
+
+  return integrations.value.some((i) => i.title?.toLowerCase().includes(query))
+})
+
+const isEmptyList = computed(() => {
+  // If active connections have results, don't show empty state
+  if (hasConnectionResults.value) return false
+
+  return !hasIntegrationResults.value
 })
 
 const isAddNewIntegrationModalOpen = computed({
@@ -339,7 +350,7 @@ watch(activeViewTab, (value) => {
                 v-model:value="searchQuery"
                 type="text"
                 class="flex-1 nc-input-border-on-value nc-search-integration-input !rounded-lg !py-2 !h-9"
-                placeholder="Search integration"
+                :placeholder="$t('placeholder.searchConnectionsOrIntegrations')"
                 allow-clear
               >
                 <template #prefix>
@@ -409,9 +420,9 @@ watch(activeViewTab, (value) => {
                   :connections="integrations"
                   :total-count="integrationPaginationData.totalRows || 0"
                   :search-query="searchQuery"
+                  show-divider
                   @view-all="emits('view-all-connections')"
                 />
-                <NcDivider v-if="showActiveConnections && !isModal && integrations.length" />
 
                 <template v-for="(category, key) in integrationsMapByCategory">
                   <div

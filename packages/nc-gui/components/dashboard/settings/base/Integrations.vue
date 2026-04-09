@@ -208,6 +208,15 @@ const overflowCount = computed(() => {
   return Math.max(0, filteredLinkedIntegrations.value.length - maxVisibleCards)
 })
 
+const isSearchEmpty = computed(() => {
+  if (!searchQuery.value.trim()) return false
+
+  const hasConnections = filteredLinkedIntegrations.value.length > 0
+  const hasIntegrations = Object.values(integrationsMap.value).some((cat) => cat.list.length > 0)
+
+  return !hasConnections && !hasIntegrations
+})
+
 onMounted(async () => {
   isFromIntegrationPage.value = true
 
@@ -239,7 +248,7 @@ watch(baseId, reload)
             v-model:value="searchQuery"
             type="text"
             class="nc-input-border-on-value nc-search-integration-input !rounded-lg !py-2 !h-9 mb-4"
-            :placeholder="`${$t('general.search')} ${$t('general.integrations').toLowerCase()}...`"
+            :placeholder="$t('placeholder.searchConnectionsOrIntegrations')"
             allow-clear
           >
             <template #prefix>
@@ -324,6 +333,11 @@ watch(baseId, reload)
                 </div>
               </div>
             </template>
+
+            <!-- Empty search state -->
+            <div v-if="isSearchEmpty" class="flex-1 flex items-center justify-center py-12">
+              <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
+            </div>
           </div>
         </div>
       </div>

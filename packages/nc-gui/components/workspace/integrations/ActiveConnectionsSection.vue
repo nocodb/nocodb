@@ -7,11 +7,13 @@ interface Props {
   totalCount: number
   maxVisible?: number
   searchQuery?: string
+  showDivider?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   maxVisible: 6,
   searchQuery: '',
+  showDivider: false,
 })
 
 const emits = defineEmits<{
@@ -129,7 +131,7 @@ const handleEdit = (integration: IntegrationType) => {
 </script>
 
 <template>
-  <div class="nc-active-connections-section" style="container-type: inline-size">
+  <div v-show="filteredConnections.length" class="nc-active-connections-section" style="container-type: inline-size">
     <!-- Section header -->
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-2">
@@ -174,6 +176,8 @@ const handleEdit = (integration: IntegrationType) => {
         </div>
       </div>
     </div>
+
+    <NcDivider v-if="showDivider" class="!mt-6 !mb-0" />
 
     <!-- Delete confirmation modal -->
     <GeneralDeleteModal

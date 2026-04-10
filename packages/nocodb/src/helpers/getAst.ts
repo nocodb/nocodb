@@ -65,6 +65,7 @@ const getAst = async (
     includeRowColorColumns = false,
     includeButtonFilterColumns = false,
     skipSubstitutingColumnIds = false,
+    fk_display_value_column_id,
   }: {
     query?: RequestQuery;
     extractOnlyPrimaries?: boolean;
@@ -82,6 +83,7 @@ const getAst = async (
     includeRowColorColumns?: boolean;
     includeButtonFilterColumns?: boolean;
     skipSubstitutingColumnIds?: boolean;
+    fk_display_value_column_id?: string | null;
   },
 ): Promise<{
   ast: Ast;
@@ -173,6 +175,17 @@ const getAst = async (
     );
 
     await extractDependencies(context, model.displayValue, dependencyFields);
+
+    // Include custom display value column if specified by the parent LTAR relation
+    if (fk_display_value_column_id) {
+      const customDisplayCol = model.columns?.find(
+        (c) => c.id === fk_display_value_column_id,
+      );
+      if (customDisplayCol) {
+        ast[getFieldKey(customDisplayCol)] = 1;
+        await extractDependencies(context, customDisplayCol, dependencyFields);
+      }
+    }
 
     return { ast, dependencyFields, parsedQuery: dependencyFields };
   }
@@ -323,6 +336,7 @@ const getAst = async (
           model,
           query: query?.nested?.[col.title],
           extractOnlyPrimaries: nestedFields !== '*',
+          fk_display_value_column_id: colOpt.fk_display_value_column_id,
           dependencyFields: (dependencyFields.nested[col.title] =
             dependencyFields.nested[col.title] || {
               nested: {},
@@ -331,16 +345,6 @@ const getAst = async (
           throwErrorIfInvalidParams,
         })
       ).ast;
-
-      // Include custom display value column if set on the LTAR relation
-      if (colOpt.fk_display_value_column_id && value) {
-        const customDisplayCol = model.columns?.find(
-          (c) => c.id === colOpt.fk_display_value_column_id,
-        );
-        if (customDisplayCol) {
-          value[getFieldKey(customDisplayCol)] = 1;
-        }
-      }
     }
     let isRequested;
 
@@ -379,21 +383,22 @@ const getAst = async (
       isRequested = false;
     } else if (getHiddenColumn) {
       isRequested =
-        !isSystemColumn(col) ||
-        ((!view || !!view?.show_system_fields) && !isHiddenCol(col, model)) ||
-        (isCreatedOrLastModifiedTimeCol(col) && col.system) ||
-        // include all non-has-many system links(self-link) columns since has-many is part of mm relation and which is not required
-        (isLinksOrLTAR(col) &&
-          col.system &&
-          [
-            RelationTypes.BELONGS_TO,
-            RelationTypes.MANY_TO_MANY,
-            RelationTypes.ONE_TO_ONE,
-          ].includes(
-            (col.colOptions as LinkToAnotherRecordColumn)
-              ?.type as RelationTypes,
-          )) ||
-        col.pk;
+        (!isSystemColumn(col) ||
+          ((!view || !!view?.show_system_fields) && !isHiddenCol(col, model)) ||
+          (isCreatedOrLastModifiedTimeCol(col) && col.system) ||
+          // include all non-has-many system links(self-link) columns since has-many is part of mm relation and which is not required
+          (isLinksOrLTAR(col) &&
+            col.system &&
+            [
+              RelationTypes.BELONGS_TO,
+              RelationTypes.MANY_TO_MANY,
+              RelationTypes.ONE_TO_ONE,
+            ].includes(
+              (col.colOptions as LinkToAnotherRecordColumn)
+                ?.type as RelationTypes,
+            )) ||
+          col.pk) &&
+        value;
     } else if (allowedCols && (!includePkByDefault || !col.pk)) {
       isRequested =
         allowedCols[col.id] &&

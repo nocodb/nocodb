@@ -363,6 +363,15 @@ export class MySqlDBQueryClient
                   apiVersion,
                 });
 
+                const mmSelectedFields = fields.filter(
+                  (f) =>
+                    f.pk ||
+                    f.pv ||
+                    (ast &&
+                      typeof ast === 'object' &&
+                      (ast[f.title] || ast[f.id])),
+                );
+
                 qb.joinRaw(
                   `LEFT OUTER JOIN LATERAL
                      (${knex
@@ -371,7 +380,7 @@ export class MySqlDBQueryClient
                          this.generateNestedRowSelectQuery({
                            knex,
                            alias: alias3,
-                           columns: fields,
+                           columns: mmSelectedFields,
                            title: getAs(column),
                            ...(isSingleTargetV2 ? { isBtOrOo: true } : {}),
                          }),
@@ -606,6 +615,15 @@ export class MySqlDBQueryClient
                     apiVersion,
                   });
 
+                  const ooHmSelectedFields = fields.filter(
+                    (f) =>
+                      f.pk ||
+                      f.pv ||
+                      (ast &&
+                        typeof ast === 'object' &&
+                        (ast[f.title] || ast[f.id])),
+                  );
+
                   qb.joinRaw(
                     `LEFT OUTER JOIN LATERAL (${knex
                       .from(hmAggQb.as(alias2))
@@ -613,7 +631,7 @@ export class MySqlDBQueryClient
                         this.generateNestedRowSelectQuery({
                           knex,
                           alias: alias2,
-                          columns: fields,
+                          columns: ooHmSelectedFields,
                           title: getAs(column),
                           isBtOrOo: true,
                         }),
@@ -711,6 +729,15 @@ export class MySqlDBQueryClient
                   apiVersion,
                 });
 
+                const hmSelectedFields = fields.filter(
+                  (f) =>
+                    f.pk ||
+                    f.pv ||
+                    (ast &&
+                      typeof ast === 'object' &&
+                      (ast[f.title] || ast[f.id])),
+                );
+
                 qb.joinRaw(
                   `LEFT OUTER JOIN LATERAL (${knex
                     .from(hmAggQb.as(alias2))
@@ -718,7 +745,7 @@ export class MySqlDBQueryClient
                       this.generateNestedRowSelectQuery({
                         knex,
                         alias: alias2,
-                        columns: fields,
+                        columns: hmSelectedFields,
                         title: getAs(column),
                       }),
                     )

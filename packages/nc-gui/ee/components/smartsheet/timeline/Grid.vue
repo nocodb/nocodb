@@ -218,6 +218,23 @@ const onResizeEnd = () => {
   }, 50)
 }
 
+// Can drag (move) a bar — requires edit permission on ALL date columns used
+const canDrag = computed(() => {
+  if (!isRangeEditable.value) return false
+  if (!canEditFromCol.value) return false
+  if (props.timelineRange[0]?.fk_to_col && !canEditToCol.value) return false
+  return true
+})
+
+// Can resize left handle (start date)
+const canResizeLeft = computed(() => isRangeEditable.value && canEditFromCol.value)
+
+// Can resize right handle (end date)
+const canResizeRight = computed(() => {
+  if (!isRangeEditable.value) return false
+  return props.timelineRange[0]?.fk_to_col ? canEditToCol.value : canEditFromCol.value
+})
+
 const onResizeStart = (direction: 'left' | 'right', event: MouseEvent, record: RowType) => {
   if (direction === 'left' && !canResizeLeft.value) return
   if (direction === 'right' && !canResizeRight.value) return
@@ -536,26 +553,6 @@ const canEditToCol = computed(() => {
   if (!col?.id) return true
   return isAllowed(PermissionEntity.FIELD, col.id, PermissionKey.RECORD_FIELD_EDIT)
 })
-
-// Can drag (move) a bar — requires edit permission on ALL date columns used
-const canDrag = computed(() => {
-  if (!isRangeEditable.value) return false
-  if (!canEditFromCol.value) return false
-  if (props.timelineRange[0]?.fk_to_col && !canEditToCol.value) return false
-  return true
-})
-
-// Can resize left handle (start date)
-const canResizeLeft = computed(() => isRangeEditable.value && canEditFromCol.value)
-
-// Can resize right handle (end date)
-const canResizeRight = computed(() => {
-  if (!isRangeEditable.value) return false
-  return props.timelineRange[0]?.fk_to_col ? canEditToCol.value : canEditFromCol.value
-})
-
-// Legacy: can resize at all (used for cursor classes)
-const canResize = computed(() => canResizeLeft.value || canResizeRight.value)
 
 // #11: Build tooltip text for a record bar — improved format with em-dash and year
 const getBarTooltip = (row: RowType) => {

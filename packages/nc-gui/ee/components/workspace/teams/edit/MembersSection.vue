@@ -358,11 +358,19 @@ onMounted(() => {
                   <template #overlay>
                     <NcMenu variant="medium">
                       <NcTooltip
-                        :title="team.scim_managed ? t('labels.scimManagedTeamAddMemberTooltip') : t('objects.teams.removeFromTeamRestrictionTooltip')"
+                        :title="
+                          team.scim_managed
+                            ? t('labels.scimManagedTeamAddMemberTooltip')
+                            : t('objects.teams.removeFromTeamRestrictionTooltip')
+                        "
                         placement="right"
                         :disabled="!team.scim_managed && !hasSelectedAllOwners"
                       >
-                        <NcMenuItem :disabled="team.scim_managed || hasSelectedAllOwners" danger @click="handleRemoveSelectedMembersFromTeam">
+                        <NcMenuItem
+                          :disabled="team.scim_managed || hasSelectedAllOwners"
+                          danger
+                          @click="handleRemoveSelectedMembersFromTeam"
+                        >
                           <GeneralIcon icon="ncXSquare" />
                           {{ $t('activity.removeFromTeam') }}
                         </NcMenuItem>
@@ -469,7 +477,11 @@ onMounted(() => {
                     v-else
                     v-e="['c:team:member-remove', { teamId: team.id, userId: record.fk_user_id }]"
                     :disabled="!team.scim_managed && (!(hasSoleTeamOwner && isTeamOwner(record as TeamMember)) || readOnly)"
-                    :title="team.scim_managed ? t('labels.scimManagedTeamAddMemberTooltip') : t('objects.teams.thisIsTheOnlyTeamOwnerTooltip')"
+                    :title="
+                      team.scim_managed
+                        ? t('labels.scimManagedTeamAddMemberTooltip')
+                        : t('objects.teams.thisIsTheOnlyTeamOwnerTooltip')
+                    "
                     placement="left"
                   >
                     <NcMenuItem

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { IntegrationsType, integrationCategoryNeedDefault } from 'nocodb-sdk'
+import { IntegrationsType } from 'nocodb-sdk'
 import type { IntegrationType, UserType, WorkspaceUserType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
@@ -27,9 +27,7 @@ const {
   loadIntegrations,
   deleteIntegration,
   editIntegration,
-  duplicateIntegration,
   getIntegration,
-  setDefaultIntegration,
 } = useIntegrationStore()
 
 const { $api, $e } = useNuxtApp()
@@ -39,6 +37,8 @@ const { allCollaborators } = storeToRefs(useWorkspace())
 const { bases } = storeToRefs(useBases())
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const connectionsSearchInputRef = ref<HTMLInputElement>()
 
 const isDeleteIntegrationModalOpen = ref(false)
 const toBeDeletedIntegration = ref<
@@ -163,7 +163,9 @@ const openDeleteIntegration = async (source: IntegrationType) => {
   const connectionDetails = await getIntegration(source, {
     includeSources: true,
   })
-  toBeDeletedIntegration.value.sources = connectionDetails?.sources || []
+  if (toBeDeletedIntegration.value) {
+    toBeDeletedIntegration.value.sources = connectionDetails?.sources || []
+  }
 
   isLoadingGetLinkedSources.value = false
 }
@@ -255,6 +257,15 @@ onMounted(async () => {
     await loadIntegrations()
   }
 })
+
+watch(connectionsSearchInputRef, (el) => {
+  if (el) {
+    forcedNextTick(() => {
+      connectionsSearchInputRef.value?.focus()
+    })
+  }
+})
+
 // Keyboard shortcuts for pagination
 onKeyStroke('ArrowLeft', onLeft)
 onKeyStroke('ArrowRight', onRight)
@@ -301,16 +312,12 @@ const columns = [
     dataIndex: 'source_count',
     showOrderBy: true,
   },
-  ...(isEeUI
-    ? [
-        {
-          key: 'base_access',
-          title: t('labels.baseAccess'),
-          minWidth: 140,
-          width: 160,
-        },
-      ]
-    : []),
+  {
+    key: 'base_access',
+    title: t('labels.baseAccess'),
+    minWidth: 140,
+    width: 160,
+  },
   {
     key: 'action',
     title: t('labels.actions'),
@@ -346,16 +353,12 @@ const customRow = (record: Record<string, any>) => ({
           </a>
         </div>
       </div>
-      <div
-        class="flex items-center gap-3"
-        :class="{
-          'mt-2': showTitle,
-        }"
-      >
+      <div class="flex items-center gap-3 mt-2">
         <a-input
+          ref="connectionsSearchInputRef"
           v-model:value="searchQuery"
           type="text"
-          class="nc-search-integration-input !min-w-[300px] !max-w-[400px] nc-input-sm flex-none"
+          class="nc-search-integration-input !rounded-lg !py-2 !h-9 flex-1"
           :placeholder="`${$t('general.search')} ${$t('general.connections').toLowerCase()}`"
           allow-clear
           @input="handleSearchConnection"
@@ -497,58 +500,11 @@ const customRow = (record: Record<string, any>) => ({
         </div>
 
         <div v-if="column.key === 'action'" @click.stop>
-          <NcDropdown placement="bottomRight">
-            <NcButton size="small" type="secondary">
-              <GeneralIcon icon="threeDotVertical" />
-            </NcButton>
-            <template #overlay>
-              <NcMenu variant="small">
-                <NcMenuItem
-                  v-if="integration.type && integrationCategoryNeedDefault(integration.type) && !integration.is_default"
-                  @click="setDefaultIntegration(integration)"
-                >
-                  <GeneralIcon class="text-current opacity-80" icon="star" />
-                  <span>Set as default</span>
-                </NcMenuItem>
-                <NcMenuItem v-if="isEeUI" @click="openBaseAssignment(integration)">
-                  <GeneralIcon class="text-current opacity-80" icon="ncDatabase" />
-                  <span>{{ $t('labels.manageBaseAccess') }}</span>
-                </NcMenuItem>
-                <NcMenuItem
-                  :disabled="!isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) && integration.sub_type === SyncDataType.NOCODB"
-                  @click="openEditIntegration(integration)"
-                >
-                  <GeneralIcon class="text-current opacity-80" icon="edit" />
-                  <span>{{ $t('general.edit') }}</span>
-                </NcMenuItem>
-                <NcTooltip :disabled="integration?.sub_type !== ClientType.SQLITE">
-                  <template #title>
-                    Not allowed for type
-                    {{
-                      integration.sub_type && clientTypesMap[integration.sub_type]
-                        ? clientTypesMap[integration.sub_type]?.text
-                        : integration.sub_type
-                    }}
-                  </template>
-
-                  <NcMenuItem
-                    :disabled="integration?.sub_type === ClientType.SQLITE || integration?.sub_type === SyncDataType.NOCODB"
-                    @click="duplicateIntegration(integration)"
-                  >
-                    <GeneralIcon class="text-current opacity-80" icon="duplicate" />
-                    <span>{{ $t('general.duplicate') }}</span>
-                  </NcMenuItem>
-                </NcTooltip>
-                <template v-if="integration?.sub_type !== SyncDataType.NOCODB">
-                  <NcDivider />
-                  <NcMenuItem danger @click="openDeleteIntegration(integration)">
-                    <GeneralIcon icon="delete" />
-                    {{ $t('general.delete') }}
-                  </NcMenuItem>
-                </template>
-              </NcMenu>
-            </template>
-          </NcDropdown>
+          <WorkspaceIntegrationsConnectionActionMenu
+            :integration="integration"
+            @delete="openDeleteIntegration"
+            @base-assignment="openBaseAssignment"
+          />
         </div>
       </template>
 
@@ -615,7 +571,7 @@ const customRow = (record: Record<string, any>) => ({
             v-if="toBeDeletedIntegration?.sources?.length"
             class="flex flex-col pb-2 text-small leading-[18px] text-nc-content-gray-muted"
           >
-            <div class="mb-1">Following external data sources using this connection will also be removed</div>
+            <div class="mb-1">{{ $t('msg.deleteIntegrationSourcesWarning') }}</div>
             <ul class="!list-disc ml-6 mb-0">
               <li
                 v-for="(source, idx) of toBeDeletedIntegration.sources"
@@ -659,7 +615,7 @@ const customRow = (record: Record<string, any>) => ({
                 </div>
               </li>
             </ul>
-            <div class="mt-2">Do you want to proceed anyway?</div>
+            <div class="mt-2">{{ $t('msg.deleteIntegrationProceedConfirm') }}</div>
           </div>
         </div>
       </template>
@@ -689,7 +645,7 @@ const customRow = (record: Record<string, any>) => ({
             href="https://nocodb.com/docs/product-docs/data-sources/connect-to-data-source"
             rel="noopener noreferrer"
           >
-            Learn more
+            {{ $t('msg.learnMore') }}
           </a>
         </div>
       </div>
@@ -697,7 +653,7 @@ const customRow = (record: Record<string, any>) => ({
 
     <!-- Base Assignment Dialog -->
     <WorkspaceIntegrationsBaseAssignment
-      v-if="isEeUI && baseAssignmentIntegration"
+      v-if="baseAssignmentIntegration"
       v-model:visible="isBaseAssignmentOpen"
       :integration="baseAssignmentIntegration"
       @updated="onBaseAssignmentUpdated"

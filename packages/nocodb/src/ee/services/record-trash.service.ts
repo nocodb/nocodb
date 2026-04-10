@@ -58,7 +58,7 @@ export class RecordTrashService extends RecordTrashServiceCE {
           title: model.title,
           trash_disabled: model.trash_disabled,
           trash_retention_days: model.trash_retention_days,
-          is_meta: isMeta,
+          is_meta: !!isMeta,
           has_deleted_column: hasDeletedColumn,
         };
       }),

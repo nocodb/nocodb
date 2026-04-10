@@ -40,7 +40,7 @@ import { useKeyboardNavigation } from './useKeyboardNavigation'
 import { useMouseSelection } from './useMouseSelection'
 import { useFillHandler } from './useFillHandler'
 import { useRowReorder } from './useRowReOrder'
-import { useCopyPaste } from './useCopyPaste'
+import { type BulkLtarOp, useCopyPaste } from './useCopyPaste'
 
 export function useCanvasTable({
   rowHeightEnum,
@@ -1241,13 +1241,7 @@ export function useCanvasTable({
     const props = []
 
     // Collect LTAR cells for bulk delete via single API call
-    const bulkLtarDeleteOps: {
-      columnId: string
-      columnTitle: string
-      rowRef: Row
-      oldValue: any
-      data: { operation: 'deleteAll'; rowId: string; columnId: string; fk_related_model_id: string }[]
-    }[] = []
+    const bulkLtarDeleteOps: BulkLtarOp[] = []
 
     for (const row of rows) {
       for (const col of cols) {
@@ -1289,10 +1283,14 @@ export function useCanvasTable({
           },
           bulkLtarDeleteOps.map(({ columnId, data }) => ({ columnId, data })),
         )
-      } catch {
+      } catch (e: any) {
         for (const op of bulkLtarDeleteOps) {
           op.rowRef.row[op.columnTitle] = op.oldValue
         }
+        message.error({
+          title: t('msg.error.failedToDeleteLinkedRecords'),
+          content: await extractSdkResponseErrorMsg(e),
+        })
       }
     }
 

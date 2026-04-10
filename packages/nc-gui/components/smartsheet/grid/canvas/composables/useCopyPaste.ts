@@ -27,10 +27,10 @@ import type { ActionManager } from '../loaders/ActionManager'
 
 const MAX_ROWS = 5000
 
-interface BulkLtarOp {
+export interface BulkLtarOp {
   columnId: string
   columnTitle: string
-  rowRef: any
+  rowRef: Row
   oldValue: any
   data: { operation: string; rowId: string; columnId: string; fk_related_model_id: string }[]
 }
@@ -438,9 +438,7 @@ export function useCopyPaste({
             // Collect junction-table-based LTAR columns for bulk API
             if (isMMOrMMLike(column)) {
               // Block bulk paste for OO and OM — paste moves records between rows, not suitable for bulk
-              if (
-                isOoOrOm(column)
-              ) {
+              if (isOoOrOm(column)) {
                 if (!isInfoShown) {
                   message.toast(t('msg.info.groupPasteIsNotSupportedOnOoOmColumn'))
                   isInfoShown = true
@@ -551,10 +549,14 @@ export function useCopyPaste({
               },
               bulkLtarOps.map(({ columnId, data }) => ({ columnId, data })),
             )
-          } catch {
+          } catch (e: any) {
             for (const op of bulkLtarOps) {
               op.rowRef.row[op.columnTitle] = op.oldValue
             }
+            message.error({
+              title: t('msg.error.pasteFromClipboardError'),
+              content: await extractSdkResponseErrorMsg(e),
+            })
           }
         }
 
@@ -895,9 +897,7 @@ export function useCopyPaste({
               // Collect junction-table-based LTAR columns for bulk API
               if (isMMOrMMLike(col)) {
                 // Block bulk paste for OO and OM — paste moves records between rows, not suitable for bulk
-                if (
-                  isOoOrOm(col)
-                ) {
+                if (isOoOrOm(col)) {
                   if (!rangeBulkLtarOpsInfoShown) {
                     message.toast(t('msg.info.groupPasteIsNotSupportedOnOoOmColumn'))
                     rangeBulkLtarOpsInfoShown = true
@@ -941,8 +941,7 @@ export function useCopyPaste({
                           rowId: pasteRowPk,
                           columnId: col.id as string,
                           fk_related_model_id:
-                            (col.colOptions as LinkToAnotherRecordType).fk_related_model_id ||
-                            ltarPasteVal.fk_related_model_id,
+                            (col.colOptions as LinkToAnotherRecordType).fk_related_model_id || ltarPasteVal.fk_related_model_id,
                         },
                       ],
                     })
@@ -1064,10 +1063,14 @@ export function useCopyPaste({
                 },
                 rangeBulkLtarOps.map(({ columnId, data }) => ({ columnId, data })),
               )
-            } catch {
+            } catch (e: any) {
               for (const op of rangeBulkLtarOps) {
                 op.rowRef.row[op.columnTitle] = op.oldValue
               }
+              message.error({
+                title: t('msg.error.pasteFromClipboardError'),
+                content: await extractSdkResponseErrorMsg(e),
+              })
             }
           }
 
@@ -1184,7 +1187,7 @@ export function useCopyPaste({
       // This will used to reload view data if it is self link column
       const isSelfLinkColumn = columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id
 
-      if ((isMMOrMMLike(columnObj)) && rowObj) {
+      if (isMMOrMMLike(columnObj) && rowObj) {
         mmClearResult = await cleaMMCell(rowObj, columnObj)
       }
 

@@ -3573,6 +3573,7 @@
       "deleteFailed": "Delete failed",
       "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Unlink failed",
+      "failedToDeleteLinkedRecords": "Failed to delete linked records",
       "rowUpdateFailed": "Record update failed",
       "deleteRowFailed": "Failed to delete record",
       "uniqueConstraintViolation": "This value already exists. Unique fields cannot have duplicate values.",

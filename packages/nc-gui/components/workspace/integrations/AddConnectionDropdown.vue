@@ -71,11 +71,9 @@ const isIntegrationAllowed = (i: (typeof allIntegrations)[number], category: (ty
   if (i.sub_type === SyncDataType.NOCODB) return false
   if (isEeUI && i.isOssOnly) return false
 
-  if (!easterEggToggle.value) {
-    // Auth category: only show integrations in availableSyncAuthIntegrationSubtypes
-    if (isSyncFeatureEnabled.value && category.value === IntegrationCategoryType.AUTH) {
-      return availableSyncAuthIntegrationSubtypes.value.includes(i.sub_type)
-    }
+  // Auth category: always filter by available sync auth subtypes
+  if (isSyncFeatureEnabled.value && category.value === IntegrationCategoryType.AUTH) {
+    return availableSyncAuthIntegrationSubtypes.value.includes(i.sub_type)
   }
 
   return true

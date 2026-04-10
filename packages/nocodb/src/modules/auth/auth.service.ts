@@ -40,10 +40,7 @@ export class AuthService {
       }
     } else {
       // Perform a dummy compare with a random prefix to prevent timing-based user enumeration
-      await promisify(bcrypt.compare)(
-        Math.random().toString(36).substring(2, 10) + pass,
-        AuthService.DUMMY_HASH,
-      );
+      await promisify(bcrypt.compare)(pass, AuthService.DUMMY_HASH);
     }
     return null;
   }

@@ -26,8 +26,17 @@ const { linkedIntegrations, isLoading, isLoaded, loadLinkedIntegrations, linkInt
 const canManage = computed(() => isUIAllowed('baseIntegrationCreate'))
 
 // Integration store (provided by View.vue)
-const { addIntegration, editIntegration, eventBus, isFromIntegrationPage, loadDynamicIntegrations, integrationsRefreshKey } =
-  useIntegrationStore()
+const {
+  addIntegration,
+  editIntegration,
+  eventBus,
+  isFromIntegrationPage,
+  loadDynamicIntegrations,
+  integrationsRefreshKey,
+  availableSyncAuthIntegrationSubtypes,
+} = useIntegrationStore()
+
+const { isSyncFeatureEnabled } = storeToRefs(useSyncStore())
 
 const canEditIntegration = (integration: IntegrationType) => {
   return canManage.value && integration.created_by === user.value?.id
@@ -93,6 +102,10 @@ const integrationsMap = computed(() => {
           i.isAvailable &&
           !i.isOssOnly &&
           i.sub_type !== SyncDataType.NOCODB &&
+          // AUTH category: only show integrations available for sync auth
+          (cat.value !== IntegrationCategoryType.AUTH ||
+            !isSyncFeatureEnabled.value ||
+            availableSyncAuthIntegrationSubtypes.value.includes(i.sub_type)) &&
           (!query || t(i.title).toLowerCase().includes(query)),
       ),
     }

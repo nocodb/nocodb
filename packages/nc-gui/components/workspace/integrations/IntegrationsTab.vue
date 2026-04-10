@@ -67,6 +67,8 @@ const {
 
 const focusTextArea: VNodeRef = (el) => el && el?.focus?.()
 
+const showComingSoonIntegrations = ref(false)
+
 const activeCategory = ref<IntegrationCategoryItemType | null>(null)
 
 const searchQuery = ref<string>('')
@@ -85,6 +87,8 @@ const integrationCategoriesRef = computed(() => {
   return integrationCategories
     .filter((c) => {
       if (isEEFeatureBlocked.value && c.value !== IntegrationCategoryType.DATABASE) return false
+
+      if (!showComingSoonIntegrations.value && !c.isAvailable) return false
 
       const filterByActiveCategory = activeCategory.value ? c.value === activeCategory.value.value : true
 
@@ -151,6 +155,8 @@ const integrationsMapByCategory = computed(() => {
   return integrationCategories
     .filter((c) => {
       if (isEEFeatureBlocked.value && c.value !== IntegrationCategoryType.DATABASE) return false
+
+      if (!showComingSoonIntegrations.value && !c.isAvailable) return false
 
       const filterByActiveCategory = activeCategory.value ? c.value === activeCategory.value.value : true
 
@@ -248,11 +254,14 @@ const toggleShowOrHideAllCategory = () => {
 }
 
 const isIntegrationVisible = (integration: IntegrationItemType, category: any) => {
-  if (easterEggToggle.value) return true
+  if (!showComingSoonIntegrations.value && !integration.isAvailable) return false
 
+  // AUTH category: always filter by available sync auth subtypes, even when easterEggToggle is on
   if (isSyncFeatureEnabled.value && category.value === IntegrationCategoryType.AUTH) {
     return availableSyncAuthIntegrationSubtypes.value.includes(integration.sub_type)
   }
+
+  if (easterEggToggle.value) return true
 
   return !!integration.isAvailable
 }

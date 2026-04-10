@@ -5,6 +5,8 @@ const props = defineProps<{
 
 const { categorizeApps, resetPlugin: _resetPlugin, showPluginUninstallModal, activePlugin } = useAccountSetupStoreOrThrow()
 
+const isAdminPanel = inject(IsAdminPanelInj, ref(false))
+
 const apps = computed(() => categorizeApps.value?.[props.category?.toLowerCase()] || [])
 const configuredApp = computed(() => apps.value.find((app: any) => app.active))
 
@@ -17,6 +19,14 @@ const showResetPluginModal = async (app: any, resetActiveAppMsg = false) => {
   activePlugin.value = app
 }
 
+const navigateToApp = (app: any) => {
+  if (isAdminPanel.value) {
+    navigateTo({ path: '/admin', query: { tab: `setup-${props.category.toLowerCase()}`, app: app.title } })
+  } else {
+    navigateTo(`/account/setup/${props.category}/${app.title}`)
+  }
+}
+
 const selectApp = (app: any) => {
   const activeApp = app !== configuredApp.value && configuredApp.value
   if (activeApp) {
@@ -24,7 +34,7 @@ const selectApp = (app: any) => {
     return showResetPluginModal(activeApp, true)
   }
 
-  navigateTo(`/account/setup/${props.category}/${app.title}`)
+  navigateToApp(app)
 }
 
 const resetPlugin = async () => {

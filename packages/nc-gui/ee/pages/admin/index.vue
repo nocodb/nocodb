@@ -26,6 +26,8 @@ type AdminTab =
   | 'workspaces'
   | 'bases'
   | 'setup'
+  | 'setup-email'
+  | 'setup-storage'
   | 'external-integrations'
   | 'authentication'
   | 'teams'
@@ -39,6 +41,8 @@ const validTabs: AdminTab[] = [
   'workspaces',
   'bases',
   'setup',
+  'setup-email',
+  'setup-storage',
   'external-integrations',
   'authentication',
   'teams',
@@ -58,9 +62,19 @@ watch(activeTab, (tab) => {
   router.replace({ query: { ...route.query, tab } })
 })
 
+// Sync activeTab when route query changes (e.g. navigateTo from child components)
+watch(
+  () => route.query.tab,
+  (tab) => {
+    if (tab && validTabs.includes(tab as AdminTab) && tab !== activeTab.value) {
+      activeTab.value = tab as AdminTab
+    }
+  },
+)
+
 const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && (!isEeUI || !appInfo.value.isCloud))
 
-const { emailConfigured, storageConfigured, loadSetupApps } = useProvideAccountSetupStore()
+const { emailConfigured, storageConfigured, categorizeApps, loadSetupApps } = useProvideAccountSetupStore()
 
 watchEffect(() => {
   if (isSetupPageAllowed.value) {
@@ -69,6 +83,19 @@ watchEffect(() => {
 })
 
 const isPending = computed(() => !emailConfigured.value || !storageConfigured.value)
+
+const setupConfigAppId = computed(() => {
+  const appName = route.query.app as string
+  if (!appName) return null
+  const category = activeTab.value === 'setup-email' ? 'email' : activeTab.value === 'setup-storage' ? 'storage' : null
+  if (!category) return null
+  return categorizeApps.value?.[category]?.find((a: any) => a.title === appName)?.id ?? null
+})
+
+const sidebarSelectedKey = computed(() => {
+  if (activeTab.value.startsWith('setup-')) return 'setup'
+  return activeTab.value
+})
 
 const backRoute = computed(() => ncBackRoute().get())
 
@@ -90,7 +117,7 @@ watch(
       <div class="h-full flex">
         <!-- Side tabs -->
         <div class="h-full bg-nc-bg-gray-sidebar nc-user-sidebar overflow-y-auto nc-scrollbar-thin min-w-[312px]">
-          <NcMenu :selected-keys="[activeTab]" :inline-indent="16" class="tabs-menu h-full" mode="inline">
+          <NcMenu :selected-keys="[sidebarSelectedKey]" :inline-indent="16" class="tabs-menu h-full" mode="inline">
             <div class="h-[var(--topbar-height)] flex items-center children:flex-none">
               <NcButton
                 v-e="['c:navbar:home']"
@@ -276,6 +303,10 @@ watch(
               <AdminInstanceWorkspaces v-else-if="activeTab === 'workspaces'" />
               <AdminInstanceBases v-else-if="activeTab === 'bases'" />
               <AccountSetup v-else-if="activeTab === 'setup'" />
+              <template v-else-if="activeTab === 'setup-email' || activeTab === 'setup-storage'">
+                <LazyAccountSetupConfig v-if="setupConfigAppId" :id="setupConfigAppId" />
+                <LazyAccountSetupList v-else :category="activeTab === 'setup-email' ? 'Email' : 'Storage'" />
+              </template>
               <AccountExternalIntegrations v-else-if="activeTab === 'external-integrations'" />
               <AccountAuthentication v-else-if="activeTab === 'authentication'" />
               <AdminTeams v-else-if="activeTab === 'teams'" :org-id="defaultOrgId" />

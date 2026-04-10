@@ -1422,6 +1422,7 @@
     "removeLicenseConfirm": "This will remove the license key and revert your instance to Community Edition mode. Enterprise features will be disabled.",
     "removeLicenseTooltip": "Remove the license key and revert to Community Edition mode",
     "refreshLicenseTooltip": "Re-validate your license key with the license server to sync the latest plan changes",
+    "licenseKeySetByEnv": "License key is configured via the NC_LICENSE_KEY environment variable. To change it, update or remove the environment variable and restart the instance.",
     "noLicenseYet": "Don't have a license key yet? Purchase one from your NocoDB Cloud account.",
     "manageLicenseOnCloud": "Manage your license, billing, and plan upgrades from your NocoDB Cloud account.",
     "buyLicense": "Buy License",

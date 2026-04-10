@@ -70,6 +70,9 @@ const permissionScopes = {
     'orgTeamMembersRemove',
     'orgTeamMembersUpdate',
 
+    // Org audit
+    'orgAuditList',
+
     // SCIM Config (org-level)
     'scimConfigGet',
     'scimConfigCreate',
@@ -620,6 +623,7 @@ const rolePermissions:
       orgTeamList: true,
       orgTeamTree: true,
       orgTeamGet: true,
+      orgAuditList: true,
     },
   },
   [OrgUserRoles.CREATOR]: {
@@ -1342,6 +1346,9 @@ const permissionDescriptions: Record<string, string> = {
   scimConfigCreate: 'initialize SCIM configuration',
   scimConfigUpdate: 'update SCIM configuration',
   scimConfigDelete: 'delete SCIM configuration',
+
+  // Org audit
+  orgAuditList: 'view audit logs for the organization',
 
   // base permissions
   formViewGet: 'view forms',

@@ -172,6 +172,7 @@ export async function generateAuditV1Payload<T = any>(
     source_id?: string;
     fk_model_id?: string;
     fk_workspace_id?: string;
+    fk_org_id?: string;
     row_id?: string;
   },
 ): Promise<AuditV1<T>> {
@@ -197,6 +198,7 @@ export async function generateAuditV1Payload<T = any>(
     user_agent: req?.headers?.['user-agent'],
     fk_workspace_id:
       params.fk_workspace_id ?? context?.workspace_id ?? req?.ncWorkspaceId,
+    fk_org_id: params.fk_org_id ?? context?.org_id,
     base_id: params.base_id ?? context?.base_id ?? req?.ncBaseId,
     source_id: params.source_id ?? context?.source_id ?? req?.ncSourceId,
     fk_model_id: params.fk_model_id ?? context?.fk_model_id,

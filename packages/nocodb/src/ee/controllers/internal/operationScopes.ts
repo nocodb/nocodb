@@ -28,6 +28,7 @@ export const OPERATION_SCOPES = {
   baseSchema: 'base',
   workspaceAuditList: 'workspace',
   baseAuditList: 'base',
+  orgAuditList: 'cloud-org',
   duplicateScript: 'base',
   setPermission: 'base',
   dropPermission: 'base',

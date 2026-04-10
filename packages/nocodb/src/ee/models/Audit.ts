@@ -244,6 +244,126 @@ export default class Audit extends AuditCE {
     );
   }
 
+  static async orgAuditList(
+    orgId: string,
+    {
+      cursor,
+      workspaceIds,
+      fkUserId,
+      type,
+      startDate,
+      endDate,
+      orderBy,
+      retentionLimit,
+    }: {
+      cursor?: string;
+      workspaceIds?: string[];
+      fkUserId?: string;
+      type?: string[];
+      startDate?: string;
+      endDate?: string;
+      orderBy?: {
+        created_at?: 'asc' | 'desc';
+      };
+      retentionLimit?: number;
+    },
+  ): Promise<PagedResponseImpl<Audit>> {
+    if (!orgId) {
+      return new PagedResponseImpl([], {}, { pageInfo: { isLastPage: true } });
+    }
+
+    const [id, created_at] = cursor?.split('|') ?? [];
+
+    if (retentionLimit) {
+      const cursorDiff = dayjs(created_at).diff(dayjs(), 'days');
+      if (cursorDiff > retentionLimit) {
+        return new PagedResponseImpl(
+          [],
+          {},
+          { pageInfo: { isLastPage: true } },
+        );
+      }
+    }
+
+    const query = Noco.ncAudit.knex(MetaTable.AUDIT).where('version', 1);
+
+    // Default: org-only. With workspaceIds: include workspace logs alongside.
+    if (workspaceIds?.length) {
+      query.where(function () {
+        this.where('fk_org_id', orgId).orWhereIn(
+          'fk_workspace_id',
+          workspaceIds,
+        );
+      });
+    } else {
+      query.where('fk_org_id', orgId);
+    }
+
+    if (fkUserId) {
+      query.where('fk_user_id', fkUserId);
+    }
+
+    if (type) {
+      query.where('op_type', 'in', type);
+    }
+
+    if (startDate) {
+      query.where('created_at', '>=', startDate);
+    }
+
+    if (endDate) {
+      query.where('created_at', '<=', endDate);
+    }
+
+    if (orderBy?.created_at === 'asc') {
+      query.orderBy('id', 'asc');
+    } else {
+      query.orderBy('id', 'desc');
+    }
+
+    if (id) {
+      if (orderBy?.created_at === 'asc') {
+        query.where('id', '>', id);
+      } else {
+        query.where('id', '<', id);
+      }
+    }
+
+    // Skip DATA_ operations
+    query.where('op_type', 'not in', [
+      AuditV1OperationTypes.DATA_INSERT,
+      AuditV1OperationTypes.DATA_DELETE,
+      AuditV1OperationTypes.DATA_UPDATE,
+      AuditV1OperationTypes.DATA_CASCADE_UPDATE,
+      AuditV1OperationTypes.DATA_LINK,
+      AuditV1OperationTypes.DATA_UNLINK,
+      AuditV1OperationTypes.DATA_BULK_ALL_UPDATE,
+      AuditV1OperationTypes.DATA_BULK_ALL_DELETE,
+      AuditV1OperationTypes.DATA_BULK_INSERT,
+      AuditV1OperationTypes.DATA_BULK_DELETE,
+      AuditV1OperationTypes.DATA_BULK_UPDATE,
+    ]);
+
+    query.limit(this.limit + 1);
+
+    const result = await query;
+
+    if (result.length > this.limit) {
+      result.pop();
+      return new PagedResponseImpl(
+        result,
+        {},
+        { pageInfo: { isLastPage: false } },
+      );
+    }
+
+    return new PagedResponseImpl(
+      result,
+      {},
+      { pageInfo: { isLastPage: true } },
+    );
+  }
+
   public static async insert(
     audit: Partial<Audit> | Partial<Audit>[],
     ncAudit = Noco.ncAudit,
@@ -263,6 +383,7 @@ export default class Audit extends AuditCE {
         'ip',
         'source_id',
         'fk_workspace_id',
+        'fk_org_id',
         'base_id',
         'row_id',
         'fk_model_id',

@@ -96,9 +96,10 @@ const LICENSE_REQUIRED_OPS = new Set([
   'baseTeamAdd',
   'baseTeamUpdate',
   'baseTeamRemove',
-  // Workspace Audit (Enterprise only)
+  // Audit (Enterprise only)
   'workspaceAuditList',
   'baseAuditList',
+  'orgAuditList',
   // Scripts (Enterprise only)
   'listScripts',
   'getScript',
@@ -262,6 +263,21 @@ export class InternalController extends InternalControllerCE {
           endDate: req.query.endDate,
           orderBy: req.query.orderBy,
           retentionLimit: limit,
+        });
+      }
+      case 'orgAuditList': {
+        const orgId = req.params.workspaceOrOrgId;
+
+        return await this.auditsService.orgAuditList(orgId, {
+          cursor: req.query.cursor as string,
+          workspaceIds: req.query.workspaceIds
+            ? ([] as string[]).concat(req.query.workspaceIds)
+            : undefined,
+          fkUserId: req.query.fkUserId as string,
+          type: req.query.type as string[],
+          startDate: req.query.startDate as string,
+          endDate: req.query.endDate as string,
+          orderBy: req.query.orderBy as any,
         });
       }
       case 'recordAuditList': {

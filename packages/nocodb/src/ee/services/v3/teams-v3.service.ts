@@ -538,10 +538,14 @@ export class TeamsV3Service {
     const meta =
       typeof team.meta === 'string' ? JSON.parse(team.meta) : team.meta || {};
     const teamDetail: TeamDetailV3Type = {
+      id: team.id,
       title: team.title,
       icon: meta.icon || null,
       icon_type: meta.icon_type || null,
       badge_color: meta.badge_color || null,
+      fk_parent_team_id: team.fk_parent_team_id || null,
+      scim_managed: team.scim_managed ?? false,
+      scope: (team.fk_org_id && !team.fk_workspace_id ? 'org' : 'workspace') as 'org' | 'workspace',
       members,
       inherited_members: inheritedMembers.length ? inheritedMembers : undefined,
     };

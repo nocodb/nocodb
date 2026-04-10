@@ -81,11 +81,14 @@ export interface InheritedTeamMemberV3Type extends TeamMemberV3ResponseType {
 }
 
 export interface TeamDetailV3Type {
+  id: string;
   title: string;
   icon?: string;
   icon_type?: IconType;
   badge_color?: string;
   fk_parent_team_id?: string | null;
+  scim_managed?: boolean;
+  scope?: 'org' | 'workspace';
   members: TeamMemberV3ResponseType[];
   inherited_members?: InheritedTeamMemberV3Type[];
 }

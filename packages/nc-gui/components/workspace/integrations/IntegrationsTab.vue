@@ -71,6 +71,8 @@ const activeCategory = ref<IntegrationCategoryItemType | null>(null)
 
 const searchQuery = ref<string>('')
 
+const searchInputRef = ref<HTMLInputElement>()
+
 const integrationListRef = ref<HTMLDivElement>()
 
 const { width: integrationListContainerWidth } = useElementSize(integrationListRef)
@@ -263,6 +265,16 @@ onMounted(() => {
   }
 })
 
+if (!isModal) {
+  watch(searchInputRef, (el) => {
+    if (el) {
+      forcedNextTick(() => {
+        searchInputRef.value?.focus()
+      })
+    }
+  })
+}
+
 const dataReflectionEnabled = computed(() => {
   return !!activeWorkspace.value?.data_reflection_enabled
 })
@@ -343,6 +355,7 @@ watch(activeViewTab, (value) => {
             <div class="flex items-center gap-2 nc-content-max-w m-auto !mt-4">
               <a-input
                 v-if="easterEggToggle"
+                ref="searchInputRef"
                 v-model:value="searchQuery"
                 type="text"
                 class="flex-1 nc-input-border-on-value nc-search-integration-input !rounded-lg !py-2 !h-9"

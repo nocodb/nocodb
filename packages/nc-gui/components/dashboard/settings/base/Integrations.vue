@@ -47,6 +47,9 @@ const viewMode = ref<'main' | 'all-connections'>('main')
 const searchQuery = ref('')
 const connectionsSearchQuery = ref('')
 
+const mainSearchInputRef = ref<HTMLInputElement>()
+const connectionsSearchInputRef = ref<HTMLInputElement>()
+
 const filteredAllConnections = computed(() => {
   if (!connectionsSearchQuery.value.trim()) return linkedIntegrations.value
 
@@ -228,6 +231,27 @@ onMounted(async () => {
   await Promise.all([reload(), loadDynamicIntegrations()])
 })
 
+watch(viewMode, () => {
+  searchQuery.value = ''
+  connectionsSearchQuery.value = ''
+})
+
+watch(mainSearchInputRef, (el) => {
+  if (el) {
+    forcedNextTick(() => {
+      mainSearchInputRef.value?.focus()
+    })
+  }
+})
+
+watch(connectionsSearchInputRef, (el) => {
+  if (el) {
+    forcedNextTick(() => {
+      connectionsSearchInputRef.value?.focus()
+    })
+  }
+})
+
 onBeforeUnmount(() => {
   isFromIntegrationPage.value = false
 })
@@ -246,6 +270,7 @@ watch(baseId, reload)
           </div>
 
           <a-input
+            ref="mainSearchInputRef"
             v-model:value="searchQuery"
             type="text"
             class="nc-input-border-on-value nc-search-integration-input !rounded-lg !py-2 !h-9 mb-4"
@@ -375,6 +400,7 @@ watch(baseId, reload)
         </div>
 
         <a-input
+          ref="connectionsSearchInputRef"
           v-model:value="connectionsSearchQuery"
           type="text"
           class="nc-input-border-on-value nc-search-integration-input !rounded-lg !py-2 !h-9 mb-4"

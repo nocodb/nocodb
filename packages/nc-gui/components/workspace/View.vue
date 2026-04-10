@@ -38,7 +38,7 @@ const {
   showEEFeatures,
 } = useEeConfig()
 
-const { isFromIntegrationPage, eventBus, loadIntegrations } = useProvideIntegrationViewStore()
+const { isFromIntegrationPage, eventBus, searchQuery: storeSearchQuery, loadIntegrations } = useProvideIntegrationViewStore()
 
 // Local ref for integrations view mode (main page vs all-connections page).
 // Cannot use activeViewTab (which writes to route.query.tab) because the outer NcTabs
@@ -57,6 +57,10 @@ eventBus.on(integrationEventBusHandler)
 
 onBeforeUnmount(() => {
   eventBus.off(integrationEventBusHandler)
+})
+
+watch(integrationsViewMode, () => {
+  storeSearchQuery.value = ''
 })
 
 const hasTeamsEditPermission = computed(() => {

@@ -38,6 +38,8 @@ const { bases } = storeToRefs(useBases())
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
+const connectionsSearchInputRef = ref<HTMLInputElement>()
+
 const isDeleteIntegrationModalOpen = ref(false)
 const toBeDeletedIntegration = ref<
   | (IntegrationType & {
@@ -253,6 +255,15 @@ onMounted(async () => {
     await loadIntegrations()
   }
 })
+
+watch(connectionsSearchInputRef, (el) => {
+  if (el) {
+    forcedNextTick(() => {
+      connectionsSearchInputRef.value?.focus()
+    })
+  }
+})
+
 // Keyboard shortcuts for pagination
 onKeyStroke('ArrowLeft', onLeft)
 onKeyStroke('ArrowRight', onRight)
@@ -346,6 +357,7 @@ const customRow = (record: Record<string, any>) => ({
       </div>
       <div class="flex items-center gap-3 mt-2">
         <a-input
+          ref="connectionsSearchInputRef"
           v-model:value="searchQuery"
           type="text"
           class="nc-search-integration-input !rounded-lg !py-2 !h-9 flex-1"

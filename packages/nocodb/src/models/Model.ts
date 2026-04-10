@@ -102,6 +102,12 @@ export default class Model implements TableType {
   date_dependency?: DateDependencyType | null;
 
   trash_cleanup_due_at?: string | null;
+  trash_disabled?: boolean | null;
+  trash_retention_days?: number | null;
+
+  get isTrashEnabled(): boolean {
+    return !this.trash_disabled;
+  }
 
   columns?: Column[];
   columnsById?: { [id: string]: Column };
@@ -1378,6 +1384,35 @@ export default class Model implements TableType {
     await NocoCache.update(context, `${CacheScope.MODEL}:${modelId}`, {
       trash_cleanup_due_at: dueAt,
     });
+  }
+
+  static async updateTrashSettings(
+    context: NcContext,
+    modelId: string,
+    settings: {
+      trash_disabled?: boolean | null;
+      trash_retention_days?: number | null;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const updateObj = extractProps(settings, [
+      'trash_disabled',
+      'trash_retention_days',
+    ]);
+
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      updateObj,
+      modelId,
+    );
+
+    await NocoCache.update(
+      context,
+      `${CacheScope.MODEL}:${modelId}`,
+      updateObj,
+    );
   }
 
   // For updating table meta

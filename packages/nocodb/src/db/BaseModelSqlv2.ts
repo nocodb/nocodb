@@ -2415,7 +2415,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       // Detect soft-delete column for meta sources
       const deletedColumn = this.model.columns.find((c) => isDeletedCol(c));
-      const isSoftDelete = !!deletedColumn && source.isMeta();
+      const isSoftDelete =
+        !!deletedColumn && source.isMeta() && this.model.isTrashEnabled;
 
       if (isSoftDelete) {
         // Soft-delete: flag the record instead of removing it
@@ -4500,7 +4501,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       // Detect soft-delete column for meta sources
       const deletedColumn = columns.find((c) => isDeletedCol(c));
-      const isSoftDelete = !!deletedColumn && source.isMeta();
+      const isSoftDelete =
+        !!deletedColumn && source.isMeta() && this.model.isTrashEnabled;
 
       const collectedNotifications: {
         baseModel: any;

@@ -732,7 +732,6 @@ export class UiPostOperations
           tableId: req.body.tableId as string,
           req,
         });
-
     }
   }
 }

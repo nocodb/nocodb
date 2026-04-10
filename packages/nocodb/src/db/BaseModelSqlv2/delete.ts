@@ -117,7 +117,11 @@ export class BaseModelDelete {
     const isMeta = source.isMeta();
 
     const deletedColumn = columns.find((c) => isDeletedCol(c));
-    const isSoftDelete = !args.permanentDelete && !!deletedColumn && isMeta;
+    const isSoftDelete =
+      !args.permanentDelete &&
+      !!deletedColumn &&
+      isMeta &&
+      this.baseModel.model.isTrashEnabled;
 
     // Exclude already soft-deleted records from the delete query
     if (isSoftDelete) {

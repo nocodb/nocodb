@@ -121,7 +121,6 @@ const permissionScopes = {
     'recordTrashRestore',
     'recordTrashPermanentDelete',
     'recordTrashEmpty',
-
     'nestedDataListCopyPasteOrDeleteAll',
     'nestedDataBulkCopyPasteOrDeleteAll',
     'nestedDataBulkLinkByDisplayValue',

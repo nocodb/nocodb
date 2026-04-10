@@ -28672,6 +28672,15 @@
           "synced": {
             "$ref": "#/components/schemas/Bool",
             "description": "Is this table synced?"
+          },
+          "trash_disabled": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is record trash disabled for this table?"
+          },
+          "trash_retention_days": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Custom trash retention period in days. null = use default."
           }
         },
         "required": [

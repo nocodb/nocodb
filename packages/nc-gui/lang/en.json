@@ -267,6 +267,7 @@
     "features": {
       "sso": "Single Sign-On (SSO)",
       "snapshots": "Snapshots",
+      "trashSettings": "Record Trash Settings",
       "customUrls": "Custom URLs",
       "scripts": "Scripts",
       "workflows": "Workflows",
@@ -3802,6 +3803,18 @@
     "restoreAnyway": "Restore Anyway",
     "uniqueConflictTitle": "Cannot restore record",
     "uniqueConflict": "The field '{field}' must be unique and the value '{value}' already exists in an active record. Update or delete the existing record first, then try restoring again.",
-    "uniqueConflictGeneric": "A unique field value conflicts with an existing active record. Update or delete the existing record first, then try restoring again."
+    "uniqueConflictGeneric": "A unique field value conflicts with an existing active record. Update or delete the existing record first, then try restoring again.",
+    "settings": "Record Trash",
+    "settingsDesc": "Configure trash settings for each table. When trash is enabled, deleted records can be restored within the retention period.",
+    "enableTrash": "Enable Trash",
+    "retentionDays": "Retention",
+    "defaultRetention": "Default ({days} days)",
+    "customDays": "{days} days",
+    "disableTrashWarning": "When trash is disabled, deleted records are permanently removed immediately and cannot be recovered.",
+    "disableTrashTitle": "Disable record trash?",
+    "disableTrashConfirm": "All existing deleted records for \"{table}\" will be permanently removed. Future deletes will bypass trash. This cannot be undone.",
+    "settingsUpdated": "Trash settings updated",
+    "notAvailableExternal": "Trash is not available for tables in external sources.",
+    "notAvailablePending": "Trash is not yet available for this table."
   }
 }

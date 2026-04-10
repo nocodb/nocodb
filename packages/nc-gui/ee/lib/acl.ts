@@ -205,6 +205,10 @@ const rolePermissions = {
       workflowExecutionList: true,
       workflowList: true,
 
+      // Record Trash settings — creators can view and update
+      recordTrashSettingsList: true,
+      recordTrashSettingsUpdate: true,
+
       // Documents — creators can create and delete documents
       documentCreate: true,
       documentDelete: true,

@@ -1908,7 +1908,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       // Detect soft-delete column for meta sources
       const deletedColumn = this.model.columns.find((c) => isDeletedCol(c));
       const source = await this.getSource();
-      const isSoftDelete = !!deletedColumn && source.isMeta();
+      const isSoftDelete =
+        !!deletedColumn && source.isMeta() && this.model.isTrashEnabled;
 
       if (isSoftDelete) {
         const where = await this._wherePk(id);
@@ -4123,7 +4124,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       // Detect soft-delete column for meta sources
       const deletedColumn = columns.find((c) => isDeletedCol(c));
-      const isSoftDelete = !!deletedColumn && base.isMeta();
+      const isSoftDelete =
+        !!deletedColumn && base.isMeta() && this.model.isTrashEnabled;
 
       const rlsConditions = await this.getRlsConditions();
       const rlsFilterGroup = rlsConditions.length

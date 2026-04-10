@@ -44,6 +44,17 @@ export type InternalGETResponseType = Promise<
   | { totalRows: number; counts: Record<string, number> }
   | { count: number }
   | {
+      tables: {
+        id: string;
+        title: string;
+        trash_disabled: boolean | null;
+        trash_retention_days: number | null;
+        is_meta: boolean;
+        has_deleted_column: boolean;
+      }[];
+      defaultRetentionDays: number;
+    }
+  | {
       totalWorkspaces: number;
       totalBases: number;
       totalUsers: number;

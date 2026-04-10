@@ -100,6 +100,7 @@ export class UiPostOperations
       ...this.operations,
       'updateDateDependency',
       'deleteTableDateDependency',
+      'recordTrashSettingsUpdate',
     ];
   }
 
@@ -201,6 +202,15 @@ export class UiPostOperations
           modelId: (req.query.fk_model_id || req.query.modelId) as string,
           req,
         });
+      case 'recordTrashSettingsUpdate':
+        return await this.recordTrashService.updateTrashSettings(
+          context,
+          {
+            tableId: req.body.tableId as string,
+            body: req.body,
+          },
+          req,
+        );
     }
 
     return super.handle(context, {

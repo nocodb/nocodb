@@ -242,6 +242,8 @@ const permissionScopes = {
     'recordTrashRestore',
     'recordTrashPermanentDelete',
     'recordTrashEmpty',
+    'recordTrashSettingsList',
+    'recordTrashSettingsUpdate',
 
     'nestedDataListCopyPasteOrDeleteAll',
     'nestedDataBulkCopyPasteOrDeleteAll',
@@ -1601,6 +1603,8 @@ const permissionDescriptions: Record<string, string> = {
   recordTrashRestore: 'restore deleted records',
   recordTrashPermanentDelete: 'permanently delete records from trash',
   recordTrashEmpty: 'empty the record trash',
+  recordTrashSettingsList: 'view trash settings for tables',
+  recordTrashSettingsUpdate: 'update trash settings for a table',
 };
 
 // Human-readable descriptions for roles

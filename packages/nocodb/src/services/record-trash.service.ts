@@ -125,8 +125,9 @@ export class RecordTrashService {
       },
     );
 
-    // Resolve retention days
-    const retentionDays = await this.resolveRetentionDays(context);
+    // Resolve retention days: per-model override → workspace/env default
+    const retentionDays =
+      model.trash_retention_days ?? (await this.resolveRetentionDays(context));
 
     return {
       list: rows,
@@ -574,7 +575,8 @@ export class RecordTrashService {
 
     const result = await countQb.first();
 
-    const retentionDays = await this.resolveRetentionDays(context);
+    const retentionDays =
+      model.trash_retention_days ?? (await this.resolveRetentionDays(context));
 
     return { count: +(result?.count ?? 0), retentionDays };
   }

@@ -67,7 +67,11 @@ export class UiGetOperations
       recordTrashService,
     );
 
-    (this.operations as string[]) = [...this.operations, 'getDateDependency'];
+    (this.operations as string[]) = [
+      ...this.operations,
+      'getDateDependency',
+      'recordTrashSettingsList',
+    ];
   }
 
   async handle(
@@ -121,6 +125,12 @@ export class UiGetOperations
       case 'getDateDependency':
         return this.dateDependencyService.get(context, {
           modelId: (req.query.fk_model_id || req.query.modelId) as string,
+        });
+      case 'recordTrashSettingsList':
+        return await this.recordTrashService.getBaseTrashSettings(context, {
+          baseId: context.base_id,
+          user: req.user,
+          roles: req.user?.base_roles ?? {},
         });
     }
     return super.handle(context, {

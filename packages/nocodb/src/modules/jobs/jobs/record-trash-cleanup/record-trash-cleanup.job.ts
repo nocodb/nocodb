@@ -47,6 +47,12 @@ export class RecordTrashCleanupJob {
         const model = await Model.get(context, modelRow.id);
         if (!model) continue;
 
+        // Skip if trash is disabled for this model — clear schedule
+        if (!model.isTrashEnabled) {
+          await Model.updateTrashCleanupDueAt(context, model.id, null);
+          continue;
+        }
+
         // Skip if source or base no longer exists / is deleted
         const source = await Source.get(context, model.source_id);
         if (!source || !source.isMeta()) {
@@ -78,8 +84,9 @@ export class RecordTrashCleanupJob {
           continue;
         }
 
-        // Resolve plan-based retention period
-        const retentionDays = await this.resolveRetention(context);
+        // Resolve retention: per-model override → plan-based → env default
+        const retentionDays =
+          model.trash_retention_days ?? (await this.resolveRetention(context));
         const cutoffDate = new Date(
           now.getTime() - retentionDays * 24 * 60 * 60 * 1000,
         );

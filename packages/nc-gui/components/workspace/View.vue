@@ -18,11 +18,11 @@ const { isUIAllowed, isBaseRolesLoaded, loadRoles } = useRoles()
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
-const { appInfo, isMobileMode } = useGlobal()
+const { isMobileMode } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspace: _activeWorkspace, workspaces, deletingWorkspace, isTeamsEnabled } = storeToRefs(workspaceStore)
+const { activeWorkspace: _activeWorkspace, workspaces, deletingWorkspace } = storeToRefs(workspaceStore)
 const { loadCollaborators, loadWorkspace } = workspaceStore
 
 const orgStore = useOrg()
@@ -31,8 +31,6 @@ const { orgId, org } = storeToRefs(orgStore)
 const {
   isWsAuditEnabled,
   handleUpgradePlan,
-  isPaymentEnabled,
-  getFeature,
   blockTeamsManagement,
   showUpgradeToUseTeams,
   showEEFeatures,
@@ -63,10 +61,6 @@ watch(integrationsViewMode, () => {
   storeSearchQuery.value = ''
 })
 
-const hasTeamsEditPermission = computed(() => {
-  return isEeUI && isTeamsEnabled.value && (isAdminPanel.value || isUIAllowed('teamCreate'))
-})
-
 const currentWorkspace = computedAsync(async () => {
   if (deletingWorkspace.value) return
   let ws
@@ -82,6 +76,8 @@ const currentWorkspace = computedAsync(async () => {
   await loadRoles(undefined, {}, ws?.id)
   return ws
 })
+
+const { hasTeamsEditPermission, wsTabVisibility } = useWorkspaceTabVisibility(currentWorkspace, { isAdminPanel })
 
 const tab = computed({
   get() {
@@ -112,10 +108,6 @@ const tab = computed({
       router.push({ query: { ...route.value.query, tab } })
     }
   },
-})
-
-const isWorkspaceSsoAvail = computed(() => {
-  return isEeUI && (appInfo.value?.isCloud || appInfo.value?.isOnPrem) && getFeature(PlanFeatureTypes.FEATURE_SSO)
 })
 
 const tabTitleMap: Record<string, string> = {
@@ -274,7 +266,7 @@ if (!props.isNewWsPage) {
       <template #leftExtra>
         <div class="w-3"></div>
       </template>
-      <template v-if="isAdminPanel || isUIAllowed('workspaceCollaborators')">
+      <template v-if="wsTabVisibility.collaborators">
         <a-tab-pane key="collaborators" class="w-full h-full">
           <template #tab>
             <div class="tab-title">
@@ -286,7 +278,7 @@ if (!props.isNewWsPage) {
           <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" :is-active="tab === 'collaborators'" />
         </a-tab-pane>
 
-        <a-tab-pane v-if="isEeUI && hasTeamsEditPermission && showEEFeatures" key="teams" class="w-full h-full">
+        <a-tab-pane v-if="wsTabVisibility.teams" key="teams" class="w-full h-full">
           <template #tab>
             <div class="tab-title">
               <GeneralIcon icon="ncBuilding" class="h-4 w-4" />
@@ -299,11 +291,7 @@ if (!props.isNewWsPage) {
         </a-tab-pane>
       </template>
       <template v-if="!isMobileMode">
-        <a-tab-pane
-          v-if="isNewWsPage && isUIAllowed('workspaceIntegrations') && !isMobileMode"
-          key="integrations"
-          class="w-full h-full"
-        >
+        <a-tab-pane v-if="isNewWsPage && wsTabVisibility.integrations" key="integrations" class="w-full h-full">
           <template #tab>
             <div class="tab-title">
               <GeneralIcon icon="integration" class="h-4 w-4" />
@@ -354,11 +342,7 @@ if (!props.isNewWsPage) {
           </div>
         </a-tab-pane>
 
-        <template
-          v-if="
-            isEeUI && !props.workspaceId && !currentWorkspace?.fk_org_id && isPaymentEnabled && isUIAllowed('workspaceBilling')
-          "
-        >
+        <template v-if="wsTabVisibility.billing">
           <a-tab-pane key="billing" class="w-full">
             <template #tab>
               <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
@@ -371,7 +355,7 @@ if (!props.isNewWsPage) {
           </a-tab-pane>
         </template>
 
-        <template v-if="isEeUI && !props.workspaceId && isUIAllowed('workspaceAuditList')">
+        <template v-if="wsTabVisibility.audits">
           <a-tab-pane key="audits" class="w-full">
             <template #tab>
               <div class="tab-title" data-testid="nc-workspace-settings-tab-audits">
@@ -389,7 +373,7 @@ if (!props.isNewWsPage) {
           </a-tab-pane>
         </template>
 
-        <template v-if="isWorkspaceSsoAvail && !currentWorkspace?.fk_org_id && isUIAllowed('workspaceSSO')">
+        <template v-if="wsTabVisibility.sso">
           <a-tab-pane key="sso" class="w-full">
             <template #tab>
               <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
@@ -403,7 +387,7 @@ if (!props.isNewWsPage) {
         </template>
       </template>
 
-      <a-tab-pane v-if="showEEFeatures" key="settings" class="w-full">
+      <a-tab-pane v-if="wsTabVisibility.settings" key="settings" class="w-full">
         <template #tab>
           <div class="tab-title" data-testid="nc-workspace-settings-tab-settings">
             <GeneralIcon icon="ncSettings" class="h-4 w-4" />

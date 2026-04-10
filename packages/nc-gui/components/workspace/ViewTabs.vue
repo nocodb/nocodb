@@ -8,22 +8,14 @@ const { t } = useI18n()
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspaceId, isTeamsEnabled } = storeToRefs(workspaceStore)
+const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspaceStore)
 const { loadCollaborators } = workspaceStore
-
-const { appInfo, isMobileMode } = useGlobal()
 
 const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
-const { isWsAuditEnabled, isPaymentEnabled, getFeature, handleUpgradePlan, showUpgradeToUseTeams, showEEFeatures } = useEeConfig()
+const { isWsAuditEnabled, handleUpgradePlan, showUpgradeToUseTeams } = useEeConfig()
 
-const hasTeamsEditPermission = computed(() => {
-  return isEeUI && isTeamsEnabled.value && isUIAllowed('teamCreate')
-})
-
-const isWorkspaceSsoAvail = computed(() => {
-  return isEeUI && (appInfo.value?.isCloud || appInfo.value?.isOnPrem) && getFeature(PlanFeatureTypes.FEATURE_SSO)
-})
+const { hasTeamsEditPermission, wsTabVisibility } = useWorkspaceTabVisibility(activeWorkspace)
 
 // Tab definitions
 interface TabItem {
@@ -41,39 +33,38 @@ const tabItems = computed<TabItem[]>(() => {
 
   return [
     { key: 'bases', icon: 'ncDatabase', label: t('objects.projects') },
-    { key: 'collaborators', icon: 'users', label: t('labels.members'), hidden: !isUIAllowed('workspaceCollaborators') },
+    { key: 'collaborators', icon: 'users', label: t('labels.members'), hidden: !wsTabVisibility.value.collaborators },
     {
       key: 'teams',
       icon: 'ncBuilding',
       label: t('general.teams'),
-      hidden: !(isEeUI && hasTeamsEditPermission.value && showEEFeatures.value),
+      hidden: !wsTabVisibility.value.teams,
     },
     {
       key: 'integrations',
       icon: 'integration',
       label: t('general.integrations'),
-      hidden: isMobileMode.value || !isUIAllowed('workspaceIntegrations'),
+      hidden: !wsTabVisibility.value.integrations,
     },
     {
       key: 'billing',
       icon: 'ncDollarSign',
       label: t('general.billing'),
-      hidden:
-        isMobileMode.value || !(isEeUI && isPaymentEnabled.value && isUIAllowed('workspaceBilling') && showEEFeatures.value),
+      hidden: !wsTabVisibility.value.billing,
     },
     {
       key: 'audits',
       icon: 'audit',
       label: t('title.audits'),
-      hidden: isMobileMode.value || !(isEeUI && isUIAllowed('workspaceAuditList') && showEEFeatures.value),
+      hidden: !wsTabVisibility.value.audits,
     },
     {
       key: 'sso',
       icon: 'sso',
       label: t('title.sso'),
-      hidden: isMobileMode.value || !(isWorkspaceSsoAvail.value && isUIAllowed('workspaceSSO') && showEEFeatures.value),
+      hidden: !wsTabVisibility.value.sso,
     },
-    { key: 'settings', icon: 'ncSettings', label: t('labels.settings'), hidden: !showEEFeatures.value },
+    { key: 'settings', icon: 'ncSettings', label: t('labels.settings'), hidden: !wsTabVisibility.value.settings },
   ].filter((item) => !item.hidden)
 })
 

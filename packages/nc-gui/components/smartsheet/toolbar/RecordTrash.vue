@@ -10,7 +10,6 @@ const {
   pageSize,
   totalCount,
   selectedRowIds,
-  pkColumn,
   retentionDays,
   loadDeletedRecords,
   restoreRecords,
@@ -20,6 +19,8 @@ const {
 } = useRecordTrash()
 
 const { meta } = useSmartsheetStoreOrThrow()
+
+const { isUIAllowed } = useRoles()
 
 const { t } = useI18n()
 
@@ -198,6 +199,7 @@ watch(isOpen, (val) => {
               {{ $t('trash.restore') }}
             </NcButton>
             <NcButton
+              v-if="isUIAllowed('recordTrashPermanentDelete')"
               v-e="['c:trash:permanent-delete:bulk']"
               size="small"
               type="danger"
@@ -208,7 +210,7 @@ watch(isOpen, (val) => {
             </NcButton>
           </template>
           <NcButton
-            v-else-if="deletedRecords.length"
+            v-else-if="deletedRecords.length && isUIAllowed('recordTrashEmpty')"
             v-e="['c:trash:empty']"
             size="small"
             type="text"
@@ -290,6 +292,7 @@ watch(isOpen, (val) => {
                   {{ $t('trash.restore') }}
                 </NcButton>
                 <NcButton
+                  v-if="isUIAllowed('recordTrashPermanentDelete')"
                   v-e="['c:trash:permanent-delete:single']"
                   size="small"
                   type="text"

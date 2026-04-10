@@ -107,6 +107,11 @@ export const presetErrorCodexMap: Partial<
       `Cannot permanently delete active records that are not in trash`,
     code: 422,
   },
+  [NcErrorType.ERR_TRASH_BATCH_LIMIT_EXCEEDED]: {
+    message: (limit: string) =>
+      `Cannot process more than ${limit} records at a time`,
+    code: 422,
+  },
   [NcErrorType.ERR_GENERIC_NOT_FOUND]: {
     message: (resource: string, id: string) => `${resource} '${id}' not found`,
     code: 404,

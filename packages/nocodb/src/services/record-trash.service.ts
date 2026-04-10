@@ -151,6 +151,10 @@ export class RecordTrashService {
       force?: boolean;
     },
   ) {
+    if (param.rowIds.length > 1000) {
+      NcError.get(context).trashBatchLimitExceeded(1000);
+    }
+
     // Build V1 conflict map: rowId → FK columns to null
     const conflictMap = new Map<string, string[]>();
     const model = await Model.get(context, param.tableId);
@@ -410,6 +414,10 @@ export class RecordTrashService {
       req: NcRequest;
     },
   ) {
+    if (param.rowIds.length > 1000) {
+      NcError.get(context).trashBatchLimitExceeded(1000);
+    }
+
     const model = await Model.get(context, param.tableId);
     if (!model) NcError.get(context).tableNotFound(param.tableId);
 

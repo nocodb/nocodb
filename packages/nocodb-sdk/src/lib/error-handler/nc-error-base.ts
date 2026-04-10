@@ -1010,6 +1010,16 @@ export class NcErrorBase {
     });
   }
 
+  trashBatchLimitExceeded(limit: number, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_TRASH_BATCH_LIMIT_EXCEEDED,
+      {
+        params: limit.toString(),
+        ...args,
+      },
+    );
+  }
+
   methodNotAllowed(method: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_METHOD_NOT_ALLOWED, {
       params: `${method} method not allowed`,

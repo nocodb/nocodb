@@ -236,12 +236,12 @@ export class UsersService {
 
     const user = await User.getByEmail(param.user.email);
 
-    const hashedPassword = await promisify(bcrypt.hash)(
+    const isValid = await promisify(bcrypt.compare)(
       currentPassword,
-      user.salt,
+      user.password,
     );
 
-    if (hashedPassword !== user.password) {
+    if (!isValid) {
       return NcError.badRequest('Current password is wrong');
     }
 

@@ -3034,6 +3034,8 @@
     "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",
     "deleteAccountPermanently": "Delete your account permanently",
     "learnMore": "Learn more",
+    "deleteIntegrationSourcesWarning": "Following external data sources using this connection will also be removed",
+    "deleteIntegrationProceedConfirm": "Do you want to proceed anyway?",
     "notAllowedForType": "Not allowed for type",
     "connectIntegrations": "Connect integrations with NocoDB.",
     "manageConnectionsAndIntegrations": "Manage connections and discover new integrations for this workspace.",

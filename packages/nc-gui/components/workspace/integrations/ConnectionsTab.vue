@@ -163,7 +163,9 @@ const openDeleteIntegration = async (source: IntegrationType) => {
   const connectionDetails = await getIntegration(source, {
     includeSources: true,
   })
-  toBeDeletedIntegration.value.sources = connectionDetails?.sources || []
+  if (toBeDeletedIntegration.value) {
+    toBeDeletedIntegration.value.sources = connectionDetails?.sources || []
+  }
 
   isLoadingGetLinkedSources.value = false
 }
@@ -573,7 +575,7 @@ const customRow = (record: Record<string, any>) => ({
             v-if="toBeDeletedIntegration?.sources?.length"
             class="flex flex-col pb-2 text-small leading-[18px] text-nc-content-gray-muted"
           >
-            <div class="mb-1">Following external data sources using this connection will also be removed</div>
+            <div class="mb-1">{{ $t('msg.deleteIntegrationSourcesWarning') }}</div>
             <ul class="!list-disc ml-6 mb-0">
               <li
                 v-for="(source, idx) of toBeDeletedIntegration.sources"
@@ -617,7 +619,7 @@ const customRow = (record: Record<string, any>) => ({
                 </div>
               </li>
             </ul>
-            <div class="mt-2">Do you want to proceed anyway?</div>
+            <div class="mt-2">{{ $t('msg.deleteIntegrationProceedConfirm') }}</div>
           </div>
         </div>
       </template>
@@ -647,7 +649,7 @@ const customRow = (record: Record<string, any>) => ({
             href="https://nocodb.com/docs/product-docs/data-sources/connect-to-data-source"
             rel="noopener noreferrer"
           >
-            Learn more
+            {{ $t('msg.learnMore') }}
           </a>
         </div>
       </div>

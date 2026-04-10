@@ -71,7 +71,7 @@ const isIntegrationAllowed = (i: (typeof allIntegrations)[number], category: (ty
   if (i.sub_type === SyncDataType.NOCODB) return false
 
   if (props.mode === 'base') {
-    return !i.isOssOnly
+    return isEeUI ? !i.isOssOnly : true
   }
 
   // Workspace level: same as IntegrationsTab's isIntegrationVisible

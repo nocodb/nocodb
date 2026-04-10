@@ -224,7 +224,7 @@ const handleEdit = (integration: IntegrationType) => {
             v-if="toBeDeletedIntegration?.sources?.length"
             class="flex flex-col pb-2 text-small leading-[18px] text-nc-content-gray-muted"
           >
-            <div class="mb-1">Following external data sources using this connection will also be removed</div>
+            <div class="mb-1">{{ $t('msg.deleteIntegrationSourcesWarning') }}</div>
             <ul class="!list-disc ml-6 mb-0">
               <li v-for="(source, idx) of toBeDeletedIntegration.sources" :key="idx" class="marker:text-nc-content-gray-muted">
                 <div class="flex items-center gap-1">
@@ -246,7 +246,7 @@ const handleEdit = (integration: IntegrationType) => {
                 </div>
               </li>
             </ul>
-            <div class="mt-2">Do you want to proceed anyway?</div>
+            <div class="mt-2">{{ $t('msg.deleteIntegrationProceedConfirm') }}</div>
           </div>
         </div>
       </template>
@@ -271,7 +271,7 @@ const handleEdit = (integration: IntegrationType) => {
             href="https://nocodb.com/docs/product-docs/data-sources/connect-to-data-source"
             rel="noopener noreferrer"
           >
-            Learn more
+            {{ $t('msg.learnMore') }}
           </a>
         </div>
       </div>

@@ -100,7 +100,7 @@ const integrationsMap = computed(() => {
         (i) =>
           i.type === cat.value &&
           i.isAvailable &&
-          !i.isOssOnly &&
+          (isEeUI ? !i.isOssOnly : true) &&
           i.sub_type !== SyncDataType.NOCODB &&
           // AUTH category: only show integrations available for sync auth
           (cat.value !== IntegrationCategoryType.AUTH ||

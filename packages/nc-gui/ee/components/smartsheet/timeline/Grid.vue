@@ -554,7 +554,6 @@ const canEditToCol = computed(() => {
   return isAllowed(PermissionEntity.FIELD, col.id, PermissionKey.RECORD_FIELD_EDIT)
 })
 
-
 // #11: Build tooltip text for a record bar — improved format with em-dash and year
 const getBarTooltip = (row: RowType) => {
   const range = props.timelineRange[0]

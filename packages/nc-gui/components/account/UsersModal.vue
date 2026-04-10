@@ -121,9 +121,7 @@ const onRoleChange = (role: string) => {
 
 const saveUser = async () => {
   // Collect emails: pills + single typed email
-  const payloadEmails = singleEmailValue.value
-    ? [singleEmailValue.value]
-    : [...emailBadges.value]
+  const payloadEmails = singleEmailValue.value ? [singleEmailValue.value] : [...emailBadges.value]
 
   // Also pick up any remaining text in the input
   if (!singleEmailValue.value && inviteData.email?.trim() && validateEmail(inviteData.email.trim())) {
@@ -136,7 +134,7 @@ const saveUser = async () => {
   $e('a:org-user:invite', { role: inviteData.role })
 
   try {
-    const orgId = hasOrgRoles.value ? (appInfo.value.defaultOrgId || NC_DEFAULT_ORG_ID) : undefined
+    const orgId = hasOrgRoles.value ? appInfo.value.defaultOrgId || NC_DEFAULT_ORG_ID : undefined
 
     const results: { email: string; token: string }[] = []
 
@@ -158,9 +156,7 @@ const saveUser = async () => {
         const usersRes = await $api.instance.get('/api/v1/users', {
           params: { query: email },
         })
-        const user = usersRes.data?.list?.find(
-          (u: any) => u.email?.toLowerCase() === email.toLowerCase(),
-        )
+        const user = usersRes.data?.list?.find((u: any) => u.email?.toLowerCase() === email.toLowerCase())
         if (user?.id) {
           await $api.instance.patch(`/api/v1/orgs/${orgId}/users/${user.id}`, {
             org_role: inviteData.role,
@@ -206,7 +202,11 @@ const clickInviteMore = () => {
     :show-separator="false"
     size="medium"
     class="nc-modal-invite-user"
-    @update:visible="(val) => { if (!val) emit('closed') }"
+    @update:visible="
+      (val) => {
+        if (!val) emit('closed')
+      }
+    "
   >
     <template #header>
       <div class="flex flex-row text-2xl font-bold items-center gap-x-2">
@@ -314,13 +314,7 @@ const clickInviteMore = () => {
         <NcButton type="secondary" @click="emit('closed')">
           {{ $t('labels.cancel') }}
         </NcButton>
-        <NcButton
-          :disabled="isInviteDisabled || isLoading"
-          :loading="isLoading"
-          size="medium"
-          type="primary"
-          @click="saveUser"
-        >
+        <NcButton :disabled="isInviteDisabled || isLoading" :loading="isLoading" size="medium" type="primary" @click="saveUser">
           {{ $t('activity.invite') }}
         </NcButton>
       </div>

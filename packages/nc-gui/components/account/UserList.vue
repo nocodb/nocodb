@@ -11,7 +11,6 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-
 const { dashboardUrl } = useDashboard()
 
 const { appInfo, user: loggedInUser } = useGlobal()

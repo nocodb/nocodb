@@ -3,7 +3,6 @@ import type { SSOClientType } from 'nocodb-sdk'
 const { fetchProviders, providers, deleteProvider, updateProvider, addProvider, getPrePopulatedProvider, signInUrl } =
   useAuthentication(false, true)
 
-
 const { getFeature, handleUpgradePlan } = useEeConfig()
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -356,7 +355,6 @@ onMounted(async () => {
             </div>
           </div>
         </div>
-
       </div>
 
       <DlgGoogleProvider

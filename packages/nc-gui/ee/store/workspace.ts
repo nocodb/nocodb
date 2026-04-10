@@ -688,21 +688,14 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     // Workspace belongs to an org — org teams are always available regardless of plan
     const hasOrg = !!activeWorkspace.value?.fk_org_id
 
-    if (
-      !isTeamsEnabled.value ||
-      isSharedBaseOrErdOrViewRoute(route.value)
-    ) {
+    if (!isTeamsEnabled.value || isSharedBaseOrErdOrViewRoute(route.value)) {
       teams.value = []
       isTeamsLoading.value = false
       return
     }
 
     // If team management is blocked and workspace has no org, skip loading
-    if (
-      blockTeamsManagement.value &&
-      !hasOrg &&
-      !activeWorkspace.value?.payment?.plan?.meta
-    ) {
+    if (blockTeamsManagement.value && !hasOrg && !activeWorkspace.value?.payment?.plan?.meta) {
       teams.value = []
       isTeamsLoading.value = false
       return
@@ -1166,21 +1159,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     const hasOrg = !!activeWorkspace.value?.fk_org_id
 
-    if (
-      !isTeamsEnabled.value ||
-      !workspaceId ||
-      isSharedBaseOrErdOrViewRoute(route.value)
-    ) {
+    if (!isTeamsEnabled.value || !workspaceId || isSharedBaseOrErdOrViewRoute(route.value)) {
       workspaceTeams.value = []
       isLoadingWorkspaceTeams.value = false
       return
     }
 
-    if (
-      blockTeamsManagement.value &&
-      !hasOrg &&
-      !activeWorkspace.value?.payment?.plan?.meta
-    ) {
+    if (blockTeamsManagement.value && !hasOrg && !activeWorkspace.value?.payment?.plan?.meta) {
       workspaceTeams.value = []
       isLoadingWorkspaceTeams.value = false
       return

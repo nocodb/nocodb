@@ -15,8 +15,6 @@ const { populateWorkspace } = workspaceStore
 const { collaborators, lastPopulatedWorkspaceId, activeWorkspaceId, activeWorkspace, isWorkspacesLoading, workspacesList } =
   storeToRefs(workspaceStore)
 
-const { isEEFeatureBlocked } = useEeConfig()
-
 const { isDuplicateDlgOpen } = useCopySharedBase()
 
 const { isSharedBase, isSharedErd } = storeToRefs(useBase())

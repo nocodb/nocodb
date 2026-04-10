@@ -415,11 +415,7 @@ watch(selected, () => {
                   <template v-if="member.cloud_org_roles !== EnterpriseOrgUserRoles.ADMIN">
                     <NcDivider />
 
-                    <NcTooltip
-                      :disabled="!member.scim_managed"
-                      :title="$t('labels.scimManagedRemovalTooltip')"
-                      placement="left"
-                    >
+                    <NcTooltip :disabled="!member.scim_managed" :title="$t('labels.scimManagedRemovalTooltip')" placement="left">
                       <NcMenuItem
                         :disabled="member.scim_managed"
                         danger

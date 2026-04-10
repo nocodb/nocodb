@@ -18,6 +18,12 @@ export class ScimAuthGuard extends AuthGuard('scim-bearer') {
     // Store workspace ID for strategy access
     request.orgId = orgId;
 
+    // Normalize Authorization header: support raw "<token>" without Bearer prefix
+    const authHeader = request.headers['authorization'];
+    if (authHeader && !authHeader.toLowerCase().startsWith('bearer ')) {
+      request.headers['authorization'] = `Bearer ${authHeader}`;
+    }
+
     // Set request.context so @TenantContext() decorator works for SCIM controllers
     request.context = {
       org_id: orgId,

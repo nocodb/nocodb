@@ -13,7 +13,7 @@ import {
   ViewTypes,
   WorkspaceUserRoles,
   isSystemColumn,
-  isLinksOrLTAR,
+  isSupportedDisplayValueColumn,
 } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -178,7 +178,7 @@ const eligibleDisplayFields = computed(() => {
   const tableMeta = getMetaByKey(relatedBaseId, childId)
 
   return ((tableMeta as TableType)?.columns ?? []).filter(
-    (col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col) && !isLookup(col),
+    (col) => !isSystemColumn(col) && !isPrimary(col) && isSupportedDisplayValueColumn(col),
   )
 })
 

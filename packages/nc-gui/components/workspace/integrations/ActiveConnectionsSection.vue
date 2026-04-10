@@ -279,7 +279,7 @@ const handleEdit = (integration: IntegrationType) => {
 
     <!-- Base assignment dialog (EE) -->
     <WorkspaceIntegrationsBaseAssignment
-      v-if="isEeUI && baseAssignmentIntegration"
+      v-if="baseAssignmentIntegration"
       v-model:visible="isBaseAssignmentOpen"
       :integration="baseAssignmentIntegration"
       @updated="onBaseAssignmentUpdated"

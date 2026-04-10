@@ -64,7 +64,7 @@ const openEditIntegration = (integration: IntegrationType) => {
             <span>{{ t('general.setAsDefault') }}</span>
           </NcMenuItem>
           <NcMenuItem
-            v-if="isEeUI && props.integration?.sub_type !== SyncDataType.NOCODB"
+            v-if="props.integration?.sub_type !== SyncDataType.NOCODB"
             @click="emits('base-assignment', props.integration)"
           >
             <GeneralIcon class="text-current opacity-80" icon="ncDatabase" />

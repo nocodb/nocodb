@@ -312,16 +312,12 @@ const columns = [
     dataIndex: 'source_count',
     showOrderBy: true,
   },
-  ...(isEeUI
-    ? [
-        {
-          key: 'base_access',
-          title: t('labels.baseAccess'),
-          minWidth: 140,
-          width: 160,
-        },
-      ]
-    : []),
+  {
+    key: 'base_access',
+    title: t('labels.baseAccess'),
+    minWidth: 140,
+    width: 160,
+  },
   {
     key: 'action',
     title: t('labels.actions'),
@@ -657,7 +653,7 @@ const customRow = (record: Record<string, any>) => ({
 
     <!-- Base Assignment Dialog -->
     <WorkspaceIntegrationsBaseAssignment
-      v-if="isEeUI && baseAssignmentIntegration"
+      v-if="baseAssignmentIntegration"
       v-model:visible="isBaseAssignmentOpen"
       :integration="baseAssignmentIntegration"
       @updated="onBaseAssignmentUpdated"

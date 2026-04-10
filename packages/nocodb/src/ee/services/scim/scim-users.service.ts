@@ -13,6 +13,8 @@ import Org from '~/ee/models/Org';
 import ScimConfig from '~/ee/models/ScimConfig';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { PaymentService } from '~/modules/payment/payment.service';
+import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
 import {
   extractOrgRoleFromExtension,
   NOCODB_USER_EXTENSION,
@@ -240,8 +242,31 @@ export class ScimUsersService {
       };
 
       // Only override role if explicitly provided in SCIM extension
+      // Block downgrading the last org admin via SCIM
       if (extensionRole) {
-        updateData.roles = extensionRole;
+        if (
+          existingOrgUser.roles === EnterpriseOrgUserRoles.ADMIN &&
+          extensionRole !== EnterpriseOrgUserRoles.ADMIN
+        ) {
+          const admins = await Noco.ncMeta
+            .knexConnection(MetaTable.ORG_USERS)
+            .where('fk_org_id', orgId)
+            .where('roles', EnterpriseOrgUserRoles.ADMIN)
+            .where(function () {
+              this.where('deleted', false).orWhereNull('deleted');
+            });
+
+          if (admins.length <= 1) {
+            // Silently skip role downgrade — keep admin role but still adopt as SCIM-managed
+            this.logger.warn(
+              `SCIM: skipping role downgrade for last org admin ${existingOrgUser.fk_user_id}`,
+            );
+          } else {
+            updateData.roles = extensionRole;
+          }
+        } else {
+          updateData.roles = extensionRole;
+        }
       }
 
       const adoptedUser = await OrgUser.update(
@@ -487,9 +512,31 @@ export class ScimUsersService {
     }
 
     // Handle org role from NocoDB extension attribute
+    // Block downgrading the last org admin via SCIM update
     const newRole = this.extractOrgRole(scimUser);
-    if (newRole) {
-      updateData.roles = newRole;
+    if (newRole && newRole !== orgUser.roles) {
+      if (
+        orgUser.roles === EnterpriseOrgUserRoles.ADMIN &&
+        newRole !== EnterpriseOrgUserRoles.ADMIN
+      ) {
+        const admins = await Noco.ncMeta
+          .knexConnection(MetaTable.ORG_USERS)
+          .where('fk_org_id', orgId)
+          .where('roles', EnterpriseOrgUserRoles.ADMIN)
+          .where(function () {
+            this.where('deleted', false).orWhereNull('deleted');
+          });
+
+        if (admins.length <= 1) {
+          this.logger.warn(
+            `SCIM: skipping role downgrade for last org admin ${orgUser.fk_user_id}`,
+          );
+        } else {
+          updateData.roles = newRole;
+        }
+      } else {
+        updateData.roles = newRole;
+      }
     }
 
     // Handle active status (deactivation)
@@ -572,6 +619,31 @@ export class ScimUsersService {
     // 404 for DELETE on an already-deleted resource)
     if (orgUser.deleted) {
       NcError.notFound('User not found');
+    }
+
+    // Block deactivation of the last org admin
+    if (
+      orgUser.roles === EnterpriseOrgUserRoles.ADMIN
+    ) {
+      const admins = await Noco.ncMeta
+        .knexConnection(MetaTable.ORG_USERS)
+        .where('fk_org_id', param.orgId)
+        .where('roles', EnterpriseOrgUserRoles.ADMIN)
+        .where(function () {
+          this.where('deleted', false).orWhereNull('deleted');
+        });
+
+      if (admins.length <= 1) {
+        throw new HttpException(
+          {
+            schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
+            detail:
+              'Cannot deactivate the last organization admin. Promote another user to admin first.',
+            status: '409',
+          },
+          409,
+        );
+      }
     }
 
     // Full cascade: soft-delete org user + remove from all workspaces, teams

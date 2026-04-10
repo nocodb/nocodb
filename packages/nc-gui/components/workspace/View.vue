@@ -28,13 +28,7 @@ const { loadCollaborators, loadWorkspace } = workspaceStore
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
 
-const {
-  isWsAuditEnabled,
-  handleUpgradePlan,
-  blockTeamsManagement,
-  showUpgradeToUseTeams,
-  showEEFeatures,
-} = useEeConfig()
+const { isWsAuditEnabled, handleUpgradePlan, blockTeamsManagement, showUpgradeToUseTeams, showEEFeatures } = useEeConfig()
 
 const { isFromIntegrationPage, eventBus, searchQuery: storeSearchQuery, loadIntegrations } = useProvideIntegrationViewStore()
 

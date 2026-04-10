@@ -18,13 +18,19 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { OrgsService } from '~/services/orgs.service';
+import { AuditsService } from '~/services/audits.service';
+import { NcError } from '~/helpers/catchError';
 import { NcRequest } from '~/interface/config';
 import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
+import { Workspace } from '~/models';
 
 @Controller()
 @License('organizations')
 export class OrgsController {
-  constructor(protected readonly orgsService: OrgsService) {}
+  constructor(
+    protected readonly orgsService: OrgsService,
+    protected readonly auditsService: AuditsService,
+  ) {}
 
   @UseGuards(AuthGuard('basic'))
   @Post('/api/internal/orgs')
@@ -232,6 +238,42 @@ export class OrgsController {
   ) {
     return this.orgsService.deleteDomain({
       domainId,
+    });
+  }
+
+  @Get('/api/v2/orgs/:orgId/audits')
+  @HttpCode(200)
+  @UseGuards(GlobalGuard, MetaApiLimiterGuard)
+  @Acl('orgAuditList', {
+    scope: 'cloud-org',
+  })
+  async orgAuditList(
+    @Req() req: NcRequest,
+    @Param('orgId') orgId: string,
+  ) {
+    // Validate workspaceIds belong to this org
+    let workspaceIds: string[] | undefined;
+    if (req.query.workspaceIds) {
+      workspaceIds = ([] as string[]).concat(req.query.workspaceIds as string | string[]);
+
+      for (const wsId of workspaceIds) {
+        const ws = await Workspace.get(wsId);
+        if (!ws || ws.fk_org_id !== orgId) {
+          NcError.badRequest(
+            `Workspace '${wsId}' does not belong to this organization`,
+          );
+        }
+      }
+    }
+
+    return await this.auditsService.orgAuditList(orgId, {
+      cursor: req.query.cursor as string,
+      workspaceIds,
+      fkUserId: req.query.fkUserId as string,
+      type: req.query.type as string[],
+      startDate: req.query.startDate as string,
+      endDate: req.query.endDate as string,
+      orderBy: req.query.orderBy as any,
     });
   }
 }

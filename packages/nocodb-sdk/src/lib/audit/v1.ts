@@ -1424,6 +1424,7 @@ export interface AuditV1<T = any> {
   fk_user_id: string;
   user_agent: string;
   fk_workspace_id: string | null;
+  fk_org_id?: string | null;
   base_id: string | null;
   source_id: string | null;
   fk_model_id: string | null;

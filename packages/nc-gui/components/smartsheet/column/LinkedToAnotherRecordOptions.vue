@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {
   type LinkToAnotherRecordType,
-  type TableType,
   LinksVersion,
   ModelTypes,
   PlanFeatureTypes,
@@ -9,11 +8,12 @@ import {
   ProjectRoles,
   RelationTypes,
   SqliteUi,
+  type TableType,
   UITypes,
   ViewTypes,
   WorkspaceUserRoles,
-  isSystemColumn,
   isSupportedDisplayValueColumn,
+  isSystemColumn,
 } from 'nocodb-sdk'
 
 const props = defineProps<{

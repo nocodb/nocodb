@@ -209,9 +209,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       const colOptions = (column.value?.colOptions as LinkToAnotherRecordType) || {}
 
       if (colOptions.fk_display_value_column_id) {
-        const overrideCol = relatedTableMeta.value?.columns?.find(
-          (c) => c.id === colOptions.fk_display_value_column_id,
-        )
+        const overrideCol = relatedTableMeta.value?.columns?.find((c) => c.id === colOptions.fk_display_value_column_id)
         if (overrideCol) return overrideCol
       }
 

@@ -32,11 +32,11 @@ export const OneToOneCellRenderer: CellRenderer = {
       ? relatedTableMeta?.columns?.find((c) => c.id === fkDisplayValueColumnId)
       : undefined
 
-    const relatedTableDisplayValueProp = displayValueCol?.title
-      || (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.title || ''
+    const relatedTableDisplayValueProp =
+      displayValueCol?.title || (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.title || ''
 
-    const relatedTableDisplayValuePropId = displayValueCol?.id
-      || (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.id || ''
+    const relatedTableDisplayValuePropId =
+      displayValueCol?.id || (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.id || ''
 
     const ooColumn = relatedTableMeta?.columns?.find((c: any) => c.title === relatedTableDisplayValueProp) as
       | ColumnType

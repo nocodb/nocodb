@@ -15,7 +15,7 @@ export function useWorkspaceTabVisibility(
   const ws = computed(() => toValue(workspace))
 
   const { appInfo, isMobileMode } = useGlobal()
-  const { isUIAllowed } = useRoles()
+  const { isUIAllowed, isBaseRolesLoaded } = useRoles()
   const { isTeamsEnabled } = storeToRefs(useWorkspace())
   const { isPaymentEnabled, getFeature, showEEFeatures } = useEeConfig()
 
@@ -27,15 +27,33 @@ export function useWorkspaceTabVisibility(
     return isEeUI && isTeamsEnabled.value && (isAdmin.value || isUIAllowed('teamCreate'))
   })
 
-  const wsTabVisibility = computed(() => ({
-    collaborators: isAdmin.value || isUIAllowed('workspaceCollaborators'),
-    teams: isEeUI && hasTeamsEditPermission.value && showEEFeatures.value,
-    integrations: !isMobileMode.value && isUIAllowed('workspaceIntegrations'),
-    billing: !isMobileMode.value && !isAdmin.value && isEeUI && !ws.value?.fk_org_id && isPaymentEnabled.value && isUIAllowed('workspaceBilling'),
-    audits: !isMobileMode.value && !isAdmin.value && isEeUI && isUIAllowed('workspaceAuditList'),
-    sso: !isMobileMode.value && isWorkspaceSsoAvail.value && !ws.value?.fk_org_id && isUIAllowed('workspaceSSO'),
-    settings: showEEFeatures.value,
-  }))
+  const wsTabVisibility = computed(() => {
+    // Access to trigger re-evaluation when roles finish loading
+    // eslint-disable-next-line no-unused-expressions
+    isBaseRolesLoaded.value
+
+    return {
+      collaborators: isAdmin.value || isUIAllowed('workspaceCollaborators'),
+      teams: isEeUI && hasTeamsEditPermission.value && showEEFeatures.value,
+      integrations: !isMobileMode.value && isUIAllowed('workspaceIntegrations'),
+      billing:
+        !isMobileMode.value &&
+        !isAdmin.value &&
+        isEeUI &&
+        !ws.value?.fk_org_id &&
+        isPaymentEnabled.value &&
+        isBaseRolesLoaded.value &&
+        isUIAllowed('workspaceBilling'),
+      audits: !isMobileMode.value && !isAdmin.value && isEeUI && isBaseRolesLoaded.value && isUIAllowed('workspaceAuditList'),
+      sso:
+        !isMobileMode.value &&
+        isWorkspaceSsoAvail.value &&
+        !ws.value?.fk_org_id &&
+        isBaseRolesLoaded.value &&
+        isUIAllowed('workspaceSSO'),
+      settings: showEEFeatures.value,
+    }
+  })
 
   return {
     isWorkspaceSsoAvail,

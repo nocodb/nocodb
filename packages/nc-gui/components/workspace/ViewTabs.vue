@@ -22,7 +22,7 @@ const hasTeamsEditPermission = computed(() => {
 })
 
 const isWorkspaceSsoAvail = computed(() => {
-  return isEeUI && !!appInfo.value?.isCloud && !!getFeature(PlanFeatureTypes.FEATURE_SSO)
+  return isEeUI && (appInfo.value?.isCloud || appInfo.value?.isOnPrem) && getFeature(PlanFeatureTypes.FEATURE_SSO)
 })
 
 // Tab definitions

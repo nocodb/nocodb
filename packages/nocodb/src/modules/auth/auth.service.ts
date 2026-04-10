@@ -14,6 +14,10 @@ export class CreateUserDto {
 
 @Injectable()
 export class AuthService {
+  // Pre-computed dummy hash to ensure constant-time response when user is not found
+  static readonly DUMMY_HASH =
+    '$2a$10$DwEv0MjMRZdMnOFRMChjHuq3YNKhMfSEPkNRCQsGx0KGfcIUNEz2W';
+
   constructor(private usersService: UsersService) {}
 
   async validateUser(email: string, pass: string): Promise<any> {
@@ -30,10 +34,13 @@ export class AuthService {
         );
       }
 
-      const hashedPassword = await promisify(bcrypt.hash)(pass, user.salt);
-      if (user.password === hashedPassword) {
+      const valid = await promisify(bcrypt.compare)(pass, user.password);
+      if (valid) {
         return result;
       }
+    } else {
+      // Perform a dummy compare with a random prefix to prevent timing-based user enumeration
+      await promisify(bcrypt.compare)(pass, AuthService.DUMMY_HASH);
     }
     return null;
   }

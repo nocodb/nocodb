@@ -325,7 +325,7 @@ if (!props.isNewWsPage) {
 
             <!-- All connections page -->
             <template v-else-if="integrationsViewMode === 'all-connections'">
-              <div class="h-full flex flex-col p-6">
+              <div class="h-full flex flex-col px-8 py-6">
                 <NcButton
                   type="link"
                   size="small"

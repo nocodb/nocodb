@@ -264,7 +264,7 @@ watch(baseId, reload)
     <!-- Main page: active connections + integration categories -->
     <template v-if="viewMode === 'main'">
       <div class="h-full w-full overflow-y-auto nc-scrollbar-thin">
-        <div class="px-6 py-6 flex flex-col nc-workspace-settings-integrations-list">
+        <div class="px-8 pt-6 pb-8 flex flex-col nc-workspace-settings-integrations-list">
           <div class="text-sm font-normal text-nc-content-gray-subtle2 mb-4">
             {{ $t('msg.manageBaseIntegrations') }}
           </div>
@@ -377,7 +377,7 @@ watch(baseId, reload)
 
     <!-- All connections page -->
     <template v-else-if="viewMode === 'all-connections'">
-      <div class="h-full flex flex-col p-6">
+      <div class="h-full flex flex-col px-8 py-6">
         <NcButton
           type="link"
           size="small"

@@ -319,7 +319,7 @@ watch(activeViewTab, (value) => {
             'h-full': !isModal,
           }"
         >
-          <div v-if="integrationListContainerWidth" class="px-6 pt-6">
+          <div v-if="integrationListContainerWidth" class="px-8 pt-6">
             <div
               class="flex justify-end flex-wrap gap-3 m-auto nc-content-max-w"
               :class="{
@@ -417,7 +417,7 @@ watch(activeViewTab, (value) => {
 
           <div
             ref="integrationListRef"
-            class="flex-1 px-6 pb-6 flex flex-col nc-workspace-settings-integrations-list overflow-y-auto nc-scrollbar-thin"
+            class="flex-1 px-8 pb-8 flex flex-col nc-workspace-settings-integrations-list overflow-y-auto nc-scrollbar-thin"
           >
             <div
               v-if="integrationListContainerWidth"

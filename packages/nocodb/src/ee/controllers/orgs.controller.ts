@@ -22,8 +22,9 @@ import { AuditsService } from '~/services/audits.service';
 import { NcError } from '~/helpers/catchError';
 import { NcRequest } from '~/interface/config';
 import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
-import { Workspace } from '~/models';
+import { Domain, Workspace } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import Noco from '~/Noco';
 
 @Controller()
 @License('organizations')
@@ -181,13 +182,11 @@ export class OrgsController {
       body,
     });
 
-    if (orgId) {
-      this.appHooksService.emit(AppEvents.ORG_DOMAIN_ADD as any, {
-        orgId,
-        domainName: body.domain,
-        req,
-      });
-    }
+    this.appHooksService.emit(AppEvents.ORG_DOMAIN_ADD as any, {
+      orgId: orgId || Noco.ncDefaultOrgId,
+      domainName: body.domain,
+      req,
+    });
 
     return result;
   }
@@ -213,8 +212,10 @@ export class OrgsController {
       domainId,
     });
 
+    const verifiedDomain = await Domain.get(domainId);
     this.appHooksService.emit(AppEvents.ORG_DOMAIN_VERIFY as any, {
-      orgId: (req as any).ncOrgId,
+      orgId: verifiedDomain?.fk_org_id || Noco.ncDefaultOrgId,
+      domainName: verifiedDomain?.domain,
       domainId,
       req,
     });
@@ -244,9 +245,10 @@ export class OrgsController {
       domainId,
     });
 
+    const updatedDomain = await Domain.get(domainId);
     this.appHooksService.emit(AppEvents.ORG_DOMAIN_UPDATE as any, {
-      orgId: (req as any).ncOrgId,
-      domainName: body.domain,
+      orgId: updatedDomain?.fk_org_id || Noco.ncDefaultOrgId,
+      domainName: body.domain || updatedDomain?.domain,
       domainId,
       req,
     });
@@ -265,12 +267,16 @@ export class OrgsController {
     @Req() req: NcRequest,
     @Param('domainId') domainId: string,
   ) {
+    // Fetch before delete to capture org context for audit
+    const domainRecord = await Domain.get(domainId);
+
     const result = await this.orgsService.deleteDomain({
       domainId,
     });
 
     this.appHooksService.emit(AppEvents.ORG_DOMAIN_DELETE as any, {
-      orgId: (req as any).ncOrgId,
+      orgId: domainRecord?.fk_org_id || Noco.ncDefaultOrgId,
+      domainName: domainRecord?.domain,
       domainId,
       req,
     });

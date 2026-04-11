@@ -78,6 +78,7 @@ export type InternalPOSTResponseType = Promise<
   | Hook
   | Extension
   | { added: boolean; reaction: any }
+  | { link: (string | number | Record<string, any>)[]; unlink: (string | number | Record<string, any>)[] }[]
 >;
 
 export const INTERNAL_API_MODULE_PROVIDER_KEY = 'INTERNAL_API_MODULE';

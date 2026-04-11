@@ -5,6 +5,7 @@ import {
   type LinkToAnotherRecordType,
   PermissionEntity,
   PermissionKey,
+  RelationTypes,
   type TableType,
   UITypes,
   type ViewType,
@@ -25,6 +26,19 @@ import { EDIT_INTERACTABLE } from '../utils/constants'
 import type { ActionManager } from '../loaders/ActionManager'
 
 const MAX_ROWS = 5000
+
+export interface BulkLtarOp {
+  columnId: string
+  columnTitle: string
+  rowRef: Row
+  oldValue: any
+  data: { operation: string; rowId: string; columnId: string; fk_related_model_id: string }[]
+}
+
+/** OO and OM paste moves records between rows — not suitable for bulk paste */
+function isOoOrOm(col: ColumnType): boolean {
+  return isOo(col) || (col.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.ONE_TO_MANY
+}
 
 export function useCopyPaste({
   activeCell,
@@ -380,6 +394,7 @@ export function useCopyPaste({
         const updatedRows: Row[] = [] as Row[]
         const newRows: Row[] = []
         const propsToPaste: string[] = []
+        const bulkLtarOps: BulkLtarOp[] = []
         let isInfoShown = false
         // We can use this if we want to avoid same info multiple times per column
         const isColInfoShown = {} as Record<string, boolean>
@@ -419,6 +434,62 @@ export function useCopyPaste({
           for (let j = 0; j < clipboardMatrix[clipboardRowIndex].length; j++) {
             const column = colsToPaste[j]
             if (!column) continue
+
+            // Collect junction-table-based LTAR columns for bulk API
+            if (isMMOrMMLike(column)) {
+              // Block bulk paste for OO and OM — paste moves records between rows, not suitable for bulk
+              if (isOoOrOm(column)) {
+                if (!isInfoShown) {
+                  message.toast(t('msg.info.groupPasteIsNotSupportedOnOoOmColumn'))
+                  isInfoShown = true
+                }
+                continue
+              }
+
+              if (!isPasteable(targetRow, column, false, true)) continue
+
+              const pasteVal = convertCellData(
+                {
+                  value: clipboardMatrix[clipboardRowIndex][j],
+                  to: column.uidt as UITypes,
+                  column,
+                  appInfo: unref(appInfo),
+                  clipboardItem: extractCellClipboardData(storedCopiedData, clipboardRowIndex, j),
+                },
+                isMysql(meta.value?.source_id),
+              )
+
+              if (pasteVal === undefined || !ncIsObject(pasteVal)) continue
+
+              const pasteRowPk = extractPkFromRow(targetRow.row, meta.value?.columns as ColumnType[])
+              if (!pasteRowPk) continue
+
+              const oldValue = targetRow.row[column.title!]
+              targetRow.row[column.title!] = pasteVal.value
+
+              bulkLtarOps.push({
+                columnId: column.id as string,
+                columnTitle: column.title!,
+                rowRef: targetRow,
+                oldValue,
+                data: [
+                  {
+                    operation: 'copy',
+                    rowId: pasteVal.rowId,
+                    columnId: pasteVal.columnId,
+                    fk_related_model_id: pasteVal.fk_related_model_id,
+                  },
+                  {
+                    operation: 'paste',
+                    rowId: pasteRowPk,
+                    columnId: column.id as string,
+                    fk_related_model_id:
+                      (column.colOptions as LinkToAnotherRecordType).fk_related_model_id || pasteVal.fk_related_model_id,
+                  },
+                ],
+              })
+              continue
+            }
 
             if (isPasteable(targetRow, column)) {
               propsToPaste.push(column.title!)
@@ -461,10 +532,31 @@ export function useCopyPaste({
               if (pasteValue !== undefined) {
                 targetRow.row[column.title!] = pasteValue
               }
-            } else if ((isBt(column) || isOo(column) || isMm(column)) && !isInfoShown) {
-              message.toast(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
-              isInfoShown = true
             }
+          }
+        }
+
+        // Execute bulk LTAR paste operations in a single API call
+        if (bulkLtarOps.length) {
+          try {
+            await $api.internal.postOperation(
+              meta.value?.fk_workspace_id as string,
+              meta.value?.base_id as string,
+              {
+                operation: 'nestedDataBulkCopyPasteOrDeleteAll',
+                tableId: meta.value?.id as string,
+                viewId: view?.value?.id,
+              },
+              bulkLtarOps.map(({ columnId, data }) => ({ columnId, data })),
+            )
+          } catch (e: any) {
+            for (const op of bulkLtarOps) {
+              op.rowRef.row[op.columnTitle] = op.oldValue
+            }
+            message.error({
+              title: t('msg.error.pasteFromClipboardError'),
+              content: await extractSdkResponseErrorMsg(e),
+            })
           }
         }
 
@@ -538,8 +630,8 @@ export function useCopyPaste({
             return await syncCellData?.({ ...activeCell.value, updatedColumnTitle: foreignKeyColumn.title }, groupPath)
           }
 
-          // Handle many-to-many column paste
-          if (isMm(columnObj)) {
+          // Handle junction-table-based LTAR column paste (V1 MM, V2 om/mo/oo/mm)
+          if (isMMOrMMLike(columnObj)) {
             if (!isPasteable(rowObj, columnObj, true, true)) return
 
             const pasteVal = convertCellData(
@@ -599,6 +691,12 @@ export function useCopyPaste({
               if (!result.link.length && !result.unlink.length) {
                 rowObj.row[columnObj.title!] = oldCellValue
                 return
+              }
+
+              // For OO and OM columns, pasting is a "move" — the backend enforces that each
+              // child/record can only belong to one parent. Refresh view to reflect changes across all rows.
+              if (isOoOrOm(columnObj)) {
+                reloadViewDataHook?.trigger({ shouldShowLoading: false })
               }
 
               addUndo({
@@ -784,9 +882,10 @@ export function useCopyPaste({
           const props = []
 
           let pasteValue
-          let isInfoShown = false
+          let rangeBulkLtarOpsInfoShown = false
           // We can use this if we want to avoid same info multiple times per column
           const isColInfoShown = {} as Record<string, boolean>
+          const rangeBulkLtarOps: BulkLtarOp[] = []
 
           const files = e.clipboardData?.files
 
@@ -795,11 +894,63 @@ export function useCopyPaste({
             if (!row || row.rowMeta.new) continue
 
             for (const col of cols) {
-              if (!col.title || !isPasteable(row, col)) {
-                if ((isBt(col) || isOo(col) || isMm(col)) && !isInfoShown) {
-                  message.toast(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
-                  isInfoShown = true
+              // Collect junction-table-based LTAR columns for bulk API
+              if (isMMOrMMLike(col)) {
+                // Block bulk paste for OO and OM — paste moves records between rows, not suitable for bulk
+                if (isOoOrOm(col)) {
+                  if (!rangeBulkLtarOpsInfoShown) {
+                    message.toast(t('msg.info.groupPasteIsNotSupportedOnOoOmColumn'))
+                    rangeBulkLtarOpsInfoShown = true
+                  }
+                  continue
                 }
+
+                if (!isPasteable(row, col, false, true)) continue
+
+                const ltarPasteVal = convertCellData(
+                  {
+                    value: clipboardData,
+                    to: col.uidt as UITypes,
+                    column: col,
+                    appInfo: unref(appInfo),
+                    clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
+                  },
+                  isMysql(meta.value?.source_id),
+                )
+
+                if (ltarPasteVal !== undefined && ncIsObject(ltarPasteVal)) {
+                  const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                  if (pasteRowPk) {
+                    const oldValue = row.row[col.title!]
+                    row.row[col.title!] = ltarPasteVal.value
+
+                    rangeBulkLtarOps.push({
+                      columnId: col.id as string,
+                      columnTitle: col.title!,
+                      rowRef: row,
+                      oldValue,
+                      data: [
+                        {
+                          operation: 'copy',
+                          rowId: ltarPasteVal.rowId,
+                          columnId: ltarPasteVal.columnId,
+                          fk_related_model_id: ltarPasteVal.fk_related_model_id,
+                        },
+                        {
+                          operation: 'paste',
+                          rowId: pasteRowPk,
+                          columnId: col.id as string,
+                          fk_related_model_id:
+                            (col.colOptions as LinkToAnotherRecordType).fk_related_model_id || ltarPasteVal.fk_related_model_id,
+                        },
+                      ],
+                    })
+                  }
+                }
+                continue
+              }
+
+              if (!col.title || !isPasteable(row, col)) {
                 continue
               }
 
@@ -899,8 +1050,33 @@ export function useCopyPaste({
             }
           }
 
-          if (!props.length) return
-          await bulkUpdateRows?.(rows, props, undefined, false, groupPath)
+          // Execute bulk LTAR paste operations in a single API call
+          if (rangeBulkLtarOps.length) {
+            try {
+              await $api.internal.postOperation(
+                meta.value?.fk_workspace_id as string,
+                meta.value?.base_id as string,
+                {
+                  operation: 'nestedDataBulkCopyPasteOrDeleteAll',
+                  tableId: meta.value?.id as string,
+                  viewId: view?.value?.id,
+                },
+                rangeBulkLtarOps.map(({ columnId, data }) => ({ columnId, data })),
+              )
+            } catch (e: any) {
+              for (const op of rangeBulkLtarOps) {
+                op.rowRef.row[op.columnTitle] = op.oldValue
+              }
+              message.error({
+                title: t('msg.error.pasteFromClipboardError'),
+                content: await extractSdkResponseErrorMsg(e),
+              })
+            }
+          }
+
+          if (props.length) {
+            await bulkUpdateRows?.(rows, props, undefined, false, groupPath)
+          }
         }
       }
     } catch (error: any) {
@@ -1011,7 +1187,7 @@ export function useCopyPaste({
       // This will used to reload view data if it is self link column
       const isSelfLinkColumn = columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id
 
-      if (isMm(columnObj) && rowObj) {
+      if (isMMOrMMLike(columnObj) && rowObj) {
         mmClearResult = await cleaMMCell(rowObj, columnObj)
       }
 
@@ -1040,7 +1216,7 @@ export function useCopyPaste({
 
                 await addLTARRef(rowObj, rowObj.row[columnObj.title], columnObj)
                 await syncLTARRefs(rowObj, rowObj.row)
-              } else if (isMm(columnObj)) {
+              } else if (isMMOrMMLike(columnObj)) {
                 await $api.internal.postOperation(
                   meta.value?.fk_workspace_id as string,
                   meta.value?.base_id as string,
@@ -1083,7 +1259,7 @@ export function useCopyPaste({
             ) {
               if (isBt(columnObj) || isOo(columnObj)) {
                 await clearLTARCell(rowObj, columnObj)
-              } else if (isMm(columnObj)) {
+              } else if (isMMOrMMLike(columnObj)) {
                 await cleaMMCell(rowObj, columnObj)
               }
               activeCell.value.column = ctx.col
@@ -1103,7 +1279,7 @@ export function useCopyPaste({
         },
         scope: defineViewScope({ view: view.value }),
       })
-      if (isBt(columnObj) || isOo(columnObj)) await clearLTARCell(rowObj, columnObj)
+      if ((isBt(columnObj) || isOo(columnObj)) && !isMMOrMMLike(columnObj)) await clearLTARCell(rowObj, columnObj)
 
       if (isSelfLinkColumn) {
         reloadViewDataHook.trigger({ shouldShowLoading: false })

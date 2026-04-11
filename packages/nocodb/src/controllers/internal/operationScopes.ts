@@ -108,6 +108,7 @@ export const OPERATION_SCOPES = {
   nestedDataLink: 'base',
   nestedDataUnlink: 'base',
   nestedDataListCopyPasteOrDeleteAll: 'base',
+  nestedDataBulkCopyPasteOrDeleteAll: 'base',
   dataAggregate: 'base',
   bulkAggregate: 'base',
   bulkDataList: 'base',

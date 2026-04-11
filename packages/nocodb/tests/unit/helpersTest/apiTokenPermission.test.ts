@@ -977,6 +977,7 @@ function apiTokenPermissionTests() {
           'bulkDataDeleteAll', 'bulkDataUpsert', 'relationDataAdd',
           'relationDataRemove', 'nestedDataLink', 'nestedDataUnlink',
           'nestedDataListCopyPasteOrDeleteAll',
+          'nestedDataBulkCopyPasteOrDeleteAll',
           'upload', 'uploadViaURL',
         ],
       },

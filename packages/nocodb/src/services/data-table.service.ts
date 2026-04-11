@@ -761,7 +761,7 @@ export class DataTableService {
     const relatedModel = await colOptions.getRelatedTable(refContext);
     await relatedModel.getColumns(refContext);
 
-    if (colOptions.type !== RelationTypes.MANY_TO_MANY) return;
+    if (!colOptions.fk_mm_model_id) return;
 
     const { dependencyFields } = await getAst(refContext, {
       model: relatedModel,
@@ -863,6 +863,50 @@ export class DataTableService {
 
       return { link: filteredRowsToLink, unlink: filteredRowsToUnlink };
     }
+  }
+
+  async nestedListBulkCopyPasteOrDeleteAll(
+    context: NcContext,
+    param: {
+      cookie: any;
+      viewId: string;
+      modelId: string;
+      query: any;
+      data: {
+        columnId: string;
+        data: {
+          operation: 'copy' | 'paste' | 'deleteAll';
+          rowId: string;
+          columnId: string;
+          fk_related_model_id: string;
+        }[];
+      }[];
+      user?: any;
+    },
+  ) {
+    if (!Array.isArray(param.data) || !param.data.length) {
+      NcError.get(context).badRequest('Invalid bulk operation payload');
+    }
+
+    const results: { link: any[]; unlink: any[] }[] = [];
+
+    for (const entry of param.data) {
+      if (!entry.columnId || !Array.isArray(entry.data)) {
+        NcError.get(context).badRequest(
+          'Each bulk entry must have columnId and data array',
+        );
+      }
+
+      const result = await this.nestedListCopyPasteOrDeleteAll(context, {
+        ...param,
+        columnId: entry.columnId,
+        data: entry.data,
+      });
+
+      results.push(result ?? { link: [], unlink: [] });
+    }
+
+    return results;
   }
 
   validateIds(context: NcContext, rowIds: any[] | any) {

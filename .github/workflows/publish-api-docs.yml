@@ -23,7 +23,7 @@ jobs:
       - name: Pushes swagger file to data-apis-v1
         uses: dmnemec/copy_file_to_another_repo_action@1b29cbd9a323185f20b175dc6d5f8f31be5c0658
         env:
-          API_TOKEN_GITHUB: ${{ secrets.NC_GH_TOKEN1 }}
+          API_TOKEN_GITHUB: ${{ secrets.NC_GITHUB_TOKEN1 }}
         with:
           source_file: "packages/nocodb/src/schema/swagger.json"
           destination_repo: "nocodb/noco-apis-doc"
@@ -35,7 +35,7 @@ jobs:
       - name: Pushes swagger file to meta-apis-v1
         uses: dmnemec/copy_file_to_another_repo_action@1b29cbd9a323185f20b175dc6d5f8f31be5c0658
         env:
-          API_TOKEN_GITHUB: ${{ secrets.NC_GH_TOKEN1 }}
+          API_TOKEN_GITHUB: ${{ secrets.NC_GITHUB_TOKEN1 }}
         with:
           source_file: "packages/nocodb/src/schema/swagger.json"
           destination_repo: "nocodb/noco-apis-doc"
@@ -47,7 +47,7 @@ jobs:
       - name: Pushes swagger file to apis-v3
         uses: dmnemec/copy_file_to_another_repo_action@1b29cbd9a323185f20b175dc6d5f8f31be5c0658
         env:
-          API_TOKEN_GITHUB: ${{ secrets.NC_GH_TOKEN1 }}
+          API_TOKEN_GITHUB: ${{ secrets.NC_GITHUB_TOKEN1 }}
         with:
           source_file: "packages/nocodb/src/schema/swagger-v3.json"
           destination_repo: "nocodb/xc-app-2"
@@ -59,7 +59,7 @@ jobs:
       - name: Pushes swagger file to apis-v2
         uses: dmnemec/copy_file_to_another_repo_action@1b29cbd9a323185f20b175dc6d5f8f31be5c0658
         env:
-          API_TOKEN_GITHUB: ${{ secrets.NC_GH_TOKEN1 }}
+          API_TOKEN_GITHUB: ${{ secrets.NC_GITHUB_TOKEN1 }}
         with:
           source_file: "packages/nocodb/src/schema/swagger-v2.json"
           destination_repo: "nocodb/xc-app-2"

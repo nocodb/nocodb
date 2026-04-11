@@ -41,8 +41,8 @@ const _replaceUrlsWithLink = (text: string, plainCellValue = false): boolean | s
       let isUrl = false
       // replace whitespace at beginning and end of URL and label if found
       // Unescape escaped parentheses (`(` and `)`) in the URL and label content
-      const url = _url.replace(/^ | $/g, '').replace(/\\([()])/g, '$1')
-      const label = _label?.replace(/^ | $/g, '').replace(/\\([()])/g, '$1')
+      const url = _url.trim().replace(/\\([()])/g, '$1')
+      const label = _label?.trim()?.replace(/\\([()])/g, '$1')
 
       if (!url.trim()) {
         return label || ' '
@@ -50,7 +50,10 @@ const _replaceUrlsWithLink = (text: string, plainCellValue = false): boolean | s
 
       const fullUrl = protocolRegex.test(url) ? url : url.trim() ? `https://${url}` : ''
 
-      isUrl = isURL(fullUrl)
+      // Encode spaces so isURL accepts URLs with unencoded spaces (e.g. query params like ?where=(field,eq,hello world))
+      const encodedUrl = fullUrl.replace(/ /g, '%20')
+
+      isUrl = isURL(encodedUrl)
 
       const anchorLabel = label || url || ''
 
@@ -58,7 +61,7 @@ const _replaceUrlsWithLink = (text: string, plainCellValue = false): boolean | s
 
       const a = document.createElement('a')
       a.textContent = anchorLabel
-      a.setAttribute('href', decode(fullUrl))
+      a.setAttribute('href', decode(encodedUrl))
       a.setAttribute('class', 'nc-cell-field-link')
       a.setAttribute('target', '_blank')
       a.setAttribute('rel', 'noopener noreferrer')

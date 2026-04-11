@@ -112,6 +112,8 @@ export class FormFilters {
   }
 
   isFieldAboveParentColumn(column: FormViewColumn, parentColumn: FormViewColumn) {
+    if (column?.order == null || parentColumn?.order == null) return false
+
     return column.order < parentColumn.order
   }
 

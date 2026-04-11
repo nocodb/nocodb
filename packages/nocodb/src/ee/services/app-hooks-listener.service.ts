@@ -1152,6 +1152,7 @@ export class AppHooksListenerService
                   role: param.user.roles,
                 },
                 context: param.context,
+                fk_org_id: param.context?.org_id,
                 req: param.req,
               },
             ),
@@ -1171,6 +1172,7 @@ export class AppHooksListenerService
                   email: param.user.email,
                 },
                 context: param.context,
+                fk_org_id: param.context?.org_id,
                 req: param.req,
               },
             ),
@@ -1528,6 +1530,7 @@ export class AppHooksListenerService
                   scim_id: param.scimId,
                 },
                 fk_workspace_id: param.org.id,
+                fk_org_id: param.org.id,
                 req: param.req,
               },
             ),
@@ -1550,6 +1553,7 @@ export class AppHooksListenerService
                   scim_id: param.scimId,
                 },
                 fk_workspace_id: param.org.id,
+                fk_org_id: param.org.id,
                 req: param.req,
               },
             ),
@@ -1572,6 +1576,7 @@ export class AppHooksListenerService
                   scim_id: param.scimId,
                 },
                 fk_workspace_id: param.org.id,
+                fk_org_id: param.org.id,
                 req: param.req,
               },
             ),
@@ -1594,6 +1599,7 @@ export class AppHooksListenerService
                   scim_id: param.scimId,
                 },
                 fk_workspace_id: param.org.id,
+                fk_org_id: param.org.id,
                 req: param.req,
               },
             ),
@@ -1616,6 +1622,7 @@ export class AppHooksListenerService
                   scim_id: param.scimId,
                 },
                 fk_workspace_id: param.org.id,
+                fk_org_id: param.org.id,
                 req: param.req,
               },
             ),
@@ -4072,6 +4079,7 @@ export class AppHooksListenerService
             {
               req: param.req,
               context: param.context,
+              fk_org_id: param.team.fk_org_id || undefined,
               details: {
                 team_id: param.team.id,
                 team_title: param.team.title,
@@ -4105,6 +4113,7 @@ export class AppHooksListenerService
             {
               req: param.req,
               context: param.context,
+              fk_org_id: param.team.fk_org_id || undefined,
               details: {
                 team_id: param.team.id,
                 team_title: param.team.title,
@@ -4126,6 +4135,7 @@ export class AppHooksListenerService
             {
               req: param.req,
               context: param.context,
+              fk_org_id: param.team.fk_org_id || undefined,
               details: {
                 team_id: param.team.id,
                 team_title: param.team.title,
@@ -4147,6 +4157,7 @@ export class AppHooksListenerService
             {
               req: param.req,
               context: param.context,
+              fk_org_id: param.team.fk_org_id || undefined,
               details: {
                 team_id: param.team.id,
                 team_title: param.team.title,
@@ -4170,6 +4181,7 @@ export class AppHooksListenerService
             {
               req: param.req,
               context: param.context,
+              fk_org_id: param.team.fk_org_id || undefined,
               details: {
                 team_id: param.team.id,
                 team_title: param.team.title,
@@ -4204,6 +4216,7 @@ export class AppHooksListenerService
             {
               req: param.req,
               context: param.context,
+              fk_org_id: param.team.fk_org_id || undefined,
               details: {
                 team_id: param.team.id,
                 team_title: param.team.title,
@@ -4229,6 +4242,7 @@ export class AppHooksListenerService
             {
               req: param.req,
               context: param.context,
+              fk_org_id: param.team.fk_org_id || undefined,
               details: {
                 team_id: param.team.id,
                 team_title: param.team.title,

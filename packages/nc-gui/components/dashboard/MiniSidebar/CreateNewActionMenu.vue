@@ -323,7 +323,6 @@ const hasDocumentCreateAccess = computed(() => {
               >
                 <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
                 <div>{{ $t('objects.viewType.list') }}</div>
-                <NcBadgeBeta />
               </NcMenuItem>
               <NcMenuItem
                 v-if="isEeUI && showEEFeatures"
@@ -332,7 +331,6 @@ const hasDocumentCreateAccess = computed(() => {
               >
                 <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.map') }}</div>
-                <NcBadgeBeta />
               </NcMenuItem>
               <NcMenuItem
                 v-if="isEeUI && showEEFeatures"
@@ -341,7 +339,6 @@ const hasDocumentCreateAccess = computed(() => {
               >
                 <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.timeline') }}</div>
-                <NcBadgeBeta />
               </NcMenuItem>
               <template v-if="isAiFeaturesEnabled">
                 <NcDivider />

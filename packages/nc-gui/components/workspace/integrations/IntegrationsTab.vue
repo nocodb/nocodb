@@ -363,7 +363,6 @@ watch(activeViewTab, (value) => {
             <!-- Search + filter — full width, outside the header row -->
             <div class="flex items-center gap-2 nc-content-max-w m-auto !mt-4">
               <a-input
-                v-if="easterEggToggle"
                 ref="searchInputRef"
                 v-model:value="searchQuery"
                 type="text"

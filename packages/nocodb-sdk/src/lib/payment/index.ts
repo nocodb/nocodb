@@ -177,8 +177,8 @@ export const PlanMeta = {
     bgDark: 'var(--business-plan-bg-dark, #FED8F4)',
     border: 'var(--business-plan-border, #FEB0E8)',
     chartFillColor: 'var(--business-plan-chart-fill-color, #972377)',
-    badgeBgColor: 'var(--business-plan-badge-bg-color, #FED8F4)',
-    badgeTextColor: 'var(--business-plan-badge-text-color, #972377)',
+    badgeBgColor: 'var(--business-plan-badge-bg-color, #FFF0FB)',
+    badgeTextColor: 'var(--business-plan-badge-text-color, #C44DA0)',
   },
   [PlanTitles.ENTERPRISE]: {
     title: PlanTitles.ENTERPRISE,

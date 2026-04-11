@@ -377,8 +377,8 @@ export const OnPremPlanMeta = {
     bgLight: 'var(--business-plan-bg-light, #FFEEFB)',
     bgDark: 'var(--business-plan-bg-dark, #FED8F4)',
     border: 'var(--business-plan-border, #FEB0E8)',
-    badgeBgColor: 'var(--business-plan-badge-bg-color, #FED8F4)',
-    badgeTextColor: 'var(--business-plan-badge-text-color, #972377)',
+    badgeBgColor: 'var(--business-plan-badge-bg-color, #FFF0FB)',
+    badgeTextColor: 'var(--business-plan-badge-text-color, #C44DA0)',
   },
   [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: {
     title: OnPremPlanTitles.SELF_HOSTED_ENTERPRISE,

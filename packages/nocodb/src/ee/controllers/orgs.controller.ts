@@ -304,9 +304,12 @@ export class OrgsController {
     if (req.query.workspaceIds) {
       workspaceIds = ([] as string[]).concat(req.query.workspaceIds as string | string[]);
 
+      // Single query: list all org workspaces and check membership
+      const orgWorkspaces = await Workspace.listByOrgId({ orgId });
+      const orgWsIds = new Set(orgWorkspaces.map((ws) => ws.id));
+
       for (const wsId of workspaceIds) {
-        const ws = await Workspace.get(wsId);
-        if (!ws || ws.fk_org_id !== orgId) {
+        if (!orgWsIds.has(wsId)) {
           NcError.badRequest(
             `Workspace '${wsId}' does not belong to this organization`,
           );

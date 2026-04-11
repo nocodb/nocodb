@@ -182,8 +182,13 @@ export class OrgsController {
       body,
     });
 
+    let resolvedOrgId = orgId;
+    if (!resolvedOrgId && workspaceId) {
+      const ws = await Workspace.get(workspaceId);
+      resolvedOrgId = ws?.fk_org_id;
+    }
     this.appHooksService.emit(AppEvents.ORG_DOMAIN_ADD as any, {
-      orgId: orgId || Noco.ncDefaultOrgId,
+      orgId: resolvedOrgId || Noco.ncDefaultOrgId,
       domainName: body.domain,
       req,
     });

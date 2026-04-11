@@ -416,8 +416,8 @@
   --business-plan-bg-dark: var(--color-pink-100, #fed8f4);
   --business-plan-border: var(--color-pink-200, #feb0e8);
   --business-plan-chart-fill-color: var(--color-pink-700, #972377);
-  --business-plan-badge-bg-color: var(--color-pink-100, #fed8f4);
-  --business-plan-badge-text-color: var(--color-pink-700, #972377);
+  --business-plan-badge-bg-color: var(--color-pink-50, #FFF0FB);
+  --business-plan-badge-text-color: var(--color-pink-700, #C44DA0);
 
   /* Enterprise Plan  */
   --enterprise-plan-color: var(--color-orange-50, #fff5ef);
@@ -836,8 +836,8 @@
   --business-plan-bg-dark: #1d1224;
   --business-plan-border: #5e2b54;
   --business-plan-chart-fill-color: #c45cc0;
-  --business-plan-badge-bg-color: var(--color-pink-100, #fed8f4);
-  --business-plan-badge-text-color: var(--color-pink-700, #972377);
+  --business-plan-badge-bg-color: var(--color-pink-50, #FFF0FB);
+  --business-plan-badge-text-color: var(--color-pink-700, #C44DA0);
 
   /* Enterprise Plan  */
   --enterprise-plan-color: #1b120b;

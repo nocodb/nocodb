@@ -140,8 +140,11 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
 
     if (type === RelationTypes.HAS_MANY) typeLabel = 'has many'
     else if (type === RelationTypes.MANY_TO_MANY) typeLabel = 'many to many'
-    else if (type === 'oo') typeLabel = 'one to one'
-
+    else if (type === RelationTypes.ONE_TO_ONE) typeLabel = 'one to one'
+    else if (type === RelationTypes.ONE_TO_MANY) typeLabel = 'one to many'
+    else if (type === RelationTypes.MANY_TO_ONE) typeLabel = 'many to one'
+    else if (type === RelationTypes.BELONGS_TO) typeLabel = 'belongs to'
+   
     const parentCol = metasWithIdAsKey.value[source]?.columns?.find((col) => {
       const colOptions = col.colOptions as LinkToAnotherRecordType
       if (!colOptions) return false
@@ -160,15 +163,15 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
       return colOptions.fk_parent_column_id === (type === RelationTypes.MANY_TO_MANY ? childColId : parentColId)
     })
 
-    if (!parentCol || !childCol) return ''
+    if (!parentCol || !childCol) return ['', '']
 
     if (type === RelationTypes.MANY_TO_MANY) {
       if (config.value.showJunctionTableNames) {
-        if (!modelId) return ''
+        if (!modelId) return ['', '']
 
         const mmModel = metasWithIdAsKey.value[modelId]
 
-        if (!mmModel) return ''
+        if (!mmModel) return ['', '']
 
         if (mmModel.title !== mmModel.table_name) {
           return [`${mmModel.title} (${mmModel.table_name})`]
@@ -178,11 +181,16 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
       }
     }
 
+    const sourceMeta = metasWithIdAsKey.value[source]
+    const targetMeta = metasWithIdAsKey.value[target]
+
+    if (!sourceMeta || !targetMeta) return ['', '']
+
     return [
       // detailed edge label
-      `[${metasWithIdAsKey.value[source].title}] ${parentCol.title} - ${typeLabel} - ${childCol.title} [${metasWithIdAsKey.value[target].title}]`,
+      `[${sourceMeta.title}] ${parentCol.title} - ${typeLabel} - ${childCol.title} [${targetMeta.title}]`,
       // simple edge label (for skeleton)
-      `${metasWithIdAsKey.value[source].title} - ${typeLabel} - ${metasWithIdAsKey.value[target].title}`,
+      `${sourceMeta.title} - ${typeLabel} - ${targetMeta.title}`,
     ]
   }
 

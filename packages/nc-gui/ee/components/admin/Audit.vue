@@ -9,9 +9,22 @@ const { loadActionOrgId } = storeToRefs(auditsStore)
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
+const { workspaces, listWorkspaces } = useOrganization()
+
+const workspaceStore = useWorkspace()
+
 onMounted(async () => {
   if (org.value?.id) {
     loadActionOrgId.value = org.value.id
+
+    // Load org workspaces into the workspace store so the Header selector works
+    await listWorkspaces()
+    if (workspaces.value?.length) {
+      for (const ws of workspaces.value) {
+        workspaceStore.workspaces.set(ws.id, ws)
+      }
+    }
+
     await auditsStore.onInit()
   }
 })

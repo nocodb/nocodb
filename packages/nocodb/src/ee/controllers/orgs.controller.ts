@@ -10,7 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { DomainReqType } from 'nocodb-sdk';
+import { AppEvents, DomainReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { License } from '~/decorators/license.decorator';
@@ -23,6 +23,7 @@ import { NcError } from '~/helpers/catchError';
 import { NcRequest } from '~/interface/config';
 import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
 import { Workspace } from '~/models';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 @Controller()
 @License('organizations')
@@ -30,6 +31,7 @@ export class OrgsController {
   constructor(
     protected readonly orgsService: OrgsService,
     protected readonly auditsService: AuditsService,
+    protected readonly appHooksService: AppHooksService,
   ) {}
 
   @UseGuards(AuthGuard('basic'))
@@ -172,12 +174,22 @@ export class OrgsController {
     if (req.ncWorkspaceId) {
       await checkIfWorkspaceSSOAvail(req.ncWorkspaceId);
     }
-    return this.orgsService.addDomain({
+    const result = await this.orgsService.addDomain({
       orgId,
       workspaceId,
       req,
       body,
     });
+
+    if (orgId) {
+      this.appHooksService.emit(AppEvents.ORG_DOMAIN_ADD as any, {
+        orgId,
+        domainName: body.domain,
+        req,
+      });
+    }
+
+    return result;
   }
 
   @Post('/api/v2/domains/:domainId/verify')
@@ -196,10 +208,18 @@ export class OrgsController {
       await checkIfWorkspaceSSOAvail(req.ncWorkspaceId);
     }
 
-    return this.orgsService.verifyDomain({
+    const result = await this.orgsService.verifyDomain({
       req,
       domainId,
     });
+
+    this.appHooksService.emit(AppEvents.ORG_DOMAIN_VERIFY as any, {
+      orgId: (req as any).ncOrgId,
+      domainId,
+      req,
+    });
+
+    return result;
   }
 
   @Patch('/api/v2/domains/:domainId')
@@ -218,11 +238,20 @@ export class OrgsController {
     if (req.ncWorkspaceId) {
       await checkIfWorkspaceSSOAvail(req.ncWorkspaceId);
     }
-    return this.orgsService.updateDomain({
+    const result = await this.orgsService.updateDomain({
       req,
       domain: body,
       domainId,
     });
+
+    this.appHooksService.emit(AppEvents.ORG_DOMAIN_UPDATE as any, {
+      orgId: (req as any).ncOrgId,
+      domainName: body.domain,
+      domainId,
+      req,
+    });
+
+    return result;
   }
 
   @Delete('/api/v2/domains/:domainId')
@@ -236,9 +265,17 @@ export class OrgsController {
     @Req() req: NcRequest,
     @Param('domainId') domainId: string,
   ) {
-    return this.orgsService.deleteDomain({
+    const result = await this.orgsService.deleteDomain({
       domainId,
     });
+
+    this.appHooksService.emit(AppEvents.ORG_DOMAIN_DELETE as any, {
+      orgId: (req as any).ncOrgId,
+      domainId,
+      req,
+    });
+
+    return result;
   }
 
   @Get('/api/v2/orgs/:orgId/audits')

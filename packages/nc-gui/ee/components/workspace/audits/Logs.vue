@@ -30,54 +30,66 @@ const {
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
-const columns: NcTableColumnProps<AuditType>[] = [
-  {
-    key: 'user',
-    title: t('objects.user'),
-    basis: '40%',
-    minWidth: 220,
-    padding: '0px 12px',
-    dataIndex: 'user',
-  },
-  {
-    key: 'created_at',
-    title: 'Timestamp',
-    basis: '25%',
-    minWidth: 180,
-    padding: '0px 12px',
-    dataIndex: 'created_at',
-    showOrderBy: true,
-  },
-  {
-    key: 'base_id',
-    title: t('objects.project'),
-    basis: '25%',
-    minWidth: 220,
-    padding: '0px 12px',
-    dataIndex: 'base_id',
-  },
-  {
-    key: 'event',
-    title: t('general.event'),
-    minWidth: 220,
-    padding: '0px 12px',
-    dataIndex: 'op_type',
-  },
-  {
-    key: 'ip',
-    title: t('general.ipAddress'),
-    minWidth: 220,
-    padding: '0px 12px',
-    dataIndex: 'ip',
-  },
-  {
-    key: 'user_agent',
-    title: t('labels.osBrowser'),
-    minWidth: 220,
-    padding: '0px 12px',
-    dataIndex: 'user_agent',
-  },
-]
+const { loadActionOrgId } = storeToRefs(auditsStore)
+
+const columns = computed<NcTableColumnProps<AuditType>[]>(() => {
+  const cols: NcTableColumnProps<AuditType>[] = [
+    {
+      key: 'user',
+      title: t('objects.user'),
+      basis: loadActionOrgId.value ? '45%' : '40%',
+      minWidth: 220,
+      padding: '0px 12px',
+      dataIndex: 'user',
+    },
+    {
+      key: 'created_at',
+      title: 'Timestamp',
+      basis: '25%',
+      minWidth: 180,
+      padding: '0px 12px',
+      dataIndex: 'created_at',
+      showOrderBy: true,
+    },
+  ]
+
+  if (!loadActionOrgId.value) {
+    cols.push({
+      key: 'base_id',
+      title: t('objects.project'),
+      basis: '25%',
+      minWidth: 220,
+      padding: '0px 12px',
+      dataIndex: 'base_id',
+    })
+  }
+
+  cols.push(
+    {
+      key: 'event',
+      title: t('general.event'),
+      minWidth: 220,
+      padding: '0px 12px',
+      dataIndex: 'op_type',
+    },
+    {
+      key: 'ip',
+      title: t('general.ipAddress'),
+      minWidth: 220,
+      padding: '0px 12px',
+      dataIndex: 'ip',
+    },
+    {
+      key: 'user_agent',
+      title: t('labels.osBrowser'),
+      minWidth: 220,
+      padding: '0px 12px',
+      dataIndex: 'user_agent',
+    },
+  )
+
+  return cols
+})
 
 const orderBy = computed({
   get: () => {

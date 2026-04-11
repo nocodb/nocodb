@@ -18,6 +18,22 @@ enum AuditV1OperationTypes {
   SCIM_USER_DEACTIVATE = 'SCIM_USER_DEACTIVATE',
   SCIM_USER_REACTIVATE = 'SCIM_USER_REACTIVATE',
   SCIM_USER_DELETE = 'SCIM_USER_DELETE',
+  SCIM_GROUP_PROVISION = 'SCIM_GROUP_PROVISION',
+  SCIM_GROUP_UPDATE = 'SCIM_GROUP_UPDATE',
+  SCIM_GROUP_REPLACE = 'SCIM_GROUP_REPLACE',
+  SCIM_GROUP_DELETE = 'SCIM_GROUP_DELETE',
+  SCIM_CONFIG_CREATE = 'SCIM_CONFIG_CREATE',
+  SCIM_CONFIG_UPDATE = 'SCIM_CONFIG_UPDATE',
+  SCIM_CONFIG_DISABLE = 'SCIM_CONFIG_DISABLE',
+  SCIM_CONFIG_DELETE = 'SCIM_CONFIG_DELETE',
+  SCIM_CONFIG_TOKEN_REGENERATE = 'SCIM_CONFIG_TOKEN_REGENERATE',
+  SSO_CLIENT_CREATE = 'SSO_CLIENT_CREATE',
+  SSO_CLIENT_UPDATE = 'SSO_CLIENT_UPDATE',
+  SSO_CLIENT_DELETE = 'SSO_CLIENT_DELETE',
+  ORG_DOMAIN_ADD = 'ORG_DOMAIN_ADD',
+  ORG_DOMAIN_UPDATE = 'ORG_DOMAIN_UPDATE',
+  ORG_DOMAIN_DELETE = 'ORG_DOMAIN_DELETE',
+  ORG_DOMAIN_VERIFY = 'ORG_DOMAIN_VERIFY',
 
   USER_PASSWORD_CHANGE = 'USER_PASSWORD_CHANGE',
   USER_PASSWORD_RESET = 'USER_PASSWORD_RESET',
@@ -41,6 +57,11 @@ enum AuditV1OperationTypes {
 
   ORG_USER_INVITE = 'ORG_USER_INVITE',
   ORG_USER_INVITE_RESEND = 'ORG_USER_INVITE_RESEND',
+  ORG_USER_ADD = 'ORG_USER_ADD',
+  ORG_USER_REMOVE = 'ORG_USER_REMOVE',
+  ORG_USER_ROLE_UPDATE = 'ORG_USER_ROLE_UPDATE',
+  ORG_WORKSPACE_ADD = 'ORG_WORKSPACE_ADD',
+  ORG_WORKSPACE_REMOVE = 'ORG_WORKSPACE_REMOVE',
 
   DATA_INSERT = 'DATA_INSERT',
   DATA_UPDATE = 'DATA_UPDATE',
@@ -340,6 +361,20 @@ export const auditV1OperationsCategory: Record<
     value: 'ORG',
     types: Object.values(AuditV1OperationTypes).filter((key) =>
       key.startsWith('ORG_')
+    ),
+  },
+  SCIM: {
+    label: 'general.scim',
+    value: 'SCIM',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('SCIM_')
+    ),
+  },
+  SSO: {
+    label: 'title.sso',
+    value: 'SSO',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('SSO_')
     ),
   },
   SCRIPT: {
@@ -1477,6 +1512,48 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.ORG_USER_INVITE_RESEND]: (
     audit: AuditV1<OrgUserInviteResendPayload>
   ) => `User '${audit.user}' resent invite to '${audit.details.email}'`,
+  [AuditV1OperationTypes.ORG_USER_ADD]: (audit: AuditV1<any>) =>
+    `User '${audit.user}' added '${audit.details?.email}' to organization`,
+  [AuditV1OperationTypes.ORG_USER_REMOVE]: (audit: AuditV1<any>) =>
+    `User '${audit.user}' removed '${audit.details?.email || audit.details?.user_id}' from organization`,
+  [AuditV1OperationTypes.ORG_USER_ROLE_UPDATE]: (audit: AuditV1<any>) =>
+    `User '${audit.user}' updated role of '${audit.details?.email}' in organization`,
+  [AuditV1OperationTypes.ORG_WORKSPACE_ADD]: (audit: AuditV1<any>) =>
+    `User '${audit.user}' added workspace to organization`,
+  [AuditV1OperationTypes.ORG_WORKSPACE_REMOVE]: (audit: AuditV1<any>) =>
+    `User '${audit.user}' removed workspace from organization`,
+  [AuditV1OperationTypes.SCIM_GROUP_PROVISION]: (audit: AuditV1<any>) =>
+    `SCIM group '${audit.details?.team_title}' provisioned`,
+  [AuditV1OperationTypes.SCIM_GROUP_UPDATE]: (audit: AuditV1<any>) =>
+    `SCIM group '${audit.details?.team_title}' updated`,
+  [AuditV1OperationTypes.SCIM_GROUP_REPLACE]: (audit: AuditV1<any>) =>
+    `SCIM group '${audit.details?.team_title}' replaced`,
+  [AuditV1OperationTypes.SCIM_GROUP_DELETE]: (audit: AuditV1<any>) =>
+    `SCIM group '${audit.details?.team_title}' deleted`,
+  [AuditV1OperationTypes.SCIM_CONFIG_CREATE]: (_audit: AuditV1<any>) =>
+    `SCIM provisioning configured`,
+  [AuditV1OperationTypes.SCIM_CONFIG_UPDATE]: (_audit: AuditV1<any>) =>
+    `SCIM provisioning configuration updated`,
+  [AuditV1OperationTypes.SCIM_CONFIG_DISABLE]: (_audit: AuditV1<any>) =>
+    `SCIM provisioning disabled`,
+  [AuditV1OperationTypes.SCIM_CONFIG_DELETE]: (_audit: AuditV1<any>) =>
+    `SCIM provisioning configuration deleted`,
+  [AuditV1OperationTypes.SCIM_CONFIG_TOKEN_REGENERATE]: (_audit: AuditV1<any>) =>
+    `SCIM provisioning token regenerated`,
+  [AuditV1OperationTypes.SSO_CLIENT_CREATE]: (audit: AuditV1<any>) =>
+    `SSO client '${audit.details?.title}' created`,
+  [AuditV1OperationTypes.SSO_CLIENT_UPDATE]: (audit: AuditV1<any>) =>
+    `SSO client '${audit.details?.title}' updated`,
+  [AuditV1OperationTypes.SSO_CLIENT_DELETE]: (audit: AuditV1<any>) =>
+    `SSO client '${audit.details?.title}' deleted`,
+  [AuditV1OperationTypes.ORG_DOMAIN_ADD]: (audit: AuditV1<any>) =>
+    `Domain '${audit.details?.domain_name}' added to organization`,
+  [AuditV1OperationTypes.ORG_DOMAIN_UPDATE]: (audit: AuditV1<any>) =>
+    `Domain '${audit.details?.domain_name}' updated`,
+  [AuditV1OperationTypes.ORG_DOMAIN_DELETE]: (audit: AuditV1<any>) =>
+    `Domain '${audit.details?.domain_name}' removed from organization`,
+  [AuditV1OperationTypes.ORG_DOMAIN_VERIFY]: (audit: AuditV1<any>) =>
+    `Domain '${audit.details?.domain_name}' verification initiated`,
   [AuditV1OperationTypes.DATA_INSERT]: (audit: AuditV1<DataInsertPayload>) =>
     `Record with ID [${audit.row_id}] has been inserted`,
   [AuditV1OperationTypes.DATA_UPDATE]: (audit: AuditV1<DataUpdatePayload>) =>

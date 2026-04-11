@@ -191,6 +191,7 @@ import type {
   RlsPolicyDeleteEvent,
   RlsPolicyUpdateEvent,
   ScimUserEvent,
+  ScimGroupEvent,
   ScriptCreateEvent,
   ScriptDeleteEvent,
   ScriptDuplicateEvent,
@@ -1179,6 +1180,100 @@ export class AppHooksListenerService
           );
         }
         break;
+
+      case AppEvents.ORG_USER_ADD:
+        {
+          const param = data as any;
+          await this.auditInsert(
+            await generateAuditV1Payload(
+              AuditV1OperationTypes.ORG_USER_ADD,
+              {
+                details: {
+                  user_id: param.userId,
+                  role: param.role,
+                },
+                fk_org_id: param.orgId,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+
+      case AppEvents.ORG_USER_REMOVE:
+        {
+          const param = data as any;
+          await this.auditInsert(
+            await generateAuditV1Payload(
+              AuditV1OperationTypes.ORG_USER_REMOVE,
+              {
+                details: {
+                  user_id: param.userId,
+                },
+                fk_org_id: param.orgId,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+
+      case AppEvents.ORG_USER_UPDATE:
+        {
+          const param = data as any;
+          await this.auditInsert(
+            await generateAuditV1Payload(
+              AuditV1OperationTypes.ORG_USER_ROLE_UPDATE,
+              {
+                details: {
+                  user_id: param.userId,
+                  old_role: param.oldRole,
+                  new_role: param.newRole,
+                },
+                fk_org_id: param.orgId,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+
+      case AppEvents.ORG_WORKSPACE_ADD:
+        {
+          const param = data as any;
+          await this.auditInsert(
+            await generateAuditV1Payload(
+              AuditV1OperationTypes.ORG_WORKSPACE_ADD,
+              {
+                details: {
+                  workspace_id: param.workspaceId,
+                },
+                fk_org_id: param.orgId,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+
+      case AppEvents.ORG_WORKSPACE_REMOVE:
+        {
+          const param = data as any;
+          await this.auditInsert(
+            await generateAuditV1Payload(
+              AuditV1OperationTypes.ORG_WORKSPACE_REMOVE,
+              {
+                details: {
+                  workspace_id: param.workspaceId,
+                },
+                fk_org_id: param.orgId,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+
       case AppEvents.VIEW_COLUMN_CREATE:
         {
           const param = data as ViewColumnEvent;
@@ -1626,6 +1721,123 @@ export class AppHooksListenerService
                 req: param.req,
               },
             ),
+          );
+        }
+        break;
+
+      case AppEvents.ORG_DOMAIN_ADD:
+      case AppEvents.ORG_DOMAIN_UPDATE:
+      case AppEvents.ORG_DOMAIN_DELETE:
+      case AppEvents.ORG_DOMAIN_VERIFY:
+        {
+          const param = data as any;
+          const opMap = {
+            [AppEvents.ORG_DOMAIN_ADD]:
+              AuditV1OperationTypes.ORG_DOMAIN_ADD,
+            [AppEvents.ORG_DOMAIN_UPDATE]:
+              AuditV1OperationTypes.ORG_DOMAIN_UPDATE,
+            [AppEvents.ORG_DOMAIN_DELETE]:
+              AuditV1OperationTypes.ORG_DOMAIN_DELETE,
+            [AppEvents.ORG_DOMAIN_VERIFY]:
+              AuditV1OperationTypes.ORG_DOMAIN_VERIFY,
+          };
+          await this.auditInsert(
+            await generateAuditV1Payload(opMap[event], {
+              details: {
+                domain_name: param.domainName,
+                domain_id: param.domainId,
+              },
+              fk_org_id: param.orgId,
+              req: param.req,
+            }),
+          );
+        }
+        break;
+
+      case AppEvents.SCIM_CONFIG_CREATE:
+      case AppEvents.SCIM_CONFIG_UPDATE:
+      case AppEvents.SCIM_CONFIG_DISABLE:
+      case AppEvents.SCIM_CONFIG_DELETE:
+      case AppEvents.SCIM_CONFIG_TOKEN_REGENERATE:
+        {
+          const param = data as any;
+          const opMap = {
+            [AppEvents.SCIM_CONFIG_CREATE]:
+              AuditV1OperationTypes.SCIM_CONFIG_CREATE,
+            [AppEvents.SCIM_CONFIG_UPDATE]:
+              AuditV1OperationTypes.SCIM_CONFIG_UPDATE,
+            [AppEvents.SCIM_CONFIG_DISABLE]:
+              AuditV1OperationTypes.SCIM_CONFIG_DISABLE,
+            [AppEvents.SCIM_CONFIG_DELETE]:
+              AuditV1OperationTypes.SCIM_CONFIG_DELETE,
+            [AppEvents.SCIM_CONFIG_TOKEN_REGENERATE]:
+              AuditV1OperationTypes.SCIM_CONFIG_TOKEN_REGENERATE,
+          };
+          await this.auditInsert(
+            await generateAuditV1Payload(opMap[event], {
+              details: {},
+              fk_org_id: param.orgId,
+              req: param.req,
+            }),
+          );
+        }
+        break;
+
+      case AppEvents.SSO_CLIENT_CREATE:
+      case AppEvents.SSO_CLIENT_UPDATE:
+      case AppEvents.SSO_CLIENT_DELETE:
+        {
+          const param = data as any;
+          const opMap = {
+            [AppEvents.SSO_CLIENT_CREATE]:
+              AuditV1OperationTypes.SSO_CLIENT_CREATE,
+            [AppEvents.SSO_CLIENT_UPDATE]:
+              AuditV1OperationTypes.SSO_CLIENT_UPDATE,
+            [AppEvents.SSO_CLIENT_DELETE]:
+              AuditV1OperationTypes.SSO_CLIENT_DELETE,
+          };
+          await this.auditInsert(
+            await generateAuditV1Payload(opMap[event], {
+              details: {
+                title: param.title,
+                client_id: param.clientId,
+              },
+              fk_org_id: param.orgId,
+              req: param.req,
+            }),
+          );
+        }
+        break;
+
+      case AppEvents.SCIM_GROUP_PROVISION:
+      case AppEvents.SCIM_GROUP_UPDATE:
+      case AppEvents.SCIM_GROUP_REPLACE:
+      case AppEvents.SCIM_GROUP_DELETE:
+        {
+          const param = data as ScimGroupEvent;
+          const opMap = {
+            [AppEvents.SCIM_GROUP_PROVISION]:
+              AuditV1OperationTypes.SCIM_GROUP_PROVISION,
+            [AppEvents.SCIM_GROUP_UPDATE]:
+              AuditV1OperationTypes.SCIM_GROUP_UPDATE,
+            [AppEvents.SCIM_GROUP_REPLACE]:
+              AuditV1OperationTypes.SCIM_GROUP_REPLACE,
+            [AppEvents.SCIM_GROUP_DELETE]:
+              AuditV1OperationTypes.SCIM_GROUP_DELETE,
+          };
+          await this.auditInsert(
+            await generateAuditV1Payload(opMap[event], {
+              details: {
+                team_id: param.team?.id,
+                team_title:
+                  param.team?.title ||
+                  param.team?.scim_display_name,
+                scim_id: param.scimId,
+                org_title: param.org?.title,
+              },
+              fk_org_id: param.org?.id,
+              req: param.req,
+            }),
           );
         }
         break;
@@ -3073,6 +3285,7 @@ export class AppHooksListenerService
                   token_id: param.tokenId + '',
                 },
                 context: param.context,
+                fk_org_id: param.context?.org_id,
                 req: param.req,
               },
             ),
@@ -3097,6 +3310,7 @@ export class AppHooksListenerService
                   has_expiry: param.hasExpiry,
                 },
                 context: param.context,
+                fk_org_id: param.context?.org_id,
                 req: param.req,
               },
             ),
@@ -3118,6 +3332,7 @@ export class AppHooksListenerService
                   token_id: param.tokenId + '',
                 },
                 context: param.context,
+                fk_org_id: param.context?.org_id,
                 req: param.req,
               },
             ),

@@ -34,6 +34,7 @@ const {
   auditCollaborators,
   isLoadingAudits,
   loadActionForBaseId,
+  loadActionOrgId,
 } = storeToRefs(auditsStore)
 
 const auditLogsQueryEndDate = computed(() =>
@@ -54,13 +55,18 @@ const defaultAuditDropdownsSearch = {
 const auditDropdownsSearch = ref(defaultAuditDropdownsSearch)
 
 const unsupportedBaseAuditTypes = ['ORG', 'INTEGRATION', 'TEAM', 'WORKSPACE']
+const orgAuditTypes = ['ORG', 'TEAM', 'SCIM', 'SSO']
 
 const auditTypeOptions = computed(() => {
-  if (!props.baseId) {
-    return Object.values(auditV1OperationsCategory)
+  if (loadActionOrgId.value) {
+    return Object.values(auditV1OperationsCategory).filter((type) => orgAuditTypes.includes(type.value))
   }
 
-  return Object.values(auditV1OperationsCategory).filter((type) => !unsupportedBaseAuditTypes.includes(type.value))
+  if (props.baseId) {
+    return Object.values(auditV1OperationsCategory).filter((type) => !unsupportedBaseAuditTypes.includes(type.value))
+  }
+
+  return Object.values(auditV1OperationsCategory)
 })
 
 const dateRangeOptions = computed(() => {
@@ -89,13 +95,21 @@ const handleCloseDropdown = (field: keyof typeof defaultAuditDropdowns) => {
   loadAudits()
 }
 
-const handleUpdateWorkspaceQuery = (workspaceId?: string) => {
-  auditLogsQuery.value = { ...auditLogsQuery.value, workspaceId, baseId: undefined, user: undefined }
-  if (workspaceId) {
-    loadBasesForWorkspace()
+const handleUpdateWorkspaceQuery = (workspaceId?: string | string[]) => {
+  if (loadActionOrgId.value) {
+    // Org mode: multi-select — workspaceId is an array
+    const ids = ncIsArray(workspaceId) ? workspaceId : workspaceId ? [workspaceId] : []
+    auditLogsQuery.value = { ...auditLogsQuery.value, workspaceIds: ids.length ? ids : undefined, baseId: undefined, user: undefined }
+    loadAudits()
+  } else {
+    // Workspace mode: single-select
+    const id = ncIsArray(workspaceId) ? workspaceId[0] : workspaceId
+    auditLogsQuery.value = { ...auditLogsQuery.value, workspaceId: id, baseId: undefined, user: undefined }
+    if (id) {
+      loadBasesForWorkspace()
+    }
+    handleCloseDropdown('workspace')
   }
-
-  handleCloseDropdown('workspace')
 }
 
 const handleUpdateUserQuery = (userEmail?: string) => {
@@ -237,6 +251,11 @@ const selectedEventTypes = computed(() => {
 })
 
 const selectedWorkspace = computed(() => {
+  if (loadActionOrgId.value) {
+    const ids = auditLogsQuery.value.workspaceIds
+    if (!ids?.length) return 'None'
+    return ids.map((id) => workspaces.value.get(id)?.title || id).join(', ')
+  }
   return (auditLogsQuery.value.workspaceId && workspaces.value.get(auditLogsQuery.value.workspaceId)?.title) || 'All'
 })
 
@@ -244,8 +263,8 @@ const selectedBase = computed(() => {
   return (auditLogsQuery.value.baseId && bases.value.get(auditLogsQuery.value.baseId)?.title) || 'All'
 })
 
-// Temp hidden workspace selector as its available only at workspace level
-const showWorkspaceSelector = ref(false)
+// Show workspace selector only in org audit mode (to include workspace logs)
+const showWorkspaceSelector = computed(() => !!loadActionOrgId.value)
 </script>
 
 <template>
@@ -263,7 +282,7 @@ const showWorkspaceSelector = ref(false)
               {{ $t('objects.workspace') }}:
               <NcTooltip
                 class="capitalize truncate !leading-5"
-                :class="{ 'text-nc-content-brand': auditLogsQuery.workspaceId }"
+                :class="{ 'text-nc-content-brand': loadActionOrgId ? auditLogsQuery.workspaceIds?.length : auditLogsQuery.workspaceId }"
                 show-on-truncate-only
               >
                 <template #title>
@@ -281,12 +300,14 @@ const showWorkspaceSelector = ref(false)
         <template #overlay>
           <NcList
             v-model:open="auditDropdowns.workspace"
-            :value="auditLogsQuery.workspaceId"
+            :value="loadActionOrgId ? auditLogsQuery.workspaceIds : auditLogsQuery.workspaceId"
             :list="workspacesList"
             option-label-key="title"
             option-value-key="id"
             :item-height="40"
             search-input-placeholder="Search workspace"
+            :is-multi-select="!!loadActionOrgId"
+            :close-on-select="!loadActionOrgId"
             @update:value="handleUpdateWorkspaceQuery($event)"
           >
             <template #listItemContent="{ option }">
@@ -307,8 +328,8 @@ const showWorkspaceSelector = ref(false)
                 <div
                   class="p-2 rounded-md w-full flex items-center justify-between gap-3 hover:bg-nc-bg-gray-light cursor-pointer"
                 >
-                  <span class="flex-1 text-nc-content-gray"> All Workspaces </span>
-                  <GeneralIcon v-if="!auditLogsQuery.workspaceId" icon="check" class="flex-none text-primary w-4 h-4" />
+                  <span class="flex-1 text-nc-content-gray"> {{ loadActionOrgId ? 'None' : 'All Workspaces' }} </span>
+                  <GeneralIcon v-if="loadActionOrgId ? !auditLogsQuery.workspaceIds?.length : !auditLogsQuery.workspaceId" icon="check" class="flex-none text-primary w-4 h-4" />
                 </div>
               </div>
               <NcDivider class="!my-2" />
@@ -393,7 +414,7 @@ const showWorkspaceSelector = ref(false)
       </NcDropdown>
 
       <NcDropdown
-        v-if="!loadActionForBaseId"
+        v-if="!loadActionForBaseId && !loadActionOrgId"
         v-model:visible="auditDropdowns.base"
         overlay-class-name="overflow-hidden"
         @update:visible="handleClearDropdownSearch($event, 'base')"

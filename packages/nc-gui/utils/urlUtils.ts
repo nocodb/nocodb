@@ -41,11 +41,8 @@ const _replaceUrlsWithLink = (text: string, plainCellValue = false): boolean | s
       let isUrl = false
       // replace whitespace at beginning and end of URL and label if found
       // Unescape escaped parentheses (`(` and `)`) in the URL and label content
-      const url = _url
-        .replace(/^ | $/g, '')
-        .replace(/\\([()])/g, '$1')
-        .trim()
-      const label = _label?.replace(/^ | $/g, '').replace(/\\([()])/g, '$1')
+      const url = _url.trim().replace(/\\([()])/g, '$1')
+      const label = _label?.trim()?.replace(/\\([()])/g, '$1')
 
       if (!url.trim()) {
         return label || ' '

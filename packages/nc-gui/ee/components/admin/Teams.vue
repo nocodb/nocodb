@@ -187,8 +187,12 @@ const createTeam = async () => {
   }
 }
 
+const hasPendingTitleUpdate = ref(false)
+
 const _updateTeamTitle = async (teamId: string, title: string) => {
   if (!title?.trim()) return
+
+  hasPendingTitleUpdate.value = false
 
   try {
     await $api.instance.patch(`/api/v3/meta/orgs/${orgId.value}/teams/${teamId}`, { title: title.trim() })
@@ -199,7 +203,12 @@ const _updateTeamTitle = async (teamId: string, title: string) => {
   }
 }
 
-const updateTeamTitle = useDebounceFn(_updateTeamTitle, 1000)
+const _debouncedUpdateTeamTitle = useDebounceFn(_updateTeamTitle, 1000)
+
+const updateTeamTitle = (...args: Parameters<typeof _updateTeamTitle>) => {
+  hasPendingTitleUpdate.value = true
+  return _debouncedUpdateTeamTitle(...args)
+}
 
 const handleEditTeam = (team: TeamV3ResponseType) => {
   if (!team?.id) return
@@ -213,8 +222,8 @@ const handleEditTeam = (team: TeamV3ResponseType) => {
 
 const closeEditModal = async () => {
   // Flush any pending debounced title update before closing
-  if (editTeamId.value && editTeam.value?.title) {
-    updateTeamTitle.flush()
+  if (hasPendingTitleUpdate.value && editTeamId.value && editTeam.value?.title) {
+    await _updateTeamTitle(editTeamId.value, editTeam.value.title)
   }
   isEditModalOpen.value = false
   editTeamId.value = null

@@ -1,11 +1,27 @@
-name: "Enterprise : Promote Docker tag"
+name: "Promote Docker tag"
 
 on:
   workflow_dispatch:
     inputs:
+      sourceRepo:
+        description: "Source Docker repo"
+        required: true
+        default: "nocodb/nocodb-ee"
+        type: choice
+        options:
+          - nocodb/nocodb-ee
+          - nocodb/nocodb
       sourceTag:
         description: "Existing tag to promote (e.g. 2026.03.1)"
         required: true
+      targetRepo:
+        description: "Target Docker repo"
+        required: true
+        default: "nocodb/nocodb-ee"
+        type: choice
+        options:
+          - nocodb/nocodb-ee
+          - nocodb/nocodb
       targetTag:
         description: "Target tag to create"
         required: true
@@ -20,8 +36,8 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Promote ${{ inputs.sourceTag }} → ${{ inputs.targetTag }}
+      - name: Promote ${{ inputs.sourceRepo }}:${{ inputs.sourceTag }} → ${{ inputs.targetRepo }}:${{ inputs.targetTag }}
         run: |
           docker buildx imagetools create \
-            nocodb/nocodb-ee:${{ inputs.sourceTag }} \
-            --tag nocodb/nocodb-ee:${{ inputs.targetTag }}
+            ${{ inputs.sourceRepo }}:${{ inputs.sourceTag }} \
+            --tag ${{ inputs.targetRepo }}:${{ inputs.targetTag }}

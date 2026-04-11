@@ -110,11 +110,10 @@ export class BaseModelDelete {
 
     const metaQueries: MetaQueryType[] = [];
     const source = await this.baseModel.getSource();
-    const isMeta = source.isMeta();
 
     for (const column of this.baseModel.model.columns) {
-      // if not meta or has composite pk then do not care about links
-      if (!isMeta || this.baseModel.model.primaryKeys.length > 1) break;
+      // if has composite pk then do not care about links
+      if (this.baseModel.model.primaryKeys.length > 1) break;
       if (!isLinksOrLTAR(column)) continue;
 
       const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(

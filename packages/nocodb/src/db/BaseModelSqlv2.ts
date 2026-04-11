@@ -3955,8 +3955,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ids: any[],
       ) => Promise<any>)[] = [];
 
-      const base = await this.getSource();
-
       for (const column of this.model.columns) {
         if (!isLinksOrLTAR(column)) continue;
 
@@ -4017,7 +4015,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       transaction = await this.dbDriver.transaction();
 
-      if (base.isMeta() && execQueries.length > 0) {
+      if (execQueries.length > 0) {
         for (const execQuery of execQueries) {
           await execQuery(transaction, idsVals);
         }

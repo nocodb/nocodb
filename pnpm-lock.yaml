@@ -58,7 +58,7 @@ overrides:
 
 patchedDependencies:
   splitpanes@3.1.5:
-    hash: 9e3e16bbb7cd0cc38fc9cd177e8ddd3429de7dea1a7cf1764220cbae4c2279a9
+    hash: 203a092b77593dfaf72ce85769a33061a3f4dbb0999eb458b5ead220efd0750b
     path: packages/nc-gui/.patches/splitpanes@3.1.5.patch
 
 importers:
@@ -430,7 +430,7 @@ importers:
         version: 1.15.6
       splitpanes:
         specifier: 3.1.5
-        version: 3.1.5(patch_hash=9e3e16bbb7cd0cc38fc9cd177e8ddd3429de7dea1a7cf1764220cbae4c2279a9)
+        version: 3.1.5(patch_hash=203a092b77593dfaf72ce85769a33061a3f4dbb0999eb458b5ead220efd0750b)
       tinycolor2:
         specifier: ^1.6.0
         version: 1.6.0
@@ -44657,7 +44657,7 @@ snapshots:
     dependencies:
       through: 2.3.8
 
-  splitpanes@3.1.5(patch_hash=9e3e16bbb7cd0cc38fc9cd177e8ddd3429de7dea1a7cf1764220cbae4c2279a9): {}
+  splitpanes@3.1.5(patch_hash=203a092b77593dfaf72ce85769a33061a3f4dbb0999eb458b5ead220efd0750b): {}
 
   sprintf-js@1.0.3: {}
 

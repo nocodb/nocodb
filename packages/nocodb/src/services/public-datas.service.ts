@@ -1001,16 +1001,21 @@ export class PublicDatasService {
 
     const model = await colOptions.getRelatedTable(context);
 
-    const source = await Source.get(context, model.source_id);
+    // Use refContext for cross-base links — the related table may belong
+    // to a different base, so Source.get scoped to the original context
+    // would return undefined.
+    const { refContext } = colOptions.getRelContext(context);
 
-    const baseModel = await Model.getBaseModelSQL(context, {
+    const source = await Source.get(refContext, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(refContext, {
       id: model.id,
       viewId: colOptions.fk_target_view_id,
       dbDriver: await NcConnectionMgrv2.get(source),
       source,
     });
 
-    const { ast, dependencyFields } = await getAst(context, {
+    const { ast, dependencyFields } = await getAst(refContext, {
       query: sanitizePublicQuery(param.query),
       model,
       extractOnlyPrimaries: true,

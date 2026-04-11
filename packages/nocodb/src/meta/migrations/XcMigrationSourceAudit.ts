@@ -1,4 +1,5 @@
 import * as nc_001_init from '~/meta/migrations/audit/nc_001_init';
+import * as nc_002_add_org_id from '~/meta/migrations/audit/nc_002_add_org_id';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -7,7 +8,7 @@ export default class XcMigrationSourcev2 {
   // arguments to getMigrationName and getMigration
   public getMigrations(): Promise<any> {
     // In this run we are just returning migration names
-    return Promise.resolve(['nc_001_init']);
+    return Promise.resolve(['nc_001_init', 'nc_002_add_org_id']);
   }
 
   public getMigrationName(migration): string {
@@ -18,6 +19,8 @@ export default class XcMigrationSourcev2 {
     switch (migration) {
       case 'nc_001_init':
         return nc_001_init;
+      case 'nc_002_add_org_id':
+        return nc_002_add_org_id;
     }
   }
 }

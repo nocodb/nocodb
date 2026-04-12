@@ -12,6 +12,7 @@ import {
   pushAuditToKinesis,
 } from '~/utils/cloudAudit';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { isOnPrem } from '~/utils';
 
 export default class Audit extends AuditCE {
   public static async recordAuditList(
@@ -294,6 +295,13 @@ export default class Audit extends AuditCE {
           'fk_workspace_id',
           workspaceIds,
         );
+      });
+    } else if (isOnPrem) {
+      // On-prem: include events with matching org_id OR events without workspace/base scope
+      query.where(function () {
+        this.where('fk_org_id', orgId).orWhere(function () {
+          this.whereNull('fk_workspace_id').whereNull('base_id');
+        });
       });
     } else {
       query.where('fk_org_id', orgId);

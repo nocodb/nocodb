@@ -10,7 +10,6 @@ import {
   Req,
 } from '@nestjs/common';
 import {
-  AppEvents,
   CloudOrgUserRoles,
   OrgUserRoles,
   SSOClientType,
@@ -22,8 +21,6 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { OrgSSOClientService } from '~/services/org-sso-client.service';
 import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
 import { License } from '~/decorators/license.decorator';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import Noco from '~/Noco';
 
 @Controller()
 @License('sso')
@@ -31,7 +28,6 @@ export class SsoClientController {
   constructor(
     private readonly ssoClientService: SSOClientService,
     private readonly orgSsoClientService: OrgSSOClientService,
-    private readonly appHooksService: AppHooksService,
   ) {}
 
   /**
@@ -58,15 +54,7 @@ export class SsoClientController {
   })
   @HttpCode(200)
   async clientAdd(@Body() client: SSOClientType, @Req() req) {
-    const result = await this.ssoClientService.clientAdd({ client, req });
-
-    this.appHooksService.emit(AppEvents.SSO_CLIENT_CREATE as any, {
-      orgId: Noco.ncDefaultOrgId,
-      title: client.title,
-      req,
-    });
-
-    return result;
+    return this.ssoClientService.clientAdd({ client, req });
   }
 
   @Patch('/api/v2/sso-clients/:clientId')
@@ -81,16 +69,7 @@ export class SsoClientController {
     @Body() client: SSOClientType,
     @Req() req,
   ) {
-    const result = await this.ssoClientService.clientUpdate({ clientId, client, req });
-
-    this.appHooksService.emit(AppEvents.SSO_CLIENT_UPDATE as any, {
-      orgId: Noco.ncDefaultOrgId,
-      title: client.title,
-      clientId,
-      req,
-    });
-
-    return result;
+    return this.ssoClientService.clientUpdate({ clientId, client, req });
   }
 
   @Delete('/api/v2/sso-clients/:clientId')
@@ -101,15 +80,7 @@ export class SsoClientController {
     blockOAuthTokenAccess: true,
   })
   async clientDelete(@Param('clientId') clientId: string, @Req() req) {
-    const result = await this.ssoClientService.clientDelete({ clientId, req });
-
-    this.appHooksService.emit(AppEvents.SSO_CLIENT_DELETE as any, {
-      orgId: Noco.ncDefaultOrgId,
-      clientId,
-      req,
-    });
-
-    return result;
+    return this.ssoClientService.clientDelete({ clientId, req });
   }
 
   /**
@@ -140,15 +111,7 @@ export class SsoClientController {
     @Req() req,
     @Param('orgId') orgId: string,
   ) {
-    const result = await this.ssoClientService.clientAdd({ client, req, orgId });
-
-    this.appHooksService.emit(AppEvents.SSO_CLIENT_CREATE as any, {
-      orgId,
-      title: client.title,
-      req,
-    });
-
-    return result;
+    return this.ssoClientService.clientAdd({ client, req, orgId });
   }
 
   @Patch('/api/v2/orgs/:orgId/sso-clients/:clientId')
@@ -164,16 +127,7 @@ export class SsoClientController {
     @Req() req,
     @Param('orgId') orgId: string,
   ) {
-    const result = await this.ssoClientService.clientUpdate({ clientId, client, req, orgId });
-
-    this.appHooksService.emit(AppEvents.SSO_CLIENT_UPDATE as any, {
-      orgId,
-      title: client.title,
-      clientId,
-      req,
-    });
-
-    return result;
+    return this.ssoClientService.clientUpdate({ clientId, client, req, orgId });
   }
 
   @Delete('/api/v2/orgs/:orgId/sso-clients/:clientId')
@@ -188,15 +142,7 @@ export class SsoClientController {
     @Req() req,
     @Param('orgId') orgId: string,
   ) {
-    const result = await this.ssoClientService.clientDelete({ clientId, req, orgId });
-
-    this.appHooksService.emit(AppEvents.SSO_CLIENT_DELETE as any, {
-      orgId,
-      clientId,
-      req,
-    });
-
-    return result;
+    return this.ssoClientService.clientDelete({ clientId, req, orgId });
   }
 
   /**

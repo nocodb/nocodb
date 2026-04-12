@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 
 import { useAgent } from 'request-filtering-agent';
-import { NcBaseError } from 'nocodb-sdk';
+import { AppEvents, NcBaseError } from 'nocodb-sdk';
 import type {
   GoogleClientConfigType,
   OpenIDClientConfigType,
@@ -15,11 +15,13 @@ import { validatePayload } from '~/helpers';
 import { extractProps } from '~/helpers/extractProps';
 import { parseSamlMetadata } from '~/utils/saml';
 import { Domain } from '~/models';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import Noco from '~/Noco';
 
 @Injectable()
 export class SSOClientService {
   protected logger = new Logger(SSOClientService.name);
-  constructor() {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   async clientAdd(param: {
     client: SSOClientType;
@@ -65,6 +67,12 @@ export class SSOClientService {
       fk_workspace_id: param.workspaceId,
     });
 
+    this.appHooksService.emit(AppEvents.SSO_CLIENT_CREATE as any, {
+      orgId: param.orgId || Noco.ncDefaultOrgId,
+      title: param.client.title,
+      req: param.req,
+    });
+
     return client;
   }
 
@@ -96,6 +104,13 @@ export class SSOClientService {
       deleted: false,
     });
 
+    this.appHooksService.emit(AppEvents.SSO_CLIENT_UPDATE as any, {
+      orgId: param.orgId || Noco.ncDefaultOrgId,
+      title: param.client.title,
+      clientId: param.clientId,
+      req: param.req,
+    });
+
     return client;
   }
 
@@ -109,6 +124,12 @@ export class SSOClientService {
     this.validateClient(param, client);
     // delete client
     const res = await SSOClient.delete(param.clientId);
+
+    this.appHooksService.emit(AppEvents.SSO_CLIENT_DELETE as any, {
+      orgId: param.orgId || Noco.ncDefaultOrgId,
+      clientId: param.clientId,
+      req: param.req,
+    });
 
     return res;
   }

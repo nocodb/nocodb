@@ -205,7 +205,7 @@ export class DatasService {
     const { model, view } = await getViewAndModelByAliasOrId(context, param);
     const source = await Source.get(context, model.source_id);
     const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
+      model,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
       source,

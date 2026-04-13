@@ -22,6 +22,7 @@ import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import { NcError } from '~/helpers/catchError';
+import { normalizeDr } from '~/helpers/dbHelpers';
 import NcHelp from '~/utils/NcHelp';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Noco from '~/Noco';
@@ -46,14 +47,6 @@ export enum MetaDiffType {
   TABLE_RELATION_REMOVE = 'TABLE_RELATION_REMOVE',
   TABLE_RELATION_CHANGED = 'TABLE_RELATION_CHANGED',
   TABLE_VIRTUAL_M2M_REMOVE = 'TABLE_VIRTUAL_M2M_REMOVE',
-}
-
-// persist ON DELETE only when RESTRICT/NO ACTION (both stored as 'NO ACTION');
-// otherwise null. Kept in sync with populateMeta.ts.
-function normalizeDr(dr: string | null | undefined): 'NO ACTION' | null {
-  return ['RESTRICT', 'NO ACTION'].includes((dr ?? '').toUpperCase())
-    ? 'NO ACTION'
-    : null;
 }
 
 const applyChangesPriorityOrder = [
@@ -150,7 +143,7 @@ type MetaDiffChange = {
       colId: string;
       column: Column;
       relationType: RelationTypes;
-      dr: 'NO ACTION' | null;
+      dr: string | null;
     }
 );
 
@@ -532,8 +525,8 @@ export class MetaDiffsService {
         }
 
         // detect ON DELETE changes on an existing FK — metadata stores
-        // normalized dr ('NO ACTION' | null), so normalize the DB value
-        // the same way before comparing.
+        // the raw DB rule (uppercased), so normalize both sides the same
+        // way before comparing.
         const normalizedDbDr = normalizeDr(dbRelation.dr);
         const normalizedMetaDr = normalizeDr(colOpt.dr);
         if (normalizedDbDr !== normalizedMetaDr) {
@@ -599,7 +592,7 @@ export class MetaDiffsService {
             msg: `New relation added`,
             relationType: RelationTypes.BELONGS_TO,
             cstn: relation.cstn,
-            dr: relation.dr,
+            dr: normalizeDr(relation.dr),
           });
       }
       if (
@@ -616,7 +609,7 @@ export class MetaDiffsService {
             rcn: relation.rcn,
             msg: `New relation added`,
             relationType: RelationTypes.HAS_MANY,
-            dr: relation.dr,
+            dr: normalizeDr(relation.dr),
           });
       }
     }

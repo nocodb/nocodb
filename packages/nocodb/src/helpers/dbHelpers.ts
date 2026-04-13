@@ -207,6 +207,16 @@ export function getOppositeRelationType(
  *   `fk_mm_child_column_id`).
  * - `bt` never triggers link-cleanup from this side.
  */
+/**
+ * Normalize a raw ON DELETE rule string from the DB/metadata
+ * (e.g. 'NO ACTION', 'RESTRICT', 'CASCADE', 'SET NULL', 'SET DEFAULT')
+ * to a canonical trimmed + uppercased form, or `null` if empty.
+ */
+export function normalizeDr(dr: string | null | undefined): string | null {
+  const v = (dr ?? '').toString().trim().toUpperCase();
+  return v || null;
+}
+
 export async function shouldCascadeLinkCleanup(
   context: NcContext,
   params: {
@@ -241,7 +251,10 @@ export async function shouldCascadeLinkCleanup(
     }
   }
 
-  return effectiveDr === 'NO ACTION';
+  // DB does not auto-cascade when ON DELETE is NO ACTION or RESTRICT;
+  // in those cases we need to manually clean up link references.
+  const normalized = normalizeDr(effectiveDr);
+  return normalized === 'NO ACTION' || normalized === 'RESTRICT';
 }
 
 export async function getBaseModelSqlFromModelId({

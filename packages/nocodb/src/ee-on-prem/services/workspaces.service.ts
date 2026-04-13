@@ -231,6 +231,21 @@ export class WorkspacesService extends WorkspacesServiceEE {
     return super.create(param);
   }
 
+  async delete(
+    param: { user: UserType; workspaceId: string; req: NcRequest },
+    ncMeta = Noco.ncMeta,
+  ) {
+    // Block deletion of the default workspace on on-prem — users cannot create new ones
+    if (
+      Noco.ncDefaultWorkspaceId &&
+      param.workspaceId === Noco.ncDefaultWorkspaceId
+    ) {
+      NcError.badRequest('Default workspace cannot be deleted');
+    }
+
+    return super.delete(param, ncMeta);
+  }
+
   public async createDefaultWorkspace(user: User, req: any) {
     // Enforce workspace limit from plan meta (unified with other limits)
     const plan = getOnPremPlan();

@@ -15,7 +15,7 @@ const { orgId } = useOrganization()
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { isPaymentEnabled, activeSubscription, showUpgradeToUploadWsImage } = useEeConfig()
+const { isPaymentEnabled, isEEFeatureBlocked, activeSubscription, showUpgradeToUploadWsImage } = useEeConfig()
 
 const router = useRouter()
 
@@ -268,6 +268,8 @@ const isWorkspaceMarkedForSubscriptionCancellation = computed(() => {
 const handleDelete = () => {
   if (!currentWorkspace.value || !currentWorkspace.value.title) return
 
+  if (isEEFeatureBlocked.value) return
+
   // If the workspace has active subscription, then ask user to cancel the subscription first
   if (shouldShowCancelSubscriptionModal.value) {
     return showCancelSubscriptionModal()
@@ -471,16 +473,20 @@ const onCancel = () => {
               </div>
             </div>
             <div class="nc-settings-item-action flex-none">
-              <NcButton
-                v-e="['c:workspace:settings:delete']"
-                type="secondary"
-                danger
-                class="nc-custom-daner-btn"
-                size="small"
-                @click="handleDelete"
-              >
-                {{ $t('general.deleteEntity', { entity: $t('objects.workspace') }) }}
-              </NcButton>
+              <NcTooltip :disabled="!isEEFeatureBlocked">
+                <template #title>{{ $t('tooltip.defaultWsCannotBeDeleted') }}</template>
+                <NcButton
+                  v-e="['c:workspace:settings:delete']"
+                  type="secondary"
+                  danger
+                  class="nc-custom-daner-btn"
+                  size="small"
+                  :disabled="isEEFeatureBlocked"
+                  @click="handleDelete"
+                >
+                  {{ $t('general.deleteEntity', { entity: $t('objects.workspace') }) }}
+                </NcButton>
+              </NcTooltip>
             </div>
           </div>
         </div>

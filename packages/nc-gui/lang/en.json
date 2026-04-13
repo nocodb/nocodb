@@ -2761,6 +2761,7 @@
     "crossBase": "Link records from a table in a different base",
     "levelOneTable": "Each level corresponds to a table in your base. Level 1 must be set to the table the view was created from.",
     "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
+    "defaultWsCannotBeDeleted": "This is the default workspace and cannot be deleted.",
     "currentDateNotAvail": "Current date option not available for the data source or the data type",
     "privateConnection": "Enable to make this connection private and hidden from other creators in this workspace.",
     "optionalDatabaseName": "Optional. Uses default database \"{database}\" if left blank",

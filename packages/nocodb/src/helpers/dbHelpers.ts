@@ -253,7 +253,12 @@ export async function shouldCascadeLinkCleanup(
 
   // DB does not auto-cascade when ON DELETE is NO ACTION or RESTRICT;
   // in those cases we need to manually clean up link references.
+  // When `dr` is absent from metadata (e.g. GUI-created LTARs never wrote it,
+  // or virtual relations without a real FK), assume NO ACTION — this matches
+  // the hardcoded `onDelete: 'NO ACTION'` used when creating the FK via
+  // `relationCreate`, so manual cleanup runs and the delete succeeds.
   const normalized = normalizeDr(effectiveDr);
+  if (!normalized) return true;
   return normalized === 'NO ACTION' || normalized === 'RESTRICT';
 }
 

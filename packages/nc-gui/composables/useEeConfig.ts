@@ -43,7 +43,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockAddNewExtension = computed(() => false)
 
-  const blockExtensions = computed(() => true)
+  const blockExtensions = computed(() => false)
 
   const blockAddNewAttachment = computed(() => false)
 

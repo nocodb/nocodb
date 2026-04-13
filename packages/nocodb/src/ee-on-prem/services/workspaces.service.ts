@@ -18,8 +18,7 @@ import { PaymentService } from '~/modules/payment/payment.service';
 import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Base, Workspace, WorkspaceUser } from '~/models';
-import OrgUser from '~/ee/models/OrgUser';
-import { MetaTable, NC_DEFAULT_ORG_ID } from '~/utils/globals';
+import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import {
   verifyDefaultWorkspace,

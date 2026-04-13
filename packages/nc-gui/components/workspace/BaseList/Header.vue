@@ -22,7 +22,7 @@ const { appInfo, isMobileMode, activeBreakpoint } = useGlobal()
 
 const { orgRoles } = useRoles()
 
-const { showEEFeatures } = useEeConfig()
+const { showEEFeatures, isEEFeatureBlocked } = useEeConfig()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -36,7 +36,7 @@ const filterOptions = computed<NcListItemType[]>(() => {
     ...(appInfo.value.ee
       ? [
           { value: 'starred', label: t('general.starred'), icon: 'star' },
-          ...(showEEFeatures.value
+          ...(showEEFeatures.value && !isEEFeatureBlocked.value
             ? [
                 { value: 'private', label: t('general.private'), icon: 'ncLock' },
                 ...(isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS)

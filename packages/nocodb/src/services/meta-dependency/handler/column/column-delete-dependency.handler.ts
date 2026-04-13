@@ -246,8 +246,9 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
       }
     }
 
-    // Collect unique model IDs whose single-query cache needs clearing
-    const affectedModelIds = new Set<string>();
+    // Collect unique model IDs (with their column's context) whose single-query
+    // cache needs clearing. Context may differ for cross-base dependents.
+    const affectedModelCtxMap = new Map<string, NcContext>();
 
     // BFS: error-mark each dependent, clean up sorts/filters, discover transitive dependents
     while (queue.length > 0) {
@@ -281,7 +282,15 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
         ncMeta,
       );
       if (affectedCol?.fk_model_id) {
-        affectedModelIds.add(affectedCol.fk_model_id);
+        // Derive context from the column's own base_id/workspace_id (authoritative
+        // source), matching the pattern in Column.get → getColOptions.
+        if (!affectedModelCtxMap.has(affectedCol.fk_model_id)) {
+          affectedModelCtxMap.set(affectedCol.fk_model_id, {
+            ...context,
+            workspace_id: affectedCol.fk_workspace_id || context.workspace_id,
+            base_id: affectedCol.base_id,
+          });
+        }
 
         const tableColumns = await Column.list(
           ctx,
@@ -320,8 +329,9 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
 
     // Clear single-query cache for all affected tables so stale CTE SQL
     // (which may reference the now-deleted column) is not reused.
-    for (const modelId of affectedModelIds) {
-      await View.clearSingleQueryCache(context, modelId, null, ncMeta);
+    // Use each model's own context since cross-base models have different base_id.
+    for (const [modelId, modelCtx] of affectedModelCtxMap) {
+      await View.clearSingleQueryCache(modelCtx, modelId, null, ncMeta);
     }
   }
 

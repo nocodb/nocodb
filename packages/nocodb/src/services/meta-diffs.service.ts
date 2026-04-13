@@ -24,6 +24,9 @@ import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import { NcError } from '~/helpers/catchError';
 import NcHelp from '~/utils/NcHelp';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import Noco from '~/Noco';
+import NocoCache from '~/cache/NocoCache';
+import { CacheScope, MetaTable } from '~/utils/globals';
 import { Base, Column, Model, Source } from '~/models';
 
 // todo:move enum and types
@@ -41,7 +44,16 @@ export enum MetaDiffType {
   VIEW_COLUMN_REMOVE = 'VIEW_COLUMN_REMOVE',
   TABLE_RELATION_ADD = 'TABLE_RELATION_ADD',
   TABLE_RELATION_REMOVE = 'TABLE_RELATION_REMOVE',
+  TABLE_RELATION_CHANGED = 'TABLE_RELATION_CHANGED',
   TABLE_VIRTUAL_M2M_REMOVE = 'TABLE_VIRTUAL_M2M_REMOVE',
+}
+
+// persist ON DELETE only when RESTRICT/NO ACTION (both stored as 'NO ACTION');
+// otherwise null. Kept in sync with populateMeta.ts.
+function normalizeDr(dr: string | null | undefined): 'NO ACTION' | null {
+  return ['RESTRICT', 'NO ACTION'].includes((dr ?? '').toUpperCase())
+    ? 'NO ACTION'
+    : null;
 }
 
 const applyChangesPriorityOrder = [
@@ -128,6 +140,17 @@ type MetaDiffChange = {
       cn: string;
       column: Column;
       colId?: string;
+    }
+  | {
+      type: MetaDiffType.TABLE_RELATION_CHANGED;
+      tn?: string;
+      rtn?: string;
+      cn?: string;
+      rcn?: string;
+      colId: string;
+      column: Column;
+      relationType: RelationTypes;
+      dr: 'NO ACTION' | null;
     }
 );
 
@@ -506,6 +529,36 @@ export class MetaDiffsService {
           // todo: handle duplicate
         } else {
           dbRelation.found[colOpt.type] = true;
+        }
+
+        // detect ON DELETE changes on an existing FK — metadata stores
+        // normalized dr ('NO ACTION' | null), so normalize the DB value
+        // the same way before comparing.
+        const normalizedDbDr = normalizeDr(dbRelation.dr);
+        const normalizedMetaDr = normalizeDr(colOpt.dr);
+        if (normalizedDbDr !== normalizedMetaDr) {
+          changes
+            .find(
+              (t) =>
+                t.table_name ===
+                (colOpt.type === RelationTypes.BELONGS_TO ||
+                (colOpt.type === RelationTypes.ONE_TO_ONE &&
+                  relationCol.meta?.bt)
+                  ? childModel.table_name
+                  : parentModel.table_name),
+            )
+            ?.detectedChanges.push({
+              type: MetaDiffType.TABLE_RELATION_CHANGED,
+              tn: childModel.table_name,
+              rtn: parentModel.table_name,
+              cn: childCol.column_name,
+              rcn: parentCol.column_name,
+              msg: `Relation ON DELETE changed`,
+              colId: relationCol.id,
+              column: relationCol,
+              relationType: colOpt.type as RelationTypes,
+              dr: normalizedDbDr,
+            });
         }
       } else {
         changes
@@ -945,6 +998,28 @@ export class MetaDiffsService {
           case MetaDiffType.TABLE_VIRTUAL_M2M_REMOVE:
             await change.column.delete(context);
             break;
+          case MetaDiffType.TABLE_RELATION_CHANGED:
+            {
+              // update the LTAR column's stored dr in place — no column
+              // recreation so filters/views/links keep referencing the
+              // same colId.
+              await Noco.ncMeta.metaUpdate(
+                context.workspace_id,
+                context.base_id,
+                MetaTable.COL_RELATIONS,
+                { dr: change.dr },
+                { fk_column_id: change.colId },
+              );
+              await NocoCache.del(
+                context,
+                `${CacheScope.COL_RELATION}:${change.colId}`,
+              );
+              await NocoCache.del(
+                context,
+                `${CacheScope.COLUMN}:${change.colId}`,
+              );
+            }
+            break;
           case MetaDiffType.TABLE_RELATION_ADD:
             {
               virtualColumnInsert.push(async () => {
@@ -986,13 +1061,7 @@ export class MetaDiffsService {
                   system: true,
                 });
 
-                // only persist ON DELETE when it is RESTRICT/NO ACTION
-                // (RESTRICT is treated as NO ACTION); otherwise leave null
-                const dr = ['RESTRICT', 'NO ACTION'].includes(
-                  (change.dr ?? '').toUpperCase(),
-                )
-                  ? 'NO ACTION'
-                  : null;
+                const dr = normalizeDr(change.dr);
 
                 if (change.relationType === RelationTypes.BELONGS_TO) {
                   const title = getUniqueColumnAliasName(

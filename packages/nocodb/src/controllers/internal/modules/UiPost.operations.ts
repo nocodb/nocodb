@@ -31,7 +31,7 @@ import { NcError } from '~/helpers/catchError';
 import { JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { ExtensionsService } from '~/services/extensions.service';
-import { BaseTrashService } from '~/services/base-trash.service';
+import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 
 @Injectable()
 export class UiPostOperations
@@ -199,8 +199,9 @@ export class UiPostOperations
           req,
         });
       case 'columnDelete':
-        return await this.baseTrashService.trashField(context, {
-          columnId: req.query.columnId,
+        return await this.baseTrashService.trashResource(context, {
+          resourceId: req.query.columnId,
+          resourceType: 'field',
           user: req.user,
           req,
         });

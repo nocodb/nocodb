@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType, type ExtensionReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { BaseTrashService } from '~/services/base-trash.service';
+import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import { validatePayload } from '~/helpers';
 import { Extension } from '~/models';
 import NocoSocket from '~/socket/NocoSocket';

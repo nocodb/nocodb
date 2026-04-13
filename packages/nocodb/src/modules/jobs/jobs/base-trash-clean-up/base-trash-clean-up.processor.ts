@@ -4,7 +4,7 @@ import type { Job } from 'bull';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
-import { BaseTrashService } from '~/services/base-trash.service';
+import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 
 const BATCH_SIZE = 50;
 const MAX_PER_RUN = 1000;

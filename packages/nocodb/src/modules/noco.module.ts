@@ -106,7 +106,11 @@ import { SortsService } from '~/services/sorts.service';
 import { SourcesService } from '~/services/sources.service';
 import { SyncService } from '~/services/sync.service';
 import { TablesService } from '~/services/tables.service';
-import { BaseTrashService } from '~/services/base-trash.service';
+import { BaseTrashService } from '~/services/base-trash/base-trash.service';
+import {
+  TrashHandlerProvider,
+  TrashHandlers,
+} from '~/services/base-trash/provider';
 import { UtilsService } from '~/services/utils.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import { ViewsService } from '~/services/views.service';
@@ -314,6 +318,8 @@ export const nocoModuleMetadata = {
     ViewColumnsService,
     UtilsService,
     TablesService,
+    ...TrashHandlers,
+    TrashHandlerProvider,
     BaseTrashService,
     SyncService,
     SortsService,

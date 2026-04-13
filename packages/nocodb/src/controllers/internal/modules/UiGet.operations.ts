@@ -20,7 +20,7 @@ import { MapsService } from '~/services/maps.service';
 import { CommentsService } from '~/services/comments.service';
 import { SyncService } from '~/services/sync.service';
 import { ExtensionsService } from '~/services/extensions.service';
-import { BaseTrashService } from '~/services/base-trash.service';
+import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 @Injectable()
 export class UiGetOperations
   implements InternalApiModule<InternalGETResponseType>

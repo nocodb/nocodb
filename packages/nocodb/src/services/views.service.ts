@@ -26,7 +26,7 @@ import {
 } from '~/models';
 import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { BaseTrashService } from '~/services/base-trash.service';
+import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import NocoSocket from '~/socket/NocoSocket';
 import {
   type ViewWebhookManager,

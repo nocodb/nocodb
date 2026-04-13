@@ -518,7 +518,10 @@ export class ActionExecutionProcessor {
     }
   }
 
-  private async setupTunnel(sandbox: Sandbox, req: NcRequest): Promise<TunnelClient> {
+  private async setupTunnel(
+    sandbox: Sandbox,
+    req: NcRequest,
+  ): Promise<TunnelClient> {
     await sandbox.commands.run('node /home/user/tunnel-server.js', {
       background: true,
     });
@@ -528,7 +531,8 @@ export class ActionExecutionProcessor {
 
     const wsUrl = `wss://${tunnelHost}/__tunnel__`;
     const authToken = req.headers['xc-auth'] as string;
-    const localBaseUrl = `http://127.0.0.1:${process.env.PORT || 8080}`;
+    const localBaseUrl =
+      req.ncSiteUrl || `http://127.0.0.1:${process.env.PORT || 8080}`;
 
     const tunnel = new TunnelClient(wsUrl, authToken, localBaseUrl);
     await tunnel.connect();

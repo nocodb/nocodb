@@ -96,7 +96,8 @@ export class RunScriptNode extends WorkflowNodeIntegration<RunScriptNodeConfig> 
       tunnel = new TunnelClient(
         `wss://${tunnelHost}/__tunnel__`,
         this.nocodb.getAccessToken(),
-        `http://127.0.0.1:${process.env.PORT || 8080}`,
+        this.nocodb.context.nc_site_url ||
+          `http://127.0.0.1:${process.env.PORT || 8080}`,
       );
       await tunnel.connect();
 

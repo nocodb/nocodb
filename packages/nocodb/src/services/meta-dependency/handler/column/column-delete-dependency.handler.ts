@@ -13,6 +13,7 @@ import {
   QrCodeColumn,
   RollupColumn,
   Sort,
+  View,
 } from '~/models';
 import { CacheScope, MetaTable } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
@@ -245,6 +246,9 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
       }
     }
 
+    // Collect unique model IDs whose single-query cache needs clearing
+    const affectedModelIds = new Set<string>();
+
     // BFS: error-mark each dependent, clean up sorts/filters, discover transitive dependents
     while (queue.length > 0) {
       const affected = queue.shift();
@@ -277,6 +281,8 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
         ncMeta,
       );
       if (affectedCol?.fk_model_id) {
+        affectedModelIds.add(affectedCol.fk_model_id);
+
         const tableColumns = await Column.list(
           ctx,
           { fk_model_id: affectedCol.fk_model_id },
@@ -285,7 +291,10 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
         for (const col of tableColumns) {
           if (!isLinksOrLTAR(col.uidt)) continue;
           const opts = await col.getColOptions<any>(ctx, ncMeta);
-          if (!opts?.fk_related_base_id || opts.fk_related_base_id === ctx.base_id)
+          if (
+            !opts?.fk_related_base_id ||
+            opts.fk_related_base_id === ctx.base_id
+          )
             continue;
 
           const crossCtx = { ...ctx, base_id: opts.fk_related_base_id };
@@ -307,6 +316,12 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
           }
         }
       }
+    }
+
+    // Clear single-query cache for all affected tables so stale CTE SQL
+    // (which may reference the now-deleted column) is not reused.
+    for (const modelId of affectedModelIds) {
+      await View.clearSingleQueryCache(context, modelId, null, ncMeta);
     }
   }
 

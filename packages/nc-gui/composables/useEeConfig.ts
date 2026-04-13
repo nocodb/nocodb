@@ -43,6 +43,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockAddNewExtension = computed(() => false)
 
+  const blockExtensions = computed(() => true)
+
   const blockAddNewAttachment = computed(() => false)
 
   const blockAddNewExternalSource = computed(() => false)
@@ -251,6 +253,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseDateDependency = (..._args: any[]) => {}
 
+  const showUpgradeToUseExtensions = (..._args: any[]) => {}
+
   const isEEFeatureBlocked = computed(() => true)
 
   const showEEFeatures = computed(() => false)
@@ -390,6 +394,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseMapView,
     blockDateDependency,
     showUpgradeToUseDateDependency,
+    blockExtensions,
+    showUpgradeToUseExtensions,
     isEEFeatureBlocked,
     showEEFeatures,
     blockWorkspaceCreate,

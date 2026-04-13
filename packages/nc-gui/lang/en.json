@@ -268,6 +268,7 @@
       "customUrls": "Custom URLs",
       "scripts": "Scripts",
       "workflows": "Workflows",
+      "extensions": "Extensions",
       "multipleWorkspaces": "Multiple Workspaces",
       "workspaceMembers": "Workspace Members",
       "teams": "Teams",

@@ -240,6 +240,16 @@ async function onOpenModal({
                     {{ $t('objects.viewType.calendar') }}
                   </div>
                 </a-menu-item>
+                <a-menu-item
+                  v-if="isEeUI && showEEFeatures"
+                  data-testid="topbar-view-create-map"
+                  @click="showUpgradeToUseMapView({ successCallback: () => onOpenModal({ type: ViewTypes.MAP }) })"
+                >
+                  <div class="nc-viewlist-submenu-popup-item">
+                    <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
+                    {{ $t('objects.viewType.map') }}
+                  </div>
+                </a-menu-item>
                 <NcTooltip
                   v-if="isListViewEnabled"
                   :title="$t('tooltip.listViewOnlyPg')"
@@ -262,17 +272,6 @@ async function onOpenModal({
                     </div>
                   </a-menu-item>
                 </NcTooltip>
-                <a-menu-item
-                  v-if="isEeUI && showEEFeatures"
-                  data-testid="topbar-view-create-map"
-                  @click="showUpgradeToUseMapView({ successCallback: () => onOpenModal({ type: ViewTypes.MAP }) })"
-                >
-                  <div class="nc-viewlist-submenu-popup-item">
-                    <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
-                    {{ $t('objects.viewType.map') }}
-                  </div>
-                </a-menu-item>
-
                 <a-menu-item
                   v-if="isEeUI && showEEFeatures"
                   data-testid="topbar-view-create-timeline"

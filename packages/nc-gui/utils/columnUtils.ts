@@ -322,7 +322,7 @@ const isColumnInvalid = ({
     case UITypes.Rollup:
     case UITypes.QrCode:
     case UITypes.Barcode:
-      result.isInvalid = !!(col.colOptions as any).error
+      result.isInvalid = !!(col.colOptions as { error?: string }).error
       break
     case UITypes.Button: {
       const colOptions = col.colOptions as ButtonType

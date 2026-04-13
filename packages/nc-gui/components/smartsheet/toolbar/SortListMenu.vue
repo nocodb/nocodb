@@ -10,6 +10,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 const reloadDataHook = inject(ReloadViewDataHookInj)
 const isPublic = inject(IsPublicInj, ref(false))
 const clone = rfdc()
+const { t } = useI18n()
 const { eventBus, isList } = useSmartsheetStoreOrThrow()
 
 const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
@@ -95,7 +96,7 @@ const columns = computed(() =>
     if (isDisabled) {
       c.ncItemDisabled = true
       c.ncItemTooltip = isColumnInError(c)
-        ? 'Sorting is not supported for fields with errors'
+        ? t('tooltip.sortingNotSupportedForFieldsWithErrors')
         : `Sorting is not supported for ${UITypesName[c.uidt]} field`
     }
 

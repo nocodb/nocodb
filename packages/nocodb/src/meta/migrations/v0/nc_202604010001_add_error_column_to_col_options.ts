@@ -11,7 +11,7 @@ const up = async (knex: Knex) => {
 
   for (const table of tables) {
     await knex.schema.alterTable(table, (t) => {
-      t.text('error').nullable();
+      t.text('error');
     });
   }
 };

@@ -28,6 +28,8 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     const clone = rfdc()
 
+    const { t } = useI18n()
+
     const { api } = useApi()
     const { $api } = useNuxtApp()
 
@@ -116,7 +118,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         ) {
           field.ncItemDisabled = true
           field.ncItemTooltip = isColumnInError(field)
-            ? 'Grouping is not supported for fields with errors'
+            ? t('tooltip.groupingNotSupportedForFieldsWithErrors')
             : `This Field of type ${UITypesName[field.uidt]} not supported for grouping`
         } else {
           field.ncItemDisabled = false

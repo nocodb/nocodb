@@ -41,7 +41,7 @@ const barcodeMeta = computed(() => {
 
 const handleModalOkClick = () => (modalVisible.value = false)
 
-const hasColError = computed(() => !!(column?.value?.colOptions as any)?.error)
+const hasColError = computed(() => !!(column?.value?.colOptions as { error?: string })?.error)
 
 const showBarcode = computed(
   () =>
@@ -157,7 +157,7 @@ onMounted(() => {
     </JsBarcodeWrapper>
     <NcTooltip v-else-if="hasColError" placement="bottom" class="text-nc-content-orange-dark">
       <template #title>
-        <span class="font-bold">{{ (column?.colOptions as any)?.error }}</span>
+        <span class="font-bold">{{ column?.colOptions?.error }}</span>
       </template>
       <span>ERR!</span>
     </NcTooltip>

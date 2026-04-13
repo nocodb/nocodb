@@ -191,7 +191,7 @@ const { showSystemFields } =
   widget.value || workflow.value || rlsPolicyId?.value ? { showSystemFields: ref(false) } : useViewColumnsOrThrow()
 
 const fieldsToFilter = computed(() =>
-  columns.value
+  clone(columns.value)
     .filter((c) => {
       if ((link.value || workflow.value) && isSystemColumn(c) && !c.pk && !isCreatedOrLastModifiedTimeCol(c)) return false
 
@@ -207,7 +207,7 @@ const fieldsToFilter = computed(() =>
     .map((c) => {
       if (isColumnInError(c)) {
         c.ncItemDisabled = true
-        c.ncItemTooltip = 'Filtering is not supported for fields with errors'
+        c.ncItemTooltip = t('tooltip.filteringNotSupportedForFieldsWithErrors')
       }
       return c
     }),

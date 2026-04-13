@@ -2878,7 +2878,10 @@
     "selectSyncCategory": "Select a sync category",
     "categoryNotEditableInEditMode": "Category not editable in edit mode",
     "syncScopeNotEditableInEditMode": "Sync scope can't be modified",
-    "organizeViewsIntoSections": "Organize views into collapsible sections"
+    "organizeViewsIntoSections": "Organize views into collapsible sections",
+    "filteringNotSupportedForFieldsWithErrors": "Filtering is not supported for fields with errors",
+    "sortingNotSupportedForFieldsWithErrors": "Sorting is not supported for fields with errors",
+    "groupingNotSupportedForFieldsWithErrors": "Grouping is not supported for fields with errors"
   },
   "placeholder": {
     "askAnything": "Ask or build anything",

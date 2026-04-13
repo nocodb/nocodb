@@ -29,7 +29,7 @@ const isExpandedFormOpen = computed(() => {
 
 const tooManyCharsForQrCode = computed(() => qrValue?.value.length > maxNumberOfAllowedCharsForQrValue)
 
-const hasColError = computed(() => !!(column?.value?.colOptions as any)?.error)
+const hasColError = computed(() => !!column?.value?.colOptions?.error)
 
 const showQrCode = computed(
   () => qrValue?.value?.length > 0 && !tooManyCharsForQrCode.value && qrValue?.value !== NC_ERROR_SENTINEL && !hasColError.value,
@@ -222,7 +222,7 @@ onMounted(() => {
   </div>
   <NcTooltip v-else-if="hasColError" placement="bottom" class="text-nc-content-orange-dark">
     <template #title>
-      <span class="font-bold">{{ (column?.colOptions as any)?.error }}</span>
+      <span class="font-bold">{{ column?.colOptions?.error }}</span>
     </template>
     <span>ERR!</span>
   </NcTooltip>

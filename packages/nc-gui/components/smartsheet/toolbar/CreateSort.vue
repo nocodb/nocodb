@@ -16,6 +16,8 @@ const { isParentOpen } = toRefs(props)
 
 const clone = rfdc()
 
+const { t } = useI18n()
+
 const activeView = inject(ActiveViewInj, ref())
 
 const meta = inject(MetaInj, ref())
@@ -76,7 +78,7 @@ const options = computed<ColumnType[]>(() =>
     if (isDisabled) {
       c.ncItemDisabled = true
       c.ncItemTooltip = isColumnInError(c)
-        ? 'Sorting is not supported for fields with errors'
+        ? t('tooltip.sortingNotSupportedForFieldsWithErrors')
         : `Sorting is not supported for ${UITypesName[c.uidt]} field`
     }
 

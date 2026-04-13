@@ -10,7 +10,6 @@ import BaseTrash from '~/models/BaseTrash';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
-import { TablesService } from '~/services/tables.service';
 import { JobTypes } from '~/interface/Jobs';
 
 @Injectable()
@@ -21,7 +20,6 @@ export class BaseTrashService implements OnModuleInit {
   constructor(
     protected readonly appHooksService: AppHooksService,
     protected readonly nocoJobsService: NocoJobsService,
-    protected readonly tablesService: TablesService,
     @Inject(TRASH_HANDLER_TOKEN) handlers: TrashHandler[],
   ) {
     for (const handler of handlers) {
@@ -156,10 +154,10 @@ export class BaseTrashService implements OnModuleInit {
       req: NcRequest;
     },
   ) {
-    // TODO: Phase 2 — implement via table trash handler
-    return this.tablesService.tableDelete(context, {
-      tableId: param.tableId,
-      user: param.user as any,
+    return this.trashResource(context, {
+      resourceId: param.tableId,
+      resourceType: 'table',
+      user: param.user,
       req: param.req,
     });
   }

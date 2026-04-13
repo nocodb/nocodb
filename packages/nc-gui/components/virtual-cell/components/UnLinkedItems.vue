@@ -114,10 +114,6 @@ const isSingleTargetLink = computed(() => {
 })
 
 const linkRow = async (row: Record<string, any>, id: number) => {
-  // Update cache Map state immediately for responsive UI
-  excludedLinkedState.value.set(id, true)
-  excludedLoadingState.value.set(id, true)
-
   if (isNew.value) {
     await addLTARRef(row, injectedColumn?.value as ColumnType)
 
@@ -138,44 +134,31 @@ const linkRow = async (row: Record<string, any>, id: number) => {
       isChildrenExcludedListLinked.value.forEach((isLinked, idx) => {
         if (isLinked) {
           isChildrenExcludedListLinked.value[idx] = false
-          excludedLinkedState.value.set(idx, false)
         }
         if (id === idx) {
           isChildrenExcludedListLinked.value[idx] = true
-          excludedLinkedState.value.set(idx, true)
         }
       })
     } else {
       isChildrenExcludedListLinked.value[id] = true
     }
 
-    excludedLoadingState.value.set(id, false)
     saveRow!()
 
     $e('a:links:link')
   } else {
     await link(row, {}, false, id)
-    // Sync old array state to cache Map after link completes
-    excludedLinkedState.value.set(id, isChildrenExcludedListLinked.value[id] ?? true)
-    excludedLoadingState.value.set(id, false)
   }
 }
 
 const unlinkRow = async (row: Record<string, any>, id: number) => {
-  // Update cache Map state immediately for responsive UI
-  excludedLinkedState.value.set(id, false)
-  excludedLoadingState.value.set(id, true)
-
   if (isNew.value) {
     removeLTARRef(row, injectedColumn?.value as ColumnType)
     isChildrenExcludedListLinked.value[id] = false
-    excludedLoadingState.value.set(id, false)
     saveRow!()
     $e('a:links:unlink')
   } else {
     await unlink(row, {}, false, id)
-    excludedLinkedState.value.set(id, isChildrenExcludedListLinked.value[id] ?? false)
-    excludedLoadingState.value.set(id, false)
   }
 }
 
@@ -192,9 +175,6 @@ watch(
         loadChildrenList()
       }
       loadChildrenExcludedList(rowState.value, true)
-      // Reset and fetch initial chunk for virtual scroll
-      resetExcludedCache()
-      fetchExcludedChunk(0)
     }
     if (!nextVal) {
       resetChildrenExcludedOffsetCount()
@@ -287,11 +267,10 @@ watch(filterQueryRef, () => {
 
 const onClick = (refRow: any, id: string) => {
   if (isSharedBase.value) return
-  const idx = Number.parseInt(id)
-  if (excludedLinkedState.value.get(idx)) {
-    unlinkRow(refRow, idx)
+  if (isChildrenExcludedListLinked.value[Number.parseInt(id)]) {
+    unlinkRow(refRow, Number.parseInt(id))
   } else {
-    linkRow(refRow, idx)
+    linkRow(refRow, Number.parseInt(id))
   }
 }
 
@@ -434,9 +413,8 @@ const updateVisibleChunks = () => {
   clearExcludedCache(bufferStart, bufferEnd)
 }
 
-// Debounce chunk fetching — short delay for normal scroll responsiveness,
-// maxWait ensures chunks load within 100ms even during continuous scrolling
-const debouncedUpdateVisibleChunks = useDebounceFn(updateVisibleChunks, 50, { maxWait: 100 })
+// Debounce chunk fetching so dragging the scrollbar doesn't fire dozens of API calls
+const debouncedUpdateVisibleChunks = useDebounceFn(updateVisibleChunks, 150)
 
 const onListScroll = () => {
   calculateSlices()

@@ -101,9 +101,6 @@ watch(
     if ((nextVal[0] || nextVal[1]) && !isNew.value) {
       refreshCurrentRow()
       loadChildrenList(true)
-      // Reset and fetch initial chunk for virtual scroll
-      resetChildrenCache()
-      fetchChildrenChunk(0)
     }
 
     // reset offset count when closing modal
@@ -115,30 +112,19 @@ watch(
 )
 
 const unlinkRow = async (row: Record<string, any>, id: number) => {
-  childrenCachedLinkedState.value.set(id, false)
-  childrenCachedLoadingState.value.set(id, true)
-
   if (isNew.value) {
     await removeLTARRef(row, injectedColumn?.value as ColumnType)
   } else {
     await unlink(row, {}, false, id)
   }
-
-  childrenCachedLoadingState.value.set(id, false)
 }
 
 const linkRow = async (row: Record<string, any>, id: number) => {
-  childrenCachedLinkedState.value.set(id, true)
-  childrenCachedLoadingState.value.set(id, true)
-
   if (isNew.value) {
     await addLTARRef(row, injectedColumn?.value as ColumnType)
   } else {
     await link(row, {}, false, id)
   }
-
-  childrenCachedLinkedState.value.set(id, isChildrenListLinked.value[id] ?? true)
-  childrenCachedLoadingState.value.set(id, false)
 }
 
 const expandedFormDlg = ref(false)
@@ -345,11 +331,10 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
   if (readOnly.value) return
 
   if (isPublic.value && !isForm.value) return
-  const idx = parseInt(id)
-  if (isNew.value || childrenCachedLinkedState.value.get(idx)) {
-    unlinkRow(rowRef, idx)
+  if (isNew.value || isChildrenListLinked.value[parseInt(id)]) {
+    unlinkRow(rowRef, parseInt(id))
   } else {
-    linkRow(rowRef, idx)
+    linkRow(rowRef, parseInt(id))
   }
 }
 
@@ -435,9 +420,8 @@ const updateVisibleChunks = () => {
   clearChildrenCache(bufferStart, bufferEnd)
 }
 
-// Debounce chunk fetching — short delay for normal scroll responsiveness,
-// maxWait ensures chunks load within 100ms even during continuous scrolling
-const debouncedUpdateVisibleChunks = useDebounceFn(updateVisibleChunks, 50, { maxWait: 100 })
+// Debounce chunk fetching so dragging the scrollbar doesn't fire dozens of API calls
+const debouncedUpdateVisibleChunks = useDebounceFn(updateVisibleChunks, 150)
 
 const onListScroll = () => {
   calculateSlices()

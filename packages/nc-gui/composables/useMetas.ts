@@ -49,11 +49,21 @@ export const useMetas = createSharedComposable(() => {
   const setMeta = async (model: any) => {
     if (!model.base_id) return
 
-    metas.value = {
+    // Clean up stale title key when table is renamed
+    const idKey = getMetaKey(model.base_id, model.id!)
+    const existingMeta = metas.value[idKey]
+
+    const updated = {
       ...metas.value,
-      [getMetaKey(model.base_id, model.id!)]: model,
+      [idKey]: model,
       [getMetaKey(model.base_id, model.title)]: model,
     }
+
+    if (existingMeta && existingMeta.title !== model.title) {
+      delete updated[getMetaKey(model.base_id, existingMeta.title)]
+    }
+
+    metas.value = updated
   }
 
   // todo: this needs a proper refactor, arbitrary waiting times are usually not a good idea

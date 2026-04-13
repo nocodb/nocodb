@@ -352,6 +352,9 @@ export enum AppEvents {
 
   DATE_DEPENDENCY_UPDATE = 'date_dependency.update',
   DATE_DEPENDENCY_DELETE = 'date_dependency.delete',
+
+  RESOURCE_RESTORE = 'resource.restore',
+  RESOURCE_PERMANENT_DELETE = 'resource.permanent_delete',
 }
 
 export enum ClickhouseTables {

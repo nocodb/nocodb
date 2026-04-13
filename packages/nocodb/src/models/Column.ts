@@ -125,6 +125,7 @@ export default class Column<T = any> implements ColumnType {
 
   public asId?: string;
 
+  public deleted?: boolean;
   public readonly?: boolean;
 
   // we create custom index when custom link created using the column
@@ -138,7 +139,7 @@ export default class Column<T = any> implements ColumnType {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
-    return Model.get(context, this.fk_model_id, ncMeta);
+    return Model.get(context, this.fk_model_id, false, ncMeta);
   }
 
   public static async insert<T>(
@@ -682,16 +683,20 @@ export default class Column<T = any> implements ColumnType {
 
   @NcCache({
     key: (args) =>
-      `${args[1].fk_model_id}:${args[1].fk_default_view_id ?? 'default'}`,
+      `${args[1].fk_model_id}:${args[1].fk_default_view_id ?? 'default'}:${
+        args[1].includeDeleted ? 'd' : ''
+      }`,
   })
   public static async list(
     context: NcContext,
     {
       fk_model_id,
       fk_default_view_id,
+      includeDeleted,
     }: {
       fk_model_id: string;
       fk_default_view_id?: string;
+      includeDeleted?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Column[]> {
@@ -737,6 +742,10 @@ export default class Column<T = any> implements ColumnType {
         [fk_model_id],
         columnsList,
       );
+    }
+
+    if (!includeDeleted) {
+      columnsList = columnsList.filter((c) => !c.deleted);
     }
 
     columnsList.sort(
@@ -798,16 +807,18 @@ export default class Column<T = any> implements ColumnType {
   }
 
   @NcCache({
-    key: (args) => args[1].colId,
+    key: (args) => `${args[1].colId}:${args[1].includeDeleted ? 'd' : ''}`,
   })
   public static async get<T = any>(
     context: NcContext,
     {
       colId,
+      includeDeleted,
     }: {
       source_id?: string;
       db_alias?: string;
       colId: string;
+      includeDeleted?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Column<T>> {
@@ -835,6 +846,11 @@ export default class Column<T = any> implements ColumnType {
         await NocoCache.set(context, `${CacheScope.COLUMN}:${colId}`, colData);
       }
     }
+
+    if (colData?.deleted && !includeDeleted) {
+      return null;
+    }
+
     if (colData) {
       const column = new Column(colData);
       await column.getColOptions(

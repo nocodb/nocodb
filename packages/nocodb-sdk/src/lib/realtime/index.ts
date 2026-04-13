@@ -1,6 +1,10 @@
 import { NotificationType, UserType } from '~/lib/Api';
 import { ChatEventAction } from '~/lib/chat';
-import type { ChatContentBlock, ChatMessageType, ChatSessionType } from '~/lib/chat';
+import type {
+  ChatContentBlock,
+  ChatMessageType,
+  ChatSessionType,
+} from '~/lib/chat';
 
 export enum EventType {
   HANDSHAKE = 'handshake',
@@ -74,6 +78,7 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'source_meta_sync'
     | 'table_create'
     | 'table_update'
+    | 'table_restore'
     | 'table_permission_update'
     | 'table_delete'
     | 'column_add'
@@ -82,6 +87,7 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'view_create'
     | 'view_update'
     | 'view_delete'
+    | 'view_restore'
     | 'permission_update'
     | 'filter_create'
     | 'filter_update'
@@ -95,6 +101,7 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'extension_update'
     | 'extension_create'
     | 'extension_delete'
+    | 'extension_restore'
     | 'rls_policy_update'
     | 'document_permission_update'
     | 'date_dependency_update'

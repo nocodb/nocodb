@@ -19,6 +19,8 @@ export default class Workflow {
     return null;
   }
 
+  static async softDelete(..._args: any) {}
+
   static async delete(..._args: any) {
     return null;
   }

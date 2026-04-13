@@ -315,10 +315,16 @@ export class TablesService {
       );
     }
 
-    await table.getColumns(context);
+    await table.getColumns(context, undefined, undefined, true, true);
 
     if (table.mm) {
-      const columns = await table.getColumns(context);
+      const columns = await table.getColumns(
+        context,
+        undefined,
+        undefined,
+        true,
+        true,
+      );
 
       // get table names of the relation which uses the current table as junction table
       const tables = await Promise.all(

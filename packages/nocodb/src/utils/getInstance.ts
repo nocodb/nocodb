@@ -47,11 +47,13 @@ export default async function (force = false, ncMeta = Noco.ncMeta) {
       const tables = await ncMeta
         .knex(MetaTable.MODELS)
         .whereIn('type', [ModelTypes.TABLE, ModelTypes.VIEW])
+        .where((qb) => qb.where('deleted', false).orWhereNull('deleted'))
         .count('id as count')
         .first()
         .then((c) => c.count);
       const views = await ncMeta
         .knex(MetaTable.VIEWS)
+        .where((qb) => qb.where('deleted', false).orWhereNull('deleted'))
         .count('id as count')
         .first()
         .then((c) => c.count);

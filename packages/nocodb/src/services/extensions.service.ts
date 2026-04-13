@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType, type ExtensionReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { BaseTrashService } from '~/services/base-trash.service';
 import { validatePayload } from '~/helpers';
 import { Extension } from '~/models';
 import NocoSocket from '~/socket/NocoSocket';
@@ -9,7 +10,10 @@ import { NcError } from '~/helpers/ncError';
 
 @Injectable()
 export class ExtensionsService {
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(
+    private readonly appHooksService: AppHooksService,
+    private readonly baseTrashService: BaseTrashService,
+  ) {}
 
   async extensionList(context: NcContext, param: { baseId: string }) {
     return await Extension.list(context, param.baseId);
@@ -114,7 +118,12 @@ export class ExtensionsService {
   ) {
     const extension = await this.extensionRead(context, param);
 
-    const res = await Extension.delete(context, param.extensionId);
+    await this.baseTrashService.trashResource(context, {
+      resourceId: param.extensionId,
+      resourceType: 'extension',
+      user: param.req.user,
+      req: param.req,
+    });
 
     this.appHooksService.emit(AppEvents.EXTENSION_DELETE, {
       extensionId: param.extensionId,
@@ -133,6 +142,6 @@ export class ExtensionsService {
       context.socket_id,
     );
 
-    return res;
+    return true;
   }
 }

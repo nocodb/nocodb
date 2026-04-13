@@ -50,23 +50,12 @@ import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 import { dataWrapper } from '~/helpers/dbHelpers';
 import { isEE } from '~/utils';
 import { NcCache } from '~/decorators/nc-cache.decorator';
+import {
+  modelOrViewNotDeletedXcCondition,
+  modelOrViewXcCondition,
+} from '~/utils/trashUtils';
 
 const logger = new Logger('Model');
-
-const modelOrViewXcCondition = {
-  _or: [
-    {
-      type: {
-        eq: ModelTypes.TABLE,
-      },
-    },
-    {
-      type: {
-        eq: ModelTypes.VIEW,
-      },
-    },
-  ],
-};
 
 export default class Model implements TableType {
   copy_enabled: BoolType;
@@ -117,12 +106,14 @@ export default class Model implements TableType {
     ncMeta = Noco.ncMeta,
     defaultViewId = undefined,
     updateColumns = true,
+    includeDeleted = false,
   ): Promise<Column[]> {
     const columns = await Column.list(
       context,
       {
         fk_model_id: this.id,
         fk_default_view_id: defaultViewId,
+        includeDeleted,
       },
       ncMeta,
     );
@@ -335,9 +326,11 @@ export default class Model implements TableType {
     {
       base_id,
       source_id,
+      includeDeleted,
     }: {
       base_id: string;
       source_id?: string;
+      includeDeleted?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Model[]> {
@@ -384,6 +377,11 @@ export default class Model implements TableType {
         );
       }
     }
+
+    if (!includeDeleted) {
+      modelList = modelList.filter((m) => !m.deleted);
+    }
+
     modelList.sort(
       (a, b) =>
         (a.order != null ? a.order : Infinity) -
@@ -393,50 +391,13 @@ export default class Model implements TableType {
     return modelList.map((m) => this.castType(m));
   }
 
-  public static async listWithInfo(
-    context: NcContext,
-    {
-      base_id,
-      db_alias,
-    }: {
-      base_id: string;
-      db_alias: string;
-    },
-    ncMeta = Noco.ncMeta,
-  ): Promise<Model[]> {
-    const cachedList = await NocoCache.getList(context, CacheScope.MODEL, [
-      base_id,
-      db_alias,
-    ]);
-    let { list: modelList } = cachedList;
-    const { isNoneList } = cachedList;
-    if (!isNoneList && !modelList.length) {
-      modelList = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.MODELS,
-        {
-          xcCondition: modelOrViewXcCondition,
-        },
-      );
-
-      // parse meta of each model
-      for (const model of modelList) {
-        model.meta = parseMetaProp(model);
-      }
-
-      await NocoCache.setList(context, CacheScope.MODEL, [base_id], modelList);
-    }
-
-    return modelList.map((m) => this.castType(m));
-  }
-
   @NcCache({
-    key: (args) => args[1],
+    key: (args) => `${args[1]}:${args[2] ? 'd' : ''}`,
   })
   public static async get(
     context: NcContext,
     id: string,
+    includeDeleted = false,
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
     let modelData =
@@ -465,6 +426,11 @@ export default class Model implements TableType {
         );
       }
     }
+
+    if (modelData?.deleted && !includeDeleted) {
+      return null;
+    }
+
     return this.castType(modelData);
   }
 
@@ -473,7 +439,7 @@ export default class Model implements TableType {
       `${
         args[1].id ||
         `${args[1].base_id}:${args[1].source_id}:${args[1].table_name}`
-      }`,
+      }:${args[1].includeDeleted ? 'd' : ''}`,
   })
   public static async getByIdOrName(
     context: NcContext,
@@ -482,14 +448,16 @@ export default class Model implements TableType {
           base_id: string;
           source_id: string;
           table_name: string;
+          includeDeleted?: boolean;
         }
       | {
           id?: string;
+          includeDeleted?: boolean;
         },
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
     if ('id' in args && args?.id) {
-      return this.get(context, args.id, ncMeta);
+      return this.get(context, args.id, args.includeDeleted, ncMeta);
     }
 
     const k = 'id' in args ? args?.id : args;
@@ -507,7 +475,9 @@ export default class Model implements TableType {
         MetaTable.MODELS,
         k,
         undefined,
-        modelOrViewXcCondition,
+        args.includeDeleted
+          ? modelOrViewXcCondition
+          : modelOrViewNotDeletedXcCondition,
       );
       if (modelData) {
         modelData.meta = parseMetaProp(modelData);
@@ -552,20 +522,7 @@ export default class Model implements TableType {
           table_name,
         },
         undefined,
-        {
-          _or: [
-            {
-              type: {
-                eq: ModelTypes.TABLE,
-              },
-            },
-            {
-              type: {
-                eq: ModelTypes.VIEW,
-              },
-            },
-          ],
-        },
+        modelOrViewNotDeletedXcCondition,
       );
       if (modelData) {
         modelData.meta = parseMetaProp(modelData);
@@ -626,7 +583,7 @@ export default class Model implements TableType {
     },
     ncMeta = Noco.ncMeta,
   ): Promise<BaseModelSqlv2> {
-    const model = args?.model || (await this.get(context, args.id, ncMeta));
+    const model = args?.model || (await this.get(context, args.id, false, ncMeta));
 
     if (!model) {
       NcError.get(context).tableNotFound(args.id);
@@ -664,6 +621,25 @@ export default class Model implements TableType {
       schema,
       queryQueue: args.queryQueue,
     });
+  }
+
+  static async softDelete(
+    context: NcContext,
+    modelId: string,
+    deleted: boolean,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      { deleted },
+      modelId,
+    );
+    await NocoCache.update(context, `${CacheScope.MODEL}:${modelId}`, {
+      deleted,
+    });
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {});
   }
 
   async delete(
@@ -959,7 +935,7 @@ export default class Model implements TableType {
       NcError.badRequest("Missing 'table_name' property in body");
     }
 
-    const oldModel = await this.get(context, tableId, ncMeta);
+    const oldModel = await this.get(context, tableId, false, ncMeta);
 
     // set meta
     const res = await ncMeta.metaUpdate(
@@ -1216,7 +1192,7 @@ export default class Model implements TableType {
             null,
             {
               _and: [
-                modelOrViewXcCondition,
+                modelOrViewNotDeletedXcCondition,
                 {
                   _or: [
                     {
@@ -1242,7 +1218,7 @@ export default class Model implements TableType {
             null,
             {
               _and: [
-                modelOrViewXcCondition,
+                modelOrViewNotDeletedXcCondition,
                 {
                   _or: [
                     {
@@ -1289,16 +1265,8 @@ export default class Model implements TableType {
       null,
       {
         _and: [
-          {
-            ...modelOrViewXcCondition,
-            ...(exclude_id
-              ? {
-                  id: {
-                    neq: exclude_id,
-                  },
-                }
-              : {}),
-          },
+          modelOrViewNotDeletedXcCondition,
+          ...(exclude_id ? [{ id: { neq: exclude_id } }] : []),
         ],
       },
     ));
@@ -1324,16 +1292,8 @@ export default class Model implements TableType {
       null,
       {
         _and: [
-          {
-            ...modelOrViewXcCondition,
-            ...(exclude_id
-              ? {
-                  id: {
-                    neq: exclude_id,
-                  },
-                }
-              : {}),
-          },
+          modelOrViewNotDeletedXcCondition,
+          ...(exclude_id ? [{ id: { neq: exclude_id } }] : []),
         ],
       },
     ));

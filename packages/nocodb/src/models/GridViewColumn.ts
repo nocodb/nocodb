@@ -129,7 +129,12 @@ export default class GridViewColumn implements GridColumnType {
       }));
 
     if (!insertObj.source_id) {
-      const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
+      const viewRef = await View.get(
+        context,
+        insertObj.fk_view_id,
+        false,
+        ncMeta,
+      );
       insertObj.source_id = viewRef.source_id;
     }
 
@@ -149,7 +154,7 @@ export default class GridViewColumn implements GridColumnType {
 
     // on new view column, delete any optimised single query cache
     {
-      const view = await View.get(context, column.fk_view_id, ncMeta);
+      const view = await View.get(context, column.fk_view_id, false, ncMeta);
       await View.clearSingleQueryCache(
         context,
         view.fk_model_id,
@@ -203,7 +208,7 @@ export default class GridViewColumn implements GridColumnType {
     // on view column update, delete any optimised single query cache
     {
       const gridCol = await this.get(context, columnId, ncMeta);
-      const view = await View.get(context, gridCol.fk_view_id, ncMeta);
+      const view = await View.get(context, gridCol.fk_view_id, false, ncMeta);
       await View.clearSingleQueryCache(
         context,
         view.fk_model_id,

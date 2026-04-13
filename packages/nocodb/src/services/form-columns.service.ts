@@ -41,7 +41,12 @@ export class FormColumnsService {
       ncMeta,
     );
 
-    const view = await View.get(context, oldFormViewColumn.fk_view_id, ncMeta);
+    const view = await View.get(
+      context,
+      oldFormViewColumn.fk_view_id,
+      false,
+      ncMeta,
+    );
 
     const column = await Column.get(
       context,

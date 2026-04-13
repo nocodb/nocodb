@@ -20,6 +20,7 @@ interface Emits {
   (e: 'openMcpServer', id: string): void
   (e: 'copyProjectInfo'): void
   (e: 'delete'): void
+  (e: 'openTrash'): void
 }
 
 const base = inject(ProjectInj)!
@@ -163,6 +164,12 @@ const isOptionVisible = computed(() => {
       <div v-e="['c:base:settings']" class="flex gap-2 items-center">
         <GeneralIcon icon="settings" />
         {{ $t('activity.settings') }}
+      </div>
+    </NcMenuItem>
+    <NcMenuItem data-testid="nc-sidebar-base-trash" @click="emits('openTrash')">
+      <div class="flex gap-2 items-center">
+        <GeneralIcon icon="delete" class="w-4" />
+        {{ $t('title.trash') }}
       </div>
     </NcMenuItem>
     <NcMenuItem v-if="isOptionVisible.baseDelete" data-testid="nc-sidebar-base-delete" danger @click="emits('delete')">

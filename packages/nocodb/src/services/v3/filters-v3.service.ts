@@ -195,7 +195,12 @@ export class FiltersV3Service {
     );
     let innerViewWebhookManager: ViewWebhookManager;
     if ((param as any).viewId && !viewWebhookManager) {
-      const view = await View.get(context, (param as any).viewId, ncMeta);
+      const view = await View.get(
+        context,
+        (param as any).viewId,
+        false,
+        ncMeta,
+      );
       innerViewWebhookManager = (param as any).viewId
         ? (
             await (
@@ -214,6 +219,7 @@ export class FiltersV3Service {
       const view = await View.get(
         context,
         rowColorCondition.fk_view_id,
+        false,
         ncMeta,
       );
       innerViewWebhookManager = (

@@ -58,7 +58,12 @@ export class GridColumnsService {
       ncMeta,
     );
 
-    const view = await View.get(context, oldGridViewColumn.fk_view_id, ncMeta);
+    const view = await View.get(
+      context,
+      oldGridViewColumn.fk_view_id,
+      false,
+      ncMeta,
+    );
 
     const viewWebhookManager =
       param.viewWebhookManager ??
@@ -139,7 +144,7 @@ export class GridColumnsService {
 
     let viewWebhookManager: ViewWebhookManager;
     if (!param.viewWebhookManager) {
-      const view = await View.get(context, param.viewId, ncMeta);
+      const view = await View.get(context, param.viewId, false, ncMeta);
       viewWebhookManager =
         param.viewWebhookManager ??
         (

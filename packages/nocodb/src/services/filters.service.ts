@@ -96,7 +96,7 @@ export class FiltersService {
 
     let viewWebhookManager: ViewWebhookManager;
     if (filter.fk_view_id) {
-      const view = await View.get(context, filter.fk_view_id, ncMeta);
+      const view = await View.get(context, filter.fk_view_id, false, ncMeta);
       viewWebhookManager = (
         await (
           await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
@@ -113,6 +113,7 @@ export class FiltersService {
       const view = await View.get(
         context,
         rowColorCondition.fk_view_id,
+        false,
         ncMeta,
       );
       viewWebhookManager = (
@@ -245,7 +246,7 @@ export class FiltersService {
 
     let viewWebhookManager: ViewWebhookManager;
     if (filter.fk_view_id) {
-      const view = await View.get(context, filter.fk_view_id, ncMeta);
+      const view = await View.get(context, filter.fk_view_id, false, ncMeta);
       viewWebhookManager = (
         await (
           await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
@@ -262,6 +263,7 @@ export class FiltersService {
       const view = await View.get(
         context,
         rowColorCondition.fk_view_id,
+        false,
         ncMeta,
       );
       viewWebhookManager = (

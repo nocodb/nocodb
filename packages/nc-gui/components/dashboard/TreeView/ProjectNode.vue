@@ -90,6 +90,8 @@ const isBasesOptionsOpen = ref<Record<string, boolean>>({})
 
 const activeKey = ref<string[]>([])
 const isTableDeleteDialogVisible = ref(false)
+const { open: openBaseTrash } = useBaseTrash()
+
 const isBaseDeleteDialogVisible = ref(false)
 
 const { refreshViewTabTitle } = useViewsStore()
@@ -496,7 +498,7 @@ defineExpose({
               'text-subHeading2 gap-2 hover:bg-nc-bg-gray-medium h-8 cursor-pointer px-1 max-w-full': isProjectHeader,
               'flex-grow w-full': isProjectHeader && editMode,
               'bg-nc-bg-gray-medium': isProjectHeader && isProjectNodeContextMenuOpen,
-              'h-7 pr-1 pl-2.5 xs:(pl-0) rtl:(pr-2.5 pl-1) rtl:xs:(pr-0) flex-grow w-full': !isProjectHeader,
+              'h-7 pr-1 pl-2.5 xs:(pl-0) flex-grow w-full': !isProjectHeader,
               'bg-primary-selected dark:bg-nc-bg-gray-medium active':
                 activeProjectId === base.id && !isMobileMode && !isProjectHeader,
               'hover:bg-nc-bg-gray-medium': !(activeProjectId === base.id) && !isProjectHeader,
@@ -678,6 +680,7 @@ defineExpose({
         @open-base-settings="openBaseSettings($event)"
         @open-mcp-server="openMcpSettings($event)"
         @delete="projectDelete"
+        @open-trash="openBaseTrash()"
       />
       <NcMenu
         v-else
@@ -756,6 +759,7 @@ defineExpose({
     :base-id="base?.id"
   />
   <DlgBaseDelete v-model:visible="isBaseDeleteDialogVisible" :base-id="base?.id" />
+  <DlgBaseTrash />
   <DlgBaseDuplicate v-if="selectedProjectToDuplicate" v-model="isDuplicateDlgOpen" :base="selectedProjectToDuplicate" />
   <GeneralModal v-model:visible="isErdModalOpen" size="large">
     <div class="h-[80vh]">
@@ -789,12 +793,5 @@ defineExpose({
       @apply !xs:hidden;
     }
   }
-}
-</style>
-
-<style lang="scss">
-.rtl .ant-collapse-header {
-  padding-left: 2px !important;
-  padding-right: 30px !important;
 }
 </style>

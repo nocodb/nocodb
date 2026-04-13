@@ -59,7 +59,7 @@ export class KanbansService {
       NcError.get(context).schemaLocked();
     }
 
-    const model = await Model.get(context, param.tableId, ncMeta);
+    const model = await Model.get(context, param.tableId, false, ncMeta);
 
     let fk_cover_image_col_id =
       (param.kanban as KanbanView).fk_cover_image_col_id ?? null;
@@ -128,7 +128,7 @@ export class KanbansService {
       ncMeta,
     );
 
-    const view = await View.get(context, id, ncMeta);
+    const view = await View.get(context, id, false, ncMeta);
     await NocoCache.appendToList(
       context,
       CacheScope.VIEW,
@@ -191,7 +191,7 @@ export class KanbansService {
       param.kanban,
     );
 
-    const view = await View.get(context, param.kanbanViewId, ncMeta);
+    const view = await View.get(context, param.kanbanViewId, false, ncMeta);
 
     if (!view) {
       NcError.get(context).viewNotFound(param.kanbanViewId);
@@ -219,7 +219,12 @@ export class KanbansService {
     await KanbanView.update(context, param.kanbanViewId, param.kanban, ncMeta);
 
     if (groupingColumnChanged) {
-      const updatedView = await View.get(context, param.kanbanViewId, ncMeta);
+      const updatedView = await View.get(
+        context,
+        param.kanbanViewId,
+        false,
+        ncMeta,
+      );
       await this.initializeKanbanMetaForGroupingColumn(
         context,
         updatedView,
@@ -282,7 +287,7 @@ export class KanbansService {
       return; // No grouping column set
     }
 
-    const model = await Model.get(context, view.fk_model_id, ncMeta);
+    const model = await Model.get(context, view.fk_model_id, false, ncMeta);
     const column = (await model.getColumns(context, ncMeta)).find(
       (col) => col.id === kanbanView.fk_grp_col_id,
     );
@@ -378,7 +383,12 @@ export class KanbansService {
     ncMeta?: MetaService,
   ) {
     const kanbanView = await this.kanbanViewGet(context, param, ncMeta);
-    const modelView = await View.get(context, kanbanView.fk_view_id, ncMeta);
+    const modelView = await View.get(
+      context,
+      kanbanView.fk_view_id,
+      false,
+      ncMeta,
+    );
 
     const viewWebhookManager =
       param.viewWebhookManager ??
@@ -390,7 +400,12 @@ export class KanbansService {
         ).withViewId(modelView.id)
       ).forUpdate();
 
-    const model = await Model.get(context, modelView.fk_model_id, ncMeta);
+    const model = await Model.get(
+      context,
+      modelView.fk_model_id,
+      false,
+      ncMeta,
+    );
     const column = (await model.getColumns(context, ncMeta)).find(
       (col) => col.id === kanbanView.fk_grp_col_id,
     );

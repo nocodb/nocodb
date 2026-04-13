@@ -31,6 +31,7 @@ import { NcError } from '~/helpers/catchError';
 import { JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { ExtensionsService } from '~/services/extensions.service';
+import { BaseTrashService } from '~/services/base-trash.service';
 
 @Injectable()
 export class UiPostOperations
@@ -59,6 +60,7 @@ export class UiPostOperations
     protected syncService: SyncService,
     protected readonly nocoJobsService: NocoJobsService,
     protected extensionsService: ExtensionsService,
+    protected baseTrashService: BaseTrashService,
   ) {}
   operations = [
     'tableUpdate' as const,
@@ -142,6 +144,9 @@ export class UiPostOperations
     'listViewCreate' as const,
     'listViewUpdate' as const,
     'convertLinkToV2' as const,
+    'baseTrashRestore' as const,
+    'baseTrashPermanentDelete' as const,
+    'baseTrashEmpty' as const,
   ];
   httpMethod = 'POST' as const;
 
@@ -168,10 +173,9 @@ export class UiPostOperations
           req,
         });
       case 'tableDelete':
-        return await this.tablesService.tableDelete(context, {
+        return await this.baseTrashService.trashTable(context, {
           tableId: req.query.tableId,
           user: req.user,
-          forceDeleteRelations: payload?.forceDeleteRelations,
           req,
         });
       case 'tableReorder':
@@ -195,7 +199,7 @@ export class UiPostOperations
           req,
         });
       case 'columnDelete':
-        return await this.columnsService.columnDelete(context, {
+        return await this.baseTrashService.trashField(context, {
           columnId: req.query.columnId,
           user: req.user,
           req,
@@ -696,7 +700,25 @@ export class UiPostOperations
           extensionId: req.query.extensionId,
           req,
         });
-
+      // Base trash
+      case 'baseTrashRestore':
+        return await this.baseTrashService.restore(context, {
+          trashId: payload.trashId,
+          user: req.user,
+          req,
+        });
+      case 'baseTrashPermanentDelete':
+        return await this.baseTrashService.permanentDelete(context, {
+          trashId: payload.trashId,
+          user: req.user,
+          req,
+        });
+      case 'baseTrashEmpty':
+        return await this.baseTrashService.emptyTrash(context, {
+          baseId: context.base_id,
+          user: req.user,
+          req,
+        });
     }
   }
 }

@@ -22,6 +22,7 @@ import type {
   GalleryViewUpdateEvent,
   GridColumnEvent,
   GridViewUpdateEvent,
+  IntegrationEvent,
   IntegrationUpdateEvent,
   KanbanViewUpdateEvent,
   ListViewUpdateEvent,
@@ -39,10 +40,14 @@ import type {
   ProjectDeleteEvent,
   ProjectInviteEvent,
   ProjectUpdateEvent,
+  ProjectUserDeleteEvent,
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
   RelationEvent,
+  ResourcePermanentDeleteEvent,
+  ResourceRestoreEvent,
   RowCommentEvent,
+  RowMentionEvent,
   SharedBaseDeleteEvent,
   SharedBaseEvent,
   SharedViewUpdateEvent,
@@ -74,12 +79,9 @@ import type {
   ViewEvent,
   ViewUpdateEvent,
   WebhookEvent,
+  WebhookUpdateEvent,
   WelcomeEvent,
 } from '~/services/app-hooks/interfaces';
-import type { IntegrationEvent } from '~/services/app-hooks/interfaces';
-import type { RowMentionEvent } from '~/services/app-hooks/interfaces';
-import type { WebhookUpdateEvent } from '~/services/app-hooks/interfaces';
-import type { ProjectUserDeleteEvent } from '~/services/app-hooks/interfaces';
 import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 
 const ALL_EVENTS = '__nc_all_events__';
@@ -469,6 +471,11 @@ export class AppHooksService {
   emit(
     event: AppEvents.DATE_DEPENDENCY_UPDATE | AppEvents.DATE_DEPENDENCY_DELETE,
     data: any,
+  ): void;
+  emit(event: AppEvents.RESOURCE_RESTORE, data: ResourceRestoreEvent): void;
+  emit(
+    event: AppEvents.RESOURCE_PERMANENT_DELETE,
+    data: ResourcePermanentDeleteEvent,
   ): void;
 
   emit(event, data): void {

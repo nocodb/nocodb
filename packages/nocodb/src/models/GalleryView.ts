@@ -81,7 +81,7 @@ export default class GalleryView implements GalleryType {
     view: Partial<GalleryView>,
     ncMeta = Noco.ncMeta,
   ) {
-    const columns = await View.get(context, view.fk_view_id, ncMeta)
+    const columns = await View.get(context, view.fk_view_id, false, ncMeta)
       .then((v) => v?.getModel(context, ncMeta))
       .then((m) => m.getColumns(context, ncMeta));
 
@@ -111,7 +111,12 @@ export default class GalleryView implements GalleryType {
 
     insertObj.meta = stringifyMetaProp(insertObj);
 
-    const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
+    const viewRef = await View.get(
+      context,
+      insertObj.fk_view_id,
+      false,
+      ncMeta,
+    );
 
     if (!insertObj.source_id) {
       insertObj.source_id = viewRef.source_id;
@@ -153,7 +158,7 @@ export default class GalleryView implements GalleryType {
       prepareForResponse(updateObj),
     );
 
-    const view = await View.get(context, galleryId, ncMeta);
+    const view = await View.get(context, galleryId, false, ncMeta);
 
     // on update, delete any optimised single query cache
     await View.clearSingleQueryCache(

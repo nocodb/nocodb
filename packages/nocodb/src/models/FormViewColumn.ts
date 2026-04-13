@@ -102,7 +102,12 @@ export default class FormViewColumn implements FormColumnType {
     }
 
     if (!insertObj.source_id) {
-      const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
+      const viewRef = await View.get(
+        context,
+        insertObj.fk_view_id,
+        false,
+        ncMeta,
+      );
       insertObj.source_id = viewRef.source_id;
     }
 

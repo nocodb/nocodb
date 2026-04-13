@@ -48,7 +48,7 @@ export class CalendarsService {
       NcError.get(context).schemaLocked();
     }
 
-    const model = await Model.get(context, param.tableId, ncMeta);
+    const model = await Model.get(context, param.tableId, false, ncMeta);
 
     param.calendar.title = param.calendar.title?.trim();
     const existingView = await View.getByTitleOrId(
@@ -97,7 +97,7 @@ export class CalendarsService {
       ncMeta,
     );
 
-    const view = await View.get(context, id, ncMeta);
+    const view = await View.get(context, id, false, ncMeta);
 
     await NocoCache.appendToList(
       context,
@@ -158,7 +158,7 @@ export class CalendarsService {
       param.calendar,
     );
 
-    const view = await View.get(context, param.calendarViewId, ncMeta);
+    const view = await View.get(context, param.calendarViewId, false, ncMeta);
 
     if (!view) {
       NcError.viewNotFound(param.calendarViewId);

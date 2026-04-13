@@ -20,6 +20,7 @@ import { MapsService } from '~/services/maps.service';
 import { CommentsService } from '~/services/comments.service';
 import { SyncService } from '~/services/sync.service';
 import { ExtensionsService } from '~/services/extensions.service';
+import { BaseTrashService } from '~/services/base-trash.service';
 @Injectable()
 export class UiGetOperations
   implements InternalApiModule<InternalGETResponseType>
@@ -39,6 +40,7 @@ export class UiGetOperations
     protected commentsService: CommentsService,
     protected syncService: SyncService,
     protected extensionsService: ExtensionsService,
+    protected baseTrashService: BaseTrashService,
   ) {}
   operations = [
     'nestedDataList' as const,
@@ -70,6 +72,7 @@ export class UiGetOperations
     'extensionRead' as const,
     'listViewDataList' as const,
     'listViewDataCount' as const,
+    'baseTrashList' as const,
   ];
   httpMethod = 'GET' as const;
 
@@ -259,7 +262,14 @@ export class UiGetOperations
         return await this.extensionsService.extensionRead(context, {
           extensionId: req.query.extensionId as string,
         });
-
+      // Base trash
+      case 'baseTrashList':
+        return await this.baseTrashService.trashList(context, {
+          baseId: context.base_id,
+          resourceType: req.query.resourceType as string,
+          limit: req.query.limit ? Number(req.query.limit) : undefined,
+          offset: req.query.offset ? Number(req.query.offset) : undefined,
+        });
     }
   }
 }

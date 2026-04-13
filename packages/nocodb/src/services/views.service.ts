@@ -26,6 +26,7 @@ import {
 } from '~/models';
 import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { BaseTrashService } from '~/services/base-trash.service';
 import NocoSocket from '~/socket/NocoSocket';
 import {
   type ViewWebhookManager,
@@ -89,7 +90,10 @@ async function xcVisibilityMetaGet(
 
 @Injectable()
 export class ViewsService {
-  constructor(private appHooksService: AppHooksService) {}
+  constructor(
+    private appHooksService: AppHooksService,
+    private baseTrashService: BaseTrashService,
+  ) {}
 
   async viewList(
     context: NcContext,
@@ -173,7 +177,7 @@ export class ViewsService {
       NcError.get(context).schemaLocked();
     }
 
-    const oldView = await View.get(context, param.viewId, ncMeta);
+    const oldView = await View.get(context, param.viewId, false, ncMeta);
 
     if (!oldView) {
       NcError.get(context).viewNotFound(param.viewId);
@@ -226,7 +230,12 @@ export class ViewsService {
       // Check if this is the last collaborative grid view
       // Prevent changing to personal if this is the only non-personal grid view
       if (oldView.type === ViewTypes.GRID) {
-        const views = await View.list(context, oldView.fk_model_id, ncMeta);
+        const views = await View.list(
+          context,
+          oldView.fk_model_id,
+          false,
+          ncMeta,
+        );
         const otherNonPersonalGridView = getFirstNonPersonalView(
           views.filter((v) => v.id !== oldView.id),
           { includeViewType: ViewTypes.GRID },
@@ -370,13 +379,13 @@ export class ViewsService {
       NcError.get(context).schemaLocked();
     }
 
-    const view = await View.get(context, param.viewId, ncMeta);
+    const view = await View.get(context, param.viewId, false, ncMeta);
 
     if (!view) {
       NcError.get(context).viewNotFound(param.viewId);
     }
 
-    const views = await View.list(context, view.fk_model_id, ncMeta);
+    const views = await View.list(context, view.fk_model_id, false, ncMeta);
 
     // Check if this is the last collaborative grid view
     // Use helper to find if there's at least one other non-personal grid view
@@ -404,7 +413,13 @@ export class ViewsService {
       ).withViewId(view.id)
     ).forDelete();
 
-    await View.delete(context, param.viewId, ncMeta);
+    await this.baseTrashService.trashResource(context, {
+      resourceId: param.viewId,
+      resourceType: 'view',
+      user: param.user,
+      req: param.req,
+      ncMeta,
+    });
 
     let deleteEvent = AppEvents.GRID_DELETE;
 
@@ -573,7 +588,7 @@ export class ViewsService {
   ) {
     let viewWebhookManager: ViewWebhookManager;
     if (!param.viewWebhookManager) {
-      const view = await View.get(context, param.viewId, ncMeta);
+      const view = await View.get(context, param.viewId, false, ncMeta);
       viewWebhookManager =
         param.viewWebhookManager ??
         (
@@ -627,7 +642,7 @@ export class ViewsService {
   ) {
     let viewWebhookManager: ViewWebhookManager;
     if (!param.viewWebhookManager) {
-      const view = await View.get(context, param.viewId, ncMeta);
+      const view = await View.get(context, param.viewId, false, ncMeta);
       viewWebhookManager =
         param.viewWebhookManager ??
         (

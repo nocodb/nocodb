@@ -504,6 +504,8 @@
     "seconds": "Seconds",
     "paste": "Paste",
     "restore": "Restore",
+    "permanentDelete": "Permanently Delete",
+    "emptyTrash": "Empty Trash",
     "replace": "Replace",
     "banner": "Banner",
     "logo": "Logo",
@@ -610,6 +612,8 @@
     "automations": "Automations",
     "dashboard": "Dashboard",
     "dashboards": "Dashboards",
+    "widget": "Widget",
+    "extension": "Extension",
     "workflow": "Workflow",
     "workflows": "Workflows",
     "file": "file",
@@ -1002,6 +1006,8 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "trash": "Trash",
+    "baseTrash": "Base Trash",
     "noWorkspaceAccess": "No workspace access",
     "convertLegacyLink": "Upgrade Link Field",
     "versionHistory": "Version History",
@@ -3213,6 +3219,7 @@
       "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
+      "trashEmpty": "Trash is empty",
       "contactAdminForAccess": "You haven't been added to any workspace yet. Contact your administrator to get access.",
       "licenseRequiresPostgres": "Enterprise licensing requires PostgreSQL. Please migrate to PostgreSQL to activate your license key.",
       "licensesUpToDate": "All licenses are up to date",
@@ -3677,6 +3684,9 @@
       "nRecordsCreated": "{n} records created"
     },
     "success": {
+      "restored": "Item restored successfully",
+      "permanentlyDeleted": "Item permanently deleted",
+      "trashEmptied": "Trash emptied successfully",
       "licensesSynced": "{count} license synced from Stripe | {count} licenses synced from Stripe",
       "createdRecords": "Created {count} record | Created {count} records",
       "workflowDisabled": "Workflow de-activated successfully",
@@ -3772,5 +3782,11 @@
     "tryAgain": "Try Again",
     "internalUrlsNotAllowed": "Internal URLs are not allowed",
     "cyclicCallsWarning": "This URL points to the same NocoDB instance which may cause cyclic calls"
+  },
+  "trash": {
+    "autoExpiry": "Items are automatically deleted after the retention period",
+    "confirmEmpty": "All items in trash will be permanently deleted. This cannot be undone.",
+    "confirmPermanentDelete": "{name} will be permanently deleted. This cannot be undone.",
+    "restoreParentFirst": "Restore \"{parent}\" first to restore this item"
   }
 }

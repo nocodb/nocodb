@@ -128,6 +128,7 @@ export enum MetaTable {
   DOCS = 'nc_docs_v2',
   DOC_CONTENT = 'nc_doc_content_v2',
   API_TOKEN_SCOPES = 'nc_api_token_scopes',
+  TRASH = 'nc_trash',
 }
 
 export const BaseRelatedMetaTables = [
@@ -191,6 +192,17 @@ export const BaseRelatedMetaTables = [
   MetaTable.DEPENDENCY_TRACKER,
   MetaTable.DOCS,
   MetaTable.DOC_CONTENT,
+  MetaTable.TRASH,
+];
+
+export const SoftDeleteMetaTables = [
+  MetaTable.MODELS,
+  MetaTable.COLUMNS,
+  MetaTable.VIEWS,
+  MetaTable.AUTOMATIONS,
+  MetaTable.DASHBOARDS,
+  MetaTable.WIDGETS,
+  MetaTable.EXTENSIONS,
 ];
 
 export enum MetaTableOldV2 {
@@ -300,6 +312,8 @@ export const orderedMetaTables = [
   MetaTable.COL_BUTTON,
   MetaTable.COLUMN_VALIDATIONS,
   MetaTable.COLUMNS,
+
+  MetaTable.TRASH,
 
   // Model-related
   MetaTable.RECORD_TEMPLATES,
@@ -506,6 +520,7 @@ export enum CacheScope {
   DOCUMENT = 'document',
   DOC_CONTENT = 'docContent',
   API_TOKEN_SCOPE = 'apiTokenScope',
+  TRASH = 'trash',
 }
 
 export enum CacheGetType {

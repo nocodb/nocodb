@@ -47,7 +47,7 @@ export class SortsService {
       ncMeta,
     );
 
-    const view = await View.get(context, sort.fk_view_id, ncMeta);
+    const view = await View.get(context, sort.fk_view_id, false, ncMeta);
 
     const viewWebhookManager =
       param.viewWebhookManager ??
@@ -129,7 +129,7 @@ export class SortsService {
       ncMeta,
     );
 
-    const view = await View.get(context, sort.fk_view_id, ncMeta);
+    const view = await View.get(context, sort.fk_view_id, false, ncMeta);
 
     const viewWebhookManager =
       param.viewWebhookManager ??
@@ -204,7 +204,7 @@ export class SortsService {
       }
     }
 
-    const view = await View.get(context, param.viewId, ncMeta);
+    const view = await View.get(context, param.viewId, false, ncMeta);
 
     if (!view) {
       NcError.badRequest('View not found');

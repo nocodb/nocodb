@@ -106,6 +106,7 @@ import { SortsService } from '~/services/sorts.service';
 import { SourcesService } from '~/services/sources.service';
 import { SyncService } from '~/services/sync.service';
 import { TablesService } from '~/services/tables.service';
+import { BaseTrashService } from '~/services/base-trash.service';
 import { UtilsService } from '~/services/utils.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import { ViewsService } from '~/services/views.service';
@@ -313,6 +314,7 @@ export const nocoModuleMetadata = {
     ViewColumnsService,
     UtilsService,
     TablesService,
+    BaseTrashService,
     SyncService,
     SortsService,
     SharedBasesService,
@@ -409,6 +411,7 @@ export const nocoModuleMetadata = {
     UtilsService,
     IntegrationsService,
     NocoJobsService,
+    BaseTrashService,
     ViewRowColorService,
     ViewRowColorV3Service,
     DependencyService,

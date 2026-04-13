@@ -458,7 +458,13 @@ export async function populateMeta(
               fk_parent_column_id: ref_rel_column_id,
               fk_index_name: rel.cstn,
               ur: rel.ur,
-              dr: rel.dr,
+              // only persist ON DELETE when it is RESTRICT/NO ACTION
+              // (RESTRICT is treated as NO ACTION); otherwise leave null
+              dr: ['RESTRICT', 'NO ACTION'].includes(
+                (rel.dr ?? '').toUpperCase(),
+              )
+                ? 'NO ACTION'
+                : null,
               order: colOrder++,
               fk_related_model_id: column.hm ? tnId : rtnId,
               system: column.system,

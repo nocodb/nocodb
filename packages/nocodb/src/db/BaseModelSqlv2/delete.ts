@@ -11,7 +11,11 @@ import type { NcRequest } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { LinkToAnotherRecordColumn } from '~/models';
-import { _wherePk, getCompositePkValue } from '~/helpers/dbHelpers';
+import {
+  _wherePk,
+  getCompositePkValue,
+  shouldCascadeLinkCleanup,
+} from '~/helpers/dbHelpers';
 import conditionV2 from '~/db/conditionV2';
 import { Column, FileReference, Filter, Model } from '~/models';
 
@@ -113,8 +117,8 @@ export class BaseModelDelete {
     const isMeta = source.isMeta();
 
     for (const column of this.baseModel.model.columns) {
-      // if not meta or has composite pk then do not care about links
-      if (!isMeta || this.baseModel.model.primaryKeys.length > 1) break;
+      // composite pk: cannot cascade via simple whereIn — skip all link handling
+      if (this.baseModel.model.primaryKeys.length > 1) break;
       if (!isLinksOrLTAR(column)) continue;
 
       const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
@@ -127,6 +131,15 @@ export class BaseModelDelete {
       if (colOptions.type === 'bt') {
         continue;
       }
+
+      const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
+
+      const shouldCascadeHere = await shouldCascadeLinkCleanup(
+        this.baseModel.context,
+        { isMeta: !!isMeta, relationType, colOptions, mmContext },
+      );
+
+      if (!shouldCascadeHere) continue;
 
       const childColumn = await colOptions.getChildColumn(childContext);
       const parentColumn = await colOptions.getParentColumn(parentContext);
@@ -142,7 +155,6 @@ export class BaseModelDelete {
 
       const childTn = childBaseModel.getTnPath(childTable);
 
-      const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
       switch (relationType) {
         case 'mm':
           {

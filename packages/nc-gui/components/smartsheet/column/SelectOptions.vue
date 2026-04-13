@@ -577,6 +577,7 @@ if (!isKanbanStack.value) {
               :auto-close="false"
               overlay-class-name="nc-select-option-color-picker"
               :disabled="isLoadingPredictOptions"
+              use-backdrop
             >
               <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
                 <div
@@ -673,7 +674,7 @@ if (!isKanbanStack.value) {
                   <component :is="iconMap.dragVertical" small class="handle" />
                 </div>
 
-                <NcDropdown v-if="isColorCodeEnabled" v-model:visible="colorMenus[index]" :auto-close="false">
+                <NcDropdown v-if="isColorCodeEnabled" v-model:visible="colorMenus[index]" :auto-close="false" use-backdrop>
                   <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
                     <div
                       class="h-6 w-6 rounded flex items-center"

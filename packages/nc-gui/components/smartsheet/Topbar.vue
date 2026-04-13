@@ -26,7 +26,7 @@ const { isPanelExpanded: isChatPanelExpanded } = useChatPanel()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { showEEFeatures } = useEeConfig()
+const { isEEFeatureBlocked, blockExtensions, showUpgradeToUseExtensions } = useEeConfig()
 
 const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
@@ -88,7 +88,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
 
         <NcButton
           v-if="
-            ((isEeUI && showEEFeatures) || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
+            (isEeUI || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
             !isSharedBase &&
             !activeScriptId &&
             !activeDashboardId &&
@@ -102,7 +102,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
           class="nc-topbar-extension-btn"
           :class="{ '!bg-nc-bg-brand !hover:bg-nc-brand-100/70 !text-nc-content-brand': isPanelExpanded }"
           data-testid="nc-topbar-extension-btn"
-          @click="toggleExtensionPanel"
+          @click="blockExtensions && !isPanelExpanded ? showUpgradeToUseExtensions() : toggleExtensionPanel()"
         >
           <div class="flex items-center justify-center min-w-[28.69px]">
             <GeneralIcon
@@ -131,7 +131,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
             openedViewsTab === 'view' &&
             !isMobileMode &&
             isViewActionsEnabled &&
-            showEEFeatures
+            !isEEFeatureBlocked
           "
           v-e="['c:action-toggle']"
           type="secondary"

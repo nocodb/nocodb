@@ -68,7 +68,7 @@ export const useExtensions = createSharedComposable(() => {
 
   const { base } = storeToRefs(useBase())
 
-  const { updateStatLimit } = useEeConfig()
+  const { updateStatLimit, blockExtensions, showUpgradeToUseExtensions } = useEeConfig()
 
   const { isSharedBase } = storeToRefs(useWorkspace())
 
@@ -151,6 +151,11 @@ export const useExtensions = createSharedComposable(() => {
   }
 
   const addExtension = async (extension: any) => {
+    if (blockExtensions.value) {
+      showUpgradeToUseExtensions()
+      return
+    }
+
     if (!base.value || !base.value.id || !baseExtensions.value[base.value.id]) {
       return
     }

@@ -128,7 +128,7 @@ const getTiptapExtensions = () => {
       emptyEditorClass: 'is-editor-empty',
       placeholder: props.placeholder,
     }),
-    Markdown.configure({ breaks: true, transformPastedText: true, renderImagesAsLinks: !appInfo.value?.ee }),
+    Markdown.configure({ breaks: true, transformPastedText: true, renderImagesAsLinks: !isEeUI }),
   ]
 
   if (appInfo.value.ee && !props.hideMention) {

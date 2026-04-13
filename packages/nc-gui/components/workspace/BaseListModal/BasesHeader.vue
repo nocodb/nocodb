@@ -36,7 +36,7 @@ const isSuperAdmin = computed(() => !!orgRoles.value?.[OrgUserRoles.SUPER_ADMIN]
 // Filter options in priority order: Starred → Private → Managed → Owned
 const filterOptions = computed<NcListItemType[]>(() => [
   { value: 'all', label: t('activity.allBases'), icon: 'ncList' },
-  ...(appInfo.ee
+  ...(appInfo.value.ee
     ? [
         { value: 'starred', label: t('general.starred'), icon: 'star' },
         ...(showEEFeatures.value

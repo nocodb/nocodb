@@ -116,7 +116,7 @@ const filteredWorkspaceList = computed(() => {
 
   return workspacesList.value.filter(
     (ws) =>
-      (!showEEFeatures.value && ws.id === activeWorkspaceId.value) ||
+      (isEEFeatureBlocked.value && ws.id === activeWorkspaceId.value) ||
       searchCompare(ws.title ?? '', searchQuery.value) ||
       baseListAllMatchByWs.value.has(ws.id),
   )
@@ -145,7 +145,7 @@ const hasNoResults = computed(() => {
     <div class="px-3 py-1 flex items-center">
       <a-input
         v-model:value="searchQuery"
-        :placeholder="showEEFeatures ? $t('placeholder.searchWorkspacesAndBases') : $t('activity.searchProject')"
+        :placeholder="!isEEFeatureBlocked ? $t('placeholder.searchWorkspacesAndBases') : $t('activity.searchProject')"
         allow-clear
         class="nc-input-border-on-value nc-home-sidebar-search nc-input-sm"
       >

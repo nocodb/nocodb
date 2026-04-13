@@ -397,6 +397,7 @@ export const useEeConfig = createSharedComposable(() => {
   const blockCustomUrls = computed(() => isEEFeatureBlocked.value)
   const blockScripts = computed(() => isEEFeatureBlocked.value)
   const blockWorkflows = computed(() => isEEFeatureBlocked.value)
+  const blockExtensions = computed(() => isEEFeatureBlocked.value)
   const blockWorkspaceCreate = computed(() => {
     if (isEEFeatureBlocked.value) return true
 
@@ -1989,6 +1990,11 @@ export const useEeConfig = createSharedComposable(() => {
     return showUpgradeForEEFeature(t('upgrade.features.workflows'))
   }
 
+  const showUpgradeToUseExtensions = () => {
+    if (!blockExtensions.value) return
+    return showUpgradeForEEFeature(t('upgrade.features.extensions'))
+  }
+
   const showUpgradeToCreateWorkspace = () => {
     if (!blockWorkspaceCreate.value) return
 
@@ -2143,6 +2149,8 @@ export const useEeConfig = createSharedComposable(() => {
     blockCustomUrls,
     blockScripts,
     blockWorkflows,
+    blockExtensions,
+    showUpgradeToUseExtensions,
     blockWorkspaceCreate,
     blockWorkspaceMembers,
     showUpgradeToUseSSO,

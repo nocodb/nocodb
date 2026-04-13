@@ -12,7 +12,11 @@ import { NcError } from '~/helpers/catchError';
 export class ViewTrashHandler implements TrashHandler<View> {
   resourceType = 'view';
 
-  async trash(ctx: NcContext, id: string): Promise<TrashResult<View>> {
+  async trash(
+    ctx: NcContext,
+    id: string,
+    ncMeta?: any,
+  ): Promise<TrashResult<View>> {
     const view = await View.get(ctx, id);
     if (!view) {
       NcError.get(ctx).genericNotFound('view', id);
@@ -20,7 +24,7 @@ export class ViewTrashHandler implements TrashHandler<View> {
 
     const table = await Model.getByIdOrName(ctx, { id: view.fk_model_id });
 
-    await View.softDelete(ctx, id, true);
+    await View.softDelete(ctx, id, true, ncMeta);
 
     const meta: Record<string, any> = {};
     if (view.type != null) meta.viewType = view.type;

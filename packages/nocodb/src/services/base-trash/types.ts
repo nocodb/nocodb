@@ -1,4 +1,5 @@
 import type { NcContext } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import type BaseTrash from '~/models/BaseTrash';
 
 export interface TrashResult<T = any> {
@@ -16,11 +17,23 @@ export interface TrashHandler<T = any> {
   /** Child resource types whose trash entries should be cleaned on permanent delete */
   childTypes?: string[];
 
-  trash(ctx: NcContext, id: string): Promise<TrashResult<T>>;
+  trash(
+    ctx: NcContext,
+    id: string,
+    ncMeta?: MetaService,
+  ): Promise<TrashResult<T>>;
 
-  restore(ctx: NcContext, trashEntry: BaseTrash): Promise<void>;
+  restore(
+    ctx: NcContext,
+    trashEntry: BaseTrash,
+    ncMeta?: MetaService,
+  ): Promise<void>;
 
-  permanentDelete(ctx: NcContext, trashEntry: BaseTrash): Promise<void>;
+  permanentDelete(
+    ctx: NcContext,
+    trashEntry: BaseTrash,
+    ncMeta?: MetaService,
+  ): Promise<void>;
 }
 
 export const TRASH_HANDLER_TOKEN = 'TRASH_HANDLERS';

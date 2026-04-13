@@ -4,6 +4,7 @@ import { TRASH_HANDLER_TOKEN } from './types';
 import type { OnModuleInit } from '@nestjs/common';
 import type { UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import type { TrashHandler } from './types';
 import BaseTrash from '~/models/BaseTrash';
 import { NcError } from '~/helpers/catchError';
@@ -92,7 +93,11 @@ export class BaseTrashService implements OnModuleInit {
 
   private async insertTrashEntry(
     context: NcContext,
-    param: { resourceType: string; user: Partial<UserType> },
+    param: {
+      resourceType: string;
+      user: Partial<UserType>;
+      ncMeta?: MetaService;
+    },
     result: Awaited<ReturnType<TrashHandler['trash']>>,
   ) {
     const retentionDays = await this.getRetentionDays(context.workspace_id);
@@ -100,27 +105,31 @@ export class BaseTrashService implements OnModuleInit {
     const cleanupDueAt = new Date(deletedAt);
     cleanupDueAt.setDate(cleanupDueAt.getDate() + retentionDays);
 
-    await BaseTrash.insert(context, {
-      fk_workspace_id: context.workspace_id,
-      base_id: result.entity.base_id,
-      resource_type: param.resourceType as BaseTrash['resource_type'],
-      resource_id: result.entity.id,
-      name: result.entity.title,
-      deleted_by: param.user.id,
-      deleted_at: deletedAt.toISOString(),
-      cleanup_due_at: cleanupDueAt.toISOString(),
-      ...(result.parentType
-        ? {
-            parent_type: result.parentType,
-            parent_id: result.parentId,
-            parent_name: result.parentName,
-          }
-        : {}),
-      ...(result.relatedItems
-        ? { related_items: JSON.stringify(result.relatedItems) }
-        : {}),
-      ...(result.meta ? { meta: result.meta } : {}),
-    });
+    await BaseTrash.insert(
+      context,
+      {
+        fk_workspace_id: context.workspace_id,
+        base_id: result.entity.base_id,
+        resource_type: param.resourceType as BaseTrash['resource_type'],
+        resource_id: result.entity.id,
+        name: result.entity.title,
+        deleted_by: param.user.id,
+        deleted_at: deletedAt.toISOString(),
+        cleanup_due_at: cleanupDueAt.toISOString(),
+        ...(result.parentType
+          ? {
+              parent_type: result.parentType,
+              parent_id: result.parentId,
+              parent_name: result.parentName,
+            }
+          : {}),
+        ...(result.relatedItems
+          ? { related_items: JSON.stringify(result.relatedItems) }
+          : {}),
+        ...(result.meta ? { meta: result.meta } : {}),
+      },
+      param.ncMeta,
+    );
   }
 
   async trashResource(
@@ -130,10 +139,11 @@ export class BaseTrashService implements OnModuleInit {
       resourceType: string;
       user: Partial<UserType>;
       req: NcRequest;
+      ncMeta?: MetaService;
     },
   ) {
     const handler = this.getHandler(param.resourceType);
-    const result = await handler.trash(context, param.resourceId);
+    const result = await handler.trash(context, param.resourceId, param.ncMeta);
     await this.insertTrashEntry(context, param, result);
     return true;
   }

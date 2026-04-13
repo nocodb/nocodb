@@ -109,6 +109,7 @@ import {
   isPrimitiveType,
   nanoidv2,
   populatePk,
+  shouldCascadeLinkCleanup,
   transformObjectKeys,
   validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
@@ -2360,9 +2361,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         );
 
         const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
+
+        const shouldCascadeHere = await shouldCascadeLinkCleanup(this.context, {
+          isMeta: !!source.isMeta(),
+          relationType,
+          colOptions,
+          mmContext,
+        });
+
         switch (relationType) {
           case 'mm':
             {
+              if (!shouldCascadeHere) break;
+
               const mmTable = await Model.get(
                 this.context,
                 colOptions.fk_mm_model_id,
@@ -2387,6 +2398,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             break;
           case 'hm':
             {
+              if (!shouldCascadeHere) break;
+
               // skip if it's an mm table column
               const relatedTable = await colOptions.getRelatedTable(refContext);
 
@@ -3955,7 +3968,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ids: any[],
       ) => Promise<any>)[] = [];
 
-      const base = await this.getSource();
+      const source = await this.getSource();
 
       for (const column of this.model.columns) {
         if (!isLinksOrLTAR(column)) continue;
@@ -3966,9 +3979,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           await colOptions.getParentChildContext(this.context);
 
         const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
+
+        const shouldCascadeHere = await shouldCascadeLinkCleanup(this.context, {
+          isMeta: !!source.isMeta(),
+          relationType,
+          colOptions,
+          mmContext,
+        });
+
         switch (relationType) {
           case 'mm':
             {
+              if (!shouldCascadeHere) break;
+
               const mmTable = await Model.get(
                 mmContext,
                 colOptions.fk_mm_model_id,
@@ -3986,6 +4009,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             break;
           case 'hm':
             {
+              if (!shouldCascadeHere) break;
+
               // skip if it's an mm table column
               const relatedTable = await colOptions.getRelatedTable(refContext);
               if (relatedTable.mm) {
@@ -4017,7 +4042,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       transaction = await this.dbDriver.transaction();
 
-      if (base.isMeta() && execQueries.length > 0) {
+      // execQueries are pre-filtered above: pushed only when NocoDB must
+      // cascade itself (meta source, or external FK with dr === 'NO ACTION').
+      if (execQueries.length > 0) {
         for (const execQuery of execQueries) {
           await execQuery(transaction, idsVals);
         }

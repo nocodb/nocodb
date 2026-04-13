@@ -118,6 +118,7 @@ type MetaDiffChange = {
       rcn?: string;
       relationType: RelationTypes;
       cstn?: string;
+      dr?: string;
     }
   | {
       type: MetaDiffType.TABLE_COLUMN_PROPS_CHANGED;
@@ -177,6 +178,7 @@ export class MetaDiffsService {
       rcn: string;
       found?: any;
       cstn?: string;
+      dr?: string;
     }> = (
       await sqlClient.relationListAll({ schema: source.getConfig()?.schema })
     )?.data?.list;
@@ -544,6 +546,7 @@ export class MetaDiffsService {
             msg: `New relation added`,
             relationType: RelationTypes.BELONGS_TO,
             cstn: relation.cstn,
+            dr: relation.dr,
           });
       }
       if (
@@ -560,6 +563,7 @@ export class MetaDiffsService {
             rcn: relation.rcn,
             msg: `New relation added`,
             relationType: RelationTypes.HAS_MANY,
+            dr: relation.dr,
           });
       }
     }
@@ -982,6 +986,14 @@ export class MetaDiffsService {
                   system: true,
                 });
 
+                // only persist ON DELETE when it is RESTRICT/NO ACTION
+                // (RESTRICT is treated as NO ACTION); otherwise leave null
+                const dr = ['RESTRICT', 'NO ACTION'].includes(
+                  (change.dr ?? '').toUpperCase(),
+                )
+                  ? 'NO ACTION'
+                  : null;
+
                 if (change.relationType === RelationTypes.BELONGS_TO) {
                   const title = getUniqueColumnAliasName(
                     childModel.columns,
@@ -997,6 +1009,7 @@ export class MetaDiffsService {
                     fk_child_column_id: childCol.id,
                     virtual: false,
                     fk_index_name: change.cstn,
+                    dr,
                   });
                 } else if (change.relationType === RelationTypes.HAS_MANY) {
                   const title = getUniqueColumnAliasName(
@@ -1013,6 +1026,7 @@ export class MetaDiffsService {
                     fk_child_column_id: childCol.id,
                     virtual: false,
                     fk_index_name: change.cstn,
+                    dr,
                     meta: {
                       plural: pluralize(childModel.title),
                       singular: singularize(childModel.title),

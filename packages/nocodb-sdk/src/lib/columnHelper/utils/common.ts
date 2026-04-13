@@ -40,3 +40,7 @@ export const checkboxTypeMap = {
   off: false,
   false: false,
 };
+
+export function isColumnInError(column: any): boolean {
+  return !!(column as any)?.colOptions?.error;
+}

@@ -104,6 +104,19 @@ export class SortsService {
 
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
+    if (param.sort.fk_column_id) {
+      const col = await Column.get(
+        context,
+        { colId: param.sort.fk_column_id },
+        ncMeta,
+      );
+      if (col?.colOptions?.error) {
+        NcError.get(context).badRequest(
+          `Cannot use column '${col.title}' in sort: ${col.colOptions.error}`,
+        );
+      }
+    }
+
     const sort = await Sort.get(context, param.sortId, ncMeta);
 
     if (!sort) {
@@ -177,6 +190,19 @@ export class SortsService {
       NcError.get(context).schemaLocked();
     }
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
+
+    if (param.sort.fk_column_id) {
+      const col = await Column.get(
+        context,
+        { colId: param.sort.fk_column_id },
+        ncMeta,
+      );
+      if (col?.colOptions?.error) {
+        NcError.get(context).badRequest(
+          `Cannot use column '${col.title}' in sort: ${col.colOptions.error}`,
+        );
+      }
+    }
 
     const view = await View.get(context, param.viewId, ncMeta);
 

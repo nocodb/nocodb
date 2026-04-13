@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { type ColumnType, type LinkToAnotherRecordType, type SortType, UITypesName } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isColumnInError, isHiddenCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 
 import rfdc from 'rfdc'
 
@@ -71,11 +71,13 @@ const options = computed<ColumnType[]>(() =>
       })
       .filter((c: ColumnType) => !props.sorts?.find((s) => s.fk_column_id === c.id)) ?? []
   ).map((c) => {
-    const isDisabled = [UITypes.QrCode, UITypes.Barcode, UITypes.ID, UITypes.Button].includes(c.uidt)
+    const isDisabled = [UITypes.QrCode, UITypes.Barcode, UITypes.ID, UITypes.Button].includes(c.uidt) || isColumnInError(c)
 
     if (isDisabled) {
       c.ncItemDisabled = true
-      c.ncItemTooltip = `Sorting is not supported for ${UITypesName[c.uidt]} field`
+      c.ncItemTooltip = isColumnInError(c)
+        ? 'Sorting is not supported for fields with errors'
+        : `Sorting is not supported for ${UITypesName[c.uidt]} field`
     }
 
     return c

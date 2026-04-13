@@ -39,11 +39,15 @@ export async function getColumnNameQuery({
     const colOpt = await column.getColOptions<BarcodeColumn | QrCodeColumn>(
       context,
     );
-    if (colOpt.error) {
+    if (!colOpt || colOpt.error) {
+      return { builder: NC_ERROR_SENTINEL };
+    }
+    const valueColumn = await colOpt.getValueColumn(context);
+    if (!valueColumn) {
       return { builder: NC_ERROR_SENTINEL };
     }
     column = new Column({
-      ...(await colOpt.getValueColumn(context)),
+      ...valueColumn,
       id: column.id,
     });
   }
@@ -72,7 +76,7 @@ export async function getColumnNameQuery({
     case UITypes.Links:
     case UITypes.Rollup: {
       const rollupOpt = (await column.getColOptions(context)) as RollupColumn;
-      if (rollupOpt.error) break;
+      if (!rollupOpt || rollupOpt.error) break;
       const knex = baseModelSqlv2.dbDriver;
       column_name_query = await genRollupSelectv2({
         baseModelSqlv2,

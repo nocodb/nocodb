@@ -185,8 +185,10 @@ export class PublicMetasService {
         relatedMetas,
       });
     } else if (UITypes.Lookup === col.uidt) {
+      const lookupColOption = await col.getColOptions<LookupColumn>(context);
+      if (lookupColOption?.error) return;
       await this.extractLookupRelatedMetas(context, {
-        lookupColOption: await col.getColOptions<LookupColumn>(context),
+        lookupColOption,
         relatedMetas,
       });
     }
@@ -263,6 +265,8 @@ export class PublicMetasService {
       colId: lookupColOption.fk_relation_column_id,
     });
 
+    if (!relationCol) return;
+
     const { refContext = context } =
       (relationCol.colOptions as LinkToAnotherRecordColumn)?.getRelContext?.(
         context,
@@ -271,6 +275,8 @@ export class PublicMetasService {
     const lookedUpCol = await Column.get(refContext, {
       colId: lookupColOption.fk_lookup_column_id,
     });
+
+    if (!lookedUpCol) return;
 
     // extract meta for table which belongs the relation column
     // if not already extracted

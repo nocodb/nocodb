@@ -124,19 +124,21 @@ async function processColumnToSwaggerField(
           context,
           ncMeta,
         );
-        if (colOpt) {
+        if (colOpt && !colOpt.error) {
           const lookupCol = await colOpt.getLookupColumn(context);
-          return await processColumnToSwaggerField(
-            context,
-            {
-              column: lookupCol,
-              base,
-              dbType,
-              sourcesMap,
-              isLookupHelper: true,
-            },
-            ncMeta,
-          );
+          if (lookupCol) {
+            return await processColumnToSwaggerField(
+              context,
+              {
+                column: lookupCol,
+                base,
+                dbType,
+                sourcesMap,
+                isLookupHelper: true,
+              },
+              ncMeta,
+            );
+          }
         }
         setAsAnyType(field);
       } else {
@@ -145,8 +147,12 @@ async function processColumnToSwaggerField(
           context,
           ncMeta,
         );
-        if (colOpt) {
+        if (colOpt && !colOpt.error) {
           const relationCol = await colOpt.getRelationColumn(context);
+          if (!relationCol) {
+            setAsAnyType(field);
+            break;
+          }
           const relationColOpt =
             await relationCol.getColOptions<LinkToAnotherRecordColumn>(
               context,

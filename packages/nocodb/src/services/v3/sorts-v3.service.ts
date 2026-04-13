@@ -85,6 +85,19 @@ export class SortsV3Service {
       NcError.notFound('Sort not found');
     }
 
+    if (param.sort.field_id) {
+      const column = await Column.get(
+        context,
+        { colId: param.sort.field_id },
+        ncMeta,
+      );
+      if (column?.colOptions?.error) {
+        NcError.get(context).badRequest(
+          `Cannot use column '${column.title}' in sort: ${column.colOptions.error}`,
+        );
+      }
+    }
+
     const updateObj = this.revBuilder().build(param.sort);
     await this.sortsService.sortUpdate(
       context,
@@ -136,6 +149,12 @@ export class SortsV3Service {
 
     if (!column) {
       NcError.get(context).notFound('Column not found');
+    }
+
+    if (column.colOptions?.error) {
+      NcError.get(context).badRequest(
+        `Cannot use column '${column.title}' in sort: ${column.colOptions.error}`,
+      );
     }
 
     const sort = await this.sortsService.sortCreate(

@@ -69,6 +69,10 @@ export default async function genRollupSelectv2(param: {
   }
   profiler.log('getRelationColumn done');
 
+  if (!relationColumn) {
+    return { builder: knex.raw(`?`, [NC_ERROR_SENTINEL]) };
+  }
+
   const relationColumnOption: LinkToAnotherRecordColumn =
     (await relationColumn.getColOptions(context)) as LinkToAnotherRecordColumn;
   const { parentContext, childContext, mmContext, refContext } =

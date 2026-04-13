@@ -14,7 +14,7 @@ import type { MetaService } from '~/meta/meta.service';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { Filter, Hook, View } from '~/models';
+import { Column, Filter, Hook, View } from '~/models';
 import RowColorCondition from '~/models/RowColorCondition';
 import Noco from '~/Noco';
 import NocoSocket from '~/socket/NocoSocket';
@@ -243,6 +243,17 @@ export class FiltersV3Service {
 
     // if not filter group simply insert filter
     if ('field_id' in groupOrFilter && (groupOrFilter as any).field_id) {
+      const filterColumn = await Column.get(
+        context,
+        { colId: (groupOrFilter as any).field_id },
+        ncMeta,
+      );
+      if (filterColumn?.colOptions?.error) {
+        NcError.get(context).badRequest(
+          `Cannot use column '${filterColumn.title}' in filter: ${filterColumn.colOptions.error}`,
+        );
+      }
+
       const filter = await Filter.insert(
         context,
         {

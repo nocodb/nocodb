@@ -112,6 +112,13 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       if (!column) {
         NcError.get(baseModel.context).fieldNotFound(col);
       }
+
+      if (column.colOptions?.error) {
+        NcError.get(baseModel.context).badRequest(
+          `Cannot group by column '${column.title}': ${column.colOptions.error}`,
+        );
+      }
+
       // if qrCode or Barcode replace it with value column nd keep the alias
       if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt)) {
         column = new Column({

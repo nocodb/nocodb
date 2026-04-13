@@ -36,6 +36,8 @@ const {
   availableSyncAuthIntegrationSubtypes,
 } = useIntegrationStore()
 
+const { isEEFeatureBlocked } = useEeConfig()
+
 const { isSyncFeatureEnabled } = storeToRefs(useSyncStore())
 
 const canEditIntegration = (integration: IntegrationType) => {
@@ -83,12 +85,15 @@ const integrationsMap = computed(() => {
   const map: Record<string, { title: string; value: string; list: IntegrationItemType[] }> = {}
 
   for (const cat of integrationCategories) {
-    if (
+    if (isEEFeatureBlocked.value) {
+      if (cat.value !== IntegrationCategoryType.DATABASE) continue
+    } else if (
       cat.value !== IntegrationCategoryType.DATABASE &&
       cat.value !== IntegrationCategoryType.AI &&
       cat.value !== IntegrationCategoryType.AUTH
-    )
+    ) {
       continue
+    }
     if (!cat.isAvailable) continue
 
     const query = searchQuery.value.trim().toLowerCase()

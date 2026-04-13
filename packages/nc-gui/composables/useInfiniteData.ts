@@ -973,7 +973,19 @@ export function useInfiniteData(args: {
       }
     }
 
-    dataCache.chunkStates.value[getChunkIndex(Math.max(...invalidIndexes))] = undefined
+    // After the shift, the tail of the cache has empty slots — the chunks covering
+    // [newMaxIndex + 1 .. oldMaxIndex] now have holes because rows shifted up leaving
+    // their old positions vacant. Invalidate those chunks so updateVisibleRows refetches
+    // them when the user scrolls, otherwise skeleton loaders persist at the cache boundary.
+    const oldMaxIndex = sortedEntries[sortedEntries.length - 1]?.[0]
+    if (oldMaxIndex !== undefined) {
+      const newMaxIndex = newCachedRows.size ? Math.max(...newCachedRows.keys()) : -1
+      const firstEmptyChunk = getChunkIndex(newMaxIndex + 1)
+      const lastAffectedChunk = getChunkIndex(oldMaxIndex)
+      for (let i = firstEmptyChunk; i <= lastAffectedChunk; i++) {
+        dataCache.chunkStates.value[i] = undefined
+      }
+    }
 
     const indices = new Set<number>()
     for (const [_, row] of newCachedRows) {

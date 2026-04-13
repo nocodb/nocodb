@@ -1,6 +1,5 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RequestParams, TableType } from 'nocodb-sdk'
 import {
-  FormulaDataTypes,
   RelationTypes,
   UITypes,
   dateFormats,
@@ -9,9 +8,7 @@ import {
   isDateOrDateTimeCol,
   isLinkV2,
   isLinksOrLTAR,
-  isNumericCol,
   isSystemColumn,
-  ncIsNaN,
   parseStringDateTime,
   timeFormats,
 } from 'nocodb-sdk'
@@ -45,7 +42,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     // state
     const { getMeta, getMetaByKey, getPartialMeta, metas } = useMetas()
 
-    const { base, sqlUis } = storeToRefs(useBase())
+    const { base } = storeToRefs(useBase())
 
     const { getBaseRoles } = useBases()
 
@@ -106,6 +103,25 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const isChildrenExcludedListLinked = ref<Array<boolean>>([])
 
+    // --- Chunked cache for virtual scroll ---
+    const CHUNK_SIZE = 10
+    const MAX_CACHE_SIZE = 50
+    const ROW_HEIGHT = 56
+
+    // Excluded list (unlinked items) cache
+    const excludedCachedRows = ref<Map<number, Record<string, any>>>(new Map())
+    const excludedTotalRows = ref(0)
+    const excludedChunkStates = ref<Array<'loading' | 'loaded' | undefined>>([])
+    const excludedLinkedState = ref<Map<number, boolean>>(new Map())
+    const excludedLoadingState = ref<Map<number, boolean>>(new Map())
+
+    // Children list (linked items) cache
+    const childrenCachedRows = ref<Map<number, Record<string, any>>>(new Map())
+    const childrenCachedTotalRows = ref(0)
+    const childrenChunkStates = ref<Array<'loading' | 'loaded' | undefined>>([])
+    const childrenCachedLinkedState = ref<Map<number, boolean>>(new Map())
+    const childrenCachedLoadingState = ref<Map<number, boolean>>(new Map())
+
     const newRowState = reactive({
       state: null,
     })
@@ -150,10 +166,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       // Check if table is marked as private from API response
       return !(relatedTableMeta.value as any)?.is_private
     })
-
-    const sqlUi = computed(() =>
-      (meta.value as TableType)?.source_id ? sqlUis.value[(meta.value as TableType).source_id!] : Object.values(sqlUis.value)[0],
-    )
 
     const rowId = computed(() => extractPkFromRow(currentRow.value.row, meta.value.columns))
 
@@ -431,37 +443,31 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const getWhereClause = (searchQuery?: string) => {
       if (!searchQuery || !relatedTableDisplayValueColumn.value) return
 
-      const field = relatedTableDisplayValueColumn.value
-      let operator = 'like'
-      let query = searchQuery.trim()
-
-      if (isDateOrDateTimeCol(field)) {
-        operator = 'eq,exactDate'
-      } else {
-        query = getValidSearchQueryForColumn(field, query, relatedTableMeta.value) as string
-
-        if (!isValidValue(query)) return
-
-        if (
-          (field.uidt !== UITypes.Formula || getFormulaColDataType(field) !== FormulaDataTypes.NUMERIC) &&
-          !isNumericCol(field) &&
-          sqlUi.value &&
-          ['text', 'string'].includes(sqlUi.value.getAbstractType(field)) &&
-          field.dt !== 'bigint'
-        ) {
-          operator = 'like'
-          if (!query) return
-
-          query = `%${query}%`
-        } else {
-          operator = 'eq'
-          query = !ncIsNaN(query) ? query : ''
-        }
-      }
-
+      const query = searchQuery.trim()
       if (!query) return
 
-      return `(${field.title},${operator},${query})`
+      const displayCol = relatedTableDisplayValueColumn.value
+
+      // Date/DateTime display value: keep single-column exact date search (used with date picker input)
+      if (isDateOrDateTimeCol(displayCol)) {
+        return `(${displayCol.title},eq,exactDate,${query})`
+      }
+
+      // Collect all searchable columns: display value + extra fields shown in dropdown
+      const columnsToSearch = [displayCol, ...(fields.value || [])].filter((col) => isSearchableColumn(col))
+
+      const clauses = columnsToSearch
+        .map((col) => {
+          return getValidSearchQueryForColumn(col, query, relatedTableMeta.value, {
+            getWhereQueryAs: 'string',
+            serializeLinkRecordSearchQuery: true,
+          }) as string
+        })
+        .filter(Boolean)
+
+      if (clauses.length === 0) return
+
+      return clauses.join('~or')
     }
 
     const loadChildrenExcludedList = async (activeState?: any, resetOffset = false) => {
@@ -911,18 +917,261 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       $e('a:links:link')
     }
 
+    // --- Chunk-based fetch and cache eviction for virtual scroll ---
+
+    const _fetchExcludedChunkData = async (offset: number, limit: number) => {
+      const where = getWhereClause(childrenExcludedListPagination.query)
+
+      if (isPublic.value) {
+        const router = useRouter()
+        const route = router.currentRoute
+        let rowData
+        if (isForm.value) {
+          const { formState, additionalState } = useSharedFormStoreOrThrow()
+          rowData = await sanitizeRowData({ ...(formState?.value || {}), ...(additionalState?.value || {}) })
+        }
+        return await $api.public.dataRelationList(
+          route.value.params.viewId as string,
+          column.value.id,
+          {},
+          {
+            headers: { 'xc-password': sharedViewPassword.value },
+            query: {
+              limit,
+              offset,
+              where,
+              fields: requiredFieldsToLoad.value,
+              rowData: JSON.stringify(rowData),
+            } as RequestParams,
+          },
+        )
+      } else if (isNewRow?.value) {
+        const linkRowData = await sanitizeRowData(row.value.row)
+        return await $api.internal.getOperation((column.value as any).fk_workspace_id!, column.value!.base_id!, {
+          operation: 'linkDataList',
+          limit,
+          offset,
+          where,
+          columnId: column.value.fk_column_id || column.value.id,
+          linkRowData: JSON.stringify(linkRowData),
+        })
+      } else {
+        let changedRowData
+        try {
+          if (row.value?.row) {
+            changedRowData = Object.keys(row.value?.row).reduce((acc: Record<string, any>, key: string) => {
+              if (row.value.row[key] !== row.value.oldRow[key]) acc[key] = row.value.row[key]
+              return acc
+            }, {})
+            changedRowData = await sanitizeRowData(changedRowData)
+          }
+        } catch {}
+        return await $api.dbTableRow.nestedChildrenExcludedList(
+          NOCO,
+          meta.value?.base_id ?? baseId,
+          meta.value.id,
+          encodeURIComponent(rowId.value),
+          type.value,
+          column?.value?.id,
+          {
+            limit: String(limit),
+            offset: String(offset),
+            where,
+            linkRowData: changedRowData ? JSON.stringify(changedRowData) : undefined,
+            fields: requiredFieldsToLoad.value,
+          } as any,
+        )
+      }
+    }
+
+    const clearExcludedCache = (bufferStart: number, bufferEnd: number) => {
+      if (excludedCachedRows.value.size <= MAX_CACHE_SIZE) return
+      const safeStartChunk = Math.floor(bufferStart / CHUNK_SIZE)
+      const safeEndChunk = Math.floor(bufferEnd / CHUNK_SIZE)
+      const newMap = new Map<number, Record<string, any>>()
+      const newLinked = new Map<number, boolean>()
+      const newLoading = new Map<number, boolean>()
+      for (const [idx, row] of excludedCachedRows.value) {
+        const chunk = Math.floor(idx / CHUNK_SIZE)
+        if (chunk >= safeStartChunk && chunk <= safeEndChunk) {
+          newMap.set(idx, row)
+          if (excludedLinkedState.value.has(idx)) newLinked.set(idx, excludedLinkedState.value.get(idx)!)
+          if (excludedLoadingState.value.has(idx)) newLoading.set(idx, excludedLoadingState.value.get(idx)!)
+        }
+      }
+      // Reset evicted chunk states
+      for (let i = 0; i < excludedChunkStates.value.length; i++) {
+        if (excludedChunkStates.value[i] === 'loaded' && (i < safeStartChunk || i > safeEndChunk)) {
+          excludedChunkStates.value[i] = undefined
+        }
+      }
+      excludedCachedRows.value = newMap
+      excludedLinkedState.value = newLinked
+      excludedLoadingState.value = newLoading
+    }
+
+    const fetchExcludedChunk = async (chunkId: number) => {
+      if (excludedChunkStates.value[chunkId]) return
+      const offset = chunkId * CHUNK_SIZE
+      if (offset >= excludedTotalRows.value && excludedTotalRows.value > 0) return
+
+      excludedChunkStates.value[chunkId] = 'loading'
+      try {
+        const result = await _fetchExcludedChunkData(offset, CHUNK_SIZE)
+        if (result?.list) {
+          result.list.forEach((item: Record<string, any>, i: number) => {
+            excludedCachedRows.value.set(offset + i, item)
+            excludedLinkedState.value.set(offset + i, false)
+            excludedLoadingState.value.set(offset + i, false)
+          })
+        }
+        if (result?.pageInfo?.totalRows != null) {
+          excludedTotalRows.value = +result.pageInfo.totalRows
+        }
+        excludedChunkStates.value[chunkId] = 'loaded'
+      } catch (e: any) {
+        excludedChunkStates.value[chunkId] = undefined
+        console.error(`Error fetching excluded chunk ${chunkId}:`, e)
+      }
+    }
+
+    const resetExcludedCache = () => {
+      excludedCachedRows.value = new Map()
+      excludedLinkedState.value = new Map()
+      excludedLoadingState.value = new Map()
+      excludedChunkStates.value = []
+      excludedTotalRows.value = 0
+    }
+
+    // --- Children (linked items) cache ---
+
+    const _fetchChildrenChunkData = async (offset: number, limit: number) => {
+      const where = getWhereClause(childrenListPagination.query)
+
+      if (isNewRow?.value || !rowId.value) {
+        // Client-side filtering for new rows
+        const colTitle = column.value?.title || ''
+        const rawList = newRowState.state?.[colTitle] ?? []
+        const query = childrenListPagination.query.toLocaleLowerCase()
+        const list = query
+          ? rawList.filter((record: Record<string, any>) =>
+              `${record[relatedTableDisplayValueProp.value] ?? ''}`.toLocaleLowerCase().includes(query),
+            )
+          : rawList
+        return {
+          list: list.slice(offset, offset + limit),
+          pageInfo: { totalRows: list.length },
+        }
+      } else if (isPublic.value) {
+        return await $api.public.dataNestedList(
+          sharedView.value?.uuid as string,
+          encodeURIComponent(rowId.value),
+          type.value as RelationTypes,
+          column.value.id,
+          { limit: String(limit), offset: String(offset), where } as any,
+          { headers: { 'xc-password': sharedViewPassword.value } },
+        )
+      } else {
+        return await $api.dbTableRow.nestedList(
+          NOCO,
+          meta.value?.base_id ?? ((base?.value?.id || (sharedView.value?.view as any)?.base_id) as string),
+          meta.value.id,
+          encodeURIComponent(rowId.value),
+          type.value as RelationTypes,
+          column?.value?.id,
+          { limit: String(limit), offset: String(offset), where, fields: requiredFieldsToLoad.value } as any,
+        )
+      }
+    }
+
+    const clearChildrenCache = (bufferStart: number, bufferEnd: number) => {
+      if (childrenCachedRows.value.size <= MAX_CACHE_SIZE) return
+      const safeStartChunk = Math.floor(bufferStart / CHUNK_SIZE)
+      const safeEndChunk = Math.floor(bufferEnd / CHUNK_SIZE)
+      const newMap = new Map<number, Record<string, any>>()
+      const newLinked = new Map<number, boolean>()
+      const newLoading = new Map<number, boolean>()
+      for (const [idx, row] of childrenCachedRows.value) {
+        const chunk = Math.floor(idx / CHUNK_SIZE)
+        if (chunk >= safeStartChunk && chunk <= safeEndChunk) {
+          newMap.set(idx, row)
+          if (childrenCachedLinkedState.value.has(idx)) newLinked.set(idx, childrenCachedLinkedState.value.get(idx)!)
+          if (childrenCachedLoadingState.value.has(idx)) newLoading.set(idx, childrenCachedLoadingState.value.get(idx)!)
+        }
+      }
+      for (let i = 0; i < childrenChunkStates.value.length; i++) {
+        if (childrenChunkStates.value[i] === 'loaded' && (i < safeStartChunk || i > safeEndChunk)) {
+          childrenChunkStates.value[i] = undefined
+        }
+      }
+      childrenCachedRows.value = newMap
+      childrenCachedLinkedState.value = newLinked
+      childrenCachedLoadingState.value = newLoading
+    }
+
+    const fetchChildrenChunk = async (chunkId: number) => {
+      if (childrenChunkStates.value[chunkId]) return
+      const offset = chunkId * CHUNK_SIZE
+      if (offset >= childrenCachedTotalRows.value && childrenCachedTotalRows.value > 0) return
+
+      childrenChunkStates.value[chunkId] = 'loading'
+      try {
+        const result = await _fetchChildrenChunkData(offset, CHUNK_SIZE)
+        if (result?.list) {
+          result.list.forEach((item: Record<string, any>, i: number) => {
+            childrenCachedRows.value.set(offset + i, item)
+            childrenCachedLinkedState.value.set(offset + i, true)
+            childrenCachedLoadingState.value.set(offset + i, false)
+          })
+        }
+        if (result?.pageInfo?.totalRows != null) {
+          childrenCachedTotalRows.value = +result.pageInfo.totalRows
+        }
+        childrenChunkStates.value[chunkId] = 'loaded'
+      } catch (e: any) {
+        childrenChunkStates.value[chunkId] = undefined
+        console.error(`Error fetching children chunk ${chunkId}:`, e)
+      }
+    }
+
+    const resetChildrenCache = () => {
+      childrenCachedRows.value = new Map()
+      childrenCachedLinkedState.value = new Map()
+      childrenCachedLoadingState.value = new Map()
+      childrenChunkStates.value = []
+      childrenCachedTotalRows.value = 0
+    }
+
     const debounceLoadChildrenExcludedList = useDebounceFn(loadChildrenExcludedList, 500)
 
     const debounceLoadChildrenList = useDebounceFn(loadChildrenList, 500)
 
-    // watchers
-    watch(childrenExcludedListPagination, async () => {
-      await debounceLoadChildrenExcludedList(newRowState.state)
-    })
+    const debounceFetchExcludedChunk0 = useDebounceFn(() => fetchExcludedChunk(0), 500)
 
-    watch(childrenListPagination, async () => {
-      await debounceLoadChildrenList(false, newRowState.state)
-    })
+    const debounceFetchChildrenChunk0 = useDebounceFn(() => fetchChildrenChunk(0), 500)
+
+    // watchers — only trigger on query change
+    watch(
+      () => childrenExcludedListPagination.query,
+      async () => {
+        childrenExcludedListPagination.page = 1
+        resetExcludedCache()
+        // Fetch chunk 0 with new query for virtual scroll cache
+        debounceFetchExcludedChunk0()
+        // Also keep legacy load for backward compat (expanded form, etc.)
+        await debounceLoadChildrenExcludedList(newRowState.state)
+      },
+    )
+
+    watch(
+      () => childrenListPagination.query,
+      async () => {
+        childrenListPagination.page = 1
+        resetChildrenCache()
+        debounceFetchChildrenChunk0()
+        await debounceLoadChildrenList(false, newRowState.state)
+      },
+    )
 
     watch(childrenList, async () => {
       if (ncIsArray(childrenList.value?.list)) {
@@ -982,6 +1231,26 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       refreshCurrentRow,
       externalBaseUserRoles,
       showExtraFields,
+      // Chunked cache for virtual scroll
+      CHUNK_SIZE,
+      MAX_CACHE_SIZE,
+      ROW_HEIGHT,
+      excludedCachedRows,
+      excludedTotalRows,
+      excludedChunkStates,
+      excludedLinkedState,
+      excludedLoadingState,
+      fetchExcludedChunk,
+      clearExcludedCache,
+      resetExcludedCache,
+      childrenCachedRows,
+      childrenCachedTotalRows,
+      childrenChunkStates,
+      childrenCachedLinkedState,
+      childrenCachedLoadingState,
+      fetchChildrenChunk,
+      clearChildrenCache,
+      resetChildrenCache,
     }
   },
   'ltar-store',

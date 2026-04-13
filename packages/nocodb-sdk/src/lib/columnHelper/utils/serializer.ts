@@ -51,6 +51,12 @@ export const serializeDecimalValue = (
 
   // If it's a string, remove commas and check if it's a valid number
   if (ncIsString(value)) {
+    // For LTAR multi-field search: only accept pure numbers, don't strip non-numeric chars
+    // e.g., "station 1" should NOT be converted to 1
+    if (params?.serializeLinkRecordSearchQuery) {
+      return ncIsNaN(value) ? null : Number(value);
+    }
+
     const cleanedValue = ncIsFunction(callback)
       ? callback(value)
       : value
@@ -71,8 +77,11 @@ export const serializeDecimalValue = (
   return null;
 };
 
-export const serializeIntValue = (value: string | null | number) => {
-  value = serializeDecimalValue(value);
+export const serializeIntValue = (
+  value: string | null | number,
+  params?: SerializerOrParserFnProps['params']
+) => {
+  value = serializeDecimalValue(value, undefined, params);
 
   if (ncIsNumber(value)) {
     return parseInt(value.toString(), 10);
@@ -160,7 +169,7 @@ export const serializeCurrencyValue = (
       .replace(new RegExp('\\' + decimal), '.') // 2. Replace the locale-specific decimal separator with a dot (.)
       .replace(/[^\d.-]/g, '') // 3. Remove any non-digit, non-dot, non-minus characters (e.g., currency symbols, spaces)
       .trim(); // 4. Trim whitespace from both ends of the string
-  });
+  }, params);
 };
 
 export const serializeTimeValue = (

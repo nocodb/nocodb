@@ -317,20 +317,20 @@ const hasDocumentCreateAccess = computed(() => {
                 <div>{{ $t('objects.viewType.calendar') }}</div>
               </NcMenuItem>
               <NcMenuItem
-                v-if="isListViewEnabled"
-                data-testid="mini-sidebar-view-create-list"
-                @click="showUpgradeToUseListView({ successCallback: () => onOpenModal({ type: ViewTypes.LIST }) })"
-              >
-                <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
-                <div>{{ $t('objects.viewType.list') }}</div>
-              </NcMenuItem>
-              <NcMenuItem
                 v-if="isEeUI && showEEFeatures"
                 data-testid="mini-sidebar-view-create-map"
                 @click="showUpgradeToUseMapView({ successCallback: () => onOpenModal({ type: ViewTypes.MAP }) })"
               >
                 <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.map') }}</div>
+              </NcMenuItem>
+              <NcMenuItem
+                v-if="isListViewEnabled"
+                data-testid="mini-sidebar-view-create-list"
+                @click="showUpgradeToUseListView({ successCallback: () => onOpenModal({ type: ViewTypes.LIST }) })"
+              >
+                <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
+                <div>{{ $t('objects.viewType.list') }}</div>
               </NcMenuItem>
               <NcMenuItem
                 v-if="isEeUI && showEEFeatures"

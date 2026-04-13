@@ -99,7 +99,7 @@ const renderAsCell = computed(() => {
     </div>
   </template>
   <div v-else class="w-full" :class="{ 'text-right': isNumber && isGrid && !isExpandedFormOpen }">
-    <a-tooltip
+    <NcTooltip
       v-if="column && column.colOptions && column.colOptions.error"
       placement="bottom"
       class="text-nc-content-orange-dark"
@@ -108,7 +108,7 @@ const renderAsCell = computed(() => {
         <span class="font-bold">{{ column.colOptions.error }}</span>
       </template>
       <span>ERR!</span>
-    </a-tooltip>
+    </NcTooltip>
 
     <div v-else class="nc-cell-field group py-1" @dblclick="activateShowEditNonEditableFieldWarning">
       <div

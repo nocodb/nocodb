@@ -191,7 +191,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
           if (!qrCodeColumn.fk_qr_value_column_id) {
             qb.select(
-              baseModel.dbDriver.raw(`? as ??`, ['ERR!', getAs(column)]),
+              baseModel.dbDriver.raw(`? as ??`, [NC_ERROR_SENTINEL, getAs(column)]),
             );
             break;
           }
@@ -247,7 +247,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
           if (!barcodeColumn.fk_barcode_value_column_id) {
             qb.select(
-              baseModel.dbDriver.raw(`? as ??`, ['ERR!', getAs(column)]),
+              baseModel.dbDriver.raw(`? as ??`, [NC_ERROR_SENTINEL, getAs(column)]),
             );
             break;
           }

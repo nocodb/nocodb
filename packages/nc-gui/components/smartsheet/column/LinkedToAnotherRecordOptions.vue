@@ -505,10 +505,10 @@ const handleScrollIntoView = () => {
     <div class="flex flex-col gap-4">
       <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type !mb-0">
         <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit" class="w-full">
-          <!-- Custom links use V1 relation types: MM, HM, BT, OO -->
+          <!-- Custom links use V1 relation types: MM, HM, OO -->
           <template v-if="vModel.is_custom_link">
-            <a-row :gutter="[8, 8]">
-              <a-col :span="12">
+            <a-row :gutter="[8, 8]" class="nc-links-3-col">
+              <a-col :span="8">
                 <a-radio value="mm" data-testid="Many to Many">
                   <span class="nc-ltar-icon nc-mm-icon">
                     <GeneralIcon icon="mm_solid" />
@@ -516,7 +516,7 @@ const handleScrollIntoView = () => {
                   {{ $t('title.manyToMany') }}
                 </a-radio>
               </a-col>
-              <a-col :span="12">
+              <a-col :span="8">
                 <a-radio value="hm" data-testid="Has Many">
                   <span class="nc-ltar-icon nc-hm-icon">
                     <GeneralIcon icon="hm_solid" />
@@ -524,15 +524,7 @@ const handleScrollIntoView = () => {
                   {{ $t('title.hasMany') }}
                 </a-radio>
               </a-col>
-              <a-col :span="12">
-                <a-radio value="bt" data-testid="Belongs To">
-                  <span class="nc-ltar-icon nc-bt-icon">
-                    <GeneralIcon icon="bt_solid" />
-                  </span>
-                  {{ $t('title.belongsTo') }}
-                </a-radio>
-              </a-col>
-              <a-col :span="12">
+              <a-col :span="8">
                 <a-radio value="oo" data-testid="One to One">
                   <span class="nc-ltar-icon nc-oo-icon">
                     <GeneralIcon icon="oneToOneSolid" />

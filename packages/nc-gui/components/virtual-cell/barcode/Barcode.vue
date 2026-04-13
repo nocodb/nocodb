@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NC_ERROR_SENTINEL } from 'nocodb-sdk'
+import { NC_ERROR_SENTINEL, isColumnInError } from 'nocodb-sdk'
 import type { ComputedRef } from 'vue'
 import { IsCanvasInjectionInj } from '../../../context'
 import JsBarcodeWrapper from './JsBarcodeWrapper.vue'
@@ -41,7 +41,7 @@ const barcodeMeta = computed(() => {
 
 const handleModalOkClick = () => (modalVisible.value = false)
 
-const hasColError = computed(() => !!(column?.value?.colOptions as { error?: string })?.error)
+const hasColError = computed(() => isColumnInError(column?.value))
 
 const showBarcode = computed(
   () =>

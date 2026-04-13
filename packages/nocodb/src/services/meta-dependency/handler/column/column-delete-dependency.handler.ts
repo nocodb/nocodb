@@ -258,7 +258,7 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
       );
       await this.cleanupSortsAndFilters(ctx, affected.fk_column_id, ncMeta);
 
-      // Discover transitive dependents of this just-marked column
+      // Discover transitive dependents of this just-marked column (same base)
       for (const [table, fkField, type] of DEPENDENT_QUERIES) {
         for (const row of await ncMeta.metaList2(
           ctx.workspace_id,
@@ -267,6 +267,44 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
           { condition: { [fkField]: affected.fk_column_id } },
         )) {
           enqueue(row.fk_column_id, type, ctx);
+        }
+      }
+
+      // Discover transitive cross-base dependents
+      const affectedCol = await Column.get(
+        ctx,
+        { colId: affected.fk_column_id },
+        ncMeta,
+      );
+      if (affectedCol?.fk_model_id) {
+        const tableColumns = await Column.list(
+          ctx,
+          { fk_model_id: affectedCol.fk_model_id },
+          ncMeta,
+        );
+        for (const col of tableColumns) {
+          if (!isLinksOrLTAR(col.uidt)) continue;
+          const opts = await col.getColOptions<any>(ctx, ncMeta);
+          if (!opts?.fk_related_base_id || opts.fk_related_base_id === ctx.base_id)
+            continue;
+
+          const crossCtx = { ...ctx, base_id: opts.fk_related_base_id };
+          for (const row of await ncMeta.metaList2(
+            ctx.workspace_id,
+            opts.fk_related_base_id,
+            MetaTable.COL_LOOKUP,
+            { condition: { fk_lookup_column_id: affected.fk_column_id } },
+          )) {
+            enqueue(row.fk_column_id, 'lookup', crossCtx);
+          }
+          for (const row of await ncMeta.metaList2(
+            ctx.workspace_id,
+            opts.fk_related_base_id,
+            MetaTable.COL_ROLLUP,
+            { condition: { fk_rollup_column_id: affected.fk_column_id } },
+          )) {
+            enqueue(row.fk_column_id, 'rollup', crossCtx);
+          }
         }
       }
     }

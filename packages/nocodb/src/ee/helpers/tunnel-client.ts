@@ -55,7 +55,9 @@ export class TunnelClient {
       await new Promise((r) => setTimeout(r, HEALTH_CHECK_INTERVAL_MS));
     }
     throw new Error(
-      `Tunnel server not ready after ${(HEALTH_CHECK_INTERVAL_MS * HEALTH_CHECK_MAX_RETRIES) / 1000}s`,
+      `Tunnel server not ready after ${
+        (HEALTH_CHECK_INTERVAL_MS * HEALTH_CHECK_MAX_RETRIES) / 1000
+      }s`,
     );
   }
 
@@ -122,7 +124,9 @@ export class TunnelClient {
     try {
       const pathOnly = req.path.split('?')[0];
       if (!isPathAllowed(pathOnly)) {
-        this.sendResponse(req.id, 403, 'Forbidden', { error: 'Path not allowed' });
+        this.sendResponse(req.id, 403, 'Forbidden', {
+          error: 'Path not allowed',
+        });
         return;
       }
 
@@ -174,7 +178,9 @@ export class TunnelClient {
         }),
       );
     } catch {
-      this.sendResponse(req.id, 502, 'Bad Gateway', { error: 'Request failed' });
+      this.sendResponse(req.id, 502, 'Bad Gateway', {
+        error: 'Request failed',
+      });
     }
   }
 

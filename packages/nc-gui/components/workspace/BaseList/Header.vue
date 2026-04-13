@@ -30,23 +30,32 @@ const isFilterDropdownOpen = ref(false)
 
 const isSuperAdmin = computed(() => !!orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
-const filterOptions = computed<NcListItemType[]>(() => [
-  { value: 'all', label: t('activity.allBases'), icon: 'ncList' },
-  ...(appInfo.value.ee
-    ? [
-        { value: 'starred', label: t('general.starred'), icon: 'star' },
-        ...(showEEFeatures.value
-          ? [
-              { value: 'private', label: t('general.private'), icon: 'ncLock' },
-              ...(isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS)
-                ? [{ value: 'managed', label: t('labels.managed'), icon: 'ncBox' }]
-                : []),
-            ]
-          : []),
-      ]
-    : []),
-  ...(!isSuperAdmin.value ? [{ value: 'owned', label: t('activity.ownedByMe'), icon: 'ncUser' }] : []),
-])
+const filterOptions = computed<NcListItemType[]>(() => {
+  const result = [
+    { value: 'all', label: t('activity.allBases'), icon: 'ncList' },
+    ...(appInfo.value.ee
+      ? [
+          { value: 'starred', label: t('general.starred'), icon: 'star' },
+          ...(showEEFeatures.value
+            ? [
+                { value: 'private', label: t('general.private'), icon: 'ncLock' },
+                ...(isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS)
+                  ? [{ value: 'managed', label: t('labels.managed'), icon: 'ncBox' }]
+                  : []),
+              ]
+            : []),
+        ]
+      : []),
+    ...(!isSuperAdmin.value ? [{ value: 'owned', label: t('activity.ownedByMe'), icon: 'ncUser' }] : []),
+  ]
+
+  // If there is only one filter option and it is the 'all' filter, return an empty array
+  if (result.length === 1 && result[0]!.value === 'all') {
+    return []
+  }
+
+  return result
+})
 
 const selectedFilter = computed(() => {
   return filterOptions.value.find((option) => option.value === props.activeFilter)
@@ -93,7 +102,7 @@ const clearFilter = () => {
 
       <div class="flex items-center gap-2 flex-shrink-0">
         <!-- Active filter pill (desktop only) -->
-        <div v-if="isFilterActive && !isMobileMode" class="nc-filter-pill" @click.stop>
+        <div v-if="isFilterActive && !isMobileMode && filterOptions.length" class="nc-filter-pill" @click.stop>
           <GeneralIcon :icon="activeFilterIcon" class="w-3.5 h-3.5" />
           <span class="text-bodyDefaultSm font-medium">{{ selectedFilter?.label }}</span>
           <GeneralIcon icon="close" class="nc-filter-pill-close w-3.5 h-3.5 cursor-pointer" @click="clearFilter" />
@@ -101,7 +110,7 @@ const clearFilter = () => {
 
         <!-- Filter Dropdown -->
         <NcListDropdown
-          v-if="!isFilterActive || isMobileMode"
+          v-if="(!isFilterActive || isMobileMode) && filterOptions.length"
           v-model:is-open="isFilterDropdownOpen"
           :default-slot-wrapper="false"
           placement="bottomRight"

@@ -96,7 +96,7 @@ const LICENSE_REQUIRED_OPS = new Set([
   'baseTeamAdd',
   'baseTeamUpdate',
   'baseTeamRemove',
-  // Workspace Audit (Enterprise only)
+  // Audit (Enterprise only)
   'workspaceAuditList',
   'baseAuditList',
   // Scripts (Enterprise only)

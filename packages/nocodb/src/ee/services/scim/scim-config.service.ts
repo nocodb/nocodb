@@ -1,13 +1,14 @@
 import { randomBytes } from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
-import { EnterpriseOrgUserRoles } from 'nocodb-sdk';
+import { AppEvents, EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import ScimConfig from '~/ee/models/ScimConfig';
 import { MetaTable } from '~/utils/globals';
 import Team from '~/ee/models/Team';
 import Noco from '~/Noco';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 const BCRYPT_ROUNDS = 10;
 
@@ -15,7 +16,7 @@ const BCRYPT_ROUNDS = 10;
 export class ScimConfigService {
   protected logger = new Logger(ScimConfigService.name);
 
-  constructor() {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   /**
    * Construct SCIM base URL at runtime from the request
@@ -49,6 +50,7 @@ export class ScimConfigService {
     param: {
       orgId: string;
       ncSiteUrl: string;
+      req?: any;
     },
   ) {
     // Check if config already exists
@@ -70,6 +72,11 @@ export class ScimConfigService {
       default_role: EnterpriseOrgUserRoles.VIEWER,
     });
 
+    this.appHooksService.emit(AppEvents.SCIM_CONFIG_CREATE, {
+      orgId: param.orgId,
+      req: param.req,
+    });
+
     return {
       id: config.id,
       enabled: config.enabled,
@@ -80,7 +87,7 @@ export class ScimConfigService {
     };
   }
 
-  async regenerateToken(context: NcContext, orgId: string) {
+  async regenerateToken(context: NcContext, orgId: string, req?: any) {
     const config = await ScimConfig.get(context, orgId);
 
     if (!config) {
@@ -92,6 +99,11 @@ export class ScimConfigService {
 
     await ScimConfig.update(context, orgId, {
       provisioning_token: hashedToken,
+    });
+
+    this.appHooksService.emit(AppEvents.SCIM_CONFIG_TOKEN_REGENERATE, {
+      orgId,
+      req,
     });
 
     return {
@@ -111,6 +123,7 @@ export class ScimConfigService {
     param: {
       orgId: string;
       ncSiteUrl: string;
+      req?: any;
       config: {
         enabled?: boolean;
         default_role?: string;
@@ -140,6 +153,18 @@ export class ScimConfigService {
 
     await ScimConfig.update(context, param.orgId, param.config);
 
+    if (param.config.enabled === false) {
+      this.appHooksService.emit(AppEvents.SCIM_CONFIG_DISABLE, {
+        orgId: param.orgId,
+        req: param.req,
+      });
+    } else {
+      this.appHooksService.emit(AppEvents.SCIM_CONFIG_UPDATE, {
+        orgId: param.orgId,
+        req: param.req,
+      });
+    }
+
     return this.getConfig(context, param.orgId, {
       ncSiteUrl: param.ncSiteUrl,
     });
@@ -159,7 +184,7 @@ export class ScimConfigService {
     return { message: 'SCIM provisioning disabled successfully' };
   }
 
-  async deleteConfig(context: NcContext, orgId: string) {
+  async deleteConfig(context: NcContext, orgId: string, req?: any) {
     const config = await ScimConfig.get(context, orgId);
 
     if (!config) {
@@ -167,6 +192,11 @@ export class ScimConfigService {
     }
 
     await ScimConfig.delete(context, orgId);
+
+    this.appHooksService.emit(AppEvents.SCIM_CONFIG_DELETE, {
+      orgId,
+      req,
+    });
 
     // Clear scim_managed flag on org users and org teams
     // so they become manageable again after SCIM is disconnected.

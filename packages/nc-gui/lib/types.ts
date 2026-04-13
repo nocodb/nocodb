@@ -356,6 +356,7 @@ interface ImageCropperProps {
 interface AuditLogsQuery {
   type?: string[]
   workspaceId?: string
+  workspaceIds?: string[]
   baseId?: string
   sourceId?: string
   user?: string

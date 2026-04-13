@@ -14,6 +14,24 @@ export class AuditsService extends AuditsServiceCE {
     super(appHooksListenerService, appHooksService);
   }
 
+  async orgAuditList(
+    orgId: string,
+    param: {
+      cursor?: string;
+      workspaceIds?: string[];
+      fkUserId?: string;
+      type?: string[];
+      startDate?: string;
+      endDate?: string;
+      orderBy?: {
+        created_at?: 'asc' | 'desc';
+      };
+      retentionLimit?: number;
+    },
+  ) {
+    return await Audit.orgAuditList(orgId, param);
+  }
+
   async workspaceAuditList(
     context: NcContext,
     param: {

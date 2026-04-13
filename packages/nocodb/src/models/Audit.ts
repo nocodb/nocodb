@@ -15,6 +15,7 @@ export default class Audit {
   ip?: string;
   source_id?: string;
   fk_workspace_id?: string;
+  fk_org_id?: string;
   base_id?: string;
   fk_model_id?: string;
   row_id?: string;
@@ -60,6 +61,7 @@ export default class Audit {
         'ip',
         'source_id',
         'fk_workspace_id',
+        'fk_org_id',
         'base_id',
         'row_id',
         'fk_model_id',

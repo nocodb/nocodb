@@ -89,6 +89,20 @@ export enum AppEvents {
   SCIM_GROUP_UPDATE = 'scim.group.update',
   SCIM_GROUP_REPLACE = 'scim.group.replace',
   SCIM_GROUP_DELETE = 'scim.group.delete',
+  SCIM_CONFIG_CREATE = 'scim.config.create',
+  SCIM_CONFIG_UPDATE = 'scim.config.update',
+  SCIM_CONFIG_DISABLE = 'scim.config.disable',
+  SCIM_CONFIG_DELETE = 'scim.config.delete',
+  SCIM_CONFIG_TOKEN_REGENERATE = 'scim.config.token.regenerate',
+
+  SSO_CLIENT_CREATE = 'sso.client.create',
+  SSO_CLIENT_UPDATE = 'sso.client.update',
+  SSO_CLIENT_DELETE = 'sso.client.delete',
+
+  ORG_DOMAIN_ADD = 'org.domain.add',
+  ORG_DOMAIN_UPDATE = 'org.domain.update',
+  ORG_DOMAIN_DELETE = 'org.domain.delete',
+  ORG_DOMAIN_VERIFY = 'org.domain.verify',
 
   USER_SIGNUP = 'user.signup',
   USER_SIGNIN = 'user.signin',

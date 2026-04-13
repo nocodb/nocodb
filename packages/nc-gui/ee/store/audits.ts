@@ -30,6 +30,8 @@ export const useAuditsStore = defineStore('auditsStore', () => {
 
   const loadActionForBaseId = ref<string | undefined>()
 
+  const loadActionOrgId = ref<string | undefined>()
+
   const audits = ref<Array<AuditType>>([])
 
   const isRowExpanded = ref(false)
@@ -75,27 +77,54 @@ export const useAuditsStore = defineStore('auditsStore', () => {
         audits.value = []
       }
 
-      if (!activeWorkspaceId.value) return
-
       const user = collaboratorsMap.value.get(auditLogsQuery.value.user)
 
-      const { list, pageInfo } = await $api.internal.getOperation(
-        activeWorkspaceId.value,
-        loadActionForBaseId.value ? loadActionForBaseId.value : NO_SCOPE,
-        {
-          operation: loadActionForBaseId.value ? 'baseAuditList' : 'workspaceAuditList',
-          cursor: currentCursor.value,
-          baseId: auditLogsQuery.value.baseId,
-          fkUserId: user?.id || user?.fk_user_id,
-          type:
-            ncIsArray(auditLogsQuery.value.type) && auditLogsQuery.value.type.length
-              ? auditLogsQuery.value.type.flatMap((cat) => auditV1OperationsCategory[cat]?.types ?? [])
-              : undefined,
-          startDate: auditLogsQuery.value.startDate,
-          endDate: auditLogsQuery.value.endDate,
-          orderBy: auditLogsQuery.value.orderBy,
-        },
-      )
+      const typeFilters =
+        ncIsArray(auditLogsQuery.value.type) && auditLogsQuery.value.type.length
+          ? auditLogsQuery.value.type.flatMap((cat) => auditV1OperationsCategory[cat]?.types ?? [])
+          : undefined
+
+      let list: any[] = []
+      let pageInfo: any = {}
+
+      if (loadActionOrgId.value) {
+        // Org-level audit — dedicated org endpoint
+        const res = (
+          await $api.instance.get(`/api/v2/orgs/${loadActionOrgId.value}/audits`, {
+            params: {
+              cursor: currentCursor.value || undefined,
+              workspaceIds: auditLogsQuery.value.workspaceIds?.length ? auditLogsQuery.value.workspaceIds : undefined,
+              fkUserId: user?.id || user?.fk_user_id,
+              type: typeFilters,
+              startDate: auditLogsQuery.value.startDate,
+              endDate: auditLogsQuery.value.endDate,
+              orderBy: auditLogsQuery.value.orderBy,
+            },
+          })
+        ).data
+        list = res.list || []
+        pageInfo = res.pageInfo || {}
+      } else {
+        // Workspace-level audit
+        if (!activeWorkspaceId.value) return
+
+        const res = await $api.internal.getOperation(
+          activeWorkspaceId.value,
+          loadActionForBaseId.value ? loadActionForBaseId.value : NO_SCOPE,
+          {
+            operation: loadActionForBaseId.value ? 'baseAuditList' : 'workspaceAuditList',
+            cursor: currentCursor.value,
+            baseId: auditLogsQuery.value.baseId,
+            fkUserId: user?.id || user?.fk_user_id,
+            type: typeFilters,
+            startDate: auditLogsQuery.value.startDate,
+            endDate: auditLogsQuery.value.endDate,
+            orderBy: auditLogsQuery.value.orderBy,
+          },
+        )
+        list = res.list
+        pageInfo = res.pageInfo
+      }
 
       const lastRecord = list[list.length - 1]
 
@@ -164,6 +193,24 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     }
   }
 
+  const loadUsersForOrg = async (orgId: string) => {
+    if (!orgId) return
+
+    try {
+      const list = await $api.orgUser.list(orgId)
+
+      if (!list) return
+
+      for (const user of list) {
+        if (user.email && !collaboratorsMap.value.get(user.email)) {
+          collaboratorsMap.value.set(user.email, user)
+        }
+      }
+    } catch (e: any) {
+      console.error(e)
+    }
+  }
+
   const handleReset = (clearBaseAndUsers = true) => {
     auditLogsQuery.value = { ...defaultAuditLogsQuery }
 
@@ -195,7 +242,9 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     }
 
     if (!collaboratorsMap.value.size) {
-      if (loadActionWorkspaceLogsOnly.value) {
+      if (loadActionOrgId.value) {
+        promises.push(loadUsersForOrg(loadActionOrgId.value))
+      } else if (loadActionWorkspaceLogsOnly.value) {
         loadUsersForWorkspace(activeWorkspaceId.value!)
       } else {
         promises.push(workspacesList.value.map((workspace) => loadUsersForWorkspace(workspace?.id)))
@@ -251,6 +300,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     loadActionWorkspaceLogsOnly,
     hasMoreAudits,
     loadActionForBaseId,
+    loadActionOrgId,
   }
 })
 

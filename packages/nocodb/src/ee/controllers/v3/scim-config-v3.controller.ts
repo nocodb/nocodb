@@ -20,7 +20,9 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class ScimConfigController {
-  constructor(private readonly scimConfigService: ScimConfigService) {}
+  constructor(
+    private readonly scimConfigService: ScimConfigService,
+  ) {}
 
   private async checkScimFeature(_context: NcContext) {
     // SCIM is available on licensed on-prem (license checked by LicenseGuard)
@@ -57,6 +59,7 @@ export class ScimConfigController {
     return this.scimConfigService.initializeConfig(context, {
       orgId,
       ncSiteUrl: req.ncSiteUrl,
+      req,
     });
   }
 
@@ -68,9 +71,10 @@ export class ScimConfigController {
   async regenerateToken(
     @TenantContext() context: NcContext,
     @Param('orgId') orgId: string,
+    @Req() req: any,
   ) {
     await this.checkScimFeature(context);
-    return this.scimConfigService.regenerateToken(context, orgId);
+    return this.scimConfigService.regenerateToken(context, orgId, req);
   }
 
   @Patch('/api/v3/meta/orgs/:orgId/scim/config')
@@ -92,6 +96,7 @@ export class ScimConfigController {
     return this.scimConfigService.updateConfig(context, {
       orgId,
       ncSiteUrl: req.ncSiteUrl,
+      req,
       config,
     });
   }
@@ -103,8 +108,9 @@ export class ScimConfigController {
   async deleteConfig(
     @TenantContext() context: NcContext,
     @Param('orgId') orgId: string,
+    @Req() req: any,
   ) {
     await this.checkScimFeature(context);
-    return this.scimConfigService.deleteConfig(context, orgId);
+    return this.scimConfigService.deleteConfig(context, orgId, req);
   }
 }

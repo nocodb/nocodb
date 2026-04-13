@@ -32,6 +32,7 @@ type AdminTab =
   | 'authentication'
   | 'teams'
   | 'scim'
+  | 'audit'
   | 'license'
   | 'users-list'
   | 'settings'
@@ -47,6 +48,7 @@ const validTabs: AdminTab[] = [
   'authentication',
   'teams',
   'scim',
+  'audit',
   'license',
   'users-list',
   'settings',
@@ -238,6 +240,19 @@ watch(
               </div>
             </NcMenuItem>
 
+            <NcMenuItem
+              v-if="appInfo.ee"
+              key="audit"
+              :class="{ active: activeTab === 'audit' }"
+              class="item"
+              @click="activeTab = 'audit'"
+            >
+              <div class="flex items-center space-x-2">
+                <GeneralIcon class="!h-4 !w-4" icon="ncFileText" />
+                <div class="select-none">{{ $t('title.audit') }}</div>
+              </div>
+            </NcMenuItem>
+
             <!-- Configuration -->
             <NcMenuItem
               v-if="isSetupPageAllowed"
@@ -311,6 +326,7 @@ watch(
               <AccountAuthentication v-else-if="activeTab === 'authentication'" />
               <AdminTeams v-else-if="activeTab === 'teams'" :org-id="defaultOrgId" />
               <AdminScim v-else-if="activeTab === 'scim'" :org-id="defaultOrgId" />
+              <AccountAudit v-else-if="activeTab === 'audit'" />
               <AccountLicense v-else-if="activeTab === 'license'" />
               <AccountUserList v-else-if="activeTab === 'users-list'" />
               <AccountSignupSettings v-else-if="activeTab === 'settings'" />

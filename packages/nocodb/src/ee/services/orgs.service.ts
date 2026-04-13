@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { CloudOrgUserRoles, type DomainReqType } from 'nocodb-sdk';
+import { AppEvents, CloudOrgUserRoles, type DomainReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { DbServer, Domain, Org, OrgUser, PresignedUrl, User } from '~/models';
+import { DbServer, Domain, Org, OrgUser, PresignedUrl, User, Workspace } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { generateRandomTxt, verifyTXTRecord } from '~/utils';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import Noco from '~/Noco';
 
 @Injectable()
 export class OrgsService {
+  constructor(protected readonly appHooksService: AppHooksService) {}
   async createOrg(param: {
     title: string;
     userId: string;
@@ -64,7 +67,7 @@ export class OrgsService {
     return Promise.resolve(undefined);
   }
 
-  async verifyDomain(param: { domainId: string; req: any }) {
+  async verifyDomain(param: { domainId: string; req: any; emitEvent?: boolean }) {
     const domain = await Domain.get(param.domainId);
 
     if (!domain) {
@@ -82,6 +85,15 @@ export class OrgsService {
       if (verified) {
         await Domain.deleteDuplicateDomain(domain.domain, domain.id);
       }
+    }
+
+    if (param.emitEvent !== false) {
+      this.appHooksService.emit(AppEvents.ORG_DOMAIN_VERIFY, {
+        orgId: domain.fk_org_id || Noco.ncDefaultOrgId,
+        domainName: domain.domain,
+        domainId: param.domainId,
+        req: param.req,
+      });
     }
 
     return verified;
@@ -128,7 +140,19 @@ export class OrgsService {
       fk_user_id: param.req.user?.id,
     });
 
-    await this.verifyDomain({ domainId: domain.id, req: param.req });
+    await this.verifyDomain({ domainId: domain.id, req: param.req, emitEvent: false });
+
+    let resolvedOrgId = param.orgId;
+    if (!resolvedOrgId && param.workspaceId) {
+      const ws = await Workspace.get(param.workspaceId);
+      resolvedOrgId = ws?.fk_org_id;
+    }
+
+    this.appHooksService.emit(AppEvents.ORG_DOMAIN_ADD, {
+      orgId: resolvedOrgId || Noco.ncDefaultOrgId,
+      domainName: param.body.domain,
+      req: param.req,
+    });
 
     return domain;
   }
@@ -147,18 +171,40 @@ export class OrgsService {
       updateObject.verified = await this.verifyDomain({
         domainId: param.domainId,
         req: param.req,
+        emitEvent: false,
       });
     }
 
     const res = await Domain.update(param.domainId, updateObject);
 
-    await this.verifyDomain({ domainId: param.domainId, req: param.req });
+    await this.verifyDomain({ domainId: param.domainId, req: param.req, emitEvent: false });
+
+    const updatedDomain = await Domain.get(param.domainId);
+
+    this.appHooksService.emit(AppEvents.ORG_DOMAIN_UPDATE, {
+      orgId: updatedDomain?.fk_org_id || Noco.ncDefaultOrgId,
+      domainName: param.domain.domain || updatedDomain?.domain,
+      domainId: param.domainId,
+      req: param.req,
+    });
 
     return res;
   }
 
-  async deleteDomain(param: { domainId: string }) {
-    return await Domain.delete(param.domainId);
+  async deleteDomain(param: { domainId: string; req?: NcRequest }) {
+    // Fetch before delete to capture org context for audit
+    const domainRecord = await Domain.get(param.domainId);
+
+    const result = await Domain.delete(param.domainId);
+
+    this.appHooksService.emit(AppEvents.ORG_DOMAIN_DELETE, {
+      orgId: domainRecord?.fk_org_id || Noco.ncDefaultOrgId,
+      domainName: domainRecord?.domain,
+      domainId: param.domainId,
+      req: param.req,
+    });
+
+    return result;
   }
 
   async updateOrg(param: {

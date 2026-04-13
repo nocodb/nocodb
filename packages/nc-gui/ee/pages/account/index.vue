@@ -207,6 +207,21 @@ onMounted(() => {
               </NcMenuItem>
 
               <NcMenuItem
+                v-if="appInfo.isOnPrem && appInfo.ee"
+                key="audit"
+                :class="{
+                  active: $route.params.page === 'audit',
+                }"
+                class="item"
+                @click="navigateTo('/account/audit')"
+              >
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon class="!h-4 !w-4" icon="ncFileText" />
+                  <div class="select-none">{{ $t('title.audit') }}</div>
+                </div>
+              </NcMenuItem>
+
+              <NcMenuItem
                 v-if="appInfo.isCloud"
                 key="self-hosted"
                 v-e="['c:account:self-hosted']"

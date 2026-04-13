@@ -28,6 +28,8 @@ const isUpgradeable = computed(() => {
   if (!isEdit.value) return false
   const col = vModel.value
   const colOpts = col?.colOptions as LinkToAnotherRecordType | undefined
+  // Custom links cannot be upgraded — upgrading may break/delete the foreign key
+  if (col?.meta?.custom) return false
   // All Links columns (deprecated) can be upgraded — even v2 (splits into Rollup + LTAR)
   if (col?.uidt === UITypes.Links) return true
   // LTAR v1 can be upgraded; LTAR v2 is already fully upgraded
@@ -240,10 +242,17 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.val
 // Set version based on relation type and uidt
 // hm/bt are V1-only relation types; om/mo are V2 relation types
 // For mm/oo, version follows the uidt (LinkToAnotherRecord → V2, Links → V1)
+// Custom links are always V1
 watch(
-  [() => vModel.value.type, () => vModel.value.uidt],
+  [() => vModel.value.type, () => vModel.value.uidt, () => vModel.value.is_custom_link],
   () => {
     if (isEdit.value) return
+
+    // Custom links are always V1 regardless of type
+    if (vModel.value.is_custom_link) {
+      vModel.value.version = LinksVersion.V1
+      return
+    }
 
     const type = vModel.value.type
 
@@ -359,6 +368,8 @@ const isLinkedTablePrivate = computed(() => {
 const linkType = computed({
   get: () => {
     const type = (isEdit.value ? vModel.value?.colOptions?.type : vModel.value?.type) ?? null
+    // Custom links use V1 types directly (hm/bt) — no remapping
+    if (vModel.value?.is_custom_link || vModel.value?.meta?.custom) return type
     // Remap legacy relation types to V2 radio values (om/mo)
     if (type === RelationTypes.BELONGS_TO) return RelationTypes.MANY_TO_ONE
     if (type === RelationTypes.HAS_MANY) return RelationTypes.ONE_TO_MANY
@@ -494,8 +505,46 @@ const handleScrollIntoView = () => {
     <div class="flex flex-col gap-4">
       <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type !mb-0">
         <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit" class="w-full">
+          <!-- Custom links use V1 relation types: MM, HM, BT, OO -->
+          <template v-if="vModel.is_custom_link">
+            <a-row :gutter="[8, 8]">
+              <a-col :span="12">
+                <a-radio value="mm" data-testid="Many to Many">
+                  <span class="nc-ltar-icon nc-mm-icon">
+                    <GeneralIcon icon="mm_solid" />
+                  </span>
+                  {{ $t('title.manyToMany') }}
+                </a-radio>
+              </a-col>
+              <a-col :span="12">
+                <a-radio value="hm" data-testid="Has Many">
+                  <span class="nc-ltar-icon nc-hm-icon">
+                    <GeneralIcon icon="hm_solid" />
+                  </span>
+                  {{ $t('title.hasMany') }}
+                </a-radio>
+              </a-col>
+              <a-col :span="12">
+                <a-radio value="bt" data-testid="Belongs To">
+                  <span class="nc-ltar-icon nc-bt-icon">
+                    <GeneralIcon icon="bt_solid" />
+                  </span>
+                  {{ $t('title.belongsTo') }}
+                </a-radio>
+              </a-col>
+              <a-col :span="12">
+                <a-radio value="oo" data-testid="One to One">
+                  <span class="nc-ltar-icon nc-oo-icon">
+                    <GeneralIcon icon="oneToOneSolid" />
+                  </span>
+                  {{ $t('title.oneToOne') }}
+                </a-radio>
+              </a-col>
+            </a-row>
+          </template>
+          <!-- V2 relation types: MM, OM, MO, OO -->
           <template
-            v-if="vModel.uidt === UITypes.LinkToAnotherRecord || isUpgradeable || (vModel.colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2"
+            v-else-if="vModel.uidt === UITypes.LinkToAnotherRecord || isUpgradeable || (vModel.colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2"
           >
             <a-row :gutter="[8, 8]">
               <a-col :span="12">
@@ -532,6 +581,7 @@ const handleScrollIntoView = () => {
               </a-col>
             </a-row>
           </template>
+          <!-- Legacy Links (V1): MM, HM, OO -->
           <template v-else>
             <a-row :gutter="[8, 8]" class="nc-links-3-col">
               <a-col :span="8">

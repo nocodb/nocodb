@@ -1077,6 +1077,7 @@
     "hideSystemFields": "Hide system fields",
     "removeFile": "Remove File",
     "hasMany": "Has Many",
+    "belongsTo": "Belongs To",
     "manyToMany": "Many to Many",
     "oneToOne": "One to One",
     "virtualRelation": "Virtual Relation",

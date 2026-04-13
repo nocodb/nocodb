@@ -372,6 +372,8 @@ export class ColumnsService extends ColumnsServiceCE {
           ),
           uidt: param.column.uidt,
           type: 'mm',
+          // Custom links are always V1
+          version: 1,
 
           // ref_db_alias
           fk_model_id: child.id,
@@ -402,6 +404,8 @@ export class ColumnsService extends ColumnsServiceCE {
 
           uidt: param.column.uidt,
           type: 'mm',
+          // Custom links are always V1
+          version: 1,
 
           fk_model_id: parent.id,
 

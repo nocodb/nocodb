@@ -108,10 +108,13 @@ export function useErdElements(schema: MaybeRef<AiBaseSchema>, props: MaybeRef<A
   })
 
   function edgeLabel({ type, source, target, childColId, parentColId }: Relation) {
-    const typeLabel = {
+    const typeLabel: Record<string, string> = {
       [RelationTypes.HAS_MANY]: 'has many',
       [RelationTypes.MANY_TO_MANY]: 'many to many',
       [RelationTypes.ONE_TO_ONE]: 'one to one',
+      [RelationTypes.ONE_TO_MANY]: 'one to many',
+      [RelationTypes.MANY_TO_ONE]: 'many to one',
+      [RelationTypes.BELONGS_TO]: 'belongs to',
     }
 
     return [

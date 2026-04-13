@@ -256,19 +256,19 @@ function createDragHandlePlugin(): Plugin<DragHandleState> {
           return
         }
 
-        const blockDOM = editorView.nodeDOM(currentActivePos) as HTMLElement | null
-        if (!blockDOM) {
+        const blockDOM = editorView.nodeDOM(currentActivePos)
+        if (!blockDOM || typeof (blockDOM as HTMLElement).getBoundingClientRect !== 'function') {
           handleEl.style.display = 'none'
           return
         }
 
-        const blockRect = blockDOM.getBoundingClientRect()
+        const blockRect = (blockDOM as HTMLElement).getBoundingClientRect()
         const bodyRect = editorBody.getBoundingClientRect()
 
         // Vertically center handle with the first line of text.
         // For normal blocks (14px body, ~1.5 line-height ≈ 21px) the offset is small.
         // For headings (larger font + line-height) the offset is larger.
-        const style = window.getComputedStyle(blockDOM)
+        const style = window.getComputedStyle(blockDOM as HTMLElement)
         const lineHeight = parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.5
         const verticalOffset = (lineHeight - HANDLE_SIZE) / 2
 

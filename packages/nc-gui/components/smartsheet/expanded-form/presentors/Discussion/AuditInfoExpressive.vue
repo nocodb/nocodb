@@ -93,7 +93,9 @@ function processNewDataFor(key: string) {
   const ndata = newData.value[key]
 
   if (meta.value?.[key]?.type === 'Attachment') {
-    return ndata?.filter((it: AttachmentType) => ncIsArray(odata) && !odata?.some((t: AttachmentType) => t.title === it.title))
+    if (!ncIsArray(ndata)) return []
+
+    return ndata.filter((it: AttachmentType) => ncIsArray(odata) && !odata?.some((t: AttachmentType) => t.title === it.title))
   }
   if (meta.value?.[key]?.type === 'MultiSelect') {
     return ndata?.filter?.((it: string) => !odata?.includes?.(it)) ?? ndata

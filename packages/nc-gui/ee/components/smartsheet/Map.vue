@@ -227,6 +227,10 @@ onBeforeUnmount(() => {
   openNewRecordFormHook?.off(openNewRecordFormListener)
   reloadViewMetaHook?.off(reloadViewMetaListener)
   reloadViewDataHook?.off(reloadViewDataListener)
+
+  markersClusterGroupRef.value?.clearLayers()
+  myMapRef.value?.remove()
+  myMapRef.value = undefined
 })
 
 provide(ReloadRowDataHookInj, reloadViewDataHook!)

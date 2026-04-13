@@ -651,10 +651,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             )
           }
         }
-        childrenList.value?.list.forEach((row: Record<string, any>, index: number) => {
-          isChildrenListLinked.value[index] = true
-          isChildrenListLoading.value[index] = false
-        })
+        if (ncIsArray(childrenList.value?.list)) {
+          childrenList.value.list.forEach((row: Record<string, any>, index: number) => {
+            isChildrenListLinked.value[index] = true
+            isChildrenListLoading.value[index] = false
+          })
+        }
 
         if (!childrenListPagination.query) {
           childrenListCount.value = childrenList.value?.pageInfo.totalRows ?? 0
@@ -899,10 +901,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     })
 
     watch(childrenList, async () => {
-      childrenList.value?.list.forEach((row: Record<string, any>, index: number) => {
-        isChildrenListLinked.value[index] = true
-        isChildrenListLoading.value[index] = false
-      })
+      if (ncIsArray(childrenList.value?.list)) {
+        childrenList.value.list.forEach((row: Record<string, any>, index: number) => {
+          isChildrenListLinked.value[index] = true
+          isChildrenListLoading.value[index] = false
+        })
+      }
     })
 
     const resetChildrenExcludedOffsetCount = () => {

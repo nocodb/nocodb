@@ -5364,6 +5364,8 @@ export class ColumnsService implements IColumnsService {
         fk_mm_child_column_id: parentCol.id,
         fk_mm_parent_column_id: childCol.id,
         fk_related_model_id: refTable.id,
+        dr: 'NO ACTION',
+        ur: 'NO ACTION',
         virtual: ltarReq.virtual,
         readonly: ltarReq.readonly || false,
         meta: {
@@ -5417,6 +5419,8 @@ export class ColumnsService implements IColumnsService {
         fk_mm_child_column_id: childCol.id,
         fk_mm_parent_column_id: parentCol.id,
         fk_related_model_id: table.id,
+        dr: 'NO ACTION',
+        ur: 'NO ACTION',
         virtual: ltarReq.virtual,
         readonly: ltarReq.readonly || false,
         meta: {

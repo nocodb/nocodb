@@ -993,9 +993,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       const newLoading = new Map<number, boolean>()
       for (const [idx, row] of excludedCachedRows.value) {
         const chunk = Math.floor(idx / CHUNK_SIZE)
-        const isLinked = excludedLinkedState.value.get(idx)
-        // Keep rows in the safe chunk range OR rows that have been linked (protect from eviction)
-        if ((chunk >= safeStartChunk && chunk <= safeEndChunk) || isLinked) {
+        if (chunk >= safeStartChunk && chunk <= safeEndChunk) {
           newMap.set(idx, row)
           if (excludedLinkedState.value.has(idx)) newLinked.set(idx, excludedLinkedState.value.get(idx)!)
           if (excludedLoadingState.value.has(idx)) newLoading.set(idx, excludedLoadingState.value.get(idx)!)
@@ -1022,17 +1020,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         const result = await _fetchExcludedChunkData(offset, CHUNK_SIZE)
         if (result?.list) {
           result.list.forEach((item: Record<string, any>, i: number) => {
-            const idx = offset + i
-            // Don't overwrite records that were linked in this session (they won't come from API anymore)
-            if (excludedLinkedState.value.get(idx)) return
-            excludedCachedRows.value.set(idx, item)
-            excludedLinkedState.value.set(idx, false)
-            excludedLoadingState.value.set(idx, false)
+            excludedCachedRows.value.set(offset + i, item)
+            excludedLinkedState.value.set(offset + i, false)
+            excludedLoadingState.value.set(offset + i, false)
           })
         }
-        // Only set totalRows on first load (after reset) — keep it stable during the session
-        // so linking/unlinking doesn't cause the scroll range to shift
-        if (result?.pageInfo?.totalRows != null && excludedTotalRows.value === 0) {
+        if (result?.pageInfo?.totalRows != null) {
           excludedTotalRows.value = +result.pageInfo.totalRows
         }
         excludedChunkStates.value[chunkId] = 'loaded'
@@ -1100,9 +1093,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       const newLoading = new Map<number, boolean>()
       for (const [idx, row] of childrenCachedRows.value) {
         const chunk = Math.floor(idx / CHUNK_SIZE)
-        const isUnlinked = childrenCachedLinkedState.value.get(idx) === false
-        // Keep rows in the safe chunk range OR rows that have been unlinked (protect from eviction)
-        if ((chunk >= safeStartChunk && chunk <= safeEndChunk) || isUnlinked) {
+        if (chunk >= safeStartChunk && chunk <= safeEndChunk) {
           newMap.set(idx, row)
           if (childrenCachedLinkedState.value.has(idx)) newLinked.set(idx, childrenCachedLinkedState.value.get(idx)!)
           if (childrenCachedLoadingState.value.has(idx)) newLoading.set(idx, childrenCachedLoadingState.value.get(idx)!)
@@ -1128,15 +1119,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         const result = await _fetchChildrenChunkData(offset, CHUNK_SIZE)
         if (result?.list) {
           result.list.forEach((item: Record<string, any>, i: number) => {
-            const idx = offset + i
-            // Don't overwrite records that were unlinked in this session
-            if (childrenCachedLinkedState.value.get(idx) === false) return
-            childrenCachedRows.value.set(idx, item)
-            childrenCachedLinkedState.value.set(idx, true)
+            childrenCachedRows.value.set(offset + i, item)
+            childrenCachedLinkedState.value.set(offset + i, true)
             childrenCachedLoadingState.value.set(offset + i, false)
           })
         }
-        if (result?.pageInfo?.totalRows != null && childrenCachedTotalRows.value === 0) {
+        if (result?.pageInfo?.totalRows != null) {
           childrenCachedTotalRows.value = +result.pageInfo.totalRows
         }
         childrenChunkStates.value[chunkId] = 'loaded'

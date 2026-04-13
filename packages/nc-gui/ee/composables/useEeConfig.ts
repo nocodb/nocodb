@@ -712,15 +712,24 @@ export const useEeConfig = createSharedComposable(() => {
   const handleOnPremUpgrade = ({
     title,
     content,
+    limitOrFeature,
   }: {
     title?: string
     content?: string
+    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes | string
   } = {}) => {
     const isOpen = ref(true)
 
+    const upgradeMessage = limitOrFeature ? getUpgradeMessage(limitOrFeature) : ''
+
     const modalTitle = ref(title || t('upgrade.enterpriseFeatureTitle'))
 
-    const modalContent = ref(content || t('upgrade.enterpriseFeatureSubtitle'))
+    const modalContent = ref(
+      content ||
+        (upgradeMessage
+          ? t('upgrade.enterpriseFeatureEnterLicense', { detail: upgradeMessage })
+          : t('upgrade.enterpriseFeatureSubtitle', { feature: t('general.thisFeature') })),
+    )
 
     const { close } = useDialog(NcModalConfirm, {
       'visible': isOpen,
@@ -831,13 +840,16 @@ export const useEeConfig = createSharedComposable(() => {
     requiredPlan?: PlanTitles
   } = {}) => {
     // On-prem without license: show license upgrade modal instead of cloud pricing
+    // Don't pass content — it contains cloud-specific plan names (e.g. "Business");
+    // pass limitOrFeature so handleOnPremUpgrade can generate enterprise-appropriate content
     if (isEEFeatureBlocked.value) {
-      return handleOnPremUpgrade({ title, content })
+      return handleOnPremUpgrade({ limitOrFeature })
     }
 
     // Licensed on-prem with plan-blocked feature: show upgrade license modal
+    // Don't pass content — it contains cloud-specific plan names; the handler generates its own
     if (isOnPrem.value) {
-      return handleOnPremLicensedUpgrade({ title, content, limitOrFeature })
+      return handleOnPremLicensedUpgrade({ title, limitOrFeature })
     }
 
     // if already on required plan it means we hit the limit so show higher plan
@@ -1399,8 +1411,7 @@ export const useEeConfig = createSharedComposable(() => {
 
     if (isEEFeatureBlocked.value) {
       handleOnPremUpgrade({
-        title: t('upgrade.enterpriseFeatureTitle'),
-        content: t('upgrade.upgradeToUseDocumentPermissionsSubtitle', { plan: PlanTitles.ENTERPRISE }),
+        limitOrFeature: PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS,
       })
     } else {
       handleUpgradePlan({

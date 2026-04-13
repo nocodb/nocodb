@@ -385,20 +385,25 @@ const scrollContainerRef = ref<HTMLElement>()
 
 const ROW_VIRTUAL_MARGIN = 5
 
-const rowSlice = reactive({ start: 0, end: 10 })
+const rowSlice = reactive({ start: 0, end: 0 })
 
 const calculateSlices = () => {
   const container = scrollContainerRef.value
-  if (!container) return
+  if (!container || childrenCachedTotalRows.value === 0) return
 
   const scrollTop = container.scrollTop
   const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT))
   const visibleCount = Math.ceil(container.clientHeight / ROW_HEIGHT)
-  const endIndex = Math.min(startIndex + visibleCount, childrenCachedTotalRows.value || 10)
+  const endIndex = Math.min(startIndex + visibleCount, childrenCachedTotalRows.value)
 
   rowSlice.start = Math.max(0, startIndex - ROW_VIRTUAL_MARGIN)
-  rowSlice.end = Math.min(childrenCachedTotalRows.value || 10, endIndex + ROW_VIRTUAL_MARGIN)
+  rowSlice.end = Math.min(childrenCachedTotalRows.value, endIndex + ROW_VIRTUAL_MARGIN)
 }
+
+// Recalculate slices when totalRows changes (e.g., after first chunk load)
+watch(childrenCachedTotalRows, () => {
+  calculateSlices()
+})
 
 const updateVisibleChunks = () => {
   if (childrenCachedTotalRows.value === 0 && childrenCachedRows.value.size === 0) return
@@ -415,9 +420,12 @@ const updateVisibleChunks = () => {
   clearChildrenCache(bufferStart, bufferEnd)
 }
 
+// Debounce chunk fetching so dragging the scrollbar doesn't fire dozens of API calls
+const debouncedUpdateVisibleChunks = useDebounceFn(updateVisibleChunks, 150)
+
 const onListScroll = () => {
   calculateSlices()
-  updateVisibleChunks()
+  debouncedUpdateVisibleChunks()
 }
 
 const visibleRows = computed(() => {

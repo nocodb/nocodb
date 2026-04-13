@@ -1,4 +1,4 @@
-import { isBoxHovered, renderBarcode, renderMultiLineText } from '../utils/canvas'
+import { isBoxHovered, renderBarcode, renderCellError } from '../utils/canvas'
 import { validateBarcode } from '../utils/cell'
 
 export const BarcodeCellRenderer: CellRenderer = {
@@ -6,15 +6,7 @@ export const BarcodeCellRenderer: CellRenderer = {
     const { value, x, y, width, height, column, tag = {}, spriteLoader, cellRenderStore, isDark, getColor, padding = 10 } = props
 
     if (parseProp(column.colOptions)?.error) {
-      renderMultiLineText(ctx, {
-        x: x + (padding ?? 10),
-        y,
-        text: 'ERR!',
-        maxWidth: width - (padding ?? 10) * 2,
-        fontFamily: '500 13px Inter',
-        fillStyle: '#e65100',
-        height,
-      })
+      renderCellError(ctx, { x, y, width, height, padding, getColor })
       return
     }
 

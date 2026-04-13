@@ -8,26 +8,47 @@ import type {
 } from '../../types';
 import {
   BarcodeColumn,
+  Filter,
   LookupColumn,
   QrCodeColumn,
   RollupColumn,
+  Sort,
 } from '~/models';
-import { MetaTable } from '~/cli';
-import { CacheScope } from '~/utils/globals';
+import { CacheScope, MetaTable } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
 import Column from '~/models/Column';
 
+type AffectedColumnType = 'lookup' | 'rollup' | 'qrcode' | 'barcode';
+
 interface AffectedColumn {
   fk_column_id: string;
-  type: 'lookup' | 'rollup' | 'qrcode' | 'barcode';
+  type: AffectedColumnType;
   context: NcContext;
 }
 
-interface ColumnDeleteAffectedResult extends AffectedDependencyResult {
-  _affectedColumns?: AffectedColumn[];
-  _error?: string;
-}
+const COL_OPTION_UPDATERS: Record<
+  AffectedColumnType,
+  (
+    ctx: NcContext,
+    colId: string,
+    data: { error: string },
+    ncMeta: any,
+  ) => Promise<any>
+> = {
+  lookup: LookupColumn.update.bind(LookupColumn),
+  rollup: RollupColumn.update.bind(RollupColumn),
+  qrcode: QrCodeColumn.update.bind(QrCodeColumn),
+  barcode: BarcodeColumn.update.bind(BarcodeColumn),
+};
+
+// Dependent column queries used for both discovery and transitive BFS
+const DEPENDENT_QUERIES: [MetaTable, string, AffectedColumnType][] = [
+  [MetaTable.COL_LOOKUP, 'fk_lookup_column_id', 'lookup'],
+  [MetaTable.COL_ROLLUP, 'fk_rollup_column_id', 'rollup'],
+  [MetaTable.COL_QRCODE, 'fk_qr_value_column_id', 'qrcode'],
+  [MetaTable.COL_BARCODE, 'fk_barcode_value_column_id', 'barcode'],
+];
 
 /**
  * When a column is deleted, mark dependent virtual columns (Lookup, Rollup, QR Code, Barcode)
@@ -38,271 +59,247 @@ interface ColumnDeleteAffectedResult extends AffectedDependencyResult {
 export class ColumnDeleteDependencyHandler implements MetaEventHandler {
   triggerMetaEvents: MetaEventType[] = [MetaEventType.COLUMN_DELETED];
 
+  /**
+   * Lightweight check: are there any dependents at all?
+   * Avoids starting a transaction when nothing needs updating.
+   */
   async getAffectedDependency(
     context: NcContext,
     param: MetaDependencyEventRequest,
     ncMeta = Noco.ncMeta,
-  ): Promise<ColumnDeleteAffectedResult | undefined> {
+  ): Promise<AffectedDependencyResult | undefined> {
     const deletedColumn = param.oldEntity;
     if (!deletedColumn?.id) return undefined;
+
+    const id = deletedColumn.id;
+
+    for (const [table, fkField] of DEPENDENT_QUERIES) {
+      const rows = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        table,
+        { condition: { [fkField]: id } },
+      );
+      if (rows.length) return {};
+    }
+
+    if (isLinksOrLTAR(deletedColumn.uidt)) {
+      for (const [table, , type] of DEPENDENT_QUERIES) {
+        if (type !== 'lookup' && type !== 'rollup') continue;
+        const fkField = 'fk_relation_column_id';
+        const rows = await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          table,
+          { condition: { [fkField]: id } },
+        );
+        if (rows.length) return {};
+      }
+    }
+
+    // Check cross-base dependents
+    const columns = await Column.list(context, {
+      fk_model_id: deletedColumn.fk_model_id,
+    });
+    for (const column of columns) {
+      if (!isLinksOrLTAR(column.uidt)) continue;
+      const colOptions = await column.getColOptions<any>(context, ncMeta);
+      if (
+        !colOptions?.fk_related_base_id ||
+        colOptions.fk_related_base_id === deletedColumn.base_id
+      )
+        continue;
+
+      for (const [table, fkField] of DEPENDENT_QUERIES) {
+        if (fkField.includes('qr') || fkField.includes('barcode')) continue;
+        const rows = await ncMeta.metaList2(
+          context.workspace_id,
+          colOptions.fk_related_base_id,
+          table,
+          { condition: { [fkField]: id } },
+        );
+        if (rows.length) return {};
+      }
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Single BFS pass: discover all dependents (direct + transitive), error-mark
+   * each one, and clean up its sorts/filters.
+   */
+  async handle(
+    context: NcContext,
+    param: MetaDependencyEventRequest & {
+      affectedDependencyResult: AffectedDependencyResult;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    const deletedColumn = param.oldEntity;
+    if (!deletedColumn?.id) return;
 
     const id = deletedColumn.id;
     const error = `Field '${
       deletedColumn.title || deletedColumn.column_name
     }' was deleted`;
-    const affectedColumns: AffectedColumn[] = [];
 
-    // QR Codes referencing this column as their value source
-    const qrCodeCols = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.COL_QRCODE,
-      { condition: { fk_qr_value_column_id: id } },
-    );
-    for (const col of qrCodeCols) {
-      affectedColumns.push({
-        fk_column_id: col.fk_column_id,
-        type: 'qrcode',
-        context,
-      });
-    }
+    // Seed: find all direct dependents of the deleted column
+    const visited = new Set<string>();
+    const queue: AffectedColumn[] = [];
 
-    // Barcodes referencing this column as their value source
-    const barcodeCols = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.COL_BARCODE,
-      { condition: { fk_barcode_value_column_id: id } },
-    );
-    for (const col of barcodeCols) {
-      affectedColumns.push({
-        fk_column_id: col.fk_column_id,
-        type: 'barcode',
-        context,
-      });
-    }
-
-    // Lookups referencing this column as their lookup target
-    {
-      const cachedList = await NocoCache.getList(
-        context,
-        CacheScope.COL_LOOKUP,
-        [id],
-      );
-      let { list: lookups } = cachedList;
-      const { isNoneList } = cachedList;
-      if (!isNoneList && !lookups.length) {
-        lookups = await ncMeta.metaList2(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.COL_LOOKUP,
-          { condition: { fk_lookup_column_id: id } },
-        );
-      }
-      for (const lookup of lookups) {
-        affectedColumns.push({
-          fk_column_id: lookup.fk_column_id,
-          type: 'lookup',
-          context,
-        });
-      }
-    }
-
-    // Rollups referencing this column as their rollup target
-    {
-      const cachedList = await NocoCache.getList(
-        context,
-        CacheScope.COL_ROLLUP,
-        [id],
-      );
-      let { list: rollups } = cachedList;
-      const { isNoneList } = cachedList;
-      if (!isNoneList && !rollups.length) {
-        rollups = await ncMeta.metaList2(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.COL_ROLLUP,
-          { condition: { fk_rollup_column_id: id } },
-        );
-      }
-      for (const rollup of rollups) {
-        affectedColumns.push({
-          fk_column_id: rollup.fk_column_id,
-          type: 'rollup',
-          context,
-        });
-      }
-    }
-
-    // If the deleted column is a link/LTAR, also find lookups/rollups referencing it as their relation
-    if (isLinksOrLTAR(deletedColumn.uidt)) {
-      {
-        const cachedList = await NocoCache.getList(
-          context,
-          CacheScope.COL_LOOKUP,
-          [id],
-        );
-        let { list: lookups } = cachedList;
-        const { isNoneList } = cachedList;
-        if (!isNoneList && !lookups.length) {
-          lookups = await ncMeta.metaList2(
-            context.workspace_id,
-            context.base_id,
-            MetaTable.COL_LOOKUP,
-            { condition: { fk_relation_column_id: id } },
-          );
-        }
-        for (const lookup of lookups) {
-          // Avoid duplicates (a lookup might reference both target and relation)
-          if (
-            !affectedColumns.some((a) => a.fk_column_id === lookup.fk_column_id)
-          ) {
-            affectedColumns.push({
-              fk_column_id: lookup.fk_column_id,
-              type: 'lookup',
-              context,
-            });
-          }
-        }
-      }
-
-      {
-        const cachedList = await NocoCache.getList(
-          context,
-          CacheScope.COL_ROLLUP,
-          [id],
-        );
-        let { list: rollups } = cachedList;
-        const { isNoneList } = cachedList;
-        if (!isNoneList && !rollups.length) {
-          rollups = await ncMeta.metaList2(
-            context.workspace_id,
-            context.base_id,
-            MetaTable.COL_ROLLUP,
-            { condition: { fk_relation_column_id: id } },
-          );
-        }
-        for (const rollup of rollups) {
-          if (
-            !affectedColumns.some((a) => a.fk_column_id === rollup.fk_column_id)
-          ) {
-            affectedColumns.push({
-              fk_column_id: rollup.fk_column_id,
-              type: 'rollup',
-              context,
-            });
-          }
-        }
-      }
-    }
-
-    // Cross-base lookups and rollups
-    {
-      const columns = await Column.list(context, {
-        fk_model_id: deletedColumn.fk_model_id,
-      });
-
-      for (const column of columns) {
-        if (!isLinksOrLTAR(column.uidt)) continue;
-
-        const colOptions = await column.getColOptions<any>(context, ncMeta);
-
-        if (
-          !colOptions?.fk_related_base_id ||
-          colOptions.fk_related_base_id === deletedColumn.base_id
-        )
-          continue;
-
-        const crossBaseContext = {
-          ...context,
-          base_id: colOptions.fk_related_base_id,
-        };
-
-        const crossBaseLookups = await ncMeta.metaList2(
-          context.workspace_id,
-          colOptions.fk_related_base_id,
-          MetaTable.COL_LOOKUP,
-          { condition: { fk_lookup_column_id: id } },
-        );
-        for (const lookup of crossBaseLookups) {
-          affectedColumns.push({
-            fk_column_id: lookup.fk_column_id,
-            type: 'lookup',
-            context: crossBaseContext,
-          });
-        }
-
-        const crossBaseRollups = await ncMeta.metaList2(
-          context.workspace_id,
-          colOptions.fk_related_base_id,
-          MetaTable.COL_ROLLUP,
-          { condition: { fk_rollup_column_id: id } },
-        );
-        for (const rollup of crossBaseRollups) {
-          affectedColumns.push({
-            fk_column_id: rollup.fk_column_id,
-            type: 'rollup',
-            context: crossBaseContext,
-          });
-        }
-      }
-    }
-
-    if (affectedColumns.length === 0) return undefined;
-
-    return {
-      _affectedColumns: affectedColumns,
-      _error: error,
+    const enqueue = (
+      fk_column_id: string,
+      type: AffectedColumnType,
+      ctx: NcContext,
+    ) => {
+      if (visited.has(fk_column_id)) return;
+      visited.add(fk_column_id);
+      queue.push({ fk_column_id, type, context: ctx });
     };
-  }
 
-  async handle(
-    context: NcContext,
-    param: MetaDependencyEventRequest & {
-      affectedDependencyResult: ColumnDeleteAffectedResult;
-    },
-    ncMeta = Noco.ncMeta,
-  ): Promise<void> {
-    const { _affectedColumns, _error } = param.affectedDependencyResult;
-    if (!_affectedColumns?.length || !_error) return;
+    // Direct dependents — use cache for lookups/rollups (matching original Column.delete pattern)
+    for (const [table, fkField, type] of DEPENDENT_QUERIES) {
+      let rows: any[];
 
-    for (const affected of _affectedColumns) {
+      if (type === 'lookup' || type === 'rollup') {
+        const scope =
+          type === 'lookup' ? CacheScope.COL_LOOKUP : CacheScope.COL_ROLLUP;
+        const cachedList = await NocoCache.getList(context, scope, [id]);
+        const { isNoneList } = cachedList;
+        rows = cachedList.list;
+        if (!isNoneList && !rows.length) {
+          rows = await ncMeta.metaList2(
+            context.workspace_id,
+            context.base_id,
+            table,
+            { condition: { [fkField]: id } },
+          );
+        }
+      } else {
+        rows = await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          table,
+          { condition: { [fkField]: id } },
+        );
+      }
+
+      for (const row of rows) {
+        enqueue(row.fk_column_id, type, context);
+      }
+    }
+
+    // For LTAR columns: lookups/rollups referencing it as their relation
+    if (isLinksOrLTAR(deletedColumn.uidt)) {
+      for (const row of await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COL_LOOKUP,
+        { condition: { fk_relation_column_id: id } },
+      )) {
+        enqueue(row.fk_column_id, 'lookup', context);
+      }
+
+      for (const row of await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COL_ROLLUP,
+        { condition: { fk_relation_column_id: id } },
+      )) {
+        enqueue(row.fk_column_id, 'rollup', context);
+      }
+    }
+
+    // Cross-base dependents
+    const columns = await Column.list(context, {
+      fk_model_id: deletedColumn.fk_model_id,
+    });
+    for (const column of columns) {
+      if (!isLinksOrLTAR(column.uidt)) continue;
+      const colOptions = await column.getColOptions<any>(context, ncMeta);
+      if (
+        !colOptions?.fk_related_base_id ||
+        colOptions.fk_related_base_id === deletedColumn.base_id
+      )
+        continue;
+
+      const crossCtx = { ...context, base_id: colOptions.fk_related_base_id };
+
+      for (const row of await ncMeta.metaList2(
+        context.workspace_id,
+        colOptions.fk_related_base_id,
+        MetaTable.COL_LOOKUP,
+        { condition: { fk_lookup_column_id: id } },
+      )) {
+        enqueue(row.fk_column_id, 'lookup', crossCtx);
+      }
+
+      for (const row of await ncMeta.metaList2(
+        context.workspace_id,
+        colOptions.fk_related_base_id,
+        MetaTable.COL_ROLLUP,
+        { condition: { fk_rollup_column_id: id } },
+      )) {
+        enqueue(row.fk_column_id, 'rollup', crossCtx);
+      }
+    }
+
+    // BFS: error-mark each dependent, clean up sorts/filters, discover transitive dependents
+    while (queue.length > 0) {
+      const affected = queue.shift();
       const ctx = affected.context;
 
-      switch (affected.type) {
-        case 'lookup':
-          await LookupColumn.update(
-            ctx,
-            affected.fk_column_id,
-            { error: _error },
-            ncMeta,
-          );
-          break;
-        case 'rollup':
-          await RollupColumn.update(
-            ctx,
-            affected.fk_column_id,
-            { error: _error },
-            ncMeta,
-          );
-          break;
-        case 'qrcode':
-          await QrCodeColumn.update(
-            ctx,
-            affected.fk_column_id,
-            { error: _error },
-            ncMeta,
-          );
-          break;
-        case 'barcode':
-          await BarcodeColumn.update(
-            ctx,
-            affected.fk_column_id,
-            { error: _error },
-            ncMeta,
-          );
-          break;
+      await COL_OPTION_UPDATERS[affected.type](
+        ctx,
+        affected.fk_column_id,
+        { error },
+        ncMeta,
+      );
+      await this.cleanupSortsAndFilters(ctx, affected.fk_column_id, ncMeta);
+
+      // Discover transitive dependents of this just-marked column
+      for (const [table, fkField, type] of DEPENDENT_QUERIES) {
+        for (const row of await ncMeta.metaList2(
+          ctx.workspace_id,
+          ctx.base_id,
+          table,
+          { condition: { [fkField]: affected.fk_column_id } },
+        )) {
+          enqueue(row.fk_column_id, type, ctx);
+        }
       }
+    }
+  }
+
+  private async cleanupSortsAndFilters(
+    context: NcContext,
+    columnId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    for (const sort of await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.SORT,
+      { condition: { fk_column_id: columnId } },
+    )) {
+      await Sort.delete(context, sort.id, ncMeta);
+    }
+
+    for (const filter of await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.FILTER_EXP,
+      {
+        xcCondition: {
+          _or: [
+            { fk_column_id: { eq: columnId } },
+            { fk_value_col_id: { eq: columnId } },
+          ],
+        },
+      },
+    )) {
+      await Filter.delete(context, filter.id, ncMeta);
     }
   }
 }

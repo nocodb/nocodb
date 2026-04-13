@@ -406,6 +406,29 @@ export const drawStraightLine = (
   ctx.stroke()
 }
 
+export const renderCellError = (
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  params: {
+    x: number
+    y: number
+    width: number
+    height: number
+    padding: number
+    getColor: GetColorType
+  },
+) => {
+  const { x, y, width, height, padding, getColor } = params
+  renderMultiLineText(ctx, {
+    x: x + padding,
+    y,
+    text: 'ERR!',
+    maxWidth: width - padding * 2,
+    fontFamily: '500 13px Inter',
+    fillStyle: getColor(themeV4Colors.orange['700']),
+    height,
+  })
+}
+
 export const renderSingleLineText = (
   ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   params: RenderSingleLineTextProps,

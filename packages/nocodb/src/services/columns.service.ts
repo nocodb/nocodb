@@ -851,6 +851,7 @@ export class ColumnsService implements IColumnsService {
           await Column.update(context, column.id, {
             ...column,
             ...colBody,
+            error: null,
           } as Column);
         } else if (column.uidt === UITypes.Formula) {
           const relatedModels: Map<string, Model> = await getRelatedModelMap(
@@ -5576,7 +5577,7 @@ export class ColumnsService implements IColumnsService {
     ) {
       // Perform additional validation for lookup payload
       await validateLookupPayload(context, colBody, column.id);
-      await Column.update(context, column.id, colBody);
+      await Column.update(context, column.id, { ...colBody, error: null });
     } else if (
       UITypes.Rollup === column.uidt &&
       validateRequiredField(colBody, [
@@ -5601,7 +5602,7 @@ export class ColumnsService implements IColumnsService {
           ...colBody,
         },
       });
-      await Column.update(context, column.id, colBody);
+      await Column.update(context, column.id, { ...colBody, error: null });
     }
   }
 

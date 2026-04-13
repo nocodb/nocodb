@@ -9,7 +9,7 @@ import {
 } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
 import { getRelatedBaseId, getSingleMultiselectColOptions, getUserColOptions, renderAsCellLookupOrLtarValue } from '../utils/cell'
-import { renderSingleLineText } from '../utils/canvas'
+import { renderCellError, renderSingleLineText } from '../utils/canvas'
 import { PlainCellRenderer } from './Plain'
 
 const renderOnly1Row = [UITypes.QrCode, UITypes.Barcode, UITypes.Attachment, UITypes.LinkToAnotherRecord, UITypes.Links]
@@ -38,13 +38,7 @@ export const LookupCellRenderer: CellRenderer = {
     let width = _width - ellipsisWidth
 
     if (parseProp(column.colOptions)?.error || value === NC_ERROR_SENTINEL) {
-      renderSingleLineText(ctx, {
-        text: 'ERR!',
-        x: x + padding,
-        y,
-        height,
-        fillStyle: '#e65100',
-      })
+      renderCellError(ctx, { x, y, width: _width, height, padding, getColor })
       return
     }
 

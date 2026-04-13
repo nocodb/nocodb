@@ -10,21 +10,15 @@ import {
 
 import rfdc from 'rfdc'
 import { getRelatedBaseId } from '../utils/cell'
-import { renderSingleLineText } from '../utils/canvas'
+import { renderCellError } from '../utils/canvas'
 
 const clone = rfdc()
 export const RollupCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, value, metas, meta, renderCell, x, y, padding = 10 } = props
+    const { column, value, metas, meta, renderCell, x, y, padding = 10, getColor } = props
 
     if (parseProp(column.colOptions)?.error || value === NC_ERROR_SENTINEL) {
-      renderSingleLineText(ctx, {
-        text: 'ERR!',
-        x: (x ?? 0) + padding,
-        y: y ?? 0,
-        height: props.height,
-        fillStyle: '#e65100',
-      })
+      renderCellError(ctx, { x: x ?? 0, y: y ?? 0, width: props.width ?? 0, height: props.height, padding, getColor })
       return
     }
 

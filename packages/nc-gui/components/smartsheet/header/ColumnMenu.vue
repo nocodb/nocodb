@@ -692,6 +692,7 @@ const onDeleteColumn = () => {
         !isMobileMode &&
         isLinksOrLTAR(column) &&
         (column.uidt === UITypes.Links || column.colOptions?.version !== 2) &&
+        !column.meta?.custom &&
         isUIAllowed('fieldAlter') &&
         !isSqlView
       "

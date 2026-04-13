@@ -48,6 +48,7 @@ const {
   formState,
   isWebhookCreateModalOpen,
   isAiButtonConfigModalOpen,
+  isConvertLinkV2ModalOpen,
   generateNewColumnMeta,
   addOrUpdate,
   onAlter,
@@ -102,8 +103,6 @@ onBeforeMount(() => {
 })
 
 const editDescription = toRef(props, 'editDescription')
-
-const showConvertLinkV2Modal = ref(false)
 
 const { getMeta } = useMetas()
 
@@ -584,7 +583,8 @@ onMounted(() => {
 })
 
 const handleEscape = (event: KeyboardEvent): void => {
-  if (isColumnTypeOpen.value || isWebhookCreateModalOpen.value || isAiButtonConfigModalOpen.value) return
+  if (isColumnTypeOpen.value || isWebhookCreateModalOpen.value || isAiButtonConfigModalOpen.value || isConvertLinkV2ModalOpen.value)
+    return
 
   if (event.key === 'Escape') emit('cancel')
 }
@@ -1293,13 +1293,14 @@ const unique = computed({
                           column.uidt === UITypes.LinkToAnotherRecord &&
                           opt.name === UITypes.LinkToAnotherRecord &&
                           column.colOptions?.version !== 2 &&
-                          column.colOptions?.type !== 'mm'
+                          column.colOptions?.type !== 'mm' &&
+                          !column.meta?.custom
                         "
                         :title="$t('labels.convertToNewLink')"
                       >
                         <span
                           class="!text-xs !text-nc-content-brand-hover cursor-pointer hover:underline flex-none"
-                          @click.stop="showConvertLinkV2Modal = true"
+                          @click.stop="isConvertLinkV2ModalOpen = true"
                           >(Legacy)</span
                         >
                       </NcTooltip>
@@ -1392,7 +1393,7 @@ const unique = computed({
           :key="`${formState.uidt}-${formState.id || 'new'}`"
           v-model:value="formState"
           :is-edit="isEdit"
-          @upgrade="showConvertLinkV2Modal = true"
+          @upgrade="isConvertLinkV2ModalOpen = true"
         />
         <SmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" v-model:value="formState" />
         <SmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
@@ -1688,7 +1689,7 @@ const unique = computed({
       </template>
     </a-form>
 
-    <LazyDlgConvertLinkV2 v-model:visible="showConvertLinkV2Modal" :column="column" @converted="emit('cancel')" />
+    <LazyDlgConvertLinkV2 v-model:visible="isConvertLinkV2ModalOpen" :column="column" @converted="emit('cancel')" />
   </div>
 </template>
 

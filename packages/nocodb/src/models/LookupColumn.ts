@@ -37,6 +37,7 @@ export default class LookupColumn implements LookupType {
       'fk_column_id',
       'fk_relation_column_id',
       'fk_lookup_column_id',
+      'error',
     ]);
 
     await ncMeta.metaInsert2(

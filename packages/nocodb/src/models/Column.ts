@@ -322,6 +322,7 @@ export default class Column<T = any> implements ColumnType {
             fk_column_id: colId,
             fk_relation_column_id: column.fk_relation_column_id,
             fk_lookup_column_id: column.fk_lookup_column_id,
+            error: column.error,
           },
           ncMeta,
         );
@@ -333,9 +334,9 @@ export default class Column<T = any> implements ColumnType {
           {
             fk_column_id: colId,
             fk_relation_column_id: column.fk_relation_column_id,
-
             fk_rollup_column_id: column.fk_rollup_column_id,
             rollup_function: column.rollup_function,
+            error: column.error,
           },
           ncMeta,
         );
@@ -398,6 +399,7 @@ export default class Column<T = any> implements ColumnType {
           {
             fk_column_id: colId,
             fk_qr_value_column_id: column.fk_qr_value_column_id,
+            error: column.error,
           },
           ncMeta,
         );
@@ -410,6 +412,7 @@ export default class Column<T = any> implements ColumnType {
             fk_column_id: colId,
             fk_barcode_value_column_id: column.fk_barcode_value_column_id,
             barcode_format: column.barcode_format,
+            error: column.error,
           },
           ncMeta,
         );

@@ -25,6 +25,7 @@ export default class QrCodeColumn {
     const insertObj = extractProps(qrCode, [
       'fk_column_id',
       'fk_qr_value_column_id',
+      'error',
     ]);
 
     const column = await Column.get(

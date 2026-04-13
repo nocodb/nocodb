@@ -42,6 +42,7 @@ export default class RollupColumn implements RollupType {
       'fk_relation_column_id',
       'fk_rollup_column_id',
       'rollup_function',
+      'error',
     ]);
 
     const column = await Column.get(

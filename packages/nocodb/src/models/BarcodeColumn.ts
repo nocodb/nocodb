@@ -28,6 +28,7 @@ export default class BarcodeColumn {
       'fk_column_id',
       'fk_barcode_value_column_id',
       'barcode_format',
+      'error',
     ]);
 
     const column = await Column.get(

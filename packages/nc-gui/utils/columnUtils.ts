@@ -318,6 +318,12 @@ const isColumnInvalid = ({
     case UITypes.Formula:
       result.isInvalid = !!(col.colOptions as FormulaType).error
       break
+    case UITypes.Lookup:
+    case UITypes.Rollup:
+    case UITypes.QrCode:
+    case UITypes.Barcode:
+      result.isInvalid = !!(col.colOptions as any).error
+      break
     case UITypes.Button: {
       const colOptions = col.colOptions as ButtonType
 

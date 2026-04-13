@@ -11402,6 +11402,10 @@
           "related_table_lookup_field_id": {
             "type": "string",
             "description": "Lookup field ID in the linked table."
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message when dependent field is deleted"
           }
         },
         "required": [
@@ -11435,6 +11439,10 @@
               "sumDistinct",
               "avgDistinct"
             ]
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message when dependent field is deleted"
           }
         },
         "required": [

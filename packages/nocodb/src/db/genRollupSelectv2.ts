@@ -1,6 +1,7 @@
 import {
   isBtLikeV2Junction,
   isMMOrMMLike,
+  NC_ERROR_SENTINEL,
   NcDataErrorCodes,
   RelationTypes,
   UITypes,
@@ -33,6 +34,10 @@ export default async function genRollupSelectv2(param: {
 }): Promise<{ builder: Knex.QueryBuilder | any }> {
   const { baseModelSqlv2, knex, alias, columnOptions, nestedLevel = 0 } = param;
   let { parentColumns } = param;
+
+  if ((columnOptions as RollupColumn).error) {
+    return { builder: knex.raw(`?`, [NC_ERROR_SENTINEL]) };
+  }
 
   const context = baseModelSqlv2.context;
   parentColumns = parentColumns ?? CircularRefContext.make();

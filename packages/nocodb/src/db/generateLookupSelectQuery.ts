@@ -1,6 +1,7 @@
 import {
   isBtLikeV2Junction,
   isMMOrMMLike,
+  NC_ERROR_SENTINEL,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
@@ -78,6 +79,12 @@ export default async function generateLookupSelectQuery({
 
     if (column.uidt === UITypes.Lookup) {
       lookupColOpt = await column.getColOptions<LookupColumn>(context);
+      if (lookupColOpt?.error) {
+        return {
+          builder: NC_ERROR_SENTINEL,
+          applyCte: () => {},
+        };
+      }
     } else if (
       column.uidt !== UITypes.LinkToAnotherRecord &&
       column.uidt !== UITypes.Links

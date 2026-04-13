@@ -361,7 +361,9 @@ export const extractRefColumnIfFound = async ({
     const lookupColumnId =
       column.fk_lookup_column_id || column.colOptions?.fk_lookup_column_id;
 
-    const lookupTable = await Model.get(context, linkField.fk_model_id);
+    const lookupTable = linkField?.fk_model_id
+      ? await Model.get(context, linkField.fk_model_id)
+      : null;
 
     const lookupColumn = await Column.get(context, { colId: lookupColumnId });
 
@@ -390,7 +392,9 @@ export const extractRefColumnIfFound = async ({
     const rollupColumnId =
       column.fk_rollup_column_id || column.colOptions?.fk_rollup_column_id;
 
-    const rollupTable = await Model.get(context, linkField.fk_model_id);
+    const rollupTable = linkField?.fk_model_id
+      ? await Model.get(context, linkField.fk_model_id)
+      : null;
 
     const rollupColumn = await Column.get(context, { colId: rollupColumnId });
 

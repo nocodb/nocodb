@@ -1878,6 +1878,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               const colOptions: LookupColumn = await column.getColOptions(
                 this.context,
               );
+              // Skip registering lookup alias if column has an error — sentinel value
+              // is already selected in selectObject
+              if (colOptions?.error) break;
               const relCol = await Column.get(this.context, {
                 colId: colOptions.fk_relation_column_id,
               });
@@ -6306,14 +6309,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return column;
     }
     const colOptions = await column.getColOptions<LookupColumn>(context);
-    const relationColOpt = await colOptions
-      .getRelationColumn(context)
-      .then((col) => {
-        return (
-          col?.colOptions ??
-          col?.getColOptions<LinkToAnotherRecordColumn>(context)
-        );
-      });
+    if (colOptions?.error) return { uidt: UITypes.SingleLineText };
+    const relationCol = await colOptions.getRelationColumn(context);
+    if (!relationCol) return { uidt: UITypes.SingleLineText };
+    const relationColOpt = await (
+      relationCol.colOptions ??
+      relationCol.getColOptions<LinkToAnotherRecordColumn>(context)
+    );
+    if (!relationColOpt) return { uidt: UITypes.SingleLineText };
 
     const { refContext } = relationColOpt.getRelContext(context);
     return this.getNestedColumn(

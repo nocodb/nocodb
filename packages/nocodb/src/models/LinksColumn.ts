@@ -9,6 +9,7 @@ export default class LinksColumn
   implements RollupColumn
 {
   rollup_function = 'count' as RollupColumn['rollup_function'];
+  error: string;
 
   get fk_relation_column_id() {
     return this.fk_column_id;

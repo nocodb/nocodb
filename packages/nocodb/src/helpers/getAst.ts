@@ -521,7 +521,9 @@ const extractLookupDependencies = async (
   },
 ) => {
   const lookupColumnOpts = await lookUpColumn.getColOptions(context);
+  if (lookupColumnOpts?.error) return;
   const relationColumn = await lookupColumnOpts.getRelationColumn(context);
+  if (!relationColumn) return;
   const relationColumnOpts =
     await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
   const { refContext } = relationColumnOpts.getRelContext(context);

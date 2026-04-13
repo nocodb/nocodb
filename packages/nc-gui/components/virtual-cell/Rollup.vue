@@ -69,7 +69,15 @@ const renderAsTextFun = computed(() => {
 </script>
 
 <template>
-  <div @dblclick="activateShowEditNonEditableFieldWarning">
+  <div v-if="column && column.colOptions && column.colOptions.error" class="nc-cell-field">
+    <a-tooltip placement="bottom" class="text-nc-content-orange-dark">
+      <template #title>
+        <span class="font-bold">{{ column.colOptions.error }}</span>
+      </template>
+      <span>ERR!</span>
+    </a-tooltip>
+  </div>
+  <div v-else @dblclick="activateShowEditNonEditableFieldWarning">
     <CellDecimal v-if="renderAsTextFun.includes((colOptions as RollupType).rollup_function!)" :model-value="value" />
     <LazySmartsheetCell v-else v-model="value" :column="childColumn" :edit-enabled="false" :read-only="true" />
     <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">

@@ -1,9 +1,23 @@
-import { isBoxHovered, renderBarcode } from '../utils/canvas'
+import { isBoxHovered, renderBarcode, renderMultiLineText } from '../utils/canvas'
 import { validateBarcode } from '../utils/cell'
 
 export const BarcodeCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, column, tag = {}, spriteLoader, cellRenderStore, isDark, getColor } = props
+    const { value, x, y, width, height, column, tag = {}, spriteLoader, cellRenderStore, isDark, getColor, padding = 10 } = props
+
+    if (parseProp(column.colOptions)?.error) {
+      renderMultiLineText(ctx, {
+        x: x + (padding ?? 10),
+        y,
+        text: 'ERR!',
+        maxWidth: width - (padding ?? 10) * 2,
+        fontFamily: '500 13px Inter',
+        fillStyle: '#e65100',
+        height,
+      })
+      return
+    }
+
     const { renderAsTag } = tag
     const returnValue = renderBarcode(ctx, {
       x,

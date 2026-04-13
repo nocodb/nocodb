@@ -4,6 +4,18 @@ export const QRCodeCellRenderer: CellRenderer = {
   render: (ctx, { value, x, y, width, height, column, imageLoader, padding, tag = {}, cellRenderStore }) => {
     const { renderAsTag } = tag
     padding = 4
+    if (parseProp(column.colOptions)?.error) {
+      renderMultiLineText(ctx, {
+        x: x + padding,
+        y,
+        text: 'ERR!',
+        maxWidth: width - padding * 2,
+        fontFamily: '500 13px Inter',
+        fillStyle: '#e65100',
+        height,
+      })
+      return
+    }
     if (!value || value === 'ERR!') {
       if (value === 'ERR!') {
         renderMultiLineText(ctx, {

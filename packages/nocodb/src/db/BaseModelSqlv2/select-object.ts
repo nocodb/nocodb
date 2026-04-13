@@ -1,4 +1,9 @@
-import { ButtonActionsType, isBtLikeV2Junction, UITypes } from 'nocodb-sdk';
+import {
+  ButtonActionsType,
+  isBtLikeV2Junction,
+  NC_ERROR_SENTINEL,
+  UITypes,
+} from 'nocodb-sdk';
 import genRollupSelectv2 from '../genRollupSelectv2';
 import type { ColumnType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
@@ -6,6 +11,7 @@ import type {
   BarcodeColumn,
   ButtonColumn,
   GridViewColumn,
+  LookupColumn,
   QrCodeColumn,
   RollupColumn,
 } from '~/models';
@@ -153,12 +159,35 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           }
           break;
         case UITypes.LinkToAnotherRecord:
-        case UITypes.Lookup:
           break;
+        case UITypes.Lookup: {
+          const lookupOpt = await column.getColOptions<LookupColumn>(
+            baseModel.context,
+          );
+          if (lookupOpt?.error) {
+            qb.select(
+              baseModel.dbDriver.raw(`? as ??`, [
+                NC_ERROR_SENTINEL,
+                getAs(column),
+              ]),
+            );
+          }
+          break;
+        }
         case UITypes.QrCode: {
           const qrCodeColumn = await column.getColOptions<QrCodeColumn>(
             baseModel.context,
           );
+
+          if (qrCodeColumn.error) {
+            qb.select(
+              baseModel.dbDriver.raw(`? as ??`, [
+                NC_ERROR_SENTINEL,
+                getAs(column),
+              ]),
+            );
+            break;
+          }
 
           if (!qrCodeColumn.fk_qr_value_column_id) {
             qb.select(
@@ -205,6 +234,16 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           const barcodeColumn = await column.getColOptions<BarcodeColumn>(
             baseModel.context,
           );
+
+          if (barcodeColumn.error) {
+            qb.select(
+              baseModel.dbDriver.raw(`? as ??`, [
+                NC_ERROR_SENTINEL,
+                getAs(column),
+              ]),
+            );
+            break;
+          }
 
           if (!barcodeColumn.fk_barcode_value_column_id) {
             qb.select(

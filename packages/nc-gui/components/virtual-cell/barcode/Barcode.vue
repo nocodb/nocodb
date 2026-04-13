@@ -40,8 +40,10 @@ const barcodeMeta = computed(() => {
 
 const handleModalOkClick = () => (modalVisible.value = false)
 
+const hasColError = computed(() => !!(column?.value?.colOptions as any)?.error)
+
 const showBarcode = computed(
-  () => barcodeValue?.value.length > 0 && !tooManyCharsForBarcode.value && barcodeValue?.value !== 'ERR!',
+  () => barcodeValue?.value.length > 0 && !tooManyCharsForBarcode.value && barcodeValue?.value !== 'ERR!' && !hasColError.value,
 )
 
 const showBarcodeModal = () => {
@@ -148,6 +150,12 @@ onMounted(() => {
         </div>
       </template>
     </JsBarcodeWrapper>
+    <a-tooltip v-else-if="hasColError" placement="bottom" class="text-nc-content-orange-dark">
+      <template #title>
+        <span class="font-bold">{{ (column?.colOptions as any)?.error }}</span>
+      </template>
+      <span>ERR!</span>
+    </a-tooltip>
     <a-tooltip v-else-if="!showBarcode && barcodeValue === 'ERR!'" placement="bottom" class="text-nc-content-orange-dark">
       <template #title>
         <span class="font-bold">Please select a target field!</span>

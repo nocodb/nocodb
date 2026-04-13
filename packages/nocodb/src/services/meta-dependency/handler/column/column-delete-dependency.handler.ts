@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { isLinksOrLTAR, MetaEventType } from 'nocodb-sdk';
+import { EventType, isLinksOrLTAR, MetaEventType } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type {
   AffectedDependencyResult,
@@ -10,6 +10,7 @@ import {
   BarcodeColumn,
   Filter,
   LookupColumn,
+  Model,
   QrCodeColumn,
   RollupColumn,
   Sort,
@@ -19,6 +20,7 @@ import { CacheScope, MetaTable } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
 import Column from '~/models/Column';
+import NocoSocket from '~/socket/NocoSocket';
 
 type AffectedColumnType = 'lookup' | 'rollup' | 'qrcode' | 'barcode';
 
@@ -332,6 +334,23 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
     // Use each model's own context since cross-base models have different base_id.
     for (const [modelId, modelCtx] of affectedModelCtxMap) {
       await View.clearSingleQueryCache(modelCtx, modelId, null, ncMeta);
+    }
+
+    // Broadcast realtime updates so other clients refresh field metadata
+    // for tables whose columns were error-marked.
+    for (const [modelId, modelCtx] of affectedModelCtxMap) {
+      const model = await Model.get(modelCtx, modelId, false, ncMeta);
+      if (!model) continue;
+
+      await model.getColumns(modelCtx, ncMeta);
+
+      NocoSocket.broadcastEvent(modelCtx, {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'column_update',
+          payload: { table: model, column: {}, skipDataReload: true },
+        },
+      } as Parameters<typeof NocoSocket.broadcastEvent>[1]);
     }
   }
 

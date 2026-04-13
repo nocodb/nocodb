@@ -321,6 +321,7 @@ export default class BaseTrash implements BaseTrashType {
 
   public getRelatedItems(): {
     columns?: Array<{ id: string; placeholder_id: string; table_id: string }>;
+    dependents?: Array<{ id: string; type: string }>;
   } {
     if (!this.related_items) return {};
     if (typeof this.related_items === 'object') return this.related_items;

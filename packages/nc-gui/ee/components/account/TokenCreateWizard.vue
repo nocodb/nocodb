@@ -254,8 +254,8 @@ const onResultDone = () => {
         </div>
       </template>
 
-      <!-- Expiration -->
-      <div class="flex flex-col gap-2">
+      <!-- Expiration (hidden on unlicensed on-prem — tokens never expire) -->
+      <div v-if="!isEEFeatureBlocked" class="flex flex-col gap-2">
         <label class="text-sm font-bold text-nc-content-gray">{{ $t('labels.expiration') }}</label>
         <div class="flex items-center gap-2">
           <NcDropdown v-model:visible="showExpiryDropdown" :trigger="['click']" placement="bottomLeft">

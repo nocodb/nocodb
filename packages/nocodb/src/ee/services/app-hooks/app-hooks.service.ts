@@ -63,6 +63,9 @@ import type {
   WorkspaceTeamInviteEvent,
   WorkspaceTeamUpdateEvent,
   WorkspaceUserInviteEvent,
+  OrgDomainEvent,
+  SsoClientEvent,
+  ScimConfigEvent,
 } from './interfaces';
 import type { AppEvents } from 'nocodb-sdk';
 
@@ -539,6 +542,36 @@ export class AppHooksService extends ApppHookServiceCE {
     listener: (data: DocumentCommentDeleteEvent) => void,
   ): () => void;
 
+  // Org Domain Events
+  on(
+    event:
+      | AppEvents.ORG_DOMAIN_ADD
+      | AppEvents.ORG_DOMAIN_UPDATE
+      | AppEvents.ORG_DOMAIN_DELETE
+      | AppEvents.ORG_DOMAIN_VERIFY,
+    listener: (data: OrgDomainEvent) => void,
+  ): () => void;
+
+  // SSO Client Events
+  on(
+    event:
+      | AppEvents.SSO_CLIENT_CREATE
+      | AppEvents.SSO_CLIENT_UPDATE
+      | AppEvents.SSO_CLIENT_DELETE,
+    listener: (data: SsoClientEvent) => void,
+  ): () => void;
+
+  // SCIM Config Events
+  on(
+    event:
+      | AppEvents.SCIM_CONFIG_CREATE
+      | AppEvents.SCIM_CONFIG_UPDATE
+      | AppEvents.SCIM_CONFIG_DISABLE
+      | AppEvents.SCIM_CONFIG_DELETE
+      | AppEvents.SCIM_CONFIG_TOKEN_REGENERATE,
+    listener: (data: ScimConfigEvent) => void,
+  ): () => void;
+
   on(event, listener): () => void {
     return super.on(event, listener);
   }
@@ -966,6 +999,36 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(
     event: AppEvents.DATE_DEPENDENCY_DELETE,
     data: DateDependencyDeleteEvent,
+  ): void;
+
+  // Org Domain Events
+  emit(
+    event:
+      | AppEvents.ORG_DOMAIN_ADD
+      | AppEvents.ORG_DOMAIN_UPDATE
+      | AppEvents.ORG_DOMAIN_DELETE
+      | AppEvents.ORG_DOMAIN_VERIFY,
+    data: OrgDomainEvent,
+  ): void;
+
+  // SSO Client Events
+  emit(
+    event:
+      | AppEvents.SSO_CLIENT_CREATE
+      | AppEvents.SSO_CLIENT_UPDATE
+      | AppEvents.SSO_CLIENT_DELETE,
+    data: SsoClientEvent,
+  ): void;
+
+  // SCIM Config Events
+  emit(
+    event:
+      | AppEvents.SCIM_CONFIG_CREATE
+      | AppEvents.SCIM_CONFIG_UPDATE
+      | AppEvents.SCIM_CONFIG_DISABLE
+      | AppEvents.SCIM_CONFIG_DELETE
+      | AppEvents.SCIM_CONFIG_TOKEN_REGENERATE,
+    data: ScimConfigEvent,
   ): void;
 
   emit(event, data): void {

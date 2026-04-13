@@ -88,7 +88,7 @@ export class OrgsService {
     }
 
     if (param.emitEvent !== false) {
-      this.appHooksService.emit(AppEvents.ORG_DOMAIN_VERIFY as any, {
+      this.appHooksService.emit(AppEvents.ORG_DOMAIN_VERIFY, {
         orgId: domain.fk_org_id || Noco.ncDefaultOrgId,
         domainName: domain.domain,
         domainId: param.domainId,
@@ -148,7 +148,7 @@ export class OrgsService {
       resolvedOrgId = ws?.fk_org_id;
     }
 
-    this.appHooksService.emit(AppEvents.ORG_DOMAIN_ADD as any, {
+    this.appHooksService.emit(AppEvents.ORG_DOMAIN_ADD, {
       orgId: resolvedOrgId || Noco.ncDefaultOrgId,
       domainName: param.body.domain,
       req: param.req,
@@ -181,7 +181,7 @@ export class OrgsService {
 
     const updatedDomain = await Domain.get(param.domainId);
 
-    this.appHooksService.emit(AppEvents.ORG_DOMAIN_UPDATE as any, {
+    this.appHooksService.emit(AppEvents.ORG_DOMAIN_UPDATE, {
       orgId: updatedDomain?.fk_org_id || Noco.ncDefaultOrgId,
       domainName: param.domain.domain || updatedDomain?.domain,
       domainId: param.domainId,
@@ -197,7 +197,7 @@ export class OrgsService {
 
     const result = await Domain.delete(param.domainId);
 
-    this.appHooksService.emit(AppEvents.ORG_DOMAIN_DELETE as any, {
+    this.appHooksService.emit(AppEvents.ORG_DOMAIN_DELETE, {
       orgId: domainRecord?.fk_org_id || Noco.ncDefaultOrgId,
       domainName: domainRecord?.domain,
       domainId: param.domainId,

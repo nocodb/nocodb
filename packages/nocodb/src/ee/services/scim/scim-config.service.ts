@@ -72,7 +72,7 @@ export class ScimConfigService {
       default_role: EnterpriseOrgUserRoles.VIEWER,
     });
 
-    this.appHooksService.emit(AppEvents.SCIM_CONFIG_CREATE as any, {
+    this.appHooksService.emit(AppEvents.SCIM_CONFIG_CREATE, {
       orgId: param.orgId,
       req: param.req,
     });
@@ -101,7 +101,7 @@ export class ScimConfigService {
       provisioning_token: hashedToken,
     });
 
-    this.appHooksService.emit(AppEvents.SCIM_CONFIG_TOKEN_REGENERATE as any, {
+    this.appHooksService.emit(AppEvents.SCIM_CONFIG_TOKEN_REGENERATE, {
       orgId,
       req,
     });
@@ -154,12 +154,12 @@ export class ScimConfigService {
     await ScimConfig.update(context, param.orgId, param.config);
 
     if (param.config.enabled === false) {
-      this.appHooksService.emit(AppEvents.SCIM_CONFIG_DISABLE as any, {
+      this.appHooksService.emit(AppEvents.SCIM_CONFIG_DISABLE, {
         orgId: param.orgId,
         req: param.req,
       });
     } else {
-      this.appHooksService.emit(AppEvents.SCIM_CONFIG_UPDATE as any, {
+      this.appHooksService.emit(AppEvents.SCIM_CONFIG_UPDATE, {
         orgId: param.orgId,
         req: param.req,
       });
@@ -193,7 +193,7 @@ export class ScimConfigService {
 
     await ScimConfig.delete(context, orgId);
 
-    this.appHooksService.emit(AppEvents.SCIM_CONFIG_DELETE as any, {
+    this.appHooksService.emit(AppEvents.SCIM_CONFIG_DELETE, {
       orgId,
       req,
     });

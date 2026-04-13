@@ -67,7 +67,7 @@ export class SSOClientService {
       fk_workspace_id: param.workspaceId,
     });
 
-    this.appHooksService.emit(AppEvents.SSO_CLIENT_CREATE as any, {
+    this.appHooksService.emit(AppEvents.SSO_CLIENT_CREATE, {
       orgId: param.orgId || Noco.ncDefaultOrgId,
       title: param.client.title,
       req: param.req,
@@ -104,7 +104,7 @@ export class SSOClientService {
       deleted: false,
     });
 
-    this.appHooksService.emit(AppEvents.SSO_CLIENT_UPDATE as any, {
+    this.appHooksService.emit(AppEvents.SSO_CLIENT_UPDATE, {
       orgId: param.orgId || Noco.ncDefaultOrgId,
       title: param.client.title,
       clientId: param.clientId,
@@ -125,7 +125,7 @@ export class SSOClientService {
     // delete client
     const res = await SSOClient.delete(param.clientId);
 
-    this.appHooksService.emit(AppEvents.SSO_CLIENT_DELETE as any, {
+    this.appHooksService.emit(AppEvents.SSO_CLIENT_DELETE, {
       orgId: param.orgId || Noco.ncDefaultOrgId,
       clientId: param.clientId,
       req: param.req,

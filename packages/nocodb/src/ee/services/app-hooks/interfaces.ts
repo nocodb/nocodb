@@ -479,4 +479,26 @@ export interface DateDependencyDeleteEvent extends NcBaseEvent {
   table: { id?: string; title?: string; base_id?: string };
 }
 
+// Org Domain Events
+export interface OrgDomainEvent {
+  orgId: string;
+  domainName?: string;
+  domainId?: string;
+  req?: any;
+}
+
+// SSO Client Events
+export interface SsoClientEvent {
+  orgId: string;
+  title?: string;
+  clientId?: string;
+  req?: any;
+}
+
+// SCIM Config Events
+export interface ScimConfigEvent {
+  orgId: string;
+  req?: any;
+}
+
 export * from 'src/services/app-hooks/interfaces';

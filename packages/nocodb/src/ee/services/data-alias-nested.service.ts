@@ -201,6 +201,7 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
           source,
           apiVersion: context.api_version,
           extractOnlyPrimaries: hasLimitedAccess,
+          ignoreViewFilterAndSort: true,
           skipCache: true,
           validateFormula: false,
           skipSortBasedOnOrderCol: true,

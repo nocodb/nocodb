@@ -9,7 +9,7 @@ import {
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
-import { prepareForResponse } from '~/utils/modelUtils';
+import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
 export default class BaseTrash implements BaseTrashType {
   id?: string;
@@ -26,6 +26,7 @@ export default class BaseTrash implements BaseTrashType {
   cleanup_due_at?: string;
   related_items?: string;
   meta?: Record<string, any>;
+  is_restorable?: boolean;
 
   constructor(data: Partial<BaseTrash>) {
     Object.assign(this, data);
@@ -116,9 +117,33 @@ export default class BaseTrash implements BaseTrashType {
       },
     );
 
-    return trashList.map(
+    const items = trashList.map(
       (t) => new BaseTrash(prepareForResponse(t, ['meta', 'related_items'])),
     );
+
+    // Enrich with is_restorable — false when parent is also in trash
+    const parentIds = [
+      ...new Set(items.filter((t) => t.parent_id).map((t) => t.parent_id)),
+    ];
+
+    let trashedParentIds = new Set<string>();
+    if (parentIds.length) {
+      const trashedParents = await ncMeta
+        .knexConnection(MetaTable.TRASH)
+        .where('base_id', context.base_id)
+        .whereIn('resource_id', parentIds)
+        .select('resource_id');
+      trashedParentIds = new Set(
+        trashedParents.map((r: { resource_id: string }) => r.resource_id),
+      );
+    }
+
+    for (const item of items) {
+      item.is_restorable =
+        !item.parent_id || !trashedParentIds.has(item.parent_id);
+    }
+
+    return items;
   }
 
   public static async count(
@@ -164,9 +189,7 @@ export default class BaseTrash implements BaseTrashType {
       'meta',
     ]);
 
-    if (insertObj.meta && typeof insertObj.meta === 'object') {
-      insertObj.meta = JSON.stringify(insertObj.meta) as any;
-    }
+    prepareForDb(insertObj, ['meta', 'related_items']);
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,

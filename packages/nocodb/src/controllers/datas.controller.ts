@@ -61,7 +61,6 @@ export class DatasController {
     '/data/:viewId/:rowId/mm/:colId/exclude',
     '/data/:viewId/:rowId/mo/:colId/exclude',
     '/data/:viewId/:rowId/om/:colId/exclude',
-    '/data/:viewId/:rowId/oo/:colId/exclude',
   ])
   @Acl('mmExcludedList')
   async mmExcludedList(
@@ -72,6 +71,23 @@ export class DatasController {
     @Param('rowId') rowId: string,
   ) {
     return await this.datasService.mmExcludedList(context, {
+      viewId: viewId,
+      colId: colId,
+      rowId: rowId,
+      query: req.query,
+    });
+  }
+
+  @Get('/data/:viewId/:rowId/oo/:colId/exclude')
+  @Acl('ooExcludedList')
+  async ooExcludedList(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('viewId') viewId: string,
+    @Param('colId') colId: string,
+    @Param('rowId') rowId: string,
+  ) {
+    return await this.datasService.ooExcludedList(context, {
       viewId: viewId,
       colId: colId,
       rowId: rowId,

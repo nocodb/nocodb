@@ -46,6 +46,9 @@ const options = ref<Option[]>([])
 
 const isAddingOption = ref(false)
 
+const OPTIONS_PAGE_SIZE = 20
+const loadedCount = ref(OPTIONS_PAGE_SIZE)
+
 const renderedOptions = ref<Option[]>([])
 const savedDefaultOption = ref<Option[]>([])
 
@@ -145,7 +148,12 @@ const addNewOption = () => {
   }
   options.value.push(tempOption as Option)
 
-  renderedOptions.value = options.value
+  if (isKanbanStack.value) {
+    renderedOptions.value = options.value
+  } else {
+    loadedCount.value = options.value.length
+    renderedOptions.value = [...options.value]
+  }
 
   updateOptionsWrapperScrollHeight()
 
@@ -266,12 +274,37 @@ const undoRemoveRenderedOption = (index: number) => {
   }
 }
 
-// focus last created input
-// watch(inputs, () => {
-//   if (inputs.value?.$el) {
-//     inputs.value.$el.focus()
-//   }
-// })
+const refreshRenderedOptions = () => {
+  if (isKanbanStack.value) {
+    renderedOptions.value = options.value
+  } else {
+    renderedOptions.value = options.value.slice(0, loadedCount.value)
+  }
+}
+
+const loadMoreOptions = () => {
+  if (isAddingOption.value || loadedCount.value >= options.value.length) return
+
+  loadedCount.value = Math.min(loadedCount.value + OPTIONS_PAGE_SIZE, options.value.length)
+  refreshRenderedOptions()
+}
+
+useInfiniteScroll(optionsWrapperDomRef, loadMoreOptions, { distance: 50, interval: 300 })
+
+const onDragReorder = () => {
+  if (loadedCount.value >= options.value.length) {
+    options.value = [...renderedOptions.value]
+  } else {
+    const renderedSet = new Set(renderedOptions.value)
+    const unrendered = options.value.filter((opt) => !renderedSet.has(opt))
+    options.value = [...renderedOptions.value, ...unrendered]
+  }
+
+  options.value.forEach((opt, i) => {
+    opt.index = i
+  })
+  syncOptions()
+}
 
 // Removes the Select Option from cdf if the option is removed
 watch(vModel, (next) => {
@@ -338,8 +371,11 @@ const predictOptions = async () => {
       }
     }
 
-    renderedOptions.value = options.value
-    if (!isKanbanStack.value) {
+    if (isKanbanStack.value) {
+      renderedOptions.value = options.value
+    } else {
+      loadedCount.value = options.value.length
+      renderedOptions.value = [...options.value]
       syncOptions()
     }
 
@@ -348,7 +384,7 @@ const predictOptions = async () => {
 }
 
 const alphabetizeOptions = () => {
-  const activeOptions = renderedOptions.value.filter((op) => op.status !== 'remove')
+  const activeOptions = options.value.filter((op) => op.status !== 'remove')
 
   const alreadySorted = activeOptions.every(
     (op, i, arr) => i === 0 || (arr[i - 1].title ?? '').localeCompare(op.title ?? '') <= 0,
@@ -367,7 +403,8 @@ const alphabetizeOptions = () => {
   })
 
   options.value = [...sorted, ...removed]
-  renderedOptions.value = options.value
+  loadedCount.value = Math.min(OPTIONS_PAGE_SIZE, options.value.length)
+  refreshRenderedOptions()
 
   syncOptions()
 }
@@ -387,7 +424,12 @@ onMounted(() => {
     return { ...el }
   })
 
-  renderedOptions.value = options.value
+  if (isKanbanStack.value) {
+    renderedOptions.value = options.value
+  } else {
+    loadedCount.value = Math.min(OPTIONS_PAGE_SIZE, options.value.length)
+    renderedOptions.value = options.value.slice(0, loadedCount.value)
+  }
 
   // Support for older options
   for (const op of options.value.filter((el) => el.order === null)) {
@@ -558,7 +600,7 @@ if (!isKanbanStack.value) {
           :list="renderedOptions"
           item-key="id"
           handle=".nc-child-draggable-icon"
-          @change="syncOptions"
+          @change="onDragReorder"
         >
           <template #item="{ element, index }">
             <div class="flex py-1 items-center nc-select-option hover:bg-nc-bg-gray-light group">
